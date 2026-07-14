@@ -10,7 +10,7 @@
 | FIFA | ✅ 已迁入 | |
 | QBVS | ✅ 已迁入 | |
 | LinzeDatabase | ✅ 已迁入 | 原 CodexProject 中的 MetaDatabase/ 目录（含其内嵌 PFI） |
-| SerenityAlipay | ⏳ 待迁入 | 原 Serenity-Alipay |
+| SerenityAlipay | ✅ 已迁入 | 目录名 `Serenity-Alipay` |
 | EEI | ⏳ 待迁入 | codex 正在开发 |
 | PFI | ⏳ 待迁入 | codex 正在开发 |
 | ADP | ⏳ 待迁入 | **原 arxiv-daily-push**；codex 正在开发 |
