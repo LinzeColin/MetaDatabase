@@ -1,0 +1,104 @@
+# EEI Pursuing Goal — V5_0 ROOT_LOCK
+# 本文件存在期间，是 AGENTS.md 之下最强的项目契约：任何 agent 开工前必读，且不得违反 HR1-HR6。
+# 格式对齐 ADP V7_2_ROOT_LOCK（schema_version 1）。绑定方式为 commit-bound（git 树内共存版本即互相绑定），
+# 机读 sha256 契约字段在治理框架 CI（LinzeColin/Governance）接入本仓后按其 schema 补齐。
+
+schema_version: 1
+lock_id: EEI-V5-0-ROOT-LOCK-20260715
+project_id: EEI
+status: locked_by_owner_ack
+as_of: "2026-07-15"
+timezone: Australia/Sydney
+acceptance_basis: owner_goal_directive_2026_07_15
+
+owner_ack:
+  required: true
+  recorded: true
+  recorded_at: "2026-07-15"
+  ack_channel: claude_code_session_eei_takeover
+  ack_statement: "锁 并开始执行pursuing goal直到完成所有开发任务"
+  execution_authorization: D9_full_continuous_execution_until_mvp_done
+
+north_star:
+  product_cn: 商域帝国（Enterprise Ecosystem Intelligence, EEI）
+  statement: >
+    以公司为太阳的企业帝国星系：真实已发布事实、递归探索（reroot 无损上下文）、
+    证据优先、评分透明；体验全面超越 ADP；观感对标 Fuselab Control-AI 概念（V1-V10）；
+    云端 7×24 即开即用。
+  anti_goals:
+    - 不输出投资结论/买卖建议/回报概率（继承 PURSUING_GOAL.md 红线）
+    - 不用装饰性 hero/营销页替代运营型首屏
+
+hard_requirements:
+  - id: HR1_cloud_724
+    owner_words: 和adp一样云端7*24运行，cloudflare部署
+    binding: >
+      云端即真相：用户可见的探索/评分解释/Watchlist/变化流由 Cloudflare（Workers+D1/R2）
+      直接服务，不依赖本机开机；本机=深计算工厂（2016+回填/校准/金标/soak），
+      经单向发布管道推送云端；降级状态必须如实标注。
+    gate: CLOUD-GATE
+  - id: HR2_home_entry
+    owner_words: 支持从home.linzezhang.com跳转到eei
+    binding: EEI 获得稳定生产域名（目标 eei.linzezhang.com，workers.dev 兜底），LinzeHomeHub 首页出现 EEI 入口。
+    gate: S10PCT01
+  - id: HR3_premium_motion
+    owner_words: uiux动效一定要高级
+    binding: >
+      动效高级 bar 八项全过：reroot 镜头飞行/光晕脉冲/细丝 draw-in/扇出 stagger/
+      悬停景深传播/>=60fps 抽帧证明/reduced-motion 全量回退/防闪烁主题。
+    gate: S9-GATE
+  - id: HR4_data_platform
+    owner_words: 数据确保多、全面、专业、权威、深度、及时、第一线、历史保存，至少从2016年开始，庞大数据保存兼容运行，长期持续稳定运行
+    binding: >
+      历史纵深 >=2016（黄金纵切先行，全域 post-MVP wave）；一手权威来源（SEC/官方IR）；
+      定时增量采集长期运行；备份/归档/恢复演练/容量规划成文并演练。
+    gate: S7-GATE
+  - id: HR5_exceed_adp
+    owner_words: 比ADP还要完善丰富高级
+    binding: ADP 十模式逐条对照全 PASS + 录屏十要素 >=8 项 + 运行形态平起（云端/域名/移动端）。
+    gate: S9-GATE + CLOUD-GATE
+  - id: HR6_truthfulness
+    binding: fixture 不入生产快照；无证据不声明 VERIFIED；A209 类门只以真实证据关闭；台账矛盾即修。
+    gate: 全程 stop_conditions
+
+descoped_by_owner:
+  - id: D2_A210
+    text: A210 品牌/法律清权移出 MVP v0.1 门（Owner 2026-07-15："根本不需要管这个，这个是个噪音"）；fail-closed validator 保留备未来商用。
+
+current_contract:
+  roadmap_source: 开发记录.md（Stage S5/CF-L2/S6-S11，40 任务，commit-bound）
+  canonical_refs: [开发记录.md, 功能清单.md, docs/governance/roadmap.yaml, docs/governance/delivery_tasks.yaml]
+  stage_sequence: [S6 接管迁移真相恢复, S7 数据主干与数据平台, S8 十六模块, S9 帝国观感, S10 云端7x24, S11 发布工程]
+  mvp_done_definition:
+    - 211 验收矩阵 P0 全闭（A202/A204/A205/A209/A026/A027/A108-A112；A210 以 D2 决策记录替代）
+    - release-ready validator、make verify、clean-room/release/external/governance 四包、新仓 CI 全 PASS
+    - 16/16 模块 active 且各有 E2E；黄金纵切全为真实已发布事实
+    - 数据平台：时间轴回看 2016+、采集连续 7 天证据、备份恢复演练通过
+    - 云端 7×24：生产 URL 全功能、cron 连续 7 天 run_log、home 入口上线、移动端一致
+    - 观感：录屏十要素 >=8 项 + ADP 十模式全对照 + 动效 bar 八项全 PASS（证据留存）
+    - 三文件与 canonical facts 同步、v0.1.0 tag + CHANGELOG
+
+stage_boundary:
+  repo_move:
+    decision: EEI -> LinzeColin/MetaDatabase（Owner D1：立即迁移）
+    status: metadatabase_side_done_pr1_merged_main_7bca2007
+    source_tree_sha: fc83cf48982a00908fa658045b958f0a32b65e8c
+    codexproject_side: GOV-SPLIT-WAVE3 由治理线执行，删源 diff 需 Owner 过目
+  a209_boundary: T1307/A209 保持 IN_PROGRESS，直至 S11PBT01 以真实证据 + CI 复核关门。
+
+forbidden_until_mvp_gate:
+  - 以 fixture/模板证据冒充发布门证据
+  - 绕过 T2/T3 路由的模型/公式/参数/schema/发布变更
+  - 未经 Owner 单独授权启用付费 API（含 LLM 集成；Ask 栏 MVP 形态 = prompt 跳转 ChatGPT）
+  - 公共云表面泄漏 secrets/private raw 数据/本机绝对路径（CF-L2 边界继承）
+
+required_next_agent_read_order:
+  - docs/pursuing_goal/CURRENT.yaml
+  - docs/pursuing_goal/v5_0/V5_0_ROOT_LOCK.yaml
+  - 开发记录.md
+  - docs/governance/roadmap.yaml
+  - HANDOFF.md
+
+validation_contract:
+  render_review: 人工渲染审阅（治理框架 CI 接入 MetaDatabase 后转 machine check-render）
+  ci: .github/workflows/eei-validation.yml（MetaDatabase root，push/PR 双触发）
