@@ -185,16 +185,24 @@ test("A211 exposes WorkspaceContext routes controls disabled entries and persist
     "data-control-kind",
     "route"
   );
-  await page.getByTestId("main-nav-supply_chain").click();
-  await expect(page.getByTestId("workspace-shell")).toHaveAttribute(
-    "data-active-lens",
-    "supply_chain"
+  // S8PB promoted supply_chain from a lens to a real route (/supply-chain):
+  // the nav entry now carries route semantics like business_map.
+  await expect(page.getByTestId("main-nav-supply_chain")).toHaveAttribute(
+    "href",
+    "/supply-chain"
   );
-  await expect(page.getByTestId("workspace-shell")).toHaveAttribute(
-    "data-last-nav-action",
-    "lens:supply_chain:supply_chain"
+  await expect(page.getByTestId("main-nav-supply_chain")).toHaveAttribute(
+    "data-control-kind",
+    "route"
   );
-  await expect(page).toHaveURL(/lens=supply_chain/);
+  await expect(page.getByTestId("main-nav-policy_environment")).toHaveAttribute(
+    "href",
+    "/policy"
+  );
+  await expect(page.getByTestId("main-nav-group_structure")).toHaveAttribute(
+    "href",
+    "/structure"
+  );
 
   await page.getByTestId("main-nav-time_evolution").click();
   await expect(page.getByTestId("workspace-shell")).toHaveAttribute(
