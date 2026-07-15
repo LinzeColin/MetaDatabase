@@ -393,10 +393,11 @@ def normalize_sec_company_facts(
         for concept in sorted(concepts):
             path = f"companyfacts.facts.{taxonomy}.{concept}"
             concept_payload = require_mapping(concepts[concept], path)
-            label = require_string(concept_payload.get("label"), f"{path}.label")
-            description = require_string(
-                concept_payload.get("description"),
-                f"{path}.description",
+            # Live SEC companyfacts payloads carry null labels/descriptions for some
+            # dei/ecd concepts; fall back to the canonical concept id instead of failing.
+            label = optional_string(concept_payload.get("label"), f"{path}.label") or concept
+            description = (
+                optional_string(concept_payload.get("description"), f"{path}.description") or ""
             )
             units = require_mapping(concept_payload.get("units"), f"{path}.units")
             for unit in sorted(units):

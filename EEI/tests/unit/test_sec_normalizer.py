@@ -206,3 +206,24 @@ def test_normalization_contract_artifacts_are_fixture_only_and_fail_closed() -> 
     assert a101["contract"]["restatement_inferred_without_source_evidence"] is False
     assert a101["release_scope"]["live_sec_request_performed"] is False
     assert a101["release_scope"]["mvp_release_ready"] is False
+
+
+def test_company_facts_accepts_null_label_and_description_with_concept_fallback() -> None:
+    # Live SEC companyfacts (e.g. dei/ecd concepts such as ecd.CoSelectedMeasureAmt)
+    # carry null label/description; the normalizer must fall back to the concept id
+    # instead of failing (regression for the 2026-07-15 NVDA/TSMC/ASML live smokes).
+    payload = copy.deepcopy(load_json(COMPANY_FACTS_FIXTURE))
+    facts = payload["facts"]
+    donor_taxonomy = next(iter(facts))
+    donor_concept = copy.deepcopy(next(iter(facts[donor_taxonomy].values())))
+    donor_concept["label"] = None
+    donor_concept["description"] = None
+    facts["ecd"] = {"CoSelectedMeasureAmt": donor_concept}
+
+    normalized = normalize_sec_company_facts(payload, record_mode="fixture")
+
+    ecd_facts = [fact for fact in normalized.facts if fact.taxonomy == "ecd"]
+    assert ecd_facts, "null-label ecd concept must normalize instead of raising"
+    assert all(fact.concept == "CoSelectedMeasureAmt" for fact in ecd_facts)
+    assert all(fact.label == "CoSelectedMeasureAmt" for fact in ecd_facts)
+    assert all(fact.description == "" for fact in ecd_facts)
