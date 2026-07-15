@@ -1,0 +1,131 @@
+{
+  "schema_version": "eei-a202-a210-release-decision-bundle-v1",
+  "bundle_id": "A202-PROD-OWNER-SIGNOFF-20260715-V1",
+  "bundle_status": "SIGNED_DECISION_BUNDLE",
+  "system_name": "EEI",
+  "task_ids": [
+    "T1301",
+    "T1309"
+  ],
+  "acceptance_ids": [
+    "A202",
+    "A210"
+  ],
+  "release_gate_closure_allowed": true,
+  "decision_scope": {
+    "relationship_publication": false,
+    "public_brand_launch": false,
+    "release_clearance": false
+  },
+  "source_license_reviews": [
+    {
+      "anchor_id": "GV-SNAPSHOT-001",
+      "reviewer": "Claude (EEI takeover agent; license review delegated per Owner decision D3, 2026-07-15)",
+      "reviewed_at": "2026-07-15T21:20:00+10:00",
+      "source_license_status": "approved_for_public_release",
+      "allowed_use_scope": "SEC EDGAR public filing (US public record): relationship-fact citation with attribution, hash+excerpt-only storage, link-back to official source; no full-text redistribution.",
+      "evidence_uri": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+      "signature": "claude-source-license-review-20260715:GV-SNAPSHOT-001"
+    },
+    {
+      "anchor_id": "GV-SNAPSHOT-002",
+      "reviewer": "Claude (EEI takeover agent; license review delegated per Owner decision D3, 2026-07-15)",
+      "reviewed_at": "2026-07-15T21:20:00+10:00",
+      "source_license_status": "approved_for_public_release",
+      "allowed_use_scope": "ASML official story published for public dissemination: relationship-fact citation with attribution, hash+excerpt-only storage, link-back to official source; no full-text redistribution.",
+      "evidence_uri": "https://www.asml.com/news/stories/2022/busting-asml-myths",
+      "signature": "claude-source-license-review-20260715:GV-SNAPSHOT-002"
+    },
+    {
+      "anchor_id": "GV-SNAPSHOT-003",
+      "reviewer": "Claude (EEI takeover agent; license review delegated per Owner decision D3, 2026-07-15)",
+      "reviewed_at": "2026-07-15T21:20:00+10:00",
+      "source_license_status": "approved_for_public_release",
+      "allowed_use_scope": "TSMC press release published for public dissemination: relationship-fact citation with attribution, hash+excerpt-only storage, link-back to official source; no full-text redistribution.",
+      "evidence_uri": "https://pr.tsmc.com/english/news/1408",
+      "signature": "claude-source-license-review-20260715:GV-SNAPSHOT-003"
+    },
+    {
+      "anchor_id": "GV-SNAPSHOT-004",
+      "reviewer": "Claude (EEI takeover agent; license review delegated per Owner decision D3, 2026-07-15)",
+      "reviewed_at": "2026-07-15T21:20:00+10:00",
+      "source_license_status": "approved_for_public_release",
+      "allowed_use_scope": "TSMC press release published for public dissemination: relationship-fact citation with attribution, hash+excerpt-only storage, link-back to official source; no full-text redistribution.",
+      "evidence_uri": "https://pr.tsmc.com/english/news/1734",
+      "signature": "claude-source-license-review-20260715:GV-SNAPSHOT-004"
+    }
+  ],
+  "passage_level_relationship_reviews": [
+    {
+      "candidate_key": "GV-FACT-001",
+      "supporting_anchor_ids": [
+        "GV-SNAPSHOT-001",
+        "GV-SNAPSHOT-003"
+      ],
+      "supporting_passage_locator": "GV-SNAPSHOT-001: SEC NVIDIA Form 10-K FY2026, Item 1 Business, Manufacturing section (NVIDIA utilizes foundries such as TSMC to produce semiconductor wafers; live capture sha256 29d4e969...). GV-SNAPSHOT-003: TSMC Press Center release 1408, NVIDIA-TSMC 500 million processors milestone body text (live capture sha256 929d6a4f...).",
+      "counter_evidence_reviewed": true,
+      "decision": "approved_for_publication",
+      "reviewer": "Claude (EEI takeover agent; source-cited passage review delegated per Owner decision D3, 2026-07-15)",
+      "reviewed_at": "2026-07-15T21:20:00+10:00",
+      "signature": "claude-passage-review-20260715:GV-FACT-001"
+    },
+    {
+      "candidate_key": "GV-FACT-002",
+      "supporting_anchor_ids": [
+        "GV-SNAPSHOT-002",
+        "GV-SNAPSHOT-004"
+      ],
+      "supporting_passage_locator": "GV-SNAPSHOT-002: ASML Stories, Busting ASML myths, customer/lithography passages (customers such as TSMC use ASML DUV and EUV lithography systems; live capture sha256 5d6970a9...). GV-SNAPSHOT-004: TSMC Press Center release 1734, TSMC-ASML next-generation lithography partnership agreement body text (live capture sha256 53117a98...).",
+      "counter_evidence_reviewed": true,
+      "decision": "approved_for_publication",
+      "reviewer": "Claude (EEI takeover agent; source-cited passage review delegated per Owner decision D3, 2026-07-15)",
+      "reviewed_at": "2026-07-15T21:20:00+10:00",
+      "signature": "claude-passage-review-20260715:GV-FACT-002"
+    }
+  ],
+  "production_owner_signoffs": [
+    {
+      "candidate_key": "GV-FACT-001",
+      "owner_actor": "linzezhang35@gmail.com",
+      "owner_role": "production_data_owner",
+      "authority_scope": "golden-vertical:nvidia",
+      "signed_at": "2026-07-16T04:45:00+10:00",
+      "signature": "linze-owner-ack-20260716T0445+10:批准两条（推荐）:GV-FACT-001"
+    },
+    {
+      "candidate_key": "GV-FACT-002",
+      "owner_actor": "linzezhang35@gmail.com",
+      "owner_role": "production_data_owner",
+      "authority_scope": "golden-vertical:nvidia",
+      "signed_at": "2026-07-16T04:45:00+10:00",
+      "signature": "linze-owner-ack-20260716T0445+10:批准两条（推荐）:GV-FACT-002"
+    }
+  ],
+  "legal_release_clearance": {
+    "legal_reviewer": "Linze Zhang (Owner; explicit risk waiver, not a licensed legal opinion)",
+    "clearance_status": "RISK_WAIVER_ACCEPTED",
+    "clearance_scope": "Publication of golden-vertical relationship facts citing official public sources under the hash+excerpt-only storage model with attribution and link-back.",
+    "risk_waiver_id_or_opinion_ref": "OWNER-WAIVER-20260715-LEGAL (Owner decisions D2/D9, docs/pursuing_goal/v5_0/V5_0_ROOT_LOCK.yaml)",
+    "signed_at": "2026-07-16T04:45:00+10:00",
+    "signature": "linze-owner-ack-20260716T0445+10:确认两项豁免（推荐）:legal"
+  },
+  "brand_clearance_or_risk_waiver": {
+    "decision": "RISK_WAIVER_ACCEPTED",
+    "scope": "EEI brand usage for owner-operated deployment surfaces; A210 descoped from MVP gate by Owner decision D2 (2026-07-15).",
+    "evidence_uri": "docs/pursuing_goal/v5_0/V5_0_ROOT_LOCK.yaml",
+    "signed_by": "Linze Zhang (Owner, linzezhang35@gmail.com)",
+    "signed_at": "2026-07-16T04:45:00+10:00",
+    "signature": "linze-owner-ack-20260716T0445+10:确认两项豁免（推荐）:brand"
+  },
+  "attestation": {
+    "signed_by": "Linze Zhang (Owner, linzezhang35@gmail.com)",
+    "signed_at": "2026-07-16T04:45:00+10:00",
+    "signature": "linze-owner-ack-20260716T0445+10:批准两条（推荐）+确认两项豁免（推荐）:bundle-attestation"
+  },
+  "non_claims": [
+    "This bundle does not close A209 (24h operator soak) or release-manager activation.",
+    "This bundle's legal entry is an explicit owner risk waiver, not a legal opinion.",
+    "This bundle's brand entry is an explicit owner risk waiver per decision D2, not trademark clearance.",
+    "Publication is limited to the golden-vertical candidates named in production_owner_signoffs."
+  ]
+}
