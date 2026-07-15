@@ -325,6 +325,10 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── phase
 │   │   ├── MVP_DEVELOPMENT_RECORD.md
 │   │   └── V5_TASK_PACK_SYNCHRONIZATION.md
+│   ├── pursuing_goal
+│   │   ├── v5_0
+│   │   │   └── V5_0_ROOT_LOCK.yaml
+│   │   └── CURRENT.yaml
 │   ├── 01_PRODUCT_REQUIREMENTS.md
 │   ├── 02_SCOPE_AND_BOUNDARIES.md
 │   ├── 03_UX_INFORMATION_ARCHITECTURE.md
