@@ -1,0 +1,61 @@
+{
+  "schema_version": "eei-gold-quality-calibration-iteration-v1",
+  "task_id": "S7PCT02",
+  "legacy_task_id": "T904",
+  "acceptance_ids": ["A026", "A027"],
+  "iteration": 1,
+  "recorded_at": "2026-07-16T07:55:00+10:00",
+  "gold_identity": {
+    "rule": "Calibration must not touch gold content. The owner batch sign-off covers the gold; prediction refreshes inherit it only if the gold-only hash (cases minus predicted_* fields) is byte-identical.",
+    "v1_labels": "artifacts/operator_inputs/t904_production_gold_labels_20260716.json",
+    "v2_labels": "artifacts/operator_inputs/t904_production_gold_labels_20260716_v2.json",
+    "gold_only_sha256": "ba5fca081b451ecb7da76f029fb89fc4a0786a9398bbd3b0402a5e497f5bd437",
+    "gold_identical": true
+  },
+  "diagnosis": {
+    "finding": "S7PCT01 evaluation exposed an entity-resolution recall gap: ticker and SEC-registry-title surface forms failed to resolve although the /v1/entities identifier match path exists in code - entities carried no identifier rows (data gap, not code gap).",
+    "false_negative_families": [
+      "ticker surface forms (NVDA, TSM, GOOGL, MSFT, AMZN, AAPL, TSLA, ORCL, AVGO, CRWV, PLTR)",
+      "SEC registry titles diverging from canonical names (AMAZON COM INC, TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD, ASML HOLDING NV)",
+      "companies without production entities (Micron, Intel, Dell, Qualcomm, SK hynix, Samsung, Hon Hai, Huawei, Groq, Alibaba) - NOT addressable by calibration; entity population belongs to S7PD"
+    ]
+  },
+  "action": {
+    "kind": "official_data_calibration",
+    "description": "Loaded 39 official identifiers (ticker + zero-padded CIK + SEC registry title for 13 entity-backed universe companies) from the SEC EDGAR company_tickers.json registry into entity_identifiers, via an explicit research_id-to-CIK map, fail-closed against the gold-corpus manifest hash. No fuzzy matching. Idempotent.",
+    "script": "scripts/load_official_ticker_identifiers.py",
+    "report": "runtime_evidence/EEI/s7pct02_ticker_identifier_load-20260716.json",
+    "identifiers_inserted": 39,
+    "gold_labels_modified": false
+  },
+  "measurement": {
+    "before": {
+      "labels": "artifacts/operator_inputs/t904_production_gold_labels_20260716.json",
+      "a026": {"precision": 1.0, "recall": 0.585366, "true_positive": 24, "false_positive": 0, "false_negative": 17, "sample_count": 54},
+      "a027": {"precision": 1.0, "recall": 0.076923, "true_positive": 2, "false_positive": 0, "false_negative": 24, "sample_count": 114}
+    },
+    "after": {
+      "labels": "artifacts/operator_inputs/t904_production_gold_labels_20260716_v2.json",
+      "a026": {"precision": 1.0, "recall": 0.658537, "true_positive": 27, "false_positive": 0, "false_negative": 14, "sample_count": 54},
+      "a027": {"precision": 1.0, "recall": 0.076923, "true_positive": 2, "false_positive": 0, "false_negative": 24, "sample_count": 114}
+    },
+    "delta": {
+      "a026_recall_pp": 7.3,
+      "a026_true_positive": 3,
+      "a026_precision_change": 0.0,
+      "a027_change": "none - relationship recall is bounded by published-fact coverage, not resolution",
+      "resolution_mechanism_change": "previously-fuzzy matches now resolve deterministically via rank-2 identifier match (ticker / sec_registry_title), verified by /v1/entities match_type probes"
+    },
+    "remaining_false_negatives": "All 14 remaining A026 false negatives are companies without production entities; all 24 A027 false negatives await further owner-signed publication batches. Both are S7PD scope."
+  },
+  "gates": {
+    "a026_threshold_result": "PASS (precision 1.000 >= 0.95, coverage 1.0, cases 54 >= 50)",
+    "a027_threshold_result": "PASS (precision 1.000 >= 0.90, coverage 1.0, cases 114 >= 100)",
+    "recall_is_reported_not_release_threshold": true
+  },
+  "release_scope": {
+    "relationship_publication_performed": false,
+    "release_clearance": false,
+    "a202_closed_by_iteration": false
+  }
+}

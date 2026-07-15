@@ -48,3 +48,14 @@
 - A026：≥50 例、precision ≥ 0.95、来源覆盖=1.0；A027：≥100 例、precision ≥ 0.90、
   覆盖=1.0。**recall 必须上报但不是关账门槛**（recall 提升属 S7PD 数据扩张线）。
 - 金标通过只关 A026/A027，不触碰 A202/A209/A210/release-manager 任何门。
+
+## 6. 校准回路（v1 附录，S7PCT02）
+
+- 校准动作**永不改动金标**：预测刷新产生新数据集版本（v2、v3…），其 `gold_only_sha256`
+  （去除 `predicted_*` 字段后的 canonical JSON sha256）必须与已签核版本逐字节一致，
+  Owner 批次签核方可延续；任何金标内容变更都是新批次，需重新签核。
+- 每轮校准记录 `t904_calibration_iteration_NNN_*.json`：诊断（FN 家族分析）→ 动作
+  （引证官方数据/代码修复，fail-closed）→ 复测（before/after 全指标）→ 剩余缺口归属。
+- 迭代 001（2026-07-16）：官方 ticker/CIK/注册表题名标识灌注（39 行，SEC 注册表哈希对拍）；
+  A026 recall 58.5%→65.9%（precision 保持 1.000），解析机制从模糊匹配转为确定性
+  identifier 命中；剩余 FN 全部为实体人口缺口（S7PD 范围）。
