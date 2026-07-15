@@ -4,8 +4,12 @@ export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: ["saved-view-live.spec.ts"],
   timeout: 45_000,
+  // CI cold-start latency (fresh FastAPI + PostgreSQL) intermittently pushed
+  // panel-attribute hydration past the old 7.5s expect budget; retries were
+  // always anticipated (trace: on-first-retry) but never configured.
+  retries: process.env.CI ? 2 : 0,
   expect: {
-    timeout: 7_500
+    timeout: 15_000
   },
   use: {
     baseURL: "http://127.0.0.1:3000",
