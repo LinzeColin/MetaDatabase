@@ -1,0 +1,38 @@
+[
+  {
+    "id": "FEAT-PFI-001",
+    "name": "策略族与技术指标规则",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-PFI-002",
+    "name": "精确回测、买持比较与随机压力验证",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-PFI-003",
+    "name": "快速筛选、质量门禁与可恢复任务",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-PFI-004",
+    "name": "长跑 campaign 与 finalist 策略选择",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-PFI-005",
+    "name": "Alipay fund 与 QuantLab 证据包",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-PFI-006",
+    "name": "目标就绪审计、universe seed 与 provider probe",
+    "status": "active",
+    "evidence": "extracted"
+  }
+]

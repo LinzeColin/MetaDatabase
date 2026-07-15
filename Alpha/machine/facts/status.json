@@ -1,0 +1,12 @@
+{
+  "version": "0.1.0",
+  "stage": "S5",
+  "phase": "S5PA",
+  "task": "S5PAT01",
+  "real_progress": "100.00%（结构进度；真实进度待第二层核对）",
+  "report_grade": "UNKNOWN（待口径裁定）",
+  "business_verdict": "UNKNOWN",
+  "evidence_status": "EXTRACTED",
+  "rendered_at": "2026-07-15",
+  "migrated_from_legacy": "功能清单.md"
+}

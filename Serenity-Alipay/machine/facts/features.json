@@ -1,0 +1,32 @@
+[
+  {
+    "id": "FEAT-SER-001",
+    "name": "Candidate scoring and risk",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-SER-002",
+    "name": "Top5 ranking and target allocation",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-SER-003",
+    "name": "Comparison and discipline alerts",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-SER-004",
+    "name": "Business-day automation safety",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-SER-CF-L2-001",
+    "name": "Cloudflare 安全 L2 只读投资驾驶舱",
+    "status": "active",
+    "evidence": "extracted"
+  }
+]

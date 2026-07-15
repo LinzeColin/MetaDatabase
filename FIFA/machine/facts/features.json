@@ -1,0 +1,38 @@
+[
+  {
+    "id": "FEAT-FIFA-001",
+    "name": "赔率解析、隐含概率与无水概率",
+    "status": "in_progress",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-FIFA-002",
+    "name": "候选信号、Poisson 代理与推荐路由",
+    "status": "blocked",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-FIFA-003",
+    "name": "资金、stake 上限与零执行边界",
+    "status": "blocked",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-FIFA-004",
+    "name": "Public raw 与 live board fail-closed",
+    "status": "blocked",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-FIFA-005",
+    "name": "Provider KPI、TT-001 与人工发布门禁",
+    "status": "blocked",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-FIFA-006",
+    "name": "Legacy softmax 生命周期",
+    "status": "planned",
+    "evidence": "extracted"
+  }
+]
