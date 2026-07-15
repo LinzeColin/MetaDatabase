@@ -156,6 +156,7 @@ artifacts/tests/a202/t1301_live_official_selected_capture_evidence.json
 artifacts/tests/a202/t1301_official_full_text_dry_run_contract.json
 artifacts/tests/a202/t1301_operator_review_packet_contract.json
 artifacts/tests/a202/t1301_operator_source_capture_contract.json
+artifacts/tests/a202/t1301_second_source_cross_verification_contract.json
 artifacts/tests/a203/t1302_production_api_graph_scoring_contract.json
 artifacts/tests/a203/t1302_production_api_release_preflight.json
 artifacts/tests/a204/t1303_transactional_model_activation_contract.json
@@ -389,6 +390,7 @@ reviews/03_UIUX_ARCHITECTURE_REVIEW.md
 scripts/apply_model_config.py
 scripts/check_database_schema.py
 scripts/compile_model_runtime_defaults.py
+scripts/cross_verify_relationship_candidates.py
 scripts/db_tools.py
 scripts/env_doctor.py
 scripts/fetch_official_source_full_text.py
@@ -490,6 +492,7 @@ tests/unit/test_amount_semantics.py
 tests/unit/test_api_health.py
 tests/unit/test_brand_clearance.py
 tests/unit/test_clean_room_release_paths.py
+tests/unit/test_cross_verify_relationship_candidates.py
 tests/unit/test_external_release_evidence_bundle.py
 tests/unit/test_gold_quality_evaluation.py
 tests/unit/test_model_config_apply.py

@@ -1,0 +1,52 @@
+{
+  "schema_version": "eei-second-source-cross-verification-v1",
+  "task_id": "S7PAT02",
+  "legacy_task_id": "T1301",
+  "acceptance_ids": [
+    "A202"
+  ],
+  "status": "CONTRACT_ONLY_NO_NETWORK",
+  "generated_at": "2026-07-15T06:17:02+00:00",
+  "policy_fingerprint": "4f4b103e909a5eb61e4c64efd08d5084ecba37af67041e5b52cddf4b80e9a9ef",
+  "method": {
+    "support_rule": "a source supports a candidate only when transport succeeded, extracted text length >= min_text_chars, subject and object entity tokens both matched through the audited token/alias engine, and at least one relationship-type keyword matched",
+    "corroboration_rule": "CORROBORATED requires >= source_threshold_min supporting sources from publisher-independent origins",
+    "conflict_rule": "non-empty counter_evidence forces CONFLICTED",
+    "queue_rule": "every non-CORROBORATED candidate is enqueued to manual_review_queue",
+    "publication_rule": "this pipeline never publishes; all release gates stay closed"
+  },
+  "relation_keywords": {
+    "wafer_foundry_for": [
+      "foundry",
+      "foundries",
+      "wafer"
+    ],
+    "equipment_provider_to": [
+      "lithography",
+      "EUV",
+      "DUV",
+      "equipment"
+    ]
+  },
+  "token_alias_policy_version": "official-source-token-alias-v1",
+  "min_text_chars": 240,
+  "statuses": [
+    "CORROBORATED",
+    "SINGLE_SOURCE",
+    "CONFLICTED",
+    "UNVERIFIED"
+  ],
+  "queue_priority": {
+    "SINGLE_SOURCE": "P1",
+    "CONFLICTED": "P0",
+    "UNVERIFIED": "P0"
+  },
+  "candidates_registry": "data/golden_vertical_fact_candidates.json",
+  "release_scope": {
+    "live_network_performed": false,
+    "database_write_performed": false,
+    "relationship_publication_performed": false,
+    "a202_closed_by_contract": false,
+    "mvp_release_ready": false
+  }
+}
