@@ -166,7 +166,8 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   ├── t1301_live_official_selected_capture_evidence.json
 │   │   │   ├── t1301_official_full_text_dry_run_contract.json
 │   │   │   ├── t1301_operator_review_packet_contract.json
-│   │   │   └── t1301_operator_source_capture_contract.json
+│   │   │   ├── t1301_operator_source_capture_contract.json
+│   │   │   └── t1301_second_source_cross_verification_contract.json
 │   │   ├── a203
 │   │   │   ├── t1302_production_api_graph_scoring_contract.json
 │   │   │   └── t1302_production_api_release_preflight.json
@@ -455,6 +456,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── apply_model_config.py
 │   ├── check_database_schema.py
 │   ├── compile_model_runtime_defaults.py
+│   ├── cross_verify_relationship_candidates.py
 │   ├── db_tools.py
 │   ├── env_doctor.py
 │   ├── fetch_official_source_full_text.py
@@ -568,6 +570,7 @@ Enterprise_Ecosystem_Intelligence_release
 │       ├── test_api_health.py
 │       ├── test_brand_clearance.py
 │       ├── test_clean_room_release_paths.py
+│       ├── test_cross_verify_relationship_candidates.py
 │       ├── test_external_release_evidence_bundle.py
 │       ├── test_gold_quality_evaluation.py
 │       ├── test_model_config_apply.py
