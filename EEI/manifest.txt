@@ -101,6 +101,10 @@ artifacts/governance_blueprint_v42_source.html
 artifacts/model_config_import_preview.json
 artifacts/operator_inputs/a202_a210_signed_release_decision_bundle_20260715.json
 artifacts/operator_inputs/a202_production_owner_signoff_decisions_20260715.json
+artifacts/operator_inputs/t904_a026_production_evaluation_20260716.json
+artifacts/operator_inputs/t904_a027_production_evaluation_20260716.json
+artifacts/operator_inputs/t904_production_gold_corpus_spec_20260716.json
+artifacts/operator_inputs/t904_production_gold_labels_20260716.json
 artifacts/pdf_contact_sheet.png
 artifacts/release_evidence_t1211.json
 artifacts/release_operation_log_t1211.jsonl
@@ -306,6 +310,7 @@ docs/adr/ADR-012-search.md
 docs/adr/ADR-013-frontend-visualization.md
 docs/adr/ADR-014-data-ingestion.md
 docs/adr/ADR-015-fixture-and-live-data-separation.md
+docs/gold_quality/PRODUCTION_GOLD_LABELING_PROTOCOL.md
 docs/governance/ASSURANCE_STATUS.yaml
 docs/governance/DELIVERY_PLAN.md
 docs/governance/DEVELOPMENT_LEDGER.md
@@ -390,11 +395,13 @@ reviews/01_SECURITY_CODE_QUALITY_REVIEW.md
 reviews/02_STRESS_LIFECYCLE_INTERACTION_REVIEW.md
 reviews/03_UIUX_ARCHITECTURE_REVIEW.md
 scripts/apply_model_config.py
+scripts/build_production_gold_labels.py
 scripts/check_database_schema.py
 scripts/compile_model_runtime_defaults.py
 scripts/cross_verify_relationship_candidates.py
 scripts/db_tools.py
 scripts/env_doctor.py
+scripts/fetch_gold_corpus_sources.py
 scripts/fetch_official_source_full_text.py
 scripts/finalize_operator_soak_evidence.py
 scripts/generate_app_icon.py

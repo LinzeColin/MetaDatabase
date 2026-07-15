@@ -86,7 +86,11 @@ Enterprise_Ecosystem_Intelligence_release
 ├── artifacts
 │   ├── operator_inputs
 │   │   ├── a202_a210_signed_release_decision_bundle_20260715.json
-│   │   └── a202_production_owner_signoff_decisions_20260715.json
+│   │   ├── a202_production_owner_signoff_decisions_20260715.json
+│   │   ├── t904_a026_production_evaluation_20260716.json
+│   │   ├── t904_a027_production_evaluation_20260716.json
+│   │   ├── t904_production_gold_corpus_spec_20260716.json
+│   │   └── t904_production_gold_labels_20260716.json
 │   ├── tests
 │   │   ├── a005
 │   │   │   └── t101_postgres_compose_clean_environment.json
@@ -309,6 +313,8 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   ├── ADR-013-frontend-visualization.md
 │   │   ├── ADR-014-data-ingestion.md
 │   │   └── ADR-015-fixture-and-live-data-separation.md
+│   ├── gold_quality
+│   │   └── PRODUCTION_GOLD_LABELING_PROTOCOL.md
 │   ├── governance
 │   │   ├── ASSURANCE_STATUS.yaml
 │   │   ├── DELIVERY_PLAN.md
@@ -457,11 +463,13 @@ Enterprise_Ecosystem_Intelligence_release
 │   └── 03_UIUX_ARCHITECTURE_REVIEW.md
 ├── scripts
 │   ├── apply_model_config.py
+│   ├── build_production_gold_labels.py
 │   ├── check_database_schema.py
 │   ├── compile_model_runtime_defaults.py
 │   ├── cross_verify_relationship_candidates.py
 │   ├── db_tools.py
 │   ├── env_doctor.py
+│   ├── fetch_gold_corpus_sources.py
 │   ├── fetch_official_source_full_text.py
 │   ├── finalize_operator_soak_evidence.py
 │   ├── generate_app_icon.py
