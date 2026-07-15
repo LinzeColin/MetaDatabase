@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "decision_set_key": "a202-production-owner-signoff-linze-20260715-v1",
+  "record_mode": "curated_official_fixture",
+  "review_context": "production_owner_signoff_contract",
+  "production_owner_signoff": true,
+  "decisions": [
+    {
+      "candidate_key": "GV-FACT-001",
+      "decision": "approved_for_publication",
+      "reviewer": "Claude (EEI takeover agent; source-cited passage review delegated per Owner decision D3, 2026-07-15)",
+      "reviewed_at": "2026-07-16T04:45:00+10:00",
+      "owner_actor": "linzezhang35@gmail.com",
+      "owner_role": "production_data_owner",
+      "authority_scope": "golden-vertical:nvidia",
+      "signature": "linze-owner-ack-20260716T0445+10:批准两条（推荐）:GV-FACT-001",
+      "source_threshold_override": false,
+      "source_threshold_override_reason": "Not used; S7PAT02 live second-source cross-verification corroborated this candidate with two publisher-independent official sources (SEC EDGAR NVIDIA Form 10-K FY2026; TSMC Press Center release 1408), evidence at runtime_evidence/EEI/second_source_cross_verification-20260715.json.",
+      "attestation": "Reviewed endpoint resolution (TSMC X-001 / NVIDIA Corporation P0-006), official source locators and URLs, DB evidence-chain excerpts, empty counter-evidence arrays, independent_source_count=2 with source_threshold_met=true from live cross-verification, authority scope, and production owner sign-off fields."
+    },
+    {
+      "candidate_key": "GV-FACT-002",
+      "decision": "approved_for_publication",
+      "reviewer": "Claude (EEI takeover agent; source-cited passage review delegated per Owner decision D3, 2026-07-15)",
+      "reviewed_at": "2026-07-16T04:45:00+10:00",
+      "owner_actor": "linzezhang35@gmail.com",
+      "owner_role": "production_data_owner",
+      "authority_scope": "golden-vertical:nvidia",
+      "signature": "linze-owner-ack-20260716T0445+10:批准两条（推荐）:GV-FACT-002",
+      "source_threshold_override": false,
+      "source_threshold_override_reason": "Not used; S7PAT02 live second-source cross-verification corroborated this candidate with two publisher-independent official sources (ASML Stories; TSMC Press Center release 1734), evidence at runtime_evidence/EEI/second_source_cross_verification-20260715.json.",
+      "attestation": "Reviewed endpoint resolution (ASML X-002 / TSMC X-001), official source locators and URLs, DB evidence-chain excerpts, empty counter-evidence arrays, independent_source_count=2 with source_threshold_met=true from live cross-verification, authority scope, and production owner sign-off fields."
+    }
+  ]
+}
