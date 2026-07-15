@@ -728,6 +728,17 @@ def restore_saved_view(
         raise translate_repository_error(exc) from exc
 
 
+@router.get("/policy/overview")
+def policy_overview(
+    repository: RepositoryDependency,
+    entity: Annotated[UUID | None, Query()] = None,
+) -> dict[str, Any]:
+    try:
+        return repository.policy_overview(entity_id=entity)
+    except RepositoryError as exc:
+        raise translate_repository_error(exc) from exc
+
+
 @router.get("/changes")
 def list_changes(
     repository: RepositoryDependency,
