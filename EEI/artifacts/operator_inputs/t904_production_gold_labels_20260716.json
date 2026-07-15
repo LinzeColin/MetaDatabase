@@ -1,0 +1,3801 @@
+{
+  "schema_version": "eei-gold-quality-labels-v1",
+  "system_name": "EEI",
+  "scope": "golden-vertical:nvidia",
+  "dataset_id": "eei-production-gold-labels-golden-vertical-20260716-v1",
+  "fixture_policy": {
+    "production_gold_set": true,
+    "relationship_publication": false,
+    "release_clearance": false
+  },
+  "production_gold_evidence": {
+    "evidence_id": "T904-PROD-GOLD-20260716-V1",
+    "dataset_owner": "linzezhang35@gmail.com",
+    "owner_role": "production_data_owner",
+    "sampling_frame": "Golden-vertical official corpus fetched 2026-07-16: NVIDIA FY2026 Form 10-K (SEC EDGAR), three NVIDIA official newsroom/blog anchors, ASML official story, two TSMC Press Center releases, plus the SEC EDGAR company_tickers.json registry for entity surface forms. Manifest with sha256 per source: runtime_evidence/EEI/gold_corpus/manifest-20260716.json",
+    "labeling_protocol_ref": "docs/gold_quality/PRODUCTION_GOLD_LABELING_PROTOCOL.md",
+    "label_freeze_sha256": "c5d32612463e466b7f47da34d1769f7726c92b2e004ffc333180d9ae7a4301e4",
+    "reviewer": "claude-eei-takeover-agent-d3",
+    "reviewed_at": "2026-07-16T06:10:00+10:00",
+    "reviewer_signature_hash": "e3629bb008808bbb5c28726e19d9fb8d014078194302ab88fe2868a81ac59b27",
+    "source_license_review_ref": "artifacts/operator_inputs/a202_a210_signed_release_decision_bundle_20260715.json",
+    "passage_review_policy_ref": "artifacts/operator_inputs/t904_production_gold_corpus_spec_20260716.json",
+    "source_document_refs": [
+      "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+      "https://www.asml.com/news/stories/2022/busting-asml-myths",
+      "https://pr.tsmc.com/english/news/1408",
+      "https://pr.tsmc.com/english/news/1734",
+      "https://blogs.nvidia.com/blog/taiwan-ecosystem-ai-infrastructure/",
+      "https://investor.nvidia.com/files/doc_financials/2026/q4/10K-NVDA.pdf",
+      "https://nvidianews.nvidia.com/news/computer-industry-ai-factories-data-centers",
+      "https://blogs.nvidia.com/blog/computex-2025-jensen-huang/",
+      "https://www.sec.gov/files/company_tickers.json"
+    ],
+    "labeler_qualification_refs": [
+      "https://github.com/LinzeColin/MetaDatabase/pull/2",
+      "https://github.com/LinzeColin/MetaDatabase/pull/8"
+    ],
+    "excludes_repository_fixtures": true,
+    "operator_supplied_labels": true,
+    "synthetic_or_fixture_labels": false,
+    "owner_batch_signoff": {
+      "status": "OWNER_BATCH_SIGNED",
+      "owner_actor": "linzezhang35@gmail.com",
+      "signed_at": "2026-07-16T07:05:00+10:00",
+      "signature": "linze-owner-ack-20260716T0705+10:批准整批（推荐）:T904-PROD-GOLD-20260716-V1",
+      "ack_context": "AskUserQuestion batch sign-off; A026 precision 1.000 / A027 precision 1.000 / coverage 1.0 / recall reported not gated"
+    }
+  },
+  "entity_resolution_cases": [
+    {
+      "case_id": "ENT-PROD-001",
+      "input_text": "NVIDIA CORP",
+      "expected_entity_id": "P0-006",
+      "predicted_entity_id": "P0-006",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-002",
+      "input_text": "NVDA",
+      "expected_entity_id": "P0-006",
+      "predicted_entity_id": "P0-006",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-003",
+      "input_text": "NVIDIA Corporation",
+      "expected_entity_id": "P0-006",
+      "predicted_entity_id": "P0-006",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-004",
+      "input_text": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD",
+      "expected_entity_id": "X-001",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-005",
+      "input_text": "TSM",
+      "expected_entity_id": "X-001",
+      "predicted_entity_id": "X-001",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-006",
+      "input_text": "TSMC",
+      "expected_entity_id": "X-001",
+      "predicted_entity_id": "X-001",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://pr.tsmc.com/english/news/1408"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-003"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-003"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-007",
+      "input_text": "ASML HOLDING NV",
+      "expected_entity_id": "X-002",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-008",
+      "input_text": "ASML",
+      "expected_entity_id": "X-002",
+      "predicted_entity_id": "X-002",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.asml.com/news/stories/2022/busting-asml-myths"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-002"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-002"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-009",
+      "input_text": "MICRON TECHNOLOGY INC",
+      "expected_entity_id": "P1-047",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-010",
+      "input_text": "Micron Technology, Inc.",
+      "expected_entity_id": "P1-047",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-011",
+      "input_text": "INTEL CORP",
+      "expected_entity_id": "P0-016",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-012",
+      "input_text": "INTC",
+      "expected_entity_id": "P0-016",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-013",
+      "input_text": "Broadcom Inc.",
+      "expected_entity_id": "P0-014",
+      "predicted_entity_id": "P0-014",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-014",
+      "input_text": "AVGO",
+      "expected_entity_id": "P0-014",
+      "predicted_entity_id": "P0-014",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-015",
+      "input_text": "MICROSOFT CORP",
+      "expected_entity_id": "P0-002",
+      "predicted_entity_id": "P0-002",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-016",
+      "input_text": "MSFT",
+      "expected_entity_id": "P0-002",
+      "predicted_entity_id": "P0-002",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-017",
+      "input_text": "AMAZON COM INC",
+      "expected_entity_id": "P0-003",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-018",
+      "input_text": "AMZN",
+      "expected_entity_id": "P0-003",
+      "predicted_entity_id": "P0-003",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-019",
+      "input_text": "Alphabet Inc.",
+      "expected_entity_id": "P0-001",
+      "predicted_entity_id": "P0-001",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-020",
+      "input_text": "GOOGL",
+      "expected_entity_id": "P0-001",
+      "predicted_entity_id": "P0-001",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-021",
+      "input_text": "Meta Platforms, Inc.",
+      "expected_entity_id": "P0-004",
+      "predicted_entity_id": "P0-004",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-022",
+      "input_text": "Apple Inc.",
+      "expected_entity_id": "P0-005",
+      "predicted_entity_id": "P0-005",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-023",
+      "input_text": "AAPL",
+      "expected_entity_id": "P0-005",
+      "predicted_entity_id": "P0-005",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-024",
+      "input_text": "Tesla, Inc.",
+      "expected_entity_id": "P0-012",
+      "predicted_entity_id": "P0-012",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-025",
+      "input_text": "TSLA",
+      "expected_entity_id": "P0-012",
+      "predicted_entity_id": "P0-012",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-026",
+      "input_text": "ORACLE CORP",
+      "expected_entity_id": "P0-013",
+      "predicted_entity_id": "P0-013",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-027",
+      "input_text": "ORCL",
+      "expected_entity_id": "P0-013",
+      "predicted_entity_id": "P0-013",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-028",
+      "input_text": "Dell Technologies Inc.",
+      "expected_entity_id": "P1-036",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-029",
+      "input_text": "QUALCOMM INC/DE",
+      "expected_entity_id": "P1-046",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-030",
+      "input_text": "QCOM",
+      "expected_entity_id": "P1-046",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-031",
+      "input_text": "CoreWeave, Inc.",
+      "expected_entity_id": "P0-017",
+      "predicted_entity_id": "P0-017",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-032",
+      "input_text": "CRWV",
+      "expected_entity_id": "P0-017",
+      "predicted_entity_id": "P0-017",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-033",
+      "input_text": "Palantir Technologies Inc.",
+      "expected_entity_id": "P0-018",
+      "predicted_entity_id": "P0-018",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-034",
+      "input_text": "PLTR",
+      "expected_entity_id": "P0-018",
+      "predicted_entity_id": "P0-018",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-035",
+      "input_text": "SK Hynix Inc.",
+      "expected_entity_id": "X-004",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-036",
+      "input_text": "Samsung Electronics Co., Ltd.",
+      "expected_entity_id": "X-003",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-037",
+      "input_text": "Hon Hai Precision Industry Co., Ltd.",
+      "expected_entity_id": "X-006",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-038",
+      "input_text": "Foxconn",
+      "expected_entity_id": "X-006",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://blogs.nvidia.com/blog/computex-2025-jensen-huang/"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "observed_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-039",
+      "input_text": "Huawei",
+      "expected_entity_id": "X-012",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-040",
+      "input_text": "Groq, Inc.",
+      "expected_entity_id": "P2-116",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-041",
+      "input_text": "Alibaba Group",
+      "expected_entity_id": "X-010",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Surface form verified verbatim in the cited official source; canonical identity from the research universe registry.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-042",
+      "input_text": "ADVANCED MICRO DEVICES INC",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "AMD is real (10-K competitor) but outside the 140-company research universe; correct resolution is no-match.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-043",
+      "input_text": "AMD",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Universe-external surface form.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-044",
+      "input_text": "Super Micro Computer, Inc.",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Not in the research universe.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-045",
+      "input_text": "Fabrinet",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Named in the 10-K as contract manufacturer but not in the research universe.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-046",
+      "input_text": "Wistron Corporation",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Named in the 10-K but not in the research universe.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-047",
+      "input_text": "Quanta",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://blogs.nvidia.com/blog/computex-2025-jensen-huang/"
+      ],
+      "gold_rationale": "Named in the Computex post but not in the research universe.",
+      "source_coverage": {
+        "required_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "observed_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-048",
+      "input_text": "Pegatron",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://blogs.nvidia.com/blog/computex-2025-jensen-huang/"
+      ],
+      "gold_rationale": "Named in the Computex post but not in the research universe.",
+      "source_coverage": {
+        "required_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "observed_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-049",
+      "input_text": "GIGABYTE",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://blogs.nvidia.com/blog/computex-2025-jensen-huang/"
+      ],
+      "gold_rationale": "Named in the Computex post but not in the research universe.",
+      "source_coverage": {
+        "required_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "observed_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-050",
+      "input_text": "Renesas Electronics Corporation",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Named as competitor but not in the research universe.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-051",
+      "input_text": "Baidu, Inc.",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Named as competitor but not in the research universe.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-052",
+      "input_text": "COCA COLA CO",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Registry control case far outside the research domain.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-053",
+      "input_text": "JPMORGAN CHASE & CO",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Registry control case far outside the research domain.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "ENT-PROD-054",
+      "input_text": "Walmart Inc.",
+      "expected_entity_id": "",
+      "predicted_entity_id": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/files/company_tickers.json"
+      ],
+      "gold_rationale": "Registry control case far outside the research domain.",
+      "source_coverage": {
+        "required_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "observed_source_ids": [
+          "SEC-COMPANY-TICKERS"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    }
+  ],
+  "relationship_cases": [
+    {
+      "case_id": "REL-PROD-001",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-001|wafer_foundry_for|P0-006",
+      "predicted_relation_present": true,
+      "predicted_relationship_key": "X-001|wafer_foundry_for|P0-006",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://pr.tsmc.com/english/news/1408"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "foundries, such as Taiwan Semiconductor Manufacturing Company Limited",
+        "GV-SNAPSHOT-003": "500 millionth processor designed by NVIDIA and manufactured by TSMC"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-003"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-003"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-002",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-003|wafer_foundry_for|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "Samsung Electronics Co., Ltd., or Samsung, to produce our semiconductor wafers"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-003",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-004|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "We purchase memory from SK Hynix Inc."
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-004",
+      "expected_relation_present": true,
+      "expected_relationship_key": "P1-047|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "purchase memory from SK Hynix Inc., Micron Technology, Inc."
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-005",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-003|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "Micron Technology, Inc., and Samsung"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-006",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-006|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "contract manufacturers such as Hon Hai Precision Industry Co., Ltd."
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-007",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-001|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://pr.tsmc.com/english/news/1408"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-003": "designed by NVIDIA and manufactured by TSMC"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-003"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-003"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-008",
+      "expected_relation_present": true,
+      "expected_relationship_key": "P2-116|licenses_ip_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "license agreement with Groq, Inc."
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-009",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-012|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "Baidu, Inc., Huawei, and Microsoft Corporation"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-010",
+      "expected_relation_present": true,
+      "expected_relationship_key": "P0-001|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "such as Alibaba Group, Alphabet Inc."
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-011",
+      "expected_relation_present": true,
+      "expected_relationship_key": "P0-003|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "Alphabet Inc., Amazon, Inc., or Amazon"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-012",
+      "expected_relation_present": true,
+      "expected_relationship_key": "P0-002|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "Huawei, and Microsoft Corporation, or Microsoft"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-013",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-010|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "such as Alibaba Group"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-014",
+      "expected_relation_present": true,
+      "expected_relationship_key": "P0-014|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "AMD, Broadcom, Intel, Qualcomm Incorporated"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-015",
+      "expected_relation_present": true,
+      "expected_relationship_key": "P0-016|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "Broadcom, Intel, Qualcomm"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-016",
+      "expected_relation_present": true,
+      "expected_relationship_key": "P1-046|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "Qualcomm Incorporated, Renesas Electronics Corporation"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-017",
+      "expected_relation_present": true,
+      "expected_relationship_key": "P0-012|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "designing SoC products for their own products and services, such as Tesla, Inc."
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-018",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-003|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-001": "Renesas Electronics Corporation, and Samsung"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-019",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-002|equipment_provider_to|X-001",
+      "predicted_relation_present": true,
+      "predicted_relationship_key": "X-002|equipment_provider_to|X-001",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.asml.com/news/stories/2022/busting-asml-myths",
+        "https://pr.tsmc.com/english/news/1734"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-002": "Customers such as Intel, Samsung and TSMC use ASML",
+        "GV-SNAPSHOT-004": "next generation lithography technologies"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-002",
+          "GV-SNAPSHOT-004"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-002",
+          "GV-SNAPSHOT-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-020",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-002|equipment_provider_to|P0-016",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.asml.com/news/stories/2022/busting-asml-myths"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-002": "Customers such as Intel, Samsung and TSMC"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-002"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-002"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-021",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-002|equipment_provider_to|X-003",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.asml.com/news/stories/2022/busting-asml-myths"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-002": "Intel, Samsung and TSMC use ASML"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-002"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-002"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-022",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-002|strategic_partner|X-001",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://pr.tsmc.com/english/news/1734"
+      ],
+      "gold_passage_anchors": {
+        "GV-SNAPSHOT-004": "long-term partnership between ASML and TSMC"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-004"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-023",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-001|strategic_partner|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://nvidianews.nvidia.com/news/computer-industry-ai-factories-data-centers"
+      ],
+      "gold_passage_anchors": {
+        "NVDA-ANCHOR-003": "partner ecosystem includes TSMC"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "NVDA-ANCHOR-003"
+        ],
+        "observed_source_ids": [
+          "NVDA-ANCHOR-003"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-024",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-006|strategic_partner|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://blogs.nvidia.com/blog/computex-2025-jensen-huang/"
+      ],
+      "gold_passage_anchors": {
+        "NVDA-ANCHOR-004": "NVIDIA and Foxconn Hon Hai Technology Group are deepening their longstanding partnership"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "observed_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-025",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-001|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://blogs.nvidia.com/blog/taiwan-ecosystem-ai-infrastructure/",
+        "https://blogs.nvidia.com/blog/computex-2025-jensen-huang/"
+      ],
+      "gold_passage_anchors": {
+        "NVDA-ANCHOR-001": "TSMC is applying NVIDIA CUDA-X libraries",
+        "NVDA-ANCHOR-004": "harnessing NVIDIA Omniverse"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "NVDA-ANCHOR-001",
+          "NVDA-ANCHOR-004"
+        ],
+        "observed_source_ids": [
+          "NVDA-ANCHOR-001",
+          "NVDA-ANCHOR-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-026",
+      "expected_relation_present": true,
+      "expected_relationship_key": "X-006|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://blogs.nvidia.com/blog/computex-2025-jensen-huang/"
+      ],
+      "gold_passage_anchors": {
+        "NVDA-ANCHOR-004": "TSMC, Foxconn, Wistron, Pegatron, Delta Electronics, Quanta, GIGABYTE and others"
+      },
+      "source_coverage": {
+        "required_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "observed_source_ids": [
+          "NVDA-ANCHOR-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-027",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|wafer_foundry_for|X-001",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://pr.tsmc.com/english/news/1408"
+      ],
+      "gold_rationale": "Reversed direction: NVIDIA designs, TSMC fabricates; no source asserts NVIDIA fabricates wafers for TSMC.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-003"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-003"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-028",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|wafer_foundry_for|X-003",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Reversed direction of the Samsung foundry relation.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-029",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|supplier_to|P1-047",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Reversed direction: NVIDIA buys memory from Micron, not the converse.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-030",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|supplier_to|X-004",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Reversed direction of the SK hynix memory relation.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-031",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-001|equipment_provider_to|X-002",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.asml.com/news/stories/2022/busting-asml-myths",
+        "https://pr.tsmc.com/english/news/1734"
+      ],
+      "gold_rationale": "Reversed direction: ASML supplies lithography systems to TSMC, not the converse.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-002",
+          "GV-SNAPSHOT-004"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-002",
+          "GV-SNAPSHOT-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-032",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-016|equipment_provider_to|X-002",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.asml.com/news/stories/2022/busting-asml-myths"
+      ],
+      "gold_rationale": "Reversed direction: Intel is an ASML customer.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-002"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-002"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-033",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|equipment_provider_to|X-002",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://www.asml.com/news/stories/2022/busting-asml-myths"
+      ],
+      "gold_rationale": "No source asserts NVIDIA supplies equipment to ASML.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-034",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|licenses_ip_to|P2-116",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Reversed direction: the 10-K license agreement is for Groq's LPU technology.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-035",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-002|wafer_foundry_for|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://www.asml.com/news/stories/2022/busting-asml-myths"
+      ],
+      "gold_rationale": "Type substitution: ASML makes lithography equipment; it does not fabricate wafers.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-036",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-004|wafer_foundry_for|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Type substitution: SK hynix supplies memory, not foundry services, per the cited passage.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-037",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P1-047|wafer_foundry_for|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Type substitution: Micron supplies memory.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-038",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-001|equipment_provider_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://pr.tsmc.com/english/news/1408"
+      ],
+      "gold_rationale": "Type substitution: TSMC is NVIDIA's foundry, not an equipment vendor.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-003"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-003"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-039",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-002|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://www.asml.com/news/stories/2022/busting-asml-myths"
+      ],
+      "gold_rationale": "No source asserts ASML supplies NVIDIA directly.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-040",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-002|equipment_provider_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://www.asml.com/news/stories/2022/busting-asml-myths"
+      ],
+      "gold_rationale": "ASML's cited customers are Intel, Samsung and TSMC; NVIDIA is not asserted.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-041",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-006|wafer_foundry_for|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Type substitution: Hon Hai performs assembly and test, not wafer fabrication.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-042",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P2-116|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Groq appears in the 10-K as a license counterparty; it is not named in the competitors list passages.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-043",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-005|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Apple is not named in the 10-K competitors passages.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-044",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-004|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Meta is not named in the 10-K competitors passages.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-045",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-013|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Oracle is not named in the 10-K competitors passages.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-046",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-018|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Palantir is not named in the 10-K competitors passages.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-047",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|invested_in|P0-007",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Hedged disclosure: the 10-K states NVIDIA is finalizing an investment and partnership agreement with OpenAI with no assurance of completion; a completed investment is not asserted.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-048",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|acquired|P0-007",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "No acquisition of OpenAI is asserted anywhere in the corpus.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-049",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|invested_in|P0-008",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "No NVIDIA investment in Anthropic is asserted in the corpus.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-050",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|acquired|X-005",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "No Arm acquisition is asserted in the FY2026 10-K corpus.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-051",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|acquired|P2-116",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "The Groq agreement is a non-exclusive license, not an acquisition.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-052",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-001|wafer_foundry_for|X-002",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.asml.com/news/stories/2022/busting-asml-myths",
+        "https://pr.tsmc.com/english/news/1734"
+      ],
+      "gold_rationale": "No source asserts TSMC fabricates for ASML.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-002",
+          "GV-SNAPSHOT-004"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-002",
+          "GV-SNAPSHOT-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-053",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-001|wafer_foundry_for|P0-002",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://pr.tsmc.com/english/news/1408"
+      ],
+      "gold_rationale": "No source in the frame asserts TSMC fabricates for Microsoft.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-003"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-003"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-054",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-001|wafer_foundry_for|P0-005",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://pr.tsmc.com/english/news/1408"
+      ],
+      "gold_rationale": "No source in the frame asserts TSMC fabricates for Apple.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-003"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-003"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-055",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-003|equipment_provider_to|X-001",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.asml.com/news/stories/2022/busting-asml-myths"
+      ],
+      "gold_rationale": "Samsung is an ASML customer in the cited passage, not an equipment vendor to TSMC.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-002"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-002"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-056",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-017|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "CoreWeave is not asserted as an NVIDIA supplier in the corpus.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-057",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|customer_of|P0-017",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "The corpus does not assert NVIDIA purchases from CoreWeave.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-058",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-013|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Oracle is not asserted as an NVIDIA supplier.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-059",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P1-036|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Dell is not asserted as an NVIDIA supplier in the corpus.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-060",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-014|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Broadcom appears as a competitor, not as an NVIDIA supplier.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-061",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P1-046|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Qualcomm appears as a competitor, not as an NVIDIA supplier.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-062",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-016|wafer_foundry_for|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "The 10-K names TSMC and Samsung as wafer foundries; Intel is named as a competitor.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-063",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-012|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Huawei appears as a competitor, not as an NVIDIA supplier.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-064",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-005|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Arm Holdings itself is not named as a competitor; the passage cites suppliers of Arm-based CPUs such as Amazon, Huawei, Microsoft.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-065",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-005|licenses_ip_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "No Arm-to-NVIDIA license is asserted in the corpus passages.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-066",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-001|invested_in|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "No Alphabet investment in NVIDIA is asserted.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-067",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-002|invested_in|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "No Microsoft investment in NVIDIA is asserted.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-068",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-003|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Named customers are not individually asserted in the cited passages; Amazon appears only in competitor context.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-069",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-002|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Microsoft appears in competitor context; no specific customer assertion in the frame.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-070",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-001|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Alphabet appears in competitor context; no specific customer assertion in the frame.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-071",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-010|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Alibaba appears in competitor context; no customer assertion in the frame.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-072",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-001|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "TSMC is asserted as foundry and partner, never as a competitor.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-073",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-002|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://www.asml.com/news/stories/2022/busting-asml-myths"
+      ],
+      "gold_rationale": "ASML is not asserted as an NVIDIA competitor.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-074",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-004|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "SK hynix appears as a memory supplier, not a competitor.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-075",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P1-047|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Micron appears as a memory supplier, not a competitor.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-076",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-006|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Hon Hai appears as a contract manufacturer and partner, not a competitor.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-077",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-012|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Tesla appears in internal-SoC competitor context, not as a supplier.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-078",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-012|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "No Tesla-buys-from-NVIDIA assertion in the frame.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-079",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-003|strategic_partner|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Samsung appears as foundry/memory supplier and competitor; no partnership assertion.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-080",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-016|strategic_partner|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Intel appears only in competitor context in the frame.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-081",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P1-060|invested_in|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Capital Group appears only in a generic capital-availability passage; no investment relation is asserted.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-082",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-007|invested_in|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Reversed direction of the hedged OpenAI disclosure; not asserted.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-083",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-007|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "No OpenAI-buys-from-NVIDIA assertion in the frame.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-084",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-008|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "No Anthropic relation is asserted in the corpus.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-085",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-010|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "No xAI relation is asserted in the corpus.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-086",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-010|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "xAI is not named in the competitors passages.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-087",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-017|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "CoreWeave is not named in the competitors passages.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-088",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P1-036|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Dell is not named in the competitors passages.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-089",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-013|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "No Oracle-buys-from-NVIDIA assertion in the frame.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-090",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|strategic_partner|P0-007",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Partnership agreement with OpenAI is explicitly hedged as being finalized with no assurance; not asserted as in force.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-091",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|supplier_to|X-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://blogs.nvidia.com/blog/computex-2025-jensen-huang/"
+      ],
+      "gold_rationale": "Direction check: Hon Hai manufactures for NVIDIA; the corpus does not assert NVIDIA supplies components to Hon Hai.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "NVDA-ANCHOR-004"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "NVDA-ANCHOR-004"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-092",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-006|equipment_provider_to|X-001",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://blogs.nvidia.com/blog/taiwan-ecosystem-ai-infrastructure/"
+      ],
+      "gold_rationale": "NVIDIA software/libraries are not asserted as equipment provision.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "NVDA-ANCHOR-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "NVDA-ANCHOR-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-093",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-012|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Huawei appears only as competitor; export-control passages do not assert a customer relation.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-094",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-014|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Broadcom appears only as competitor.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-095",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P1-046|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Qualcomm appears only as competitor.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-096",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-005|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Apple is not asserted in any NVIDIA relation in the corpus.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-097",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-004|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Meta is not asserted in any NVIDIA relation in the corpus.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-098",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-005|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Apple is not asserted as an NVIDIA supplier.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-099",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-004|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Meta is not asserted as an NVIDIA supplier.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-100",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-018|customer_of|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Palantir is not asserted in any NVIDIA relation in the corpus.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-101",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-018|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Palantir is not asserted as an NVIDIA supplier.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-102",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-010|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Alibaba appears only in competitor context.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-103",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-005|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Arm Holdings is not asserted as an NVIDIA supplier in the frame.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-104",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P1-060|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Capital Group is not asserted as a supplier.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-105",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P2-116|supplier_to|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "The Groq relation asserted is an IP license, not a goods/services supply under supply-chain semantics.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-106",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-002|strategic_partner|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm",
+        "https://www.asml.com/news/stories/2022/busting-asml-myths"
+      ],
+      "gold_rationale": "No ASML-NVIDIA partnership is asserted in the corpus.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001",
+          "GV-SNAPSHOT-002"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-107",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-004|strategic_partner|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "SK hynix appears as memory supplier only.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-108",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P1-047|strategic_partner|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Micron appears as memory supplier only.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-109",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-012|strategic_partner|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Tesla appears in competitor context only.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-110",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-010|strategic_partner|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Alibaba appears in competitor context only.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-111",
+      "expected_relation_present": false,
+      "expected_relationship_key": "X-012|strategic_partner|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Huawei appears in competitor and export-control context only.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-112",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P1-060|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Capital Group is an asset manager mentioned in a capital-availability passage; not a competitor assertion.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-113",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-007|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "OpenAI is not named in the competitors passages of the frame.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    },
+    {
+      "case_id": "REL-PROD-114",
+      "expected_relation_present": false,
+      "expected_relationship_key": "P0-008|competes_in_theme|P0-006",
+      "predicted_relation_present": false,
+      "predicted_relationship_key": "",
+      "labeler": "claude-eei-takeover-agent-d3",
+      "labeled_at": "2026-07-16T06:10:00+10:00",
+      "evidence_refs": [
+        "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm"
+      ],
+      "gold_rationale": "Anthropic is not named in the competitors passages.",
+      "source_coverage": {
+        "required_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "observed_source_ids": [
+          "GV-SNAPSHOT-001"
+        ],
+        "counter_evidence_reviewed": true
+      }
+    }
+  ]
+}
