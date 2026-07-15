@@ -30,8 +30,18 @@ if str(ROOT) not in sys.path:
 from scripts.db_tools import connect_database  # noqa: E402
 
 SCHEMA_VERSION = "eei-gold-quality-labels-v1"
-DATASET_ID = "eei-production-gold-labels-golden-vertical-20260716-v1"
-LABELED_AT = "2026-07-16T06:10:00+10:00"
+DEFAULT_DATASET_ID = "eei-production-gold-labels-golden-vertical-20260716-v1"
+DEFAULT_LABELED_AT = "2026-07-16T06:10:00+10:00"
+
+GOLD_ONLY_EXCLUDED_FIELDS = {"predicted_entity_id", "predicted_relation_present", "predicted_relationship_key"}
+
+
+def gold_only_view(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Case list with system-prediction fields removed - hashes the GOLD content only."""
+    return [
+        {k: v for k, v in case.items() if k not in GOLD_ONLY_EXCLUDED_FIELDS}
+        for case in cases
+    ]
 
 
 def canonical_json(payload: Any) -> str:
@@ -130,7 +140,11 @@ def main() -> int:
     parser.add_argument("--corpus-manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--freeze-copy", type=Path, required=True)
+    parser.add_argument("--dataset-id", default=DEFAULT_DATASET_ID)
+    parser.add_argument("--labeled-at", default=DEFAULT_LABELED_AT)
     args = parser.parse_args()
+    dataset_id = args.dataset_id
+    labeled_at = args.labeled_at
 
     spec = json.loads(args.spec.read_text(encoding="utf-8"))
     manifest = json.loads(args.corpus_manifest.read_text(encoding="utf-8"))
@@ -196,7 +210,7 @@ def main() -> int:
                 "expected_entity_id": expected,
                 "predicted_entity_id": entity_predictions[case["input_text"]],
                 "labeler": labeler,
-                "labeled_at": LABELED_AT,
+                "labeled_at": labeled_at,
                 "evidence_refs": url_refs([case["source"]]),
                 "gold_rationale": case.get(
                     "rationale",
@@ -223,7 +237,7 @@ def main() -> int:
                 "predicted_relation_present": predicted_present,
                 "predicted_relationship_key": key if predicted_present else "",
                 "labeler": labeler,
-                "labeled_at": LABELED_AT,
+                "labeled_at": labeled_at,
                 "evidence_refs": url_refs(case["sources"]),
                 "gold_passage_anchors": case["anchor"],
                 "source_coverage": {
@@ -245,7 +259,7 @@ def main() -> int:
                 "predicted_relation_present": predicted_present,
                 "predicted_relationship_key": key if predicted_present else "",
                 "labeler": labeler,
-                "labeled_at": LABELED_AT,
+                "labeled_at": labeled_at,
                 "evidence_refs": url_refs(case["checked"]),
                 "gold_rationale": case["rationale"],
                 "source_coverage": {
@@ -260,6 +274,14 @@ def main() -> int:
         {"entity_resolution_cases": entity_cases, "relationship_cases": relationship_cases}
     )
     freeze_sha = sha256_text(frozen)
+    gold_only_sha = sha256_text(
+        canonical_json(
+            {
+                "entity_resolution_cases": gold_only_view(entity_cases),
+                "relationship_cases": gold_only_view(relationship_cases),
+            }
+        )
+    )
     args.freeze_copy.parent.mkdir(parents=True, exist_ok=True)
     args.freeze_copy.write_text(frozen + "\n", encoding="utf-8")
 
@@ -267,7 +289,7 @@ def main() -> int:
         "schema_version": SCHEMA_VERSION,
         "system_name": "EEI",
         "scope": spec["scope"],
-        "dataset_id": DATASET_ID,
+        "dataset_id": dataset_id,
         "fixture_policy": {
             "production_gold_set": True,
             "relationship_publication": False,
@@ -286,10 +308,11 @@ def main() -> int:
             ),
             "labeling_protocol_ref": "docs/gold_quality/PRODUCTION_GOLD_LABELING_PROTOCOL.md",
             "label_freeze_sha256": freeze_sha,
+            "gold_only_sha256": gold_only_sha,
             "reviewer": labeler,
-            "reviewed_at": LABELED_AT,
+            "reviewed_at": labeled_at,
             "reviewer_signature_hash": sha256_text(
-                f"{labeler}:{DATASET_ID}:{freeze_sha}"
+                f"{labeler}:{dataset_id}:{freeze_sha}"
             ),
             "source_license_review_ref": (
                 "artifacts/operator_inputs/"
@@ -330,6 +353,7 @@ def main() -> int:
                 "relationship_negative": len(rel_negative),
                 "system_asserted_relationships": len(asserted),
                 "label_freeze_sha256": freeze_sha,
+            "gold_only_sha256": gold_only_sha,
                 "output": str(args.output),
             },
             indent=2,

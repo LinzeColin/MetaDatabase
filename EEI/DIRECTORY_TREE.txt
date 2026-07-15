@@ -88,9 +88,13 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   ├── a202_a210_signed_release_decision_bundle_20260715.json
 │   │   ├── a202_production_owner_signoff_decisions_20260715.json
 │   │   ├── t904_a026_production_evaluation_20260716.json
+│   │   ├── t904_a026_production_evaluation_20260716_v2.json
 │   │   ├── t904_a027_production_evaluation_20260716.json
+│   │   ├── t904_a027_production_evaluation_20260716_v2.json
+│   │   ├── t904_calibration_iteration_001_20260716.json
 │   │   ├── t904_production_gold_corpus_spec_20260716.json
-│   │   └── t904_production_gold_labels_20260716.json
+│   │   ├── t904_production_gold_labels_20260716.json
+│   │   └── t904_production_gold_labels_20260716_v2.json
 │   ├── tests
 │   │   ├── a005
 │   │   │   └── t101_postgres_compose_clean_environment.json
@@ -477,6 +481,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── job_scheduler.py
 │   ├── load_curated_ingestion_anchors.py
 │   ├── load_live_official_captures.py
+│   ├── load_official_ticker_identifiers.py
 │   ├── load_operator_source_captures.py
 │   ├── load_sec_normalized_fixtures.py
 │   ├── load_seed_catalogs.py
