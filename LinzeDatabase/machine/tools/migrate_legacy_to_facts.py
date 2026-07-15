@@ -101,10 +101,10 @@ def main() -> int:
         "stage": summary.get("current_stage", "UNKNOWN"),
         "phase": summary.get("current_phase", "UNKNOWN"),
         "task": summary.get("current_task", "无进行中任务"),
-        "real_progress": summary.get("progress", "UNKNOWN")
-                         + "（结构进度；真实进度待第二层核对）",
-        "report_grade": "UNKNOWN（待口径裁定）",
-        "business_verdict": "UNKNOWN",
+        "real_progress": (summary.get("progress", "") or "待补")
+                         + "（这是走完了多少道结构关卡；离真正做完还差多少，要对着真实数据核一遍才知道）",
+        "report_grade": "",
+        "business_verdict": "",
         "evidence_status": summary.get("evidence_status", "UNKNOWN"),
         "rendered_at": "2026-07-15",
         "migrated_from_legacy": legacy.name,
