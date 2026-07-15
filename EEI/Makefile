@@ -16,6 +16,10 @@ $(UV):
 
 bootstrap-python: $(UV)
 	$(UV) sync --extra dev
+	@test -x $(UV) || { \
+		($(VENV)/bin/python -m ensurepip --upgrade >/dev/null 2>&1 && $(VENV)/bin/python -m pip install --quiet uv==$(UV_VERSION)) || \
+		{ $(PYTHON) -m venv .uv-seed && .uv-seed/bin/python -m pip install --quiet uv==$(UV_VERSION) && cp .uv-seed/bin/uv $(UV) && rm -rf .uv-seed; }; \
+	} && test -x $(UV)
 
 bootstrap-node:
 	if [[ -f pnpm-lock.yaml ]]; then $(PNPM) install --frozen-lockfile; else $(PNPM) install; fi
