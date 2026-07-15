@@ -437,6 +437,7 @@ scripts/run_sec_connector_smoke.py
 scripts/run_soak_smoke.mjs
 scripts/run_source_health_watch.py
 scripts/run_transactional_ingestion_pipeline.py
+scripts/sec_incremental_sync.py
 scripts/secret_scan.py
 scripts/smoke_test_prototype.py
 scripts/supervise_operator_soak.py
@@ -525,6 +526,7 @@ tests/unit/test_scale_benchmarks.py
 tests/unit/test_scoring.py
 tests/unit/test_sec_client.py
 tests/unit/test_sec_fixture_ingestion.py
+tests/unit/test_sec_incremental_sync.py
 tests/unit/test_sec_normalizer.py
 tests/unit/test_sec_smoke.py
 tests/unit/test_source_freshness.py

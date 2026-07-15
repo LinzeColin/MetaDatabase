@@ -2458,6 +2458,25 @@ def run_once(*, worker_id: str, job_type: str | None = None) -> dict[str, Any] |
             lease_token=job["lease_token"],
             result=result,
         )
+    if job["job_type"] == "sec_incremental_sync":
+        from scripts.sec_incremental_sync import (  # noqa: PLC0415
+            handle_sec_incremental_sync_job,
+        )
+
+        try:
+            result = handle_sec_incremental_sync_job(job)
+        except Exception as exc:
+            return fail_job(
+                job_id=job["id"],
+                lease_token=job["lease_token"],
+                error_class=exc.__class__.__name__,
+                error_message=str(exc),
+            )
+        return complete_job(
+            job_id=job["id"],
+            lease_token=job["lease_token"],
+            result=result,
+        )
     return fail_job(
         job_id=job["id"],
         lease_token=job["lease_token"],
