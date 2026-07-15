@@ -1,12 +1,12 @@
 {
-  "version": "0.1.0",
-  "stage": "S5",
-  "phase": "S5PA",
-  "task": "S5PAT01",
-  "real_progress": "100.00%（这是走完了多少道结构关卡；离真正做完还差多少，要对着真实数据核一遍才知道）",
+  "version": "UNKNOWN",
+  "stage": "UNKNOWN",
+  "phase": "UNKNOWN",
+  "task": "无进行中任务",
+  "real_progress": "待补（这是走完了多少道结构关卡；离真正做完还差多少，要对着真实数据核一遍才知道）",
   "report_grade": "",
   "business_verdict": "",
-  "evidence_status": "EXTRACTED",
+  "evidence_status": "UNKNOWN",
   "rendered_at": "2026-07-15",
-  "migrated_from_legacy": "legacy_Alpha.md"
+  "migrated_from_legacy": "alpha.md"
 }
