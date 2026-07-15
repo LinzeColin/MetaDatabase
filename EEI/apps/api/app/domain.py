@@ -728,6 +728,59 @@ def restore_saved_view(
         raise translate_repository_error(exc) from exc
 
 
+def rows_to_csv(rows: list[dict[str, Any]], columns: list[str]) -> str:
+    """Render export rows as RFC-4180 CSV (quoted, CRLF), header first."""
+    import csv
+    import io
+
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, quoting=csv.QUOTE_ALL, lineterminator="\r\n")
+    writer.writerow(columns)
+    for row in rows:
+        writer.writerow(["" if row.get(col) is None else str(row.get(col)) for col in columns])
+    return buffer.getvalue()
+
+
+EXPORT_RELATIONSHIP_COLUMNS = [
+    "relationship_id", "subject_name", "relationship_type", "object_name",
+    "relationship_family", "status", "confidence", "observed_at",
+    "locator", "support_excerpt", "source_url", "source_title", "publisher",
+]
+EXPORT_FILING_COLUMNS = ["accession", "title", "document_date", "url", "publisher"]
+
+
+@router.get("/export/relationships.csv")
+def export_relationships_csv(repository: RepositoryDependency) -> Response:
+    try:
+        rows = repository.export_published_relationships()
+    except RepositoryError as exc:
+        raise translate_repository_error(exc) from exc
+    csv_text = rows_to_csv(rows, EXPORT_RELATIONSHIP_COLUMNS)
+    return Response(
+        content=csv_text,
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="eei-published-relationships.csv"'
+        },
+    )
+
+
+@router.get("/export/regulatory-filings.csv")
+def export_regulatory_filings_csv(repository: RepositoryDependency) -> Response:
+    try:
+        rows = repository.export_regulatory_filings()
+    except RepositoryError as exc:
+        raise translate_repository_error(exc) from exc
+    csv_text = rows_to_csv(rows, EXPORT_FILING_COLUMNS)
+    return Response(
+        content=csv_text,
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="eei-regulatory-filings.csv"'
+        },
+    )
+
+
 @router.get("/policy/overview")
 def policy_overview(
     repository: RepositoryDependency,

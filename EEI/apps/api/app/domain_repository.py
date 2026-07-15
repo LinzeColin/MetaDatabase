@@ -7382,6 +7382,54 @@ class DomainRepository:
             }
         )
 
+    def export_published_relationships(self) -> list[dict[str, Any]]:
+        """Export surface (T805/A109-A110): published relationships + evidence."""
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT r.id::text AS relationship_id,
+                       s.canonical_name AS subject_name,
+                       r.relationship_type,
+                       o.canonical_name AS object_name,
+                       r.relationship_family,
+                       r.status,
+                       r.confidence,
+                       r.observed_at,
+                       re.locator,
+                       re.support_excerpt,
+                       sd.url AS source_url,
+                       sd.title AS source_title,
+                       sd.publisher
+                FROM relationships r
+                JOIN entities s ON s.id = r.subject_entity_id
+                JOIN entities o ON o.id = r.object_entity_id
+                LEFT JOIN relationship_evidence re ON re.relationship_id = r.id
+                LEFT JOIN source_documents sd ON sd.id = re.source_document_id
+                WHERE r.derivation_rule = 'reviewed_relationship_fact_publication'
+                ORDER BY r.id, sd.document_date
+                """
+            ).fetchall()
+        return _jsonable([dict(row) for row in rows])
+
+    def export_regulatory_filings(self, *, limit: int = 5000) -> list[dict[str, Any]]:
+        """Export surface: the sec_edgar filing index (title/form/date/url)."""
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT sd.external_id AS accession,
+                       sd.title,
+                       sd.document_date,
+                       sd.url,
+                       sd.publisher
+                FROM source_documents sd
+                JOIN sources src ON src.id = sd.source_id AND src.code = 'sec_edgar'
+                ORDER BY sd.document_date DESC, sd.external_id
+                LIMIT %s
+                """,
+                (limit,),
+            ).fetchall()
+        return _jsonable([dict(row) for row in rows])
+
     def list_changes(
         self,
         *,
