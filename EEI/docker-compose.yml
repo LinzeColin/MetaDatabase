@@ -43,6 +43,9 @@ services:
         condition: service_completed_successfully
     environment:
       DATABASE_URL: ${EEI_DOCKER_DATABASE_URL:-postgresql://eei:change-me-local-only@postgres:5432/eei}
+      # SEC-compliant operator contact identity for scheduled live collection.
+      # Empty means live sync jobs fail closed instead of fetching anonymously.
+      SEC_USER_AGENT: ${SEC_USER_AGENT:-}
     command:
       [
         ".venv/bin/python",

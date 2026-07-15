@@ -468,6 +468,7 @@ Enterprise_Ecosystem_Intelligence_release
 ├── scripts
 │   ├── apply_model_config.py
 │   ├── backfill_sec_history.py
+│   ├── backup_restore_drill.py
 │   ├── build_production_gold_labels.py
 │   ├── check_database_schema.py
 │   ├── compile_model_runtime_defaults.py
@@ -505,6 +506,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── run_soak_smoke.mjs
 │   ├── run_source_health_watch.py
 │   ├── run_transactional_ingestion_pipeline.py
+│   ├── sec_incremental_sync.py
 │   ├── secret_scan.py
 │   ├── smoke_test_prototype.py
 │   ├── supervise_operator_soak.py
@@ -605,6 +607,7 @@ Enterprise_Ecosystem_Intelligence_release
 │       ├── test_scoring.py
 │       ├── test_sec_client.py
 │       ├── test_sec_fixture_ingestion.py
+│       ├── test_sec_incremental_sync.py
 │       ├── test_sec_normalizer.py
 │       ├── test_sec_smoke.py
 │       ├── test_source_freshness.py
