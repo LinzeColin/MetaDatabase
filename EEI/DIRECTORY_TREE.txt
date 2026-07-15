@@ -382,6 +382,8 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── INDEX.md
 │   └── STATUS.md
 ├── infra
+│   ├── cloudflare
+│   │   └── d1_publication_schema.sql
 │   ├── db
 │   │   ├── migrations
 │   │   │   ├── 0001_core_domain
@@ -496,6 +498,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── monitor_operator_soak.py
 │   ├── preflight.sh
 │   ├── publish_reviewed_relationship_facts.py
+│   ├── publish_to_cloud_channel.py
 │   ├── record_operator_soak_heartbeat.py
 │   ├── run_browser_scale_benchmarks.mjs
 │   ├── run_codex_autonomous.sh

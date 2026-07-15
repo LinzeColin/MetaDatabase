@@ -335,6 +335,7 @@ docs/phase/MVP_DEVELOPMENT_RECORD.md
 docs/phase/V5_TASK_PACK_SYNCHRONIZATION.md
 docs/pursuing_goal/CURRENT.yaml
 docs/pursuing_goal/v5_0/V5_0_ROOT_LOCK.yaml
+infra/cloudflare/d1_publication_schema.sql
 infra/db/migrations/0001_core_domain/down.sql
 infra/db/migrations/0001_core_domain/up.sql
 infra/db/migrations/0002_exploration_state/down.sql
@@ -428,6 +429,7 @@ scripts/migrate.py
 scripts/monitor_operator_soak.py
 scripts/preflight.sh
 scripts/publish_reviewed_relationship_facts.py
+scripts/publish_to_cloud_channel.py
 scripts/record_operator_soak_heartbeat.py
 scripts/run_browser_scale_benchmarks.mjs
 scripts/run_codex_autonomous.sh
