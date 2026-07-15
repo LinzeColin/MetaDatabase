@@ -486,6 +486,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── run_scale_benchmarks.py
 │   ├── run_sec_connector_smoke.py
 │   ├── run_soak_smoke.mjs
+│   ├── run_source_health_watch.py
 │   ├── run_transactional_ingestion_pipeline.py
 │   ├── secret_scan.py
 │   ├── smoke_test_prototype.py

@@ -420,6 +420,7 @@ scripts/run_operator_soak.mjs
 scripts/run_scale_benchmarks.py
 scripts/run_sec_connector_smoke.py
 scripts/run_soak_smoke.mjs
+scripts/run_source_health_watch.py
 scripts/run_transactional_ingestion_pipeline.py
 scripts/secret_scan.py
 scripts/smoke_test_prototype.py
