@@ -106,11 +106,11 @@ export const WORKSPACE_MODULES: readonly WorkspaceModuleDefinition[] = [
     id: "supply_chain",
     label: "供应链",
     subtitle: "原材料、设备、制造、封装、系统、渠道和客户",
-    controlKind: "lens",
-    controlTargetLens: "supply_chain",
-    routeState: "partial",
-    apiEndpoints: ["/v1/explore", "/v1/explore/expand"],
-    acceptanceIds: ["A203", "A211"]
+    controlKind: "route",
+    href: "/supply-chain",
+    routeState: "available",
+    apiEndpoints: ["/v1/supply-chain/overview", "/v1/explore", "/v1/explore/expand"],
+    acceptanceIds: ["S8PBT02", "A203", "A211"]
   },
   {
     id: "capital_network",

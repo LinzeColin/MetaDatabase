@@ -454,6 +454,27 @@ class CatalogRepository:
         }
 
 
+# Relationship-type -> supply-chain-stage mapping for the /supply-chain module.
+# Only types with an unambiguous stage are mapped; everything else reports
+# stage_id=None and the view shows it as unmapped (honest gap).
+SUPPLY_TYPE_STAGE_MAP: dict[str, str] = {
+    "material_provider_to": "SC-02",
+    "licenses_ip_to": "SC-03",
+    "equipment_provider_to": "SC-04",
+    "wafer_foundry_for": "SC-06",
+    "packages_tests_for": "SC-07",
+    "system_integrator_for": "SC-09",
+    "energy_provider_to": "SC-10",
+    "logistics_provider_to": "SC-10",
+    "cloud_provider_to": "SC-11",
+    "distributor_for": "SC-11",
+    "customer_of": "SC-12",
+    "supplier_to": "SC-06",
+    "capacity_commitment": "SC-06",
+    "compute_provider_to": "SC-11",
+}
+
+
 @dataclass(frozen=True)
 class DomainRepository:
     database_url: str
@@ -7429,6 +7450,78 @@ class DomainRepository:
                 (limit,),
             ).fetchall()
         return _jsonable([dict(row) for row in rows])
+
+    def supply_chain_overview(self) -> dict[str, Any]:
+        """Supply-chain module surface (S8PBT02): 16-stage rail + real facts."""
+        with self.connect() as connection:
+            stages = [
+                dict(row)
+                for row in connection.execute(
+                    """
+                    SELECT stage_id, stage_order, slug, name_zh, name_en,
+                           default_direction, examples
+                    FROM supply_chain_stages
+                    ORDER BY stage_order
+                    """
+                ).fetchall()
+            ]
+            relationships = [
+                dict(row)
+                for row in connection.execute(
+                    """
+                    SELECT r.id, r.relationship_type, r.status, r.confidence,
+                           r.observed_at,
+                           r.derivation_rule = 'reviewed_relationship_fact_publication'
+                             AS owner_signed_published,
+                           s.canonical_name AS subject_name,
+                           o.canonical_name AS object_name,
+                           fen_s.fixture_notice IS NOT NULL
+                             OR fen_o.fixture_notice IS NOT NULL AS fixture_flag
+                    FROM relationships r
+                    JOIN entities s ON s.id = r.subject_entity_id
+                    JOIN entities o ON o.id = r.object_entity_id
+                    LEFT JOIN fixture_entity_notices fen_s ON fen_s.entity_id = s.id
+                    LEFT JOIN fixture_entity_notices fen_o ON fen_o.entity_id = o.id
+                    WHERE r.relationship_family = 'supply_chain_operations'
+                    ORDER BY owner_signed_published DESC, r.relationship_type, r.id
+                    LIMIT 300
+                    """
+                ).fetchall()
+            ]
+        for relationship in relationships:
+            relationship["stage_id"] = SUPPLY_TYPE_STAGE_MAP.get(
+                relationship["relationship_type"]
+            )
+        published_count = sum(
+            1 for r in relationships if r["owner_signed_published"]
+        )
+        mapped_stage_ids = {
+            r["stage_id"] for r in relationships if r["stage_id"] is not None
+        }
+        return _jsonable(
+            {
+                "stages": stages,
+                "relationships": relationships,
+                "summary": {
+                    "published_fact_count": published_count,
+                    "demo_or_candidate_count": len(relationships) - published_count,
+                    "stages_total": len(stages),
+                    "stages_with_relationships": len(mapped_stage_ids),
+                },
+                "abstentions": {
+                    "coverage": (
+                        "Stages without relationships mean no assertion exists in "
+                        "the graph for that stage - not that the stage is empty in "
+                        "the real world."
+                    ),
+                    "labeling": (
+                        "owner_signed_published marks facts that went through "
+                        "dual-source verification and owner sign-off; fixture and "
+                        "derived rows are labeled and never presented as published."
+                    ),
+                },
+            }
+        )
 
     def list_changes(
         self,

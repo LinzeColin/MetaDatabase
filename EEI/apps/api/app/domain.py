@@ -781,6 +781,14 @@ def export_regulatory_filings_csv(repository: RepositoryDependency) -> Response:
     )
 
 
+@router.get("/supply-chain/overview")
+def supply_chain_overview(repository: RepositoryDependency) -> dict[str, Any]:
+    try:
+        return repository.supply_chain_overview()
+    except RepositoryError as exc:
+        raise translate_repository_error(exc) from exc
+
+
 @router.get("/policy/overview")
 def policy_overview(
     repository: RepositoryDependency,
