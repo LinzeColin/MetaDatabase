@@ -234,10 +234,15 @@ test("A211 live production routes and data controls hydrate from FastAPI Postgre
   await expect(freshnessPanel).toHaveAttribute("data-report-period-end", "2024-12-31");
   await expect(freshnessPanel).toContainText("sec_edgar_synthetic_fixture");
 
-  await page.getByTestId("main-nav-supply_chain").click();
-  await expect(page.getByTestId("workspace-shell")).toHaveAttribute(
-    "data-active-lens",
-    "supply_chain"
+  // S8PB promoted supply_chain to a real route; the nav entry now carries
+  // route semantics instead of switching the in-page lens.
+  await expect(page.getByTestId("main-nav-supply_chain")).toHaveAttribute(
+    "href",
+    "/supply-chain"
+  );
+  await expect(page.getByTestId("main-nav-supply_chain")).toHaveAttribute(
+    "data-control-kind",
+    "route"
   );
   await page.getByTestId("main-nav-evidence_center").click();
   await expect(page.getByTestId("workspace-shell")).toHaveAttribute(
