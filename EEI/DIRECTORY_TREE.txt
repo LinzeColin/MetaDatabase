@@ -467,6 +467,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   └── 03_UIUX_ARCHITECTURE_REVIEW.md
 ├── scripts
 │   ├── apply_model_config.py
+│   ├── backfill_sec_history.py
 │   ├── build_production_gold_labels.py
 │   ├── check_database_schema.py
 │   ├── compile_model_runtime_defaults.py
@@ -585,6 +586,7 @@ Enterprise_Ecosystem_Intelligence_release
 │       ├── test_a202_signed_intake_preflight.py
 │       ├── test_amount_semantics.py
 │       ├── test_api_health.py
+│       ├── test_backfill_sec_history.py
 │       ├── test_brand_clearance.py
 │       ├── test_clean_room_release_paths.py
 │       ├── test_cross_verify_relationship_candidates.py
