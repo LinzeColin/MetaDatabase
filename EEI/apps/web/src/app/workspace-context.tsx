@@ -144,11 +144,11 @@ export const WORKSPACE_MODULES: readonly WorkspaceModuleDefinition[] = [
     id: "policy_environment",
     label: "政策环境",
     subtitle: "补贴、合同、监管、出口管制和游说关系",
-    controlKind: "lens",
-    controlTargetLens: "policy_risk",
-    routeState: "partial",
-    apiEndpoints: ["/v1/explore"],
-    acceptanceIds: ["A203", "A211"]
+    controlKind: "route",
+    href: "/policy",
+    routeState: "available",
+    apiEndpoints: ["/v1/policy/overview", "/v1/explore"],
+    acceptanceIds: ["A111", "A203", "A211"]
   },
   {
     id: "strategic_signals",

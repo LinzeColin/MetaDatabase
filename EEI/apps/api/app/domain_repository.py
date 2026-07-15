@@ -7273,6 +7273,115 @@ class DomainRepository:
             )
         return evidence
 
+    def policy_overview(self, *, entity_id: UUID | None = None) -> dict[str, Any]:
+        """Policy/government module surface (T802/A111).
+
+        Honest by construction: every section reports its own state - real
+        government_policy relationships from the graph, the real regulatory
+        filing timeline from the sec_edgar source (matched via official CIK
+        identifiers), and the policy-exposure model status (registered vs
+        scored) without pretending unscored models have scores.
+        """
+        with self.connect() as connection:
+            entity_filter = ""
+            params: list[Any] = []
+            if entity_id is not None:
+                entity_filter = (
+                    " AND (r.subject_entity_id = %s OR r.object_entity_id = %s)"
+                )
+                params = [entity_id, entity_id]
+            relationships = connection.execute(
+                f"""
+                SELECT r.id, r.relationship_type, r.status, r.confidence,
+                       r.observed_at,
+                       s.id AS subject_id, s.canonical_name AS subject_name,
+                       o.id AS object_id, o.canonical_name AS object_name,
+                       fen_s.fixture_notice IS NOT NULL
+                         OR fen_o.fixture_notice IS NOT NULL AS fixture_flag
+                FROM relationships r
+                JOIN entities s ON s.id = r.subject_entity_id
+                JOIN entities o ON o.id = r.object_entity_id
+                LEFT JOIN fixture_entity_notices fen_s ON fen_s.entity_id = s.id
+                LEFT JOIN fixture_entity_notices fen_o ON fen_o.entity_id = o.id
+                WHERE r.relationship_family = 'government_policy'{entity_filter}
+                ORDER BY r.observed_at DESC NULLS LAST, r.id
+                LIMIT 200
+                """,
+                params,
+            ).fetchall()
+
+            filing_params: list[Any] = []
+            cik_join = ""
+            if entity_id is not None:
+                cik_join = (
+                    " JOIN entity_identifiers ei ON ei.scheme = 'cik'"
+                    " AND ei.entity_id = %s"
+                    " AND sd.url LIKE '%%/edgar/data/'"
+                    " || CAST(CAST(ei.value AS bigint) AS text) || '/%%'"
+                )
+                filing_params.append(entity_id)
+            filings_by_year = connection.execute(
+                f"""
+                SELECT extract(year FROM sd.document_date)::int AS year,
+                       count(*)::int AS filings
+                FROM source_documents sd
+                JOIN sources src ON src.id = sd.source_id AND src.code = 'sec_edgar'
+                {cik_join}
+                GROUP BY 1
+                ORDER BY 1
+                """,
+                filing_params,
+            ).fetchall()
+            latest_filings = connection.execute(
+                f"""
+                SELECT sd.id, sd.title, sd.url, sd.document_date, sd.publisher
+                FROM source_documents sd
+                JOIN sources src ON src.id = sd.source_id AND src.code = 'sec_edgar'
+                {cik_join}
+                ORDER BY sd.document_date DESC, sd.id
+                LIMIT 12
+                """,
+                filing_params,
+            ).fetchall()
+
+            policy_models = connection.execute(
+                """
+                SELECT sm.model_key, sm.version,
+                       EXISTS (
+                         SELECT 1 FROM scoring_profile_versions spv
+                         JOIN scoring_runs sr ON sr.profile_version_id = spv.id
+                         WHERE spv.model_id = sm.id
+                       ) AS has_scored_run
+                FROM scoring_models sm
+                WHERE sm.model_key ILIKE '%policy%'
+                ORDER BY sm.model_key
+                """
+            ).fetchall()
+
+        return _jsonable(
+            {
+                "policy_relationships": [dict(row) for row in relationships],
+                "regulatory_filings": {
+                    "source": "sec_edgar",
+                    "by_year": [dict(row) for row in filings_by_year],
+                    "latest": [dict(row) for row in latest_filings],
+                    "scoped_to_entity": entity_id is not None,
+                },
+                "policy_models": [dict(row) for row in policy_models],
+                "abstentions": {
+                    "policy_relationship_coverage": (
+                        "government_policy relationships shown are exactly what the "
+                        "graph asserts today; absence of a company here means no "
+                        "published assertion, not a cleared record."
+                    ),
+                    "policy_exposure_scores": (
+                        "policy models without a scored run report "
+                        "has_scored_run=false; no synthetic scores are displayed."
+                    ),
+                },
+            }
+        )
+
     def list_changes(
         self,
         *,

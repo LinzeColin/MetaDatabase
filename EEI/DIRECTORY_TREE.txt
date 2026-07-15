@@ -62,6 +62,8 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       │   └── page.tsx
 │   │   │       ├── objects-scope
 │   │   │       │   └── page.tsx
+│   │   │       ├── policy
+│   │   │       │   └── page.tsx
 │   │   │       ├── analysis-contract.ts
 │   │   │       ├── capital-events-client.ts
 │   │   │       ├── explore-api-client.ts
@@ -69,6 +71,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       ├── layout.tsx
 │   │   │       ├── model-activation-client.ts
 │   │   │       ├── page.tsx
+│   │   │       ├── policy-client.ts
 │   │   │       ├── production-data-client.ts
 │   │   │       ├── saved-view-client.ts
 │   │   │       ├── use-analysis-context.ts
