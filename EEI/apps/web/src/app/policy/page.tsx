@@ -1,13 +1,16 @@
 "use client";
 
-import { AlertTriangle, Landmark, RefreshCw, ScrollText } from "lucide-react";
+import { AlertTriangle, Download, Landmark, RefreshCw, ScrollText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { AnalysisContextBadge } from "../analysis-context-badge";
 import {
   loadPolicyOverview,
   type PolicyOverviewRecord,
   type PolicyOverviewSyncResult
 } from "../policy-client";
+import { readProductionDataApiBaseUrl } from "../production-data-client";
+import { useAnalysisContext } from "../use-analysis-context";
 import { WorkspaceNavigationRail } from "../workspace-navigation";
 import type { WorkspaceModuleId } from "../workspace-context";
 
@@ -16,6 +19,12 @@ type LoadState = "idle" | "loading" | "hydrated" | "error" | "api_required";
 export default function PolicyEnvironmentPage() {
   const [result, setResult] = useState<PolicyOverviewSyncResult | null>(null);
   const [loadState, setLoadState] = useState<LoadState>("idle");
+  const { analysisContext, serverState } = useAnalysisContext();
+  const [apiBaseUrl, setApiBaseUrl] = useState("");
+
+  useEffect(() => {
+    setApiBaseUrl(readProductionDataApiBaseUrl());
+  }, []);
 
   useEffect(() => {
     void hydrate();
@@ -88,16 +97,40 @@ export default function PolicyEnvironmentPage() {
               政府关系 · 监管申报 · 出口管制暴露 — 全部来自已断言图谱与官方申报流
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => void hydrate()}
-            className="flex items-center gap-2 rounded-md border border-slate-700 px-3 py-1.5 text-sm hover:bg-slate-800"
-            data-testid="policy-refresh"
-          >
-            <RefreshCw className="h-4 w-4" aria-hidden />
-            刷新
-          </button>
+          <div className="flex items-center gap-2">
+            {apiBaseUrl ? (
+              <>
+                <a
+                  href={`${apiBaseUrl}/v1/export/relationships.csv`}
+                  className="flex items-center gap-2 rounded-md border border-slate-700 px-3 py-1.5 text-sm hover:bg-slate-800"
+                  data-testid="export-relationships"
+                >
+                  <Download className="h-4 w-4" aria-hidden />
+                  导出已发布关系
+                </a>
+                <a
+                  href={`${apiBaseUrl}/v1/export/regulatory-filings.csv`}
+                  className="flex items-center gap-2 rounded-md border border-slate-700 px-3 py-1.5 text-sm hover:bg-slate-800"
+                  data-testid="export-filings"
+                >
+                  <Download className="h-4 w-4" aria-hidden />
+                  导出申报索引
+                </a>
+              </>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => void hydrate()}
+              className="flex items-center gap-2 rounded-md border border-slate-700 px-3 py-1.5 text-sm hover:bg-slate-800"
+              data-testid="policy-refresh"
+            >
+              <RefreshCw className="h-4 w-4" aria-hidden />
+              刷新
+            </button>
+          </div>
         </header>
+
+        <AnalysisContextBadge analysisContext={analysisContext} serverState={serverState} />
 
         {loadState === "api_required" ? (
           <section

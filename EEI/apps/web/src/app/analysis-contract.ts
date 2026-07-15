@@ -13,6 +13,22 @@ export type AnalysisContext = {
 
 export const ANALYSIS_PREVIEW_STORAGE_KEY = "eei.analysisPreview.v1";
 
+/**
+ * Cross-view consistency state (T805/A108): every routed view consumes the
+ * same server-truth analysis context through useAnalysisContext. `live`
+ * means the fields mirror /v1/scoring/active-context (refresh generation
+ * included); fallbacks are labeled honestly instead of masquerading as live.
+ */
+export type ServerContextState =
+  | {
+      mode: "live";
+      refreshToken: string | null;
+      refreshGeneration: number | null;
+      activatedAt: string | null;
+    }
+  | { mode: "fixture_fallback"; reason: string }
+  | { mode: "api_required"; reason: string };
+
 export const ACTIVE_ANALYSIS_CONTEXT: AnalysisContext = {
   contractVersion: "analysis-context-v1",
   modelVersion: "business-empire-model-v2",
