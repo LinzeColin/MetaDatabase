@@ -19,5 +19,6 @@
 ## 迁移状态
 
 本仓库正从 LinzeColin/CodexProject 分批迁入项目。
-SerenityAlipay / EEI / PFI / ADP 仍在 CodexProject 中，将在其静默后迁入。
+EEI 已于 2026-07-15 迁入（wave 3，含完整历史与自带 CI `eei-validation`）。
+PFI / ADP 仍在 CodexProject 中，将在其静默后迁入。
 在它们迁入之前，不要在本仓库为它们创建占位目录或桩代码。
