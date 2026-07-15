@@ -399,6 +399,7 @@ reviews/01_SECURITY_CODE_QUALITY_REVIEW.md
 reviews/02_STRESS_LIFECYCLE_INTERACTION_REVIEW.md
 reviews/03_UIUX_ARCHITECTURE_REVIEW.md
 scripts/apply_model_config.py
+scripts/backfill_sec_history.py
 scripts/build_production_gold_labels.py
 scripts/check_database_schema.py
 scripts/compile_model_runtime_defaults.py
@@ -505,6 +506,7 @@ tests/integration/test_database_migrations.py
 tests/unit/test_a202_signed_intake_preflight.py
 tests/unit/test_amount_semantics.py
 tests/unit/test_api_health.py
+tests/unit/test_backfill_sec_history.py
 tests/unit/test_brand_clearance.py
 tests/unit/test_clean_room_release_paths.py
 tests/unit/test_cross_verify_relationship_candidates.py

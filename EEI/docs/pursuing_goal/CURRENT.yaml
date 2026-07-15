@@ -8,7 +8,7 @@ current_product_contract:
   roadmap: 开发记录.md
   activation_state: locked_by_owner_ack_2026_07_15
 current_pointer_registry:
-  global_current_task: S7PDT01
+  global_current_task: S7PDT02
   current_gate: S7-GATE
-  next_executable_task: S7PDT02
+  next_executable_task: S7PDT03
 single_current_contract_rule: Only this file may identify the CURRENT product contract for EEI.
