@@ -66,6 +66,8 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       │   └── page.tsx
 │   │   │       ├── structure
 │   │   │       │   └── page.tsx
+│   │   │       ├── supply-chain
+│   │   │       │   └── page.tsx
 │   │   │       ├── analysis-context-badge.tsx
 │   │   │       ├── analysis-contract.ts
 │   │   │       ├── capital-events-client.ts
@@ -78,6 +80,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       ├── production-data-client.ts
 │   │   │       ├── saved-view-client.ts
 │   │   │       ├── structure-client.ts
+│   │   │       ├── supply-chain-client.ts
 │   │   │       ├── use-analysis-context.ts
 │   │   │       ├── workspace-context.tsx
 │   │   │       └── workspace-navigation.tsx

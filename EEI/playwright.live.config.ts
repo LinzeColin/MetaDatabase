@@ -4,8 +4,13 @@ export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: ["saved-view-live.spec.ts"],
   timeout: 45_000,
+  // CI cold-start latency (fresh FastAPI + PostgreSQL) intermittently pushed
+  // panel-attribute hydration past the old 7.5s expect budget. NOTE: test
+  // retries are deliberately NOT enabled - the multi-session conflict spec is
+  // stateful (server-version increments per save), so a retry against the
+  // same webServer would assert stale versions and fail deterministically.
   expect: {
-    timeout: 7_500
+    timeout: 15_000
   },
   use: {
     baseURL: "http://127.0.0.1:3000",
