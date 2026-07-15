@@ -400,6 +400,7 @@ reviews/02_STRESS_LIFECYCLE_INTERACTION_REVIEW.md
 reviews/03_UIUX_ARCHITECTURE_REVIEW.md
 scripts/apply_model_config.py
 scripts/backfill_sec_history.py
+scripts/backup_restore_drill.py
 scripts/build_production_gold_labels.py
 scripts/check_database_schema.py
 scripts/compile_model_runtime_defaults.py
