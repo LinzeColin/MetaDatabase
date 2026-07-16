@@ -1,0 +1,55 @@
+{
+  "schema_version": "eei-owner-release-acceleration-decision-v1",
+  "artifact_id": "owner-release-acceleration-20260716",
+  "system_name": "EEI",
+  "decision_scope": "MVP v0.1.0 release acceleration: close owner-level gates on existing real evidence and convert future-dated evidence windows into post-release monitoring obligations.",
+  "owner_directive_verbatim": "不要等真实时间，自己想办法用过去的时间或其他的办法解决这个问题，快速上线，上线后可以再检测，不要因此阻碍开发交付验收",
+  "structured_signoff": {
+    "question_1": "加速发布授权范围？",
+    "answer_1": "全链签核（推荐）：①A209 治理闭环（以既有 288/288 真实证据关门）②A205 release-manager 激活审批 ③双 7 天窗+A204 24h 窗改判为「上线后监测义务」（探针/心跳/cron 继续自动跑不停）④授权 tag v0.1.0 立即发布",
+    "question_2": "A210 品牌豁免复用确认？",
+    "answer_2": "确认复用（推荐）：复用 2026-07-16T04:45 已签 RISK_WAIVER_ACCEPTED（签名 linze-owner-ack-20260716T0445+10）"
+  },
+  "decisions": {
+    "a209_governance_closure": {
+      "decision": "CLOSE_ON_EXISTING_REAL_EVIDENCE",
+      "evidence": "T1307 operator soak 288/288 windows zero failures, operator_4h PASS + operator_24h PASS, finalization preflight A209_FINALIZATION_READY_FOR_RELEASE_GATE_REGEN",
+      "evidence_refs": [
+        "artifacts/tests/a209/t1307_operator_soak_evidence_validation.json",
+        "artifacts/tests/a209/t1307_operator_soak_finalization_preflight.json"
+      ]
+    },
+    "a205_release_manager_activation": {
+      "decision": "ACTIVATION_APPROVED_FOR_MVP_SCOPE",
+      "reviewed_gates": {
+        "A202_signed_decision_bundle": "real owner-signed bundle sha256 72d007bc (2026-07-16T04:45+10)",
+        "A026_A027_production_gold": "production evaluations v2 DONE, precision 1.000 double PASS, owner batch signoff 07:05+10",
+        "A209_24h_operator_soak": "closed per a209_governance_closure above",
+        "A210_brand": "replaced by D2 decision record per ROOT_LOCK mvp_done_definition (A210 以 D2 决策记录替代); full-launch brand gate remains open by design and does not block MVP"
+      }
+    },
+    "evidence_windows_rescope": {
+      "decision": "CONVERT_TO_POST_RELEASE_MONITORING",
+      "windows": [
+        {"task": "S7PDT02", "kind": "seven_day_scheduled_collection_run_log", "was_closing": "2026-07-23"},
+        {"task": "S10PBT02", "kind": "seven_day_cloud_cron_run_log", "was_closing": "2026-07-23"},
+        {"task": "S11PAT01", "kind": "twentyfour_hour_refresh_stability_window", "was_closing": "2026-07-17"}
+      ],
+      "monitoring_obligation": "探针链（4h）/云端小时心跳/每日双 cron 继续自动运行；任何 violation/failed 记录如实并触发修复；上线后持续检测（Owner 原话：上线后可以再检测）。",
+      "existing_past_evidence_cited": "A209 24h soak（288 个 5 分钟窗连续零失败）为既有的 24 小时连续稳定运行历史证据；云端自部署起 uptime 采样 p95 149-302ms；降级演练三态 PASS。"
+    },
+    "tag_authorization": {
+      "decision": "TAG_V0_1_0_AUTHORIZED",
+      "scope": "MVP per ROOT_LOCK mvp_done_definition with this acceleration decision satisfying the window-dependent clauses",
+      "non_claims": [
+        "This decision does not claim the full-launch brand/trademark gate (A210 full route) is complete.",
+        "This decision does not fabricate any evidence; it re-scopes future-dated windows to post-release monitoring.",
+        "Release-manager activation preflight artifacts continue to record their fail-closed full-launch state honestly."
+      ]
+    }
+  },
+  "signed_by": "Linze Zhang (Owner, linzezhang35@gmail.com)",
+  "signed_role": "owner_release_manager",
+  "signed_at": "2026-07-16T19:55:00+10:00",
+  "signature": "linze-owner-ack-20260716T1955+10:全链签核（推荐）+确认复用（推荐）"
+}

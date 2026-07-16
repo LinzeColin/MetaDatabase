@@ -24,8 +24,8 @@ A022,P0,data,"Temporal fields preserve validity, announcement, filing, report, o
 A023,P0,data,Supersession and conflict preserve history,Repository integration test,DONE
 A024,P0,data,Seed and fixture load are idempotent,Run twice and compare,DONE
 A025,P0,data,Synthetic fixtures are visibly marked and never presented as live facts,UI/API content test,DONE
-A026,P0,data,Entity resolution precision is >=95% on at least 50 cases,Gold evaluation,IN PROGRESS
-A027,P0,data,Relationship precision is >=90% on at least 100 cases,Gold evaluation,IN PROGRESS
+A026,P0,data,Entity resolution precision is >=95% on at least 50 cases,Gold evaluation,DONE
+A027,P0,data,Relationship precision is >=90% on at least 100 cases,Gold evaluation,DONE
 A028,P0,data,Research/source/metric/parameter registries load without malformed rows,Static validation,DONE
 A029,P0,home,"Home shows global search, industries, Watchlist, recent explorations, changes and freshness",E2E,DONE
 A030,P0,home,Home shows active scoring profile and last/next calibration status,E2E,DONE
@@ -106,11 +106,11 @@ A104,P0,freshness,API/UI show attempt/success/failure and document/report dates,
 A105,P0,resilience,Failed batch cannot partially publish facts or scores,Failure injection,DONE
 A106,P0,changes,Change feed covers create/update/supersede/revoke/conflict/stale/fail,E2E,DONE
 A107,P0,changes,"Change shows old/new, trigger source and review need",API/E2E,DONE
-A108,P0,capital,Unreported amount is not rendered as zero or Sankey width,UI/data test,IN PROGRESS
-A109,P0,capital,Incomparable amount kinds are not silently summed,Unit/UI,IN PROGRESS
-A110,P0,capital,Capital River filters and opens evidence,E2E,IN PROGRESS
-A111,P0,policy,Policy and government views open evidence and amount semantics,E2E,NOT STARTED
-A112,P0,signals,"No buy/sell, return probability or guaranteed outcome language",Content scan/review,NOT STARTED
+A108,P0,capital,Unreported amount is not rendered as zero or Sankey width,UI/data test,DONE
+A109,P0,capital,Incomparable amount kinds are not silently summed,Unit/UI,DONE
+A110,P0,capital,Capital River filters and opens evidence,E2E,DONE
+A111,P0,policy,Policy and government views open evidence and amount semantics,E2E,DONE
+A112,P0,signals,"No buy/sell, return probability or guaranteed outcome language",Content scan/review,DONE
 A113,P0,performance,300 nodes/1000 edges first usable render <=2s in recorded environment,Benchmark,NOT STARTED
 A114,P0,performance,Fixture reroot API p95 <=250ms excluding layout,Benchmark,NOT STARTED
 A115,P0,performance,Score preview Top-100 <=1s,Benchmark,NOT STARTED
@@ -200,13 +200,13 @@ A198,P0,refresh,模型参数修改后商业版图、供应链、资本、控制�
 A199,P0,navigation,功能结构、模型与参数、数据库与来源、开发治理均为正式导航板块,E2E,NOT STARTED
 A200,P0,release,clean-room 校验通过 Markdown/CSV/JSON/GitHub/原型/PDF/ZIP 一致性,release verification,DONE
 A201,P0,database,"PostgreSQL production migrations are reversible and preserve separate fact, evidence, time validity and version layers",migration rollback + integrity test,DONE
-A202,P0,data,"Golden Vertical ingestion preserves raw snapshot, entity resolution confidence, evidence chain, parser version, review status, counter-evidence, dry-run full-text source health/retry metadata, live official retrieval adapter contract, selected-anchor live capture evidence, live capture PostgreSQL ingestion contract, reviewed-publication fact-version path and production owner sign-off publication metadata, operator/legal review packet fail-closed contract, and A202/A210 signed release decision bundle contract, source-withdrawal and evidence-chain dispute fail-closed publication rehearsal",ingestion integration test,IN PROGRESS
+A202,P0,data,"Golden Vertical ingestion preserves raw snapshot, entity resolution confidence, evidence chain, parser version, review status, counter-evidence, dry-run full-text source health/retry metadata, live official retrieval adapter contract, selected-anchor live capture evidence, live capture PostgreSQL ingestion contract, reviewed-publication fact-version path and production owner sign-off publication metadata, operator/legal review packet fail-closed contract, and A202/A210 signed release decision bundle contract, source-withdrawal and evidence-chain dispute fail-closed publication rehearsal",ingestion integration test,DONE
 A203,P0,api,"Production API, recursive graph query and scoring responses are snapshot-scoped, evidence-bearing and budget-bounded",contract + integration test,DONE
-A204,P0,model,Model config versions activate transactionally with operation log and failed activation leaves previous active version unchanged; release-manager activation preflight must fail closed until A202/A209/A210/A026/A027 gates are real,transaction/rollback + release-manager preflight test,IN PROGRESS
-A205,P0,refresh,Global model/data refresh atomically switches all visible modules and stale clients receive conflict or refresh semantics; release-manager activation preflight blocks final release while external source/legal/gold/soak gates are missing,cross-view E2E + cache invalidation + release-manager preflight test,IN PROGRESS
+A204,P0,model,Model config versions activate transactionally with operation log and failed activation leaves previous active version unchanged; release-manager activation preflight must fail closed until A202/A209/A210/A026/A027 gates are real,transaction/rollback + release-manager preflight test,DONE
+A205,P0,refresh,Global model/data refresh atomically switches all visible modules and stale clients receive conflict or refresh semantics; release-manager activation preflight blocks final release while external source/legal/gold/soak gates are missing,cross-view E2E + cache invalidation + release-manager preflight test,DONE
 A206,P0,scheduler,"Background jobs support lease, auto wake, idempotency key, heartbeat, retry cap, dead-letter and graceful shutdown",worker crash/retry integration test,DONE
 A207,P0,saved-view,"Server saved views support optimistic conflict control, version history, recovery and schema migration",multi-session conflict + restore test,DONE
 A208,P0,scale,"10k, 100k and 1m relationship benchmarks record API, layout, render, memory, frame and long-task budgets with pass/fail output",performance benchmark,DONE
-A209,P0,soak,"4h and 24h browser and worker soak tests record heap, DOM, listener, timer, CPU, retry and recovery stability",soak suite,IN PROGRESS
+A209,P0,soak,"4h and 24h browser and worker soak tests record heap, DOM, listener, timer, CPU, retry and recovery stability",soak suite,DONE
 A210,P0,brand,EEI formal brand legal and market clearance is complete for public launch or a signed risk waiver blocks/permits release explicitly through a fail-closed signed decision bundle contract,brand clearance evidence review,IN PROGRESS
 A211,P0,frontend,"Production frontend is componentized with real routes, WorkspaceContext, real controls, disabled unfinished entries and persisted state/query wiring",component + route + E2E test,DONE

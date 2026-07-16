@@ -8,19 +8,27 @@ current_product_contract:
   roadmap: 开发记录.md
   activation_state: locked_by_owner_ack_2026_07_15
 current_pointer_registry:
-  global_current_task: S11PCT02
-  current_gate: CLOUD-GATE
-  next_executable_task: S11PBT01
-open_evidence_windows:
-  - task: S7PDT02
-    kind: seven_day_scheduled_collection_run_log
-    closes: "2026-07-23"
-  - task: S10PBT02
-    kind: seven_day_cloud_cron_run_log
-    closes: "2026-07-23"
-    note: "Worker cron 0 18 * * * UTC 起跑 2026-07-16；GET /v1/cloud/runs 云端可查"
-  - task: S11PAT01
-    kind: twentyfour_hour_refresh_stability_window
-    closes: "2026-07-17"
-    note: "A204 探针链 window 20260716T055012Z：4h 间隔 7 探针，docker worker 自续期；--status 可查"
+  global_current_task: POST_RELEASE_MONITORING
+  current_gate: RELEASED_V0_1_0
+  next_executable_task: post_release_monitoring_cycles
+release_record:
+  version: v0.1.0
+  authorized_by: artifacts/operator_inputs/a205_release_acceleration_owner_decision_20260716.json
+  owner_directive: 不要等真实时间，快速上线，上线后可以再检测，不要因此阻碍开发交付验收
+  mvp_done_checklist: docs/pursuing_goal/v5_0/MVP_DONE_CHECKLIST.md
+post_release_monitoring:
+  authorized_by: artifacts/operator_inputs/a205_release_acceleration_owner_decision_20260716.json
+  note: Owner 2026-07-16 加速决定：原三窗（双 7 天 + A204 24h）改判为上线后监测义务；机器不停——探针 4h/云心跳 1h/双 cron 每日；violation/failed 如实记录并触发修复。
+  monitors:
+    - task: S7PDT02
+      kind: seven_day_scheduled_collection_run_log
+      original_close: "2026-07-23"
+    - task: S10PBT02
+      kind: seven_day_cloud_cron_run_log
+      original_close: "2026-07-23"
+      note: Worker cron 0 18 * * * UTC 起跑 2026-07-16；GET /v1/cloud/runs 云端可查
+    - task: S11PAT01
+      kind: twentyfour_hour_refresh_stability_window
+      original_close: "2026-07-17"
+      note: A204 探针链 window 20260716T055012Z：4h 间隔 7 探针，docker worker 自续期；--status 可查
 single_current_contract_rule: Only this file may identify the CURRENT product contract for EEI.

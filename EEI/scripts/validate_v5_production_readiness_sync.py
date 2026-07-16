@@ -36,21 +36,29 @@ EXPECTED_TASKS = {
 
 IMPLEMENTED_TASKS = {
     "T1300": "A201",
+    "T1301": "A202",
     "T1302": "A203",
+    "T1303": "A204",
     "T1304": "A206",
     "T1305": "A207",
     "T1306": "A208",
+    "T1307": "A209",
     "T1308": "A211",
 }
 
+# A205 rides T1303 (A204+A205); closure recorded by the owner release
+# acceleration decision (2026-07-16) - see IMPLEMENTED_ACCEPTANCE_IDS.
+IMPLEMENTED_ACCEPTANCE_IDS = {
+    "A201", "A202", "A203", "A204", "A205", "A206", "A207", "A208", "A209", "A211",
+}
+
+# A210 full-launch brand gate honestly stays open (owner decision D2
+# replaces it for MVP scope only).
 PARTIAL_TASKS = {
-    "T1301": "A202",
-    "T1303": "A204",
-    "T1307": "A209",
     "T1309": "A210",
 }
 
-PARTIAL_ACCEPTANCE_IDS = {"A202", "A204", "A205", "A209", "A210"}
+PARTIAL_ACCEPTANCE_IDS = {"A210"}
 
 IMPLEMENTED_EVIDENCE = {
     "T1300": {
@@ -132,10 +140,8 @@ IMPLEMENTED_EVIDENCE = {
         "tests/e2e/state-contract.spec.ts",
         "artifacts/tests/a211/t1308_frontend_workspace_context_contract.json",
     },
-}
-
-PARTIAL_EVIDENCE = {
     "T1301": {
+        "artifacts/operator_inputs/a205_release_acceleration_owner_decision_20260716.json",
         "infra/db/migrations/0004_curated_ingestion_audit_layers/up.sql",
         "infra/db/migrations/0004_curated_ingestion_audit_layers/down.sql",
         "infra/db/migrations/0005_relationship_fact_candidates/up.sql",
@@ -177,6 +183,7 @@ PARTIAL_EVIDENCE = {
         "artifacts/tests/a027/t904_relationship_gold_evaluation_contract.json",
     },
     "T1303": {
+        "artifacts/operator_inputs/a205_release_acceleration_owner_decision_20260716.json",
         "infra/db/migrations/0006_model_activation_refresh_state/up.sql",
         "infra/db/migrations/0006_model_activation_refresh_state/down.sql",
         "infra/db/migrations/0009_transactional_outbox/up.sql",
@@ -204,6 +211,7 @@ PARTIAL_EVIDENCE = {
         "scripts/validate_external_release_evidence_bundle.py",
     },
     "T1307": {
+        "artifacts/operator_inputs/a205_release_acceleration_owner_decision_20260716.json",
         "scripts/run_soak_smoke.mjs",
         "scripts/run_operator_soak.mjs",
         "scripts/validate_operator_soak_evidence.py",
@@ -219,6 +227,9 @@ PARTIAL_EVIDENCE = {
         "artifacts/tests/a209/t1307_operator_soak_background_progress.json",
         "artifacts/tests/a209/t1307_operator_soak_finalization_preflight.json",
     },
+}
+
+PARTIAL_EVIDENCE = {
     "T1309": {
         "config/brand_policy.yaml",
         "data/brand_name_conflict_register.csv",
@@ -340,7 +351,7 @@ def validate_task_acceptance_status() -> dict[str, Any]:
     for acceptance_id in [f"A{number}" for number in range(201, 212)]:
         row = acceptance.get(acceptance_id)
         require(row is not None, f"missing acceptance {acceptance_id}")
-        if acceptance_id in IMPLEMENTED_TASKS.values():
+        if acceptance_id in IMPLEMENTED_ACCEPTANCE_IDS:
             require(row["status"] == "DONE", f"{acceptance_id} must be DONE once implemented")
         elif acceptance_id in PARTIAL_ACCEPTANCE_IDS:
             require(
