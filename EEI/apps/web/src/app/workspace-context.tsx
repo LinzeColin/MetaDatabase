@@ -178,9 +178,12 @@ export const WORKSPACE_MODULES: readonly WorkspaceModuleDefinition[] = [
     subtitle: "来源、原始文件、证据片段和可信度",
     controlKind: "section",
     sectionTestId: "evidence-center",
-    routeState: "partial",
+    // S8PDT01: server-hydrated evidence snippets with publisher + source
+    // linkage are live-spec asserted (A211); three-step traceability
+    // (conclusion -> excerpt -> official source) holds for published facts.
+    routeState: "available",
     apiEndpoints: ["/v1/evidence", "/v1/audit-logs"],
-    acceptanceIds: ["A202", "A211"]
+    acceptanceIds: ["S8PDT01", "A202", "A211"]
   },
   {
     id: "model_center",
@@ -188,23 +191,27 @@ export const WORKSPACE_MODULES: readonly WorkspaceModuleDefinition[] = [
     subtitle: "公式、权重、阈值、时间衰减和模型版本",
     controlKind: "section",
     sectionTestId: "model-preview-panel",
-    routeState: "partial",
+    // S8PDT01: activation / rollback / recompute UI is wired to /v1/scoring
+    // and produced the real refresh generations observed in production.
+    routeState: "available",
     apiEndpoints: [
       "/v1/scoring/active-context",
       "/v1/scoring/profiles",
       "/v1/scoring/recompute"
     ],
-    acceptanceIds: ["A204", "A205", "A211"]
+    acceptanceIds: ["S8PDT01", "A204", "A205", "A211"]
   },
   {
     id: "data_center",
     label: "数据中心",
     subtitle: "数据来源、更新时间、覆盖率和异常状态",
     controlKind: "route",
-    routeState: "partial",
+    // S8PDT01: /objects-scope serves the full catalog inventory with
+    // coverage states and per-catalog export, E2E-locked (10 catalogs).
+    routeState: "available",
     href: "/objects-scope",
     apiEndpoints: ["/v1/catalogs/relationship", "/v1/catalogs/domain-object"],
-    acceptanceIds: ["A172", "A211"]
+    acceptanceIds: ["S8PDT01", "A172", "A211"]
   },
   {
     id: "watchlist",
@@ -212,9 +219,11 @@ export const WORKSPACE_MODULES: readonly WorkspaceModuleDefinition[] = [
     subtitle: "Watchlist、保存视图和告警",
     controlKind: "section",
     sectionTestId: "home-watchlist",
-    routeState: "partial",
-    apiEndpoints: ["/v1/watchlists", "/v1/saved-views"],
-    acceptanceIds: ["A207", "A211"]
+    // S8PDT02: unread now counts real /v1/changes rows since the stored
+    // last-seen mark (A037); fixture fallback stays explicitly labeled.
+    routeState: "available",
+    apiEndpoints: ["/v1/watchlists", "/v1/saved-views", "/v1/changes"],
+    acceptanceIds: ["S8PDT02", "A037", "A207", "A211"]
   },
   {
     id: "exploration_history",

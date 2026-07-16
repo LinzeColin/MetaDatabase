@@ -47,6 +47,7 @@ import {
   loadEvidenceDetail,
   loadScoreExplanation,
   loadSourceFreshness,
+  readProductionDataApiBaseUrl,
   type CatalogInventoryRecord,
   type EvidenceDetailRecord,
   type ScoreExplanationRecord,
@@ -329,6 +330,9 @@ const shortLabels: Record<NodeKey, string> = {
   energy: "Energy",
   systemMakersGroup: "System Makers"
 };
+
+// A037 (S8PDT02): last-seen mark for the real change-feed unread count.
+const WATCHLIST_LAST_SEEN_STORAGE_KEY = "eei.watchlist.lastSeen.v1";
 
 const lensItems: { key: LensKey; label: string }[] = [
   { key: "all", label: "综合" },
@@ -1492,6 +1496,29 @@ export default function Home() {
   const [modelDraftEndpoint, setModelDraftEndpoint] = useState("");
   const [modelDraftWeightSum, setModelDraftWeightSum] = useState(0);
   const [rollbackProfile, setRollbackProfile] = useState<ScoringProfileRecord | null>(null);
+  // A037 semantics (S8PDT02): unread = real /v1/changes rows since the
+  // stored last-seen mark; null keeps the labeled fixture fallback.
+  const [serverUnreadChanges, setServerUnreadChanges] = useState<number | null>(null);
+
+  useEffect(() => {
+    const apiBaseUrl = readProductionDataApiBaseUrl();
+    if (!apiBaseUrl) {
+      return;
+    }
+    const lastSeen = window.localStorage.getItem(WATCHLIST_LAST_SEEN_STORAGE_KEY);
+    const query = lastSeen ? `?since=${encodeURIComponent(lastSeen)}` : "";
+    void window
+      .fetch(`${apiBaseUrl}/v1/changes${query}`)
+      .then(async (response) => {
+        const payload = (await response.json().catch(() => null)) as unknown;
+        if (response.ok && Array.isArray(payload)) {
+          setServerUnreadChanges(payload.length);
+        }
+      })
+      .catch(() => {
+        // Fixture fallback stays labeled; no fake server counts.
+      });
+  }, []);
   const [previousModelRefreshToken, setPreviousModelRefreshToken] = useState("");
   const [scoreRecomputeStatus, setScoreRecomputeStatus] = useState<
     "idle" | "enqueueing" | "server-conflict" | "server-error" | ScoreRecomputeJobRecord["status"]
@@ -2298,6 +2325,9 @@ export default function Home() {
     setActiveLens(item.savedLens);
     setSemanticZoom(item.savedZoom);
     setCenter(item.key);
+    // Opening a watch item marks the change feed as seen (A037).
+    window.localStorage.setItem(WATCHLIST_LAST_SEEN_STORAGE_KEY, new Date().toISOString());
+    setServerUnreadChanges(0);
   }
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
@@ -2954,7 +2984,11 @@ export default function Home() {
         >
           <header>
             <span>我的关注</span>
-            <small>{homeWatchItems.reduce((total, item) => total + item.unread, 0)} unread</small>
+            <small data-testid="watchlist-unread-summary">
+              {serverUnreadChanges === null
+                ? `${homeWatchItems.reduce((total, item) => total + item.unread, 0)} unread (fixture)`
+                : `${serverUnreadChanges} unread · server`}
+            </small>
           </header>
           <div className="watchlistStack">
             {homeWatchItems.map((item) => (
