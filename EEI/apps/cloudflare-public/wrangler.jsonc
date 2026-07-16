@@ -10,7 +10,7 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/v1/*", "/health"]
+    "run_worker_first": ["/v1/*", "/health", "/__scheduled"]
   },
   "d1_databases": [
     {
@@ -18,5 +18,13 @@
       "database_name": "eei-publication",
       "database_id": "dbf906da-62ab-4a51-aa32-c00b89c84cdf"
     }
-  ]
+  ],
+  // S10PBT02: daily incremental SEC polling (18:00 UTC = Sydney早晨).
+  // Rotation slices keep每 run 5 家公司, ADP 同款配额纪律.
+  "triggers": {
+    "crons": ["0 18 * * *"]
+  },
+  "vars": {
+    "SEC_USER_AGENT": "EEI research linzezhang35@gmail.com"
+  }
 }
