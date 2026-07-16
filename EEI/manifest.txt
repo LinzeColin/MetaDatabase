@@ -347,6 +347,7 @@ docs/governance/roadmap.yaml
 docs/phase/MVP_DEVELOPMENT_RECORD.md
 docs/phase/V5_TASK_PACK_SYNCHRONIZATION.md
 docs/pursuing_goal/CURRENT.yaml
+docs/pursuing_goal/v5_0/S9_GATE_EVIDENCE.md
 docs/pursuing_goal/v5_0/V5_0_ROOT_LOCK.yaml
 infra/cloudflare/d1_publication_schema.sql
 infra/db/migrations/0001_core_domain/down.sql
@@ -507,9 +508,17 @@ tests/e2e/development-status.spec.ts
 tests/e2e/home.spec.ts
 tests/e2e/industry.spec.ts
 tests/e2e/motion-choreography.spec.ts
+tests/e2e/perf-first-interactive.spec.ts
 tests/e2e/saved-view-live.spec.ts
 tests/e2e/state-contract.spec.ts
 tests/e2e/theme-system.spec.ts
+tests/e2e/visual-regression.spec.ts
+tests/e2e/visual-regression.spec.ts-snapshots/approved-default-chromium-linux.png
+tests/e2e/visual-regression.spec.ts-snapshots/approved-dense-list-chromium-linux.png
+tests/e2e/visual-regression.spec.ts-snapshots/approved-empty-search-chromium-linux.png
+tests/e2e/visual-regression.spec.ts-snapshots/approved-error-api-chromium-linux.png
+tests/e2e/visual-regression.spec.ts-snapshots/approved-lens-pivot-chromium-linux.png
+tests/e2e/visual-regression.spec.ts-snapshots/approved-loading-pending-chromium-linux.png
 tests/fixtures/README.md
 tests/fixtures/gold_quality/golden_vertical_gold_labels_sample.json
 tests/fixtures/golden_vertical_owner_signoff_decisions.json
