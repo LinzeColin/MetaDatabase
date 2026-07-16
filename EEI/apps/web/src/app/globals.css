@@ -626,7 +626,9 @@ dd {
 
 .canvas {
   display: grid;
-  grid-template-rows: auto auto auto auto minmax(620px, 1fr) auto auto;
+  /* Row 6 is the map (the flexible giant); the S9PCT01 history scrubber
+     added a child, so the template gains one auto row before it. */
+  grid-template-rows: auto auto auto auto auto minmax(620px, 1fr) auto auto;
   gap: 14px;
   padding: 20px;
 }
@@ -2789,4 +2791,92 @@ dd {
   .industryRail span {
     display: inline;
   }
+}
+
+/* S9PCT01 V3 history scrubber */
+.historyScrubber {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 10px 12px;
+}
+
+.historyEmpty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.historyRail {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.historyYear {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.historyYear.active {
+  background: color-mix(in srgb, var(--blue) 18%, transparent);
+}
+
+.historyYear small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.historyBar {
+  width: 14px;
+  border-radius: 3px 3px 0 0;
+  background: var(--amber);
+  opacity: 0.85;
+}
+
+.historyYear.active .historyBar {
+  background: var(--blue);
+}
+
+.historyDetail {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--ink);
+  font-weight: 650;
+}
+
+/* S9PCT02 V7 ask bar */
+.askBar {
+  display: flex;
+  gap: 6px;
+  min-width: 300px;
+}
+
+.askBar input {
+  flex: 1;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--ink);
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.askBar button {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--blue);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--blue) 16%, transparent);
+  color: var(--blue);
+  font-weight: 720;
+  cursor: pointer;
 }
