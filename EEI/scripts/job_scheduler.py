@@ -2477,6 +2477,25 @@ def run_once(*, worker_id: str, job_type: str | None = None) -> dict[str, Any] |
             lease_token=job["lease_token"],
             result=result,
         )
+    if job["job_type"] == "refresh_stability_probe":
+        from scripts.refresh_stability_probe import (  # noqa: PLC0415
+            handle_refresh_stability_probe_job,
+        )
+
+        try:
+            result = handle_refresh_stability_probe_job(job)
+        except Exception as exc:
+            return fail_job(
+                job_id=job["id"],
+                lease_token=job["lease_token"],
+                error_class=exc.__class__.__name__,
+                error_message=str(exc),
+            )
+        return complete_job(
+            job_id=job["id"],
+            lease_token=job["lease_token"],
+            result=result,
+        )
     return fail_job(
         job_id=job["id"],
         lease_token=job["lease_token"],
