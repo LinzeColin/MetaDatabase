@@ -140,6 +140,7 @@ def check_probe_chain(
         """
         SELECT diff->>'probe_no' AS probe_no,
                diff->'verification'->>'ok' AS verification_ok,
+               diff->'verification'->'violations' AS verification_violations,
                occurred_at
         FROM operation_logs
         WHERE action_type = 'refresh_stability_probe'
@@ -168,11 +169,22 @@ def check_probe_chain(
                     "error_class": job["last_error_class"],
                 }
             )
-    bad_verifications = [
-        {"probe_no": hb["probe_no"], "occurred_at": hb["occurred_at"].isoformat()}
-        for hb in heartbeats
-        if hb["verification_ok"] == "false"
-    ]
+    bad_verifications: list[dict[str, Any]] = []
+    known_false_positives: list[dict[str, Any]] = []
+    for hb in heartbeats:
+        if hb["verification_ok"] != "false":
+            continue
+        entry = {"probe_no": hb["probe_no"], "occurred_at": hb["occurred_at"].isoformat()}
+        violations_list = hb.get("verification_violations") or []
+        # 探针 1（2026-07-16T09:50Z）的历史误报：校验器用 completed 字面量
+        # 比对 succeeded 终态（已修）。violation 字符串内嵌真实状态，
+        # 全部为 ...:succeeded 时归类为已归因警告——原始心跳记录不动。
+        if violations_list and all(
+            isinstance(v, str) and v.endswith("_not_completed:succeeded") for v in violations_list
+        ):
+            known_false_positives.append(entry)
+        else:
+            bad_verifications.append(entry)
     return {
         "window_id": jobs[-1]["window_id"] if jobs else None,
         "jobs_total": len(jobs),
@@ -181,6 +193,7 @@ def check_probe_chain(
         "stalled": stalled,
         "failed": failed,
         "bad_verifications": bad_verifications,
+        "known_false_positives": known_false_positives,
     }
 
 
@@ -261,6 +274,8 @@ def build_report(base_url: str) -> dict[str, Any]:
         violations.append(f"probe_failed: {probe['failed']}")
     if probe["bad_verifications"]:
         violations.append(f"probe_verification_failed: {probe['bad_verifications']}")
+    if probe["known_false_positives"]:
+        warnings.append(f"probe_checker_false_positive_history: {probe['known_false_positives']}")
     if latest := local_daily.get("latest_production_run"):
         if latest["status"] == "failed":
             violations.append(f"local_daily_latest_failed: {latest}")

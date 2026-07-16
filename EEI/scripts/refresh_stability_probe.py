@@ -18,6 +18,7 @@ CLI (host side):
   python scripts/refresh_stability_probe.py --seed        # start a window
   python scripts/refresh_stability_probe.py --status      # window progress
 """
+
 from __future__ import annotations
 
 import argparse
@@ -105,7 +106,9 @@ def verify_previous_cycle(
     for label, job in (("data_snapshot_refresh", refresh_job), ("score_recompute", recompute_job)):
         if job is None:
             continue  # previous cycle hit a conflict and enqueued nothing
-        if job.get("status") != "completed":
+        # background_jobs 的成功终态是 succeeded（不是 completed）——探针 1
+        # 曾因字面量错配把健康周期误报为 violation。
+        if job.get("status") != "succeeded":
             checks["violations"].append(f"previous_{label}_not_completed:{job.get('status')}")
     row = context_now["context"]
     if context_now["row_count"] != 1:
@@ -118,7 +121,7 @@ def verify_previous_cycle(
             )
         if (
             refresh_job is not None
-            and refresh_job.get("status") == "completed"
+            and refresh_job.get("status") == "succeeded"
             and int(row["refresh_generation"]) == int(previous_generation)
             and previous.get("refresh_token") == row["refresh_token"]
         ):
