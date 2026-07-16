@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # S10PAT02: build the static cloud frontend and stage it as the codex-eei
 # Worker's asset directory. The export talks to the Worker API at
-# EEI_CLOUD_API_BASE (workers.dev now; the custom domain lands in S10PCT01
-# and just needs a rebuild with the new base).
+# EEI_CLOUD_API_BASE. Default is the production custom domain: workers.dev
+# serving is DISABLED for this worker (error 1042) - a bare rebuild against
+# the old default silently points every production-data panel at a dead
+# origin (the S12 timeline-empty incident).
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-API_BASE="${EEI_CLOUD_API_BASE:-https://codex-eei.linzezhang35.workers.dev}"
+API_BASE="${EEI_CLOUD_API_BASE:-https://eei.linzezhang.com}"
 WEB_DIR="$REPO_ROOT/apps/web"
 DIST_DIR="$REPO_ROOT/apps/cloudflare-public/dist"
 
