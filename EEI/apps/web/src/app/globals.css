@@ -1,4 +1,17 @@
-:root {
+@import "tailwindcss";
+
+/*
+ * EEI deep-space design system (S9PAT01, ROOT_LOCK HR3).
+ * Two themes share one token vocabulary:
+ *   daylight   - the original light research surface
+ *   deep-space - the empire cosmos (default): controlled glow, depth and
+ *                particle tokens; encodings are always dual-channel
+ *                (color + icon/label), never color alone.
+ * The active theme is stamped on <html data-theme> BEFORE first paint by the
+ * HEAD_INIT inline script in layout.tsx (anti-flicker contract).
+ */
+:root,
+:root[data-theme="daylight"] {
   --bg: #f6f7f9;
   --panel: #ffffff;
   --panel-strong: #f2f5f3;
@@ -12,6 +25,57 @@
   --teal: #0f766e;
   --red: #b42318;
   --shadow: 0 12px 30px rgba(24, 32, 29, 0.08);
+  /* Deep-space extension tokens (neutral in daylight) */
+  --cosmos-bg: #eef1f6;
+  --cosmos-halo: rgba(31, 111, 235, 0.12);
+  --glow-core: rgba(31, 111, 235, 0.35);
+  --glow-soft: rgba(31, 111, 235, 0.14);
+  --glow-published: rgba(31, 138, 91, 0.35);
+  --depth-1: rgba(24, 32, 29, 0.06);
+  --depth-2: rgba(24, 32, 29, 0.12);
+  --particle-density: 0;
+  --motion-scale: 1;
+}
+
+:root[data-theme="deep-space"] {
+  --bg: #070b14;
+  --panel: #0d1322;
+  --panel-strong: #111a2e;
+  --ink: #e6ecf7;
+  --muted: #8b98b3;
+  --line: #1d2942;
+  --blue: #5aa2ff;
+  --green: #3ddc97;
+  --amber: #ffc857;
+  --violet: #9d8cff;
+  --teal: #2dd4bf;
+  --red: #ff6b6b;
+  --shadow: 0 18px 44px rgba(2, 6, 16, 0.55);
+  --cosmos-bg: radial-gradient(ellipse at 30% 20%, #0d1830 0%, #070b14 55%, #05070f 100%);
+  --cosmos-halo: rgba(90, 162, 255, 0.16);
+  --glow-core: rgba(90, 162, 255, 0.5);
+  --glow-soft: rgba(90, 162, 255, 0.18);
+  --glow-published: rgba(61, 220, 151, 0.45);
+  --depth-1: rgba(2, 6, 16, 0.4);
+  --depth-2: rgba(2, 6, 16, 0.65);
+  --particle-density: 1;
+  --motion-scale: 1;
+}
+
+/* Motion kill-switch: reduced-motion collapses every choreographed effect. */
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  :root[data-theme="deep-space"],
+  :root[data-theme="daylight"] {
+    --motion-scale: 0;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+  }
 }
 
 * {

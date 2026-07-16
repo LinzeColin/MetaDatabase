@@ -19,9 +19,25 @@ export const metadata: Metadata = {
   }
 };
 
+// HEAD_INIT anti-flicker contract (S9PAT01): the theme attribute is stamped
+// on <html> synchronously before first paint, so a stored preference can
+// never flash the wrong theme. Falls back to deep-space (the empire default).
+const THEME_HEAD_INIT = `(function () {
+  try {
+    var stored = window.localStorage.getItem("eei.theme.v1");
+    var theme = stored === "daylight" || stored === "deep-space" ? stored : "deep-space";
+    document.documentElement.setAttribute("data-theme", theme);
+  } catch (error) {
+    document.documentElement.setAttribute("data-theme", "deep-space");
+  }
+})();`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" data-theme="deep-space" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_HEAD_INIT }} />
+      </head>
       <body>{children}</body>
     </html>
   );

@@ -72,6 +72,7 @@ apps/cloudflare-public/public/styles.css
 apps/cloudflare-public/wrangler.jsonc
 apps/web/next.config.ts
 apps/web/package.json
+apps/web/postcss.config.mjs
 apps/web/public/apple-touch-icon.png
 apps/web/public/eei-app-icon.png
 apps/web/public/eei-app-icon.svg
@@ -507,6 +508,7 @@ tests/e2e/home.spec.ts
 tests/e2e/industry.spec.ts
 tests/e2e/saved-view-live.spec.ts
 tests/e2e/state-contract.spec.ts
+tests/e2e/theme-system.spec.ts
 tests/fixtures/README.md
 tests/fixtures/gold_quality/golden_vertical_gold_labels_sample.json
 tests/fixtures/golden_vertical_owner_signoff_decisions.json
