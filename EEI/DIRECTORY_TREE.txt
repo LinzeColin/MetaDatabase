@@ -100,6 +100,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       ├── use-analysis-context.ts
 │   │   │       ├── workspace-context.tsx
 │   │   │       └── workspace-navigation.tsx
+│   │   ├── .gitignore
 │   │   ├── next.config.ts
 │   │   ├── package.json
 │   │   ├── postcss.config.mjs
@@ -499,6 +500,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── apply_model_config.py
 │   ├── backfill_sec_history.py
 │   ├── backup_restore_drill.py
+│   ├── build_cloud_frontend.sh
 │   ├── build_production_gold_labels.py
 │   ├── check_database_schema.py
 │   ├── compile_model_runtime_defaults.py
