@@ -506,6 +506,7 @@ tests/e2e/capital-river.spec.ts
 tests/e2e/development-status.spec.ts
 tests/e2e/home.spec.ts
 tests/e2e/industry.spec.ts
+tests/e2e/motion-choreography.spec.ts
 tests/e2e/saved-view-live.spec.ts
 tests/e2e/state-contract.spec.ts
 tests/e2e/theme-system.spec.ts

@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+  type KeyboardEvent
+} from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -1687,6 +1695,39 @@ export default function Home() {
     [graphViewNodes]
   );
   const graphViewMode = isServerGraphRendered ? "server" : "fixture";
+  // S9PAT03 ⑤ hover depth-of-field: the hovered node's neighborhood stays
+  // sharp while everything else dims (CSS-only transition, motion-gated).
+  const [hoveredNodeKey, setHoveredNodeKey] = useState<string | null>(null);
+  const hoverNeighborhood = useMemo(() => {
+    if (!hoveredNodeKey) {
+      return null;
+    }
+    const near = new Set<string>([hoveredNodeKey]);
+    for (const edge of graphViewEdges) {
+      if (edge.from === hoveredNodeKey) near.add(edge.to);
+      if (edge.to === hoveredNodeKey) near.add(edge.from);
+    }
+    return near;
+  }, [hoveredNodeKey, graphViewEdges]);
+  // S9PAT03 ① camera fly on reroot: retrigger the fly-in animation whenever
+  // the focused entity changes (fixture focusKey or server focus id).
+  const empireFocusIdentity = isServerGraphRendered
+    ? productionGraphRequest.focus.object_id
+    : focusKey;
+  const empireMapRef = useRef<SVGSVGElement | null>(null);
+  useEffect(() => {
+    const svg = empireMapRef.current;
+    if (!svg) {
+      return;
+    }
+    svg.classList.remove("rerootFly");
+    // Force a reflow so re-adding the class restarts the animation.
+    void svg.getBoundingClientRect();
+    svg.classList.add("rerootFly");
+    const clear = () => svg.classList.remove("rerootFly");
+    svg.addEventListener("animationend", clear, { once: true });
+    return () => svg.removeEventListener("animationend", clear);
+  }, [empireFocusIdentity]);
   const productionContext = productionGraph?.production_context;
   const productionCoverage = productionGraph?.coverage;
   const productionCandidateCoverage = productionCoverage?.relationship_fact_candidates;
@@ -3250,8 +3291,10 @@ export default function Home() {
           </div>
           <svg
             className={`ecosystemMap zoom-${semanticZoom}`}
+            data-hover-depth={hoverNeighborhood ? "on" : "off"}
             data-render-source={graphViewMode}
             data-semantic-zoom={semanticZoom}
+            ref={empireMapRef}
             data-server-rendered-edge-count={graphViewMode === "server" ? graphViewEdges.length : 0}
             data-server-rendered-node-count={graphViewMode === "server" ? graphViewNodes.length : 0}
             data-testid="ecosystem-map-svg"
@@ -3301,9 +3344,11 @@ export default function Home() {
               const midX = (source.x + target.x) / 2;
               const midY = (source.y + target.y) / 2 - 10;
               const lensState = activeLens === "all" || edge.lens === activeLens ? "active" : "faded";
+              const hoverNear =
+                hoverNeighborhood?.has(edge.from) && hoverNeighborhood?.has(edge.to);
               return (
                 <g
-                  className={`edgeGroup ${lensState}`}
+                  className={`edgeGroup ${lensState}${hoverNear ? " hoverNear" : ""}`}
                   data-lens-state={lensState}
                   data-render-source={edge.source}
                   data-testid={`edge-group-${edge.from}-${edge.to}`}
@@ -3313,6 +3358,7 @@ export default function Home() {
                     className="edge"
                     data-testid={`edge-${edge.from}-${edge.to}`}
                     markerEnd="url(#arrow)"
+                    pathLength={1}
                     x1={source.x}
                     y1={source.y}
                     x2={target.x}
@@ -3335,18 +3381,21 @@ export default function Home() {
                 </g>
               );
             })}
-            {graphViewNodes.map((mapNode) => {
+            {graphViewNodes.map((mapNode, nodeIndex) => {
               const lensState =
                 activeLens === "all" || activeEdgeKeys.has(mapNode.key) ? "active" : "faded";
               const isSelected = mapNode.key === selectedGraphNode.key;
               const isFocus =
                 mapNode.key ===
                 (graphViewMode === "server" ? productionGraphRequest.focus.object_id : focusKey);
+              const hoverNear = hoverNeighborhood?.has(mapNode.key);
               return (
               <g
                 aria-label={`Inspect ${mapNode.label}`}
                 aria-pressed={isSelected}
-                className={`node ${mapNode.zone} ${lensState}${isSelected ? " selected" : ""}`}
+                className={`node ${mapNode.zone} ${lensState}${isSelected ? " selected" : ""}${
+                  hoverNear ? " hoverNear" : ""
+                }${isFocus ? " focus" : ""}`}
                 data-aggregate-count={mapNode.aggregateCount}
                 data-lens-state={lensState}
                 data-node-kind={mapNode.aggregateCount ? "aggregate" : "entity"}
@@ -3355,7 +3404,10 @@ export default function Home() {
                 key={mapNode.key}
                 onClick={() => inspectGraphNode(mapNode)}
                 onKeyDown={(event) => handleNodeKeyDown(event, mapNode)}
+                onMouseEnter={() => setHoveredNodeKey(mapNode.key)}
+                onMouseLeave={() => setHoveredNodeKey(null)}
                 role="button"
+                style={{ "--stagger-i": nodeIndex } as CSSProperties}
                 tabIndex={0}
                 transform={`translate(${mapNode.x} ${mapNode.y})`}
               >

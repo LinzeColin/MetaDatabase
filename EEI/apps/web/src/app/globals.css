@@ -778,6 +778,71 @@ dd {
   opacity: 0.9;
 }
 
+/*
+ * S9PAT03 motion choreography. Every duration multiplies --motion-scale so
+ * reduced-motion (scale 0) collapses the entire system in one place.
+ *   ① camera fly on reroot   -> .ecosystemMap.rerootFly
+ *   ② halo pulse             -> .sunHalo animation
+ *   ③ filament draw-in       -> .edge stroke-dash draw
+ *   ④ fan-out stagger        -> .node entry delay via --stagger-i
+ *   ⑤ hover depth propagation-> svg[data-hover-depth] non-neighbor dimming
+ */
+@keyframes empireSunPulse {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+.sunHalo {
+  transform-origin: 380px 240px;
+  transform-box: view-box;
+  animation: empireSunPulse calc(var(--motion-scale) * 3.6s + 0.001s) ease-in-out infinite;
+}
+
+@keyframes empireFilamentDraw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+.edge {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: empireFilamentDraw calc(var(--motion-scale) * 0.9s + 0.001s) ease-out backwards;
+}
+
+/* Opacity-only: a CSS transform animation would OVERRIDE the <g> transform
+   attribute (its translate position) for the animation's duration, teleporting
+   nodes to the origin mid-flight. Fade-in stagger keeps positions intact. */
+@keyframes empireNodeFanOut {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.node {
+  animation: empireNodeFanOut calc(var(--motion-scale) * 0.5s + 0.001s) ease-out backwards;
+  animation-delay: calc(var(--motion-scale) * var(--stagger-i, 0) * 60ms);
+}
+
+@keyframes empireRerootFly {
+  0% { transform: scale(1.16); opacity: 0.35; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.ecosystemMap.rerootFly {
+  animation: empireRerootFly calc(var(--motion-scale) * 0.7s + 0.001s) cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+
+/* Hover depth-of-field: dim everything except the hovered node's neighborhood. */
+.ecosystemMap[data-hover-depth="on"] .node:not(.hoverNear),
+.ecosystemMap[data-hover-depth="on"] .edgeGroup:not(.hoverNear) {
+  opacity: 0.25;
+  transition: opacity calc(var(--motion-scale) * 220ms + 0.001s) ease;
+}
+
+.ecosystemMap .node,
+.ecosystemMap .edgeGroup {
+  transition: opacity calc(var(--motion-scale) * 220ms + 0.001s) ease;
+}
+
 .sunHalo {
   pointer-events: none;
 }
