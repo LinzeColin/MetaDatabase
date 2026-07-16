@@ -1052,6 +1052,52 @@ function serverNodeZone(
   return "upstream";
 }
 
+// S9PAT02: solar-system layout. The sun sits at the canvas center; each zone
+// occupies an angular sector on one of the orbital belts. Multiple nodes in
+// a zone fan out around the sector center with a stable per-index spread.
+const EMPIRE_CENTER = { x: 380, y: 240 } as const;
+const EMPIRE_ORBITS: Record<Exclude<Zone, "focus">, { radius: number; centerDeg: number }> = {
+  business: { radius: 118, centerDeg: 270 },
+  capital: { radius: 118, centerDeg: 200 },
+  upstream: { radius: 182, centerDeg: 160 },
+  downstream: { radius: 182, centerDeg: 10 },
+  policy: { radius: 182, centerDeg: 95 },
+  infrastructure: { radius: 182, centerDeg: 320 }
+};
+
+function layoutEmpireOrbits<T extends { key: string; zone: Zone; x: number; y: number }>(
+  nodes: T[]
+): (T & { orbitRadius?: number })[] {
+  const zoneGroups = new Map<Zone, T[]>();
+  for (const node of nodes) {
+    zoneGroups.set(node.zone, [...(zoneGroups.get(node.zone) ?? []), node]);
+  }
+  const placed = new Map<string, { x: number; y: number; orbitRadius?: number }>();
+  for (const [zone, members] of zoneGroups) {
+    if (zone === "focus") {
+      for (const member of members) {
+        placed.set(member.key, { x: EMPIRE_CENTER.x, y: EMPIRE_CENTER.y });
+      }
+      continue;
+    }
+    const orbit = EMPIRE_ORBITS[zone];
+    const spreadDeg = Math.min(30, Math.max(16, 110 / Math.max(members.length - 1, 1)));
+    members.forEach((member, index) => {
+      const offset = (index - (members.length - 1) / 2) * spreadDeg;
+      const angle = ((orbit.centerDeg + offset) * Math.PI) / 180;
+      // Dense sectors stagger alternate members onto a slightly wider ring so
+      // labels stop stacking; the belt reading stays intact.
+      const radius = orbit.radius + (members.length > 3 && index % 2 === 1 ? 34 : 0);
+      placed.set(member.key, {
+        x: Math.round(EMPIRE_CENTER.x + radius * Math.cos(angle)),
+        y: Math.round(EMPIRE_CENTER.y + radius * Math.sin(angle)),
+        orbitRadius: orbit.radius
+      });
+    });
+  }
+  return nodes.map((node) => ({ ...node, ...placed.get(node.key) }));
+}
+
 function serverNodePosition(zone: Zone, index: number, count: number) {
   const clampedCount = Math.max(count, 1);
   const y = 126 + ((index + 1) * 228) / (clampedCount + 1);
@@ -1615,8 +1661,27 @@ export default function Home() {
     productionGraphStatus === "server-hydrated" &&
     Boolean(serverGraphNodes?.length) &&
     Boolean(serverGraphEdges?.length);
-  const graphViewNodes = isServerGraphRendered ? serverGraphNodes! : fixtureGraphNodes;
+  const baseGraphViewNodes = isServerGraphRendered ? serverGraphNodes! : fixtureGraphNodes;
   const graphViewEdges = isServerGraphRendered ? serverGraphEdges! : fixtureGraphEdges;
+  // S9PAT02 empire canvas: every node is re-laid onto the solar system -
+  // the focus entity is the sun, zones become orbital belts with angular
+  // sectors. Layout is position-only (keys, zones, click handlers, zoom and
+  // lens semantics are untouched), so the existing state contract holds.
+  const graphViewNodes = useMemo(
+    () => layoutEmpireOrbits(baseGraphViewNodes),
+    [baseGraphViewNodes]
+  );
+  const orbitRingRadii = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          graphViewNodes
+            .map((item) => item.orbitRadius ?? 0)
+            .filter((radius) => radius > 0)
+        )
+      ).sort((a, b) => a - b),
+    [graphViewNodes]
+  );
   const graphViewNodeByKey = useMemo(
     () => new Map(graphViewNodes.map((item) => [item.key, item])),
     [graphViewNodes]
@@ -3210,7 +3275,25 @@ export default function Home() {
               >
                 <path d="M0,0 L8,4 L0,8 z" />
               </marker>
+              <radialGradient id="sunGlow">
+                <stop offset="0%" stopColor="var(--glow-core)" />
+                <stop offset="60%" stopColor="var(--glow-soft)" />
+                <stop offset="100%" stopColor="transparent" />
+              </radialGradient>
             </defs>
+            {/* S9PAT02 orbital belts: purely decorative rings behind the graph. */}
+            <g aria-hidden className="orbitRings" data-testid="empire-orbit-rings">
+              {orbitRingRadii.map((radius) => (
+                <circle
+                  className="orbitRing"
+                  cx={380}
+                  cy={240}
+                  key={radius}
+                  r={radius}
+                />
+              ))}
+              <circle className="sunHalo" cx={380} cy={240} r={64} fill="url(#sunGlow)" />
+            </g>
             {graphViewEdges.map((edge) => {
               const source = graphViewNodeByKey.get(edge.from);
               const target = graphViewNodeByKey.get(edge.to);
