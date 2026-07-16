@@ -19,6 +19,50 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   exit 1
 fi
 
+# Isolation guard (2026-07-16 incident): the live E2E stack used to
+# downgrade/reseed whatever DATABASE_URL pointed at and once wiped the local
+# production database (owner-signed published facts, the 2016+ backfill and
+# the job queue; restored from the S7PDT03 backup). The reset below now runs
+# against a DEDICATED database derived from DATABASE_URL - the production
+# database is never touched by this script.
+E2E_DB_NAME="${EEI_E2E_DB_NAME:-eei_e2e}"
+E2E_DATABASE_URL=$(.venv/bin/python - "$DATABASE_URL" "$E2E_DB_NAME" <<'PY'
+import sys
+from urllib.parse import urlparse, urlunparse
+
+url, db_name = sys.argv[1], sys.argv[2]
+parts = urlparse(url)
+print(urlunparse(parts._replace(path=f"/{db_name}")))
+PY
+)
+
+if [[ "$E2E_DATABASE_URL" == "$DATABASE_URL" ]]; then
+  echo "ERROR: E2E database URL must differ from the production DATABASE_URL" >&2
+  exit 1
+fi
+
+.venv/bin/python - "$DATABASE_URL" "$E2E_DB_NAME" <<'PY'
+import sys
+from urllib.parse import urlparse, urlunparse
+
+import psycopg
+
+url, db_name = sys.argv[1], sys.argv[2]
+admin_url = urlunparse(urlparse(url)._replace(path="/postgres"))
+with psycopg.connect(admin_url, connect_timeout=10, autocommit=True) as conn:
+    exists = conn.execute(
+        "SELECT 1 FROM pg_database WHERE datname = %s", (db_name,)
+    ).fetchone()
+    if not exists:
+        conn.execute(f'CREATE DATABASE "{db_name}"')
+        print(f"created dedicated E2E database: {db_name}")
+    else:
+        print(f"dedicated E2E database present: {db_name}")
+PY
+
+export DATABASE_URL="$E2E_DATABASE_URL"
+echo "live E2E stack bound to dedicated database: ${E2E_DB_NAME}"
+
 .venv/bin/python scripts/migrate.py downgrade --all
 .venv/bin/python scripts/migrate.py upgrade
 .venv/bin/python scripts/load_seed_catalogs.py
