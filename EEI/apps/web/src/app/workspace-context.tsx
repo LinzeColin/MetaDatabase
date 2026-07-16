@@ -126,19 +126,21 @@ export const WORKSPACE_MODULES: readonly WorkspaceModuleDefinition[] = [
     id: "ma_transactions",
     label: "并购交易",
     subtitle: "收购、出售、拆分、合并和战略投资",
-    controlKind: "planned",
-    routeState: "planned",
-    disabledReason: "Requires reviewed M&A transaction facts from T1301/T1302 before public UI activation.",
-    acceptanceIds: ["A202", "A203", "A211"]
+    controlKind: "route",
+    href: "/ma",
+    routeState: "available",
+    apiEndpoints: ["/v1/ma/overview"],
+    acceptanceIds: ["S8PCT01", "A202", "A203", "A211"]
   },
   {
     id: "control_relationships",
     label: "控制关系",
     subtitle: "投票权、经济权益、董事席位和实际控制路径",
-    controlKind: "planned",
-    routeState: "planned",
-    disabledReason: "Requires reviewed control-path facts and confidence explanations before activation.",
-    acceptanceIds: ["A202", "A203", "A211"]
+    controlKind: "route",
+    href: "/control",
+    routeState: "available",
+    apiEndpoints: ["/v1/control/overview"],
+    acceptanceIds: ["S8PCT01", "A202", "A203", "A211"]
   },
   {
     id: "policy_environment",

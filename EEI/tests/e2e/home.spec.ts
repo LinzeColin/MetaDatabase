@@ -171,9 +171,11 @@ test("A211 exposes WorkspaceContext routes controls disabled entries and persist
   await expect(context).toHaveAttribute("data-state-persistence", "url,sessionStorage,localStorage");
   await expect(context).toHaveAttribute("data-workspace-state-storage-key", "eei.workspaceState.v1");
   await expect(context).toHaveAttribute("data-saved-view-storage-key", "eei.savedView.current.v1");
+  // S8PC enabled ma_transactions and control_relationships; strategic_signals
+  // remains the only disabled module until S8PCT02.
   await expect(context).toHaveAttribute(
     "data-disabled-unfinished",
-    "ma_transactions,control_relationships,strategic_signals"
+    "strategic_signals"
   );
   const serverEndpoints = await context.getAttribute("data-server-endpoints");
   expect(serverEndpoints).toContain("/v1/saved-views");
@@ -215,16 +217,17 @@ test("A211 exposes WorkspaceContext routes controls disabled entries and persist
     "section:evidence_center:evidence-center"
   );
 
-  await expect(page.getByTestId("main-nav-ma_transactions")).toBeDisabled();
+  // S8PCT01 promoted both modules to real routes backed by /v1/ma/overview
+  // and /v1/control/overview; only strategic_signals stays disabled.
+  await expect(page.getByTestId("main-nav-ma_transactions")).toHaveAttribute("href", "/ma");
   await expect(page.getByTestId("main-nav-ma_transactions")).toHaveAttribute(
-    "data-route-state",
-    "planned"
+    "data-control-kind",
+    "route"
   );
-  await expect(page.getByTestId("main-nav-ma_transactions")).toHaveAttribute(
-    "data-disabled-reason",
-    /Requires reviewed M&A transaction facts/
+  await expect(page.getByTestId("main-nav-control_relationships")).toHaveAttribute(
+    "href",
+    "/control"
   );
-  await expect(page.getByTestId("main-nav-control_relationships")).toBeDisabled();
   await expect(page.getByTestId("main-nav-strategic_signals")).toBeDisabled();
 
   await page.getByTestId("main-nav-system_status").click();

@@ -56,9 +56,13 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   └── app
 │   │   │       ├── capital
 │   │   │       │   └── page.tsx
+│   │   │       ├── control
+│   │   │       │   └── page.tsx
 │   │   │       ├── development-status
 │   │   │       │   └── page.tsx
 │   │   │       ├── industries
+│   │   │       │   └── page.tsx
+│   │   │       ├── ma
 │   │   │       │   └── page.tsx
 │   │   │       ├── objects-scope
 │   │   │       │   └── page.tsx
@@ -72,6 +76,8 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       ├── analysis-contract.ts
 │   │   │       ├── capital-events-client.ts
 │   │   │       ├── explore-api-client.ts
+│   │   │       ├── family-module-client.ts
+│   │   │       ├── family-module-page.tsx
 │   │   │       ├── globals.css
 │   │   │       ├── layout.tsx
 │   │   │       ├── model-activation-client.ts
