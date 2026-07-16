@@ -24,6 +24,14 @@
   "triggers": {
     "crons": ["0 18 * * *"]
   },
+  // S10PCT01 (D6): custom domain on the owner zone; workers.dev stays as
+  // the fallback origin.
+  "routes": [
+    {
+      "pattern": "eei.linzezhang.com",
+      "custom_domain": true
+    }
+  ],
   "vars": {
     "SEC_USER_AGENT": "EEI research linzezhang35@gmail.com"
   }
