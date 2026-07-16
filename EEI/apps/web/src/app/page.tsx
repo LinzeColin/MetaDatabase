@@ -1,13 +1,15 @@
 "use client";
 
 import {
+  Fragment,
   useEffect,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
   type FormEvent,
-  type KeyboardEvent
+  type KeyboardEvent,
+  type PointerEvent as ReactPointerEvent
 } from "react";
 import {
   ArrowDown,
@@ -193,6 +195,29 @@ type Zone =
   | "business"
   | "capital"
   | "policy";
+
+// S12 光学：defs 渐变按 zone 枚举生成（玻璃球体 + 光晕各一）。
+const EMPIRE_ZONES: readonly Zone[] = [
+  "focus",
+  "upstream",
+  "downstream",
+  "infrastructure",
+  "business",
+  "capital",
+  "policy"
+];
+
+// 焦点节点的环绕粒子（视频样例：轨道点环，reduced-motion 时静止）。
+// 坐标取整到 0.01：三角函数原始浮点在 SSR 与客户端的序列化位数不同，
+// 会触发 hydration mismatch。
+const FOCUS_ORBIT_DOTS = Array.from({ length: 12 }, (_, index) => {
+  const angle = (index / 12) * Math.PI * 2;
+  const radius = index % 2 === 0 ? 50 : 54;
+  return {
+    x: Math.round(Math.cos(angle) * radius * 100) / 100,
+    y: Math.round(Math.sin(angle) * radius * 100) / 100
+  };
+});
 
 type MapNode = {
   key: NodeKey;
@@ -440,21 +465,21 @@ const timelineItems: {
 }[] = [
   {
     key: "2026-06-01",
-    label: "Baseline",
-    change: "Baseline supplier and customer graph",
-    overlay: "No material-change overlay in this fixture snapshot"
+    label: "基线",
+    change: "供应商与客户关系基线图",
+    overlay: "该快照无重大变化标注"
   },
   {
     key: "2026-06-12",
-    label: "Comparison",
-    change: "Packaging queue and customer-demand path changed",
-    overlay: "Change overlay highlights packaging and demand pressure"
+    label: "对比",
+    change: "封装排队与客户需求路径发生变化",
+    overlay: "变化标注：封装产能与需求压力"
   },
   {
     key: "2026-06-19",
-    label: "Active",
-    change: "Current fixture snapshot for MVP validation",
-    overlay: "Active snapshot, not real-time market data"
+    label: "当前",
+    change: "当前样例快照（MVP 验证用）",
+    overlay: "以已发布快照为准"
   }
 ];
 
@@ -1751,6 +1776,44 @@ export default function Home() {
     () => Math.max(1, ...(historyYears ?? []).map((item) => item.filings)),
     [historyYears]
   );
+  // S12PB 右侧竖轴：指针拖动/滚轮在年份纵列上自由滑选（点选仍可用）。
+  const historyRailRef = useRef<HTMLDivElement | null>(null);
+  const selectHistoryYearAtPointer = (clientY: number) => {
+    const rail = historyRailRef.current;
+    if (!rail || !historyYears || historyYears.length === 0) {
+      return;
+    }
+    const rect = rail.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (clientY - rect.top) / Math.max(1, rect.height)));
+    const index = Math.min(historyYears.length - 1, Math.floor(ratio * historyYears.length));
+    const year = historyYears[index]?.year;
+    if (typeof year === "number" && year !== historyYearSelected) {
+      setHistoryYearSelected(year);
+    }
+  };
+  const handleHistoryPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!historyYears || historyYears.length === 0) {
+      return;
+    }
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    selectHistoryYearAtPointer(event.clientY);
+  };
+  const handleHistoryPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.buttons > 0) {
+      selectHistoryYearAtPointer(event.clientY);
+    }
+  };
+  const stepHistoryYear = (step: number) => {
+    if (!historyYears || historyYears.length === 0) {
+      return;
+    }
+    const currentIndex = historyYears.findIndex((item) => item.year === historyYearSelected);
+    const nextIndex = Math.min(
+      historyYears.length - 1,
+      Math.max(0, (currentIndex === -1 ? historyYears.length - 1 : currentIndex) + step)
+    );
+    setHistoryYearSelected(historyYears[nextIndex].year);
+  };
   // S9PCT02 V7 Ask bar state (D4: zero-API ChatGPT jump).
   const [askInput, setAskInput] = useState("");
   const [lastAskAction, setLastAskAction] = useState("idle");
@@ -3393,56 +3456,6 @@ export default function Home() {
           ))}
         </div>
 
-        {/* S9PCT01 V3: the 2016->now history scrubber. Real per-year filing
-            depth from the ten-year backfill; coexists with the as-of snapshot
-            contract above without touching it. */}
-        <div
-          className="historyScrubber"
-          aria-label="2016 至今历史纵深"
-          data-testid="empire-history-scrubber"
-        >
-          {historyYears === null ? (
-            <p className="historyEmpty" data-testid="history-scrubber-empty">
-              历史纵深未连接 — 连接 EEI API 后显示 2016→今逐年官方申报深度。
-            </p>
-          ) : (
-            <>
-              <div className="historyRail">
-                {historyYears.map((item) => (
-                  <button
-                    aria-pressed={historyYearSelected === item.year}
-                    className={
-                      historyYearSelected === item.year
-                        ? "historyYear active"
-                        : "historyYear"
-                    }
-                    data-testid={`history-year-${item.year}`}
-                    key={item.year}
-                    onClick={() => setHistoryYearSelected(item.year)}
-                    title={`${item.year}：${item.filings} 份官方申报`}
-                    type="button"
-                  >
-                    <span
-                      className="historyBar"
-                      style={{
-                        height: `${Math.max(4, (item.filings / historyMaxFilings) * 30)}px`
-                      }}
-                    />
-                    <small>{item.year}</small>
-                  </button>
-                ))}
-              </div>
-              <p className="historyDetail" data-testid="history-scrubber-detail">
-                {historyYearSelected
-                  ? `${historyYearSelected} · ${
-                      historyYears.find((item) => item.year === historyYearSelected)
-                        ?.filings ?? 0
-                    } 份官方申报（sec_edgar）`
-                  : "选择年份查看该年官方申报深度"}
-              </p>
-            </>
-          )}
-        </div>
 
         <div className="stageRail" aria-label="供应链阶段覆盖">
           {stageRows.map((stage) => (
@@ -3524,9 +3537,9 @@ export default function Home() {
             data-testid="change-overlay"
             data-timeline-mode="as-of-snapshot"
           >
-            <strong>As of {asOf}</strong>
+            <strong>快照 · {asOf}</strong>
             <span>{currentTimeline.change}</span>
-            <small>{currentTimeline.overlay}; not real-time.</small>
+            <small>{currentTimeline.overlay}；非实时快照。</small>
           </div>
           <svg
             className={`ecosystemMap zoom-${semanticZoom}`}
@@ -3541,8 +3554,8 @@ export default function Home() {
             role="img"
             aria-label={
               graphViewMode === "server"
-                ? "EEI server recursive relationship map"
-                : "NVIDIA synthetic recursive supply-chain graph"
+                ? "EEI 生产关系图（服务端递归展开）"
+                : "NVIDIA 供应链样例图（本地样例数据）"
             }
           >
             <defs>
@@ -3562,6 +3575,35 @@ export default function Home() {
                 <stop offset="60%" stopColor="var(--glow-soft)" />
                 <stop offset="100%" stopColor="transparent" />
               </radialGradient>
+              {/* S12 光学：光束辉光滤镜 + 每 zone 玻璃球/光晕渐变（stop 颜色走
+                  主题 token，deep-space 与 daylight 双主题同一套 defs）。 */}
+              <filter height="200%" id="beamGlow" width="200%" x="-50%" y="-50%">
+                <feGaussianBlur stdDeviation="3.4" />
+              </filter>
+              {EMPIRE_ZONES.map((zone) => (
+                <Fragment key={zone}>
+                  <radialGradient cx="32%" cy="26%" id={`orb-${zone}`} r="82%">
+                    <stop offset="0%" style={{ stopColor: "var(--orb-specular)" }} />
+                    <stop offset="24%" style={{ stopColor: `var(--orb-${zone}-hi)` }} />
+                    <stop offset="64%" style={{ stopColor: `var(--orb-${zone}-mid)` }} />
+                    <stop offset="100%" style={{ stopColor: `var(--orb-${zone}-lo)` }} />
+                  </radialGradient>
+                  <radialGradient id={`halo-${zone}`}>
+                    <stop
+                      offset="0%"
+                      style={{ stopColor: `var(--orb-${zone}-mid)`, stopOpacity: 0.42 }}
+                    />
+                    <stop
+                      offset="68%"
+                      style={{ stopColor: `var(--orb-${zone}-mid)`, stopOpacity: 0.12 }}
+                    />
+                    <stop
+                      offset="100%"
+                      style={{ stopColor: `var(--orb-${zone}-mid)`, stopOpacity: 0 }}
+                    />
+                  </radialGradient>
+                </Fragment>
+              ))}
             </defs>
             {/* S9PAT02 orbital belts: purely decorative rings behind the graph. */}
             <g aria-hidden className="orbitRings" data-testid="empire-orbit-rings">
@@ -3585,14 +3627,28 @@ export default function Home() {
               const lensState = activeLens === "all" || edge.lens === activeLens ? "active" : "faded";
               const hoverNear =
                 hoverNeighborhood?.has(edge.from) && hoverNeighborhood?.has(edge.to);
+              // S12 光学：与焦点太阳相连的边升级为锥形金色光束（宽辉光底层），
+              // 其余保持细丝。两层线叠加，契约层（.edge testid/pathLength）不动。
+              const isSunBeam = source.zone === "focus" || target.zone === "focus";
               return (
                 <g
-                  className={`edgeGroup ${lensState}${hoverNear ? " hoverNear" : ""}`}
+                  className={`edgeGroup ${lensState}${hoverNear ? " hoverNear" : ""}${
+                    isSunBeam ? " sunBeam" : ""
+                  }`}
                   data-lens-state={lensState}
                   data-render-source={edge.source}
                   data-testid={`edge-group-${edge.from}-${edge.to}`}
                   key={edge.id}
                 >
+                  <line
+                    aria-hidden
+                    className="edgeBeamGlow"
+                    filter="url(#beamGlow)"
+                    x1={source.x}
+                    y1={source.y}
+                    x2={target.x}
+                    y2={target.y}
+                  />
                   <line
                     className="edge"
                     data-testid={`edge-${edge.from}-${edge.to}`}
@@ -3614,7 +3670,7 @@ export default function Home() {
                   </text>
                   {semanticZoom === "L2" || semanticZoom === "L3" ? (
                     <text className="edgeEvidence" textAnchor="middle" x={midX} y={midY + 16}>
-                      {edge.source === "server" ? `${edge.evidenceCount} sources` : "fixture evidence"}
+                      {edge.source === "server" ? `证据 ${edge.evidenceCount} 条` : "样例证据"}
                     </text>
                   ) : null}
                 </g>
@@ -3650,7 +3706,28 @@ export default function Home() {
                 tabIndex={0}
                 transform={`translate(${mapNode.x} ${mapNode.y})`}
               >
-                <circle r={isFocus ? 40 : 31} />
+                <circle
+                  aria-hidden
+                  className="orbHalo"
+                  fill={`url(#halo-${mapNode.zone})`}
+                  r={isFocus ? 62 : 46}
+                />
+                {isFocus ? (
+                  <g aria-hidden className="focusOrbitDots" data-testid="focus-orbit-dots">
+                    <circle className="medallionRing" r={46} />
+                    <circle className="medallionRing dashed" r={52} />
+                    {FOCUS_ORBIT_DOTS.map((dot, dotIndex) => (
+                      <circle
+                        className="focusOrbitDot"
+                        cx={dot.x}
+                        cy={dot.y}
+                        key={dotIndex}
+                        r={dotIndex % 3 === 0 ? 1.9 : 1.2}
+                      />
+                    ))}
+                  </g>
+                ) : null}
+                <circle className="orbBody" r={isFocus ? 40 : 31} />
                 <text textAnchor="middle" dominantBaseline="middle">
                   {mapNode.aggregateCount ? `${mapNode.shortLabel} ${mapNode.aggregateCount}` : mapNode.shortLabel}
                 </text>
@@ -3666,6 +3743,60 @@ export default function Home() {
               );
             })}
           </svg>
+          {/* S12PB 右侧竖向时间轴（Owner 指定形态）：2016→今年份纵列悬浮于画布
+              右缘，拖动/滚轮/点选自由选年，默认当前年；数据为真实逐年官方申报
+              纵深（诚实空态，不造年份）。原 S9PCT01 契约 testid 全保留。 */}
+          <div
+            aria-label="历史纵深时间轴（右侧竖轴，滑动选年）"
+            aria-orientation="vertical"
+            className="historyScrubber"
+            data-testid="empire-history-scrubber"
+            onPointerDown={handleHistoryPointerDown}
+            onPointerMove={handleHistoryPointerMove}
+            onWheel={(event) => stepHistoryYear(event.deltaY > 0 ? 1 : -1)}
+          >
+            {historyYears === null ? (
+              <p className="historyEmpty" data-testid="history-scrubber-empty">
+                历史纵深未连接 — 连接 EEI API 后显示 2016→今逐年官方申报深度。
+              </p>
+            ) : (
+              <>
+                <div className="historyRail" ref={historyRailRef}>
+                  {historyYears.map((item) => (
+                    <button
+                      aria-pressed={historyYearSelected === item.year}
+                      className={
+                        historyYearSelected === item.year
+                          ? "historyYear active"
+                          : "historyYear"
+                      }
+                      data-testid={`history-year-${item.year}`}
+                      key={item.year}
+                      onClick={() => setHistoryYearSelected(item.year)}
+                      title={`${item.year} 年：${item.filings} 份官方申报`}
+                      type="button"
+                    >
+                      <small>{item.year}</small>
+                      <span
+                        className="historyBar"
+                        style={{
+                          width: `${Math.max(6, (item.filings / historyMaxFilings) * 26)}px`
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <p className="historyDetail" data-testid="history-scrubber-detail">
+                  {historyYearSelected
+                    ? `${historyYearSelected} 年 · ${
+                        historyYears.find((item) => item.year === historyYearSelected)
+                          ?.filings ?? 0
+                      } 份官方申报`
+                    : "滑动或点选年份，查看该年申报纵深"}
+                </p>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="historyControls" aria-label="历史恢复">

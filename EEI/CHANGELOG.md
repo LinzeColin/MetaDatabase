@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- S12 empire-canvas optics (sample-video alignment): glassy 3D orb nodes
+  (per-zone gradients, specular highlight, glow halos), golden sun beams with
+  soft bloom underlays, a 12-dot orbiting particle ring plus medallion rings
+  on the focus node, drifting star dust and teal ambient patches, and a
+  unified silky easing token; reduced-motion still collapses everything.
+- Vertical right-edge timeline (owner-specified form): the history scrubber
+  becomes a glass rail floating on the canvas right edge - years 2016-now
+  stacked vertically with per-year depth bars, drag/wheel/click to select,
+  defaulting to the current year; all existing testid contracts preserved.
+  The cloud worker gains `/v1/policy/overview` backed by a published
+  `filing_year_counts` D1 table (aggregate counts only), so the production
+  timeline lights up with the real eleven-year filing history.
+- Canvas-area copy switched to natural Chinese (snapshot overlay, svg aria
+  labels, evidence counts, timeline chip labels).
 - Post-release continuity monitor: `scripts/monitor_release_continuity.py`
   checks the three monitoring obligations in one command (hourly cloud
   heartbeat gap detection, daily cloud cron per-day audit, A204 probe-chain

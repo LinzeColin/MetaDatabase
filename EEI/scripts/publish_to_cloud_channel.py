@@ -146,17 +146,40 @@ def export_publication_surface() -> dict[str, list[dict[str, Any]]]:
                 """
             ).fetchall()
         ]
+        # S12PB: per-year official filing depth for the cloud vertical
+        # timeline. Aggregate counts only - no titles, URLs or raw content
+        # leave the machine (CF-L2 publication-surface boundary intact).
+        filing_year_counts = [
+            {"year": int(r[0]), "filings": int(r[1])}
+            for r in conn.execute(
+                """
+                SELECT extract(year FROM sd.document_date)::int AS year,
+                       count(*)::int AS filings
+                FROM source_documents sd
+                JOIN sources src ON src.id = sd.source_id AND src.code = 'sec_edgar'
+                GROUP BY 1
+                ORDER BY 1
+                """
+            ).fetchall()
+        ]
     return {
         "relationships": relationships,
         "entities": entities,
         "relationship_evidence": evidence,
         "snapshot_meta": snapshots,
+        "filing_year_counts": filing_year_counts,
     }
 
 
 def render_sql(surface: dict[str, list[dict[str, Any]]]) -> str:
     statements: list[str] = []
-    for table in ("relationship_evidence", "relationships", "entities", "snapshot_meta"):
+    for table in (
+        "relationship_evidence",
+        "relationships",
+        "entities",
+        "snapshot_meta",
+        "filing_year_counts",
+    ):
         statements.append(f"DELETE FROM {table};")
     for row in surface["entities"]:
         statements.append(
@@ -207,6 +230,12 @@ def render_sql(surface: dict[str, list[dict[str, Any]]]) -> str:
             )
             + ");"
         )
+    for row in surface.get("filing_year_counts", []):
+        statements.append(
+            "INSERT INTO filing_year_counts(year, filings) VALUES ("
+            + ", ".join(sql_quote(row[k]) for k in ("year", "filings"))
+            + ");"
+        )
     statements.append(
         "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
         f" ('published_at', {sql_quote(utc_now_iso())});"
@@ -253,6 +282,7 @@ def remote_counts(cwd: Path) -> dict[str, int]:
             " UNION ALL SELECT 'relationship_evidence', count(*)"
             " FROM relationship_evidence"
             " UNION ALL SELECT 'snapshot_meta', count(*) FROM snapshot_meta"
+            " UNION ALL SELECT 'filing_year_counts', count(*) FROM filing_year_counts"
         ),
         cwd=cwd,
     )
@@ -303,6 +333,7 @@ def main() -> int:
                 "endpoint entities",
                 "evidence index (locator + excerpt + official URL)",
                 "active snapshot metadata",
+                "per-year official filing counts (aggregates only)",
             ],
             "excluded": [
                 "relationship candidates and review queues",
@@ -331,6 +362,9 @@ def main() -> int:
                 == local_counts["relationship_evidence"]
             ),
             "snapshot_meta": counts.get("snapshot_meta") == local_counts["snapshot_meta"],
+            "filing_year_counts": (
+                counts.get("filing_year_counts") == local_counts["filing_year_counts"]
+            ),
         }
         report["drill_passed"] = all(report["count_parity"].values())
     report["r2"] = r2_status(cf_dir)
