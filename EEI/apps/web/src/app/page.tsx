@@ -1719,6 +1719,41 @@ export default function Home() {
   }, [graphViewNodes]);
   const [supplyGapsPct, setSupplyGapsPct] = useState<number | null>(null);
   const [supplyGapsDetail, setSupplyGapsDetail] = useState("");
+  // S9PCT01 V3: the 2016->now history scrubber, backed by the REAL per-year
+  // regulatory-filing depth from the S7PDT01 backfill. It coexists with the
+  // three-point as-of contract (snapshots) without touching that state.
+  const [historyYears, setHistoryYears] = useState<
+    { year: number; filings: number }[] | null
+  >(null);
+  const [historyYearSelected, setHistoryYearSelected] = useState<number | null>(null);
+  useEffect(() => {
+    const apiBaseUrl = readProductionDataApiBaseUrl();
+    if (!apiBaseUrl) {
+      return;
+    }
+    void window
+      .fetch(`${apiBaseUrl}/v1/policy/overview`)
+      .then(async (response) => {
+        const payload = (await response.json().catch(() => null)) as {
+          regulatory_filings?: { by_year?: { year: number; filings: number }[] };
+        } | null;
+        const byYear = payload?.regulatory_filings?.by_year;
+        if (response.ok && Array.isArray(byYear) && byYear.length > 0) {
+          setHistoryYears(byYear);
+          setHistoryYearSelected(byYear[byYear.length - 1].year);
+        }
+      })
+      .catch(() => {
+        // Honest empty state stays; the scrubber never invents years.
+      });
+  }, []);
+  const historyMaxFilings = useMemo(
+    () => Math.max(1, ...(historyYears ?? []).map((item) => item.filings)),
+    [historyYears]
+  );
+  // S9PCT02 V7 Ask bar state (D4: zero-API ChatGPT jump).
+  const [askInput, setAskInput] = useState("");
+  const [lastAskAction, setLastAskAction] = useState("idle");
   useEffect(() => {
     const apiBaseUrl = readProductionDataApiBaseUrl();
     if (!apiBaseUrl) {
@@ -3248,6 +3283,58 @@ export default function Home() {
             <p className="eyebrow">Golden Vertical</p>
             <h2>Semiconductor and AI infrastructure ecosystem</h2>
           </div>
+          {/* S9PCT02 V7 Ask bar (D4): an in-graph entity name reroots the
+              canvas; anything else assembles a context prompt and opens
+              ChatGPT new chat - zero API integration by owner decision. */}
+          <form
+            className="askBar"
+            data-last-ask-action={lastAskAction}
+            data-testid="ask-bar"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const query = askInput.trim();
+              if (!query) {
+                return;
+              }
+              const matched = graphViewNodes.find((node) =>
+                node.label.toLowerCase().includes(query.toLowerCase())
+              );
+              if (matched) {
+                setLastAskAction(`reroot:${matched.key}`);
+                inspectGraphNode(matched);
+                setAskInput("");
+                return;
+              }
+              const contextPrompt = [
+                `你是我的商业帝国研究助手。当前 EEI 工作台上下文：`,
+                `- 聚焦对象：${selectedGraphNode.label}`,
+                `- 分析镜头：${activeLens} · 语义缩放 ${semanticZoom} · as-of ${asOf}`,
+                productionScoreExplanation
+                  ? `- 焦点候选：${productionScoreExplanation.candidate_key}（独立源 ${productionScoreExplanation.source_threshold.independent_source_count}/${productionScoreExplanation.source_threshold.minimum_independent_sources}，${productionScoreExplanation.publication_status}）`
+                  : `- 焦点候选：未加载评分解释`,
+                `- 数据快照：${analysisContext.dataSnapshot}`,
+                `我的问题：${query}`
+              ].join("\n");
+              setLastAskAction("chatgpt:new-chat");
+              window.open(
+                `https://chatgpt.com/?q=${encodeURIComponent(contextPrompt)}`,
+                "_blank",
+                "noopener"
+              );
+              setAskInput("");
+            }}
+          >
+            <input
+              aria-label="Ask 栏"
+              data-testid="ask-bar-input"
+              onChange={(event) => setAskInput(event.target.value)}
+              placeholder="输入实体名直查，或提问跳转 ChatGPT"
+              value={askInput}
+            />
+            <button data-testid="ask-bar-submit" type="submit">
+              Ask
+            </button>
+          </form>
           <div className="lensBar" aria-label="分析视角">
             {lensItems.map((lens) => (
               <button
@@ -3304,6 +3391,57 @@ export default function Home() {
               <small>{item.key}</small>
             </button>
           ))}
+        </div>
+
+        {/* S9PCT01 V3: the 2016->now history scrubber. Real per-year filing
+            depth from the ten-year backfill; coexists with the as-of snapshot
+            contract above without touching it. */}
+        <div
+          className="historyScrubber"
+          aria-label="2016 至今历史纵深"
+          data-testid="empire-history-scrubber"
+        >
+          {historyYears === null ? (
+            <p className="historyEmpty" data-testid="history-scrubber-empty">
+              历史纵深未连接 — 连接 EEI API 后显示 2016→今逐年官方申报深度。
+            </p>
+          ) : (
+            <>
+              <div className="historyRail">
+                {historyYears.map((item) => (
+                  <button
+                    aria-pressed={historyYearSelected === item.year}
+                    className={
+                      historyYearSelected === item.year
+                        ? "historyYear active"
+                        : "historyYear"
+                    }
+                    data-testid={`history-year-${item.year}`}
+                    key={item.year}
+                    onClick={() => setHistoryYearSelected(item.year)}
+                    title={`${item.year}：${item.filings} 份官方申报`}
+                    type="button"
+                  >
+                    <span
+                      className="historyBar"
+                      style={{
+                        height: `${Math.max(4, (item.filings / historyMaxFilings) * 30)}px`
+                      }}
+                    />
+                    <small>{item.year}</small>
+                  </button>
+                ))}
+              </div>
+              <p className="historyDetail" data-testid="history-scrubber-detail">
+                {historyYearSelected
+                  ? `${historyYearSelected} · ${
+                      historyYears.find((item) => item.year === historyYearSelected)
+                        ?.filings ?? 0
+                    } 份官方申报（sec_edgar）`
+                  : "选择年份查看该年官方申报深度"}
+              </p>
+            </>
+          )}
         </div>
 
         <div className="stageRail" aria-label="供应链阶段覆盖">

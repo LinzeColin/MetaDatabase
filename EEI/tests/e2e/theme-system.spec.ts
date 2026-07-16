@@ -53,3 +53,27 @@ test("empire legend shows zone inventory and an honest GAPS badge", async ({ pag
   await expect(page.getByTestId("empire-gaps-badge")).toContainText("GAPS");
   await expect(page.getByTestId("empire-gaps-badge")).toContainText("未知");
 });
+
+// S9PCT01 V3: honest history scrubber (no API -> no invented years).
+test("history scrubber shows an honest empty state without an API", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("empire-history-scrubber")).toBeVisible();
+  await expect(page.getByTestId("history-scrubber-empty")).toContainText("历史纵深未连接");
+});
+
+// S9PCT02 V7: the Ask bar reroots on in-graph names and assembles a
+// ChatGPT context prompt otherwise (window.open stubbed, zero real nav).
+test("ask bar reroots on entity names and marks chatgpt jumps", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.open = () => null;
+  });
+  await page.goto("/");
+  const askBar = page.getByTestId("ask-bar");
+  await expect(askBar).toHaveAttribute("data-last-ask-action", "idle");
+  await page.getByTestId("ask-bar-input").fill("cloud");
+  await page.getByTestId("ask-bar-submit").click();
+  await expect(askBar).toHaveAttribute("data-last-ask-action", /^reroot:/);
+  await page.getByTestId("ask-bar-input").fill("这家公司的出口管制风险如何演变？");
+  await page.getByTestId("ask-bar-submit").click();
+  await expect(askBar).toHaveAttribute("data-last-ask-action", "chatgpt:new-chat");
+});
