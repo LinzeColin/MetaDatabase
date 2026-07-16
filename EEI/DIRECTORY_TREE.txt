@@ -371,6 +371,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   └── V5_TASK_PACK_SYNCHRONIZATION.md
 │   ├── pursuing_goal
 │   │   ├── v5_0
+│   │   │   ├── MVP_DONE_CHECKLIST.md
 │   │   │   ├── S9_GATE_EVIDENCE.md
 │   │   │   └── V5_0_ROOT_LOCK.yaml
 │   │   └── CURRENT.yaml

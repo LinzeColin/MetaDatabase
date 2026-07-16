@@ -356,6 +356,7 @@ docs/governance/roadmap.yaml
 docs/phase/MVP_DEVELOPMENT_RECORD.md
 docs/phase/V5_TASK_PACK_SYNCHRONIZATION.md
 docs/pursuing_goal/CURRENT.yaml
+docs/pursuing_goal/v5_0/MVP_DONE_CHECKLIST.md
 docs/pursuing_goal/v5_0/S9_GATE_EVIDENCE.md
 docs/pursuing_goal/v5_0/V5_0_ROOT_LOCK.yaml
 infra/cloudflare/d1_publication_schema.sql
