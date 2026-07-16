@@ -1,5 +1,25 @@
 # Changelog
 
+## S9-S11 empire visuals, cloud 7x24 and release engineering - 2026-07-16
+
+- Empire visual stage closed (S9-GATE PASS): history depth scrubber with real
+  2016-2026 filing volumes, zero-API Ask bar (D4), visual-regression baseline
+  suite (CI-authoritative) and first-interactive P75 budget (391ms measured).
+- Cloud 7x24 stage machine-complete (S10): Worker product API reads the D1
+  publication surface with a parity-proven JS scoring port (1720-case grid),
+  static frontend served from the same Worker, cloud user-state writes with
+  optimistic concurrency, daily SEC incremental cron plus hourly uptime
+  heartbeat, custom domain https://eei.linzezhang.com and the HomeHub entry
+  card, and a three-mode honest-degradation drill record.
+- Release engineering underway (S11): A204 4h/24h refresh-stability probe
+  chain live (generation 17->18 proven transactional), release-manager
+  activation chain rewired to real operator inputs (signed decision bundle,
+  production gold v2), full-scale benchmark rerun PASS with cloud load
+  spot-check p95 149-302ms, MVP-Done checklist prepared.
+- Open windows: A204 24h (closes 2026-07-17), local + cloud seven-day run
+  logs (close 2026-07-23). Remaining release blockers are owner-level
+  reviews by design; no release-closure flags were flipped.
+
 ## A205 downstream evidence and CI reproducibility - 2026-07-15
 
 - Refreshed A205 external evidence, release-manager and MVP preflight source hashes after

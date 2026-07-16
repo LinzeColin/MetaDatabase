@@ -128,6 +128,52 @@ export async function runCloudSync(env, trigger) {
   return { run_id: runId, status, rotation_slice: rotation.slice, new_filings_count: newCount };
 }
 
+// Hourly uptime heartbeat (S11 evidence density): a self-contained health
+// probe persisted to the same run log, giving the 7-day CLOUD-GATE window
+// an hour-granular continuity series independent of any local session.
+// No external fetches - publication surface reads only.
+export async function runHealthHeartbeat(env, trigger) {
+  const startedAt = new Date().toISOString();
+  const runId = crypto.randomUUID();
+  let status = "completed";
+  const detail = {};
+  try {
+    const snapshot = await env.EEI_PUB.prepare(
+      "SELECT snapshot_key, status FROM snapshot_meta ORDER BY activated_at DESC LIMIT 1"
+    ).first();
+    const relationships = await env.EEI_PUB.prepare(
+      "SELECT COUNT(*) AS n FROM relationships"
+    ).first();
+    detail.snapshot_key = snapshot?.snapshot_key ?? null;
+    detail.snapshot_status = snapshot?.status ?? null;
+    detail.published_relationships = Number(relationships?.n ?? 0);
+    if (!snapshot || Number(relationships?.n ?? 0) === 0) {
+      status = "partial";
+      detail.reason = "publication surface empty or snapshot missing";
+    }
+  } catch (error) {
+    status = "failed";
+    detail.error = String(error).slice(0, 300);
+  }
+  const finishedAt = new Date().toISOString();
+  await env.EEI_PUB.prepare(
+    "INSERT INTO cloud_run_log(id, trigger, started_at, finished_at, status," +
+      " rotation_slice, scope_json, new_filings_count, detail_json)" +
+      " VALUES (?, ?, ?, ?, ?, NULL, ?, 0, ?)"
+  )
+    .bind(
+      runId,
+      trigger,
+      startedAt,
+      finishedAt,
+      status,
+      JSON.stringify({ kind: "health_heartbeat" }),
+      JSON.stringify([detail])
+    )
+    .run();
+  return { run_id: runId, status, kind: "health_heartbeat" };
+}
+
 export async function listCloudRuns(env, limit, json) {
   const bounded = Math.max(1, Math.min(Number.parseInt(limit ?? "10", 10) || 10, 50));
   const { results } = await env.EEI_PUB.prepare(

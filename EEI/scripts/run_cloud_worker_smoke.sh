@@ -37,9 +37,19 @@ done
 echo "[smoke] asserting contracts"
 node "$REPO_ROOT/apps/cloudflare-public/tests/smoke_assert.mjs" "http://127.0.0.1:$PORT"
 
-echo "[smoke] firing scheduled drill (real SEC polling for one rotation slice)"
+echo "[smoke] firing scheduled drills (hourly heartbeat, then SEC slice)"
+curl -sf "http://127.0.0.1:$PORT/__scheduled?cron=0+*+*+*+*" >/dev/null
+sleep 3
 curl -sf "http://127.0.0.1:$PORT/__scheduled?cron=0+18+*+*+*" >/dev/null
 sleep 6
+HEARTBEAT=$(curl -sf "http://127.0.0.1:$PORT/v1/cloud/runs?limit=5")
+echo "$HEARTBEAT" | node -e "
+const runs = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+const hb = runs.find((run) => run.scope && run.scope.kind === 'health_heartbeat');
+if (!hb) { console.error('no health heartbeat row'); process.exit(1); }
+if (hb.status === 'failed') { console.error('heartbeat failed', JSON.stringify(hb.detail).slice(0, 300)); process.exit(1); }
+console.log('HEARTBEAT_DRILL status=' + hb.status + ' snapshot=' + (hb.detail[0] || {}).snapshot_key);
+"
 RUNS=$(curl -sf "http://127.0.0.1:$PORT/v1/cloud/runs?limit=1")
 echo "$RUNS" | node -e "
 const runs = JSON.parse(require('fs').readFileSync(0, 'utf8'));

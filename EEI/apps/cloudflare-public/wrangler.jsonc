@@ -22,7 +22,8 @@
   // S10PBT02: daily incremental SEC polling (18:00 UTC = Sydney早晨).
   // Rotation slices keep每 run 5 家公司, ADP 同款配额纪律.
   "triggers": {
-    "crons": ["0 18 * * *"]
+    // 每日 18:00 UTC=SEC 增量; 每小时=uptime 心跳（run_log 小时级连续性证据）.
+    "crons": ["0 18 * * *", "0 * * * *"]
   },
   // S10PCT01 (D6): custom domain on the owner zone; workers.dev stays as
   // the fallback origin.

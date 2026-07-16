@@ -19,7 +19,7 @@ import {
   listWatchlists,
   updateSavedView
 } from "./user_state.mjs";
-import { listCloudRuns, runCloudSync } from "./cloud_sync.mjs";
+import { listCloudRuns, runCloudSync, runHealthHeartbeat } from "./cloud_sync.mjs";
 
 const GRAPH_QUERY_VERSION = "cloud-d1-graph-v1";
 const DEFAULT_GRAPH_BUDGET = { max_nodes: 42, max_edges: 64, expand_nodes: 12 };
@@ -664,6 +664,12 @@ export default {
   // run - the 7x24 cloud heartbeat. Deep backfills remain a local-factory
   // job; publication stays owner-gated.
   async scheduled(event, env, ctx) {
+    // Hourly = uptime heartbeat (no external fetches); daily 18:00 UTC =
+    // SEC incremental sync with rotation/quota discipline.
+    if (event.cron === "0 * * * *") {
+      ctx.waitUntil(runHealthHeartbeat(env, `cron:${event.cron}`));
+      return;
+    }
     ctx.waitUntil(runCloudSync(env, `cron:${event.cron}`));
   }
 };
