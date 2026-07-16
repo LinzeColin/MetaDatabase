@@ -1340,7 +1340,7 @@ test("saves versioned views restores deterministically and shows as-of change ov
   await expect(page.getByTestId("change-overlay")).toContainText("非实时");
 
   await page.getByTestId("save-current-view").click();
-  await expect(page.getByTestId("saved-view-status")).toHaveText("local-saved");
+  await expect(page.getByTestId("saved-view-status")).toHaveText("已保存（本地）");
   await expect(page.getByTestId("saved-view-panel")).toHaveAttribute(
     "data-saved-view-version",
     "saved-view-v1"
@@ -1377,7 +1377,7 @@ test("saves versioned views restores deterministically and shows as-of change ov
 
   await page.getByTestId("restore-saved-view").click();
   await expectCloudState(page);
-  await expect(page.getByTestId("saved-view-status")).toHaveText("local-restored");
+  await expect(page.getByTestId("saved-view-status")).toHaveText("已恢复（本地）");
   await expect(page.getByTestId("saved-view-contract")).toContainText("Synthetic Cloud Customer");
   await expect(page.getByTestId("saved-view-contract")).toContainText("supply_chain / 2026-06-12");
   await expect(page.getByTestId("saved-view-contract")).toContainText(
@@ -1451,7 +1451,7 @@ test("A207 saves and restores saved views through the configured server API", as
   await expectCloudState(page);
 
   await page.getByTestId("save-current-view").click();
-  await expect(page.getByTestId("saved-view-status")).toHaveText("server-saved");
+  await expect(page.getByTestId("saved-view-status")).toHaveText("已保存（云端）");
   await expect(page.getByTestId("saved-view-panel")).toHaveAttribute("data-sync-mode", "server");
   await expect(page.getByTestId("saved-view-panel")).toHaveAttribute("data-sync-reason", "ok");
   await expect(page.getByTestId("saved-view-panel")).toHaveAttribute(
@@ -1484,7 +1484,7 @@ test("A207 saves and restores saved views through the configured server API", as
   await page.getByTestId("restore-saved-view").click();
 
   await expectCloudState(page);
-  await expect(page.getByTestId("saved-view-status")).toHaveText("server-restored");
+  await expect(page.getByTestId("saved-view-status")).toHaveText("已恢复（云端）");
   await expect(page.getByTestId("saved-view-panel")).toHaveAttribute("data-sync-mode", "server");
   await expect(page.getByTestId("saved-view-contract")).toContainText(
     "Synthetic Cloud Customer / supply_chain / 2026-06-12"

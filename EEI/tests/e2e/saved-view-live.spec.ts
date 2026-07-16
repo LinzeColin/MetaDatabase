@@ -53,7 +53,7 @@ test("A207 live multi-session saved-view conflict resolves from FastAPI PostgreS
   );
   await expectCloudState(firstPage);
   await firstPage.getByTestId("save-current-view").click();
-  await expect(firstPage.getByTestId("saved-view-status")).toHaveText("server-saved");
+  await expect(firstPage.getByTestId("saved-view-status")).toHaveText("已保存（云端）");
   await expect(firstPage.getByTestId("saved-view-panel")).toHaveAttribute("data-sync-mode", "server");
   await expect(firstPage.getByTestId("saved-view-panel")).toHaveAttribute("data-server-version", "1");
   const serverId = await firstPage.getByTestId("saved-view-panel").getAttribute("data-server-id");
@@ -75,7 +75,7 @@ test("A207 live multi-session saved-view conflict resolves from FastAPI PostgreS
   await expectCloudState(secondPage);
   await secondPage.getByTestId("lens-policy_risk").click();
   await secondPage.getByTestId("save-current-view").click();
-  await expect(secondPage.getByTestId("saved-view-status")).toHaveText("server-saved");
+  await expect(secondPage.getByTestId("saved-view-status")).toHaveText("已保存（云端）");
   await expect(secondPage.getByTestId("saved-view-panel")).toHaveAttribute(
     "data-server-version",
     "2"
@@ -83,7 +83,7 @@ test("A207 live multi-session saved-view conflict resolves from FastAPI PostgreS
 
   await firstPage.getByTestId("lens-business_segments").click();
   await firstPage.getByTestId("save-current-view").click();
-  await expect(firstPage.getByTestId("saved-view-status")).toHaveText("server-conflict");
+  await expect(firstPage.getByTestId("saved-view-status")).toHaveText("云端版本冲突");
   await expect(firstPage.getByTestId("saved-view-panel")).toHaveAttribute(
     "data-sync-reason",
     "stale_saved_view_version"

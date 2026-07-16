@@ -25,7 +25,7 @@ test("renders the watchlist-first EEI workspace", async ({ page }) => {
   await expect(page.getByRole("navigation", { name: "主导航" })).toContainText("商业版图");
   await expect(page.getByLabel("系统模块")).toContainText("对象与范围");
   await expect(page.getByRole("img", { name: /NVIDIA 供应链样例图/ })).toBeVisible();
-  await expect(page.getByTestId("fixture-disclosure")).toContainText("Fixture-only data");
+  await expect(page.getByTestId("fixture-disclosure")).toContainText("样例数据（未连接生产）");
   await expect(page.getByText("Live facts: disabled")).toBeVisible();
 });
 
@@ -51,11 +51,11 @@ test("shows user-oriented home contract entry points and model freshness", async
   );
   await expect(page.getByTestId("home-changes")).toContainText("Capital/control signal refreshed");
   await expect(page.getByTestId("home-freshness")).toContainText("synthetic_fixture");
-  await expect(page.getByTestId("home-freshness")).toContainText("Attempt none");
-  await expect(page.getByTestId("home-freshness")).toContainText("Success none");
-  await expect(page.getByTestId("home-freshness")).toContainText("Failure none");
-  await expect(page.getByTestId("home-freshness")).toContainText("1 sources");
-  await expect(page.getByTestId("home-freshness")).toContainText("3 documents");
+  await expect(page.getByTestId("home-freshness")).toContainText("抓取 无");
+  await expect(page.getByTestId("home-freshness")).toContainText("成功 无");
+  await expect(page.getByTestId("home-freshness")).toContainText("失败 无");
+  await expect(page.getByTestId("home-freshness")).toContainText("1 个来源");
+  await expect(page.getByTestId("home-freshness")).toContainText("3 份文书");
   await expect(page.getByTestId("home-model-status")).toContainText("Balanced v2");
   await expect(page.getByTestId("home-model-status")).toContainText("scheduled / 14d");
   await expect(page.getByTestId("home-model-status")).toContainText("2026-07-03");
@@ -149,11 +149,11 @@ test("A104 hydrates connector and content freshness without conflating dates", a
   await expect(freshness).toHaveAttribute("data-report-period-end", "2024-12-31");
   await expect(freshness).toContainText("degraded");
   await expect(freshness).toContainText("sec_edgar_synthetic_fixture");
-  await expect(freshness).toContainText("Attempt 2026-07-13T00:09:00Z");
-  await expect(freshness).toContainText("Success 2026-07-13T00:05:00Z");
-  await expect(freshness).toContainText("Failure 2026-07-13T00:09:01Z");
-  await expect(freshness).toContainText("Document 2025-02-10T00:00:00Z");
-  await expect(freshness).toContainText("Report 2024-12-31");
+  await expect(freshness).toContainText("抓取 2026-07-13T00:09:00Z");
+  await expect(freshness).toContainText("成功 2026-07-13T00:05:00Z");
+  await expect(freshness).toContainText("失败 2026-07-13T00:09:01Z");
+  await expect(freshness).toContainText("文书 2025-02-10T00:00:00Z");
+  await expect(freshness).toContainText("报告期 2024-12-31");
 });
 
 test("A211 exposes WorkspaceContext routes controls disabled entries and persisted query wiring", async ({
@@ -568,7 +568,7 @@ test("offers a filterable graph table alternative and explicit visual semantics"
     "2026-06-19"
   );
   await expect(page.getByTestId("graph-table-row-materials-foundry")).toContainText(
-    "fixture evidence"
+    "样例证据"
   );
   await page.getByTestId("graph-table-filter").selectOption("supply_chain");
   await expect(table.locator("tbody tr").first()).toHaveAttribute("data-lens", "supply_chain");
@@ -620,7 +620,7 @@ test("implements semantic zoom levels and grouped dense-node list view", async (
     await expect(page.getByTestId("workspace-shell")).toHaveAttribute("data-semantic-zoom", zoom);
   }
 
-  await expect(page.getByText("fixture evidence").first()).toBeVisible();
+  await expect(page.getByText("样例证据").first()).toBeVisible();
   await expect(page.getByText("current focus").first()).toBeVisible();
 
   await page.getByTestId("zoom-L0").click();
@@ -647,7 +647,7 @@ test("keeps the default graph bounded below the first-screen hairball budget", a
 
   expect(renderedNodeCount).toBeLessThanOrEqual(42);
   expect(renderedEdgeCount).toBeLessThanOrEqual(40);
-  await expect(page.getByTestId("budget-state")).toContainText("max 40 first-screen edges");
+  await expect(page.getByTestId("budget-state")).toContainText("首屏边上限 40");
   const inclusionPolicy = page.getByTestId("inclusion-truncation-explanation");
   await expect(inclusionPolicy).toBeVisible();
   await expect(inclusionPolicy).toHaveAttribute(

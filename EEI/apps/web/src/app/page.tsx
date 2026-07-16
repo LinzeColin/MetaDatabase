@@ -219,6 +219,47 @@ const FOCUS_ORBIT_DOTS = Array.from({ length: 12 }, (_, index) => {
   };
 });
 
+// S12 第二批：机器状态码 → 自然中文。仅作用于人话摘要层的展示；
+// 原始状态码全部保留在各面板〈诊断详情〉内（契约 testid 与断言不动）。
+const STATUS_ZH: Record<string, string> = {
+  "local-active": "本地模型运行中",
+  "server-active": "云端模型运行中",
+  idle: "待命",
+  activating: "激活中",
+  creating: "创建中",
+  enqueueing: "入队中",
+  enqueued: "已入队",
+  ready: "就绪",
+  "server-error": "云端接口不可用",
+  http_404: "云端未提供该接口",
+  http_409: "版本冲突",
+  http_500: "云端服务异常",
+  local_fallback: "已回退本地样例",
+  "local-fixture": "本地样例",
+  local: "本地",
+  server: "云端",
+  "server-hydrated": "云端数据已接入",
+  api_base_missing: "未配置数据接口",
+  candidate_id_missing: "缺少候选编号",
+  object_id_missing: "缺少对象编号",
+  "candidate-missing": "无候选评分",
+  "server-conflict": "云端版本冲突",
+  "local-saved": "已保存（本地）",
+  "server-saved": "已保存（云端）",
+  "local-restored": "已恢复（本地）",
+  "server-restored": "已恢复（云端）",
+  none: "无",
+  preview: "预览中",
+  active: "已激活"
+};
+
+function zhStatus(raw: string | null | undefined): string {
+  if (!raw) {
+    return "无";
+  }
+  return STATUS_ZH[raw] ?? raw;
+}
+
 type MapNode = {
   key: NodeKey;
   label: string;
@@ -674,7 +715,7 @@ const homeFreshness = {
 };
 
 function freshnessValue(value: string | null | undefined) {
-  return value || "none";
+  return value || "无";
 }
 
 const homeModelStatus = {
@@ -2698,19 +2739,19 @@ export default function Home() {
       <section className="focusPanel" aria-label="当前主体">
         <div className="subjectHeader">
           <div>
-            <p className="eyebrow">Watchlist current focus</p>
+            <p className="eyebrow">关注 · 当前主体</p>
             <h1 data-testid="current-focus-title">{scenario.heading}</h1>
             <p className="subjectSubtitle">{scenario.subtitle}</p>
           </div>
-          <span className="snapshotTag">Synthetic fixture</span>
+          <span className="snapshotTag">样例数据</span>
         </div>
         <dl className="subjectStats" data-testid="home-model-status">
           <div>
-            <dt>Snapshot</dt>
+            <dt>数据快照</dt>
             <dd>{analysisContext.dataSnapshot}</dd>
           </div>
           <div>
-            <dt>Model</dt>
+            <dt>评分模型</dt>
             <dd>{analysisContext.profileLabel}</dd>
           </div>
           <div>
@@ -2720,7 +2761,7 @@ export default function Home() {
             </dd>
           </div>
           <div>
-            <dt>Model review</dt>
+            <dt>模型校准</dt>
             <dd>
               {homeModelStatus.latestCalibration} / {homeModelStatus.cadenceDays}d /{" "}
               {homeModelStatus.nextScheduledFor}
@@ -2755,31 +2796,43 @@ export default function Home() {
           data-testid="model-preview-panel"
           id="model-preview-panel"
         >
+          {/* S12 第二批：人话摘要置前台，机器状态码整体收进〈诊断详情〉。 */}
+          <div className="panelHuman">
+            <strong>模型工作台</strong>
+            <span>
+              {zhStatus(modelContextStatus)} · 上下文
+              {modelContextSyncMode === "server" ? "已连云端" : "使用本地"}
+              {isPreviewActive ? " · 预览生效中" : ""}
+            </span>
+          </div>
+          <details className="diagDetails">
+            <summary>诊断详情</summary>
           <div>
-            <strong>Model preview</strong>
+            <strong>模型预览</strong>
             <span data-testid="model-preview-status">
               {analysisContext.profileLabel} / {analysisContext.scoreSnapshot}
             </span>
           </div>
           <div>
-            <strong>Model activation</strong>
+            <strong>模型激活</strong>
             <span data-testid="model-activation-status">{modelContextStatus}</span>
           </div>
           <div>
-            <strong>Model draft</strong>
+            <strong>模型草稿</strong>
             <span data-testid="model-draft-status">{modelDraftStatus}</span>
           </div>
           <div>
-            <strong>Refresh context</strong>
+            <strong>上下文刷新</strong>
             <span data-testid="model-server-context-state">
               {modelContextSyncMode} / {serverModelContext?.refresh_generation ?? 0} /{" "}
               {serverModelContext?.client_state ?? "local"} / {modelContextSyncReason}
             </span>
           </div>
           <div>
-            <strong>Score recompute</strong>
+            <strong>评分重算</strong>
             <span data-testid="score-recompute-status">{scoreRecomputeStatus}</span>
           </div>
+          </details>
           <div className="modelPreviewActions">
             <button
               data-testid="preview-model-edit"
@@ -2787,17 +2840,17 @@ export default function Home() {
               onClick={() => void createOnlineModelDraft()}
               type="button"
             >
-              Preview supply-chain emphasis
+              预览供应链侧重
             </button>
             <button data-testid="clear-model-preview" onClick={clearPreview} type="button">
-              Clear preview
+              清除预览
             </button>
             <button
               data-testid="hydrate-model-context"
               onClick={() => void hydrateModelContext(undefined, "manual_refresh")}
               type="button"
             >
-              Load server context
+              载入云端上下文
             </button>
             <button
               data-testid="activate-model-profile"
@@ -2805,7 +2858,7 @@ export default function Home() {
               onClick={() => void activateCandidateModelProfile()}
               type="button"
             >
-              Activate profile
+              激活模型
             </button>
             <button
               data-testid="check-model-refresh"
@@ -2818,7 +2871,7 @@ export default function Home() {
               }
               type="button"
             >
-              Check refresh
+              校验刷新
             </button>
             <button
               data-testid="rollback-model-activation"
@@ -2826,7 +2879,7 @@ export default function Home() {
               onClick={() => void rollbackLatestModelActivation()}
               type="button"
             >
-              Rollback
+              回滚激活
             </button>
             <button
               data-testid="request-score-recompute"
@@ -2838,7 +2891,7 @@ export default function Home() {
               onClick={() => void enqueueCurrentScoreRecompute()}
               type="button"
             >
-              Recompute scores
+              重算评分
             </button>
           </div>
         </section>
@@ -2883,12 +2936,22 @@ export default function Home() {
           data-visual-edge-count={graphViewEdges.length}
           data-visual-node-count={graphViewNodes.length}
         >
+          <div className="panelHuman">
+            <strong>生产关系图</strong>
+            <span>
+              {zhStatus(productionGraphStatus)} ·{" "}
+              {productionCoverage?.visible_nodes ?? displayNodes.length} 节点 /{" "}
+              {productionCoverage?.visible_edges ?? displayEdges.length} 边
+            </span>
+          </div>
+          <details className="diagDetails">
+            <summary>诊断详情</summary>
           <div>
-            <strong>Production graph</strong>
+            <strong>连接状态</strong>
             <span data-testid="production-graph-status">{productionGraphStatus}</span>
           </div>
           <div>
-            <strong>Query contract</strong>
+            <strong>查询契约</strong>
             <span data-testid="production-graph-query">
               {productionGraphRequest.focus.object_id} /{" "}
               {productionGraphRequest.active_layers.join(",")} /{" "}
@@ -2896,7 +2959,7 @@ export default function Home() {
             </span>
           </div>
           <div>
-            <strong>Server coverage</strong>
+            <strong>云端覆盖</strong>
             <span data-testid="production-graph-coverage">
               {productionCoverage?.visible_nodes ?? displayNodes.length} nodes /{" "}
               {productionCoverage?.visible_edges ?? displayEdges.length} edges /{" "}
@@ -2912,14 +2975,14 @@ export default function Home() {
               </dd>
             </div>
             <div>
-              <dt>Context</dt>
+              <dt>上下文版本</dt>
               <dd>
                 {productionContext?.graph_query_version ?? "local-fixture"} /{" "}
                 {productionContext?.scoring_service_version ?? "local-score"}
               </dd>
             </div>
             <div>
-              <dt>Publication state</dt>
+              <dt>发布门</dt>
               <dd data-testid="production-graph-publication-gate">
                 candidates-in-graph=
                 {String(
@@ -2931,20 +2994,21 @@ export default function Home() {
               </dd>
             </div>
             <div>
-              <dt>Candidate facts</dt>
+              <dt>候选事实</dt>
               <dd data-testid="production-graph-candidates">
                 excluded={productionCandidateCoverage?.excluded_from_graph_edges ?? 0} / total=
                 {productionCandidateSummary?.total ?? productionCandidateCoverage?.total ?? 0}
               </dd>
             </div>
           </dl>
+          </details>
           <div className="modelPreviewActions">
             <button
               data-testid="hydrate-production-graph"
               onClick={() => void hydrateProductionGraph("manual_refresh")}
               type="button"
             >
-              Load production graph
+              载入生产关系图
             </button>
           </div>
         </section>
@@ -2995,21 +3059,31 @@ export default function Home() {
           }
           data-testid="production-data-context"
         >
+          <div className="panelHuman">
+            <strong>生产数据</strong>
+            <span>
+              目录{zhStatus(productionCatalogSyncMode)} · 评分
+              {zhStatus(productionScoreSyncMode)} · 证据
+              {zhStatus(productionEvidenceSyncMode)}
+            </span>
+          </div>
+          <details className="diagDetails">
+            <summary>诊断详情</summary>
           <div>
-            <strong>Production data</strong>
+            <strong>三路状态</strong>
             <span data-testid="production-data-status">
               {productionCatalogStatus} / {productionScoreStatus} / {productionEvidenceStatus}
             </span>
           </div>
           <div>
-            <strong>Catalog inventory</strong>
+            <strong>目录清单</strong>
             <span data-testid="production-catalog-status">
               {productionCatalogSyncMode} / {productionCatalogSyncReason}
             </span>
           </div>
           <dl data-testid="production-catalog-contract">
             <div>
-              <dt>Catalogs</dt>
+              <dt>目录</dt>
               <dd data-testid="production-catalog-count">
                 {productionCatalogInventory?.catalog_count ?? 0} / SOT{" "}
                 {productionCatalogInventory?.source_of_truth_count ?? 0} / rows{" "}
@@ -3017,19 +3091,19 @@ export default function Home() {
               </dd>
             </div>
             <div>
-              <dt>Version</dt>
+              <dt>版本</dt>
               <dd>{productionCatalogInventory?.catalog_version ?? "local-fixture"}</dd>
             </div>
           </dl>
           <div>
-            <strong>Score explanation</strong>
+            <strong>评分解释</strong>
             <span data-testid="production-score-status">
               {productionScoreSyncMode} / {productionScoreSyncReason}
             </span>
           </div>
           <dl data-testid="production-score-contract">
             <div>
-              <dt>Candidate</dt>
+              <dt>候选</dt>
               <dd data-testid="production-score-candidate">
                 {productionScoreExplanation?.candidate_key ??
                   productionSampleCandidate?.candidate_key ??
@@ -3038,7 +3112,7 @@ export default function Home() {
               </dd>
             </div>
             <div>
-              <dt>Score</dt>
+              <dt>评分</dt>
               <dd data-testid="production-score-adjusted">
                 adjusted={productionScoreExplanation?.adjusted_score ?? 0} / evidence=
                 {productionScoreExplanation?.evidence.length ?? 0} / missing=
@@ -3047,24 +3121,25 @@ export default function Home() {
             </div>
           </dl>
           <div>
-            <strong>Evidence detail</strong>
+            <strong>证据明细</strong>
             <span data-testid="production-evidence-summary-status">
               {productionEvidenceSyncMode} / {productionEvidenceSyncReason}
             </span>
           </div>
           <dl data-testid="production-evidence-summary-contract">
             <div>
-              <dt>Documents</dt>
+              <dt>文书</dt>
               <dd data-testid="production-evidence-summary-count">
                 evidence={productionEvidenceDetail?.evidence_count ?? 0} / docs=
                 {productionEvidenceDetail?.source_document_count ?? 0}
               </dd>
             </div>
             <div>
-              <dt>Endpoint</dt>
+              <dt>接口</dt>
               <dd>{productionEvidenceEndpoint || "local-fixture"}</dd>
             </div>
           </dl>
+          </details>
           <div className="modelPreviewActions">
             <button
               data-testid="hydrate-production-data"
@@ -3076,7 +3151,7 @@ export default function Home() {
               }
               type="button"
             >
-              Load production data
+              载入生产数据
             </button>
           </div>
         </section>
@@ -3085,8 +3160,8 @@ export default function Home() {
           data-testid="fixture-disclosure"
           data-freshness-status={homeFreshness.status}
         >
-          <strong>Fixture-only data</strong>
-          <span>Visible synthetic notices are required; no live fact claim is shown.</span>
+          <strong>样例数据（未连接生产）</strong>
+          <span>样例标注强制可见；不声称任何真实事实（Live facts: disabled）。</span>
         </div>
 
         <section
@@ -3322,22 +3397,22 @@ export default function Home() {
           <span data-testid="source-freshness-status">{freshnessDisplay.status}</span>
           <span data-testid="source-freshness-code">{freshnessDisplay.sourceCode}</span>
           <span data-testid="source-freshness-attempt">
-            Attempt {freshnessValue(freshnessDisplay.lastAttemptAt)}
+            抓取 {freshnessValue(freshnessDisplay.lastAttemptAt)}
           </span>
           <span data-testid="source-freshness-success">
-            Success {freshnessValue(freshnessDisplay.lastSuccessAt)}
+            成功 {freshnessValue(freshnessDisplay.lastSuccessAt)}
           </span>
           <span data-testid="source-freshness-failure">
-            Failure {freshnessValue(freshnessDisplay.lastFailureAt)}
+            失败 {freshnessValue(freshnessDisplay.lastFailureAt)}
           </span>
           <span data-testid="source-freshness-document-date">
-            Document {freshnessValue(freshnessDisplay.latestDocumentDate)}
+            文书 {freshnessValue(freshnessDisplay.latestDocumentDate)}
           </span>
           <span data-testid="source-freshness-report-period">
-            Report {freshnessValue(freshnessDisplay.latestReportPeriodEnd)}
+            报告期 {freshnessValue(freshnessDisplay.latestReportPeriodEnd)}
           </span>
-          <span>{freshnessDisplay.sourceCount} sources</span>
-          <span>{freshnessDisplay.sourceDocumentCount} documents</span>
+          <span>{freshnessDisplay.sourceCount} 个来源</span>
+          <span>{freshnessDisplay.sourceDocumentCount} 份文书</span>
           <span>{analysisContext.dataSnapshot}</span>
         </div>
       </section>
@@ -3345,8 +3420,8 @@ export default function Home() {
       <section className="canvas" aria-label="商业版图" data-testid="visual-canvas">
         <div className="canvasTopbar">
           <div>
-            <p className="eyebrow">Golden Vertical</p>
-            <h2>Semiconductor and AI infrastructure ecosystem</h2>
+            <p className="eyebrow">黄金纵切</p>
+            <h2>半导体与 AI 基建生态</h2>
           </div>
           {/* S9PCT02 V7 Ask bar (D4): an in-graph entity name reroots the
               canvas; anything else assembles a context prompt and opens
@@ -3848,8 +3923,8 @@ export default function Home() {
         id="evidence-center"
       >
         <div className="inspectorHeader">
-          <p className="eyebrow">Evidence Center</p>
-          <h2>Relationship path</h2>
+          <p className="eyebrow">证据中心</p>
+          <h2>关系路径</h2>
         </div>
 
         <section
@@ -3863,15 +3938,15 @@ export default function Home() {
           <h3 data-testid="selected-node-title">{selectedGraphNode.label}</h3>
           <dl>
             <div>
-              <dt>Stage</dt>
+              <dt>环节</dt>
               <dd>{selectedGraphNode.stage}</dd>
             </div>
             <div>
-              <dt>Role</dt>
+              <dt>角色</dt>
               <dd>{selectedGraphNode.role}</dd>
             </div>
             <div>
-              <dt>Current subject</dt>
+              <dt>当前主体</dt>
               <dd>{scenario.heading}</dd>
             </div>
           </dl>
@@ -3895,30 +3970,30 @@ export default function Home() {
           data-workspace-key={savedView.workspaceKey}
         >
           <header>
-            <p className="eyebrow">Saved View</p>
-            <strong data-testid="saved-view-status">{savedViewStatus}</strong>
+            <p className="eyebrow">保存视图</p>
+            <strong data-testid="saved-view-status">{zhStatus(savedViewStatus)}</strong>
           </header>
           <dl data-testid="saved-view-contract">
             <div>
-              <dt>Subject</dt>
+              <dt>主体</dt>
               <dd>{entityLabels[savedView.focusKey]}</dd>
             </div>
             <div>
-              <dt>Lens / Time</dt>
+              <dt>透镜 / 时间</dt>
               <dd>
                 {savedView.activeLens} / {savedView.asOf}
               </dd>
             </div>
             <div>
-              <dt>Filters</dt>
+              <dt>筛选</dt>
               <dd>{savedView.filters}</dd>
             </div>
             <div>
-              <dt>Layout</dt>
+              <dt>布局</dt>
               <dd>{savedView.layout}</dd>
             </div>
             <div>
-              <dt>Notes</dt>
+              <dt>备注</dt>
               <dd>{savedView.notes}</dd>
             </div>
           </dl>
@@ -3974,14 +4049,14 @@ export default function Home() {
           data-truncated={productionEvidenceDetail?.truncated ?? false}
         >
           <header>
-            <p className="eyebrow">Production evidence</p>
+            <p className="eyebrow">生产证据</p>
             <strong data-testid="production-evidence-status">
               {productionEvidenceSyncMode} / {productionEvidenceSyncReason}
             </strong>
           </header>
           <dl data-testid="production-evidence-contract">
             <div>
-              <dt>Candidate</dt>
+              <dt>候选</dt>
               <dd>
                 {productionEvidenceDetail?.object_id ||
                   productionScoreTargetId ||
@@ -3997,7 +4072,7 @@ export default function Home() {
               </dd>
             </div>
             <div>
-              <dt>Endpoint</dt>
+              <dt>接口</dt>
               <dd>{productionEvidenceEndpoint || "local-fixture"}</dd>
             </div>
           </dl>
@@ -4024,7 +4099,7 @@ export default function Home() {
           data-truncation-contract="edge_budget,node_budget,returned_counts,continuation"
         >
           <header>
-            <p className="eyebrow">Inclusion policy</p>
+            <p className="eyebrow">收录策略</p>
             <strong>Bounded relationship set</strong>
           </header>
           <dl>
@@ -4051,8 +4126,8 @@ export default function Home() {
           data-testid="graph-table-alternative"
         >
           <header>
-            <p className="eyebrow">Graph Table</p>
-            <label htmlFor="graph-table-lens-filter">Lens</label>
+            <p className="eyebrow">关系表格</p>
+            <label htmlFor="graph-table-lens-filter">透镜</label>
             <select
               data-testid="graph-table-filter"
               id="graph-table-lens-filter"
@@ -4072,20 +4147,19 @@ export default function Home() {
             data-control-semantics="layout-position-not-control"
             data-testid="visual-semantics-notice"
           >
-            Layout position is visual focus only; relationship labels, arrows, stages, roles and
-            evidence carry semantics.
+            布局位置仅表示视觉焦点；语义由关系标签、箭头、环节、角色与证据承载。
           </p>
           <table>
             <thead>
               <tr>
-                <th scope="col">From</th>
-                <th scope="col">To</th>
-                <th scope="col">Direction</th>
-                <th scope="col">Type</th>
-                <th scope="col">Relationship</th>
-                <th scope="col">Stage</th>
-                <th scope="col">Evidence</th>
-                <th scope="col">Time</th>
+                <th scope="col">来源方</th>
+                <th scope="col">指向方</th>
+                <th scope="col">方向</th>
+                <th scope="col">类型</th>
+                <th scope="col">关系</th>
+                <th scope="col">环节</th>
+                <th scope="col">证据</th>
+                <th scope="col">时间</th>
               </tr>
             </thead>
             <tbody>
@@ -4113,7 +4187,7 @@ export default function Home() {
                   <td>{edge.stage}</td>
                   <td>
                     <span className="evidencePill">
-                      {edge.source === "server" ? `${edge.evidenceCount} sources` : "fixture evidence"}
+                      {edge.source === "server" ? `证据 ${edge.evidenceCount} 条` : "样例证据"}
                     </span>
                   </td>
                   <td>{edge.observedAt}</td>
@@ -4217,19 +4291,19 @@ export default function Home() {
           data-watchlist-count={watchlistNodeKeys.length}
         >
           <div>
-            <strong>Pinned</strong>
+            <strong>已固定</strong>
             <span data-testid="pinned-node-list">
               {pinnedNodeKeys.map((key) => entityLabels[key]).join(" / ") || "none"}
             </span>
           </div>
           <div>
-            <strong>Compare</strong>
+            <strong>对比集</strong>
             <span data-testid="comparison-node-list">
               {comparisonNodeKeys.map((key) => entityLabels[key]).join(" / ") || "none"}
             </span>
           </div>
           <div>
-            <strong>Watchlist</strong>
+            <strong>关注集</strong>
             <span data-testid="watchlist-node-list">
               {watchlistNodeKeys.map((key) => entityLabels[key]).join(" / ") || "none"}
             </span>
@@ -4246,24 +4320,24 @@ export default function Home() {
         ) : null}
 
         <div className="statusStrip">
-          <span>Data: synthetic fixture</span>
-          <span>Live facts: disabled</span>
-          <span>DB fixture notice: visible</span>
+          <span>数据：样例</span>
+          <span>真实事实声明：未启用</span>
+          <span>样例标注：可见</span>
           <span data-testid="model-contract-state">
-            Model: {analysisContext.modelVersion} / Preference: {analysisContext.profileVersion} /
-            Formula: {analysisContext.formulaRegistryVersion} / Parameters:{" "}
-            {analysisContext.parameterCatalogVersion} / Thresholds:{" "}
+            模型 {analysisContext.modelVersion} / 偏好 {analysisContext.profileVersion} / 公式{" "}
+            {analysisContext.formulaRegistryVersion} / 参数{" "}
+            {analysisContext.parameterCatalogVersion} / 阈值{" "}
             {analysisContext.thresholdRegistryVersion}
           </span>
           <span data-testid="active-context-state">
-            Data: {analysisContext.dataSnapshot} / Score: {analysisContext.scoreSnapshot} / As of:{" "}
+            数据 {analysisContext.dataSnapshot} / 评分 {analysisContext.scoreSnapshot} / 快照{" "}
             {asOf}
           </span>
-          <span data-testid="lens-state">Lens: {activeLens}</span>
-          <span data-testid="zoom-state">Zoom: {semanticZoom}</span>
-          <span data-testid="reroot-state">Canvas state: {transitionState}</span>
+          <span data-testid="lens-state">透镜：{activeLens}</span>
+          <span data-testid="zoom-state">缩放：{semanticZoom}</span>
+          <span data-testid="reroot-state">画布：{transitionState}</span>
           <span data-testid="budget-state">
-            Budget: {graphViewNodes.length} nodes / {graphViewEdges.length} edges / max 40 first-screen edges
+            预算：{graphViewNodes.length} 节点 / {graphViewEdges.length} 边 / 首屏边上限 40（max 40 first-screen edges）
           </span>
         </div>
       </aside>
