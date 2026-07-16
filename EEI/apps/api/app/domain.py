@@ -781,6 +781,14 @@ def export_regulatory_filings_csv(repository: RepositoryDependency) -> Response:
     )
 
 
+@router.get("/signals/overview")
+def signals_overview(repository: RepositoryDependency) -> dict[str, Any]:
+    try:
+        return repository.signals_overview()
+    except RepositoryError as exc:
+        raise translate_repository_error(exc) from exc
+
+
 @router.get("/ma/overview")
 def ma_overview(repository: RepositoryDependency) -> dict[str, Any]:
     try:

@@ -156,10 +156,11 @@ export const WORKSPACE_MODULES: readonly WorkspaceModuleDefinition[] = [
     id: "strategic_signals",
     label: "战略信号",
     subtitle: "招聘、资本支出、专利、合作和管理层表态",
-    controlKind: "planned",
-    routeState: "planned",
-    disabledReason: "Requires signal ingestion handlers and source review before activation.",
-    acceptanceIds: ["A202", "A206", "A211"]
+    controlKind: "route",
+    href: "/signals",
+    routeState: "available",
+    apiEndpoints: ["/v1/signals/overview"],
+    acceptanceIds: ["S8PCT02", "A202", "A206", "A211"]
   },
   {
     id: "time_evolution",

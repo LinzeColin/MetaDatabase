@@ -24,9 +24,16 @@ export type MaEvent = {
   effective_at: string | null;
 };
 
+export type SignalModelRecord = {
+  model_key: string;
+  version: string;
+  has_scored_run: boolean;
+};
+
 export type FamilyOverviewRecord = {
   relationships: FamilyRelationship[];
   events?: MaEvent[];
+  signal_models?: SignalModelRecord[];
   summary: Record<string, unknown>;
   abstentions: Record<string, string>;
 };
@@ -45,7 +52,7 @@ function isFamilyOverview(payload: unknown): payload is FamilyOverviewRecord {
 }
 
 export async function loadFamilyOverview(
-  endpoint: "/v1/ma/overview" | "/v1/control/overview"
+  endpoint: "/v1/ma/overview" | "/v1/control/overview" | "/v1/signals/overview"
 ): Promise<FamilyOverviewSyncResult> {
   const apiBaseUrl = readProductionDataApiBaseUrl();
   if (!apiBaseUrl) {
