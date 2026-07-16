@@ -45,6 +45,14 @@ jobs:
         run: make test-e2e
       - name: Verify G2 live FastAPI PostgreSQL E2E
         run: make test-e2e-live
+      - name: Upload Playwright failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: EEI/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
       - name: Stop PostgreSQL
         if: always()
         run: make db-down

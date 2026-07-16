@@ -1,0 +1,35 @@
+name: EEI visual baseline
+
+# T1118/A167 baseline bootstrap: visual-regression baselines are
+# CI-authoritative (ubuntu-latest font stack). Dispatch this workflow on a
+# branch to regenerate the Linux baselines, download the artifact, and
+# commit the PNGs under EEI/tests/e2e/visual-regression.spec.ts-snapshots/.
+on:
+  workflow_dispatch:
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: EEI
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Bootstrap pinned dependencies
+        run: make bootstrap
+      - name: Install Playwright Chromium
+        run: npx --yes pnpm@11.8.0 --filter @eei/web exec playwright install --with-deps chromium
+      - name: Generate visual regression baselines
+        run: npx --yes pnpm@11.8.0 --filter @eei/web exec playwright test --config=../../playwright.config.ts visual-regression --update-snapshots
+      - name: Upload baselines
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-regression-baselines
+          path: EEI/tests/e2e/visual-regression.spec.ts-snapshots/
+          retention-days: 7
