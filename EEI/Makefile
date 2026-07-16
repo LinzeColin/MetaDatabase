@@ -314,7 +314,16 @@ test-e2e-live-guarded:
 	$(MAKE) test-e2e-live && \
 	$(UV) run python scripts/verify_live_e2e_isolation.py compare --against /tmp/eei-e2e-isolation-before.json
 
-test: test-unit
+test: test-unit test-cloud-parity
+
+# S10PAT01: the Worker-side scoring port must match Python exactly across
+# the generated grid; parity failure blocks release (S10PA stop condition).
+test-cloud-parity:
+	$(UV) run python scripts/generate_scoring_parity_fixture.py
+	node --test apps/cloudflare-public/tests/scoring_parity.test.mjs
+
+test-cloud-smoke:
+	bash scripts/run_cloud_worker_smoke.sh
 
 generate-cross-verification-contract:
 	$(UV) run python scripts/cross_verify_relationship_candidates.py --generate-contract --quiet

@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node ../../../scripts/cloudflare/build_static_surface.mjs --source public --output dist",
-    "validate": "python3 ../../../scripts/cloudflare/scan_public_dist.py --path public"
+    "test": "node --test tests/scoring_parity.test.mjs",
+    "smoke": "bash ../../scripts/run_cloud_worker_smoke.sh",
+    "deploy": "npx --yes wrangler@4.42.0 deploy"
   }
 }

@@ -1,0 +1,55 @@
+-- Local D1 smoke seed (S10PAT01): mirrors the shape of the two real
+-- owner-signed published facts so the Worker smoke exercises the same
+-- schema the production publication drill writes. Synthetic ids.
+DELETE FROM relationship_evidence;
+DELETE FROM relationships;
+DELETE FROM entities;
+DELETE FROM snapshot_meta;
+DELETE FROM publication_meta;
+
+INSERT INTO entities(id, canonical_name, entity_type, status) VALUES
+  ('00000000-0000-4000-8000-000000000001', 'Taiwan Semiconductor Manufacturing Company Limited', 'company', 'active'),
+  ('00000000-0000-4000-8000-000000000002', 'NVIDIA Corporation', 'company', 'active'),
+  ('00000000-0000-4000-8000-000000000003', 'ASML Holding N.V.', 'company', 'active');
+
+INSERT INTO relationships(id, subject_entity_id, object_entity_id, relationship_type,
+  relationship_family, status, confidence, observed_at, published_at, qualifiers_json) VALUES
+  (
+    '00000000-0000-4000-9000-000000000001',
+    '00000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000002',
+    'foundry_supply', 'supply_chain_operations', 'reported', 0.88,
+    '2026-06-01T00:00:00+00:00', '2026-07-15T00:00:00+00:00',
+    '{"decision_set_key": "smoke-decision-set", "source_threshold_policy": {"minimum_independent_sources": 2, "independent_source_count": 2}, "parser_version": "relationship-publisher-v1"}'
+  ),
+  (
+    '00000000-0000-4000-9000-000000000002',
+    '00000000-0000-4000-8000-000000000003',
+    '00000000-0000-4000-8000-000000000001',
+    'equipment_supply', 'supply_chain_operations', 'reported', 0.84,
+    '2026-06-01T00:00:00+00:00', '2026-07-15T00:00:00+00:00',
+    '{"decision_set_key": "smoke-decision-set", "source_threshold_policy": {"minimum_independent_sources": 2, "independent_source_count": 2}, "parser_version": "relationship-publisher-v1"}'
+  );
+
+INSERT INTO relationship_evidence(relationship_id, source_document_id, role, locator,
+  support_excerpt, source_url, source_title, publisher, document_date) VALUES
+  ('00000000-0000-4000-9000-000000000001', 'doc-tsmc-10k', 'primary', 'p.12',
+   'TSMC manufactures advanced accelerators for NVIDIA.',
+   'https://www.sec.gov/example/tsmc-10k', 'TSMC Annual Report', 'SEC EDGAR', '2026-04-01'),
+  ('00000000-0000-4000-9000-000000000001', 'doc-nvda-10k', 'corroborating', 'p.33',
+   'NVIDIA relies on TSMC as its primary foundry.',
+   'https://www.sec.gov/example/nvda-10k', 'NVIDIA Annual Report', 'NVIDIA IR', '2026-03-01'),
+  ('00000000-0000-4000-9000-000000000002', 'doc-asml-ar', 'primary', 'p.8',
+   'ASML supplies EUV lithography systems to TSMC.',
+   'https://www.sec.gov/example/asml-20f', 'ASML Annual Report', 'SEC EDGAR', '2026-02-01'),
+  ('00000000-0000-4000-9000-000000000002', 'doc-tsmc-pr', 'corroborating', 'para.2',
+   'TSMC confirms EUV tooling procurement from ASML.',
+   'https://pr.tsmc.com/example', 'TSMC Press Release', 'TSMC Newsroom', '2026-02-15');
+
+INSERT INTO snapshot_meta(snapshot_key, scope, record_mode, status, as_of, activated_at) VALUES
+  ('smoke-publication-snapshot', 'global', 'database', 'active',
+   '2026-07-15T00:00:00+00:00', '2026-07-15T00:00:00+00:00');
+
+INSERT INTO publication_meta(key, value) VALUES
+  ('published_at', '2026-07-15T00:00:00+00:00'),
+  ('publisher_version', 'eei-publication-schema-v1');
