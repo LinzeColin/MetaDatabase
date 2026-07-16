@@ -79,11 +79,15 @@ apps/web/src/app/analysis-context-badge.tsx
 apps/web/src/app/analysis-contract.ts
 apps/web/src/app/capital-events-client.ts
 apps/web/src/app/capital/page.tsx
+apps/web/src/app/control/page.tsx
 apps/web/src/app/development-status/page.tsx
 apps/web/src/app/explore-api-client.ts
+apps/web/src/app/family-module-client.ts
+apps/web/src/app/family-module-page.tsx
 apps/web/src/app/globals.css
 apps/web/src/app/industries/page.tsx
 apps/web/src/app/layout.tsx
+apps/web/src/app/ma/page.tsx
 apps/web/src/app/model-activation-client.ts
 apps/web/src/app/objects-scope/page.tsx
 apps/web/src/app/page.tsx

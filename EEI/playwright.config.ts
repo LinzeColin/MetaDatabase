@@ -4,8 +4,11 @@ export default defineConfig({
   testDir: "./tests/e2e",
   testIgnore: ["saved-view-live.spec.ts"],
   timeout: 30_000,
+  // CI runners intermittently exceed the old 5s budget on data-hydration
+  // assertions (capital-river A110 flaked on an identical commit and greened
+  // on rerun, 2026-07-16); widen the budget - no retries, specs are stateful.
   expect: {
-    timeout: 5_000
+    timeout: 10_000
   },
   use: {
     baseURL: "http://127.0.0.1:3000",

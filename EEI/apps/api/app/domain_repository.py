@@ -7523,6 +7523,109 @@ class DomainRepository:
             }
         )
 
+    def _family_relationships(
+        self, connection: psycopg.Connection[dict[str, Any]], families: tuple[str, ...]
+    ) -> list[dict[str, Any]]:
+        rows = connection.execute(
+            """
+            SELECT r.id, r.relationship_type, r.relationship_family, r.status,
+                   r.confidence, r.observed_at,
+                   r.derivation_rule = 'reviewed_relationship_fact_publication'
+                     AS owner_signed_published,
+                   s.canonical_name AS subject_name,
+                   o.canonical_name AS object_name,
+                   fen_s.fixture_notice IS NOT NULL
+                     OR fen_o.fixture_notice IS NOT NULL AS fixture_flag
+            FROM relationships r
+            JOIN entities s ON s.id = r.subject_entity_id
+            JOIN entities o ON o.id = r.object_entity_id
+            LEFT JOIN fixture_entity_notices fen_s ON fen_s.entity_id = s.id
+            LEFT JOIN fixture_entity_notices fen_o ON fen_o.entity_id = o.id
+            WHERE r.relationship_family = ANY(%s)
+            ORDER BY owner_signed_published DESC, r.relationship_type, r.id
+            LIMIT 300
+            """,
+            (list(families),),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def ma_overview(self) -> dict[str, Any]:
+        """M&A module surface (S8PCT01): deal relationships + dated events."""
+        with self.connect() as connection:
+            relationships = self._family_relationships(
+                connection, ("mergers_acquisitions",)
+            )
+            events = [
+                dict(row)
+                for row in connection.execute(
+                    """
+                    SELECT e.id, e.event_type, e.title, e.status,
+                           e.announced_at, e.effective_at
+                    FROM events e
+                    WHERE e.event_type IN (
+                      'merger', 'acquisition', 'divestiture', 'spin_off',
+                      'tender_offer', 'buyout'
+                    )
+                    ORDER BY COALESCE(e.announced_at, e.effective_at) DESC
+                    LIMIT 100
+                    """
+                ).fetchall()
+            ]
+        return _jsonable(
+            {
+                "relationships": relationships,
+                "events": events,
+                "summary": {
+                    "published_fact_count": sum(
+                        1 for r in relationships if r["owner_signed_published"]
+                    ),
+                    "relationship_count": len(relationships),
+                    "event_count": len(events),
+                },
+                "abstentions": {
+                    "coverage": (
+                        "M&A coverage today is what the graph asserts; real deal "
+                        "candidates in the captured corpus (e.g. the Mellanox "
+                        "acquisition disclosed in NVIDIA's 10-K) enter through the "
+                        "candidate -> dual-source -> owner sign-off chain."
+                    ),
+                },
+            }
+        )
+
+    def control_overview(self) -> dict[str, Any]:
+        """Control-relationships module surface (S8PCT01)."""
+        with self.connect() as connection:
+            relationships = self._family_relationships(
+                connection, ("ownership_control",)
+            )
+        by_type: dict[str, int] = {}
+        for relationship in relationships:
+            by_type[relationship["relationship_type"]] = (
+                by_type.get(relationship["relationship_type"], 0) + 1
+            )
+        return _jsonable(
+            {
+                "relationships": relationships,
+                "summary": {
+                    "published_fact_count": sum(
+                        1 for r in relationships if r["owner_signed_published"]
+                    ),
+                    "relationship_count": len(relationships),
+                    "by_type": by_type,
+                },
+                "abstentions": {
+                    "semantics": (
+                        "Control edges are legal/governance assertions "
+                        "(legal_parent, board_control, voting_control, "
+                        "beneficial_owner, institutional_holding) and are never "
+                        "merged with commercial dependency; absence of an edge "
+                        "means no assertion, not independence."
+                    ),
+                },
+            }
+        )
+
     def list_changes(
         self,
         *,
