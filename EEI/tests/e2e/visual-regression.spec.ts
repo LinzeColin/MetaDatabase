@@ -86,12 +86,22 @@ test.describe("A167 approved workspace states", () => {
   });
 
   test("captures error state when APIs fail", async ({ page }) => {
+    // The family-module shell renders the analysis-context badge (the home
+    // canvas has its own context panel instead); with the API 500-routed —
+    // or absent, as on CI — it must show the amber fallback label instead
+    // of fabricating live context.
     await page.route("**/v1/**", (route) =>
       route.fulfill({ status: 500, contentType: "application/json", body: "{}" })
     );
-    await page.goto("/");
-    await settle(page);
+    await page.goto("/ma");
     await expect(page.getByTestId("context-fallback")).toBeVisible();
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve))
+      );
+    });
+    await page.waitForTimeout(400);
     await expect(page).toHaveScreenshot("approved-error-api.png", SCREENSHOT_OPTIONS);
   });
 });
