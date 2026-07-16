@@ -457,6 +457,7 @@ scripts/preflight.sh
 scripts/publish_reviewed_relationship_facts.py
 scripts/publish_to_cloud_channel.py
 scripts/record_operator_soak_heartbeat.py
+scripts/refresh_stability_probe.py
 scripts/run_browser_scale_benchmarks.mjs
 scripts/run_cloud_worker_smoke.sh
 scripts/run_codex_autonomous.sh

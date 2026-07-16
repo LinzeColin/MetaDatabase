@@ -534,6 +534,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── publish_reviewed_relationship_facts.py
 │   ├── publish_to_cloud_channel.py
 │   ├── record_operator_soak_heartbeat.py
+│   ├── refresh_stability_probe.py
 │   ├── run_browser_scale_benchmarks.mjs
 │   ├── run_cloud_worker_smoke.sh
 │   ├── run_codex_autonomous.sh
