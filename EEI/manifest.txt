@@ -190,6 +190,7 @@ artifacts/tests/a202/t1301_official_full_text_dry_run_contract.json
 artifacts/tests/a202/t1301_operator_review_packet_contract.json
 artifacts/tests/a202/t1301_operator_source_capture_contract.json
 artifacts/tests/a202/t1301_second_source_cross_verification_contract.json
+artifacts/tests/a203/s7pdt04_cloud_publication_run_s12.json
 artifacts/tests/a203/t1302_production_api_graph_scoring_contract.json
 artifacts/tests/a203/t1302_production_api_release_preflight.json
 artifacts/tests/a204/t1303_transactional_model_activation_contract.json
