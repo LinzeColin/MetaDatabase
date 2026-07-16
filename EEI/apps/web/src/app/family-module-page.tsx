@@ -17,7 +17,7 @@ type LoadState = "idle" | "loading" | "hydrated" | "error" | "api_required";
 
 type FamilyModulePageProps = {
   moduleId: WorkspaceModuleId;
-  endpoint: "/v1/ma/overview" | "/v1/control/overview";
+  endpoint: "/v1/ma/overview" | "/v1/control/overview" | "/v1/signals/overview";
   title: string;
   subtitle: string;
   icon: ReactNode;

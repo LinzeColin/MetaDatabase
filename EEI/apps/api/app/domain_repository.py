@@ -7626,6 +7626,50 @@ class DomainRepository:
             }
         )
 
+    def signals_overview(self) -> dict[str, Any]:
+        """Strategic-signals module surface (S8PCT02). Research-oriented only."""
+        with self.connect() as connection:
+            relationships = self._family_relationships(
+                connection, ("strategic_signal",)
+            )
+            signal_models = connection.execute(
+                """
+                SELECT sm.model_key, sm.version,
+                       EXISTS (
+                         SELECT 1 FROM scoring_profile_versions spv
+                         JOIN scoring_runs sr ON sr.profile_version_id = spv.id
+                         WHERE spv.model_id = sm.id
+                       ) AS has_scored_run
+                FROM scoring_models sm
+                WHERE sm.model_key ILIKE '%signal%'
+                   OR sm.model_key ILIKE '%strategic%'
+                ORDER BY sm.model_key
+                """
+            ).fetchall()
+        return _jsonable(
+            {
+                "relationships": relationships,
+                "signal_models": [dict(row) for row in signal_models],
+                "summary": {
+                    "published_fact_count": sum(
+                        1 for r in relationships if r["owner_signed_published"]
+                    ),
+                    "relationship_count": len(relationships),
+                },
+                "abstentions": {
+                    "research_orientation": (
+                        "Strategic signals are research prioritization aids derived "
+                        "from disclosed themes and counter-signals; they are NOT "
+                        "investment advice, price predictions or trading signals."
+                    ),
+                    "scoring": (
+                        "Signal models without a scored run report "
+                        "has_scored_run=false; no synthetic scores are shown."
+                    ),
+                },
+            }
+        )
+
     def list_changes(
         self,
         *,

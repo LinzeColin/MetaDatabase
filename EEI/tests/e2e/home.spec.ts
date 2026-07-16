@@ -171,12 +171,9 @@ test("A211 exposes WorkspaceContext routes controls disabled entries and persist
   await expect(context).toHaveAttribute("data-state-persistence", "url,sessionStorage,localStorage");
   await expect(context).toHaveAttribute("data-workspace-state-storage-key", "eei.workspaceState.v1");
   await expect(context).toHaveAttribute("data-saved-view-storage-key", "eei.savedView.current.v1");
-  // S8PC enabled ma_transactions and control_relationships; strategic_signals
-  // remains the only disabled module until S8PCT02.
-  await expect(context).toHaveAttribute(
-    "data-disabled-unfinished",
-    "strategic_signals"
-  );
+  // S8PC completed: every one of the sixteen modules is now enabled -
+  // no disabled/unfinished entries remain (导航目录无禁用).
+  await expect(context).toHaveAttribute("data-disabled-unfinished", "");
   const serverEndpoints = await context.getAttribute("data-server-endpoints");
   expect(serverEndpoints).toContain("/v1/saved-views");
   expect(serverEndpoints).toContain("/v1/scoring/active-context");
@@ -228,7 +225,10 @@ test("A211 exposes WorkspaceContext routes controls disabled entries and persist
     "href",
     "/control"
   );
-  await expect(page.getByTestId("main-nav-strategic_signals")).toBeDisabled();
+  await expect(page.getByTestId("main-nav-strategic_signals")).toHaveAttribute(
+    "href",
+    "/signals"
+  );
 
   await page.getByTestId("main-nav-system_status").click();
   await expect(page).toHaveURL(/\/development-status$/);
