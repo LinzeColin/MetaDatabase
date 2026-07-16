@@ -224,6 +224,16 @@ test("A211 live production routes and data controls hydrate from FastAPI Postgre
   await expect(dataPanel).toHaveAttribute("data-evidence-detail-count", /^[1-9]\d*$/);
   await expect(page.getByTestId("production-score-candidate")).toContainText("GV-FACT-001");
   await expect(page.getByTestId("production-score-candidate")).toContainText("ready_for_review");
+  // S9PBT02 V5: the context KPI bar mirrors the score explanation state -
+  // consistency is by construction (single source) and asserted here.
+  await expect(page.getByTestId("context-kpi-bar")).toBeVisible();
+  await expect(page.getByTestId("kpi-candidate")).toHaveText("GV-FACT-001");
+  await expect(page.getByTestId("kpi-review")).toContainText("machine_verified");
+  await expect(page.getByTestId("kpi-publication")).toContainText("ready_for_review");
+  await expect(page.getByTestId("context-kpi-bar")).toHaveAttribute(
+    "data-kpi-source",
+    "production-score-explanation"
+  );
   await expect(page.getByTestId("production-evidence-snippets")).toContainText("SEC EDGAR");
   await expect(freshnessPanel).toHaveAttribute("data-sync-mode", "server");
   await expect(freshnessPanel).toHaveAttribute("data-endpoint", /\/v1\/sources\/freshness$/);
