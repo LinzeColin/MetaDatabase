@@ -4,7 +4,10 @@
   "main": "src/worker.mjs",
   "compatibility_date": "2026-07-10",
   "assets": {
-    "directory": "./public",
+    // dist/ is the static export of apps/web staged by
+    // scripts/build_cloud_frontend.sh (public/ keeps the retired CF-L2
+    // demo surface for history).
+    "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/v1/*", "/health"]

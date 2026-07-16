@@ -76,6 +76,7 @@ apps/cloudflare-public/tests/scoring_parity_fixture.json
 apps/cloudflare-public/tests/smoke_assert.mjs
 apps/cloudflare-public/tests/smoke_seed.sql
 apps/cloudflare-public/wrangler.jsonc
+apps/web/.gitignore
 apps/web/next.config.ts
 apps/web/package.json
 apps/web/postcss.config.mjs
@@ -422,6 +423,7 @@ reviews/03_UIUX_ARCHITECTURE_REVIEW.md
 scripts/apply_model_config.py
 scripts/backfill_sec_history.py
 scripts/backup_restore_drill.py
+scripts/build_cloud_frontend.sh
 scripts/build_production_gold_labels.py
 scripts/check_database_schema.py
 scripts/compile_model_runtime_defaults.py
