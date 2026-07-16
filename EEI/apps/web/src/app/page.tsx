@@ -715,6 +715,11 @@ const homeFreshness = {
 };
 
 function freshnessValue(value: string | null | undefined) {
+  return value || "none";
+}
+
+// 可见文本层：空值显示「无」；data-* 契约属性保持 "none"（live 套件断言）。
+function freshnessText(value: string | null | undefined) {
   return value || "无";
 }
 
@@ -3397,19 +3402,19 @@ export default function Home() {
           <span data-testid="source-freshness-status">{freshnessDisplay.status}</span>
           <span data-testid="source-freshness-code">{freshnessDisplay.sourceCode}</span>
           <span data-testid="source-freshness-attempt">
-            抓取 {freshnessValue(freshnessDisplay.lastAttemptAt)}
+            抓取 {freshnessText(freshnessDisplay.lastAttemptAt)}
           </span>
           <span data-testid="source-freshness-success">
-            成功 {freshnessValue(freshnessDisplay.lastSuccessAt)}
+            成功 {freshnessText(freshnessDisplay.lastSuccessAt)}
           </span>
           <span data-testid="source-freshness-failure">
-            失败 {freshnessValue(freshnessDisplay.lastFailureAt)}
+            失败 {freshnessText(freshnessDisplay.lastFailureAt)}
           </span>
           <span data-testid="source-freshness-document-date">
-            文书 {freshnessValue(freshnessDisplay.latestDocumentDate)}
+            文书 {freshnessText(freshnessDisplay.latestDocumentDate)}
           </span>
           <span data-testid="source-freshness-report-period">
-            报告期 {freshnessValue(freshnessDisplay.latestReportPeriodEnd)}
+            报告期 {freshnessText(freshnessDisplay.latestReportPeriodEnd)}
           </span>
           <span>{freshnessDisplay.sourceCount} 个来源</span>
           <span>{freshnessDisplay.sourceDocumentCount} 份文书</span>
