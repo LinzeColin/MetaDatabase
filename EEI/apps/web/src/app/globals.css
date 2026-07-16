@@ -3143,3 +3143,40 @@ dd {
 :root[data-theme="deep-space"] .panelHuman span {
   color: #aebadb;
 }
+
+/* ============ S12 第三批：深空主题下的玻璃卡片（对齐样例视频） ============ */
+:root[data-theme="deep-space"] .modelPreviewPanel {
+  border-color: #23345a;
+  background: rgba(13, 19, 34, 0.82);
+}
+
+:root[data-theme="deep-space"] .modelPreviewPanel strong {
+  color: #d8e4ff;
+}
+
+:root[data-theme="deep-space"] .modelPreviewPanel span,
+:root[data-theme="deep-space"] .modelPreviewPanel dd {
+  color: #aebadb;
+}
+
+:root[data-theme="deep-space"] .modelPreviewPanel dt {
+  color: #8b98b3;
+}
+
+:root[data-theme="deep-space"] .modelPreviewActions button {
+  border-color: #2c4370;
+  background: rgba(20, 32, 58, 0.85);
+  color: #cfe0ff;
+}
+
+:root[data-theme="deep-space"] .modelPreviewActions button:hover {
+  border-color: #4a6ca8;
+  box-shadow: 0 0 12px rgba(90, 162, 255, 0.25);
+}
+
+:root[data-theme="deep-space"] .savedViewPanel,
+:root[data-theme="deep-space"] .fixtureDisclosure {
+  border-color: #23345a;
+  background: rgba(13, 19, 34, 0.82);
+  color: #aebadb;
+}
