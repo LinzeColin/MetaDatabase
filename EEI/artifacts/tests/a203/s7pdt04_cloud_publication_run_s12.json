@@ -1,0 +1,65 @@
+{
+  "schema_version": "eei-cloud-publication-channel-v1",
+  "task_id": "S7PDT04",
+  "acceptance_ids": [
+    "ACC-S7PDT04"
+  ],
+  "generated_at": "2026-07-16T09:41:56+00:00",
+  "d1_database": "eei-publication",
+  "publication_boundary": {
+    "included": [
+      "owner-signed published relationships",
+      "endpoint entities",
+      "evidence index (locator + excerpt + official URL)",
+      "active snapshot metadata",
+      "per-year official filing counts (aggregates only)"
+    ],
+    "excluded": [
+      "relationship candidates and review queues",
+      "raw source texts and archives (R2 scope)",
+      "scoring internals and model parameters",
+      "background jobs / scheduler state"
+    ],
+    "direction": "one-way local->cloud; no cloud read-back"
+  },
+  "local_export_counts": {
+    "relationships": 2,
+    "entities": 3,
+    "relationship_evidence": 4,
+    "snapshot_meta": 16,
+    "filing_year_counts": 11
+  },
+  "sql_file": "/private/tmp/claude-501/-Users-linzezhang-Documents-Codex/0f1ea4de-3b1e-4c93-8175-65aea003aa24/scratchpad/publication_s12.sql",
+  "sql_statements": 49,
+  "applied": true,
+  "remote_counts": {
+    "entities": 3,
+    "relationships": 2,
+    "relationship_evidence": 4,
+    "snapshot_meta": 16,
+    "filing_year_counts": 11
+  },
+  "count_parity": {
+    "entities": true,
+    "relationships": true,
+    "relationship_evidence": true,
+    "snapshot_meta": true,
+    "filing_year_counts": true
+  },
+  "drill_passed": true,
+  "r2": {
+    "enabled": true,
+    "buckets_output": "\n ⛅️ wrangler 4.111.0\n────────────────────\nListing buckets...\nname:           adp-raw-artifacts\ncreation_date:  2026-07-16T02:51:35.089Z\n"
+  },
+  "free_tier_quota_accounting": {
+    "d1_free_tier": {
+      "storage_gb": 5,
+      "rows_read_per_day": 5000000,
+      "rows_written_per_day": 100000
+    },
+    "rows_written_this_publish": 38,
+    "daily_write_budget_used_pct": 0.038,
+    "estimated_publication_size_kb": 12.6,
+    "headroom_note": "Publication surface is orders of magnitude inside the free tier; even a 1000x larger fact base stays under daily write limits with one full republish per day."
+  }
+}

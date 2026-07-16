@@ -211,6 +211,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   ├── t1301_operator_source_capture_contract.json
 │   │   │   └── t1301_second_source_cross_verification_contract.json
 │   │   ├── a203
+│   │   │   ├── s7pdt04_cloud_publication_run_s12.json
 │   │   │   ├── t1302_production_api_graph_scoring_contract.json
 │   │   │   └── t1302_production_api_release_preflight.json
 │   │   ├── a204

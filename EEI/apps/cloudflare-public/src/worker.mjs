@@ -34,7 +34,13 @@ const CORS_HEADERS = {
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8", ...CORS_HEADERS }
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      // 数据接口一律不缓存：部署新路由前的 404 曾被浏览器缓存住，
+      // 刷新也带不回来（时间轴空态假象）。no-store 保证每次都问源。
+      "cache-control": "no-store",
+      ...CORS_HEADERS
+    }
   });
 }
 
