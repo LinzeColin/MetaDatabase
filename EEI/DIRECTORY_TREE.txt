@@ -584,6 +584,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   ├── development-status.spec.ts
 │   │   ├── home.spec.ts
 │   │   ├── industry.spec.ts
+│   │   ├── motion-choreography.spec.ts
 │   │   ├── saved-view-live.spec.ts
 │   │   ├── state-contract.spec.ts
 │   │   └── theme-system.spec.ts
