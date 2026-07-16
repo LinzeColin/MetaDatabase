@@ -16,9 +16,9 @@ $WRANGLER d1 execute eei-publication --local --file "$REPO_ROOT/infra/cloudflare
 $WRANGLER d1 execute eei-publication --local --file "$REPO_ROOT/infra/cloudflare/d1_user_state_schema.sql" >/dev/null
 $WRANGLER d1 execute eei-publication --local --file tests/smoke_seed.sql >/dev/null
 
-echo "[smoke] booting wrangler dev --local on :$PORT"
+echo "[smoke] booting wrangler dev --local on :$PORT (with scheduled drill)"
 LOG="$(mktemp)"
-$WRANGLER dev --local --port "$PORT" >"$LOG" 2>&1 &
+$WRANGLER dev --local --port "$PORT" --test-scheduled >"$LOG" 2>&1 &
 DEV_PID=$!
 trap 'kill "$DEV_PID" 2>/dev/null || true' EXIT
 
@@ -36,5 +36,18 @@ done
 
 echo "[smoke] asserting contracts"
 node "$REPO_ROOT/apps/cloudflare-public/tests/smoke_assert.mjs" "http://127.0.0.1:$PORT"
+
+echo "[smoke] firing scheduled drill (real SEC polling for one rotation slice)"
+curl -sf "http://127.0.0.1:$PORT/__scheduled?cron=0+18+*+*+*" >/dev/null
+sleep 6
+RUNS=$(curl -sf "http://127.0.0.1:$PORT/v1/cloud/runs?limit=1")
+echo "$RUNS" | node -e "
+const runs = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+if (!Array.isArray(runs) || runs.length === 0) { console.error('no cloud_run_log row'); process.exit(1); }
+const run = runs[0];
+if (!['completed', 'partial', 'failed'].includes(run.status)) { console.error('bad status', run.status); process.exit(1); }
+console.log('SCHEDULED_DRILL status=' + run.status + ' slice=' + run.rotation_slice + ' new_filings=' + run.new_filings_count);
+if (run.status === 'failed') { console.error('scheduled drill failed', JSON.stringify(run.detail).slice(0, 400)); process.exit(1); }
+"
 
 echo "[smoke] PASS"

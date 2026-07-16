@@ -69,6 +69,7 @@ apps/cloudflare-public/package.json
 apps/cloudflare-public/public/index.html
 apps/cloudflare-public/public/public-surface.json
 apps/cloudflare-public/public/styles.css
+apps/cloudflare-public/src/cloud_sync.mjs
 apps/cloudflare-public/src/scoring.mjs
 apps/cloudflare-public/src/user_state.mjs
 apps/cloudflare-public/src/worker.mjs

@@ -50,3 +50,19 @@ CREATE TABLE IF NOT EXISTS exploration_log (
 
 CREATE INDEX IF NOT EXISTS idx_exploration_log_created
   ON exploration_log(created_at);
+
+-- S10PBT02: cloud incremental-collection run log (7x24 evidence heartbeat).
+CREATE TABLE IF NOT EXISTS cloud_run_log (
+  id TEXT PRIMARY KEY,
+  trigger TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  finished_at TEXT,
+  status TEXT NOT NULL,
+  rotation_slice INTEGER,
+  scope_json TEXT,
+  new_filings_count INTEGER NOT NULL DEFAULT 0,
+  detail_json TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_cloud_run_log_started
+  ON cloud_run_log(started_at);

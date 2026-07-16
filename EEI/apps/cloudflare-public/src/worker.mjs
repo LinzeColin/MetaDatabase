@@ -19,6 +19,7 @@ import {
   listWatchlists,
   updateSavedView
 } from "./user_state.mjs";
+import { listCloudRuns, runCloudSync } from "./cloud_sync.mjs";
 
 const GRAPH_QUERY_VERSION = "cloud-d1-graph-v1";
 const DEFAULT_GRAPH_BUDGET = { max_nodes: 42, max_edges: 64, expand_nodes: 12 };
@@ -625,6 +626,18 @@ export default {
     if (pathname === "/v1/exploration-log" && request.method === "GET") {
       return listExplorationLog(env, url.searchParams.get("limit"), json);
     }
+    if (pathname === "/v1/cloud/runs" && request.method === "GET") {
+      return listCloudRuns(env, url.searchParams.get("limit"), json);
+    }
+    if (pathname === "/v1/cloud/runs/trigger" && request.method === "POST") {
+      // Drill hook: requires the CLOUD_SYNC_TRIGGER_TOKEN secret so the
+      // public surface cannot burn SEC quota; the daily cron needs no token.
+      const token = request.headers.get("authorization") ?? "";
+      if (!env.CLOUD_SYNC_TRIGGER_TOKEN || token !== `Bearer ${env.CLOUD_SYNC_TRIGGER_TOKEN}`) {
+        return json({ detail: "trigger token required" }, 401);
+      }
+      return json(await runCloudSync(env, "manual"));
+    }
 
     const explanationMatch = pathname.match(
       /^\/v1\/scoring\/relationship\/([0-9a-fA-F-]{36})\/explanation$/
@@ -645,5 +658,12 @@ export default {
     }
     // Non-API paths fall through to static assets via the assets binding.
     return env.ASSETS.fetch(request);
+  },
+
+  // S10PBT02: daily incremental SEC polling with an honest run_log row per
+  // run - the 7x24 cloud heartbeat. Deep backfills remain a local-factory
+  // job; publication stays owner-gated.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runCloudSync(env, `cron:${event.cron}`));
   }
 };
