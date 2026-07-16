@@ -3640,10 +3640,12 @@ export default function Home() {
                   data-testid={`edge-group-${edge.from}-${edge.to}`}
                   key={edge.id}
                 >
+                  {/* A168：feGaussianBlur 滤镜面只给太阳束；细丝以宽描边低
+                      透明近似辉光，避免逐边滤镜拖慢首屏。 */}
                   <line
                     aria-hidden
                     className="edgeBeamGlow"
-                    filter="url(#beamGlow)"
+                    filter={isSunBeam ? "url(#beamGlow)" : undefined}
                     x1={source.x}
                     y1={source.y}
                     x2={target.x}

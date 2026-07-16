@@ -2862,8 +2862,8 @@ dd {
   padding: 10px 8px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: color-mix(in srgb, var(--panel) 78%, transparent);
-  backdrop-filter: blur(8px);
+  /* 不用 backdrop-filter：模糊背板是独立合成层，伤首屏 P75。 */
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
   touch-action: none;
   user-select: none;
 }
@@ -3028,36 +3028,23 @@ dd {
   animation: focusOrbitSpin 18s linear infinite;
 }
 
-/* 星尘只在深空主题下漂移；svg 抬到粒子层之上。 */
-.mapSurface > svg {
-  position: relative;
-  z-index: 1;
-}
-
-@keyframes starDrift {
-  to {
-    transform: translate3d(1.6%, -1.4%, 0) scale(1.02);
-  }
-}
-
-:root[data-theme="deep-space"] .mapSurface::after {
-  content: "";
-  position: absolute;
-  inset: -12%;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    radial-gradient(1.4px 1.4px at 12% 18%, rgba(255, 255, 255, 0.55), transparent 55%),
-    radial-gradient(1px 1px at 32% 68%, rgba(180, 210, 255, 0.5), transparent 55%),
-    radial-gradient(1.2px 1.2px at 55% 30%, rgba(255, 255, 255, 0.4), transparent 55%),
-    radial-gradient(1px 1px at 70% 78%, rgba(160, 255, 230, 0.45), transparent 55%),
-    radial-gradient(1.6px 1.6px at 84% 22%, rgba(255, 255, 255, 0.5), transparent 55%),
-    radial-gradient(1px 1px at 22% 44%, rgba(200, 190, 255, 0.45), transparent 55%),
-    radial-gradient(1.2px 1.2px at 64% 55%, rgba(255, 255, 255, 0.35), transparent 55%),
-    radial-gradient(1px 1px at 90% 60%, rgba(190, 220, 255, 0.4), transparent 55%),
-    radial-gradient(1.1px 1.1px at 44% 86%, rgba(255, 255, 255, 0.42), transparent 55%),
-    radial-gradient(1px 1px at 8% 82%, rgba(170, 230, 255, 0.4), transparent 55%);
-  animation: starDrift 140s linear infinite alternate;
+/* 星尘：静态并入曲面背景（A168 教训——巨面上的动画伪元素会产生
+   ~5000px 高的合成层，首屏 P75 从 391ms 恶化到 2655ms；静态多层
+   background 只是一次绘制，零合成层）。 */
+:root[data-theme="deep-space"] .mapSurface {
+  background:
+    radial-gradient(1.4px 1.4px at 12% 8%, rgba(255, 255, 255, 0.5), transparent 55%),
+    radial-gradient(1px 1px at 32% 22%, rgba(180, 210, 255, 0.45), transparent 55%),
+    radial-gradient(1.2px 1.2px at 55% 5%, rgba(255, 255, 255, 0.38), transparent 55%),
+    radial-gradient(1px 1px at 70% 15%, rgba(160, 255, 230, 0.4), transparent 55%),
+    radial-gradient(1.6px 1.6px at 84% 3%, rgba(255, 255, 255, 0.45), transparent 55%),
+    radial-gradient(1px 1px at 22% 12%, rgba(200, 190, 255, 0.4), transparent 55%),
+    radial-gradient(1.2px 1.2px at 64% 27%, rgba(255, 255, 255, 0.32), transparent 55%),
+    radial-gradient(1px 1px at 90% 18%, rgba(190, 220, 255, 0.36), transparent 55%),
+    radial-gradient(ellipse at 50% 8%, rgba(90, 162, 255, 0.08) 0%, transparent 55%),
+    radial-gradient(circle at 18% 5%, rgba(157, 140, 255, 0.05) 0%, transparent 30%),
+    radial-gradient(ellipse at 78% 14%, rgba(26, 168, 146, 0.07) 0%, transparent 45%),
+    #080d1a;
 }
 
 /* reduced-motion：无限循环动画直接停（0.001s 的无限旋转会闪烁）。 */
@@ -3065,16 +3052,12 @@ dd {
   .focusOrbitDots {
     animation: none;
   }
-
-  :root[data-theme="deep-space"] .mapSurface::after {
-    animation: none;
-  }
 }
 
 /* 竖轴深空皮肤：玻璃暗底 + 选中年辉光。 */
 :root[data-theme="deep-space"] .historyScrubber {
   border-color: #23345a;
-  background: rgba(10, 18, 36, 0.66);
+  background: rgba(10, 18, 36, 0.9);
   box-shadow: 0 8px 30px rgba(2, 6, 16, 0.5);
 }
 
