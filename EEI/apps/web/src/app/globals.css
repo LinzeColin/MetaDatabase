@@ -635,6 +635,15 @@ dd {
 
 .canvasTopbar {
   align-items: center;
+  flex-wrap: wrap;
+}
+
+/* No canvas row may inflate the grid's implicit column beyond the 680px
+   track: wider platform fonts (Linux CJK on CI) otherwise push right-edge
+   controls under the inspector panel, which then intercepts their clicks. */
+.canvas > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .lensBar {
@@ -2856,11 +2865,13 @@ dd {
 .askBar {
   display: flex;
   gap: 6px;
-  min-width: 300px;
+  flex: 1 1 220px;
+  min-width: 0;
 }
 
 .askBar input {
   flex: 1;
+  min-width: 0;
   min-height: 34px;
   border: 1px solid var(--line);
   border-radius: 7px;
