@@ -1,9 +1,19 @@
 {
   "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
   "name": "codex-eei",
+  "main": "src/worker.mjs",
   "compatibility_date": "2026-07-10",
   "assets": {
-    "directory": "./dist",
-    "not_found_handling": "single-page-application"
-  }
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/v1/*", "/health"]
+  },
+  "d1_databases": [
+    {
+      "binding": "EEI_PUB",
+      "database_name": "eei-publication",
+      "database_id": "dbf906da-62ab-4a51-aa32-c00b89c84cdf"
+    }
+  ]
 }

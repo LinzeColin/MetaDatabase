@@ -69,6 +69,12 @@ apps/cloudflare-public/package.json
 apps/cloudflare-public/public/index.html
 apps/cloudflare-public/public/public-surface.json
 apps/cloudflare-public/public/styles.css
+apps/cloudflare-public/src/scoring.mjs
+apps/cloudflare-public/src/worker.mjs
+apps/cloudflare-public/tests/scoring_parity.test.mjs
+apps/cloudflare-public/tests/scoring_parity_fixture.json
+apps/cloudflare-public/tests/smoke_assert.mjs
+apps/cloudflare-public/tests/smoke_seed.sql
 apps/cloudflare-public/wrangler.jsonc
 apps/web/next.config.ts
 apps/web/package.json
@@ -427,6 +433,7 @@ scripts/fetch_official_source_full_text.py
 scripts/finalize_operator_soak_evidence.py
 scripts/generate_app_icon.py
 scripts/generate_governance_pdf.py
+scripts/generate_scoring_parity_fixture.py
 scripts/job_scheduler.py
 scripts/load_curated_ingestion_anchors.py
 scripts/load_live_official_captures.py
@@ -446,6 +453,7 @@ scripts/publish_reviewed_relationship_facts.py
 scripts/publish_to_cloud_channel.py
 scripts/record_operator_soak_heartbeat.py
 scripts/run_browser_scale_benchmarks.mjs
+scripts/run_cloud_worker_smoke.sh
 scripts/run_codex_autonomous.sh
 scripts/run_live_e2e_api.sh
 scripts/run_operator_soak.mjs

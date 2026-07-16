@@ -8,9 +8,9 @@ current_product_contract:
   roadmap: 开发记录.md
   activation_state: locked_by_owner_ack_2026_07_15
 current_pointer_registry:
-  global_current_task: S10PAT01
+  global_current_task: S10PAT02
   current_gate: CLOUD-GATE
-  next_executable_task: S10PAT02
+  next_executable_task: S10PBT01
 open_evidence_windows:
   - task: S7PDT02
     kind: seven_day_scheduled_collection_run_log

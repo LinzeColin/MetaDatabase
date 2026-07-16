@@ -43,6 +43,14 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   ├── index.html
 │   │   │   ├── public-surface.json
 │   │   │   └── styles.css
+│   │   ├── src
+│   │   │   ├── scoring.mjs
+│   │   │   └── worker.mjs
+│   │   ├── tests
+│   │   │   ├── scoring_parity.test.mjs
+│   │   │   ├── scoring_parity_fixture.json
+│   │   │   ├── smoke_assert.mjs
+│   │   │   └── smoke_seed.sql
 │   │   ├── .gitignore
 │   │   ├── package-lock.json
 │   │   ├── package.json
@@ -502,6 +510,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── finalize_operator_soak_evidence.py
 │   ├── generate_app_icon.py
 │   ├── generate_governance_pdf.py
+│   ├── generate_scoring_parity_fixture.py
 │   ├── job_scheduler.py
 │   ├── load_curated_ingestion_anchors.py
 │   ├── load_live_official_captures.py
@@ -521,6 +530,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── publish_to_cloud_channel.py
 │   ├── record_operator_soak_heartbeat.py
 │   ├── run_browser_scale_benchmarks.mjs
+│   ├── run_cloud_worker_smoke.sh
 │   ├── run_codex_autonomous.sh
 │   ├── run_live_e2e_api.sh
 │   ├── run_operator_soak.mjs
