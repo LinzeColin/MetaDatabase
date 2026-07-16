@@ -261,7 +261,7 @@ export default function ObjectsScopePage() {
       <section className="objectScopeMain" aria-label="对象与范围">
         <header className="objectScopeHeader">
           <div>
-            <p className="eyebrow">Objects and Scope</p>
+            <p className="eyebrow">对象与范围</p>
             <h1>对象与范围</h1>
             <p className="subjectSubtitle">Canonical catalogs, coverage counts and export links.</p>
           </div>
@@ -273,19 +273,19 @@ export default function ObjectsScopePage() {
 
         <section className="scopeSummary" aria-label="覆盖摘要">
           <div>
-            <dt>Catalogs</dt>
+            <dt>目录数</dt>
             <dd data-testid="object-scope-catalog-count">{catalogs.length}</dd>
           </div>
           <div>
-            <dt>Total rows</dt>
+            <dt>总行数</dt>
             <dd data-testid="object-scope-total-rows">{totalRows}</dd>
           </div>
           <div>
-            <dt>Acceptance</dt>
+            <dt>验收</dt>
             <dd>A169 / A170</dd>
           </div>
           <div>
-            <dt>Exports</dt>
+            <dt>导出</dt>
             <dd>JSON + CSV</dd>
           </div>
         </section>
@@ -329,11 +329,11 @@ export default function ObjectsScopePage() {
                 </header>
                 <dl className="catalogMeta">
                   <div>
-                    <dt>Primary key</dt>
+                    <dt>主键</dt>
                     <dd>{catalog.primaryKey}</dd>
                   </div>
                   <div>
-                    <dt>Source</dt>
+                    <dt>来源</dt>
                     <dd>data/{catalog.path}</dd>
                   </div>
                 </dl>
