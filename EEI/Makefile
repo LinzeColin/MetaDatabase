@@ -162,12 +162,14 @@ validate-brand-clearance:
 
 generate-release-decision-bundle-artifact:
 	$(UV) run python scripts/validate_release_decision_bundle.py generate-template
-	$(UV) run python scripts/validate_release_decision_bundle.py generate
+	$(UV) run python scripts/validate_release_decision_bundle.py generate \
+	  --signed-contract-test artifacts/operator_inputs/a202_a210_signed_release_decision_bundle_20260715.json
 	$(UV) run python scripts/validate_a202_signed_intake_preflight.py generate
 
 validate-release-decision-bundle:
 	$(UV) run python scripts/validate_release_decision_bundle.py validate-template
-	$(UV) run python scripts/validate_release_decision_bundle.py validate
+	$(UV) run python scripts/validate_release_decision_bundle.py validate \
+	  --signed-contract-test artifacts/operator_inputs/a202_a210_signed_release_decision_bundle_20260715.json
 	$(UV) run python scripts/validate_release_decision_bundle.py validate-bundle --template-only
 	$(UV) run python scripts/validate_release_decision_bundle.py validate-bundle --bundle tests/fixtures/release_decision_bundle/a202_a210_signed_decision_bundle_contract_test.json
 	$(UV) run python scripts/validate_a202_signed_intake_preflight.py validate
@@ -187,10 +189,16 @@ validate-external-release-evidence-bundle:
 	$(UV) run python scripts/validate_external_release_evidence_bundle.py validate-packet
 
 generate-release-manager-activation-artifact:
-	$(UV) run python scripts/validate_release_manager_activation.py generate
+	$(UV) run python scripts/validate_release_manager_activation.py generate \
+	  --signed-decision-bundle artifacts/operator_inputs/a202_a210_signed_release_decision_bundle_20260715.json \
+	  --entity-gold-evaluation artifacts/operator_inputs/t904_a026_production_evaluation_20260716_v2.json \
+	  --relationship-gold-evaluation artifacts/operator_inputs/t904_a027_production_evaluation_20260716_v2.json
 
 validate-release-manager-activation:
-	$(UV) run python scripts/validate_release_manager_activation.py validate
+	$(UV) run python scripts/validate_release_manager_activation.py validate \
+	  --signed-decision-bundle artifacts/operator_inputs/a202_a210_signed_release_decision_bundle_20260715.json \
+	  --entity-gold-evaluation artifacts/operator_inputs/t904_a026_production_evaluation_20260716_v2.json \
+	  --relationship-gold-evaluation artifacts/operator_inputs/t904_a027_production_evaluation_20260716_v2.json
 
 generate-mvp-release-gate-preflight:
 	$(UV) run python scripts/validate_mvp_release_gate.py generate

@@ -23,13 +23,13 @@
     "entity_gold": {
       "expected_acceptance_id": "A026",
       "focus_acceptance_id": "A026",
-      "precision": 0.8,
-      "production_gold_set": false,
-      "release_gate_closure_allowed": false,
-      "sample_count": 6,
+      "precision": 1.0,
+      "production_gold_set": true,
+      "release_gate_closure_allowed": true,
+      "sample_count": 54,
       "source_coverage_min": 1.0,
-      "status": "IN_PROGRESS",
-      "threshold_result": "FAIL_CLOSED"
+      "status": "DONE",
+      "threshold_result": "PASS"
     },
     "operator_soak": {
       "operator_24h": "PASS",
@@ -54,13 +54,13 @@
     "relationship_gold": {
       "expected_acceptance_id": "A027",
       "focus_acceptance_id": "A027",
-      "precision": 0.75,
-      "production_gold_set": false,
-      "release_gate_closure_allowed": false,
-      "sample_count": 6,
+      "precision": 1.0,
+      "production_gold_set": true,
+      "release_gate_closure_allowed": true,
+      "sample_count": 114,
       "source_coverage_min": 1.0,
-      "status": "IN_PROGRESS",
-      "threshold_result": "FAIL_CLOSED"
+      "status": "DONE",
+      "threshold_result": "PASS"
     },
     "release_decision": {
       "contract_status": "PENDING_SIGNED_DECISIONS",
@@ -71,7 +71,7 @@
       "signed_decision_complete": true
     }
   },
-  "generated_at": "2026-07-15T21:09:56Z",
+  "generated_at": "2026-07-16T06:09:26Z",
   "missing_gates": [
     {
       "gate_id": "A202_source_license_reviews",
@@ -92,14 +92,6 @@
     {
       "gate_id": "A210_brand_clearance_or_risk_waiver",
       "reason": "formal brand/legal/market clearance or owner waiver is not complete"
-    },
-    {
-      "gate_id": "A026_entity_resolution_production_gold_set",
-      "reason": "entity-resolution production gold threshold is not met"
-    },
-    {
-      "gate_id": "A027_relationship_extraction_production_gold_set",
-      "reason": "relationship extraction production gold threshold is not met"
     },
     {
       "gate_id": "A209_24h_operator_soak",
@@ -130,18 +122,18 @@
   "source_files": {
     "brand_preflight": "artifacts/tests/a210/t1309_brand_clearance_preflight_contract.json",
     "brand_preflight_sha256": "c7f1b58ae0646b5f246be1c6a55d0b7808e227138f5294fbb40293f30459cf88",
-    "entity_gold_evaluation": "artifacts/tests/a026/t904_entity_resolution_gold_evaluation_contract.json",
-    "entity_gold_evaluation_sha256": "6eec4a93271da600a6782e259c3c5a64d4697cf3e0d08f5833ba414c44b6d750",
+    "entity_gold_evaluation": "artifacts/operator_inputs/t904_a026_production_evaluation_20260716_v2.json",
+    "entity_gold_evaluation_sha256": "e7068cd893d3f138bf0be6f44212ef7888138ca375880e69d770ca948b663296",
     "operator_soak_evidence": "artifacts/tests/a209/t1307_operator_soak_evidence_validation.json",
     "operator_soak_evidence_sha256": "8e6923b47ede992f1c0b7ed4347d10f83ea17ab2ab24e3dd665f51526e1f8738",
     "operator_soak_heartbeat": "artifacts/tests/a209/t1307_operator_soak_background_progress.json",
     "operator_soak_heartbeat_sha256": "996056ea9f595f0ebc97065c3a41d77e569f9f23181fa598b6de328929294f77",
-    "relationship_gold_evaluation": "artifacts/tests/a027/t904_relationship_gold_evaluation_contract.json",
-    "relationship_gold_evaluation_sha256": "04fed1acf47eb510b6063b9657e2bdd1141e978db783efae8d1dd67d77097ef3",
+    "relationship_gold_evaluation": "artifacts/operator_inputs/t904_a027_production_evaluation_20260716_v2.json",
+    "relationship_gold_evaluation_sha256": "5e0d6ae10074de7738e2bd6ce993255fff5781aa5de997ff4b3aff4822c191a5",
     "release_decision_contract": "artifacts/tests/a202/t1301_a202_a210_release_decision_bundle_contract.json",
-    "release_decision_contract_sha256": "25c3aa1fb4cd8d87da26c7ce538e54ff28900821f7a6a93e95e682cc1982f7c8",
-    "signed_decision_bundle": "tests/fixtures/release_decision_bundle/a202_a210_signed_decision_bundle_contract_test.json",
-    "signed_decision_bundle_sha256": "20bece9164778e85dcc0ff155d30344d9d304586f647375891bcd7660ae023ad"
+    "release_decision_contract_sha256": "cad009b08d71e01da9900bca8eb2130d6e67f65485328173db2a051153d1447d",
+    "signed_decision_bundle": "artifacts/operator_inputs/a202_a210_signed_release_decision_bundle_20260715.json",
+    "signed_decision_bundle_sha256": "72d007bc5090a378a34afdaf4cb5960ffcb167cd54b6fb66ee8f382012fc6521"
   },
   "status": "RELEASE_MANAGER_ACTIVATION_BLOCKED",
   "system_en_name": "Enterprise Ecosystem Intelligence",
