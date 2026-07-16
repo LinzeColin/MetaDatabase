@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Site-wide Chinese copy and humanized statuses: 74 English chrome labels
+  (section eyebrows, panel labels, action buttons, table headers, status
+  strip, inspector fields) become natural Chinese; 28 machine status codes
+  map to human phrasing (e.g. server-error -> 云端接口不可用) on a new
+  per-panel human summary line, while every raw status row moves into a
+  collapsed 诊断详情 disclosure - all testids and content assertions
+  preserved. Honesty doctrine strings stay visible (样例标注强制可见; the
+  "Live facts: disabled" token remains on the disclosure banner).
+
 - S12 empire-canvas optics (sample-video alignment): glassy 3D orb nodes
   (per-zone gradients, specular highlight, glow halos), golden sun beams with
   soft bloom underlays, a 12-dot orbiting particle ring plus medallion rings

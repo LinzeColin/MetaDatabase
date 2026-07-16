@@ -3099,3 +3099,47 @@ dd {
     right: 100px;
   }
 }
+
+/* ============ S12 第二批：人话摘要行 + 诊断详情折叠 ============ */
+.panelHuman {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.panelHuman strong {
+  font-size: 13px;
+}
+
+.panelHuman span {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.diagDetails {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+.diagDetails > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 11px;
+  user-select: none;
+}
+
+.diagDetails[open] > summary {
+  margin-bottom: 6px;
+}
+
+:root[data-theme="deep-space"] .diagDetails {
+  border-color: #23345a;
+  background: rgba(10, 18, 36, 0.35);
+}
+
+:root[data-theme="deep-space"] .panelHuman span {
+  color: #aebadb;
+}
