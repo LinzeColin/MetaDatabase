@@ -24,7 +24,7 @@ test("renders the watchlist-first EEI workspace", async ({ page }) => {
   );
   await expect(page.getByRole("navigation", { name: "主导航" })).toContainText("商业版图");
   await expect(page.getByLabel("系统模块")).toContainText("对象与范围");
-  await expect(page.getByRole("img", { name: /NVIDIA synthetic recursive supply-chain graph/ })).toBeVisible();
+  await expect(page.getByRole("img", { name: /NVIDIA 供应链样例图/ })).toBeVisible();
   await expect(page.getByTestId("fixture-disclosure")).toContainText("Fixture-only data");
   await expect(page.getByText("Live facts: disabled")).toBeVisible();
 });

@@ -1336,8 +1336,8 @@ test("saves versioned views restores deterministically and shows as-of change ov
     "data-timeline-mode",
     "as-of-snapshot"
   );
-  await expect(page.getByTestId("change-overlay")).toContainText("As of 2026-06-12");
-  await expect(page.getByTestId("change-overlay")).toContainText("not real-time");
+  await expect(page.getByTestId("change-overlay")).toContainText("快照 · 2026-06-12");
+  await expect(page.getByTestId("change-overlay")).toContainText("非实时");
 
   await page.getByTestId("save-current-view").click();
   await expect(page.getByTestId("saved-view-status")).toHaveText("local-saved");

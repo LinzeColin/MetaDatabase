@@ -626,9 +626,9 @@ dd {
 
 .canvas {
   display: grid;
-  /* Row 6 is the map (the flexible giant); the S9PCT01 history scrubber
-     added a child, so the template gains one auto row before it. */
-  grid-template-rows: auto auto auto auto auto minmax(620px, 1fr) auto auto;
+  /* Row 5 is the map (the flexible giant). S12 moved the history scrubber
+     into the map surface as a right-edge vertical rail, freeing its row. */
+  grid-template-rows: auto auto auto auto minmax(620px, 1fr) auto auto;
   gap: 14px;
   padding: 20px;
 }
@@ -839,19 +839,20 @@ dd {
 }
 
 .ecosystemMap.rerootFly {
-  animation: empireRerootFly calc(var(--motion-scale) * 0.7s + 0.001s) cubic-bezier(0.22, 0.9, 0.3, 1);
+  /* S12 丝滑：更长的减速尾巴（镜头飞行收尾更绵）。 */
+  animation: empireRerootFly calc(var(--motion-scale) * 0.85s + 0.001s) var(--ease-silk);
 }
 
 /* Hover depth-of-field: dim everything except the hovered node's neighborhood. */
 .ecosystemMap[data-hover-depth="on"] .node:not(.hoverNear),
 .ecosystemMap[data-hover-depth="on"] .edgeGroup:not(.hoverNear) {
   opacity: 0.25;
-  transition: opacity calc(var(--motion-scale) * 220ms + 0.001s) ease;
+  transition: opacity calc(var(--motion-scale) * 260ms + 0.001s) var(--ease-silk);
 }
 
 .ecosystemMap .node,
 .ecosystemMap .edgeGroup {
-  transition: opacity calc(var(--motion-scale) * 220ms + 0.001s) ease;
+  transition: opacity calc(var(--motion-scale) * 260ms + 0.001s) var(--ease-silk);
 }
 
 .sunHalo {
@@ -866,9 +867,11 @@ dd {
    faint radial glow + sparse dotted parallax handled by tokens (no images). */
 :root[data-theme="deep-space"] .mapSurface {
   border-color: #1a2742;
+  /* S12：补一块青色氛围光斑（样例视频的 teal 底色气息）。 */
   background:
     radial-gradient(ellipse at 50% 42%, rgba(90, 162, 255, 0.08) 0%, transparent 55%),
     radial-gradient(circle at 18% 22%, rgba(157, 140, 255, 0.05) 0%, transparent 30%),
+    radial-gradient(ellipse at 78% 70%, rgba(26, 168, 146, 0.07) 0%, transparent 45%),
     #080d1a;
   box-shadow: inset 0 0 60px rgba(2, 6, 16, 0.8);
 }
@@ -886,7 +889,23 @@ dd {
 }
 
 :root[data-theme="deep-space"] .edge {
-  stroke: #3c4c6e;
+  stroke: #55688f;
+}
+
+/* 深空：太阳束 = 金色亮核 + 宽辉光（screen 混合提亮），细丝 = 冷青柔光。 */
+:root[data-theme="deep-space"] .edgeBeamGlow {
+  stroke: rgba(96, 168, 255, 0.28);
+  mix-blend-mode: screen;
+}
+
+:root[data-theme="deep-space"] .edgeGroup.sunBeam .edgeBeamGlow {
+  stroke: rgba(255, 198, 92, 0.5);
+  stroke-width: 7.5;
+}
+
+:root[data-theme="deep-space"] .edgeGroup.sunBeam .edge {
+  stroke: #ffd98a;
+  stroke-width: 2.4;
 }
 
 :root[data-theme="deep-space"] .edgeLabel {
@@ -907,18 +926,21 @@ dd {
   stroke-width: 4px;
 }
 
-:root[data-theme="deep-space"] .node circle {
-  stroke: #223250;
-  filter: drop-shadow(0 0 6px var(--glow-soft));
+:root[data-theme="deep-space"] .node .orbBody {
+  stroke: rgba(220, 236, 255, 0.35);
+  stroke-width: 1.4;
+  filter: drop-shadow(0 0 7px var(--glow-soft));
 }
 
-:root[data-theme="deep-space"] .node.focus circle {
-  filter: drop-shadow(0 0 18px var(--glow-core));
+:root[data-theme="deep-space"] .node.focus .orbBody {
+  stroke: rgba(255, 226, 158, 0.55);
+  filter: drop-shadow(0 0 20px var(--glow-core));
 }
 
-:root[data-theme="deep-space"] .node:focus-visible circle,
-:root[data-theme="deep-space"] .node.selected circle {
+:root[data-theme="deep-space"] .node:focus-visible .orbBody,
+:root[data-theme="deep-space"] .node.selected .orbBody {
   stroke: var(--blue);
+  stroke-width: 2.4;
 }
 
 :root[data-theme="deep-space"] .canvasOverlay {
@@ -1066,7 +1088,9 @@ dd {
 
 .changeOverlay {
   position: absolute;
-  right: 12px;
+  /* S12: the vertical history rail owns the right edge; snapshot overlay
+     shifts left of it. */
+  right: 122px;
   top: 12px;
   z-index: 2;
   display: grid;
@@ -1097,8 +1121,26 @@ dd {
 
 .edge {
   stroke: #7f8d86;
-  stroke-width: 2.8;
+  stroke-width: 2.2;
   stroke-linecap: round;
+}
+
+/* S12 光学：光束底层（辉光模糊线）。太阳束宽而亮，细丝窄而柔。 */
+.edgeBeamGlow {
+  stroke: rgba(110, 150, 220, 0.22);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.edgeGroup.sunBeam .edgeBeamGlow {
+  stroke: rgba(214, 158, 46, 0.34);
+  stroke-width: 7;
+}
+
+.edgeGroup.sunBeam .edge {
+  stroke: #c79a3d;
+  stroke-width: 2.6;
 }
 
 .edgeLabel {
@@ -1119,7 +1161,8 @@ dd {
   font-weight: 720;
 }
 
-.node circle {
+/* S12 光学：节点主体收窄到 .orbBody（光晕/粒子环等装饰圆不受污染）。 */
+.node .orbBody {
   stroke: #ffffff;
   stroke-width: 4;
 }
@@ -1132,8 +1175,8 @@ dd {
   outline: none;
 }
 
-.node:focus-visible circle,
-.node.selected circle {
+.node:focus-visible .orbBody,
+.node.selected .orbBody {
   stroke: var(--ink);
   stroke-width: 5;
 }
@@ -1163,37 +1206,38 @@ dd {
   stroke-width: 4px;
 }
 
-.node.focus circle {
-  fill: var(--blue);
+/* S12 光学：zone 玻璃球渐变（defs 里 stop 走下方 --orb-* token）。 */
+.node.focus .orbBody {
+  fill: url(#orb-focus);
 }
 
-.node.upstream circle {
-  fill: var(--green);
+.node.upstream .orbBody {
+  fill: url(#orb-upstream);
 }
 
-.node.downstream circle {
-  fill: var(--violet);
+.node.downstream .orbBody {
+  fill: url(#orb-downstream);
 }
 
-.node[data-node-kind="aggregate"] circle {
+.node[data-node-kind="aggregate"] .orbBody {
   stroke-dasharray: 5 4;
   stroke-width: 5;
 }
 
-.node.infrastructure circle {
-  fill: var(--amber);
+.node.infrastructure .orbBody {
+  fill: url(#orb-infrastructure);
 }
 
-.node.business circle {
-  fill: var(--teal);
+.node.business .orbBody {
+  fill: url(#orb-business);
 }
 
-.node.capital circle {
-  fill: #6d3fb8;
+.node.capital .orbBody {
+  fill: url(#orb-capital);
 }
 
-.node.policy circle {
-  fill: var(--red);
+.node.policy .orbBody {
+  fill: url(#orb-policy);
 }
 
 .historyControls {
@@ -2802,52 +2846,80 @@ dd {
   }
 }
 
-/* S9PCT01 V3 history scrubber */
+/* S12PB 右侧竖向时间轴（原 S9PCT01 史深刷换形态，契约 testid 不变）：
+   悬浮画布右缘的玻璃竖轨，年份纵列，拖动/滚轮/点选自由选年。 */
 .historyScrubber {
+  position: absolute;
+  /* 锚定 svg 顶带：mapSurface 是弹性巨人（可远高于 svg 的 640px 上限），
+     50% 垂直居中会把竖轴悬到 svg 下方的空区。 */
+  top: 88px;
+  right: 12px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  width: 98px;
+  max-height: 520px;
+  padding: 10px 8px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  padding: 10px 12px;
+  border-radius: 14px;
+  /* 不用 backdrop-filter：模糊背板是独立合成层，伤首屏 P75。 */
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  touch-action: none;
+  user-select: none;
 }
 
 .historyEmpty {
   margin: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .historyRail {
   display: flex;
-  align-items: flex-end;
-  gap: 6px;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
 }
 
 .historyYear {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 6px;
   border: none;
   background: transparent;
   cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 6px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  transition:
+    background calc(var(--motion-scale) * 200ms + 0.001s) var(--ease-silk),
+    box-shadow calc(var(--motion-scale) * 200ms + 0.001s) var(--ease-silk);
 }
 
 .historyYear.active {
-  background: color-mix(in srgb, var(--blue) 18%, transparent);
+  background: color-mix(in srgb, var(--blue) 22%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--blue) 30%, transparent);
 }
 
 .historyYear small {
   color: var(--muted);
   font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  min-width: 28px;
+  text-align: right;
+}
+
+.historyYear.active small {
+  color: var(--ink);
+  font-weight: 720;
 }
 
 .historyBar {
-  width: 14px;
-  border-radius: 3px 3px 0 0;
+  height: 5px;
+  border-radius: 999px;
   background: var(--amber);
   opacity: 0.85;
+  transition: width calc(var(--motion-scale) * 300ms + 0.001s) var(--ease-silk);
 }
 
 .historyYear.active .historyBar {
@@ -2856,7 +2928,8 @@ dd {
 
 .historyDetail {
   margin: 8px 0 0;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.4;
   color: var(--ink);
   font-weight: 650;
 }
@@ -2890,4 +2963,139 @@ dd {
   color: var(--blue);
   font-weight: 720;
   cursor: pointer;
+}
+
+/* ============================================================
+   S12 观感对齐（EEI sample.MP4 光学基准）：token、玻璃球、光晕、
+   焦点粒子环、星尘漂移、右缘竖轴的深空皮肤。
+   ============================================================ */
+:root {
+  --ease-silk: cubic-bezier(0.22, 1, 0.36, 1);
+  --orb-specular: rgba(255, 255, 255, 0.95);
+  --orb-focus-hi: #ffe9b8;
+  --orb-focus-mid: #e8b54a;
+  --orb-focus-lo: #6e4b0f;
+  --orb-upstream-hi: #a6f2cd;
+  --orb-upstream-mid: #2ec27e;
+  --orb-upstream-lo: #0d5038;
+  --orb-downstream-hi: #dcc8ff;
+  --orb-downstream-mid: #8f5bff;
+  --orb-downstream-lo: #341e63;
+  --orb-infrastructure-hi: #ffdca6;
+  --orb-infrastructure-mid: #e89a3c;
+  --orb-infrastructure-lo: #6e400c;
+  --orb-business-hi: #aef2ec;
+  --orb-business-mid: #2bbdb4;
+  --orb-business-lo: #0a4a46;
+  --orb-capital-hi: #e3ccff;
+  --orb-capital-mid: #9a63e8;
+  --orb-capital-lo: #3c1d6e;
+  --orb-policy-hi: #ffc8d2;
+  --orb-policy-mid: #e85a74;
+  --orb-policy-lo: #6e1a2a;
+}
+
+.orbHalo,
+.focusOrbitDots {
+  pointer-events: none;
+}
+
+.medallionRing {
+  fill: none;
+  stroke: var(--orb-focus-mid);
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.medallionRing.dashed {
+  stroke-dasharray: 2 6;
+  opacity: 0.8;
+}
+
+.focusOrbitDot {
+  fill: var(--orb-focus-hi);
+}
+
+@keyframes focusOrbitSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.focusOrbitDots {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: focusOrbitSpin 18s linear infinite;
+}
+
+/* 星尘：静态并入曲面背景（A168 教训——巨面上的动画伪元素会产生
+   ~5000px 高的合成层，首屏 P75 从 391ms 恶化到 2655ms；静态多层
+   background 只是一次绘制，零合成层）。 */
+:root[data-theme="deep-space"] .mapSurface {
+  background:
+    radial-gradient(1.4px 1.4px at 12% 8%, rgba(255, 255, 255, 0.5), transparent 55%),
+    radial-gradient(1px 1px at 32% 22%, rgba(180, 210, 255, 0.45), transparent 55%),
+    radial-gradient(1.2px 1.2px at 55% 5%, rgba(255, 255, 255, 0.38), transparent 55%),
+    radial-gradient(1px 1px at 70% 15%, rgba(160, 255, 230, 0.4), transparent 55%),
+    radial-gradient(1.6px 1.6px at 84% 3%, rgba(255, 255, 255, 0.45), transparent 55%),
+    radial-gradient(1px 1px at 22% 12%, rgba(200, 190, 255, 0.4), transparent 55%),
+    radial-gradient(1.2px 1.2px at 64% 27%, rgba(255, 255, 255, 0.32), transparent 55%),
+    radial-gradient(1px 1px at 90% 18%, rgba(190, 220, 255, 0.36), transparent 55%),
+    radial-gradient(ellipse at 50% 8%, rgba(90, 162, 255, 0.08) 0%, transparent 55%),
+    radial-gradient(circle at 18% 5%, rgba(157, 140, 255, 0.05) 0%, transparent 30%),
+    radial-gradient(ellipse at 78% 14%, rgba(26, 168, 146, 0.07) 0%, transparent 45%),
+    #080d1a;
+}
+
+/* reduced-motion：无限循环动画直接停（0.001s 的无限旋转会闪烁）。 */
+@media (prefers-reduced-motion: reduce) {
+  .focusOrbitDots {
+    animation: none;
+  }
+}
+
+/* 竖轴深空皮肤：玻璃暗底 + 选中年辉光。 */
+:root[data-theme="deep-space"] .historyScrubber {
+  border-color: #23345a;
+  background: rgba(10, 18, 36, 0.9);
+  box-shadow: 0 8px 30px rgba(2, 6, 16, 0.5);
+}
+
+:root[data-theme="deep-space"] .historyYear.active {
+  background: rgba(90, 162, 255, 0.2);
+  box-shadow: 0 0 16px rgba(90, 162, 255, 0.35);
+}
+
+:root[data-theme="deep-space"] .historyBar {
+  background: #d8a94e;
+}
+
+:root[data-theme="deep-space"] .historyYear.active .historyBar {
+  background: #7fb3ff;
+}
+
+:root[data-theme="deep-space"] .historyYear.active small,
+:root[data-theme="deep-space"] .historyDetail {
+  color: #eaf2ff;
+}
+
+:root[data-theme="deep-space"] .historyEmpty {
+  color: #8b98b3;
+}
+
+/* 光束底层与节点入场共用的柔和淡入。 */
+.edgeBeamGlow {
+  animation: empireNodeFanOut calc(var(--motion-scale) * 0.9s + 0.001s) ease-out backwards;
+}
+
+@media (max-width: 900px) {
+  .historyScrubber {
+    width: 84px;
+    right: 8px;
+    padding: 8px 6px;
+  }
+
+  .changeOverlay {
+    right: 100px;
+  }
 }

@@ -53,3 +53,6 @@ INSERT INTO snapshot_meta(snapshot_key, scope, record_mode, status, as_of, activ
 INSERT INTO publication_meta(key, value) VALUES
   ('published_at', '2026-07-15T00:00:00+00:00'),
   ('publisher_version', 'eei-publication-schema-v1');
+
+INSERT INTO filing_year_counts(year, filings) VALUES
+  (2016, 120), (2020, 240), (2026, 210);

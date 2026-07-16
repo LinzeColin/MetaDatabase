@@ -516,6 +516,25 @@ export default {
       });
     }
 
+    if (pathname === "/v1/policy/overview" && request.method === "GET") {
+      // S12PB: the vertical timeline's per-year official filing depth.
+      // Serves published aggregates from D1; an empty table returns an empty
+      // list so the frontend keeps its honest not-connected state.
+      const { results } = await env.EEI_PUB.prepare(
+        "SELECT year, filings FROM filing_year_counts ORDER BY year"
+      ).all();
+      return json({
+        schema_version: "cloud-policy-overview-v1",
+        regulatory_filings: {
+          source: "sec_edgar",
+          by_year: (results ?? []).map((row) => ({
+            year: Number(row.year),
+            filings: Number(row.filings)
+          }))
+        }
+      });
+    }
+
     if (pathname === "/v1/entities" && request.method === "GET") {
       const query = url.searchParams.get("q") ?? "";
       if (!query.trim()) {

@@ -175,4 +175,10 @@ const logList = await getJson("/v1/exploration-log?limit=5");
 assert.equal(logList.status, 200);
 assert.ok(logList.body.some((entry) => entry.id === logged.body.id));
 
-console.log("SMOKE_ASSERT_OK routes=14");
+const policyOverview = await getJson("/v1/policy/overview");
+assert.equal(policyOverview.status, 200);
+assert.equal(policyOverview.body.regulatory_filings.source, "sec_edgar");
+assert.equal(policyOverview.body.regulatory_filings.by_year.length, 3);
+assert.deepEqual(policyOverview.body.regulatory_filings.by_year[0], { year: 2016, filings: 120 });
+
+console.log("SMOKE_ASSERT_OK routes=15");

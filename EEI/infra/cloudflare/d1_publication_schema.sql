@@ -55,3 +55,10 @@ CREATE TABLE IF NOT EXISTS snapshot_meta (
   as_of TEXT,
   activated_at TEXT
 );
+
+-- S12PB: per-year official filing depth for the vertical timeline
+-- (aggregate counts only; publication-surface boundary applies).
+CREATE TABLE IF NOT EXISTS filing_year_counts (
+  year INTEGER PRIMARY KEY,
+  filings INTEGER NOT NULL
+);
