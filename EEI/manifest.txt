@@ -70,6 +70,7 @@ apps/cloudflare-public/public/index.html
 apps/cloudflare-public/public/public-surface.json
 apps/cloudflare-public/public/styles.css
 apps/cloudflare-public/src/scoring.mjs
+apps/cloudflare-public/src/user_state.mjs
 apps/cloudflare-public/src/worker.mjs
 apps/cloudflare-public/tests/scoring_parity.test.mjs
 apps/cloudflare-public/tests/scoring_parity_fixture.json
@@ -357,6 +358,7 @@ docs/pursuing_goal/CURRENT.yaml
 docs/pursuing_goal/v5_0/S9_GATE_EVIDENCE.md
 docs/pursuing_goal/v5_0/V5_0_ROOT_LOCK.yaml
 infra/cloudflare/d1_publication_schema.sql
+infra/cloudflare/d1_user_state_schema.sql
 infra/db/migrations/0001_core_domain/down.sql
 infra/db/migrations/0001_core_domain/up.sql
 infra/db/migrations/0002_exploration_state/down.sql

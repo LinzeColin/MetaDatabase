@@ -45,6 +45,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   └── styles.css
 │   │   ├── src
 │   │   │   ├── scoring.mjs
+│   │   │   ├── user_state.mjs
 │   │   │   └── worker.mjs
 │   │   ├── tests
 │   │   │   ├── scoring_parity.test.mjs
@@ -412,7 +413,8 @@ Enterprise_Ecosystem_Intelligence_release
 │   └── STATUS.md
 ├── infra
 │   ├── cloudflare
-│   │   └── d1_publication_schema.sql
+│   │   ├── d1_publication_schema.sql
+│   │   └── d1_user_state_schema.sql
 │   ├── db
 │   │   ├── migrations
 │   │   │   ├── 0001_core_domain

@@ -13,6 +13,7 @@ cd "$APP_DIR"
 
 echo "[smoke] applying schema + seed to local D1"
 $WRANGLER d1 execute eei-publication --local --file "$REPO_ROOT/infra/cloudflare/d1_publication_schema.sql" >/dev/null
+$WRANGLER d1 execute eei-publication --local --file "$REPO_ROOT/infra/cloudflare/d1_user_state_schema.sql" >/dev/null
 $WRANGLER d1 execute eei-publication --local --file tests/smoke_seed.sql >/dev/null
 
 echo "[smoke] booting wrangler dev --local on :$PORT"

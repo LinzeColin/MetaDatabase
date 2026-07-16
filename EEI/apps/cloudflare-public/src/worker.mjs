@@ -9,6 +9,16 @@ import {
   SCORING_SERVICE_VERSION,
   relationshipScoreMetrics
 } from "./scoring.mjs";
+import {
+  addWatchlistItem,
+  appendExplorationLog,
+  createSavedView,
+  createWatchlist,
+  getSavedView,
+  listExplorationLog,
+  listWatchlists,
+  updateSavedView
+} from "./user_state.mjs";
 
 const GRAPH_QUERY_VERSION = "cloud-d1-graph-v1";
 const DEFAULT_GRAPH_BUDGET = { max_nodes: 42, max_edges: 64, expand_nodes: 12 };
@@ -16,7 +26,7 @@ const GRAPH_HARD_LIMITS = { max_hops: 2, max_nodes: 500, max_edges: 2000, max_pa
 
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, POST, OPTIONS",
+  "access-control-allow-methods": "GET, POST, PUT, OPTIONS",
   "access-control-allow-headers": "content-type"
 };
 
@@ -570,6 +580,50 @@ export default {
         filters: body.filters ?? {},
         asOf: body.as_of ?? null
       });
+    }
+
+    // --- user-state routes (S10PBT01): cloud is the source of truth ---
+    if (pathname === "/v1/saved-views" && request.method === "POST") {
+      return createSavedView(env, await readJsonBody(request), json, badRequest);
+    }
+    const savedViewMatch = pathname.match(/^\/v1\/saved-views\/([0-9a-fA-F-]{36})$/);
+    if (savedViewMatch && request.method === "GET") {
+      return getSavedView(env, savedViewMatch[1], json, notFound);
+    }
+    if (savedViewMatch && request.method === "PUT") {
+      return updateSavedView(
+        env,
+        savedViewMatch[1],
+        await readJsonBody(request),
+        json,
+        badRequest,
+        notFound
+      );
+    }
+    if (pathname === "/v1/watchlists" && request.method === "GET") {
+      return listWatchlists(env, json);
+    }
+    if (pathname === "/v1/watchlists" && request.method === "POST") {
+      return createWatchlist(env, await readJsonBody(request), json, badRequest);
+    }
+    const watchlistItemsMatch = pathname.match(
+      /^\/v1\/watchlists\/([0-9a-fA-F-]{36})\/items$/
+    );
+    if (watchlistItemsMatch && request.method === "POST") {
+      return addWatchlistItem(
+        env,
+        watchlistItemsMatch[1],
+        await readJsonBody(request),
+        json,
+        badRequest,
+        notFound
+      );
+    }
+    if (pathname === "/v1/exploration-log" && request.method === "POST") {
+      return appendExplorationLog(env, await readJsonBody(request), json, badRequest);
+    }
+    if (pathname === "/v1/exploration-log" && request.method === "GET") {
+      return listExplorationLog(env, url.searchParams.get("limit"), json);
     }
 
     const explanationMatch = pathname.match(
