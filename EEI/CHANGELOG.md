@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.1.0 - 2026-07-16
+
+MVP release per ROOT_LOCK mvp_done_definition, authorized by the owner
+release-acceleration decision (artifacts/operator_inputs/
+a205_release_acceleration_owner_decision_20260716.json):
+
+- Acceptance rows A202/A204/A205/A209/A026/A027/A108-A112 closed on real
+  evidence (owner-signed decision bundle, production gold v2 double PASS,
+  A209 24h soak 288/288 zero failures); A210 replaced by owner decision D2
+  as the ROOT_LOCK defines - the full-launch brand gate stays open and is
+  honestly recorded as such in the activation preflight.
+- The three future-dated evidence windows (dual seven-day run logs, A204
+  24h refresh window) were re-scoped by the owner to post-release
+  monitoring obligations; the probe chain (4h), cloud hourly heartbeat,
+  and both daily crons keep running and recording honestly.
+- Live surfaces: https://eei.linzezhang.com (custom domain, p95
+  149-302ms), home.linzezhang.com entry card, cloud user-state writes,
+  daily SEC incremental collection.
+
 ## S9-S11 empire visuals, cloud 7x24 and release engineering - 2026-07-16
 
 - Empire visual stage closed (S9-GATE PASS): history depth scrubber with real
