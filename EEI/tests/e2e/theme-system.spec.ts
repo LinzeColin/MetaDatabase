@@ -40,3 +40,16 @@ test("reduced-motion collapses the motion scale token", async ({ browser }) => {
   expect(motionScale).toBe("0");
   await context.close();
 });
+
+// S9PBT01 V4: the legend inventory and the honest GAPS badge.
+test("empire legend shows zone inventory and an honest GAPS badge", async ({ page }) => {
+  await page.goto("/");
+  const legend = page.getByTestId("empire-legend");
+  await expect(legend).toBeVisible();
+  await expect(page.getByTestId("legend-zone-focus")).toContainText("焦点");
+  const zoneRows = await legend.locator("li").count();
+  expect(zoneRows).toBeGreaterThanOrEqual(4);
+  // Without an API base the badge must say unknown - never a fabricated %.
+  await expect(page.getByTestId("empire-gaps-badge")).toContainText("GAPS");
+  await expect(page.getByTestId("empire-gaps-badge")).toContainText("未知");
+});

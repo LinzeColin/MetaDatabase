@@ -937,6 +937,102 @@ dd {
   fill: #6f7d76;
 }
 
+/* S9PBT02 V5 context KPI bar (mirrors the score explanation state). */
+.contextKpiBar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter: blur(6px);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.contextKpiBar:hover {
+  border-color: var(--blue);
+}
+
+.contextKpiBar .kpiHint {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* S9PBT01 V4 legend + GAPS badge */
+.empireLegend {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2;
+  min-width: 148px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter: blur(6px);
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+.empireLegendTitle {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.empireLegend ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.empireLegend li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legendDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.legendDot.focus { background: var(--blue); }
+.legendDot.upstream { background: var(--teal); }
+.legendDot.downstream { background: var(--green); }
+.legendDot.business { background: var(--violet); }
+.legendDot.capital { background: var(--amber); }
+.legendDot.policy { background: var(--red); }
+.legendDot.infrastructure { background: var(--muted); }
+
+.legendLabel {
+  flex: 1;
+}
+
+.legendCount {
+  font-weight: 720;
+}
+
+.empireGaps {
+  margin: 8px 0 0;
+  padding-top: 7px;
+  border-top: 1px dashed var(--line);
+  color: var(--amber);
+  font-weight: 720;
+}
+
 .canvasOverlay {
   position: absolute;
   top: 12px;

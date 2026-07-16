@@ -1695,6 +1695,52 @@ export default function Home() {
     [graphViewNodes]
   );
   const graphViewMode = isServerGraphRendered ? "server" : "fixture";
+  // S9PBT01 V4: legend inventory (per-zone node counts from the live view)
+  // and the GAPS badge fed by the real 16-stage supply-chain assertion
+  // coverage - never a fabricated percentage.
+  const ZONE_LABELS: Record<string, string> = {
+    focus: "焦点",
+    upstream: "上游",
+    downstream: "下游",
+    business: "业务",
+    capital: "资本",
+    policy: "政策",
+    infrastructure: "设施"
+  };
+  const legendInventory = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const node of graphViewNodes) {
+      counts.set(node.zone, (counts.get(node.zone) ?? 0) + (node.aggregateCount || 1));
+    }
+    return Array.from(counts.entries())
+      .map(([zone, count]) => ({ zone, label: ZONE_LABELS[zone] ?? zone, count }))
+      .sort((a, b) => b.count - a.count);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graphViewNodes]);
+  const [supplyGapsPct, setSupplyGapsPct] = useState<number | null>(null);
+  const [supplyGapsDetail, setSupplyGapsDetail] = useState("");
+  useEffect(() => {
+    const apiBaseUrl = readProductionDataApiBaseUrl();
+    if (!apiBaseUrl) {
+      return;
+    }
+    void window
+      .fetch(`${apiBaseUrl}/v1/supply-chain/overview`)
+      .then(async (response) => {
+        const payload = (await response.json().catch(() => null)) as {
+          summary?: { stages_total?: number; stages_with_relationships?: number };
+        } | null;
+        const total = payload?.summary?.stages_total;
+        const covered = payload?.summary?.stages_with_relationships;
+        if (response.ok && typeof total === "number" && typeof covered === "number" && total > 0) {
+          setSupplyGapsPct(Math.round(((total - covered) / total) * 100));
+          setSupplyGapsDetail(`${total - covered}/${total} 阶段无断言`);
+        }
+      })
+      .catch(() => {
+        // api_required fallback keeps the honest "未知" label.
+      });
+  }, []);
   // S9PAT03 ⑤ hover depth-of-field: the hovered node's neighborhood stays
   // sharp while everything else dims (CSS-only transition, motion-gated).
   const [hoveredNodeKey, setHoveredNodeKey] = useState<string | null>(null);
@@ -3269,6 +3315,61 @@ export default function Home() {
         </div>
 
         <div className="mapSurface" data-testid="ecosystem-map-surface">
+          {/* S9PBT02 V5: context KPI bar - every number mirrors the score
+              explanation panel state (single source, consistency by
+              construction); clicking jumps to the explanation. */}
+          {productionScoreExplanation ? (
+            <button
+              className="contextKpiBar"
+              data-testid="context-kpi-bar"
+              data-kpi-source="production-score-explanation"
+              onClick={() =>
+                document
+                  .querySelector('[data-testid="production-score-candidate"]')
+                  ?.scrollIntoView({ block: "center" })
+              }
+              type="button"
+            >
+              <span data-testid="kpi-candidate">
+                {productionScoreExplanation.candidate_key}
+              </span>
+              <span data-testid="kpi-sources">
+                独立源 {productionScoreExplanation.source_threshold.independent_source_count}/
+                {productionScoreExplanation.source_threshold.minimum_independent_sources}
+                {productionScoreExplanation.source_threshold.met ? " ✓" : " ✗"}
+              </span>
+              <span data-testid="kpi-review">
+                {productionScoreExplanation.review_status}
+              </span>
+              <span data-testid="kpi-publication">
+                {productionScoreExplanation.publication_status}
+              </span>
+              <span className="kpiHint">点击查看解释</span>
+            </button>
+          ) : null}
+          {/* S9PBT01 V4: legend inventory + GAPS badge (real unknown semantics). */}
+          <aside className="empireLegend" data-testid="empire-legend">
+            <p className="empireLegendTitle">图例 · 库存</p>
+            <ul>
+              {legendInventory.map((item) => (
+                <li data-testid={`legend-zone-${item.zone}`} key={item.zone}>
+                  <span className={`legendDot ${item.zone}`} aria-hidden />
+                  <span className="legendLabel">{item.label}</span>
+                  <span className="legendCount">{item.count}</span>
+                </li>
+              ))}
+            </ul>
+            <p
+              className="empireGaps"
+              data-testid="empire-gaps-badge"
+              title="按十六阶段供应链断言覆盖计算：缺席=无断言≠真实为空"
+            >
+              GAPS{" "}
+              {supplyGapsPct === null
+                ? "未知（未连接 API）"
+                : `${supplyGapsPct}% · ${supplyGapsDetail}`}
+            </p>
+          </aside>
           {transitionState === "loading" ? (
             <div className="canvasOverlay" data-testid="transition-loading">
               Loading relationship map
