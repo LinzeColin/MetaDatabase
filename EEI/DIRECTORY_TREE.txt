@@ -532,6 +532,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── manage_risk_control_artifacts.py
 │   ├── migrate.py
 │   ├── monitor_operator_soak.py
+│   ├── monitor_release_continuity.py
 │   ├── preflight.sh
 │   ├── publish_reviewed_relationship_facts.py
 │   ├── publish_to_cloud_channel.py

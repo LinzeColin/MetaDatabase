@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Post-release continuity monitor: `scripts/monitor_release_continuity.py`
+  checks the three monitoring obligations in one command (hourly cloud
+  heartbeat gap detection, daily cloud cron per-day audit, A204 probe-chain
+  stall detection, local daily collection chain liveness) and writes honest
+  JSON reports into the runtime evidence store.
+- `/v1/cloud/runs` accepts `since=` and a limit of up to 500 so a full
+  seven-day monitoring window (168 hourly heartbeats plus daily rows) stays
+  retrievable without truncation; covered by the worker smoke drill.
+
 ## v0.1.0 - 2026-07-16
 
 MVP release per ROOT_LOCK mvp_done_definition, authorized by the owner

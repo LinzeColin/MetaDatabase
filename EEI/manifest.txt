@@ -455,6 +455,7 @@ scripts/manage_release_artifacts.py
 scripts/manage_risk_control_artifacts.py
 scripts/migrate.py
 scripts/monitor_operator_soak.py
+scripts/monitor_release_continuity.py
 scripts/preflight.sh
 scripts/publish_reviewed_relationship_facts.py
 scripts/publish_to_cloud_channel.py

@@ -174,14 +174,19 @@ export async function runHealthHeartbeat(env, trigger) {
   return { run_id: runId, status, kind: "health_heartbeat" };
 }
 
-export async function listCloudRuns(env, limit, json) {
-  const bounded = Math.max(1, Math.min(Number.parseInt(limit ?? "10", 10) || 10, 50));
+export async function listCloudRuns(env, limit, json, since) {
+  // 500-row cap covers a full 7-day monitoring window (168 hourly heartbeats
+  // + daily rows) so continuity reports never read a silently truncated log.
+  const bounded = Math.max(1, Math.min(Number.parseInt(limit ?? "10", 10) || 10, 500));
+  const sinceFilter = typeof since === "string" && /^\d{4}-\d{2}-\d{2}/.test(since) ? since : null;
   const { results } = await env.EEI_PUB.prepare(
     "SELECT id, trigger, started_at, finished_at, status, rotation_slice," +
       " scope_json, new_filings_count, detail_json" +
-      " FROM cloud_run_log ORDER BY started_at DESC LIMIT ?"
+      " FROM cloud_run_log" +
+      (sinceFilter ? " WHERE started_at >= ?2" : "") +
+      " ORDER BY started_at DESC LIMIT ?1"
   )
-    .bind(bounded)
+    .bind(...(sinceFilter ? [bounded, sinceFilter] : [bounded]))
     .all();
   return json(
     (results ?? []).map((row) => ({

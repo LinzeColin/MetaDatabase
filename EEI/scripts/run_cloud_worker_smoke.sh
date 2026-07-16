@@ -50,6 +50,15 @@ if (!hb) { console.error('no health heartbeat row'); process.exit(1); }
 if (hb.status === 'failed') { console.error('heartbeat failed', JSON.stringify(hb.detail).slice(0, 300)); process.exit(1); }
 console.log('HEARTBEAT_DRILL status=' + hb.status + ' snapshot=' + (hb.detail[0] || {}).snapshot_key);
 "
+SINCE_EMPTY=$(curl -sf "http://127.0.0.1:$PORT/v1/cloud/runs?limit=500&since=2100-01-01T00:00:00Z")
+SINCE_ALL=$(curl -sf "http://127.0.0.1:$PORT/v1/cloud/runs?limit=500&since=2000-01-01T00:00:00Z")
+node -e "
+const empty = JSON.parse(process.argv[1]);
+const all = JSON.parse(process.argv[2]);
+if (!Array.isArray(empty) || empty.length !== 0) { console.error('since-future should be empty', empty.length); process.exit(1); }
+if (!Array.isArray(all) || all.length < 2) { console.error('since-past should return the drill rows', all.length); process.exit(1); }
+console.log('SINCE_FILTER rows=' + all.length);
+" "$SINCE_EMPTY" "$SINCE_ALL"
 RUNS=$(curl -sf "http://127.0.0.1:$PORT/v1/cloud/runs?limit=1")
 echo "$RUNS" | node -e "
 const runs = JSON.parse(require('fs').readFileSync(0, 'utf8'));

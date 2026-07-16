@@ -627,7 +627,7 @@ export default {
       return listExplorationLog(env, url.searchParams.get("limit"), json);
     }
     if (pathname === "/v1/cloud/runs" && request.method === "GET") {
-      return listCloudRuns(env, url.searchParams.get("limit"), json);
+      return listCloudRuns(env, url.searchParams.get("limit"), json, url.searchParams.get("since"));
     }
     if (pathname === "/v1/cloud/runs/trigger" && request.method === "POST") {
       // Drill hook: requires the CLOUD_SYNC_TRIGGER_TOKEN secret so the
