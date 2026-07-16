@@ -1757,7 +1757,9 @@ export default function Home() {
       return;
     }
     void window
-      .fetch(`${apiBaseUrl}/v1/policy/overview`)
+      // cache: no-store —— 部署间隙的 404 曾被浏览器缓存（边缘 max-age），
+      // 请求侧绕过 HTTP 缓存，对已中毒的访客也立即恢复。
+      .fetch(`${apiBaseUrl}/v1/policy/overview`, { cache: "no-store" })
       .then(async (response) => {
         const payload = (await response.json().catch(() => null)) as {
           regulatory_filings?: { by_year?: { year: number; filings: number }[] };
