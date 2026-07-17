@@ -208,6 +208,21 @@ assert.equal(changes.status, 200);
 assert.ok(Array.isArray(changes.body));
 assert.equal(changes.body.length, 2);
 assert.equal(changes.body[0].change_type, "relationship_published");
+
+// --- EEI-F07 (acceptance F-007): Capital River routes serve honest empty ---
+const events = await getJson("/v1/events?entity=00000000-0000-4000-8000-000000000006");
+assert.equal(events.status, 200);
+assert.ok(Array.isArray(events.body));
+assert.equal(events.body.length, 0, "no synthetic capital events reach the public surface");
+const amountSummary = await getJson("/v1/events/amount-summary?currency=USD");
+assert.equal(amountSummary.status, 200);
+assert.equal(amountSummary.body.schema_version, "event-amount-semantics-v1");
+assert.equal(amountSummary.body.event_count, 0);
+assert.equal(amountSummary.body.bucket_count, 0);
+assert.equal(amountSummary.body.cross_bucket_summation_performed, false);
+assert.equal(amountSummary.body.comparable_reported_total_available, false);
+assert.deepEqual(amountSummary.body.buckets, []);
+assert.equal(amountSummary.body.filters.currency, "USD", "filters echo the request");
 const changesSince = await getJson("/v1/changes?since=2026-07-16T00:00:00Z");
 assert.equal(changesSince.body.length, 0, "since filter must exclude older publications");
 const changesBad = await getJson("/v1/changes?since=not-a-date");
@@ -249,4 +264,4 @@ assert.equal(buildMeta.status, 200);
 assert.equal(buildMeta.body.repo, "LinzeColin/MetaDatabase");
 assert.ok("commit" in buildMeta.body);
 
-console.log("SMOKE_ASSERT_OK routes=20");
+console.log("SMOKE_ASSERT_OK routes=22");

@@ -635,6 +635,40 @@ async function supplyChainOverview(env) {
   });
 }
 
+// EEI-F07/acceptance F-007: the empty amount-summary shape, matching the
+// local API's event_amount_summary contract (event-amount-semantics-v1) for
+// zero published events. filters echoes the request so the client validator's
+// isRecord(filters) check passes.
+function emptyAmountSummary(searchParams) {
+  const filters = {};
+  for (const [key, value] of searchParams.entries()) {
+    if (key !== "limit") filters[key] = value;
+  }
+  return {
+    schema_version: "event-amount-semantics-v1",
+    event_count: 0,
+    reported_event_count: 0,
+    unreported_event_count: 0,
+    unclassified_event_count: 0,
+    bucket_count: 0,
+    buckets: [],
+    unreported_event_ids: [],
+    unclassified_event_ids: [],
+    incomparable_dimensions: [],
+    cross_bucket_summation_performed: false,
+    comparable_reported_total_available: false,
+    comparable_reported_total: null,
+    comparable_reported_total_complete: false,
+    semantics: {
+      unknown_amount_is_zero: false,
+      unknown_amount_has_visual_weight: false,
+      aggregation_key: ["currency", "amount_kind", "period_start", "period_end"],
+      incomparable_buckets_are_summed: false
+    },
+    filters
+  };
+}
+
 // EEI-F01: cloud twin of the local /v1/changes. The publication surface's
 // change feed is derived from publication events (relationships.published_at);
 // internal review-queue changes stay local.
@@ -880,6 +914,22 @@ async function handleFetch(request, env) {
 
     if (pathname === "/v1/changes" && request.method === "GET") {
       return listChanges(env, url.searchParams.get("since"));
+    }
+
+    // EEI-F07/acceptance F-007: the Capital River module (/capital) calls
+    // these two routes. The CF-L2 publication surface carries owner-signed
+    // published FACTS only; the local capital events are all synthetic demos
+    // (derivation_rule NULL, titles "Synthetic ...") and must never reach the
+    // public surface. So both routes serve an honest, well-formed EMPTY set -
+    // the page then renders its graceful no-published-events state instead of
+    // the raw http_404 error the acceptance flagged. When an owner-signed
+    // published capital event exists, publish_to_cloud_channel.py would carry
+    // it here exactly like relationships.
+    if (pathname === "/v1/events" && request.method === "GET") {
+      return json([]);
+    }
+    if (pathname === "/v1/events/amount-summary" && request.method === "GET") {
+      return json(emptyAmountSummary(url.searchParams));
     }
 
     if (pathname === "/v1/meta/build" && request.method === "GET") {
