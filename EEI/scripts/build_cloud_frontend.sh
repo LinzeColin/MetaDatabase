@@ -29,6 +29,7 @@ rm -rf .next out
 EEI_CLOUD_EXPORT=1 \
   NEXT_PUBLIC_EEI_API_BASE_URL="$API_BASE" \
   NEXT_PUBLIC_EEI_BUILD_SHA="$BUILD_SHA" \
+  NEXT_PUBLIC_EEI_SURFACE="cloud-publication" \
   npx next build
 
 echo "[cloud-frontend] staging export into apps/cloudflare-public/dist"

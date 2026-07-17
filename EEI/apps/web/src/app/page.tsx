@@ -549,9 +549,12 @@ const focusEntityIds: Record<FocusKey, string> = {
 };
 
 // EEI-F01/F02/F03：云生产模式（构建期决定）。生产面只呈现已发布数据，
-// 任何模块拿不到云数据就亮诚实空态/错误态，绝不回退合成样例；
-// 本地开发/CI（未配置 API 基址）保持完整样例工作台不变。
-const CLOUD_MODE = Boolean(process.env.NEXT_PUBLIC_EEI_API_BASE_URL?.trim());
+// 任何模块拿不到云数据就亮诚实空态/错误态，绝不回退合成样例。
+// 只认「云发布面」构建标（build_cloud_frontend.sh 注入）：本地 dev/CI
+// 与 live 全栈套件（连本地 FastAPI，也设 API 基址）都保持样例工作台语义。
+const CLOUD_MODE =
+  process.env.NEXT_PUBLIC_EEI_SURFACE === "cloud-publication" &&
+  Boolean(process.env.NEXT_PUBLIC_EEI_API_BASE_URL?.trim());
 // 已发布面上的 NVIDIA 实体（与本地样例共用确定性 UUID）。
 const SERVER_DEFAULT_FOCUS = {
   id: focusEntityIds.nvidia,
