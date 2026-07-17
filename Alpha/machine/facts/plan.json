@@ -1,6 +1,6 @@
 {
-  "stage": "G2 Moomoo 只读适配器与辖区探针",
-  "phase": "券商只读能力与辖区能力探针",
-  "task": "`ALPHA-LIVE-020`：按 MOOMOO_ADAPTER_CONTRACT.md 实现连接、账户（acc_id）、资金、持仓、未完成订单、行情订阅只读能力；探针输出 JurisdictionCapability；假券商网关契约测试；不含任何下单调用",
+  "stage": "G3 行情守卫、策略、风控与执行网关",
+  "phase": "策略引擎与硬风控",
+  "task": "`ALPHA-LIVE-030`：新鲜度守卫;S1 多周期动量+波动率调节、S2 超卖反弹纯函数策略(同输入同输出);组合引擎唯一合成目标仓位;确定性风控引擎(总敞口 3000、单笔 60%、滚动 60 分钟 5 笔、三层断路器、市场白名单)边界值全测",
   "owner": "Claude Code 开发，Linze 复审拍板"
 }

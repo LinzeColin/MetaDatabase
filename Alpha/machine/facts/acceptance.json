@@ -59,6 +59,21 @@
       "id": "`ACC-010-2`",
       "criteria": "状态机测试覆盖 INTENT_CREATED 到 FILLED/REJECTED/CANCELLED/EXPIRED/SUBMIT_FAILED/UNKNOWN_RECONCILIATION_REQUIRED 全路径;非法迁移全部拒写+审计+隔离+开对账;幂等重放同键只产生一条券商指令",
       "status": "已验收 2026-07-17"
+    },
+    {
+      "id": "`ACC-020-1`",
+      "criteria": "只读适配器不含任何下单调用(类型层面无 place/modify/cancel/unlock 方法,测试断言)",
+      "status": "已验收 2026-07-17"
+    },
+    {
+      "id": "`ACC-020-2`",
+      "criteria": "acc_id 规则强制:连接即断言账户列表命中预期值,空值/不匹配立即失败关闭",
+      "status": "已验收 2026-07-17"
+    },
+    {
+      "id": "`ACC-020-3`",
+      "criteria": "辖区探针证据与判定落库(JurisdictionCapability),三项全绿才 ALLOW;真机探针脚本存在且默认不进 CI",
+      "status": "已验收 2026-07-17"
     }
   ]
 }
