@@ -53,6 +53,7 @@ class SymbolSeries:
     r126: list[Optional[float]] = field(default_factory=list)
     r252: list[Optional[float]] = field(default_factory=list)
     vol20: list[Optional[float]] = field(default_factory=list)
+    high252: list[Optional[float]] = field(default_factory=list)  # 含当日的 252 日最高收盘
     index_by_day: dict[date, int] = field(default_factory=dict)
 
 
@@ -76,6 +77,7 @@ def precompute(symbol: str, bars: Sequence[Bar]) -> SymbolSeries:
         s.r126.append(trailing_return(window, 126))
         s.r252.append(trailing_return(window, 252))
         s.vol20.append(realized_vol_annual_pct(window, 20))
+        s.high252.append(max(window[-252:]) if i >= 251 else None)
         s.index_by_day[days[i]] = i
     return s
 
@@ -86,8 +88,13 @@ def precompute(symbol: str, bars: Sequence[Bar]) -> SymbolSeries:
 class S1Params:
     weights: tuple[float, float, float] = (0.4, 0.3, 0.3)
     top_n: int = 2
-    target_vol: float = 12.0
+    target_vol: float = 12.0            # 999 = 关闭波动率调节
     rebalance_threshold_pct: float = 5.0
+    # ---- R2 扩展轴(默认全关 = R1 行为) ----
+    eval_frequency: str = "weekly"      # weekly=每周二 / monthly=每月首个周二
+    high_proximity: Optional[float] = None   # 例 0.95:要求收盘 >= 0.95×252日最高
+    dd_soft_pct: Optional[float] = None      # 回撤刹车软线:仓位减半
+    dd_hard_pct: Optional[float] = None      # 回撤刹车硬线:全退现金,回到软线内恢复
 
 
 @dataclass
@@ -121,6 +128,9 @@ def simulate_s1(
     def price(sym: str, idx: int) -> float:
         return series[sym].closes[idx]
 
+    peak_equity = sleeve_usd
+    last_eval_month: Optional[tuple[int, int]] = None
+
     for day in calendar:
         if day < start or day > end:
             continue
@@ -128,8 +138,12 @@ def simulate_s1(
         idx = ref.index_by_day.get(day)
         if idx is None:
             continue
-        # 周二评估:用截至前一交易日(idx-1)的数据
-        if day.weekday() == 1 and idx >= 1:
+        # 评估日:weekly=每周二;monthly=每月第一个周二。数据一律截至前一交易日。
+        is_eval = day.weekday() == 1 and idx >= 1
+        if is_eval and params.eval_frequency == "monthly":
+            is_eval = (day.year, day.month) != last_eval_month
+        if is_eval:
+            last_eval_month = (day.year, day.month)
             scores: dict[str, float] = {}
             for sym in universe:
                 if sym == cash_proxy:
@@ -145,6 +159,10 @@ def simulate_s1(
                     continue
                 if ss.closes[j_eval] <= s200:
                     continue
+                if params.high_proximity is not None:
+                    h = ss.high252[j_eval]
+                    if h is None or ss.closes[j_eval] < params.high_proximity * h:
+                        continue  # 52 周新高过滤:离高点太远无资格
                 w1, w2, w3 = params.weights
                 scores[sym] = w1 * r1 + w2 * r2 + w3 * r3
             ranked = sorted(scores, key=lambda s_: (-scores[s_], universe.index(s_)))
@@ -166,9 +184,20 @@ def simulate_s1(
                 q * price(sym, series[sym].index_by_day[day])
                 for sym, q in shares.items() if day in series[sym].index_by_day
             )
+            # 回撤刹车:软线仓位减半,硬线全退现金(以 sleeve 净值峰值衡量)
+            peak_equity = max(peak_equity, equity_now)
+            brake = 1.0
+            if peak_equity > 0 and (params.dd_soft_pct or params.dd_hard_pct):
+                dd_now = (1.0 - equity_now / peak_equity) * 100.0
+                if params.dd_hard_pct is not None and dd_now >= params.dd_hard_pct:
+                    brake = 0.0
+                elif params.dd_soft_pct is not None and dd_now >= params.dd_soft_pct:
+                    brake = 0.5
+            if brake == 0.0:
+                selected = ()
             targets: dict[str, int] = {}
-            target_syms = selected if selected else [cash_proxy]
-            weight_each = (1.0 / params.top_n) * scalar if selected else 1.0
+            target_syms = list(selected) if selected else [cash_proxy]
+            weight_each = (1.0 / params.top_n) * scalar * brake if selected else 1.0
             for sym in target_syms:
                 j = series[sym].index_by_day.get(day)
                 if j is None:

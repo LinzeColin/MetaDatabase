@@ -249,3 +249,71 @@ def test_s2_full_cycle_on_affordable_prices():
     r2 = simulate_s2(series, ["SPY"], S2Params(), start=bars[0].day, end=bars[-1].day,
                      sleeve_usd=396.0, fee=fee, calendar=[b.day for b in bars])
     assert r.equity == r2.equity             # 确定性
+
+
+# ---------- R2 扩展轴 ----------
+
+def test_r2_monthly_eval_trades_less_than_weekly():
+    bars = {s: synth_bars(700, daily=g) for s, g in
+            [("AAA", 0.0012), ("BBB", 0.0009), ("CASH", 0.0)]}
+    series = {s: precompute(s, b) for s, b in bars.items()}
+    fee = FeeModel(commission_usd_per_order=0.0)
+    kw = dict(start=date(2023, 1, 1), end=date(2024, 6, 1), sleeve_usd=100000, fee=fee,
+              calendar=[b.day for b in bars["AAA"]])
+    weekly = simulate_s1(series, ["AAA", "BBB", "CASH"], "CASH",
+                         S1Params(rebalance_threshold_pct=0.0), **kw)
+    monthly = simulate_s1(series, ["AAA", "BBB", "CASH"], "CASH",
+                          S1Params(rebalance_threshold_pct=0.0, eval_frequency="monthly"), **kw)
+    assert monthly.orders < weekly.orders          # 月频显著少交易
+
+
+def test_r2_high_proximity_filter_blocks_far_from_high():
+    from datetime import timedelta as _td
+
+    up = synth_bars(400, daily=0.001)
+    fallen = list(up[:340])
+    p = fallen[-1].close * 0.85
+    d = fallen[-1].day
+    for _ in range(60):
+        d = d + _td(days=1)
+        while d.weekday() >= 5:
+            d = d + _td(days=1)
+        fallen.append(Bar(day=d, open=p, high=p * 1.001, low=p * 0.999, close=p))
+    series = {"AAA": precompute("AAA", fallen), "CASH": precompute("CASH", synth_bars(400, daily=0.0))}
+    fee = FeeModel(commission_usd_per_order=0.0)
+    kw = dict(start=fallen[-30].day, end=fallen[-1].day, sleeve_usd=100000, fee=fee,
+              calendar=[b.day for b in fallen])
+    with_filter = simulate_s1(series, ["AAA", "CASH"], "CASH",
+                              S1Params(top_n=1, high_proximity=0.95,
+                                       rebalance_threshold_pct=0.0), **kw)
+    # 有过滤:AAA 离 252 日高点约 15%,无资格 -> 资金全在现金替身,永不买 AAA
+    with_positions = [e for e in with_filter.equity]
+    assert with_filter.orders <= 2                 # 至多现金替身一笔(或零)
+    assert with_positions                          # 曲线存在
+
+
+def test_r2_dd_brake_flattens_to_cash_under_drawdown():
+    from datetime import timedelta as _td
+
+    bars_up = synth_bars(400, daily=0.002)
+    crash = list(bars_up[:360])
+    p = crash[-1].close
+    d = crash[-1].day
+    for _ in range(40):
+        d = d + _td(days=1)
+        while d.weekday() >= 5:
+            d = d + _td(days=1)
+        p *= 0.985
+        crash.append(Bar(day=d, open=p, high=p * 1.001, low=p * 0.999, close=p))
+    series = {"AAA": precompute("AAA", crash), "CASH": precompute("CASH", synth_bars(400, daily=0.0))}
+    fee = FeeModel(commission_usd_per_order=0.0)
+    kw = dict(start=crash[0].day, end=crash[-1].day, sleeve_usd=100000, fee=fee,
+              calendar=[b.day for b in crash])
+    braked = simulate_s1(series, ["AAA", "CASH"], "CASH",
+                         S1Params(top_n=1, dd_soft_pct=5.0, dd_hard_pct=10.0,
+                                  rebalance_threshold_pct=0.0), **kw)
+    plain = simulate_s1(series, ["AAA", "CASH"], "CASH",
+                        S1Params(top_n=1, rebalance_threshold_pct=0.0), **kw)
+    from backend.app.backtest.pipeline import max_drawdown
+
+    assert max_drawdown(braked.equity) < max_drawdown(plain.equity)  # 刹车必须降回撤

@@ -1,0 +1,40 @@
+# R2 动量结构变体(研究候选,未启用)— 目标:样本外月均 >= 1.8% 且回撤 <= 15%
+# owner 2026-07-17 校准门槛后第一轮;四个候选块,各自网格,禁止网格外取值
+strategy_id: "R2_MOMENTUM_VARIANTS_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate"
+universe: ["SPY", "QQQ", "IWM", "EFA", "EEM", "GLD", "TLT", "BIL"]
+cash_proxy: "BIL"
+candidates:
+  R2A_dual_momentum_monthly:
+    eval_frequency: "monthly"
+    grid:
+      weights_allowed: [[0.4,0.3,0.3],[0.33,0.33,0.34],[0.7,0.2,0.1],[1.0,0.0,0.0]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [12, 15, 999]
+      rebalance_threshold_allowed: [3, 5]
+  R2B_52w_high_weekly:
+    eval_frequency: "weekly"
+    grid:
+      high_proximity_allowed: [0.90, 0.95]
+      weights_allowed: [[0.4,0.3,0.3],[0.33,0.33,0.34],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [15, 999]
+      rebalance_threshold_allowed: [5]
+  R2C_dd_brake_top1:
+    eval_frequency: "weekly"
+    grid:
+      dd_brake_allowed: [[5,10],[8,15]]
+      weights_allowed: [[0.4,0.3,0.3],[0.33,0.33,0.34],[0.7,0.2,0.1]]
+      top_n_allowed: [1]
+      target_vol_allowed: [15, 999]
+      rebalance_threshold_allowed: [5]
+  R2D_full_kit_monthly:
+    eval_frequency: "monthly"
+    grid:
+      high_proximity_allowed: [null, 0.95]
+      dd_brake_allowed: [null, [8,15]]
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [15, 999]
+      rebalance_threshold_allowed: [5]
