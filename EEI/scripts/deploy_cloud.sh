@@ -34,7 +34,9 @@ npx wrangler deploy \
 
 echo "[deploy] verifying live build binding"
 LIVE_BUILD="$(curl -fsS "$BASE_URL/v1/meta/build" | python3 -c 'import json,sys; print(json.load(sys.stdin)["commit"])')"
-LIVE_HEADER="$(curl -fsSI "$BASE_URL/health" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-eei-build" {print $2}')"
+# grep/cut, not awk field-matching: the first deploy's awk parse false-FAILed
+# on a correctly-bound header.
+LIVE_HEADER="$(curl -s -D - -o /dev/null "$BASE_URL/health" | tr -d '\r' | grep -i '^x-eei-build:' | cut -d' ' -f2)"
 if [ "$LIVE_BUILD" != "$BUILD_SHA" ] || [ "$LIVE_HEADER" != "$BUILD_SHA" ]; then
   echo "[deploy] FAIL: live build ($LIVE_BUILD / header $LIVE_HEADER) != $BUILD_SHA" >&2
   exit 1
