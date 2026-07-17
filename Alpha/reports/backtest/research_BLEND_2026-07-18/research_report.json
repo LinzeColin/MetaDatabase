@@ -1,0 +1,115 @@
+{
+  "round": "BLEND 双结构分仓",
+  "gate": {
+    "gate_monthly_pct": 0.6,
+    "gate_dd_pct": 15.0,
+    "min_years": 3.0
+  },
+  "period": [
+    "2014-01-01",
+    "2026-07-16"
+  ],
+  "floor_reference": {
+    "name": "S1_GOLD_BLEND(生产保底线)",
+    "monthly_pct": 0.662,
+    "dd_pct": 13.07
+  },
+  "splits": [
+    [
+      0.5,
+      0.5
+    ],
+    [
+      0.6,
+      0.4
+    ],
+    [
+      0.4,
+      0.6
+    ]
+  ],
+  "method": "两 sleeve 各自逐窗重训、独立复利、不跨 sleeve 再平衡(声明近似);训练=验证同 sleeve 资金量,整股可行性如实计数",
+  "results": {
+    "冠军50/因子50": {
+      "oos": {
+        "months": 127,
+        "years": 10.58,
+        "total_return_pct": 91.59,
+        "monthly_mean_net_pct": 0.513,
+        "max_drawdown_pct": 11.02,
+        "monthly_win_rate_pct": 60.6,
+        "profit_factor": 1.76
+      },
+      "sleeve_monthly_corr": 0.623,
+      "skipped_infeasible": {
+        "champion": 11,
+        "factor": 12
+      },
+      "promo1": {
+        "years_ok": true,
+        "monthly_return_ok": false,
+        "drawdown_ok": true,
+        "passed": false,
+        "gate": {
+          "monthly_pct": 0.6,
+          "dd_pct": 15.0,
+          "min_years": 3.0
+        }
+      }
+    },
+    "冠军60/因子40": {
+      "oos": {
+        "months": 127,
+        "years": 10.58,
+        "total_return_pct": 107.76,
+        "monthly_mean_net_pct": 0.577,
+        "max_drawdown_pct": 13.6,
+        "monthly_win_rate_pct": 60.6,
+        "profit_factor": 1.84
+      },
+      "sleeve_monthly_corr": 0.631,
+      "skipped_infeasible": {
+        "champion": 17,
+        "factor": 17
+      },
+      "promo1": {
+        "years_ok": true,
+        "monthly_return_ok": false,
+        "drawdown_ok": true,
+        "passed": false,
+        "gate": {
+          "monthly_pct": 0.6,
+          "dd_pct": 15.0,
+          "min_years": 3.0
+        }
+      }
+    },
+    "冠军40/因子60": {
+      "oos": {
+        "months": 127,
+        "years": 10.58,
+        "total_return_pct": 98.95,
+        "monthly_mean_net_pct": 0.543,
+        "max_drawdown_pct": 15.74,
+        "monthly_win_rate_pct": 59.1,
+        "profit_factor": 1.83
+      },
+      "sleeve_monthly_corr": 0.64,
+      "skipped_infeasible": {
+        "champion": 14,
+        "factor": 11
+      },
+      "promo1": {
+        "years_ok": true,
+        "monthly_return_ok": false,
+        "drawdown_ok": false,
+        "passed": false,
+        "gate": {
+          "monthly_pct": 0.6,
+          "dd_pct": 15.0,
+          "min_years": 3.0
+        }
+      }
+    }
+  }
+}
