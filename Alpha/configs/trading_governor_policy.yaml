@@ -49,7 +49,7 @@ risk_circuit_breakers:
   illegal_state_transition_halts: true
 
 strategy_promotion:
-  monthly_return_gate_pct: 5.0        # 晋级门槛（非承诺）
+  monthly_return_gate_pct: 1.8        # 晋级门槛（非承诺；owner 2026-07-17 由 5.0 校准）
   backtest_min_years: 3
   backtest_includes_fee_model: true
   backtest_max_drawdown_pct: 15

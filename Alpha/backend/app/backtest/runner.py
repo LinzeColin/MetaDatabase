@@ -138,7 +138,9 @@ def run_full(
     s1_m = metrics(s1_oos_days, s1_oos_equity)
     s2_m = metrics(s2_oos_days, s2_oos_equity)
     combo_m = metrics(combo_days, combo_equity)
-    verdict = promo1_verdict(combo_m)
+    from backend.app.backtest.pipeline import load_promo1_gate
+
+    verdict = promo1_verdict(combo_m, **load_promo1_gate())
 
     report = {
         "generated_for": "ALPHA-LIVE-050 PROMO-1",

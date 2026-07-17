@@ -131,11 +131,15 @@ def test_monthly_metrics_hand_check():
 
 
 def test_promo1_verdict_boundaries():
-    ok = {"years": 3.0, "monthly_mean_net_pct": 5.0, "max_drawdown_pct": 15.0}
-    assert promo1_verdict(ok)["passed"] is True
-    assert promo1_verdict({**ok, "monthly_mean_net_pct": 4.999})["passed"] is False
-    assert promo1_verdict({**ok, "max_drawdown_pct": 15.01})["passed"] is False
-    assert promo1_verdict({**ok, "years": 2.99})["passed"] is False
+    from backend.app.backtest.pipeline import load_promo1_gate
+
+    gate = load_promo1_gate()
+    assert gate == {"gate_monthly_pct": 1.8, "gate_dd_pct": 15.0, "min_years": 3.0}  # owner 2026-07-17 校准
+    ok = {"years": 3.0, "monthly_mean_net_pct": 1.8, "max_drawdown_pct": 15.0}
+    assert promo1_verdict(ok, **gate)["passed"] is True
+    assert promo1_verdict({**ok, "monthly_mean_net_pct": 1.799}, **gate)["passed"] is False
+    assert promo1_verdict({**ok, "max_drawdown_pct": 15.01}, **gate)["passed"] is False
+    assert promo1_verdict({**ok, "years": 2.99}, **gate)["passed"] is False
 
 
 def test_grids_match_review_grid_sizes():

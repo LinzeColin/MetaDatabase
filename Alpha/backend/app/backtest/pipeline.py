@@ -389,7 +389,23 @@ def metrics(days: Sequence[date], equity: Sequence[float]) -> dict:
     }
 
 
-def promo1_verdict(m: dict, *, gate_monthly_pct: float = 5.0, gate_dd_pct: float = 15.0,
+def load_promo1_gate(path: str = "configs/strategy_promotion.yaml") -> dict:
+    """从权威配置读 PROMO-1 门槛(月均/回撤/年限),不允许代码写死。"""
+    import re
+    from pathlib import Path
+
+    import yaml as _yaml
+
+    rule = next(
+        c["rule"] for c in _yaml.safe_load(Path(path).read_text())["gate_conditions"]
+        if c["id"] == "PROMO-1"
+    )
+    nums = re.findall(r">=\s*([\d.]+)", rule)
+    years, monthly, dd = float(nums[0]), float(nums[1]), float(re.findall(r"<=\s*([\d.]+)", rule)[0])
+    return {"gate_monthly_pct": monthly, "gate_dd_pct": dd, "min_years": years}
+
+
+def promo1_verdict(m: dict, *, gate_monthly_pct: float = 1.8, gate_dd_pct: float = 15.0,
                    min_years: float = 3.0) -> dict:
     ok_years = m.get("years", 0) >= min_years
     ok_ret = m.get("monthly_mean_net_pct", -999) >= gate_monthly_pct
