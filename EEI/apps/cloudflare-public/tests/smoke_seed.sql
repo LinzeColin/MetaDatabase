@@ -6,6 +6,7 @@ DELETE FROM relationships;
 DELETE FROM entities;
 DELETE FROM snapshot_meta;
 DELETE FROM publication_meta;
+DELETE FROM filing_year_counts;
 
 INSERT INTO entities(id, canonical_name, entity_type, status) VALUES
   ('00000000-0000-4000-8000-000000000001', 'Taiwan Semiconductor Manufacturing Company Limited', 'company', 'active'),
@@ -52,7 +53,14 @@ INSERT INTO snapshot_meta(snapshot_key, scope, record_mode, status, as_of, activ
 
 INSERT INTO publication_meta(key, value) VALUES
   ('published_at', '2026-07-15T00:00:00+00:00'),
-  ('publisher_version', 'eei-publication-schema-v1');
+  ('publisher_version', 'eei-publication-schema-v1'),
+  ('active_analysis_context', '{"schema_version":"active-analysis-context-v1","context_key":"global","active_scoring_profile_version_id":"00000000-0000-4000-a000-000000000001","active_data_snapshot_key":"smoke-publication-snapshot","active_scoring_run_id":"00000000-0000-4000-a000-000000000002","refresh_token":"00000000-0000-4000-a000-000000000003","refresh_generation":7,"status":"active","activated_at":"2026-07-15T00:00:00+00:00","affected_modules":["business_empire","supply_chain"],"model_version":"business-empire-model-v2@2","profile_version":"balanced-v2@2"}');
 
 INSERT INTO filing_year_counts(year, filings) VALUES
   (2016, 120), (2020, 240), (2026, 210);
+
+DELETE FROM supply_chain_stages;
+INSERT INTO supply_chain_stages(stage_id, stage_order, slug, name_zh, name_en,
+  default_direction, examples) VALUES
+  ('SC-04', 4, 'equipment', '设备', 'Equipment', 'upstream', 'lithography'),
+  ('SC-06', 6, 'manufacturing', '制造', 'Manufacturing', 'upstream', 'foundry');

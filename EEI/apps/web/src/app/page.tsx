@@ -63,6 +63,11 @@ import {
   type ScoreExplanationRecord,
   type SourceFreshnessRecord
 } from "./production-data-client";
+import {
+  loadCloudEvidenceDetail,
+  loadCloudPublicationFreshness,
+  loadCloudScoreExplanation
+} from "./cloud-data-client";
 import { useAnalysisContext } from "./use-analysis-context";
 import {
   SAVED_VIEW_API_BASE_STORAGE_KEY,
@@ -541,6 +546,41 @@ const focusEntityIds: Record<FocusKey, string> = {
   cloud: "00000000-0000-4000-8000-000000000030",
   datacenter: "00000000-0000-4000-8000-000000000024",
   energy: "00000000-0000-4000-8000-000000000025"
+};
+
+// EEI-F01/F02/F03：云生产模式（构建期决定）。生产面只呈现已发布数据，
+// 任何模块拿不到云数据就亮诚实空态/错误态，绝不回退合成样例。
+// 只认「云发布面」构建标（build_cloud_frontend.sh 注入）：本地 dev/CI
+// 与 live 全栈套件（连本地 FastAPI，也设 API 基址）都保持样例工作台语义。
+const CLOUD_MODE =
+  process.env.NEXT_PUBLIC_EEI_SURFACE === "cloud-publication" &&
+  Boolean(process.env.NEXT_PUBLIC_EEI_API_BASE_URL?.trim());
+// 已发布面上的 NVIDIA 实体（与本地样例共用确定性 UUID）。
+const SERVER_DEFAULT_FOCUS = {
+  id: focusEntityIds.nvidia,
+  label: "NVIDIA Corporation"
+} as const;
+const UUID_PATTERN =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+// EEI-F07：构建指纹进 DOM，生产可与 /v1/meta/build、x-eei-build 头对账。
+const BUILD_SHA = process.env.NEXT_PUBLIC_EEI_BUILD_SHA?.trim() || "dev";
+
+type ServerEntityRecord = {
+  id: string;
+  canonical_name: string;
+  entity_type: string;
+  status: string;
+};
+
+type CloudChangeRow = {
+  id: string;
+  change_type: string;
+  created_at: string | null;
+  new_value: {
+    relationship_type?: string;
+    subject_name?: string;
+    object_name?: string;
+  } | null;
 };
 
 const systemMakersGroupMembers = [
@@ -1082,7 +1122,9 @@ function serverGraphRenderNodes(
       x: position.x,
       y: position.y,
       zone,
-      centerable: Boolean(localKey),
+      // 云模式：每个已发布实体都可显式换中心（EEI-F03 的「以被选实体
+      // 本身为中心」）；本地模式沿用样例键映射规则。
+      centerable: CLOUD_MODE ? true : Boolean(localKey),
       source: "server",
       localKey,
       entityType: item.entity_type,
@@ -1224,6 +1266,41 @@ function serverLocalKeyForEntityId(entityId: string): FocusKey | undefined {
   return (Object.entries(focusEntityIds) as [FocusKey, string][]).find(([, id]) => id === entityId)?.[0];
 }
 
+// 云模式：搜索命中但不在当前图内的已发布实体，也要能作为「当前选择」
+// 呈现（选择≠换中心，EEI-F03）。
+function serverEntityRenderNode(entity: ServerEntityRecord): GraphRenderNode {
+  return {
+    key: entity.id,
+    label: entity.canonical_name,
+    shortLabel: shortServerLabel(entity.canonical_name),
+    stage: (entity.entity_type || "entity").replaceAll("_", " "),
+    role: "已发布实体（不在当前图内）",
+    x: 0,
+    y: 0,
+    zone: "upstream",
+    centerable: true,
+    source: "server",
+    entityType: entity.entity_type,
+    fixtureNotice: null
+  };
+}
+
+function cloudPlaceholderRenderNode(label?: string): GraphRenderNode {
+  return {
+    key: "",
+    label: label ?? "等待云端图谱",
+    shortLabel: label ?? "…",
+    stage: "已发布面",
+    role: "云端图谱载入中或不可用",
+    x: 0,
+    y: 0,
+    zone: "focus",
+    centerable: false,
+    source: "server",
+    fixtureNotice: null
+  };
+}
+
 const focusKeySet = new Set<FocusKey>(Object.keys(scenarios) as FocusKey[]);
 const nodeKeySet = new Set<NodeKey>(Object.keys(entityLabels) as NodeKey[]);
 const lensKeySet = new Set<LensKey>(lensItems.map((item) => item.key));
@@ -1330,17 +1407,20 @@ function writeWorkspaceStateParams(params: URLSearchParams, state: WorkspaceStat
 
 function createExploreGraphRequest(
   state: WorkspaceState,
-  scoringProfileVersionId?: string | null
+  scoringProfileVersionId?: string | null,
+  serverFocusEntityId?: string | null
 ): ExploreGraphRequest {
   return {
     focus: {
       object_type: "entity",
-      object_id: focusEntityIds[state.focusKey]
+      // 云模式下焦点是真实已发布实体 id（可指向图上任意实体），
+      // as_of 交给发布面（一次发布一个原子快照），不再送样例日期。
+      object_id: serverFocusEntityId ?? focusEntityIds[state.focusKey]
     },
     active_layers: activeLayersForLens(state.activeLens),
     direction: directionForLens(state.activeLens),
     hops: hopsForSemanticZoom(state.semanticZoom),
-    as_of: `${state.asOf}T00:00:00Z`,
+    as_of: serverFocusEntityId ? null : `${state.asOf}T00:00:00Z`,
     scoring_profile_version_id: scoringProfileVersionId ?? null,
     filters: {
       visual_lens: state.activeLens,
@@ -1624,6 +1704,17 @@ export default function Home() {
   // A037 semantics (S8PDT02): unread = real /v1/changes rows since the
   // stored last-seen mark; null keeps the labeled fixture fallback.
   const [serverUnreadChanges, setServerUnreadChanges] = useState<number | null>(null);
+  // 云模式状态：真实焦点实体 / 面包屑 / 实体搜索 / 变化流 / 图外选中实体。
+  const [serverFocusEntityId, setServerFocusEntityId] = useState<string>(
+    SERVER_DEFAULT_FOCUS.id
+  );
+  const [serverPath, setServerPath] = useState<{ id: string; label: string }[]>([
+    { ...SERVER_DEFAULT_FOCUS }
+  ]);
+  const [serverSearchResults, setServerSearchResults] = useState<ServerEntityRecord[]>([]);
+  const [serverChangeRows, setServerChangeRows] = useState<CloudChangeRow[]>([]);
+  const [selectedServerEntity, setSelectedServerEntity] =
+    useState<ServerEntityRecord | null>(null);
 
   useEffect(() => {
     const apiBaseUrl = readProductionDataApiBaseUrl();
@@ -1638,12 +1729,43 @@ export default function Home() {
         const payload = (await response.json().catch(() => null)) as unknown;
         if (response.ok && Array.isArray(payload)) {
           setServerUnreadChanges(payload.length);
+          setServerChangeRows(payload as CloudChangeRow[]);
         }
       })
       .catch(() => {
         // Fixture fallback stays labeled; no fake server counts.
       });
   }, []);
+
+  // 云模式实体搜索：/v1/entities 实查（防抖），本地样例列表不再出现在生产。
+  useEffect(() => {
+    if (!CLOUD_MODE) return;
+    const apiBaseUrl = readProductionDataApiBaseUrl();
+    if (!apiBaseUrl) return;
+    const query = searchQuery.trim();
+    if (!query) {
+      setServerSearchResults([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void window
+        .fetch(`${apiBaseUrl}/v1/entities?q=${encodeURIComponent(query)}`, {
+          cache: "no-store"
+        })
+        .then(async (response) => {
+          const payload = (await response.json().catch(() => null)) as {
+            entities?: ServerEntityRecord[];
+          } | null;
+          if (response.ok && Array.isArray(payload?.entities)) {
+            setServerSearchResults(payload.entities);
+          }
+        })
+        .catch(() => {
+          // 搜索失败保持上一批结果；不虚构条目。
+        });
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
   const [previousModelRefreshToken, setPreviousModelRefreshToken] = useState("");
   const [scoreRecomputeStatus, setScoreRecomputeStatus] = useState<
     "idle" | "enqueueing" | "server-conflict" | "server-error" | ScoreRecomputeJobRecord["status"]
@@ -1670,9 +1792,10 @@ export default function Home() {
     () =>
       createExploreGraphRequest(
         workspaceState,
-        serverModelContext?.active_scoring_profile_version_id
+        serverModelContext?.active_scoring_profile_version_id,
+        CLOUD_MODE ? serverFocusEntityId : null
       ),
-    [serverModelContext?.active_scoring_profile_version_id, workspaceState]
+    [serverFocusEntityId, serverModelContext?.active_scoring_profile_version_id, workspaceState]
   );
   const productionGraphRequestKey = useMemo(
     () =>
@@ -1740,8 +1863,18 @@ export default function Home() {
     productionGraphStatus === "server-hydrated" &&
     Boolean(serverGraphNodes?.length) &&
     Boolean(serverGraphEdges?.length);
-  const baseGraphViewNodes = isServerGraphRendered ? serverGraphNodes! : fixtureGraphNodes;
-  const graphViewEdges = isServerGraphRendered ? serverGraphEdges! : fixtureGraphEdges;
+  // EEI-F01/F02：生产（云模式）零样例回退——云图不可用时画布给诚实状态，
+  // 绝不把合成节点画成生产事实；样例图只存在于本地模式。
+  const baseGraphViewNodes = isServerGraphRendered
+    ? serverGraphNodes!
+    : CLOUD_MODE
+      ? []
+      : fixtureGraphNodes;
+  const graphViewEdges = isServerGraphRendered
+    ? serverGraphEdges!
+    : CLOUD_MODE
+      ? []
+      : fixtureGraphEdges;
   // S9PAT02 empire canvas: every node is re-laid onto the solar system -
   // the focus entity is the sun, zones become orbital belts with angular
   // sectors. Layout is position-only (keys, zones, click handlers, zoom and
@@ -1765,7 +1898,11 @@ export default function Home() {
     () => new Map(graphViewNodes.map((item) => [item.key, item])),
     [graphViewNodes]
   );
-  const graphViewMode = isServerGraphRendered ? "server" : "fixture";
+  const graphViewMode = isServerGraphRendered
+    ? "server"
+    : CLOUD_MODE
+      ? "cloud-empty"
+      : "fixture";
   // S9PBT01 V4: legend inventory (per-zone node counts from the live view)
   // and the GAPS badge fed by the real 16-stage supply-chain assertion
   // coverage - never a fabricated percentage.
@@ -1921,6 +2058,11 @@ export default function Home() {
     return () => svg.removeEventListener("animationend", clear);
   }, [empireFocusIdentity]);
   const productionContext = productionGraph?.production_context;
+  // 发布面上下文的快照标识（as_of / published_at），供云模式覆盖层展示。
+  const publishedContextMeta = (productionContext?.active_analysis_context ?? {}) as {
+    as_of?: string | null;
+    published_at?: string | null;
+  };
   const productionCoverage = productionGraph?.coverage;
   const productionCandidateCoverage = productionCoverage?.relationship_fact_candidates;
   const productionCandidateSummary = productionContext?.candidate_fact_summary;
@@ -1933,35 +2075,49 @@ export default function Home() {
       (source) => source.source_code === "sec_edgar_synthetic_fixture"
     ) ?? productionFreshness?.sources[0];
   const freshnessServerError = productionFreshnessStatus === "server-error";
+  // 云模式下样例鲜度永不出现：拿不到发布鲜度就亮不可用，不冒充。
+  const freshnessFallback = CLOUD_MODE
+    ? {
+        status: "publication_unavailable",
+        sourceCode: "cloud_publication_surface",
+        lastAttemptAt: null,
+        lastSuccessAt: null,
+        lastFailureAt: null,
+        latestDocumentDate: null,
+        latestReportPeriodEnd: null,
+        sourceCount: 0,
+        sourceDocumentCount: 0
+      }
+    : homeFreshness;
   const freshnessDisplay = {
     status: freshnessServerError
       ? "server_error"
-      : (productionFreshness?.summary.status ?? homeFreshness.status),
+      : (productionFreshness?.summary.status ?? freshnessFallback.status),
     sourceCode: freshnessServerError
       ? "unavailable"
-      : (primaryFreshnessSource?.source_code ?? homeFreshness.sourceCode),
+      : (primaryFreshnessSource?.source_code ?? freshnessFallback.sourceCode),
     lastAttemptAt: freshnessServerError
       ? null
-      : (primaryFreshnessSource?.last_attempt_at ?? homeFreshness.lastAttemptAt),
+      : (primaryFreshnessSource?.last_attempt_at ?? freshnessFallback.lastAttemptAt),
     lastSuccessAt: freshnessServerError
       ? null
-      : (primaryFreshnessSource?.last_success_at ?? homeFreshness.lastSuccessAt),
+      : (primaryFreshnessSource?.last_success_at ?? freshnessFallback.lastSuccessAt),
     lastFailureAt: freshnessServerError
       ? null
-      : (primaryFreshnessSource?.last_failure_at ?? homeFreshness.lastFailureAt),
+      : (primaryFreshnessSource?.last_failure_at ?? freshnessFallback.lastFailureAt),
     latestDocumentDate: freshnessServerError
       ? null
-      : (primaryFreshnessSource?.latest_document_date ?? homeFreshness.latestDocumentDate),
+      : (primaryFreshnessSource?.latest_document_date ?? freshnessFallback.latestDocumentDate),
     latestReportPeriodEnd: freshnessServerError
       ? null
       : (primaryFreshnessSource?.latest_report_period_end ??
-        homeFreshness.latestReportPeriodEnd),
+        freshnessFallback.latestReportPeriodEnd),
     sourceCount: freshnessServerError
       ? 0
-      : (productionFreshness?.summary.source_count ?? homeFreshness.sourceCount),
+      : (productionFreshness?.summary.source_count ?? freshnessFallback.sourceCount),
     sourceDocumentCount: freshnessServerError
       ? 0
-      : (productionFreshness?.summary.document_count ?? homeFreshness.sourceDocumentCount)
+      : (productionFreshness?.summary.document_count ?? freshnessFallback.sourceDocumentCount)
   };
   const tableEdges = useMemo(
     () =>
@@ -1985,8 +2141,19 @@ export default function Home() {
   const selectedServerGraphNode = selectedProductionNodeKey
     ? graphViewNodeByKey.get(selectedProductionNodeKey)
     : undefined;
-  const selectedGraphNode =
-    graphViewMode === "server"
+  const serverFocusLabel =
+    productionGraph?.focus?.canonical_name ??
+    serverPath[serverPath.length - 1]?.label ??
+    SERVER_DEFAULT_FOCUS.label;
+  // 云模式选择链：图内节点 > 搜索选中的图外实体 > 焦点节点 > 占位。
+  // 永不落回合成样例节点（EEI-F02）。本地模式保留原语义（含本地
+  // 挂载 mock 服务端图时的 server 选择）。
+  const selectedGraphNode = CLOUD_MODE
+    ? selectedServerGraphNode ??
+      (selectedServerEntity ? serverEntityRenderNode(selectedServerEntity) : undefined) ??
+      graphViewNodeByKey.get(serverFocusEntityId) ??
+      cloudPlaceholderRenderNode(serverFocusLabel)
+    : graphViewMode === "server"
       ? selectedServerGraphNode ??
         graphViewNodeByKey.get(selectedNode.key) ??
         fixtureRenderNode(selectedNode)
@@ -2277,6 +2444,76 @@ export default function Home() {
     }
   }
 
+  // EEI-F01 (J-003/J-004)：云模式取数——评分/证据的目标关系号直接来自
+  // 活图的边，发布鲜度来自发布元数据；目录清单不属于发布面，如实标注。
+  async function hydrateCloudData(reason: string, relationshipId: string) {
+    setProductionScoreStatus("loading-production-data");
+    setProductionEvidenceStatus("loading-production-data");
+    setProductionFreshnessStatus("loading-production-data");
+    setProductionCatalogSyncMode("server");
+    setProductionCatalogSyncReason("publication_surface_has_no_catalog_inventory");
+    setProductionCatalogStatus("server-hydrated");
+    const [scoreResult, evidenceResult, freshnessResult] = await Promise.all([
+      loadCloudScoreExplanation(relationshipId),
+      loadCloudEvidenceDetail(relationshipId),
+      loadCloudPublicationFreshness()
+    ]);
+
+    if (scoreResult.mode === "server" && scoreResult.status === "hydrated") {
+      setProductionScoreExplanation(scoreResult.record);
+      setProductionScoreSyncMode("server");
+      setProductionScoreSyncReason(reason);
+      setProductionScoreEndpoint(scoreResult.endpoint);
+      setProductionScoreTargetId(scoreResult.record.object_id);
+      setProductionScoreStatus("server-hydrated");
+    } else {
+      setProductionScoreSyncMode("server");
+      setProductionScoreSyncReason(
+        scoreResult.mode === "server" ? scoreResult.reason : scoreResult.reason
+      );
+      setProductionScoreEndpoint(scoreResult.mode === "server" ? scoreResult.endpoint : "");
+      setProductionScoreTargetId(relationshipId);
+      setProductionScoreExplanation(null);
+      setProductionScoreStatus("server-error");
+    }
+
+    if (evidenceResult.mode === "server" && evidenceResult.status === "hydrated") {
+      setProductionEvidenceDetail(evidenceResult.record);
+      setProductionEvidenceSyncMode("server");
+      setProductionEvidenceSyncReason(reason);
+      setProductionEvidenceEndpoint(evidenceResult.endpoint);
+      setProductionEvidenceStatus("server-hydrated");
+    } else {
+      setProductionEvidenceSyncMode("server");
+      setProductionEvidenceSyncReason(
+        evidenceResult.mode === "server" ? evidenceResult.reason : evidenceResult.reason
+      );
+      setProductionEvidenceEndpoint(
+        evidenceResult.mode === "server" ? evidenceResult.endpoint : ""
+      );
+      setProductionEvidenceDetail(null);
+      setProductionEvidenceStatus("server-error");
+    }
+
+    if (freshnessResult.mode === "server" && freshnessResult.status === "hydrated") {
+      setProductionFreshness(freshnessResult.record);
+      setProductionFreshnessSyncMode("server");
+      setProductionFreshnessSyncReason(reason);
+      setProductionFreshnessEndpoint(freshnessResult.endpoint);
+      setProductionFreshnessStatus("server-hydrated");
+    } else {
+      setProductionFreshnessSyncMode("server");
+      setProductionFreshnessSyncReason(
+        freshnessResult.mode === "server" ? freshnessResult.reason : freshnessResult.reason
+      );
+      setProductionFreshnessEndpoint(
+        freshnessResult.mode === "server" ? freshnessResult.endpoint : ""
+      );
+      setProductionFreshness(null);
+      setProductionFreshnessStatus("server-error");
+    }
+  }
+
   async function hydrateProductionGraph(reason = "manual_refresh") {
     setProductionGraphStatus("loading-production-graph");
     const graphResult = await loadExploreGraph(productionGraphRequest);
@@ -2514,6 +2751,17 @@ export default function Home() {
       )
     );
   }, [searchQuery]);
+  // 云模式搜索展示：有词=服务端实查结果；无词=当前图内实体（可选中）。
+  const cloudSearchDisplay = useMemo<ServerEntityRecord[]>(() => {
+    if (!CLOUD_MODE) return [];
+    if (searchQuery.trim()) return serverSearchResults;
+    return (productionGraph?.nodes ?? []).slice(0, 3).map((node) => ({
+      id: node.id,
+      canonical_name: node.canonical_name,
+      entity_type: node.entity_type ?? "entity",
+      status: "published"
+    }));
+  }, [productionGraph, searchQuery, serverSearchResults]);
 
   function requestCenter(nextFocus: string) {
     setTransitionState("loading");
@@ -2547,6 +2795,7 @@ export default function Home() {
   }
 
   function inspectGraphNode(nextSelected: GraphRenderNode) {
+    setSelectedServerEntity(null);
     if (nextSelected.source === "server") {
       setSelectedProductionNodeKey(nextSelected.key);
     }
@@ -2557,6 +2806,34 @@ export default function Home() {
     setSelectedProductionNodeKey(nextSelected.key);
     setNodeActionStatus(`server-inspect:${nextSelected.key}`);
     setGroupListOpen(false);
+  }
+
+  // EEI-F03：选择只改「当前选择」，换中心必须走显式动作。
+  function selectServerEntity(entity: ServerEntityRecord) {
+    setSelectedProductionNodeKey(entity.id);
+    setSelectedServerEntity(entity);
+    setNodeActionStatus(`select:${entity.id}`);
+    setGroupListOpen(false);
+  }
+
+  // 云模式显式换中心：目标是被选中的那个真实已发布实体本身。
+  function serverReroot(entityId: string, label: string) {
+    if (!CLOUD_MODE || !entityId) return;
+    setTransitionState("loading");
+    window.setTimeout(() => {
+      setServerFocusEntityId(entityId);
+      setSelectedProductionNodeKey(entityId);
+      setSelectedServerEntity(null);
+      setServerPath((current) => {
+        const existing = current.findIndex((item) => item.id === entityId);
+        if (existing >= 0) {
+          return current.slice(0, existing + 1);
+        }
+        return [...current, { id: entityId, label }];
+      });
+      setGroupListOpen(false);
+      setTransitionState("ready");
+    }, 360);
   }
 
   function addUniqueNode(current: NodeKey[], key: NodeKey) {
@@ -2597,6 +2874,15 @@ export default function Home() {
 
   function openSelectedEvidence() {
     setNodeActionStatus(`evidence:${selectedGraphNode.key}`);
+    if (CLOUD_MODE) {
+      if (cloudEvidenceTargetId) {
+        void hydrateCloudData("evidence_center_open", cloudEvidenceTargetId);
+      }
+      document
+        .querySelector('[data-testid="production-evidence-detail"]')
+        ?.scrollIntoView({ block: "center" });
+      return;
+    }
     void hydrateProductionData(
       "evidence_center_open",
       productionSampleCandidate?.id || productionScoreTargetId || productionEvidenceDetail?.object_id || null
@@ -2611,6 +2897,10 @@ export default function Home() {
   }
 
   function resetToNvidia() {
+    if (CLOUD_MODE) {
+      serverReroot(SERVER_DEFAULT_FOCUS.id, SERVER_DEFAULT_FOCUS.label);
+      return;
+    }
     setFocusKey("nvidia");
     setSelectedKey("nvidia");
     setSelectedProductionNodeKey("");
@@ -2628,18 +2918,39 @@ export default function Home() {
     setServerUnreadChanges(0);
   }
 
+  // EEI-F03：搜索提交=选中第一个结果（打开详情），不隐式换中心。
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (CLOUD_MODE) {
+      const firstServerResult = cloudSearchDisplay[0];
+      if (firstServerResult) {
+        selectServerEntity(firstServerResult);
+      }
+      return;
+    }
     const firstResult = visibleSearchResults[0] ?? homeSearchResults[0];
-    setCenter(firstResult.target);
+    inspectNode(firstResult.target);
   }
 
   useEffect(() => {
-    const urlState = readWorkspaceStateFromParams(new URLSearchParams(window.location.search));
+    const initialParams = new URLSearchParams(window.location.search);
+    const urlState = readWorkspaceStateFromParams(initialParams);
     const sessionState = readWorkspaceStatePayload(
       window.sessionStorage.getItem(WORKSPACE_STATE_STORAGE_KEY)
     );
     const storedSavedView = readSavedViewPayload(window.localStorage.getItem(SAVED_VIEW_STORAGE_KEY));
+
+    // 云模式刷新恢复：subject 为真实实体 UUID 时恢复服务端焦点，
+    // 标签待活图返回后回填（EEI-F03 Back/Forward/Refresh 契约）。
+    const subjectParam = initialParams.get("subject");
+    if (CLOUD_MODE && subjectParam && UUID_PATTERN.test(subjectParam)) {
+      setServerFocusEntityId(subjectParam);
+      setServerPath(
+        subjectParam === SERVER_DEFAULT_FOCUS.id
+          ? [{ ...SERVER_DEFAULT_FOCUS }]
+          : [{ ...SERVER_DEFAULT_FOCUS }, { id: subjectParam, label: "已发布实体" }]
+      );
+    }
 
     if (storedSavedView) {
       setSavedView(storedSavedView);
@@ -2650,7 +2961,32 @@ export default function Home() {
     }
 
     function handlePopState(event: PopStateEvent) {
-      const eventState = event.state as { eeiWorkspaceState?: WorkspaceStateInput } | null;
+      const eventState = event.state as {
+        eeiWorkspaceState?: WorkspaceStateInput;
+        eeiServerFocus?: { id: string; path: { id: string; label: string }[] };
+      } | null;
+      // 云模式历史恢复：优先取 history state 里的服务端焦点，退而取 URL。
+      if (CLOUD_MODE) {
+        const serverFocus = eventState?.eeiServerFocus;
+        const urlSubject = new URLSearchParams(window.location.search).get("subject");
+        if (serverFocus?.id) {
+          restoringHistoryState.current = true;
+          setServerFocusEntityId(serverFocus.id);
+          setServerPath(
+            serverFocus.path?.length ? serverFocus.path : [{ ...SERVER_DEFAULT_FOCUS }]
+          );
+          setSelectedProductionNodeKey(serverFocus.id);
+          setSelectedServerEntity(null);
+          return;
+        }
+        if (urlSubject && UUID_PATTERN.test(urlSubject)) {
+          restoringHistoryState.current = true;
+          setServerFocusEntityId(urlSubject);
+          setSelectedProductionNodeKey(urlSubject);
+          setSelectedServerEntity(null);
+          return;
+        }
+      }
       const nextState =
         readWorkspaceStateFromParams(new URLSearchParams(window.location.search)) ??
         (eventState?.eeiWorkspaceState
@@ -2677,6 +3013,40 @@ export default function Home() {
     void hydrateProductionGraph("initial_hydration");
   }, [productionGraphRequestKey, stateReady]);
 
+  // 云模式：评分/证据跟随活图与选择自动接入（J-003 两步内见到来源）。
+  const cloudEvidenceTargetId = useMemo(() => {
+    if (!CLOUD_MODE || !productionGraph?.edges.length) return null;
+    const touching = selectedProductionNodeKey
+      ? productionGraph.edges.find(
+          (edge) =>
+            edge.subject_id === selectedProductionNodeKey ||
+            edge.object_id === selectedProductionNodeKey
+        )
+      : undefined;
+    return (touching ?? productionGraph.edges[0]).id;
+  }, [productionGraph, selectedProductionNodeKey]);
+  const hydratedCloudDataKey = useRef("");
+  useEffect(() => {
+    if (!CLOUD_MODE || !cloudEvidenceTargetId) return;
+    if (hydratedCloudDataKey.current === cloudEvidenceTargetId) return;
+    hydratedCloudDataKey.current = cloudEvidenceTargetId;
+    void hydrateCloudData("graph_hydration", cloudEvidenceTargetId);
+  }, [cloudEvidenceTargetId]);
+  // 活图返回后，把 URL 恢复时占位的面包屑标签回填成真实实体名。
+  useEffect(() => {
+    if (!CLOUD_MODE || !productionGraph?.focus) return;
+    const focus = productionGraph.focus;
+    const focusLabel = focus.canonical_name;
+    if (!focusLabel) return;
+    setServerPath((current) => {
+      const tail = current[current.length - 1];
+      if (!tail || tail.id !== focus.id || tail.label === focusLabel) {
+        return current;
+      }
+      return [...current.slice(0, -1), { id: tail.id, label: focusLabel }];
+    });
+  }, [productionGraph]);
+
   useEffect(() => {
     if (!stateReady) return;
     const normalized = normalizeWorkspaceState(workspaceState);
@@ -2686,7 +3056,17 @@ export default function Home() {
 
     const nextUrl = new URL(window.location.href);
     writeWorkspaceStateParams(nextUrl.searchParams, normalized);
-    const historyState = { eeiWorkspaceState: normalized };
+    // 云模式：URL 主体写真实实体 id，历史栈携带服务端焦点+面包屑，
+    // Back/Forward/Refresh 恢复的是真实焦点而非样例键。
+    if (CLOUD_MODE) {
+      nextUrl.searchParams.set("subject", serverFocusEntityId);
+    }
+    const historyState = {
+      eeiWorkspaceState: normalized,
+      ...(CLOUD_MODE
+        ? { eeiServerFocus: { id: serverFocusEntityId, path: serverPath } }
+        : {})
+    };
     const shouldReplace = restoringHistoryState.current || !hasWrittenHistoryState.current;
     if (shouldReplace) {
       window.history.replaceState(historyState, "", nextUrl);
@@ -2695,7 +3075,7 @@ export default function Home() {
       return;
     }
     window.history.pushState(historyState, "", nextUrl);
-  }, [stateReady, workspaceState]);
+  }, [stateReady, workspaceState, serverFocusEntityId]);
 
   useEffect(() => {
     function handleExternalCenterRequest(event: Event) {
@@ -2721,7 +3101,10 @@ export default function Home() {
       data-active-score-snapshot={analysisContext.scoreSnapshot}
       data-active-time={asOf}
       data-analysis-contract={analysisContext.contractVersion}
+      data-build-sha={BUILD_SHA}
+      data-data-mode={CLOUD_MODE ? "cloud-publication" : "local-fixture"}
       data-focus-key={focusKey}
+      data-information-workspace="business-empire-home"
       data-layout-grammar={WORKSPACE_LAYOUT_GRAMMAR}
       data-last-nav-action={navActionStatus}
       data-path={path.join(".")}
@@ -2729,6 +3112,7 @@ export default function Home() {
       data-reroot-state={transitionState}
       data-selected-node={selectedNode.key}
       data-semantic-zoom={semanticZoom}
+      data-server-focus-entity={CLOUD_MODE ? serverFocusEntityId : "none"}
       data-testid="workspace-shell"
       data-viewport-anchor={viewportAnchor}
       data-workspace-model="recursive-enterprise-map"
@@ -2745,10 +3129,28 @@ export default function Home() {
         <div className="subjectHeader">
           <div>
             <p className="eyebrow">关注 · 当前主体</p>
-            <h1 data-testid="current-focus-title">{scenario.heading}</h1>
-            <p className="subjectSubtitle">{scenario.subtitle}</p>
+            <h1 data-testid="current-focus-title">
+              {CLOUD_MODE
+                ? isServerGraphRendered
+                  ? serverFocusLabel
+                  : productionGraphStatus === "server-error"
+                    ? "云端数据暂不可用"
+                    : serverFocusLabel
+                : scenario.heading}
+            </h1>
+            <p className="subjectSubtitle">
+              {CLOUD_MODE
+                ? "已发布关系图 · 事实以官方来源为准"
+                : scenario.subtitle}
+            </p>
           </div>
-          <span className="snapshotTag">样例数据</span>
+          <span className="snapshotTag" data-testid="data-mode-tag">
+            {CLOUD_MODE
+              ? isServerGraphRendered
+                ? "已发布数据"
+                : "云端数据未接入"
+              : "样例数据"}
+          </span>
         </div>
         <dl className="subjectStats" data-testid="home-model-status">
           <div>
@@ -2765,13 +3167,24 @@ export default function Home() {
               {graphViewNodes.length} / {graphViewEdges.length}
             </dd>
           </div>
-          <div>
-            <dt>模型校准</dt>
-            <dd>
-              {homeModelStatus.latestCalibration} / {homeModelStatus.cadenceDays}d /{" "}
-              {homeModelStatus.nextScheduledFor}
-            </dd>
-          </div>
+          {CLOUD_MODE ? (
+            <div>
+              <dt>上下文刷新代</dt>
+              <dd>
+                {serverModelContext
+                  ? `第 ${serverModelContext.refresh_generation} 代`
+                  : "载入中"}
+              </dd>
+            </div>
+          ) : (
+            <div>
+              <dt>模型校准</dt>
+              <dd>
+                {homeModelStatus.latestCalibration} / {homeModelStatus.cadenceDays}d /{" "}
+                {homeModelStatus.nextScheduledFor}
+              </dd>
+            </div>
+          )}
         </dl>
         <section
           className="modelPreviewPanel"
@@ -3160,14 +3573,27 @@ export default function Home() {
             </button>
           </div>
         </section>
-        <div
-          className="fixtureDisclosure"
-          data-testid="fixture-disclosure"
-          data-freshness-status={homeFreshness.status}
-        >
-          <strong>样例数据（未连接生产）</strong>
-          <span>样例标注强制可见；不声称任何真实事实（Live facts: disabled）。</span>
-        </div>
+        {CLOUD_MODE ? (
+          <div
+            className="fixtureDisclosure"
+            data-testid="publication-disclosure"
+            data-publication-surface="owner-signed-published-facts"
+          >
+            <strong>发布面数据边界</strong>
+            <span>
+              本站仅呈现经双源核验与 Owner 签核发布的事实；候选、评审队列与原始文本不出本地。
+            </span>
+          </div>
+        ) : (
+          <div
+            className="fixtureDisclosure"
+            data-testid="fixture-disclosure"
+            data-freshness-status={homeFreshness.status}
+          >
+            <strong>样例数据（未连接生产）</strong>
+            <span>样例标注强制可见；不声称任何真实事实（Live facts: disabled）。</span>
+          </div>
+        )}
 
         <section
           aria-label="公司八层视图"
@@ -3223,21 +3649,43 @@ export default function Home() {
               </tr>
             </thead>
             <tbody>
-              {structureRows.map((row) => (
-                <tr
-                  data-control-claim="false"
-                  data-relationship={row.relationship}
-                  data-scope={row.scope}
-                  data-structure-kind={row.kind}
-                  data-testid={`structure-row-${row.kind}`}
-                  key={row.kind}
-                >
-                  <td>{row.label}</td>
-                  <td>{row.typeLabel}</td>
-                  <td>{row.relationship}</td>
-                  <td>{row.control}</td>
-                </tr>
-              ))}
+              {CLOUD_MODE ? (
+                <>
+                  <tr
+                    data-control-claim="false"
+                    data-relationship="focus_entity"
+                    data-scope="focus"
+                    data-structure-kind="legal_group"
+                    data-testid="structure-row-legal_group"
+                  >
+                    <td>{serverFocusLabel}</td>
+                    <td>legal_entity</td>
+                    <td>focus_entity</td>
+                    <td>当前主体；不是母子控制声明</td>
+                  </tr>
+                  <tr data-structure-kind="unpublished" data-testid="structure-row-unpublished">
+                    <td colSpan={4}>
+                      其余结构层（业务板块 / 品牌 / 产品 / 设施）尚未发布——缺席表示无已签核断言，不补零。
+                    </td>
+                  </tr>
+                </>
+              ) : (
+                structureRows.map((row) => (
+                  <tr
+                    data-control-claim="false"
+                    data-relationship={row.relationship}
+                    data-scope={row.scope}
+                    data-structure-kind={row.kind}
+                    data-testid={`structure-row-${row.kind}`}
+                    key={row.kind}
+                  >
+                    <td>{row.label}</td>
+                    <td>{row.typeLabel}</td>
+                    <td>{row.relationship}</td>
+                    <td>{row.control}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </section>
@@ -3269,18 +3717,56 @@ export default function Home() {
             </button>
           </div>
           <div className="searchResults" data-testid="global-search-results">
-            {visibleSearchResults.map((result) => (
-              <button
-                data-object-type={result.objectType}
-                data-testid={`search-result-${result.key}`}
-                key={result.key}
-                onClick={() => setCenter(result.target)}
-                type="button"
-              >
-                <span>{result.label}</span>
-                <small>{result.description}</small>
-              </button>
-            ))}
+            {CLOUD_MODE
+              ? cloudSearchDisplay.map((entity) => (
+                  <div className="searchResultRow" key={entity.id}>
+                    {/* EEI-F03：点结果=选中看详情；换中心是旁边的显式按钮。 */}
+                    <button
+                      data-object-type="entity"
+                      data-testid={`search-result-${entity.id}`}
+                      onClick={() => selectServerEntity(entity)}
+                      type="button"
+                    >
+                      <span>{entity.canonical_name}</span>
+                      <small>
+                        {entity.entity_type.replaceAll("_", " ")} · {entity.status}
+                      </small>
+                    </button>
+                    <button
+                      className="searchRerootAction"
+                      data-testid={`search-reroot-${entity.id}`}
+                      disabled={entity.id === serverFocusEntityId}
+                      onClick={() => serverReroot(entity.id, entity.canonical_name)}
+                      title={`以 ${entity.canonical_name} 为中心`}
+                      type="button"
+                    >
+                      以它为中心
+                    </button>
+                  </div>
+                ))
+              : visibleSearchResults.map((result) => (
+                  <div className="searchResultRow" key={result.key}>
+                    <button
+                      data-object-type={result.objectType}
+                      data-testid={`search-result-${result.key}`}
+                      onClick={() => inspectNode(result.target)}
+                      type="button"
+                    >
+                      <span>{result.label}</span>
+                      <small>{result.description}</small>
+                    </button>
+                    <button
+                      className="searchRerootAction"
+                      data-testid={`search-reroot-${result.key}`}
+                      disabled={result.target === focusKey}
+                      onClick={() => setCenter(result.target)}
+                      title={`以 ${result.label} 为中心`}
+                      type="button"
+                    >
+                      以它为中心
+                    </button>
+                  </div>
+                ))}
           </div>
         </form>
 
@@ -3292,19 +3778,25 @@ export default function Home() {
             </a>
           </header>
           <div className="compactList">
-            {homeIndustries.map((industry) => (
-              <button
-                data-testid={`home-industry-${industry.key}`}
-                key={industry.key}
-                onClick={() => setCenter(industry.target)}
-                type="button"
-              >
-                <span>{industry.name}</span>
-                <small>
-                  {industry.entityCount} entities / {industry.recentChangeCount} changes
-                </small>
-              </button>
-            ))}
+            {CLOUD_MODE ? (
+              <p className="honestEmpty" data-testid="home-industries-empty">
+                行业目录尚未发布——发布面暂不含行业分类断言，不以样例充数。
+              </p>
+            ) : (
+              homeIndustries.map((industry) => (
+                <button
+                  data-testid={`home-industry-${industry.key}`}
+                  key={industry.key}
+                  onClick={() => setCenter(industry.target)}
+                  type="button"
+                >
+                  <span>{industry.name}</span>
+                  <small>
+                    {industry.entityCount} entities / {industry.recentChangeCount} changes
+                  </small>
+                </button>
+              ))
+            )}
           </div>
         </section>
 
@@ -3318,27 +3810,36 @@ export default function Home() {
             <span>我的关注</span>
             <small data-testid="watchlist-unread-summary">
               {serverUnreadChanges === null
-                ? `${homeWatchItems.reduce((total, item) => total + item.unread, 0)} unread (fixture)`
+                ? CLOUD_MODE
+                  ? "未读数载入中"
+                  : `${homeWatchItems.reduce((total, item) => total + item.unread, 0)} unread (fixture)`
                 : `${serverUnreadChanges} unread · server`}
             </small>
           </header>
           <div className="watchlistStack">
-            {homeWatchItems.map((item) => (
-            <button
-              className={item.key === focusKey ? "watchItem current" : "watchItem"}
-              data-testid={`home-watchlist-${item.key}`}
-              key={item.key}
-              onClick={() => restoreWatchItem(item)}
-              type="button"
-            >
-              <span>{item.label}</span>
-              <small data-testid={`watchlist-saved-state-${item.key}`}>
-                {item.unread} unread / {item.state} / {item.savedLens} / {item.savedZoom} /{" "}
-                {item.profile}
-              </small>
-              <Route size={16} aria-hidden="true" />
-            </button>
-          ))}
+            {CLOUD_MODE ? (
+              <p className="honestEmpty" data-testid="home-watchlist-empty">
+                云端关注列表为空——未读数来自真实变化流（
+                {serverUnreadChanges ?? 0} 条），不展示样例关注项。
+              </p>
+            ) : (
+              homeWatchItems.map((item) => (
+                <button
+                  className={item.key === focusKey ? "watchItem current" : "watchItem"}
+                  data-testid={`home-watchlist-${item.key}`}
+                  key={item.key}
+                  onClick={() => restoreWatchItem(item)}
+                  type="button"
+                >
+                  <span>{item.label}</span>
+                  <small data-testid={`watchlist-saved-state-${item.key}`}>
+                    {item.unread} unread / {item.state} / {item.savedLens} / {item.savedZoom} /{" "}
+                    {item.profile}
+                  </small>
+                  <Route size={16} aria-hidden="true" />
+                </button>
+              ))
+            )}
           </div>
         </section>
 
@@ -3353,27 +3854,71 @@ export default function Home() {
             <small>{homeRecentExplorations.length}</small>
           </header>
           <div className="compactList">
-            {homeRecentExplorations.map((entry) => (
-              <button
-                data-testid={`home-recent-${entry.key}`}
-                key={entry.key}
-                onClick={() => setCenter(entry.key)}
-                type="button"
-              >
-                <span>{entry.label}</span>
-                <small>{entry.path}</small>
-              </button>
-            ))}
+            {CLOUD_MODE ? (
+              serverPath.length > 1 ? (
+                serverPath.slice(0, -1).map((entry) => (
+                  <button
+                    data-testid={`home-recent-${entry.id}`}
+                    key={entry.id}
+                    onClick={() => serverReroot(entry.id, entry.label)}
+                    type="button"
+                  >
+                    <span>{entry.label}</span>
+                    <small>本次会话探索路径</small>
+                  </button>
+                ))
+              ) : (
+                <p className="honestEmpty" data-testid="home-recent-empty">
+                  本次会话暂无探索记录。
+                </p>
+              )
+            ) : (
+              homeRecentExplorations.map((entry) => (
+                <button
+                  data-testid={`home-recent-${entry.key}`}
+                  key={entry.key}
+                  onClick={() => setCenter(entry.key)}
+                  type="button"
+                >
+                  <span>{entry.label}</span>
+                  <small>{entry.path}</small>
+                </button>
+              ))
+            )}
           </div>
         </section>
 
         <section className="homeSection" aria-label="重要变化" data-testid="home-changes">
           <header>
             <span>重要变化</span>
-            <small>{homeChanges.length}</small>
+            <small>{CLOUD_MODE ? serverChangeRows.length : homeChanges.length}</small>
           </header>
           <div className="compactList">
-            {homeChanges.map((change) => (
+            {CLOUD_MODE ? (
+              serverChangeRows.length ? (
+                serverChangeRows.slice(0, 5).map((change) => (
+                  <div
+                    className="changeRow"
+                    data-testid={`home-change-${change.id}`}
+                    key={change.id}
+                  >
+                    <span>
+                      已发布关系：{change.new_value?.subject_name ?? "?"} →{" "}
+                      {change.new_value?.object_name ?? "?"}
+                    </span>
+                    <small>
+                      {(change.new_value?.relationship_type ?? "").replaceAll("_", " ")} ·{" "}
+                      {change.created_at ? change.created_at.slice(0, 10) : "无日期"}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <p className="honestEmpty" data-testid="home-changes-empty">
+                  自上次查看以来暂无新发布。
+                </p>
+              )
+            ) : null}
+            {!CLOUD_MODE && homeChanges.map((change) => (
               <button
                 data-testid={`home-change-${change.key}`}
                 key={change.key}
@@ -3453,7 +3998,7 @@ export default function Home() {
               const contextPrompt = [
                 `你是我的商业帝国研究助手。当前 EEI 工作台上下文：`,
                 `- 聚焦对象：${selectedGraphNode.label}`,
-                `- 分析镜头：${activeLens} · 语义缩放 ${semanticZoom} · as-of ${asOf}`,
+                `- 分析镜头：${activeLens} · 语义缩放 ${semanticZoom}${CLOUD_MODE ? "" : ` · as-of ${asOf}`}`,
                 productionScoreExplanation
                   ? `- 焦点候选：${productionScoreExplanation.candidate_key}（独立源 ${productionScoreExplanation.source_threshold.independent_source_count}/${productionScoreExplanation.source_threshold.minimum_independent_sources}，${productionScoreExplanation.publication_status}）`
                   : `- 焦点候选：未加载评分解释`,
@@ -3516,27 +4061,31 @@ export default function Home() {
           ))}
         </div>
 
-        <div
-          className="timelineBar"
-          aria-label="时间演变"
-          data-active-as-of={asOf}
-          data-testid="timeline-controls"
-          id="timeline-controls"
-        >
-          {timelineItems.map((item) => (
-            <button
-              aria-pressed={asOf === item.key}
-              className={asOf === item.key ? "timelineControl active" : "timelineControl"}
-              data-testid={`timeline-${item.key}`}
-              key={item.key}
-              onClick={() => setAsOf(item.key)}
-              type="button"
-            >
-              <span>{item.label}</span>
-              <small>{item.key}</small>
-            </button>
-          ))}
-        </div>
+        {/* 样例三档时间轴只属于本地样例模式；云模式的时间维度由右缘
+            真实逐年申报纵轴承担（EEI-F02：不再展示样例快照日期）。 */}
+        {!CLOUD_MODE ? (
+          <div
+            className="timelineBar"
+            aria-label="时间演变"
+            data-active-as-of={asOf}
+            data-testid="timeline-controls"
+            id="timeline-controls"
+          >
+            {timelineItems.map((item) => (
+              <button
+                aria-pressed={asOf === item.key}
+                className={asOf === item.key ? "timelineControl active" : "timelineControl"}
+                data-testid={`timeline-${item.key}`}
+                key={item.key}
+                onClick={() => setAsOf(item.key)}
+                type="button"
+              >
+                <span>{item.label}</span>
+                <small>{item.key}</small>
+              </button>
+            ))}
+          </div>
+        ) : null}
 
 
         <div className="stageRail" aria-label="供应链阶段覆盖">
@@ -3547,7 +4096,11 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="mapSurface" data-testid="ecosystem-map-surface">
+        <div
+          className="mapSurface"
+          data-testid="ecosystem-map-surface"
+          data-visual-surface="empire-map"
+        >
           {/* S9PBT02 V5: context KPI bar - every number mirrors the score
               explanation panel state (single source, consistency by
               construction); clicking jumps to the explanation. */}
@@ -3564,7 +4117,8 @@ export default function Home() {
               type="button"
             >
               <span data-testid="kpi-candidate">
-                {productionScoreExplanation.candidate_key}
+                {productionScoreExplanation.candidate_key ??
+                  productionScoreExplanation.relationship_type.replaceAll("_", " ")}
               </span>
               <span data-testid="kpi-sources">
                 独立源 {productionScoreExplanation.source_threshold.independent_source_count}/
@@ -3613,17 +4167,140 @@ export default function Home() {
               Canvas preserved
             </div>
           ) : null}
+          {/* EEI-F01/F02：云模式画布诚实状态（载入/错误/空），零样例回退。 */}
+          {CLOUD_MODE && !isServerGraphRendered ? (
+            <div
+              className="canvasOverlay cloudGraphState"
+              data-graph-status={productionGraphStatus}
+              data-testid="cloud-graph-state"
+            >
+              {productionGraphStatus === "server-error" ? (
+                <>
+                  <strong>云端图谱暂不可用</strong>
+                  <span>{productionGraphSyncReason}</span>
+                  <div className="cloudGraphActions">
+                    <button
+                      data-testid="cloud-graph-retry"
+                      onClick={() => void hydrateProductionGraph("manual_retry")}
+                      type="button"
+                    >
+                      重试
+                    </button>
+                    <button
+                      data-testid="cloud-graph-home"
+                      onClick={resetToNvidia}
+                      type="button"
+                    >
+                      回到 NVIDIA
+                    </button>
+                  </div>
+                </>
+              ) : productionGraphStatus === "server-hydrated" ? (
+                <>
+                  <strong>该主体暂无已发布关系</strong>
+                  <span>缺席表示无已签核断言，不是真实为空。</span>
+                  <div className="cloudGraphActions">
+                    <button
+                      data-testid="cloud-graph-home"
+                      onClick={resetToNvidia}
+                      type="button"
+                    >
+                      回到 NVIDIA
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <strong>正在载入已发布图谱…</strong>
+              )}
+            </div>
+          ) : null}
+          {CLOUD_MODE ? (
+            <div
+              className="changeOverlay"
+              data-as-of={publishedContextMeta.as_of ?? "none"}
+              data-testid="change-overlay"
+              data-timeline-mode="published-snapshot"
+            >
+              <strong>发布快照 · {analysisContext.dataSnapshot}</strong>
+              <span>
+                数据截至 {(publishedContextMeta.as_of ?? "").slice(0, 10) || "载入中"}
+              </span>
+              <small>
+                发布于 {(publishedContextMeta.published_at ?? "").slice(0, 10) || "载入中"}
+                ；一次发布一个原子快照。
+              </small>
+            </div>
+          ) : (
+            <div
+              className="changeOverlay"
+              data-as-of={asOf}
+              data-testid="change-overlay"
+              data-timeline-mode="as-of-snapshot"
+            >
+              <strong>快照 · {asOf}</strong>
+              <span>{currentTimeline.change}</span>
+              <small>{currentTimeline.overlay}；非实时快照。</small>
+            </div>
+          )}
+          {/* S12PB 右侧竖向时间轴（Owner 指定形态）：2016→今年份纵列悬浮于画布
+              右缘，拖动/滚轮/点选自由选年，默认当前年；数据为真实逐年官方申报
+              纵深（诚实空态，不造年份）。原 S9PCT01 契约 testid 全保留。 */}
           <div
-            className="changeOverlay"
-            data-as-of={asOf}
-            data-testid="change-overlay"
-            data-timeline-mode="as-of-snapshot"
+            aria-label="历史纵深时间轴（右侧竖轴，滑动选年）"
+            aria-orientation="vertical"
+            className="historyScrubber"
+            data-testid="empire-history-scrubber"
+            onPointerDown={handleHistoryPointerDown}
+            onPointerMove={handleHistoryPointerMove}
+            onWheel={(event) => stepHistoryYear(event.deltaY > 0 ? 1 : -1)}
           >
-            <strong>快照 · {asOf}</strong>
-            <span>{currentTimeline.change}</span>
-            <small>{currentTimeline.overlay}；非实时快照。</small>
+            {historyYears === null ? (
+              <p className="historyEmpty" data-testid="history-scrubber-empty">
+                历史纵深未连接 — 连接 EEI API 后显示 2016→今逐年官方申报深度。
+              </p>
+            ) : (
+              <>
+                <div className="historyRail" ref={historyRailRef}>
+                  {historyYears.map((item) => (
+                    <button
+                      aria-pressed={historyYearSelected === item.year}
+                      className={
+                        historyYearSelected === item.year
+                          ? "historyYear active"
+                          : "historyYear"
+                      }
+                      data-testid={`history-year-${item.year}`}
+                      key={item.year}
+                      onClick={() => setHistoryYearSelected(item.year)}
+                      title={`${item.year} 年：${item.filings} 份官方申报`}
+                      type="button"
+                    >
+                      <small>{item.year}</small>
+                      <span
+                        className="historyBar"
+                        style={{
+                          width: `${Math.max(6, (item.filings / historyMaxFilings) * 26)}px`
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <p className="historyDetail" data-testid="history-scrubber-detail">
+                  {historyYearSelected
+                    ? `${historyYearSelected} 年 · ${
+                        historyYears.find((item) => item.year === historyYearSelected)
+                          ?.filings ?? 0
+                      } 份官方申报`
+                    : "滑动或点选年份，查看该年申报纵深"}
+                </p>
+              </>
+            )}
           </div>
-          <svg
+        </div>
+
+        {/* S13：svg 悬浮层是 .canvas 的直接子元素——脱离 mapSurface 的
+            堆叠上下文，才能盖在控制条带之上（节点可点、空白穿透）。 */}
+        <svg
             className={`ecosystemMap zoom-${semanticZoom}`}
             data-hover-depth={hoverNeighborhood ? "on" : "off"}
             data-render-source={graphViewMode}
@@ -3637,7 +4314,9 @@ export default function Home() {
             aria-label={
               graphViewMode === "server"
                 ? "EEI 生产关系图（服务端递归展开）"
-                : "NVIDIA 供应链样例图（本地样例数据）"
+                : graphViewMode === "cloud-empty"
+                  ? "EEI 云端图谱（等待已发布数据）"
+                  : "NVIDIA 供应链样例图（本地样例数据）"
             }
           >
             <defs>
@@ -3826,62 +4505,7 @@ export default function Home() {
               </g>
               );
             })}
-          </svg>
-          {/* S12PB 右侧竖向时间轴（Owner 指定形态）：2016→今年份纵列悬浮于画布
-              右缘，拖动/滚轮/点选自由选年，默认当前年；数据为真实逐年官方申报
-              纵深（诚实空态，不造年份）。原 S9PCT01 契约 testid 全保留。 */}
-          <div
-            aria-label="历史纵深时间轴（右侧竖轴，滑动选年）"
-            aria-orientation="vertical"
-            className="historyScrubber"
-            data-testid="empire-history-scrubber"
-            onPointerDown={handleHistoryPointerDown}
-            onPointerMove={handleHistoryPointerMove}
-            onWheel={(event) => stepHistoryYear(event.deltaY > 0 ? 1 : -1)}
-          >
-            {historyYears === null ? (
-              <p className="historyEmpty" data-testid="history-scrubber-empty">
-                历史纵深未连接 — 连接 EEI API 后显示 2016→今逐年官方申报深度。
-              </p>
-            ) : (
-              <>
-                <div className="historyRail" ref={historyRailRef}>
-                  {historyYears.map((item) => (
-                    <button
-                      aria-pressed={historyYearSelected === item.year}
-                      className={
-                        historyYearSelected === item.year
-                          ? "historyYear active"
-                          : "historyYear"
-                      }
-                      data-testid={`history-year-${item.year}`}
-                      key={item.year}
-                      onClick={() => setHistoryYearSelected(item.year)}
-                      title={`${item.year} 年：${item.filings} 份官方申报`}
-                      type="button"
-                    >
-                      <small>{item.year}</small>
-                      <span
-                        className="historyBar"
-                        style={{
-                          width: `${Math.max(6, (item.filings / historyMaxFilings) * 26)}px`
-                        }}
-                      />
-                    </button>
-                  ))}
-                </div>
-                <p className="historyDetail" data-testid="history-scrubber-detail">
-                  {historyYearSelected
-                    ? `${historyYearSelected} 年 · ${
-                        historyYears.find((item) => item.year === historyYearSelected)
-                          ?.filings ?? 0
-                      } 份官方申报`
-                    : "滑动或点选年份，查看该年申报纵深"}
-                </p>
-              </>
-            )}
-          </div>
-        </div>
+        </svg>
 
         <div className="historyControls" aria-label="历史恢复">
           <button data-testid="app-back" onClick={browserBack} type="button">
@@ -3891,18 +4515,31 @@ export default function Home() {
         </div>
 
         <ol className="breadcrumb" aria-label="探索路径" data-testid="reroot-breadcrumb">
-          {path.map((key, index) => (
-            <li key={`${key}-${index}`}>
-              <button
-                aria-current={index === path.length - 1 ? "page" : undefined}
-                data-testid={`breadcrumb-subject-${key}-${index}`}
-                onClick={() => applyPathSubject(index)}
-                type="button"
-              >
-                {key === "nvidia" ? "NVIDIA" : entityLabels[key]}
-              </button>
-            </li>
-          ))}
+          {CLOUD_MODE
+            ? serverPath.map((entry, index) => (
+                <li key={`${entry.id}-${index}`}>
+                  <button
+                    aria-current={index === serverPath.length - 1 ? "page" : undefined}
+                    data-testid={`breadcrumb-subject-${entry.id}-${index}`}
+                    onClick={() => serverReroot(entry.id, entry.label)}
+                    type="button"
+                  >
+                    {entry.label}
+                  </button>
+                </li>
+              ))
+            : path.map((key, index) => (
+                <li key={`${key}-${index}`}>
+                  <button
+                    aria-current={index === path.length - 1 ? "page" : undefined}
+                    data-testid={`breadcrumb-subject-${key}-${index}`}
+                    onClick={() => applyPathSubject(index)}
+                    type="button"
+                  >
+                    {key === "nvidia" ? "NVIDIA" : entityLabels[key]}
+                  </button>
+                </li>
+              ))}
         </ol>
 
         <section
@@ -3952,7 +4589,7 @@ export default function Home() {
             </div>
             <div>
               <dt>当前主体</dt>
-              <dd>{scenario.heading}</dd>
+              <dd>{CLOUD_MODE ? serverFocusLabel : scenario.heading}</dd>
             </div>
           </dl>
         </section>
@@ -4025,16 +4662,27 @@ export default function Home() {
         </section>
 
         <ol className="pathList">
-          {scenario.edges.slice(0, 4).map((edge) => (
-            <li key={`${edge.from}-${edge.to}`}>
-              <strong>{`${nodeByKey.get(edge.from)?.shortLabel ?? edge.from} -> ${
-                nodeByKey.get(edge.to)?.shortLabel ?? edge.to
-              }`}</strong>
-              <span>{edge.stage}</span>
-              <em>Synthetic fixture</em>
-              <small>{edge.fixtureNotice}</small>
-            </li>
-          ))}
+          {CLOUD_MODE
+            ? graphViewEdges.slice(0, 4).map((edge) => (
+                <li key={edge.id}>
+                  <strong>{`${graphViewNodeByKey.get(edge.from)?.shortLabel ?? edge.from} -> ${
+                    graphViewNodeByKey.get(edge.to)?.shortLabel ?? edge.to
+                  }`}</strong>
+                  <span>{edge.label}</span>
+                  <em>已发布事实</em>
+                  <small>证据 {edge.evidenceCount} 条 · {edge.stage}</small>
+                </li>
+              ))
+            : scenario.edges.slice(0, 4).map((edge) => (
+                <li key={`${edge.from}-${edge.to}`}>
+                  <strong>{`${nodeByKey.get(edge.from)?.shortLabel ?? edge.from} -> ${
+                    nodeByKey.get(edge.to)?.shortLabel ?? edge.to
+                  }`}</strong>
+                  <span>{edge.stage}</span>
+                  <em>Synthetic fixture</em>
+                  <small>{edge.fixtureNotice}</small>
+                </li>
+              ))}
         </ol>
 
         <section
@@ -4082,7 +4730,7 @@ export default function Home() {
             </div>
           </dl>
           <ol className="pathList" data-testid="production-evidence-snippets">
-            {(productionEvidenceDetail?.evidence ?? []).slice(0, 3).map((item, index) => (
+            {(productionEvidenceDetail?.evidence ?? []).slice(0, 4).map((item, index) => (
               <li
                 data-testid={`production-evidence-snippet-${index}`}
                 key={item.evidence_id}
@@ -4091,6 +4739,22 @@ export default function Home() {
                 <span>{item.role}</span>
                 <em>{item.publisher ?? "source document"}</em>
                 <small>{item.snippet.text ?? item.support_excerpt ?? "snippet-missing"}</small>
+                {item.locator ? (
+                  <small className="evidenceLocator" data-testid={`evidence-locator-${index}`}>
+                    定位：{item.locator}
+                  </small>
+                ) : null}
+                {item.url ? (
+                  <a
+                    className="evidenceSourceLink"
+                    data-testid={`evidence-source-link-${index}`}
+                    href={item.url}
+                    rel="noreferrer noopener"
+                    target="_blank"
+                  >
+                    打开官方来源
+                  </a>
+                ) : null}
               </li>
             ))}
           </ol>
@@ -4206,12 +4870,27 @@ export default function Home() {
           <button
             className="primaryAction"
             data-testid="primary-set-center"
-            disabled={!selectedGraphNode.localKey || !selectedGraphNode.centerable || selectedGraphNode.localKey === focusKey}
-            onClick={() =>
-              selectedGraphNode.localKey &&
-              selectedGraphNode.centerable &&
-              setCenter(selectedGraphNode.localKey as FocusKey)
+            disabled={
+              CLOUD_MODE
+                ? !selectedGraphNode.key ||
+                  !selectedGraphNode.centerable ||
+                  selectedGraphNode.key === serverFocusEntityId
+                : !selectedGraphNode.localKey ||
+                  !selectedGraphNode.centerable ||
+                  selectedGraphNode.localKey === focusKey
             }
+            onClick={() => {
+              // EEI-F03：这是唯一的换中心入口——目标就是被选中的实体本身。
+              if (CLOUD_MODE) {
+                if (selectedGraphNode.key && selectedGraphNode.centerable) {
+                  serverReroot(selectedGraphNode.key, selectedGraphNode.label);
+                }
+                return;
+              }
+              if (selectedGraphNode.localKey && selectedGraphNode.centerable) {
+                setCenter(selectedGraphNode.localKey as FocusKey);
+              }
+            }}
             type="button"
           >
             <Crosshair size={16} aria-hidden="true" />
@@ -4219,7 +4898,7 @@ export default function Home() {
           </button>
           <button
             data-testid="node-action-upstream"
-            disabled={graphViewMode === "server" || !upstreamCandidate}
+            disabled={CLOUD_MODE || graphViewMode === "server" || !upstreamCandidate}
             onClick={() => upstreamCandidate && inspectNode(upstreamCandidate)}
             type="button"
           >
@@ -4228,7 +4907,7 @@ export default function Home() {
           </button>
           <button
             data-testid="node-action-downstream"
-            disabled={graphViewMode === "server" || !downstreamCandidate}
+            disabled={CLOUD_MODE || graphViewMode === "server" || !downstreamCandidate}
             onClick={() => downstreamCandidate && inspectNode(downstreamCandidate)}
             type="button"
           >
@@ -4276,12 +4955,26 @@ export default function Home() {
               <span>查看组列表</span>
             </button>
           ) : null}
-          {scenario.nextCenters.map((key) => (
-            <button key={key} onClick={() => setCenter(key)} type="button">
-              <Network size={16} aria-hidden="true" />
-              <span>以 {entityLabels[key]} 为中心</span>
-            </button>
-          ))}
+          {CLOUD_MODE
+            ? (productionGraph?.nodes ?? [])
+                .filter((node) => node.id !== serverFocusEntityId)
+                .slice(0, 3)
+                .map((node) => (
+                  <button
+                    key={node.id}
+                    onClick={() => serverReroot(node.id, node.canonical_name)}
+                    type="button"
+                  >
+                    <Network size={16} aria-hidden="true" />
+                    <span>以 {shortServerLabel(node.canonical_name)} 为中心</span>
+                  </button>
+                ))
+            : scenario.nextCenters.map((key) => (
+                <button key={key} onClick={() => setCenter(key)} type="button">
+                  <Network size={16} aria-hidden="true" />
+                  <span>以 {entityLabels[key]} 为中心</span>
+                </button>
+              ))}
           <button onClick={resetToNvidia} type="button">
             <Route size={16} aria-hidden="true" />
             <span>回到 NVIDIA</span>
@@ -4325,9 +5018,19 @@ export default function Home() {
         ) : null}
 
         <div className="statusStrip">
-          <span>数据：样例</span>
-          <span>真实事实声明：未启用</span>
-          <span>样例标注：可见</span>
+          {CLOUD_MODE ? (
+            <>
+              <span>数据：已发布面</span>
+              <span>事实来源：官方申报与新闻稿（双源+签核）</span>
+              <span>构建：{BUILD_SHA.slice(0, 12)}</span>
+            </>
+          ) : (
+            <>
+              <span>数据：样例</span>
+              <span>真实事实声明：未启用</span>
+              <span>样例标注：可见</span>
+            </>
+          )}
           <span data-testid="model-contract-state">
             模型 {analysisContext.modelVersion} / 偏好 {analysisContext.profileVersion} / 公式{" "}
             {analysisContext.formulaRegistryVersion} / 参数{" "}

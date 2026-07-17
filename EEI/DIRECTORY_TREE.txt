@@ -87,6 +87,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       ├── analysis-context-badge.tsx
 │   │   │       ├── analysis-contract.ts
 │   │   │       ├── capital-events-client.ts
+│   │   │       ├── cloud-data-client.ts
 │   │   │       ├── explore-api-client.ts
 │   │   │       ├── family-module-client.ts
 │   │   │       ├── family-module-page.tsx
@@ -526,10 +527,12 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── compile_model_runtime_defaults.py
 │   ├── cross_verify_relationship_candidates.py
 │   ├── db_tools.py
+│   ├── deploy_cloud.sh
 │   ├── env_doctor.py
 │   ├── fetch_gold_corpus_sources.py
 │   ├── fetch_official_source_full_text.py
 │   ├── finalize_operator_soak_evidence.py
+│   ├── fix_acceptance_defects_f02_f04.py
 │   ├── generate_app_icon.py
 │   ├── generate_governance_pdf.py
 │   ├── generate_scoring_parity_fixture.py
@@ -631,6 +634,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   ├── saved-view-live.spec.ts
 │   │   ├── state-contract.spec.ts
 │   │   ├── theme-system.spec.ts
+│   │   ├── visual-coverage-home.spec.ts
 │   │   └── visual-regression.spec.ts
 │   ├── fixtures
 │   │   ├── gold_quality

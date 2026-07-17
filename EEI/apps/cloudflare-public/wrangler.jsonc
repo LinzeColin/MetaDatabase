@@ -32,8 +32,8 @@
       "pattern": "eei.linzezhang.com",
       "custom_domain": true
     }
-  ],
-  "vars": {
-    "SEC_USER_AGENT": "EEI research linzezhang35@gmail.com"
-  }
+  ]
+  // SEC_USER_AGENT is a secret (wrangler secret put SEC_USER_AGENT): the SEC
+  // fair-access contact identity contains an email and must not live in the
+  // public repo (EEI-F05 PII boundary). Missing secret => sync fails closed.
 }

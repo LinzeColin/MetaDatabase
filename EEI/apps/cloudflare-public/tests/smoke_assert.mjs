@@ -181,4 +181,72 @@ assert.equal(policyOverview.body.regulatory_filings.source, "sec_edgar");
 assert.equal(policyOverview.body.regulatory_filings.by_year.length, 3);
 assert.deepEqual(policyOverview.body.regulatory_filings.by_year[0], { year: 2016, filings: 120 });
 
-console.log("SMOKE_ASSERT_OK routes=15");
+// --- EEI-F01: routes the shipped UI declares must exist in the cloud ---
+const activeContext = await getJson("/v1/scoring/active-context");
+assert.equal(activeContext.status, 200);
+assert.equal(activeContext.body.schema_version, "active-analysis-context-v1");
+assert.equal(activeContext.body.context_key, "global");
+assert.equal(activeContext.body.client_state, "current");
+assert.equal(activeContext.body.refresh_generation, 7);
+assert.equal(activeContext.body.model_version, "business-empire-model-v2@2");
+const staleContext = await getJson(
+  "/v1/scoring/active-context?client_refresh_token=not-the-current-token"
+);
+assert.equal(staleContext.body.client_state, "stale");
+
+const supplyChain = await getJson("/v1/supply-chain/overview");
+assert.equal(supplyChain.status, 200);
+assert.equal(supplyChain.body.stages.length, 2);
+assert.equal(supplyChain.body.relationships.length, 2);
+assert.ok(supplyChain.body.relationships.every((row) => row.owner_signed_published));
+assert.ok(supplyChain.body.relationships.every((row) => row.fixture_flag === false));
+assert.equal(supplyChain.body.summary.published_fact_count, 2);
+assert.equal(supplyChain.body.summary.demo_or_candidate_count, 0);
+
+const changes = await getJson("/v1/changes");
+assert.equal(changes.status, 200);
+assert.ok(Array.isArray(changes.body));
+assert.equal(changes.body.length, 2);
+assert.equal(changes.body[0].change_type, "relationship_published");
+const changesSince = await getJson("/v1/changes?since=2026-07-16T00:00:00Z");
+assert.equal(changesSince.body.length, 0, "since filter must exclude older publications");
+const changesBad = await getJson("/v1/changes?since=not-a-date");
+assert.equal(changesBad.status, 400);
+
+// --- EEI-F02: one snapshot/model identity on the explore surface ---
+assert.equal(
+  explore.body.production_context.active_scoring_profile_version_id,
+  "00000000-0000-4000-a000-000000000001"
+);
+assert.equal(
+  explore.body.production_context.active_scoring_profile.model_version,
+  "business-empire-model-v2@2"
+);
+assert.equal(
+  explanation.body.model_version,
+  "business-empire-model-v2@2",
+  "score explanation carries the published model identity"
+);
+
+// --- EEI-F05: no contact identifiers on the public scoring surface ---
+// (model_version legitimately uses "@" for version pins; only email-shaped
+// tokens are forbidden.)
+const explanationText = JSON.stringify(explanation.body);
+assert.ok(
+  !/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(explanationText),
+  "no email addresses in public explanation"
+);
+assert.ok(!("owner_actor" in (explanation.body.qualifiers ?? {})));
+
+// --- EEI-F07/F08: build binding + security headers on every response ---
+const headerProbe = await fetch(`${base}/health`);
+assert.ok(headerProbe.headers.get("x-eei-build"), "x-eei-build header present");
+assert.equal(headerProbe.headers.get("x-content-type-options"), "nosniff");
+assert.ok(headerProbe.headers.get("content-security-policy"));
+assert.ok(headerProbe.headers.get("strict-transport-security"));
+const buildMeta = await getJson("/v1/meta/build");
+assert.equal(buildMeta.status, 200);
+assert.equal(buildMeta.body.repo, "LinzeColin/MetaDatabase");
+assert.ok("commit" in buildMeta.body);
+
+console.log("SMOKE_ASSERT_OK routes=20");

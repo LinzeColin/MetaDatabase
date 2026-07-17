@@ -11,7 +11,7 @@
     "workflow": ".github/workflows/eei-validation.yml"
   },
   "evidence_type": "postgresql_migration_suffix_rollback_rehearsal",
-  "generated_at": "2026-06-23T02:12:37Z",
+  "generated_at": "2026-07-17T12:23:48Z",
   "integration_test": "tests/integration/test_database_migrations.py::test_t905_each_migration_suffix_rolls_down_and_re_upgrades",
   "migrations": [
     {

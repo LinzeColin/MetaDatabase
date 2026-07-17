@@ -62,3 +62,15 @@ CREATE TABLE IF NOT EXISTS filing_year_counts (
   year INTEGER PRIMARY KEY,
   filings INTEGER NOT NULL
 );
+
+-- EEI-F01: static 16-stage supply-chain reference rail so the cloud
+-- /v1/supply-chain/overview mirrors the local module surface.
+CREATE TABLE IF NOT EXISTS supply_chain_stages (
+  stage_id TEXT PRIMARY KEY,
+  stage_order INTEGER NOT NULL,
+  slug TEXT NOT NULL,
+  name_zh TEXT NOT NULL,
+  name_en TEXT NOT NULL,
+  default_direction TEXT NOT NULL,
+  examples TEXT
+);

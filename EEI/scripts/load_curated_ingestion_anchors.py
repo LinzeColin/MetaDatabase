@@ -837,6 +837,9 @@ def load_anchors() -> dict[str, object]:
             candidate_total += len(expected_tokens(row, include_anchor_subject=False))
 
         fact_candidate_count = 0
+        fact_snapshot_by_anchor = {
+            str(row["anchor_id"]): row for row in fact_config["source_snapshots"]
+        }
         for candidate in fact_config["relationship_candidates"]:
             source_anchor_ids = candidate_source_anchor_ids(candidate)
             candidate_payload = {
@@ -864,6 +867,21 @@ def load_anchors() -> dict[str, object]:
             )
             for source_anchor_id in source_anchor_ids:
                 raw_snapshot_id, source_document_id = raw_snapshots[source_anchor_id]
+                snapshot_row = fact_snapshot_by_anchor[source_anchor_id]
+                # EEI-F04 invariant: each evidence row's locator/excerpt must
+                # identify ITS OWN document. Per-snapshot fields are required;
+                # a missing field fails the load instead of silently copying
+                # the candidate-level locator onto every document.
+                if "locator" not in snapshot_row or "support_excerpt" not in snapshot_row:
+                    raise ValueError(
+                        f"{source_anchor_id} lacks per-document locator/support_excerpt"
+                        f" required for candidate {candidate_payload['candidate_key']}"
+                    )
+                evidence_payload = {
+                    **candidate_payload,
+                    "locator": snapshot_row["locator"],
+                    "support_excerpt": snapshot_row["support_excerpt"],
+                }
                 evidence_subject_resolution_id = resolution_id(
                     connection,
                     raw_snapshot_id,
@@ -880,14 +898,14 @@ def load_anchors() -> dict[str, object]:
                     source_document_id,
                     evidence_subject_resolution_id,
                     evidence_object_resolution_id,
-                    candidate_payload,
+                    evidence_payload,
                 )
                 upsert_relationship_fact_candidate_evidence(
                     connection,
                     fact_candidate_id,
                     evidence_chain_id,
                     source_document_id,
-                    candidate_payload,
+                    evidence_payload,
                 )
             upsert_manual_review_queue(connection, fact_candidate_id, candidate_payload)
             fact_candidate_count += 1

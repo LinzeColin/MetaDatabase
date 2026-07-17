@@ -31,6 +31,45 @@ const CORS_HEADERS = {
   "access-control-allow-headers": "content-type"
 };
 
+// EEI-F08 baseline: defense-in-depth headers on every response (API and
+// static assets). CSP keeps Next inline bootstrap scripts and the Cloudflare
+// Insights beacon working; frame embedding is denied outright.
+const SECURITY_HEADERS = {
+  "strict-transport-security": "max-age=31536000; includeSubDomains",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+  "content-security-policy":
+    "default-src 'self'; script-src 'self' 'unsafe-inline'" +
+    " https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline';" +
+    " img-src 'self' data:; font-src 'self' data:; connect-src 'self'" +
+    " https://cloudflareinsights.com https://static.cloudflareinsights.com;" +
+    " frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+};
+
+// EEI-F07: immutable build binding. EEI_BUILD_SHA / EEI_BUILD_TIME /
+// EEI_DEPLOY_ID are injected at deploy time (wrangler deploy --var) by
+// scripts/build_cloud_frontend.sh so production is provably mapped to a
+// commit; "unbound" means a deploy skipped the pipeline.
+function buildInfo(env) {
+  return {
+    repo: "LinzeColin/MetaDatabase",
+    commit: env.EEI_BUILD_SHA ?? "unbound",
+    built_at: env.EEI_BUILD_TIME ?? null,
+    deploy_id: env.EEI_DEPLOY_ID ?? null
+  };
+}
+
+function applyEdgeHeaders(response, env) {
+  const decorated = new Response(response.body, response);
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    decorated.headers.set(key, value);
+  }
+  decorated.headers.set("x-eei-build", env.EEI_BUILD_SHA ?? "unbound");
+  return decorated;
+}
+
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -96,6 +135,21 @@ async function activeSnapshot(env) {
   ).first();
 }
 
+// EEI-F01/F02: the published analysis-context identity, exported atomically
+// with the rest of the publication surface. One identity per publish; every
+// screen and score reads this same record.
+async function publishedAnalysisContext(env) {
+  const row = await env.EEI_PUB.prepare(
+    "SELECT value FROM publication_meta WHERE key = 'active_analysis_context'"
+  ).first();
+  if (!row?.value) return null;
+  try {
+    return JSON.parse(row.value);
+  } catch {
+    return null;
+  }
+}
+
 async function publishedRelationshipCount(env) {
   const row = await env.EEI_PUB.prepare(
     "SELECT COUNT(*) AS n FROM relationships"
@@ -104,25 +158,37 @@ async function publishedRelationshipCount(env) {
 }
 
 async function productionContext(env, requestAsOf) {
-  const [meta, snapshot, publishedCount] = await Promise.all([
+  const [meta, snapshot, publishedCount, analysisContext] = await Promise.all([
     publicationMeta(env),
     activeSnapshot(env),
-    publishedRelationshipCount(env)
+    publishedRelationshipCount(env),
+    publishedAnalysisContext(env)
   ]);
   return {
     schema_version: "production-context-v1",
     request_as_of: requestAsOf ?? null,
     graph_query_version: GRAPH_QUERY_VERSION,
     scoring_service_version: SCORING_SERVICE_VERSION,
-    active_scoring_profile_version_id: null,
-    active_scoring_profile: null,
+    active_scoring_profile_version_id:
+      analysisContext?.active_scoring_profile_version_id ?? null,
+    active_scoring_profile: analysisContext
+      ? {
+          model_version: analysisContext.model_version,
+          profile_version: analysisContext.profile_version
+        }
+      : null,
     active_analysis_context: {
       surface: "cloud_publication",
       snapshot_key: snapshot?.snapshot_key ?? null,
       snapshot_status: snapshot?.status ?? null,
       as_of: snapshot?.as_of ?? null,
       published_at: meta.published_at ?? null,
-      publisher_version: meta.publisher_version ?? null
+      publisher_version: meta.publisher_version ?? null,
+      data_snapshot_key: analysisContext?.active_data_snapshot_key ?? null,
+      score_snapshot_id: analysisContext?.active_scoring_run_id ?? null,
+      model_version: analysisContext?.model_version ?? null,
+      profile_version: analysisContext?.profile_version ?? null,
+      refresh_generation: analysisContext?.refresh_generation ?? null
     },
     record_modes: {
       published_relationships: {
@@ -388,6 +454,7 @@ async function scoreExplanation(env, relationshipId) {
   const reviewStatus = qualifiers.decision_set_key ? "human_verified" : "unreviewed";
   const factVersionPresent = true;
   const snapshot = await activeSnapshot(env);
+  const analysisContext = await publishedAnalysisContext(env);
   const metrics = relationshipScoreMetrics({
     confidence: Number(row.confidence),
     independentSourceCount,
@@ -417,9 +484,9 @@ async function scoreExplanation(env, relationshipId) {
     coverage: metrics.coverage,
     contributions: metrics.contributions,
     missing_inputs: metrics.missing_inputs,
-    model_version: "cloud-publication-surface",
-    profile_version: "cloud-publication-surface",
-    profile_version_id: null,
+    model_version: analysisContext?.model_version ?? "cloud-publication-surface",
+    profile_version: analysisContext?.profile_version ?? "cloud-publication-surface",
+    profile_version_id: analysisContext?.active_scoring_profile_version_id ?? null,
     structured_fact: qualifiers.structured_fact ?? {},
     counter_evidence: [],
     qualifiers,
@@ -491,8 +558,128 @@ async function readJsonBody(request) {
   }
 }
 
-export default {
-  async fetch(request, env) {
+// Mirror of the local API's relationship_type -> stage mapping
+// (apps/api/app/domain_repository.py SUPPLY_TYPE_STAGE_MAP).
+const SUPPLY_TYPE_STAGE_MAP = {
+  material_provider_to: "SC-02",
+  licenses_ip_to: "SC-03",
+  equipment_provider_to: "SC-04",
+  wafer_foundry_for: "SC-06",
+  packages_tests_for: "SC-07",
+  system_integrator_for: "SC-09",
+  energy_provider_to: "SC-10",
+  logistics_provider_to: "SC-10",
+  cloud_provider_to: "SC-11",
+  distributor_for: "SC-11",
+  customer_of: "SC-12",
+  supplier_to: "SC-06",
+  capacity_commitment: "SC-06",
+  compute_provider_to: "SC-11"
+};
+
+// EEI-F01: cloud twin of the local /v1/supply-chain/overview. Every
+// relationship on this surface is owner-signed published by construction;
+// fixture rows never leave the machine, so fixture_flag is honestly false.
+async function supplyChainOverview(env) {
+  const { results: stageRows } = await env.EEI_PUB.prepare(
+    "SELECT stage_id, stage_order, slug, name_zh, name_en, default_direction," +
+      " examples FROM supply_chain_stages ORDER BY stage_order"
+  ).all();
+  const stages = (stageRows ?? []).map((row) => ({
+    ...row,
+    stage_order: Number(row.stage_order)
+  }));
+  const { results: relationshipRows } = await env.EEI_PUB.prepare(
+    "SELECT r.id, r.relationship_type, r.status, r.confidence, r.observed_at," +
+      " subject.canonical_name AS subject_name," +
+      " object.canonical_name AS object_name" +
+      " FROM relationships r" +
+      " JOIN entities subject ON subject.id = r.subject_entity_id" +
+      " JOIN entities object ON object.id = r.object_entity_id" +
+      " WHERE r.relationship_family = 'supply_chain_operations'" +
+      " ORDER BY r.relationship_type, r.id LIMIT 300"
+  ).all();
+  const relationships = (relationshipRows ?? []).map((row) => ({
+    id: row.id,
+    relationship_type: row.relationship_type,
+    status: row.status,
+    confidence: row.confidence === null ? null : Number(row.confidence),
+    observed_at: row.observed_at,
+    owner_signed_published: true,
+    subject_name: row.subject_name,
+    object_name: row.object_name,
+    fixture_flag: false,
+    stage_id: SUPPLY_TYPE_STAGE_MAP[row.relationship_type] ?? null
+  }));
+  const mappedStageIds = new Set(
+    relationships.map((row) => row.stage_id).filter(Boolean)
+  );
+  return json({
+    stages,
+    relationships,
+    summary: {
+      published_fact_count: relationships.length,
+      demo_or_candidate_count: 0,
+      stages_total: stages.length,
+      stages_with_relationships: mappedStageIds.size
+    },
+    abstentions: {
+      coverage:
+        "Stages without relationships mean no assertion exists in the" +
+        " published graph for that stage - not that the stage is empty in the" +
+        " real world.",
+      labeling:
+        "The cloud publication surface carries owner-signed published facts" +
+        " only; demo and candidate rows never leave the local machine."
+    }
+  });
+}
+
+// EEI-F01: cloud twin of the local /v1/changes. The publication surface's
+// change feed is derived from publication events (relationships.published_at);
+// internal review-queue changes stay local.
+async function listChanges(env, sinceRaw) {
+  let since = null;
+  if (sinceRaw) {
+    const parsed = new Date(sinceRaw);
+    if (Number.isNaN(parsed.getTime())) {
+      return badRequest("since must be an ISO-8601 timestamp");
+    }
+    since = parsed.toISOString();
+  }
+  const query =
+    "SELECT r.id, r.relationship_type, r.relationship_family, r.status," +
+    " r.published_at, subject.canonical_name AS subject_name," +
+    " object.canonical_name AS object_name" +
+    " FROM relationships r" +
+    " JOIN entities subject ON subject.id = r.subject_entity_id" +
+    " JOIN entities object ON object.id = r.object_entity_id" +
+    (since ? " WHERE r.published_at >= ?" : "") +
+    " ORDER BY r.published_at DESC, r.id DESC LIMIT 100";
+  const statement = env.EEI_PUB.prepare(query);
+  const { results } = await (since ? statement.bind(since) : statement).all();
+  return json(
+    (results ?? []).map((row) => ({
+      id: row.id,
+      change_type: "relationship_published",
+      object_type: "relationship",
+      object_id: row.id,
+      old_value: null,
+      new_value: {
+        relationship_type: row.relationship_type,
+        relationship_family: row.relationship_family,
+        status: row.status,
+        subject_name: row.subject_name,
+        object_name: row.object_name
+      },
+      review_required: false,
+      created_at: row.published_at,
+      trigger_source: null
+    }))
+  );
+}
+
+async function handleFetch(request, env) {
     const url = new URL(request.url);
     const { pathname } = url;
     if (request.method === "OPTIONS") {
@@ -505,7 +692,8 @@ export default {
         status: "ok",
         surface: "cloud_publication",
         snapshot_key: snapshot?.snapshot_key ?? null,
-        graph_query_version: GRAPH_QUERY_VERSION
+        graph_query_version: GRAPH_QUERY_VERSION,
+        build: buildInfo(env)
       });
     }
 
@@ -664,6 +852,45 @@ export default {
       return json(await runCloudSync(env, "manual"));
     }
 
+    // --- EEI-F01: routes the shipped UI declares (were 404 in production) ---
+    if (pathname === "/v1/scoring/active-context" && request.method === "GET") {
+      const context = await publishedAnalysisContext(env);
+      if (!context) {
+        return notFound(
+          "publication surface carries no analysis context yet; republish required"
+        );
+      }
+      const clientToken = url.searchParams.get("client_refresh_token");
+      const clientState =
+        clientToken !== null && clientToken !== context.refresh_token
+          ? "stale"
+          : "current";
+      return json({
+        ...context,
+        client_state: clientState,
+        stale_client_semantics:
+          "Clients with a different refresh_token must discard cached graph," +
+          " score, model and module state and refetch the active context."
+      });
+    }
+
+    if (pathname === "/v1/supply-chain/overview" && request.method === "GET") {
+      return supplyChainOverview(env);
+    }
+
+    if (pathname === "/v1/changes" && request.method === "GET") {
+      return listChanges(env, url.searchParams.get("since"));
+    }
+
+    if (pathname === "/v1/meta/build" && request.method === "GET") {
+      const meta = await publicationMeta(env);
+      return json({
+        ...buildInfo(env),
+        publisher_version: meta.publisher_version ?? null,
+        published_at: meta.published_at ?? null
+      });
+    }
+
     const explanationMatch = pathname.match(
       /^\/v1\/scoring\/relationship\/([0-9a-fA-F-]{36})\/explanation$/
     );
@@ -683,6 +910,12 @@ export default {
     }
     // Non-API paths fall through to static assets via the assets binding.
     return env.ASSETS.fetch(request);
+}
+
+export default {
+  async fetch(request, env) {
+    const response = await handleFetch(request, env);
+    return applyEdgeHeaders(response, env);
   },
 
   // S10PBT02: daily incremental SEC polling with an honest run_log row per

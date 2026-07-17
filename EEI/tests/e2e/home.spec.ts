@@ -307,6 +307,10 @@ test("reaches company focus within three actions and keeps home controls keyboar
   await page.getByTestId("global-search-input").focus();
   await page.getByTestId("global-search-input").fill("tsmc");
   await page.getByTestId("global-search-input").press("Enter");
+  // EEI-F03 契约：搜索提交=选中看详情，主体不动；换中心要走显式按钮。
+  await expect(page.getByTestId("current-focus-title")).toHaveText("NVIDIA");
+  await expect(page.getByTestId("selected-node-title")).toHaveText("Synthetic Advanced Foundry");
+  await page.getByTestId("search-reroot-tsmc").click();
   await expect(page.getByTestId("current-focus-title")).toHaveText("Synthetic Advanced Foundry");
 
   await page.getByTestId("home-industry-semiconductors").focus();
@@ -396,10 +400,12 @@ test("exposes the Objects and Scope navigation screen with counts definitions an
 test("measures visual-first relationship layout and critical relationship layers", async ({ page }) => {
   await page.goto("/");
 
-  const canvasBox = await boxFor(page.getByTestId("visual-canvas"));
+  // S13 英雄布局：地图面是全视口底座（文档 28 的 90% 门由
+  // visual-coverage-home.spec 按三视口量测；此处校验底座本身铺满视口）。
   const mapBox = await boxFor(page.getByTestId("ecosystem-map-surface"));
-  const visualCoverage = (mapBox.width * mapBox.height) / (canvasBox.width * canvasBox.height);
-  expect(visualCoverage).toBeGreaterThanOrEqual(0.6);
+  const viewport = page.viewportSize()!;
+  const visualCoverage = (mapBox.width * mapBox.height) / (viewport.width * viewport.height);
+  expect(visualCoverage).toBeGreaterThanOrEqual(0.95);
 
   const focus = await boxFor(page.getByTestId("graph-node-nvidia"));
   const materials = await boxFor(page.getByTestId("graph-node-materials"));
