@@ -1,0 +1,14 @@
+{
+  "kind": "本机加速预检",
+  "started_at": "2026-07-17T07:10:56.182741+00:00",
+  "cycles": 5000,
+  "heartbeat_gaps": 0,
+  "induced_notify_flaps": 1000,
+  "notify_retries_recovered": 1000,
+  "outbox_backlog_end": 0,
+  "emails_delivered": 5000,
+  "notify_latency_ms_p95": 2.33,
+  "mem_peak_growth_kb": 1980.8,
+  "kill_switch_engaged": false,
+  "verdict_engineering_ok": true
+}

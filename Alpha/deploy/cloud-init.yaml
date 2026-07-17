@@ -1,0 +1,24 @@
+#cloud-config
+# Alpha 一键部署(Oracle 建机时粘贴到「高级选项 → Cloud-init 用户数据」)
+# 首次开机自动:加固 + 装库 + 装五进程 + 起控制页/监督/通知(降级模式,不连券商)。
+# 真实券商/邮件/实盘仍需 owner 部署日填 /opt/alpha/env(BLK-005)。永不在此写任何秘密。
+package_update: true
+package_upgrade: true
+packages: [git, python3.11, python3.11-venv, postgresql, ufw, fail2ban, unattended-upgrades, chrony]
+runcmd:
+  - [ bash, -lc, "timedatectl set-timezone UTC" ]
+  - [ bash, -lc, "ufw default deny incoming && ufw default allow outgoing && ufw allow 22/tcp && ufw allow 443/tcp && ufw --force enable" ]
+  - [ bash, -lc, "systemctl enable --now fail2ban chrony" ]
+  - [ bash, -lc, "id alpha || useradd --system --create-home --home-dir /opt/alpha alpha" ]
+  - [ bash, -lc, "install -d -m 700 -o alpha -g alpha /opt/alpha/runtime" ]
+  - [ bash, -lc, "sudo -u postgres psql -tc \"SELECT 1 FROM pg_roles WHERE rolname='alpha'\" | grep -q 1 || sudo -u postgres psql -c \"CREATE ROLE alpha LOGIN PASSWORD 'CHANGE_ME_ON_DEPLOY_DAY'\"" ]
+  - [ bash, -lc, "sudo -u postgres psql -tc \"SELECT 1 FROM pg_database WHERE datname='alpha'\" | grep -q 1 || sudo -u postgres createdb -O alpha alpha" ]
+  - [ bash, -lc, "sudo -u alpha git clone --filter=blob:none --sparse https://github.com/LinzeColin/MetaDatabase.git /opt/alpha/MetaDatabase || true" ]
+  - [ bash, -lc, "cd /opt/alpha/MetaDatabase && sudo -u alpha git sparse-checkout set Alpha" ]
+  - [ bash, -lc, "sudo -u alpha python3.11 -m venv /opt/alpha/venv" ]
+  - [ bash, -lc, "sudo -u alpha /opt/alpha/venv/bin/pip install -e '/opt/alpha/MetaDatabase/Alpha[dev]'" ]
+  - [ bash, -lc, "[ -f /opt/alpha/env ] || install -m 600 -o alpha -g alpha /opt/alpha/MetaDatabase/Alpha/deploy/env.template /opt/alpha/env" ]
+  - [ bash, -lc, "cp /opt/alpha/MetaDatabase/Alpha/deploy/systemd/alpha-*.service /etc/systemd/system/ && systemctl daemon-reload" ]
+  - [ bash, -lc, "systemctl enable alpha-supervisor alpha-notify-worker alpha-control-page" ]
+  - [ bash, -lc, "echo 'Alpha cloud-init 完成 '$(date -u) >> /opt/alpha/deploy_boot.log" ]
+final_message: "Alpha 部署骨架就绪。owner 部署日:填 /opt/alpha/env 凭据 -> 启动 alpha-opend/alpha-trading-worker -> 探针+试发邮件+控制页三连验收。"

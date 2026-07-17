@@ -26,3 +26,6 @@ outputs/**
 
 # 回测数据缓存:源数据不入库(契约:报告只存哈希与聚合)
 /data/backtest_cache/
+
+# 烤机运行时产物
+/runtime/
