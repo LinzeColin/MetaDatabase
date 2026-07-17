@@ -460,6 +460,20 @@ Enterprise_Ecosystem_Intelligence_release
 │   └── docker
 │       ├── README.md
 │       └── worker.Dockerfile
+├── machine
+│   ├── facts
+│   │   ├── blockers.json
+│   │   ├── features.json
+│   │   ├── glossary.json
+│   │   ├── product.json
+│   │   └── status.json
+│   └── tools
+│       ├── check_blocker_stop.py
+│       ├── check_doc_budget.py
+│       ├── check_dual_plane_ci.py
+│       ├── install_dual_plane.py
+│       ├── migrate_legacy_to_facts.py
+│       └── render_human.py
 ├── models
 │   ├── FORMULA_REGISTRY.md
 │   ├── MODEL_MANAGEMENT.md
@@ -679,6 +693,14 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── visual_first_workspace.png
 │   ├── visual_first_workspace.svg
 │   └── visual_first_workspace_screenshot.png
+├── 文档
+│   ├── 00_我在哪.md
+│   ├── 01_产品需求.md
+│   ├── 02_系统架构.md
+│   ├── 03_口径字典.md
+│   ├── 04_操作流程.md
+│   ├── 05_执行与验收.md
+│   └── 06_运维手册.md
 ├── .env.example
 ├── .gitignore
 ├── AGENTS.md
@@ -720,7 +742,4 @@ Enterprise_Ecosystem_Intelligence_release
 ├── pnpm-lock.yaml
 ├── pnpm-workspace.yaml
 ├── pyproject.toml
-├── uv.lock
-├── 功能清单.md
-├── 开发记录.md
-└── 模型参数文件.md
+└── uv.lock
