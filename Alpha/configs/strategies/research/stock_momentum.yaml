@@ -1,0 +1,28 @@
+# 个股动量(研究候选,第五批)——⚠️ 幸存者偏差声明:标的池取自当今高流动性
+# 大盘股名单,对 2014 年起的回测存在选股后见之明,结果上偏;报告必须携带此声明。
+strategy_id: "STOCK_MOMENTUM_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate_survivorship_biased"
+universe: ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "AVGO", "TSLA",
+           "JPM", "V", "UNH", "HD", "PG", "COST", "MRK", "PEP", "KO", "WMT",
+           "XOM", "CVX", "BIL"]
+cash_proxy: "BIL"
+candidates:
+  SM_weekly:
+    eval_frequency: "weekly"
+    grid:
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2, 3]
+      target_vol_allowed: [15, 999]
+      high_proximity_allowed: [null, 0.90]
+      rebalance_threshold_allowed: [5]
+  SM_gold_blend:
+    eval_frequency: "weekly"
+    grid:
+      weights_allowed: [[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [999]
+      high_proximity_allowed: [0.90]
+      defensive_symbol_allowed: ["GLD"]
+      defensive_weight_allowed: [0.2, 0.3]
+      rebalance_threshold_allowed: [5]

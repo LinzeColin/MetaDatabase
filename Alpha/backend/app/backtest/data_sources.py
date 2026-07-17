@@ -77,10 +77,14 @@ class NasdaqDailySource:
     name = "nasdaq_api"
 
     def fetch(self, symbol: str, start: date, end: date) -> list[RawDay]:
-        url = (f"https://api.nasdaq.com/api/quote/{symbol}/historical?assetclass=etf"
-               f"&fromdate={start.isoformat()}&todate={end.isoformat()}&limit=9999")
-        data = _http_json(url)
-        rows = (data.get("data") or {}).get("tradesTable", {}).get("rows") or []
+        rows = []
+        for asset_class in ("etf", "stocks"):  # 个股在 stocks 类;etf 优先保持既有行为
+            url = (f"https://api.nasdaq.com/api/quote/{symbol}/historical?assetclass={asset_class}"
+                   f"&fromdate={start.isoformat()}&todate={end.isoformat()}&limit=9999")
+            data = _http_json(url)
+            rows = (data.get("data") or {}).get("tradesTable", {}).get("rows") or []
+            if rows:
+                break
         out: list[RawDay] = []
         for r in rows:
             def num(s: str) -> float:
