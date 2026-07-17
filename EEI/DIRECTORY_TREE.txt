@@ -414,6 +414,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── 34_GITHUB_DOCUMENTATION_AND_BACKUP.md
 │   ├── 35_DATA_CATALOGS_AND_TAXONOMIES.md
 │   ├── 36_RELEASE_GATES_AND_DEFINITION_OF_DONE.md
+│   ├── 37_ISOLATED_RETEST_SUITE.md
 │   ├── INDEX.md
 │   └── STATUS.md
 ├── infra
@@ -518,6 +519,12 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── 02_STRESS_LIFECYCLE_INTERACTION_REVIEW.md
 │   └── 03_UIUX_ARCHITECTURE_REVIEW.md
 ├── scripts
+│   ├── acceptance_retest
+│   │   ├── .gitignore
+│   │   ├── concurrency_barrier.py
+│   │   ├── fault_injection.py
+│   │   ├── load_capacity.py
+│   │   └── passive_security_audit.py
 │   ├── apply_model_config.py
 │   ├── backfill_sec_history.py
 │   ├── backup_restore_drill.py

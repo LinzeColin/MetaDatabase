@@ -327,6 +327,7 @@ docs/33_RISK_CONTROL_ACCEPTANCE_TRACEABILITY.md
 docs/34_GITHUB_DOCUMENTATION_AND_BACKUP.md
 docs/35_DATA_CATALOGS_AND_TAXONOMIES.md
 docs/36_RELEASE_GATES_AND_DEFINITION_OF_DONE.md
+docs/37_ISOLATED_RETEST_SUITE.md
 docs/INDEX.md
 docs/STATUS.md
 docs/adr/ADR-006-runtime-and-repository-layout.md
@@ -438,6 +439,11 @@ reviews/00_CONSOLIDATED_REVIEW.md
 reviews/01_SECURITY_CODE_QUALITY_REVIEW.md
 reviews/02_STRESS_LIFECYCLE_INTERACTION_REVIEW.md
 reviews/03_UIUX_ARCHITECTURE_REVIEW.md
+scripts/acceptance_retest/.gitignore
+scripts/acceptance_retest/concurrency_barrier.py
+scripts/acceptance_retest/fault_injection.py
+scripts/acceptance_retest/load_capacity.py
+scripts/acceptance_retest/passive_security_audit.py
 scripts/apply_model_config.py
 scripts/backfill_sec_history.py
 scripts/backup_restore_drill.py

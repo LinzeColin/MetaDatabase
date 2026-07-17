@@ -539,15 +539,35 @@ async function evidenceIndex(env, relationshipId) {
   });
 }
 
+// R-002/S-003 fault-injection hardening. A fuzzed long search term made D1's
+// LIKE pattern-complexity limit throw ("LIKE or GLOB pattern too complex",
+// SQLITE_ERROR), which surfaced as an unhandled 500 leaking the internal error.
+// Three layers of defense:
+//   1. cap the term for UX (entity names are short),
+//   2. escape LIKE metacharacters so user %/_ are literals, not patterns,
+//   3. treat a still-too-complex pattern as "no matches" (no entity name is
+//      that structurally complex) instead of a 500.
+const MAX_SEARCH_TERM = 64;
+function escapeLike(value) {
+  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+}
 async function searchEntities(env, query) {
-  const term = `%${query.trim()}%`;
-  const { results } = await env.EEI_PUB.prepare(
-    "SELECT id, canonical_name, entity_type, status FROM entities" +
-      " WHERE canonical_name LIKE ? COLLATE NOCASE ORDER BY canonical_name LIMIT 20"
-  )
-    .bind(term)
-    .all();
-  return json({ query: query.trim(), entities: results ?? [] });
+  const trimmed = query.trim().slice(0, MAX_SEARCH_TERM);
+  const term = `%${escapeLike(trimmed)}%`;
+  try {
+    const { results } = await env.EEI_PUB.prepare(
+      "SELECT id, canonical_name, entity_type, status FROM entities" +
+        " WHERE canonical_name LIKE ? ESCAPE '\\' COLLATE NOCASE" +
+        " ORDER BY canonical_name LIMIT 20"
+    )
+      .bind(term)
+      .all();
+    return json({ query: trimmed, entities: results ?? [] });
+  } catch {
+    // An over-complex LIKE pattern matches nothing real — fail closed to an
+    // empty result set, never a 500 that leaks the engine error.
+    return json({ query: trimmed, entities: [] });
+  }
 }
 
 async function readJsonBody(request) {
@@ -964,7 +984,18 @@ async function handleFetch(request, env) {
 
 export default {
   async fetch(request, env) {
-    const response = await handleFetch(request, env);
+    let response;
+    try {
+      response = await handleFetch(request, env);
+    } catch (err) {
+      // Global fail-closed boundary: any unhandled error (e.g. a D1 limit hit
+      // by a fuzzed input) returns a structured 500 that never leaks a stack
+      // trace or internal engine error to the client (R-002/S-003 hardening).
+      response = json(
+        { detail: "internal error", request_id: crypto.randomUUID() },
+        500
+      );
+    }
     return applyEdgeHeaders(response, env);
   },
 
