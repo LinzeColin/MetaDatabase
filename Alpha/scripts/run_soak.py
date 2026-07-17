@@ -43,8 +43,12 @@ class MemoryEmailSink:
 
 def run(cycles: int, hours: float, out_dir: str) -> dict:
     stamp = datetime.now(timezone.utc)
-    db = Path("runtime/soak.sqlite")
-    db.parent.mkdir(parents=True, exist_ok=True)
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    # DB 与杀开关都落在 out_dir 内,确保多个烤机/并发 pytest 互不干扰。
+    # 历史 bug:硬编码 runtime/soak.sqlite 相对 CWD,test_soak_harness 的 run() 会在
+    # 启动时 unlink 掉正在真跑的 72h 烤机的库文件 -> SQLite readonly 崩溃。
+    db = out / "soak.sqlite"
     if db.exists():
         db.unlink()
     factory = create_session_factory(init_engine(f"sqlite:///{db}"))
@@ -55,7 +59,7 @@ def run(cycles: int, hours: float, out_dir: str) -> dict:
     hb = HeartbeatStore(factory, now_fn=now_fn)
     outbox = Outbox(factory, now_fn=now_fn)
     sink = MemoryEmailSink()
-    ks = KillSwitch("runtime/SOAK_KS")
+    ks = KillSwitch(str(out / "SOAK_KS"))
     ks.clear()
     sup = Supervisor(heartbeats=hb, outbox=outbox, kill_switch=ks,
                      expected_workers=("trading-worker", "notify-worker"),
@@ -126,8 +130,6 @@ def run(cycles: int, hours: float, out_dir: str) -> dict:
             and (end_peak - base_peak) / 1024 < 5000 and not ks.active()
         ),
     }
-    out = Path(out_dir)
-    out.mkdir(parents=True, exist_ok=True)
     (out / f"soak_{'precheck' if cycles else 'host'}.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2))
     return report
