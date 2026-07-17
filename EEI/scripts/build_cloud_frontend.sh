@@ -45,4 +45,18 @@ cat > "$DIST_DIR/build.json" <<MANIFEST
 }
 MANIFEST
 
+# EEI-F08: static assets bypass the Worker (run_worker_first covers /v1/* and
+# /health only), so the security baseline for HTML/chunks rides the Workers
+# Assets _headers file. Keep in lockstep with SECURITY_HEADERS in worker.mjs.
+cat > "$DIST_DIR/_headers" <<HEADERS
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com https://static.cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  X-EEI-Build: $BUILD_SHA
+HEADERS
+
 echo "[cloud-frontend] done: $(find "$DIST_DIR" -type f | wc -l | tr -d ' ') files, build $BUILD_SHA"

@@ -383,20 +383,24 @@ def d1_execute(*, file: Path | None = None, command: str | None = None,
 
 
 def remote_counts(cwd: Path) -> dict[str, int]:
-    result = d1_execute(
-        command=(
-            "SELECT 'entities' AS t, count(*) AS n FROM entities"
-            " UNION ALL SELECT 'relationships', count(*) FROM relationships"
-            " UNION ALL SELECT 'relationship_evidence', count(*)"
-            " FROM relationship_evidence"
-            " UNION ALL SELECT 'snapshot_meta', count(*) FROM snapshot_meta"
-            " UNION ALL SELECT 'filing_year_counts', count(*) FROM filing_year_counts"
-            " UNION ALL SELECT 'supply_chain_stages', count(*) FROM supply_chain_stages"
-        ),
-        cwd=cwd,
-    )
-    rows = result[0]["results"]
-    return {row["t"]: int(row["n"]) for row in rows}
+    # Remote D1 rejects wide compound SELECTs ("too many terms in compound
+    # SELECT", SQLITE_ERROR 7500, observed at 6 UNION ALL terms on the first
+    # v2 publish), so count each table with its own query.
+    counts: dict[str, int] = {}
+    for table in (
+        "entities",
+        "relationships",
+        "relationship_evidence",
+        "snapshot_meta",
+        "filing_year_counts",
+        "supply_chain_stages",
+    ):
+        result = d1_execute(
+            command=f"SELECT count(*) AS n FROM {table}",
+            cwd=cwd,
+        )
+        counts[table] = int(result[0]["results"][0]["n"])
+    return counts
 
 
 def r2_status(cwd: Path) -> dict[str, Any]:
