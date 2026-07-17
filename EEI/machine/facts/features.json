@@ -1,0 +1,248 @@
+[
+  {
+    "id": "FEAT-EEI-001",
+    "name": "研究对象优先级、证据质量与时间衰减",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-002",
+    "name": "关系重要性与边显示控制",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-003",
+    "name": "供应链、控制影响、资本动量、政策暴露与战略信号",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-004",
+    "name": "变化告警与 Watchlist 优先级",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-005",
+    "name": "运行、视觉、发布决策与黄金集阈值控制",
+    "status": "active",
+    "evidence": "declared"
+  },
+  {
+    "id": "FEAT-EEI-006",
+    "name": "A209 长时稳定性证据链",
+    "status": "in_progress",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-007",
+    "name": "EEI app shell 图标与品牌入口",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-010",
+    "name": "生产金标集与精度评估+校准回路（A026/A027）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-011",
+    "name": "2016+ 历史数据地基（SEC 十年回填）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-012",
+    "name": "定时采集与数据保全（7×24 数据平台底座）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-013",
+    "name": "云发布通道（本机→D1 单向）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-014",
+    "name": "政策环境模块（/policy，A111）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-015",
+    "name": "跨视图一致性契约与导出面（A108-A110）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-016",
+    "name": "集团结构·业务板块模块（/structure）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-017",
+    "name": "供应链模块（/supply-chain，16 阶段轨道）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-018",
+    "name": "并购交易 · 控制关系模块（/ma、/control）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-019",
+    "name": "战略信号模块（/signals）+ 十六模块无禁用",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-020",
+    "name": "S8 十六模块产品面收官（三中心+关注补全）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-021",
+    "name": "深空设计系统（双主题 token + 防闪烁）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-022",
+    "name": "帝国画布（太阳-行星带轨道布局）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-023",
+    "name": "动效编排系统（八项动效 bar）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-040",
+    "name": "全站中文化+机器码人话化",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-039",
+    "name": "右侧竖向时间轴（Owner 指定形态）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-038",
+    "name": "S12 帝国画布光学（样例视频对齐）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-037",
+    "name": "上线后连续性监测工具",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-036",
+    "name": "v0.1.0 发布（Owner 加速决定）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-035",
+    "name": "规模复跑与云端负载抽查",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-034",
+    "name": "A205 激活链真证据接线",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-033",
+    "name": "A204 刷新稳定性探针链（4h×24h）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-032",
+    "name": "诚实降级演练线（三态）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-031",
+    "name": "域名与 home 入口（D6）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-030",
+    "name": "云端 cron 增量采集（7×24 心跳）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-029",
+    "name": "用户态云写（云端即真相）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-028",
+    "name": "前端云部署（真应用静态导出上 Worker）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-027",
+    "name": "云端产品 API（Workers 直读 D1 发布面）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-026",
+    "name": "S9- 门禁证据线（T1118/T1119）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-025",
+    "name": "历史纵深滑块 · Ask 栏（V6/V7，D4 零 API）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-024",
+    "name": "图例库存+GAPS 徽章 · 上下文 KPI 条（V4/V5）",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-CF-L2-001",
+    "name": "Cloudflare 安全 L2 公共关系探索器",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-008",
+    "name": "MetaDatabase 驻留与自带 CI",
+    "status": "active",
+    "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-EEI-009",
+    "name": "真实关系事实发布与探索供数",
+    "status": "active",
+    "evidence": "extracted"
+  }
+]

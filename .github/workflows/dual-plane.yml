@@ -2,16 +2,11 @@ name: Dual-Plane Governance
 
 # 全仓强制：本仓每个双平面项目都必须就位七文件架构并过门。
 #
-# 刻意跳过 EEI/**：EEI 仍在活跃开发且尚未纳入双平面（等它停下来后在最终批补治理）。
-# 只改 EEI 的推送/PR 不触发本校验，避免干扰活跃线；EEI 自己的 eei-validation.yml 照常跑。
+# EEI 已于 2026-07-17 纳入双平面（41 功能从旧三基自动抽取），不再豁免。
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - "EEI/**"
   pull_request:
-    paths-ignore:
-      - "EEI/**"
   workflow_dispatch:
 
 jobs:

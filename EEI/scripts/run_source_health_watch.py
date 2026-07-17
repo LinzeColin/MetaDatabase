@@ -9,7 +9,7 @@ recorded, never masked; nothing is published; no release gate moves.
 Intended run shape: a detached 4h window (16 cycles at 900s) whose checkpoint
 file plus summary become runtime evidence for the source-health/retry portion
 of S7PAT03. Dead-letter evidence is produced separately by driving the real
-background-job queue to exhaustion (see 开发记录.md S7PAT03).
+background-job queue to exhaustion (see 文档/05_执行与验收.md, S7PAT03).
 """
 
 from __future__ import annotations
