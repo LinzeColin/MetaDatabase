@@ -10,7 +10,8 @@ dependencies = [
   "pyyaml",
   "pandas",
   "numpy",
-  "sqlalchemy>=2.0"
+  "sqlalchemy>=2.0",
+  "psycopg[binary]>=3.1"
 ]
 
 [build-system]
