@@ -111,3 +111,53 @@ def test_real_config_loads_and_runs():
     r = evaluate_s1(data, cfg, AS_OF)
     assert len(r.selected) == cfg["selection"]["top_n"]
     assert cfg["review_grid"]  # 网格必须存在(月度评审纪律)
+
+
+# ---------- 黄金叠加生产配置(选乙) ----------
+
+def test_gold_blend_config_loads_and_targets_include_overlay():
+    from backend.app.strategies.s1_momentum import load_s1_config
+
+    cfg = load_s1_config("configs/strategies/s1_gold_blend.yaml")
+    assert cfg["strategy_id"] == "S1_GOLD_BLEND"
+    data = {s: make_bars(0.0008 + i * 0.0002) for i, s in enumerate(cfg["universe"])}
+    r = evaluate_s1(data, cfg, AS_OF)
+    # 恒持黄金 2 成;冠军拿 8 成(波动调节已关)
+    assert r.target_weights.get("GLD", 0) >= 0.2 - 1e-9
+    total = sum(r.target_weights.values())
+    assert abs(total - 1.0) < 1e-9
+    assert len(r.selected) == 1                      # top1 集中
+    assert r.position_scalar == 1.0                  # 波动率调节关闭
+
+
+def test_gold_blend_high_proximity_blocks_fallen_symbol():
+    from backend.app.strategies.s1_momentum import load_s1_config
+
+    cfg = load_s1_config("configs/strategies/s1_gold_blend.yaml")
+    data = {s: make_bars(0.0005) for s in cfg["universe"]}
+    # 把 QQQ 改造成「仍在均线上但离 252 日高点 >10%」:先涨后落 12% 横盘
+    bars = make_bars(0.0015, n=300)
+    fallen = bars[:260]
+    p = fallen[-1].close * 0.88
+    day = fallen[-1].day
+    from datetime import timedelta as _td
+    out = list(fallen)
+    while len(out) < 300:
+        day += _td(days=1)
+        if day.weekday() >= 5:
+            continue
+        out.append(Bar(day=day, open=p, high=p * 1.001, low=p * 0.999, close=p))
+    data["QQQ"] = out
+    r = evaluate_s1(data, cfg, AS_OF)
+    assert r.eligible.get("QQQ") is False            # 新高线拦截
+    assert r.diagnostics["QQQ"]["near_high"] is False
+
+
+def test_gold_blend_all_ineligible_puts_risk_budget_to_cash():
+    from backend.app.strategies.s1_momentum import load_s1_config
+
+    cfg = load_s1_config("configs/strategies/s1_gold_blend.yaml")
+    data = {s: make_bars(-0.001) for s in cfg["universe"]}   # 全体跌破均线
+    r = evaluate_s1(data, cfg, AS_OF)
+    assert r.target_weights.get("GLD", 0) >= 0.2 - 1e-9      # 黄金恒持不动摇
+    assert r.target_weights.get(cfg["cash_proxy"], 0) >= 0.8 - 1e-9

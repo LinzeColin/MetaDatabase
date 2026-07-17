@@ -1,5 +1,8 @@
-# 组合资金分配 v1（月度评审可在区间内调整）
-base_allocation: {S1_MOMENTUM_ROTATION: 0.80, S2_OVERSOLD_REBOUND: 0.20}
-review_bounds: {S1_MOMENTUM_ROTATION: [0.60, 0.90], S2_OVERSOLD_REBOUND: [0.10, 0.40]}
+# 组合资金分配 v2(owner 2026-07-17 选乙:黄金叠加为保底主力)
+base_allocation: {S1_GOLD_BLEND: 1.00}
+disabled_strategies:
+  S2_OVERSOLD_REBOUND: "2026-07-17 停用:两版样本外均负期望(费用吃掉微利);经月度评审+同口径证据可复活"
+  S1_MOMENTUM_ROTATION: "2026-07-17 让位:被黄金叠加(同回撤更高收益)取代为主力;作为影子对照保留"
+review_bounds: {S1_GOLD_BLEND: [0.80, 1.00]}
 total_exposure_governed_by: "configs/trading_governor_policy.yaml capital_authorization"
-conflict_resolution: "组合引擎唯一合成目标仓位；策略间同标的冲突取净目标；现金缓冲永远 >= 0"
+conflict_resolution: "组合引擎唯一合成目标仓位;策略间同标的冲突取净目标;现金缓冲永远 >= 0"

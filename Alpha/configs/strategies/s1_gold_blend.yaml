@@ -1,0 +1,27 @@
+# S1G 黄金叠加动量(生产主力·保底线)— owner 2026-07-17 选乙裁定
+# 来源:防御叠加研究黄金版,样本外 10.58 年 0.662%/月 @ 最大回撤 13.07%(门内)
+# 结构:52 周新高过滤动量(单标的集中)跑 8 成仓,恒持 2 成黄金,评估日再平衡
+strategy_id: "S1_GOLD_BLEND"
+version: "1.0.0"
+status: "production_floor"        # 保底线:更优结构经同口径证据+月度评审可替换
+universe: ["SPY", "QQQ", "IWM", "EFA", "EEM", "GLD", "TLT", "BIL"]
+cash_proxy: "BIL"
+schedule: {evaluate: "weekly_tuesday", window_after_open_minutes: [30, 90]}
+score:
+  formula: "0.7*r63 + 0.2*r126 + 0.1*r252"
+  lookbacks_trading_days: [63, 126, 252]
+  weights: [0.7, 0.2, 0.1]
+absolute_momentum_filter: {rule: "close > SMA200", sma_period: 200}
+high_proximity_filter: {rule: "close >= 0.90 * high252", threshold: 0.90}
+selection: {top_n: 1, weight_each: 1.0}
+volatility_targeting: {enabled: false}     # 当选参数:关闭(999)
+defensive_overlay: {symbol: "GLD", weight: 0.20, rebalance: "on_evaluation_day"}
+rebalance_threshold_pct: 5
+execution: {order_type: "LIMIT", price: "mid", repost_after_minutes: 10, max_reposts: 3}
+review_grid:
+  weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+  top_n_allowed: [1, 2]
+  target_vol_allowed: [15, 999]
+  high_proximity_allowed: [0.90, 0.95]
+  defensive_weight_allowed: [0.2, 0.3, 0.4]
+  rebalance_threshold_allowed: [3, 5, 8]

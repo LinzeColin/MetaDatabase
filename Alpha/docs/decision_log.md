@@ -95,3 +95,9 @@ Consequence: S3PBT03 adds shutdown fault-injection tests for disk-error preserva
 - 同步修改四个契约面:configs/strategy_promotion.yaml(v2)、trading_governor_policy.yaml、AGENTS.md 第 3 节、README.md 核心口径;判定代码改为从权威配置读门槛,不再写死。
 - 影响披露:现有全部候选样本外最好成绩 0.811%/月(且回撤 18.35% 破 15% 门),在新门槛下仍不达标;结构改造循环(R2 起)继续。
 - owner 同时提供 Oracle Always Free 用户标识(仅为账号编号、无鉴权能力),已存本机 _protected 私密文件,不进 Git;部署日仍需租户标识+区域+API 密钥或 owner 控制台操作+moomoo/Gmail 凭据。
+
+## 2026-07-17 — owner 裁定「选乙」:黄金叠加为保底线主力,门槛校准 0.6%/月;搜索循环不停
+- 主力策略 = S1_GOLD_BLEND(52 周新高过滤动量 8 成 + 恒持黄金 2 成),样本外 10.58 年 0.662%/月 @ 回撤 13.07%(唯一门内胜基线结构)。
+- 晋级门槛按保底线证据下缘校准为 0.6%/月(回撤 15% 不变);持续寻优条款:更优结构经同口径证据+月度评审可替换主力,门槛只升不降。
+- 超卖抄底(两版)停用:样本外均负期望;旧动量基线让位为影子对照。均可经证据复活。
+- owner 同时要求:继续调整策略结构寻找更高回报(自研/市场反向研究/量化回测),循环如实汇报。
