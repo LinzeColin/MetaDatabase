@@ -1,0 +1,17 @@
+# 日历效应研究(CAL 轮):月初月末窗口(TOM)持有,其余现金。
+# 费用算术预筛(2026-07-17):每月 1 个来回 ≈ 2.1 USD / 1980 USD ≈ 0.106%/月拖累,
+# 远低于文献口径的 TOM 窗口毛收益 → 配得上真回测(对照:隔夜效应 ≈2.2%/月拖累,算术即死)。
+round: CAL
+candidates:
+  TOM_SPY:
+    symbol: SPY
+    grid:
+      entry_days_before_allowed: [3, 4, 5]
+      exit_days_after_allowed: [2, 3, 4]
+      trend_filter_allowed: [false, true]
+  TOM_QQQ:
+    symbol: QQQ
+    grid:
+      entry_days_before_allowed: [3, 4, 5]
+      exit_days_after_allowed: [2, 3, 4]
+      trend_filter_allowed: [false, true]

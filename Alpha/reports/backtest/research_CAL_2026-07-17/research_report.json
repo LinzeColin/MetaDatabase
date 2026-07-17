@@ -1,0 +1,1001 @@
+{
+  "round": "CAL 日历效应(TOM)",
+  "gate": {
+    "gate_monthly_pct": 0.6,
+    "gate_dd_pct": 15.0,
+    "min_years": 3.0
+  },
+  "period": [
+    "2014-01-01",
+    "2026-07-16"
+  ],
+  "fee_arithmetic": "每月1来回≈0.106%/月拖累(预筛通过;隔夜效应≈2.2%/月,算术淘汰)",
+  "floor_reference": {
+    "name": "S1_GOLD_BLEND(生产保底线)",
+    "monthly_pct": 0.662,
+    "dd_pct": 13.07
+  },
+  "caveats": [
+    "窗口边界强制平仓,跨窗口月初尾巴被截断(保守方向)",
+    "临时休市会使日历窗口移位一日(近似)",
+    "SEC/CAT 费为保守高估占位"
+  ],
+  "results": {
+    "TOM_SPY": {
+      "grid_size": 18,
+      "oos": {
+        "months": 127,
+        "years": 10.58,
+        "total_return_pct": 69.32,
+        "monthly_mean_net_pct": 0.416,
+        "max_drawdown_pct": 21.53,
+        "monthly_win_rate_pct": 60.6,
+        "profit_factor": 1.66
+      },
+      "skipped_infeasible": 0,
+      "promo1": {
+        "years_ok": true,
+        "monthly_return_ok": false,
+        "drawdown_ok": false,
+        "passed": false,
+        "gate": {
+          "monthly_pct": 0.6,
+          "dd_pct": 15.0,
+          "min_years": 3.0
+        }
+      },
+      "windows": [
+        {
+          "validate": [
+            "2016-01-01",
+            "2016-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 10.45,
+            "monthly_mean_net_pct": 1.431,
+            "max_drawdown_pct": 2.5,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 8.84
+          }
+        },
+        {
+          "validate": [
+            "2016-07-01",
+            "2017-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -3.77,
+            "monthly_mean_net_pct": -0.638,
+            "max_drawdown_pct": 4.35,
+            "monthly_win_rate_pct": 33.3,
+            "profit_factor": 0.27
+          }
+        },
+        {
+          "validate": [
+            "2017-01-01",
+            "2017-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 1.76,
+            "monthly_mean_net_pct": 0.291,
+            "max_drawdown_pct": 0.88,
+            "monthly_win_rate_pct": 83.3,
+            "profit_factor": 3.0
+          }
+        },
+        {
+          "validate": [
+            "2017-07-01",
+            "2018-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 3.47,
+            "monthly_mean_net_pct": 0.571,
+            "max_drawdown_pct": 0.81,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 4.59
+          }
+        },
+        {
+          "validate": [
+            "2018-01-01",
+            "2018-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 1.29,
+            "monthly_mean_net_pct": 0.214,
+            "max_drawdown_pct": 7.11,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 1.32
+          }
+        },
+        {
+          "validate": [
+            "2018-07-01",
+            "2019-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 5.06,
+            "monthly_mean_net_pct": 0.827,
+            "max_drawdown_pct": 5.45,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 3.27
+          }
+        },
+        {
+          "validate": [
+            "2019-01-01",
+            "2019-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 5.61,
+            "monthly_mean_net_pct": 0.783,
+            "max_drawdown_pct": 3.16,
+            "monthly_win_rate_pct": 85.7,
+            "profit_factor": 2.9
+          }
+        },
+        {
+          "validate": [
+            "2019-07-01",
+            "2020-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 0.4,
+            "monthly_mean_net_pct": 0.066,
+            "max_drawdown_pct": 5.9,
+            "monthly_win_rate_pct": 33.3,
+            "profit_factor": 1.13
+          }
+        },
+        {
+          "validate": [
+            "2020-01-01",
+            "2020-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 11.17,
+            "monthly_mean_net_pct": 1.524,
+            "max_drawdown_pct": 7.45,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 3.34
+          }
+        },
+        {
+          "validate": [
+            "2020-07-01",
+            "2021-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 14.24,
+            "monthly_mean_net_pct": 2.244,
+            "max_drawdown_pct": 4.99,
+            "monthly_win_rate_pct": 83.3,
+            "profit_factor": 4.76
+          }
+        },
+        {
+          "validate": [
+            "2021-01-01",
+            "2021-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 3.97,
+            "monthly_mean_net_pct": 0.558,
+            "max_drawdown_pct": 3.54,
+            "monthly_win_rate_pct": 85.7,
+            "profit_factor": 2.19
+          }
+        },
+        {
+          "validate": [
+            "2021-07-01",
+            "2022-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -1.57,
+            "monthly_mean_net_pct": -0.263,
+            "max_drawdown_pct": 3.72,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 0.68
+          }
+        },
+        {
+          "validate": [
+            "2022-01-01",
+            "2022-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 0.27,
+            "monthly_mean_net_pct": 0.038,
+            "max_drawdown_pct": 6.62,
+            "monthly_win_rate_pct": 57.1,
+            "profit_factor": 1.07
+          }
+        },
+        {
+          "validate": [
+            "2022-07-01",
+            "2023-01-01"
+          ],
+          "params": {
+            "entry_days_before": 3,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 3.53,
+            "monthly_mean_net_pct": 0.581,
+            "max_drawdown_pct": 6.8,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 1.54
+          }
+        },
+        {
+          "validate": [
+            "2023-01-01",
+            "2023-07-01"
+          ],
+          "params": {
+            "entry_days_before": 3,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 9.2,
+            "monthly_mean_net_pct": 1.478,
+            "max_drawdown_pct": 1.73,
+            "monthly_win_rate_pct": 83.3,
+            "profit_factor": 6.17
+          }
+        },
+        {
+          "validate": [
+            "2023-07-01",
+            "2024-01-01"
+          ],
+          "params": {
+            "entry_days_before": 4,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 3.68,
+            "monthly_mean_net_pct": 0.604,
+            "max_drawdown_pct": 1.94,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 22.88
+          }
+        },
+        {
+          "validate": [
+            "2024-01-01",
+            "2024-07-01"
+          ],
+          "params": {
+            "entry_days_before": 4,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 2.15,
+            "monthly_mean_net_pct": 0.304,
+            "max_drawdown_pct": 2.17,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 2.09
+          }
+        },
+        {
+          "validate": [
+            "2024-07-01",
+            "2025-01-01"
+          ],
+          "params": {
+            "entry_days_before": 4,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -7.13,
+            "monthly_mean_net_pct": -1.225,
+            "max_drawdown_pct": 8.13,
+            "monthly_win_rate_pct": 33.3,
+            "profit_factor": 0.22
+          }
+        },
+        {
+          "validate": [
+            "2025-01-01",
+            "2025-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": -9.64,
+            "monthly_mean_net_pct": -1.437,
+            "max_drawdown_pct": 15.43,
+            "monthly_win_rate_pct": 57.1,
+            "profit_factor": 0.34
+          }
+        },
+        {
+          "validate": [
+            "2025-07-01",
+            "2026-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 0.38,
+            "monthly_mean_net_pct": 0.064,
+            "max_drawdown_pct": 2.35,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 1.19
+          }
+        },
+        {
+          "validate": [
+            "2026-01-01",
+            "2026-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 2.57,
+            "monthly_mean_net_pct": 0.363,
+            "max_drawdown_pct": 4.59,
+            "monthly_win_rate_pct": 57.1,
+            "profit_factor": 2.43
+          }
+        },
+        {
+          "validate": [
+            "2026-07-01",
+            "2026-07-16"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 1,
+            "years": 0.08,
+            "total_return_pct": -0.56,
+            "monthly_mean_net_pct": -0.564,
+            "max_drawdown_pct": 0.72,
+            "monthly_win_rate_pct": 0.0,
+            "profit_factor": 0.0
+          }
+        }
+      ]
+    },
+    "TOM_QQQ": {
+      "grid_size": 18,
+      "oos": {
+        "months": 127,
+        "years": 10.58,
+        "total_return_pct": 95.53,
+        "monthly_mean_net_pct": 0.529,
+        "max_drawdown_pct": 25.25,
+        "monthly_win_rate_pct": 59.8,
+        "profit_factor": 1.62
+      },
+      "skipped_infeasible": 0,
+      "promo1": {
+        "years_ok": true,
+        "monthly_return_ok": false,
+        "drawdown_ok": false,
+        "passed": false,
+        "gate": {
+          "monthly_pct": 0.6,
+          "dd_pct": 15.0,
+          "min_years": 3.0
+        }
+      },
+      "windows": [
+        {
+          "validate": [
+            "2016-01-01",
+            "2016-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 8.49,
+            "monthly_mean_net_pct": 1.171,
+            "max_drawdown_pct": 3.58,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 3.45
+          }
+        },
+        {
+          "validate": [
+            "2016-07-01",
+            "2017-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -5.1,
+            "monthly_mean_net_pct": -0.868,
+            "max_drawdown_pct": 7.37,
+            "monthly_win_rate_pct": 33.3,
+            "profit_factor": 0.36
+          }
+        },
+        {
+          "validate": [
+            "2017-01-01",
+            "2017-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 3.7,
+            "monthly_mean_net_pct": 0.607,
+            "max_drawdown_pct": 2.15,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 3.59
+          }
+        },
+        {
+          "validate": [
+            "2017-07-01",
+            "2018-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 2.55,
+            "monthly_mean_net_pct": 0.421,
+            "max_drawdown_pct": 3.63,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 1.59
+          }
+        },
+        {
+          "validate": [
+            "2018-01-01",
+            "2018-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 7.12,
+            "monthly_mean_net_pct": 1.153,
+            "max_drawdown_pct": 7.17,
+            "monthly_win_rate_pct": 83.3,
+            "profit_factor": 3.57
+          }
+        },
+        {
+          "validate": [
+            "2018-07-01",
+            "2019-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 1.88,
+            "monthly_mean_net_pct": 0.312,
+            "max_drawdown_pct": 8.07,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 1.27
+          }
+        },
+        {
+          "validate": [
+            "2019-01-01",
+            "2019-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 6.38,
+            "monthly_mean_net_pct": 0.888,
+            "max_drawdown_pct": 4.91,
+            "monthly_win_rate_pct": 85.7,
+            "profit_factor": 3.94
+          }
+        },
+        {
+          "validate": [
+            "2019-07-01",
+            "2020-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 1.16,
+            "monthly_mean_net_pct": 0.192,
+            "max_drawdown_pct": 7.14,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 1.27
+          }
+        },
+        {
+          "validate": [
+            "2020-01-01",
+            "2020-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 16.14,
+            "monthly_mean_net_pct": 2.16,
+            "max_drawdown_pct": 6.82,
+            "monthly_win_rate_pct": 85.7,
+            "profit_factor": 8.33
+          }
+        },
+        {
+          "validate": [
+            "2020-07-01",
+            "2021-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 19.75,
+            "monthly_mean_net_pct": 3.05,
+            "max_drawdown_pct": 6.47,
+            "monthly_win_rate_pct": 83.3,
+            "profit_factor": 5.06
+          }
+        },
+        {
+          "validate": [
+            "2021-01-01",
+            "2021-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 0.23,
+            "monthly_mean_net_pct": 0.033,
+            "max_drawdown_pct": 6.02,
+            "monthly_win_rate_pct": 57.1,
+            "profit_factor": 1.07
+          }
+        },
+        {
+          "validate": [
+            "2021-07-01",
+            "2022-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -0.8,
+            "monthly_mean_net_pct": -0.134,
+            "max_drawdown_pct": 5.03,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 0.92
+          }
+        },
+        {
+          "validate": [
+            "2022-01-01",
+            "2022-07-01"
+          ],
+          "params": {
+            "entry_days_before": 3,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": -0.83,
+            "monthly_mean_net_pct": -0.119,
+            "max_drawdown_pct": 9.49,
+            "monthly_win_rate_pct": 57.1,
+            "profit_factor": 0.96
+          }
+        },
+        {
+          "validate": [
+            "2022-07-01",
+            "2023-01-01"
+          ],
+          "params": {
+            "entry_days_before": 3,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 2.53,
+            "monthly_mean_net_pct": 0.417,
+            "max_drawdown_pct": 7.63,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 1.34
+          }
+        },
+        {
+          "validate": [
+            "2023-01-01",
+            "2023-07-01"
+          ],
+          "params": {
+            "entry_days_before": 3,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 13.27,
+            "monthly_mean_net_pct": 2.098,
+            "max_drawdown_pct": 2.0,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 8.63
+          }
+        },
+        {
+          "validate": [
+            "2023-07-01",
+            "2024-01-01"
+          ],
+          "params": {
+            "entry_days_before": 4,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 6.85,
+            "monthly_mean_net_pct": 1.111,
+            "max_drawdown_pct": 2.27,
+            "monthly_win_rate_pct": 83.3,
+            "profit_factor": 8.03
+          }
+        },
+        {
+          "validate": [
+            "2024-01-01",
+            "2024-07-01"
+          ],
+          "params": {
+            "entry_days_before": 4,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 1.75,
+            "monthly_mean_net_pct": 0.248,
+            "max_drawdown_pct": 3.11,
+            "monthly_win_rate_pct": 57.1,
+            "profit_factor": 1.51
+          }
+        },
+        {
+          "validate": [
+            "2024-07-01",
+            "2025-01-01"
+          ],
+          "params": {
+            "entry_days_before": 4,
+            "exit_days_after": 2,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -9.86,
+            "monthly_mean_net_pct": -1.715,
+            "max_drawdown_pct": 11.29,
+            "monthly_win_rate_pct": 33.3,
+            "profit_factor": 0.2
+          }
+        },
+        {
+          "validate": [
+            "2025-01-01",
+            "2025-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 4,
+            "use_trend_filter": false
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": -9.68,
+            "monthly_mean_net_pct": -1.444,
+            "max_drawdown_pct": 17.6,
+            "monthly_win_rate_pct": 42.9,
+            "profit_factor": 0.43
+          }
+        },
+        {
+          "validate": [
+            "2025-07-01",
+            "2026-01-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 3,
+            "use_trend_filter": true
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 3.93,
+            "monthly_mean_net_pct": 0.644,
+            "max_drawdown_pct": 2.37,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 2.95
+          }
+        },
+        {
+          "validate": [
+            "2026-01-01",
+            "2026-07-01"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 3,
+            "use_trend_filter": true
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 6.47,
+            "monthly_mean_net_pct": 0.9,
+            "max_drawdown_pct": 3.69,
+            "monthly_win_rate_pct": 57.1,
+            "profit_factor": 3.02
+          }
+        },
+        {
+          "validate": [
+            "2026-07-01",
+            "2026-07-16"
+          ],
+          "params": {
+            "entry_days_before": 5,
+            "exit_days_after": 3,
+            "use_trend_filter": true
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 1,
+            "years": 0.08,
+            "total_return_pct": -2.52,
+            "monthly_mean_net_pct": -2.517,
+            "max_drawdown_pct": 2.52,
+            "monthly_win_rate_pct": 0.0,
+            "profit_factor": 0.0
+          }
+        }
+      ]
+    }
+  }
+}
