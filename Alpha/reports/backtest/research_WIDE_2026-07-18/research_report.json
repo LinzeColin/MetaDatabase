@@ -1,0 +1,1472 @@
+{
+  "round": "宽资产菜单×黄金叠加",
+  "gate": {
+    "gate_monthly_pct": 0.6,
+    "gate_dd_pct": 15.0,
+    "min_years": 3.0
+  },
+  "period": [
+    "2014-01-01",
+    "2026-07-16"
+  ],
+  "results": {
+    "WIDE_gold20": {
+      "grid_size": 36,
+      "oos": {
+        "months": 127,
+        "years": 10.58,
+        "total_return_pct": 57.5,
+        "monthly_mean_net_pct": 0.358,
+        "max_drawdown_pct": 13.66,
+        "monthly_win_rate_pct": 59.1,
+        "profit_factor": 1.46
+      },
+      "promo1": {
+        "years_ok": true,
+        "monthly_return_ok": false,
+        "drawdown_ok": true,
+        "passed": false,
+        "gate": {
+          "monthly_pct": 0.6,
+          "dd_pct": 15.0,
+          "min_years": 3.0
+        }
+      },
+      "windows": [
+        {
+          "validate": [
+            "2016-01-01",
+            "2016-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 1,
+            "target_vol": 15.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 4.34,
+            "monthly_mean_net_pct": 0.609,
+            "max_drawdown_pct": 7.84,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 1.83
+          }
+        },
+        {
+          "validate": [
+            "2016-07-01",
+            "2017-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 3,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -7.36,
+            "monthly_mean_net_pct": -1.267,
+            "max_drawdown_pct": 8.5,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 0.11
+          }
+        },
+        {
+          "validate": [
+            "2017-01-01",
+            "2017-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 3,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 1.84,
+            "monthly_mean_net_pct": 0.304,
+            "max_drawdown_pct": 2.64,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 2.21
+          }
+        },
+        {
+          "validate": [
+            "2017-07-01",
+            "2018-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 1,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 6.21,
+            "monthly_mean_net_pct": 1.009,
+            "max_drawdown_pct": 3.46,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 4.03
+          }
+        },
+        {
+          "validate": [
+            "2018-01-01",
+            "2018-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 3,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 0.33,
+            "monthly_mean_net_pct": 0.055,
+            "max_drawdown_pct": 9.02,
+            "monthly_win_rate_pct": 33.3,
+            "profit_factor": 1.08
+          }
+        },
+        {
+          "validate": [
+            "2018-07-01",
+            "2019-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 3,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -3.4,
+            "monthly_mean_net_pct": -0.575,
+            "max_drawdown_pct": 7.2,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 0.53
+          }
+        },
+        {
+          "validate": [
+            "2019-01-01",
+            "2019-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 2,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 8.05,
+            "monthly_mean_net_pct": 1.112,
+            "max_drawdown_pct": 2.16,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 19.38
+          }
+        },
+        {
+          "validate": [
+            "2019-07-01",
+            "2020-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 2,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 5.62,
+            "monthly_mean_net_pct": 0.915,
+            "max_drawdown_pct": 6.49,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 2.23
+          }
+        },
+        {
+          "validate": [
+            "2020-01-01",
+            "2020-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 2,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 0.85,
+            "monthly_mean_net_pct": 0.12,
+            "max_drawdown_pct": 12.72,
+            "monthly_win_rate_pct": 85.7,
+            "profit_factor": 1.27
+          }
+        },
+        {
+          "validate": [
+            "2020-07-01",
+            "2021-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 2,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.95,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 13.52,
+            "monthly_mean_net_pct": 2.136,
+            "max_drawdown_pct": 5.79,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 3.93
+          }
+        },
+        {
+          "validate": [
+            "2021-01-01",
+            "2021-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 2,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 3.78,
+            "monthly_mean_net_pct": 0.531,
+            "max_drawdown_pct": 9.17,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 2.35
+          }
+        },
+        {
+          "validate": [
+            "2021-07-01",
+            "2022-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 1,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.95,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -6.15,
+            "monthly_mean_net_pct": -1.052,
+            "max_drawdown_pct": 12.39,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 0.54
+          }
+        },
+        {
+          "validate": [
+            "2022-01-01",
+            "2022-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 2,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.95,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": -3.02,
+            "monthly_mean_net_pct": -0.437,
+            "max_drawdown_pct": 11.34,
+            "monthly_win_rate_pct": 42.9,
+            "profit_factor": 0.63
+          }
+        },
+        {
+          "validate": [
+            "2022-07-01",
+            "2023-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 1,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -0.45,
+            "monthly_mean_net_pct": -0.075,
+            "max_drawdown_pct": 1.97,
+            "monthly_win_rate_pct": 16.7,
+            "profit_factor": 0.81
+          }
+        },
+        {
+          "validate": [
+            "2023-01-01",
+            "2023-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 2,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.95,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 4.38,
+            "monthly_mean_net_pct": 0.717,
+            "max_drawdown_pct": 3.4,
+            "monthly_win_rate_pct": 83.3,
+            "profit_factor": 2.67
+          }
+        },
+        {
+          "validate": [
+            "2023-07-01",
+            "2024-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 1,
+            "target_vol": 15.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.95,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 2.63,
+            "monthly_mean_net_pct": 0.434,
+            "max_drawdown_pct": 8.22,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 1.42
+          }
+        },
+        {
+          "validate": [
+            "2024-01-01",
+            "2024-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 1,
+            "target_vol": 15.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.95,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 5.7,
+            "monthly_mean_net_pct": 0.796,
+            "max_drawdown_pct": 4.2,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 3.0
+          }
+        },
+        {
+          "validate": [
+            "2024-07-01",
+            "2025-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 1,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -9.91,
+            "monthly_mean_net_pct": -1.724,
+            "max_drawdown_pct": 12.09,
+            "monthly_win_rate_pct": 33.3,
+            "profit_factor": 0.32
+          }
+        },
+        {
+          "validate": [
+            "2025-01-01",
+            "2025-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 1,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 12.58,
+            "monthly_mean_net_pct": 1.707,
+            "max_drawdown_pct": 5.47,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 24.99
+          }
+        },
+        {
+          "validate": [
+            "2025-07-01",
+            "2026-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 1,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 16.66,
+            "monthly_mean_net_pct": 2.601,
+            "max_drawdown_pct": 7.37,
+            "monthly_win_rate_pct": 83.3,
+            "profit_factor": 22.1
+          }
+        },
+        {
+          "validate": [
+            "2026-01-01",
+            "2026-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 1,
+            "target_vol": 15.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": -4.24,
+            "monthly_mean_net_pct": -0.617,
+            "max_drawdown_pct": 11.52,
+            "monthly_win_rate_pct": 42.9,
+            "profit_factor": 0.7
+          }
+        },
+        {
+          "validate": [
+            "2026-07-01",
+            "2026-07-16"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 1,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "weekly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 1,
+            "years": 0.08,
+            "total_return_pct": -0.79,
+            "monthly_mean_net_pct": -0.795,
+            "max_drawdown_pct": 2.22,
+            "monthly_win_rate_pct": 0.0,
+            "profit_factor": 0.0
+          }
+        }
+      ]
+    },
+    "WIDE_gold30_monthly": {
+      "grid_size": 16,
+      "oos": {
+        "months": 127,
+        "years": 10.58,
+        "total_return_pct": 64.26,
+        "monthly_mean_net_pct": 0.392,
+        "max_drawdown_pct": 15.84,
+        "monthly_win_rate_pct": 59.1,
+        "profit_factor": 1.56
+      },
+      "promo1": {
+        "years_ok": true,
+        "monthly_return_ok": false,
+        "drawdown_ok": false,
+        "passed": false,
+        "gate": {
+          "monthly_pct": 0.6,
+          "dd_pct": 15.0,
+          "min_years": 3.0
+        }
+      },
+      "windows": [
+        {
+          "validate": [
+            "2016-01-01",
+            "2016-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 2,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 5.93,
+            "monthly_mean_net_pct": 0.826,
+            "max_drawdown_pct": 3.94,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 2.63
+          }
+        },
+        {
+          "validate": [
+            "2016-07-01",
+            "2017-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 3,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.3
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -9.11,
+            "monthly_mean_net_pct": -1.579,
+            "max_drawdown_pct": 9.82,
+            "monthly_win_rate_pct": 16.7,
+            "profit_factor": 0.02
+          }
+        },
+        {
+          "validate": [
+            "2017-01-01",
+            "2017-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 3,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.3
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 4.06,
+            "monthly_mean_net_pct": 0.666,
+            "max_drawdown_pct": 2.29,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 5.11
+          }
+        },
+        {
+          "validate": [
+            "2017-07-01",
+            "2018-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 2,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.3
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 7.52,
+            "monthly_mean_net_pct": 1.215,
+            "max_drawdown_pct": 2.64,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 8.32
+          }
+        },
+        {
+          "validate": [
+            "2018-01-01",
+            "2018-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 3,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -1.69,
+            "monthly_mean_net_pct": -0.285,
+            "max_drawdown_pct": 8.99,
+            "monthly_win_rate_pct": 33.3,
+            "profit_factor": 0.81
+          }
+        },
+        {
+          "validate": [
+            "2018-07-01",
+            "2019-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 3,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -5.98,
+            "monthly_mean_net_pct": -1.022,
+            "max_drawdown_pct": 11.05,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 0.33
+          }
+        },
+        {
+          "validate": [
+            "2019-01-01",
+            "2019-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 3,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.3
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 2.54,
+            "monthly_mean_net_pct": 0.359,
+            "max_drawdown_pct": 2.54,
+            "monthly_win_rate_pct": 57.1,
+            "profit_factor": 1.87
+          }
+        },
+        {
+          "validate": [
+            "2019-07-01",
+            "2020-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 3,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.3
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 2.82,
+            "monthly_mean_net_pct": 0.464,
+            "max_drawdown_pct": 3.17,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 2.19
+          }
+        },
+        {
+          "validate": [
+            "2020-01-01",
+            "2020-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 2,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.3
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 0.03,
+            "monthly_mean_net_pct": 0.005,
+            "max_drawdown_pct": 10.86,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 1.04
+          }
+        },
+        {
+          "validate": [
+            "2020-07-01",
+            "2021-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 3,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.3
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 11.08,
+            "monthly_mean_net_pct": 1.767,
+            "max_drawdown_pct": 4.45,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 4.06
+          }
+        },
+        {
+          "validate": [
+            "2021-01-01",
+            "2021-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 3,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.3
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 5.93,
+            "monthly_mean_net_pct": 0.826,
+            "max_drawdown_pct": 6.19,
+            "monthly_win_rate_pct": 57.1,
+            "profit_factor": 4.61
+          }
+        },
+        {
+          "validate": [
+            "2021-07-01",
+            "2022-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 3,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 1.61,
+            "monthly_mean_net_pct": 0.266,
+            "max_drawdown_pct": 4.55,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 1.28
+          }
+        },
+        {
+          "validate": [
+            "2022-01-01",
+            "2022-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 3,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": -4.2,
+            "monthly_mean_net_pct": -0.611,
+            "max_drawdown_pct": 6.96,
+            "monthly_win_rate_pct": 57.1,
+            "profit_factor": 0.42
+          }
+        },
+        {
+          "validate": [
+            "2022-07-01",
+            "2023-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 3,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 1.73,
+            "monthly_mean_net_pct": 0.286,
+            "max_drawdown_pct": 1.2,
+            "monthly_win_rate_pct": 33.3,
+            "profit_factor": 3.49
+          }
+        },
+        {
+          "validate": [
+            "2023-01-01",
+            "2023-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 3,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 3.86,
+            "monthly_mean_net_pct": 0.634,
+            "max_drawdown_pct": 4.8,
+            "monthly_win_rate_pct": 83.3,
+            "profit_factor": 2.57
+          }
+        },
+        {
+          "validate": [
+            "2023-07-01",
+            "2024-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 2,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.3
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 1.02,
+            "monthly_mean_net_pct": 0.169,
+            "max_drawdown_pct": 6.99,
+            "monthly_win_rate_pct": 66.7,
+            "profit_factor": 1.23
+          }
+        },
+        {
+          "validate": [
+            "2024-01-01",
+            "2024-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 2,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 11.89,
+            "monthly_mean_net_pct": 1.617,
+            "max_drawdown_pct": 3.76,
+            "monthly_win_rate_pct": 85.7,
+            "profit_factor": 5.85
+          }
+        },
+        {
+          "validate": [
+            "2024-07-01",
+            "2025-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 2,
+            "target_vol": 12.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": -1.12,
+            "monthly_mean_net_pct": -0.188,
+            "max_drawdown_pct": 7.76,
+            "monthly_win_rate_pct": 50.0,
+            "profit_factor": 0.74
+          }
+        },
+        {
+          "validate": [
+            "2025-01-01",
+            "2025-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 2,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": 6.42,
+            "monthly_mean_net_pct": 0.893,
+            "max_drawdown_pct": 6.37,
+            "monthly_win_rate_pct": 71.4,
+            "profit_factor": 4.96
+          }
+        },
+        {
+          "validate": [
+            "2025-07-01",
+            "2026-01-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 2,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 6,
+            "years": 0.5,
+            "total_return_pct": 14.01,
+            "monthly_mean_net_pct": 2.21,
+            "max_drawdown_pct": 4.05,
+            "monthly_win_rate_pct": 83.3,
+            "profit_factor": 14.7
+          }
+        },
+        {
+          "validate": [
+            "2026-01-01",
+            "2026-07-01"
+          ],
+          "params": {
+            "weights": [
+              0.4,
+              0.3,
+              0.3
+            ],
+            "top_n": 2,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.2
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 7,
+            "years": 0.58,
+            "total_return_pct": -2.56,
+            "monthly_mean_net_pct": -0.369,
+            "max_drawdown_pct": 11.68,
+            "monthly_win_rate_pct": 42.9,
+            "profit_factor": 0.89
+          }
+        },
+        {
+          "validate": [
+            "2026-07-01",
+            "2026-07-16"
+          ],
+          "params": {
+            "weights": [
+              0.7,
+              0.2,
+              0.1
+            ],
+            "top_n": 3,
+            "target_vol": 999.0,
+            "rebalance_threshold_pct": 5.0,
+            "eval_frequency": "monthly",
+            "high_proximity": 0.9,
+            "dd_soft_pct": null,
+            "dd_hard_pct": null,
+            "defensive_symbol": "GLD",
+            "defensive_weight": 0.3
+          },
+          "dd_ok": true,
+          "val": {
+            "months": 1,
+            "years": 0.08,
+            "total_return_pct": -1.53,
+            "monthly_mean_net_pct": -1.53,
+            "max_drawdown_pct": 2.27,
+            "monthly_win_rate_pct": 0.0,
+            "profit_factor": 0.0
+          }
+        }
+      ]
+    }
+  }
+}

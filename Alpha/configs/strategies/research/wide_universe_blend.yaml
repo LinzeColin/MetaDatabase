@@ -1,0 +1,28 @@
+# 宽资产菜单 × 黄金叠加(研究候选)— 试图把冠军 0.662%@13.07% 的地板抬高
+# 在原 8 资产上增补:REIT/大宗/高收益债/投资级债/通胀债/发达/新兴,给动量更宽的轮动菜单
+strategy_id: "WIDE_UNIVERSE_BLEND_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate"
+universe: ["SPY","QQQ","IWM","EFA","EEM","GLD","TLT","BIL","VNQ","DBC","HYG","LQD","TIP","VEA","VWO"]
+cash_proxy: "BIL"
+candidates:
+  WIDE_gold20:
+    eval_frequency: "weekly"
+    grid:
+      defensive_symbol_allowed: ["GLD"]
+      defensive_weight_allowed: [0.2]
+      high_proximity_allowed: [0.90, 0.95]
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2, 3]
+      target_vol_allowed: [12, 15, 999]
+      rebalance_threshold_allowed: [5]
+  WIDE_gold30_monthly:
+    eval_frequency: "monthly"
+    grid:
+      defensive_symbol_allowed: ["GLD"]
+      defensive_weight_allowed: [0.2, 0.3]
+      high_proximity_allowed: [0.90]
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [2, 3]
+      target_vol_allowed: [12, 999]
+      rebalance_threshold_allowed: [5]
