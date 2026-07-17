@@ -303,6 +303,76 @@ class OrderStore:
             )
             return open_run is not None
 
+    def annotate(
+        self,
+        order_id: str,
+        *,
+        event_type: str,
+        payload: Optional[dict] = None,
+        broker_order_id: Optional[str] = None,
+    ) -> None:
+        """追加不改状态的审计事件(如晚到的同步回执、门禁拦截、改单请求)。"""
+        with self._sessions() as session, session.begin():
+            order = self._locked_order(session, order_id)
+            if broker_order_id is not None and order.broker_order_id is None:
+                order.broker_order_id = broker_order_id
+            session.add(
+                OrderEvent(
+                    order_id=order.order_id,
+                    event_type=event_type,
+                    from_state=order.state,
+                    to_state=None,
+                    payload=json.dumps(payload or {}, ensure_ascii=False, default=str),
+                )
+            )
+
+    def count_submissions_since(self, cutoff: datetime) -> int:
+        """滚动窗口内的提交次数(以 SUBMITTING 折叠事件计,重启不失忆)。"""
+        with self._sessions() as session:
+            rows = session.scalars(
+                select(OrderEvent).where(
+                    OrderEvent.to_state == OrderState.SUBMITTING.value,
+                    OrderEvent.recorded_at > cutoff,
+                )
+            ).all()
+            return len(rows)
+
+    def latest_jurisdiction_verdict(self) -> Optional[str]:
+        """最近一次辖区探针判定;从未探测过返回 None(视同 DENY)。"""
+        from backend.app.domain.models import JurisdictionCapability
+
+        with self._sessions() as session:
+            row = session.scalars(
+                select(JurisdictionCapability).order_by(JurisdictionCapability.probed_at.desc()).limit(1)
+            ).first()
+            return row.verdict if row is not None else None
+
+    def find_order_by_idempotency_key(self, key: str) -> Optional[str]:
+        with self._sessions() as session:
+            intent = session.scalar(select(OrderIntent).where(OrderIntent.idempotency_key == key))
+            if intent is None:
+                return None
+            order = session.scalar(select(BrokerOrder).where(BrokerOrder.intent_id == intent.intent_id))
+            return order.order_id if order else None
+
+    def list_orders_in_state(self, state: OrderState) -> list[dict]:
+        """恢复用:某状态的全部订单(含幂等键)。"""
+        with self._sessions() as session:
+            orders = session.scalars(select(BrokerOrder).where(BrokerOrder.state == state.value)).all()
+            out = []
+            for o in orders:
+                intent = session.get(OrderIntent, o.intent_id)
+                out.append(
+                    {
+                        "order_id": o.order_id,
+                        "intent_id": o.intent_id,
+                        "broker_order_id": o.broker_order_id,
+                        "idempotency_key": intent.idempotency_key if intent else None,
+                        "symbol": intent.symbol if intent else None,
+                    }
+                )
+            return out
+
     def idempotency_key_available(self, key: str) -> bool:
         with self._sessions() as session:
             hit = session.scalar(select(OrderIntent).where(OrderIntent.idempotency_key == key))

@@ -216,6 +216,21 @@ class OutboxEvent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
+class ExecutionLeaseRow(Base):
+    """执行租约(基础设施表,不属十实体):单写者纪律的持久化载体。
+
+    同名租约至多一行;持有者到期未续即可被接管。执行网关无租约不得提交任何订单。
+    """
+
+    __tablename__ = "execution_leases"
+
+    lease_name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    holder_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    acquired_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    renewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class ReconciliationRun(Base):
     """对账批次:触发原因、差异数、处理结果、完成时间。OPEN 批次存在 = 停新单。"""
 
