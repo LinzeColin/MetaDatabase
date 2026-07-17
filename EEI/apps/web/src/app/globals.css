@@ -3502,3 +3502,29 @@ dd {
     left: 50%;
   }
 }
+
+/* ==========================================================================
+   S13 收尾（F06 云模式补丁）：真实长实体名会把 inspector 里的关系表格
+   min-content 撑爆栅格列（1280 生产实测溢出 166px；样例短名不触发）。
+   表格在面板内横向滚动，页面永不横滚；列名系统性防爆。
+   ========================================================================== */
+.graphTablePanel {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.graphTablePanel table {
+  min-width: 100%;
+}
+
+.inspector > section,
+.focusPanel > section,
+.focusPanel > div,
+.inspector > div {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.structureMatrix {
+  overflow-x: auto;
+}
