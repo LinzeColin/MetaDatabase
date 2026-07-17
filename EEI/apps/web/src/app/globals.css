@@ -3528,3 +3528,18 @@ dd {
 .structureMatrix {
   overflow-x: auto;
 }
+
+/* S13 收尾②：UUID/接口 URL 等不可断长 token 在窄列面板里任意断行——
+   1280 生产实测 production-evidence-detail 被 37 字符关系号撑爆 381px。 */
+.inspector dd,
+.inspector dt,
+.inspector strong,
+.inspector small,
+.focusPanel dd,
+.focusPanel strong,
+.focusPanel small,
+.panelHuman span,
+.statusStrip span {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
