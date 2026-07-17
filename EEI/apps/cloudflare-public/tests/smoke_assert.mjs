@@ -96,6 +96,15 @@ assert.equal(search.status, 200);
 assert.equal(search.body.entities.length, 1);
 assert.equal(search.body.entities[0].id, NVIDIA);
 
+// R-002/S-003 hardening: a fuzzed long term must fail closed (200, empty, no
+// leak) instead of the raw 500 SQLITE_ERROR the fault harness found.
+const fuzzSearch = await getJson(`/v1/entities?q=${"A".repeat(5000)}`);
+assert.equal(fuzzSearch.status, 200, "over-long search term must not 500");
+assert.deepEqual(fuzzSearch.body.entities, []);
+// A user wildcard is a literal, not an injected pattern.
+const wildcardSearch = await getJson("/v1/entities?q=%25");
+assert.equal(wildcardSearch.status, 200);
+
 const missing = await getJson(`/v1/scoring/relationship/00000000-0000-4000-9000-00000000dead/explanation`);
 assert.equal(missing.status, 404);
 
@@ -264,4 +273,4 @@ assert.equal(buildMeta.status, 200);
 assert.equal(buildMeta.body.repo, "LinzeColin/MetaDatabase");
 assert.ok("commit" in buildMeta.body);
 
-console.log("SMOKE_ASSERT_OK routes=22");
+console.log("SMOKE_ASSERT_OK routes=22 (+search-hardening)");
