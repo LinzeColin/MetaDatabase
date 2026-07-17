@@ -1,0 +1,14 @@
+[Unit]
+Description=Alpha 控制页(查询/停机/恢复/授权确认;永不下单)
+After=network-online.target
+
+[Service]
+User=alpha
+WorkingDirectory=/opt/alpha/MetaDatabase/Alpha
+EnvironmentFile=/opt/alpha/env
+ExecStart=/opt/alpha/venv/bin/python -m backend.app.control_page.main
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -23,7 +23,8 @@ exclude = ["data*", "configs*", "docs*", "tests*"]
 
 [project.optional-dependencies]
 dev = [
-  "pytest"
+  "pytest",
+  "httpx"
 ]
 
 [tool.pytest.ini_options]

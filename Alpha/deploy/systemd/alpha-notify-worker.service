@@ -1,0 +1,14 @@
+[Unit]
+Description=Alpha 通知 Worker(事务发件箱投递 + 邮件指令轮询)
+After=postgresql.service
+
+[Service]
+User=alpha
+WorkingDirectory=/opt/alpha/MetaDatabase/Alpha
+EnvironmentFile=/opt/alpha/env
+ExecStart=/opt/alpha/venv/bin/python -m backend.app.workers.main_notify
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,6 +1,6 @@
 {
-  "stage": "G4 7*24 Worker、监督进程与云端部署",
-  "phase": "运行时进程与通知遥控",
-  "task": "`ALPHA-LIVE-040`：交易/通知 Worker 独立进程;Supervisor 心跳自愈;事务发件箱邮件;网页控制页(停机/状态/授权确认,永不能下单);Oracle 云部署与真机冒烟(探针+试发邮件+手机开控制页)——真机部分依赖 owner 部署日 15 分钟凭据供给(BLK-005)",
+  "stage": "G5 回测寻优流水线",
+  "phase": "免费日线数据+费用模型回测",
+  "task": "`ALPHA-LIVE-050`：免费日线数据(多源交叉核验)+configs/fees.yaml 扣费+训练 2 年/验证 6 个月滚动前推;输出 S1/S2 与组合费后月均收益、回撤、胜率、盈亏比;对照 strategy_promotion.yaml 出 PROMO-1 判定——达标或不达标都如实写明,不达标停下报告等 owner 选择",
   "owner": "Claude Code 开发，Linze 复审拍板"
 }

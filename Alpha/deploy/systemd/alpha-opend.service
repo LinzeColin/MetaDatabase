@@ -1,0 +1,14 @@
+[Unit]
+Description=Alpha Moomoo OpenD 网关(仅回环,RSA 加密)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=alpha
+EnvironmentFile=/opt/alpha/env
+ExecStart=/opt/alpha/opend/OpenD -config /opt/alpha/opend/OpenD.xml
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,15 @@
+[Unit]
+Description=Alpha 交易 Worker(SIMULATE/受门禁 REAL;失败关闭)
+After=alpha-opend.service postgresql.service
+Requires=alpha-opend.service
+
+[Service]
+User=alpha
+WorkingDirectory=/opt/alpha/MetaDatabase/Alpha
+EnvironmentFile=/opt/alpha/env
+ExecStart=/opt/alpha/venv/bin/python -m backend.app.workers.main_trading
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

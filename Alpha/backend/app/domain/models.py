@@ -213,7 +213,21 @@ class OutboxEvent(Base):
     payload: Mapped[str] = mapped_column(Text, nullable=False, default="{}")  # JSON
     delivery_status: Mapped[str] = mapped_column(String(16), nullable=False, default="PENDING")
     delivered_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    next_attempt_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_error: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class WorkerHeartbeat(Base):
+    """Worker 心跳(基础设施表):Supervisor 据此判活;心跳丢失=失败关闭方向处置。"""
+
+    __tablename__ = "worker_heartbeats"
+
+    worker_name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    beat_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="RUNNING")
+    detail: Mapped[str] = mapped_column(Text, nullable=False, default="")
 
 
 class ExecutionLeaseRow(Base):
