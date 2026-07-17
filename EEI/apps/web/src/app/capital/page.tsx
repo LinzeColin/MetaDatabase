@@ -334,7 +334,7 @@ export default function CapitalRiverPage() {
 
             {loadState === "hydrated" && events.length === 0 ? (
               <div className="capitalNoResults" data-testid="capital-no-results">
-                当前筛选没有带证据的事件。
+                发布面暂无已发布资金事件——演示与候选事件逐条标注、永不出本地，缺席不等于真实为空。
               </div>
             ) : null}
           </section>
