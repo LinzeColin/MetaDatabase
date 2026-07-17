@@ -123,9 +123,12 @@ def simulate_s1(
     fee: FeeModel,
     calendar: list[date],
     signal_series: Optional[dict[str, SymbolSeries]] = None,
+    universe_fn=None,
 ) -> SleeveResult:
     """signal_series:可选的「信号代理」——评分/资格线用代理序列(如杠杆基金
-    用其原指数 ETF 作信号,规避杠杆衰减噪声),交易价格仍用本尊。缺省=本尊即信号。"""
+    用其原指数 ETF 作信号,规避杠杆衰减噪声),交易价格仍用本尊。缺省=本尊即信号。
+    universe_fn:可选的「时点名单」——每个评估日返回当日合法候选(如当期道指
+    成分),杜绝幸存者偏差;静态 universe 仍作日历参照与现金替身来源。"""
     cash = sleeve_usd
     shares: dict[str, int] = {}
     result = SleeveResult(equity_days=[], equity=[])
@@ -150,7 +153,8 @@ def simulate_s1(
         if is_eval:
             last_eval_month = (day.year, day.month)
             scores: dict[str, float] = {}
-            for sym in universe:
+            candidates = list(universe_fn(day)) if universe_fn else universe
+            for sym in candidates:
                 if sym == cash_proxy:
                     continue
                 ss = (signal_series or {}).get(sym) or series.get(sym)
@@ -170,7 +174,7 @@ def simulate_s1(
                         continue  # 52 周新高过滤:离高点太远无资格
                 w1, w2, w3 = params.weights
                 scores[sym] = w1 * r1 + w2 * r2 + w3 * r3
-            ranked = sorted(scores, key=lambda s_: (-scores[s_], universe.index(s_)))
+            ranked = sorted(scores, key=lambda s_: (-scores[s_], candidates.index(s_)))
             selected = ranked[: params.top_n]
             scalar = 1.0
             if selected:
