@@ -1,0 +1,26 @@
+# 统一动量池研究(UNI 轮):资产类 ETF ∪ 因子 ETF 合成单池选 top-N,冠军同款黄金叠加。
+# 动机:BLEND 证明"冠军+因子"去相关可压回撤到 11%,但拆两仓的整股/佣金惩罚吃掉收益。
+# 单池满仓不闲置,同样吃到"不同时段不同赢家"的跨期分散,但无拆仓费用惩罚。
+cash_proxy: BIL
+universe: ["SPY", "QQQ", "IWM", "EFA", "EEM", "MTUM", "USMV", "QUAL", "VLUE", "SPLV", "GLD", "TLT", "BIL"]
+candidates:
+  UNI_GOLD_WEEKLY:
+    eval_frequency: weekly
+    grid:
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [15, 999]
+      rebalance_threshold_allowed: [3, 5, 8]
+      high_proximity_allowed: [null, 0.90, 0.95]
+      defensive_symbol_allowed: ["GLD"]
+      defensive_weight_allowed: [0.2, 0.3]
+  UNI_GOLD_MONTHLY:
+    eval_frequency: monthly
+    grid:
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [15, 999]
+      rebalance_threshold_allowed: [3, 5, 8]
+      high_proximity_allowed: [null, 0.90, 0.95]
+      defensive_symbol_allowed: ["GLD"]
+      defensive_weight_allowed: [0.2, 0.3]
