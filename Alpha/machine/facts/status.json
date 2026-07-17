@@ -1,11 +1,11 @@
 {
   "version": "0.1.0",
-  "stage": "部署与烤机(工程面就绪;等云主机+凭据)",
-  "phase": "一键开机脚本已备;故障注入+烤机程序绿",
-  "task": "建机脚本就绪且云端命令行已认证打开;最后一步被安全护栏挡(远程脚本直接执行),等 owner 跑一条命令给出公网地址,之后我远程登录全自动接管加固+五进程+烤机",
-  "real_progress": "G0-G5+六批研究+060 工程面完成:一键开机脚本部署、故障注入 9 场景绿、烤机程序加速预检工程正常;真实 72h 烤机/3交易日模拟盘/实盘首单受真实时间与 owner 部署日凭据(BLK-005)硬约束,不可在本会话内完成、不冒充",
-  "report_grade": "结构可信：七文件全部由机器平面渲染；业务数字尚无实盘证据",
-  "business_verdict": "尚无实盘;回测证据不支持 5%/月门槛,如实报告不放宽;宁可空仓不烧钱",
-  "rendered_at": "2026-07-17",
-  "facts_commit": "ALPHA-LIVE-000 原子提交（本仓 main）"
+  "stage": "主节点已部署上线(OVH Singapore);72h 烤机时钟运行中",
+  "phase": "第1步建服务器✅ + 第2步72h烤机进行中;第3-4步待 BLK-005 凭据",
+  "task": "OVH Singapore 主节点(amd64, Ubuntu24.04;IP/密钥存 _protected 不入公开仓)从零 bootstrap 完成:加固+PostgreSQL(13表自建)+venv+依赖;alpha-supervisor/alpha-control-page 常驻 active;alpha-soak72 于 2026-07-17T21:32:15Z 起跑真实 72 小时烤机(自足 sqlite+假适配器,断线不影响)。实盘开关 LIVE_TRADING_ENABLED=0,券商/邮件凭据保持 <REQUIRED> 未填",
+  "real_progress": "G0-G5+研究七批+060 工程面完成;主节点真实部署上线:建服务器与 72h 烤机启动为真(非加速预检),烤机完工约 2026-07-20T21:32Z。3交易日模拟盘/实盘首单仍受 owner 部署日凭据(BLK-005:moomoo/Gmail,真实行情靠 OpenD)与真实市场时间硬约束,不冒充",
+  "report_grade": "结构可信：七文件全部由机器平面渲染；主机健康快照可复验；业务数字仍无实盘证据",
+  "business_verdict": "尚无实盘;冠军回测月均 0.662% 最大回撤 13.07% 过 0.6 门槛;宁可空仓不烧钱,门槛只升不降",
+  "rendered_at": "2026-07-18",
+  "facts_commit": "部署上线随本次提交(本仓 main)"
 }
