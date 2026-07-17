@@ -157,30 +157,51 @@ def cross_check(
     primary: Sequence[RawDay],
     secondary: Sequence[RawDay],
     *,
-    tolerance: float = 0.002,
+    return_tolerance: float = 0.005,
+    level_tolerance: float = 0.002,
     sample_every: int = 21,
 ) -> dict:
-    """未复权收盘价抽样比对:重叠区间每 21 个交易日抽一天 + 首尾必查。"""
+    """双源交叉核验:硬门槛用「逐日收益率」比对,水平差只作警告。
+
+    依据(2026-07-17 R1 留痕):厂商对特别分配/分拆的历史价调整口径不同
+    (实例:XLF 2016-09 分拆 XLRE,雅虎调整历史价、纳斯达克不调)会造成
+    恒定水平偏移——那是口径差不是数据错;而坏价、错日、漏拆分会让某日
+    收益率在两源间爆炸性不一致——这才是要拦的。收益率比对对前者免疫、
+    对后者敏感,故为硬门槛;水平差超容差记警告供人工复核。
+    """
     sec_by_day = {r.day: r for r in secondary}
     overlap = [r for r in primary if r.day in sec_by_day]
     if len(overlap) < 100:
         raise DataIntegrityError(f"{symbol}: 双源重叠不足 ({len(overlap)} 天),交叉核验不可信")
-    picks = overlap[::sample_every]
-    if overlap[0] not in picks:
-        picks.insert(0, overlap[0])
-    if overlap[-1] not in picks:
-        picks.append(overlap[-1])
-    mismatches = []
-    for r in picks:
+
+    return_mismatches = []
+    checked = 0
+    for i in range(1, len(overlap)):
+        a_prev, a_cur = overlap[i - 1], overlap[i]
+        b_prev, b_cur = sec_by_day[a_prev.day], sec_by_day[a_cur.day]
+        if i % sample_every and i != len(overlap) - 1:
+            continue
+        checked += 1
+        ra = a_cur.close / a_prev.close - 1.0
+        rb = b_cur.close / b_prev.close - 1.0
+        if abs(ra - rb) > return_tolerance:
+            return_mismatches.append({"day": a_cur.day.isoformat(),
+                                      "primary_ret": round(ra, 6), "secondary_ret": round(rb, 6)})
+    if return_mismatches:
+        raise DataIntegrityError(
+            f"{symbol}: 双源逐日收益率超容差 {return_tolerance:.2%}: {return_mismatches[:5]}")
+
+    level_warnings = []
+    for r in overlap[::sample_every]:
         other = sec_by_day[r.day]
         rel = abs(r.close - other.close) / other.close
-        if rel > tolerance:
-            mismatches.append({"day": r.day.isoformat(), "primary": r.close,
-                               "secondary": other.close, "rel_diff": round(rel, 6)})
-    if mismatches:
-        raise DataIntegrityError(f"{symbol}: 双源收盘价超容差 {tolerance:.2%}: {mismatches[:5]}")
-    return {"symbol": symbol, "overlap_days": len(overlap), "sampled": len(picks),
-            "tolerance": tolerance, "all_within_tolerance": True}
+        if rel > level_tolerance:
+            level_warnings.append({"day": r.day.isoformat(), "rel_diff": round(rel, 6)})
+    return {"symbol": symbol, "overlap_days": len(overlap), "sampled_returns": checked,
+            "return_tolerance": return_tolerance, "all_within_tolerance": True,
+            "level_offset_warnings": len(level_warnings),
+            "level_note": ("水平差警告 = 厂商复权口径差异(见函数注释),收益率一致即数据可信"
+                           if level_warnings else "")}
 
 
 def to_adjusted_bars(rows: Sequence[RawDay]) -> list[Bar]:

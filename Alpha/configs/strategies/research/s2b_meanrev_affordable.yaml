@@ -1,0 +1,22 @@
+# S2B 超卖反弹·低价可行池(研究候选,未启用)— 修复 3000 AUD 整股资金不可行
+# 池子准入:高流动性行业 ETF,历史价位使单笔约 198 USD 预算可买 >=1 股
+strategy_id: "S2B_OVERSOLD_AFFORDABLE_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate"
+universe:
+  core: ["XLF", "XLE", "XLP", "XLU", "XLB"]
+entry:
+  trend_filter: "close > SMA200"
+  rsi: {period: 2, smoothing: "wilder"}
+  ibs: {}
+  order: {type: "LIMIT", price: "prev_close * 0.995", time_in_force: "DAY"}
+exit:
+  take_profit: "close > SMA5 -> next session close"
+  stop_loss: "market on trigger day close"
+concurrency: {max_open_trades: 2}
+review_grid:
+  rsi_threshold_allowed: [5, 8, 10, 15]
+  ibs_threshold_allowed: [0.15, 0.2, 0.3]
+  stop_loss_allowed: [3.0, 4.0, 5.0]
+  time_stop_allowed: [5, 7, 10]
+  volatility_floor_allowed: [0.8, 1.0, 1.5]

@@ -1,0 +1,15 @@
+# S1R 原池动量宽网格(研究候选,未启用)— 在原 8 资产池上放开集中度与波动调节
+strategy_id: "S1R_MOMENTUM_WIDE_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate"
+universe: ["SPY", "QQQ", "IWM", "EFA", "EEM", "GLD", "TLT", "BIL"]
+cash_proxy: "BIL"
+score:
+  formula: "w1*r63 + w2*r126 + w3*r252"
+  lookbacks_trading_days: [63, 126, 252]
+absolute_momentum_filter: {rule: "close > SMA200", sma_period: 200}
+review_grid:
+  weights_allowed: [[0.4,0.3,0.3],[0.5,0.3,0.2],[0.33,0.33,0.34],[0.7,0.2,0.1],[1.0,0.0,0.0]]
+  top_n_allowed: [1, 2]
+  target_vol_allowed: [12, 15, 999]
+  rebalance_threshold_allowed: [3, 5, 8]

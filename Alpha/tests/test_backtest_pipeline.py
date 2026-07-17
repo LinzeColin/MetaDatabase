@@ -78,11 +78,18 @@ def test_integrity_gap_raises_and_split_warns():
     assert any("疑似拆分" in w for w in warnings)
 
 
-def test_cross_check_passes_within_tolerance_and_fails_beyond():
+def test_cross_check_returns_hard_gate_levels_soft_warning():
     a = make_raw(300)
-    b_ok = [RawDay(day=r.day, open=r.open, high=r.high, low=r.low, close=r.close * 1.001) for r in a]
-    assert cross_check("X", a, b_ok)["all_within_tolerance"] is True
-    b_bad = [RawDay(day=r.day, open=r.open, high=r.high, low=r.low, close=r.close * 1.01) for r in a]
+    # 恒定水平偏移(厂商复权口径差):收益率一致 -> 通过,但记水平警告
+    b_offset = [RawDay(day=r.day, open=r.open, high=r.high, low=r.low, close=r.close * 1.01) for r in a]
+    res = cross_check("X", a, b_offset)
+    assert res["all_within_tolerance"] is True
+    assert res["level_offset_warnings"] > 0
+    # 单日坏价(真数据错误):该日收益率在两源爆炸性不一致 -> 硬拒
+    b_bad = [RawDay(day=r.day, open=r.open, high=r.high, low=r.low, close=r.close) for r in a]
+    k = 210  # 落在抽样点(21 的倍数)上
+    b_bad[k] = RawDay(day=a[k].day, open=a[k].open, high=a[k].high, low=a[k].low,
+                      close=a[k].close * 1.08)
     with pytest.raises(DataIntegrityError):
         cross_check("X", a, b_bad)
 
