@@ -1,10 +1,13 @@
+# 2026-07-17 起本登记簿为旧治理框架历史存档:产品契约由 Alpha/AGENTS.md(Live MVP v1
+# 受控许可模型)与 Alpha/machine/facts/ 取代。旧「无条件禁止无人值守实盘下单」规则已废止;
+# 默认失败关闭(DISABLED)与 fail-closed 语义继续有效。
 governance_spec_version: "1.0.0"
 project_id: "Alpha"
 assumptions:
   - assumption_id: "ASM-001"
-    statement: "Alpha operates as research, backtest, paper trading, order-intent review, and dashboard tooling; committed defaults do not enable unattended real-money order submission."
+    statement: "Superseded 2026-07-17: Alpha 为受控实盘交易工作台;仓库默认配置永远 DISABLED(失败关闭),真实下单仅经唯一执行网关在十一门禁+owner 预签授权内自动发生(见 Alpha/AGENTS.md 第 3 节)。旧 research/paper-only 定位废止。"
     fact_level: "EXTRACTED"
-    evidence_refs: ["Alpha/AGENTS.md:5", "Alpha/README.md:31", "Alpha/configs/trading_governor_policy.yaml:4"]
+    evidence_refs: ["Alpha/AGENTS.md", "Alpha/docs/decision_log.md", "Alpha/configs/trading_governor_policy.yaml"]
   - assumption_id: "ASM-002"
     statement: "The current strategy and paper-trading evidence uses fixture price data from Alpha/data/sample_prices.csv."
     fact_level: "EXTRACTED"
@@ -70,7 +73,7 @@ models:
   - model_id: "MOD-004"
     name: "Live order policy and fail-closed broker"
     kind: "risk_model"
-    purpose: "Prevent unattended real-money order submission in committed defaults."
+    purpose: "默认失败关闭:仓库默认配置拒绝实盘提交;实盘仅经唯一执行网关+十一门禁+预签授权发生(2026-07-17 受控许可模型)。"
     owner: "Alpha"
     status: "active"
     fact_level: "EXTRACTED"

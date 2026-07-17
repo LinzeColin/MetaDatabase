@@ -9,6 +9,14 @@ def test_dashboard_state_exposes_agent_portfolio_strategy_and_queue(tmp_path, mo
     monkeypatch.setattr(routes, "QUEUE_PATH", tmp_path / "approval_queue.json")
     monkeypatch.setattr(routes, "PAPER_STATE_PATH", tmp_path / "paper_portfolio.json")
     monkeypatch.setattr(routes, "DATA_PATH", Path("data/sample_prices.csv"))
+    # 旧栈遗留测试钉旧政策 fixture(说明见 test_paper_trading_loop.py 头注),010+ 退役
+    from backend.app.services.paper_trading_loop import build_default_loop
+
+    monkeypatch.setattr(
+        routes,
+        "build_default_loop",
+        lambda **kw: build_default_loop(policy_path=Path("tests/fixtures/legacy_trading_governor_policy.yaml"), **kw),
+    )
 
     run_result = routes.paper_run_once()
     state = routes.dashboard_state()

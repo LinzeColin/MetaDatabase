@@ -1,0 +1,14 @@
+# 通知与遥控 v1 — owner 2026-07-17 指定邮件渠道
+outbound:
+  channel: "email_smtp"
+  recipient: "linzezhang35@gmail.com"
+  sender: "系统发信账户（部署日用 Gmail 应用专用密码配置，凭据存云主机环境文件，不进 Git）"
+  events:
+    realtime: ["订单提交/成交/拒单/撤单", "风控拦截", "断路器触发", "kill switch", "对账差异", "掉线/恢复", "OpenD 需要验证码"]
+    daily_close_summary: true       # 每日收盘中文小结（人话版+核账版）
+    monthly_review_report: true
+  latency_target: "关键事件 p95 <= 5 秒"
+inbound:
+  web_control_page: {enabled: true, capabilities: ["状态查询", "一键停机", "授权确认"], auth: "私有令牌链接 + 基本认证", note: "永远不能下单"}
+  email_command_backup: {enabled: true, poll: "IMAP 每 30 秒", commands: ["STOP", "STATUS"], auth: "发件人校验 + 邮件内密码令牌", note: "永远不能下单"}
+optional_alternative: "nitrosend（owner 提及；若提供发信接口可作备用出口，部署日再定，非必需）"

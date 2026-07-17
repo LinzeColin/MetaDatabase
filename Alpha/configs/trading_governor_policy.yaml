@@ -1,78 +1,86 @@
-policy_version: "2026-06-12.v0.3"
-system_mode: "research_paper_and_guarded_live_capable"
+# Alpha 交易治理策略 — Live MVP v1（2026-07-17 全面替换旧版）
+# 本文件为提交态默认值：失败关闭。实盘激活需运行时预签授权文件 + 全部门禁通过。
+policy_version: "2026-07-17.live-mvp.v1"
+system_mode: "live_capable_fail_closed"
 
 live_trading:
-  enabled: false
+  enabled: false                      # 提交态永远 false；运行时由预签授权+门禁自动激活
   require_environment_flag: true
   environment_flag_name: "LIVE_TRADING_ENABLED"
+  require_presigned_authorization: true
+  authorization_path: "runtime/LIVE_AUTHORIZATION.json"   # Git 之外
   require_policy_hash_match: true
-  fail_closed_on_policy_error: true
-  require_audit_sink: true
   require_broker_health_check: true
+  require_jurisdiction_probe_pass: true    # 接口实测：账户状态/交易权限/行情权限
+  require_reconciliation_clean: true
+  require_market_data_fresh: true
   require_idempotency_key: true
   require_kill_switch_clear: true
+  require_execution_lease: true
+  require_audit_sink: true
+  fail_closed_on_any_error: true
 
-prohibited:
-  - manage_external_capital
-  - provide_financial_advice_to_third_parties
-  - publish_buy_sell_recommendations
-  - options_trading_mvp
-  - leveraged_products_mvp
-  - short_selling_mvp
-  - crypto_withdrawals_mvp
-  - mev_or_flash_loans_mvp
-  - high_frequency_trading_mvp
+capital_authorization:
+  currency: "AUD"
+  max_managed_gross_exposure: 3000         # 持仓市值+买单预留+费用+FX 缓冲
+  fat_finger_max_single_order_ratio: 0.60  # 单笔 ≤ 总授权 60%（1800 AUD）；owner 可否决
+  max_open_positions: null                 # 无上限
+  fx_conversion: "timestamped_rate_conservative_rounding"
 
-allowed_asset_classes_mvp:
-  - stock
-  - etf
-  - cash
-  - crypto_spot_paper
+markets:
+  allowed_mvp: ["US_STOCK", "US_ETF"]      # owner 2026-07-17：美股首发
+  phase2_pending_probe: ["HK_STOCK", "HK_ETF"]
+  never_via_moomoo_au: ["CN_A_SHARE", "CN_ETF"]
 
-risk_limits:
-  max_order_value_aud: 100
-  max_daily_orders: 5
-  max_position_weight_pct: 10
-  max_total_gross_exposure_pct: 30
-  max_daily_loss_pct: 0.5
-  max_weekly_loss_pct: 1.5
-  max_monthly_loss_pct: 3.0
-  allow_leverage: false
-  allow_short_selling: false
-  allow_options: false
-  allow_crypto_withdrawal: false
+orders:
+  allowed_types: ["LIMIT", "MARKET", "STOP", "CONDITIONAL"]  # owner 放开全部类型
+  default_type: "LIMIT"
+  market_order_only_for: ["STOP_LOSS_EXIT"]
+  price_quantization: "per_symbol_tick_size"
+  business_rate_limit: {max_orders: 5, window_minutes: 60}   # owner 上限
+  broker_rate_limit: {max_requests: 15, window_seconds: 30, min_interval_seconds: 0.02}
+
+risk_circuit_breakers:
+  daily_loss_pct_stop_new: 2.0        # 单日 -2%（60 AUD）当日停新仓
+  three_day_loss_pct_flatten: 4.0     # 3 日累计 -4% 退防现金替身 + 48h 冷静期
+  monthly_drawdown_pct_demote: 8.0    # 月内 -8%（240 AUD）自动降回 Paper
+  stale_data_blocks_new_orders: true
+  unknown_order_or_position_halts: true
+  illegal_state_transition_halts: true
 
 strategy_promotion:
-  min_backtest_years_before_paper: 3
-  min_backtest_years_before_live: 5
-  require_out_of_sample_before_live: true
-  require_walk_forward_before_live: true
-  min_paper_days_before_live: 30
-  target_paper_days_before_scaled_live: 60
-  min_trades_before_live: 30
-  max_drawdown_pct_before_live: 10
-  require_cost_model: true
-  require_slippage_model: true
+  monthly_return_gate_pct: 5.0        # 晋级门槛（非承诺）
+  backtest_min_years: 3
+  backtest_includes_fee_model: true
+  backtest_max_drawdown_pct: 15
+  paper_days_required: 3              # 完整交易日；替代旧 30 天
+  paper_behavior_consistency_required: true
+  paper_pace_tolerance_ratio: 0.60    # 3 日折算月化 ≥ 目标 60%
+  engineering_zero_violation_required: true
+  auto_activate_with_presigned_authorization: true
+  soak_hours_required: 72
+
+prohibited:
+  - leverage
+  - margin
+  - short_selling
+  - options_trading
+  - futures_trading
+  - crypto_live
+  - high_frequency_trading
+  - market_making
+  - jurisdiction_bypass_of_any_kind
+  - llm_direct_order_access
+  - external_api_direct_live_ordering
+  - mid_month_manual_parameter_change
 
 kill_switch:
   active: false
-  trigger_on_api_error: true
+  trigger_on_api_error_burst: true
   trigger_on_duplicate_order: true
   trigger_on_unexpected_position: true
   trigger_on_daily_loss_limit: true
   trigger_on_missing_market_data: true
   trigger_on_policy_error: true
   trigger_on_audit_sink_failure: true
-
-crypto:
-  mode: "monitor_and_paper_only"
-  allow_live_spot: false
-  allow_withdrawals: false
-  allow_margin: false
-  allow_perpetuals: false
-  allow_cross_exchange_transfer: false
-
-api_monetization:
-  external_api_can_trigger_live_trading: false
-  require_api_key: true
-  default_rate_limit_per_minute: 30
+  remote_channels: ["web_control_page", "email_command"]

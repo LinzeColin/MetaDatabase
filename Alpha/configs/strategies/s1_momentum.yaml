@@ -1,0 +1,26 @@
+# S1 全球动量轮动（核心仓）— 白盒参数 v1
+# 人话解读见任务包 PRD/策略白盒规范.md 第三节；改参数必须走月度评审网格纪律
+strategy_id: "S1_MOMENTUM_ROTATION"
+version: "1.0.0"
+universe: ["SPY", "QQQ", "IWM", "EFA", "EEM", "GLD", "TLT", "BIL"]
+cash_proxy: "BIL"
+schedule: {evaluate: "weekly_tuesday", window_after_open_minutes: [30, 90]}
+score:
+  formula: "0.4*r63 + 0.3*r126 + 0.3*r252"
+  lookbacks_trading_days: [63, 126, 252]
+  weights: [0.4, 0.3, 0.3]
+absolute_momentum_filter: {rule: "close > SMA200", sma_period: 200}
+selection: {top_n: 2, weight_each: 0.5}
+volatility_targeting:
+  target_annual_vol_pct: 12
+  realized_vol_window_days: 20
+  position_scalar: "min(1, target/realized)"
+rebalance_threshold_pct: 5
+execution: {order_type: "LIMIT", price: "mid", repost_after_minutes: 10, max_reposts: 3}
+# 月度评审可动网格（防过拟合：只能在此网格内取值）
+review_grid:
+  lookbacks_allowed: [[63,126,252]]
+  weights_allowed: [[0.4,0.3,0.3],[0.5,0.3,0.2],[0.33,0.33,0.34]]
+  top_n_allowed: [2, 3]
+  target_vol_allowed: [10, 12, 15]
+  rebalance_threshold_allowed: [3, 5, 8]

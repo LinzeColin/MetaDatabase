@@ -1,5 +1,9 @@
 # Alpha Model Specification
 
+> 2026-07-17 起本规范为旧治理框架历史存档:产品契约由 `Alpha/AGENTS.md`(Live MVP v1,
+> 受控许可模型)与 `Alpha/machine/facts/` 取代;旧 paper-only 定位与禁令废止,默认失败关闭不变。
+> 本文件描述的 MOD-001..009 为旧 paper 阶段模型,仅在对应代码仍在役期间作参考。
+
 Project: `Alpha`
 Governance spec version: `1.0.0`
 Fact discipline: `EXTRACTED`, `RECONSTRUCTED`, `PROPOSED`, `UNKNOWN`, `NOT_APPLICABLE`
@@ -34,13 +38,13 @@ Legacy files `功能清单`, `开发记录`, and `模型参数文件` are compat
 | MOD-008 | Strategy DSL safety validation | deterministic_rule_engine | active | strategy-dsl-v0 | `Alpha/backend/app/schemas/strategy_dsl.py:22` |
 | MOD-009 | Equal-weight buy-and-hold fixture benchmark | backtest_strategy | active | buy-hold-fixture-v0 | `Alpha/backend/app/services/backtest.py:14` |
 
-Use cases are research, fixture backtest, paper trading, owner-review tickets, local dashboard visibility, and safety gates. Non-use cases are autonomous real-money broker order submission, public buy/sell advice, external capital management, leverage, margin, options, short selling, and crypto withdrawals.
+Use cases(2026-07-17 修订): 受控实盘交易(唯一执行网关+十一门禁+预签授权)、研究、回测、Paper/Shadow 验证、风控门禁、审计与通知。Non-use cases: 公开买卖建议、外部资金管理、杠杆、保证金、做空、期权、期货、加密实盘(MVP 全部禁止,见 `Alpha/AGENTS.md` 第 4 节);旧「禁止自主实盘下单」条目已由受控许可模型取代。
 
 ## B. Assumptions
 
 | ID | Fact level | Assumption | Validation or falsification |
 |---|---|---|---|
-| ASM-001 | EXTRACTED | Alpha committed defaults are research/paper/review-only and do not enable unattended real-money submission. | `Alpha/configs/trading_governor_policy.yaml:5`; `Alpha/tests/test_policy.py:5` |
+| ASM-001 | EXTRACTED | Superseded 2026-07-17:仓库默认配置永远 DISABLED(失败关闭);真实下单仅经唯一执行网关在十一门禁+预签授权内自动发生。旧 research/paper-only 定位废止。 | `Alpha/AGENTS.md`; `Alpha/configs/trading_governor_policy.yaml` |
 | ASM-002 | EXTRACTED | Current strategy and paper-trading evidence uses fixture prices. | `Alpha/backend/app/services/paper_trading_loop.py:138`; `Alpha/data/sample_prices.csv` |
 | ASM-003 | EXTRACTED | Live broker adapter remains fail-closed. | `Alpha/backend/app/services/live_broker.py:27`; `Alpha/tests/test_live_broker_fail_closed.py:6` |
 | ASM-004 | UNKNOWN | Production market data, broker paper integration, live execution policy, multi-year validation, slippage model, and cost-model calibration are not fully evidenced in this repository snapshot. | Open task `TASK-ALPHA-B-001` |
@@ -112,8 +116,8 @@ Known uncovered scenarios:
 
 - Production market data.
 - Broker paper API.
-- Real-money execution policy decision.
+- ~~Real-money execution policy decision.~~(已裁定:2026-07-17 受控许可模型,见 `docs/decision_log.md`)
 - Multi-year out-of-sample validation.
 - Cost and slippage calibration beyond fixture benchmark defaults.
 
-Release gate: Alpha must not be promoted as real-money release-ready until `DECISION-ALPHA-EXECUTION-POLICY` is explicitly resolved.
+Release gate: `DECISION-ALPHA-EXECUTION-POLICY` 已于 2026-07-17 由 owner 显式裁定(受控许可模型,`docs/decision_log.md` 当日条目)。实盘就绪晋级改由 `configs/strategy_promotion.yaml` 四条判定 + 十一项门禁裁决;判定不达标不得宣布实盘就绪。

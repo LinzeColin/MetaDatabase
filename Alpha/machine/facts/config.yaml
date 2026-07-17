@@ -1,0 +1,104 @@
+# 机器平面事实源：关键参数（值、意图、改哪里）
+# 渲染目标：文档/02_系统架构.md 第三节（为什么）、文档/06_运维手册.md 第二节（值与位置）
+
+parameters:
+  总敞口上限:
+    value: "3000 AUD"
+    intent: "owner 首期授权的资金边界——持仓市值+未成交买单预留+费用+FX 缓冲的硬上限，超过即拒单"
+    where: "`configs/trading_governor_policy.yaml`（G0 重置后）+ 运行时授权文件"
+  胖手指保护:
+    value: "单笔 ≤ 总授权 60%（1800 AUD）"
+    intent: "owner 已取消固定单笔上限（2026-07-17）；此保险丝不影响任何正常交易（S1 最大自然单笔 1500 AUD），只防程序缺陷把全部资金押进一笔错误订单"
+    where: "`configs/trading_governor_policy.yaml` + 运行时授权文件"
+  最大持仓数量:
+    value: "无上限"
+    intent: "owner 明确不设数量上限；由敞口、单笔、流动性与最小交易单位自然约束"
+    where: "`configs/trading_governor_policy.yaml`"
+  授权基准币种:
+    value: "AUD"
+    intent: "所有额度按 AUD 折算裁定；跨币种订单按带时间戳汇率保守折算"
+    where: "`configs/trading_governor_policy.yaml`"
+  默认运行模式:
+    value: "DISABLED"
+    intent: "失败关闭：仓库默认配置永远不能直接实盘；实盘需 owner 预签授权文件+全部门禁通过后自动激活"
+    where: "`configs/trading_governor_policy.yaml`"
+  允许市场:
+    value: "美股、美国 ETF（MVP 首发）；港股/港股 ETF 列第二阶段"
+    intent: "owner 2026-07-17 拍板只做美股首发（摩擦最低、免费行情）；港股待探针核验费用与行情权限后开启；沪深不经 Moomoo AU 路由"
+    where: "`configs/trading_governor_policy.yaml` 市场白名单"
+  允许订单类型:
+    value: "全部（限价/市价/止损/条件单）；日常默认限价，止损离场允许市价"
+    intent: "owner 决定不限制类型以减少交易摩擦；默认仍用限价控制滑点，市价单保留给止损这类必须成交的场景"
+    where: "`configs/trading_governor_policy.yaml`"
+  业务频控:
+    value: "任意滚动 60 分钟 ≤ 5 笔订单"
+    intent: "owner 上限：宁缺毋滥、确保出手质量；它是天花板不是目标，策略正常运行远低于此"
+    where: "执行网关业务限速器"
+  官方频控:
+    value: "15 次/30 秒，间隔 ≥ 0.02 秒"
+    intent: "Moomoo 官方接口频率限制，防止封禁；与业务频控双层生效"
+    where: "执行网关底层限速器"
+  月度回报门槛:
+    value: "净收益 ≥ 5%/月（晋级门槛，非承诺）"
+    intent: "owner 要求的最低回报率：作为策略晋级实盘的资格线——回测月均达标+真实运行行为一致才自动进实盘，不达标零成本调参循环"
+    where: "`configs/strategy_promotion.yaml`（G0 新增）"
+  组合日亏断路:
+    value: "单日 -2% 停新仓；3 日累计 -4% 全退防现金；月内回撤 -8% 自动降回 Paper"
+    intent: "三层断路器把最坏月份的损失锁在授权资金的一位数百分比"
+    where: "`configs/trading_governor_policy.yaml` 风控段"
+  模拟盘时长要求:
+    value: "3 个完整交易日"
+    intent: "验证系统真实有效运行且策略速度满足回报门槛（owner 定义的用途）"
+    where: "`configs/trading_governor_policy.yaml` 晋级条件"
+  常驻烤机时长:
+    value: "72 小时"
+    intent: "上线前验证 7*24 工程可靠性（心跳、重连、恢复、通知）"
+    where: "验收配置（G5）"
+  部署位置:
+    value: "Oracle 免费云主机常驻（owner 已完成注册，租户标识存本地私密文件不进 Git）+ owner 本机备援"
+    intent: "owner 电脑不保证 7*24 开机有网；Cloudflare 无常驻进程能力已排除；OpenD 官方支持云部署"
+    where: "部署方案对比.md + 运维契约（G4）"
+  通知与遥控:
+    value: "通知出口=邮件（`linzezhang35@gmail.com`）：实时事件+每日收盘中文小结+月报；指令入口=手机网页控制页（一键停机/状态/授权确认）+ 邮件指令备份（`IMAP` 轮询带密码令牌的指令邮件）"
+    intent: "owner 无 Telegram，指定邮件为渠道；控制页与邮件指令都只达受控网关（查询/停机/授权确认），永远不能下单"
+    where: "`configs/notify.yaml`（G0 新增）"
+  月度策略评审:
+    value: "每月最后一个交易日收盘后自动运行；参数只能在预登记网格内滚动前推再校准；S1/S2 比例在 60-90%/10-40% 区间按市场环境调整；挑战者转正需影子盘 ≥3 交易时段且 ≥20 决策事件；在役连续 2 个月跑输基准则降级；改动带版本号下月首个交易日生效并出人话月报"
+    intent: "owner 要求每月月底更新调整策略组以符合市场变化；网格+验证+留痕三道纪律防止月度调整变成月度过拟合"
+    where: "`configs/monthly_review.yaml`（G0 新增）"
+  行情新鲜度阈值:
+    value: "5 秒（默认，待校准）"
+    intent: "陈旧行情不得用于风控放行；G3 阶段按实测校准"
+    where: "行情守卫配置"
+  付费组件预算:
+    value: "0"
+    intent: "第一阶段免费优先；累计净收益覆盖成本前不引入任何付费服务"
+    where: "本文件（口径字典同步裁定）"
+  策略S1动量得分:
+    value: "0.4*r63 + 0.3*r126 + 0.3*r252，且价格 > SMA200"
+    intent: "白盒动量轮动：3/6/12 个月收益加权排序取前 2，绝对动量过滤熊市自动退防"
+    where: "`configs/strategies/s1_momentum.yaml`"
+  策略S1标的池:
+    value: "`SPY` `QQQ` `IWM` `EFA` `EEM` `GLD` `TLT` `BIL` 共 8 只"
+    intent: "高流动性、互相低相关的资产类代表；`BIL` 为现金替身"
+    where: "`configs/strategies/s1_momentum.yaml`"
+  策略S1波动率调节:
+    value: "仓位系数 = `min(1, 12% / 近20日年化波动率)`"
+    intent: "v2 增强：市场剧烈震荡自动减仓——调研证据显示波动率目标对动量类组合显著改善收益风险比并削尖端风险"
+    where: "`configs/strategies/s1_momentum.yaml`"
+  策略S2入场:
+    value: "价格 > SMA200 且 RSI(2) < 8 且 IBS < 0.2 且 ATR(14)/价格 > 1.5%"
+    intent: "白盒超卖反弹：趋势内极端超卖+收盘贴近全天最低（IBS，v2 增强）+波动足以覆盖佣金才出手，胜率导向；RSI+IBS 组合公开回测显示比单用 RSI 更稳"
+    where: "`configs/strategies/s2_meanrev.yaml`"
+  策略S2出场:
+    value: "收盘 > SMA5 获利离场；10 交易日超时离场；-4% 止损（市价）"
+    intent: "先到先执行的三出口，杜绝无限持有"
+    where: "`configs/strategies/s2_meanrev.yaml`"
+  策略资金分配:
+    value: "S1 基准 80%（月度评审可在 60-90% 调整），S2 基准 20%（10-40%）"
+    intent: "低摩擦底仓为主、胜率卫星为辅；比例随市场环境按月调整，两者合计受总敞口约束"
+    where: "`configs/portfolio.yaml`"
+  费用模型:
+    value: "美股 0.99 USD/笔 + SEC 费 + FINRA CAT 费 + 换汇成本（待实测）"
+    intent: "回测与晋级判定必须按此模型扣费；取消单笔上限后 S1 典型单笔约 1500 AUD，一买一卖摩擦降至约 0.2%，全组合月摩擦预估 0.3-0.6%"
+    where: "`configs/fees.yaml`（G0 新增，随官方价目更新）"

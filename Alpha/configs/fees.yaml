@@ -1,0 +1,14 @@
+# 费用模型 v1 — 回测与晋级判定必须按此扣费（数值随官方价目更新，更新须留痕）
+# 来源：moomoo AU 官方价目 2026-07 核验
+us_stocks_etf:
+  commission_usd_per_order: 0.99
+  sec_fee: {applies_to: "sell", note: "2026-04 恢复征收，按成交额小比例，实现时取官方当期费率"}
+  finra_cat_fee: {applies_to: "per_share", note: "2026-05 恢复征收，实现时取官方当期费率"}
+fx:
+  pair: "AUD/USD"
+  cost_estimate: "待实测（部署后首次换汇时记录实际点差并写回本文件）"
+  policy: "一次性换足美元预算，避免分次换汇"
+slippage_model:
+  default_bps: 5            # 回测保守假设：每边 0.05%；G5 用实测校准
+  market_order_extra_bps: 10
+backtest_rule: "所有回测、晋级判定、月报收益一律为费后净值；违反即证据无效"

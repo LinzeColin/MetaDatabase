@@ -1,3 +1,6 @@
+# 2026-07-17 起本台账为旧治理框架历史存档:执行顺序由 Alpha_Live_TaskPack_v1 的
+# tasks/ISSUE_QUEUE.yaml(ALPHA-LIVE-000..090)取代;下列 status: planned 的占位任务
+# (含其 paper-only 范围声明)全部作废,已完成任务记录保留作历史。
 governance_spec_version: "1.0.0"
 project_id: "Alpha"
 tasks:

@@ -1,0 +1,25 @@
+# S2 超卖反弹（卫星仓）— 白盒参数 v1
+# 人话解读见任务包 PRD/策略白盒规范.md 第四节；启用前提：自建回测达标（文献口径不算数）
+strategy_id: "S2_OVERSOLD_REBOUND"
+version: "1.0.0"
+enabled_pending_backtest: true          # 回测不达标则不启用
+universe:
+  core: ["SPY", "QQQ"]
+  stock_whitelist_criteria: {min_daily_dollar_volume_usd: 50000000, max_symbols: 20, large_cap_only: true}
+entry:
+  trend_filter: "close > SMA200"
+  rsi: {period: 2, threshold: 8, smoothing: "wilder"}
+  ibs: {threshold: 0.2}                 # (close-low)/(high-low) < 0.2
+  volatility_floor: "ATR14 / close > 1.5%"
+  order: {type: "LIMIT", price: "prev_close * 0.995", time_in_force: "DAY"}
+exit:
+  take_profit: "close > SMA5 -> next session limit sell"
+  time_stop_trading_days: 10
+  stop_loss_pct: 4.0                    # 唯一允许市价单的场景
+concurrency: {max_open_trades: 2}
+review_grid:
+  rsi_threshold_allowed: [5, 8, 10]
+  ibs_threshold_allowed: [0.15, 0.2, 0.3]
+  stop_loss_allowed: [3.0, 4.0, 5.0]
+  time_stop_allowed: [7, 10, 15]
+  volatility_floor_allowed: [1.0, 1.5, 2.0]

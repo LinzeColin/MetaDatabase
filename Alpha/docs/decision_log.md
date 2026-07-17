@@ -79,3 +79,8 @@ Decision: Atomic JSON writes must preserve the previous committed target on repl
 Reason: S3PB must preserve governance truth during failures: a stale PID that points to an unrelated process is not dashboard evidence, and a failed local write must not corrupt paper queue or broker state.
 
 Consequence: S3PBT03 adds shutdown fault-injection tests for disk-error preservation, forced termination before replace, no write after stopped, reused PID archiving, and start script dashboard identity checks. This closes the S3PB technical fault-injection gate without enabling live broker execution or production readiness.
+
+## 2026-07-17 — Live MVP 契约重置（Alpha_Live_TaskPack_v1）
+- owner 授权废止 paper-only 禁令，采用受控许可模型（唯一执行网关+十一门禁+预签授权）。
+- 资金授权 3000 AUD / 单笔 ≤60% / 每小时 ≤5 笔 / 无持仓数上限；美股首发；月末策略评审；邮件遥控；免费云常驻。
+- 事实源与全部口径见 Alpha/machine/facts/ 与 文档/03_口径字典.md。

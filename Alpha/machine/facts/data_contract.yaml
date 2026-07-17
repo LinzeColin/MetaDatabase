@@ -1,0 +1,37 @@
+# 机器平面事实源：数据流与核心实体契约
+# 渲染目标：文档/02_系统架构.md 第二、四节
+
+data_flow: |
+  行情 Worker 持续订阅 Moomoo OpenD 行情并打上交易所时间戳 → 多个策略 Agent 并行读取行情与研究证据，产出候选信号 → 组合引擎把多策略信号合成为唯一目标仓位（冲突消解、去重）→ 确定性风控引擎逐条裁定（敞口、单笔、白名单、新鲜度、辖区、授权）→ 通过的意图连同幂等键先落库，再进入唯一执行网关 → 执行网关按官方频控调用 OpenD 下单/改单/撤单（Paper 走 SIMULATE，实盘走 REAL）→ 券商回报与成交推送（可能先于同步返回到达）按 `broker_order_id` 与幂等键安全合并进订单状态机 → 对账器核对本地与券商的资金、持仓、未完成订单，差异即停新单 → 每一步的事件写入留痕表并经事务发件箱推送通知 → 控制台与报告只读消费这些落库事实。影子盘全程并行：同一行情、同一策略、同一风控，但把「若实盘会发出的订单」只写库、绝不提交。
+
+entities:
+  - entity: "`OrderIntent`（订单意图）"
+    keys: ["幂等键", "标的", "方向", "数量", "限价", "币种", "策略来源", "创建时间"]
+    pk: "`intent_id`"
+  - entity: "`RiskDecision`（风控裁定）"
+    keys: ["关联意图", "允许/拒绝", "触发规则", "裁定时敞口快照"]
+    pk: "`decision_id`"
+  - entity: "`BrokerOrder`（券商订单）"
+    keys: ["关联意图", "券商状态", "已成交数量", "均价", "最后回报时间"]
+    pk: "`broker_order_id`"
+  - entity: "`Execution`（成交记录）"
+    keys: ["关联券商订单", "成交数量", "成交价", "费用", "成交时间"]
+    pk: "`execution_id`"
+  - entity: "`PositionSnapshot`（持仓快照）"
+    keys: ["标的", "数量", "成本", "市值", "来源=券商", "快照时间"]
+    pk: "`snapshot_id`"
+  - entity: "`CapitalAuthorization`（资金授权）"
+    keys: ["总敞口上限", "单笔上限", "币种", "市场白名单", "policy hash", "生效与失效时间"]
+    pk: "`authorization_id`"
+  - entity: "`JurisdictionCapability`（辖区能力记录）"
+    keys: ["账户主体", "所在地", "接口可用性", "买入权限", "证据来源", "判定结果"]
+    pk: "`capability_id`"
+  - entity: "`ShadowOrder`（影子订单）"
+    keys: ["关联意图", "假想限价", "假想费用", "实盘可行性差异标记"]
+    pk: "`shadow_id`"
+  - entity: "`OutboxEvent`（发件箱事件）"
+    keys: ["事件类型", "载荷", "投递状态", "投递时间"]
+    pk: "`event_id`"
+  - entity: "`ReconciliationRun`（对账批次）"
+    keys: ["触发原因", "差异数", "处理结果", "完成时间"]
+    pk: "`recon_id`"

@@ -1,0 +1,6 @@
+{
+  "stage": "G1 交易域模型与数据库状态机",
+  "phase": "域模型与状态机开发",
+  "task": "`ALPHA-LIVE-010`：OrderIntent/RiskDecision/BrokerOrder/Execution/PositionSnapshot/CapitalAuthorization/JurisdictionCapability/ShadowOrder/OutboxEvent/ReconciliationRun 十实体建模落库（本地 SQLite 兼容层，生产 PostgreSQL），订单状态机含全部合法迁移与非法迁移拒绝、幂等重放",
+  "owner": "Claude Code 开发，Linze 复审拍板"
+}

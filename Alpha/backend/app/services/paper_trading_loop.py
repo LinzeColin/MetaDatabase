@@ -129,9 +129,10 @@ def build_default_loop(
     queue_path: str | Path | None = None,
     paper_state_path: str | Path | None = None,
     interval_seconds: int = DEFAULT_REFRESH_INTERVAL_SECONDS,
+    policy_path: str | Path | None = None,
 ) -> PaperTradingLoop:
     root = Path(__file__).resolve().parents[3]
-    policy = GovernorPolicy.load(root / "configs" / "trading_governor_policy.yaml")
+    policy = GovernorPolicy.load(Path(policy_path) if policy_path else root / "configs" / "trading_governor_policy.yaml")
     state_path = Path(paper_state_path) if paper_state_path else root / "runtime" / "paper_portfolio.json"
     return PaperTradingLoop(
         policy=policy,

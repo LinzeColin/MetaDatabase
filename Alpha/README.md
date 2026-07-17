@@ -1,112 +1,40 @@
-# Alpha 中文 Owner 快速入口
+# Alpha｜7*24 自主实盘交易 Agent Workspace
 
-- 产品 canonical 当前状态：`S5` / `S5PA` / `S5PAT01`，下一 Gate 为 `S5PA-GATE-IN-PROGRESS`；事实源以 `docs/governance/roadmap.yaml`、`功能清单`、`开发记录` 为准。
-- 本轮 Owner-flow 治理任务：`S6PAT02` / `ACC-S6PAT02`，只补 Owner 路径，不改产品 canonical current_task。
-- 验收口径：用户可读优先；中文优先，默认全局中文。
-- 当前状态：主动源码仍在 `Alpha/backend/`，测试在 `Alpha/tests/`，配置在 `Alpha/configs/`。
-- 历史输出边界：旧 `Alpha/outputs/**` 和旧 `Alpha/HANDOFF.md` 已归档到 `governance/archive/other8_wave1_pending/Alpha/`，不要把它们重新当作主动源码。
-- S6PA 事实：`S6PA-GATE` 已在 repo-level Owner/Agent 路径范围内通过；`S6PB-GATE` 和最终 `S6-GATE` 仍在进行中。
-- 操作路径：入口 `Alpha/backend/` -> 安装依赖 -> 运行最小测试 -> 若失败先看环境 blocker 和 `Alpha/docs/structure_migration_map.md`。
-- 最小验证路径：先进入 `Alpha/`，再运行 `python -m pytest tests/test_backtest_fixture.py -q`。
-- 当前环境 blocker：本机 bundled Python 缺少 `pytest`；运行策略/治理代码前还可能需要 `python -m pip install -e .[dev]` 安装 `pyyaml` 和 pytest 依赖。
-- 成功反馈：测试通过后应看到 backtest fixture deterministic / 1 passed。
-- 失败去向：若出现 `No module named pytest` 或 `No module named yaml`，先处理开发依赖；若出现业务断言失败，再查看 `Alpha/docs/structure_migration_map.md` 和对应测试文件。
-- 回滚：revert S6PAT02 Alpha README 提交即可；本轮不改运行代码、不移动文件、不触发交易或外部自动化。
+Alpha 是 Linze 本人自有资金的全自动实盘交易工作台：多 Agent 并行研究，唯一执行网关经 Moomoo OpenD 在预签授权内自动真实下单、对账、通知。产品目的是直接真实交易（real trading）；Paper/Shadow 只是上线前的验证工具。
 
-## 中文首屏（30 秒内读完）
+**30 秒了解现状**：读 `文档/00_我在哪.md`（状态/卡点/路线图）。全部七份文档由机器平面自动渲染，禁止手写。
 
-- 这是 Owner 的 Alpha 入口页：先确认当前治理任务和最小验证动作，避免先跑全量测试。
-- 已知事实：`S6PA-GATE` 已通过，`S6PB-GATE` 与 `S6-GATE` 仍进行中；当前最小验证仍以 `tests/test_backtest_fixture.py` 为主。
-- 当前待办：确认本轮环境依赖后再进入 `Alpha/backend/` 的流程；若环境 blocker 仍在，先处理依赖不是功能代码。
-- 下一步最小动作：按顺序执行“进场命令”前的环境自检后，只读 `功能清单.md` / `开发记录.md` / `模型参数文件.md` 复核状态一致性。
-- 不要改：未授权更改 `docs/governance/` 或源码配置，仅限 owner 首屏文案更新。
-- 证据边界：本页默认引用 `docs/governance/roadmap.yaml` 与项目开发记录，若发现不一致，先回到任务级决策依据更新再改此处。
+| 想知道 | 看哪里 |
+|---|---|
+| 为谁做、做什么、不做什么 | `文档/01_产品需求.md` |
+| 功能、数据流、参数为什么这么定 | `文档/02_系统架构.md` |
+| 每个数字的唯一裁定 | `文档/03_口径字典.md` |
+| 这一轮做什么、怎么算完成 | `文档/05_执行与验收.md` |
+| 策略公式与人话解读 | 任务包 `PRD/策略白盒规范.md` |
 
-## Alpha - Personal Quant Agent Workspace
+## 核心口径（详见口径字典）
 
-Alpha is a local-first personal quant agent workspace for research, backtesting,
-automatic paper trading, order-intent review, broker-ready ticket generation, and
-dashboard visibility.
+- 资金授权：总敞口 ≤ **3000 AUD**；单笔 ≤ 60%（1800 AUD 胖手指保险丝）；滚动 60 分钟 ≤ 5 笔；无持仓数上限
+- 市场：MVP 仅美股/美国 ETF（港股第二阶段；沪深不经 Moomoo AU）
+- 晋级门槛：回测月均净收益 ≥5%（含真实费用）+ 3 日 Paper+Shadow 行为一致 + 工程零违规 → 按 owner 预签授权自动进 MICRO_LIVE；不达标零成本调参循环
+- 断路器：单日 -2% 停新仓；3 日 -4% 退防现金；月内 -8% 自动降回 Paper
+- 默认失败关闭：仓库默认 `DISABLED`；十一项门禁全过才可真实下单
+- 第一阶段 0 付费组件；策略全白盒可手工复算
 
-## Local run
+## 本地开发
 
 ```bash
-python -m pip install -e .
-python -m pytest tests -q
-python -m backend.app.services.paper_trading_loop --once
-uvicorn backend.app.main:app --reload
+python -m pip install -e .[dev]
+python -m pytest tests -q                                   # 全量测试
+python3 machine/tools/render_human.py                        # 渲染人类平面
+python3 machine/tools/check_doc_budget.py                    # 三道门
+python3 machine/tools/check_blocker_stop.py
 ```
 
-Start/stop the local workspace helper:
+## 生产运行
 
-```bash
-scripts/start_alpha_dashboard.sh
-scripts/stop_alpha_dashboard.sh
-```
+Oracle 免费云主机常驻（见任务包 `specs/DEPLOY_RUNBOOK_ORACLE.md`）；owner 通过邮件收报告、网页控制页一键停机。凭据永不进 Git。
 
-When the dashboard starts, the app lifecycle starts the automatic paper agent
-runtime. It runs one paper cycle immediately, then refreshes every 300 seconds.
+## 安全声明
 
-App-format launchers are installed at:
-
-```text
-/Users/linzezhang/Downloads/Alpha.app
-/Users/linzezhang/Applications/Alpha.app
-/Applications/Alpha.app
-```
-
-## Historical outputs and handoff
-
-Tracked patch bundles, repository-local launchers, and the reconstructed
-handoff that previously lived under `Alpha/outputs/` and `Alpha/HANDOFF.md`
-are archived under `governance/archive/other8_wave1_pending/Alpha/`.
-The one-version compatibility map is `docs/structure_migration_map.md`.
-Future runtime output should stay untracked under `Alpha/outputs/`,
-`Alpha/runtime/`, or external local app paths.
-
-Open:
-
-```text
-http://localhost:8000/health
-http://localhost:8000/dashboard
-http://localhost:8000/dashboard/state
-```
-
-Useful API endpoints:
-
-```text
-POST /paper/run-once
-GET  /paper/portfolio
-POST /strategy/tournament/run
-GET  /agent/loop/status
-GET  /orders/approval-queue
-```
-
-## Safety
-
-- Live trading is disabled by default.
-- Live broker adapter fails closed.
-- Policy load failure means reject.
-- External API must never trigger live trading.
-- Alpha can generate broker-ready order tickets for owner review, but must not
-  autonomously submit real-money broker orders.
-
-## Governance
-
-Canonical governance files live in `docs/governance/`:
-
-- `MODEL_SPEC.md`
-- `model_registry.yaml`
-- `formula_registry.yaml`
-- `parameter_registry.csv`
-- `DEVELOPMENT_LEDGER.md`
-- `development_events.jsonl`
-- `DELIVERY_PLAN.md`
-- `delivery_tasks.yaml`
-- `VERSION_MATRIX.yaml`
-- `TRACEABILITY_MATRIX.csv`
-
-中文人类入口：`功能清单`、`开发记录`、`模型参数文件`。这三份文件必须直接保留
-owner 可读的功能摘要、Roadmap/任务、模型/参数、证据状态、限制和下一步门禁；
-它们不是跳转页，也不是第二套可编辑机器事实源。机器真相仍以
-`docs/governance/` 下的 Lean v2 文件为准。
+本仓库公开。策略参数公开是 owner 知情决定；账户凭据、授权文件、运行时秘密全部在 Git 之外。本项目只服务 owner 本人账户，不构成任何投资建议。

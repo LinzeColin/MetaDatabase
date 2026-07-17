@@ -1,0 +1,14 @@
+# 月末策略评审 v1 — owner 2026-07-17 要求每月月底更新调整策略组
+schedule: "每月最后一个交易日 美股收盘后（悉尼时间对齐由交易日历库处理）"
+steps:
+  - regime_detection: "趋势/震荡判定 = 标的池 200 日均线上方占比 + 已实现波动率水平"
+  - parameter_recalibration: "仅在各策略 review_grid 网格内滚动前推重算；训练窗 2 年 -> 验证窗 6 个月，验证不过不采用"
+  - allocation_adjustment: "S1/S2 比例在 configs/portfolio.yaml review_bounds 内调整"
+  - challenger_promotion: "影子盘 >= 3 个交易时段 且 >= 20 个决策事件，费后指标达标可转正"
+  - incumbent_demotion: "在役策略连续 2 个月费后跑输基准（SPY 与现金替身组合）降为影子"
+  - report: "中文月报：成绩单、每处改动+原因+预期影响、下月计划（人话版+核账版）"
+effective: "改动带新版本号提交 Git，下月首个交易日生效"
+red_lines:
+  - "月中禁止手改参数（断路器触发的自动降级除外）"
+  - "任何改动必须附滚动前推验证证据"
+  - "网格外取值 = 违规，CI 拒绝"

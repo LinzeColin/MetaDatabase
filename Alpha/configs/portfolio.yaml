@@ -1,0 +1,5 @@
+# 组合资金分配 v1（月度评审可在区间内调整）
+base_allocation: {S1_MOMENTUM_ROTATION: 0.80, S2_OVERSOLD_REBOUND: 0.20}
+review_bounds: {S1_MOMENTUM_ROTATION: [0.60, 0.90], S2_OVERSOLD_REBOUND: [0.10, 0.40]}
+total_exposure_governed_by: "configs/trading_governor_policy.yaml capital_authorization"
+conflict_resolution: "组合引擎唯一合成目标仓位；策略间同标的冲突取净目标；现金缓冲永远 >= 0"

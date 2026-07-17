@@ -6,9 +6,13 @@ from backend.app.services.paper_broker import PaperBroker
 from backend.app.services.paper_trading_loop import DEFAULT_REFRESH_INTERVAL_SECONDS, PaperTradingLoop
 from backend.app.services.policy import GovernorPolicy
 
+# 旧 paper 栈遗留测试:钉在冻结的旧政策 fixture 上(新权威政策 Live MVP v1 的白名单/限额
+# 会拒绝本套 fixture 符号)。旧栈由 ALPHA-LIVE-010+ 新后端取代,届时本文件一并退役。
+LEGACY_POLICY = Path("tests/fixtures/legacy_trading_governor_policy.yaml")
+
 
 def test_paper_loop_generates_ticket_and_fills_paper_order(tmp_path):
-    policy = GovernorPolicy.load(Path("configs/trading_governor_policy.yaml"))
+    policy = GovernorPolicy.load(LEGACY_POLICY)
     queue = ApprovalQueue(tmp_path / "queue.json")
     state_path = tmp_path / "portfolio.json"
     loop = PaperTradingLoop(policy=policy, price_path=Path("data/sample_prices.csv"), approval_queue=queue, paper_state_path=state_path)
@@ -34,7 +38,7 @@ def test_paper_loop_uses_five_minute_default_refresh():
 
 
 def test_order_intent_strategy_matches_tradable_symbol_under_notional_limit(tmp_path):
-    policy = GovernorPolicy.load(Path("configs/trading_governor_policy.yaml"))
+    policy = GovernorPolicy.load(LEGACY_POLICY)
     loop = PaperTradingLoop(
         policy=policy,
         price_path=Path("data/sample_prices.csv"),
@@ -49,7 +53,7 @@ def test_order_intent_strategy_matches_tradable_symbol_under_notional_limit(tmp_
 
 
 def test_paper_loop_persists_portfolio_across_loop_instances(tmp_path):
-    policy = GovernorPolicy.load(Path("configs/trading_governor_policy.yaml"))
+    policy = GovernorPolicy.load(LEGACY_POLICY)
     state_path = tmp_path / "portfolio.json"
     queue_path = tmp_path / "queue.json"
 
@@ -75,7 +79,7 @@ def test_paper_loop_persists_portfolio_across_loop_instances(tmp_path):
 
 
 def test_concurrent_paper_loop_instances_do_not_drop_queue_or_portfolio_updates(tmp_path):
-    policy = GovernorPolicy.load(Path("configs/trading_governor_policy.yaml"))
+    policy = GovernorPolicy.load(LEGACY_POLICY)
     state_path = tmp_path / "portfolio.json"
     queue_path = tmp_path / "queue.json"
 
