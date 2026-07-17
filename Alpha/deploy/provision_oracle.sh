@@ -7,6 +7,17 @@ C="${OCI_TENANCY:?需在 Oracle Cloud Shell 运行(OCI_TENANCY 未设)}"
 PUBKEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDkCq8P6VZo3puuv2ezZfcaAvK07b/pKtVWg6McpC28S alpha-oracle-deploy"
 NAME="alpha-prod"
 
+# 找已存在的 alpha-prod(避免重复建机):输出实例 OCID,没有则输出空
+adopt_existing() {
+  local st id
+  for st in RUNNING PROVISIONING STARTING; do
+    id=$(oci compute instance list -c "$C" --display-name "$NAME" --lifecycle-state "$st" \
+      --query 'data[0].id' --raw-output 2>/dev/null || true)
+    if [ -n "$id" ] && [ "$id" != "null" ]; then echo "$id"; return 0; fi
+  done
+  return 0
+}
+
 echo ">> 1/5 复用已运行的 alpha-prod?"
 EXIST=$(oci compute instance list -c "$C" --display-name "$NAME" --lifecycle-state RUNNING --query 'data[0].id' --raw-output 2>/dev/null || true)
 if [ -n "$EXIST" ] && [ "$EXIST" != "null" ]; then
@@ -63,12 +74,25 @@ for attempt in 1 2 3; do
     if grep -qi "Out of host capacity\|LimitExceeded" /tmp/alpha-err; then
       echo "   该 AD 暂无 A1 免费容量,换下一个"; continue
     fi
+    if grep -qi "TooManyRequests" /tmp/alpha-err; then
+      # 限流可能发生在「实例已建成、等 RUNNING」阶段:先认领已存在实例,绝不重复建
+      IID=$(adopt_existing)
+      [ -n "$IID" ] && { echo "   限流但实例已建成,认领 $IID"; break; }
+      echo "   请求被临时限流(重试过勤),歇 5 分钟自动再试..."; sleep 300; continue
+    fi
     echo "FAIL 启动报错:"; cat /tmp/alpha-err; exit 1
   done
   [ -n "$IID" ] && break
-  echo "   全部 AD 暂无容量,60s 后重试..."; sleep 60
+  echo "   全部 AD 暂无容量,3 分钟后自动重试(过勤会被限流)..."; sleep 180
 done
 [ -n "$IID" ] || { echo "ALPHA_NO_CAPACITY: 悉尼区 A1 免费容量暂时售罄,稍后重跑本脚本即可(常在数小时内释放)"; exit 2; }
+
+# 若认领的是仍在创建中的实例,等它 RUNNING(最多 5 分钟)
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+  ST=$(oci compute instance get --instance-id "$IID" --query 'data."lifecycle-state"' --raw-output 2>/dev/null || echo "?")
+  [ "$ST" = "RUNNING" ] && break
+  echo "   实例状态 $ST,30s 后再看..."; sleep 30
+done
 
 IP=$(oci compute instance list-vnics --instance-id "$IID" --query 'data[0]."public-ip"' --raw-output)
 echo ""
