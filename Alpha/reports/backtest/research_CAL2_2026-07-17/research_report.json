@@ -1,0 +1,120 @@
+{
+  "round": "CAL-2 季节窗口×冻结冠军",
+  "gate": {
+    "gate_monthly_pct": 0.6,
+    "gate_dd_pct": 15.0,
+    "min_years": 3.0
+  },
+  "period_oos": [
+    "2016-01-01",
+    "2026-07-16"
+  ],
+  "method": "参数冻结为生产配置,仅变 in_market_months,同段直跑 A/B(无重训)",
+  "champion_frozen": {
+    "weights": [
+      0.7,
+      0.2,
+      0.1
+    ],
+    "top_n": 1,
+    "target_vol": 999.0,
+    "rebalance_threshold_pct": 5.0,
+    "eval_frequency": "weekly",
+    "high_proximity": 0.9,
+    "defensive_symbol": "GLD",
+    "defensive_weight": 0.2
+  },
+  "results": {
+    "全年(冠军基线)": {
+      "in_market_months": null,
+      "oos": {
+        "months": 127,
+        "years": 10.58,
+        "total_return_pct": 182.55,
+        "monthly_mean_net_pct": 0.821,
+        "max_drawdown_pct": 15.71,
+        "monthly_win_rate_pct": 62.2,
+        "profit_factor": 1.94
+      },
+      "orders": 279,
+      "fees_usd": 284.99,
+      "promo1": {
+        "years_ok": true,
+        "monthly_return_ok": true,
+        "drawdown_ok": false,
+        "passed": false,
+        "gate": {
+          "monthly_pct": 0.6,
+          "dd_pct": 15.0,
+          "min_years": 3.0
+        }
+      }
+    },
+    "万圣节(11-4月)": {
+      "in_market_months": [
+        11,
+        12,
+        1,
+        2,
+        3,
+        4
+      ],
+      "oos": {
+        "months": 127,
+        "years": 10.58,
+        "total_return_pct": 139.09,
+        "monthly_mean_net_pct": 0.689,
+        "max_drawdown_pct": 15.78,
+        "monthly_win_rate_pct": 61.4,
+        "profit_factor": 2.23
+      },
+      "orders": 176,
+      "fees_usd": 179.39,
+      "promo1": {
+        "years_ok": true,
+        "monthly_return_ok": true,
+        "drawdown_ok": false,
+        "passed": false,
+        "gate": {
+          "monthly_pct": 0.6,
+          "dd_pct": 15.0,
+          "min_years": 3.0
+        }
+      }
+    },
+    "扩展(10-5月)": {
+      "in_market_months": [
+        10,
+        11,
+        12,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "oos": {
+        "months": 127,
+        "years": 10.58,
+        "total_return_pct": 132.49,
+        "monthly_mean_net_pct": 0.667,
+        "max_drawdown_pct": 16.57,
+        "monthly_win_rate_pct": 63.0,
+        "profit_factor": 1.98
+      },
+      "orders": 234,
+      "fees_usd": 238.23,
+      "promo1": {
+        "years_ok": true,
+        "monthly_return_ok": true,
+        "drawdown_ok": false,
+        "passed": false,
+        "gate": {
+          "monthly_pct": 0.6,
+          "dd_pct": 15.0,
+          "min_years": 3.0
+        }
+      }
+    }
+  }
+}

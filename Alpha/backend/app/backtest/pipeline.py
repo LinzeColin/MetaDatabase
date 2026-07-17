@@ -97,6 +97,8 @@ class S1Params:
     dd_hard_pct: Optional[float] = None      # 回撤刹车硬线:全退现金,回到软线内恢复
     defensive_symbol: Optional[str] = None   # 防御叠加:恒持标的(如 TLT/GLD)
     defensive_weight: float = 0.0            # 防御叠加固定比例(动量只跑剩余仓)
+    in_market_months: Optional[tuple[int, ...]] = None  # 季节窗口:动量仓只在这些月份
+                                             # 在场(None=全年;防御叠加不受影响)
 
 
 @dataclass
@@ -204,6 +206,8 @@ def simulate_s1(
                     brake = 0.5
             if brake == 0.0:
                 selected = ()
+            if params.in_market_months is not None and day.month not in params.in_market_months:
+                selected = ()  # 季节窗口外:动量仓退现金替身(防御叠加照常)
             targets: dict[str, int] = {}
             defensive_w = params.defensive_weight if params.defensive_symbol else 0.0
             risk_budget = 1.0 - defensive_w
