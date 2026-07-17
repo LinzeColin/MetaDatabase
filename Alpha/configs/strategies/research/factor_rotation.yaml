@@ -1,0 +1,26 @@
+# 因子 ETF 轮动研究(FAC 轮):动量/低波/质量/价值因子互轮,冠军同款防御叠加结构。
+# 家族动机:因子间动量是文献成熟结构;低波因子入池有望压回撤。此前各轮均未覆盖。
+# 注意:MTUM/USMV/QUAL/VLUE 2013-04 上市,SPMO 类太年轻不入池;早期打分不足自动无资格(无前视)。
+cash_proxy: BIL
+universe: ["MTUM", "USMV", "QUAL", "VLUE", "SPLV", "SPY", "GLD", "TLT", "BIL"]
+candidates:
+  FAC_GOLD_WEEKLY:
+    eval_frequency: weekly
+    grid:
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [15, 999]
+      rebalance_threshold_allowed: [3, 5, 8]
+      high_proximity_allowed: [null, 0.90, 0.95]
+      defensive_symbol_allowed: ["GLD"]
+      defensive_weight_allowed: [0.2, 0.3]
+  FAC_GOLD_MONTHLY:
+    eval_frequency: monthly
+    grid:
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [15, 999]
+      rebalance_threshold_allowed: [3, 5, 8]
+      high_proximity_allowed: [null, 0.90, 0.95]
+      defensive_symbol_allowed: ["GLD"]
+      defensive_weight_allowed: [0.2, 0.3]
