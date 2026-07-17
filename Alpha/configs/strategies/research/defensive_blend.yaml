@@ -1,0 +1,28 @@
+# 防御叠加混合(研究候选,未启用)— 冠军动量 + 恒持国债/黄金压回撤
+# 目标:把 52 周新高过滤的收益尽量塞进 15% 回撤门
+strategy_id: "DEFENSIVE_BLEND_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate"
+universe: ["SPY", "QQQ", "IWM", "EFA", "EEM", "GLD", "TLT", "BIL"]
+cash_proxy: "BIL"
+candidates:
+  DB_tlt:
+    eval_frequency: "weekly"
+    grid:
+      defensive_symbol_allowed: ["TLT"]
+      defensive_weight_allowed: [0.2, 0.3, 0.4]
+      high_proximity_allowed: [0.90, 0.95]
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [15, 999]
+      rebalance_threshold_allowed: [5]
+  DB_gld:
+    eval_frequency: "weekly"
+    grid:
+      defensive_symbol_allowed: ["GLD"]
+      defensive_weight_allowed: [0.2, 0.3, 0.4]
+      high_proximity_allowed: [0.90, 0.95]
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [15, 999]
+      rebalance_threshold_allowed: [5]

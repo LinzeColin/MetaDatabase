@@ -95,6 +95,8 @@ class S1Params:
     high_proximity: Optional[float] = None   # 例 0.95:要求收盘 >= 0.95×252日最高
     dd_soft_pct: Optional[float] = None      # 回撤刹车软线:仓位减半
     dd_hard_pct: Optional[float] = None      # 回撤刹车硬线:全退现金,回到软线内恢复
+    defensive_symbol: Optional[str] = None   # 防御叠加:恒持标的(如 TLT/GLD)
+    defensive_weight: float = 0.0            # 防御叠加固定比例(动量只跑剩余仓)
 
 
 @dataclass
@@ -199,8 +201,15 @@ def simulate_s1(
             if brake == 0.0:
                 selected = ()
             targets: dict[str, int] = {}
+            defensive_w = params.defensive_weight if params.defensive_symbol else 0.0
+            risk_budget = 1.0 - defensive_w
             target_syms = list(selected) if selected else [cash_proxy]
-            weight_each = (1.0 / params.top_n) * scalar * brake if selected else 1.0
+            weight_each = ((1.0 / params.top_n) * scalar * brake if selected else 1.0) * risk_budget
+            if params.defensive_symbol and defensive_w > 0:
+                jd = series[params.defensive_symbol].index_by_day.get(day)
+                if jd is not None:
+                    targets[params.defensive_symbol] = int(
+                        (equity_now * defensive_w) // price(params.defensive_symbol, jd))
             for sym in target_syms:
                 j = series[sym].index_by_day.get(day)
                 if j is None:

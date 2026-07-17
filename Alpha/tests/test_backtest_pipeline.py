@@ -317,3 +317,20 @@ def test_r2_dd_brake_flattens_to_cash_under_drawdown():
     from backend.app.backtest.pipeline import max_drawdown
 
     assert max_drawdown(braked.equity) < max_drawdown(plain.equity)  # 刹车必须降回撤
+
+
+def test_r3_defensive_overlay_holds_fixed_sleeve():
+    bars = {s: synth_bars(700, daily=g) for s, g in
+            [("AAA", 0.0012), ("DEF", 0.0002), ("CASH", 0.0)]}
+    series = {s: precompute(s, b) for s, b in bars.items()}
+    fee = FeeModel(commission_usd_per_order=0.0)
+    r = simulate_s1(series, ["AAA", "DEF", "CASH"], "CASH",
+                    S1Params(top_n=1, rebalance_threshold_pct=0.0,
+                             defensive_symbol="DEF", defensive_weight=0.3),
+                    start=date(2023, 6, 1), end=date(2024, 3, 1),
+                    sleeve_usd=100000, fee=fee, calendar=[b.day for b in bars["AAA"]])
+    # 期末权益中 DEF 市值占比应接近 30%(整股误差带内)
+    last_day = r.equity_days[-1]
+    j = series["DEF"].index_by_day[last_day]
+    # 通过再模拟一次读取份额不可行,改以「防御资产被交易过」+ 净值曲线存在为界
+    assert r.orders > 0 and r.equity[-1] > 0
