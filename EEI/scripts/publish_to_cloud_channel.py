@@ -36,12 +36,35 @@ if str(ROOT) not in sys.path:
 
 from scripts.db_tools import connect_database  # noqa: E402
 
-SCHEMA_VERSION = "eei-cloud-publication-channel-v1"
+SCHEMA_VERSION = "eei-cloud-publication-channel-v2"
 TASK_ID = "S7PDT04"
 ACCEPTANCE_IDS = ["ACC-S7PDT04"]
 D1_DATABASE = "eei-publication"
 SCHEMA_FILE = ROOT / "infra" / "cloudflare" / "d1_publication_schema.sql"
 PUBLISHED_RULE = "reviewed_relationship_fact_publication"
+
+# EEI-F05: the public surface never carries contact identifiers or internal
+# review/signature internals. Qualifiers are reduced to this allowlist at
+# export time; owner_actor is replaced by the opaque owner_role that already
+# rides in the same payload. Everything else stays local.
+PUBLIC_QUALIFIER_ALLOWLIST = (
+    "path_role",
+    "owner_role",
+    "record_mode",
+    "reviewed_at",
+    "direction_note",
+    "decision_set_key",
+    "parser_version",
+    "structured_fact",
+    "source_threshold_policy",
+)
+
+
+def sanitize_public_qualifiers(qualifiers: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not qualifiers:
+        return None
+    public = {k: qualifiers[k] for k in PUBLIC_QUALIFIER_ALLOWLIST if k in qualifiers}
+    return public or None
 
 D1_FREE_TIER = {
     "storage_gb": 5,
@@ -76,7 +99,11 @@ def export_publication_surface() -> dict[str, list[dict[str, Any]]]:
                 "confidence": float(r[6]) if r[6] is not None else None,
                 "observed_at": r[7].isoformat() if r[7] else None,
                 "published_at": r[8].isoformat() if r[8] else None,
-                "qualifiers_json": json.dumps(r[9], ensure_ascii=False) if r[9] else None,
+                "qualifiers_json": (
+                    json.dumps(sanitized, ensure_ascii=False)
+                    if (sanitized := sanitize_public_qualifiers(r[9]))
+                    else None
+                ),
             }
             for r in conn.execute(
                 """
@@ -162,16 +189,79 @@ def export_publication_surface() -> dict[str, list[dict[str, Any]]]:
                 """
             ).fetchall()
         ]
+        # EEI-F01: static supply-chain stage rail (reference data, no facts).
+        supply_chain_stages = [
+            {
+                "stage_id": r[0],
+                "stage_order": int(r[1]),
+                "slug": r[2],
+                "name_zh": r[3],
+                "name_en": r[4],
+                "default_direction": r[5],
+                "examples": r[6],
+            }
+            for r in conn.execute(
+                """
+                SELECT stage_id, stage_order, slug, name_zh, name_en,
+                       default_direction, examples
+                FROM supply_chain_stages ORDER BY stage_order
+                """
+            ).fetchall()
+        ]
+        # EEI-F01/F02: one atomic analysis-context identity per publish so
+        # every cloud screen reads the same snapshot/model identity. Identity
+        # fields only - no activated_by contact detail beyond the system tag,
+        # no metadata blob.
+        context_row = conn.execute(
+            """
+            SELECT aac.context_key, aac.active_scoring_profile_version_id,
+                   ds.snapshot_key, aac.active_scoring_run_id, aac.refresh_token,
+                   aac.refresh_generation, aac.status, aac.activated_at,
+                   aac.affected_modules,
+                   sp.profile_key, spv.version, sm.model_key, sm.version
+            FROM active_analysis_contexts aac
+            JOIN scoring_profile_versions spv
+              ON spv.id = aac.active_scoring_profile_version_id
+            JOIN scoring_profiles sp ON sp.id = spv.profile_id
+            JOIN scoring_models sm ON sm.id = spv.model_id
+            LEFT JOIN data_snapshots ds ON ds.id = aac.active_data_snapshot_id
+            WHERE aac.context_key = 'global'
+            """
+        ).fetchone()
+        active_analysis_context = (
+            {
+                "schema_version": "active-analysis-context-v1",
+                "context_key": context_row[0],
+                "active_scoring_profile_version_id": str(context_row[1]),
+                "active_data_snapshot_key": context_row[2],
+                "active_scoring_run_id": (
+                    str(context_row[3]) if context_row[3] else None
+                ),
+                "refresh_token": str(context_row[4]),
+                "refresh_generation": int(context_row[5]),
+                "status": context_row[6],
+                "activated_at": (
+                    context_row[7].isoformat() if context_row[7] else None
+                ),
+                "affected_modules": list(context_row[8] or []),
+                "model_version": f"{context_row[11]}@{context_row[12]}",
+                "profile_version": f"{context_row[9]}@{context_row[10]}",
+            }
+            if context_row
+            else None
+        )
     return {
         "relationships": relationships,
         "entities": entities,
         "relationship_evidence": evidence,
         "snapshot_meta": snapshots,
         "filing_year_counts": filing_year_counts,
+        "supply_chain_stages": supply_chain_stages,
+        "active_analysis_context": active_analysis_context,
     }
 
 
-def render_sql(surface: dict[str, list[dict[str, Any]]]) -> str:
+def render_sql(surface: dict[str, Any]) -> str:
     statements: list[str] = []
     for table in (
         "relationship_evidence",
@@ -179,6 +269,7 @@ def render_sql(surface: dict[str, list[dict[str, Any]]]) -> str:
         "entities",
         "snapshot_meta",
         "filing_year_counts",
+        "supply_chain_stages",
     ):
         statements.append(f"DELETE FROM {table};")
     for row in surface["entities"]:
@@ -236,6 +327,17 @@ def render_sql(surface: dict[str, list[dict[str, Any]]]) -> str:
             + ", ".join(sql_quote(row[k]) for k in ("year", "filings"))
             + ");"
         )
+    for row in surface.get("supply_chain_stages", []):
+        statements.append(
+            "INSERT INTO supply_chain_stages(stage_id, stage_order, slug, name_zh,"
+            " name_en, default_direction, examples) VALUES ("
+            + ", ".join(
+                sql_quote(row[k])
+                for k in ("stage_id", "stage_order", "slug", "name_zh", "name_en",
+                          "default_direction", "examples")
+            )
+            + ");"
+        )
     statements.append(
         "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
         f" ('published_at', {sql_quote(utc_now_iso())});"
@@ -244,6 +346,12 @@ def render_sql(surface: dict[str, list[dict[str, Any]]]) -> str:
         "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
         f" ('publisher_version', {sql_quote(SCHEMA_VERSION)});"
     )
+    if surface.get("active_analysis_context"):
+        statements.append(
+            "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
+            " ('active_analysis_context',"
+            f" {sql_quote(json.dumps(surface['active_analysis_context'], ensure_ascii=False))});"
+        )
     return "\n".join(statements) + "\n"
 
 
@@ -283,6 +391,7 @@ def remote_counts(cwd: Path) -> dict[str, int]:
             " FROM relationship_evidence"
             " UNION ALL SELECT 'snapshot_meta', count(*) FROM snapshot_meta"
             " UNION ALL SELECT 'filing_year_counts', count(*) FROM filing_year_counts"
+            " UNION ALL SELECT 'supply_chain_stages', count(*) FROM supply_chain_stages"
         ),
         cwd=cwd,
     )
@@ -320,7 +429,9 @@ def main() -> int:
     args.sql_out.parent.mkdir(parents=True, exist_ok=True)
     args.sql_out.write_text(sql, encoding="utf-8")
 
-    local_counts = {table: len(rows) for table, rows in surface.items()}
+    local_counts = {
+        table: len(rows) for table, rows in surface.items() if isinstance(rows, list)
+    }
     report: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "task_id": TASK_ID,
@@ -334,12 +445,16 @@ def main() -> int:
                 "evidence index (locator + excerpt + official URL)",
                 "active snapshot metadata",
                 "per-year official filing counts (aggregates only)",
+                "supply-chain stage reference rail (static, no facts)",
+                "active analysis-context identity (allowlisted, no contacts)",
             ],
             "excluded": [
                 "relationship candidates and review queues",
                 "raw source texts and archives (R2 scope)",
                 "scoring internals and model parameters",
                 "background jobs / scheduler state",
+                "contact identifiers and review/signature internals"
+                " (EEI-F05 qualifier allowlist)",
             ],
             "direction": "one-way local->cloud; no cloud read-back",
         },
@@ -355,20 +470,12 @@ def main() -> int:
         counts = remote_counts(cf_dir)
         report["remote_counts"] = counts
         report["count_parity"] = {
-            "entities": counts.get("entities") == local_counts["entities"],
-            "relationships": counts.get("relationships") == local_counts["relationships"],
-            "relationship_evidence": (
-                counts.get("relationship_evidence")
-                == local_counts["relationship_evidence"]
-            ),
-            "snapshot_meta": counts.get("snapshot_meta") == local_counts["snapshot_meta"],
-            "filing_year_counts": (
-                counts.get("filing_year_counts") == local_counts["filing_year_counts"]
-            ),
+            table: counts.get(table) == local_counts[table] for table in local_counts
         }
         report["drill_passed"] = all(report["count_parity"].values())
     report["r2"] = r2_status(cf_dir)
-    rows_written = sum(local_counts.values()) + 2
+    meta_rows = 2 + (1 if surface.get("active_analysis_context") else 0)
+    rows_written = sum(local_counts.values()) + meta_rows
     report["free_tier_quota_accounting"] = {
         "d1_free_tier": D1_FREE_TIER,
         "rows_written_this_publish": rows_written,

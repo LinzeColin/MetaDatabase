@@ -3180,3 +3180,325 @@ dd {
   background: rgba(13, 19, 34, 0.82);
   color: #aebadb;
 }
+
+/* ==========================================================================
+   S13 验收修复（EEI-F06 / EEI-F09）：全屏地图基座 + 悬浮工作面
+   - .mapSurface 固定为视口底层：星空与图谱是首屏主体，三列信息面浮于其上，
+     视觉承载 ≥90% 来自真实布局（文档 28 的门），不是标记游戏。
+   - 中央走廊由 --map-inset-* 圈定；svg 充满走廊，viewBox 等比居中。
+   - F06 病根：1241–1360px 区间四列最小宽度合计 1360px → 1280 视口横向
+     溢出 83px。该区间给紧凑列宽，1440/1280/1024 三档零溢出。
+   ========================================================================== */
+:root {
+  --map-inset-left: 496px;  /* nav 210 + 主体面板 ~260 + 间隙 */
+  --map-inset-right: 326px; /* 证据面板 ≤300 + 间隙 */
+}
+
+.workspace {
+  background: transparent;
+}
+
+.navRail {
+  position: relative;
+  z-index: 3;
+}
+
+.focusPanel,
+.inspector {
+  position: relative;
+  z-index: 2;
+}
+
+.canvas {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  align-content: flex-start;
+  background: transparent;
+  /* 空白区不截胡指针：点击/滚轮落到底层地图；条带自身恢复交互。 */
+  pointer-events: none;
+}
+
+.canvas > * {
+  pointer-events: auto;
+}
+
+.mapSurface {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  min-height: 100vh;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* 图谱悬浮于控制条带之上：svg 本体不吃指针（空白处点击穿透到条带/
+   底图），节点与边恢复交互——节点永远可点，条带也永远可点
+   （e2e 曾实测 timelineBar/zoomBar 截胡节点点击，此为根治）。 */
+.ecosystemMap {
+  position: fixed;
+  left: var(--map-inset-left);
+  right: var(--map-inset-right);
+  top: 84px;
+  bottom: 56px;
+  z-index: 3;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: auto;
+  pointer-events: none;
+}
+
+.ecosystemMap .node,
+.ecosystemMap .edgeGroup {
+  pointer-events: auto;
+}
+
+/* 地图内浮层改锚走廊边缘（顶部让给控制条带）。 */
+.contextKpiBar {
+  top: auto;
+  bottom: 16px;
+  left: calc(
+    var(--map-inset-left) +
+      (100vw - var(--map-inset-left) - var(--map-inset-right)) / 2
+  );
+}
+
+.empireLegend {
+  left: calc(var(--map-inset-left) + 14px);
+  bottom: 18px;
+}
+
+.canvasOverlay {
+  left: calc(var(--map-inset-left) + 14px);
+  top: 190px;
+}
+
+.changeOverlay {
+  top: auto;
+  bottom: 64px;
+  right: calc(var(--map-inset-right) + 130px);
+}
+
+.historyScrubber {
+  right: calc(var(--map-inset-right) + 14px);
+  top: 96px;
+}
+
+/* 中央控制条带：贴图玻璃卡，压缩纵向占位，首屏让给图。 */
+.canvasTopbar {
+  display: flex;
+  gap: 12px;
+}
+
+/* 镜头按钮横排小胶囊（通用按钮规则的 width:100% 会把它们竖排成整行，
+   吃掉首屏纵深——F09 病灶之一）。 */
+.canvasTopbar .lensBar {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.canvasTopbar .lens {
+  width: auto;
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 14px;
+  justify-content: center;
+}
+
+.canvas > .canvasTopbar,
+.canvas > .zoomBar,
+.canvas > .timelineBar,
+.canvas > .stageRail,
+.canvas > .historyControls,
+.canvas > .breadcrumb,
+.canvas > .crossIndustryReroot {
+  border: 1px solid rgba(94, 116, 168, 0.28);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  padding: 8px 10px;
+}
+
+.canvas > .zoomBar {
+  grid-template-columns: repeat(4, minmax(40px, 56px));
+  justify-content: start;
+}
+
+.canvas > .stageRail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.canvas > .stageRail .stagePill {
+  min-height: 0;
+  padding: 3px 9px;
+  font-size: 11px;
+  border-radius: 999px;
+}
+
+:root[data-theme="deep-space"] .workspace {
+  background: transparent;
+}
+
+:root[data-theme="deep-space"] .focusPanel,
+:root[data-theme="deep-space"] .inspector {
+  background: rgba(9, 13, 24, 0.6);
+}
+
+:root[data-theme="deep-space"] .canvas > .canvasTopbar,
+:root[data-theme="deep-space"] .canvas > .zoomBar,
+:root[data-theme="deep-space"] .canvas > .timelineBar,
+:root[data-theme="deep-space"] .canvas > .stageRail,
+:root[data-theme="deep-space"] .canvas > .historyControls,
+:root[data-theme="deep-space"] .canvas > .breadcrumb,
+:root[data-theme="deep-space"] .canvas > .crossIndustryReroot {
+  border-color: #23345a;
+  background: rgba(13, 19, 34, 0.72);
+}
+
+/* 云模式画布状态卡（载入/错误/空态）：居中于走廊。 */
+.cloudGraphState {
+  position: absolute;
+  left: calc(var(--map-inset-left) + 48px);
+  right: calc(var(--map-inset-right) + 48px);
+  top: 40%;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 18px 16px;
+  text-align: center;
+}
+
+.cloudGraphState .cloudGraphActions {
+  display: flex;
+  gap: 8px;
+}
+
+.cloudGraphState button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+/* 搜索结果行：主按钮=选中看详情；右侧小按钮=显式换中心（EEI-F03）。 */
+.searchResultRow {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.searchResultRow > button:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.searchRerootAction {
+  flex: none;
+  align-self: center;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 5px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.searchRerootAction:not(:disabled):hover {
+  color: var(--ink);
+  border-color: var(--blue);
+}
+
+.searchRerootAction:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 诚实空态与真实变化行。 */
+.honestEmpty {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.changeRow {
+  display: grid;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.changeRow small {
+  color: var(--muted);
+}
+
+/* 证据来源直达链接与定位符（J-003：两步内见来源）。 */
+.evidenceSourceLink {
+  justify-self: start;
+  font-size: 12px;
+  color: var(--blue);
+  text-decoration: underline;
+}
+
+.evidenceLocator {
+  display: block;
+  color: var(--muted);
+}
+
+/* F06：1241–1360 紧凑四列（证据面板保持可见），三档视口零横向溢出。 */
+@media (max-width: 1360px) and (min-width: 1241px) {
+  .workspace {
+    grid-template-columns: 78px minmax(198px, 228px) minmax(460px, 1fr)
+      minmax(228px, 248px);
+  }
+
+  .navItem span,
+  .navGroupLabel,
+  .brandMark span:not(.brandGlyph) {
+    display: none;
+  }
+
+  :root {
+    --map-inset-left: 322px;
+    --map-inset-right: 262px;
+  }
+}
+
+@media (max-width: 1240px) {
+  :root {
+    --map-inset-left: 344px;
+    --map-inset-right: 18px;
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --map-inset-left: 14px;
+    --map-inset-right: 14px;
+  }
+
+  .ecosystemMap {
+    top: 280px;
+    bottom: 40vh;
+  }
+
+  .contextKpiBar {
+    left: 50%;
+  }
+}

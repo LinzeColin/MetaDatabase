@@ -89,6 +89,7 @@ apps/web/src/app/analysis-context-badge.tsx
 apps/web/src/app/analysis-contract.ts
 apps/web/src/app/capital-events-client.ts
 apps/web/src/app/capital/page.tsx
+apps/web/src/app/cloud-data-client.ts
 apps/web/src/app/control/page.tsx
 apps/web/src/app/development-status/page.tsx
 apps/web/src/app/explore-api-client.ts
@@ -446,10 +447,12 @@ scripts/check_database_schema.py
 scripts/compile_model_runtime_defaults.py
 scripts/cross_verify_relationship_candidates.py
 scripts/db_tools.py
+scripts/deploy_cloud.sh
 scripts/env_doctor.py
 scripts/fetch_gold_corpus_sources.py
 scripts/fetch_official_source_full_text.py
 scripts/finalize_operator_soak_evidence.py
+scripts/fix_acceptance_defects_f02_f04.py
 scripts/generate_app_icon.py
 scripts/generate_governance_pdf.py
 scripts/generate_scoring_parity_fixture.py
@@ -541,6 +544,7 @@ tests/e2e/perf-first-interactive.spec.ts
 tests/e2e/saved-view-live.spec.ts
 tests/e2e/state-contract.spec.ts
 tests/e2e/theme-system.spec.ts
+tests/e2e/visual-coverage-home.spec.ts
 tests/e2e/visual-regression.spec.ts
 tests/e2e/visual-regression.spec.ts-snapshots/approved-default-chromium-linux.png
 tests/e2e/visual-regression.spec.ts-snapshots/approved-dense-list-chromium-linux.png
