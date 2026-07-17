@@ -120,7 +120,10 @@ def simulate_s1(
     sleeve_usd: float,
     fee: FeeModel,
     calendar: list[date],
+    signal_series: Optional[dict[str, SymbolSeries]] = None,
 ) -> SleeveResult:
+    """signal_series:可选的「信号代理」——评分/资格线用代理序列(如杠杆基金
+    用其原指数 ETF 作信号,规避杠杆衰减噪声),交易价格仍用本尊。缺省=本尊即信号。"""
     cash = sleeve_usd
     shares: dict[str, int] = {}
     result = SleeveResult(equity_days=[], equity=[])
@@ -148,7 +151,7 @@ def simulate_s1(
             for sym in universe:
                 if sym == cash_proxy:
                     continue
-                ss = series.get(sym)
+                ss = (signal_series or {}).get(sym) or series.get(sym)
                 j = ss.index_by_day.get(day) if ss else None
                 j_eval = (j - 1) if j is not None and j >= 1 else None
                 if j_eval is None:

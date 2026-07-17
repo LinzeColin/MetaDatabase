@@ -1,0 +1,26 @@
+# 放大器基金轮动(研究候选)——⚠️ 红线冲突件:AGENTS 第 4 节禁「杠杆」,
+# 本配置仅用于给 owner 产决策证据;实盘启用的前置条件:
+#   1) owner 明文修订 AGENTS 第 4 节解除杠杆 ETF 禁令(留决策日志)
+#   2) 回撤门槛按证据重新裁定(此族回撤天然 >15%)
+#   3) 部署日按新配置哈希重签授权
+strategy_id: "LEV_ETF_ROTATION_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate_redline_conflict"
+universe: ["TQQQ", "UPRO", "QLD", "SSO", "BIL"]   # 3x纳指/3x标普/2x纳指/2x标普/现金替身
+cash_proxy: "BIL"
+score:
+  formula: "w1*r63 + w2*r126 + w3*r252"
+  lookbacks_trading_days: [63, 126, 252]
+absolute_momentum_filter: {rule: "close > SMA200", sma_period: 200}
+review_grid:
+  weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1],[1.0,0.0,0.0]]
+  top_n_allowed: [1, 2]
+  target_vol_allowed: [12, 15, 999]
+  rebalance_threshold_allowed: [5]
+  eval_frequency_allowed: ["weekly", "monthly"]
+  dd_brake_allowed: [null, [10, 20]]
+signal_proxy:   # 信号看原指数,下单买放大器(该族的标准构造;v0.2 修正)
+  TQQQ: "QQQ"
+  UPRO: "SPY"
+  QLD: "QQQ"
+  SSO: "SPY"
