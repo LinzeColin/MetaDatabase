@@ -1,6 +1,6 @@
 {
-  "stage": "G1 交易域模型与数据库状态机",
-  "phase": "域模型与状态机开发",
-  "task": "`ALPHA-LIVE-010`：OrderIntent/RiskDecision/BrokerOrder/Execution/PositionSnapshot/CapitalAuthorization/JurisdictionCapability/ShadowOrder/OutboxEvent/ReconciliationRun 十实体建模落库（本地 SQLite 兼容层，生产 PostgreSQL），订单状态机含全部合法迁移与非法迁移拒绝、幂等重放",
+  "stage": "G2 Moomoo 只读适配器与辖区探针",
+  "phase": "券商只读能力与辖区能力探针",
+  "task": "`ALPHA-LIVE-020`：按 MOOMOO_ADAPTER_CONTRACT.md 实现连接、账户（acc_id）、资金、持仓、未完成订单、行情订阅只读能力；探针输出 JurisdictionCapability；假券商网关契约测试；不含任何下单调用",
   "owner": "Claude Code 开发，Linze 复审拍板"
 }

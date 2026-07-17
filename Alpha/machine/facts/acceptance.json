@@ -49,6 +49,16 @@
       "id": "`ACC-000-10`",
       "criteria": "月末策略评审配置（网格、比例区间、转正/降级规则、月报模板）与邮件通知配置落入 `configs/`",
       "status": "已验收 2026-07-17"
+    },
+    {
+      "id": "`ACC-010-1`",
+      "criteria": "十实体可持久化可恢复(SQLite 重开进程级恢复测试)",
+      "status": "已验收 2026-07-17"
+    },
+    {
+      "id": "`ACC-010-2`",
+      "criteria": "状态机测试覆盖 INTENT_CREATED 到 FILLED/REJECTED/CANCELLED/EXPIRED/SUBMIT_FAILED/UNKNOWN_RECONCILIATION_REQUIRED 全路径;非法迁移全部拒写+审计+隔离+开对账;幂等重放同键只产生一条券商指令",
+      "status": "已验收 2026-07-17"
     }
   ]
 }
