@@ -99,6 +99,9 @@ class S1Params:
     defensive_weight: float = 0.0            # 防御叠加固定比例(动量只跑剩余仓)
     in_market_months: Optional[tuple[int, ...]] = None  # 季节窗口:动量仓只在这些月份
                                              # 在场(None=全年;防御叠加不受影响)
+    defensive_basket: Optional[tuple[str, ...]] = None  # 动态防御:每评估日在篮子里挑
+                                             # T-1 r63 最强且 >SMA200 者作避险;都不合格
+                                             # 则该期防御预算退现金(None=用静态 symbol)
 
 
 @dataclass
@@ -209,15 +212,32 @@ def simulate_s1(
             if params.in_market_months is not None and day.month not in params.in_market_months:
                 selected = ()  # 季节窗口外:动量仓退现金替身(防御叠加照常)
             targets: dict[str, int] = {}
-            defensive_w = params.defensive_weight if params.defensive_symbol else 0.0
+            # 有效防御标的:静态 defensive_symbol,或从 defensive_basket 动态挑最强
+            def_sym = params.defensive_symbol
+            if params.defensive_basket:
+                best, best_score = None, None
+                for cand in params.defensive_basket:
+                    ssd = series.get(cand)
+                    jc = ssd.index_by_day.get(day) if ssd else None
+                    jc_eval = (jc - 1) if jc is not None and jc >= 1 else None
+                    if jc_eval is None:
+                        continue
+                    rd, s200d = ssd.r63[jc_eval], ssd.sma200[jc_eval]
+                    if rd is None or s200d is None or ssd.closes[jc_eval] <= s200d:
+                        continue  # 防御资产也须在 SMA200 上方,否则不配作避险
+                    if best_score is None or rd > best_score:
+                        best, best_score = cand, rd
+                def_sym = best  # 都不合格 → None → 该期防御预算退现金
+            has_def = params.defensive_symbol is not None or params.defensive_basket is not None
+            defensive_w = params.defensive_weight if has_def else 0.0
             risk_budget = 1.0 - defensive_w
             target_syms = list(selected) if selected else [cash_proxy]
             weight_each = ((1.0 / params.top_n) * scalar * brake if selected else 1.0) * risk_budget
-            if params.defensive_symbol and defensive_w > 0:
-                jd = series[params.defensive_symbol].index_by_day.get(day)
+            if def_sym and defensive_w > 0:
+                jd = series[def_sym].index_by_day.get(day)
                 if jd is not None:
-                    targets[params.defensive_symbol] = int(
-                        (equity_now * defensive_w) // price(params.defensive_symbol, jd))
+                    targets[def_sym] = int(
+                        (equity_now * defensive_w) // price(def_sym, jd))
             for sym in target_syms:
                 j = series[sym].index_by_day.get(day)
                 if j is None:

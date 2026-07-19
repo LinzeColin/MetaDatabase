@@ -1,0 +1,187 @@
+{
+  "fixture": true,
+  "candidates": [
+    {
+      "id": "S001",
+      "title": "Grid equipment capacity beneficiary",
+      "issuer": "Example Grid Systems plc",
+      "ticker": "XGS",
+      "exchange": "DEMO",
+      "security_type": "synthetic_fixture",
+      "currency": "USD",
+      "as_of": "2026-07-19",
+      "thesis": "Synthetic fixture: measurable grid-equipment exposure and commercial capture could justify deeper equity research.",
+      "first_rejection": "Reject if the disclosed segment denominator is immaterial or backlog does not convert to profitable revenue.",
+      "dimensions": {
+        "commercial_value_pool": 8.5,
+        "issuer_exposure_attribution": 9.0,
+        "financial_capture_path": 8.5,
+        "beneficiary_position": 8.0,
+        "expectations_variant": 8.5,
+        "valuation_support": 8.5,
+        "catalyst_revision_path": 8.0,
+        "durability_balance_sheet": 7.5,
+        "liquidity_instrument_fit": 8.0,
+        "research_edge_speed": 8.5
+      },
+      "risks": {
+        "exposure_gap": 1.0,
+        "expectations_priced_in": 1.5,
+        "valuation_downside": 2.0,
+        "earnings_cyclicality": 2.0,
+        "balance_sheet_funding": 1.5,
+        "regulatory_geopolitical": 1.5,
+        "liquidity_shortability": 1.0,
+        "freshness_source_gap": 1.0
+      },
+      "confidence": {
+        "claim_coverage": 8.5,
+        "primary_source_quality": 8.5,
+        "exposure_directness": 8.5,
+        "metric_period_normalization": 8.0,
+        "source_diversity": 8.0,
+        "recency": 8.0,
+        "contradiction_resolution": 7.5
+      },
+      "roi": {
+        "learning": 8.5,
+        "thesis": 8.0,
+        "catalyst": 8.0,
+        "decision": 8.5
+      },
+      "evidence_signals": {
+        "public_source_families": 6,
+        "company_filings": 3,
+        "quantified_exposure_metrics": 2,
+        "commercial_capture_signals": 2,
+        "current_valuation_observations": 1,
+        "confirmed_catalysts": 2,
+        "thesis_falsifiers": 3,
+        "liquidity_checks": 1
+      },
+      "hard_stops": []
+    },
+    {
+      "id": "S002",
+      "title": "Data-centre thermal-management supplier",
+      "issuer": "Example Thermal Systems Ltd",
+      "ticker": "XTS",
+      "exchange": "DEMO",
+      "security_type": "synthetic_fixture",
+      "currency": "USD",
+      "as_of": "2026-07-19",
+      "thesis": "Synthetic fixture: product exposure is attributed, but expectations and valuation still need current evidence.",
+      "first_rejection": "Reject if AI-related demand is not material to the reported segment or margin capture is absent.",
+      "dimensions": {
+        "commercial_value_pool": 8.5,
+        "issuer_exposure_attribution": 8.0,
+        "financial_capture_path": 8.0,
+        "beneficiary_position": 7.5,
+        "expectations_variant": 8.0,
+        "valuation_support": 7.5,
+        "catalyst_revision_path": 7.0,
+        "durability_balance_sheet": 7.0,
+        "liquidity_instrument_fit": 7.5,
+        "research_edge_speed": 8.0
+      },
+      "risks": {
+        "exposure_gap": 1.5,
+        "expectations_priced_in": 2.0,
+        "valuation_downside": 2.0,
+        "earnings_cyclicality": 3.0,
+        "balance_sheet_funding": 2.0,
+        "regulatory_geopolitical": 1.5,
+        "liquidity_shortability": 1.5,
+        "freshness_source_gap": 2.0
+      },
+      "confidence": {
+        "claim_coverage": 7.0,
+        "primary_source_quality": 7.5,
+        "exposure_directness": 7.0,
+        "metric_period_normalization": 6.5,
+        "source_diversity": 6.5,
+        "recency": 6.0,
+        "contradiction_resolution": 6.0
+      },
+      "roi": {
+        "learning": 9.0,
+        "thesis": 7.5,
+        "catalyst": 7.0,
+        "decision": 8.5
+      },
+      "evidence_signals": {
+        "public_source_families": 5,
+        "company_filings": 2,
+        "quantified_exposure_metrics": 1,
+        "commercial_capture_signals": 1,
+        "current_valuation_observations": 0,
+        "confirmed_catalysts": 0,
+        "thesis_falsifiers": 1,
+        "liquidity_checks": 0
+      },
+      "hard_stops": []
+    },
+    {
+      "id": "S003",
+      "title": "Social-media momentum beneficiary",
+      "issuer": "Example Momentum Theme Corp",
+      "ticker": "XMT",
+      "exchange": "DEMO",
+      "security_type": "synthetic_fixture",
+      "currency": "USD",
+      "as_of": "2026-07-19",
+      "thesis": "Synthetic fixture: price momentum and social mentions are incorrectly treated as issuer exposure.",
+      "first_rejection": "No filing-backed exposure or commercial-capture path.",
+      "dimensions": {
+        "commercial_value_pool": 5.0,
+        "issuer_exposure_attribution": 1.0,
+        "financial_capture_path": 1.0,
+        "beneficiary_position": 3.0,
+        "expectations_variant": 2.0,
+        "valuation_support": 2.0,
+        "catalyst_revision_path": 2.0,
+        "durability_balance_sheet": 4.0,
+        "liquidity_instrument_fit": 4.0,
+        "research_edge_speed": 3.0
+      },
+      "risks": {
+        "exposure_gap": 10.0,
+        "expectations_priced_in": 9.0,
+        "valuation_downside": 8.0,
+        "earnings_cyclicality": 7.0,
+        "balance_sheet_funding": 5.0,
+        "regulatory_geopolitical": 4.0,
+        "liquidity_shortability": 5.0,
+        "freshness_source_gap": 10.0
+      },
+      "confidence": {
+        "claim_coverage": 2.0,
+        "primary_source_quality": 1.0,
+        "exposure_directness": 1.0,
+        "metric_period_normalization": 1.0,
+        "source_diversity": 2.0,
+        "recency": 5.0,
+        "contradiction_resolution": 1.0
+      },
+      "roi": {
+        "learning": 3.0,
+        "thesis": 1.0,
+        "catalyst": 2.0,
+        "decision": 2.0
+      },
+      "evidence_signals": {
+        "public_source_families": 2,
+        "company_filings": 0,
+        "quantified_exposure_metrics": 0,
+        "commercial_capture_signals": 0,
+        "current_valuation_observations": 0,
+        "confirmed_catalysts": 0,
+        "thesis_falsifiers": 1,
+        "liquidity_checks": 0
+      },
+      "hard_stops": [
+        "No opened primary source supports issuer exposure."
+      ]
+    }
+  ]
+}

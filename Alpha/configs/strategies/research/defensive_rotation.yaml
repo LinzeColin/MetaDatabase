@@ -1,0 +1,26 @@
+# 动态防御轮动研究(DROT 轮):冠军动量结构不变,防御仓从恒持 GLD 改为
+# 每评估日在 {GLD, TLT, IEF} 里挑 T-1 动量最强且 >SMA200 者;都不合格则退现金。
+# 动机:冠军回撤 13.07% 是最难被超越的轴;静态黄金在利率上行期(2022)也会拖累,
+# 让避险资产也"择强"或可在不同宏观环境下更贴合,压回撤或提收益。
+cash_proxy: BIL
+universe: ["SPY", "QQQ", "IWM", "EFA", "EEM", "GLD", "TLT", "IEF", "BIL"]
+defensive_basket: ["GLD", "TLT", "IEF"]
+candidates:
+  DROT_WEEKLY:
+    eval_frequency: weekly
+    grid:
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [15, 999]
+      rebalance_threshold_allowed: [3, 5, 8]
+      high_proximity_allowed: [null, 0.90, 0.95]
+      defensive_weight_allowed: [0.2, 0.3]
+  DROT_MONTHLY:
+    eval_frequency: monthly
+    grid:
+      weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1]]
+      top_n_allowed: [1, 2]
+      target_vol_allowed: [15, 999]
+      rebalance_threshold_allowed: [3, 5, 8]
+      high_proximity_allowed: [null, 0.90, 0.95]
+      defensive_weight_allowed: [0.2, 0.3]
