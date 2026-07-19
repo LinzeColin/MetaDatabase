@@ -1,0 +1,229 @@
+{
+  "$defs": {
+    "DataEffect": {
+      "enum": [
+        "none",
+        "canonical_unchanged",
+        "derived_output_missing",
+        "unknown_fail_closed"
+      ],
+      "title": "DataEffect",
+      "type": "string"
+    },
+    "ErrorClass": {
+      "enum": [
+        "user_action_required",
+        "platform_changed",
+        "rate_limited",
+        "network",
+        "dependency_missing",
+        "provider",
+        "invalid_input",
+        "security_blocked",
+        "storage",
+        "data_integrity",
+        "policy",
+        "unknown"
+      ],
+      "title": "ErrorClass",
+      "type": "string"
+    },
+    "ErrorCode": {
+      "enum": [
+        "X2N_INVALID_SCHEMA_VERSION",
+        "X2N_UNKNOWN_FIELD",
+        "X2N_INVALID_INPUT",
+        "X2N_NATIVE_ORIGIN_REJECTED",
+        "X2N_NATIVE_MESSAGE_TOO_LARGE",
+        "X2N_NATIVE_ACTION_UNKNOWN",
+        "X2N_NATIVE_DUPLICATE_REQUEST",
+        "X2N_CANONICAL_KEY_INVALID",
+        "X2N_RELATION_KEY_INVALID",
+        "X2N_ARTIFACT_VERSION_CONFLICT",
+        "X2N_PROVENANCE_INCOMPLETE",
+        "X2N_CDN_PERSISTENCE_BLOCKED",
+        "X2N_URL_REJECTED",
+        "X2N_SECURITY_INJECTION_BLOCKED",
+        "X2N_ADAPTER_AUTH_EXPIRED",
+        "X2N_PLATFORM_CHANGED",
+        "X2N_RATE_LIMITED",
+        "X2N_NETWORK_FAILED",
+        "X2N_DEPENDENCY_MISSING",
+        "X2N_PROVIDER_FAILED",
+        "X2N_STORAGE_FAILED",
+        "X2N_DATA_INTEGRITY_FAILED",
+        "X2N_POLICY_BLOCKED",
+        "X2N_UNKNOWN_FAILURE"
+      ],
+      "title": "ErrorCode",
+      "type": "string"
+    },
+    "ErrorContract": {
+      "additionalProperties": false,
+      "properties": {
+        "class": {
+          "$ref": "#/$defs/ErrorClass"
+        },
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "data_effect": {
+          "$ref": "#/$defs/DataEffect"
+        },
+        "internal_ref": {
+          "pattern": "^evt_[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Internal Ref",
+          "type": "string"
+        },
+        "next_action": {
+          "$ref": "#/$defs/NextAction"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "safe_message": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Safe Message",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "code",
+        "class",
+        "retryable",
+        "safe_message",
+        "internal_ref",
+        "data_effect",
+        "next_action"
+      ],
+      "title": "ErrorContract",
+      "type": "object"
+    },
+    "HealthComponent": {
+      "additionalProperties": false,
+      "properties": {
+        "component": {
+          "$ref": "#/$defs/HealthComponentName"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorContract"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/HealthState"
+        }
+      },
+      "required": [
+        "component",
+        "state",
+        "observed_at"
+      ],
+      "title": "HealthComponent",
+      "type": "object"
+    },
+    "HealthComponentName": {
+      "enum": [
+        "extension",
+        "native_host",
+        "companion",
+        "canonical_db",
+        "ffmpeg",
+        "provider",
+        "notion",
+        "adapter"
+      ],
+      "title": "HealthComponentName",
+      "type": "string"
+    },
+    "HealthState": {
+      "enum": [
+        "healthy",
+        "degraded",
+        "unavailable",
+        "failed"
+      ],
+      "title": "HealthState",
+      "type": "string"
+    },
+    "NextAction": {
+      "enum": [
+        "correct_input",
+        "review_security_event",
+        "use_existing_job",
+        "restore_backup",
+        "review_policy",
+        "open_login_profile",
+        "inspect_platform_fixture",
+        "wait_and_retry",
+        "retry",
+        "install_dependency",
+        "inspect_provider",
+        "free_disk_space",
+        "inspect_diagnostics"
+      ],
+      "title": "NextAction",
+      "type": "string"
+    }
+  },
+  "$id": "urn:x2n:contract:1.0:health_report",
+  "additionalProperties": false,
+  "properties": {
+    "components": {
+      "items": {
+        "$ref": "#/$defs/HealthComponent"
+      },
+      "minItems": 1,
+      "title": "Components",
+      "type": "array"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "overall": {
+      "$ref": "#/$defs/HealthState"
+    },
+    "report_id": {
+      "pattern": "^[a-z][a-z0-9_]{1,31}_[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+      "title": "Report Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "report_id",
+    "observed_at",
+    "overall",
+    "components"
+  ],
+  "title": "HealthReport",
+  "type": "object",
+  "x-x2n-compatibility": "exact_match_fail_closed",
+  "x-x2n-contract-version": "1.0"
+}

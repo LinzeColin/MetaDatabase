@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "code": "X2N_RATE_LIMITED",
+  "class": "rate_limited",
+  "retryable": true,
+  "safe_message": "Synthetic request is rate limited.",
+  "internal_ref": "evt_synthetic001",
+  "data_effect": "canonical_unchanged",
+  "next_action": "wait_and_retry"
+}

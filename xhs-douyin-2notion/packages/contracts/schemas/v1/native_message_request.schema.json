@@ -1,0 +1,549 @@
+{
+  "$defs": {
+    "CancelJobRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "cancel_job",
+          "title": "Action",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/JobPayload"
+        },
+        "payload_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Payload Hash",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sent_at": {
+          "format": "date-time",
+          "title": "Sent At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "sent_at",
+        "payload_hash",
+        "action",
+        "payload"
+      ],
+      "title": "CancelJobRequest",
+      "type": "object"
+    },
+    "CaptureCurrentPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_scroll": {
+          "const": false,
+          "title": "Auto Scroll",
+          "type": "boolean"
+        },
+        "category_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Category Id"
+        },
+        "change_account_state": {
+          "const": false,
+          "title": "Change Account State",
+          "type": "boolean"
+        },
+        "page_context": {
+          "$ref": "#/$defs/PageContext"
+        },
+        "page_url": {
+          "maxLength": 2048,
+          "minLength": 9,
+          "title": "Page Url",
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/$defs/Platform"
+        },
+        "relation": {
+          "$ref": "#/$defs/RelationType"
+        },
+        "user_gesture": {
+          "const": true,
+          "title": "User Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "platform",
+        "page_url",
+        "page_context",
+        "relation",
+        "user_gesture",
+        "auto_scroll",
+        "change_account_state"
+      ],
+      "title": "CaptureCurrentPayload",
+      "type": "object"
+    },
+    "CaptureCurrentRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "capture_current",
+          "title": "Action",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/CaptureCurrentPayload"
+        },
+        "payload_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Payload Hash",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sent_at": {
+          "format": "date-time",
+          "title": "Sent At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "sent_at",
+        "payload_hash",
+        "action",
+        "payload"
+      ],
+      "title": "CaptureCurrentRequest",
+      "type": "object"
+    },
+    "ContentType": {
+      "enum": [
+        "text",
+        "image_gallery",
+        "video",
+        "mixed",
+        "unknown"
+      ],
+      "title": "ContentType",
+      "type": "string"
+    },
+    "EmptyPayload": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "EmptyPayload",
+      "type": "object"
+    },
+    "GetCapabilitiesRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "get_capabilities",
+          "title": "Action",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/EmptyPayload"
+        },
+        "payload_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Payload Hash",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sent_at": {
+          "format": "date-time",
+          "title": "Sent At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "sent_at",
+        "payload_hash",
+        "action",
+        "payload"
+      ],
+      "title": "GetCapabilitiesRequest",
+      "type": "object"
+    },
+    "GetJobRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "get_job",
+          "title": "Action",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/JobPayload"
+        },
+        "payload_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Payload Hash",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sent_at": {
+          "format": "date-time",
+          "title": "Sent At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "sent_at",
+        "payload_hash",
+        "action",
+        "payload"
+      ],
+      "title": "GetJobRequest",
+      "type": "object"
+    },
+    "HealthRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "health",
+          "title": "Action",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/EmptyPayload"
+        },
+        "payload_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Payload Hash",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sent_at": {
+          "format": "date-time",
+          "title": "Sent At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "sent_at",
+        "payload_hash",
+        "action",
+        "payload"
+      ],
+      "title": "HealthRequest",
+      "type": "object"
+    },
+    "JobPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "job_id": {
+          "format": "uuid",
+          "title": "Job Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id"
+      ],
+      "title": "JobPayload",
+      "type": "object"
+    },
+    "PageContext": {
+      "additionalProperties": false,
+      "properties": {
+        "content_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+          "title": "Content Id",
+          "type": "string"
+        },
+        "content_type": {
+          "$ref": "#/$defs/ContentType"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        }
+      },
+      "required": [
+        "content_id",
+        "content_type"
+      ],
+      "title": "PageContext",
+      "type": "object"
+    },
+    "Platform": {
+      "enum": [
+        "xiaohongshu",
+        "douyin",
+        "bilibili",
+        "kuaishou",
+        "weibo",
+        "taobao"
+      ],
+      "title": "Platform",
+      "type": "string"
+    },
+    "RelationType": {
+      "enum": [
+        "liked",
+        "favorited",
+        "saved_current"
+      ],
+      "title": "RelationType",
+      "type": "string"
+    },
+    "RetryJobRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "retry_job",
+          "title": "Action",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/JobPayload"
+        },
+        "payload_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Payload Hash",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sent_at": {
+          "format": "date-time",
+          "title": "Sent At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "sent_at",
+        "payload_hash",
+        "action",
+        "payload"
+      ],
+      "title": "RetryJobRequest",
+      "type": "object"
+    },
+    "StartSyncPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_scroll": {
+          "const": false,
+          "title": "Auto Scroll",
+          "type": "boolean"
+        },
+        "bounded_batch": {
+          "const": true,
+          "title": "Bounded Batch",
+          "type": "boolean"
+        },
+        "change_account_state": {
+          "const": false,
+          "title": "Change Account State",
+          "type": "boolean"
+        },
+        "max_items": {
+          "maximum": 80,
+          "minimum": 1,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "platform": {
+          "$ref": "#/$defs/Platform"
+        },
+        "relation": {
+          "$ref": "#/$defs/RelationType"
+        },
+        "source_collection_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Collection Id"
+        },
+        "user_gesture": {
+          "const": true,
+          "title": "User Gesture",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "platform",
+        "relation",
+        "max_items",
+        "user_gesture",
+        "bounded_batch",
+        "auto_scroll",
+        "change_account_state"
+      ],
+      "title": "StartSyncPayload",
+      "type": "object"
+    },
+    "StartSyncRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "start_sync",
+          "title": "Action",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/StartSyncPayload"
+        },
+        "payload_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Payload Hash",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sent_at": {
+          "format": "date-time",
+          "title": "Sent At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "sent_at",
+        "payload_hash",
+        "action",
+        "payload"
+      ],
+      "title": "StartSyncRequest",
+      "type": "object"
+    }
+  },
+  "$id": "urn:x2n:contract:1.0:native_message_request",
+  "discriminator": {
+    "mapping": {
+      "cancel_job": "#/$defs/CancelJobRequest",
+      "capture_current": "#/$defs/CaptureCurrentRequest",
+      "get_capabilities": "#/$defs/GetCapabilitiesRequest",
+      "get_job": "#/$defs/GetJobRequest",
+      "health": "#/$defs/HealthRequest",
+      "retry_job": "#/$defs/RetryJobRequest",
+      "start_sync": "#/$defs/StartSyncRequest"
+    },
+    "propertyName": "action"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CaptureCurrentRequest"
+    },
+    {
+      "$ref": "#/$defs/StartSyncRequest"
+    },
+    {
+      "$ref": "#/$defs/GetJobRequest"
+    },
+    {
+      "$ref": "#/$defs/CancelJobRequest"
+    },
+    {
+      "$ref": "#/$defs/RetryJobRequest"
+    },
+    {
+      "$ref": "#/$defs/GetCapabilitiesRequest"
+    },
+    {
+      "$ref": "#/$defs/HealthRequest"
+    }
+  ],
+  "title": "NativeMessageRequest",
+  "x-x2n-compatibility": "exact_match_fail_closed",
+  "x-x2n-contract-version": "1.0"
+}

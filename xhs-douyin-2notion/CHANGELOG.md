@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.0.1 — Stage 1 / Foundation 002
+
+- 冻结 `1.0` IPC、Canonical、Relation、Observation、Artifact、Taxonomy、Classification、Sink、Health、Error、Provenance 与 Compatibility Contract；Pydantic 是 JSON Schema、错误 Registry 和 TypeScript shared enums 的生成真源。
+- 默认拒绝未知字段/版本/动作；固定 Native Origin 无通配符，消息有大小与动作边界，不存在 Shell、任意路径、任意 URL、Cookie/Header/Token 输入面。
+- 用 opaque ephemeral media refs 表达临时媒体，Canonical Contract 无平台媒体 URL 字段；四类 key 确定性校验，Artifact append-only，一级分类仅 `created_by=owner`。
+- Markdown/Notion 合成 Provenance 从最终节点连通 Canonical、Observation、Adapter、Artifact、Classification、Run 与 Renderer；真实 Sink/Canary 未运行。
+- 新增 16 个有效 round-trip、22 个负向 fixture 和 106 个 Native fuzz；生成物 `--check` 与 TypeScript strict compile 通过。
+- 精确锁定 5 个 Python Runtime registry packages 与 21 个 TypeScript build-only registry packages，生成 26-component CycloneDX SBOM；npm install script 为 0。
+- 三项 Acceptance 仅在当前 Contract/合成范围 PASS；真实 Host/Job、SQLite/Migration/Integrity、Markdown/Notion 均为 `DOWNSTREAM_NOT_RUN`。G1 未运行，Stage 1 不得 push，下一独立 Run 为 `TSK.x2n.foundation.003`。
+
 ## v0.0.0.1 — Stage 1 / Foundation 001
 
 - 新增受治理 Skill 入口、OpenAI agent metadata、npm/uv workspace 与冻结 lock；当前第三方 package 和 install script 均为 0。

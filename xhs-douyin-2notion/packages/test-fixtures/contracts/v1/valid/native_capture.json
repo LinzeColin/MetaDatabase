@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "request_id": "00000000-0000-4000-8000-000000000001",
+  "action": "capture_current",
+  "sent_at": "2026-07-20T00:00:00Z",
+  "payload": {
+    "platform": "xiaohongshu",
+    "page_url": "https://www.xiaohongshu.com/explore/synthetic-note-001",
+    "page_context": {
+      "content_id": "synthetic-note-001",
+      "title": "Synthetic title",
+      "content_type": "video"
+    },
+    "relation": "saved_current",
+    "category_id": "11111111-1111-4111-8111-111111111111",
+    "user_gesture": true,
+    "auto_scroll": false,
+    "change_account_state": false
+  },
+  "payload_hash": "f569e5be959abaa1a675e71a0a58a2b9614d0ea860af0920db863aec14ff1684"
+}

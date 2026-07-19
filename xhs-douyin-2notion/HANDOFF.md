@@ -10,8 +10,8 @@
 - 首次 `STG.X2N.0.REVIEW`：历史结论 `BLOCKED_OWNER_ACTION`，原报告与 3 份机器证据保持不变。
 - `STG.X2N.0.REVIEW.RESUME`：完整复验通过；当前 `G0=PASS`。
 - Stage 0 整阶段已通过 PR #66 合并；G0 历史/Resume 证据保持不变。
-- Stage 1：`TSK.x2n.foundation.001` 当前范围完成；`G1=NOT_RUN`，不得 push。
-- 下一独立 Run：只执行 `TSK.x2n.foundation.002` / `PH.X2N.1.2`。
+- Stage 1：`TSK.x2n.foundation.001–002` 已分别完成 scaffold 与 `1.0` Contract；`G1=NOT_RUN`，不得 push。
+- 下一独立 Run：只执行 `TSK.x2n.foundation.003` / `PH.X2N.1.3`。
 - 产品、真实账号、Chrome 控制、六平台调用、Notion、模型、媒体与全部下游产品 Acceptance：`NOT_RUN`。
 - 六平台：全部 `UNKNOWN_DISABLED`；各平台实现开始时重新通过 Policy/Auth/Technical Gate。
 
@@ -29,15 +29,20 @@
 - 当前树、项目历史、私有根、x2n Local Remote、产品/Runtime 引用：全部 0 命中。
 - 历史 Phase receipt：20 份，未重写；原 Review receipt：3 份，仍记录首次 Blocked 事实。
 - 原始 roadmap/ZIP：固定 SHA-256 匹配；ZIP CRC/7 成员保持通过。
-- cutoff 后 `origin/main` 漂移：2 commits；x2n overlap 0。
+- cutoff 后 `origin/main` 漂移只做聚合复验；x2n overlap 0，不吸收外部提交。
 - Resume 证据：`machine/evidence/stage_0/review_resume/{verification,G0,owner_decision}.json`。
 - 人类报告：`docs/governance/STAGE_0_REVIEW_RESUME.md`。
 - Foundation 001 证据：`evidence/foundation/TSK.x2n.foundation.001.json`；只证明当前 scaffold 范围。
-- npm/uv locks：仅本地 workspace，第三方 package/install script 为 0。
+- Foundation 002 证据：`evidence/contracts/TSK.x2n.foundation.002.json`；只证明当前 Contract/合成范围，真实 Host/SQLite/Sink 为下游未运行。
+- Contract：14 类生成 JSON Schema、同源 Pydantic/TypeScript types、24 个稳定错误码；16 valid + 22 invalid + 106 fuzz，共 144 个合成用例。
+- npm/uv locks：5 个 Python Runtime registry packages、21 个 TypeScript build-only registry packages；26-component SBOM，npm install script 为 0。
+- Foundation 002 verifier：含 12 个 Pydantic Contract tests、TypeScript strict compile、Python↔TypeScript payload-hash vector、生成物/SBOM 漂移与 worktree 隔离，全部 PASS。
+- 当前根回归：61 tests PASS；3 个 Owner-private optional tests 按设计 SKIP。Foundation 001 fresh-scaffold 历史门禁继续 PASS。
 - Fresh copy：隔离 HOME 中 frozen locks、Extension 与 7 个 lifecycle rehearsal 加 1 个负向 Canary 均通过。
 
 ```bash
 python3.12 -B scripts/verify_foundation_001.py --verify-worktree --allow-external-main-dirty --require-evidence
+python3.12 -B scripts/verify_foundation_002.py --verify-worktree --allow-external-main-dirty --require-evidence
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 
 # 历史 Stage 0 复验（需要显式私有输入时按原 Run Contract 提供）
@@ -60,6 +65,6 @@ python3 -B -m unittest discover -s tests -p 'test_*.py'
 
 ## 下一步
 
-1. 保留本地 foundation.001 commit，不 push；Stage 1 只有 G1 Review/Fix/Re-acceptance 通过后才整阶段上传。
-2. 另开单 Task Run：`TSK.x2n.foundation.002` / `PH.X2N.1.2`，定义版本化 Contract 与错误分类。
+1. 保留本地 foundation.001–002 commits，不 push；Stage 1 只有 G1 Review/Fix/Re-acceptance 通过后才整阶段上传。
+2. 另开单 Task Run：`TSK.x2n.foundation.003` / `PH.X2N.1.3`，实现私有 Runtime root、SQLite Canonical Store 与 migrations；不得顺带实现 foundation.004。
 3. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Runtime/越界写入命中立即 Fail Closed。

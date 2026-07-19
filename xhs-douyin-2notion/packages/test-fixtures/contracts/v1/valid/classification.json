@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "classification_id": "class_synthetic001",
+  "content_key": "xiaohongshu:synthetic-note-001",
+  "taxonomy_version": 1,
+  "primary_category_id": "11111111-1111-4111-8111-111111111111",
+  "tags": ["synthetic"],
+  "candidate_ranking": [
+    {"category_id": "11111111-1111-4111-8111-111111111111", "calibrated_score": 0.93},
+    {"category_id": "22222222-2222-4222-8222-222222222222", "calibrated_score": 0.44}
+  ],
+  "decision_mode": "hybrid",
+  "confidence_raw": 0.95,
+  "calibration_bucket": "high",
+  "evidence_artifact_ids": ["art_synthetic001"],
+  "explanation_private_ref": "prv_explanation001",
+  "review_status": "suggested",
+  "created_at": "2026-07-20T00:12:00Z",
+  "supersedes_classification_id": null
+}

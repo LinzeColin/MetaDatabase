@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "report_id": "health_synthetic001",
+  "observed_at": "2026-07-20T00:20:00Z",
+  "overall": "degraded",
+  "components": [
+    {
+      "component": "extension",
+      "state": "healthy",
+      "observed_at": "2026-07-20T00:20:00Z",
+      "error": null
+    },
+    {
+      "component": "native_host",
+      "state": "unavailable",
+      "observed_at": "2026-07-20T00:20:00Z",
+      "error": {
+        "schema_version": "1.0",
+        "code": "X2N_DEPENDENCY_MISSING",
+        "class": "dependency_missing",
+        "retryable": false,
+        "safe_message": "Synthetic native host is unavailable.",
+        "internal_ref": "evt_health001",
+        "data_effect": "canonical_unchanged",
+        "next_action": "install_dependency"
+      }
+    }
+  ]
+}

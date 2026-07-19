@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "receipt_id": "receipt_markdown001",
+  "sink_key": "markdown:xiaohongshu:synthetic-note-001:1.0",
+  "sink": "markdown",
+  "content_key": "xiaohongshu:synthetic-note-001",
+  "sink_schema_version": "1.0",
+  "desired_projection_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "output_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "sink_object_ref": "sinkref_markdown001",
+  "external_ref_hash": null,
+  "status": "verified",
+  "delivered_at": "2026-07-20T00:15:00Z",
+  "run_id": "run_synthetic001"
+}

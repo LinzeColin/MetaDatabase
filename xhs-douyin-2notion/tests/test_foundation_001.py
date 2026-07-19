@@ -30,14 +30,18 @@ class Foundation001Tests(unittest.TestCase):
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S01-F001")
         self.assertNotIn("packages/contracts/src", VERIFY.ALLOWED_CHANGED_PREFIXES)
 
-    def test_scaffold_is_zero_dependency_and_permission_free(self) -> None:
+    def test_scaffold_remains_permission_free_with_only_registered_contract_dependencies(self) -> None:
         lock = json.loads((PROJECT_ROOT / "package-lock.json").read_text(encoding="utf-8"))
         registry_packages = [
             key
             for key, metadata in lock["packages"].items()
             if key.startswith("node_modules/") and metadata.get("link") is not True
         ]
-        self.assertEqual(registry_packages, [])
+        registry_names = {key.removeprefix("node_modules/") for key in registry_packages}
+        self.assertEqual(len(registry_names), 21)
+        self.assertIn("typescript", registry_names)
+        self.assertTrue(all(name == "typescript" or name.startswith("@typescript/typescript-") for name in registry_names))
+        self.assertTrue(all("hasInstallScript" not in lock["packages"][key] for key in registry_packages))
         manifest = json.loads((PROJECT_ROOT / "apps/extension/manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["permissions"], [])
         self.assertNotIn("host_permissions", manifest)

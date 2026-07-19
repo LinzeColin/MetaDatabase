@@ -28,7 +28,7 @@ Notion writes, model calls, media handling, or mutation of another project.
 - Execute at most one Task and its Acceptance per ordinary Run. Do not push an
   intermediate Stage branch before its Stage Review passes.
 
-## Current capability: Stage 1 scaffold only
+## Current capability: Stage 1 scaffold + Contract only
 
 Run these commands from the project root. They perform deterministic,
 network-free scaffold rehearsals; they do not install a released product or
@@ -48,8 +48,13 @@ Verify frozen workspaces and the governed fresh-copy transcript with:
 
 ```bash
 python3.12 -B scripts/verify_foundation_001.py --verify-worktree --allow-external-main-dirty
+python3.12 -B scripts/verify_foundation_002.py --verify-worktree --allow-external-main-dirty
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
+
+Foundation.002 只新增 `1.0` Pydantic/JSON Schema/TypeScript Contract、错误码
+Registry 与合成 fuzz。它可以验证消息和数据形状，但不会启动 Native Host、创建 Job、
+写 SQLite、连接平台或写 Markdown/Notion；这些能力仍是 `DOWNSTREAM_NOT_RUN`。
 
 ## Failure protocol
 

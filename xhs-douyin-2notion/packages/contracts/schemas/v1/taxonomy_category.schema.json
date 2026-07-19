@@ -1,0 +1,102 @@
+{
+  "$id": "urn:x2n:contract:1.0:taxonomy_category",
+  "additionalProperties": false,
+  "properties": {
+    "aliases": {
+      "default": [],
+      "items": {
+        "maxLength": 100,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Aliases",
+      "type": "array"
+    },
+    "category_id": {
+      "format": "uuid",
+      "title": "Category Id",
+      "type": "string"
+    },
+    "created_by": {
+      "const": "owner",
+      "title": "Created By",
+      "type": "string"
+    },
+    "description": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Description",
+      "type": "string"
+    },
+    "enabled": {
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "level": {
+      "const": 1,
+      "title": "Level",
+      "type": "integer"
+    },
+    "name": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "negative_examples": {
+      "default": [],
+      "items": {
+        "maxLength": 20000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Negative Examples",
+      "type": "array"
+    },
+    "positive_examples": {
+      "default": [],
+      "items": {
+        "maxLength": 20000,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Positive Examples",
+      "type": "array"
+    },
+    "priority": {
+      "title": "Priority",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "slug": {
+      "pattern": "^[a-z0-9][a-z0-9-]{0,62}$",
+      "title": "Slug",
+      "type": "string"
+    },
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "category_id",
+    "name",
+    "slug",
+    "description",
+    "priority",
+    "enabled",
+    "version",
+    "level",
+    "created_by"
+  ],
+  "title": "TaxonomyCategory",
+  "type": "object",
+  "x-x2n-compatibility": "exact_match_fail_closed",
+  "x-x2n-contract-version": "1.0"
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "NATIVE_HOST.X2N.001",
+  "allowed_origins": [
+    "chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/"
+  ],
+  "allowed_actions": [
+    "capture_current",
+    "start_sync",
+    "get_job",
+    "cancel_job",
+    "retry_job",
+    "get_capabilities",
+    "health"
+  ],
+  "max_message_bytes": 4096,
+  "request_id_window_seconds": 86400,
+  "duplicate_policy": "return_existing_job_only",
+  "unknown_fields": "reject",
+  "unknown_versions": "reject",
+  "arbitrary_shell": "reject",
+  "arbitrary_local_path": "reject",
+  "arbitrary_url": "reject"
+}

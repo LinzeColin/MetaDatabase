@@ -1,0 +1,108 @@
+{
+  "$defs": {
+    "NativeAction": {
+      "enum": [
+        "capture_current",
+        "start_sync",
+        "get_job",
+        "cancel_job",
+        "retry_job",
+        "get_capabilities",
+        "health"
+      ],
+      "title": "NativeAction",
+      "type": "string"
+    }
+  },
+  "$id": "urn:x2n:contract:1.0:native_host_policy",
+  "additionalProperties": false,
+  "properties": {
+    "allowed_actions": {
+      "items": {
+        "$ref": "#/$defs/NativeAction"
+      },
+      "maxItems": 7,
+      "minItems": 7,
+      "title": "Allowed Actions",
+      "type": "array"
+    },
+    "allowed_origins": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 4,
+      "minItems": 1,
+      "title": "Allowed Origins",
+      "type": "array"
+    },
+    "arbitrary_local_path": {
+      "const": "reject",
+      "title": "Arbitrary Local Path",
+      "type": "string"
+    },
+    "arbitrary_shell": {
+      "const": "reject",
+      "title": "Arbitrary Shell",
+      "type": "string"
+    },
+    "arbitrary_url": {
+      "const": "reject",
+      "title": "Arbitrary Url",
+      "type": "string"
+    },
+    "duplicate_policy": {
+      "const": "return_existing_job_only",
+      "title": "Duplicate Policy",
+      "type": "string"
+    },
+    "max_message_bytes": {
+      "maximum": 1048576,
+      "minimum": 1024,
+      "title": "Max Message Bytes",
+      "type": "integer"
+    },
+    "policy_id": {
+      "const": "NATIVE_HOST.X2N.001",
+      "title": "Policy Id",
+      "type": "string"
+    },
+    "request_id_window_seconds": {
+      "const": 86400,
+      "title": "Request Id Window Seconds",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "unknown_fields": {
+      "const": "reject",
+      "title": "Unknown Fields",
+      "type": "string"
+    },
+    "unknown_versions": {
+      "const": "reject",
+      "title": "Unknown Versions",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "policy_id",
+    "allowed_origins",
+    "allowed_actions",
+    "max_message_bytes",
+    "request_id_window_seconds",
+    "duplicate_policy",
+    "unknown_fields",
+    "unknown_versions",
+    "arbitrary_shell",
+    "arbitrary_local_path",
+    "arbitrary_url"
+  ],
+  "title": "NativeHostPolicy",
+  "type": "object",
+  "x-x2n-compatibility": "exact_match_fail_closed",
+  "x-x2n-contract-version": "1.0"
+}

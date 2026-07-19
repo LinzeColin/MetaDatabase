@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "manifest_id": "FIXTURE.X2N.003",
-  "phase": "PH.X2N.1.1",
+  "manifest_id": "FIXTURE.X2N.004",
+  "phase": "PH.X2N.1.2",
   "fixtures": [
     {
       "id": "FIXTURE.X2N.S00.P05.001",
@@ -14,9 +14,15 @@
       "path": "packages/test-fixtures/scaffold_case.json",
       "case_count": 1,
       "purpose": "network-free Skill scaffold lifecycle rehearsal"
+    },
+    {
+      "id": "FIXTURE.X2N.S01.F002.001",
+      "path": "packages/test-fixtures/contracts/v1/fixture_manifest.json",
+      "case_count": 144,
+      "purpose": "strict v1 contract round-trip, compatibility, provenance and Native security fuzz"
     }
   ],
-  "status": "synthetic_governance_and_foundation_scaffold_fixtures_ready_product_fixtures_not_started",
+  "status": "synthetic_governance_scaffold_and_v1_contract_fixtures_ready_product_fixtures_not_started",
   "future_requirements": {
     "source_must_be_declared": true,
     "real_account_content_allowed": false,

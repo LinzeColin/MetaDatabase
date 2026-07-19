@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "chain_id": "chain_notion001",
+  "content_key": "xiaohongshu:synthetic-note-001",
+  "output_kind": "notion",
+  "output_node_id": "node_sink",
+  "nodes": [
+    {"node_id": "node_sink", "kind": "sink_receipt", "reference": "receipt_notion001", "version": "1.0", "evidence_hash": "1111111111111111111111111111111111111111111111111111111111111111"},
+    {"node_id": "node_renderer", "kind": "renderer", "reference": "notion-renderer", "version": "1.0", "evidence_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+    {"node_id": "node_classification", "kind": "classification", "reference": "class_synthetic001", "version": "1.0", "evidence_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+    {"node_id": "node_artifact", "kind": "artifact", "reference": "art_synthetic001", "version": "1.0", "evidence_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"},
+    {"node_id": "node_canonical", "kind": "canonical", "reference": "xiaohongshu:synthetic-note-001", "version": "1.0", "evidence_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"},
+    {"node_id": "node_observation", "kind": "source_observation", "reference": "obs_synthetic001", "version": "1.0", "evidence_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"},
+    {"node_id": "node_adapter", "kind": "adapter", "reference": "xhs-clean-room", "version": "1.0.0", "evidence_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+    {"node_id": "node_run", "kind": "run", "reference": "run_synthetic001", "version": "1.0", "evidence_hash": "0000000000000000000000000000000000000000000000000000000000000000"}
+  ],
+  "edges": [
+    {"from_node_id": "node_sink", "to_node_id": "node_renderer", "relation": "traces_to"},
+    {"from_node_id": "node_sink", "to_node_id": "node_run", "relation": "traces_to"},
+    {"from_node_id": "node_renderer", "to_node_id": "node_classification", "relation": "traces_to"},
+    {"from_node_id": "node_classification", "to_node_id": "node_artifact", "relation": "traces_to"},
+    {"from_node_id": "node_artifact", "to_node_id": "node_canonical", "relation": "traces_to"},
+    {"from_node_id": "node_canonical", "to_node_id": "node_observation", "relation": "traces_to"},
+    {"from_node_id": "node_observation", "to_node_id": "node_adapter", "relation": "traces_to"}
+  ],
+  "completeness_percent": 100
+}

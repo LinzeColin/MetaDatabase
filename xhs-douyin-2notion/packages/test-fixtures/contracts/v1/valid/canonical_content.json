@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "content_key": "xiaohongshu:synthetic-note-001",
+  "platform": "xiaohongshu",
+  "platform_content_id": "synthetic-note-001",
+  "canonical_source_url": "https://www.xiaohongshu.com/explore/synthetic-note-001",
+  "content_type": "video",
+  "title": "Synthetic title",
+  "description": "Synthetic private-runtime placeholder text.",
+  "author_name": "Synthetic author",
+  "author_platform_id": "synthetic-author-001",
+  "published_at": "2026-07-19T23:00:00Z",
+  "content_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "first_observed_at": "2026-07-20T00:00:00Z",
+  "last_observed_at": "2026-07-20T00:05:00Z",
+  "record_version": 1,
+  "status": "active"
+}

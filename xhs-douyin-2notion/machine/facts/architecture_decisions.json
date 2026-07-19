@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "phase": "PH.X2N.0.5",
-  "status": "foundation_scaffold_started",
+  "status": "foundation_contracts_started",
   "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
   "decisions": [
     {"id": "ADR-001", "topic": "personal_knowledge_governance_boundary", "state": "accepted_design"},
@@ -16,7 +16,7 @@
     {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design"}
   ],
   "implementation_started": true,
-  "implementation_scope": "TSK.x2n.foundation.001_scaffold_only",
+  "implementation_scope": "TSK.x2n.foundation.001-002_contracts_only",
   "real_account_execution": false,
   "stage_gate": "g1_not_run"
 }

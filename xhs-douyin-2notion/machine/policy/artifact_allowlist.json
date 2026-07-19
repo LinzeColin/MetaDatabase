@@ -26,6 +26,8 @@
     "scripts/verify_owner_recovery_attestation.py",
     "scripts/verify_stage_0_review_resume.py",
     "scripts/verify_foundation_001.py",
+    "scripts/verify_foundation_002.py",
+    "scripts/generate_foundation_002_sbom.py",
     "scripts/public_source_snapshot.py",
     "future_shared_governance_ci"
   ]

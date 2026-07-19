@@ -56,18 +56,23 @@ ALLOWED_CHANGED_EXACT = {
     "开发记录.md",
     "模型参数文件.md",
     "docs/governance/RUN_CONTRACT_S01_FOUNDATION_001.md",
+    "docs/governance/RUN_CONTRACT_S01_FOUNDATION_002.md",
     "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml",
     "machine/facts/architecture_decisions.json",
     "machine/facts/project.json",
     "machine/facts/task_state.json",
     "machine/policy/artifact_allowlist.json",
     "machine/policy/synthetic_fixture_manifest.json",
+    "machine/sbom/stage_1_foundation_002.cdx.json",
+    "scripts/generate_foundation_002_sbom.py",
     "scripts/verify_foundation_001.py",
+    "scripts/verify_foundation_002.py",
     "scripts/verify_phase_0_2.py",
     "scripts/verify_phase_0_5.py",
     "scripts/verify_stage_0_review.py",
     "scripts/verify_stage_0_review_resume.py",
     "tests/test_foundation_001.py",
+    "tests/test_foundation_002.py",
     "tests/test_phase_0_5.py",
 }
 ALLOWED_CHANGED_PREFIXES = (
@@ -76,6 +81,7 @@ ALLOWED_CHANGED_PREFIXES = (
     "packages/contracts/",
     "packages/test-fixtures/",
     "evidence/foundation/",
+    "evidence/contracts/",
 )
 
 
@@ -322,14 +328,15 @@ def validate_task_and_state() -> Check:
         "Task dependency drifted",
     )
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.gov.001", "ACC.x2n.rel.008"], "Task Acceptance drifted")
-    _require("  status: STAGE_1_FOUNDATION_001_COMPLETE_G1_NOT_RUN\n" in taskpack_text, "Taskpack status drifted")
+    _require("  status: STAGE_1_FOUNDATION_002_COMPLETE_G1_NOT_RUN\n" in taskpack_text, "Taskpack status drifted")
 
     state = _load_json(TASK_STATE)
-    _require(state.get("schema_version") == "1.3", "task state schema drifted")
-    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.1", "current Stage state drifted")
-    _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Run identity drifted")
+    _require(state.get("schema_version") == "1.4", "task state schema drifted")
+    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.2", "current Stage state drifted")
+    _require(state.get("run_id") == "RUN-X2N-S01-F002" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "foundation Task state is not pass")
-    _require(state.get("next_phase") == "PH.X2N.1.2" and state.get("next_run") == "TSK.x2n.foundation.002", "next Task routing drifted")
+    _require(state.get("tasks", {}).get("TSK.x2n.foundation.002") == "pass", "foundation.002 Task state is not pass")
+    _require(state.get("next_phase") == "PH.X2N.1.3" and state.get("next_run") == "TSK.x2n.foundation.003", "next Task routing drifted")
     _require(state.get("next_phase_authorized") is True, "next Task authorization missing")
     _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
     acceptances = state.get("acceptance_status", {})
@@ -340,13 +347,13 @@ def validate_task_and_state() -> Check:
     )
 
     project = _load_json(PROJECT_FACT)
-    _require(project.get("status") == "stage_1_foundation_001_complete_g1_not_run", "project state drifted")
+    _require(project.get("status") == "stage_1_foundation_002_complete_g1_not_run", "project state drifted")
     return Check(
         "task_state",
         "PASS",
         {
             "acceptance_scope": "CURRENT_SCAFFOLD_ONLY",
-            "next_task": "TSK.x2n.foundation.002",
+            "next_task": "TSK.x2n.foundation.003",
             "product_lifecycle": "DOWNSTREAM_NOT_RUN",
             "task": TASK_ID,
         },
@@ -454,7 +461,9 @@ def validate_locks() -> Check:
         for key, metadata in locked_packages.items()
         if key.startswith("node_modules/") and metadata.get("link") is True
     ]
-    _require(not registry_packages, "unexpected npm third-party package entered foundation")
+    registry_names = {path.removeprefix("node_modules/") for path in registry_packages}
+    _require(len(registry_names) == 21 and "typescript" in registry_names, "registered npm dependency set drifted")
+    _require(all(name == "typescript" or name.startswith("@typescript/typescript-") for name in registry_names), "unexpected npm third-party package entered foundation")
     _require(len(workspace_links) == 3, "npm workspace links are incomplete")
     for path, metadata in locked_packages.items():
         _require("hasInstallScript" not in metadata, f"install script entered npm lock: {path}")
@@ -462,8 +471,8 @@ def validate_locks() -> Check:
     uv_text = (PROJECT_ROOT / "uv.lock").read_text(encoding="utf-8")
     uv_packages = _packages_from_uv_lock(uv_text)
     names = {item.get("name") for item in uv_packages}
-    _require(names == {"x2n-companion", "x2n-workspace"}, "uv lock contains unexpected packages")
-    _require(all("virtual" in item.get("source", "") or "editable" in item.get("source", "") for item in uv_packages), "uv lock contains a registry dependency")
+    _require(names == {"annotated-types", "pydantic", "pydantic-core", "typing-extensions", "typing-inspection", "x2n-companion", "x2n-contracts", "x2n-workspace"}, "uv lock contains unexpected packages")
+    _require(all("virtual" in item.get("source", "") or "editable" in item.get("source", "") or "registry" in item.get("source", "") for item in uv_packages), "uv lock source is unsupported")
     return Check(
         "package_locks",
         "PASS",
@@ -471,8 +480,8 @@ def validate_locks() -> Check:
             "install_scripts": 0,
             "npm_lock_version": 3,
             "npm_workspace_links": len(workspace_links),
-            "third_party_packages": 0,
-            "uv_workspace_packages": len(uv_packages),
+            "third_party_packages": 26,
+            "uv_packages": len(uv_packages),
         },
     )
 
@@ -517,7 +526,7 @@ def validate_fresh_scaffold() -> Check:
         env = _isolated_env(home)
 
         steps: list[tuple[str, Sequence[str]]] = [
-            ("npm_frozen_install", ("npm", "ci", "--ignore-scripts", "--audit=false", "--fund=false", "--offline")),
+            ("npm_frozen_install", ("npm", "ci", "--omit=dev", "--ignore-scripts", "--audit=false", "--fund=false", "--offline")),
             ("uv_lock_check", ("uv", "lock", "--check", "--offline")),
             ("extension_self_test", ("npm", "run", "test:scaffold")),
         ]

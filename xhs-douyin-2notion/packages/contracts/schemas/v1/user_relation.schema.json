@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "ConfirmationSource": {
+      "enum": [
+        "scan",
+        "owner"
+      ],
+      "title": "ConfirmationSource",
+      "type": "string"
+    },
+    "RelationStatus": {
+      "enum": [
+        "active",
+        "unknown",
+        "tombstone_candidate",
+        "removed"
+      ],
+      "title": "RelationStatus",
+      "type": "string"
+    },
+    "RelationType": {
+      "enum": [
+        "liked",
+        "favorited",
+        "saved_current"
+      ],
+      "title": "RelationType",
+      "type": "string"
+    }
+  },
+  "$id": "urn:x2n:contract:1.0:user_relation",
+  "additionalProperties": false,
+  "properties": {
+    "account_ref_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Account Ref Hash",
+      "type": "string"
+    },
+    "confirmed_by": {
+      "$ref": "#/$defs/ConfirmationSource"
+    },
+    "content_key": {
+      "maxLength": 768,
+      "minLength": 3,
+      "title": "Content Key",
+      "type": "string"
+    },
+    "first_seen_at": {
+      "format": "date-time",
+      "title": "First Seen At",
+      "type": "string"
+    },
+    "last_seen_at": {
+      "format": "date-time",
+      "title": "Last Seen At",
+      "type": "string"
+    },
+    "relation_key": {
+      "maxLength": 768,
+      "minLength": 3,
+      "title": "Relation Key",
+      "type": "string"
+    },
+    "relation_type": {
+      "$ref": "#/$defs/RelationType"
+    },
+    "scan_receipt_id": {
+      "pattern": "^[a-z][a-z0-9_]{1,31}_[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+      "title": "Scan Receipt Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_collection_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Collection Id"
+    },
+    "source_collection_name_private": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Collection Name Private"
+    },
+    "status": {
+      "$ref": "#/$defs/RelationStatus"
+    }
+  },
+  "required": [
+    "schema_version",
+    "relation_key",
+    "account_ref_hash",
+    "content_key",
+    "relation_type",
+    "first_seen_at",
+    "last_seen_at",
+    "status",
+    "confirmed_by",
+    "scan_receipt_id"
+  ],
+  "title": "UserRelation",
+  "type": "object",
+  "x-x2n-compatibility": "exact_match_fail_closed",
+  "x-x2n-contract-version": "1.0"
+}

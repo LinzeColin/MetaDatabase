@@ -1,0 +1,174 @@
+{
+  "$defs": {
+    "ContentStatus": {
+      "enum": [
+        "active",
+        "unavailable",
+        "unknown",
+        "deleted_by_user"
+      ],
+      "title": "ContentStatus",
+      "type": "string"
+    },
+    "ContentType": {
+      "enum": [
+        "text",
+        "image_gallery",
+        "video",
+        "mixed",
+        "unknown"
+      ],
+      "title": "ContentType",
+      "type": "string"
+    },
+    "Platform": {
+      "enum": [
+        "xiaohongshu",
+        "douyin",
+        "bilibili",
+        "kuaishou",
+        "weibo",
+        "taobao"
+      ],
+      "title": "Platform",
+      "type": "string"
+    }
+  },
+  "$id": "urn:x2n:contract:1.0:canonical_content",
+  "additionalProperties": false,
+  "properties": {
+    "author_name": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Author Name"
+    },
+    "author_platform_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Author Platform Id"
+    },
+    "canonical_source_url": {
+      "maxLength": 2048,
+      "minLength": 9,
+      "title": "Canonical Source Url",
+      "type": "string"
+    },
+    "content_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Content Hash",
+      "type": "string"
+    },
+    "content_key": {
+      "maxLength": 768,
+      "minLength": 3,
+      "title": "Content Key",
+      "type": "string"
+    },
+    "content_type": {
+      "$ref": "#/$defs/ContentType"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 20000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "first_observed_at": {
+      "format": "date-time",
+      "title": "First Observed At",
+      "type": "string"
+    },
+    "last_observed_at": {
+      "format": "date-time",
+      "title": "Last Observed At",
+      "type": "string"
+    },
+    "platform": {
+      "$ref": "#/$defs/Platform"
+    },
+    "platform_content_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+      "title": "Platform Content Id",
+      "type": "string"
+    },
+    "published_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Published At"
+    },
+    "record_version": {
+      "minimum": 1,
+      "title": "Record Version",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ContentStatus"
+    },
+    "title": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Title"
+    }
+  },
+  "required": [
+    "schema_version",
+    "content_key",
+    "platform",
+    "platform_content_id",
+    "canonical_source_url",
+    "content_type",
+    "content_hash",
+    "first_observed_at",
+    "last_observed_at",
+    "record_version",
+    "status"
+  ],
+  "title": "CanonicalContent",
+  "type": "object",
+  "x-x2n-compatibility": "exact_match_fail_closed",
+  "x-x2n-contract-version": "1.0"
+}

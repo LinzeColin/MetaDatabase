@@ -9,6 +9,7 @@
     "packages/test-fixtures"
   ],
   "scripts": {
-    "test:scaffold": "npm run self-test --workspace @x2n/extension"
+    "test:scaffold": "npm run self-test --workspace @x2n/extension",
+    "check:contracts:types": "npm run check:types --workspace @x2n/contracts"
   }
 }
