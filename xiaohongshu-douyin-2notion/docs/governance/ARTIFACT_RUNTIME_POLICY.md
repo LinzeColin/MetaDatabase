@@ -1,0 +1,55 @@
+# Public Artifact / Private Runtime Policy
+
+## 一条规则
+
+仓库与构建制品只保存可公开的专有代码、契约、合成 Fixture 和脱敏紧凑证据；Runtime、全部下载、浏览器状态、凭据、私人内容、原始媒体和本机路径只存在于仓库外的 `X2N_DATA_ROOT` 或 OS Keychain。
+
+## 统一根布局
+
+```text
+X2N_DATA_ROOT/
+├── downloads/
+│   ├── xiaohongshu/runs/
+│   ├── douyin/runs/
+│   └── external_research/runs/   # 默认关闭；仅在未来独立 Gate 后启用
+└── runtime/
+    ├── canonical/                # Stage 1 前不得创建 DB
+    ├── checkpoints/
+    ├── temp_media/
+    ├── browser_profiles/
+    ├── library/
+    ├── logs/
+    ├── diagnostics/
+    ├── backups/
+    ├── models/
+    └── provider_cache/
+```
+
+所有 Adapter 的工作目录和输出必须解析到这个根下；不得采用自身默认下载目录。成功任务的原始媒体即时删除，失败 Lease 最长 24 小时。目录存在不代表相应功能已授权。
+
+## 权限与备份
+
+- Root 与目录：Owner-only（POSIX `0700`）；marker：`0600`。
+- Root 禁止 Spotlight 索引。
+- `downloads/`、`runtime/temp_media/`、`runtime/browser_profiles/`、`runtime/provider_cache/`、`runtime/logs/`、`runtime/diagnostics/` 排除 Time Machine。
+- `runtime/canonical/`、`runtime/library/` 与 `runtime/backups/` 不自动排除；后续 Stage 必须验证可恢复备份，不能用同盘副本冒充灾备。
+
+## Git Allowlist
+
+- 源代码、Schema、契约、迁移代码（不含真实 DB）。
+- 明确合成且有 manifest 的 Fixture。
+- 不含正文、Token、Cookie、URL Query、用户名和绝对路径的聚合/脱敏证据。
+- Product Design、ADR、Run Contract、Task/Acceptance Registry。
+
+## Git/Build/Release Denylist
+
+- SQLite、WAL/SHM、浏览器 Profile、媒体、真实 Markdown/转录/OCR/关键帧。
+- `.env`、Key、Token、Cookie、Session、Keychain 导出、Notion/模型 Secret。
+- 平台媒体/头像/封面 CDN URL、签名参数、追踪参数。
+- 本机用户名、绝对路径、私有根 marker、完整日志和诊断正文。
+
+## Fail Closed
+
+- `.gitignore` 只是第一层；`scripts/verify_phase_0_1.py` 必须扫描实际项目树。
+- 合成 Fixture 也必须登记来源、生成方式、字段和预期敏感模式命中数。
+- Phase 0.1 只验证边界与空骨架；DB/Markdown/Notion/Release 等下游 Scope 均保持 NOT_RUN。

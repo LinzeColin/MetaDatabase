@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "PATH.X2N.001",
+  "root_ref": "X2N_DATA_ROOT",
+  "required_basename": "xiaohongshu-douyin-2notion",
+  "owner_resolution_method": "home_downloads_required_basename",
+  "must_be_outside_git": true,
+  "runtime_and_downloads_share_root": true,
+  "private_marker": ".x2n-root.json",
+  "root_mode": "0700",
+  "marker_mode": "0600",
+  "required_directories": [
+    "downloads/xiaohongshu/runs",
+    "downloads/douyin/runs",
+    "downloads/external_research/runs",
+    "runtime/canonical",
+    "runtime/checkpoints",
+    "runtime/temp_media",
+    "runtime/browser_profiles/xiaohongshu",
+    "runtime/browser_profiles/douyin",
+    "runtime/library/content",
+    "runtime/library/categories",
+    "runtime/logs",
+    "runtime/diagnostics",
+    "runtime/backups",
+    "runtime/models",
+    "runtime/provider_cache"
+  ],
+  "time_machine_excluded": [
+    "downloads",
+    "runtime/temp_media",
+    "runtime/browser_profiles",
+    "runtime/provider_cache",
+    "runtime/logs",
+    "runtime/diagnostics"
+  ],
+  "time_machine_included": [
+    "runtime/canonical",
+    "runtime/library",
+    "runtime/backups"
+  ],
+  "legacy_import": "forbidden_without_separate_run_contract",
+  "repo_absolute_path_policy": "forbidden"
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "SOURCE.X2N.V0001",
+  "source_version": "v0.0.0.1",
+  "roadmap_sha256": "66f949b2109ffe2701d7b74099430e862f4027bb4a429c56e84e13716c0bc906",
+  "taskpack_zip_sha256": "b32993f465888d9352d745b353c3b923c38406c941a8f357ddf1a64e2bba5a58",
+  "taskpack_zip_crc": "pass",
+  "zip_member_count": 7,
+  "imported_documents": [
+    "00_PRFAQ.md",
+    "01_PRD.md",
+    "02_ROADMAP.md",
+    "03_ARCHITECTURE_SECURITY_SYSTEM_CARD.md",
+    "04_ACCEPTANCE_CONTRACT_TRACEABILITY.md",
+    "05_TASK_DAG_CODEX_TASKPACK.yaml",
+    "06_RELEASE_OPERATIONS.md"
+  ],
+  "owner_adaptation": "CE-X2N-20260719-S00-P01",
+  "source_preservation_note": "Imported documents are owner-approved routing/path adaptations; hashes above identify immutable original inputs."
+}

@@ -1,0 +1,2217 @@
+# Machine-executable Product Design Task DAG. Do not edit thresholds without versioned owner-approved change.
+schema_version: '1.0'
+artifact: CODEX_PRODUCT_DESIGN_TASKPACK
+project:
+  name: xiaohongshu-douyin-2notion
+  token: x2n
+  version: v0.0.0.1
+  owner: LinzeColin
+  status: FINAL_PRODUCT_DESIGN_BASELINE
+  owner_change_event: CE-X2N-20260719-S00-P01
+  repository: https://github.com/LinzeColin/MetaDatabase
+  skill_path: xiaohongshu-douyin-2notion/
+  repository_visibility: public
+  runtime_data_policy: private_local_only
+  data_root_ref: X2N_DATA_ROOT
+  downloads_root_ref: X2N_DATA_ROOT
+  data_root_required_basename: xiaohongshu-douyin-2notion
+  timezone: Australia/Sydney
+  research_cutoff: '2026-07-19'
+  pursuing_goal: 构建一个本地优先、可审计、可恢复的 Chrome＋Codex Skill 系统，把个人小红书和抖音点赞、收藏转换为按用户一级分类治理、包含多模态文本、可在 Markdown 与 Notion 中检索的知识资产，同时不持久化平台媒体
+    CDN 地址、账号凭据或原始媒体。
+authorization:
+  product_design_finalization: true
+  taskpack_delivery: true
+  stage_0_phase_0_1_governance: true
+  product_code_changes: false
+  real_account_execution: false
+  public_release: false
+  vps_data_plane: false
+  instruction: Owner 已授权 Stage 0 Phase 0.1 治理基线；产品代码、Phase 0.2+、真实账号和外部写入仍未授权。
+canonical_decisions:
+- id: DEC-X2N-001
+  decision: Chrome MV3 Side Panel + Local Companion/WebUI
+  reversible: false
+  change_requires: versioned ADR
+- id: DEC-X2N-002
+  decision: Native Messaging with exact extension-origin allowlist
+  reversible: true
+  change_requires: security review
+- id: DEC-X2N-003
+  decision: SQLite Canonical Store; Markdown and Notion are rebuildable sinks
+  reversible: false
+  change_requires: new PRD
+- id: DEC-X2N-004
+  decision: Platform media CDN URLs are never persisted; media succeeds-delete-immediately, failures <=24h
+  reversible: false
+  change_requires: owner-approved new PRD
+- id: DEC-X2N-005
+  decision: User owns first-level taxonomy; AI cannot create categories
+  reversible: false
+  change_requires: owner-approved new PRD
+- id: DEC-X2N-006
+  decision: Xiaohongshu clean-room adapter; Douyin wrapped upstream; MediaCrawler external and disabled
+  reversible: true
+  change_requires: license and adapter ADR
+- id: DEC-X2N-007
+  decision: Public code, private runtime outside repository
+  reversible: false
+  change_requires: not permitted within v0.0.0.1
+- id: DEC-X2N-008
+  decision: OVH VPS-1 is excluded from Alpha data plane
+  reversible: true
+  change_requires: separate Beta PRD
+canonical_facts:
+- id: FACT-X2N-001
+  type: fact
+  value: Chrome extension service workers have finite idle/request lifetimes; long work must be durable outside the worker.
+  sources:
+  - SRC-015
+- id: FACT-X2N-002
+  type: fact
+  value: Native Messaging supports extension-to-local-app communication and host allowed_origins do not allow wildcards.
+  sources:
+  - SRC-016
+- id: FACT-X2N-003
+  type: fact
+  value: xiaohongshu-exporter main Notion implementation is incomplete and its separate exporter persists external cover image
+    URLs.
+  sources:
+  - SRC-007
+  - SRC-008
+- id: FACT-X2N-004
+  type: fact
+  value: douyin-downloader provides a viable MIT-licensed Douyin collection/download adapter baseline.
+  sources:
+  - SRC-011
+  - SRC-012
+- id: FACT-X2N-005
+  type: fact
+  value: MediaCrawler is restricted to non-commercial learning/research and cannot be bundled as an unrestricted core dependency.
+  sources:
+  - SRC-013
+  - SRC-014
+- id: FACT-X2N-006
+  type: fact
+  value: Notion connections are rate-limited and must handle 429/529 with Retry-After.
+  sources:
+  - SRC-018
+unknowns_resolved_at_stage_0:
+- id: UNK-X2N-001
+  question: Owner primary desktop OS and hardware
+  default: auto-detect and support the detected OS first
+  blocking: false
+- id: UNK-X2N-002
+  question: Actual likes/favorites volume
+  default: 20-item canary and 1000-item job segmentation
+  blocking: false
+- id: UNK-X2N-003
+  question: Initial taxonomy
+  default: Unclassified only until owner supplies categories
+  blocking: false
+- id: UNK-X2N-004
+  question: Notion credentials and parent page
+  default: Notion feature disabled; canonical and Markdown continue
+  blocking: false
+- id: UNK-X2N-005
+  question: Cloud model permission and budget
+  default: cloud off and budget zero
+  blocking: false
+- id: UNK-X2N-006
+  question: Language/noise distribution
+  default: report by strata; no universal quality claim
+  blocking: false
+preauthorized_reversible_decisions:
+- Use normal permissively licensed dependencies after lock, SBOM and license scan.
+- Use SQLite WAL, versioned migrations, outbox and unique constraints.
+- Add fixtures, tests, redaction and feature flags without further approval.
+- Pin upstream commits and keep a prior pin as rollback.
+- Lower concurrency or disable a non-core model/provider when reliability, privacy or budget gates fail.
+- Use synthetic fixtures to continue development before real account inputs are available.
+- Refactor internal modules without changing public contracts or data boundaries.
+mandatory_pause_conditions:
+- A new third party would receive private content or credentials.
+- A platform control, CAPTCHA or access restriction would need to be bypassed.
+- A dependency license is unknown or incompatible with the intended distribution.
+- A destructive migration has no tested backup and rollback.
+- A requested change expands beyond Alpha scope or enables VPS data plane.
+- A secret/private-content/CDN leak is detected.
+- Acceptance contracts conflict and no conservative interpretation exists.
+execution_policy:
+  single_phase_focus: true
+  max_phases_per_run: 1
+  task_order_within_phase: dependency_order
+  stage_upload_gate: whole_stage_review_fix_and_reacceptance
+  intermediate_phase_push: forbidden
+  default_git_allowed_paths:
+  - xiaohongshu-douyin-2notion/**
+  default_git_forbidden_paths:
+  - MetaDatabase main worktree
+  - all other MetaDatabase projects and worktrees
+  external_writes_require_explicit_run_contract: true
+  missing_or_ambiguous_scope: fail_closed
+  stage_0_runnable_phase_sequence:
+  - PH.X2N.0.1
+  - PH.X2N.0.2
+  - PH.X2N.0.5
+  stage_0_non_executable_preparation_lanes:
+  - PH.X2N.0.3
+  - PH.X2N.0.4
+  task_start_requirements:
+  - Read repository and project AGENTS.md
+  - Read 01_PRD.md, 03_ARCHITECTURE_SECURITY_SYSTEM_CARD.md and relevant acceptance rows
+  - Confirm changed scope
+  - Confirm dependencies are complete
+  - Confirm rollback and stop conditions
+  task_completion_requirements:
+  - Produce declared outputs
+  - Run all declared tests
+  - Emit compact evidence receipts
+  - Update human-readable task records
+  - No unresolved blocking acceptance failures
+  pause_output_contract:
+  - minimum_decision_question
+  - evidence
+  - default_recommendation
+  - consequence_of_no_decision
+  - rollback_or_irreversibility
+effort_rollup_policy:
+  unit: engineer_hours
+  stage_envelope_total:
+    low: 288
+    high: 600
+  task_arithmetic_total:
+    low: 288
+    likely: 556
+    isolated_high: 1068
+  interpretation: Stage ranges are correlated program planning envelopes; each task high is an isolated risk upper bound and must not be arithmetically summed.
+  acceptance_gate: false
+  recalibration: record actuals after each phase; issue a Change Event if the stage envelope no longer contains the current forecast
+feature_flags:
+  xhs_current_page:
+    default: false
+    alpha: true
+  douyin_current_page:
+    default: false
+    alpha: true
+  xhs_favorites:
+    default: false
+    alpha: after_canary
+  xhs_likes:
+    default: false
+    alpha: after_canary
+  douyin_favorites:
+    default: false
+    alpha: after_canary
+  douyin_likes:
+    default: false
+    alpha: after_canary
+  multimodal_asr:
+    default: false
+    alpha: after_model_gate
+  multimodal_ocr:
+    default: false
+    alpha: after_model_gate
+  multimodal_vision:
+    default: false
+    alpha: only_if_ACC.x2n.ai.003_passes
+  fusion_summary:
+    default: false
+    alpha: after_security_gate
+  auto_classify:
+    default: false
+    alpha: only_if_ACC.x2n.ai.006_passes
+  notion_sink:
+    default: false
+    alpha: after_notion_gates
+  mediacrawler_adapter:
+    default: false
+    alpha: false
+  retain_local_media:
+    default: false
+    alpha: false
+  vps_control_plane:
+    default: false
+    alpha: false
+  physical_delete:
+    default: false
+    alpha: owner_confirmation_only
+requirements:
+- id: REQ.X2N.001
+  source: 01_PRD.md
+- id: REQ.X2N.002
+  source: 01_PRD.md
+- id: REQ.X2N.003
+  source: 01_PRD.md
+- id: REQ.X2N.004
+  source: 01_PRD.md
+- id: REQ.X2N.005
+  source: 01_PRD.md
+- id: REQ.X2N.006
+  source: 01_PRD.md
+- id: REQ.X2N.007
+  source: 01_PRD.md
+- id: REQ.X2N.008
+  source: 01_PRD.md
+- id: REQ.X2N.009
+  source: 01_PRD.md
+- id: REQ.X2N.010
+  source: 01_PRD.md
+- id: REQ.X2N.011
+  source: 01_PRD.md
+- id: REQ.X2N.012
+  source: 01_PRD.md
+- id: REQ.X2N.013
+  source: 01_PRD.md
+- id: REQ.X2N.014
+  source: 01_PRD.md
+- id: REQ.X2N.015
+  source: 01_PRD.md
+- id: REQ.X2N.016
+  source: 01_PRD.md
+- id: REQ.X2N.017
+  source: 01_PRD.md
+- id: REQ.X2N.018
+  source: 01_PRD.md
+- id: REQ.X2N.019
+  source: 01_PRD.md
+- id: REQ.X2N.020
+  source: 01_PRD.md
+- id: REQ.X2N.021
+  source: 01_PRD.md
+- id: REQ.X2N.022
+  source: 01_PRD.md
+- id: REQ.X2N.023
+  source: 01_PRD.md
+- id: REQ.X2N.024
+  source: 01_PRD.md
+- id: REQ.X2N.025
+  source: 01_PRD.md
+- id: REQ.X2N.026
+  source: 01_PRD.md
+- id: REQ.X2N.027
+  source: 01_PRD.md
+- id: REQ.X2N.028
+  source: 01_PRD.md
+acceptance_contract:
+  source: 04_ACCEPTANCE_CONTRACT_TRACEABILITY.md
+  release_gate: all blocking acceptances PASS; allowed model/sink downgrades must be explicit and feature-flagged
+  non_waivable:
+  - ACC.x2n.gov.002
+  - ACC.x2n.gov.003
+  - ACC.x2n.ext.003
+  - ACC.x2n.batch.001
+  - ACC.x2n.data.002
+  - ACC.x2n.data.004
+  - ACC.x2n.media.001
+  - ACC.x2n.media.002
+  - ACC.x2n.media.003
+  - ACC.x2n.ai.004
+  - ACC.x2n.ai.005
+  - ACC.x2n.ops.001
+  - ACC.x2n.ops.002
+  - ACC.x2n.rel.003
+  - ACC.x2n.rel.005
+  - ACC.x2n.rel.006
+  - ACC.x2n.rel.007
+stages:
+- id: STG.X2N.0
+  name: Governance, Evidence and Baseline
+  gate: G0
+  effort_hours:
+    low: 18
+    high: 35
+- id: STG.X2N.1
+  name: Foundation, Contracts and Local Runtime
+  gate: G1
+  effort_hours:
+    low: 35
+    high: 65
+- id: STG.X2N.2
+  name: Walking Skeleton
+  gate: G2
+  effort_hours:
+    low: 35
+    high: 65
+- id: STG.X2N.3
+  name: Personal Likes/Favorites Batch Adapters
+  gate: G3
+  effort_hours:
+    low: 50
+    high: 110
+- id: STG.X2N.4
+  name: Multimodal, Taxonomy and Classification
+  gate: G4
+  effort_hours:
+    low: 55
+    high: 120
+- id: STG.X2N.5
+  name: Sinks, Review and Operations
+  gate: G5
+  effort_hours:
+    low: 40
+    high: 90
+- id: STG.X2N.6
+  name: Dual Assurance, Chaos and Owner Alpha
+  gate: G6
+  effort_hours:
+    low: 55
+    high: 115
+tasks:
+- id: TSK.x2n.discovery.001
+  title: Read-only repository baseline and changed-scope map
+  stage: STG.X2N.0
+  phase: PH.X2N.0.1
+  status: completed
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Establish the only valid repository, project and runtime boundaries before any write.
+  inputs:
+  - MetaDatabase README/AGENTS and LinzeColin/Governance canonical standard
+  - MetaDatabase root/project AGENTS
+  - current repository tree
+  - taskpack v0.0.0.1
+  outputs:
+  - docs/governance/BASELINE_INVENTORY.md
+  - docs/governance/RUN_CONTRACT_S00_P01.md
+  - changed-scope and forbidden-scope registration
+  - machine/evidence/stage_0/phase_0_1/TSK.x2n.discovery.001.json
+  allowed_paths:
+  - xiaohongshu-douyin-2notion/**
+  - X2N_DATA_ROOT empty scaffold and private marker
+  forbidden_paths:
+  - MetaDatabase main worktree
+  - all other MetaDatabase projects and worktrees
+  - legacy data roots
+  depends_on: []
+  acceptance_ids:
+  - ACC.x2n.gov.001
+  - ACC.x2n.gov.002
+  tests:
+  - python3 -B scripts/verify_phase_0_1.py
+  - python3 -B -m unittest discover -s tests -p test_*.py
+  evidence:
+  - machine/evidence/stage_0/phase_0_1/TSK.x2n.discovery.001.json
+  risks:
+  - editing an unrelated project
+  - mistaking runtime files for source
+  rollback:
+  - revert inventory-only changes; no product data migration
+  stop_conditions:
+  - repository instructions conflict with taskpack
+  - target path is not authorized by canonical governance
+  effort_hours:
+    low: 3
+    likely: 5
+    high: 8
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.discovery.002
+  title: Register project, IDs and human-readable task records
+  stage: STG.X2N.0
+  phase: PH.X2N.0.1
+  status: completed
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Create canonical project/task/acceptance registration without duplicating facts.
+  inputs:
+  - baseline inventory
+  - Codex governance ID rules
+  outputs:
+  - machine/facts/project.json
+  - Task and Acceptance IDs validated from canonical Task Pack
+  - 功能清单.md
+  - 开发记录.md
+  - 模型参数文件.md
+  - machine/evidence/stage_0/phase_0_1/TSK.x2n.discovery.002.json
+  allowed_paths:
+  - xiaohongshu-douyin-2notion/**
+  - README.md single project index row
+  forbidden_paths:
+  - all other MetaDatabase projects and worktrees
+  depends_on:
+  - TSK.x2n.discovery.001
+  acceptance_ids:
+  - ACC.x2n.gov.001
+  tests:
+  - python3 -B scripts/verify_phase_0_1.py
+  - python3 -B -m unittest discover -s tests -p test_*.py
+  evidence:
+  - machine/evidence/stage_0/phase_0_1/TSK.x2n.discovery.002.json
+  risks:
+  - duplicate IDs
+  - README becoming a second source of truth
+  rollback:
+  - remove uncommitted registration and restore registry backup
+  stop_conditions:
+  - ID collision cannot be resolved conservatively
+  effort_hours:
+    low: 3
+    likely: 5
+    high: 8
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.discovery.003
+  title: Define public artifact and private runtime policy
+  stage: STG.X2N.0
+  phase: PH.X2N.0.1
+  status: completed
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Make Public Code / Private Runtime enforceable by path, schema and scanner rather than documentation alone.
+  inputs:
+  - MetaDatabase project artifact/runtime policy
+  - runtime path decision
+  - known secret/private/CDN patterns
+  outputs:
+  - machine/facts/path_contract.json
+  - machine/policy/artifact_allowlist.json
+  - .gitignore and executable repository scanner
+  - machine/policy/synthetic_fixture_manifest.json
+  - machine/evidence/stage_0/phase_0_1/TSK.x2n.discovery.003.json
+  allowed_paths:
+  - xiaohongshu-douyin-2notion/**
+  - X2N_DATA_ROOT empty scaffold and private marker
+  forbidden_paths:
+  - legacy data roots
+  - runtime or downloaded data inside Git
+  depends_on:
+  - TSK.x2n.discovery.001
+  - TSK.x2n.discovery.002
+  acceptance_ids:
+  - ACC.x2n.gov.002
+  - ACC.x2n.media.001
+  - ACC.x2n.ops.002
+  tests:
+  - python3 -B scripts/verify_phase_0_1.py
+  - X2N_DATA_ROOT owner-private-resolution python3 -B scripts/verify_phase_0_1.py --verify-local-root
+  evidence:
+  - machine/evidence/stage_0/phase_0_1/TSK.x2n.discovery.003.json
+  risks:
+  - false sense of safety from .gitignore
+  - private fixtures in CI
+  rollback:
+  - remove policy changes and preserve previous artifact policy
+  stop_conditions:
+  - policy would require private data in the public repository
+  effort_hours:
+    low: 4
+    likely: 6
+    high: 10
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.discovery.004
+  title: Pin and audit upstream projects
+  stage: STG.X2N.0
+  phase: PH.X2N.0.2
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Create a reproducible upstream capability, schema, commit and license registry.
+  inputs:
+  - xiaohongshu-exporter commit 130b3...
+  - douyin-downloader commit ef3ad18...
+  - MediaCrawler main at kickoff
+  - official platform docs
+  outputs:
+  - dependency registry
+  - commit pins
+  - capability matrix
+  - upgrade shadow-test plan
+  depends_on:
+  - TSK.x2n.discovery.001
+  acceptance_ids:
+  - ACC.x2n.gov.003
+  - ACC.x2n.dy.003
+  tests:
+  - x2n verify contracts
+  - license scanner
+  - SBOM dry run
+  evidence:
+  - evidence/dependencies/TSK.x2n.discovery.004.json
+  risks:
+  - upstream drift
+  - README claims diverging from source
+  - unverified transitive dependency
+  rollback:
+  - keep previous pin; disable affected adapter
+  stop_conditions:
+  - required license cannot be verified
+  - integration would require restricted-code bundling
+  effort_hours:
+    low: 4
+    likely: 7
+    high: 12
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.discovery.005
+  title: Complete owner input, license gate, threat model and architecture ADRs
+  stage: STG.X2N.0
+  phase: PH.X2N.0.5
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: 'one-time owner input pack: OS/profile/Notion/taxonomy/model budget; synthetic defaults permit engineering
+    to continue'
+  objective: Close legal, security, privacy and irreversible architecture questions before implementation.
+  inputs:
+  - dependency registry
+  - data-flow diagram
+  - canonical decisions
+  - one-time owner input pack or documented conservative defaults
+  - current official Chrome Web Store and platform policy evidence
+  outputs:
+  - ADRs 001-010
+  - STRIDE threat model
+  - THIRD_PARTY notice plan
+  - stop/kill register
+  - owner input contract schema
+  depends_on:
+  - TSK.x2n.discovery.003
+  - TSK.x2n.discovery.004
+  acceptance_ids:
+  - ACC.x2n.gov.003
+  - ACC.x2n.media.003
+  - ACC.x2n.rel.003
+  tests:
+  - threat-model review
+  - license policy check
+  - x2n verify governance
+  evidence:
+  - evidence/architecture/TSK.x2n.discovery.005.json
+  risks:
+  - under-scoped threat boundary
+  - license incompatibility
+  - unbounded permissions
+  rollback:
+  - revert ADR candidate; no product code should yet exist
+  stop_conditions:
+  - bypass, commercial-license or destructive-data requirement emerges
+  - Owner rejects local/private boundary
+  effort_hours:
+    low: 4
+    likely: 8
+    high: 15
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.foundation.001
+  title: Scaffold governed Skill and build workspaces
+  stage: STG.X2N.1
+  phase: PH.X2N.1.1
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Create the minimal source tree, package managers, SKILL entry and public-safe fixtures.
+  inputs:
+  - approved ADRs
+  - target skill path
+  - artifact policy
+  outputs:
+  - SKILL.md
+  - agents/openai.yaml
+  - apps/extension
+  - apps/companion
+  - packages/contracts
+  - tests
+  - THIRD_PARTY_NOTICES
+  depends_on:
+  - TSK.x2n.discovery.002
+  - TSK.x2n.discovery.005
+  acceptance_ids:
+  - ACC.x2n.gov.001
+  - ACC.x2n.rel.008
+  tests:
+  - repository governance gates
+  - package lock verification
+  - fresh scaffold self-test
+  evidence:
+  - evidence/foundation/TSK.x2n.foundation.001.json
+  risks:
+  - build output committed
+  - runtime path accidentally nested in repo
+  rollback:
+  - delete scaffold commit or revert; no migration
+  stop_conditions:
+  - scaffold conflicts with repository canonical layout
+  effort_hours:
+    low: 6
+    likely: 9
+    high: 14
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.foundation.002
+  title: Implement versioned contracts and error taxonomy
+  stage: STG.X2N.1
+  phase: PH.X2N.1.2
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Define source, IPC, canonical, artifact, taxonomy, sink, health and error contracts before implementations.
+  inputs:
+  - PRD requirements
+  - architecture interfaces
+  - acceptance contract
+  outputs:
+  - JSON Schemas
+  - Pydantic models
+  - TypeScript types
+  - contract fixtures
+  - error code registry
+  depends_on:
+  - TSK.x2n.foundation.001
+  - TSK.x2n.discovery.005
+  acceptance_ids:
+  - ACC.x2n.ext.003
+  - ACC.x2n.data.001
+  - ACC.x2n.data.003
+  tests:
+  - contract round-trip tests
+  - schema compatibility tests
+  - unknown-field/version tests
+  evidence:
+  - evidence/contracts/TSK.x2n.foundation.002.json
+  risks:
+  - Python/TypeScript schema drift
+  - silent unknown field acceptance
+  rollback:
+  - restore previous contract version; mark migration required
+  stop_conditions:
+  - contract cannot represent zero-persistence media references
+  - destructive ambiguity remains
+  effort_hours:
+    low: 8
+    likely: 13
+    high: 20
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.foundation.003
+  title: Implement private runtime root, SQLite canonical store and migrations
+  stage: STG.X2N.1
+  phase: PH.X2N.1.3
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Create the durable truth layer, outbox, leases, backups and recovery primitives.
+  inputs:
+  - canonical schemas
+  - runtime path policy
+  outputs:
+  - owner-configured X2N_DATA_ROOT runtime and downloads contract
+  - SQLite WAL schema
+  - migration framework
+  - outbox
+  - backup/restore
+  - synthetic seed
+  depends_on:
+  - TSK.x2n.foundation.002
+  acceptance_ids:
+  - ACC.x2n.data.001
+  - ACC.x2n.data.002
+  - ACC.x2n.data.004
+  tests:
+  - unit/property tests
+  - migration forward/rollback
+  - PRAGMA integrity_check
+  - concurrent duplicate tests
+  evidence:
+  - evidence/data/TSK.x2n.foundation.003.json
+  risks:
+  - schema lock-in
+  - WAL files copied to repo
+  - partial transactions
+  rollback:
+  - restore DB backup; roll back migration; preserve append-only evidence
+  stop_conditions:
+  - migration has no verified rollback
+  - runtime root resolves inside repo
+  effort_hours:
+    low: 8
+    likely: 14
+    high: 22
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.foundation.004
+  title: Build MV3 Side Panel and Native Host skeleton
+  stage: STG.X2N.1
+  phase: PH.X2N.1.4
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Prove secure, restart-safe browser-to-local task submission with minimal permissions.
+  inputs:
+  - IPC contracts
+  - runtime health API
+  - Chrome official constraints
+  outputs:
+  - extension skeleton
+  - side panel navigation
+  - native host manifest/install scripts
+  - health/status reconnect
+  depends_on:
+  - TSK.x2n.foundation.002
+  - TSK.x2n.foundation.003
+  acceptance_ids:
+  - ACC.x2n.ext.001
+  - ACC.x2n.ext.002
+  - ACC.x2n.ext.003
+  - ACC.x2n.ext.004
+  tests:
+  - extension E2E
+  - origin allowlist tests
+  - service-worker restart chaos
+  - permission audit
+  evidence:
+  - evidence/extension/TSK.x2n.foundation.004.json
+  risks:
+  - extension ID mismatch
+  - overbroad permissions
+  - long work in service worker
+  rollback:
+  - unregister native host and reload prior extension build
+  stop_conditions:
+  - wildcard origin or arbitrary command is required
+  - secrets would need extension storage
+  effort_hours:
+    low: 8
+    likely: 14
+    high: 24
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.foundation.005
+  title: Establish software and model CI baselines
+  stage: STG.X2N.1
+  phase: PH.X2N.1.5
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Create fast changed-scope gates and full release pipelines using only synthetic data.
+  inputs:
+  - source tree
+  - contracts
+  - security policy
+  outputs:
+  - lint/type/unit/contract/migration/E2E jobs
+  - secret/CDN/private scans
+  - SBOM/license jobs
+  - model-eval runner skeleton
+  depends_on:
+  - TSK.x2n.foundation.001
+  - TSK.x2n.foundation.002
+  - TSK.x2n.foundation.003
+  - TSK.x2n.foundation.004
+  acceptance_ids:
+  - ACC.x2n.rel.001
+  - ACC.x2n.rel.002
+  - ACC.x2n.rel.003
+  tests:
+  - CI self-test with seeded failures
+  - artifact allowlist test
+  - fixture leak test
+  evidence:
+  - evidence/ci/TSK.x2n.foundation.005.json
+  risks:
+  - tests pass only locally
+  - CI artifacts leak private paths
+  - flaky blocking tests
+  rollback:
+  - disable candidate workflow and restore previous known-good CI
+  stop_conditions:
+  - CI requires real secrets or accounts
+  - blocking checks can be silently skipped
+  effort_hours:
+    low: 5
+    likely: 10
+    high: 18
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.skeleton.001
+  title: Implement Xiaohongshu current-page capture
+  stage: STG.X2N.2
+  phase: PH.X2N.2.1
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Create the mandatory Xiaohongshu manual fallback with stable ID and sanitized page facts.
+  inputs:
+  - XHS synthetic DOM fixtures
+  - current-page contract
+  outputs:
+  - XHS page detector/extractor
+  - platform-changed errors
+  - current-page E2E
+  depends_on:
+  - TSK.x2n.foundation.004
+  - TSK.x2n.foundation.005
+  acceptance_ids:
+  - ACC.x2n.capture.001
+  - ACC.x2n.ext.001
+  tests:
+  - fixture tests
+  - Playwright extension E2E
+  - real two-item canary when authorized
+  evidence:
+  - evidence/adapters/TSK.x2n.skeleton.001.json
+  risks:
+  - DOM drift
+  - capturing feed card instead of detail
+  - query-token persistence
+  rollback:
+  - disable xhs_current_page flag and retain fixtures
+  stop_conditions:
+  - stable content ID cannot be established without bypass
+  effort_hours:
+    low: 6
+    likely: 10
+    high: 16
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.skeleton.002
+  title: Implement Douyin current-page capture
+  stage: STG.X2N.2
+  phase: PH.X2N.2.2
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Create the mandatory Douyin manual fallback with short-link resolution and canonical URL reconstruction.
+  inputs:
+  - Douyin video/gallery/short-link fixtures
+  - current-page contract
+  outputs:
+  - Douyin page detector/extractor
+  - safe short-link resolver
+  - current-page E2E
+  depends_on:
+  - TSK.x2n.foundation.004
+  - TSK.x2n.foundation.005
+  acceptance_ids:
+  - ACC.x2n.capture.002
+  - ACC.x2n.ext.001
+  tests:
+  - fixture tests
+  - SSRF redirect tests
+  - real two-item canary when authorized
+  evidence:
+  - evidence/adapters/TSK.x2n.skeleton.002.json
+  risks:
+  - unsafe redirect
+  - unstable ID
+  - query tracking persistence
+  rollback:
+  - disable douyin_current_page flag
+  stop_conditions:
+  - short-link resolution would permit non-allowlisted hosts
+  effort_hours:
+    low: 6
+    likely: 10
+    high: 16
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.skeleton.003
+  title: Implement URL scrubber and temporary media lease
+  stage: STG.X2N.2
+  phase: PH.X2N.2.3
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Make zero CDN persistence and bounded media handling enforceable.
+  inputs:
+  - URL taxonomy
+  - known platform domains
+  - media lease schema
+  outputs:
+  - URL canonicalizer
+  - ephemeral media reference
+  - safe downloader
+  - lease cleaner
+  - CDN scanner
+  depends_on:
+  - TSK.x2n.foundation.003
+  - TSK.x2n.foundation.005
+  acceptance_ids:
+  - ACC.x2n.media.001
+  - ACC.x2n.media.002
+  - ACC.x2n.media.003
+  - ACC.x2n.media.004
+  tests:
+  - URL fuzz
+  - SSRF suite
+  - success/failure cleanup
+  - CDN scan across sinks
+  evidence:
+  - evidence/media/TSK.x2n.skeleton.003.json
+  risks:
+  - CDN URL in exception logs
+  - redirect to private network
+  - cleaner race
+  rollback:
+  - disable media acquisition; retain text-only capture
+  stop_conditions:
+  - any persistent layer requires raw media URL
+  - active leases cannot be protected
+  effort_hours:
+    low: 8
+    likely: 14
+    high: 22
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.skeleton.004
+  title: Implement canonical orchestration walking path
+  stage: STG.X2N.2
+  phase: PH.X2N.2.4
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Move both current-page inputs through observation, content/relation, run, artifact placeholders and evidence.
+  inputs:
+  - two platform observations
+  - canonical DB
+  - media lease
+  outputs:
+  - orchestrator state machine
+  - content/relation upsert
+  - run/evidence receipts
+  - resume semantics
+  depends_on:
+  - TSK.x2n.skeleton.001
+  - TSK.x2n.skeleton.002
+  - TSK.x2n.skeleton.003
+  - TSK.x2n.foundation.003
+  acceptance_ids:
+  - ACC.x2n.data.001
+  - ACC.x2n.data.002
+  - ACC.x2n.data.003
+  - ACC.x2n.ops.001
+  tests:
+  - state-machine tests
+  - duplicate request tests
+  - kill-point tests
+  - provenance trace
+  evidence:
+  - evidence/orchestrator/TSK.x2n.skeleton.004.json
+  risks:
+  - state stuck between intent and receipt
+  - content and relation duplicated
+  rollback:
+  - disable capture flags; restore DB backup if migration involved
+  stop_conditions:
+  - state cannot be replayed idempotently
+  effort_hours:
+    low: 7
+    likely: 12
+    high: 20
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.skeleton.005
+  title: Implement minimal Markdown and Notion sinks
+  stage: STG.X2N.2
+  phase: PH.X2N.2.5
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: Notion credentials optional; mock server allows completion without them
+  objective: Complete the first end-to-end durable projection without making Notion the source of truth.
+  inputs:
+  - canonical content
+  - outbox
+  - Notion test integration or mock
+  outputs:
+  - canonical Markdown renderer
+  - category index seed
+  - Notion minimal schema
+  - upsert/receipt/reconcile
+  depends_on:
+  - TSK.x2n.skeleton.004
+  acceptance_ids:
+  - ACC.x2n.md.001
+  - ACC.x2n.notion.001
+  - ACC.x2n.notion.002
+  - ACC.x2n.notion.003
+  tests:
+  - renderer golden tests
+  - Notion mock 429/529
+  - success-before-receipt kill
+  - CDN scan
+  evidence:
+  - evidence/sinks/TSK.x2n.skeleton.005.json
+  risks:
+  - Notion duplicate pages
+  - title/category-based file paths
+  - external image embedding
+  rollback:
+  - disable notion_sink; delete and rebuild derived Markdown from canonical
+  stop_conditions:
+  - Notion write is coupled to canonical transaction
+  - CDN URL is required by projection
+  effort_hours:
+    low: 8
+    likely: 14
+    high: 24
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.adapters.001
+  title: Implement dedicated browser profile and session health
+  stage: STG.X2N.3
+  phase: PH.X2N.3.1
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: owner manually logs into a dedicated Chrome profile once; no credential value is requested
+  objective: Provide safe user-managed login state without exporting cookies or automating verification bypass.
+  inputs:
+  - runtime profile policy
+  - platform login pages
+  - health contract
+  outputs:
+  - profile launcher
+  - session health checks
+  - blocked-user-action flow
+  - adapter mutex/rate policy
+  depends_on:
+  - TSK.x2n.foundation.004
+  - TSK.x2n.discovery.005
+  acceptance_ids:
+  - ACC.x2n.batch.001
+  - ACC.x2n.ops.004
+  - ACC.x2n.gov.002
+  tests:
+  - profile-path leak tests
+  - expired-session fixtures
+  - doctor tests
+  evidence:
+  - evidence/adapters/TSK.x2n.adapters.001.json
+  risks:
+  - profile copied into repo
+  - multiple adapters corrupt session
+  - captcha bypass temptation
+  rollback:
+  - close profile and disable batch flags; preserve current-page capture
+  stop_conditions:
+  - operation requires bypassing platform verification
+  effort_hours:
+    low: 6
+    likely: 10
+    high: 18
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.adapters.002
+  title: Implement Xiaohongshu favorites clean-room adapter
+  stage: STG.X2N.3
+  phase: PH.X2N.3.2
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Sync personal favorites and collection relationships with checkpoints and anomaly detection.
+  inputs:
+  - XHS profile
+  - behavior spec
+  - favorites fixtures
+  - source adapter contract
+  outputs:
+  - XHS favorites iterator
+  - collection mapping
+  - checkpoint
+  - 20-item canary tooling
+  depends_on:
+  - TSK.x2n.adapters.001
+  - TSK.x2n.skeleton.001
+  - TSK.x2n.skeleton.004
+  acceptance_ids:
+  - ACC.x2n.xhs.001
+  - ACC.x2n.xhs.003
+  - ACC.x2n.batch.001
+  tests:
+  - fixture layouts
+  - pagination/scroll kill tests
+  - empty/partial scan tests
+  - owner canary when authorized
+  evidence:
+  - evidence/adapters/TSK.x2n.adapters.002.json
+  risks:
+  - DOM drift
+  - anti-bot response
+  - false full-scan completion
+  rollback:
+  - disable xhs_favorites and retain current-page fallback
+  stop_conditions:
+  - two adaptation iterations remain below 90% identified-item success
+  - bypass is required
+  effort_hours:
+    low: 12
+    likely: 22
+    high: 45
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.adapters.003
+  title: Implement Xiaohongshu likes clean-room adapter
+  stage: STG.X2N.3
+  phase: PH.X2N.3.3
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Sync personal likes as a conservative inbox without duplicating content.
+  inputs:
+  - XHS profile
+  - likes fixtures
+  - source adapter contract
+  outputs:
+  - XHS likes iterator
+  - liked relation
+  - inbox policy
+  - checkpoint
+  - 20-item canary tooling
+  depends_on:
+  - TSK.x2n.adapters.001
+  - TSK.x2n.skeleton.001
+  - TSK.x2n.skeleton.004
+  acceptance_ids:
+  - ACC.x2n.xhs.002
+  - ACC.x2n.xhs.003
+  - ACC.x2n.batch.001
+  tests:
+  - fixture layouts
+  - duplicate-content relation tests
+  - empty/partial scan tests
+  evidence:
+  - evidence/adapters/TSK.x2n.adapters.003.json
+  risks:
+  - likes volume/scroll instability
+  - auto-filing low-intent items
+  rollback:
+  - disable xhs_likes; preserve already committed content and relations
+  stop_conditions:
+  - two adaptation iterations remain below 90% success
+  - unlike automation becomes necessary
+  effort_hours:
+    low: 10
+    likely: 20
+    high: 40
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.adapters.004
+  title: Wrap pinned douyin-downloader for likes and favorites
+  stage: STG.X2N.3
+  phase: PH.X2N.3.4
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Expose a stable DouyinAdapter while containing upstream schema, process and release changes.
+  inputs:
+  - pinned upstream
+  - MIT notice
+  - normal/error/schema fixtures
+  - adapter contract
+  outputs:
+  - subprocess/REST wrapper
+  - health/version check
+  - likes/favorites/collection mapping
+  - error normalization
+  - shadow-upgrade harness
+  depends_on:
+  - TSK.x2n.discovery.004
+  - TSK.x2n.foundation.002
+  - TSK.x2n.skeleton.002
+  - TSK.x2n.skeleton.004
+  acceptance_ids:
+  - ACC.x2n.dy.001
+  - ACC.x2n.dy.002
+  - ACC.x2n.dy.003
+  - ACC.x2n.batch.001
+  tests:
+  - upstream contract tests
+  - version mismatch
+  - schema drift
+  - timeout
+  - 20+20 owner canary when authorized
+  evidence:
+  - evidence/adapters/TSK.x2n.adapters.004.json
+  risks:
+  - upstream changes
+  - internal URL/path leakage
+  - favorite mode limitations
+  rollback:
+  - restore previous pin; disable individual Douyin flags
+  stop_conditions:
+  - upstream license changes incompatibly
+  - wrapper cannot prevent schema leakage
+  - bypass required
+  effort_hours:
+    low: 12
+    likely: 24
+    high: 48
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.adapters.005
+  title: Implement relation reconciliation and batch completion receipts
+  stage: STG.X2N.3
+  phase: PH.X2N.3.5
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Reconcile multi-relation/multi-collection observations and enforce deletion protection.
+  inputs:
+  - all batch observations
+  - relation schema
+  - full-scan contract
+  outputs:
+  - relation reconciliation
+  - scan completeness receipt
+  - tombstone candidates
+  - batch comparison report
+  depends_on:
+  - TSK.x2n.adapters.002
+  - TSK.x2n.adapters.003
+  - TSK.x2n.adapters.004
+  - TSK.x2n.foundation.003
+  acceptance_ids:
+  - ACC.x2n.batch.001
+  - ACC.x2n.data.002
+  - ACC.x2n.rel.006
+  tests:
+  - two-successful-scan state tests
+  - empty/partial/error tests
+  - 80-item manifest tooling
+  evidence:
+  - evidence/adapters/TSK.x2n.adapters.005.json
+  risks:
+  - false tombstones
+  - collection rename duplication
+  - incomplete scan accepted as full
+  rollback:
+  - revert reconciliation version; never physically delete canonical records
+  stop_conditions:
+  - any error path can mark relation removed
+  - full-scan completeness cannot be proven
+  effort_hours:
+    low: 10
+    likely: 18
+    high: 35
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.multimodal.001
+  title: Implement bounded media preprocessing
+  stage: STG.X2N.4
+  phase: PH.X2N.4.1
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Safely transform temporary media into audio and representative frames under resource budgets.
+  inputs:
+  - media lease
+  - FFmpeg/FFprobe capability
+  - hardware baseline
+  outputs:
+  - media probe
+  - audio extraction
+  - scene/keyframe sampler
+  - image dedup
+  - resource policy
+  depends_on:
+  - TSK.x2n.skeleton.003
+  - TSK.x2n.skeleton.004
+  acceptance_ids:
+  - ACC.x2n.media.002
+  - ACC.x2n.media.004
+  - ACC.x2n.rel.004
+  tests:
+  - corrupt/oversize/hang tests
+  - 50-image/120-minute budget tests
+  - cleanup race
+  evidence:
+  - evidence/multimodal/TSK.x2n.multimodal.001.json
+  risks:
+  - media parser vulnerabilities
+  - CPU/disk exhaustion
+  - too many near-duplicate frames
+  rollback:
+  - disable media processors; preserve text-only flow
+  stop_conditions:
+  - untrusted media cannot be bounded/sandboxed
+  effort_hours:
+    low: 10
+    likely: 18
+    high: 32
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.multimodal.002
+  title: Implement ASR provider abstraction and evaluation
+  stage: STG.X2N.4
+  phase: PH.X2N.4.2
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: cloud provider remains disabled unless owner explicitly enables and supplies key via OS keychain
+  objective: Produce versioned transcripts using local-first, optional cloud providers with budget and quality evidence.
+  inputs:
+  - audio artifacts
+  - provider registry
+  - ASR Gold Set
+  outputs:
+  - ASR provider interface
+  - local/cloud adapters as authorized
+  - transcript artifacts
+  - CER evaluator
+  - budget/caching
+  depends_on:
+  - TSK.x2n.multimodal.001
+  acceptance_ids:
+  - ACC.x2n.ai.001
+  - ACC.x2n.ai.007
+  tests:
+  - ASR dataset eval
+  - no-speech hallucination
+  - timeout/rate/budget
+  - same-input cache
+  evidence:
+  - evidence/models/TSK.x2n.multimodal.002.json
+  risks:
+  - private audio uploaded without consent
+  - hallucinated transcript
+  - unbounded cost
+  rollback:
+  - disable cloud provider or ASR flag; keep metadata
+  stop_conditions:
+  - provider policy/data handling cannot be accepted
+  - secret would be stored outside keychain
+  effort_hours:
+    low: 10
+    likely: 20
+    high: 42
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.multimodal.003
+  title: Implement OCR and Vision provider abstractions
+  stage: STG.X2N.4
+  phase: PH.X2N.4.3
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: cloud providers opt-in only; local/skip defaults permit continuation
+  objective: Extract image text and bounded visual descriptions without persisting media URLs.
+  inputs:
+  - image/keyframe artifacts
+  - provider registry
+  - OCR/Vision Gold Sets
+  outputs:
+  - OCR artifacts/evaluator
+  - Vision artifacts/evaluator
+  - capability routing
+  - budget/caching
+  depends_on:
+  - TSK.x2n.multimodal.001
+  acceptance_ids:
+  - ACC.x2n.ai.002
+  - ACC.x2n.ai.003
+  - ACC.x2n.ai.007
+  tests:
+  - OCR CER suite
+  - Vision rubric
+  - unsupported/sensitive inputs
+  - URL upload scan
+  evidence:
+  - evidence/models/TSK.x2n.multimodal.003.json
+  risks:
+  - visual hallucination
+  - private media upload
+  - cost explosion
+  rollback:
+  - disable vision first, then OCR if needed; preserve ASR/text
+  stop_conditions:
+  - provider requires raw platform URLs
+  - vision makes prohibited sensitive inferences
+  effort_hours:
+    low: 12
+    likely: 24
+    high: 48
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.multimodal.004
+  title: Implement multimodal fusion and prompt-injection defenses
+  stage: STG.X2N.4
+  phase: PH.X2N.4.4
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Create searchable summaries while treating all content and model outputs as untrusted data.
+  inputs:
+  - text
+  - ASR
+  - OCR
+  - Vision
+  - fusion schema
+  - red-team suite
+  outputs:
+  - fusion processor
+  - search text
+  - fact/inference separation
+  - prompt templates
+  - strict parser
+  - red-team evidence
+  depends_on:
+  - TSK.x2n.multimodal.002
+  - TSK.x2n.multimodal.003
+  acceptance_ids:
+  - ACC.x2n.ai.004
+  - ACC.x2n.ai.007
+  tests:
+  - schema tests
+  - malicious caption/OCR/subtitle
+  - missing/conflicting modalities
+  - Unicode/long-input
+  evidence:
+  - evidence/models/TSK.x2n.multimodal.004.json
+  risks:
+  - prompt injection
+  - model output driving actions
+  - unsupported factual claims
+  rollback:
+  - disable fusion and retain individual artifacts
+  stop_conditions:
+  - model has tool/secret/file access
+  - injection cannot be reliably contained
+  effort_hours:
+    low: 10
+    likely: 20
+    high: 40
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.multimodal.005
+  title: Implement taxonomy registry, constrained classifier and review revisions
+  stage: STG.X2N.4
+  phase: PH.X2N.4.5
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: owner provides taxonomy and private Gold Set at G4; until then all items remain unclassified/suggestion-only
+  objective: Turn multimodal content into owner-governed primary categories with calibrated automation and review fallback.
+  inputs:
+  - taxonomy schema
+  - owner categories/examples
+  - fusion artifacts
+  - Gold Set
+  outputs:
+  - category registry
+  - rule/model classifier
+  - calibration
+  - suggestion-only mode
+  - review revisions
+  - evaluation reports
+  depends_on:
+  - TSK.x2n.multimodal.004
+  - TSK.x2n.foundation.002
+  acceptance_ids:
+  - ACC.x2n.ai.005
+  - ACC.x2n.ai.006
+  - ACC.x2n.ai.007
+  tests:
+  - unknown/disabled category tests
+  - classification eval
+  - threshold/coverage
+  - owner correction flow
+  evidence:
+  - evidence/models/TSK.x2n.multimodal.005.json
+  risks:
+  - model creates categories
+  - overconfident routing
+  - class imbalance
+  rollback:
+  - auto_classify=false; keep suggestions and manual review
+  stop_conditions:
+  - AI can mutate taxonomy
+  - high-confidence precision remains below 85% after calibration
+  effort_hours:
+    low: 13
+    likely: 28
+    high: 58
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.uxops.001
+  title: Harden Notion schema, views, outbox and reconciliation
+  stage: STG.X2N.5
+  phase: PH.X2N.5.1
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: Notion integration optional until owner canary; no block for local completion
+  objective: Deliver a production-grade, versioned and rate-safe Notion projection that preserves user fields.
+  inputs:
+  - canonical artifacts/classification
+  - Notion capability
+  - outbox
+  outputs:
+  - Items/Categories schemas
+  - views
+  - long-text chunking
+  - rate controller
+  - dead-letter/reconcile
+  - schema migration
+  depends_on:
+  - TSK.x2n.skeleton.005
+  - TSK.x2n.adapters.005
+  - TSK.x2n.multimodal.005
+  acceptance_ids:
+  - ACC.x2n.notion.001
+  - ACC.x2n.notion.002
+  - ACC.x2n.notion.003
+  - ACC.x2n.notion.004
+  tests:
+  - mock/real integration
+  - 429/529/retry-after
+  - success-before-receipt kill
+  - schema/user-field preservation
+  evidence:
+  - evidence/sinks/TSK.x2n.uxops.001.json
+  risks:
+  - API version drift
+  - user field overwrite
+  - duplicate pages
+  rollback:
+  - disable notion_sink and rebuild later from canonical
+  stop_conditions:
+  - Notion cannot be made eventually consistent
+  - projection requires media/CDN
+  effort_hours:
+    low: 10
+    likely: 20
+    high: 40
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.uxops.002
+  title: Harden Markdown library and generated category indexes
+  stage: STG.X2N.5
+  phase: PH.X2N.5.2
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Create deterministic, rebuildable folder-like navigation without duplicating canonical files.
+  inputs:
+  - canonical DB
+  - artifact/classification projections
+  - Markdown schema
+  outputs:
+  - stable content files
+  - category indexes
+  - full rebuild
+  - link checker
+  - renderer versioning
+  depends_on:
+  - TSK.x2n.skeleton.005
+  - TSK.x2n.multimodal.005
+  acceptance_ids:
+  - ACC.x2n.md.001
+  - ACC.x2n.md.002
+  tests:
+  - golden rendering
+  - 10k rebuild
+  - rename/reclassify
+  - atomic-write kill
+  evidence:
+  - evidence/sinks/TSK.x2n.uxops.002.json
+  risks:
+  - duplicate content copies
+  - broken links
+  - title path collisions
+  rollback:
+  - delete derived library and rebuild from canonical
+  stop_conditions:
+  - canonical file path depends on category/title
+  effort_hours:
+    low: 7
+    likely: 14
+    high: 28
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.uxops.003
+  title: Build local WebUI and review workflow
+  stage: STG.X2N.5
+  phase: PH.X2N.5.3
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Provide one coherent local interface for sources, taxonomy, review, jobs, sinks, models and diagnostics.
+  inputs:
+  - local API
+  - review contracts
+  - health/metrics
+  - extension links
+  outputs:
+  - dashboard
+  - source settings
+  - taxonomy editor
+  - review queue
+  - job detail
+  - model budget
+  - diagnostics UI
+  depends_on:
+  - TSK.x2n.uxops.001
+  - TSK.x2n.uxops.002
+  - TSK.x2n.multimodal.005
+  - TSK.x2n.foundation.004
+  acceptance_ids:
+  - ACC.x2n.ext.001
+  - ACC.x2n.ai.005
+  - ACC.x2n.ai.006
+  - ACC.x2n.ops.004
+  tests:
+  - UI E2E
+  - CSRF/origin tests
+  - low-confidence review flow
+  - accessibility smoke
+  evidence:
+  - evidence/ui/TSK.x2n.uxops.003.json
+  risks:
+  - local API exposed to LAN
+  - XSS from post content
+  - secret display
+  rollback:
+  - disable WebUI and retain CLI/Side Panel minimal flows
+  stop_conditions:
+  - UI requires arbitrary HTML execution
+  - loopback/origin security cannot be enforced
+  effort_hours:
+    low: 9
+    likely: 20
+    high: 42
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.uxops.004
+  title: Implement observability, diagnostics and recovery runbooks
+  stage: STG.X2N.5
+  phase: PH.X2N.5.4
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Make every job diagnosable and recoverable without exposing private content.
+  inputs:
+  - run states
+  - error taxonomy
+  - outbox
+  - leases
+  - sink hashes
+  outputs:
+  - redacted logs
+  - metrics
+  - health
+  - doctor
+  - diagnostic bundle
+  - startup recovery
+  - sink rebuild/reconcile
+  depends_on:
+  - TSK.x2n.adapters.005
+  - TSK.x2n.multimodal.001
+  - TSK.x2n.uxops.001
+  - TSK.x2n.uxops.002
+  - TSK.x2n.uxops.003
+  acceptance_ids:
+  - ACC.x2n.ops.001
+  - ACC.x2n.ops.002
+  - ACC.x2n.ops.004
+  tests:
+  - redaction canaries
+  - all-stage kill tests
+  - doctor degraded cases
+  - rebuild/reconcile
+  evidence:
+  - evidence/operations/TSK.x2n.uxops.004.json
+  risks:
+  - diagnostics leak private content
+  - recovery loops
+  - metrics become second source of truth
+  rollback:
+  - disable diagnostics export; restore known-good recovery version
+  stop_conditions:
+  - recovery cannot avoid duplicate/destructive effects
+  - logs require raw content
+  effort_hours:
+    low: 8
+    likely: 18
+    high: 38
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.uxops.005
+  title: Implement export, retention, tombstone and user deletion controls
+  stage: STG.X2N.5
+  phase: PH.X2N.5.5
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: physical deletion requires explicit owner confirmation at runtime; development uses synthetic data
+  objective: Give the owner explicit, previewable and auditable control over private runtime data.
+  inputs:
+  - canonical DB
+  - library
+  - backup
+  - relation state
+  outputs:
+  - canonical JSONL export
+  - runtime backup
+  - delete preview/confirm
+  - relation tombstone
+  - runtime wipe
+  - TTL policies
+  depends_on:
+  - TSK.x2n.uxops.002
+  - TSK.x2n.uxops.004
+  acceptance_ids:
+  - ACC.x2n.media.002
+  - ACC.x2n.ops.003
+  - ACC.x2n.data.004
+  tests:
+  - export round-trip
+  - cancel delete
+  - relation-vs-content deletion
+  - backup/restore
+  - TTL
+  evidence:
+  - evidence/lifecycle/TSK.x2n.uxops.005.json
+  risks:
+  - unintended physical deletion
+  - backup includes cookies
+  - Notion reverse deletion
+  rollback:
+  - physical_delete flag off; restore backup
+  stop_conditions:
+  - delete effect cannot be previewed or rolled back
+  - backup would include secrets/browser profiles
+  effort_hours:
+    low: 6
+    likely: 12
+    high: 25
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.assurance.001
+  title: Complete software correctness pipeline
+  stage: STG.X2N.6
+  phase: PH.X2N.6.1
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Close correctness, contract, migration, browser and idempotency gaps across all services.
+  inputs:
+  - all implementation modules
+  - acceptance contract
+  outputs:
+  - full CI
+  - risk-based coverage
+  - property tests
+  - cross-component E2E
+  - traceability report
+  depends_on:
+  - TSK.x2n.foundation.005
+  - TSK.x2n.uxops.004
+  - TSK.x2n.uxops.005
+  acceptance_ids:
+  - ACC.x2n.rel.001
+  - ACC.x2n.data.002
+  - ACC.x2n.data.004
+  - ACC.x2n.rel.008
+  tests:
+  - full release test suite
+  - mutation tests on critical invariants
+  - fresh install synthetic E2E
+  evidence:
+  - evidence/assurance/TSK.x2n.assurance.001.json
+  risks:
+  - flaky tests
+  - mock-only confidence
+  - coverage gaming
+  rollback:
+  - revert candidate release; retain passing main
+  stop_conditions:
+  - blocking tests are flaky/skipped
+  - traceability gaps remain
+  effort_hours:
+    low: 10
+    likely: 22
+    high: 45
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.assurance.002
+  title: Complete model capability, safety and System Card pipeline
+  stage: STG.X2N.6
+  phase: PH.X2N.6.2
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: owner completes/approves private 100-item Gold Set and reviews model errors
+  objective: Measure model quality by strata, red-team content, calibrate automation and document limitations.
+  inputs:
+  - private Gold Set
+  - synthetic red team
+  - model/provider registry
+  outputs:
+  - ASR/OCR/Vision/Fusion/Classify reports
+  - calibration
+  - cross-model disagreement report
+  - System Card
+  - feature-gate decision
+  depends_on:
+  - TSK.x2n.multimodal.002
+  - TSK.x2n.multimodal.003
+  - TSK.x2n.multimodal.004
+  - TSK.x2n.multimodal.005
+  - TSK.x2n.uxops.003
+  acceptance_ids:
+  - ACC.x2n.ai.001
+  - ACC.x2n.ai.002
+  - ACC.x2n.ai.003
+  - ACC.x2n.ai.004
+  - ACC.x2n.ai.005
+  - ACC.x2n.ai.006
+  - ACC.x2n.ai.007
+  - ACC.x2n.rel.002
+  tests:
+  - x2n eval all
+  - x2n redteam model --suite all
+  - dataset leak checks
+  evidence:
+  - evidence/models/TSK.x2n.assurance.002.json
+  risks:
+  - small biased Gold Set
+  - correlated reviewers
+  - unsafe auto-classification
+  rollback:
+  - disable failing model feature; suggestion-only fallback
+  stop_conditions:
+  - model can access tools/secrets/config
+  - auto-route precision gate is not met but flag remains on
+  effort_hours:
+    low: 12
+    likely: 26
+    high: 55
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.assurance.003
+  title: Complete security, privacy, license and supply-chain assurance
+  stage: STG.X2N.6
+  phase: PH.X2N.6.3
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Prove the public release contains only allowed code and has no unresolved critical security/license boundary
+    failure.
+  inputs:
+  - source/dependencies/build/release
+  - threat model
+  - license registry
+  outputs:
+  - SAST/SBOM/OSV/license reports
+  - secret/private/CDN scans
+  - CSP/SSRF/media security results
+  - release allowlist
+  depends_on:
+  - TSK.x2n.discovery.005
+  - TSK.x2n.foundation.005
+  - TSK.x2n.uxops.005
+  acceptance_ids:
+  - ACC.x2n.gov.002
+  - ACC.x2n.gov.003
+  - ACC.x2n.media.001
+  - ACC.x2n.media.003
+  - ACC.x2n.media.004
+  - ACC.x2n.rel.003
+  tests:
+  - gitleaks/history
+  - SAST
+  - OSV
+  - SBOM diff
+  - license scan
+  - release artifact scan
+  - SSRF/media suites
+  evidence:
+  - evidence/security/TSK.x2n.assurance.003.json
+  risks:
+  - unknown transitive license
+  - secret in history
+  - build artifact embeds runtime data
+  rollback:
+  - block release; rotate/remove/rebuild; restore prior dependencies
+  stop_conditions:
+  - any secret/private/CDN hit
+  - unresolved critical/high vulnerability
+  - unknown runtime license
+  effort_hours:
+    low: 10
+    likely: 22
+    high: 45
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.assurance.004
+  title: Run performance, stress, chaos and recovery campaigns
+  stage: STG.X2N.6
+  phase: PH.X2N.6.4
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: none
+  objective: Actively manufacture failures and capacity extremes before Alpha.
+  inputs:
+  - chaos matrix
+  - 20/80/1000/10000 fixtures
+  - resource policies
+  outputs:
+  - benchmark report
+  - chaos report
+  - recovery comparison
+  - tuned concurrency/budgets
+  depends_on:
+  - TSK.x2n.uxops.004
+  - TSK.x2n.multimodal.001
+  - TSK.x2n.uxops.001
+  acceptance_ids:
+  - ACC.x2n.ext.002
+  - ACC.x2n.xhs.003
+  - ACC.x2n.media.002
+  - ACC.x2n.notion.002
+  - ACC.x2n.notion.003
+  - ACC.x2n.ops.001
+  - ACC.x2n.rel.004
+  - ACC.x2n.rel.005
+  tests:
+  - x2n chaos run --suite alpha
+  - x2n benchmark --suite alpha
+  evidence:
+  - evidence/chaos/TSK.x2n.assurance.004.json
+  risks:
+  - tests damage real data
+  - unbounded resource consumption
+  - recovery hides duplicates
+  rollback:
+  - use isolated runtime; restore control snapshot; lower feature budgets
+  stop_conditions:
+  - chaos cannot be isolated from owner data
+  - any data loss or unauthorized delete occurs
+  effort_hours:
+    low: 10
+    likely: 22
+    high: 45
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+- id: TSK.x2n.assurance.005
+  title: Execute Canary, blue-green release, rollback and Owner Alpha
+  stage: STG.X2N.6
+  phase: PH.X2N.6.5
+  status: planned
+  owner: codex
+  authorization: owner_starts_codex_dev
+  human_input: owner authorizes real-account canary, reviews 80-item bundle and signs Alpha; all other work uses synthetic
+    data
+  objective: Deliver a fresh-install, reversible Alpha with 20-item canary, 80-item acceptance and final evidence bundle.
+  inputs:
+  - release candidate
+  - owner input pack
+  - private manifests
+  - backup/rollback plan
+  outputs:
+  - signed/tagged alpha candidate
+  - fresh-install transcript
+  - 20-item canary
+  - 80-item acceptance
+  - rollback rehearsal
+  - Final Acceptance Bundle
+  - release notes/system card
+  depends_on:
+  - TSK.x2n.assurance.001
+  - TSK.x2n.assurance.002
+  - TSK.x2n.assurance.003
+  - TSK.x2n.assurance.004
+  - TSK.x2n.uxops.005
+  acceptance_ids:
+  - ACC.x2n.rel.006
+  - ACC.x2n.rel.007
+  - ACC.x2n.rel.008
+  tests:
+  - x2n release verify
+  - owner canary/alpha
+  - blue-green switch
+  - rollback drill
+  - artifact scan
+  evidence:
+  - evidence/release/TSK.x2n.assurance.005.json
+  risks:
+  - real-account side effects
+  - release artifact leak
+  - migration cannot roll back
+  rollback:
+  - roll back extension/host/companion; restore DB backup; keep canonical records; disable batch/model/notion flags
+  stop_conditions:
+  - any blocking acceptance fails
+  - owner does not sign off
+  - rollback rehearsal fails
+  - secret/private/CDN hit
+  effort_hours:
+    low: 13
+    likely: 25
+    high: 50
+  completion_gate: all outputs exist; declared tests pass; evidence receipts emitted; no stop condition active
+stage_gates:
+- id: G0
+  after_stage: STG.X2N.0
+  requires_tasks:
+  - TSK.x2n.discovery.001
+  - TSK.x2n.discovery.002
+  - TSK.x2n.discovery.003
+  - TSK.x2n.discovery.004
+  - TSK.x2n.discovery.005
+  pass_conditions:
+  - governance registered
+  - license and upstream registry complete
+  - public/private runtime policy machine-checkable
+  - threat model and ADRs complete
+  - synthetic fixtures permit development without real credentials
+  stop_conditions:
+  - license conflict
+  - bypass requirement
+  - private data must enter public repo
+- id: G1
+  after_stage: STG.X2N.1
+  requires_tasks:
+  - TSK.x2n.foundation.001
+  - TSK.x2n.foundation.002
+  - TSK.x2n.foundation.003
+  - TSK.x2n.foundation.004
+  - TSK.x2n.foundation.005
+  pass_conditions:
+  - contracts round-trip
+  - DB migrations and rollback pass
+  - extension/native host restart-safe
+  - synthetic CI and scans pass
+- id: G2
+  after_stage: STG.X2N.2
+  requires_tasks:
+  - TSK.x2n.skeleton.001
+  - TSK.x2n.skeleton.002
+  - TSK.x2n.skeleton.003
+  - TSK.x2n.skeleton.004
+  - TSK.x2n.skeleton.005
+  pass_conditions:
+  - two platforms each complete current-page walking path
+  - zero duplicates
+  - zero CDN persistence
+  - successful media cleanup
+  - Notion outage does not block canonical and Markdown
+- id: G3
+  after_stage: STG.X2N.3
+  requires_tasks:
+  - TSK.x2n.adapters.001
+  - TSK.x2n.adapters.002
+  - TSK.x2n.adapters.003
+  - TSK.x2n.adapters.004
+  - TSK.x2n.adapters.005
+  pass_conditions:
+  - four relation canaries complete
+  - checkpoint/resume pass
+  - no empty-response deletion
+  - batch failure pivots to current-page fallback
+- id: G4
+  after_stage: STG.X2N.4
+  requires_tasks:
+  - TSK.x2n.multimodal.001
+  - TSK.x2n.multimodal.002
+  - TSK.x2n.multimodal.003
+  - TSK.x2n.multimodal.004
+  - TSK.x2n.multimodal.005
+  pass_conditions:
+  - ASR/OCR/Vision/Fusion reports exist
+  - prompt-injection suite passes
+  - AI cannot mutate taxonomy
+  - automatic classification remains off unless precision gate passes
+- id: G5
+  after_stage: STG.X2N.5
+  requires_tasks:
+  - TSK.x2n.uxops.001
+  - TSK.x2n.uxops.002
+  - TSK.x2n.uxops.003
+  - TSK.x2n.uxops.004
+  - TSK.x2n.uxops.005
+  pass_conditions:
+  - Notion is eventually consistent or disabled
+  - Markdown full rebuild deterministic
+  - review and diagnostics usable
+  - export/delete/backup behavior verified
+- id: G6
+  after_stage: STG.X2N.6
+  requires_tasks:
+  - TSK.x2n.assurance.001
+  - TSK.x2n.assurance.002
+  - TSK.x2n.assurance.003
+  - TSK.x2n.assurance.004
+  - TSK.x2n.assurance.005
+  pass_conditions:
+  - all blocking acceptances pass
+  - twenty-item canary passes
+  - eighty-item owner alpha passes
+  - security and model assurance pass or explicitly degrade
+  - rollback rehearsal passes
+  - owner signs off
+optional_beta_backlog:
+- id: BKL.X2N.BETA.001
+  title: Cross-platform signed installers
+  authorized: false
+  entry_criteria:
+  - 30 stable owner days
+  - verified demand for second OS
+  - separate release/security plan
+- id: BKL.X2N.BETA.002
+  title: OVH VPS-1 redacted control plane
+  authorized: false
+  entry_criteria:
+  - separate PRD
+  - threat model
+  - no credentials/private content/media on VPS
+- id: BKL.X2N.BETA.003
+  title: Per-item encrypted local media retention
+  authorized: false
+  entry_criteria:
+  - measured need
+  - quota/encryption/deletion PRD
+  - default remains off
+- id: BKL.X2N.BETA.004
+  title: Additional source adapters
+  authorized: false
+  entry_criteria:
+  - independent license/platform review
+  - same adapter and acceptance contracts
+- id: BKL.X2N.BETA.005
+  title: Chrome Web Store and GA distribution
+  authorized: false
+  entry_criteria:
+  - owner alpha value proof
+  - store privacy disclosures
+  - signed update/rollback plan
+validation_contract:
+  task_count_expected: 35
+  dag_cycles_expected: 0
+  all_task_ids_unique: true
+  all_dependencies_must_exist: true
+  all_tasks_require_acceptance_ids: true
+  all_tasks_require_tests_evidence_risk_rollback_stop_conditions: true
+  requirements_traceability_source: 04_ACCEPTANCE_CONTRACT_TRACEABILITY.md
+  release_operations_source: 06_RELEASE_OPERATIONS.md
+  topological_order:
+  - TSK.x2n.discovery.001
+  - TSK.x2n.discovery.002
+  - TSK.x2n.discovery.004
+  - TSK.x2n.discovery.003
+  - TSK.x2n.discovery.005
+  - TSK.x2n.foundation.001
+  - TSK.x2n.foundation.002
+  - TSK.x2n.foundation.003
+  - TSK.x2n.foundation.004
+  - TSK.x2n.foundation.005
+  - TSK.x2n.adapters.001
+  - TSK.x2n.skeleton.001
+  - TSK.x2n.skeleton.002
+  - TSK.x2n.skeleton.003
+  - TSK.x2n.skeleton.004
+  - TSK.x2n.skeleton.005
+  - TSK.x2n.adapters.002
+  - TSK.x2n.adapters.003
+  - TSK.x2n.adapters.004
+  - TSK.x2n.multimodal.001
+  - TSK.x2n.adapters.005
+  - TSK.x2n.multimodal.002
+  - TSK.x2n.multimodal.003
+  - TSK.x2n.multimodal.004
+  - TSK.x2n.multimodal.005
+  - TSK.x2n.uxops.001
+  - TSK.x2n.uxops.002
+  - TSK.x2n.uxops.003
+  - TSK.x2n.uxops.004
+  - TSK.x2n.assurance.002
+  - TSK.x2n.uxops.005
+  - TSK.x2n.assurance.004
+  - TSK.x2n.assurance.001
+  - TSK.x2n.assurance.003
+  - TSK.x2n.assurance.005
+  calculated_task_count: 35
+  calculated_dag_cycles: 0
