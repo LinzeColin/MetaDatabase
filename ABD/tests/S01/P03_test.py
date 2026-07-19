@@ -368,19 +368,19 @@ def test_p02_prerequisite_mutations_block_p03(tmp_path: Path, mutation: str, exp
     _failed(evaluate_contract(project), expected)
 
 
-@pytest.mark.parametrize("mutation", ["p04_evidence", "p04_output", "p04_index"])
-def test_p04_cannot_start_in_p03_run(tmp_path: Path, mutation: str) -> None:
+@pytest.mark.parametrize("mutation", ["evidence_hash_drift", "partial_outputs", "index_hash_drift"])
+def test_p04_progression_requires_complete_outputs_and_signed_p03_receipt(tmp_path: Path, mutation: str) -> None:
     project = _clone_project(tmp_path)
-    if mutation == "p04_evidence":
+    if mutation == "evidence_hash_drift":
         (project / "machine/evidence/EVD-S01-P04.json").write_text("{}\n", encoding="utf-8")
-    elif mutation == "p04_output":
-        (project / "metrics.json").write_text("{}\n", encoding="utf-8")
+    elif mutation == "partial_outputs":
+        (project / "kill_criteria.json").unlink()
     else:
         path = project / "machine/evidence/evidence_index.jsonl"
         rows = [json.loads(line) for line in path.read_text(encoding="utf-8-sig").splitlines() if line]
-        next(row for row in rows if row["id"] == "INDEX-AC-S01-P04")["status"] = "PASS"
+        next(row for row in rows if row["id"] == "INDEX-AC-S01-P04")["artifact_sha256"] = "0" * 64
         path.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows), encoding="utf-8")
-    _failed(evaluate_contract(project), "S01P03-P04-NOT-STARTED")
+    _failed(evaluate_contract(project), "S01P03-SUCCESSOR-PROGRESSION-GATED")
 
 
 @pytest.mark.parametrize("mutation", ["floating_action", "missing_regression", "secret_reference"])

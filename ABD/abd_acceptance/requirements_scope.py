@@ -949,27 +949,50 @@ def _check_frozen_semantics(
     _add(checks, "S01P03-MODEL-RISK-SEMANTICS-FROZEN", model_ok, "market prior, residual, calibration, stability and Kelly")
 
 
-def _check_p04_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
+def _check_successor_progression(root: Path, checks: List[Dict[str, Any]]) -> None:
     try:
         rows = [json.loads(line) for line in (root / EVIDENCE_INDEX_PATH).read_text(encoding="utf-8-sig").splitlines() if line]
         p04 = [row for row in rows if row.get("id") == "INDEX-AC-S01-P04"]
         evidence = sorted((root / "machine/evidence").glob("EVD-S01-P04*.json"))
         outputs = [root / "metrics.json", root / "economics.json", root / "kill_criteria.json"]
-        passed = (
-            len(p04) == 1
-            and p04[0].get("status") == "PLANNED"
-            and not evidence
-            and not any(path.exists() for path in outputs)
+        output_count = sum(path.is_file() for path in outputs)
+        self_receipt_ok = (
+            sha256_file(root / EVIDENCE_PATH)
+            == "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46"
+        )
+        self_index = [row for row in rows if row.get("id") == "INDEX-AC-S01-P03"]
+        self_index_ok = (
+            len(self_index) == 1
+            and self_index[0].get("status") == "PASS"
+            and self_index[0].get("artifact_sha256")
+            == "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46"
+        )
+        planned_ok = len(p04) == 1 and p04[0].get("status") == "PLANNED" and not evidence
+        completed_ok = False
+        if len(p04) == 1 and p04[0].get("status") == "PASS" and len(evidence) == 2:
+            phase_evidence = root / "machine/evidence/EVD-S01-P04.json"
+            rollback_evidence = root / "machine/evidence/EVD-S01-P04_rollback.json"
+            completed_ok = (
+                phase_evidence in evidence
+                and rollback_evidence in evidence
+                and p04[0].get("actual_artifact") == "machine/evidence/EVD-S01-P04.json"
+                and p04[0].get("artifact_sha256") == sha256_file(phase_evidence)
+            )
+        passed = self_receipt_ok and self_index_ok and (
+            (output_count == 0 and planned_ok)
+            or (output_count == 3 and (planned_ok or completed_ok))
         )
         detail = {
             "p04_status": p04[0].get("status") if len(p04) == 1 else "INVALID",
             "evidence": [path.name for path in evidence],
             "outputs": [path.name for path in outputs if path.exists()],
+            "self_receipt_ok": self_receipt_ok,
+            "self_index_ok": self_index_ok,
         }
     except Exception as exc:
         passed = False
         detail = "%s: %s" % (type(exc).__name__, exc)
-    _add(checks, "S01P03-P04-NOT-STARTED", passed, detail)
+    _add(checks, "S01P03-SUCCESSOR-PROGRESSION-GATED", passed, detail)
 
 
 def _junit_summary(path: Path) -> Dict[str, int]:
@@ -1154,7 +1177,7 @@ def evaluate_contract(
         )
     except Exception as exc:
         _add(checks, "S01P03-FROZEN-SEMANTICS-EVALUATION-FAIL-CLOSED", False, "%s: %s" % (type(exc).__name__, exc))
-    _check_p04_not_started(root, checks)
+    _check_successor_progression(root, checks)
     if require_external_reports:
         _check_runtime_reports(root, fixture, checks, hashes)
     return _build_result(checks, hashes)

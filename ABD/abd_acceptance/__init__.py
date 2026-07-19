@@ -66,6 +66,16 @@ from .requirements_scope import (
     resolve_trace_default,
     write_phase_evidence as write_requirements_scope_phase_evidence,
 )
+from .metrics_economics import (
+    build_evidence as build_metrics_economics_evidence,
+    classify_target_evidence,
+    evaluate_contract as evaluate_metrics_economics_contract,
+    perform_rollback_drill as perform_metrics_economics_rollback_drill,
+    resolve_incremental_cost_gate,
+    resolve_kill_default,
+    resolve_roi_default,
+    write_phase_evidence as write_metrics_economics_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -115,4 +125,12 @@ __all__ = [
     "resolve_stability_default",
     "resolve_trace_default",
     "write_requirements_scope_phase_evidence",
+    "build_metrics_economics_evidence",
+    "classify_target_evidence",
+    "evaluate_metrics_economics_contract",
+    "perform_metrics_economics_rollback_drill",
+    "resolve_incremental_cost_gate",
+    "resolve_kill_default",
+    "resolve_roi_default",
+    "write_metrics_economics_phase_evidence",
 ]

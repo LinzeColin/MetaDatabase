@@ -1,5 +1,5 @@
 {
-  "file_count": 138,
+  "file_count": 148,
   "files": [
     {
       "bytes": 105,
@@ -27,14 +27,14 @@
       "sha256": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
     },
     {
-      "bytes": 4322,
+      "bytes": 5032,
       "path": "abd_acceptance/__init__.py",
-      "sha256": "cf10408ca6b2301fbc22fb04de2c2c57ccbc719a7837ee41fa5f7b003c15b8a5"
+      "sha256": "b5d5a0a7db79a43290e66e648faa25463a1ef6c0d705a4574bc541ff0058df8d"
     },
     {
-      "bytes": 3459,
+      "bytes": 3615,
       "path": "abd_acceptance/__main__.py",
-      "sha256": "dc7eb1acd41df5c701d24e903316483b6c0feaf566e8184ae77946994ad8d2e9"
+      "sha256": "196ce055faaa756475877cb8b9d8afaf2f2a3e7e478040cf350d45bcc41236fd"
     },
     {
       "bytes": 32758,
@@ -72,9 +72,14 @@
       "sha256": "8f7de8ec78b945b7eda0f968a39cd495345f9c9bdda38aaffa5e3875839c06a4"
     },
     {
-      "bytes": 66613,
+      "bytes": 77111,
+      "path": "abd_acceptance/metrics_economics.py",
+      "sha256": "502117bd67c855d98d84e8022133d3cc5a114901bea7fba90fb0cd6249eee57b"
+    },
+    {
+      "bytes": 67952,
       "path": "abd_acceptance/requirements_scope.py",
-      "sha256": "1ca03fbe37341e1183cbe2be28d0e434938f99d02c4a0b1faf709e7d499d93ef"
+      "sha256": "868e6f9020223f813b83260692e048177a60bcaf7c7842a5183d1ac2fae98688"
     },
     {
       "bytes": 49034,
@@ -105,6 +110,16 @@
       "bytes": 2609,
       "path": "customer_press_release.md",
       "sha256": "8cd88a4d4cd0dc6fe4735f8c0400fdd05ccab001afdbe9a09aec57a683f950ab"
+    },
+    {
+      "bytes": 10578,
+      "path": "economics.json",
+      "sha256": "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28"
+    },
+    {
+      "bytes": 18690,
+      "path": "kill_criteria.json",
+      "sha256": "d60f87a2ca5f6f68dd3d44e9c5a56e11cb8c5104ade77b21c65c5165464fb968"
     },
     {
       "bytes": 8531,
@@ -185,6 +200,16 @@
       "bytes": 2754,
       "path": "machine/evidence/EVD-S01-P03_rollback.json",
       "sha256": "237b2ecf3f70be28f86e6be7967c98f0c99e0fce07d57f6ce3162b1dc2ecdf7d"
+    },
+    {
+      "bytes": 79383,
+      "path": "machine/evidence/EVD-S01-P04.json",
+      "sha256": "1cabeb21a1e66a493968dbf5828530a332661fe6679691be74a8d9c8759f3d21"
+    },
+    {
+      "bytes": 2747,
+      "path": "machine/evidence/EVD-S01-P04_rollback.json",
+      "sha256": "01110b6604bf6411347311b41b98cadfbc170a7ecfc89e9b0414c8690e452240"
     },
     {
       "bytes": 1981,
@@ -277,9 +302,19 @@
       "sha256": "5c43b7eab85aca07d391c05d6803ea6b1572a0b927672536c26417c0c21ee597"
     },
     {
-      "bytes": 25177,
+      "bytes": 110789,
+      "path": "machine/evidence/S01/P04/full_regression.xml",
+      "sha256": "7737847d9949a53e15c45d1ebb509f0ec41af154bc705befb56f6221349dc949"
+    },
+    {
+      "bytes": 22240,
+      "path": "machine/evidence/S01/P04/pytest.xml",
+      "sha256": "c8fe00c9a9131bb1781e9c174fbf16048a5a8a9bfd0fd649ff8e894e09ef2aa3"
+    },
+    {
+      "bytes": 25407,
       "path": "machine/evidence/evidence_index.jsonl",
-      "sha256": "41eb12c72bc320aad1127f2d710573dbc09a2be9ce7691868578096153882ad0"
+      "sha256": "b03e24a56e7181649db27073632ede598ee709ce544b442d4f8a416ef2f5a0e6"
     },
     {
       "bytes": 1120,
@@ -537,6 +572,11 @@
       "sha256": "cc077019262accae8982f4892f9b7752c88926db675b433ef47f14d173d94761"
     },
     {
+      "bytes": 10632,
+      "path": "machine/tests/fixtures/S01_P04.json",
+      "sha256": "a07f5614df986fbd9f797015fb880bf6402d95fafdcf6443b676a3037e791aad"
+    },
+    {
       "bytes": 1705,
       "path": "machine/tests/fixtures/email_security_vectors.json",
       "sha256": "92aacc77257dc3420769c19944076eb70079b8e1cf4187af83b89dc351c5b254"
@@ -575,6 +615,11 @@
       "bytes": 14111,
       "path": "machine/tools/validate_pack.py",
       "sha256": "8c2dc4f74112077ba7b7af0c53c53a4671ff7c85058e3715bc5d457994c6b660"
+    },
+    {
+      "bytes": 28990,
+      "path": "metrics.json",
+      "sha256": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c"
     },
     {
       "bytes": 357,
@@ -637,9 +682,14 @@
       "sha256": "26ce7f51983e3cac004b5bbe46ce07f4247401bb9647cd9cfd953b6cf9d364e6"
     },
     {
-      "bytes": 21010,
+      "bytes": 21079,
       "path": "tests/S01/P03_test.py",
-      "sha256": "36d15a2587d33577bbde85af9af3c1ee426f11f09dcf4e83a0ab55a64f835909"
+      "sha256": "700ee2268cf3d448ffbac235dd3002d47e9d1c4e053c717b49da9b3973800b5a"
+    },
+    {
+      "bytes": 25554,
+      "path": "tests/S01/P04_test.py",
+      "sha256": "9beb5268b9f710369f8d034b1dd935ce60d532494e526742eadf3ccb64341a93"
     },
     {
       "bytes": 32,

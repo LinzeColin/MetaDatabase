@@ -1,0 +1,140 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S01-P04-02",
+  "requirement_id": "REQ-S01-P04",
+  "acceptance_contract_id": "AC-S01-P04",
+  "product_version": "0.0.0.1",
+  "fixed_at": "2026-07-19T00:00:00+10:00",
+  "currency": "AUD",
+  "status": "ECONOMICS_CONTRACT_REALIZED_BENEFIT_AND_TOTAL_COST_UNVERIFIED",
+  "source_bindings": {
+    "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+    "business_flows.json": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+    "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+    "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+    "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+    "metrics.json": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
+    "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+    "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+  },
+  "economic_semantics": {
+    "incremental_cash_cost": "因 ABD 0.0.0.1 新增且在既有承诺之外实际产生的现金支出",
+    "existing_committed_cost": "ABD 本阶段前已持有或承担的资源成本，不得改写成零",
+    "opportunity_cost": "开发、维护和人工最终下单时间的经济价值，披露但不计入 A$0 新增现金门",
+    "bankroll_principal": "A$300 是受风险合同约束的交易本金，不是开发或基础设施预算",
+    "benefit": "只有经相应证据成熟度证明的现金或非现金结果，不含目标曲线、回测或建议账本的伪装值",
+    "target_curve_is_forecast": false,
+    "total_system_cost_is_zero": false,
+    "return_guaranteed": false
+  },
+  "cost_envelope": {
+    "incremental_cash_budget_aud": {"low": "0.00", "likely": "0.00", "high": "0.00", "status": "HARD_MAXIMUM_NOT_TOTAL_COST"},
+    "current_phase_incremental_cash_spent_aud": "0.00",
+    "program_actual_incremental_cash_cost_aud": {"value": null, "status": "EXTERNAL_BILLING_AND_FUTURE_COMMITMENTS_UNVERIFIED", "unknown_action": "BLOCK_AFFECTED_CAPABILITY"},
+    "existing_recurring_cash_cost_aud": {"low": null, "likely": null, "high": null, "status": "UNKNOWN_ACCOUNT_SPECIFIC_NO_ACCOUNT_BILLING_INSPECTED"},
+    "development_effort_hours": {"low": 240, "likely": 320, "high": 480, "status": "TASKPACK_ESTIMATE_NOT_ACTUAL_HOURS"},
+    "cost_categories_that_must_not_be_hidden": [
+      "A$300 bankroll principal",
+      "existing OVH Cloudflare GitHub Gmail or other account costs",
+      "development and maintenance labour",
+      "owner final-order and reconciliation time",
+      "opportunity cost",
+      "market losses or drawdowns"
+    ],
+    "source_evidence": [{"path": "machine/facts/costs.json", "pointers": ["/cost_semantics", "/incremental_cash_budget", "/incremental_cash_gate", "/development_effort_hours"]}]
+  },
+  "opportunity_cost_sensitivity": {
+    "basis": "development_effort_hours multiplied by illustrative hourly value; not a cash commitment or invoice",
+    "scenarios": [
+      {"hourly_value_aud": "30.00", "low_aud": "7200.00", "likely_aud": "9600.00", "high_aud": "14400.00"},
+      {"hourly_value_aud": "50.00", "low_aud": "12000.00", "likely_aud": "16000.00", "high_aud": "24000.00"},
+      {"hourly_value_aud": "100.00", "low_aud": "24000.00", "likely_aud": "32000.00", "high_aud": "48000.00"},
+      {"hourly_value_aud": "150.00", "low_aud": "36000.00", "likely_aud": "48000.00", "high_aud": "72000.00"}
+    ],
+    "status": "SENSITIVITY_ONLY_NOT_OWNER_TIME_VALUATION",
+    "source_evidence": [{"path": "machine/facts/costs.json", "pointers": ["/opportunity_cost_sensitivity"]}]
+  },
+  "benefit_envelope": {
+    "realized_cash_benefit_aud": {"low": null, "likely": null, "high": null, "status": "NOT_ESTIMABLE_NO_ACTUAL_EXECUTION_AND_RECONCILIATION_EVIDENCE", "null_is_not_zero": true},
+    "realized_return": {"value": null, "status": "UNVERIFIED", "advice_or_shadow_performance_may_substitute": false},
+    "loss_possible": true,
+    "loss_range_aud": {"low": null, "likely": null, "high": null, "status": "NOT_ESTIMABLE_NO_EMPIRICAL_DISTRIBUTION_OR_ACTUAL_LEDGER"},
+    "non_cash_benefits": [
+      {"id": "BEN-NC-001", "name": "全范围市场可观测与缺口治理", "measurement_metric_ids": ["MET-S01-P04-004", "MET-S01-P04-005"], "monetized_value_aud": null},
+      {"id": "BEN-NC-002", "name": "可复用概率、风险和证据平台", "measurement_metric_ids": ["MET-S01-P04-008", "MET-S01-P04-017", "MET-S01-P04-018", "MET-S01-P04-020"], "monetized_value_aud": null},
+      {"id": "BEN-NC-003", "name": "中文单动作决策体验", "measurement_metric_ids": ["MET-S01-P04-001", "MET-S01-P04-002", "MET-S01-P04-003"], "monetized_value_aud": null},
+      {"id": "BEN-NC-004", "name": "邮件与附件自动证据归档", "measurement_metric_ids": [], "monetized_value_aud": null, "status": "OPTIONAL_GMAIL_MODULE_NOT_CONNECTED_OR_IMPLEMENTED"},
+      {"id": "BEN-NC-005", "name": "长期模型与运行审计", "measurement_metric_ids": ["MET-S01-P04-009", "MET-S01-P04-010", "MET-S01-P04-011", "MET-S01-P04-012", "MET-S01-P04-013", "MET-S01-P04-014", "MET-S01-P04-015", "MET-S01-P04-016", "MET-S01-P04-023"], "monetized_value_aud": null}
+    ],
+    "source_evidence": [{"path": "machine/facts/costs.json", "pointers": ["/benefit_model"]}, {"path": "machine/facts/canonical_facts.json", "pointers": ["/truth_and_evidence/advice_ledger_separate_from_actual_ledger", "/truth_and_evidence/actual_return_requires_verified_execution_evidence"]}]
+  },
+  "target_curve_contract": {
+    "initial_bankroll_aud": "300.00",
+    "formula": "B_n = 300 * 1.3^n",
+    "monthly_target_return": "0.30",
+    "monthly_target_log_growth": "0.26236426446749106",
+    "current_status": "UNVERIFIED_FALSIFIABLE_TARGET",
+    "confidence": "LOW_UNTIL_EMPIRICAL_EVIDENCE",
+    "is_cash_benefit_forecast": false,
+    "is_expected_value_estimate": false,
+    "is_guarantee": false,
+    "may_be_used_as_roi_numerator": false,
+    "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+    "classification_metric_ids": ["MET-S01-P04-024", "MET-S01-P04-025", "MET-S01-P04-026", "MET-S01-P04-027"],
+    "source_evidence": [{"path": "machine/facts/canonical_facts.json", "pointers": ["/product/target_curve", "/product/monthly_target_return", "/product/initial_bankroll_aud"]}, {"path": "machine/facts/parameters.json", "pointers": ["/target_30pct"]}]
+  },
+  "roi_contract": {
+    "current_status": "NOT_COMPUTABLE_WITHOUT_VERIFIED_BENEFIT_AND_COMPLETE_COST_LEDGER",
+    "formula": "(verified_realized_cash_benefit - complete_total_economic_cost) / complete_total_economic_cost",
+    "numerator_aud": null,
+    "denominator_aud": null,
+    "roi": null,
+    "payback_period": null,
+    "net_present_value": null,
+    "division_by_zero_or_unknown_allowed": false,
+    "target_curve_or_shadow_result_allowed_as_verified_benefit": false,
+    "minimum_evidence_maturity": "VERIFIED_ACTUAL_EXECUTION_AND_RECONCILIATION",
+    "unknown_default": "DO_NOT_REPORT_ROI"
+  },
+  "capacity_and_feasibility_contract": {
+    "current_status": "UNVERIFIED",
+    "cash_budget_feasible": "CONDITIONAL_ONLY_IF_EVERY_INCREMENTAL_COST_REMAINS_EXACTLY_0.00",
+    "technical_capacity_feasible": "UNVERIFIED_NO_LIVE_SOURCE_HOST_PLATFORM_LIMIT_OR_OPPORTUNITY_COHORT",
+    "target_economic_feasibility": "UNVERIFIED",
+    "minimum_plausibility_evidence": {"complete_days": 90, "independent_equivalent_signals": 1000, "capacity_pass": true},
+    "falsification_evidence": {"complete_calendar_months": 6, "independent_equivalent_signals": 1000, "monthly_return_95pct_upper_bound_below": "0.30"},
+    "verification_evidence": {"complete_calendar_months": 12, "cashflow_adjusted_geometric_monthly_return_min": "0.30", "complete_evidence": true, "unresolved_reconciliation_differences": 0},
+    "on_shortfall": "REPORT_ONLY_NO_CHASE_LOSS_NO_GATE_RELAXATION"
+  },
+  "decision_rules": [
+    {"id": "ECO-DEC-001", "condition": "incremental cash cost is positive or unknown", "action": "BLOCK_AFFECTED_CAPABILITY", "never": "AUTO_PURCHASE_UPGRADE_OR_OVERAGE"},
+    {"id": "ECO-DEC-002", "condition": "realized benefit or complete total cost is unknown", "action": "DO_NOT_REPORT_ROI", "never": "SUBSTITUTE_TARGET_CURVE_OR_ZERO_DENOMINATOR"},
+    {"id": "ECO-DEC-003", "condition": "only advice backtest or shadow evidence exists", "action": "REPORT_EVIDENCE_CLASS_SEPARATELY", "never": "CLAIM_ACTUAL_RETURN"},
+    {"id": "ECO-DEC-004", "condition": "30 percent target is behind", "action": "REPORT_SHORTFALL_OR_MARK_FALSIFIED", "never": "CHASE_LOSS_OR_RELAX_EVIDENCE_NUMERIC_RISK_SAFETY_SOURCE_GATE"},
+    {"id": "ECO-DEC-005", "condition": "existing resource capacity or free terms are stale unknown or insufficient", "action": "DEGRADE_OR_BLOCK_RELEASE", "never": "AUTO_UPGRADE_TO_PAID_SERVICE"}
+  ],
+  "explicit_unknowns": [
+    "No OVH Cloudflare GitHub Gmail betting account invoice plan quota or capacity was inspected in S01/P04.",
+    "No empirical opportunity count edge calibration closing-price advantage return loss or capacity distribution exists in this phase.",
+    "No actual order execution cashflow result or reconciliation evidence exists in this phase.",
+    "The value of owner development maintenance and final-order time is not known; listed hourly values are sensitivity scenarios only.",
+    "The 30 percent monthly target is unverified falsifiable and not guaranteed."
+  ],
+  "s01_p04_execution_boundary": {
+    "economic_model_is_empirical_forecast": false,
+    "roi_computed_or_claimed": false,
+    "external_billing_or_account_inspected": false,
+    "external_account_or_api_accessed": false,
+    "production_deployed": false,
+    "real_order_submitted": false,
+    "incremental_cash_spent_aud": "0.00",
+    "actual_return_or_guarantee_claimed": false,
+    "stage_review_started": false
+  },
+  "next_on_acceptance_pass": "S01/STAGE_REVIEW_READY_NOT_STARTED"
+}
