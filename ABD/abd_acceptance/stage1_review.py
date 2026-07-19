@@ -720,6 +720,7 @@ def _check_security_budget_progression_and_readme(
         s02_p02 = [row for row in index_rows if row.get("id") == "INDEX-AC-S02-P02"]
         s02_p03 = [row for row in index_rows if row.get("id") == "INDEX-AC-S02-P03"]
         s02_p04 = [row for row in index_rows if row.get("id") == "INDEX-AC-S02-P04"]
+        s02_review = [row for row in index_rows if row.get("id") == "INDEX-S02-STAGE-REVIEW"]
         s02_evidence = sorted(path.name for path in (root / "machine/evidence").glob("EVD-S02-*.json"))
         delivery = verify_stage0_delivery(root, verify_git_history=verify_history)
         prestart_ok = (
@@ -822,6 +823,40 @@ def _check_security_budget_progression_and_readme(
                 and successor.get("next") == "S02/STAGE_REVIEW_READY_NOT_STARTED"
             )
             successor_mode = "VERIFIED_S02_P04_SUCCESSOR_STAGE_REVIEW_NOT_STARTED"
+        elif s02_evidence == [
+            "EVD-S02-P01.json",
+            "EVD-S02-P01_rollback.json",
+            "EVD-S02-P02.json",
+            "EVD-S02-P02_rollback.json",
+            "EVD-S02-P03.json",
+            "EVD-S02-P03_rollback.json",
+            "EVD-S02-P04.json",
+            "EVD-S02-P04_rollback.json",
+            "EVD-S02-STAGE-REVIEW.json",
+            "EVD-S02-STAGE-REVIEW_rollback.json",
+        ]:
+            from .stage2_review import verify_existing_stage_review_evidence
+
+            successor = verify_existing_stage_review_evidence(
+                root,
+                verify_phase_prerequisites=False,
+            )
+            successor_status = successor.get("status", "FAIL")
+            successor_ok = (
+                len(s02) == 1
+                and s02[0].get("status") == "PASS"
+                and len(s02_p02) == 1
+                and s02_p02[0].get("status") == "PASS"
+                and len(s02_p03) == 1
+                and s02_p03[0].get("status") == "PASS"
+                and len(s02_p04) == 1
+                and s02_p04[0].get("status") == "PASS"
+                and len(s02_review) == 1
+                and s02_review[0].get("status") == "PASS"
+                and successor_status == "PASS"
+                and successor.get("next") == "S02/GITHUB_STAGE_UPLOAD_READY"
+            )
+            successor_mode = "VERIFIED_S02_WHOLE_STAGE_REVIEW_SUCCESSOR_UPLOAD_READY"
         elif s02_evidence:
             successor_status = "UNRECOGNIZED_S02_SUCCESSOR_SET"
             successor_ok = False

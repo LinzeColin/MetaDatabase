@@ -48,8 +48,8 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S02/P02_test.py",
 }
 SUCCESSOR_EVOLVED_TEST_HASHES = {
-    "tests/S02/P01_test.py": "d4cc3d730675415e856804a9dea484c24af40e5708d932843fc83e8870e8c1d0",
-    "tests/S02/P02_test.py": "9c0bc31325e145f9da2a205746906baeab2acc9a07764f426e4ba4ae88ec3083",
+    "tests/S02/P01_test.py": "28868c63503b7e98f0c9761cdc92c70cb1053e2c957d196925f8d577abffce00",
+    "tests/S02/P02_test.py": "dcafa1f4120415cf0d191f69654c58392bece7dcfb86e8e698d436ae1f2f68bd",
 }
 
 P01_EVIDENCE_SHA256 = "9b9dc18e33a04847135e021ecfb53dcf9aefde94fb503ec59f114b4b4871eaec"

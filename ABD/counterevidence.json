@@ -215,10 +215,43 @@
       "safe_default": "ALL_OPEN_GAPS_REMAIN_NON_PASS",
       "gap_ids": ["GAP-S02-P04-025"],
       "review_ids": ["REV-S02-P04-001", "REV-S02-P04-011"]
+    },
+    {
+      "id": "CE-S02-P04-020",
+      "proposition": "官方监管规则、平台条款或账户产品存在即可证明当前持有人满足司法辖区、年龄、居留、KYC、自我排除和提供商资格要求。",
+      "verdict": "REFUTED_BY_MISSING_OWNER_SPECIFIC_ELIGIBILITY_EVIDENCE",
+      "evidence_refs": [{"artifact": "regulatory_matrix.json", "ids": ["REG-002", "REG-004", "REG-005"]}, {"artifact": "research_gaps.json", "ids": ["GAP-S02-P04-001"]}],
+      "implication": "一般规则和产品存在不构成当前持有人资格证明；未取得持有人主动授权和可审计资格证据时不得接入提供商或给出投注建议。",
+      "safe_default": "NO_PROVIDER_INTERACTION_NO_RECOMMENDATION",
+      "gap_ids": ["GAP-S02-P04-001"],
+      "review_ids": ["REV-S02-P04-002", "REV-S02-P04-003", "REV-S02-P04-012"]
+    },
+    {
+      "id": "CE-S02-P04-021",
+      "proposition": "固定夹具中的 ±0.0001 与不利赔率一跳测试通过即可证明未来生产实现、运行时和跨语言数值路径完全等价。",
+      "verdict": "REFUTED_BY_ABSENT_PRODUCTION_EQUIVALENCE_REPLAY",
+      "evidence_refs": [{"artifact": "model_claims.json", "ids": ["CLM-S02-P02-008"]}, {"artifact": "research_gaps.json", "ids": ["GAP-S02-P04-013"]}],
+      "implication": "本地边界合同只能证明当前验收函数；生产等价十进制定点、双实现和相同输入动作哈希尚未重放。",
+      "safe_default": "NO_RECOMMENDATION_ON_ANY_ACTION_FLIP",
+      "gap_ids": ["GAP-S02-P04-013"],
+      "review_ids": ["REV-S02-P04-008"]
+    },
+    {
+      "id": "CE-S02-P04-022",
+      "proposition": "P01 的监管与隐私一手来源研究构成对当前持有人、使用方式或公开多用户发布的法律意见、合规认证或持续适用性保证。",
+      "verdict": "REFUTED_BY_RESEARCH_BASELINE_AND_APPLICABILITY_BOUNDARY",
+      "evidence_refs": [{"artifact": "regulatory_matrix.json", "ids": ["REG-001", "REG-002", "REG-003", "REG-004", "REG-005", "REG-007"]}, {"artifact": "research_gaps.json", "ids": ["GAP-S02-P04-026"]}],
+      "implication": "研究只提供保守设计基线；具体持有人、数据流、司法辖区和发布方式变化仍需当前适用性判断，必要时取得合格专业审查。",
+      "safe_default": "APPLY_STRICTER_SAFE_BASELINE_AND_DISABLE_AFFECTED_CAPABILITY",
+      "gap_ids": ["GAP-S02-P04-026"],
+      "review_ids": ["REV-S02-P04-002", "REV-S02-P04-012"]
     }
   ],
   "summary": {
-    "counterevidence_record_count": 19,
+    "counterevidence_record_count": 22,
+    "registered_gap_count": 26,
+    "gap_with_counterevidence_count": 26,
+    "gap_without_counterevidence_count": 0,
     "records_without_evidence_refs": 0,
     "records_without_gap_routes": 0,
     "records_without_safe_defaults": 0,

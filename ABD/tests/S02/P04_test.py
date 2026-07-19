@@ -137,6 +137,12 @@ def test_every_counterevidence_record_has_local_evidence_and_fail_closed_routes(
     assert all(ref["artifact"] and ref["ids"] for ref in record["evidence_refs"])
 
 
+@pytest.mark.parametrize("gap_id", FIXTURE["expected_gap_ids"])
+def test_every_registered_gap_has_direct_counterevidence(gap_id: str) -> None:
+    artifact = strict_json_load(ROOT / COUNTEREVIDENCE_PATH)
+    assert any(gap_id in record["gap_ids"] for record in artifact["records"])
+
+
 @pytest.mark.parametrize("review_id", FIXTURE["expected_review_ids"])
 def test_every_review_route_is_registered_but_not_executed(review_id: str) -> None:
     artifact = strict_json_load(ROOT / REVIEW_SCHEDULE_PATH)
@@ -330,9 +336,10 @@ def test_gap_disposition_rejects_unknown_enums_types_and_unfrozen_numeric_inputs
         ("PRODUCTION_OR_RETURN_CLAIM", "S02P04-NO-EXTERNAL-EFFECT-ALL-ARTIFACTS"),
         ("ABSOLUTE_LOCAL_PATH_PRESENT", "S02P04-NO-ABSOLUTE-LOCAL-PATH"),
         ("BINARY_FLOAT_PRESENT", "S02P04-NO-BINARY-FLOAT-IN-AUTHORITATIVE-ARTIFACTS"),
+        ("COUNTEREVIDENCE_GAP_COVERAGE_MISSING", "S02P04-COUNTER-ALL-GAPS-COVERED"),
     ],
 )
-def test_all_25_frozen_fault_mutations_fail_closed(tmp_path: Path, mutation: str, expected_check: str) -> None:
+def test_all_frozen_fault_mutations_fail_closed(tmp_path: Path, mutation: str, expected_check: str) -> None:
     assert mutation in FIXTURE["fault_mutations"]
     project = _clone_project(tmp_path)
     gaps_path = project / GAPS_PATH
@@ -384,14 +391,16 @@ def test_all_25_frozen_fault_mutations_fail_closed(tmp_path: Path, mutation: str
         else:
             value["coverage_summary"]["silent_gap_count"] = 0.0
         _write_json(gaps_path, value)
-    elif mutation in {"COUNTEREVIDENCE_WITHOUT_LOCAL_REF", "COUNTEREVIDENCE_UNKNOWN_GAP", "PRODUCTION_OR_RETURN_CLAIM"}:
+    elif mutation in {"COUNTEREVIDENCE_WITHOUT_LOCAL_REF", "COUNTEREVIDENCE_UNKNOWN_GAP", "PRODUCTION_OR_RETURN_CLAIM", "COUNTEREVIDENCE_GAP_COVERAGE_MISSING"}:
         value = strict_json_load(counter_path)
         if mutation == "COUNTEREVIDENCE_WITHOUT_LOCAL_REF":
             value["records"][0]["evidence_refs"] = []
         elif mutation == "COUNTEREVIDENCE_UNKNOWN_GAP":
             value["records"][0]["gap_ids"] = ["GAP-NOT-REGISTERED"]
-        else:
+        elif mutation == "PRODUCTION_OR_RETURN_CLAIM":
             value["external_effect_boundary"]["return_or_guarantee_claimed"] = True
+        else:
+            _row(value["records"], "CE-S02-P04-020")["gap_ids"] = ["GAP-S02-P04-002"]
         _write_json(counter_path, value)
     elif mutation in {"REVIEW_UNKNOWN_GAP", "REVIEW_MARKED_EXECUTED", "ABSOLUTE_DATE_NOT_SOURCE_BOUND"}:
         value = strict_json_load(review_path)
@@ -611,10 +620,15 @@ def test_registration_review_routes_and_stage_readiness_do_not_resolve_any_gap()
     assert counter["summary"]["thirty_percent_target_verified_or_guaranteed"] is False
 
 
-def test_p04_receipt_paths_are_reserved_and_stage2_review_is_absent() -> None:
+def test_p04_receipt_paths_are_reserved_and_exact_stage2_review_candidate_is_unsigned() -> None:
     assert TEST_PATH.as_posix() == "tests/S02/P04_test.py"
     assert EVIDENCE_PATH.as_posix() == "machine/evidence/EVD-S02-P04.json"
     assert ROLLBACK_EVIDENCE_PATH.as_posix() == "machine/evidence/EVD-S02-P04_rollback.json"
-    assert not (ROOT / "machine/facts/stage2_review_contract.json").exists()
-    assert not (ROOT / "abd_acceptance/stage2_review.py").exists()
-    assert not (ROOT / "tests/S02/stage_review_test.py").exists()
+    assert (ROOT / "machine/facts/stage2_review_contract.json").is_file()
+    assert (ROOT / "machine/evidence/S02/STAGE_REVIEW/findings.json").is_file()
+    assert (ROOT / "machine/tests/fixtures/S02_STAGE_REVIEW.json").is_file()
+    assert (ROOT / "abd_acceptance/stage2_review.py").is_file()
+    assert (ROOT / "tests/S02/stage_review_test.py").is_file()
+    assert (ROOT / "machine/evidence/EVD-S02-STAGE-REVIEW.json").exists() is (
+        ROOT / "machine/evidence/EVD-S02-STAGE-REVIEW_rollback.json"
+    ).exists()

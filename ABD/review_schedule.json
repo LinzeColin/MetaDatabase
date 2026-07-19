@@ -10,7 +10,7 @@
   "status": "FROZEN_REVIEW_ROUTES_NOT_EXECUTED",
   "artifact_bindings": {
     "research_gaps.json": "2c1e1b4b0bbc18859e985066953d72bb60fe08e5d0592da802bf0afd0916bd35",
-    "counterevidence.json": "8ad25a9c5df1e935b23a7bfd901e593be85eaa0920183c644114cebaf17415fd",
+    "counterevidence.json": "2cbc2eb289d3278bc106778e4e11e755f8cb1681a0c3e74d619317023d63cae8",
     "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
     "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
   },
@@ -213,7 +213,7 @@
     "registered_gap_count": 26,
     "gap_without_any_review_route_count": 0,
     "gap_without_non_stage_review_route_count": 0,
-    "counterevidence_record_count": 19,
+    "counterevidence_record_count": 22,
     "counterevidence_without_review_route_count": 0,
     "absolute_revalidation_date": "2026-10-19",
     "absolute_date_source_bound": true,

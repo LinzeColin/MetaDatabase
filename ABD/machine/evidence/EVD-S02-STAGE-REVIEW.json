@@ -1,0 +1,959 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S02/stage_review_test.py --junitxml=machine/evidence/S02/STAGE_REVIEW/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/STAGE_REVIEW/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S02/STAGE_REVIEW/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/STAGE_REVIEW/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract STAGE-REVIEW-S02 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "STAGE-REVIEW-S02",
+  "decision": "S02_WHOLE_STAGE_REVIEW_PASS",
+  "decision_sha256": "33de29cbc731325035b34d45086a455433248c7c3978835b1cfd95356327af64",
+  "evidence_id": "EVD-S02-STAGE-REVIEW",
+  "explicit_unknowns": [
+    "GitHub Actions has not run on this candidate before the authorized Stage 2 upload.",
+    "No TAB, Gmail, OVH, Cloudflare, betting-platform or cloud account, credential, quota, billing or production runtime was accessed by this review.",
+    "No network research, package installation, repository clone, model execution, backtest, production deployment, live recommendation or real order was performed.",
+    "All 26 research gaps remain open and non-pass; registration, counterevidence and review routing do not resolve them.",
+    "A$300*1.3^n remains an unverified falsifiable target, not a random-return guarantee."
+  ],
+  "external_effect_boundary": {
+    "external_account_or_api_accessed": false,
+    "github_upload_performed_by_local_review": false,
+    "model_or_strategy_executed": false,
+    "network_research_performed_by_local_review": false,
+    "production_deployment_claimed": false,
+    "real_order_capability_present": false,
+    "remote_ci_result_claimed_by_local_review": false,
+    "return_or_roi_verified": false,
+    "s03_started": false,
+    "secret_provisioned": false
+  },
+  "fixed_clock": "2026-07-20T00:00:00+10:00",
+  "hashes": {
+    "code": "e1406d67aceb49ff9f2e64b84ce08a02a4a2c24ecd39d2388b5285a1fecf713e",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "README.md": "8527722187aaa5c93d115fa284822728e0e9845dd3940710a67ddefb240c91f7",
+      "abd_acceptance/__init__.py": "e0f97b6bfbe26f568df57d603a37da0a498e23541eef8cbe2d63019e9976464a",
+      "abd_acceptance/__main__.py": "80bb55dc4e833261b08e11cff30c148c83aeb4042bb48f20ca036be8bf27ada9",
+      "abd_acceptance/stage2_review.py": "eae6721d87f169cd38f9e2877a2a1b5dd0a87d53e04cab86e4f7339e190b7f12",
+      "counterevidence.json": "2cbc2eb289d3278bc106778e4e11e755f8cb1681a0c3e74d619317023d63cae8",
+      "license_inventory.json": "b09ce2ae8e60ba91d3c436f4116b032c772a19902cfebdcc9f37027c53393379",
+      "machine/evidence/EVD-S02-P01.json": "9b9dc18e33a04847135e021ecfb53dcf9aefde94fb503ec59f114b4b4871eaec",
+      "machine/evidence/EVD-S02-P01_rollback.json": "538b25f45a99e1c550914a8c5cb4e338339f9a6a6874a32af2ae330323e0652d",
+      "machine/evidence/EVD-S02-P02.json": "0fc89eaba4a1afa7630f92ad79cecbb073ba5303bca6ea2f534f2267b4bb5623",
+      "machine/evidence/EVD-S02-P02_rollback.json": "873ad2b164ef3280f5f5e7ef6ce0ce68d3bf64ea0cdf8c2ca43901088dbd7feb",
+      "machine/evidence/EVD-S02-P03.json": "5e920362b7ef4070c4507e8707ab749c0863ad76f76f61c0ecefeae8a2f4626a",
+      "machine/evidence/EVD-S02-P03_rollback.json": "f2d2201f4e9c2e202afdc1242e4f15e516684ac4e3fbc698ca255afc62503ee0",
+      "machine/evidence/EVD-S02-P04.json": "062d4bf5cfbc5e63c3fb454874a8f6a10cbaa67ad84c8ea9fc77fe64b81f633f",
+      "machine/evidence/EVD-S02-P04_rollback.json": "b0ddb46f32a13dbfdba02efd96f319ea590ea16e6ad4ad267fa1eb0e611a0674",
+      "machine/evidence/S02/STAGE_REVIEW/findings.json": "67237a340447dcd2f651e0fb8f152389ad48be442439ac082cdeb32fae917840",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/provider_contracts.json": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/stage2_review_contract.json": "06db1c9fbc93257ab232f46988860f191aa8efa4c7623e5243ce2a031a441730",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S02_STAGE_REVIEW.json": "f356340ebc9db6907569b1a6b6cbbb308466f7cabd7b4920b61e1078eabd93fa",
+      "machine/tools/normalize_junit.py": "1eb281a41ad1b8028dfc14a1a777460416255d5d3d4211bd2e7894b112c2016a",
+      "machine/tools/scan_paid_dependencies.py": "9117aac3fe6dcda6e16d7b6bd1eb42d3d188818de1012073846b9be41619a1aa",
+      "machine/tools/update_artifact_manifest.py": "2b96d5ad6212e1081f6efabf94a3fb01372555053d9feeaa963c7be8fed2fd0c",
+      "machine/tools/validate_pack.py": "8c2dc4f74112077ba7b7af0c53c53a4671ff7c85058e3715bc5d457994c6b660",
+      "model_claims.json": "66bb20b471a218008b29df81cac77b03c55557b9d07f26b6ef37d0cea7eccd4c",
+      "provider_facts_snapshot.json": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+      "regulatory_matrix.json": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+      "research_evidence_matrix.json": "5a5dc1a9bbbde177f065f4725df5e7f86f763a43a2530671b2b946135c8f2709",
+      "research_gaps.json": "2c1e1b4b0bbc18859e985066953d72bb60fe08e5d0592da802bf0afd0916bd35",
+      "research_reuse_matrix.json": "e5d049c5e4049195f537cce7b27cc8713269d211f55ce4840c10fdf67feac0e8",
+      "review_schedule.json": "6987822fa590d31dc10d0f92f787e94098b82fa9a3a40ed328c840aa45f552ea",
+      "sources.json": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
+      "tests/S02/stage_review_test.py": "22e42b006d006fab592cbb75af57c6e5d574d8850f53bd8e20830feb5c9c380e"
+    },
+    "model": null,
+    "model_not_applicable_reason": "Stage 2 review validates research contracts and evidence graphs; no prediction model or strategy was executed.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "d0f9815ee7c483df7a8d5a3747fe5c5e6c0506062e6be4751580c876a195f867"
+  },
+  "next": "S02/GITHUB_STAGE_UPLOAD_READY",
+  "phase_completion": {
+    "counterevidence_count": 22,
+    "gap_count": 26,
+    "model_claim_count": 14,
+    "paper_count": 8,
+    "phase_count": 4,
+    "phase_evidence_status": "PASS",
+    "phase_ids": [
+      "P01",
+      "P02",
+      "P03",
+      "P04"
+    ],
+    "provider_fact_count": 23,
+    "regulatory_rule_count": 9,
+    "reuse_project_count": 6,
+    "review_route_count": 12,
+    "source_count": 24,
+    "task_count": 12
+  },
+  "release_status": "NOT_READY",
+  "review_findings": {
+    "open": 0,
+    "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true,
+    "resolved_in_review_candidate": 4,
+    "total": 4
+  },
+  "review_id": "ABD-S02-WHOLE-STAGE-REVIEW",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S02-STAGE-REVIEW_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "source_receipts": [
+    {
+      "artifact_label": "ABD_Roadmap_Stage_Phase_v0.0.0.1.md",
+      "repository_equivalent": "machine/evidence/roadmap_stage_phase.md",
+      "repository_equivalent_required": true,
+      "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+    },
+    {
+      "artifact_label": "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip",
+      "original_file_count": 53,
+      "repository_equivalent": null,
+      "repository_equivalent_required": false,
+      "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+      "verification_boundary": "LOCAL_OWNER_SUPPLIED_ARCHIVE_RECEIPT; CI verifies pinned critical files, not the absent ZIP"
+    }
+  ],
+  "stage_goal": "冻结官方平台、监管、模型风险论文、开源复用、研究缺口、反证与复审路线；不把研究写成账户授权、生产能力或收益证明。",
+  "stage_id": "S02",
+  "stage_status": "S02_REVIEW_PASS_REMOTE_UPLOAD_PENDING",
+  "status": "PASS",
+  "upload_gate": {
+    "github_upload_performed_by_review": false,
+    "local_preconditions_status": "PASS",
+    "remote_ci_status": "NOT_YET_OBSERVED_REQUIRES_STAGE_UPLOAD",
+    "remote_result_must_be_verified_before_s03": true
+  },
+  "validation": {
+    "checks": [
+      {
+        "detail": "stage2_review_contract.json",
+        "id": "S02REVIEW-INPUT-CONTRACT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "findings.json",
+        "id": "S02REVIEW-INPUT-FINDINGS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "S02_STAGE_REVIEW.json",
+        "id": "S02REVIEW-INPUT-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "roadmap.json",
+        "id": "S02REVIEW-INPUT-ROADMAP-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S02REVIEW-INPUT-REQUIREMENTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "acceptance_contracts.json",
+        "id": "S02REVIEW-INPUT-ACCEPTANCE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "task_graph.json",
+        "id": "S02REVIEW-INPUT-TASK-GRAPH-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "traceability_matrix.json",
+        "id": "S02REVIEW-INPUT-TRACEABILITY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "authorization_matrix.json",
+        "id": "S02REVIEW-INPUT-AUTHORIZATION-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "canonical_facts.json",
+        "id": "S02REVIEW-INPUT-CANONICAL-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "parameters.json",
+        "id": "S02REVIEW-INPUT-PARAMETERS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "costs.json",
+        "id": "S02REVIEW-INPUT-COSTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "provider_contracts.json",
+        "id": "S02REVIEW-INPUT-PROVIDER-CONTRACTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "sources.json",
+        "id": "S02REVIEW-INPUT-SOURCES-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "provider_facts_snapshot.json",
+        "id": "S02REVIEW-INPUT-PROVIDER-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "regulatory_matrix.json",
+        "id": "S02REVIEW-INPUT-REGULATORY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "research_evidence_matrix.json",
+        "id": "S02REVIEW-INPUT-PAPERS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "model_claims.json",
+        "id": "S02REVIEW-INPUT-CLAIMS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "research_reuse_matrix.json",
+        "id": "S02REVIEW-INPUT-REUSE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "license_inventory.json",
+        "id": "S02REVIEW-INPUT-LICENSES-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "research_gaps.json",
+        "id": "S02REVIEW-INPUT-GAPS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "counterevidence.json",
+        "id": "S02REVIEW-INPUT-COUNTER-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "review_schedule.json",
+        "id": "S02REVIEW-INPUT-SCHEDULE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "06db1c9fbc93257ab232f46988860f191aa8efa4c7623e5243ce2a031a441730",
+          "expected": "06db1c9fbc93257ab232f46988860f191aa8efa4c7623e5243ce2a031a441730"
+        },
+        "id": "S02REVIEW-PIN-STAGE2_REVIEW_CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "67237a340447dcd2f651e0fb8f152389ad48be442439ac082cdeb32fae917840",
+          "expected": "67237a340447dcd2f651e0fb8f152389ad48be442439ac082cdeb32fae917840"
+        },
+        "id": "S02REVIEW-PIN-FINDINGS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f356340ebc9db6907569b1a6b6cbbb308466f7cabd7b4920b61e1078eabd93fa",
+          "expected": "f356340ebc9db6907569b1a6b6cbbb308466f7cabd7b4920b61e1078eabd93fa"
+        },
+        "id": "S02REVIEW-PIN-S02_STAGE_REVIEW",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S02REVIEW-PIN-CI-WORKFLOW",
+        "passed": true
+      },
+      {
+        "detail": "all parsed",
+        "id": "S02REVIEW-INPUTS-STRUCTURALLY-AVAILABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_ids": [
+            "AC-S02-P01",
+            "AC-S02-P02",
+            "AC-S02-P03",
+            "AC-S02-P04"
+          ],
+          "phase_ids": [
+            "P01",
+            "P02",
+            "P03",
+            "P04"
+          ],
+          "requirement_ids": [
+            "REQ-S02-P01",
+            "REQ-S02-P02",
+            "REQ-S02-P03",
+            "REQ-S02-P04"
+          ],
+          "task_ids": [
+            "T-S02-P01-01",
+            "T-S02-P01-02",
+            "T-S02-P01-03",
+            "T-S02-P02-01",
+            "T-S02-P02-02",
+            "T-S02-P02-03",
+            "T-S02-P03-01",
+            "T-S02-P03-02",
+            "T-S02-P03-03",
+            "T-S02-P04-01",
+            "T-S02-P04-02",
+            "T-S02-P04-03"
+          ]
+        },
+        "id": "S02REVIEW-CONTRACT-SCOPE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip": {
+            "artifact_label": "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip",
+            "original_file_count": 53,
+            "repository_equivalent": null,
+            "repository_equivalent_required": false,
+            "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+            "verification_boundary": "LOCAL_OWNER_SUPPLIED_ARCHIVE_RECEIPT; CI verifies pinned critical files, not the absent ZIP"
+          },
+          "ABD_Roadmap_Stage_Phase_v0.0.0.1.md": {
+            "artifact_label": "ABD_Roadmap_Stage_Phase_v0.0.0.1.md",
+            "repository_equivalent": "machine/evidence/roadmap_stage_phase.md",
+            "repository_equivalent_required": true,
+            "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+          }
+        },
+        "id": "S02REVIEW-SUPPLIED-SOURCE-RECEIPTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "authorization": "CONDITIONALLY_PREAUTHORIZED",
+          "auto_advance_after_success": true,
+          "capability_status": "AVAILABLE_IF_REMOTE_AUTHENTICATED",
+          "cash_cost_aud": "0.00",
+          "effect": "WRITE_EXTERNAL_REVERSIBLE",
+          "evidence_required": [
+            "STAGE_REVIEW_REPORT",
+            "TEST_REPORT",
+            "COMMIT_SHA",
+            "REMOTE_RESULT"
+          ],
+          "external_state_change": true,
+          "id": "GITHUB_STAGE_UPLOAD",
+          "name_zh": "整个 Stage 复审修复后上传 GitHub",
+          "on_precondition_failure": "KEEP_COMMITS_LOCAL_CONTINUE_STAGE_REMEDIATION",
+          "preconditions": [
+            "ALL_STAGE_PHASES_PASS",
+            "WHOLE_STAGE_REVIEW_PASS",
+            "ALL_REVIEW_FINDINGS_RESOLVED",
+            "FULL_STAGE_REGRESSION_PASS",
+            "SECRET_SCAN_PASS",
+            "CLEAN_WORKTREE",
+            "NO_INCREMENTAL_CASH_COST"
+          ],
+          "reversibility": "FOLLOW_UP_COMMIT_OR_PR_REVERT"
+        },
+        "id": "S02REVIEW-GITHUB-UPLOAD-AUTHORIZATION-ALIGNED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_account_or_api_accessed": false,
+          "github_upload_performed_by_local_review": false,
+          "model_or_strategy_executed": false,
+          "network_research_performed_by_local_review": false,
+          "production_deployment_claimed": false,
+          "real_order_capability_present": false,
+          "remote_ci_result_claimed_by_local_review": false,
+          "return_or_roi_verified": false,
+          "s03_started": false,
+          "secret_provisioned": false
+        },
+        "id": "S02REVIEW-LOCAL-EXTERNAL-EFFECT-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "PURSUE_GOAL_PROMPT.txt",
+          "VERSION",
+          "counterevidence.json",
+          "license_inventory.json",
+          "machine/evidence/S01/STAGE_REVIEW/github_delivery_receipt.json",
+          "machine/facts/acceptance_contracts.json",
+          "machine/facts/authorization_matrix.json",
+          "machine/facts/canonical_facts.json",
+          "machine/facts/costs.json",
+          "machine/facts/dependency_budget.lock",
+          "machine/facts/parameters.json",
+          "machine/facts/provider_contracts.json",
+          "machine/facts/requirements.json",
+          "machine/facts/roadmap.json",
+          "machine/facts/task_graph.json",
+          "machine/facts/traceability_matrix.json",
+          "model_claims.json",
+          "provider_facts_snapshot.json",
+          "regulatory_matrix.json",
+          "research_evidence_matrix.json",
+          "research_gaps.json",
+          "research_reuse_matrix.json",
+          "review_schedule.json",
+          "sources.json"
+        ],
+        "id": "S02REVIEW-BASELINE-CRITICAL-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "depends_on": [
+            "S00"
+          ],
+          "goal": "只研究与ABD直接相关的官方文档、论文和开源项目，明确采用、适配、拒绝和许可证。",
+          "id": "S02",
+          "phases": [
+            {
+              "hours": {
+                "high": 6,
+                "likely": 4,
+                "low": 3
+              },
+              "id": "P01",
+              "objective": "固化TAB、Sportsbet、Gmail、Cloudflare、OVH及监管事实。",
+              "outputs": [
+                "sources.json",
+                "provider_facts_snapshot.json",
+                "regulatory_matrix.json"
+              ],
+              "pass_gate": "每个事实有URL、检索日期和来源等级。",
+              "title": "官方平台与监管调研"
+            },
+            {
+              "hours": {
+                "high": 6,
+                "likely": 4,
+                "low": 3
+              },
+              "id": "P02",
+              "objective": "固化市场先验、校准、不建议区域、异常值和受限凯利证据。",
+              "outputs": [
+                "research_evidence_matrix.json",
+                "model_claims.json"
+              ],
+              "pass_gate": "每个模型设计主张可回溯论文。",
+              "title": "模型与风险论文调研"
+            },
+            {
+              "hours": {
+                "high": 6,
+                "likely": 4,
+                "low": 3
+              },
+              "id": "P03",
+              "objective": "审计flumine、penaltyblog、OddsHarvester及相关只读项目。",
+              "outputs": [
+                "research_reuse_matrix.json",
+                "license_inventory.json"
+              ],
+              "pass_gate": "每个项目有采用/适配/拒绝和许可证裁定。",
+              "title": "开源项目复用审计"
+            },
+            {
+              "hours": {
+                "high": 6,
+                "likely": 4,
+                "low": 3
+              },
+              "id": "P04",
+              "objective": "记录未覆盖区域、反例、低置信结论和复查周期。",
+              "outputs": [
+                "research_gaps.json",
+                "counterevidence.json",
+                "review_schedule.json"
+              ],
+              "pass_gate": "不宣称穷尽互联网；静默研究缺口为零。",
+              "title": "调研缺口与反证"
+            }
+          ],
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_conditions": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "title": "公开网络与 GitHub 调研复用"
+        },
+        "id": "S02REVIEW-ROADMAP-STAGE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance": 4,
+          "requirements": 4,
+          "tasks": 12,
+          "traces": 4
+        },
+        "id": "S02REVIEW-REQ-AC-TASK-TRACE-SETS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "all aligned",
+        "id": "S02REVIEW-SEMANTIC-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "tasks": 12
+        },
+        "id": "S02REVIEW-TASK-CHAIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "phases": 4
+        },
+        "id": "S02REVIEW-PHASE-EVIDENCE-ROLLBACK-INDEX",
+        "passed": true
+      },
+      {
+        "detail": [
+          "51598c991eb97f51b3c533dd88e438188094ec60",
+          "07304376c661ef178f8fa433e4bd58ed50e7c40b",
+          "6fd05aefc6a5f8269909504d36e1907da336628c",
+          "d8577c4fabdfe646dd5293a3f6e0f09afa2b1843"
+        ],
+        "id": "S02REVIEW-HISTORICAL-CODE-AND-COMMIT-SCOPE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "P01": {
+            "checks": 88,
+            "failed": 0,
+            "next": "S02/P02_READY_NOT_STARTED",
+            "status": "PASS"
+          },
+          "P02": {
+            "checks": 90,
+            "failed": 0,
+            "next": "S02/P03_READY_NOT_STARTED",
+            "status": "PASS"
+          },
+          "P03": {
+            "checks": 93,
+            "failed": 0,
+            "next": "S02/P04_READY_NOT_STARTED",
+            "status": "PASS"
+          },
+          "P04": {
+            "checks": 108,
+            "failed": 0,
+            "next": "S02/STAGE_REVIEW_READY_NOT_STARTED",
+            "status": "PASS"
+          }
+        },
+        "id": "S02REVIEW-ALL-PHASE-ORACLES-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "counterevidence": 22,
+          "gaps": 26,
+          "licenses": 6,
+          "model_claims": 14,
+          "papers": 8,
+          "provider_facts": 23,
+          "regulatory_rules": 9,
+          "reuse": 6,
+          "reviews": 12,
+          "sources": 24,
+          "thresholds": 18
+        },
+        "id": "S02REVIEW-RESEARCH-ID-SETS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "facts": 23,
+          "rules": 9
+        },
+        "id": "S02REVIEW-OFFICIAL-FACT-RULE-SOURCE-CITATIONS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "claims": 14,
+          "papers": 8
+        },
+        "id": "S02REVIEW-PAPER-CLAIM-RECIPROCAL-GRAPH",
+        "passed": true
+      },
+      {
+        "detail": [
+          "SRC-013",
+          "SRC-014",
+          "SRC-015",
+          "SRC-016",
+          "SRC-017",
+          "SRC-018"
+        ],
+        "id": "S02REVIEW-REUSE-LICENSE-BIJECTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected": 71,
+          "references": 71
+        },
+        "id": "S02REVIEW-ALL-GAP-SOURCE-REFS-RESOLVE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "counterevidence": 22,
+          "gaps": 26,
+          "reviews": 12
+        },
+        "id": "S02REVIEW-ALL-26-GAPS-SAFE-COUNTER-REVIEW-ROUTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "counter": {
+            "counterevidence_record_count": 22,
+            "gap_with_counterevidence_count": 26,
+            "gap_without_counterevidence_count": 0,
+            "production_or_return_claims_supported": 0,
+            "records_without_evidence_refs": 0,
+            "records_without_gap_routes": 0,
+            "records_without_review_routes": 0,
+            "records_without_safe_defaults": 0,
+            "registered_gap_count": 26,
+            "thirty_percent_target_verified_or_guaranteed": false,
+            "universal_impossibility_claims": 0
+          },
+          "gaps": {
+            "all_open_gaps_remain_non_pass": true,
+            "gap_without_review_route_count": 0,
+            "gap_without_safe_default_count": 0,
+            "internet_or_literature_exhaustive_claimed": false,
+            "local_threshold_count": 18,
+            "model_claim_count": 14,
+            "open_gap_count": 26,
+            "provider_unknown_fact_count": 9,
+            "receipt_unknown_count": 22,
+            "registered_gap_count": 26,
+            "regulatory_rule_count": 9,
+            "resolved_gap_count": 0,
+            "reuse_project_count": 6,
+            "reuse_unknown_item_count": 18,
+            "runtime_prerequisite_count": 7,
+            "silent_gap_count": 0,
+            "unrouted_obligation_count": 0
+          },
+          "review": {
+            "absolute_date_source_bound": true,
+            "absolute_revalidation_date": "2026-10-19",
+            "counterevidence_record_count": 22,
+            "counterevidence_without_review_route_count": 0,
+            "current_phase_reviews_executed": 0,
+            "gap_without_any_review_route_count": 0,
+            "gap_without_non_stage_review_route_count": 0,
+            "overdue_review_may_pass": false,
+            "registered_gap_count": 26,
+            "review_count": 12,
+            "stage2_review_started": false
+          }
+        },
+        "id": "S02REVIEW-GAP-COUNTER-REVIEW-SUMMARIES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "product": {
+            "id": "ABD",
+            "incremental_cash_budget_aud": "0.00",
+            "initial_bankroll_aud": "300.00",
+            "language": "zh-CN",
+            "monthly_target_return": "0.30",
+            "name_zh": "全天候投注决策辅助系统",
+            "owner": "单一账户持有人",
+            "primary_goal": "在不降低证据、风险、安全与合规门槛的前提下，分析全部可观察市场并追求 A$300×1.3^n 的月度滚动复利目标。",
+            "status": "FINAL_ACCEPTANCE_DELIVERY",
+            "target_curve": "B_n = 300 * (1.3 ** n)",
+            "version": "0.0.0.1"
+          },
+          "real_order": {
+            "authorization": "PROHIBITED",
+            "auto_advance_after_success": false,
+            "capability_status": "MODULE_MUST_NOT_EXIST",
+            "cash_cost_aud": "UNBOUNDED_REAL_MONEY",
+            "effect": "REAL_MONEY_IRREVERSIBLE",
+            "evidence_required": [
+              "PROHIBITION_TEST"
+            ],
+            "external_state_change": true,
+            "id": "REAL_ORDER_SUBMISSION",
+            "name_zh": "系统提交真实订单",
+            "on_precondition_failure": "REJECT_AND_PAUSE_OUT_OF_SCOPE",
+            "preconditions": [],
+            "reversibility": "NONE",
+            "violation_pause_reason_code": "OUT_OF_AUTHORIZED_SCOPE"
+          },
+          "scope": {
+            "discovery_scope": "ALL_OBSERVABLE_MARKETS",
+            "free_data_api_required": false,
+            "market_time_scope": [
+              "PREMATCH",
+              "FUTURES",
+              "LIVE_WHEN_SOURCE_FRESHNESS_AND_ACTION_CHANNEL_ARE_VERIFIED"
+            ],
+            "normal_owner_action": "FINAL_ORDER_ONLY",
+            "order_submission_module_present": false,
+            "paid_data_api_required": false,
+            "product_role": "ANALYSIS_AND_ADVICE_ONLY",
+            "providers": "DYNAMIC_SELECTION_BY_EXECUTABLE_VALUE_AND_RULES",
+            "recommendation_scope": "EVIDENCE_GATED"
+          }
+        },
+        "id": "S02REVIEW-A300-A0-ADVICE-ONLY-NO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "authenticated_observer": {
+            "default": "OFF",
+            "failure": "DISABLE_SESSION_AND_ALERT",
+            "mode": "AUTHENTICATED_OBSERVER",
+            "name_zh": "只读登录观察",
+            "requirements": [
+              "用户明确配置",
+              "秘密加密",
+              "最小权限",
+              "来源合同允许",
+              "无订单能力"
+            ]
+          },
+          "providers": 3
+        },
+        "id": "S02REVIEW-PROVIDER-CONTRACTS-PRESENT-UNVERIFIED-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "all stage boundaries false",
+        "id": "S02REVIEW-NO-RUNTIME-ACCOUNT-MODEL-DEPLOY-ORDER-RETURN-EFFECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "S00": "PASS",
+          "S01": "PASS"
+        },
+        "id": "S02REVIEW-PREDECESSOR-STAGE-DELIVERIES-VERIFIED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_s03": [],
+          "review_route": "PLANNED_OR_SIGNED_PASS",
+          "s03": [
+            "PLANNED",
+            "PLANNED",
+            "PLANNED",
+            "PLANNED"
+          ]
+        },
+        "id": "S02REVIEW-S03-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "open": 0,
+          "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true,
+          "resolved_in_review_candidate": 4,
+          "total": 4
+        },
+        "id": "S02REVIEW-FINDINGS-ALL-RESOLVED",
+        "passed": true
+      },
+      {
+        "detail": "workflow, CLI, package and README",
+        "id": "S02REVIEW-INTEGRATION-FILES-AVAILABLE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
+          "ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "11f9893b081a58869d3b5fccaea48c9e9e46f990"
+        ],
+        "id": "S02REVIEW-CI-SUPPLY-CHAIN-PINS",
+        "passed": true
+      },
+      {
+        "detail": "all required commands present",
+        "id": "S02REVIEW-ABD-UBUNTU-CI-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cli": true,
+          "test": true
+        },
+        "id": "S02REVIEW-CLI-TEST-README-REPLAY-ROUTED",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S02REVIEW-SECRET-AND-LOCAL-PATH-SCAN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 200,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 339
+        },
+        "id": "S02REVIEW-TEST-TARGETED-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 1950,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 2154
+        },
+        "id": "S02REVIEW-TEST-FULL-REGRESSION-PASS",
+        "passed": true
+      },
+      {
+        "detail": "validation_report.json",
+        "id": "S02REVIEW-PACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S02REVIEW-TASKPACK-49-GATES-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S00/P03/paid_dependency_scan.txt",
+        "id": "S02REVIEW-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "STAGE-REVIEW-S02",
+    "decision": "S02_WHOLE_STAGE_REVIEW_PASS",
+    "fixed_clock": "2026-07-20T00:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "counterevidence.json": "2cbc2eb289d3278bc106778e4e11e755f8cb1681a0c3e74d619317023d63cae8",
+      "license_inventory.json": "b09ce2ae8e60ba91d3c436f4116b032c772a19902cfebdcc9f37027c53393379",
+      "machine/evidence/EVD-S02-P01.json": "9b9dc18e33a04847135e021ecfb53dcf9aefde94fb503ec59f114b4b4871eaec",
+      "machine/evidence/EVD-S02-P01_rollback.json": "538b25f45a99e1c550914a8c5cb4e338339f9a6a6874a32af2ae330323e0652d",
+      "machine/evidence/EVD-S02-P02.json": "0fc89eaba4a1afa7630f92ad79cecbb073ba5303bca6ea2f534f2267b4bb5623",
+      "machine/evidence/EVD-S02-P02_rollback.json": "873ad2b164ef3280f5f5e7ef6ce0ce68d3bf64ea0cdf8c2ca43901088dbd7feb",
+      "machine/evidence/EVD-S02-P03.json": "5e920362b7ef4070c4507e8707ab749c0863ad76f76f61c0ecefeae8a2f4626a",
+      "machine/evidence/EVD-S02-P03_rollback.json": "f2d2201f4e9c2e202afdc1242e4f15e516684ac4e3fbc698ca255afc62503ee0",
+      "machine/evidence/EVD-S02-P04.json": "062d4bf5cfbc5e63c3fb454874a8f6a10cbaa67ad84c8ea9fc77fe64b81f633f",
+      "machine/evidence/EVD-S02-P04_rollback.json": "b0ddb46f32a13dbfdba02efd96f319ea590ea16e6ad4ad267fa1eb0e611a0674",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S01/STAGE_REVIEW/github_delivery_receipt.json": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde",
+      "machine/evidence/S02/STAGE_REVIEW/findings.json": "67237a340447dcd2f651e0fb8f152389ad48be442439ac082cdeb32fae917840",
+      "machine/evidence/S02/STAGE_REVIEW/full_regression.xml": "9ffd49dbca601ef2fb98e0185e7a993788ea1bbd94cc86538cee54dd0c950423",
+      "machine/evidence/S02/STAGE_REVIEW/pytest.xml": "6c0c40bbc6c52c2205e815691a54e0afd90aba092821d6022cc86e3ddbd94ff3",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/dependency_budget.lock": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/provider_contracts.json": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/stage2_review_contract.json": "06db1c9fbc93257ab232f46988860f191aa8efa4c7623e5243ce2a031a441730",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S02_STAGE_REVIEW.json": "f356340ebc9db6907569b1a6b6cbbb308466f7cabd7b4920b61e1078eabd93fa",
+      "model_claims.json": "66bb20b471a218008b29df81cac77b03c55557b9d07f26b6ef37d0cea7eccd4c",
+      "provider_facts_snapshot.json": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+      "regulatory_matrix.json": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+      "research_evidence_matrix.json": "5a5dc1a9bbbde177f065f4725df5e7f86f763a43a2530671b2b946135c8f2709",
+      "research_gaps.json": "2c1e1b4b0bbc18859e985066953d72bb60fe08e5d0592da802bf0afd0916bd35",
+      "research_reuse_matrix.json": "e5d049c5e4049195f537cce7b27cc8713269d211f55ce4840c10fdf67feac0e8",
+      "review_schedule.json": "6987822fa590d31dc10d0f92f787e94098b82fa9a3a40ed328c840aa45f552ea",
+      "sources.json": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966"
+    },
+    "next": "S02/GITHUB_STAGE_UPLOAD_READY",
+    "release_status": "NOT_READY",
+    "remote_ci_status": "NOT_YET_OBSERVED_REQUIRES_STAGE_UPLOAD",
+    "review_id": "ABD-S02-WHOLE-STAGE-REVIEW",
+    "schema_version": "1.0.0",
+    "stage_id": "S02",
+    "stage_status": "S02_REVIEW_PASS_REMOTE_UPLOAD_PENDING",
+    "status": "PASS",
+    "summary": {
+      "checks": 63,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 63
+    },
+    "version": "0.0.0.1"
+  }
+}

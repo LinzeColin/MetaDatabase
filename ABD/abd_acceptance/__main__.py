@@ -20,6 +20,7 @@ from .official_platform_research import write_phase_evidence as write_official_p
 from .model_risk_research import write_phase_evidence as write_model_risk_research_phase_evidence
 from .open_source_reuse import write_phase_evidence as write_open_source_reuse_phase_evidence
 from .research_gap_audit import write_phase_evidence as write_research_gap_audit_phase_evidence
+from .stage2_review import verify_existing_stage_review_evidence, write_stage2_review_evidence
 
 
 def main() -> int:
@@ -44,6 +45,7 @@ def main() -> int:
         existing_verifiers = {
             "STAGE-REVIEW-S00": cli_verify_stage0_delivery,
             "STAGE-REVIEW-S01": cli_verify_stage1_delivery,
+            "STAGE-REVIEW-S02": verify_existing_stage_review_evidence,
         }
         if args.verify_existing not in existing_verifiers:
             parser.error("existing evidence verifier is not implemented: %s" % args.verify_existing)
@@ -78,6 +80,7 @@ def main() -> int:
         "AC-S02-P02": write_model_risk_research_phase_evidence,
         "AC-S02-P03": write_open_source_reuse_phase_evidence,
         "AC-S02-P04": write_research_gap_audit_phase_evidence,
+        "STAGE-REVIEW-S02": write_stage2_review_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

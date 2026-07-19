@@ -1,0 +1,182 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "stage_id": "S02",
+  "review_id": "ABD-S02-WHOLE-STAGE-REVIEW",
+  "fixed_at": "2026-07-20T00:00:00+10:00",
+  "review_scope": {
+    "phase_ids": ["P01", "P02", "P03", "P04"],
+    "requirement_ids": ["REQ-S02-P01", "REQ-S02-P02", "REQ-S02-P03", "REQ-S02-P04"],
+    "acceptance_contract_ids": ["AC-S02-P01", "AC-S02-P02", "AC-S02-P03", "AC-S02-P04"],
+    "task_ids": [
+      "T-S02-P01-01", "T-S02-P01-02", "T-S02-P01-03",
+      "T-S02-P02-01", "T-S02-P02-02", "T-S02-P02-03",
+      "T-S02-P03-01", "T-S02-P03-02", "T-S02-P03-03",
+      "T-S02-P04-01", "T-S02-P04-02", "T-S02-P04-03"
+    ]
+  },
+  "supplied_source_receipts": [
+    {
+      "artifact_label": "ABD_Roadmap_Stage_Phase_v0.0.0.1.md",
+      "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "repository_equivalent": "machine/evidence/roadmap_stage_phase.md",
+      "repository_equivalent_required": true
+    },
+    {
+      "artifact_label": "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip",
+      "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+      "original_file_count": 53,
+      "repository_equivalent": null,
+      "repository_equivalent_required": false,
+      "verification_boundary": "LOCAL_OWNER_SUPPLIED_ARCHIVE_RECEIPT; CI verifies pinned critical files, not the absent ZIP"
+    }
+  ],
+  "baseline_critical_artifacts": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "sources.json": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
+    "provider_facts_snapshot.json": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+    "regulatory_matrix.json": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+    "research_evidence_matrix.json": "5a5dc1a9bbbde177f065f4725df5e7f86f763a43a2530671b2b946135c8f2709",
+    "model_claims.json": "66bb20b471a218008b29df81cac77b03c55557b9d07f26b6ef37d0cea7eccd4c",
+    "research_reuse_matrix.json": "e5d049c5e4049195f537cce7b27cc8713269d211f55ce4840c10fdf67feac0e8",
+    "license_inventory.json": "b09ce2ae8e60ba91d3c436f4116b032c772a19902cfebdcc9f37027c53393379",
+    "research_gaps.json": "2c1e1b4b0bbc18859e985066953d72bb60fe08e5d0592da802bf0afd0916bd35",
+    "counterevidence.json": "2cbc2eb289d3278bc106778e4e11e755f8cb1681a0c3e74d619317023d63cae8",
+    "review_schedule.json": "6987822fa590d31dc10d0f92f787e94098b82fa9a3a40ed328c840aa45f552ea",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+    "machine/facts/provider_contracts.json": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+    "machine/facts/dependency_budget.lock": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+    "machine/evidence/S01/STAGE_REVIEW/github_delivery_receipt.json": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "phase_records": [
+    {
+      "phase_id": "P01",
+      "requirement_id": "REQ-S02-P01",
+      "acceptance_contract_id": "AC-S02-P01",
+      "task_ids": ["T-S02-P01-01", "T-S02-P01-02", "T-S02-P01-03"],
+      "evidence_path": "machine/evidence/EVD-S02-P01.json",
+      "evidence_sha256": "9b9dc18e33a04847135e021ecfb53dcf9aefde94fb503ec59f114b4b4871eaec",
+      "rollback_path": "machine/evidence/EVD-S02-P01_rollback.json",
+      "rollback_sha256": "538b25f45a99e1c550914a8c5cb4e338339f9a6a6874a32af2ae330323e0652d",
+      "implementation_commit": "51598c991eb97f51b3c533dd88e438188094ec60",
+      "implementation_code_sha256": "b020d07833ab97f297f81402c07e83be4fe6d9113ff1aec7df50698daf7076be",
+      "expected_next": "S02/P02_READY_NOT_STARTED",
+      "expected_release_status": "NOT_READY",
+      "required_outputs": ["sources.json", "provider_facts_snapshot.json", "regulatory_matrix.json"],
+      "allowed_commit_paths": ["ABD/"]
+    },
+    {
+      "phase_id": "P02",
+      "requirement_id": "REQ-S02-P02",
+      "acceptance_contract_id": "AC-S02-P02",
+      "task_ids": ["T-S02-P02-01", "T-S02-P02-02", "T-S02-P02-03"],
+      "evidence_path": "machine/evidence/EVD-S02-P02.json",
+      "evidence_sha256": "0fc89eaba4a1afa7630f92ad79cecbb073ba5303bca6ea2f534f2267b4bb5623",
+      "rollback_path": "machine/evidence/EVD-S02-P02_rollback.json",
+      "rollback_sha256": "873ad2b164ef3280f5f5e7ef6ce0ce68d3bf64ea0cdf8c2ca43901088dbd7feb",
+      "implementation_commit": "07304376c661ef178f8fa433e4bd58ed50e7c40b",
+      "implementation_code_sha256": "8b98772df0378f239c114ddbd5b1eff43b77386aae20006d1d1470b109ad834e",
+      "expected_next": "S02/P03_READY_NOT_STARTED",
+      "expected_release_status": "NOT_READY",
+      "required_outputs": ["research_evidence_matrix.json", "model_claims.json"],
+      "allowed_commit_paths": ["ABD/"]
+    },
+    {
+      "phase_id": "P03",
+      "requirement_id": "REQ-S02-P03",
+      "acceptance_contract_id": "AC-S02-P03",
+      "task_ids": ["T-S02-P03-01", "T-S02-P03-02", "T-S02-P03-03"],
+      "evidence_path": "machine/evidence/EVD-S02-P03.json",
+      "evidence_sha256": "5e920362b7ef4070c4507e8707ab749c0863ad76f76f61c0ecefeae8a2f4626a",
+      "rollback_path": "machine/evidence/EVD-S02-P03_rollback.json",
+      "rollback_sha256": "f2d2201f4e9c2e202afdc1242e4f15e516684ac4e3fbc698ca255afc62503ee0",
+      "implementation_commit": "6fd05aefc6a5f8269909504d36e1907da336628c",
+      "implementation_code_sha256": "92a071e3f5fff10b834c85d8f9eb0636a01b610a934904b07bdc29a5673c8c7b",
+      "expected_next": "S02/P04_READY_NOT_STARTED",
+      "expected_release_status": "NOT_READY",
+      "required_outputs": ["research_reuse_matrix.json", "license_inventory.json"],
+      "allowed_commit_paths": ["ABD/"]
+    },
+    {
+      "phase_id": "P04",
+      "requirement_id": "REQ-S02-P04",
+      "acceptance_contract_id": "AC-S02-P04",
+      "task_ids": ["T-S02-P04-01", "T-S02-P04-02", "T-S02-P04-03"],
+      "evidence_path": "machine/evidence/EVD-S02-P04.json",
+      "evidence_sha256": "062d4bf5cfbc5e63c3fb454874a8f6a10cbaa67ad84c8ea9fc77fe64b81f633f",
+      "rollback_path": "machine/evidence/EVD-S02-P04_rollback.json",
+      "rollback_sha256": "b0ddb46f32a13dbfdba02efd96f319ea590ea16e6ad4ad267fa1eb0e611a0674",
+      "implementation_commit": "d8577c4fabdfe646dd5293a3f6e0f09afa2b1843",
+      "implementation_code_sha256": "e79af4ae9b7c97c77c79b1b97c8427c3b7ef4124763fc60132b3b84840e96834",
+      "expected_next": "S02/STAGE_REVIEW_READY_NOT_STARTED",
+      "expected_release_status": "NOT_READY_STAGE_REVIEW_REQUIRED",
+      "required_outputs": ["research_gaps.json", "counterevidence.json", "review_schedule.json"],
+      "allowed_commit_paths": ["ABD/"]
+    }
+  ],
+  "review_findings_path": "machine/evidence/S02/STAGE_REVIEW/findings.json",
+  "repository_integration": {
+    "abd_workflow": ".github/workflows/abd-stage0-validation.yml",
+    "stage1_delivery_receipt": "machine/evidence/S01/STAGE_REVIEW/github_delivery_receipt.json",
+    "pinned_actions": {
+      "actions/checkout": "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
+      "actions/setup-python": "ece7cb06caefa5fff74198d8649806c4678c61a1",
+      "astral-sh/setup-uv": "11f9893b081a58869d3b5fccaea48c9e9e46f990"
+    },
+    "uv_version": "0.11.28",
+    "python_version": "3.12",
+    "stage2_review_replayed_by_full_pytest": true,
+    "remote_ci_status_at_local_review": "NOT_YET_OBSERVED_REQUIRES_STAGE_UPLOAD"
+  },
+  "upload_preconditions": [
+    "ALL_STAGE_PHASES_PASS",
+    "WHOLE_STAGE_REVIEW_PASS",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "FULL_STAGE_REGRESSION_PASS",
+    "SECRET_SCAN_PASS",
+    "CLEAN_WORKTREE",
+    "NO_INCREMENTAL_CASH_COST"
+  ],
+  "review_gates": [
+    "SUPPLIED_BASELINE_CRITICAL_HASHES_MATCH",
+    "S02_REQUIREMENT_ACCEPTANCE_TASK_TRACE_EXACT",
+    "P01_TO_P04_EVIDENCE_ROLLBACK_AND_HISTORICAL_INPUT_HASH_CHAIN_PASS",
+    "ALL_FOUR_EXECUTABLE_PHASE_ORACLES_PASS",
+    "PLATFORM_PAPER_REUSE_LICENSE_AND_GAP_SOURCE_GRAPH_COMPLETE",
+    "ALL_26_GAPS_HAVE_SAFE_DEFAULT_DIRECT_COUNTEREVIDENCE_AND_REVIEW_ROUTE",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "ZERO_INCREMENTAL_CASH_NO_ORDER_NO_SECRET_AND_NO_RETURN_CLAIM",
+    "FULL_STAGE_REGRESSION_AND_TASKPACK_VALIDATION_PASS",
+    "ROLLBACK_DRILL_PASS"
+  ],
+  "stage_stop_conditions": [
+    "发现法律、监管或来源合同实质冲突且无安全默认",
+    "需要不可逆操作",
+    "新增现金支出将超过A$0",
+    "严重安全事故或证据完整性失败",
+    "阶段终止条件被触发"
+  ],
+  "external_effect_boundary": {
+    "github_upload_performed_by_local_review": false,
+    "remote_ci_result_claimed_by_local_review": false,
+    "external_account_or_api_accessed": false,
+    "secret_provisioned": false,
+    "network_research_performed_by_local_review": false,
+    "model_or_strategy_executed": false,
+    "production_deployment_claimed": false,
+    "real_order_capability_present": false,
+    "return_or_roi_verified": false,
+    "s03_started": false
+  },
+  "next_on_local_review_pass": "S02/GITHUB_STAGE_UPLOAD_READY",
+  "next_after_verified_remote_upload": "S03/P01_READY_NOT_STARTED"
+}

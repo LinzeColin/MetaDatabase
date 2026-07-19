@@ -678,4 +678,9 @@ def test_p03_evidence_paths_are_reserved_while_validated_p04_candidate_exists() 
     assert (ROOT / "review_schedule.json").exists()
     assert (ROOT / "tests/S02/P04_test.py").exists()
     assert (ROOT / "machine/tests/fixtures/S02_P04.json").exists()
-    assert not (ROOT / "machine/facts/stage2_review_contract.json").exists()
+    assert (ROOT / "machine/facts/stage2_review_contract.json").is_file()
+    assert (ROOT / "abd_acceptance/stage2_review.py").is_file()
+    assert (ROOT / "tests/S02/stage_review_test.py").is_file()
+    assert (ROOT / "machine/evidence/EVD-S02-STAGE-REVIEW.json").exists() is (
+        ROOT / "machine/evidence/EVD-S02-STAGE-REVIEW_rollback.json"
+    ).exists()

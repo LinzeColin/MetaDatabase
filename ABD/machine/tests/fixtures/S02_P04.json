@@ -13,8 +13,8 @@
   ],
   "expected_artifact_hashes": {
     "research_gaps.json": "2c1e1b4b0bbc18859e985066953d72bb60fe08e5d0592da802bf0afd0916bd35",
-    "counterevidence.json": "8ad25a9c5df1e935b23a7bfd901e593be85eaa0920183c644114cebaf17415fd",
-    "review_schedule.json": "c47b6657a08a6092e501108278bf4f9f91cded0fa662e59545964e0203097fad"
+    "counterevidence.json": "2cbc2eb289d3278bc106778e4e11e755f8cb1681a0c3e74d619317023d63cae8",
+    "review_schedule.json": "6987822fa590d31dc10d0f92f787e94098b82fa9a3a40ed328c840aa45f552ea"
   },
   "expected_upstream_hashes": {
     "provider_facts_snapshot.json": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
@@ -80,7 +80,10 @@
     "CE-S02-P04-016",
     "CE-S02-P04-017",
     "CE-S02-P04-018",
-    "CE-S02-P04-019"
+    "CE-S02-P04-019",
+    "CE-S02-P04-020",
+    "CE-S02-P04-021",
+    "CE-S02-P04-022"
   ],
   "expected_review_ids": [
     "REV-S02-P04-001",
@@ -245,7 +248,8 @@
     "INCREMENTAL_CASH_NONZERO",
     "PRODUCTION_OR_RETURN_CLAIM",
     "ABSOLUTE_LOCAL_PATH_PRESENT",
-    "BINARY_FLOAT_PRESENT"
+    "BINARY_FLOAT_PRESENT",
+    "COUNTEREVIDENCE_GAP_COVERAGE_MISSING"
   ],
   "expected_oracle_check_minimum": 95,
   "minimum_targeted_pytest_cases": 150,

@@ -1214,6 +1214,29 @@ def _check_stage_review_not_started(
                     successor_status == "PASS"
                     and successor.get("next") == "S02/STAGE_REVIEW_READY_NOT_STARTED"
                 )
+            elif s02_evidence_names == [
+                "EVD-S02-P01.json",
+                "EVD-S02-P01_rollback.json",
+                "EVD-S02-P02.json",
+                "EVD-S02-P02_rollback.json",
+                "EVD-S02-P03.json",
+                "EVD-S02-P03_rollback.json",
+                "EVD-S02-P04.json",
+                "EVD-S02-P04_rollback.json",
+                "EVD-S02-STAGE-REVIEW.json",
+                "EVD-S02-STAGE-REVIEW_rollback.json",
+            ]:
+                from .stage2_review import verify_existing_stage_review_evidence
+
+                successor = verify_existing_stage_review_evidence(
+                    root,
+                    verify_phase_prerequisites=False,
+                )
+                successor_status = successor.get("status", "FAIL")
+                successor_ok = (
+                    successor_status == "PASS"
+                    and successor.get("next") == "S02/GITHUB_STAGE_UPLOAD_READY"
+                )
             elif s02_evidence_names:
                 successor_status = "UNRECOGNIZED_S02_SUCCESSOR_SET"
                 successor_ok = False

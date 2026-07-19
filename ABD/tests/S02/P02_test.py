@@ -592,4 +592,9 @@ def test_evidence_paths_are_reserved_for_p02_while_p04_progresses_separately() -
     assert (ROOT / "research_gaps.json").exists()
     assert (ROOT / "counterevidence.json").exists()
     assert (ROOT / "review_schedule.json").exists()
-    assert not (ROOT / "machine/facts/stage2_review_contract.json").exists()
+    assert (ROOT / "machine/facts/stage2_review_contract.json").is_file()
+    assert (ROOT / "abd_acceptance/stage2_review.py").is_file()
+    assert (ROOT / "tests/S02/stage_review_test.py").is_file()
+    assert (ROOT / "machine/evidence/EVD-S02-STAGE-REVIEW.json").exists() is (
+        ROOT / "machine/evidence/EVD-S02-STAGE-REVIEW_rollback.json"
+    ).exists()
