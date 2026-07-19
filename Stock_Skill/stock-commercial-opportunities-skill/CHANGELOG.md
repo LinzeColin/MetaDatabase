@@ -2,6 +2,9 @@
 
 ## 3.0.0 — 2026-07-19
 
+- Moved the unchanged v3 source/backup project to the canonical repository path
+  `Stock_Skill/stock-commercial-opportunities-skill/`; the v3 release ZIP and its SHA-256 remain unchanged.
+- Added collection-level agent routing and a machine-validated latest-version registry; v1/v2 remain archive-only.
 - Stable ID changed to `stock-commercial-opportunities`; display name changed to “股票商业机会拆解”。
 - Narrowed the product from generic commercial-opportunity qualification to listed-equity research triage.
 - Added issuer/ticker normalization, beneficiary pathway, exposure attribution, expectations, valuation, catalyst and falsifier gates.

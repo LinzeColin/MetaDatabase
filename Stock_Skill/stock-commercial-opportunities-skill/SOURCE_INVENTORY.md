@@ -1,5 +1,8 @@
 # Source inventory and lineage
 
+Canonical repository path：`Stock_Skill/stock-commercial-opportunities-skill/`。
+The collection index `Stock_Skill/REGISTRY.json` declares `3.0.0` (v3) as current and treats v1/v2 as archive-only; its validator must agree with both `VERSION` files and the release hashes below.
+
 | Version | Artifact | SHA-256 | Role |
 |---|---|---|---|
 | 1.0.0 | `archives/research-high-roi-content_codex-skill-task-pack_v1.0.0.zip` | `73f6934529b401a33271e8bc2f2bf7c89979a2dbb56e92e5abb4e8ff2fc40792` | 原始高 ROI 内容研究任务包 |

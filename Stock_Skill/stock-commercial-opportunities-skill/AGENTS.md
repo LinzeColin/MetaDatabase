@@ -1,5 +1,13 @@
 # stock-commercial-opportunities-skill Agent Contract
 
+## 当前版本真源
+
+- 规范路径：`Stock_Skill/stock-commercial-opportunities-skill/`。
+- 集合级机器索引：`Stock_Skill/REGISTRY.json`；项目版本真源：本目录 `VERSION`。
+- 当前唯一最新版本是 `3.0.0`（v3）。v1/v2 仅为 `archives/` 中的不可变谱系。
+- 回答版本问题或修改版本前，必须从仓库根运行 `python3 Stock_Skill/scripts/validate_registry.py`。
+  未运行、失败或索引与版本文件不一致时，必须返回 `UNKNOWN`，不得自行选择一个版本。
+
 ## 永久边界
 
 - 中文优先；代码、ticker、filing form、API 与错误保留英文。
@@ -11,7 +19,7 @@
 
 ## 修改纪律
 
-1. 先读根 `AGENTS.md`、本文件、`task-pack/CODEX_MASTER_TASK.md`。
+1. 先读根 `AGENTS.md`、`Stock_Skill/AGENTS.md`、本文件、`Stock_Skill/REGISTRY.json` 与 `task-pack/CODEX_MASTER_TASK.md`。
 2. 只在隔离 worktree 修改；MetaDatabase 主树保持 `main` 且干净。
 3. 历史 ZIP 为版本谱系，禁止静默重写；新增版本必须更新 SHA、SOURCE_INVENTORY、CHANGELOG 与 manifest。
 4. 确定性脚本仅 Python 标准库；不得把付费/专有数据固化进 fixture。

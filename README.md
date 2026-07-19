@@ -12,7 +12,7 @@
 | LinzeDatabase | ✅ 已迁入 | 原 CodexProject 中的 MetaDatabase/ 目录（含其内嵌 PFI） |
 | SerenityAlipay | ✅ 已迁入 | 目录名 `Serenity-Alipay` |
 | EEI | ✅ 已迁入 | 商域帝国（Enterprise Ecosystem Intelligence）；自带 CI：`eei-validation` |
-| stock-commercial-opportunities-skill | ✅ 新建 | “股票商业机会拆解”Codex Skill 源码、任务包、版本谱系与恢复证据；未安装运行时 |
+| Stock_Skill/stock-commercial-opportunities-skill | ✅ 3.0.0（v3）当前 | “股票商业机会拆解”Codex Skill 源码、任务包、版本谱系与恢复证据；以 `Stock_Skill/REGISTRY.json` 为机器可读索引，未安装运行时 |
 | PFI | ⏳ 待迁入 | codex 正在开发 |
 | ADP | ⏳ 待迁入 | **原 arxiv-daily-push**；codex 正在开发 |
 
