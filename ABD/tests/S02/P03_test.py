@@ -17,6 +17,7 @@ from abd_acceptance.open_source_reuse import (
     PINNED_PHASE_HASHES,
     REUSE_MATRIX_PATH,
     ROLLBACK_EVIDENCE_PATH,
+    SUCCESSOR_EVOLVED_TEST_HASHES,
     TEST_PATH,
     build_evidence,
     evaluate_contract as _evaluate_contract,
@@ -112,7 +113,12 @@ def test_p02_signed_receipt_is_exact_prerequisite_without_successor_recursion() 
 
 @pytest.mark.parametrize("relative", [REUSE_MATRIX_PATH, LICENSE_INVENTORY_PATH, FIXTURE_PATH, TEST_PATH])
 def test_phase_artifact_hashes_match_oracle_pins(relative: Path) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_PHASE_HASHES[relative.as_posix()]
+    actual = sha256_file(ROOT / relative)
+    if relative == TEST_PATH:
+        assert actual == SUCCESSOR_EVOLVED_TEST_HASHES[relative.as_posix()]
+        assert actual != PINNED_PHASE_HASHES[relative.as_posix()]
+    else:
+        assert actual == PINNED_PHASE_HASHES[relative.as_posix()]
 
 
 @pytest.mark.parametrize("source_id", FIXTURE["expected_project_source_ids"])
@@ -531,7 +537,7 @@ def test_p02_rollback_tamper_breaks_immutable_prerequisite(tmp_path: Path) -> No
         "machine/evidence/EVD-S02-P04_rollback.json",
     ],
 )
-def test_any_p04_artifact_fails_current_phase_guard(tmp_path: Path, relative: str) -> None:
+def test_any_p04_candidate_artifact_tamper_fails_predecessor_guard(tmp_path: Path, relative: str) -> None:
     project = _clone_project(tmp_path)
     path = project / relative
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -539,11 +545,11 @@ def test_any_p04_artifact_fails_current_phase_guard(tmp_path: Path, relative: st
     _failed(evaluate_contract(project), "S02P03-P04-NOT-STARTED")
 
 
-def test_evidence_index_p04_must_remain_planned(tmp_path: Path) -> None:
+def test_evidence_index_p04_tamper_fails_predecessor_guard(tmp_path: Path) -> None:
     project = _clone_project(tmp_path)
     path = project / "machine/evidence/evidence_index.jsonl"
     rows = [json.loads(line) for line in path.read_text(encoding="utf-8-sig").splitlines() if line]
-    _row(rows, "INDEX-AC-S02-P04")["status"] = "PASS"
+    _row(rows, "INDEX-AC-S02-P04")["status"] = "READY"
     path.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows), encoding="utf-8")
     _failed(evaluate_contract(project), "S02P03-P04-NOT-STARTED")
 
@@ -664,8 +670,12 @@ def test_code_license_never_becomes_source_access_or_market_coverage_proof() -> 
     assert any("条款" in item for item in harvester["reject"])
 
 
-def test_p03_evidence_paths_are_reserved_and_p04_remains_absent() -> None:
+def test_p03_evidence_paths_are_reserved_while_validated_p04_candidate_exists() -> None:
     assert EVIDENCE_PATH.as_posix() == "machine/evidence/EVD-S02-P03.json"
     assert ROLLBACK_EVIDENCE_PATH.as_posix() == "machine/evidence/EVD-S02-P03_rollback.json"
-    assert not (ROOT / "machine/evidence/EVD-S02-P04.json").exists()
-    assert not (ROOT / "research_gaps.json").exists()
+    assert (ROOT / "research_gaps.json").exists()
+    assert (ROOT / "counterevidence.json").exists()
+    assert (ROOT / "review_schedule.json").exists()
+    assert (ROOT / "tests/S02/P04_test.py").exists()
+    assert (ROOT / "machine/tests/fixtures/S02_P04.json").exists()
+    assert not (ROOT / "machine/facts/stage2_review_contract.json").exists()

@@ -109,6 +109,14 @@ from .open_source_reuse import (
     verify_existing_phase_evidence as verify_open_source_reuse_evidence,
     write_phase_evidence as write_open_source_reuse_phase_evidence,
 )
+from .research_gap_audit import (
+    build_evidence as build_research_gap_audit_evidence,
+    evaluate_contract as evaluate_research_gap_audit_contract,
+    perform_rollback_drill as perform_research_gap_audit_rollback_drill,
+    resolve_gap_disposition,
+    verify_existing_phase_evidence as verify_research_gap_audit_evidence,
+    write_phase_evidence as write_research_gap_audit_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -191,4 +199,10 @@ __all__ = [
     "resolve_reuse_admission",
     "verify_open_source_reuse_evidence",
     "write_open_source_reuse_phase_evidence",
+    "build_research_gap_audit_evidence",
+    "evaluate_research_gap_audit_contract",
+    "perform_research_gap_audit_rollback_drill",
+    "resolve_gap_disposition",
+    "verify_research_gap_audit_evidence",
+    "write_research_gap_audit_phase_evidence",
 ]

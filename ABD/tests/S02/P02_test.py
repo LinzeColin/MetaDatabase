@@ -584,9 +584,12 @@ def test_artifacts_make_no_training_backtest_account_deployment_order_or_return_
     assert boundary["all_market_coverage_claimed"] is False
 
 
-def test_evidence_paths_are_reserved_for_p02_while_p03_progresses_separately() -> None:
+def test_evidence_paths_are_reserved_for_p02_while_p04_progresses_separately() -> None:
     assert EVIDENCE_PATH.as_posix() == "machine/evidence/EVD-S02-P02.json"
     assert ROLLBACK_EVIDENCE_PATH.as_posix() == "machine/evidence/EVD-S02-P02_rollback.json"
     assert (ROOT / "research_reuse_matrix.json").exists()
     assert (ROOT / "license_inventory.json").exists()
-    assert not (ROOT / "machine/evidence/EVD-S02-P04.json").exists()
+    assert (ROOT / "research_gaps.json").exists()
+    assert (ROOT / "counterevidence.json").exists()
+    assert (ROOT / "review_schedule.json").exists()
+    assert not (ROOT / "machine/facts/stage2_review_contract.json").exists()

@@ -51,6 +51,9 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "abd_acceptance/__init__.py",
     "tests/S02/P01_test.py",
 }
+SUCCESSOR_EVOLVED_TEST_HASHES = {
+    "tests/S02/P01_test.py": "d4cc3d730675415e856804a9dea484c24af40e5708d932843fc83e8870e8c1d0",
+}
 
 PINNED_PHASE_HASHES = {
     SOURCES_PATH.as_posix(): "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
@@ -1066,7 +1069,8 @@ def _historical_file_matches(
     if relative not in SUCCESSOR_EVOLVABLE_SIGNED_INPUTS:
         return False
     if not verify_git_history:
-        return True
+        evolved_test_hash = SUCCESSOR_EVOLVED_TEST_HASHES.get(relative)
+        return evolved_test_hash is None or sha256_file(root / relative) == evolved_test_hash
     if not _phase_commit_is_ancestor(root):
         return False
     result = subprocess.run(

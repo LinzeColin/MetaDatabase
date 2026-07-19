@@ -40,11 +40,16 @@ PHASE_COMMIT = "07304376c661ef178f8fa433e4bd58ed50e7c40b"
 PINNED_PHASE_CODE_HASH = "8b98772df0378f239c114ddbd5b1eff43b77386aae20006d1d1470b109ad834e"
 
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    "abd_acceptance/official_platform_research.py",
     "abd_acceptance/model_risk_research.py",
     "abd_acceptance/__main__.py",
     "abd_acceptance/__init__.py",
     "tests/S02/P01_test.py",
     "tests/S02/P02_test.py",
+}
+SUCCESSOR_EVOLVED_TEST_HASHES = {
+    "tests/S02/P01_test.py": "d4cc3d730675415e856804a9dea484c24af40e5708d932843fc83e8870e8c1d0",
+    "tests/S02/P02_test.py": "9c0bc31325e145f9da2a205746906baeab2acc9a07764f426e4ba4ae88ec3083",
 }
 
 P01_EVIDENCE_SHA256 = "9b9dc18e33a04847135e021ecfb53dcf9aefde94fb503ec59f114b4b4871eaec"
@@ -1262,7 +1267,8 @@ def _historical_file_matches(
     if relative not in SUCCESSOR_EVOLVABLE_SIGNED_INPUTS:
         return False
     if not verify_git_history:
-        return True
+        evolved_test_hash = SUCCESSOR_EVOLVED_TEST_HASHES.get(relative)
+        return evolved_test_hash is None or sha256_file(root / relative) == evolved_test_hash
     if not _phase_commit_is_ancestor(root):
         return False
     result = subprocess.run(

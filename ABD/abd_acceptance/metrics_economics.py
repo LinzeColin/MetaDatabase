@@ -1193,6 +1193,27 @@ def _check_stage_review_not_started(
                 )
                 successor_status = successor.get("status", "FAIL")
                 successor_ok = successor_status == "PASS" and successor.get("next") == "S02/P04_READY_NOT_STARTED"
+            elif s02_evidence_names == [
+                "EVD-S02-P01.json",
+                "EVD-S02-P01_rollback.json",
+                "EVD-S02-P02.json",
+                "EVD-S02-P02_rollback.json",
+                "EVD-S02-P03.json",
+                "EVD-S02-P03_rollback.json",
+                "EVD-S02-P04.json",
+                "EVD-S02-P04_rollback.json",
+            ]:
+                from .research_gap_audit import verify_existing_phase_evidence as verify_p04_evidence
+
+                successor = verify_p04_evidence(
+                    root,
+                    verify_git_history=verify_git_history,
+                )
+                successor_status = successor.get("status", "FAIL")
+                successor_ok = (
+                    successor_status == "PASS"
+                    and successor.get("next") == "S02/STAGE_REVIEW_READY_NOT_STARTED"
+                )
             elif s02_evidence_names:
                 successor_status = "UNRECOGNIZED_S02_SUCCESSOR_SET"
                 successor_ok = False

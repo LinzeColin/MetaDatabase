@@ -1,0 +1,245 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S02-P04-02",
+  "version": "0.0.0.1",
+  "stage_id": "S02",
+  "phase_id": "P04",
+  "requirement_id": "REQ-S02-P04",
+  "acceptance_contract_id": "AC-S02-P04",
+  "as_of": "2026-07-20",
+  "status": "FROZEN_COUNTEREVIDENCE_AND_NON_PROOF_BOUNDARIES",
+  "research_gaps_binding": {
+    "path": "research_gaps.json",
+    "sha256": "2c1e1b4b0bbc18859e985066953d72bb60fe08e5d0592da802bf0afd0916bd35"
+  },
+  "semantics": {
+    "counterevidence_is_universal_impossibility_proof": false,
+    "not_established_is_authorized_or_available": false,
+    "repository_or_paper_self_report_is_abd_runtime_proof": false,
+    "official_document_is_account_or_runtime_proof": false,
+    "research_phase_pass_is_production_or_return_proof": false,
+    "target_curve_is_forecast_or_guarantee": false,
+    "negative_or_limiting_evidence_action": "PRESERVE_GAP_AND_FAIL_CLOSED"
+  },
+  "records": [
+    {
+      "id": "CE-S02-P04-001",
+      "proposition": "P01–P03 的研究验收 PASS 证明 ABD 已部署、已接入账户、已覆盖全部市场或已获得收益。",
+      "verdict": "REFUTED_BY_PHASE_BOUNDARIES",
+      "evidence_refs": [
+        {"artifact": "machine/evidence/EVD-S02-P01.json", "ids": ["EVD-S02-P01"]},
+        {"artifact": "machine/evidence/EVD-S02-P02.json", "ids": ["EVD-S02-P02"]},
+        {"artifact": "machine/evidence/EVD-S02-P03.json", "ids": ["EVD-S02-P03"]}
+      ],
+      "implication": "研究 PASS 只证明冻结事实、论文边界和复用裁定通过；生产、账户、覆盖和收益仍未验证。",
+      "safe_default": "NOT_DEPLOYED_NOT_CONNECTED_RETURN_UNVERIFIED",
+      "gap_ids": ["GAP-S02-P04-005", "GAP-S02-P04-007", "GAP-S02-P04-008", "GAP-S02-P04-009", "GAP-S02-P04-016", "GAP-S02-P04-017"],
+      "review_ids": ["REV-S02-P04-001", "REV-S02-P04-009"]
+    },
+    {
+      "id": "CE-S02-P04-002",
+      "proposition": "TAB 官方文档存在 Web Services 或 Studio 说明即可视为 ABD 已获访问授权。",
+      "verdict": "REFUTED_BY_PROVIDER_PERMISSION_GATE",
+      "evidence_refs": [{"artifact": "provider_facts_snapshot.json", "ids": ["PF-TAB-003", "PF-TAB-004", "PF-TAB-005"]}, {"artifact": "regulatory_matrix.json", "ids": ["REG-008", "REG-009"]}],
+      "implication": "访问是申请制、用途和方法受限，且当前 ABD grant 未知；文档存在不等于授权。",
+      "safe_default": "DISABLE_TAB_SOURCE_AND_ACCOUNT_PATH",
+      "gap_ids": ["GAP-S02-P04-002"],
+      "review_ids": ["REV-S02-P04-002", "REV-S02-P04-003", "REV-S02-P04-007"]
+    },
+    {
+      "id": "CE-S02-P04-003",
+      "proposition": "Sportsbet 提供月度 Activity Statement 即证明允许抓取、API 或账户自动化。",
+      "verdict": "NOT_ESTABLISHED_BY_SCOPED_OFFICIAL_SOURCES",
+      "evidence_refs": [{"artifact": "provider_facts_snapshot.json", "ids": ["PF-SPORTSBET-002", "PF-SPORTSBET-003"]}],
+      "implication": "月度对账证据和实时来源或账户自动化是不同能力；后者仍无许可证据。",
+      "safe_default": "NO_SCRAPING_AUTOMATION_OR_API_USE",
+      "gap_ids": ["GAP-S02-P04-003"],
+      "review_ids": ["REV-S02-P04-002", "REV-S02-P04-003", "REV-S02-P04-007"]
+    },
+    {
+      "id": "CE-S02-P04-004",
+      "proposition": "Gmail API 方法和 restricted scope 文档存在即证明 consent、verification 与 server-side 安全义务已完成。",
+      "verdict": "REFUTED_BY_UNRESOLVED_CONSENT_AND_POLICY_STATE",
+      "evidence_refs": [{"artifact": "provider_facts_snapshot.json", "ids": ["PF-GMAIL-001", "PF-GMAIL-002", "PF-GMAIL-003", "PF-GMAIL-004", "PF-GMAIL-005"]}],
+      "implication": "可用方法只支持设计；Gmail 仍未连接，且 policy/security-assessment 状态未解决。",
+      "safe_default": "GMAIL_NOT_CONNECTED_MODULE_DISABLED",
+      "gap_ids": ["GAP-S02-P04-004"],
+      "review_ids": ["REV-S02-P04-003", "REV-S02-P04-004"]
+    },
+    {
+      "id": "CE-S02-P04-005",
+      "proposition": "Cloudflare 普通全球网络上的中文界面等同于中国大陆境内加速、可用或保证可达。",
+      "verdict": "REFUTED_BY_OFFICIAL_PRODUCT_BOUNDARY",
+      "evidence_refs": [{"artifact": "provider_facts_snapshot.json", "ids": ["PF-CLOUDFLARE-004", "PF-CLOUDFLARE-005", "PF-CLOUDFLARE-006"]}],
+      "implication": "China Network 有单独企业级商业和合规条件，Pages 也不能作为大陆可用性证据。",
+      "safe_default": "CHINESE_UI_ONLY_NO_MAINLAND_CHINA_AVAILABILITY_CLAIM",
+      "gap_ids": ["GAP-S02-P04-006"],
+      "review_ids": ["REV-S02-P04-002", "REV-S02-P04-005", "REV-S02-P04-012"]
+    },
+    {
+      "id": "CE-S02-P04-006",
+      "proposition": "OVH 产品可用性承诺或持有人声明证明当前 VPS 已实现 ABD 7×24。",
+      "verdict": "REFUTED_BY_MISSING_RUNTIME_EVIDENCE",
+      "evidence_refs": [{"artifact": "provider_facts_snapshot.json", "ids": ["PF-OVH-001", "PF-OVH-003"]}],
+      "implication": "账户、主机、容量和运行探针均未检查；产品条款不是当前 runtime 证据。",
+      "safe_default": "NO_OVH_DEPLOYMENT_OR_7X24_CLAIM",
+      "gap_ids": ["GAP-S02-P04-007"],
+      "review_ids": ["REV-S02-P04-002", "REV-S02-P04-006"]
+    },
+    {
+      "id": "CE-S02-P04-007",
+      "proposition": "市场赔率是强预测基准，因此 ABD 已有可交易残差优势或全部市场适用权重。",
+      "verdict": "REFUTED_BY_DOMAIN_AND_NET_EDGE_LIMITATIONS",
+      "evidence_refs": [{"artifact": "model_claims.json", "ids": ["CLM-S02-P02-001", "CLM-S02-P02-002"]}, {"artifact": "research_evidence_matrix.json", "ids": ["PAPER-S02-P02-001"]}],
+      "implication": "论文支持信息锚点方向，不证明净优势、固定权重或跨市场外推。",
+      "safe_default": "RESIDUAL_WEIGHT_ZERO_UNLESS_INCREMENT_VALIDATED",
+      "gap_ids": ["GAP-S02-P04-008", "GAP-S02-P04-009", "GAP-S02-P04-010"],
+      "review_ids": ["REV-S02-P04-008"]
+    },
+    {
+      "id": "CE-S02-P04-008",
+      "proposition": "校准优于准确率或 proper scoring 理论直接推导 ABD 的校准阈值并证明净收益。",
+      "verdict": "REFUTED_BY_THRESHOLD_PROVENANCE_AND_DOMAIN_LIMITS",
+      "evidence_refs": [{"artifact": "model_claims.json", "ids": ["CLM-S02-P02-003", "CLM-S02-P02-004", "CLM-S02-P02-005"]}, {"artifact": "research_evidence_matrix.json", "ids": ["PAPER-S02-P02-003", "PAPER-S02-P02-004"]}],
+      "implication": "评分方向可采用，但固定阈值、样本量、跨域安全与收益均需独立验证。",
+      "safe_default": "MODEL_NOT_PROMOTED_WHEN_CALIBRATION_EVIDENCE_MISSING",
+      "gap_ids": ["GAP-S02-P04-009", "GAP-S02-P04-011"],
+      "review_ids": ["REV-S02-P04-008"]
+    },
+    {
+      "id": "CE-S02-P04-009",
+      "proposition": "有拒绝选项或 NO_RECOMMENDATION 就证明被覆盖区域低风险且具有正净期望。",
+      "verdict": "REFUTED_BY_RISK_COVERAGE_NON_PROOF",
+      "evidence_refs": [{"artifact": "model_claims.json", "ids": ["CLM-S02-P02-006", "CLM-S02-P02-007"]}, {"artifact": "research_evidence_matrix.json", "ids": ["PAPER-S02-P02-002", "PAPER-S02-P02-005"]}],
+      "implication": "拒绝是一等安全输出，但风险—覆盖曲线、摩擦和市场特定净期望仍需验证。",
+      "safe_default": "NO_RECOMMENDATION_ON_UNKNOWN_OR_UNVERIFIED_INPUT",
+      "gap_ids": ["GAP-S02-P04-012", "GAP-S02-P04-016"],
+      "review_ids": ["REV-S02-P04-008"]
+    },
+    {
+      "id": "CE-S02-P04-010",
+      "proposition": "清洗异常数据或删除最高盈利样本后剩余回测即可视为稳健盈利。",
+      "verdict": "CONTRADICTED_BY_CORRECTION_AND_REPLICATION_EVIDENCE",
+      "evidence_refs": [{"artifact": "model_claims.json", "ids": ["CLM-S02-P02-009", "CLM-S02-P02-010"]}, {"artifact": "research_evidence_matrix.json", "ids": ["PAPER-S02-P02-006"]}],
+      "implication": "错误单笔可主导利润，修正后多数利润可消失；清洗规则必须预注册并做时间外复现。",
+      "safe_default": "NO_RETURN_CLAIM_AND_NO_MODEL_PROMOTION",
+      "gap_ids": ["GAP-S02-P04-009", "GAP-S02-P04-014"],
+      "review_ids": ["REV-S02-P04-008"]
+    },
+    {
+      "id": "CE-S02-P04-011",
+      "proposition": "Kelly 理论保证有限本金、有限时域或短期 30% 月收益。",
+      "verdict": "REFUTED_BY_THEORY_SCOPE_AND_REAL_WORLD_ASSUMPTIONS",
+      "evidence_refs": [{"artifact": "model_claims.json", "ids": ["CLM-S02-P02-011", "CLM-S02-P02-014"]}, {"artifact": "research_evidence_matrix.json", "ids": ["PAPER-S02-P02-007"]}],
+      "implication": "Kelly 是模型化重复机会下的期望对数增长方向，不是短期结果保证。",
+      "safe_default": "KELLY_FRACTION_ZERO_UNTIL_ALL_PREREQUISITES_PASS",
+      "gap_ids": ["GAP-S02-P04-015", "GAP-S02-P04-017"],
+      "review_ids": ["REV-S02-P04-008", "REV-S02-P04-009"]
+    },
+    {
+      "id": "CE-S02-P04-012",
+      "proposition": "Risk-Constrained Kelly 论文证明 ABD 的 0.20、0.25 分数和敞口上限满足回撤保证。",
+      "verdict": "REFUTED_BY_LOCAL_THRESHOLD_AND_MODEL_ASSUMPTION_BOUNDARY",
+      "evidence_refs": [{"artifact": "model_claims.json", "ids": ["CLM-S02-P02-012", "CLM-S02-P02-013"]}, {"artifact": "research_evidence_matrix.json", "ids": ["PAPER-S02-P02-008"]}],
+      "implication": "论文支持显式风险约束方向，不推导 ABD 数值，也不证明分布、相关性或 A$300 适用性。",
+      "safe_default": "KELLY_FRACTION_ZERO_UNTIL_ALL_PREREQUISITES_PASS",
+      "gap_ids": ["GAP-S02-P04-015"],
+      "review_ids": ["REV-S02-P04-008"]
+    },
+    {
+      "id": "CE-S02-P04-013",
+      "proposition": "MIT 或 Apache-2.0 仓库许可证授权外部网站、API、账户、数据、抓取或再分发。",
+      "verdict": "REFUTED_BY_CODE_LICENSE_SERVICE_CONTRACT_SEPARATION",
+      "evidence_refs": [{"artifact": "license_inventory.json", "ids": ["LIC-SRC-013", "LIC-SRC-014", "LIC-SRC-015", "LIC-SRC-017", "LIC-SRC-018"]}],
+      "implication": "代码许可和来源或服务合同是独立门；P04 不启用任何 live source。",
+      "safe_default": "NO_LIVE_SOURCE_WITHOUT_SEPARATE_SOURCE_CONTRACT",
+      "gap_ids": ["GAP-S02-P04-008", "GAP-S02-P04-018", "GAP-S02-P04-021", "GAP-S02-P04-024"],
+      "review_ids": ["REV-S02-P04-002", "REV-S02-P04-007", "REV-S02-P04-010"]
+    },
+    {
+      "id": "CE-S02-P04-014",
+      "proposition": "flumine 的执行框架可直接进入 ABD，因为用户最终仍自己下单。",
+      "verdict": "REFUTED_BY_ABSENT_ORDER_CAPABILITY_CONTRACT",
+      "evidence_refs": [{"artifact": "research_reuse_matrix.json", "ids": ["SRC-013"]}],
+      "implication": "place、cancel、update、replace、真实客户端和凭证路径全部拒绝；只允许独立设计参考。",
+      "safe_default": "REJECT_ALL_ORDER_CLIENT_AND_RUNTIME_CODE",
+      "gap_ids": ["GAP-S02-P04-018", "GAP-S02-P04-019"],
+      "review_ids": ["REV-S02-P04-010"]
+    },
+    {
+      "id": "CE-S02-P04-015",
+      "proposition": "开源仓库 README 的 production-ready、准确率、ROI、Sharpe 或 bookmaker 列表是 ABD 运行和收益证据。",
+      "verdict": "REFUTED_BY_UNVERIFIED_SELF_REPORT_AND_NO_RUNTIME_TEST",
+      "evidence_refs": [{"artifact": "research_reuse_matrix.json", "ids": ["SRC-014", "SRC-017", "SRC-018"]}],
+      "implication": "仓库自述只形成研究输入；未安装、未运行、未复现，也不能外推全部市场。",
+      "safe_default": "NO_MODEL_METRIC_COVERAGE_OR_RETURN_CLAIM",
+      "gap_ids": ["GAP-S02-P04-018", "GAP-S02-P04-020", "GAP-S02-P04-023", "GAP-S02-P04-024"],
+      "review_ids": ["REV-S02-P04-008", "REV-S02-P04-010"]
+    },
+    {
+      "id": "CE-S02-P04-016",
+      "proposition": "公开可见且可 fork 的无许可证仓库可复制、修改、打包或分发到 ABD。",
+      "verdict": "REFUTED_BY_NOASSERTION_REUSE_POLICY",
+      "evidence_refs": [{"artifact": "license_inventory.json", "ids": ["LIC-SRC-016"]}, {"artifact": "research_reuse_matrix.json", "ids": ["SRC-016"]}],
+      "implication": "固定版本未检测到许可证，全部代码复用保持拒绝，除非权利人未来提供可验证许可并重新验收。",
+      "safe_default": "REJECT_ALL_CODE_COPY_MODIFICATION_PACKAGING_AND_DISTRIBUTION",
+      "gap_ids": ["GAP-S02-P04-022"],
+      "review_ids": ["REV-S02-P04-010"]
+    },
+    {
+      "id": "CE-S02-P04-017",
+      "proposition": "任一仓库声明覆盖 TAB、Sportsbet 或多个 bookmaker 就证明当前全部可观察市场覆盖。",
+      "verdict": "REFUTED_BY_SELF_REPORT_AND_SOURCE_CONTRACT_GAPS",
+      "evidence_refs": [{"artifact": "research_reuse_matrix.json", "ids": ["SRC-015", "SRC-016", "SRC-018"]}, {"artifact": "provider_facts_snapshot.json", "ids": ["PF-TAB-004", "PF-SPORTSBET-003"]}],
+      "implication": "覆盖声明没有当前来源合同、实测身份、及时性、结算和可用性证据。",
+      "safe_default": "DISCOVERED_GAP_RECORDED_NO_RECOMMENDATION",
+      "gap_ids": ["GAP-S02-P04-002", "GAP-S02-P04-003", "GAP-S02-P04-008", "GAP-S02-P04-021", "GAP-S02-P04-024"],
+      "review_ids": ["REV-S02-P04-002", "REV-S02-P04-007", "REV-S02-P04-011"]
+    },
+    {
+      "id": "CE-S02-P04-018",
+      "proposition": "A$300×1.3^n 是基于现有论文、仓库或回测的可实现预测。",
+      "verdict": "REFUTED_BY_MISSING_DURATION_SAMPLE_CAPACITY_AND_EXECUTION_EVIDENCE",
+      "evidence_refs": [{"artifact": "model_claims.json", "ids": ["CLM-S02-P02-014"]}, {"artifact": "machine/facts/parameters.json", "ids": ["target_30pct"]}],
+      "implication": "它是可证伪目标；没有 90 日、6 月、12 月、容量、摩擦、执行和对账证据时保持未验证。",
+      "safe_default": "REPORT_TARGET_AS_UNVERIFIED_NO_GATE_RELAXATION",
+      "gap_ids": ["GAP-S02-P04-016", "GAP-S02-P04-017"],
+      "review_ids": ["REV-S02-P04-009"]
+    },
+    {
+      "id": "CE-S02-P04-019",
+      "proposition": "把所有当前已知缺口写入清单就等于这些缺口已关闭或互联网已被穷尽。",
+      "verdict": "REFUTED_BY_GAP_SEMANTICS",
+      "evidence_refs": [{"artifact": "research_gaps.json", "ids": ["coverage_summary", "gap_semantics"]}],
+      "implication": "26 个缺口全部仍为 OPEN_EXPLICIT；零静默只表示已知范围内有路由、默认动作和复查，不是问题消失。",
+      "safe_default": "ALL_OPEN_GAPS_REMAIN_NON_PASS",
+      "gap_ids": ["GAP-S02-P04-025"],
+      "review_ids": ["REV-S02-P04-001", "REV-S02-P04-011"]
+    }
+  ],
+  "summary": {
+    "counterevidence_record_count": 19,
+    "records_without_evidence_refs": 0,
+    "records_without_gap_routes": 0,
+    "records_without_safe_defaults": 0,
+    "records_without_review_routes": 0,
+    "universal_impossibility_claims": 0,
+    "production_or_return_claims_supported": 0,
+    "thirty_percent_target_verified_or_guaranteed": false
+  },
+  "external_effect_boundary": {
+    "network_research_performed_in_p04": false,
+    "provider_or_cloud_account_accessed": false,
+    "provider_api_called": false,
+    "repository_cloned": false,
+    "package_installed": false,
+    "model_or_strategy_executed": false,
+    "production_deployed": false,
+    "real_order_capability_present": false,
+    "incremental_cash_spent_aud": "0.00",
+    "return_or_guarantee_claimed": false,
+    "stage2_review_started": false,
+    "github_upload_performed": false
+  },
+  "next_on_acceptance_pass": "S02/STAGE_REVIEW_READY_NOT_STARTED"
+}

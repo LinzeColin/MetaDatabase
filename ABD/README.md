@@ -19,24 +19,26 @@
 - `S02/P02` 只固化市场先验、校准与 proper scoring、不建议区域、异常敏感性和受限凯利的研究边界；未训练或执行模型、未回测、未验证全部市场、未接入账户、未部署，也不证明任何收益或风险保证；
 - `S02/P03` 已在固定 Git commit 上审计 flumine、penaltyblog、OddsHarvester 等 6 个公开仓库，逐项冻结 adopt/adapt/reject、许可证和来源合同决定；4 个 MIT、1 个 Apache-2.0、1 个未检测到许可证，未检测到许可证的仓库禁止代码复用；含外部报告门的独立 Oracle 93/93、定向测试 218/218、全回归 1439/1439、TaskPack 49/49、付费依赖扫描与 8/8 回滚均为 `PASS`，证据下一状态严格为 `S02/P04_READY_NOT_STARTED`；本 Phase 仅本地开发，尚未单独上传 GitHub；
 - `S02/P03` 没有复制候选代码、clone 仓库、安装依赖、调用外部 API/账户、绕过站点控制或花费新增现金；仓库许可证不替代网站、数据、API、账户、再分发或商业服务条款，GitHub 自动许可证检测也不构成法律许可；
+- `S02/P04` 已把 P01–P03 的显式未知、未验证前置、模型主张、本地阈值、复用限制和监管适用性归并为 26 个明确开放缺口，并冻结 19 条反证/非证明边界与 12 条复审路线；26 个缺口均保持 `OPEN_EXPLICIT`，已解决 0、静默缺口 0，登记或安排复审不等于解决；含外部报告门的独立 Oracle 107/107、定向测试 346/346、全回归 1785/1785、TaskPack 49/49、付费依赖扫描与 10/10 回滚均为 `PASS`，证据下一状态严格为 `S02/STAGE_REVIEW_READY_NOT_STARTED`；本 Phase 仅本地开发，尚未单独上传 GitHub；
+- `S02/P04` 没有新增网络调研、访问平台或云账户、调用 API、clone/安装候选、执行模型、部署生产、提供真实下单能力或花费新增现金；Stage 2 整体复审、问题修复与阶段上传尚未开始，30% 月度滚动复利目标仍为待证伪、未验证且不保证的目标；
 - `S01/P01` 至 `S01/P04` 只冻结客户体验、疑问、需求、范围、指标、经济和证伪合同，不证明产品已实现、部署、接入账户或验证收益；四个中间 Phase 均未单独上传 GitHub；
 - `S00/P02` 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
 - `S00/P03` 只证明当前声明依赖的 ABD 新增现金成本为 A$0、付费接口不在关键路径；既有 OVH/账户总成本、外部能力与免费额度余量仍未知；
 - `S00/P04` 冻结 Gmail 可选 consent、精确 scope、方法白名单和降级状态机；本 phase 未生成 OAuth 链接、未访问账户、未取得或保存 token、未调用 Gmail API，Gmail 仍为 `NOT_CONNECTED / UNVERIFIED / NOT_READY`；
 - 当前禁止真实下单，30% 月度滚动复利只是待证伪和长期验证的目标，不是收益保证。
 
-当前 `S02/P03` 的定向与全回归验证命令：
+当前 `S02/P04` 的定向与全回归验证命令：
 
-`S02/P01`、`S02/P02` 的历史前置仍由 `tests/S02/P01_test.py`、`tests/S02/P02_test.py`、不可变证据与 `python -m abd_acceptance --verify-existing STAGE-REVIEW-S01` 重放验证；以下命令只列本 Phase 的新增验证。
+`S02/P01` 至 `S02/P03` 的历史前置仍由 `tests/S02/P01_test.py`、`tests/S02/P02_test.py`、`tests/S02/P03_test.py`、不可变证据、历史 Git commit 与 `python -m abd_acceptance --verify-existing STAGE-REVIEW-S01` 重放验证；以下命令只列本 Phase 的新增验证。
 
 ```bash
 uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
 uv run --frozen --python 3.12 python machine/tools/validate_pack.py
-uv run --frozen --python 3.12 python -m pytest -q tests/S02/P03_test.py --junitxml=machine/evidence/S02/P03/pytest.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/P03/pytest.xml
-uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S02/P03/full_regression.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/P03/full_regression.xml
-uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S02-P03 --evidence machine/evidence
+uv run --frozen --python 3.12 python -m pytest -q tests/S02/P04_test.py --junitxml=machine/evidence/S02/P04/pytest.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/P04/pytest.xml
+uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S02/P04/full_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/P04/full_regression.xml
+uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S02-P04 --evidence machine/evidence
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 

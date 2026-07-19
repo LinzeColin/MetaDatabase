@@ -731,10 +731,13 @@ def test_all_claims_resolve_to_official_source_metadata() -> None:
             assert claim_id in source["claim_ids"]
 
 
-def test_p01_evidence_path_remains_reserved_while_p03_progresses_separately() -> None:
+def test_p01_evidence_path_remains_reserved_while_p04_progresses_separately() -> None:
     assert EVIDENCE_PATH.as_posix() == "machine/evidence/EVD-S02-P01.json"
     assert (ROOT / "research_evidence_matrix.json").exists()
     assert (ROOT / "model_claims.json").exists()
     assert (ROOT / "research_reuse_matrix.json").exists()
     assert (ROOT / "license_inventory.json").exists()
-    assert not (ROOT / "machine/evidence/EVD-S02-P04.json").exists()
+    assert (ROOT / "research_gaps.json").exists()
+    assert (ROOT / "counterevidence.json").exists()
+    assert (ROOT / "review_schedule.json").exists()
+    assert not (ROOT / "machine/facts/stage2_review_contract.json").exists()
