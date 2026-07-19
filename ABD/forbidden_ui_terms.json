@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "stage_id": "S03",
+  "phase_id": "P01",
+  "policy_id": "UI-TERMINOLOGY-ZH-ONLY-V1",
+  "default_action": "BLOCK_UNREGISTERED_OR_UNEXPLAINED_TOKEN",
+  "included_surface_kinds": [
+    "DAILY_HOME",
+    "ADVICE_CARD",
+    "EVIDENCE_STATUS",
+    "ACCOUNT_MAIL_STATUS",
+    "USER_ERROR_NEXT_ACTION"
+  ],
+  "non_rendered_machine_exemption": {
+    "surface_kind": "NON_RENDERED_MACHINE_RECORD",
+    "condition": "内容只存在于源代码、机器字段、结构化证据或运维日志且绝不被渲染到用户界面。",
+    "rendered_content_must_reenter_ui_gate": true
+  },
+  "generic_forbidden_patterns": [
+    {
+      "pattern_id": "PATTERN-UPPERCASE-ACRONYM",
+      "regex": "(?<![A-Za-z0-9])(?:[A-Z]{2,}(?:[-_/][A-Z0-9]+)*)(?![A-Za-z0-9])",
+      "reason_code": "UI_TERM_UNREGISTERED_RAW_TOKEN"
+    },
+    {
+      "pattern_id": "PATTERN-INTERNAL-ID",
+      "regex": "(?<![A-Za-z0-9])(?:REQ|AC|TEST|EVD|ART|INDEX)-[A-Za-z0-9_/-]+",
+      "reason_code": "UI_TERM_INTERNAL_IDENTIFIER"
+    },
+    {
+      "pattern_id": "PATTERN-SNAKE-CASE",
+      "regex": "(?<![A-Za-z0-9])(?:[a-z]+_[a-z0-9_]+)(?![A-Za-z0-9])",
+      "reason_code": "UI_TERM_MACHINE_IDENTIFIER"
+    }
+  ],
+  "reason_codes": {
+    "UI_TERM_UNREGISTERED_RAW_TOKEN": "发现未登记的英文缩写或机器词；改为中文或先加入字典并完成解释合同。",
+    "UI_TERM_INTERNAL_IDENTIFIER": "发现需求、验收、测试、证据或制品内部编号；用户界面只显示中文含义。",
+    "UI_TERM_MACHINE_IDENTIFIER": "发现机器字段名；将其映射为字典中的中文标签后再展示。",
+    "UI_TERM_UNEXPLAINED": "缩写已登记但当前文字没有按规定解释；使用精确首次展示形式或纯中文标签。",
+    "UI_TERM_ZH_ONLY": "该词只允许显示中文名称。",
+    "UI_TERM_MACHINE_ONLY": "该词仅供机器或运维使用，不得出现在日常用户界面。",
+    "UI_SURFACE_UNKNOWN": "界面类型未登记；在纳入扫描范围前失败关闭。"
+  },
+  "rules": [
+    {"term_id": "TERM-ABD", "raw_tokens": ["ABD"], "action": "ALLOW_ONLY_WITH_ZH_CONTEXT", "allowed_ui_forms": ["全天候投注决策辅助系统（ABD 项目代号）"], "reason_code_on_failure": "UI_TERM_UNEXPLAINED"},
+    {"term_id": "TERM-TTL", "raw_tokens": ["TTL"], "action": "ALLOW_ONLY_WITH_EXACT_EXPLANATION", "allowed_ui_forms": ["可用时限（TTL）"], "reason_code_on_failure": "UI_TERM_UNEXPLAINED"},
+    {"term_id": "TERM-EV", "raw_tokens": ["EV"], "action": "ALLOW_ONLY_WITH_EXACT_EXPLANATION", "allowed_ui_forms": ["期望净收益率（EV）"], "reason_code_on_failure": "UI_TERM_UNEXPLAINED"},
+    {"term_id": "TERM-CLV", "raw_tokens": ["CLV"], "action": "ALLOW_ONLY_WITH_EXACT_EXPLANATION", "allowed_ui_forms": ["相对临场收盘价优势（CLV）"], "reason_code_on_failure": "UI_TERM_UNEXPLAINED"},
+    {"term_id": "TERM-ECE", "raw_tokens": ["ECE"], "action": "ALLOW_ONLY_WITH_EXACT_EXPLANATION", "allowed_ui_forms": ["概率校准误差（ECE）"], "reason_code_on_failure": "UI_TERM_UNEXPLAINED"},
+    {"term_id": "TERM-LCB", "raw_tokens": ["LCB"], "action": "ALLOW_ONLY_WITH_EXACT_EXPLANATION", "allowed_ui_forms": ["置信下界（LCB）"], "reason_code_on_failure": "UI_TERM_UNEXPLAINED"},
+    {"term_id": "TERM-FEATURE-FLAG", "raw_tokens": ["Feature Flag"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-CANARY", "raw_tokens": ["Canary"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-BLUE-GREEN", "raw_tokens": ["Blue-Green"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-SHADOW", "raw_tokens": ["Shadow"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-ORACLE", "raw_tokens": ["Oracle"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-DAG", "raw_tokens": ["DAG"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-SYSTEM-CARD", "raw_tokens": ["System Card"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-API", "raw_tokens": ["API"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-PWA", "raw_tokens": ["PWA"], "action": "ALLOW_ONLY_WITH_EXACT_EXPLANATION", "allowed_ui_forms": ["可安装网页应用（PWA）"], "reason_code_on_failure": "UI_TERM_UNEXPLAINED"},
+    {"term_id": "TERM-KELLY", "raw_tokens": ["Kelly"], "action": "BLOCK_USE_ZH_LABEL", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_ZH_ONLY"},
+    {"term_id": "TERM-ROI", "raw_tokens": ["ROI"], "action": "ALLOW_ONLY_WITH_EXACT_EXPLANATION", "allowed_ui_forms": ["投入回报率（ROI）"], "reason_code_on_failure": "UI_TERM_UNEXPLAINED"},
+    {"term_id": "TERM-TAB", "raw_tokens": ["TAB"], "action": "ALLOW_ONLY_WITH_ZH_CONTEXT", "allowed_ui_forms": ["TAB 平台"], "reason_code_on_failure": "UI_TERM_UNEXPLAINED"},
+    {"term_id": "TERM-GMAIL", "raw_tokens": ["Gmail"], "action": "ALLOW_ONLY_WITH_ZH_CONTEXT", "allowed_ui_forms": ["Gmail 邮箱"], "reason_code_on_failure": "UI_TERM_UNEXPLAINED"},
+    {"term_id": "TERM-KYC", "raw_tokens": ["KYC"], "action": "BLOCK_USE_ZH_LABEL", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_ZH_ONLY"},
+    {"term_id": "TERM-OAUTH", "raw_tokens": ["OAuth"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-OVH", "raw_tokens": ["OVH"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-CLOUDFLARE", "raw_tokens": ["Cloudflare"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-CI", "raw_tokens": ["CI"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-JSON", "raw_tokens": ["JSON"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-SHA256", "raw_tokens": ["SHA-256"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-PYTHON", "raw_tokens": ["Python"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"},
+    {"term_id": "TERM-SCHEMA", "raw_tokens": ["Schema"], "action": "BLOCK_MACHINE_ONLY", "allowed_ui_forms": [], "reason_code_on_failure": "UI_TERM_MACHINE_ONLY"}
+  ],
+  "external_effect_boundary": {
+    "network_accessed": false,
+    "provider_account_accessed": false,
+    "gmail_account_accessed": false,
+    "hosting_or_cdn_account_accessed": false,
+    "model_executed": false,
+    "production_deployed": false,
+    "real_order_submitted": false,
+    "incremental_cash_spent_aud": "0.00",
+    "return_or_roi_verified": false
+  }
+}

@@ -43,6 +43,7 @@ from .stage_review import (
 )
 from .delivery import verify_stage0_delivery
 from .stage1_delivery import verify_stage1_delivery
+from .stage2_delivery import verify_stage2_delivery
 from .stage1_review import (
     build_evidence as build_stage1_review_evidence,
     evaluate_contract as evaluate_stage1_review_contract,
@@ -125,6 +126,15 @@ from .stage2_review import (
     verify_existing_stage_review_evidence as verify_stage2_review_evidence,
     write_stage2_review_evidence,
 )
+from .terminology_governance import (
+    build_evidence as build_terminology_governance_evidence,
+    evaluate_contract as evaluate_terminology_governance_contract,
+    perform_rollback_drill as perform_terminology_governance_rollback_drill,
+    resolve_ui_gate,
+    scan_ui_text,
+    verify_existing_phase_evidence as verify_terminology_governance_evidence,
+    write_phase_evidence as write_terminology_governance_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -157,6 +167,7 @@ __all__ = [
     "write_stage_review_evidence",
     "verify_stage0_delivery",
     "verify_stage1_delivery",
+    "verify_stage2_delivery",
     "build_stage1_review_evidence",
     "evaluate_stage1_review_contract",
     "perform_stage1_review_rollback_drill",
@@ -219,4 +230,11 @@ __all__ = [
     "validate_stage2_review_candidate",
     "verify_stage2_review_evidence",
     "write_stage2_review_evidence",
+    "build_terminology_governance_evidence",
+    "evaluate_terminology_governance_contract",
+    "perform_terminology_governance_rollback_drill",
+    "resolve_ui_gate",
+    "scan_ui_text",
+    "verify_terminology_governance_evidence",
+    "write_terminology_governance_phase_evidence",
 ]

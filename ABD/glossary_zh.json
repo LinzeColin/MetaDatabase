@@ -1,0 +1,396 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "stage_id": "S03",
+  "phase_id": "P01",
+  "language": "zh-CN",
+  "contract_scope": {
+    "status": "TERMINOLOGY_CONTRACT_FROZEN_UI_NOT_IMPLEMENTED",
+    "applies_to": [
+      "日常首页",
+      "建议卡",
+      "证据与信息有效状态",
+      "账户与邮件状态",
+      "面向用户的错误与下一步"
+    ],
+    "rule": "用户可见文字必须优先使用中文；必要缩写只有在本字典登记并按对应展示策略解释时才可出现。",
+    "non_claims": [
+      "本制品不声称任何日常界面已经实现、部署或完成可用性验证。",
+      "本制品不把机器标识、源代码、结构化证据字段或运维日志冒充用户界面。",
+      "本制品不证明任何外部账户、平台、邮件、托管或内容分发能力已授权或已连接。",
+      "本制品不证明模型、市场覆盖、下单能力或收益；30%月目标仍未验证且不保证。"
+    ]
+  },
+  "ui_policy_values": [
+    "ZH_WITH_OPTIONAL_EXPLAINED_TOKEN",
+    "ZH_ONLY",
+    "BRAND_WITH_ZH_CONTEXT",
+    "MACHINE_ONLY"
+  ],
+  "entries": [
+    {
+      "term_id": "TERM-ABD",
+      "machine_token": "ABD",
+      "machine_aliases": ["product.id"],
+      "zh_name": "全天候投注决策辅助系统",
+      "definition_zh": "本任务包中的产品名称与项目代号；系统只分析并给出建议，用户本人完成最终下单。",
+      "preferred_ui_label": "全天候投注决策辅助系统",
+      "first_use_display": "全天候投注决策辅助系统（ABD 项目代号）",
+      "ui_policy": "BRAND_WITH_ZH_CONTEXT",
+      "machine_mappings": [
+        {"source": "machine/facts/canonical_facts.json", "identifier": "ABD", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-TTL",
+      "machine_token": "TTL",
+      "machine_aliases": ["ttl_seconds", "time_to_live"],
+      "zh_name": "可用时限",
+      "definition_zh": "从数据被观察或建议被生成，到它必须失效的最长时间。",
+      "preferred_ui_label": "可用时限",
+      "first_use_display": "可用时限（TTL）",
+      "ui_policy": "ZH_WITH_OPTIONAL_EXPLAINED_TOKEN",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "TTL", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-EV",
+      "machine_token": "EV",
+      "machine_aliases": ["expected_value", "expected_net_return"],
+      "zh_name": "期望净收益率",
+      "definition_zh": "在保守概率、赔率和摩擦成本下的平均净收益估计。",
+      "preferred_ui_label": "期望净收益率",
+      "first_use_display": "期望净收益率（EV）",
+      "ui_policy": "ZH_WITH_OPTIONAL_EXPLAINED_TOKEN",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "EV", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-CLV",
+      "machine_token": "CLV",
+      "machine_aliases": ["closing_line_value"],
+      "zh_name": "相对临场收盘价优势",
+      "definition_zh": "建议价格相对可信临场市场价格的优势。",
+      "preferred_ui_label": "相对临场收盘价优势",
+      "first_use_display": "相对临场收盘价优势（CLV）",
+      "ui_policy": "ZH_WITH_OPTIONAL_EXPLAINED_TOKEN",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "CLV", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-ECE",
+      "machine_token": "ECE",
+      "machine_aliases": ["expected_calibration_error"],
+      "zh_name": "概率校准误差",
+      "definition_zh": "预测概率与实际频率之间的偏差。",
+      "preferred_ui_label": "概率校准误差",
+      "first_use_display": "概率校准误差（ECE）",
+      "ui_policy": "ZH_WITH_OPTIONAL_EXPLAINED_TOKEN",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "ECE", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-LCB",
+      "machine_token": "LCB",
+      "machine_aliases": ["lower_confidence_bound"],
+      "zh_name": "置信下界",
+      "definition_zh": "在设定置信度下的保守下限。",
+      "preferred_ui_label": "置信下界",
+      "first_use_display": "置信下界（LCB）",
+      "ui_policy": "ZH_WITH_OPTIONAL_EXPLAINED_TOKEN",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "LCB", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-FEATURE-FLAG",
+      "machine_token": "Feature Flag",
+      "machine_aliases": ["feature_flag"],
+      "zh_name": "功能开关",
+      "definition_zh": "无需重新部署即可启用或关闭功能。",
+      "preferred_ui_label": "功能开关",
+      "first_use_display": "功能开关",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "Feature Flag", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-CANARY",
+      "machine_token": "Canary",
+      "machine_aliases": ["canary_release"],
+      "zh_name": "小流量试运行",
+      "definition_zh": "只让少量来源、市场或用户流量先使用新版本。",
+      "preferred_ui_label": "小流量试运行",
+      "first_use_display": "小流量试运行",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "Canary", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-BLUE-GREEN",
+      "machine_token": "Blue-Green",
+      "machine_aliases": ["blue_green_deployment"],
+      "zh_name": "双环境切换",
+      "definition_zh": "旧版和新版同时存在，验证新版后再切换。",
+      "preferred_ui_label": "双环境切换",
+      "first_use_display": "双环境切换",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "Blue-Green", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-SHADOW",
+      "machine_token": "Shadow",
+      "machine_aliases": ["shadow_mode"],
+      "zh_name": "影子运行",
+      "definition_zh": "真实采集和计算，但不向用户发布可执行建议。",
+      "preferred_ui_label": "影子运行",
+      "first_use_display": "影子运行",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "Shadow", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-ORACLE",
+      "machine_token": "Oracle",
+      "machine_aliases": ["acceptance_oracle"],
+      "zh_name": "验收判定器",
+      "definition_zh": "根据输入、环境、阈值和证据自动判断通过或失败。",
+      "preferred_ui_label": "验收判定器",
+      "first_use_display": "验收判定器",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "Oracle", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-DAG",
+      "machine_token": "DAG",
+      "machine_aliases": ["task_dag"],
+      "zh_name": "有向无环任务图",
+      "definition_zh": "任务依赖没有循环，可以机器调度。",
+      "preferred_ui_label": "有向无环任务图",
+      "first_use_display": "有向无环任务图",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "DAG", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-SYSTEM-CARD",
+      "machine_token": "System Card",
+      "machine_aliases": ["model_system_card"],
+      "zh_name": "模型系统说明卡",
+      "definition_zh": "说明用途、数据、能力、限制、安全措施和监控。",
+      "preferred_ui_label": "模型系统说明卡",
+      "first_use_display": "模型系统说明卡",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "System Card", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-API",
+      "machine_token": "API",
+      "machine_aliases": ["application_programming_interface"],
+      "zh_name": "程序接口",
+      "definition_zh": "软件之间交换数据或执行受控动作的合同。",
+      "preferred_ui_label": "程序接口",
+      "first_use_display": "程序接口",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "API", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-PWA",
+      "machine_token": "PWA",
+      "machine_aliases": ["progressive_web_app"],
+      "zh_name": "可安装网页应用",
+      "definition_zh": "可在手机或电脑浏览器使用并安装到桌面的网页产品。",
+      "preferred_ui_label": "可安装网页应用",
+      "first_use_display": "可安装网页应用（PWA）",
+      "ui_policy": "ZH_WITH_OPTIONAL_EXPLAINED_TOKEN",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "PWA", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-KELLY",
+      "machine_token": "Kelly",
+      "machine_aliases": ["kelly_fraction", "restricted_kelly"],
+      "zh_name": "凯利仓位法",
+      "definition_zh": "根据优势和赔率计算长期增长仓位；本系统只使用其保守分数。",
+      "preferred_ui_label": "受限凯利仓位法",
+      "first_use_display": "受限凯利仓位法",
+      "ui_policy": "ZH_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/glossary_zh.json", "identifier": "Kelly", "match_mode": "LEGACY_GLOSSARY_KEY"}
+      ]
+    },
+    {
+      "term_id": "TERM-ROI",
+      "machine_token": "ROI",
+      "machine_aliases": ["roi", "return_on_investment"],
+      "zh_name": "投入回报率",
+      "definition_zh": "收益或成本相对投入的比率；必须同时说明成本口径、时间窗和证据成熟度，当前收益尚未验证。",
+      "preferred_ui_label": "投入回报率",
+      "first_use_display": "投入回报率（ROI）",
+      "ui_policy": "ZH_WITH_OPTIONAL_EXPLAINED_TOKEN",
+      "machine_mappings": [
+        {"source": "economics.json", "identifier": "roi", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-TAB",
+      "machine_token": "TAB",
+      "machine_aliases": ["provider_id:TAB"],
+      "zh_name": "TAB 平台",
+      "definition_zh": "任务包纳入研究与证据归档范围的平台品牌；名称出现不代表已授权、已连接或可自动操作。",
+      "preferred_ui_label": "TAB 平台",
+      "first_use_display": "TAB 平台",
+      "ui_policy": "BRAND_WITH_ZH_CONTEXT",
+      "machine_mappings": [
+        {"source": "provider_facts_snapshot.json", "identifier": "TAB", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-GMAIL",
+      "machine_token": "Gmail",
+      "machine_aliases": ["gmail", "gmail_message_id"],
+      "zh_name": "Gmail 邮箱",
+      "definition_zh": "任务包规划的可选证据邮件来源；当前未连接，只有所有者授权和全部安全门通过后才可启用。",
+      "preferred_ui_label": "Gmail 邮箱",
+      "first_use_display": "Gmail 邮箱",
+      "ui_policy": "BRAND_WITH_ZH_CONTEXT",
+      "machine_mappings": [
+        {"source": "provider_facts_snapshot.json", "identifier": "Gmail", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-KYC",
+      "machine_token": "KYC",
+      "machine_aliases": ["owner_kyc_verified"],
+      "zh_name": "身份、年龄与居住资格验证",
+      "definition_zh": "平台对身份、年龄、居住地及适用资格的验证；未验证时相关平台能力必须失败关闭。",
+      "preferred_ui_label": "身份、年龄与居住资格验证",
+      "first_use_display": "身份、年龄与居住资格验证",
+      "ui_policy": "ZH_ONLY",
+      "machine_mappings": [
+        {"source": "regulatory_matrix.json", "identifier": "KYC", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-OAUTH",
+      "machine_token": "OAuth",
+      "machine_aliases": ["oauth_consent"],
+      "zh_name": "账户授权协议",
+      "definition_zh": "由账户所有者明确同意并授予最小权限的受控授权流程；术语存在不代表授权已取得。",
+      "preferred_ui_label": "安全账户授权",
+      "first_use_display": "安全账户授权",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "provider_facts_snapshot.json", "identifier": "OAuth", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-OVH",
+      "machine_token": "OVH",
+      "machine_aliases": ["provider_id:OVH"],
+      "zh_name": "OVH 托管环境",
+      "definition_zh": "任务包指定的既有托管候选环境；当前账户、容量、部署和持续运行状态均未在本阶段验证。",
+      "preferred_ui_label": "托管环境",
+      "first_use_display": "托管环境",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "provider_facts_snapshot.json", "identifier": "OVH", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-CLOUDFLARE",
+      "machine_token": "Cloudflare",
+      "machine_aliases": ["cloudflare_entry"],
+      "zh_name": "Cloudflare 全球入口",
+      "definition_zh": "任务包指定的全球中文访问候选入口；当前账户、配额、部署和中国大陆可达性均未在本阶段验证。",
+      "preferred_ui_label": "全球中文访问入口",
+      "first_use_display": "全球中文访问入口",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "provider_facts_snapshot.json", "identifier": "Cloudflare", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-CI",
+      "machine_token": "CI",
+      "machine_aliases": ["continuous_integration"],
+      "zh_name": "持续集成",
+      "definition_zh": "在代码变更后自动执行构建、测试和合同验证的工程流程。",
+      "preferred_ui_label": "持续集成",
+      "first_use_display": "持续集成",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/costs.json", "identifier": "ANY_REMOTE_CI_ENABLEMENT", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-JSON",
+      "machine_token": "JSON",
+      "machine_aliases": ["json_document"],
+      "zh_name": "结构化数据文件",
+      "definition_zh": "机器用于交换对象、数组和字段值的文本数据格式。",
+      "preferred_ui_label": "结构化数据文件",
+      "first_use_display": "结构化数据文件",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/tests/fixtures/S01_P01.json", "identifier": "JSON", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-SHA256",
+      "machine_token": "SHA-256",
+      "machine_aliases": ["sha256", "sha256sum"],
+      "zh_name": "二百五十六位安全哈希",
+      "definition_zh": "用于校验证据或文件内容是否发生变化的固定长度摘要；它不证明内容本身真实。",
+      "preferred_ui_label": "文件完整性摘要",
+      "first_use_display": "文件完整性摘要",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/parameters.json", "identifier": "SHA-256", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-PYTHON",
+      "machine_token": "Python",
+      "machine_aliases": ["python3"],
+      "zh_name": "Python 程序语言",
+      "definition_zh": "本项目部分确定性验证和服务代码使用的程序语言；不属于日常用户操作术语。",
+      "preferred_ui_label": "程序语言",
+      "first_use_display": "程序语言",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/email_ingestion.json", "identifier": "Python", "match_mode": "EXACT_TEXT"}
+      ]
+    },
+    {
+      "term_id": "TERM-SCHEMA",
+      "machine_token": "Schema",
+      "machine_aliases": ["schema_version", "json_schema"],
+      "zh_name": "结构合同",
+      "definition_zh": "规定机器制品允许字段、类型和约束的可验证结构定义。",
+      "preferred_ui_label": "结构合同",
+      "first_use_display": "结构合同",
+      "ui_policy": "MACHINE_ONLY",
+      "machine_mappings": [
+        {"source": "machine/facts/acceptance_contracts.json", "identifier": "Schema", "match_mode": "EXACT_TEXT"}
+      ]
+    }
+  ]
+}

@@ -420,8 +420,9 @@ def test_evidence_build_is_deterministic_portable_and_preserves_boundaries() -> 
     assert ("/" + "Users/") not in rendered
     assert ("/private/" + "var/") not in rendered
     if (ROOT / EVIDENCE_PATH).is_file():
-        formal_replay, _ = build_evidence(ROOT, require_external_reports=True)
-        assert formal_replay == strict_json_load(ROOT / EVIDENCE_PATH)
+        delivered = verify_existing_stage_review_evidence(ROOT, verify_phase_prerequisites=False)
+        assert delivered["status"] == "PASS", delivered
+        assert delivered["evidence_sha256"] == sha256_file(ROOT / EVIDENCE_PATH)
 
 
 def test_review_receipt_paths_are_reserved_and_atomic_before_or_after_writer() -> None:
