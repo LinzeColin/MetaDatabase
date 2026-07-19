@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0.0",
+  "receipt_id": "DELIVERY-S01-GITHUB-2026-07-20",
+  "repository": "LinzeColin/MetaDatabase",
+  "repository_visibility_at_delivery": "PUBLIC",
+  "stage_id": "S01",
+  "product_version": "0.0.0.1",
+  "observed_at": "2026-07-19T14:35:45Z",
+  "verification_mode": "CAPTURED_GITHUB_API_FACTS_PLUS_OFFLINE_GIT_ANCESTRY",
+  "pull_request": {
+    "number": 64,
+    "state": "MERGED",
+    "url": "https://github.com/LinzeColin/MetaDatabase/pull/64",
+    "base_commit": "7109a4a6af1354428b80088f262b59575919e3f1",
+    "head_commit": "946382d971b04e5a8d4a482993dbabbe5df8fbac",
+    "merge_commit": "ea459444f1cf67c5432600b39cac479a4c2cac2f",
+    "merged_at": "2026-07-19T14:34:04Z"
+  },
+  "delivered_commits": [
+    "7c52659e2f6de6ebfff6d3079ba0a29cf542867e",
+    "214232879e068c9703695ab098e92e010ac2db7f",
+    "a4d5e3076f1e327072680207944a2d75514b1f03",
+    "78c92ca58c45226ede9d7705d039c5abe7ea91c0",
+    "ddd7664acdd12e51b590233da7d65322a378c3d2",
+    "946382d971b04e5a8d4a482993dbabbe5df8fbac"
+  ],
+  "stage_review_evidence": {
+    "path": "machine/evidence/EVD-S01-STAGE-REVIEW.json",
+    "sha256": "3e5a64f3b99fae7b67aeb0d18d94cd13eb0077b1c856dadbac0d8bbff6f5886d",
+    "rollback_path": "machine/evidence/EVD-S01-STAGE-REVIEW_rollback.json",
+    "rollback_sha256": "e58704772cc350fedece3b3780c6d344c1f4fcee5c61013981072882cc3677f7"
+  },
+  "main_checks": [
+    {
+      "workflow": "ABD continuous validation",
+      "run_id": 29691089138,
+      "job_id": 88203836547,
+      "event": "push",
+      "head_commit": "ea459444f1cf67c5432600b39cac479a4c2cac2f",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/29691089138",
+      "completed_at": "2026-07-19T14:35:44Z"
+    },
+    {
+      "workflow": "Dual-Plane Governance",
+      "run_id": 29691089152,
+      "job_id": 88203836514,
+      "event": "push",
+      "head_commit": "ea459444f1cf67c5432600b39cac479a4c2cac2f",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/29691089152",
+      "completed_at": "2026-07-19T14:34:25Z"
+    }
+  ],
+  "all_required_main_checks_passed": true,
+  "delivery_cost_gate": {
+    "status": "PASS",
+    "incremental_cash_spent_aud": "0.00",
+    "runner_classes": [
+      "ubuntu-latest"
+    ],
+    "chargeable_features_observed": [],
+    "billing_basis_url": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+    "basis": "Public repository using standard GitHub-hosted runners; no larger runner, artifact upload, cache, or paid product was used by the delivery workflows."
+  },
+  "external_effects": {
+    "github_stage_upload_and_merge_performed": true,
+    "github_api_read_performed": true,
+    "wagering_provider_account_accessed": false,
+    "gmail_account_accessed": false,
+    "hosting_or_cdn_account_accessed": false,
+    "secret_material_captured": false,
+    "production_deployment_claimed": false,
+    "real_order_submitted": false,
+    "return_or_roi_verified": false
+  },
+  "delivery_status": "VERIFIED_MERGED_AND_MAIN_CI_PASS",
+  "next": "S02/P01_READY_NOT_STARTED"
+}

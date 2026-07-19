@@ -1,0 +1,1925 @@
+{
+  "artifacts": {
+    "ART-S02-P01-01": "sources.json",
+    "ART-S02-P01-02": "provider_facts_snapshot.json",
+    "ART-S02-P01-03": "regulatory_matrix.json"
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --verify-existing STAGE-REVIEW-S01",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S02/P01_test.py --junitxml=machine/evidence/S02/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S02/P01/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/P01/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S02-P01 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S02-P01",
+  "decision": "OFFICIAL_PLATFORM_AND_REGULATORY_FACTS_FROZEN",
+  "decision_sha256": "b80e86424a5642e8f5b81db37d856a55f6e6d42b8d0dfebc481bdeca5fcae476",
+  "evidence_id": "EVD-S02-P01",
+  "explicit_unknowns": [
+    "TAB Web Services and TAB Studio access are not granted or authorized by this research.",
+    "Sportsbet automation or API permission was not established by the scoped official source set.",
+    "Gmail consent, OAuth verification, restricted-data policy and security-assessment readiness remain unresolved; Gmail is not connected.",
+    "Cloudflare account, free-plan headroom and deployment are unverified; mainland-China in-country delivery is outside the A$0 scope and is not claimed.",
+    "The owner-declared existing OVH VPS was not inspected; 7x24 runtime, capacity, billing and availability remain unverified.",
+    "Owner jurisdiction, KYC, provider eligibility, self-exclusion status and provider terms acceptance remain unverified.",
+    "The 30% monthly target, all-market coverage, actual return and ROI remain unverified and are not guaranteed."
+  ],
+  "external_effect_boundary": {
+    "all_market_coverage_claimed": false,
+    "github_upload_performed": false,
+    "gmail_account_accessed": false,
+    "hosting_or_cdn_account_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "mainland_china_availability_claimed": false,
+    "production_deployment_claimed": false,
+    "provider_api_called": false,
+    "real_order_capability_present": false,
+    "return_or_guarantee_claimed": false,
+    "s02_p02_started": false,
+    "secret_provisioned": false,
+    "wagering_provider_account_accessed": false
+  },
+  "fixed_clock": "2026-07-20T00:00:00+10:00",
+  "hashes": {
+    "code": "b020d07833ab97f297f81402c07e83be4fe6d9113ff1aec7df50698daf7076be",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/__init__.py": "8bbdeac7429c8ac108b3bf1918196b30b74d97030abe629da9b0b81bcc0d2a5c",
+      "abd_acceptance/__main__.py": "0aead565ddd0e1377409837eacd6be67a359d7dbb2ed2f5f9ab83193075c10f5",
+      "abd_acceptance/official_platform_research.py": "b1c990957153c5880f4da2fd69943e6f1316495259c9a985c9e6908e72523a5d",
+      "abd_acceptance/stage1_delivery.py": "869494ca06b1d95eebedb2d13f3cf10541ade964878cf751ba8899e9c24df3a5",
+      "machine/evidence/EVD-S01-STAGE-REVIEW.json": "3e5a64f3b99fae7b67aeb0d18d94cd13eb0077b1c856dadbac0d8bbff6f5886d",
+      "machine/evidence/EVD-S01-STAGE-REVIEW_rollback.json": "e58704772cc350fedece3b3780c6d344c1f4fcee5c61013981072882cc3677f7",
+      "machine/evidence/S01/STAGE_REVIEW/github_delivery_receipt.json": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/provider_contracts.json": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/sources.json": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S02_P01.json": "68bf2b7c97d31d5f9ac3d722e1f03f55e55c92b0d19f3c05e383d6780fc71faa",
+      "provider_facts_snapshot.json": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+      "regulatory_matrix.json": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+      "sources.json": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
+      "tests/S00/__init__.py": "92747c3175dab227e64bab76b0728e85016df09d9114fb5b0b16f68a6971c03f",
+      "tests/S01/__init__.py": "2699f54f59bd6a4e1d3042e40a336c24a61dd71ece37e7e7c243532f6e309134",
+      "tests/S02/P01_test.py": "9e1f17a0773661aedba9d60ce46113d0c5bbda465b6a412e5c66adb190125392",
+      "tests/S02/__init__.py": "35858f9c076637484b4332bd4215f6398cad04f4469dbddbbafbbc0c9d1b9092",
+      "tests/__init__.py": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S02/P01 freezes official platform and regulatory research; it executes no prediction model, strategy, order or return evaluation.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "538b25f45a99e1c550914a8c5cb4e338339f9a6a6874a32af2ae330323e0652d"
+  },
+  "next": "S02/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "phase_status": "S02_P01_PASS",
+  "release_status": "NOT_READY_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S02-P01",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S02-P01_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage1_delivery_prerequisite": {
+    "receipt": "machine/evidence/S01/STAGE_REVIEW/github_delivery_receipt.json",
+    "sha256": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde",
+    "stage_review_evidence_sha256": "3e5a64f3b99fae7b67aeb0d18d94cd13eb0077b1c856dadbac0d8bbff6f5886d",
+    "status": "PASS"
+  },
+  "stage_id": "S02",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "S02_P01.json",
+        "id": "S02P01-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "sources.json",
+        "id": "S02P01-SOURCES-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "provider_facts_snapshot.json",
+        "id": "S02P01-PROVIDER-FACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "regulatory_matrix.json",
+        "id": "S02P01-REGULATORY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "roadmap.json",
+        "id": "S02P01-ROADMAP-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S02P01-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "acceptance_contracts.json",
+        "id": "S02P01-ACCEPTANCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "task_graph.json",
+        "id": "S02P01-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "traceability_matrix.json",
+        "id": "S02P01-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "canonical_facts.json",
+        "id": "S02P01-CANONICAL-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "costs.json",
+        "id": "S02P01-COSTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "provider_contracts.json",
+        "id": "S02P01-PROVIDER-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
+          "expected": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966"
+        },
+        "id": "S02P01-PIN-SOURCES-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+          "expected": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06"
+        },
+        "id": "S02P01-PIN-PROVIDER_FACTS_SNAPSHOT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+          "expected": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f"
+        },
+        "id": "S02P01-PIN-REGULATORY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "68bf2b7c97d31d5f9ac3d722e1f03f55e55c92b0d19f3c05e383d6780fc71faa",
+          "expected": "68bf2b7c97d31d5f9ac3d722e1f03f55e55c92b0d19f3c05e383d6780fc71faa"
+        },
+        "id": "S02P01-PIN-MACHINE-TESTS-FIXTURES-S02_P01-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+          "expected": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-PROVIDER_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+          "expected": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-AUTHORIZATION_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+          "expected": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-EMAIL_INGESTION-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+          "expected": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-SOURCES-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-MODEL_SYSTEM_CARD-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S02P01-PIN-MACHINE-FACTS-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde",
+          "expected": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde"
+        },
+        "id": "S02P01-PIN-MACHINE-EVIDENCE-S01-STAGE_REVIEW-GITHUB_DELIVERY_RECEIPT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "3e5a64f3b99fae7b67aeb0d18d94cd13eb0077b1c856dadbac0d8bbff6f5886d",
+          "expected": "3e5a64f3b99fae7b67aeb0d18d94cd13eb0077b1c856dadbac0d8bbff6f5886d"
+        },
+        "id": "S02P01-PIN-MACHINE-EVIDENCE-EVD-S01-STAGE-REVIEW-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e58704772cc350fedece3b3780c6d344c1f4fcee5c61013981072882cc3677f7",
+          "expected": "e58704772cc350fedece3b3780c6d344c1f4fcee5c61013981072882cc3677f7"
+        },
+        "id": "S02P01-PIN-MACHINE-EVIDENCE-EVD-S01-STAGE-REVIEW_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S02P01-PIN--GITHUB-WORKFLOWS-ABD-STAGE0-VALIDATION-YML",
+        "passed": true
+      },
+      {
+        "detail": [
+          "tests/__init__.py",
+          "tests/S00/__init__.py",
+          "tests/S01/__init__.py",
+          "tests/S02/__init__.py"
+        ],
+        "id": "S02P01-PYTEST-IMPORT-ISOLATION",
+        "passed": true
+      },
+      {
+        "detail": "all parsed",
+        "id": "S02P01-INPUTS-STRUCTURALLY-AVAILABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "hours": {
+            "high": 6,
+            "likely": 4,
+            "low": 3
+          },
+          "id": "P01",
+          "objective": "固化TAB、Sportsbet、Gmail、Cloudflare、OVH及监管事实。",
+          "outputs": [
+            "sources.json",
+            "provider_facts_snapshot.json",
+            "regulatory_matrix.json"
+          ],
+          "pass_gate": "每个事实有URL、检索日期和来源等级。",
+          "title": "官方平台与监管调研"
+        },
+        "id": "S02P01-ROADMAP-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "baseline": "未实现或旧包存在冲突/缺口",
+          "id": "REQ-S02-P01",
+          "measurement": "由 AC-S02-P01 的机器验收判定器执行固定输入、阈值和证据检查。",
+          "non_goals": [
+            "不自动提交、确认或重试真实订单",
+            "不以降低证据或风险门追赶30%月目标",
+            "不引入付费数据或付费程序接口依赖"
+          ],
+          "observation_period": "开发期每次提交；上线后持续",
+          "owner_input_required_during_development": false,
+          "phase_id": "P01",
+          "primary_acceptance_criteria_id": "AC-S02-P01",
+          "priority": "P1",
+          "problem": "若未完成“官方平台与监管调研”，只研究与ABD直接相关的官方文档、论文和开源项目，明确采用、适配、拒绝和许可证。将缺少可执行、可验收或可恢复的基础。",
+          "scope": [
+            "sources.json",
+            "provider_facts_snapshot.json",
+            "regulatory_matrix.json"
+          ],
+          "stage_id": "S02",
+          "target": "每个事实有URL、检索日期和来源等级。",
+          "title": "官方平台与监管调研",
+          "user": "单一账户持有人及自动开发/运维代理",
+          "value": "固化TAB、Sportsbet、Gmail、Cloudflare、OVH及监管事实。"
+        },
+        "id": "S02P01-REQUIREMENT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "environment": [
+            "Ubuntu Linux 持续集成环境",
+            "固定时钟",
+            "冻结测试夹具",
+            "无外部网络的确定性测试模式",
+            "生产等价配置Schema"
+          ],
+          "evidence_requirements": [
+            "machine/evidence/EVD-S02-P01.json",
+            "测试报告及命令退出码",
+            "输入、参数、代码、模型和输出SHA-256",
+            "失败路径截图或结构化日志",
+            "回滚演练记录"
+          ],
+          "id": "AC-S02-P01",
+          "inputs": [
+            "REQ-S02-P01 对应机器事实",
+            "S02/P01 冻结正向、边界、负向和故障输入",
+            "参数版本和来源版本哈希"
+          ],
+          "oracle": {
+            "command": "python -m abd_acceptance --contract AC-S02-P01 --evidence machine/evidence",
+            "rule": "每个事实有URL、检索日期和来源等级。",
+            "type": "EXECUTABLE"
+          },
+          "pass_gate": "每个事实有URL、检索日期和来源等级。",
+          "requirement_id": "REQ-S02-P01",
+          "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_condition": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "tests": [
+            {
+              "id": "TEST-S02-P01",
+              "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+            },
+            {
+              "id": "TEST-S02-P01-BOUNDARY",
+              "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+            },
+            {
+              "id": "TEST-S02-P01-REPLAY",
+              "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+            }
+          ],
+          "threshold": "每个事实有URL、检索日期和来源等级。",
+          "title": "官方平台与监管调研唯一主验收"
+        },
+        "id": "S02P01-ACCEPTANCE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "dependencies": {
+            "T-S02-P01-01": [
+              "T-S00-P04-03"
+            ],
+            "T-S02-P01-02": [
+              "T-S02-P01-01"
+            ],
+            "T-S02-P01-03": [
+              "T-S02-P01-02"
+            ]
+          },
+          "ids": [
+            "T-S02-P01-01",
+            "T-S02-P01-02",
+            "T-S02-P01-03"
+          ]
+        },
+        "id": "S02P01-TASK-CHAIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_criteria_id": "AC-S02-P01",
+            "artifact_ids": [
+              "ART-S02-P01-01",
+              "ART-S02-P01-02",
+              "ART-S02-P01-03"
+            ],
+            "evidence_id": "EVD-S02-P01",
+            "phase_id": "P01",
+            "requirement_id": "REQ-S02-P01",
+            "stage_id": "S02",
+            "task_ids": [
+              "T-S02-P01-01",
+              "T-S02-P01-02",
+              "T-S02-P01-03"
+            ],
+            "test_ids": [
+              "TEST-S02-P01",
+              "TEST-S02-P01-BOUNDARY",
+              "TEST-S02-P01-REPLAY"
+            ]
+          }
+        ],
+        "id": "S02P01-TRACEABILITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "OFFICIAL_SOURCE_SET_FROZEN_CAPABILITIES_NOT_ENABLED",
+        "id": "S02P01-SOURCES-TOP-LEVEL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "account_login_performed": false,
+          "content_archived": false,
+          "legal_advice_provided": false,
+          "network_mode": "READ_ONLY_PUBLIC_WEB",
+          "official_primary_sources_only": true,
+          "provider_api_called": false,
+          "scope_is_exhaustive_of_internet": false
+        },
+        "id": "S02P01-READ-ONLY-NONEXHAUSTIVE-RESEARCH-MODE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "absence_from_scoped_source_set": "NOT_AUTHORIZED_BY_EVIDENCE_NOT_UNIVERSAL_ABSENCE",
+          "allowed_source_levels": [
+            "L1_REGULATOR_PRIMARY",
+            "L1_PROVIDER_CONTRACT",
+            "L1_OFFICIAL_PRODUCT_DOC"
+          ],
+          "missing_or_unreachable_source": "UNKNOWN_FAIL_CLOSED",
+          "provider_marketing_claim": "DO_NOT_TREAT_AS_RUNTIME_EVIDENCE",
+          "source_content_retention": "URL_METADATA_AND_CLAIM_MAPPING_ONLY_REFETCH_LIVE",
+          "terms_or_price_drift": "REVALIDATE_BEFORE_CAPABILITY_ENABLEMENT"
+        },
+        "id": "S02P01-SOURCE-LEVEL-DEFINITIONS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "SRC-TAB-001",
+          "SRC-TAB-002",
+          "SRC-TAB-003",
+          "SRC-TAB-004",
+          "SRC-TAB-005",
+          "SRC-SPORTSBET-001",
+          "SRC-SPORTSBET-002",
+          "SRC-ACMA-001",
+          "SRC-ACMA-002",
+          "SRC-ACMA-003",
+          "SRC-ACMA-004",
+          "SRC-AUSTRAC-001",
+          "SRC-OAIC-001",
+          "SRC-GMAIL-001",
+          "SRC-GMAIL-002",
+          "SRC-GMAIL-003",
+          "SRC-GMAIL-004",
+          "SRC-CLOUDFLARE-001",
+          "SRC-CLOUDFLARE-002",
+          "SRC-CLOUDFLARE-003",
+          "SRC-CLOUDFLARE-004",
+          "SRC-CLOUDFLARE-005",
+          "SRC-OVH-001",
+          "SRC-OVH-002"
+        ],
+        "id": "S02P01-SOURCE-IDS-EXACT-UNIQUE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "SRC-ACMA-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-ACMA-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-ACMA-003": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-ACMA-004": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-AUSTRAC-001": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.austrac.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-CLOUDFLARE-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-003": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-004": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-005": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-GMAIL-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.google.com",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-GMAIL-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.google.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-GMAIL-003": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.google.com",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-GMAIL-004": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "support.google.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-OAIC-001": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.oaic.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-OVH-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "docs.ovhcloud.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-OVH-002": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.ovhcloud.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-SPORTSBET-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "helpcentre.sportsbet.com.au",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-SPORTSBET-002": {
+            "claims": 3,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "helpcentre.sportsbet.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-TAB-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-TAB-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-TAB-003": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-TAB-004": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-TAB-005": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          }
+        },
+        "id": "S02P01-SOURCE-METADATA-COMPLETE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "https://help.tab.com.au/manage-your-account/activity-statements-faqs",
+          "https://help.tab.com.au/manage-your-account/reading-your-activity-statements",
+          "https://help.tab.com.au/troubleshooting-support/conditions-of-use",
+          "https://help.tab.com.au/troubleshooting-support/tab-web-services-terms-of-use",
+          "https://help.tab.com.au/troubleshooting-support/applying-for-tab-studio-api-access",
+          "https://helpcentre.sportsbet.com.au/hc/en-us/articles/13565496156559-Sportsbet-Rules-Terms-Conditions",
+          "https://helpcentre.sportsbet.com.au/hc/en-us/articles/4690326285325-What-Is-An-Activity-Statement",
+          "https://www.acma.gov.au/check-if-gambling-operator-legal",
+          "https://www.acma.gov.au/about-interactive-gambling-act",
+          "https://www.acma.gov.au/online-gambling-services",
+          "https://www.acma.gov.au/betstop-national-self-exclusion-registertm",
+          "https://www.austrac.gov.au/strengthened-customer-identification-procedures-online-gambling-service-providers",
+          "https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-guidelines/chapter-11-app-11-security-of-personal-information",
+          "https://developers.google.com/workspace/gmail/api/auth/scopes",
+          "https://developers.google.com/workspace/gmail/api/reference/rest",
+          "https://developers.google.com/terms/api-services-user-data-policy",
+          "https://support.google.com/cloud/answer/13464323?hl=en",
+          "https://developers.cloudflare.com/workers/platform/pricing/",
+          "https://developers.cloudflare.com/pages/platform/limits/",
+          "https://developers.cloudflare.com/china-network/get-started/",
+          "https://developers.cloudflare.com/china-network/",
+          "https://developers.cloudflare.com/china-network/faq/",
+          "https://docs.ovhcloud.com/en/guides/bare-metal-cloud/virtual-private-servers/vps-faq",
+          "https://www.ovhcloud.com/en-au/vps/vps-australia/"
+        ],
+        "id": "S02P01-SOURCE-URLS-OFFICIAL-HTTPS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "SRC-ACMA-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-ACMA-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-ACMA-003": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-ACMA-004": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-AUSTRAC-001": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.austrac.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-CLOUDFLARE-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-003": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-004": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-005": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-GMAIL-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.google.com",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-GMAIL-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.google.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-GMAIL-003": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.google.com",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-GMAIL-004": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "support.google.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-OAIC-001": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.oaic.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-OVH-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "docs.ovhcloud.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-OVH-002": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.ovhcloud.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-SPORTSBET-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "helpcentre.sportsbet.com.au",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-SPORTSBET-002": {
+            "claims": 3,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "helpcentre.sportsbet.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-TAB-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-TAB-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-TAB-003": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-TAB-004": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-TAB-005": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          }
+        },
+        "id": "S02P01-SOURCE-RETRIEVAL-DATES-CURRENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "SRC-ACMA-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-ACMA-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-ACMA-003": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-ACMA-004": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.acma.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-AUSTRAC-001": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.austrac.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-CLOUDFLARE-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-003": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-004": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-CLOUDFLARE-005": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.cloudflare.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-GMAIL-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.google.com",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-GMAIL-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.google.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-GMAIL-003": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "developers.google.com",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-GMAIL-004": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "support.google.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-OAIC-001": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.oaic.gov.au",
+            "source_level": "L1_REGULATOR_PRIMARY"
+          },
+          "SRC-OVH-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "docs.ovhcloud.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-OVH-002": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "www.ovhcloud.com",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-SPORTSBET-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "helpcentre.sportsbet.com.au",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-SPORTSBET-002": {
+            "claims": 3,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "helpcentre.sportsbet.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-TAB-001": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-TAB-002": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          },
+          "SRC-TAB-003": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-TAB-004": {
+            "claims": 2,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_PROVIDER_CONTRACT"
+          },
+          "SRC-TAB-005": {
+            "claims": 1,
+            "freshness": "CURRENT_FOR_FROZEN_SNAPSHOT",
+            "host": "help.tab.com.au",
+            "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+          }
+        },
+        "id": "S02P01-SOURCE-CLAIM-MAPPINGS-NONEMPTY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cloud_deployment_performed": false,
+          "credential_or_token_created": false,
+          "external_account_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "production_readiness_claimed": false,
+          "provider_api_called": false,
+          "real_order_submitted": false,
+          "return_or_roi_verified": false,
+          "s02_p02_started": false
+        },
+        "id": "S02P01-SOURCES-NO-EXTERNAL-EFFECT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "This snapshot records scoped official-source findings, not legal advice.",
+          "URLs and metadata are retained; webpage bodies are not copied into the repository.",
+          "Provider terms, prices, limits, registers and policies can change and must be revalidated before enablement.",
+          "No source proves an ABD account, credential, API grant, deployment, runtime availability or market-data entitlement exists."
+        ],
+        "id": "S02P01-SOURCE-LIMITATIONS-EXPLICIT",
+        "passed": true
+      },
+      {
+        "detail": "PROVIDER_FACTS_FROZEN_CAPABILITIES_FAIL_CLOSED",
+        "id": "S02P01-PROVIDER-TOP-LEVEL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "absence_from_scoped_sources_is_universal_prohibition": false,
+          "missing_permission_is_authorization": false,
+          "official_document_is_runtime_proof": false,
+          "terms_prices_limits_and_registers_require_live_revalidation": true,
+          "unknown_fail_closed": "The scoped official source set does not establish permission or capability; ABD must not enable or claim it.",
+          "verified_source_fact": "The cited official source supported the scoped statement on the retrieval date."
+        },
+        "id": "S02P01-FACT-SEMANTICS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "TAB",
+          "SPORTSBET",
+          "GMAIL",
+          "CLOUDFLARE",
+          "OVH"
+        ],
+        "id": "S02P01-PROVIDER-IDS-EXACT-UNIQUE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "TAB",
+          "SPORTSBET",
+          "GMAIL",
+          "CLOUDFLARE",
+          "OVH"
+        ],
+        "id": "S02P01-PROVIDER-CAPABILITIES-NOT-FABRICATED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "PF-TAB-001",
+          "PF-TAB-002",
+          "PF-TAB-003",
+          "PF-TAB-004",
+          "PF-TAB-005",
+          "PF-TAB-006",
+          "PF-SPORTSBET-001",
+          "PF-SPORTSBET-002",
+          "PF-SPORTSBET-003",
+          "PF-GMAIL-001",
+          "PF-GMAIL-002",
+          "PF-GMAIL-003",
+          "PF-GMAIL-004",
+          "PF-GMAIL-005",
+          "PF-CLOUDFLARE-001",
+          "PF-CLOUDFLARE-002",
+          "PF-CLOUDFLARE-003",
+          "PF-CLOUDFLARE-004",
+          "PF-CLOUDFLARE-005",
+          "PF-CLOUDFLARE-006",
+          "PF-OVH-001",
+          "PF-OVH-002",
+          "PF-OVH-003"
+        ],
+        "id": "S02P01-PROVIDER-FACT-IDS-EXACT-UNIQUE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "PF-CLOUDFLARE-001": {
+            "citations": 1,
+            "decision": "FREE_PLAN_ONLY_AND_BLOCK_ON_UNKNOWN_OR_EXCEEDED_CAPACITY"
+          },
+          "PF-CLOUDFLARE-002": {
+            "citations": 1,
+            "decision": "REJECT_PAID_PLAN_AND_AUTOMATIC_UPGRADE_UNDER_AUD_ZERO_INCREMENTAL_CASH_GATE"
+          },
+          "PF-CLOUDFLARE-003": {
+            "citations": 1,
+            "decision": "FREE_PLAN_ONLY_AND_REQUIRE_MEASURED_HEADROOM_BEFORE_DEPLOYMENT"
+          },
+          "PF-CLOUDFLARE-004": {
+            "citations": 2,
+            "decision": "REJECT_CHINA_NETWORK_FROM_VERSION_0_0_0_1_AUD_ZERO_INCREMENTAL_CASH_SCOPE"
+          },
+          "PF-CLOUDFLARE-005": {
+            "citations": 1,
+            "decision": "DO_NOT_USE_PAGES_AS_EVIDENCE_OF_MAINLAND_CHINA_AVAILABILITY"
+          },
+          "PF-CLOUDFLARE-006": {
+            "citations": 2,
+            "decision": "ALLOW_ONLY_CHINESE_LANGUAGE_UI_DESIGN_AND_BLOCK_MAINLAND_CHINA_AVAILABILITY_CLAIMS"
+          },
+          "PF-GMAIL-001": {
+            "citations": 1,
+            "decision": "KEEP_EXACT_GMAIL_MODIFY_SCOPE_AND_FORBID_PERMANENT_DELETE"
+          },
+          "PF-GMAIL-002": {
+            "citations": 1,
+            "decision": "ALLOW_ONLY_LIST_GET_ATTACHMENT_GET_TRASH_AND_UNTRASH_AFTER_CONSENT_AND_POLICY_GATES"
+          },
+          "PF-GMAIL-003": {
+            "citations": 1,
+            "decision": "BLOCK_ENABLEMENT_UNTIL_DISCLOSURE_MINIMIZATION_RETENTION_AND_DOCUMENTED_API_CONTROLS_PASS"
+          },
+          "PF-GMAIL-004": {
+            "citations": 1,
+            "decision": "DO_NOT_ASSUME_EXEMPTION_VERIFY_CURRENT_GOOGLE_REQUIREMENTS_BEFORE_ENABLEMENT"
+          },
+          "PF-GMAIL-005": {
+            "citations": 1,
+            "decision": "GMAIL_MODULE_REMAINS_DISABLED_UNTIL_POLICY_AND_SECURITY_ASSESSMENT_STATUS_IS_RESOLVED_AT_ZERO_INCREMENTAL_CASH"
+          },
+          "PF-OVH-001": {
+            "citations": 1,
+            "decision": "REQUIRE_RUNTIME_PROBES_AND_SLO_EVIDENCE_BEFORE_ANY_7X24_CLAIM"
+          },
+          "PF-OVH-002": {
+            "citations": 1,
+            "decision": "PROHIBIT_NEW_PURCHASE_UPGRADE_OR_PAID_ADD_ON_UNDER_AUD_ZERO_INCREMENTAL_CASH_GATE"
+          },
+          "PF-OVH-003": {
+            "citations": 2,
+            "decision": "USE_ONLY_AFTER_SEPARATE_OWNER_AUTHORIZED_INSPECTION_AND_ZERO_INCREMENTAL_COST_CAPACITY_GATE"
+          },
+          "PF-SPORTSBET-001": {
+            "citations": 1,
+            "decision": "REQUIRE_CURRENT_ELIGIBILITY_KYC_AND_LICENSE_CHECKS_AND_NEVER_INFER_24X7_SERVICE_PROOF"
+          },
+          "PF-SPORTSBET-002": {
+            "citations": 1,
+            "decision": "ADOPT_AS_POTENTIAL_MONTHLY_RECONCILIATION_SOURCE_AFTER_OWNER_AUTHORIZATION"
+          },
+          "PF-SPORTSBET-003": {
+            "citations": 2,
+            "decision": "NO_SCRAPING_AUTOMATION_OR_API_USE_WITHOUT_SEPARATE_OFFICIAL_PERMISSION_EVIDENCE"
+          },
+          "PF-TAB-001": {
+            "citations": 1,
+            "decision": "ADOPT_AS_POTENTIAL_MONTHLY_RECONCILIATION_SOURCE_AFTER_OWNER_AUTHORIZATION"
+          },
+          "PF-TAB-002": {
+            "citations": 1,
+            "decision": "TREAT_CSV_AS_POTENTIAL_RECONCILIATION_INPUT_NOT_REAL_TIME_ODDS_SOURCE"
+          },
+          "PF-TAB-003": {
+            "citations": 1,
+            "decision": "PROHIBIT_SCREEN_SCRAPING_CREDENTIAL_SHARING_AND_THIRD_PARTY_ACCOUNT_CONTROL"
+          },
+          "PF-TAB-004": {
+            "citations": 1,
+            "decision": "NOT_AUTHORIZED_UNLESS_SEPARATE_ACCESS_GRANT_METHOD_AND_USE_CONTRACT_ARE_VERIFIED"
+          },
+          "PF-TAB-005": {
+            "citations": 1,
+            "decision": "TAB_STUDIO_NOT_AVAILABLE_TO_ABD_UNTIL_AN_EXPLICIT_GRANT_AND_ZERO_COST_TERMS_ARE_EVIDENCED"
+          },
+          "PF-TAB-006": {
+            "citations": 1,
+            "decision": "REQUIRE_CURRENT_REGISTER_MATCH_FOR_THE_OWNER_JURISDICTION_BEFORE_PROVIDER_USE"
+          }
+        },
+        "id": "S02P01-PROVIDER-FACT-ROWS-COMPLETE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "PF-CLOUDFLARE-001": {
+            "citations": 1,
+            "decision": "FREE_PLAN_ONLY_AND_BLOCK_ON_UNKNOWN_OR_EXCEEDED_CAPACITY"
+          },
+          "PF-CLOUDFLARE-002": {
+            "citations": 1,
+            "decision": "REJECT_PAID_PLAN_AND_AUTOMATIC_UPGRADE_UNDER_AUD_ZERO_INCREMENTAL_CASH_GATE"
+          },
+          "PF-CLOUDFLARE-003": {
+            "citations": 1,
+            "decision": "FREE_PLAN_ONLY_AND_REQUIRE_MEASURED_HEADROOM_BEFORE_DEPLOYMENT"
+          },
+          "PF-CLOUDFLARE-004": {
+            "citations": 2,
+            "decision": "REJECT_CHINA_NETWORK_FROM_VERSION_0_0_0_1_AUD_ZERO_INCREMENTAL_CASH_SCOPE"
+          },
+          "PF-CLOUDFLARE-005": {
+            "citations": 1,
+            "decision": "DO_NOT_USE_PAGES_AS_EVIDENCE_OF_MAINLAND_CHINA_AVAILABILITY"
+          },
+          "PF-CLOUDFLARE-006": {
+            "citations": 2,
+            "decision": "ALLOW_ONLY_CHINESE_LANGUAGE_UI_DESIGN_AND_BLOCK_MAINLAND_CHINA_AVAILABILITY_CLAIMS"
+          },
+          "PF-GMAIL-001": {
+            "citations": 1,
+            "decision": "KEEP_EXACT_GMAIL_MODIFY_SCOPE_AND_FORBID_PERMANENT_DELETE"
+          },
+          "PF-GMAIL-002": {
+            "citations": 1,
+            "decision": "ALLOW_ONLY_LIST_GET_ATTACHMENT_GET_TRASH_AND_UNTRASH_AFTER_CONSENT_AND_POLICY_GATES"
+          },
+          "PF-GMAIL-003": {
+            "citations": 1,
+            "decision": "BLOCK_ENABLEMENT_UNTIL_DISCLOSURE_MINIMIZATION_RETENTION_AND_DOCUMENTED_API_CONTROLS_PASS"
+          },
+          "PF-GMAIL-004": {
+            "citations": 1,
+            "decision": "DO_NOT_ASSUME_EXEMPTION_VERIFY_CURRENT_GOOGLE_REQUIREMENTS_BEFORE_ENABLEMENT"
+          },
+          "PF-GMAIL-005": {
+            "citations": 1,
+            "decision": "GMAIL_MODULE_REMAINS_DISABLED_UNTIL_POLICY_AND_SECURITY_ASSESSMENT_STATUS_IS_RESOLVED_AT_ZERO_INCREMENTAL_CASH"
+          },
+          "PF-OVH-001": {
+            "citations": 1,
+            "decision": "REQUIRE_RUNTIME_PROBES_AND_SLO_EVIDENCE_BEFORE_ANY_7X24_CLAIM"
+          },
+          "PF-OVH-002": {
+            "citations": 1,
+            "decision": "PROHIBIT_NEW_PURCHASE_UPGRADE_OR_PAID_ADD_ON_UNDER_AUD_ZERO_INCREMENTAL_CASH_GATE"
+          },
+          "PF-OVH-003": {
+            "citations": 2,
+            "decision": "USE_ONLY_AFTER_SEPARATE_OWNER_AUTHORIZED_INSPECTION_AND_ZERO_INCREMENTAL_COST_CAPACITY_GATE"
+          },
+          "PF-SPORTSBET-001": {
+            "citations": 1,
+            "decision": "REQUIRE_CURRENT_ELIGIBILITY_KYC_AND_LICENSE_CHECKS_AND_NEVER_INFER_24X7_SERVICE_PROOF"
+          },
+          "PF-SPORTSBET-002": {
+            "citations": 1,
+            "decision": "ADOPT_AS_POTENTIAL_MONTHLY_RECONCILIATION_SOURCE_AFTER_OWNER_AUTHORIZATION"
+          },
+          "PF-SPORTSBET-003": {
+            "citations": 2,
+            "decision": "NO_SCRAPING_AUTOMATION_OR_API_USE_WITHOUT_SEPARATE_OFFICIAL_PERMISSION_EVIDENCE"
+          },
+          "PF-TAB-001": {
+            "citations": 1,
+            "decision": "ADOPT_AS_POTENTIAL_MONTHLY_RECONCILIATION_SOURCE_AFTER_OWNER_AUTHORIZATION"
+          },
+          "PF-TAB-002": {
+            "citations": 1,
+            "decision": "TREAT_CSV_AS_POTENTIAL_RECONCILIATION_INPUT_NOT_REAL_TIME_ODDS_SOURCE"
+          },
+          "PF-TAB-003": {
+            "citations": 1,
+            "decision": "PROHIBIT_SCREEN_SCRAPING_CREDENTIAL_SHARING_AND_THIRD_PARTY_ACCOUNT_CONTROL"
+          },
+          "PF-TAB-004": {
+            "citations": 1,
+            "decision": "NOT_AUTHORIZED_UNLESS_SEPARATE_ACCESS_GRANT_METHOD_AND_USE_CONTRACT_ARE_VERIFIED"
+          },
+          "PF-TAB-005": {
+            "citations": 1,
+            "decision": "TAB_STUDIO_NOT_AVAILABLE_TO_ABD_UNTIL_AN_EXPLICIT_GRANT_AND_ZERO_COST_TERMS_ARE_EVIDENCED"
+          },
+          "PF-TAB-006": {
+            "citations": 1,
+            "decision": "REQUIRE_CURRENT_REGISTER_MATCH_FOR_THE_OWNER_JURISDICTION_BEFORE_PROVIDER_USE"
+          }
+        },
+        "id": "S02P01-PROVIDER-FACT-CITATIONS-RESOLVE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "PF-CLOUDFLARE-001": {
+            "citations": 1,
+            "decision": "FREE_PLAN_ONLY_AND_BLOCK_ON_UNKNOWN_OR_EXCEEDED_CAPACITY"
+          },
+          "PF-CLOUDFLARE-002": {
+            "citations": 1,
+            "decision": "REJECT_PAID_PLAN_AND_AUTOMATIC_UPGRADE_UNDER_AUD_ZERO_INCREMENTAL_CASH_GATE"
+          },
+          "PF-CLOUDFLARE-003": {
+            "citations": 1,
+            "decision": "FREE_PLAN_ONLY_AND_REQUIRE_MEASURED_HEADROOM_BEFORE_DEPLOYMENT"
+          },
+          "PF-CLOUDFLARE-004": {
+            "citations": 2,
+            "decision": "REJECT_CHINA_NETWORK_FROM_VERSION_0_0_0_1_AUD_ZERO_INCREMENTAL_CASH_SCOPE"
+          },
+          "PF-CLOUDFLARE-005": {
+            "citations": 1,
+            "decision": "DO_NOT_USE_PAGES_AS_EVIDENCE_OF_MAINLAND_CHINA_AVAILABILITY"
+          },
+          "PF-CLOUDFLARE-006": {
+            "citations": 2,
+            "decision": "ALLOW_ONLY_CHINESE_LANGUAGE_UI_DESIGN_AND_BLOCK_MAINLAND_CHINA_AVAILABILITY_CLAIMS"
+          },
+          "PF-GMAIL-001": {
+            "citations": 1,
+            "decision": "KEEP_EXACT_GMAIL_MODIFY_SCOPE_AND_FORBID_PERMANENT_DELETE"
+          },
+          "PF-GMAIL-002": {
+            "citations": 1,
+            "decision": "ALLOW_ONLY_LIST_GET_ATTACHMENT_GET_TRASH_AND_UNTRASH_AFTER_CONSENT_AND_POLICY_GATES"
+          },
+          "PF-GMAIL-003": {
+            "citations": 1,
+            "decision": "BLOCK_ENABLEMENT_UNTIL_DISCLOSURE_MINIMIZATION_RETENTION_AND_DOCUMENTED_API_CONTROLS_PASS"
+          },
+          "PF-GMAIL-004": {
+            "citations": 1,
+            "decision": "DO_NOT_ASSUME_EXEMPTION_VERIFY_CURRENT_GOOGLE_REQUIREMENTS_BEFORE_ENABLEMENT"
+          },
+          "PF-GMAIL-005": {
+            "citations": 1,
+            "decision": "GMAIL_MODULE_REMAINS_DISABLED_UNTIL_POLICY_AND_SECURITY_ASSESSMENT_STATUS_IS_RESOLVED_AT_ZERO_INCREMENTAL_CASH"
+          },
+          "PF-OVH-001": {
+            "citations": 1,
+            "decision": "REQUIRE_RUNTIME_PROBES_AND_SLO_EVIDENCE_BEFORE_ANY_7X24_CLAIM"
+          },
+          "PF-OVH-002": {
+            "citations": 1,
+            "decision": "PROHIBIT_NEW_PURCHASE_UPGRADE_OR_PAID_ADD_ON_UNDER_AUD_ZERO_INCREMENTAL_CASH_GATE"
+          },
+          "PF-OVH-003": {
+            "citations": 2,
+            "decision": "USE_ONLY_AFTER_SEPARATE_OWNER_AUTHORIZED_INSPECTION_AND_ZERO_INCREMENTAL_COST_CAPACITY_GATE"
+          },
+          "PF-SPORTSBET-001": {
+            "citations": 1,
+            "decision": "REQUIRE_CURRENT_ELIGIBILITY_KYC_AND_LICENSE_CHECKS_AND_NEVER_INFER_24X7_SERVICE_PROOF"
+          },
+          "PF-SPORTSBET-002": {
+            "citations": 1,
+            "decision": "ADOPT_AS_POTENTIAL_MONTHLY_RECONCILIATION_SOURCE_AFTER_OWNER_AUTHORIZATION"
+          },
+          "PF-SPORTSBET-003": {
+            "citations": 2,
+            "decision": "NO_SCRAPING_AUTOMATION_OR_API_USE_WITHOUT_SEPARATE_OFFICIAL_PERMISSION_EVIDENCE"
+          },
+          "PF-TAB-001": {
+            "citations": 1,
+            "decision": "ADOPT_AS_POTENTIAL_MONTHLY_RECONCILIATION_SOURCE_AFTER_OWNER_AUTHORIZATION"
+          },
+          "PF-TAB-002": {
+            "citations": 1,
+            "decision": "TREAT_CSV_AS_POTENTIAL_RECONCILIATION_INPUT_NOT_REAL_TIME_ODDS_SOURCE"
+          },
+          "PF-TAB-003": {
+            "citations": 1,
+            "decision": "PROHIBIT_SCREEN_SCRAPING_CREDENTIAL_SHARING_AND_THIRD_PARTY_ACCOUNT_CONTROL"
+          },
+          "PF-TAB-004": {
+            "citations": 1,
+            "decision": "NOT_AUTHORIZED_UNLESS_SEPARATE_ACCESS_GRANT_METHOD_AND_USE_CONTRACT_ARE_VERIFIED"
+          },
+          "PF-TAB-005": {
+            "citations": 1,
+            "decision": "TAB_STUDIO_NOT_AVAILABLE_TO_ABD_UNTIL_AN_EXPLICIT_GRANT_AND_ZERO_COST_TERMS_ARE_EVIDENCED"
+          },
+          "PF-TAB-006": {
+            "citations": 1,
+            "decision": "REQUIRE_CURRENT_REGISTER_MATCH_FOR_THE_OWNER_JURISDICTION_BEFORE_PROVIDER_USE"
+          }
+        },
+        "id": "S02P01-PROVIDER-DECISIONS-NO-ORDER-OR-SPEND",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ANY_PAID_PLAN_OR_NEW_PURCHASE": "PROHIBITED",
+          "CLOUDFLARE_MAINLAND_CHINA": "NOT_IN_ZERO_CASH_SCOPE_NO_AVAILABILITY_CLAIM",
+          "GMAIL": "NOT_CONNECTED_POLICY_AND_CONSENT_GATES_REQUIRED",
+          "OVH_7X24": "UNVERIFIED_REQUIRES_RUNTIME_EVIDENCE",
+          "REAL_ORDER_SUBMISSION": "CAPABILITY_ABSENT_PROHIBITED",
+          "SPORTSBET_AUTOMATION": "NOT_AUTHORIZED_BY_EVIDENCE",
+          "TAB_STUDIO": "NOT_AUTHORIZED_BY_EVIDENCE"
+        },
+        "id": "S02P01-CRITICAL-SAFE-DEFAULTS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "screen scrape, web services and Studio",
+        "id": "S02P01-TAB-ACCESS-CONTRACT-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "applicability": "SOURCE_AND_ACCOUNT_AUTHORIZATION",
+          "citations": [
+            {
+              "retrieved_on": "2026-07-20",
+              "source_id": "SRC-SPORTSBET-001",
+              "source_level": "L1_PROVIDER_CONTRACT",
+              "url": "https://helpcentre.sportsbet.com.au/hc/en-us/articles/13565496156559-Sportsbet-Rules-Terms-Conditions"
+            },
+            {
+              "retrieved_on": "2026-07-20",
+              "source_id": "SRC-SPORTSBET-002",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+              "url": "https://helpcentre.sportsbet.com.au/hc/en-us/articles/4690326285325-What-Is-An-Activity-Statement"
+            }
+          ],
+          "fact_id": "PF-SPORTSBET-003",
+          "fact_status": "UNKNOWN_FAIL_CLOSED",
+          "operational_decision": "NO_SCRAPING_AUTOMATION_OR_API_USE_WITHOUT_SEPARATE_OFFICIAL_PERMISSION_EVIDENCE",
+          "statement": "The scoped Sportsbet terms and help sources examined for S02/P01 do not establish an official automation or API permission for ABD; this is not a claim that no such permission can exist."
+        },
+        "id": "S02P01-SPORTSBET-AUTOMATION-NOT-INVENTED",
+        "passed": true
+      },
+      {
+        "detail": "scope, methods and assessment",
+        "id": "S02P01-GMAIL-RESTRICTED-SCOPE-POLICY-GATE",
+        "passed": true
+      },
+      {
+        "detail": "paid China Network rejected; no mainland claim",
+        "id": "S02P01-CLOUDFLARE-CHINA-AND-ZERO-CASH-GATE",
+        "passed": true
+      },
+      {
+        "detail": "SLA and existing-instance state remain distinct",
+        "id": "S02P01-OVH-SLA-NOT-RUNTIME-PROOF",
+        "passed": true
+      },
+      {
+        "detail": {
+          "availability_verified": false,
+          "cloud_deployment_performed": false,
+          "email_read_or_modified": false,
+          "incremental_cash_spent_aud": "0.00",
+          "market_coverage_verified": false,
+          "provider_accounts_accessed": false,
+          "provider_api_called": false,
+          "provider_permissions_obtained": false,
+          "real_order_submitted": false,
+          "return_or_roi_verified": false,
+          "s02_p02_started": false
+        },
+        "id": "S02P01-PROVIDER-NO-EXTERNAL-OR-PERFORMANCE-EFFECT",
+        "passed": true
+      },
+      {
+        "detail": "REGULATORY_BASELINE_FROZEN_CAPABILITIES_FAIL_CLOSED",
+        "id": "S02P01-REGULATORY-TOP-LEVEL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "jurisdiction": "AUSTRALIA",
+          "legal_advice": false,
+          "legal_opinion_or_full_compliance_assessment": false,
+          "licensed_counsel_review_performed": false,
+          "owner_account_or_identity_status_inspected": false,
+          "purpose": "PRODUCT_CONTROL_BASELINE_FOR_ABD_0_0_0_1",
+          "regulatory_scope_exhaustive": false
+        },
+        "id": "S02P01-REGULATORY-NO-LEGAL-ADVICE-OR-CERTIFICATION",
+        "passed": true
+      },
+      {
+        "detail": [
+          "REG-001",
+          "REG-002",
+          "REG-003",
+          "REG-004",
+          "REG-005",
+          "REG-006",
+          "REG-007",
+          "REG-008",
+          "REG-009"
+        ],
+        "id": "S02P01-REGULATORY-RULE-IDS-EXACT-UNIQUE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "REG-001": {
+            "citations": 1,
+            "control": "BLOCK_ONLINE_IN_PLAY_MARKETS_AND_EMIT_NO_RECOMMENDATION"
+          },
+          "REG-002": {
+            "citations": 1,
+            "control": "UNKNOWN_OR_UNMATCHED_REGISTER_ENTRY_BLOCKS_PROVIDER"
+          },
+          "REG-003": {
+            "citations": 1,
+            "control": "BLOCK_PROHIBITED_PAYMENT_METHODS"
+          },
+          "REG-004": {
+            "citations": 1,
+            "control": "SELF_EXCLUDED_OR_STATUS_UNKNOWN_EMITS_NO_RECOMMENDATION_AND_NO_PROVIDER_INTERACTION"
+          },
+          "REG-005": {
+            "citations": 1,
+            "control": "UNVERIFIED_KYC_OR_ACCOUNT_ELIGIBILITY_BLOCKS_PROVIDER_USE"
+          },
+          "REG-006": {
+            "citations": 2,
+            "control": "ARCHIVE_AND_VERIFY_BEFORE_RECONCILIATION_NEVER_TREAT_AS_ODDS_FEED"
+          },
+          "REG-007": {
+            "citations": 1,
+            "control": "MINIMIZE_ENCRYPT_RESTRICT_RETAIN_WITH_PURPOSE_AND_DELETE_ONLY_BY_APPROVED_POLICY"
+          },
+          "REG-008": {
+            "citations": 1,
+            "control": "NO_SCREEN_SCRAPING_NO_CREDENTIAL_CAPTURE_NO_ACCOUNT_CONTROL_NO_ORDER_SUBMISSION"
+          },
+          "REG-009": {
+            "citations": 1,
+            "control": "NO_TAB_API_OR_WEB_SERVICE_USE_UNTIL_EXPLICIT_GRANT_ZERO_COST_AND_METHOD_CONTRACT_PASS"
+          }
+        },
+        "id": "S02P01-REGULATORY-RULES-COMPLETE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "REG-001": {
+            "citations": 1,
+            "control": "BLOCK_ONLINE_IN_PLAY_MARKETS_AND_EMIT_NO_RECOMMENDATION"
+          },
+          "REG-002": {
+            "citations": 1,
+            "control": "UNKNOWN_OR_UNMATCHED_REGISTER_ENTRY_BLOCKS_PROVIDER"
+          },
+          "REG-003": {
+            "citations": 1,
+            "control": "BLOCK_PROHIBITED_PAYMENT_METHODS"
+          },
+          "REG-004": {
+            "citations": 1,
+            "control": "SELF_EXCLUDED_OR_STATUS_UNKNOWN_EMITS_NO_RECOMMENDATION_AND_NO_PROVIDER_INTERACTION"
+          },
+          "REG-005": {
+            "citations": 1,
+            "control": "UNVERIFIED_KYC_OR_ACCOUNT_ELIGIBILITY_BLOCKS_PROVIDER_USE"
+          },
+          "REG-006": {
+            "citations": 2,
+            "control": "ARCHIVE_AND_VERIFY_BEFORE_RECONCILIATION_NEVER_TREAT_AS_ODDS_FEED"
+          },
+          "REG-007": {
+            "citations": 1,
+            "control": "MINIMIZE_ENCRYPT_RESTRICT_RETAIN_WITH_PURPOSE_AND_DELETE_ONLY_BY_APPROVED_POLICY"
+          },
+          "REG-008": {
+            "citations": 1,
+            "control": "NO_SCREEN_SCRAPING_NO_CREDENTIAL_CAPTURE_NO_ACCOUNT_CONTROL_NO_ORDER_SUBMISSION"
+          },
+          "REG-009": {
+            "citations": 1,
+            "control": "NO_TAB_API_OR_WEB_SERVICE_USE_UNTIL_EXPLICIT_GRANT_ZERO_COST_AND_METHOD_CONTRACT_PASS"
+          }
+        },
+        "id": "S02P01-REGULATORY-CITATIONS-RESOLVE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "REG-001": {
+            "citations": 1,
+            "control": "BLOCK_ONLINE_IN_PLAY_MARKETS_AND_EMIT_NO_RECOMMENDATION"
+          },
+          "REG-002": {
+            "citations": 1,
+            "control": "UNKNOWN_OR_UNMATCHED_REGISTER_ENTRY_BLOCKS_PROVIDER"
+          },
+          "REG-003": {
+            "citations": 1,
+            "control": "BLOCK_PROHIBITED_PAYMENT_METHODS"
+          },
+          "REG-004": {
+            "citations": 1,
+            "control": "SELF_EXCLUDED_OR_STATUS_UNKNOWN_EMITS_NO_RECOMMENDATION_AND_NO_PROVIDER_INTERACTION"
+          },
+          "REG-005": {
+            "citations": 1,
+            "control": "UNVERIFIED_KYC_OR_ACCOUNT_ELIGIBILITY_BLOCKS_PROVIDER_USE"
+          },
+          "REG-006": {
+            "citations": 2,
+            "control": "ARCHIVE_AND_VERIFY_BEFORE_RECONCILIATION_NEVER_TREAT_AS_ODDS_FEED"
+          },
+          "REG-007": {
+            "citations": 1,
+            "control": "MINIMIZE_ENCRYPT_RESTRICT_RETAIN_WITH_PURPOSE_AND_DELETE_ONLY_BY_APPROVED_POLICY"
+          },
+          "REG-008": {
+            "citations": 1,
+            "control": "NO_SCREEN_SCRAPING_NO_CREDENTIAL_CAPTURE_NO_ACCOUNT_CONTROL_NO_ORDER_SUBMISSION"
+          },
+          "REG-009": {
+            "citations": 1,
+            "control": "NO_TAB_API_OR_WEB_SERVICE_USE_UNTIL_EXPLICIT_GRANT_ZERO_COST_AND_METHOD_CONTRACT_PASS"
+          }
+        },
+        "id": "S02P01-REGULATORY-CONTROLS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "in-play, payments, BetStop, privacy, TAB",
+        "id": "S02P01-REGULATORY-CRITICAL-FAIL-CLOSED-BEHAVIOR",
+        "passed": true
+      },
+      {
+        "detail": {
+          "Sportsbet_automation_permission_verified": false,
+          "TAB_web_services_or_studio_permission_verified": false,
+          "betstop_or_other_self_exclusion_status_verified": false,
+          "default": "NO_PROVIDER_INTERACTION_NO_RECOMMENDATION",
+          "licensed_provider_match_verified": false,
+          "owner_age_residency_and_kyc_verified": false,
+          "owner_jurisdiction_verified": false,
+          "provider_terms_acceptance_verified": false
+        },
+        "id": "S02P01-REGULATORY-RUNTIME-PREREQUISITES-UNVERIFIED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "irreconcilable_legal_or_source_contract_conflict_found": false,
+          "reason": "Every scoped risk has a conservative disable, no-recommendation or owner-only action; this does not certify legal compliance.",
+          "unresolved_legal_questions_exist": true,
+          "unresolved_question_action": "KEEP_AFFECTED_CAPABILITY_DISABLED_AND_REVALIDATE_PRIMARY_SOURCES"
+        },
+        "id": "S02P01-REGULATORY-CONFLICTS-HAVE-SAFE-DEFAULT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "incremental_cash_spent_aud": "0.00",
+          "legal_advice_provided": false,
+          "owner_identity_or_account_state_inspected": false,
+          "production_deployed": false,
+          "provider_account_accessed": false,
+          "provider_api_called": false,
+          "real_order_submitted": false,
+          "regulatory_compliance_certified": false,
+          "return_or_roi_verified": false,
+          "s02_p02_started": false
+        },
+        "id": "S02P01-REGULATORY-NO-EXTERNAL-EFFECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "missing": [],
+          "orphan": []
+        },
+        "id": "S02P01-ALL-CLAIMS-HAVE-OFFICIAL-SOURCE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "unknown": [],
+          "unused": []
+        },
+        "id": "S02P01-NO-UNUSED-OFFICIAL-SOURCES",
+        "passed": true
+      },
+      {
+        "detail": "bankroll, zero cash, advice-only, runtime target",
+        "id": "S02P01-CANONICAL-BOUNDARIES-FROZEN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "automatic_overage_billing_allowed": false,
+          "automatic_paid_upgrade_allowed": false,
+          "automatic_purchase_allowed": false,
+          "cash_commitments_created_in_s00_p03": [],
+          "comparison": "ACTUAL_INCREMENTAL_CASH_COST_MUST_EQUAL_ZERO",
+          "external_billing_accounts_inspected_in_s00_p03": false,
+          "maximum_aud": "0.00",
+          "negative_action": "FAIL_INVALID_COST_DATA",
+          "negative_boundary_aud": "-0.0001",
+          "positive_boundary_aud": "0.0001",
+          "positive_or_unknown_action": "BLOCK_AND_EMIT_INCREMENTAL_CASH_BUDGET_EXCEEDED"
+        },
+        "id": "S02P01-ZERO-INCREMENTAL-CASH-BASELINE",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "background_public_page_collection": "SOURCE_CONTRACT_DEPENDENT",
+            "email_evidence": "ENABLED_AFTER_GMAIL_CONSENT",
+            "id": "TAB",
+            "order_submission": "NOT_PRESENT",
+            "realtime_truth": "NOT_FROM_EMAIL",
+            "role": "DYNAMIC_PRICE_OR_ACTION_OPTION"
+          },
+          {
+            "background_public_page_collection": "SOURCE_CONTRACT_DEPENDENT",
+            "email_evidence": "OPTIONAL",
+            "id": "SPORTSBET",
+            "order_submission": "NOT_PRESENT",
+            "realtime_truth": "OWNER_VISIBLE_PRICE_OR_VERIFIED_FRESH_SOURCE",
+            "role": "DYNAMIC_PRICE_OR_ACTION_OPTION"
+          },
+          {
+            "background_public_page_collection": "SOURCE_CONTRACT_DEPENDENT",
+            "email_evidence": "OPTIONAL",
+            "id": "OTHER_OBSERVABLE_PROVIDER",
+            "order_submission": "NOT_PRESENT",
+            "realtime_truth": "VERIFIED_FRESH_SOURCE",
+            "role": "DISCOVERY_AND_DYNAMIC_ROUTING"
+          }
+        ],
+        "id": "S02P01-PROVIDER-CONTRACTS-REMAIN-SOURCE-DEPENDENT",
+        "passed": true
+      },
+      {
+        "detail": "decimal facts remain strings",
+        "id": "S02P01-NO-BINARY-FLOAT-IN-AUTHORITATIVE-ARTIFACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 18,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 18
+        },
+        "id": "S02P01-STAGE1-DELIVERY-CHAIN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "forbidden_existing": [],
+          "index": [
+            {
+              "acceptance_contract_id": "AC-S02-P02",
+              "expected_artifact": "machine/evidence/EVD-S02-P02.json",
+              "id": "INDEX-AC-S02-P02",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "每个模型设计主张可回溯论文。",
+              "requirement_id": "REQ-S02-P02",
+              "status": "PLANNED"
+            }
+          ]
+        },
+        "id": "S02P01-P02-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 80,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 158
+        },
+        "id": "S02P01-TEST-TARGETED-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 980,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 1060
+        },
+        "id": "S02P01-TEST-FULL-REGRESSION-PASS",
+        "passed": true
+      },
+      {
+        "detail": "validation_report.json",
+        "id": "S02P01-PACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S02P01-TASKPACK-49-GATES-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S00/P03/paid_dependency_scan.txt",
+        "id": "S02P01-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S02-P01",
+    "decision": "OFFICIAL_PLATFORM_AND_REGULATORY_FACTS_FROZEN",
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-20T00:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "machine/evidence/EVD-S01-STAGE-REVIEW.json": "3e5a64f3b99fae7b67aeb0d18d94cd13eb0077b1c856dadbac0d8bbff6f5886d",
+      "machine/evidence/EVD-S01-STAGE-REVIEW_rollback.json": "e58704772cc350fedece3b3780c6d344c1f4fcee5c61013981072882cc3677f7",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S01/STAGE_REVIEW/github_delivery_receipt.json": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde",
+      "machine/evidence/S02/P01/full_regression.xml": "6eaec991ef28e5f1b94a33641f2f1b4e6583bed9122f9c2c8e508f7a70620323",
+      "machine/evidence/S02/P01/pytest.xml": "5429e7be734c3f258bbb8927ab84f1d6f8cc2a95b34c86b90e8e1ec9108ec790",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/provider_contracts.json": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/sources.json": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S02_P01.json": "68bf2b7c97d31d5f9ac3d722e1f03f55e55c92b0d19f3c05e383d6780fc71faa",
+      "provider_facts_snapshot.json": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+      "regulatory_matrix.json": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+      "sources.json": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966"
+    },
+    "legal_status": "RESEARCH_BASELINE_NOT_LEGAL_ADVICE_OR_COMPLIANCE_CERTIFICATION",
+    "next": "S02/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "phase_status": "S02_P01_PASS",
+    "production_status": "NOT_DEPLOYED",
+    "provider_capability_status": "NOT_CONNECTED_OR_NOT_AUTHORIZED",
+    "release_status": "NOT_READY_STAGE_REVIEW_REQUIRED",
+    "requirement_id": "REQ-S02-P01",
+    "schema_version": "1.0.0",
+    "stage_id": "S02",
+    "status": "PASS",
+    "summary": {
+      "checks": 88,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 88
+    },
+    "version": "0.0.0.1"
+  }
+}

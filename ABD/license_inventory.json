@@ -1,0 +1,176 @@
+{
+  "schema_version": "1.0.0",
+  "version": "0.0.0.1",
+  "stage_id": "S02",
+  "phase_id": "P03",
+  "as_of": "2026-07-20",
+  "status": "FROZEN_ENGINEERING_LICENSE_AUDIT_NOT_LEGAL_ADVICE",
+  "policy": {
+    "legal_advice": false,
+    "repository_license_detection_source": "https://docs.github.com/en/rest/licenses/licenses",
+    "no_license_rule_source": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository",
+    "github_detection_boundary": "GitHub Licensee 检测只识别仓库许可证文件，不覆盖传递依赖、外部服务、数据、网站条款或所有法律问题。",
+    "no_license_default": "公开仓库没有许可证时，默认版权规则不授权复制、分发或制作衍生作品；仅公开查看和 GitHub 平台允许的 fork 不等于 ABD 可复用。",
+    "proprietary_abd_rule": "ABD 代码与数据保持专有；消费第三方代码不得给 ABD 添加开源发布许可，也不得复制治理框架。",
+    "code_license_separate_from_service_terms": true,
+    "future_reuse_requires_exact_version_recheck": true,
+    "p03_code_copy_or_dependency_addition": false
+  },
+  "license_classes": {
+    "MIT": {
+      "engineering_disposition": "PERMISSIVE_FUTURE_REUSE_CONDITIONAL",
+      "required_controls": [
+        "保留上游版权声明和许可文本",
+        "固定精确版本或 commit 并进入 SBOM",
+        "确认被复制文件确实由该许可证覆盖",
+        "完成传递依赖、安全、来源合同和功能边界复审",
+        "不得把无担保条款写成质量、收益或适用性保证"
+      ]
+    },
+    "Apache-2.0": {
+      "engineering_disposition": "PERMISSIVE_FUTURE_REUSE_CONDITIONAL",
+      "required_controls": [
+        "随分发保留 Apache-2.0 许可证",
+        "修改文件时给出显著修改声明",
+        "保留适用的版权、专利、商标和归属通知",
+        "上游存在 NOTICE 时按许可证要求处理 NOTICE",
+        "固定版本并记录专利终止、商标与无担保边界",
+        "代码许可不得替代外部 API、数据或网站条款"
+      ]
+    },
+    "NOASSERTION": {
+      "engineering_disposition": "REJECT_COPY_MODIFY_DISTRIBUTE",
+      "required_controls": [
+        "不复制、不修改、不打包、不分发代码或实质表达",
+        "只记录公开元数据和独立事实",
+        "若未来出现许可证，必须重新固定 commit 并独立验收，不能追溯假定授权"
+      ]
+    }
+  },
+  "entries": [
+    {
+      "id": "LIC-SRC-013",
+      "source_id": "SRC-013",
+      "project": "flumine",
+      "repository": "https://github.com/betcode-org/flumine",
+      "pinned_commit": "1549eeb112aca18c6ed2c19583569436ae14120a",
+      "detected_spdx": "MIT",
+      "license_path": "LICENSE",
+      "license_git_blob_sha1": "02e969ca23bb53641d686623a228df6bd4a33ffc",
+      "license_sha256": "874af3c0fd5b64aa70592ee2a0f91528d52c83203db658f0598c09c3ed295a73",
+      "license_url": "https://github.com/betcode-org/flumine/blob/1549eeb112aca18c6ed2c19583569436ae14120a/LICENSE",
+      "copyright_notice": "Copyright (c) 2026, Liam Pauling",
+      "notice_file_at_repository_root": false,
+      "code_license_scope": "固定 commit 中受 LICENSE 覆盖的仓库代码；不代表交易场所、账户或数据访问授权。",
+      "p03_disposition": "DESIGN_REFERENCE_ONLY_NO_COPY_NO_DEPENDENCY",
+      "future_reuse": "CONDITIONAL_AFTER_NO_ORDER_SECURITY_SBOM_AND_LICENSE_REVIEW"
+    },
+    {
+      "id": "LIC-SRC-014",
+      "source_id": "SRC-014",
+      "project": "penaltyblog",
+      "repository": "https://github.com/martineastwood/penaltyblog",
+      "pinned_commit": "ba9150b311f3b87bf9813c09e6f1b3950e31f7cf",
+      "detected_spdx": "MIT",
+      "license_path": "LICENCE",
+      "license_git_blob_sha1": "be173f45eb02459453a1774361a129891829f334",
+      "license_sha256": "e1b183921d93c7f19a1bacfb248d809b0eea839c09232f6ec0234fae4561a0a7",
+      "license_url": "https://github.com/martineastwood/penaltyblog/blob/ba9150b311f3b87bf9813c09e6f1b3950e31f7cf/LICENCE",
+      "copyright_notice": "Copyright 2021 Martin Eastwood",
+      "notice_file_at_repository_root": false,
+      "code_license_scope": "固定 commit 中受 LICENCE 覆盖的仓库代码；外部数据源、抓取目标和 API 权利另行验证。",
+      "p03_disposition": "ALGORITHM_RESEARCH_REFERENCE_ONLY_NO_COPY_NO_DEPENDENCY",
+      "future_reuse": "CONDITIONAL_AFTER_MODEL_DATA_SOURCE_TRANSITIVE_DEPENDENCY_AND_LICENSE_REVIEW"
+    },
+    {
+      "id": "LIC-SRC-015",
+      "source_id": "SRC-015",
+      "project": "OddsHarvester",
+      "repository": "https://github.com/jordantete/OddsHarvester",
+      "pinned_commit": "32cd0d6f51ca8cb50221c1e4273e2b1e35424a72",
+      "detected_spdx": "MIT",
+      "license_path": "LICENSE.txt",
+      "license_git_blob_sha1": "a6c86246c9eda1c5077ad347a11ac4b7600c6bd5",
+      "license_sha256": "9f2a034be8ed706c2089e698704627673ae9025d130c3d68e369c1d565d63408",
+      "license_url": "https://github.com/jordantete/OddsHarvester/blob/32cd0d6f51ca8cb50221c1e4273e2b1e35424a72/LICENSE.txt",
+      "copyright_notice": "Copyright (c) 2024 Jordan TETE",
+      "notice_file_at_repository_root": false,
+      "code_license_scope": "固定 commit 的代码许可不授权抓取 OddsPortal，不授权代理规避、数据再分发或违反目标站条款。",
+      "p03_disposition": "PARSER_TEST_PATTERN_REFERENCE_ONLY_NO_COPY_NO_DEPENDENCY",
+      "future_reuse": "CONDITIONAL_ONLY_AFTER_TARGET_SOURCE_CONTRACT_AND_NO_BYPASS_DESIGN"
+    },
+    {
+      "id": "LIC-SRC-016",
+      "source_id": "SRC-016",
+      "project": "sportsbook-odds-scraper",
+      "repository": "https://github.com/declanwalpole/sportsbook-odds-scraper",
+      "pinned_commit": "8e791fc31a3b118936dd2f2b02e1919aaa4daeb3",
+      "detected_spdx": "NOASSERTION",
+      "license_path": null,
+      "license_git_blob_sha1": null,
+      "license_sha256": null,
+      "license_url": "https://api.github.com/repos/declanwalpole/sportsbook-odds-scraper/license",
+      "license_api_result": "NOT_FOUND_AT_RETRIEVAL",
+      "copyright_notice": "UNKNOWN_RIGHTSHOLDER_DEFAULT_COPYRIGHT_APPLIES",
+      "notice_file_at_repository_root": false,
+      "code_license_scope": "没有许可证即没有 ABD 可依赖的复制、修改、分发或衍生授权。",
+      "p03_disposition": "REJECT_ALL_CODE_REUSE_PUBLIC_METADATA_RESEARCH_ONLY",
+      "future_reuse": "BLOCKED_UNLESS_RIGHTSHOLDER_ADDS_VERIFIABLE_LICENSE_AND_NEW_AUDIT_PASSES"
+    },
+    {
+      "id": "LIC-SRC-017",
+      "source_id": "SRC-017",
+      "project": "sports-betting-ml",
+      "repository": "https://github.com/ianalloway/sports-betting-ml",
+      "pinned_commit": "23c7bc95f1007006210c9b33efcbd47dfca82e0d",
+      "detected_spdx": "MIT",
+      "license_path": "LICENSE",
+      "license_git_blob_sha1": "1973fc5fde52788a0b0b55513a15c836c6dc2a1e",
+      "license_sha256": "96d2f7b46274c48fe1d757f15d3616c9241ce9ed69fd7315e9753b64dc9e2ca1",
+      "license_url": "https://github.com/ianalloway/sports-betting-ml/blob/23c7bc95f1007006210c9b33efcbd47dfca82e0d/LICENSE",
+      "copyright_notice": "Copyright (c) 2026 Ian Alloway",
+      "notice_file_at_repository_root": false,
+      "code_license_scope": "固定 commit 的代码许可不证明训练数据、模型指标、外部 NBA 数据或 Odds API 数据权利与正确性。",
+      "p03_disposition": "WORKFLOW_COUNTEREXAMPLE_ONLY_NO_MODEL_OR_CODE_REUSE",
+      "future_reuse": "CONDITIONAL_AFTER_DATA_MODEL_METRIC_TRANSITIVE_DEPENDENCY_AND_LICENSE_REVIEW"
+    },
+    {
+      "id": "LIC-SRC-018",
+      "source_id": "SRC-018",
+      "project": "Odds API read-only tooling",
+      "repository": "https://github.com/odds-api/odds-api",
+      "pinned_commit": "16546bc4a2d53a67d5b93ad982da385c58525568",
+      "detected_spdx": "Apache-2.0",
+      "license_path": "LICENSE",
+      "license_git_blob_sha1": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+      "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "license_url": "https://github.com/odds-api/odds-api/blob/16546bc4a2d53a67d5b93ad982da385c58525568/LICENSE",
+      "copyright_notice": "STANDARD_APACHE_2_0_TEXT_NO_REPOSITORY_NOTICE_FILE_OBSERVED",
+      "notice_file_at_repository_root": false,
+      "code_license_scope": "Apache-2.0 只覆盖 SDK、示例和工具代码；README 明示 API 与数据使用由 odds-api.net 条款治理。",
+      "p03_disposition": "PINNED_SCHEMA_AND_MOCK_REFERENCE_ONLY_NO_COPY_NO_DEPENDENCY",
+      "future_reuse": "CONDITIONAL_AFTER_APACHE_NOTICE_SERVICE_TERMS_DATA_LICENSE_A_ZERO_AND_EXIT_REVIEW"
+    }
+  ],
+  "summary": {
+    "projects": 6,
+    "MIT": 4,
+    "Apache-2.0": 1,
+    "NOASSERTION": 1,
+    "p03_code_copies": 0,
+    "p03_dependencies_added": 0,
+    "license_decisions_missing": 0,
+    "service_terms_treated_as_code_license": 0,
+    "legal_clearance_claimed": false
+  },
+  "external_effect_boundary": {
+    "repository_cloned": false,
+    "package_installed": false,
+    "provider_api_called": false,
+    "account_or_api_key_used": false,
+    "incremental_cash_spent_aud": "0.00",
+    "production_or_legal_approval_claimed": false,
+    "s02_p04_started": false
+  },
+  "next_on_acceptance_pass": "S02/P04_READY_NOT_STARTED"
+}

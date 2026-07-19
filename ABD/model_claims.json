@@ -1,0 +1,433 @@
+{
+  "schema_version": "1.0.0",
+  "version": "0.0.0.1",
+  "stage_id": "S02",
+  "phase_id": "P02",
+  "as_of": "2026-07-20",
+  "status": "FROZEN_RESEARCH_CLAIMS",
+  "claim_semantics": {
+    "SUPPORTED_DESIGN_DIRECTION": "论文直接支持一般设计方向，但仍需 ABD 域内验证。",
+    "SUPPORTED_WITH_DOMAIN_LIMITATIONS": "论文在特定体育、市场、数据或实验范围内支持结论，不允许无条件外推。",
+    "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED": "当前数值来自本地工程合同或安全假设，引用只提供上下文，不能宣称论文推导。",
+    "RESEARCH_ONLY_NOT_RUNTIME_PROOF": "只能作为研究证据，不能证明训练、回测、运行、部署、收益或生产就绪。"
+  },
+  "citation_relation_semantics": {
+    "DIRECT_PAPER_FINDING": "主张是对论文明确结果或理论的审慎转述。",
+    "ABD_DESIGN_INFERENCE": "主张是从论文到 ABD 的显式推论，不能伪装成论文原结论。",
+    "CONTEXT_ONLY_NOT_THRESHOLD_EVIDENCE": "论文只提供设计背景，明确不支撑具体本地阈值。"
+  },
+  "claims": [
+    {
+      "id": "CLM-S02-P02-001",
+      "category": "MARKET_PRIOR",
+      "claim": "市场赔率可作为信息丰富的预测基准与锚点；ABD 可研究相对去水市场共识的校准残差。",
+      "evidence_classification": "SUPPORTED_WITH_DOMAIN_LIMITATIONS",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_REQUIRES_TIME_ORDERED_DOMAIN_VALIDATION",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-001",
+          "relation": "ABD_DESIGN_INFERENCE",
+          "primary_url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0198668",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER"
+        }
+      ],
+      "not_proven": "不证明赔率完美、残差有正净优势、所有市场可覆盖或固定权重有效。"
+    },
+    {
+      "id": "CLM-S02-P02-002",
+      "category": "MARKET_PRIOR",
+      "claim": "market_prior_weight_min=0.50 以及各模型残差权重上限是 ABD 本地安全假设，不是论文推导值。",
+      "evidence_classification": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_REQUIRES_EMPIRICAL_THRESHOLD_VALIDATION",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-001",
+          "relation": "CONTEXT_ONLY_NOT_THRESHOLD_EVIDENCE",
+          "primary_url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0198668",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER"
+        }
+      ],
+      "not_proven": "不证明 0.50、0.35 或 0.50 是最优、保守充分或跨市场稳定值。"
+    },
+    {
+      "id": "CLM-S02-P02-003",
+      "category": "CALIBRATION_PROPER_SCORING",
+      "claim": "概率决策模型不能只按分类准确率选择；校准质量必须被单独评估。",
+      "evidence_classification": "SUPPORTED_WITH_DOMAIN_LIMITATIONS",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_PREPRINT_REQUIRES_INDEPENDENT_REPLICATION",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-003",
+          "relation": "ABD_DESIGN_INFERENCE",
+          "primary_url": "https://arxiv.org/abs/2303.06021",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L2_AUTHOR_PREPRINT_PRIMARY"
+        },
+        {
+          "paper_id": "PAPER-S02-P02-004",
+          "relation": "ABD_DESIGN_INFERENCE",
+          "primary_url": "https://doi.org/10.1198/016214506000001437",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER"
+        }
+      ],
+      "not_proven": "不复制预印本的实验收益，也不证明校准良好即可产生可执行净收益。"
+    },
+    {
+      "id": "CLM-S02-P02-004",
+      "category": "CALIBRATION_PROPER_SCORING",
+      "claim": "概率验证应使用严格适当评分规则；对数评分与二次评分可作为候选，Brier 技能与 log-loss 技能必须相对冻结基准解释。",
+      "evidence_classification": "SUPPORTED_DESIGN_DIRECTION",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_REQUIRES_FROZEN_BASELINE_AND_INTERVALS",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-004",
+          "relation": "DIRECT_PAPER_FINDING",
+          "primary_url": "https://doi.org/10.1198/016214506000001437",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER"
+        }
+      ],
+      "not_proven": "不证明当前技能下界、置信区间实现或任何特定样本量已经通过。"
+    },
+    {
+      "id": "CLM-S02-P02-005",
+      "category": "CALIBRATION_PROPER_SCORING",
+      "claim": "calibration slope 0.90-1.10、intercept abs 0.02、主市场误差 0.025、细分市场误差 0.04 和技能下界大于 0 均是本地门，不由 proper-scoring 论文给出。",
+      "evidence_classification": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_REQUIRES_EMPIRICAL_THRESHOLD_VALIDATION",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-004",
+          "relation": "CONTEXT_ONLY_NOT_THRESHOLD_EVIDENCE",
+          "primary_url": "https://doi.org/10.1198/016214506000001437",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER"
+        }
+      ],
+      "not_proven": "不证明这些界限的统计功效、跨体育适用性或生产安全充分性。"
+    },
+    {
+      "id": "CLM-S02-P02-006",
+      "category": "SELECTIVE_NO_RECOMMENDATION",
+      "claim": "拒绝或 NO_RECOMMENDATION 应是一等输出，并与覆盖率及覆盖区域风险共同评估。",
+      "evidence_classification": "SUPPORTED_DESIGN_DIRECTION",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_REQUIRES_ABD_RISK_COVERAGE_VALIDATION",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-005",
+          "relation": "ABD_DESIGN_INFERENCE",
+          "primary_url": "https://proceedings.mlr.press/v97/geifman19a.html",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_OFFICIAL_PROCEEDINGS_PRIMARY"
+        }
+      ],
+      "not_proven": "不证明 ABD 当前拒绝规则、覆盖目标或被覆盖区域已有低风险或正收益。"
+    },
+    {
+      "id": "CLM-S02-P02-007",
+      "category": "SELECTIVE_NO_RECOMMENDATION",
+      "claim": "是否建议必须依赖可验证的概率分布、赔率、摩擦和正保守期望；未知或不满足时默认 NO_BET 或 NO_RECOMMENDATION。",
+      "evidence_classification": "SUPPORTED_WITH_DOMAIN_LIMITATIONS",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_REQUIRES_MARKET_SPECIFIC_VALIDATION",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-002",
+          "relation": "ABD_DESIGN_INFERENCE",
+          "primary_url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0287601",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER"
+        }
+      ],
+      "not_proven": "不证明论文的 NFL 点差与总分条件可直接移植到钱线、赛马、期货或全部市场。"
+    },
+    {
+      "id": "CLM-S02-P02-008",
+      "category": "SELECTIVE_NO_RECOMMENDATION",
+      "claim": "概率和阈值 ±0.0001、不利赔率一跳与不利时间扰动导致动作翻转时输出 NO_RECOMMENDATION，是 ABD 本地确定性安全合同。",
+      "evidence_classification": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_REQUIRES_BOUNDARY_AND_PRODUCTION_REPLAY",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-005",
+          "relation": "CONTEXT_ONLY_NOT_THRESHOLD_EVIDENCE",
+          "primary_url": "https://proceedings.mlr.press/v97/geifman19a.html",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_OFFICIAL_PROCEEDINGS_PRIMARY"
+        }
+      ],
+      "not_proven": "SelectiveNet 不推导万分之一、不利赔率跳动或 ABD 的动作翻转规则。"
+    },
+    {
+      "id": "CLM-S02-P02-009",
+      "category": "OUTLIER_ROBUSTNESS",
+      "claim": "单笔错误或极端赔率可主导回测利润；数据质量修复、单笔影响诊断、独立复现和后续时期验证是收益主张的前置条件。",
+      "evidence_classification": "SUPPORTED_WITH_DOMAIN_LIMITATIONS",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_REQUIRES_ABD_DATA_AND_TIME_ORDERED_REPLICATION",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-006",
+          "relation": "DIRECT_PAPER_FINDING",
+          "primary_url": "https://arxiv.org/abs/2306.01740",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED"
+        }
+      ],
+      "not_proven": "不证明所有极端观测都应删除，也不证明清洗后的任一策略可持续盈利。"
+    },
+    {
+      "id": "CLM-S02-P02-010",
+      "category": "OUTLIER_ROBUSTNESS",
+      "claim": "conservative_probability_percentile=10、edge_haircut_fraction=0.25、remove_top_profit_fraction_for_robustness=0.01 是本地压力测试参数，不是纠错论文推导值。",
+      "evidence_classification": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_REQUIRES_PREREGISTERED_SENSITIVITY_VALIDATION",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-006",
+          "relation": "CONTEXT_ONLY_NOT_THRESHOLD_EVIDENCE",
+          "primary_url": "https://arxiv.org/abs/2306.01740",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED"
+        }
+      ],
+      "not_proven": "不证明 10、0.25 或 0.01 是最优、充分、无偏或可用于结果导向清洗的值。"
+    },
+    {
+      "id": "CLM-S02-P02-011",
+      "category": "RISK_CONSTRAINED_KELLY",
+      "claim": "凯利类配置以重复机会下的期望对数财富增长为理论目标，而不是最大化单次收益或保证短期回报。",
+      "evidence_classification": "SUPPORTED_DESIGN_DIRECTION",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_REQUIRES_VALID_PROBABILITIES_FRICTION_AND_DEPENDENCE_MODEL",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-007",
+          "relation": "DIRECT_PAPER_FINDING",
+          "primary_url": "https://onlinelibrary.wiley.com/doi/abs/10.1002/j.1538-7305.1956.tb03809.x",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER"
+        }
+      ],
+      "not_proven": "不证明有限本金、有限时域、相关市场或概率估计误差下仍达到理论增长。"
+    },
+    {
+      "id": "CLM-S02-P02-012",
+      "category": "RISK_CONSTRAINED_KELLY",
+      "claim": "可在凯利增长目标之外显式约束财富回撤概率，并用风险厌恶参数权衡增长与回撤；ABD 只能在输入和假设经验证后研究该方向。",
+      "evidence_classification": "SUPPORTED_DESIGN_DIRECTION",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_NOT_IMPLEMENTED_OR_VALIDATED",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-008",
+          "relation": "DIRECT_PAPER_FINDING",
+          "primary_url": "https://web.stanford.edu/~boyd/papers/kelly.html",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED"
+        }
+      ],
+      "not_proven": "不证明当前 ABD 已实现论文凸约束、满足其分布假设或获得任何回撤保证。"
+    },
+    {
+      "id": "CLM-S02-P02-013",
+      "category": "RISK_CONSTRAINED_KELLY",
+      "claim": "kelly_fraction_alpha=0.00、beta=0.20、ga=0.25，以及单票、事件、相关簇、总敞口和回撤门均是本地风险参数，不由受限凯利论文推导。",
+      "evidence_classification": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "RESEARCH_ONLY_REQUIRES_JOINT_RISK_AND_CAPACITY_VALIDATION",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-008",
+          "relation": "CONTEXT_ONLY_NOT_THRESHOLD_EVIDENCE",
+          "primary_url": "https://web.stanford.edu/~boyd/papers/kelly.html",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED"
+        }
+      ],
+      "not_proven": "不证明这些分数、上限、软停止或灾难线满足论文风险界或适合 A$300 本金。"
+    },
+    {
+      "id": "CLM-S02-P02-014",
+      "category": "RISK_CONSTRAINED_KELLY",
+      "claim": "本论文集合不证明 ABD 已实现模型、全部市场覆盖、上线运行、实际收益或 A$300×1.3^n 的月度 30% 滚动复利；该目标仍是可证伪且不得降低门槛的研究目标。",
+      "evidence_classification": "RESEARCH_ONLY_NOT_RUNTIME_PROOF",
+      "direct_finding_or_inference": "ABD_DESIGN_INFERENCE",
+      "runtime_status": "UNVERIFIED_NOT_GUARANTEED",
+      "citations": [
+        {
+          "paper_id": "PAPER-S02-P02-002",
+          "relation": "CONTEXT_ONLY_NOT_THRESHOLD_EVIDENCE",
+          "primary_url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0287601",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER"
+        },
+        {
+          "paper_id": "PAPER-S02-P02-003",
+          "relation": "CONTEXT_ONLY_NOT_THRESHOLD_EVIDENCE",
+          "primary_url": "https://arxiv.org/abs/2303.06021",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L2_AUTHOR_PREPRINT_PRIMARY"
+        },
+        {
+          "paper_id": "PAPER-S02-P02-006",
+          "relation": "DIRECT_PAPER_FINDING",
+          "primary_url": "https://arxiv.org/abs/2306.01740",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED"
+        },
+        {
+          "paper_id": "PAPER-S02-P02-007",
+          "relation": "CONTEXT_ONLY_NOT_THRESHOLD_EVIDENCE",
+          "primary_url": "https://onlinelibrary.wiley.com/doi/abs/10.1002/j.1538-7305.1956.tb03809.x",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER"
+        },
+        {
+          "paper_id": "PAPER-S02-P02-008",
+          "relation": "CONTEXT_ONLY_NOT_THRESHOLD_EVIDENCE",
+          "primary_url": "https://web.stanford.edu/~boyd/papers/kelly.html",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED"
+        }
+      ],
+      "not_proven": "没有任何引用可替代至少 6 或 12 个完整自然月、独立等效信号、现金流调整收益、容量、摩擦、对账与生产证据。"
+    }
+  ],
+  "local_threshold_inventory": [
+    {
+      "parameter_pointer": "/market_model/market_prior_weight_min",
+      "value": "0.50",
+      "claim_id": "CLM-S02-P02-002",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/market_model/residual_weight_alpha_beta_max",
+      "value": "0.35",
+      "claim_id": "CLM-S02-P02-002",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/market_model/residual_weight_ga_max",
+      "value": "0.50",
+      "claim_id": "CLM-S02-P02-002",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/calibration/slope_min",
+      "value": "0.90",
+      "claim_id": "CLM-S02-P02-005",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/calibration/slope_max",
+      "value": "1.10",
+      "claim_id": "CLM-S02-P02-005",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/calibration/intercept_abs_max",
+      "value": "0.02",
+      "claim_id": "CLM-S02-P02-005",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/calibration/calibration_error_main_max",
+      "value": "0.025",
+      "claim_id": "CLM-S02-P02-005",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/calibration/calibration_error_niche_max",
+      "value": "0.04",
+      "claim_id": "CLM-S02-P02-005",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/numeric_determinism/boundary_perturbation_absolute_probability",
+      "value": "0.0001",
+      "claim_id": "CLM-S02-P02-008",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/numeric_determinism/boundary_perturbation_absolute_threshold",
+      "value": "0.0001",
+      "claim_id": "CLM-S02-P02-008",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/market_model/conservative_probability_percentile",
+      "value": 10,
+      "claim_id": "CLM-S02-P02-010",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/market_model/edge_haircut_fraction",
+      "value": "0.25",
+      "claim_id": "CLM-S02-P02-010",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/market_model/remove_top_profit_fraction_for_robustness",
+      "value": "0.01",
+      "claim_id": "CLM-S02-P02-010",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/risk/kelly_fraction_alpha",
+      "value": "0.00",
+      "claim_id": "CLM-S02-P02-013",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/risk/kelly_fraction_beta",
+      "value": "0.20",
+      "claim_id": "CLM-S02-P02-013",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/risk/kelly_fraction_ga",
+      "value": "0.25",
+      "claim_id": "CLM-S02-P02-013",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/risk/total_open_exposure_cap",
+      "value": "0.150",
+      "claim_id": "CLM-S02-P02-013",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/target_30pct/monthly_return",
+      "value": "0.30",
+      "claim_id": "CLM-S02-P02-014",
+      "status": "UNVERIFIED_RESEARCH_TARGET_NOT_PAPER_DERIVED"
+    }
+  ],
+  "external_effect_boundary": {
+    "incremental_cash_spent_aud": "0.00",
+    "paid_dependency_added": false,
+    "external_account_accessed": false,
+    "provider_api_called": false,
+    "real_order_capability_present": false,
+    "production_deployment_claimed": false,
+    "model_or_strategy_executed": false,
+    "return_or_roi_verified": false,
+    "return_or_guarantee_claimed": false,
+    "all_market_coverage_claimed": false,
+    "github_upload_performed": false,
+    "s02_p03_started": false
+  },
+  "next_on_acceptance_pass": "S02/P03_READY_NOT_STARTED"
+}

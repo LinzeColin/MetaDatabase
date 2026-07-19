@@ -1,0 +1,341 @@
+{
+  "schema_version": "1.0.0",
+  "version": "0.0.0.1",
+  "stage_id": "S02",
+  "phase_id": "P02",
+  "fixed_clock": "2026-07-20T00:00:00+10:00",
+  "as_of": "2026-07-20",
+  "expected_paper_ids": [
+    "PAPER-S02-P02-001",
+    "PAPER-S02-P02-002",
+    "PAPER-S02-P02-003",
+    "PAPER-S02-P02-004",
+    "PAPER-S02-P02-005",
+    "PAPER-S02-P02-006",
+    "PAPER-S02-P02-007",
+    "PAPER-S02-P02-008"
+  ],
+  "expected_claim_ids": [
+    "CLM-S02-P02-001",
+    "CLM-S02-P02-002",
+    "CLM-S02-P02-003",
+    "CLM-S02-P02-004",
+    "CLM-S02-P02-005",
+    "CLM-S02-P02-006",
+    "CLM-S02-P02-007",
+    "CLM-S02-P02-008",
+    "CLM-S02-P02-009",
+    "CLM-S02-P02-010",
+    "CLM-S02-P02-011",
+    "CLM-S02-P02-012",
+    "CLM-S02-P02-013",
+    "CLM-S02-P02-014"
+  ],
+  "required_categories": [
+    "MARKET_PRIOR",
+    "CALIBRATION_PROPER_SCORING",
+    "SELECTIVE_NO_RECOMMENDATION",
+    "OUTLIER_ROBUSTNESS",
+    "RISK_CONSTRAINED_KELLY"
+  ],
+  "allowed_source_levels": [
+    "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+    "L1_OFFICIAL_PROCEEDINGS_PRIMARY",
+    "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED",
+    "L2_AUTHOR_PREPRINT_PRIMARY"
+  ],
+  "expected_source_levels": {
+    "PAPER-S02-P02-001": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+    "PAPER-S02-P02-002": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+    "PAPER-S02-P02-003": "L2_AUTHOR_PREPRINT_PRIMARY",
+    "PAPER-S02-P02-004": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+    "PAPER-S02-P02-005": "L1_OFFICIAL_PROCEEDINGS_PRIMARY",
+    "PAPER-S02-P02-006": "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED",
+    "PAPER-S02-P02-007": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+    "PAPER-S02-P02-008": "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED"
+  },
+  "expected_primary_urls": {
+    "PAPER-S02-P02-001": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0198668",
+    "PAPER-S02-P02-002": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0287601",
+    "PAPER-S02-P02-003": "https://arxiv.org/abs/2303.06021",
+    "PAPER-S02-P02-004": "https://doi.org/10.1198/016214506000001437",
+    "PAPER-S02-P02-005": "https://proceedings.mlr.press/v97/geifman19a.html",
+    "PAPER-S02-P02-006": "https://arxiv.org/abs/2306.01740",
+    "PAPER-S02-P02-007": "https://onlinelibrary.wiley.com/doi/abs/10.1002/j.1538-7305.1956.tb03809.x",
+    "PAPER-S02-P02-008": "https://web.stanford.edu/~boyd/papers/kelly.html"
+  },
+  "expected_identifiers": {
+    "PAPER-S02-P02-001": {
+      "doi": "10.1371/journal.pone.0198668"
+    },
+    "PAPER-S02-P02-002": {
+      "doi": "10.1371/journal.pone.0287601"
+    },
+    "PAPER-S02-P02-003": {
+      "arxiv": "2303.06021",
+      "doi": "10.48550/arXiv.2303.06021"
+    },
+    "PAPER-S02-P02-004": {
+      "doi": "10.1198/016214506000001437"
+    },
+    "PAPER-S02-P02-005": {
+      "pmlr": "v97/geifman19a",
+      "arxiv": "1901.09192"
+    },
+    "PAPER-S02-P02-006": {
+      "arxiv": "2306.01740",
+      "doi": "10.1016/j.ijforecast.2024.06.012"
+    },
+    "PAPER-S02-P02-007": {
+      "doi": "10.1002/j.1538-7305.1956.tb03809.x"
+    },
+    "PAPER-S02-P02-008": {
+      "arxiv": "1603.06183",
+      "doi": "10.3905/joi.2016.25.3.118"
+    }
+  },
+  "expected_claim_classifications": {
+    "CLM-S02-P02-001": "SUPPORTED_WITH_DOMAIN_LIMITATIONS",
+    "CLM-S02-P02-002": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+    "CLM-S02-P02-003": "SUPPORTED_WITH_DOMAIN_LIMITATIONS",
+    "CLM-S02-P02-004": "SUPPORTED_DESIGN_DIRECTION",
+    "CLM-S02-P02-005": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+    "CLM-S02-P02-006": "SUPPORTED_DESIGN_DIRECTION",
+    "CLM-S02-P02-007": "SUPPORTED_WITH_DOMAIN_LIMITATIONS",
+    "CLM-S02-P02-008": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+    "CLM-S02-P02-009": "SUPPORTED_WITH_DOMAIN_LIMITATIONS",
+    "CLM-S02-P02-010": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+    "CLM-S02-P02-011": "SUPPORTED_DESIGN_DIRECTION",
+    "CLM-S02-P02-012": "SUPPORTED_DESIGN_DIRECTION",
+    "CLM-S02-P02-013": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+    "CLM-S02-P02-014": "RESEARCH_ONLY_NOT_RUNTIME_PROOF"
+  },
+  "expected_local_thresholds": [
+    {
+      "parameter_pointer": "/market_model/market_prior_weight_min",
+      "value": "0.50",
+      "claim_id": "CLM-S02-P02-002",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/market_model/residual_weight_alpha_beta_max",
+      "value": "0.35",
+      "claim_id": "CLM-S02-P02-002",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/market_model/residual_weight_ga_max",
+      "value": "0.50",
+      "claim_id": "CLM-S02-P02-002",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/calibration/slope_min",
+      "value": "0.90",
+      "claim_id": "CLM-S02-P02-005",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/calibration/slope_max",
+      "value": "1.10",
+      "claim_id": "CLM-S02-P02-005",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/calibration/intercept_abs_max",
+      "value": "0.02",
+      "claim_id": "CLM-S02-P02-005",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/calibration/calibration_error_main_max",
+      "value": "0.025",
+      "claim_id": "CLM-S02-P02-005",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/calibration/calibration_error_niche_max",
+      "value": "0.04",
+      "claim_id": "CLM-S02-P02-005",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/numeric_determinism/boundary_perturbation_absolute_probability",
+      "value": "0.0001",
+      "claim_id": "CLM-S02-P02-008",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/numeric_determinism/boundary_perturbation_absolute_threshold",
+      "value": "0.0001",
+      "claim_id": "CLM-S02-P02-008",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/market_model/conservative_probability_percentile",
+      "value": 10,
+      "claim_id": "CLM-S02-P02-010",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/market_model/edge_haircut_fraction",
+      "value": "0.25",
+      "claim_id": "CLM-S02-P02-010",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/market_model/remove_top_profit_fraction_for_robustness",
+      "value": "0.01",
+      "claim_id": "CLM-S02-P02-010",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/risk/kelly_fraction_alpha",
+      "value": "0.00",
+      "claim_id": "CLM-S02-P02-013",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/risk/kelly_fraction_beta",
+      "value": "0.20",
+      "claim_id": "CLM-S02-P02-013",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/risk/kelly_fraction_ga",
+      "value": "0.25",
+      "claim_id": "CLM-S02-P02-013",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/risk/total_open_exposure_cap",
+      "value": "0.150",
+      "claim_id": "CLM-S02-P02-013",
+      "status": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED"
+    },
+    {
+      "parameter_pointer": "/target_30pct/monthly_return",
+      "value": "0.30",
+      "claim_id": "CLM-S02-P02-014",
+      "status": "UNVERIFIED_RESEARCH_TARGET_NOT_PAPER_DERIVED"
+    }
+  ],
+  "claim_admission_vectors": [
+    {
+      "id": "ADMISSION-DIRECT-L1",
+      "evidence_classification": "SUPPORTED_DESIGN_DIRECTION",
+      "citation_relation": "DIRECT_PAPER_FINDING",
+      "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+      "has_runtime_proof": false,
+      "expected": "ADMIT_RESEARCH_ONLY"
+    },
+    {
+      "id": "ADMISSION-INFERENCE-L1",
+      "evidence_classification": "SUPPORTED_WITH_DOMAIN_LIMITATIONS",
+      "citation_relation": "ABD_DESIGN_INFERENCE",
+      "source_level": "L1_OFFICIAL_PROCEEDINGS_PRIMARY",
+      "has_runtime_proof": false,
+      "expected": "ADMIT_RESEARCH_ONLY"
+    },
+    {
+      "id": "ADMISSION-PREPRINT",
+      "evidence_classification": "SUPPORTED_WITH_DOMAIN_LIMITATIONS",
+      "citation_relation": "ABD_DESIGN_INFERENCE",
+      "source_level": "L2_AUTHOR_PREPRINT_PRIMARY",
+      "has_runtime_proof": false,
+      "expected": "ADMIT_PREPRINT_WITH_LIMITATIONS"
+    },
+    {
+      "id": "ADMISSION-LOCAL-THRESHOLD-CONTEXT",
+      "evidence_classification": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+      "citation_relation": "CONTEXT_ONLY_NOT_THRESHOLD_EVIDENCE",
+      "source_level": "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED",
+      "has_runtime_proof": false,
+      "expected": "ADMIT_LOCAL_THRESHOLD_UNVALIDATED"
+    },
+    {
+      "id": "ADMISSION-LOCAL-THRESHOLD-OVERCLAIM",
+      "evidence_classification": "LOCAL_ENGINEERING_THRESHOLD_NOT_PAPER_DERIVED",
+      "citation_relation": "DIRECT_PAPER_FINDING",
+      "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+      "has_runtime_proof": false,
+      "expected": "REJECT_THRESHOLD_OVERCLAIM"
+    },
+    {
+      "id": "ADMISSION-FALSE-RUNTIME-PROOF",
+      "evidence_classification": "SUPPORTED_DESIGN_DIRECTION",
+      "citation_relation": "DIRECT_PAPER_FINDING",
+      "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+      "has_runtime_proof": true,
+      "expected": "REJECT_FALSE_RUNTIME_PROOF"
+    },
+    {
+      "id": "ADMISSION-UNKNOWN-LEVEL",
+      "evidence_classification": "SUPPORTED_DESIGN_DIRECTION",
+      "citation_relation": "DIRECT_PAPER_FINDING",
+      "source_level": "UNKNOWN",
+      "has_runtime_proof": false,
+      "expected": "REJECT_UNSUPPORTED_SOURCE_LEVEL"
+    }
+  ],
+  "stability_boundary_vectors": [
+    {
+      "id": "STABILITY-EXACT",
+      "probability_perturbation": "0.0001",
+      "threshold_perturbation": "0.0001",
+      "friction_perturbation": "0.0001",
+      "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+      "action_if_flip": "NO_RECOMMENDATION",
+      "expected": "LOCAL_THRESHOLD_RESEARCH_ONLY"
+    },
+    {
+      "id": "STABILITY-MINUS-ONE-TEN-THOUSANDTH",
+      "probability_perturbation": "0.0000",
+      "threshold_perturbation": "0.0000",
+      "friction_perturbation": "0.0000",
+      "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+      "action_if_flip": "NO_RECOMMENDATION",
+      "expected": "REJECT_INCOMPLETE_STABILITY_CONTRACT"
+    },
+    {
+      "id": "STABILITY-PLUS-ONE-TEN-THOUSANDTH",
+      "probability_perturbation": "0.0002",
+      "threshold_perturbation": "0.0002",
+      "friction_perturbation": "0.0002",
+      "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+      "action_if_flip": "NO_RECOMMENDATION",
+      "expected": "REJECT_UNFROZEN_STABILITY_THRESHOLD"
+    },
+    {
+      "id": "STABILITY-WRONG-ACTION",
+      "probability_perturbation": "0.0001",
+      "threshold_perturbation": "0.0001",
+      "friction_perturbation": "0.0001",
+      "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+      "action_if_flip": "BET",
+      "expected": "REJECT_UNSAFE_FLIP_ACTION"
+    },
+    {
+      "id": "STABILITY-MISSING-ODDS-TICK",
+      "probability_perturbation": "0.0001",
+      "threshold_perturbation": "0.0001",
+      "friction_perturbation": "0.0001",
+      "odds_perturbation": "NONE",
+      "action_if_flip": "NO_RECOMMENDATION",
+      "expected": "REJECT_MISSING_ADVERSE_ODDS_TICK"
+    },
+    {
+      "id": "STABILITY-UNKNOWN",
+      "probability_perturbation": null,
+      "threshold_perturbation": "0.0001",
+      "friction_perturbation": "0.0001",
+      "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+      "action_if_flip": "NO_RECOMMENDATION",
+      "expected": "REJECT_INVALID_STABILITY_INPUT"
+    }
+  ],
+  "minimum_targeted_pytest_cases": 110,
+  "minimum_full_pytest_cases": 1170,
+  "expected_oracle_check_minimum": 80,
+  "rollback_artifact_count": 8
+}

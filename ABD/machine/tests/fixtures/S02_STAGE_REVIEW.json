@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S02-WHOLE-STAGE-REVIEW",
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_requirement_ids": ["REQ-S02-P01", "REQ-S02-P02", "REQ-S02-P03", "REQ-S02-P04"],
+  "expected_acceptance_contract_ids": ["AC-S02-P01", "AC-S02-P02", "AC-S02-P03", "AC-S02-P04"],
+  "expected_task_ids": [
+    "T-S02-P01-01", "T-S02-P01-02", "T-S02-P01-03",
+    "T-S02-P02-01", "T-S02-P02-02", "T-S02-P02-03",
+    "T-S02-P03-01", "T-S02-P03-02", "T-S02-P03-03",
+    "T-S02-P04-01", "T-S02-P04-02", "T-S02-P04-03"
+  ],
+  "expected_phase_evaluator_min_checks": {"P01": 80, "P02": 80, "P03": 85, "P04": 100},
+  "expected_review_finding_ids": ["F-S02-R01", "F-S02-R02", "F-S02-R03", "F-S02-R04"],
+  "expected_item_counts": {
+    "sources": 24,
+    "provider_facts": 23,
+    "regulatory_rules": 9,
+    "papers": 8,
+    "model_claims": 14,
+    "local_thresholds": 18,
+    "reuse_projects": 6,
+    "license_entries": 6,
+    "research_gaps": 26,
+    "counterevidence_records": 22,
+    "review_routes": 12,
+    "gap_source_references": 71
+  },
+  "expected_source_ids": [
+    "SRC-TAB-001", "SRC-TAB-002", "SRC-TAB-003", "SRC-TAB-004", "SRC-TAB-005",
+    "SRC-SPORTSBET-001", "SRC-SPORTSBET-002",
+    "SRC-ACMA-001", "SRC-ACMA-002", "SRC-ACMA-003", "SRC-ACMA-004",
+    "SRC-AUSTRAC-001", "SRC-OAIC-001",
+    "SRC-GMAIL-001", "SRC-GMAIL-002", "SRC-GMAIL-003", "SRC-GMAIL-004",
+    "SRC-CLOUDFLARE-001", "SRC-CLOUDFLARE-002", "SRC-CLOUDFLARE-003", "SRC-CLOUDFLARE-004", "SRC-CLOUDFLARE-005",
+    "SRC-OVH-001", "SRC-OVH-002"
+  ],
+  "expected_provider_fact_ids": [
+    "PF-TAB-001", "PF-TAB-002", "PF-TAB-003", "PF-TAB-004", "PF-TAB-005", "PF-TAB-006",
+    "PF-SPORTSBET-001", "PF-SPORTSBET-002", "PF-SPORTSBET-003",
+    "PF-GMAIL-001", "PF-GMAIL-002", "PF-GMAIL-003", "PF-GMAIL-004", "PF-GMAIL-005",
+    "PF-CLOUDFLARE-001", "PF-CLOUDFLARE-002", "PF-CLOUDFLARE-003", "PF-CLOUDFLARE-004", "PF-CLOUDFLARE-005", "PF-CLOUDFLARE-006",
+    "PF-OVH-001", "PF-OVH-002", "PF-OVH-003"
+  ],
+  "expected_regulatory_rule_ids": ["REG-001", "REG-002", "REG-003", "REG-004", "REG-005", "REG-006", "REG-007", "REG-008", "REG-009"],
+  "expected_paper_ids": [
+    "PAPER-S02-P02-001", "PAPER-S02-P02-002", "PAPER-S02-P02-003", "PAPER-S02-P02-004",
+    "PAPER-S02-P02-005", "PAPER-S02-P02-006", "PAPER-S02-P02-007", "PAPER-S02-P02-008"
+  ],
+  "expected_model_claim_ids": [
+    "CLM-S02-P02-001", "CLM-S02-P02-002", "CLM-S02-P02-003", "CLM-S02-P02-004", "CLM-S02-P02-005", "CLM-S02-P02-006", "CLM-S02-P02-007",
+    "CLM-S02-P02-008", "CLM-S02-P02-009", "CLM-S02-P02-010", "CLM-S02-P02-011", "CLM-S02-P02-012", "CLM-S02-P02-013", "CLM-S02-P02-014"
+  ],
+  "expected_threshold_pointers": [
+    "/market_model/market_prior_weight_min", "/market_model/residual_weight_alpha_beta_max", "/market_model/residual_weight_ga_max",
+    "/calibration/slope_min", "/calibration/slope_max", "/calibration/intercept_abs_max", "/calibration/calibration_error_main_max", "/calibration/calibration_error_niche_max",
+    "/numeric_determinism/boundary_perturbation_absolute_probability", "/numeric_determinism/boundary_perturbation_absolute_threshold",
+    "/market_model/conservative_probability_percentile", "/market_model/edge_haircut_fraction", "/market_model/remove_top_profit_fraction_for_robustness",
+    "/risk/kelly_fraction_alpha", "/risk/kelly_fraction_beta", "/risk/kelly_fraction_ga", "/risk/total_open_exposure_cap", "/target_30pct/monthly_return"
+  ],
+  "expected_reuse_source_ids": ["SRC-013", "SRC-014", "SRC-015", "SRC-016", "SRC-017", "SRC-018"],
+  "expected_license_ids": ["LIC-SRC-013", "LIC-SRC-014", "LIC-SRC-015", "LIC-SRC-016", "LIC-SRC-017", "LIC-SRC-018"],
+  "expected_gap_ids": [
+    "GAP-S02-P04-001", "GAP-S02-P04-002", "GAP-S02-P04-003", "GAP-S02-P04-004", "GAP-S02-P04-005", "GAP-S02-P04-006", "GAP-S02-P04-007",
+    "GAP-S02-P04-008", "GAP-S02-P04-009", "GAP-S02-P04-010", "GAP-S02-P04-011", "GAP-S02-P04-012", "GAP-S02-P04-013", "GAP-S02-P04-014",
+    "GAP-S02-P04-015", "GAP-S02-P04-016", "GAP-S02-P04-017", "GAP-S02-P04-018", "GAP-S02-P04-019", "GAP-S02-P04-020", "GAP-S02-P04-021",
+    "GAP-S02-P04-022", "GAP-S02-P04-023", "GAP-S02-P04-024", "GAP-S02-P04-025", "GAP-S02-P04-026"
+  ],
+  "expected_counterevidence_ids": [
+    "CE-S02-P04-001", "CE-S02-P04-002", "CE-S02-P04-003", "CE-S02-P04-004", "CE-S02-P04-005", "CE-S02-P04-006", "CE-S02-P04-007",
+    "CE-S02-P04-008", "CE-S02-P04-009", "CE-S02-P04-010", "CE-S02-P04-011", "CE-S02-P04-012", "CE-S02-P04-013", "CE-S02-P04-014",
+    "CE-S02-P04-015", "CE-S02-P04-016", "CE-S02-P04-017", "CE-S02-P04-018", "CE-S02-P04-019", "CE-S02-P04-020", "CE-S02-P04-021", "CE-S02-P04-022"
+  ],
+  "expected_review_ids": [
+    "REV-S02-P04-001", "REV-S02-P04-002", "REV-S02-P04-003", "REV-S02-P04-004", "REV-S02-P04-005", "REV-S02-P04-006",
+    "REV-S02-P04-007", "REV-S02-P04-008", "REV-S02-P04-009", "REV-S02-P04-010", "REV-S02-P04-011", "REV-S02-P04-012"
+  ],
+  "expected_review_oracle_check_minimum": 55,
+  "expected_targeted_test_minimum": 200,
+  "expected_full_regression_test_minimum": 1950,
+  "expected_rollback_artifact_count": 13,
+  "required_workflow_commands": [
+    "uv sync --frozen --group dev",
+    "python machine/tools/render_human.py",
+    "python machine/tools/scan_paid_dependencies.py",
+    "python machine/tools/validate_pack.py",
+    "python -m pytest -q",
+    "--verify-existing STAGE-REVIEW-S00",
+    "python machine/tools/update_artifact_manifest.py",
+    "shasum -a 256 -c machine/evidence/SHA256SUMS",
+    "git diff --exit-code"
+  ],
+  "required_upload_preconditions": [
+    "ALL_STAGE_PHASES_PASS", "WHOLE_STAGE_REVIEW_PASS", "ALL_REVIEW_FINDINGS_RESOLVED",
+    "FULL_STAGE_REGRESSION_PASS", "SECRET_SCAN_PASS", "CLEAN_WORKTREE", "NO_INCREMENTAL_CASH_COST"
+  ],
+  "fault_mutations": [
+    "SOURCE_RECEIPT_DRIFT", "REVIEW_SCOPE_DRIFT", "BASELINE_HASH_DRIFT", "ROADMAP_STAGE_DRIFT", "TASK_CHAIN_DRIFT",
+    "PHASE_RECEIPT_TAMPER", "PHASE_ROLLBACK_TAMPER", "PHASE_HISTORY_DRIFT", "SOURCE_FACT_UNKNOWN", "PAPER_CLAIM_DANGLING",
+    "CLAIM_PAPER_DANGLING", "REUSE_LICENSE_DANGLING", "LICENSE_REUSE_DANGLING", "GAP_SOURCE_DANGLING", "GAP_SAFE_DEFAULT_MISSING",
+    "GAP_COUNTEREVIDENCE_MISSING", "GAP_REVIEW_ROUTE_MISSING", "COUNTEREVIDENCE_UNKNOWN_GAP", "REVIEW_UNKNOWN_GAP", "FALSE_GAP_RESOLUTION",
+    "FINDING_REOPENED", "EXTERNAL_EFFECT_CLAIM", "RETURN_GUARANTEE_CLAIM", "S03_STARTED", "SECRET_PATTERN", "INDEX_DRIFT"
+  ],
+  "forbidden_release_claims": [
+    "PRODUCTION_DEPLOYED", "RETURN_GUARANTEED", "ACTUAL_RETURN_VERIFIED", "ALL_MARKETS_OBSERVED",
+    "EXTERNAL_ACCOUNT_CONNECTED", "REAL_ORDER_CAPABILITY_PRESENT", "S03_STARTED", "REMOTE_CI_PASS_BEFORE_UPLOAD"
+  ],
+  "secret_pattern_labels": [
+    "PRIVATE_KEY_BLOCK", "GITHUB_CLASSIC_TOKEN", "GITHUB_FINE_GRAINED_TOKEN",
+    "GOOGLE_ACCESS_TOKEN", "GOOGLE_REFRESH_TOKEN", "GOOGLE_API_KEY", "ABSOLUTE_USER_PATH"
+  ],
+  "expected_external_effect_boundary": {
+    "github_upload_performed_by_local_review": false,
+    "remote_ci_result_claimed_by_local_review": false,
+    "external_account_or_api_accessed": false,
+    "secret_provisioned": false,
+    "network_research_performed_by_local_review": false,
+    "model_or_strategy_executed": false,
+    "production_deployment_claimed": false,
+    "real_order_capability_present": false,
+    "return_or_roi_verified": false,
+    "s03_started": false
+  },
+  "expected_next": "S02/GITHUB_STAGE_UPLOAD_READY",
+  "expected_next_after_verified_upload": "S03/P01_READY_NOT_STARTED"
+}

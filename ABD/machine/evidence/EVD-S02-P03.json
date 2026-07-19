@@ -1,0 +1,1101 @@
+{
+  "artifacts": {
+    "ART-S02-P03-01": "research_reuse_matrix.json",
+    "ART-S02-P03-02": "license_inventory.json"
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S02/P03_test.py --junitxml=machine/evidence/S02/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S02/P03/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/P03/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S02-P03 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S02-P03",
+  "decision": "OPEN_SOURCE_REUSE_AND_LICENSE_DECISIONS_FROZEN",
+  "decision_sha256": "5dd496f7a12ece75fd9c14e1b3050c48006661e5a7281cc454e13fae256028d9",
+  "evidence_id": "EVD-S02-P03",
+  "explicit_unknowns": [
+    "GitHub license detection is an engineering input, not legal clearance or a complete dependency license audit.",
+    "No transitive dependency, package build, runtime behavior, vulnerability or compatibility was evaluated because no candidate was installed.",
+    "A repository code license does not authorize external API, website, account, data access, scraping, redistribution or paid service use.",
+    "OddsPortal, The Odds API and odds-api.net service terms, data rights, current price, quota and Australian availability remain unverified.",
+    "The unlicensed sportsbook-odds-scraper repository remains prohibited for code reuse unless a future verifiable license and new audit pass.",
+    "No candidate proves all-observable-market coverage, source reliability, model quality, execution capacity, production readiness or actual return.",
+    "The 30% monthly compounding target remains falsifiable, unverified and not guaranteed; no reuse decision may relax evidence or risk gates."
+  ],
+  "external_effect_boundary": {
+    "api_key_requested_or_used": false,
+    "github_upload_performed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "package_installed": false,
+    "production_deployment_claimed": false,
+    "provider_api_called": false,
+    "provider_or_cloud_account_accessed": false,
+    "real_order_capability_present": false,
+    "repository_cloned": false,
+    "return_or_guarantee_claimed": false,
+    "s02_p04_started": false
+  },
+  "fixed_clock": "2026-07-20T00:00:00+10:00",
+  "hashes": {
+    "code": "92a071e3f5fff10b834c85d8f9eb0636a01b610a934904b07bdc29a5673c8c7b",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/__init__.py": "7c25e8941528cb2f816df3272ce2951143212c1f858a2869345b049b0a62280a",
+      "abd_acceptance/__main__.py": "842f4575ccbdfe634b6c5aea5035694cdb99cb5f27e94a937814affeef2d6110",
+      "abd_acceptance/model_risk_research.py": "a4b97554f0d3473c10248571916475309a6ef70e6041190c483dc84621c874b9",
+      "abd_acceptance/official_platform_research.py": "369be323913a44c9b7b8ead64f7576a3c2a04502a35c769c43254f89fb812846",
+      "abd_acceptance/open_source_reuse.py": "fd3f6cc41199462ac2f72660b83d765f9c288c8fb8462359e682f85c4c6e5558",
+      "license_inventory.json": "b09ce2ae8e60ba91d3c436f4116b032c772a19902cfebdcc9f37027c53393379",
+      "machine/evidence/EVD-S02-P02.json": "0fc89eaba4a1afa7630f92ad79cecbb073ba5303bca6ea2f534f2267b4bb5623",
+      "machine/evidence/EVD-S02-P02_rollback.json": "873ad2b164ef3280f5f5e7ef6ce0ce68d3bf64ea0cdf8c2ca43901088dbd7feb",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/research_reuse_matrix.json": "4e96ec569250ebe7a964035528f4030e83230a00bd13cdc5cf5dc2be9ecfa041",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/sources.json": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S02_P03.json": "8fa4c75b2863cd34a08921b6ea2022be6469c95cf0a7edd9ebf60ddc4c68afde",
+      "research_reuse_matrix.json": "e5d049c5e4049195f537cce7b27cc8713269d211f55ce4840c10fdf67feac0e8",
+      "tests/S00/__init__.py": "92747c3175dab227e64bab76b0728e85016df09d9114fb5b0b16f68a6971c03f",
+      "tests/S01/__init__.py": "2699f54f59bd6a4e1d3042e40a336c24a61dd71ece37e7e7c243532f6e309134",
+      "tests/S02/P01_test.py": "786acde040d037909f9e1c3fd4f9fa3b83ef5a0024b7fd08526cc06a6b41242a",
+      "tests/S02/P02_test.py": "28090181af5286b5ed0b9d84f973623056b3f96b53e14e539d2ad42dab452eb4",
+      "tests/S02/P03_test.py": "0face2a74e38ed22cb0dccfdfe8fe192631ef12466f1f57f11191f31fd76e5b6",
+      "tests/S02/__init__.py": "35858f9c076637484b4332bd4215f6398cad04f4469dbddbbafbbc0c9d1b9092",
+      "tests/__init__.py": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S02/P03 freezes repository reuse and license evidence only; it installs no package and executes no model, strategy, provider interaction, order or return evaluation.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "f2d2201f4e9c2e202afdc1242e4f15e516684ac4e3fbc698ca255afc62503ee0"
+  },
+  "next": "S02/P04_READY_NOT_STARTED",
+  "p02_prerequisite": {
+    "evidence": "machine/evidence/EVD-S02-P02.json",
+    "evidence_sha256": "0fc89eaba4a1afa7630f92ad79cecbb073ba5303bca6ea2f534f2267b4bb5623",
+    "rollback": "machine/evidence/EVD-S02-P02_rollback.json",
+    "rollback_sha256": "873ad2b164ef3280f5f5e7ef6ce0ce68d3bf64ea0cdf8c2ca43901088dbd7feb",
+    "status": "PASS"
+  },
+  "phase_id": "P03",
+  "phase_status": "S02_P03_PASS",
+  "release_status": "NOT_READY_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S02-P03",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S02-P03_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S02",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "S02_P03.json",
+        "id": "S02P03-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "research_reuse_matrix.json",
+        "id": "S02P03-MATRIX-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "license_inventory.json",
+        "id": "S02P03-LICENSE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "roadmap.json",
+        "id": "S02P03-ROADMAP-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S02P03-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "acceptance_contracts.json",
+        "id": "S02P03-ACCEPTANCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "task_graph.json",
+        "id": "S02P03-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "traceability_matrix.json",
+        "id": "S02P03-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "canonical_facts.json",
+        "id": "S02P03-CANONICAL-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "costs.json",
+        "id": "S02P03-COSTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "parameters.json",
+        "id": "S02P03-PARAMETERS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "research_reuse_matrix.json",
+        "id": "S02P03-BASELINE-REUSE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "sources.json",
+        "id": "S02P03-BASELINE-SOURCES-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e5d049c5e4049195f537cce7b27cc8713269d211f55ce4840c10fdf67feac0e8",
+          "expected": "e5d049c5e4049195f537cce7b27cc8713269d211f55ce4840c10fdf67feac0e8"
+        },
+        "id": "S02P03-PIN-RESEARCH_REUSE_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b09ce2ae8e60ba91d3c436f4116b032c772a19902cfebdcc9f37027c53393379",
+          "expected": "b09ce2ae8e60ba91d3c436f4116b032c772a19902cfebdcc9f37027c53393379"
+        },
+        "id": "S02P03-PIN-LICENSE_INVENTORY-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "8fa4c75b2863cd34a08921b6ea2022be6469c95cf0a7edd9ebf60ddc4c68afde",
+          "expected": "8fa4c75b2863cd34a08921b6ea2022be6469c95cf0a7edd9ebf60ddc4c68afde"
+        },
+        "id": "S02P03-PIN-MACHINE-TESTS-FIXTURES-S02_P03-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "0face2a74e38ed22cb0dccfdfe8fe192631ef12466f1f57f11191f31fd76e5b6",
+          "expected": "0face2a74e38ed22cb0dccfdfe8fe192631ef12466f1f57f11191f31fd76e5b6"
+        },
+        "id": "S02P03-PIN-TESTS-S02-P03_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S02P03-PIN-MACHINE-FACTS-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S02P03-PIN-MACHINE-FACTS-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S02P03-PIN-MACHINE-FACTS-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S02P03-PIN-MACHINE-FACTS-MODEL_SYSTEM_CARD-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+          "expected": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8"
+        },
+        "id": "S02P03-PIN-MACHINE-FACTS-SOURCES-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4e96ec569250ebe7a964035528f4030e83230a00bd13cdc5cf5dc2be9ecfa041",
+          "expected": "4e96ec569250ebe7a964035528f4030e83230a00bd13cdc5cf5dc2be9ecfa041"
+        },
+        "id": "S02P03-PIN-MACHINE-FACTS-RESEARCH_REUSE_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S02P03-PIN-MACHINE-FACTS-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S02P03-PIN-MACHINE-FACTS-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S02P03-PIN-MACHINE-FACTS-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S02P03-PIN-MACHINE-FACTS-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S02P03-PIN-MACHINE-FACTS-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "786acde040d037909f9e1c3fd4f9fa3b83ef5a0024b7fd08526cc06a6b41242a",
+          "expected": "786acde040d037909f9e1c3fd4f9fa3b83ef5a0024b7fd08526cc06a6b41242a"
+        },
+        "id": "S02P03-PIN-TESTS-S02-P01_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "28090181af5286b5ed0b9d84f973623056b3f96b53e14e539d2ad42dab452eb4",
+          "expected": "28090181af5286b5ed0b9d84f973623056b3f96b53e14e539d2ad42dab452eb4"
+        },
+        "id": "S02P03-PIN-TESTS-S02-P02_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a4b97554f0d3473c10248571916475309a6ef70e6041190c483dc84621c874b9",
+          "expected": "a4b97554f0d3473c10248571916475309a6ef70e6041190c483dc84621c874b9"
+        },
+        "id": "S02P03-PIN-ABD_ACCEPTANCE-MODEL_RISK_RESEARCH-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "7c25e8941528cb2f816df3272ce2951143212c1f858a2869345b049b0a62280a",
+          "expected": "7c25e8941528cb2f816df3272ce2951143212c1f858a2869345b049b0a62280a"
+        },
+        "id": "S02P03-PIN-ABD_ACCEPTANCE-__INIT__-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "842f4575ccbdfe634b6c5aea5035694cdb99cb5f27e94a937814affeef2d6110",
+          "expected": "842f4575ccbdfe634b6c5aea5035694cdb99cb5f27e94a937814affeef2d6110"
+        },
+        "id": "S02P03-PIN-ABD_ACCEPTANCE-__MAIN__-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "0fc89eaba4a1afa7630f92ad79cecbb073ba5303bca6ea2f534f2267b4bb5623",
+          "expected": "0fc89eaba4a1afa7630f92ad79cecbb073ba5303bca6ea2f534f2267b4bb5623"
+        },
+        "id": "S02P03-PIN-MACHINE-EVIDENCE-EVD-S02-P02-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "873ad2b164ef3280f5f5e7ef6ce0ce68d3bf64ea0cdf8c2ca43901088dbd7feb",
+          "expected": "873ad2b164ef3280f5f5e7ef6ce0ce68d3bf64ea0cdf8c2ca43901088dbd7feb"
+        },
+        "id": "S02P03-PIN-MACHINE-EVIDENCE-EVD-S02-P02_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S02P03-PIN--GITHUB-WORKFLOWS-ABD-STAGE0-VALIDATION-YML",
+        "passed": true
+      },
+      {
+        "detail": [
+          "tests/__init__.py",
+          "tests/S00/__init__.py",
+          "tests/S01/__init__.py",
+          "tests/S02/__init__.py"
+        ],
+        "id": "S02P03-PYTEST-IMPORT-ISOLATION",
+        "passed": true
+      },
+      {
+        "detail": "all parsed",
+        "id": "S02P03-INPUTS-STRUCTURALLY-AVAILABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "hours": {
+            "high": 6,
+            "likely": 4,
+            "low": 3
+          },
+          "id": "P03",
+          "objective": "审计flumine、penaltyblog、OddsHarvester及相关只读项目。",
+          "outputs": [
+            "research_reuse_matrix.json",
+            "license_inventory.json"
+          ],
+          "pass_gate": "每个项目有采用/适配/拒绝和许可证裁定。",
+          "title": "开源项目复用审计"
+        },
+        "id": "S02P03-ROADMAP-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "baseline": "未实现或旧包存在冲突/缺口",
+          "id": "REQ-S02-P03",
+          "measurement": "由 AC-S02-P03 的机器验收判定器执行固定输入、阈值和证据检查。",
+          "non_goals": [
+            "不自动提交、确认或重试真实订单",
+            "不以降低证据或风险门追赶30%月目标",
+            "不引入付费数据或付费程序接口依赖"
+          ],
+          "observation_period": "开发期每次提交；上线后持续",
+          "owner_input_required_during_development": false,
+          "phase_id": "P03",
+          "primary_acceptance_criteria_id": "AC-S02-P03",
+          "priority": "P1",
+          "problem": "若未完成“开源项目复用审计”，只研究与ABD直接相关的官方文档、论文和开源项目，明确采用、适配、拒绝和许可证。将缺少可执行、可验收或可恢复的基础。",
+          "scope": [
+            "research_reuse_matrix.json",
+            "license_inventory.json"
+          ],
+          "stage_id": "S02",
+          "target": "每个项目有采用/适配/拒绝和许可证裁定。",
+          "title": "开源项目复用审计",
+          "user": "单一账户持有人及自动开发/运维代理",
+          "value": "审计flumine、penaltyblog、OddsHarvester及相关只读项目。"
+        },
+        "id": "S02P03-REQUIREMENT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "environment": [
+            "Ubuntu Linux 持续集成环境",
+            "固定时钟",
+            "冻结测试夹具",
+            "无外部网络的确定性测试模式",
+            "生产等价配置Schema"
+          ],
+          "evidence_requirements": [
+            "machine/evidence/EVD-S02-P03.json",
+            "测试报告及命令退出码",
+            "输入、参数、代码、模型和输出SHA-256",
+            "失败路径截图或结构化日志",
+            "回滚演练记录"
+          ],
+          "id": "AC-S02-P03",
+          "inputs": [
+            "REQ-S02-P03 对应机器事实",
+            "S02/P03 冻结正向、边界、负向和故障输入",
+            "参数版本和来源版本哈希"
+          ],
+          "oracle": {
+            "command": "python -m abd_acceptance --contract AC-S02-P03 --evidence machine/evidence",
+            "rule": "每个项目有采用/适配/拒绝和许可证裁定。",
+            "type": "EXECUTABLE"
+          },
+          "pass_gate": "每个项目有采用/适配/拒绝和许可证裁定。",
+          "requirement_id": "REQ-S02-P03",
+          "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_condition": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "tests": [
+            {
+              "id": "TEST-S02-P03",
+              "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+            },
+            {
+              "id": "TEST-S02-P03-BOUNDARY",
+              "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+            },
+            {
+              "id": "TEST-S02-P03-REPLAY",
+              "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+            }
+          ],
+          "threshold": "每个项目有采用/适配/拒绝和许可证裁定。",
+          "title": "开源项目复用审计唯一主验收"
+        },
+        "id": "S02P03-ACCEPTANCE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S02-P03-01",
+          "T-S02-P03-02",
+          "T-S02-P03-03"
+        ],
+        "id": "S02P03-TASK-CHAIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_criteria_id": "AC-S02-P03",
+            "artifact_ids": [
+              "ART-S02-P03-01",
+              "ART-S02-P03-02"
+            ],
+            "evidence_id": "EVD-S02-P03",
+            "phase_id": "P03",
+            "requirement_id": "REQ-S02-P03",
+            "stage_id": "S02",
+            "task_ids": [
+              "T-S02-P03-01",
+              "T-S02-P03-02",
+              "T-S02-P03-03"
+            ],
+            "test_ids": [
+              "TEST-S02-P03",
+              "TEST-S02-P03-BOUNDARY",
+              "TEST-S02-P03-REPLAY"
+            ]
+          }
+        ],
+        "id": "S02P03-TRACEABILITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "FROZEN_RESEARCH_ONLY_NO_RUNTIME_ADOPTION",
+        "id": "S02P03-MATRIX-SHAPE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "SRC-013",
+          "SRC-014",
+          "SRC-015",
+          "SRC-016",
+          "SRC-017",
+          "SRC-018"
+        ],
+        "id": "S02P03-MATRIX-PROJECT-COVERAGE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "adapt",
+          "adopt",
+          "adoption_status",
+          "commit_date",
+          "commit_url",
+          "decision",
+          "default_branch",
+          "license_evidence_id",
+          "name",
+          "pinned_commit",
+          "readme",
+          "reject",
+          "repository",
+          "review_trigger",
+          "source_contract_status",
+          "source_id",
+          "unverified"
+        ],
+        "id": "S02P03-MATRIX-REQUIRED-FIELDS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "SRC-013": "https://github.com/betcode-org/flumine",
+          "SRC-014": "https://github.com/martineastwood/penaltyblog",
+          "SRC-015": "https://github.com/jordantete/OddsHarvester",
+          "SRC-016": "https://github.com/declanwalpole/sportsbook-odds-scraper",
+          "SRC-017": "https://github.com/ianalloway/sports-betting-ml",
+          "SRC-018": "https://github.com/odds-api/odds-api"
+        },
+        "id": "S02P03-MATRIX-REPOSITORIES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "SRC-013": "1549eeb112aca18c6ed2c19583569436ae14120a",
+          "SRC-014": "ba9150b311f3b87bf9813c09e6f1b3950e31f7cf",
+          "SRC-015": "32cd0d6f51ca8cb50221c1e4273e2b1e35424a72",
+          "SRC-016": "8e791fc31a3b118936dd2f2b02e1919aaa4daeb3",
+          "SRC-017": "23c7bc95f1007006210c9b33efcbd47dfca82e0d",
+          "SRC-018": "16546bc4a2d53a67d5b93ad982da385c58525568"
+        },
+        "id": "S02P03-MATRIX-COMMITS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "SRC-013": "91f81dd6c8d0b81734cd4d5c9ca91903ecdf655135f113734a6ba3909002abb5",
+          "SRC-014": "ff4577cc8a75dc81c87be10503da99fd7cf36649d576b08832a30e4dc40b4539",
+          "SRC-015": "4c8597df27333ac473e2e318039ada2b5a117cf39aa1ac9e53582b56aa856e26",
+          "SRC-016": "2a41fae3d052ec0e776db23bdc19839a84a0d2db5f5b5c8651de2721d82c45dd",
+          "SRC-017": "3b337c8307dc6004da40720f0e10dfbd95a7e823143b0f12a2b941dea3a7c797",
+          "SRC-018": "a18ab315a60245c5205f35b072f05d0f666c71d6e6dce04e7aeca36d132a8aa3"
+        },
+        "id": "S02P03-MATRIX-README-PINS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "SRC-013": "ADAPT_DESIGN_ONLY",
+          "SRC-014": "ADAPT_RESEARCH_REFERENCE",
+          "SRC-015": "ADAPT_PARSER_TEST_PATTERNS_ONLY",
+          "SRC-016": "REJECT_CODE_REUSE_RESEARCH_ONLY",
+          "SRC-017": "RESEARCH_ONLY_NO_MODEL_REUSE",
+          "SRC-018": "ADAPT_MOCKS_AND_SCHEMA_ONLY"
+        },
+        "id": "S02P03-MATRIX-DECISIONS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": 6,
+        "id": "S02P03-MATRIX-ADOPT-ADAPT-REJECT-COMPLETE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "SRC-013",
+          "SRC-014",
+          "SRC-015",
+          "SRC-016",
+          "SRC-017",
+          "SRC-018"
+        ],
+        "id": "S02P03-MATRIX-OFFICIAL-PINNED-URLS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "a_zero_incremental_cash_preserved": true,
+          "account_or_api_key_used": false,
+          "code_copied": false,
+          "dependency_added": false,
+          "expected_source_ids": [
+            "SRC-013",
+            "SRC-014",
+            "SRC-015",
+            "SRC-016",
+            "SRC-017",
+            "SRC-018"
+          ],
+          "external_terms_accepted": false,
+          "license_does_not_authorize_source_access": true,
+          "live_service_called": false,
+          "no_order_capability_may_enter_abd": true,
+          "package_installed": false,
+          "project_count": 6,
+          "public_visibility_does_not_equal_reuse_permission": true,
+          "repository_cloned": false,
+          "runtime_adoption_requires_future_acceptance": true,
+          "snapshot_basis": "PINNED_GITHUB_COMMIT_AND_CONTENT_SHA256"
+        },
+        "id": "S02P03-MATRIX-GLOBAL-CONTROLS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "all_projects_have_adopt_adapt_reject": true,
+          "all_projects_have_license_evidence": true,
+          "all_projects_have_pinned_commit_and_readme_hash": true,
+          "all_runtime_dependencies_rejected_or_deferred": true,
+          "all_taskpack_projects_present": true,
+          "silent_project_omissions": 0
+        },
+        "id": "S02P03-MATRIX-COVERAGE-NO-SILENT-OMISSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "api_key_requested_or_used": false,
+          "github_upload_performed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "model_or_strategy_executed": false,
+          "package_installed": false,
+          "production_deployment_claimed": false,
+          "provider_api_called": false,
+          "provider_or_cloud_account_accessed": false,
+          "real_order_capability_present": false,
+          "repository_cloned": false,
+          "return_or_guarantee_claimed": false,
+          "s02_p04_started": false
+        },
+        "id": "S02P03-MATRIX-NO-EXTERNAL-EFFECT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "SRC-013",
+          "SRC-014",
+          "SRC-015",
+          "SRC-016",
+          "SRC-017",
+          "SRC-018"
+        ],
+        "id": "S02P03-MATRIX-BASELINE-CONTINUITY",
+        "passed": true
+      },
+      {
+        "detail": "NO_RUNTIME_DEPENDENCY_DESIGN_EVIDENCE_ONLY",
+        "id": "S02P03-FLUMINE-ORDER-CAPABILITY-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": "ADAPT_RESEARCH_REFERENCE",
+        "id": "S02P03-PENALTYBLOG-RESEARCH-ONLY",
+        "passed": true
+      },
+      {
+        "detail": "ADAPT_PARSER_TEST_PATTERNS_ONLY",
+        "id": "S02P03-ODDSHARVESTER-NO-BYPASS-OR-LIVE-SOURCE",
+        "passed": true
+      },
+      {
+        "detail": "REJECT_CODE_REUSE_RESEARCH_ONLY",
+        "id": "S02P03-UNLICENSED-CODE-REUSE-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": "RESEARCH_ONLY_NO_MODEL_REUSE",
+        "id": "S02P03-ML-DEMO-NO-MODEL-OR-RETURN-EVIDENCE",
+        "passed": true
+      },
+      {
+        "detail": "ADAPT_MOCKS_AND_SCHEMA_ONLY",
+        "id": "S02P03-ODDS-API-CODE-SERVICE-SEPARATION",
+        "passed": true
+      },
+      {
+        "detail": "FROZEN_ENGINEERING_LICENSE_AUDIT_NOT_LEGAL_ADVICE",
+        "id": "S02P03-LICENSE-SHAPE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "code_license_separate_from_service_terms": true,
+          "future_reuse_requires_exact_version_recheck": true,
+          "github_detection_boundary": "GitHub Licensee 检测只识别仓库许可证文件，不覆盖传递依赖、外部服务、数据、网站条款或所有法律问题。",
+          "legal_advice": false,
+          "no_license_default": "公开仓库没有许可证时，默认版权规则不授权复制、分发或制作衍生作品；仅公开查看和 GitHub 平台允许的 fork 不等于 ABD 可复用。",
+          "no_license_rule_source": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository",
+          "p03_code_copy_or_dependency_addition": false,
+          "proprietary_abd_rule": "ABD 代码与数据保持专有；消费第三方代码不得给 ABD 添加开源发布许可，也不得复制治理框架。",
+          "repository_license_detection_source": "https://docs.github.com/en/rest/licenses/licenses"
+        },
+        "id": "S02P03-LICENSE-POLICY-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "Apache-2.0",
+          "MIT",
+          "NOASSERTION"
+        ],
+        "id": "S02P03-LICENSE-CLASS-CONTROLS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "LIC-SRC-013",
+          "LIC-SRC-014",
+          "LIC-SRC-015",
+          "LIC-SRC-016",
+          "LIC-SRC-017",
+          "LIC-SRC-018"
+        ],
+        "id": "S02P03-LICENSE-ENTRY-COVERAGE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "code_license_scope",
+          "copyright_notice",
+          "detected_spdx",
+          "future_reuse",
+          "id",
+          "license_git_blob_sha1",
+          "license_path",
+          "license_sha256",
+          "license_url",
+          "notice_file_at_repository_root",
+          "p03_disposition",
+          "pinned_commit",
+          "project",
+          "repository",
+          "source_id"
+        ],
+        "id": "S02P03-LICENSE-REQUIRED-FIELDS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "SRC-013",
+          "SRC-014",
+          "SRC-015",
+          "SRC-016",
+          "SRC-017",
+          "SRC-018"
+        ],
+        "id": "S02P03-LICENSE-PINS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "SRC-013",
+          "SRC-014",
+          "SRC-015",
+          "SRC-016",
+          "SRC-017",
+          "SRC-018"
+        ],
+        "id": "S02P03-LICENSE-CONTENT-HASHES-OR-NOASSERTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "Apache-2.0": 1,
+          "MIT": 4,
+          "NOASSERTION": 1
+        },
+        "id": "S02P03-LICENSE-COUNTS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "REJECT_ALL_CODE_REUSE_PUBLIC_METADATA_RESEARCH_ONLY",
+        "id": "S02P03-LICENSE-NOASSERTION-REJECTS-COPY",
+        "passed": true
+      },
+      {
+        "detail": "PINNED_SCHEMA_AND_MOCK_REFERENCE_ONLY_NO_COPY_NO_DEPENDENCY",
+        "id": "S02P03-LICENSE-APACHE-CODE-SERVICE-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": 4,
+        "id": "S02P03-LICENSE-MIT-NOTICE-AND-NO-P03-COPY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "Apache-2.0": 1,
+          "MIT": 4,
+          "NOASSERTION": 1,
+          "legal_clearance_claimed": false,
+          "license_decisions_missing": 0,
+          "p03_code_copies": 0,
+          "p03_dependencies_added": 0,
+          "projects": 6,
+          "service_terms_treated_as_code_license": 0
+        },
+        "id": "S02P03-LICENSE-SUMMARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "account_or_api_key_used": false,
+          "incremental_cash_spent_aud": "0.00",
+          "package_installed": false,
+          "production_or_legal_approval_claimed": false,
+          "provider_api_called": false,
+          "repository_cloned": false,
+          "s02_p04_started": false
+        },
+        "id": "S02P03-LICENSE-NO-EXTERNAL-EFFECT",
+        "passed": true
+      },
+      {
+        "detail": 10,
+        "id": "S02P03-FIXTURE-DECISION-VECTORS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "-0.0001",
+          "0",
+          "0.0001"
+        ],
+        "id": "S02P03-FIXTURE-NUMERIC-BOUNDARY-INVARIANCE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "DUPLICATE_PROJECT_ID",
+          "MISSING_PROJECT",
+          "MUTABLE_README_URL",
+          "BAD_COMMIT_LENGTH",
+          "README_HASH_MISMATCH",
+          "MISSING_ADOPT",
+          "MISSING_ADAPT",
+          "MISSING_REJECT",
+          "LICENSE_LINK_MISMATCH",
+          "NOASSERTION_COPY_ALLOWED",
+          "APACHE_SERVICE_TERMS_CONFLATED",
+          "ORDER_CAPABILITY_ALLOWED",
+          "RUNTIME_DEPENDENCY_ADDED",
+          "API_KEY_USED",
+          "INCREMENTAL_CASH_NONZERO",
+          "P02_RECEIPT_TAMPERED",
+          "P04_ARTIFACT_PRESENT",
+          "ABSOLUTE_LOCAL_PATH_PRESENT",
+          "BINARY_FLOAT_PRESENT"
+        ],
+        "id": "S02P03-FIXTURE-FAULT-MUTATIONS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S02-P03-01",
+          "T-S02-P03-02",
+          "T-S02-P03-03"
+        ],
+        "id": "S02P03-FIXTURE-TASK-IDS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "TEST-S02-P03",
+          "TEST-S02-P03-BOUNDARY",
+          "TEST-S02-P03-REPLAY"
+        ],
+        "id": "S02P03-FIXTURE-TEST-IDS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ART-S02-P03-01",
+          "ART-S02-P03-02"
+        ],
+        "id": "S02P03-FIXTURE-ARTIFACT-IDS",
+        "passed": true
+      },
+      {
+        "detail": "analysis and advice only",
+        "id": "S02P03-BASELINE-NO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "high": "0.00",
+          "likely": "0.00",
+          "low": "0.00"
+        },
+        "id": "S02P03-BASELINE-A-ZERO",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_must_match_across_implementations": true,
+          "authoritative_decimal_precision_digits": 50,
+          "binary_float_for_authoritative_decision": false,
+          "boundary_perturbation_absolute_probability": "0.0001",
+          "boundary_perturbation_absolute_threshold": "0.0001",
+          "boundary_perturbation_friction_up": "0.0001",
+          "boundary_perturbation_time_adverse_seconds": 2,
+          "friction_rounding": "UP",
+          "independent_implementation_absolute_tolerance": "1e-12",
+          "money_storage": "INTEGER_CENTS",
+          "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+          "odds_rounding": "DOWN",
+          "odds_storage_scale": "1e-6",
+          "probability_rounding": "DOWN",
+          "probability_storage_scale": "1e-9",
+          "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "id": "S02P03-BASELINE-NUMERIC-GATE-NOT-LICENSE-SCORE",
+        "passed": true
+      },
+      {
+        "detail": "no upstream claim becomes ABD evidence",
+        "id": "S02P03-NO-RETURN-OR-LICENSE-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": "categorical decisions and hashes remain exact strings or integers",
+        "id": "S02P03-NO-BINARY-FLOAT-IN-AUTHORITATIVE-ARTIFACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 13,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 13
+        },
+        "id": "S02P03-P02-IMMUTABLE-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "forbidden_existing": [],
+          "index": [
+            {
+              "acceptance_contract_id": "AC-S02-P04",
+              "expected_artifact": "machine/evidence/EVD-S02-P04.json",
+              "id": "INDEX-AC-S02-P04",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "不宣称穷尽互联网；静默研究缺口为零。",
+              "requirement_id": "REQ-S02-P04",
+              "status": "PLANNED"
+            }
+          ]
+        },
+        "id": "S02P03-P04-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 120,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 218
+        },
+        "id": "S02P03-TEST-TARGETED-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 1320,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 1439
+        },
+        "id": "S02P03-TEST-FULL-REGRESSION-PASS",
+        "passed": true
+      },
+      {
+        "detail": "validation_report.json",
+        "id": "S02P03-PACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S02P03-TASKPACK-49-GATES-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S00/P03/paid_dependency_scan.txt",
+        "id": "S02P03-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S02-P03",
+    "decision": "OPEN_SOURCE_REUSE_AND_LICENSE_DECISIONS_FROZEN",
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-20T00:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/__init__.py": "7c25e8941528cb2f816df3272ce2951143212c1f858a2869345b049b0a62280a",
+      "abd_acceptance/__main__.py": "842f4575ccbdfe634b6c5aea5035694cdb99cb5f27e94a937814affeef2d6110",
+      "abd_acceptance/model_risk_research.py": "a4b97554f0d3473c10248571916475309a6ef70e6041190c483dc84621c874b9",
+      "license_inventory.json": "b09ce2ae8e60ba91d3c436f4116b032c772a19902cfebdcc9f37027c53393379",
+      "machine/evidence/EVD-S02-P02.json": "0fc89eaba4a1afa7630f92ad79cecbb073ba5303bca6ea2f534f2267b4bb5623",
+      "machine/evidence/EVD-S02-P02_rollback.json": "873ad2b164ef3280f5f5e7ef6ce0ce68d3bf64ea0cdf8c2ca43901088dbd7feb",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S02/P03/full_regression.xml": "0e03a9f524cf4102bc31af95f99ac81fc926673c174dde7f6ea935602de9817a",
+      "machine/evidence/S02/P03/pytest.xml": "ec45f861fc15530231b56e17128df4e97b42f5b040bc93c6501218287a50691c",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/research_reuse_matrix.json": "4e96ec569250ebe7a964035528f4030e83230a00bd13cdc5cf5dc2be9ecfa041",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/sources.json": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S02_P03.json": "8fa4c75b2863cd34a08921b6ea2022be6469c95cf0a7edd9ebf60ddc4c68afde",
+      "research_reuse_matrix.json": "e5d049c5e4049195f537cce7b27cc8713269d211f55ce4840c10fdf67feac0e8",
+      "tests/S02/P01_test.py": "786acde040d037909f9e1c3fd4f9fa3b83ef5a0024b7fd08526cc06a6b41242a",
+      "tests/S02/P02_test.py": "28090181af5286b5ed0b9d84f973623056b3f96b53e14e539d2ad42dab452eb4",
+      "tests/S02/P03_test.py": "0face2a74e38ed22cb0dccfdfe8fe192631ef12466f1f57f11191f31fd76e5b6"
+    },
+    "license_status": "ENGINEERING_AUDIT_NOT_LEGAL_CLEARANCE",
+    "next": "S02/P04_READY_NOT_STARTED",
+    "phase_id": "P03",
+    "phase_status": "S02_P03_PASS",
+    "production_status": "NOT_DEPLOYED",
+    "release_status": "NOT_READY_STAGE_REVIEW_REQUIRED",
+    "requirement_id": "REQ-S02-P03",
+    "reuse_status": "RESEARCH_ONLY_NO_CODE_COPIED_OR_DEPENDENCY_ADDED",
+    "schema_version": "1.0.0",
+    "stage_id": "S02",
+    "status": "PASS",
+    "summary": {
+      "checks": 93,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 93
+    },
+    "version": "0.0.0.1"
+  }
+}

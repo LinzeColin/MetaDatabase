@@ -1,0 +1,428 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S02-P01-01",
+  "requirement_id": "REQ-S02-P01",
+  "acceptance_contract_id": "AC-S02-P01",
+  "product_version": "0.0.0.1",
+  "fixed_at": "2026-07-20T00:00:00+10:00",
+  "research_mode": {
+    "network_mode": "READ_ONLY_PUBLIC_WEB",
+    "official_primary_sources_only": true,
+    "account_login_performed": false,
+    "provider_api_called": false,
+    "content_archived": false,
+    "legal_advice_provided": false,
+    "scope_is_exhaustive_of_internet": false
+  },
+  "source_level_definitions": {
+    "L1_REGULATOR_PRIMARY": "Australian regulator or government primary guidance/register",
+    "L1_PROVIDER_CONTRACT": "Provider terms, API terms, policy or permission contract",
+    "L1_OFFICIAL_PRODUCT_DOC": "Provider-operated help, product, pricing or technical documentation"
+  },
+  "admission_policy": {
+    "allowed_source_levels": [
+      "L1_REGULATOR_PRIMARY",
+      "L1_PROVIDER_CONTRACT",
+      "L1_OFFICIAL_PRODUCT_DOC"
+    ],
+    "missing_or_unreachable_source": "UNKNOWN_FAIL_CLOSED",
+    "terms_or_price_drift": "REVALIDATE_BEFORE_CAPABILITY_ENABLEMENT",
+    "absence_from_scoped_source_set": "NOT_AUTHORIZED_BY_EVIDENCE_NOT_UNIVERSAL_ABSENCE",
+    "provider_marketing_claim": "DO_NOT_TREAT_AS_RUNTIME_EVIDENCE",
+    "source_content_retention": "URL_METADATA_AND_CLAIM_MAPPING_ONLY_REFETCH_LIVE"
+  },
+  "sources": [
+    {
+      "id": "SRC-TAB-001",
+      "publisher": "TAB Australia",
+      "title": "Activity Statements FAQs",
+      "url": "https://help.tab.com.au/manage-your-account/activity-statements-faqs",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-TAB-001",
+        "REG-006"
+      ]
+    },
+    {
+      "id": "SRC-TAB-002",
+      "publisher": "TAB Australia",
+      "title": "Reading your Activity Statements",
+      "url": "https://help.tab.com.au/manage-your-account/reading-your-activity-statements",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-TAB-002"
+      ]
+    },
+    {
+      "id": "SRC-TAB-003",
+      "publisher": "TAB Australia",
+      "title": "Conditions of Use",
+      "url": "https://help.tab.com.au/troubleshooting-support/conditions-of-use",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_PROVIDER_CONTRACT",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-TAB-003",
+        "REG-008"
+      ]
+    },
+    {
+      "id": "SRC-TAB-004",
+      "publisher": "TAB Australia",
+      "title": "TAB Web Services Terms of Use",
+      "url": "https://help.tab.com.au/troubleshooting-support/tab-web-services-terms-of-use",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_PROVIDER_CONTRACT",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-TAB-004",
+        "REG-009"
+      ]
+    },
+    {
+      "id": "SRC-TAB-005",
+      "publisher": "TAB Australia",
+      "title": "Applying for TAB Studio API access",
+      "url": "https://help.tab.com.au/troubleshooting-support/applying-for-tab-studio-api-access",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-TAB-005"
+      ]
+    },
+    {
+      "id": "SRC-SPORTSBET-001",
+      "publisher": "Sportsbet",
+      "title": "Sportsbet Rules, Terms & Conditions",
+      "url": "https://helpcentre.sportsbet.com.au/hc/en-us/articles/13565496156559-Sportsbet-Rules-Terms-Conditions",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_PROVIDER_CONTRACT",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": "2026-02-11",
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-SPORTSBET-001",
+        "PF-SPORTSBET-003"
+      ]
+    },
+    {
+      "id": "SRC-SPORTSBET-002",
+      "publisher": "Sportsbet",
+      "title": "What Is An Activity Statement?",
+      "url": "https://helpcentre.sportsbet.com.au/hc/en-us/articles/4690326285325-What-Is-An-Activity-Statement",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-SPORTSBET-002",
+        "PF-SPORTSBET-003",
+        "REG-006"
+      ]
+    },
+    {
+      "id": "SRC-ACMA-001",
+      "publisher": "Australian Communications and Media Authority",
+      "title": "Check if a gambling operator is legal",
+      "url": "https://www.acma.gov.au/check-if-gambling-operator-legal",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_REGULATOR_PRIMARY",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-TAB-006",
+        "REG-002"
+      ]
+    },
+    {
+      "id": "SRC-ACMA-002",
+      "publisher": "Australian Communications and Media Authority",
+      "title": "About the Interactive Gambling Act",
+      "url": "https://www.acma.gov.au/about-interactive-gambling-act",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_REGULATOR_PRIMARY",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "REG-001"
+      ]
+    },
+    {
+      "id": "SRC-ACMA-003",
+      "publisher": "Australian Communications and Media Authority",
+      "title": "Online gambling services",
+      "url": "https://www.acma.gov.au/online-gambling-services",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_REGULATOR_PRIMARY",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": "2024-06-11",
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "REG-003"
+      ]
+    },
+    {
+      "id": "SRC-ACMA-004",
+      "publisher": "Australian Communications and Media Authority",
+      "title": "BetStop - the National Self-Exclusion Register",
+      "url": "https://www.acma.gov.au/betstop-national-self-exclusion-registertm",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_REGULATOR_PRIMARY",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "REG-004"
+      ]
+    },
+    {
+      "id": "SRC-AUSTRAC-001",
+      "publisher": "AUSTRAC",
+      "title": "Strengthened customer identification procedures for online gambling service providers",
+      "url": "https://www.austrac.gov.au/strengthened-customer-identification-procedures-online-gambling-service-providers",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_REGULATOR_PRIMARY",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "REG-005"
+      ]
+    },
+    {
+      "id": "SRC-OAIC-001",
+      "publisher": "Office of the Australian Information Commissioner",
+      "title": "Chapter 11: APP 11 Security of personal information",
+      "url": "https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-guidelines/chapter-11-app-11-security-of-personal-information",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_REGULATOR_PRIMARY",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "REG-007"
+      ]
+    },
+    {
+      "id": "SRC-GMAIL-001",
+      "publisher": "Google for Developers",
+      "title": "Gmail API OAuth scopes",
+      "url": "https://developers.google.com/workspace/gmail/api/auth/scopes",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_PROVIDER_CONTRACT",
+      "jurisdiction": "GLOBAL",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-GMAIL-001",
+        "PF-GMAIL-005"
+      ]
+    },
+    {
+      "id": "SRC-GMAIL-002",
+      "publisher": "Google for Developers",
+      "title": "Gmail API REST reference",
+      "url": "https://developers.google.com/workspace/gmail/api/reference/rest",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "GLOBAL",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-GMAIL-002"
+      ]
+    },
+    {
+      "id": "SRC-GMAIL-003",
+      "publisher": "Google for Developers",
+      "title": "Google API Services User Data Policy",
+      "url": "https://developers.google.com/terms/api-services-user-data-policy",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_PROVIDER_CONTRACT",
+      "jurisdiction": "GLOBAL",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-GMAIL-003"
+      ]
+    },
+    {
+      "id": "SRC-GMAIL-004",
+      "publisher": "Google Cloud Help",
+      "title": "OAuth verification exceptions",
+      "url": "https://support.google.com/cloud/answer/13464323?hl=en",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "GLOBAL",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-GMAIL-004"
+      ]
+    },
+    {
+      "id": "SRC-CLOUDFLARE-001",
+      "publisher": "Cloudflare",
+      "title": "Workers pricing",
+      "url": "https://developers.cloudflare.com/workers/platform/pricing/",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "GLOBAL",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-CLOUDFLARE-001",
+        "PF-CLOUDFLARE-002"
+      ]
+    },
+    {
+      "id": "SRC-CLOUDFLARE-002",
+      "publisher": "Cloudflare",
+      "title": "Cloudflare Pages limits",
+      "url": "https://developers.cloudflare.com/pages/platform/limits/",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "GLOBAL",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-CLOUDFLARE-003"
+      ]
+    },
+    {
+      "id": "SRC-CLOUDFLARE-003",
+      "publisher": "Cloudflare",
+      "title": "Get started with Cloudflare China Network",
+      "url": "https://developers.cloudflare.com/china-network/get-started/",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "CN_GLOBAL",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-CLOUDFLARE-004",
+        "PF-CLOUDFLARE-006"
+      ]
+    },
+    {
+      "id": "SRC-CLOUDFLARE-004",
+      "publisher": "Cloudflare",
+      "title": "Cloudflare China Network overview",
+      "url": "https://developers.cloudflare.com/china-network/",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "CN_GLOBAL",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-CLOUDFLARE-004"
+      ]
+    },
+    {
+      "id": "SRC-CLOUDFLARE-005",
+      "publisher": "Cloudflare",
+      "title": "Cloudflare China Network FAQ",
+      "url": "https://developers.cloudflare.com/china-network/faq/",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "CN_GLOBAL",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-CLOUDFLARE-005",
+        "PF-CLOUDFLARE-006"
+      ]
+    },
+    {
+      "id": "SRC-OVH-001",
+      "publisher": "OVHcloud",
+      "title": "VPS FAQ",
+      "url": "https://docs.ovhcloud.com/en/guides/bare-metal-cloud/virtual-private-servers/vps-faq",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "GLOBAL",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-OVH-001",
+        "PF-OVH-003"
+      ]
+    },
+    {
+      "id": "SRC-OVH-002",
+      "publisher": "OVHcloud",
+      "title": "VPS Australia pricing",
+      "url": "https://www.ovhcloud.com/en-au/vps/vps-australia/",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PRODUCT_DOC",
+      "jurisdiction": "AU",
+      "time_varying": true,
+      "last_updated_or_effective_on": null,
+      "review_by": "2026-08-20",
+      "claim_ids": [
+        "PF-OVH-002",
+        "PF-OVH-003"
+      ]
+    }
+  ],
+  "limitations": [
+    "This snapshot records scoped official-source findings, not legal advice.",
+    "URLs and metadata are retained; webpage bodies are not copied into the repository.",
+    "Provider terms, prices, limits, registers and policies can change and must be revalidated before enablement.",
+    "No source proves an ABD account, credential, API grant, deployment, runtime availability or market-data entitlement exists."
+  ],
+  "s02_p01_execution_boundary": {
+    "external_account_accessed": false,
+    "provider_api_called": false,
+    "credential_or_token_created": false,
+    "cloud_deployment_performed": false,
+    "real_order_submitted": false,
+    "incremental_cash_spent_aud": "0.00",
+    "production_readiness_claimed": false,
+    "return_or_roi_verified": false,
+    "s02_p02_started": false
+  },
+  "status": "OFFICIAL_SOURCE_SET_FROZEN_CAPABILITIES_NOT_ENABLED",
+  "next_on_acceptance_pass": "S02/P02_READY_NOT_STARTED"
+}

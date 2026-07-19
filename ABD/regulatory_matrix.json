@@ -1,0 +1,226 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S02-P01-03",
+  "requirement_id": "REQ-S02-P01",
+  "acceptance_contract_id": "AC-S02-P01",
+  "product_version": "0.0.0.1",
+  "fixed_at": "2026-07-20T00:00:00+10:00",
+  "scope": {
+    "jurisdiction": "AUSTRALIA",
+    "purpose": "PRODUCT_CONTROL_BASELINE_FOR_ABD_0_0_0_1",
+    "legal_advice": false,
+    "legal_opinion_or_full_compliance_assessment": false,
+    "licensed_counsel_review_performed": false,
+    "owner_account_or_identity_status_inspected": false,
+    "regulatory_scope_exhaustive": false
+  },
+  "rules": [
+    {
+      "rule_id": "REG-001",
+      "authority": "ACMA",
+      "jurisdiction": "AU",
+      "subject": "ONLINE_IN_PLAY_SPORTS_BETTING",
+      "statement": "The Interactive Gambling Act framework prohibits online in-play sports betting services in Australia.",
+      "status": "HARD_PROHIBITION_CONTROL",
+      "applicability_to_abd": "ABD must not expose an online in-play recommendation or order route; no order-submission capability exists in this version.",
+      "operational_control": "BLOCK_ONLINE_IN_PLAY_MARKETS_AND_EMIT_NO_RECOMMENDATION",
+      "unknown_or_conflict_action": "STOP_AFFECTED_MARKET_AND_REQUIRE_CURRENT_REGULATORY_REVIEW",
+      "citations": [
+        {
+          "source_id": "SRC-ACMA-002",
+          "url": "https://www.acma.gov.au/about-interactive-gambling-act",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_REGULATOR_PRIMARY"
+        }
+      ]
+    },
+    {
+      "rule_id": "REG-002",
+      "authority": "ACMA",
+      "jurisdiction": "AU",
+      "subject": "LICENSED_PROVIDER_REGISTER",
+      "statement": "Australians should use a gambling operator that appears on the ACMA licensed-provider register; TAB entries are jurisdiction-specific.",
+      "status": "CURRENT_REGISTER_REQUIRED",
+      "applicability_to_abd": "Provider and owner jurisdiction must resolve to a current register entry before the provider can be admitted.",
+      "operational_control": "UNKNOWN_OR_UNMATCHED_REGISTER_ENTRY_BLOCKS_PROVIDER",
+      "unknown_or_conflict_action": "NO_RECOMMENDATION_AND_REVALIDATE_REGISTER_LIVE",
+      "citations": [
+        {
+          "source_id": "SRC-ACMA-001",
+          "url": "https://www.acma.gov.au/check-if-gambling-operator-legal",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_REGULATOR_PRIMARY"
+        }
+      ]
+    },
+    {
+      "rule_id": "REG-003",
+      "authority": "ACMA",
+      "jurisdiction": "AU",
+      "subject": "PROHIBITED_WAGERING_PAYMENT_METHODS",
+      "statement": "Credit cards and digital currencies cannot be used for regulated online wagering services under the prohibition effective from 11 June 2024.",
+      "status": "HARD_PAYMENT_METHOD_PROHIBITION_CONTROL",
+      "applicability_to_abd": "ABD must never recommend or route a credit-card or digital-currency funding method.",
+      "operational_control": "BLOCK_PROHIBITED_PAYMENT_METHODS",
+      "unknown_or_conflict_action": "NO_RECOMMENDATION_AND_REQUIRE_CURRENT_PAYMENT_RULE_REVIEW",
+      "citations": [
+        {
+          "source_id": "SRC-ACMA-003",
+          "url": "https://www.acma.gov.au/online-gambling-services",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_REGULATOR_PRIMARY"
+        }
+      ]
+    },
+    {
+      "rule_id": "REG-004",
+      "authority": "ACMA",
+      "jurisdiction": "AU",
+      "subject": "BETSTOP_SELF_EXCLUSION",
+      "statement": "BetStop applies across licensed online and telephone wagering providers; registered individuals must not be allowed to bet and must not receive wagering marketing.",
+      "status": "HARD_RESPONSIBLE_GAMBLING_CONTROL",
+      "applicability_to_abd": "ABD has not inspected self-exclusion state. A declared or evidenced BetStop status blocks recommendations and provider interaction; unknown runtime status fails closed until the owner gate is completed.",
+      "operational_control": "SELF_EXCLUDED_OR_STATUS_UNKNOWN_EMITS_NO_RECOMMENDATION_AND_NO_PROVIDER_INTERACTION",
+      "unknown_or_conflict_action": "DISABLE_AFFECTED_WAGERING_WORKFLOW",
+      "citations": [
+        {
+          "source_id": "SRC-ACMA-004",
+          "url": "https://www.acma.gov.au/betstop-national-self-exclusion-registertm",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_REGULATOR_PRIMARY"
+        }
+      ]
+    },
+    {
+      "rule_id": "REG-005",
+      "authority": "AUSTRAC",
+      "jurisdiction": "AU",
+      "subject": "PRE_COMMENCEMENT_CUSTOMER_IDENTIFICATION",
+      "statement": "Online gambling service providers are subject to strengthened customer-identification procedures before providing designated services.",
+      "status": "ACCOUNT_ELIGIBILITY_PREREQUISITE",
+      "applicability_to_abd": "ABD cannot infer owner KYC or account eligibility and must not bypass or automate identity checks.",
+      "operational_control": "UNVERIFIED_KYC_OR_ACCOUNT_ELIGIBILITY_BLOCKS_PROVIDER_USE",
+      "unknown_or_conflict_action": "OWNER_COMPLETES_PROVIDER_KYC_OUTSIDE_ABD_OR_PROVIDER_REMAINS_DISABLED",
+      "citations": [
+        {
+          "source_id": "SRC-AUSTRAC-001",
+          "url": "https://www.austrac.gov.au/strengthened-customer-identification-procedures-online-gambling-service-providers",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_REGULATOR_PRIMARY"
+        }
+      ]
+    },
+    {
+      "rule_id": "REG-006",
+      "authority": "TAB_AND_SPORTSBET_OFFICIAL_HELP",
+      "jurisdiction": "AU",
+      "subject": "MONTHLY_ACTIVITY_STATEMENTS",
+      "statement": "TAB and Sportsbet document monthly activity statements containing wagering-account activity and transaction evidence.",
+      "status": "OFFICIAL_PROVIDER_EVIDENCE_SOURCE_FACT",
+      "applicability_to_abd": "Statements can become reconciliation evidence only after separate owner authorization, authenticity checks and immutable archival; they are not real-time market data.",
+      "operational_control": "ARCHIVE_AND_VERIFY_BEFORE_RECONCILIATION_NEVER_TREAT_AS_ODDS_FEED",
+      "unknown_or_conflict_action": "KEEP_ACTUAL_RETURN_AND_LEDGER_RECONCILIATION_UNVERIFIED",
+      "citations": [
+        {
+          "source_id": "SRC-TAB-001",
+          "url": "https://help.tab.com.au/manage-your-account/activity-statements-faqs",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+        },
+        {
+          "source_id": "SRC-SPORTSBET-002",
+          "url": "https://helpcentre.sportsbet.com.au/hc/en-us/articles/4690326285325-What-Is-An-Activity-Statement",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+        }
+      ]
+    },
+    {
+      "rule_id": "REG-007",
+      "authority": "OAIC",
+      "jurisdiction": "AU",
+      "subject": "PERSONAL_INFORMATION_SECURITY_BASELINE",
+      "statement": "APP 11 guidance describes reasonable security measures and destruction or de-identification when personal information is no longer needed.",
+      "status": "SAFE_DESIGN_BASELINE_FORMAL_LEGAL_APPLICABILITY_UNKNOWN",
+      "applicability_to_abd": "ABD adopts minimization, access control, secure retention and disposal as a safety baseline without claiming that APP 11 legally applies to this personal tool.",
+      "operational_control": "MINIMIZE_ENCRYPT_RESTRICT_RETAIN_WITH_PURPOSE_AND_DELETE_ONLY_BY_APPROVED_POLICY",
+      "unknown_or_conflict_action": "APPLY_STRICTER_SAFE_BASELINE_AND_OBTAIN_SPECIALIST_REVIEW_BEFORE_PUBLIC_OR_MULTI_USER_USE",
+      "citations": [
+        {
+          "source_id": "SRC-OAIC-001",
+          "url": "https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-guidelines/chapter-11-app-11-security-of-personal-information",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_REGULATOR_PRIMARY"
+        }
+      ]
+    },
+    {
+      "rule_id": "REG-008",
+      "authority": "TAB_PROVIDER_CONTRACT",
+      "jurisdiction": "AU",
+      "subject": "TAB_ACCOUNT_AND_SCRAPING_BOUNDARY",
+      "statement": "TAB's Conditions of Use bind account activity to the account holder and prohibit screen scraping and third-party credential use.",
+      "status": "SOURCE_SPECIFIC_HARD_CONTROL",
+      "applicability_to_abd": "ABD cannot scrape TAB screens, receive credentials or transact as the account holder.",
+      "operational_control": "NO_SCREEN_SCRAPING_NO_CREDENTIAL_CAPTURE_NO_ACCOUNT_CONTROL_NO_ORDER_SUBMISSION",
+      "unknown_or_conflict_action": "DISABLE_TAB_SOURCE_AND_ACCOUNT_PATH",
+      "citations": [
+        {
+          "source_id": "SRC-TAB-003",
+          "url": "https://help.tab.com.au/troubleshooting-support/conditions-of-use",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_PROVIDER_CONTRACT"
+        }
+      ]
+    },
+    {
+      "rule_id": "REG-009",
+      "authority": "TAB_PROVIDER_CONTRACT",
+      "jurisdiction": "AU",
+      "subject": "TAB_WEB_SERVICES_PERMISSION_AND_USE",
+      "statement": "TAB Web Services use depends on discretionary access and compliance with specified methods, personal/non-commercial use, temporary-storage and request restrictions.",
+      "status": "SOURCE_SPECIFIC_PERMISSION_GATE",
+      "applicability_to_abd": "No Web Services or TAB Studio permission has been observed for ABD.",
+      "operational_control": "NO_TAB_API_OR_WEB_SERVICE_USE_UNTIL_EXPLICIT_GRANT_ZERO_COST_AND_METHOD_CONTRACT_PASS",
+      "unknown_or_conflict_action": "SOURCE_UNAVAILABLE_AND_NO_RECOMMENDATION_FOR_DEPENDENT_MARKETS",
+      "citations": [
+        {
+          "source_id": "SRC-TAB-004",
+          "url": "https://help.tab.com.au/troubleshooting-support/tab-web-services-terms-of-use",
+          "retrieved_on": "2026-07-20",
+          "source_level": "L1_PROVIDER_CONTRACT"
+        }
+      ]
+    }
+  ],
+  "runtime_prerequisite_state": {
+    "owner_jurisdiction_verified": false,
+    "licensed_provider_match_verified": false,
+    "owner_age_residency_and_kyc_verified": false,
+    "betstop_or_other_self_exclusion_status_verified": false,
+    "provider_terms_acceptance_verified": false,
+    "TAB_web_services_or_studio_permission_verified": false,
+    "Sportsbet_automation_permission_verified": false,
+    "default": "NO_PROVIDER_INTERACTION_NO_RECOMMENDATION"
+  },
+  "conflict_assessment": {
+    "irreconcilable_legal_or_source_contract_conflict_found": false,
+    "reason": "Every scoped risk has a conservative disable, no-recommendation or owner-only action; this does not certify legal compliance.",
+    "unresolved_legal_questions_exist": true,
+    "unresolved_question_action": "KEEP_AFFECTED_CAPABILITY_DISABLED_AND_REVALIDATE_PRIMARY_SOURCES"
+  },
+  "s02_p01_execution_boundary": {
+    "legal_advice_provided": false,
+    "regulatory_compliance_certified": false,
+    "owner_identity_or_account_state_inspected": false,
+    "provider_account_accessed": false,
+    "provider_api_called": false,
+    "production_deployed": false,
+    "real_order_submitted": false,
+    "incremental_cash_spent_aud": "0.00",
+    "return_or_roi_verified": false,
+    "s02_p02_started": false
+  },
+  "status": "REGULATORY_BASELINE_FROZEN_CAPABILITIES_FAIL_CLOSED",
+  "next_on_acceptance_pass": "S02/P02_READY_NOT_STARTED"
+}
