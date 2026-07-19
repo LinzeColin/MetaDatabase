@@ -5,8 +5,9 @@
 ```bash
 git clone --filter=blob:none --sparse git@github.com:LinzeColin/MetaDatabase.git
 cd MetaDatabase
-git sparse-checkout set stock-commercial-opportunities-skill
-cd stock-commercial-opportunities-skill
+git sparse-checkout set Stock_Skill
+python3 Stock_Skill/scripts/validate_registry.py
+cd Stock_Skill/stock-commercial-opportunities-skill
 env LC_ALL=C LANG=C LC_CTYPE=C shasum -a 256 -c BACKUP_MANIFEST.sha256
 ```
 

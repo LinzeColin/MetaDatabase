@@ -4,6 +4,10 @@
 
 本项目把产业/商业机会映射为上市公司研究候选，要求证明“商业价值池 → 受益路径 → 发行人敞口 → 订单/收入/利润或现金流捕获 → 当前预期/估值/催化”的证据链。输出是研究优先级，不是个性化投资建议、买卖指令或收益保证。
 
+- Canonical repository path：`Stock_Skill/stock-commercial-opportunities-skill/`
+- Machine-readable current-version index：`Stock_Skill/REGISTRY.json`
+- Version conflict rule：先运行 `python3 Stock_Skill/scripts/validate_registry.py`；失败即 `UNKNOWN`
+
 ## 当前版本
 
 - Version：`3.0.0`
@@ -14,7 +18,7 @@
 ## 目录
 
 ```text
-stock-commercial-opportunities-skill/
+Stock_Skill/stock-commercial-opportunities-skill/
 ├── README.md
 ├── AGENTS.md
 ├── VERSION

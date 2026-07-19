@@ -16,6 +16,15 @@
 - 将来迁入的 `ADP` 在 CodexProject 中的真实路径是 `arxiv-daily-push`，
   其 CI secrets 名为 `ADP_SMTP_*`。按 "ADP" 去找目录会一无所获。
 
+## 股票 Skill 路由（强制）
+
+- 股票类 Skill 的仓库真源统一位于 `Stock_Skill/`；禁止在仓库根目录重建同名项目。
+- 任何 agent 在声称“最新版本”前，必须先读 `Stock_Skill/REGISTRY.json`，并运行
+  `python3 Stock_Skill/scripts/validate_registry.py`。校验失败、未运行或字段冲突时，版本状态只能是 `UNKNOWN`，不得猜测。
+- `stock-commercial-opportunities`（股票商业机会拆解）当前唯一最新版本是 `3.0.0`（v3）；
+  v1/v2 只在 `archives/` 中作为不可变历史谱系，不是当前版本、安装源或回退默认值。
+- 本仓只保存源码和可恢复备份；不得据此写入 `~/.agents/skills` 或 `~/.codex/skills`。
+
 ## 迁移状态
 
 本仓库正从 LinzeColin/CodexProject 分批迁入项目。
