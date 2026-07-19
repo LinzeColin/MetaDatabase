@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "currency": "AUD",
+  "incremental_cash_budget": {
+    "low": "0.00",
+    "likely": "0.00",
+    "high": "0.00"
+  },
+  "existing_resources": [
+    "OVH Singapore VPS-1",
+    "Cloudflare免费能力",
+    "GitHub免费能力",
+    "用户现有Gmail",
+    "开源软件"
+  ],
+  "prohibited_paid_dependencies": [
+    "付费赔率接口",
+    "TAB Studio付费或审批依赖",
+    "Betfair Live Key",
+    "付费模型服务",
+    "付费监控与备份"
+  ],
+  "development_effort_hours": {
+    "low": 240,
+    "likely": 320,
+    "high": 480
+  },
+  "opportunity_cost_sensitivity": [
+    {
+      "hourly_value": 30,
+      "low": 7200,
+      "likely": 9600,
+      "high": 14400
+    },
+    {
+      "hourly_value": 50,
+      "low": 12000,
+      "likely": 16000,
+      "high": 24000
+    },
+    {
+      "hourly_value": 100,
+      "low": 24000,
+      "likely": 32000,
+      "high": 48000
+    },
+    {
+      "hourly_value": 150,
+      "low": 36000,
+      "likely": 48000,
+      "high": 72000
+    }
+  ],
+  "benefit_model": {
+    "target_curve": "300*1.3^n",
+    "confidence": "LOW_UNTIL_EMPIRICAL_EVIDENCE",
+    "warning": "目标曲线不是收益承诺；收益必须由影子、真实确认和对账证据分别证明。",
+    "non_cash_benefits": [
+      "全范围市场可观测与缺口治理",
+      "可复用概率、风险和证据平台",
+      "中文单动作决策体验",
+      "邮件与附件自动证据归档",
+      "长期模型与运行审计"
+    ]
+  },
+  "kill_criteria": [
+    "持续投入不能在A$0新增现金预算内完成核心能力",
+    "经冻结样本和影子运行后保守净对数增长置信下界不为正",
+    "策略容量在证据充分后无法接近30%目标且无新的免费可验证市场",
+    "维护负担长期超过自动化节省的时间价值"
+  ]
+}

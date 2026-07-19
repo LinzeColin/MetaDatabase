@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "name": "Product-Design-Taskpack Skill",
+  "version": "2.0.0-abd",
+  "purpose": "把产品构想转成双平面7文件、机器验收合同、任务DAG、持续证据和安全发布包。",
+  "mandatory_sequence": [
+    "Working Backwards PR/FAQ",
+    "只读官方/GitHub/论文调研",
+    "Canonical Facts",
+    "需求与唯一主验收",
+    "技术/数据/模型/安全方案",
+    "Stage/Phase/Task DAG",
+    "软件正确性与模型能力安全双流水线",
+    "路径穷举",
+    "全量/压力/并发/极限/混沌/恢复",
+    "追踪矩阵",
+    "最终校验和定版"
+  ],
+  "human_plane_exact_files": [
+    "00_我在哪.md",
+    "01_产品需求.md",
+    "02_系统架构.md",
+    "03_口径字典.md",
+    "04_操作流程.md",
+    "05_执行与验收.md",
+    "06_运维手册.md"
+  ],
+  "machine_required": [
+    "canonical_facts",
+    "parameters",
+    "requirements",
+    "acceptance_contracts",
+    "task_graph",
+    "traceability_matrix",
+    "evidence_index",
+    "release_policy",
+    "security_assurance",
+    "model_system_card"
+  ],
+  "research_rule": "只研究与目标产品直接相关对象；保存查询、来源、日期、许可证、采用/适配/拒绝和缺口；禁止虚假宣称穷尽互联网。",
+  "task_rule": {
+    "stage_children_default_max": 5,
+    "phase_children_default_max": 5,
+    "leaf_hours_min": 0.5,
+    "leaf_hours_max": 4,
+    "required_fields": [
+      "inputs",
+      "outputs",
+      "dependencies",
+      "requirements",
+      "tests",
+      "oracle",
+      "environment",
+      "threshold",
+      "evidence",
+      "risk",
+      "rollback",
+      "stop_condition",
+      "verification",
+      "pass_gate"
+    ]
+  },
+  "pause_rule": "普通可逆决策预授权；只有法律/安全/不可逆/超范围/超预算/终止条件暂停，且只输出最小决策问题、证据、默认建议、不决策后果。",
+  "final_output_rule": "只输出一个任务包压缩包、一个Stage/Phase Roadmap和一句Pursuing Goal Prompt。"
+}

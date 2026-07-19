@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "version": "0.0.0.1",
+  "rule": "开发前穷尽普通依赖；未满足的可选外部授权不得阻塞核心开发、部署和影子运行。",
+  "items": [
+    {
+      "id": "DP-001",
+      "name": "GitHub代码仓库与免费持续集成",
+      "required_for": "开发、测试、制品和任务调度",
+      "status": "PRE_AUTHORIZED_FREE",
+      "human_action": "无；使用现有GitHub能力",
+      "blocking": true,
+      "fallback": "本地Git仓库和OVH本地流水线"
+    },
+    {
+      "id": "DP-002",
+      "name": "现有OVH Singapore VPS-1",
+      "required_for": "7×24主运行面",
+      "status": "OWNER_DECLARED_EXISTING",
+      "human_action": "无；部署代理读取现有秘密或输出一个最小登录授权问题",
+      "blocking": true,
+      "fallback": "GitHub持续集成完成全部构建与影子测试；生产运行等待现有主机可达"
+    },
+    {
+      "id": "DP-003",
+      "name": "现有Cloudflare免费账户",
+      "required_for": "全球受保护访问",
+      "status": "OWNER_DECLARED_EXISTING",
+      "human_action": "无常规动作；缺少令牌时由部署任务输出一次性最小授权链接",
+      "blocking": false,
+      "fallback": "OVH回环访问+SSH端口转发，仅影响远程入口，不阻塞核心"
+    },
+    {
+      "id": "DP-004",
+      "name": "Gmail修改权限首次授权",
+      "required_for": "自动保存TAB邮件附件并移入垃圾箱",
+      "status": "RUNTIME_OPTIONAL_ONE_TIME_CONSENT",
+      "human_action": "只需在Google授权页面批准一次 gmail.modify；不需要付费",
+      "blocking": false,
+      "fallback": "邮件模块保持关闭；核心分析、建议、部署和其他证据继续"
+    },
+    {
+      "id": "DP-005",
+      "name": "投注平台账户",
+      "required_for": "用户执行最终下单",
+      "status": "OUTSIDE_DEVELOPMENT_CRITICAL_PATH",
+      "human_action": "系统不负责账户开户、身份核验或资金操作",
+      "blocking": false,
+      "fallback": "系统完成影子运行与建议质量验证，但不声称真实资金收益"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abd.local/schemas/traceability.schema.json",
+  "title": "ABD追踪矩阵",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "requirement_id",
+      "acceptance_criteria_id",
+      "task_ids",
+      "test_ids",
+      "evidence_id",
+      "artifact_ids",
+      "stage_id",
+      "phase_id"
+    ]
+  }
+}

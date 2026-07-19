@@ -1,0 +1,340 @@
+[
+  {
+    "id": "SRC-001",
+    "title": "Gmail API 概览",
+    "url": "https://developers.google.com/workspace/gmail/api/guides",
+    "type": "官方文档",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "授权读取邮箱",
+      "定时检索",
+      "附件归档"
+    ],
+    "decision": "ADOPT",
+    "notes": "采用官方 Gmail 程序接口；不依赖当前对话中的只读 Gmail 连接器。"
+  },
+  {
+    "id": "SRC-002",
+    "title": "Gmail API：获取附件",
+    "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.attachments/get",
+    "type": "官方文档",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "附件下载",
+      "权限范围"
+    ],
+    "decision": "ADOPT"
+  },
+  {
+    "id": "SRC-003",
+    "title": "Gmail API：移入垃圾箱",
+    "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/trash",
+    "type": "官方文档",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "保存验证后删除邮件"
+    ],
+    "decision": "ADOPT",
+    "notes": "只移入垃圾箱，不做永久删除。"
+  },
+  {
+    "id": "SRC-004",
+    "title": "Gmail API 授权范围",
+    "url": "https://developers.google.com/workspace/gmail/api/auth/scopes",
+    "type": "官方文档",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "最小权限",
+      "gmail.modify"
+    ],
+    "decision": "ADOPT"
+  },
+  {
+    "id": "SRC-005",
+    "title": "Gmail API 配额",
+    "url": "https://developers.google.com/workspace/gmail/api/reference/quota",
+    "type": "官方文档",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "每15分钟轮询预算",
+      "重试与退避"
+    ],
+    "decision": "ADOPT"
+  },
+  {
+    "id": "SRC-006",
+    "title": "OpenAI Codex",
+    "url": "https://github.com/openai/codex",
+    "type": "官方开源项目",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "每日审计代理",
+      "修复任务执行"
+    ],
+    "decision": "ADAPT",
+    "notes": "Codex 只做日检、补漏、生成修复，不直接决定不可逆邮件删除。"
+  },
+  {
+    "id": "SRC-007",
+    "title": "Cloudflare Tunnel",
+    "url": "https://developers.cloudflare.com/tunnel/",
+    "type": "官方文档",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "全球访问",
+      "无需公开 OVH 入站端口"
+    ],
+    "decision": "ADOPT"
+  },
+  {
+    "id": "SRC-008",
+    "title": "OVH VPS 配置器",
+    "url": "https://www.ovhcloud.com/en-au/vps/configurator/",
+    "type": "官方产品页",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "VPS-1 资源边界",
+      "容量约束"
+    ],
+    "decision": "ADOPT"
+  },
+  {
+    "id": "SRC-009",
+    "title": "TAB Conditions of Use",
+    "url": "https://help.tab.com.au/troubleshooting-support/conditions-of-use",
+    "type": "平台官方条款",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "来源能力合同",
+      "页面访问频率与账户边界"
+    ],
+    "decision": "SOURCE_SPECIFIC"
+  },
+  {
+    "id": "SRC-010",
+    "title": "TAB Activity Statements",
+    "url": "https://help.tab.com.au/managing-your-account/activity-statements",
+    "type": "平台官方帮助",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "月度账单邮件",
+      "交易证据与对账"
+    ],
+    "decision": "ADOPT",
+    "notes": "账单/交易证据不是实时赔率源。"
+  },
+  {
+    "id": "SRC-011",
+    "title": "Sportsbet Rules, Terms & Conditions",
+    "url": "https://helpcentre.sportsbet.com.au/hc/en-us/articles/115004802547-Sportsbet-Rules-Terms-Conditions",
+    "type": "平台官方条款",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "最低金额",
+      "平台与结算能力合同"
+    ],
+    "decision": "SOURCE_SPECIFIC"
+  },
+  {
+    "id": "SRC-012",
+    "title": "ACMA 在线赛中投注规则说明",
+    "url": "https://www.acma.gov.au/articles/2023-12/wagering-companies-breach-play-betting-rules",
+    "type": "监管机构",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "实时市场建议通道约束"
+    ],
+    "decision": "ADOPT"
+  },
+  {
+    "id": "SRC-013",
+    "title": "flumine",
+    "url": "https://github.com/betcode-org/flumine",
+    "type": "开源项目",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "事件驱动结构",
+      "风险控制",
+      "模拟与纸面运行"
+    ],
+    "decision": "ADAPT",
+    "notes": "仅借鉴架构；删除订单执行职责。"
+  },
+  {
+    "id": "SRC-014",
+    "title": "penaltyblog",
+    "url": "https://github.com/martineastwood/penaltyblog",
+    "type": "开源项目",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "足球比分分布模型",
+      "去水方法"
+    ],
+    "decision": "ADAPT"
+  },
+  {
+    "id": "SRC-015",
+    "title": "OddsHarvester",
+    "url": "https://github.com/jordantete/OddsHarvester",
+    "type": "开源项目",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "浏览器采集器",
+      "解析测试夹具",
+      "健康检查"
+    ],
+    "decision": "ADAPT",
+    "notes": "目标网站和许可证单独复核，不直接复制来源能力假设。"
+  },
+  {
+    "id": "SRC-016",
+    "title": "sportsbook-odds-scraper",
+    "url": "https://github.com/declanwalpole/sportsbook-odds-scraper",
+    "type": "开源项目",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "澳洲平台字段映射研究"
+    ],
+    "decision": "RESEARCH_ONLY",
+    "notes": "许可证或条款不明确时不复制代码。"
+  },
+  {
+    "id": "SRC-017",
+    "title": "sports-betting-ml",
+    "url": "https://github.com/ianalloway/sports-betting-ml",
+    "type": "开源项目",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "市场概率与模型概率比较",
+      "凯利仓位示例"
+    ],
+    "decision": "RESEARCH_ONLY"
+  },
+  {
+    "id": "SRC-018",
+    "title": "Odds API read-only tooling",
+    "url": "https://github.com/odds-api/odds-api",
+    "type": "开源工具",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "只读建议系统边界",
+      "模拟数据和风险提示"
+    ],
+    "decision": "ADAPT_MOCKS_ONLY",
+    "notes": "外部数据访问不是产品必需依赖。"
+  },
+  {
+    "id": "SRC-019",
+    "title": "The Betting Odds Rating System",
+    "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0198668",
+    "type": "研究论文",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "市场价格作为强先验",
+      "赔率预测能力"
+    ],
+    "decision": "ADOPT_EVIDENCE"
+  },
+  {
+    "id": "SRC-020",
+    "title": "Knowing when to bet",
+    "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0287601",
+    "type": "研究论文",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "不建议区域",
+      "不确定性决策"
+    ],
+    "decision": "ADOPT_EVIDENCE"
+  },
+  {
+    "id": "SRC-021",
+    "title": "Machine learning for sports betting: accuracy or calibration?",
+    "url": "https://arxiv.org/abs/2303.06021",
+    "type": "研究论文",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "校准优先",
+      "Brier 与对数损失"
+    ],
+    "decision": "ADOPT_EVIDENCE"
+  },
+  {
+    "id": "SRC-022",
+    "title": "Correction study on outlier-driven sports betting profitability",
+    "url": "https://arxiv.org/abs/2306.01740",
+    "type": "研究论文",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "异常值鲁棒性",
+      "删除最高盈利1%复测"
+    ],
+    "decision": "ADOPT_EVIDENCE"
+  },
+  {
+    "id": "SRC-023",
+    "title": "Risk-Constrained Kelly Gambling",
+    "url": "https://arxiv.org/abs/1603.06183",
+    "type": "研究论文",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "长期增长与回撤约束"
+    ],
+    "decision": "ADOPT_EVIDENCE"
+  },
+  {
+    "id": "SRC-024",
+    "title": "NIST Secure Software Development Framework",
+    "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+    "type": "安全标准",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "安全设计、构建、测试、维护"
+    ],
+    "decision": "ADOPT_CONTROL_BASELINE"
+  },
+  {
+    "id": "SRC-025",
+    "title": "NIST AI Risk Management Framework",
+    "url": "https://airc.nist.gov/airmf-resources/airmf/",
+    "type": "人工智能治理标准",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "模型风险与系统说明卡"
+    ],
+    "decision": "ADOPT_CONTROL_BASELINE"
+  },
+  {
+    "id": "SRC-026",
+    "title": "OWASP ASVS",
+    "url": "https://owasp.org/www-project-application-security-verification-standard/",
+    "type": "应用安全标准",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "应用安全验收"
+    ],
+    "decision": "ADOPT_CONTROL_BASELINE"
+  },
+  {
+    "id": "SRC-027",
+    "title": "SLSA Build Requirements",
+    "url": "https://slsa.dev/spec/v1.2/build-requirements",
+    "type": "供应链安全标准",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "制品来源、构建证明"
+    ],
+    "decision": "ADOPT_CONTROL_BASELINE"
+  },
+  {
+    "id": "SRC-028",
+    "title": "ClamAV 扫描文档",
+    "url": "https://docs.clamav.net/manual/Usage/Scanning.html",
+    "type": "官方安全工具文档",
+    "retrieved_at": "2026-07-19",
+    "used_for": [
+      "邮件附件恶意软件扫描"
+    ],
+    "decision": "ADOPT"
+  }
+]

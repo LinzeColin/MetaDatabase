@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "status": "NO_CONFLICTS_IN_EVALUATED_SCOPE",
+  "canonical_facts_sha256": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+  "precedence": [
+    "latest_explicit_user_ruling",
+    "current_version_machine_facts",
+    "official_primary_source",
+    "verified_research",
+    "historical_document"
+  ],
+  "evaluated_sources": [
+    {
+      "id": "CURRENT-USER-GOAL-COPY",
+      "kind": "USER_RULING_COPY",
+      "artifact": "PURSUE_GOAL_PROMPT.txt",
+      "available_in_project": true,
+      "sha256": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "result": "CONSISTENT"
+    },
+    {
+      "id": "TASKPACK-CANONICAL-FACTS",
+      "kind": "MACHINE_FACTS",
+      "artifact": "machine/facts/canonical_facts.json",
+      "available_in_project": true,
+      "sha256": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "result": "AUTHORITATIVE"
+    },
+    {
+      "id": "TASKPACK-ROADMAP",
+      "kind": "ROADMAP",
+      "artifact": "machine/evidence/roadmap_stage_phase.md",
+      "available_in_project": true,
+      "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "result": "CONSISTENT"
+    },
+    {
+      "id": "INPUT-TASKPACK-ARCHIVE",
+      "kind": "IMPORT_ARCHIVE",
+      "artifact": "external_input_by_hash_only",
+      "available_in_project": false,
+      "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+      "integrity_check": "ZIP_TEST_PASS_BEFORE_IMPORT",
+      "result": "CONSISTENT"
+    },
+    {
+      "id": "ORIGIN-MAIN-ABD-STATE",
+      "kind": "REPOSITORY_TREE",
+      "artifact": "origin/main@410be7b5099fa1a8ec0787adc7df5d327381999f:ABD",
+      "available_in_project": false,
+      "result": "ABSENT_NO_PRIOR_REPOSITORY_FACTS"
+    }
+  ],
+  "cross_source_assertions": [
+    "VERSION 与 canonical_facts.product.version 一致",
+    "parameters.target_30pct.monthly_return 与 canonical_facts.product.monthly_target_return 一致",
+    "costs.incremental_cash_budget.likely 与 canonical_facts.product.incremental_cash_budget_aud 一致",
+    "release_manifest.version 与 canonical_facts.product.version 一致",
+    "release_manifest 明确 return_guaranteed=false"
+  ],
+  "conflicts": [],
+  "unresolved_conflict_count": 0,
+  "unevaluated_scope": [
+    "未向本轮提供的外部旧包或私有草稿",
+    "会随时间变化的平台条款、监管事实、价格和运行访问能力（由 S02/P01 以当前一手来源复核）",
+    "尚未执行的 OVH、Cloudflare、Gmail、TAB 或其他平台运行状态"
+  ]
+}

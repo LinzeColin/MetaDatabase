@@ -1,0 +1,16 @@
+[project]
+name = "abd"
+version = "0.0.0.1"
+description = "全天候投注决策辅助系统（分析与建议，不提交真实订单）"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "jsonschema==4.25.1",
+  "pytest==8.4.2",
+]
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --strict-markers"
+testpaths = ["tests"]

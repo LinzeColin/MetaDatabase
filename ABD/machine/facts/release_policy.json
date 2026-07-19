@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "software_pipeline": [
+    "Schema与类型",
+    "单元和属性测试",
+    "来源合同测试夹具",
+    "集成与端到端",
+    "全历史、10倍负载、并发和极限",
+    "故障注入与恢复",
+    "静态安全、依赖、秘密、软件物料清单、构建证明",
+    "双环境切换、小流量试运行、发布后探针"
+  ],
+  "model_pipeline": [
+    "时间血缘与泄漏",
+    "市场基线",
+    "挑战模型",
+    "时间外推",
+    "校准和保守概率",
+    "相对收盘价优势、Brier、对数损失、净对数增长",
+    "优势削减、离群删除、容量和敏感性",
+    "红队、不同模型互审、模型系统说明卡",
+    "Alpha、Beta、正式可用、漂移和回滚"
+  ],
+  "feature_flags": [
+    "source:<id>",
+    "sport:<id>",
+    "market_family:<id>",
+    "model:<id>",
+    "live_recommendation",
+    "gmail_ingestion",
+    "owner_browser_companion"
+  ],
+  "auto_rollback_on": [
+    "健康探针失败",
+    "数值交叉实现不一致",
+    "新版本建议与冻结重放不一致",
+    "静默缺口增加",
+    "模型漂移越过停止线",
+    "安全严重/高危未处置",
+    "账本或证据完整性失败"
+  ],
+  "alpha_beta_ga": {
+    "software_alpha": "Walking Skeleton全闭环",
+    "software_ga": "软件正确性、安全、恢复和发布门通过",
+    "model_alpha": "至少2000历史结算事件、8时间折、只影子运行",
+    "model_beta": "至少60天和500实时影子合格信号",
+    "model_ga": "至少90天和1000合格信号，所有置信下界门通过",
+    "target_plausible": "90天、1000独立等效信号及容量门",
+    "target_verified": "12个完整月实际现金流调整几何月收益≥30%"
+  }
+}
