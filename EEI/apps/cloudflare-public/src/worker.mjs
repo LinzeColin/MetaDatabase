@@ -646,7 +646,13 @@ async function entityEmpire(env, entityId) {
       id: focus.id,
       canonical_name: focus.canonical_name,
       entity_type: focus.entity_type,
-      status: focus.status
+      status: focus.status,
+      // The /structure page renders Object.entries(focus.primary_identifiers)
+      // and reads focus.fixture_notice/synthetic; omitting them crashed the
+      // page (Object.entries(undefined)). Empty/false are the honest values.
+      primary_identifiers: {},
+      fixture_notice: null,
+      synthetic: false
     },
     structure: {},
     coverage: {
@@ -849,7 +855,13 @@ async function handleFetch(request, env) {
           by_year: (results ?? []).map((row) => ({
             year: Number(row.year),
             filings: Number(row.filings)
-          }))
+          })),
+          // The /policy page renders regulatory_filings.latest.map(); omitting
+          // it crashed the page. Individual filings (titles/URLs) stay local per
+          // the CF-L2 boundary, so the published surface exposes an empty latest
+          // list (only per-year aggregate counts leave the machine).
+          latest: [],
+          scoped_to_entity: false
         },
         policy_models: [],
         abstentions: {
