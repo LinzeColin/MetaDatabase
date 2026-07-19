@@ -1,0 +1,7 @@
+请读取本任务包的 AGENTS.md、START_HERE_FOR_CODEX.md、CODEX_MASTER_TASK.md、DECISIONS_AND_DEFAULTS.md，以及 skill_draft/stock-commercial-opportunities/SKILL.md。
+
+目标是审计或维护未安装的 Codex Skill `stock-commercial-opportunities`（股票商业机会拆解）。保持“商业价值池 → 受益路径 → 发行人敞口 → 财务捕获 → 预期/估值/催化/证伪”的证据链；不要把产业热度、价格上涨、社交讨论、搜索摘要或合成观点当成股票机会证明。
+
+每轮只执行一个 Run Contract。先核对证券身份、法域、as-of、来源和权限，再改文件；然后运行确定性验证。当前禁止写入 ~/.agents/skills 或 ~/.codex/skills，禁止连接账户、自动交易、发布荐股或使用疑似 MNPI。
+
+输出必须分开 score、risk、confidence、E0-E5 和 research-only status；允许 NO_QUALIFIED_CANDIDATE。最终给实际命令/结果、未运行项、哈希/恢复状态、first rejection、surprise 和一个最高 ROI 下一步。
