@@ -154,11 +154,13 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     # ---- 1) 回灌券商事实(状态只前进;成交按成交号幂等) ----
     orders = d.trade_client.poll_orders()
     remark_by_broker_id: dict[str, str] = {}
+    ours: list[dict] = []
     for row in orders:
         remark = row.get("remark", "")
         if not remark.startswith("S1-"):
             continue  # 非本系统单(如人工在 App 模拟盘手点)不回灌,对账器另管
         remark_by_broker_id[row["broker_order_id"]] = remark
+        ours.append(row)
         target = BROKER_STATUS_MAP.get(row.get("status", ""), None)
         if target is None:
             continue
@@ -170,17 +172,48 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
                                      broker_order_id=row["broker_order_id"],
                                      status=target)
             summary["backfilled"] += 1
-    for deal in d.trade_client.poll_deals():
-        exec_id = deal.get("broker_execution_id", "")
-        if not exec_id or d.store.execution_exists(exec_id):
-            continue
-        remark = remark_by_broker_id.get(deal.get("broker_order_id", ""))
-        if remark is None:
-            continue
-        d.gateway.on_fill(idempotency_key=remark, quantity=int(deal["quantity"]),
-                          price=Decimal(str(deal["price"])),
-                          broker_execution_id=exec_id)
-        summary["fills"] += 1
+    # 成交回灌两条路:REAL 走成交明细;SIMULATE 环境无成交明细接口(实机 2026-07-19
+    # 报 "Paper trading does not support deal data")→ 用订单行 dealt_qty 增量派生,
+    # 合成成交号含累计量 → execution_exists 天然幂等。两路互斥,绝不重复入账。
+    deals: list[dict] = []
+    deals_supported = True
+    try:
+        deals = d.trade_client.poll_deals()
+    except Exception as exc:
+        if "not support" not in str(exc).lower():
+            raise
+        deals_supported = False
+    if deals_supported:
+        for deal in deals:
+            exec_id = deal.get("broker_execution_id", "")
+            if not exec_id or d.store.execution_exists(exec_id):
+                continue
+            remark = remark_by_broker_id.get(deal.get("broker_order_id", ""))
+            if remark is None:
+                continue
+            d.gateway.on_fill(idempotency_key=remark, quantity=int(deal["quantity"]),
+                              price=Decimal(str(deal["price"])),
+                              broker_execution_id=exec_id)
+            summary["fills"] += 1
+    else:
+        for row in ours:
+            if row.get("status") not in ("FILLED_PART", "FILLED_ALL"):
+                continue
+            remark = row["remark"]
+            order_id = d.store.find_order_by_idempotency_key(remark)
+            if order_id is None:
+                continue
+            dealt = int(row.get("dealt_qty", 0))
+            delta = dealt - d.store.get_filled_quantity(order_id)
+            price = float(row.get("dealt_avg_price", 0.0))
+            if delta <= 0 or price <= 0:
+                continue
+            exec_id = f"SIMFILL-{remark}-{dealt}"
+            if d.store.execution_exists(exec_id):
+                continue
+            d.gateway.on_fill(idempotency_key=remark, quantity=delta,
+                              price=Decimal(str(price)), broker_execution_id=exec_id)
+            summary["fills"] += 1
 
     # ---- 2) 评估窗口判定(每交易日至多一次;标记先落盘) ----
     today_tag = now_et.date().isoformat()

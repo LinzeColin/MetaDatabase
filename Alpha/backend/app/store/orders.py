@@ -355,6 +355,12 @@ class OrderStore:
             order = session.scalar(select(BrokerOrder).where(BrokerOrder.intent_id == intent.intent_id))
             return order.order_id if order else None
 
+    def get_filled_quantity(self, order_id: str) -> int:
+        """已入账成交量(070 SIMULATE 派生成交的增量基准)。"""
+        with self._sessions() as session:
+            order = session.get(BrokerOrder, order_id)
+            return int(order.filled_quantity) if order else 0
+
     def execution_exists(self, broker_execution_id: str) -> bool:
         """成交是否已入账(070 轮询回灌的幂等闸:同一券商成交号只入账一次)。"""
         if not broker_execution_id:

@@ -113,6 +113,8 @@ class SimulateTradingClient:
         return [
             {"remark": _s(r.get("remark")), "broker_order_id": _s(r.get("order_id")),
              "status": _s(r.get("order_status")),
+             "dealt_qty": int(_f(r.get("dealt_qty"))),
+             "dealt_avg_price": _f(r.get("dealt_avg_price")),
              "updated": _s(r.get("updated_time")) or _s(r.get("create_time"))}
             for r in df.to_dict("records")
         ]
