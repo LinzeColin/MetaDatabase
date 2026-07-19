@@ -26,6 +26,15 @@ from .budget import (
     write_phase_evidence as write_budget_phase_evidence,
     write_scan_report,
 )
+from .external_consent import (
+    build_evidence as build_external_consent_evidence,
+    evaluate_contract as evaluate_external_consent_contract,
+    parse_runbook_contract,
+    perform_rollback_drill as perform_external_consent_rollback_drill,
+    resolve_consent_event,
+    validate_consent_receipt,
+    write_phase_evidence as write_external_consent_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -45,4 +54,11 @@ __all__ = [
     "scan_dependency_budget",
     "write_budget_phase_evidence",
     "write_scan_report",
+    "build_external_consent_evidence",
+    "evaluate_external_consent_contract",
+    "parse_runbook_contract",
+    "perform_external_consent_rollback_drill",
+    "resolve_consent_event",
+    "validate_consent_receipt",
+    "write_external_consent_phase_evidence",
 ]

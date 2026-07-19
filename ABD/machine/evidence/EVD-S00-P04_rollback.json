@@ -1,0 +1,30 @@
+{
+  "artifacts": {
+    "machine/facts/decision_prerequisites.json": {
+      "corrupted_sha256": "1286141b4ded8e25480d5a361f437ac7608fc4a3e9124039974b66de3b8160cb",
+      "restored_sha256": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+      "signed_sha256": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+      "status": "PASS"
+    },
+    "machine/facts/degraded_mode_contract.json": {
+      "corrupted_sha256": "47c122a8a292d6ed4d2796092fb900b8237b5860d1f708fa4cc0d47c9ebbf85f",
+      "restored_sha256": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+      "signed_sha256": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+      "status": "PASS"
+    },
+    "machine/runbooks/gmail_oauth_bootstrap.md": {
+      "corrupted_sha256": "41117a825e4a0c8ee35af8f2e60eccf230e3f02fa5de4f00f403184a0193f9c5",
+      "restored_sha256": "5588ed4e484349c96609258c37e526e1cd606c84f78ae89d3eb6cbe6bb618ae2",
+      "signed_sha256": "5588ed4e484349c96609258c37e526e1cd606c84f78ae89d3eb6cbe6bb618ae2",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S00-P04",
+  "evidence_id": "EVD-S00-P04-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_EXTERNAL_CONSENT_CONTRACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}
