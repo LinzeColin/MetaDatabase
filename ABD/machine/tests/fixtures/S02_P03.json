@@ -1,0 +1,352 @@
+{
+  "schema_version": "1.0.0",
+  "version": "0.0.0.1",
+  "stage_id": "S02",
+  "phase_id": "P03",
+  "contract_id": "AC-S02-P03",
+  "requirement_id": "REQ-S02-P03",
+  "fixed_clock": "2026-07-20T00:00:00+10:00",
+  "expected_outputs": [
+    "research_reuse_matrix.json",
+    "license_inventory.json"
+  ],
+  "expected_project_source_ids": [
+    "SRC-013",
+    "SRC-014",
+    "SRC-015",
+    "SRC-016",
+    "SRC-017",
+    "SRC-018"
+  ],
+  "expected_repositories": {
+    "SRC-013": "https://github.com/betcode-org/flumine",
+    "SRC-014": "https://github.com/martineastwood/penaltyblog",
+    "SRC-015": "https://github.com/jordantete/OddsHarvester",
+    "SRC-016": "https://github.com/declanwalpole/sportsbook-odds-scraper",
+    "SRC-017": "https://github.com/ianalloway/sports-betting-ml",
+    "SRC-018": "https://github.com/odds-api/odds-api"
+  },
+  "expected_pinned_commits": {
+    "SRC-013": "1549eeb112aca18c6ed2c19583569436ae14120a",
+    "SRC-014": "ba9150b311f3b87bf9813c09e6f1b3950e31f7cf",
+    "SRC-015": "32cd0d6f51ca8cb50221c1e4273e2b1e35424a72",
+    "SRC-016": "8e791fc31a3b118936dd2f2b02e1919aaa4daeb3",
+    "SRC-017": "23c7bc95f1007006210c9b33efcbd47dfca82e0d",
+    "SRC-018": "16546bc4a2d53a67d5b93ad982da385c58525568"
+  },
+  "expected_readme_sha256": {
+    "SRC-013": "91f81dd6c8d0b81734cd4d5c9ca91903ecdf655135f113734a6ba3909002abb5",
+    "SRC-014": "ff4577cc8a75dc81c87be10503da99fd7cf36649d576b08832a30e4dc40b4539",
+    "SRC-015": "4c8597df27333ac473e2e318039ada2b5a117cf39aa1ac9e53582b56aa856e26",
+    "SRC-016": "2a41fae3d052ec0e776db23bdc19839a84a0d2db5f5b5c8651de2721d82c45dd",
+    "SRC-017": "3b337c8307dc6004da40720f0e10dfbd95a7e823143b0f12a2b941dea3a7c797",
+    "SRC-018": "a18ab315a60245c5205f35b072f05d0f666c71d6e6dce04e7aeca36d132a8aa3"
+  },
+  "expected_decisions": {
+    "SRC-013": "ADAPT_DESIGN_ONLY",
+    "SRC-014": "ADAPT_RESEARCH_REFERENCE",
+    "SRC-015": "ADAPT_PARSER_TEST_PATTERNS_ONLY",
+    "SRC-016": "REJECT_CODE_REUSE_RESEARCH_ONLY",
+    "SRC-017": "RESEARCH_ONLY_NO_MODEL_REUSE",
+    "SRC-018": "ADAPT_MOCKS_AND_SCHEMA_ONLY"
+  },
+  "expected_license_records": {
+    "SRC-013": {
+      "id": "LIC-SRC-013",
+      "spdx": "MIT",
+      "path": "LICENSE",
+      "git_blob_sha1": "02e969ca23bb53641d686623a228df6bd4a33ffc",
+      "sha256": "874af3c0fd5b64aa70592ee2a0f91528d52c83203db658f0598c09c3ed295a73"
+    },
+    "SRC-014": {
+      "id": "LIC-SRC-014",
+      "spdx": "MIT",
+      "path": "LICENCE",
+      "git_blob_sha1": "be173f45eb02459453a1774361a129891829f334",
+      "sha256": "e1b183921d93c7f19a1bacfb248d809b0eea839c09232f6ec0234fae4561a0a7"
+    },
+    "SRC-015": {
+      "id": "LIC-SRC-015",
+      "spdx": "MIT",
+      "path": "LICENSE.txt",
+      "git_blob_sha1": "a6c86246c9eda1c5077ad347a11ac4b7600c6bd5",
+      "sha256": "9f2a034be8ed706c2089e698704627673ae9025d130c3d68e369c1d565d63408"
+    },
+    "SRC-016": {
+      "id": "LIC-SRC-016",
+      "spdx": "NOASSERTION",
+      "path": null,
+      "git_blob_sha1": null,
+      "sha256": null
+    },
+    "SRC-017": {
+      "id": "LIC-SRC-017",
+      "spdx": "MIT",
+      "path": "LICENSE",
+      "git_blob_sha1": "1973fc5fde52788a0b0b55513a15c836c6dc2a1e",
+      "sha256": "96d2f7b46274c48fe1d757f15d3616c9241ce9ed69fd7315e9753b64dc9e2ca1"
+    },
+    "SRC-018": {
+      "id": "LIC-SRC-018",
+      "spdx": "Apache-2.0",
+      "path": "LICENSE",
+      "git_blob_sha1": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    }
+  },
+  "expected_license_counts": {
+    "MIT": 4,
+    "Apache-2.0": 1,
+    "NOASSERTION": 1
+  },
+  "required_project_fields": [
+    "source_id",
+    "name",
+    "repository",
+    "default_branch",
+    "pinned_commit",
+    "commit_date",
+    "commit_url",
+    "readme",
+    "decision",
+    "adopt",
+    "adapt",
+    "reject",
+    "license_evidence_id",
+    "adoption_status",
+    "source_contract_status",
+    "unverified",
+    "review_trigger"
+  ],
+  "required_license_fields": [
+    "id",
+    "source_id",
+    "project",
+    "repository",
+    "pinned_commit",
+    "detected_spdx",
+    "license_path",
+    "license_git_blob_sha1",
+    "license_sha256",
+    "license_url",
+    "copyright_notice",
+    "notice_file_at_repository_root",
+    "code_license_scope",
+    "p03_disposition",
+    "future_reuse"
+  ],
+  "decision_vectors": [
+    {
+      "id": "DV-001",
+      "license_class": "MIT",
+      "reuse_mode": "DESIGN_PATTERN",
+      "source_contract": "NOT_APPLICABLE",
+      "contains_order_capability": false,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "numeric_delta": "0",
+      "expected": "ALLOW_PINNED_RESEARCH_ADAPTATION"
+    },
+    {
+      "id": "DV-002",
+      "license_class": "Apache-2.0",
+      "reuse_mode": "MOCK_SCHEMA_REFERENCE",
+      "source_contract": "UNVERIFIED",
+      "contains_order_capability": false,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "numeric_delta": "0",
+      "expected": "ALLOW_PINNED_RESEARCH_ADAPTATION"
+    },
+    {
+      "id": "DV-003",
+      "license_class": "NOASSERTION",
+      "reuse_mode": "PUBLIC_METADATA_RESEARCH",
+      "source_contract": "UNVERIFIED",
+      "contains_order_capability": false,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "numeric_delta": "0",
+      "expected": "ALLOW_PUBLIC_METADATA_RESEARCH_ONLY"
+    },
+    {
+      "id": "DV-004",
+      "license_class": "NOASSERTION",
+      "reuse_mode": "COPY_CODE",
+      "source_contract": "VERIFIED",
+      "contains_order_capability": false,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "numeric_delta": "0",
+      "expected": "REJECT_NO_LICENSE"
+    },
+    {
+      "id": "DV-005",
+      "license_class": "MIT",
+      "reuse_mode": "COPY_CODE",
+      "source_contract": "VERIFIED",
+      "contains_order_capability": false,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "numeric_delta": "0",
+      "expected": "REJECT_P03_RUNTIME_SCOPE"
+    },
+    {
+      "id": "DV-006",
+      "license_class": "MIT",
+      "reuse_mode": "LIVE_SOURCE",
+      "source_contract": "UNVERIFIED",
+      "contains_order_capability": false,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "numeric_delta": "0",
+      "expected": "REJECT_UNVERIFIED_SOURCE_CONTRACT"
+    },
+    {
+      "id": "DV-007",
+      "license_class": "MIT",
+      "reuse_mode": "DESIGN_PATTERN",
+      "source_contract": "NOT_APPLICABLE",
+      "contains_order_capability": true,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "numeric_delta": "0",
+      "expected": "REJECT_ORDER_CAPABILITY"
+    },
+    {
+      "id": "DV-008",
+      "license_class": "Apache-2.0",
+      "reuse_mode": "MOCK_SCHEMA_REFERENCE",
+      "source_contract": "UNVERIFIED",
+      "contains_order_capability": false,
+      "requires_live_account": true,
+      "requires_incremental_cash": false,
+      "numeric_delta": "0",
+      "expected": "REJECT_ACCOUNT_OR_API_ACCESS"
+    },
+    {
+      "id": "DV-009",
+      "license_class": "MIT",
+      "reuse_mode": "ALGORITHM_REFERENCE",
+      "source_contract": "NOT_APPLICABLE",
+      "contains_order_capability": false,
+      "requires_live_account": false,
+      "requires_incremental_cash": true,
+      "numeric_delta": "0",
+      "expected": "REJECT_INCREMENTAL_CASH"
+    },
+    {
+      "id": "DV-010",
+      "license_class": "MIT",
+      "reuse_mode": "PARSER_TEST_PATTERN",
+      "source_contract": "UNVERIFIED",
+      "contains_order_capability": false,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "numeric_delta": "0",
+      "expected": "ALLOW_PINNED_RESEARCH_ADAPTATION"
+    }
+  ],
+  "boundary_cases": [
+    {
+      "id": "BV-001",
+      "license_class": "MIT",
+      "reuse_mode": "DESIGN_PATTERN",
+      "source_contract": "NOT_APPLICABLE",
+      "contains_order_capability": false,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "expected": "ALLOW_PINNED_RESEARCH_ADAPTATION"
+    },
+    {
+      "id": "BV-002",
+      "license_class": "NOASSERTION",
+      "reuse_mode": "COPY_CODE",
+      "source_contract": "VERIFIED",
+      "contains_order_capability": false,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "expected": "REJECT_NO_LICENSE"
+    },
+    {
+      "id": "BV-003",
+      "license_class": "Apache-2.0",
+      "reuse_mode": "MOCK_SCHEMA_REFERENCE",
+      "source_contract": "UNVERIFIED",
+      "contains_order_capability": true,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "expected": "REJECT_ORDER_CAPABILITY"
+    },
+    {
+      "id": "BV-004",
+      "license_class": "MIT",
+      "reuse_mode": "LIVE_SOURCE",
+      "source_contract": "UNVERIFIED",
+      "contains_order_capability": false,
+      "requires_live_account": false,
+      "requires_incremental_cash": false,
+      "expected": "REJECT_UNVERIFIED_SOURCE_CONTRACT"
+    }
+  ],
+  "numeric_boundary_deltas": [
+    "-0.0001",
+    "0",
+    "0.0001"
+  ],
+  "numeric_boundary_semantics": "许可证和安全裁定是分类门；±0.0001 不得改变任何采用或拒绝结果，也不得用数值优势覆盖许可证、来源合同、A$0、账户或无订单门。",
+  "fault_mutations": [
+    "DUPLICATE_PROJECT_ID",
+    "MISSING_PROJECT",
+    "MUTABLE_README_URL",
+    "BAD_COMMIT_LENGTH",
+    "README_HASH_MISMATCH",
+    "MISSING_ADOPT",
+    "MISSING_ADAPT",
+    "MISSING_REJECT",
+    "LICENSE_LINK_MISMATCH",
+    "NOASSERTION_COPY_ALLOWED",
+    "APACHE_SERVICE_TERMS_CONFLATED",
+    "ORDER_CAPABILITY_ALLOWED",
+    "RUNTIME_DEPENDENCY_ADDED",
+    "API_KEY_USED",
+    "INCREMENTAL_CASH_NONZERO",
+    "P02_RECEIPT_TAMPERED",
+    "P04_ARTIFACT_PRESENT",
+    "ABSOLUTE_LOCAL_PATH_PRESENT",
+    "BINARY_FLOAT_PRESENT"
+  ],
+  "expected_oracle_check_minimum": 80,
+  "minimum_targeted_pytest_cases": 120,
+  "minimum_full_pytest_cases": 1320,
+  "expected_rollback_artifact_count": 8,
+  "expected_task_ids": [
+    "T-S02-P03-01",
+    "T-S02-P03-02",
+    "T-S02-P03-03"
+  ],
+  "expected_test_ids": [
+    "TEST-S02-P03",
+    "TEST-S02-P03-BOUNDARY",
+    "TEST-S02-P03-REPLAY"
+  ],
+  "expected_artifact_ids": [
+    "ART-S02-P03-01",
+    "ART-S02-P03-02"
+  ],
+  "expected_external_effect_boundary": {
+    "github_upload_performed": false,
+    "repository_cloned": false,
+    "package_installed": false,
+    "provider_or_cloud_account_accessed": false,
+    "provider_api_called": false,
+    "api_key_requested_or_used": false,
+    "incremental_cash_spent_aud": "0.00",
+    "production_deployment_claimed": false,
+    "real_order_capability_present": false,
+    "model_or_strategy_executed": false,
+    "return_or_guarantee_claimed": false,
+    "s02_p04_started": false
+  },
+  "expected_next": "S02/P04_READY_NOT_STARTED"
+}

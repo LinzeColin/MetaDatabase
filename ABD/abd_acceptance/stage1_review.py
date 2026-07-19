@@ -632,14 +632,27 @@ def _check_workflow_and_review_replay(
     )
     _add(checks, "S01REVIEW-ABD-UBUNTU-CI-FAIL-CLOSED", workflow_ok, missing or "all required commands present")
 
+    writer_registration_present = bool(
+        re.search(
+            r'["\']STAGE-REVIEW-S01["\']\s*:\s*write_stage1_review_evidence\s*,?',
+            main_text,
+        )
+    )
     replay_ok = (
         integration.get("stage1_review_replayed_by_full_pytest") is True
         and "python -m pytest -q" in text
         and (root / "tests/S01/stage_review_test.py").is_file()
-        and "STAGE-REVIEW-S01" in main_text
-        and "write_stage1_review_evidence" in main_text
+        and writer_registration_present
     )
-    _add(checks, "S01REVIEW-EXECUTABLE-REPLAY-REGISTERED", replay_ok, {"test": (root / "tests/S01/stage_review_test.py").is_file(), "cli": "STAGE-REVIEW-S01" in main_text})
+    _add(
+        checks,
+        "S01REVIEW-EXECUTABLE-REPLAY-REGISTERED",
+        replay_ok,
+        {
+            "test": (root / "tests/S01/stage_review_test.py").is_file(),
+            "writer_registration": writer_registration_present,
+        },
+    )
 
 
 def _iter_text_files(root: Path) -> Iterable[Path]:
@@ -704,10 +717,158 @@ def _check_security_budget_progression_and_readme(
     try:
         index_rows = _load_evidence_index(root)
         s02 = [row for row in index_rows if row.get("id") == "INDEX-AC-S02-P01"]
+        s02_p02 = [row for row in index_rows if row.get("id") == "INDEX-AC-S02-P02"]
+        s02_p03 = [row for row in index_rows if row.get("id") == "INDEX-AC-S02-P03"]
+        s02_p04 = [row for row in index_rows if row.get("id") == "INDEX-AC-S02-P04"]
+        s02_review = [row for row in index_rows if row.get("id") == "INDEX-S02-STAGE-REVIEW"]
         s02_evidence = sorted(path.name for path in (root / "machine/evidence").glob("EVD-S02-*.json"))
         delivery = verify_stage0_delivery(root, verify_git_history=verify_history)
-        progression_ok = len(s02) == 1 and s02[0].get("status") == "PLANNED" and not s02_evidence and delivery.get("status") == "PASS"
-        progression_detail = {"s02": s02[0].get("status") if len(s02) == 1 else "INVALID", "evidence": s02_evidence, "stage0_delivery": delivery.get("status")}
+        prestart_ok = (
+            len(s02) == 1
+            and s02[0].get("status") == "PLANNED"
+            and not s02_evidence
+        )
+        successor_status = "NOT_PRESENT"
+        successor_ok = False
+        successor_mode = "NONE"
+        if s02_evidence == ["EVD-S02-P01.json", "EVD-S02-P01_rollback.json"]:
+            from .official_platform_research import verify_existing_phase_evidence
+
+            successor = verify_existing_phase_evidence(
+                root,
+                verify_git_history=verify_history,
+            )
+            successor_status = successor.get("status", "FAIL")
+            successor_ok = (
+                len(s02) == 1
+                and s02[0].get("status") == "PASS"
+                and successor_status == "PASS"
+            )
+            successor_mode = "VERIFIED_S02_P01_SUCCESSOR"
+        elif s02_evidence == [
+            "EVD-S02-P01.json",
+            "EVD-S02-P01_rollback.json",
+            "EVD-S02-P02.json",
+            "EVD-S02-P02_rollback.json",
+        ]:
+            from .model_risk_research import verify_existing_phase_evidence as verify_p02_evidence
+
+            successor = verify_p02_evidence(
+                root,
+                verify_git_history=verify_history,
+            )
+            successor_status = successor.get("status", "FAIL")
+            successor_ok = (
+                len(s02) == 1
+                and s02[0].get("status") == "PASS"
+                and len(s02_p02) == 1
+                and s02_p02[0].get("status") == "PASS"
+                and successor_status == "PASS"
+                and successor.get("next") == "S02/P03_READY_NOT_STARTED"
+            )
+            successor_mode = "VERIFIED_S02_P02_SUCCESSOR"
+        elif s02_evidence == [
+            "EVD-S02-P01.json",
+            "EVD-S02-P01_rollback.json",
+            "EVD-S02-P02.json",
+            "EVD-S02-P02_rollback.json",
+            "EVD-S02-P03.json",
+            "EVD-S02-P03_rollback.json",
+        ]:
+            from .open_source_reuse import verify_existing_phase_evidence as verify_p03_evidence
+
+            successor = verify_p03_evidence(
+                root,
+                verify_git_history=verify_history,
+            )
+            successor_status = successor.get("status", "FAIL")
+            successor_ok = (
+                len(s02) == 1
+                and s02[0].get("status") == "PASS"
+                and len(s02_p02) == 1
+                and s02_p02[0].get("status") == "PASS"
+                and len(s02_p03) == 1
+                and s02_p03[0].get("status") == "PASS"
+                and successor_status == "PASS"
+                and successor.get("next") == "S02/P04_READY_NOT_STARTED"
+            )
+            successor_mode = "VERIFIED_S02_P03_SUCCESSOR"
+        elif s02_evidence == [
+            "EVD-S02-P01.json",
+            "EVD-S02-P01_rollback.json",
+            "EVD-S02-P02.json",
+            "EVD-S02-P02_rollback.json",
+            "EVD-S02-P03.json",
+            "EVD-S02-P03_rollback.json",
+            "EVD-S02-P04.json",
+            "EVD-S02-P04_rollback.json",
+        ]:
+            from .research_gap_audit import verify_existing_phase_evidence as verify_p04_evidence
+
+            successor = verify_p04_evidence(
+                root,
+                verify_git_history=verify_history,
+            )
+            successor_status = successor.get("status", "FAIL")
+            successor_ok = (
+                len(s02) == 1
+                and s02[0].get("status") == "PASS"
+                and len(s02_p02) == 1
+                and s02_p02[0].get("status") == "PASS"
+                and len(s02_p03) == 1
+                and s02_p03[0].get("status") == "PASS"
+                and len(s02_p04) == 1
+                and s02_p04[0].get("status") == "PASS"
+                and successor_status == "PASS"
+                and successor.get("next") == "S02/STAGE_REVIEW_READY_NOT_STARTED"
+            )
+            successor_mode = "VERIFIED_S02_P04_SUCCESSOR_STAGE_REVIEW_NOT_STARTED"
+        elif s02_evidence == [
+            "EVD-S02-P01.json",
+            "EVD-S02-P01_rollback.json",
+            "EVD-S02-P02.json",
+            "EVD-S02-P02_rollback.json",
+            "EVD-S02-P03.json",
+            "EVD-S02-P03_rollback.json",
+            "EVD-S02-P04.json",
+            "EVD-S02-P04_rollback.json",
+            "EVD-S02-STAGE-REVIEW.json",
+            "EVD-S02-STAGE-REVIEW_rollback.json",
+        ]:
+            from .stage2_review import verify_existing_stage_review_evidence
+
+            successor = verify_existing_stage_review_evidence(
+                root,
+                verify_phase_prerequisites=False,
+            )
+            successor_status = successor.get("status", "FAIL")
+            successor_ok = (
+                len(s02) == 1
+                and s02[0].get("status") == "PASS"
+                and len(s02_p02) == 1
+                and s02_p02[0].get("status") == "PASS"
+                and len(s02_p03) == 1
+                and s02_p03[0].get("status") == "PASS"
+                and len(s02_p04) == 1
+                and s02_p04[0].get("status") == "PASS"
+                and len(s02_review) == 1
+                and s02_review[0].get("status") == "PASS"
+                and successor_status == "PASS"
+                and successor.get("next") == "S02/GITHUB_STAGE_UPLOAD_READY"
+            )
+            successor_mode = "VERIFIED_S02_WHOLE_STAGE_REVIEW_SUCCESSOR_UPLOAD_READY"
+        elif s02_evidence:
+            successor_status = "UNRECOGNIZED_S02_SUCCESSOR_SET"
+            successor_ok = False
+            successor_mode = "INVALID_S02_SUCCESSOR_SET"
+        progression_ok = delivery.get("status") == "PASS" and (prestart_ok or successor_ok)
+        progression_detail = {
+            "mode": "S02_NOT_STARTED" if prestart_ok else successor_mode,
+            "s02": s02[0].get("status") if len(s02) == 1 else "INVALID",
+            "evidence": s02_evidence,
+            "stage0_delivery": delivery.get("status"),
+            "successor_verification": successor_status,
+        }
     except Exception as exc:
         progression_ok = False
         progression_detail = "%s: %s" % (type(exc).__name__, exc)
@@ -715,7 +876,7 @@ def _check_security_budget_progression_and_readme(
 
     try:
         readme = (root / "README.md").read_text(encoding="utf-8")
-        readme_ok = (
+        pre_delivery_readme_ok = (
             "S01/P04" in readme
             and "S01 整体复审" in readme
             and "tests/S01/stage_review_test.py" in readme
@@ -723,6 +884,17 @@ def _check_security_budget_progression_and_readme(
             and "远端 CI 尚未验证" in readme
             and "S01/P04 尚未开始" not in readme
         )
+        successor_readme_ok = (
+            "S01 整体复审" in readme
+            and "Stage 1 已通过 GitHub PR #64" in readme
+            and "S02/P01" in readme
+            and "tests/S02/P01_test.py" in readme
+            and "STAGE-REVIEW-S01" in readme
+            and "本 Phase 仅本地开发" in readme
+            and "远端 CI 尚未验证" not in readme
+            and "S01/P04 尚未开始" not in readme
+        )
+        readme_ok = pre_delivery_readme_ok or successor_readme_ok
     except Exception as exc:
         readme_ok = False
         readme = "%s: %s" % (type(exc).__name__, exc)

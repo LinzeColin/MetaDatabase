@@ -1,0 +1,446 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S02-P01-02",
+  "requirement_id": "REQ-S02-P01",
+  "acceptance_contract_id": "AC-S02-P01",
+  "product_version": "0.0.0.1",
+  "fixed_at": "2026-07-20T00:00:00+10:00",
+  "fact_semantics": {
+    "verified_source_fact": "The cited official source supported the scoped statement on the retrieval date.",
+    "unknown_fail_closed": "The scoped official source set does not establish permission or capability; ABD must not enable or claim it.",
+    "official_document_is_runtime_proof": false,
+    "missing_permission_is_authorization": false,
+    "absence_from_scoped_sources_is_universal_prohibition": false,
+    "terms_prices_limits_and_registers_require_live_revalidation": true
+  },
+  "providers": [
+    {
+      "provider_id": "TAB",
+      "provider_role": "WAGERING_PROVIDER_AND_ACCOUNT_EVIDENCE_SOURCE",
+      "current_abd_capability": "NOT_CONNECTED_NOT_AUTHORIZED_BY_THIS_RESEARCH",
+      "facts": [
+        {
+          "fact_id": "PF-TAB-001",
+          "statement": "Where transactions occur, TAB provides monthly activity statements and emails an access link within seven days; statements are retained for up to seven years.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "ACCOUNT_EVIDENCE_PLANNING_ONLY",
+          "operational_decision": "ADOPT_AS_POTENTIAL_MONTHLY_RECONCILIATION_SOURCE_AFTER_OWNER_AUTHORIZATION",
+          "citations": [
+            {
+              "source_id": "SRC-TAB-001",
+              "url": "https://help.tab.com.au/manage-your-account/activity-statements-faqs",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-TAB-002",
+          "statement": "TAB documents a detailed-transaction CSV link from the activity-statement experience.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "ACCOUNT_EVIDENCE_PLANNING_ONLY",
+          "operational_decision": "TREAT_CSV_AS_POTENTIAL_RECONCILIATION_INPUT_NOT_REAL_TIME_ODDS_SOURCE",
+          "citations": [
+            {
+              "source_id": "SRC-TAB-002",
+              "url": "https://help.tab.com.au/manage-your-account/reading-your-activity-statements",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-TAB-003",
+          "statement": "TAB's Conditions of Use limit account use and wagering transactions to the account holder, describe the service as personal-use, prohibit screen scraping, and do not permit third-party credential access.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "SOURCE_AND_ACCOUNT_BOUNDARY",
+          "operational_decision": "PROHIBIT_SCREEN_SCRAPING_CREDENTIAL_SHARING_AND_THIRD_PARTY_ACCOUNT_CONTROL",
+          "citations": [
+            {
+              "source_id": "SRC-TAB-003",
+              "url": "https://help.tab.com.au/troubleshooting-support/conditions-of-use",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_PROVIDER_CONTRACT"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-TAB-004",
+          "statement": "TAB Web Services access is application-based and discretionary, personal and non-commercial, limited to specified access methods and temporary storage, and subject to third-party-access and excessive-request restrictions.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "READ_ONLY_DATA_SOURCE_AUTHORIZATION",
+          "operational_decision": "NOT_AUTHORIZED_UNLESS_SEPARATE_ACCESS_GRANT_METHOD_AND_USE_CONTRACT_ARE_VERIFIED",
+          "citations": [
+            {
+              "source_id": "SRC-TAB-004",
+              "url": "https://help.tab.com.au/troubleshooting-support/tab-web-services-terms-of-use",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_PROVIDER_CONTRACT"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-TAB-005",
+          "statement": "TAB Studio API access has stringent account-history criteria and remains at TAB's discretion; commercial or development uses can require additional approval.",
+          "fact_status": "VERIFIED_SOURCE_FACT_CURRENT_ABD_GRANT_UNKNOWN_FAIL_CLOSED",
+          "applicability": "READ_ONLY_DATA_SOURCE_AUTHORIZATION",
+          "operational_decision": "TAB_STUDIO_NOT_AVAILABLE_TO_ABD_UNTIL_AN_EXPLICIT_GRANT_AND_ZERO_COST_TERMS_ARE_EVIDENCED",
+          "citations": [
+            {
+              "source_id": "SRC-TAB-005",
+              "url": "https://help.tab.com.au/troubleshooting-support/applying-for-tab-studio-api-access",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-TAB-006",
+          "statement": "The ACMA licensed-provider register lists multiple jurisdiction-specific TAB entities; ABD must resolve and recheck the applicable licensed entity rather than treat TAB as one universal licence record.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "PROVIDER_ELIGIBILITY",
+          "operational_decision": "REQUIRE_CURRENT_REGISTER_MATCH_FOR_THE_OWNER_JURISDICTION_BEFORE_PROVIDER_USE",
+          "citations": [
+            {
+              "source_id": "SRC-ACMA-001",
+              "url": "https://www.acma.gov.au/check-if-gambling-operator-legal",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_REGULATOR_PRIMARY"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "provider_id": "SPORTSBET",
+      "provider_role": "WAGERING_PROVIDER_AND_ACCOUNT_EVIDENCE_SOURCE",
+      "current_abd_capability": "NOT_CONNECTED_AUTOMATION_PERMISSION_UNKNOWN_FAIL_CLOSED",
+      "facts": [
+        {
+          "fact_id": "PF-SPORTSBET-001",
+          "statement": "Sportsbet's terms identify Northern Territory licensing and customer eligibility and identity-verification conditions; the stated 24-hour electronic betting licence is not evidence of an ABD service-availability SLA.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "PROVIDER_ELIGIBILITY_AND_RUNTIME_CLAIM_BOUNDARY",
+          "operational_decision": "REQUIRE_CURRENT_ELIGIBILITY_KYC_AND_LICENSE_CHECKS_AND_NEVER_INFER_24X7_SERVICE_PROOF",
+          "citations": [
+            {
+              "source_id": "SRC-SPORTSBET-001",
+              "url": "https://helpcentre.sportsbet.com.au/hc/en-us/articles/13565496156559-Sportsbet-Rules-Terms-Conditions",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_PROVIDER_CONTRACT"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-SPORTSBET-002",
+          "statement": "Sportsbet documents mandatory monthly activity statements containing transaction and bet-history details including dates, times, odds, balances and win/loss information.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "ACCOUNT_EVIDENCE_PLANNING_ONLY",
+          "operational_decision": "ADOPT_AS_POTENTIAL_MONTHLY_RECONCILIATION_SOURCE_AFTER_OWNER_AUTHORIZATION",
+          "citations": [
+            {
+              "source_id": "SRC-SPORTSBET-002",
+              "url": "https://helpcentre.sportsbet.com.au/hc/en-us/articles/4690326285325-What-Is-An-Activity-Statement",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-SPORTSBET-003",
+          "statement": "The scoped Sportsbet terms and help sources examined for S02/P01 do not establish an official automation or API permission for ABD; this is not a claim that no such permission can exist.",
+          "fact_status": "UNKNOWN_FAIL_CLOSED",
+          "applicability": "SOURCE_AND_ACCOUNT_AUTHORIZATION",
+          "operational_decision": "NO_SCRAPING_AUTOMATION_OR_API_USE_WITHOUT_SEPARATE_OFFICIAL_PERMISSION_EVIDENCE",
+          "citations": [
+            {
+              "source_id": "SRC-SPORTSBET-001",
+              "url": "https://helpcentre.sportsbet.com.au/hc/en-us/articles/13565496156559-Sportsbet-Rules-Terms-Conditions",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_PROVIDER_CONTRACT"
+            },
+            {
+              "source_id": "SRC-SPORTSBET-002",
+              "url": "https://helpcentre.sportsbet.com.au/hc/en-us/articles/4690326285325-What-Is-An-Activity-Statement",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "provider_id": "GMAIL",
+      "provider_role": "OPTIONAL_OWNER_CONSENTED_ACCOUNT_EVIDENCE_INGESTION",
+      "current_abd_capability": "NOT_CONNECTED_CONSENT_NOT_REQUESTED_POLICY_READINESS_UNKNOWN",
+      "facts": [
+        {
+          "fact_id": "PF-GMAIL-001",
+          "statement": "Google classifies gmail.readonly and gmail.modify as restricted OAuth scopes; gmail.modify supports modification but does not grant immediate permanent deletion that bypasses Trash.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "OAUTH_SCOPE_AND_DELETION_BOUNDARY",
+          "operational_decision": "KEEP_EXACT_GMAIL_MODIFY_SCOPE_AND_FORBID_PERMANENT_DELETE",
+          "citations": [
+            {
+              "source_id": "SRC-GMAIL-001",
+              "url": "https://developers.google.com/workspace/gmail/api/auth/scopes",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_PROVIDER_CONTRACT"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-GMAIL-002",
+          "statement": "The official Gmail REST reference exposes message list/get, attachment get, trash and untrash methods that can support the bounded archive workflow.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "METHOD_ALLOWLIST_DESIGN",
+          "operational_decision": "ALLOW_ONLY_LIST_GET_ATTACHMENT_GET_TRASH_AND_UNTRASH_AFTER_CONSENT_AND_POLICY_GATES",
+          "citations": [
+            {
+              "source_id": "SRC-GMAIL-002",
+              "url": "https://developers.google.com/workspace/gmail/api/reference/rest",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-GMAIL-003",
+          "statement": "Google's user-data policy requires minimum relevant permissions, transparent data use and use of documented APIs.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "GOOGLE_USER_DATA_POLICY",
+          "operational_decision": "BLOCK_ENABLEMENT_UNTIL_DISCLOSURE_MINIMIZATION_RETENTION_AND_DOCUMENTED_API_CONTROLS_PASS",
+          "citations": [
+            {
+              "source_id": "SRC-GMAIL-003",
+              "url": "https://developers.google.com/terms/api-services-user-data-policy",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_PROVIDER_CONTRACT"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-GMAIL-004",
+          "statement": "A personal-use app with fewer than 100 users may fit an OAuth verification exception, but the exception does not waive Google API Services User Data Policy compliance.",
+          "fact_status": "VERIFIED_SOURCE_FACT_CURRENT_ABD_EXCEPTION_STATUS_UNKNOWN_FAIL_CLOSED",
+          "applicability": "OAUTH_VERIFICATION_PLANNING",
+          "operational_decision": "DO_NOT_ASSUME_EXEMPTION_VERIFY_CURRENT_GOOGLE_REQUIREMENTS_BEFORE_ENABLEMENT",
+          "citations": [
+            {
+              "source_id": "SRC-GMAIL-004",
+              "url": "https://support.google.com/cloud/answer/13464323?hl=en",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-GMAIL-005",
+          "statement": "Google documents additional verification and possible security-assessment obligations when restricted-scope data is stored or transmitted on servers; ABD's exact obligation is not established in this phase.",
+          "fact_status": "UNKNOWN_REQUIRES_GOOGLE_POLICY_CONFIRMATION_BEFORE_ENABLEMENT",
+          "applicability": "SERVER_SIDE_RESTRICTED_DATA_STORAGE",
+          "operational_decision": "GMAIL_MODULE_REMAINS_DISABLED_UNTIL_POLICY_AND_SECURITY_ASSESSMENT_STATUS_IS_RESOLVED_AT_ZERO_INCREMENTAL_CASH",
+          "citations": [
+            {
+              "source_id": "SRC-GMAIL-001",
+              "url": "https://developers.google.com/workspace/gmail/api/auth/scopes",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_PROVIDER_CONTRACT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "provider_id": "CLOUDFLARE",
+      "provider_role": "PLANNED_GLOBAL_EDGE_AND_REMOTE_ACCESS",
+      "current_abd_capability": "ACCOUNT_AND_DEPLOYMENT_NOT_INSPECTED_FREE_CAPACITY_UNVERIFIED",
+      "facts": [
+        {
+          "fact_id": "PF-CLOUDFLARE-001",
+          "statement": "Cloudflare documents a Workers Free plan allowance of 100,000 requests per day.",
+          "fact_status": "VERIFIED_SOURCE_FACT_CAPACITY_FIT_UNVERIFIED",
+          "applicability": "ZERO_INCREMENTAL_CASH_CAPACITY_PLANNING",
+          "operational_decision": "FREE_PLAN_ONLY_AND_BLOCK_ON_UNKNOWN_OR_EXCEEDED_CAPACITY",
+          "citations": [
+            {
+              "source_id": "SRC-CLOUDFLARE-001",
+              "url": "https://developers.cloudflare.com/workers/platform/pricing/",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-CLOUDFLARE-002",
+          "statement": "Cloudflare documents a minimum USD 5 monthly Workers Paid plan charge.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "ZERO_INCREMENTAL_CASH_EXCLUSION",
+          "operational_decision": "REJECT_PAID_PLAN_AND_AUTOMATIC_UPGRADE_UNDER_AUD_ZERO_INCREMENTAL_CASH_GATE",
+          "citations": [
+            {
+              "source_id": "SRC-CLOUDFLARE-001",
+              "url": "https://developers.cloudflare.com/workers/platform/pricing/",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-CLOUDFLARE-003",
+          "statement": "Cloudflare documents Pages Free-plan limits including 500 builds per month and 20,000 files per site.",
+          "fact_status": "VERIFIED_SOURCE_FACT_CAPACITY_FIT_UNVERIFIED",
+          "applicability": "ZERO_INCREMENTAL_CASH_CAPACITY_PLANNING",
+          "operational_decision": "FREE_PLAN_ONLY_AND_REQUIRE_MEASURED_HEADROOM_BEFORE_DEPLOYMENT",
+          "citations": [
+            {
+              "source_id": "SRC-CLOUDFLARE-002",
+              "url": "https://developers.cloudflare.com/pages/platform/limits/",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-CLOUDFLARE-004",
+          "statement": "Cloudflare's China Network requires an Enterprise plan, a separate China Network subscription, ICP-related prerequisites and content review/onboarding conditions.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "MAINLAND_CHINA_IN_COUNTRY_DELIVERY",
+          "operational_decision": "REJECT_CHINA_NETWORK_FROM_VERSION_0_0_0_1_AUD_ZERO_INCREMENTAL_CASH_SCOPE",
+          "citations": [
+            {
+              "source_id": "SRC-CLOUDFLARE-003",
+              "url": "https://developers.cloudflare.com/china-network/get-started/",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            },
+            {
+              "source_id": "SRC-CLOUDFLARE-004",
+              "url": "https://developers.cloudflare.com/china-network/",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-CLOUDFLARE-005",
+          "statement": "Cloudflare documents that Cloudflare Pages is not available in mainland China because the pages.dev certificate is not present there.",
+          "fact_status": "VERIFIED_SOURCE_FACT",
+          "applicability": "MAINLAND_CHINA_REACHABILITY_CLAIM",
+          "operational_decision": "DO_NOT_USE_PAGES_AS_EVIDENCE_OF_MAINLAND_CHINA_AVAILABILITY",
+          "citations": [
+            {
+              "source_id": "SRC-CLOUDFLARE-005",
+              "url": "https://developers.cloudflare.com/china-network/faq/",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-CLOUDFLARE-006",
+          "statement": "A Chinese-language interface on Cloudflare's ordinary global network does not establish mainland-China in-country acceleration, availability or guaranteed reach.",
+          "fact_status": "UNKNOWN_FAIL_CLOSED_FOR_MAINLAND_CHINA_SERVICE_CLAIM",
+          "applicability": "GLOBAL_CHINESE_UI_VERSUS_MAINLAND_CHINA_NETWORK",
+          "operational_decision": "ALLOW_ONLY_CHINESE_LANGUAGE_UI_DESIGN_AND_BLOCK_MAINLAND_CHINA_AVAILABILITY_CLAIMS",
+          "citations": [
+            {
+              "source_id": "SRC-CLOUDFLARE-003",
+              "url": "https://developers.cloudflare.com/china-network/get-started/",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            },
+            {
+              "source_id": "SRC-CLOUDFLARE-005",
+              "url": "https://developers.cloudflare.com/china-network/faq/",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "provider_id": "OVH",
+      "provider_role": "PLANNED_PRIMARY_RUNTIME",
+      "current_abd_capability": "EXISTING_VPS_OWNER_DECLARED_ACCOUNT_AND_RUNTIME_NOT_INSPECTED",
+      "facts": [
+        {
+          "fact_id": "PF-OVH-001",
+          "statement": "OVHcloud documents a 99.9 percent VPS SLA; this provider contract is not evidence that ABD has achieved continuous 7x24 runtime or its separate 0.995 availability SLO.",
+          "fact_status": "VERIFIED_SOURCE_FACT_RUNTIME_ACHIEVEMENT_UNVERIFIED",
+          "applicability": "AVAILABILITY_CLAIM_BOUNDARY",
+          "operational_decision": "REQUIRE_RUNTIME_PROBES_AND_SLO_EVIDENCE_BEFORE_ANY_7X24_CLAIM",
+          "citations": [
+            {
+              "source_id": "SRC-OVH-001",
+              "url": "https://docs.ovhcloud.com/en/guides/bare-metal-cloud/virtual-private-servers/vps-faq",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-OVH-002",
+          "statement": "The OVHcloud Australia public page advertised new VPS pricing from A$6.29 excluding GST per month on the retrieval date.",
+          "fact_status": "VERIFIED_TIME_VARYING_SOURCE_FACT",
+          "applicability": "ZERO_INCREMENTAL_CASH_EXCLUSION",
+          "operational_decision": "PROHIBIT_NEW_PURCHASE_UPGRADE_OR_PAID_ADD_ON_UNDER_AUD_ZERO_INCREMENTAL_CASH_GATE",
+          "citations": [
+            {
+              "source_id": "SRC-OVH-002",
+              "url": "https://www.ovhcloud.com/en-au/vps/vps-australia/",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        },
+        {
+          "fact_id": "PF-OVH-003",
+          "statement": "Public OVHcloud documentation and pricing do not verify the owner's declared existing Singapore VPS account, capacity, billing, health or ABD deployment state.",
+          "fact_status": "UNKNOWN_FAIL_CLOSED",
+          "applicability": "CURRENT_ABD_RUNTIME_CAPABILITY",
+          "operational_decision": "USE_ONLY_AFTER_SEPARATE_OWNER_AUTHORIZED_INSPECTION_AND_ZERO_INCREMENTAL_COST_CAPACITY_GATE",
+          "citations": [
+            {
+              "source_id": "SRC-OVH-001",
+              "url": "https://docs.ovhcloud.com/en/guides/bare-metal-cloud/virtual-private-servers/vps-faq",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            },
+            {
+              "source_id": "SRC-OVH-002",
+              "url": "https://www.ovhcloud.com/en-au/vps/vps-australia/",
+              "retrieved_on": "2026-07-20",
+              "source_level": "L1_OFFICIAL_PRODUCT_DOC"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "critical_safe_defaults": {
+    "TAB_STUDIO": "NOT_AUTHORIZED_BY_EVIDENCE",
+    "SPORTSBET_AUTOMATION": "NOT_AUTHORIZED_BY_EVIDENCE",
+    "GMAIL": "NOT_CONNECTED_POLICY_AND_CONSENT_GATES_REQUIRED",
+    "CLOUDFLARE_MAINLAND_CHINA": "NOT_IN_ZERO_CASH_SCOPE_NO_AVAILABILITY_CLAIM",
+    "OVH_7X24": "UNVERIFIED_REQUIRES_RUNTIME_EVIDENCE",
+    "ANY_PAID_PLAN_OR_NEW_PURCHASE": "PROHIBITED",
+    "REAL_ORDER_SUBMISSION": "CAPABILITY_ABSENT_PROHIBITED"
+  },
+  "s02_p01_execution_boundary": {
+    "provider_accounts_accessed": false,
+    "provider_permissions_obtained": false,
+    "provider_api_called": false,
+    "email_read_or_modified": false,
+    "cloud_deployment_performed": false,
+    "real_order_submitted": false,
+    "incremental_cash_spent_aud": "0.00",
+    "availability_verified": false,
+    "market_coverage_verified": false,
+    "return_or_roi_verified": false,
+    "s02_p02_started": false
+  },
+  "status": "PROVIDER_FACTS_FROZEN_CAPABILITIES_FAIL_CLOSED",
+  "next_on_acceptance_pass": "S02/P02_READY_NOT_STARTED"
+}

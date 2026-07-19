@@ -42,6 +42,7 @@ from .stage_review import (
     write_stage_review_evidence,
 )
 from .delivery import verify_stage0_delivery
+from .stage1_delivery import verify_stage1_delivery
 from .stage1_review import (
     build_evidence as build_stage1_review_evidence,
     evaluate_contract as evaluate_stage1_review_contract,
@@ -82,6 +83,48 @@ from .metrics_economics import (
     resolve_roi_default,
     write_phase_evidence as write_metrics_economics_phase_evidence,
 )
+from .official_platform_research import (
+    build_evidence as build_official_platform_research_evidence,
+    evaluate_contract as evaluate_official_platform_research_contract,
+    perform_rollback_drill as perform_official_platform_research_rollback_drill,
+    resolve_incremental_cost_gate as resolve_official_research_incremental_cost_gate,
+    resolve_source_freshness,
+    verify_existing_phase_evidence,
+    write_phase_evidence as write_official_platform_research_phase_evidence,
+)
+from .model_risk_research import (
+    build_evidence as build_model_risk_research_evidence,
+    evaluate_contract as evaluate_model_risk_research_contract,
+    perform_rollback_drill as perform_model_risk_research_rollback_drill,
+    resolve_claim_admission,
+    resolve_stability_contract,
+    verify_existing_phase_evidence as verify_model_risk_research_evidence,
+    write_phase_evidence as write_model_risk_research_phase_evidence,
+)
+from .open_source_reuse import (
+    build_evidence as build_open_source_reuse_evidence,
+    evaluate_contract as evaluate_open_source_reuse_contract,
+    perform_rollback_drill as perform_open_source_reuse_rollback_drill,
+    resolve_reuse_admission,
+    verify_existing_phase_evidence as verify_open_source_reuse_evidence,
+    write_phase_evidence as write_open_source_reuse_phase_evidence,
+)
+from .research_gap_audit import (
+    build_evidence as build_research_gap_audit_evidence,
+    evaluate_contract as evaluate_research_gap_audit_contract,
+    perform_rollback_drill as perform_research_gap_audit_rollback_drill,
+    resolve_gap_disposition,
+    verify_existing_phase_evidence as verify_research_gap_audit_evidence,
+    write_phase_evidence as write_research_gap_audit_phase_evidence,
+)
+from .stage2_review import (
+    build_evidence as build_stage2_review_evidence,
+    evaluate_contract as evaluate_stage2_review_contract,
+    perform_rollback_drill as perform_stage2_review_rollback_drill,
+    validate_candidate_preflight as validate_stage2_review_candidate,
+    verify_existing_stage_review_evidence as verify_stage2_review_evidence,
+    write_stage2_review_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -113,6 +156,7 @@ __all__ = [
     "perform_stage_review_rollback_drill",
     "write_stage_review_evidence",
     "verify_stage0_delivery",
+    "verify_stage1_delivery",
     "build_stage1_review_evidence",
     "evaluate_stage1_review_contract",
     "perform_stage1_review_rollback_drill",
@@ -143,4 +187,36 @@ __all__ = [
     "resolve_kill_default",
     "resolve_roi_default",
     "write_metrics_economics_phase_evidence",
+    "build_official_platform_research_evidence",
+    "evaluate_official_platform_research_contract",
+    "perform_official_platform_research_rollback_drill",
+    "resolve_official_research_incremental_cost_gate",
+    "resolve_source_freshness",
+    "verify_existing_phase_evidence",
+    "write_official_platform_research_phase_evidence",
+    "build_model_risk_research_evidence",
+    "evaluate_model_risk_research_contract",
+    "perform_model_risk_research_rollback_drill",
+    "resolve_claim_admission",
+    "resolve_stability_contract",
+    "verify_model_risk_research_evidence",
+    "write_model_risk_research_phase_evidence",
+    "build_open_source_reuse_evidence",
+    "evaluate_open_source_reuse_contract",
+    "perform_open_source_reuse_rollback_drill",
+    "resolve_reuse_admission",
+    "verify_open_source_reuse_evidence",
+    "write_open_source_reuse_phase_evidence",
+    "build_research_gap_audit_evidence",
+    "evaluate_research_gap_audit_contract",
+    "perform_research_gap_audit_rollback_drill",
+    "resolve_gap_disposition",
+    "verify_research_gap_audit_evidence",
+    "write_research_gap_audit_phase_evidence",
+    "build_stage2_review_evidence",
+    "evaluate_stage2_review_contract",
+    "perform_stage2_review_rollback_drill",
+    "validate_stage2_review_candidate",
+    "verify_stage2_review_evidence",
+    "write_stage2_review_evidence",
 ]
