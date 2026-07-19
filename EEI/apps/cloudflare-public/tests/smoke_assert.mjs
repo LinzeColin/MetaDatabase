@@ -193,6 +193,11 @@ assert.deepEqual(policyOverview.body.regulatory_filings.by_year[0], { year: 2016
 // the page rejects a 200 as policy_overview_http_200.
 assert.ok(Array.isArray(policyOverview.body.policy_relationships));
 assert.ok(Array.isArray(policyOverview.body.policy_models));
+// render-critical: the /policy page maps regulatory_filings.latest — a missing
+// latest[] crashed the page even though the validator (which only checks
+// by_year) passed. Guard the full render contract.
+assert.ok(Array.isArray(policyOverview.body.regulatory_filings.latest),
+  "policy regulatory_filings.latest[] required by the page render");
 
 // --- module audit: family + empire surfaces (control/ma/signals/structure) ---
 for (const fam of ["control", "ma", "signals"]) {
@@ -211,6 +216,10 @@ assert.equal(empire.status, 200, "empire route must exist (structure page)");
 assert.equal(typeof empire.body.focus, "object");
 assert.equal(typeof empire.body.structure, "object");
 assert.equal(empire.body.data_mode, "cloud_publication");
+// render-critical: the /structure page does Object.entries(focus.primary_identifiers)
+// and reads focus.fixture_notice — missing primary_identifiers crashed it.
+assert.equal(typeof empire.body.focus.primary_identifiers, "object",
+  "empire focus.primary_identifiers required by the page render");
 assert.equal(empire.body.focus.canonical_name, "NVIDIA Corporation");
 const badEmpire = await getJson(`/v1/entities/00000000-0000-4000-9000-00000000dead/empire`);
 assert.equal(badEmpire.status, 404, "empire fails closed for unknown entity");
