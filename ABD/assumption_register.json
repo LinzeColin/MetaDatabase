@@ -1,0 +1,226 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S01-P02-02",
+  "requirement_id": "REQ-S01-P02",
+  "acceptance_contract_id": "AC-S01-P02",
+  "product_version": "0.0.0.1",
+  "fixed_at": "2026-07-19T00:00:00+10:00",
+  "status": "WORKING_BACKWARDS_ASSUMPTIONS_NOT_PRODUCTION_PROOF",
+  "source_bindings": {
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+    "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+    "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+    "machine/facts/sources.json": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+    "machine/evidence/EVD-S01-P01.json": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e"
+  },
+  "required_question_ids": [
+    "FAQ-S01-P02-01",
+    "FAQ-S01-P02-02",
+    "FAQ-S01-P02-03",
+    "FAQ-S01-P02-04",
+    "FAQ-S01-P02-05",
+    "FAQ-S01-P02-06",
+    "FAQ-S01-P02-07"
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-S01-P02-01",
+      "question_id": "FAQ-S01-P02-01",
+      "topic": "MONTHLY_TARGET",
+      "statement": "A$300×1.3^n 是需要长期证伪和验证的产品目标，不是开发完成条件或收益事实。",
+      "current_status": "UNVERIFIED_FALSIFIABLE_TARGET",
+      "evidence_class": "FROZEN_CONTRACT_NOT_EMPIRICAL_PROOF",
+      "safe_default": "REPORT_SHORTFALL_NO_GATE_RELAXATION",
+      "evidence": [
+        {
+          "source_path": "machine/facts/canonical_facts.json",
+          "json_pointers": ["/product/target_curve", "/product/monthly_target_return"],
+          "supports": "目标定义"
+        },
+        {
+          "source_path": "machine/facts/parameters.json",
+          "json_pointers": ["/target_30pct/plausible_gate", "/target_30pct/falsification_gate", "/target_30pct/verification_gate", "/target_30pct/shortfall_behavior"],
+          "supports": "可能可行、证伪、验证及落后处理门"
+        }
+      ],
+      "disconfirming_evidence": "至少6个完整自然月、至少1000个独立等效信号，且月收益率95%上界仍低于30%。",
+      "proof_required": "至少12个完整自然月、现金流调整后的月度几何收益不低于30%、证据完整、未解决对账差异为0。",
+      "external_state_observed_in_phase": false
+    },
+    {
+      "id": "ASM-S01-P02-02",
+      "question_id": "FAQ-S01-P02-02",
+      "topic": "NO_RETURN_GUARANTEE",
+      "statement": "建议、回测、影子结果和目标曲线均不能替代有对账证据的真实收益。",
+      "current_status": "NO_GUARANTEE_RETURN_UNVERIFIED",
+      "evidence_class": "NEGATIVE_CAPABILITY_AND_EVIDENCE_CONTRACT",
+      "safe_default": "NO_RECOMMENDATION_AND_NO_RETURN_CLAIM",
+      "evidence": [
+        {
+          "source_path": "machine/facts/canonical_facts.json",
+          "json_pointers": ["/scope/product_role", "/scope/order_submission_module_present", "/truth_and_evidence/actual_return_requires_verified_execution_evidence"],
+          "supports": "只分析建议、无订单能力、真实收益需执行证据"
+        },
+        {
+          "source_path": "machine/facts/parameters.json",
+          "json_pointers": ["/target_30pct/guaranteed", "/risk/target_shortfall_may_relax_gate"],
+          "supports": "无保证且目标落后不得放宽门"
+        }
+      ],
+      "disconfirming_evidence": "任何保证收益、自动下单或无执行对账证据的真实回报声明。",
+      "proof_required": "建议、执行、现金流和对账账本完整且可重放；收益仍只能描述观察结果，不能保证未来。",
+      "external_state_observed_in_phase": false
+    },
+    {
+      "id": "ASM-S01-P02-03",
+      "question_id": "FAQ-S01-P02-03",
+      "topic": "ZERO_INCREMENTAL_CASH",
+      "statement": "A$0只指ABD 0.0.0.1新增现金支出；本金、既有资源、人工和机会成本不等于零。",
+      "current_status": "LOCAL_ZERO_INCREMENTAL_CASH_CONTRACT_EXTERNAL_BILLING_UNVERIFIED",
+      "evidence_class": "FROZEN_COST_CONTRACT",
+      "safe_default": "BLOCK_POSITIVE_OR_UNKNOWN_INCREMENTAL_COST",
+      "evidence": [
+        {
+          "source_path": "machine/facts/costs.json",
+          "json_pointers": ["/cost_semantics", "/incremental_cash_gate"],
+          "supports": "成本口径、A$0边界及阻断动作"
+        },
+        {
+          "source_path": "machine/facts/canonical_facts.json",
+          "json_pointers": ["/product/initial_bankroll_aud", "/product/incremental_cash_budget_aud"],
+          "supports": "本金与新增现金预算分离"
+        }
+      ],
+      "disconfirming_evidence": "任何正新增现金支出、自动购买、自动升级、自动超额计费或未知账单风险。",
+      "proof_required": "每项运行依赖当前账单/额度与来源合同证明新增现金成本精确为A$0。",
+      "external_state_observed_in_phase": false
+    },
+    {
+      "id": "ASM-S01-P02-04",
+      "question_id": "FAQ-S01-P02-04",
+      "topic": "ALL_OBSERVABLE_MARKETS",
+      "statement": "发现范围覆盖全部可观察市场不等于全部市场可获得建议。",
+      "current_status": "SCOPE_CONTRACT_ONLY_COVERAGE_UNVERIFIED",
+      "evidence_class": "DISCOVERY_AND_RECOMMENDATION_SCOPE_CONTRACT",
+      "safe_default": "VISIBLE_GAP_OR_NO_RECOMMENDATION_NEVER_SILENT_DROP",
+      "evidence": [
+        {
+          "source_path": "machine/facts/canonical_facts.json",
+          "json_pointers": ["/scope/discovery_scope", "/scope/recommendation_scope", "/truth_and_evidence/silent_coverage_gap_target"],
+          "supports": "发现与建议范围分离、静默缺口为0"
+        },
+        {
+          "source_path": "machine/facts/costs.json",
+          "json_pointers": ["/future_source_admission_policy/admission_requirements", "/future_source_admission_policy/coverage_gap_behavior"],
+          "supports": "来源准入与显式缺口动作"
+        }
+      ],
+      "disconfirming_evidence": "未登记的可观察市场、把不可观察市场算作已覆盖、或证据不足仍给建议。",
+      "proof_required": "市场本体、来源能力合同、覆盖清单、时效和建议门在生产等价环境持续通过。",
+      "external_state_observed_in_phase": false
+    },
+    {
+      "id": "ASM-S01-P02-05",
+      "question_id": "FAQ-S01-P02-05",
+      "topic": "MAIL_ARCHIVE",
+      "statement": "Gmail证据自动化只有在精确授权和全部保存/安全/读回门通过后才可移入垃圾箱，且从不永久删除。",
+      "current_status": "GMAIL_NOT_CONNECTED_NOT_IMPLEMENTED_NOT_READY",
+      "evidence_class": "LOCAL_CONTRACT_AND_DETERMINISTIC_FIXTURES_ONLY",
+      "safe_default": "DISABLE_GMAIL_KEEP_OR_QUARANTINE_MESSAGE_CONTINUE_SAFE_CORE",
+      "evidence": [
+        {
+          "source_path": "machine/facts/email_ingestion.json",
+          "json_pointers": ["/pipeline", "/trash_gate", "/acceptance_oracles"],
+          "supports": "保存、扫描、读回、垃圾箱和恢复合同"
+        },
+        {
+          "source_path": "machine/facts/decision_prerequisites.json",
+          "json_pointers": ["/current_phase_observation", "/gmail_missing_consent_impact"],
+          "supports": "当前未连接及可选模块降级"
+        }
+      ],
+      "disconfirming_evidence": "未保存全部原件/附件、哈希或读回失败仍移入垃圾箱，或出现永久删除能力。",
+      "proof_required": "精确scope、加密令牌、方法白名单、读自检及受控trash/untrash恢复测试全部通过。",
+      "external_state_observed_in_phase": false
+    },
+    {
+      "id": "ASM-S01-P02-06",
+      "question_id": "FAQ-S01-P02-06",
+      "topic": "FAILURE_AND_DEGRADED_OPERATION",
+      "statement": "故障时优先安全降级、回滚或不建议，不用旧数据、猜测或放宽门维持表面可用。",
+      "current_status": "FAILURE_CONTRACT_ONLY_RUNTIME_UNVERIFIED",
+      "evidence_class": "RELEASE_AND_DEGRADED_MODE_CONTRACT",
+      "safe_default": "AUTO_ROLLBACK_OR_NO_RECOMMENDATION",
+      "evidence": [
+        {
+          "source_path": "machine/facts/release_policy.json",
+          "json_pointers": ["/feature_flags", "/auto_rollback_on"],
+          "supports": "按能力隔离及自动回滚条件"
+        },
+        {
+          "source_path": "machine/facts/decision_prerequisites.json",
+          "json_pointers": ["/items/1/fallback", "/items/2/fallback"],
+          "supports": "OVH和Cloudflare未验证时的安全默认"
+        },
+        {
+          "source_path": "machine/facts/parameters.json",
+          "json_pointers": ["/numeric_determinism/unstable_action"],
+          "supports": "不稳定动作固定为不建议"
+        }
+      ],
+      "disconfirming_evidence": "故障后旧建议继续有效、无安全回退仍建议、或为了可用性放宽硬门。",
+      "proof_required": "故障注入、恢复、过期作废、双环境回滚和生产后探针在相应阶段通过。",
+      "external_state_observed_in_phase": false
+    },
+    {
+      "id": "ASM-S01-P02-07",
+      "question_id": "FAQ-S01-P02-07",
+      "topic": "PRIVACY_AND_SECRETS",
+      "statement": "持久验收证据不得含令牌、授权码、client secret、邮箱地址、账户ID或真实账户资料。",
+      "current_status": "NO_EXTERNAL_ACCOUNT_OR_SECRET_OBSERVED_IN_PHASE",
+      "evidence_class": "SECURITY_AND_RECEIPT_CONTRACT",
+      "safe_default": "DENY_DISABLE_ISOLATE_AND_PRESERVE_REDACTED_AUDIT",
+      "evidence": [
+        {
+          "source_path": "machine/facts/degraded_mode_contract.json",
+          "json_pointers": ["/scope_policy", "/method_policy", "/consent_receipt_contract"],
+          "supports": "精确scope、方法白名单和收据禁存字段"
+        },
+        {
+          "source_path": "machine/facts/security_assurance.json",
+          "json_pointers": ["/design_controls", "/build_controls"],
+          "supports": "不可信外部内容、最小权限、秘密与扫描控制"
+        },
+        {
+          "source_path": "machine/facts/costs.json",
+          "json_pointers": ["/future_source_admission_policy/admission_requirements/4"],
+          "supports": "持久证据禁止秘密或账户数据"
+        }
+      ],
+      "disconfirming_evidence": "秘密、个人标识、真实邮件内容或账户数据进入代码仓、测试夹具或验收收据。",
+      "proof_required": "令牌加密、最小权限、方法白名单、秘密扫描、访问审计和脱敏证据在启用前全部通过。",
+      "external_state_observed_in_phase": false
+    }
+  ],
+  "claim_boundaries": {
+    "production_deployment_claimed": false,
+    "all_market_coverage_claimed": false,
+    "external_account_access_claimed": false,
+    "gmail_connected_claimed": false,
+    "real_order_or_return_claimed": false,
+    "return_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "next_on_acceptance_pass": "S01/P03_READY_NOT_STARTED"
+}

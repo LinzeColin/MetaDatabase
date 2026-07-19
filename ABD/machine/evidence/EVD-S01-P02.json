@@ -1,0 +1,1346 @@
+{
+  "artifacts": {
+    "ART-S01-P02-01": "customer_faq.md",
+    "ART-S01-P02-02": "assumption_register.json"
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --verify-existing STAGE-REVIEW-S00",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S01/P02_test.py --junitxml=machine/evidence/S01/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S01/P02/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/P02/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S01-P02 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S01-P02",
+  "decision": "FAQ_AND_ASSUMPTIONS_FROZEN",
+  "decision_sha256": "90e20fa49f4a70780d58006a09fb97f22faa7bbcd6d304d9553c857af6415fe6",
+  "evidence_id": "EVD-S01-P02",
+  "explicit_unknowns": [
+    "The 30% monthly target remains unverified and is not guaranteed.",
+    "OVH, Cloudflare, Gmail, betting accounts, source freshness and all-market production coverage remain unverified.",
+    "No external account, secret, real email, order, deployment or actual return was observed in this phase."
+  ],
+  "external_effect_boundary": {
+    "all_market_coverage_claimed": false,
+    "external_account_or_api_accessed": false,
+    "github_upload_performed": false,
+    "gmail_connected_claimed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "production_deployment_claimed": false,
+    "real_order_capability_present": false,
+    "return_or_guarantee_claimed": false,
+    "secret_provisioned": false
+  },
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "hashes": {
+    "code": "e4d3e23cecd6f4c0554205ed4e8ea447f2f5cf0dabd08f462681e1dca565d207",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/customer_faq.py": "f831ae29da1b307ef2f089cc75e10081f39d557dd2cfccaab68b6aa664c32b33",
+      "abd_acceptance/delivery.py": "6aa3f99ceb55bb7d32e9c2d2764723f21791d9ba77be1722e2e2365a1fa670c3",
+      "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+      "customer_faq.md": "c004e375b0924564e1453885da5e7c286e15cc1924103524097fc4c58af22cb3",
+      "machine/evidence/EVD-S01-P01.json": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e",
+      "machine/evidence/EVD-S01-P01_rollback.json": "18e51cb3bc5a06274e70c624855d990362a4fbe5ed75fbaedf219b8def29db55",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+      "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+      "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+      "machine/facts/sources.json": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S01_P02.json": "f9f1183b9635c86c862e88f4f6fd26ac33dade5a10dd5c907cfc7a48fece9ccb",
+      "tests/S00/__init__.py": "92747c3175dab227e64bab76b0728e85016df09d9114fb5b0b16f68a6971c03f",
+      "tests/S01/P02_test.py": "b338deeb6029be4fce6fbeea004caa00f44b75f9900f4f3d56421756d3666e30",
+      "tests/S01/__init__.py": "2699f54f59bd6a4e1d3042e40a336c24a61dd71ece37e7e7c243532f6e309134",
+      "tests/__init__.py": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316"
+    },
+    "model": null,
+    "model_not_applicable_reason": "S01/P02 freezes customer questions and assumptions; no prediction model is implemented or evaluated in this phase.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "6608dd6bb06e11319d39b5c4757d68eccb7834717dd9a4139b2811c9b8f398df"
+  },
+  "next": "S01/P03_READY_NOT_STARTED",
+  "p01_prerequisite": {
+    "commit": "7c52659e2f6de6ebfff6d3079ba0a29cf542867e",
+    "evidence": "machine/evidence/EVD-S01-P01.json",
+    "sha256": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e",
+    "status": "PASS"
+  },
+  "phase_id": "P02",
+  "phase_status": "S01_P02_PASS",
+  "release_status": "NOT_READY",
+  "requirement_id": "REQ-S01-P02",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S01-P02_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S01",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": [
+          "customer_faq.md"
+        ],
+        "id": "S01P02-SINGLE-CUSTOMER_FAQ",
+        "passed": true
+      },
+      {
+        "detail": [
+          "assumption_register.json"
+        ],
+        "id": "S01P02-SINGLE-ASSUMPTION_REGISTER",
+        "passed": true
+      },
+      {
+        "detail": [
+          "machine/tests/fixtures/S01_P02.json"
+        ],
+        "id": "S01P02-SINGLE-S01_P02",
+        "passed": true
+      },
+      {
+        "detail": "S01_P02.json",
+        "id": "S01P02-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "assumption_register.json",
+        "id": "S01P02-REGISTER-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "roadmap.json",
+        "id": "S01P02-ROADMAP-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S01P02-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "acceptance_contracts.json",
+        "id": "S01P02-ACCEPTANCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "task_graph.json",
+        "id": "S01P02-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "traceability_matrix.json",
+        "id": "S01P02-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "acceptance_contracts.json",
+        "id": "S01P02-SOURCE-ACCEPTANCE_CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "authorization_matrix.json",
+        "id": "S01P02-SOURCE-AUTHORIZATION_MATRIX-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "canonical_facts.json",
+        "id": "S01P02-SOURCE-CANONICAL_FACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "costs.json",
+        "id": "S01P02-SOURCE-COSTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "decision_prerequisites.json",
+        "id": "S01P02-SOURCE-DECISION_PREREQUISITES-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "degraded_mode_contract.json",
+        "id": "S01P02-SOURCE-DEGRADED_MODE_CONTRACT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "email_ingestion.json",
+        "id": "S01P02-SOURCE-EMAIL_INGESTION-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "parameters.json",
+        "id": "S01P02-SOURCE-PARAMETERS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "release_policy.json",
+        "id": "S01P02-SOURCE-RELEASE_POLICY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S01P02-SOURCE-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "roadmap.json",
+        "id": "S01P02-SOURCE-ROADMAP-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "security_assurance.json",
+        "id": "S01P02-SOURCE-SECURITY_ASSURANCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "sources.json",
+        "id": "S01P02-SOURCE-SOURCES-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "task_graph.json",
+        "id": "S01P02-SOURCE-TASK_GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "traceability_matrix.json",
+        "id": "S01P02-SOURCE-TRACEABILITY_MATRIX-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "customer_faq.md",
+        "id": "S01P02-FAQ-UTF8",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S01P02-HASH-ACCEPTANCE_CONTRACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+          "expected": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe"
+        },
+        "id": "S01P02-HASH-AUTHORIZATION_MATRIX",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S01P02-HASH-CANONICAL_FACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S01P02-HASH-COSTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+          "expected": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc"
+        },
+        "id": "S01P02-HASH-DECISION_PREREQUISITES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+          "expected": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f"
+        },
+        "id": "S01P02-HASH-DEGRADED_MODE_CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+          "expected": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd"
+        },
+        "id": "S01P02-HASH-EMAIL_INGESTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S01P02-HASH-PARAMETERS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "expected": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b"
+        },
+        "id": "S01P02-HASH-RELEASE_POLICY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S01P02-HASH-REQUIREMENTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S01P02-HASH-ROADMAP",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+          "expected": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd"
+        },
+        "id": "S01P02-HASH-SECURITY_ASSURANCE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+          "expected": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8"
+        },
+        "id": "S01P02-HASH-SOURCES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S01P02-HASH-TASK_GRAPH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S01P02-HASH-TRACEABILITY_MATRIX",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e",
+          "expected": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e"
+        },
+        "id": "S01P02-HASH-EVD-S01-P01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c004e375b0924564e1453885da5e7c286e15cc1924103524097fc4c58af22cb3",
+          "expected": "c004e375b0924564e1453885da5e7c286e15cc1924103524097fc4c58af22cb3"
+        },
+        "id": "S01P02-HASH-CUSTOMER_FAQ",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+          "expected": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426"
+        },
+        "id": "S01P02-HASH-ASSUMPTION_REGISTER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f9f1183b9635c86c862e88f4f6fd26ac33dade5a10dd5c907cfc7a48fece9ccb",
+          "expected": "f9f1183b9635c86c862e88f4f6fd26ac33dade5a10dd5c907cfc7a48fece9ccb"
+        },
+        "id": "S01P02-HASH-S01_P02",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S01P02-HASH-ABD-STAGE0-VALIDATION",
+        "passed": true
+      },
+      {
+        "detail": [
+          "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
+          "ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "11f9893b081a58869d3b5fccaea48c9e9e46f990"
+        ],
+        "id": "S01P02-CONTINUOUS-CI",
+        "passed": true
+      },
+      {
+        "detail": "package markers",
+        "id": "S01P02-PYTEST-IMPORT-ISOLATION",
+        "passed": true
+      },
+      {
+        "detail": "all parsed",
+        "id": "S01P02-INPUTS-STRUCTURALLY-AVAILABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "hours": {
+            "high": 6,
+            "likely": 4,
+            "low": 3
+          },
+          "id": "P02",
+          "objective": "回答30%目标、无保证、零预算、全范围、邮件归档、故障和隐私问题。",
+          "outputs": [
+            "customer_faq.md",
+            "assumption_register.json"
+          ],
+          "pass_gate": "关键疑问均有明确默认与证据。",
+          "title": "客户常见问题"
+        },
+        "id": "S01P02-ROADMAP-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "baseline": "未实现或旧包存在冲突/缺口",
+          "id": "REQ-S01-P02",
+          "measurement": "由 AC-S01-P02 的机器验收判定器执行固定输入、阈值和证据检查。",
+          "non_goals": [
+            "不自动提交、确认或重试真实订单",
+            "不以降低证据或风险门追赶30%月目标",
+            "不引入付费数据或付费程序接口依赖"
+          ],
+          "observation_period": "开发期每次提交；上线后持续",
+          "owner_input_required_during_development": false,
+          "phase_id": "P02",
+          "primary_acceptance_criteria_id": "AC-S01-P02",
+          "priority": "P1",
+          "problem": "若未完成“客户常见问题”，从客户结果反推产品，冻结问题、用户、价值、非目标、指标、经济性和证伪合同。将缺少可执行、可验收或可恢复的基础。",
+          "scope": [
+            "customer_faq.md",
+            "assumption_register.json"
+          ],
+          "stage_id": "S01",
+          "target": "关键疑问均有明确默认与证据。",
+          "title": "客户常见问题",
+          "user": "单一账户持有人及自动开发/运维代理",
+          "value": "回答30%目标、无保证、零预算、全范围、邮件归档、故障和隐私问题。"
+        },
+        "id": "S01P02-REQUIREMENT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "environment": [
+            "Ubuntu Linux 持续集成环境",
+            "固定时钟",
+            "冻结测试夹具",
+            "无外部网络的确定性测试模式",
+            "生产等价配置Schema"
+          ],
+          "evidence_requirements": [
+            "machine/evidence/EVD-S01-P02.json",
+            "测试报告及命令退出码",
+            "输入、参数、代码、模型和输出SHA-256",
+            "失败路径截图或结构化日志",
+            "回滚演练记录"
+          ],
+          "id": "AC-S01-P02",
+          "inputs": [
+            "REQ-S01-P02 对应机器事实",
+            "S01/P02 冻结正向、边界、负向和故障输入",
+            "参数版本和来源版本哈希"
+          ],
+          "oracle": {
+            "command": "python -m abd_acceptance --contract AC-S01-P02 --evidence machine/evidence",
+            "rule": "关键疑问均有明确默认与证据。",
+            "type": "EXECUTABLE"
+          },
+          "pass_gate": "关键疑问均有明确默认与证据。",
+          "requirement_id": "REQ-S01-P02",
+          "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_condition": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "tests": [
+            {
+              "id": "TEST-S01-P02",
+              "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+            },
+            {
+              "id": "TEST-S01-P02-BOUNDARY",
+              "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+            },
+            {
+              "id": "TEST-S01-P02-REPLAY",
+              "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+            }
+          ],
+          "threshold": "关键疑问均有明确默认与证据。",
+          "title": "客户常见问题唯一主验收"
+        },
+        "id": "S01P02-ACCEPTANCE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S01-P02-01",
+          "T-S01-P02-02",
+          "T-S01-P02-03"
+        ],
+        "id": "S01P02-TASK-CHAIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_criteria_id": "AC-S01-P02",
+          "artifact_ids": [
+            "ART-S01-P02-01",
+            "ART-S01-P02-02"
+          ],
+          "evidence_id": "EVD-S01-P02",
+          "phase_id": "P02",
+          "requirement_id": "REQ-S01-P02",
+          "stage_id": "S01",
+          "task_ids": [
+            "T-S01-P02-01",
+            "T-S01-P02-02",
+            "T-S01-P02-03"
+          ],
+          "test_ids": [
+            "TEST-S01-P02",
+            "TEST-S01-P02-BOUNDARY",
+            "TEST-S01-P02-REPLAY"
+          ]
+        },
+        "id": "S01P02-TRACEABILITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "boundary": true,
+          "question_ids": [
+            "FAQ-S01-P02-01",
+            "FAQ-S01-P02-02",
+            "FAQ-S01-P02-03",
+            "FAQ-S01-P02-04",
+            "FAQ-S01-P02-05",
+            "FAQ-S01-P02-06",
+            "FAQ-S01-P02-07"
+          ]
+        },
+        "id": "S01P02-FAQ-STRUCTURE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "chinese_characters": 1718,
+          "total_characters": 4215
+        },
+        "id": "S01P02-FAQ-CUSTOMER-LANGUAGE",
+        "passed": true
+      },
+      {
+        "detail": "all present",
+        "id": "S01P02-FAQ-REQUIRED-CONCEPTS",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S01P02-FAQ-NO-FALSE-CURRENT-CLAIMS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "FAQ-S01-P02-01": [],
+          "FAQ-S01-P02-02": [],
+          "FAQ-S01-P02-03": [],
+          "FAQ-S01-P02-04": [],
+          "FAQ-S01-P02-05": [],
+          "FAQ-S01-P02-06": [],
+          "FAQ-S01-P02-07": []
+        },
+        "id": "S01P02-FAQ-DEFAULT-AND-EVIDENCE-PER-QUESTION",
+        "passed": true
+      },
+      {
+        "detail": "WORKING_BACKWARDS_ASSUMPTIONS_NOT_PRODUCTION_PROOF",
+        "id": "S01P02-REGISTER-TOP-LEVEL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "machine/evidence/EVD-S01-P01.json": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e",
+            "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+            "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+            "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+            "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+            "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+            "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+            "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+            "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+            "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+            "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+            "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+            "machine/facts/sources.json": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+            "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+            "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+          },
+          "declared": {
+            "machine/evidence/EVD-S01-P01.json": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e",
+            "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+            "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+            "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+            "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+            "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+            "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+            "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+            "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+            "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+            "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+            "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+            "machine/facts/sources.json": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+            "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+            "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+          }
+        },
+        "id": "S01P02-REGISTER-SOURCE-BINDINGS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "FAQ-S01-P02-01",
+          "FAQ-S01-P02-02",
+          "FAQ-S01-P02-03",
+          "FAQ-S01-P02-04",
+          "FAQ-S01-P02-05",
+          "FAQ-S01-P02-06",
+          "FAQ-S01-P02-07"
+        ],
+        "id": "S01P02-REGISTER-REQUIRED-QUESTIONS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ASM-S01-P02-01",
+          "ASM-S01-P02-02",
+          "ASM-S01-P02-03",
+          "ASM-S01-P02-04",
+          "ASM-S01-P02-05",
+          "ASM-S01-P02-06",
+          "ASM-S01-P02-07"
+        ],
+        "id": "S01P02-REGISTER-ONE-ROW-PER-QUESTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "FAQ-S01-P02-01": {
+            "paths": [
+              "machine/facts/canonical_facts.json",
+              "machine/facts/parameters.json"
+            ],
+            "pointer_failures": []
+          },
+          "FAQ-S01-P02-02": {
+            "paths": [
+              "machine/facts/canonical_facts.json",
+              "machine/facts/parameters.json"
+            ],
+            "pointer_failures": []
+          },
+          "FAQ-S01-P02-03": {
+            "paths": [
+              "machine/facts/costs.json",
+              "machine/facts/canonical_facts.json"
+            ],
+            "pointer_failures": []
+          },
+          "FAQ-S01-P02-04": {
+            "paths": [
+              "machine/facts/canonical_facts.json",
+              "machine/facts/costs.json"
+            ],
+            "pointer_failures": []
+          },
+          "FAQ-S01-P02-05": {
+            "paths": [
+              "machine/facts/email_ingestion.json",
+              "machine/facts/decision_prerequisites.json"
+            ],
+            "pointer_failures": []
+          },
+          "FAQ-S01-P02-06": {
+            "paths": [
+              "machine/facts/release_policy.json",
+              "machine/facts/decision_prerequisites.json",
+              "machine/facts/parameters.json"
+            ],
+            "pointer_failures": []
+          },
+          "FAQ-S01-P02-07": {
+            "paths": [
+              "machine/facts/degraded_mode_contract.json",
+              "machine/facts/security_assurance.json",
+              "machine/facts/costs.json"
+            ],
+            "pointer_failures": []
+          }
+        },
+        "id": "S01P02-REGISTER-EVIDENCE-POINTERS-RESOLVE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_status": "UNVERIFIED_FALSIFIABLE_TARGET",
+          "disconfirming_evidence": "至少6个完整自然月、至少1000个独立等效信号，且月收益率95%上界仍低于30%。",
+          "evidence": [
+            {
+              "json_pointers": [
+                "/product/target_curve",
+                "/product/monthly_target_return"
+              ],
+              "source_path": "machine/facts/canonical_facts.json",
+              "supports": "目标定义"
+            },
+            {
+              "json_pointers": [
+                "/target_30pct/plausible_gate",
+                "/target_30pct/falsification_gate",
+                "/target_30pct/verification_gate",
+                "/target_30pct/shortfall_behavior"
+              ],
+              "source_path": "machine/facts/parameters.json",
+              "supports": "可能可行、证伪、验证及落后处理门"
+            }
+          ],
+          "evidence_class": "FROZEN_CONTRACT_NOT_EMPIRICAL_PROOF",
+          "external_state_observed_in_phase": false,
+          "id": "ASM-S01-P02-01",
+          "proof_required": "至少12个完整自然月、现金流调整后的月度几何收益不低于30%、证据完整、未解决对账差异为0。",
+          "question_id": "FAQ-S01-P02-01",
+          "safe_default": "REPORT_SHORTFALL_NO_GATE_RELAXATION",
+          "statement": "A$300×1.3^n 是需要长期证伪和验证的产品目标，不是开发完成条件或收益事实。",
+          "topic": "MONTHLY_TARGET"
+        },
+        "id": "S01P02-REGISTER-TARGET-DEFAULT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_status": "NO_GUARANTEE_RETURN_UNVERIFIED",
+          "disconfirming_evidence": "任何保证收益、自动下单或无执行对账证据的真实回报声明。",
+          "evidence": [
+            {
+              "json_pointers": [
+                "/scope/product_role",
+                "/scope/order_submission_module_present",
+                "/truth_and_evidence/actual_return_requires_verified_execution_evidence"
+              ],
+              "source_path": "machine/facts/canonical_facts.json",
+              "supports": "只分析建议、无订单能力、真实收益需执行证据"
+            },
+            {
+              "json_pointers": [
+                "/target_30pct/guaranteed",
+                "/risk/target_shortfall_may_relax_gate"
+              ],
+              "source_path": "machine/facts/parameters.json",
+              "supports": "无保证且目标落后不得放宽门"
+            }
+          ],
+          "evidence_class": "NEGATIVE_CAPABILITY_AND_EVIDENCE_CONTRACT",
+          "external_state_observed_in_phase": false,
+          "id": "ASM-S01-P02-02",
+          "proof_required": "建议、执行、现金流和对账账本完整且可重放；收益仍只能描述观察结果，不能保证未来。",
+          "question_id": "FAQ-S01-P02-02",
+          "safe_default": "NO_RECOMMENDATION_AND_NO_RETURN_CLAIM",
+          "statement": "建议、回测、影子结果和目标曲线均不能替代有对账证据的真实收益。",
+          "topic": "NO_RETURN_GUARANTEE"
+        },
+        "id": "S01P02-REGISTER-NO-GUARANTEE-DEFAULT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_status": "LOCAL_ZERO_INCREMENTAL_CASH_CONTRACT_EXTERNAL_BILLING_UNVERIFIED",
+          "disconfirming_evidence": "任何正新增现金支出、自动购买、自动升级、自动超额计费或未知账单风险。",
+          "evidence": [
+            {
+              "json_pointers": [
+                "/cost_semantics",
+                "/incremental_cash_gate"
+              ],
+              "source_path": "machine/facts/costs.json",
+              "supports": "成本口径、A$0边界及阻断动作"
+            },
+            {
+              "json_pointers": [
+                "/product/initial_bankroll_aud",
+                "/product/incremental_cash_budget_aud"
+              ],
+              "source_path": "machine/facts/canonical_facts.json",
+              "supports": "本金与新增现金预算分离"
+            }
+          ],
+          "evidence_class": "FROZEN_COST_CONTRACT",
+          "external_state_observed_in_phase": false,
+          "id": "ASM-S01-P02-03",
+          "proof_required": "每项运行依赖当前账单/额度与来源合同证明新增现金成本精确为A$0。",
+          "question_id": "FAQ-S01-P02-03",
+          "safe_default": "BLOCK_POSITIVE_OR_UNKNOWN_INCREMENTAL_COST",
+          "statement": "A$0只指ABD 0.0.0.1新增现金支出；本金、既有资源、人工和机会成本不等于零。",
+          "topic": "ZERO_INCREMENTAL_CASH"
+        },
+        "id": "S01P02-REGISTER-ZERO-BUDGET-DEFAULT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_status": "SCOPE_CONTRACT_ONLY_COVERAGE_UNVERIFIED",
+          "disconfirming_evidence": "未登记的可观察市场、把不可观察市场算作已覆盖、或证据不足仍给建议。",
+          "evidence": [
+            {
+              "json_pointers": [
+                "/scope/discovery_scope",
+                "/scope/recommendation_scope",
+                "/truth_and_evidence/silent_coverage_gap_target"
+              ],
+              "source_path": "machine/facts/canonical_facts.json",
+              "supports": "发现与建议范围分离、静默缺口为0"
+            },
+            {
+              "json_pointers": [
+                "/future_source_admission_policy/admission_requirements",
+                "/future_source_admission_policy/coverage_gap_behavior"
+              ],
+              "source_path": "machine/facts/costs.json",
+              "supports": "来源准入与显式缺口动作"
+            }
+          ],
+          "evidence_class": "DISCOVERY_AND_RECOMMENDATION_SCOPE_CONTRACT",
+          "external_state_observed_in_phase": false,
+          "id": "ASM-S01-P02-04",
+          "proof_required": "市场本体、来源能力合同、覆盖清单、时效和建议门在生产等价环境持续通过。",
+          "question_id": "FAQ-S01-P02-04",
+          "safe_default": "VISIBLE_GAP_OR_NO_RECOMMENDATION_NEVER_SILENT_DROP",
+          "statement": "发现范围覆盖全部可观察市场不等于全部市场可获得建议。",
+          "topic": "ALL_OBSERVABLE_MARKETS"
+        },
+        "id": "S01P02-REGISTER-COVERAGE-DEFAULT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_status": "GMAIL_NOT_CONNECTED_NOT_IMPLEMENTED_NOT_READY",
+          "disconfirming_evidence": "未保存全部原件/附件、哈希或读回失败仍移入垃圾箱，或出现永久删除能力。",
+          "evidence": [
+            {
+              "json_pointers": [
+                "/pipeline",
+                "/trash_gate",
+                "/acceptance_oracles"
+              ],
+              "source_path": "machine/facts/email_ingestion.json",
+              "supports": "保存、扫描、读回、垃圾箱和恢复合同"
+            },
+            {
+              "json_pointers": [
+                "/current_phase_observation",
+                "/gmail_missing_consent_impact"
+              ],
+              "source_path": "machine/facts/decision_prerequisites.json",
+              "supports": "当前未连接及可选模块降级"
+            }
+          ],
+          "evidence_class": "LOCAL_CONTRACT_AND_DETERMINISTIC_FIXTURES_ONLY",
+          "external_state_observed_in_phase": false,
+          "id": "ASM-S01-P02-05",
+          "proof_required": "精确scope、加密令牌、方法白名单、读自检及受控trash/untrash恢复测试全部通过。",
+          "question_id": "FAQ-S01-P02-05",
+          "safe_default": "DISABLE_GMAIL_KEEP_OR_QUARANTINE_MESSAGE_CONTINUE_SAFE_CORE",
+          "statement": "Gmail证据自动化只有在精确授权和全部保存/安全/读回门通过后才可移入垃圾箱，且从不永久删除。",
+          "topic": "MAIL_ARCHIVE"
+        },
+        "id": "S01P02-REGISTER-MAIL-DEFAULT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_status": "FAILURE_CONTRACT_ONLY_RUNTIME_UNVERIFIED",
+          "disconfirming_evidence": "故障后旧建议继续有效、无安全回退仍建议、或为了可用性放宽硬门。",
+          "evidence": [
+            {
+              "json_pointers": [
+                "/feature_flags",
+                "/auto_rollback_on"
+              ],
+              "source_path": "machine/facts/release_policy.json",
+              "supports": "按能力隔离及自动回滚条件"
+            },
+            {
+              "json_pointers": [
+                "/items/1/fallback",
+                "/items/2/fallback"
+              ],
+              "source_path": "machine/facts/decision_prerequisites.json",
+              "supports": "OVH和Cloudflare未验证时的安全默认"
+            },
+            {
+              "json_pointers": [
+                "/numeric_determinism/unstable_action"
+              ],
+              "source_path": "machine/facts/parameters.json",
+              "supports": "不稳定动作固定为不建议"
+            }
+          ],
+          "evidence_class": "RELEASE_AND_DEGRADED_MODE_CONTRACT",
+          "external_state_observed_in_phase": false,
+          "id": "ASM-S01-P02-06",
+          "proof_required": "故障注入、恢复、过期作废、双环境回滚和生产后探针在相应阶段通过。",
+          "question_id": "FAQ-S01-P02-06",
+          "safe_default": "AUTO_ROLLBACK_OR_NO_RECOMMENDATION",
+          "statement": "故障时优先安全降级、回滚或不建议，不用旧数据、猜测或放宽门维持表面可用。",
+          "topic": "FAILURE_AND_DEGRADED_OPERATION"
+        },
+        "id": "S01P02-REGISTER-FAILURE-DEFAULT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_status": "NO_EXTERNAL_ACCOUNT_OR_SECRET_OBSERVED_IN_PHASE",
+          "disconfirming_evidence": "秘密、个人标识、真实邮件内容或账户数据进入代码仓、测试夹具或验收收据。",
+          "evidence": [
+            {
+              "json_pointers": [
+                "/scope_policy",
+                "/method_policy",
+                "/consent_receipt_contract"
+              ],
+              "source_path": "machine/facts/degraded_mode_contract.json",
+              "supports": "精确scope、方法白名单和收据禁存字段"
+            },
+            {
+              "json_pointers": [
+                "/design_controls",
+                "/build_controls"
+              ],
+              "source_path": "machine/facts/security_assurance.json",
+              "supports": "不可信外部内容、最小权限、秘密与扫描控制"
+            },
+            {
+              "json_pointers": [
+                "/future_source_admission_policy/admission_requirements/4"
+              ],
+              "source_path": "machine/facts/costs.json",
+              "supports": "持久证据禁止秘密或账户数据"
+            }
+          ],
+          "evidence_class": "SECURITY_AND_RECEIPT_CONTRACT",
+          "external_state_observed_in_phase": false,
+          "id": "ASM-S01-P02-07",
+          "proof_required": "令牌加密、最小权限、方法白名单、秘密扫描、访问审计和脱敏证据在启用前全部通过。",
+          "question_id": "FAQ-S01-P02-07",
+          "safe_default": "DENY_DISABLE_ISOLATE_AND_PRESERVE_REDACTED_AUDIT",
+          "statement": "持久验收证据不得含令牌、授权码、client secret、邮箱地址、账户ID或真实账户资料。",
+          "topic": "PRIVACY_AND_SECRETS"
+        },
+        "id": "S01P02-REGISTER-PRIVACY-DEFAULT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "all_market_coverage_claimed": false,
+          "external_account_access_claimed": false,
+          "gmail_connected_claimed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "production_deployment_claimed": false,
+          "real_order_or_return_claimed": false,
+          "return_guaranteed": false
+        },
+        "id": "S01P02-REGISTER-CLAIM-BOUNDARIES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "FAQ-S01-P02-01": true,
+          "FAQ-S01-P02-02": true,
+          "FAQ-S01-P02-03": true,
+          "FAQ-S01-P02-04": true,
+          "FAQ-S01-P02-05": true,
+          "FAQ-S01-P02-06": true,
+          "FAQ-S01-P02-07": true
+        },
+        "id": "S01P02-FAQ-REGISTER-CONSISTENCY",
+        "passed": true
+      },
+      {
+        "detail": "EVD-S01-P01.json",
+        "id": "S01P02-P01-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "EVD-S01-P01_rollback.json",
+        "id": "S01P02-P01-ROLLBACK-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision_integrity": true,
+          "evidence_sha256": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e",
+          "rollback_sha256": "18e51cb3bc5a06274e70c624855d990362a4fbe5ed75fbaedf219b8def29db55"
+        },
+        "id": "S01P02-P01-IMMUTABLE-RECEIPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "customer_outcomes.json": {
+            "actual": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+            "expected": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+            "signed": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d"
+          },
+          "customer_press_release.md": {
+            "actual": "8cd88a4d4cd0dc6fe4735f8c0400fdd05ccab001afdbe9a09aec57a683f950ab",
+            "expected": "8cd88a4d4cd0dc6fe4735f8c0400fdd05ccab001afdbe9a09aec57a683f950ab",
+            "signed": "8cd88a4d4cd0dc6fe4735f8c0400fdd05ccab001afdbe9a09aec57a683f950ab"
+          },
+          "machine/tests/fixtures/S01_P01.json": {
+            "actual": "824e848b8d259ea1d29f6a10a9df38d1f1fbefeb0ab1c774da94fa27af0c8a96",
+            "expected": "824e848b8d259ea1d29f6a10a9df38d1f1fbefeb0ab1c774da94fa27af0c8a96",
+            "signed": "824e848b8d259ea1d29f6a10a9df38d1f1fbefeb0ab1c774da94fa27af0c8a96"
+          }
+        },
+        "id": "S01P02-P01-SIGNED-ARTIFACTS",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_contract_id": "AC-S01-P01",
+            "actual_artifact": "machine/evidence/EVD-S01-P01.json",
+            "artifact_sha256": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e",
+            "expected_artifact": "machine/evidence/EVD-S01-P01.json",
+            "id": "INDEX-AC-S01-P01",
+            "kind": "ACCEPTANCE_EVIDENCE",
+            "next": "S01/P02_READY_NOT_STARTED",
+            "pass_gate": "新闻稿不依赖技术术语且结果可观察。",
+            "requirement_id": "REQ-S01-P01",
+            "status": "PASS",
+            "verified_at": "2026-07-19T00:00:00+10:00"
+          }
+        ],
+        "id": "S01P02-P01-EVIDENCE-INDEX",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 17,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 17
+        },
+        "id": "S01P02-STAGE0-DELIVERY-CHAIN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ancestor_exit": 0,
+          "resolved": "7c52659e2f6de6ebfff6d3079ba0a29cf542867e"
+        },
+        "id": "S01P02-P01-GIT-ANCESTRY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "falsification_gate": [
+            "至少6个完整自然月",
+            "至少1000个独立等效信号",
+            "月收益率的95%上界仍低于30%"
+          ],
+          "formula": "B_n = 300 * 1.3^n",
+          "guaranteed": false,
+          "monthly_log_growth": "0.26236426446749106",
+          "monthly_return": "0.30",
+          "plausible_gate": [
+            "保守月度对数增长中位数 >= ln(1.3)",
+            "月度对数增长第5百分位 > 0",
+            "按来源、平台限额、机会数量和相关性校正后的容量通过"
+          ],
+          "shadow_min_days": 90,
+          "shadow_min_independent_equivalent_signals": 1000,
+          "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+          "verification_gate": [
+            "至少12个完整自然月",
+            "按现金流调整后的月度几何收益 >= 30%",
+            "证据完整",
+            "未解决对账差异为0"
+          ]
+        },
+        "id": "S01P02-FACT-TARGET-NO-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "automatic_overage_billing_allowed": false,
+          "automatic_paid_upgrade_allowed": false,
+          "automatic_purchase_allowed": false,
+          "cash_commitments_created_in_s00_p03": [],
+          "comparison": "ACTUAL_INCREMENTAL_CASH_COST_MUST_EQUAL_ZERO",
+          "external_billing_accounts_inspected_in_s00_p03": false,
+          "maximum_aud": "0.00",
+          "negative_action": "FAIL_INVALID_COST_DATA",
+          "negative_boundary_aud": "-0.0001",
+          "positive_boundary_aud": "0.0001",
+          "positive_or_unknown_action": "BLOCK_AND_EMIT_INCREMENTAL_CASH_BUDGET_EXCEEDED"
+        },
+        "id": "S01P02-FACT-ZERO-BUDGET-SEMANTICS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "admission_requirements": [
+            "CURRENT_FIRST_PARTY_TERMS_VERIFIED",
+            "INCREMENTAL_CASH_COST_EXACTLY_0.00",
+            "SOURCE_CAPABILITY_CONTRACT_PASS",
+            "REPLACEABLE_OR_SAFE_DEGRADED_MODE",
+            "NO_SECRET_OR_ACCOUNT_DATA_IN_DURABLE_EVIDENCE"
+          ],
+          "coverage_gap_behavior": "DISCOVERED_BUT_NOT_RECOMMENDABLE_OR_UNOBSERVABLE_NOT_SILENTLY_DROPPED",
+          "free_endpoint_single_point_allowed": false,
+          "observable_market_coverage_goal_preserved": true,
+          "paid_odds_api_required": false,
+          "paid_source_action": "BLOCK_WITH_INCREMENTAL_CASH_BUDGET_EXCEEDED",
+          "unknown_cost_or_terms_action": "DO_NOT_ADMIT_SOURCE_MARK_COVERAGE_GAP"
+        },
+        "id": "S01P02-FACT-COVERAGE-AND-SAFE-DEFAULT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence_basis": "LOCAL_CONTRACT_AND_DETERMINISTIC_FIXTURES_ONLY",
+          "external_account_or_console_inspected": false,
+          "gmail_authorization_status": "NOT_REQUESTED",
+          "gmail_capability_status": "UNVERIFIED",
+          "gmail_external_api_call_performed": false,
+          "gmail_module_enabled": false,
+          "gmail_readiness_status": "NOT_READY",
+          "oauth_callback_received": false,
+          "oauth_link_generated": false,
+          "owner_consent_claimed": false,
+          "token_received_or_stored": false
+        },
+        "id": "S01P02-FACT-GMAIL-NOT-CONNECTED-SAFE-ARCHIVE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "健康探针失败",
+          "数值交叉实现不一致",
+          "新版本建议与冻结重放不一致",
+          "静默缺口增加",
+          "模型漂移越过停止线",
+          "安全严重/高危未处置",
+          "账本或证据完整性失败"
+        ],
+        "id": "S01P02-FACT-FAILURE-ROLLBACK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "forbidden_fields": [
+            "authorization_code",
+            "access_token",
+            "refresh_token",
+            "client_secret",
+            "token_value",
+            "email_address",
+            "account_id",
+            "authorization_url"
+          ],
+          "granted_scopes_rule": "EMPTY_UNLESS_OBSERVED_THEN_EXACT_GMAIL_MODIFY_ONLY",
+          "receipt_is_capability_proof_only_after_live_verification": true,
+          "required_fields": [
+            "schema_version",
+            "receipt_id",
+            "observed_at",
+            "authorization_status",
+            "granted_scopes",
+            "state_validated",
+            "pkce_validated",
+            "redirect_uri_validated",
+            "token_storage_status",
+            "oauth_app_status",
+            "secret_material_present",
+            "external_capability_verified",
+            "gmail_module_state"
+          ],
+          "secret_material_present_must_equal": false
+        },
+        "id": "S01P02-FACT-PRIVACY-AND-SECRETS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_result": "CONTRACT_PROVEN_GMAIL_REMAINS_DISABLED",
+          "email_moved_or_deleted": false,
+          "external_product_or_account_network_access": false,
+          "gmail_api_called": false,
+          "oauth_link_generated": false,
+          "owner_consent_requested": false,
+          "token_received_or_stored": false
+        },
+        "id": "S01P02-NO-EXTERNAL-EFFECTS-OR-ORDER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": [],
+          "outputs": [],
+          "p03_status": "PLANNED"
+        },
+        "id": "S01P02-P03-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 80,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 239
+        },
+        "id": "S01P02-TEST-TARGETED-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 360,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 525
+        },
+        "id": "S01P02-TEST-FULL-REGRESSION-PASS",
+        "passed": true
+      },
+      {
+        "detail": "validation_report.json",
+        "id": "S01P02-PACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S01P02-TASKPACK-49-GATES-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S00/P03/paid_dependency_scan.txt",
+        "id": "S01P02-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S01-P02",
+    "decision": "FAQ_AND_ASSUMPTIONS_FROZEN",
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-19T00:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+      "customer_faq.md": "c004e375b0924564e1453885da5e7c286e15cc1924103524097fc4c58af22cb3",
+      "machine/evidence/EVD-S00-STAGE-REVIEW.json": "48966ee6a98ad93224f11eb99890448cad6105840141dc4016520a932a857e0d",
+      "machine/evidence/EVD-S00-STAGE-REVIEW_rollback.json": "e418fe62d0084255a26b12b9e2f42bd49cbeb5e19e86879e61d6023c3f752ed8",
+      "machine/evidence/EVD-S01-P01.json": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e",
+      "machine/evidence/EVD-S01-P01_rollback.json": "18e51cb3bc5a06274e70c624855d990362a4fbe5ed75fbaedf219b8def29db55",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S00/STAGE_REVIEW/github_delivery_receipt.json": "cf6832b72b6f82dfe8d8e5f98aeb8df7c5f86cb75175e8997cb7a2f21c13109c",
+      "machine/evidence/S01/P02/full_regression.xml": "e25ad1bf75f4f0672c89a69041ae7705176a3e4f1fa9d0aa2f57f62b11bc594a",
+      "machine/evidence/S01/P02/pytest.xml": "278cc7b3e63a6c52767c77438d6f2627ea7283a099d4be4a1f75a540ed3cf31b",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+      "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+      "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+      "machine/facts/sources.json": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S01_P02.json": "f9f1183b9635c86c862e88f4f6fd26ac33dade5a10dd5c907cfc7a48fece9ccb"
+    },
+    "next": "S01/P03_READY_NOT_STARTED",
+    "phase_id": "P02",
+    "phase_status": "S01_P02_PASS",
+    "production_status": "NOT_DEPLOYED",
+    "release_status": "NOT_READY",
+    "requirement_id": "REQ-S01-P02",
+    "schema_version": "1.0.0",
+    "stage_id": "S01",
+    "status": "PASS",
+    "summary": {
+      "checks": 93,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 93
+    },
+    "version": "0.0.0.1"
+  }
+}

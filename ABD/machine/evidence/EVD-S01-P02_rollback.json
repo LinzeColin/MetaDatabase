@@ -1,0 +1,48 @@
+{
+  "artifacts": {
+    ".github/workflows/abd-stage0-validation.yml": {
+      "corrupted_sha256": "b63539f25f1ada442f9aa3ec5841bc3933bc55b6f2d4878960ceaf9a200c10e5",
+      "restored_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "signed_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "status": "PASS"
+    },
+    "assumption_register.json": {
+      "corrupted_sha256": "aea87bd6d8d4dc6ace478e00edc5404b3671080d927eb7e164f1521c3e1b7b15",
+      "restored_sha256": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+      "signed_sha256": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+      "status": "PASS"
+    },
+    "customer_faq.md": {
+      "corrupted_sha256": "4d69f1af875497e2a65008b959ee2f8007191bfa36dddaae1e75e8eeb7170ba6",
+      "restored_sha256": "c004e375b0924564e1453885da5e7c286e15cc1924103524097fc4c58af22cb3",
+      "signed_sha256": "c004e375b0924564e1453885da5e7c286e15cc1924103524097fc4c58af22cb3",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S01-P01.json": {
+      "corrupted_sha256": "6c4d2fdaa8eb4e6754e61733d0c530c87da0c380113e5bf85f0f02cb5fefef72",
+      "restored_sha256": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e",
+      "signed_sha256": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S01-P01_rollback.json": {
+      "corrupted_sha256": "07130de8f942a5e0abf04a194741c6d40c8a04e87a594f90bd371420b3e5bfa8",
+      "restored_sha256": "18e51cb3bc5a06274e70c624855d990362a4fbe5ed75fbaedf219b8def29db55",
+      "signed_sha256": "18e51cb3bc5a06274e70c624855d990362a4fbe5ed75fbaedf219b8def29db55",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S01_P02.json": {
+      "corrupted_sha256": "9f2d743393f0dcee0fdac481d80603396ffda11b9ddf28bbaf23a6d10375ab81",
+      "restored_sha256": "f9f1183b9635c86c862e88f4f6fd26ac33dade5a10dd5c907cfc7a48fece9ccb",
+      "signed_sha256": "f9f1183b9635c86c862e88f4f6fd26ac33dade5a10dd5c907cfc7a48fece9ccb",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S01-P02",
+  "evidence_id": "EVD-S01-P02-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_FAQ_CONTRACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

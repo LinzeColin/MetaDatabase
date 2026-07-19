@@ -49,6 +49,15 @@ from .customer_press_release import (
     resolve_card_decision,
     write_phase_evidence as write_customer_press_release_phase_evidence,
 )
+from .customer_faq import (
+    build_evidence as build_customer_faq_evidence,
+    evaluate_contract as evaluate_customer_faq_contract,
+    perform_rollback_drill as perform_customer_faq_rollback_drill,
+    resolve_mail_default,
+    resolve_recommendation_default,
+    resolve_zero_budget_default,
+    write_phase_evidence as write_customer_faq_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -85,4 +94,11 @@ __all__ = [
     "perform_customer_press_release_rollback_drill",
     "resolve_card_decision",
     "write_customer_press_release_phase_evidence",
+    "build_customer_faq_evidence",
+    "evaluate_customer_faq_contract",
+    "perform_customer_faq_rollback_drill",
+    "resolve_mail_default",
+    "resolve_recommendation_default",
+    "resolve_zero_budget_default",
+    "write_customer_faq_phase_evidence",
 ]

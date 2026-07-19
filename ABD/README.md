@@ -9,23 +9,24 @@
 - Stage 0 已完成 4/4 个 Phase；本地整体复审的 45/45 门、定向测试 54/54、全回归 206/206 与任务包校验 49/49 均为 `PASS`；
 - Stage 0 已通过 GitHub PR #58 合并到 `main`；两条 main CI 成功记录已固化为不可变交付收据，并由离线 Git 历史再次验证；
 - `S01/P01` 已完成客户新闻稿与客户结果合同，独立 Oracle 67/67、定向测试 80/80、全回归 286/286 与任务包校验 49/49 均为 `PASS`；证据下一状态严格为 `S01/P02_READY_NOT_STARTED`；
-- `S01/P01` 只冻结目标客户体验，不证明产品已实现或上线；本 Phase 不上传 GitHub，`S01/P02` 尚未开始；
-- P02 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
-- P03 只证明当前声明依赖的 ABD 新增现金成本为 A$0、付费接口不在关键路径；既有 OVH/账户总成本、外部能力与免费额度余量仍未知；
-- P04 冻结 Gmail 可选 consent、精确 scope、方法白名单和降级状态机；本 phase 未生成 OAuth 链接、未访问账户、未取得或保存 token、未调用 Gmail API，Gmail 仍为 `NOT_CONNECTED / UNVERIFIED / NOT_READY`；
+- `S01/P02` 已完成客户 FAQ 与假设登记册，独立 Oracle 93/93、定向测试 239/239、全回归 525/525 与任务包校验 49/49 均为 `PASS`；证据下一状态严格为 `S01/P03_READY_NOT_STARTED`；
+- `S01/P01` 只冻结目标客户体验，`S01/P02` 只冻结关键疑问、证据状态和安全默认，均不证明产品已实现或上线；两个中间 Phase 均未上传 GitHub，`S01/P03` 尚未开始；
+- `S00/P02` 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
+- `S00/P03` 只证明当前声明依赖的 ABD 新增现金成本为 A$0、付费接口不在关键路径；既有 OVH/账户总成本、外部能力与免费额度余量仍未知；
+- `S00/P04` 冻结 Gmail 可选 consent、精确 scope、方法白名单和降级状态机；本 phase 未生成 OAuth 链接、未访问账户、未取得或保存 token、未调用 Gmail API，Gmail 仍为 `NOT_CONNECTED / UNVERIFIED / NOT_READY`；
 - 当前禁止真实下单，30% 月度滚动复利只是待证伪和长期验证的目标，不是收益保证。
 
-当前 `S01/P01` 的定向与全回归验证命令：
+当前 `S01/P02` 的定向与全回归验证命令：
 
 ```bash
 uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
 uv run --frozen --python 3.12 python machine/tools/validate_pack.py
 uv run --frozen --python 3.12 python -m abd_acceptance --verify-existing STAGE-REVIEW-S00
-uv run --frozen --python 3.12 python -m pytest -q tests/S01/P01_test.py --junitxml=machine/evidence/S01/P01/pytest.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/P01/pytest.xml
-uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S01/P01/full_regression.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/P01/full_regression.xml
-uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S01-P01 --evidence machine/evidence
+uv run --frozen --python 3.12 python -m pytest -q tests/S01/P02_test.py --junitxml=machine/evidence/S01/P02/pytest.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/P02/pytest.xml
+uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S01/P02/full_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/P02/full_regression.xml
+uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S01-P02 --evidence machine/evidence
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 

@@ -29,6 +29,8 @@ EVIDENCE_PATH = Path("machine/evidence/EVD-S01-P01.json")
 ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S01-P01_rollback.json")
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 CONTINUOUS_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
+P01_EVIDENCE_PATH = Path("machine/evidence/EVD-S01-P01.json")
+P01_EVIDENCE_SHA256 = "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e"
 
 PINNED_SOURCE_HASHES = {
     "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
@@ -530,20 +532,37 @@ def _check_budget_authority_and_next_phase(
             for line in (root / EVIDENCE_INDEX_PATH).read_text(encoding="utf-8-sig").splitlines()
             if line
         ]
+        p01 = [row for row in rows if row.get("id") == "INDEX-AC-S01-P01"]
         p02 = [row for row in rows if row.get("id") == "INDEX-AC-S01-P02"]
-        evidence = sorted((root / "machine/evidence").glob("EVD-S01-P0[2-4].json"))
+        evidence = sorted((root / "machine/evidence").glob("EVD-S01-P0[2-4]*.json"))
         future_outputs = [root / "customer_faq.md", root / "assumption_register.json"]
-        progression_ok = (
-            len(p02) == 1
-            and p02[0].get("status") == "PLANNED"
-            and not evidence
-            and not any(path.exists() for path in future_outputs)
-        )
-        detail = {"p02_status": p02[0].get("status") if len(p02) == 1 else "INVALID", "evidence": [p.name for p in evidence]}
+        successor_started = bool(evidence) or any(path.exists() for path in future_outputs)
+        if successor_started:
+            receipt = strict_json_load(root / P01_EVIDENCE_PATH)
+            progression_ok = (
+                len(p01) == 1
+                and p01[0].get("status") == "PASS"
+                and p01[0].get("artifact_sha256") == P01_EVIDENCE_SHA256
+                and p01[0].get("actual_artifact") == P01_EVIDENCE_PATH.as_posix()
+                and len(p02) == 1
+                and p02[0].get("status") in {"PLANNED", "PASS"}
+                and sha256_file(root / P01_EVIDENCE_PATH) == P01_EVIDENCE_SHA256
+                and receipt.get("status") == "PASS"
+                and receipt.get("phase_status") == "S01_P01_PASS"
+                and receipt.get("next") == "S01/P02_READY_NOT_STARTED"
+            )
+        else:
+            progression_ok = len(p02) == 1 and p02[0].get("status") == "PLANNED"
+        detail = {
+            "successor_started": successor_started,
+            "p01_status": p01[0].get("status") if len(p01) == 1 else "INVALID",
+            "p02_status": p02[0].get("status") if len(p02) == 1 else "INVALID",
+            "evidence": [p.name for p in evidence],
+        }
     except Exception as exc:
         progression_ok = False
         detail = "%s: %s" % (type(exc).__name__, exc)
-    _add(checks, "S01P01-P02-NOT-STARTED", progression_ok, detail)
+    _add(checks, "S01P01-SUCCESSOR-PROGRESSION-GATED", progression_ok, detail)
 
 
 def _junit_summary(path: Path) -> Dict[str, int]:

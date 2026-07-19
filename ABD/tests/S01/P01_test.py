@@ -357,13 +357,14 @@ def test_budget_order_and_external_effect_boundaries_remain_closed(tmp_path: Pat
 
 
 @pytest.mark.parametrize("mutation", ["p02_evidence", "p02_output"])
-def test_p02_cannot_start_in_this_run(tmp_path: Path, mutation: str) -> None:
+def test_p02_requires_immutable_p01_pass_receipt(tmp_path: Path, mutation: str) -> None:
     project = _clone_project(tmp_path)
+    (project / "machine/evidence/EVD-S01-P01.json").unlink()
     if mutation == "p02_evidence":
         (project / "machine/evidence/EVD-S01-P02.json").write_text("{}\n", encoding="utf-8")
     else:
         (project / "customer_faq.md").write_text("premature\n", encoding="utf-8")
-    _failed(evaluate_contract(project), "S01P01-P02-NOT-STARTED")
+    _failed(evaluate_contract(project), "S01P01-SUCCESSOR-PROGRESSION-GATED")
 
 
 @pytest.mark.parametrize("target", ["outcomes", "receipt"])

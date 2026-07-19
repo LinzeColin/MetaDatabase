@@ -10,6 +10,7 @@ from .canonical_facts import write_phase_evidence as write_canonical_phase_evide
 from .external_consent import write_phase_evidence as write_external_consent_phase_evidence
 from .stage_review import write_stage_review_evidence
 from .customer_press_release import write_phase_evidence as write_customer_press_release_phase_evidence
+from .customer_faq import write_phase_evidence as write_customer_faq_phase_evidence
 from .delivery import cli_verify_stage0_delivery
 
 
@@ -57,6 +58,7 @@ def main() -> int:
         "AC-S00-P04": write_external_consent_phase_evidence,
         "STAGE-REVIEW-S00": write_stage_review_evidence,
         "AC-S01-P01": write_customer_press_release_phase_evidence,
+        "AC-S01-P02": write_customer_faq_phase_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)
