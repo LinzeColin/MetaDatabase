@@ -15,6 +15,7 @@ def build_app():
     app = build_control_app(
         kill_switch=KillSwitch(os.environ.get("ALPHA_KILL_SWITCH_PATH", "runtime/KILL_SWITCH")),
         heartbeats=HeartbeatStore(factory),
+        session_factory=factory,
     )
     assert_no_trading_routes(app)  # 启动自检:出现交易端点直接拒绝启动
     return app

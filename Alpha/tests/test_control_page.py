@@ -66,3 +66,24 @@ def test_never_able_to_trade(tmp_path):
     assert_no_trading_routes(client.app)
     for path in ("/order", "/orders", "/place", "/trade", "/buy", "/sell", "/submit", "/cancel"):
         assert client.post(path, headers=auth()).status_code in (404, 405)
+
+
+def test_dashboard_readonly_html(tmp_path):
+    """仪表盘:无令牌 401;?token= 可看;含关键区块;绝无动作按钮。"""
+    factory = create_session_factory(init_engine(f"sqlite:///{tmp_path / 'dash.sqlite'}"))
+    hb = HeartbeatStore(factory)
+    hb.beat("trading-worker", status="RUNNING", detail="{'mode': 'PAPER'}")
+    ks = KillSwitch(tmp_path / "KS2")
+    app = build_control_app(kill_switch=ks, heartbeats=hb,
+                            token_reader=lambda: TOKEN,
+                            ack_path=tmp_path / "ACK2.json",
+                            session_factory=factory)
+    client = TestClient(app)
+    assert client.get("/").status_code == 401
+    assert client.get("/?token=wrong").status_code == 401
+    page = client.get(f"/?token={TOKEN}")
+    assert page.status_code == 200
+    body = page.text
+    assert "净持仓" in body and "订单" in body and "trading-worker" in body
+    assert "空仓" in body            # 无成交时如实显示空仓
+    assert "<form" not in body       # 只读:无任何表单/按钮
