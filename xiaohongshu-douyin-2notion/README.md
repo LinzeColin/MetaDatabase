@@ -2,7 +2,7 @@
 
 把用户明确选择的小红书和抖音点赞、收藏及当前内容，治理为可恢复、可分类、带 ASR/OCR/关键帧证据的 Markdown 与 Notion 知识资产。
 
-当前状态：`v0.0.0.1 / Stage 0 / Phase 0.1` 治理基线。本阶段不包含采集、账号访问、浏览器控制、模型调用、Notion 写入或媒体处理。
+当前状态：`v0.0.0.1 / Stage 0 / Phase 0.2` 上游、License 与 Evidence 基线。本阶段不包含采集、账号访问、浏览器控制、模型调用、Notion 写入或媒体处理；所有上游候选均默认关闭且未进入 runtime。
 
 ## 固定边界
 
@@ -25,3 +25,12 @@ python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
 Owner 本机还须显式传入私有根目录执行本地边界验证；命令和真实路径仅保存在本地 Run 记录，不写入仓库。
+
+## Phase 0.2 验证
+
+```bash
+python3 -B scripts/verify_phase_0_2.py --verify-worktree --verify-temp-cleanup --require-evidence
+python3 -B -m unittest discover -s tests -p 'test_*.py'
+```
+
+私有上游快照只在 Run 内用于复核 Git 对象与哈希，验收后必须清理；公开证据不包含真实本地路径、凭据或上游源码。

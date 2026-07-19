@@ -31,6 +31,7 @@ X2N_DATA_ROOT/
 
 - Root 与目录：Owner-only（POSIX `0700`）；marker：`0600`。
 - Root 禁止 Spotlight 索引。
+- macOS 可能在私有根生成根级 `.DS_Store`；仅允许普通文件、Owner-only `0600`、不超过 64 KiB，且它不属于产品数据或证据。
 - `downloads/`、`runtime/temp_media/`、`runtime/browser_profiles/`、`runtime/provider_cache/`、`runtime/logs/`、`runtime/diagnostics/` 排除 Time Machine。
 - `runtime/canonical/`、`runtime/library/` 与 `runtime/backups/` 不自动排除；后续 Stage 必须验证可恢复备份，不能用同盘副本冒充灾备。
 

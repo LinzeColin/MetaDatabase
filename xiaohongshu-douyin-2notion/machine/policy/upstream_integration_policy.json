@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "POLICY.X2N.UPSTREAM.001",
+  "default": "deny",
+  "actual_runtime_dependencies": [],
+  "source_copy": {
+    "xiaohongshu-exporter": "forbidden",
+    "douyin-downloader": "forbidden_until_separate_adapter_run_and_distribution_gate",
+    "MediaCrawler": "forbidden"
+  },
+  "integration_modes": {
+    "xiaohongshu-exporter": "clean_room_reference_only",
+    "douyin-downloader": "future_disabled_wrapper_only",
+    "MediaCrawler": "external_noncommercial_research_only"
+  },
+  "future_douyin_wrapper_requirements": [
+    "exact_commit_and_exact_integration_lock",
+    "transitive_license_scan_and_sbom",
+    "version_mismatch_blocks",
+    "unknown_schema_blocks",
+    "synthetic_normal_missing_unknown_error_timeout_schema_drift_fixtures",
+    "all_output_paths_under_X2N_DATA_ROOT",
+    "upstream_database_json_manifest_and_cookie_persistence_disabled",
+    "cdn_urls_credentials_raw_media_and_upstream_paths_removed_before_canonical"
+  ],
+  "global_constraints": [
+    "no_automatic_scrolling",
+    "no_account_state_change",
+    "no_platform_cdn_url_persistence",
+    "no_credential_persistence",
+    "no_raw_media_in_repository_or_canonical",
+    "no_upstream_storage_as_truth_source",
+    "no_submodule_or_vendored_governance",
+    "feature_flags_default_off"
+  ],
+  "upgrade_plan": "docs/governance/UPGRADE_SHADOW_PLAN.md"
+}

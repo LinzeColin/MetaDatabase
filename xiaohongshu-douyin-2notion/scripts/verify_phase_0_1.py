@@ -455,13 +455,25 @@ def validate_local_root(root: Path) -> Check:
         _require(not directory.is_symlink(), f"symlinked directory forbidden: {directory.name}")
         _require(stat.S_IMODE(directory.stat().st_mode) == 0o700, f"all private directories must be 0700: {directory.name}")
 
-    allowed_top_level = {"downloads", "runtime", contract["private_marker"], ".metadata_never_index"}
+    allowed_system_files = set(contract.get("allowed_system_files", []))
+    allowed_top_level = {"downloads", "runtime", contract["private_marker"], *allowed_system_files}
     unexpected = sorted(path.name for path in root.iterdir() if path.name not in allowed_top_level)
     _require(not unexpected, f"unexpected private-root entries: {unexpected}")
 
-    allowed_files = {contract["private_marker"], ".metadata_never_index"}
+    allowed_files = {contract["private_marker"], *allowed_system_files}
     unexpected_files = [path.relative_to(root).as_posix() for path in root.rglob("*") if path.is_file() and path.name not in allowed_files]
     _require(not unexpected_files, f"private root is not empty pre Stage 00: {unexpected_files}")
+    system_mode = int(contract.get("system_file_mode", "0600"), 8)
+    system_max_bytes = int(contract.get("system_file_max_bytes", 65536))
+    present_system_files = []
+    for filename in allowed_system_files:
+        system_file = root / filename
+        if not system_file.exists():
+            continue
+        _require(system_file.is_file() and not system_file.is_symlink(), f"invalid system file: {filename}")
+        _require(stat.S_IMODE(system_file.stat().st_mode) == system_mode, f"system file must be owner-only: {filename}")
+        _require(system_file.stat().st_size <= system_max_bytes, f"system file exceeds size cap: {filename}")
+        present_system_files.append(filename)
 
     excluded = contract["time_machine_excluded"]
     for relative in excluded:
@@ -482,6 +494,7 @@ def validate_local_root(root: Path) -> Check:
             "required_directories": len(contract["required_directories"]),
             "time_machine_exclusions": len(excluded),
             "directories_checked": len(all_directories),
+            "system_metadata_files": len(present_system_files),
             "real_data_files": 0,
         },
     )
@@ -497,7 +510,10 @@ def validate_worktree_scope() -> Check:
     repo_root = Path(_run_git(["rev-parse", "--show-toplevel"], PROJECT_ROOT)).resolve()
     _require(PROJECT_ROOT.parent == repo_root, "project is not a direct MetaDatabase child")
     branch = _run_git(["branch", "--show-current"], repo_root)
-    _require(branch == "codex/xiaohongshu-douyin-2notion-v0001-s00-p01", "wrong worktree branch")
+    _require(
+        re.fullmatch(r"codex/xiaohongshu-douyin-2notion-v0001-s00-p(?:01|02|05)", branch) is not None,
+        "wrong Stage 0 worktree branch",
+    )
     remote = _run_git(["remote", "get-url", "origin"], repo_root)
     _require("LinzeColin/MetaDatabase" in remote, "wrong Git remote")
 

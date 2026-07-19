@@ -2,13 +2,14 @@
   "schema_version": "1.0",
   "project": "x2n",
   "stage": "STG.X2N.0",
-  "phase": "PH.X2N.0.1",
-  "run_id": "RUN-X2N-S00-P01",
+  "phase": "PH.X2N.0.2",
+  "run_id": "RUN-X2N-S00-P02",
   "state": "phase_pass",
   "tasks": {
     "TSK.x2n.discovery.001": "pass",
     "TSK.x2n.discovery.002": "pass",
-    "TSK.x2n.discovery.003": "pass"
+    "TSK.x2n.discovery.003": "pass",
+    "TSK.x2n.discovery.004": "pass"
   },
   "downstream_acceptances": {
     "ACC.x2n.gov.001": "pass",
@@ -16,7 +17,11 @@
     "ACC.x2n.media.001": "downstream_not_run",
     "ACC.x2n.ops.002": "downstream_not_run"
   },
-  "next_phase": "PH.X2N.0.2",
+  "acceptance_status": {
+    "ACC.x2n.gov.003": "pass_current_artifact_scope",
+    "ACC.x2n.dy.003": "baseline_pass_downstream_not_run"
+  },
+  "next_phase": "PH.X2N.0.5",
   "next_phase_authorized": false,
   "stage_gate": "not_run",
   "remote_upload": "forbidden_until_stage_gate"

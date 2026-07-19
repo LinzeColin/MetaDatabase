@@ -7,6 +7,12 @@
   "must_be_outside_git": true,
   "runtime_and_downloads_share_root": true,
   "private_marker": ".x2n-root.json",
+  "allowed_system_files": [
+    ".metadata_never_index",
+    ".DS_Store"
+  ],
+  "system_file_mode": "0600",
+  "system_file_max_bytes": 65536,
   "root_mode": "0700",
   "marker_mode": "0600",
   "required_directories": [
