@@ -215,6 +215,22 @@ const EMPIRE_ZONES: readonly Zone[] = [
 // 焦点节点的环绕粒子（视频样例：轨道点环，reduced-motion 时静止）。
 // 坐标取整到 0.01：三角函数原始浮点在 SSR 与客户端的序列化位数不同，
 // 会触发 hydration mismatch。
+// S14 视频复刻：稀疏 travelling 粒子（背景生命感）。位置/漂移向量确定性生成
+// 并取整（SSR/client 序列化一致，避免 hydration mismatch）；数量克制守 A168。
+const AMBIENT_PARTICLES = Array.from({ length: 14 }, (_, index) => {
+  const a = (index / 14) * Math.PI * 2;
+  const r = 90 + (index % 5) * 52;
+  const dx = ((index % 3) - 1) * 9;
+  const dy = -6 - (index % 4) * 4;
+  return {
+    x: Math.round(380 + Math.cos(a) * r * 0.9),
+    y: Math.round(240 + Math.sin(a) * r * 0.55),
+    r: index % 4 === 0 ? 1.8 : 1.1,
+    dx,
+    dy
+  };
+});
+
 const FOCUS_ORBIT_DOTS = Array.from({ length: 12 }, (_, index) => {
   const angle = (index / 12) * Math.PI * 2;
   const radius = index % 2 === 0 ? 50 : 54;
@@ -1233,6 +1249,18 @@ function serverNodePosition(zone: Zone, index: number, count: number) {
   };
   const base = positions[zone];
   return { x: base.x, y: base.y ?? y };
+}
+
+// S14 视频复刻：连接器弯曲曲线。控制点=中点沿边法向偏移 curveK×边长，
+// 方向 sign 稳定（调用方按 from<to 传），坐标全取整→SSR/client 序列化一致。
+function curvedEdgePath(sx: number, sy: number, tx: number, ty: number, sign: boolean): string {
+  const dx = tx - sx;
+  const dy = ty - sy;
+  const len = Math.hypot(dx, dy) || 1;
+  const k = len * 0.13 * (sign ? 1 : -1);
+  const cx = Math.round((sx + tx) / 2 + (-dy / len) * k);
+  const cy = Math.round((sy + ty) / 2 + (dx / len) * k);
+  return `M${sx} ${sy} Q${cx} ${cy} ${tx} ${ty}`;
 }
 
 function serverNodeStage(entityType: string | undefined, family: string | undefined) {
@@ -4379,7 +4407,26 @@ export default function Home() {
               ))}
               <circle className="sunHalo" cx={380} cy={240} r={64} fill="url(#sunGlow)" />
             </g>
-            {graphViewEdges.map((edge) => {
+            {/* S14 视频复刻：稀疏 travelling 粒子层（装饰，aria-hidden）。 */}
+            <g aria-hidden className="ambientParticles" data-testid="ambient-particles">
+              {AMBIENT_PARTICLES.map((p, i) => (
+                <circle
+                  className="ambientParticle"
+                  cx={p.x}
+                  cy={p.y}
+                  key={i}
+                  r={p.r}
+                  style={
+                    {
+                      "--p-i": i,
+                      "--p-dx": `${p.dx}px`,
+                      "--p-dy": `${p.dy}px`
+                    } as CSSProperties
+                  }
+                />
+              ))}
+            </g>
+            {graphViewEdges.map((edge, edgeIndex) => {
               const source = graphViewNodeByKey.get(edge.from);
               const target = graphViewNodeByKey.get(edge.to);
               if (!source || !target) return null;
@@ -4391,6 +4438,10 @@ export default function Home() {
               // S12 光学：与焦点太阳相连的边升级为锥形金色光束（宽辉光底层），
               // 其余保持细丝。两层线叠加，契约层（.edge testid/pathLength）不动。
               const isSunBeam = source.zone === "focus" || target.zone === "focus";
+              // S14 视频复刻：连接器由直线升级为弯曲发光曲线（样例视频语言）。
+              // 控制点取中点沿边法向偏移；方向由 from<to 决定，稳定且 SSR 安全
+              // （坐标取整避免 hydration 漂移）。d 供 .edge/.edgeBeamGlow/光流共用。
+              const edgeCurveD = curvedEdgePath(source.x, source.y, target.x, target.y, edge.from < edge.to);
               return (
                 <g
                   className={`edgeGroup ${lensState}${hoverNear ? " hoverNear" : ""}${
@@ -4403,25 +4454,33 @@ export default function Home() {
                 >
                   {/* A168：feGaussianBlur 滤镜面只给太阳束；细丝以宽描边低
                       透明近似辉光，避免逐边滤镜拖慢首屏。 */}
-                  <line
+                  <path
                     aria-hidden
                     className="edgeBeamGlow"
+                    d={edgeCurveD}
+                    fill="none"
                     filter={isSunBeam ? "url(#beamGlow)" : undefined}
-                    x1={source.x}
-                    y1={source.y}
-                    x2={target.x}
-                    y2={target.y}
                   />
-                  <line
+                  <path
                     className="edge"
+                    d={edgeCurveD}
                     data-testid={`edge-${edge.from}-${edge.to}`}
+                    fill="none"
                     markerEnd="url(#arrow)"
                     pathLength={1}
-                    x1={source.x}
-                    y1={source.y}
-                    x2={target.x}
-                    y2={target.y}
                   />
+                  {/* S14 光感：光沿连接器行进（stroke-dashoffset 合成层动画，
+                      仅焦点束以守 A168；reduced-motion 静止）。 */}
+                  {isSunBeam ? (
+                    <path
+                      aria-hidden
+                      className="edgeFlow"
+                      d={edgeCurveD}
+                      fill="none"
+                      pathLength={1}
+                      style={{ "--flow-i": edgeIndex } as CSSProperties}
+                    />
+                  ) : null}
                   <text
                     className="edgeLabel"
                     data-testid={`edge-label-${edge.from}-${edge.to}`}
