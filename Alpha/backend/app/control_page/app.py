@@ -43,20 +43,34 @@ def build_control_app(
             supplied = supplied[len("Bearer "):]
         _check(supplied)
 
-    def require_token_or_query(request: Request) -> None:
-        """只读仪表盘 GET 允许 ?token= 查询参数(owner 手机收藏链接);动作端点仍仅 Bearer。"""
+
+    @app.get("/")
+    def dashboard(request: Request):
+        """只读仪表盘(HTML)。无令牌/错令牌 -> 401 + 令牌输入页(零数据泄漏);
+        令牌正确 -> 数据页。停机/恢复仍是独立 POST+Bearer,本页永远只读。"""
+        from fastapi.responses import HTMLResponse
+
         supplied = request.headers.get("authorization", "")
         if supplied.startswith("Bearer "):
             supplied = supplied[len("Bearer "):]
         if not supplied:
             supplied = request.query_params.get("token", "")
-        _check(supplied)
-
-    @app.get("/")
-    def dashboard(_: None = Depends(require_token_or_query)):
-        """只读仪表盘(HTML):系统心跳/杀开关/订单/成交/净持仓。绝无任何动作按钮之外的能力;
-        停机/恢复仍是独立 POST+Bearer,不在本页发起。"""
-        from fastapi.responses import HTMLResponse
+        expected = token_reader()
+        if not expected:
+            raise HTTPException(status_code=503, detail="控制页令牌未配置(失败关闭)")
+        if not hmac.compare_digest(supplied.encode(), expected.encode()):
+            hint = "<p style='color:#f85149'>令牌不对,再试一次。</p>" if supplied else ""
+            login = f"""<meta name=viewport content="width=device-width,initial-scale=1">
+<title>Alpha 登录</title><style>body{{font-family:-apple-system,sans-serif;background:#0e1117;
+color:#e6e6e6;display:flex;align-items:center;justify-content:center;height:90vh;margin:0}}
+input{{font-size:16px;padding:10px;border-radius:8px;border:1px solid #2a2f3a;background:#1c2333;
+color:#e6e6e6;width:260px}}button{{font-size:16px;padding:10px 18px;border-radius:8px;border:0;
+background:#2f6feb;color:#fff;margin-left:6px}}</style>
+<div style="text-align:center"><h1 style="font-size:22px">🤖 Alpha 模拟盘</h1>{hint}
+<form method=get action=/><input name=token placeholder="粘贴你的控制令牌" autofocus>
+<button>进入</button></form>
+<p style="color:#8b949e;font-size:12px">令牌在服务器 /opt/alpha/env 里;进入后可把带令牌的完整网址存成书签</p></div>"""
+            return HTMLResponse(login, status_code=401)
 
         hb = heartbeats.snapshot() if heartbeats else {}
         now = datetime.now(timezone.utc)

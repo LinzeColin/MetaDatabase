@@ -79,11 +79,14 @@ def test_dashboard_readonly_html(tmp_path):
                             ack_path=tmp_path / "ACK2.json",
                             session_factory=factory)
     client = TestClient(app)
-    assert client.get("/").status_code == 401
-    assert client.get("/?token=wrong").status_code == 401
+    login = client.get("/")
+    assert login.status_code == 401
+    assert "令牌" in login.text and "净持仓" not in login.text   # 登录页零数据
+    wrong = client.get("/?token=wrong")
+    assert wrong.status_code == 401 and "再试一次" in wrong.text
     page = client.get(f"/?token={TOKEN}")
     assert page.status_code == 200
     body = page.text
     assert "净持仓" in body and "订单" in body and "trading-worker" in body
     assert "空仓" in body            # 无成交时如实显示空仓
-    assert "<form" not in body       # 只读:无任何表单/按钮
+    assert "<form" not in body       # 数据页只读:无任何表单/按钮

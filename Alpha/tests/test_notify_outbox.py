@@ -35,7 +35,7 @@ def test_delivery_success_marks_delivered_once(tmp_path):
     assert (r1.delivered, ob.pending_count()) == (1, 0)
     r2 = ob.process_once(sender)          # 已投递不重投
     assert r2.delivered == 0
-    assert sender.sent == ["[Alpha] ORDER_FILLED"]
+    assert sender.sent == ["【Alpha】ORDER_FILLED"]
 
 
 def test_retry_with_backoff_until_success(tmp_path):
@@ -83,3 +83,16 @@ def test_enqueue_is_transactional_with_business_write(tmp_path):
         pass
     ob = Outbox(f)
     assert ob.pending_count() == 0
+
+
+def test_render_email_human_readable():
+    """邮件说人话:已知类型有中文模板、URL 独占一行;未知类型字段行,绝不裸 JSON。"""
+    from backend.app.notify.outbox import render_email
+
+    s, b = render_email("DASHBOARD_URL_CHANGED", {"url": "https://x.trycloudflare.com"})
+    assert s == "【Alpha】看盘地址更新"
+    assert "\nhttps://x.trycloudflare.com\n" in b and "{" not in b
+
+    s2, b2 = render_email("SOME_NEW_EVENT", {"msg": "你好", "count": 3})
+    assert s2 == "【Alpha】SOME_NEW_EVENT"
+    assert "msg:你好" in b2 and "count:3" in b2 and not b2.startswith("{")

@@ -33,6 +33,36 @@ class DeliveryReport:
     failed_permanently: int = 0
 
 
+#: 邮件人话模板:owner 只看中文与关键值;URL 独占一行让邮件客户端自动成链。
+_EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
+    "DASHBOARD_URL_CHANGED": ("看盘地址更新", lambda p: (
+        "你的模拟盘仪表盘地址更新了(服务器重启后地址会更换,以最新一封为准):\n\n"
+        f"{p.get('url', '')}\n\n"
+        "打开后在输入框粘贴你的控制令牌进入;令牌不变,别转发给任何人。")),
+    "DEPLOY_ACCEPTANCE_TEST": ("部署验收测试", lambda p: (
+        f"{p.get('msg', '')}\n\n这封邮件本身就是通知链路打通的证据。")),
+    "WORKER_HEARTBEAT_LOST": ("进程失联告警", lambda p: (
+        f"进程 {p.get('worker', '?')} 心跳超时(上次 {p.get('age_seconds', '?')} 秒前)。\n"
+        "系统已按失败关闭原则处置;若持续收到本告警请联系运维会话。")),
+    "DAILY_SUMMARY": ("每日小结", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+}
+
+
+def render_email(event_type: str, payload: dict) -> tuple[str, str]:
+    """事件 -> (主题, 正文),一律说人话;未知类型退化为『字段:值』行,绝不发裸 JSON。"""
+    tpl = _EMAIL_TEMPLATES.get(event_type)
+    if tpl is not None:
+        title, body_fn = tpl
+        return f"【Alpha】{title}", body_fn(payload)
+    lines = []
+    for k, v in payload.items():
+        if isinstance(v, (str, int, float, bool)):
+            lines.append(f"{k}:{v}")
+        else:
+            lines.append(f"{k}:{json.dumps(v, ensure_ascii=False)}")
+    return f"【Alpha】{event_type}", "\n".join(lines) or "(无内容)"
+
+
 def enqueue_in_session(session: Session, *, event_type: str, payload: dict) -> str:
     """业务事务内入队(事务发件箱核心:与业务写原子)。"""
     row = OutboxEvent(event_type=event_type, payload=json.dumps(payload, ensure_ascii=False, default=str))
@@ -79,8 +109,7 @@ class Outbox:
                     if next_at > now:
                         continue
                 payload = json.loads(row.payload)
-                subject = f"[Alpha] {row.event_type}"
-                body = json.dumps(payload, ensure_ascii=False, indent=2)
+                subject, body = render_email(row.event_type, payload)
                 try:
                     sender.send(subject=subject, body=body)
                 except Exception as exc:  # 任何发送失败都进入退避,不吞事件
