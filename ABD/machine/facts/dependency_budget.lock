@@ -1,0 +1,327 @@
+{
+  "schema_version": "1.0.0",
+  "lock_id": "ABD-0.0.0.1-S00-P03-ZERO-BUDGET",
+  "product_version": "0.0.0.1",
+  "phase": "S00/P03",
+  "fixed_at": "2026-07-19T00:00:00+10:00",
+  "currency": "AUD",
+  "authority": {
+    "canonical_facts": {
+      "path": "machine/facts/canonical_facts.json",
+      "sha256": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+    },
+    "costs": {
+      "path": "machine/facts/costs.json",
+      "sha256": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+    },
+    "p02_evidence": {
+      "path": "machine/evidence/EVD-S00-P02.json",
+      "sha256": "6bd925ae31a61bd10759faf36e29a241822884163a2add4a84fad263ea5b558b"
+    },
+    "pyproject": {
+      "path": "pyproject.toml",
+      "sha256": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72"
+    },
+    "uv_lock": {
+      "path": "uv.lock",
+      "sha256": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf"
+    }
+  },
+  "budget_policy": {
+    "maximum_incremental_cash_cost_aud": "0.00",
+    "actual_incremental_cash_cost_aud": "0.00",
+    "paid_dependency_allowed": false,
+    "unknown_cost_dependency_allowed": false,
+    "automatic_purchase_allowed": false,
+    "automatic_paid_upgrade_allowed": false,
+    "automatic_overage_allowed": false,
+    "existing_resource_total_cost_claimed_zero": false,
+    "paid_data_api_in_critical_path": false,
+    "unknown_or_positive_cost_action": "FAIL_CLOSED",
+    "resource_unavailable_action": "DEGRADE_OR_BLOCK_NEVER_AUTO_PURCHASE"
+  },
+  "critical_path": [
+    {
+      "order": 1,
+      "role": "LOCAL_DEVELOPMENT_AND_ACCEPTANCE",
+      "resource_id": "RES-OSS-PINNED",
+      "paid_or_approval_bound_dependency": false
+    },
+    {
+      "order": 2,
+      "role": "PLANNED_PRIMARY_RUNTIME_HOST",
+      "resource_id": "RES-OVH-EXISTING-VPS1",
+      "paid_or_approval_bound_dependency": false
+    },
+    {
+      "order": 3,
+      "role": "PLANNED_GLOBAL_CHINESE_ACCESS",
+      "resource_id": "RES-CLOUDFLARE-ZERO-TRUST-FREE",
+      "paid_or_approval_bound_dependency": false
+    },
+    {
+      "order": 4,
+      "role": "STAGE_RELEASE_AND_AUDIT_HISTORY",
+      "resource_id": "RES-GITHUB-EXISTING",
+      "paid_or_approval_bound_dependency": false
+    }
+  ],
+  "providers": [
+    {
+      "resource_id": "RES-OVH-EXISTING-VPS1",
+      "critical_path": true,
+      "dependency_class": "EXISTING_RESOURCE",
+      "incremental_cash_cost_aud": "0.00",
+      "incremental_cash_cost_status": "FROZEN_ZERO_BY_NO_NEW_PURCHASE_POLICY",
+      "paid_tier_allowed": false,
+      "automatic_overage_allowed": false,
+      "capability_verified": false,
+      "on_failure": "BLOCK_RUNTIME_DEPLOYMENT_KEEP_LOCAL_DEVELOPMENT_AND_EVIDENCE"
+    },
+    {
+      "resource_id": "RES-CLOUDFLARE-ZERO-TRUST-FREE",
+      "critical_path": true,
+      "dependency_class": "EXISTING_FREE_TIER",
+      "incremental_cash_cost_aud": "0.00",
+      "incremental_cash_cost_status": "FROZEN_ZERO_BY_FREE_TIER_AND_NO_UPGRADE_POLICY",
+      "paid_tier_allowed": false,
+      "automatic_overage_allowed": false,
+      "capability_verified": false,
+      "on_failure": "BLOCK_GLOBAL_RELEASE_OR_DEGRADE_TO_LOCAL_ONLY_NEVER_AUTO_UPGRADE"
+    },
+    {
+      "resource_id": "RES-GITHUB-EXISTING",
+      "critical_path": true,
+      "dependency_class": "EXISTING_ACCOUNT_INCLUDED_OR_SELF_HOSTED_USAGE",
+      "incremental_cash_cost_aud": "0.00",
+      "incremental_cash_cost_status": "FROZEN_ZERO_BY_INCLUDED_OR_SELF_HOSTED_USAGE_AND_STOP_POLICY",
+      "paid_tier_allowed": false,
+      "automatic_overage_allowed": false,
+      "capability_verified": false,
+      "on_failure": "KEEP_STAGE_COMMITS_LOCAL_AND_BLOCK_STAGE_UPLOAD_OR_REMOTE_CI"
+    },
+    {
+      "resource_id": "RES-OSS-PINNED",
+      "critical_path": true,
+      "dependency_class": "PINNED_OPEN_SOURCE_PACKAGES",
+      "incremental_cash_cost_aud": "0.00",
+      "incremental_cash_cost_status": "FROZEN_ZERO_BY_EXACT_VERSION_AND_LICENSE_ALLOWLIST",
+      "paid_tier_allowed": false,
+      "automatic_overage_allowed": false,
+      "capability_verified": true,
+      "on_failure": "FAIL_BUILD_DO_NOT_SUBSTITUTE_PAID_PACKAGE_OR_SERVICE"
+    },
+    {
+      "resource_id": "RES-GMAIL-EXISTING-OPTIONAL",
+      "critical_path": false,
+      "dependency_class": "OPTIONAL_EXISTING_ACCOUNT_STANDARD_API",
+      "incremental_cash_cost_aud": "0.00",
+      "incremental_cash_cost_status": "FROZEN_ZERO_BY_QUOTA_GOVERNOR_AND_OPTIONAL_DEGRADE_POLICY",
+      "paid_tier_allowed": false,
+      "automatic_overage_allowed": false,
+      "capability_verified": false,
+      "on_failure": "DISABLE_GMAIL_MODULE_CONTINUE_CORE"
+    }
+  ],
+  "python_environment": {
+    "requires_python": ">=3.12,<3.13",
+    "resolver": "uv",
+    "lock_revision": 3,
+    "registry": "https://pypi.org/simple",
+    "runtime_direct_dependencies": [],
+    "dev_direct_dependencies": [
+      "jsonschema==4.25.1",
+      "pytest==8.4.2"
+    ],
+    "local_packages": [
+      {
+        "name": "abd",
+        "version": "0.0.0.1",
+        "source": "LOCAL_VIRTUAL_PROJECT",
+        "scope": "LOCAL"
+      }
+    ],
+    "registry_packages": [
+      {
+        "name": "attrs",
+        "version": "26.1.0",
+        "scope": "DEV_TRANSITIVE",
+        "license_spdx": "MIT",
+        "source": "https://pypi.org/project/attrs/26.1.0/"
+      },
+      {
+        "name": "colorama",
+        "version": "0.4.6",
+        "scope": "DEV_TRANSITIVE_WINDOWS_ONLY",
+        "license_spdx": "BSD-3-Clause",
+        "source": "https://pypi.org/project/colorama/0.4.6/"
+      },
+      {
+        "name": "iniconfig",
+        "version": "2.3.0",
+        "scope": "DEV_TRANSITIVE",
+        "license_spdx": "MIT",
+        "source": "https://pypi.org/project/iniconfig/2.3.0/"
+      },
+      {
+        "name": "jsonschema",
+        "version": "4.25.1",
+        "scope": "DEV_DIRECT",
+        "license_spdx": "MIT",
+        "source": "https://pypi.org/project/jsonschema/4.25.1/"
+      },
+      {
+        "name": "jsonschema-specifications",
+        "version": "2025.9.1",
+        "scope": "DEV_TRANSITIVE",
+        "license_spdx": "MIT",
+        "source": "https://pypi.org/project/jsonschema-specifications/2025.9.1/"
+      },
+      {
+        "name": "packaging",
+        "version": "26.2",
+        "scope": "DEV_TRANSITIVE",
+        "license_spdx": "Apache-2.0 OR BSD-2-Clause",
+        "source": "https://pypi.org/project/packaging/26.2/"
+      },
+      {
+        "name": "pluggy",
+        "version": "1.6.0",
+        "scope": "DEV_TRANSITIVE",
+        "license_spdx": "MIT",
+        "source": "https://pypi.org/project/pluggy/1.6.0/"
+      },
+      {
+        "name": "pygments",
+        "version": "2.20.0",
+        "scope": "DEV_TRANSITIVE",
+        "license_spdx": "BSD-2-Clause",
+        "source": "https://pypi.org/project/Pygments/2.20.0/"
+      },
+      {
+        "name": "pytest",
+        "version": "8.4.2",
+        "scope": "DEV_DIRECT",
+        "license_spdx": "MIT",
+        "source": "https://pypi.org/project/pytest/8.4.2/"
+      },
+      {
+        "name": "referencing",
+        "version": "0.37.0",
+        "scope": "DEV_TRANSITIVE",
+        "license_spdx": "MIT",
+        "source": "https://pypi.org/project/referencing/0.37.0/"
+      },
+      {
+        "name": "rpds-py",
+        "version": "2026.6.3",
+        "scope": "DEV_TRANSITIVE",
+        "license_spdx": "MIT",
+        "source": "https://pypi.org/project/rpds-py/2026.6.3/"
+      },
+      {
+        "name": "typing-extensions",
+        "version": "4.16.0",
+        "scope": "DEV_TRANSITIVE",
+        "license_spdx": "PSF-2.0",
+        "source": "https://pypi.org/project/typing-extensions/4.16.0/"
+      }
+    ],
+    "approved_license_expressions": [
+      "Apache-2.0 OR BSD-2-Clause",
+      "BSD-2-Clause",
+      "BSD-3-Clause",
+      "MIT",
+      "PSF-2.0"
+    ],
+    "import_to_distribution": {
+      "jsonschema": "jsonschema",
+      "pytest": "pytest"
+    }
+  },
+  "scan_policy": {
+    "dependency_manifest_patterns": [
+      "Pipfile",
+      "Pipfile.lock",
+      "poetry.lock",
+      "pyproject.toml",
+      "requirements*.txt",
+      "uv.lock",
+      "package.json",
+      "package-lock.json",
+      "pnpm-lock.yaml",
+      "yarn.lock",
+      "Cargo.toml",
+      "Cargo.lock",
+      "go.mod",
+      "go.sum"
+    ],
+    "expected_dependency_manifests": [
+      "pyproject.toml",
+      "uv.lock"
+    ],
+    "import_audit_globs": [
+      "abd_acceptance/*.py",
+      "machine/tools/*.py",
+      "tests/**/*.py"
+    ],
+    "production_literal_audit_globs": [
+      "abd_acceptance/*.py",
+      "machine/tools/*.py"
+    ],
+    "excluded_path_parts": [
+      ".git",
+      ".pytest_cache",
+      ".venv",
+      "__pycache__"
+    ],
+    "stdlib_policy": "PYTHON_3_12_SYS_STDLIB_MODULE_NAMES",
+    "unknown_import_action": "FAIL",
+    "unknown_manifest_action": "FAIL",
+    "unknown_registry_package_action": "FAIL",
+    "prohibited_literal_action": "FAIL"
+  },
+  "prohibited_runtime_identifiers": {
+    "import_roots": [
+      "anthropic",
+      "betfairlightweight",
+      "datadog",
+      "openai",
+      "sentry_sdk",
+      "tab_studio",
+      "the_odds_api"
+    ],
+    "hostnames": [
+      "api.anthropic.com",
+      "api.betfair.com",
+      "api.openai.com",
+      "api.the-odds-api.com"
+    ]
+  },
+  "future_dependency_admission": {
+    "must_update_lock": true,
+    "must_regenerate_scan": true,
+    "must_reverify_current_first_party_cost_and_terms": true,
+    "must_keep_incremental_cash_cost_aud": "0.00",
+    "must_have_safe_free_fallback": true,
+    "cannot_weaken_evidence_numeric_risk_security_or_source_contract_gates": true,
+    "paid_or_unknown_dependency_action": "BLOCK_NOT_AUTO_APPROVE"
+  },
+  "freshness": {
+    "official_cost_snapshot_date": "2026-07-19",
+    "reverify_before": [
+      "EXTERNAL_DEPLOYMENT",
+      "REMOTE_CI_ENABLEMENT",
+      "GMAIL_ENABLEMENT",
+      "ACCOUNT_OR_BILLING_CHANGE",
+      "2026-10-19"
+    ],
+    "stale_snapshot_action": "FAIL_CLOSED_OR_DEGRADE_WITHOUT_PAID_SUBSTITUTION"
+  },
+  "explicit_non_claims": [
+    "本锁不证明外部账户、凭证、配额或服务当前可用。",
+    "本锁不把既有 OVH、账户订阅、人工、机会成本或 A$300 本金说成零成本。",
+    "本锁不证明未来所有市场来源均免费、合法、稳定或足够及时；未来来源必须逐一准入。",
+    "本锁不证明已部署、已上线、已覆盖全部市场或可实现 30% 月收益。"
+  ]
+}

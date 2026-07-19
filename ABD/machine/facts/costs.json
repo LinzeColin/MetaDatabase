@@ -1,10 +1,34 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
+  "product_version": "0.0.0.1",
+  "phase": "S00/P03",
   "currency": "AUD",
+  "fixed_at": "2026-07-19T00:00:00+10:00",
+  "cost_semantics": {
+    "incremental_cash_cost": "因 ABD 0.0.0.1 新增、且在既有承诺之外实际产生的现金支出。",
+    "existing_committed_cost": "用户在 ABD 本阶段之前已经持有或承担的资源成本；它不是零，也不会被重新标成零。",
+    "opportunity_cost": "开发、维护和人工最终下单时间的经济价值；披露但不计入 A$0 新增现金门。",
+    "bankroll_principal": "A$300 是受风险合同约束的交易本金，不是开发或基础设施预算。",
+    "total_system_cost_is_zero": false,
+    "zero_budget_claim_scope": "仅指 ABD 0.0.0.1 新增现金支出，不代表现有资源、人工、机会成本或交易本金为零。"
+  },
   "incremental_cash_budget": {
     "low": "0.00",
     "likely": "0.00",
     "high": "0.00"
+  },
+  "incremental_cash_gate": {
+    "maximum_aud": "0.00",
+    "comparison": "ACTUAL_INCREMENTAL_CASH_COST_MUST_EQUAL_ZERO",
+    "positive_boundary_aud": "0.0001",
+    "negative_boundary_aud": "-0.0001",
+    "positive_or_unknown_action": "BLOCK_AND_EMIT_INCREMENTAL_CASH_BUDGET_EXCEEDED",
+    "negative_action": "FAIL_INVALID_COST_DATA",
+    "automatic_purchase_allowed": false,
+    "automatic_paid_upgrade_allowed": false,
+    "automatic_overage_billing_allowed": false,
+    "cash_commitments_created_in_s00_p03": [],
+    "external_billing_accounts_inspected_in_s00_p03": false
   },
   "existing_resources": [
     "OVH Singapore VPS-1",
@@ -13,6 +37,136 @@
     "用户现有Gmail",
     "开源软件"
   ],
+  "resource_costs": [
+    {
+      "id": "RES-OVH-EXISTING-VPS1",
+      "name": "OVH Singapore VPS-1",
+      "critical_path": true,
+      "critical_path_role": "PLANNED_PRIMARY_RUNTIME_HOST",
+      "ownership_basis": "OWNER_DECLARED_PREEXISTING_RESOURCE",
+      "capability_status": "UNVERIFIED_IN_S00_P03",
+      "existing_recurring_cash_cost_aud": "UNKNOWN_ACCOUNT_SPECIFIC",
+      "public_reference_price": "FROM_AUD_6.29_EX_GST_PER_MONTH",
+      "public_reference_is_account_invoice": false,
+      "incremental_cash_cost_aud": "0.00",
+      "incremental_cash_cost_status": "FROZEN_ZERO_BY_NO_NEW_PURCHASE_POLICY",
+      "purchase_required": false,
+      "paid_tier_allowed": false,
+      "automatic_overage_allowed": false,
+      "zero_cost_condition": "仅使用已持有容量；禁止升级、附加 IP、额外存储、付费备份或新实例。",
+      "on_unavailable_or_limit": "BLOCK_RUNTIME_DEPLOYMENT_KEEP_LOCAL_DEVELOPMENT_AND_EVIDENCE",
+      "source_ids": [
+        "COST-SRC-OVH-001",
+        "BASELINE-OWNER-DECLARATION"
+      ]
+    },
+    {
+      "id": "RES-CLOUDFLARE-ZERO-TRUST-FREE",
+      "name": "Cloudflare Zero Trust Free + Tunnel",
+      "critical_path": true,
+      "critical_path_role": "PLANNED_GLOBAL_CHINESE_ACCESS",
+      "ownership_basis": "OWNER_DECLARED_EXISTING_CAPABILITY_PLUS_OFFICIAL_FREE_TIER",
+      "capability_status": "UNVERIFIED_IN_S00_P03",
+      "existing_recurring_cash_cost_aud": "UNKNOWN_ACCOUNT_SPECIFIC",
+      "public_reference_price": "USD_0_FREE_PLAN",
+      "public_reference_is_account_invoice": false,
+      "incremental_cash_cost_aud": "0.00",
+      "incremental_cash_cost_status": "FROZEN_ZERO_BY_FREE_TIER_AND_NO_UPGRADE_POLICY",
+      "purchase_required": false,
+      "paid_tier_allowed": false,
+      "automatic_overage_allowed": false,
+      "zero_cost_condition": "只使用 Free 计划和免费限额；用户数不得超过 50；不启用付费计划、付费附加项或可计费 Log Explorer 超额。",
+      "on_unavailable_or_limit": "BLOCK_GLOBAL_RELEASE_OR_DEGRADE_TO_LOCAL_ONLY_NEVER_AUTO_UPGRADE",
+      "source_ids": [
+        "COST-SRC-CF-001",
+        "COST-SRC-CF-002",
+        "COST-SRC-CF-003",
+        "BASELINE-OWNER-DECLARATION"
+      ]
+    },
+    {
+      "id": "RES-GITHUB-EXISTING",
+      "name": "GitHub existing account and private repository",
+      "critical_path": true,
+      "critical_path_role": "STAGE_RELEASE_AND_AUDIT_HISTORY",
+      "ownership_basis": "OWNER_DECLARED_EXISTING_ACCOUNT_PLUS_OFFICIAL_INCLUDED_USAGE",
+      "capability_status": "LOCAL_REPOSITORY_VERIFIED_REMOTE_BILLING_UNVERIFIED",
+      "existing_recurring_cash_cost_aud": "UNKNOWN_ACCOUNT_SPECIFIC",
+      "public_reference_price": "GITHUB_FREE_INCLUDED_USAGE_WITH_METERED_OVERAGE_RISK",
+      "public_reference_is_account_invoice": false,
+      "incremental_cash_cost_aud": "0.00",
+      "incremental_cash_cost_status": "FROZEN_ZERO_BY_INCLUDED_OR_SELF_HOSTED_USAGE_AND_STOP_POLICY",
+      "purchase_required": false,
+      "paid_tier_allowed": false,
+      "automatic_overage_allowed": false,
+      "zero_cost_condition": "本地验证优先；远程 Actions 只能在确认包含额度及 Stop usage when budget limit is reached 后使用，或使用既有容量的 self-hosted runner。",
+      "on_unavailable_or_limit": "KEEP_STAGE_COMMITS_LOCAL_AND_BLOCK_STAGE_UPLOAD_OR_REMOTE_CI",
+      "source_ids": [
+        "COST-SRC-GH-001",
+        "COST-SRC-GH-002",
+        "COST-SRC-GH-003",
+        "BASELINE-OWNER-DECLARATION"
+      ]
+    },
+    {
+      "id": "RES-OSS-PINNED",
+      "name": "Pinned open-source development and validation packages",
+      "critical_path": true,
+      "critical_path_role": "LOCAL_DEVELOPMENT_AND_ACCEPTANCE",
+      "ownership_basis": "PUBLIC_OPEN_SOURCE_DISTRIBUTIONS",
+      "capability_status": "LOCKED_LOCALLY_PYTHON_3_12",
+      "existing_recurring_cash_cost_aud": "0.00",
+      "public_reference_price": "NO_PACKAGE_LICENSE_FEE",
+      "public_reference_is_account_invoice": false,
+      "incremental_cash_cost_aud": "0.00",
+      "incremental_cash_cost_status": "FROZEN_ZERO_BY_EXACT_VERSION_AND_LICENSE_ALLOWLIST",
+      "purchase_required": false,
+      "paid_tier_allowed": false,
+      "automatic_overage_allowed": false,
+      "zero_cost_condition": "仅允许 dependency_budget.lock 中逐包固定版本、来源和 SPDX 许可证的发行包。",
+      "on_unavailable_or_limit": "FAIL_BUILD_DO_NOT_SUBSTITUTE_PAID_PACKAGE_OR_SERVICE",
+      "source_ids": [
+        "COST-SRC-PYPI-001"
+      ]
+    },
+    {
+      "id": "RES-GMAIL-EXISTING-OPTIONAL",
+      "name": "User existing Gmail + standard Gmail API usage",
+      "critical_path": false,
+      "critical_path_role": "OPTIONAL_EMAIL_EVIDENCE_AUTOMATION",
+      "ownership_basis": "OWNER_DECLARED_EXISTING_ACCOUNT_PLUS_CURRENT_STANDARD_API_TERMS",
+      "capability_status": "UNVERIFIED_AND_OWNER_CONSENT_NOT_REQUESTED_IN_S00_P03",
+      "existing_recurring_cash_cost_aud": "UNKNOWN_ACCOUNT_SPECIFIC",
+      "public_reference_price": "STANDARD_API_USE_CURRENTLY_NO_ADDITIONAL_COST_BELOW_DAILY_THRESHOLD",
+      "public_reference_is_account_invoice": false,
+      "incremental_cash_cost_aud": "0.00",
+      "incremental_cash_cost_status": "FROZEN_ZERO_BY_QUOTA_GOVERNOR_AND_OPTIONAL_DEGRADE_POLICY",
+      "purchase_required": false,
+      "paid_tier_allowed": false,
+      "automatic_overage_allowed": false,
+      "zero_cost_condition": "只在所有者授权且用量低于官方无附加费阈值时启用；收费规则变化、配额不足或账单未知时关闭 Gmail 模块。",
+      "on_unavailable_or_limit": "DISABLE_GMAIL_MODULE_CONTINUE_CORE",
+      "source_ids": [
+        "COST-SRC-GMAIL-001",
+        "BASELINE-OWNER-DECLARATION"
+      ]
+    }
+  ],
+  "future_source_admission_policy": {
+    "observable_market_coverage_goal_preserved": true,
+    "paid_odds_api_required": false,
+    "free_endpoint_single_point_allowed": false,
+    "admission_requirements": [
+      "CURRENT_FIRST_PARTY_TERMS_VERIFIED",
+      "INCREMENTAL_CASH_COST_EXACTLY_0.00",
+      "SOURCE_CAPABILITY_CONTRACT_PASS",
+      "REPLACEABLE_OR_SAFE_DEGRADED_MODE",
+      "NO_SECRET_OR_ACCOUNT_DATA_IN_DURABLE_EVIDENCE"
+    ],
+    "unknown_cost_or_terms_action": "DO_NOT_ADMIT_SOURCE_MARK_COVERAGE_GAP",
+    "paid_source_action": "BLOCK_WITH_INCREMENTAL_CASH_BUDGET_EXCEEDED",
+    "coverage_gap_behavior": "DISCOVERED_BUT_NOT_RECOMMENDABLE_OR_UNOBSERVABLE_NOT_SILENTLY_DROPPED"
+  },
   "prohibited_paid_dependencies": [
     "付费赔率接口",
     "TAB Studio付费或审批依赖",
@@ -54,6 +208,7 @@
   "benefit_model": {
     "target_curve": "300*1.3^n",
     "confidence": "LOW_UNTIL_EMPIRICAL_EVIDENCE",
+    "return_guaranteed": false,
     "warning": "目标曲线不是收益承诺；收益必须由影子、真实确认和对账证据分别证明。",
     "non_cash_benefits": [
       "全范围市场可观测与缺口治理",
@@ -63,10 +218,101 @@
       "长期模型与运行审计"
     ]
   },
+  "official_cost_sources": [
+    {
+      "id": "COST-SRC-OVH-001",
+      "publisher": "OVHcloud",
+      "url": "https://www.ovhcloud.com/en-au/vps/configurator/",
+      "retrieved_at": "2026-07-19",
+      "time_varying": true,
+      "verified_claim": "公开配置器显示 VPS-1 起价 A$6.29（未税/月）；这只是公开比较价，不是用户账户账单。"
+    },
+    {
+      "id": "COST-SRC-CF-001",
+      "publisher": "Cloudflare",
+      "url": "https://www.cloudflare.com/plans/zero-trust-services/",
+      "retrieved_at": "2026-07-19",
+      "time_varying": true,
+      "verified_claim": "Zero Trust Free 公示为 USD 0，适用于不超过 50 名用户；免费计划无付费 SLA。"
+    },
+    {
+      "id": "COST-SRC-CF-002",
+      "publisher": "Cloudflare",
+      "url": "https://developers.cloudflare.com/cloudflare-one/account-limits/",
+      "retrieved_at": "2026-07-19",
+      "time_varying": true,
+      "verified_claim": "Cloudflare Tunnel 有账户、路由和副本等硬限额，不能把免费层写成无限容量。"
+    },
+    {
+      "id": "COST-SRC-CF-003",
+      "publisher": "Cloudflare",
+      "url": "https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/",
+      "retrieved_at": "2026-07-19",
+      "time_varying": true,
+      "verified_claim": "cloudflared 使用由源站发起的出站连接；文档不证明本账户能力已配置。"
+    },
+    {
+      "id": "COST-SRC-GH-001",
+      "publisher": "GitHub",
+      "url": "https://docs.github.com/en/billing/reference/product-usage-included",
+      "retrieved_at": "2026-07-19",
+      "time_varying": true,
+      "verified_claim": "GitHub Free 当前包含每月 2,000 Actions 分钟和 500 MB 存储；超额可能计费。"
+    },
+    {
+      "id": "COST-SRC-GH-002",
+      "publisher": "GitHub",
+      "url": "https://docs.github.com/en/actions/concepts/billing-and-usage",
+      "retrieved_at": "2026-07-19",
+      "time_varying": true,
+      "verified_claim": "标准 self-hosted runners 与公开仓标准 GitHub-hosted runners 不收 Actions 用量费；私有仓受计划额度约束。"
+    },
+    {
+      "id": "COST-SRC-GH-003",
+      "publisher": "GitHub",
+      "url": "https://docs.github.com/en/billing/concepts/budgets-and-alerts",
+      "retrieved_at": "2026-07-19",
+      "time_varying": true,
+      "verified_claim": "预算可设置停止用量，但首个计费周期可能包含预算创建前的用量；不能把提醒当作零支出证明。"
+    },
+    {
+      "id": "COST-SRC-GMAIL-001",
+      "publisher": "Google",
+      "url": "https://developers.google.com/workspace/gmail/api/reference/quota",
+      "retrieved_at": "2026-07-19",
+      "time_varying": true,
+      "verified_claim": "标准 Gmail API 用量当前无附加费；每日 80,000,000 quota units 后计划收费，完整细节将在 2026 年稍后至少提前 90 天公布。"
+    },
+    {
+      "id": "COST-SRC-PYPI-001",
+      "publisher": "Python Package Index",
+      "url": "https://pypi.org/",
+      "retrieved_at": "2026-07-19",
+      "time_varying": true,
+      "verified_claim": "dependency_budget.lock 对 uv.lock 中每个注册表发行包固定版本、来源和 SPDX 许可证。"
+    }
+  ],
+  "freshness_policy": {
+    "official_terms_are_snapshot_not_permanent_fact": true,
+    "reverify_before": [
+      "ANY_EXTERNAL_DEPLOYMENT",
+      "ANY_ACCOUNT_OR_BILLING_CHANGE",
+      "ANY_REMOTE_CI_ENABLEMENT",
+      "ANY_GMAIL_ENABLEMENT",
+      "2026-10-19"
+    ],
+    "on_stale_or_changed": "FAIL_CLOSED_OR_DEGRADE_WITHOUT_PAID_SUBSTITUTION"
+  },
   "kill_criteria": [
     "持续投入不能在A$0新增现金预算内完成核心能力",
     "经冻结样本和影子运行后保守净对数增长置信下界不为正",
     "策略容量在证据充分后无法接近30%目标且无新的免费可验证市场",
     "维护负担长期超过自动化节省的时间价值"
+  ],
+  "explicit_unknowns": [
+    "未读取 OVH、Cloudflare、GitHub 或 Gmail 账户账单，因此现有资源总成本未知。",
+    "未验证任何外部凭证、配额余量、账户计划、域名、隧道、服务器容量或 Gmail 授权。",
+    "公开价格和免费层条款会变化，必须按 freshness_policy 重新核验。",
+    "S00/P03 只证明当前依赖声明和零新增预算合同，不证明运行、部署、市场覆盖或收益可行性。"
   ]
 }

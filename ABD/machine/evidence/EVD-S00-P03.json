@@ -1,0 +1,623 @@
+{
+  "commands": [
+    {
+      "command": "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+      "result_source": "machine/evidence/S00/P03/paid_dependency_scan.txt"
+    },
+    {
+      "command": "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+      "result_source": "machine/evidence/validation_report.json"
+    },
+    {
+      "command": "uv run --frozen --python 3.12 python -m pytest -q tests/S00/P03_test.py --junitxml=machine/evidence/S00/P03/pytest.xml",
+      "result_source": "machine/evidence/S00/P03/pytest.xml"
+    },
+    {
+      "command": "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S00/P03/pytest.xml",
+      "result_source": "machine/evidence/S00/P03/pytest.xml"
+    },
+    {
+      "command": "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S00/P03/full_regression.xml",
+      "result_source": "machine/evidence/S00/P03/full_regression.xml"
+    },
+    {
+      "command": "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S00/P03/full_regression.xml",
+      "result_source": "machine/evidence/S00/P03/full_regression.xml"
+    },
+    {
+      "command": "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S00-P03 --evidence machine/evidence",
+      "exit_code": 0
+    }
+  ],
+  "contract_id": "AC-S00-P03",
+  "cost_boundary": {
+    "bankroll_is_operating_budget": false,
+    "existing_resource_total_cost_claimed_zero": false,
+    "external_billing_accounts_inspected": false,
+    "incremental_cash_budget_aud": "0.00",
+    "opportunity_cost_disclosed": true
+  },
+  "decision": "ZERO_BUDGET_DEPENDENCIES_FROZEN",
+  "decision_sha256": "833622af4899d5ad90bdbd0bcf69f88a3ec74f3d7c91746c302cedde20f7183a",
+  "dependency_scan": {
+    "artifact": "machine/evidence/S00/P03/paid_dependency_scan.txt",
+    "status": "PASS",
+    "summary": {
+      "checks": 10,
+      "dependency_manifests": 2,
+      "failed": 0,
+      "failed_check_ids": [],
+      "locked_registry_packages": 12,
+      "paid_or_unknown_dependencies": 0,
+      "passed": 10,
+      "providers": 5,
+      "runtime_direct_dependencies": 0
+    }
+  },
+  "evidence_id": "EVD-S00-P03",
+  "explicit_unknowns": [
+    "Existing OVH and account-specific recurring costs were not inspected and are not claimed to be zero.",
+    "OVH, Cloudflare, GitHub and Gmail credentials, quotas, billing settings and runtime capability remain unverified.",
+    "Current official free-tier facts are a 2026-07-19 snapshot and must be reverified before external enablement.",
+    "No external deployment, account change, email action, real order or cash spend occurred in S00/P03.",
+    "P04 external-consent degraded mode and the rest of Stage 0 remain unrun."
+  ],
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "hashes": {
+    "code": "6444d39c4dc4ce78ab7a746672445a107605c4cef2555f369d043aabcd55b148",
+    "inputs": {
+      "machine/evidence/EVD-S00-P02.json": "6bd925ae31a61bd10759faf36e29a241822884163a2add4a84fad263ea5b558b",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/dependency_budget.lock": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/tests/fixtures/S00_P03.json": "c9b280e5c1658de78f7d2f0c2fff1166cff3ef265279b16e2526b76b21242601",
+      "pyproject.toml": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72",
+      "uv.lock": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf"
+    },
+    "model": null,
+    "model_not_applicable_reason": "S00/P03 freezes costs and dependencies and has no model artifact.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "67cd69db134433ca113070e3d69438ea21287359f79099fa00f684cfaaf5e69b"
+  },
+  "next": "S00/P04_READY_NOT_STARTED",
+  "non_guarantee": "A$300*1.3^n remains an unverified falsifiable target, never a random-return guarantee.",
+  "pass_gate": "新增现金支出为A$0；付费接口不在关键路径。",
+  "release_status": "NOT_READY",
+  "requirement_id": "REQ-S00-P03",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S00-P03_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_status": "S00_IN_PROGRESS",
+  "status": "PASS",
+  "task_ids": [
+    "T-S00-P03-01",
+    "T-S00-P03-02",
+    "T-S00-P03-03"
+  ],
+  "validation": {
+    "checks": [
+      {
+        "detail": "machine/evidence/EVD-S00-P02.json",
+        "id": "PREREQ-P02-EVIDENCE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_hash_matches": true,
+          "index_hash_matches": true,
+          "next": "S00/P03_READY_NOT_STARTED",
+          "status": "PASS"
+        },
+        "id": "PREREQ-P02-PASS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "machine/facts/costs.json"
+        ],
+        "id": "SOURCE-SINGLE-COSTS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "machine/facts/dependency_budget.lock"
+        ],
+        "id": "SOURCE-SINGLE-DEPENDENCY_BUDGET",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/costs.json",
+        "id": "INPUT-COSTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/dependency_budget.lock",
+        "id": "INPUT-DEPENDENCY-LOCK-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S00_P03.json",
+        "id": "INPUT-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "pyproject.toml",
+        "id": "INPUT-PYPROJECT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "uv.lock",
+        "id": "INPUT-UV-LOCK-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "HASH-CANONICAL_FACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "6bd925ae31a61bd10759faf36e29a241822884163a2add4a84fad263ea5b558b",
+          "expected": "6bd925ae31a61bd10759faf36e29a241822884163a2add4a84fad263ea5b558b"
+        },
+        "id": "HASH-EVD-S00-P02",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "HASH-COSTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+          "expected": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06"
+        },
+        "id": "HASH-DEPENDENCY_BUDGET",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c9b280e5c1658de78f7d2f0c2fff1166cff3ef265279b16e2526b76b21242601",
+          "expected": "c9b280e5c1658de78f7d2f0c2fff1166cff3ef265279b16e2526b76b21242601"
+        },
+        "id": "HASH-S00_P03",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72",
+          "expected": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72"
+        },
+        "id": "HASH-PYPROJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf",
+          "expected": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf"
+        },
+        "id": "HASH-UV",
+        "passed": true
+      },
+      {
+        "detail": "all parsed",
+        "id": "INPUTS-ALL-OBJECTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "costs": "0.0.0.1",
+          "lock": "0.0.0.1"
+        },
+        "id": "BUDGET-VERSION-AND-PHASE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget": {
+            "high": "0.00",
+            "likely": "0.00",
+            "low": "0.00"
+          },
+          "gate": {
+            "automatic_overage_billing_allowed": false,
+            "automatic_paid_upgrade_allowed": false,
+            "automatic_purchase_allowed": false,
+            "cash_commitments_created_in_s00_p03": [],
+            "comparison": "ACTUAL_INCREMENTAL_CASH_COST_MUST_EQUAL_ZERO",
+            "external_billing_accounts_inspected_in_s00_p03": false,
+            "maximum_aud": "0.00",
+            "negative_action": "FAIL_INVALID_COST_DATA",
+            "negative_boundary_aud": "-0.0001",
+            "positive_boundary_aud": "0.0001",
+            "positive_or_unknown_action": "BLOCK_AND_EMIT_INCREMENTAL_CASH_BUDGET_EXCEEDED"
+          }
+        },
+        "id": "COST-INCREMENTAL-CASH-EXACT-ZERO",
+        "passed": true
+      },
+      {
+        "detail": {
+          "bankroll_principal": "A$300 是受风险合同约束的交易本金，不是开发或基础设施预算。",
+          "existing_committed_cost": "用户在 ABD 本阶段之前已经持有或承担的资源成本；它不是零，也不会被重新标成零。",
+          "incremental_cash_cost": "因 ABD 0.0.0.1 新增、且在既有承诺之外实际产生的现金支出。",
+          "opportunity_cost": "开发、维护和人工最终下单时间的经济价值；披露但不计入 A$0 新增现金门。",
+          "total_system_cost_is_zero": false,
+          "zero_budget_claim_scope": "仅指 ABD 0.0.0.1 新增现金支出，不代表现有资源、人工、机会成本或交易本金为零。"
+        },
+        "id": "COST-SEMANTICS-NO-ZERO-TOTAL-CLAIM",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected": [
+            "RES-OVH-EXISTING-VPS1",
+            "RES-CLOUDFLARE-ZERO-TRUST-FREE",
+            "RES-GITHUB-EXISTING",
+            "RES-OSS-PINNED",
+            "RES-GMAIL-EXISTING-OPTIONAL"
+          ],
+          "ids": [
+            "RES-OVH-EXISTING-VPS1",
+            "RES-CLOUDFLARE-ZERO-TRUST-FREE",
+            "RES-GITHUB-EXISTING",
+            "RES-OSS-PINNED",
+            "RES-GMAIL-EXISTING-OPTIONAL"
+          ]
+        },
+        "id": "COST-RESOURCES-STRUCTURE",
+        "passed": true
+      },
+      {
+        "detail": "all resources safe",
+        "id": "COST-RESOURCES-ZERO-AND-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "critical": [
+            "RES-CLOUDFLARE-ZERO-TRUST-FREE",
+            "RES-GITHUB-EXISTING",
+            "RES-OSS-PINNED",
+            "RES-OVH-EXISTING-VPS1"
+          ],
+          "expected": [
+            "RES-CLOUDFLARE-ZERO-TRUST-FREE",
+            "RES-GITHUB-EXISTING",
+            "RES-OSS-PINNED",
+            "RES-OVH-EXISTING-VPS1"
+          ]
+        },
+        "id": "COST-CRITICAL-PATH-AND-EXISTING-COST-DISCLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "admission_requirements": [
+            "CURRENT_FIRST_PARTY_TERMS_VERIFIED",
+            "INCREMENTAL_CASH_COST_EXACTLY_0.00",
+            "SOURCE_CAPABILITY_CONTRACT_PASS",
+            "REPLACEABLE_OR_SAFE_DEGRADED_MODE",
+            "NO_SECRET_OR_ACCOUNT_DATA_IN_DURABLE_EVIDENCE"
+          ],
+          "coverage_gap_behavior": "DISCOVERED_BUT_NOT_RECOMMENDABLE_OR_UNOBSERVABLE_NOT_SILENTLY_DROPPED",
+          "free_endpoint_single_point_allowed": false,
+          "observable_market_coverage_goal_preserved": true,
+          "paid_odds_api_required": false,
+          "paid_source_action": "BLOCK_WITH_INCREMENTAL_CASH_BUDGET_EXCEEDED",
+          "unknown_cost_or_terms_action": "DO_NOT_ADMIT_SOURCE_MARK_COVERAGE_GAP"
+        },
+        "id": "COST-FUTURE-SOURCE-ADMISSION",
+        "passed": true
+      },
+      {
+        "detail": "all arithmetic matches",
+        "id": "COST-OPPORTUNITY-COST-DISCLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "confidence": "LOW_UNTIL_EMPIRICAL_EVIDENCE",
+          "non_cash_benefits": [
+            "全范围市场可观测与缺口治理",
+            "可复用概率、风险和证据平台",
+            "中文单动作决策体验",
+            "邮件与附件自动证据归档",
+            "长期模型与运行审计"
+          ],
+          "return_guaranteed": false,
+          "target_curve": "300*1.3^n",
+          "warning": "目标曲线不是收益承诺；收益必须由影子、真实确认和对账证据分别证明。"
+        },
+        "id": "COST-RETURN-NOT-GUARANTEED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "COST-SRC-CF-001",
+          "COST-SRC-CF-002",
+          "COST-SRC-CF-003",
+          "COST-SRC-GH-001",
+          "COST-SRC-GH-002",
+          "COST-SRC-GH-003",
+          "COST-SRC-GMAIL-001",
+          "COST-SRC-OVH-001",
+          "COST-SRC-PYPI-001"
+        ],
+        "id": "COST-FIRST-PARTY-SOURCES-AND-FRESHNESS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_incremental_cash_cost_aud": "0.00",
+          "automatic_overage_allowed": false,
+          "automatic_paid_upgrade_allowed": false,
+          "automatic_purchase_allowed": false,
+          "existing_resource_total_cost_claimed_zero": false,
+          "maximum_incremental_cash_cost_aud": "0.00",
+          "paid_data_api_in_critical_path": false,
+          "paid_dependency_allowed": false,
+          "resource_unavailable_action": "DEGRADE_OR_BLOCK_NEVER_AUTO_PURCHASE",
+          "unknown_cost_dependency_allowed": false,
+          "unknown_or_positive_cost_action": "FAIL_CLOSED"
+        },
+        "id": "LOCK-BUDGET-POLICY",
+        "passed": true
+      },
+      {
+        "detail": "all match",
+        "id": "LOCK-AUTHORITY-HASHES",
+        "passed": true
+      },
+      {
+        "detail": "all align",
+        "id": "LOCK-PROVIDERS-ALIGN-COSTS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "RES-OSS-PINNED",
+          "RES-OVH-EXISTING-VPS1",
+          "RES-CLOUDFLARE-ZERO-TRUST-FREE",
+          "RES-GITHUB-EXISTING"
+        ],
+        "id": "LOCK-CRITICAL-PATH-NO-PAID-INTERFACE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "attrs",
+          "colorama",
+          "iniconfig",
+          "jsonschema",
+          "jsonschema-specifications",
+          "packaging",
+          "pluggy",
+          "pygments",
+          "pytest",
+          "referencing",
+          "rpds-py",
+          "typing-extensions"
+        ],
+        "id": "LOCK-OPEN-SOURCE-PACKAGE-ALLOWLIST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "freshness": {
+            "official_cost_snapshot_date": "2026-07-19",
+            "reverify_before": [
+              "EXTERNAL_DEPLOYMENT",
+              "REMOTE_CI_ENABLEMENT",
+              "GMAIL_ENABLEMENT",
+              "ACCOUNT_OR_BILLING_CHANGE",
+              "2026-10-19"
+            ],
+            "stale_snapshot_action": "FAIL_CLOSED_OR_DEGRADE_WITHOUT_PAID_SUBSTITUTION"
+          },
+          "future": {
+            "cannot_weaken_evidence_numeric_risk_security_or_source_contract_gates": true,
+            "must_have_safe_free_fallback": true,
+            "must_keep_incremental_cash_cost_aud": "0.00",
+            "must_regenerate_scan": true,
+            "must_reverify_current_first_party_cost_and_terms": true,
+            "must_update_lock": true,
+            "paid_or_unknown_dependency_action": "BLOCK_NOT_AUTO_APPROVE"
+          }
+        },
+        "id": "LOCK-FUTURE-ADMISSION-AND-FRESHNESS",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/dependency_budget.lock",
+        "id": "SCAN-LOCK-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": [
+            "pyproject.toml",
+            "uv.lock"
+          ],
+          "expected": [
+            "pyproject.toml",
+            "uv.lock"
+          ]
+        },
+        "id": "SCAN-MANIFEST-SET",
+        "passed": true
+      },
+      {
+        "detail": [
+          "pyproject.toml",
+          "uv.lock"
+        ],
+        "id": "SCAN-TOML-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "dev": [
+            "jsonschema==4.25.1",
+            "pytest==8.4.2"
+          ],
+          "runtime": []
+        },
+        "id": "SCAN-DIRECT-DEPENDENCIES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "missing": [],
+          "registry_count": 12,
+          "unclassified_or_source_errors": [],
+          "unexpected": [],
+          "version_drift": []
+        },
+        "id": "SCAN-LOCKED-PACKAGE-ALLOWLIST",
+        "passed": true
+      },
+      {
+        "detail": [
+          "Apache-2.0 OR BSD-2-Clause",
+          "BSD-2-Clause",
+          "BSD-3-Clause",
+          "MIT",
+          "PSF-2.0"
+        ],
+        "id": "SCAN-LICENSES-CLASSIFIED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "files": 13
+        },
+        "id": "SCAN-IMPORTS-CLASSIFIED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "files": 10
+        },
+        "id": "SCAN-NO-PROHIBITED-RUNTIME-IDENTIFIERS",
+        "passed": true
+      },
+      {
+        "detail": "all providers frozen zero",
+        "id": "SCAN-PROVIDER-COSTS-EXACT-ZERO",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "SCAN-CRITICAL-PATH-NO-PAID-OR-APPROVAL-BOUND-INTERFACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 10,
+          "dependency_manifests": 2,
+          "failed": 0,
+          "failed_check_ids": [],
+          "locked_registry_packages": 12,
+          "paid_or_unknown_dependencies": 0,
+          "passed": 10,
+          "providers": 5,
+          "runtime_direct_dependencies": 0
+        },
+        "id": "DEPENDENCY-SCAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "SECURITY-NO-SECRET-OR-LOCAL-PATH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 20,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 38
+        },
+        "id": "TEST-P03-JUNIT-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 50,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 76
+        },
+        "id": "TEST-FULL-REGRESSION-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "PACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "PACK-VALIDATION-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "exact_match": true,
+          "path": "machine/evidence/S00/P03/paid_dependency_scan.txt",
+          "status": "PASS"
+        },
+        "id": "SCAN-REPORT-DETERMINISTIC-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S00-P03",
+    "decision": "ZERO_BUDGET_DEPENDENCIES_FROZEN",
+    "fixed_clock": "2026-07-19T00:00:00+10:00",
+    "hashes": {
+      "machine/evidence/EVD-S00-P02.json": "6bd925ae31a61bd10759faf36e29a241822884163a2add4a84fad263ea5b558b",
+      "machine/evidence/S00/P03/full_regression.xml": "4e9196a4390c510f911a8739d380c3bb136b7bcbfa11a8a9997dc52d3894e690",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S00/P03/pytest.xml": "3333063101c6ef6fa5d5fd1c69094adf3433d269a065c4aa0e75b79d897e5408",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/dependency_budget.lock": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+      "machine/tests/fixtures/S00_P03.json": "c9b280e5c1658de78f7d2f0c2fff1166cff3ef265279b16e2526b76b21242601",
+      "pyproject.toml": "ed30542952d445085e1f7724872bda1b697898f90576bf9bd65fd3191719bb72",
+      "uv.lock": "982a3044aabd62584d76cddcbd9dfcfe761482a5e60248ad5e299c18fd2ad9cf"
+    },
+    "next": "S00/P04_READY_NOT_STARTED",
+    "release_status": "NOT_READY",
+    "requirement_id": "REQ-S00-P03",
+    "schema_version": "1.0.0",
+    "stage_status": "S00_IN_PROGRESS",
+    "status": "PASS",
+    "summary": {
+      "checks": 50,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 50
+    },
+    "version": "0.0.0.1"
+  }
+}

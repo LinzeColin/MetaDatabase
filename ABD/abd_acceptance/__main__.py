@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from .authorization import write_phase_evidence as write_authorization_phase_evidence
+from .budget import write_phase_evidence as write_budget_phase_evidence
 from .canonical_facts import write_phase_evidence as write_canonical_phase_evidence
 
 
@@ -27,6 +28,7 @@ def main() -> int:
     writers = {
         "AC-S00-P01": write_canonical_phase_evidence,
         "AC-S00-P02": write_authorization_phase_evidence,
+        "AC-S00-P03": write_budget_phase_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)
