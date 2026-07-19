@@ -27,18 +27,24 @@ def main() -> int:
         print("缺 ALPHA_EXPECTED_ACC_ID(只从环境读取,永不进 Git)", file=sys.stderr)
         return 2
     client = build_real_opend_client()  # SDK 缺失/桥接未联调会在此如实抛错
-    adapter = MoomooReadOnlyAdapter(client, expected_acc_id=acc_id)
-    adapter.connect()
-    evidence = adapter.collect_probe_evidence()
-    engine = init_engine()  # ALPHA_DATABASE_URL 或本地 SQLite
-    result = run_probe_and_persist(
-        evidence,
-        create_session_factory(engine),
-        account_principal=os.environ.get("ALPHA_ACCOUNT_PRINCIPAL", "owner"),
-        location=os.environ.get("ALPHA_ACCOUNT_LOCATION", "AU"),
-    )
-    print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0 if result["verdict"] == "ALLOW" else 1
+    try:
+        adapter = MoomooReadOnlyAdapter(client, expected_acc_id=acc_id)
+        adapter.connect()
+        evidence = adapter.collect_probe_evidence()
+        engine = init_engine()  # ALPHA_DATABASE_URL 或本地 SQLite
+        result = run_probe_and_persist(
+            evidence,
+            create_session_factory(engine),
+            account_principal=os.environ.get("ALPHA_ACCOUNT_PRINCIPAL", "owner"),
+            location=os.environ.get("ALPHA_ACCOUNT_LOCATION", "AU"),
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result["verdict"] == "ALLOW" else 1
+    finally:
+        # SDK 上下文有非守护线程:不 close 进程不退(实机 124 超时教训)
+        close = getattr(client, "close", None)
+        if callable(close):
+            close()
 
 
 if __name__ == "__main__":
