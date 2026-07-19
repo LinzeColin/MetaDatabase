@@ -1,0 +1,29 @@
+{
+  "artifacts": {
+    "machine/evidence/S00/P03/paid_dependency_scan.txt": {
+      "corrupted_sha256": "5533c0d69041bbc139db29e4744d8026dd920eee33eefd79831dd73c03009749",
+      "restored_sha256": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "signed_sha256": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "status": "PASS"
+    },
+    "machine/facts/costs.json": {
+      "corrupted_sha256": "d18b5834b74cf46bccf485d4b438121c57c9a28bd5db5de47b35211cbcb2c3b7",
+      "restored_sha256": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "signed_sha256": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "status": "PASS"
+    },
+    "machine/facts/dependency_budget.lock": {
+      "corrupted_sha256": "f2ef8e4cb6c417fe5b28870a9ef6c76a33bafed0ded64fce9a6f803b4fc3b4bb",
+      "restored_sha256": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+      "signed_sha256": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S00-P03",
+  "evidence_id": "EVD-S00-P03-ROLLBACK",
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_BUDGET_ARTIFACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

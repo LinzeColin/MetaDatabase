@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "AC-S00-P04",
+  "required_decision_prerequisite_ids": [
+    "DP-001",
+    "DP-002",
+    "DP-003",
+    "DP-004",
+    "DP-005"
+  ],
+  "required_ordinary_degraded_states": [
+    "CONSENT_NOT_REQUESTED",
+    "CONSENT_PENDING",
+    "CONSENT_DENIED",
+    "CONSENT_GRANTED_UNVERIFIED",
+    "TOKEN_INVALID_OR_REVOKED",
+    "SCOPE_MISMATCH",
+    "TOKEN_STORAGE_UNREADY"
+  ],
+  "scenario_cases": [
+    {
+      "id": "NO-CONSENT",
+      "event": "NO_CONSENT",
+      "proven_gate_ids": [],
+      "expected_state": "CONSENT_NOT_REQUESTED",
+      "expected_gmail_enabled": false,
+      "expected_core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES"
+    },
+    {
+      "id": "CONSENT-PENDING",
+      "event": "CONSENT_FLOW_STARTED",
+      "proven_gate_ids": [],
+      "expected_state": "CONSENT_PENDING",
+      "expected_gmail_enabled": false,
+      "expected_core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES"
+    },
+    {
+      "id": "OWNER-DENIED",
+      "event": "OWNER_DENIED_OR_CANCELLED",
+      "proven_gate_ids": [],
+      "expected_state": "CONSENT_DENIED",
+      "expected_gmail_enabled": false,
+      "expected_core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES"
+    },
+    {
+      "id": "GRANT-NOT-READY",
+      "event": "GRANT_RECEIPT_BEFORE_ALL_GATES",
+      "proven_gate_ids": [
+        "GATE-EXACT-SCOPE-RECEIPT"
+      ],
+      "expected_state": "CONSENT_GRANTED_UNVERIFIED",
+      "expected_gmail_enabled": false,
+      "expected_core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES"
+    },
+    {
+      "id": "TOKEN-INVALID",
+      "event": "TOKEN_INVALID_EXPIRED_OR_REVOKED",
+      "proven_gate_ids": [],
+      "expected_state": "TOKEN_INVALID_OR_REVOKED",
+      "expected_gmail_enabled": false,
+      "expected_core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES"
+    },
+    {
+      "id": "SCOPE-MISMATCH",
+      "event": "RETURNED_SCOPE_NOT_EXACT",
+      "proven_gate_ids": [],
+      "expected_state": "SCOPE_MISMATCH",
+      "expected_gmail_enabled": false,
+      "expected_core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES"
+    },
+    {
+      "id": "STORAGE-UNREADY",
+      "event": "TOKEN_STORAGE_NOT_READY",
+      "proven_gate_ids": [],
+      "expected_state": "TOKEN_STORAGE_UNREADY",
+      "expected_gmail_enabled": false,
+      "expected_core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES"
+    },
+    {
+      "id": "ALL-GATES-ACTIVE",
+      "event": "ALL_ACTIVATION_GATES_PROVEN",
+      "proven_gate_ids": [
+        "GATE-MODULE-IMPLEMENTED",
+        "GATE-EXACT-SCOPE-RECEIPT",
+        "GATE-OAUTH-APP-AND-AUDIENCE-STATUS",
+        "GATE-STATE-PKCE-REDIRECT",
+        "GATE-ENCRYPTED-TOKEN-STORAGE",
+        "GATE-METHOD-ALLOWLIST",
+        "GATE-READ-SELF-CHECK",
+        "GATE-TRASH-UNTRASH-RECOVERY",
+        "GATE-CURRENT-ZERO-COST-QUOTA"
+      ],
+      "expected_state": "ACTIVE",
+      "expected_gmail_enabled": true,
+      "expected_core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES"
+    },
+    {
+      "id": "ACTIVE-EVENT-MISSING-GATE",
+      "event": "ALL_ACTIVATION_GATES_PROVEN",
+      "proven_gate_ids": [
+        "GATE-EXACT-SCOPE-RECEIPT"
+      ],
+      "expected_state": "CONSENT_GRANTED_UNVERIFIED",
+      "expected_gmail_enabled": false,
+      "expected_core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES"
+    },
+    {
+      "id": "SECURITY-INCIDENT",
+      "event": "TOKEN_OR_CLIENT_SECRET_INCIDENT",
+      "proven_gate_ids": [],
+      "expected_state": "SECURITY_ISOLATED",
+      "expected_gmail_enabled": false,
+      "expected_core_task_graph": "PAUSE_AFFECTED_SCOPE_PER_P02_SECURITY_OR_SUPPLY_CHAIN_INCIDENT"
+    },
+    {
+      "id": "UNKNOWN-EVENT",
+      "event": "UNRECOGNIZED",
+      "proven_gate_ids": [],
+      "expected_state": "CONSENT_NOT_REQUESTED",
+      "expected_gmail_enabled": false,
+      "expected_core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES"
+    }
+  ],
+  "cash_boundary_cases": [
+    {
+      "id": "GMAIL-CASH-PLUS-0.0001",
+      "value": "0.0001",
+      "expected_status": "FAIL"
+    },
+    {
+      "id": "GMAIL-CASH-MINUS-0.0001",
+      "value": "-0.0001",
+      "expected_status": "FAIL"
+    }
+  ],
+  "valid_nonsecret_receipt": {
+    "schema_version": "1.0.0",
+    "receipt_id": "GMAIL-CONSENT-TEST-001",
+    "observed_at": "2026-07-19T00:00:00+10:00",
+    "authorization_status": "NOT_REQUESTED",
+    "granted_scopes": [],
+    "state_validated": false,
+    "pkce_validated": false,
+    "redirect_uri_validated": false,
+    "token_storage_status": "NOT_USED",
+    "oauth_app_status": "UNVERIFIED",
+    "secret_material_present": false,
+    "external_capability_verified": false,
+    "gmail_module_state": "DISABLED"
+  }
+}

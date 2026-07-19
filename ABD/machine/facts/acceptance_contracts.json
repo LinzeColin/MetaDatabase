@@ -1,0 +1,4322 @@
+[
+  {
+    "id": "AC-S00-P01",
+    "requirement_id": "REQ-S00-P01",
+    "title": "冻结 Canonical Facts唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S00-P01 对应机器事实",
+      "S00/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S00-P01 --evidence machine/evidence",
+      "rule": "全部事实唯一、无冲突、版本为0.0.0.1。"
+    },
+    "threshold": "全部事实唯一、无冲突、版本为0.0.0.1。",
+    "tests": [
+      {
+        "id": "TEST-S00-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S00-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S00-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S00-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "全部事实唯一、无冲突、版本为0.0.0.1。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S00-P02",
+    "requirement_id": "REQ-S00-P02",
+    "title": "冻结权限与自动默认唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S00-P02 对应机器事实",
+      "S00/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S00-P02 --evidence machine/evidence",
+      "rule": "只有明确暂停条件可以阻止自动推进。"
+    },
+    "threshold": "只有明确暂停条件可以阻止自动推进。",
+    "tests": [
+      {
+        "id": "TEST-S00-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S00-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S00-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S00-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "只有明确暂停条件可以阻止自动推进。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S00-P03",
+    "requirement_id": "REQ-S00-P03",
+    "title": "冻结零预算依赖唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S00-P03 对应机器事实",
+      "S00/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S00-P03 --evidence machine/evidence",
+      "rule": "新增现金支出为A$0；付费接口不在关键路径。"
+    },
+    "threshold": "新增现金支出为A$0；付费接口不在关键路径。",
+    "tests": [
+      {
+        "id": "TEST-S00-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S00-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S00-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S00-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "新增现金支出为A$0；付费接口不在关键路径。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S00-P04",
+    "requirement_id": "REQ-S00-P04",
+    "title": "一次性外部授权降级唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S00-P04 对应机器事实",
+      "S00/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S00-P04 --evidence machine/evidence",
+      "rule": "未授权时仅邮件自动化关闭，其他任务全部继续。"
+    },
+    "threshold": "未授权时仅邮件自动化关闭，其他任务全部继续。",
+    "tests": [
+      {
+        "id": "TEST-S00-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S00-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S00-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S00-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "未授权时仅邮件自动化关闭，其他任务全部继续。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S01-P01",
+    "requirement_id": "REQ-S01-P01",
+    "title": "客户新闻稿唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S01-P01 对应机器事实",
+      "S01/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S01-P01 --evidence machine/evidence",
+      "rule": "新闻稿不依赖技术术语且结果可观察。"
+    },
+    "threshold": "新闻稿不依赖技术术语且结果可观察。",
+    "tests": [
+      {
+        "id": "TEST-S01-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S01-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S01-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S01-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "新闻稿不依赖技术术语且结果可观察。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S01-P02",
+    "requirement_id": "REQ-S01-P02",
+    "title": "客户常见问题唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S01-P02 对应机器事实",
+      "S01/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S01-P02 --evidence machine/evidence",
+      "rule": "关键疑问均有明确默认与证据。"
+    },
+    "threshold": "关键疑问均有明确默认与证据。",
+    "tests": [
+      {
+        "id": "TEST-S01-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S01-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S01-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S01-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "关键疑问均有明确默认与证据。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S01-P03",
+    "requirement_id": "REQ-S01-P03",
+    "title": "需求与边界唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S01-P03 对应机器事实",
+      "S01/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S01-P03 --evidence machine/evidence",
+      "rule": "每条需求唯一且可追踪。"
+    },
+    "threshold": "每条需求唯一且可追踪。",
+    "tests": [
+      {
+        "id": "TEST-S01-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S01-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S01-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S01-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "每条需求唯一且可追踪。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S01-P04",
+    "requirement_id": "REQ-S01-P04",
+    "title": "指标与经济性唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S01-P04 对应机器事实",
+      "S01/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S01-P04 --evidence machine/evidence",
+      "rule": "不承诺伪精确收益；30%目标可证伪可验证。"
+    },
+    "threshold": "不承诺伪精确收益；30%目标可证伪可验证。",
+    "tests": [
+      {
+        "id": "TEST-S01-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S01-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S01-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S01-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "不承诺伪精确收益；30%目标可证伪可验证。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S02-P01",
+    "requirement_id": "REQ-S02-P01",
+    "title": "官方平台与监管调研唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S02-P01 对应机器事实",
+      "S02/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S02-P01 --evidence machine/evidence",
+      "rule": "每个事实有URL、检索日期和来源等级。"
+    },
+    "threshold": "每个事实有URL、检索日期和来源等级。",
+    "tests": [
+      {
+        "id": "TEST-S02-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S02-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S02-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S02-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "每个事实有URL、检索日期和来源等级。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S02-P02",
+    "requirement_id": "REQ-S02-P02",
+    "title": "模型与风险论文调研唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S02-P02 对应机器事实",
+      "S02/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S02-P02 --evidence machine/evidence",
+      "rule": "每个模型设计主张可回溯论文。"
+    },
+    "threshold": "每个模型设计主张可回溯论文。",
+    "tests": [
+      {
+        "id": "TEST-S02-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S02-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S02-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S02-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "每个模型设计主张可回溯论文。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S02-P03",
+    "requirement_id": "REQ-S02-P03",
+    "title": "开源项目复用审计唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S02-P03 对应机器事实",
+      "S02/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S02-P03 --evidence machine/evidence",
+      "rule": "每个项目有采用/适配/拒绝和许可证裁定。"
+    },
+    "threshold": "每个项目有采用/适配/拒绝和许可证裁定。",
+    "tests": [
+      {
+        "id": "TEST-S02-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S02-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S02-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S02-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "每个项目有采用/适配/拒绝和许可证裁定。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S02-P04",
+    "requirement_id": "REQ-S02-P04",
+    "title": "调研缺口与反证唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S02-P04 对应机器事实",
+      "S02/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S02-P04 --evidence machine/evidence",
+      "rule": "不宣称穷尽互联网；静默研究缺口为零。"
+    },
+    "threshold": "不宣称穷尽互联网；静默研究缺口为零。",
+    "tests": [
+      {
+        "id": "TEST-S02-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S02-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S02-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S02-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "不宣称穷尽互联网；静默研究缺口为零。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S03-P01",
+    "requirement_id": "REQ-S03-P01",
+    "title": "中文术语字典唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S03-P01 对应机器事实",
+      "S03/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S03-P01 --evidence machine/evidence",
+      "rule": "日常界面不存在未解释缩写。"
+    },
+    "threshold": "日常界面不存在未解释缩写。",
+    "tests": [
+      {
+        "id": "TEST-S03-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S03-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S03-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S03-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "日常界面不存在未解释缩写。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S03-P02",
+    "requirement_id": "REQ-S03-P02",
+    "title": "唯一建议卡唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S03-P02 对应机器事实",
+      "S03/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S03-P02 --evidence machine/evidence",
+      "rule": "用户10秒内知道做什么、在哪做、金额和最低赔率。"
+    },
+    "threshold": "用户10秒内知道做什么、在哪做、金额和最低赔率。",
+    "tests": [
+      {
+        "id": "TEST-S03-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S03-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S03-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S03-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "用户10秒内知道做什么、在哪做、金额和最低赔率。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S03-P03",
+    "requirement_id": "REQ-S03-P03",
+    "title": "中文错误与下一步唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S03-P03 对应机器事实",
+      "S03/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S03-P03 --evidence machine/evidence",
+      "rule": "每个失败状态只有一个明确下一步。"
+    },
+    "threshold": "每个失败状态只有一个明确下一步。",
+    "tests": [
+      {
+        "id": "TEST-S03-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S03-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S03-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S03-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "每个失败状态只有一个明确下一步。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S03-P04",
+    "requirement_id": "REQ-S03-P04",
+    "title": "可用性与无障碍唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S03-P04 对应机器事实",
+      "S03/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S03-P04 --evidence machine/evidence",
+      "rule": "核心操作中位数≤10分钟、95分位≤20分钟。"
+    },
+    "threshold": "核心操作中位数≤10分钟、95分位≤20分钟。",
+    "tests": [
+      {
+        "id": "TEST-S03-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S03-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S03-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S03-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "核心操作中位数≤10分钟、95分位≤20分钟。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S04-P01",
+    "requirement_id": "REQ-S04-P01",
+    "title": "基础设施即代码唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S04-P01 对应机器事实",
+      "S04/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S04-P01 --evidence machine/evidence",
+      "rule": "一条命令可重建，秘密不进入仓库。"
+    },
+    "threshold": "一条命令可重建，秘密不进入仓库。",
+    "tests": [
+      {
+        "id": "TEST-S04-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S04-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S04-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S04-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "一条命令可重建，秘密不进入仓库。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S04-P02",
+    "requirement_id": "REQ-S04-P02",
+    "title": "Cloudflare 全球入口唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S04-P02 对应机器事实",
+      "S04/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S04-P02 --evidence machine/evidence",
+      "rule": "OVH无需公开业务入站端口即可访问。"
+    },
+    "threshold": "OVH无需公开业务入站端口即可访问。",
+    "tests": [
+      {
+        "id": "TEST-S04-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S04-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S04-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S04-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "OVH无需公开业务入站端口即可访问。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S04-P03",
+    "requirement_id": "REQ-S04-P03",
+    "title": "单机双环境发布唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S04-P03 对应机器事实",
+      "S04/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S04-P03 --evidence machine/evidence",
+      "rule": "发布不丢账本，失败在15分钟内回旧版。"
+    },
+    "threshold": "发布不丢账本，失败在15分钟内回旧版。",
+    "tests": [
+      {
+        "id": "TEST-S04-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S04-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S04-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S04-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "发布不丢账本，失败在15分钟内回旧版。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S04-P04",
+    "requirement_id": "REQ-S04-P04",
+    "title": "容量与资源治理唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S04-P04 对应机器事实",
+      "S04/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S04-P04 --evidence machine/evidence",
+      "rule": "VPS-1在10倍预期负载下不触发失控交换或磁盘耗尽。"
+    },
+    "threshold": "VPS-1在10倍预期负载下不触发失控交换或磁盘耗尽。",
+    "tests": [
+      {
+        "id": "TEST-S04-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S04-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S04-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S04-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "VPS-1在10倍预期负载下不触发失控交换或磁盘耗尽。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S05-P01",
+    "requirement_id": "REQ-S05-P01",
+    "title": "市场本体与范围清单唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S05-P01 对应机器事实",
+      "S05/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S05-P01 --evidence machine/evidence",
+      "rule": "所有发现对象都有唯一类型或明确未知状态。"
+    },
+    "threshold": "所有发现对象都有唯一类型或明确未知状态。",
+    "tests": [
+      {
+        "id": "TEST-S05-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S05-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S05-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S05-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "所有发现对象都有唯一类型或明确未知状态。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S05-P02",
+    "requirement_id": "REQ-S05-P02",
+    "title": "来源能力合同唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S05-P02 对应机器事实",
+      "S05/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S05-P02 --evidence machine/evidence",
+      "rule": "任何采集能力必须先通过来源合同。"
+    },
+    "threshold": "任何采集能力必须先通过来源合同。",
+    "tests": [
+      {
+        "id": "TEST-S05-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S05-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S05-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S05-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "任何采集能力必须先通过来源合同。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S05-P03",
+    "requirement_id": "REQ-S05-P03",
+    "title": "自适应采集调度唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S05-P03 对应机器事实",
+      "S05/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S05-P03 --evidence machine/evidence",
+      "rule": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。"
+    },
+    "threshold": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。",
+    "tests": [
+      {
+        "id": "TEST-S05-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S05-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S05-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S05-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S05-P04",
+    "requirement_id": "REQ-S05-P04",
+    "title": "覆盖缺口可观测唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S05-P04 对应机器事实",
+      "S05/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S05-P04 --evidence machine/evidence",
+      "rule": "静默缺口=0；每个缺口都有原因和恢复动作。"
+    },
+    "threshold": "静默缺口=0；每个缺口都有原因和恢复动作。",
+    "tests": [
+      {
+        "id": "TEST-S05-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S05-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S05-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S05-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "静默缺口=0；每个缺口都有原因和恢复动作。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S06-P01",
+    "requirement_id": "REQ-S06-P01",
+    "title": "最小权限授权与检索唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S06-P01 对应机器事实",
+      "S06/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S06-P01 --evidence machine/evidence",
+      "rule": "无授权不阻塞核心；有授权后重复扫描不重复归档。"
+    },
+    "threshold": "无授权不阻塞核心；有授权后重复扫描不重复归档。",
+    "tests": [
+      {
+        "id": "TEST-S06-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S06-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S06-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S06-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "无授权不阻塞核心；有授权后重复扫描不重复归档。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S06-P02",
+    "requirement_id": "REQ-S06-P02",
+    "title": "原件与附件双阶段保存唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S06-P02 对应机器事实",
+      "S06/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S06-P02 --evidence machine/evidence",
+      "rule": "任何文件缺失或哈希不一致时邮件不删除。"
+    },
+    "threshold": "任何文件缺失或哈希不一致时邮件不删除。",
+    "tests": [
+      {
+        "id": "TEST-S06-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S06-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S06-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S06-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "任何文件缺失或哈希不一致时邮件不删除。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S06-P03",
+    "requirement_id": "REQ-S06-P03",
+    "title": "附件安全与解析唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S06-P03 对应机器事实",
+      "S06/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S06-P03 --evidence machine/evidence",
+      "rule": "恶意、宏、脚本、公式注入或未知类型全部隔离。"
+    },
+    "threshold": "恶意、宏、脚本、公式注入或未知类型全部隔离。",
+    "tests": [
+      {
+        "id": "TEST-S06-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S06-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S06-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S06-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "恶意、宏、脚本、公式注入或未知类型全部隔离。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S06-P04",
+    "requirement_id": "REQ-S06-P04",
+    "title": "删除、审计与恢复唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S06-P04 对应机器事实",
+      "S06/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S06-P04 --evidence machine/evidence",
+      "rule": "未知发件人或验证失败不删除；永久删除能力不存在。"
+    },
+    "threshold": "未知发件人或验证失败不删除；永久删除能力不存在。",
+    "tests": [
+      {
+        "id": "TEST-S06-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S06-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S06-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S06-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "未知发件人或验证失败不删除；永久删除能力不存在。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S07-P01",
+    "requirement_id": "REQ-S07-P01",
+    "title": "赛事与盘口唯一身份唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S07-P01 对应机器事实",
+      "S07/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S07-P01 --evidence machine/evidence",
+      "rule": "身份置信度<99.5%时不建议。"
+    },
+    "threshold": "身份置信度<99.5%时不建议。",
+    "tests": [
+      {
+        "id": "TEST-S07-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S07-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S07-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S07-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "身份置信度<99.5%时不建议。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S07-P02",
+    "requirement_id": "REQ-S07-P02",
+    "title": "时间血缘与防泄漏唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S07-P02 对应机器事实",
+      "S07/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S07-P02 --evidence machine/evidence",
+      "rule": "未来信息容忍度=0。"
+    },
+    "threshold": "未来信息容忍度=0。",
+    "tests": [
+      {
+        "id": "TEST-S07-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S07-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S07-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S07-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "未来信息容忍度=0。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S07-P03",
+    "requirement_id": "REQ-S07-P03",
+    "title": "不可变建议与资金账本唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S07-P03 对应机器事实",
+      "S07/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S07-P03 --evidence machine/evidence",
+      "rule": "无成交证据时真实资金账本不变化。"
+    },
+    "threshold": "无成交证据时真实资金账本不变化。",
+    "tests": [
+      {
+        "id": "TEST-S07-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S07-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S07-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S07-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "无成交证据时真实资金账本不变化。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S07-P04",
+    "requirement_id": "REQ-S07-P04",
+    "title": "连续证据索引唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S07-P04 对应机器事实",
+      "S07/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S07-P04 --evidence machine/evidence",
+      "rule": "需求→任务→测试→证据→制品无孤儿。"
+    },
+    "threshold": "需求→任务→测试→证据→制品无孤儿。",
+    "tests": [
+      {
+        "id": "TEST-S07-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S07-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S07-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S07-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "需求→任务→测试→证据→制品无孤儿。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S08-P01",
+    "requirement_id": "REQ-S08-P01",
+    "title": "四种去水方法唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S08-P01 对应机器事实",
+      "S08/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S08-P01 --evidence machine/evidence",
+      "rule": "完整盘口概率和=1±1e-9，四种方法可重放。"
+    },
+    "threshold": "完整盘口概率和=1±1e-9，四种方法可重放。",
+    "tests": [
+      {
+        "id": "TEST-S08-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S08-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S08-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S08-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "完整盘口概率和=1±1e-9，四种方法可重放。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S08-P02",
+    "requirement_id": "REQ-S08-P02",
+    "title": "来源独立性与权重唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S08-P02 对应机器事实",
+      "S08/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S08-P02 --evidence machine/evidence",
+      "rule": "同源复制不得被错误计为多条独立证据。"
+    },
+    "threshold": "同源复制不得被错误计为多条独立证据。",
+    "tests": [
+      {
+        "id": "TEST-S08-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S08-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S08-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S08-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "同源复制不得被错误计为多条独立证据。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S08-P03",
+    "requirement_id": "REQ-S08-P03",
+    "title": "加权中位共识唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S08-P03 对应机器事实",
+      "S08/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S08-P03 --evidence machine/evidence",
+      "rule": "增加复制来源不改变共识；结果跨实现一致。"
+    },
+    "threshold": "增加复制来源不改变共识；结果跨实现一致。",
+    "tests": [
+      {
+        "id": "TEST-S08-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S08-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S08-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S08-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "增加复制来源不改变共识；结果跨实现一致。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S08-P04",
+    "requirement_id": "REQ-S08-P04",
+    "title": "异常值与线动唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S08-P04 对应机器事实",
+      "S08/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S08-P04 --evidence machine/evidence",
+      "rule": "单一异常长赔率不能制造建议。"
+    },
+    "threshold": "单一异常长赔率不能制造建议。",
+    "tests": [
+      {
+        "id": "TEST-S08-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S08-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S08-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S08-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "单一异常长赔率不能制造建议。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S09-P01",
+    "requirement_id": "REQ-S09-P01",
+    "title": "通用市场残差基线唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S09-P01 对应机器事实",
+      "S09/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S09-P01 --evidence machine/evidence",
+      "rule": "没有领域增量时残差权重自动为0。"
+    },
+    "threshold": "没有领域增量时残差权重自动为0。",
+    "tests": [
+      {
+        "id": "TEST-S09-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S09-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S09-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S09-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "没有领域增量时残差权重自动为0。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S09-P02",
+    "requirement_id": "REQ-S09-P02",
+    "title": "网球与对抗项目模型唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S09-P02 对应机器事实",
+      "S09/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S09-P02 --evidence machine/evidence",
+      "rule": "只使用建议时已知信息，时间外推通过。"
+    },
+    "threshold": "只使用建议时已知信息，时间外推通过。",
+    "tests": [
+      {
+        "id": "TEST-S09-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S09-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S09-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S09-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "只使用建议时已知信息，时间外推通过。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S09-P03",
+    "requirement_id": "REQ-S09-P03",
+    "title": "足球与得分项目模型唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S09-P03 对应机器事实",
+      "S09/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S09-P03 --evidence machine/evidence",
+      "rule": "概率质量、尾部和盘口映射通过。"
+    },
+    "threshold": "概率质量、尾部和盘口映射通过。",
+    "tests": [
+      {
+        "id": "TEST-S09-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S09-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S09-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S09-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "概率质量、尾部和盘口映射通过。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S09-P04",
+    "requirement_id": "REQ-S09-P04",
+    "title": "赛马、篮球、棒球及小众回退唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S09-P04 对应机器事实",
+      "S09/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S09-P04 --evidence machine/evidence",
+      "rule": "未证明领域模型只能市场基线或不建议。"
+    },
+    "threshold": "未证明领域模型只能市场基线或不建议。",
+    "tests": [
+      {
+        "id": "TEST-S09-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S09-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S09-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S09-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "未证明领域模型只能市场基线或不建议。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S10-P01",
+    "requirement_id": "REQ-S10-P01",
+    "title": "时间交叉验证与校准唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S10-P01 对应机器事实",
+      "S10/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S10-P01 --evidence machine/evidence",
+      "rule": "斜率0.90–1.10、截距绝对值≤0.02。"
+    },
+    "threshold": "斜率0.90–1.10、截距绝对值≤0.02。",
+    "tests": [
+      {
+        "id": "TEST-S10-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S10-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S10-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S10-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "斜率0.90–1.10、截距绝对值≤0.02。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S10-P02",
+    "requirement_id": "REQ-S10-P02",
+    "title": "分块重采样与保守概率唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S10-P02 对应机器事实",
+      "S10/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S10-P02 --evidence machine/evidence",
+      "rule": "固定种子/输入可重放，保守概率单调。"
+    },
+    "threshold": "固定种子/输入可重放，保守概率单调。",
+    "tests": [
+      {
+        "id": "TEST-S10-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S10-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S10-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S10-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "固定种子/输入可重放，保守概率单调。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S10-P03",
+    "requirement_id": "REQ-S10-P03",
+    "title": "十进制定点权威计算唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S10-P03 对应机器事实",
+      "S10/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S10-P03 --evidence machine/evidence",
+      "rule": "两套实现差≤1e-12且动作完全一致。"
+    },
+    "threshold": "两套实现差≤1e-12且动作完全一致。",
+    "tests": [
+      {
+        "id": "TEST-S10-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S10-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S10-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S10-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "两套实现差≤1e-12且动作完全一致。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S10-P04",
+    "requirement_id": "REQ-S10-P04",
+    "title": "万分之一扰动门唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S10-P04 对应机器事实",
+      "S10/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S10-P04 --evidence machine/evidence",
+      "rule": "所有硬边界±0.0001用例100%符合预期。"
+    },
+    "threshold": "所有硬边界±0.0001用例100%符合预期。",
+    "tests": [
+      {
+        "id": "TEST-S10-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S10-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S10-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S10-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "所有硬边界±0.0001用例100%符合预期。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S11-P01",
+    "requirement_id": "REQ-S11-P01",
+    "title": "摩擦与可执行净期望唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S11-P01 对应机器事实",
+      "S11/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S11-P01 --evidence machine/evidence",
+      "rule": "有效摩擦取默认与实测95分位较大者。"
+    },
+    "threshold": "有效摩擦取默认与实测95分位较大者。",
+    "tests": [
+      {
+        "id": "TEST-S11-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S11-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S11-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S11-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "有效摩擦取默认与实测95分位较大者。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S11-P02",
+    "requirement_id": "REQ-S11-P02",
+    "title": "证据层与最低赔率唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S11-P02 对应机器事实",
+      "S11/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S11-P02 --evidence machine/evidence",
+      "rule": "所有阈值边界及万分之一扰动通过。"
+    },
+    "threshold": "所有阈值边界及万分之一扰动通过。",
+    "tests": [
+      {
+        "id": "TEST-S11-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S11-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S11-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S11-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "所有阈值边界及万分之一扰动通过。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S11-P03",
+    "requirement_id": "REQ-S11-P03",
+    "title": "动态平台路由唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S11-P03 对应机器事实",
+      "S11/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S11-P03 --evidence machine/evidence",
+      "rule": "只显示一个最高分且全部门通过的平台。"
+    },
+    "threshold": "只显示一个最高分且全部门通过的平台。",
+    "tests": [
+      {
+        "id": "TEST-S11-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S11-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S11-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S11-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "只显示一个最高分且全部门通过的平台。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S11-P04",
+    "requirement_id": "REQ-S11-P04",
+    "title": "受限凯利与相关组合唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S11-P04 对应机器事实",
+      "S11/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S11-P04 --evidence machine/evidence",
+      "rule": "任意属性测试不能越过风险上限。"
+    },
+    "threshold": "任意属性测试不能越过风险上限。",
+    "tests": [
+      {
+        "id": "TEST-S11-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S11-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S11-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S11-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "任意属性测试不能越过风险上限。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S12-P01",
+    "requirement_id": "REQ-S12-P01",
+    "title": "目标曲线与现金流调整唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S12-P01 对应机器事实",
+      "S12/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S12-P01 --evidence machine/evidence",
+      "rule": "固定时钟下目标曲线与高精度参考一致。"
+    },
+    "threshold": "固定时钟下目标曲线与高精度参考一致。",
+    "tests": [
+      {
+        "id": "TEST-S12-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S12-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S12-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S12-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "固定时钟下目标曲线与高精度参考一致。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S12-P02",
+    "requirement_id": "REQ-S12-P02",
+    "title": "机会容量与相关校正唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S12-P02 对应机器事实",
+      "S12/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S12-P02 --evidence machine/evidence",
+      "rule": "不把高度相关机会重复计入30%覆盖。"
+    },
+    "threshold": "不把高度相关机会重复计入30%覆盖。",
+    "tests": [
+      {
+        "id": "TEST-S12-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S12-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S12-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S12-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "不把高度相关机会重复计入30%覆盖。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S12-P03",
+    "requirement_id": "REQ-S12-P03",
+    "title": "收益成本敏感性唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S12-P03 对应机器事实",
+      "S12/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S12-P03 --evidence machine/evidence",
+      "rule": "所有收益带区间、置信度和失败概率，不输出保证。"
+    },
+    "threshold": "所有收益带区间、置信度和失败概率，不输出保证。",
+    "tests": [
+      {
+        "id": "TEST-S12-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S12-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S12-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S12-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "所有收益带区间、置信度和失败概率，不输出保证。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S12-P04",
+    "requirement_id": "REQ-S12-P04",
+    "title": "证伪与验证门唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S12-P04 对应机器事实",
+      "S12/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S12-P04 --evidence machine/evidence",
+      "rule": "目标短缺只报告，不降低阈值、仓位或证据门。"
+    },
+    "threshold": "目标短缺只报告，不降低阈值、仓位或证据门。",
+    "tests": [
+      {
+        "id": "TEST-S12-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S12-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S12-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S12-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "目标短缺只报告，不降低阈值、仓位或证据门。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S13-P01",
+    "requirement_id": "REQ-S13-P01",
+    "title": "中文工作台与推送唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S13-P01 对应机器事实",
+      "S13/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S13-P01 --evidence machine/evidence",
+      "rule": "手机/电脑任意地点可访问，界面中文。"
+    },
+    "threshold": "手机/电脑任意地点可访问，界面中文。",
+    "tests": [
+      {
+        "id": "TEST-S13-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S13-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S13-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S13-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "手机/电脑任意地点可访问，界面中文。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S13-P02",
+    "requirement_id": "REQ-S13-P02",
+    "title": "打开平台与即时校验唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S13-P02 对应机器事实",
+      "S13/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S13-P02 --evidence machine/evidence",
+      "rule": "低于最低赔率、身份不符或过期立即红色撤销。"
+    },
+    "threshold": "低于最低赔率、身份不符或过期立即红色撤销。",
+    "tests": [
+      {
+        "id": "TEST-S13-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S13-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S13-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S13-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "低于最低赔率、身份不符或过期立即红色撤销。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S13-P03",
+    "requirement_id": "REQ-S13-P03",
+    "title": "建议后证据与结算唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S13-P03 对应机器事实",
+      "S13/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S13-P03 --evidence machine/evidence",
+      "rule": "没有确认时不伪造真实收益。"
+    },
+    "threshold": "没有确认时不伪造真实收益。",
+    "tests": [
+      {
+        "id": "TEST-S13-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S13-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S13-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S13-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "没有确认时不伪造真实收益。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S13-P04",
+    "requirement_id": "REQ-S13-P04",
+    "title": "六类完整路径唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S13-P04 对应机器事实",
+      "S13/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S13-P04 --evidence machine/evidence",
+      "rule": "每类路径有输入、状态、输出、证据和恢复。"
+    },
+    "threshold": "每类路径有输入、状态、输出、证据和恢复。",
+    "tests": [
+      {
+        "id": "TEST-S13-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S13-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S13-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S13-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "每类路径有输入、状态、输出、证据和恢复。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S14-P01",
+    "requirement_id": "REQ-S14-P01",
+    "title": "威胁模型与信任边界唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S14-P01 对应机器事实",
+      "S14/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S14-P01 --evidence machine/evidence",
+      "rule": "高风险威胁均有预防、检测、响应和恢复控制。"
+    },
+    "threshold": "高风险威胁均有预防、检测、响应和恢复控制。",
+    "tests": [
+      {
+        "id": "TEST-S14-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S14-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S14-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S14-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "高风险威胁均有预防、检测、响应和恢复控制。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S14-P02",
+    "requirement_id": "REQ-S14-P02",
+    "title": "安全编码与自动分析唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S14-P02 对应机器事实",
+      "S14/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S14-P02 --evidence machine/evidence",
+      "rule": "未处置严重/高危为0。"
+    },
+    "threshold": "未处置严重/高危为0。",
+    "tests": [
+      {
+        "id": "TEST-S14-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S14-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S14-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S14-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "未处置严重/高危为0。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S14-P03",
+    "requirement_id": "REQ-S14-P03",
+    "title": "组件与补丁生命周期唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S14-P03 对应机器事实",
+      "S14/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S14-P03 --evidence machine/evidence",
+      "rule": "每个生产组件有来源、版本、许可证和负责人。"
+    },
+    "threshold": "每个生产组件有来源、版本、许可证和负责人。",
+    "tests": [
+      {
+        "id": "TEST-S14-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S14-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S14-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S14-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "每个生产组件有来源、版本、许可证和负责人。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S14-P04",
+    "requirement_id": "REQ-S14-P04",
+    "title": "制品来源与安全回滚唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S14-P04 对应机器事实",
+      "S14/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S14-P04 --evidence machine/evidence",
+      "rule": "发布制品可追溯到源代码、依赖和构建环境。"
+    },
+    "threshold": "发布制品可追溯到源代码、依赖和构建环境。",
+    "tests": [
+      {
+        "id": "TEST-S14-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S14-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S14-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S14-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "发布制品可追溯到源代码、依赖和构建环境。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S15-P01",
+    "requirement_id": "REQ-S15-P01",
+    "title": "单元、属性与Schema测试唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S15-P01 对应机器事实",
+      "S15/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S15-P01 --evidence machine/evidence",
+      "rule": "关键模块分支覆盖≥95%，资金/阈值属性测试100%通过。"
+    },
+    "threshold": "关键模块分支覆盖≥95%，资金/阈值属性测试100%通过。",
+    "tests": [
+      {
+        "id": "TEST-S15-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S15-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S15-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S15-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "关键模块分支覆盖≥95%，资金/阈值属性测试100%通过。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S15-P02",
+    "requirement_id": "REQ-S15-P02",
+    "title": "来源合同与集成测试唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S15-P02 对应机器事实",
+      "S15/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S15-P02 --evidence machine/evidence",
+      "rule": "真实网络故障不影响测试确定性。"
+    },
+    "threshold": "真实网络故障不影响测试确定性。",
+    "tests": [
+      {
+        "id": "TEST-S15-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S15-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S15-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S15-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "真实网络故障不影响测试确定性。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S15-P03",
+    "requirement_id": "REQ-S15-P03",
+    "title": "多端多环境端到端唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S15-P03 对应机器事实",
+      "S15/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S15-P03 --evidence machine/evidence",
+      "rule": "Golden/Black/Degraded/Recovery全通过。"
+    },
+    "threshold": "Golden/Black/Degraded/Recovery全通过。",
+    "tests": [
+      {
+        "id": "TEST-S15-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S15-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S15-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S15-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "Golden/Black/Degraded/Recovery全通过。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S15-P04",
+    "requirement_id": "REQ-S15-P04",
+    "title": "需求追踪与通过门唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S15-P04 对应机器事实",
+      "S15/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S15-P04 --evidence machine/evidence",
+      "rule": "无孤儿、无循环、无未通过关键验收。"
+    },
+    "threshold": "无孤儿、无循环、无未通过关键验收。",
+    "tests": [
+      {
+        "id": "TEST-S15-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S15-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S15-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S15-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "无孤儿、无循环、无未通过关键验收。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S16-P01",
+    "requirement_id": "REQ-S16-P01",
+    "title": "市场基线与挑战模型唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S16-P01 对应机器事实",
+      "S16/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S16-P01 --evidence machine/evidence",
+      "rule": "模型没有显著增量时权重归零。"
+    },
+    "threshold": "模型没有显著增量时权重归零。",
+    "tests": [
+      {
+        "id": "TEST-S16-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S16-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S16-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S16-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "模型没有显著增量时权重归零。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S16-P02",
+    "requirement_id": "REQ-S16-P02",
+    "title": "能力、校准与收益评测唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S16-P02 对应机器事实",
+      "S16/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S16-P02 --evidence machine/evidence",
+      "rule": "所有95%置信下界门通过才晋级。"
+    },
+    "threshold": "所有95%置信下界门通过才晋级。",
+    "tests": [
+      {
+        "id": "TEST-S16-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S16-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S16-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S16-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "所有95%置信下界门通过才晋级。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S16-P03",
+    "requirement_id": "REQ-S16-P03",
+    "title": "红队与不同模型互审唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S16-P03 对应机器事实",
+      "S16/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S16-P03 --evidence machine/evidence",
+      "rule": "任何可绕过门的攻击为阻断缺陷。"
+    },
+    "threshold": "任何可绕过门的攻击为阻断缺陷。",
+    "tests": [
+      {
+        "id": "TEST-S16-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S16-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S16-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S16-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "任何可绕过门的攻击为阻断缺陷。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S16-P04",
+    "requirement_id": "REQ-S16-P04",
+    "title": "模型系统说明卡与阶段门唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S16-P04 对应机器事实",
+      "S16/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S16-P04 --evidence machine/evidence",
+      "rule": "软件通过不能替代模型通过，两条门独立。"
+    },
+    "threshold": "软件通过不能替代模型通过，两条门独立。",
+    "tests": [
+      {
+        "id": "TEST-S16-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S16-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S16-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S16-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "软件通过不能替代模型通过，两条门独立。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S17-P01",
+    "requirement_id": "REQ-S17-P01",
+    "title": "全历史与10倍负载唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S17-P01 对应机器事实",
+      "S17/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S17-P01 --evidence machine/evidence",
+      "rule": "VPS-1资源门内且无静默丢数据。"
+    },
+    "threshold": "VPS-1资源门内且无静默丢数据。",
+    "tests": [
+      {
+        "id": "TEST-S17-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S17-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S17-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S17-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "VPS-1资源门内且无静默丢数据。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S17-P02",
+    "requirement_id": "REQ-S17-P02",
+    "title": "并发、重试与幂等极限唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S17-P02 对应机器事实",
+      "S17/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S17-P02 --evidence machine/evidence",
+      "rule": "重复建议/账本事件为0。"
+    },
+    "threshold": "重复建议/账本事件为0。",
+    "tests": [
+      {
+        "id": "TEST-S17-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S17-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S17-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S17-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "重复建议/账本事件为0。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S17-P03",
+    "requirement_id": "REQ-S17-P03",
+    "title": "故障注入唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S17-P03 对应机器事实",
+      "S17/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S17-P03 --evidence machine/evidence",
+      "rule": "错误时不使用陈旧数据且自动降级。"
+    },
+    "threshold": "错误时不使用陈旧数据且自动降级。",
+    "tests": [
+      {
+        "id": "TEST-S17-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S17-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S17-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S17-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "错误时不使用陈旧数据且自动降级。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S17-P04",
+    "requirement_id": "REQ-S17-P04",
+    "title": "恢复与常态演练唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S17-P04 对应机器事实",
+      "S17/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S17-P04 --evidence machine/evidence",
+      "rule": "账本恢复点≤60秒，建议服务恢复≤15分钟。"
+    },
+    "threshold": "账本恢复点≤60秒，建议服务恢复≤15分钟。",
+    "tests": [
+      {
+        "id": "TEST-S17-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S17-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S17-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S17-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "账本恢复点≤60秒，建议服务恢复≤15分钟。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S18-P01",
+    "requirement_id": "REQ-S18-P01",
+    "title": "双环境与小流量试运行唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S18-P01 对应机器事实",
+      "S18/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S18-P01 --evidence machine/evidence",
+      "rule": "新版本探针失败自动回旧版。"
+    },
+    "threshold": "新版本探针失败自动回旧版。",
+    "tests": [
+      {
+        "id": "TEST-S18-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S18-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S18-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S18-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "新版本探针失败自动回旧版。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S18-P02",
+    "requirement_id": "REQ-S18-P02",
+    "title": "可观测、诊断与告警唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S18-P02 对应机器事实",
+      "S18/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S18-P02 --evidence machine/evidence",
+      "rule": "每个高优先级告警有唯一自动或人工动作。"
+    },
+    "threshold": "每个高优先级告警有唯一自动或人工动作。",
+    "tests": [
+      {
+        "id": "TEST-S18-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S18-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S18-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S18-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "每个高优先级告警有唯一自动或人工动作。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S18-P03",
+    "requirement_id": "REQ-S18-P03",
+    "title": "有限自愈唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S18-P03 对应机器事实",
+      "S18/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S18-P03 --evidence machine/evidence",
+      "rule": "自愈不能修改资金事实或放宽风险门。"
+    },
+    "threshold": "自愈不能修改资金事实或放宽风险门。",
+    "tests": [
+      {
+        "id": "TEST-S18-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S18-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S18-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S18-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "自愈不能修改资金事实或放宽风险门。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S18-P04",
+    "requirement_id": "REQ-S18-P04",
+    "title": "运行手册与值守自动化唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S18-P04 对应机器事实",
+      "S18/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S18-P04 --evidence machine/evidence",
+      "rule": "正常运行无需用户维护；异常仅按暂停合同升级。"
+    },
+    "threshold": "正常运行无需用户维护；异常仅按暂停合同升级。",
+    "tests": [
+      {
+        "id": "TEST-S18-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S18-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S18-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S18-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "正常运行无需用户维护；异常仅按暂停合同升级。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S19-P01",
+    "requirement_id": "REQ-S19-P01",
+    "title": "Walking Skeleton 与软件Alpha唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S19-P01 对应机器事实",
+      "S19/P01 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S19-P01 --evidence machine/evidence",
+      "rule": "不使用真实资金即可确定性闭环。"
+    },
+    "threshold": "不使用真实资金即可确定性闭环。",
+    "tests": [
+      {
+        "id": "TEST-S19-P01",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S19-P01-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S19-P01-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S19-P01.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "不使用真实资金即可确定性闭环。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S19-P02",
+    "requirement_id": "REQ-S19-P02",
+    "title": "影子运行与模型Beta唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S19-P02 对应机器事实",
+      "S19/P02 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S19-P02 --evidence machine/evidence",
+      "rule": "校准、净增长、时效、容量和漂移门通过。"
+    },
+    "threshold": "校准、净增长、时效、容量和漂移门通过。",
+    "tests": [
+      {
+        "id": "TEST-S19-P02",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S19-P02-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S19-P02-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S19-P02.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "校准、净增长、时效、容量和漂移门通过。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S19-P03",
+    "requirement_id": "REQ-S19-P03",
+    "title": "正式可用与小额建议唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S19-P03 对应机器事实",
+      "S19/P03 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S19-P03 --evidence machine/evidence",
+      "rule": "证据完整、对账差异0、终止条件未触发。"
+    },
+    "threshold": "证据完整、对账差异0、终止条件未触发。",
+    "tests": [
+      {
+        "id": "TEST-S19-P03",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S19-P03-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S19-P03-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S19-P03.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "证据完整、对账差异0、终止条件未触发。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  },
+  {
+    "id": "AC-S19-P04",
+    "requirement_id": "REQ-S19-P04",
+    "title": "最终验收与长期验证唯一主验收",
+    "environment": [
+      "Ubuntu Linux 持续集成环境",
+      "固定时钟",
+      "冻结测试夹具",
+      "无外部网络的确定性测试模式",
+      "生产等价配置Schema"
+    ],
+    "inputs": [
+      "REQ-S19-P04 对应机器事实",
+      "S19/P04 冻结正向、边界、负向和故障输入",
+      "参数版本和来源版本哈希"
+    ],
+    "oracle": {
+      "type": "EXECUTABLE",
+      "command": "python -m abd_acceptance --contract AC-S19-P04 --evidence machine/evidence",
+      "rule": "所有验收通过，版本和哈希无歧义无冲突。"
+    },
+    "threshold": "所有验收通过，版本和哈希无歧义无冲突。",
+    "tests": [
+      {
+        "id": "TEST-S19-P04",
+        "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+      },
+      {
+        "id": "TEST-S19-P04-BOUNDARY",
+        "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+      },
+      {
+        "id": "TEST-S19-P04-REPLAY",
+        "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+      }
+    ],
+    "evidence_requirements": [
+      "machine/evidence/EVD-S19-P04.json",
+      "测试报告及命令退出码",
+      "输入、参数、代码、模型和输出SHA-256",
+      "失败路径截图或结构化日志",
+      "回滚演练记录"
+    ],
+    "pass_gate": "所有验收通过，版本和哈希无歧义无冲突。",
+    "stop_condition": [
+      "发现法律、监管或来源合同实质冲突且无安全默认",
+      "需要不可逆操作",
+      "新增现金支出将超过A$0",
+      "严重安全事故或证据完整性失败",
+      "阶段终止条件被触发"
+    ],
+    "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+    "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留"
+  }
+]

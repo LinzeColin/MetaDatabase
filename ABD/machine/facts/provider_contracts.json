@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0.0",
+  "default_rule": "按来源逐项证明；来源失败只关闭对应能力，不形成全局禁令。",
+  "capabilities": [
+    {
+      "mode": "PUBLIC_BROWSER",
+      "name_zh": "公开页面观察",
+      "default": "CONDITIONAL",
+      "requirements": [
+        "页面公开可访问",
+        "频率符合来源合同",
+        "保存版本和证据",
+        "遇到挑战退避"
+      ],
+      "failure": "DEGRADE_AND_SWITCH_SOURCE"
+    },
+    {
+      "mode": "FILE_OR_STATIC_DATA",
+      "name_zh": "公开文件或静态数据",
+      "default": "ENABLED",
+      "requirements": [
+        "许可证和用途明确",
+        "内容哈希",
+        "更新日期和字段血缘"
+      ],
+      "failure": "QUARANTINE_SOURCE_VERSION"
+    },
+    {
+      "mode": "FREE_ENDPOINT",
+      "name_zh": "免费程序端点",
+      "default": "OPTIONAL_NON_CRITICAL",
+      "requirements": [
+        "无新增现金费用",
+        "配额可观测",
+        "可替换",
+        "不成为单点真源"
+      ],
+      "failure": "FALLBACK_TO_OTHER_SOURCES"
+    },
+    {
+      "mode": "AUTHENTICATED_OBSERVER",
+      "name_zh": "只读登录观察",
+      "default": "OFF",
+      "requirements": [
+        "用户明确配置",
+        "秘密加密",
+        "最小权限",
+        "来源合同允许",
+        "无订单能力"
+      ],
+      "failure": "DISABLE_SESSION_AND_ALERT"
+    },
+    {
+      "mode": "OWNER_DEVICE_OVERLAY",
+      "name_zh": "用户页面即时校验",
+      "default": "ENABLED_WHEN_INSTALLED",
+      "requirements": [
+        "只读取当前可见赛事/盘口/赔率",
+        "不自动提交",
+        "不把页面文字当指令"
+      ],
+      "failure": "SHOW_MANUAL_CHECK_OR_CANCEL_TICKET"
+    }
+  ],
+  "providers": [
+    {
+      "id": "TAB",
+      "role": "DYNAMIC_PRICE_OR_ACTION_OPTION",
+      "background_public_page_collection": "SOURCE_CONTRACT_DEPENDENT",
+      "email_evidence": "ENABLED_AFTER_GMAIL_CONSENT",
+      "realtime_truth": "NOT_FROM_EMAIL",
+      "order_submission": "NOT_PRESENT"
+    },
+    {
+      "id": "SPORTSBET",
+      "role": "DYNAMIC_PRICE_OR_ACTION_OPTION",
+      "background_public_page_collection": "SOURCE_CONTRACT_DEPENDENT",
+      "email_evidence": "OPTIONAL",
+      "realtime_truth": "OWNER_VISIBLE_PRICE_OR_VERIFIED_FRESH_SOURCE",
+      "order_submission": "NOT_PRESENT"
+    },
+    {
+      "id": "OTHER_OBSERVABLE_PROVIDER",
+      "role": "DISCOVERY_AND_DYNAMIC_ROUTING",
+      "background_public_page_collection": "SOURCE_CONTRACT_DEPENDENT",
+      "email_evidence": "OPTIONAL",
+      "realtime_truth": "VERIFIED_FRESH_SOURCE",
+      "order_submission": "NOT_PRESENT"
+    }
+  ]
+}

@@ -1,0 +1,243 @@
+{
+  "commands": [
+    {
+      "command": "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+      "result_source": "machine/evidence/validation_report.json"
+    },
+    {
+      "command": "uv run --frozen --python 3.12 python -m pytest -q tests/S00/P01_test.py --junitxml=machine/evidence/S00/P01/pytest.xml",
+      "result_source": "machine/evidence/S00/P01/pytest.xml"
+    },
+    {
+      "command": "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S00-P01 --evidence machine/evidence",
+      "exit_code": 0
+    }
+  ],
+  "contract_id": "AC-S00-P01",
+  "decision": "FACTS_FROZEN",
+  "decision_sha256": "70adf91b7ddec0ea504cbe59b5695776ed8b6399f9d27ae23683baea1cc600bd",
+  "evidence_id": "EVD-S00-P01",
+  "explicit_unknowns": [
+    "External unprovided historical drafts were not evaluated.",
+    "Current provider, regulatory, account, OVH, Cloudflare, Gmail and TAB runtime state was not verified in S00/P01.",
+    "No production deployment, real order or actual-return evidence exists in this phase."
+  ],
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "hashes": {
+    "code": "3c9aefa03e128401085e100de67bbbd3fe3db4ad637281a4d7c60916d9a9395c",
+    "inputs": {
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_conflicts.json": "7e60feb9c6c49ad233d9ac1a837683a6f2feb83303fefa42b02e2ce3611682f3",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/canonical_facts.sha256": "834c81f0290e7ff7ed7b20711ba4dd84970234ea9fc1d14e9fde32c50de44d5e",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+    },
+    "model": null,
+    "model_not_applicable_reason": "S00/P01 freezes facts and has no model artifact.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "3ac882b2ad95c71c7733d1b0206c6e556f6d119f19146f3421847cd53318dbca"
+  },
+  "next": "S00/P02_READY_NOT_STARTED",
+  "non_guarantee": "30% monthly compounding remains an unverified falsifiable target, never a random-return guarantee.",
+  "pass_gate": "全部事实唯一、无冲突、版本为0.0.0.1。",
+  "release_status": "NOT_READY",
+  "requirement_id": "REQ-S00-P01",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S00-P01_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_status": "S00_IN_PROGRESS",
+  "status": "PASS",
+  "task_ids": [
+    "T-S00-P01-01",
+    "T-S00-P01-02",
+    "T-S00-P01-03"
+  ],
+  "validation": {
+    "checks": [
+      {
+        "detail": [
+          "machine/facts/canonical_facts.json"
+        ],
+        "id": "FACT-SINGLE-SOURCE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/canonical_facts.json",
+        "id": "FACT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": [
+          "authorization",
+          "email",
+          "product",
+          "runtime",
+          "scheduling",
+          "schema_version",
+          "scope",
+          "truth_and_evidence"
+        ],
+        "id": "FACT-REQUIRED-TOP-LEVEL",
+        "passed": true
+      },
+      {
+        "detail": [
+          "product.id",
+          "product.incremental_cash_budget_aud",
+          "product.initial_bankroll_aud",
+          "product.monthly_target_return",
+          "product.version",
+          "scope.analysis_only",
+          "scope.no_order_module",
+          "truth.actual_return_needs_evidence"
+        ],
+        "id": "FACT-BASELINE-VALUES",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "FACT-UNIQUE-SCALAR-LISTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "FACT-PINNED-HASH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_hash": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "locked_hash": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "locked_path": "machine/facts/canonical_facts.json"
+        },
+        "id": "FACT-HASH-LOCK",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/canonical_conflicts.json",
+        "id": "CONFLICT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "declared": 0,
+          "entries": 0,
+          "status": "NO_CONFLICTS_IN_EVALUATED_SCOPE",
+          "unresolved": 0
+        },
+        "id": "CONFLICT-NONE-UNRESOLVED",
+        "passed": true
+      },
+      {
+        "detail": "all match",
+        "id": "CONFLICT-SOURCE-HASHES",
+        "passed": true
+      },
+      {
+        "detail": [
+          "未向本轮提供的外部旧包或私有草稿",
+          "会随时间变化的平台条款、监管事实、价格和运行访问能力（由 S02/P01 以当前一手来源复核）",
+          "尚未执行的 OVH、Cloudflare、Gmail、TAB 或其他平台运行状态"
+        ],
+        "id": "CONFLICT-SCOPE-DISCLOSED",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/parameters.json",
+        "id": "SOURCE-PARAMETERS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/facts/costs.json",
+        "id": "SOURCE-COSTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/release_manifest.json",
+        "id": "SOURCE-RELEASE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "VERSION",
+          "costs.incremental_budget",
+          "parameters.monthly_return",
+          "refresh.more_than_24h",
+          "release.initial_bankroll",
+          "release.return_not_guaranteed",
+          "release.version"
+        ],
+        "id": "FACT-CROSS-SOURCE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "SOURCE-PINNED-GOAL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+          "expected": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+        },
+        "id": "SOURCE-PINNED-ROADMAP",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 15
+        },
+        "id": "TEST-JUNIT-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/validation_report.json",
+        "id": "PACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "PASS",
+        "id": "PACK-VALIDATION-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S00-P01",
+    "decision": "FACTS_FROZEN",
+    "fixed_clock": "2026-07-19T00:00:00+10:00",
+    "hashes": {
+      "machine/evidence/S00/P01/pytest.xml": "b5ab105f1c61e7f60dc8c7c6b247b2c2d58204e721e188cb1ad3fe416e9d55e3",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+    },
+    "next": "S00/P02_READY_NOT_STARTED",
+    "release_status": "NOT_READY",
+    "requirement_id": "REQ-S00-P01",
+    "schema_version": "1.0.0",
+    "scope_statement": "No conflicts in evaluated scope; external unprovided drafts and time-varying provider facts are not asserted.",
+    "stage_status": "S00_IN_PROGRESS",
+    "status": "PASS",
+    "summary": {
+      "checks": 20,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 20
+    },
+    "version": "0.0.0.1"
+  }
+}

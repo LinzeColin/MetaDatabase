@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="38" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S00.P01_test" name="test_baseline_contract_passes_without_runtime_reports" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_duplicate_json_key_is_rejected" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_second_canonical_source_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_wrong_version_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_sensitive_fact_boundary_mutations_fail_closed[MONTHLY-TARGET-MINUS-0.0001]" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_sensitive_fact_boundary_mutations_fail_closed[MONTHLY-TARGET-PLUS-0.0001]" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_sensitive_fact_boundary_mutations_fail_closed[INITIAL-BANKROLL-MINUS-0.0001]" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_sensitive_fact_boundary_mutations_fail_closed[INITIAL-BANKROLL-PLUS-0.0001]" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_hash_lock_mismatch_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_unresolved_conflict_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_malformed_canonical_json_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_missing_required_fact_fails_closed_without_crashing" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_invalid_conflict_collection_type_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_evidence_replay_is_deterministic" time="0.000" />
+    <testcase classname="tests.S00.P01_test" name="test_rollback_drill_restores_frozen_bytes" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_baseline_authorization_contract_passes_without_runtime_reports" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_real_order_submission_cannot_be_authorized" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_permanent_email_delete_cannot_be_authorized" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_external_capability_cannot_be_claimed_verified" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_stage_upload_requires_whole_stage_review" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_missing_gmail_consent_must_not_block_core" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_unknown_authorization_never_executes" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_nonexplicit_reason_cannot_block_task_graph" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_unknown_pause_reason_code_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_cash_boundary_is_exactly_zero[CASH-PLUS-0.0001]" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_cash_boundary_is_exactly_zero[CASH-MINUS-0.0001]" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_pause_receipt_valid_fixture_passes_schema" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_invalid_pause_receipts_fail_schema[missing_question]" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_invalid_pause_receipts_fail_schema[secret_present]" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_invalid_pause_receipts_fail_schema[unknown_reason]" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_invalid_pause_receipts_fail_schema[positive_cash]" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_invalid_pause_receipts_fail_schema[absolute_artifact_path]" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_p01_prerequisite_must_remain_pass" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_malformed_p01_evidence_index_fails_closed_without_crashing" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_canonical_facts_drift_after_p01_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_second_authorization_matrix_source_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_evidence_replay_is_deterministic" time="0.000" />
+    <testcase classname="tests.S00.P02_test" name="test_rollback_drill_restores_all_three_policy_artifacts" time="0.000" />
+  </testsuite>
+</testsuites>

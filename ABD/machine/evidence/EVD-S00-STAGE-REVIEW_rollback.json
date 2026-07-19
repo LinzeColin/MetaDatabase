@@ -1,0 +1,36 @@
+{
+  "artifacts": {
+    ".github/workflows/abd-stage0-validation.yml": {
+      "corrupted_sha256": "eff63f7da08f7b69a5a236fad6aac7719cd18c8ff883362615cbe7c478f526f2",
+      "restored_sha256": "b990bde5180fc25ba24ded116fcdfb24453c69b6fb246b88989bf260c242f056",
+      "signed_sha256": "b990bde5180fc25ba24ded116fcdfb24453c69b6fb246b88989bf260c242f056",
+      "status": "PASS"
+    },
+    ".github/workflows/dual-plane.yml": {
+      "corrupted_sha256": "3627ab027d70c0d9c5a9ff3178001f6d5f76939171171904788387666194e942",
+      "restored_sha256": "56024e39ff14ef6dfc895ebcb384b67ca1d4d5118289588761858b5273397ab9",
+      "signed_sha256": "56024e39ff14ef6dfc895ebcb384b67ca1d4d5118289588761858b5273397ab9",
+      "status": "PASS"
+    },
+    "machine/evidence/S00/STAGE_REVIEW/findings.json": {
+      "corrupted_sha256": "9af0b8af591557c5241ee01dbc2c5044f00d55376406312433e3521bae790635",
+      "restored_sha256": "1e04047b92976cc746c9912806358880a17f7740fa1678e5122b9db28e8c7284",
+      "signed_sha256": "1e04047b92976cc746c9912806358880a17f7740fa1678e5122b9db28e8c7284",
+      "status": "PASS"
+    },
+    "machine/facts/stage0_review_contract.json": {
+      "corrupted_sha256": "3c27e1638df27f714016f7be5b02c612aa9002a6e186a922721e77bd952247f4",
+      "restored_sha256": "b8690e7639dfa50760f372a584e3af324d43b415fc911e084a31de10e97ced30",
+      "signed_sha256": "b8690e7639dfa50760f372a584e3af324d43b415fc911e084a31de10e97ced30",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "STAGE-REVIEW-S00",
+  "evidence_id": "EVD-S00-STAGE-REVIEW-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_STAGE_REVIEW_CONTRACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

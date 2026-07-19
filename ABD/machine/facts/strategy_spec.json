@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "objective": "在目标回报30%月复利下最大化保守长期对数增长，同时满足证据、数值稳定性、风险、安全和容量合同。",
+  "decision_pipeline": [
+    "全范围发现",
+    "赛事/盘口/选择/规则唯一身份",
+    "时效和完整度门",
+    "四种去水",
+    "来源独立加权市场共识",
+    "运动/盘口概率分布",
+    "市场锚定残差融合",
+    "时间校准和分块重采样",
+    "保守概率下界",
+    "摩擦后保守期望净收益率",
+    "证据层和最低赔率",
+    "受限凯利与相关组合",
+    "万分之一及不利赔率跳动稳定性",
+    "30%目标容量诊断",
+    "唯一建议或不建议"
+  ],
+  "formulas": {
+    "implied_probability": "q_i=1/o_i",
+    "multiplicative_devig": "p_i=q_i/sum(q)",
+    "market_residual": "logit(p_final)=logit(p_market)+alpha*(logit(p_domain)-logit(p_domain_reference))",
+    "conservative_probability": "p_L=percentile_10(block_bootstrap(p_final))",
+    "robust_net_expected_return": "r_L=p_L*odds-1-friction",
+    "minimum_odds": "odds_min=(1+r_min+friction)/p_L",
+    "full_kelly": "f_K=(p_L*odds-1)/(odds-1)",
+    "actual_fraction": "f=min(kappa*max(f_K,0),ticket_cap,event_cap,cluster_cap,total_open_cap)",
+    "ticket_log_growth": "g=p_L*ln(1+f*(odds-1))+(1-p_L)*ln(1-f)",
+    "monthly_target_log_growth": "ln(1.3)"
+  },
+  "hard_gates": [
+    "身份置信度≥0.995",
+    "必需特征完整度≥0.98",
+    "报价在可用时限内",
+    "主流盘口平台利润率≤0.18，小众≤0.25",
+    "未来泄漏=0",
+    "证据层阈值通过",
+    "万分之一和不利跳动后动作不翻转",
+    "仓位与暴露上限通过",
+    "来源合同和动作通道通过"
+  ],
+  "target_discipline": [
+    "30%保持为目标曲线、容量要求、证伪和验证对象",
+    "目标短缺不改变期望收益、概率、时效、风险或仓位门",
+    "没有合格机会时正确输出不建议",
+    "只有12个完整月实际证据才能称为目标已验证"
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "schema_version": "1.1.0",
+  "version": "0.0.0.1",
+  "phase": "S00/P04",
+  "policy_id": "ABD-DECISION-PREREQUISITES-S00-P04",
+  "fixed_at": "2026-07-19T00:00:00+10:00",
+  "rule": "开发前穷尽普通依赖；未满足的可选外部授权不得阻塞核心开发、部署准备、分析、建议或非Gmail证据任务。",
+  "semantics": {
+    "authorization_is_not_capability": true,
+    "capability_is_not_readiness": true,
+    "consent_receipt_is_not_token": true,
+    "phase_acceptance_is_not_external_consent": true,
+    "one_time_means_normal_owner_action_not_permanent_token_validity": true,
+    "unknown_external_state_default": "DISABLE_AFFECTED_EXTERNAL_MODULE_CONTINUE_SAFE_CORE",
+    "current_owner_action_required": false
+  },
+  "current_phase_observation": {
+    "gmail_authorization_status": "NOT_REQUESTED",
+    "gmail_capability_status": "UNVERIFIED",
+    "gmail_readiness_status": "NOT_READY",
+    "gmail_module_enabled": false,
+    "gmail_external_api_call_performed": false,
+    "oauth_link_generated": false,
+    "oauth_callback_received": false,
+    "token_received_or_stored": false,
+    "external_account_or_console_inspected": false,
+    "owner_consent_claimed": false,
+    "evidence_basis": "LOCAL_CONTRACT_AND_DETERMINISTIC_FIXTURES_ONLY"
+  },
+  "gmail_missing_consent_impact": {
+    "disabled_components": [
+      "GMAIL_POLL",
+      "GMAIL_MESSAGE_READ",
+      "GMAIL_ATTACHMENT_DOWNLOAD",
+      "GMAIL_TRASH",
+      "GMAIL_UNTRASH",
+      "GMAIL_COLLECTOR_AUDIT"
+    ],
+    "unaffected_components": [
+      "LOCAL_DEVELOPMENT",
+      "BUILD_AND_TEST",
+      "DEPLOYMENT_PREPARATION",
+      "MARKET_DISCOVERY",
+      "SOURCE_CONTRACT_WORK",
+      "MODEL_DEVELOPMENT",
+      "SHADOW_EVALUATION",
+      "ADVICE_GENERATION_WITHOUT_GMAIL_EVIDENCE",
+      "NON_GMAIL_EVIDENCE_LEDGER",
+      "OPERATIONS_PREPARATION",
+      "STAGE_REVIEW"
+    ],
+    "core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES",
+    "owner_prompt_policy": "NO_PROMPT_UNTIL_GMAIL_MODULE_AND_SECURE_TOKEN_STORAGE_ARE_READY",
+    "release_claim": "GMAIL_NOT_CONNECTED"
+  },
+  "items": [
+    {
+      "id": "DP-001",
+      "name": "GitHub代码仓库与零新增现金持续集成路径",
+      "required_for": "阶段发布、制品和审计历史",
+      "authorization_status": "CONDITIONALLY_PREAUTHORIZED_BY_S00_P02",
+      "capability_status": "LOCAL_REPOSITORY_AVAILABLE_REMOTE_CAPABILITY_UNVERIFIED",
+      "readiness_status": "REMOTE_NOT_VERIFIED",
+      "blocking_for_current_core_task_graph": false,
+      "blocking_scopes": [
+        "STAGE_UPLOAD",
+        "REMOTE_CI"
+      ],
+      "current_human_action": "NONE",
+      "fallback": "本地Git仓库和本地/既有OVH容量流水线；阶段提交保持本地。"
+    },
+    {
+      "id": "DP-002",
+      "name": "现有OVH Singapore VPS-1",
+      "required_for": "7×24生产运行面",
+      "authorization_status": "CONDITIONALLY_PREAUTHORIZED_BY_S00_P02",
+      "capability_status": "OWNER_DECLARED_EXISTING_UNVERIFIED",
+      "readiness_status": "NOT_VERIFIED",
+      "blocking_for_current_core_task_graph": false,
+      "blocking_scopes": [
+        "EXTERNAL_RUNTIME_DEPLOYMENT"
+      ],
+      "current_human_action": "NONE",
+      "fallback": "继续本地构建、验证和影子工作；不声称生产运行。"
+    },
+    {
+      "id": "DP-003",
+      "name": "现有Cloudflare免费能力",
+      "required_for": "全球受保护中文访问",
+      "authorization_status": "CONDITIONALLY_PREAUTHORIZED_BY_S00_P02",
+      "capability_status": "OWNER_DECLARED_EXISTING_UNVERIFIED",
+      "readiness_status": "NOT_VERIFIED",
+      "blocking_for_current_core_task_graph": false,
+      "blocking_scopes": [
+        "GLOBAL_ACCESS_RELEASE"
+      ],
+      "current_human_action": "NONE",
+      "fallback": "继续本地和回环验证；不声称全球入口可用，不自动升级付费计划。"
+    },
+    {
+      "id": "DP-004",
+      "name": "Gmail gmail.modify 一次性用户授权",
+      "required_for": "自动读取和保存TAB邮件附件，并在全部证据门通过后移入垃圾箱或恢复",
+      "authorization_status": "NOT_REQUESTED_OPTIONAL_OWNER_CONSENT",
+      "capability_status": "UNVERIFIED",
+      "readiness_status": "NOT_READY",
+      "module_enabled": false,
+      "blocking_for_current_core_task_graph": false,
+      "blocking_scopes": [
+        "GMAIL_EVIDENCE_AUTOMATION"
+      ],
+      "current_human_action": "NONE",
+      "future_human_action": "仅在Gmail模块、精确scope说明、回调安全和加密令牌存储全部就绪后，在Google系统浏览器页面明确批准一次。",
+      "requested_scope_exact": "https://www.googleapis.com/auth/gmail.modify",
+      "forbidden_scope": "https://mail.google.com/",
+      "scope_risk_disclosure": "gmail.modify允许读取、撰写和发送，但不允许绕过垃圾箱即时永久删除；ABD仍通过方法白名单禁止撰写、发送、导入和永久删除。",
+      "incremental_cash_cost_aud": "0.00",
+      "fallback": "DISABLE_GMAIL_MODULE_CONTINUE_CORE",
+      "owner_reprompt_policy": "NEVER_AUTOMATIC; ONLY_AFTER_OWNER_EXPLICITLY_REENABLES_THE_FEATURE",
+      "evidence_required_before_activation": [
+        "EXACT_SCOPE_RECEIPT_WITHOUT_TOKEN",
+        "STATE_AND_PKCE_VALIDATED",
+        "ENCRYPTED_TOKEN_STORAGE_VERIFIED",
+        "METHOD_ALLOWLIST_ENFORCED",
+        "READ_ONLY_SELF_CHECK_PASS",
+        "CONTROLLED_TRASH_AND_UNTRASH_RECOVERY_TEST_PASS",
+        "CURRENT_COST_QUOTA_AND_APP_STATUS_VERIFIED"
+      ]
+    },
+    {
+      "id": "DP-005",
+      "name": "投注平台账户",
+      "required_for": "用户完成最终下单并提供真实执行证据",
+      "authorization_status": "OUTSIDE_SYSTEM_ORDER_AUTHORITY",
+      "capability_status": "UNVERIFIED_NOT_ACCESSED",
+      "readiness_status": "NOT_EVALUATED_IN_S00_P04",
+      "blocking_for_current_core_task_graph": false,
+      "blocking_scopes": [
+        "ACTUAL_RETURN_VALIDATION"
+      ],
+      "current_human_action": "NONE",
+      "fallback": "继续影子运行与建议质量验证，不声称真实资金收益。"
+    }
+  ],
+  "official_source_snapshot": [
+    {
+      "id": "P04-SRC-GMAIL-SCOPES",
+      "url": "https://developers.google.com/workspace/gmail/api/auth/scopes",
+      "retrieved_at": "2026-07-19",
+      "claim": "gmail.modify允许读取、撰写和发送，但不允许绕过垃圾箱即时永久删除。"
+    },
+    {
+      "id": "P04-SRC-GMAIL-TRASH",
+      "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/trash",
+      "retrieved_at": "2026-07-19",
+      "claim": "messages.trash接受gmail.modify或mail.google.com；ABD只请求前者。"
+    },
+    {
+      "id": "P04-SRC-GOOGLE-OAUTH-WEB",
+      "url": "https://developers.google.com/identity/protocols/oauth2/web-server",
+      "retrieved_at": "2026-07-19",
+      "claim": "无人值守后台访问需要offline access；state、精确redirect URI、安全令牌存储和撤销必须处理。"
+    },
+    {
+      "id": "P04-SRC-GOOGLE-OAUTH-POLICY",
+      "url": "https://developers.google.com/identity/protocols/oauth2/policies",
+      "retrieved_at": "2026-07-19",
+      "claim": "令牌必须加密存储且可失效；拒绝scope时必须关闭对应功能。"
+    }
+  ],
+  "explicit_unknowns": [
+    "Google Cloud项目、OAuth client、redirect URI、域名所有权、同意屏幕、应用受众、Testing或Production状态均未检查。",
+    "gmail.modify是否能由该账户批准、是否需要验证或管理员允许均未知。",
+    "没有授权码、access token、refresh token、client ID、client secret、邮箱地址或账户标识进入本项目证据。",
+    "Gmail模块尚未实现或启用；S00/P04只冻结合同和降级行为。"
+  ]
+}

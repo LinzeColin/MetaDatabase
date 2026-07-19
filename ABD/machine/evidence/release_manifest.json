@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "product": "ABD",
+  "version": "0.0.0.1",
+  "status": "FINAL_ACCEPTANCE_DELIVERY",
+  "generated_at": "2026-07-19T00:00:00+10:00",
+  "deliverables": {
+    "human_documents": 7,
+    "requirements": 80,
+    "acceptance_contracts": 80,
+    "stages": 20,
+    "phases": 80,
+    "tasks": 240,
+    "sources": 28
+  },
+  "runtime": {
+    "primary": "OVH Singapore VPS-1",
+    "access": "Cloudflare Access + Named Tunnel",
+    "availability_target": "99.5%",
+    "email_poll_seconds": 900,
+    "codex_daily_audit": "06:00 Australia/Sydney"
+  },
+  "financial": {
+    "initial_bankroll_aud": "300.00",
+    "monthly_target": "30%",
+    "target_formula": "B_n=300*1.3^n",
+    "incremental_cash_budget_aud": "0.00",
+    "return_guaranteed": false
+  },
+  "key_artifacts": [
+    "machine/facts/canonical_facts.json",
+    "machine/facts/parameters.json",
+    "machine/facts/requirements.json",
+    "machine/facts/acceptance_contracts.json",
+    "machine/facts/task_graph.json",
+    "machine/facts/traceability_matrix.json",
+    "machine/evidence/validation_report.json",
+    "PURSUE_GOAL_PROMPT.txt"
+  ],
+  "validation": {
+    "report": "machine/evidence/validation_report.json",
+    "expected_status": "PASS"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0.0",
+  "scope_note": "只研究与本产品直接相关的公开项目、官方文档、论文和安全标准；不遍历用户其他仓库。",
+  "projects": [
+    {
+      "source_id": "SRC-013",
+      "name": "flumine",
+      "adopt": [
+        "事件循环",
+        "风险控制层",
+        "影子运行和模拟模式"
+      ],
+      "reject": [
+        "自动下单",
+        "交易所专有执行耦合"
+      ],
+      "license_check_required": true
+    },
+    {
+      "source_id": "SRC-014",
+      "name": "penaltyblog",
+      "adopt": [
+        "足球比分分布",
+        "Dixon-Coles/Poisson 类模型",
+        "去水方法参考"
+      ],
+      "reject": [
+        "未经独立时间验证直接用于建议"
+      ],
+      "license_check_required": true
+    },
+    {
+      "source_id": "SRC-015",
+      "name": "OddsHarvester",
+      "adopt": [
+        "浏览器解析器分层",
+        "测试夹具",
+        "导出和健康检查"
+      ],
+      "reject": [
+        "把目标站长期可采集视为事实",
+        "照搬选择器"
+      ],
+      "license_check_required": true
+    },
+    {
+      "source_id": "SRC-016",
+      "name": "sportsbook-odds-scraper",
+      "adopt": [
+        "字段命名和澳洲平台页面研究"
+      ],
+      "reject": [
+        "许可证未证明时复制实现",
+        "把单一平台当真源"
+      ],
+      "license_check_required": true
+    },
+    {
+      "source_id": "SRC-017",
+      "name": "sports-betting-ml",
+      "adopt": [
+        "模型概率与市场概率比较",
+        "仓位展示模式"
+      ],
+      "reject": [
+        "单一运动模型外推到全部市场",
+        "只以准确率验收"
+      ],
+      "license_check_required": true
+    },
+    {
+      "source_id": "SRC-018",
+      "name": "Odds API tooling",
+      "adopt": [
+        "只读边界",
+        "模拟数据和接口合同"
+      ],
+      "reject": [
+        "把外部付费数据作为必须依赖"
+      ],
+      "license_check_required": true
+    }
+  ],
+  "research_surprises": [
+    "最危险的误差不是小数位，而是身份错配、结算规则差异、未来数据泄漏和离群价格；因此万分之一稳定性门只能作为额外门，不能替代证据质量。",
+    "TAB 邮件适合做月度交易和账单证据，但不能替代实时市场价格。",
+    "让 Codex直接删除邮件会把模型判断变成破坏性控制；确定性两阶段收集器加每日Codex审计更可靠。",
+    "零付费接口并不等于零维护成本；公开页面变化会转化为解析器维护和覆盖缺口成本。",
+    "30%月复利的首要瓶颈通常是可执行机会容量、相关性、赔率变化和平台限额，而不仅是模型准确率。"
+  ]
+}

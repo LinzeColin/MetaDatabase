@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abd.local/schemas/task.schema.json",
+  "title": "ABD机器任务合同",
+  "type": "object",
+  "required": [
+    "id",
+    "stage_id",
+    "phase_id",
+    "title",
+    "objective",
+    "inputs",
+    "outputs",
+    "depends_on",
+    "requirement_ids",
+    "acceptance_criteria_ids",
+    "tests",
+    "oracle",
+    "environment",
+    "threshold",
+    "evidence",
+    "risks",
+    "rollback",
+    "stop_condition",
+    "verification",
+    "pass_gate",
+    "hours",
+    "confidence",
+    "owner_input_required",
+    "auto_advance_on_pass"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^T-S[0-9]{2}-P[0-9]{2}-[0-9]{2}$"
+    },
+    "stage_id": {
+      "type": "string",
+      "pattern": "^S[0-9]{2}$"
+    },
+    "phase_id": {
+      "type": "string",
+      "pattern": "^P[0-9]{2}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 10
+    },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "depends_on": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "requirement_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "acceptance_criteria_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "tests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "oracle": {
+      "type": "object"
+    },
+    "environment": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "threshold": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "rollback": {
+      "type": "string",
+      "minLength": 10
+    },
+    "stop_condition": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "verification": {
+      "type": "string",
+      "minLength": 10
+    },
+    "pass_gate": {
+      "type": "string",
+      "minLength": 3
+    },
+    "hours": {
+      "type": "object",
+      "required": [
+        "low",
+        "likely",
+        "high"
+      ],
+      "properties": {
+        "low": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 4
+        },
+        "likely": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 4
+        },
+        "high": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 4
+        }
+      }
+    },
+    "confidence": {
+      "type": "string"
+    },
+    "owner_input_required": {
+      "type": "boolean"
+    },
+    "auto_advance_on_pass": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

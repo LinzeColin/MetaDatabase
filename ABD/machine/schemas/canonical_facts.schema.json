@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abd.local/schemas/canonical_facts.schema.json",
+  "title": "ABD Canonical Facts",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "product",
+    "scope",
+    "runtime",
+    "scheduling",
+    "email",
+    "truth_and_evidence",
+    "authorization"
+  ]
+}

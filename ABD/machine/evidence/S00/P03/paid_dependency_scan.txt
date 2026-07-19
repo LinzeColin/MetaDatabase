@@ -1,0 +1,52 @@
+ABD S00/P03 PAID DEPENDENCY SCAN
+STATUS: PASS
+FIXED_CLOCK: 2026-07-19T00:00:00+10:00
+MAX_INCREMENTAL_CASH_AUD: 0.00
+DEPENDENCY_MANIFESTS: 2
+RUNTIME_DIRECT_DEPENDENCIES: 0
+LOCKED_REGISTRY_PACKAGES: 12
+PAID_OR_UNKNOWN_DEPENDENCIES: 0
+EXTERNAL_NETWORK_ACCESS_PERFORMED: false
+EXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false
+
+MANIFESTS
+- pyproject.toml
+- uv.lock
+
+PACKAGES
+- attrs==26.1.0
+- colorama==0.4.6
+- iniconfig==2.3.0
+- jsonschema==4.25.1
+- jsonschema-specifications==2025.9.1
+- packaging==26.2
+- pluggy==1.6.0
+- pygments==2.20.0
+- pytest==8.4.2
+- referencing==0.37.0
+- rpds-py==2026.6.3
+- typing-extensions==4.16.0
+
+PROVIDERS
+- RES-CLOUDFLARE-ZERO-TRUST-FREE critical_path=true incremental_cash_aud=0.00
+- RES-GITHUB-EXISTING critical_path=true incremental_cash_aud=0.00
+- RES-GMAIL-EXISTING-OPTIONAL critical_path=false incremental_cash_aud=0.00
+- RES-OSS-PINNED critical_path=true incremental_cash_aud=0.00
+- RES-OVH-EXISTING-VPS1 critical_path=true incremental_cash_aud=0.00
+
+CHECKS
+- PASS SCAN-LOCK-PARSE
+- PASS SCAN-MANIFEST-SET
+- PASS SCAN-TOML-PARSE
+- PASS SCAN-DIRECT-DEPENDENCIES
+- PASS SCAN-LOCKED-PACKAGE-ALLOWLIST
+- PASS SCAN-LICENSES-CLASSIFIED
+- PASS SCAN-IMPORTS-CLASSIFIED
+- PASS SCAN-NO-PROHIBITED-RUNTIME-IDENTIFIERS
+- PASS SCAN-PROVIDER-COSTS-EXACT-ZERO
+- PASS SCAN-CRITICAL-PATH-NO-PAID-OR-APPROVAL-BOUND-INTERFACE
+
+BOUNDARY
+- Existing resource and opportunity costs are disclosed separately; this report proves only incremental cash cost A$0 for declared dependencies.
+- External capability, account plan, quota headroom, deployment, market coverage and returns are not verified by this scan.
+- Any new, paid, unknown-cost, unclassified or approval-bound critical dependency fails closed.
