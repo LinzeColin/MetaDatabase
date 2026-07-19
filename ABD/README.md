@@ -4,17 +4,21 @@
 
 ## 当前开发状态
 
-- 当前只完成 `S00/P01` 的开发后，才允许把 `AC-S00-P01` 标为 `PASS`；
+- `S00/P01` 与 `S00/P02` 已分别由独立证据标为 `PASS`；
 - 任务包自身的 `PASS` 只表示“开发合同可交接”，不表示 ABD 已上线、已部署或已验证收益；
-- `S00/P02` 及后续 Phase 尚未开始，Stage 0 尚未通过整体复审；
+- `S00/P03`、`S00/P04` 尚未开始，Stage 0 尚未通过整体复审，也未上传 GitHub；
+- P02 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
 - 当前禁止真实下单，30% 月度滚动复利只是待证伪和长期验证的目标，不是收益保证。
 
-`S00/P01` 的定向验证命令：
+`S00/P02` 的定向与全回归验证命令：
 
 ```bash
 uv run --frozen --python 3.12 python machine/tools/validate_pack.py
-uv run --frozen --python 3.12 python -m pytest -q tests/S00/P01_test.py --junitxml=machine/evidence/S00/P01/pytest.xml
-uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S00-P01 --evidence machine/evidence
+uv run --frozen --python 3.12 python -m pytest -q tests/S00/P02_test.py --junitxml=machine/evidence/S00/P02/pytest.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S00/P02/pytest.xml
+uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S00/P02/full_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S00/P02/full_regression.xml
+uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S00-P02 --evidence machine/evidence
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 

@@ -1,0 +1,249 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "policy_id": "ABD-DEFAULTS-S00-P02",
+  "decision_order": [
+    "EXPLICIT_PAUSE",
+    "SAFETY_AND_INTEGRITY",
+    "EVIDENCE_AND_NUMERIC_GATES",
+    "RELEASE_AND_SCOPE_GATES",
+    "CAPABILITY_AND_AUTHORIZATION",
+    "ROLLBACK_OR_DEGRADE",
+    "NORMAL_REVERSIBLE_EXECUTION"
+  ],
+  "defaults": [
+    {
+      "id": "DD-001",
+      "condition_code": "EXPLICIT_GLOBAL_PAUSE_REASON_TRIGGERED",
+      "decision": "EMIT_MINIMAL_PAUSE_RECEIPT_AND_STOP_AFFECTED_SCOPE",
+      "blocks_task_graph": true,
+      "owner_input_required": true,
+      "auto_continue_independent_ready_tasks": false,
+      "pause_reason_source": "authorization_matrix.global_pause_reasons"
+    },
+    {
+      "id": "DD-002",
+      "condition_code": "AUTHORIZATION_UNKNOWN_OR_MISSING",
+      "decision": "DENY_OR_DISABLE_AFFECTED_ACTION",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-003",
+      "condition_code": "EXTERNAL_CAPABILITY_OR_CREDENTIAL_UNVERIFIED",
+      "decision": "DEFER_EXTERNAL_EFFECT_AND_CONTINUE_BUILD_VALIDATION_SHADOW",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-004",
+      "condition_code": "OPTIONAL_GMAIL_CONSENT_MISSING",
+      "decision": "DISABLE_GMAIL_MODULE_CONTINUE_CORE",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-005",
+      "condition_code": "STAGE_REVIEW_INCOMPLETE_OR_FINDINGS_OPEN",
+      "decision": "KEEP_STAGE_COMMITS_LOCAL_AND_CONTINUE_REMEDIATION",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-006",
+      "condition_code": "RELEASE_OR_HEALTH_GATE_FAILED",
+      "decision": "ROLL_BACK_TO_LAST_SIGNED_ARTIFACT",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-007",
+      "condition_code": "ORDINARY_TASK_FAILED_WITH_SAFE_DEFAULT",
+      "decision": "ROLLBACK_OR_DEGRADE_RECORD_FAILURE_CONTINUE_READY_TASKS",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-008",
+      "condition_code": "SOURCE_UNAVAILABLE_STALE_OR_RATE_LIMITED",
+      "decision": "BACKOFF_FAILOVER_MARKET_ONLY_OR_NO_RECOMMENDATION",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-009",
+      "condition_code": "IDENTITY_SETTLEMENT_OR_REQUIRED_EVIDENCE_UNKNOWN",
+      "decision": "NO_RECOMMENDATION_AND_PRESERVE_UNKNOWN_STATE",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-010",
+      "condition_code": "MODEL_FAILED_DRIFTED_OR_HAS_NO_INCREMENT",
+      "decision": "ROLLBACK_TO_SIGNED_MODEL_MARKET_BASELINE_OR_NO_RECOMMENDATION",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-011",
+      "condition_code": "ODDS_THRESHOLD_TIME_OR_PROBABILITY_UNFAVORABLE_BY_0_0001",
+      "decision": "NO_RECOMMENDATION",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-012",
+      "condition_code": "EMAIL_SENDER_SCAN_HASH_OR_READBACK_FAILED",
+      "decision": "KEEP_EMAIL_QUARANTINE_ITEM_DO_NOT_TRASH",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-013",
+      "condition_code": "ACTUAL_EXECUTION_EVIDENCE_MISSING",
+      "decision": "DO_NOT_CHANGE_ACTUAL_LEDGER_EVALUATE_ADVICE_ONLY",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-014",
+      "condition_code": "MONTHLY_TARGET_SHORTFALL",
+      "decision": "REPORT_SHORTFALL_WITHOUT_RELAXING_ANY_GATE",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-015",
+      "condition_code": "REAL_ORDER_ACTION_REQUESTED_FROM_SYSTEM",
+      "decision": "REJECT_SYSTEM_ACTION_USER_REMAINS_FINAL_ORDER_ACTOR",
+      "blocks_task_graph": true,
+      "owner_input_required": true,
+      "auto_continue_independent_ready_tasks": false,
+      "pause_reason_code": "OUT_OF_AUTHORIZED_SCOPE"
+    },
+    {
+      "id": "DD-016",
+      "condition_code": "INCREMENTAL_CASH_COST_UNKNOWN",
+      "decision": "DENY_SPEND_AND_CONTINUE_ZERO_COST_ALTERNATIVES",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-017",
+      "condition_code": "INCREMENTAL_CASH_COST_POSITIVE",
+      "decision": "DENY_SPEND_AND_EMIT_MINIMAL_PAUSE_RECEIPT",
+      "blocks_task_graph": true,
+      "owner_input_required": true,
+      "auto_continue_independent_ready_tasks": false,
+      "pause_reason_code": "INCREMENTAL_CASH_BUDGET_EXCEEDED"
+    },
+    {
+      "id": "DD-018",
+      "condition_code": "IRREVERSIBLE_ACTION_REQUESTED",
+      "decision": "DENY_ACTION_AND_EMIT_MINIMAL_PAUSE_RECEIPT",
+      "blocks_task_graph": true,
+      "owner_input_required": true,
+      "auto_continue_independent_ready_tasks": false,
+      "pause_reason_code": "IRREVERSIBLE_OPERATION"
+    },
+    {
+      "id": "DD-019",
+      "condition_code": "OUT_OF_AUTHORIZED_PRODUCT_SCOPE",
+      "decision": "DENY_SCOPE_EXPANSION_AND_EMIT_MINIMAL_PAUSE_RECEIPT",
+      "blocks_task_graph": true,
+      "owner_input_required": true,
+      "auto_continue_independent_ready_tasks": false,
+      "pause_reason_code": "OUT_OF_AUTHORIZED_SCOPE"
+    },
+    {
+      "id": "DD-020",
+      "condition_code": "SECURITY_SUPPLY_CHAIN_OR_SECRET_INCIDENT",
+      "decision": "ISOLATE_PRESERVE_EVIDENCE_AND_EMIT_MINIMAL_PAUSE_RECEIPT",
+      "blocks_task_graph": true,
+      "owner_input_required": true,
+      "auto_continue_independent_ready_tasks": false,
+      "pause_reason_code": "SECURITY_OR_SUPPLY_CHAIN_INCIDENT"
+    },
+    {
+      "id": "DD-021",
+      "condition_code": "ACTUAL_LEDGER_RECONCILIATION_FAILED",
+      "decision": "FREEZE_ACTUAL_LEDGER_PRESERVE_EVIDENCE_AND_PAUSE",
+      "blocks_task_graph": true,
+      "owner_input_required": true,
+      "auto_continue_independent_ready_tasks": false,
+      "pause_reason_code": "ACTUAL_LEDGER_RECONCILIATION_FAILURE"
+    },
+    {
+      "id": "DD-022",
+      "condition_code": "LEGAL_REGULATORY_OR_SOURCE_CONTRACT_CONFLICT",
+      "decision": "STOP_AFFECTED_CAPABILITY_PRESERVE_EVIDENCE_AND_PAUSE",
+      "blocks_task_graph": true,
+      "owner_input_required": true,
+      "auto_continue_independent_ready_tasks": false,
+      "pause_reason_code": "LEGAL_REGULATORY_SOURCE_CONFLICT"
+    },
+    {
+      "id": "DD-023",
+      "condition_code": "TERMINATION_CONDITION_TRIGGERED",
+      "decision": "STOP_AFFECTED_WORK_PRESERVE_EVIDENCE_AND_PAUSE",
+      "blocks_task_graph": true,
+      "owner_input_required": true,
+      "auto_continue_independent_ready_tasks": false,
+      "pause_reason_code": "TERMINATION_CONDITION_TRIGGERED"
+    },
+    {
+      "id": "DD-024",
+      "condition_code": "NORMAL_REVERSIBLE_ZERO_COST_TASK_READY",
+      "decision": "EXECUTE_VALIDATE_RECORD_EVIDENCE_AND_AUTO_ADVANCE",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    },
+    {
+      "id": "DD-025",
+      "condition_code": "NO_READY_TASK_TRANSIENT",
+      "decision": "WAIT_WITH_BOUNDED_BACKOFF_REEVALUATE_DAG",
+      "blocks_task_graph": false,
+      "owner_input_required": false,
+      "auto_continue_independent_ready_tasks": true,
+      "pause_reason_code": null
+    }
+  ],
+  "invariants": {
+    "only_explicit_pause_reasons_block": true,
+    "unknown_is_never_execute": true,
+    "target_shortfall_never_relaxes_gates": true,
+    "missing_actual_evidence_never_changes_actual_ledger": true,
+    "user_is_only_final_order_actor": true,
+    "optional_gmail_consent_missing_only_disables_gmail": true
+  }
+}

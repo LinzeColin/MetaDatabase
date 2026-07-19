@@ -4,7 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
-from .canonical_facts import write_phase_evidence
+from .authorization import write_phase_evidence as write_authorization_phase_evidence
+from .canonical_facts import write_phase_evidence as write_canonical_phase_evidence
 
 
 def main() -> int:
@@ -18,15 +19,18 @@ def main() -> int:
     parser.add_argument("--root", default=".", help="ABD project root")
     args = parser.parse_args()
 
-    if args.contract != "AC-S00-P01":
-        parser.error("only AC-S00-P01 is implemented in this run")
-
     root = Path(args.root).resolve()
     evidence_dir = Path(args.evidence)
     if not evidence_dir.is_absolute():
         evidence_dir = root / evidence_dir
 
-    result = write_phase_evidence(root, evidence_dir)
+    writers = {
+        "AC-S00-P01": write_canonical_phase_evidence,
+        "AC-S00-P02": write_authorization_phase_evidence,
+    }
+    if args.contract not in writers:
+        parser.error("contract is not implemented: %s" % args.contract)
+    result = writers[args.contract](root, evidence_dir)
     print(
         json.dumps(
             {

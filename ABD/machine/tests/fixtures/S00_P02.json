@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "AC-S00-P02",
+  "required_pause_reason_codes": [
+    "LEGAL_REGULATORY_SOURCE_CONFLICT",
+    "SECURITY_OR_SUPPLY_CHAIN_INCIDENT",
+    "ACTUAL_LEDGER_RECONCILIATION_FAILURE",
+    "IRREVERSIBLE_OPERATION",
+    "INCREMENTAL_CASH_BUDGET_EXCEEDED",
+    "OUT_OF_AUTHORIZED_SCOPE",
+    "TERMINATION_CONDITION_TRIGGERED"
+  ],
+  "required_prohibited_actions": [
+    "REAL_ORDER_SUBMISSION",
+    "REAL_ORDER_CONFIRMATION_OR_RETRY",
+    "PERMANENT_EMAIL_DELETE",
+    "PAID_DEPENDENCY_PURCHASE",
+    "AUTHORIZATION_SCOPE_EXPANSION",
+    "IMMUTABLE_FACT_OR_LEDGER_DELETE_OR_REWRITE"
+  ],
+  "required_default_conditions": [
+    "AUTHORIZATION_UNKNOWN_OR_MISSING",
+    "EXTERNAL_CAPABILITY_OR_CREDENTIAL_UNVERIFIED",
+    "OPTIONAL_GMAIL_CONSENT_MISSING",
+    "STAGE_REVIEW_INCOMPLETE_OR_FINDINGS_OPEN",
+    "ODDS_THRESHOLD_TIME_OR_PROBABILITY_UNFAVORABLE_BY_0_0001",
+    "MONTHLY_TARGET_SHORTFALL",
+    "NORMAL_REVERSIBLE_ZERO_COST_TASK_READY"
+  ],
+  "cash_boundary_cases": [
+    {
+      "id": "CASH-PLUS-0.0001",
+      "value": "0.0001",
+      "expected_status": "FAIL"
+    },
+    {
+      "id": "CASH-MINUS-0.0001",
+      "value": "-0.0001",
+      "expected_status": "FAIL"
+    }
+  ],
+  "valid_pause_receipt": {
+    "schema_version": "1.0.0",
+    "receipt_id": "PAUSE-TEST-001",
+    "product_version": "0.0.0.1",
+    "status": "OPEN",
+    "pause_reason_code": "INCREMENTAL_CASH_BUDGET_EXCEEDED",
+    "scope": "S00/P02 test fixture",
+    "detected_at": "2026-07-19T00:00:00+10:00",
+    "minimal_decision_question": "是否明确批准超出 A$0 的新增现金支出？",
+    "evidence": [
+      {
+        "id": "EVD-TEST-001",
+        "kind": "TEST",
+        "artifact": "machine/tests/fixtures/S00_P02.json",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "summary": "边界测试样本，不含秘密。"
+      }
+    ],
+    "default_recommendation": "不支出，继续 A$0 替代路径。",
+    "no_decision_consequence": "该付费动作保持关闭，其他安全任务继续。",
+    "incremental_cash_cost_aud": "0.00",
+    "secret_material_present": false
+  }
+}
