@@ -47,13 +47,16 @@ METRIC_SOURCE_BINDINGS = {
     "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
     "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
     "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
     "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+    "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
     "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
     "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
     "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
     "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
     "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
     "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
     "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
     "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
     "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
@@ -72,21 +75,24 @@ ECONOMICS_SOURCE_BINDINGS = {
     "machine/facts/requirements.json": METRIC_SOURCE_BINDINGS["machine/facts/requirements.json"],
     "machine/facts/risk_register.json": METRIC_SOURCE_BINDINGS["machine/facts/risk_register.json"],
     "machine/facts/strategy_spec.json": METRIC_SOURCE_BINDINGS["machine/facts/strategy_spec.json"],
-    METRICS_PATH.as_posix(): "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
+    METRICS_PATH.as_posix(): "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
     "requirements.json": METRIC_SOURCE_BINDINGS["requirements.json"],
     "scope_boundary.json": METRIC_SOURCE_BINDINGS["scope_boundary.json"],
 }
 
 KILL_SOURCE_BINDINGS = {
-    ECONOMICS_PATH.as_posix(): "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28",
+    ECONOMICS_PATH.as_posix(): "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
     P03_EVIDENCE_PATH.as_posix(): P03_EVIDENCE_SHA256,
     "machine/facts/acceptance_contracts.json": METRIC_SOURCE_BINDINGS["machine/facts/acceptance_contracts.json"],
     "machine/facts/canonical_facts.json": METRIC_SOURCE_BINDINGS["machine/facts/canonical_facts.json"],
     "machine/facts/costs.json": METRIC_SOURCE_BINDINGS["machine/facts/costs.json"],
+    "machine/facts/degraded_mode_contract.json": METRIC_SOURCE_BINDINGS["machine/facts/degraded_mode_contract.json"],
+    "machine/facts/email_ingestion.json": METRIC_SOURCE_BINDINGS["machine/facts/email_ingestion.json"],
     "machine/facts/parameters.json": METRIC_SOURCE_BINDINGS["machine/facts/parameters.json"],
     "machine/facts/release_policy.json": METRIC_SOURCE_BINDINGS["machine/facts/release_policy.json"],
     "machine/facts/requirements.json": METRIC_SOURCE_BINDINGS["machine/facts/requirements.json"],
     "machine/facts/risk_register.json": METRIC_SOURCE_BINDINGS["machine/facts/risk_register.json"],
+    "machine/facts/security_assurance.json": METRIC_SOURCE_BINDINGS["machine/facts/security_assurance.json"],
     "machine/facts/strategy_spec.json": METRIC_SOURCE_BINDINGS["machine/facts/strategy_spec.json"],
     METRICS_PATH.as_posix(): ECONOMICS_SOURCE_BINDINGS[METRICS_PATH.as_posix()],
     "requirements.json": METRIC_SOURCE_BINDINGS["requirements.json"],
@@ -97,8 +103,8 @@ PINNED_SOURCE_HASHES = dict(METRIC_SOURCE_BINDINGS)
 PINNED_PHASE_HASHES = {
     METRICS_PATH.as_posix(): ECONOMICS_SOURCE_BINDINGS[METRICS_PATH.as_posix()],
     ECONOMICS_PATH.as_posix(): KILL_SOURCE_BINDINGS[ECONOMICS_PATH.as_posix()],
-    KILL_PATH.as_posix(): "d60f87a2ca5f6f68dd3d44e9c5a56e11cb8c5104ade77b21c65c5165464fb968",
-    FIXTURE_PATH.as_posix(): "a07f5614df986fbd9f797015fb880bf6402d95fafdcf6443b676a3037e791aad",
+    KILL_PATH.as_posix(): "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+    FIXTURE_PATH.as_posix(): "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14",
 }
 PINNED_REPO_HASHES = {
     CONTINUOUS_WORKFLOW_PATH.as_posix(): "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
@@ -568,6 +574,17 @@ def _check_metrics(
         )
     _add(checks, "S01P04-METRIC-ROWS-COMPLETE", complete, len(rows) if isinstance(rows, list) else "invalid")
     _add(checks, "S01P04-METRIC-REQUIREMENT-ROUTES", routes_ok, sorted(requirement_ids))
+    covered_requirement_ids = {
+        requirement_id
+        for row in rows if isinstance(row, dict)
+        for requirement_id in row.get("requirement_ids", []) if isinstance(requirement_id, str)
+    }
+    _add(
+        checks,
+        "S01P04-ALL-REQUIREMENTS-MEASURED-EXACT",
+        covered_requirement_ids == requirement_ids,
+        {"required": sorted(requirement_ids), "covered": sorted(covered_requirement_ids)},
+    )
     _add(checks, "S01P04-NULL-BASELINES-NEVER-PASS", baseline_ok, "all baselines remain CONTRACT_ONLY")
     _add(checks, "S01P04-MEASUREMENT-CONTRACTS-COMPLETE", measurements_ok, "method cadence observation sample")
 
@@ -586,7 +603,7 @@ def _check_metrics(
     _add(checks, "S01P04-METRIC-SEMANTICS-FAIL-CLOSED", semantics_ok, semantics)
     summary = metrics.get("traceability_summary", {})
     summary_ok = summary == {
-        "metric_count": 27,
+        "metric_count": 31,
         "duplicate_metric_ids_allowed": 0,
         "untraced_metrics_allowed": 0,
         "null_baseline_may_pass": False,
@@ -607,6 +624,10 @@ def _check_metrics(
         "MET-S01-P04-017": {"operator": "EQUALS", "value": 0, "classification": "HARD_GATE"},
         "MET-S01-P04-022": {"operator": "EQUALS", "value": "0.00", "classification": "HARD_GATE"},
         "MET-S01-P04-027": {"operator": "EQUALS", "value": 0, "classification": "HARD_GATE"},
+        "MET-S01-P04-028": {"operator": "EQUALS", "value": 0, "classification": "HARD_GATE"},
+        "MET-S01-P04-029": {"operator": "EQUALS", "value": 0, "classification": "HARD_GATE"},
+        "MET-S01-P04-030": {"operator": "EQUALS", "value": 0, "classification": "HARD_GATE"},
+        "MET-S01-P04-031": {"operator": "EQUALS", "value": 0, "classification": "HARD_GATE"},
     }
     exact_ok = all(by_id.get(item_id, {}).get("target") == expected for item_id, expected in exact_targets.items())
     _add(checks, "S01P04-CORE-METRIC-THRESHOLDS-EXACT", exact_ok, sorted(exact_targets))
@@ -738,6 +759,7 @@ def _check_economics(
         len(non_cash) == 5
         and not _duplicates([row.get("id") for row in non_cash])
         and all(row.get("monetized_value_aud") is None for row in non_cash)
+        and all(bool(row.get("measurement_metric_ids")) for row in non_cash)
         and all(set(row.get("measurement_metric_ids", [])).issubset(set(metric_ids)) for row in non_cash)
     )
     _add(checks, "S01P04-NONCASH-BENEFITS-TRACEABLE-NOT-MONETIZED", non_cash_ok, non_cash)
@@ -875,6 +897,8 @@ def _check_kill_criteria(
         and by_id.get("KC-S01-P04-016", {}).get("condition", {}).get("threshold")
         == {"population_stability_index": "0.20", "jensen_shannon": "0.10"}
         and by_id.get("KC-S01-P04-017", {}).get("condition", {}).get("threshold") == 0
+        and by_id.get("KC-S01-P04-018", {}).get("condition", {}).get("threshold") == 0
+        and by_id.get("KC-S01-P04-019", {}).get("condition", {}).get("threshold") == 0
     )
     _add(checks, "S01P04-KILL-THRESHOLDS-EXACT", thresholds_ok, sorted(by_id))
 

@@ -7,17 +7,20 @@
   "fixed_at": "2026-07-19T00:00:00+10:00",
   "status": "PROSPECTIVE_FAIL_CLOSED_KILL_CONTRACT_NOT_CURRENT_TRIGGER_EVIDENCE",
   "source_bindings": {
-    "economics.json": "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28",
+    "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
     "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
     "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
     "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
     "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+    "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
     "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
     "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
     "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
     "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+    "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
     "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
-    "metrics.json": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
+    "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
     "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
     "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
   },
@@ -95,7 +98,9 @@
       "id": "KC-S01-P04-003",
       "name": "严重安全事故或证据完整性失败",
       "category": "SECURITY_EVIDENCE",
-      "metric_ids": [],
+      "metric_ids": [
+        "MET-S01-P04-030"
+      ],
       "condition": {
         "field": "severe_security_or_evidence_integrity_incident_count",
         "operator": "GREATER_THAN",
@@ -487,6 +492,72 @@
           ]
         }
       ]
+    },
+    {
+      "id": "KC-S01-P04-018",
+      "name": "Gmail 未满足同意与安全归档门即激活或删除证据",
+      "category": "EMAIL_CONSENT_EVIDENCE",
+      "metric_ids": [
+        "MET-S01-P04-028",
+        "MET-S01-P04-029"
+      ],
+      "condition": {
+        "field": "gmail_unsafe_activation_or_email_archive_delete_transition_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "CONSENT_RECEIPT_CAPABILITY_AUDIT_AND_EMAIL_STATE_TRANSITION_LEDGER"
+      },
+      "action": "DISABLE_GMAIL_QUARANTINE_AFFECTED_INPUT_KEEP_MESSAGE_AND_NEVER_TRASH_OR_DELETE",
+      "reentry_gate": "ALL_CONSENT_MINIMUM_PRIVILEGE_COST_AND_ARCHIVE_INTEGRITY_GATES_PASS_WITH_ZERO_UNSAFE_TRANSITIONS",
+      "source_evidence": [
+        {
+          "path": "machine/facts/degraded_mode_contract.json",
+          "pointers": [
+            "/activation_gates",
+            "/activation_rule"
+          ]
+        },
+        {
+          "path": "machine/facts/email_ingestion.json",
+          "pointers": [
+            "/pipeline",
+            "/trash_gate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-019",
+      "name": "软件与模型独立流水线互相替代或绕过门禁",
+      "category": "RELEASE_INDEPENDENCE",
+      "metric_ids": [
+        "MET-S01-P04-031"
+      ],
+      "condition": {
+        "field": "independent_software_or_model_pipeline_gate_substitution_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "SIGNED_INDEPENDENT_PIPELINE_RELEASE_RECEIPTS"
+      },
+      "action": "BLOCK_RELEASE_AND_KEEP_LAST_SIGNED_PASSING_ARTIFACT",
+      "reentry_gate": "ZERO_GATE_SUBSTITUTIONS_AND_BOTH_INDEPENDENT_PIPELINES_PASS",
+      "source_evidence": [
+        {
+          "path": "machine/facts/release_policy.json",
+          "pointers": [
+            "/software_pipeline",
+            "/model_pipeline",
+            "/auto_rollback_on"
+          ]
+        },
+        {
+          "path": "machine/facts/security_assurance.json",
+          "pointers": [
+            "/build_controls",
+            "/test_controls"
+          ]
+        }
+      ]
     }
   ],
   "current_evaluation": {
@@ -510,7 +581,9 @@
       "KC-S01-P04-014",
       "KC-S01-P04-015",
       "KC-S01-P04-016",
-      "KC-S01-P04-017"
+      "KC-S01-P04-017",
+      "KC-S01-P04-018",
+      "KC-S01-P04-019"
     ],
     "contract_only_negative_capability_criterion_ids": [
       "KC-S01-P04-002"

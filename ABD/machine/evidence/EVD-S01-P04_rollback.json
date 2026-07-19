@@ -7,15 +7,15 @@
       "status": "PASS"
     },
     "economics.json": {
-      "corrupted_sha256": "5ebc9cfbfb3e13a0ef164f169fefcf8b56fc163286902acc5a3a7ad6a8da9b27",
-      "restored_sha256": "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28",
-      "signed_sha256": "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28",
+      "corrupted_sha256": "f36a2edd8d48aa989b55f0c3fc3d6f0ced9da293cddf873195f180abdee0bb01",
+      "restored_sha256": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+      "signed_sha256": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
       "status": "PASS"
     },
     "kill_criteria.json": {
-      "corrupted_sha256": "6ef77157fd481a9248bab79c7c2b8d1519edbe24b8ecaa25719fce09a70880b7",
-      "restored_sha256": "d60f87a2ca5f6f68dd3d44e9c5a56e11cb8c5104ade77b21c65c5165464fb968",
-      "signed_sha256": "d60f87a2ca5f6f68dd3d44e9c5a56e11cb8c5104ade77b21c65c5165464fb968",
+      "corrupted_sha256": "7df61804220baff26e72095ce09794c0cd4ff621e77bd59ae666aecb3a395b0d",
+      "restored_sha256": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+      "signed_sha256": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
       "status": "PASS"
     },
     "machine/evidence/EVD-S01-P03.json": {
@@ -31,15 +31,15 @@
       "status": "PASS"
     },
     "machine/tests/fixtures/S01_P04.json": {
-      "corrupted_sha256": "6aa037721e01d83be6e53de2f12e2461a1d63b6eeaf4f832a62915171f55a324",
-      "restored_sha256": "a07f5614df986fbd9f797015fb880bf6402d95fafdcf6443b676a3037e791aad",
-      "signed_sha256": "a07f5614df986fbd9f797015fb880bf6402d95fafdcf6443b676a3037e791aad",
+      "corrupted_sha256": "1474ed8944aaf7d1c2b15c6f1681fa05311e1da252fb4d1a21c48a4b3134d08a",
+      "restored_sha256": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14",
+      "signed_sha256": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14",
       "status": "PASS"
     },
     "metrics.json": {
-      "corrupted_sha256": "45d5e494861e4e6d5d965abc5880af96ec3e3587ee9c0600de3f0151d5e1bcbb",
-      "restored_sha256": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
-      "signed_sha256": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
+      "corrupted_sha256": "ca7188bace3a923e219748a57879bdfcf7b6e501da5e4e806e422a153267aeef",
+      "restored_sha256": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+      "signed_sha256": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
       "status": "PASS"
     }
   },

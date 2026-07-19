@@ -18,7 +18,7 @@
     "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
     "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
     "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
-    "metrics.json": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
+    "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
     "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
     "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
   },
@@ -66,9 +66,9 @@
     "loss_range_aud": {"low": null, "likely": null, "high": null, "status": "NOT_ESTIMABLE_NO_EMPIRICAL_DISTRIBUTION_OR_ACTUAL_LEDGER"},
     "non_cash_benefits": [
       {"id": "BEN-NC-001", "name": "全范围市场可观测与缺口治理", "measurement_metric_ids": ["MET-S01-P04-004", "MET-S01-P04-005"], "monetized_value_aud": null},
-      {"id": "BEN-NC-002", "name": "可复用概率、风险和证据平台", "measurement_metric_ids": ["MET-S01-P04-008", "MET-S01-P04-017", "MET-S01-P04-018", "MET-S01-P04-020"], "monetized_value_aud": null},
+      {"id": "BEN-NC-002", "name": "可复用概率、风险和证据平台", "measurement_metric_ids": ["MET-S01-P04-008", "MET-S01-P04-017", "MET-S01-P04-018", "MET-S01-P04-020", "MET-S01-P04-030", "MET-S01-P04-031"], "monetized_value_aud": null},
       {"id": "BEN-NC-003", "name": "中文单动作决策体验", "measurement_metric_ids": ["MET-S01-P04-001", "MET-S01-P04-002", "MET-S01-P04-003"], "monetized_value_aud": null},
-      {"id": "BEN-NC-004", "name": "邮件与附件自动证据归档", "measurement_metric_ids": [], "monetized_value_aud": null, "status": "OPTIONAL_GMAIL_MODULE_NOT_CONNECTED_OR_IMPLEMENTED"},
+      {"id": "BEN-NC-004", "name": "邮件与附件自动证据归档", "measurement_metric_ids": ["MET-S01-P04-028", "MET-S01-P04-029"], "monetized_value_aud": null, "status": "OPTIONAL_GMAIL_MODULE_NOT_CONNECTED_OR_IMPLEMENTED"},
       {"id": "BEN-NC-005", "name": "长期模型与运行审计", "measurement_metric_ids": ["MET-S01-P04-009", "MET-S01-P04-010", "MET-S01-P04-011", "MET-S01-P04-012", "MET-S01-P04-013", "MET-S01-P04-014", "MET-S01-P04-015", "MET-S01-P04-016", "MET-S01-P04-023"], "monetized_value_aud": null}
     ],
     "source_evidence": [{"path": "machine/facts/costs.json", "pointers": ["/benefit_model"]}, {"path": "machine/facts/canonical_facts.json", "pointers": ["/truth_and_evidence/advice_ledger_separate_from_actual_ledger", "/truth_and_evidence/actual_return_requires_verified_execution_evidence"]}]

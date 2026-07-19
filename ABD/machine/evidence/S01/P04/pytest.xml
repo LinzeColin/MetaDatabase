@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <testsuites name="pytest tests">
-  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="154" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="157" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
     <testcase classname="tests.S01.P04_test" name="test_baseline_metrics_economics_contract_passes_without_runtime_reports" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_p03_immutable_receipt_and_git_ancestry_are_verified" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_phase_artifact_hashes_match_frozen_fixture[relative0]" time="0.000" />
@@ -87,6 +87,7 @@
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[duplicate_id-S01P04-METRIC-IDS-EXACT-UNIQUE]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[duplicate_name-S01P04-METRIC-NAMES-UNIQUE]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[unknown_requirement-S01P04-METRIC-REQUIREMENT-ROUTES]" time="0.000" />
+    <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[coverage_gap-S01P04-ALL-REQUIREMENTS-MEASURED-EXACT]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[baseline_maturity-S01P04-NULL-BASELINES-NEVER-PASS]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[baseline_fake_pass-S01P04-NULL-BASELINES-NEVER-PASS]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[measurement-S01P04-MEASUREMENT-CONTRACTS-COMPLETE]" time="0.000" />
@@ -94,6 +95,7 @@
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[semantics-S01P04-METRIC-SEMANTICS-FAIL-CLOSED]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[summary-S01P04-METRIC-SUMMARY-EXACT]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[core_threshold-S01P04-CORE-METRIC-THRESHOLDS-EXACT]" time="0.000" />
+    <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[privacy_threshold-S01P04-CORE-METRIC-THRESHOLDS-EXACT]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[plausible_threshold-S01P04-TARGET-CLASSIFICATION-GATES-EXACT]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[verification_threshold-S01P04-TARGET-CLASSIFICATION-GATES-EXACT]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_metric_mutations_fail_closed[boundary-S01P04-METRICS-NO-RUNTIME-OR-RETURN-CLAIM]" time="0.000" />
@@ -115,6 +117,7 @@
     <testcase classname="tests.S01.P04_test" name="test_economic_mutations_never_fabricate_value[loss-S01P04-BENEFIT-AND-LOSS-RANGES-UNVERIFIED]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_economic_mutations_never_fabricate_value[noncash_value-S01P04-NONCASH-BENEFITS-TRACEABLE-NOT-MONETIZED]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_economic_mutations_never_fabricate_value[noncash_metric-S01P04-NONCASH-BENEFITS-TRACEABLE-NOT-MONETIZED]" time="0.000" />
+    <testcase classname="tests.S01.P04_test" name="test_economic_mutations_never_fabricate_value[noncash_empty-S01P04-NONCASH-BENEFITS-TRACEABLE-NOT-MONETIZED]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_economic_mutations_never_fabricate_value[roi-S01P04-ROI-NPV-PAYBACK-NOT-FABRICATED]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_economic_mutations_never_fabricate_value[feasibility-S01P04-FEASIBILITY-GATES-EXACT-UNVERIFIED]" time="0.000" />
     <testcase classname="tests.S01.P04_test" name="test_economic_mutations_never_fabricate_value[decision-S01P04-ECONOMIC-DECISIONS-FAIL-CLOSED]" time="0.000" />

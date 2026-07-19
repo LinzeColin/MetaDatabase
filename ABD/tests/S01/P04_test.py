@@ -92,7 +92,7 @@ def test_p03_immutable_receipt_and_git_ancestry_are_verified() -> None:
 def test_phase_artifact_hashes_match_frozen_fixture(relative: Path) -> None:
     expected = FIXTURE["expected_artifact_hashes"].get(relative.as_posix())
     if relative == FIXTURE_PATH:
-        expected = "a07f5614df986fbd9f797015fb880bf6402d95fafdcf6443b676a3037e791aad"
+        expected = "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14"
     assert expected is not None
     assert sha256_file(ROOT / relative) == expected
 
@@ -256,6 +256,7 @@ def test_taskpack_contract_semantics_cannot_drift(tmp_path: Path, mutation: str,
         ("duplicate_id", "S01P04-METRIC-IDS-EXACT-UNIQUE"),
         ("duplicate_name", "S01P04-METRIC-NAMES-UNIQUE"),
         ("unknown_requirement", "S01P04-METRIC-REQUIREMENT-ROUTES"),
+        ("coverage_gap", "S01P04-ALL-REQUIREMENTS-MEASURED-EXACT"),
         ("baseline_maturity", "S01P04-NULL-BASELINES-NEVER-PASS"),
         ("baseline_fake_pass", "S01P04-NULL-BASELINES-NEVER-PASS"),
         ("measurement", "S01P04-MEASUREMENT-CONTRACTS-COMPLETE"),
@@ -263,6 +264,7 @@ def test_taskpack_contract_semantics_cannot_drift(tmp_path: Path, mutation: str,
         ("semantics", "S01P04-METRIC-SEMANTICS-FAIL-CLOSED"),
         ("summary", "S01P04-METRIC-SUMMARY-EXACT"),
         ("core_threshold", "S01P04-CORE-METRIC-THRESHOLDS-EXACT"),
+        ("privacy_threshold", "S01P04-CORE-METRIC-THRESHOLDS-EXACT"),
         ("plausible_threshold", "S01P04-TARGET-CLASSIFICATION-GATES-EXACT"),
         ("verification_threshold", "S01P04-TARGET-CLASSIFICATION-GATES-EXACT"),
         ("boundary", "S01P04-METRICS-NO-RUNTIME-OR-RETURN-CLAIM"),
@@ -286,6 +288,8 @@ def test_metric_mutations_fail_closed(tmp_path: Path, mutation: str, expected: s
         rows[1]["name"] = rows[0]["name"]
     elif mutation == "unknown_requirement":
         rows[0]["requirement_ids"] = ["ABD-PRD-REQ-999"]
+    elif mutation == "coverage_gap":
+        _row(rows, "MET-S01-P04-028")["requirement_ids"] = ["ABD-PRD-REQ-001"]
     elif mutation == "baseline_maturity":
         rows[0]["baseline"]["evidence_maturity"] = "VERIFIED_ACTUAL_EXECUTION_AND_RECONCILIATION"
     elif mutation == "baseline_fake_pass":
@@ -297,9 +301,11 @@ def test_metric_mutations_fail_closed(tmp_path: Path, mutation: str, expected: s
     elif mutation == "semantics":
         value["metric_semantics"]["missing_or_null_baseline"] = "PASS"
     elif mutation == "summary":
-        value["traceability_summary"]["metric_count"] = 26
+        value["traceability_summary"]["metric_count"] = 30
     elif mutation == "core_threshold":
         _row(rows, "MET-S01-P04-006")["target"]["value"] = "0.9949"
+    elif mutation == "privacy_threshold":
+        _row(rows, "MET-S01-P04-030")["target"]["value"] = 1
     elif mutation == "plausible_threshold":
         _row(rows, "MET-S01-P04-024")["target"]["minimum_days"] = 89
     elif mutation == "verification_threshold":
@@ -334,6 +340,7 @@ def test_metric_mutations_fail_closed(tmp_path: Path, mutation: str, expected: s
         ("loss", "S01P04-BENEFIT-AND-LOSS-RANGES-UNVERIFIED"),
         ("noncash_value", "S01P04-NONCASH-BENEFITS-TRACEABLE-NOT-MONETIZED"),
         ("noncash_metric", "S01P04-NONCASH-BENEFITS-TRACEABLE-NOT-MONETIZED"),
+        ("noncash_empty", "S01P04-NONCASH-BENEFITS-TRACEABLE-NOT-MONETIZED"),
         ("roi", "S01P04-ROI-NPV-PAYBACK-NOT-FABRICATED"),
         ("feasibility", "S01P04-FEASIBILITY-GATES-EXACT-UNVERIFIED"),
         ("decision", "S01P04-ECONOMIC-DECISIONS-FAIL-CLOSED"),
@@ -376,6 +383,8 @@ def test_economic_mutations_never_fabricate_value(tmp_path: Path, mutation: str,
         value["benefit_envelope"]["non_cash_benefits"][0]["monetized_value_aud"] = "1.00"
     elif mutation == "noncash_metric":
         value["benefit_envelope"]["non_cash_benefits"][0]["measurement_metric_ids"] = ["MET-UNKNOWN"]
+    elif mutation == "noncash_empty":
+        value["benefit_envelope"]["non_cash_benefits"][3]["measurement_metric_ids"] = []
     elif mutation == "roi":
         value["roi_contract"]["roi"] = "0.30"
     elif mutation == "feasibility":

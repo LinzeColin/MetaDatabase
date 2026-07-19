@@ -4,9 +4,9 @@
   "acceptance_contract_id": "AC-S01-P04",
   "fixed_clock": "2026-07-19T00:00:00+10:00",
   "expected_artifact_hashes": {
-    "economics.json": "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28",
-    "kill_criteria.json": "d60f87a2ca5f6f68dd3d44e9c5a56e11cb8c5104ade77b21c65c5165464fb968",
-    "metrics.json": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c"
+    "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+    "kill_criteria.json": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+    "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c"
   },
   "expected_metric_ids": [
     "MET-S01-P04-001",
@@ -35,7 +35,11 @@
     "MET-S01-P04-024",
     "MET-S01-P04-025",
     "MET-S01-P04-026",
-    "MET-S01-P04-027"
+    "MET-S01-P04-027",
+    "MET-S01-P04-028",
+    "MET-S01-P04-029",
+    "MET-S01-P04-030",
+    "MET-S01-P04-031"
   ],
   "expected_kill_criterion_ids": [
     "KC-S01-P04-001",
@@ -54,7 +58,9 @@
     "KC-S01-P04-014",
     "KC-S01-P04-015",
     "KC-S01-P04-016",
-    "KC-S01-P04-017"
+    "KC-S01-P04-017",
+    "KC-S01-P04-018",
+    "KC-S01-P04-019"
   ],
   "expected_target_thresholds": {
     "monthly_return": "0.30",

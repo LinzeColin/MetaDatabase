@@ -17,7 +17,7 @@
   ],
   "contract_id": "AC-S01-P04",
   "decision": "METRICS_ECONOMICS_AND_KILL_CONTRACT_FROZEN",
-  "decision_sha256": "66b50665b51621fbb126ba873e5f6c154ab6b079288329ab6c0cbb3fd710c284",
+  "decision_sha256": "e6eb48d189c47954b877fc6b2bbf49bf4c1d9ed945629cc9b8fe8c5c476c1a7b",
   "evidence_id": "EVD-S01-P04",
   "explicit_unknowns": [
     "The 30% monthly target remains unverified, falsifiable and not guaranteed.",
@@ -40,48 +40,51 @@
   },
   "fixed_clock": "2026-07-19T00:00:00+10:00",
   "hashes": {
-    "code": "d4623b0a4e04f97e2e96fd0d670d02ebbb7be8b2835c4ff0ec9fbd7e932bd2e2",
+    "code": "b32093936c2a5ce689c643c1c32f433c4b94b591b1e7e54b98c2e563b2dab935",
     "inputs": {
       ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
       "abd_acceptance/__init__.py": "b5d5a0a7db79a43290e66e648faa25463a1ef6c0d705a4574bc541ff0058df8d",
       "abd_acceptance/__main__.py": "196ce055faaa756475877cb8b9d8afaf2f2a3e7e478040cf350d45bcc41236fd",
       "abd_acceptance/delivery.py": "6aa3f99ceb55bb7d32e9c2d2764723f21791d9ba77be1722e2e2365a1fa670c3",
-      "abd_acceptance/metrics_economics.py": "502117bd67c855d98d84e8022133d3cc5a114901bea7fba90fb0cd6249eee57b",
+      "abd_acceptance/metrics_economics.py": "174d0073d24855ee9a32a10d24b16d09ecf9e475b97081ae0a13e491d62cb938",
       "abd_acceptance/requirements_scope.py": "868e6f9020223f813b83260692e048177a60bcaf7c7842a5183d1ac2fae98688",
       "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
       "business_flows.json": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
       "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
-      "economics.json": "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28",
-      "kill_criteria.json": "d60f87a2ca5f6f68dd3d44e9c5a56e11cb8c5104ade77b21c65c5165464fb968",
+      "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+      "kill_criteria.json": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
       "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
       "machine/evidence/EVD-S01-P03_rollback.json": "237b2ecf3f70be28f86e6be7967c98f0c99e0fce07d57f6ce3162b1dc2ecdf7d",
       "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
       "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
       "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
       "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+      "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+      "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
       "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
       "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
       "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
       "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
       "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
       "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
       "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
       "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
       "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
-      "machine/tests/fixtures/S01_P04.json": "a07f5614df986fbd9f797015fb880bf6402d95fafdcf6443b676a3037e791aad",
-      "metrics.json": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
+      "machine/tests/fixtures/S01_P04.json": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14",
+      "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
       "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
       "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383",
       "tests/S00/__init__.py": "92747c3175dab227e64bab76b0728e85016df09d9114fb5b0b16f68a6971c03f",
       "tests/S01/P03_test.py": "700ee2268cf3d448ffbac235dd3002d47e9d1c4e053c717b49da9b3973800b5a",
-      "tests/S01/P04_test.py": "9beb5268b9f710369f8d034b1dd935ce60d532494e526742eadf3ccb64341a93",
+      "tests/S01/P04_test.py": "7aba49c8621ffe546097875f1a890133408be16628f5be4fb827fd72acb62aa4",
       "tests/S01/__init__.py": "2699f54f59bd6a4e1d3042e40a336c24a61dd71ece37e7e7c243532f6e309134",
       "tests/__init__.py": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316"
     },
     "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
     "model_not_executed_reason": "S01/P04 freezes metrics and economics contracts but executes no prediction model, strategy or target verification.",
     "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
-    "rollback_evidence": "01110b6604bf6411347311b41b98cadfbc170a7ecfc89e9b0414c8690e452240"
+    "rollback_evidence": "88fa2a52d604ef4c042651b998bc5beeacb3686320f3d5db6902e75cdc2ffb6a"
   },
   "next": "S01/STAGE_REVIEW_READY_NOT_STARTED",
   "p03_prerequisite": {
@@ -227,6 +230,16 @@
         "passed": true
       },
       {
+        "detail": "degraded_mode_contract.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-DEGRADED-MODE-CONTRACT-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "email_ingestion.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-EMAIL-INGESTION-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
         "detail": "model_system_card.json",
         "id": "S01P04-SOURCE-MACHINE-FACTS-MODEL-SYSTEM-CARD-JSON-STRICT-JSON",
         "passed": true
@@ -254,6 +267,11 @@
       {
         "detail": "roadmap.json",
         "id": "S01P04-SOURCE-MACHINE-FACTS-ROADMAP-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "security_assurance.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-SECURITY-ASSURANCE-JSON-STRICT-JSON",
         "passed": true
       },
       {
@@ -344,10 +362,26 @@
       },
       {
         "detail": {
+          "actual": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+          "expected": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-DEGRADED-MODE-CONTRACT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
           "actual": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
           "expected": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc"
         },
         "id": "S01P04-HASH-MACHINE-FACTS-DECISION-PREREQUISITES-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+          "expected": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-EMAIL-INGESTION-JSON",
         "passed": true
       },
       {
@@ -400,6 +434,14 @@
       },
       {
         "detail": {
+          "actual": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+          "expected": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-SECURITY-ASSURANCE-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
           "actual": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
           "expected": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d"
         },
@@ -440,32 +482,32 @@
       },
       {
         "detail": {
-          "actual": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
-          "expected": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c"
+          "actual": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+          "expected": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c"
         },
         "id": "S01P04-HASH-METRICS-JSON",
         "passed": true
       },
       {
         "detail": {
-          "actual": "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28",
-          "expected": "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28"
+          "actual": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+          "expected": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0"
         },
         "id": "S01P04-HASH-ECONOMICS-JSON",
         "passed": true
       },
       {
         "detail": {
-          "actual": "d60f87a2ca5f6f68dd3d44e9c5a56e11cb8c5104ade77b21c65c5165464fb968",
-          "expected": "d60f87a2ca5f6f68dd3d44e9c5a56e11cb8c5104ade77b21c65c5165464fb968"
+          "actual": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+          "expected": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb"
         },
         "id": "S01P04-HASH-KILL-CRITERIA-JSON",
         "passed": true
       },
       {
         "detail": {
-          "actual": "a07f5614df986fbd9f797015fb880bf6402d95fafdcf6443b676a3037e791aad",
-          "expected": "a07f5614df986fbd9f797015fb880bf6402d95fafdcf6443b676a3037e791aad"
+          "actual": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14",
+          "expected": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14"
         },
         "id": "S01P04-HASH-MACHINE-TESTS-FIXTURES-S01-P04-JSON",
         "passed": true
@@ -656,12 +698,15 @@
             "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
             "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
             "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+            "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+            "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
             "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
             "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
             "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
             "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
             "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
             "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+            "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
             "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
             "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
             "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
@@ -677,12 +722,15 @@
             "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
             "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
             "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+            "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+            "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
             "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
             "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
             "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
             "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
             "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
             "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+            "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
             "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
             "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
             "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
@@ -721,7 +769,11 @@
           "MET-S01-P04-024",
           "MET-S01-P04-025",
           "MET-S01-P04-026",
-          "MET-S01-P04-027"
+          "MET-S01-P04-027",
+          "MET-S01-P04-028",
+          "MET-S01-P04-029",
+          "MET-S01-P04-030",
+          "MET-S01-P04-031"
         ],
         "id": "S01P04-METRIC-IDS-EXACT-UNIQUE",
         "passed": true
@@ -754,13 +806,17 @@
           "target_plausibility_classification",
           "target_falsification_classification",
           "target_verification_classification",
-          "target_shortfall_gate_relaxation_or_chase_loss_count"
+          "target_shortfall_gate_relaxation_or_chase_loss_count",
+          "gmail_activation_without_all_consent_and_safety_gates_count",
+          "unsafe_email_trash_or_permanent_delete_transition_count",
+          "secret_personal_data_or_untrusted_content_boundary_breach_count",
+          "independent_software_or_model_pipeline_gate_substitution_count"
         ],
         "id": "S01P04-METRIC-NAMES-UNIQUE",
         "passed": true
       },
       {
-        "detail": 27,
+        "detail": 31,
         "id": "S01P04-METRIC-ROWS-COMPLETE",
         "passed": true
       },
@@ -792,6 +848,58 @@
         "passed": true
       },
       {
+        "detail": {
+          "covered": [
+            "ABD-PRD-REQ-001",
+            "ABD-PRD-REQ-002",
+            "ABD-PRD-REQ-003",
+            "ABD-PRD-REQ-004",
+            "ABD-PRD-REQ-005",
+            "ABD-PRD-REQ-006",
+            "ABD-PRD-REQ-007",
+            "ABD-PRD-REQ-008",
+            "ABD-PRD-REQ-009",
+            "ABD-PRD-REQ-010",
+            "ABD-PRD-REQ-011",
+            "ABD-PRD-REQ-012",
+            "ABD-PRD-REQ-013",
+            "ABD-PRD-REQ-014",
+            "ABD-PRD-REQ-015",
+            "ABD-PRD-REQ-016",
+            "ABD-PRD-REQ-017",
+            "ABD-PRD-REQ-018",
+            "ABD-PRD-REQ-019",
+            "ABD-PRD-REQ-020",
+            "ABD-PRD-REQ-021"
+          ],
+          "required": [
+            "ABD-PRD-REQ-001",
+            "ABD-PRD-REQ-002",
+            "ABD-PRD-REQ-003",
+            "ABD-PRD-REQ-004",
+            "ABD-PRD-REQ-005",
+            "ABD-PRD-REQ-006",
+            "ABD-PRD-REQ-007",
+            "ABD-PRD-REQ-008",
+            "ABD-PRD-REQ-009",
+            "ABD-PRD-REQ-010",
+            "ABD-PRD-REQ-011",
+            "ABD-PRD-REQ-012",
+            "ABD-PRD-REQ-013",
+            "ABD-PRD-REQ-014",
+            "ABD-PRD-REQ-015",
+            "ABD-PRD-REQ-016",
+            "ABD-PRD-REQ-017",
+            "ABD-PRD-REQ-018",
+            "ABD-PRD-REQ-019",
+            "ABD-PRD-REQ-020",
+            "ABD-PRD-REQ-021"
+          ]
+        },
+        "id": "S01P04-ALL-REQUIREMENTS-MEASURED-EXACT",
+        "passed": true
+      },
+      {
         "detail": "all baselines remain CONTRACT_ONLY",
         "id": "S01P04-NULL-BASELINES-NEVER-PASS",
         "passed": true
@@ -820,7 +928,7 @@
         "detail": {
           "all_authoritative_thresholds_source_bound": true,
           "duplicate_metric_ids_allowed": 0,
-          "metric_count": 27,
+          "metric_count": 31,
           "null_baseline_may_pass": false,
           "untraced_metrics_allowed": 0
         },
@@ -839,7 +947,11 @@
           "MET-S01-P04-012",
           "MET-S01-P04-017",
           "MET-S01-P04-022",
-          "MET-S01-P04-027"
+          "MET-S01-P04-027",
+          "MET-S01-P04-028",
+          "MET-S01-P04-029",
+          "MET-S01-P04-030",
+          "MET-S01-P04-031"
         ],
         "id": "S01P04-CORE-METRIC-THRESHOLDS-EXACT",
         "passed": true
@@ -908,8 +1020,13 @@
           "/metrics/25/source_evidence/1": "PASS",
           "/metrics/26/source_evidence/0": "PASS",
           "/metrics/26/source_evidence/1": "PASS",
+          "/metrics/27/source_evidence/0": "PASS",
+          "/metrics/28/source_evidence/0": "PASS",
+          "/metrics/29/source_evidence/0": "PASS",
+          "/metrics/29/source_evidence/1": "PASS",
           "/metrics/3/source_evidence/0": "PASS",
           "/metrics/3/source_evidence/1": "PASS",
+          "/metrics/30/source_evidence/0": "PASS",
           "/metrics/4/source_evidence/0": "PASS",
           "/metrics/5/source_evidence/0": "PASS",
           "/metrics/6/source_evidence/0": "PASS",
@@ -939,7 +1056,7 @@
             "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
             "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
             "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
-            "metrics.json": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
+            "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
             "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
             "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
           },
@@ -954,7 +1071,7 @@
             "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
             "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
             "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
-            "metrics.json": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
+            "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
             "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
             "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
           }
@@ -1131,7 +1248,9 @@
                 "MET-S01-P04-008",
                 "MET-S01-P04-017",
                 "MET-S01-P04-018",
-                "MET-S01-P04-020"
+                "MET-S01-P04-020",
+                "MET-S01-P04-030",
+                "MET-S01-P04-031"
               ],
               "monetized_value_aud": null,
               "name": "可复用概率、风险和证据平台"
@@ -1148,7 +1267,10 @@
             },
             {
               "id": "BEN-NC-004",
-              "measurement_metric_ids": [],
+              "measurement_metric_ids": [
+                "MET-S01-P04-028",
+                "MET-S01-P04-029"
+              ],
               "monetized_value_aud": null,
               "name": "邮件与附件自动证据归档",
               "status": "OPTIONAL_GMAIL_MODULE_NOT_CONNECTED_OR_IMPLEMENTED"
@@ -1218,7 +1340,9 @@
               "MET-S01-P04-008",
               "MET-S01-P04-017",
               "MET-S01-P04-018",
-              "MET-S01-P04-020"
+              "MET-S01-P04-020",
+              "MET-S01-P04-030",
+              "MET-S01-P04-031"
             ],
             "monetized_value_aud": null,
             "name": "可复用概率、风险和证据平台"
@@ -1235,7 +1359,10 @@
           },
           {
             "id": "BEN-NC-004",
-            "measurement_metric_ids": [],
+            "measurement_metric_ids": [
+              "MET-S01-P04-028",
+              "MET-S01-P04-029"
+            ],
             "monetized_value_aud": null,
             "name": "邮件与附件自动证据归档",
             "status": "OPTIONAL_GMAIL_MODULE_NOT_CONNECTED_OR_IMPLEMENTED"
@@ -1380,32 +1507,38 @@
       {
         "detail": {
           "actual": {
-            "economics.json": "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28",
+            "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
             "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
             "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
             "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
             "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+            "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+            "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
             "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
             "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
             "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
             "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+            "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
             "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
-            "metrics.json": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
+            "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
             "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
             "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
           },
           "declared": {
-            "economics.json": "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28",
+            "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
             "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
             "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
             "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
             "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+            "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+            "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
             "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
             "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
             "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
             "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+            "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
             "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
-            "metrics.json": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
+            "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
             "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
             "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
           }
@@ -1431,13 +1564,15 @@
           "KC-S01-P04-014",
           "KC-S01-P04-015",
           "KC-S01-P04-016",
-          "KC-S01-P04-017"
+          "KC-S01-P04-017",
+          "KC-S01-P04-018",
+          "KC-S01-P04-019"
         ],
         "id": "S01P04-KILL-IDS-EXACT-UNIQUE",
         "passed": true
       },
       {
-        "detail": 17,
+        "detail": 19,
         "id": "S01P04-KILL-ROWS-COMPLETE",
         "passed": true
       },
@@ -1469,7 +1604,11 @@
           "MET-S01-P04-024",
           "MET-S01-P04-025",
           "MET-S01-P04-026",
-          "MET-S01-P04-027"
+          "MET-S01-P04-027",
+          "MET-S01-P04-028",
+          "MET-S01-P04-029",
+          "MET-S01-P04-030",
+          "MET-S01-P04-031"
         ],
         "id": "S01P04-KILL-METRIC-ROUTES-VALID",
         "passed": true
@@ -1492,7 +1631,9 @@
           "STOP_30PCT_PURSUIT_MARK_TARGET_FALSIFIED_OR_CAPACITY_BLOCKED",
           "DISCONTINUE_OR_SIMPLIFY_AFFECTED_AUTOMATION_FEATURE",
           "STOP_AFFECTED_MODEL_RETURN_TO_SHADOW_AND_RECALIBRATE",
-          "SET_AFFECTED_STAKE_ZERO_BLOCK_RECOMMENDATION_AND_PRESERVE_BREACH_EVIDENCE"
+          "SET_AFFECTED_STAKE_ZERO_BLOCK_RECOMMENDATION_AND_PRESERVE_BREACH_EVIDENCE",
+          "DISABLE_GMAIL_QUARANTINE_AFFECTED_INPUT_KEEP_MESSAGE_AND_NEVER_TRASH_OR_DELETE",
+          "BLOCK_RELEASE_AND_KEEP_LAST_SIGNED_PASSING_ARTIFACT"
         ],
         "id": "S01P04-KILL-ACTIONS-NO-ORDER-OR-SPEND",
         "passed": true
@@ -1539,7 +1680,9 @@
           "KC-S01-P04-014",
           "KC-S01-P04-015",
           "KC-S01-P04-016",
-          "KC-S01-P04-017"
+          "KC-S01-P04-017",
+          "KC-S01-P04-018",
+          "KC-S01-P04-019"
         ],
         "id": "S01P04-KILL-THRESHOLDS-EXACT",
         "passed": true
@@ -1572,7 +1715,9 @@
             "KC-S01-P04-014",
             "KC-S01-P04-015",
             "KC-S01-P04-016",
-            "KC-S01-P04-017"
+            "KC-S01-P04-017",
+            "KC-S01-P04-018",
+            "KC-S01-P04-019"
           ]
         },
         "id": "S01P04-NO-FABRICATED-CURRENT-KILL-EVALUATION",
@@ -1609,6 +1754,10 @@
           "/criteria/14/source_evidence/0": "PASS",
           "/criteria/15/source_evidence/0": "PASS",
           "/criteria/16/source_evidence/0": "PASS",
+          "/criteria/17/source_evidence/0": "PASS",
+          "/criteria/17/source_evidence/1": "PASS",
+          "/criteria/18/source_evidence/0": "PASS",
+          "/criteria/18/source_evidence/1": "PASS",
           "/criteria/2/source_evidence/0": "PASS",
           "/criteria/2/source_evidence/1": "PASS",
           "/criteria/3/source_evidence/0": "PASS",
@@ -1805,7 +1954,7 @@
           "minimum": 100,
           "normalized": true,
           "skipped": 0,
-          "tests": 154
+          "tests": 157
         },
         "id": "S01P04-TEST-TARGETED-PASS",
         "passed": true
@@ -1817,7 +1966,7 @@
           "minimum": 650,
           "normalized": true,
           "skipped": 0,
-          "tests": 812
+          "tests": 815
         },
         "id": "S01P04-TEST-FULL-REGRESSION-PASS",
         "passed": true
@@ -1864,32 +2013,35 @@
       "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
       "business_flows.json": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
       "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
-      "economics.json": "675cf211c66a003d4453287d6d27badefed862a8991999ae8abb4bdf17b66b28",
-      "kill_criteria.json": "d60f87a2ca5f6f68dd3d44e9c5a56e11cb8c5104ade77b21c65c5165464fb968",
+      "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+      "kill_criteria.json": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
       "machine/evidence/EVD-S00-STAGE-REVIEW.json": "48966ee6a98ad93224f11eb99890448cad6105840141dc4016520a932a857e0d",
       "machine/evidence/EVD-S00-STAGE-REVIEW_rollback.json": "e418fe62d0084255a26b12b9e2f42bd49cbeb5e19e86879e61d6023c3f752ed8",
       "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
       "machine/evidence/EVD-S01-P03_rollback.json": "237b2ecf3f70be28f86e6be7967c98f0c99e0fce07d57f6ce3162b1dc2ecdf7d",
       "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
       "machine/evidence/S00/STAGE_REVIEW/github_delivery_receipt.json": "cf6832b72b6f82dfe8d8e5f98aeb8df7c5f86cb75175e8997cb7a2f21c13109c",
-      "machine/evidence/S01/P04/full_regression.xml": "7737847d9949a53e15c45d1ebb509f0ec41af154bc705befb56f6221349dc949",
-      "machine/evidence/S01/P04/pytest.xml": "c8fe00c9a9131bb1781e9c174fbf16048a5a8a9bfd0fd649ff8e894e09ef2aa3",
+      "machine/evidence/S01/P04/full_regression.xml": "2a0df9942c847b9fd402b4e3e6197c15463b119135f87d95f544e5b5f5acf411",
+      "machine/evidence/S01/P04/pytest.xml": "2839e44c1d3cd1ea8328138a77f4bc6c480c3d4cf52397a12a47200ce616c360",
       "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
       "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
       "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
       "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
       "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+      "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+      "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
       "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
       "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
       "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
       "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
       "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
       "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
       "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
       "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
       "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
-      "machine/tests/fixtures/S01_P04.json": "a07f5614df986fbd9f797015fb880bf6402d95fafdcf6443b676a3037e791aad",
-      "metrics.json": "e92126fc73c22158db8b3975f379c9fed281ec13a4ce20283c0c9f6918e2627c",
+      "machine/tests/fixtures/S01_P04.json": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14",
+      "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
       "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
       "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
     },
@@ -1904,10 +2056,10 @@
     "stage_id": "S01",
     "status": "PASS",
     "summary": {
-      "checks": 126,
+      "checks": 133,
       "failed": 0,
       "failed_check_ids": [],
-      "passed": 126
+      "passed": 133
     },
     "version": "0.0.0.1"
   }
