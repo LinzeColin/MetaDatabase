@@ -1,0 +1,54 @@
+{
+  "artifacts": {
+    ".github/workflows/abd-stage0-validation.yml": {
+      "corrupted_sha256": "b63539f25f1ada442f9aa3ec5841bc3933bc55b6f2d4878960ceaf9a200c10e5",
+      "restored_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "signed_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S01-STAGE-REVIEW.json": {
+      "corrupted_sha256": "daf51001451ca96eaa5e639177e9273635921cdeae38b51fc8a5f26bc043c15f",
+      "restored_sha256": "3e5a64f3b99fae7b67aeb0d18d94cd13eb0077b1c856dadbac0d8bbff6f5886d",
+      "signed_sha256": "3e5a64f3b99fae7b67aeb0d18d94cd13eb0077b1c856dadbac0d8bbff6f5886d",
+      "status": "PASS"
+    },
+    "machine/evidence/S01/STAGE_REVIEW/github_delivery_receipt.json": {
+      "corrupted_sha256": "60219395090984cffaa2d6264953adf24eb29a4b6d6eecc88bb8e0deb44dfca5",
+      "restored_sha256": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde",
+      "signed_sha256": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S02_P01.json": {
+      "corrupted_sha256": "85bb840a43363e7f8467d7306a17f606998894e9fcfaaaafaa509188e030fa03",
+      "restored_sha256": "68bf2b7c97d31d5f9ac3d722e1f03f55e55c92b0d19f3c05e383d6780fc71faa",
+      "signed_sha256": "68bf2b7c97d31d5f9ac3d722e1f03f55e55c92b0d19f3c05e383d6780fc71faa",
+      "status": "PASS"
+    },
+    "provider_facts_snapshot.json": {
+      "corrupted_sha256": "2639496e68aca3ec474e7ba69a01f4e15f402bd5f6708bf77fe844e1b5902c08",
+      "restored_sha256": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+      "signed_sha256": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+      "status": "PASS"
+    },
+    "regulatory_matrix.json": {
+      "corrupted_sha256": "4757cb064bc8c4ae67bb3b72884b7b2b0e4b28cc2d543bffcfeda69b6f85eb7d",
+      "restored_sha256": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+      "signed_sha256": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+      "status": "PASS"
+    },
+    "sources.json": {
+      "corrupted_sha256": "e0e2578c373c006788d6f7ec4fdd4dc973b24554870e224b0522d91fb9a34ef0",
+      "restored_sha256": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
+      "signed_sha256": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S02-P01",
+  "evidence_id": "EVD-S02-P01-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-20T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_OFFICIAL_RESEARCH_ARTIFACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

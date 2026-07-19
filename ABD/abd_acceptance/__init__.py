@@ -42,6 +42,7 @@ from .stage_review import (
     write_stage_review_evidence,
 )
 from .delivery import verify_stage0_delivery
+from .stage1_delivery import verify_stage1_delivery
 from .stage1_review import (
     build_evidence as build_stage1_review_evidence,
     evaluate_contract as evaluate_stage1_review_contract,
@@ -82,6 +83,15 @@ from .metrics_economics import (
     resolve_roi_default,
     write_phase_evidence as write_metrics_economics_phase_evidence,
 )
+from .official_platform_research import (
+    build_evidence as build_official_platform_research_evidence,
+    evaluate_contract as evaluate_official_platform_research_contract,
+    perform_rollback_drill as perform_official_platform_research_rollback_drill,
+    resolve_incremental_cost_gate as resolve_official_research_incremental_cost_gate,
+    resolve_source_freshness,
+    verify_existing_phase_evidence,
+    write_phase_evidence as write_official_platform_research_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -113,6 +123,7 @@ __all__ = [
     "perform_stage_review_rollback_drill",
     "write_stage_review_evidence",
     "verify_stage0_delivery",
+    "verify_stage1_delivery",
     "build_stage1_review_evidence",
     "evaluate_stage1_review_contract",
     "perform_stage1_review_rollback_drill",
@@ -143,4 +154,11 @@ __all__ = [
     "resolve_kill_default",
     "resolve_roi_default",
     "write_metrics_economics_phase_evidence",
+    "build_official_platform_research_evidence",
+    "evaluate_official_platform_research_contract",
+    "perform_official_platform_research_rollback_drill",
+    "resolve_official_research_incremental_cost_gate",
+    "resolve_source_freshness",
+    "verify_existing_phase_evidence",
+    "write_official_platform_research_phase_evidence",
 ]

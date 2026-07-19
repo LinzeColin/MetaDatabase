@@ -12,24 +12,26 @@
 - `S01/P02` 已完成客户 FAQ 与假设登记册，独立 Oracle 93/93、定向测试 239/239、全回归 525/525 与任务包校验 49/49 均为 `PASS`；证据下一状态严格为 `S01/P03_READY_NOT_STARTED`；
 - `S01/P03` 已冻结 21 条唯一产品需求、5 条业务线、18 个功能模块、8 条主流程和 13 条显式安全错误路径；含外部报告门的独立 Oracle 110/110、定向测试 132/132、全回归 658/658 与任务包校验 49/49 均为 `PASS`；
 - `S01/P04` 已冻结 31 个指标、五项非现金收益测量、成本/ROI 未知默认和 19 条前瞻 kill criteria；整体复审发现的四条未测需求已修复，独立 Oracle 133/133、定向测试 157/157、全回归 815/815 与任务包校验 49/49 均为 `PASS`；
-- `S01 整体复审` 本地 61/61 门、定向测试 87/87、全回归 902/902、TaskPack 49/49、付费依赖扫描与 7/7 回滚均为 `PASS`；已建立独立合同和历史 commit 输入哈希重放；远端 CI 尚未验证，只有 A$0 交付门和 GitHub CI 也通过后才可进入 `S02/P01_READY_NOT_STARTED`；
+- `S01 整体复审` 的 61/61 门、定向测试 87/87、全回归 902/902、TaskPack 49/49、付费依赖扫描与 7/7 回滚均为 `PASS`；Stage 1 已通过 GitHub PR #64 合并到 `main`，两条 main CI 成功记录、A$0 交付门和离线 Git 历史已固化为不可变交付收据；
+- `S02/P01` 已冻结 24 个官方一手来源、23 条平台事实与 9 条监管控制，共 32 个唯一 claim；含外部报告门的独立 Oracle 88/88、定向测试 158/158、全回归 1060/1060、TaskPack 49/49、付费依赖扫描与 7/7 回滚均为 `PASS`，证据下一状态严格为 `S02/P02_READY_NOT_STARTED`；本 Phase 仅本地开发，尚未单独上传 GitHub；
+- `S02/P01` 明确拒绝把 TAB Studio/Web Services、Sportsbet 自动化、Gmail、Cloudflare 或 OVH 写成已授权或已连接能力；Cloudflare 中国网络不属于 A$0 范围，普通全球网络上的中文界面不等于中国大陆境内加速、可用性或可达性保证；
 - `S01/P01` 至 `S01/P04` 只冻结客户体验、疑问、需求、范围、指标、经济和证伪合同，不证明产品已实现、部署、接入账户或验证收益；四个中间 Phase 均未单独上传 GitHub；
 - `S00/P02` 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
 - `S00/P03` 只证明当前声明依赖的 ABD 新增现金成本为 A$0、付费接口不在关键路径；既有 OVH/账户总成本、外部能力与免费额度余量仍未知；
 - `S00/P04` 冻结 Gmail 可选 consent、精确 scope、方法白名单和降级状态机；本 phase 未生成 OAuth 链接、未访问账户、未取得或保存 token、未调用 Gmail API，Gmail 仍为 `NOT_CONNECTED / UNVERIFIED / NOT_READY`；
 - 当前禁止真实下单，30% 月度滚动复利只是待证伪和长期验证的目标，不是收益保证。
 
-当前 `S01 整体复审` 的定向与全回归验证命令：
+当前 `S02/P01` 的定向与全回归验证命令：
 
 ```bash
 uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
 uv run --frozen --python 3.12 python machine/tools/validate_pack.py
-uv run --frozen --python 3.12 python -m abd_acceptance --verify-existing STAGE-REVIEW-S00
-uv run --frozen --python 3.12 python -m pytest -q tests/S01/stage_review_test.py --junitxml=machine/evidence/S01/STAGE_REVIEW/pytest.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/STAGE_REVIEW/pytest.xml
-uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S01/STAGE_REVIEW/full_regression.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/STAGE_REVIEW/full_regression.xml
-uv run --frozen --python 3.12 python -m abd_acceptance --contract STAGE-REVIEW-S01 --evidence machine/evidence
+uv run --frozen --python 3.12 python -m abd_acceptance --verify-existing STAGE-REVIEW-S01
+uv run --frozen --python 3.12 python -m pytest -q tests/S02/P01_test.py --junitxml=machine/evidence/S02/P01/pytest.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/P01/pytest.xml
+uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S02/P01/full_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S02/P01/full_regression.xml
+uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S02-P01 --evidence machine/evidence
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 
