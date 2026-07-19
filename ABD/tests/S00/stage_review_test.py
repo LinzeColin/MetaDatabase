@@ -386,8 +386,9 @@ def test_secret_or_local_path_in_stage_artifact_fails_scan(tmp_path: Path, mutat
 
 def test_s01_evidence_cannot_exist_before_stage_upload(tmp_path: Path) -> None:
     project = _clone_repo(tmp_path)
+    (project / "machine/evidence/S00/STAGE_REVIEW/github_delivery_receipt.json").unlink()
     (project / "machine/evidence/EVD-S01-P01.json").write_text("{}\n", encoding="utf-8")
-    _failed(evaluate_contract(project, False), "REVIEW-S01-NOT-STARTED")
+    _failed(evaluate_contract(project, False), "REVIEW-S01-DELIVERY-GATED-PROGRESSION")
 
 
 def test_duplicate_review_contract_key_fails_closed(tmp_path: Path) -> None:

@@ -9,11 +9,15 @@ from .budget import write_phase_evidence as write_budget_phase_evidence
 from .canonical_facts import write_phase_evidence as write_canonical_phase_evidence
 from .external_consent import write_phase_evidence as write_external_consent_phase_evidence
 from .stage_review import write_stage_review_evidence
+from .customer_press_release import write_phase_evidence as write_customer_press_release_phase_evidence
+from .delivery import cli_verify_stage0_delivery
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="ABD fail-closed acceptance oracle")
-    parser.add_argument("--contract", required=True, help="acceptance contract id")
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--contract", help="acceptance contract id")
+    mode.add_argument("--verify-existing", help="read-only verification of an existing delivery receipt")
     parser.add_argument(
         "--evidence",
         default="machine/evidence",
@@ -27,12 +31,32 @@ def main() -> int:
     if not evidence_dir.is_absolute():
         evidence_dir = root / evidence_dir
 
+    if args.verify_existing:
+        if args.verify_existing != "STAGE-REVIEW-S00":
+            parser.error("existing evidence verifier is not implemented: %s" % args.verify_existing)
+        result = cli_verify_stage0_delivery(root)
+        print(
+            json.dumps(
+                {
+                    "contract_id": result["contract_id"],
+                    "status": result["status"],
+                    "evidence": result["evidence_path"],
+                    "evidence_sha256": result["evidence_sha256"],
+                    "next": result["next"],
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
+        return 0 if result["status"] == "PASS" else 1
+
     writers = {
         "AC-S00-P01": write_canonical_phase_evidence,
         "AC-S00-P02": write_authorization_phase_evidence,
         "AC-S00-P03": write_budget_phase_evidence,
         "AC-S00-P04": write_external_consent_phase_evidence,
         "STAGE-REVIEW-S00": write_stage_review_evidence,
+        "AC-S01-P01": write_customer_press_release_phase_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

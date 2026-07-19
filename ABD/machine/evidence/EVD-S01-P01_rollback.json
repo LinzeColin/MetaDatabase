@@ -1,0 +1,42 @@
+{
+  "artifacts": {
+    ".github/workflows/abd-stage0-validation.yml": {
+      "corrupted_sha256": "b63539f25f1ada442f9aa3ec5841bc3933bc55b6f2d4878960ceaf9a200c10e5",
+      "restored_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "signed_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "status": "PASS"
+    },
+    "customer_outcomes.json": {
+      "corrupted_sha256": "544406edbde1af535f8930e5187a9175fed6738e5152a27f089eb60c188a4306",
+      "restored_sha256": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+      "signed_sha256": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+      "status": "PASS"
+    },
+    "customer_press_release.md": {
+      "corrupted_sha256": "44620ba59a3a21609181afebfaaf8f25ffb4a8789263fb7b69a436ffdd94afaf",
+      "restored_sha256": "8cd88a4d4cd0dc6fe4735f8c0400fdd05ccab001afdbe9a09aec57a683f950ab",
+      "signed_sha256": "8cd88a4d4cd0dc6fe4735f8c0400fdd05ccab001afdbe9a09aec57a683f950ab",
+      "status": "PASS"
+    },
+    "machine/evidence/S00/STAGE_REVIEW/github_delivery_receipt.json": {
+      "corrupted_sha256": "b60056900cc31e3d71e992553787ec5ab38c40756139a7375f76fbe0ae2f93fd",
+      "restored_sha256": "cf6832b72b6f82dfe8d8e5f98aeb8df7c5f86cb75175e8997cb7a2f21c13109c",
+      "signed_sha256": "cf6832b72b6f82dfe8d8e5f98aeb8df7c5f86cb75175e8997cb7a2f21c13109c",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S01_P01.json": {
+      "corrupted_sha256": "bcca71bd163c15d5d4f3036bb3d16170d555db3859388e3b49372bdd9d00d7cf",
+      "restored_sha256": "824e848b8d259ea1d29f6a10a9df38d1f1fbefeb0ab1c774da94fa27af0c8a96",
+      "signed_sha256": "824e848b8d259ea1d29f6a10a9df38d1f1fbefeb0ab1c774da94fa27af0c8a96",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S01-P01",
+  "evidence_id": "EVD-S01-P01-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_CUSTOMER_CONTRACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}
