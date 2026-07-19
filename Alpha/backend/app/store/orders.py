@@ -355,6 +355,15 @@ class OrderStore:
             order = session.scalar(select(BrokerOrder).where(BrokerOrder.intent_id == intent.intent_id))
             return order.order_id if order else None
 
+    def execution_exists(self, broker_execution_id: str) -> bool:
+        """成交是否已入账(070 轮询回灌的幂等闸:同一券商成交号只入账一次)。"""
+        if not broker_execution_id:
+            return False
+        with self._sessions() as session:
+            return session.scalar(
+                select(Execution).where(Execution.broker_execution_id == broker_execution_id).limit(1)
+            ) is not None
+
     def list_orders_in_state(self, state: OrderState) -> list[dict]:
         """恢复用:某状态的全部订单(含幂等键)。"""
         with self._sessions() as session:
