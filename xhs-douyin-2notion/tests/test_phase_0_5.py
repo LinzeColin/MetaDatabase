@@ -63,7 +63,7 @@ class Phase05Tests(unittest.TestCase):
 
     def test_stage_and_external_execution_remain_not_run(self) -> None:
         state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
-        self.assertEqual(state["last_completed_phase"], "PH.X2N.0.5")
+        self.assertEqual(state["tasks"]["TSK.x2n.discovery.005"], "pass")
         self.assertIn(state["review_id"], {"STG.X2N.0.REVIEW", "STG.X2N.0.REVIEW.RESUME"})
         self.assertIn(state["stage_gate"], {"blocked_owner_action", "pass"})
         expected_upload = "authorized_after_g0_pass" if state["stage_gate"] == "pass" else "forbidden_until_g0_pass"

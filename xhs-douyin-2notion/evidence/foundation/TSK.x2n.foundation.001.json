@@ -1,0 +1,136 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.gov.001",
+    "ACC.x2n.rel.008"
+  ],
+  "acceptance_status": {
+    "ACC.x2n.gov.001": "PASS_CURRENT_SCAFFOLD_SCOPE",
+    "ACC.x2n.rel.008": "PASS_CURRENT_SCAFFOLD_SCOPE_PRODUCT_LIFECYCLE_DOWNSTREAM_NOT_RUN"
+  },
+  "checks": [
+    {
+      "details": {
+        "acceptance_id_duplicates": 0,
+        "changed_files": 39,
+        "out_of_scope_writes": 0,
+        "task_id_duplicates": 0,
+        "text_files_scanned": 127,
+        "unregistered_fact_writers": 0
+      },
+      "name": "governance",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s01-foundation001",
+        "external_main_dirty_paths": 2,
+        "main_worktree_clean": false,
+        "origin_drift_commits": 1,
+        "origin_project_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "acceptance_scope": "CURRENT_SCAFFOLD_ONLY",
+        "next_task": "TSK.x2n.foundation.002",
+        "product_lifecycle": "DOWNSTREAM_NOT_RUN",
+        "task": "TSK.x2n.foundation.001"
+      },
+      "name": "task_state",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "build_output_directories": 0,
+        "declared_outputs": 7,
+        "extension_permissions": 0,
+        "private_runtime_entries": 0,
+        "synthetic_fixtures": 1
+      },
+      "name": "scaffold_tree",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "install_scripts": 0,
+        "npm_lock_version": 3,
+        "npm_workspace_links": 3,
+        "third_party_packages": 0,
+        "uv_workspace_packages": 2
+      },
+      "name": "package_locks",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "fresh_environment": true,
+        "network_required": false,
+        "private_runtime_writes": 0,
+        "product_lifecycle": "DOWNSTREAM_NOT_RUN",
+        "transcript": [
+          {
+            "action": "npm_frozen_install",
+            "status": "PASS"
+          },
+          {
+            "action": "uv_lock_check",
+            "status": "PASS"
+          },
+          {
+            "action": "extension_self_test",
+            "status": "PASS"
+          },
+          {
+            "action": "install",
+            "status": "PASS"
+          },
+          {
+            "action": "self_test",
+            "status": "PASS"
+          },
+          {
+            "action": "synthetic_canary",
+            "status": "PASS"
+          },
+          {
+            "action": "upgrade_rehearsal",
+            "status": "PASS"
+          },
+          {
+            "action": "rollback_rehearsal",
+            "status": "PASS"
+          },
+          {
+            "action": "diagnose",
+            "status": "PASS"
+          },
+          {
+            "action": "uninstall_rehearsal",
+            "status": "PASS"
+          },
+          {
+            "action": "unauthorized_canary_negative",
+            "status": "PASS"
+          }
+        ]
+      },
+      "name": "fresh_scaffold",
+      "status": "PASS"
+    }
+  ],
+  "generated_at": "2026-07-19T23:00:47Z",
+  "phase": "PH.X2N.1.1",
+  "private_content_included": false,
+  "product_lifecycle": "DOWNSTREAM_NOT_RUN",
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_G1_PASS",
+  "run_id": "RUN-X2N-S01-F001",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.1",
+  "stage_gate": "G1_NOT_RUN",
+  "status": "PASS",
+  "task_id": "TSK.x2n.foundation.001"
+}

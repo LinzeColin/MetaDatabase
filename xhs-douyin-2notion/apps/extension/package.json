@@ -1,0 +1,9 @@
+{
+  "name": "@x2n/extension",
+  "version": "0.0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "self-test": "node scripts/self-test.mjs"
+  }
+}

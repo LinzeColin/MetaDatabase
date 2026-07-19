@@ -25,6 +25,7 @@
     "scripts/verify_phase_0_2.py",
     "scripts/verify_owner_recovery_attestation.py",
     "scripts/verify_stage_0_review_resume.py",
+    "scripts/verify_foundation_001.py",
     "scripts/public_source_snapshot.py",
     "future_shared_governance_ci"
   ]

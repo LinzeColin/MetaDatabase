@@ -1,0 +1,14 @@
+{
+  "name": "x2n-workspace",
+  "version": "0.0.0.1",
+  "private": true,
+  "packageManager": "npm@11.16.0",
+  "workspaces": [
+    "apps/extension",
+    "packages/contracts",
+    "packages/test-fixtures"
+  ],
+  "scripts": {
+    "test:scaffold": "npm run self-test --workspace @x2n/extension"
+  }
+}

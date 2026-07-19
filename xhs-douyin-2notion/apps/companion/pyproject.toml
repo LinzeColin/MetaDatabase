@@ -1,0 +1,9 @@
+[project]
+name = "x2n-companion"
+version = "0.0.0.1"
+description = "Stage 1 governed local-companion scaffold"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+x2n-scaffold = "x2n_companion.scaffold:main"

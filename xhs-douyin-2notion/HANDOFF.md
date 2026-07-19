@@ -9,8 +9,9 @@
 - `TSK.x2n.discovery.001–005` 与 Stage 0 Phase 0.1/0.2/0.5：完成。
 - 首次 `STG.X2N.0.REVIEW`：历史结论 `BLOCKED_OWNER_ACTION`，原报告与 3 份机器证据保持不变。
 - `STG.X2N.0.REVIEW.RESUME`：完整复验通过；当前 `G0=PASS`。
-- Stage 0 整阶段远端上传：已授权。
-- Stage 1：只授权后续独立 Run 从 `TSK.x2n.foundation.001` 开始；本 Resume Run 未执行产品代码。
+- Stage 0 整阶段已通过 PR #66 合并；G0 历史/Resume 证据保持不变。
+- Stage 1：`TSK.x2n.foundation.001` 当前范围完成；`G1=NOT_RUN`，不得 push。
+- 下一独立 Run：只执行 `TSK.x2n.foundation.002` / `PH.X2N.1.2`。
 - 产品、真实账号、Chrome 控制、六平台调用、Notion、模型、媒体与全部下游产品 Acceptance：`NOT_RUN`。
 - 六平台：全部 `UNKNOWN_DISABLED`；各平台实现开始时重新通过 Policy/Auth/Technical Gate。
 
@@ -31,8 +32,15 @@
 - cutoff 后 `origin/main` 漂移：2 commits；x2n overlap 0。
 - Resume 证据：`machine/evidence/stage_0/review_resume/{verification,G0,owner_decision}.json`。
 - 人类报告：`docs/governance/STAGE_0_REVIEW_RESUME.md`。
+- Foundation 001 证据：`evidence/foundation/TSK.x2n.foundation.001.json`；只证明当前 scaffold 范围。
+- npm/uv locks：仅本地 workspace，第三方 package/install script 为 0。
+- Fresh copy：隔离 HOME 中 frozen locks、Extension 与 7 个 lifecycle rehearsal 加 1 个负向 Canary 均通过。
 
 ```bash
+python3.12 -B scripts/verify_foundation_001.py --verify-worktree --allow-external-main-dirty --require-evidence
+python3 -B -m unittest discover -s tests -p 'test_*.py'
+
+# 历史 Stage 0 复验（需要显式私有输入时按原 Run Contract 提供）
 python3 -B scripts/verify_stage_0_review_resume.py --expect-g0 pass --verify-worktree --allow-external-main-dirty --source-roadmap "$X2N_SOURCE_ROADMAP" --source-taskpack "$X2N_SOURCE_TASKPACK" --require-evidence
 python3 -B scripts/verify_stage_0_review.py --verify-worktree --allow-external-main-dirty --verify-local-root --source-roadmap "$X2N_SOURCE_ROADMAP" --source-taskpack "$X2N_SOURCE_TASKPACK" --require-evidence
 python3 -B scripts/verify_phase_0_1.py --verify-worktree --allow-external-main-dirty --verify-local-root
@@ -52,6 +60,6 @@ python3 -B -m unittest discover -s tests -p 'test_*.py'
 
 ## 下一步
 
-1. 完成 Stage 0 分支 push/PR，不自动合并其他开发线。
-2. 另开单 Task Run：`TSK.x2n.foundation.001` / `PH.X2N.1.1`。
-3. 若 PR 前发现 x2n overlap、扫描命中、证据漂移或测试失败，停止上传并恢复 G0 阻断；不得触碰共享认证材料。
+1. 保留本地 foundation.001 commit，不 push；Stage 1 只有 G1 Review/Fix/Re-acceptance 通过后才整阶段上传。
+2. 另开单 Task Run：`TSK.x2n.foundation.002` / `PH.X2N.1.2`，定义版本化 Contract 与错误分类。
+3. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Runtime/越界写入命中立即 Fail Closed。

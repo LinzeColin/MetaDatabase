@@ -1,0 +1,7 @@
+interface:
+  display_name: "xhs-douyin-2notion"
+  short_description: "治理本地六平台个人内容知识系统"
+  default_prompt: "使用 $xhs-douyin-2notion 严格按当前 Task 和 Acceptance 推进；未知门禁 Fail Closed。"
+
+policy:
+  allow_implicit_invocation: true

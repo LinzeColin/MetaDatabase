@@ -302,7 +302,12 @@ def validate_canonical_boundaries() -> Check:
 
     architecture = _load_json(ARCHITECTURE)
     _require([item.get("id") for item in architecture.get("decisions", [])] == [f"ADR-{index:03d}" for index in range(1, 11)], "ADR set drifted")
-    _require(architecture.get("status") == "accepted_design_not_implemented", "architecture implementation status overstated")
+    if architecture.get("implementation_started") is False:
+        _require(architecture.get("status") == "accepted_design_not_implemented", "historical architecture status drifted")
+    else:
+        _require(architecture.get("status") == "foundation_scaffold_started", "foundation architecture status drifted")
+        _require(architecture.get("implementation_scope") == "TSK.x2n.foundation.001_scaffold_only", "foundation implementation scope overstated")
+        _require(architecture.get("real_account_execution") is False and architecture.get("stage_gate") == "g1_not_run", "foundation Gate/account status overstated")
     stop_kill = _load_json(STOP_KILL)
     _require([item.get("id") for item in stop_kill.get("rules", [])] == [f"SK-X2N-{index:03d}" for index in range(1, 21)], "Stop/Kill rule set drifted")
     fixtures = _load_json(FIXTURES)
@@ -328,8 +333,15 @@ def validate_canonical_boundaries() -> Check:
     )
     _require(recovery_check.status == "PASS", "synthetic recovery attestation does not pass its verifier")
 
-    for relative in ("apps", "packages", "extension", "companion", "SKILL.md"):
-        _require(not (PROJECT_ROOT / relative).exists(), f"product implementation entered Stage 0 Review: {relative}")
+    current_state = _load_json(TASK_STATE)
+    if current_state.get("tasks", {}).get("TSK.x2n.foundation.001") == "pass":
+        for relative in ("apps", "packages", "SKILL.md"):
+            _require((PROJECT_ROOT / relative).exists(), f"registered foundation scaffold missing: {relative}")
+        for relative in ("extension", "companion", "runtime", "downloads"):
+            _require(not (PROJECT_ROOT / relative).exists(), f"unexpected top-level product/runtime path: {relative}")
+    else:
+        for relative in ("apps", "packages", "extension", "companion", "SKILL.md"):
+            _require(not (PROJECT_ROOT / relative).exists(), f"product implementation entered Stage 0 Review: {relative}")
 
     forbidden_tokens = (
         "Agent" + "Database",
@@ -419,7 +431,8 @@ def validate_current_state() -> Check:
     validate_gate_payload(gate)
 
     state = _load_json(TASK_STATE)
-    _require(tuple(state.get("tasks", {}).keys()) == STAGE_TASKS and all(value == "pass" for value in state["tasks"].values()), "Stage 0 task state drifted")
+    _require(tuple(state.get("tasks", {}).keys())[: len(STAGE_TASKS)] == STAGE_TASKS, "Stage 0 task order drifted")
+    _require(all(state.get("tasks", {}).get(task) == "pass" for task in STAGE_TASKS), "Stage 0 task state drifted")
     _require(state.get("stage_gate") == gate["gate_status"], "task/gate state disagree")
     _require(state.get("remote_upload") == gate["remote_upload"], "task/gate upload state disagree")
     project = _load_json(PROJECT_FACT)
@@ -432,7 +445,7 @@ def validate_current_state() -> Check:
         _require(state.get("blocking_followups", [{}])[0].get("id") == INCIDENT_ID and state["blocking_followups"][0].get("status") == "owner_action_pending", "task state lost the pending follow-up")
         _require(project.get("status") == "stage_0_review_complete_g0_blocked_owner_action", "project fact does not reflect blocked Review verdict")
         details = {"review": "COMPLETE", "g0": "BLOCKED_OWNER_ACTION", "stage_1_authorized": False, "remote_upload": "FORBIDDEN"}
-    else:
+    elif state.get("schema_version") == "1.2":
         _require(state.get("schema_version") == "1.2", "Resume task state schema drifted")
         _require(state.get("review_id") == RESUME_ID and state.get("run_id") == RESUME_RUN_ID, "Resume task state identity drifted")
         _require(state.get("run_kind") == "stage_review_resume_no_new_dag_task" and state.get("state") == "stage_0_g0_pass", "Resume task state is invalid")
@@ -446,6 +459,22 @@ def validate_current_state() -> Check:
         }], "task state Resume resolution is missing or ambiguous")
         _require(project.get("status") == "stage_0_g0_pass_stage_1_authorized", "project fact does not reflect G0 pass")
         details = {"review": "RESUME_COMPLETE", "g0": "PASS", "stage_1_authorized": True, "remote_upload": "AUTHORIZED"}
+    else:
+        _require(state.get("schema_version") == "1.3", "unsupported current task state")
+        _require(state.get("review_id") == RESUME_ID, "G0 Resume identity was lost")
+        _require(state.get("run_id") == "RUN-X2N-S01-F001" and state.get("run_kind") == "single_dag_task", "foundation Run identity mismatch")
+        _require(state.get("stage") == "STG.X2N.1" and state.get("state") == "stage_1_foundation_001_pass_g1_not_run", "current Stage state is invalid")
+        _require(state.get("stage_1_authorized") is True and state.get("next_phase_authorized") is True, "Stage 1 authorization drifted")
+        _require(state.get("next_phase") == "PH.X2N.1.2" and state.get("next_run") == "TSK.x2n.foundation.002", "foundation next route drifted")
+        _require(state.get("blocking_followups") == [{
+            "id": INCIDENT_ID,
+            "scope": "before_g0_pass",
+            "status": "resolved",
+            "action": "owner_directed_external_retention_with_x2n_zero_contact",
+        }], "task state Resume resolution is missing or ambiguous")
+        _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
+        _require(project.get("status") == "stage_1_foundation_001_complete_g1_not_run", "project fact does not reflect foundation completion")
+        details = {"review": "RESUME_COMPLETE", "g0": "PASS", "stage_1_authorized": True, "remote_upload": "STAGE_1_FORBIDDEN_UNTIL_G1"}
     return Check("current_stage_state", "PASS", details)
 
 

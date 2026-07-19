@@ -1,6 +1,6 @@
 # Third-Party Notices and Exclusion Register
 
-当前 `xhs-douyin-2notion` 没有发布包、没有第三方 runtime dependency，也没有复制或捆绑下列上游代码。此文件汇总 Phase 0.2 依赖审计与 Phase 0.5 竞品排除结论，不代表已授权启用 Adapter。
+当前 `xhs-douyin-2notion` 没有发布包、没有第三方 runtime/build package，也没有复制或捆绑下列上游代码。Stage 1 foundation scaffold 的 npm/uv locks 只包含本地 workspace，registry package、install script 与 runtime dependency 均为 0；Node、npm、Python 和 uv 是外部构建工具，不随产品分发。此文件汇总 Phase 0.2 依赖审计、Phase 0.5 竞品排除与 foundation.001 零依赖结论，不代表已授权启用 Adapter。
 
 ## douyin-downloader
 

@@ -1,18 +1,19 @@
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "project": "x2n",
-  "stage": "STG.X2N.0",
-  "last_completed_phase": "PH.X2N.0.5",
+  "stage": "STG.X2N.1",
+  "last_completed_phase": "PH.X2N.1.1",
   "review_id": "STG.X2N.0.REVIEW.RESUME",
-  "run_id": "RUN-X2N-S00-REVIEW-RESUME",
-  "run_kind": "stage_review_resume_no_new_dag_task",
-  "state": "stage_0_g0_pass",
+  "run_id": "RUN-X2N-S01-F001",
+  "run_kind": "single_dag_task",
+  "state": "stage_1_foundation_001_pass_g1_not_run",
   "tasks": {
     "TSK.x2n.discovery.001": "pass",
     "TSK.x2n.discovery.002": "pass",
     "TSK.x2n.discovery.003": "pass",
     "TSK.x2n.discovery.004": "pass",
-    "TSK.x2n.discovery.005": "pass"
+    "TSK.x2n.discovery.005": "pass",
+    "TSK.x2n.foundation.001": "pass"
   },
   "downstream_acceptances": {
     "ACC.x2n.gov.001": "pass",
@@ -21,10 +22,12 @@
     "ACC.x2n.ops.002": "downstream_not_run"
   },
   "acceptance_status": {
+    "ACC.x2n.gov.001": "pass_current_scaffold_scope",
     "ACC.x2n.gov.003": "pass_current_artifact_scope",
     "ACC.x2n.dy.003": "baseline_pass_downstream_not_run",
     "ACC.x2n.media.003": "design_fixture_pass_downstream_not_run",
-    "ACC.x2n.rel.003": "design_supply_chain_pass_downstream_not_run"
+    "ACC.x2n.rel.003": "design_supply_chain_pass_downstream_not_run",
+    "ACC.x2n.rel.008": "pass_current_scaffold_scope_product_lifecycle_downstream_not_run"
   },
   "blocking_followups": [
     {
@@ -34,10 +37,24 @@
       "action": "owner_directed_external_retention_with_x2n_zero_contact"
     }
   ],
-  "next_phase": "PH.X2N.1.1",
-  "next_run": "TSK.x2n.foundation.001",
+  "completed_stage_gate": {
+    "gate_id": "G0",
+    "status": "pass",
+    "stage": "STG.X2N.0",
+    "remote_upload": "merged"
+  },
+  "next_phase": "PH.X2N.1.2",
+  "next_run": "TSK.x2n.foundation.002",
   "next_phase_authorized": true,
   "stage_1_authorized": true,
   "stage_gate": "pass",
-  "remote_upload": "authorized_after_g0_pass"
+  "remote_upload": "authorized_after_g0_pass",
+  "current_stage_gate": "not_run",
+  "current_stage_remote_upload": "forbidden_until_g1_pass",
+  "product_code": "scaffold_only",
+  "real_account_execution": "not_run",
+  "platform_calls": "not_run",
+  "notion_calls": "not_run",
+  "model_calls": "not_run",
+  "media_processing": "not_run"
 }

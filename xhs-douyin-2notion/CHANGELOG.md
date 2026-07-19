@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.0.1 — Stage 1 / Foundation 001
+
+- 新增受治理 Skill 入口、OpenAI agent metadata、npm/uv workspace 与冻结 lock；当前第三方 package 和 install script 均为 0。
+- 建立无权限、无 Side Panel/Background/Host Permission 的 MV3 Extension scaffold，以及不含 Server、IPC、DB、Adapter、模型、媒体或 Sink 的 Python Companion scaffold。
+- 增加纯合成 lifecycle rehearsal：install、self-test、synthetic Canary、upgrade/rollback dry-run、diagnose、uninstall dry-run，全部明确真实产品 lifecycle 为 `DOWNSTREAM_NOT_RUN`。
+- 在隔离临时 HOME 的新副本验证 frozen locks、Extension 与正/负 lifecycle；证据不含私有路径、URL、凭据或内容。
+- `TSK.x2n.foundation.001` 当前范围 PASS；G1 未运行，Stage 1 不得 push，下一独立 Run 为 `TSK.x2n.foundation.002`。
+
 ## v0.0.0.1 — Stage 0 Review Resume / G0 PASS
 
 - 依据 `CE-X2N-20260720-S00-REVIEW-RESUME` 将共享认证材料限定为 x2n 外部、Owner 管理的并行基础设施；x2n 不读取、使用、改变或显示它，也不修改全局 Git 配置或 Credential Helper。

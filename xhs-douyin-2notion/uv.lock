@@ -1,0 +1,19 @@
+version = 1
+revision = 3
+requires-python = ">=3.12"
+
+[manifest]
+members = [
+    "x2n-companion",
+    "x2n-workspace",
+]
+
+[[package]]
+name = "x2n-companion"
+version = "0.0.0.1"
+source = { virtual = "apps/companion" }
+
+[[package]]
+name = "x2n-workspace"
+version = "0.0.0.1"
+source = { virtual = "." }
