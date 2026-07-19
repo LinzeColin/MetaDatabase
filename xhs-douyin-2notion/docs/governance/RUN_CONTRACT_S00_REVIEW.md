@@ -27,7 +27,7 @@
 ## 4. Review 前置事实
 
 - Review 分支必须精确为 `codex/xhs-douyin-2notion-v0001-s00-review`。
-- 最新 `origin/main` 必须是当前 Review `HEAD` 的祖先；同步冲突必须显式解决并保留双方有效事实。
+- Review 开始/刷新时记录的 `origin/main` 明确 cutoff 必须是当前 Review `HEAD` 的祖先；同步冲突必须显式解决并保留双方有效事实。cutoff 后继续发生的长期并行提交仅在触及 x2n 时阻断，不能让无关开发迫使本 Run 永远追逐 moving main。
 - 原始 roadmap/ZIP 只读核验，SHA-256 必须与 Source Manifest 一致；原始 taskpack 未指定本机下载绝对路径。
 - `X2N_DATA_ROOT` 只允许解析为 Owner 下载目的地下的 `xhs-douyin-2notion` 隔离命名空间；Evidence 不记录绝对路径。
 

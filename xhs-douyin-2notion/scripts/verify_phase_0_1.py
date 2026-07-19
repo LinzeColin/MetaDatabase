@@ -308,7 +308,11 @@ def validate_registration() -> Check:
     _require(source.get("taskpack_zip_sha256") == EXPECTED_TASKPACK_ZIP_SHA256, "taskpack source hash mismatch")
     _require(source.get("zip_member_count") == 7, "source member count mismatch")
     _require(source.get("source_download_absolute_path_status") == "not_specified_in_original_inputs", "original path gap is not recorded")
-    _require(source.get("owner_adaptations") == ["CE-X2N-20260719-S00-P01", "CE-X2N-20260719-S00-P05"], "owner path/name adaptations missing")
+    _require(source.get("owner_adaptations") == [
+        "CE-X2N-20260719-S00-P01",
+        "CE-X2N-20260719-S00-P05",
+        "CE-X2N-20260720-S00-REVIEW",
+    ], "owner adaptations missing")
 
     repository_root = PROJECT_ROOT.parent
     root_readme = (repository_root / "README.md").read_text(encoding="utf-8")

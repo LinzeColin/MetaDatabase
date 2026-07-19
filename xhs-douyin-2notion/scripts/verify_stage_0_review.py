@@ -176,6 +176,7 @@ def validate_review_documents() -> Check:
     required = (
         RUN_CONTRACT,
         REVIEW_REPORT,
+        PROJECT_ROOT / "docs/governance/CHANGE_EVENT_S00_REVIEW.md",
         GATE_STATE,
         GATE_SCHEMA,
         EXTERNAL_REVALIDATION,
@@ -194,6 +195,9 @@ def validate_review_documents() -> Check:
         "UNKNOWN_DISABLED",
     ):
         _require(token in report, f"Stage Review report missing: {token}")
+    change_event = (PROJECT_ROOT / "docs/governance/CHANGE_EVENT_S00_REVIEW.md").read_text(encoding="utf-8")
+    for token in ("CE-X2N-20260720-S00-REVIEW", "流程粒度不符合项", "G0_BLOCKED_OWNER_ACTION"):
+        _require(token in change_event, f"Review Change Event missing: {token}")
     return Check("review_documents", "PASS", {"required_artifacts": len(required), "missing": 0})
 
 
@@ -327,6 +331,7 @@ def validate_gate_payload(gate: dict[str, Any]) -> None:
     _require(gate.get("schema_version") == "1.0", "gate state schema drifted")
     _require(gate.get("project") == "x2n" and gate.get("stage") == "STG.X2N.0", "gate state identity drifted")
     _require(gate.get("review_id") == REVIEW_ID and gate.get("run_id") == REVIEW_RUN_ID, "gate Review identity drifted")
+    _require(re.fullmatch(r"[0-9a-f]{40}", str(gate.get("review_sync_target", ""))) is not None, "Review sync target is missing or invalid")
     _require(gate.get("review_status") == "complete" and gate.get("automated_reacceptance") == "pass", "Review did not complete local reacceptance")
     _require(gate.get("gate_id") == "G0", "wrong stage gate")
     _require(tuple(gate.get("pass_conditions", {}).keys()) == G0_STATE_PASS_KEYS, "G0 state pass-condition keys drifted")
@@ -457,9 +462,23 @@ def validate_worktree_scope(allow_external_main_dirty: bool = False) -> Check:
     _require(branch == REVIEW_BRANCH, "wrong Stage 0 Review branch")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote) is not None, "wrong or unsafe persisted origin")
-    _git(["rev-parse", "--verify", "origin/main"])
-    ancestor = subprocess.run(["git", "merge-base", "--is-ancestor", "origin/main", "HEAD"], cwd=REPOSITORY_ROOT, check=False)
-    _require(ancestor.returncode == 0, "Review branch is not synchronized with origin/main")
+    live_origin = _git(["rev-parse", "--verify", "origin/main"])
+    sync_target = _load_json(GATE_STATE)["review_sync_target"]
+    _git(["cat-file", "-e", f"{sync_target}^{{commit}}"])
+    ancestor = subprocess.run(["git", "merge-base", "--is-ancestor", sync_target, "HEAD"], cwd=REPOSITORY_ROOT, check=False)
+    _require(ancestor.returncode == 0, "Review branch does not contain its recorded origin/main cutoff")
+
+    origin_drift_commits = 0
+    origin_project_overlap = 0
+    if live_origin != sync_target:
+        linear = subprocess.run(["git", "merge-base", "--is-ancestor", sync_target, live_origin], cwd=REPOSITORY_ROOT, check=False)
+        _require(linear.returncode == 0, "origin/main no longer descends from the recorded Review cutoff")
+        drift_paths = _git(["diff", "--name-only", f"{sync_target}..{live_origin}"]).splitlines()
+        origin_project_overlap = sum(path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in drift_paths)
+        _require(origin_project_overlap == 0, "origin/main changed x2n after the Review cutoff")
+        readme_diff = _git(["diff", "--unified=0", f"{sync_target}..{live_origin}", "--", "README.md"])
+        _require(not any(line.startswith(("+", "-")) and "xhs-douyin-2notion" in line for line in readme_diff.splitlines()), "origin/main changed the x2n parent index after the Review cutoff")
+        origin_drift_commits = int(_git(["rev-list", "--count", f"{sync_target}..{live_origin}"]))
 
     status = _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
     changed = _porcelain_paths(status)
@@ -478,15 +497,18 @@ def validate_worktree_scope(allow_external_main_dirty: bool = False) -> Check:
     _require(_git(["branch", "--show-current"], main_path) == "main", "MetaDatabase main worktree is not on main")
     main_status = _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"], main_path)
     isolation = _evaluate_main_isolation(_porcelain_paths(main_status), allow_external_main_dirty)
-    counts = _git(["rev-list", "--left-right", "--count", "origin/main...HEAD"]).split()
-    _require(len(counts) == 2 and counts[0] == "0", "origin/main contains commits missing from Review")
+    counts = _git(["rev-list", "--left-right", "--count", f"{sync_target}...HEAD"]).split()
+    _require(len(counts) == 2 and counts[0] == "0", "Review cutoff contains commits missing from Review")
     return Check(
         "review_worktree_scope",
         "PASS",
         {
             "branch": branch,
             "remote": "LinzeColin/MetaDatabase",
-            "origin_main_is_ancestor": True,
+            "review_sync_target_is_ancestor": True,
+            "origin_main_matches_cutoff": live_origin == sync_target,
+            "origin_drift_commits_after_cutoff": origin_drift_commits,
+            "origin_project_overlap_paths_after_cutoff": origin_project_overlap,
             "changed_paths": len(changed),
             "commits_ahead_of_origin": int(counts[1]),
             **isolation,
@@ -571,7 +593,8 @@ def write_evidence(checks: list[Check]) -> None:
         "run_id": REVIEW_RUN_ID,
         "generated_at": now,
         "review_base_head": _git(["rev-parse", "HEAD"]),
-        "origin_main_commit": _git(["rev-parse", "origin/main"]),
+        "review_sync_target": gate["review_sync_target"],
+        "origin_main_observed_at_evidence": _git(["rev-parse", "origin/main"]),
         "product_code": "NOT_STARTED",
         "real_account_execution": "NOT_RUN",
         "platform_calls": "NOT_RUN",

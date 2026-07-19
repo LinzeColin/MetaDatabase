@@ -1,5 +1,7 @@
 # Owner Change Event — CE-X2N-20260719-S00-P01
 
+> 执行粒度条款已被 `CE-X2N-20260720-S00-REVIEW` 取代：未来普通 Run 只能执行一个 DAG Task。本文件保留为历史路由证据，不再授权“一 Run 一个 Phase”。
+
 ## 原因
 
 原始 v0.0.0.1 Product Design 输入中的仓库路由不再符合 Owner 的唯一目标，且原始 roadmap/taskpack 没有指定本机下载绝对路径。Owner 明确要求在 pre Stage 00 先完成只读核验，并将后续实施统一到 MetaDatabase 的唯一子项目与指定下载目的地内的隔离私有数据根。

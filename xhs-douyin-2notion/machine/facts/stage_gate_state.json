@@ -4,6 +4,7 @@
   "stage": "STG.X2N.0",
   "review_id": "STG.X2N.0.REVIEW",
   "run_id": "RUN-X2N-S00-REVIEW",
+  "review_sync_target": "9f68c69becc31b0626b387eb36711235cf48af6f",
   "review_status": "complete",
   "automated_reacceptance": "pass",
   "gate_id": "G0",

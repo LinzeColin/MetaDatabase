@@ -1,5 +1,7 @@
 # Change Event — CE-X2N-20260719-S00-P05
 
+> 执行粒度条款已被 `CE-X2N-20260720-S00-REVIEW` 取代：平台/Task 数量变更不再授权“一 Run 一个 Phase”。
+
 ## Owner 指令
 
 唯一母仓库为 `LinzeColin/MetaDatabase`，唯一子项目为 `xhs-douyin-2notion/`；所有下载位于 Owner 指定的 `MediaCrawler` 下载目的地。产品终态必须支持小红书、抖音、哔哩哔哩、快手、微博和淘宝，并补充对 `ShilongLee/Crawler` 的充分竞品研究；可借鉴思想必须 clean-room 重建。

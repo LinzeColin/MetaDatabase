@@ -2,7 +2,7 @@
 
 ## 结论
 
-`STG.X2N.0.REVIEW` 已完成本地独立复核、修复与重验。五项 G0 构建准备条件均有机器证据，四项 taskpack Stop Condition 均未激活；但 `INC-X2N-S00-P05-001` 的凭据生命周期仍缺少 Owner 轮换、重新认证或失效证明。因此真实结论是：
+`STG.X2N.0.REVIEW` 已完成本地独立复核、修复与重验。五项 G0 构建准备条件均有机器证据，taskpack 与 roadmap 合并后的四项 Stop Condition 均未激活；但 `INC-X2N-S00-P05-001` 的凭据生命周期仍缺少 Owner 轮换、重新认证或失效证明。因此真实结论是：
 
 > `REVIEW_COMPLETE / G0_BLOCKED_OWNER_ACTION / STAGE_1_UNAUTHORIZED / REMOTE_UPLOAD_FORBIDDEN`
 
@@ -11,7 +11,7 @@
 ## Review 范围与边界
 
 - 母仓库/子项目仅为 `LinzeColin/MetaDatabase` / `xhs-douyin-2notion/`。
-- 基于 Review 开始时最新 `origin/main` 做受控同步；母仓库索引冲突保留上游与 x2n 两条有效事实。
+- 基于 Review 刷新时的 `origin/main@9f68c69becc31b0626b387eb36711235cf48af6f` 明确 cutoff 做受控同步；母仓库索引保留上游与 x2n 两条有效事实。cutoff 后的无关长期开发不被吸收，只有触及 x2n 才阻断。
 - 只复核 `TSK.x2n.discovery.001–005`、Phase 0.1/0.2/0.5 证据及 G0；没有执行新 DAG Task。
 - 产品代码、真实账号、浏览器控制、平台/Notion/模型调用、媒体下载与远端上传均未运行。
 - 外部主树只做聚合 dirty path/零重叠判断，不读取或复制其他长期开发的路径、diff 或内容。
@@ -48,7 +48,7 @@
 | ID | 严重度 | 发现 | 处置 |
 |---|---|---|---|
 | `F-X2N-S00-R01` | High | 三个 Phase verifier 的 branch allowlist 不认识独立 Stage Review 分支，完整重验会失败 | 已加入精确 review branch，不接受任意分支 |
-| `F-X2N-S00-R02` | High | Owner 要求每 Run 一个 Task，但 Pursuing Goal/Taskpack/Operations 被放宽为每 Run 一个 Phase | 已收紧为普通 Run 最多一个 DAG Task；Stage Review 是不执行新 Task 的专用例外 |
+| `F-X2N-S00-R02` | High | Owner 要求每 Run 一个 Task，但 Pursuing Goal/Taskpack/Operations 被放宽为每 Run 一个 Phase；历史 P01 也一次执行了 discovery.001–003 | 登记 `CE-X2N-20260720-S00-REVIEW`；保留历史、逐 Task 重验证据，并收紧未来机器门禁；Stage Review 是不执行新 Task 的专用例外 |
 | `F-X2N-S00-R03` | Medium | PRD/Release 残留 `MediaCrawler Adapter` 关闭占位与“外部安装”措辞，可能被误解为未来授权 | 已删除产品 Feature Flag，并改为永久零安装/零执行的历史审计边界 |
 | `F-X2N-S00-R04` | Medium | Review 与最新 `origin/main` 的母仓库索引发生单一文本冲突 | 已保留上游 Stock Skill 行与 x2n 行；没有修改其他项目内容 |
 | `F-X2N-S00-R05` | Blocker | 临时源码 remote 凭据形态事件已隔离，但凭据是否失效仍未知 | 本地可做项已完成；保持 `G0_BLOCKED_OWNER_ACTION` |

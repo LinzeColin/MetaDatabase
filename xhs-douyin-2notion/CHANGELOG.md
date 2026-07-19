@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.0.1 — Stage 0 Review
+
+- 基于 `origin/main` 明确 cutoff 完成独立 Review/Fix/Re-acceptance；cutoff 后无关长期开发不吸收，触及 x2n 才阻断。
+- 修复三个旧 Phase verifier 不接受独立 Review 分支的问题，并完整重跑 Phase 0.1/0.2/0.5。
+- 将 Owner 执行约束从“每 Run 一个 Phase”收紧为“每普通 Run 一个 DAG Task 及其 Acceptance”；Stage Review 是不执行新 Task 的专用例外。
+- 删除残留 `MediaCrawler` 产品 Adapter Feature Flag 和“外部安装”措辞；下载父目录名仍只代表存储路由，受限上游保持零安装、零执行、零输出接收。
+- 复核原始 roadmap/ZIP 固定哈希；确认原输入没有指定 macOS 下载绝对路径。
+- 重新核对 `ShilongLee/Crawler` 固定提交与 Chrome/Notion/六平台一手来源；竞品提交未漂移，六平台仍全部 `UNKNOWN_DISABLED`。
+- 28 个单测通过（2 个私有可选输入测试按设计跳过），20 份历史 Phase receipt 保持未改，产品/账号/平台/Notion/模型/媒体均 `NOT_RUN`。
+- 本地自动门禁通过，但 `INC-X2N-S00-P05-001` Owner Action 未完成；真实结论为 `G0_BLOCKED_OWNER_ACTION`，Stage 1 与远端上传继续禁止。
+
 ## v0.0.0.1 — Stage 0 / Phase 0.5
 
 - 通过 Owner Change Event 将终态范围扩为六平台，保留稳定项目名；DAG 从 35 增至 43 Task、需求从 28 增至 32、Acceptance 从 49 增至 61。

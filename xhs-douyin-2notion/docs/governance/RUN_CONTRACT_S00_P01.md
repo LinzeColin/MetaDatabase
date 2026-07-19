@@ -1,5 +1,7 @@
 # Run Contract — Stage 0 / Phase 0.1
 
+> 历史不符合项：本 Contract 曾把 Owner 执行粒度解释为“一 Run 一个 Phase”，并在一次 Run 中完成 discovery.001–003。`CE-X2N-20260720-S00-REVIEW` 已逐 Task 重验并将未来规则收紧为“一 Run 一个 DAG Task”；本历史文件不再构成当前执行授权。
+
 ## 目标
 
 建立唯一仓库/项目身份、Phase 0.1 Task/Acceptance 注册，以及可机器验证的 Public Artifact / Private Runtime 路径契约。

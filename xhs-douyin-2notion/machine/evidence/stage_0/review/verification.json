@@ -1,0 +1,136 @@
+{
+  "checks": [
+    {
+      "details": {
+        "missing": 0,
+        "required_artifacts": 6
+      },
+      "name": "review_documents",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "combined_stop_conditions": 4,
+        "g0_pass_conditions": 5,
+        "max_tasks_per_run": 1,
+        "stage_tasks": 5
+      },
+      "name": "task_and_gate_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "competitor_code_copies": 0,
+        "platforms": 6,
+        "platforms_enabled": 0,
+        "product_code": "NOT_STARTED",
+        "runtime_dependencies": 0
+      },
+      "name": "canonical_boundaries",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "g0": "BLOCKED_OWNER_ACTION",
+        "remote_upload": "FORBIDDEN",
+        "review": "COMPLETE",
+        "stage_1_authorized": false
+      },
+      "name": "current_stage_state",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "downstream_product_oracles": "NOT_RUN",
+        "files": 20,
+        "manifest_sha256": "556ca71cb5497645d232d7effccbd6eb51ea8c81f8e20eb3c89750976979d90f"
+      },
+      "name": "phase_evidence_receipts",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "competitor_head_unchanged": true,
+        "official_source_lanes": 8,
+        "platforms_enabled": 0
+      },
+      "name": "external_revalidation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s00-review",
+        "changed_paths": 20,
+        "commits_ahead_of_origin": 6,
+        "external_main_dirty_paths": 2,
+        "isolation_mode": "external_main_dirty_zero_project_overlap",
+        "main_worktree_clean": false,
+        "origin_drift_commits_after_cutoff": 0,
+        "origin_main_matches_cutoff": true,
+        "origin_project_overlap_paths_after_cutoff": 0,
+        "project_overlap_paths": 0,
+        "remote": "LinzeColin/MetaDatabase",
+        "review_sync_target_is_ancestor": true
+      },
+      "name": "review_worktree_scope",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "absolute_download_path_in_source": "UNSPECIFIED",
+        "roadmap_sha256": "66f949b2109ffe2701d7b74099430e862f4027bb4a429c56e84e13716c0bc906",
+        "taskpack_zip_sha256": "b32993f465888d9352d745b353c3b923c38406c941a8f357ddf1a64e2bba5a58"
+      },
+      "name": "original_sources",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "downstream_product_oracles": "NOT_RUN",
+        "phase_0_1_checks": 7,
+        "phase_0_2_checks": 10,
+        "phase_0_5_checks": 11
+      },
+      "name": "phase_reacceptance",
+      "status": "PASS"
+    }
+  ],
+  "downstream_product_acceptances": "NOT_RUN",
+  "findings": {
+    "blocking_owner_action": [
+      "F-X2N-S00-R05"
+    ],
+    "fixed": [
+      "F-X2N-S00-R01",
+      "F-X2N-S00-R02",
+      "F-X2N-S00-R03",
+      "F-X2N-S00-R04"
+    ]
+  },
+  "g0_status": "BLOCKED_OWNER_ACTION",
+  "generated_at": "2026-07-19T21:27:53Z",
+  "media_downloads": "NOT_RUN",
+  "model_calls": "NOT_RUN",
+  "notion_calls": "NOT_RUN",
+  "origin_main_observed_at_evidence": "9f68c69becc31b0626b387eb36711235cf48af6f",
+  "platform_calls": "NOT_RUN",
+  "product_code": "NOT_STARTED",
+  "project": "x2n",
+  "real_account_execution": "NOT_RUN",
+  "redaction": {
+    "cdn_urls_included": false,
+    "external_main_paths_included": false,
+    "private_content_included": false,
+    "secrets_included": false
+  },
+  "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
+  "review_base_head": "38862c706b078fe99ac09f77b523892d873de99b",
+  "review_id": "STG.X2N.0.REVIEW",
+  "review_status": "COMPLETE",
+  "review_sync_target": "9f68c69becc31b0626b387eb36711235cf48af6f",
+  "run_id": "RUN-X2N-S00-REVIEW",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.0",
+  "stage_1_authorized": false,
+  "status": "PASS"
+}

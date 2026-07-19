@@ -12,7 +12,7 @@ calendar_commitment: none
 
 # `xhs-douyin-2notion` Roadmap
 
-> Scope amendment `CE-X2N-20260719-S00-P05`：稳定项目名不限制平台范围；Stage 2–3 已扩为六平台，所有新增平台逐一通过 Policy/Auth/Technical/Canary Gate，仍保持一个 Run 只执行一个 Phase。
+> Scope amendment `CE-X2N-20260719-S00-P05`：稳定项目名不限制平台范围；Stage 2–3 已扩为六平台，所有新增平台逐一通过 Policy/Auth/Technical/Canary Gate。执行粒度已由 `CE-X2N-20260720-S00-REVIEW` 收紧为每普通 Run 一个 DAG Task。
 
 ## 1. Roadmap 总览
 

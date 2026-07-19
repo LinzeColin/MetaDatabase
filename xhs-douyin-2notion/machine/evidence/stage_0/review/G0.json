@@ -1,0 +1,50 @@
+{
+  "blocking_followups": [
+    {
+      "id": "INC-X2N-S00-P05-001",
+      "required_resolution": "rotate_or_reauthenticate_or_prove_expiry",
+      "scope": "before_g0_pass",
+      "status": "owner_action_pending"
+    }
+  ],
+  "decision": "FAIL_CLOSED",
+  "gate_id": "G0",
+  "generated_at": "2026-07-19T21:27:53Z",
+  "media_downloads": "NOT_RUN",
+  "model_calls": "NOT_RUN",
+  "notion_calls": "NOT_RUN",
+  "origin_main_observed_at_evidence": "9f68c69becc31b0626b387eb36711235cf48af6f",
+  "pass_conditions": {
+    "governance_registered": "PASS",
+    "license_and_upstream_registry_complete": "PASS",
+    "public_private_runtime_policy_machine_checkable": "PASS",
+    "synthetic_fixtures_support_no_real_credentials": "PASS",
+    "threat_model_and_adrs_complete": "PASS"
+  },
+  "platform_calls": "NOT_RUN",
+  "product_code": "NOT_STARTED",
+  "project": "x2n",
+  "real_account_execution": "NOT_RUN",
+  "redaction": {
+    "cdn_urls_included": false,
+    "external_main_paths_included": false,
+    "private_content_included": false,
+    "secrets_included": false
+  },
+  "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
+  "required_next_run": "STG.X2N.0.REVIEW.RESUME",
+  "review_base_head": "38862c706b078fe99ac09f77b523892d873de99b",
+  "review_id": "STG.X2N.0.REVIEW",
+  "review_sync_target": "9f68c69becc31b0626b387eb36711235cf48af6f",
+  "run_id": "RUN-X2N-S00-REVIEW",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.0",
+  "stage_1_authorized": false,
+  "status": "BLOCKED_OWNER_ACTION",
+  "stop_conditions": {
+    "bypass_requirement": "INACTIVE",
+    "license_conflict": "INACTIVE",
+    "no_reversible_data_design": "INACTIVE",
+    "private_data_must_enter_public_repo": "INACTIVE"
+  }
+}

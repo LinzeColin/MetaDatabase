@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 0 / Phase 0.5` 治理制品与合成验证已通过当前范围检查，Stage Gate 仍为 `NOT_RUN`。临时源码 remote 的凭据形态事件已隔离且文件扫描为 0，但 G0 前仍需 Owner 轮换/重新认证或证明凭据已失效。本阶段不包含采集、账号访问、浏览器控制、模型调用、Notion 写入或媒体处理；六平台与所有上游候选均默认关闭且未进入 runtime。与 MetaDatabase 其他长期开发采用显式、零重叠 worktree 隔离，外部文件不进入本项目证据或提交。
+当前状态：`v0.0.0.1 / Stage 0 Review` 已完成本地 Review/Fix/Re-acceptance；全部可自动复核项通过，但凭据形态事件 `INC-X2N-S00-P05-001` 仍需 Owner 轮换/重新认证或证明旧凭据已失效，因此 `G0=BLOCKED_OWNER_ACTION`、Stage 1 未授权、远端上传禁止。本阶段不包含采集、账号访问、浏览器控制、模型调用、Notion 写入或媒体处理；六平台与所有上游候选均关闭且未进入 runtime。与 MetaDatabase 其他长期开发采用显式 cutoff 和零重叠 worktree 隔离，外部文件不进入本项目证据或提交。
 
 ## 固定边界
 
@@ -46,6 +46,13 @@ python3 -B scripts/verify_phase_0_5.py --verify-worktree --allow-external-main-d
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
-下一 Run 只能做 Stage 0 全 Stage Review/Fix/Re-acceptance；G0 未通过前不得进入 Stage 1 或上传。
+## Stage 0 Review 验证
+
+```bash
+python3 -B scripts/verify_stage_0_review.py --verify-worktree --allow-external-main-dirty --verify-local-root --source-roadmap "$X2N_SOURCE_ROADMAP" --source-taskpack "$X2N_SOURCE_TASKPACK" --require-evidence
+python3 -B -m unittest discover -s tests -p 'test_*.py'
+```
+
+Review 结论见 [`docs/governance/STAGE_0_REVIEW.md`](docs/governance/STAGE_0_REVIEW.md)。只有 Owner 完成事件恢复动作后，才可新开 `STG.X2N.0.REVIEW.RESUME` 重验并重新决定 G0；当前不得进入 Stage 1 或上传。
 
 以上 `--allow-external-main-dirty` 只用于 Owner 已明确要求的长期并行情形，并要求外部 dirty paths 与 x2n 零重叠；正常 clean-main 场景应省略此参数，默认严格门禁保持不变。
