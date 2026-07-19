@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # BLK-005 部署日凭据装载(owner 亲自在服务器上运行,交互式)。
 #   ssh ubuntu@HOST      # owner 自己登录
-#   sudo bash /opt/alpha/MetaDatabase/Alpha/deploy/load_credentials.sh
+#   sudo bash /opt/alpha/MetaDatabase/Alpha/deploy/load_env_interactive.sh
 # 红线:秘密用静默输入(read -s),只写 /opt/alpha/env(600, 属主 alpha);
 #   绝不回显、绝不写日志、绝不进 Git;Claude 全程不经手这些值。
 # 幂等:可重复运行覆盖;留空=保持原值不动。
@@ -11,17 +11,18 @@ ENVFILE=/opt/alpha/env
 [ "$(id -u)" = "0" ] || { echo "请用 sudo 运行"; exit 1; }
 
 echo "=== Alpha 凭据装载(输入不回显;直接回车=不改该项)==="
-read -rs -p "1/6 moomoo 账户号 acc_id: " V_ACC; echo
-read -rs -p "2/6 moomoo 登录密码: " V_LOGIN; echo
-read -rs -p "3/6 moomoo 交易解锁密码: " V_UNLOCK; echo
-read -rs -p "4/6 发件 Gmail 地址: " V_GMAIL; echo
-read -rs -p "5/6 Gmail 应用专用密码(16位): " V_APPPW; echo
-read -rs -p "6/6 邮件指令令牌(自拟随机串,收指令邮件用): " V_IMAPTOK; echo
-export V_ACC V_LOGIN V_UNLOCK V_GMAIL V_APPPW V_IMAPTOK
+read -rs -p "1/7 moomoo 账户号 acc_id: " V_ACC; echo
+read -rs -p "2/7 moomoo 登录密码: " V_LOGIN; echo
+read -rs -p "3/7 moomoo 交易解锁密码: " V_UNLOCK; echo
+read -rs -p "4/7 发件 Gmail 地址: " V_GMAIL; echo
+read -rs -p "5/7 Gmail 应用专用密码(16位): " V_APPPW; echo
+read -rs -p "6/7 邮件指令令牌(自拟随机串,收指令邮件用): " V_IMAPTOK; echo
+read -rs -p "7/7 moomoo 登录账号(牛牛号/手机号/邮箱,手机号带国家码): " V_MOOACC; echo
+export V_ACC V_LOGIN V_UNLOCK V_GMAIL V_APPPW V_IMAPTOK V_MOOACC
 
 # 用 Python 安全改写(避免密码含 / & 等破坏 sed);只改非空项。
 V_ACC="$V_ACC" V_LOGIN="$V_LOGIN" V_UNLOCK="$V_UNLOCK" V_GMAIL="$V_GMAIL" \
-V_APPPW="$V_APPPW" V_IMAPTOK="$V_IMAPTOK" python3 - "$ENVFILE" <<'PY'
+V_APPPW="$V_APPPW" V_IMAPTOK="$V_IMAPTOK" V_MOOACC="$V_MOOACC" python3 - "$ENVFILE" <<'PY'
 import os, sys
 path = sys.argv[1]
 m = {
@@ -31,7 +32,14 @@ m = {
     "ALPHA_SMTP_USERNAME": os.environ.get("V_GMAIL", ""),
     "ALPHA_SMTP_APP_PASSWORD": os.environ.get("V_APPPW", ""),
     "ALPHA_IMAP_COMMAND_TOKEN": os.environ.get("V_IMAPTOK", ""),
+    "MOOMOO_LOGIN_ACCOUNT": os.environ.get("V_MOOACC", ""),
 }
+# 旧版模板可能缺新键:值非空但文件里没有该行时,追加到文件尾
+existing = open(path, encoding="utf-8").read()
+for k, v in m.items():
+    if v.strip() and not any(ln.startswith(k + "=") for ln in existing.splitlines()):
+        existing += f"\n{k}={v}\n"
+open(path, "w", encoding="utf-8").write(existing)
 lines = open(path, encoding="utf-8").read().splitlines()
 seen = set()
 out = []

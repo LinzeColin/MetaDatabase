@@ -1,0 +1,54 @@
+{
+  "artifacts": {
+    ".github/workflows/abd-stage0-validation.yml": {
+      "corrupted_sha256": "b63539f25f1ada442f9aa3ec5841bc3933bc55b6f2d4878960ceaf9a200c10e5",
+      "restored_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "signed_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "status": "PASS"
+    },
+    "economics.json": {
+      "corrupted_sha256": "f36a2edd8d48aa989b55f0c3fc3d6f0ced9da293cddf873195f180abdee0bb01",
+      "restored_sha256": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+      "signed_sha256": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+      "status": "PASS"
+    },
+    "kill_criteria.json": {
+      "corrupted_sha256": "7df61804220baff26e72095ce09794c0cd4ff621e77bd59ae666aecb3a395b0d",
+      "restored_sha256": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+      "signed_sha256": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+      "status": "PASS"
+    },
+    "machine/evidence/S01/STAGE_REVIEW/findings.json": {
+      "corrupted_sha256": "3442c6a4ecbb824b7331d21da2a0f79e428fe4a86024bb3ca4b24368bd5f4dd9",
+      "restored_sha256": "845af70562b7da6885cb2bb93a9799b2c8e958d34d21c2b5b609b044c1e14d2a",
+      "signed_sha256": "845af70562b7da6885cb2bb93a9799b2c8e958d34d21c2b5b609b044c1e14d2a",
+      "status": "PASS"
+    },
+    "machine/facts/stage1_review_contract.json": {
+      "corrupted_sha256": "9390d869dba73d4004d073ff63ea83e7c817f71e9cfa74cc4052892beda7c215",
+      "restored_sha256": "c5a6c977bdec169f780555420d80cf382258a3a7531899f1df986fb1c6d20d56",
+      "signed_sha256": "c5a6c977bdec169f780555420d80cf382258a3a7531899f1df986fb1c6d20d56",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S01_STAGE_REVIEW.json": {
+      "corrupted_sha256": "416128c12b4d8cbb04afbd395d0421de303ded9c50b7fca5c91005f673b0fcb9",
+      "restored_sha256": "65a041ed3fba5f0e5f6a2fa00c407c6dbe32f2dfee00b08c800bde0552a30ad6",
+      "signed_sha256": "65a041ed3fba5f0e5f6a2fa00c407c6dbe32f2dfee00b08c800bde0552a30ad6",
+      "status": "PASS"
+    },
+    "metrics.json": {
+      "corrupted_sha256": "ca7188bace3a923e219748a57879bdfcf7b6e501da5e4e806e422a153267aeef",
+      "restored_sha256": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+      "signed_sha256": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "STAGE-REVIEW-S01",
+  "evidence_id": "EVD-S01-STAGE-REVIEW-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_STAGE1_REVIEW_AND_PRODUCT_CONTRACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

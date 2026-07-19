@@ -189,6 +189,40 @@ assert.equal(policyOverview.status, 200);
 assert.equal(policyOverview.body.regulatory_filings.source, "sec_edgar");
 assert.equal(policyOverview.body.regulatory_filings.by_year.length, 3);
 assert.deepEqual(policyOverview.body.regulatory_filings.by_year[0], { year: 2016, filings: 120 });
+// module audit: /policy also needs policy_relationships[] + policy_models[] or
+// the page rejects a 200 as policy_overview_http_200.
+assert.ok(Array.isArray(policyOverview.body.policy_relationships));
+assert.ok(Array.isArray(policyOverview.body.policy_models));
+// render-critical: the /policy page maps regulatory_filings.latest — a missing
+// latest[] crashed the page even though the validator (which only checks
+// by_year) passed. Guard the full render contract.
+assert.ok(Array.isArray(policyOverview.body.regulatory_filings.latest),
+  "policy regulatory_filings.latest[] required by the page render");
+
+// --- module audit: family + empire surfaces (control/ma/signals/structure) ---
+for (const fam of ["control", "ma", "signals"]) {
+  const ov = await getJson(`/v1/${fam}/overview`);
+  assert.equal(ov.status, 200, `${fam} overview must be 200 (was family_http_404)`);
+  assert.ok(Array.isArray(ov.body.relationships), `${fam} relationships[]`);
+  assert.equal(typeof ov.body.summary, "object");
+  assert.equal(typeof ov.body.abstentions, "object");
+}
+const maOv = await getJson("/v1/ma/overview");
+assert.ok(Array.isArray(maOv.body.events));
+const sigOv = await getJson("/v1/signals/overview");
+assert.ok(Array.isArray(sigOv.body.signal_models));
+const empire = await getJson(`/v1/entities/${NVIDIA}/empire`);
+assert.equal(empire.status, 200, "empire route must exist (structure page)");
+assert.equal(typeof empire.body.focus, "object");
+assert.equal(typeof empire.body.structure, "object");
+assert.equal(empire.body.data_mode, "cloud_publication");
+// render-critical: the /structure page does Object.entries(focus.primary_identifiers)
+// and reads focus.fixture_notice — missing primary_identifiers crashed it.
+assert.equal(typeof empire.body.focus.primary_identifiers, "object",
+  "empire focus.primary_identifiers required by the page render");
+assert.equal(empire.body.focus.canonical_name, "NVIDIA Corporation");
+const badEmpire = await getJson(`/v1/entities/00000000-0000-4000-9000-00000000dead/empire`);
+assert.equal(badEmpire.status, 404, "empire fails closed for unknown entity");
 
 // --- EEI-F01: routes the shipped UI declares must exist in the cloud ---
 const activeContext = await getJson("/v1/scoring/active-context");
@@ -273,4 +307,4 @@ assert.equal(buildMeta.status, 200);
 assert.equal(buildMeta.body.repo, "LinzeColin/MetaDatabase");
 assert.ok("commit" in buildMeta.body);
 
-console.log("SMOKE_ASSERT_OK routes=22 (+search-hardening)");
+console.log("SMOKE_ASSERT_OK routes=27 (+module surfaces)");

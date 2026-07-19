@@ -1,0 +1,2 @@
+# Preserve the task-pack CSV bytes (UTF-8 BOM + CRLF) exactly as imported.
+machine/evidence/*.csv binary

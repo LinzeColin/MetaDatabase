@@ -597,6 +597,76 @@ const SUPPLY_TYPE_STAGE_MAP = {
   compute_provider_to: "SC-11"
 };
 
+// Owner-signed published relationships filtered by family (control/M&A/signals/
+// policy module surfaces). Every row here is published by construction, so
+// owner_signed_published is true and fixture_flag is false.
+async function familyRelationships(env, families) {
+  const marks = families.map(() => "?").join(", ");
+  const { results } = await env.EEI_PUB.prepare(
+    "SELECT r.id, r.relationship_type, r.relationship_family, r.status," +
+      " r.confidence, r.observed_at," +
+      " subject.canonical_name AS subject_name," +
+      " object.canonical_name AS object_name" +
+      " FROM relationships r" +
+      " JOIN entities subject ON subject.id = r.subject_entity_id" +
+      " JOIN entities object ON object.id = r.object_entity_id" +
+      ` WHERE r.relationship_family IN (${marks})` +
+      " ORDER BY r.relationship_type, r.id LIMIT 300"
+  )
+    .bind(...families)
+    .all();
+  return (results ?? []).map((row) => ({
+    id: row.id,
+    relationship_type: row.relationship_type,
+    relationship_family: row.relationship_family,
+    status: row.status,
+    confidence: row.confidence === null ? null : Number(row.confidence),
+    observed_at: row.observed_at,
+    owner_signed_published: true,
+    subject_name: row.subject_name,
+    object_name: row.object_name,
+    fixture_flag: false
+  }));
+}
+
+// EEI structure/empire module (/structure): entity-scoped corporate structure.
+// The publication surface carries relationships, not a full legal hierarchy, so
+// structure sections are honestly empty; the page renders its no-structure
+// state instead of empire_http_404 / focus_entity_not_resolved.
+async function entityEmpire(env, entityId) {
+  const focus = await loadEntity(env, entityId);
+  if (!focus) {
+    return notFound(`Entity not found: ${entityId}`);
+  }
+  const meta = await publicationMeta(env);
+  const snapshot = await activeSnapshot(env);
+  return json({
+    as_of: snapshot?.as_of ?? meta.published_at ?? null,
+    focus: {
+      id: focus.id,
+      canonical_name: focus.canonical_name,
+      entity_type: focus.entity_type,
+      status: focus.status,
+      // The /structure page renders Object.entries(focus.primary_identifiers)
+      // and reads focus.fixture_notice/synthetic; omitting them crashed the
+      // page (Object.entries(undefined)). Empty/false are the honest values.
+      primary_identifiers: {},
+      fixture_notice: null,
+      synthetic: false
+    },
+    structure: {},
+    coverage: {
+      published_structure_sections: 0,
+      note:
+        "The publication surface carries owner-signed relationships, not a" +
+        " full legal-group hierarchy; structure sections appear here only when" +
+        " group/segment/brand/product/facility facts are published."
+    },
+    data_mode: "cloud_publication",
+    fixture_notice: null
+  });
+}
+
 // EEI-F01: cloud twin of the local /v1/supply-chain/overview. Every
 // relationship on this surface is owner-signed published by construction;
 // fixture rows never leave the machine, so fixture_flag is honestly false.
@@ -771,16 +841,110 @@ async function handleFetch(request, env) {
       const { results } = await env.EEI_PUB.prepare(
         "SELECT year, filings FROM filing_year_counts ORDER BY year"
       ).all();
+      // The /policy page (policy-client) requires policy_relationships[] and
+      // policy_models[] in addition to regulatory_filings.by_year; without them
+      // it rejected a 200 as policy_overview_http_200. government_policy family
+      // relationships are served from the publication surface (0 published now
+      // -> honest empty); scored policy models stay local.
+      const policyRelationships = await familyRelationships(env, ["government_policy"]);
       return json({
         schema_version: "cloud-policy-overview-v1",
+        policy_relationships: policyRelationships,
         regulatory_filings: {
           source: "sec_edgar",
           by_year: (results ?? []).map((row) => ({
             year: Number(row.year),
             filings: Number(row.filings)
-          }))
+          })),
+          // The /policy page renders regulatory_filings.latest.map(); omitting
+          // it crashed the page. Individual filings (titles/URLs) stay local per
+          // the CF-L2 boundary, so the published surface exposes an empty latest
+          // list (only per-year aggregate counts leave the machine).
+          latest: [],
+          scoped_to_entity: false
+        },
+        policy_models: [],
+        abstentions: {
+          coverage:
+            "Policy edges and filings are what the published graph and the SEC" +
+            " EDGAR source assert; absence of an edge means no assertion, not" +
+            " the absence of policy exposure in the real world."
         }
       });
+    }
+
+    // EEI module pages (/control /ma /signals): family-overview surfaces. Each
+    // serves owner-signed published relationships filtered by family (0 now, so
+    // honest empty) so the page renders its no-published-facts state instead of
+    // the raw family_http_404 the module audit found.
+    if (pathname === "/v1/control/overview" && request.method === "GET") {
+      const relationships = await familyRelationships(env, [
+        "ownership_control",
+        "corporate_structure"
+      ]);
+      const byType = {};
+      for (const r of relationships) {
+        byType[r.relationship_type] = (byType[r.relationship_type] ?? 0) + 1;
+      }
+      return json({
+        relationships,
+        summary: {
+          published_fact_count: relationships.length,
+          relationship_count: relationships.length,
+          by_type: byType
+        },
+        abstentions: {
+          semantics:
+            "Control edges are legal/governance assertions and are never merged" +
+            " with commercial dependency; absence of an edge means no assertion," +
+            " not independence."
+        }
+      });
+    }
+    if (pathname === "/v1/ma/overview" && request.method === "GET") {
+      const relationships = await familyRelationships(env, ["mergers_acquisitions"]);
+      return json({
+        relationships,
+        events: [],
+        summary: {
+          published_fact_count: relationships.length,
+          relationship_count: relationships.length,
+          event_count: 0
+        },
+        abstentions: {
+          coverage:
+            "M&A coverage is what the published graph asserts; deal candidates" +
+            " enter through the candidate -> dual-source -> owner sign-off chain" +
+            " and stay local until published."
+        }
+      });
+    }
+    if (pathname === "/v1/signals/overview" && request.method === "GET") {
+      const relationships = await familyRelationships(env, ["strategic_signal"]);
+      return json({
+        relationships,
+        signal_models: [],
+        summary: {
+          published_fact_count: relationships.length,
+          relationship_count: relationships.length
+        },
+        abstentions: {
+          research_orientation:
+            "Strategic signals are research prioritization aids derived from" +
+            " disclosed themes; they are NOT investment advice, price predictions" +
+            " or trading signals.",
+          scoring:
+            "Signal models without a scored run report has_scored_run=false; no" +
+            " synthetic scores are shown."
+        }
+      });
+    }
+
+    const empireMatch = pathname.match(
+      /^\/v1\/entities\/([0-9a-fA-F-]{36})\/empire$/
+    );
+    if (empireMatch && request.method === "GET") {
+      return entityEmpire(env, empireMatch[1]);
     }
 
     if (pathname === "/v1/entities" && request.method === "GET") {

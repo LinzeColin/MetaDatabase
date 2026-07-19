@@ -73,10 +73,16 @@ export async function searchEntityIdByName(name: string): Promise<string | null>
       `${apiBaseUrl}/v1/entities?q=${encodeURIComponent(name)}`
     );
     const payload = (await response.json().catch(() => null)) as unknown;
-    if (!response.ok || !Array.isArray(payload) || payload.length === 0) {
+    // The local API returns a bare array; the cloud worker wraps it as
+    // { query, entities: [...] }. Accept both so /structure resolves its focus
+    // entity on either surface (module audit: focus_entity_not_resolved).
+    const list = Array.isArray(payload)
+      ? payload
+      : ((payload as { entities?: unknown } | null)?.entities ?? null);
+    if (!response.ok || !Array.isArray(list) || list.length === 0) {
       return null;
     }
-    const top = payload[0] as Record<string, unknown>;
+    const top = list[0] as Record<string, unknown>;
     return typeof top.id === "string" ? top.id : null;
   } catch {
     return null;

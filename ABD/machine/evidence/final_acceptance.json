@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "version": "0.0.0.1",
+  "decision": "READY_FOR_FINAL_DEVELOPMENT_TASKPACK_HANDOFF",
+  "unresolved_blocking_questions": [],
+  "non_blocking_runtime_prerequisites": [
+    "Gmail附件自动归档需要一次Google gmail.modify授权；未授权不阻塞核心系统。",
+    "平台账户和最终下单由用户负责；没有可验证确认时只评价建议表现。"
+  ],
+  "explicit_non_guarantee": "30%月复利保持为目标、容量、证伪和12月实际验证合同；不能被工程任务包保证为每月随机结果。",
+  "validated_by": "machine/evidence/validation_report.json",
+  "surprises": [
+    "万分之一计算稳定不是最大误差源，身份、结算、泄漏、相关来源和异常价格有更高优先级。",
+    "Codex每日审计优于让Codex直接执行删除；删除由确定性两阶段规则引擎承担。",
+    "TAB邮件强化真实证据和对账，但不能替代实时价格。",
+    "30%目标首先是独立等效机会和可执行容量问题。",
+    "零付费数据把现金成本转化为来源变化和解析维护成本。"
+  ]
+}

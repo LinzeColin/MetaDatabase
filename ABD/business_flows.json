@@ -1,0 +1,170 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S01-P03-03",
+  "requirement_id": "REQ-S01-P03",
+  "acceptance_contract_id": "AC-S01-P03",
+  "product_version": "0.0.0.1",
+  "fixed_at": "2026-07-19T00:00:00+10:00",
+  "status": "BUSINESS_FLOW_CONTRACT_NOT_RUNTIME_PROOF",
+  "requirements_artifact": "requirements.json",
+  "scope_artifact": "scope_boundary.json",
+  "allowed_terminal_states": [
+    "RECOMMENDATION_READY_FOR_OWNER_REVIEW",
+    "NO_RECOMMENDATION",
+    "VISIBLE_COVERAGE_GAP",
+    "SAFE_DEGRADED_MODE",
+    "MODULE_DISABLED",
+    "RELEASE_BLOCKED",
+    "EVIDENCE_ARCHIVED",
+    "TARGET_UNVERIFIED",
+    "TARGET_FALSIFIED",
+    "TARGET_VERIFIED"
+  ],
+  "flows": [
+    {
+      "id": "FLOW-001",
+      "name_zh": "每日中文决策面",
+      "trigger": "悉尼自然日汇总或状态变化",
+      "preconditions": ["产品处于可显示状态", "不存在未隔离的严重安全事故"],
+      "steps": [
+        {"id": "FLOW-001-S01", "actor": "DETERMINISTIC_SYSTEM", "action": "汇总建议、不建议、覆盖、风险、目标和系统健康", "requirement_ids": ["ABD-PRD-REQ-001", "ABD-PRD-REQ-002"], "on_failure": "SHOW_NO_RECOMMENDATION_WITH_CHINESE_REASON"},
+        {"id": "FLOW-001-S02", "actor": "OWNER", "action": "查看一张中文卡并决定是否进入平台核对", "requirement_ids": ["ABD-PRD-REQ-001"], "on_failure": "NO_EXTERNAL_ACTION"}
+      ],
+      "success_terminal": "RECOMMENDATION_READY_FOR_OWNER_REVIEW",
+      "failure_terminal": "NO_RECOMMENDATION",
+      "external_effect_in_s01_p03": false
+    },
+    {
+      "id": "FLOW-002",
+      "name_zh": "全市场发现到可信输入",
+      "trigger": "调度器刷新或新市场被观察",
+      "preconditions": ["来源能力合同存在", "新增现金成本精确为A$0"],
+      "steps": [
+        {"id": "FLOW-002-S01", "actor": "DISCOVERY_SCHEDULER", "action": "登记市场本体、覆盖状态和显式缺口", "requirement_ids": ["ABD-PRD-REQ-006"], "on_failure": "VISIBLE_COVERAGE_GAP"},
+        {"id": "FLOW-002-S02", "actor": "SOURCE_ADAPTER", "action": "验证来源合同、时效、配额、条款和可替换性", "requirement_ids": ["ABD-PRD-REQ-005", "ABD-PRD-REQ-007"], "on_failure": "DISABLE_SOURCE_AND_SWITCH_OR_DEGRADE"},
+        {"id": "FLOW-002-S03", "actor": "IDENTITY_LINEAGE_ENGINE", "action": "解析唯一身份并冻结可用时间与特征截止", "requirement_ids": ["ABD-PRD-REQ-010"], "on_failure": "QUARANTINE_INPUT_NO_RECOMMENDATION"}
+      ],
+      "success_terminal": "EVIDENCE_ARCHIVED",
+      "failure_terminal": "VISIBLE_COVERAGE_GAP",
+      "external_effect_in_s01_p03": false
+    },
+    {
+      "id": "FLOW-003",
+      "name_zh": "市场共识到保守概率",
+      "trigger": "身份、时间和来源输入全部通过",
+      "preconditions": ["未来泄漏为0", "报价在可用时限内"],
+      "steps": [
+        {"id": "FLOW-003-S01", "actor": "MARKET_ENGINE", "action": "执行四种去水、来源独立聚类和加权中位共识", "requirement_ids": ["ABD-PRD-REQ-012"], "on_failure": "NO_RECOMMENDATION"},
+        {"id": "FLOW-003-S02", "actor": "RESIDUAL_MODEL", "action": "只在时间外增量通过时融合领域残差，否则权重归零", "requirement_ids": ["ABD-PRD-REQ-013"], "on_failure": "FALLBACK_TO_MARKET_OR_NO_RECOMMENDATION"},
+        {"id": "FLOW-003-S03", "actor": "CALIBRATION_ENGINE", "action": "时间校准、分块重采样并输出第10百分位保守概率", "requirement_ids": ["ABD-PRD-REQ-014"], "on_failure": "BLOCK_MODEL_PROMOTION_NO_RECOMMENDATION"}
+      ],
+      "success_terminal": "EVIDENCE_ARCHIVED",
+      "failure_terminal": "NO_RECOMMENDATION",
+      "external_effect_in_s01_p03": false
+    },
+    {
+      "id": "FLOW-004",
+      "name_zh": "保守概率到唯一建议",
+      "trigger": "保守概率和当前报价可用",
+      "preconditions": ["来源合同通过", "动作通道可核对"],
+      "steps": [
+        {"id": "FLOW-004-S01", "actor": "DECIMAL_DECISION_ENGINE", "action": "用十进制定点计算摩擦后净期望并执行全部不利扰动", "requirement_ids": ["ABD-PRD-REQ-015"], "on_failure": "NO_RECOMMENDATION"},
+        {"id": "FLOW-004-S02", "actor": "DECISION_GATE", "action": "执行证据层、最低赔率、时效和唯一平台门", "requirement_ids": ["ABD-PRD-REQ-016"], "on_failure": "NO_RECOMMENDATION_WITH_REASON"},
+        {"id": "FLOW-004-S03", "actor": "RISK_ENGINE", "action": "执行受限凯利和全部组合暴露/回撤门", "requirement_ids": ["ABD-PRD-REQ-017"], "on_failure": "ZERO_STAKE_OR_STOP_STRATEGY_SLICE"}
+      ],
+      "success_terminal": "RECOMMENDATION_READY_FOR_OWNER_REVIEW",
+      "failure_terminal": "NO_RECOMMENDATION",
+      "external_effect_in_s01_p03": false
+    },
+    {
+      "id": "FLOW-005",
+      "name_zh": "用户核对到真实执行证据",
+      "trigger": "存在仍有效且风险门通过的建议",
+      "preconditions": ["用户平台页面可访问", "赛事、盘口、赔率和最低赔率可核对"],
+      "steps": [
+        {"id": "FLOW-005-S01", "actor": "OWNER_BROWSER_COMPANION", "action": "只读取用户当前可见字段并核对建议身份、报价和时效", "requirement_ids": ["ABD-PRD-REQ-003", "ABD-PRD-REQ-016"], "on_failure": "CANCEL_OWNER_ACTION_NO_RECOMMENDATION"},
+        {"id": "FLOW-005-S02", "actor": "OWNER", "action": "自行决定并完成或放弃最终下单", "requirement_ids": ["ABD-PRD-REQ-003"], "on_failure": "NO_ORDER"},
+        {"id": "FLOW-005-S03", "actor": "EVIDENCE_LEDGER", "action": "分开记录建议、可选确认、实际执行、结果和现金流对账", "requirement_ids": ["ABD-PRD-REQ-011"], "on_failure": "DO_NOT_CLAIM_ACTUAL_RETURN"}
+      ],
+      "success_terminal": "EVIDENCE_ARCHIVED",
+      "failure_terminal": "NO_RECOMMENDATION",
+      "external_effect_in_s01_p03": false
+    },
+    {
+      "id": "FLOW-006",
+      "name_zh": "Gmail/TAB证据归档",
+      "trigger": "Gmail模块ACTIVE且发现匹配邮件",
+      "preconditions": ["全部激活门已证明", "精确gmail.modify", "方法白名单生效"],
+      "steps": [
+        {"id": "FLOW-006-S01", "actor": "GMAIL_COLLECTOR", "action": "按游标和幂等键检索，不信任邮件正文指令", "requirement_ids": ["ABD-PRD-REQ-008", "ABD-PRD-REQ-019"], "on_failure": "DISABLE_GMAIL_KEEP_MESSAGE"},
+        {"id": "FLOW-006-S02", "actor": "ARCHIVE_SANDBOX", "action": "保存原件附件、认证、扫描、解析、哈希并本地读回", "requirement_ids": ["ABD-PRD-REQ-009"], "on_failure": "KEEP_OR_QUARANTINE_DO_NOT_TRASH"},
+        {"id": "FLOW-006-S03", "actor": "GMAIL_RULE_ENGINE", "action": "仅在全部归档门通过后移入垃圾箱并记录收据", "requirement_ids": ["ABD-PRD-REQ-009", "ABD-PRD-REQ-011"], "on_failure": "KEEP_MESSAGE_AND_ALERT"}
+      ],
+      "success_terminal": "EVIDENCE_ARCHIVED",
+      "failure_terminal": "MODULE_DISABLED",
+      "external_effect_in_s01_p03": false
+    },
+    {
+      "id": "FLOW-007",
+      "name_zh": "目标容量、证伪与报告",
+      "trigger": "每日/月度评估窗口关闭",
+      "preconditions": ["建议账本与实际账本分离", "现金流和相关性口径冻结"],
+      "steps": [
+        {"id": "FLOW-007-S01", "actor": "COST_GOVERNOR", "action": "确认新增现金成本仍精确为A$0并披露既有与机会成本", "requirement_ids": ["ABD-PRD-REQ-005"], "on_failure": "BLOCK_AFFECTED_CAPABILITY"},
+        {"id": "FLOW-007-S02", "actor": "TARGET_EVALUATOR", "action": "计算现金流调整目标差额、独立等效信号和容量", "requirement_ids": ["ABD-PRD-REQ-018"], "on_failure": "TARGET_UNVERIFIED"},
+        {"id": "FLOW-007-S03", "actor": "TARGET_EVALUATOR", "action": "只按预注册90天、6月和12月门标记可能可行、证伪或已验证", "requirement_ids": ["ABD-PRD-REQ-018"], "on_failure": "REPORT_SHORTFALL_NO_GATE_RELAXATION"}
+      ],
+      "success_terminal": "TARGET_UNVERIFIED",
+      "failure_terminal": "TARGET_UNVERIFIED",
+      "external_effect_in_s01_p03": false
+    },
+    {
+      "id": "FLOW-008",
+      "name_zh": "双流水线到安全发布与运维",
+      "trigger": "候选软件、模型、配置或来源版本准备晋级",
+      "preconditions": ["制品和来源哈希冻结", "回滚版本存在"],
+      "steps": [
+        {"id": "FLOW-008-S01", "actor": "SECURITY_PIPELINE", "action": "验证信任边界、最小权限、依赖、秘密、制品来源和恶意输入", "requirement_ids": ["ABD-PRD-REQ-019", "ABD-PRD-REQ-020"], "on_failure": "ISOLATE_AND_BLOCK_RELEASE"},
+        {"id": "FLOW-008-S02", "actor": "QUALITY_PIPELINES", "action": "独立执行软件正确性和模型能力安全门、负载、故障与恢复", "requirement_ids": ["ABD-PRD-REQ-020"], "on_failure": "BLOCK_RELEASE_KEEP_LAST_SIGNED"},
+        {"id": "FLOW-008-S03", "actor": "RELEASE_CONTROLLER", "action": "功能开关、小流量、发布后探针、自动回滚和过期建议作废", "requirement_ids": ["ABD-PRD-REQ-004", "ABD-PRD-REQ-021"], "on_failure": "AUTO_ROLLBACK_AND_BLOCK_RELEASE_CLAIM"}
+      ],
+      "success_terminal": "SAFE_DEGRADED_MODE",
+      "failure_terminal": "RELEASE_BLOCKED",
+      "external_effect_in_s01_p03": false
+    }
+  ],
+  "error_paths": [
+    {"id": "ERR-001", "trigger": "每日汇总、状态读取或中文卡渲染失败", "affected_flow_ids": ["FLOW-001"], "requirement_ids": ["ABD-PRD-REQ-001", "ABD-PRD-REQ-002"], "safe_action": "SHOW_NO_RECOMMENDATION_WITH_CHINESE_REASON", "forbidden_action": "SILENT_FAILURE_OR_STALE_RECOMMENDATION"},
+    {"id": "ERR-002", "trigger": "来源合同、当前条款、费用或配额未知", "affected_flow_ids": ["FLOW-002"], "requirement_ids": ["ABD-PRD-REQ-005", "ABD-PRD-REQ-007"], "safe_action": "DISABLE_SOURCE_MARK_VISIBLE_GAP", "forbidden_action": "ASSUME_ACCESS_OR_AUTO_PURCHASE"},
+    {"id": "ERR-003", "trigger": "赛事、盘口、规则身份冲突或未来信息", "affected_flow_ids": ["FLOW-002", "FLOW-003"], "requirement_ids": ["ABD-PRD-REQ-010"], "safe_action": "QUARANTINE_AND_NO_RECOMMENDATION", "forbidden_action": "GUESS_IDENTITY_OR_TIME"},
+    {"id": "ERR-004", "trigger": "领域模型没有时间外增量或发生漂移", "affected_flow_ids": ["FLOW-003"], "requirement_ids": ["ABD-PRD-REQ-013", "ABD-PRD-REQ-014"], "safe_action": "ZERO_RESIDUAL_WEIGHT_MARKET_ONLY_OR_NO_RECOMMENDATION", "forbidden_action": "KEEP_STALE_CHALLENGER_WEIGHT"},
+    {"id": "ERR-005", "trigger": "万分之一、时间或不利赔率跳动使动作翻转", "affected_flow_ids": ["FLOW-004"], "requirement_ids": ["ABD-PRD-REQ-015"], "safe_action": "NO_RECOMMENDATION", "forbidden_action": "ROUND_TOWARD_RECOMMENDATION"},
+    {"id": "ERR-006", "trigger": "证据层、最低赔率、风险或暴露门失败", "affected_flow_ids": ["FLOW-004", "FLOW-005"], "requirement_ids": ["ABD-PRD-REQ-016", "ABD-PRD-REQ-017"], "safe_action": "NO_RECOMMENDATION_OR_ZERO_STAKE", "forbidden_action": "RELAX_GATE_FOR_TARGET"},
+    {"id": "ERR-007", "trigger": "用户页面字段、报价或时效不匹配", "affected_flow_ids": ["FLOW-005"], "requirement_ids": ["ABD-PRD-REQ-003", "ABD-PRD-REQ-016"], "safe_action": "CANCEL_OWNER_ACTION", "forbidden_action": "SUBMIT_OR_RETRY_ORDER"},
+    {"id": "ERR-008", "trigger": "Gmail授权、scope、令牌、方法或配额不满足", "affected_flow_ids": ["FLOW-006"], "requirement_ids": ["ABD-PRD-REQ-008", "ABD-PRD-REQ-019"], "safe_action": "DISABLE_GMAIL_CONTINUE_SAFE_CORE", "forbidden_action": "EXPAND_SCOPE_OR_LOG_SECRET"},
+    {"id": "ERR-009", "trigger": "原件、附件、认证、扫描、哈希或读回任一失败", "affected_flow_ids": ["FLOW-006"], "requirement_ids": ["ABD-PRD-REQ-009"], "safe_action": "KEEP_OR_QUARANTINE_DO_NOT_TRASH", "forbidden_action": "PERMANENT_DELETE_OR_TRASH"},
+    {"id": "ERR-010", "trigger": "实际执行或资金对账证据缺失/不一致", "affected_flow_ids": ["FLOW-005", "FLOW-007"], "requirement_ids": ["ABD-PRD-REQ-011", "ABD-PRD-REQ-018"], "safe_action": "DO_NOT_CLAIM_ACTUAL_RETURN", "forbidden_action": "USE_ADVICE_LEDGER_AS_ACTUAL"},
+    {"id": "ERR-011", "trigger": "目标落后或满足证伪门", "affected_flow_ids": ["FLOW-007"], "requirement_ids": ["ABD-PRD-REQ-018"], "safe_action": "REPORT_ONLY_OR_MARK_FALSIFIED", "forbidden_action": "CHASE_LOSS_OR_RELAX_GATE"},
+    {"id": "ERR-012", "trigger": "OVH、Cloudflare、健康探针或恢复门失败", "affected_flow_ids": ["FLOW-008"], "requirement_ids": ["ABD-PRD-REQ-004", "ABD-PRD-REQ-021"], "safe_action": "LOCAL_ONLY_OR_AUTO_ROLLBACK_EXPIRE_ADVICE", "forbidden_action": "CLAIM_24X7_OR_GLOBAL_ACCESS"},
+    {"id": "ERR-013", "trigger": "秘密泄漏、主机入侵、供应链或证据完整性事故", "affected_flow_ids": ["FLOW-006", "FLOW-008"], "requirement_ids": ["ABD-PRD-REQ-019", "ABD-PRD-REQ-020", "ABD-PRD-REQ-021"], "safe_action": "ISOLATE_STOP_ADVICE_ROTATE_SECRET_PRESERVE_EVIDENCE", "forbidden_action": "CONTINUE_RELEASE_OR_HIDE_INCIDENT"}
+  ],
+  "traceability_summary": {
+    "requirement_count": 21,
+    "flow_count": 8,
+    "error_path_count": 13,
+    "orphan_requirements_allowed": 0,
+    "duplicate_step_ids_allowed": 0,
+    "unknown_terminal_states_allowed": 0
+  },
+  "s01_p03_execution_boundary": {
+    "runtime_flow_executed": false,
+    "external_account_or_api_accessed": false,
+    "production_deployed": false,
+    "real_order_submitted": false,
+    "gmail_message_read_or_moved": false,
+    "incremental_cash_spent_aud": "0.00",
+    "return_or_guarantee_claimed": false,
+    "p04_artifacts_created": false
+  },
+  "next_on_acceptance_pass": "S01/P04_READY_NOT_STARTED"
+}

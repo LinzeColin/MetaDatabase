@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "vectors": [
+    {
+      "time_to_start_seconds": 86401,
+      "expected_refresh_seconds": 1800
+    },
+    {
+      "time_to_start_seconds": 86400,
+      "expected_refresh_seconds": 300
+    },
+    {
+      "time_to_start_seconds": 7201,
+      "expected_refresh_seconds": 300
+    },
+    {
+      "time_to_start_seconds": 7200,
+      "expected_refresh_seconds": 60
+    },
+    {
+      "time_to_start_seconds": 901,
+      "expected_refresh_seconds": 60
+    },
+    {
+      "time_to_start_seconds": 900,
+      "expected_refresh_seconds": 20
+    },
+    {
+      "status": "LIVE",
+      "source_supported": true,
+      "expected_refresh_seconds": 10
+    },
+    {
+      "status": "LIVE",
+      "source_supported": false,
+      "expected_action": "OBSERVE_OR_NO_RECOMMENDATION"
+    }
+  ]
+}

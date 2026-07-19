@@ -12,13 +12,57 @@ on:
 jobs:
   dual-plane:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.12"
       - name: 安装 PyYAML（渲染 config.yaml / data_contract.yaml 需要，保证渲染确定性）
-        run: python3 -m pip install --quiet pyyaml
+        run: python3 -m pip install --quiet pyyaml==6.0.3
+      - name: 校验治理项目与专用任务包分类无遗漏
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          registered = {
+              "Alpha",
+              "EEI",
+              "FIFA",
+              "LinzeDatabase",
+              "PFI",
+              "QBVS",
+              "Serenity-Alipay",
+          }
+          specialized = {"ABD": ".github/workflows/abd-stage0-validation.yml"}
+          discovered = {
+              path.parents[2].as_posix()
+              for path in Path(".").glob("*/machine/tools/render_human.py")
+          }
+          expected = registered | set(specialized)
+          if discovered != expected:
+              raise SystemExit(
+                  "FAIL: render_human project classification mismatch: "
+                  f"expected={sorted(expected)} actual={sorted(discovered)}"
+              )
+          required_tools = {
+              "machine/tools/check_doc_budget.py",
+              "machine/tools/check_blocker_stop.py",
+              "machine/tools/check_dual_plane_ci.py",
+          }
+          for project in sorted(registered):
+              missing = sorted(
+                  relative for relative in required_tools
+                  if not (Path(project) / relative).is_file()
+              )
+              if missing:
+                  raise SystemExit(f"FAIL: {project} missing governance tools: {missing}")
+          for project, workflow in specialized.items():
+              if not Path(workflow).is_file():
+                  raise SystemExit(f"FAIL: {project} missing specialized workflow: {workflow}")
+          print("PASS: 7 governance projects + ABD specialized task-pack workflow classified")
+          PY
       - name: 运行全仓双平面合规校验
         run: |
           set -euo pipefail
@@ -28,4 +72,6 @@ jobs:
             exit 1
           fi
           echo "runner: $SCRIPT"
-          python3 "$SCRIPT" --root . --require-projects
+          python3 "$SCRIPT" --root . --projects \
+            Alpha EEI FIFA LinzeDatabase PFI QBVS Serenity-Alipay \
+            --require-projects

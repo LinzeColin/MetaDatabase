@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S00-WHOLE-STAGE-REVIEW",
+  "expected_phase_ids": [
+    "P01",
+    "P02",
+    "P03",
+    "P04"
+  ],
+  "expected_phase_evaluator_min_checks": {
+    "P01": 20,
+    "P02": 36,
+    "P03": 50,
+    "P04": 53
+  },
+  "expected_review_finding_ids": [
+    "F-S00-R01",
+    "F-S00-R02",
+    "F-S00-R03",
+    "F-S00-R04"
+  ],
+  "expected_governance_projects": [
+    "Alpha",
+    "EEI",
+    "FIFA",
+    "LinzeDatabase",
+    "PFI",
+    "QBVS",
+    "Serenity-Alipay"
+  ],
+  "expected_specialized_projects": [
+    "ABD"
+  ],
+  "required_workflow_commands": [
+    "uv sync --frozen --group dev",
+    "python machine/tools/render_human.py",
+    "python machine/tools/scan_paid_dependencies.py",
+    "python machine/tools/validate_pack.py",
+    "python -m pytest -q",
+    "--verify-existing STAGE-REVIEW-S00",
+    "python machine/tools/update_artifact_manifest.py",
+    "shasum -a 256 -c machine/evidence/SHA256SUMS",
+    "git diff --exit-code"
+  ],
+  "required_upload_preconditions": [
+    "ALL_STAGE_PHASES_PASS",
+    "WHOLE_STAGE_REVIEW_PASS",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "FULL_STAGE_REGRESSION_PASS",
+    "SECRET_SCAN_PASS",
+    "CLEAN_WORKTREE",
+    "NO_INCREMENTAL_CASH_COST"
+  ],
+  "forbidden_release_claims": [
+    "GMAIL_CONNECTED",
+    "PRODUCTION_DEPLOYED",
+    "RETURN_GUARANTEED",
+    "S01_STARTED",
+    "REMOTE_CI_PASS_BEFORE_UPLOAD"
+  ],
+  "secret_pattern_labels": [
+    "PRIVATE_KEY_BLOCK",
+    "GITHUB_CLASSIC_TOKEN",
+    "GITHUB_FINE_GRAINED_TOKEN",
+    "GOOGLE_ACCESS_TOKEN",
+    "GOOGLE_REFRESH_TOKEN",
+    "GOOGLE_API_KEY"
+  ]
+}

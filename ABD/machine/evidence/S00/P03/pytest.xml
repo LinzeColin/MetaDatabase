@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="38" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S00.P03_test" name="test_baseline_zero_budget_contract_passes_without_runtime_reports" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_incremental_cash_resource_boundary_fails_closed[INCREMENTAL-CASH-PLUS-0.0001]" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_incremental_cash_resource_boundary_fails_closed[INCREMENTAL-CASH-MINUS-0.0001]" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_incremental_budget_high_cannot_exceed_zero" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_total_system_cost_cannot_be_claimed_zero" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_existing_ovh_cost_unknown_is_not_incremental_cost_unknown" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_external_capability_cannot_be_claimed_verified" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_resource_purchase_upgrade_and_overage_are_forbidden[purchase_required-True]" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_resource_purchase_upgrade_and_overage_are_forbidden[paid_tier_allowed-True]" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_resource_purchase_upgrade_and_overage_are_forbidden[automatic_overage_allowed-True]" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_optional_gmail_cannot_enter_critical_path" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_optional_gmail_failure_must_continue_core" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_future_paid_market_source_cannot_be_auto_admitted" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_non_first_party_cost_source_fails" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_stale_source_policy_cannot_auto_continue" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_opportunity_cost_arithmetic_is_verified" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_return_target_cannot_become_a_guarantee" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_lock_cannot_allow_paid_dependencies" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_provider_lock_nonzero_cost_fails_scan" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_approval_bound_interface_cannot_enter_critical_path" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_unclassified_package_added_to_allowlist_still_fails_uv_parity" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_missing_locked_package_fails_uv_parity" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_unknown_package_license_fails" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_unknown_import_in_executable_surface_fails" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_prohibited_paid_service_literal_in_executable_surface_fails" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_unexpected_dependency_manifest_fails" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_undeclared_runtime_dependency_fails" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_duplicate_json_key_in_costs_fails_strict_parse" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_p02_prerequisite_must_remain_pass" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_malformed_evidence_index_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_second_costs_source_fails_single_source_rule" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_local_user_path_cannot_enter_budget_evidence" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_scan_replay_is_deterministic" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_scan_report_is_exact_deterministic_render" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_scan_output_cannot_escape_project" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_evidence_replay_is_deterministic_without_runtime_reports" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_rollback_drill_restores_all_three_budget_artifacts" time="0.000" />
+    <testcase classname="tests.S00.P03_test" name="test_cost_and_lock_objects_are_not_mutated_by_evaluation" time="0.000" />
+  </testsuite>
+</testsuites>

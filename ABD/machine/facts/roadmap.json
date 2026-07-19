@@ -1,0 +1,1656 @@
+{
+  "schema_version": "1.0.0",
+  "version": "0.0.0.1",
+  "principles": [
+    "每个Stage最多4个Phase；每个Phase恰好3个叶子Task。",
+    "每个叶子Task 0.5–2小时，单一主验收，机器自动推进。",
+    "普通可逆决策全部预授权；只有明确暂停条件可以中断。",
+    "开发、软件正确性、模型能力安全、邮件证据和发布恢复分别验收。",
+    "30%月目标不允许降低证据、数值、风险或安全门。"
+  ],
+  "stages": [
+    {
+      "id": "S00",
+      "title": "最终真源与一次性授权",
+      "goal": "冻结版本、范围、默认决策、零新增预算和所有开发前置，使后续任务自动推进。",
+      "depends_on": [],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "冻结 Canonical Facts",
+          "objective": "把已确认事实写入唯一机器真源，消除旧包冲突。",
+          "outputs": [
+            "canonical_facts.json",
+            "冲突清单",
+            "事实哈希"
+          ],
+          "pass_gate": "全部事实唯一、无冲突、版本为0.0.0.1。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "冻结权限与自动默认",
+          "objective": "预授权所有普通可逆开发、运行、部署、回滚和降级决策。",
+          "outputs": [
+            "authorization_matrix.json",
+            "default_decisions.json",
+            "pause_receipt_schema.json"
+          ],
+          "pass_gate": "只有明确暂停条件可以阻止自动推进。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "冻结零预算依赖",
+          "objective": "证明核心路径只使用已有OVH、Cloudflare、GitHub和免费软件。",
+          "outputs": [
+            "costs.json",
+            "dependency_budget.lock",
+            "paid_dependency_scan.txt"
+          ],
+          "pass_gate": "新增现金支出为A$0；付费接口不在关键路径。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "一次性外部授权降级",
+          "objective": "把 Gmail 首次授权建成可选非阻塞前置；未授权不阻塞核心分析建议。",
+          "outputs": [
+            "decision_prerequisites.json",
+            "gmail_oauth_bootstrap.md",
+            "degraded_mode_contract.json"
+          ],
+          "pass_gate": "未授权时仅邮件自动化关闭，其他任务全部继续。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S01",
+      "title": "Working Backwards 与 PRD",
+      "goal": "从客户结果反推产品，冻结问题、用户、价值、非目标、指标、经济性和证伪合同。",
+      "depends_on": [
+        "S00"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "客户新闻稿",
+          "objective": "描述用户每天只看一张中文建议卡并完成最终下单的目标体验。",
+          "outputs": [
+            "customer_press_release.md",
+            "customer_outcomes.json"
+          ],
+          "pass_gate": "新闻稿不依赖技术术语且结果可观察。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "客户常见问题",
+          "objective": "回答30%目标、无保证、零预算、全范围、邮件归档、故障和隐私问题。",
+          "outputs": [
+            "customer_faq.md",
+            "assumption_register.json"
+          ],
+          "pass_gate": "关键疑问均有明确默认与证据。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "需求与边界",
+          "objective": "建立业务线、功能模块、范围、非目标和错误路径。",
+          "outputs": [
+            "requirements.json",
+            "scope_boundary.json",
+            "business_flows.json"
+          ],
+          "pass_gate": "每条需求唯一且可追踪。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "指标与经济性",
+          "objective": "建立现状基线、目标值、测量、观察周期、成本收益区间和机会成本。",
+          "outputs": [
+            "metrics.json",
+            "economics.json",
+            "kill_criteria.json"
+          ],
+          "pass_gate": "不承诺伪精确收益；30%目标可证伪可验证。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S02",
+      "title": "公开网络与 GitHub 调研复用",
+      "goal": "只研究与ABD直接相关的官方文档、论文和开源项目，明确采用、适配、拒绝和许可证。",
+      "depends_on": [
+        "S00"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "官方平台与监管调研",
+          "objective": "固化TAB、Sportsbet、Gmail、Cloudflare、OVH及监管事实。",
+          "outputs": [
+            "sources.json",
+            "provider_facts_snapshot.json",
+            "regulatory_matrix.json"
+          ],
+          "pass_gate": "每个事实有URL、检索日期和来源等级。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "模型与风险论文调研",
+          "objective": "固化市场先验、校准、不建议区域、异常值和受限凯利证据。",
+          "outputs": [
+            "research_evidence_matrix.json",
+            "model_claims.json"
+          ],
+          "pass_gate": "每个模型设计主张可回溯论文。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "开源项目复用审计",
+          "objective": "审计flumine、penaltyblog、OddsHarvester及相关只读项目。",
+          "outputs": [
+            "research_reuse_matrix.json",
+            "license_inventory.json"
+          ],
+          "pass_gate": "每个项目有采用/适配/拒绝和许可证裁定。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "调研缺口与反证",
+          "objective": "记录未覆盖区域、反例、低置信结论和复查周期。",
+          "outputs": [
+            "research_gaps.json",
+            "counterevidence.json",
+            "review_schedule.json"
+          ],
+          "pass_gate": "不宣称穷尽互联网；静默研究缺口为零。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S03",
+      "title": "全中文交互与术语治理",
+      "goal": "让用户无需查术语或文档即可操作，机器内部英文不泄漏到日常界面。",
+      "depends_on": [
+        "S00",
+        "S01"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "中文术语字典",
+          "objective": "为所有必要缩写提供中文名、定义和机器映射。",
+          "outputs": [
+            "glossary_zh.json",
+            "forbidden_ui_terms.json"
+          ],
+          "pass_gate": "日常界面不存在未解释缩写。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "唯一建议卡",
+          "objective": "冻结建议卡字段、顺序、颜色、倒计时、理由和失效条件。",
+          "outputs": [
+            "advice_card_schema.json",
+            "advice_card_fixtures.json"
+          ],
+          "pass_gate": "用户10秒内知道做什么、在哪做、金额和最低赔率。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "中文错误与下一步",
+          "objective": "为全部失败路径提供中文原因码和自动下一动作。",
+          "outputs": [
+            "reason_codes_zh.json",
+            "next_action_matrix.json"
+          ],
+          "pass_gate": "每个失败状态只有一个明确下一步。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "可用性与无障碍",
+          "objective": "验证手机/电脑、低带宽、色盲、字号、键盘和屏幕阅读器。",
+          "outputs": [
+            "ux_test_plan.json",
+            "accessibility_report.json"
+          ],
+          "pass_gate": "核心操作中位数≤10分钟、95分位≤20分钟。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S04",
+      "title": "OVH 7×24 与全球访问架构",
+      "goal": "在VPS-1资源和A$0新增预算内实现全天候分析、全球中文访问和可恢复发布。",
+      "depends_on": [
+        "S00",
+        "S01"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "基础设施即代码",
+          "objective": "声明OVH主机、系统服务、容器、目录、秘密和资源限制。",
+          "outputs": [
+            "infra/compose.yml",
+            "infra/systemd",
+            "infra/config.schema.json"
+          ],
+          "pass_gate": "一条命令可重建，秘密不进入仓库。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "Cloudflare 全球入口",
+          "objective": "建立身份保护、Named Tunnel、中文降级页和最小暴露面。",
+          "outputs": [
+            "infra/cloudflared.yml",
+            "access_policy.md",
+            "degraded_page.html"
+          ],
+          "pass_gate": "OVH无需公开业务入站端口即可访问。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "单机双环境发布",
+          "objective": "建立同机双环境切换、小流量试运行、功能开关和自动回滚。",
+          "outputs": [
+            "release_slots.json",
+            "feature_flags.json",
+            "rollback.sh"
+          ],
+          "pass_gate": "发布不丢账本，失败在15分钟内回旧版。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "容量与资源治理",
+          "objective": "建立CPU、内存、磁盘、浏览器并发和保留期预算。",
+          "outputs": [
+            "capacity_budget.json",
+            "resource_shedding.json",
+            "load_baseline.json"
+          ],
+          "pass_gate": "VPS-1在10倍预期负载下不触发失控交换或磁盘耗尽。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S05",
+      "title": "全范围发现与来源能力合同",
+      "goal": "覆盖所有可观察市场，按来源事实决定访问方式，任何未知或失效都可见。",
+      "depends_on": [
+        "S02",
+        "S04"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "市场本体与范围清单",
+          "objective": "建立运动、联赛、赛事、盘口、选择、周期、线和结算规则本体。",
+          "outputs": [
+            "market_ontology.json",
+            "coverage_manifest.schema.json"
+          ],
+          "pass_gate": "所有发现对象都有唯一类型或明确未知状态。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "来源能力合同",
+          "objective": "为公开页面、静态文件、免费端点、只读会话和用户页面观察逐项版本化。",
+          "outputs": [
+            "provider_contracts.json",
+            "source_capabilities.json"
+          ],
+          "pass_gate": "任何采集能力必须先通过来源合同。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "自适应采集调度",
+          "objective": "实现>24小时每30分钟及临近事件逐级提频、退避和来源预算。",
+          "outputs": [
+            "scheduler.py",
+            "cadence_tests.json",
+            "rate_budget.json"
+          ],
+          "pass_gate": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "覆盖缺口可观测",
+          "objective": "建立已覆盖、待解析、不可建议、降级、未知和静默缺口检测。",
+          "outputs": [
+            "coverage_dashboard.json",
+            "silent_gap_oracle.py"
+          ],
+          "pass_gate": "静默缺口=0；每个缺口都有原因和恢复动作。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S06",
+      "title": "TAB/Gmail 证据邮件自动归档",
+      "goal": "每15分钟确定性收集TAB等可信邮件，保存原件和附件，验证后移入垃圾箱；Codex每天审计补漏。",
+      "depends_on": [
+        "S04"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "最小权限授权与检索",
+          "objective": "实现gmail.modify首次授权、令牌加密、精确查询和幂等游标。",
+          "outputs": [
+            "gmail_oauth.py",
+            "mail_query_rules.json",
+            "token_storage.md"
+          ],
+          "pass_gate": "无授权不阻塞核心；有授权后重复扫描不重复归档。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "原件与附件双阶段保存",
+          "objective": "保存原始邮件、附件、头部、哈希、恢复读回和原子清单。",
+          "outputs": [
+            "mail_collector.py",
+            "mail_manifest.schema.json",
+            "archive_layout.md"
+          ],
+          "pass_gate": "任何文件缺失或哈希不一致时邮件不删除。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "附件安全与解析",
+          "objective": "在无网络沙箱中做恶意软件、类型、PDF、CSV、Office和提示注入检查。",
+          "outputs": [
+            "attachment_sandbox.py",
+            "parser_registry.json",
+            "quarantine_rules.json"
+          ],
+          "pass_gate": "恶意、宏、脚本、公式注入或未知类型全部隔离。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "删除、审计与恢复",
+          "objective": "验证通过后移入Gmail垃圾箱；Codex每天06:00审计缺口、生成修复和恢复报告。",
+          "outputs": [
+            "mail_trash_worker.py",
+            "codex_daily_audit.md",
+            "mail_restore_runbook.md"
+          ],
+          "pass_gate": "未知发件人或验证失败不删除；永久删除能力不存在。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S07",
+      "title": "规范化数据、账本与连续证据",
+      "goal": "让任何建议从原始输入确定性重放，并严格区分建议表现与真实资金表现。",
+      "depends_on": [
+        "S04",
+        "S05",
+        "S06"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "赛事与盘口唯一身份",
+          "objective": "建立别名解析、时区、开始时间、盘口线和选择的唯一键。",
+          "outputs": [
+            "identity_resolver.py",
+            "identity_fixtures.json",
+            "identity_registry.json"
+          ],
+          "pass_gate": "身份置信度<99.5%时不建议。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "时间血缘与防泄漏",
+          "objective": "记录源时间、观察时间、可用时间、特征截止和模型版本。",
+          "outputs": [
+            "temporal_lineage.schema.json",
+            "leakage_oracle.py"
+          ],
+          "pass_gate": "未来信息容忍度=0。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "不可变建议与资金账本",
+          "objective": "建立追加式事件、幂等键、哈希链和两套账本。",
+          "outputs": [
+            "ledger.py",
+            "ledger.schema.json",
+            "reconciliation_oracle.py"
+          ],
+          "pass_gate": "无成交证据时真实资金账本不变化。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "连续证据索引",
+          "objective": "把需求、任务、测试、证据、制品和发布串成可查询链。",
+          "outputs": [
+            "evidence_index.jsonl",
+            "traceability_matrix.json",
+            "artifact_manifest.json"
+          ],
+          "pass_gate": "需求→任务→测试→证据→制品无孤儿。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S08",
+      "title": "市场去水、共识与异常检测",
+      "goal": "用多个独立来源形成市场强先验，消除平台利润、相关来源和异常价格影响。",
+      "depends_on": [
+        "S02",
+        "S07"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "四种去水方法",
+          "objective": "实现乘法、幂、Shin和赔率比方法并记录方法分歧。",
+          "outputs": [
+            "devig.py",
+            "devig_vectors.json",
+            "devig_report.json"
+          ],
+          "pass_gate": "完整盘口概率和=1±1e-9，四种方法可重放。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "来源独立性与权重",
+          "objective": "按运营商、数据供应链、更新时间和复制关系聚类来源。",
+          "outputs": [
+            "source_independence.py",
+            "source_clusters.json"
+          ],
+          "pass_gate": "同源复制不得被错误计为多条独立证据。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "加权中位共识",
+          "objective": "在对数几率空间计算来源独立性加权中位数。",
+          "outputs": [
+            "market_consensus.py",
+            "consensus_vectors.json"
+          ],
+          "pass_gate": "增加复制来源不改变共识；结果跨实现一致。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "异常值与线动",
+          "objective": "实现3.5倍中位绝对偏差、线动确认、时间错位和陈旧价格检测。",
+          "outputs": [
+            "outlier_detector.py",
+            "line_movement.py",
+            "outlier_fixtures.json"
+          ],
+          "pass_gate": "单一异常长赔率不能制造建议。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S09",
+      "title": "全市场模型族与残差融合",
+      "goal": "对不同盘口使用合适概率分布，市场始终是强先验，模型只学习可复制残差。",
+      "depends_on": [
+        "S02",
+        "S07"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "通用市场残差基线",
+          "objective": "实现二元、多项、让分、大小和期货的市场锚定残差框架。",
+          "outputs": [
+            "generic_residual.py",
+            "market_family_registry.json"
+          ],
+          "pass_gate": "没有领域增量时残差权重自动为0。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "网球与对抗项目模型",
+          "objective": "实现场地动态评级、发接发、休息旅行和参赛状态特征。",
+          "outputs": [
+            "tennis_model.py",
+            "combat_model.py",
+            "feature_availability.json"
+          ],
+          "pass_gate": "只使用建议时已知信息，时间外推通过。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "足球与得分项目模型",
+          "objective": "实现Poisson、Dixon-Coles、Skellam、负二项及层级残差。",
+          "outputs": [
+            "score_models.py",
+            "football_model.py",
+            "distribution_tests.json"
+          ],
+          "pass_gate": "概率质量、尾部和盘口映射通过。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "赛马、篮球、棒球及小众回退",
+          "objective": "实现Plackett-Luce/Harville、节奏效率、投手牛棚及市场仅模式。",
+          "outputs": [
+            "racing_model.py",
+            "basketball_model.py",
+            "baseball_model.py",
+            "niche_fallback.json"
+          ],
+          "pass_gate": "未证明领域模型只能市场基线或不建议。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S10",
+      "title": "校准、不确定性与万分之一稳定性",
+      "goal": "把模型误差、参数分歧和数值误差显式进入保守概率与不建议区。",
+      "depends_on": [
+        "S07",
+        "S08",
+        "S09"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "时间交叉验证与校准",
+          "objective": "以至少8个时间折比较等距回归、逻辑校准和多类温度缩放。",
+          "outputs": [
+            "calibration.py",
+            "temporal_cv.py",
+            "calibration_report.json"
+          ],
+          "pass_gate": "斜率0.90–1.10、截距绝对值≤0.02。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "分块重采样与保守概率",
+          "objective": "运行时1000次、评测2000次分块重采样，取第10百分位。",
+          "outputs": [
+            "uncertainty.py",
+            "bootstrap_manifest.json"
+          ],
+          "pass_gate": "固定种子/输入可重放，保守概率单调。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "十进制定点权威计算",
+          "objective": "金额用分、概率1e-9、赔率1e-6，50位十进制且保守舍入。",
+          "outputs": [
+            "decimal_math.py",
+            "numeric_vectors.json",
+            "cross_impl_check.py"
+          ],
+          "pass_gate": "两套实现差≤1e-12且动作完全一致。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "万分之一扰动门",
+          "objective": "对概率、阈值、摩擦、时间和赔率做不利扰动，动作翻转即不建议。",
+          "outputs": [
+            "robustness_gate.py",
+            "boundary_vectors.json",
+            "robustness_report.json"
+          ],
+          "pass_gate": "所有硬边界±0.0001用例100%符合预期。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S11",
+      "title": "建议阈值、平台选择与资金风险",
+      "goal": "用保守净期望、证据层、最低赔率和受限凯利形成唯一可操作建议。",
+      "depends_on": [
+        "S08",
+        "S09",
+        "S10"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "摩擦与可执行净期望",
+          "objective": "按时距和滚动95分位估计价格恶化、拒绝、结算和操作摩擦。",
+          "outputs": [
+            "friction.py",
+            "friction_model.json",
+            "friction_backtest.json"
+          ],
+          "pass_gate": "有效摩擦取默认与实测95分位较大者。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "证据层与最低赔率",
+          "objective": "实现E4/E3/E2/E1/E0门、最低可接受赔率和唯一原因码。",
+          "outputs": [
+            "decision_gate.py",
+            "evidence_tiers.json",
+            "threshold_vectors.json"
+          ],
+          "pass_gate": "所有阈值边界及万分之一扰动通过。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "动态平台路由",
+          "objective": "按可执行净期望、时效、规则、最低金额和操作摩擦选择唯一平台。",
+          "outputs": [
+            "platform_router.py",
+            "provider_score.json",
+            "routing_fixtures.json"
+          ],
+          "pass_gate": "只显示一个最高分且全部门通过的平台。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "受限凯利与相关组合",
+          "objective": "实现阶段系数、单票/赛事/相关簇/总暴露、亏损和回撤控制。",
+          "outputs": [
+            "risk_engine.py",
+            "correlation_graph.json",
+            "risk_vectors.json"
+          ],
+          "pass_gate": "任意属性测试不能越过风险上限。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S12",
+      "title": "30%月复利目标与商业证伪",
+      "goal": "把30%目标变成容量、对数增长、经济性、证伪和验证合同，绝不通过追损制造表面达标。",
+      "depends_on": [
+        "S01",
+        "S10",
+        "S11"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "目标曲线与现金流调整",
+          "objective": "实现A$300×1.3^n、月初基准、入金出金调整和目标差额。",
+          "outputs": [
+            "target_engine.py",
+            "cashflow_adjustment.py",
+            "target_vectors.json"
+          ],
+          "pass_gate": "固定时钟下目标曲线与高精度参考一致。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "机会容量与相关校正",
+          "objective": "估计剩余机会数、独立等效信号、平台限额、相关性和可执行比例。",
+          "outputs": [
+            "capacity_model.py",
+            "equivalent_signal.py",
+            "capacity_report.json"
+          ],
+          "pass_gate": "不把高度相关机会重复计入30%覆盖。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "收益成本敏感性",
+          "objective": "计算无新增现金预算下的运维、机会成本、收益区间和敏感性。",
+          "outputs": [
+            "economics.py",
+            "sensitivity_grid.json",
+            "opportunity_cost.json"
+          ],
+          "pass_gate": "所有收益带区间、置信度和失败概率，不输出保证。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "证伪与验证门",
+          "objective": "实现90天/1000信号可行性、6月证伪和12月实际验证合同。",
+          "outputs": [
+            "target_falsification.py",
+            "target_acceptance.json",
+            "kill_report.schema.json"
+          ],
+          "pass_gate": "目标短缺只报告，不降低阈值、仓位或证据门。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S13",
+      "title": "中文单动作操作体验",
+      "goal": "用户只接收一个最终建议并完成下单，其余分析、排序、证据、结果和复盘自动化。",
+      "depends_on": [
+        "S03",
+        "S11",
+        "S12"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "中文工作台与推送",
+          "objective": "实现当前建议、无建议、覆盖、风险、目标和系统健康的一屏工作台。",
+          "outputs": [
+            "webapp",
+            "push_service.py",
+            "ui_fixtures.json"
+          ],
+          "pass_gate": "手机/电脑任意地点可访问，界面中文。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "打开平台与即时校验",
+          "objective": "生成深链/复制指令，用户页面观察组件核对赛事、盘口、赔率和可用时限。",
+          "outputs": [
+            "browser_companion",
+            "quote_check.py",
+            "match_fixtures.json"
+          ],
+          "pass_gate": "低于最低赔率、身份不符或过期立即红色撤销。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "建议后证据与结算",
+          "objective": "自动记录建议、可选确认、结果、相对收盘价优势和复盘。",
+          "outputs": [
+            "post_advice_worker.py",
+            "result_settler.py",
+            "performance_report.py"
+          ],
+          "pass_gate": "没有确认时不伪造真实收益。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "六类完整路径",
+          "objective": "实现Walking Skeleton、Golden、Black、Abuse、Degraded、Recovery路径。",
+          "outputs": [
+            "journey_tests.json",
+            "recovery_actions.json"
+          ],
+          "pass_gate": "每类路径有输入、状态、输出、证据和恢复。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S14",
+      "title": "安全保障与供应链治理",
+      "goal": "覆盖设计、构建、测试、发布和维护，保护邮箱、秘密、模型、网页内容和证据。",
+      "depends_on": [
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "威胁模型与信任边界",
+          "objective": "覆盖提示注入、恶意附件、凭证、数据投毒、身份错配和假证据。",
+          "outputs": [
+            "threat_model.json",
+            "trust_boundaries.json",
+            "abuse_cases.json"
+          ],
+          "pass_gate": "高风险威胁均有预防、检测、响应和恢复控制。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "安全编码与自动分析",
+          "objective": "配置类型、静态分析、依赖、秘密、容器和基础设施扫描。",
+          "outputs": [
+            "security_pipeline.yml",
+            "sast_policy.json",
+            "secret_policy.json"
+          ],
+          "pass_gate": "未处置严重/高危为0。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "组件与补丁生命周期",
+          "objective": "建立软件物料清单、许可证、版本钉住、补丁时限和禁用规则。",
+          "outputs": [
+            "sbom.json",
+            "component_governance.json",
+            "patch_sla.json"
+          ],
+          "pass_gate": "每个生产组件有来源、版本、许可证和负责人。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "制品来源与安全回滚",
+          "objective": "生成构建证明、签名、审批证据和安全事故回滚。",
+          "outputs": [
+            "provenance.json",
+            "artifact_signing.md",
+            "security_rollback.md"
+          ],
+          "pass_gate": "发布制品可追溯到源代码、依赖和构建环境。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S15",
+      "title": "软件正确性流水线",
+      "goal": "从Schema到端到端、性能、恢复和发布后测试，证明软件行为正确。",
+      "depends_on": [
+        "S05",
+        "S07",
+        "S13",
+        "S14"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "单元、属性与Schema测试",
+          "objective": "覆盖数学、状态机、序列化、边界和负数路径。",
+          "outputs": [
+            "unit_tests",
+            "property_tests",
+            "schema_tests"
+          ],
+          "pass_gate": "关键模块分支覆盖≥95%，资金/阈值属性测试100%通过。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "来源合同与集成测试",
+          "objective": "用冻结页面、邮件、赔率和结果夹具验证多服务协同。",
+          "outputs": [
+            "contract_tests",
+            "integration_tests",
+            "fixtures_manifest.json"
+          ],
+          "pass_gate": "真实网络故障不影响测试确定性。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "多端多环境端到端",
+          "objective": "验证OVH、Cloudflare、手机、电脑、浏览器组件和恢复页。",
+          "outputs": [
+            "e2e_tests",
+            "environment_matrix.json",
+            "e2e_evidence.json"
+          ],
+          "pass_gate": "Golden/Black/Degraded/Recovery全通过。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "需求追踪与通过门",
+          "objective": "执行需求→任务→测试→证据→制品全链验证。",
+          "outputs": [
+            "traceability_validator.py",
+            "software_gate.json"
+          ],
+          "pass_gate": "无孤儿、无循环、无未通过关键验收。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S16",
+      "title": "模型能力与安全流水线",
+      "goal": "独立验证模型增量、校准、鲁棒性、红队、系统说明卡和阶段晋级。",
+      "depends_on": [
+        "S08",
+        "S09",
+        "S10",
+        "S11"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "市场基线与挑战模型",
+          "objective": "以市场为基线，Champion/Challenger按冻结时间窗口比较。",
+          "outputs": [
+            "model_registry.json",
+            "baseline_report.json",
+            "challenger_report.json"
+          ],
+          "pass_gate": "模型没有显著增量时权重归零。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "能力、校准与收益评测",
+          "objective": "计算Brier、对数损失、校准、相对收盘价优势和净对数增长。",
+          "outputs": [
+            "model_eval.py",
+            "eval_catalog.json",
+            "eval_report.json"
+          ],
+          "pass_gate": "所有95%置信下界门通过才晋级。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "红队与不同模型互审",
+          "objective": "攻击未来泄漏、离群价格、身份错配、数据投毒、相关性和目标追赶。",
+          "outputs": [
+            "model_redteam.json",
+            "cross_model_review.json"
+          ],
+          "pass_gate": "任何可绕过门的攻击为阻断缺陷。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "模型系统说明卡与阶段门",
+          "objective": "生成用途、限制、已知失败、安全措施、监控、Alpha/Beta/GA和回滚。",
+          "outputs": [
+            "model_system_card.json",
+            "model_release_gate.json"
+          ],
+          "pass_gate": "软件通过不能替代模型通过，两条门独立。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S17",
+      "title": "全量压力、并发、极限与混沌",
+      "goal": "发布前主动制造高负载和故障，验证系统不发错建议且能恢复。",
+      "depends_on": [
+        "S15",
+        "S16"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "全历史与10倍负载",
+          "objective": "回放全历史、全市场索引和10倍预期事件/报价量。",
+          "outputs": [
+            "load_test.py",
+            "load_profile.json",
+            "capacity_evidence.json"
+          ],
+          "pass_gate": "VPS-1资源门内且无静默丢数据。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "并发、重试与幂等极限",
+          "objective": "注入重复、乱序、延迟、超时和并发任务。",
+          "outputs": [
+            "concurrency_test.py",
+            "idempotency_report.json"
+          ],
+          "pass_gate": "重复建议/账本事件为0。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "故障注入",
+          "objective": "注入进程退出、DNS、网络、页面变化、磁盘、内存、时钟和模型损坏。",
+          "outputs": [
+            "chaos_scenarios.json",
+            "chaos_runner.py"
+          ],
+          "pass_gate": "错误时不使用陈旧数据且自动降级。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "恢复与常态演练",
+          "objective": "执行重启、账本重放、备份恢复、双环境回滚和过期票据清理。",
+          "outputs": [
+            "recovery_test.py",
+            "disaster_drill.md",
+            "recovery_report.json"
+          ],
+          "pass_gate": "账本恢复点≤60秒，建议服务恢复≤15分钟。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S18",
+      "title": "安全发布与 7×24 运维",
+      "goal": "实现可逆发布、持续监控、诊断、自愈、邮件日检和长期稳定运行。",
+      "depends_on": [
+        "S04",
+        "S14",
+        "S17"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "双环境与小流量试运行",
+          "objective": "按来源、运动、市场和模型功能开关逐步切换。",
+          "outputs": [
+            "release_pipeline.yml",
+            "canary_policy.json",
+            "post_release_probe.py"
+          ],
+          "pass_gate": "新版本探针失败自动回旧版。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "可观测、诊断与告警",
+          "objective": "监控采集时效、静默缺口、模型漂移、资源、邮箱和证据。",
+          "outputs": [
+            "dashboards.json",
+            "alerts.json",
+            "diagnostic_bundle.py"
+          ],
+          "pass_gate": "每个高优先级告警有唯一自动或人工动作。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "有限自愈",
+          "objective": "允许重启、重试、重放、切源、回退模型和重建派生状态。",
+          "outputs": [
+            "self_heal_policy.json",
+            "watchdog.py",
+            "outbox_worker.py"
+          ],
+          "pass_gate": "自愈不能修改资金事实或放宽风险门。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "运行手册与值守自动化",
+          "objective": "建立每日、每周、每月、补丁、备份、邮件和容灾演练。",
+          "outputs": [
+            "operations_runbook.md",
+            "scheduled_jobs.json",
+            "maintenance_calendar.json"
+          ],
+          "pass_gate": "正常运行无需用户维护；异常仅按暂停合同升级。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    },
+    {
+      "id": "S19",
+      "title": "Alpha/Beta/GA 与最终验收",
+      "goal": "按持续证据自动晋级，完成最终交付、部署运行和长期目标验证。",
+      "depends_on": [
+        "S12",
+        "S13",
+        "S17",
+        "S18"
+      ],
+      "phases": [
+        {
+          "id": "P01",
+          "title": "Walking Skeleton 与软件Alpha",
+          "objective": "用一个市场完成发现、建议、失效、结果、重放、邮件和恢复闭环。",
+          "outputs": [
+            "walking_skeleton_evidence.json",
+            "software_alpha_gate.json"
+          ],
+          "pass_gate": "不使用真实资金即可确定性闭环。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P02",
+          "title": "影子运行与模型Beta",
+          "objective": "至少60天/500信号初筛，90天/1000信号完成目标可行性评估。",
+          "outputs": [
+            "shadow_report.json",
+            "model_beta_gate.json"
+          ],
+          "pass_gate": "校准、净增长、时效、容量和漂移门通过。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P03",
+          "title": "正式可用与小额建议",
+          "objective": "在用户只下单的模式下积累至少200笔且90天可验证证据。",
+          "outputs": [
+            "ga_report.json",
+            "actual_reconciliation.json"
+          ],
+          "pass_gate": "证据完整、对账差异0、终止条件未触发。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        },
+        {
+          "id": "P04",
+          "title": "最终验收与长期验证",
+          "objective": "封装7文件、机器合同、任务DAG、制品、校验、路线图和12月目标验证。",
+          "outputs": [
+            "final_acceptance.json",
+            "release_manifest.json",
+            "handoff_bundle.zip"
+          ],
+          "pass_gate": "所有验收通过，版本和哈希无歧义无冲突。",
+          "hours": {
+            "low": 3,
+            "likely": 4,
+            "high": 6
+          }
+        }
+      ],
+      "stop_conditions": [
+        "发现法律、监管或来源合同实质冲突且无安全默认",
+        "需要不可逆操作",
+        "新增现金支出将超过A$0",
+        "严重安全事故或证据完整性失败",
+        "阶段终止条件被触发"
+      ],
+      "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。"
+    }
+  ]
+}

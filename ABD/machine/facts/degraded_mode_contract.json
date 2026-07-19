@@ -1,0 +1,321 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "contract_id": "ABD-GMAIL-DEGRADED-MODE-S00-P04",
+  "acceptance_contract_id": "AC-S00-P04",
+  "fixed_at": "2026-07-19T00:00:00+10:00",
+  "current_state": "CONSENT_NOT_REQUESTED",
+  "current_state_evidence": "LOCAL_CONTRACT_ONLY_NO_EXTERNAL_ACCESS",
+  "invariants": {
+    "gmail_enabled_only_in_active_state": true,
+    "ordinary_missing_or_invalid_consent_disables_only_gmail": true,
+    "ordinary_degraded_state_never_blocks_core_task_graph": true,
+    "unexpected_scope_never_expands_authority": true,
+    "unknown_state_fails_to_gmail_disabled": true,
+    "no_automatic_owner_reprompt": true,
+    "no_permanent_delete_capability_requested": true,
+    "security_incident_uses_p02_explicit_pause_contract": true
+  },
+  "scope_policy": {
+    "requested_scopes_exact": [
+      "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "scope_classification": "RESTRICTED",
+    "forbidden_scopes": [
+      "https://mail.google.com/"
+    ],
+    "returned_scope_rule": "EXACT_SET_MATCH_ONLY",
+    "broader_or_missing_scope_action": "DISABLE_GMAIL_DELETE_LOCAL_TOKEN_AND_REQUIRE_AUTHORIZED_REVOCATION",
+    "risk_disclosure": "OAuth scope比ABD允许的方法更宽；应用层方法白名单是独立强制门。"
+  },
+  "method_policy": {
+    "allowed_when_active": [
+      "users.getProfile",
+      "users.history.list",
+      "users.messages.list",
+      "users.messages.get",
+      "users.messages.attachments.get",
+      "users.messages.trash",
+      "users.messages.untrash"
+    ],
+    "always_denied": [
+      "users.drafts.create",
+      "users.drafts.send",
+      "users.messages.batchDelete",
+      "users.messages.delete",
+      "users.messages.import",
+      "users.messages.insert",
+      "users.messages.send",
+      "users.settings.*",
+      "users.threads.delete"
+    ],
+    "unknown_method_action": "DENY_LOG_METHOD_NAME_WITHOUT_ARGUMENTS_DISABLE_GMAIL_ON_REPEATED_ATTEMPT"
+  },
+  "activation_gates": [
+    {
+      "id": "GATE-MODULE-IMPLEMENTED",
+      "current_status": "NOT_PROVEN"
+    },
+    {
+      "id": "GATE-EXACT-SCOPE-RECEIPT",
+      "current_status": "NOT_PROVEN"
+    },
+    {
+      "id": "GATE-OAUTH-APP-AND-AUDIENCE-STATUS",
+      "current_status": "UNVERIFIED"
+    },
+    {
+      "id": "GATE-STATE-PKCE-REDIRECT",
+      "current_status": "NOT_PROVEN"
+    },
+    {
+      "id": "GATE-ENCRYPTED-TOKEN-STORAGE",
+      "current_status": "NOT_PROVEN"
+    },
+    {
+      "id": "GATE-METHOD-ALLOWLIST",
+      "current_status": "CONTRACT_ONLY_NOT_RUNTIME_PROVEN"
+    },
+    {
+      "id": "GATE-READ-SELF-CHECK",
+      "current_status": "NOT_RUN"
+    },
+    {
+      "id": "GATE-TRASH-UNTRASH-RECOVERY",
+      "current_status": "NOT_RUN"
+    },
+    {
+      "id": "GATE-CURRENT-ZERO-COST-QUOTA",
+      "current_status": "REVERIFY_BEFORE_ENABLEMENT"
+    }
+  ],
+  "components": {
+    "gmail_only": [
+      "GMAIL_POLL",
+      "GMAIL_MESSAGE_READ",
+      "GMAIL_ATTACHMENT_DOWNLOAD",
+      "GMAIL_TRASH",
+      "GMAIL_UNTRASH",
+      "GMAIL_COLLECTOR_AUDIT"
+    ],
+    "safe_core": [
+      "LOCAL_DEVELOPMENT",
+      "BUILD_AND_TEST",
+      "DEPLOYMENT_PREPARATION",
+      "MARKET_DISCOVERY",
+      "SOURCE_CONTRACT_WORK",
+      "MODEL_DEVELOPMENT",
+      "SHADOW_EVALUATION",
+      "ADVICE_GENERATION_WITHOUT_GMAIL_EVIDENCE",
+      "NON_GMAIL_EVIDENCE_LEDGER",
+      "OPERATIONS_PREPARATION",
+      "STAGE_REVIEW"
+    ]
+  },
+  "states": [
+    {
+      "id": "CONSENT_NOT_REQUESTED",
+      "gmail_enabled": false,
+      "gmail_external_calls_allowed": false,
+      "core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES",
+      "owner_prompt": "NONE",
+      "evidence_status": "GMAIL_NOT_CONNECTED"
+    },
+    {
+      "id": "CONSENT_PENDING",
+      "gmail_enabled": false,
+      "gmail_external_calls_allowed": false,
+      "core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES",
+      "owner_prompt": "ONE_CONTEXTUAL_SYSTEM_BROWSER_CONSENT_IN_PROGRESS",
+      "evidence_status": "CONSENT_NOT_YET_PROVEN"
+    },
+    {
+      "id": "CONSENT_DENIED",
+      "gmail_enabled": false,
+      "gmail_external_calls_allowed": false,
+      "core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES",
+      "owner_prompt": "NONE_UNTIL_EXPLICIT_REENABLE_REQUEST",
+      "evidence_status": "GMAIL_DECLINED"
+    },
+    {
+      "id": "CONSENT_GRANTED_UNVERIFIED",
+      "gmail_enabled": false,
+      "gmail_external_calls_allowed": false,
+      "core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES",
+      "owner_prompt": "NONE",
+      "evidence_status": "GRANT_RECEIPT_NOT_READINESS"
+    },
+    {
+      "id": "TOKEN_INVALID_OR_REVOKED",
+      "gmail_enabled": false,
+      "gmail_external_calls_allowed": false,
+      "core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES",
+      "owner_prompt": "NONE_UNTIL_EXPLICIT_REENABLE_REQUEST",
+      "evidence_status": "GMAIL_ACCESS_UNAVAILABLE"
+    },
+    {
+      "id": "SCOPE_MISMATCH",
+      "gmail_enabled": false,
+      "gmail_external_calls_allowed": false,
+      "core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES",
+      "owner_prompt": "MINIMAL_SCOPE_MISMATCH_NOTICE_NO_TOKEN",
+      "evidence_status": "GRANT_REJECTED_FAIL_CLOSED"
+    },
+    {
+      "id": "TOKEN_STORAGE_UNREADY",
+      "gmail_enabled": false,
+      "gmail_external_calls_allowed": false,
+      "core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES",
+      "owner_prompt": "NONE",
+      "evidence_status": "TOKEN_MUST_NOT_BE_ACCEPTED_OR_LOGGED"
+    },
+    {
+      "id": "ACTIVE",
+      "gmail_enabled": true,
+      "gmail_external_calls_allowed": true,
+      "core_task_graph": "CONTINUE_SUBJECT_TO_INDEPENDENT_GATES",
+      "owner_prompt": "NONE",
+      "evidence_status": "ALL_ACTIVATION_GATES_PROVEN"
+    },
+    {
+      "id": "SECURITY_ISOLATED",
+      "gmail_enabled": false,
+      "gmail_external_calls_allowed": false,
+      "core_task_graph": "PAUSE_AFFECTED_SCOPE_PER_P02_SECURITY_OR_SUPPLY_CHAIN_INCIDENT",
+      "owner_prompt": "P02_MINIMAL_PAUSE_RECEIPT_ONLY",
+      "evidence_status": "SECURITY_INCIDENT"
+    }
+  ],
+  "ordinary_degraded_states": [
+    "CONSENT_NOT_REQUESTED",
+    "CONSENT_PENDING",
+    "CONSENT_DENIED",
+    "CONSENT_GRANTED_UNVERIFIED",
+    "TOKEN_INVALID_OR_REVOKED",
+    "SCOPE_MISMATCH",
+    "TOKEN_STORAGE_UNREADY"
+  ],
+  "event_resolution": [
+    {
+      "event": "NO_CONSENT",
+      "state": "CONSENT_NOT_REQUESTED"
+    },
+    {
+      "event": "CONSENT_FLOW_STARTED",
+      "state": "CONSENT_PENDING"
+    },
+    {
+      "event": "OWNER_DENIED_OR_CANCELLED",
+      "state": "CONSENT_DENIED"
+    },
+    {
+      "event": "GRANT_RECEIPT_BEFORE_ALL_GATES",
+      "state": "CONSENT_GRANTED_UNVERIFIED"
+    },
+    {
+      "event": "TOKEN_INVALID_EXPIRED_OR_REVOKED",
+      "state": "TOKEN_INVALID_OR_REVOKED"
+    },
+    {
+      "event": "RETURNED_SCOPE_NOT_EXACT",
+      "state": "SCOPE_MISMATCH"
+    },
+    {
+      "event": "TOKEN_STORAGE_NOT_READY",
+      "state": "TOKEN_STORAGE_UNREADY"
+    },
+    {
+      "event": "ALL_ACTIVATION_GATES_PROVEN",
+      "state": "ACTIVE"
+    },
+    {
+      "event": "TOKEN_OR_CLIENT_SECRET_INCIDENT",
+      "state": "SECURITY_ISOLATED"
+    },
+    {
+      "event": "UNKNOWN_EVENT",
+      "state": "CONSENT_NOT_REQUESTED"
+    }
+  ],
+  "allowed_transitions": [
+    "CONSENT_NOT_REQUESTED->CONSENT_PENDING",
+    "CONSENT_PENDING->CONSENT_DENIED",
+    "CONSENT_PENDING->CONSENT_GRANTED_UNVERIFIED",
+    "CONSENT_GRANTED_UNVERIFIED->ACTIVE",
+    "CONSENT_GRANTED_UNVERIFIED->SCOPE_MISMATCH",
+    "CONSENT_GRANTED_UNVERIFIED->TOKEN_STORAGE_UNREADY",
+    "ACTIVE->TOKEN_INVALID_OR_REVOKED",
+    "ACTIVE->SECURITY_ISOLATED",
+    "TOKEN_INVALID_OR_REVOKED->CONSENT_PENDING",
+    "SCOPE_MISMATCH->CONSENT_NOT_REQUESTED",
+    "TOKEN_STORAGE_UNREADY->CONSENT_NOT_REQUESTED"
+  ],
+  "activation_rule": {
+    "all_activation_gates_must_be_proven": true,
+    "receipt_alone_never_activates": true,
+    "active_without_all_gates_action": "FORCE_CONSENT_GRANTED_UNVERIFIED_DISABLE_GMAIL",
+    "testing_refresh_token_expiry_must_be_handled": true,
+    "revocation_event_disables_before_next_gmail_operation": true
+  },
+  "consent_receipt_contract": {
+    "required_fields": [
+      "schema_version",
+      "receipt_id",
+      "observed_at",
+      "authorization_status",
+      "granted_scopes",
+      "state_validated",
+      "pkce_validated",
+      "redirect_uri_validated",
+      "token_storage_status",
+      "oauth_app_status",
+      "secret_material_present",
+      "external_capability_verified",
+      "gmail_module_state"
+    ],
+    "forbidden_fields": [
+      "authorization_code",
+      "access_token",
+      "refresh_token",
+      "client_secret",
+      "token_value",
+      "email_address",
+      "account_id",
+      "authorization_url"
+    ],
+    "secret_material_present_must_equal": false,
+    "granted_scopes_rule": "EMPTY_UNLESS_OBSERVED_THEN_EXACT_GMAIL_MODIFY_ONLY",
+    "receipt_is_capability_proof_only_after_live_verification": true
+  },
+  "s00_p04_execution_boundary": {
+    "external_product_or_account_network_access": false,
+    "oauth_link_generated": false,
+    "owner_consent_requested": false,
+    "token_received_or_stored": false,
+    "gmail_api_called": false,
+    "email_moved_or_deleted": false,
+    "current_result": "CONTRACT_PROVEN_GMAIL_REMAINS_DISABLED"
+  },
+  "official_source_snapshot": [
+    {
+      "url": "https://developers.google.com/workspace/gmail/api/auth/scopes",
+      "retrieved_at": "2026-07-19"
+    },
+    {
+      "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/trash",
+      "retrieved_at": "2026-07-19"
+    },
+    {
+      "url": "https://developers.google.com/identity/protocols/oauth2/web-server",
+      "retrieved_at": "2026-07-19"
+    },
+    {
+      "url": "https://developers.google.com/identity/protocols/oauth2/policies",
+      "retrieved_at": "2026-07-19"
+    },
+    {
+      "url": "https://developers.google.com/identity/protocols/oauth2",
+      "retrieved_at": "2026-07-19"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S01-WHOLE-STAGE-REVIEW",
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_requirement_ids": ["REQ-S01-P01", "REQ-S01-P02", "REQ-S01-P03", "REQ-S01-P04"],
+  "expected_acceptance_contract_ids": ["AC-S01-P01", "AC-S01-P02", "AC-S01-P03", "AC-S01-P04"],
+  "expected_task_ids": [
+    "T-S01-P01-01", "T-S01-P01-02", "T-S01-P01-03",
+    "T-S01-P02-01", "T-S01-P02-02", "T-S01-P02-03",
+    "T-S01-P03-01", "T-S01-P03-02", "T-S01-P03-03",
+    "T-S01-P04-01", "T-S01-P04-02", "T-S01-P04-03"
+  ],
+  "expected_phase_evaluator_min_checks": {"P01": 60, "P02": 90, "P03": 105, "P04": 125},
+  "expected_review_finding_ids": ["F-S01-R01", "F-S01-R02", "F-S01-R03", "F-S01-R04"],
+  "expected_product_requirement_ids": [
+    "ABD-PRD-REQ-001", "ABD-PRD-REQ-002", "ABD-PRD-REQ-003", "ABD-PRD-REQ-004",
+    "ABD-PRD-REQ-005", "ABD-PRD-REQ-006", "ABD-PRD-REQ-007", "ABD-PRD-REQ-008",
+    "ABD-PRD-REQ-009", "ABD-PRD-REQ-010", "ABD-PRD-REQ-011", "ABD-PRD-REQ-012",
+    "ABD-PRD-REQ-013", "ABD-PRD-REQ-014", "ABD-PRD-REQ-015", "ABD-PRD-REQ-016",
+    "ABD-PRD-REQ-017", "ABD-PRD-REQ-018", "ABD-PRD-REQ-019", "ABD-PRD-REQ-020",
+    "ABD-PRD-REQ-021"
+  ],
+  "expected_metric_ids": [
+    "MET-S01-P04-001", "MET-S01-P04-002", "MET-S01-P04-003", "MET-S01-P04-004",
+    "MET-S01-P04-005", "MET-S01-P04-006", "MET-S01-P04-007", "MET-S01-P04-008",
+    "MET-S01-P04-009", "MET-S01-P04-010", "MET-S01-P04-011", "MET-S01-P04-012",
+    "MET-S01-P04-013", "MET-S01-P04-014", "MET-S01-P04-015", "MET-S01-P04-016",
+    "MET-S01-P04-017", "MET-S01-P04-018", "MET-S01-P04-019", "MET-S01-P04-020",
+    "MET-S01-P04-021", "MET-S01-P04-022", "MET-S01-P04-023", "MET-S01-P04-024",
+    "MET-S01-P04-025", "MET-S01-P04-026", "MET-S01-P04-027", "MET-S01-P04-028",
+    "MET-S01-P04-029", "MET-S01-P04-030", "MET-S01-P04-031"
+  ],
+  "expected_kill_criterion_ids": [
+    "KC-S01-P04-001", "KC-S01-P04-002", "KC-S01-P04-003", "KC-S01-P04-004",
+    "KC-S01-P04-005", "KC-S01-P04-006", "KC-S01-P04-007", "KC-S01-P04-008",
+    "KC-S01-P04-009", "KC-S01-P04-010", "KC-S01-P04-011", "KC-S01-P04-012",
+    "KC-S01-P04-013", "KC-S01-P04-014", "KC-S01-P04-015", "KC-S01-P04-016",
+    "KC-S01-P04-017", "KC-S01-P04-018", "KC-S01-P04-019"
+  ],
+  "required_workflow_commands": [
+    "uv sync --frozen --group dev",
+    "python machine/tools/render_human.py",
+    "python machine/tools/scan_paid_dependencies.py",
+    "python machine/tools/validate_pack.py",
+    "python -m pytest -q",
+    "--verify-existing STAGE-REVIEW-S00",
+    "python machine/tools/update_artifact_manifest.py",
+    "shasum -a 256 -c machine/evidence/SHA256SUMS",
+    "git diff --exit-code"
+  ],
+  "required_upload_preconditions": [
+    "ALL_STAGE_PHASES_PASS", "WHOLE_STAGE_REVIEW_PASS", "ALL_REVIEW_FINDINGS_RESOLVED",
+    "FULL_STAGE_REGRESSION_PASS", "SECRET_SCAN_PASS", "CLEAN_WORKTREE", "NO_INCREMENTAL_CASH_COST"
+  ],
+  "forbidden_release_claims": [
+    "GMAIL_CONNECTED", "PRODUCTION_DEPLOYED", "RETURN_GUARANTEED", "ACTUAL_RETURN_VERIFIED",
+    "S02_STARTED", "REMOTE_CI_PASS_BEFORE_UPLOAD"
+  ],
+  "secret_pattern_labels": [
+    "PRIVATE_KEY_BLOCK", "GITHUB_CLASSIC_TOKEN", "GITHUB_FINE_GRAINED_TOKEN",
+    "GOOGLE_ACCESS_TOKEN", "GOOGLE_REFRESH_TOKEN", "GOOGLE_API_KEY", "ABSOLUTE_USER_PATH"
+  ]
+}

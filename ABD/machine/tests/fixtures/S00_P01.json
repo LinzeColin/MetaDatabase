@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "AC-S00-P01",
+  "required_version": "0.0.0.1",
+  "canonical_facts_sha256": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+  "boundary_mutations": [
+    {
+      "id": "MONTHLY-TARGET-MINUS-0.0001",
+      "json_pointer": "/product/monthly_target_return",
+      "value": "0.2999",
+      "expected_status": "FAIL"
+    },
+    {
+      "id": "MONTHLY-TARGET-PLUS-0.0001",
+      "json_pointer": "/product/monthly_target_return",
+      "value": "0.3001",
+      "expected_status": "FAIL"
+    },
+    {
+      "id": "INITIAL-BANKROLL-MINUS-0.0001",
+      "json_pointer": "/product/initial_bankroll_aud",
+      "value": "299.9999",
+      "expected_status": "FAIL"
+    },
+    {
+      "id": "INITIAL-BANKROLL-PLUS-0.0001",
+      "json_pointer": "/product/initial_bankroll_aud",
+      "value": "300.0001",
+      "expected_status": "FAIL"
+    }
+  ],
+  "not_applicable_boundaries": [
+    {
+      "id": "ADVERSE-ODDS-JUMP",
+      "reason": "S00/P01 只冻结事实，不产生赔率动作；不利赔率跳动动作门在 S10/P04 实现和验收。"
+    }
+  ],
+  "required_negative_cases": [
+    "duplicate_json_key",
+    "second_canonical_source",
+    "wrong_version",
+    "hash_mismatch",
+    "unresolved_conflict",
+    "malformed_json"
+  ]
+}

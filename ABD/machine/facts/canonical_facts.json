@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0.0",
+  "product": {
+    "id": "ABD",
+    "name_zh": "全天候投注决策辅助系统",
+    "version": "0.0.0.1",
+    "status": "FINAL_ACCEPTANCE_DELIVERY",
+    "owner": "单一账户持有人",
+    "language": "zh-CN",
+    "primary_goal": "在不降低证据、风险、安全与合规门槛的前提下，分析全部可观察市场并追求 A$300×1.3^n 的月度滚动复利目标。",
+    "target_curve": "B_n = 300 * (1.3 ** n)",
+    "monthly_target_return": "0.30",
+    "initial_bankroll_aud": "300.00",
+    "incremental_cash_budget_aud": "0.00"
+  },
+  "scope": {
+    "product_role": "ANALYSIS_AND_ADVICE_ONLY",
+    "order_submission_module_present": false,
+    "normal_owner_action": "FINAL_ORDER_ONLY",
+    "discovery_scope": "ALL_OBSERVABLE_MARKETS",
+    "recommendation_scope": "EVIDENCE_GATED",
+    "market_time_scope": [
+      "PREMATCH",
+      "FUTURES",
+      "LIVE_WHEN_SOURCE_FRESHNESS_AND_ACTION_CHANNEL_ARE_VERIFIED"
+    ],
+    "providers": "DYNAMIC_SELECTION_BY_EXECUTABLE_VALUE_AND_RULES",
+    "paid_data_api_required": false,
+    "free_data_api_required": false
+  },
+  "runtime": {
+    "primary": "OVH_SINGAPORE_VPS1_24X7",
+    "remote_access": "CLOUDFLARE_ACCESS_AND_NAMED_TUNNEL",
+    "operator_clients": [
+      "手机浏览器",
+      "电脑浏览器"
+    ],
+    "availability_slo": "0.995",
+    "single_host_zero_downtime_guaranteed": false,
+    "llm_in_money_critical_path": false,
+    "deployment": "SAME_HOST_BLUE_GREEN_WITH_CANARY_AND_AUTO_ROLLBACK"
+  },
+  "scheduling": {
+    "event_more_than_24h_refresh_seconds": 1800,
+    "event_2h_to_24h_refresh_seconds": 300,
+    "event_15m_to_2h_refresh_seconds": 60,
+    "event_0_to_15m_refresh_seconds": 20,
+    "live_refresh_seconds_when_supported": 10,
+    "gmail_collector_seconds": 900,
+    "codex_daily_audit_local_time": "06:00 Australia/Sydney"
+  },
+  "email": {
+    "purpose": "自动保存 TAB 等已验证来源发来的账单、交易记录、确认邮件及附件，形成可审计证据。",
+    "primary_executor": "DETERMINISTIC_OVH_GMAIL_COLLECTOR",
+    "codex_role": "DAILY_AUDIT_GAP_DETECTION_AND_REPAIR",
+    "gmail_scope_required": "gmail.modify",
+    "one_time_human_consent_required": true,
+    "one_time_consent_blocks_core_product": false,
+    "save_raw_eml": true,
+    "save_attachments": true,
+    "malware_scan": true,
+    "content_is_untrusted_data": true,
+    "delete_semantics": "MOVE_TO_GMAIL_TRASH_AFTER_TWO_PHASE_VERIFICATION",
+    "permanent_delete": false,
+    "unknown_sender_policy": "QUARANTINE_AND_DO_NOT_TRASH",
+    "failed_verification_policy": "KEEP_EMAIL_AND_ALERT"
+  },
+  "truth_and_evidence": {
+    "canonical_facts_precedence": [
+      "machine/facts/canonical_facts.json",
+      "machine/facts/parameters.json",
+      "machine/facts/acceptance_contracts.json",
+      "machine/facts/task_graph.json",
+      "generated human documents"
+    ],
+    "advice_ledger_separate_from_actual_ledger": true,
+    "actual_return_requires_verified_execution_evidence": true,
+    "no_bet_is_first_class_output": true,
+    "silent_coverage_gap_target": 0
+  },
+  "authorization": {
+    "ordinary_reversible_work_pre_authorized": true,
+    "development_auto_advance": true,
+    "pause_only_on": [
+      "法律、监管或来源合同发生实质冲突",
+      "秘密泄漏、主机入侵或供应链完整性事故",
+      "实际资金证据无法对平",
+      "不可逆操作",
+      "超出 A$0 新增现金预算",
+      "超出已授权产品范围",
+      "终止条件被触发"
+    ],
+    "pause_receipt_fields": [
+      "最小决策问题",
+      "证据",
+      "默认建议",
+      "不决策后果"
+    ]
+  }
+}

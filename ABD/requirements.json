@@ -1,0 +1,445 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S01-P03-01",
+  "requirement_id": "REQ-S01-P03",
+  "acceptance_contract_id": "AC-S01-P03",
+  "product_version": "0.0.0.1",
+  "fixed_at": "2026-07-19T00:00:00+10:00",
+  "status": "PRODUCT_REQUIREMENTS_CONTRACT_NOT_IMPLEMENTATION_PROOF",
+  "source_bindings": {
+    "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+    "customer_faq.md": "c004e375b0924564e1453885da5e7c286e15cc1924103524097fc4c58af22cb3",
+    "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+    "machine/evidence/EVD-S01-P02.json": "7d9471a303c23c34e567e9eee394be2f01bc7025a7ad74915aad6f21e5427ac5",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+    "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+    "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+    "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/provider_contracts.json": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+    "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+    "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+  },
+  "traceability_contract": {
+    "requirement_id_pattern": "^ABD-PRD-REQ-[0-9]{3}$",
+    "requirement_count": 21,
+    "unique_primary_acceptance_required": true,
+    "exactly_one_business_line_required": true,
+    "exactly_one_functional_module_required": true,
+    "source_pointer_required": true,
+    "at_least_one_business_flow_required": true,
+    "orphan_requirements_allowed": 0,
+    "duplicate_requirements_allowed": 0
+  },
+  "business_line_ids": [
+    "BL-EXPERIENCE",
+    "BL-INFRA-COST",
+    "BL-MARKET-EVIDENCE",
+    "BL-MODEL-RISK",
+    "BL-ASSURANCE-OPS"
+  ],
+  "requirements": [
+    {
+      "id": "ABD-PRD-REQ-001",
+      "title": "每日一张中文建议卡",
+      "business_line_id": "BL-EXPERIENCE",
+      "module_id": "MOD-CHINESE-DECISION",
+      "type": "FUNCTIONAL",
+      "priority": "P0",
+      "statement": "系统必须按Australia/Sydney自然日向单一账户持有人呈现一张中文汇总卡，状态只能为建议或不建议，并显示理由、证据和时效状态。",
+      "user_value": "用户每天只处理一个清晰决策面。",
+      "failure_default": "SHOW_NO_RECOMMENDATION_WITH_REASON",
+      "current_evidence_status": "REQUIREMENTS_ONLY_NOT_IMPLEMENTED",
+      "source_evidence": [
+        {"path": "customer_outcomes.json", "pointers": ["/experience_contract", "/observable_outcomes/0", "/observable_outcomes/1"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S03-P02",
+      "supporting_acceptance_contract_ids": ["AC-S13-P01"]
+    },
+    {
+      "id": "ABD-PRD-REQ-002",
+      "title": "全部失败路径给出中文下一步",
+      "business_line_id": "BL-EXPERIENCE",
+      "module_id": "MOD-CHINESE-DECISION",
+      "type": "FUNCTIONAL",
+      "priority": "P0",
+      "statement": "证据缺失、过期、不稳定、风险失败、覆盖缺口或系统故障必须显示唯一中文原因和安全下一步，禁止沉默失败。",
+      "user_value": "用户能区分无机会、证据不足与系统故障。",
+      "failure_default": "NO_RECOMMENDATION_NEVER_SILENT_FAILURE",
+      "current_evidence_status": "REQUIREMENTS_ONLY_NOT_IMPLEMENTED",
+      "source_evidence": [
+        {"path": "customer_outcomes.json", "pointers": ["/observable_outcomes/3"]},
+        {"path": "assumption_register.json", "pointers": ["/assumptions/3", "/assumptions/5"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S03-P03",
+      "supporting_acceptance_contract_ids": ["AC-S05-P04", "AC-S13-P01"]
+    },
+    {
+      "id": "ABD-PRD-REQ-003",
+      "title": "最终下单只由用户完成",
+      "business_line_id": "BL-EXPERIENCE",
+      "module_id": "MOD-OWNER-EXECUTION",
+      "type": "SAFETY_CONSTRAINT",
+      "priority": "P0",
+      "statement": "构建制品不得包含提交、确认或重试真实订单的能力；系统只给建议、最低赔率与核对信息，最终动作始终由用户在自己的平台页面完成。",
+      "user_value": "资金动作保持在人类最终控制下。",
+      "failure_default": "BLOCK_BUILD_AND_STOP_ADVICE_IF_ORDER_CAPABILITY_APPEARS",
+      "current_evidence_status": "NEGATIVE_CAPABILITY_CONTRACT_NOT_RUNTIME_PROOF",
+      "source_evidence": [
+        {"path": "machine/facts/canonical_facts.json", "pointers": ["/scope/product_role", "/scope/order_submission_module_present", "/scope/normal_owner_action"]},
+        {"path": "machine/facts/security_assurance.json", "pointers": ["/design_controls/2"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S13-P02",
+      "supporting_acceptance_contract_ids": ["AC-S00-P02", "AC-S14-P01"]
+    },
+    {
+      "id": "ABD-PRD-REQ-004",
+      "title": "OVH 7×24与Cloudflare中文入口",
+      "business_line_id": "BL-INFRA-COST",
+      "module_id": "MOD-RUNTIME-ACCESS",
+      "type": "NON_FUNCTIONAL",
+      "priority": "P0",
+      "statement": "目标运行面必须使用既有OVH Singapore VPS-1持续运行，并通过Cloudflare Access和Named Tunnel提供受保护中文入口；单主机不得宣称物理零中断。",
+      "user_value": "手机和电脑可访问统一中文工作台。",
+      "failure_default": "BLOCK_EXTERNAL_RELEASE_CONTINUE_LOCAL_VALIDATION",
+      "current_evidence_status": "TARGET_ARCHITECTURE_EXTERNAL_CAPABILITY_UNVERIFIED",
+      "source_evidence": [
+        {"path": "machine/facts/canonical_facts.json", "pointers": ["/runtime"]},
+        {"path": "machine/facts/decision_prerequisites.json", "pointers": ["/items/1", "/items/2"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S04-P02",
+      "supporting_acceptance_contract_ids": ["AC-S04-P01", "AC-S04-P03", "AC-S04-P04"]
+    },
+    {
+      "id": "ABD-PRD-REQ-005",
+      "title": "新增现金成本精确为A$0",
+      "business_line_id": "BL-INFRA-COST",
+      "module_id": "MOD-COST-AUTH",
+      "type": "BUSINESS_CONSTRAINT",
+      "priority": "P0",
+      "statement": "ABD 0.0.0.1不得新增任何现金支出、购买、付费升级或超额计费；A$300本金、既有成本、人工与机会成本必须单独披露，不得伪装为零。",
+      "user_value": "产品不会在未授权情况下增加现金负担。",
+      "failure_default": "BLOCK_POSITIVE_OR_UNKNOWN_INCREMENTAL_COST",
+      "current_evidence_status": "LOCAL_COST_CONTRACT_EXTERNAL_BILLING_UNVERIFIED",
+      "source_evidence": [
+        {"path": "machine/facts/costs.json", "pointers": ["/cost_semantics", "/incremental_cash_gate", "/prohibited_paid_dependencies"]},
+        {"path": "machine/facts/canonical_facts.json", "pointers": ["/product/initial_bankroll_aud", "/product/incremental_cash_budget_aud"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S12-P03",
+      "supporting_acceptance_contract_ids": ["AC-S00-P03"]
+    },
+    {
+      "id": "ABD-PRD-REQ-006",
+      "title": "全部可观察市场与零静默缺口",
+      "business_line_id": "BL-MARKET-EVIDENCE",
+      "module_id": "MOD-MARKET-DISCOVERY",
+      "type": "FUNCTIONAL",
+      "priority": "P0",
+      "statement": "发现层必须登记全部可观察市场及已覆盖、待解析、不可建议、降级、未知或不可观察状态；发现范围不得被误写为全部市场可建议。",
+      "user_value": "用户能看见系统知道和不知道的边界。",
+      "failure_default": "VISIBLE_COVERAGE_GAP_OR_NO_RECOMMENDATION",
+      "current_evidence_status": "SCOPE_CONTRACT_COVERAGE_UNVERIFIED",
+      "source_evidence": [
+        {"path": "machine/facts/canonical_facts.json", "pointers": ["/scope/discovery_scope", "/scope/recommendation_scope", "/truth_and_evidence/silent_coverage_gap_target"]},
+        {"path": "machine/facts/costs.json", "pointers": ["/future_source_admission_policy/coverage_gap_behavior"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S05-P04",
+      "supporting_acceptance_contract_ids": ["AC-S05-P01"]
+    },
+    {
+      "id": "ABD-PRD-REQ-007",
+      "title": "来源能力合同先于采集",
+      "business_line_id": "BL-MARKET-EVIDENCE",
+      "module_id": "MOD-SOURCE-CAPABILITY",
+      "type": "SAFETY_CONSTRAINT",
+      "priority": "P0",
+      "statement": "公开页面、静态文件、免费端点、只读会话和用户页面观察必须分别通过版本化来源合同、当前条款、A$0、时效和降级门后才可采集或用于建议。",
+      "user_value": "来源变化不会静默污染决策。",
+      "failure_default": "DISABLE_SOURCE_MARK_GAP_AND_SWITCH_OR_DEGRADE",
+      "current_evidence_status": "SOURCE_CONTRACT_DESIGN_NOT_LIVE_PROVEN",
+      "source_evidence": [
+        {"path": "machine/facts/provider_contracts.json", "pointers": ["/default_rule", "/capabilities", "/providers"]},
+        {"path": "machine/facts/costs.json", "pointers": ["/future_source_admission_policy"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S05-P02",
+      "supporting_acceptance_contract_ids": ["AC-S05-P03", "AC-S15-P02"]
+    },
+    {
+      "id": "ABD-PRD-REQ-008",
+      "title": "Gmail最小权限与可选授权",
+      "business_line_id": "BL-MARKET-EVIDENCE",
+      "module_id": "MOD-MAIL-EVIDENCE",
+      "type": "SAFETY_CONSTRAINT",
+      "priority": "P1",
+      "statement": "Gmail模块只能在实现完成、精确gmail.modify授权、state/PKCE、加密令牌、方法白名单与当前A$0配额全部证明后启用；未授权只关闭邮件模块。",
+      "user_value": "用户只在真正需要且可安全启用时完成一次授权。",
+      "failure_default": "DISABLE_GMAIL_CONTINUE_SAFE_CORE",
+      "current_evidence_status": "GMAIL_NOT_CONNECTED_NOT_READY",
+      "source_evidence": [
+        {"path": "machine/facts/degraded_mode_contract.json", "pointers": ["/current_state", "/scope_policy", "/activation_gates", "/activation_rule"]},
+        {"path": "machine/facts/decision_prerequisites.json", "pointers": ["/current_phase_observation", "/gmail_missing_consent_impact"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S06-P01",
+      "supporting_acceptance_contract_ids": ["AC-S00-P04"]
+    },
+    {
+      "id": "ABD-PRD-REQ-009",
+      "title": "邮件原件附件安全归档后才进垃圾箱",
+      "business_line_id": "BL-MARKET-EVIDENCE",
+      "module_id": "MOD-MAIL-EVIDENCE",
+      "type": "FUNCTIONAL",
+      "priority": "P0",
+      "statement": "收集器必须保存原始.eml、全部附件和SHA-256清单，完成认证、沙箱扫描、解析和本地读回后才允许移入垃圾箱；永久删除能力必须不存在。",
+      "user_value": "TAB账单和交易证据可恢复、可审计且不被误删。",
+      "failure_default": "KEEP_OR_QUARANTINE_MESSAGE_DO_NOT_TRASH",
+      "current_evidence_status": "ARCHIVE_CONTRACT_NOT_IMPLEMENTED",
+      "source_evidence": [
+        {"path": "machine/facts/email_ingestion.json", "pointers": ["/pipeline", "/trash_gate", "/acceptance_oracles"]},
+        {"path": "machine/facts/parameters.json", "pointers": ["/email"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S06-P02",
+      "supporting_acceptance_contract_ids": ["AC-S06-P03", "AC-S06-P04"]
+    },
+    {
+      "id": "ABD-PRD-REQ-010",
+      "title": "赛事身份与时间血缘零泄漏",
+      "business_line_id": "BL-MARKET-EVIDENCE",
+      "module_id": "MOD-IDENTITY-LINEAGE",
+      "type": "DATA_INTEGRITY",
+      "priority": "P0",
+      "statement": "每个赛事、盘口、选择和规则必须有唯一身份并记录源时间、观察时间、可用时间、特征截止和模型版本；未来信息容忍度为0。",
+      "user_value": "建议不会因错配或未来数据产生虚假优势。",
+      "failure_default": "QUARANTINE_IDENTITY_OR_STOP_RECOMMENDATION",
+      "current_evidence_status": "REQUIREMENTS_ONLY_NOT_IMPLEMENTED",
+      "source_evidence": [
+        {"path": "machine/facts/parameters.json", "pointers": ["/coverage_and_freshness/identity_confidence_min", "/market_model/future_leakage_tolerance"]},
+        {"path": "machine/facts/risk_register.json", "pointers": ["/risks/3", "/risks/4"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S07-P02",
+      "supporting_acceptance_contract_ids": ["AC-S07-P01"]
+    },
+    {
+      "id": "ABD-PRD-REQ-011",
+      "title": "建议账本与实际资金账本分离",
+      "business_line_id": "BL-MARKET-EVIDENCE",
+      "module_id": "MOD-LEDGER-TRACE",
+      "type": "DATA_INTEGRITY",
+      "priority": "P0",
+      "statement": "建议事件、实际执行、现金流、邮件、结果和发布证据必须使用追加式幂等账本并形成需求到制品的可查询链；建议表现不得替代真实资金收益。",
+      "user_value": "每个建议和真实结果都可重放、对账和区分。",
+      "failure_default": "STOP_NEW_RECOMMENDATIONS_PRESERVE_IMMUTABLE_EVIDENCE",
+      "current_evidence_status": "REQUIREMENTS_ONLY_NOT_IMPLEMENTED",
+      "source_evidence": [
+        {"path": "machine/facts/canonical_facts.json", "pointers": ["/truth_and_evidence/advice_ledger_separate_from_actual_ledger", "/truth_and_evidence/actual_return_requires_verified_execution_evidence"]},
+        {"path": "machine/facts/security_assurance.json", "pointers": ["/design_controls/4"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S07-P03",
+      "supporting_acceptance_contract_ids": ["AC-S07-P04", "AC-S13-P03"]
+    },
+    {
+      "id": "ABD-PRD-REQ-012",
+      "title": "独立来源市场强先验",
+      "business_line_id": "BL-MODEL-RISK",
+      "module_id": "MOD-MARKET-CONSENSUS",
+      "type": "MODEL_REQUIREMENT",
+      "priority": "P0",
+      "statement": "系统必须以四种去水和来源独立性加权中位市场共识为强先验；同源复制不得重复计数，异常赔率必须隔离。",
+      "user_value": "模型从可验证的市场信息出发而非凭空预测。",
+      "failure_default": "USE_VERIFIED_MARKET_ONLY_OR_NO_RECOMMENDATION",
+      "current_evidence_status": "MODEL_REQUIREMENT_NOT_EVALUATED",
+      "source_evidence": [
+        {"path": "machine/facts/parameters.json", "pointers": ["/market_model/de_vig_methods", "/market_model/consensus_estimator", "/market_model/market_prior_weight_min"]},
+        {"path": "machine/facts/strategy_spec.json", "pointers": ["/decision_pipeline/3", "/decision_pipeline/4"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S08-P03",
+      "supporting_acceptance_contract_ids": ["AC-S08-P01", "AC-S08-P02", "AC-S08-P04"]
+    },
+    {
+      "id": "ABD-PRD-REQ-013",
+      "title": "市场锚定残差模型与市场仅回退",
+      "business_line_id": "BL-MODEL-RISK",
+      "module_id": "MOD-RESIDUAL-MODELS",
+      "type": "MODEL_REQUIREMENT",
+      "priority": "P0",
+      "statement": "运动和盘口模型只能学习相对市场共识的校准残差；没有时间外增量时残差权重必须归零，小众或未建模市场回退市场共识或不建议。",
+      "user_value": "复杂模型只有证明增量时才影响建议。",
+      "failure_default": "ZERO_RESIDUAL_WEIGHT_AND_FALLBACK_TO_MARKET_OR_NO_RECOMMENDATION",
+      "current_evidence_status": "MODEL_REQUIREMENT_NOT_EVALUATED",
+      "source_evidence": [
+        {"path": "machine/facts/parameters.json", "pointers": ["/market_model/residual_weight_when_no_increment", "/market_model/market_prior_weight_min"]},
+        {"path": "machine/facts/model_system_card.json", "pointers": ["/model_families", "/authority_order"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S09-P01",
+      "supporting_acceptance_contract_ids": ["AC-S09-P02", "AC-S09-P03", "AC-S09-P04"]
+    },
+    {
+      "id": "ABD-PRD-REQ-014",
+      "title": "时间校准与保守不确定性",
+      "business_line_id": "BL-MODEL-RISK",
+      "module_id": "MOD-CALIBRATION-STABILITY",
+      "type": "MODEL_SAFETY",
+      "priority": "P0",
+      "statement": "模型必须使用至少8个时间折校准，并通过运行时1000次、评测2000次分块重采样取第10百分位保守概率；未通过置信下界门不得晋级。",
+      "user_value": "建议使用保守而非点估计概率。",
+      "failure_default": "BLOCK_MODEL_PROMOTION_OR_NO_RECOMMENDATION",
+      "current_evidence_status": "MODEL_REQUIREMENT_NOT_EVALUATED",
+      "source_evidence": [
+        {"path": "machine/facts/parameters.json", "pointers": ["/market_model/temporal_folds_min", "/market_model/runtime_block_bootstrap_iterations", "/market_model/evaluation_block_bootstrap_iterations", "/market_model/conservative_probability_percentile", "/calibration"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S10-P02",
+      "supporting_acceptance_contract_ids": ["AC-S10-P01", "AC-S16-P02"]
+    },
+    {
+      "id": "ABD-PRD-REQ-015",
+      "title": "十进制定点与万分之一不利稳定门",
+      "business_line_id": "BL-MODEL-RISK",
+      "module_id": "MOD-CALIBRATION-STABILITY",
+      "type": "NUMERIC_SAFETY",
+      "priority": "P0",
+      "statement": "权威金额、概率、赔率和摩擦必须使用固定精度十进制与保守舍入；概率、阈值、摩擦、时间或赔率任一不利扰动使动作翻转时必须输出不建议。",
+      "user_value": "临界数值不会被舍入或微小不利变化放大成建议。",
+      "failure_default": "NO_RECOMMENDATION",
+      "current_evidence_status": "NUMERIC_REQUIREMENT_NOT_IMPLEMENTED",
+      "source_evidence": [
+        {"path": "machine/facts/parameters.json", "pointers": ["/numeric_determinism"]},
+        {"path": "customer_outcomes.json", "pointers": ["/adverse_stability_contract"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S10-P04",
+      "supporting_acceptance_contract_ids": ["AC-S10-P03"]
+    },
+    {
+      "id": "ABD-PRD-REQ-016",
+      "title": "证据层、最低赔率与唯一平台",
+      "business_line_id": "BL-MODEL-RISK",
+      "module_id": "MOD-DECISION-ROUTING",
+      "type": "DECISION_REQUIREMENT",
+      "priority": "P0",
+      "statement": "每个候选必须通过E4至E0证据层、摩擦后保守净期望、最低可接受赔率、时效和动作通道门，并只给出一个平台或明确不建议。",
+      "user_value": "用户只看到可执行且边界清楚的候选。",
+      "failure_default": "NO_RECOMMENDATION_WITH_UNIQUE_REASON_CODE",
+      "current_evidence_status": "DECISION_REQUIREMENT_NOT_IMPLEMENTED",
+      "source_evidence": [
+        {"path": "machine/facts/parameters.json", "pointers": ["/evidence_tiers", "/friction"]},
+        {"path": "machine/facts/strategy_spec.json", "pointers": ["/decision_pipeline/9", "/decision_pipeline/10"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S11-P02",
+      "supporting_acceptance_contract_ids": ["AC-S11-P01", "AC-S11-P03"]
+    },
+    {
+      "id": "ABD-PRD-REQ-017",
+      "title": "受限凯利与组合风险",
+      "business_line_id": "BL-MODEL-RISK",
+      "module_id": "MOD-CAPITAL-RISK",
+      "type": "RISK_CONSTRAINT",
+      "priority": "P0",
+      "statement": "Alpha阶段仓位必须为0；Beta/GA仅使用受限凯利并同时满足单票、赛事、相关簇、总暴露、日损失和回撤控制，禁止追损。",
+      "user_value": "资金风险不会因目标压力无限放大。",
+      "failure_default": "ZERO_STAKE_OR_STOP_STRATEGY_SLICE",
+      "current_evidence_status": "RISK_REQUIREMENT_NOT_IMPLEMENTED",
+      "source_evidence": [
+        {"path": "machine/facts/parameters.json", "pointers": ["/risk"]},
+        {"path": "machine/facts/strategy_spec.json", "pointers": ["/formulas/full_kelly", "/formulas/actual_fraction"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S11-P04",
+      "supporting_acceptance_contract_ids": ["AC-S19-P03"]
+    },
+    {
+      "id": "ABD-PRD-REQ-018",
+      "title": "30%目标容量、证伪与长期验证",
+      "business_line_id": "BL-MODEL-RISK",
+      "module_id": "MOD-TARGET-EVAL",
+      "type": "BUSINESS_VALIDATION",
+      "priority": "P0",
+      "statement": "A$300×1.3^n只能作为目标、容量诊断、证伪和长期验证对象；90天/1000信号只评估可能可行，6月门可证伪，12个完整月实际证据才可标记已验证。",
+      "user_value": "目标进度如实呈现且不会变成随机收益保证。",
+      "failure_default": "REPORT_UNVERIFIED_OR_FALSIFIED_NO_GATE_RELAXATION",
+      "current_evidence_status": "UNVERIFIED_FALSIFIABLE_TARGET",
+      "source_evidence": [
+        {"path": "machine/facts/parameters.json", "pointers": ["/target_30pct"]},
+        {"path": "assumption_register.json", "pointers": ["/assumptions/0", "/assumptions/1"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S12-P04",
+      "supporting_acceptance_contract_ids": ["AC-S12-P01", "AC-S12-P02", "AC-S19-P02", "AC-S19-P04"]
+    },
+    {
+      "id": "ABD-PRD-REQ-019",
+      "title": "隐私、秘密与不可信内容隔离",
+      "business_line_id": "BL-ASSURANCE-OPS",
+      "module_id": "MOD-SECURITY-PRIVACY",
+      "type": "SECURITY_CONSTRAINT",
+      "priority": "P0",
+      "statement": "外部页面、邮件和附件一律是不可信数据；代码仓与验收收据不得含令牌、授权码、client secret、邮箱地址、账户ID或真实账户资料，秘密必须加密并最小权限使用。",
+      "user_value": "账户和证据不会因自动化扩大暴露面。",
+      "failure_default": "ISOLATE_STOP_ADVICE_REVOKE_SECRET_PRESERVE_REDACTED_EVIDENCE",
+      "current_evidence_status": "SECURITY_REQUIREMENT_NOT_RUNTIME_PROVEN",
+      "source_evidence": [
+        {"path": "machine/facts/security_assurance.json", "pointers": ["/design_controls", "/build_controls", "/test_controls"]},
+        {"path": "machine/facts/degraded_mode_contract.json", "pointers": ["/method_policy", "/consent_receipt_contract"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S14-P01",
+      "supporting_acceptance_contract_ids": ["AC-S14-P02", "AC-S14-P03", "AC-S14-P04"]
+    },
+    {
+      "id": "ABD-PRD-REQ-020",
+      "title": "软件与模型双流水线独立通过",
+      "business_line_id": "BL-ASSURANCE-OPS",
+      "module_id": "MOD-QUALITY-RELEASE",
+      "type": "QUALITY_GATE",
+      "priority": "P0",
+      "statement": "软件正确性、安全、追踪、负载和恢复门与模型校准、能力、红队和漂移门必须独立通过；任何测试、证据或制品缺口都不得由另一流水线替代。",
+      "user_value": "软件可运行不会被误当作模型有优势，历史优势也不会被误当作当前可执行。",
+      "failure_default": "BLOCK_RELEASE_AND_RETAIN_LAST_SIGNED_ARTIFACT",
+      "current_evidence_status": "QUALITY_REQUIREMENT_NOT_EXECUTED",
+      "source_evidence": [
+        {"path": "machine/facts/release_policy.json", "pointers": ["/software_pipeline", "/model_pipeline"]},
+        {"path": "machine/facts/security_assurance.json", "pointers": ["/build_controls", "/test_controls"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S15-P04",
+      "supporting_acceptance_contract_ids": ["AC-S16-P04", "AC-S17-P04"]
+    },
+    {
+      "id": "ABD-PRD-REQ-021",
+      "title": "安全发布、自愈与正式可用证据",
+      "business_line_id": "BL-ASSURANCE-OPS",
+      "module_id": "MOD-OPERATIONS",
+      "type": "OPERATIONS_REQUIREMENT",
+      "priority": "P0",
+      "statement": "发布必须使用功能开关、同机双环境、小流量试运行、发布后探针和自动回滚；自愈只能重启、重试、重放、切源和回退，正式可用声明必须满足相应软件、模型与长期证据门。",
+      "user_value": "系统故障时优先恢复安全状态而非维持错误建议。",
+      "failure_default": "AUTO_ROLLBACK_EXPIRE_ADVICE_AND_BLOCK_RELEASE_CLAIM",
+      "current_evidence_status": "OPERATIONS_REQUIREMENT_NOT_DEPLOYED",
+      "source_evidence": [
+        {"path": "machine/facts/release_policy.json", "pointers": ["/feature_flags", "/auto_rollback_on", "/alpha_beta_ga"]},
+        {"path": "machine/facts/canonical_facts.json", "pointers": ["/runtime/deployment", "/runtime/availability_slo", "/runtime/single_host_zero_downtime_guaranteed"]}
+      ],
+      "primary_acceptance_contract_id": "AC-S18-P04",
+      "supporting_acceptance_contract_ids": ["AC-S18-P01", "AC-S18-P02", "AC-S18-P03", "AC-S19-P01", "AC-S19-P04"]
+    }
+  ],
+  "non_goals": [
+    "不自动提交、确认或重试真实订单",
+    "不以降低证据或风险门追赶30%月目标",
+    "不引入付费数据或付费程序接口依赖"
+  ],
+  "claim_boundaries": {
+    "requirements_are_implementation_proof": false,
+    "production_deployment_claimed": false,
+    "all_market_coverage_claimed": false,
+    "external_account_or_api_accessed": false,
+    "gmail_connected_claimed": false,
+    "real_order_or_return_claimed": false,
+    "return_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "next_on_acceptance_pass": "S01/P04_READY_NOT_STARTED"
+}

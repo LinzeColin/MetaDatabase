@@ -1,0 +1,195 @@
+{
+  "schema_version": "1.0.0",
+  "numeric_determinism": {
+    "authoritative_decimal_precision_digits": 50,
+    "money_storage": "INTEGER_CENTS",
+    "probability_storage_scale": "1e-9",
+    "odds_storage_scale": "1e-6",
+    "binary_float_for_authoritative_decision": false,
+    "probability_rounding": "DOWN",
+    "odds_rounding": "DOWN",
+    "friction_rounding": "UP",
+    "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+    "independent_implementation_absolute_tolerance": "1e-12",
+    "action_must_match_across_implementations": true,
+    "boundary_perturbation_absolute_probability": "0.0001",
+    "boundary_perturbation_absolute_threshold": "0.0001",
+    "boundary_perturbation_friction_up": "0.0001",
+    "boundary_perturbation_time_adverse_seconds": 2,
+    "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+    "unstable_action": "NO_RECOMMENDATION"
+  },
+  "coverage_and_freshness": {
+    "refresh_seconds": {
+      "more_than_24h": 1800,
+      "2h_to_24h": 300,
+      "15m_to_2h": 60,
+      "0_to_15m": 20,
+      "live": 10
+    },
+    "quote_usable_seconds": {
+      "more_than_24h": 2100,
+      "2h_to_24h": 420,
+      "15m_to_2h": 90,
+      "0_to_15m": 30,
+      "live": 12
+    },
+    "advice_usable_seconds": {
+      "more_than_24h": 1500,
+      "2h_to_24h": 240,
+      "15m_to_2h": 45,
+      "0_to_15m": 15,
+      "live": 8
+    },
+    "identity_confidence_min": "0.995",
+    "required_feature_completeness_min": "0.98",
+    "main_market_overround_max": "0.18",
+    "niche_market_overround_max": "0.25",
+    "outlier_mad_multiplier": "3.5",
+    "silent_gap_max": 0
+  },
+  "market_model": {
+    "de_vig_methods": [
+      "MULTIPLICATIVE",
+      "POWER",
+      "SHIN",
+      "ODDS_RATIO"
+    ],
+    "consensus_space": "LOGIT",
+    "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+    "market_prior_weight_min": "0.50",
+    "residual_weight_alpha_beta_max": "0.35",
+    "residual_weight_ga_max": "0.50",
+    "residual_weight_when_no_increment": "0.00",
+    "temporal_folds_min": 8,
+    "runtime_block_bootstrap_iterations": 1000,
+    "evaluation_block_bootstrap_iterations": 2000,
+    "conservative_probability_percentile": 10,
+    "edge_haircut_fraction": "0.25",
+    "remove_top_profit_fraction_for_robustness": "0.01",
+    "future_leakage_tolerance": 0
+  },
+  "calibration": {
+    "slope_min": "0.90",
+    "slope_max": "1.10",
+    "intercept_abs_max": "0.02",
+    "calibration_error_main_max": "0.025",
+    "calibration_error_niche_max": "0.04",
+    "brier_skill_95pct_lower_bound": ">0",
+    "logloss_skill_95pct_lower_bound": ">0",
+    "closing_price_advantage_95pct_lower_bound": ">0",
+    "net_log_growth_95pct_lower_bound": ">0"
+  },
+  "evidence_tiers": {
+    "E4": {
+      "independent_price_sources_min": 5,
+      "model_stage_min": "GA",
+      "robust_net_expected_return_min": "0.03",
+      "model_disagreement_pp_max": "6"
+    },
+    "E3": {
+      "independent_price_sources_min": 3,
+      "independent_price_sources_max": 4,
+      "model_stage_min": "BETA",
+      "robust_net_expected_return_min": "0.05",
+      "model_disagreement_pp_max": "8"
+    },
+    "E2": {
+      "independent_price_sources_min": 2,
+      "independent_price_sources_max": 2,
+      "model_stage_min": "GA",
+      "robust_net_expected_return_min": "0.07",
+      "model_disagreement_pp_max": "10"
+    },
+    "E1": {
+      "independent_price_sources_min": 1,
+      "independent_price_sources_max": 1,
+      "independent_non_price_sources_min": 2,
+      "model_stage_min": "GA",
+      "robust_net_expected_return_min": "0.08",
+      "model_disagreement_pp_max": "8"
+    },
+    "E0": {
+      "action": "NO_RECOMMENDATION"
+    }
+  },
+  "friction": {
+    "more_than_2h_default": "0.010",
+    "15m_to_2h_default": "0.015",
+    "0_to_15m_default": "0.020",
+    "live_default": "0.030",
+    "effective_rule": "MAX(DEFAULT, ROLLING_OBSERVED_P95)"
+  },
+  "risk": {
+    "kelly_fraction_alpha": "0.00",
+    "kelly_fraction_beta": "0.20",
+    "kelly_fraction_ga": "0.25",
+    "single_ticket_cap_beta": "0.015",
+    "single_ticket_cap_ga": "0.020",
+    "event_cap": "0.050",
+    "correlation_cluster_cap": "0.050",
+    "total_open_exposure_cap": "0.150",
+    "daily_loss_soft_stop": "0.030",
+    "seven_day_drawdown_diagnostic": "0.075",
+    "strategy_slice_kill_drawdown": "0.100",
+    "absolute_disaster_line": "0.700",
+    "chase_loss_prohibited": true,
+    "target_shortfall_may_relax_gate": false
+  },
+  "drift": {
+    "population_stability_index_warn": "0.10",
+    "population_stability_index_stop": "0.20",
+    "jensen_shannon_stop": "0.10"
+  },
+  "target_30pct": {
+    "monthly_return": "0.30",
+    "monthly_log_growth": "0.26236426446749106",
+    "formula": "B_n = 300 * 1.3^n",
+    "shadow_min_days": 90,
+    "shadow_min_independent_equivalent_signals": 1000,
+    "plausible_gate": [
+      "保守月度对数增长中位数 >= ln(1.3)",
+      "月度对数增长第5百分位 > 0",
+      "按来源、平台限额、机会数量和相关性校正后的容量通过"
+    ],
+    "falsification_gate": [
+      "至少6个完整自然月",
+      "至少1000个独立等效信号",
+      "月收益率的95%上界仍低于30%"
+    ],
+    "verification_gate": [
+      "至少12个完整自然月",
+      "按现金流调整后的月度几何收益 >= 30%",
+      "证据完整",
+      "未解决对账差异为0"
+    ],
+    "guaranteed": false,
+    "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION"
+  },
+  "email": {
+    "poll_seconds": 900,
+    "daily_codex_audit_local_time": "06:00",
+    "sender_authentication_required": [
+      "SPF_PASS_OR_ALIGNED",
+      "DKIM_PASS_OR_ALIGNED",
+      "DMARC_PASS_OR_POLICY_ACCEPTED"
+    ],
+    "max_attachment_bytes": 50000000,
+    "parser_sandbox_cpu_seconds": 60,
+    "parser_sandbox_memory_mb": 256,
+    "malware_scan_required": true,
+    "archive_raw_eml": true,
+    "archive_attachment_hash": "SHA-256",
+    "trash_only_after": [
+      "raw_eml_saved",
+      "all_attachments_saved",
+      "hash_manifest_committed",
+      "malware_scan_passed",
+      "parser_result_recorded",
+      "local_restore_readback_passed"
+    ],
+    "permanent_delete": false,
+    "unknown_sender": "QUARANTINE",
+    "mail_content_instruction_trust": "NONE"
+  }
+}

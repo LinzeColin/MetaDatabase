@@ -1,0 +1,6 @@
+interface:
+  display_name: "股票商业机会拆解"
+  short_description: "从商业价值池到上市公司敞口与股票研究门禁"
+  default_prompt: "Use $stock-commercial-opportunities to trace this commercial opportunity to listed-equity research candidates, grade exposure evidence, and recommend the next diligence step without giving personal investment advice."
+policy:
+  allow_implicit_invocation: true

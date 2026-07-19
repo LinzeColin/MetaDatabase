@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S01-P03-02",
+  "requirement_id": "REQ-S01-P03",
+  "acceptance_contract_id": "AC-S01-P03",
+  "product_version": "0.0.0.1",
+  "fixed_at": "2026-07-19T00:00:00+10:00",
+  "status": "SCOPE_BOUNDARY_CONTRACT_NOT_CAPABILITY_PROOF",
+  "requirements_artifact": "requirements.json",
+  "business_lines": [
+    {
+      "id": "BL-EXPERIENCE",
+      "name_zh": "中文决策与用户最终动作",
+      "objective": "把复杂市场分析压缩为一张中文卡，并保持最终下单在人类手中。",
+      "module_ids": ["MOD-CHINESE-DECISION", "MOD-OWNER-EXECUTION"]
+    },
+    {
+      "id": "BL-INFRA-COST",
+      "name_zh": "运行基础设施与零新增现金",
+      "objective": "在既有OVH/Cloudflare目标架构和A$0新增现金门内准备持续运行。",
+      "module_ids": ["MOD-RUNTIME-ACCESS", "MOD-COST-AUTH"]
+    },
+    {
+      "id": "BL-MARKET-EVIDENCE",
+      "name_zh": "全市场发现、来源与连续证据",
+      "objective": "显式登记覆盖、来源、邮件、身份、时间与账本证据。",
+      "module_ids": ["MOD-MARKET-DISCOVERY", "MOD-SOURCE-CAPABILITY", "MOD-MAIL-EVIDENCE", "MOD-IDENTITY-LINEAGE", "MOD-LEDGER-TRACE"]
+    },
+    {
+      "id": "BL-MODEL-RISK",
+      "name_zh": "市场强先验、残差、校准与资金风险",
+      "objective": "只有经校准、稳定、证据和风险门通过的保守机会才进入建议。",
+      "module_ids": ["MOD-MARKET-CONSENSUS", "MOD-RESIDUAL-MODELS", "MOD-CALIBRATION-STABILITY", "MOD-DECISION-ROUTING", "MOD-CAPITAL-RISK", "MOD-TARGET-EVAL"]
+    },
+    {
+      "id": "BL-ASSURANCE-OPS",
+      "name_zh": "安全、质量、发布与运维",
+      "objective": "用双流水线、供应链控制、故障恢复和长期证据约束发布。",
+      "module_ids": ["MOD-SECURITY-PRIVACY", "MOD-QUALITY-RELEASE", "MOD-OPERATIONS"]
+    }
+  ],
+  "functional_modules": [
+    {"id": "MOD-CHINESE-DECISION", "business_line_id": "BL-EXPERIENCE", "name_zh": "中文建议卡与错误原因", "scope_class": "IN_SCOPE_TARGET", "current_status": "NOT_IMPLEMENTED", "requirement_ids": ["ABD-PRD-REQ-001", "ABD-PRD-REQ-002"]},
+    {"id": "MOD-OWNER-EXECUTION", "business_line_id": "BL-EXPERIENCE", "name_zh": "用户页面核对与最终动作", "scope_class": "IN_SCOPE_TARGET_WITH_HUMAN_FINAL_ACTION", "current_status": "NOT_IMPLEMENTED", "requirement_ids": ["ABD-PRD-REQ-003"]},
+    {"id": "MOD-RUNTIME-ACCESS", "business_line_id": "BL-INFRA-COST", "name_zh": "OVH运行面与Cloudflare入口", "scope_class": "CONDITIONAL_EXTERNAL_TARGET", "current_status": "EXTERNAL_CAPABILITY_UNVERIFIED", "requirement_ids": ["ABD-PRD-REQ-004"]},
+    {"id": "MOD-COST-AUTH", "business_line_id": "BL-INFRA-COST", "name_zh": "成本与授权门", "scope_class": "IN_SCOPE_HARD_CONSTRAINT", "current_status": "LOCAL_CONTRACT_EXTERNAL_BILLING_UNVERIFIED", "requirement_ids": ["ABD-PRD-REQ-005"]},
+    {"id": "MOD-MARKET-DISCOVERY", "business_line_id": "BL-MARKET-EVIDENCE", "name_zh": "市场本体与覆盖缺口", "scope_class": "IN_SCOPE_TARGET", "current_status": "NOT_IMPLEMENTED", "requirement_ids": ["ABD-PRD-REQ-006"]},
+    {"id": "MOD-SOURCE-CAPABILITY", "business_line_id": "BL-MARKET-EVIDENCE", "name_zh": "来源合同与采集调度", "scope_class": "CONDITIONAL_PER_SOURCE", "current_status": "NOT_IMPLEMENTED", "requirement_ids": ["ABD-PRD-REQ-007"]},
+    {"id": "MOD-MAIL-EVIDENCE", "business_line_id": "BL-MARKET-EVIDENCE", "name_zh": "Gmail授权与TAB证据归档", "scope_class": "OPTIONAL_EXTERNAL_MODULE", "current_status": "NOT_CONNECTED_NOT_IMPLEMENTED", "requirement_ids": ["ABD-PRD-REQ-008", "ABD-PRD-REQ-009"]},
+    {"id": "MOD-IDENTITY-LINEAGE", "business_line_id": "BL-MARKET-EVIDENCE", "name_zh": "身份、时间与防泄漏", "scope_class": "IN_SCOPE_HARD_GATE", "current_status": "NOT_IMPLEMENTED", "requirement_ids": ["ABD-PRD-REQ-010"]},
+    {"id": "MOD-LEDGER-TRACE", "business_line_id": "BL-MARKET-EVIDENCE", "name_zh": "双账本与连续证据", "scope_class": "IN_SCOPE_HARD_GATE", "current_status": "NOT_IMPLEMENTED", "requirement_ids": ["ABD-PRD-REQ-011"]},
+    {"id": "MOD-MARKET-CONSENSUS", "business_line_id": "BL-MODEL-RISK", "name_zh": "去水、独立来源与市场共识", "scope_class": "IN_SCOPE_MODEL_BASELINE", "current_status": "NOT_IMPLEMENTED_OR_EVALUATED", "requirement_ids": ["ABD-PRD-REQ-012"]},
+    {"id": "MOD-RESIDUAL-MODELS", "business_line_id": "BL-MODEL-RISK", "name_zh": "全市场残差模型族", "scope_class": "IN_SCOPE_CHALLENGER_MODELS", "current_status": "NOT_IMPLEMENTED_OR_EVALUATED", "requirement_ids": ["ABD-PRD-REQ-013"]},
+    {"id": "MOD-CALIBRATION-STABILITY", "business_line_id": "BL-MODEL-RISK", "name_zh": "校准、不确定性和数值稳定", "scope_class": "IN_SCOPE_HARD_GATE", "current_status": "NOT_IMPLEMENTED_OR_EVALUATED", "requirement_ids": ["ABD-PRD-REQ-014", "ABD-PRD-REQ-015"]},
+    {"id": "MOD-DECISION-ROUTING", "business_line_id": "BL-MODEL-RISK", "name_zh": "证据层、最低赔率与平台选择", "scope_class": "IN_SCOPE_HARD_GATE", "current_status": "NOT_IMPLEMENTED", "requirement_ids": ["ABD-PRD-REQ-016"]},
+    {"id": "MOD-CAPITAL-RISK", "business_line_id": "BL-MODEL-RISK", "name_zh": "受限凯利与组合暴露", "scope_class": "IN_SCOPE_HARD_GATE", "current_status": "NOT_IMPLEMENTED", "requirement_ids": ["ABD-PRD-REQ-017"]},
+    {"id": "MOD-TARGET-EVAL", "business_line_id": "BL-MODEL-RISK", "name_zh": "30%目标、容量、证伪与验证", "scope_class": "IN_SCOPE_UNVERIFIED_TARGET", "current_status": "UNVERIFIED", "requirement_ids": ["ABD-PRD-REQ-018"]},
+    {"id": "MOD-SECURITY-PRIVACY", "business_line_id": "BL-ASSURANCE-OPS", "name_zh": "信任边界、秘密与供应链", "scope_class": "IN_SCOPE_HARD_GATE", "current_status": "NOT_RUNTIME_PROVEN", "requirement_ids": ["ABD-PRD-REQ-019"]},
+    {"id": "MOD-QUALITY-RELEASE", "business_line_id": "BL-ASSURANCE-OPS", "name_zh": "软件与模型双流水线", "scope_class": "IN_SCOPE_HARD_GATE", "current_status": "NOT_EXECUTED", "requirement_ids": ["ABD-PRD-REQ-020"]},
+    {"id": "MOD-OPERATIONS", "business_line_id": "BL-ASSURANCE-OPS", "name_zh": "安全发布、自愈与7×24运维", "scope_class": "IN_SCOPE_TARGET", "current_status": "NOT_DEPLOYED", "requirement_ids": ["ABD-PRD-REQ-021"]}
+  ],
+  "hard_invariants": [
+    {"id": "BOUNDARY-INV-001", "rule": "系统角色始终为ANALYSIS_AND_ADVICE_ONLY，订单提交模块必须不存在。", "requirement_ids": ["ABD-PRD-REQ-003"]},
+    {"id": "BOUNDARY-INV-002", "rule": "新增现金成本大于A$0或未知时阻断对应能力。", "requirement_ids": ["ABD-PRD-REQ-005"]},
+    {"id": "BOUNDARY-INV-003", "rule": "发现范围与建议范围分离，静默覆盖缺口目标为0。", "requirement_ids": ["ABD-PRD-REQ-006", "ABD-PRD-REQ-007"]},
+    {"id": "BOUNDARY-INV-004", "rule": "证据、身份、时效、稳定性或风险门失败时输出不建议。", "requirement_ids": ["ABD-PRD-REQ-002", "ABD-PRD-REQ-010", "ABD-PRD-REQ-014", "ABD-PRD-REQ-015", "ABD-PRD-REQ-016", "ABD-PRD-REQ-017"]},
+    {"id": "BOUNDARY-INV-005", "rule": "Gmail未授权或归档任一门失败时保留邮件且不移入垃圾箱，永久删除能力不存在。", "requirement_ids": ["ABD-PRD-REQ-008", "ABD-PRD-REQ-009"]},
+    {"id": "BOUNDARY-INV-006", "rule": "建议账本与实际资金账本分离，真实收益必须有执行和对账证据。", "requirement_ids": ["ABD-PRD-REQ-011", "ABD-PRD-REQ-018"]},
+    {"id": "BOUNDARY-INV-007", "rule": "市场是强先验；没有增量时残差权重归零。", "requirement_ids": ["ABD-PRD-REQ-012", "ABD-PRD-REQ-013"]},
+    {"id": "BOUNDARY-INV-008", "rule": "外部内容不可信，秘密或账户资料不得进入代码仓和持久验收收据。", "requirement_ids": ["ABD-PRD-REQ-019"]},
+    {"id": "BOUNDARY-INV-009", "rule": "软件、模型、安全、恢复和发布门独立通过后才可晋级。", "requirement_ids": ["ABD-PRD-REQ-020", "ABD-PRD-REQ-021"]},
+    {"id": "BOUNDARY-INV-010", "rule": "30%目标未验证且无保证；目标落后只报告，不追损或放宽任何硬门。", "requirement_ids": ["ABD-PRD-REQ-018"]}
+  ],
+  "explicit_out_of_scope": [
+    {"id": "OUT-001", "capability": "自动提交、确认或重试真实订单", "reason": "资金动作必须由用户最终完成", "default": "PROHIBITED_MODULE_MUST_NOT_EXIST"},
+    {"id": "OUT-002", "capability": "保证收益、本金或30%月回报", "reason": "随机收益不能保证且目标尚未验证", "default": "REJECT_CLAIM"},
+    {"id": "OUT-003", "capability": "付费赔率接口、付费模型、付费监控或自动升级", "reason": "新增现金预算为A$0", "default": "BLOCK_COST"},
+    {"id": "OUT-004", "capability": "未经来源合同的抓取、挑战绕过或高频访问", "reason": "来源能力必须逐项证明", "default": "DISABLE_SOURCE"},
+    {"id": "OUT-005", "capability": "把TAB邮件当作实时赔率真源", "reason": "邮件只用于账单、交易与对账证据", "default": "EVIDENCE_ONLY"},
+    {"id": "OUT-006", "capability": "Gmail永久删除、发送、导入或扩大scope", "reason": "最小权限和可恢复垃圾箱合同", "default": "DENY_METHOD"},
+    {"id": "OUT-007", "capability": "用LLM生成权威数值、资金动作或改变门槛", "reason": "LLM不在资金关键路径且外部内容不可信", "default": "DETERMINISTIC_ENGINE_ONLY"},
+    {"id": "OUT-008", "capability": "把需求、测试、回测、影子或建议表现写成已上线或真实收益", "reason": "证据成熟度必须分层", "default": "BLOCK_FALSE_CLAIM"}
+  ],
+  "conditional_capabilities": [
+    {"id": "COND-001", "capability": "OVH外部运行", "current_status": "UNVERIFIED", "activation": "现有主机能力、容量、安全、部署与恢复门通过", "unknown_default": "LOCAL_ONLY_NO_PRODUCTION_CLAIM"},
+    {"id": "COND-002", "capability": "Cloudflare全球中文入口", "current_status": "UNVERIFIED", "activation": "免费能力、身份保护、Named Tunnel、最小暴露和探针通过", "unknown_default": "BLOCK_GLOBAL_RELEASE"},
+    {"id": "COND-003", "capability": "Gmail证据自动化", "current_status": "NOT_CONNECTED_NOT_READY", "activation": "精确授权及全部激活门证明", "unknown_default": "DISABLE_GMAIL_CONTINUE_CORE"},
+    {"id": "COND-004", "capability": "实时市场建议", "current_status": "UNVERIFIED", "activation": "来源时效、动作通道、身份、模型、稳定和风险门通过", "unknown_default": "PREMATCH_OR_NO_RECOMMENDATION"},
+    {"id": "COND-005", "capability": "模型Beta/GA建议", "current_status": "NOT_EVALUATED", "activation": "相应时间、信号、校准、置信下界、容量和漂移门通过", "unknown_default": "SHADOW_ONLY_ZERO_STAKE"},
+    {"id": "COND-006", "capability": "30%目标可行或已验证声明", "current_status": "UNVERIFIED", "activation": "预注册90天/1000信号或12完整月实际证据门分别通过", "unknown_default": "UNVERIFIED_NOT_GUARANTEED"}
+  ],
+  "conflict_resolution": {
+    "precedence": [
+      "machine/facts/canonical_facts.json",
+      "machine/facts/parameters.json",
+      "machine/facts/acceptance_contracts.json",
+      "machine/facts/task_graph.json",
+      "requirements.json",
+      "scope_boundary.json",
+      "business_flows.json"
+    ],
+    "unknown_or_conflict_default": "FAIL_CLOSED_NO_RECOMMENDATION_OR_DISABLE_AFFECTED_MODULE",
+    "owner_question_allowed_only_when": "EXPLICIT_PAUSE_CONDITION_HAS_NO_SAFE_REVERSIBLE_DEFAULT"
+  },
+  "s01_p03_execution_boundary": {
+    "requirements_only": true,
+    "runtime_code_implemented": false,
+    "external_account_or_api_accessed": false,
+    "production_deployed": false,
+    "real_order_capability_present": false,
+    "gmail_connected": false,
+    "incremental_cash_spent_aud": "0.00",
+    "return_or_guarantee_claimed": false,
+    "p04_artifacts_created": false
+  },
+  "next_on_acceptance_pass": "S01/P04_READY_NOT_STARTED"
+}

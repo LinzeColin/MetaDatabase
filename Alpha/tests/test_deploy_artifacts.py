@@ -29,6 +29,7 @@ def test_env_template_contains_no_real_secrets():
                 value == "" or "<REQUIRED" in value
                 or value.startswith(("smtp.", "imap.", "127.0.0.1", "/opt/alpha", "0", "11111", "587"))
                 or value == "linzezhang35@gmail.com"
+                or value == "FUTUAU"   # 公开 SDK 枚举常量(开户主体),非秘密
             ), f"env.template 疑似真值: {line}"
 
 

@@ -1,0 +1,159 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "AC-S01-P02",
+  "requirement_id": "REQ-S01-P02",
+  "artifact_paths": {
+    "ART-S01-P02-01": "customer_faq.md",
+    "ART-S01-P02-02": "assumption_register.json"
+  },
+  "required_faq_preamble": "内部目标稿：用于冻结关键疑问、证据状态和安全默认，不是上线公告、投资建议或收益承诺。",
+  "required_faq_labels": [
+    "答案",
+    "当前证据状态",
+    "默认",
+    "证据",
+    "不成立时"
+  ],
+  "expected_question_ids": [
+    "FAQ-S01-P02-01",
+    "FAQ-S01-P02-02",
+    "FAQ-S01-P02-03",
+    "FAQ-S01-P02-04",
+    "FAQ-S01-P02-05",
+    "FAQ-S01-P02-06",
+    "FAQ-S01-P02-07"
+  ],
+  "expected_assumption_ids": [
+    "ASM-S01-P02-01",
+    "ASM-S01-P02-02",
+    "ASM-S01-P02-03",
+    "ASM-S01-P02-04",
+    "ASM-S01-P02-05",
+    "ASM-S01-P02-06",
+    "ASM-S01-P02-07"
+  ],
+  "expected_topics": [
+    "MONTHLY_TARGET",
+    "NO_RETURN_GUARANTEE",
+    "ZERO_INCREMENTAL_CASH",
+    "ALL_OBSERVABLE_MARKETS",
+    "MAIL_ARCHIVE",
+    "FAILURE_AND_DEGRADED_OPERATION",
+    "PRIVACY_AND_SECRETS"
+  ],
+  "expected_safe_defaults": [
+    "REPORT_SHORTFALL_NO_GATE_RELAXATION",
+    "NO_RECOMMENDATION_AND_NO_RETURN_CLAIM",
+    "BLOCK_POSITIVE_OR_UNKNOWN_INCREMENTAL_COST",
+    "VISIBLE_GAP_OR_NO_RECOMMENDATION_NEVER_SILENT_DROP",
+    "DISABLE_GMAIL_KEEP_OR_QUARANTINE_MESSAGE_CONTINUE_SAFE_CORE",
+    "AUTO_ROLLBACK_OR_NO_RECOMMENDATION",
+    "DENY_DISABLE_ISOLATE_AND_PRESERVE_REDACTED_AUDIT"
+  ],
+  "required_source_paths_by_question": {
+    "FAQ-S01-P02-01": [
+      "machine/facts/canonical_facts.json",
+      "machine/facts/parameters.json"
+    ],
+    "FAQ-S01-P02-02": [
+      "machine/facts/canonical_facts.json",
+      "machine/facts/parameters.json"
+    ],
+    "FAQ-S01-P02-03": [
+      "machine/facts/costs.json",
+      "machine/facts/canonical_facts.json"
+    ],
+    "FAQ-S01-P02-04": [
+      "machine/facts/canonical_facts.json",
+      "machine/facts/costs.json"
+    ],
+    "FAQ-S01-P02-05": [
+      "machine/facts/email_ingestion.json",
+      "machine/facts/decision_prerequisites.json"
+    ],
+    "FAQ-S01-P02-06": [
+      "machine/facts/release_policy.json",
+      "machine/facts/decision_prerequisites.json",
+      "machine/facts/parameters.json"
+    ],
+    "FAQ-S01-P02-07": [
+      "machine/facts/degraded_mode_contract.json",
+      "machine/facts/security_assurance.json",
+      "machine/facts/costs.json"
+    ]
+  },
+  "required_customer_concepts": [
+    "A$300 × 1.3^n",
+    "未验证",
+    "无保证",
+    "A$0",
+    "全部可观察市场",
+    "不建议",
+    "Gmail尚未连接",
+    "不移入垃圾箱",
+    "永久删除",
+    "自动回滚",
+    "gmail.modify",
+    "用户正常仍只完成最终下单"
+  ],
+  "forbidden_current_claims": [
+    "已经上线",
+    "已经部署",
+    "已经覆盖全部市场",
+    "Gmail已经连接",
+    "已取得授权",
+    "已实现30%收益",
+    "保证月收益30%",
+    "保证本金增长",
+    "系统自动下单"
+  ],
+  "minimum_chinese_characters": 1200,
+  "maximum_total_characters": 9000,
+  "targeted_test_minimum": 80,
+  "full_regression_test_minimum": 360,
+  "zero_budget_vectors": [
+    {
+      "value": "0.00",
+      "expected": "CONTINUE_ZERO_INCREMENTAL_CASH_PATH"
+    },
+    {
+      "value": "0.0000",
+      "expected": "CONTINUE_ZERO_INCREMENTAL_CASH_PATH"
+    },
+    {
+      "value": "0.0001",
+      "expected": "BLOCK_INCREMENTAL_CASH_BUDGET_EXCEEDED"
+    },
+    {
+      "value": null,
+      "expected": "BLOCK_INCREMENTAL_CASH_COST_UNKNOWN"
+    },
+    {
+      "value": "-0.0001",
+      "expected": "FAIL_INVALID_COST_DATA"
+    },
+    {
+      "value": "NaN",
+      "expected": "FAIL_INVALID_COST_DATA"
+    }
+  ],
+  "mail_gate_order": [
+    "consent_active",
+    "raw_eml_saved",
+    "all_attachments_saved",
+    "hash_manifest_committed",
+    "malware_scan_passed",
+    "parser_result_recorded",
+    "local_restore_readback_passed"
+  ],
+  "expected_claim_boundaries": {
+    "production_deployment_claimed": false,
+    "all_market_coverage_claimed": false,
+    "external_account_access_claimed": false,
+    "gmail_connected_claimed": false,
+    "real_order_or_return_claimed": false,
+    "return_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "scope": "S01/P02 deterministic FAQ and assumption contract; no external access or production effects"
+}

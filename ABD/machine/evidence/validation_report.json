@@ -1,0 +1,573 @@
+{
+  "schema_version": "1.0.0",
+  "version": "0.0.0.1",
+  "generated_at": "2026-07-19T00:00:00+10:00",
+  "status": "PASS",
+  "ready_for": "FINAL_DEVELOPMENT_TASKPACK_HANDOFF",
+  "return_target": {
+    "monthly_target": "30%",
+    "guaranteed": false,
+    "contract": "目标、容量、证伪和12月实际验证；不得因目标短缺降低门槛。"
+  },
+  "summary": {
+    "checks": 49,
+    "passed": 49,
+    "failed": 0,
+    "human_docs": 7,
+    "requirements": 80,
+    "acceptance_contracts": 80,
+    "stages": 20,
+    "phases": 80,
+    "tasks": 240,
+    "task_hours": {
+      "low": 240.0,
+      "likely": 320.0,
+      "high": 480.0
+    },
+    "critical_path_hours": 224.0,
+    "critical_path_ratio": 0.7
+  },
+  "document_sha256": {
+    "00_我在哪.md": "bb1b5f94e91afbd43e2a4d624b16e99707cf04b27dbf6b768e9f751690ad9ab6",
+    "01_产品需求.md": "a7b8dfbe00a036e16221f787778ca1619d8b80e8879a0a744a5a04085571cda8",
+    "02_系统架构.md": "c47f3ca4b7a4442ff36ae1a57bfe7f36be9416e28b05a223b4cb72b4b55b042e",
+    "03_口径字典.md": "5e3e6fde95050f57bed6941bb8de1c966371c6db6770c7fa1c2a983cad4ee095",
+    "04_操作流程.md": "eec849c69097083b4e3882c7654ea3719c9d7d9c6a74aa3fb68c6c9aab22b25d",
+    "05_执行与验收.md": "921f6e4154097f038d4dc27a2d33163e4e4ab89d83630c43315aec01184d99f4",
+    "06_运维手册.md": "6b601da31222f3822ee76f80456ffcf71b94acd3f9c690935ebc6ea9de2078bb"
+  },
+  "checks": [
+    {
+      "name": "HUMAN-001 恰好7份人类文档",
+      "passed": true,
+      "detail": [
+        "00_我在哪.md",
+        "01_产品需求.md",
+        "02_系统架构.md",
+        "03_口径字典.md",
+        "04_操作流程.md",
+        "05_执行与验收.md",
+        "06_运维手册.md"
+      ]
+    },
+    {
+      "name": "HUMAN-002 文档与机器真源完全一致",
+      "passed": true,
+      "detail": "all match"
+    },
+    {
+      "name": "HUMAN-003 人类文档无未解释TTL",
+      "passed": true,
+      "detail": "none"
+    },
+    {
+      "name": "FACT-001 精确版本",
+      "passed": true,
+      "detail": "0.0.0.1"
+    },
+    {
+      "name": "FACT-002 产品只分析建议",
+      "passed": true,
+      "detail": {
+        "product_role": "ANALYSIS_AND_ADVICE_ONLY",
+        "order_submission_module_present": false,
+        "normal_owner_action": "FINAL_ORDER_ONLY",
+        "discovery_scope": "ALL_OBSERVABLE_MARKETS",
+        "recommendation_scope": "EVIDENCE_GATED",
+        "market_time_scope": [
+          "PREMATCH",
+          "FUTURES",
+          "LIVE_WHEN_SOURCE_FRESHNESS_AND_ACTION_CHANNEL_ARE_VERIFIED"
+        ],
+        "providers": "DYNAMIC_SELECTION_BY_EXECUTABLE_VALUE_AND_RULES",
+        "paid_data_api_required": false,
+        "free_data_api_required": false
+      }
+    },
+    {
+      "name": "FACT-003 月目标30%",
+      "passed": true,
+      "detail": "B_n = 300 * (1.3 ** n)"
+    },
+    {
+      "name": "FACT-004 初始资金A$300",
+      "passed": true,
+      "detail": "300.00"
+    },
+    {
+      "name": "FACT-005 新增现金预算A$0",
+      "passed": true,
+      "detail": {
+        "low": "0.00",
+        "likely": "0.00",
+        "high": "0.00"
+      }
+    },
+    {
+      "name": "FACT-006 OVH和Cloudflare",
+      "passed": true,
+      "detail": {
+        "primary": "OVH_SINGAPORE_VPS1_24X7",
+        "remote_access": "CLOUDFLARE_ACCESS_AND_NAMED_TUNNEL",
+        "operator_clients": [
+          "手机浏览器",
+          "电脑浏览器"
+        ],
+        "availability_slo": "0.995",
+        "single_host_zero_downtime_guaranteed": false,
+        "llm_in_money_critical_path": false,
+        "deployment": "SAME_HOST_BLUE_GREEN_WITH_CANARY_AND_AUTO_ROLLBACK"
+      }
+    },
+    {
+      "name": "FACT-007 >24小时每30分钟",
+      "passed": true,
+      "detail": 1800
+    },
+    {
+      "name": "FACT-008 用户只做最终下单",
+      "passed": true,
+      "detail": "FINAL_ORDER_ONLY"
+    },
+    {
+      "name": "MAIL-001 每15分钟确定性收集",
+      "passed": true,
+      "detail": 900
+    },
+    {
+      "name": "MAIL-002 Codex每日审计",
+      "passed": true,
+      "detail": "06:00 Australia/Sydney"
+    },
+    {
+      "name": "MAIL-003 两阶段后移入垃圾箱",
+      "passed": true,
+      "detail": "MOVE_TO_GMAIL_TRASH_AFTER_TWO_PHASE_VERIFICATION"
+    },
+    {
+      "name": "MAIL-004 无永久删除",
+      "passed": true,
+      "detail": false
+    },
+    {
+      "name": "MAIL-005 未知/失败不删除",
+      "passed": true,
+      "detail": {
+        "all_required": true,
+        "conditions": [
+          "raw_eml_saved",
+          "all_attachments_saved",
+          "hash_manifest_committed",
+          "malware_scan_passed",
+          "parser_result_recorded",
+          "local_restore_readback_passed"
+        ],
+        "unknown_sender": "KEEP",
+        "failed_authentication": "KEEP_AND_ALERT",
+        "failed_scan": "KEEP_AND_QUARANTINE",
+        "permanent_delete": false
+      }
+    },
+    {
+      "name": "MAIL-006 首次授权不阻塞核心",
+      "passed": true,
+      "detail": {
+        "purpose": "自动保存 TAB 等已验证来源发来的账单、交易记录、确认邮件及附件，形成可审计证据。",
+        "primary_executor": "DETERMINISTIC_OVH_GMAIL_COLLECTOR",
+        "codex_role": "DAILY_AUDIT_GAP_DETECTION_AND_REPAIR",
+        "gmail_scope_required": "gmail.modify",
+        "one_time_human_consent_required": true,
+        "one_time_consent_blocks_core_product": false,
+        "save_raw_eml": true,
+        "save_attachments": true,
+        "malware_scan": true,
+        "content_is_untrusted_data": true,
+        "delete_semantics": "MOVE_TO_GMAIL_TRASH_AFTER_TWO_PHASE_VERIFICATION",
+        "permanent_delete": false,
+        "unknown_sender_policy": "QUARANTINE_AND_DO_NOT_TRASH",
+        "failed_verification_policy": "KEEP_EMAIL_AND_ALERT"
+      }
+    },
+    {
+      "name": "NUM-001 权威50位十进制",
+      "passed": true,
+      "detail": {
+        "authoritative_decimal_precision_digits": 50,
+        "money_storage": "INTEGER_CENTS",
+        "probability_storage_scale": "1e-9",
+        "odds_storage_scale": "1e-6",
+        "binary_float_for_authoritative_decision": false,
+        "probability_rounding": "DOWN",
+        "odds_rounding": "DOWN",
+        "friction_rounding": "UP",
+        "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+        "independent_implementation_absolute_tolerance": "1e-12",
+        "action_must_match_across_implementations": true,
+        "boundary_perturbation_absolute_probability": "0.0001",
+        "boundary_perturbation_absolute_threshold": "0.0001",
+        "boundary_perturbation_friction_up": "0.0001",
+        "boundary_perturbation_time_adverse_seconds": 2,
+        "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+        "unstable_action": "NO_RECOMMENDATION"
+      }
+    },
+    {
+      "name": "NUM-002 固定点精度",
+      "passed": true,
+      "detail": {
+        "authoritative_decimal_precision_digits": 50,
+        "money_storage": "INTEGER_CENTS",
+        "probability_storage_scale": "1e-9",
+        "odds_storage_scale": "1e-6",
+        "binary_float_for_authoritative_decision": false,
+        "probability_rounding": "DOWN",
+        "odds_rounding": "DOWN",
+        "friction_rounding": "UP",
+        "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+        "independent_implementation_absolute_tolerance": "1e-12",
+        "action_must_match_across_implementations": true,
+        "boundary_perturbation_absolute_probability": "0.0001",
+        "boundary_perturbation_absolute_threshold": "0.0001",
+        "boundary_perturbation_friction_up": "0.0001",
+        "boundary_perturbation_time_adverse_seconds": 2,
+        "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+        "unstable_action": "NO_RECOMMENDATION"
+      }
+    },
+    {
+      "name": "NUM-003 双实现1e-12",
+      "passed": true,
+      "detail": {
+        "authoritative_decimal_precision_digits": 50,
+        "money_storage": "INTEGER_CENTS",
+        "probability_storage_scale": "1e-9",
+        "odds_storage_scale": "1e-6",
+        "binary_float_for_authoritative_decision": false,
+        "probability_rounding": "DOWN",
+        "odds_rounding": "DOWN",
+        "friction_rounding": "UP",
+        "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+        "independent_implementation_absolute_tolerance": "1e-12",
+        "action_must_match_across_implementations": true,
+        "boundary_perturbation_absolute_probability": "0.0001",
+        "boundary_perturbation_absolute_threshold": "0.0001",
+        "boundary_perturbation_friction_up": "0.0001",
+        "boundary_perturbation_time_adverse_seconds": 2,
+        "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+        "unstable_action": "NO_RECOMMENDATION"
+      }
+    },
+    {
+      "name": "NUM-004 万分之一扰动",
+      "passed": true,
+      "detail": {
+        "authoritative_decimal_precision_digits": 50,
+        "money_storage": "INTEGER_CENTS",
+        "probability_storage_scale": "1e-9",
+        "odds_storage_scale": "1e-6",
+        "binary_float_for_authoritative_decision": false,
+        "probability_rounding": "DOWN",
+        "odds_rounding": "DOWN",
+        "friction_rounding": "UP",
+        "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+        "independent_implementation_absolute_tolerance": "1e-12",
+        "action_must_match_across_implementations": true,
+        "boundary_perturbation_absolute_probability": "0.0001",
+        "boundary_perturbation_absolute_threshold": "0.0001",
+        "boundary_perturbation_friction_up": "0.0001",
+        "boundary_perturbation_time_adverse_seconds": 2,
+        "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+        "unstable_action": "NO_RECOMMENDATION"
+      }
+    },
+    {
+      "name": "MODEL-001 市场权重至少50%",
+      "passed": true,
+      "detail": "0.50"
+    },
+    {
+      "name": "MODEL-002 四种去水",
+      "passed": true,
+      "detail": [
+        "MULTIPLICATIVE",
+        "POWER",
+        "SHIN",
+        "ODDS_RATIO"
+      ]
+    },
+    {
+      "name": "MODEL-003 时间折与重采样",
+      "passed": true,
+      "detail": {
+        "de_vig_methods": [
+          "MULTIPLICATIVE",
+          "POWER",
+          "SHIN",
+          "ODDS_RATIO"
+        ],
+        "consensus_space": "LOGIT",
+        "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+        "market_prior_weight_min": "0.50",
+        "residual_weight_alpha_beta_max": "0.35",
+        "residual_weight_ga_max": "0.50",
+        "residual_weight_when_no_increment": "0.00",
+        "temporal_folds_min": 8,
+        "runtime_block_bootstrap_iterations": 1000,
+        "evaluation_block_bootstrap_iterations": 2000,
+        "conservative_probability_percentile": 10,
+        "edge_haircut_fraction": "0.25",
+        "remove_top_profit_fraction_for_robustness": "0.01",
+        "future_leakage_tolerance": 0
+      }
+    },
+    {
+      "name": "MODEL-004 校准门",
+      "passed": true,
+      "detail": {
+        "slope_min": "0.90",
+        "slope_max": "1.10",
+        "intercept_abs_max": "0.02",
+        "calibration_error_main_max": "0.025",
+        "calibration_error_niche_max": "0.04",
+        "brier_skill_95pct_lower_bound": ">0",
+        "logloss_skill_95pct_lower_bound": ">0",
+        "closing_price_advantage_95pct_lower_bound": ">0",
+        "net_log_growth_95pct_lower_bound": ">0"
+      }
+    },
+    {
+      "name": "MODEL-005 证据层完整",
+      "passed": true,
+      "detail": {
+        "E4": {
+          "independent_price_sources_min": 5,
+          "model_stage_min": "GA",
+          "robust_net_expected_return_min": "0.03",
+          "model_disagreement_pp_max": "6"
+        },
+        "E3": {
+          "independent_price_sources_min": 3,
+          "independent_price_sources_max": 4,
+          "model_stage_min": "BETA",
+          "robust_net_expected_return_min": "0.05",
+          "model_disagreement_pp_max": "8"
+        },
+        "E2": {
+          "independent_price_sources_min": 2,
+          "independent_price_sources_max": 2,
+          "model_stage_min": "GA",
+          "robust_net_expected_return_min": "0.07",
+          "model_disagreement_pp_max": "10"
+        },
+        "E1": {
+          "independent_price_sources_min": 1,
+          "independent_price_sources_max": 1,
+          "independent_non_price_sources_min": 2,
+          "model_stage_min": "GA",
+          "robust_net_expected_return_min": "0.08",
+          "model_disagreement_pp_max": "8"
+        },
+        "E0": {
+          "action": "NO_RECOMMENDATION"
+        }
+      }
+    },
+    {
+      "name": "MODEL-006 风险门",
+      "passed": true,
+      "detail": {
+        "kelly_fraction_alpha": "0.00",
+        "kelly_fraction_beta": "0.20",
+        "kelly_fraction_ga": "0.25",
+        "single_ticket_cap_beta": "0.015",
+        "single_ticket_cap_ga": "0.020",
+        "event_cap": "0.050",
+        "correlation_cluster_cap": "0.050",
+        "total_open_exposure_cap": "0.150",
+        "daily_loss_soft_stop": "0.030",
+        "seven_day_drawdown_diagnostic": "0.075",
+        "strategy_slice_kill_drawdown": "0.100",
+        "absolute_disaster_line": "0.700",
+        "chase_loss_prohibited": true,
+        "target_shortfall_may_relax_gate": false
+      }
+    },
+    {
+      "name": "MODEL-007 30%不保证但可证伪验证",
+      "passed": true,
+      "detail": {
+        "monthly_return": "0.30",
+        "monthly_log_growth": "0.26236426446749106",
+        "formula": "B_n = 300 * 1.3^n",
+        "shadow_min_days": 90,
+        "shadow_min_independent_equivalent_signals": 1000,
+        "plausible_gate": [
+          "保守月度对数增长中位数 >= ln(1.3)",
+          "月度对数增长第5百分位 > 0",
+          "按来源、平台限额、机会数量和相关性校正后的容量通过"
+        ],
+        "falsification_gate": [
+          "至少6个完整自然月",
+          "至少1000个独立等效信号",
+          "月收益率的95%上界仍低于30%"
+        ],
+        "verification_gate": [
+          "至少12个完整自然月",
+          "按现金流调整后的月度几何收益 >= 30%",
+          "证据完整",
+          "未解决对账差异为0"
+        ],
+        "guaranteed": false,
+        "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION"
+      }
+    },
+    {
+      "name": "REQ-001 80条需求",
+      "passed": true,
+      "detail": 80
+    },
+    {
+      "name": "AC-001 80个唯一主验收",
+      "passed": true,
+      "detail": 80
+    },
+    {
+      "name": "AC-002 每条需求恰好一个对应主验收",
+      "passed": true,
+      "detail": "all"
+    },
+    {
+      "name": "TASK-001 240个叶子任务",
+      "passed": true,
+      "detail": 240
+    },
+    {
+      "name": "TASK-002 Task合同字段完整",
+      "passed": true,
+      "detail": "all"
+    },
+    {
+      "name": "TASK-003 开发任务无中途Owner输入",
+      "passed": true,
+      "detail": "none"
+    },
+    {
+      "name": "TASK-004 通过后自动推进",
+      "passed": true,
+      "detail": "all"
+    },
+    {
+      "name": "TASK-005 叶子任务0.5–4小时",
+      "passed": true,
+      "detail": {
+        "low": 240.0,
+        "likely": 320.0,
+        "high": 480.0
+      }
+    },
+    {
+      "name": "DAG-001 依赖全部存在",
+      "passed": true,
+      "detail": "all"
+    },
+    {
+      "name": "DAG-002 无循环",
+      "passed": true,
+      "detail": {
+        "topological_count": 240,
+        "task_count": 240
+      }
+    },
+    {
+      "name": "DAG-003 20 Stage/80 Phase/母级≤4",
+      "passed": true,
+      "detail": {
+        "stages": 20,
+        "phases": 80
+      }
+    },
+    {
+      "name": "DAG-004 每Phase恰好3个Task",
+      "passed": true,
+      "detail": {
+        "phase_keys": 80,
+        "counts": [
+          3
+        ]
+      }
+    },
+    {
+      "name": "DAG-005 关键路径比例≤70%",
+      "passed": true,
+      "detail": 0.7
+    },
+    {
+      "name": "TRACE-001 需求→验收→任务闭合",
+      "passed": true,
+      "detail": {
+        "rows": 80,
+        "requirements": 80,
+        "acceptance": 80,
+        "tasks": 240
+      }
+    },
+    {
+      "name": "TRACE-002 测试/证据/制品引用完整",
+      "passed": true,
+      "detail": "all"
+    },
+    {
+      "name": "RESEARCH-001 公开来源≥20",
+      "passed": true,
+      "detail": 28
+    },
+    {
+      "name": "RESEARCH-002 来源字段、URL、日期和裁定完整",
+      "passed": true,
+      "detail": 28
+    },
+    {
+      "name": "RESEARCH-003 官方/论文/开源/标准多源交叉",
+      "passed": true,
+      "detail": {
+        "官方文档": 6,
+        "官方开源项目": 1,
+        "官方产品页": 1,
+        "平台官方条款": 2,
+        "平台官方帮助": 1,
+        "监管机构": 1,
+        "开源项目": 5,
+        "开源工具": 1,
+        "研究论文": 5,
+        "安全标准": 1,
+        "人工智能治理标准": 1,
+        "应用安全标准": 1,
+        "供应链安全标准": 1,
+        "官方安全工具文档": 1
+      }
+    },
+    {
+      "name": "SKILL-001 最终输出规则",
+      "passed": true,
+      "detail": "只输出一个任务包压缩包、一个Stage/Phase Roadmap和一句Pursuing Goal Prompt。"
+    },
+    {
+      "name": "SKILL-002 双平面7文件固定",
+      "passed": true,
+      "detail": [
+        "00_我在哪.md",
+        "01_产品需求.md",
+        "02_系统架构.md",
+        "03_口径字典.md",
+        "04_操作流程.md",
+        "05_执行与验收.md",
+        "06_运维手册.md"
+      ]
+    },
+    {
+      "name": "SCHEMA-001 JSON Schema验证",
+      "passed": true,
+      "detail": "all"
+    }
+  ]
+}

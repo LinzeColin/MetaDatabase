@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "AC-S00-P03",
+  "cash_boundary_cases": [
+    {
+      "id": "INCREMENTAL-CASH-PLUS-0.0001",
+      "value": "0.0001",
+      "expected_status": "FAIL"
+    },
+    {
+      "id": "INCREMENTAL-CASH-MINUS-0.0001",
+      "value": "-0.0001",
+      "expected_status": "FAIL"
+    }
+  ],
+  "required_resource_ids": [
+    "RES-OVH-EXISTING-VPS1",
+    "RES-CLOUDFLARE-ZERO-TRUST-FREE",
+    "RES-GITHUB-EXISTING",
+    "RES-OSS-PINNED",
+    "RES-GMAIL-EXISTING-OPTIONAL"
+  ],
+  "critical_resource_ids": [
+    "RES-OVH-EXISTING-VPS1",
+    "RES-CLOUDFLARE-ZERO-TRUST-FREE",
+    "RES-GITHUB-EXISTING",
+    "RES-OSS-PINNED"
+  ],
+  "required_provider_failure_actions": [
+    "BLOCK_RUNTIME_DEPLOYMENT_KEEP_LOCAL_DEVELOPMENT_AND_EVIDENCE",
+    "BLOCK_GLOBAL_RELEASE_OR_DEGRADE_TO_LOCAL_ONLY_NEVER_AUTO_UPGRADE",
+    "KEEP_STAGE_COMMITS_LOCAL_AND_BLOCK_STAGE_UPLOAD_OR_REMOTE_CI",
+    "FAIL_BUILD_DO_NOT_SUBSTITUTE_PAID_PACKAGE_OR_SERVICE",
+    "DISABLE_GMAIL_MODULE_CONTINUE_CORE"
+  ],
+  "paid_or_unclassified_package_cases": [
+    {
+      "id": "UNKNOWN-REGISTRY-PACKAGE",
+      "name": "unknown-package",
+      "version": "1.0.0"
+    },
+    {
+      "id": "PROHIBITED-PAID-SERVICE-SDK",
+      "name": "openai",
+      "version": "9.9.9"
+    }
+  ],
+  "expected_direct_dependencies": {
+    "runtime": [],
+    "dev": [
+      "jsonschema==4.25.1",
+      "pytest==8.4.2"
+    ]
+  },
+  "expected_registry_package_count": 12,
+  "existing_cost_unknown_is_allowed_only_when": {
+    "incremental_cash_cost_aud": "0.00",
+    "purchase_required": false,
+    "automatic_overage_allowed": false,
+    "capability_must_not_be_claimed_verified": true
+  }
+}

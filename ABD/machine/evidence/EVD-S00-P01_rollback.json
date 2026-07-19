@@ -1,0 +1,13 @@
+{
+  "contract_id": "AC-S00-P01",
+  "corrupted_sha256": "f3a9d8ba9eaad5572eb9f5db97d14b5bec812405c74cc38ac2d1e72c74e3c589",
+  "evidence_id": "EVD-S00-P01-ROLLBACK",
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_SNAPSHOT_RESTORE",
+  "note": "No prior deployed ABD artifact exists; this deterministically proves restore from the frozen signed bytes without touching production.",
+  "production_state_changed": false,
+  "restored_sha256": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+  "schema_version": "1.0.0",
+  "signed_sha256": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+  "status": "PASS"
+}

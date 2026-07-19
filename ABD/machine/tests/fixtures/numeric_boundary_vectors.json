@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "vectors": [
+    {
+      "id": "NUM-001",
+      "description": "工作示例",
+      "p_lower": "0.475000000",
+      "odds": "2.200000",
+      "friction": "0.015000",
+      "evidence_tier": "E4",
+      "expected_robust_net_return": "0.030000000000",
+      "expected_full_kelly": "0.037500000000",
+      "expected_beta_fraction": "0.007500000000",
+      "bankroll_cents": 30000,
+      "expected_stake_cents": 225
+    },
+    {
+      "id": "NUM-002",
+      "description": "价值门正好边界，扰动后必须不建议",
+      "p_lower": "0.475000000",
+      "odds": "2.200000",
+      "friction": "0.015000",
+      "threshold": "0.030000",
+      "perturb_probability_down": "0.000100",
+      "expected_final_action": "NO_RECOMMENDATION"
+    },
+    {
+      "id": "NUM-003",
+      "description": "金额低于平台最低额",
+      "p_lower": "0.510000000",
+      "odds": "2.100000",
+      "friction": "0.010000",
+      "bankroll_cents": 30000,
+      "provider_minimum_cents": 100,
+      "calculated_stake_cents": 80,
+      "expected_final_action": "NO_RECOMMENDATION"
+    },
+    {
+      "id": "NUM-004",
+      "description": "双实现容忍",
+      "authoritative": "0.12345678901234567890",
+      "reference": "0.12345678901284567890",
+      "absolute_difference": "0.00000000000050000000",
+      "tolerance": "0.000000000001",
+      "expected": "PASS"
+    }
+  ]
+}

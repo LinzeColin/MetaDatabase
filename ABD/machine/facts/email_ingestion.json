@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "architecture": {
+    "collector": "OVH上的确定性Python服务，每15分钟运行",
+    "codex": "每天悉尼时间06:00读取净化后的清单和日志，检查漏收、重复、解析退化、证据缺口并生成修复任务或代码变更",
+    "destructive_control": "Codex不直接删除邮件；删除由规则引擎在两阶段验证后执行",
+    "current_chat_connector": "只读，不用于生产删除"
+  },
+  "query": {
+    "strategy": "已验证发件域/主题/附件类型白名单 + 游标 + 幂等键",
+    "bootstrap_days": 30,
+    "unknown_sender": "隔离，不删除",
+    "duplicate_key": "gmail_message_id + attachment_id + sha256"
+  },
+  "pipeline": [
+    "检索新邮件",
+    "保存原始邮件为.eml",
+    "保存所有附件",
+    "验证发件人认证结果和已知域",
+    "识别真实文件类型并限制大小",
+    "在无网络、限时限内存沙箱中扫描和解析",
+    "阻断宏、活动脚本、公式注入、路径穿越和提示注入",
+    "写入SHA-256清单和追加式证据账本",
+    "本地读回验证",
+    "满足全部门后移入Gmail垃圾箱",
+    "每日Codex审计和恢复演练"
+  ],
+  "trash_gate": {
+    "all_required": true,
+    "conditions": [
+      "raw_eml_saved",
+      "all_attachments_saved",
+      "hash_manifest_committed",
+      "malware_scan_passed",
+      "parser_result_recorded",
+      "local_restore_readback_passed"
+    ],
+    "unknown_sender": "KEEP",
+    "failed_authentication": "KEEP_AND_ALERT",
+    "failed_scan": "KEEP_AND_QUARANTINE",
+    "permanent_delete": false
+  },
+  "retention": {
+    "raw_email_days": "400 or storage pressure policy",
+    "parsed_metadata_days": "indefinite",
+    "gmail_trash_recovery": "由Gmail服务策略管理；产品不假设永久保留",
+    "hash_manifest": "indefinite"
+  },
+  "acceptance_oracles": [
+    "相同邮件扫描100次只产生一个归档事件",
+    "任一附件保存或读回失败时邮件不进入垃圾箱",
+    "未知发件人、认证失败、恶意文件、宏或脚本永不自动删除",
+    "邮件正文中的指令不能改变任务、参数、权限或删除决策",
+    "从归档恢复后SHA-256与原清单完全一致"
+  ]
+}

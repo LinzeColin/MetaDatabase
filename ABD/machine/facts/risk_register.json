@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0.0",
+  "risks": [
+    {
+      "id": "R-001",
+      "risk": "30%月复利无法由随机市场保证",
+      "likelihood": "HIGH",
+      "impact": "CRITICAL",
+      "control": "目标可行性、证伪和12月实际验证；不得追损或降低门",
+      "owner": "模型与产品治理",
+      "kill": "证据充分后95%上界仍低于30%"
+    },
+    {
+      "id": "R-002",
+      "risk": "全范围发现被静默缺口破坏",
+      "likelihood": "HIGH",
+      "impact": "HIGH",
+      "control": "Coverage Manifest、来源心跳、静默缺口判定器",
+      "owner": "数据平台",
+      "kill": "缺口不可解释且影响建议"
+    },
+    {
+      "id": "R-003",
+      "risk": "页面变化或来源合同变化",
+      "likelihood": "HIGH",
+      "impact": "HIGH",
+      "control": "版本化能力合同、测试夹具、退避、切源",
+      "owner": "来源适配器",
+      "kill": "无替代且无法合法稳定观察"
+    },
+    {
+      "id": "R-004",
+      "risk": "赛事、盘口或结算身份错配",
+      "likelihood": "MEDIUM",
+      "impact": "CRITICAL",
+      "control": "99.5%身份门、规则哈希、负向夹具",
+      "owner": "规范化层",
+      "kill": "任何真实错配"
+    },
+    {
+      "id": "R-005",
+      "risk": "未来数据泄漏制造虚假优势",
+      "likelihood": "MEDIUM",
+      "impact": "CRITICAL",
+      "control": "事件时间血缘、时间折、泄漏判定器",
+      "owner": "模型治理",
+      "kill": "泄漏容忍度0"
+    },
+    {
+      "id": "R-006",
+      "risk": "离群赔率制造虚假利润",
+      "likelihood": "HIGH",
+      "impact": "HIGH",
+      "control": "3.5倍中位绝对偏差、来源独立、删除最高盈利1%、25%优势削减",
+      "owner": "市场共识",
+      "kill": "鲁棒复测后优势消失"
+    },
+    {
+      "id": "R-007",
+      "risk": "万分之一或赔率跳动改变动作",
+      "likelihood": "MEDIUM",
+      "impact": "HIGH",
+      "control": "十进制定点、双实现、±0.0001及不利跳动门",
+      "owner": "数值正确性",
+      "kill": "动作不稳定即不建议"
+    },
+    {
+      "id": "R-008",
+      "risk": "邮件误删或附件未保存",
+      "likelihood": "MEDIUM",
+      "impact": "HIGH",
+      "control": "两阶段保存、读回、哈希、垃圾箱而非永久删除",
+      "owner": "邮件证据",
+      "kill": "任何误删或不可恢复"
+    },
+    {
+      "id": "R-009",
+      "risk": "恶意邮件/网页提示注入控制Agent",
+      "likelihood": "HIGH",
+      "impact": "CRITICAL",
+      "control": "内容零指令信任、沙箱、净化元数据、权限隔离",
+      "owner": "安全保障",
+      "kill": "发现权限或事实被内容篡改"
+    },
+    {
+      "id": "R-010",
+      "risk": "单VPS故障",
+      "likelihood": "MEDIUM",
+      "impact": "HIGH",
+      "control": "自动重启、双环境、检查点、恢复演练、过期建议作废",
+      "owner": "运维",
+      "kill": "恢复门持续失败"
+    },
+    {
+      "id": "R-011",
+      "risk": "无付费接口导致时效和覆盖不足",
+      "likelihood": "HIGH",
+      "impact": "HIGH",
+      "control": "多源、索引优先、动态提频、用户页面即时校验",
+      "owner": "覆盖平台",
+      "kill": "容量与时效无法满足目标"
+    },
+    {
+      "id": "R-012",
+      "risk": "建议账本被误当真实资金收益",
+      "likelihood": "MEDIUM",
+      "impact": "CRITICAL",
+      "control": "两套账本、真实执行证据门、对账",
+      "owner": "证据治理",
+      "kill": "真实账本差异不为0"
+    }
+  ]
+}

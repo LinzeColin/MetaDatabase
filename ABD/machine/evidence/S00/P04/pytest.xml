@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="76" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S00.P04_test" name="test_baseline_external_consent_contract_passes_without_external_reports" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_consent_state_machine_scenarios_are_deterministic[NO-CONSENT]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_consent_state_machine_scenarios_are_deterministic[CONSENT-PENDING]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_consent_state_machine_scenarios_are_deterministic[OWNER-DENIED]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_consent_state_machine_scenarios_are_deterministic[GRANT-NOT-READY]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_consent_state_machine_scenarios_are_deterministic[TOKEN-INVALID]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_consent_state_machine_scenarios_are_deterministic[SCOPE-MISMATCH]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_consent_state_machine_scenarios_are_deterministic[STORAGE-UNREADY]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_consent_state_machine_scenarios_are_deterministic[ALL-GATES-ACTIVE]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_consent_state_machine_scenarios_are_deterministic[ACTIVE-EVENT-MISSING-GATE]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_consent_state_machine_scenarios_are_deterministic[SECURITY-INCIDENT]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_consent_state_machine_scenarios_are_deterministic[UNKNOWN-EVENT]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_active_event_with_extra_or_missing_gate_fails_to_unverified" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_missing_consent_disables_only_gmail_and_preserves_stage_review" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_gmail_incremental_cash_boundary_is_exactly_zero[GMAIL-CASH-PLUS-0.0001]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_gmail_incremental_cash_boundary_is_exactly_zero[GMAIL-CASH-MINUS-0.0001]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_gmail_prerequisite_unsafe_mutations_fail_closed[requested_scope_exact-https://mail.google.com/]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_gmail_prerequisite_unsafe_mutations_fail_closed[blocking_for_current_core_task_graph-True]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_gmail_prerequisite_unsafe_mutations_fail_closed[capability_status-VERIFIED_AVAILABLE]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_gmail_prerequisite_unsafe_mutations_fail_closed[current_human_action-APPROVE_NOW]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_gmail_prerequisite_unsafe_mutations_fail_closed[fallback-PAUSE_ALL]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_gmail_prerequisite_unsafe_mutations_fail_closed[owner_reprompt_policy-AUTOMATIC_DAILY]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_missing_gmail_prerequisite_fails_structure" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_duplicate_prerequisite_id_fails_structure" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_method_boundary_mutations_fail_closed[allowed_when_active-value0]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_method_boundary_mutations_fail_closed[always_denied-value1]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_method_boundary_mutations_fail_closed[unknown_method_action-ALLOW_AND_LOG]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_ordinary_degraded_state_cannot_enable_or_block_core[gmail_enabled-True]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_ordinary_degraded_state_cannot_enable_or_block_core[gmail_external_calls_allowed-True]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_ordinary_degraded_state_cannot_enable_or_block_core[core_task_graph-PAUSE_ALL]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_current_state_cannot_claim_active" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_direct_pending_to_active_transition_is_forbidden" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_current_activation_gate_cannot_be_claimed_proven" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_p04_cannot_claim_external_effect[external_product_or_account_network_access]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_p04_cannot_claim_external_effect[oauth_link_generated]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_p04_cannot_claim_external_effect[owner_consent_requested]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_p04_cannot_claim_external_effect[token_received_or_stored]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_p04_cannot_claim_external_effect[gmail_api_called]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_p04_cannot_claim_external_effect[email_moved_or_deleted]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_security_incident_must_use_p02_pause_contract" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_receipt_alone_cannot_activate" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_receipt_contract_cannot_drop_token_field_prohibition" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_p02_gmail_authorization_drift_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_p02_missing_consent_default_drift_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_canonical_gmail_scope_drift_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_p03_prerequisite_must_remain_pass" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_malformed_p03_evidence_index_fails_closed_without_crashing" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_second_degraded_contract_source_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_duplicate_json_key_fails_closed_without_crashing" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_runbook_requires_exactly_one_machine_contract_block" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_runbook_malformed_machine_contract_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_runbook_contract_must_match_method_policy" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_runbook_unsafe_oauth_parameter_fails_closed[&quot;access_type&quot;: &quot;offline&quot;-&quot;access_type&quot;: &quot;online&quot;]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_runbook_unsafe_oauth_parameter_fails_closed[&quot;pkce&quot;: &quot;S256_REQUIRED&quot;-&quot;pkce&quot;: &quot;OPTIONAL&quot;]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_runbook_unsafe_oauth_parameter_fails_closed[&quot;redirect_uri&quot;: &quot;EXACT_HTTPS_OWNER_CONTROLLED_URI&quot;-&quot;redirect_uri&quot;: &quot;WILDCARD_HTTP&quot;]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_runbook_required_risk_or_stop_disclosure_cannot_be_removed[7 \u5929\u5931\u6548]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_runbook_required_risk_or_stop_disclosure_cannot_be_removed[\u4e0d\u5f97\u4f7f\u7528\u5185\u5d4c\u6d4f\u89c8\u5668]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_runbook_required_risk_or_stop_disclosure_cannot_be_removed[\u4e0b\u4e00\u6b65\u662f Stage 0 \u6574\u4f53\u590d\u5ba1]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_runbook_required_risk_or_stop_disclosure_cannot_be_removed[\u4f20\u64ad\u5ef6\u8fdf]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_non_first_party_oauth_source_fails_closed" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_valid_nonsecret_disabled_receipt_passes" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_valid_live_verified_active_receipt_passes_contract_shape" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_invalid_or_secret_bearing_receipts_fail_closed[missing_required-missing:observed_at]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_invalid_or_secret_bearing_receipts_fail_closed[access_token-forbidden:access_token]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_invalid_or_secret_bearing_receipts_fail_closed[refresh_token-forbidden:refresh_token]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_invalid_or_secret_bearing_receipts_fail_closed[secret_true-secret_material_present]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_invalid_or_secret_bearing_receipts_fail_closed[broader_scope-scope_not_exact]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_invalid_or_secret_bearing_receipts_fail_closed[scope_without_grant-scope_without_grant]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_invalid_or_secret_bearing_receipts_fail_closed[capability_without_grant-capability_without_grant]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_invalid_or_secret_bearing_receipts_fail_closed[active_without_gates-active_without_all_receipt_gates]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_invalid_or_secret_bearing_receipts_fail_closed[local_path-sensitive_value_pattern]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_invalid_or_secret_bearing_receipts_fail_closed[non_boolean-state_validated_not_boolean]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_invalid_or_secret_bearing_receipts_fail_closed[unknown_status-authorization_status_invalid]" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_evidence_replay_is_deterministic_without_runtime_reports" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_rollback_drill_restores_all_three_p04_artifacts" time="0.000" />
+    <testcase classname="tests.S00.P04_test" name="test_contract_evaluation_does_not_mutate_source_artifacts" time="0.000" />
+  </testsuite>
+</testsuites>
