@@ -10,7 +10,8 @@ import pytest
 from backend.app.adapters.brokers.moomoo_trade_bridge import SimulateTradingClient
 from backend.app.domain.state_machine import OrderState
 from backend.app.workers.live_cycle import (
-    BROKER_STATUS_MAP, in_eval_window, plan_rebalance, quote_age_seconds, rank_allows,
+    BROKER_STATUS_MAP, _ensure_lease, in_eval_window, plan_rebalance,
+    quote_age_seconds, rank_allows,
 )
 
 ET = ZoneInfo("America/New_York")
@@ -58,6 +59,29 @@ def test_plan_rebalance_skips_below_threshold_and_unaffordable():
     plan = plan_rebalance({"SPY": 1.0}, positions={}, prices={"SPY": 5000.0},
                           capital_usd=1980.0, threshold_pct=5.0)
     assert plan == []   # 一股都买不起 → 目标 0 → 无单
+
+
+def test_ensure_lease_reacquires_on_expiry_but_fails_closed_when_held():
+    class Expired:
+        def __init__(self):
+            self.acquired = 0
+
+        def renew(self):
+            raise RuntimeError("过期")
+
+        def acquire(self):
+            self.acquired += 1
+
+    lz = Expired()
+    _ensure_lease(lz)
+    assert lz.acquired == 1   # 过期 → 接管
+
+    class HeldByOther(Expired):
+        def acquire(self):
+            raise RuntimeError("他人有效持有")
+
+    with pytest.raises(RuntimeError):
+        _ensure_lease(HeldByOther())   # 真被接管 → 失败关闭
 
 
 def test_quote_age_parses_et():

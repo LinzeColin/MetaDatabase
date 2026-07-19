@@ -130,9 +130,21 @@ class LiveCycleDeps:
     now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc)
 
 
+def _ensure_lease(lease) -> None:
+    """续约;过期则尝试接管(同持有人/无人持有即成功)。他人有效持有仍抛错失败关闭。
+
+    覆盖两类真实场景:杀开关 HALTED 期间数小时不续约;装配期慢活(SDK 建上下文+
+    悬单恢复)吃掉整个 TTL——实机 2026-07-19 均已发生过。
+    """
+    try:
+        lease.renew()
+    except Exception:
+        lease.acquire()
+
+
 def run_live_cycle(d: LiveCycleDeps) -> dict:
     """单拍:回灌券商事实 -> (窗口内)评估下单 -> 摘要。异常上抛失败关闭。"""
-    d.lease.renew()
+    _ensure_lease(d.lease)
     now_utc = d.now_fn()
     now_et = now_utc.astimezone(ET)
     summary: dict = {"mode": "PAPER", "et": now_et.strftime("%a %H:%M"),
@@ -270,12 +282,12 @@ def build_live_cycle(*, factory, kill_switch) -> Callable[[], dict]:
 
     store = OrderStore(factory)
     lease = LeaseManager(factory, holder_id=f"trading-worker@{socket.gethostname()}")
-    lease.acquire()
     trade_client = build_simulate_trading_client(acc_id=acc_id, security_firm=firm)
     gateway = ExecutionGateway(store=store, client=trade_client, lease=lease,
                                mode=SystemMode.PAPER,
                                kill_switch_check=kill_switch.active)
     recover = gateway.recover_in_flight()
+    lease.acquire()   # 慢活(SDK 上下文+悬单恢复)全部完成后才拿租约,避免拿了就过期
 
     fee_model = FeeModel.from_yaml()
     fx_aud_usd = float(os.environ.get("ALPHA_FX_AUD_USD", "0.65"))  # 保守汇率,资金上限只紧不松
