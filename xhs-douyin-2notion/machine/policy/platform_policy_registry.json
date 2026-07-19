@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "phase": "PH.X2N.0.5",
+  "default": "deny",
+  "research_cutoff": "2026-07-19",
+  "policy_recheck_required_at_platform_phase_start": true,
+  "unknown_means": "unknown_disabled",
+  "platform_states": {
+    "xiaohongshu": "unknown_disabled",
+    "douyin": "unknown_disabled",
+    "bilibili": "unknown_disabled",
+    "kuaishou": "unknown_disabled",
+    "weibo": "unknown_disabled",
+    "taobao": "unknown_disabled"
+  },
+  "official_sources": {
+    "chrome": [
+      "https://developer.chrome.com/docs/extensions/reference/api/sidePanel",
+      "https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code",
+      "https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging",
+      "https://developer.chrome.com/docs/webstore/program-policies/user-data-faq",
+      "https://developer.chrome.com/docs/webstore/program-policies/limited-use"
+    ],
+    "notion": [
+      "https://developers.notion.com/reference/request-limits",
+      "https://developers.notion.com/reference/capabilities",
+      "https://developers.notion.com/guides/get-started/authorization",
+      "https://developers.notion.com/guides/data-apis/working-with-files-and-media"
+    ],
+    "xiaohongshu": ["https://agora.xiaohongshu.com/doc"],
+    "douyin": ["https://open.douyin.com/platform/resource/docs/operation-standard/agreement-protocol"],
+    "bilibili": ["https://openhome.bilibili.com/agreement/developer-service"],
+    "kuaishou": ["https://open.kuaishou.com/platform/protocol"],
+    "weibo": ["https://open.weibo.com/cli/index"],
+    "taobao": ["https://developer.alibaba.com/docs/doc.htm?articleId=103499&docType=1&treeId=782"]
+  },
+  "forbidden_methods": [
+    "automatic_scrolling",
+    "account_state_change",
+    "captcha_or_access_control_bypass",
+    "proxy_rotation_or_geo_rate_bypass",
+    "device_mouse_or_browser_fingerprint_simulation",
+    "cookie_export_ingest_log_or_persistence",
+    "undocumented_signature_code_copy",
+    "arbitrary_url_proxy",
+    "unbounded_search_comments_replies_or_user_graph_crawling"
+  ],
+  "required_per_platform_gates": [
+    "current_first_party_policy_evidence",
+    "capability_and_scope_evidence",
+    "owner_explicit_action",
+    "synthetic_contract_and_security_tests",
+    "feature_flag_default_off",
+    "platform_specific_kill_switch",
+    "canary_and_completeness_receipt",
+    "cdn_credentials_private_zero_scan"
+  ],
+  "product_code_started": false,
+  "real_account_execution": false
+}

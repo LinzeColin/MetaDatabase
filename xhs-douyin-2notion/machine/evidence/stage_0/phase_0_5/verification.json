@@ -1,0 +1,155 @@
+{
+  "acceptance_status": {
+    "ACC.x2n.gov.003": "PASS_CURRENT_ARTIFACT_SCOPE",
+    "ACC.x2n.media.003": "DESIGN_FIXTURE_PASS_DOWNSTREAM_NOT_RUN",
+    "ACC.x2n.rel.003": "DESIGN_SUPPLY_CHAIN_PASS_DOWNSTREAM_NOT_RUN"
+  },
+  "checks": [
+    {
+      "details": {
+        "adrs": 10,
+        "files": 17,
+        "trust_boundaries": 10
+      },
+      "name": "required_design_artifacts",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "acceptances": 61,
+        "dag_cycles": 0,
+        "effort_totals": {
+          "high": 1288,
+          "likely": 674,
+          "low": 350
+        },
+        "requirements": 32,
+        "stage_counts": {
+          "STG.X2N.0": 5,
+          "STG.X2N.1": 5,
+          "STG.X2N.2": 9,
+          "STG.X2N.3": 9,
+          "STG.X2N.4": 5,
+          "STG.X2N.5": 5,
+          "STG.X2N.6": 5
+        },
+        "stage_gates": 7,
+        "tasks": 43
+      },
+      "name": "six_platform_taskpack",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "all_disabled": true,
+        "competitor_code_copies": 0,
+        "competitor_routes_observed": 61,
+        "platforms": 6
+      },
+      "name": "platform_and_competitor_policy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "adrs": 10,
+        "stage_gate": "NOT_RUN",
+        "stop_kill_rules": 20
+      },
+      "name": "architecture_and_stop_kill",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "cases": 50,
+        "categories": 9,
+        "real_inputs": 0
+      },
+      "name": "synthetic_governance_cases",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "default_mode": "require_clean_main",
+        "override_requires_zero_overlap": true
+      },
+      "name": "worktree_isolation_policy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "next": "STG.X2N.0.REVIEW",
+        "stage_gate": "NOT_RUN",
+        "task": "TSK.x2n.discovery.005"
+      },
+      "name": "phase_task_state",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "external_integrations_enabled": 0,
+        "platforms": 6,
+        "real_accounts": 0
+      },
+      "name": "private_owner_input",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s00-p05",
+        "changed_paths": 20,
+        "external_main_dirty_paths": 1,
+        "isolation_mode": "external_main_dirty_zero_project_overlap",
+        "legacy_project_deletions": 0,
+        "main_worktree_clean": false,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_scope",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "remaining_entries": 0,
+        "source_retained": false
+      },
+      "name": "temporary_competitor_cleanup",
+      "status": "PASS"
+    }
+  ],
+  "generated_at": "2026-07-19T20:55:14Z",
+  "git_base_commit": "b919edb9089fe45b47202d1ff6907d63ac997724",
+  "hashes": {
+    "architecture_decisions": "6c04dc95be1ce9011d72d85018d6adcd5846d028140cfb350bbb2e670bf152ce",
+    "competitor_registry": "fe5ac9c35fed4b693e8d7fa3fa4affd99da31389677850754a5ecbd8884baf4f",
+    "platform_policy_registry": "0a48086c86be41f59b5ef25f81372ddea7275cda0c905f066b5ae7e19ef45aae",
+    "platform_scope_registry": "1cea84279f2e4ec88f2cd1d6d89533cff9fa2b1e60bd54d60e149d1ba8f7ed64",
+    "stop_kill_registry": "c2b0fbc4c4dca2c3195df3be67598e99ace1e5dc369d30abf74dd01b4195949a",
+    "synthetic_cases": "ece41d078efb2ca1e24a4d0a8c86629fabdeb4f27e0ad915d3de02dcdb2dfbbd"
+  },
+  "owner_route": {
+    "data_root_namespace": "xhs-douyin-2notion",
+    "data_root_ref": "X2N_DATA_ROOT",
+    "destination_name_semantics": "STORAGE_PARENT_ONLY_NO_UPSTREAM_AUTHORIZATION",
+    "download_destination_ref": "X2N_DOWNLOAD_DESTINATION",
+    "existing_destination_entries_touched": 0,
+    "existing_destination_metadata_audit": "AGGREGATE_COUNT_AND_FINGERPRINT_ONLY",
+    "parent_repository": "LinzeColin/MetaDatabase",
+    "project_path": "xhs-douyin-2notion/",
+    "source_taskpack_absolute_path": "UNSPECIFIED_OWNER_RESOLVED"
+  },
+  "phase": "PH.X2N.0.5",
+  "platform_calls": "NOT_RUN",
+  "product_code": "NOT_STARTED",
+  "project": "x2n",
+  "real_account_execution": "NOT_RUN",
+  "redaction": {
+    "cdn_urls_included": false,
+    "private_content_included": false,
+    "secrets_included": false
+  },
+  "remote_upload": "FORBIDDEN_UNTIL_STAGE_GATE",
+  "run_id": "RUN-X2N-S00-P05",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.0",
+  "stage_gate": "NOT_RUN",
+  "status": "PASS"
+}

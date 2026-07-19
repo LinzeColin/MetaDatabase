@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0",
+  "phase": "PH.X2N.0.5",
+  "competitors": [
+    {
+      "id": "ShilongLee-Crawler",
+      "repository": "https://github.com/ShilongLee/Crawler",
+      "selected_commit": "765207310a90a81c615c0ba2df124543b424af89",
+      "tree": "3fe084d7e3835669ccdb4193312b065a48eeb5d7",
+      "observed_at": "2026-07-19",
+      "file_hashes": {
+        "readme.md": "84594484e8627f9e3ffc137b3512a22f6294e4b444a4d20feafa2a036ce7e7e0",
+        "LICENSE": "3f24dc89c6bd61714b4dc583b8c8ccb4a54e5190b6efc3135e540d59e4599b58",
+        "requirements.txt": "f588c18cdad6b247ee17bd8fd0bb4f7b4f2c5f0226f162696784d731487c9971"
+      },
+      "observed_metrics": {
+        "non_git_files": 177,
+        "content_and_account_routes": 56,
+        "proxy_routes": 5,
+        "total_routes": 61,
+        "pinned_requirement_lines": 46
+      },
+      "history_observation": {
+        "latest_substantive_code_commit_observed": "e3490ea66a93778ffd91d1bc002dc69bdf4df313",
+        "latest_substantive_code_date_observed": "2024-10-16",
+        "later_history_pattern": "primarily_readme_sponsorship_or_promotion_changes",
+        "scope": "fixed_commit_history_only_not_future_prediction"
+      },
+      "license": {
+        "name": "Non-Commercial Use License 1.0",
+        "spdx": "LicenseRef-ShilongLee-NON-COMMERCIAL-1.0",
+        "commercial_use_allowed": false,
+        "code_copy_allowed_in_x2n": false,
+        "clean_room_ideas_only": true
+      },
+      "integration": {
+        "enabled": false,
+        "bundled": false,
+        "runtime_dependency": false,
+        "vendored_files": 0,
+        "mode": "research_only_excluded"
+      },
+      "observed_platform_modules": ["xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao", "jd"],
+      "distilled_patterns": [
+        "platform_isolated_adapters",
+        "uniform_capability_vocabulary",
+        "central_adapter_registry",
+        "bounded_offset_limit_contract",
+        "platform_specific_logic_outside_canonical_layer"
+      ],
+      "rejected_patterns": [
+        "plaintext_cookie_database_or_api",
+        "unauthenticated_0_0_0_0_service",
+        "arbitrary_url_proxy_or_preview",
+        "proxy_rotation_or_access_limit_bypass",
+        "device_or_mouse_fingerprint_simulation",
+        "raw_media_persistence",
+        "broad_search_comment_user_crawling",
+        "live_cookie_integration_tests"
+      ],
+      "temporary_source_retained": false
+    }
+  ],
+  "restricted_research_boundary": {
+    "sources": ["ShilongLee-Crawler", "MediaCrawler"],
+    "product_adapter_allowed": false,
+    "installation_allowed": false,
+    "execution_allowed": false,
+    "output_ingest_allowed": false,
+    "runtime_dependency_allowed": false,
+    "vendoring_allowed": false,
+    "prior_phase_audit_is_historical_evidence_only": true,
+    "future_change_requires": "new_owner_change_event_and_independent_license_policy_run"
+  },
+  "actual_runtime_dependencies": [],
+  "code_copies": 0
+}

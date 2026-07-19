@@ -1,0 +1,114 @@
+{
+  "checks": [
+    {
+      "details": {
+        "acceptances": 61,
+        "cycles": 0,
+        "requirements": 32,
+        "stage_effort_envelope": [
+          350,
+          764
+        ],
+        "stages": 7,
+        "task_likely_total": 674,
+        "tasks": 43
+      },
+      "name": "taskpack_structure",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "missing": 0,
+        "product_design_documents": 7,
+        "required_files": 20,
+        "root_project_index_rows": 1
+      },
+      "name": "project_registration",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "credential_pattern_hits": 0,
+        "forbidden_token_hits": 0,
+        "platform_cdn_url_hits": 0,
+        "private_file_hits": 0,
+        "text_files_scanned": 80
+      },
+      "name": "repository_boundary",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "existing_destination_entries_touched": 0,
+        "existing_destination_metadata_audit": "AGGREGATE_COUNT_AND_FINGERPRINT_ONLY",
+        "required_directories": 23,
+        "shared_root": true,
+        "source_absolute_path": "UNSPECIFIED_OWNER_RESOLVED"
+      },
+      "name": "path_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "basename": "xhs-douyin-2notion",
+        "directories_checked": 34,
+        "download_destination_ref": "X2N_DOWNLOAD_DESTINATION",
+        "existing_destination_entries_touched": 0,
+        "existing_destination_metadata_audit": "AGGREGATE_COUNT_AND_FINGERPRINT_ONLY",
+        "marker_mode": "0600",
+        "private_contract_files": 1,
+        "real_data_files": 0,
+        "required_directories": 23,
+        "root_mode": "0700",
+        "root_ref": "X2N_DATA_ROOT",
+        "system_metadata_files": 1,
+        "time_machine_exclusions": 6
+      },
+      "name": "private_local_root",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s00-p05",
+        "changed_paths": 12,
+        "external_main_dirty_paths": 1,
+        "isolation_mode": "external_main_dirty_zero_project_overlap",
+        "legacy_project_deletions": 0,
+        "main_worktree_clean": false,
+        "project_overlap_paths": 0,
+        "remote": "LinzeColin/MetaDatabase"
+      },
+      "name": "worktree_scope",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "roadmap_sha256": "66f949b2109ffe2701d7b74099430e862f4027bb4a429c56e84e13716c0bc906",
+        "taskpack_zip_sha256": "b32993f465888d9352d745b353c3b923c38406c941a8f357ddf1a64e2bba5a58"
+      },
+      "name": "original_sources",
+      "status": "PASS"
+    }
+  ],
+  "downstream_acceptance": {
+    "ACC.x2n.gov.001": "PASS",
+    "ACC.x2n.gov.002": "DOWNSTREAM_NOT_RUN",
+    "ACC.x2n.media.001": "DOWNSTREAM_NOT_RUN",
+    "ACC.x2n.ops.002": "DOWNSTREAM_NOT_RUN"
+  },
+  "generated_at": "2026-07-19T20:55:14Z",
+  "phase": "PH.X2N.0.1",
+  "phase_status": "PASS",
+  "product_code": "NOT_STARTED",
+  "project": "x2n",
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_STAGE_GATE",
+  "run_id": "RUN-X2N-S00-P01",
+  "schema_version": "1.0",
+  "source_hashes": {
+    "roadmap": "66f949b2109ffe2701d7b74099430e862f4027bb4a429c56e84e13716c0bc906",
+    "taskpack_zip": "b32993f465888d9352d745b353c3b923c38406c941a8f357ddf1a64e2bba5a58"
+  },
+  "stage": "STG.X2N.0",
+  "stage_gate": "NOT_RUN"
+}

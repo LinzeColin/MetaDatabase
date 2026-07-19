@@ -1,0 +1,30 @@
+{
+  "actions": [
+    "temporary_clone_deleted",
+    "scoped_repository_and_private_root_file_scan_zero"
+  ],
+  "affected_product_or_runtime_files": 0,
+  "credential_value_in_evidence": false,
+  "generated_at": "2026-07-19T20:55:14Z",
+  "git_base_commit": "b919edb9089fe45b47202d1ff6907d63ac997724",
+  "incident_id": "INC-X2N-S00-P05-001",
+  "owner_action_required": "rotate_or_prove_expiry_before_G0",
+  "phase": "PH.X2N.0.5",
+  "platform_calls": "NOT_RUN",
+  "product_code": "NOT_STARTED",
+  "project": "x2n",
+  "real_account_execution": "NOT_RUN",
+  "recovery_gate": "owner_reauthentication_or_expiry_evidence_and_stage_review",
+  "redaction": {
+    "cdn_urls_included": false,
+    "private_content_included": false,
+    "secrets_included": false
+  },
+  "remote_upload": "FORBIDDEN_UNTIL_STAGE_GATE",
+  "run_id": "RUN-X2N-S00-P05",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.0",
+  "stage_gate": "NOT_RUN",
+  "status": "CONTAINED_OWNER_ACTION_PENDING",
+  "trigger": "credential_shaped_remote_url_in_temporary_read_only_clone"
+}

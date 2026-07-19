@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "POLICY.X2N.WORKTREE_ISOLATION.001",
+  "owner_directive": "parallel_with_long_running_external_development_without_cross_contamination",
+  "default_mode": "require_clean_main",
+  "explicit_override_flag": "--allow-external-main-dirty",
+  "override_mode": "external_main_dirty_zero_project_overlap",
+  "project_prefix": "xhs-douyin-2notion/",
+  "allowed_parent_paths": [
+    "README.md:single_project_index_rename"
+  ],
+  "transitional_rename_rule": "legacy_project_prefix_deletions_only_during_owner_approved_short_name_migration",
+  "required_conditions": [
+    "current_worktree_branch_matches_run",
+    "current_worktree_changes_within_project_or_single_parent_index",
+    "legacy_project_prefix_entries_are_deletions_only",
+    "main_worktree_exists_and_branch_is_main",
+    "external_main_dirty_paths_have_zero_current_or_legacy_project_overlap",
+    "evidence_records_counts_only_not_external_paths_or_content"
+  ],
+  "forbidden_actions": [
+    "modify_external_main_dirty_files",
+    "restore_or_stash_external_changes",
+    "stage_or_commit_external_changes",
+    "copy_external_diff_into_evidence",
+    "merge_or_rebase_moving_main_inside_current_phase"
+  ],
+  "future_integration_gate": "separate_stage_review_syncs_against_origin_main",
+  "product_execution_authorized": false,
+  "remote_upload_authorized": false
+}

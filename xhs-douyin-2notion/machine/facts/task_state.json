@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.0",
+  "phase": "PH.X2N.0.5",
+  "run_id": "RUN-X2N-S00-P05",
+  "state": "phase_pass",
+  "tasks": {
+    "TSK.x2n.discovery.001": "pass",
+    "TSK.x2n.discovery.002": "pass",
+    "TSK.x2n.discovery.003": "pass",
+    "TSK.x2n.discovery.004": "pass",
+    "TSK.x2n.discovery.005": "pass"
+  },
+  "downstream_acceptances": {
+    "ACC.x2n.gov.001": "pass",
+    "ACC.x2n.gov.002": "downstream_not_run",
+    "ACC.x2n.media.001": "downstream_not_run",
+    "ACC.x2n.ops.002": "downstream_not_run"
+  },
+  "acceptance_status": {
+    "ACC.x2n.gov.003": "pass_current_artifact_scope",
+    "ACC.x2n.dy.003": "baseline_pass_downstream_not_run",
+    "ACC.x2n.media.003": "design_fixture_pass_downstream_not_run",
+    "ACC.x2n.rel.003": "design_supply_chain_pass_downstream_not_run"
+  },
+  "blocking_followups": [
+    {
+      "id": "INC-X2N-S00-P05-001",
+      "scope": "before_g0_pass",
+      "status": "owner_action_pending",
+      "action": "rotate_or_prove_expiry_of_credential_used_by_temporary_source_remote"
+    }
+  ],
+  "next_phase": "STG.X2N.0.REVIEW",
+  "next_phase_authorized": false,
+  "stage_gate": "not_run",
+  "remote_upload": "forbidden_until_stage_gate"
+}

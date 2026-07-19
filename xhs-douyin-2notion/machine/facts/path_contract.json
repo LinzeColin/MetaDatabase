@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "PATH.X2N.001",
+  "root_ref": "X2N_DATA_ROOT",
+  "required_basename": "xhs-douyin-2notion",
+  "owner_resolution_method": "owner_download_destination_namespaced_child",
+  "owner_download_destination_ref": "X2N_DOWNLOAD_DESTINATION",
+  "owner_download_destination_required_basename": "MediaCrawler",
+  "owner_namespace": "xhs-douyin-2notion",
+  "source_taskpack_absolute_path_status": "unspecified_owner_resolved",
+  "existing_destination_entries_policy": "preserve_metadata_only_audit_no_content_read_no_import_no_link_no_write_no_delete",
+  "existing_destination_metadata_audit": "aggregate_count_and_fingerprint_no_names_in_evidence",
+  "destination_name_semantics": "storage_parent_only_no_upstream_authorization",
+  "must_be_outside_git": true,
+  "runtime_and_downloads_share_root": true,
+  "external_research_directory_scope": "temporary_anonymous_source_audit_only_no_execution_or_product_output",
+  "private_marker": ".x2n-root.json",
+  "allowed_system_files": [
+    ".metadata_never_index",
+    ".DS_Store"
+  ],
+  "allowed_private_contract_files": [
+    "runtime/owner_input_contract.local.json"
+  ],
+  "system_file_mode": "0600",
+  "system_file_max_bytes": 65536,
+  "root_mode": "0700",
+  "marker_mode": "0600",
+  "required_directories": [
+    "downloads/xiaohongshu/runs",
+    "downloads/douyin/runs",
+    "downloads/bilibili/runs",
+    "downloads/kuaishou/runs",
+    "downloads/weibo/runs",
+    "downloads/taobao/runs",
+    "downloads/external_research/runs",
+    "runtime/canonical",
+    "runtime/checkpoints",
+    "runtime/temp_media",
+    "runtime/browser_profiles/xiaohongshu",
+    "runtime/browser_profiles/douyin",
+    "runtime/browser_profiles/bilibili",
+    "runtime/browser_profiles/kuaishou",
+    "runtime/browser_profiles/weibo",
+    "runtime/browser_profiles/taobao",
+    "runtime/library/content",
+    "runtime/library/categories",
+    "runtime/logs",
+    "runtime/diagnostics",
+    "runtime/backups",
+    "runtime/models",
+    "runtime/provider_cache"
+  ],
+  "time_machine_excluded": [
+    "downloads",
+    "runtime/temp_media",
+    "runtime/browser_profiles",
+    "runtime/provider_cache",
+    "runtime/logs",
+    "runtime/diagnostics"
+  ],
+  "time_machine_included": [
+    "runtime/canonical",
+    "runtime/library",
+    "runtime/backups"
+  ],
+  "legacy_import": "forbidden_without_separate_run_contract",
+  "repo_absolute_path_policy": "forbidden"
+}
