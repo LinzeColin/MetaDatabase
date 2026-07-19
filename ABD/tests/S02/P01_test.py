@@ -731,6 +731,8 @@ def test_all_claims_resolve_to_official_source_metadata() -> None:
             assert claim_id in source["claim_ids"]
 
 
-def test_evidence_path_is_reserved_for_current_phase_only() -> None:
+def test_p01_evidence_path_remains_reserved_while_p02_progresses_separately() -> None:
     assert EVIDENCE_PATH.as_posix() == "machine/evidence/EVD-S02-P01.json"
-    assert not (ROOT / "machine/evidence/EVD-S02-P02.json").exists()
+    assert (ROOT / "research_evidence_matrix.json").exists()
+    assert (ROOT / "model_claims.json").exists()
+    assert not (ROOT / "machine/evidence/EVD-S02-P03.json").exists()

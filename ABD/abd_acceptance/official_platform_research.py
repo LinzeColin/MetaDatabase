@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
 from datetime import date
@@ -41,6 +42,15 @@ EVIDENCE_PATH = Path("machine/evidence/EVD-S02-P01.json")
 ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S02-P01_rollback.json")
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 CONTINUOUS_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
+PHASE_COMMIT = "51598c991eb97f51b3c533dd88e438188094ec60"
+PINNED_PHASE_CODE_HASH = "b020d07833ab97f297f81402c07e83be4fe6d9113ff1aec7df50698daf7076be"
+
+SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    "abd_acceptance/official_platform_research.py",
+    "abd_acceptance/__main__.py",
+    "abd_acceptance/__init__.py",
+    "tests/S02/P01_test.py",
+}
 
 PINNED_PHASE_HASHES = {
     SOURCES_PATH.as_posix(): "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
@@ -839,7 +849,11 @@ def _check_canonical_alignment(
     _add(checks, "S02P01-PROVIDER-CONTRACTS-REMAIN-SOURCE-DEPENDENT", providers_ok, provider_contracts)
 
 
-def _check_s02_p02_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
+def _check_s02_p02_not_started(
+    root: Path,
+    checks: List[Dict[str, Any]],
+    verify_git_history: bool = True,
+) -> None:
     try:
         rows = [
             json.loads(line)
@@ -856,13 +870,78 @@ def _check_s02_p02_not_started(root: Path, checks: List[Dict[str, Any]]) -> None
             root / "machine/evidence/EVD-S02-P02_rollback.json",
         ]
         existing = [path.relative_to(root).as_posix() for path in forbidden_paths if path.exists()]
-        passed = (
+        not_started = (
             len(p02) == 1
             and p02[0].get("status") == "PLANNED"
             and "actual_artifact" not in p02[0]
             and not existing
         )
-        detail = {"index": p02, "forbidden_existing": existing}
+        if not_started:
+            passed = True
+            detail = {"state": "P02_NOT_STARTED", "index": p02, "forbidden_existing": existing}
+        elif (
+            len(p02) == 1
+            and p02[0].get("status") == "PLANNED"
+            and "actual_artifact" not in p02[0]
+            and existing
+            == [
+                "research_evidence_matrix.json",
+                "model_claims.json",
+                "tests/S02/P02_test.py",
+                "machine/tests/fixtures/S02_P02.json",
+            ]
+        ):
+            try:
+                from .model_risk_research import evaluate_contract as evaluate_p02_candidate
+
+                candidate = evaluate_p02_candidate(
+                    root,
+                    require_external_reports=False,
+                    _verify_git_history=verify_git_history,
+                )
+                passed = candidate.get("status") == "PASS" and candidate.get("next") == "S02/P03_READY_NOT_STARTED"
+                detail = {
+                    "state": "P02_IN_PROGRESS_VALIDATED_NOT_ACCEPTED" if passed else "INVALID_P02_CANDIDATE",
+                    "candidate_summary": candidate.get("summary"),
+                    "index": p02,
+                    "existing": existing,
+                }
+            except Exception as exc:
+                passed = False
+                detail = {
+                    "state": "INVALID_P02_CANDIDATE",
+                    "error": "%s: %s" % (type(exc).__name__, exc),
+                    "index": p02,
+                    "existing": existing,
+                }
+        else:
+            try:
+                from .model_risk_research import verify_existing_phase_evidence as verify_p02_evidence
+
+                successor = verify_p02_evidence(
+                    root,
+                    verify_git_history=verify_git_history,
+                    verify_p01_prerequisite=False,
+                )
+                passed = (
+                    successor.get("status") == "PASS"
+                    and successor.get("decision") == "S02_P02_EVIDENCE_VERIFIED"
+                    and successor.get("next") == "S02/P03_READY_NOT_STARTED"
+                )
+                detail = {
+                    "state": "P02_VERIFIED_SUCCESSOR" if passed else "INVALID_OR_PARTIAL_P02_SUCCESSOR",
+                    "successor_summary": successor.get("summary"),
+                    "index": p02,
+                    "existing": existing,
+                }
+            except Exception as exc:
+                passed = False
+                detail = {
+                    "state": "INVALID_OR_PARTIAL_P02_SUCCESSOR",
+                    "error": "%s: %s" % (type(exc).__name__, exc),
+                    "index": p02,
+                    "existing": existing,
+                }
     except Exception as exc:
         passed = False
         detail = "%s: %s" % (type(exc).__name__, exc)
@@ -968,10 +1047,76 @@ def _build_result(checks: List[Dict[str, Any]], hashes: Mapping[str, str]) -> Di
     }
 
 
+def _phase_commit_is_ancestor(root: Path) -> bool:
+    result = subprocess.run(
+        ["git", "-C", str(root.parent), "merge-base", "--is-ancestor", PHASE_COMMIT, "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def _historical_file_matches(
+    root: Path,
+    relative: str,
+    expected_sha256: str,
+    verify_git_history: bool,
+) -> bool:
+    if relative not in SUCCESSOR_EVOLVABLE_SIGNED_INPUTS:
+        return False
+    if not verify_git_history:
+        return True
+    if not _phase_commit_is_ancestor(root):
+        return False
+    result = subprocess.run(
+        ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+        check=False,
+        capture_output=True,
+    )
+    return result.returncode == 0 and _sha256_bytes(result.stdout) == expected_sha256
+
+
+def _historical_code_hash(root: Path, verify_git_history: bool) -> str:
+    if not verify_git_history:
+        return "UNVERIFIED_UNIT_TEST_HISTORY"
+    if not _phase_commit_is_ancestor(root):
+        return "INVALID_PHASE_COMMIT_ANCESTRY"
+    listing = subprocess.run(
+        ["git", "-C", str(root.parent), "ls-tree", "-r", "--name-only", PHASE_COMMIT, "--", "ABD/abd_acceptance"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if listing.returncode != 0:
+        return "UNAVAILABLE_PHASE_COMMIT_TREE"
+    paths = sorted(
+        line
+        for line in listing.stdout.splitlines()
+        if line.startswith("ABD/abd_acceptance/") and line.endswith(".py")
+    )
+    digest = hashlib.sha256()
+    for repo_path in paths:
+        blob = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, repo_path)],
+            check=False,
+            capture_output=True,
+        )
+        if blob.returncode != 0:
+            return "UNAVAILABLE_PHASE_COMMIT_BLOB"
+        relative = repo_path.removeprefix("ABD/")
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(blob.stdout)
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
 def verify_existing_phase_evidence(
     root: Path,
     *,
     verify_git_history: bool = True,
+    verify_successor_state: bool = True,
 ) -> Dict[str, Any]:
     """Verify the completed P01 receipt for safe historical-stage replay.
 
@@ -1041,6 +1186,7 @@ def verify_existing_phase_evidence(
         if not isinstance(signed_inputs, dict):
             input_errors.append("signed inputs unavailable")
             signed_inputs = {}
+        historical_inputs = []
         for relative, expected in signed_inputs.items():
             candidate = Path(relative)
             if candidate.is_absolute() or ".." in candidate.parts:
@@ -1049,8 +1195,16 @@ def verify_existing_phase_evidence(
             path = root.parent / candidate if relative.startswith(".github/") else root / candidate
             actual = sha256_file(path) if path.is_file() else "MISSING"
             if actual != expected:
-                input_errors.append({"path": relative, "expected": expected, "actual": actual})
-        _add(checks, "S02P01-RECEIPT-SIGNED-INPUTS-CURRENT", not input_errors, input_errors or len(signed_inputs))
+                if _historical_file_matches(root, relative, expected, verify_git_history):
+                    historical_inputs.append(relative)
+                else:
+                    input_errors.append({"path": relative, "expected": expected, "actual": actual})
+        _add(
+            checks,
+            "S02P01-RECEIPT-SIGNED-INPUTS-CURRENT",
+            not input_errors,
+            input_errors or {"current": len(signed_inputs) - len(historical_inputs), "historical_phase_commit": historical_inputs},
+        )
 
         validation_hashes = validation.get("hashes", {})
         report_errors = []
@@ -1064,11 +1218,19 @@ def verify_existing_phase_evidence(
 
         code_expected = evidence.get("hashes", {}).get("code")
         code_actual = _current_code_hash(root)
+        historical_code = _historical_code_hash(root, verify_git_history) if code_expected != code_actual else code_actual
+        code_ok = code_expected == code_actual or (
+            code_expected == PINNED_PHASE_CODE_HASH
+            and (
+                (not verify_git_history and historical_code == "UNVERIFIED_UNIT_TEST_HISTORY")
+                or code_expected == historical_code
+            )
+        )
         _add(
             checks,
             "S02P01-RECEIPT-CODE-HASH-CURRENT",
-            code_expected == code_actual,
-            {"expected": code_expected, "actual": code_actual},
+            code_ok,
+            {"expected": code_expected, "current": code_actual, "historical_phase_commit": historical_code},
         )
         rollback_binding = evidence.get("hashes", {}).get("rollback_evidence")
         _add(
@@ -1135,7 +1297,8 @@ def verify_existing_phase_evidence(
         delivery.get("status") == "PASS" and delivery.get("next") == "S02/P01_READY_NOT_STARTED",
         delivery.get("summary"),
     )
-    _check_s02_p02_not_started(root, checks)
+    if verify_successor_state:
+        _check_s02_p02_not_started(root, checks, verify_git_history)
     failed = [row["id"] for row in checks if not row["passed"]]
     return {
         "schema_version": "1.0.0",
@@ -1233,7 +1396,7 @@ def evaluate_contract(
         delivery.get("summary"),
     )
     hashes.update(delivery.get("hashes", {}))
-    _check_s02_p02_not_started(root, checks)
+    _check_s02_p02_not_started(root, checks, _verify_git_history)
     if require_external_reports:
         _check_runtime_reports(root, fixture, checks, hashes)
     return _build_result(checks, hashes)

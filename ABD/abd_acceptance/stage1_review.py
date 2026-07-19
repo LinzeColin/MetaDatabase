@@ -717,6 +717,7 @@ def _check_security_budget_progression_and_readme(
     try:
         index_rows = _load_evidence_index(root)
         s02 = [row for row in index_rows if row.get("id") == "INDEX-AC-S02-P01"]
+        s02_p02 = [row for row in index_rows if row.get("id") == "INDEX-AC-S02-P02"]
         s02_evidence = sorted(path.name for path in (root / "machine/evidence").glob("EVD-S02-*.json"))
         delivery = verify_stage0_delivery(root, verify_git_history=verify_history)
         prestart_ok = (
@@ -726,7 +727,8 @@ def _check_security_budget_progression_and_readme(
         )
         successor_status = "NOT_PRESENT"
         successor_ok = False
-        if s02_evidence:
+        successor_mode = "NONE"
+        if s02_evidence == ["EVD-S02-P01.json", "EVD-S02-P01_rollback.json"]:
             from .official_platform_research import verify_existing_phase_evidence
 
             successor = verify_existing_phase_evidence(
@@ -737,12 +739,38 @@ def _check_security_budget_progression_and_readme(
             successor_ok = (
                 len(s02) == 1
                 and s02[0].get("status") == "PASS"
-                and s02_evidence == ["EVD-S02-P01.json", "EVD-S02-P01_rollback.json"]
                 and successor_status == "PASS"
             )
+            successor_mode = "VERIFIED_S02_P01_SUCCESSOR"
+        elif s02_evidence == [
+            "EVD-S02-P01.json",
+            "EVD-S02-P01_rollback.json",
+            "EVD-S02-P02.json",
+            "EVD-S02-P02_rollback.json",
+        ]:
+            from .model_risk_research import verify_existing_phase_evidence as verify_p02_evidence
+
+            successor = verify_p02_evidence(
+                root,
+                verify_git_history=verify_history,
+            )
+            successor_status = successor.get("status", "FAIL")
+            successor_ok = (
+                len(s02) == 1
+                and s02[0].get("status") == "PASS"
+                and len(s02_p02) == 1
+                and s02_p02[0].get("status") == "PASS"
+                and successor_status == "PASS"
+                and successor.get("next") == "S02/P03_READY_NOT_STARTED"
+            )
+            successor_mode = "VERIFIED_S02_P02_SUCCESSOR"
+        elif s02_evidence:
+            successor_status = "UNRECOGNIZED_S02_SUCCESSOR_SET"
+            successor_ok = False
+            successor_mode = "INVALID_S02_SUCCESSOR_SET"
         progression_ok = delivery.get("status") == "PASS" and (prestart_ok or successor_ok)
         progression_detail = {
-            "mode": "S02_NOT_STARTED" if prestart_ok else "VERIFIED_S02_P01_SUCCESSOR",
+            "mode": "S02_NOT_STARTED" if prestart_ok else successor_mode,
             "s02": s02[0].get("status") if len(s02) == 1 else "INVALID",
             "evidence": s02_evidence,
             "stage0_delivery": delivery.get("status"),

@@ -92,6 +92,15 @@ from .official_platform_research import (
     verify_existing_phase_evidence,
     write_phase_evidence as write_official_platform_research_phase_evidence,
 )
+from .model_risk_research import (
+    build_evidence as build_model_risk_research_evidence,
+    evaluate_contract as evaluate_model_risk_research_contract,
+    perform_rollback_drill as perform_model_risk_research_rollback_drill,
+    resolve_claim_admission,
+    resolve_stability_contract,
+    verify_existing_phase_evidence as verify_model_risk_research_evidence,
+    write_phase_evidence as write_model_risk_research_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -161,4 +170,11 @@ __all__ = [
     "resolve_source_freshness",
     "verify_existing_phase_evidence",
     "write_official_platform_research_phase_evidence",
+    "build_model_risk_research_evidence",
+    "evaluate_model_risk_research_contract",
+    "perform_model_risk_research_rollback_drill",
+    "resolve_claim_admission",
+    "resolve_stability_contract",
+    "verify_model_risk_research_evidence",
+    "write_model_risk_research_phase_evidence",
 ]

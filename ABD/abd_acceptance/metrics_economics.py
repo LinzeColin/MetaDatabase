@@ -1154,7 +1154,7 @@ def _check_stage_review_not_started(
             s02_evidence_names = sorted(path.name for path in (root / "machine/evidence").glob("EVD-S02-*.json"))
             successor_status = "NOT_PRESENT"
             successor_ok = not s02_evidence_names
-            if s02_evidence_names:
+            if s02_evidence_names == ["EVD-S02-P01.json", "EVD-S02-P01_rollback.json"]:
                 from .official_platform_research import verify_existing_phase_evidence
 
                 successor = verify_existing_phase_evidence(
@@ -1162,10 +1162,24 @@ def _check_stage_review_not_started(
                     verify_git_history=verify_git_history,
                 )
                 successor_status = successor.get("status", "FAIL")
-                successor_ok = (
-                    s02_evidence_names == ["EVD-S02-P01.json", "EVD-S02-P01_rollback.json"]
-                    and successor_status == "PASS"
+                successor_ok = successor_status == "PASS"
+            elif s02_evidence_names == [
+                "EVD-S02-P01.json",
+                "EVD-S02-P01_rollback.json",
+                "EVD-S02-P02.json",
+                "EVD-S02-P02_rollback.json",
+            ]:
+                from .model_risk_research import verify_existing_phase_evidence as verify_p02_evidence
+
+                successor = verify_p02_evidence(
+                    root,
+                    verify_git_history=verify_git_history,
                 )
+                successor_status = successor.get("status", "FAIL")
+                successor_ok = successor_status == "PASS" and successor.get("next") == "S02/P03_READY_NOT_STARTED"
+            elif s02_evidence_names:
+                successor_status = "UNRECOGNIZED_S02_SUCCESSOR_SET"
+                successor_ok = False
             status = row.get("status")
             planned_ok = status == "PLANNED" and not evidence_names and not s02_evidence_names
             completed_ok = status == "PASS" and sorted(evidence_names) == [

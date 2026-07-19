@@ -1,0 +1,360 @@
+{
+  "schema_version": "1.0.0",
+  "version": "0.0.0.1",
+  "stage_id": "S02",
+  "phase_id": "P02",
+  "as_of": "2026-07-20",
+  "status": "FROZEN_RESEARCH_BASELINE",
+  "research_question": "哪些一手论文可支持 ABD 的市场先验、概率校准、不建议区域、异常值敏感性与受限凯利设计方向，以及哪些本地数值门仍不得宣称由论文推导或已被验证？",
+  "research_mode": {
+    "method": "READ_ONLY_PUBLIC_PRIMARY_SOURCE_REVIEW",
+    "primary_sources_only": true,
+    "network_retrieval_performed": true,
+    "account_login_performed": false,
+    "paid_source_or_api_used": false,
+    "paper_body_or_dataset_copied_into_repository": false,
+    "prediction_model_executed": false,
+    "training_or_backtest_performed": false,
+    "provider_or_cloud_account_accessed": false,
+    "real_order_submitted": false,
+    "github_upload_performed": false,
+    "production_deployment_performed": false,
+    "exhaustive_literature_review_claimed": false,
+    "legal_or_financial_advice_provided": false,
+    "s02_p03_started": false
+  },
+  "source_level_definitions": {
+    "L1_PEER_REVIEWED_PRIMARY_PUBLISHER": "同行评审期刊的出版方或 DOI 主页面。",
+    "L1_OFFICIAL_PROCEEDINGS_PRIMARY": "同行评审会议的官方论文集页面。",
+    "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED": "作者或作者机构托管、并有明确同行评审期刊记录的论文手稿页面。",
+    "L2_AUTHOR_PREPRINT_PRIMARY": "作者提交的原始预印本；未将其当作同行评审结论。"
+  },
+  "categories": [
+    "MARKET_PRIOR",
+    "CALIBRATION_PROPER_SCORING",
+    "SELECTIVE_NO_RECOMMENDATION",
+    "OUTLIER_ROBUSTNESS",
+    "RISK_CONSTRAINED_KELLY"
+  ],
+  "papers": [
+    {
+      "id": "PAPER-S02-P02-001",
+      "title": "The Betting Odds Rating System: Using soccer forecasts to forecast soccer",
+      "authors": [
+        "Fabian Wunderlich",
+        "Daniel Memmert"
+      ],
+      "published_year": 2018,
+      "venue": "PLOS ONE 13(6): e0198668",
+      "publication_status": "PEER_REVIEWED_JOURNAL",
+      "identifiers": {
+        "doi": "10.1371/journal.pone.0198668"
+      },
+      "primary_url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0198668",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+      "categories": [
+        "MARKET_PRIOR"
+      ],
+      "claim_ids": [
+        "CLM-S02-P02-001",
+        "CLM-S02-P02-002"
+      ],
+      "paper_finding": "在约一万五千场欧洲足球比赛的研究范围内，赛前赔率具有很强预测信息，并可作为 ELO 类模型的基准或信息输入；论文同时承认赔率并不完美。",
+      "abd_inference": "ABD 可把去水后的市场共识作为信息丰富的锚点，再把可验证的模型增量表达为相对市场的残差。",
+      "limitations": [
+        "研究对象是特定欧洲足球赛事与历史期间，不能外推到全部可观察市场。",
+        "论文没有给出 ABD 的固定市场权重、残差权重、去水方法集合或上线门。",
+        "预测信息强不等于存在可交易净优势，也不证明 30% 月收益。"
+      ],
+      "use_decision": "ADAPT_WITH_DOMAIN_LIMITATIONS",
+      "threshold_basis_decision": "REJECT_AS_EXACT_ABD_THRESHOLD_BASIS"
+    },
+    {
+      "id": "PAPER-S02-P02-002",
+      "title": "A statistical theory of optimal decision-making in sports betting",
+      "authors": [
+        "Jacek P. Dmochowski"
+      ],
+      "published_year": 2023,
+      "venue": "PLOS ONE 18(6): e0287601",
+      "publication_status": "PEER_REVIEWED_JOURNAL",
+      "identifiers": {
+        "doi": "10.1371/journal.pone.0287601"
+      },
+      "primary_url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0287601",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+      "categories": [
+        "MARKET_PRIOR",
+        "SELECTIVE_NO_RECOMMENDATION"
+      ],
+      "claim_ids": [
+        "CLM-S02-P02-007",
+        "CLM-S02-P02-014"
+      ],
+      "paper_finding": "论文在点差和总分投注的统计框架中表明，中位数可用于选边，但还需要额外分位数来筛出期望利润为正的比赛子集；实证部分使用五千余场 NFL 比赛。",
+      "abd_inference": "建议系统必须允许不建议或不下注，而不能对每个已发现市场强制输出正向建议。",
+      "limitations": [
+        "理论与实证集中于点差和总分场景，并采用特定佣金假设。",
+        "论文不评估 ABD 的特征、模型、摩擦、容量或实际执行证据。",
+        "正期望筛选条件不是已实现收益或全市场盈利证明。"
+      ],
+      "use_decision": "ADAPT_WITH_DOMAIN_LIMITATIONS",
+      "threshold_basis_decision": "REJECT_AS_EXACT_ABD_THRESHOLD_BASIS"
+    },
+    {
+      "id": "PAPER-S02-P02-003",
+      "title": "Machine learning for sports betting: should model selection be based on accuracy or calibration?",
+      "authors": [
+        "Conor Walsh",
+        "Alok Joshi"
+      ],
+      "published_year": 2023,
+      "venue": "arXiv:2303.06021",
+      "publication_status": "PREPRINT_NOT_PEER_REVIEWED",
+      "identifiers": {
+        "arxiv": "2303.06021",
+        "doi": "10.48550/arXiv.2303.06021"
+      },
+      "primary_url": "https://arxiv.org/abs/2303.06021",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L2_AUTHOR_PREPRINT_PRIMARY",
+      "categories": [
+        "CALIBRATION_PROPER_SCORING"
+      ],
+      "claim_ids": [
+        "CLM-S02-P02-003",
+        "CLM-S02-P02-014"
+      ],
+      "paper_finding": "作者在其 NBA 数据与单赛季投注实验中报告，按校准而非准确率选择模型得到更好的实验结果。",
+      "abd_inference": "概率决策模型不能仅按分类准确率选型，必须单独评估校准和概率评分。",
+      "limitations": [
+        "这是未确认同行评审的预印本。",
+        "实验只覆盖特定 NBA 数据、赔率和单个投注赛季。",
+        "论文报告的收益数字不得复制为 ABD 预期、承诺或可迁移基线。"
+      ],
+      "use_decision": "ADAPT_RESEARCH_ONLY",
+      "threshold_basis_decision": "REJECT_AS_EXACT_ABD_THRESHOLD_BASIS"
+    },
+    {
+      "id": "PAPER-S02-P02-004",
+      "title": "Strictly Proper Scoring Rules, Prediction, and Estimation",
+      "authors": [
+        "Tilmann Gneiting",
+        "Adrian E. Raftery"
+      ],
+      "published_year": 2007,
+      "venue": "Journal of the American Statistical Association 102(477): 359-378",
+      "publication_status": "PEER_REVIEWED_JOURNAL",
+      "identifiers": {
+        "doi": "10.1198/016214506000001437"
+      },
+      "primary_url": "https://doi.org/10.1198/016214506000001437",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+      "categories": [
+        "CALIBRATION_PROPER_SCORING"
+      ],
+      "claim_ids": [
+        "CLM-S02-P02-003",
+        "CLM-S02-P02-004",
+        "CLM-S02-P02-005"
+      ],
+      "paper_finding": "论文建立并综述严格适当评分规则理论；严格适当规则鼓励报告真实概率分布，并包含对数与二次评分等例子。",
+      "abd_inference": "ABD 的概率验证应包含适当概率评分，且不得以命中率替代概率质量验证。",
+      "limitations": [
+        "这是一般概率预测理论，不是体育投注绩效研究。",
+        "论文不提供 ABD 的校准斜率、截距、校准误差或技能下界阈值。"
+      ],
+      "use_decision": "ADOPT_DESIGN_EVIDENCE",
+      "threshold_basis_decision": "REJECT_AS_EXACT_ABD_THRESHOLD_BASIS"
+    },
+    {
+      "id": "PAPER-S02-P02-005",
+      "title": "SelectiveNet: A Deep Neural Network with an Integrated Reject Option",
+      "authors": [
+        "Yonatan Geifman",
+        "Ran El-Yaniv"
+      ],
+      "published_year": 2019,
+      "venue": "Proceedings of the 36th International Conference on Machine Learning, PMLR 97: 2151-2159",
+      "publication_status": "PEER_REVIEWED_PROCEEDINGS",
+      "identifiers": {
+        "pmlr": "v97/geifman19a",
+        "arxiv": "1901.09192"
+      },
+      "primary_url": "https://proceedings.mlr.press/v97/geifman19a.html",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_OFFICIAL_PROCEEDINGS_PRIMARY",
+      "categories": [
+        "SELECTIVE_NO_RECOMMENDATION"
+      ],
+      "claim_ids": [
+        "CLM-S02-P02-006",
+        "CLM-S02-P02-008"
+      ],
+      "paper_finding": "论文把选择性预测明确为带拒绝选项的预测，并在其分类和回归数据集上评估风险与覆盖率的权衡。",
+      "abd_inference": "ABD 应把 NO_RECOMMENDATION 作为一等输出，并同时报告覆盖率与被覆盖区域的风险。",
+      "limitations": [
+        "论文研究深度神经网络和通用分类或回归数据，不是投注建议系统。",
+        "论文不规定 ABD 的稳定扰动、最低赔率、期望值或覆盖率阈值。",
+        "拒绝选项设计不等于被拒绝区域之外必然有净收益。"
+      ],
+      "use_decision": "ADAPT_WITH_DOMAIN_LIMITATIONS",
+      "threshold_basis_decision": "REJECT_AS_EXACT_ABD_THRESHOLD_BASIS"
+    },
+    {
+      "id": "PAPER-S02-P02-006",
+      "title": "Not feeling the buzz: Correction study of mispricing and inefficiency in online sportsbooks",
+      "authors": [
+        "Lawrence Clegg",
+        "John Cartlidge"
+      ],
+      "published_year": 2025,
+      "venue": "International Journal of Forecasting 41(2): 798-802",
+      "publication_status": "PEER_REVIEWED_JOURNAL_WITH_AUTHOR_PREPRINT",
+      "identifiers": {
+        "arxiv": "2306.01740",
+        "doi": "10.1016/j.ijforecast.2024.06.012"
+      },
+      "primary_url": "https://arxiv.org/abs/2306.01740",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED",
+      "categories": [
+        "OUTLIER_ROBUSTNESS"
+      ],
+      "claim_ids": [
+        "CLM-S02-P02-009",
+        "CLM-S02-P02-010",
+        "CLM-S02-P02-014"
+      ],
+      "paper_finding": "复现纠错研究发现，原研究多数利润显著受一笔错误超长赔率的异常投注影响；修正数据问题后多数利润消失，后续时期的竞争型策略也未继续盈利。",
+      "abd_inference": "任何回测或收益主张都必须做数据质量核验、单笔影响诊断、异常敏感性复测和时间外复现。",
+      "limitations": [
+        "这是对一项特定在线网球博彩研究的复现纠错，不能直接规定通用异常处理算法。",
+        "论文没有提出删除最高盈利 1%、第 10 百分位或 25% 优势削减这些 ABD 阈值。",
+        "清理异常数据后仍需避免按结果选择清洗规则。"
+      ],
+      "use_decision": "ADOPT_DESIGN_EVIDENCE",
+      "threshold_basis_decision": "REJECT_AS_EXACT_ABD_THRESHOLD_BASIS"
+    },
+    {
+      "id": "PAPER-S02-P02-007",
+      "title": "A New Interpretation of Information Rate",
+      "authors": [
+        "J. L. Kelly Jr."
+      ],
+      "published_year": 1956,
+      "venue": "Bell System Technical Journal 35(4): 917-926",
+      "publication_status": "PEER_REVIEWED_JOURNAL",
+      "identifiers": {
+        "doi": "10.1002/j.1538-7305.1956.tb03809.x"
+      },
+      "primary_url": "https://onlinelibrary.wiley.com/doi/abs/10.1002/j.1538-7305.1956.tb03809.x",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_PEER_REVIEWED_PRIMARY_PUBLISHER",
+      "categories": [
+        "RISK_CONSTRAINED_KELLY"
+      ],
+      "claim_ids": [
+        "CLM-S02-P02-011",
+        "CLM-S02-P02-014"
+      ],
+      "paper_finding": "论文在其信息与赔率模型中把资本的最大长期指数增长率与信息率联系起来，并扩展到任意赔率。",
+      "abd_inference": "凯利类仓位只可作为重复决策下的期望对数增长框架，不是短期收益承诺。",
+      "limitations": [
+        "理论依赖模型化的重复机会、概率与赔率条件。",
+        "现实中的概率误差、摩擦、限额、相关性与有限样本会破坏理想条件。",
+        "论文不规定 ABD 的分数凯利、敞口上限或止损阈值。"
+      ],
+      "use_decision": "ADOPT_DESIGN_EVIDENCE",
+      "threshold_basis_decision": "REJECT_AS_EXACT_ABD_THRESHOLD_BASIS"
+    },
+    {
+      "id": "PAPER-S02-P02-008",
+      "title": "Risk-Constrained Kelly Gambling",
+      "authors": [
+        "Enzo Busseti",
+        "Ernest K. Ryu",
+        "Stephen Boyd"
+      ],
+      "published_year": 2016,
+      "venue": "Journal of Investing 25(3): 118-134",
+      "publication_status": "PEER_REVIEWED_JOURNAL_WITH_AUTHOR_MANUSCRIPT",
+      "identifiers": {
+        "arxiv": "1603.06183",
+        "doi": "10.3905/joi.2016.25.3.118"
+      },
+      "primary_url": "https://web.stanford.edu/~boyd/papers/kelly.html",
+      "retrieved_on": "2026-07-20",
+      "source_level": "L1_AUTHOR_MANUSCRIPT_PEER_REVIEWED",
+      "categories": [
+        "RISK_CONSTRAINED_KELLY"
+      ],
+      "claim_ids": [
+        "CLM-S02-P02-012",
+        "CLM-S02-P02-013",
+        "CLM-S02-P02-014"
+      ],
+      "paper_finding": "论文在经典凯利问题中加入财富跌至给定水平的概率约束，使用可计算上界形成凸优化问题，并展示增长率与回撤风险的权衡。",
+      "abd_inference": "仓位设计应把回撤风险显式纳入约束，而不是只最大化估计增长；未验证风险输入时必须降级或不给建议。",
+      "limitations": [
+        "风险界和数值实验依赖已建模的结果分布与论文假设。",
+        "论文的模拟结果不是 ABD 生产运行、澳洲市场或 A$300 本金的验证。",
+        "论文不推导 ABD 的 0.20、0.25 分数凯利或各级敞口上限。"
+      ],
+      "use_decision": "ADOPT_DESIGN_EVIDENCE",
+      "threshold_basis_decision": "REJECT_AS_EXACT_ABD_THRESHOLD_BASIS"
+    }
+  ],
+  "category_coverage": {
+    "MARKET_PRIOR": [
+      "PAPER-S02-P02-001",
+      "PAPER-S02-P02-002"
+    ],
+    "CALIBRATION_PROPER_SCORING": [
+      "PAPER-S02-P02-003",
+      "PAPER-S02-P02-004"
+    ],
+    "SELECTIVE_NO_RECOMMENDATION": [
+      "PAPER-S02-P02-002",
+      "PAPER-S02-P02-005"
+    ],
+    "OUTLIER_ROBUSTNESS": [
+      "PAPER-S02-P02-006"
+    ],
+    "RISK_CONSTRAINED_KELLY": [
+      "PAPER-S02-P02-007",
+      "PAPER-S02-P02-008"
+    ]
+  },
+  "global_claim_boundaries": [
+    "论文支持设计方向或其明确研究范围内的结果，不证明 ABD 已训练、已回测、已上线或已产生收益。",
+    "没有论文推导 ABD 当前配置中的固定市场权重、校准门、稳定扰动、保守分位数、优势削减、异常删除比例、分数凯利或敞口上限。",
+    "单一论文、预印本或特定体育样本不得升级为全部可观察市场的外推结论。",
+    "A$300×1.3^n 是可证伪目标，不是论文支持的随机收益保证；目标短缺不得放宽证据或风险门。",
+    "本矩阵不是穷尽性综述；缺失、冲突或低成熟度证据必须在后续阶段显式登记，不能静默视为通过。"
+  ],
+  "legacy_baseline_reconciliation": [
+    {
+      "baseline_source_id": "SRC-020",
+      "legacy_issue": "machine/facts/sources.json 使用了非论文正式标题 Knowing when to bet。",
+      "p02_resolution": "以出版方正式标题 A statistical theory of optimal decision-making in sports betting 和 DOI 10.1371/journal.pone.0287601 为准。",
+      "historical_baseline_mutated": false
+    },
+    {
+      "baseline_source_id": "SRC-021",
+      "legacy_issue": "历史来源表未表达该材料为预印本及其单一 NBA 实验范围。",
+      "p02_resolution": "P02 将其明确降级为 L2_AUTHOR_PREPRINT_PRIMARY，并禁止迁移论文报告的收益。",
+      "historical_baseline_mutated": false
+    },
+    {
+      "baseline_source_id": "SRC-022",
+      "legacy_issue": "历史 used_for 把删除最高盈利 1% 与论文直接绑定，超过论文实际结论。",
+      "p02_resolution": "论文仅支持异常敏感性、数据清洗和复现要求；1% 明确标为本地工程阈值而非论文推导。",
+      "historical_baseline_mutated": false
+    }
+  ],
+  "next_on_acceptance_pass": "S02/P03_READY_NOT_STARTED"
+}
