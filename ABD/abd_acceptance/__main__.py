@@ -8,6 +8,7 @@ from .authorization import write_phase_evidence as write_authorization_phase_evi
 from .budget import write_phase_evidence as write_budget_phase_evidence
 from .canonical_facts import write_phase_evidence as write_canonical_phase_evidence
 from .external_consent import write_phase_evidence as write_external_consent_phase_evidence
+from .stage_review import write_stage_review_evidence
 
 
 def main() -> int:
@@ -31,6 +32,7 @@ def main() -> int:
         "AC-S00-P02": write_authorization_phase_evidence,
         "AC-S00-P03": write_budget_phase_evidence,
         "AC-S00-P04": write_external_consent_phase_evidence,
+        "STAGE-REVIEW-S00": write_stage_review_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

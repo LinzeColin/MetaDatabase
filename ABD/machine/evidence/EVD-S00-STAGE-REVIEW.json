@@ -1,0 +1,709 @@
+{
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S00/stage_review_test.py --junitxml=machine/evidence/S00/STAGE_REVIEW/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S00/STAGE_REVIEW/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S00/STAGE_REVIEW/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S00/STAGE_REVIEW/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract STAGE-REVIEW-S00 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "STAGE-REVIEW-S00",
+  "decision": "S00_WHOLE_STAGE_REVIEW_PASS",
+  "decision_sha256": "631ceb741c90c939ef73bed3fa0fed900a633a6a0c117728a8a90fadf27e7256",
+  "evidence_id": "EVD-S00-STAGE-REVIEW",
+  "explicit_unknowns": [
+    "GitHub Actions has not run on this candidate before the authorized Stage upload.",
+    "No Gmail, OVH, Cloudflare, betting-platform account, credential, quota or production runtime was accessed by Stage 0 review.",
+    "No production deployment, live recommendation, real order or actual-return validation is claimed.",
+    "A$300*1.3^n remains an unverified falsifiable target, not a random-return guarantee."
+  ],
+  "external_effect_boundary": {
+    "github_upload_performed_by_local_review": false,
+    "gmail_or_provider_account_accessed": false,
+    "production_deployment_claimed": false,
+    "real_order_capability_present": false,
+    "remote_ci_result_claimed_by_local_review": false,
+    "return_guaranteed": false
+  },
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "hashes": {
+    "code": "82860d4cd7db7ab1f8bbe09c80c6165d2eb6a8c0929a3f40667f875d371daa82",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "b990bde5180fc25ba24ded116fcdfb24453c69b6fb246b88989bf260c242f056",
+      ".github/workflows/dual-plane.yml": "56024e39ff14ef6dfc895ebcb384b67ca1d4d5118289588761858b5273397ab9",
+      "machine/evidence/EVD-S00-P01.json": "6284616d0250981172095ab0f893f9adc47b4ac968fb32d557e6dc8e8aba106a",
+      "machine/evidence/EVD-S00-P02.json": "6bd925ae31a61bd10759faf36e29a241822884163a2add4a84fad263ea5b558b",
+      "machine/evidence/EVD-S00-P03.json": "ad9ee08e80f60dcadfa86b84a646c4fcfdbcebbb5217fcf03699ec7fbef62870",
+      "machine/evidence/EVD-S00-P04.json": "0815a8d87e512357694df2c63ae16f009a22b3b48c826a3ffa2812488a0e16ce",
+      "machine/evidence/S00/STAGE_REVIEW/findings.json": "1e04047b92976cc746c9912806358880a17f7740fa1678e5122b9db28e8c7284",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/default_decisions.json": "1315982e4f0d3a62c50cc11e716645b7951fc86dde53e7f1e356cae62920d20f",
+      "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+      "machine/facts/dependency_budget.lock": "4904a86b7561456edef9f5e4c9da3e8fa5562a83892f224e58ea3a7511e66b06",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/stage0_review_contract.json": "b8690e7639dfa50760f372a584e3af324d43b415fc911e084a31de10e97ced30",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S00_STAGE_REVIEW.json": "2f6b4b45deaf9d0e4288f6603e4670758dee33168cf51edfe44745bdca300e35",
+      "machine/tools/normalize_junit.py": "1eb281a41ad1b8028dfc14a1a777460416255d5d3d4211bd2e7894b112c2016a",
+      "machine/tools/scan_paid_dependencies.py": "9117aac3fe6dcda6e16d7b6bd1eb42d3d188818de1012073846b9be41619a1aa",
+      "machine/tools/update_artifact_manifest.py": "2b96d5ad6212e1081f6efabf94a3fb01372555053d9feeaa963c7be8fed2fd0c",
+      "machine/tools/validate_pack.py": "8c2dc4f74112077ba7b7af0c53c53a4671ff7c85058e3715bc5d457994c6b660",
+      "tests/S00/stage_review_test.py": "3066e4f738b05cbe86d752e9954b6f1f83166352ceba9ee17e737773ac4dc2f2"
+    },
+    "model": null,
+    "model_not_applicable_reason": "Stage 0 freezes facts, authority, budget and optional consent; no model artifact exists yet.",
+    "parameters": null,
+    "rollback_evidence": "e418fe62d0084255a26b12b9e2f42bd49cbeb5e19e86879e61d6023c3f752ed8"
+  },
+  "next": "S00/GITHUB_STAGE_UPLOAD_READY",
+  "phase_completion": {
+    "phase_count": 4,
+    "phase_evidence_status": "PASS",
+    "phase_ids": [
+      "P01",
+      "P02",
+      "P03",
+      "P04"
+    ],
+    "task_count": 12
+  },
+  "release_status": "NOT_READY",
+  "review_findings": {
+    "open": 0,
+    "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true,
+    "resolved_in_review_candidate": 4,
+    "total": 4
+  },
+  "review_id": "ABD-S00-WHOLE-STAGE-REVIEW",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S00-STAGE-REVIEW_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "source_receipts": [
+    {
+      "artifact_label": "ABD_Roadmap_Stage_Phase_v0.0.0.1.md",
+      "repository_equivalent": "machine/evidence/roadmap_stage_phase.md",
+      "repository_equivalent_required": true,
+      "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+    },
+    {
+      "artifact_label": "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip",
+      "original_file_count": 53,
+      "repository_equivalent": null,
+      "repository_equivalent_required": false,
+      "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+      "verification_boundary": "LOCAL_OWNER_SUPPLIED_ARCHIVE_RECEIPT; CI verifies pinned critical files, not the absent ZIP"
+    }
+  ],
+  "stage_goal": "冻结版本、范围、默认决策、零新增预算和所有开发前置，使后续任务自动推进。",
+  "stage_id": "S00",
+  "stage_status": "S00_REVIEW_PASS_REMOTE_UPLOAD_PENDING",
+  "status": "PASS",
+  "upload_gate": {
+    "github_upload_performed_by_review": false,
+    "local_preconditions_status": "PASS",
+    "remote_ci_status": "NOT_YET_OBSERVED_REQUIRES_STAGE_UPLOAD",
+    "remote_result_must_be_verified_before_s01": true
+  },
+  "validation": {
+    "checks": [
+      {
+        "detail": "stage0_review_contract.json",
+        "id": "REVIEW-INPUT-CONTRACT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "findings.json",
+        "id": "REVIEW-INPUT-FINDINGS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "S00_STAGE_REVIEW.json",
+        "id": "REVIEW-INPUT-FIXTURE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "canonical_facts.json",
+        "id": "REVIEW-INPUT-CANONICAL-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "parameters.json",
+        "id": "REVIEW-INPUT-PARAMETERS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "costs.json",
+        "id": "REVIEW-INPUT-COSTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "dependency_budget.lock",
+        "id": "REVIEW-INPUT-DEPENDENCY-LOCK-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "authorization_matrix.json",
+        "id": "REVIEW-INPUT-AUTHORIZATION-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "degraded_mode_contract.json",
+        "id": "REVIEW-INPUT-DEGRADED-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "roadmap.json",
+        "id": "REVIEW-INPUT-ROADMAP-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "REVIEW-INPUT-REQUIREMENTS-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "acceptance_contracts.json",
+        "id": "REVIEW-INPUT-ACCEPTANCE-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "task_graph.json",
+        "id": "REVIEW-INPUT-TASK-GRAPH-PARSE",
+        "passed": true
+      },
+      {
+        "detail": "traceability_matrix.json",
+        "id": "REVIEW-INPUT-TRACEABILITY-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b8690e7639dfa50760f372a584e3af324d43b415fc911e084a31de10e97ced30",
+          "expected": "b8690e7639dfa50760f372a584e3af324d43b415fc911e084a31de10e97ced30"
+        },
+        "id": "REVIEW-PIN-STAGE0_REVIEW_CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "1e04047b92976cc746c9912806358880a17f7740fa1678e5122b9db28e8c7284",
+          "expected": "1e04047b92976cc746c9912806358880a17f7740fa1678e5122b9db28e8c7284"
+        },
+        "id": "REVIEW-PIN-FINDINGS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "2f6b4b45deaf9d0e4288f6603e4670758dee33168cf51edfe44745bdca300e35",
+          "expected": "2f6b4b45deaf9d0e4288f6603e4670758dee33168cf51edfe44745bdca300e35"
+        },
+        "id": "REVIEW-PIN-S00_STAGE_REVIEW",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "56024e39ff14ef6dfc895ebcb384b67ca1d4d5118289588761858b5273397ab9",
+          "expected": "56024e39ff14ef6dfc895ebcb384b67ca1d4d5118289588761858b5273397ab9"
+        },
+        "id": "REVIEW-PIN-DUAL-PLANE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b990bde5180fc25ba24ded116fcdfb24453c69b6fb246b88989bf260c242f056",
+          "expected": "b990bde5180fc25ba24ded116fcdfb24453c69b6fb246b88989bf260c242f056"
+        },
+        "id": "REVIEW-PIN-ABD-STAGE0-VALIDATION",
+        "passed": true
+      },
+      {
+        "detail": "all parsed",
+        "id": "REVIEW-INPUTS-STRUCTURALLY-AVAILABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_ids": [
+            "AC-S00-P01",
+            "AC-S00-P02",
+            "AC-S00-P03",
+            "AC-S00-P04"
+          ],
+          "phase_ids": [
+            "P01",
+            "P02",
+            "P03",
+            "P04"
+          ],
+          "requirement_ids": [
+            "REQ-S00-P01",
+            "REQ-S00-P02",
+            "REQ-S00-P03",
+            "REQ-S00-P04"
+          ],
+          "task_ids": [
+            "T-S00-P01-01",
+            "T-S00-P01-02",
+            "T-S00-P01-03",
+            "T-S00-P02-01",
+            "T-S00-P02-02",
+            "T-S00-P02-03",
+            "T-S00-P03-01",
+            "T-S00-P03-02",
+            "T-S00-P03-03",
+            "T-S00-P04-01",
+            "T-S00-P04-02",
+            "T-S00-P04-03"
+          ]
+        },
+        "id": "REVIEW-CONTRACT-SCOPE",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "artifact_label": "ABD_Roadmap_Stage_Phase_v0.0.0.1.md",
+            "repository_equivalent": "machine/evidence/roadmap_stage_phase.md",
+            "repository_equivalent_required": true,
+            "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+          },
+          {
+            "artifact_label": "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip",
+            "original_file_count": 53,
+            "repository_equivalent": null,
+            "repository_equivalent_required": false,
+            "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+            "verification_boundary": "LOCAL_OWNER_SUPPLIED_ARCHIVE_RECEIPT; CI verifies pinned critical files, not the absent ZIP"
+          }
+        ],
+        "id": "REVIEW-SUPPLIED-SOURCE-RECEIPTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "authorization": "CONDITIONALLY_PREAUTHORIZED",
+          "auto_advance_after_success": true,
+          "capability_status": "AVAILABLE_IF_REMOTE_AUTHENTICATED",
+          "cash_cost_aud": "0.00",
+          "effect": "WRITE_EXTERNAL_REVERSIBLE",
+          "evidence_required": [
+            "STAGE_REVIEW_REPORT",
+            "TEST_REPORT",
+            "COMMIT_SHA",
+            "REMOTE_RESULT"
+          ],
+          "external_state_change": true,
+          "id": "GITHUB_STAGE_UPLOAD",
+          "name_zh": "整个 Stage 复审修复后上传 GitHub",
+          "on_precondition_failure": "KEEP_COMMITS_LOCAL_CONTINUE_STAGE_REMEDIATION",
+          "preconditions": [
+            "ALL_STAGE_PHASES_PASS",
+            "WHOLE_STAGE_REVIEW_PASS",
+            "ALL_REVIEW_FINDINGS_RESOLVED",
+            "FULL_STAGE_REGRESSION_PASS",
+            "SECRET_SCAN_PASS",
+            "CLEAN_WORKTREE",
+            "NO_INCREMENTAL_CASH_COST"
+          ],
+          "reversibility": "FOLLOW_UP_COMMIT_OR_PR_REVERT"
+        },
+        "id": "REVIEW-GITHUB-UPLOAD-AUTHORIZATION-ALIGNMENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "github_upload_performed_by_local_review": false,
+          "gmail_or_provider_account_accessed": false,
+          "production_deployment_claimed": false,
+          "real_order_capability_present": false,
+          "remote_ci_result_claimed_by_local_review": false,
+          "return_guaranteed": false
+        },
+        "id": "REVIEW-EXTERNAL-EFFECT-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "PURSUE_GOAL_PROMPT.txt",
+          "VERSION",
+          "machine/evidence/final_acceptance.json",
+          "machine/evidence/release_manifest.json",
+          "machine/evidence/roadmap_stage_phase.md",
+          "machine/facts/acceptance_contracts.json",
+          "machine/facts/canonical_facts.json",
+          "machine/facts/parameters.json",
+          "machine/facts/release_policy.json",
+          "machine/facts/requirements.json",
+          "machine/facts/roadmap.json",
+          "machine/facts/task_graph.json",
+          "machine/facts/traceability_matrix.json"
+        ],
+        "id": "REVIEW-BASELINE-CRITICAL-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "depends_on": [],
+          "goal": "冻结版本、范围、默认决策、零新增预算和所有开发前置，使后续任务自动推进。",
+          "id": "S00",
+          "phases": [
+            {
+              "hours": {
+                "high": 6,
+                "likely": 4,
+                "low": 3
+              },
+              "id": "P01",
+              "objective": "把已确认事实写入唯一机器真源，消除旧包冲突。",
+              "outputs": [
+                "canonical_facts.json",
+                "冲突清单",
+                "事实哈希"
+              ],
+              "pass_gate": "全部事实唯一、无冲突、版本为0.0.0.1。",
+              "title": "冻结 Canonical Facts"
+            },
+            {
+              "hours": {
+                "high": 6,
+                "likely": 4,
+                "low": 3
+              },
+              "id": "P02",
+              "objective": "预授权所有普通可逆开发、运行、部署、回滚和降级决策。",
+              "outputs": [
+                "authorization_matrix.json",
+                "default_decisions.json",
+                "pause_receipt_schema.json"
+              ],
+              "pass_gate": "只有明确暂停条件可以阻止自动推进。",
+              "title": "冻结权限与自动默认"
+            },
+            {
+              "hours": {
+                "high": 6,
+                "likely": 4,
+                "low": 3
+              },
+              "id": "P03",
+              "objective": "证明核心路径只使用已有OVH、Cloudflare、GitHub和免费软件。",
+              "outputs": [
+                "costs.json",
+                "dependency_budget.lock",
+                "paid_dependency_scan.txt"
+              ],
+              "pass_gate": "新增现金支出为A$0；付费接口不在关键路径。",
+              "title": "冻结零预算依赖"
+            },
+            {
+              "hours": {
+                "high": 6,
+                "likely": 4,
+                "low": 3
+              },
+              "id": "P04",
+              "objective": "把 Gmail 首次授权建成可选非阻塞前置；未授权不阻塞核心分析建议。",
+              "outputs": [
+                "decision_prerequisites.json",
+                "gmail_oauth_bootstrap.md",
+                "degraded_mode_contract.json"
+              ],
+              "pass_gate": "未授权时仅邮件自动化关闭，其他任务全部继续。",
+              "title": "一次性外部授权降级"
+            }
+          ],
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_conditions": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "title": "最终真源与一次性授权"
+        },
+        "id": "REVIEW-S00-ROADMAP-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance": 4,
+          "requirements": 4,
+          "tasks": 12,
+          "trace": 4
+        },
+        "id": "REVIEW-S00-REQ-AC-TASK-TRACE-SETS",
+        "passed": true
+      },
+      {
+        "detail": "all aligned",
+        "id": "REVIEW-S00-SEMANTIC-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "tasks": 12
+        },
+        "id": "REVIEW-S00-TASK-CHAIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "phases": 4
+        },
+        "id": "REVIEW-PHASE-EVIDENCE-INDEX",
+        "passed": true
+      },
+      {
+        "detail": [
+          "a5e3f3539f49cb733b3c017e70dc12423470139a",
+          "aee20d6cd5ad1ee9c974b80d38a012c5f39a5c56",
+          "0f6bea1e1632f8983513c9bc6793d786d06bdbaa",
+          "922b5d1ec3fe70924c3253c2aaf9f5035d68555b"
+        ],
+        "id": "REVIEW-PHASE-HISTORICAL-CODE-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "outputs": 12
+        },
+        "id": "REVIEW-PHASE-REQUIRED-OUTPUTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "P01": {
+            "checks": 20,
+            "failed": 0,
+            "next": "S00/P02_READY_NOT_STARTED",
+            "status": "PASS"
+          },
+          "P02": {
+            "checks": 36,
+            "failed": 0,
+            "next": "S00/P03_READY_NOT_STARTED",
+            "status": "PASS"
+          },
+          "P03": {
+            "checks": 50,
+            "failed": 0,
+            "next": "S00/P04_READY_NOT_STARTED",
+            "status": "PASS"
+          },
+          "P04": {
+            "checks": 53,
+            "failed": 0,
+            "next": "S00/STAGE_REVIEW_READY_NOT_STARTED",
+            "status": "PASS"
+          }
+        },
+        "id": "REVIEW-ALL-PHASE-ORACLES-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "open": 0,
+          "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true,
+          "resolved_in_review_candidate": 4,
+          "total": 4
+        },
+        "id": "REVIEW-FINDINGS-ALL-RESOLVED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "governance": [
+            "Alpha",
+            "EEI",
+            "FIFA",
+            "LinzeDatabase",
+            "PFI",
+            "QBVS",
+            "Serenity-Alipay"
+          ],
+          "specialized": [
+            "ABD"
+          ]
+        },
+        "id": "REVIEW-CI-PROJECT-CLASSIFICATION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "pins": {
+            "actions/checkout": "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
+            "actions/setup-python": "ece7cb06caefa5fff74198d8649806c4678c61a1",
+            "astral-sh/setup-uv": "11f9893b081a58869d3b5fccaea48c9e9e46f990"
+          },
+          "refs": [
+            "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
+            "ece7cb06caefa5fff74198d8649806c4678c61a1",
+            "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
+            "ece7cb06caefa5fff74198d8649806c4678c61a1",
+            "11f9893b081a58869d3b5fccaea48c9e9e46f990"
+          ]
+        },
+        "id": "REVIEW-CI-SUPPLY-CHAIN-PINS",
+        "passed": true
+      },
+      {
+        "detail": "all required commands present",
+        "id": "REVIEW-ABD-UBUNTU-CI-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "gmail_state": "CONSENT_NOT_REQUESTED",
+          "real_order": {
+            "authorization": "PROHIBITED",
+            "auto_advance_after_success": false,
+            "capability_status": "MODULE_MUST_NOT_EXIST",
+            "cash_cost_aud": "UNBOUNDED_REAL_MONEY",
+            "effect": "REAL_MONEY_IRREVERSIBLE",
+            "evidence_required": [
+              "PROHIBITION_TEST"
+            ],
+            "external_state_change": true,
+            "id": "REAL_ORDER_SUBMISSION",
+            "name_zh": "系统提交真实订单",
+            "on_precondition_failure": "REJECT_AND_PAUSE_OUT_OF_SCOPE",
+            "preconditions": [],
+            "reversibility": "NONE",
+            "violation_pause_reason_code": "OUT_OF_AUTHORIZED_SCOPE"
+          }
+        },
+        "id": "REVIEW-ZERO-BUDGET-NO-ORDER-NO-GMAIL-EFFECT",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "REVIEW-SECRET-AND-LOCAL-PATH-SCAN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "s01_evidence": [],
+          "s01_status": "PLANNED"
+        },
+        "id": "REVIEW-S01-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 40,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 54
+        },
+        "id": "REVIEW-TEST-TARGETED-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 190,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 206
+        },
+        "id": "REVIEW-TEST-FULL-REGRESSION-PASS",
+        "passed": true
+      },
+      {
+        "detail": "validation_report.json",
+        "id": "REVIEW-PACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "REVIEW-TASKPACK-49-GATES-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S00/P03/paid_dependency_scan.txt",
+        "id": "REVIEW-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "STAGE-REVIEW-S00",
+    "decision": "S00_WHOLE_STAGE_REVIEW_PASS",
+    "fixed_clock": "2026-07-19T00:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "b990bde5180fc25ba24ded116fcdfb24453c69b6fb246b88989bf260c242f056",
+      ".github/workflows/dual-plane.yml": "56024e39ff14ef6dfc895ebcb384b67ca1d4d5118289588761858b5273397ab9",
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "machine/evidence/EVD-S00-P01.json": "6284616d0250981172095ab0f893f9adc47b4ac968fb32d557e6dc8e8aba106a",
+      "machine/evidence/EVD-S00-P01_rollback.json": "3ac882b2ad95c71c7733d1b0206c6e556f6d119f19146f3421847cd53318dbca",
+      "machine/evidence/EVD-S00-P02.json": "6bd925ae31a61bd10759faf36e29a241822884163a2add4a84fad263ea5b558b",
+      "machine/evidence/EVD-S00-P02_rollback.json": "d7a7535c28dfeacab11064faf7cfa0c6b14d4e3f4bbc19b4702c1a4d15cff47f",
+      "machine/evidence/EVD-S00-P03.json": "ad9ee08e80f60dcadfa86b84a646c4fcfdbcebbb5217fcf03699ec7fbef62870",
+      "machine/evidence/EVD-S00-P03_rollback.json": "67cd69db134433ca113070e3d69438ea21287359f79099fa00f684cfaaf5e69b",
+      "machine/evidence/EVD-S00-P04.json": "0815a8d87e512357694df2c63ae16f009a22b3b48c826a3ffa2812488a0e16ce",
+      "machine/evidence/EVD-S00-P04_rollback.json": "2f0f5dcb9f29217db97d820601e833c70e3ee0a8aaa775ecf7ce43256b4de172",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S00/STAGE_REVIEW/findings.json": "1e04047b92976cc746c9912806358880a17f7740fa1678e5122b9db28e8c7284",
+      "machine/evidence/S00/STAGE_REVIEW/full_regression.xml": "1bee9f90fe28ebc0f9b90be73948a727c39cf1855c458c08d2ac86631a308f10",
+      "machine/evidence/S00/STAGE_REVIEW/pytest.xml": "08c9e07fb15bca995a05a650cdf3dcf639bf6e08c811c565feae961eaeae51ce",
+      "machine/evidence/final_acceptance.json": "2e1b0125b764849fc075bc66c82fd992626444e35c61acf9f0e7ffa362027376",
+      "machine/evidence/release_manifest.json": "42a1bda4cc7eb39b0d906d3f3aa5c58fd0c217384508e2602af746008f2be090",
+      "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/stage0_review_contract.json": "b8690e7639dfa50760f372a584e3af324d43b415fc911e084a31de10e97ced30",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S00_STAGE_REVIEW.json": "2f6b4b45deaf9d0e4288f6603e4670758dee33168cf51edfe44745bdca300e35"
+    },
+    "next": "S00/GITHUB_STAGE_UPLOAD_READY",
+    "release_status": "NOT_READY",
+    "remote_ci_status": "NOT_YET_OBSERVED_REQUIRES_STAGE_UPLOAD",
+    "review_id": "ABD-S00-WHOLE-STAGE-REVIEW",
+    "schema_version": "1.0.0",
+    "stage_id": "S00",
+    "stage_status": "S00_REVIEW_PASS_REMOTE_UPLOAD_PENDING",
+    "status": "PASS",
+    "summary": {
+      "checks": 45,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 45
+    },
+    "version": "0.0.0.1"
+  }
+}

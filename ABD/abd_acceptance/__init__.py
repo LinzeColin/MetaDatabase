@@ -35,6 +35,12 @@ from .external_consent import (
     validate_consent_receipt,
     write_phase_evidence as write_external_consent_phase_evidence,
 )
+from .stage_review import (
+    build_evidence as build_stage_review_evidence,
+    evaluate_contract as evaluate_stage_review_contract,
+    perform_rollback_drill as perform_stage_review_rollback_drill,
+    write_stage_review_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -61,4 +67,8 @@ __all__ = [
     "resolve_consent_event",
     "validate_consent_receipt",
     "write_external_consent_phase_evidence",
+    "build_stage_review_evidence",
+    "evaluate_stage_review_contract",
+    "perform_stage_review_rollback_drill",
+    "write_stage_review_evidence",
 ]

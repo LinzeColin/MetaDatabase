@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S00-WHOLE-STAGE-REVIEW",
+  "stage_id": "S00",
+  "observed_at": "2026-07-19T00:00:00+10:00",
+  "review_mode": "READ_ONLY_BASELINE_RECONSTRUCTION_THEN_BOUNDED_REMEDIATION",
+  "findings": [
+    {
+      "id": "F-S00-R01",
+      "severity": "HIGH",
+      "title": "缺少可执行的 Whole-Stage Review Oracle",
+      "evidence": "P04 only advanced to S00/STAGE_REVIEW_READY_NOT_STARTED; no stage-review evidence or mutation suite existed.",
+      "resolution": "Add stage0_review_contract.json, stage_review.py, stage review fixtures/tests, deterministic evidence and rollback drill.",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE"
+    },
+    {
+      "id": "F-S00-R02",
+      "severity": "HIGH",
+      "title": "仓库双平面 CI 会把 ABD 专用 TaskPack renderer 误判为 Governance 项目",
+      "evidence": "The existing repository checker discovered ABD by render_human.py and failed because Governance tools are intentionally not copied into ABD.",
+      "resolution": "Classify all seven registered Governance projects explicitly, classify ABD as a specialized TaskPack project, and fail if any renderer project is omitted from either set.",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE"
+    },
+    {
+      "id": "F-S00-R03",
+      "severity": "HIGH",
+      "title": "ABD 没有 Ubuntu CI，且仓库治理 workflow 使用浮动 Action 与未锁定 PyYAML",
+      "evidence": "Phase acceptance contracts require Ubuntu CI, but only local macOS evidence existed before review.",
+      "resolution": "Add ABD Stage 0 Ubuntu workflow; pin checkout/setup-python/setup-uv by full commit and uv/PyYAML by exact version; require full-history replay and zero-diff evidence regeneration.",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "remote_execution_status": "PENDING_GITHUB_STAGE_UPLOAD"
+    },
+    {
+      "id": "F-S00-R04",
+      "severity": "MEDIUM",
+      "title": "原始 FINAL TaskPack ZIP 未进入 Stage 0 可查询来源收据",
+      "evidence": "P01 bound the supplied Roadmap hash but did not retain the supplied FINAL ZIP digest in a stage-level contract.",
+      "resolution": "Bind both supplied artifact labels and SHA-256 values while explicitly stating that CI cannot re-open the absent local ZIP.",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "resolved_in_review_candidate": 4,
+    "open": 0,
+    "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true
+  },
+  "scope_boundaries": {
+    "s01_started": false,
+    "external_account_or_api_accessed": false,
+    "secret_provisioned": false,
+    "incremental_cash_spent_aud": "0.00",
+    "production_or_return_claimed": false
+  }
+}
