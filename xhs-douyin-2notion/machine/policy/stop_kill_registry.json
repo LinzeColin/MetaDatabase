@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "source": "docs/security/STOP_KILL_INCIDENT_REGISTER.md",
+  "actions": ["stop", "stop_sink_only", "stop_classifier", "kill_platform", "kill_global", "incident"],
+  "rules": [
+    {"id": "SK-X2N-001", "trigger": "captcha_or_access_control", "action": ["stop", "kill_platform"]},
+    {"id": "SK-X2N-002", "trigger": "rate_limit_or_abnormal_access", "action": ["stop", "kill_platform"]},
+    {"id": "SK-X2N-003", "trigger": "auth_expired_or_scope_missing", "action": ["stop", "kill_platform"]},
+    {"id": "SK-X2N-004", "trigger": "dom_api_schema_drift", "action": ["stop", "kill_platform"]},
+    {"id": "SK-X2N-005", "trigger": "policy_unknown", "action": ["stop", "kill_platform"]},
+    {"id": "SK-X2N-006", "trigger": "license_or_provenance_unknown", "action": ["stop", "kill_global"]},
+    {"id": "SK-X2N-007", "trigger": "bypass_or_automation_required", "action": ["stop", "kill_platform"]},
+    {"id": "SK-X2N-008", "trigger": "credential_or_private_content_leak", "action": ["incident", "kill_global"]},
+    {"id": "SK-X2N-009", "trigger": "cdn_url_or_raw_media_persisted", "action": ["incident", "kill_global"]},
+    {"id": "SK-X2N-010", "trigger": "ssrf_or_private_network", "action": ["incident", "kill_global"]},
+    {"id": "SK-X2N-011", "trigger": "path_or_command_injection", "action": ["incident", "kill_global"]},
+    {"id": "SK-X2N-012", "trigger": "incomplete_or_empty_scan", "action": ["stop"]},
+    {"id": "SK-X2N-013", "trigger": "database_recovery_or_idempotency_failure", "action": ["kill_global"]},
+    {"id": "SK-X2N-014", "trigger": "media_lease_or_resource_failure", "action": ["kill_global"]},
+    {"id": "SK-X2N-015", "trigger": "prompt_injection_control_effect", "action": ["kill_global"]},
+    {"id": "SK-X2N-016", "trigger": "notion_outage_or_limit", "action": ["stop_sink_only"]},
+    {"id": "SK-X2N-017", "trigger": "ai_top_level_taxonomy_mutation", "action": ["stop_classifier"]},
+    {"id": "SK-X2N-018", "trigger": "workspace_scope_escape", "action": ["stop"]},
+    {"id": "SK-X2N-019", "trigger": "premature_remote_upload", "action": ["stop"]},
+    {"id": "SK-X2N-020", "trigger": "unauthorized_external_execution", "action": ["incident", "kill_global"]}
+  ]
+}

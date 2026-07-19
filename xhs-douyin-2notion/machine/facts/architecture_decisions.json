@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "phase": "PH.X2N.0.5",
+  "status": "accepted_design_not_implemented",
+  "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
+  "decisions": [
+    {"id": "ADR-001", "topic": "personal_knowledge_governance_boundary", "state": "accepted_design"},
+    {"id": "ADR-002", "topic": "sqlite_canonical_truth", "state": "accepted_design"},
+    {"id": "ADR-003", "topic": "chrome_side_panel_native_messaging_companion", "state": "accepted_design"},
+    {"id": "ADR-004", "topic": "single_private_data_root_and_credentials", "state": "accepted_design"},
+    {"id": "ADR-005", "topic": "six_platform_policy_and_clean_room", "state": "accepted_design"},
+    {"id": "ADR-006", "topic": "capability_negotiation", "state": "accepted_design"},
+    {"id": "ADR-007", "topic": "user_gesture_and_bounded_batches", "state": "accepted_design"},
+    {"id": "ADR-008", "topic": "safe_preview_download_media_lease", "state": "accepted_design"},
+    {"id": "ADR-009", "topic": "owner_top_level_taxonomy", "state": "accepted_design"},
+    {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design"}
+  ],
+  "implementation_started": false,
+  "real_account_execution": false,
+  "stage_gate": "not_run"
+}

@@ -1,0 +1,22 @@
+{
+  "acceptance_id": "ACC.x2n.gov.003",
+  "generated_at": "2026-07-19T20:55:14Z",
+  "git_base_commit": "b919edb9089fe45b47202d1ff6907d63ac997724",
+  "implementation_or_release_oracle": "NOT_RUN",
+  "phase": "PH.X2N.0.5",
+  "platform_calls": "NOT_RUN",
+  "product_code": "NOT_STARTED",
+  "project": "x2n",
+  "real_account_execution": "NOT_RUN",
+  "redaction": {
+    "cdn_urls_included": false,
+    "private_content_included": false,
+    "secrets_included": false
+  },
+  "remote_upload": "FORBIDDEN_UNTIL_STAGE_GATE",
+  "run_id": "RUN-X2N-S00-P05",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.0",
+  "stage_gate": "NOT_RUN",
+  "status": "PASS_CURRENT_ARTIFACT_SCOPE"
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.0",
+  "phase": "PH.X2N.0.2",
+  "run_id": "RUN-X2N-S00-P02",
+  "generated_at": "2026-07-19T11:07:41Z",
+  "task_id": "TSK.x2n.discovery.004",
+  "task_status": "PASS",
+  "outputs": [
+    "machine/facts/upstream_registry.json",
+    "machine/facts/upstream_file_hashes.json",
+    "docs/governance/UPSTREAM_AUDIT_S00_P02.md",
+    "docs/governance/UPGRADE_SHADOW_PLAN.md",
+    "machine/sbom/stage_0_phase_0_2.cdx.json",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "acceptance_status": {
+    "ACC.x2n.gov.003": "PASS_CURRENT_ARTIFACT_SCOPE",
+    "ACC.x2n.dy.003": "BASELINE_PASS_DOWNSTREAM_NOT_RUN"
+  },
+  "stop_conditions_active": [],
+  "candidate_enablement": false,
+  "stage_gate": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_STAGE_GATE"
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.0",
+  "phase": "PH.X2N.0.2",
+  "run_id": "RUN-X2N-S00-P02",
+  "generated_at": "2026-07-19T11:07:41Z",
+  "acceptance_id": "ACC.x2n.dy.003",
+  "status": "BASELINE_PASS_DOWNSTREAM_NOT_RUN",
+  "baseline": {
+    "commit_pin": "PASS",
+    "license_and_notice": "PASS",
+    "entrypoint_and_schema_risk_inventory": "PASS",
+    "version_gate_policy": "PASS",
+    "adapter_enabled": false
+  },
+  "downstream_adapter_contract_tests": {
+    "normal_fixture": "NOT_RUN",
+    "missing_field_fixture": "NOT_RUN",
+    "unknown_field_fixture": "NOT_RUN",
+    "error_exit_fixture": "NOT_RUN",
+    "timeout_fixture": "NOT_RUN",
+    "schema_drift_fixture": "NOT_RUN",
+    "version_mismatch_runtime_test": "NOT_RUN",
+    "reason": "adapter_does_not_exist_in_stage_0"
+  },
+  "promotion_allowed": false,
+  "stage_gate": "NOT_RUN"
+}

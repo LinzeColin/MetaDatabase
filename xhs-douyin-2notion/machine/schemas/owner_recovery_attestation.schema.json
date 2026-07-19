@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:x2n:owner-recovery-attestation:1.0",
+  "title": "x2n non-secret owner recovery attestation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "project",
+    "incident_id",
+    "subject",
+    "attestation_source",
+    "owner_attested",
+    "recovery_action",
+    "old_material_state",
+    "attested_at",
+    "credential_value_included",
+    "remote_url_included",
+    "account_identifier_included",
+    "free_text_included",
+    "resume_authorization",
+    "g0_pass_granted",
+    "stage_1_authorized",
+    "remote_upload_authorized"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^REC-X2N-S00-P05-001-[0-9]{8}T[0-9]{6}Z$"
+    },
+    "project": {"const": "x2n"},
+    "incident_id": {"const": "INC-X2N-S00-P05-001"},
+    "subject": {"const": "github_authentication_material"},
+    "attestation_source": {"const": "direct_owner_statement"},
+    "owner_attested": {"const": true},
+    "recovery_action": {
+      "enum": [
+        "rotated_and_revoked_old_material",
+        "reauthenticated_and_revoked_old_material",
+        "confirmed_old_material_expired",
+        "retained_shared_external_material_with_x2n_zero_contact"
+      ]
+    },
+    "old_material_state": {"enum": ["revoked", "expired", "retained_owner_directed"]},
+    "attested_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "credential_value_included": {"const": false},
+    "remote_url_included": {"const": false},
+    "account_identifier_included": {"const": false},
+    "free_text_included": {"const": false},
+    "resume_authorization": {"const": "stage_0_review_resume_only"},
+    "g0_pass_granted": {"const": false},
+    "stage_1_authorized": {"const": false},
+    "remote_upload_authorized": {"const": false}
+  }
+}

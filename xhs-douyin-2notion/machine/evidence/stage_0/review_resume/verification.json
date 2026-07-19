@@ -1,0 +1,175 @@
+{
+  "checks": [
+    {
+      "details": {
+        "missing": 0,
+        "required_artifacts": 12
+      },
+      "name": "base_review_documents",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "combined_stop_conditions": 4,
+        "g0_pass_conditions": 5,
+        "max_tasks_per_run": 1,
+        "stage_tasks": 5
+      },
+      "name": "base_task_and_gate_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "competitor_code_copies": 0,
+        "platforms": 6,
+        "platforms_enabled": 0,
+        "product_code": "NOT_STARTED",
+        "recovery_attestation_contract": "PASS_SYNTHETIC_ONLY",
+        "runtime_dependencies": 0
+      },
+      "name": "base_canonical_boundaries",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "g0": "PASS",
+        "remote_upload": "AUTHORIZED",
+        "review": "RESUME_COMPLETE",
+        "stage_1_authorized": true
+      },
+      "name": "base_current_stage_state",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "downstream_product_oracles": "NOT_RUN",
+        "files": 20,
+        "manifest_sha256": "556ca71cb5497645d232d7effccbd6eb51ea8c81f8e20eb3c89750976979d90f"
+      },
+      "name": "base_phase_evidence_receipts",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "competitor_head_unchanged": true,
+        "official_source_lanes": 8,
+        "platforms_enabled": 0
+      },
+      "name": "base_external_revalidation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "policy_id": "POLICY.X2N.AUTH-ISOLATION.001",
+        "secret_presence_waiver": false,
+        "zero_contact_controls": 11
+      },
+      "name": "owner_change_and_isolation_policy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "incident_id": "INC-X2N-S00-P05-001",
+        "private_receipt_metadata_exposed": false,
+        "recovery_action": "retained_shared_external_material_with_x2n_zero_contact",
+        "secret_values": 0
+      },
+      "name": "owner_attestation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "product_or_runtime_references": 0,
+        "project_current_tree_credential_hits": 0,
+        "project_history_credential_hits": 0,
+        "repository_authenticated_remote_hits": 0
+      },
+      "name": "repository_zero_contact",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "absolute_path_exposed": false,
+        "private_content_exposed": false,
+        "private_root_credential_hits": 0
+      },
+      "name": "private_zero_contact",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "expected_g0": "PASS",
+        "observed_g0": "PASS",
+        "state_contract": "PASS"
+      },
+      "name": "expected_stage_state",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s00-review",
+        "changed_paths": 0,
+        "commits_ahead_of_origin": 11,
+        "external_main_dirty_paths": 2,
+        "isolation_mode": "external_main_dirty_zero_project_overlap",
+        "main_worktree_clean": false,
+        "origin_drift_commits_after_cutoff": 2,
+        "origin_main_matches_cutoff": false,
+        "origin_project_overlap_paths_after_cutoff": 0,
+        "project_overlap_paths": 0,
+        "remote": "LinzeColin/MetaDatabase",
+        "review_sync_target_is_ancestor": true
+      },
+      "name": "resume_worktree_scope",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "absolute_download_path_in_source": "UNSPECIFIED",
+        "roadmap_sha256": "66f949b2109ffe2701d7b74099430e862f4027bb4a429c56e84e13716c0bc906",
+        "taskpack_zip_sha256": "b32993f465888d9352d745b353c3b923c38406c941a8f357ddf1a64e2bba5a58"
+      },
+      "name": "resume_original_sources",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "downstream_product_oracles": "NOT_RUN",
+        "phase_0_1_checks": 7,
+        "phase_0_2_checks": 10,
+        "phase_0_5_checks": 11
+      },
+      "name": "resume_phase_reacceptance",
+      "status": "PASS"
+    }
+  ],
+  "downstream_product_acceptances": "NOT_RUN",
+  "g0_status": "PASS",
+  "generated_at": "2026-07-19T22:29:10Z",
+  "historical_review_evidence": "PRESERVED_BLOCKED_AT_ORIGINAL_REVIEW",
+  "media_downloads": "NOT_RUN",
+  "model_calls": "NOT_RUN",
+  "notion_calls": "NOT_RUN",
+  "origin_main_observed_at_evidence": "5aaf6324d4e7c4394dc471dda958600a204c421e",
+  "platform_calls": "NOT_RUN",
+  "product_code": "NOT_STARTED",
+  "project": "x2n",
+  "real_account_execution": "NOT_RUN",
+  "redaction": {
+    "cdn_urls_included": false,
+    "external_paths_included": false,
+    "private_content_included": false,
+    "private_receipt_metadata_included": false,
+    "secrets_included": false
+  },
+  "remote_upload": "AUTHORIZED_AFTER_G0_PASS",
+  "review_base_head": "37efa3d2713879b02d0ab57ee0fa83332b26e746",
+  "review_id": "STG.X2N.0.REVIEW.RESUME",
+  "review_status": "RESUME_COMPLETE",
+  "review_sync_target": "9f68c69becc31b0626b387eb36711235cf48af6f",
+  "run_id": "RUN-X2N-S00-REVIEW-RESUME",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.0",
+  "stage_1_authorized": true,
+  "status": "PASS"
+}
