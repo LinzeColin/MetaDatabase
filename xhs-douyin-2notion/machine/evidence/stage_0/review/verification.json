@@ -3,7 +3,7 @@
     {
       "details": {
         "missing": 0,
-        "required_artifacts": 6
+        "required_artifacts": 12
       },
       "name": "review_documents",
       "status": "PASS"
@@ -24,6 +24,7 @@
         "platforms": 6,
         "platforms_enabled": 0,
         "product_code": "NOT_STARTED",
+        "recovery_attestation_contract": "PASS_SYNTHETIC_ONLY",
         "runtime_dependencies": 0
       },
       "name": "canonical_boundaries",
@@ -60,8 +61,8 @@
     {
       "details": {
         "branch": "codex/xhs-douyin-2notion-v0001-s00-review",
-        "changed_paths": 20,
-        "commits_ahead_of_origin": 6,
+        "changed_paths": 0,
+        "commits_ahead_of_origin": 8,
         "external_main_dirty_paths": 2,
         "isolation_mode": "external_main_dirty_zero_project_overlap",
         "main_worktree_clean": false,
@@ -108,7 +109,7 @@
     ]
   },
   "g0_status": "BLOCKED_OWNER_ACTION",
-  "generated_at": "2026-07-19T21:27:53Z",
+  "generated_at": "2026-07-19T21:47:56Z",
   "media_downloads": "NOT_RUN",
   "model_calls": "NOT_RUN",
   "notion_calls": "NOT_RUN",
@@ -124,7 +125,7 @@
     "secrets_included": false
   },
   "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
-  "review_base_head": "38862c706b078fe99ac09f77b523892d873de99b",
+  "review_base_head": "fc9bfaae8ac8fa1a155e55dd83c252d44b061ed0",
   "review_id": "STG.X2N.0.REVIEW",
   "review_status": "COMPLETE",
   "review_sync_target": "9f68c69becc31b0626b387eb36711235cf48af6f",
