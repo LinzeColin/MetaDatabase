@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <testsuites name="pytest tests">
-  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="2154" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="2155" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
     <testcase classname="tests.S00.P01_test" name="test_baseline_contract_passes_without_runtime_reports" time="0.000" />
     <testcase classname="tests.S00.P01_test" name="test_duplicate_json_key_is_rejected" time="0.000" />
     <testcase classname="tests.S00.P01_test" name="test_second_canonical_source_fails_closed" time="0.000" />
@@ -1041,7 +1041,8 @@
     <testcase classname="tests.S02.P01_test" name="test_existing_p01_receipt_mutations_fail_closed[report-S02P01-RECEIPT-REPORT-HASHES-CURRENT]" time="0.000" />
     <testcase classname="tests.S02.P01_test" name="test_existing_p01_receipt_mutations_fail_closed[code-S02P01-RECEIPT-CODE-HASH-CURRENT]" time="0.000" />
     <testcase classname="tests.S02.P01_test" name="test_existing_p01_receipt_mutations_fail_closed[rollback_binding-S02P01-RECEIPT-ROLLBACK-HASH-BINDING]" time="0.000" />
-    <testcase classname="tests.S02.P01_test" name="test_existing_p01_receipt_mutations_fail_closed[absolute_path-S02P01-RECEIPT-NO-ABSOLUTE-LOCAL-PATH]" time="0.000" />
+    <testcase classname="tests.S02.P01_test" name="test_existing_p01_receipt_mutations_fail_closed[absolute_posix_path-S02P01-RECEIPT-NO-ABSOLUTE-LOCAL-PATH]" time="0.000" />
+    <testcase classname="tests.S02.P01_test" name="test_existing_p01_receipt_mutations_fail_closed[absolute_windows_path-S02P01-RECEIPT-NO-ABSOLUTE-LOCAL-PATH]" time="0.000" />
     <testcase classname="tests.S02.P01_test" name="test_existing_p01_receipt_mutations_fail_closed[rollback_status-S02P01-RECEIPT-ROLLBACK-INTEGRITY]" time="0.000" />
     <testcase classname="tests.S02.P01_test" name="test_existing_p01_receipt_mutations_fail_closed[index-S02P01-RECEIPT-EVIDENCE-INDEX-BINDING]" time="0.000" />
     <testcase classname="tests.S02.P01_test" name="test_verified_s02_p01_successor_does_not_invalidate_historical_s01_oracles" time="0.000" />

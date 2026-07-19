@@ -8,7 +8,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from datetime import date
 from decimal import Decimal, InvalidOperation
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 from urllib.parse import urlsplit
 
@@ -52,7 +52,7 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S02/P01_test.py",
 }
 SUCCESSOR_EVOLVED_TEST_HASHES = {
-    "tests/S02/P01_test.py": "28868c63503b7e98f0c9761cdc92c70cb1053e2c957d196925f8d577abffce00",
+    "tests/S02/P01_test.py": "bc800d7bd6ac82ba5bf8b709013a0e16287750b635d838f6cd4ac885c7364377",
 }
 
 PINNED_PHASE_HASHES = {
@@ -127,6 +127,39 @@ def _contains_float(value: Any) -> bool:
     if isinstance(value, list):
         return any(_contains_float(item) for item in value)
     return False
+
+
+def _absolute_local_paths(value: Any) -> List[str]:
+    """Return absolute filesystem paths embedded as JSON scalar values.
+
+    Evidence is portable across macOS, Linux, and Windows.  URLs and JSON
+    pointers are not filesystem paths, while POSIX paths, Windows drive/UNC
+    paths, and file URIs are always rejected regardless of the verifier host.
+    """
+
+    result: List[str] = []
+
+    def visit(node: Any) -> None:
+        if isinstance(node, dict):
+            for item in node.values():
+                visit(item)
+            return
+        if isinstance(node, list):
+            for item in node:
+                visit(item)
+            return
+        if not isinstance(node, str) or not node:
+            return
+        lowered = node.lower()
+        if (
+            lowered.startswith("file://")
+            or PurePosixPath(node).is_absolute()
+            or PureWindowsPath(node).is_absolute()
+        ):
+            result.append(node)
+
+    visit(value)
+    return sorted(set(result))
 
 
 def _row(rows: Sequence[Mapping[str, Any]], item_id: str) -> Mapping[str, Any]:
@@ -1243,14 +1276,12 @@ def verify_existing_phase_evidence(
             rollback_binding == rollback_hash,
             {"expected": rollback_binding, "actual": rollback_hash},
         )
-        rendered_evidence = json.dumps(evidence, ensure_ascii=False, sort_keys=True)
+        absolute_local_paths = _absolute_local_paths(evidence)
         _add(
             checks,
             "S02P01-RECEIPT-NO-ABSOLUTE-LOCAL-PATH",
-            str(root) not in rendered_evidence
-            and ("/" + "Users/") not in rendered_evidence
-            and ("/private/" + "var/") not in rendered_evidence,
-            "portable evidence",
+            not absolute_local_paths,
+            absolute_local_paths or "portable evidence",
         )
     else:
         for check_id in [

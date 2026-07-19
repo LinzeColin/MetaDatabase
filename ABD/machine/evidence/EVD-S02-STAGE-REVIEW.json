@@ -11,7 +11,7 @@
   ],
   "contract_id": "STAGE-REVIEW-S02",
   "decision": "S02_WHOLE_STAGE_REVIEW_PASS",
-  "decision_sha256": "33de29cbc731325035b34d45086a455433248c7c3978835b1cfd95356327af64",
+  "decision_sha256": "0ff81bbfd456c7285d25adf994fc1dcbeb22aca757fd893f471ea7c0e4f532b4",
   "evidence_id": "EVD-S02-STAGE-REVIEW",
   "explicit_unknowns": [
     "GitHub Actions has not run on this candidate before the authorized Stage 2 upload.",
@@ -34,10 +34,10 @@
   },
   "fixed_clock": "2026-07-20T00:00:00+10:00",
   "hashes": {
-    "code": "e1406d67aceb49ff9f2e64b84ce08a02a4a2c24ecd39d2388b5285a1fecf713e",
+    "code": "a674b8c50b089f8377893d9d25161c993cfe9ad44c86e5ce13f2406cb97e3346",
     "inputs": {
       ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
-      "README.md": "8527722187aaa5c93d115fa284822728e0e9845dd3940710a67ddefb240c91f7",
+      "README.md": "c0a5f8e75840acac15b7dc8783c258c80409d03b3d6d63f1fd516102035b57b3",
       "abd_acceptance/__init__.py": "e0f97b6bfbe26f568df57d603a37da0a498e23541eef8cbe2d63019e9976464a",
       "abd_acceptance/__main__.py": "80bb55dc4e833261b08e11cff30c148c83aeb4042bb48f20ca036be8bf27ada9",
       "abd_acceptance/stage2_review.py": "eae6721d87f169cd38f9e2877a2a1b5dd0a87d53e04cab86e4f7339e190b7f12",
@@ -857,7 +857,7 @@
           "minimum": 1950,
           "normalized": true,
           "skipped": 0,
-          "tests": 2154
+          "tests": 2155
         },
         "id": "S02REVIEW-TEST-FULL-REGRESSION-PASS",
         "passed": true
@@ -915,7 +915,7 @@
       "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
       "machine/evidence/S01/STAGE_REVIEW/github_delivery_receipt.json": "ca4f4d34507a11afaa72a261b6603699264460a078335ff4a36a1d8791e35dde",
       "machine/evidence/S02/STAGE_REVIEW/findings.json": "67237a340447dcd2f651e0fb8f152389ad48be442439ac082cdeb32fae917840",
-      "machine/evidence/S02/STAGE_REVIEW/full_regression.xml": "9ffd49dbca601ef2fb98e0185e7a993788ea1bbd94cc86538cee54dd0c950423",
+      "machine/evidence/S02/STAGE_REVIEW/full_regression.xml": "8916ba3e51a9d970236a8a2ed2931bcc96bf8104a74d8412c22e0cf0cd6aba66",
       "machine/evidence/S02/STAGE_REVIEW/pytest.xml": "6c0c40bbc6c52c2205e815691a54e0afd90aba092821d6022cc86e3ddbd94ff3",
       "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
       "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",

@@ -558,7 +558,8 @@ def test_stage1_delivery_mutations_block_s02(tmp_path: Path, mutation: str, expe
         ("report", "S02P01-RECEIPT-REPORT-HASHES-CURRENT"),
         ("code", "S02P01-RECEIPT-CODE-HASH-CURRENT"),
         ("rollback_binding", "S02P01-RECEIPT-ROLLBACK-HASH-BINDING"),
-        ("absolute_path", "S02P01-RECEIPT-NO-ABSOLUTE-LOCAL-PATH"),
+        ("absolute_posix_path", "S02P01-RECEIPT-NO-ABSOLUTE-LOCAL-PATH"),
+        ("absolute_windows_path", "S02P01-RECEIPT-NO-ABSOLUTE-LOCAL-PATH"),
         ("rollback_status", "S02P01-RECEIPT-ROLLBACK-INTEGRITY"),
         ("index", "S02P01-RECEIPT-EVIDENCE-INDEX-BINDING"),
     ],
@@ -592,8 +593,12 @@ def test_existing_p01_receipt_mutations_fail_closed(tmp_path: Path, mutation: st
             value["hashes"]["code"] = "0" * 64
         elif mutation == "rollback_binding":
             value["hashes"]["rollback_evidence"] = "0" * 64
+        elif mutation == "absolute_posix_path":
+            value["explicit_unknowns"].append("/home/runner/work/private/ABD")
+        elif mutation == "absolute_windows_path":
+            value["explicit_unknowns"].append(r"C:\Users\Owner\private\ABD")
         else:
-            value["explicit_unknowns"].append(str(ROOT))
+            raise AssertionError("unhandled mutation: %s" % mutation)
         _write_json(path, value)
     result = verify_existing_phase_evidence(project, verify_git_history=False)
     _failed(result, expected)
