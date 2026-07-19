@@ -1,0 +1,60 @@
+{
+  "artifacts": {
+    ".github/workflows/abd-stage0-validation.yml": {
+      "corrupted_sha256": "b63539f25f1ada442f9aa3ec5841bc3933bc55b6f2d4878960ceaf9a200c10e5",
+      "restored_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "signed_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "status": "PASS"
+    },
+    "license_inventory.json": {
+      "corrupted_sha256": "27bb8c72a56d108f81a7c125881db34c8c6ec0ef93e349aa5aefc848db6a8d7f",
+      "restored_sha256": "b09ce2ae8e60ba91d3c436f4116b032c772a19902cfebdcc9f37027c53393379",
+      "signed_sha256": "b09ce2ae8e60ba91d3c436f4116b032c772a19902cfebdcc9f37027c53393379",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S02-P02.json": {
+      "corrupted_sha256": "e3dfb9eab412639f15ca87921f022285c398bda304b5603fcbe98c6bd0c78d0a",
+      "restored_sha256": "0fc89eaba4a1afa7630f92ad79cecbb073ba5303bca6ea2f534f2267b4bb5623",
+      "signed_sha256": "0fc89eaba4a1afa7630f92ad79cecbb073ba5303bca6ea2f534f2267b4bb5623",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S02-P02_rollback.json": {
+      "corrupted_sha256": "13056e97365b6eb3cfd908eaa11f06818ccd1486048f63bd861d38d7555ced17",
+      "restored_sha256": "873ad2b164ef3280f5f5e7ef6ce0ce68d3bf64ea0cdf8c2ca43901088dbd7feb",
+      "signed_sha256": "873ad2b164ef3280f5f5e7ef6ce0ce68d3bf64ea0cdf8c2ca43901088dbd7feb",
+      "status": "PASS"
+    },
+    "machine/facts/research_reuse_matrix.json": {
+      "corrupted_sha256": "f8b8347e19bb6d83a2fbacf1e98dcde3151b68a1c97a68eed54ceecfd4043b2a",
+      "restored_sha256": "4e96ec569250ebe7a964035528f4030e83230a00bd13cdc5cf5dc2be9ecfa041",
+      "signed_sha256": "4e96ec569250ebe7a964035528f4030e83230a00bd13cdc5cf5dc2be9ecfa041",
+      "status": "PASS"
+    },
+    "machine/facts/sources.json": {
+      "corrupted_sha256": "500086ba8839256a0d45d477c80a03f7a7cdadfb1469e0efb61de1d043943853",
+      "restored_sha256": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+      "signed_sha256": "387df5c4cf54fcad59072c46ee7bbcd67f13e66adf2f5ccf9b115b71182784d8",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S02_P03.json": {
+      "corrupted_sha256": "c9fab92fb023b9d5fedd663aeb07a178e819ce11cf89d0f31a8dbcc69470ecf0",
+      "restored_sha256": "8fa4c75b2863cd34a08921b6ea2022be6469c95cf0a7edd9ebf60ddc4c68afde",
+      "signed_sha256": "8fa4c75b2863cd34a08921b6ea2022be6469c95cf0a7edd9ebf60ddc4c68afde",
+      "status": "PASS"
+    },
+    "research_reuse_matrix.json": {
+      "corrupted_sha256": "96eb6ca751017a384e3aac2cd8758568386deb8e320dea6e0877b988964127f3",
+      "restored_sha256": "e5d049c5e4049195f537cce7b27cc8713269d211f55ce4840c10fdf67feac0e8",
+      "signed_sha256": "e5d049c5e4049195f537cce7b27cc8713269d211f55ce4840c10fdf67feac0e8",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S02-P03",
+  "evidence_id": "EVD-S02-P03-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-20T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_OPEN_SOURCE_REUSE_AUDIT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

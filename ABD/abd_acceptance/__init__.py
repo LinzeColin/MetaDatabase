@@ -101,6 +101,14 @@ from .model_risk_research import (
     verify_existing_phase_evidence as verify_model_risk_research_evidence,
     write_phase_evidence as write_model_risk_research_phase_evidence,
 )
+from .open_source_reuse import (
+    build_evidence as build_open_source_reuse_evidence,
+    evaluate_contract as evaluate_open_source_reuse_contract,
+    perform_rollback_drill as perform_open_source_reuse_rollback_drill,
+    resolve_reuse_admission,
+    verify_existing_phase_evidence as verify_open_source_reuse_evidence,
+    write_phase_evidence as write_open_source_reuse_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -177,4 +185,10 @@ __all__ = [
     "resolve_stability_contract",
     "verify_model_risk_research_evidence",
     "write_model_risk_research_phase_evidence",
+    "build_open_source_reuse_evidence",
+    "evaluate_open_source_reuse_contract",
+    "perform_open_source_reuse_rollback_drill",
+    "resolve_reuse_admission",
+    "verify_open_source_reuse_evidence",
+    "write_open_source_reuse_phase_evidence",
 ]

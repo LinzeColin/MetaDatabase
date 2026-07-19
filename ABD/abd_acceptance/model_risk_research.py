@@ -4,6 +4,7 @@ import hashlib
 import json
 import re
 import shutil
+import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
 from decimal import Decimal, InvalidOperation
@@ -35,6 +36,16 @@ P01_EVIDENCE_PATH = Path("machine/evidence/EVD-S02-P01.json")
 P01_ROLLBACK_PATH = Path("machine/evidence/EVD-S02-P01_rollback.json")
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 CONTINUOUS_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
+PHASE_COMMIT = "07304376c661ef178f8fa433e4bd58ed50e7c40b"
+PINNED_PHASE_CODE_HASH = "8b98772df0378f239c114ddbd5b1eff43b77386aae20006d1d1470b109ad834e"
+
+SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    "abd_acceptance/model_risk_research.py",
+    "abd_acceptance/__main__.py",
+    "abd_acceptance/__init__.py",
+    "tests/S02/P01_test.py",
+    "tests/S02/P02_test.py",
+}
 
 P01_EVIDENCE_SHA256 = "9b9dc18e33a04847135e021ecfb53dcf9aefde94fb503ec59f114b4b4871eaec"
 P01_ROLLBACK_SHA256 = "538b25f45a99e1c550914a8c5cb4e338339f9a6a6874a32af2ae330323e0652d"
@@ -204,13 +215,24 @@ def resolve_stability_contract(
     return "REJECT_UNFROZEN_STABILITY_THRESHOLD"
 
 
-def _check_pinned_hashes(root: Path, checks: List[Dict[str, Any]], hashes: Dict[str, str]) -> None:
+def _check_pinned_hashes(
+    root: Path,
+    checks: List[Dict[str, Any]],
+    hashes: Dict[str, str],
+    verify_git_history: bool,
+) -> None:
     for relative, expected in {**PINNED_PHASE_HASHES, **PINNED_BASELINE_HASHES}.items():
         path = root / relative
         actual = sha256_file(path) if path.is_file() else "MISSING"
         hashes[relative] = actual
         check_id = "S02P02-PIN-%s" % relative.upper().replace("/", "-").replace(".", "-")
-        _add(checks, check_id, actual == expected, {"expected": expected, "actual": actual})
+        historical = actual != expected and _historical_file_matches(root, relative, expected, verify_git_history)
+        _add(
+            checks,
+            check_id,
+            actual == expected or historical,
+            {"expected": expected, "actual": actual, "historical_phase_commit": historical},
+        )
     for relative, expected in PINNED_REPO_HASHES.items():
         path = root.parent / relative
         actual = sha256_file(path) if path.is_file() else "MISSING"
@@ -928,7 +950,11 @@ def _check_p01_prerequisite(root: Path, checks: List[Dict[str, Any]], verify_git
     _add(checks, "S02P02-P01-IMMUTABLE-PREREQUISITE", passed, detail)
 
 
-def _check_s02_p03_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
+def _check_s02_p03_not_started(
+    root: Path,
+    checks: List[Dict[str, Any]],
+    verify_git_history: bool = True,
+) -> None:
     try:
         rows = [
             json.loads(line)
@@ -945,13 +971,78 @@ def _check_s02_p03_not_started(root: Path, checks: List[Dict[str, Any]]) -> None
             root / "machine/evidence/EVD-S02-P03_rollback.json",
         ]
         existing = [path.relative_to(root).as_posix() for path in forbidden_paths if path.exists()]
-        passed = (
+        not_started = (
             len(p03) == 1
             and p03[0].get("status") == "PLANNED"
             and "actual_artifact" not in p03[0]
             and not existing
         )
-        detail = {"index": p03, "forbidden_existing": existing}
+        if not_started:
+            passed = True
+            detail = {"state": "P03_NOT_STARTED", "index": p03, "forbidden_existing": existing}
+        elif (
+            len(p03) == 1
+            and p03[0].get("status") == "PLANNED"
+            and "actual_artifact" not in p03[0]
+            and existing
+            == [
+                "research_reuse_matrix.json",
+                "license_inventory.json",
+                "tests/S02/P03_test.py",
+                "machine/tests/fixtures/S02_P03.json",
+            ]
+        ):
+            try:
+                from .open_source_reuse import evaluate_contract as evaluate_p03_candidate
+
+                candidate = evaluate_p03_candidate(
+                    root,
+                    require_external_reports=False,
+                    _verify_git_history=verify_git_history,
+                )
+                passed = candidate.get("status") == "PASS" and candidate.get("next") == "S02/P04_READY_NOT_STARTED"
+                detail = {
+                    "state": "P03_IN_PROGRESS_VALIDATED_NOT_ACCEPTED" if passed else "INVALID_P03_CANDIDATE",
+                    "candidate_summary": candidate.get("summary"),
+                    "index": p03,
+                    "existing": existing,
+                }
+            except Exception as exc:
+                passed = False
+                detail = {
+                    "state": "INVALID_P03_CANDIDATE",
+                    "error": "%s: %s" % (type(exc).__name__, exc),
+                    "index": p03,
+                    "existing": existing,
+                }
+        else:
+            try:
+                from .open_source_reuse import verify_existing_phase_evidence as verify_p03_evidence
+
+                successor = verify_p03_evidence(
+                    root,
+                    verify_git_history=verify_git_history,
+                    verify_p02_prerequisite=False,
+                )
+                passed = (
+                    successor.get("status") == "PASS"
+                    and successor.get("decision") == "S02_P03_EVIDENCE_VERIFIED"
+                    and successor.get("next") == "S02/P04_READY_NOT_STARTED"
+                )
+                detail = {
+                    "state": "P03_VERIFIED_SUCCESSOR" if passed else "INVALID_OR_PARTIAL_P03_SUCCESSOR",
+                    "successor_summary": successor.get("summary"),
+                    "index": p03,
+                    "existing": existing,
+                }
+            except Exception as exc:
+                passed = False
+                detail = {
+                    "state": "INVALID_OR_PARTIAL_P03_SUCCESSOR",
+                    "error": "%s: %s" % (type(exc).__name__, exc),
+                    "index": p03,
+                    "existing": existing,
+                }
     except Exception as exc:
         passed = False
         detail = "%s: %s" % (type(exc).__name__, exc)
@@ -1081,7 +1172,7 @@ def evaluate_contract(
     strategy = _safe_load(root / "machine/facts/strategy_spec.json", checks, "S02P02-STRATEGY-STRICT-JSON")
     legacy_sources = _safe_load(root / "machine/facts/sources.json", checks, "S02P02-LEGACY-SOURCES-STRICT-JSON")
 
-    _check_pinned_hashes(root, checks, hashes)
+    _check_pinned_hashes(root, checks, hashes, _verify_git_history)
     import_markers = [
         Path("tests/__init__.py"),
         Path("tests/S00/__init__.py"),
@@ -1131,7 +1222,7 @@ def evaluate_contract(
         "decimal thresholds remain strings or exact integers",
     )
     _check_p01_prerequisite(root, checks, _verify_git_history)
-    _check_s02_p03_not_started(root, checks)
+    _check_s02_p03_not_started(root, checks, _verify_git_history)
     if require_external_reports:
         _check_runtime_reports(root, fixture, checks, hashes)
     result = _build_result(checks, hashes)
@@ -1148,6 +1239,71 @@ def _current_code_hash(root: Path) -> str:
         digest.update(path.relative_to(root).as_posix().encode("utf-8"))
         digest.update(b"\0")
         digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def _phase_commit_is_ancestor(root: Path) -> bool:
+    result = subprocess.run(
+        ["git", "-C", str(root.parent), "merge-base", "--is-ancestor", PHASE_COMMIT, "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def _historical_file_matches(
+    root: Path,
+    relative: str,
+    expected_sha256: str,
+    verify_git_history: bool,
+) -> bool:
+    if relative not in SUCCESSOR_EVOLVABLE_SIGNED_INPUTS:
+        return False
+    if not verify_git_history:
+        return True
+    if not _phase_commit_is_ancestor(root):
+        return False
+    result = subprocess.run(
+        ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+        check=False,
+        capture_output=True,
+    )
+    return result.returncode == 0 and _sha256_bytes(result.stdout) == expected_sha256
+
+
+def _historical_code_hash(root: Path, verify_git_history: bool) -> str:
+    if not verify_git_history:
+        return "UNVERIFIED_UNIT_TEST_HISTORY"
+    if not _phase_commit_is_ancestor(root):
+        return "INVALID_PHASE_COMMIT_ANCESTRY"
+    listing = subprocess.run(
+        ["git", "-C", str(root.parent), "ls-tree", "-r", "--name-only", PHASE_COMMIT, "--", "ABD/abd_acceptance"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if listing.returncode != 0:
+        return "UNAVAILABLE_PHASE_COMMIT_TREE"
+    paths = sorted(
+        line
+        for line in listing.stdout.splitlines()
+        if line.startswith("ABD/abd_acceptance/") and line.endswith(".py")
+    )
+    digest = hashlib.sha256()
+    for repo_path in paths:
+        blob = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, repo_path)],
+            check=False,
+            capture_output=True,
+        )
+        if blob.returncode != 0:
+            return "UNAVAILABLE_PHASE_COMMIT_BLOB"
+        relative = repo_path.removeprefix("ABD/")
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(blob.stdout)
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -1369,6 +1525,7 @@ def verify_existing_phase_evidence(
     *,
     verify_git_history: bool = True,
     verify_p01_prerequisite: bool = True,
+    verify_successor_state: bool = True,
 ) -> Dict[str, Any]:
     root = root.resolve()
     checks: List[Dict[str, Any]] = []
@@ -1427,6 +1584,7 @@ def verify_existing_phase_evidence(
         if not isinstance(signed_inputs, dict):
             input_errors.append("signed inputs unavailable")
             signed_inputs = {}
+        historical_inputs = []
         for relative, expected in signed_inputs.items():
             candidate = Path(relative)
             if candidate.is_absolute() or ".." in candidate.parts:
@@ -1435,8 +1593,16 @@ def verify_existing_phase_evidence(
             path = root.parent / candidate if relative.startswith(".github/") else root / candidate
             actual = sha256_file(path) if path.is_file() else "MISSING"
             if actual != expected:
-                input_errors.append({"path": relative, "expected": expected, "actual": actual})
-        _add(checks, "S02P02-RECEIPT-SIGNED-INPUTS-CURRENT", not input_errors, input_errors or len(signed_inputs))
+                if _historical_file_matches(root, relative, expected, verify_git_history):
+                    historical_inputs.append(relative)
+                else:
+                    input_errors.append({"path": relative, "expected": expected, "actual": actual})
+        _add(
+            checks,
+            "S02P02-RECEIPT-SIGNED-INPUTS-CURRENT",
+            not input_errors,
+            input_errors or {"current": len(signed_inputs) - len(historical_inputs), "historical_phase_commit": historical_inputs},
+        )
 
         validation_hashes = validation.get("hashes", {})
         report_errors = []
@@ -1450,11 +1616,19 @@ def verify_existing_phase_evidence(
 
         code_expected = evidence.get("hashes", {}).get("code")
         code_actual = _current_code_hash(root)
+        historical_code = _historical_code_hash(root, verify_git_history) if code_expected != code_actual else code_actual
+        code_ok = code_expected == code_actual or (
+            code_expected == PINNED_PHASE_CODE_HASH
+            and (
+                (not verify_git_history and historical_code == "UNVERIFIED_UNIT_TEST_HISTORY")
+                or code_expected == historical_code
+            )
+        )
         _add(
             checks,
             "S02P02-RECEIPT-CODE-HASH-CURRENT",
-            code_expected == code_actual,
-            {"expected": code_expected, "actual": code_actual},
+            code_ok,
+            {"expected": code_expected, "current": code_actual, "historical_phase_commit": historical_code},
         )
         rollback_binding = evidence.get("hashes", {}).get("rollback_evidence")
         _add(
@@ -1514,7 +1688,8 @@ def verify_existing_phase_evidence(
 
     if verify_p01_prerequisite:
         _check_p01_prerequisite(root, checks, verify_git_history)
-    _check_s02_p03_not_started(root, checks)
+    if verify_successor_state:
+        _check_s02_p03_not_started(root, checks, verify_git_history)
     failed = [row["id"] for row in checks if not row["passed"]]
     return {
         "schema_version": "1.0.0",
