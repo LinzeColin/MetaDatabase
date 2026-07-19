@@ -33,7 +33,23 @@ class Stage0ReviewTests(unittest.TestCase):
     def test_pending_owner_action_can_never_be_g0_pass(self) -> None:
         gate = VERIFY._load_json(VERIFY.GATE_STATE)
         VERIFY.validate_gate_payload(gate)
-        invalid = copy.deepcopy(gate)
+        pending = copy.deepcopy(gate)
+        pending.update({
+            "review_id": VERIFY.REVIEW_ID,
+            "run_id": VERIFY.REVIEW_RUN_ID,
+            "gate_status": "blocked_owner_action",
+            "gate_decision": "fail_closed",
+            "blocking_followups": [{
+                "id": VERIFY.INCIDENT_ID,
+                "scope": "before_g0_pass",
+                "status": "owner_action_pending",
+                "required_resolution": "rotate_or_reauthenticate_or_prove_expiry",
+            }],
+            "stage_1_authorized": False,
+            "remote_upload": "forbidden_until_g0_pass",
+        })
+        VERIFY.validate_gate_payload(pending)
+        invalid = copy.deepcopy(pending)
         invalid["gate_status"] = "pass"
         invalid["gate_decision"] = "pass"
         invalid["stage_1_authorized"] = True

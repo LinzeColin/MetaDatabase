@@ -399,28 +399,41 @@ def validate_task_state() -> Check:
     _require(project.get("data_root_namespace") == "xhs-douyin-2notion", "private namespace drifted")
     _require(project.get("source_taskpack_absolute_path_status") == "unspecified_owner_resolved", "original taskpack path gap not recorded")
     _require(project.get("platform_scope") == ["xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"], "project platform scope drifted")
-    _require(project.get("status") == "stage_0_review_complete_g0_blocked_owner_action", "project readiness status is not the reviewed state")
+    _require(project.get("status") in {"stage_0_review_complete_g0_blocked_owner_action", "stage_0_g0_pass_stage_1_authorized"}, "project readiness status is invalid")
     state = _load_json(TASK_STATE)
-    _require(state.get("schema_version") == "1.1", "task_state schema is not the Stage Review schema")
     _require(state.get("last_completed_phase") == "PH.X2N.0.5", "last completed Phase drifted")
-    _require(state.get("review_id") == "STG.X2N.0.REVIEW" and state.get("run_id") == "RUN-X2N-S00-REVIEW", "current task state is not Stage 0 Review")
-    _require(state.get("run_kind") == "stage_review_no_new_dag_task", "Stage Review scope is ambiguous")
-    _require(state.get("state") == "review_complete_gate_blocked", "Stage Review state is not finalized")
     _require(state.get("tasks", {}).get(PHASE_TASK) == "pass", "Phase 0.5 task not pass")
     acceptances = state.get("acceptance_status", {})
     _require(acceptances.get("ACC.x2n.gov.003") == "pass_current_artifact_scope", "governance acceptance status mismatch")
     _require(acceptances.get("ACC.x2n.media.003") == "design_fixture_pass_downstream_not_run", "media acceptance overstated")
     _require(acceptances.get("ACC.x2n.rel.003") == "design_supply_chain_pass_downstream_not_run", "release acceptance overstated")
-    _require(state.get("blocking_followups") == [{
-        "id": "INC-X2N-S00-P05-001",
-        "scope": "before_g0_pass",
-        "status": "owner_action_pending",
-        "action": "rotate_or_prove_expiry_of_credential_used_by_temporary_source_remote",
-    }], "contained credential follow-up missing or weakened")
-    _require(state.get("next_phase") is None and state.get("next_run") == "STG.X2N.0.REVIEW.RESUME", "Stage review resume routing mismatch")
-    _require(state.get("next_phase_authorized") is False and state.get("stage_1_authorized") is False, "Stage 1 was auto-authorized")
-    _require(state.get("stage_gate") == "blocked_owner_action" and state.get("remote_upload") == "forbidden_until_g0_pass", "Stage/upload gate weakened")
-    return Check("phase_task_state", "PASS", {"task": PHASE_TASK, "stage_gate": "BLOCKED_OWNER_ACTION", "next": "STG.X2N.0.REVIEW.RESUME"})
+    if state.get("review_id") == "STG.X2N.0.REVIEW":
+        _require(state.get("schema_version") == "1.1" and state.get("run_id") == "RUN-X2N-S00-REVIEW", "blocked Review identity mismatch")
+        _require(state.get("run_kind") == "stage_review_no_new_dag_task" and state.get("state") == "review_complete_gate_blocked", "blocked Review state is invalid")
+        _require(state.get("blocking_followups") == [{
+            "id": "INC-X2N-S00-P05-001",
+            "scope": "before_g0_pass",
+            "status": "owner_action_pending",
+            "action": "rotate_or_prove_expiry_of_credential_used_by_temporary_source_remote",
+        }], "pending credential follow-up missing or weakened")
+        _require(state.get("next_phase") is None and state.get("next_run") == "STG.X2N.0.REVIEW.RESUME", "blocked Resume routing mismatch")
+        _require(state.get("next_phase_authorized") is False and state.get("stage_1_authorized") is False, "blocked Review authorized Stage 1")
+        _require(state.get("stage_gate") == "blocked_owner_action" and state.get("remote_upload") == "forbidden_until_g0_pass", "blocked Stage/upload gate weakened")
+        gate_status, next_run = "BLOCKED_OWNER_ACTION", "STG.X2N.0.REVIEW.RESUME"
+    else:
+        _require(state.get("schema_version") == "1.2" and state.get("review_id") == "STG.X2N.0.REVIEW.RESUME" and state.get("run_id") == "RUN-X2N-S00-REVIEW-RESUME", "Resume identity mismatch")
+        _require(state.get("run_kind") == "stage_review_resume_no_new_dag_task" and state.get("state") == "stage_0_g0_pass", "Resume state is invalid")
+        _require(state.get("blocking_followups") == [{
+            "id": "INC-X2N-S00-P05-001",
+            "scope": "before_g0_pass",
+            "status": "resolved",
+            "action": "owner_directed_external_retention_with_x2n_zero_contact",
+        }], "Resume resolution missing or ambiguous")
+        _require(state.get("next_phase") == "PH.X2N.1.1" and state.get("next_run") == "TSK.x2n.foundation.001", "post-G0 route mismatch")
+        _require(state.get("next_phase_authorized") is True and state.get("stage_1_authorized") is True, "post-G0 Stage 1 authorization missing")
+        _require(state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass", "post-G0 Stage/upload gate mismatch")
+        gate_status, next_run = "PASS", "TSK.x2n.foundation.001"
+    return Check("phase_task_state", "PASS", {"task": PHASE_TASK, "stage_gate": gate_status, "next": next_run})
 
 
 def validate_owner_input(root: Path) -> Check:

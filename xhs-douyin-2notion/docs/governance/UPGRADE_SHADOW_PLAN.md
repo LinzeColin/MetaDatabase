@@ -8,7 +8,7 @@
 
 ## Shadow 流程
 
-1. 在 `${X2N_DATA_ROOT}/downloads/external_research/runs/<run-id>/` 仅以匿名公开 URL/固定归档获取候选精确 Commit；禁止 Connector/credential helper 把凭据写入 remote。任何源码检查前先做不回显值的 userinfo/credential-shape Gate；命中即登记事件、删除快照并轮换或证明凭据已失效。
+1. 在 `${X2N_DATA_ROOT}/downloads/external_research/runs/<run-id>/` 仅通过 `scripts/public_source_snapshot.py` 以匿名公开 URL 获取候选精确 Commit。该工具每条命令隔离 global/system Git config、禁用 Credential Helper/交互认证并使用环境 allowlist；x2n 不读取或改变任何共享认证材料。任何源码检查前先做不回显值的 userinfo/credential-shape Gate；命中即登记事件、删除快照并 Fail Closed。
 2. 比较 Commit/tree/blob/SHA-256、License 文件、manifest、lock 和已登记 Schema；任何缺失或未知均停止。
 3. xhs exporter 仅写 clean-room 行为差异，不导入源码、minified 库或 zip。
 4. douyin 候选先解析到独立 exact lock，扫描所有 transitive licenses 和 SBOM；不得读真实 cookie 或运行真实账号。

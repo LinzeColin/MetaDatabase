@@ -39,10 +39,11 @@
       "enum": [
         "rotated_and_revoked_old_material",
         "reauthenticated_and_revoked_old_material",
-        "confirmed_old_material_expired"
+        "confirmed_old_material_expired",
+        "retained_shared_external_material_with_x2n_zero_contact"
       ]
     },
-    "old_material_state": {"enum": ["revoked", "expired"]},
+    "old_material_state": {"enum": ["revoked", "expired", "retained_owner_directed"]},
     "attested_at": {
       "type": "string",
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"

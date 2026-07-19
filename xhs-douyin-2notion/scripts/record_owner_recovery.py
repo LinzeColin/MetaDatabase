@@ -21,11 +21,12 @@ from typing import Any, Optional
 
 INCIDENT_ID = "INC-X2N-S00-P05-001"
 RECEIPT_RELATIVE = Path("runtime/owner_recovery_attestation.local.json")
-OWNER_CONFIRMATION = "I_CONFIRM_INC_X2N_S00_P05_001_RECOVERY_IS_COMPLETE"
+OWNER_CONFIRMATION = "I_CONFIRM_INC_X2N_S00_P05_001_OWNER_DECISION_IS_FINAL"
 ACTION_STATES = {
     "rotated_and_revoked_old_material": "revoked",
     "reauthenticated_and_revoked_old_material": "revoked",
     "confirmed_old_material_expired": "expired",
+    "retained_shared_external_material_with_x2n_zero_contact": "retained_owner_directed",
 }
 
 

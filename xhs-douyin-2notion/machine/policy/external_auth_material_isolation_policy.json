@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "POLICY.X2N.AUTH-ISOLATION.001",
+  "incident_id": "INC-X2N-S00-P05-001",
+  "owner_change_event": "CE-X2N-20260720-S00-REVIEW-RESUME",
+  "classification": "external_owner_managed_shared_auth_material_outside_x2n",
+  "owner_decision": "retain_shared_external_material",
+  "residual_risk": "owner_accepted_external_only",
+  "not_a_secret_presence_waiver": true,
+  "x2n_controls": {
+    "read_material": false,
+    "request_material": false,
+    "display_material": false,
+    "persist_material": false,
+    "use_material": false,
+    "mutate_material": false,
+    "delete_material": false,
+    "rotate_material": false,
+    "revoke_material": false,
+    "modify_global_git_config": false,
+    "modify_credential_helpers": false
+  },
+  "future_public_source_research": {
+    "required_tool": "scripts/public_source_snapshot.py",
+    "anonymous_https_only": true,
+    "remote_userinfo_forbidden": true,
+    "credential_helpers_disabled_per_command": true,
+    "global_and_system_git_config_disabled_per_command": true,
+    "interactive_auth_disabled": true,
+    "environment_allowlist_only": true,
+    "temporary_snapshot_required": true,
+    "snapshot_deleted_after_audit": true
+  },
+  "g0_resolution_requirements": {
+    "project_current_tree_credential_hits": 0,
+    "project_history_credential_hits": 0,
+    "private_root_credential_hits": 0,
+    "product_or_runtime_references": 0,
+    "repository_authenticated_remote_hits": 0,
+    "owner_attestation_required": true,
+    "full_stage_review_resume_required": true
+  },
+  "future_secret_hit_action": "fail_closed_incident_no_waiver"
+}

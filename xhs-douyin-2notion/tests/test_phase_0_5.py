@@ -64,13 +64,15 @@ class Phase05Tests(unittest.TestCase):
     def test_stage_and_external_execution_remain_not_run(self) -> None:
         state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
         self.assertEqual(state["last_completed_phase"], "PH.X2N.0.5")
-        self.assertEqual(state["review_id"], "STG.X2N.0.REVIEW")
-        self.assertEqual(state["stage_gate"], "blocked_owner_action")
-        self.assertEqual(state["remote_upload"], "forbidden_until_g0_pass")
-        self.assertFalse(state["stage_1_authorized"])
+        self.assertIn(state["review_id"], {"STG.X2N.0.REVIEW", "STG.X2N.0.REVIEW.RESUME"})
+        self.assertIn(state["stage_gate"], {"blocked_owner_action", "pass"})
+        expected_upload = "authorized_after_g0_pass" if state["stage_gate"] == "pass" else "forbidden_until_g0_pass"
+        self.assertEqual(state["remote_upload"], expected_upload)
+        self.assertEqual(state["stage_1_authorized"], state["stage_gate"] == "pass")
         self.assertEqual(state["acceptance_status"]["ACC.x2n.media.003"], "design_fixture_pass_downstream_not_run")
         self.assertEqual(state["blocking_followups"][0]["scope"], "before_g0_pass")
-        self.assertEqual(state["blocking_followups"][0]["status"], "owner_action_pending")
+        expected_followup = "resolved" if state["stage_gate"] == "pass" else "owner_action_pending"
+        self.assertEqual(state["blocking_followups"][0]["status"], expected_followup)
 
     def test_worktree_isolation_defaults_strict_and_override_is_aggregate_only(self) -> None:
         strict = VERIFY._evaluate_main_isolation([], False)

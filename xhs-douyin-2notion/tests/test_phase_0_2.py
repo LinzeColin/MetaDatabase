@@ -53,10 +53,11 @@ class Phase02Tests(unittest.TestCase):
     def test_adapter_acceptance_is_not_overstated(self) -> None:
         state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
         self.assertEqual(state["acceptance_status"]["ACC.x2n.dy.003"], "baseline_pass_downstream_not_run")
-        self.assertFalse(state["next_phase_authorized"])
-        self.assertFalse(state["stage_1_authorized"])
-        self.assertEqual(state["stage_gate"], "blocked_owner_action")
-        self.assertEqual(state["remote_upload"], "forbidden_until_g0_pass")
+        self.assertIn(state["stage_gate"], {"blocked_owner_action", "pass"})
+        self.assertEqual(state["next_phase_authorized"], state["stage_gate"] == "pass")
+        self.assertEqual(state["stage_1_authorized"], state["stage_gate"] == "pass")
+        expected_upload = "authorized_after_g0_pass" if state["stage_gate"] == "pass" else "forbidden_until_g0_pass"
+        self.assertEqual(state["remote_upload"], expected_upload)
 
     def test_private_source_snapshots_when_explicitly_supplied(self) -> None:
         value = os.environ.get("X2N_UPSTREAM_SNAPSHOT_ROOT")

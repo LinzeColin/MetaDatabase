@@ -50,6 +50,8 @@ REVIEW_EVIDENCE_DIR = PROJECT_ROOT / "machine/evidence/stage_0/review"
 REVIEW_BRANCH = "codex/xhs-douyin-2notion-v0001-s00-review"
 REVIEW_ID = "STG.X2N.0.REVIEW"
 REVIEW_RUN_ID = "RUN-X2N-S00-REVIEW"
+RESUME_ID = "STG.X2N.0.REVIEW.RESUME"
+RESUME_RUN_ID = "RUN-X2N-S00-REVIEW-RESUME"
 INCIDENT_ID = "INC-X2N-S00-P05-001"
 EXPECTED_ROADMAP_SHA256 = "66f949b2109ffe2701d7b74099430e862f4027bb4a429c56e84e13716c0bc906"
 EXPECTED_TASKPACK_ZIP_SHA256 = "b32993f465888d9352d745b353c3b923c38406c941a8f357ddf1a64e2bba5a58"
@@ -374,7 +376,8 @@ def validate_canonical_boundaries() -> Check:
 def validate_gate_payload(gate: dict[str, Any]) -> None:
     _require(gate.get("schema_version") == "1.0", "gate state schema drifted")
     _require(gate.get("project") == "x2n" and gate.get("stage") == "STG.X2N.0", "gate state identity drifted")
-    _require(gate.get("review_id") == REVIEW_ID and gate.get("run_id") == REVIEW_RUN_ID, "gate Review identity drifted")
+    identity = (gate.get("review_id"), gate.get("run_id"))
+    _require(identity in {(REVIEW_ID, REVIEW_RUN_ID), (RESUME_ID, RESUME_RUN_ID)}, "gate Review identity drifted")
     _require(re.fullmatch(r"[0-9a-f]{40}", str(gate.get("review_sync_target", ""))) is not None, "Review sync target is missing or invalid")
     _require(gate.get("review_status") == "complete" and gate.get("automated_reacceptance") == "pass", "Review did not complete local reacceptance")
     _require(gate.get("gate_id") == "G0", "wrong stage gate")
@@ -382,17 +385,27 @@ def validate_gate_payload(gate: dict[str, Any]) -> None:
     _require(all(value == "pass" for value in gate["pass_conditions"].values()), "a local G0 pass condition failed")
     _require(tuple(gate.get("stop_conditions", {}).keys()) == G0_STATE_STOP_KEYS, "G0 state stop-condition keys drifted")
     _require(all(value == "inactive" for value in gate["stop_conditions"].values()), "a G0 Stop Condition is active or unknown")
-    followups = gate.get("blocking_followups", [])
-    _require(followups == [{
-        "id": INCIDENT_ID,
-        "scope": "before_g0_pass",
-        "status": "owner_action_pending",
-        "required_resolution": "rotate_or_reauthenticate_or_prove_expiry",
-    }], "before-G0 credential follow-up missing or weakened")
-    _require(gate.get("gate_status") == "blocked_owner_action", "pending owner action did not block G0")
-    _require(gate.get("gate_decision") == "fail_closed", "G0 decision is not fail-closed")
-    _require(gate.get("stage_1_authorized") is False, "Stage 1 was authorized while G0 is blocked")
-    _require(gate.get("remote_upload") == "forbidden_until_g0_pass", "remote upload was authorized while G0 is blocked")
+    if identity == (REVIEW_ID, REVIEW_RUN_ID):
+        _require(gate.get("blocking_followups") == [{
+            "id": INCIDENT_ID,
+            "scope": "before_g0_pass",
+            "status": "owner_action_pending",
+            "required_resolution": "rotate_or_reauthenticate_or_prove_expiry",
+        }], "before-G0 credential follow-up missing or weakened")
+        _require(gate.get("gate_status") == "blocked_owner_action", "pending owner action did not block G0")
+        _require(gate.get("gate_decision") == "fail_closed", "G0 decision is not fail-closed")
+        _require(gate.get("stage_1_authorized") is False, "Stage 1 was authorized while G0 is blocked")
+        _require(gate.get("remote_upload") == "forbidden_until_g0_pass", "remote upload was authorized while G0 is blocked")
+    else:
+        _require(gate.get("blocking_followups") == [{
+            "id": INCIDENT_ID,
+            "scope": "before_g0_pass",
+            "status": "resolved",
+            "required_resolution": "owner_directed_external_retention_with_x2n_zero_contact",
+        }], "Resume resolution is missing or ambiguous")
+        _require(gate.get("gate_status") == "pass" and gate.get("gate_decision") == "pass", "Resume did not produce an exact G0 pass")
+        _require(gate.get("stage_1_authorized") is True, "Stage 1 was not authorized after G0 pass")
+        _require(gate.get("remote_upload") == "authorized_after_g0_pass", "Stage 0 upload was not authorized after G0 pass")
     _require(gate.get("product_code") == "not_started" and gate.get("real_account_execution") == "not_run" and gate.get("platform_calls") == "not_run", "Stage 0 execution boundary overstated")
 
 
@@ -406,19 +419,34 @@ def validate_current_state() -> Check:
     validate_gate_payload(gate)
 
     state = _load_json(TASK_STATE)
-    _require(state.get("schema_version") == "1.1", "task state schema drifted")
-    _require(state.get("review_id") == REVIEW_ID and state.get("run_id") == REVIEW_RUN_ID, "task state Review identity drifted")
-    _require(state.get("run_kind") == "stage_review_no_new_dag_task", "Review Run kind drifted")
-    _require(state.get("state") == "review_complete_gate_blocked", "task state overstated or incomplete")
     _require(tuple(state.get("tasks", {}).keys()) == STAGE_TASKS and all(value == "pass" for value in state["tasks"].values()), "Stage 0 task state drifted")
     _require(state.get("stage_gate") == gate["gate_status"], "task/gate state disagree")
-    _require(state.get("stage_1_authorized") is False and state.get("next_phase_authorized") is False, "next Stage/Phase was authorized")
-    _require(state.get("next_phase") is None and state.get("next_run") == "STG.X2N.0.REVIEW.RESUME", "next route drifted")
     _require(state.get("remote_upload") == gate["remote_upload"], "task/gate upload state disagree")
-    _require(state.get("blocking_followups", [{}])[0].get("id") == INCIDENT_ID and state["blocking_followups"][0].get("status") == "owner_action_pending", "task state lost the credential follow-up")
     project = _load_json(PROJECT_FACT)
-    _require(project.get("status") == "stage_0_review_complete_g0_blocked_owner_action", "project fact does not reflect Review verdict")
-    return Check("current_stage_state", "PASS", {"review": "COMPLETE", "g0": "BLOCKED_OWNER_ACTION", "stage_1_authorized": False, "remote_upload": "FORBIDDEN"})
+    if gate.get("gate_status") == "blocked_owner_action":
+        _require(state.get("schema_version") == "1.1", "blocked task state schema drifted")
+        _require(state.get("review_id") == REVIEW_ID and state.get("run_id") == REVIEW_RUN_ID, "blocked task state Review identity drifted")
+        _require(state.get("run_kind") == "stage_review_no_new_dag_task" and state.get("state") == "review_complete_gate_blocked", "blocked Review state is invalid")
+        _require(state.get("stage_1_authorized") is False and state.get("next_phase_authorized") is False, "next Stage/Phase was authorized while blocked")
+        _require(state.get("next_phase") is None and state.get("next_run") == RESUME_ID, "blocked next route drifted")
+        _require(state.get("blocking_followups", [{}])[0].get("id") == INCIDENT_ID and state["blocking_followups"][0].get("status") == "owner_action_pending", "task state lost the pending follow-up")
+        _require(project.get("status") == "stage_0_review_complete_g0_blocked_owner_action", "project fact does not reflect blocked Review verdict")
+        details = {"review": "COMPLETE", "g0": "BLOCKED_OWNER_ACTION", "stage_1_authorized": False, "remote_upload": "FORBIDDEN"}
+    else:
+        _require(state.get("schema_version") == "1.2", "Resume task state schema drifted")
+        _require(state.get("review_id") == RESUME_ID and state.get("run_id") == RESUME_RUN_ID, "Resume task state identity drifted")
+        _require(state.get("run_kind") == "stage_review_resume_no_new_dag_task" and state.get("state") == "stage_0_g0_pass", "Resume task state is invalid")
+        _require(state.get("stage_1_authorized") is True and state.get("next_phase_authorized") is True, "next Stage/Phase was not authorized after G0 pass")
+        _require(state.get("next_phase") == "PH.X2N.1.1" and state.get("next_run") == "TSK.x2n.foundation.001", "post-G0 next route drifted")
+        _require(state.get("blocking_followups") == [{
+            "id": INCIDENT_ID,
+            "scope": "before_g0_pass",
+            "status": "resolved",
+            "action": "owner_directed_external_retention_with_x2n_zero_contact",
+        }], "task state Resume resolution is missing or ambiguous")
+        _require(project.get("status") == "stage_0_g0_pass_stage_1_authorized", "project fact does not reflect G0 pass")
+        details = {"review": "RESUME_COMPLETE", "g0": "PASS", "stage_1_authorized": True, "remote_upload": "AUTHORIZED"}
+    return Check("current_stage_state", "PASS", details)
 
 
 def validate_phase_receipts() -> Check:
@@ -628,6 +656,7 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
 def write_evidence(checks: list[Check]) -> None:
     gate = _load_json(GATE_STATE)
     validate_gate_payload(gate)
+    _require(gate.get("gate_status") == "blocked_owner_action", "historical Review writer cannot overwrite evidence after Resume")
     now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     common = {
         "schema_version": "1.0",
@@ -737,14 +766,17 @@ def main() -> int:
         elif args.require_evidence:
             checks.append(validate_review_evidence())
 
+        gate = _load_json(GATE_STATE)
+        g0_pass = gate.get("gate_status") == "pass"
         print(json.dumps({
             "status": "PASS",
-            "review_status": "COMPLETE",
-            "review_id": REVIEW_ID,
+            "review_status": "RESUME_COMPLETE" if g0_pass else "COMPLETE",
+            "review_id": gate.get("review_id"),
             "checks": [check.__dict__ for check in checks],
-            "g0_status": "BLOCKED_OWNER_ACTION",
-            "stage_1_authorized": False,
-            "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
+            "historical_review_g0_status": "BLOCKED_OWNER_ACTION",
+            "g0_status": "PASS" if g0_pass else "BLOCKED_OWNER_ACTION",
+            "stage_1_authorized": g0_pass,
+            "remote_upload": "AUTHORIZED_AFTER_G0_PASS" if g0_pass else "FORBIDDEN_UNTIL_G0_PASS",
             "product_code": "NOT_STARTED",
             "real_account_execution": "NOT_RUN",
         }, ensure_ascii=False, sort_keys=True))

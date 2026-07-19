@@ -312,6 +312,7 @@ def validate_registration() -> Check:
         "CE-X2N-20260719-S00-P01",
         "CE-X2N-20260719-S00-P05",
         "CE-X2N-20260720-S00-REVIEW",
+        "CE-X2N-20260720-S00-REVIEW-RESUME",
     ], "owner adaptations missing")
 
     repository_root = PROJECT_ROOT.parent

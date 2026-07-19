@@ -23,13 +23,14 @@
 1. `rotated_and_revoked_old_material`
 2. `reauthenticated_and_revoked_old_material`
 3. `confirmed_old_material_expired`
+4. `retained_shared_external_material_with_x2n_zero_contact`：仅在 Owner 明确要求保留共享材料、接受外部残余风险，并禁止 x2n 接触或改变该材料时使用；必须同时满足 `CE-X2N-20260720-S00-REVIEW-RESUME` 的补偿控制。
 
 只有 Owner 直接声明其中一项已经完成后，才允许使用固定确认语句调用：
 
 ```bash
 python3 -B scripts/record_owner_recovery.py \
   --action <owner-selected-action> \
-  --owner-confirmation I_CONFIRM_INC_X2N_S00_P05_001_RECOVERY_IS_COMPLETE
+  --owner-confirmation I_CONFIRM_INC_X2N_S00_P05_001_OWNER_DECISION_IS_FINAL
 ```
 
 禁止 Agent 根据 `gh auth status`、本地扫描 0 命中、当前可登录或临时 clone 已删除来推断 Owner Action 已完成。
@@ -48,6 +49,6 @@ python3 -B scripts/verify_owner_recovery_attestation.py
 
 ## 风险、回滚与停止条件
 
-- 风险：Owner 自述不是 Provider Secret，也不是凭据值；它只记录 Owner 已在 Provider 侧确认的生命周期动作。
+- 风险：Owner 自述不是 Provider Secret，也不是凭据值；它只记录 Owner 已确认的生命周期动作，或“保留外部共享材料＋x2n 零接触”的明确风险决策。
 - 回滚：反向提交本 Review Fix；不得删除 Owner 私有回执或伪造替代回执。
 - Stop：无 Owner 直接声明、回执不合法、出现任何敏感值、外部 worktree 重叠或既有 Stage 0 回归失败时，维持 G0 阻断。

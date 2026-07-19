@@ -66,6 +66,16 @@ class OwnerRecoveryAttestationTests(unittest.TestCase):
         with self.assertRaises(VERIFY.VerificationError):
             VERIFY.validate_receipt_payload(receipt, now=FIXED_NOW, incident_at=INCIDENT_AT)
 
+    def test_owner_retained_external_material_requires_zero_contact_state(self) -> None:
+        receipt = RECORD.build_receipt(
+            "retained_shared_external_material_with_x2n_zero_contact",
+            RECORD.OWNER_CONFIRMATION,
+            now=FIXED_NOW,
+        )
+        check = VERIFY.validate_receipt_payload(receipt, now=FIXED_NOW, incident_at=INCIDENT_AT)
+        self.assertEqual(check.details["old_material_state"], "retained_owner_directed")
+        self.assertEqual(check.details["authorization_scope"], "STAGE_0_REVIEW_RESUME_ONLY")
+
     def test_receipt_cannot_grant_g0_stage_1_or_upload(self) -> None:
         receipt = RECORD.build_receipt(
             "confirmed_old_material_expired",

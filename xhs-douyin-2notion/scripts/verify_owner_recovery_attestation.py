@@ -27,6 +27,7 @@ ACTION_STATES = {
     "rotated_and_revoked_old_material": "revoked",
     "reauthenticated_and_revoked_old_material": "revoked",
     "confirmed_old_material_expired": "expired",
+    "retained_shared_external_material_with_x2n_zero_contact": "retained_owner_directed",
 }
 
 
