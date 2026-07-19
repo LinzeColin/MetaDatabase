@@ -215,6 +215,21 @@ const EMPIRE_ZONES: readonly Zone[] = [
 // 焦点节点的环绕粒子（视频样例：轨道点环，reduced-motion 时静止）。
 // 坐标取整到 0.01：三角函数原始浮点在 SSR 与客户端的序列化位数不同，
 // 会触发 hydration mismatch。
+// S14 视频复刻批次2：金核绽放光芒 rays（样例视频 genesis 核语言）。等角
+// 辐条从核向外放射，坐标确定性取整 SSR 安全；数量克制、纯 stroke 无滤镜守 A168。
+const SUN_RAYS = Array.from({ length: 16 }, (_, index) => {
+  const a = (index / 16) * Math.PI * 2;
+  const inner = 46;
+  const outer = index % 2 === 0 ? 122 : 96;
+  return {
+    x1: Math.round(380 + Math.cos(a) * inner),
+    y1: Math.round(240 + Math.sin(a) * inner),
+    x2: Math.round(380 + Math.cos(a) * outer),
+    y2: Math.round(240 + Math.sin(a) * outer),
+    long: index % 2 === 0
+  };
+});
+
 // S14 视频复刻：稀疏 travelling 粒子（背景生命感）。位置/漂移向量确定性生成
 // 并取整（SSR/client 序列化一致，避免 hydration mismatch）；数量克制守 A168。
 const AMBIENT_PARTICLES = Array.from({ length: 14 }, (_, index) => {
@@ -4405,6 +4420,20 @@ export default function Home() {
                   r={radius}
                 />
               ))}
+              {/* S14 批次2：金核绽放光芒 rays（慢转+微闪，reduced-motion 静止）。 */}
+              <g className="sunRays" data-testid="empire-sun-rays">
+                {SUN_RAYS.map((ray, i) => (
+                  <line
+                    className={`sunRay${ray.long ? " long" : ""}`}
+                    key={i}
+                    style={{ "--ray-i": i } as CSSProperties}
+                    x1={ray.x1}
+                    y1={ray.y1}
+                    x2={ray.x2}
+                    y2={ray.y2}
+                  />
+                ))}
+              </g>
               <circle className="sunHalo" cx={380} cy={240} r={64} fill="url(#sunGlow)" />
             </g>
             {/* S14 视频复刻：稀疏 travelling 粒子层（装饰，aria-hidden）。 */}

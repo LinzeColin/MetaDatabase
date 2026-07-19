@@ -809,6 +809,33 @@ dd {
   animation: empireSunPulse calc(var(--motion-scale) * 3.6s + 0.001s) ease-in-out infinite;
 }
 
+/* S14 批次2：金核绽放光芒 rays。整组极慢旋转（--motion-scale 归零则静止），
+   每条辐条按 --ray-i 错相位微闪。纯 stroke 无滤镜守 A168。 */
+@keyframes sunRaysSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes sunRayShimmer {
+  0%, 100% { opacity: 0.22; }
+  50% { opacity: 0.55; }
+}
+.sunRays {
+  transform-origin: 380px 240px;
+  transform-box: view-box;
+  animation: sunRaysSpin calc(var(--motion-scale) * 90s + 0.001s) linear infinite;
+  pointer-events: none;
+}
+.sunRay {
+  stroke: rgba(224, 168, 67, 0.24);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  animation: sunRayShimmer calc(var(--motion-scale) * 4.2s + 0.001s) ease-in-out infinite;
+  animation-delay: calc(var(--ray-i, 0) * -0.28s);
+}
+.sunRay.long {
+  stroke: rgba(224, 168, 67, 0.32);
+  stroke-width: 1.5;
+}
+
 @keyframes empireFilamentDraw {
   from { stroke-dashoffset: 1; }
   to { stroke-dashoffset: 0; }
@@ -882,6 +909,17 @@ dd {
 
 :root[data-theme="deep-space"] .orbitRing {
   stroke: rgba(90, 162, 255, 0.28);
+}
+
+/* S14 批次2：深空下金核光芒更亮（screen 混合提亮），趋近视频 genesis 核。 */
+:root[data-theme="deep-space"] .sunRay {
+  stroke: rgba(255, 208, 122, 0.42);
+  stroke-width: 1.5;
+  mix-blend-mode: screen;
+}
+:root[data-theme="deep-space"] .sunRay.long {
+  stroke: rgba(255, 214, 138, 0.58);
+  stroke-width: 1.7;
 }
 
 :root[data-theme="deep-space"] .ecosystemMap marker path {
