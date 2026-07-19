@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # BLK-005 部署日凭据装载(owner 亲自在服务器上运行,交互式)。
 #   ssh ubuntu@HOST      # owner 自己登录
-#   sudo bash /opt/alpha/MetaDatabase/Alpha/deploy/load_credentials.sh
+#   sudo bash /opt/alpha/MetaDatabase/Alpha/deploy/load_env_interactive.sh
 # 红线:秘密用静默输入(read -s),只写 /opt/alpha/env(600, 属主 alpha);
 #   绝不回显、绝不写日志、绝不进 Git;Claude 全程不经手这些值。
 # 幂等:可重复运行覆盖;留空=保持原值不动。
