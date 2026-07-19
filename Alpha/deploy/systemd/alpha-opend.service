@@ -5,6 +5,7 @@ Wants=network-online.target
 
 [Service]
 User=alpha
+WorkingDirectory=/opt/alpha/opend
 EnvironmentFile=/opt/alpha/env
 ExecStart=/opt/alpha/opend/OpenD -config /opt/alpha/opend/OpenD.xml
 Restart=always

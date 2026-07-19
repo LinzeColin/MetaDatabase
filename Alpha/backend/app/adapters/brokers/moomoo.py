@@ -219,7 +219,15 @@ def build_real_opend_client(*, host: str = "127.0.0.1", port: int = 11111) -> Op
                 "moomoo/futu SDK 未安装:真机探针只能在部署主机上运行(见 specs/DEPLOY_RUNBOOK_ORACLE.md);"
                 "本地不伪造真机行为"
             ) from exc
-    raise NotImplementedError(  # pragma: no cover
-        "真机桥接在 ALPHA-LIVE-040 部署任务中与 OpenD 实机联调时完成并留痕;"
-        "020 阶段如实标注:未与真机验证过的桥接代码不冒充可用"
-    )
+    # pragma: no cover - 真机路径:映射逻辑有假件单测,端到端验证以部署机探针留痕为准
+    import os
+
+    from backend.app.adapters.brokers.moomoo_real import RealOpenDClient
+
+    rsa_path = os.environ.get("OPEND_RSA_KEY_PATH", "")
+    if rsa_path and os.path.exists(rsa_path):  # 可选传输加密(仅回环时可不启用)
+        sdk.SysConfig.enable_proto_encrypt(True)
+        sdk.SysConfig.set_init_rsa_file(rsa_path)
+    return RealOpenDClient(
+        sdk, host=host, port=port,
+        security_firm=os.environ.get("MOOMOO_SECURITY_FIRM", "FUTUAU"))
