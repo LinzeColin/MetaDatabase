@@ -592,6 +592,7 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
 
 
 def write_evidence(checks: list[Check]) -> None:
+    _require(_load_json(TASK_STATE).get("stage_gate") != "pass", "historical Phase evidence cannot be overwritten after G0 pass")
     now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     common = {
         "schema_version": "1.0",
@@ -741,15 +742,16 @@ def main() -> int:
             checks.append(validate_evidence())
         elif args.require_evidence:
             checks.append(validate_evidence())
+        current = _load_json(TASK_STATE)
         print(json.dumps({
             "status": "PASS",
             "phase": "PH.X2N.0.5",
             "checks": [check.__dict__ for check in checks],
             "product_code": "NOT_STARTED",
             "real_account_execution": "NOT_RUN",
-            "stage_gate": "BLOCKED_OWNER_ACTION",
+            "stage_gate": str(current.get("stage_gate", "unknown")).upper(),
             "phase_evidence_stage_gate": "NOT_RUN",
-            "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
+            "remote_upload": str(current.get("remote_upload", "unknown")).upper(),
         }, ensure_ascii=False, sort_keys=True))
         return 0
     except (OSError, ValueError, VerificationError, yaml.YAMLError) as exc:

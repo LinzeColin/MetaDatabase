@@ -801,13 +801,14 @@ def main() -> int:
             _require(args.verify_worktree, "worktree scope verification is required before evidence")
             _require(bool(args.source_roadmap and args.source_taskpack), "source verification is required before evidence")
             write_evidence(checks)
+        current = _load_json(TASK_STATE)
         result = {
             "status": "PASS",
             "phase": "PH.X2N.0.1",
             "checks": [check.__dict__ for check in checks],
             "evidence_written": bool(args.write_evidence),
-            "stage_gate": "BLOCKED_OWNER_ACTION",
-            "next_phase_authorized": False,
+            "stage_gate": str(current.get("stage_gate", "unknown")).upper(),
+            "next_phase_authorized": current.get("next_phase_authorized") is True,
         }
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0

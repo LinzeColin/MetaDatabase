@@ -538,14 +538,15 @@ def main() -> int:
             checks.append(validate_temp_cleanup())
         if args.require_evidence:
             checks.append(validate_evidence())
+        current = _load_json(TASK_STATE)
         result = {
             "status": "PASS",
             "phase": "PH.X2N.0.2",
             "checks": [check.__dict__ for check in checks],
             "adapter_contract_tests": "DOWNSTREAM_NOT_RUN",
-            "stage_gate": "BLOCKED_OWNER_ACTION",
+            "stage_gate": str(current.get("stage_gate", "unknown")).upper(),
             "phase_evidence_stage_gate": "NOT_RUN",
-            "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
+            "remote_upload": str(current.get("remote_upload", "unknown")).upper(),
         }
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0
