@@ -6,8 +6,8 @@ project:
   token: x2n
   version: v0.0.0.1
   owner: LinzeColin
-  status: PRE_STAGE_00_GOVERNANCE_BASELINE
-  owner_change_event: CE-X2N-20260719-S00-P01
+  status: STAGE_0_G0_PASS
+  owner_change_event: CE-X2N-20260720-S00-REVIEW-RESUME
   repository: https://github.com/LinzeColin/MetaDatabase
   skill_path: xhs-douyin-2notion/
   repository_visibility: public
@@ -28,11 +28,14 @@ authorization:
   stage_0_phase_0_1_governance: true
   stage_0_phase_0_2_governance: true
   stage_0_phase_0_5_governance: true
-  product_code_changes: false
+  stage_0_review_resume: true
+  stage_0_remote_upload: true
+  stage_1_task_start: true
+  product_code_changes: true
   real_account_execution: false
   public_release: false
   vps_data_plane: false
-  instruction: Owner 已授权 Stage 0 Phase 0.1/0.2/0.5 治理准备；产品代码、真实账号、外部平台/Notion/模型写入、Stage 1 和远端上传仍未授权。
+  instruction: G0 已由独立 Stage 0 Review Resume 签发；可上传整个 Stage 0，并在后续独立 Run 启动 TSK.x2n.foundation.001。当前 Run 不执行 Stage 1；真实账号、平台/Notion/模型调用、媒体与公开产品 Release 仍未授权。
 canonical_decisions:
 - id: DEC-X2N-001
   decision: Chrome MV3 Side Panel + Local Companion/WebUI

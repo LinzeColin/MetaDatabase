@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 0 Review` 已完成本地 Review/Fix/Re-acceptance；全部可自动复核项通过，但凭据形态事件 `INC-X2N-S00-P05-001` 仍需 Owner 轮换/重新认证或证明旧凭据已失效，因此 `G0=BLOCKED_OWNER_ACTION`、Stage 1 未授权、远端上传禁止。本阶段不包含采集、账号访问、浏览器控制、模型调用、Notion 写入或媒体处理；六平台与所有上游候选均关闭且未进入 runtime。与 MetaDatabase 其他长期开发采用显式 cutoff 和零重叠 worktree 隔离，外部文件不进入本项目证据或提交。
+当前状态：`v0.0.0.1 / Stage 0` 已经独立 Review/Fix/Re-acceptance 与 Review Resume，`G0=PASS`；整个 Stage 0 分支可上传，Stage 1 只授权在后续独立 Run 从 `TSK.x2n.foundation.001` 开始。本阶段仍不包含采集、账号访问、浏览器控制、模型调用、Notion 写入或媒体处理；六平台与所有上游候选均关闭且未进入 runtime。Owner 保留的外部共享认证材料不由 x2n 读取、使用或修改；与 MetaDatabase 其他长期开发采用显式 cutoff 和零重叠 worktree 隔离，外部文件不进入本项目证据或提交。
 
 ## 固定边界
 
@@ -46,21 +46,22 @@ python3 -B scripts/verify_phase_0_5.py --verify-worktree --allow-external-main-d
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
-## Stage 0 Review 验证
+## Stage 0 Review Resume 验证
 
 ```bash
 python3 -B scripts/verify_stage_0_review.py --verify-worktree --allow-external-main-dirty --verify-local-root --source-roadmap "$X2N_SOURCE_ROADMAP" --source-taskpack "$X2N_SOURCE_TASKPACK" --require-evidence
+python3 -B scripts/verify_stage_0_review_resume.py --expect-g0 pass --verify-worktree --allow-external-main-dirty --source-roadmap "$X2N_SOURCE_ROADMAP" --source-taskpack "$X2N_SOURCE_TASKPACK" --require-evidence
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Review 结论见 [`docs/governance/STAGE_0_REVIEW.md`](docs/governance/STAGE_0_REVIEW.md)。只有 Owner 完成事件恢复动作后，才可新开 `STG.X2N.0.REVIEW.RESUME` 重验并重新决定 G0；当前不得进入 Stage 1 或上传。
+首次 Review 的历史 Blocked 结论见 [`docs/governance/STAGE_0_REVIEW.md`](docs/governance/STAGE_0_REVIEW.md)，当前 Resume 结论见 [`docs/governance/STAGE_0_REVIEW_RESUME.md`](docs/governance/STAGE_0_REVIEW_RESUME.md)。历史证据未重写；当前 G0 PASS 来自独立 Resume 证据。
 
-恢复动作使用闭合的私有 Owner Attestation 契约；预检命令如下。当前回执按设计不存在，因此应退出 `2 / BLOCKED_OWNER_ACTION`，不是测试失败，也不能据此生成回执：
+恢复动作使用闭合的私有 Owner Attestation 契约；验证命令如下：
 
 ```bash
 python3 -B scripts/verify_owner_recovery_attestation.py
 ```
 
-只有 Owner 直接确认已完成轮换并撤销、重新认证并撤销或确认过期中的一项后，才可按 [`RUN_CONTRACT_S00_REVIEW_RESUME_PREP.md`](docs/governance/RUN_CONTRACT_S00_REVIEW_RESUME_PREP.md) 记录回执。合法回执仍只授权 Review Resume，不直接授权 G0、Stage 1 或上传。
+私有回执本身仍只授权 Review Resume，不直接授权 G0、Stage 1 或上传；最终授权以完整 Resume 机器门禁为准。共享外部材料的 Owner 保留决定不会覆盖 x2n 内 Secret/CDN 不可豁免规则。
 
 以上 `--allow-external-main-dirty` 只用于 Owner 已明确要求的长期并行情形，并要求外部 dirty paths 与 x2n 零重叠；正常 clean-main 场景应省略此参数，默认严格门禁保持不变。

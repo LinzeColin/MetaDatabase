@@ -1,6 +1,6 @@
 # Pre-development Readiness Matrix
 
-此矩阵只做路由，不提前执行 Stage 1。状态含义：`RESOLVED` 已有本轮证据；`NOT_RUN` 未验收；`DEFAULTED` 有可逆默认但不等于通过；`BLOCKS_G0` 在进入 Stage 1 前必须完成。
+此矩阵只做路由，本 Resume Run 不执行 Stage 1。状态含义：`RESOLVED` 已有本轮证据；`NOT_RUN` 未验收；`DEFAULTED` 有可逆默认但不等于通过；`AUTHORIZED_NEXT_RUN` 只允许在后续独立 Run 开始。
 
 | 主题 | 当前状态 | 已知默认/边界 | 唯一后续路由 | 是否阻断当前 Phase |
 |---|---|---|---|---|
@@ -19,7 +19,7 @@
 | AI Provider/预算 | DEFAULTED | Cloud Off、预算 0 | Stage 4 对应 Gate | 否 |
 | Threat Model/ADR | REVIEWED_DESIGN | ADR-001–010、10 Trust Boundaries、STRIDE、20 Stop/Kill | Phase 0.5 + Stage 0 Review 证据 | 否；实现 Oracle 仍未运行 |
 | ShilongLee/Crawler | REVALIDATED / EXCLUDED | 固定 Commit 仍为当前 HEAD；自定义非商业 License；0 copy/vendor/runtime dependency；clean-room ideas only | Stage 0 Review 外部复核 | 否 |
-| 临时源码 remote 凭据形态 | CONTAINED / BLOCKS_G0 | 临时副本删除；项目/私有根文件扫描 0；凭据生命周期未知 | `INC-X2N-S00-P05-001`；Owner 轮换/重新认证或过期证明 | 不阻断本 Phase；阻断 G0 PASS |
-| Stage 0 Gate / 上传 | REVIEW_COMPLETE / BLOCKED_OWNER_ACTION | 自动门禁通过；非秘密闭合回执入口已就绪但真实 Owner Attestation 不存在；禁止 push | Owner 先完成 Provider 侧动作并直接确认，再生成私有回执并执行 `STG.X2N.0.REVIEW.RESUME` | 是；阻断 G0 PASS、Stage 1 和上传 |
+| 外部共享认证材料与临时源码事件 | RESOLVED_WITH_COMPENSATING_CONTROLS | 外部材料由 Owner 保留；x2n 零接触；当前树/历史/私有根/Local Remote 0 命中；Secret Presence 不可 waiver | `POLICY.X2N.AUTH-ISOLATION.001`；未来匿名公开源码 Snapshot；任一新命中 Fail Closed | 否；Resume 证据已关闭原 G0 follow-up |
+| Stage 0 Gate / 上传 | G0_PASS / AUTHORIZED | 独立 Resume、Owner 闭合回执、完整复验与脱敏证据通过；首次 Blocked 证据保留 | 上传整个 Stage 0；后续独立 Run 从 `TSK.x2n.foundation.001` 开始 | 否；本 Run 不执行 Stage 1 |
 
-Stage 0 Review 已完成。本地开发准备项没有新的未知，但 G0 仍被凭据恢复动作阻断；Owner 完成轮换/重新认证或失效证明后，只能进入独立 `STG.X2N.0.REVIEW.RESUME`。在机器 G0 PASS 前不能跳到 Stage 1、启用任何平台、读取真实账号或上传 Stage 0。
+Stage 0 Review Resume 已签发机器 `G0 PASS`。Stage 0 可整阶段上传；下一独立 Run 只允许 `TSK.x2n.foundation.001`。这不启用任何平台、不授权真实账号，也不代表产品或下游 Acceptance 已运行。

@@ -2,14 +2,14 @@
   "schema_version": "1.0",
   "project": "x2n",
   "stage": "STG.X2N.0",
-  "review_id": "STG.X2N.0.REVIEW",
-  "run_id": "RUN-X2N-S00-REVIEW",
+  "review_id": "STG.X2N.0.REVIEW.RESUME",
+  "run_id": "RUN-X2N-S00-REVIEW-RESUME",
   "review_sync_target": "9f68c69becc31b0626b387eb36711235cf48af6f",
   "review_status": "complete",
   "automated_reacceptance": "pass",
   "gate_id": "G0",
-  "gate_status": "blocked_owner_action",
-  "gate_decision": "fail_closed",
+  "gate_status": "pass",
+  "gate_decision": "pass",
   "pass_conditions": {
     "governance_registered": "pass",
     "license_and_upstream_registry_complete": "pass",
@@ -27,12 +27,12 @@
     {
       "id": "INC-X2N-S00-P05-001",
       "scope": "before_g0_pass",
-      "status": "owner_action_pending",
-      "required_resolution": "rotate_or_reauthenticate_or_prove_expiry"
+      "status": "resolved",
+      "required_resolution": "owner_directed_external_retention_with_x2n_zero_contact"
     }
   ],
-  "stage_1_authorized": false,
-  "remote_upload": "forbidden_until_g0_pass",
+  "stage_1_authorized": true,
+  "remote_upload": "authorized_after_g0_pass",
   "product_code": "not_started",
   "real_account_execution": "not_run",
   "platform_calls": "not_run",

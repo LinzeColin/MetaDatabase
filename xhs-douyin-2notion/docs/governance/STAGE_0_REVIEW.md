@@ -1,5 +1,7 @@
 # Stage 0 全阶段 Review / Fix / Re-acceptance
 
+> 历史状态说明：本文记录首次 `STG.X2N.0.REVIEW` 当时的真实 Blocked 结论。后续 `STG.X2N.0.REVIEW.RESUME` 已在新的 Owner Change Event、补偿控制和完整复验证据下签发 `G0 PASS`；当前状态见 `STAGE_0_REVIEW_RESUME.md`。本文与原机器证据不回写为 PASS。
+
 ## 结论
 
 `STG.X2N.0.REVIEW` 已完成本地独立复核、修复与重验。五项 G0 构建准备条件均有机器证据，taskpack 与 roadmap 合并后的四项 Stop Condition 均未激活；但 `INC-X2N-S00-P05-001` 的凭据生命周期仍缺少 Owner 轮换、重新认证或失效证明。因此真实结论是：

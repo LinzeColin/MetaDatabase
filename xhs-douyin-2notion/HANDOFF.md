@@ -2,60 +2,56 @@
 
 ## 当前目标
 
-按 v0.0.0.1 Task DAG Stage 0–6 构建 `LinzeColin/MetaDatabase` 下唯一子项目 `xhs-douyin-2notion/`。产品终态覆盖小红书、抖音、哔哩哔哩、快手、微博和淘宝，但始终限定为 Owner 明确选择内容的个人知识治理，不是通用爬虫。
+按 v0.0.0.1 Task DAG Stage 0–6 构建 `LinzeColin/MetaDatabase` 下唯一子项目 `xhs-douyin-2notion/`。终态覆盖小红书、抖音、哔哩哔哩、快手、微博和淘宝，但始终是 Owner 明确选择内容的个人知识治理，不是通用爬虫。
 
 ## 当前状态
 
-- `Stage 0 / Phase 0.1、0.2、0.5`：历史 Task/receipt 复验 PASS；`TSK.x2n.discovery.001–005` 全部完成。
-- `STG.X2N.0.REVIEW`：本地 Review/Fix/Re-acceptance 完成；5 个可本地修复 Finding 已关闭。
-- `RUN-X2N-S00-REVIEW-RESUME-PREP`：已补齐非秘密 Owner 恢复回执的闭合 Schema、私有逻辑路径、生成器、fail-closed verifier 与负向测试；没有创建真实回执。
-- `G0`：`BLOCKED_OWNER_ACTION`，不是 PASS。`INC-X2N-S00-P05-001` 要求 Owner 在 G0 前轮换/重新认证或提供旧凭据失效证明。
-- Stage 1、产品代码、真实账号、平台/Notion/模型调用、媒体下载与远端上传：全部未授权/`NOT_RUN`。
-- 六个平台：全部 `UNKNOWN_DISABLED`；任何平台须在对应 Task 开始时重新通过独立 Policy/Auth/Technical/Canary Gate。
-- Task Pack：32 Requirements、43 Tasks、61 Acceptances、7 个 Stage Gates；普通 Run 最多执行一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。
+- `TSK.x2n.discovery.001–005` 与 Stage 0 Phase 0.1/0.2/0.5：完成。
+- 首次 `STG.X2N.0.REVIEW`：历史结论 `BLOCKED_OWNER_ACTION`，原报告与 3 份机器证据保持不变。
+- `STG.X2N.0.REVIEW.RESUME`：完整复验通过；当前 `G0=PASS`。
+- Stage 0 整阶段远端上传：已授权。
+- Stage 1：只授权后续独立 Run 从 `TSK.x2n.foundation.001` 开始；本 Resume Run 未执行产品代码。
+- 产品、真实账号、Chrome 控制、六平台调用、Notion、模型、媒体与全部下游产品 Acceptance：`NOT_RUN`。
+- 六平台：全部 `UNKNOWN_DISABLED`；各平台实现开始时重新通过 Policy/Auth/Technical Gate。
 
-## Review 关键修复
+## Resume 关键决策
 
-1. 三个 Phase verifier 精确支持独立 `s00-review` 分支，完整复验不再被旧 branch allowlist 阻断。
-2. 执行粒度从“每 Run 一个 Phase”收紧为 Owner 要求的“每 Run 一个 DAG Task”；历史 P01 的三 Task 同 Run 已登记为流程不符合项并逐 Task 重验，未来不能批量带做同 Phase Task。
-3. 删除 `MediaCrawler` 产品 Adapter Feature Flag 与外部安装残留语义；下载父目录名只代表存储位置，不是上游授权。
-4. 将长期并行的 moving `origin/main` 固定为明确 Review cutoff；cutoff 后无关提交不吸收，触及 x2n 才 Fail Closed。
-5. 将凭据恢复从文字要求收紧为闭合 Owner Attestation：禁止自由文本/Secret/账号/URL，缺失或非法均保持阻断，合法也只允许 Review Resume。
+1. Owner 要求保留供其他并行工作使用的外部共享 GitHub 认证材料，并接受其外部残余风险。
+2. x2n 对该材料零读取、零请求、零显示、零持久化、零使用、零修改、零删除/轮换/撤销，也不修改全局 Git 配置或 Credential Helper。
+3. 这不是 Secret Presence Waiver；认证材料、Cookie、认证 Remote 或平台媒体 CDN 值一旦进入 x2n Repo、History、Runtime、Evidence 或 Artifact，仍立即 Fail Closed。
+4. 未来公开源码研究只允许 `scripts/public_source_snapshot.py`：匿名 HTTPS、隔离 HOME、最小环境、禁用 global/system Git config 与 Credential Helper，审计后删除。
+5. 与其他长期开发线继续使用独立 worktree 和 Review cutoff；cutoff 后只检查 x2n overlap，不吸收无关提交。
 
-## 不变边界
+## 证据与验证结果
 
-- 唯一母仓库/子项目：`LinzeColin/MetaDatabase` / `xhs-douyin-2notion/`。
-- 原始 taskpack 未指定本机绝对下载路径。Owner 指定的 `X2N_DATA_ROOT` 是 `X2N_DOWNLOAD_DESTINATION` 下 `xhs-douyin-2notion/` 隔离命名空间；Runtime 与全部下载共用该根。
-- 目的地已有同级条目只允许不回显名称的聚合元数据审计；不读取内容、不导入、不链接、不修改、不删除。
-- Public Code / Private Runtime；代码和数据均专有。SQLite Canonical Store 是唯一真相源；Markdown/Notion 是可重建 Sink。
-- 不持久化平台媒体 CDN URL、凭据、Cookie、浏览器状态或原始媒体；AI 不得创建一级分类；不自动滚动、不改变账号状态、不绕过平台控制。
-- `ShilongLee/Crawler` 与 MediaCrawler 仅为固定 Commit 的不可执行研究证据：不复制、不 Vendor、不安装、不运行、不接收输出、不作 Runtime Dependency。
-
-## Review 证据与验证
-
-- 人类报告：`docs/governance/STAGE_0_REVIEW.md`
-- 机器状态：`machine/facts/stage_gate_state.json`
-- 机器证据：`machine/evidence/stage_0/review/{verification,G0,external_revalidation}.json`
-- Review cutoff：`origin/main@9f68c69becc31b0626b387eb36711235cf48af6f`
-- 历史 Phase receipt：20 个 JSON，Review 未重写；下游产品/Release Oracle 保持 `NOT_RUN`。
-- 复验：Review verifier 10 项 PASS；Phase 0.1/0.2/0.5 完整 verifier PASS；28 tests PASS、2 个仅私有可选输入测试按设计 skip。
+- Owner 回执：私有 `0600` 闭合回执通过；公开证据不含 ID、时间、哈希、账号、URL、本机路径或材料值。
+- 当前树、项目历史、私有根、x2n Local Remote、产品/Runtime 引用：全部 0 命中。
+- 历史 Phase receipt：20 份，未重写；原 Review receipt：3 份，仍记录首次 Blocked 事实。
+- 原始 roadmap/ZIP：固定 SHA-256 匹配；ZIP CRC/7 成员保持通过。
+- cutoff 后 `origin/main` 漂移：2 commits；x2n overlap 0。
+- Resume 证据：`machine/evidence/stage_0/review_resume/{verification,G0,owner_decision}.json`。
+- 人类报告：`docs/governance/STAGE_0_REVIEW_RESUME.md`。
 
 ```bash
+python3 -B scripts/verify_stage_0_review_resume.py --expect-g0 pass --verify-worktree --allow-external-main-dirty --source-roadmap "$X2N_SOURCE_ROADMAP" --source-taskpack "$X2N_SOURCE_TASKPACK" --require-evidence
 python3 -B scripts/verify_stage_0_review.py --verify-worktree --allow-external-main-dirty --verify-local-root --source-roadmap "$X2N_SOURCE_ROADMAP" --source-taskpack "$X2N_SOURCE_TASKPACK" --require-evidence
-python3 -B scripts/verify_phase_0_1.py --verify-worktree --allow-external-main-dirty --verify-local-root --source-roadmap "$X2N_SOURCE_ROADMAP" --source-taskpack "$X2N_SOURCE_TASKPACK"
+python3 -B scripts/verify_phase_0_1.py --verify-worktree --allow-external-main-dirty --verify-local-root
 python3 -B scripts/verify_phase_0_2.py --verify-worktree --allow-external-main-dirty --verify-temp-cleanup --require-evidence
 python3 -B scripts/verify_phase_0_5.py --verify-worktree --allow-external-main-dirty --validate-owner-input "$X2N_DATA_ROOT" --verify-temp-cleanup --require-evidence
-python3 -B scripts/verify_owner_recovery_attestation.py  # 当前预期 exit 2 / BLOCKED_OWNER_ACTION
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
-## 未解决风险
+## 不变边界
 
-- 唯一 G0 阻断项是 `INC-X2N-S00-P05-001` 的凭据生命周期证明。不得把本地扫描 0 命中解释为旧凭据已失效。
-- 当前政策复核不构成法律或平台授权；每个平台启动实现时必须查当时有效的一手条款、Scope、成本和技术路径。
-- Owner 尚未提供真实分类、规模、登录态、Notion 父级/凭据或云模型预算；保守默认足以继续未来合成开发，但不授权真实同步。
-- 所有 Canonical/Adapter/媒体/模型/Sink/恢复/发布 Acceptance 仍按 DAG 未运行，不能从 Stage 0 设计证据外推。
+- 母仓库/子项目：`LinzeColin/MetaDatabase` / `xhs-douyin-2notion/`。
+- `X2N_DATA_ROOT=${X2N_DOWNLOAD_DESTINATION}/xhs-douyin-2notion`；Runtime 与全部下载共用该隔离根；真实解析路径不进 Git。
+- 下载父目录名只代表存储位置，不授权 MediaCrawler 安装、运行、接入或输出导入。
+- Public Code / Private Runtime；专有许可；SQLite Canonical Store 是唯一真相源；Markdown/Notion 为可重建 Sink。
+- 不持久化平台媒体 CDN URL、凭据、Cookie、浏览器状态或原始媒体；AI 不创建一级分类；不自动滚动、不改变账号状态、不绕过平台控制。
+- `ShilongLee/Crawler` 与 MediaCrawler 仅固定 Commit 的不可执行研究证据：不复制、不 Vendor、不安装、不运行、不接收输出、不作 Runtime Dependency。
 
-## 唯一下一步
+## 下一步
 
-Owner 直接确认已经完成以下一项：轮换并撤销旧材料、重新认证并撤销旧材料、或在 Provider 侧确认旧材料已失效；不得提供凭据值。之后才可用 `record_owner_recovery.py` 生成私有闭合回执，并新开 `STG.X2N.0.REVIEW.RESUME` 重跑事件恢复、扫描和 G0 判定。合法回执本身不等于 G0 PASS；只有 Resume 的机器 G0 PASS 后才可上传整个 Stage 0，并另行开始 Stage 1 的首个单 Task Run。
+1. 完成 Stage 0 分支 push/PR，不自动合并其他开发线。
+2. 另开单 Task Run：`TSK.x2n.foundation.001` / `PH.X2N.1.1`。
+3. 若 PR 前发现 x2n overlap、扫描命中、证据漂移或测试失败，停止上传并恢复 G0 阻断；不得触碰共享认证材料。

@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.0.1 — Stage 0 Review Resume / G0 PASS
+
+- 依据 `CE-X2N-20260720-S00-REVIEW-RESUME` 将共享认证材料限定为 x2n 外部、Owner 管理的并行基础设施；x2n 不读取、使用、改变或显示它，也不修改全局 Git 配置或 Credential Helper。
+- 保留 Secret/CDN 不可 Owner waiver 的全局规则；新增匿名公开 GitHub Snapshot 工具与 11 项零接触控制。
+- 用闭合 `0600` 私有回执记录 Owner 决策；公开证据不含回执 ID、时间、哈希、账号、URL、本机路径或材料值。
+- 完整重跑当前树、项目历史、私有根、Local Remote、原始输入、Phase 0.1/0.2/0.5、历史证据与 G0；所有敏感形态扫描为 0，cutoff 后 x2n overlap 为 0。
+- 首次 Review 的 `BLOCKED_OWNER_ACTION` 证据保持不变；新 `review_resume/` 证据签发 `G0 PASS`。
+- Stage 0 整阶段上传与下一独立 Run 的 `TSK.x2n.foundation.001` 已授权；本 Resume Run 未执行产品代码、账号、平台、Notion、模型或媒体操作。
+
 ## v0.0.0.1 — Stage 0 Review
 
 - 基于 `origin/main` 明确 cutoff 完成独立 Review/Fix/Re-acceptance；cutoff 后无关长期开发不吸收，触及 x2n 才阻断。
