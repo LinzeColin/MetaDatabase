@@ -1,0 +1,15 @@
+name: deploy-pfi
+on:
+  push:
+    branches: [main]
+    paths: ['PFI/web/cloudflare-public/**']
+jobs:
+  golden-path:
+    uses: LinzeColin/CodexProject/.github/workflows/linze-golden-path.reusable.yml@main
+    with:
+      service_name: pfi-public
+      coolify_app_uuid: "h2p7mvhj7095gma9r9g9otjo"
+      home_live_url: "https://pfi.linzezhang.com"
+    secrets:
+      COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
+      COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
