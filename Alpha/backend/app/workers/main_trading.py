@@ -1,8 +1,7 @@
 """交易 Worker 入口(systemd: alpha-trading-worker)。
 
-部署日前 OpenD 桥接未联调:本入口以 BLOCKED_ON_OPEND 状态空转心跳——
-诚实呈现「未接通」,绝不伪造交易循环。OpenD 桥接联调完成后,
-run_cycle 替换为真实「行情->策略->组合->风控->网关」周期(070 接线)。
+优先装配 070 实盘循环(行情->策略->组合->风控->网关 PAPER);装配失败
+(无 SDK/无账户/探针未过)则以 BLOCKED_ON_OPEND 诚实空转心跳,绝不伪造。
 """
 
 from __future__ import annotations
@@ -14,13 +13,21 @@ from backend.app.workers.trading_worker import TradingWorker, WORKER_NAME
 def build_worker() -> TradingWorker:
     rt = build_runtime()
 
-    def idle_cycle() -> dict:
-        return {"status": "BLOCKED_ON_OPEND", "note": "OpenD 桥接待部署日联调;不伪造循环"}
+    try:
+        from backend.app.workers.live_cycle import build_live_cycle
+        cycle = build_live_cycle(factory=rt["factory"], kill_switch=rt["kill_switch"])
+    except Exception as exc:  # 失败关闭:如实报原因空转,不冒充在交易
+        reason = f"{type(exc).__name__}: {exc}"[:150]
+
+        def idle_cycle() -> dict:
+            return {"status": "BLOCKED_ON_OPEND", "note": reason}
+
+        cycle = idle_cycle
 
     return TradingWorker(
         heartbeats=rt["heartbeats"],
         kill_switch=rt["kill_switch"],
-        run_cycle=idle_cycle,
+        run_cycle=cycle,
         interval_seconds=30.0,
     )
 

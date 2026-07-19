@@ -234,6 +234,37 @@ class RealOpenDClient:
                 perms.append(str(m))
         return perms
 
+    def get_daily_bars(self, symbol: str, start: str, end: str) -> list[dict]:
+        """日 K 历史(前复权),供 070 实盘评估喂策略。返回 dict 行,调用方转 Bar。
+
+        注意:request_history_kline 返回三元组 (ret, data, page_req_key)。
+        """
+        ret_data = self._quote().request_history_kline(
+            f"US.{symbol}", start=start, end=end,
+            ktype=self._sdk.KLType.K_DAY, autype=self._sdk.AuType.QFQ,
+            max_count=1000)
+        ret, data = ret_data[0], ret_data[1]
+        if ret != self._sdk.RET_OK:
+            raise RuntimeError(f"request_history_kline({symbol}) 非OK: {data}")
+        out = []
+        for r in data.to_dict("records"):
+            out.append({"day": _s(r.get("time_key"))[:10],
+                        "open": _f(r.get("open")), "high": _f(r.get("high")),
+                        "low": _f(r.get("low")), "close": _f(r.get("close"))})
+        return out
+
+    def get_snapshot(self, symbols: list[str]) -> dict[str, dict]:
+        """快照:symbol -> {price, update_time}(070 定价与鲜度判定)。"""
+        codes = [f"US.{s}" for s in symbols]
+        df = self._ok("get_market_snapshot", self._quote().get_market_snapshot(codes))
+        out: dict[str, dict] = {}
+        for r in df.to_dict("records"):
+            code = _s(r.get("code"))
+            sym = code.split(".", 1)[1] if "." in code else code
+            out[sym] = {"price": _f(r.get("last_price")),
+                        "update_time": _s(r.get("update_time"))}
+        return out
+
     def get_quote_permissions(self) -> list[dict]:
         # 真实功能探测:能取到 US.SPY 快照即证明美股行情可用;level 自明为 SNAPSHOT
         try:
