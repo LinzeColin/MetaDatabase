@@ -11,7 +11,8 @@ XML=/opt/alpha/opend/OpenD.xml
 [ -f "$ENVFILE" ] || { echo "缺 $ENVFILE(先跑 load_env_interactive.sh)"; exit 1; }
 [ -x /opt/alpha/opend/OpenD ] || { echo "缺 /opt/alpha/opend/OpenD(OpenD 未安装)"; exit 1; }
 
-get() { grep "^$1=" "$ENVFILE" | head -1 | cut -d= -f2-; }
+# 键不存在时返回空串而不是让 set -e 杀掉脚本(旧版 env 缺新键是常态)
+get() { { grep "^$1=" "$ENVFILE" 2>/dev/null || true; } | head -1 | cut -d= -f2-; }
 
 ACC="$(get MOOMOO_LOGIN_ACCOUNT)"
 if [ -z "$ACC" ] || [ "$ACC" = "<REQUIRED>" ]; then
