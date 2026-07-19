@@ -12,7 +12,8 @@
   "governance_integration": "consume_only_no_copy_no_fork_no_submodule",
   "stage_min": 0,
   "stage_max": 6,
-  "run_maximum": "one_phase",
+  "run_maximum": "one_task",
+  "stage_review_run_kind": "no_new_dag_task",
   "stage_upload_gate": "review_fix_reaccept_then_whole_stage",
   "runtime_root_ref": "X2N_DATA_ROOT",
   "downloads_root_ref": "X2N_DATA_ROOT",
@@ -29,5 +30,5 @@
     "weibo",
     "taobao"
   ],
-  "status": "stage_0_phase_0_5_artifact_pass_g0_not_run_owner_action_pending"
+  "status": "stage_0_review_complete_g0_blocked_owner_action"
 }

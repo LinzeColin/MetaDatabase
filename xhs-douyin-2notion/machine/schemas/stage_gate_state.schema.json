@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/LinzeColin/MetaDatabase/xhs-douyin-2notion/machine/schemas/stage_gate_state.schema.json",
+  "title": "x2n Stage Gate State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project",
+    "stage",
+    "review_id",
+    "run_id",
+    "review_status",
+    "automated_reacceptance",
+    "gate_id",
+    "gate_status",
+    "gate_decision",
+    "pass_conditions",
+    "stop_conditions",
+    "blocking_followups",
+    "stage_1_authorized",
+    "remote_upload",
+    "product_code",
+    "real_account_execution",
+    "platform_calls"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "project": {"const": "x2n"},
+    "stage": {"const": "STG.X2N.0"},
+    "review_id": {"const": "STG.X2N.0.REVIEW"},
+    "run_id": {"const": "RUN-X2N-S00-REVIEW"},
+    "review_status": {"const": "complete"},
+    "automated_reacceptance": {"const": "pass"},
+    "gate_id": {"const": "G0"},
+    "gate_status": {"enum": ["pass", "blocked_owner_action", "fail"]},
+    "gate_decision": {"enum": ["pass", "fail_closed"]},
+    "pass_conditions": {
+      "type": "object",
+      "minProperties": 5,
+      "additionalProperties": {"enum": ["pass", "fail", "unknown"]}
+    },
+    "stop_conditions": {
+      "type": "object",
+      "minProperties": 4,
+      "additionalProperties": {"enum": ["inactive", "active", "unknown"]}
+    },
+    "blocking_followups": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "scope", "status", "required_resolution"],
+        "properties": {
+          "id": {"type": "string"},
+          "scope": {"const": "before_g0_pass"},
+          "status": {"enum": ["owner_action_pending", "resolved"]},
+          "required_resolution": {"type": "string"}
+        }
+      }
+    },
+    "stage_1_authorized": {"type": "boolean"},
+    "remote_upload": {"enum": ["forbidden_until_g0_pass", "authorized_after_g0_pass"]},
+    "product_code": {"enum": ["not_started", "started"]},
+    "real_account_execution": {"enum": ["not_run", "run"]},
+    "platform_calls": {"enum": ["not_run", "run"]},
+    "policy_recheck_required_at_platform_phase_start": {"type": "boolean"}
+  }
+}

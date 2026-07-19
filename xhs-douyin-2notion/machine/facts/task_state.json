@@ -1,10 +1,12 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "project": "x2n",
   "stage": "STG.X2N.0",
-  "phase": "PH.X2N.0.5",
-  "run_id": "RUN-X2N-S00-P05",
-  "state": "phase_pass",
+  "last_completed_phase": "PH.X2N.0.5",
+  "review_id": "STG.X2N.0.REVIEW",
+  "run_id": "RUN-X2N-S00-REVIEW",
+  "run_kind": "stage_review_no_new_dag_task",
+  "state": "review_complete_gate_blocked",
   "tasks": {
     "TSK.x2n.discovery.001": "pass",
     "TSK.x2n.discovery.002": "pass",
@@ -32,8 +34,10 @@
       "action": "rotate_or_prove_expiry_of_credential_used_by_temporary_source_remote"
     }
   ],
-  "next_phase": "STG.X2N.0.REVIEW",
+  "next_phase": null,
+  "next_run": "STG.X2N.0.REVIEW.RESUME",
   "next_phase_authorized": false,
-  "stage_gate": "not_run",
-  "remote_upload": "forbidden_until_stage_gate"
+  "stage_1_authorized": false,
+  "stage_gate": "blocked_owner_action",
+  "remote_upload": "forbidden_until_g0_pass"
 }

@@ -282,21 +282,22 @@ def validate_task_state() -> Check:
     _require(task.get("acceptance_ids") == ["ACC.x2n.gov.003", "ACC.x2n.dy.003"], "Phase acceptances drift")
 
     state = _load_json(TASK_STATE)
-    state_phase = state.get("phase")
-    _require(state_phase in {"PH.X2N.0.2", "PH.X2N.0.5"}, "task_state no longer contains a valid Phase 0.2+ state")
-    expected_run = "RUN-X2N-S00-P02" if state_phase == "PH.X2N.0.2" else "RUN-X2N-S00-P05"
-    _require(state.get("run_id") == expected_run, "task_state run mismatch")
-    _require(state.get("state") == "phase_pass", "Phase state is not pass")
+    _require(state.get("schema_version") == "1.1", "task_state schema is not the Stage Review schema")
+    _require(state.get("last_completed_phase") == "PH.X2N.0.5", "last completed Phase drifted")
+    _require(state.get("review_id") == "STG.X2N.0.REVIEW", "Stage Review identity mismatch")
+    _require(state.get("run_id") == "RUN-X2N-S00-REVIEW", "task_state review run mismatch")
+    _require(state.get("run_kind") == "stage_review_no_new_dag_task", "Stage Review executed an ambiguous task scope")
+    _require(state.get("state") == "review_complete_gate_blocked", "Stage Review state is not finalized")
     _require(state.get("tasks", {}).get(PHASE_TASK) == "pass", "Phase task state not pass")
     acceptances = state.get("acceptance_status", {})
     _require(acceptances.get("ACC.x2n.gov.003") == "pass_current_artifact_scope", "governance acceptance status mismatch")
     _require(acceptances.get("ACC.x2n.dy.003") == "baseline_pass_downstream_not_run", "douyin downstream status overstated")
-    expected_next = "PH.X2N.0.5" if state_phase == "PH.X2N.0.2" else "STG.X2N.0.REVIEW"
-    _require(state.get("next_phase") == expected_next, "next phase mismatch")
+    _require(state.get("next_phase") is None and state.get("next_run") == "STG.X2N.0.REVIEW.RESUME", "next route mismatch")
     _require(state.get("next_phase_authorized") is False, "next phase auto-authorized")
-    _require(state.get("stage_gate") == "not_run", "Stage gate changed")
-    _require(state.get("remote_upload") == "forbidden_until_stage_gate", "remote upload gate weakened")
-    return Check("phase_task_state", "PASS", {"task": PHASE_TASK, "stage_gate": "NOT_RUN", "adapter_contract": "DOWNSTREAM_NOT_RUN"})
+    _require(state.get("stage_1_authorized") is False, "Stage 1 was auto-authorized")
+    _require(state.get("stage_gate") == "blocked_owner_action", "Stage gate no longer reflects the open recovery action")
+    _require(state.get("remote_upload") == "forbidden_until_g0_pass", "remote upload gate weakened")
+    return Check("phase_task_state", "PASS", {"task": PHASE_TASK, "stage_gate": "BLOCKED_OWNER_ACTION", "adapter_contract": "DOWNSTREAM_NOT_RUN"})
 
 
 def validate_source_snapshots(source_root: Path) -> Check:
@@ -423,6 +424,7 @@ def validate_worktree_scope(allow_external_main_dirty: bool = False) -> Check:
         branch in {
             "codex/xhs-douyin-2notion-v0001-s00-p02",
             "codex/xhs-douyin-2notion-v0001-s00-p05",
+            "codex/xhs-douyin-2notion-v0001-s00-review",
         },
         "wrong Phase 0.2-compatible branch",
     )
@@ -537,8 +539,9 @@ def main() -> int:
             "phase": "PH.X2N.0.2",
             "checks": [check.__dict__ for check in checks],
             "adapter_contract_tests": "DOWNSTREAM_NOT_RUN",
-            "stage_gate": "NOT_RUN",
-            "remote_upload": "FORBIDDEN_UNTIL_STAGE_GATE",
+            "stage_gate": "BLOCKED_OWNER_ACTION",
+            "phase_evidence_stage_gate": "NOT_RUN",
+            "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
         }
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0

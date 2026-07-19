@@ -106,6 +106,8 @@ def validate_taskpack() -> Check:
     _require(project.get("source_taskpack_absolute_path_status") == "unspecified_owner_resolved", "source path ambiguity is not recorded")
 
     execution = taskpack.get("execution_policy", {})
+    _require(execution.get("single_task_focus") is True, "single-task run policy missing")
+    _require(execution.get("max_tasks_per_run") == 1, "run may execute more than one DAG task")
     _require(execution.get("single_phase_focus") is True, "single-phase run policy missing")
     _require(execution.get("max_phases_per_run") == 1, "run may exceed one phase")
     _require(execution.get("intermediate_phase_push") == "forbidden", "intermediate push is not forbidden")
@@ -298,6 +300,8 @@ def validate_registration() -> Check:
     _require(project.get("download_destination_required_basename") == "MediaCrawler", "project download destination drifted")
     _require(project.get("data_root_namespace") == "xhs-douyin-2notion", "project private namespace drifted")
     _require(project.get("license_policy") == "proprietary_all_rights_reserved", "proprietary policy missing")
+    _require(project.get("run_maximum") == "one_task", "Owner single-task run limit drifted")
+    _require(project.get("stage_review_run_kind") == "no_new_dag_task", "Stage Review exception is ambiguous")
 
     source = _load_json(SOURCE_MANIFEST)
     _require(source.get("roadmap_sha256") == EXPECTED_ROADMAP_SHA256, "roadmap source hash mismatch")
@@ -629,7 +633,7 @@ def validate_worktree_scope(allow_external_main_dirty: bool = False) -> Check:
     _require(PROJECT_ROOT.parent == repo_root, "project is not a direct MetaDatabase child")
     branch = _run_git(["branch", "--show-current"], repo_root)
     _require(
-        re.fullmatch(r"codex/xhs-douyin-2notion-v0001-s00-p(?:01|02|05)", branch) is not None,
+        re.fullmatch(r"codex/xhs-douyin-2notion-v0001-s00-(?:p(?:01|02|05)|review)", branch) is not None,
         "wrong Stage 0 worktree branch",
     )
     remote = _run_git(["remote", "get-url", "origin"], repo_root)
@@ -698,10 +702,10 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
 
 def write_evidence(checks: list[Check]) -> None:
     state = _load_json(TASK_STATE)
-    _require(state.get("state") == "phase_pass", "task_state must be finalized before evidence")
+    _require(state.get("state") in {"phase_pass", "review_complete_gate_blocked"}, "task_state is not finalized")
     _require(all(value == "pass" for value in state.get("tasks", {}).values()), "all Phase tasks must be pass")
-    _require(state.get("stage_gate") == "not_run", "Stage gate must remain not_run")
-    _require(state.get("remote_upload") == "forbidden_until_stage_gate", "remote upload gate weakened")
+    _require(state.get("stage_gate") in {"not_run", "blocked_owner_action"}, "Stage gate state is invalid")
+    _require(state.get("remote_upload") in {"forbidden_until_stage_gate", "forbidden_until_g0_pass"}, "remote upload gate weakened")
 
     now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     source = _load_json(SOURCE_MANIFEST)
@@ -797,7 +801,7 @@ def main() -> int:
             "phase": "PH.X2N.0.1",
             "checks": [check.__dict__ for check in checks],
             "evidence_written": bool(args.write_evidence),
-            "stage_gate": "NOT_RUN",
+            "stage_gate": "BLOCKED_OWNER_ACTION",
             "next_phase_authorized": False,
         }
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))

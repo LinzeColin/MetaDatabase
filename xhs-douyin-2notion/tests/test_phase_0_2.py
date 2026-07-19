@@ -54,8 +54,9 @@ class Phase02Tests(unittest.TestCase):
         state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
         self.assertEqual(state["acceptance_status"]["ACC.x2n.dy.003"], "baseline_pass_downstream_not_run")
         self.assertFalse(state["next_phase_authorized"])
-        self.assertEqual(state["stage_gate"], "not_run")
-        self.assertEqual(state["remote_upload"], "forbidden_until_stage_gate")
+        self.assertFalse(state["stage_1_authorized"])
+        self.assertEqual(state["stage_gate"], "blocked_owner_action")
+        self.assertEqual(state["remote_upload"], "forbidden_until_g0_pass")
 
     def test_private_source_snapshots_when_explicitly_supplied(self) -> None:
         value = os.environ.get("X2N_UPSTREAM_SNAPSHOT_ROOT")

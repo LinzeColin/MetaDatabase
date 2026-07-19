@@ -34,8 +34,9 @@ class Phase01Tests(unittest.TestCase):
     def test_downstream_gates_fail_closed(self) -> None:
         state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
         self.assertFalse(state["next_phase_authorized"])
-        self.assertEqual(state["stage_gate"], "not_run")
-        self.assertEqual(state["remote_upload"], "forbidden_until_stage_gate")
+        self.assertFalse(state["stage_1_authorized"])
+        self.assertEqual(state["stage_gate"], "blocked_owner_action")
+        self.assertEqual(state["remote_upload"], "forbidden_until_g0_pass")
         for acceptance_id in ("ACC.x2n.gov.002", "ACC.x2n.media.001", "ACC.x2n.ops.002"):
             self.assertEqual(state["downstream_acceptances"][acceptance_id], "downstream_not_run")
 

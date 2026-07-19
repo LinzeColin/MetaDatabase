@@ -34,7 +34,7 @@
 ## 执行门禁
 
 - 严格按 `docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml` 的 Stage 0–6 DAG 推进。
-- 每个 Run 最多执行一个 Phase；不得顺带进入下一 Phase。
+- 每个普通 Run 最多执行一个 DAG Task 及其 Acceptance；不得顺带执行同 Phase 的下一 Task。Stage Review 是不执行新 Task 的专用 Run。
 - 每个 Stage 完成后，先做全 Stage Review，修复全部阻断项并重跑验收，才允许 push 整个 Stage。
 - Phase 中间不得 push；本地 commit 只代表可恢复检查点，不代表 Stage Gate 通过。
 - 任何安全、政策、证据、验收、恢复或回滚门禁为 UNKNOWN/NOT_RUN 时，不得声称 PASS。

@@ -399,10 +399,13 @@ def validate_task_state() -> Check:
     _require(project.get("data_root_namespace") == "xhs-douyin-2notion", "private namespace drifted")
     _require(project.get("source_taskpack_absolute_path_status") == "unspecified_owner_resolved", "original taskpack path gap not recorded")
     _require(project.get("platform_scope") == ["xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"], "project platform scope drifted")
-    _require(project.get("status") == "stage_0_phase_0_5_artifact_pass_g0_not_run_owner_action_pending", "project readiness status overstated")
+    _require(project.get("status") == "stage_0_review_complete_g0_blocked_owner_action", "project readiness status is not the reviewed state")
     state = _load_json(TASK_STATE)
-    _require(state.get("phase") == "PH.X2N.0.5" and state.get("run_id") == "RUN-X2N-S00-P05", "current task state is not Phase 0.5")
-    _require(state.get("state") == "phase_pass", "Phase 0.5 state is not pass")
+    _require(state.get("schema_version") == "1.1", "task_state schema is not the Stage Review schema")
+    _require(state.get("last_completed_phase") == "PH.X2N.0.5", "last completed Phase drifted")
+    _require(state.get("review_id") == "STG.X2N.0.REVIEW" and state.get("run_id") == "RUN-X2N-S00-REVIEW", "current task state is not Stage 0 Review")
+    _require(state.get("run_kind") == "stage_review_no_new_dag_task", "Stage Review scope is ambiguous")
+    _require(state.get("state") == "review_complete_gate_blocked", "Stage Review state is not finalized")
     _require(state.get("tasks", {}).get(PHASE_TASK) == "pass", "Phase 0.5 task not pass")
     acceptances = state.get("acceptance_status", {})
     _require(acceptances.get("ACC.x2n.gov.003") == "pass_current_artifact_scope", "governance acceptance status mismatch")
@@ -414,9 +417,10 @@ def validate_task_state() -> Check:
         "status": "owner_action_pending",
         "action": "rotate_or_prove_expiry_of_credential_used_by_temporary_source_remote",
     }], "contained credential follow-up missing or weakened")
-    _require(state.get("next_phase") == "STG.X2N.0.REVIEW" and state.get("next_phase_authorized") is False, "Stage review routing mismatch")
-    _require(state.get("stage_gate") == "not_run" and state.get("remote_upload") == "forbidden_until_stage_gate", "Stage/upload gate weakened")
-    return Check("phase_task_state", "PASS", {"task": PHASE_TASK, "stage_gate": "NOT_RUN", "next": "STG.X2N.0.REVIEW"})
+    _require(state.get("next_phase") is None and state.get("next_run") == "STG.X2N.0.REVIEW.RESUME", "Stage review resume routing mismatch")
+    _require(state.get("next_phase_authorized") is False and state.get("stage_1_authorized") is False, "Stage 1 was auto-authorized")
+    _require(state.get("stage_gate") == "blocked_owner_action" and state.get("remote_upload") == "forbidden_until_g0_pass", "Stage/upload gate weakened")
+    return Check("phase_task_state", "PASS", {"task": PHASE_TASK, "stage_gate": "BLOCKED_OWNER_ACTION", "next": "STG.X2N.0.REVIEW.RESUME"})
 
 
 def validate_owner_input(root: Path) -> Check:
@@ -516,7 +520,13 @@ def _evaluate_main_isolation(changed_paths: list[str], allow_external_main_dirty
 
 def validate_worktree_scope(allow_external_main_dirty: bool = False) -> Check:
     branch = _git(["branch", "--show-current"])
-    _require(branch == "codex/xhs-douyin-2notion-v0001-s00-p05", "wrong Phase 0.5 branch")
+    _require(
+        branch in {
+            "codex/xhs-douyin-2notion-v0001-s00-p05",
+            "codex/xhs-douyin-2notion-v0001-s00-review",
+        },
+        "wrong Phase 0.5-compatible branch",
+    )
     status = _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
     changed = _porcelain_paths(status)
     scope_allowed, legacy_deletions = _scope_status(status)
@@ -724,8 +734,9 @@ def main() -> int:
             "checks": [check.__dict__ for check in checks],
             "product_code": "NOT_STARTED",
             "real_account_execution": "NOT_RUN",
-            "stage_gate": "NOT_RUN",
-            "remote_upload": "FORBIDDEN_UNTIL_STAGE_GATE",
+            "stage_gate": "BLOCKED_OWNER_ACTION",
+            "phase_evidence_stage_gate": "NOT_RUN",
+            "remote_upload": "FORBIDDEN_UNTIL_G0_PASS",
         }, ensure_ascii=False, sort_keys=True))
         return 0
     except (OSError, ValueError, VerificationError, yaml.YAMLError) as exc:

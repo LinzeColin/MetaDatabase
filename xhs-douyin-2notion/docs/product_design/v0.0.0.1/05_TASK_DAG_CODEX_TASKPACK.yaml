@@ -143,6 +143,8 @@ mandatory_pause_conditions:
 - A secret/private-content/CDN leak is detected.
 - Acceptance contracts conflict and no conservative interpretation exists.
 execution_policy:
+  single_task_focus: true
+  max_tasks_per_run: 1
   single_phase_focus: true
   max_phases_per_run: 1
   task_order_within_phase: dependency_order
@@ -253,9 +255,6 @@ feature_flags:
   notion_sink:
     default: false
     alpha: after_notion_gates
-  mediacrawler_adapter:
-    default: false
-    alpha: false
   retain_local_media:
     default: false
     alpha: false

@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.0",
+  "review_id": "STG.X2N.0.REVIEW",
+  "revalidated_on": "2026-07-20",
+  "access_mode": "read_only_public_sources",
+  "competitor": {
+    "repository": "https://github.com/ShilongLee/Crawler",
+    "selected_commit": "765207310a90a81c615c0ba2df124543b424af89",
+    "current_default_head": "765207310a90a81c615c0ba2df124543b424af89",
+    "tree": "3fe084d7e3835669ccdb4193312b065a48eeb5d7",
+    "non_git_files": 177,
+    "file_hashes": {
+      "readme.md": "84594484e8627f9e3ffc137b3512a22f6294e4b444a4d20feafa2a036ce7e7e0",
+      "LICENSE": "3f24dc89c6bd61714b4dc583b8c8ccb4a54e5190b6efc3135e540d59e4599b58",
+      "requirements.txt": "f588c18cdad6b247ee17bd8fd0bb4f7b4f2c5f0226f162696784d731487c9971"
+    },
+    "source_copy": false,
+    "runtime_dependency": false,
+    "execution": false,
+    "output_ingest": false,
+    "conclusion_changed": false
+  },
+  "official_policy_sources": {
+    "chrome": [
+      "https://developer.chrome.com/docs/extensions/reference/api/sidePanel",
+      "https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code",
+      "https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging",
+      "https://developer.chrome.com/docs/webstore/program-policies/limited-use"
+    ],
+    "notion": [
+      "https://developers.notion.com/reference/request-limits",
+      "https://developers.notion.com/reference/capabilities",
+      "https://developers.notion.com/guides/get-started/authorization"
+    ],
+    "xiaohongshu": [
+      "https://agora.xiaohongshu.com/doc"
+    ],
+    "douyin": [
+      "https://open.douyin.com/platform/resource/docs/operation-standard/agreement-protocol",
+      "https://open.douyin.com/platform/resource/docs/develop/permission/web/permission/",
+      "https://open.douyin.com/platform/resource/docs/accession-guide/type-and-permission"
+    ],
+    "bilibili": [
+      "https://openhome.bilibili.com/agreement/developer-service"
+    ],
+    "kuaishou": [
+      "https://open.kuaishou.com/platform/protocol"
+    ],
+    "weibo": [
+      "https://open.weibo.com/cli/index"
+    ],
+    "taobao": [
+      "https://developer.alibaba.com/docs/doc.htm?articleId=120&docType=1"
+    ]
+  },
+  "policy_conclusions": {
+    "chrome_single_purpose_and_limited_use_required": true,
+    "chrome_remote_hosted_code_forbidden": true,
+    "native_messaging_requires_exact_allowed_origin_and_message_validation": true,
+    "notion_minimum_capability_and_credential_boundary_required": true,
+    "per_platform_scope_and_owner_authorization_required": true,
+    "legal_or_platform_authorization_granted_by_research": false,
+    "platform_enablement_changed": false,
+    "all_six_platforms_remain_unknown_disabled": true
+  }
+}
