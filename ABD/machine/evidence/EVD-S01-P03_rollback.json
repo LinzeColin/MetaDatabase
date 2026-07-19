@@ -1,0 +1,54 @@
+{
+  "artifacts": {
+    ".github/workflows/abd-stage0-validation.yml": {
+      "corrupted_sha256": "b63539f25f1ada442f9aa3ec5841bc3933bc55b6f2d4878960ceaf9a200c10e5",
+      "restored_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "signed_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "status": "PASS"
+    },
+    "business_flows.json": {
+      "corrupted_sha256": "bb0e2e58433779f96cb1448da4e47ead7508b08a2553ad823136b71789a9a6be",
+      "restored_sha256": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+      "signed_sha256": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S01-P02.json": {
+      "corrupted_sha256": "fde6413f033a6e834218e2ae3e9c7030a77ba757858cbdc800b85ff038ce5743",
+      "restored_sha256": "7d9471a303c23c34e567e9eee394be2f01bc7025a7ad74915aad6f21e5427ac5",
+      "signed_sha256": "7d9471a303c23c34e567e9eee394be2f01bc7025a7ad74915aad6f21e5427ac5",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S01-P02_rollback.json": {
+      "corrupted_sha256": "8aeea8d7b5dad4178c676af90c430d6a69087f5e645a5dac0f548ebf472d0ccd",
+      "restored_sha256": "6608dd6bb06e11319d39b5c4757d68eccb7834717dd9a4139b2811c9b8f398df",
+      "signed_sha256": "6608dd6bb06e11319d39b5c4757d68eccb7834717dd9a4139b2811c9b8f398df",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S01_P03.json": {
+      "corrupted_sha256": "c5df413b0dbd605433bd0b1140b2d6b81e74afb12741e0434214c17f64c42eac",
+      "restored_sha256": "cc077019262accae8982f4892f9b7752c88926db675b433ef47f14d173d94761",
+      "signed_sha256": "cc077019262accae8982f4892f9b7752c88926db675b433ef47f14d173d94761",
+      "status": "PASS"
+    },
+    "requirements.json": {
+      "corrupted_sha256": "a5eddfeaf433a309dd391520906f100df155004ed955712d8fff66bcf657ec28",
+      "restored_sha256": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+      "signed_sha256": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+      "status": "PASS"
+    },
+    "scope_boundary.json": {
+      "corrupted_sha256": "39641688b76e8402ff3e6ce45d5b3fba243042f41fede9a9eb27c2d1304cc92c",
+      "restored_sha256": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383",
+      "signed_sha256": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S01-P03",
+  "evidence_id": "EVD-S01-P03-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_REQUIREMENTS_SCOPE_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

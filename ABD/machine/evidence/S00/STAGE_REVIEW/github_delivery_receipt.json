@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "receipt_id": "DELIVERY-S00-GITHUB-2026-07-19",
+  "repository": "LinzeColin/MetaDatabase",
+  "stage_id": "S00",
+  "product_version": "0.0.0.1",
+  "observed_at": "2026-07-19T10:59:24Z",
+  "verification_mode": "CAPTURED_GITHUB_API_FACTS_PLUS_OFFLINE_GIT_ANCESTRY",
+  "pull_request": {
+    "number": 58,
+    "state": "MERGED",
+    "url": "https://github.com/LinzeColin/MetaDatabase/pull/58",
+    "base_commit": "b57c8dbae8913b2c4d53f17c5e2743afb34bd593",
+    "head_commit": "92e13c024c194e85497cc75aa4cc7557fa865401",
+    "merge_commit": "277f9c6da43b62e8a89d9b8d4b42a2a935b755ef",
+    "merged_at": "2026-07-19T10:58:24Z"
+  },
+  "delivered_commits": [
+    "a5e3f3539f49cb733b3c017e70dc12423470139a",
+    "aee20d6cd5ad1ee9c974b80d38a012c5f39a5c56",
+    "0f6bea1e1632f8983513c9bc6793d786d06bdbaa",
+    "922b5d1ec3fe70924c3253c2aaf9f5035d68555b",
+    "c5cf634460a663a515168749e3e43cf17d648bec"
+  ],
+  "stage_review_evidence": {
+    "path": "machine/evidence/EVD-S00-STAGE-REVIEW.json",
+    "sha256": "48966ee6a98ad93224f11eb99890448cad6105840141dc4016520a932a857e0d",
+    "rollback_path": "machine/evidence/EVD-S00-STAGE-REVIEW_rollback.json",
+    "rollback_sha256": "e418fe62d0084255a26b12b9e2f42bd49cbeb5e19e86879e61d6023c3f752ed8"
+  },
+  "main_checks": [
+    {
+      "workflow": "ABD Stage 0 validation",
+      "run_id": 29684295907,
+      "job_id": 88185790409,
+      "event": "push",
+      "head_commit": "277f9c6da43b62e8a89d9b8d4b42a2a935b755ef",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/29684295907",
+      "completed_at": "2026-07-19T10:59:23Z"
+    },
+    {
+      "workflow": "Dual-Plane Governance",
+      "run_id": 29684295894,
+      "job_id": 88185790238,
+      "event": "push",
+      "head_commit": "277f9c6da43b62e8a89d9b8d4b42a2a935b755ef",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/29684295894",
+      "completed_at": "2026-07-19T10:58:42Z"
+    }
+  ],
+  "all_required_main_checks_passed": true,
+  "delivery_status": "VERIFIED_MERGED_AND_MAIN_CI_PASS",
+  "external_account_or_provider_accessed": false,
+  "secret_material_captured": false,
+  "incremental_cash_spent_aud": "0.00",
+  "production_deployment_claimed": false,
+  "return_guaranteed": false,
+  "next": "S01/P01_READY_NOT_STARTED"
+}

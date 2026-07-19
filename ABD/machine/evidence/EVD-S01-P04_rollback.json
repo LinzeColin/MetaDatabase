@@ -1,0 +1,54 @@
+{
+  "artifacts": {
+    ".github/workflows/abd-stage0-validation.yml": {
+      "corrupted_sha256": "b63539f25f1ada442f9aa3ec5841bc3933bc55b6f2d4878960ceaf9a200c10e5",
+      "restored_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "signed_sha256": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "status": "PASS"
+    },
+    "economics.json": {
+      "corrupted_sha256": "f36a2edd8d48aa989b55f0c3fc3d6f0ced9da293cddf873195f180abdee0bb01",
+      "restored_sha256": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+      "signed_sha256": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+      "status": "PASS"
+    },
+    "kill_criteria.json": {
+      "corrupted_sha256": "7df61804220baff26e72095ce09794c0cd4ff621e77bd59ae666aecb3a395b0d",
+      "restored_sha256": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+      "signed_sha256": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S01-P03.json": {
+      "corrupted_sha256": "5f09a5c1ff091f34b7785d499342401e60e3adbfb0f0037de2b6990dee342183",
+      "restored_sha256": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+      "signed_sha256": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S01-P03_rollback.json": {
+      "corrupted_sha256": "e4e7d11c615b2811c4d217caee38895ffb5f57f6acd501b1f4c748d3c86c8d91",
+      "restored_sha256": "237b2ecf3f70be28f86e6be7967c98f0c99e0fce07d57f6ce3162b1dc2ecdf7d",
+      "signed_sha256": "237b2ecf3f70be28f86e6be7967c98f0c99e0fce07d57f6ce3162b1dc2ecdf7d",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S01_P04.json": {
+      "corrupted_sha256": "1474ed8944aaf7d1c2b15c6f1681fa05311e1da252fb4d1a21c48a4b3134d08a",
+      "restored_sha256": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14",
+      "signed_sha256": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14",
+      "status": "PASS"
+    },
+    "metrics.json": {
+      "corrupted_sha256": "ca7188bace3a923e219748a57879bdfcf7b6e501da5e4e806e422a153267aeef",
+      "restored_sha256": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+      "signed_sha256": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S01-P04",
+  "evidence_id": "EVD-S01-P04-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_METRICS_ECONOMICS_KILL_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

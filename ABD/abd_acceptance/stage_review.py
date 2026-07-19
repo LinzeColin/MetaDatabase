@@ -16,6 +16,7 @@ from .budget import evaluate_contract as evaluate_p03
 from .canonical_facts import DuplicateKeyError, sha256_file, strict_json_load
 from .canonical_facts import evaluate_contract as evaluate_p01
 from .external_consent import evaluate_contract as evaluate_p04
+from .delivery import verify_stage0_delivery
 
 
 CONTRACT_ID = "STAGE-REVIEW-S00"
@@ -37,12 +38,12 @@ EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 
 REPO_WORKFLOW_PATHS = {
     ".github/workflows/dual-plane.yml": "56024e39ff14ef6dfc895ebcb384b67ca1d4d5118289588761858b5273397ab9",
-    ".github/workflows/abd-stage0-validation.yml": "b990bde5180fc25ba24ded116fcdfb24453c69b6fb246b88989bf260c242f056",
+    ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
 }
 PROJECT_PINNED_PATHS = {
     CONTRACT_PATH.as_posix(): "b8690e7639dfa50760f372a584e3af324d43b415fc911e084a31de10e97ced30",
     FINDINGS_PATH.as_posix(): "1e04047b92976cc746c9912806358880a17f7740fa1678e5122b9db28e8c7284",
-    FIXTURE_PATH.as_posix(): "2f6b4b45deaf9d0e4288f6603e4670758dee33168cf51edfe44745bdca300e35",
+    FIXTURE_PATH.as_posix(): "5ca9ffcb600b7b95d1dac392f0999dd12d62d6c0921e686beb02d8ab77d2d55e",
 }
 
 PHASE_EVALUATORS = {
@@ -586,6 +587,8 @@ def _check_security_budget_and_progression(
     authorization: Mapping[str, Any],
     degraded: Mapping[str, Any],
     checks: List[Dict[str, Any]],
+    *,
+    verify_history: bool,
 ) -> None:
     actions = authorization.get("actions", [])
     real_order = next((row for row in actions if isinstance(row, dict) and row.get("id") == "REAL_ORDER_SUBMISSION"), {})
@@ -629,12 +632,29 @@ def _check_security_budget_and_progression(
         index_rows = _load_evidence_index(root)
         s01 = [row for row in index_rows if row.get("id") == "INDEX-AC-S01-P01"]
         s01_evidence = sorted((root / "machine/evidence").glob("EVD-S01-*.json"))
-        progression_ok = len(s01) == 1 and s01[0].get("status") == "PLANNED" and not s01_evidence
-        detail = {"s01_status": s01[0].get("status") if len(s01) == 1 else "INVALID", "s01_evidence": [p.name for p in s01_evidence]}
+        delivery = verify_stage0_delivery(root, verify_git_history=verify_history)
+        status = s01[0].get("status") if len(s01) == 1 else "INVALID"
+        names = [path.name for path in s01_evidence]
+        not_started = status == "PLANNED" and not s01_evidence
+        p01_started_after_delivery = (
+            status == "PASS"
+            and "EVD-S01-P01.json" in names
+            and "EVD-S01-P01_rollback.json" in names
+        )
+        progression_ok = (
+            len(s01) == 1
+            and delivery.get("status") == "PASS"
+            and (not_started or p01_started_after_delivery)
+        )
+        detail = {
+            "s01_status": status,
+            "s01_evidence": names,
+            "stage0_delivery": delivery.get("summary"),
+        }
     except Exception as exc:
         progression_ok = False
         detail = "%s: %s" % (type(exc).__name__, exc)
-    _add(checks, "REVIEW-S01-NOT-STARTED", progression_ok, detail)
+    _add(checks, "REVIEW-S01-DELIVERY-GATED-PROGRESSION", progression_ok, detail)
 
 
 def _junit_summary(path: Path) -> Dict[str, int]:
@@ -793,7 +813,17 @@ def evaluate_contract(
         )
     _check_findings(findings, fixture, checks)
     _check_workflows(repo_root, contract, fixture, checks)
-    _check_security_budget_and_progression(root, canonical, parameters, costs, dependency_lock, authorization, degraded, checks)
+    _check_security_budget_and_progression(
+        root,
+        canonical,
+        parameters,
+        costs,
+        dependency_lock,
+        authorization,
+        degraded,
+        checks,
+        verify_history=_verify_history,
+    )
     if require_external_reports:
         _check_runtime_reports(root, checks, hashes)
     return _build_result(checks, hashes)

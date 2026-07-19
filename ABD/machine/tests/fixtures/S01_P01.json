@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "AC-S01-P01",
+  "requirement_id": "REQ-S01-P01",
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "expected_artifacts": {
+    "ART-S01-P01-01": "customer_press_release.md",
+    "ART-S01-P01-02": "customer_outcomes.json"
+  },
+  "expected_outcome_ids": [
+    "OUT-S01-P01-01",
+    "OUT-S01-P01-02",
+    "OUT-S01-P01-03",
+    "OUT-S01-P01-04",
+    "OUT-S01-P01-05"
+  ],
+  "required_press_release_sections": [
+    "标题",
+    "副标题",
+    "目标体验",
+    "用户会看到什么",
+    "怎样判断体验是否兑现",
+    "重要边界"
+  ],
+  "required_customer_concepts": [
+    "每天只看一张中文建议卡",
+    "建议或不建议",
+    "证据状态",
+    "信息有效状态",
+    "用户本人完成",
+    "不是保证",
+    "不证明产品已部署"
+  ],
+  "forbidden_jargon": [
+    "API",
+    "DAG",
+    "Schema",
+    "JSON",
+    "Python",
+    "OAuth",
+    "Cloudflare",
+    "OVH",
+    "Gmail",
+    "TAB",
+    "凯利",
+    "残差",
+    "logit",
+    "CI",
+    "SHA-256"
+  ],
+  "forbidden_current_claims": [
+    "已上线",
+    "正式发布",
+    "已经覆盖全部市场",
+    "已经连接外部账户",
+    "保证收益",
+    "确保盈利",
+    "自动下单"
+  ],
+  "minimum_chinese_characters": 500,
+  "maximum_total_characters": 2200,
+  "targeted_test_minimum": 55,
+  "full_regression_test_minimum": 255,
+  "expected_decision_states": [
+    "RECOMMENDATION",
+    "NO_RECOMMENDATION"
+  ],
+  "decision_scenarios": [
+    {
+      "id": "ALL_GATES_PASS",
+      "evidence_complete": true,
+      "fresh": true,
+      "stable_under_adverse_tests": true,
+      "risk_gate_passed": true,
+      "expected": "RECOMMENDATION"
+    },
+    {
+      "id": "EVIDENCE_MISSING",
+      "evidence_complete": false,
+      "fresh": true,
+      "stable_under_adverse_tests": true,
+      "risk_gate_passed": true,
+      "expected": "NO_RECOMMENDATION"
+    },
+    {
+      "id": "STALE",
+      "evidence_complete": true,
+      "fresh": false,
+      "stable_under_adverse_tests": true,
+      "risk_gate_passed": true,
+      "expected": "NO_RECOMMENDATION"
+    },
+    {
+      "id": "PERTURBATION_FLIPS",
+      "evidence_complete": true,
+      "fresh": true,
+      "stable_under_adverse_tests": false,
+      "risk_gate_passed": true,
+      "expected": "NO_RECOMMENDATION"
+    },
+    {
+      "id": "RISK_GATE_FAILS",
+      "evidence_complete": true,
+      "fresh": true,
+      "stable_under_adverse_tests": true,
+      "risk_gate_passed": false,
+      "expected": "NO_RECOMMENDATION"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-name: ABD Stage 0 validation
+name: ABD continuous validation
 
 on:
   push:
@@ -49,12 +49,12 @@ jobs:
         run: |
           uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
           uv run --frozen --python 3.12 python machine/tools/validate_pack.py
-      - name: 运行 Stage 0 全回归
+      - name: 运行 ABD 全回归
         run: uv run --frozen --python 3.12 python -m pytest -q
-      - name: 重放 Stage 0 整体复审证据
+      - name: 验证已交付 Stage 0 的不可变收据
         run: >-
           uv run --frozen --python 3.12 python -m abd_acceptance
-          --contract STAGE-REVIEW-S00 --evidence machine/evidence
+          --verify-existing STAGE-REVIEW-S00
       - name: 重建清单并验证全部 SHA-256
         run: |
           uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py

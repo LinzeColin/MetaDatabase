@@ -37,7 +37,7 @@
     "python machine/tools/scan_paid_dependencies.py",
     "python machine/tools/validate_pack.py",
     "python -m pytest -q",
-    "--contract STAGE-REVIEW-S00",
+    "--verify-existing STAGE-REVIEW-S00",
     "python machine/tools/update_artifact_manifest.py",
     "shasum -a 256 -c machine/evidence/SHA256SUMS",
     "git diff --exit-code"

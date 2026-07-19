@@ -1,0 +1,351 @@
+{
+  "schema_version": "1.0.0",
+  "requirement_id": "REQ-S01-P04",
+  "acceptance_contract_id": "AC-S01-P04",
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "expected_artifact_hashes": {
+    "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+    "kill_criteria.json": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+    "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c"
+  },
+  "expected_metric_ids": [
+    "MET-S01-P04-001",
+    "MET-S01-P04-002",
+    "MET-S01-P04-003",
+    "MET-S01-P04-004",
+    "MET-S01-P04-005",
+    "MET-S01-P04-006",
+    "MET-S01-P04-007",
+    "MET-S01-P04-008",
+    "MET-S01-P04-009",
+    "MET-S01-P04-010",
+    "MET-S01-P04-011",
+    "MET-S01-P04-012",
+    "MET-S01-P04-013",
+    "MET-S01-P04-014",
+    "MET-S01-P04-015",
+    "MET-S01-P04-016",
+    "MET-S01-P04-017",
+    "MET-S01-P04-018",
+    "MET-S01-P04-019",
+    "MET-S01-P04-020",
+    "MET-S01-P04-021",
+    "MET-S01-P04-022",
+    "MET-S01-P04-023",
+    "MET-S01-P04-024",
+    "MET-S01-P04-025",
+    "MET-S01-P04-026",
+    "MET-S01-P04-027",
+    "MET-S01-P04-028",
+    "MET-S01-P04-029",
+    "MET-S01-P04-030",
+    "MET-S01-P04-031"
+  ],
+  "expected_kill_criterion_ids": [
+    "KC-S01-P04-001",
+    "KC-S01-P04-002",
+    "KC-S01-P04-003",
+    "KC-S01-P04-004",
+    "KC-S01-P04-005",
+    "KC-S01-P04-006",
+    "KC-S01-P04-007",
+    "KC-S01-P04-008",
+    "KC-S01-P04-009",
+    "KC-S01-P04-010",
+    "KC-S01-P04-011",
+    "KC-S01-P04-012",
+    "KC-S01-P04-013",
+    "KC-S01-P04-014",
+    "KC-S01-P04-015",
+    "KC-S01-P04-016",
+    "KC-S01-P04-017",
+    "KC-S01-P04-018",
+    "KC-S01-P04-019"
+  ],
+  "expected_target_thresholds": {
+    "monthly_return": "0.30",
+    "monthly_log_growth": "0.26236426446749106",
+    "plausibility_days": 90,
+    "minimum_signals": 1000,
+    "falsification_months": 6,
+    "verification_months": 12,
+    "reconciliation_differences": 0
+  },
+  "expected_opportunity_cost_scenarios": [
+    {
+      "hourly_value_aud": "30.00",
+      "low_aud": "7200.00",
+      "likely_aud": "9600.00",
+      "high_aud": "14400.00"
+    },
+    {
+      "hourly_value_aud": "50.00",
+      "low_aud": "12000.00",
+      "likely_aud": "16000.00",
+      "high_aud": "24000.00"
+    },
+    {
+      "hourly_value_aud": "100.00",
+      "low_aud": "24000.00",
+      "likely_aud": "32000.00",
+      "high_aud": "48000.00"
+    },
+    {
+      "hourly_value_aud": "150.00",
+      "low_aud": "36000.00",
+      "likely_aud": "48000.00",
+      "high_aud": "72000.00"
+    }
+  ],
+  "target_classification_vectors": [
+    {
+      "name": "no_evidence",
+      "complete_days": 0,
+      "complete_months": 0,
+      "signals": 0,
+      "median_monthly_log_growth": null,
+      "monthly_log_growth_p05": null,
+      "capacity_pass": false,
+      "monthly_return_95pct_upper_bound": null,
+      "cashflow_adjusted_geometric_monthly_return": null,
+      "complete_execution_evidence": false,
+      "unresolved_reconciliation_differences": null,
+      "expected": "UNVERIFIED"
+    },
+    {
+      "name": "plausible_exact_log_boundary",
+      "complete_days": 90,
+      "complete_months": 3,
+      "signals": 1000,
+      "median_monthly_log_growth": "0.26236426446749106",
+      "monthly_log_growth_p05": "0.0001",
+      "capacity_pass": true,
+      "monthly_return_95pct_upper_bound": "0.50",
+      "cashflow_adjusted_geometric_monthly_return": null,
+      "complete_execution_evidence": false,
+      "unresolved_reconciliation_differences": null,
+      "expected": "PLAUSIBLE_NOT_VERIFIED"
+    },
+    {
+      "name": "plausible_below_log_by_0_0001",
+      "complete_days": 90,
+      "complete_months": 3,
+      "signals": 1000,
+      "median_monthly_log_growth": "0.26226426446749106",
+      "monthly_log_growth_p05": "0.0001",
+      "capacity_pass": true,
+      "monthly_return_95pct_upper_bound": "0.50",
+      "cashflow_adjusted_geometric_monthly_return": null,
+      "complete_execution_evidence": false,
+      "unresolved_reconciliation_differences": null,
+      "expected": "UNVERIFIED"
+    },
+    {
+      "name": "plausible_p05_zero",
+      "complete_days": 90,
+      "complete_months": 3,
+      "signals": 1000,
+      "median_monthly_log_growth": "0.26236426446749106",
+      "monthly_log_growth_p05": "0",
+      "capacity_pass": true,
+      "monthly_return_95pct_upper_bound": "0.50",
+      "cashflow_adjusted_geometric_monthly_return": null,
+      "complete_execution_evidence": false,
+      "unresolved_reconciliation_differences": null,
+      "expected": "UNVERIFIED"
+    },
+    {
+      "name": "plausible_capacity_fails",
+      "complete_days": 90,
+      "complete_months": 3,
+      "signals": 1000,
+      "median_monthly_log_growth": "0.26236426446749106",
+      "monthly_log_growth_p05": "0.0001",
+      "capacity_pass": false,
+      "monthly_return_95pct_upper_bound": "0.50",
+      "cashflow_adjusted_geometric_monthly_return": null,
+      "complete_execution_evidence": false,
+      "unresolved_reconciliation_differences": null,
+      "expected": "UNVERIFIED"
+    },
+    {
+      "name": "falsified_just_below_30pct",
+      "complete_days": 180,
+      "complete_months": 6,
+      "signals": 1000,
+      "median_monthly_log_growth": "0.10",
+      "monthly_log_growth_p05": "-0.10",
+      "capacity_pass": false,
+      "monthly_return_95pct_upper_bound": "0.2999",
+      "cashflow_adjusted_geometric_monthly_return": "0.10",
+      "complete_execution_evidence": true,
+      "unresolved_reconciliation_differences": 0,
+      "expected": "FALSIFIED"
+    },
+    {
+      "name": "falsification_boundary_equal_30pct",
+      "complete_days": 180,
+      "complete_months": 6,
+      "signals": 1000,
+      "median_monthly_log_growth": "0.10",
+      "monthly_log_growth_p05": "-0.10",
+      "capacity_pass": false,
+      "monthly_return_95pct_upper_bound": "0.30",
+      "cashflow_adjusted_geometric_monthly_return": "0.10",
+      "complete_execution_evidence": true,
+      "unresolved_reconciliation_differences": 0,
+      "expected": "UNVERIFIED"
+    },
+    {
+      "name": "verified_exact_30pct",
+      "complete_days": 365,
+      "complete_months": 12,
+      "signals": 2000,
+      "median_monthly_log_growth": "0.26236426446749106",
+      "monthly_log_growth_p05": "0.0001",
+      "capacity_pass": true,
+      "monthly_return_95pct_upper_bound": "0.40",
+      "cashflow_adjusted_geometric_monthly_return": "0.30",
+      "complete_execution_evidence": true,
+      "unresolved_reconciliation_differences": 0,
+      "expected": "VERIFIED_HISTORICAL_NOT_GUARANTEED"
+    },
+    {
+      "name": "verification_below_by_0_0001",
+      "complete_days": 365,
+      "complete_months": 12,
+      "signals": 2000,
+      "median_monthly_log_growth": "0.26236426446749106",
+      "monthly_log_growth_p05": "0.0001",
+      "capacity_pass": true,
+      "monthly_return_95pct_upper_bound": "0.40",
+      "cashflow_adjusted_geometric_monthly_return": "0.2999",
+      "complete_execution_evidence": true,
+      "unresolved_reconciliation_differences": 0,
+      "expected": "PLAUSIBLE_NOT_VERIFIED"
+    },
+    {
+      "name": "verification_incomplete_evidence",
+      "complete_days": 365,
+      "complete_months": 12,
+      "signals": 2000,
+      "median_monthly_log_growth": "0.26236426446749106",
+      "monthly_log_growth_p05": "0.0001",
+      "capacity_pass": true,
+      "monthly_return_95pct_upper_bound": "0.40",
+      "cashflow_adjusted_geometric_monthly_return": "0.30",
+      "complete_execution_evidence": false,
+      "unresolved_reconciliation_differences": 0,
+      "expected": "PLAUSIBLE_NOT_VERIFIED"
+    },
+    {
+      "name": "verification_reconciliation_difference",
+      "complete_days": 365,
+      "complete_months": 12,
+      "signals": 2000,
+      "median_monthly_log_growth": "0.26236426446749106",
+      "monthly_log_growth_p05": "0.0001",
+      "capacity_pass": true,
+      "monthly_return_95pct_upper_bound": "0.40",
+      "cashflow_adjusted_geometric_monthly_return": "0.30",
+      "complete_execution_evidence": true,
+      "unresolved_reconciliation_differences": 1,
+      "expected": "PLAUSIBLE_NOT_VERIFIED"
+    },
+    {
+      "name": "statistical_conflict",
+      "complete_days": 365,
+      "complete_months": 12,
+      "signals": 2000,
+      "median_monthly_log_growth": "0.26236426446749106",
+      "monthly_log_growth_p05": "0.0001",
+      "capacity_pass": true,
+      "monthly_return_95pct_upper_bound": "0.2999",
+      "cashflow_adjusted_geometric_monthly_return": "0.30",
+      "complete_execution_evidence": true,
+      "unresolved_reconciliation_differences": 0,
+      "expected": "INVALID_CONFLICTING_TARGET_EVIDENCE"
+    }
+  ],
+  "incremental_cost_vectors": [
+    {
+      "value": null,
+      "expected": "BLOCK_UNKNOWN_INCREMENTAL_COST"
+    },
+    {
+      "value": "0",
+      "expected": "CONTINUE_ZERO_INCREMENTAL_COST"
+    },
+    {
+      "value": "0.00",
+      "expected": "CONTINUE_ZERO_INCREMENTAL_COST"
+    },
+    {
+      "value": "0.0000",
+      "expected": "CONTINUE_ZERO_INCREMENTAL_COST"
+    },
+    {
+      "value": "0.0001",
+      "expected": "BLOCK_POSITIVE_INCREMENTAL_COST"
+    },
+    {
+      "value": "100.00",
+      "expected": "BLOCK_POSITIVE_INCREMENTAL_COST"
+    },
+    {
+      "value": "-0.0001",
+      "expected": "FAIL_INVALID_INCREMENTAL_COST"
+    },
+    {
+      "value": "not-a-number",
+      "expected": "FAIL_INVALID_INCREMENTAL_COST"
+    }
+  ],
+  "roi_vectors": [
+    {
+      "verified_benefit_aud": null,
+      "complete_total_economic_cost_aud": "100.00",
+      "expected_status": "NOT_COMPUTABLE",
+      "expected_value": null
+    },
+    {
+      "verified_benefit_aud": "100.00",
+      "complete_total_economic_cost_aud": null,
+      "expected_status": "NOT_COMPUTABLE",
+      "expected_value": null
+    },
+    {
+      "verified_benefit_aud": "100.00",
+      "complete_total_economic_cost_aud": "0",
+      "expected_status": "NOT_COMPUTABLE",
+      "expected_value": null
+    },
+    {
+      "verified_benefit_aud": "100.00",
+      "complete_total_economic_cost_aud": "-0.01",
+      "expected_status": "INVALID_COST",
+      "expected_value": null
+    },
+    {
+      "verified_benefit_aud": "100.00",
+      "complete_total_economic_cost_aud": "50.00",
+      "expected_status": "COMPUTABLE_VERIFIED_INPUTS",
+      "expected_value": "1"
+    },
+    {
+      "verified_benefit_aud": "0.00",
+      "complete_total_economic_cost_aud": "50.00",
+      "expected_status": "COMPUTABLE_VERIFIED_INPUTS",
+      "expected_value": "-1"
+    },
+    {
+      "verified_benefit_aud": "-50.00",
+      "complete_total_economic_cost_aud": "50.00",
+      "expected_status": "COMPUTABLE_VERIFIED_INPUTS",
+      "expected_value": "-2"
+    }
+  ],
+  "minimum_targeted_pytest_cases": 100,
+  "minimum_full_pytest_cases": 650,
+  "expected_next": "S01/STAGE_REVIEW_READY_NOT_STARTED"
+}

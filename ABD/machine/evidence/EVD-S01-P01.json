@@ -1,0 +1,822 @@
+{
+  "artifacts": {
+    "ART-S01-P01-01": "customer_press_release.md",
+    "ART-S01-P01-02": "customer_outcomes.json"
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S01/P01_test.py --junitxml=machine/evidence/S01/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S01/P01/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/P01/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S01-P01 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S01-P01",
+  "decision": "CUSTOMER_OUTCOME_CONTRACT_FROZEN",
+  "decision_sha256": "44c438a98317f22d101920c4d6617c075e6d38c9943c7e8366d18ac86f5e8a3f",
+  "evidence_id": "EVD-S01-P01",
+  "explicit_unknowns": [
+    "The target customer experience is not implemented or deployed by this phase.",
+    "All-market coverage, live source freshness, external accounts and production runtime remain unverified.",
+    "No actual return is verified; A$300*1.3^n remains a falsifiable target and not a guarantee."
+  ],
+  "external_effect_boundary": {
+    "external_account_or_api_accessed": false,
+    "github_upload_performed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "production_deployment_claimed": false,
+    "real_order_capability_present": false,
+    "return_guaranteed": false,
+    "secret_provisioned": false
+  },
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "hashes": {
+    "code": "ba73942e103dd1ebc733027c268a723b6d18f32191a60875892a3ec81306a963",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/customer_press_release.py": "d30747d05a6e1c866d92b145dfee31ba742f4db4cbb393421f4ae92352203ca0",
+      "abd_acceptance/delivery.py": "6aa3f99ceb55bb7d32e9c2d2764723f21791d9ba77be1722e2e2365a1fa670c3",
+      "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+      "customer_press_release.md": "8cd88a4d4cd0dc6fe4735f8c0400fdd05ccab001afdbe9a09aec57a683f950ab",
+      "machine/evidence/EVD-S00-STAGE-REVIEW.json": "48966ee6a98ad93224f11eb99890448cad6105840141dc4016520a932a857e0d",
+      "machine/evidence/S00/STAGE_REVIEW/github_delivery_receipt.json": "cf6832b72b6f82dfe8d8e5f98aeb8df7c5f86cb75175e8997cb7a2f21c13109c",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S01_P01.json": "824e848b8d259ea1d29f6a10a9df38d1f1fbefeb0ab1c774da94fa27af0c8a96",
+      "tests/S00/__init__.py": "92747c3175dab227e64bab76b0728e85016df09d9114fb5b0b16f68a6971c03f",
+      "tests/S01/P01_test.py": "6b589a504798444463f2e98e73e2652bf61e5e0a634a2c3ee3aeeaa99758aa10",
+      "tests/S01/__init__.py": "2699f54f59bd6a4e1d3042e40a336c24a61dd71ece37e7e7c243532f6e309134",
+      "tests/__init__.py": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316"
+    },
+    "model": null,
+    "model_not_applicable_reason": "S01/P01 freezes customer outcomes; no prediction model is implemented or evaluated in this phase.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "18e51cb3bc5a06274e70c624855d990362a4fbe5ed75fbaedf219b8def29db55"
+  },
+  "next": "S01/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "phase_status": "S01_P01_PASS",
+  "release_status": "NOT_READY",
+  "requirement_id": "REQ-S01-P01",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S01-P01_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage0_delivery_prerequisite": {
+    "receipt": "machine/evidence/S00/STAGE_REVIEW/github_delivery_receipt.json",
+    "status": "PASS"
+  },
+  "stage_id": "S01",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": [
+          "customer_press_release.md"
+        ],
+        "id": "S01P01-SINGLE-CUSTOMER_PRESS_RELEASE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "customer_outcomes.json"
+        ],
+        "id": "S01P01-SINGLE-CUSTOMER_OUTCOMES",
+        "passed": true
+      },
+      {
+        "detail": [
+          "machine/tests/fixtures/S01_P01.json"
+        ],
+        "id": "S01P01-SINGLE-S01_P01",
+        "passed": true
+      },
+      {
+        "detail": "S01_P01.json",
+        "id": "S01P01-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "customer_outcomes.json",
+        "id": "S01P01-OUTCOMES-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "canonical_facts.json",
+        "id": "S01P01-CANONICAL-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "parameters.json",
+        "id": "S01P01-PARAMETERS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "roadmap.json",
+        "id": "S01P01-ROADMAP-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S01P01-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "acceptance_contracts.json",
+        "id": "S01P01-ACCEPTANCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "task_graph.json",
+        "id": "S01P01-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "traceability_matrix.json",
+        "id": "S01P01-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "costs.json",
+        "id": "S01P01-COSTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "authorization_matrix.json",
+        "id": "S01P01-AUTHORIZATION-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "degraded_mode_contract.json",
+        "id": "S01P01-DEGRADED-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "customer_press_release.md",
+        "id": "S01P01-PRESS-RELEASE-UTF8",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S01P01-HASH-CANONICAL_FACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S01P01-HASH-PARAMETERS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S01P01-HASH-REQUIREMENTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S01P01-HASH-ACCEPTANCE_CONTRACTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S01P01-HASH-TASK_GRAPH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S01P01-HASH-TRACEABILITY_MATRIX",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S01P01-HASH-ROADMAP",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "48966ee6a98ad93224f11eb99890448cad6105840141dc4016520a932a857e0d",
+          "expected": "48966ee6a98ad93224f11eb99890448cad6105840141dc4016520a932a857e0d"
+        },
+        "id": "S01P01-HASH-EVD-S00-STAGE-REVIEW",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "8cd88a4d4cd0dc6fe4735f8c0400fdd05ccab001afdbe9a09aec57a683f950ab",
+          "expected": "8cd88a4d4cd0dc6fe4735f8c0400fdd05ccab001afdbe9a09aec57a683f950ab"
+        },
+        "id": "S01P01-HASH-CUSTOMER_PRESS_RELEASE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+          "expected": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d"
+        },
+        "id": "S01P01-HASH-CUSTOMER_OUTCOMES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "824e848b8d259ea1d29f6a10a9df38d1f1fbefeb0ab1c774da94fa27af0c8a96",
+          "expected": "824e848b8d259ea1d29f6a10a9df38d1f1fbefeb0ab1c774da94fa27af0c8a96"
+        },
+        "id": "S01P01-HASH-S01_P01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316",
+          "expected": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316"
+        },
+        "id": "S01P01-HASH-__INIT__",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "92747c3175dab227e64bab76b0728e85016df09d9114fb5b0b16f68a6971c03f",
+          "expected": "92747c3175dab227e64bab76b0728e85016df09d9114fb5b0b16f68a6971c03f"
+        },
+        "id": "S01P01-HASH-__INIT__",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "2699f54f59bd6a4e1d3042e40a336c24a61dd71ece37e7e7c243532f6e309134",
+          "expected": "2699f54f59bd6a4e1d3042e40a336c24a61dd71ece37e7e7c243532f6e309134"
+        },
+        "id": "S01P01-HASH-__INIT__",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S01P01-HASH-ABD-STAGE0-VALIDATION",
+        "passed": true
+      },
+      {
+        "detail": [
+          "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
+          "ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "11f9893b081a58869d3b5fccaea48c9e9e46f990"
+        ],
+        "id": "S01P01-CONTINUOUS-CI-SUPPLY-CHAIN",
+        "passed": true
+      },
+      {
+        "detail": "read-only",
+        "id": "S01P01-CONTINUOUS-CI-HISTORICAL-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "tests/__init__.py",
+          "tests/S00/__init__.py",
+          "tests/S01/__init__.py"
+        ],
+        "id": "S01P01-PYTEST-IMPORT-ISOLATION",
+        "passed": true
+      },
+      {
+        "detail": "all parsed",
+        "id": "S01P01-INPUTS-STRUCTURALLY-AVAILABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "hours": {
+            "high": 6,
+            "likely": 4,
+            "low": 3
+          },
+          "id": "P01",
+          "objective": "描述用户每天只看一张中文建议卡并完成最终下单的目标体验。",
+          "outputs": [
+            "customer_press_release.md",
+            "customer_outcomes.json"
+          ],
+          "pass_gate": "新闻稿不依赖技术术语且结果可观察。",
+          "title": "客户新闻稿"
+        },
+        "id": "S01P01-ROADMAP-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "baseline": "未实现或旧包存在冲突/缺口",
+          "id": "REQ-S01-P01",
+          "measurement": "由 AC-S01-P01 的机器验收判定器执行固定输入、阈值和证据检查。",
+          "non_goals": [
+            "不自动提交、确认或重试真实订单",
+            "不以降低证据或风险门追赶30%月目标",
+            "不引入付费数据或付费程序接口依赖"
+          ],
+          "observation_period": "开发期每次提交；上线后持续",
+          "owner_input_required_during_development": false,
+          "phase_id": "P01",
+          "primary_acceptance_criteria_id": "AC-S01-P01",
+          "priority": "P1",
+          "problem": "若未完成“客户新闻稿”，从客户结果反推产品，冻结问题、用户、价值、非目标、指标、经济性和证伪合同。将缺少可执行、可验收或可恢复的基础。",
+          "scope": [
+            "customer_press_release.md",
+            "customer_outcomes.json"
+          ],
+          "stage_id": "S01",
+          "target": "新闻稿不依赖技术术语且结果可观察。",
+          "title": "客户新闻稿",
+          "user": "单一账户持有人及自动开发/运维代理",
+          "value": "描述用户每天只看一张中文建议卡并完成最终下单的目标体验。"
+        },
+        "id": "S01P01-REQUIREMENT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "environment": [
+            "Ubuntu Linux 持续集成环境",
+            "固定时钟",
+            "冻结测试夹具",
+            "无外部网络的确定性测试模式",
+            "生产等价配置Schema"
+          ],
+          "evidence_requirements": [
+            "machine/evidence/EVD-S01-P01.json",
+            "测试报告及命令退出码",
+            "输入、参数、代码、模型和输出SHA-256",
+            "失败路径截图或结构化日志",
+            "回滚演练记录"
+          ],
+          "id": "AC-S01-P01",
+          "inputs": [
+            "REQ-S01-P01 对应机器事实",
+            "S01/P01 冻结正向、边界、负向和故障输入",
+            "参数版本和来源版本哈希"
+          ],
+          "oracle": {
+            "command": "python -m abd_acceptance --contract AC-S01-P01 --evidence machine/evidence",
+            "rule": "新闻稿不依赖技术术语且结果可观察。",
+            "type": "EXECUTABLE"
+          },
+          "pass_gate": "新闻稿不依赖技术术语且结果可观察。",
+          "requirement_id": "REQ-S01-P01",
+          "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_condition": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "tests": [
+            {
+              "id": "TEST-S01-P01",
+              "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+            },
+            {
+              "id": "TEST-S01-P01-BOUNDARY",
+              "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+            },
+            {
+              "id": "TEST-S01-P01-REPLAY",
+              "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+            }
+          ],
+          "threshold": "新闻稿不依赖技术术语且结果可观察。",
+          "title": "客户新闻稿唯一主验收"
+        },
+        "id": "S01P01-ACCEPTANCE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S01-P01-01",
+          "T-S01-P01-02",
+          "T-S01-P01-03"
+        ],
+        "id": "S01P01-TASK-CHAIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_criteria_id": "AC-S01-P01",
+          "artifact_ids": [
+            "ART-S01-P01-01",
+            "ART-S01-P01-02"
+          ],
+          "evidence_id": "EVD-S01-P01",
+          "phase_id": "P01",
+          "requirement_id": "REQ-S01-P01",
+          "stage_id": "S01",
+          "task_ids": [
+            "T-S01-P01-01",
+            "T-S01-P01-02",
+            "T-S01-P01-03"
+          ],
+          "test_ids": [
+            "TEST-S01-P01",
+            "TEST-S01-P01-BOUNDARY",
+            "TEST-S01-P01-REPLAY"
+          ]
+        },
+        "id": "S01P01-TRACEABILITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "标题",
+          "副标题",
+          "目标体验",
+          "用户会看到什么",
+          "怎样判断体验是否兑现",
+          "重要边界"
+        ],
+        "id": "S01P01-PRESS-RELEASE-STRUCTURE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "chinese_characters": 776,
+          "total_characters": 926
+        },
+        "id": "S01P01-PRESS-RELEASE-CUSTOMER-LANGUAGE",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S01P01-PRESS-RELEASE-NO-JARGON",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S01P01-PRESS-RELEASE-NO-FALSE-CURRENT-CLAIM",
+        "passed": true
+      },
+      {
+        "detail": "all present",
+        "id": "S01P01-PRESS-RELEASE-OBSERVABLE-CONCEPTS",
+        "passed": true
+      },
+      {
+        "detail": "TARGET_EXPERIENCE_CONTRACT_NOT_DEPLOYED",
+        "id": "S01P01-OUTCOMES-TOP-LEVEL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "machine/evidence/EVD-S00-STAGE-REVIEW.json": "48966ee6a98ad93224f11eb99890448cad6105840141dc4016520a932a857e0d",
+            "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+            "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+            "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+            "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+            "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+            "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+          },
+          "declared": {
+            "machine/evidence/EVD-S00-STAGE-REVIEW.json": "48966ee6a98ad93224f11eb99890448cad6105840141dc4016520a932a857e0d",
+            "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+            "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+            "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+            "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+            "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+            "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+          }
+        },
+        "id": "S01P01-OUTCOMES-SOURCE-BINDINGS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_problem": "市场信息分散、时效和可信度难判断，目标压力可能诱发追损或忽略证据缺口。",
+          "daily_job": "每天只看一张中文建议卡，在证据足够且风险门通过时自行完成最终下单。",
+          "language": "zh-CN",
+          "role": "单一账户持有人"
+        },
+        "id": "S01P01-OUTCOMES-CUSTOMER-JOB",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed_decision_states": [
+            "RECOMMENDATION",
+            "NO_RECOMMENDATION"
+          ],
+          "automatic_order_submission_count": 0,
+          "card_language": "zh-CN",
+          "cards_per_calendar_day": 1,
+          "daily_summary_timezone": "Australia/Sydney",
+          "final_order_actor": "OWNER",
+          "missing_or_unstable_evidence_action": "NO_RECOMMENDATION"
+        },
+        "id": "S01P01-OUTCOMES-EXPERIENCE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "OUT-S01-P01-01",
+          "OUT-S01-P01-02",
+          "OUT-S01-P01-03",
+          "OUT-S01-P01-04",
+          "OUT-S01-P01-05"
+        ],
+        "id": "S01P01-OUTCOMES-OBSERVABLE-ROWS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_evidence_status": "NOT_YET_IMPLEMENTED",
+          "customer_observation": "每个悉尼自然日只出现一张中文汇总卡；即使没有合格机会，也用同一张卡明确说明不建议。",
+          "id": "OUT-S01-P01-01",
+          "measurement": {
+            "field": "daily_summary.card_count_by_sydney_date",
+            "operator": "EQUALS",
+            "target": 1
+          },
+          "name": "每天一张中文卡"
+        },
+        "id": "S01P01-OUTCOME-DAILY-CARD-MEASURE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_evidence_status": "NOT_YET_IMPLEMENTED",
+          "customer_observation": "卡片只给出建议或不建议，并同时显示理由、证据是否齐全及信息是否仍然有效。",
+          "id": "OUT-S01-P01-02",
+          "measurement": {
+            "decision_state_enum": [
+              "RECOMMENDATION",
+              "NO_RECOMMENDATION"
+            ],
+            "required_fields": [
+              "decision_state",
+              "reason",
+              "evidence_status",
+              "freshness_status"
+            ]
+          },
+          "name": "结论和理由可直接看懂"
+        },
+        "id": "S01P01-OUTCOME-CARD-FIELDS-MEASURE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_evidence_status": "NOT_YET_IMPLEMENTED",
+          "customer_observation": "产品不提交、确认或重试真实订单；用户在自己的页面核对后决定是否完成最终下单。",
+          "id": "OUT-S01-P01-03",
+          "measurement": {
+            "automatic_order_submission_count": 0,
+            "required_final_actor": "OWNER"
+          },
+          "name": "最终下单始终由用户完成"
+        },
+        "id": "S01P01-OUTCOME-OWNER-ORDER-MEASURE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_evidence_status": "NOT_YET_IMPLEMENTED",
+          "customer_observation": "证据缺失、信息过期、数值或风险判断不稳定时，卡片明确显示不建议，不用沉默或降低门槛掩盖问题。",
+          "id": "OUT-S01-P01-04",
+          "measurement": {
+            "critical_gate_failure_action": "NO_RECOMMENDATION",
+            "silent_coverage_gap_target": 0
+          },
+          "name": "不确定时明确不建议"
+        },
+        "id": "S01P01-OUTCOME-FAIL-CLOSED-MEASURE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_evidence_status": "NOT_YET_IMPLEMENTED",
+          "customer_observation": "A$300×1.3^n 只作为待证伪和长期验证的目标；落后时不追损、不放松证据或风险门，也不把建议表现当作真实收益。",
+          "id": "OUT-S01-P01-05",
+          "measurement": {
+            "actual_return_requires_verified_execution_evidence": true,
+            "return_guaranteed": false,
+            "target_shortfall_may_relax_gate": false,
+            "target_verification_status": "UNVERIFIED"
+          },
+          "name": "目标进度如实呈现"
+        },
+        "id": "S01P01-OUTCOME-NO-GUARANTEE-MEASURE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "absolute_probability_perturbations": [
+            "-0.0001",
+            "+0.0001"
+          ],
+          "absolute_threshold_perturbations": [
+            "-0.0001",
+            "+0.0001"
+          ],
+          "action_when_any_test_flips": "NO_RECOMMENDATION",
+          "friction_perturbation": "+0.0001",
+          "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+          "time_perturbation_seconds": 2
+        },
+        "id": "S01P01-OUTCOMES-ADVERSE-STABILITY-BINDING",
+        "passed": true
+      },
+      {
+        "detail": [
+          "不自动提交、确认或重试真实订单",
+          "不以降低证据或风险门追赶30%月目标",
+          "不引入付费数据或付费程序接口依赖"
+        ],
+        "id": "S01P01-OUTCOMES-NON-GOALS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_return_verified": false,
+          "all_market_coverage_verified": false,
+          "external_provider_access_verified": false,
+          "gmail_connection_status": "NOT_CONNECTED",
+          "production_deployment_claimed": false,
+          "release_status": "NOT_READY",
+          "return_guaranteed": false
+        },
+        "id": "S01P01-OUTCOMES-CLAIM-BOUNDARIES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed_decision_states": [
+            "RECOMMENDATION",
+            "NO_RECOMMENDATION"
+          ],
+          "automatic_order_submission_count": 0,
+          "card_language": "zh-CN",
+          "cards_per_calendar_day": 1,
+          "daily_summary_timezone": "Australia/Sydney",
+          "final_order_actor": "OWNER",
+          "missing_or_unstable_evidence_action": "NO_RECOMMENDATION"
+        },
+        "id": "S01P01-CROSS-DOCUMENT-CONSISTENCY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 17,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 17
+        },
+        "id": "S01P01-STAGE0-DELIVERY-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": "bounded",
+        "id": "S01P01-ZERO-BUDGET-NO-ORDER-NO-GMAIL-EFFECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": [],
+          "p02_status": "PLANNED"
+        },
+        "id": "S01P01-P02-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 55,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 80
+        },
+        "id": "S01P01-TEST-TARGETED-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 255,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 286
+        },
+        "id": "S01P01-TEST-FULL-REGRESSION-PASS",
+        "passed": true
+      },
+      {
+        "detail": "validation_report.json",
+        "id": "S01P01-PACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S01P01-TASKPACK-49-GATES-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S00/P03/paid_dependency_scan.txt",
+        "id": "S01P01-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S01-P01",
+    "decision": "CUSTOMER_OUTCOME_CONTRACT_FROZEN",
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-19T00:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+      "customer_press_release.md": "8cd88a4d4cd0dc6fe4735f8c0400fdd05ccab001afdbe9a09aec57a683f950ab",
+      "machine/evidence/EVD-S00-STAGE-REVIEW.json": "48966ee6a98ad93224f11eb99890448cad6105840141dc4016520a932a857e0d",
+      "machine/evidence/EVD-S00-STAGE-REVIEW_rollback.json": "e418fe62d0084255a26b12b9e2f42bd49cbeb5e19e86879e61d6023c3f752ed8",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S00/STAGE_REVIEW/github_delivery_receipt.json": "cf6832b72b6f82dfe8d8e5f98aeb8df7c5f86cb75175e8997cb7a2f21c13109c",
+      "machine/evidence/S01/P01/full_regression.xml": "523ee8bea4467ea534809a0e1e7b439a931e941953dc83844feffdf3a29f97a5",
+      "machine/evidence/S01/P01/pytest.xml": "7f2bfb3b60cdaefd40ffa00b53dd78187fe60e35045857dd5747e9b71990d571",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S01_P01.json": "824e848b8d259ea1d29f6a10a9df38d1f1fbefeb0ab1c774da94fa27af0c8a96",
+      "tests/S00/__init__.py": "92747c3175dab227e64bab76b0728e85016df09d9114fb5b0b16f68a6971c03f",
+      "tests/S01/__init__.py": "2699f54f59bd6a4e1d3042e40a336c24a61dd71ece37e7e7c243532f6e309134",
+      "tests/__init__.py": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316"
+    },
+    "next": "S01/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "phase_status": "S01_P01_PASS",
+    "production_status": "NOT_DEPLOYED",
+    "release_status": "NOT_READY",
+    "requirement_id": "REQ-S01-P01",
+    "schema_version": "1.0.0",
+    "stage_id": "S01",
+    "status": "PASS",
+    "summary": {
+      "checks": 67,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 67
+    },
+    "version": "0.0.0.1"
+  }
+}

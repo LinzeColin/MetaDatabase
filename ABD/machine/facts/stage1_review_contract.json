@@ -1,0 +1,137 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "stage_id": "S01",
+  "review_id": "ABD-S01-WHOLE-STAGE-REVIEW",
+  "fixed_at": "2026-07-19T00:00:00+10:00",
+  "review_scope": {
+    "phase_ids": ["P01", "P02", "P03", "P04"],
+    "requirement_ids": ["REQ-S01-P01", "REQ-S01-P02", "REQ-S01-P03", "REQ-S01-P04"],
+    "acceptance_contract_ids": ["AC-S01-P01", "AC-S01-P02", "AC-S01-P03", "AC-S01-P04"],
+    "task_ids": [
+      "T-S01-P01-01", "T-S01-P01-02", "T-S01-P01-03",
+      "T-S01-P02-01", "T-S01-P02-02", "T-S01-P02-03",
+      "T-S01-P03-01", "T-S01-P03-02", "T-S01-P03-03",
+      "T-S01-P04-01", "T-S01-P04-02", "T-S01-P04-03"
+    ]
+  },
+  "supplied_source_receipts": [
+    {
+      "artifact_label": "ABD_Roadmap_Stage_Phase_v0.0.0.1.md",
+      "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "repository_equivalent": "machine/evidence/roadmap_stage_phase.md",
+      "repository_equivalent_required": true
+    },
+    {
+      "artifact_label": "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip",
+      "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+      "original_file_count": 53,
+      "repository_equivalent": null,
+      "repository_equivalent_required": false,
+      "verification_boundary": "LOCAL_OWNER_SUPPLIED_ARCHIVE_RECEIPT; CI verifies pinned critical files, not the absent ZIP"
+    }
+  ],
+  "baseline_critical_artifacts": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+    "business_flows.json": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+    "customer_faq.md": "c004e375b0924564e1453885da5e7c286e15cc1924103524097fc4c58af22cb3",
+    "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+    "customer_press_release.md": "8cd88a4d4cd0dc6fe4735f8c0400fdd05ccab001afdbe9a09aec57a683f950ab",
+    "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+    "kill_criteria.json": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+    "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+    "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+    "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383",
+    "machine/evidence/S00/STAGE_REVIEW/github_delivery_receipt.json": "cf6832b72b6f82dfe8d8e5f98aeb8df7c5f86cb75175e8997cb7a2f21c13109c",
+    "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+    "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+    "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd"
+  },
+  "phase_records": [
+    {
+      "phase_id": "P01", "requirement_id": "REQ-S01-P01", "acceptance_contract_id": "AC-S01-P01",
+      "task_ids": ["T-S01-P01-01", "T-S01-P01-02", "T-S01-P01-03"],
+      "evidence_path": "machine/evidence/EVD-S01-P01.json", "evidence_sha256": "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e",
+      "rollback_path": "machine/evidence/EVD-S01-P01_rollback.json", "rollback_sha256": "18e51cb3bc5a06274e70c624855d990362a4fbe5ed75fbaedf219b8def29db55",
+      "implementation_commit": "7c52659e2f6de6ebfff6d3079ba0a29cf542867e", "implementation_code_sha256": "ba73942e103dd1ebc733027c268a723b6d18f32191a60875892a3ec81306a963",
+      "expected_next": "S01/P02_READY_NOT_STARTED", "expected_release_status": "NOT_READY",
+      "required_outputs": ["customer_press_release.md", "customer_outcomes.json"],
+      "allowed_commit_paths": ["ABD/", ".github/workflows/abd-stage0-validation.yml"]
+    },
+    {
+      "phase_id": "P02", "requirement_id": "REQ-S01-P02", "acceptance_contract_id": "AC-S01-P02",
+      "task_ids": ["T-S01-P02-01", "T-S01-P02-02", "T-S01-P02-03"],
+      "evidence_path": "machine/evidence/EVD-S01-P02.json", "evidence_sha256": "7d9471a303c23c34e567e9eee394be2f01bc7025a7ad74915aad6f21e5427ac5",
+      "rollback_path": "machine/evidence/EVD-S01-P02_rollback.json", "rollback_sha256": "6608dd6bb06e11319d39b5c4757d68eccb7834717dd9a4139b2811c9b8f398df",
+      "implementation_commit": "214232879e068c9703695ab098e92e010ac2db7f", "implementation_code_sha256": "e4d3e23cecd6f4c0554205ed4e8ea447f2f5cf0dabd08f462681e1dca565d207",
+      "expected_next": "S01/P03_READY_NOT_STARTED", "expected_release_status": "NOT_READY",
+      "required_outputs": ["customer_faq.md", "assumption_register.json"], "allowed_commit_paths": ["ABD/"]
+    },
+    {
+      "phase_id": "P03", "requirement_id": "REQ-S01-P03", "acceptance_contract_id": "AC-S01-P03",
+      "task_ids": ["T-S01-P03-01", "T-S01-P03-02", "T-S01-P03-03"],
+      "evidence_path": "machine/evidence/EVD-S01-P03.json", "evidence_sha256": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+      "rollback_path": "machine/evidence/EVD-S01-P03_rollback.json", "rollback_sha256": "237b2ecf3f70be28f86e6be7967c98f0c99e0fce07d57f6ce3162b1dc2ecdf7d",
+      "implementation_commit": "a4d5e3076f1e327072680207944a2d75514b1f03", "implementation_code_sha256": "05e19ab44ed59ce2ab650fc728e158ca1968f6912dc7ea79acf13a74b9927e1b",
+      "expected_next": "S01/P04_READY_NOT_STARTED", "expected_release_status": "NOT_READY",
+      "required_outputs": ["requirements.json", "scope_boundary.json", "business_flows.json"], "allowed_commit_paths": ["ABD/"]
+    },
+    {
+      "phase_id": "P04", "requirement_id": "REQ-S01-P04", "acceptance_contract_id": "AC-S01-P04",
+      "task_ids": ["T-S01-P04-01", "T-S01-P04-02", "T-S01-P04-03"],
+      "evidence_path": "machine/evidence/EVD-S01-P04.json", "evidence_sha256": "ae6ce2a897e9dd41c34d01cdc7f2cdd3c8cfbb41477662898ef3c9f766e49643",
+      "rollback_path": "machine/evidence/EVD-S01-P04_rollback.json", "rollback_sha256": "88fa2a52d604ef4c042651b998bc5beeacb3686320f3d5db6902e75cdc2ffb6a",
+      "implementation_commit": "ddd7664acdd12e51b590233da7d65322a378c3d2", "implementation_code_sha256": "b32093936c2a5ce689c643c1c32f433c4b94b591b1e7e54b98c2e563b2dab935",
+      "expected_next": "S01/STAGE_REVIEW_READY_NOT_STARTED", "expected_release_status": "NOT_READY_STAGE_REVIEW_REQUIRED",
+      "required_outputs": ["metrics.json", "economics.json", "kill_criteria.json"], "allowed_commit_paths": ["ABD/"]
+    }
+  ],
+  "review_findings_path": "machine/evidence/S01/STAGE_REVIEW/findings.json",
+  "repository_integration": {
+    "abd_workflow": ".github/workflows/abd-stage0-validation.yml",
+    "stage0_delivery_receipt": "machine/evidence/S00/STAGE_REVIEW/github_delivery_receipt.json",
+    "pinned_actions": {
+      "actions/checkout": "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
+      "actions/setup-python": "ece7cb06caefa5fff74198d8649806c4678c61a1",
+      "astral-sh/setup-uv": "11f9893b081a58869d3b5fccaea48c9e9e46f990"
+    },
+    "uv_version": "0.11.28", "python_version": "3.12",
+    "stage1_review_replayed_by_full_pytest": true,
+    "remote_ci_status_at_local_review": "NOT_YET_OBSERVED_REQUIRES_STAGE_UPLOAD"
+  },
+  "upload_preconditions": [
+    "ALL_STAGE_PHASES_PASS", "WHOLE_STAGE_REVIEW_PASS", "ALL_REVIEW_FINDINGS_RESOLVED",
+    "FULL_STAGE_REGRESSION_PASS", "SECRET_SCAN_PASS", "CLEAN_WORKTREE", "NO_INCREMENTAL_CASH_COST"
+  ],
+  "review_gates": [
+    "SUPPLIED_BASELINE_CRITICAL_HASHES_MATCH", "S01_REQUIREMENT_ACCEPTANCE_TASK_TRACE_EXACT",
+    "P01_TO_P04_EVIDENCE_ROLLBACK_AND_HISTORICAL_INPUT_HASH_CHAIN_PASS",
+    "ALL_FOUR_EXECUTABLE_PHASE_ORACLES_PASS", "ALL_REQUIRED_OUTPUTS_EXIST",
+    "ALL_21_PRODUCT_REQUIREMENTS_HAVE_METRICS", "ALL_NONCASH_BENEFITS_HAVE_VALID_METRICS",
+    "GMAIL_PRIVACY_AND_INDEPENDENT_PIPELINE_GATES_PRESENT", "ALL_REVIEW_FINDINGS_RESOLVED",
+    "ZERO_INCREMENTAL_CASH_NO_ORDER_NO_SECRET_AND_NO_RETURN_CLAIM",
+    "FULL_STAGE_REGRESSION_AND_TASKPACK_VALIDATION_PASS", "ROLLBACK_DRILL_PASS"
+  ],
+  "stage_stop_conditions": [
+    "发现法律、监管或来源合同实质冲突且无安全默认", "需要不可逆操作", "新增现金支出将超过A$0",
+    "严重安全事故或证据完整性失败", "阶段终止条件被触发"
+  ],
+  "external_effect_boundary": {
+    "github_upload_performed_by_local_review": false,
+    "remote_ci_result_claimed_by_local_review": false,
+    "gmail_or_provider_account_accessed": false,
+    "production_deployment_claimed": false,
+    "real_order_capability_present": false,
+    "return_or_roi_verified": false,
+    "s02_started": false
+  },
+  "next_on_local_review_pass": "S01/GITHUB_STAGE_UPLOAD_READY",
+  "next_after_verified_remote_upload": "S02/P01_READY_NOT_STARTED"
+}

@@ -1,0 +1,2066 @@
+{
+  "artifacts": {
+    "ART-S01-P04-01": "metrics.json",
+    "ART-S01-P04-02": "economics.json",
+    "ART-S01-P04-03": "kill_criteria.json"
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --verify-existing STAGE-REVIEW-S00",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S01/P04_test.py --junitxml=machine/evidence/S01/P04/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/P04/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S01/P04/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S01/P04/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S01-P04 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S01-P04",
+  "decision": "METRICS_ECONOMICS_AND_KILL_CONTRACT_FROZEN",
+  "decision_sha256": "e6eb48d189c47954b877fc6b2bbf49bf4c1d9ed945629cc9b8fe8c5c476c1a7b",
+  "evidence_id": "EVD-S01-P04",
+  "explicit_unknowns": [
+    "The 30% monthly target remains unverified, falsifiable and not guaranteed.",
+    "Realized cash benefit, actual return, ROI, NPV, payback and complete total economic cost remain unknown or not computable.",
+    "OVH, Cloudflare, Gmail, betting accounts, billing, capacity, source freshness and all-market production coverage remain unverified.",
+    "The S01/P04 outputs are prospective measurement and kill contracts, not runtime, deployment, model-performance or actual-return evidence.",
+    "No external account, secret, real email, order, deployment, stage review or actual return was observed in this phase."
+  ],
+  "external_effect_boundary": {
+    "all_market_coverage_claimed": false,
+    "external_account_or_api_accessed": false,
+    "github_upload_performed": false,
+    "gmail_connected_claimed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "production_deployment_claimed": false,
+    "real_order_capability_present": false,
+    "return_or_guarantee_claimed": false,
+    "secret_provisioned": false,
+    "stage_review_started": false
+  },
+  "fixed_clock": "2026-07-19T00:00:00+10:00",
+  "hashes": {
+    "code": "b32093936c2a5ce689c643c1c32f433c4b94b591b1e7e54b98c2e563b2dab935",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/__init__.py": "b5d5a0a7db79a43290e66e648faa25463a1ef6c0d705a4574bc541ff0058df8d",
+      "abd_acceptance/__main__.py": "196ce055faaa756475877cb8b9d8afaf2f2a3e7e478040cf350d45bcc41236fd",
+      "abd_acceptance/delivery.py": "6aa3f99ceb55bb7d32e9c2d2764723f21791d9ba77be1722e2e2365a1fa670c3",
+      "abd_acceptance/metrics_economics.py": "174d0073d24855ee9a32a10d24b16d09ecf9e475b97081ae0a13e491d62cb938",
+      "abd_acceptance/requirements_scope.py": "868e6f9020223f813b83260692e048177a60bcaf7c7842a5183d1ac2fae98688",
+      "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+      "business_flows.json": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+      "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+      "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+      "kill_criteria.json": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+      "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+      "machine/evidence/EVD-S01-P03_rollback.json": "237b2ecf3f70be28f86e6be7967c98f0c99e0fce07d57f6ce3162b1dc2ecdf7d",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+      "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+      "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+      "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S01_P04.json": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14",
+      "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+      "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+      "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383",
+      "tests/S00/__init__.py": "92747c3175dab227e64bab76b0728e85016df09d9114fb5b0b16f68a6971c03f",
+      "tests/S01/P03_test.py": "700ee2268cf3d448ffbac235dd3002d47e9d1c4e053c717b49da9b3973800b5a",
+      "tests/S01/P04_test.py": "7aba49c8621ffe546097875f1a890133408be16628f5be4fb827fd72acb62aa4",
+      "tests/S01/__init__.py": "2699f54f59bd6a4e1d3042e40a336c24a61dd71ece37e7e7c243532f6e309134",
+      "tests/__init__.py": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S01/P04 freezes metrics and economics contracts but executes no prediction model, strategy or target verification.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "88fa2a52d604ef4c042651b998bc5beeacb3686320f3d5db6902e75cdc2ffb6a"
+  },
+  "next": "S01/STAGE_REVIEW_READY_NOT_STARTED",
+  "p03_prerequisite": {
+    "commit": "a4d5e3076f1e327072680207944a2d75514b1f03",
+    "evidence": "machine/evidence/EVD-S01-P03.json",
+    "sha256": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+    "status": "PASS"
+  },
+  "phase_id": "P04",
+  "phase_status": "S01_P04_PASS",
+  "release_status": "NOT_READY_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S01-P04",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S01-P04_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S01",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": [
+          "metrics.json"
+        ],
+        "id": "S01P04-SINGLE-METRICS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "economics.json"
+        ],
+        "id": "S01P04-SINGLE-ECONOMICS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "kill_criteria.json"
+        ],
+        "id": "S01P04-SINGLE-KILL_CRITERIA",
+        "passed": true
+      },
+      {
+        "detail": [
+          "machine/tests/fixtures/S01_P04.json"
+        ],
+        "id": "S01P04-SINGLE-S01_P04",
+        "passed": true
+      },
+      {
+        "detail": "S01_P04.json",
+        "id": "S01P04-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "metrics.json",
+        "id": "S01P04-METRICS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "economics.json",
+        "id": "S01P04-ECONOMICS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "kill_criteria.json",
+        "id": "S01P04-KILL-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "roadmap.json",
+        "id": "S01P04-ROADMAP-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S01P04-TASKPACK-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "acceptance_contracts.json",
+        "id": "S01P04-ACCEPTANCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "task_graph.json",
+        "id": "S01P04-TASK-GRAPH-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "traceability_matrix.json",
+        "id": "S01P04-TRACEABILITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S01P04-PRODUCT-REQUIREMENTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "assumption_register.json",
+        "id": "S01P04-SOURCE-ASSUMPTION-REGISTER-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "business_flows.json",
+        "id": "S01P04-SOURCE-BUSINESS-FLOWS-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "customer_outcomes.json",
+        "id": "S01P04-SOURCE-CUSTOMER-OUTCOMES-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "economics.json",
+        "id": "S01P04-SOURCE-ECONOMICS-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "EVD-S01-P03.json",
+        "id": "S01P04-SOURCE-MACHINE-EVIDENCE-EVD-S01-P03-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "acceptance_contracts.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-ACCEPTANCE-CONTRACTS-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "canonical_facts.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-CANONICAL-FACTS-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "costs.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-COSTS-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "decision_prerequisites.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-DECISION-PREREQUISITES-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "degraded_mode_contract.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-DEGRADED-MODE-CONTRACT-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "email_ingestion.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-EMAIL-INGESTION-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "model_system_card.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-MODEL-SYSTEM-CARD-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "parameters.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-PARAMETERS-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "release_policy.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-RELEASE-POLICY-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-REQUIREMENTS-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "risk_register.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-RISK-REGISTER-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "roadmap.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-ROADMAP-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "security_assurance.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-SECURITY-ASSURANCE-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "strategy_spec.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-STRATEGY-SPEC-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "task_graph.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-TASK-GRAPH-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "traceability_matrix.json",
+        "id": "S01P04-SOURCE-MACHINE-FACTS-TRACEABILITY-MATRIX-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "metrics.json",
+        "id": "S01P04-SOURCE-METRICS-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "requirements.json",
+        "id": "S01P04-SOURCE-REQUIREMENTS-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "scope_boundary.json",
+        "id": "S01P04-SOURCE-SCOPE-BOUNDARY-JSON-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+          "expected": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426"
+        },
+        "id": "S01P04-HASH-ASSUMPTION-REGISTER-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+          "expected": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648"
+        },
+        "id": "S01P04-HASH-BUSINESS-FLOWS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+          "expected": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d"
+        },
+        "id": "S01P04-HASH-CUSTOMER-OUTCOMES-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+          "expected": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46"
+        },
+        "id": "S01P04-HASH-MACHINE-EVIDENCE-EVD-S01-P03-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-ACCEPTANCE-CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-CANONICAL-FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+          "expected": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-DEGRADED-MODE-CONTRACT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+          "expected": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-DECISION-PREREQUISITES-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+          "expected": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-EMAIL-INGESTION-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-MODEL-SYSTEM-CARD-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "expected": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-RELEASE-POLICY-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+          "expected": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-RISK-REGISTER-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+          "expected": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-SECURITY-ASSURANCE-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+          "expected": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-STRATEGY-SPEC-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-TASK-GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S01P04-HASH-MACHINE-FACTS-TRACEABILITY-MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+          "expected": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d"
+        },
+        "id": "S01P04-HASH-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383",
+          "expected": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+        },
+        "id": "S01P04-HASH-SCOPE-BOUNDARY-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+          "expected": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c"
+        },
+        "id": "S01P04-HASH-METRICS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+          "expected": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0"
+        },
+        "id": "S01P04-HASH-ECONOMICS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+          "expected": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb"
+        },
+        "id": "S01P04-HASH-KILL-CRITERIA-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14",
+          "expected": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14"
+        },
+        "id": "S01P04-HASH-MACHINE-TESTS-FIXTURES-S01-P04-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S01P04-HASH-GITHUB-WORKFLOWS-ABD-STAGE0-VALIDATION-YML",
+        "passed": true
+      },
+      {
+        "detail": [
+          "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
+          "ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "11f9893b081a58869d3b5fccaea48c9e9e46f990"
+        ],
+        "id": "S01P04-CONTINUOUS-CI",
+        "passed": true
+      },
+      {
+        "detail": "package markers",
+        "id": "S01P04-PYTEST-IMPORT-ISOLATION",
+        "passed": true
+      },
+      {
+        "detail": "all parsed",
+        "id": "S01P04-INPUTS-STRUCTURALLY-AVAILABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "hours": {
+            "high": 6,
+            "likely": 4,
+            "low": 3
+          },
+          "id": "P04",
+          "objective": "建立现状基线、目标值、测量、观察周期、成本收益区间和机会成本。",
+          "outputs": [
+            "metrics.json",
+            "economics.json",
+            "kill_criteria.json"
+          ],
+          "pass_gate": "不承诺伪精确收益；30%目标可证伪可验证。",
+          "title": "指标与经济性"
+        },
+        "id": "S01P04-ROADMAP-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "baseline": "未实现或旧包存在冲突/缺口",
+          "id": "REQ-S01-P04",
+          "measurement": "由 AC-S01-P04 的机器验收判定器执行固定输入、阈值和证据检查。",
+          "non_goals": [
+            "不自动提交、确认或重试真实订单",
+            "不以降低证据或风险门追赶30%月目标",
+            "不引入付费数据或付费程序接口依赖"
+          ],
+          "observation_period": "开发期每次提交；上线后持续",
+          "owner_input_required_during_development": false,
+          "phase_id": "P04",
+          "primary_acceptance_criteria_id": "AC-S01-P04",
+          "priority": "P1",
+          "problem": "若未完成“指标与经济性”，从客户结果反推产品，冻结问题、用户、价值、非目标、指标、经济性和证伪合同。将缺少可执行、可验收或可恢复的基础。",
+          "scope": [
+            "metrics.json",
+            "economics.json",
+            "kill_criteria.json"
+          ],
+          "stage_id": "S01",
+          "target": "不承诺伪精确收益；30%目标可证伪可验证。",
+          "title": "指标与经济性",
+          "user": "单一账户持有人及自动开发/运维代理",
+          "value": "建立现状基线、目标值、测量、观察周期、成本收益区间和机会成本。"
+        },
+        "id": "S01P04-REQUIREMENT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "environment": [
+            "Ubuntu Linux 持续集成环境",
+            "固定时钟",
+            "冻结测试夹具",
+            "无外部网络的确定性测试模式",
+            "生产等价配置Schema"
+          ],
+          "evidence_requirements": [
+            "machine/evidence/EVD-S01-P04.json",
+            "测试报告及命令退出码",
+            "输入、参数、代码、模型和输出SHA-256",
+            "失败路径截图或结构化日志",
+            "回滚演练记录"
+          ],
+          "id": "AC-S01-P04",
+          "inputs": [
+            "REQ-S01-P04 对应机器事实",
+            "S01/P04 冻结正向、边界、负向和故障输入",
+            "参数版本和来源版本哈希"
+          ],
+          "oracle": {
+            "command": "python -m abd_acceptance --contract AC-S01-P04 --evidence machine/evidence",
+            "rule": "不承诺伪精确收益；30%目标可证伪可验证。",
+            "type": "EXECUTABLE"
+          },
+          "pass_gate": "不承诺伪精确收益；30%目标可证伪可验证。",
+          "requirement_id": "REQ-S01-P04",
+          "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_condition": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "tests": [
+            {
+              "id": "TEST-S01-P04",
+              "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+            },
+            {
+              "id": "TEST-S01-P04-BOUNDARY",
+              "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+            },
+            {
+              "id": "TEST-S01-P04-REPLAY",
+              "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+            }
+          ],
+          "threshold": "不承诺伪精确收益；30%目标可证伪可验证。",
+          "title": "指标与经济性唯一主验收"
+        },
+        "id": "S01P04-ACCEPTANCE-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S01-P04-01",
+          "T-S01-P04-02",
+          "T-S01-P04-03"
+        ],
+        "id": "S01P04-TASK-CHAIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_criteria_id": "AC-S01-P04",
+          "artifact_ids": [
+            "ART-S01-P04-01",
+            "ART-S01-P04-02",
+            "ART-S01-P04-03"
+          ],
+          "evidence_id": "EVD-S01-P04",
+          "phase_id": "P04",
+          "requirement_id": "REQ-S01-P04",
+          "stage_id": "S01",
+          "task_ids": [
+            "T-S01-P04-01",
+            "T-S01-P04-02",
+            "T-S01-P04-03"
+          ],
+          "test_ids": [
+            "TEST-S01-P04",
+            "TEST-S01-P04-BOUNDARY",
+            "TEST-S01-P04-REPLAY"
+          ]
+        },
+        "id": "S01P04-TRACEABILITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "METRICS_CONTRACT_BASELINES_MOSTLY_UNMEASURED_NOT_PERFORMANCE_PROOF",
+        "id": "S01P04-METRICS-TOP-LEVEL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+            "business_flows.json": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+            "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+            "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+            "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+            "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+            "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+            "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+            "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+            "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+            "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+            "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+            "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+            "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+            "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+            "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+            "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+            "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+            "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+            "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+            "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+          },
+          "declared": {
+            "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+            "business_flows.json": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+            "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+            "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+            "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+            "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+            "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+            "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+            "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+            "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+            "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+            "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+            "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+            "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+            "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+            "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+            "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+            "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+            "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+            "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+            "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+          }
+        },
+        "id": "S01P04-METRICS-SOURCE-BINDINGS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "MET-S01-P04-001",
+          "MET-S01-P04-002",
+          "MET-S01-P04-003",
+          "MET-S01-P04-004",
+          "MET-S01-P04-005",
+          "MET-S01-P04-006",
+          "MET-S01-P04-007",
+          "MET-S01-P04-008",
+          "MET-S01-P04-009",
+          "MET-S01-P04-010",
+          "MET-S01-P04-011",
+          "MET-S01-P04-012",
+          "MET-S01-P04-013",
+          "MET-S01-P04-014",
+          "MET-S01-P04-015",
+          "MET-S01-P04-016",
+          "MET-S01-P04-017",
+          "MET-S01-P04-018",
+          "MET-S01-P04-019",
+          "MET-S01-P04-020",
+          "MET-S01-P04-021",
+          "MET-S01-P04-022",
+          "MET-S01-P04-023",
+          "MET-S01-P04-024",
+          "MET-S01-P04-025",
+          "MET-S01-P04-026",
+          "MET-S01-P04-027",
+          "MET-S01-P04-028",
+          "MET-S01-P04-029",
+          "MET-S01-P04-030",
+          "MET-S01-P04-031"
+        ],
+        "id": "S01P04-METRIC-IDS-EXACT-UNIQUE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "daily_card_count_by_sydney_date",
+          "daily_card_required_field_missing_count",
+          "automatic_order_submission_capability_count",
+          "silent_market_coverage_gap_count",
+          "active_source_without_passed_capability_contract_count",
+          "event_identity_confidence",
+          "required_feature_completeness",
+          "future_information_leakage_count",
+          "calibration_slope",
+          "calibration_intercept_absolute",
+          "calibration_error_main_market",
+          "calibration_error_niche_market",
+          "brier_skill_95pct_lower_bound",
+          "logloss_skill_95pct_lower_bound",
+          "closing_price_advantage_95pct_lower_bound",
+          "net_log_growth_95pct_lower_bound",
+          "adverse_perturbation_action_flip_count",
+          "independent_decision_implementation_mismatch_count",
+          "residual_weight_without_time_out_increment",
+          "risk_limit_breach_count",
+          "unresolved_actual_ledger_reconciliation_difference_count",
+          "actual_incremental_cash_cost_aud",
+          "runtime_availability_ratio",
+          "target_plausibility_classification",
+          "target_falsification_classification",
+          "target_verification_classification",
+          "target_shortfall_gate_relaxation_or_chase_loss_count",
+          "gmail_activation_without_all_consent_and_safety_gates_count",
+          "unsafe_email_trash_or_permanent_delete_transition_count",
+          "secret_personal_data_or_untrusted_content_boundary_breach_count",
+          "independent_software_or_model_pipeline_gate_substitution_count"
+        ],
+        "id": "S01P04-METRIC-NAMES-UNIQUE",
+        "passed": true
+      },
+      {
+        "detail": 31,
+        "id": "S01P04-METRIC-ROWS-COMPLETE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ABD-PRD-REQ-001",
+          "ABD-PRD-REQ-002",
+          "ABD-PRD-REQ-003",
+          "ABD-PRD-REQ-004",
+          "ABD-PRD-REQ-005",
+          "ABD-PRD-REQ-006",
+          "ABD-PRD-REQ-007",
+          "ABD-PRD-REQ-008",
+          "ABD-PRD-REQ-009",
+          "ABD-PRD-REQ-010",
+          "ABD-PRD-REQ-011",
+          "ABD-PRD-REQ-012",
+          "ABD-PRD-REQ-013",
+          "ABD-PRD-REQ-014",
+          "ABD-PRD-REQ-015",
+          "ABD-PRD-REQ-016",
+          "ABD-PRD-REQ-017",
+          "ABD-PRD-REQ-018",
+          "ABD-PRD-REQ-019",
+          "ABD-PRD-REQ-020",
+          "ABD-PRD-REQ-021"
+        ],
+        "id": "S01P04-METRIC-REQUIREMENT-ROUTES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "covered": [
+            "ABD-PRD-REQ-001",
+            "ABD-PRD-REQ-002",
+            "ABD-PRD-REQ-003",
+            "ABD-PRD-REQ-004",
+            "ABD-PRD-REQ-005",
+            "ABD-PRD-REQ-006",
+            "ABD-PRD-REQ-007",
+            "ABD-PRD-REQ-008",
+            "ABD-PRD-REQ-009",
+            "ABD-PRD-REQ-010",
+            "ABD-PRD-REQ-011",
+            "ABD-PRD-REQ-012",
+            "ABD-PRD-REQ-013",
+            "ABD-PRD-REQ-014",
+            "ABD-PRD-REQ-015",
+            "ABD-PRD-REQ-016",
+            "ABD-PRD-REQ-017",
+            "ABD-PRD-REQ-018",
+            "ABD-PRD-REQ-019",
+            "ABD-PRD-REQ-020",
+            "ABD-PRD-REQ-021"
+          ],
+          "required": [
+            "ABD-PRD-REQ-001",
+            "ABD-PRD-REQ-002",
+            "ABD-PRD-REQ-003",
+            "ABD-PRD-REQ-004",
+            "ABD-PRD-REQ-005",
+            "ABD-PRD-REQ-006",
+            "ABD-PRD-REQ-007",
+            "ABD-PRD-REQ-008",
+            "ABD-PRD-REQ-009",
+            "ABD-PRD-REQ-010",
+            "ABD-PRD-REQ-011",
+            "ABD-PRD-REQ-012",
+            "ABD-PRD-REQ-013",
+            "ABD-PRD-REQ-014",
+            "ABD-PRD-REQ-015",
+            "ABD-PRD-REQ-016",
+            "ABD-PRD-REQ-017",
+            "ABD-PRD-REQ-018",
+            "ABD-PRD-REQ-019",
+            "ABD-PRD-REQ-020",
+            "ABD-PRD-REQ-021"
+          ]
+        },
+        "id": "S01P04-ALL-REQUIREMENTS-MEASURED-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "all baselines remain CONTRACT_ONLY",
+        "id": "S01P04-NULL-BASELINES-NEVER-PASS",
+        "passed": true
+      },
+      {
+        "detail": "method cadence observation sample",
+        "id": "S01P04-MEASUREMENT-CONTRACTS-COMPLETE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_ledger_is_actual_ledger": false,
+          "contract_value_is_runtime_measurement": false,
+          "decimal_strings_required_for_authoritative_thresholds": true,
+          "missing_or_null_baseline": "UNMEASURED_NOT_PASS",
+          "return_guaranteed": false,
+          "shadow_value_is_actual_return": false,
+          "target_curve_is_forecast": false,
+          "target_shortfall_may_relax_gate": false,
+          "unknown_external_state_default": "UNVERIFIED_OR_BLOCK_AFFECTED_CAPABILITY"
+        },
+        "id": "S01P04-METRIC-SEMANTICS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "all_authoritative_thresholds_source_bound": true,
+          "duplicate_metric_ids_allowed": 0,
+          "metric_count": 31,
+          "null_baseline_may_pass": false,
+          "untraced_metrics_allowed": 0
+        },
+        "id": "S01P04-METRIC-SUMMARY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "MET-S01-P04-003",
+          "MET-S01-P04-006",
+          "MET-S01-P04-007",
+          "MET-S01-P04-008",
+          "MET-S01-P04-009",
+          "MET-S01-P04-010",
+          "MET-S01-P04-011",
+          "MET-S01-P04-012",
+          "MET-S01-P04-017",
+          "MET-S01-P04-022",
+          "MET-S01-P04-027",
+          "MET-S01-P04-028",
+          "MET-S01-P04-029",
+          "MET-S01-P04-030",
+          "MET-S01-P04-031"
+        ],
+        "id": "S01P04-CORE-METRIC-THRESHOLDS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "falsification_months": 6,
+          "minimum_signals": 1000,
+          "monthly_log_growth": "0.26236426446749106",
+          "monthly_return": "0.30",
+          "plausibility_days": 90,
+          "reconciliation_differences": 0,
+          "verification_months": 12
+        },
+        "id": "S01P04-TARGET-CLASSIFICATION-GATES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_account_or_api_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "metrics_measured_against_runtime": false,
+          "model_or_strategy_evaluated": false,
+          "production_deployed": false,
+          "real_order_submitted": false,
+          "return_or_guarantee_claimed": false,
+          "stage_review_started": false,
+          "target_plausibility_or_return_verified": false
+        },
+        "id": "S01P04-METRICS-NO-RUNTIME-OR-RETURN-CLAIM",
+        "passed": true
+      },
+      {
+        "detail": "authoritative JSON contains no floats",
+        "id": "S01P04-METRICS-NO-BINARY-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "/metrics/0/source_evidence/0": "PASS",
+          "/metrics/1/source_evidence/0": "PASS",
+          "/metrics/10/source_evidence/0": "PASS",
+          "/metrics/11/source_evidence/0": "PASS",
+          "/metrics/12/source_evidence/0": "PASS",
+          "/metrics/13/source_evidence/0": "PASS",
+          "/metrics/14/source_evidence/0": "PASS",
+          "/metrics/15/source_evidence/0": "PASS",
+          "/metrics/15/source_evidence/1": "PASS",
+          "/metrics/16/source_evidence/0": "PASS",
+          "/metrics/16/source_evidence/1": "PASS",
+          "/metrics/17/source_evidence/0": "PASS",
+          "/metrics/18/source_evidence/0": "PASS",
+          "/metrics/19/source_evidence/0": "PASS",
+          "/metrics/19/source_evidence/1": "PASS",
+          "/metrics/2/source_evidence/0": "PASS",
+          "/metrics/20/source_evidence/0": "PASS",
+          "/metrics/20/source_evidence/1": "PASS",
+          "/metrics/21/source_evidence/0": "PASS",
+          "/metrics/21/source_evidence/1": "PASS",
+          "/metrics/22/source_evidence/0": "PASS",
+          "/metrics/22/source_evidence/1": "PASS",
+          "/metrics/23/source_evidence/0": "PASS",
+          "/metrics/24/source_evidence/0": "PASS",
+          "/metrics/24/source_evidence/1": "PASS",
+          "/metrics/25/source_evidence/0": "PASS",
+          "/metrics/25/source_evidence/1": "PASS",
+          "/metrics/26/source_evidence/0": "PASS",
+          "/metrics/26/source_evidence/1": "PASS",
+          "/metrics/27/source_evidence/0": "PASS",
+          "/metrics/28/source_evidence/0": "PASS",
+          "/metrics/29/source_evidence/0": "PASS",
+          "/metrics/29/source_evidence/1": "PASS",
+          "/metrics/3/source_evidence/0": "PASS",
+          "/metrics/3/source_evidence/1": "PASS",
+          "/metrics/30/source_evidence/0": "PASS",
+          "/metrics/4/source_evidence/0": "PASS",
+          "/metrics/5/source_evidence/0": "PASS",
+          "/metrics/6/source_evidence/0": "PASS",
+          "/metrics/7/source_evidence/0": "PASS",
+          "/metrics/7/source_evidence/1": "PASS",
+          "/metrics/8/source_evidence/0": "PASS",
+          "/metrics/9/source_evidence/0": "PASS"
+        },
+        "id": "S01P04-METRIC-SOURCE-POINTERS-RESOLVE",
+        "passed": true
+      },
+      {
+        "detail": "ECONOMICS_CONTRACT_REALIZED_BENEFIT_AND_TOTAL_COST_UNVERIFIED",
+        "id": "S01P04-ECONOMICS-TOP-LEVEL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+            "business_flows.json": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+            "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+            "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+            "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+            "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+            "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+            "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+            "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+            "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+            "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+            "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+          },
+          "declared": {
+            "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+            "business_flows.json": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+            "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+            "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+            "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+            "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+            "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+            "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+            "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+            "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+            "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+            "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+          }
+        },
+        "id": "S01P04-ECONOMICS-SOURCE-BINDINGS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "bankroll_principal": "A$300 是受风险合同约束的交易本金，不是开发或基础设施预算",
+          "benefit": "只有经相应证据成熟度证明的现金或非现金结果，不含目标曲线、回测或建议账本的伪装值",
+          "existing_committed_cost": "ABD 本阶段前已持有或承担的资源成本，不得改写成零",
+          "incremental_cash_cost": "因 ABD 0.0.0.1 新增且在既有承诺之外实际产生的现金支出",
+          "opportunity_cost": "开发、维护和人工最终下单时间的经济价值，披露但不计入 A$0 新增现金门",
+          "return_guaranteed": false,
+          "target_curve_is_forecast": false,
+          "total_system_cost_is_zero": false
+        },
+        "id": "S01P04-ECONOMIC-SEMANTICS-NO-ZERO-COST-OR-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cost_categories_that_must_not_be_hidden": [
+            "A$300 bankroll principal",
+            "existing OVH Cloudflare GitHub Gmail or other account costs",
+            "development and maintenance labour",
+            "owner final-order and reconciliation time",
+            "opportunity cost",
+            "market losses or drawdowns"
+          ],
+          "current_phase_incremental_cash_spent_aud": "0.00",
+          "development_effort_hours": {
+            "high": 480,
+            "likely": 320,
+            "low": 240,
+            "status": "TASKPACK_ESTIMATE_NOT_ACTUAL_HOURS"
+          },
+          "existing_recurring_cash_cost_aud": {
+            "high": null,
+            "likely": null,
+            "low": null,
+            "status": "UNKNOWN_ACCOUNT_SPECIFIC_NO_ACCOUNT_BILLING_INSPECTED"
+          },
+          "incremental_cash_budget_aud": {
+            "high": "0.00",
+            "likely": "0.00",
+            "low": "0.00",
+            "status": "HARD_MAXIMUM_NOT_TOTAL_COST"
+          },
+          "program_actual_incremental_cash_cost_aud": {
+            "status": "EXTERNAL_BILLING_AND_FUTURE_COMMITMENTS_UNVERIFIED",
+            "unknown_action": "BLOCK_AFFECTED_CAPABILITY",
+            "value": null
+          },
+          "source_evidence": [
+            {
+              "path": "machine/facts/costs.json",
+              "pointers": [
+                "/cost_semantics",
+                "/incremental_cash_budget",
+                "/incremental_cash_gate",
+                "/development_effort_hours"
+              ]
+            }
+          ]
+        },
+        "id": "S01P04-COST-ENVELOPE-EXACT-UNKNOWN-NOT-ZERO",
+        "passed": true
+      },
+      {
+        "detail": {
+          "basis": "development_effort_hours multiplied by illustrative hourly value; not a cash commitment or invoice",
+          "scenarios": [
+            {
+              "high_aud": "14400.00",
+              "hourly_value_aud": "30.00",
+              "likely_aud": "9600.00",
+              "low_aud": "7200.00"
+            },
+            {
+              "high_aud": "24000.00",
+              "hourly_value_aud": "50.00",
+              "likely_aud": "16000.00",
+              "low_aud": "12000.00"
+            },
+            {
+              "high_aud": "48000.00",
+              "hourly_value_aud": "100.00",
+              "likely_aud": "32000.00",
+              "low_aud": "24000.00"
+            },
+            {
+              "high_aud": "72000.00",
+              "hourly_value_aud": "150.00",
+              "likely_aud": "48000.00",
+              "low_aud": "36000.00"
+            }
+          ],
+          "source_evidence": [
+            {
+              "path": "machine/facts/costs.json",
+              "pointers": [
+                "/opportunity_cost_sensitivity"
+              ]
+            }
+          ],
+          "status": "SENSITIVITY_ONLY_NOT_OWNER_TIME_VALUATION"
+        },
+        "id": "S01P04-OPPORTUNITY-COST-SENSITIVITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "classification_metric_ids": [
+            "MET-S01-P04-024",
+            "MET-S01-P04-025",
+            "MET-S01-P04-026",
+            "MET-S01-P04-027"
+          ],
+          "confidence": "LOW_UNTIL_EMPIRICAL_EVIDENCE",
+          "current_status": "UNVERIFIED_FALSIFIABLE_TARGET",
+          "formula": "B_n = 300 * 1.3^n",
+          "initial_bankroll_aud": "300.00",
+          "is_cash_benefit_forecast": false,
+          "is_expected_value_estimate": false,
+          "is_guarantee": false,
+          "may_be_used_as_roi_numerator": false,
+          "monthly_target_log_growth": "0.26236426446749106",
+          "monthly_target_return": "0.30",
+          "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+          "source_evidence": [
+            {
+              "path": "machine/facts/canonical_facts.json",
+              "pointers": [
+                "/product/target_curve",
+                "/product/monthly_target_return",
+                "/product/initial_bankroll_aud"
+              ]
+            },
+            {
+              "path": "machine/facts/parameters.json",
+              "pointers": [
+                "/target_30pct"
+              ]
+            }
+          ]
+        },
+        "id": "S01P04-TARGET-CURVE-NOT-FORECAST-OR-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "loss_possible": true,
+          "loss_range_aud": {
+            "high": null,
+            "likely": null,
+            "low": null,
+            "status": "NOT_ESTIMABLE_NO_EMPIRICAL_DISTRIBUTION_OR_ACTUAL_LEDGER"
+          },
+          "non_cash_benefits": [
+            {
+              "id": "BEN-NC-001",
+              "measurement_metric_ids": [
+                "MET-S01-P04-004",
+                "MET-S01-P04-005"
+              ],
+              "monetized_value_aud": null,
+              "name": "全范围市场可观测与缺口治理"
+            },
+            {
+              "id": "BEN-NC-002",
+              "measurement_metric_ids": [
+                "MET-S01-P04-008",
+                "MET-S01-P04-017",
+                "MET-S01-P04-018",
+                "MET-S01-P04-020",
+                "MET-S01-P04-030",
+                "MET-S01-P04-031"
+              ],
+              "monetized_value_aud": null,
+              "name": "可复用概率、风险和证据平台"
+            },
+            {
+              "id": "BEN-NC-003",
+              "measurement_metric_ids": [
+                "MET-S01-P04-001",
+                "MET-S01-P04-002",
+                "MET-S01-P04-003"
+              ],
+              "monetized_value_aud": null,
+              "name": "中文单动作决策体验"
+            },
+            {
+              "id": "BEN-NC-004",
+              "measurement_metric_ids": [
+                "MET-S01-P04-028",
+                "MET-S01-P04-029"
+              ],
+              "monetized_value_aud": null,
+              "name": "邮件与附件自动证据归档",
+              "status": "OPTIONAL_GMAIL_MODULE_NOT_CONNECTED_OR_IMPLEMENTED"
+            },
+            {
+              "id": "BEN-NC-005",
+              "measurement_metric_ids": [
+                "MET-S01-P04-009",
+                "MET-S01-P04-010",
+                "MET-S01-P04-011",
+                "MET-S01-P04-012",
+                "MET-S01-P04-013",
+                "MET-S01-P04-014",
+                "MET-S01-P04-015",
+                "MET-S01-P04-016",
+                "MET-S01-P04-023"
+              ],
+              "monetized_value_aud": null,
+              "name": "长期模型与运行审计"
+            }
+          ],
+          "realized_cash_benefit_aud": {
+            "high": null,
+            "likely": null,
+            "low": null,
+            "null_is_not_zero": true,
+            "status": "NOT_ESTIMABLE_NO_ACTUAL_EXECUTION_AND_RECONCILIATION_EVIDENCE"
+          },
+          "realized_return": {
+            "advice_or_shadow_performance_may_substitute": false,
+            "status": "UNVERIFIED",
+            "value": null
+          },
+          "source_evidence": [
+            {
+              "path": "machine/facts/costs.json",
+              "pointers": [
+                "/benefit_model"
+              ]
+            },
+            {
+              "path": "machine/facts/canonical_facts.json",
+              "pointers": [
+                "/truth_and_evidence/advice_ledger_separate_from_actual_ledger",
+                "/truth_and_evidence/actual_return_requires_verified_execution_evidence"
+              ]
+            }
+          ]
+        },
+        "id": "S01P04-BENEFIT-AND-LOSS-RANGES-UNVERIFIED",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "id": "BEN-NC-001",
+            "measurement_metric_ids": [
+              "MET-S01-P04-004",
+              "MET-S01-P04-005"
+            ],
+            "monetized_value_aud": null,
+            "name": "全范围市场可观测与缺口治理"
+          },
+          {
+            "id": "BEN-NC-002",
+            "measurement_metric_ids": [
+              "MET-S01-P04-008",
+              "MET-S01-P04-017",
+              "MET-S01-P04-018",
+              "MET-S01-P04-020",
+              "MET-S01-P04-030",
+              "MET-S01-P04-031"
+            ],
+            "monetized_value_aud": null,
+            "name": "可复用概率、风险和证据平台"
+          },
+          {
+            "id": "BEN-NC-003",
+            "measurement_metric_ids": [
+              "MET-S01-P04-001",
+              "MET-S01-P04-002",
+              "MET-S01-P04-003"
+            ],
+            "monetized_value_aud": null,
+            "name": "中文单动作决策体验"
+          },
+          {
+            "id": "BEN-NC-004",
+            "measurement_metric_ids": [
+              "MET-S01-P04-028",
+              "MET-S01-P04-029"
+            ],
+            "monetized_value_aud": null,
+            "name": "邮件与附件自动证据归档",
+            "status": "OPTIONAL_GMAIL_MODULE_NOT_CONNECTED_OR_IMPLEMENTED"
+          },
+          {
+            "id": "BEN-NC-005",
+            "measurement_metric_ids": [
+              "MET-S01-P04-009",
+              "MET-S01-P04-010",
+              "MET-S01-P04-011",
+              "MET-S01-P04-012",
+              "MET-S01-P04-013",
+              "MET-S01-P04-014",
+              "MET-S01-P04-015",
+              "MET-S01-P04-016",
+              "MET-S01-P04-023"
+            ],
+            "monetized_value_aud": null,
+            "name": "长期模型与运行审计"
+          }
+        ],
+        "id": "S01P04-NONCASH-BENEFITS-TRACEABLE-NOT-MONETIZED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "current_status": "NOT_COMPUTABLE_WITHOUT_VERIFIED_BENEFIT_AND_COMPLETE_COST_LEDGER",
+          "denominator_aud": null,
+          "division_by_zero_or_unknown_allowed": false,
+          "formula": "(verified_realized_cash_benefit - complete_total_economic_cost) / complete_total_economic_cost",
+          "minimum_evidence_maturity": "VERIFIED_ACTUAL_EXECUTION_AND_RECONCILIATION",
+          "net_present_value": null,
+          "numerator_aud": null,
+          "payback_period": null,
+          "roi": null,
+          "target_curve_or_shadow_result_allowed_as_verified_benefit": false,
+          "unknown_default": "DO_NOT_REPORT_ROI"
+        },
+        "id": "S01P04-ROI-NPV-PAYBACK-NOT-FABRICATED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cash_budget_feasible": "CONDITIONAL_ONLY_IF_EVERY_INCREMENTAL_COST_REMAINS_EXACTLY_0.00",
+          "current_status": "UNVERIFIED",
+          "falsification_evidence": {
+            "complete_calendar_months": 6,
+            "independent_equivalent_signals": 1000,
+            "monthly_return_95pct_upper_bound_below": "0.30"
+          },
+          "minimum_plausibility_evidence": {
+            "capacity_pass": true,
+            "complete_days": 90,
+            "independent_equivalent_signals": 1000
+          },
+          "on_shortfall": "REPORT_ONLY_NO_CHASE_LOSS_NO_GATE_RELAXATION",
+          "target_economic_feasibility": "UNVERIFIED",
+          "technical_capacity_feasible": "UNVERIFIED_NO_LIVE_SOURCE_HOST_PLATFORM_LIMIT_OR_OPPORTUNITY_COHORT",
+          "verification_evidence": {
+            "cashflow_adjusted_geometric_monthly_return_min": "0.30",
+            "complete_calendar_months": 12,
+            "complete_evidence": true,
+            "unresolved_reconciliation_differences": 0
+          }
+        },
+        "id": "S01P04-FEASIBILITY-GATES-EXACT-UNVERIFIED",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "action": "BLOCK_AFFECTED_CAPABILITY",
+            "condition": "incremental cash cost is positive or unknown",
+            "id": "ECO-DEC-001",
+            "never": "AUTO_PURCHASE_UPGRADE_OR_OVERAGE"
+          },
+          {
+            "action": "DO_NOT_REPORT_ROI",
+            "condition": "realized benefit or complete total cost is unknown",
+            "id": "ECO-DEC-002",
+            "never": "SUBSTITUTE_TARGET_CURVE_OR_ZERO_DENOMINATOR"
+          },
+          {
+            "action": "REPORT_EVIDENCE_CLASS_SEPARATELY",
+            "condition": "only advice backtest or shadow evidence exists",
+            "id": "ECO-DEC-003",
+            "never": "CLAIM_ACTUAL_RETURN"
+          },
+          {
+            "action": "REPORT_SHORTFALL_OR_MARK_FALSIFIED",
+            "condition": "30 percent target is behind",
+            "id": "ECO-DEC-004",
+            "never": "CHASE_LOSS_OR_RELAX_EVIDENCE_NUMERIC_RISK_SAFETY_SOURCE_GATE"
+          },
+          {
+            "action": "DEGRADE_OR_BLOCK_RELEASE",
+            "condition": "existing resource capacity or free terms are stale unknown or insufficient",
+            "id": "ECO-DEC-005",
+            "never": "AUTO_UPGRADE_TO_PAID_SERVICE"
+          }
+        ],
+        "id": "S01P04-ECONOMIC-DECISIONS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_return_or_guarantee_claimed": false,
+          "economic_model_is_empirical_forecast": false,
+          "external_account_or_api_accessed": false,
+          "external_billing_or_account_inspected": false,
+          "incremental_cash_spent_aud": "0.00",
+          "production_deployed": false,
+          "real_order_submitted": false,
+          "roi_computed_or_claimed": false,
+          "stage_review_started": false
+        },
+        "id": "S01P04-ECONOMICS-NO-EXTERNAL-OR-RETURN-EFFECT",
+        "passed": true
+      },
+      {
+        "detail": "authoritative JSON contains no floats",
+        "id": "S01P04-ECONOMICS-NO-BINARY-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "/benefit_envelope/source_evidence/0": "PASS",
+          "/benefit_envelope/source_evidence/1": "PASS",
+          "/cost_envelope/source_evidence/0": "PASS",
+          "/opportunity_cost_sensitivity/source_evidence/0": "PASS",
+          "/target_curve_contract/source_evidence/0": "PASS",
+          "/target_curve_contract/source_evidence/1": "PASS"
+        },
+        "id": "S01P04-ECONOMICS-SOURCE-POINTERS-RESOLVE",
+        "passed": true
+      },
+      {
+        "detail": "PROSPECTIVE_FAIL_CLOSED_KILL_CONTRACT_NOT_CURRENT_TRIGGER_EVIDENCE",
+        "id": "S01P04-KILL-TOP-LEVEL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": {
+            "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+            "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+            "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+            "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+            "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+            "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+            "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+            "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+            "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+            "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+            "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+            "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+            "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+            "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+            "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+          },
+          "declared": {
+            "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+            "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+            "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+            "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+            "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+            "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+            "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+            "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+            "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+            "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+            "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+            "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+            "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+            "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+            "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+            "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+          }
+        },
+        "id": "S01P04-KILL-SOURCE-BINDINGS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "KC-S01-P04-001",
+          "KC-S01-P04-002",
+          "KC-S01-P04-003",
+          "KC-S01-P04-004",
+          "KC-S01-P04-005",
+          "KC-S01-P04-006",
+          "KC-S01-P04-007",
+          "KC-S01-P04-008",
+          "KC-S01-P04-009",
+          "KC-S01-P04-010",
+          "KC-S01-P04-011",
+          "KC-S01-P04-012",
+          "KC-S01-P04-013",
+          "KC-S01-P04-014",
+          "KC-S01-P04-015",
+          "KC-S01-P04-016",
+          "KC-S01-P04-017",
+          "KC-S01-P04-018",
+          "KC-S01-P04-019"
+        ],
+        "id": "S01P04-KILL-IDS-EXACT-UNIQUE",
+        "passed": true
+      },
+      {
+        "detail": 19,
+        "id": "S01P04-KILL-ROWS-COMPLETE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "MET-S01-P04-001",
+          "MET-S01-P04-002",
+          "MET-S01-P04-003",
+          "MET-S01-P04-004",
+          "MET-S01-P04-005",
+          "MET-S01-P04-006",
+          "MET-S01-P04-007",
+          "MET-S01-P04-008",
+          "MET-S01-P04-009",
+          "MET-S01-P04-010",
+          "MET-S01-P04-011",
+          "MET-S01-P04-012",
+          "MET-S01-P04-013",
+          "MET-S01-P04-014",
+          "MET-S01-P04-015",
+          "MET-S01-P04-016",
+          "MET-S01-P04-017",
+          "MET-S01-P04-018",
+          "MET-S01-P04-019",
+          "MET-S01-P04-020",
+          "MET-S01-P04-021",
+          "MET-S01-P04-022",
+          "MET-S01-P04-023",
+          "MET-S01-P04-024",
+          "MET-S01-P04-025",
+          "MET-S01-P04-026",
+          "MET-S01-P04-027",
+          "MET-S01-P04-028",
+          "MET-S01-P04-029",
+          "MET-S01-P04-030",
+          "MET-S01-P04-031"
+        ],
+        "id": "S01P04-KILL-METRIC-ROUTES-VALID",
+        "passed": true
+      },
+      {
+        "detail": [
+          "BLOCK_AFFECTED_CAPABILITY_NEVER_AUTO_PURCHASE_OR_UPGRADE",
+          "REJECT_BUILD_DISABLE_CAPABILITY_AND_BLOCK_RELEASE",
+          "STOP_AFFECTED_PIPELINE_PRESERVE_EVIDENCE_AND_BLOCK_RELEASE",
+          "PAUSE_AFFECTED_SOURCE_OR_FEATURE_AND_ESCALATE",
+          "KILL_AFFECTED_MODEL_DATASET_AND_INVALIDATE_DERIVED_PERFORMANCE",
+          "KILL_AFFECTED_MARKET_OR_EVENT_SLICE_AND_BLOCK_RECOMMENDATION",
+          "NO_RECOMMENDATION_KILL_AFFECTED_DECISION_SLICE",
+          "KILL_STRATEGY_SLICE_RETURN_TO_SHADOW_NO_ACTUAL_RETURN_CLAIM",
+          "MARK_TARGET_FALSIFIED_STOP_30PCT_TARGET_CLAIM_AND_REPORT_SHORTFALL",
+          "KILL_STRATEGY_SLICE_SET_STAKE_ZERO",
+          "STOP_ALL_RISK_SET_ALL_STAKES_ZERO_AND_REQUIRE_OWNER_REVIEW",
+          "STOP_NEW_RECOMMENDATIONS_AND_BLOCK_ANY_ACTUAL_RETURN_CLAIM",
+          "DISABLE_AFFECTED_SOURCE_OR_MARK_MARKET_UNOBSERVABLE_NEVER_SILENTLY_DROP_OR_BUY_PAID_SOURCE",
+          "STOP_30PCT_PURSUIT_MARK_TARGET_FALSIFIED_OR_CAPACITY_BLOCKED",
+          "DISCONTINUE_OR_SIMPLIFY_AFFECTED_AUTOMATION_FEATURE",
+          "STOP_AFFECTED_MODEL_RETURN_TO_SHADOW_AND_RECALIBRATE",
+          "SET_AFFECTED_STAKE_ZERO_BLOCK_RECOMMENDATION_AND_PRESERVE_BREACH_EVIDENCE",
+          "DISABLE_GMAIL_QUARANTINE_AFFECTED_INPUT_KEEP_MESSAGE_AND_NEVER_TRASH_OR_DELETE",
+          "BLOCK_RELEASE_AND_KEEP_LAST_SIGNED_PASSING_ARTIFACT"
+        ],
+        "id": "S01P04-KILL-ACTIONS-NO-ORDER-OR-SPEND",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_precedence": [
+            "STOP_ALL_RISK",
+            "BLOCK_RELEASE_OR_AFFECTED_CAPABILITY",
+            "KILL_STRATEGY_MODEL_OR_SOURCE_SLICE",
+            "MARK_TARGET_FALSIFIED",
+            "REPORT_AND_MONITOR"
+          ],
+          "contract_only_baseline_may_trigger_empirical_kill": false,
+          "criteria_are_prospective": true,
+          "current_trigger_evaluation_performed": false,
+          "kill_action_may_submit_cancel_confirm_or_retry_order": false,
+          "kill_requires_preregistered_scope_threshold_and_evidence": true,
+          "missing_or_incomplete_evidence_default": "UNVERIFIED_BLOCK_AFFECTED_DECISION",
+          "missing_or_incomplete_evidence_is_pass": false,
+          "target_shortfall_may_authorize_chase_loss": false,
+          "target_shortfall_may_relax_any_gate": false,
+          "unknown_total_cost_or_return_is_zero": false,
+          "unknown_total_cost_or_return_supports_roi": false
+        },
+        "id": "S01P04-KILL-SEMANTICS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "KC-S01-P04-001",
+          "KC-S01-P04-002",
+          "KC-S01-P04-003",
+          "KC-S01-P04-004",
+          "KC-S01-P04-005",
+          "KC-S01-P04-006",
+          "KC-S01-P04-007",
+          "KC-S01-P04-008",
+          "KC-S01-P04-009",
+          "KC-S01-P04-010",
+          "KC-S01-P04-011",
+          "KC-S01-P04-012",
+          "KC-S01-P04-013",
+          "KC-S01-P04-014",
+          "KC-S01-P04-015",
+          "KC-S01-P04-016",
+          "KC-S01-P04-017",
+          "KC-S01-P04-018",
+          "KC-S01-P04-019"
+        ],
+        "id": "S01P04-KILL-THRESHOLDS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cleared_criterion_ids": null,
+          "contract_only_negative_capability_criterion_ids": [
+            "KC-S01-P04-002"
+          ],
+          "performed": false,
+          "release_effect": "NO_RELEASE_AUTHORIZATION",
+          "roi_status": "NOT_COMPUTABLE",
+          "status": "NOT_EVALUATED_NO_RUNTIME_OR_EMPIRICAL_COHORT",
+          "target_status": "UNVERIFIED_NOT_GUARANTEED",
+          "triggered_criterion_ids": null,
+          "unknown_criterion_ids": [
+            "KC-S01-P04-001",
+            "KC-S01-P04-003",
+            "KC-S01-P04-004",
+            "KC-S01-P04-005",
+            "KC-S01-P04-006",
+            "KC-S01-P04-007",
+            "KC-S01-P04-008",
+            "KC-S01-P04-009",
+            "KC-S01-P04-010",
+            "KC-S01-P04-011",
+            "KC-S01-P04-012",
+            "KC-S01-P04-013",
+            "KC-S01-P04-014",
+            "KC-S01-P04-015",
+            "KC-S01-P04-016",
+            "KC-S01-P04-017",
+            "KC-S01-P04-018",
+            "KC-S01-P04-019"
+          ]
+        },
+        "id": "S01P04-NO-FABRICATED-CURRENT-KILL-EVALUATION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_return_or_guarantee_claimed": false,
+          "external_account_or_api_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "kill_criteria_evaluated_against_runtime": false,
+          "model_strategy_or_target_killed_by_current_phase": false,
+          "production_deployed": false,
+          "real_order_submitted": false,
+          "stage_review_started": false
+        },
+        "id": "S01P04-KILL-NO-RUNTIME-OR-EXTERNAL-EFFECT",
+        "passed": true
+      },
+      {
+        "detail": "authoritative JSON contains no floats",
+        "id": "S01P04-KILL-NO-BINARY-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "/criteria/0/source_evidence/0": "PASS",
+          "/criteria/1/source_evidence/0": "PASS",
+          "/criteria/10/source_evidence/0": "PASS",
+          "/criteria/11/source_evidence/0": "PASS",
+          "/criteria/11/source_evidence/1": "PASS",
+          "/criteria/12/source_evidence/0": "PASS",
+          "/criteria/13/source_evidence/0": "PASS",
+          "/criteria/14/source_evidence/0": "PASS",
+          "/criteria/15/source_evidence/0": "PASS",
+          "/criteria/16/source_evidence/0": "PASS",
+          "/criteria/17/source_evidence/0": "PASS",
+          "/criteria/17/source_evidence/1": "PASS",
+          "/criteria/18/source_evidence/0": "PASS",
+          "/criteria/18/source_evidence/1": "PASS",
+          "/criteria/2/source_evidence/0": "PASS",
+          "/criteria/2/source_evidence/1": "PASS",
+          "/criteria/3/source_evidence/0": "PASS",
+          "/criteria/4/source_evidence/0": "PASS",
+          "/criteria/5/source_evidence/0": "PASS",
+          "/criteria/6/source_evidence/0": "PASS",
+          "/criteria/6/source_evidence/1": "PASS",
+          "/criteria/7/source_evidence/0": "PASS",
+          "/criteria/7/source_evidence/1": "PASS",
+          "/criteria/8/source_evidence/0": "PASS",
+          "/criteria/8/source_evidence/1": "PASS",
+          "/criteria/9/source_evidence/0": "PASS"
+        },
+        "id": "S01P04-KILL-SOURCE-POINTERS-RESOLVE",
+        "passed": true
+      },
+      {
+        "detail": "EVD-S01-P03.json",
+        "id": "S01P04-P03-EVIDENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "EVD-S01-P03_rollback.json",
+        "id": "S01P04-P03-ROLLBACK-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision_integrity": true,
+          "evidence_sha256": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+          "rollback_sha256": "237b2ecf3f70be28f86e6be7967c98f0c99e0fce07d57f6ce3162b1dc2ecdf7d"
+        },
+        "id": "S01P04-P03-IMMUTABLE-RECEIPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "business_flows.json": {
+            "actual": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+            "expected": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+            "signed": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648"
+          },
+          "machine/tests/fixtures/S01_P03.json": {
+            "actual": "cc077019262accae8982f4892f9b7752c88926db675b433ef47f14d173d94761",
+            "expected": "cc077019262accae8982f4892f9b7752c88926db675b433ef47f14d173d94761",
+            "signed": "cc077019262accae8982f4892f9b7752c88926db675b433ef47f14d173d94761"
+          },
+          "requirements.json": {
+            "actual": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+            "expected": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+            "signed": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d"
+          },
+          "scope_boundary.json": {
+            "actual": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383",
+            "expected": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383",
+            "signed": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+          }
+        },
+        "id": "S01P04-P03-SIGNED-ARTIFACTS",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_contract_id": "AC-S01-P03",
+            "actual_artifact": "machine/evidence/EVD-S01-P03.json",
+            "artifact_sha256": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+            "expected_artifact": "machine/evidence/EVD-S01-P03.json",
+            "id": "INDEX-AC-S01-P03",
+            "kind": "ACCEPTANCE_EVIDENCE",
+            "next": "S01/P04_READY_NOT_STARTED",
+            "pass_gate": "每条需求唯一且可追踪。",
+            "requirement_id": "REQ-S01-P03",
+            "status": "PASS",
+            "verified_at": "2026-07-19T00:00:00+10:00"
+          }
+        ],
+        "id": "S01P04-P03-EVIDENCE-INDEX",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 17,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 17
+        },
+        "id": "S01P04-STAGE0-DELIVERY-CHAIN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ancestor_exit": 0,
+          "resolved": "a4d5e3076f1e327072680207944a2d75514b1f03"
+        },
+        "id": "S01P04-P03-GIT-ANCESTRY",
+        "passed": true
+      },
+      {
+        "detail": "principal budget role runtime evidence",
+        "id": "S01P04-CANONICAL-BOUNDARIES-FROZEN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "falsification_gate": [
+            "至少6个完整自然月",
+            "至少1000个独立等效信号",
+            "月收益率的95%上界仍低于30%"
+          ],
+          "formula": "B_n = 300 * 1.3^n",
+          "guaranteed": false,
+          "monthly_log_growth": "0.26236426446749106",
+          "monthly_return": "0.30",
+          "plausible_gate": [
+            "保守月度对数增长中位数 >= ln(1.3)",
+            "月度对数增长第5百分位 > 0",
+            "按来源、平台限额、机会数量和相关性校正后的容量通过"
+          ],
+          "shadow_min_days": 90,
+          "shadow_min_independent_equivalent_signals": 1000,
+          "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+          "verification_gate": [
+            "至少12个完整自然月",
+            "按现金流调整后的月度几何收益 >= 30%",
+            "证据完整",
+            "未解决对账差异为0"
+          ]
+        },
+        "id": "S01P04-TARGET-FACTS-FROZEN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "absolute_disaster_line": "0.700",
+          "chase_loss_prohibited": true,
+          "correlation_cluster_cap": "0.050",
+          "daily_loss_soft_stop": "0.030",
+          "event_cap": "0.050",
+          "kelly_fraction_alpha": "0.00",
+          "kelly_fraction_beta": "0.20",
+          "kelly_fraction_ga": "0.25",
+          "seven_day_drawdown_diagnostic": "0.075",
+          "single_ticket_cap_beta": "0.015",
+          "single_ticket_cap_ga": "0.020",
+          "strategy_slice_kill_drawdown": "0.100",
+          "target_shortfall_may_relax_gate": false,
+          "total_open_exposure_cap": "0.150"
+        },
+        "id": "S01P04-RISK-LIMITS-FROZEN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_must_match_across_implementations": true,
+          "authoritative_decimal_precision_digits": 50,
+          "binary_float_for_authoritative_decision": false,
+          "boundary_perturbation_absolute_probability": "0.0001",
+          "boundary_perturbation_absolute_threshold": "0.0001",
+          "boundary_perturbation_friction_up": "0.0001",
+          "boundary_perturbation_time_adverse_seconds": 2,
+          "friction_rounding": "UP",
+          "independent_implementation_absolute_tolerance": "1e-12",
+          "money_storage": "INTEGER_CENTS",
+          "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+          "odds_rounding": "DOWN",
+          "odds_storage_scale": "1e-6",
+          "probability_rounding": "DOWN",
+          "probability_storage_scale": "1e-9",
+          "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+          "unstable_action": "NO_RECOMMENDATION"
+        },
+        "id": "S01P04-NUMERIC-STABILITY-FROZEN",
+        "passed": true
+      },
+      {
+        "detail": "zero incremental gate and disclosed economic cost",
+        "id": "S01P04-COST-AND-BENEFIT-FACTS-FROZEN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "directories": [],
+          "evidence": [],
+          "index_rows": []
+        },
+        "id": "S01P04-STAGE-REVIEW-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 100,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 157
+        },
+        "id": "S01P04-TEST-TARGETED-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "minimum": 650,
+          "normalized": true,
+          "skipped": 0,
+          "tests": 815
+        },
+        "id": "S01P04-TEST-FULL-REGRESSION-PASS",
+        "passed": true
+      },
+      {
+        "detail": "validation_report.json",
+        "id": "S01P04-PACK-REPORT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S01P04-TASKPACK-49-GATES-PASS",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S00/P03/paid_dependency_scan.txt",
+        "id": "S01P04-PAID-DEPENDENCY-SCAN-PASS",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S01-P04",
+    "decision": "METRICS_ECONOMICS_AND_KILL_CONTRACT_FROZEN",
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-19T00:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "assumption_register.json": "b51e164e16fcf4c3cbd0708565583f91f7b5bf08f6a325d65a288872b03d9426",
+      "business_flows.json": "5b5da6955582f383980186a6f69ff089139ae71b919e09bb2ade9b39d3026648",
+      "customer_outcomes.json": "54ea272e26be24f88dc7344b4b2ea9d3268a488622214bc1790fe229d791b28d",
+      "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+      "kill_criteria.json": "9432ec41dc80ff2b329f0f21b8f432222f339455121929b9d4f82fc05bf348cb",
+      "machine/evidence/EVD-S00-STAGE-REVIEW.json": "48966ee6a98ad93224f11eb99890448cad6105840141dc4016520a932a857e0d",
+      "machine/evidence/EVD-S00-STAGE-REVIEW_rollback.json": "e418fe62d0084255a26b12b9e2f42bd49cbeb5e19e86879e61d6023c3f752ed8",
+      "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+      "machine/evidence/EVD-S01-P03_rollback.json": "237b2ecf3f70be28f86e6be7967c98f0c99e0fce07d57f6ce3162b1dc2ecdf7d",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S00/STAGE_REVIEW/github_delivery_receipt.json": "cf6832b72b6f82dfe8d8e5f98aeb8df7c5f86cb75175e8997cb7a2f21c13109c",
+      "machine/evidence/S01/P04/full_regression.xml": "2a0df9942c847b9fd402b4e3e6197c15463b119135f87d95f544e5b5f5acf411",
+      "machine/evidence/S01/P04/pytest.xml": "2839e44c1d3cd1ea8328138a77f4bc6c480c3d4cf52397a12a47200ce616c360",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/decision_prerequisites.json": "e9b54b985aff11faceaa7a2d6e6db42e070c96c0a8286a348ff767bc62921ccc",
+      "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+      "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+      "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S01_P04.json": "7abb7982198c21a41b04f677c64fe8c6b5ad23b5068b0d2171b18569759c3b14",
+      "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+      "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+      "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+    },
+    "next": "S01/STAGE_REVIEW_READY_NOT_STARTED",
+    "phase_id": "P04",
+    "phase_status": "S01_P04_PASS",
+    "production_status": "NOT_DEPLOYED",
+    "release_status": "NOT_READY_STAGE_REVIEW_REQUIRED",
+    "requirement_id": "REQ-S01-P04",
+    "roi_status": "NOT_COMPUTABLE",
+    "schema_version": "1.0.0",
+    "stage_id": "S01",
+    "status": "PASS",
+    "summary": {
+      "checks": 133,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 133
+    },
+    "version": "0.0.0.1"
+  }
+}

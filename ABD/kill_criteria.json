@@ -1,0 +1,606 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S01-P04-03",
+  "requirement_id": "REQ-S01-P04",
+  "acceptance_contract_id": "AC-S01-P04",
+  "product_version": "0.0.0.1",
+  "fixed_at": "2026-07-19T00:00:00+10:00",
+  "status": "PROSPECTIVE_FAIL_CLOSED_KILL_CONTRACT_NOT_CURRENT_TRIGGER_EVIDENCE",
+  "source_bindings": {
+    "economics.json": "eafa8e9c959d77bd8cfc50fe97767040f8d163f5934f3e5573205a3cb38774f0",
+    "machine/evidence/EVD-S01-P03.json": "f2a547b995f92cc45e94e7ce21198f88f4b331212144be6f2f11207b7b768d46",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/degraded_mode_contract.json": "823a92ee03a468aaa1df6a4706aa0f1af3472b7f9c96c530877578f2f072d02f",
+    "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
+    "machine/facts/security_assurance.json": "03543d4356f3718047293329d6b4e7cc3c14735b521e47f03079ff101f3205dd",
+    "machine/facts/strategy_spec.json": "d77f047219632145a71f0f2932149654ae24205bbdc291fa604b93bfcff5117d",
+    "metrics.json": "4eb776d819f6e3fe79715155876c8329cfa2e15db0eb0939e0360763eb2bcd5c",
+    "requirements.json": "ec1d098d5855b5835fbef315e276852454a7a43d66accd5a4ea5a193cd99f68d",
+    "scope_boundary.json": "b1efc644928df96357a0eb65583c1ff100fcdc35239fde1b07e170411528a383"
+  },
+  "evaluation_semantics": {
+    "criteria_are_prospective": true,
+    "current_trigger_evaluation_performed": false,
+    "missing_or_incomplete_evidence_is_pass": false,
+    "missing_or_incomplete_evidence_default": "UNVERIFIED_BLOCK_AFFECTED_DECISION",
+    "contract_only_baseline_may_trigger_empirical_kill": false,
+    "kill_requires_preregistered_scope_threshold_and_evidence": true,
+    "target_shortfall_may_relax_any_gate": false,
+    "target_shortfall_may_authorize_chase_loss": false,
+    "kill_action_may_submit_cancel_confirm_or_retry_order": false,
+    "action_precedence": [
+      "STOP_ALL_RISK",
+      "BLOCK_RELEASE_OR_AFFECTED_CAPABILITY",
+      "KILL_STRATEGY_MODEL_OR_SOURCE_SLICE",
+      "MARK_TARGET_FALSIFIED",
+      "REPORT_AND_MONITOR"
+    ],
+    "unknown_total_cost_or_return_is_zero": false,
+    "unknown_total_cost_or_return_supports_roi": false
+  },
+  "criteria": [
+    {
+      "id": "KC-S01-P04-001",
+      "name": "新增现金成本未知或大于零",
+      "category": "ECONOMICS",
+      "metric_ids": [
+        "MET-S01-P04-022"
+      ],
+      "condition": {
+        "field": "actual_incremental_cash_cost_aud",
+        "operator": "IS_UNKNOWN_OR_GREATER_THAN",
+        "threshold": "0.00",
+        "minimum_observation": "VERIFIED_ACCOUNT_AND_COMMITMENT_LEDGER"
+      },
+      "action": "BLOCK_AFFECTED_CAPABILITY_NEVER_AUTO_PURCHASE_OR_UPGRADE",
+      "reentry_gate": "VERIFIED_INCREMENTAL_CASH_COST_EXACTLY_0.00_AND_NO_NEW_COMMITMENT",
+      "source_evidence": [
+        {
+          "path": "machine/facts/costs.json",
+          "pointers": [
+            "/incremental_cash_gate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-002",
+      "name": "出现真实订单自动化能力",
+      "category": "PRODUCT_BOUNDARY",
+      "metric_ids": [
+        "MET-S01-P04-003"
+      ],
+      "condition": {
+        "field": "automatic_order_submission_capability_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "CODE_AND_RUNTIME_CAPABILITY_AUDIT"
+      },
+      "action": "REJECT_BUILD_DISABLE_CAPABILITY_AND_BLOCK_RELEASE",
+      "reentry_gate": "CAPABILITY_COUNT_ZERO_WITH_NEGATIVE_TEST_EVIDENCE",
+      "source_evidence": [
+        {
+          "path": "machine/facts/canonical_facts.json",
+          "pointers": [
+            "/scope/product_role",
+            "/scope/order_submission_module_present"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-003",
+      "name": "严重安全事故或证据完整性失败",
+      "category": "SECURITY_EVIDENCE",
+      "metric_ids": [
+        "MET-S01-P04-030"
+      ],
+      "condition": {
+        "field": "severe_security_or_evidence_integrity_incident_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "SIGNED_INCIDENT_OR_INTEGRITY_REPORT"
+      },
+      "action": "STOP_AFFECTED_PIPELINE_PRESERVE_EVIDENCE_AND_BLOCK_RELEASE",
+      "reentry_gate": "ROOT_CAUSE_REMEDIATED_CREDENTIALS_ROTATED_WHERE_REQUIRED_AND_INDEPENDENT_REPLAY_PASS",
+      "source_evidence": [
+        {
+          "path": "machine/facts/acceptance_contracts.json",
+          "pointers": [
+            "/7/stop_condition"
+          ]
+        },
+        {
+          "path": "machine/facts/risk_register.json",
+          "pointers": [
+            "/risks/8"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-004",
+      "name": "法律监管或来源合同存在实质冲突且无安全默认",
+      "category": "LEGAL_SOURCE_CONTRACT",
+      "metric_ids": [
+        "MET-S01-P04-005"
+      ],
+      "condition": {
+        "field": "unresolved_material_legal_regulatory_or_source_contract_conflict_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "CURRENT_FIRST_PARTY_TERMS_AND_CAPABILITY_CONTRACT_REVIEW"
+      },
+      "action": "PAUSE_AFFECTED_SOURCE_OR_FEATURE_AND_ESCALATE",
+      "reentry_gate": "CURRENT_CONTRACT_PASS_OR_SAFE_SOURCE_REMOVAL_WITH_VISIBLE_COVERAGE_GAP",
+      "source_evidence": [
+        {
+          "path": "machine/facts/acceptance_contracts.json",
+          "pointers": [
+            "/7/stop_condition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-005",
+      "name": "未来信息泄漏非零",
+      "category": "MODEL_INTEGRITY",
+      "metric_ids": [
+        "MET-S01-P04-008"
+      ],
+      "condition": {
+        "field": "future_information_leakage_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "EVENT_TIME_LINEAGE_AUDIT_ON_FROZEN_DATASET"
+      },
+      "action": "KILL_AFFECTED_MODEL_DATASET_AND_INVALIDATE_DERIVED_PERFORMANCE",
+      "reentry_gate": "ZERO_LEAKAGE_REBUILT_DATASET_AND_CLEAN_REPLAY",
+      "source_evidence": [
+        {
+          "path": "machine/facts/risk_register.json",
+          "pointers": [
+            "/risks/4"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-006",
+      "name": "赛事盘口或结算身份不可靠",
+      "category": "DATA_IDENTITY",
+      "metric_ids": [
+        "MET-S01-P04-006"
+      ],
+      "condition": {
+        "field": "event_identity_confidence_or_real_mismatch",
+        "operator": "BELOW_THRESHOLD_OR_ANY_REAL_MISMATCH",
+        "threshold": "0.995",
+        "minimum_observation": "IDENTITY_AUDIT_WITH_NEGATIVE_FIXTURES"
+      },
+      "action": "KILL_AFFECTED_MARKET_OR_EVENT_SLICE_AND_BLOCK_RECOMMENDATION",
+      "reentry_gate": "IDENTITY_CONFIDENCE_AT_LEAST_0.995_AND_ZERO_UNRESOLVED_REAL_MISMATCH",
+      "source_evidence": [
+        {
+          "path": "machine/facts/risk_register.json",
+          "pointers": [
+            "/risks/3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-007",
+      "name": "不利扰动或双实现使动作不一致",
+      "category": "NUMERIC_STABILITY",
+      "metric_ids": [
+        "MET-S01-P04-017",
+        "MET-S01-P04-018"
+      ],
+      "condition": {
+        "field": "adverse_perturbation_or_independent_implementation_action_mismatch_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "BOUNDARY_PLUS_OR_MINUS_0.0001_AND_ONE_ADVERSE_PROVIDER_TICK_REPLAY"
+      },
+      "action": "NO_RECOMMENDATION_KILL_AFFECTED_DECISION_SLICE",
+      "reentry_gate": "ZERO_ACTION_MISMATCH_AND_ABSOLUTE_NUMERIC_DIFFERENCE_AT_MOST_1e-12",
+      "source_evidence": [
+        {
+          "path": "machine/facts/parameters.json",
+          "pointers": [
+            "/numeric_determinism"
+          ]
+        },
+        {
+          "path": "machine/facts/risk_register.json",
+          "pointers": [
+            "/risks/6"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-008",
+      "name": "保守净对数增长置信下界不为正",
+      "category": "STRATEGY_VALUE",
+      "metric_ids": [
+        "MET-S01-P04-016"
+      ],
+      "condition": {
+        "field": "net_log_growth_95pct_lower_bound",
+        "operator": "LESS_THAN_OR_EQUAL",
+        "threshold": "0",
+        "minimum_observation": "PREREGISTERED_FROZEN_SHADOW_COHORT_WITH_COMPLETE_FRICTION_AND_CAPACITY_ADJUSTMENT"
+      },
+      "action": "KILL_STRATEGY_SLICE_RETURN_TO_SHADOW_NO_ACTUAL_RETURN_CLAIM",
+      "reentry_gate": "NEW_PREREGISTERED_INDEPENDENT_COHORT_WITH_95PCT_LOWER_BOUND_GREATER_THAN_ZERO",
+      "source_evidence": [
+        {
+          "path": "machine/facts/costs.json",
+          "pointers": [
+            "/kill_criteria/1"
+          ]
+        },
+        {
+          "path": "machine/facts/parameters.json",
+          "pointers": [
+            "/calibration/net_log_growth_95pct_lower_bound"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-009",
+      "name": "30%目标满足预注册证伪门",
+      "category": "TARGET_FALSIFICATION",
+      "metric_ids": [
+        "MET-S01-P04-025"
+      ],
+      "condition": {
+        "field": "target_falsification_classification",
+        "operator": "EQUALS",
+        "threshold": "FALSIFIED",
+        "minimum_observation": "6_COMPLETE_CALENDAR_MONTHS_AND_1000_INDEPENDENT_EQUIVALENT_SIGNALS_AND_95PCT_UPPER_MONTHLY_RETURN_BELOW_0.30"
+      },
+      "action": "MARK_TARGET_FALSIFIED_STOP_30PCT_TARGET_CLAIM_AND_REPORT_SHORTFALL",
+      "reentry_gate": "FORMALLY_VERSIONED_NEW_HYPOTHESIS_WITH_NEW_EVIDENCE_NOT_POST_HOC_GATE_RELAXATION",
+      "source_evidence": [
+        {
+          "path": "machine/facts/parameters.json",
+          "pointers": [
+            "/target_30pct/falsification_gate",
+            "/target_30pct/shortfall_behavior"
+          ]
+        },
+        {
+          "path": "machine/facts/risk_register.json",
+          "pointers": [
+            "/risks/0"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-010",
+      "name": "策略切片回撤达到10%",
+      "category": "RISK",
+      "metric_ids": [
+        "MET-S01-P04-020"
+      ],
+      "condition": {
+        "field": "strategy_slice_drawdown",
+        "operator": "GREATER_THAN_OR_EQUAL",
+        "threshold": "0.100",
+        "minimum_observation": "VERIFIED_ACTUAL_LEDGER_FOR_PREREGISTERED_STRATEGY_SLICE"
+      },
+      "action": "KILL_STRATEGY_SLICE_SET_STAKE_ZERO",
+      "reentry_gate": "ROOT_CAUSE_REVIEW_NEW_SIGNED_RISK_VERSION_AND_SHADOW_REQUALIFICATION",
+      "source_evidence": [
+        {
+          "path": "machine/facts/parameters.json",
+          "pointers": [
+            "/risk/strategy_slice_kill_drawdown"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-011",
+      "name": "绝对灾难线达到70%",
+      "category": "RISK",
+      "metric_ids": [
+        "MET-S01-P04-020"
+      ],
+      "condition": {
+        "field": "verified_bankroll_drawdown",
+        "operator": "GREATER_THAN_OR_EQUAL",
+        "threshold": "0.700",
+        "minimum_observation": "VERIFIED_ACTUAL_LEDGER"
+      },
+      "action": "STOP_ALL_RISK_SET_ALL_STAKES_ZERO_AND_REQUIRE_OWNER_REVIEW",
+      "reentry_gate": "NO_AUTOMATIC_REENTRY_NEW_OWNER_AUTHORIZATION_AND_FULL_INDEPENDENT_STAGE_REVIEW_REQUIRED",
+      "source_evidence": [
+        {
+          "path": "machine/facts/parameters.json",
+          "pointers": [
+            "/risk/absolute_disaster_line"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-012",
+      "name": "真实账本存在未解决对账差异",
+      "category": "EVIDENCE_LEDGER",
+      "metric_ids": [
+        "MET-S01-P04-021"
+      ],
+      "condition": {
+        "field": "unresolved_actual_ledger_reconciliation_difference_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "TYPED_EXECUTION_EVIDENCE_AND_SETTLEMENT_RECONCILIATION"
+      },
+      "action": "STOP_NEW_RECOMMENDATIONS_AND_BLOCK_ANY_ACTUAL_RETURN_CLAIM",
+      "reentry_gate": "ZERO_UNRESOLVED_DIFFERENCES_WITH_IMMUTABLE_RECONCILIATION_RECEIPT",
+      "source_evidence": [
+        {
+          "path": "machine/facts/risk_register.json",
+          "pointers": [
+            "/risks/11"
+          ]
+        },
+        {
+          "path": "machine/facts/canonical_facts.json",
+          "pointers": [
+            "/truth_and_evidence/actual_return_requires_verified_execution_evidence"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-013",
+      "name": "来源或覆盖不可合法稳定观察且无免费安全替代",
+      "category": "SOURCE_COVERAGE",
+      "metric_ids": [
+        "MET-S01-P04-004",
+        "MET-S01-P04-005"
+      ],
+      "condition": {
+        "field": "unresolved_recommendation_affecting_coverage_gap_or_failed_source_contract_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "CURRENT_SOURCE_CAPABILITY_CONTRACT_AND_COVERAGE_MANIFEST"
+      },
+      "action": "DISABLE_AFFECTED_SOURCE_OR_MARK_MARKET_UNOBSERVABLE_NEVER_SILENTLY_DROP_OR_BUY_PAID_SOURCE",
+      "reentry_gate": "FREE_CURRENT_CONTRACT_PASS_AND_VISIBLE_COVERAGE_RECONCILIATION",
+      "source_evidence": [
+        {
+          "path": "machine/facts/risk_register.json",
+          "pointers": [
+            "/risks/1",
+            "/risks/2",
+            "/risks/10"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-014",
+      "name": "证据充分后免费可验证容量无法接近30%目标",
+      "category": "TARGET_CAPACITY",
+      "metric_ids": [
+        "MET-S01-P04-024",
+        "MET-S01-P04-025"
+      ],
+      "condition": {
+        "field": "capacity_adjusted_target_feasibility",
+        "operator": "EQUALS",
+        "threshold": "IMPOSSIBLE_WITH_NO_NEW_FREE_VERIFIABLE_MARKET",
+        "minimum_observation": "AT_LEAST_6_COMPLETE_MONTHS_AND_1000_INDEPENDENT_EQUIVALENT_SIGNALS_WITH_SOURCE_PLATFORM_OPPORTUNITY_AND_CORRELATION_CAPACITY_ADJUSTMENT"
+      },
+      "action": "STOP_30PCT_PURSUIT_MARK_TARGET_FALSIFIED_OR_CAPACITY_BLOCKED",
+      "reentry_gate": "NEW_FREE_SOURCE_OR_MARKET_PASSES_CURRENT_SOURCE_AND_CAPACITY_CONTRACT_BEFORE_NEW_PREREGISTERED_HYPOTHESIS",
+      "source_evidence": [
+        {
+          "path": "machine/facts/costs.json",
+          "pointers": [
+            "/kill_criteria/2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-015",
+      "name": "维护负担不低于自动化节省时间",
+      "category": "OPPORTUNITY_COST",
+      "metric_ids": [],
+      "condition": {
+        "field": "maintenance_hours_divided_by_verified_automation_hours_saved",
+        "operator": "GREATER_THAN_OR_EQUAL_OR_DENOMINATOR_NONPOSITIVE",
+        "threshold": "1.00",
+        "minimum_observation": "PREREGISTERED_90_COMPLETE_DAY_TIME_LEDGER"
+      },
+      "action": "DISCONTINUE_OR_SIMPLIFY_AFFECTED_AUTOMATION_FEATURE",
+      "reentry_gate": "NEW_90_DAY_LEDGER_SHOWS_RATIO_BELOW_1.00_WITH_NO_SAFETY_EVIDENCE_OR_SOURCE_GATE_REDUCTION",
+      "source_evidence": [
+        {
+          "path": "machine/facts/costs.json",
+          "pointers": [
+            "/kill_criteria/3",
+            "/development_effort_hours",
+            "/opportunity_cost_sensitivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-016",
+      "name": "特征分布漂移达到停止线",
+      "category": "MODEL_DRIFT",
+      "metric_ids": [],
+      "condition": {
+        "field": "population_stability_index_or_jensen_shannon_divergence",
+        "operator": "PSI_GREATER_THAN_OR_EQUAL_0.20_OR_JS_GREATER_THAN_OR_EQUAL_0.10",
+        "threshold": {
+          "population_stability_index": "0.20",
+          "jensen_shannon": "0.10"
+        },
+        "minimum_observation": "VERSIONED_REFERENCE_AND_CURRENT_FEATURE_DISTRIBUTIONS"
+      },
+      "action": "STOP_AFFECTED_MODEL_RETURN_TO_SHADOW_AND_RECALIBRATE",
+      "reentry_gate": "DRIFT_REMEDIATED_AND_ALL_MODEL_PROMOTION_GATES_REPASS",
+      "source_evidence": [
+        {
+          "path": "machine/facts/parameters.json",
+          "pointers": [
+            "/drift/population_stability_index_stop",
+            "/drift/jensen_shannon_stop"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-017",
+      "name": "任一冻结风险上限被突破",
+      "category": "RISK",
+      "metric_ids": [
+        "MET-S01-P04-020",
+        "MET-S01-P04-027"
+      ],
+      "condition": {
+        "field": "risk_limit_breach_or_target_shortfall_gate_relaxation_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "DETERMINISTIC_RISK_DECISION_LOG"
+      },
+      "action": "SET_AFFECTED_STAKE_ZERO_BLOCK_RECOMMENDATION_AND_PRESERVE_BREACH_EVIDENCE",
+      "reentry_gate": "ZERO_BREACH_REPLAY_WITH_SAME_OR_STRICTER_LIMITS_NEVER_RELAX_FOR_TARGET_SHORTFALL",
+      "source_evidence": [
+        {
+          "path": "machine/facts/parameters.json",
+          "pointers": [
+            "/risk"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-018",
+      "name": "Gmail 未满足同意与安全归档门即激活或删除证据",
+      "category": "EMAIL_CONSENT_EVIDENCE",
+      "metric_ids": [
+        "MET-S01-P04-028",
+        "MET-S01-P04-029"
+      ],
+      "condition": {
+        "field": "gmail_unsafe_activation_or_email_archive_delete_transition_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "CONSENT_RECEIPT_CAPABILITY_AUDIT_AND_EMAIL_STATE_TRANSITION_LEDGER"
+      },
+      "action": "DISABLE_GMAIL_QUARANTINE_AFFECTED_INPUT_KEEP_MESSAGE_AND_NEVER_TRASH_OR_DELETE",
+      "reentry_gate": "ALL_CONSENT_MINIMUM_PRIVILEGE_COST_AND_ARCHIVE_INTEGRITY_GATES_PASS_WITH_ZERO_UNSAFE_TRANSITIONS",
+      "source_evidence": [
+        {
+          "path": "machine/facts/degraded_mode_contract.json",
+          "pointers": [
+            "/activation_gates",
+            "/activation_rule"
+          ]
+        },
+        {
+          "path": "machine/facts/email_ingestion.json",
+          "pointers": [
+            "/pipeline",
+            "/trash_gate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "KC-S01-P04-019",
+      "name": "软件与模型独立流水线互相替代或绕过门禁",
+      "category": "RELEASE_INDEPENDENCE",
+      "metric_ids": [
+        "MET-S01-P04-031"
+      ],
+      "condition": {
+        "field": "independent_software_or_model_pipeline_gate_substitution_count",
+        "operator": "GREATER_THAN",
+        "threshold": 0,
+        "minimum_observation": "SIGNED_INDEPENDENT_PIPELINE_RELEASE_RECEIPTS"
+      },
+      "action": "BLOCK_RELEASE_AND_KEEP_LAST_SIGNED_PASSING_ARTIFACT",
+      "reentry_gate": "ZERO_GATE_SUBSTITUTIONS_AND_BOTH_INDEPENDENT_PIPELINES_PASS",
+      "source_evidence": [
+        {
+          "path": "machine/facts/release_policy.json",
+          "pointers": [
+            "/software_pipeline",
+            "/model_pipeline",
+            "/auto_rollback_on"
+          ]
+        },
+        {
+          "path": "machine/facts/security_assurance.json",
+          "pointers": [
+            "/build_controls",
+            "/test_controls"
+          ]
+        }
+      ]
+    }
+  ],
+  "current_evaluation": {
+    "performed": false,
+    "status": "NOT_EVALUATED_NO_RUNTIME_OR_EMPIRICAL_COHORT",
+    "triggered_criterion_ids": null,
+    "cleared_criterion_ids": null,
+    "unknown_criterion_ids": [
+      "KC-S01-P04-001",
+      "KC-S01-P04-003",
+      "KC-S01-P04-004",
+      "KC-S01-P04-005",
+      "KC-S01-P04-006",
+      "KC-S01-P04-007",
+      "KC-S01-P04-008",
+      "KC-S01-P04-009",
+      "KC-S01-P04-010",
+      "KC-S01-P04-011",
+      "KC-S01-P04-012",
+      "KC-S01-P04-013",
+      "KC-S01-P04-014",
+      "KC-S01-P04-015",
+      "KC-S01-P04-016",
+      "KC-S01-P04-017",
+      "KC-S01-P04-018",
+      "KC-S01-P04-019"
+    ],
+    "contract_only_negative_capability_criterion_ids": [
+      "KC-S01-P04-002"
+    ],
+    "target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "roi_status": "NOT_COMPUTABLE",
+    "release_effect": "NO_RELEASE_AUTHORIZATION"
+  },
+  "s01_p04_execution_boundary": {
+    "kill_criteria_evaluated_against_runtime": false,
+    "model_strategy_or_target_killed_by_current_phase": false,
+    "external_account_or_api_accessed": false,
+    "production_deployed": false,
+    "real_order_submitted": false,
+    "incremental_cash_spent_aud": "0.00",
+    "actual_return_or_guarantee_claimed": false,
+    "stage_review_started": false
+  },
+  "next_on_acceptance_pass": "S01/STAGE_REVIEW_READY_NOT_STARTED"
+}
