@@ -79,14 +79,14 @@ def test_dashboard_readonly_html(tmp_path):
                             ack_path=tmp_path / "ACK2.json",
                             session_factory=factory)
     client = TestClient(app)
-    login = client.get("/")
-    assert login.status_code == 401
-    assert "令牌" in login.text and "净持仓" not in login.text   # 登录页零数据
-    wrong = client.get("/?token=wrong")
-    assert wrong.status_code == 401 and "再试一次" in wrong.text
-    page = client.get(f"/?token={TOKEN}")
+    page = client.get("/")             # owner 裁定:看盘公开,零令牌零输入
     assert page.status_code == 200
     body = page.text
-    assert "净持仓" in body and "订单" in body and "trading-worker" in body
-    assert "空仓" in body            # 无成交时如实显示空仓
-    assert "<form" not in body       # 数据页只读:无任何表单/按钮
+    assert "系统正常运行中" in body     # 人话状态横幅
+    assert "空仓" in body and "下一次决策" in body
+    assert "悉尼" in body              # 时间必须说人话(悉尼时间)
+    assert "<form" not in body         # 纯只读:无任何表单/按钮
+    assert "RUNNING" not in body.split("技术细节")[0]  # 黑话只许出现在折叠的技术细节里
+    # 动作端点仍然锁死:无令牌 401
+    assert client.post("/halt").status_code == 401
+    assert client.post("/resume").status_code == 401
