@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S01-WHOLE-STAGE-REVIEW",
+  "stage_id": "S01",
+  "observed_at": "2026-07-19T00:00:00+10:00",
+  "review_mode": "READ_ONLY_CROSS_PHASE_RECONSTRUCTION_THEN_BOUNDED_REMEDIATION",
+  "findings": [
+    {
+      "id": "F-S01-R01",
+      "severity": "HIGH",
+      "title": "缺少 S01 可执行整体复审 Oracle 与独立证据链",
+      "evidence": "S01/P04 只推进到 S01/STAGE_REVIEW_READY_NOT_STARTED；仓库中没有 S01 整体复审合同、夹具、变异测试、证据或回滚收据。",
+      "resolution": "新增 stage1_review_contract.json、stage1_review.py、S01_STAGE_REVIEW 夹具与变异测试，并生成确定性整体复审、回滚及索引证据。",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE"
+    },
+    {
+      "id": "F-S01-R02",
+      "severity": "HIGH",
+      "title": "四条产品需求没有任何指标覆盖且邮件收益不可测",
+      "evidence": "ABD-PRD-REQ-008、009、019、020 未被 metrics.json 引用；BEN-NC-004 的 measurement_metric_ids 为空。",
+      "resolution": "新增 MET-S01-P04-028 至 031，覆盖 Gmail 同意、邮件安全归档、隐私隔离和独立发布流水线；为全部五项非现金收益绑定非空有效指标。",
+      "remediation_commit": "ddd7664acdd12e51b590233da7d65322a378c3d2",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE"
+    },
+    {
+      "id": "F-S01-R03",
+      "severity": "HIGH",
+      "title": "P04 Oracle 只校验指标引用合法性，没有校验 21 条需求全部被测量",
+      "evidence": "旧 Oracle 接受指标 requirement_ids 为产品需求集合的真子集，因此缺失四条需求仍可得到 PASS。",
+      "resolution": "新增 S01P04-ALL-REQUIREMENTS-MEASURED-EXACT 和覆盖缺口变异测试；缺任一需求或非现金收益指标为空均 fail-closed。",
+      "remediation_commit": "ddd7664acdd12e51b590233da7d65322a378c3d2",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE"
+    },
+    {
+      "id": "F-S01-R04",
+      "severity": "MEDIUM",
+      "title": "README 开发状态停留在 P03，错误标记 P04 尚未开始",
+      "evidence": "README 的当前状态与验证命令仍指向 S01/P03，无法作为当前阶段交接入口。",
+      "resolution": "在整体复审候选中更新 README 为 S01/P04 修复后证据和 S01 整体复审验证命令，并明确远端 CI、部署、账户和收益均未验证。",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "resolved_in_review_candidate": 4,
+    "open": 0,
+    "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true
+  },
+  "scope_boundaries": {
+    "s02_started": false,
+    "external_account_or_api_accessed": false,
+    "secret_provisioned": false,
+    "incremental_cash_spent_aud": "0.00",
+    "production_or_return_claimed": false,
+    "real_order_submitted": false
+  }
+}

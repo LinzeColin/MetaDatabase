@@ -9,6 +9,7 @@ from .budget import write_phase_evidence as write_budget_phase_evidence
 from .canonical_facts import write_phase_evidence as write_canonical_phase_evidence
 from .external_consent import write_phase_evidence as write_external_consent_phase_evidence
 from .stage_review import write_stage_review_evidence
+from .stage1_review import write_stage1_review_evidence
 from .customer_press_release import write_phase_evidence as write_customer_press_release_phase_evidence
 from .customer_faq import write_phase_evidence as write_customer_faq_phase_evidence
 from .requirements_scope import write_phase_evidence as write_requirements_scope_phase_evidence
@@ -63,6 +64,7 @@ def main() -> int:
         "AC-S01-P02": write_customer_faq_phase_evidence,
         "AC-S01-P03": write_requirements_scope_phase_evidence,
         "AC-S01-P04": write_metrics_economics_phase_evidence,
+        "STAGE-REVIEW-S01": write_stage1_review_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

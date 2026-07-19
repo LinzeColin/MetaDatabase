@@ -35,7 +35,12 @@ FIXTURE = strict_json_load(ROOT / FIXTURE_PATH)
 
 def evaluate_contract(root: Path, require_external_reports: bool = False):
     is_real_tree = Path(root).resolve() == ROOT.resolve()
-    return _evaluate_contract(root, require_external_reports, _verify_git_history=is_real_tree)
+    return _evaluate_contract(
+        root,
+        require_external_reports,
+        _verify_git_history=is_real_tree,
+        _allow_stage_review_candidate=is_real_tree,
+    )
 
 
 def _clone_project(tmp_path: Path) -> Path:
@@ -519,7 +524,7 @@ def test_stage_review_is_not_started_inside_p04_run(tmp_path: Path, mutation: st
         with path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps({"id": "INDEX-S01-STAGE-REVIEW", "status": "PLANNED"}) + "\n")
     else:
-        (project / "machine/evidence/S01/STAGE_REVIEW").mkdir(parents=True)
+        (project / "machine/evidence/S01/REVIEW").mkdir(parents=True)
     _failed(evaluate_contract(project), "S01P04-STAGE-REVIEW-NOT-STARTED")
 
 
@@ -549,8 +554,16 @@ def test_rollback_drill_restores_every_signed_input_without_external_effect() ->
 
 
 def test_evidence_build_is_deterministic_and_contains_no_absolute_paths() -> None:
-    first, first_rollback = build_evidence(ROOT, require_external_reports=False)
-    second, second_rollback = build_evidence(ROOT, require_external_reports=False)
+    first, first_rollback = build_evidence(
+        ROOT,
+        require_external_reports=False,
+        _allow_stage_review_candidate=True,
+    )
+    second, second_rollback = build_evidence(
+        ROOT,
+        require_external_reports=False,
+        _allow_stage_review_candidate=True,
+    )
     assert first == second
     assert first_rollback == second_rollback
     assert first["status"] == "PASS"

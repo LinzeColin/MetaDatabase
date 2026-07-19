@@ -1136,14 +1136,51 @@ def _check_frozen_semantics(source_documents: Mapping[str, Any], checks: List[Di
     _add(checks, "S01P04-COST-AND-BENEFIT-FACTS-FROZEN", cost_ok, "zero incremental gate and disclosed economic cost")
 
 
-def _check_stage_review_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
+def _check_stage_review_not_started(
+    root: Path,
+    checks: List[Dict[str, Any]],
+    *,
+    allow_review_candidate: bool = False,
+) -> None:
     try:
         rows = [json.loads(line) for line in (root / EVIDENCE_INDEX_PATH).read_text(encoding="utf-8-sig").splitlines() if line]
         stage_rows = [row for row in rows if "S01" in str(row.get("id", "")) and "STAGE" in str(row.get("id", ""))]
         evidence = sorted(path for path in (root / "machine/evidence").rglob("*") if path.is_file() and "S01" in path.name and "STAGE" in path.name.upper())
         review_dirs = [root / "machine/evidence/S01/STAGE_REVIEW", root / "machine/evidence/S01/REVIEW"]
-        passed = not stage_rows and not evidence and not any(path.exists() for path in review_dirs)
-        detail = {"index_rows": [row.get("id") for row in stage_rows], "evidence": [path.name for path in evidence], "directories": [path.name for path in review_dirs if path.exists()]}
+        if allow_review_candidate:
+            row = stage_rows[0] if len(stage_rows) == 1 else {}
+            evidence_names = [path.name for path in evidence]
+            status = row.get("status")
+            planned_ok = status == "PLANNED" and not evidence_names
+            completed_ok = status == "PASS" and sorted(evidence_names) == [
+                "EVD-S01-STAGE-REVIEW.json",
+                "EVD-S01-STAGE-REVIEW_rollback.json",
+            ]
+            passed = (
+                row.get("id") == "INDEX-S01-STAGE-REVIEW"
+                and (planned_ok or completed_ok)
+                and (root / "machine/facts/stage1_review_contract.json").is_file()
+                and (root / "machine/tests/fixtures/S01_STAGE_REVIEW.json").is_file()
+                and (root / "abd_acceptance/stage1_review.py").is_file()
+                and (root / "tests/S01/stage_review_test.py").is_file()
+                and not list((root / "machine/evidence").glob("EVD-S02-*.json"))
+            )
+        else:
+            passed = not stage_rows and not evidence and not any(path.exists() for path in review_dirs)
+        if allow_review_candidate:
+            detail = {
+                "mode": "GATED_REVIEW_CANDIDATE",
+                "review_contract_present": (root / "machine/facts/stage1_review_contract.json").is_file(),
+                "s02_evidence_count": len(list((root / "machine/evidence").glob("EVD-S02-*.json"))),
+            }
+        else:
+            detail = {
+                "mode": "P04_ONLY",
+                "index_rows": [row.get("id") for row in stage_rows],
+                "index_status": [row.get("status") for row in stage_rows],
+                "evidence": [path.name for path in evidence],
+                "directories": [path.name for path in review_dirs if path.exists()],
+            }
     except Exception as exc:
         passed = False
         detail = "%s: %s" % (type(exc).__name__, exc)
@@ -1253,6 +1290,7 @@ def evaluate_contract(
     require_external_reports: bool = False,
     *,
     _verify_git_history: bool = True,
+    _allow_stage_review_candidate: bool = False,
 ) -> Dict[str, Any]:
     root = root.resolve()
     checks: List[Dict[str, Any]] = []
@@ -1321,7 +1359,7 @@ def evaluate_contract(
         _check_frozen_semantics(source_documents, checks)
     except Exception as exc:
         _add(checks, "S01P04-FROZEN-SEMANTICS-EVALUATION-FAIL-CLOSED", False, "%s: %s" % (type(exc).__name__, exc))
-    _check_stage_review_not_started(root, checks)
+    _check_stage_review_not_started(root, checks, allow_review_candidate=_allow_stage_review_candidate)
     if require_external_reports:
         _check_runtime_reports(root, fixture, checks, hashes)
     return _build_result(checks, hashes)
@@ -1406,9 +1444,18 @@ def _input_hashes(root: Path) -> Dict[str, str]:
     return result
 
 
-def build_evidence(root: Path, require_external_reports: bool = True) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def build_evidence(
+    root: Path,
+    require_external_reports: bool = True,
+    *,
+    _allow_stage_review_candidate: bool = False,
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     root = root.resolve()
-    result = evaluate_contract(root, require_external_reports=require_external_reports)
+    result = evaluate_contract(
+        root,
+        require_external_reports=require_external_reports,
+        _allow_stage_review_candidate=_allow_stage_review_candidate,
+    )
     try:
         rollback = perform_rollback_drill(root)
     except Exception as exc:
