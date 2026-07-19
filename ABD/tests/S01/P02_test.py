@@ -447,16 +447,23 @@ def test_p01_prerequisite_mutations_block_p02(tmp_path: Path, mutation: str, exp
     _failed(evaluate_contract(project), expected)
 
 
-@pytest.mark.parametrize("mutation", ["p03_evidence", "p03_output", "p04_output"])
-def test_future_phase_cannot_start_in_p02_run(tmp_path: Path, mutation: str) -> None:
+@pytest.mark.parametrize("mutation", ["p03_evidence", "p03_output", "p04_output", "invalid_successor_status"])
+def test_successor_requires_immutable_p02_pass_receipt(tmp_path: Path, mutation: str) -> None:
     project = _clone_project(tmp_path)
+    if mutation == "invalid_successor_status":
+        path = project / "machine/evidence/evidence_index.jsonl"
+        rows = [json.loads(line) for line in path.read_text(encoding="utf-8-sig").splitlines() if line]
+        next(row for row in rows if row["id"] == "INDEX-AC-S01-P03")["status"] = "SKIPPED"
+        path.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows), encoding="utf-8")
+    else:
+        (project / "machine/evidence/EVD-S01-P02.json").unlink()
     if mutation == "p03_evidence":
         (project / "machine/evidence/EVD-S01-P03.json").write_text("{}\n", encoding="utf-8")
     elif mutation == "p03_output":
         (project / "requirements.json").write_text("{}\n", encoding="utf-8")
-    else:
+    elif mutation == "p04_output":
         (project / "metrics.json").write_text("{}\n", encoding="utf-8")
-    _failed(evaluate_contract(project), "S01P02-P03-NOT-STARTED")
+    _failed(evaluate_contract(project), "S01P02-SUCCESSOR-PROGRESSION-GATED")
 
 
 @pytest.mark.parametrize("mutation", ["floating_action", "missing_regression", "secret_reference"])

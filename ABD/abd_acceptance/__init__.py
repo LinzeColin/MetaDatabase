@@ -58,6 +58,14 @@ from .customer_faq import (
     resolve_zero_budget_default,
     write_phase_evidence as write_customer_faq_phase_evidence,
 )
+from .requirements_scope import (
+    build_evidence as build_requirements_scope_evidence,
+    evaluate_contract as evaluate_requirements_scope_contract,
+    perform_rollback_drill as perform_requirements_scope_rollback_drill,
+    resolve_stability_default,
+    resolve_trace_default,
+    write_phase_evidence as write_requirements_scope_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -101,4 +109,10 @@ __all__ = [
     "resolve_recommendation_default",
     "resolve_zero_budget_default",
     "write_customer_faq_phase_evidence",
+    "build_requirements_scope_evidence",
+    "evaluate_requirements_scope_contract",
+    "perform_requirements_scope_rollback_drill",
+    "resolve_stability_default",
+    "resolve_trace_default",
+    "write_requirements_scope_phase_evidence",
 ]

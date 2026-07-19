@@ -37,6 +37,7 @@ CONTINUOUS_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 P01_COMMIT = "7c52659e2f6de6ebfff6d3079ba0a29cf542867e"
 P01_EVIDENCE_SHA256 = "41ecd4c590adda8cfe357bc73c6d49571a464ba65672330bd3592f2f69b9209e"
 P01_ROLLBACK_SHA256 = "18e51cb3bc5a06274e70c624855d990362a4fbe5ed75fbaedf219b8def29db55"
+PHASE_EVIDENCE_SHA256 = "7d9471a303c23c34e567e9eee394be2f01bc7025a7ad74915aad6f21e5427ac5"
 
 PINNED_SOURCE_HASHES = {
     "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
@@ -821,13 +822,14 @@ def _check_frozen_semantics(
     _add(checks, "S01P02-NO-EXTERNAL-EFFECTS-OR-ORDER", external_ok, boundary)
 
 
-def _check_p03_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
+def _check_successor_progression(root: Path, checks: List[Dict[str, Any]]) -> None:
     try:
         rows = [
             json.loads(line)
             for line in (root / EVIDENCE_INDEX_PATH).read_text(encoding="utf-8-sig").splitlines()
             if line
         ]
+        p02 = [row for row in rows if row.get("id") == "INDEX-AC-S01-P02"]
         p03 = [row for row in rows if row.get("id") == "INDEX-AC-S01-P03"]
         future_evidence = sorted((root / "machine/evidence").glob("EVD-S01-P0[3-4]*.json"))
         future_outputs = [
@@ -838,13 +840,26 @@ def _check_p03_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
             root / "economics.json",
             root / "kill_criteria.json",
         ]
-        progression_ok = (
-            len(p03) == 1
-            and p03[0].get("status") == "PLANNED"
-            and not future_evidence
-            and not any(path.exists() for path in future_outputs)
-        )
+        successor_started = bool(future_evidence) or any(path.exists() for path in future_outputs)
+        if successor_started:
+            receipt = strict_json_load(root / EVIDENCE_PATH)
+            progression_ok = (
+                len(p02) == 1
+                and p02[0].get("status") == "PASS"
+                and p02[0].get("artifact_sha256") == PHASE_EVIDENCE_SHA256
+                and p02[0].get("actual_artifact") == EVIDENCE_PATH.as_posix()
+                and len(p03) == 1
+                and p03[0].get("status") in {"PLANNED", "PASS", "FAIL"}
+                and sha256_file(root / EVIDENCE_PATH) == PHASE_EVIDENCE_SHA256
+                and receipt.get("status") == "PASS"
+                and receipt.get("phase_status") == "S01_P02_PASS"
+                and receipt.get("next") == "S01/P03_READY_NOT_STARTED"
+            )
+        else:
+            progression_ok = len(p03) == 1 and p03[0].get("status") == "PLANNED"
         detail = {
+            "successor_started": successor_started,
+            "p02_status": p02[0].get("status") if len(p02) == 1 else "INVALID",
             "p03_status": p03[0].get("status") if len(p03) == 1 else "INVALID",
             "evidence": [path.name for path in future_evidence],
             "outputs": [path.name for path in future_outputs if path.exists()],
@@ -852,7 +867,7 @@ def _check_p03_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
     except Exception as exc:
         progression_ok = False
         detail = "%s: %s" % (type(exc).__name__, exc)
-    _add(checks, "S01P02-P03-NOT-STARTED", progression_ok, detail)
+    _add(checks, "S01P02-SUCCESSOR-PROGRESSION-GATED", progression_ok, detail)
 
 
 def _junit_summary(path: Path) -> Dict[str, int]:
@@ -1035,7 +1050,7 @@ def evaluate_contract(
         )
     except Exception as exc:
         _add(checks, "S01P02-FROZEN-SEMANTICS-EVALUATION-FAIL-CLOSED", False, "%s: %s" % (type(exc).__name__, exc))
-    _check_p03_not_started(root, checks)
+    _check_successor_progression(root, checks)
     if require_external_reports:
         _check_runtime_reports(root, fixture, checks, hashes)
     return _build_result(checks, hashes)
