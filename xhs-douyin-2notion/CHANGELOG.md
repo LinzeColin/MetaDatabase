@@ -10,6 +10,7 @@
 - 重新核对 `ShilongLee/Crawler` 固定提交与 Chrome/Notion/六平台一手来源；竞品提交未漂移，六平台仍全部 `UNKNOWN_DISABLED`。
 - 28 个单测通过（2 个私有可选输入测试按设计跳过），20 份历史 Phase receipt 保持未改，产品/账号/平台/Notion/模型/媒体均 `NOT_RUN`。
 - 本地自动门禁通过，但 `INC-X2N-S00-P05-001` Owner Action 未完成；真实结论为 `G0_BLOCKED_OWNER_ACTION`，Stage 1 与远端上传继续禁止。
+- Review Follow-up 修复了 Owner Recovery 仅有文字要求的盲点：新增闭合 Schema、合成 Fixture、不可覆盖的私有生成器和缺失/恶意/越权负向 verifier；没有生成真实回执，G0 状态不变。
 
 ## v0.0.0.1 — Stage 0 / Phase 0.5
 

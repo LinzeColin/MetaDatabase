@@ -29,7 +29,8 @@ X2N_DATA_ROOT/
     ├── backups/
     ├── models/
     ├── provider_cache/
-    └── owner_input_contract.local.json  # 0600；仅默认/私有引用，不含 Secret
+    ├── owner_input_contract.local.json       # 0600；仅默认/私有引用，不含 Secret
+    └── owner_recovery_attestation.local.json # 0600；默认不存在；只含闭合 Owner 恢复声明
 ```
 
 所有 Adapter 的工作目录和输出必须解析到这个根下；不得采用自身默认下载目录。成功任务的原始媒体即时删除，失败 Lease 最长 24 小时。目录存在不代表相应功能已授权。
@@ -55,6 +56,8 @@ X2N_DATA_ROOT/
 - `.env`、Key、Token、Cookie、Session、Keychain 导出、Notion/模型 Secret。
 - 平台媒体/头像/封面 CDN URL、签名参数、追踪参数。
 - 本机用户名、绝对路径、私有根 marker、完整日志和诊断正文。
+
+Owner 恢复回执属于仓库外的私有控制证据，不属于 Git Allowlist。即使验证通过，也只允许进入独立 Stage Review Resume；不能被解释为 G0 PASS、Stage 1 授权或上传授权。
 
 ## Fail Closed
 

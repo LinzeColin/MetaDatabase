@@ -55,4 +55,12 @@ python3 -B -m unittest discover -s tests -p 'test_*.py'
 
 Review 结论见 [`docs/governance/STAGE_0_REVIEW.md`](docs/governance/STAGE_0_REVIEW.md)。只有 Owner 完成事件恢复动作后，才可新开 `STG.X2N.0.REVIEW.RESUME` 重验并重新决定 G0；当前不得进入 Stage 1 或上传。
 
+恢复动作使用闭合的私有 Owner Attestation 契约；预检命令如下。当前回执按设计不存在，因此应退出 `2 / BLOCKED_OWNER_ACTION`，不是测试失败，也不能据此生成回执：
+
+```bash
+python3 -B scripts/verify_owner_recovery_attestation.py
+```
+
+只有 Owner 直接确认已完成轮换并撤销、重新认证并撤销或确认过期中的一项后，才可按 [`RUN_CONTRACT_S00_REVIEW_RESUME_PREP.md`](docs/governance/RUN_CONTRACT_S00_REVIEW_RESUME_PREP.md) 记录回执。合法回执仍只授权 Review Resume，不直接授权 G0、Stage 1 或上传。
+
 以上 `--allow-external-main-dirty` 只用于 Owner 已明确要求的长期并行情形，并要求外部 dirty paths 与 x2n 零重叠；正常 clean-main 场景应省略此参数，默认严格门禁保持不变。

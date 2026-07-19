@@ -20,7 +20,8 @@
     ".DS_Store"
   ],
   "allowed_private_contract_files": [
-    "runtime/owner_input_contract.local.json"
+    "runtime/owner_input_contract.local.json",
+    "runtime/owner_recovery_attestation.local.json"
   ],
   "system_file_mode": "0600",
   "system_file_max_bytes": 65536,

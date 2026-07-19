@@ -7,7 +7,8 @@
 ## 当前状态
 
 - `Stage 0 / Phase 0.1、0.2、0.5`：历史 Task/receipt 复验 PASS；`TSK.x2n.discovery.001–005` 全部完成。
-- `STG.X2N.0.REVIEW`：本地 Review/Fix/Re-acceptance 完成；4 个可本地修复 Finding 已关闭。
+- `STG.X2N.0.REVIEW`：本地 Review/Fix/Re-acceptance 完成；5 个可本地修复 Finding 已关闭。
+- `RUN-X2N-S00-REVIEW-RESUME-PREP`：已补齐非秘密 Owner 恢复回执的闭合 Schema、私有逻辑路径、生成器、fail-closed verifier 与负向测试；没有创建真实回执。
 - `G0`：`BLOCKED_OWNER_ACTION`，不是 PASS。`INC-X2N-S00-P05-001` 要求 Owner 在 G0 前轮换/重新认证或提供旧凭据失效证明。
 - Stage 1、产品代码、真实账号、平台/Notion/模型调用、媒体下载与远端上传：全部未授权/`NOT_RUN`。
 - 六个平台：全部 `UNKNOWN_DISABLED`；任何平台须在对应 Task 开始时重新通过独立 Policy/Auth/Technical/Canary Gate。
@@ -19,6 +20,7 @@
 2. 执行粒度从“每 Run 一个 Phase”收紧为 Owner 要求的“每 Run 一个 DAG Task”；历史 P01 的三 Task 同 Run 已登记为流程不符合项并逐 Task 重验，未来不能批量带做同 Phase Task。
 3. 删除 `MediaCrawler` 产品 Adapter Feature Flag 与外部安装残留语义；下载父目录名只代表存储位置，不是上游授权。
 4. 将长期并行的 moving `origin/main` 固定为明确 Review cutoff；cutoff 后无关提交不吸收，触及 x2n 才 Fail Closed。
+5. 将凭据恢复从文字要求收紧为闭合 Owner Attestation：禁止自由文本/Secret/账号/URL，缺失或非法均保持阻断，合法也只允许 Review Resume。
 
 ## 不变边界
 
@@ -43,6 +45,7 @@ python3 -B scripts/verify_stage_0_review.py --verify-worktree --allow-external-m
 python3 -B scripts/verify_phase_0_1.py --verify-worktree --allow-external-main-dirty --verify-local-root --source-roadmap "$X2N_SOURCE_ROADMAP" --source-taskpack "$X2N_SOURCE_TASKPACK"
 python3 -B scripts/verify_phase_0_2.py --verify-worktree --allow-external-main-dirty --verify-temp-cleanup --require-evidence
 python3 -B scripts/verify_phase_0_5.py --verify-worktree --allow-external-main-dirty --validate-owner-input "$X2N_DATA_ROOT" --verify-temp-cleanup --require-evidence
+python3 -B scripts/verify_owner_recovery_attestation.py  # 当前预期 exit 2 / BLOCKED_OWNER_ACTION
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
@@ -55,4 +58,4 @@ python3 -B -m unittest discover -s tests -p 'test_*.py'
 
 ## 唯一下一步
 
-Owner 完成 `INC-X2N-S00-P05-001` 的轮换/重新认证或旧凭据失效证明，且证据不含凭据值。随后新开 `STG.X2N.0.REVIEW.RESUME`，重跑事件恢复、扫描和 G0 判定。只有机器 G0 PASS 后才可上传整个 Stage 0，并另行开始 Stage 1 的首个单 Task Run。
+Owner 直接确认已经完成以下一项：轮换并撤销旧材料、重新认证并撤销旧材料、或在 Provider 侧确认旧材料已失效；不得提供凭据值。之后才可用 `record_owner_recovery.py` 生成私有闭合回执，并新开 `STG.X2N.0.REVIEW.RESUME` 重跑事件恢复、扫描和 G0 判定。合法回执本身不等于 G0 PASS；只有 Resume 的机器 G0 PASS 后才可上传整个 Stage 0，并另行开始 Stage 1 的首个单 Task Run。

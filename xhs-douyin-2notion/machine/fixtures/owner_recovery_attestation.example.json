@@ -1,0 +1,20 @@
+{
+  "account_identifier_included": false,
+  "attestation_source": "direct_owner_statement",
+  "attested_at": "2026-07-19T22:00:00Z",
+  "credential_value_included": false,
+  "free_text_included": false,
+  "g0_pass_granted": false,
+  "incident_id": "INC-X2N-S00-P05-001",
+  "old_material_state": "revoked",
+  "owner_attested": true,
+  "project": "x2n",
+  "receipt_id": "REC-X2N-S00-P05-001-20260719T220000Z",
+  "recovery_action": "rotated_and_revoked_old_material",
+  "remote_upload_authorized": false,
+  "remote_url_included": false,
+  "resume_authorization": "stage_0_review_resume_only",
+  "schema_version": "1.0",
+  "stage_1_authorized": false,
+  "subject": "github_authentication_material"
+}

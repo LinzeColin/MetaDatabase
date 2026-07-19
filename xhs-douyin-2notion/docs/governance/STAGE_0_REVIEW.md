@@ -52,6 +52,7 @@
 | `F-X2N-S00-R03` | Medium | PRD/Release 残留 `MediaCrawler Adapter` 关闭占位与“外部安装”措辞，可能被误解为未来授权 | 已删除产品 Feature Flag，并改为永久零安装/零执行的历史审计边界 |
 | `F-X2N-S00-R04` | Medium | Review 与最新 `origin/main` 的母仓库索引发生单一文本冲突 | 已保留上游 Stock Skill 行与 x2n 行；没有修改其他项目内容 |
 | `F-X2N-S00-R05` | Blocker | 临时源码 remote 凭据形态事件已隔离，但凭据是否失效仍未知 | 本地可做项已完成；保持 `G0_BLOCKED_OWNER_ACTION` |
+| `F-X2N-S00-R06` | High | R05 只有文字恢复要求，没有闭合的私有回执路径、Schema、生成入口与负向验证，可能导致误把口头状态或本地 0 命中当作 G0 证据 | 已增加非秘密 Owner Attestation 契约、Owner-confirmation 生成器和 fail-closed verifier；回执缺失仍 Blocked，合法回执也只授权 Review Resume |
 
 ## 竞品与当前政策复核
 
@@ -67,4 +68,6 @@
 
 ## 恢复 G0 的唯一下一动作
 
-Owner 对 `INC-X2N-S00-P05-001` 完成以下任一可验证动作：轮换相关凭据、以新的认证材料重新认证并废止旧材料，或提供旧材料已失效的证明。证据不得包含凭据值。随后新开 `STG.X2N.0.REVIEW.RESUME`，重新运行扫描、事件恢复门禁和 G0 判定；只有机器状态变为 `pass` 才能上传 Stage 0 或另行启动 Stage 1。
+Owner 对 `INC-X2N-S00-P05-001` 完成以下任一可验证动作：轮换相关凭据并撤销旧材料、以新的认证材料重新认证并撤销旧材料，或在 Provider 侧确认旧材料已失效。证据不得包含凭据值。
+
+收到 Owner 直接声明后，才可按 `RUN_CONTRACT_S00_REVIEW_RESUME_PREP.md` 将闭合回执写入私有逻辑路径 `runtime/owner_recovery_attestation.local.json`。回执缺失返回 `BLOCKED_OWNER_ACTION`；回执非法返回 `FAIL_CLOSED`；回执合法也只返回 `STAGE_0_REVIEW_RESUME_ONLY`。随后仍须新开 `STG.X2N.0.REVIEW.RESUME`，重新运行私有根、仓库、事件、历史 Phase 和 G0 门禁；只有机器状态在该独立 Run 中变为 `pass` 才能上传 Stage 0 或另行启动 Stage 1。

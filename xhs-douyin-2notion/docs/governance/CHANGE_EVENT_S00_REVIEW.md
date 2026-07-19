@@ -13,6 +13,7 @@ Owner 的 Pursuing Goal 明确要求“每次只执行一个 Task 及其 Accepta
 3. 删除 `MediaCrawler` 产品 Adapter Feature Flag 与“外部安装”残留措辞；其固定 Commit 仅保留不可执行历史审计证据。
 4. Stage Review 使用显式 `origin/main` cutoff；cutoff 后无关长期提交不吸收，只有 x2n 或其父级索引语义发生重叠才阻断。
 5. 增加独立 Review verifier、G0 状态 schema 和 fail-closed receipt；未关闭的 `before_g0_pass` Owner Action 必须阻断 G0。
+6. Review Follow-up 增加闭合 Owner Recovery Attestation 契约；生成器不接收自由文本或敏感值，回执缺失/非法继续阻断，合法回执也只允许独立 Review Resume。
 
 ## 不变事实
 

@@ -23,6 +23,7 @@
     ".gitignore",
     "scripts/verify_phase_0_1.py",
     "scripts/verify_phase_0_2.py",
+    "scripts/verify_owner_recovery_attestation.py",
     "future_shared_governance_ci"
   ]
 }

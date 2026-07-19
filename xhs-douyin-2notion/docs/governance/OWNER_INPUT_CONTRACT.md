@@ -2,6 +2,8 @@
 
 Owner 输入只保存于 `X2N_DATA_ROOT/runtime/owner_input_contract.local.json`，权限必须为 `0600`，不得进入 Git。此文件只描述 Schema、默认值和后续解锁条件，不含真实路径、账号、Token、Cookie、Notion Page ID 或私有内容。
 
+安全事件恢复证明与通用 Owner 输入严格分离：`INC-X2N-S00-P05-001` 只允许使用 `X2N_DATA_ROOT/runtime/owner_recovery_attestation.local.json`。该文件同样为 `0600`，只接受闭合枚举和布尔边界，不允许自由文本、凭据值、Remote URL、账号标识或本机路径。合法回执只授权独立 `STG.X2N.0.REVIEW.RESUME`，不会直接授予 G0、Stage 1 或上传权限。
+
 ## 已采用的可逆默认
 
 | 主题 | 当前默认 | 后续解锁条件 |

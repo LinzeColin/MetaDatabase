@@ -41,6 +41,20 @@ class Stage0ReviewTests(unittest.TestCase):
         with self.assertRaises(VERIFY.VerificationError):
             VERIFY.validate_gate_payload(invalid)
 
+    def test_recovery_attestation_only_authorizes_review_resume(self) -> None:
+        schema = VERIFY._load_json(VERIFY.RECOVERY_SCHEMA)
+        properties = schema["properties"]
+        self.assertFalse(schema["additionalProperties"])
+        self.assertEqual(set(schema["required"]), set(properties))
+        self.assertFalse(properties["g0_pass_granted"]["const"])
+        self.assertFalse(properties["stage_1_authorized"]["const"])
+        self.assertFalse(properties["remote_upload_authorized"]["const"])
+        path_contract = VERIFY._load_json(VERIFY.PATH_CONTRACT)
+        self.assertIn(
+            "runtime/owner_recovery_attestation.local.json",
+            path_contract["allowed_private_contract_files"],
+        )
+
     def test_all_six_platforms_remain_disabled(self) -> None:
         registry = VERIFY._load_json(VERIFY.PLATFORM_SCOPE)
         self.assertEqual(tuple(item["id"] for item in registry["platforms"]), VERIFY.PLATFORMS)

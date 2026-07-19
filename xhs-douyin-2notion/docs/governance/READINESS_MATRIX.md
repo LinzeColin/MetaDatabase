@@ -20,6 +20,6 @@
 | Threat Model/ADR | REVIEWED_DESIGN | ADR-001–010、10 Trust Boundaries、STRIDE、20 Stop/Kill | Phase 0.5 + Stage 0 Review 证据 | 否；实现 Oracle 仍未运行 |
 | ShilongLee/Crawler | REVALIDATED / EXCLUDED | 固定 Commit 仍为当前 HEAD；自定义非商业 License；0 copy/vendor/runtime dependency；clean-room ideas only | Stage 0 Review 外部复核 | 否 |
 | 临时源码 remote 凭据形态 | CONTAINED / BLOCKS_G0 | 临时副本删除；项目/私有根文件扫描 0；凭据生命周期未知 | `INC-X2N-S00-P05-001`；Owner 轮换/重新认证或过期证明 | 不阻断本 Phase；阻断 G0 PASS |
-| Stage 0 Gate / 上传 | REVIEW_COMPLETE / BLOCKED_OWNER_ACTION | 自动门禁通过；Owner Recovery Action 未完成；禁止 push | `STG.X2N.0.REVIEW.RESUME` | 是；阻断 G0 PASS、Stage 1 和上传 |
+| Stage 0 Gate / 上传 | REVIEW_COMPLETE / BLOCKED_OWNER_ACTION | 自动门禁通过；非秘密闭合回执入口已就绪但真实 Owner Attestation 不存在；禁止 push | Owner 先完成 Provider 侧动作并直接确认，再生成私有回执并执行 `STG.X2N.0.REVIEW.RESUME` | 是；阻断 G0 PASS、Stage 1 和上传 |
 
 Stage 0 Review 已完成。本地开发准备项没有新的未知，但 G0 仍被凭据恢复动作阻断；Owner 完成轮换/重新认证或失效证明后，只能进入独立 `STG.X2N.0.REVIEW.RESUME`。在机器 G0 PASS 前不能跳到 Stage 1、启用任何平台、读取真实账号或上传 Stage 0。

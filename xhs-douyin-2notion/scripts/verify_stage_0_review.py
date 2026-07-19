@@ -28,6 +28,7 @@ REPOSITORY_ROOT = PROJECT_ROOT.parent
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 ROADMAP = PROJECT_ROOT / "docs/product_design/v0.0.0.1/02_ROADMAP.md"
 RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S00_REVIEW.md"
+RECOVERY_RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S00_REVIEW_RESUME_PREP.md"
 REVIEW_REPORT = PROJECT_ROOT / "docs/governance/STAGE_0_REVIEW.md"
 PROJECT_FACT = PROJECT_ROOT / "machine/facts/project.json"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
@@ -41,6 +42,8 @@ ARCHITECTURE = PROJECT_ROOT / "machine/facts/architecture_decisions.json"
 STOP_KILL = PROJECT_ROOT / "machine/policy/stop_kill_registry.json"
 FIXTURES = PROJECT_ROOT / "machine/fixtures/stage_0_governance_cases.json"
 OWNER_SCHEMA = PROJECT_ROOT / "machine/schemas/owner_input_contract.schema.json"
+RECOVERY_SCHEMA = PROJECT_ROOT / "machine/schemas/owner_recovery_attestation.schema.json"
+RECOVERY_FIXTURE = PROJECT_ROOT / "machine/fixtures/owner_recovery_attestation.example.json"
 EXTERNAL_REVALIDATION = PROJECT_ROOT / "machine/evidence/stage_0/review/external_revalidation.json"
 REVIEW_EVIDENCE_DIR = PROJECT_ROOT / "machine/evidence/stage_0/review"
 
@@ -175,10 +178,16 @@ def _load_verifier(module_name: str, filename: str) -> Any:
 def validate_review_documents() -> Check:
     required = (
         RUN_CONTRACT,
+        RECOVERY_RUN_CONTRACT,
         REVIEW_REPORT,
         PROJECT_ROOT / "docs/governance/CHANGE_EVENT_S00_REVIEW.md",
         GATE_STATE,
+        TASK_STATE,
         GATE_SCHEMA,
+        RECOVERY_SCHEMA,
+        RECOVERY_FIXTURE,
+        PROJECT_ROOT / "scripts/record_owner_recovery.py",
+        PROJECT_ROOT / "scripts/verify_owner_recovery_attestation.py",
         EXTERNAL_REVALIDATION,
     )
     missing = [path.name for path in required if not path.is_file()]
@@ -187,6 +196,14 @@ def validate_review_documents() -> Check:
     report = REVIEW_REPORT.read_text(encoding="utf-8")
     for token in (REVIEW_RUN_ID, REVIEW_ID, "不执行新的 DAG Task", "不 push"):
         _require(token in contract, f"Review Run Contract missing: {token}")
+    recovery_contract = RECOVERY_RUN_CONTRACT.read_text(encoding="utf-8")
+    for token in (
+        "RUN-X2N-S00-REVIEW-RESUME-PREP",
+        "不执行新的 DAG Task",
+        "STAGE_0_REVIEW_RESUME_ONLY",
+        "BLOCKED_OWNER_ACTION",
+    ):
+        _require(token in recovery_contract, f"Recovery Run Contract missing: {token}")
     for token in (
         "G0_BLOCKED_OWNER_ACTION",
         "STAGE_1_UNAUTHORIZED",
@@ -259,6 +276,11 @@ def validate_canonical_boundaries() -> Check:
     _require(path_contract.get("destination_name_semantics") == "storage_parent_only_no_upstream_authorization", "storage parent authorized an upstream")
     _require(path_contract.get("must_be_outside_git") is True and path_contract.get("runtime_and_downloads_share_root") is True, "runtime/download boundary drifted")
     required_dirs = set(path_contract.get("required_directories", []))
+    allowed_private_files = set(path_contract.get("allowed_private_contract_files", []))
+    _require(
+        "runtime/owner_recovery_attestation.local.json" in allowed_private_files,
+        "private recovery attestation path is not registered",
+    )
     for platform in PLATFORMS:
         _require(f"downloads/{platform}/runs" in required_dirs, f"download namespace missing: {platform}")
 
@@ -288,6 +310,21 @@ def validate_canonical_boundaries() -> Check:
     media = owner_schema["properties"]["media_retention"]["properties"]
     _require(taxonomy["ai_may_create_top_level"]["const"] is False, "AI may create a top-level category")
     _require(media["persist_platform_cdn_urls"]["const"] is False and media["persist_raw_media"]["const"] is False, "media persistence boundary drifted")
+    recovery_schema = _load_json(RECOVERY_SCHEMA)
+    _require(recovery_schema.get("additionalProperties") is False, "recovery attestation schema permits extra fields")
+    recovery_properties = recovery_schema.get("properties", {})
+    _require(set(recovery_schema.get("required", [])) == set(recovery_properties), "recovery attestation schema has optional or undeclared fields")
+    _require(recovery_properties.get("g0_pass_granted", {}).get("const") is False, "recovery receipt may grant G0")
+    _require(recovery_properties.get("stage_1_authorized", {}).get("const") is False, "recovery receipt may authorize Stage 1")
+    _require(recovery_properties.get("remote_upload_authorized", {}).get("const") is False, "recovery receipt may authorize upload")
+    recovery_fixture = _load_json(RECOVERY_FIXTURE)
+    recovery_verifier = _load_verifier("verify_owner_recovery_attestation_review", "verify_owner_recovery_attestation.py")
+    recovery_check = recovery_verifier.validate_receipt_payload(
+        recovery_fixture,
+        now=datetime(2026, 7, 20, 0, 0, 0, tzinfo=timezone.utc),
+        incident_at=datetime(2026, 7, 19, 20, 55, 14, tzinfo=timezone.utc),
+    )
+    _require(recovery_check.status == "PASS", "synthetic recovery attestation does not pass its verifier")
 
     for relative in ("apps", "packages", "extension", "companion", "SKILL.md"):
         _require(not (PROJECT_ROOT / relative).exists(), f"product implementation entered Stage 0 Review: {relative}")
@@ -323,7 +360,14 @@ def validate_canonical_boundaries() -> Check:
     return Check(
         "canonical_boundaries",
         "PASS",
-        {"platforms": 6, "platforms_enabled": 0, "runtime_dependencies": 0, "competitor_code_copies": 0, "product_code": "NOT_STARTED"},
+        {
+            "platforms": 6,
+            "platforms_enabled": 0,
+            "runtime_dependencies": 0,
+            "competitor_code_copies": 0,
+            "recovery_attestation_contract": "PASS_SYNTHETIC_ONLY",
+            "product_code": "NOT_STARTED",
+        },
     )
 
 
