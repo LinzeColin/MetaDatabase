@@ -1,0 +1,833 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "bom-ref": "pkg:npm/%40playwright/test@1.61.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@playwright/test",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "e2e_direct"
+        }
+      ],
+      "purl": "pkg:npm/%40playwright/test@1.61.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.61.1"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-aix-ppc64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-aix-ppc64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-aix-ppc64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-darwin-arm64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-darwin-arm64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-darwin-arm64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-darwin-x64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-darwin-x64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-darwin-x64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-freebsd-arm64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-freebsd-arm64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-freebsd-arm64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-freebsd-x64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-freebsd-x64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-freebsd-x64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-linux-arm64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-linux-arm64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-linux-arm64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-linux-arm@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-linux-arm",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-linux-arm@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-linux-loong64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-linux-loong64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-linux-loong64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-linux-mips64el@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-linux-mips64el",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-linux-mips64el@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-linux-ppc64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-linux-ppc64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-linux-ppc64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-linux-riscv64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-linux-riscv64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-linux-riscv64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-linux-s390x@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-linux-s390x",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-linux-s390x@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-linux-x64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-linux-x64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-linux-x64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-netbsd-arm64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-netbsd-arm64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-netbsd-arm64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-netbsd-x64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-netbsd-x64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-netbsd-x64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-openbsd-arm64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-openbsd-arm64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-openbsd-arm64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-openbsd-x64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-openbsd-x64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-openbsd-x64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-sunos-x64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-sunos-x64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-sunos-x64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-win32-arm64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-win32-arm64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-win32-arm64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/%40typescript/typescript-win32-x64@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "@typescript/typescript-win32-x64",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/%40typescript/typescript-win32-x64@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:npm/fsevents@2.3.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "fsevents",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "e2e_optional_platform"
+        }
+      ],
+      "purl": "pkg:npm/fsevents@2.3.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "2.3.2"
+    },
+    {
+      "bom-ref": "pkg:npm/playwright-core@1.61.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "playwright-core",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "e2e_transitive"
+        }
+      ],
+      "purl": "pkg:npm/playwright-core@1.61.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.61.1"
+    },
+    {
+      "bom-ref": "pkg:npm/playwright@1.61.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "playwright",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "e2e_transitive"
+        }
+      ],
+      "purl": "pkg:npm/playwright@1.61.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.61.1"
+    },
+    {
+      "bom-ref": "pkg:npm/typescript@7.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "typescript",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "build_direct"
+        }
+      ],
+      "purl": "pkg:npm/typescript@7.0.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "7.0.2"
+    },
+    {
+      "bom-ref": "pkg:pypi/annotated-types@0.7.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "annotated-types",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "runtime_transitive"
+        }
+      ],
+      "purl": "pkg:pypi/annotated-types@0.7.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.7.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/pydantic-core@2.46.4",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "pydantic-core",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "runtime_transitive"
+        }
+      ],
+      "purl": "pkg:pypi/pydantic-core@2.46.4",
+      "scope": "required",
+      "type": "library",
+      "version": "2.46.4"
+    },
+    {
+      "bom-ref": "pkg:pypi/pydantic@2.13.4",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "pydantic",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "runtime_direct"
+        }
+      ],
+      "purl": "pkg:pypi/pydantic@2.13.4",
+      "scope": "required",
+      "type": "library",
+      "version": "2.13.4"
+    },
+    {
+      "bom-ref": "pkg:pypi/typing-extensions@4.16.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "PSF-2.0"
+          }
+        }
+      ],
+      "name": "typing-extensions",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "runtime_transitive"
+        }
+      ],
+      "purl": "pkg:pypi/typing-extensions@4.16.0",
+      "scope": "required",
+      "type": "library",
+      "version": "4.16.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/typing-inspection@0.4.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "typing-inspection",
+      "properties": [
+        {
+          "name": "x2n:dependency-role",
+          "value": "runtime_transitive"
+        }
+      ],
+      "purl": "pkg:pypi/typing-inspection@0.4.2",
+      "scope": "required",
+      "type": "library",
+      "version": "0.4.2"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "pkg:npm/playwright@1.61.1"
+      ],
+      "ref": "pkg:npm/%40playwright/test@1.61.1"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-aix-ppc64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-darwin-arm64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-darwin-x64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-freebsd-arm64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-freebsd-x64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-linux-arm64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-linux-arm@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-linux-loong64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-linux-mips64el@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-linux-ppc64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-linux-riscv64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-linux-s390x@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-linux-x64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-netbsd-arm64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-netbsd-x64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-openbsd-arm64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-openbsd-x64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-sunos-x64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-win32-arm64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/%40typescript/typescript-win32-x64@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/fsevents@2.3.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:npm/playwright-core@1.61.1"
+    },
+    {
+      "dependsOn": [
+        "pkg:npm/fsevents@2.3.2",
+        "pkg:npm/playwright-core@1.61.1"
+      ],
+      "ref": "pkg:npm/playwright@1.61.1"
+    },
+    {
+      "dependsOn": [
+        "pkg:npm/%40typescript/typescript-aix-ppc64@7.0.2",
+        "pkg:npm/%40typescript/typescript-darwin-arm64@7.0.2",
+        "pkg:npm/%40typescript/typescript-darwin-x64@7.0.2",
+        "pkg:npm/%40typescript/typescript-freebsd-arm64@7.0.2",
+        "pkg:npm/%40typescript/typescript-freebsd-x64@7.0.2",
+        "pkg:npm/%40typescript/typescript-linux-arm@7.0.2",
+        "pkg:npm/%40typescript/typescript-linux-arm64@7.0.2",
+        "pkg:npm/%40typescript/typescript-linux-loong64@7.0.2",
+        "pkg:npm/%40typescript/typescript-linux-mips64el@7.0.2",
+        "pkg:npm/%40typescript/typescript-linux-ppc64@7.0.2",
+        "pkg:npm/%40typescript/typescript-linux-riscv64@7.0.2",
+        "pkg:npm/%40typescript/typescript-linux-s390x@7.0.2",
+        "pkg:npm/%40typescript/typescript-linux-x64@7.0.2",
+        "pkg:npm/%40typescript/typescript-netbsd-arm64@7.0.2",
+        "pkg:npm/%40typescript/typescript-netbsd-x64@7.0.2",
+        "pkg:npm/%40typescript/typescript-openbsd-arm64@7.0.2",
+        "pkg:npm/%40typescript/typescript-openbsd-x64@7.0.2",
+        "pkg:npm/%40typescript/typescript-sunos-x64@7.0.2",
+        "pkg:npm/%40typescript/typescript-win32-arm64@7.0.2",
+        "pkg:npm/%40typescript/typescript-win32-x64@7.0.2"
+      ],
+      "ref": "pkg:npm/typescript@7.0.2"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:pypi/annotated-types@0.7.0"
+    },
+    {
+      "dependsOn": [
+        "pkg:pypi/typing-extensions@4.16.0"
+      ],
+      "ref": "pkg:pypi/pydantic-core@2.46.4"
+    },
+    {
+      "dependsOn": [
+        "pkg:pypi/annotated-types@0.7.0",
+        "pkg:pypi/pydantic-core@2.46.4",
+        "pkg:pypi/typing-extensions@4.16.0",
+        "pkg:pypi/typing-inspection@0.4.2"
+      ],
+      "ref": "pkg:pypi/pydantic@2.13.4"
+    },
+    {
+      "dependsOn": [],
+      "ref": "pkg:pypi/typing-extensions@4.16.0"
+    },
+    {
+      "dependsOn": [
+        "pkg:pypi/typing-extensions@4.16.0"
+      ],
+      "ref": "pkg:pypi/typing-inspection@0.4.2"
+    },
+    {
+      "dependsOn": [
+        "pkg:npm/%40playwright/test@1.61.1",
+        "pkg:npm/typescript@7.0.2",
+        "pkg:pypi/pydantic@2.13.4"
+      ],
+      "ref": "urn:x2n:component:foundation004:0.0.0.1"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "bom-ref": "urn:x2n:component:foundation004:0.0.0.1",
+      "name": "x2n-foundation004",
+      "type": "application",
+      "version": "0.0.0.1"
+    },
+    "properties": [
+      {
+        "name": "x2n:install-script-packages",
+        "value": "fsevents"
+      },
+      {
+        "name": "x2n:install-scripts-executed",
+        "value": "0"
+      },
+      {
+        "name": "x2n:npm-install-policy",
+        "value": "ignore-scripts"
+      },
+      {
+        "name": "x2n:registry-components",
+        "value": "30"
+      },
+      {
+        "name": "x2n:source",
+        "value": "frozen-package-lock-and-uv-lock"
+      }
+    ]
+  },
+  "serialNumber": "urn:uuid:00000000-0000-4000-8000-000000000104",
+  "specVersion": "1.5",
+  "version": 1
+}

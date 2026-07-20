@@ -317,29 +317,30 @@ def validate_task_and_state() -> Check:
     _require(_field(task, "stage") == "STG.X2N.1" and _field(task, "phase") == "PH.X2N.1.2", "foundation.002 routing drifted")
     _require(_list_field(task, "depends_on") == ["TSK.x2n.foundation.001", "TSK.x2n.discovery.005"], "foundation.002 dependency drifted")
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.ext.003", "ACC.x2n.data.001", "ACC.x2n.data.003"], "foundation.002 Acceptance drifted")
-    _require("  status: STAGE_1_FOUNDATION_003_COMPLETE_G1_NOT_RUN\n" in taskpack, "Taskpack current status drifted")
+    _require("  status: STAGE_1_FOUNDATION_004_COMPLETE_G1_NOT_RUN\n" in taskpack, "Taskpack current status drifted")
 
     state = _load_json(TASK_STATE)
-    _require(state.get("schema_version") == "1.5", "task state schema drifted")
-    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.3", "current Stage routing drifted")
-    _require(state.get("run_id") == "RUN-X2N-S01-F003" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
+    _require(state.get("schema_version") == "1.6", "task state schema drifted")
+    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4", "current Stage routing drifted")
+    _require(state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "foundation.002 Task state is not pass")
     _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task state is not pass")
-    _require(state.get("next_phase") == "PH.X2N.1.4" and state.get("next_run") == "TSK.x2n.foundation.004", "next Task routing drifted")
+    _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task state is not pass")
+    _require(state.get("next_phase") == "PH.X2N.1.5" and state.get("next_run") == "TSK.x2n.foundation.005", "next Task routing drifted")
     _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
     acceptance = state.get("acceptance_status", {})
-    _require(acceptance.get("ACC.x2n.ext.003") == "pass_current_contract_scope_host_job_downstream_not_run", "Native Acceptance overstated")
+    _require(acceptance.get("ACC.x2n.ext.003") == "pass_temp_native_host_contract_idempotency_injection", "Native Acceptance did not advance through foundation.004")
     _require(acceptance.get("ACC.x2n.data.001") == "pass_sqlite_store_scope_schema_fk_unique_integrity", "data schema Acceptance did not advance through foundation.003")
     _require(acceptance.get("ACC.x2n.data.003") == "pass_synthetic_contract_scope_real_sinks_downstream_not_run", "provenance Acceptance overstated")
     project = _load_json(PROJECT_FACT)
-    _require(project.get("status") == "stage_1_foundation_003_complete_g1_not_run", "project state drifted")
+    _require(project.get("status") == "stage_1_foundation_004_complete_g1_not_run", "project state drifted")
     return Check(
         "task_state",
         "PASS",
         {
             "acceptance_scope": "CURRENT_CONTRACT_AND_SYNTHETIC_ONLY",
-            "downstream": "HOST_JOB_SQLITE_REAL_SINKS_NOT_RUN",
-            "next_task": "TSK.x2n.foundation.004",
+            "downstream": "REAL_SINKS_NOT_RUN",
+            "next_task": "TSK.x2n.foundation.005",
             "task": TASK_ID,
         },
     )
@@ -416,7 +417,7 @@ def validate_error_registry() -> Check:
 def validate_fixtures() -> Check:
     main = _load_json(FIXTURE_MANIFEST)
     rows = main.get("fixtures", [])
-    _require(len(rows) == 4, "synthetic fixture registration must preserve foundation.002 and append foundation.003")
+    _require(len(rows) == 5, "synthetic fixture registration must preserve foundation.002 and append later Task fixtures")
     _require(rows[2] == {
         "id": "FIXTURE.X2N.S01.F002.001",
         "path": "packages/test-fixtures/contracts/v1/fixture_manifest.json",
@@ -455,11 +456,13 @@ def validate_dependencies() -> Check:
     registry_npm: dict[str, dict[str, Any]] = {}
     for path, metadata in lock.get("packages", {}).items():
         if path.startswith("node_modules/") and metadata.get("link") is not True:
-            registry_npm[path.removeprefix("node_modules/")] = metadata
+            name = path.removeprefix("node_modules/")
+            if name == "typescript" or name.startswith("@typescript/typescript-"):
+                registry_npm[name] = metadata
     _require(len(registry_npm) == 21 and "typescript" in registry_npm, "npm registry dependency set drifted")
     _require(all(name == "typescript" or name.startswith("@typescript/typescript-") for name in registry_npm), "unexpected npm dependency entered lock")
     _require(all(item.get("version") == "7.0.2" and item.get("license") == "Apache-2.0" for item in registry_npm.values()), "TypeScript version/license drifted")
-    _require(all("hasInstallScript" not in item for item in registry_npm.values()), "npm install script entered lock")
+    _require(all("hasInstallScript" not in item for item in registry_npm.values()), "npm install script entered historical Contract dependency set")
 
     registry_python: dict[str, str] = {}
     for block in (PROJECT_ROOT / "uv.lock").read_text(encoding="utf-8").split("[[package]]")[1:]:

@@ -6,7 +6,7 @@ project:
   token: x2n
   version: v0.0.0.1
   owner: LinzeColin
-  status: STAGE_1_FOUNDATION_003_COMPLETE_G1_NOT_RUN
+  status: STAGE_1_FOUNDATION_004_COMPLETE_G1_NOT_RUN
   owner_change_event: CE-X2N-20260720-S00-REVIEW-RESUME
   repository: https://github.com/LinzeColin/MetaDatabase
   skill_path: xhs-douyin-2notion/
@@ -35,7 +35,7 @@ authorization:
   real_account_execution: false
   public_release: false
   vps_data_plane: false
-  instruction: G0 已由独立 Stage 0 Review Resume 签发且 Stage 0 已合并；TSK.x2n.foundation.001–003 已分别在独立 Run 完成。下一独立 Run 只能启动 TSK.x2n.foundation.004；Stage 1 上传须等待 G1 Review/Fix/Re-acceptance。真实账号、平台/Notion/模型调用、媒体与公开产品 Release 仍未授权。
+  instruction: G0 已由独立 Stage 0 Review Resume 签发且 Stage 0 已合并；TSK.x2n.foundation.001–004 已分别在独立 Run 完成。下一独立 Run 只能启动 TSK.x2n.foundation.005；Stage 1 上传须等待 G1 Review/Fix/Re-acceptance。Owner Chrome 安装/Canary、真实账号、平台/Notion/模型调用、媒体与公开产品 Release 仍未授权。
 canonical_decisions:
 - id: DEC-X2N-001
   decision: Chrome MV3 Side Panel + Local Companion/WebUI
@@ -775,7 +775,7 @@ tasks:
   title: Build MV3 Side Panel and Native Host skeleton
   stage: STG.X2N.1
   phase: PH.X2N.1.4
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none

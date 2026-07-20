@@ -32,6 +32,7 @@ class Foundation003Tests(unittest.TestCase):
         self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.foundation.003")
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S01-F003")
         self.assertEqual(VERIFY.TASK_BASE_COMMIT, "ae17e377090ef3bc1123d2512cda0daef9efe1cb")
+        self.assertEqual(VERIFY.FINAL_COMMIT, "84731bde18495ab20af005bc70d59d5ce73cbe93")
         self.assertEqual(VERIFY.ORIGIN_CUTOFF, "a444a3e9e8ee3246f2f1763aceb55d519795e30b")
         self.assertEqual(VERIFY.ALLOWED_CHANGED_PREFIXES, ("evidence/data/",))
 

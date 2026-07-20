@@ -1,0 +1,115 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.ext.001",
+    "ACC.x2n.ext.002",
+    "ACC.x2n.ext.003",
+    "ACC.x2n.ext.004"
+  ],
+  "acceptance_status": {
+    "ACC.x2n.ext.001": "PASS_CI_SYNTH_20_OF_20_OWNER_CANARY_NOT_RUN",
+    "ACC.x2n.ext.002": "PASS_ISOLATED_CHAOS_100_RESTARTS_SQLITE_RECONCILED",
+    "ACC.x2n.ext.003": "PASS_TEMP_NATIVE_HOST_CONTRACT_IDEMPOTENCY_INJECTION",
+    "ACC.x2n.ext.004": "PASS_PERMISSION_ALLOWLIST_3_NO_HOST_PERMISSIONS"
+  },
+  "checks": [
+    {
+      "details": {
+        "changed_files": 51,
+        "out_of_scope_writes": 0,
+        "private_runtime_files": 0,
+        "sensitive_or_media_url_hits": 0,
+        "text_files_scanned": 209
+      },
+      "name": "scope_and_privacy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s01-foundation001",
+        "external_main_dirty_paths": 1,
+        "origin_drift_commits": 1,
+        "origin_project_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "acceptance_scope": "ISOLATED_SYNTHETIC_EXTENSION_NATIVE_SKELETON",
+        "next_task": "TSK.x2n.foundation.005",
+        "owner_canary": "NOT_RUN",
+        "task": "TSK.x2n.foundation.004"
+      },
+      "name": "task_state",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "extension_id": "chheapilbdfnpajmlkijppmblnlheeac",
+        "host_permissions": 0,
+        "navigation_tabs": 5,
+        "permissions": 3,
+        "remote_scripts": 0
+      },
+      "name": "extension_surface",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "allowed_actions": 7,
+        "allowed_origins": 1,
+        "arbitrary_input_surfaces": 0,
+        "max_message_bytes": 1048576,
+        "owner_install": "NOT_RUN"
+      },
+      "name": "native_host_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "fixture_cases": 20,
+        "install_scripts_executed": 0,
+        "registry_components": 30,
+        "synthetic_only": true
+      },
+      "name": "fixtures_and_dependencies",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "companion_tests": 24,
+        "console_uncaught_errors": 0,
+        "duplicate_jobs": 0,
+        "fixture_recognition": "20/20",
+        "lost_jobs": 0,
+        "owner_canary": "NOT_RUN",
+        "platform_calls": 0,
+        "screenshot": {
+          "bytes": 26533,
+          "sha256": "0316f9051b8cff71fb7a30d4e2e48b8d5a84a29a9781cfd65dd40fc0899551d0"
+        },
+        "service_worker_restarts": 100,
+        "trace": {
+          "bytes": 152929,
+          "sha256": "d2409fcdc9114130a0314ded0985fb26774f6eb4af9200b12af06c5e95fe53c8"
+        },
+        "wrong_statuses": 0
+      },
+      "name": "isolated_extension_e2e",
+      "status": "PASS"
+    }
+  ],
+  "generated_at": "2026-07-20T02:39:52Z",
+  "native_host_registration": "TEMP_ISOLATED_ONLY_OWNER_INSTALL_NOT_RUN",
+  "phase": "PH.X2N.1.4",
+  "private_content_included": false,
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_G1_PASS",
+  "run_id": "RUN-X2N-S01-F004",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.1",
+  "stage_gate": "G1_NOT_RUN",
+  "status": "PASS",
+  "task_id": "TSK.x2n.foundation.004"
+}

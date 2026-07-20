@@ -1,0 +1,9 @@
+{
+  "allowed_origins": [
+    "chrome-extension://chheapilbdfnpajmlkijppmblnlheeac/"
+  ],
+  "description": "x2n local companion development host",
+  "name": "com.linzecolin.x2n",
+  "path": "__X2N_NATIVE_HOST_LAUNCHER_ABSOLUTE_PATH__",
+  "type": "stdio"
+}

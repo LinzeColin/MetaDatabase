@@ -39,8 +39,11 @@ class Foundation002Tests(unittest.TestCase):
         state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
         self.assertEqual(state["current_stage_gate"], "not_run")
         self.assertEqual(state["current_stage_remote_upload"], "forbidden_until_g1_pass")
-        for acceptance_id in ("ACC.x2n.ext.003", "ACC.x2n.data.003"):
-            self.assertIn("downstream_not_run", state["acceptance_status"][acceptance_id])
+        self.assertEqual(
+            state["acceptance_status"]["ACC.x2n.ext.003"],
+            "pass_temp_native_host_contract_idempotency_injection",
+        )
+        self.assertIn("downstream_not_run", state["acceptance_status"]["ACC.x2n.data.003"])
         self.assertEqual(
             state["acceptance_status"]["ACC.x2n.data.001"],
             "pass_sqlite_store_scope_schema_fk_unique_integrity",

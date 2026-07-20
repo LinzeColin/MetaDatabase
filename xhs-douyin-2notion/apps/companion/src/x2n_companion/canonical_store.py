@@ -112,6 +112,15 @@ class RecoveryPlan:
         }
 
 
+@dataclass(frozen=True)
+class SkeletonJob:
+    """Public-safe Native Host job state backed only by SQLite."""
+
+    job_id: str
+    state: str
+    disposition: DuplicateDisposition
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -687,6 +696,88 @@ class CanonicalStore:
             if str(existing["payload_hash"]) == payload_hash:
                 return DuplicateDisposition.RETURN_EXISTING_JOB, str(existing["job_id"])
             raise X2NRuntimeError(ErrorCode.NATIVE_DUPLICATE_REQUEST, "Request identity conflicts with the existing payload")
+
+    def submit_skeleton_job(self, *, request_id: str, payload_hash: str, run_kind: str) -> SkeletonJob:
+        """Atomically create a durable, non-executing Native request Job.
+
+        The request ledger and run record share one transaction.  No request
+        payload, page URL, account data, media reference, or credential is
+        persisted by this Foundation004 skeleton.
+        """
+
+        _validate_token(request_id, label="request_id")
+        _validate_sha256(payload_hash, label="payload_hash")
+        if run_kind not in {"native_capture_skeleton", "native_sync_skeleton"}:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Native job kind is not enabled")
+        job_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"x2n-native-request:{request_id}"))
+        observed_at = _now()
+        with self._transaction() as connection:
+            existing = connection.execute(
+                "SELECT payload_hash, job_id FROM request_ledger WHERE request_id = ?",
+                (request_id,),
+            ).fetchone()
+            if existing is not None:
+                if str(existing["payload_hash"]) != payload_hash:
+                    raise X2NRuntimeError(
+                        ErrorCode.NATIVE_DUPLICATE_REQUEST,
+                        "Request identity conflicts with the existing payload",
+                    )
+                stored_job_id = str(existing["job_id"])
+                job = connection.execute(
+                    "SELECT state FROM run_record WHERE run_id = ?",
+                    (stored_job_id,),
+                ).fetchone()
+                if job is None:
+                    raise X2NRuntimeError(
+                        ErrorCode.DATA_INTEGRITY_FAILED,
+                        "Request ledger references a missing Job",
+                    )
+                return SkeletonJob(
+                    job_id=stored_job_id,
+                    state=str(job["state"]),
+                    disposition=DuplicateDisposition.RETURN_EXISTING_JOB,
+                )
+            connection.execute(
+                """
+                INSERT INTO run_record(
+                    run_id, run_kind, state, input_manifest_hash, started_at, finished_at, created_at
+                ) VALUES (?, ?, 'pending', ?, ?, NULL, ?)
+                """,
+                (job_id, run_kind, payload_hash, observed_at, observed_at),
+            )
+            connection.execute(
+                "INSERT INTO request_ledger(request_id, payload_hash, job_id, created_at) VALUES (?, ?, ?, ?)",
+                (request_id, payload_hash, job_id, observed_at),
+            )
+            return SkeletonJob(
+                job_id=job_id,
+                state="pending",
+                disposition=DuplicateDisposition.NEW_REQUEST,
+            )
+
+    def get_skeleton_job(self, job_id: str) -> SkeletonJob:
+        _validate_token(job_id, label="job_id")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    """
+                    SELECT r.state
+                    FROM run_record AS r
+                    INNER JOIN request_ledger AS l ON l.job_id = r.run_id
+                    WHERE r.run_id = ? AND r.run_kind IN ('native_capture_skeleton','native_sync_skeleton')
+                    """,
+                    (job_id,),
+                ).fetchone()
+            finally:
+                connection.close()
+        if row is None:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Native Job does not exist")
+        return SkeletonJob(
+            job_id=job_id,
+            state=str(row["state"]),
+            disposition=DuplicateDisposition.RETURN_EXISTING_JOB,
+        )
 
     def enqueue_outbox(
         self,

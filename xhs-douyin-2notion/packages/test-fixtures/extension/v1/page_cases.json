@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S01.F004.001",
+  "cases": [
+    {"id": "xhs-explore", "url": "https://www.xiaohongshu.com/explore/synthetic-note-001", "supported": true, "platform": "xiaohongshu"},
+    {"id": "xhs-discovery", "url": "https://xiaohongshu.com/discovery/item/synthetic_note_002", "supported": true, "platform": "xiaohongshu"},
+    {"id": "douyin-video", "url": "https://www.douyin.com/video/710000000000000001", "supported": true, "platform": "douyin"},
+    {"id": "bilibili-video", "url": "https://www.bilibili.com/video/BV1Synthetic001", "supported": true, "platform": "bilibili"},
+    {"id": "bilibili-read", "url": "https://bilibili.com/read/cvSynthetic001", "supported": true, "platform": "bilibili"},
+    {"id": "kuaishou-video", "url": "https://www.kuaishou.com/short-video/synthetic001", "supported": true, "platform": "kuaishou"},
+    {"id": "weibo-detail", "url": "https://weibo.com/detail/Synthetic001", "supported": true, "platform": "weibo"},
+    {"id": "weibo-user-post", "url": "https://www.weibo.com/100000001/Synthetic002", "supported": true, "platform": "weibo"},
+    {"id": "taobao-item", "url": "https://item.taobao.com/item.htm?id=100000001", "supported": true, "platform": "taobao"},
+    {"id": "xhs-home", "url": "https://www.xiaohongshu.com/", "supported": false, "platform": null},
+    {"id": "douyin-home", "url": "https://www.douyin.com/", "supported": false, "platform": null},
+    {"id": "bilibili-space", "url": "https://space.bilibili.com/synthetic", "supported": false, "platform": null},
+    {"id": "kuaishou-profile", "url": "https://www.kuaishou.com/profile/synthetic", "supported": false, "platform": null},
+    {"id": "weibo-home", "url": "https://weibo.com/", "supported": false, "platform": null},
+    {"id": "taobao-missing-id", "url": "https://item.taobao.com/item.htm", "supported": false, "platform": null},
+    {"id": "external", "url": "https://example.invalid/content/synthetic", "supported": false, "platform": null},
+    {"id": "unsafe-http", "url": "http://www.douyin.com/video/synthetic", "supported": false, "platform": null},
+    {"id": "authority-credentials", "url": "https://user@example.invalid/content", "supported": false, "platform": null},
+    {"id": "invalid", "url": "not-a-url", "supported": false, "platform": null},
+    {"id": "unavailable", "url": "", "supported": false, "platform": null}
+  ],
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "real_accounts": false
+}

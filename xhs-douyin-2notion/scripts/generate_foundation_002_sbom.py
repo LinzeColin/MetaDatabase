@@ -76,12 +76,14 @@ def build_sbom() -> dict[str, Any]:
         if not path.startswith("node_modules/") or metadata.get("link") is True:
             continue
         name = path.removeprefix("node_modules/")
-        registry_npm[name] = metadata
+        if name == "typescript" or name.startswith("@typescript/typescript-"):
+            registry_npm[name] = metadata
+    # Preserve the historical Foundation002 Contract SBOM. Later Task
+    # dependencies are inventoried by an additive, Task-specific SBOM.
     _require("typescript" in registry_npm, "TypeScript build dependency missing")
-    _require(all(name == "typescript" or name.startswith("@typescript/typescript-") for name in registry_npm), "unexpected npm dependency entered SBOM")
     _require(all(item.get("version") == "7.0.2" for item in registry_npm.values()), "TypeScript package version drifted")
     _require(all(item.get("license") == "Apache-2.0" for item in registry_npm.values()), "TypeScript package license drifted")
-    _require(all("hasInstallScript" not in item for item in registry_npm.values()), "npm install script entered lock")
+    _require(all("hasInstallScript" not in item for item in registry_npm.values()), "npm install script entered historical dependency set")
     platform_packages = sorted(name for name in registry_npm if name != "typescript")
     _require(len(platform_packages) == 20, "TypeScript platform package set drifted")
     _require(all(registry_npm[name].get("optional") is True for name in platform_packages), "TypeScript platform package is not optional")

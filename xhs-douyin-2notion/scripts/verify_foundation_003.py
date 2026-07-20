@@ -25,6 +25,7 @@ TASK_ID = "TSK.x2n.foundation.003"
 RUN_ID = "RUN-X2N-S01-F003"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s01-foundation001"
 TASK_BASE_COMMIT = "ae17e377090ef3bc1123d2512cda0daef9efe1cb"
+FINAL_COMMIT = "84731bde18495ab20af005bc70d59d5ce73cbe93"
 ORIGIN_CUTOFF = "a444a3e9e8ee3246f2f1763aceb55d519795e30b"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
@@ -185,13 +186,12 @@ def _iter_files() -> Iterable[Path]:
 
 
 def validate_scope() -> Check:
-    status_paths = _porcelain_paths(
-        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
-    )
+    # Historical scope is pinned to the Foundation003 commit. Later Tasks are
+    # independently verified and must not be charged to this completed Run.
     committed_paths = _git(
-        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...{FINAL_COMMIT}"]
     ).splitlines()
-    changed = sorted(set(status_paths + committed_paths))
+    changed = sorted(set(committed_paths))
     relative_changes: list[str] = []
     for path in changed:
         relative = _project_relative(path)
@@ -293,14 +293,15 @@ def validate_task_and_state() -> Check:
     _require(_field(task, "stage") == "STG.X2N.1" and _field(task, "phase") == "PH.X2N.1.3", "foundation.003 routing drifted")
     _require(_list_field(task, "depends_on") == ["TSK.x2n.foundation.002"], "foundation.003 dependency drifted")
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.data.001", "ACC.x2n.data.002", "ACC.x2n.data.004"], "foundation.003 Acceptance drifted")
-    _require("  status: STAGE_1_FOUNDATION_003_COMPLETE_G1_NOT_RUN\n" in taskpack, "Taskpack current status drifted")
+    _require("  status: STAGE_1_FOUNDATION_004_COMPLETE_G1_NOT_RUN\n" in taskpack, "Taskpack current status drifted")
 
     state = _load_json(TASK_STATE)
-    _require(state.get("schema_version") == "1.5", "task state schema drifted")
-    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.3", "current Stage routing drifted")
-    _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "foundation.003 Run identity drifted")
+    _require(state.get("schema_version") == "1.6", "task state schema drifted")
+    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4", "current Stage routing drifted")
+    _require(state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "foundation.003 Task state is not pass")
-    _require(state.get("next_phase") == "PH.X2N.1.4" and state.get("next_run") == "TSK.x2n.foundation.004", "next Task routing drifted")
+    _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task state is not pass")
+    _require(state.get("next_phase") == "PH.X2N.1.5" and state.get("next_run") == "TSK.x2n.foundation.005", "next Task routing drifted")
     _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
     acceptance = state.get("acceptance_status", {})
     _require(acceptance.get("ACC.x2n.data.001") == "pass_sqlite_store_scope_schema_fk_unique_integrity", "data.001 Store scope drifted")
@@ -309,14 +310,14 @@ def validate_task_and_state() -> Check:
     _require(state.get("sqlite_store") == "pass_schema_v2_owner_empty_runtime_initialized", "SQLite Store state drifted")
     _require(state.get("real_account_execution") == "not_run" and state.get("real_sink_execution") == "not_run", "downstream execution overstated")
     project = _load_json(PROJECT_FACT)
-    _require(project.get("status") == "stage_1_foundation_003_complete_g1_not_run", "project state drifted")
+    _require(project.get("status") == "stage_1_foundation_004_complete_g1_not_run", "project state drifted")
     return Check(
         "task_state",
         "PASS",
         {
             "acceptance_scope": "SQLITE_AND_SYNTHETIC_LOCAL_RECOVERY",
             "downstream": "MARKDOWN_NOTION_OWNER_ALPHA_RELEASE_DISASTER_RECOVERY_NOT_RUN",
-            "next_task": "TSK.x2n.foundation.004",
+            "next_task": "TSK.x2n.foundation.005",
             "task": TASK_ID,
         },
     )
@@ -394,7 +395,7 @@ def validate_fixture_and_dependencies() -> Check:
         _require(fixture.get(field) is False, f"Store fixture public boundary weakened: {field}")
     manifest = _load_json(FIXTURE_MANIFEST)
     rows = manifest.get("fixtures", [])
-    _require(len(rows) == 4 and rows[-1] == {
+    _require(len(rows) == 5 and rows[3] == {
         "id": "FIXTURE.X2N.S01.F003.001",
         "path": "packages/test-fixtures/store/v1/seed_manifest.json",
         "case_count": 10_182,
@@ -469,7 +470,7 @@ def validate_store_execution() -> Check:
         _run_external("schema_snapshot", (*prefix, "scripts/generate_foundation_003_schema.py", "--check"), env=env)
         tests = _run_external(
             "companion_store_tests",
-            (*prefix, "-m", "unittest", "discover", "-s", "apps/companion/tests", "-p", "test_*.py"),
+            (*prefix, "-m", "unittest", "discover", "-s", "apps/companion/tests", "-p", "test_canonical_store.py"),
             env=env,
         )
         match = re.search(r"Ran (\d+) tests", tests)

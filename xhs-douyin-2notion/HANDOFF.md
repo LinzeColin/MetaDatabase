@@ -10,8 +10,8 @@
 - 首次 `STG.X2N.0.REVIEW`：历史结论 `BLOCKED_OWNER_ACTION`，原报告与 3 份机器证据保持不变。
 - `STG.X2N.0.REVIEW.RESUME`：完整复验通过；当前 `G0=PASS`。
 - Stage 0 整阶段已通过 PR #66 合并；G0 历史/Resume 证据保持不变。
-- Stage 1：`TSK.x2n.foundation.001–003` 已分别完成 scaffold、`1.0` Contract 与 SQLite Canonical Store；`G1=NOT_RUN`，不得 push。
-- 下一独立 Run：只执行 `TSK.x2n.foundation.004` / `PH.X2N.1.4`。
+- Stage 1：`TSK.x2n.foundation.001–004` 已分别完成 scaffold、`1.0` Contract、SQLite Canonical Store 与 MV3 Side Panel＋Native Host skeleton；`G1=NOT_RUN`，不得 push。
+- 下一独立 Run：只执行 `TSK.x2n.foundation.005` / `PH.X2N.1.5`。
 - 真实账号、Chrome 控制、六平台调用、Notion、模型、媒体与全部下游用户旅程 Acceptance：`NOT_RUN`。
 - 六平台：全部 `UNKNOWN_DISABLED`；各平台实现开始时重新通过 Policy/Auth/Technical Gate。
 
@@ -40,13 +40,18 @@
 - Foundation 003：SQLite Schema v2 含 17 tables、9 indexes、15 triggers；WAL/FK/FULL synchronous/busy timeout、DB 层 Unique/append-only/delete protection、Request Ledger、Outbox/Receipt、Lease、Migration 与本地 Backup/Restore 已实现。
 - Foundation 003 合成验收：13 Store tests；80 条连续两次、100 个并发重复、10k DB、Hash mismatch、2→1→Restore 2 全部通过；重复副作用、数据丢失、不可读记录、orphan FK 均为 0，`integrity_check=ok`。
 - Owner Private Runtime：Schema v2 空库已初始化；Content/账号/下载/媒体/Sink 记录为 0；DB/marker 权限 Owner-only，解析路径未进入 Repo/Evidence。
-- 当前根回归：67 tests 全部通过；显式 Owner root 后仅私有上游 snapshot 的 1 项测试按设计跳过。Foundation001/002 历史 Task verifier 与现有证据均重新通过。
+- Foundation 004：固定开发 Extension ID，权限只含 `activeTab`/`nativeMessaging`/`sidePanel`，Host Permission 为 0；五区 Side Panel 与 20/20 六平台合成 URL 识别通过，所有平台动作保持禁用。
+- Native Host：精确单 Origin、短进程 stdio、1 MiB 上限、严格 Contract；24 个 Companion tests 覆盖 Origin/Schema/Action/Size/Injection、100 个并发重复、payload-free SQLite Job、unowned 文件拒绝与 installer 首次/升级失败回滚。
+- 隔离 Chromium E2E：临时 HOME/Profile/Runtime/Host 注册；100 次真实 Service Worker 终止/重启，任务丢失/重复/错状态和 uncaught console error 均为 0；Owner Chrome/Profile/Canary 未运行。
+- Foundation 004 供应链：当前 SBOM 30 components；Playwright `1.61.1` 精确锁定；可选 `fsevents` install script 由 `.npmrc` 和验收命令禁用，执行数 0。历史 Foundation002 SBOM 保持 26-component 原事实。
+- 当前根回归：76 tests PASS，3 个需要私有可选输入的测试按设计跳过；Foundation001 固定提交 fresh replay、Foundation002 Contract、Foundation003 Store 与 Foundation004 完整 verifier 均 PASS。Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
 - Fresh copy：隔离 HOME 中 frozen locks、Extension 与 7 个 lifecycle rehearsal 加 1 个负向 Canary 均通过。
 
 ```bash
 python3.12 -B scripts/verify_foundation_001.py --verify-worktree --allow-external-main-dirty --require-evidence
 python3.12 -B scripts/verify_foundation_002.py --verify-worktree --allow-external-main-dirty --require-evidence
 python3.12 -B scripts/verify_foundation_003.py --verify-worktree --allow-external-main-dirty --validate-owner-runtime --require-evidence
+python3 -B scripts/verify_foundation_004.py --verify-worktree --allow-external-main-dirty --require-evidence
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
@@ -67,6 +72,6 @@ Run Contract 执行。
 
 ## 下一步
 
-1. 保留本地 foundation.001–003 commits，不 push；Stage 1 只有 G1 Review/Fix/Re-acceptance 通过后才整阶段上传。
-2. 另开单 Task Run：`TSK.x2n.foundation.004` / `PH.X2N.1.4`，实现 MV3 Side Panel 与 Native Host skeleton；不得顺带实现 foundation.005。
+1. 保留本地 foundation.001–004 commits，不 push；Stage 1 只有 G1 Review/Fix/Re-acceptance 通过后才整阶段上传。
+2. 另开单 Task Run：`TSK.x2n.foundation.005` / `PH.X2N.1.5`，建立软件与模型 CI baseline；不得顺带实现 Adapter 或真实产品行为。
 3. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Runtime/越界写入命中立即 Fail Closed。

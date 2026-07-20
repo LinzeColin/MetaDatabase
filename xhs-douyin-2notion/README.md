@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 1` 的 `TSK.x2n.foundation.001–003` 已分别完成 scaffold、`1.0` Contract 与 SQLite Canonical Store；Stage 0 已合并且 `G0=PASS`，但 `G1=NOT_RUN`，Stage 1 不得上传。当前具备严格 Contract、Schema v2、FK/Unique/append-only、Request Ledger、Outbox/Lease、Migration 和本地 Backup/Restore；Owner 私有根仅初始化空库，没有真实内容。真实采集、账号访问、浏览器行为、Native Host/Worker、Markdown/Notion、模型和媒体仍未实现。六平台与所有上游候选保持关闭。Owner 保留的外部共享认证材料不由 x2n 读取、使用或修改；与 MetaDatabase 其他长期开发采用零重叠 worktree 隔离，外部文件不进入本项目证据或提交。
+当前状态：`v0.0.0.1 / Stage 1` 的 `TSK.x2n.foundation.001–004` 已分别完成 scaffold、`1.0` Contract、SQLite Canonical Store，以及 MV3 Side Panel＋Native Host skeleton；Stage 0 已合并且 `G0=PASS`，但 `G1=NOT_RUN`，Stage 1 不得上传。当前 Extension 以固定开发 ID、3 项权限、零 Host Permission 提供五区 Side Panel；短进程 Native Host 把合成请求原子写入 SQLite，并在 100 次 Service Worker 终止后完成零丢失/零重复/零错状态对账。所有验证均在临时 HOME/Profile/Runtime 中执行并清理，Owner Chrome 安装与 Canary 仍为 `NOT_RUN`。真实采集、账号访问、平台动作、Markdown/Notion、模型和媒体仍未实现；六平台与所有上游候选保持关闭。Owner 保留的外部共享认证材料不由 x2n 读取、使用或修改；与 MetaDatabase 其他长期开发采用零重叠 worktree 隔离，外部文件不进入本项目证据或提交。
 
 ## 固定边界
 
@@ -21,7 +21,33 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Foundation 003 验证
+## Foundation 004 验证
+
+```bash
+npm ci --ignore-scripts
+python3 -B scripts/verify_foundation_004.py \
+  --verify-worktree --allow-external-main-dirty --require-evidence
+python3 -B -m unittest tests.test_foundation_004
+```
+
+门禁执行 20 个公共合成页面、五区 Side Panel、临时 Native Host 注册、24 个
+Companion tests 与 100 次真实 Service Worker 终止/重启；SQLite 是唯一任务状态源。
+截图和 trace 仅生成在临时目录，Git 证据只保存大小与 SHA-256。Owner Chrome、共享
+Profile、真实账号与平台请求均不参与。Playwright 测试栈已进入独立 30-component
+SBOM；可选 `fsevents` 的 install script 由 `.npmrc` 和验收命令共同禁止执行。
+
+安装器默认只输出不含路径的计划；以下命令只是计划，不写入任何 Host：
+
+```bash
+X2N_DOWNLOAD_DESTINATION="$X2N_DOWNLOAD_DESTINATION" \
+X2N_DATA_ROOT="$X2N_DATA_ROOT" \
+PYTHONPATH="apps/companion/src:packages/contracts/src" \
+python3.12 -B -m x2n_companion.native_host_installer plan --browser chrome
+```
+
+Owner 长期安装、卸载和 Canary 尚未授权，不应执行 `install`/`uninstall --confirm`。
+
+## Foundation 003 历史范围验证
 
 ```bash
 python3.12 -B scripts/verify_foundation_003.py --verify-worktree --allow-external-main-dirty

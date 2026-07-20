@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "manifest_id": "FIXTURE.X2N.005",
-  "phase": "PH.X2N.1.3",
+  "phase": "PH.X2N.1.4",
   "fixtures": [
     {
       "id": "FIXTURE.X2N.S00.P05.001",
@@ -26,9 +26,15 @@
       "path": "packages/test-fixtures/store/v1/seed_manifest.json",
       "case_count": 10182,
       "purpose": "SQLite schema, idempotency, concurrency, migration and local recovery"
+    },
+    {
+      "id": "FIXTURE.X2N.S01.F004.001",
+      "path": "packages/test-fixtures/extension/v1/page_cases.json",
+      "case_count": 20,
+      "purpose": "MV3 Side Panel six-platform page recognition and unsupported-page fail-closed behavior"
     }
   ],
-  "status": "synthetic_governance_scaffold_contract_and_sqlite_store_fixtures_ready_platform_fixtures_not_started",
+  "status": "synthetic_governance_contract_store_and_extension_fixtures_ready_real_platform_fixtures_not_started",
   "future_requirements": {
     "source_must_be_declared": true,
     "real_account_content_allowed": false,

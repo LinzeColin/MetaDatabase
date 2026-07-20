@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.1.3",
-  "status": "foundation_003_canonical_store_implemented_g1_not_run",
+  "phase": "PH.X2N.1.4",
+  "status": "foundation_004_extension_native_skeleton_implemented_g1_not_run",
   "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
   "decisions": [
     {"id": "ADR-001", "topic": "personal_knowledge_governance_boundary", "state": "accepted_design"},
     {"id": "ADR-002", "topic": "sqlite_canonical_truth", "state": "accepted_design", "implementation_state": "sqlite_schema_v2_store_scope_pass"},
-    {"id": "ADR-003", "topic": "chrome_side_panel_native_messaging_companion", "state": "accepted_design"},
+    {"id": "ADR-003", "topic": "chrome_side_panel_native_messaging_companion", "state": "accepted_design", "implementation_state": "isolated_synthetic_side_panel_native_host_pass_owner_install_not_run"},
     {"id": "ADR-004", "topic": "single_private_data_root_and_credentials", "state": "accepted_design", "implementation_state": "owner_empty_private_store_initialized_credentials_not_used"},
     {"id": "ADR-005", "topic": "six_platform_policy_and_clean_room", "state": "accepted_design"},
     {"id": "ADR-006", "topic": "capability_negotiation", "state": "accepted_design"},
@@ -16,7 +16,7 @@
     {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design", "implementation_state": "local_backup_restore_recovery_pass_release_not_run"}
   ],
   "implementation_started": true,
-  "implementation_scope": "TSK.x2n.foundation.001-003_scaffold_contracts_and_canonical_store",
+  "implementation_scope": "TSK.x2n.foundation.001-004_scaffold_contracts_store_extension_native_skeleton",
   "real_account_execution": false,
   "stage_gate": "g1_not_run"
 }

@@ -1,7 +1,26 @@
 {
   "manifest_version": 3,
-  "name": "x2n Stage 1 Scaffold",
+  "name": "x2n Development Side Panel",
   "version": "0.0.0.1",
-  "description": "Permission-free scaffold; no platform behavior is implemented.",
-  "permissions": []
+  "description": "Personal content knowledge governance skeleton; platform actions remain disabled.",
+  "minimum_chrome_version": "120",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwf0gIyfs7+F8u8hgp5kddE8jYDmcU4w4w5Cn2gUhYtRt8wIA8TjfJ3dxjvqKCEdyJAvxGInvDzWr+C8GdXLQZ989ReJvvtZzreYcnQOWIpgOzwlExYQlostAGutcq0NatVDZAOEii+SwmbOJt1kxNzkIMzpJ3fjwhmBYSXdNWVi2HMYTbYeBTkTXb29dnNrB3JhHscawiXte/Q+qhmGOWZkg/N3/NY06e+lpNhw5gtta+c3dhqsXsPmj0aQ/TIlP6gMbiRIvTTm4fPptyIM/LcgiQ/uJaoeZGF9K3Mv+qIpXzfa8mXgxKZEorGJtV8i0Od8r1yittgDxeml68JLrawIDAQAB",
+  "permissions": [
+    "activeTab",
+    "nativeMessaging",
+    "sidePanel"
+  ],
+  "background": {
+    "service_worker": "src/service-worker.js",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Open x2n Side Panel"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none';"
+  }
 }

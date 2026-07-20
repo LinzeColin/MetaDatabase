@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import os
 import re
@@ -12,6 +13,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tarfile
+import warnings
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -348,16 +351,17 @@ def validate_task_and_state() -> Check:
         "Task dependency drifted",
     )
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.gov.001", "ACC.x2n.rel.008"], "Task Acceptance drifted")
-    _require("  status: STAGE_1_FOUNDATION_003_COMPLETE_G1_NOT_RUN\n" in taskpack_text, "Taskpack status drifted")
+    _require("  status: STAGE_1_FOUNDATION_004_COMPLETE_G1_NOT_RUN\n" in taskpack_text, "Taskpack status drifted")
 
     state = _load_json(TASK_STATE)
-    _require(state.get("schema_version") == "1.5", "task state schema drifted")
-    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.3", "current Stage state drifted")
-    _require(state.get("run_id") == "RUN-X2N-S01-F003" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
+    _require(state.get("schema_version") == "1.6", "task state schema drifted")
+    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4", "current Stage state drifted")
+    _require(state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "foundation Task state is not pass")
     _require(state.get("tasks", {}).get("TSK.x2n.foundation.002") == "pass", "foundation.002 Task state is not pass")
     _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task state is not pass")
-    _require(state.get("next_phase") == "PH.X2N.1.4" and state.get("next_run") == "TSK.x2n.foundation.004", "next Task routing drifted")
+    _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task state is not pass")
+    _require(state.get("next_phase") == "PH.X2N.1.5" and state.get("next_run") == "TSK.x2n.foundation.005", "next Task routing drifted")
     _require(state.get("next_phase_authorized") is True, "next Task authorization missing")
     _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
     acceptances = state.get("acceptance_status", {})
@@ -368,13 +372,13 @@ def validate_task_and_state() -> Check:
     )
 
     project = _load_json(PROJECT_FACT)
-    _require(project.get("status") == "stage_1_foundation_003_complete_g1_not_run", "project state drifted")
+    _require(project.get("status") == "stage_1_foundation_004_complete_g1_not_run", "project state drifted")
     return Check(
         "task_state",
         "PASS",
         {
             "acceptance_scope": "CURRENT_SCAFFOLD_ONLY",
-            "next_task": "TSK.x2n.foundation.004",
+            "next_task": "TSK.x2n.foundation.005",
             "product_lifecycle": "DOWNSTREAM_NOT_RUN",
             "task": TASK_ID,
         },
@@ -399,7 +403,10 @@ def validate_scaffold_tree() -> Check:
         "uv.lock",
         "apps/extension/package.json",
         "apps/extension/manifest.json",
-        "apps/extension/src/scaffold.ts",
+        "apps/extension/sidepanel.html",
+        "apps/extension/src/page-support.js",
+        "apps/extension/src/service-worker.js",
+        "apps/extension/src/sidepanel.js",
         "apps/companion/pyproject.toml",
         "apps/companion/src/x2n_companion/scaffold.py",
         "packages/contracts/package.json",
@@ -409,13 +416,21 @@ def validate_scaffold_tree() -> Check:
     _require(all((PROJECT_ROOT / relative).is_file() for relative in required_files), "minimal source tree is incomplete")
 
     forbidden_names = {"node_modules", "dist", "build", ".venv", "runtime", "downloads"}
-    forbidden_directories = [path for path in PROJECT_ROOT.rglob("*") if path.is_dir() and path.name in forbidden_names]
+    forbidden_directories = [
+        path
+        for path in PROJECT_ROOT.rglob("*")
+        if path.is_dir()
+        and path.name in forbidden_names
+        and path != PROJECT_ROOT / "node_modules"
+        and "node_modules" not in path.relative_to(PROJECT_ROOT).parts
+    ]
     _require(not forbidden_directories, "build output or Runtime entered the repository")
     _require(not (PROJECT_ROOT / ".x2n-root.json").exists(), "private Runtime marker entered Git")
 
     manifest = _load_json(PROJECT_ROOT / "apps/extension/manifest.json")
-    _require(manifest.get("manifest_version") == 3 and manifest.get("permissions") == [], "extension scaffold is not permission-free")
-    _require("host_permissions" not in manifest and "background" not in manifest and "side_panel" not in manifest, "browser behavior entered foundation.001")
+    _require(manifest.get("manifest_version") == 3, "extension no longer uses MV3")
+    _require(manifest.get("permissions") == ["activeTab", "nativeMessaging", "sidePanel"], "current extension permission allowlist drifted")
+    _require("host_permissions" not in manifest and manifest.get("side_panel") == {"default_path": "sidepanel.html"}, "current extension boundary drifted")
 
     fixture = _load_json(PROJECT_ROOT / "packages/test-fixtures/scaffold_case.json")
     _require(
@@ -440,7 +455,7 @@ def validate_scaffold_tree() -> Check:
         {
             "build_output_directories": 0,
             "declared_outputs": len(EXPECTED_OUTPUTS),
-            "extension_permissions": 0,
+            "extension_permissions": 3,
             "private_runtime_entries": 0,
             "synthetic_fixtures": 1,
         },
@@ -483,11 +498,12 @@ def validate_locks() -> Check:
         if key.startswith("node_modules/") and metadata.get("link") is True
     ]
     registry_names = {path.removeprefix("node_modules/") for path in registry_packages}
-    _require(len(registry_names) == 21 and "typescript" in registry_names, "registered npm dependency set drifted")
-    _require(all(name == "typescript" or name.startswith("@typescript/typescript-") for name in registry_names), "unexpected npm third-party package entered foundation")
+    typescript_names = {name for name in registry_names if name == "typescript" or name.startswith("@typescript/typescript-")}
+    _require(len(typescript_names) == 21 and registry_names == typescript_names | {"@playwright/test", "playwright", "playwright-core", "fsevents"}, "registered npm dependency set drifted")
     _require(len(workspace_links) == 3, "npm workspace links are incomplete")
-    for path, metadata in locked_packages.items():
-        _require("hasInstallScript" not in metadata, f"install script entered npm lock: {path}")
+    scripted = {path.removeprefix("node_modules/") for path, metadata in locked_packages.items() if metadata.get("hasInstallScript") is True}
+    _require(scripted == {"fsevents"}, "install-script dependency set drifted")
+    _require("ignore-scripts=true" in (PROJECT_ROOT / ".npmrc").read_text(encoding="utf-8").splitlines(), "npm install scripts are not disabled")
 
     uv_text = (PROJECT_ROOT / "uv.lock").read_text(encoding="utf-8")
     uv_packages = _packages_from_uv_lock(uv_text)
@@ -498,10 +514,11 @@ def validate_locks() -> Check:
         "package_locks",
         "PASS",
         {
-            "install_scripts": 0,
+            "install_script_packages": 1,
+            "install_scripts_executed": 0,
             "npm_lock_version": 3,
             "npm_workspace_links": len(workspace_links),
-            "third_party_packages": 26,
+            "third_party_packages": 30,
             "uv_packages": len(uv_packages),
         },
     )
@@ -537,11 +554,29 @@ def validate_fresh_scaffold() -> Check:
     with tempfile.TemporaryDirectory(prefix="x2n-foundation-") as temporary:
         temporary_root = Path(temporary)
         fresh = temporary_root / "project"
-        shutil.copytree(
-            PROJECT_ROOT,
-            fresh,
-            ignore=shutil.ignore_patterns("node_modules", "__pycache__", ".pytest_cache", ".venv", "dist", "build"),
+        fresh.mkdir()
+        archive = subprocess.run(
+            ["git", "archive", "--format=tar", f"{FINAL_COMMIT}:xhs-douyin-2notion"],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+            capture_output=True,
         )
+        _require(archive.returncode == 0, "historical Foundation001 archive is unavailable")
+        with tarfile.open(fileobj=io.BytesIO(archive.stdout), mode="r:") as handle:
+            members = handle.getmembers()
+            _require(
+                all(
+                    not Path(member.name).is_absolute()
+                    and ".." not in Path(member.name).parts
+                    and not member.issym()
+                    and not member.islnk()
+                    for member in members
+                ),
+                "historical Foundation001 archive contains an unsafe member",
+            )
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", DeprecationWarning)
+                handle.extractall(fresh)
         home = temporary_root / "home"
         home.mkdir(mode=0o700)
         env = _isolated_env(home)

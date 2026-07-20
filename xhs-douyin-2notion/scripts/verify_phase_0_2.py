@@ -239,7 +239,7 @@ def validate_sbom() -> Check:
 
 
 def _text_files() -> Iterable[Path]:
-    ignored = {"__pycache__", ".pytest_cache"}
+    ignored = {"node_modules", "__pycache__", ".pytest_cache", ".venv", "dist", "build"}
     for path in PROJECT_ROOT.rglob("*"):
         if path.is_file() and not any(part in ignored for part in path.parts):
             if path.suffix.lower() in {"", ".md", ".json", ".yaml", ".yml", ".py", ".toml", ".txt"}:
@@ -248,12 +248,19 @@ def _text_files() -> Iterable[Path]:
 
 def validate_repository_boundary() -> Check:
     forbidden_directories = {"vendor", "third_party", "upstreams", "xiaohongshu-exporter", "douyin-downloader", "MediaCrawler"}
-    directory_hits = [path.name for path in PROJECT_ROOT.rglob("*") if path.is_dir() and path.name in forbidden_directories]
+    ignored = {"node_modules", "__pycache__", ".pytest_cache", ".venv", "dist", "build"}
+    directory_hits = [
+        path.name
+        for path in PROJECT_ROOT.rglob("*")
+        if path.is_dir() and not any(part in ignored for part in path.parts) and path.name in forbidden_directories
+    ]
     _require(not directory_hits, f"vendored upstream directory found: {directory_hits}")
     forbidden_files = [
         str(path.relative_to(PROJECT_ROOT))
         for path in PROJECT_ROOT.rglob("*")
-        if path.is_file() and (path.suffix.lower() == ".zip" or path.name.endswith(".min.js"))
+        if path.is_file()
+        and not any(part in ignored for part in path.parts)
+        and (path.suffix.lower() == ".zip" or path.name.endswith(".min.js"))
     ]
     _require(not forbidden_files, f"upstream binary/minified artifact found: {forbidden_files}")
 
@@ -301,14 +308,15 @@ def validate_task_state() -> Check:
         _require(state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass", "post-G0 Stage/upload gate mismatch")
         gate_status = "PASS"
     else:
-        _require(state.get("schema_version") == "1.5", "unsupported current task state")
-        _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.3", "current Stage routing mismatch")
+        _require(state.get("schema_version") == "1.6", "unsupported current task state")
+        _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4", "current Stage routing mismatch")
         _require(state.get("review_id") == "STG.X2N.0.REVIEW.RESUME", "G0 Resume identity was lost")
-        _require(state.get("run_id") == "RUN-X2N-S01-F003" and state.get("run_kind") == "single_dag_task", "foundation Run identity mismatch")
+        _require(state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task", "foundation Run identity mismatch")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.001") == "pass", "foundation Task is not pass")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.002") == "pass", "foundation.002 Task is not pass")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task is not pass")
-        _require(state.get("next_phase") == "PH.X2N.1.4" and state.get("next_run") == "TSK.x2n.foundation.004", "current next route mismatch")
+        _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task is not pass")
+        _require(state.get("next_phase") == "PH.X2N.1.5" and state.get("next_run") == "TSK.x2n.foundation.005", "current next route mismatch")
         _require(state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass", "historical G0 status drifted")
         _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
         gate_status = "PASS"

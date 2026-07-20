@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "self-test": "node scripts/self-test.mjs"
+    "self-test": "node scripts/self-test.mjs",
+    "test:e2e": "node scripts/extension-e2e.mjs"
   }
 }

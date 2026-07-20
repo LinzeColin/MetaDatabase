@@ -28,7 +28,7 @@ Notion writes, model calls, media handling, or mutation of another project.
 - Execute at most one Task and its Acceptance per ordinary Run. Do not push an
   intermediate Stage branch before its Stage Review passes.
 
-## Current capability: Stage 1 scaffold + Contract + Canonical Store
+## Current capability: Stage 1 scaffold + Contract + Store + Extension skeleton
 
 Run these commands from the project root. They perform deterministic,
 network-free scaffold rehearsals; they do not install a released product or
@@ -49,12 +49,28 @@ Verify frozen workspaces and the governed fresh-copy transcript with:
 ```bash
 python3.12 -B scripts/verify_foundation_001.py --verify-worktree --allow-external-main-dirty
 python3.12 -B scripts/verify_foundation_002.py --verify-worktree --allow-external-main-dirty
+python3.12 -B scripts/verify_foundation_003.py --verify-worktree --allow-external-main-dirty
+python3 -B scripts/verify_foundation_004.py --verify-worktree --allow-external-main-dirty --require-evidence
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
 Foundation.002 的历史范围仍只证明 `1.0` Contract。Foundation.003 已新增仓库外
 Private Runtime、SQLite Schema v2、Migration、Request Ledger、Outbox/Lease 与本地
-Backup/Restore；它不启动 Native Host/Worker，不连接平台，也不写 Markdown/Notion。
+Backup/Restore。Foundation.004 已实现固定开发 ID 的 MV3 Side Panel、短进程 Native
+Host、原子 skeleton Job 与 SQLite 状态重连；只在临时 HOME/Profile/Runtime 中通过
+20 个合成页面和 100 次 Worker 重启，不连接平台，也不写 Markdown/Notion。
+
+Native Host installer 默认仅计划，输出不含路径：
+
+```bash
+X2N_DOWNLOAD_DESTINATION="$X2N_DOWNLOAD_DESTINATION" \
+X2N_DATA_ROOT="$X2N_DATA_ROOT" \
+PYTHONPATH=apps/companion/src:packages/contracts/src \
+python3.12 -B -m x2n_companion.native_host_installer plan --browser chrome
+```
+
+Owner Chrome 安装和 Canary 尚未运行。不要把 E2E 的临时注册解释为 Owner 安装授权，
+也不要在普通运维中执行 `install` 或 `uninstall --confirm`。
 
 Store 命令只从显式环境变量解析唯一私有根，没有路径参数或默认目录：
 
@@ -92,6 +108,6 @@ name, or private content while diagnosing.
 - `uninstall --dry-run --retain-data`: documents the future safe default. It
   removes nothing and preserves all data.
 
-Native Host install, real platform Canary, diagnostics bundle, uninstall,
+Owner Native Host install/uninstall, real platform Canary, diagnostics bundle,
 Markdown/Notion reconciliation and full data-retention behavior remain
 `DOWNSTREAM_NOT_RUN` and must not be reported as PASS until their own Tasks run.

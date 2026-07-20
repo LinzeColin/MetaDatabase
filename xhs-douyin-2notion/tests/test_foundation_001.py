@@ -31,7 +31,7 @@ class Foundation001Tests(unittest.TestCase):
         self.assertEqual(VERIFY.FINAL_COMMIT, "69130c1db9946850b23e1c78f771129eb094eea2")
         self.assertNotIn("packages/contracts/src", VERIFY.ALLOWED_CHANGED_PREFIXES)
 
-    def test_scaffold_remains_permission_free_with_only_registered_contract_dependencies(self) -> None:
+    def test_scaffold_history_survives_registered_extension_upgrade(self) -> None:
         lock = json.loads((PROJECT_ROOT / "package-lock.json").read_text(encoding="utf-8"))
         registry_packages = [
             key
@@ -39,14 +39,20 @@ class Foundation001Tests(unittest.TestCase):
             if key.startswith("node_modules/") and metadata.get("link") is not True
         ]
         registry_names = {key.removeprefix("node_modules/") for key in registry_packages}
-        self.assertEqual(len(registry_names), 21)
-        self.assertIn("typescript", registry_names)
-        self.assertTrue(all(name == "typescript" or name.startswith("@typescript/typescript-") for name in registry_names))
-        self.assertTrue(all("hasInstallScript" not in lock["packages"][key] for key in registry_packages))
+        typescript_names = {name for name in registry_names if name == "typescript" or name.startswith("@typescript/typescript-")}
+        self.assertEqual(len(typescript_names), 21)
+        self.assertEqual(registry_names, typescript_names | {"@playwright/test", "playwright", "playwright-core", "fsevents"})
+        scripted = {
+            key.removeprefix("node_modules/")
+            for key in registry_packages
+            if lock["packages"][key].get("hasInstallScript") is True
+        }
+        self.assertEqual(scripted, {"fsevents"})
+        self.assertIn("ignore-scripts=true", (PROJECT_ROOT / ".npmrc").read_text(encoding="utf-8").splitlines())
         manifest = json.loads((PROJECT_ROOT / "apps/extension/manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["permissions"], [])
+        self.assertEqual(manifest["permissions"], ["activeTab", "nativeMessaging", "sidePanel"])
         self.assertNotIn("host_permissions", manifest)
-        self.assertNotIn("side_panel", manifest)
+        self.assertEqual(manifest["side_panel"], {"default_path": "sidepanel.html"})
 
     def test_real_canary_fails_with_minimum_decision_question(self) -> None:
         python = sys.executable if sys.version_info >= (3, 12) else VERIFY.shutil.which("python3.12")

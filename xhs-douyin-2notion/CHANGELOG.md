@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.0.1 — Stage 1 / Foundation 004
+
+- 新增固定开发 Extension ID 的 Chrome MV3 Side Panel，权限精确为 `activeTab`、`nativeMessaging`、`sidePanel`，无 `host_permissions`、Content Script、远程代码或 Extension Storage。
+- Save/Sync/Review/Status/Settings 五区可访问；20 个公共合成 URL 覆盖六平台支持/非支持识别，所有平台动作仍 `executable=false`。
+- 新增短进程 Native Messaging Host：精确 Origin、1 MiB 上限、未知动作/字段/版本与 Shell/Path/任意 URL 注入拒绝；重复 Request 只返回同一个 SQLite skeleton Job。
+- 用户级 installer 默认 `plan`，写操作需要固定确认词；依赖从 frozen `uv.lock` 导出并强制 hash 校验，私有 Runtime 在 staging 中验证后原子替换；首次/升级失败均清理临时目录并保留旧 Runtime，安装/卸载用内容 hash 拒绝被篡改或非自有文件。
+- Playwright 在临时 HOME/Profile/Runtime 中完成真实 Extension E2E：20/20 识别、五区导航、0 uncaught console error、100 次 Service Worker 终止/重启、任务丢失/重复/错状态均为 0；截图与 trace 只保留聚合 hash。
+- 新增当前 30-component SBOM 与 Playwright/fsevents NOTICE；`.npmrc` 强制禁用 install scripts，验收执行数为 0。历史 Foundation002 的 26-component SBOM 保持原事实。
+- Owner Chrome 安装/Canary、真实账号、平台调用、自动滚动、账号状态改变、Markdown/Notion、模型和媒体均未运行；`G1=NOT_RUN`，Stage 1 不得 push，下一独立 Run 为 `TSK.x2n.foundation.005`。
+
 ## v0.0.0.1 — Stage 1 / Foundation 003
 
 - 新增只接受显式 `X2N_DOWNLOAD_DESTINATION`/`X2N_DATA_ROOT` 的 Owner-only Private Runtime；无默认目录、任意路径参数或符号链接逃逸。
