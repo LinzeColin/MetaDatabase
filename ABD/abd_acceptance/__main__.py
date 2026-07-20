@@ -25,6 +25,7 @@ from .stage2_review import write_stage2_review_evidence
 from .terminology_governance import write_phase_evidence as write_terminology_governance_phase_evidence
 from .advice_card import write_phase_evidence as write_advice_card_phase_evidence
 from .reason_next_action import write_phase_evidence as write_reason_next_action_phase_evidence
+from .usability_accessibility import write_phase_evidence as write_usability_accessibility_phase_evidence
 
 
 def main() -> int:
@@ -88,6 +89,7 @@ def main() -> int:
         "AC-S03-P01": write_terminology_governance_phase_evidence,
         "AC-S03-P02": write_advice_card_phase_evidence,
         "AC-S03-P03": write_reason_next_action_phase_evidence,
+        "AC-S03-P04": write_usability_accessibility_phase_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

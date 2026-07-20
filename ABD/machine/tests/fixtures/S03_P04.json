@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S03-P04",
+  "contract_id": "AC-S03-P04",
+  "requirement_id": "REQ-S03-P04",
+  "fixed_clock": "2026-07-20T14:00:00+10:00",
+  "expected_task_ids": [
+    "CORE-01",
+    "CORE-02",
+    "CORE-03",
+    "CORE-04"
+  ],
+  "expected_profile_ids": [
+    "PHONE_BROWSER",
+    "DESKTOP_BROWSER",
+    "LOW_BANDWIDTH",
+    "COLOR_VISION",
+    "TEXT_SCALE_200",
+    "KEYBOARD_ONLY",
+    "SCREEN_READER_LINEAR"
+  ],
+  "expected_accessibility_contract_ids": [
+    "A11Y-PHONE-REFLOW",
+    "A11Y-DESKTOP-ORDER",
+    "A11Y-LOW-BANDWIDTH-TEXT",
+    "A11Y-COLOR-REDUNDANCY",
+    "A11Y-TEXT-SCALE-200",
+    "A11Y-KEYBOARD-ORDER",
+    "A11Y-SCREEN-READER-LINEAR"
+  ],
+  "expected_failure_ids": [
+    "FAULT-TIMING-MEDIAN",
+    "FAULT-TIMING-P95",
+    "FAULT-COLOR-ONLY",
+    "FAULT-KEYBOARD-TRAP",
+    "FAULT-READING-ORDER",
+    "FAULT-LOW-BANDWIDTH-PAYLOAD",
+    "FAULT-RUNTIME-CLAIM",
+    "FAULT-UNKNOWN-PROFILE"
+  ],
+  "expected_profile_budget_seconds": {
+    "PHONE_BROWSER": [420, 480, 540],
+    "DESKTOP_BROWSER": [360, 420, 480],
+    "LOW_BANDWIDTH": [540, 600, 720],
+    "COLOR_VISION": [420, 480, 540],
+    "TEXT_SCALE_200": [480, 540, 600],
+    "KEYBOARD_ONLY": [600, 720, 780],
+    "SCREEN_READER_LINEAR": [720, 840, 960]
+  },
+  "timing_thresholds_seconds": {
+    "median_max": 600,
+    "p95_max": 1200,
+    "minimum_samples": 21
+  },
+  "expected_timing_summary": {
+    "sample_count": 21,
+    "median_seconds": 540,
+    "p95_seconds": 840,
+    "status": "PASS"
+  },
+  "allowed_numeric_boundary_deltas": [
+    "-0.0001",
+    "0",
+    "0.0001"
+  ],
+  "boundary_vectors": [
+    {"id": "MEDIAN-EXACT-PASS", "durations_seconds": [600], "expected_status": "PASS"},
+    {"id": "MEDIAN-OVER-FAIL", "durations_seconds": [601], "expected_status": "FAIL"},
+    {"id": "P95-EXACT-PASS", "durations_seconds": [600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 1200, 1200], "expected_status": "PASS"},
+    {"id": "P95-OVER-FAIL", "durations_seconds": [600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 1201, 1201], "expected_status": "FAIL"}
+  ],
+  "expected_claim_boundary": {
+    "human_timing_observed": false,
+    "human_usability_conclusion_claimed": false,
+    "production_ui_implemented": false,
+    "production_ui_deployed": false,
+    "real_device_or_browser_run_executed": false,
+    "screen_reader_runtime_run_executed": false,
+    "formal_wcag_conformance_claimed": false,
+    "machine_result_scope": "确定性任务预算与结构化设计合同"
+  },
+  "expected_external_effect_boundary": {
+    "external_network_accessed": false,
+    "external_account_or_api_accessed": false,
+    "model_or_strategy_executed": false,
+    "order_submitted_or_retried": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "owner_final_order_only": true
+  },
+  "expected_decision": "USABILITY_ACCESSIBILITY_DESIGN_CONTRACT_FROZEN",
+  "expected_phase_status": "S03_P04_PASS",
+  "expected_release_status": "NOT_READY_STAGE_3_REVIEW_REQUIRED",
+  "expected_next": "S03/STAGE_REVIEW_READY_NOT_STARTED",
+  "expected_oracle_check_minimum": 75
+}

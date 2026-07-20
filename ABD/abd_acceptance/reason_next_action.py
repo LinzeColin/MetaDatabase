@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 import shutil
+import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -52,7 +53,7 @@ PINNED_PHASE_HASHES = {
     REASON_CODES_PATH.as_posix(): "62c37e83b844b72fbeeebe5591a717d64c225629fb4ad421c44a6ad631ac8a20",
     NEXT_ACTION_MATRIX_PATH.as_posix(): "86e52de87b15a447a6d7d4683a8fe99b7f6f255552d05bde15dcf94928969f3d",
     ORACLE_FIXTURE_PATH.as_posix(): "3c73939012825ab70109d0814e4ff44ab6fb6c4ab72e805072893a7c51a97ea2",
-    TEST_PATH.as_posix(): "70e0769592e18790db1e77cf843b1678f6c20d83226368695c073c2666708cdf",
+    TEST_PATH.as_posix(): "c81a4793d4e2b466e40793f5cac900d5e118a0af755096717165a62eb053729a",
 }
 PINNED_BASELINE_HASHES = {
     P02_EVIDENCE_PATH.as_posix(): "5e6c4e710a1b74d374f60c91ff26cd365beb5f2b5ca244bea2add10df9d82c97",
@@ -77,7 +78,25 @@ PINNED_BASELINE_HASHES = {
     "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
     "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "790d47e1ee923cee25f3d862c023e133a8c485260ed8b7e026a84f255cac2b14"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "9bb0e7e8f1e5acc0abe997e627d831591ca5f4d6f7584fd415b9c4374f27b2f8"
+
+PHASE_COMMIT = "86f268310e24eeab10639c6c36cbfcec544f9c74"
+PINNED_PHASE_CODE_HASH = "eba903e5593fcc5aebfb1432ec8b8f3614680d1898fc5e101e4a9de07fd564b2"
+SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    "README.md",
+    "abd_acceptance/reason_next_action.py",
+    "abd_acceptance/advice_card.py",
+    "abd_acceptance/__main__.py",
+    "abd_acceptance/__init__.py",
+    "tests/S03/P03_test.py",
+}
+SUCCESSOR_UNIT_PROFILE_HASHES = {
+    "README.md": "75f94aedfbd9d04db4e5b69536e765791e521750a6a52cf32f639c1657d9998d",
+    "abd_acceptance/advice_card.py": "5215d5f7db8273d48dc3204c3027a97796d3626de41f0b30aeac57f71aad79df",
+    "abd_acceptance/__main__.py": "ee2fae7089314bb135dbe13779d0f8b4f0c899a6ddab6c38510f1ce3e571f638",
+    "abd_acceptance/__init__.py": "ff867ad84ac593548e7b2e00f4b53ac49dc8f6de22ad7aa08c788c755d836597",
+    "tests/S03/P03_test.py": "c81a4793d4e2b466e40793f5cac900d5e118a0af755096717165a62eb053729a",
+}
 
 ALLOWED_NUMERIC_BOUNDARY_DELTAS = {"-0.0001", "0", "0.0001"}
 SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
@@ -757,29 +776,82 @@ def _check_resolution_vectors(
         )
 
 
-def _check_p04_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
-    forbidden = [
+def _check_p04_not_started(
+    root: Path,
+    checks: List[Dict[str, Any]],
+    *,
+    verify_git_history: bool,
+) -> None:
+    core = [
         Path("ux_test_plan.json"),
         Path("accessibility_report.json"),
         Path("tests/S03/P04_test.py"),
         Path("machine/tests/fixtures/S03_P04.json"),
+    ]
+    receipts = [
         Path("machine/evidence/EVD-S03-P04.json"),
         Path("machine/evidence/EVD-S03-P04_rollback.json"),
+    ]
+    later = [
         Path("machine/facts/stage3_review_contract.json"),
+        Path("machine/evidence/S03/STAGE_REVIEW/findings.json"),
+        Path("machine/tests/fixtures/S03_STAGE_REVIEW.json"),
         Path("tests/S03/stage_review_test.py"),
         Path("machine/evidence/EVD-S03-STAGE-REVIEW.json"),
+        Path("machine/evidence/EVD-S03-STAGE-REVIEW_rollback.json"),
     ]
-    existing = [path.as_posix() for path in forbidden if (root / path).exists()]
-    _add(checks, "S03P03-SUCCESSOR-ARTIFACTS-NOT-STARTED", not existing, existing or "none")
+    present_core = [path for path in core if (root / path).is_file()]
+    present_receipts = [path for path in receipts if (root / path).is_file()]
+    present_later = [path for path in later if (root / path).exists()]
+    mode = "INVALID_PARTIAL_OR_LATER_SUCCESSOR"
+    artifacts_ok = False
+    successor: Any = None
+    if not present_core and not present_receipts and not present_later:
+        mode = "P04_NOT_STARTED"
+        artifacts_ok = True
+    elif len(present_core) == len(core) and not present_receipts and not present_later:
+        from .usability_accessibility import PINNED_PHASE_HASHES as P04_PINNED_PHASE_HASHES
+
+        actual = {path.as_posix(): sha256_file(root / path) for path in core}
+        artifacts_ok = actual == {path.as_posix(): P04_PINNED_PHASE_HASHES[path.as_posix()] for path in core}
+        mode = "P04_CONTROLLED_BUILD" if artifacts_ok else "P04_CONTROLLED_BUILD_HASH_MISMATCH"
+        successor = actual
+    elif len(present_core) == len(core) and len(present_receipts) == len(receipts) and not present_later:
+        from .usability_accessibility import verify_existing_phase_evidence as verify_p04_evidence
+
+        successor = verify_p04_evidence(root, verify_git_history=verify_git_history)
+        artifacts_ok = successor.get("status") == "PASS" and successor.get("next") == "S03/STAGE_REVIEW_READY_NOT_STARTED"
+        mode = "P04_SIGNED_DELIVERY" if artifacts_ok else "P04_SIGNED_DELIVERY_INVALID"
+    _add(
+        checks,
+        "S03P03-SUCCESSOR-ARTIFACTS-NOT-STARTED",
+        artifacts_ok,
+        {
+            "mode": mode,
+            "core": [path.as_posix() for path in present_core],
+            "receipts": [path.as_posix() for path in present_receipts],
+            "later": [path.as_posix() for path in present_later],
+            "successor": successor,
+        },
+    )
     try:
         rows = [json.loads(line) for line in (root / EVIDENCE_INDEX_PATH).read_text(encoding="utf-8-sig").splitlines() if line]
         matching = [row for row in rows if row.get("id") == "INDEX-AC-S03-P04"]
-        ok = (
-            len(matching) == 1
-            and matching[0].get("status") == "PLANNED"
-            and "actual_artifact" not in matching[0]
-            and "artifact_sha256" not in matching[0]
-        )
+        if mode == "P04_SIGNED_DELIVERY":
+            ok = (
+                len(matching) == 1
+                and matching[0].get("status") == "PASS"
+                and matching[0].get("actual_artifact") == "machine/evidence/EVD-S03-P04.json"
+                and matching[0].get("next") == "S03/STAGE_REVIEW_READY_NOT_STARTED"
+            )
+        else:
+            ok = (
+                artifacts_ok
+                and len(matching) == 1
+                and matching[0].get("status") == "PLANNED"
+                and "actual_artifact" not in matching[0]
+                and "artifact_sha256" not in matching[0]
+            )
         _add(checks, "S03P03-SUCCESSOR-INDEX-PLANNED", ok, matching)
     except Exception as exc:
         _add(checks, "S03P03-SUCCESSOR-INDEX-PLANNED", False, "%s: %s" % (type(exc).__name__, exc))
@@ -916,7 +988,7 @@ def evaluate_contract(
             _check_resolution_vectors(root, catalog, matrix, fixture, checks)
         except Exception as exc:
             _add(checks, "S03P03-RESOLUTION-VECTORS", False, "%s: %s" % (type(exc).__name__, exc))
-        _check_p04_not_started(root, checks)
+        _check_p04_not_started(root, checks, verify_git_history=_verify_git_history)
     else:
         _add(checks, "S03P03-CORE-ARTIFACTS-AVAILABLE", False, "one or more core artifacts unavailable")
 
@@ -1188,6 +1260,75 @@ def write_phase_evidence(root: Path, evidence_dir: Path) -> Dict[str, Any]:
     }
 
 
+def _phase_commit_is_ancestor(root: Path) -> bool:
+    result = subprocess.run(
+        ["git", "-C", str(root.parent), "merge-base", "--is-ancestor", PHASE_COMMIT, "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def _historical_file_matches(
+    root: Path,
+    relative: str,
+    expected_sha256: str,
+    verify_git_history: bool,
+) -> bool:
+    if relative not in SUCCESSOR_EVOLVABLE_SIGNED_INPUTS:
+        return False
+    if verify_git_history:
+        if not _phase_commit_is_ancestor(root):
+            return False
+        result = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+            check=False,
+            capture_output=True,
+        )
+        return result.returncode == 0 and _sha256_bytes(result.stdout) == expected_sha256
+    if relative == "abd_acceptance/reason_next_action.py":
+        try:
+            return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
+        except Exception:
+            return False
+    evolved = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    return evolved is not None and (root / relative).is_file() and sha256_file(root / relative) == evolved
+
+
+def _historical_code_hash(root: Path, verify_git_history: bool) -> str:
+    if not verify_git_history:
+        return "UNVERIFIED_UNIT_TEST_HISTORY"
+    if not _phase_commit_is_ancestor(root):
+        return "INVALID_PHASE_COMMIT_ANCESTRY"
+    listing = subprocess.run(
+        ["git", "-C", str(root.parent), "ls-tree", "-r", "--name-only", PHASE_COMMIT, "--", "ABD/abd_acceptance"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if listing.returncode != 0:
+        return "UNAVAILABLE_PHASE_COMMIT_TREE"
+    digest = hashlib.sha256()
+    for repo_path in sorted(
+        line
+        for line in listing.stdout.splitlines()
+        if line.startswith("ABD/abd_acceptance/") and line.endswith(".py")
+    ):
+        blob = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, repo_path)],
+            check=False,
+            capture_output=True,
+        )
+        if blob.returncode != 0:
+            return "UNAVAILABLE_PHASE_COMMIT_BLOB"
+        digest.update(repo_path.removeprefix("ABD/").encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(blob.stdout)
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
 def verify_existing_phase_evidence(root: Path, *, verify_git_history: bool = True) -> Dict[str, Any]:
     root = root.resolve()
     checks: List[Dict[str, Any]] = []
@@ -1242,6 +1383,8 @@ def verify_existing_phase_evidence(root: Path, *, verify_git_history: bool = Tru
             path = root.parent / candidate if str(relative).startswith(".github/") else root / candidate
             actual = sha256_file(path) if path.is_file() else "MISSING"
             if actual != expected:
+                if _historical_file_matches(root, relative, expected, verify_git_history):
+                    continue
                 input_errors.append({"path": relative, "expected": expected, "actual": actual})
         _add(checks, "S03P03-RECEIPT-SIGNED-INPUTS-CURRENT", not input_errors, input_errors or len(signed_inputs))
         reports: List[Any] = []
@@ -1252,8 +1395,19 @@ def verify_existing_phase_evidence(root: Path, *, verify_git_history: bool = Tru
             if expected != actual:
                 reports.append({"path": relative, "expected": expected, "actual": actual})
         _add(checks, "S03P03-RECEIPT-REPORT-HASHES-CURRENT", not reports, reports or "all reports match")
-        current_code = _current_code_hash(root)
-        _add(checks, "S03P03-RECEIPT-CODE-HASH-CURRENT", evidence.get("hashes", {}).get("code") == current_code, {"expected": evidence.get("hashes", {}).get("code"), "actual": current_code})
+        code_expected = evidence.get("hashes", {}).get("code")
+        code_current = _current_code_hash(root)
+        code_historical = _historical_code_hash(root, verify_git_history) if code_expected != code_current else code_current
+        code_ok = code_expected == code_current or (
+            code_expected == PINNED_PHASE_CODE_HASH
+            and code_historical in {PINNED_PHASE_CODE_HASH, "UNVERIFIED_UNIT_TEST_HISTORY"}
+        )
+        _add(
+            checks,
+            "S03P03-RECEIPT-CODE-HASH-CURRENT",
+            code_ok,
+            {"expected": code_expected, "current": code_current, "historical_phase_commit": code_historical},
+        )
         _add(checks, "S03P03-RECEIPT-ROLLBACK-HASH-BINDING", evidence.get("hashes", {}).get("rollback_evidence") == rollback_hash, {"expected": evidence.get("hashes", {}).get("rollback_evidence"), "actual": rollback_hash})
         rendered = json.dumps(evidence, ensure_ascii=False, sort_keys=True)
         portable = (

@@ -79,17 +79,17 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S03/P02_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES = {
-    "README.md": "ccdeeca46addaf55badc3ba0f106405b0095d4da690c4b7d0f36b1ad0572c760",
+    "README.md": "75f94aedfbd9d04db4e5b69536e765791e521750a6a52cf32f639c1657d9998d",
     "abd_acceptance/terminology_governance.py": "10cc90834d3a6a38e2b6ea92250bedb501b801d0a87f566a87cdeef893ab81f1",
-    "abd_acceptance/__main__.py": "b8ef379a8c881a17716e0e7524e6a506e9af4dfe7b0f5258b44e3a93e30797a8",
-    "abd_acceptance/__init__.py": "bf83d5b43c39451cddfe1ac44a4df947d8016936bb807b1a0ee803024731c203",
+    "abd_acceptance/__main__.py": "ee2fae7089314bb135dbe13779d0f8b4f0c899a6ddab6c38510f1ce3e571f638",
+    "abd_acceptance/__init__.py": "ff867ad84ac593548e7b2e00f4b53ac49dc8f6de22ad7aa08c788c755d836597",
     "tests/S03/P02_test.py": "04463326c983d22d53093609429c8ced6589445cb4cde40702f34ce3b33a54f0",
 }
 SUCCESSOR_EVOLVED_PHASE_HASHES = {
     TEST_PATH.as_posix(): "04463326c983d22d53093609429c8ced6589445cb4cde40702f34ce3b33a54f0",
 }
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "8ba6a529781f3460bc3b06b7eb09de8dbd01d68f77a3ae6beed8f6868711fe96"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "6720e3c972bc324a846354c79cedc76c296fe638a01cbcdfa9d8ed034be359d6"
 
 DISPLAY_ORDER = ["status", "action", "countdown", "reasons", "evidence", "invalidation", "safety"]
 PRIMARY_ANSWER_KEYS = ["what_zh", "where_zh", "amount_zh", "minimum_odds_zh"]
@@ -848,13 +848,9 @@ def _check_p03_not_started(
         Path("machine/evidence/EVD-S03-P03_rollback.json"),
     ]
     later = [
-        Path("ux_test_plan.json"),
-        Path("accessibility_report.json"),
-        Path("tests/S03/P04_test.py"),
-        Path("machine/tests/fixtures/S03_P04.json"),
-        Path("machine/evidence/EVD-S03-P04.json"),
-        Path("machine/evidence/EVD-S03-P04_rollback.json"),
         Path("machine/facts/stage3_review_contract.json"),
+        Path("machine/evidence/S03/STAGE_REVIEW/findings.json"),
+        Path("machine/tests/fixtures/S03_STAGE_REVIEW.json"),
         Path("tests/S03/stage_review_test.py"),
         Path("machine/evidence/EVD-S03-STAGE-REVIEW.json"),
         Path("machine/evidence/EVD-S03-STAGE-REVIEW_rollback.json"),
@@ -876,10 +872,19 @@ def _check_p03_not_started(
         mode = "P03_CONTROLLED_BUILD" if artifacts_ok else "P03_CONTROLLED_BUILD_HASH_MISMATCH"
         successor = actual
     elif len(present_core) == len(core) and len(present_receipts) == len(receipts) and not present_later:
-        from .reason_next_action import verify_existing_phase_evidence as verify_p03_evidence
+        from .reason_next_action import (
+            evaluate_contract as evaluate_p03_contract,
+            verify_existing_phase_evidence as verify_p03_evidence,
+        )
 
-        successor = verify_p03_evidence(root, verify_git_history=verify_git_history)
-        artifacts_ok = successor.get("status") == "PASS" and successor.get("next") == "S03/P04_READY_NOT_STARTED"
+        receipt = verify_p03_evidence(root, verify_git_history=verify_git_history)
+        live = evaluate_p03_contract(root, _verify_git_history=verify_git_history)
+        successor = {"receipt": receipt, "live": live}
+        artifacts_ok = (
+            receipt.get("status") == "PASS"
+            and receipt.get("next") == "S03/P04_READY_NOT_STARTED"
+            and live.get("status") == "PASS"
+        )
         mode = "P03_SIGNED_DELIVERY" if artifacts_ok else "P03_SIGNED_DELIVERY_INVALID"
     _add(
         checks,

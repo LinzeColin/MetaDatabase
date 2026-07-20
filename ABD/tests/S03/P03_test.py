@@ -464,10 +464,15 @@ def test_catalog_and_matrix_do_not_claim_runtime_or_human_usability() -> None:
     assert FIXTURE["expected_release_status"] == "NOT_READY_S03_P04_AND_STAGE_REVIEW_REQUIRED"
 
 
-def test_p04_and_stage_review_artifacts_are_not_started() -> None:
+def test_p04_controlled_build_is_exact_and_stage_review_is_not_started() -> None:
     result = evaluate_contract(ROOT)
     checks = {row["id"]: row for row in result["checks"]}
     assert checks["S03P03-SUCCESSOR-ARTIFACTS-NOT-STARTED"]["passed"] is True
+    assert checks["S03P03-SUCCESSOR-ARTIFACTS-NOT-STARTED"]["detail"]["mode"] in {
+        "P04_CONTROLLED_BUILD",
+        "P04_SIGNED_DELIVERY",
+    }
+    assert checks["S03P03-SUCCESSOR-ARTIFACTS-NOT-STARTED"]["detail"]["later"] == []
     assert checks["S03P03-SUCCESSOR-INDEX-PLANNED"]["passed"] is True
 
 

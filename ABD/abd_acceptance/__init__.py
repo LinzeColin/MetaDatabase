@@ -162,6 +162,15 @@ from .reason_next_action import (
     verify_existing_phase_evidence as verify_reason_next_action_evidence,
     write_phase_evidence as write_reason_next_action_phase_evidence,
 )
+from .usability_accessibility import (
+    UsabilityAccessibilityError,
+    build_evidence as build_usability_accessibility_evidence,
+    evaluate_contract as evaluate_usability_accessibility_contract,
+    evaluate_timing_gate,
+    perform_rollback_drill as perform_usability_accessibility_rollback_drill,
+    verify_existing_phase_evidence as verify_usability_accessibility_evidence,
+    write_phase_evidence as write_usability_accessibility_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -287,4 +296,11 @@ __all__ = [
     "validate_failure_resolution",
     "verify_reason_next_action_evidence",
     "write_reason_next_action_phase_evidence",
+    "UsabilityAccessibilityError",
+    "build_usability_accessibility_evidence",
+    "evaluate_usability_accessibility_contract",
+    "evaluate_timing_gate",
+    "perform_usability_accessibility_rollback_drill",
+    "verify_usability_accessibility_evidence",
+    "write_usability_accessibility_phase_evidence",
 ]

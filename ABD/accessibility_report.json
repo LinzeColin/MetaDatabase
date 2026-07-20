@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S03-P04-02",
+  "contract_id": "AC-S03-P04",
+  "requirement_id": "REQ-S03-P04",
+  "stage_id": "S03",
+  "phase_id": "P04",
+  "version": "0.0.0.1",
+  "fixed_clock": "2026-07-20T14:00:00+10:00",
+  "status": "PASS_DETERMINISTIC_DESIGN_CONTRACT",
+  "decision": "USABILITY_ACCESSIBILITY_DESIGN_CONTRACT_FROZEN",
+  "timing_assessment": {
+    "evidence_kind": "FROZEN_CONSERVATIVE_TASK_BUDGETS_NOT_OBSERVED_HUMAN_TIMES",
+    "sample_count": 21,
+    "quantile_method": "NEAREST_RANK_CEILING",
+    "median_seconds": 540,
+    "p95_seconds": 840,
+    "median_max_seconds": 600,
+    "p95_max_seconds": 1200,
+    "machine_gate_status": "PASS",
+    "human_participant_count": 0,
+    "observed_session_count": 0,
+    "human_timing_status": "NOT_EXECUTED"
+  },
+  "structural_assessment": {
+    "profile_count": 7,
+    "passed_contract_count": 7,
+    "failed_contract_count": 0,
+    "machine_gate_status": "PASS",
+    "results": [
+      {"contract_id": "A11Y-PHONE-REFLOW", "profile_id": "PHONE_BROWSER", "status": "PASS_DESIGN_CONTRACT", "runtime_status": "NOT_EXECUTED"},
+      {"contract_id": "A11Y-DESKTOP-ORDER", "profile_id": "DESKTOP_BROWSER", "status": "PASS_DESIGN_CONTRACT", "runtime_status": "NOT_EXECUTED"},
+      {"contract_id": "A11Y-LOW-BANDWIDTH-TEXT", "profile_id": "LOW_BANDWIDTH", "status": "PASS_DESIGN_CONTRACT", "runtime_status": "NOT_EXECUTED"},
+      {"contract_id": "A11Y-COLOR-REDUNDANCY", "profile_id": "COLOR_VISION", "status": "PASS_DESIGN_CONTRACT", "runtime_status": "NOT_EXECUTED"},
+      {"contract_id": "A11Y-TEXT-SCALE-200", "profile_id": "TEXT_SCALE_200", "status": "PASS_DESIGN_CONTRACT", "runtime_status": "NOT_EXECUTED"},
+      {"contract_id": "A11Y-KEYBOARD-ORDER", "profile_id": "KEYBOARD_ONLY", "status": "PASS_DESIGN_CONTRACT", "runtime_status": "NOT_EXECUTED"},
+      {"contract_id": "A11Y-SCREEN-READER-LINEAR", "profile_id": "SCREEN_READER_LINEAR", "status": "PASS_DESIGN_CONTRACT", "runtime_status": "NOT_EXECUTED"}
+    ]
+  },
+  "structured_failure_logs": [
+    {"id": "FAULT-TIMING-MEDIAN", "injected_fault": "中位数超过600秒", "expected_action": "阻断验收并保留证据", "status": "FAIL_CLOSED_VERIFIED"},
+    {"id": "FAULT-TIMING-P95", "injected_fault": "95分位超过1200秒", "expected_action": "阻断验收并保留证据", "status": "FAIL_CLOSED_VERIFIED"},
+    {"id": "FAULT-COLOR-ONLY", "injected_fault": "状态只用颜色表达", "expected_action": "阻断无障碍合同", "status": "FAIL_CLOSED_VERIFIED"},
+    {"id": "FAULT-KEYBOARD-TRAP", "injected_fault": "焦点无法离开操作区", "expected_action": "阻断无障碍合同", "status": "FAIL_CLOSED_VERIFIED"},
+    {"id": "FAULT-READING-ORDER", "injected_fault": "屏幕阅读顺序与展示顺序不一致", "expected_action": "阻断无障碍合同", "status": "FAIL_CLOSED_VERIFIED"},
+    {"id": "FAULT-LOW-BANDWIDTH-PAYLOAD", "injected_fault": "初始载荷超过32768字节", "expected_action": "切换为文字优先失败关闭", "status": "FAIL_CLOSED_VERIFIED"},
+    {"id": "FAULT-RUNTIME-CLAIM", "injected_fault": "把未执行的真实运行写成通过", "expected_action": "阻断虚假声明", "status": "FAIL_CLOSED_VERIFIED"},
+    {"id": "FAULT-UNKNOWN-PROFILE", "injected_fault": "出现未登记设备能力", "expected_action": "阻断并登记新合同", "status": "FAIL_CLOSED_VERIFIED"}
+  ],
+  "claim_boundary": {
+    "human_timing_observed": false,
+    "human_usability_conclusion_claimed": false,
+    "production_ui_implemented": false,
+    "production_ui_deployed": false,
+    "real_device_or_browser_run_executed": false,
+    "screen_reader_runtime_run_executed": false,
+    "formal_wcag_conformance_claimed": false,
+    "machine_result_scope": "确定性任务预算与结构化设计合同"
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "external_account_or_api_accessed": false,
+    "model_or_strategy_executed": false,
+    "order_submitted_or_retried": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "owner_final_order_only": true
+  },
+  "explicit_unknowns": [
+    "真实手机、电脑、低带宽浏览器、键盘和屏幕阅读器运行尚未执行。",
+    "尚无生产界面，因此不能得出真人可用性、真实完成时间或正式无障碍符合性结论。",
+    "冻结预算只用于机器门和后续实测计划，不能冒充参与者观测数据。",
+    "TAB、Gmail、OVH、Cloudflare、模型、市场和订单运行状态仍未由本 Phase 验证。",
+    "30%月度滚动复利目标仍待证伪、未验证且不保证。"
+  ],
+  "release_status": "NOT_READY_STAGE_3_REVIEW_REQUIRED",
+  "next": "S03/STAGE_REVIEW_READY_NOT_STARTED"
+}

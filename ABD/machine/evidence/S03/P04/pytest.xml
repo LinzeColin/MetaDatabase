@@ -1,0 +1,146 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="141" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+    <testcase classname="tests.S03.P04_test" name="test_baseline_contract_passes_without_runtime_reports" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_p03_signed_delivery_is_exact_start_prerequisite" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_phase_artifact_hash_matches_pin[accessibility_report.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_phase_artifact_hash_matches_pin[machine/tests/fixtures/S03_P04.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_phase_artifact_hash_matches_pin[tests/S03/P04_test.py]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_phase_artifact_hash_matches_pin[ux_test_plan.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[advice_card_schema.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[forbidden_ui_terms.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[glossary_zh.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/EVD-S03-P03.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[machine/evidence/EVD-S03-P03_rollback.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/acceptance_contracts.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/canonical_facts.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/model_system_card.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/parameters.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/requirements.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/roadmap.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/task_graph.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[machine/facts/traceability_matrix.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[next_action_matrix.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_baseline_artifact_hash_matches_pin[reason_codes_zh.json]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_oracle_source_has_normalized_structural_integrity" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_measurement_is_explicitly_a_budget_contract_not_human_observation" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_claim_boundary_is_exact_and_fail_closed" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_core_task_has_chinese_success_criteria_and_known_regions[CORE-01]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_core_task_has_chinese_success_criteria_and_known_regions[CORE-02]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_core_task_has_chinese_success_criteria_and_known_regions[CORE-03]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_core_task_has_chinese_success_criteria_and_known_regions[CORE-04]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_core_tasks_cover_the_complete_frozen_display_order" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_required_profile_is_structural_only_and_runtime_not_executed[PHONE_BROWSER]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_required_profile_is_structural_only_and_runtime_not_executed[DESKTOP_BROWSER]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_required_profile_is_structural_only_and_runtime_not_executed[LOW_BANDWIDTH]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_required_profile_is_structural_only_and_runtime_not_executed[COLOR_VISION]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_required_profile_is_structural_only_and_runtime_not_executed[TEXT_SCALE_200]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_required_profile_is_structural_only_and_runtime_not_executed[KEYBOARD_ONLY]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_required_profile_is_structural_only_and_runtime_not_executed[SCREEN_READER_LINEAR]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_phone_and_desktop_viewports_are_frozen_without_runtime_claim" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_low_bandwidth_contract_is_text_first_and_zero_image_dependency" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_color_contract_never_uses_color_as_the_only_signal" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_text_scale_contract_requires_200_percent_reflow" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_keyboard_focus_and_screen_reader_order_match_display_order" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-COLOR-01]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-COLOR-02]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-COLOR-03]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-DESKTOP-01]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-DESKTOP-02]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-DESKTOP-03]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-KEYBOARD-01]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-KEYBOARD-02]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-KEYBOARD-03]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-LOW-01]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-LOW-02]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-LOW-03]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-PHONE-01]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-PHONE-02]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-PHONE-03]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-READER-01]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-READER-02]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-READER-03]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-TEXT-01]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-TEXT-02]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_frozen_budget_is_positive_integer_and_uses_a_required_profile[BUDGET-TEXT-03]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_profile_budget_vector_matches_frozen_fixture[PHONE_BROWSER]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_profile_budget_vector_matches_frozen_fixture[DESKTOP_BROWSER]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_profile_budget_vector_matches_frozen_fixture[LOW_BANDWIDTH]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_profile_budget_vector_matches_frozen_fixture[COLOR_VISION]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_profile_budget_vector_matches_frozen_fixture[TEXT_SCALE_200]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_profile_budget_vector_matches_frozen_fixture[KEYBOARD_ONLY]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_profile_budget_vector_matches_frozen_fixture[SCREEN_READER_LINEAR]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_frozen_budget_summary_matches_report_and_pass_gate" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_timing_boundary_vector_has_exact_expected_disposition[MEDIAN-EXACT-PASS]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_timing_boundary_vector_has_exact_expected_disposition[MEDIAN-OVER-FAIL]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_timing_boundary_vector_has_exact_expected_disposition[P95-EXACT-PASS]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_every_timing_boundary_vector_has_exact_expected_disposition[P95-OVER-FAIL]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_numeric_boundary_and_adverse_odds_cannot_change_usability_gate[False--0.0001]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_numeric_boundary_and_adverse_odds_cannot_change_usability_gate[False-0]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_numeric_boundary_and_adverse_odds_cannot_change_usability_gate[False-0.0001]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_numeric_boundary_and_adverse_odds_cannot_change_usability_gate[True--0.0001]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_numeric_boundary_and_adverse_odds_cannot_change_usability_gate[True-0]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_numeric_boundary_and_adverse_odds_cannot_change_usability_gate[True-0.0001]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_malformed_timing_inputs_fail_closed[samples0-kwargs0-non-empty]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_malformed_timing_inputs_fail_closed[samples1-kwargs1-positive integer]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_malformed_timing_inputs_fail_closed[samples2-kwargs2-positive integer]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_malformed_timing_inputs_fail_closed[samples3-kwargs3-positive integer]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_malformed_timing_inputs_fail_closed[samples4-kwargs4-positive integer]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_malformed_timing_inputs_fail_closed[samples5-kwargs5-not frozen]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_malformed_timing_inputs_fail_closed[samples6-kwargs6-must be boolean]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_malformed_timing_inputs_fail_closed[samples7-kwargs7-integer seconds]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_accessibility_contract_has_three_chinese_assertions[A11Y-PHONE-REFLOW]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_accessibility_contract_has_three_chinese_assertions[A11Y-DESKTOP-ORDER]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_accessibility_contract_has_three_chinese_assertions[A11Y-LOW-BANDWIDTH-TEXT]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_accessibility_contract_has_three_chinese_assertions[A11Y-COLOR-REDUNDANCY]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_accessibility_contract_has_three_chinese_assertions[A11Y-TEXT-SCALE-200]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_accessibility_contract_has_three_chinese_assertions[A11Y-KEYBOARD-ORDER]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_accessibility_contract_has_three_chinese_assertions[A11Y-SCREEN-READER-LINEAR]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_required_failure_has_a_structured_fail_closed_log[FAULT-TIMING-MEDIAN]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_required_failure_has_a_structured_fail_closed_log[FAULT-TIMING-P95]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_required_failure_has_a_structured_fail_closed_log[FAULT-COLOR-ONLY]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_required_failure_has_a_structured_fail_closed_log[FAULT-KEYBOARD-TRAP]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_required_failure_has_a_structured_fail_closed_log[FAULT-READING-ORDER]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_required_failure_has_a_structured_fail_closed_log[FAULT-LOW-BANDWIDTH-PAYLOAD]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_required_failure_has_a_structured_fail_closed_log[FAULT-RUNTIME-CLAIM]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_each_required_failure_has_a_structured_fail_closed_log[FAULT-UNKNOWN-PROFILE]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_structural_report_pass_does_not_upgrade_runtime_status" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_external_effect_boundary_is_all_false_and_zero_cash" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_semantic_fault_injection_is_rejected_by_oracle_clone[plan-path0-601-S03P04-SAMPLE-PROFILE-BUDGETS]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_semantic_fault_injection_is_rejected_by_oracle_clone[plan-path1-True-S03P04-PROFILE-COLOR_VISION]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_semantic_fault_injection_is_rejected_by_oracle_clone[plan-path2-replacement2-S03P04-PROFILE-KEYBOARD_ONLY]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_semantic_fault_injection_is_rejected_by_oracle_clone[plan-path3-replacement3-S03P04-PROFILE-SCREEN_READER_LINEAR]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_semantic_fault_injection_is_rejected_by_oracle_clone[plan-path4-32769-S03P04-PROFILE-LOW_BANDWIDTH]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_semantic_fault_injection_is_rejected_by_oracle_clone[plan-path5-UNKNOWN_PROFILE-S03P04-PROFILE-SET]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_semantic_fault_injection_is_rejected_by_oracle_clone[report-path6-True-S03P04-REPORT-CLAIM-BOUNDARY]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_semantic_fault_injection_is_rejected_by_oracle_clone[report-path7-PASS-S03P04-REPORT-STRUCTURAL-BINDING]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_semantic_fault_injection_is_rejected_by_oracle_clone[report-path8-539-S03P04-REPORT-TIMING-BINDING]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_semantic_fault_injection_is_rejected_by_oracle_clone[report-path9-PASS-S03P04-FAILURE-LOG-FAULT-TIMING-MEDIAN]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_oracle_rejects_tampered_phase_or_prerequisite_artifact[relative0-S03P04-PIN-UX_TEST_PLAN-JSON]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_oracle_rejects_tampered_phase_or_prerequisite_artifact[relative1-S03P04-PIN-ACCESSIBILITY_REPORT-JSON]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_oracle_rejects_tampered_phase_or_prerequisite_artifact[relative2-S03P04-PIN-MACHINE-TESTS-FIXTURES-S03_P04-JSON]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_oracle_rejects_tampered_phase_or_prerequisite_artifact[relative3-S03P04-PIN-MACHINE-EVIDENCE-EVD-S03-P03-JSON]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_oracle_rejects_tampered_phase_or_prerequisite_artifact[relative4-S03P04-PIN-ADVICE_CARD_SCHEMA-JSON]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_oracle_rejects_tampered_phase_or_prerequisite_artifact[relative5-S03P04-PIN-REASON_CODES_ZH-JSON]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_oracle_rejects_its_own_source_tampering" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_evidence_build_is_deterministic_without_runtime_reports" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_rollback_restores_every_signed_input_without_external_effect" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_existing_evidence_verifier_is_fail_closed_when_absent_or_current" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_signed_receipt_verifies_in_isolated_copy_without_git_history" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_stage3_review_is_exactly_ready_but_not_started" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_current_taskpack_report_matches_exact_external_gate_shape" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_taskpack_report_gate_fails_closed_on_mutation[path0-FAIL]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_taskpack_report_gate_fails_closed_on_mutation[path1-48]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_taskpack_report_gate_fails_closed_on_mutation[path2-48]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_taskpack_report_gate_fails_closed_on_mutation[path3-1]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_current_paid_dependency_scan_matches_exact_external_gate_shape" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_paid_dependency_scan_gate_fails_when_required_line_is_missing[STATUS: PASS]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_paid_dependency_scan_gate_fails_when_required_line_is_missing[MAX_INCREMENTAL_CASH_AUD: 0.00]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_paid_dependency_scan_gate_fails_when_required_line_is_missing[PAID_OR_UNKNOWN_DEPENDENCIES: 0]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_paid_dependency_scan_gate_fails_when_required_line_is_missing[EXTERNAL_NETWORK_ACCESS_PERFORMED: false]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_paid_dependency_scan_gate_fails_when_required_line_is_missing[EXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false]" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_external_report_mode_fails_closed_if_junit_reports_are_missing" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_allowed_numeric_boundary_set_is_exact" time="0.000" />
+    <testcase classname="tests.S03.P04_test" name="test_release_language_never_claims_returns_or_production_readiness" time="0.000" />
+  </testsuite>
+</testsuites>
