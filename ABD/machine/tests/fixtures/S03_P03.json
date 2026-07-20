@@ -1,0 +1,548 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "stage_id": "S03",
+  "phase_id": "P03",
+  "contract_id": "AC-S03-P03",
+  "fixed_clock": "2026-07-20T12:00:00+10:00",
+  "expected_decision": "FAILURE_REASON_AND_UNIQUE_NEXT_ACTION_CONTRACT_FROZEN",
+  "expected_phase_status": "S03_P03_PASS",
+  "expected_release_status": "NOT_READY_S03_P04_AND_STAGE_REVIEW_REQUIRED",
+  "expected_next": "S03/P04_READY_NOT_STARTED",
+  "expected_reason_codes": [
+    "UNKNOWN_FAILURE_STATE",
+    "SECURITY_INCIDENT",
+    "EVIDENCE_INTEGRITY_FAILED",
+    "ACTUAL_LEDGER_RECONCILIATION_FAILED",
+    "LEGAL_REGULATORY_OR_SOURCE_CONTRACT_CONFLICT",
+    "IRREVERSIBLE_ACTION_REQUESTED",
+    "INCREMENTAL_CASH_BUDGET_EXCEEDED",
+    "OUT_OF_AUTHORIZED_SCOPE",
+    "TERMINATION_CONDITION_TRIGGERED",
+    "EMAIL_MALWARE_OR_ACTIVE_CONTENT",
+    "EMAIL_ARCHIVE_OR_READBACK_FAILED",
+    "EMAIL_AUTHENTICATION_FAILED",
+    "EMAIL_SENDER_UNKNOWN",
+    "BUILD_DEPENDENCY_UNAVAILABLE",
+    "HEALTH_PROBE_FAILED",
+    "NUMERIC_IMPLEMENTATION_MISMATCH",
+    "REPLAY_MISMATCH",
+    "SILENT_COVERAGE_GAP",
+    "MODEL_DRIFT_OR_INVALID",
+    "IDENTITY_UNVERIFIED",
+    "PROVIDER_CONTRACT_FAILED",
+    "ACTION_CHANNEL_UNVERIFIED",
+    "RISK_GATE_FAILED",
+    "STABILITY_GATE_FAILED",
+    "STABILITY_ACTION_FLIP",
+    "QUOTE_STALE",
+    "ADVICE_EXPIRED",
+    "CURRENT_ODDS_BELOW_MINIMUM",
+    "CARD_INPUT_INVALID",
+    "NO_QUALIFIED_OPPORTUNITY",
+    "REMOTE_CI_UNVERIFIED",
+    "RUNTIME_HOST_UNVERIFIED",
+    "GLOBAL_ACCESS_UNVERIFIED",
+    "GMAIL_NOT_CONNECTED",
+    "PLATFORM_ACCOUNT_UNVERIFIED",
+    "PUBLIC_SOURCE_UNAVAILABLE",
+    "SOURCE_VERSION_UNTRUSTED",
+    "FREE_ENDPOINT_UNAVAILABLE",
+    "AUTHENTICATED_SESSION_UNSAFE",
+    "OWNER_PRICE_CHECK_FAILED",
+    "EVIDENCE_GATE_FAILED",
+    "UI_TERM_UNREGISTERED_RAW_TOKEN",
+    "UI_TERM_INTERNAL_IDENTIFIER",
+    "UI_TERM_MACHINE_IDENTIFIER",
+    "UI_TERM_UNEXPLAINED",
+    "UI_TERM_ZH_ONLY",
+    "UI_TERM_MACHINE_ONLY",
+    "UI_SURFACE_UNKNOWN",
+    "MONTHLY_TARGET_SHORTFALL"
+  ],
+  "expected_action_ids": [
+    "STOP_AND_PRESERVE",
+    "ISOLATE_AND_PRESERVE_EVIDENCE",
+    "PRESERVE_EVIDENCE_AND_STOP",
+    "FREEZE_LEDGER_AND_PAUSE",
+    "PAUSE_AFFECTED_SCOPE",
+    "DENY_IRREVERSIBLE_ACTION",
+    "DENY_SPEND_CONTINUE_ZERO_COST",
+    "DENY_OUT_OF_SCOPE",
+    "STOP_AFFECTED_SCOPE",
+    "KEEP_EMAIL_QUARANTINE",
+    "KEEP_EMAIL_AND_ALERT",
+    "STOP_BUILD_NO_PAID_SUBSTITUTE",
+    "ROLLBACK_LAST_SIGNED_VERSION",
+    "DISABLE_SOURCE_AND_REBUILD_COVERAGE",
+    "DISABLE_MODEL_CONTINUE_SAFE_CORE",
+    "REVERIFY_IDENTITY",
+    "DISABLE_SOURCE_AND_USE_FALLBACK",
+    "MANUAL_CHECK_OR_CANCEL",
+    "KEEP_NO_ACTION_UNTIL_RISK_PASS",
+    "RECHECK_STABILITY",
+    "WAIT_FOR_STABLE_DECISION",
+    "REFRESH_QUOTE",
+    "WAIT_FOR_FRESH_CARD",
+    "WAIT_FOR_ACCEPTABLE_ODDS",
+    "REBUILD_CARD_SAFELY",
+    "WAIT_FOR_QUALIFIED_OPPORTUNITY",
+    "KEEP_STAGE_LOCAL",
+    "KEEP_LOCAL_BUILD_ONLY",
+    "KEEP_LOCAL_ACCESS_ONLY",
+    "CONTINUE_WITHOUT_EMAIL",
+    "CONTINUE_SHADOW_WITHOUT_ACCOUNT",
+    "SWITCH_SOURCE_OR_NO_RECOMMENDATION",
+    "QUARANTINE_SOURCE_VERSION",
+    "FALLBACK_TO_OTHER_SOURCE",
+    "DISABLE_SESSION_AND_ALERT",
+    "REBUILD_EVIDENCE",
+    "HIDE_INVALID_UI_AND_REBUILD",
+    "RECORD_TARGET_SHORTFALL_KEEP_GATES"
+  ],
+  "expected_reason_count": 49,
+  "expected_action_count": 38,
+  "expected_coverage_reference_count": 72,
+  "expected_oracle_check_minimum": 260,
+  "minimum_targeted_pytest_cases": 260,
+  "minimum_full_pytest_cases": 2554,
+  "expected_rollback_artifact_count": 6,
+  "expected_p02_raw_failure_codes": [
+    "ADVICE_EXPIRED",
+    "CARD_INPUT_INVALID",
+    "CURRENT_ODDS_BELOW_MINIMUM",
+    "NO_QUALIFIED_OPPORTUNITY",
+    "STABILITY_ACTION_FLIP",
+    "UPSTREAM_GATE_FAILED"
+  ],
+  "coverage_groups": [
+    {
+      "id": "P02-OUTPUTS",
+      "source_kind": "P02_DERIVED_FAILURE_CODES",
+      "expected_source_keys": [
+        "UNKNOWN_OR_MALFORMED_CODE",
+        "CARD_INPUT_INVALID",
+        "NO_QUALIFIED_OPPORTUNITY",
+        "ADVICE_EXPIRED",
+        "CURRENT_ODDS_BELOW_MINIMUM",
+        "STABILITY_ACTION_FLIP"
+      ],
+      "mappings": {
+        "UNKNOWN_OR_MALFORMED_CODE": "UNKNOWN_FAILURE_STATE",
+        "CARD_INPUT_INVALID": "CARD_INPUT_INVALID",
+        "NO_QUALIFIED_OPPORTUNITY": "NO_QUALIFIED_OPPORTUNITY",
+        "ADVICE_EXPIRED": "ADVICE_EXPIRED",
+        "CURRENT_ODDS_BELOW_MINIMUM": "CURRENT_ODDS_BELOW_MINIMUM",
+        "STABILITY_ACTION_FLIP": "STABILITY_ACTION_FLIP"
+      }
+    },
+    {
+      "id": "P02-GATES",
+      "source_kind": "ARRAY_OBJECT_KEY",
+      "source_artifact": "advice_card_fixtures.json",
+      "source_pointer": "/gate_failure_vectors",
+      "key_field": "id",
+      "mappings": {
+        "IDENTITY-FAIL": "IDENTITY_UNVERIFIED",
+        "QUOTE-STALE": "QUOTE_STALE",
+        "EVIDENCE-FAIL": "EVIDENCE_GATE_FAILED",
+        "RISK-FAIL": "RISK_GATE_FAILED",
+        "STABILITY-FAIL": "STABILITY_GATE_FAILED",
+        "ACTION-CHANNEL-FAIL": "ACTION_CHANNEL_UNVERIFIED",
+        "PROVIDER-CONTRACT-FAIL": "PROVIDER_CONTRACT_FAILED"
+      }
+    },
+    {
+      "id": "P01-POLICY",
+      "source_kind": "OBJECT_KEYS",
+      "source_artifact": "forbidden_ui_terms.json",
+      "source_pointer": "/reason_codes",
+      "mappings": {
+        "UI_TERM_UNREGISTERED_RAW_TOKEN": "UI_TERM_UNREGISTERED_RAW_TOKEN",
+        "UI_TERM_INTERNAL_IDENTIFIER": "UI_TERM_INTERNAL_IDENTIFIER",
+        "UI_TERM_MACHINE_IDENTIFIER": "UI_TERM_MACHINE_IDENTIFIER",
+        "UI_TERM_UNEXPLAINED": "UI_TERM_UNEXPLAINED",
+        "UI_TERM_ZH_ONLY": "UI_TERM_ZH_ONLY",
+        "UI_TERM_MACHINE_ONLY": "UI_TERM_MACHINE_ONLY",
+        "UI_SURFACE_UNKNOWN": "UI_SURFACE_UNKNOWN"
+      }
+    },
+    {
+      "id": "DECISION-PREREQUISITES",
+      "source_kind": "ARRAY_OBJECT_KEY",
+      "source_artifact": "machine/facts/decision_prerequisites.json",
+      "source_pointer": "/items",
+      "key_field": "id",
+      "mappings": {
+        "DP-001": "REMOTE_CI_UNVERIFIED",
+        "DP-002": "RUNTIME_HOST_UNVERIFIED",
+        "DP-003": "GLOBAL_ACCESS_UNVERIFIED",
+        "DP-004": "GMAIL_NOT_CONNECTED",
+        "DP-005": "PLATFORM_ACCOUNT_UNVERIFIED"
+      }
+    },
+    {
+      "id": "PROVIDER-CAPABILITIES",
+      "source_kind": "ARRAY_OBJECT_KEY",
+      "source_artifact": "machine/facts/provider_contracts.json",
+      "source_pointer": "/capabilities",
+      "key_field": "mode",
+      "mappings": {
+        "PUBLIC_BROWSER": "PUBLIC_SOURCE_UNAVAILABLE",
+        "FILE_OR_STATIC_DATA": "SOURCE_VERSION_UNTRUSTED",
+        "FREE_ENDPOINT": "FREE_ENDPOINT_UNAVAILABLE",
+        "AUTHENTICATED_OBSERVER": "AUTHENTICATED_SESSION_UNSAFE",
+        "OWNER_DEVICE_OVERLAY": "OWNER_PRICE_CHECK_FAILED"
+      }
+    },
+    {
+      "id": "RELEASE-ROLLBACK",
+      "source_kind": "ARRAY_SCALAR",
+      "source_artifact": "machine/facts/release_policy.json",
+      "source_pointer": "/auto_rollback_on",
+      "mappings": {
+        "健康探针失败": "HEALTH_PROBE_FAILED",
+        "数值交叉实现不一致": "NUMERIC_IMPLEMENTATION_MISMATCH",
+        "新版本建议与冻结重放不一致": "REPLAY_MISMATCH",
+        "静默缺口增加": "SILENT_COVERAGE_GAP",
+        "模型漂移越过停止线": "MODEL_DRIFT_OR_INVALID",
+        "安全严重/高危未处置": "SECURITY_INCIDENT",
+        "账本或证据完整性失败": "EVIDENCE_INTEGRITY_FAILED"
+      }
+    },
+    {
+      "id": "CANONICAL-PAUSE",
+      "source_kind": "ARRAY_SCALAR",
+      "source_artifact": "machine/facts/canonical_facts.json",
+      "source_pointer": "/authorization/pause_only_on",
+      "mappings": {
+        "法律、监管或来源合同发生实质冲突": "LEGAL_REGULATORY_OR_SOURCE_CONTRACT_CONFLICT",
+        "秘密泄漏、主机入侵或供应链完整性事故": "SECURITY_INCIDENT",
+        "实际资金证据无法对平": "ACTUAL_LEDGER_RECONCILIATION_FAILED",
+        "不可逆操作": "IRREVERSIBLE_ACTION_REQUESTED",
+        "超出 A$0 新增现金预算": "INCREMENTAL_CASH_BUDGET_EXCEEDED",
+        "超出已授权产品范围": "OUT_OF_AUTHORIZED_SCOPE",
+        "终止条件被触发": "TERMINATION_CONDITION_TRIGGERED"
+      }
+    },
+    {
+      "id": "COST-RESOURCES",
+      "source_kind": "ARRAY_OBJECT_KEY",
+      "source_artifact": "machine/facts/costs.json",
+      "source_pointer": "/resource_costs",
+      "key_field": "id",
+      "mappings": {
+        "RES-OVH-EXISTING-VPS1": "RUNTIME_HOST_UNVERIFIED",
+        "RES-CLOUDFLARE-ZERO-TRUST-FREE": "GLOBAL_ACCESS_UNVERIFIED",
+        "RES-GITHUB-EXISTING": "REMOTE_CI_UNVERIFIED",
+        "RES-OSS-PINNED": "BUILD_DEPENDENCY_UNAVAILABLE",
+        "RES-GMAIL-EXISTING-OPTIONAL": "GMAIL_NOT_CONNECTED"
+      }
+    },
+    {
+      "id": "RISK-REGISTER",
+      "source_kind": "ARRAY_OBJECT_KEY",
+      "source_artifact": "machine/facts/risk_register.json",
+      "source_pointer": "/risks",
+      "key_field": "id",
+      "mappings": {
+        "R-001": "MONTHLY_TARGET_SHORTFALL",
+        "R-002": "SILENT_COVERAGE_GAP",
+        "R-003": "PROVIDER_CONTRACT_FAILED",
+        "R-004": "IDENTITY_UNVERIFIED",
+        "R-005": "MODEL_DRIFT_OR_INVALID",
+        "R-006": "MODEL_DRIFT_OR_INVALID",
+        "R-007": "STABILITY_ACTION_FLIP",
+        "R-008": "EMAIL_ARCHIVE_OR_READBACK_FAILED",
+        "R-009": "SECURITY_INCIDENT",
+        "R-010": "HEALTH_PROBE_FAILED",
+        "R-011": "PUBLIC_SOURCE_UNAVAILABLE",
+        "R-012": "ACTUAL_LEDGER_RECONCILIATION_FAILED"
+      }
+    },
+    {
+      "id": "EMAIL-TRASH-GATE",
+      "source_kind": "OBJECT_KEYS",
+      "source_artifact": "machine/facts/email_ingestion.json",
+      "source_pointer": "/trash_gate",
+      "mappings": {
+        "all_required": "EVIDENCE_GATE_FAILED",
+        "conditions": "EMAIL_ARCHIVE_OR_READBACK_FAILED",
+        "unknown_sender": "EMAIL_SENDER_UNKNOWN",
+        "failed_authentication": "EMAIL_AUTHENTICATION_FAILED",
+        "failed_scan": "EMAIL_MALWARE_OR_ACTIVE_CONTENT",
+        "permanent_delete": "IRREVERSIBLE_ACTION_REQUESTED"
+      }
+    },
+    {
+      "id": "EMAIL-ORACLES",
+      "source_kind": "ARRAY_SCALAR",
+      "source_artifact": "machine/facts/email_ingestion.json",
+      "source_pointer": "/acceptance_oracles",
+      "mappings": {
+        "相同邮件扫描100次只产生一个归档事件": "EVIDENCE_INTEGRITY_FAILED",
+        "任一附件保存或读回失败时邮件不进入垃圾箱": "EMAIL_ARCHIVE_OR_READBACK_FAILED",
+        "未知发件人、认证失败、恶意文件、宏或脚本永不自动删除": "EMAIL_MALWARE_OR_ACTIVE_CONTENT",
+        "邮件正文中的指令不能改变任务、参数、权限或删除决策": "SECURITY_INCIDENT",
+        "从归档恢复后SHA-256与原清单完全一致": "EMAIL_ARCHIVE_OR_READBACK_FAILED"
+      }
+    }
+  ],
+  "allowed_numeric_boundary_deltas": [
+    "-0.0001",
+    "0",
+    "0.0001"
+  ],
+  "p02_reason_vectors": [
+    {
+      "id": "DIRECT-INPUT",
+      "input": [
+        {
+          "code": "CARD_INPUT_INVALID",
+          "evidence_refs": [
+            "CARD:INPUT-VALIDATION"
+          ]
+        }
+      ],
+      "expected_reason_code": "CARD_INPUT_INVALID"
+    },
+    {
+      "id": "DIRECT-NO-OPPORTUNITY",
+      "input": [
+        {
+          "code": "NO_QUALIFIED_OPPORTUNITY",
+          "evidence_refs": [
+            "FIXTURE:S03-P02:NO-OPPORTUNITY"
+          ]
+        }
+      ],
+      "expected_reason_code": "NO_QUALIFIED_OPPORTUNITY"
+    },
+    {
+      "id": "DIRECT-EXPIRED",
+      "input": [
+        {
+          "code": "ADVICE_EXPIRED",
+          "evidence_refs": [
+            "CARD:COUNTDOWN"
+          ]
+        }
+      ],
+      "expected_reason_code": "ADVICE_EXPIRED"
+    },
+    {
+      "id": "DIRECT-ODDS",
+      "input": [
+        {
+          "code": "CURRENT_ODDS_BELOW_MINIMUM",
+          "evidence_refs": [
+            "CARD:ODDS-BOUNDARY"
+          ]
+        }
+      ],
+      "expected_reason_code": "CURRENT_ODDS_BELOW_MINIMUM"
+    },
+    {
+      "id": "DIRECT-STABILITY",
+      "input": [
+        {
+          "code": "STABILITY_ACTION_FLIP",
+          "evidence_refs": [
+            "CARD:STABILITY-BOUNDARY"
+          ]
+        }
+      ],
+      "expected_reason_code": "STABILITY_ACTION_FLIP"
+    },
+    {
+      "id": "GATE-IDENTITY",
+      "input": [
+        {
+          "code": "UPSTREAM_GATE_FAILED",
+          "evidence_refs": [
+            "CARD:GATE:IDENTITY-PASSED"
+          ]
+        }
+      ],
+      "expected_reason_code": "IDENTITY_UNVERIFIED"
+    },
+    {
+      "id": "GATE-QUOTE",
+      "input": [
+        {
+          "code": "UPSTREAM_GATE_FAILED",
+          "evidence_refs": [
+            "CARD:GATE:QUOTE-FRESH"
+          ]
+        }
+      ],
+      "expected_reason_code": "QUOTE_STALE"
+    },
+    {
+      "id": "GATE-EVIDENCE",
+      "input": [
+        {
+          "code": "UPSTREAM_GATE_FAILED",
+          "evidence_refs": [
+            "CARD:GATE:EVIDENCE-GATE-PASSED"
+          ]
+        }
+      ],
+      "expected_reason_code": "EVIDENCE_GATE_FAILED"
+    },
+    {
+      "id": "GATE-RISK",
+      "input": [
+        {
+          "code": "UPSTREAM_GATE_FAILED",
+          "evidence_refs": [
+            "CARD:GATE:RISK-GATE-PASSED"
+          ]
+        }
+      ],
+      "expected_reason_code": "RISK_GATE_FAILED"
+    },
+    {
+      "id": "GATE-STABILITY",
+      "input": [
+        {
+          "code": "UPSTREAM_GATE_FAILED",
+          "evidence_refs": [
+            "CARD:GATE:STABILITY-GATE-PASSED"
+          ]
+        }
+      ],
+      "expected_reason_code": "STABILITY_GATE_FAILED"
+    },
+    {
+      "id": "GATE-ACTION",
+      "input": [
+        {
+          "code": "UPSTREAM_GATE_FAILED",
+          "evidence_refs": [
+            "CARD:GATE:ACTION-CHANNEL-VERIFIED"
+          ]
+        }
+      ],
+      "expected_reason_code": "ACTION_CHANNEL_UNVERIFIED"
+    },
+    {
+      "id": "GATE-PROVIDER",
+      "input": [
+        {
+          "code": "UPSTREAM_GATE_FAILED",
+          "evidence_refs": [
+            "CARD:GATE:PROVIDER-CONTRACT-PASSED"
+          ]
+        }
+      ],
+      "expected_reason_code": "PROVIDER_CONTRACT_FAILED"
+    }
+  ],
+  "multi_failure_vectors": [
+    {
+      "id": "SECURITY-BEATS-QUOTE",
+      "input": [
+        "QUOTE_STALE",
+        "SECURITY_INCIDENT"
+      ],
+      "expected_reason_code": "SECURITY_INCIDENT"
+    },
+    {
+      "id": "ORDER-INVARIANT",
+      "input": [
+        "SECURITY_INCIDENT",
+        "QUOTE_STALE"
+      ],
+      "expected_reason_code": "SECURITY_INCIDENT"
+    },
+    {
+      "id": "EXPIRED-BEATS-ODDS",
+      "input": [
+        "CURRENT_ODDS_BELOW_MINIMUM",
+        "ADVICE_EXPIRED"
+      ],
+      "expected_reason_code": "ADVICE_EXPIRED"
+    },
+    {
+      "id": "EVIDENCE-BEATS-RISK",
+      "input": [
+        "RISK_GATE_FAILED",
+        "EVIDENCE_INTEGRITY_FAILED"
+      ],
+      "expected_reason_code": "EVIDENCE_INTEGRITY_FAILED"
+    },
+    {
+      "id": "DUPLICATE-COLLAPSED",
+      "input": [
+        "RISK_GATE_FAILED",
+        "RISK_GATE_FAILED"
+      ],
+      "expected_reason_code": "RISK_GATE_FAILED"
+    }
+  ],
+  "malformed_inputs": [
+    {
+      "id": "NULL",
+      "input": null
+    },
+    {
+      "id": "OBJECT",
+      "input": {}
+    },
+    {
+      "id": "STRING",
+      "input": "QUOTE_STALE"
+    },
+    {
+      "id": "EMPTY",
+      "input": []
+    },
+    {
+      "id": "NON-STRING",
+      "input": [
+        123
+      ]
+    },
+    {
+      "id": "UNKNOWN",
+      "input": [
+        "NOT_A_REAL_REASON"
+      ]
+    },
+    {
+      "id": "GENERIC-GATE-NO-REF",
+      "input": [
+        {
+          "code": "UPSTREAM_GATE_FAILED",
+          "evidence_refs": []
+        }
+      ]
+    },
+    {
+      "id": "GENERIC-GATE-MULTIPLE-REFS",
+      "input": [
+        {
+          "code": "UPSTREAM_GATE_FAILED",
+          "evidence_refs": [
+            "CARD:GATE:QUOTE-FRESH",
+            "CARD:GATE:RISK-GATE-PASSED"
+          ]
+        }
+      ]
+    }
+  ],
+  "expected_external_effect_boundary": {
+    "network_accessed": false,
+    "provider_account_accessed": false,
+    "gmail_account_accessed": false,
+    "hosting_or_cdn_account_accessed": false,
+    "model_executed": false,
+    "production_deployed": false,
+    "real_order_submitted": false,
+    "order_retry_performed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "return_or_roi_verified": false,
+    "human_usability_verified": false
+  }
+}

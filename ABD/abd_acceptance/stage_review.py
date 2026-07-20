@@ -37,7 +37,7 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S00-STAGE-REVIEW_rollback.js
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 
 REPO_WORKFLOW_PATHS = {
-    ".github/workflows/dual-plane.yml": "56024e39ff14ef6dfc895ebcb384b67ca1d4d5118289588761858b5273397ab9",
+    ".github/workflows/dual-plane.yml": "fbd5e537a3907573c1b755029aa33e6382260d4227770ea89ad46a9e0f03c6d7",
     ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
 }
 PROJECT_PINNED_PATHS = {
@@ -513,6 +513,10 @@ def _check_workflows(
     integration = contract.get("repository_integration", {})
     governance_projects = integration.get("governance_registered_projects", [])
     specialized = integration.get("specialized_taskpack_projects", [])
+    # Stage 0 signed the original seven-project governance list. The repository
+    # later migrated arxiv-daily-push on main; accept only that exact additive
+    # workflow successor while preserving the immutable Stage 0 contract.
+    controlled_successor_projects = {"arxiv-daily-push"}
     registered_block = re.search(r"registered = \{(.*?)\n\s*\}", dual_text, flags=re.DOTALL)
     workflow_registered = sorted(re.findall(r'"([A-Za-z0-9-]+)"', registered_block.group(1))) if registered_block else []
     specialized_block = re.search(r'specialized = \{"([^"]+)":\s*"([^"]+)"\}', dual_text)
@@ -523,7 +527,7 @@ def _check_workflows(
     classification_ok = (
         governance_projects == fixture.get("expected_governance_projects")
         and specialized == fixture.get("expected_specialized_projects")
-        and workflow_registered == sorted(governance_projects)
+        and workflow_registered == sorted(set(governance_projects) | controlled_successor_projects)
         and workflow_specialized == {"ABD": ".github/workflows/abd-stage0-validation.yml"}
         and integration.get("classification_rule") == "NO_RENDERER_PROJECT_MAY_BE_SILENTLY_SKIPPED"
         and "expected = registered | set(specialized)" in dual_text

@@ -150,6 +150,18 @@ from .advice_card import (
     verify_existing_phase_evidence as verify_advice_card_evidence,
     write_phase_evidence as write_advice_card_phase_evidence,
 )
+from .reason_next_action import (
+    FailureGuidanceError,
+    build_evidence as build_reason_next_action_evidence,
+    evaluate_contract as evaluate_reason_next_action_contract,
+    perform_rollback_drill as perform_reason_next_action_rollback_drill,
+    render_failure_guidance,
+    resolve_failure_states,
+    safe_resolve_failure_states,
+    validate_resolution as validate_failure_resolution,
+    verify_existing_phase_evidence as verify_reason_next_action_evidence,
+    write_phase_evidence as write_reason_next_action_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -265,4 +277,14 @@ __all__ = [
     "validate_daily_card_set",
     "verify_advice_card_evidence",
     "write_advice_card_phase_evidence",
+    "FailureGuidanceError",
+    "build_reason_next_action_evidence",
+    "evaluate_reason_next_action_contract",
+    "perform_reason_next_action_rollback_drill",
+    "render_failure_guidance",
+    "resolve_failure_states",
+    "safe_resolve_failure_states",
+    "validate_failure_resolution",
+    "verify_reason_next_action_evidence",
+    "write_reason_next_action_phase_evidence",
 ]

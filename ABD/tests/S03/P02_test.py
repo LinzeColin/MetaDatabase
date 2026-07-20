@@ -497,7 +497,7 @@ def test_external_effect_boundary_is_all_false_and_zero_cash() -> None:
     assert all(value is False for key, value in boundary.items() if key != "incremental_cash_spent_aud")
 
 
-def test_p03_and_later_artifacts_are_not_started() -> None:
+def test_p03_is_absent_or_an_exact_controlled_successor_and_later_work_is_not_started() -> None:
     result = evaluate_contract(ROOT)
     checks = {row["id"]: row for row in result["checks"]}
     assert checks["S03P02-SUCCESSOR-ARTIFACTS-NOT-STARTED"]["passed"] is True

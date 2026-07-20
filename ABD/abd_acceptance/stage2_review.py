@@ -68,12 +68,12 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S02/stage_review_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES = {
-    "README.md": "c50ff3be6da031b828ef322eb52311ffc95933aae7c4e180f9a932df64c7b101",
-    "abd_acceptance/__init__.py": "969ef9ecfa9c9a05e36167b68da678913439fd7e73ff28bbf92f7fa91a512234",
-    "abd_acceptance/__main__.py": "77ed53daf201c59aedd72c9e5d10207997353a5bbd097fa599fd65f9ebb8806a",
+    "README.md": "ccdeeca46addaf55badc3ba0f106405b0095d4da690c4b7d0f36b1ad0572c760",
+    "abd_acceptance/__init__.py": "bf83d5b43c39451cddfe1ac44a4df947d8016936bb807b1a0ee803024731c203",
+    "abd_acceptance/__main__.py": "b8ef379a8c881a17716e0e7524e6a506e9af4dfe7b0f5258b44e3a93e30797a8",
     "tests/S02/stage_review_test.py": "40431438418cb4212c00c3e241b980b4188cd017af2722ffb267670a8aa0f124",
 }
-SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "1c652e72083750e4a939c185bf5ae949df27932845acfeebb4d727978339066d"
+SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "9135a6ee4950b7387dcc87a392f509b22c638f9d860ed18d5d92f0ebfefc076a"
 
 PHASE_EVALUATORS = {"P01": evaluate_p01, "P02": evaluate_p02, "P03": evaluate_p03, "P04": evaluate_p04}
 PHASE_VERIFIERS = {"P01": verify_p01, "P02": verify_p02, "P03": verify_p03, "P04": verify_p04}
@@ -685,6 +685,7 @@ def _check_safety_and_progression(
         )
         p01_delivered = False
         p02_delivered = False
+        p03_delivered = False
         successor_detail: Any = None
         if (
             base_ok
@@ -722,7 +723,30 @@ def _check_safety_and_progression(
             successor = verify_s03_p02(root, verify_git_history=(root.parent / ".git").exists())
             p02_delivered = successor.get("status") == "PASS" and successor.get("next") == "S03/P03_READY_NOT_STARTED"
             successor_detail = {"mode": "VERIFIED_S03_P02_SUCCESSOR", "summary": successor.get("summary")}
-        progression_ok = not_started or p01_delivered or p02_delivered
+        elif (
+            base_ok
+            and status_by_id == {
+                "INDEX-AC-S03-P01": "PASS",
+                "INDEX-AC-S03-P02": "PASS",
+                "INDEX-AC-S03-P03": "PASS",
+                "INDEX-AC-S03-P04": "PLANNED",
+            }
+            and actual_s03
+            == [
+                "EVD-S03-P01.json",
+                "EVD-S03-P01_rollback.json",
+                "EVD-S03-P02.json",
+                "EVD-S03-P02_rollback.json",
+                "EVD-S03-P03.json",
+                "EVD-S03-P03_rollback.json",
+            ]
+        ):
+            from .reason_next_action import verify_existing_phase_evidence as verify_s03_p03
+
+            successor = verify_s03_p03(root, verify_git_history=(root.parent / ".git").exists())
+            p03_delivered = successor.get("status") == "PASS" and successor.get("next") == "S03/P04_READY_NOT_STARTED"
+            successor_detail = {"mode": "VERIFIED_S03_P03_SUCCESSOR", "summary": successor.get("summary")}
+        progression_ok = not_started or p01_delivered or p02_delivered or p03_delivered
         detail = {
             "review_route": "PLANNED_OR_SIGNED_PASS",
             "s03": [row.get("status") for row in s03],

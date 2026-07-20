@@ -412,9 +412,9 @@ def test_s03_p02_is_absent_or_an_exact_controlled_successor() -> None:
         "machine/evidence/EVD-S03-P02.json",
         "machine/evidence/EVD-S03-P02_rollback.json",
     ]
+    # P02 owns the controlled P03 successor check once P02 is present. P01 only
+    # forbids jumping directly to the whole-stage review.
     later_paths = [
-        "reason_codes_zh.json",
-        "next_action_matrix.json",
         "machine/facts/stage3_review_contract.json",
         "tests/S03/stage_review_test.py",
     ]

@@ -1,0 +1,48 @@
+{
+  "artifacts": {
+    "advice_card_schema.json": {
+      "corrupted_sha256": "11359aa5cdcd731929e2c7da8e44c46df0adb985567076586507ef4b5cdc9a32",
+      "restored_sha256": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+      "signed_sha256": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+      "status": "PASS"
+    },
+    "glossary_zh.json": {
+      "corrupted_sha256": "90c34ada92c3da6191b64ca83a8653e285d5c27b92bd6b80231cacbd53aa087f",
+      "restored_sha256": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "signed_sha256": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S03-P02.json": {
+      "corrupted_sha256": "be6c2682ff89f36030f1e3a62b8af01459c00cfdaa3292393c5f4c7999381a77",
+      "restored_sha256": "5e6c4e710a1b74d374f60c91ff26cd365beb5f2b5ca244bea2add10df9d82c97",
+      "signed_sha256": "5e6c4e710a1b74d374f60c91ff26cd365beb5f2b5ca244bea2add10df9d82c97",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S03_P03.json": {
+      "corrupted_sha256": "9a0f69f8e89b73c3dfb2e1a158efadd89f2e310bbd6ee24a92d77534972ce35f",
+      "restored_sha256": "3c73939012825ab70109d0814e4ff44ab6fb6c4ab72e805072893a7c51a97ea2",
+      "signed_sha256": "3c73939012825ab70109d0814e4ff44ab6fb6c4ab72e805072893a7c51a97ea2",
+      "status": "PASS"
+    },
+    "next_action_matrix.json": {
+      "corrupted_sha256": "357b4c91717ec9a05a89d04f0ac1aed774e0e4f5f9dc5e8743026ea163b55860",
+      "restored_sha256": "86e52de87b15a447a6d7d4683a8fe99b7f6f255552d05bde15dcf94928969f3d",
+      "signed_sha256": "86e52de87b15a447a6d7d4683a8fe99b7f6f255552d05bde15dcf94928969f3d",
+      "status": "PASS"
+    },
+    "reason_codes_zh.json": {
+      "corrupted_sha256": "5d0479b23a39d630a918c6e7b7300b4978584c855799954d4cf4827a7d9d7951",
+      "restored_sha256": "62c37e83b844b72fbeeebe5591a717d64c225629fb4ad421c44a6ad631ac8a20",
+      "signed_sha256": "62c37e83b844b72fbeeebe5591a717d64c225629fb4ad421c44a6ad631ac8a20",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S03-P03",
+  "evidence_id": "EVD-S03-P03-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-20T12:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_REASON_AND_ACTION_ARTIFACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}
