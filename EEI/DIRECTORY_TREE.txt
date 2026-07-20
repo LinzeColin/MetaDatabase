@@ -729,6 +729,7 @@ Enterprise_Ecosystem_Intelligence_release
 ├── GITHUB_REPOSITORY_BACKUP_INDEX.md
 ├── GOVERNANCE_INDEX.md
 ├── HANDOFF.md
+├── HANDOFF_EEI.md
 ├── MODEL_MANAGEMENT.md
 ├── Makefile
 ├── PLANS.md
