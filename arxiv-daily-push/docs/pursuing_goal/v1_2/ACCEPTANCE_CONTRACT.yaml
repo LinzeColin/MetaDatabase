@@ -1,0 +1,270 @@
+schema_version: adp.acceptance_contract.v1
+taskpack_version: 1.2.0
+default_blocking: true
+status_rule: PASS_requires_executed_oracle_and_exact_subject_evidence
+fail_closed_states: [FAIL, BLOCKED, NOT_RUN, UNKNOWN]
+
+acceptances:
+  - acceptance_id: ACC-V12-S0-001
+    requirement_ids: [REQ-V12-GOV-001]
+    task_ids: [ADP-V12-S0-T001]
+    oracle: 七个语义角色各有且仅有一个根级文件，verifier authoritative ingest 成功并提取 10 个 Task 与 33 个 Acceptance ID。
+    test_ids: [TST-V12-S0-ROLE-INGEST]
+    evidence: verifier taskpack-lock、完整包摘要、七角色摘要、确定性 source snapshot
+    blocking: true
+
+  - acceptance_id: ACC-V12-S0-002
+    requirement_ids: [REQ-V12-GOV-002]
+    task_ids: [ADP-V12-S0-T001]
+    oracle: 三个新增历史 ZIP 与一个去重前端 ZIP 的大小和 SHA-256 精确匹配输入；ZIP 无穿越、symlink、加密、重复成员或已知凭据命中。
+    test_ids: [TST-V12-S0-ARCHIVE-INTEGRITY, TST-V12-S0-SECRET-SCAN]
+    evidence: INPUT_ARCHIVE_MANIFEST.json、archive MANIFEST.json、原始扫描日志
+    blocking: true
+
+  - acceptance_id: ACC-V12-S0-003
+    requirement_ids: [REQ-V12-GOV-003]
+    task_ids: [ADP-V12-S0-T001]
+    oracle: HISTORICAL_TRACEABILITY.csv 精确覆盖 90 个 v0.1 Task、20 条 Requirement、9 条前端要求、8 个 7fd finding、7 个 e1af 结论和 8 条 HANDOFF 决策，无缺 ID、重复 ID或未解释处置。
+    test_ids: [TST-V12-S0-TRACEABILITY]
+    evidence: HISTORICAL_TRACEABILITY.csv、v0.1 原始 CSV、两轮 sealed verdict
+    blocking: true
+
+  - acceptance_id: ACC-V12-S0-004
+    requirement_ids: [REQ-V12-GOV-004]
+    task_ids: [ADP-V12-S0-T001]
+    oracle: HANDOFF、README、AGENTS 与 machine facts 一致路由到 v1.2；文档七文件由 renderer 重建且双平面检查通过，V7.2 兼容指针未被破坏。
+    test_ids: [TST-V12-S0-DUAL-PLANE, TST-V12-S0-ROUTING]
+    evidence: 双平面命令输出、git diff、V7.2 compatibility test
+    blocking: true
+
+  - acceptance_id: ACC-V12-S0-005
+    requirement_ids: [REQ-V12-GOV-005]
+    task_ids: [ADP-V12-S0-T001]
+    oracle: 相对 source base，Worker、cron、来源配置、数据库和生产状态无差异，无部署或真实外发。
+    test_ids: [TST-V12-S0-NO-RUNTIME-DIFF]
+    evidence: git diff path audit、changed-scope classifier、command log
+    blocking: true
+
+  - acceptance_id: ACC-V12-S0-006
+    requirement_ids: [REQ-V12-GOV-006]
+    task_ids: [ADP-V12-S0-T001]
+    oracle: 合并后从 origin/main clean-room 重算三份 archive hash、unzip 测试和 v1.2 tree digest 全部一致；仅在此后删除 Owner Downloads ADP 批次，失败则删除零文件。
+    test_ids: [TST-V12-S0-REMOTE-RESTORE, TST-V12-S0-LOCAL-CLEANUP]
+    evidence: remote commit/tree、clean-room 日志、删除前后精确清单
+    blocking: true
+
+  - acceptance_id: ACC-V12-S1-001
+    requirement_ids: [REQ-V12-SOURCE-001]
+    task_ids: [ADP-V12-S1-T001]
+    oracle: 真实 Google fetch 实现路径对 503→200 和 503→503→200 分别返回成功，attempt_count 和 delays 精确。
+    test_ids: [TST-V12-GNEWS-503-200, TST-V12-GNEWS-503-503-200]
+    evidence: deterministic fixture results
+    blocking: true
+
+  - acceptance_id: ACC-V12-S1-002
+    requirement_ids: [REQ-V12-SOURCE-002]
+    task_ids: [ADP-V12-S1-T001]
+    oracle: 403 与 404 各只请求一次并给出稳定 reason_code，不重试、不伪装成功。
+    test_ids: [TST-V12-GNEWS-403, TST-V12-GNEWS-404]
+    evidence: attempt trace and terminal result
+    blocking: true
+
+  - acceptance_id: ACC-V12-S1-003
+    requirement_ids: [REQ-V12-SOURCE-003]
+    task_ids: [ADP-V12-S1-T001]
+    oracle: 连续 503 和 timeout 均在三次内终止，记录 1s/3s 延迟且无第四次请求。
+    test_ids: [TST-V12-GNEWS-503-EXHAUSTED, TST-V12-GNEWS-TIMEOUT-EXHAUSTED]
+    evidence: injected fetch/sleeper trace
+    blocking: true
+
+  - acceptance_id: ACC-V12-S1-004
+    requirement_ids: [REQ-V12-SOURCE-004]
+    task_ids: [ADP-V12-S1-T001]
+    oracle: HTTP 200 但 parse-zero 不重试，返回明确 PARSE_ZERO 且不静默写入零状态。
+    test_ids: [TST-V12-GNEWS-PARSE-ZERO]
+    evidence: fixture and result payload
+    blocking: true
+
+  - acceptance_id: ACC-V12-S1-005
+    requirement_ids: [REQ-V12-SOURCE-005]
+    task_ids: [ADP-V12-S1-T001]
+    oracle: Bing 仍为活动路径，Google 仍为候选；Worker cron/live 未改，来源 registry 与全部 owner-facing 页面同步测试通过，最坏 subrequest 预算小于 50。
+    test_ids: [TST-V12-GNEWS-SYNC, TST-V12-GNEWS-NO-LIVE-SWITCH, TST-V12-GNEWS-SUBREQUEST-BUDGET]
+    evidence: registry/user-center diff、Worker diff、capacity calculation
+    blocking: true
+
+  - acceptance_id: ACC-V12-S2-001
+    requirement_ids: [REQ-V12-SOURCE-006]
+    task_ids: [ADP-V12-S2-T001]
+    oracle: stats-gov 的 EDGE_TIMEOUT、HTTP_STATUS、PARSE_ZERO、SUCCESS 由确定性夹具分别复现且互不混淆。
+    test_ids: [TST-V12-STATS-CLASSIFICATION]
+    evidence: fixture matrix and reason-coded results
+    blocking: true
+
+  - acceptance_id: ACC-V12-S2-002
+    requirement_ids: [REQ-V12-SOURCE-007]
+    task_ids: [ADP-V12-S2-T001]
+    oracle: 只有实证支持时才提交最小 adapter 修复；否则保持 degraded 并记录最小下一条件，不预写“不可达”。
+    test_ids: [TST-V12-STATS-DIAGNOSIS-DECISION]
+    evidence: diagnosis report、candidate diff or explicit no-fix outcome
+    blocking: true
+
+  - acceptance_id: ACC-V12-S2-003
+    requirement_ids: [REQ-V12-COST-001]
+    task_ids: [ADP-V12-S2-T001]
+    oracle: 方案不使用付费代理、付费 API、边界绕过或未授权新服务。
+    test_ids: [TST-V12-STATS-COST-BOUNDARY]
+    evidence: dependency/config diff and cost statement
+    blocking: true
+
+  - acceptance_id: ACC-V12-S3-001
+    requirement_ids: [REQ-V12-SOURCE-008]
+    task_ids: [ADP-V12-S3-T001]
+    oracle: ESearch→EFetch XML fixture 经期刊和日期过滤后映射到现有 item schema，并保留 PMID/DOI provenance。
+    test_ids: [TST-V12-PUBMED-HAPPY-PATH]
+    evidence: fixture input、normalized item、schema validation
+    blocking: true
+
+  - acceptance_id: ACC-V12-S3-002
+    requirement_ids: [REQ-V12-SOURCE-009]
+    task_ids: [ADP-V12-S3-T001]
+    oracle: 空搜索、坏 XML、重复 DOI/PMID、错误期刊和 rate/HTTP error 均给出确定性失败关闭结果且不产生重复 item。
+    test_ids: [TST-V12-PUBMED-NEGATIVE-MATRIX]
+    evidence: negative fixture matrix
+    blocking: true
+
+  - acceptance_id: ACC-V12-S3-003
+    requirement_ids: [REQ-V12-COST-002]
+    task_ids: [ADP-V12-S3-T001]
+    oracle: 无 API key，tool/email 标识存在，客户端速率不超过 1 req/s，批量调用无 bulk download。
+    test_ids: [TST-V12-PUBMED-RATE-AND-IDENTITY]
+    evidence: injected clock/sleeper trace and request fixtures
+    blocking: true
+
+  - acceptance_id: ACC-V12-S4-001
+    requirement_ids: [REQ-V12-UX-001]
+    task_ids: [ADP-V12-S4-T001]
+    oracle: 真实英文论文条目在“人话版”呈现清晰中文结构，区分已知、推断、未知和原文入口，无大段未解释英文。
+    test_ids: [TST-V12-HUMAN-LANGUAGE-REAL-ENGLISH]
+    evidence: browser text capture and content contract result
+    blocking: true
+
+  - acceptance_id: ACC-V12-S4-002
+    requirement_ids: [REQ-V12-UX-002]
+    task_ids: [ADP-V12-S4-T001]
+    oracle: 无可靠翻译能力时使用诚实中文回退，原文清晰标识并默认折叠；不存在虚构翻译或 unsupported claim。
+    test_ids: [TST-V12-HUMAN-LANGUAGE-FAIL-CLOSED]
+    evidence: forced model-unavailable fixture and rendered UI
+    blocking: true
+
+  - acceptance_id: ACC-V12-S4-003
+    requirement_ids: [REQ-V12-UX-003]
+    task_ids: [ADP-V12-S4-T002]
+    oracle: 375×812 下六主题都且仅有“今天／队列／雷达／系统”四标签、无横向溢出；桌面 sidebar/topbar/dock 不回归。
+    test_ids: [TST-V12-MOBILE-NAV-SIX-THEMES, TST-V12-DESKTOP-NAV-REGRESSION]
+    evidence: DOM assertions、six-theme screenshots、viewport metrics
+    blocking: true
+
+  - acceptance_id: ACC-V12-S4-004
+    requirement_ids: [REQ-V12-UX-004]
+    task_ids: [ADP-V12-S4-T003]
+    oracle: 六主题视觉结构肉眼可辨，三个视频主题 muted/loop 且真实播放，核心主题资产 hash 锁定。
+    test_ids: [TST-V12-THEME-DISTINCTION, TST-V12-VIDEO-PLAYBACK]
+    evidence: screenshots、video currentTime evidence、asset hashes
+    blocking: true
+
+  - acceptance_id: ACC-V12-S4-005
+    requirement_ids: [REQ-V12-UX-005]
+    task_ids: [ADP-V12-S4-T003]
+    oracle: 非视觉 title 清洗负控放行；主题、导航、视频、motion 破坏负控逐项阻断，pixel/visible oracle enforce。
+    test_ids: [TST-V12-VISUAL-GATE-CONTROLS]
+    evidence: control matrix and raw diff outputs
+    blocking: true
+
+  - acceptance_id: ACC-V12-S4-006
+    requirement_ids: [REQ-V12-UX-006]
+    task_ids: [ADP-V12-S4-T003]
+    oracle: reduced-motion 停止 autoplay/装饰运动但保持功能；六主题 console error 为零且无 overflow。
+    test_ids: [TST-V12-REDUCED-MOTION, TST-V12-CONSOLE-AND-OVERFLOW]
+    evidence: browser traces and computed style/media state
+    blocking: true
+
+  - acceptance_id: ACC-V12-S5-001
+    requirement_ids: [REQ-V12-IDENTITY-001]
+    task_ids: [ADP-V12-S5-T001]
+    oracle: taskpack/target 为 1.2.0、当前 live 为 0.41.0；VERSION、package metadata、build、machine facts 和 Python `>=3.12` 无矛盾，最低版本矩阵通过。
+    test_ids: [TST-V12-VERSION-SURFACES, TST-V12-PYTHON-MINIMUM]
+    evidence: version matrix、build mapping、Python CI logs
+    blocking: true
+
+  - acceptance_id: ACC-V12-S5-002
+    requirement_ids: [REQ-V12-OPS-001]
+    task_ids: [ADP-V12-S5-T002]
+    oracle: 15 分钟只读探针可运行，滚动月 availability≥99.5%、coverage≥95%；缺探针计算为 UNKNOWN。
+    test_ids: [TST-V12-LIVENESS-PROBES, TST-V12-SLO-CALCULATION]
+    evidence: workflow、probe ledger、SLO calculation fixtures
+    blocking: true
+
+  - acceptance_id: ACC-V12-S5-003
+    requirement_ids: [REQ-V12-OPS-002]
+    task_ids: [ADP-V12-S5-T002]
+    oracle: daily pipeline freshness≤36h、RTO≤60m、RPO≤24h，并以隔离恢复/回滚演练证明。
+    test_ids: [TST-V12-FRESHNESS, TST-V12-RECOVERY-DRILL]
+    evidence: freshness ledger、restore/rollback timing and hashes
+    blocking: true
+
+  - acceptance_id: ACC-V12-S5-004
+    requirement_ids: [REQ-V12-COST-003]
+    task_ids: [ADP-V12-S5-T002]
+    oracle: 当前三个 cron 保持不变；容量超出 Free/SLO 时停止扩张并生成带测量、价格、收益和回退的升级提案，绝不自动付费。
+    test_ids: [TST-V12-FREE-CAPACITY, TST-V12-UPGRADE-PROPOSAL]
+    evidence: Cloudflare usage snapshot、capacity math、proposal artifact or within-budget proof
+    blocking: true
+
+  - acceptance_id: ACC-V12-S6-001
+    requirement_ids: [REQ-V12-RELEASE-001]
+    task_ids: [ADP-V12-S6-T001]
+    oracle: 65/65 governance、14/14 security、双平面及兼容门通过；full suite 相对锁定历史允许集合 candidate-only failure/error 为零。
+    test_ids: [TST-V12-INTEGRATED-REGRESSION]
+    evidence: exact-name differential and raw runner logs
+    blocking: true
+
+  - acceptance_id: ACC-V12-S6-002
+    requirement_ids: [REQ-V12-RELEASE-002]
+    task_ids: [ADP-V12-S6-T001]
+    oracle: source commit/tree→build→artifact→canary deployment identity 闭合，上一接受版本及回滚操作已在隔离环境验证。
+    test_ids: [TST-V12-ARTIFACT-IDENTITY, TST-V12-ROLLBACK-PREFLIGHT]
+    evidence: provenance/digests、canary manifest、rollback log
+    blocking: true
+
+  - acceptance_id: ACC-V12-S6-003
+    requirement_ids: [REQ-V12-RELEASE-003]
+    task_ids: [ADP-V12-S6-T001]
+    oracle: 仅当全部 blocking Acceptance PASS、P0/P1=0、UNKNOWN=0 且 rollback ready 时自动部署；否则 deployment count=0。
+    test_ids: [TST-V12-DEPLOYMENT-AUTHORITY-GATE]
+    evidence: machine gate decision and deployment audit log
+    blocking: true
+
+  - acceptance_id: ACC-V12-S6-004
+    requirement_ids: [REQ-V12-RELEASE-004]
+    task_ids: [ADP-V12-S6-T001]
+    oracle: 生产后 build、核心路由、数据新鲜度、来源健康、六主题、视频、导航和 console 均绑定实际 deployment 并通过；阻断失败自动回滚。
+    test_ids: [TST-V12-POST-DEPLOY-JOURNEY, TST-V12-AUTO-ROLLBACK]
+    evidence: post-deploy browser/API probes and rollback receipt
+    blocking: true
+
+  - acceptance_id: ACC-V12-S6-005
+    requirement_ids: [REQ-V12-RELEASE-005]
+    task_ids: [ADP-V12-S6-T001]
+    oracle: 实际生产连续 14 个健康日满足 SLO、无 P0/P1、无静默零数据；中断后序列重新开始。
+    test_ids: [TST-V12-FOURTEEN-DAY-SOAK]
+    evidence: 14 daily manifests、probe ledger、incident/abort history
+    blocking: true
+
+  - acceptance_id: ACC-V12-S6-006
+    requirement_ids: [REQ-V12-RELEASE-006]
+    task_ids: [ADP-V12-S6-T001]
+    oracle: 独立 verifier 从精确 taskpack digest 和 immutable subject 复跑并封存证据；builder 不是唯一裁判。
+    test_ids: [TST-V12-INDEPENDENT-VERIFIER]
+    evidence: sealed verifier run、in-toto statement、evidence root
+    blocking: true

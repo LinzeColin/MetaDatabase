@@ -8,24 +8,27 @@
 
 - canonical 仓库是 `LinzeColin/MetaDatabase`，项目路径是 `arxiv-daily-push/`。
   CodexProject 中已删除的旧源目录不得恢复。
-- live 面仍是 Cloudflare Worker `adp-cloud` / `https://adp.linzezhang.com`；本轮迁移闭合
+- live 面仍是 Cloudflare Worker `adp-cloud` / `https://adp.linzezhang.com`；当前产品版本
+  `0.41.0`，封存 live/git build 为 `c2ccc1fd01ec`。
+- 迁移闭合已由 `e1af471c` 和 PR #68 完成并通过独立 developer_check；当前开发合同是
+  `docs/pursuing_goal/v1_2/`，目标产品版本 `1.2.0`。
+- 当前唯一任务是 `ADP-V12-S0-T001`：生成七角色任务包、历史归档、追溯和恢复门；本任务
   **不修改、不部署、不启用** Worker、SMTP、scheduler、Release 或 restore。
-- 2026-07-20 封存验收记录的 live/git build 为 `c2ccc1fd01ec`。本轮必须以
+- S0 必须以
   `git diff origin/main -- arxiv-daily-push/deploy/cloudflare/worker_cloud.js` 为空证明零变更，
-  不能用这份文字替代未来的 live 复查。
+  不能用这份文字替代 live 复查。
 - Owner 的晚到决策已定案：3 个 dormant Cloudflare 资源均删除；继续救援剩余来源；
   不迁 OVH/Coolify；不修 V0.1 `TASK_INDEX.csv` 的死状态列。
-- 当前开发任务是**迁移闭合**：补齐 ADP 历史证据/只读工具、修正 MetaDatabase 根契约，
-  让 65 个 ADP governance tests 全绿且 full suite 不新增迁移失败。
-- 迁移闭合后，下一条开发线是来源救援；优先做 Google News 重试/退避的本地实现与负控，
+- S0 通过后下一条开发线是来源救援；优先做 Google News 重试/退避的本地实现与负控，
   再诊断 stats-gov，最后实现 science-advances 的 PubMed 解析层。每条另开 Run Contract，
-  未获新的部署授权前只做到代码、测试和部署候选。
+  前九个任务只做到对应合同边界；最终部署仅在 v1.2 全部门禁 PASS 后自动执行。
 
 ## 1. 合同路由与优先级
 
 | 范围 | 当前用途 | 是否可覆盖 live/仓位事实 |
 |---|---|---|
 | `docs/HANDOFF.md` | 仓位、Owner 决策、当前开发线、下一步 | 是，唯一当前入口 |
+| `docs/pursuing_goal/v1_2/` | 当前增量产品合同、Roadmap、Task Graph、Acceptance | 约束 v1.2；不能预签 live 状态 |
 | `machine/facts/` + `文档/` | MetaDatabase 双平面治理；由机器事实渲染 | 只覆盖其已登记事实 |
 | `CHANGELOG.md` + `docs/pursuing_goal/v0_2/evidence/` | Cloudflare V0.2 生产开发证据 | 可证明对应阶段，不自动授权下一次部署 |
 | `docs/pursuing_goal/v0_1/` | V0.1 需求谱系与历史任务包 | 否；`TASK_INDEX.csv.status` 是已裁定不修的死配置 |
@@ -46,7 +49,7 @@
 | cron | 3/5 槽位已用；不得越过免费档上限 |
 | liveness | `.github/workflows/arxiv-daily-push-liveness.yml` |
 
-本轮停止条件：任何方案需要改 Worker、部署、增加 cron/资源、读取 secret、恢复旧源目录、
+S0 停止条件：任何方案需要改 Worker、部署、增加 cron/资源、读取 secret、恢复旧源目录、
 弱化 fail-closed 测试，或把历史 artifact 当作新授权时，立即停止并回报。
 
 ## 3. Owner 晚到决策（已定案，不再询问）
@@ -60,6 +63,9 @@
 | Google News | 加重试/退避后评估回切 | 待独立 Run Contract；历史采样是间歇 503，不是“被墙” |
 | OVH VPS / Coolify | 不迁 | Cloudflare 免费档保持 canonical live 面 |
 | `TASK_INDEX.csv.status` | 不修 | 90 行 `NOT_STARTED` 不代表代码未完成；只把它当历史字段 |
+| v1.2 部署 | 全部门禁通过即部署 | P0/P1/UNKNOWN 为零、独立验收和回滚门均 PASS 后才生效 |
+| 费用 | Cloudflare Free 优先 | 容量不足时生成升级提案；不得自动付费 |
+| 本地任务包 | GitHub 恢复证明后删除 | 任一远端 hash/unzip/ingest 失败则删除零文件 |
 
 来源与板块变更必须满足根 `AGENTS.md` 与项目 `AGENTS.md` 的 user-center sync gate；
 config/code-only change 不算完成。
@@ -133,7 +139,7 @@ failure/error 均为 0。剩余 2 failures
 4. PR CI 通过后，才可把迁移闭合写成完成；
 5. 合并提交必须由独立 `verifier` 在新上下文复验，实施者不能自签。
 
-## 6. 下一轮推荐 Run Contract
+## 6. v1.2 第一个产品 Run Contract
 
 **目标**：在不部署、不改 cron、不引入付费 API 的前提下，为 Google News adapter 增加
 有上限的 retry/backoff，并用确定性夹具和负控证明“间歇 503 可恢复、确定性拒绝仍失败关闭”。
@@ -142,7 +148,7 @@ failure/error 均为 0。剩余 2 failures
 目标测试；不顺带做 stats-gov 或 PubMed adapter。
 
 **验收**：真实实现路径测试 + 负控 + source/board sync gate + full suite 与迁移基线对比；
-部署候选与 live 部署分离，Owner 未给新部署授权时在本地/PR 处停止。
+S1 不切换 live、不改 cron；最终部署权仍由 v1.2 S6 的全部阻断门控制。
 
 ## 7. 永久提醒
 

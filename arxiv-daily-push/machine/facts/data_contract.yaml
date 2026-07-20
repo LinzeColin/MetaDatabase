@@ -1,0 +1,8 @@
+{
+  "data_flow": "来源端点 → 有界获取与原因码 → 解析/去重 → 内容与证据门 → 现有条目存储 → 六主题中文界面 → 只读探针与验收证据。",
+  "entities": [
+    {"entity": "SourceFetchResult", "keys": ["items", "attempt_count", "terminal_status", "reason_code", "fallback_used"], "pk": "run/source/attempt"},
+    {"entity": "ProbeResult", "keys": ["scheduled_at", "observed_at", "endpoint", "build", "status", "freshness"], "pk": "endpoint/scheduled_at"},
+    {"entity": "AcceptanceEvidence", "keys": ["acceptance_id", "test_id", "subject", "status", "evidence_path"], "pk": "subject/acceptance_id/test_id"}
+  ]
+}

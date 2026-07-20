@@ -1,0 +1,94 @@
+schema_version: adp.taskpack.v1
+taskpack_version: 1.2.0
+target_product_version: 1.2.0
+current_product_version: 0.41.0
+contract_status: AUTHORITATIVE_INCREMENTAL_EXECUTION_CONTRACT
+as_of: "2026-07-20"
+timezone: Australia/Sydney
+
+repository:
+  owner: LinzeColin
+  name: MetaDatabase
+  visibility: public
+  canonical_project_path: arxiv-daily-push
+  source_base_commit: e4a8016786c9140b1900db9d0b6f02b2b0a1786e
+  canonical_handoff: arxiv-daily-push/docs/HANDOFF.md
+
+live_baseline:
+  provider: Cloudflare
+  worker: adp-cloud
+  url: https://adp.linzezhang.com
+  build: c2ccc1fd01ec
+  storage:
+    d1: adp-mirror
+    r2: adp-raw-artifacts
+  cron_slots_used: 3
+  cron_slots_limit: 5
+  evidence: arxiv-daily-push/docs/HANDOFF.md
+
+canonical_roles:
+  manifest: MANIFEST.yaml
+  pursuing_goal: PURSUING_GOAL.md
+  prd: PRD.md
+  technical_design: TECHNICAL_DESIGN.md
+  roadmap: ROADMAP.md
+  task_graph: TASK_GRAPH.yaml
+  acceptance_contract: ACCEPTANCE_CONTRACT.yaml
+
+supporting_files:
+  - README.md
+  - CHANGELOG.md
+  - RUN_CONTRACT_01_GOOGLE_NEWS_RETRY.md
+  - HISTORICAL_TRACEABILITY.csv
+  - INPUT_ARCHIVE_MANIFEST.json
+  - TREE_SHA256.txt
+  - tools/build_historical_traceability.py
+  - tools/validate_package.py
+
+authority_order:
+  - owner_approved_v1_2_taskpack
+  - canonical_handoff_and_owner_decisions
+  - acceptance_contract
+  - prd_and_technical_design
+  - task_graph
+  - historical_packages_and_compatibility_contracts
+  - current_implementation_as_observation_only
+
+execution_controls:
+  active_stage_limit: 1
+  task_wip_limit: 1
+  tasks_per_run_contract: 1
+  max_same_approach_attempts: 2
+  independent_verifier_required: true
+  builder_self_approval_forbidden: true
+  unknown_is_pass: false
+  missing_evidence_is_pass: false
+  first_product_run_contract: ADP-V12-S1-T001
+
+release_model:
+  development_versions: 1.2.0-rc.N
+  production_version: 1.2.0
+  current_live_remains: 0.41.0
+  deployment_authority: ALL_BLOCKING_GATES_PASS_THEN_DEPLOY
+  automatic_spend_authority: false
+  rollback_on_blocking_post_deploy_failure: true
+  production_accepted_after_consecutive_healthy_days: 14
+
+slo:
+  probe_interval_minutes: 15
+  monthly_availability_min: 0.995
+  probe_coverage_min: 0.95
+  daily_pipeline_freshness_hours_max: 36
+  rto_minutes_max: 60
+  rpo_hours_max: 24
+  missing_probe_status: UNKNOWN
+  capacity_policy: CLOUDFLARE_FREE_FIRST_THEN_UPGRADE_PROPOSAL
+
+archive:
+  manifest: INPUT_ARCHIVE_MANIFEST.json
+  repository_root: arxiv-daily-push/docs/archive/taskpacks
+  local_cleanup_policy: DELETE_OWNER_DOWNLOADS_ONLY_AFTER_REMOTE_CLEAN_ROOM_PROOF
+  public_disclosure_record: arxiv-daily-push/docs/archive/taskpacks/PUBLIC_DISCLOSURE_RECORD.md
+  tree_digest_algorithm: sha256_path_nul_sha256_nul_size_lf
+  tree_digest_excludes:
+    - TREE_SHA256.txt

@@ -1,0 +1,8 @@
+{
+  "stage": "S0",
+  "phase": "v1.2 任务包与归档",
+  "task": "ADP-V12-S0-T001",
+  "owner": "ADP 开发线程；独立 verifier 负责裁决",
+  "taskpack": "docs/pursuing_goal/v1_2",
+  "next_task_after_pass": "ADP-V12-S1-T001"
+}

@@ -1,0 +1,145 @@
+schema_version: adp.task_graph.v1
+taskpack_version: 1.2.0
+execution_policy:
+  mode: strict_sequential
+  wip_limit: 1
+  task_per_run_contract: 1
+  progress_source: immutable_run_evidence_and_machine_facts
+
+tasks:
+  - task_id: ADP-V12-S0-T001
+    stage: S0
+    title: 建立 v1.2 权威任务包、历史归档与追溯
+    dependencies: []
+    outputs:
+      - seven_role_taskpack
+      - historical_archives_and_manifest
+      - historical_traceability
+      - dual_plane_and_handoff_routing
+      - remote_recovery_and_cleanup_oracle
+    acceptance_ids:
+      - ACC-V12-S0-001
+      - ACC-V12-S0-002
+      - ACC-V12-S0-003
+      - ACC-V12-S0-004
+      - ACC-V12-S0-005
+      - ACC-V12-S0-006
+    stop_conditions:
+      - real_secret_detected
+      - source_or_archive_identity_conflict
+      - verifier_role_ambiguity
+      - remote_recovery_proof_failed
+
+  - task_id: ADP-V12-S1-T001
+    stage: S1
+    title: Google News 有界 retry/backoff 候选
+    dependencies: [ADP-V12-S0-T001]
+    run_contract: RUN_CONTRACT_01_GOOGLE_NEWS_RETRY.md
+    acceptance_ids:
+      - ACC-V12-S1-001
+      - ACC-V12-S1-002
+      - ACC-V12-S1-003
+      - ACC-V12-S1-004
+      - ACC-V12-S1-005
+    stop_conditions:
+      - worker_cron_or_live_source_switch_required
+      - paid_api_required
+      - external_subrequest_budget_unknown
+
+  - task_id: ADP-V12-S2-T001
+    stage: S2
+    title: stats-gov 可观测诊断与证据支持的最小修复
+    dependencies: [ADP-V12-S1-T001]
+    acceptance_ids:
+      - ACC-V12-S2-001
+      - ACC-V12-S2-002
+      - ACC-V12-S2-003
+    stop_conditions:
+      - diagnosis_not_reproducible
+      - paid_proxy_or_boundary_bypass_required
+
+  - task_id: ADP-V12-S3-T001
+    stage: S3
+    title: Science Advances PubMed E-utilities adapter
+    dependencies: [ADP-V12-S2-T001]
+    acceptance_ids:
+      - ACC-V12-S3-001
+      - ACC-V12-S3-002
+      - ACC-V12-S3-003
+    stop_conditions:
+      - api_key_or_paid_service_required
+      - journal_identity_cannot_be_proven
+
+  - task_id: ADP-V12-S4-T001
+    stage: S4.1
+    title: 中文人话版 fail-closed 闭合
+    dependencies: [ADP-V12-S3-T001]
+    acceptance_ids:
+      - ACC-V12-S4-001
+      - ACC-V12-S4-002
+    stop_conditions:
+      - unsupported_translation_claim
+      - raw_english_presented_as_chinese_explanation
+
+  - task_id: ADP-V12-S4-T002
+    stage: S4.2
+    title: 六主题移动端统一四标签导航
+    dependencies: [ADP-V12-S4-T001]
+    acceptance_ids:
+      - ACC-V12-S4-003
+    stop_conditions:
+      - desktop_navigation_regression
+      - theme_specific_function_loss
+
+  - task_id: ADP-V12-S4-T003
+    stage: S4.3
+    title: 可承重视觉、动效与像素回归门
+    dependencies: [ADP-V12-S4-T002]
+    acceptance_ids:
+      - ACC-V12-S4-004
+      - ACC-V12-S4-005
+      - ACC-V12-S4-006
+    stop_conditions:
+      - visual_negative_control_does_not_block
+      - reduced_motion_breaks_functionality
+
+  - task_id: ADP-V12-S5-T001
+    stage: S5.1
+    title: 对齐 v1.2 版本、构建和 Python 运行时身份
+    dependencies: [ADP-V12-S4-T003]
+    acceptance_ids:
+      - ACC-V12-S5-001
+    stop_conditions:
+      - source_artifact_deployment_mapping_unknown
+      - minimum_python_matrix_unavailable
+
+  - task_id: ADP-V12-S5-T002
+    stage: S5.2
+    title: 建立免费档优先的 7×24 SLO 与恢复门
+    dependencies: [ADP-V12-S5-T001]
+    acceptance_ids:
+      - ACC-V12-S5-002
+      - ACC-V12-S5-003
+      - ACC-V12-S5-004
+    stop_conditions:
+      - free_capacity_cannot_meet_slo
+      - rollback_or_restore_unproven
+      - automatic_paid_spend_required
+
+  - task_id: ADP-V12-S6-T001
+    stage: S6
+    title: 集成 RC、canary、生产部署、回滚与 14 日封账
+    dependencies: [ADP-V12-S5-T002]
+    acceptance_ids:
+      - ACC-V12-S6-001
+      - ACC-V12-S6-002
+      - ACC-V12-S6-003
+      - ACC-V12-S6-004
+      - ACC-V12-S6-005
+      - ACC-V12-S6-006
+    stop_conditions:
+      - any_blocking_gate_not_pass
+      - new_p0_or_p1
+      - unknown_or_missing_probe
+      - rollback_fails
+      - healthy_day_sequence_breaks

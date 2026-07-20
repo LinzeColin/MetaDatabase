@@ -32,6 +32,8 @@
 EEI 已于 2026-07-15 迁入（wave 3，含完整历史与自带 CI `eei-validation`）。
 ADP（`arxiv-daily-push/`）已于 2026-07-20 迁入并纳入 `dual-plane.yml`；
 canonical 交接入口是 `arxiv-daily-push/docs/HANDOFF.md`。
+ADP 当前增量开发合同是 `arxiv-daily-push/docs/pursuing_goal/v1_2/`；它按
+单任务 Run Contract 推进，不覆盖 V7.2 的旧本机运行时兼容边界。
 PFI 仍在 CodexProject 中；迁入前不要在本仓库创建顶层 `PFI` 占位目录或桩代码。
 
 ADP 历史合同仍以仓根相对路径引用 `FINAL_ACCEPTANCE_BUNDLE/`、

@@ -58,5 +58,29 @@
     "name": "S2PMT07 final bundle、Stage 2 integrated acceptance 与 S3 授权门",
     "status": "blocked_persistent_daily_operation_authorization_missing",
     "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-ADP-011",
+    "name": "Google News、stats-gov 与 PubMed 来源救援",
+    "status": "planned",
+    "evidence": "declared"
+  },
+  {
+    "id": "FEAT-ADP-012",
+    "name": "中文人话内容、移动四标签与六主题视觉回归",
+    "status": "planned",
+    "evidence": "declared"
+  },
+  {
+    "id": "FEAT-ADP-013",
+    "name": "免费档优先的可用性、新鲜度、恢复与稳定期观测",
+    "status": "planned",
+    "evidence": "declared"
+  },
+  {
+    "id": "FEAT-ADP-014",
+    "name": "v1.2 七角色任务包、历史归档与强追溯",
+    "status": "in_progress",
+    "evidence": "declared"
   }
 ]

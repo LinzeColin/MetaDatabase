@@ -6,19 +6,21 @@ This project follows the root `AGENTS.md` and `docs/governance/STANDARD.md`.
 
 1. `docs/HANDOFF.md` 是迁入 MetaDatabase 后唯一的当前交接入口，负责仓位、
    live Cloudflare Worker、Owner 决策、当前开发线与下一任务的事实路由。
-2. `machine/facts/` 与自动渲染的 `文档/` 是 MetaDatabase 双平面治理入口；
+2. `docs/pursuing_goal/v1_2/` 是当前 Cloudflare 产品线的增量开发合同；严格按
+   `TASK_GRAPH.yaml`、`ACCEPTANCE_CONTRACT.yaml` 和每轮唯一 Run Contract 执行。
+3. `machine/facts/` 与自动渲染的 `文档/` 是 MetaDatabase 双平面治理入口；
    `CHANGELOG.md` 与 `docs/pursuing_goal/v0_2/evidence/` 保存 Cloudflare V0.2
    生产开发证据。
-3. `docs/v03/` 是一次未接管生产面的本地重构任务包。只有任务显式点名 V0.3 时，
+4. `docs/v03/` 是一次未接管生产面的本地重构任务包。只有任务显式点名 V0.3 时，
    才从 `docs/v03/CONTRACT.md` 开始，并使用 `config/thresholds_v0_3.yaml`；
    它不再是全项目默认活动合同。
-4. `docs/pursuing_goal/v7_2/` 与仓根 `FINAL_ACCEPTANCE_BUNDLE/` 保存旧本机
+5. `docs/pursuing_goal/v7_2/` 与仓根 `FINAL_ACCEPTANCE_BUNDLE/` 保存旧本机
    runner/SMTP 运行时的 fail-closed 兼容合同。它们继续约束相关旧路径与测试，
    但不覆盖 Cloudflare V0.2 生产事实，也不自行授权任何 live 变更。
 
-本轮迁移闭合禁止恢复 CodexProject 中已删除的旧源目录，禁止修改或部署 live
-Worker。任何后续开发必须先在 `docs/HANDOFF.md` 中选择一条明确开发线，再读取该线
-直接点名的最小文件集。
+迁移闭合已经完成。任何后续开发仍禁止恢复 CodexProject 中已删除的旧源目录；必须先在
+`docs/HANDOFF.md` 中选择明确开发线，再读取该线直接点名的最小文件集。v1.2 的部署授权
+仅在其全部阻断门、独立验收、canary 和回滚门 PASS 后生效，不能从任务包存在本身推导。
 
 ## S4 精简执行胶囊
 
