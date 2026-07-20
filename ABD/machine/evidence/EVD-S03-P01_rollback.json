@@ -1,0 +1,42 @@
+{
+  "artifacts": {
+    "forbidden_ui_terms.json": {
+      "corrupted_sha256": "7e51745f9331c2c92b3edc7206700dce6c3b4edc650689fa627db9b23598bf37",
+      "restored_sha256": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f",
+      "signed_sha256": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f",
+      "status": "PASS"
+    },
+    "glossary_zh.json": {
+      "corrupted_sha256": "90c34ada92c3da6191b64ca83a8653e285d5c27b92bd6b80231cacbd53aa087f",
+      "restored_sha256": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "signed_sha256": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "status": "PASS"
+    },
+    "machine/evidence/S02/STAGE_REVIEW/github_delivery_receipt.json": {
+      "corrupted_sha256": "fe2e5322bfb127d717f069ebdac4dcb49c258c4ee22053515019a5ed1ad854e6",
+      "restored_sha256": "80a0a58f98ebea48d7b6ed80d57cef7f1d8410fccb89b25588d74b4a204bc6e4",
+      "signed_sha256": "80a0a58f98ebea48d7b6ed80d57cef7f1d8410fccb89b25588d74b4a204bc6e4",
+      "status": "PASS"
+    },
+    "machine/facts/glossary_zh.json": {
+      "corrupted_sha256": "af774c48b9d55bfad21068658ca7c4f1568ca49b5c079a71ce02f34267ee413a",
+      "restored_sha256": "7cd21db129058a8b14b36cfddf33710d99cb065ae6840dd537689f8a31dffec3",
+      "signed_sha256": "7cd21db129058a8b14b36cfddf33710d99cb065ae6840dd537689f8a31dffec3",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S03_P01.json": {
+      "corrupted_sha256": "34f4eb5deb977a2aaff081dd3dc97d53ecfd05bab9135bca11486dd64ba2580b",
+      "restored_sha256": "db5a58ff94577cd7a352c0094a40bf6d9c6476c7de63b31a0ee82d31d78cf132",
+      "signed_sha256": "db5a58ff94577cd7a352c0094a40bf6d9c6476c7de63b31a0ee82d31d78cf132",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S03-P01",
+  "evidence_id": "EVD-S03-P01-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-20T00:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_TERMINOLOGY_ARTIFACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

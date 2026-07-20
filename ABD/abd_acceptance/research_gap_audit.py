@@ -58,8 +58,8 @@ SUCCESSOR_EVOLVED_SIGNED_INPUT_HASHES: Dict[str, str] = {
     "review_schedule.json": "6987822fa590d31dc10d0f92f787e94098b82fa9a3a40ed328c840aa45f552ea",
     "machine/tests/fixtures/S02_P04.json": "d4404ae17bfeece51574367ce16ac6f8dfe8bf349615dc6bed8fff86af253923",
     "tests/S02/P04_test.py": "daa8d04cf507be5e37d5c381e83b8ea5243172460b26324c0613c2a33fbb50af",
-    "abd_acceptance/__main__.py": "80bb55dc4e833261b08e11cff30c148c83aeb4042bb48f20ca036be8bf27ada9",
-    "abd_acceptance/__init__.py": "e0f97b6bfbe26f568df57d603a37da0a498e23541eef8cbe2d63019e9976464a",
+    "abd_acceptance/__main__.py": "77ed53daf201c59aedd72c9e5d10207997353a5bbd097fa599fd65f9ebb8806a",
+    "abd_acceptance/__init__.py": "969ef9ecfa9c9a05e36167b68da678913439fd7e73ff28bbf92f7fa91a512234",
     "abd_acceptance/official_platform_research.py": "e63aa2ddaa020fc85c139c11c9ec9a4e0cb7e25689e67e72d621fe0ba64fbbb4",
     "abd_acceptance/model_risk_research.py": "7bd44e852d3d95fed70c4f4468ac593b82162a71cc15b8ef91efe74d5d4de94d",
     "abd_acceptance/open_source_reuse.py": "678bd7bfec7afd5a19c540d6d4066610fc96d531375632cd02550b469f24e324",
@@ -68,8 +68,8 @@ SUCCESSOR_EVOLVED_SIGNED_INPUT_HASHES: Dict[str, str] = {
     "tests/S02/P03_test.py": "3e0bd2ec5eb089a09c6c311ecaca8dd757f3ba9a2dd96f3574434630a2d7d8ae",
 }
 STAGE2_REVIEW_EXECUTABLE_HASHES = {
-    "abd_acceptance/stage2_review.py": "eae6721d87f169cd38f9e2877a2a1b5dd0a87d53e04cab86e4f7339e190b7f12",
-    "tests/S02/stage_review_test.py": "22e42b006d006fab592cbb75af57c6e5d574d8850f53bd8e20830feb5c9c380e",
+    "abd_acceptance/stage2_review.py": "1a57f621620ecb171535c3d77c467c308cc713b1578ee9455a433e961ed52325",
+    "tests/S02/stage_review_test.py": "40431438418cb4212c00c3e241b980b4188cd017af2722ffb267670a8aa0f124",
 }
 
 P03_EVIDENCE_SHA256 = "5e920362b7ef4070c4507e8707ab749c0863ad76f76f61c0ecefeae8a2f4626a"

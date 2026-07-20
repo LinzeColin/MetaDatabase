@@ -1,0 +1,2701 @@
+{
+  "artifacts": {
+    "ART-S03-P02-01": "advice_card_schema.json",
+    "ART-S03-P02-02": "advice_card_fixtures.json"
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S03/P02_test.py --junitxml=machine/evidence/S03/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S03/P02/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/P02/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S03-P02 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S03-P02",
+  "decision": "ADVICE_CARD_INFORMATION_CONTRACT_FROZEN",
+  "decision_sha256": "7d3c79863adf97e3bdf19c0e03c52e1b4e7983f494604ab77f36be7b354a087a",
+  "evidence_id": "EVD-S03-P02",
+  "explicit_unknowns": [
+    "S03/P02 freezes a machine schema and deterministic presentation model; no web, mobile, notification or browser interface has been implemented or deployed.",
+    "The structural four-answer scan path is not a human ten-second timing study; human usability, accessibility and device validation remain S03/P04 work.",
+    "S03/P03 full Chinese reason-code and unique-next-action matrix, S03/P04 accessibility work and the S03 whole-stage review have not started.",
+    "All recommendation fixtures are synthetic contract vectors; no market, provider, account, quote, model, stake or order was selected or executed.",
+    "TAB, Gmail, OVH and Cloudflare account, authorization, capacity and runtime states remain uninspected or unauthorized and fail closed.",
+    "The 30% monthly compounding target remains falsifiable, unverified and not guaranteed; target shortfall cannot relax any gate."
+  ],
+  "external_effect_boundary": {
+    "gmail_account_accessed": false,
+    "hosting_or_cdn_account_accessed": false,
+    "human_usability_timing_verified": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_executed": false,
+    "network_accessed": false,
+    "production_deployed": false,
+    "provider_account_accessed": false,
+    "real_order_submitted": false,
+    "return_or_roi_verified": false
+  },
+  "fixed_clock": "2026-07-20T09:00:00+10:00",
+  "hashes": {
+    "code": "0a92aae3fb6801c312aaf453808d71adbba31b8518f9da02aa2ca320dabfdb2e",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "README.md": "fd26fcadf5f72bdd0171d0f2d0121580b0db0bac40cdd8e631c2713d7afb99e6",
+      "abd_acceptance/__init__.py": "18ac37ca70a7cd58e8df2070d2dfb691e6a08c245123c5ecee34d1148ff1a49c",
+      "abd_acceptance/__main__.py": "950689f6b27b6c12005435e92a237c9580dfaeb553ca066c29b1115577aaf574",
+      "abd_acceptance/advice_card.py": "e4b9e565e0ff42839bdccca844886a48256bcf9d6e31cd26c806d2493f7b1d10",
+      "abd_acceptance/terminology_governance.py": "1595d19da46fb2d3849be96f18a150d30829f7bfc5911fdad6a0cd4ba134a061",
+      "advice_card_fixtures.json": "2f9a5f892eebf01dfbdf91e3c14c96ee59005cd801f169460514d8c4e5476eb5",
+      "advice_card_schema.json": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+      "forbidden_ui_terms.json": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f",
+      "glossary_zh.json": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "machine/evidence/EVD-S03-P01.json": "cc128b7e0b3552d7633239971250c357320f7a3edbbb9782ee23e1dc8a922d25",
+      "machine/evidence/EVD-S03-P01_rollback.json": "4ebf1284026f1aacb5c9b37c193b814fd34f586f7befb93742e2b4231db5183e",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S03_P02.json": "26bdaef3a2335204e5acaecb4e7ed8a91959c649c42aed637192e089efc8978d",
+      "tests/S03/P02_test.py": "e99244c5d6c46ee28ea6bb66b3bde3533091c4b255b5407ba273a79b26104ab2",
+      "tests/S03/__init__.py": "b70b870a7ed44aabf3405f88c10073e143f1e245be69d1fe514cac3fe277539f",
+      "tests/__init__.py": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S03/P02 freezes a card schema and deterministic presentation model using synthetic fixtures; it executes no prediction model, provider interaction, deployment, order or return evaluation.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "4d104a9f6167721e3f9d62a1f94bc336155c8405febc0d8b8693299087edf2eb"
+  },
+  "next": "S03/P03_READY_NOT_STARTED",
+  "p01_delivery_prerequisite": {
+    "decision": "S03_P01_EVIDENCE_VERIFIED",
+    "evidence": "machine/evidence/EVD-S03-P01.json",
+    "evidence_sha256": "cc128b7e0b3552d7633239971250c357320f7a3edbbb9782ee23e1dc8a922d25",
+    "fixed_clock": "2026-07-20T00:00:00+10:00",
+    "rollback_sha256": "4ebf1284026f1aacb5c9b37c193b814fd34f586f7befb93742e2b4231db5183e",
+    "status": "PASS"
+  },
+  "phase_id": "P02",
+  "phase_status": "S03_P02_PASS",
+  "release_status": "NOT_READY_S03_P03_P04_AND_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S03-P02",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S03-P02_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S03",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "advice_card_schema.json",
+        "id": "S03P02-SCHEMA-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "advice_card_fixtures.json",
+        "id": "S03P02-FIXTURES-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "S03_P02.json",
+        "id": "S03P02-ORACLE-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "glossary_zh.json",
+        "id": "S03P02-GLOSSARY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "forbidden_ui_terms.json",
+        "id": "S03P02-POLICY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "parameters.json",
+        "id": "S03P02-PARAMETERS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "model_system_card.json",
+        "id": "S03P02-MODEL-CARD-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+          "expected": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097"
+        },
+        "id": "S03P02-HASH-GLOSSARY_ZH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f",
+          "expected": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f"
+        },
+        "id": "S03P02-HASH-FORBIDDEN_UI_TERMS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "cc128b7e0b3552d7633239971250c357320f7a3edbbb9782ee23e1dc8a922d25",
+          "expected": "cc128b7e0b3552d7633239971250c357320f7a3edbbb9782ee23e1dc8a922d25"
+        },
+        "id": "S03P02-HASH-MACHINE-EVIDENCE-EVD-S03-P01-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4ebf1284026f1aacb5c9b37c193b814fd34f586f7befb93742e2b4231db5183e",
+          "expected": "4ebf1284026f1aacb5c9b37c193b814fd34f586f7befb93742e2b4231db5183e"
+        },
+        "id": "S03P02-HASH-MACHINE-EVIDENCE-EVD-S03-P01_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S03P02-HASH-MACHINE-FACTS-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-HASH-MACHINE-FACTS-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S03P02-HASH-MACHINE-FACTS-MODEL_SYSTEM_CARD-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S03P02-HASH-MACHINE-FACTS-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S03P02-HASH-MACHINE-FACTS-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S03P02-HASH-MACHINE-FACTS-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S03P02-HASH-MACHINE-FACTS-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e8857d49127deae4db19f3b7d9c3ef1d7d16b25acb0c5bb82f58168345abccf3",
+          "expected": "e8857d49127deae4db19f3b7d9c3ef1d7d16b25acb0c5bb82f58168345abccf3"
+        },
+        "id": "S03P02-HASH-TESTS-S03-P01_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+          "expected": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a"
+        },
+        "id": "S03P02-HASH-ADVICE_CARD_SCHEMA-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "2f9a5f892eebf01dfbdf91e3c14c96ee59005cd801f169460514d8c4e5476eb5",
+          "expected": "2f9a5f892eebf01dfbdf91e3c14c96ee59005cd801f169460514d8c4e5476eb5"
+        },
+        "id": "S03P02-HASH-ADVICE_CARD_FIXTURES-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "26bdaef3a2335204e5acaecb4e7ed8a91959c649c42aed637192e089efc8978d",
+          "expected": "26bdaef3a2335204e5acaecb4e7ed8a91959c649c42aed637192e089efc8978d"
+        },
+        "id": "S03P02-HASH-MACHINE-TESTS-FIXTURES-S03_P02-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e99244c5d6c46ee28ea6bb66b3bde3533091c4b255b5407ba273a79b26104ab2",
+          "expected": "e99244c5d6c46ee28ea6bb66b3bde3533091c4b255b5407ba273a79b26104ab2"
+        },
+        "id": "S03P02-HASH-TESTS-S03-P02_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f46d8961875428db21bb0862e1443cef83dcbc989f65883a3f0e8fb26b9f91d2",
+          "expected": "f46d8961875428db21bb0862e1443cef83dcbc989f65883a3f0e8fb26b9f91d2"
+        },
+        "id": "S03P02-ORACLE-SELF-INTEGRITY",
+        "passed": true
+      },
+      {
+        "detail": "parameters use exact strings/integers",
+        "id": "S03P02-NO-BINARY-FLOAT-IN-AUTHORITATIVE-FACTS",
+        "passed": true
+      },
+      {
+        "detail": "Draft 2020-12 schema valid",
+        "id": "S03P02-JSON-SCHEMA-META-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed_statuses": [
+            "RECOMMENDATION",
+            "NO_RECOMMENDATION"
+          ],
+          "contract_id": "AC-S03-P02",
+          "daily_card_limit": 1,
+          "non_claims": [
+            "没有实现或部署网页、移动端、推送或浏览器伴随组件。",
+            "没有执行模型、选择真实市场、连接平台账户或提交真实订单。",
+            "没有用结构化扫描代理冒充真人十秒可用性、无障碍或跨设备验收。",
+            "没有验证或保证月度30%滚动复利目标。"
+          ],
+          "phase_id": "P02",
+          "primary_questions": [
+            {
+              "answer_pointer": "/action/selection_zh",
+              "id": "WHAT",
+              "question_zh": "做什么？"
+            },
+            {
+              "answer_pointer": "/action/platform_zh",
+              "id": "WHERE",
+              "question_zh": "在哪做？"
+            },
+            {
+              "answer_pointer": "/action/stake_display_zh",
+              "id": "AMOUNT",
+              "question_zh": "金额是多少？"
+            },
+            {
+              "answer_pointer": "/action/minimum_odds_display_zh",
+              "id": "MINIMUM_ODDS",
+              "question_zh": "最低赔率是多少？"
+            }
+          ],
+          "product_version": "0.0.0.1",
+          "requirement_id": "REQ-S03-P02",
+          "scope_status": "SCHEMA_AND_DETERMINISTIC_PRESENTATION_MODEL_FROZEN_NOT_DEPLOYED",
+          "stage_id": "S03",
+          "ten_second_information_gate": {
+            "claim_boundary_zh": "本门只证明四个答案位于固定首屏行动区，不声称真人已在十秒内完成理解。",
+            "human_timing_validation": "DEFERRED_TO_S03_P04",
+            "maximum_primary_answers": 4,
+            "primary_section": "action",
+            "primary_section_position": 2,
+            "type": "STRUCTURAL_SCAN_PATH_PROXY"
+          },
+          "timezone": "Australia/Sydney"
+        },
+        "id": "S03P02-CONTRACT-IDENTITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed_statuses": [
+            "RECOMMENDATION",
+            "NO_RECOMMENDATION"
+          ],
+          "contract_id": "AC-S03-P02",
+          "daily_card_limit": 1,
+          "non_claims": [
+            "没有实现或部署网页、移动端、推送或浏览器伴随组件。",
+            "没有执行模型、选择真实市场、连接平台账户或提交真实订单。",
+            "没有用结构化扫描代理冒充真人十秒可用性、无障碍或跨设备验收。",
+            "没有验证或保证月度30%滚动复利目标。"
+          ],
+          "phase_id": "P02",
+          "primary_questions": [
+            {
+              "answer_pointer": "/action/selection_zh",
+              "id": "WHAT",
+              "question_zh": "做什么？"
+            },
+            {
+              "answer_pointer": "/action/platform_zh",
+              "id": "WHERE",
+              "question_zh": "在哪做？"
+            },
+            {
+              "answer_pointer": "/action/stake_display_zh",
+              "id": "AMOUNT",
+              "question_zh": "金额是多少？"
+            },
+            {
+              "answer_pointer": "/action/minimum_odds_display_zh",
+              "id": "MINIMUM_ODDS",
+              "question_zh": "最低赔率是多少？"
+            }
+          ],
+          "product_version": "0.0.0.1",
+          "requirement_id": "REQ-S03-P02",
+          "scope_status": "SCHEMA_AND_DETERMINISTIC_PRESENTATION_MODEL_FROZEN_NOT_DEPLOYED",
+          "stage_id": "S03",
+          "ten_second_information_gate": {
+            "claim_boundary_zh": "本门只证明四个答案位于固定首屏行动区，不声称真人已在十秒内完成理解。",
+            "human_timing_validation": "DEFERRED_TO_S03_P04",
+            "maximum_primary_answers": 4,
+            "primary_section": "action",
+            "primary_section_position": 2,
+            "type": "STRUCTURAL_SCAN_PATH_PROXY"
+          },
+          "timezone": "Australia/Sydney"
+        },
+        "id": "S03P02-DAILY-UNIQUE-SYDNEY-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "answer_pointer": "/action/selection_zh",
+            "id": "WHAT",
+            "question_zh": "做什么？"
+          },
+          {
+            "answer_pointer": "/action/platform_zh",
+            "id": "WHERE",
+            "question_zh": "在哪做？"
+          },
+          {
+            "answer_pointer": "/action/stake_display_zh",
+            "id": "AMOUNT",
+            "question_zh": "金额是多少？"
+          },
+          {
+            "answer_pointer": "/action/minimum_odds_display_zh",
+            "id": "MINIMUM_ODDS",
+            "question_zh": "最低赔率是多少？"
+          }
+        ],
+        "id": "S03P02-PRIMARY-QUESTIONS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "claim_boundary_zh": "本门只证明四个答案位于固定首屏行动区，不声称真人已在十秒内完成理解。",
+          "human_timing_validation": "DEFERRED_TO_S03_P04",
+          "maximum_primary_answers": 4,
+          "primary_section": "action",
+          "primary_section_position": 2,
+          "type": "STRUCTURAL_SCAN_PATH_PROXY"
+        },
+        "id": "S03P02-STRUCTURAL-TEN-SECOND-GATE-HONEST",
+        "passed": true
+      },
+      {
+        "detail": [
+          "没有实现或部署网页、移动端、推送或浏览器伴随组件。",
+          "没有执行模型、选择真实市场、连接平台账户或提交真实订单。",
+          "没有用结构化扫描代理冒充真人十秒可用性、无障碍或跨设备验收。",
+          "没有验证或保证月度30%滚动复利目标。"
+        ],
+        "id": "S03P02-NON-CLAIMS-EXPLICIT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "status",
+          "action",
+          "countdown",
+          "reasons",
+          "evidence",
+          "invalidation",
+          "safety"
+        ],
+        "id": "S03P02-DISPLAY-ORDER-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color_is_only_signal": false,
+          "countdown_palette": {
+            "ACTIVE": {
+              "background": "#1F4E79",
+              "foreground": "#FFFFFF",
+              "label_zh": "有效"
+            },
+            "EXPIRED": {
+              "background": "#9B1C1C",
+              "foreground": "#FFFFFF",
+              "label_zh": "已失效"
+            },
+            "EXPIRING": {
+              "background": "#7A3E00",
+              "foreground": "#FFFFFF",
+              "label_zh": "即将失效"
+            }
+          },
+          "required_redundant_signals": [
+            "中文状态文字",
+            "状态符号",
+            "明确行动句"
+          ],
+          "section_labels_zh": {
+            "action": "行动",
+            "countdown": "剩余时间",
+            "evidence": "证据状态",
+            "invalidation": "必须取消的情况",
+            "reasons": "主要理由",
+            "safety": "安全边界",
+            "status": "结论"
+          },
+          "section_order": [
+            "status",
+            "action",
+            "countdown",
+            "reasons",
+            "evidence",
+            "invalidation",
+            "safety"
+          ],
+          "status_palette": {
+            "NO_RECOMMENDATION": {
+              "background": "#9B1C1C",
+              "foreground": "#FFFFFF",
+              "label_zh": "不建议",
+              "symbol": "×"
+            },
+            "RECOMMENDATION": {
+              "background": "#005A3C",
+              "foreground": "#FFFFFF",
+              "label_zh": "建议",
+              "symbol": "✓"
+            }
+          }
+        },
+        "id": "S03P02-COLOR-NOT-SOLE-SIGNAL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "NO_RECOMMENDATION": {
+            "background": "#9B1C1C",
+            "foreground": "#FFFFFF",
+            "label_zh": "不建议",
+            "symbol": "×"
+          },
+          "RECOMMENDATION": {
+            "background": "#005A3C",
+            "foreground": "#FFFFFF",
+            "label_zh": "建议",
+            "symbol": "✓"
+          }
+        },
+        "id": "S03P02-STATUS-PALETTE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ACTIVE": {
+            "background": "#1F4E79",
+            "foreground": "#FFFFFF",
+            "label_zh": "有效"
+          },
+          "EXPIRED": {
+            "background": "#9B1C1C",
+            "foreground": "#FFFFFF",
+            "label_zh": "已失效"
+          },
+          "EXPIRING": {
+            "background": "#7A3E00",
+            "foreground": "#FFFFFF",
+            "label_zh": "即将失效"
+          }
+        },
+        "id": "S03P02-COUNTDOWN-PALETTE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": "4.5",
+          "ratio": "8.308"
+        },
+        "id": "S03P02-CONTRAST-STATUS_PALETTE-RECOMMENDATION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": "4.5",
+          "ratio": "8.150"
+        },
+        "id": "S03P02-CONTRAST-STATUS_PALETTE-NO_RECOMMENDATION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": "4.5",
+          "ratio": "8.663"
+        },
+        "id": "S03P02-CONTRAST-COUNTDOWN_PALETTE-ACTIVE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": "4.5",
+          "ratio": "8.345"
+        },
+        "id": "S03P02-CONTRAST-COUNTDOWN_PALETTE-EXPIRING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "minimum": "4.5",
+          "ratio": "8.150"
+        },
+        "id": "S03P02-CONTRAST-COUNTDOWN_PALETTE-EXPIRED",
+        "passed": true
+      },
+      {
+        "detail": false,
+        "id": "S03P02-ROOT-ADDITIONAL-PROPERTIES-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "schema_version",
+          "card_id",
+          "sydney_date",
+          "timezone",
+          "generated_at",
+          "status",
+          "status_label_zh",
+          "status_symbol",
+          "status_color",
+          "headline_zh",
+          "summary_zh",
+          "display_order",
+          "action",
+          "countdown",
+          "reasons",
+          "evidence",
+          "invalidation",
+          "safety",
+          "provenance"
+        ],
+        "id": "S03P02-ROOT-FIELDS-FROZEN",
+        "passed": true
+      },
+      {
+        "detail": [
+          "当前赔率低于最低可接受赔率",
+          "赛事、盘口、选择或结算规则与卡片不一致",
+          "倒计时结束或报价过期",
+          "证据、来源、模型、稳定性或风险门不再通过",
+          "平台页面无法核对或动作通道不明确"
+        ],
+        "id": "S03P02-INVALIDATION-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "identity_passed",
+          "quote_fresh",
+          "evidence_gate_passed",
+          "risk_gate_passed",
+          "stability_gate_passed",
+          "action_channel_verified",
+          "provider_contract_passed"
+        ],
+        "id": "S03P02-GATES-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "-0.0001",
+          "0",
+          "0.0001"
+        ],
+        "id": "S03P02-DELTA-REPRESENTATIONS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "baseline": "未实现或旧包存在冲突/缺口",
+          "id": "REQ-S03-P02",
+          "measurement": "由 AC-S03-P02 的机器验收判定器执行固定输入、阈值和证据检查。",
+          "non_goals": [
+            "不自动提交、确认或重试真实订单",
+            "不以降低证据或风险门追赶30%月目标",
+            "不引入付费数据或付费程序接口依赖"
+          ],
+          "observation_period": "开发期每次提交；上线后持续",
+          "owner_input_required_during_development": false,
+          "phase_id": "P02",
+          "primary_acceptance_criteria_id": "AC-S03-P02",
+          "priority": "P1",
+          "problem": "若未完成“唯一建议卡”，让用户无需查术语或文档即可操作，机器内部英文不泄漏到日常界面。将缺少可执行、可验收或可恢复的基础。",
+          "scope": [
+            "advice_card_schema.json",
+            "advice_card_fixtures.json"
+          ],
+          "stage_id": "S03",
+          "target": "用户10秒内知道做什么、在哪做、金额和最低赔率。",
+          "title": "唯一建议卡",
+          "user": "单一账户持有人及自动开发/运维代理",
+          "value": "冻结建议卡字段、顺序、颜色、倒计时、理由和失效条件。"
+        },
+        "id": "S03P02-TASKPACK-REQUIREMENT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "environment": [
+            "Ubuntu Linux 持续集成环境",
+            "固定时钟",
+            "冻结测试夹具",
+            "无外部网络的确定性测试模式",
+            "生产等价配置Schema"
+          ],
+          "evidence_requirements": [
+            "machine/evidence/EVD-S03-P02.json",
+            "测试报告及命令退出码",
+            "输入、参数、代码、模型和输出SHA-256",
+            "失败路径截图或结构化日志",
+            "回滚演练记录"
+          ],
+          "id": "AC-S03-P02",
+          "inputs": [
+            "REQ-S03-P02 对应机器事实",
+            "S03/P02 冻结正向、边界、负向和故障输入",
+            "参数版本和来源版本哈希"
+          ],
+          "oracle": {
+            "command": "python -m abd_acceptance --contract AC-S03-P02 --evidence machine/evidence",
+            "rule": "用户10秒内知道做什么、在哪做、金额和最低赔率。",
+            "type": "EXECUTABLE"
+          },
+          "pass_gate": "用户10秒内知道做什么、在哪做、金额和最低赔率。",
+          "requirement_id": "REQ-S03-P02",
+          "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_condition": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "tests": [
+            {
+              "id": "TEST-S03-P02",
+              "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+            },
+            {
+              "id": "TEST-S03-P02-BOUNDARY",
+              "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+            },
+            {
+              "id": "TEST-S03-P02-REPLAY",
+              "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+            }
+          ],
+          "threshold": "用户10秒内知道做什么、在哪做、金额和最低赔率。",
+          "title": "唯一建议卡唯一主验收"
+        },
+        "id": "S03P02-TASKPACK-ACCEPTANCE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S03-P02-01",
+          "T-S03-P02-02",
+          "T-S03-P02-03"
+        ],
+        "id": "S03P02-TASKPACK-TASK-GRAPH-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_criteria_id": "AC-S03-P02",
+            "artifact_ids": [
+              "ART-S03-P02-01",
+              "ART-S03-P02-02"
+            ],
+            "evidence_id": "EVD-S03-P02",
+            "phase_id": "P02",
+            "requirement_id": "REQ-S03-P02",
+            "stage_id": "S03",
+            "task_ids": [
+              "T-S03-P02-01",
+              "T-S03-P02-02",
+              "T-S03-P02-03"
+            ],
+            "test_ids": [
+              "TEST-S03-P02",
+              "TEST-S03-P02-BOUNDARY",
+              "TEST-S03-P02-REPLAY"
+            ]
+          }
+        ],
+        "id": "S03P02-TASKPACK-TRACEABILITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "next": "S03/P02_READY_NOT_STARTED",
+          "status": "PASS",
+          "summary": {
+            "checks": 13,
+            "failed": 0,
+            "failed_check_ids": [],
+            "passed": 13
+          }
+        },
+        "id": "S03P02-P01-DELIVERY-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-b97f135de3e0",
+        "id": "S03P02-BASE-RECOMMENDATION-VALID",
+        "passed": true
+      },
+      {
+        "detail": "RECOMMENDATION",
+        "id": "S03P02-BASE-RECOMMENDATION-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "amount_zh": "A$4.50",
+          "minimum_odds_zh": "最低可接受赔率2.050000",
+          "what_zh": "演示甲队 对 演示乙队｜全场胜负｜演示甲队获胜",
+          "where_zh": "演示平台"
+        },
+        "id": "S03P02-BASE-FOUR-ANSWERS-EXTRACTABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "202bdec94eef35f99da25ff64ec78e0b4ae5903aae1e1bb4ea222bf6b2d84a82",
+          "input_sha256": "b97f135de3e052e094c911f68e772e5d8fc8e9c08ac1a7b788a4ce2217f9f747",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BASE-DETERMINISTIC-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BASE-OWNER-ONLY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BASE-NO-RETURN-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": "结论\n建议\n今天有一个建议\n先核对平台、选择、金额和最低赔率，再由你自行决定是否下单。\n行动\n演示平台\n演示甲队 对 演示乙队\n全场胜负\n演示甲队获胜\nA$4.50\n当前赔率2.100000\n最低可接受赔率2.050000\n请在指定平台页面核对赛事、盘口、选择、赔率和倒计时；全部一致后，由你自行决定是否完成最终下单。\n剩余时间\n剩余4分钟\n主要理由\n保守价值门通过\n冻结演示输入在全部上游门通过后仍满足最低赔率边界。\n风险门通过\n金额仅用于确定性合同测试，不代表真实市场建议或已批准资金动作。\n证据状态\n证据已通过\n必须取消的情况\n当前赔率低于最低可接受赔率\n赛事、盘口、选择或结算规则与卡片不一致\n倒计时结束或报价过期\n证据、来源、模型、稳定性或风险门不再通过\n平台页面无法核对或动作通道不明确\n任一条件出现立即作废并停止下单。\n安全边界\n系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+        "id": "S03P02-BASE-CHINESE-UI-GATE",
+        "passed": true
+      },
+      {
+        "detail": "2026-07-20",
+        "id": "S03P02-BASE-ONE-CARD-PER-DATE",
+        "passed": true
+      },
+      {
+        "detail": "duplicate rejected",
+        "id": "S03P02-DUPLICATE-DAILY-CARD-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-143373dd8f88",
+        "id": "S03P02-BASE-NO-RECOMMENDATION-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-BASE-NO-RECOMMENDATION-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "amount_zh": "A$0.00",
+          "minimum_odds_zh": "不适用",
+          "what_zh": "不下单",
+          "where_zh": "无需前往平台"
+        },
+        "id": "S03P02-BASE-NO-RECOMMENDATION-FOUR-ANSWERS",
+        "passed": true
+      },
+      {
+        "detail": "RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-ODDS-AT-MINIMUM-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#1F4E79",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "剩余4分钟",
+          "expires_at": "2026-07-20T09:04:00+10:00",
+          "seconds_remaining": 240,
+          "state": "ACTIVE"
+        },
+        "id": "S03P02-BOUNDARY-ODDS-AT-MINIMUM-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-4a540b3c41e9",
+        "id": "S03P02-BOUNDARY-ODDS-AT-MINIMUM-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "573ad52e14c182e8243eee3d92c6d0b30ae40576706e629285caed04c6f42a81",
+          "input_sha256": "4a540b3c41e96906530ea59c126a51c87832490d0bce350a53ed1ed7412a4a2a",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-ODDS-AT-MINIMUM-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-ODDS-AT-MINIMUM-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-ODDS-ONE-TICK-BELOW-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#1F4E79",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "剩余4分钟",
+          "expires_at": "2026-07-20T09:04:00+10:00",
+          "seconds_remaining": 240,
+          "state": "ACTIVE"
+        },
+        "id": "S03P02-BOUNDARY-ODDS-ONE-TICK-BELOW-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-e4cedab57438",
+        "id": "S03P02-BOUNDARY-ODDS-ONE-TICK-BELOW-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "b7a7dcb53dc7e14e5960cccbb8e756b7f51c320526111ccbc2ef3c3793b954d0",
+          "input_sha256": "e4cedab5743862fbe8d9eeffa575b572bad651316d1deebfebb94d8f6bedaeb9",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-ODDS-ONE-TICK-BELOW-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-ODDS-ONE-TICK-BELOW-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-DELTA-MINUS-STABLE-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#1F4E79",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "剩余4分钟",
+          "expires_at": "2026-07-20T09:04:00+10:00",
+          "seconds_remaining": 240,
+          "state": "ACTIVE"
+        },
+        "id": "S03P02-BOUNDARY-DELTA-MINUS-STABLE-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-0717153ea1f9",
+        "id": "S03P02-BOUNDARY-DELTA-MINUS-STABLE-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "7f91605f50461af8efc5c1569fb76f69ade4e07b6d559eb55ca06a84bcf75e91",
+          "input_sha256": "0717153ea1f98cd20238d42ec36c8815f4186ca15b4c12ab8ddadb44e0ca9e65",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-DELTA-MINUS-STABLE-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-DELTA-MINUS-STABLE-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-DELTA-ZERO-STABLE-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#1F4E79",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "剩余4分钟",
+          "expires_at": "2026-07-20T09:04:00+10:00",
+          "seconds_remaining": 240,
+          "state": "ACTIVE"
+        },
+        "id": "S03P02-BOUNDARY-DELTA-ZERO-STABLE-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-fd02f0379775",
+        "id": "S03P02-BOUNDARY-DELTA-ZERO-STABLE-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "c23a1be3837157b3ec27bb1632a49e9aa1618eb4ea14b51914fe0b9d228c7145",
+          "input_sha256": "fd02f037977587f3901bee8b8a566eede30d764927504d41b33d595242f9142d",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-DELTA-ZERO-STABLE-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-DELTA-ZERO-STABLE-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-DELTA-PLUS-STABLE-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#1F4E79",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "剩余4分钟",
+          "expires_at": "2026-07-20T09:04:00+10:00",
+          "seconds_remaining": 240,
+          "state": "ACTIVE"
+        },
+        "id": "S03P02-BOUNDARY-DELTA-PLUS-STABLE-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-e9cb46b248ba",
+        "id": "S03P02-BOUNDARY-DELTA-PLUS-STABLE-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "f36a5dd9c1aabef8a8a9558d6d1fab76f2a9322d999ff9a0b6751b5ffb7298c3",
+          "input_sha256": "e9cb46b248ba0c48fdb57b562ab17da8b18c3db798f12bf369712e2afda856b8",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-DELTA-PLUS-STABLE-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-DELTA-PLUS-STABLE-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-DELTA-MINUS-FLIP-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#1F4E79",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "剩余4分钟",
+          "expires_at": "2026-07-20T09:04:00+10:00",
+          "seconds_remaining": 240,
+          "state": "ACTIVE"
+        },
+        "id": "S03P02-BOUNDARY-DELTA-MINUS-FLIP-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-11b224d69281",
+        "id": "S03P02-BOUNDARY-DELTA-MINUS-FLIP-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "33539b53db994d3a6c85da7660f7855f357b978cf4244e358962f24b814c6593",
+          "input_sha256": "11b224d692813a4fae86d5019a39e97eb92c56c485a6cc169756974518522a4f",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-DELTA-MINUS-FLIP-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-DELTA-MINUS-FLIP-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-DELTA-PLUS-FLIP-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#1F4E79",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "剩余4分钟",
+          "expires_at": "2026-07-20T09:04:00+10:00",
+          "seconds_remaining": 240,
+          "state": "ACTIVE"
+        },
+        "id": "S03P02-BOUNDARY-DELTA-PLUS-FLIP-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-3d2e7cb2cd31",
+        "id": "S03P02-BOUNDARY-DELTA-PLUS-FLIP-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "1d62fd809aae30ae064c1f7e2da6f9f032a22ae8b0dac30a8eaeec73b6cf8b0e",
+          "input_sha256": "3d2e7cb2cd31a2cb4ad85c71f334ea571c4a2b9b1348a7cbab25e6b5af775dd7",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-DELTA-PLUS-FLIP-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-DELTA-PLUS-FLIP-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-ADVERSE-ODDS-TICK-FLIP-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#1F4E79",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "剩余4分钟",
+          "expires_at": "2026-07-20T09:04:00+10:00",
+          "seconds_remaining": 240,
+          "state": "ACTIVE"
+        },
+        "id": "S03P02-BOUNDARY-ADVERSE-ODDS-TICK-FLIP-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-d9435a6ee062",
+        "id": "S03P02-BOUNDARY-ADVERSE-ODDS-TICK-FLIP-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "544a8e96b5fab67ef41624ea5c9cddf6695263d0ad8e18f7aac9d61d13cca7a2",
+          "input_sha256": "d9435a6ee0620000f56e8eda7dc482d9a4ed5be133ce86252d08e3c7da61dace",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-ADVERSE-ODDS-TICK-FLIP-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-ADVERSE-ODDS-TICK-FLIP-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-COUNTDOWN-SIXTY-SECONDS-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#7A3E00",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "剩余60秒",
+          "expires_at": "2026-07-20T09:01:00+10:00",
+          "seconds_remaining": 60,
+          "state": "EXPIRING"
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-SIXTY-SECONDS-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-3ef0c9e02d5b",
+        "id": "S03P02-BOUNDARY-COUNTDOWN-SIXTY-SECONDS-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "859b0a68b689c4da15e22674ab84b88274096ceaea240ff8959876af9255ac67",
+          "input_sha256": "3ef0c9e02d5b1cd0314f19b7bcde5ed2bb9715e60f21aa642d166ed1653756df",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-SIXTY-SECONDS-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-SIXTY-SECONDS-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-COUNTDOWN-ONE-SECOND-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#7A3E00",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "剩余1秒",
+          "expires_at": "2026-07-20T09:00:01+10:00",
+          "seconds_remaining": 1,
+          "state": "EXPIRING"
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-ONE-SECOND-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-87dd4ef716d1",
+        "id": "S03P02-BOUNDARY-COUNTDOWN-ONE-SECOND-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "3d2fabdc48e8f285f1cdc905f7d98ad3bd4133505b3eedcda5519e2c2da1c593",
+          "input_sha256": "87dd4ef716d12b6de3657b856751aa6188952177bf9901441d4d79d79b6b3e18",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-ONE-SECOND-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-ONE-SECOND-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-COUNTDOWN-EXACTLY-EXPIRED-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#9B1C1C",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "已失效，请勿下单",
+          "expires_at": "2026-07-20T09:00:00+10:00",
+          "seconds_remaining": 0,
+          "state": "EXPIRED"
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-EXACTLY-EXPIRED-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-763d9e027171",
+        "id": "S03P02-BOUNDARY-COUNTDOWN-EXACTLY-EXPIRED-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "9fd4262924f6e0fc02700f8ff7b23b22524e59e19c6929dd5fca8279e8f813cb",
+          "input_sha256": "763d9e027171afb7edf96c052327e98224aa9fefae14b1eae237d5cf24344d89",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-EXACTLY-EXPIRED-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-EXACTLY-EXPIRED-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-BOUNDARY-COUNTDOWN-PAST-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "color": {
+            "background": "#9B1C1C",
+            "foreground": "#FFFFFF"
+          },
+          "display_zh": "已失效，请勿下单",
+          "expires_at": "2026-07-20T08:59:59+10:00",
+          "seconds_remaining": 0,
+          "state": "EXPIRED"
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-PAST-COUNTDOWN",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-50fd4f1027b4",
+        "id": "S03P02-BOUNDARY-COUNTDOWN-PAST-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifact_sha256": "0b5b1f2e3813e31684c5304e65929f89b547b9f10c41b3dcc779c5a449b74522",
+          "input_sha256": "50fd4f1027b44cbe770d7dc8336778121738ea696f96ebfa37f20a659f49bee6",
+          "model_sha256": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "parameters_sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-PAST-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "auto_order_enabled": false,
+          "boundary_zh": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。",
+          "guaranteed_return": false,
+          "owner_final_action_required": true,
+          "target_shortfall_may_relax_gate": false
+        },
+        "id": "S03P02-BOUNDARY-COUNTDOWN-PAST-NO-AUTO-ORDER",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-GATE-IDENTITY-FAIL-DOWNGRADES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-GATE-IDENTITY-FAIL-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-747d4f66a83c",
+        "id": "S03P02-GATE-IDENTITY-FAIL-VALID",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-GATE-QUOTE-STALE-DOWNGRADES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-GATE-QUOTE-STALE-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-a6ab99916f36",
+        "id": "S03P02-GATE-QUOTE-STALE-VALID",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-GATE-EVIDENCE-FAIL-DOWNGRADES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-GATE-EVIDENCE-FAIL-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-5ccb14a8a615",
+        "id": "S03P02-GATE-EVIDENCE-FAIL-VALID",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-GATE-RISK-FAIL-DOWNGRADES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-GATE-RISK-FAIL-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-cbc8c822a69e",
+        "id": "S03P02-GATE-RISK-FAIL-VALID",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-GATE-STABILITY-FAIL-DOWNGRADES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-GATE-STABILITY-FAIL-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-8d7b9e3eef5b",
+        "id": "S03P02-GATE-STABILITY-FAIL-VALID",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-GATE-ACTION-CHANNEL-FAIL-DOWNGRADES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-GATE-ACTION-CHANNEL-FAIL-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-52f78fb130dd",
+        "id": "S03P02-GATE-ACTION-CHANNEL-FAIL-VALID",
+        "passed": true
+      },
+      {
+        "detail": "NO_RECOMMENDATION",
+        "id": "S03P02-GATE-PROVIDER-CONTRACT-FAIL-DOWNGRADES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-GATE-PROVIDER-CONTRACT-FAIL-NO-ACTION",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-d7436a3ad4e4",
+        "id": "S03P02-GATE-PROVIDER-CONTRACT-FAIL-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: platform_zh must be a non-empty Chinese user-visible string",
+        "id": "S03P02-MALFORMED-MISSING-PLATFORM-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-MISSING-PLATFORM-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-6a2156404b1b",
+        "id": "S03P02-MALFORMED-MISSING-PLATFORM-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: platform_zh must be a non-empty Chinese user-visible string",
+        "id": "S03P02-MALFORMED-MULTIPLE-PLATFORMS-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-MULTIPLE-PLATFORMS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-4b09f3d89918",
+        "id": "S03P02-MALFORMED-MULTIPLE-PLATFORMS-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: recommendation stake_cents must be a positive integer",
+        "id": "S03P02-MALFORMED-NEGATIVE-STAKE-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-NEGATIVE-STAKE-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-724bdc01f6f1",
+        "id": "S03P02-MALFORMED-NEGATIVE-STAKE-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: recommendation stake_cents must be a positive integer",
+        "id": "S03P02-MALFORMED-FLOAT-STAKE-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-FLOAT-STAKE-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-1fab9486a7a2",
+        "id": "S03P02-MALFORMED-FLOAT-STAKE-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: observed_odds_decimal must be a six-decimal string",
+        "id": "S03P02-MALFORMED-SCIENTIFIC-ODDS-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-SCIENTIFIC-ODDS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-b643faf34b34",
+        "id": "S03P02-MALFORMED-SCIENTIFIC-ODDS-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: observed_odds_decimal must be a six-decimal string",
+        "id": "S03P02-MALFORMED-NAN-ODDS-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-NAN-ODDS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-560188e284b2",
+        "id": "S03P02-MALFORMED-NAN-ODDS-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: observed_odds_decimal must be a six-decimal string",
+        "id": "S03P02-MALFORMED-FLOAT-ODDS-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-FLOAT-ODDS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-2215b8d9fc12",
+        "id": "S03P02-MALFORMED-FLOAT-ODDS-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: candidate_status is not closed",
+        "id": "S03P02-MALFORMED-UNKNOWN-STATUS-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-UNKNOWN-STATUS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-428fe077fd06",
+        "id": "S03P02-MALFORMED-UNKNOWN-STATUS-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: numeric_boundary_delta must use -0.0001, 0 or 0.0001",
+        "id": "S03P02-MALFORMED-UNKNOWN-DELTA-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-UNKNOWN-DELTA-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-7b1913427b27",
+        "id": "S03P02-MALFORMED-UNKNOWN-DELTA-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: expires_at must be an explicit Australia/Sydney offset timestamp",
+        "id": "S03P02-MALFORMED-INVALID-TIMESTAMP-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-INVALID-TIMESTAMP-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-d34b83158136",
+        "id": "S03P02-MALFORMED-INVALID-TIMESTAMP-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: selection_zh must be a non-empty Chinese user-visible string",
+        "id": "S03P02-MALFORMED-RAW-MACHINE-UI-TEXT-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-RAW-MACHINE-UI-TEXT-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-e0bd9a7e7d6a",
+        "id": "S03P02-MALFORMED-RAW-MACHINE-UI-TEXT-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": "CardContractError: reasons must contain one to three rows",
+        "id": "S03P02-MALFORMED-EMPTY-REASONS-STRICT-REJECT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action_type": "NO_ACTION",
+          "event_zh": null,
+          "market_zh": null,
+          "minimum_odds_decimal": null,
+          "minimum_odds_display_zh": "不适用",
+          "observed_odds_decimal": null,
+          "observed_odds_display_zh": "不适用",
+          "platform_zh": null,
+          "selection_zh": null,
+          "stake_cents": 0,
+          "stake_display_zh": "A$0.00",
+          "user_instruction_zh": "无需下单；等待下一次自动更新。"
+        },
+        "id": "S03P02-MALFORMED-EMPTY-REASONS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "CARD-2026-07-20-9d9260c18618",
+        "id": "S03P02-MALFORMED-EMPTY-REASONS-SAFE-CARD-VALID",
+        "passed": true
+      },
+      {
+        "detail": [
+          "safety/auto_order_enabled: False was expected",
+          "owner-only final action boundary is broken",
+          "artifact hash does not bind the rendered card"
+        ],
+        "id": "S03P02-RENDERED-MUTATION-AUTO-ORDER-TRUE-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "safety/guaranteed_return: False was expected",
+          "return or target safety boundary is broken",
+          "artifact hash does not bind the rendered card"
+        ],
+        "id": "S03P02-RENDERED-MUTATION-GUARANTEED-RETURN-TRUE-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "safety/target_shortfall_may_relax_gate: False was expected",
+          "return or target safety boundary is broken",
+          "artifact hash does not bind the rendered card"
+        ],
+        "id": "S03P02-RENDERED-MUTATION-RELAX-GATE-TRUE-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "display_order: ['status', 'action', 'countdown', 'reasons', 'evidence', 'invalidation', 'safety'] was expected",
+          "display_order does not match the frozen scan path",
+          "artifact hash does not bind the rendered card"
+        ],
+        "id": "S03P02-RENDERED-MUTATION-WRONG-FIELD-ORDER-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "action/platform_zh: ['演示平台甲', '演示平台乙'] is not of type 'string', 'null'",
+          "action/platform_zh: ['演示平台甲', '演示平台乙'] is not of type 'string'",
+          "artifact hash does not bind the rendered card"
+        ],
+        "id": "S03P02-RENDERED-MUTATION-SECOND-PLATFORM-AS-LIST-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "action/minimum_odds_display_zh: '' is too short",
+          "artifact hash does not bind the rendered card",
+          "the four primary answers are not directly extractable"
+        ],
+        "id": "S03P02-RENDERED-MUTATION-MINIMUM-ODDS-HIDDEN-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "status: 'NO_RECOMMENDATION' was expected",
+          "countdown is not derived from the frozen timestamps",
+          "artifact hash does not bind the rendered card"
+        ],
+        "id": "S03P02-RENDERED-MUTATION-EXPIRED-STILL-RECOMMENDS-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "artifact hash does not bind the rendered card",
+          "visible text violates the Chinese terminology gate: [{'reason_code': 'UI_TERM_MACHINE_ONLY', 'token': 'API', 'term_id': 'TERM-API', 'replacement_zh': '程序接口'}, {'reason_code': 'UI_TERM_UNREGISTERED_RAW_TOKEN', 'token': 'PICK', 'term_id': None, 'replacement_zh': None}, {'reason_code': 'UI_TERM_UNREGISTERED_RAW_TOKEN', 'token': 'READY', 'term_id': None, 'replacement_zh': None}]"
+        ],
+        "id": "S03P02-RENDERED-MUTATION-RAW-UI-TOKEN-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "artifact hash does not bind the rendered card"
+        ],
+        "id": "S03P02-RENDERED-MUTATION-ARTIFACT-HASH-TAMPER-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S03P02-SUCCESSOR-ARTIFACTS-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_contract_id": "AC-S03-P03",
+            "expected_artifact": "machine/evidence/EVD-S03-P03.json",
+            "id": "INDEX-AC-S03-P03",
+            "kind": "ACCEPTANCE_EVIDENCE",
+            "pass_gate": "每个失败状态只有一个明确下一步。",
+            "requirement_id": "REQ-S03-P03",
+            "status": "PLANNED"
+          }
+        ],
+        "id": "S03P02-SUCCESSOR-INDEX-PLANNED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 235
+        },
+        "id": "S03P02-TARGETED-JUNIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 2554
+        },
+        "id": "S03P02-FULL-JUNIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": [
+            {
+              "detail": [
+                "00_我在哪.md",
+                "01_产品需求.md",
+                "02_系统架构.md",
+                "03_口径字典.md",
+                "04_操作流程.md",
+                "05_执行与验收.md",
+                "06_运维手册.md"
+              ],
+              "name": "HUMAN-001 恰好7份人类文档",
+              "passed": true
+            },
+            {
+              "detail": "all match",
+              "name": "HUMAN-002 文档与机器真源完全一致",
+              "passed": true
+            },
+            {
+              "detail": "none",
+              "name": "HUMAN-003 人类文档无未解释TTL",
+              "passed": true
+            },
+            {
+              "detail": "0.0.0.1",
+              "name": "FACT-001 精确版本",
+              "passed": true
+            },
+            {
+              "detail": {
+                "discovery_scope": "ALL_OBSERVABLE_MARKETS",
+                "free_data_api_required": false,
+                "market_time_scope": [
+                  "PREMATCH",
+                  "FUTURES",
+                  "LIVE_WHEN_SOURCE_FRESHNESS_AND_ACTION_CHANNEL_ARE_VERIFIED"
+                ],
+                "normal_owner_action": "FINAL_ORDER_ONLY",
+                "order_submission_module_present": false,
+                "paid_data_api_required": false,
+                "product_role": "ANALYSIS_AND_ADVICE_ONLY",
+                "providers": "DYNAMIC_SELECTION_BY_EXECUTABLE_VALUE_AND_RULES",
+                "recommendation_scope": "EVIDENCE_GATED"
+              },
+              "name": "FACT-002 产品只分析建议",
+              "passed": true
+            },
+            {
+              "detail": "B_n = 300 * (1.3 ** n)",
+              "name": "FACT-003 月目标30%",
+              "passed": true
+            },
+            {
+              "detail": "300.00",
+              "name": "FACT-004 初始资金A$300",
+              "passed": true
+            },
+            {
+              "detail": {
+                "high": "0.00",
+                "likely": "0.00",
+                "low": "0.00"
+              },
+              "name": "FACT-005 新增现金预算A$0",
+              "passed": true
+            },
+            {
+              "detail": {
+                "availability_slo": "0.995",
+                "deployment": "SAME_HOST_BLUE_GREEN_WITH_CANARY_AND_AUTO_ROLLBACK",
+                "llm_in_money_critical_path": false,
+                "operator_clients": [
+                  "手机浏览器",
+                  "电脑浏览器"
+                ],
+                "primary": "OVH_SINGAPORE_VPS1_24X7",
+                "remote_access": "CLOUDFLARE_ACCESS_AND_NAMED_TUNNEL",
+                "single_host_zero_downtime_guaranteed": false
+              },
+              "name": "FACT-006 OVH和Cloudflare",
+              "passed": true
+            },
+            {
+              "detail": 1800,
+              "name": "FACT-007 >24小时每30分钟",
+              "passed": true
+            },
+            {
+              "detail": "FINAL_ORDER_ONLY",
+              "name": "FACT-008 用户只做最终下单",
+              "passed": true
+            },
+            {
+              "detail": 900,
+              "name": "MAIL-001 每15分钟确定性收集",
+              "passed": true
+            },
+            {
+              "detail": "06:00 Australia/Sydney",
+              "name": "MAIL-002 Codex每日审计",
+              "passed": true
+            },
+            {
+              "detail": "MOVE_TO_GMAIL_TRASH_AFTER_TWO_PHASE_VERIFICATION",
+              "name": "MAIL-003 两阶段后移入垃圾箱",
+              "passed": true
+            },
+            {
+              "detail": false,
+              "name": "MAIL-004 无永久删除",
+              "passed": true
+            },
+            {
+              "detail": {
+                "all_required": true,
+                "conditions": [
+                  "raw_eml_saved",
+                  "all_attachments_saved",
+                  "hash_manifest_committed",
+                  "malware_scan_passed",
+                  "parser_result_recorded",
+                  "local_restore_readback_passed"
+                ],
+                "failed_authentication": "KEEP_AND_ALERT",
+                "failed_scan": "KEEP_AND_QUARANTINE",
+                "permanent_delete": false,
+                "unknown_sender": "KEEP"
+              },
+              "name": "MAIL-005 未知/失败不删除",
+              "passed": true
+            },
+            {
+              "detail": {
+                "codex_role": "DAILY_AUDIT_GAP_DETECTION_AND_REPAIR",
+                "content_is_untrusted_data": true,
+                "delete_semantics": "MOVE_TO_GMAIL_TRASH_AFTER_TWO_PHASE_VERIFICATION",
+                "failed_verification_policy": "KEEP_EMAIL_AND_ALERT",
+                "gmail_scope_required": "gmail.modify",
+                "malware_scan": true,
+                "one_time_consent_blocks_core_product": false,
+                "one_time_human_consent_required": true,
+                "permanent_delete": false,
+                "primary_executor": "DETERMINISTIC_OVH_GMAIL_COLLECTOR",
+                "purpose": "自动保存 TAB 等已验证来源发来的账单、交易记录、确认邮件及附件，形成可审计证据。",
+                "save_attachments": true,
+                "save_raw_eml": true,
+                "unknown_sender_policy": "QUARANTINE_AND_DO_NOT_TRASH"
+              },
+              "name": "MAIL-006 首次授权不阻塞核心",
+              "passed": true
+            },
+            {
+              "detail": {
+                "action_must_match_across_implementations": true,
+                "authoritative_decimal_precision_digits": 50,
+                "binary_float_for_authoritative_decision": false,
+                "boundary_perturbation_absolute_probability": "0.0001",
+                "boundary_perturbation_absolute_threshold": "0.0001",
+                "boundary_perturbation_friction_up": "0.0001",
+                "boundary_perturbation_time_adverse_seconds": 2,
+                "friction_rounding": "UP",
+                "independent_implementation_absolute_tolerance": "1e-12",
+                "money_storage": "INTEGER_CENTS",
+                "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+                "odds_rounding": "DOWN",
+                "odds_storage_scale": "1e-6",
+                "probability_rounding": "DOWN",
+                "probability_storage_scale": "1e-9",
+                "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+                "unstable_action": "NO_RECOMMENDATION"
+              },
+              "name": "NUM-001 权威50位十进制",
+              "passed": true
+            },
+            {
+              "detail": {
+                "action_must_match_across_implementations": true,
+                "authoritative_decimal_precision_digits": 50,
+                "binary_float_for_authoritative_decision": false,
+                "boundary_perturbation_absolute_probability": "0.0001",
+                "boundary_perturbation_absolute_threshold": "0.0001",
+                "boundary_perturbation_friction_up": "0.0001",
+                "boundary_perturbation_time_adverse_seconds": 2,
+                "friction_rounding": "UP",
+                "independent_implementation_absolute_tolerance": "1e-12",
+                "money_storage": "INTEGER_CENTS",
+                "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+                "odds_rounding": "DOWN",
+                "odds_storage_scale": "1e-6",
+                "probability_rounding": "DOWN",
+                "probability_storage_scale": "1e-9",
+                "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+                "unstable_action": "NO_RECOMMENDATION"
+              },
+              "name": "NUM-002 固定点精度",
+              "passed": true
+            },
+            {
+              "detail": {
+                "action_must_match_across_implementations": true,
+                "authoritative_decimal_precision_digits": 50,
+                "binary_float_for_authoritative_decision": false,
+                "boundary_perturbation_absolute_probability": "0.0001",
+                "boundary_perturbation_absolute_threshold": "0.0001",
+                "boundary_perturbation_friction_up": "0.0001",
+                "boundary_perturbation_time_adverse_seconds": 2,
+                "friction_rounding": "UP",
+                "independent_implementation_absolute_tolerance": "1e-12",
+                "money_storage": "INTEGER_CENTS",
+                "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+                "odds_rounding": "DOWN",
+                "odds_storage_scale": "1e-6",
+                "probability_rounding": "DOWN",
+                "probability_storage_scale": "1e-9",
+                "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+                "unstable_action": "NO_RECOMMENDATION"
+              },
+              "name": "NUM-003 双实现1e-12",
+              "passed": true
+            },
+            {
+              "detail": {
+                "action_must_match_across_implementations": true,
+                "authoritative_decimal_precision_digits": 50,
+                "binary_float_for_authoritative_decision": false,
+                "boundary_perturbation_absolute_probability": "0.0001",
+                "boundary_perturbation_absolute_threshold": "0.0001",
+                "boundary_perturbation_friction_up": "0.0001",
+                "boundary_perturbation_time_adverse_seconds": 2,
+                "friction_rounding": "UP",
+                "independent_implementation_absolute_tolerance": "1e-12",
+                "money_storage": "INTEGER_CENTS",
+                "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+                "odds_rounding": "DOWN",
+                "odds_storage_scale": "1e-6",
+                "probability_rounding": "DOWN",
+                "probability_storage_scale": "1e-9",
+                "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+                "unstable_action": "NO_RECOMMENDATION"
+              },
+              "name": "NUM-004 万分之一扰动",
+              "passed": true
+            },
+            {
+              "detail": "0.50",
+              "name": "MODEL-001 市场权重至少50%",
+              "passed": true
+            },
+            {
+              "detail": [
+                "MULTIPLICATIVE",
+                "POWER",
+                "SHIN",
+                "ODDS_RATIO"
+              ],
+              "name": "MODEL-002 四种去水",
+              "passed": true
+            },
+            {
+              "detail": {
+                "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+                "consensus_space": "LOGIT",
+                "conservative_probability_percentile": 10,
+                "de_vig_methods": [
+                  "MULTIPLICATIVE",
+                  "POWER",
+                  "SHIN",
+                  "ODDS_RATIO"
+                ],
+                "edge_haircut_fraction": "0.25",
+                "evaluation_block_bootstrap_iterations": 2000,
+                "future_leakage_tolerance": 0,
+                "market_prior_weight_min": "0.50",
+                "remove_top_profit_fraction_for_robustness": "0.01",
+                "residual_weight_alpha_beta_max": "0.35",
+                "residual_weight_ga_max": "0.50",
+                "residual_weight_when_no_increment": "0.00",
+                "runtime_block_bootstrap_iterations": 1000,
+                "temporal_folds_min": 8
+              },
+              "name": "MODEL-003 时间折与重采样",
+              "passed": true
+            },
+            {
+              "detail": {
+                "brier_skill_95pct_lower_bound": ">0",
+                "calibration_error_main_max": "0.025",
+                "calibration_error_niche_max": "0.04",
+                "closing_price_advantage_95pct_lower_bound": ">0",
+                "intercept_abs_max": "0.02",
+                "logloss_skill_95pct_lower_bound": ">0",
+                "net_log_growth_95pct_lower_bound": ">0",
+                "slope_max": "1.10",
+                "slope_min": "0.90"
+              },
+              "name": "MODEL-004 校准门",
+              "passed": true
+            },
+            {
+              "detail": {
+                "E0": {
+                  "action": "NO_RECOMMENDATION"
+                },
+                "E1": {
+                  "independent_non_price_sources_min": 2,
+                  "independent_price_sources_max": 1,
+                  "independent_price_sources_min": 1,
+                  "model_disagreement_pp_max": "8",
+                  "model_stage_min": "GA",
+                  "robust_net_expected_return_min": "0.08"
+                },
+                "E2": {
+                  "independent_price_sources_max": 2,
+                  "independent_price_sources_min": 2,
+                  "model_disagreement_pp_max": "10",
+                  "model_stage_min": "GA",
+                  "robust_net_expected_return_min": "0.07"
+                },
+                "E3": {
+                  "independent_price_sources_max": 4,
+                  "independent_price_sources_min": 3,
+                  "model_disagreement_pp_max": "8",
+                  "model_stage_min": "BETA",
+                  "robust_net_expected_return_min": "0.05"
+                },
+                "E4": {
+                  "independent_price_sources_min": 5,
+                  "model_disagreement_pp_max": "6",
+                  "model_stage_min": "GA",
+                  "robust_net_expected_return_min": "0.03"
+                }
+              },
+              "name": "MODEL-005 证据层完整",
+              "passed": true
+            },
+            {
+              "detail": {
+                "absolute_disaster_line": "0.700",
+                "chase_loss_prohibited": true,
+                "correlation_cluster_cap": "0.050",
+                "daily_loss_soft_stop": "0.030",
+                "event_cap": "0.050",
+                "kelly_fraction_alpha": "0.00",
+                "kelly_fraction_beta": "0.20",
+                "kelly_fraction_ga": "0.25",
+                "seven_day_drawdown_diagnostic": "0.075",
+                "single_ticket_cap_beta": "0.015",
+                "single_ticket_cap_ga": "0.020",
+                "strategy_slice_kill_drawdown": "0.100",
+                "target_shortfall_may_relax_gate": false,
+                "total_open_exposure_cap": "0.150"
+              },
+              "name": "MODEL-006 风险门",
+              "passed": true
+            },
+            {
+              "detail": {
+                "falsification_gate": [
+                  "至少6个完整自然月",
+                  "至少1000个独立等效信号",
+                  "月收益率的95%上界仍低于30%"
+                ],
+                "formula": "B_n = 300 * 1.3^n",
+                "guaranteed": false,
+                "monthly_log_growth": "0.26236426446749106",
+                "monthly_return": "0.30",
+                "plausible_gate": [
+                  "保守月度对数增长中位数 >= ln(1.3)",
+                  "月度对数增长第5百分位 > 0",
+                  "按来源、平台限额、机会数量和相关性校正后的容量通过"
+                ],
+                "shadow_min_days": 90,
+                "shadow_min_independent_equivalent_signals": 1000,
+                "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+                "verification_gate": [
+                  "至少12个完整自然月",
+                  "按现金流调整后的月度几何收益 >= 30%",
+                  "证据完整",
+                  "未解决对账差异为0"
+                ]
+              },
+              "name": "MODEL-007 30%不保证但可证伪验证",
+              "passed": true
+            },
+            {
+              "detail": 80,
+              "name": "REQ-001 80条需求",
+              "passed": true
+            },
+            {
+              "detail": 80,
+              "name": "AC-001 80个唯一主验收",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "AC-002 每条需求恰好一个对应主验收",
+              "passed": true
+            },
+            {
+              "detail": 240,
+              "name": "TASK-001 240个叶子任务",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "TASK-002 Task合同字段完整",
+              "passed": true
+            },
+            {
+              "detail": "none",
+              "name": "TASK-003 开发任务无中途Owner输入",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "TASK-004 通过后自动推进",
+              "passed": true
+            },
+            {
+              "detail": {
+                "high": 480.0,
+                "likely": 320.0,
+                "low": 240.0
+              },
+              "name": "TASK-005 叶子任务0.5–4小时",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "DAG-001 依赖全部存在",
+              "passed": true
+            },
+            {
+              "detail": {
+                "task_count": 240,
+                "topological_count": 240
+              },
+              "name": "DAG-002 无循环",
+              "passed": true
+            },
+            {
+              "detail": {
+                "phases": 80,
+                "stages": 20
+              },
+              "name": "DAG-003 20 Stage/80 Phase/母级≤4",
+              "passed": true
+            },
+            {
+              "detail": {
+                "counts": [
+                  3
+                ],
+                "phase_keys": 80
+              },
+              "name": "DAG-004 每Phase恰好3个Task",
+              "passed": true
+            },
+            {
+              "detail": 0.7,
+              "name": "DAG-005 关键路径比例≤70%",
+              "passed": true
+            },
+            {
+              "detail": {
+                "acceptance": 80,
+                "requirements": 80,
+                "rows": 80,
+                "tasks": 240
+              },
+              "name": "TRACE-001 需求→验收→任务闭合",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "TRACE-002 测试/证据/制品引用完整",
+              "passed": true
+            },
+            {
+              "detail": 28,
+              "name": "RESEARCH-001 公开来源≥20",
+              "passed": true
+            },
+            {
+              "detail": 28,
+              "name": "RESEARCH-002 来源字段、URL、日期和裁定完整",
+              "passed": true
+            },
+            {
+              "detail": {
+                "人工智能治理标准": 1,
+                "供应链安全标准": 1,
+                "安全标准": 1,
+                "官方产品页": 1,
+                "官方安全工具文档": 1,
+                "官方开源项目": 1,
+                "官方文档": 6,
+                "平台官方帮助": 1,
+                "平台官方条款": 2,
+                "应用安全标准": 1,
+                "开源工具": 1,
+                "开源项目": 5,
+                "监管机构": 1,
+                "研究论文": 5
+              },
+              "name": "RESEARCH-003 官方/论文/开源/标准多源交叉",
+              "passed": true
+            },
+            {
+              "detail": "只输出一个任务包压缩包、一个Stage/Phase Roadmap和一句Pursuing Goal Prompt。",
+              "name": "SKILL-001 最终输出规则",
+              "passed": true
+            },
+            {
+              "detail": [
+                "00_我在哪.md",
+                "01_产品需求.md",
+                "02_系统架构.md",
+                "03_口径字典.md",
+                "04_操作流程.md",
+                "05_执行与验收.md",
+                "06_运维手册.md"
+              ],
+              "name": "SKILL-002 双平面7文件固定",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "SCHEMA-001 JSON Schema验证",
+              "passed": true
+            }
+          ],
+          "document_sha256": {
+            "00_我在哪.md": "bb1b5f94e91afbd43e2a4d624b16e99707cf04b27dbf6b768e9f751690ad9ab6",
+            "01_产品需求.md": "a7b8dfbe00a036e16221f787778ca1619d8b80e8879a0a744a5a04085571cda8",
+            "02_系统架构.md": "c47f3ca4b7a4442ff36ae1a57bfe7f36be9416e28b05a223b4cb72b4b55b042e",
+            "03_口径字典.md": "5e3e6fde95050f57bed6941bb8de1c966371c6db6770c7fa1c2a983cad4ee095",
+            "04_操作流程.md": "eec849c69097083b4e3882c7654ea3719c9d7d9c6a74aa3fb68c6c9aab22b25d",
+            "05_执行与验收.md": "921f6e4154097f038d4dc27a2d33163e4e4ab89d83630c43315aec01184d99f4",
+            "06_运维手册.md": "6b601da31222f3822ee76f80456ffcf71b94acd3f9c690935ebc6ea9de2078bb"
+          },
+          "generated_at": "2026-07-19T00:00:00+10:00",
+          "ready_for": "FINAL_DEVELOPMENT_TASKPACK_HANDOFF",
+          "return_target": {
+            "contract": "目标、容量、证伪和12月实际验证；不得因目标短缺降低门槛。",
+            "guaranteed": false,
+            "monthly_target": "30%"
+          },
+          "schema_version": "1.0.0",
+          "status": "PASS",
+          "summary": {
+            "acceptance_contracts": 80,
+            "checks": 49,
+            "critical_path_hours": 224.0,
+            "critical_path_ratio": 0.7,
+            "failed": 0,
+            "human_docs": 7,
+            "passed": 49,
+            "phases": 80,
+            "requirements": 80,
+            "stages": 20,
+            "task_hours": {
+              "high": 480.0,
+              "likely": 320.0,
+              "low": 240.0
+            },
+            "tasks": 240
+          },
+          "version": "0.0.0.1"
+        },
+        "id": "S03P02-PACK-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "ABD S00/P03 PAID DEPENDENCY SCAN\nSTATUS: PASS\nFIXED_CLOCK: 2026-07-19T00:00:00+10:00\nMAX_INCREMENTAL_CASH_AUD: 0.00\nDEPENDENCY_MANIFESTS: 2\nRUNTIME_DIRECT_DEPENDENCIES: 0\nLOCKED_REGISTRY_PACKAGES: 12\nPAID_OR_UNKNOWN_DEPENDENCIES: 0\nEXTERNAL_NETWORK_ACCESS_PERFORMED: false\nEXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false\n\nMANIFESTS\n- pyproject.toml\n- uv.lock\n\nPACKAGES\n- attrs==26.1.0\n- colorama==0.4.6\n- iniconfig==2.3.0\n- jsonschema==4.25.1\n- jsonschema-specifications==2025.9.1\n- packaging==26.2\n- pluggy==1.6.0\n- pygments==2.20.0\n- pytest==8.4.2\n- referencing==0.37.0\n- rpds-py==2026.6.3\n- typing-extensions==4.16.0\n\nPROVIDERS\n- RES-CLOUDFLARE-ZERO-TRUST-FREE critical_path=true incremental_cash_aud=0.00\n- RES-GITHUB-EXISTING critical_path=true incremental_cash_aud=0.00\n- RES-GMAIL-EXISTING-OPTIONAL critical_path=false incremental_cash_aud=0.00\n- RES-OSS-PINNED critical_path=true incremental_cash_aud=0.00\n- RES-OVH-EXISTING-VPS1 critical_path=true incremental_cash_aud=0.00\n\nCHECKS\n- PASS SCAN-LOCK-PARSE\n- PASS SCAN-MANIFEST-SET\n- PASS SCAN-TOML-PARSE\n- PASS SCAN-DIRECT-DEPENDENCIES\n- PASS SCAN-LOCKED-PACKAGE-ALLOWLIST\n- PASS SCAN-LICENSES-CLASSIFIED\n- PASS SCAN-IMPORTS-CLASSIFIED\n- PASS SCAN-NO-PROHIBITED-RUNTIME-IDENTIFIERS\n- PASS SCAN-PROVIDER-COSTS-EXACT-ZERO\n- PASS SCAN-CRITICAL-PATH-NO-PAID-OR-APPROVAL-BOUND-INTERFACE\n\nBOUNDARY\n- Existing resource and opportunity costs are disclosed separately; this report proves only incremental cash cost A$0 for declared dependencies.\n- External capability, account plan, quota headroom, deployment, market coverage and returns are not verified by this scan.\n- Any new, paid, unknown-cost, unclassified or approval-bound critical dependency fails closed.",
+        "id": "S03P02-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S03-P02",
+    "decision": "ADVICE_CARD_INFORMATION_CONTRACT_FROZEN",
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-20T09:00:00+10:00",
+    "hashes": {
+      "abd_acceptance/advice_card.py#normalized": "f46d8961875428db21bb0862e1443cef83dcbc989f65883a3f0e8fb26b9f91d2",
+      "advice_card_fixtures.json": "2f9a5f892eebf01dfbdf91e3c14c96ee59005cd801f169460514d8c4e5476eb5",
+      "advice_card_schema.json": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+      "forbidden_ui_terms.json": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f",
+      "glossary_zh.json": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "machine/evidence/EVD-S03-P01.json": "cc128b7e0b3552d7633239971250c357320f7a3edbbb9782ee23e1dc8a922d25",
+      "machine/evidence/EVD-S03-P01_rollback.json": "4ebf1284026f1aacb5c9b37c193b814fd34f586f7befb93742e2b4231db5183e",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S03/P02/full_regression.xml": "26474846b63add04758e40d69513aebc8828cbe93a27e309998aeac4779227ff",
+      "machine/evidence/S03/P02/pytest.xml": "6ceed06f141dc602dc52cf8b0a4752d693451680a99cafbefdf59933bd94cae9",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S03_P02.json": "26bdaef3a2335204e5acaecb4e7ed8a91959c649c42aed637192e089efc8978d",
+      "tests/S03/P01_test.py": "e8857d49127deae4db19f3b7d9c3ef1d7d16b25acb0c5bb82f58168345abccf3",
+      "tests/S03/P02_test.py": "e99244c5d6c46ee28ea6bb66b3bde3533091c4b255b5407ba273a79b26104ab2"
+    },
+    "human_ten_second_usability_status": "STRUCTURAL_INFORMATION_GATE_PASS_HUMAN_TIMING_DEFERRED_TO_S03_P04",
+    "next": "S03/P03_READY_NOT_STARTED",
+    "phase_status": "S03_P02_PASS",
+    "production_status": "NOT_DEPLOYED",
+    "release_status": "NOT_READY_S03_P03_P04_AND_STAGE_REVIEW_REQUIRED",
+    "requirement_id": "REQ-S03-P02",
+    "schema_version": "1.0.0",
+    "status": "PASS",
+    "summary": {
+      "checks": 194,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 194
+    },
+    "user_interface_status": "SCHEMA_AND_DETERMINISTIC_PRESENTATION_MODEL_ONLY_NOT_DEPLOYED"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S03-WHOLE-STAGE-REVIEW",
+  "stage_id": "S03",
+  "fixed_at": "2026-07-20T18:00:00+10:00",
+  "findings": [
+    {
+      "id": "F-S03-REVIEW-001",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "P03失败指引未显式进入P04键盘与屏幕阅读顺序",
+      "observation": "P03可确定性生成失败原因、唯一下一步与安全边界，但P04原结构合同的CORE-04只绑定safety区域。",
+      "risk": "实现者可能让建议卡顺序可访问，却遗漏失败路径的原因与下一步焦点/阅读顺序。",
+      "remediation": "新增failure_guidance_integration及报告绑定，冻结失败状态、原因、下一步、安全边界的键盘与屏幕阅读顺序，并回放49个已声明原因。",
+      "verification_gate": "S03REVIEW-FAILURE-GUIDANCE-A11Y-BINDING"
+    },
+    {
+      "id": "F-S03-REVIEW-002",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "缺少整Stage的所有用户可见表面中文回放",
+      "observation": "各Phase分别验证自身样例，但整Stage尚无单一Oracle同时回放建议、不建议及49个失败表面。",
+      "risk": "跨Phase组合时可能重新泄漏机器标识、未解释缩写或产生多下一步。",
+      "remediation": "Stage Review独立构建建议/不建议卡，回放49个失败结果，逐一执行中文术语门、唯一下一步和确定性检查。",
+      "verification_gate": "S03REVIEW-ALL-USER-SURFACES-CHINESE-AND-UNIQUE"
+    },
+    {
+      "id": "F-S03-REVIEW-003",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "十秒信息门可能被误读为真人计时已通过",
+      "observation": "P02冻结四个答案的结构位置，P04冻结分钟级任务预算；二者都没有真人观测。",
+      "risk": "把机器结构PASS升级为十秒真人理解、真实完成时间、正式无障碍或生产可用性结论。",
+      "remediation": "Stage Review把十秒门固定为STRUCTURAL_INFORMATION_PLACEMENT_ONLY，并强制真人、真机、浏览器、屏幕阅读器与WCAG状态继续NOT_EXECUTED。",
+      "verification_gate": "S03REVIEW-HUMAN-TIMING-CLAIM-BOUNDARY"
+    },
+    {
+      "id": "F-S03-REVIEW-004",
+      "severity": "MEDIUM",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "后继复审代码会使P04签名输入看似漂移",
+      "observation": "P04 receipt签名了全abd_acceptance代码与复审前产物；合法后继复审会改变当前代码与被修复产物。",
+      "risk": "不区分当前候选与历史已交付commit会错误否定不可变Phase证据，或反向放宽哈希门。",
+      "remediation": "P04 verifier仅对明确白名单路径允许从固定implementation commit重放历史blob和代码树；其余漂移继续失败关闭。",
+      "verification_gate": "S03REVIEW-PHASE-RECEIPT-HISTORICAL-REPLAY"
+    },
+    {
+      "id": "F-S03-REVIEW-005",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "S02前序复审门未识别已签名的S03整体复审后继状态",
+      "observation": "GitHub Actions runs 29716681090与29716724592在最终签名证据存在时均失败于S02REVIEW-S03-NOT-STARTED；旧门只接受至S03/P04完成的8份证据，未接受新增的两份S03整体复审证据。",
+      "risk": "本地签名前回归可通过，但整Stage上传后的真实终态会被前序复审错误拒绝，导致远端交付失败或诱使实现者绕过不可变证据门。",
+      "remediation": "S02仅在S03/P01至P04均PASS、10份证据文件集合精确匹配，且S03整体复审回执13/13验证通过时接受该单调后继；P04为stage2_review.py绑定精确后继白名单与SHA-256，无效或额外证据继续失败关闭。",
+      "verification_gate": "S03REVIEW-PREDECESSOR-MONOTONIC-PROGRESSION"
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "resolved_in_review_candidate": 5,
+    "open": 0,
+    "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true
+  },
+  "scope_boundaries": {
+    "production_ui_implemented": false,
+    "human_or_real_device_test_executed": false,
+    "formal_wcag_conformance_claimed": false,
+    "external_product_account_or_api_accessed": false,
+    "model_or_strategy_executed": false,
+    "order_submitted_or_retried": false,
+    "gate_relaxed": false,
+    "return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

@@ -1,0 +1,283 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S03-P04-01",
+  "contract_id": "AC-S03-P04",
+  "requirement_id": "REQ-S03-P04",
+  "stage_id": "S03",
+  "phase_id": "P04",
+  "version": "0.0.0.1",
+  "fixed_clock": "2026-07-20T14:00:00+10:00",
+  "status": "FROZEN_DETERMINISTIC_DESIGN_CONTRACT",
+  "measurement_layer": "FROZEN_CONSERVATIVE_TASK_BUDGETS_NOT_OBSERVED_HUMAN_TIMES",
+  "human_participant_count": 0,
+  "observed_session_count": 0,
+  "core_tasks": [
+    {
+      "id": "CORE-01",
+      "title_zh": "确认当前是否建议操作",
+      "success_criteria_zh": "能从文字状态和符号判断建议或不建议，不依赖颜色。",
+      "required_regions": [
+        "status",
+        "action"
+      ]
+    },
+    {
+      "id": "CORE-02",
+      "title_zh": "核对操作地点、金额和最低赔率",
+      "success_criteria_zh": "能按固定顺序核对做什么、在哪做、金额和最低赔率。",
+      "required_regions": [
+        "action",
+        "countdown"
+      ]
+    },
+    {
+      "id": "CORE-03",
+      "title_zh": "核对理由、证据和失效条件",
+      "success_criteria_zh": "能识别证据不足、过期或失效时必须停止。",
+      "required_regions": [
+        "reasons",
+        "evidence",
+        "invalidation"
+      ]
+    },
+    {
+      "id": "CORE-04",
+      "title_zh": "处理失败并停在用户最终下单边界",
+      "success_criteria_zh": "每个失败状态只显示一个本地安全下一步，系统不提交或重试订单。",
+      "required_regions": [
+        "safety"
+      ],
+      "required_failure_guidance_regions": [
+        "failure_status",
+        "failure_reason",
+        "next_action",
+        "safety"
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "PHONE_BROWSER",
+      "capability_zh": "手机浏览器",
+      "frozen_environment": {
+        "viewport_css_px": "360x640",
+        "input_mode": "触控与屏幕键盘"
+      },
+      "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+      "runtime_status": "NOT_EXECUTED"
+    },
+    {
+      "id": "DESKTOP_BROWSER",
+      "capability_zh": "电脑浏览器",
+      "frozen_environment": {
+        "viewport_css_px": "1440x900",
+        "input_mode": "键盘与指针"
+      },
+      "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+      "runtime_status": "NOT_EXECUTED"
+    },
+    {
+      "id": "LOW_BANDWIDTH",
+      "capability_zh": "低带宽文字优先模式",
+      "frozen_environment": {
+        "maximum_initial_payload_bytes": 32768,
+        "image_dependency": "NONE"
+      },
+      "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+      "runtime_status": "NOT_EXECUTED"
+    },
+    {
+      "id": "COLOR_VISION",
+      "capability_zh": "颜色辨识受限模式",
+      "frozen_environment": {
+        "color_only_signal_allowed": false,
+        "redundant_cues": [
+          "中文文字",
+          "状态符号"
+        ]
+      },
+      "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+      "runtime_status": "NOT_EXECUTED"
+    },
+    {
+      "id": "TEXT_SCALE_200",
+      "capability_zh": "放大字号模式",
+      "frozen_environment": {
+        "text_scale_percent": 200,
+        "required_reflow": true
+      },
+      "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+      "runtime_status": "NOT_EXECUTED"
+    },
+    {
+      "id": "KEYBOARD_ONLY",
+      "capability_zh": "仅键盘操作",
+      "frozen_environment": {
+        "pointer_required": false,
+        "focus_order": [
+          "status",
+          "action",
+          "countdown",
+          "reasons",
+          "evidence",
+          "invalidation",
+          "safety"
+        ]
+      },
+      "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+      "runtime_status": "NOT_EXECUTED"
+    },
+    {
+      "id": "SCREEN_READER_LINEAR",
+      "capability_zh": "屏幕阅读器线性阅读",
+      "frozen_environment": {
+        "reading_order": [
+          "status",
+          "action",
+          "countdown",
+          "reasons",
+          "evidence",
+          "invalidation",
+          "safety"
+        ],
+        "dynamic_announcements": [
+          "倒计时状态变化",
+          "建议失效",
+          "失败原因与下一步"
+        ]
+      },
+      "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+      "runtime_status": "NOT_EXECUTED"
+    }
+  ],
+  "timing_contract": {
+    "sample_semantics": "每个数值是冻结场景的保守完成预算，不是参与者观测值或生产遥测。",
+    "scenario_scope": "ALL_CORE_TASKS_IN_ORDER",
+    "unit": "seconds",
+    "quantile_method": "NEAREST_RANK_CEILING",
+    "median_rank": "ceil(0.50*n)",
+    "p95_rank": "ceil(0.95*n)",
+    "median_max_seconds": 600,
+    "p95_max_seconds": 1200,
+    "minimum_samples": 21,
+    "hard_gate": true
+  },
+  "scenario_budgets": [
+    {"id": "BUDGET-DESKTOP-01", "profile_id": "DESKTOP_BROWSER", "variant": "建议路径", "budget_seconds": 360},
+    {"id": "BUDGET-DESKTOP-02", "profile_id": "DESKTOP_BROWSER", "variant": "不建议路径", "budget_seconds": 420},
+    {"id": "BUDGET-DESKTOP-03", "profile_id": "DESKTOP_BROWSER", "variant": "失败路径", "budget_seconds": 480},
+    {"id": "BUDGET-PHONE-01", "profile_id": "PHONE_BROWSER", "variant": "建议路径", "budget_seconds": 420},
+    {"id": "BUDGET-PHONE-02", "profile_id": "PHONE_BROWSER", "variant": "不建议路径", "budget_seconds": 480},
+    {"id": "BUDGET-PHONE-03", "profile_id": "PHONE_BROWSER", "variant": "失败路径", "budget_seconds": 540},
+    {"id": "BUDGET-LOW-01", "profile_id": "LOW_BANDWIDTH", "variant": "建议路径", "budget_seconds": 540},
+    {"id": "BUDGET-LOW-02", "profile_id": "LOW_BANDWIDTH", "variant": "不建议路径", "budget_seconds": 600},
+    {"id": "BUDGET-LOW-03", "profile_id": "LOW_BANDWIDTH", "variant": "失败路径", "budget_seconds": 720},
+    {"id": "BUDGET-COLOR-01", "profile_id": "COLOR_VISION", "variant": "建议路径", "budget_seconds": 420},
+    {"id": "BUDGET-COLOR-02", "profile_id": "COLOR_VISION", "variant": "不建议路径", "budget_seconds": 480},
+    {"id": "BUDGET-COLOR-03", "profile_id": "COLOR_VISION", "variant": "失败路径", "budget_seconds": 540},
+    {"id": "BUDGET-TEXT-01", "profile_id": "TEXT_SCALE_200", "variant": "建议路径", "budget_seconds": 480},
+    {"id": "BUDGET-TEXT-02", "profile_id": "TEXT_SCALE_200", "variant": "不建议路径", "budget_seconds": 540},
+    {"id": "BUDGET-TEXT-03", "profile_id": "TEXT_SCALE_200", "variant": "失败路径", "budget_seconds": 600},
+    {"id": "BUDGET-KEYBOARD-01", "profile_id": "KEYBOARD_ONLY", "variant": "建议路径", "budget_seconds": 600},
+    {"id": "BUDGET-KEYBOARD-02", "profile_id": "KEYBOARD_ONLY", "variant": "不建议路径", "budget_seconds": 720},
+    {"id": "BUDGET-KEYBOARD-03", "profile_id": "KEYBOARD_ONLY", "variant": "失败路径", "budget_seconds": 780},
+    {"id": "BUDGET-READER-01", "profile_id": "SCREEN_READER_LINEAR", "variant": "建议路径", "budget_seconds": 720},
+    {"id": "BUDGET-READER-02", "profile_id": "SCREEN_READER_LINEAR", "variant": "不建议路径", "budget_seconds": 840},
+    {"id": "BUDGET-READER-03", "profile_id": "SCREEN_READER_LINEAR", "variant": "失败路径", "budget_seconds": 960}
+  ],
+  "accessibility_contracts": [
+    {
+      "id": "A11Y-PHONE-REFLOW",
+      "profile_id": "PHONE_BROWSER",
+      "assertions": ["单列固定顺序", "首要答案先于理由", "无仅悬停操作"]
+    },
+    {
+      "id": "A11Y-DESKTOP-ORDER",
+      "profile_id": "DESKTOP_BROWSER",
+      "assertions": ["展示顺序与手机一致", "主操作区唯一", "安全边界始终可读"]
+    },
+    {
+      "id": "A11Y-LOW-BANDWIDTH-TEXT",
+      "profile_id": "LOW_BANDWIDTH",
+      "assertions": ["初始载荷不超过32768字节", "不依赖图片", "失败时保留中文文字"]
+    },
+    {
+      "id": "A11Y-COLOR-REDUNDANCY",
+      "profile_id": "COLOR_VISION",
+      "assertions": ["颜色不是唯一信号", "中文标签冗余", "状态符号冗余"]
+    },
+    {
+      "id": "A11Y-TEXT-SCALE-200",
+      "profile_id": "TEXT_SCALE_200",
+      "assertions": ["字号可放大至200%", "内容顺序不变", "信息不裁切"]
+    },
+    {
+      "id": "A11Y-KEYBOARD-ORDER",
+      "profile_id": "KEYBOARD_ONLY",
+      "assertions": ["无需指针", "焦点顺序与展示顺序一致", "无键盘陷阱"]
+    },
+    {
+      "id": "A11Y-SCREEN-READER-LINEAR",
+      "profile_id": "SCREEN_READER_LINEAR",
+      "assertions": ["阅读顺序与展示顺序一致", "动态状态有中文通告", "机器标识不进入可读名称"]
+    }
+  ],
+  "failure_guidance_integration": {
+    "surface_kind": "USER_ERROR_NEXT_ACTION",
+    "source_contract_id": "AC-S03-P03",
+    "declared_reason_count": 49,
+    "region_order": [
+      "failure_status",
+      "failure_reason",
+      "next_action",
+      "safety"
+    ],
+    "keyboard_focus_order": [
+      "failure_status",
+      "failure_reason",
+      "next_action",
+      "safety"
+    ],
+    "screen_reader_order": [
+      "failure_status",
+      "failure_reason",
+      "next_action",
+      "safety"
+    ],
+    "machine_code_visible": false,
+    "exactly_one_next_action_required": true,
+    "chinese_ui_gate_required": true,
+    "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+    "runtime_status": "NOT_EXECUTED"
+  },
+  "failure_injection_plan": [
+    "FAULT-TIMING-MEDIAN",
+    "FAULT-TIMING-P95",
+    "FAULT-COLOR-ONLY",
+    "FAULT-KEYBOARD-TRAP",
+    "FAULT-READING-ORDER",
+    "FAULT-LOW-BANDWIDTH-PAYLOAD",
+    "FAULT-RUNTIME-CLAIM",
+    "FAULT-UNKNOWN-PROFILE"
+  ],
+  "claim_boundary": {
+    "human_timing_observed": false,
+    "human_usability_conclusion_claimed": false,
+    "production_ui_implemented": false,
+    "production_ui_deployed": false,
+    "real_device_or_browser_run_executed": false,
+    "screen_reader_runtime_run_executed": false,
+    "formal_wcag_conformance_claimed": false,
+    "machine_result_scope": "确定性任务预算与结构化设计合同"
+  },
+  "safety": {
+    "external_network_accessed": false,
+    "external_account_or_api_accessed": false,
+    "model_or_strategy_executed": false,
+    "order_submitted_or_retried": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "owner_final_order_only": true
+  },
+  "next_on_pass": "S03/STAGE_REVIEW_READY_NOT_STARTED"
+}

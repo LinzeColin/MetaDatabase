@@ -1,0 +1,647 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "stage_id": "S03",
+  "phase_id": "P03",
+  "contract_id": "AC-S03-P03",
+  "requirement_id": "REQ-S03-P03",
+  "catalog_id": "ABD-FAILURE-REASONS-ZH-V1",
+  "default_reason_code": "UNKNOWN_FAILURE_STATE",
+  "coverage_status": "ALL_CURRENTLY_DECLARED_FAILURE_CLASSES_CLOSED_FUTURE_PHASES_MUST_EXTEND",
+  "coverage_boundary_zh": "覆盖当前机器真源、中文界面合同和唯一建议卡已经声明的全部失败类；后续阶段新增失败类必须版本化扩展本目录。",
+  "future_extension_rule_zh": "任何新失败状态在进入用户界面前，必须新增中文原因、唯一下一步、来源引用和负向测试；未知状态一律安全停止。",
+  "render_contract": {
+    "language": "zh-CN",
+    "surface_kind": "USER_ERROR_NEXT_ACTION",
+    "machine_code_visible": false,
+    "exactly_one_title": true,
+    "exactly_one_message": true
+  },
+  "safety": {
+    "analysis_and_advice_only": true,
+    "automatic_order_present": false,
+    "order_retry_present": false,
+    "owner_final_order_only": true,
+    "target_shortfall_may_relax_gate": false,
+    "incremental_cash_budget_aud": "0.00"
+  },
+  "reason_codes": [
+    {
+      "code": "UNKNOWN_FAILURE_STATE",
+      "category": "SYSTEM",
+      "severity": "CRITICAL",
+      "priority": 0,
+      "title_zh": "状态无法识别",
+      "message_zh": "系统无法确认当前失败状态，必须按最保守方式处理。",
+      "coverage_refs": [
+        "P02-OUTPUTS:UNKNOWN_OR_MALFORMED_CODE"
+      ],
+      "default_next_action_id": "STOP_AND_PRESERVE"
+    },
+    {
+      "code": "SECURITY_INCIDENT",
+      "category": "SECURITY",
+      "severity": "CRITICAL",
+      "priority": 10,
+      "title_zh": "发现严重安全问题",
+      "message_zh": "相关能力已隔离，证据会被保留，当前不得继续。",
+      "coverage_refs": [
+        "CANONICAL-PAUSE:秘密泄漏、主机入侵或供应链完整性事故",
+        "EMAIL-ORACLES:邮件正文中的指令不能改变任务、参数、权限或删除决策",
+        "RELEASE-ROLLBACK:安全严重/高危未处置",
+        "RISK-REGISTER:R-009"
+      ],
+      "default_next_action_id": "ISOLATE_AND_PRESERVE_EVIDENCE"
+    },
+    {
+      "code": "EVIDENCE_INTEGRITY_FAILED",
+      "category": "EVIDENCE",
+      "severity": "CRITICAL",
+      "priority": 20,
+      "title_zh": "证据完整性未通过",
+      "message_zh": "证据或账本无法完成完整性验证，当前动作必须停止。",
+      "coverage_refs": [
+        "EMAIL-ORACLES:相同邮件扫描100次只产生一个归档事件",
+        "RELEASE-ROLLBACK:账本或证据完整性失败"
+      ],
+      "default_next_action_id": "PRESERVE_EVIDENCE_AND_STOP"
+    },
+    {
+      "code": "ACTUAL_LEDGER_RECONCILIATION_FAILED",
+      "category": "LEDGER",
+      "severity": "CRITICAL",
+      "priority": 30,
+      "title_zh": "实际资金记录无法核对",
+      "message_zh": "实际资金证据存在差异，系统已冻结相关账本并暂停建议。",
+      "coverage_refs": [
+        "CANONICAL-PAUSE:实际资金证据无法对平",
+        "RISK-REGISTER:R-012"
+      ],
+      "default_next_action_id": "FREEZE_LEDGER_AND_PAUSE"
+    },
+    {
+      "code": "LEGAL_REGULATORY_OR_SOURCE_CONTRACT_CONFLICT",
+      "category": "COMPLIANCE",
+      "severity": "CRITICAL",
+      "priority": 40,
+      "title_zh": "发现规则或来源合同冲突",
+      "message_zh": "受影响范围已暂停，不能用替代来源绕过规则。",
+      "coverage_refs": [
+        "CANONICAL-PAUSE:法律、监管或来源合同发生实质冲突"
+      ],
+      "default_next_action_id": "PAUSE_AFFECTED_SCOPE"
+    },
+    {
+      "code": "IRREVERSIBLE_ACTION_REQUESTED",
+      "category": "AUTHORIZATION",
+      "severity": "CRITICAL",
+      "priority": 50,
+      "title_zh": "请求包含不可逆动作",
+      "message_zh": "系统拒绝执行不可逆动作，并保留当前证据。",
+      "coverage_refs": [
+        "CANONICAL-PAUSE:不可逆操作",
+        "EMAIL-TRASH-GATE:permanent_delete"
+      ],
+      "default_next_action_id": "DENY_IRREVERSIBLE_ACTION"
+    },
+    {
+      "code": "INCREMENTAL_CASH_BUDGET_EXCEEDED",
+      "category": "BUDGET",
+      "severity": "CRITICAL",
+      "priority": 60,
+      "title_zh": "新增现金预算不满足",
+      "message_zh": "新增现金支出不是零或无法确认，系统拒绝支出并继续零成本路径。",
+      "coverage_refs": [
+        "CANONICAL-PAUSE:超出 A$0 新增现金预算"
+      ],
+      "default_next_action_id": "DENY_SPEND_CONTINUE_ZERO_COST"
+    },
+    {
+      "code": "OUT_OF_AUTHORIZED_SCOPE",
+      "category": "AUTHORIZATION",
+      "severity": "CRITICAL",
+      "priority": 70,
+      "title_zh": "动作超出授权范围",
+      "message_zh": "系统拒绝超出范围的动作，并继续已授权的安全任务。",
+      "coverage_refs": [
+        "CANONICAL-PAUSE:超出已授权产品范围"
+      ],
+      "default_next_action_id": "DENY_OUT_OF_SCOPE"
+    },
+    {
+      "code": "TERMINATION_CONDITION_TRIGGERED",
+      "category": "GOVERNANCE",
+      "severity": "CRITICAL",
+      "priority": 80,
+      "title_zh": "终止条件已触发",
+      "message_zh": "受影响范围停止推进，等待独立复核。",
+      "coverage_refs": [
+        "CANONICAL-PAUSE:终止条件被触发"
+      ],
+      "default_next_action_id": "STOP_AFFECTED_SCOPE"
+    },
+    {
+      "code": "EMAIL_MALWARE_OR_ACTIVE_CONTENT",
+      "category": "EMAIL",
+      "severity": "CRITICAL",
+      "priority": 90,
+      "title_zh": "邮件或附件不安全",
+      "message_zh": "邮件和附件会被保留并隔离，不会自动移入垃圾箱。",
+      "coverage_refs": [
+        "EMAIL-ORACLES:未知发件人、认证失败、恶意文件、宏或脚本永不自动删除",
+        "EMAIL-TRASH-GATE:failed_scan"
+      ],
+      "default_next_action_id": "KEEP_EMAIL_QUARANTINE"
+    },
+    {
+      "code": "EMAIL_ARCHIVE_OR_READBACK_FAILED",
+      "category": "EMAIL",
+      "severity": "BLOCKING",
+      "priority": 100,
+      "title_zh": "邮件证据未完整保存",
+      "message_zh": "原始邮件、附件或读回校验未通过，邮件会保留并告警。",
+      "coverage_refs": [
+        "EMAIL-ORACLES:从归档恢复后SHA-256与原清单完全一致",
+        "EMAIL-ORACLES:任一附件保存或读回失败时邮件不进入垃圾箱",
+        "EMAIL-TRASH-GATE:conditions",
+        "RISK-REGISTER:R-008"
+      ],
+      "default_next_action_id": "KEEP_EMAIL_AND_ALERT"
+    },
+    {
+      "code": "EMAIL_AUTHENTICATION_FAILED",
+      "category": "EMAIL",
+      "severity": "BLOCKING",
+      "priority": 110,
+      "title_zh": "邮件来源验证失败",
+      "message_zh": "邮件来源无法确认，邮件会保留并告警。",
+      "coverage_refs": [
+        "EMAIL-TRASH-GATE:failed_authentication"
+      ],
+      "default_next_action_id": "KEEP_EMAIL_AND_ALERT"
+    },
+    {
+      "code": "EMAIL_SENDER_UNKNOWN",
+      "category": "EMAIL",
+      "severity": "BLOCKING",
+      "priority": 120,
+      "title_zh": "邮件发件人未知",
+      "message_zh": "未知邮件会被保留并隔离，不会自动处理。",
+      "coverage_refs": [
+        "EMAIL-TRASH-GATE:unknown_sender"
+      ],
+      "default_next_action_id": "KEEP_EMAIL_QUARANTINE"
+    },
+    {
+      "code": "BUILD_DEPENDENCY_UNAVAILABLE",
+      "category": "BUILD",
+      "severity": "BLOCKING",
+      "priority": 130,
+      "title_zh": "构建依赖不可用",
+      "message_zh": "构建停止，不会改用付费软件或服务替代。",
+      "coverage_refs": [
+        "COST-RESOURCES:RES-OSS-PINNED"
+      ],
+      "default_next_action_id": "STOP_BUILD_NO_PAID_SUBSTITUTE"
+    },
+    {
+      "code": "HEALTH_PROBE_FAILED",
+      "category": "RUNTIME",
+      "severity": "BLOCKING",
+      "priority": 140,
+      "title_zh": "运行健康检查失败",
+      "message_zh": "系统回到上一已签名版本，并保持建议失效。",
+      "coverage_refs": [
+        "RELEASE-ROLLBACK:健康探针失败",
+        "RISK-REGISTER:R-010"
+      ],
+      "default_next_action_id": "ROLLBACK_LAST_SIGNED_VERSION"
+    },
+    {
+      "code": "NUMERIC_IMPLEMENTATION_MISMATCH",
+      "category": "NUMERIC",
+      "severity": "BLOCKING",
+      "priority": 150,
+      "title_zh": "数值结果不一致",
+      "message_zh": "不同实现结果不一致，系统回到上一已签名版本。",
+      "coverage_refs": [
+        "RELEASE-ROLLBACK:数值交叉实现不一致"
+      ],
+      "default_next_action_id": "ROLLBACK_LAST_SIGNED_VERSION"
+    },
+    {
+      "code": "REPLAY_MISMATCH",
+      "category": "EVIDENCE",
+      "severity": "BLOCKING",
+      "priority": 160,
+      "title_zh": "冻结重放结果不一致",
+      "message_zh": "相同输入没有得到相同结果，系统回到上一已签名版本。",
+      "coverage_refs": [
+        "RELEASE-ROLLBACK:新版本建议与冻结重放不一致"
+      ],
+      "default_next_action_id": "ROLLBACK_LAST_SIGNED_VERSION"
+    },
+    {
+      "code": "SILENT_COVERAGE_GAP",
+      "category": "COVERAGE",
+      "severity": "BLOCKING",
+      "priority": 170,
+      "title_zh": "发现未说明的覆盖缺口",
+      "message_zh": "受影响来源会被关闭，缺口会被记录并重新构建覆盖清单。",
+      "coverage_refs": [
+        "RELEASE-ROLLBACK:静默缺口增加",
+        "RISK-REGISTER:R-002"
+      ],
+      "default_next_action_id": "DISABLE_SOURCE_AND_REBUILD_COVERAGE"
+    },
+    {
+      "code": "MODEL_DRIFT_OR_INVALID",
+      "category": "MODEL",
+      "severity": "BLOCKING",
+      "priority": 180,
+      "title_zh": "模型未通过有效性门",
+      "message_zh": "模型能力会被关闭，安全核心继续运行且不生成该模型建议。",
+      "coverage_refs": [
+        "RELEASE-ROLLBACK:模型漂移越过停止线",
+        "RISK-REGISTER:R-005",
+        "RISK-REGISTER:R-006"
+      ],
+      "default_next_action_id": "DISABLE_MODEL_CONTINUE_SAFE_CORE"
+    },
+    {
+      "code": "IDENTITY_UNVERIFIED",
+      "category": "MARKET",
+      "severity": "BLOCKING",
+      "priority": 190,
+      "title_zh": "赛事或盘口身份未确认",
+      "message_zh": "重新核对赛事、盘口、选择和结算规则前不得下单。",
+      "coverage_refs": [
+        "P02-GATES:IDENTITY-FAIL",
+        "RISK-REGISTER:R-004"
+      ],
+      "default_next_action_id": "REVERIFY_IDENTITY"
+    },
+    {
+      "code": "PROVIDER_CONTRACT_FAILED",
+      "category": "SOURCE",
+      "severity": "BLOCKING",
+      "priority": 200,
+      "title_zh": "来源合同未通过",
+      "message_zh": "关闭该来源并切换到已验证来源；无安全替代时不建议。",
+      "coverage_refs": [
+        "P02-GATES:PROVIDER-CONTRACT-FAIL",
+        "RISK-REGISTER:R-003"
+      ],
+      "default_next_action_id": "DISABLE_SOURCE_AND_USE_FALLBACK"
+    },
+    {
+      "code": "ACTION_CHANNEL_UNVERIFIED",
+      "category": "MARKET",
+      "severity": "BLOCKING",
+      "priority": 210,
+      "title_zh": "当前页面无法完成核对",
+      "message_zh": "请只核对当前可见页面；无法确认时取消本次下单。",
+      "coverage_refs": [
+        "P02-GATES:ACTION-CHANNEL-FAIL"
+      ],
+      "default_next_action_id": "MANUAL_CHECK_OR_CANCEL"
+    },
+    {
+      "code": "RISK_GATE_FAILED",
+      "category": "RISK",
+      "severity": "BLOCKING",
+      "priority": 220,
+      "title_zh": "风险门未通过",
+      "message_zh": "保持金额为零，直到全部风险限制重新通过。",
+      "coverage_refs": [
+        "P02-GATES:RISK-FAIL"
+      ],
+      "default_next_action_id": "KEEP_NO_ACTION_UNTIL_RISK_PASS"
+    },
+    {
+      "code": "STABILITY_GATE_FAILED",
+      "category": "NUMERIC",
+      "severity": "BLOCKING",
+      "priority": 230,
+      "title_zh": "稳定性门未通过",
+      "message_zh": "重新执行稳定性检查；结果稳定前保持不建议。",
+      "coverage_refs": [
+        "P02-GATES:STABILITY-FAIL"
+      ],
+      "default_next_action_id": "RECHECK_STABILITY"
+    },
+    {
+      "code": "STABILITY_ACTION_FLIP",
+      "category": "NUMERIC",
+      "severity": "BLOCKING",
+      "priority": 240,
+      "title_zh": "轻微不利变化会改变动作",
+      "message_zh": "等待新的稳定结果，当前不得下单。",
+      "coverage_refs": [
+        "P02-OUTPUTS:STABILITY_ACTION_FLIP",
+        "RISK-REGISTER:R-007"
+      ],
+      "default_next_action_id": "WAIT_FOR_STABLE_DECISION"
+    },
+    {
+      "code": "QUOTE_STALE",
+      "category": "MARKET",
+      "severity": "BLOCKING",
+      "priority": 250,
+      "title_zh": "当前报价已过期",
+      "message_zh": "刷新并重新核对报价前不得下单。",
+      "coverage_refs": [
+        "P02-GATES:QUOTE-STALE"
+      ],
+      "default_next_action_id": "REFRESH_QUOTE"
+    },
+    {
+      "code": "ADVICE_EXPIRED",
+      "category": "MARKET",
+      "severity": "BLOCKING",
+      "priority": 260,
+      "title_zh": "建议已经失效",
+      "message_zh": "等待系统生成新的有效建议卡，旧卡不得继续使用。",
+      "coverage_refs": [
+        "P02-OUTPUTS:ADVICE_EXPIRED"
+      ],
+      "default_next_action_id": "WAIT_FOR_FRESH_CARD"
+    },
+    {
+      "code": "CURRENT_ODDS_BELOW_MINIMUM",
+      "category": "MARKET",
+      "severity": "BLOCKING",
+      "priority": 270,
+      "title_zh": "当前赔率低于最低要求",
+      "message_zh": "等待满足最低赔率的新报价；不得降低最低赔率门。",
+      "coverage_refs": [
+        "P02-OUTPUTS:CURRENT_ODDS_BELOW_MINIMUM"
+      ],
+      "default_next_action_id": "WAIT_FOR_ACCEPTABLE_ODDS"
+    },
+    {
+      "code": "CARD_INPUT_INVALID",
+      "category": "INPUT",
+      "severity": "BLOCKING",
+      "priority": 280,
+      "title_zh": "建议卡输入无效",
+      "message_zh": "修复输入并重新生成建议卡；当前保持不建议。",
+      "coverage_refs": [
+        "P02-OUTPUTS:CARD_INPUT_INVALID"
+      ],
+      "default_next_action_id": "REBUILD_CARD_SAFELY"
+    },
+    {
+      "code": "NO_QUALIFIED_OPPORTUNITY",
+      "category": "MARKET",
+      "severity": "DEGRADED",
+      "priority": 290,
+      "title_zh": "当前没有合格机会",
+      "message_zh": "继续观察，只有全部证据、时效、稳定性和风险门通过后才生成建议。",
+      "coverage_refs": [
+        "P02-OUTPUTS:NO_QUALIFIED_OPPORTUNITY"
+      ],
+      "default_next_action_id": "WAIT_FOR_QUALIFIED_OPPORTUNITY"
+    },
+    {
+      "code": "REMOTE_CI_UNVERIFIED",
+      "category": "DELIVERY",
+      "severity": "DEGRADED",
+      "priority": 300,
+      "title_zh": "远端持续验证尚未确认",
+      "message_zh": "保留本地提交，不上传阶段交付，继续本地验证。",
+      "coverage_refs": [
+        "COST-RESOURCES:RES-GITHUB-EXISTING",
+        "DECISION-PREREQUISITES:DP-001"
+      ],
+      "default_next_action_id": "KEEP_STAGE_LOCAL"
+    },
+    {
+      "code": "RUNTIME_HOST_UNVERIFIED",
+      "category": "RUNTIME",
+      "severity": "DEGRADED",
+      "priority": 310,
+      "title_zh": "运行主机尚未确认",
+      "message_zh": "继续本地构建和证据工作，不声称已经持续运行。",
+      "coverage_refs": [
+        "COST-RESOURCES:RES-OVH-EXISTING-VPS1",
+        "DECISION-PREREQUISITES:DP-002"
+      ],
+      "default_next_action_id": "KEEP_LOCAL_BUILD_ONLY"
+    },
+    {
+      "code": "GLOBAL_ACCESS_UNVERIFIED",
+      "category": "RUNTIME",
+      "severity": "DEGRADED",
+      "priority": 320,
+      "title_zh": "全球访问入口尚未确认",
+      "message_zh": "继续本地访问验证，不声称全球入口可用。",
+      "coverage_refs": [
+        "COST-RESOURCES:RES-CLOUDFLARE-ZERO-TRUST-FREE",
+        "DECISION-PREREQUISITES:DP-003"
+      ],
+      "default_next_action_id": "KEEP_LOCAL_ACCESS_ONLY"
+    },
+    {
+      "code": "GMAIL_NOT_CONNECTED",
+      "category": "EMAIL",
+      "severity": "DEGRADED",
+      "priority": 330,
+      "title_zh": "邮件证据连接尚未就绪",
+      "message_zh": "关闭邮件自动归档，其他安全核心继续运行。",
+      "coverage_refs": [
+        "COST-RESOURCES:RES-GMAIL-EXISTING-OPTIONAL",
+        "DECISION-PREREQUISITES:DP-004"
+      ],
+      "default_next_action_id": "CONTINUE_WITHOUT_EMAIL"
+    },
+    {
+      "code": "PLATFORM_ACCOUNT_UNVERIFIED",
+      "category": "ACCOUNT",
+      "severity": "DEGRADED",
+      "priority": 340,
+      "title_zh": "投注平台账户尚未验证",
+      "message_zh": "继续影子验证，不声称真实执行或真实收益。",
+      "coverage_refs": [
+        "DECISION-PREREQUISITES:DP-005"
+      ],
+      "default_next_action_id": "CONTINUE_SHADOW_WITHOUT_ACCOUNT"
+    },
+    {
+      "code": "PUBLIC_SOURCE_UNAVAILABLE",
+      "category": "SOURCE",
+      "severity": "DEGRADED",
+      "priority": 350,
+      "title_zh": "公开来源暂时不可用",
+      "message_zh": "切换到已验证来源；没有安全替代时输出不建议。",
+      "coverage_refs": [
+        "PROVIDER-CAPABILITIES:PUBLIC_BROWSER",
+        "RISK-REGISTER:R-011"
+      ],
+      "default_next_action_id": "SWITCH_SOURCE_OR_NO_RECOMMENDATION"
+    },
+    {
+      "code": "SOURCE_VERSION_UNTRUSTED",
+      "category": "SOURCE",
+      "severity": "BLOCKING",
+      "priority": 360,
+      "title_zh": "来源版本无法验证",
+      "message_zh": "隔离该版本，只有许可证、日期和内容哈希通过后才可使用。",
+      "coverage_refs": [
+        "PROVIDER-CAPABILITIES:FILE_OR_STATIC_DATA"
+      ],
+      "default_next_action_id": "QUARANTINE_SOURCE_VERSION"
+    },
+    {
+      "code": "FREE_ENDPOINT_UNAVAILABLE",
+      "category": "SOURCE",
+      "severity": "DEGRADED",
+      "priority": 370,
+      "title_zh": "免费数据端点不可用",
+      "message_zh": "切换到其他已验证来源，不购买付费替代。",
+      "coverage_refs": [
+        "PROVIDER-CAPABILITIES:FREE_ENDPOINT"
+      ],
+      "default_next_action_id": "FALLBACK_TO_OTHER_SOURCE"
+    },
+    {
+      "code": "AUTHENTICATED_SESSION_UNSAFE",
+      "category": "SOURCE",
+      "severity": "BLOCKING",
+      "priority": 380,
+      "title_zh": "只读会话不再安全",
+      "message_zh": "关闭当前会话并告警，其他安全核心继续运行。",
+      "coverage_refs": [
+        "PROVIDER-CAPABILITIES:AUTHENTICATED_OBSERVER"
+      ],
+      "default_next_action_id": "DISABLE_SESSION_AND_ALERT"
+    },
+    {
+      "code": "OWNER_PRICE_CHECK_FAILED",
+      "category": "MARKET",
+      "severity": "BLOCKING",
+      "priority": 390,
+      "title_zh": "页面价格无法人工核对",
+      "message_zh": "显示人工核对提示；无法确认时取消本次下单。",
+      "coverage_refs": [
+        "PROVIDER-CAPABILITIES:OWNER_DEVICE_OVERLAY"
+      ],
+      "default_next_action_id": "MANUAL_CHECK_OR_CANCEL"
+    },
+    {
+      "code": "EVIDENCE_GATE_FAILED",
+      "category": "EVIDENCE",
+      "severity": "BLOCKING",
+      "priority": 400,
+      "title_zh": "证据门未通过",
+      "message_zh": "补齐并重新验证证据前保持不建议。",
+      "coverage_refs": [
+        "EMAIL-TRASH-GATE:all_required",
+        "P02-GATES:EVIDENCE-FAIL"
+      ],
+      "default_next_action_id": "REBUILD_EVIDENCE"
+    },
+    {
+      "code": "UI_TERM_UNREGISTERED_RAW_TOKEN",
+      "category": "LANGUAGE",
+      "severity": "BLOCKING",
+      "priority": 410,
+      "title_zh": "界面出现未登记机器词",
+      "message_zh": "隐藏当前内容，改成已登记中文后重新生成。",
+      "coverage_refs": [
+        "P01-POLICY:UI_TERM_UNREGISTERED_RAW_TOKEN"
+      ],
+      "default_next_action_id": "HIDE_INVALID_UI_AND_REBUILD"
+    },
+    {
+      "code": "UI_TERM_INTERNAL_IDENTIFIER",
+      "category": "LANGUAGE",
+      "severity": "BLOCKING",
+      "priority": 420,
+      "title_zh": "界面出现内部编号",
+      "message_zh": "隐藏内部编号，改为用户可理解的中文含义。",
+      "coverage_refs": [
+        "P01-POLICY:UI_TERM_INTERNAL_IDENTIFIER"
+      ],
+      "default_next_action_id": "HIDE_INVALID_UI_AND_REBUILD"
+    },
+    {
+      "code": "UI_TERM_MACHINE_IDENTIFIER",
+      "category": "LANGUAGE",
+      "severity": "BLOCKING",
+      "priority": 430,
+      "title_zh": "界面出现机器字段名",
+      "message_zh": "隐藏机器字段名，映射为中文标签后重新生成。",
+      "coverage_refs": [
+        "P01-POLICY:UI_TERM_MACHINE_IDENTIFIER"
+      ],
+      "default_next_action_id": "HIDE_INVALID_UI_AND_REBUILD"
+    },
+    {
+      "code": "UI_TERM_UNEXPLAINED",
+      "category": "LANGUAGE",
+      "severity": "BLOCKING",
+      "priority": 440,
+      "title_zh": "界面缩写缺少解释",
+      "message_zh": "隐藏当前内容，补充规定的中文解释后重新生成。",
+      "coverage_refs": [
+        "P01-POLICY:UI_TERM_UNEXPLAINED"
+      ],
+      "default_next_action_id": "HIDE_INVALID_UI_AND_REBUILD"
+    },
+    {
+      "code": "UI_TERM_ZH_ONLY",
+      "category": "LANGUAGE",
+      "severity": "BLOCKING",
+      "priority": 450,
+      "title_zh": "界面使用了仅限中文的机器词",
+      "message_zh": "隐藏机器词，只显示规定的中文名称。",
+      "coverage_refs": [
+        "P01-POLICY:UI_TERM_ZH_ONLY"
+      ],
+      "default_next_action_id": "HIDE_INVALID_UI_AND_REBUILD"
+    },
+    {
+      "code": "UI_TERM_MACHINE_ONLY",
+      "category": "LANGUAGE",
+      "severity": "BLOCKING",
+      "priority": 460,
+      "title_zh": "界面泄漏机器专用文字",
+      "message_zh": "隐藏机器专用文字并重新生成中文内容。",
+      "coverage_refs": [
+        "P01-POLICY:UI_TERM_MACHINE_ONLY"
+      ],
+      "default_next_action_id": "HIDE_INVALID_UI_AND_REBUILD"
+    },
+    {
+      "code": "UI_SURFACE_UNKNOWN",
+      "category": "LANGUAGE",
+      "severity": "BLOCKING",
+      "priority": 470,
+      "title_zh": "界面类型未登记",
+      "message_zh": "停止展示，完成界面登记和中文扫描后再开放。",
+      "coverage_refs": [
+        "P01-POLICY:UI_SURFACE_UNKNOWN"
+      ],
+      "default_next_action_id": "HIDE_INVALID_UI_AND_REBUILD"
+    },
+    {
+      "code": "MONTHLY_TARGET_SHORTFALL",
+      "category": "TARGET",
+      "severity": "INFORMATION",
+      "priority": 480,
+      "title_zh": "月度目标尚未达到",
+      "message_zh": "记录偏差并继续证伪；不得追损或降低任何安全门。",
+      "coverage_refs": [
+        "RISK-REGISTER:R-001"
+      ],
+      "default_next_action_id": "RECORD_TARGET_SHORTFALL_KEEP_GATES"
+    }
+  ],
+  "non_claims": [
+    "本目录冻结失败状态与中文指导合同，不代表网页、移动端、无障碍界面或生产运行已经实现。",
+    "本目录不执行模型、访问账户、调用外部来源、部署服务、提交或重试真实订单。",
+    "覆盖范围是当前机器真源已声明失败类；未来阶段新增失败类必须扩展后才能进入界面。",
+    "月度百分之三十目标仍待证伪和长期验证，不构成收益保证。"
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "artifacts": {
+    "accessibility_report.json": {
+      "corrupted_sha256": "3b16b5e0f0f8ec95aeb8769570d68ed3596227a717679f5e1040895cad80dcb5",
+      "restored_sha256": "845a784a44c45fc3f9d7a02519e39ea73c0d2c9f26a08d6ef90f22ae09cb3a7f",
+      "signed_sha256": "845a784a44c45fc3f9d7a02519e39ea73c0d2c9f26a08d6ef90f22ae09cb3a7f",
+      "status": "PASS"
+    },
+    "advice_card_fixtures.json": {
+      "corrupted_sha256": "8e5cd4af9d1ddca6d874d1348d6aee8b66bef46ccf411fd6b74e034f4919253f",
+      "restored_sha256": "2f9a5f892eebf01dfbdf91e3c14c96ee59005cd801f169460514d8c4e5476eb5",
+      "signed_sha256": "2f9a5f892eebf01dfbdf91e3c14c96ee59005cd801f169460514d8c4e5476eb5",
+      "status": "PASS"
+    },
+    "advice_card_schema.json": {
+      "corrupted_sha256": "11359aa5cdcd731929e2c7da8e44c46df0adb985567076586507ef4b5cdc9a32",
+      "restored_sha256": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+      "signed_sha256": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+      "status": "PASS"
+    },
+    "forbidden_ui_terms.json": {
+      "corrupted_sha256": "7e51745f9331c2c92b3edc7206700dce6c3b4edc650689fa627db9b23598bf37",
+      "restored_sha256": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f",
+      "signed_sha256": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f",
+      "status": "PASS"
+    },
+    "glossary_zh.json": {
+      "corrupted_sha256": "90c34ada92c3da6191b64ca83a8653e285d5c27b92bd6b80231cacbd53aa087f",
+      "restored_sha256": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "signed_sha256": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "status": "PASS"
+    },
+    "machine/evidence/S03/STAGE_REVIEW/findings.json": {
+      "corrupted_sha256": "fd2362f0ef0d19b845d329f84a8e6ddfcacb9a5a23327b36f1cb4c1e45b35323",
+      "restored_sha256": "e62242685c6091564c92efc9d05be5b061e382cecfaa46bb39ae780eac072ea9",
+      "signed_sha256": "e62242685c6091564c92efc9d05be5b061e382cecfaa46bb39ae780eac072ea9",
+      "status": "PASS"
+    },
+    "machine/facts/stage3_review_contract.json": {
+      "corrupted_sha256": "14b0cc75d7d5727c21c00e241a8a603da92f784d15aec490334a1595a35daf46",
+      "restored_sha256": "9466f63e3f8029cba8b518e828b4d22113bf59ae7fa13b44470509ee8732d241",
+      "signed_sha256": "9466f63e3f8029cba8b518e828b4d22113bf59ae7fa13b44470509ee8732d241",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S03_STAGE_REVIEW.json": {
+      "corrupted_sha256": "726545d78980b84d7d5584c478a6ec88c16a9912e09f5d2343d61c1e41d017e2",
+      "restored_sha256": "ca816f8e50b63fc38c0c1626351957104ad682a72e13455f7e789aa0f2a141bc",
+      "signed_sha256": "ca816f8e50b63fc38c0c1626351957104ad682a72e13455f7e789aa0f2a141bc",
+      "status": "PASS"
+    },
+    "next_action_matrix.json": {
+      "corrupted_sha256": "357b4c91717ec9a05a89d04f0ac1aed774e0e4f5f9dc5e8743026ea163b55860",
+      "restored_sha256": "86e52de87b15a447a6d7d4683a8fe99b7f6f255552d05bde15dcf94928969f3d",
+      "signed_sha256": "86e52de87b15a447a6d7d4683a8fe99b7f6f255552d05bde15dcf94928969f3d",
+      "status": "PASS"
+    },
+    "reason_codes_zh.json": {
+      "corrupted_sha256": "5d0479b23a39d630a918c6e7b7300b4978584c855799954d4cf4827a7d9d7951",
+      "restored_sha256": "62c37e83b844b72fbeeebe5591a717d64c225629fb4ad421c44a6ad631ac8a20",
+      "signed_sha256": "62c37e83b844b72fbeeebe5591a717d64c225629fb4ad421c44a6ad631ac8a20",
+      "status": "PASS"
+    },
+    "tests/S03/stage_review_test.py": {
+      "corrupted_sha256": "7e911fa7c8b621f840900fd9656c8db095e3a7274699dcf433ae0051e22ba3b7",
+      "restored_sha256": "f9d55d572526e0e81f144d6ecb5c62e83ce0907f1ce5e1315d8bd4e1aa5ed103",
+      "signed_sha256": "f9d55d572526e0e81f144d6ecb5c62e83ce0907f1ce5e1315d8bd4e1aa5ed103",
+      "status": "PASS"
+    },
+    "ux_test_plan.json": {
+      "corrupted_sha256": "cdfb46b87694376fb134c1b4deea2d754aa24ce75acb9ddd754369d15d594fd9",
+      "restored_sha256": "a2e011cacd58b56f4094cbf969bba8c748f56df628dbbeef639c25ffa82fb936",
+      "signed_sha256": "a2e011cacd58b56f4094cbf969bba8c748f56df628dbbeef639c25ffa82fb936",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "STAGE-REVIEW-S03",
+  "evidence_id": "EVD-S03-STAGE-REVIEW-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-20T18:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_STAGE_ARTIFACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

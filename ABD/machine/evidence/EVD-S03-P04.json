@@ -1,0 +1,2224 @@
+{
+  "artifacts": {
+    "ART-S03-P04-01": "ux_test_plan.json",
+    "ART-S03-P04-02": "accessibility_report.json"
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S03/P04_test.py --junitxml=machine/evidence/S03/P04/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/P04/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S03/P04/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/P04/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S03-P04 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S03-P04",
+  "decision": "USABILITY_ACCESSIBILITY_DESIGN_CONTRACT_FROZEN",
+  "decision_sha256": "e3e7d5717163de564c7e433618ec4e7ea135358f570349f961d89e4e9305029e",
+  "evidence_id": "EVD-S03-P04",
+  "explicit_unknowns": [
+    "The pass status covers frozen task budgets and structural design contracts, not observed human completion times.",
+    "No production UI, real device, browser, low-bandwidth network, keyboard journey or screen-reader runtime was implemented or executed.",
+    "No formal WCAG conformance or human usability conclusion is claimed.",
+    "TAB, Gmail, OVH and Cloudflare account, authorization, capacity and runtime states remain uninspected or unverified and fail closed.",
+    "No source, account, quote, model, stake or order was selected or executed.",
+    "The 30% monthly compounding target remains falsifiable, unverified and not guaranteed; target shortfall cannot relax any gate."
+  ],
+  "external_effect_boundary": {
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_account_or_api_accessed": false,
+    "external_network_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "order_submitted_or_retried": false,
+    "owner_final_order_only": true
+  },
+  "fixed_clock": "2026-07-20T14:00:00+10:00",
+  "hashes": {
+    "code": "dc0228b02944f70eec4d565467a7e1788558c5ef061190106815fd28245b87db",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "README.md": "75f94aedfbd9d04db4e5b69536e765791e521750a6a52cf32f639c1657d9998d",
+      "abd_acceptance/__init__.py": "ff867ad84ac593548e7b2e00f4b53ac49dc8f6de22ad7aa08c788c755d836597",
+      "abd_acceptance/__main__.py": "ee2fae7089314bb135dbe13779d0f8b4f0c899a6ddab6c38510f1ce3e571f638",
+      "abd_acceptance/advice_card.py": "5215d5f7db8273d48dc3204c3027a97796d3626de41f0b30aeac57f71aad79df",
+      "abd_acceptance/reason_next_action.py": "b5fe7b448c854d12fd2bb6fb36a6ebf25ee2b45d266e830541d47ded8eec9fd2",
+      "abd_acceptance/stage2_review.py": "cebdd5261a49c5dbfb70a75ed2ccf360c525ea4f6b6b776a9adc3cb3c964dfbf",
+      "abd_acceptance/terminology_governance.py": "10cc90834d3a6a38e2b6ea92250bedb501b801d0a87f566a87cdeef893ab81f1",
+      "abd_acceptance/usability_accessibility.py": "e48b8d4838d88e01c21462b7ed39988adb76e8ec844c3fe5e0e2d39a45e64474",
+      "accessibility_report.json": "57fe4c6f3a735293200bac853c1f351affd5b1e9d1e8495ece5d91fb19b6845b",
+      "advice_card_schema.json": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+      "forbidden_ui_terms.json": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f",
+      "glossary_zh.json": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "machine/evidence/EVD-S03-P03.json": "763d9ea60c03f9768d514e99b1846235add6dd187304ac273ae86e2eb03fddbc",
+      "machine/evidence/EVD-S03-P03_rollback.json": "888ef326c3bc5c8c830319c701805d89fae316e68da9b68b67bef01a7f486ad7",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S03_P04.json": "830e6bf8d9acb7a1ab34f4c39794758a21c6f760d1d7aed91f73e29c710e9a3e",
+      "next_action_matrix.json": "86e52de87b15a447a6d7d4683a8fe99b7f6f255552d05bde15dcf94928969f3d",
+      "reason_codes_zh.json": "62c37e83b844b72fbeeebe5591a717d64c225629fb4ad421c44a6ad631ac8a20",
+      "tests/S03/P04_test.py": "0f76c27e1c7da371d432ac950fe4c1fa0208717e5af796826a57d53a764724ff",
+      "tests/S03/__init__.py": "b70b870a7ed44aabf3405f88c10073e143f1e245be69d1fe514cac3fe277539f",
+      "tests/__init__.py": "214896f19f61ef6e1e73500ce53894866f9524c972db91d32f92a62d9818d316",
+      "ux_test_plan.json": "cffb46d888586a31f07b4c6d35727d67d39ecf67d961d8e18bfe5d79410e8f40"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S03/P04 validates frozen task budgets and structural accessibility contracts offline; it executes no human study, browser, screen reader, model, provider, deployment, order or return evaluation.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "9b75cb9d53512100da79164c1fa50bf0a785b943e4a713052d3a0326ac07eb45"
+  },
+  "measurement_boundary": {
+    "formal_wcag_conformance_claimed": false,
+    "human_timing_observed": false,
+    "human_usability_conclusion_claimed": false,
+    "machine_result_scope": "确定性任务预算与结构化设计合同",
+    "production_ui_deployed": false,
+    "production_ui_implemented": false,
+    "real_device_or_browser_run_executed": false,
+    "screen_reader_runtime_run_executed": false
+  },
+  "next": "S03/STAGE_REVIEW_READY_NOT_STARTED",
+  "p03_delivery_prerequisite": {
+    "decision": "S03_P03_EVIDENCE_VERIFIED",
+    "evidence": "machine/evidence/EVD-S03-P03.json",
+    "evidence_sha256": "763d9ea60c03f9768d514e99b1846235add6dd187304ac273ae86e2eb03fddbc",
+    "rollback_sha256": "888ef326c3bc5c8c830319c701805d89fae316e68da9b68b67bef01a7f486ad7",
+    "status": "PASS"
+  },
+  "phase_id": "P04",
+  "phase_status": "S03_P04_PASS",
+  "release_status": "NOT_READY_STAGE_3_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S03-P04",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S03-P04_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S03",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "ux_test_plan.json",
+        "id": "S03P04-PLAN-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "accessibility_report.json",
+        "id": "S03P04-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "S03_P04.json",
+        "id": "S03P04-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "763d9ea60c03f9768d514e99b1846235add6dd187304ac273ae86e2eb03fddbc",
+          "expected": "763d9ea60c03f9768d514e99b1846235add6dd187304ac273ae86e2eb03fddbc"
+        },
+        "id": "S03P04-PIN-MACHINE-EVIDENCE-EVD-S03-P03-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "888ef326c3bc5c8c830319c701805d89fae316e68da9b68b67bef01a7f486ad7",
+          "expected": "888ef326c3bc5c8c830319c701805d89fae316e68da9b68b67bef01a7f486ad7"
+        },
+        "id": "S03P04-PIN-MACHINE-EVIDENCE-EVD-S03-P03_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+          "expected": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a"
+        },
+        "id": "S03P04-PIN-ADVICE_CARD_SCHEMA-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "62c37e83b844b72fbeeebe5591a717d64c225629fb4ad421c44a6ad631ac8a20",
+          "expected": "62c37e83b844b72fbeeebe5591a717d64c225629fb4ad421c44a6ad631ac8a20"
+        },
+        "id": "S03P04-PIN-REASON_CODES_ZH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "86e52de87b15a447a6d7d4683a8fe99b7f6f255552d05bde15dcf94928969f3d",
+          "expected": "86e52de87b15a447a6d7d4683a8fe99b7f6f255552d05bde15dcf94928969f3d"
+        },
+        "id": "S03P04-PIN-NEXT_ACTION_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+          "expected": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097"
+        },
+        "id": "S03P04-PIN-GLOSSARY_ZH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f",
+          "expected": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f"
+        },
+        "id": "S03P04-PIN-FORBIDDEN_UI_TERMS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S03P04-PIN-MACHINE-FACTS-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S03P04-PIN-MACHINE-FACTS-MODEL_SYSTEM_CARD-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S03P04-PIN-MACHINE-FACTS-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S03P04-PIN-MACHINE-FACTS-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S03P04-PIN-MACHINE-FACTS-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S03P04-PIN-MACHINE-FACTS-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S03P04-PIN-MACHINE-FACTS-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S03P04-PIN-MACHINE-FACTS-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "cffb46d888586a31f07b4c6d35727d67d39ecf67d961d8e18bfe5d79410e8f40",
+          "expected": "cffb46d888586a31f07b4c6d35727d67d39ecf67d961d8e18bfe5d79410e8f40"
+        },
+        "id": "S03P04-PIN-UX_TEST_PLAN-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "57fe4c6f3a735293200bac853c1f351affd5b1e9d1e8495ece5d91fb19b6845b",
+          "expected": "57fe4c6f3a735293200bac853c1f351affd5b1e9d1e8495ece5d91fb19b6845b"
+        },
+        "id": "S03P04-PIN-ACCESSIBILITY_REPORT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "830e6bf8d9acb7a1ab34f4c39794758a21c6f760d1d7aed91f73e29c710e9a3e",
+          "expected": "830e6bf8d9acb7a1ab34f4c39794758a21c6f760d1d7aed91f73e29c710e9a3e"
+        },
+        "id": "S03P04-PIN-MACHINE-TESTS-FIXTURES-S03_P04-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "0f76c27e1c7da371d432ac950fe4c1fa0208717e5af796826a57d53a764724ff",
+          "expected": "0f76c27e1c7da371d432ac950fe4c1fa0208717e5af796826a57d53a764724ff"
+        },
+        "id": "S03P04-PIN-TESTS-S03-P04_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S03P04-PIN--GITHUB-WORKFLOWS-ABD-STAGE0-VALIDATION-YML",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "3da0a76ede8857db780bf2299a72d941d0eb278d8961a74bba3762ed55ec18e0",
+          "expected": "3da0a76ede8857db780bf2299a72d941d0eb278d8961a74bba3762ed55ec18e0"
+        },
+        "id": "S03P04-ORACLE-SELF-INTEGRITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 13,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 13
+        },
+        "id": "S03P04-P03-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "baseline": "未实现或旧包存在冲突/缺口",
+            "id": "REQ-S03-P04",
+            "measurement": "由 AC-S03-P04 的机器验收判定器执行固定输入、阈值和证据检查。",
+            "non_goals": [
+              "不自动提交、确认或重试真实订单",
+              "不以降低证据或风险门追赶30%月目标",
+              "不引入付费数据或付费程序接口依赖"
+            ],
+            "observation_period": "开发期每次提交；上线后持续",
+            "owner_input_required_during_development": false,
+            "phase_id": "P04",
+            "primary_acceptance_criteria_id": "AC-S03-P04",
+            "priority": "P1",
+            "problem": "若未完成“可用性与无障碍”，让用户无需查术语或文档即可操作，机器内部英文不泄漏到日常界面。将缺少可执行、可验收或可恢复的基础。",
+            "scope": [
+              "ux_test_plan.json",
+              "accessibility_report.json"
+            ],
+            "stage_id": "S03",
+            "target": "核心操作中位数≤10分钟、95分位≤20分钟。",
+            "title": "可用性与无障碍",
+            "user": "单一账户持有人及自动开发/运维代理",
+            "value": "验证手机/电脑、低带宽、色盲、字号、键盘和屏幕阅读器。"
+          }
+        ],
+        "id": "S03P04-TASKPACK-REQUIREMENT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "environment": [
+              "Ubuntu Linux 持续集成环境",
+              "固定时钟",
+              "冻结测试夹具",
+              "无外部网络的确定性测试模式",
+              "生产等价配置Schema"
+            ],
+            "evidence_requirements": [
+              "machine/evidence/EVD-S03-P04.json",
+              "测试报告及命令退出码",
+              "输入、参数、代码、模型和输出SHA-256",
+              "失败路径截图或结构化日志",
+              "回滚演练记录"
+            ],
+            "id": "AC-S03-P04",
+            "inputs": [
+              "REQ-S03-P04 对应机器事实",
+              "S03/P04 冻结正向、边界、负向和故障输入",
+              "参数版本和来源版本哈希"
+            ],
+            "oracle": {
+              "command": "python -m abd_acceptance --contract AC-S03-P04 --evidence machine/evidence",
+              "rule": "核心操作中位数≤10分钟、95分位≤20分钟。",
+              "type": "EXECUTABLE"
+            },
+            "pass_gate": "核心操作中位数≤10分钟、95分位≤20分钟。",
+            "requirement_id": "REQ-S03-P04",
+            "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+            "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+            "stop_condition": [
+              "发现法律、监管或来源合同实质冲突且无安全默认",
+              "需要不可逆操作",
+              "新增现金支出将超过A$0",
+              "严重安全事故或证据完整性失败",
+              "阶段终止条件被触发"
+            ],
+            "tests": [
+              {
+                "id": "TEST-S03-P04",
+                "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+              },
+              {
+                "id": "TEST-S03-P04-BOUNDARY",
+                "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+              },
+              {
+                "id": "TEST-S03-P04-REPLAY",
+                "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+              }
+            ],
+            "threshold": "核心操作中位数≤10分钟、95分位≤20分钟。",
+            "title": "可用性与无障碍唯一主验收"
+          }
+        ],
+        "id": "S03P04-TASKPACK-ACCEPTANCE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S03-P04-01",
+          "T-S03-P04-02",
+          "T-S03-P04-03"
+        ],
+        "id": "S03P04-TASKPACK-TASKS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_criteria_id": "AC-S03-P04",
+            "artifact_ids": [
+              "ART-S03-P04-01",
+              "ART-S03-P04-02"
+            ],
+            "evidence_id": "EVD-S03-P04",
+            "phase_id": "P04",
+            "requirement_id": "REQ-S03-P04",
+            "stage_id": "S03",
+            "task_ids": [
+              "T-S03-P04-01",
+              "T-S03-P04-02",
+              "T-S03-P04-03"
+            ],
+            "test_ids": [
+              "TEST-S03-P04",
+              "TEST-S03-P04-BOUNDARY",
+              "TEST-S03-P04-REPLAY"
+            ]
+          }
+        ],
+        "id": "S03P04-TASKPACK-TRACEABILITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "hours": {
+              "high": 6,
+              "likely": 4,
+              "low": 3
+            },
+            "id": "P04",
+            "objective": "验证手机/电脑、低带宽、色盲、字号、键盘和屏幕阅读器。",
+            "outputs": [
+              "ux_test_plan.json",
+              "accessibility_report.json"
+            ],
+            "pass_gate": "核心操作中位数≤10分钟、95分位≤20分钟。",
+            "title": "可用性与无障碍"
+          }
+        ],
+        "id": "S03P04-TASKPACK-ROADMAP-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contrast": [
+            8.307899854358817,
+            8.15033214671344,
+            8.662965411079913,
+            8.344708665414029,
+            8.15033214671344
+          ],
+          "order": [
+            "status",
+            "action",
+            "countdown",
+            "reasons",
+            "evidence",
+            "invalidation",
+            "safety"
+          ]
+        },
+        "id": "S03P04-P02-PRESENTATION-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "automatic_external_action_count": 0,
+          "gate_relaxation_action_count": 0,
+          "irreversible_action_count": 0,
+          "order_retry_action_count": 0,
+          "order_submission_action_count": 0,
+          "paid_action_count": 0,
+          "unknown_state_action": "STOP_AND_PRESERVE"
+        },
+        "id": "S03P04-P03-FAILURE-GUIDANCE-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": "FROZEN_DETERMINISTIC_DESIGN_CONTRACT",
+        "id": "S03P04-PLAN-SHAPE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "CORE-01",
+          "CORE-02",
+          "CORE-03",
+          "CORE-04"
+        ],
+        "id": "S03P04-PLAN-TASK-SET",
+        "passed": true
+      },
+      {
+        "detail": {
+          "id": "CORE-01",
+          "required_regions": [
+            "status",
+            "action"
+          ],
+          "success_criteria_zh": "能从文字状态和符号判断建议或不建议，不依赖颜色。",
+          "title_zh": "确认当前是否建议操作"
+        },
+        "id": "S03P04-TASK-CORE-01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "id": "CORE-02",
+          "required_regions": [
+            "action",
+            "countdown"
+          ],
+          "success_criteria_zh": "能按固定顺序核对做什么、在哪做、金额和最低赔率。",
+          "title_zh": "核对操作地点、金额和最低赔率"
+        },
+        "id": "S03P04-TASK-CORE-02",
+        "passed": true
+      },
+      {
+        "detail": {
+          "id": "CORE-03",
+          "required_regions": [
+            "reasons",
+            "evidence",
+            "invalidation"
+          ],
+          "success_criteria_zh": "能识别证据不足、过期或失效时必须停止。",
+          "title_zh": "核对理由、证据和失效条件"
+        },
+        "id": "S03P04-TASK-CORE-03",
+        "passed": true
+      },
+      {
+        "detail": {
+          "id": "CORE-04",
+          "required_regions": [
+            "safety"
+          ],
+          "success_criteria_zh": "每个失败状态只显示一个本地安全下一步，系统不提交或重试订单。",
+          "title_zh": "处理失败并停在用户最终下单边界"
+        },
+        "id": "S03P04-TASK-CORE-04",
+        "passed": true
+      },
+      {
+        "detail": [
+          "action",
+          "countdown",
+          "evidence",
+          "invalidation",
+          "reasons",
+          "safety",
+          "status"
+        ],
+        "id": "S03P04-TASK-REGION-COVERAGE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "PHONE_BROWSER",
+          "DESKTOP_BROWSER",
+          "LOW_BANDWIDTH",
+          "COLOR_VISION",
+          "TEXT_SCALE_200",
+          "KEYBOARD_ONLY",
+          "SCREEN_READER_LINEAR"
+        ],
+        "id": "S03P04-PROFILE-SET",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_zh": "手机浏览器",
+          "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+          "frozen_environment": {
+            "input_mode": "触控与屏幕键盘",
+            "viewport_css_px": "360x640"
+          },
+          "id": "PHONE_BROWSER",
+          "runtime_status": "NOT_EXECUTED"
+        },
+        "id": "S03P04-PROFILE-PHONE_BROWSER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_zh": "电脑浏览器",
+          "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+          "frozen_environment": {
+            "input_mode": "键盘与指针",
+            "viewport_css_px": "1440x900"
+          },
+          "id": "DESKTOP_BROWSER",
+          "runtime_status": "NOT_EXECUTED"
+        },
+        "id": "S03P04-PROFILE-DESKTOP_BROWSER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_zh": "低带宽文字优先模式",
+          "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+          "frozen_environment": {
+            "image_dependency": "NONE",
+            "maximum_initial_payload_bytes": 32768
+          },
+          "id": "LOW_BANDWIDTH",
+          "runtime_status": "NOT_EXECUTED"
+        },
+        "id": "S03P04-PROFILE-LOW_BANDWIDTH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_zh": "颜色辨识受限模式",
+          "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+          "frozen_environment": {
+            "color_only_signal_allowed": false,
+            "redundant_cues": [
+              "中文文字",
+              "状态符号"
+            ]
+          },
+          "id": "COLOR_VISION",
+          "runtime_status": "NOT_EXECUTED"
+        },
+        "id": "S03P04-PROFILE-COLOR_VISION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_zh": "放大字号模式",
+          "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+          "frozen_environment": {
+            "required_reflow": true,
+            "text_scale_percent": 200
+          },
+          "id": "TEXT_SCALE_200",
+          "runtime_status": "NOT_EXECUTED"
+        },
+        "id": "S03P04-PROFILE-TEXT_SCALE_200",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_zh": "仅键盘操作",
+          "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+          "frozen_environment": {
+            "focus_order": [
+              "status",
+              "action",
+              "countdown",
+              "reasons",
+              "evidence",
+              "invalidation",
+              "safety"
+            ],
+            "pointer_required": false
+          },
+          "id": "KEYBOARD_ONLY",
+          "runtime_status": "NOT_EXECUTED"
+        },
+        "id": "S03P04-PROFILE-KEYBOARD_ONLY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_zh": "屏幕阅读器线性阅读",
+          "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+          "frozen_environment": {
+            "dynamic_announcements": [
+              "倒计时状态变化",
+              "建议失效",
+              "失败原因与下一步"
+            ],
+            "reading_order": [
+              "status",
+              "action",
+              "countdown",
+              "reasons",
+              "evidence",
+              "invalidation",
+              "safety"
+            ]
+          },
+          "id": "SCREEN_READER_LINEAR",
+          "runtime_status": "NOT_EXECUTED"
+        },
+        "id": "S03P04-PROFILE-SCREEN_READER_LINEAR",
+        "passed": true
+      },
+      {
+        "detail": {
+          "hard_gate": true,
+          "median_max_seconds": 600,
+          "median_rank": "ceil(0.50*n)",
+          "minimum_samples": 21,
+          "p95_max_seconds": 1200,
+          "p95_rank": "ceil(0.95*n)",
+          "quantile_method": "NEAREST_RANK_CEILING",
+          "sample_semantics": "每个数值是冻结场景的保守完成预算，不是参与者观测值或生产遥测。",
+          "scenario_scope": "ALL_CORE_TASKS_IN_ORDER",
+          "unit": "seconds"
+        },
+        "id": "S03P04-TIMING-CONTRACT-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "BUDGET-DESKTOP-01",
+          "BUDGET-DESKTOP-02",
+          "BUDGET-DESKTOP-03",
+          "BUDGET-PHONE-01",
+          "BUDGET-PHONE-02",
+          "BUDGET-PHONE-03",
+          "BUDGET-LOW-01",
+          "BUDGET-LOW-02",
+          "BUDGET-LOW-03",
+          "BUDGET-COLOR-01",
+          "BUDGET-COLOR-02",
+          "BUDGET-COLOR-03",
+          "BUDGET-TEXT-01",
+          "BUDGET-TEXT-02",
+          "BUDGET-TEXT-03",
+          "BUDGET-KEYBOARD-01",
+          "BUDGET-KEYBOARD-02",
+          "BUDGET-KEYBOARD-03",
+          "BUDGET-READER-01",
+          "BUDGET-READER-02",
+          "BUDGET-READER-03"
+        ],
+        "id": "S03P04-SAMPLE-IDS-UNIQUE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 360,
+          "id": "BUDGET-DESKTOP-01",
+          "profile_id": "DESKTOP_BROWSER",
+          "variant": "建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-DESKTOP-01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 420,
+          "id": "BUDGET-DESKTOP-02",
+          "profile_id": "DESKTOP_BROWSER",
+          "variant": "不建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-DESKTOP-02",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 480,
+          "id": "BUDGET-DESKTOP-03",
+          "profile_id": "DESKTOP_BROWSER",
+          "variant": "失败路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-DESKTOP-03",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 420,
+          "id": "BUDGET-PHONE-01",
+          "profile_id": "PHONE_BROWSER",
+          "variant": "建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-PHONE-01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 480,
+          "id": "BUDGET-PHONE-02",
+          "profile_id": "PHONE_BROWSER",
+          "variant": "不建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-PHONE-02",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 540,
+          "id": "BUDGET-PHONE-03",
+          "profile_id": "PHONE_BROWSER",
+          "variant": "失败路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-PHONE-03",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 540,
+          "id": "BUDGET-LOW-01",
+          "profile_id": "LOW_BANDWIDTH",
+          "variant": "建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-LOW-01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 600,
+          "id": "BUDGET-LOW-02",
+          "profile_id": "LOW_BANDWIDTH",
+          "variant": "不建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-LOW-02",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 720,
+          "id": "BUDGET-LOW-03",
+          "profile_id": "LOW_BANDWIDTH",
+          "variant": "失败路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-LOW-03",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 420,
+          "id": "BUDGET-COLOR-01",
+          "profile_id": "COLOR_VISION",
+          "variant": "建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-COLOR-01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 480,
+          "id": "BUDGET-COLOR-02",
+          "profile_id": "COLOR_VISION",
+          "variant": "不建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-COLOR-02",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 540,
+          "id": "BUDGET-COLOR-03",
+          "profile_id": "COLOR_VISION",
+          "variant": "失败路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-COLOR-03",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 480,
+          "id": "BUDGET-TEXT-01",
+          "profile_id": "TEXT_SCALE_200",
+          "variant": "建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-TEXT-01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 540,
+          "id": "BUDGET-TEXT-02",
+          "profile_id": "TEXT_SCALE_200",
+          "variant": "不建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-TEXT-02",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 600,
+          "id": "BUDGET-TEXT-03",
+          "profile_id": "TEXT_SCALE_200",
+          "variant": "失败路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-TEXT-03",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 600,
+          "id": "BUDGET-KEYBOARD-01",
+          "profile_id": "KEYBOARD_ONLY",
+          "variant": "建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-KEYBOARD-01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 720,
+          "id": "BUDGET-KEYBOARD-02",
+          "profile_id": "KEYBOARD_ONLY",
+          "variant": "不建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-KEYBOARD-02",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 780,
+          "id": "BUDGET-KEYBOARD-03",
+          "profile_id": "KEYBOARD_ONLY",
+          "variant": "失败路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-KEYBOARD-03",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 720,
+          "id": "BUDGET-READER-01",
+          "profile_id": "SCREEN_READER_LINEAR",
+          "variant": "建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-READER-01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 840,
+          "id": "BUDGET-READER-02",
+          "profile_id": "SCREEN_READER_LINEAR",
+          "variant": "不建议路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-READER-02",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budget_seconds": 960,
+          "id": "BUDGET-READER-03",
+          "profile_id": "SCREEN_READER_LINEAR",
+          "variant": "失败路径"
+        },
+        "id": "S03P04-SAMPLE-BUDGET-READER-03",
+        "passed": true
+      },
+      {
+        "detail": {
+          "COLOR_VISION": [
+            420,
+            480,
+            540
+          ],
+          "DESKTOP_BROWSER": [
+            360,
+            420,
+            480
+          ],
+          "KEYBOARD_ONLY": [
+            600,
+            720,
+            780
+          ],
+          "LOW_BANDWIDTH": [
+            540,
+            600,
+            720
+          ],
+          "PHONE_BROWSER": [
+            420,
+            480,
+            540
+          ],
+          "SCREEN_READER_LINEAR": [
+            720,
+            840,
+            960
+          ],
+          "TEXT_SCALE_200": [
+            480,
+            540,
+            600
+          ]
+        },
+        "id": "S03P04-SAMPLE-PROFILE-BUDGETS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": false,
+          "decision": "WITHIN_FROZEN_TASK_BUDGET",
+          "median_max_seconds": 600,
+          "median_seconds": 540,
+          "numeric_boundary_delta": "0",
+          "p95_max_seconds": 1200,
+          "p95_seconds": 840,
+          "quantile_method": "NEAREST_RANK_CEILING",
+          "sample_count": 21,
+          "status": "PASS"
+        },
+        "id": "S03P04-TIMING-GATE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "A11Y-PHONE-REFLOW",
+          "A11Y-DESKTOP-ORDER",
+          "A11Y-LOW-BANDWIDTH-TEXT",
+          "A11Y-COLOR-REDUNDANCY",
+          "A11Y-TEXT-SCALE-200",
+          "A11Y-KEYBOARD-ORDER",
+          "A11Y-SCREEN-READER-LINEAR"
+        ],
+        "id": "S03P04-A11Y-CONTRACT-SET",
+        "passed": true
+      },
+      {
+        "detail": {
+          "assertions": [
+            "单列固定顺序",
+            "首要答案先于理由",
+            "无仅悬停操作"
+          ],
+          "id": "A11Y-PHONE-REFLOW",
+          "profile_id": "PHONE_BROWSER"
+        },
+        "id": "S03P04-A11Y-A11Y-PHONE-REFLOW",
+        "passed": true
+      },
+      {
+        "detail": {
+          "assertions": [
+            "展示顺序与手机一致",
+            "主操作区唯一",
+            "安全边界始终可读"
+          ],
+          "id": "A11Y-DESKTOP-ORDER",
+          "profile_id": "DESKTOP_BROWSER"
+        },
+        "id": "S03P04-A11Y-A11Y-DESKTOP-ORDER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "assertions": [
+            "初始载荷不超过32768字节",
+            "不依赖图片",
+            "失败时保留中文文字"
+          ],
+          "id": "A11Y-LOW-BANDWIDTH-TEXT",
+          "profile_id": "LOW_BANDWIDTH"
+        },
+        "id": "S03P04-A11Y-A11Y-LOW-BANDWIDTH-TEXT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "assertions": [
+            "颜色不是唯一信号",
+            "中文标签冗余",
+            "状态符号冗余"
+          ],
+          "id": "A11Y-COLOR-REDUNDANCY",
+          "profile_id": "COLOR_VISION"
+        },
+        "id": "S03P04-A11Y-A11Y-COLOR-REDUNDANCY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "assertions": [
+            "字号可放大至200%",
+            "内容顺序不变",
+            "信息不裁切"
+          ],
+          "id": "A11Y-TEXT-SCALE-200",
+          "profile_id": "TEXT_SCALE_200"
+        },
+        "id": "S03P04-A11Y-A11Y-TEXT-SCALE-200",
+        "passed": true
+      },
+      {
+        "detail": {
+          "assertions": [
+            "无需指针",
+            "焦点顺序与展示顺序一致",
+            "无键盘陷阱"
+          ],
+          "id": "A11Y-KEYBOARD-ORDER",
+          "profile_id": "KEYBOARD_ONLY"
+        },
+        "id": "S03P04-A11Y-A11Y-KEYBOARD-ORDER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "assertions": [
+            "阅读顺序与展示顺序一致",
+            "动态状态有中文通告",
+            "机器标识不进入可读名称"
+          ],
+          "id": "A11Y-SCREEN-READER-LINEAR",
+          "profile_id": "SCREEN_READER_LINEAR"
+        },
+        "id": "S03P04-A11Y-A11Y-SCREEN-READER-LINEAR",
+        "passed": true
+      },
+      {
+        "detail": [
+          "FAULT-TIMING-MEDIAN",
+          "FAULT-TIMING-P95",
+          "FAULT-COLOR-ONLY",
+          "FAULT-KEYBOARD-TRAP",
+          "FAULT-READING-ORDER",
+          "FAULT-LOW-BANDWIDTH-PAYLOAD",
+          "FAULT-RUNTIME-CLAIM",
+          "FAULT-UNKNOWN-PROFILE"
+        ],
+        "id": "S03P04-FAILURE-PLAN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "formal_wcag_conformance_claimed": false,
+          "human_timing_observed": false,
+          "human_usability_conclusion_claimed": false,
+          "machine_result_scope": "确定性任务预算与结构化设计合同",
+          "production_ui_deployed": false,
+          "production_ui_implemented": false,
+          "real_device_or_browser_run_executed": false,
+          "screen_reader_runtime_run_executed": false
+        },
+        "id": "S03P04-PLAN-CLAIM-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+          "external_account_or_api_accessed": false,
+          "external_network_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "model_or_strategy_executed": false,
+          "order_submitted_or_retried": false,
+          "owner_final_order_only": true
+        },
+        "id": "S03P04-PLAN-SAFETY-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": "S03/STAGE_REVIEW_READY_NOT_STARTED",
+        "id": "S03P04-PLAN-NEXT",
+        "passed": true
+      },
+      {
+        "detail": "PASS_DETERMINISTIC_DESIGN_CONTRACT",
+        "id": "S03P04-REPORT-SHAPE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence_kind": "FROZEN_CONSERVATIVE_TASK_BUDGETS_NOT_OBSERVED_HUMAN_TIMES",
+          "human_participant_count": 0,
+          "human_timing_status": "NOT_EXECUTED",
+          "machine_gate_status": "PASS",
+          "median_max_seconds": 600,
+          "median_seconds": 540,
+          "observed_session_count": 0,
+          "p95_max_seconds": 1200,
+          "p95_seconds": 840,
+          "quantile_method": "NEAREST_RANK_CEILING",
+          "sample_count": 21
+        },
+        "id": "S03P04-REPORT-TIMING-BINDING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "failed_contract_count": 0,
+          "machine_gate_status": "PASS",
+          "passed_contract_count": 7,
+          "profile_count": 7,
+          "results": [
+            {
+              "contract_id": "A11Y-PHONE-REFLOW",
+              "profile_id": "PHONE_BROWSER",
+              "runtime_status": "NOT_EXECUTED",
+              "status": "PASS_DESIGN_CONTRACT"
+            },
+            {
+              "contract_id": "A11Y-DESKTOP-ORDER",
+              "profile_id": "DESKTOP_BROWSER",
+              "runtime_status": "NOT_EXECUTED",
+              "status": "PASS_DESIGN_CONTRACT"
+            },
+            {
+              "contract_id": "A11Y-LOW-BANDWIDTH-TEXT",
+              "profile_id": "LOW_BANDWIDTH",
+              "runtime_status": "NOT_EXECUTED",
+              "status": "PASS_DESIGN_CONTRACT"
+            },
+            {
+              "contract_id": "A11Y-COLOR-REDUNDANCY",
+              "profile_id": "COLOR_VISION",
+              "runtime_status": "NOT_EXECUTED",
+              "status": "PASS_DESIGN_CONTRACT"
+            },
+            {
+              "contract_id": "A11Y-TEXT-SCALE-200",
+              "profile_id": "TEXT_SCALE_200",
+              "runtime_status": "NOT_EXECUTED",
+              "status": "PASS_DESIGN_CONTRACT"
+            },
+            {
+              "contract_id": "A11Y-KEYBOARD-ORDER",
+              "profile_id": "KEYBOARD_ONLY",
+              "runtime_status": "NOT_EXECUTED",
+              "status": "PASS_DESIGN_CONTRACT"
+            },
+            {
+              "contract_id": "A11Y-SCREEN-READER-LINEAR",
+              "profile_id": "SCREEN_READER_LINEAR",
+              "runtime_status": "NOT_EXECUTED",
+              "status": "PASS_DESIGN_CONTRACT"
+            }
+          ]
+        },
+        "id": "S03P04-REPORT-STRUCTURAL-BINDING",
+        "passed": true
+      },
+      {
+        "detail": [
+          "FAULT-TIMING-MEDIAN",
+          "FAULT-TIMING-P95",
+          "FAULT-COLOR-ONLY",
+          "FAULT-KEYBOARD-TRAP",
+          "FAULT-READING-ORDER",
+          "FAULT-LOW-BANDWIDTH-PAYLOAD",
+          "FAULT-RUNTIME-CLAIM",
+          "FAULT-UNKNOWN-PROFILE"
+        ],
+        "id": "S03P04-REPORT-FAILURE-LOG-SET",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected_action": "阻断验收并保留证据",
+          "id": "FAULT-TIMING-MEDIAN",
+          "injected_fault": "中位数超过600秒",
+          "status": "FAIL_CLOSED_VERIFIED"
+        },
+        "id": "S03P04-FAILURE-LOG-FAULT-TIMING-MEDIAN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected_action": "阻断验收并保留证据",
+          "id": "FAULT-TIMING-P95",
+          "injected_fault": "95分位超过1200秒",
+          "status": "FAIL_CLOSED_VERIFIED"
+        },
+        "id": "S03P04-FAILURE-LOG-FAULT-TIMING-P95",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected_action": "阻断无障碍合同",
+          "id": "FAULT-COLOR-ONLY",
+          "injected_fault": "状态只用颜色表达",
+          "status": "FAIL_CLOSED_VERIFIED"
+        },
+        "id": "S03P04-FAILURE-LOG-FAULT-COLOR-ONLY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected_action": "阻断无障碍合同",
+          "id": "FAULT-KEYBOARD-TRAP",
+          "injected_fault": "焦点无法离开操作区",
+          "status": "FAIL_CLOSED_VERIFIED"
+        },
+        "id": "S03P04-FAILURE-LOG-FAULT-KEYBOARD-TRAP",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected_action": "阻断无障碍合同",
+          "id": "FAULT-READING-ORDER",
+          "injected_fault": "屏幕阅读顺序与展示顺序不一致",
+          "status": "FAIL_CLOSED_VERIFIED"
+        },
+        "id": "S03P04-FAILURE-LOG-FAULT-READING-ORDER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected_action": "切换为文字优先失败关闭",
+          "id": "FAULT-LOW-BANDWIDTH-PAYLOAD",
+          "injected_fault": "初始载荷超过32768字节",
+          "status": "FAIL_CLOSED_VERIFIED"
+        },
+        "id": "S03P04-FAILURE-LOG-FAULT-LOW-BANDWIDTH-PAYLOAD",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected_action": "阻断虚假声明",
+          "id": "FAULT-RUNTIME-CLAIM",
+          "injected_fault": "把未执行的真实运行写成通过",
+          "status": "FAIL_CLOSED_VERIFIED"
+        },
+        "id": "S03P04-FAILURE-LOG-FAULT-RUNTIME-CLAIM",
+        "passed": true
+      },
+      {
+        "detail": {
+          "expected_action": "阻断并登记新合同",
+          "id": "FAULT-UNKNOWN-PROFILE",
+          "injected_fault": "出现未登记设备能力",
+          "status": "FAIL_CLOSED_VERIFIED"
+        },
+        "id": "S03P04-FAILURE-LOG-FAULT-UNKNOWN-PROFILE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "formal_wcag_conformance_claimed": false,
+          "human_timing_observed": false,
+          "human_usability_conclusion_claimed": false,
+          "machine_result_scope": "确定性任务预算与结构化设计合同",
+          "production_ui_deployed": false,
+          "production_ui_implemented": false,
+          "real_device_or_browser_run_executed": false,
+          "screen_reader_runtime_run_executed": false
+        },
+        "id": "S03P04-REPORT-CLAIM-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+          "external_account_or_api_accessed": false,
+          "external_network_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "model_or_strategy_executed": false,
+          "order_submitted_or_retried": false,
+          "owner_final_order_only": true
+        },
+        "id": "S03P04-REPORT-EXTERNAL-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "真实手机、电脑、低带宽浏览器、键盘和屏幕阅读器运行尚未执行。",
+          "尚无生产界面，因此不能得出真人可用性、真实完成时间或正式无障碍符合性结论。",
+          "冻结预算只用于机器门和后续实测计划，不能冒充参与者观测数据。",
+          "TAB、Gmail、OVH、Cloudflare、模型、市场和订单运行状态仍未由本 Phase 验证。",
+          "30%月度滚动复利目标仍待证伪、未验证且不保证。"
+        ],
+        "id": "S03P04-REPORT-UNKNOWNS-EXPLICIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "next": "S03/STAGE_REVIEW_READY_NOT_STARTED",
+          "release": "NOT_READY_STAGE_3_REVIEW_REQUIRED"
+        },
+        "id": "S03P04-REPORT-RELEASE-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": "portable",
+        "id": "S03P04-ARTIFACTS-PORTABLE-NO-LOCAL-PATH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": false,
+          "decision": "WITHIN_FROZEN_TASK_BUDGET",
+          "median_max_seconds": 600,
+          "median_seconds": 600,
+          "numeric_boundary_delta": "0",
+          "p95_max_seconds": 1200,
+          "p95_seconds": 600,
+          "quantile_method": "NEAREST_RANK_CEILING",
+          "sample_count": 1,
+          "status": "PASS"
+        },
+        "id": "S03P04-BOUNDARY-MEDIAN-EXACT-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": false,
+          "decision": "BLOCKED_TIMING_GATE",
+          "median_max_seconds": 600,
+          "median_seconds": 601,
+          "numeric_boundary_delta": "0",
+          "p95_max_seconds": 1200,
+          "p95_seconds": 601,
+          "quantile_method": "NEAREST_RANK_CEILING",
+          "sample_count": 1,
+          "status": "FAIL"
+        },
+        "id": "S03P04-BOUNDARY-MEDIAN-OVER-FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": false,
+          "decision": "WITHIN_FROZEN_TASK_BUDGET",
+          "median_max_seconds": 600,
+          "median_seconds": 600,
+          "numeric_boundary_delta": "0",
+          "p95_max_seconds": 1200,
+          "p95_seconds": 1200,
+          "quantile_method": "NEAREST_RANK_CEILING",
+          "sample_count": 21,
+          "status": "PASS"
+        },
+        "id": "S03P04-BOUNDARY-P95-EXACT-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": false,
+          "decision": "BLOCKED_TIMING_GATE",
+          "median_max_seconds": 600,
+          "median_seconds": 600,
+          "numeric_boundary_delta": "0",
+          "p95_max_seconds": 1200,
+          "p95_seconds": 1201,
+          "quantile_method": "NEAREST_RANK_CEILING",
+          "sample_count": 21,
+          "status": "FAIL"
+        },
+        "id": "S03P04-BOUNDARY-P95-OVER-FAIL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse": {
+            "adverse_odds_tick": true,
+            "decision": "WITHIN_FROZEN_TASK_BUDGET",
+            "median_max_seconds": 600,
+            "median_seconds": 540,
+            "numeric_boundary_delta": "-0.0001",
+            "p95_max_seconds": 1200,
+            "p95_seconds": 840,
+            "quantile_method": "NEAREST_RANK_CEILING",
+            "sample_count": 21,
+            "status": "PASS"
+          },
+          "regular": {
+            "adverse_odds_tick": false,
+            "decision": "WITHIN_FROZEN_TASK_BUDGET",
+            "median_max_seconds": 600,
+            "median_seconds": 540,
+            "numeric_boundary_delta": "-0.0001",
+            "p95_max_seconds": 1200,
+            "p95_seconds": 840,
+            "quantile_method": "NEAREST_RANK_CEILING",
+            "sample_count": 21,
+            "status": "PASS"
+          }
+        },
+        "id": "S03P04-NUMERIC-ADVERSE-INVARIANT-MINUS0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse": {
+            "adverse_odds_tick": true,
+            "decision": "WITHIN_FROZEN_TASK_BUDGET",
+            "median_max_seconds": 600,
+            "median_seconds": 540,
+            "numeric_boundary_delta": "0",
+            "p95_max_seconds": 1200,
+            "p95_seconds": 840,
+            "quantile_method": "NEAREST_RANK_CEILING",
+            "sample_count": 21,
+            "status": "PASS"
+          },
+          "regular": {
+            "adverse_odds_tick": false,
+            "decision": "WITHIN_FROZEN_TASK_BUDGET",
+            "median_max_seconds": 600,
+            "median_seconds": 540,
+            "numeric_boundary_delta": "0",
+            "p95_max_seconds": 1200,
+            "p95_seconds": 840,
+            "quantile_method": "NEAREST_RANK_CEILING",
+            "sample_count": 21,
+            "status": "PASS"
+          }
+        },
+        "id": "S03P04-NUMERIC-ADVERSE-INVARIANT-0",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse": {
+            "adverse_odds_tick": true,
+            "decision": "WITHIN_FROZEN_TASK_BUDGET",
+            "median_max_seconds": 600,
+            "median_seconds": 540,
+            "numeric_boundary_delta": "0.0001",
+            "p95_max_seconds": 1200,
+            "p95_seconds": 840,
+            "quantile_method": "NEAREST_RANK_CEILING",
+            "sample_count": 21,
+            "status": "PASS"
+          },
+          "regular": {
+            "adverse_odds_tick": false,
+            "decision": "WITHIN_FROZEN_TASK_BUDGET",
+            "median_max_seconds": 600,
+            "median_seconds": 540,
+            "numeric_boundary_delta": "0.0001",
+            "p95_max_seconds": 1200,
+            "p95_seconds": 840,
+            "quantile_method": "NEAREST_RANK_CEILING",
+            "sample_count": 21,
+            "status": "PASS"
+          }
+        },
+        "id": "S03P04-NUMERIC-ADVERSE-INVARIANT-0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": false,
+          "decision": "WITHIN_FROZEN_TASK_BUDGET",
+          "median_max_seconds": 600,
+          "median_seconds": 540,
+          "numeric_boundary_delta": "0",
+          "p95_max_seconds": 1200,
+          "p95_seconds": 840,
+          "quantile_method": "NEAREST_RANK_CEILING",
+          "sample_count": 21,
+          "status": "PASS"
+        },
+        "id": "S03P04-DETERMINISTIC-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S03P04-STAGE-REVIEW-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": "absent",
+        "id": "S03P04-STAGE-REVIEW-INDEX-ABSENT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_contract_id": "AC-S03-P04",
+            "expected_artifact": "machine/evidence/EVD-S03-P04.json",
+            "id": "INDEX-AC-S03-P04",
+            "kind": "ACCEPTANCE_EVIDENCE",
+            "pass_gate": "核心操作中位数≤10分钟、95分位≤20分钟。",
+            "requirement_id": "REQ-S03-P04",
+            "status": "PLANNED"
+          }
+        ],
+        "id": "S03P04-EVIDENCE-INDEX-PLANNED-OR-SIGNED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 141
+        },
+        "id": "S03P04-JUNIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 3155
+        },
+        "id": "S03P04-FULL-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": [
+            {
+              "detail": [
+                "00_我在哪.md",
+                "01_产品需求.md",
+                "02_系统架构.md",
+                "03_口径字典.md",
+                "04_操作流程.md",
+                "05_执行与验收.md",
+                "06_运维手册.md"
+              ],
+              "name": "HUMAN-001 恰好7份人类文档",
+              "passed": true
+            },
+            {
+              "detail": "all match",
+              "name": "HUMAN-002 文档与机器真源完全一致",
+              "passed": true
+            },
+            {
+              "detail": "none",
+              "name": "HUMAN-003 人类文档无未解释TTL",
+              "passed": true
+            },
+            {
+              "detail": "0.0.0.1",
+              "name": "FACT-001 精确版本",
+              "passed": true
+            },
+            {
+              "detail": {
+                "discovery_scope": "ALL_OBSERVABLE_MARKETS",
+                "free_data_api_required": false,
+                "market_time_scope": [
+                  "PREMATCH",
+                  "FUTURES",
+                  "LIVE_WHEN_SOURCE_FRESHNESS_AND_ACTION_CHANNEL_ARE_VERIFIED"
+                ],
+                "normal_owner_action": "FINAL_ORDER_ONLY",
+                "order_submission_module_present": false,
+                "paid_data_api_required": false,
+                "product_role": "ANALYSIS_AND_ADVICE_ONLY",
+                "providers": "DYNAMIC_SELECTION_BY_EXECUTABLE_VALUE_AND_RULES",
+                "recommendation_scope": "EVIDENCE_GATED"
+              },
+              "name": "FACT-002 产品只分析建议",
+              "passed": true
+            },
+            {
+              "detail": "B_n = 300 * (1.3 ** n)",
+              "name": "FACT-003 月目标30%",
+              "passed": true
+            },
+            {
+              "detail": "300.00",
+              "name": "FACT-004 初始资金A$300",
+              "passed": true
+            },
+            {
+              "detail": {
+                "high": "0.00",
+                "likely": "0.00",
+                "low": "0.00"
+              },
+              "name": "FACT-005 新增现金预算A$0",
+              "passed": true
+            },
+            {
+              "detail": {
+                "availability_slo": "0.995",
+                "deployment": "SAME_HOST_BLUE_GREEN_WITH_CANARY_AND_AUTO_ROLLBACK",
+                "llm_in_money_critical_path": false,
+                "operator_clients": [
+                  "手机浏览器",
+                  "电脑浏览器"
+                ],
+                "primary": "OVH_SINGAPORE_VPS1_24X7",
+                "remote_access": "CLOUDFLARE_ACCESS_AND_NAMED_TUNNEL",
+                "single_host_zero_downtime_guaranteed": false
+              },
+              "name": "FACT-006 OVH和Cloudflare",
+              "passed": true
+            },
+            {
+              "detail": 1800,
+              "name": "FACT-007 >24小时每30分钟",
+              "passed": true
+            },
+            {
+              "detail": "FINAL_ORDER_ONLY",
+              "name": "FACT-008 用户只做最终下单",
+              "passed": true
+            },
+            {
+              "detail": 900,
+              "name": "MAIL-001 每15分钟确定性收集",
+              "passed": true
+            },
+            {
+              "detail": "06:00 Australia/Sydney",
+              "name": "MAIL-002 Codex每日审计",
+              "passed": true
+            },
+            {
+              "detail": "MOVE_TO_GMAIL_TRASH_AFTER_TWO_PHASE_VERIFICATION",
+              "name": "MAIL-003 两阶段后移入垃圾箱",
+              "passed": true
+            },
+            {
+              "detail": false,
+              "name": "MAIL-004 无永久删除",
+              "passed": true
+            },
+            {
+              "detail": {
+                "all_required": true,
+                "conditions": [
+                  "raw_eml_saved",
+                  "all_attachments_saved",
+                  "hash_manifest_committed",
+                  "malware_scan_passed",
+                  "parser_result_recorded",
+                  "local_restore_readback_passed"
+                ],
+                "failed_authentication": "KEEP_AND_ALERT",
+                "failed_scan": "KEEP_AND_QUARANTINE",
+                "permanent_delete": false,
+                "unknown_sender": "KEEP"
+              },
+              "name": "MAIL-005 未知/失败不删除",
+              "passed": true
+            },
+            {
+              "detail": {
+                "codex_role": "DAILY_AUDIT_GAP_DETECTION_AND_REPAIR",
+                "content_is_untrusted_data": true,
+                "delete_semantics": "MOVE_TO_GMAIL_TRASH_AFTER_TWO_PHASE_VERIFICATION",
+                "failed_verification_policy": "KEEP_EMAIL_AND_ALERT",
+                "gmail_scope_required": "gmail.modify",
+                "malware_scan": true,
+                "one_time_consent_blocks_core_product": false,
+                "one_time_human_consent_required": true,
+                "permanent_delete": false,
+                "primary_executor": "DETERMINISTIC_OVH_GMAIL_COLLECTOR",
+                "purpose": "自动保存 TAB 等已验证来源发来的账单、交易记录、确认邮件及附件，形成可审计证据。",
+                "save_attachments": true,
+                "save_raw_eml": true,
+                "unknown_sender_policy": "QUARANTINE_AND_DO_NOT_TRASH"
+              },
+              "name": "MAIL-006 首次授权不阻塞核心",
+              "passed": true
+            },
+            {
+              "detail": {
+                "action_must_match_across_implementations": true,
+                "authoritative_decimal_precision_digits": 50,
+                "binary_float_for_authoritative_decision": false,
+                "boundary_perturbation_absolute_probability": "0.0001",
+                "boundary_perturbation_absolute_threshold": "0.0001",
+                "boundary_perturbation_friction_up": "0.0001",
+                "boundary_perturbation_time_adverse_seconds": 2,
+                "friction_rounding": "UP",
+                "independent_implementation_absolute_tolerance": "1e-12",
+                "money_storage": "INTEGER_CENTS",
+                "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+                "odds_rounding": "DOWN",
+                "odds_storage_scale": "1e-6",
+                "probability_rounding": "DOWN",
+                "probability_storage_scale": "1e-9",
+                "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+                "unstable_action": "NO_RECOMMENDATION"
+              },
+              "name": "NUM-001 权威50位十进制",
+              "passed": true
+            },
+            {
+              "detail": {
+                "action_must_match_across_implementations": true,
+                "authoritative_decimal_precision_digits": 50,
+                "binary_float_for_authoritative_decision": false,
+                "boundary_perturbation_absolute_probability": "0.0001",
+                "boundary_perturbation_absolute_threshold": "0.0001",
+                "boundary_perturbation_friction_up": "0.0001",
+                "boundary_perturbation_time_adverse_seconds": 2,
+                "friction_rounding": "UP",
+                "independent_implementation_absolute_tolerance": "1e-12",
+                "money_storage": "INTEGER_CENTS",
+                "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+                "odds_rounding": "DOWN",
+                "odds_storage_scale": "1e-6",
+                "probability_rounding": "DOWN",
+                "probability_storage_scale": "1e-9",
+                "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+                "unstable_action": "NO_RECOMMENDATION"
+              },
+              "name": "NUM-002 固定点精度",
+              "passed": true
+            },
+            {
+              "detail": {
+                "action_must_match_across_implementations": true,
+                "authoritative_decimal_precision_digits": 50,
+                "binary_float_for_authoritative_decision": false,
+                "boundary_perturbation_absolute_probability": "0.0001",
+                "boundary_perturbation_absolute_threshold": "0.0001",
+                "boundary_perturbation_friction_up": "0.0001",
+                "boundary_perturbation_time_adverse_seconds": 2,
+                "friction_rounding": "UP",
+                "independent_implementation_absolute_tolerance": "1e-12",
+                "money_storage": "INTEGER_CENTS",
+                "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+                "odds_rounding": "DOWN",
+                "odds_storage_scale": "1e-6",
+                "probability_rounding": "DOWN",
+                "probability_storage_scale": "1e-9",
+                "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+                "unstable_action": "NO_RECOMMENDATION"
+              },
+              "name": "NUM-003 双实现1e-12",
+              "passed": true
+            },
+            {
+              "detail": {
+                "action_must_match_across_implementations": true,
+                "authoritative_decimal_precision_digits": 50,
+                "binary_float_for_authoritative_decision": false,
+                "boundary_perturbation_absolute_probability": "0.0001",
+                "boundary_perturbation_absolute_threshold": "0.0001",
+                "boundary_perturbation_friction_up": "0.0001",
+                "boundary_perturbation_time_adverse_seconds": 2,
+                "friction_rounding": "UP",
+                "independent_implementation_absolute_tolerance": "1e-12",
+                "money_storage": "INTEGER_CENTS",
+                "odds_perturbation": "ONE_PROVIDER_TICK_ADVERSE",
+                "odds_rounding": "DOWN",
+                "odds_storage_scale": "1e-6",
+                "probability_rounding": "DOWN",
+                "probability_storage_scale": "1e-9",
+                "stake_rounding": "DOWN_TO_PROVIDER_INCREMENT",
+                "unstable_action": "NO_RECOMMENDATION"
+              },
+              "name": "NUM-004 万分之一扰动",
+              "passed": true
+            },
+            {
+              "detail": "0.50",
+              "name": "MODEL-001 市场权重至少50%",
+              "passed": true
+            },
+            {
+              "detail": [
+                "MULTIPLICATIVE",
+                "POWER",
+                "SHIN",
+                "ODDS_RATIO"
+              ],
+              "name": "MODEL-002 四种去水",
+              "passed": true
+            },
+            {
+              "detail": {
+                "consensus_estimator": "SOURCE_INDEPENDENCE_WEIGHTED_MEDIAN",
+                "consensus_space": "LOGIT",
+                "conservative_probability_percentile": 10,
+                "de_vig_methods": [
+                  "MULTIPLICATIVE",
+                  "POWER",
+                  "SHIN",
+                  "ODDS_RATIO"
+                ],
+                "edge_haircut_fraction": "0.25",
+                "evaluation_block_bootstrap_iterations": 2000,
+                "future_leakage_tolerance": 0,
+                "market_prior_weight_min": "0.50",
+                "remove_top_profit_fraction_for_robustness": "0.01",
+                "residual_weight_alpha_beta_max": "0.35",
+                "residual_weight_ga_max": "0.50",
+                "residual_weight_when_no_increment": "0.00",
+                "runtime_block_bootstrap_iterations": 1000,
+                "temporal_folds_min": 8
+              },
+              "name": "MODEL-003 时间折与重采样",
+              "passed": true
+            },
+            {
+              "detail": {
+                "brier_skill_95pct_lower_bound": ">0",
+                "calibration_error_main_max": "0.025",
+                "calibration_error_niche_max": "0.04",
+                "closing_price_advantage_95pct_lower_bound": ">0",
+                "intercept_abs_max": "0.02",
+                "logloss_skill_95pct_lower_bound": ">0",
+                "net_log_growth_95pct_lower_bound": ">0",
+                "slope_max": "1.10",
+                "slope_min": "0.90"
+              },
+              "name": "MODEL-004 校准门",
+              "passed": true
+            },
+            {
+              "detail": {
+                "E0": {
+                  "action": "NO_RECOMMENDATION"
+                },
+                "E1": {
+                  "independent_non_price_sources_min": 2,
+                  "independent_price_sources_max": 1,
+                  "independent_price_sources_min": 1,
+                  "model_disagreement_pp_max": "8",
+                  "model_stage_min": "GA",
+                  "robust_net_expected_return_min": "0.08"
+                },
+                "E2": {
+                  "independent_price_sources_max": 2,
+                  "independent_price_sources_min": 2,
+                  "model_disagreement_pp_max": "10",
+                  "model_stage_min": "GA",
+                  "robust_net_expected_return_min": "0.07"
+                },
+                "E3": {
+                  "independent_price_sources_max": 4,
+                  "independent_price_sources_min": 3,
+                  "model_disagreement_pp_max": "8",
+                  "model_stage_min": "BETA",
+                  "robust_net_expected_return_min": "0.05"
+                },
+                "E4": {
+                  "independent_price_sources_min": 5,
+                  "model_disagreement_pp_max": "6",
+                  "model_stage_min": "GA",
+                  "robust_net_expected_return_min": "0.03"
+                }
+              },
+              "name": "MODEL-005 证据层完整",
+              "passed": true
+            },
+            {
+              "detail": {
+                "absolute_disaster_line": "0.700",
+                "chase_loss_prohibited": true,
+                "correlation_cluster_cap": "0.050",
+                "daily_loss_soft_stop": "0.030",
+                "event_cap": "0.050",
+                "kelly_fraction_alpha": "0.00",
+                "kelly_fraction_beta": "0.20",
+                "kelly_fraction_ga": "0.25",
+                "seven_day_drawdown_diagnostic": "0.075",
+                "single_ticket_cap_beta": "0.015",
+                "single_ticket_cap_ga": "0.020",
+                "strategy_slice_kill_drawdown": "0.100",
+                "target_shortfall_may_relax_gate": false,
+                "total_open_exposure_cap": "0.150"
+              },
+              "name": "MODEL-006 风险门",
+              "passed": true
+            },
+            {
+              "detail": {
+                "falsification_gate": [
+                  "至少6个完整自然月",
+                  "至少1000个独立等效信号",
+                  "月收益率的95%上界仍低于30%"
+                ],
+                "formula": "B_n = 300 * 1.3^n",
+                "guaranteed": false,
+                "monthly_log_growth": "0.26236426446749106",
+                "monthly_return": "0.30",
+                "plausible_gate": [
+                  "保守月度对数增长中位数 >= ln(1.3)",
+                  "月度对数增长第5百分位 > 0",
+                  "按来源、平台限额、机会数量和相关性校正后的容量通过"
+                ],
+                "shadow_min_days": 90,
+                "shadow_min_independent_equivalent_signals": 1000,
+                "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+                "verification_gate": [
+                  "至少12个完整自然月",
+                  "按现金流调整后的月度几何收益 >= 30%",
+                  "证据完整",
+                  "未解决对账差异为0"
+                ]
+              },
+              "name": "MODEL-007 30%不保证但可证伪验证",
+              "passed": true
+            },
+            {
+              "detail": 80,
+              "name": "REQ-001 80条需求",
+              "passed": true
+            },
+            {
+              "detail": 80,
+              "name": "AC-001 80个唯一主验收",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "AC-002 每条需求恰好一个对应主验收",
+              "passed": true
+            },
+            {
+              "detail": 240,
+              "name": "TASK-001 240个叶子任务",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "TASK-002 Task合同字段完整",
+              "passed": true
+            },
+            {
+              "detail": "none",
+              "name": "TASK-003 开发任务无中途Owner输入",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "TASK-004 通过后自动推进",
+              "passed": true
+            },
+            {
+              "detail": {
+                "high": 480.0,
+                "likely": 320.0,
+                "low": 240.0
+              },
+              "name": "TASK-005 叶子任务0.5–4小时",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "DAG-001 依赖全部存在",
+              "passed": true
+            },
+            {
+              "detail": {
+                "task_count": 240,
+                "topological_count": 240
+              },
+              "name": "DAG-002 无循环",
+              "passed": true
+            },
+            {
+              "detail": {
+                "phases": 80,
+                "stages": 20
+              },
+              "name": "DAG-003 20 Stage/80 Phase/母级≤4",
+              "passed": true
+            },
+            {
+              "detail": {
+                "counts": [
+                  3
+                ],
+                "phase_keys": 80
+              },
+              "name": "DAG-004 每Phase恰好3个Task",
+              "passed": true
+            },
+            {
+              "detail": 0.7,
+              "name": "DAG-005 关键路径比例≤70%",
+              "passed": true
+            },
+            {
+              "detail": {
+                "acceptance": 80,
+                "requirements": 80,
+                "rows": 80,
+                "tasks": 240
+              },
+              "name": "TRACE-001 需求→验收→任务闭合",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "TRACE-002 测试/证据/制品引用完整",
+              "passed": true
+            },
+            {
+              "detail": 28,
+              "name": "RESEARCH-001 公开来源≥20",
+              "passed": true
+            },
+            {
+              "detail": 28,
+              "name": "RESEARCH-002 来源字段、URL、日期和裁定完整",
+              "passed": true
+            },
+            {
+              "detail": {
+                "人工智能治理标准": 1,
+                "供应链安全标准": 1,
+                "安全标准": 1,
+                "官方产品页": 1,
+                "官方安全工具文档": 1,
+                "官方开源项目": 1,
+                "官方文档": 6,
+                "平台官方帮助": 1,
+                "平台官方条款": 2,
+                "应用安全标准": 1,
+                "开源工具": 1,
+                "开源项目": 5,
+                "监管机构": 1,
+                "研究论文": 5
+              },
+              "name": "RESEARCH-003 官方/论文/开源/标准多源交叉",
+              "passed": true
+            },
+            {
+              "detail": "只输出一个任务包压缩包、一个Stage/Phase Roadmap和一句Pursuing Goal Prompt。",
+              "name": "SKILL-001 最终输出规则",
+              "passed": true
+            },
+            {
+              "detail": [
+                "00_我在哪.md",
+                "01_产品需求.md",
+                "02_系统架构.md",
+                "03_口径字典.md",
+                "04_操作流程.md",
+                "05_执行与验收.md",
+                "06_运维手册.md"
+              ],
+              "name": "SKILL-002 双平面7文件固定",
+              "passed": true
+            },
+            {
+              "detail": "all",
+              "name": "SCHEMA-001 JSON Schema验证",
+              "passed": true
+            }
+          ],
+          "document_sha256": {
+            "00_我在哪.md": "bb1b5f94e91afbd43e2a4d624b16e99707cf04b27dbf6b768e9f751690ad9ab6",
+            "01_产品需求.md": "a7b8dfbe00a036e16221f787778ca1619d8b80e8879a0a744a5a04085571cda8",
+            "02_系统架构.md": "c47f3ca4b7a4442ff36ae1a57bfe7f36be9416e28b05a223b4cb72b4b55b042e",
+            "03_口径字典.md": "5e3e6fde95050f57bed6941bb8de1c966371c6db6770c7fa1c2a983cad4ee095",
+            "04_操作流程.md": "eec849c69097083b4e3882c7654ea3719c9d7d9c6a74aa3fb68c6c9aab22b25d",
+            "05_执行与验收.md": "921f6e4154097f038d4dc27a2d33163e4e4ab89d83630c43315aec01184d99f4",
+            "06_运维手册.md": "6b601da31222f3822ee76f80456ffcf71b94acd3f9c690935ebc6ea9de2078bb"
+          },
+          "generated_at": "2026-07-19T00:00:00+10:00",
+          "ready_for": "FINAL_DEVELOPMENT_TASKPACK_HANDOFF",
+          "return_target": {
+            "contract": "目标、容量、证伪和12月实际验证；不得因目标短缺降低门槛。",
+            "guaranteed": false,
+            "monthly_target": "30%"
+          },
+          "schema_version": "1.0.0",
+          "status": "PASS",
+          "summary": {
+            "acceptance_contracts": 80,
+            "checks": 49,
+            "critical_path_hours": 224.0,
+            "critical_path_ratio": 0.7,
+            "failed": 0,
+            "human_docs": 7,
+            "passed": 49,
+            "phases": 80,
+            "requirements": 80,
+            "stages": 20,
+            "task_hours": {
+              "high": 480.0,
+              "likely": 320.0,
+              "low": 240.0
+            },
+            "tasks": 240
+          },
+          "version": "0.0.0.1"
+        },
+        "id": "S03P04-PACK-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "ABD S00/P03 PAID DEPENDENCY SCAN\nSTATUS: PASS\nFIXED_CLOCK: 2026-07-19T00:00:00+10:00\nMAX_INCREMENTAL_CASH_AUD: 0.00\nDEPENDENCY_MANIFESTS: 2\nRUNTIME_DIRECT_DEPENDENCIES: 0\nLOCKED_REGISTRY_PACKAGES: 12\nPAID_OR_UNKNOWN_DEPENDENCIES: 0\nEXTERNAL_NETWORK_ACCESS_PERFORMED: false\nEXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false\n\nMANIFESTS\n- pyproject.toml\n- uv.lock\n\nPACKAGES\n- attrs==26.1.0\n- colorama==0.4.6\n- iniconfig==2.3.0\n- jsonschema==4.25.1\n- jsonschema-specifications==2025.9.1\n- packaging==26.2\n- pluggy==1.6.0\n- pygments==2.20.0\n- pytest==8.4.2\n- referencing==0.37.0\n- rpds-py==2026.6.3\n- typing-extensions==4.16.0\n\nPROVIDERS\n- RES-CLOUDFLARE-ZERO-TRUST-FREE critical_path=true incremental_cash_aud=0.00\n- RES-GITHUB-EXISTING critical_path=true incremental_cash_aud=0.00\n- RES-GMAIL-EXISTING-OPTIONAL critical_path=false incremental_cash_aud=0.00\n- RES-OSS-PINNED critical_path=true incremental_cash_aud=0.00\n- RES-OVH-EXISTING-VPS1 critical_path=true incremental_cash_aud=0.00\n\nCHECKS\n- PASS SCAN-LOCK-PARSE\n- PASS SCAN-MANIFEST-SET\n- PASS SCAN-TOML-PARSE\n- PASS SCAN-DIRECT-DEPENDENCIES\n- PASS SCAN-LOCKED-PACKAGE-ALLOWLIST\n- PASS SCAN-LICENSES-CLASSIFIED\n- PASS SCAN-IMPORTS-CLASSIFIED\n- PASS SCAN-NO-PROHIBITED-RUNTIME-IDENTIFIERS\n- PASS SCAN-PROVIDER-COSTS-EXACT-ZERO\n- PASS SCAN-CRITICAL-PATH-NO-PAID-OR-APPROVAL-BOUND-INTERFACE\n\nBOUNDARY\n- Existing resource and opportunity costs are disclosed separately; this report proves only incremental cash cost A$0 for declared dependencies.\n- External capability, account plan, quota headroom, deployment, market coverage and returns are not verified by this scan.\n- Any new, paid, unknown-cost, unclassified or approval-bound critical dependency fails closed.",
+        "id": "S03P04-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S03-P04",
+    "decision": "USABILITY_ACCESSIBILITY_DESIGN_CONTRACT_FROZEN",
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-20T14:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/usability_accessibility.py": "e48b8d4838d88e01c21462b7ed39988adb76e8ec844c3fe5e0e2d39a45e64474",
+      "accessibility_report.json": "57fe4c6f3a735293200bac853c1f351affd5b1e9d1e8495ece5d91fb19b6845b",
+      "advice_card_schema.json": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+      "forbidden_ui_terms.json": "c2dc156b31b7e333fe316343c09d6cab47339b18d3f7572b11e7c1fbf2590c7f",
+      "glossary_zh.json": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "machine/evidence/EVD-S03-P03.json": "763d9ea60c03f9768d514e99b1846235add6dd187304ac273ae86e2eb03fddbc",
+      "machine/evidence/EVD-S03-P03_rollback.json": "888ef326c3bc5c8c830319c701805d89fae316e68da9b68b67bef01a7f486ad7",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S03/P04/full_regression.xml": "ab2103d21429a8e9cd9fc4d935386ee006e9d0d19de0ac7bca913c0519071fa2",
+      "machine/evidence/S03/P04/pytest.xml": "df94c7623bd88ac0cafb81d2b93ad4bd80a9b309b4f658bb6b591daff524793c",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S03_P04.json": "830e6bf8d9acb7a1ab34f4c39794758a21c6f760d1d7aed91f73e29c710e9a3e",
+      "next_action_matrix.json": "86e52de87b15a447a6d7d4683a8fe99b7f6f255552d05bde15dcf94928969f3d",
+      "reason_codes_zh.json": "62c37e83b844b72fbeeebe5591a717d64c225629fb4ad421c44a6ad631ac8a20",
+      "tests/S03/P04_test.py": "0f76c27e1c7da371d432ac950fe4c1fa0208717e5af796826a57d53a764724ff",
+      "ux_test_plan.json": "cffb46d888586a31f07b4c6d35727d67d39ecf67d961d8e18bfe5d79410e8f40"
+    },
+    "human_validation_status": "NOT_EXECUTED",
+    "measurement_status": "FROZEN_TASK_BUDGET_AND_STRUCTURAL_CONTRACT_ONLY",
+    "next": "S03/STAGE_REVIEW_READY_NOT_STARTED",
+    "phase_status": "S03_P04_PASS",
+    "production_status": "NOT_IMPLEMENTED_NOT_DEPLOYED",
+    "release_status": "NOT_READY_STAGE_3_REVIEW_REQUIRED",
+    "requirement_id": "REQ-S03-P04",
+    "schema_version": "1.0.0",
+    "status": "PASS",
+    "summary": {
+      "checks": 116,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 116
+    }
+  }
+}

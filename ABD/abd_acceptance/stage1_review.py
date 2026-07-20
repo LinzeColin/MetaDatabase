@@ -894,7 +894,28 @@ def _check_security_budget_progression_and_readme(
             and "远端 CI 尚未验证" not in readme
             and "S01/P04 尚未开始" not in readme
         )
-        readme_ok = pre_delivery_readme_ok or successor_readme_ok
+        later_successor_readme_ok = (
+            "Stage 1 已通过 GitHub PR #64" in readme
+            and "Stage 2 已通过 GitHub PR #65" in readme
+            and "S03/P01" in readme
+            and "tests/S03/P01_test.py" in readme
+            and "AC-S03-P01" in readme
+            and "本 Phase 仅本地开发" in readme
+            and "远端 CI 尚未验证" not in readme
+            and "S01/P04 尚未开始" not in readme
+        )
+        p02_successor_readme_ok = (
+            "Stage 1 已通过 GitHub PR #64" in readme
+            and "Stage 2 已通过 GitHub PR #65" in readme
+            and "S03/P02" in readme
+            and "tests/S03/P02_test.py" in readme
+            and "AC-S03-P02" in readme
+            and "S03/P03_READY_NOT_STARTED" in readme
+            and "本 Phase 仅本地开发" in readme
+            and "远端 CI 尚未验证" not in readme
+            and "S01/P04 尚未开始" not in readme
+        )
+        readme_ok = pre_delivery_readme_ok or successor_readme_ok or later_successor_readme_ok or p02_successor_readme_ok
     except Exception as exc:
         readme_ok = False
         readme = "%s: %s" % (type(exc).__name__, exc)
