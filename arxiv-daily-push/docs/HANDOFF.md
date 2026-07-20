@@ -81,7 +81,8 @@ CodexProject 的 `repository_hygiene_policy.json`、`generate_governance_dashboa
 
 ## 5. 验收合同
 
-从 MetaDatabase 仓根运行：
+从 MetaDatabase 仓根、使用已安装 `arxiv-daily-push/requirements.txt` 的 Python 3.12 运行；
+macOS 系统 Python 3.9 无法运行当前 ADP 验收入口：
 
 ```bash
 # 当前双平面项目门
@@ -95,17 +96,27 @@ PYTHONPATH=arxiv-daily-push/src python3 -B tools/validate_task_pack.py --root .
 PYTHONPATH=arxiv-daily-push/src python3 -B -m unittest discover \
   -s tests/governance -p 'test_adp_*.py' -q
 
-# ADP full suite：不得出现相对封存旧控制基线新增的失败
+# ADP full suite：按测试名称集合比较，不得相对两条基线新增 failure/error
 PYTHONPATH=arxiv-daily-push/src python3 -B -m unittest discover \
   -s arxiv-daily-push/tests -q
 ```
 
-封存旧控制基线是 923 tests、`3 failures + 11 errors + 62 skips`。其中 11 errors 来自仓拆分前
-已缺失的 `功能清单.md` / `开发记录.md` / `模型参数文件.md`，另有 development-ledger 与
-video gate 历史债；本轮不伪装为已修复。
+验收时必须区分两条不可混用的比较面：
+
+1. **迁移线程封存的历史旧控制口径**：923 tests、`3 failures + 11 errors + 62 skips`。
+   它用于核对剩余 failure/error 是否仍在历史允许集合内，不是对 MetaDatabase
+   `7fd0768002081f27c070561fa855a08713d1bc00` 的重放结果。
+2. **可重放的 MetaDatabase 迁移前 base**：在精确 `7fd0768` detached checkout、Python 3.12
+   环境重跑同一命令，结果为 923 tests、`54 failures + 50 errors + 49 skips`；大量失败来自当时
+   尚未迁入的根级 ADP compatibility dependencies。迁移判定必须比较 failure/error 的完整测试
+   名称集合，不能只看总数；本轮候选相对该 base 的新增集合为 0。
+
+历史旧控制口径中的 11 errors 来自仓拆分前已缺失的 `功能清单.md` / `开发记录.md` /
+`模型参数文件.md`，另有 development-ledger 与 video gate 历史债；本轮不伪装为已修复。
 
 本轮 pre-commit 实测是 923 tests、`2 failures + 11 errors + 49 skips`：根来源同步契约的
-旧 failure 已修复，skip 比封存基线少 13 个；迁移新增 failure/error 为 0。剩余 2 failures
+旧 failure 已修复，skip 比历史旧控制口径少 13 个；相对上述两条比较面的迁移新增
+failure/error 均为 0。剩余 2 failures
 分别是 development-ledger/current matrix drift 与 video media gate，11 errors 仍全部来自
 上述三基文件缺失。不得以修改/跳过测试来伪造全绿。
 

@@ -36,6 +36,7 @@ class TestAdpCanonicalGovernanceOids(unittest.TestCase):
         agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         project_readme = (ADP / "README.md").read_text(encoding="utf-8")
+        project_handoff = (ADP / "docs/HANDOFF.md").read_text(encoding="utf-8")
 
         self.assertIn("ADP（`arxiv-daily-push/`）已于 2026-07-20 迁入", agents)
         self.assertIn("canonical 交接入口是 `arxiv-daily-push/docs/HANDOFF.md`", agents)
@@ -47,6 +48,10 @@ class TestAdpCanonicalGovernanceOids(unittest.TestCase):
             project_readme,
         )
         self.assertIn("迁移后刻意不恢复旧根级 `HANDOFF/00_下一Agent先读.md`", project_readme)
+        self.assertIn("macOS 系统 Python 3.9 无法运行当前 ADP 验收入口", project_handoff)
+        self.assertIn("可重放的 MetaDatabase 迁移前 base", project_handoff)
+        self.assertIn("`54 failures + 50 errors + 49 skips`", project_handoff)
+        self.assertIn("完整测试\n   名称集合", project_handoff)
 
     def test_current_dual_plane_registers_adp_without_retired_root_policy(self):
         workflow = (ROOT / ".github/workflows/dual-plane.yml").read_text(encoding="utf-8")
