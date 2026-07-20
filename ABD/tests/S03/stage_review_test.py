@@ -266,8 +266,8 @@ def test_each_review_finding_is_resolved_by_an_executable_gate(finding: dict) ->
 
 def test_review_finding_summary_has_zero_open_items() -> None:
     assert FINDINGS["summary"] == {
-        "total": 4,
-        "resolved_in_review_candidate": 4,
+        "total": 5,
+        "resolved_in_review_candidate": 5,
         "open": 0,
         "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": True,
     }

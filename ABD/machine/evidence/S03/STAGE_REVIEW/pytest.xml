@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <testsuites name="pytest tests">
-  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="183" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="184" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
     <testcase classname="tests.S03.stage_review_test" name="test_whole_stage_review_candidate_passes_without_external_reports" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_candidate_preflight_is_fail_closed_and_upload_ready_only_on_pass" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_review_artifact_hash_matches_pin[machine/evidence/S03/STAGE_REVIEW/findings.json]" time="0.000" />
@@ -170,6 +170,7 @@
     <testcase classname="tests.S03.stage_review_test" name="test_each_review_finding_is_resolved_by_an_executable_gate[F-S03-REVIEW-002]" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_each_review_finding_is_resolved_by_an_executable_gate[F-S03-REVIEW-003]" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_each_review_finding_is_resolved_by_an_executable_gate[F-S03-REVIEW-004]" time="0.000" />
+    <testcase classname="tests.S03.stage_review_test" name="test_each_review_finding_is_resolved_by_an_executable_gate[F-S03-REVIEW-005]" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_review_finding_summary_has_zero_open_items" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_a300_a0_and_no_return_guarantee_are_unchanged" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_s04_is_planned_and_not_started" time="0.000" />

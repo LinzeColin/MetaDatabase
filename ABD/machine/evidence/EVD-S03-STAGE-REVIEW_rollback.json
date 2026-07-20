@@ -31,9 +31,9 @@
       "status": "PASS"
     },
     "machine/evidence/S03/STAGE_REVIEW/findings.json": {
-      "corrupted_sha256": "433c9f00bacaa3386de5c456ec58b21fa09ddb83c3ed7a4747b4bb84d1080db2",
-      "restored_sha256": "0ab1c79ddfb89fb264088e7e97715c9ae083fbe900f51a12bbb2bc7a388bb56e",
-      "signed_sha256": "0ab1c79ddfb89fb264088e7e97715c9ae083fbe900f51a12bbb2bc7a388bb56e",
+      "corrupted_sha256": "fd2362f0ef0d19b845d329f84a8e6ddfcacb9a5a23327b36f1cb4c1e45b35323",
+      "restored_sha256": "e62242685c6091564c92efc9d05be5b061e382cecfaa46bb39ae780eac072ea9",
+      "signed_sha256": "e62242685c6091564c92efc9d05be5b061e382cecfaa46bb39ae780eac072ea9",
       "status": "PASS"
     },
     "machine/facts/stage3_review_contract.json": {
@@ -43,9 +43,9 @@
       "status": "PASS"
     },
     "machine/tests/fixtures/S03_STAGE_REVIEW.json": {
-      "corrupted_sha256": "52ef7ec657312784b4a3bf25b7802577ae7cfe16cd5edbe9e7d26f8e40a0abc8",
-      "restored_sha256": "eecf680c131ace92e05be5c075781d70c6a6a5ac106080b06be159bb00b7a7fb",
-      "signed_sha256": "eecf680c131ace92e05be5c075781d70c6a6a5ac106080b06be159bb00b7a7fb",
+      "corrupted_sha256": "726545d78980b84d7d5584c478a6ec88c16a9912e09f5d2343d61c1e41d017e2",
+      "restored_sha256": "ca816f8e50b63fc38c0c1626351957104ad682a72e13455f7e789aa0f2a141bc",
+      "signed_sha256": "ca816f8e50b63fc38c0c1626351957104ad682a72e13455f7e789aa0f2a141bc",
       "status": "PASS"
     },
     "next_action_matrix.json": {
@@ -61,9 +61,9 @@
       "status": "PASS"
     },
     "tests/S03/stage_review_test.py": {
-      "corrupted_sha256": "7bd651bb2681b2581b7b17ec52ec9e641c4c4da1c269d5b0716a68b3f4fbd903",
-      "restored_sha256": "9f3526da9b8a8dcbaf4935dba53f2bc33d837f2842d69a598277eaf747e22b3a",
-      "signed_sha256": "9f3526da9b8a8dcbaf4935dba53f2bc33d837f2842d69a598277eaf747e22b3a",
+      "corrupted_sha256": "7e911fa7c8b621f840900fd9656c8db095e3a7274699dcf433ae0051e22ba3b7",
+      "restored_sha256": "f9d55d572526e0e81f144d6ecb5c62e83ce0907f1ce5e1315d8bd4e1aa5ed103",
+      "signed_sha256": "f9d55d572526e0e81f144d6ecb5c62e83ce0907f1ce5e1315d8bd4e1aa5ed103",
       "status": "PASS"
     },
     "ux_test_plan.json": {

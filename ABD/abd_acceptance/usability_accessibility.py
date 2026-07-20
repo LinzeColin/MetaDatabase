@@ -54,7 +54,7 @@ CONTINUOUS_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 DISPLAY_ORDER = ["status", "action", "countdown", "reasons", "evidence", "invalidation", "safety"]
 FAILURE_GUIDANCE_ORDER = ["failure_status", "failure_reason", "next_action", "safety"]
 ALLOWED_NUMERIC_BOUNDARY_DELTAS = {"-0.0001", "0", "0.0001"}
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "bc5cbb4637e38074505cd2573f83dc39fd26ce3f1cc8557e9bbff63cf48b3074"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "9b5dca93c4eb58786093537044ed862f25baca7c89e3c46ab863a3e27526ab97"
 
 PHASE_COMMIT = "ef74f1f49994b4249844485bf3e61eb8c65a06b2"
 PINNED_PHASE_CODE_HASH = "dc0228b02944f70eec4d565467a7e1788558c5ef061190106815fd28245b87db"
@@ -68,18 +68,20 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "abd_acceptance/reason_next_action.py",
     "abd_acceptance/advice_card.py",
     "abd_acceptance/terminology_governance.py",
+    "abd_acceptance/stage2_review.py",
     "abd_acceptance/__main__.py",
     "abd_acceptance/__init__.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "README.md": "5fb9e9748e0b4db72722662971d6283d9ac1b96eb674e5c6f7d341ef6cc65749",
+    "README.md": "3f4f955b62dc02901dfb4ef24f4503b940566e1ada692c76ed29545cf50c4ccc",
     "ux_test_plan.json": "a2e011cacd58b56f4094cbf969bba8c748f56df628dbbeef639c25ffa82fb936",
     "accessibility_report.json": "845a784a44c45fc3f9d7a02519e39ea73c0d2c9f26a08d6ef90f22ae09cb3a7f",
     "machine/tests/fixtures/S03_P04.json": "3bd64eb92ff0bb1a2474ff53971af35455d0bdce63d76bfd8c800e7fe18de9ca",
     "tests/S03/P04_test.py": "0b9778815723e253d39ed8352bc9a27222b55aefcdf0efb85549861e60850dfc",
-    "abd_acceptance/reason_next_action.py": "57ba25169061952a50334fbeddc4981ed1d275480cb21726ca5c83ce041556ed",
-    "abd_acceptance/advice_card.py": "55c459f3da4dd624e0c8d4783734fdac24cfabc89bf5241bc74c134cbfecffe4",
+    "abd_acceptance/reason_next_action.py": "84667142fe18bfde2877fb7c3dd58bbd0af801a37a36d6e1481ce13abf59cc0e",
+    "abd_acceptance/advice_card.py": "12160edde0940ecf51ae54ef23b763bce4480b1c5d97dacecec6fecc716acf3d",
     "abd_acceptance/terminology_governance.py": "d51ae252e7d28addfa7097a2f4ccb5ba2f017ec0745a0eee4e0971fd744beded",
+    "abd_acceptance/stage2_review.py": "6f3647013cd3a401dd09e3e0d40d1309d63ab33fd487fed9cf450d903a185d8a",
     "abd_acceptance/__main__.py": "8b71ed0e39e933f0017314e848a3201a52d8e1631a36d9e568c3e35bbd9d032e",
     "abd_acceptance/__init__.py": "4178e5b2561fcf21af2cb71a95adf6f6a0b3a67f01a88bab81868110965e19b8",
 }

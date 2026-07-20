@@ -63,12 +63,12 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S03-STAGE-REVIEW_rollback.js
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "ac53b74eedff00e6d3da1210f06f74bf582e7d8bf41d5980dced4a352060d670"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "2bdff2a828d8dad956200e2205dfbc7141e55d20bff318d84075cdf7ef2431ed"
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
     CONTRACT_PATH.as_posix(): "9466f63e3f8029cba8b518e828b4d22113bf59ae7fa13b44470509ee8732d241",
-    FINDINGS_PATH.as_posix(): "0ab1c79ddfb89fb264088e7e97715c9ae083fbe900f51a12bbb2bc7a388bb56e",
-    FIXTURE_PATH.as_posix(): "eecf680c131ace92e05be5c075781d70c6a6a5ac106080b06be159bb00b7a7fb",
-    TEST_PATH.as_posix(): "9f3526da9b8a8dcbaf4935dba53f2bc33d837f2842d69a598277eaf747e22b3a",
+    FINDINGS_PATH.as_posix(): "e62242685c6091564c92efc9d05be5b061e382cecfaa46bb39ae780eac072ea9",
+    FIXTURE_PATH.as_posix(): "ca816f8e50b63fc38c0c1626351957104ad682a72e13455f7e789aa0f2a141bc",
+    TEST_PATH.as_posix(): "f9d55d572526e0e81f144d6ecb5c62e83ce0907f1ce5e1315d8bd4e1aa5ed103",
 }
 WORKFLOW_SHA256 = "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
 
@@ -507,7 +507,7 @@ def _check_findings(findings: Mapping[str, Any], fixture: Mapping[str, Any], che
         and findings.get("stage_id") == STAGE_ID
         and findings.get("fixed_at") == FIXED_CLOCK
         and ids == fixture.get("expected_finding_ids")
-        and len(ids) == len(set(ids)) == 4
+        and len(ids) == len(set(ids)) == 5
         and all(
             row.get("status") == "RESOLVED_IN_REVIEW_CANDIDATE"
             and row.get("severity") in {"HIGH", "MEDIUM"}
@@ -520,7 +520,7 @@ def _check_findings(findings: Mapping[str, Any], fixture: Mapping[str, Any], che
     _add(
         checks,
         "S03REVIEW-FINDINGS-SUMMARY",
-        summary == {"total": 4, "resolved_in_review_candidate": 4, "open": 0, "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": True},
+        summary == {"total": 5, "resolved_in_review_candidate": 5, "open": 0, "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": True},
         summary,
     )
     boundary = findings.get("scope_boundaries", {})
@@ -536,6 +536,41 @@ def _iter_text_files(root: Path) -> Iterable[Path]:
         path = root / relative
         if path.is_file():
             yield path
+
+
+def _check_predecessor_monotonic_progression(root: Path, checks: List[Dict[str, Any]], verify_git_history: bool) -> None:
+    try:
+        from .stage2_review import evaluate_contract as evaluate_stage2_review
+
+        result = evaluate_stage2_review(
+            root,
+            require_external_reports=False,
+            _verify_history=verify_git_history,
+            _verify_phase_oracles=False,
+        )
+        matching = [row for row in result.get("checks", []) if row.get("id") == "S02REVIEW-S03-NOT-STARTED"]
+        detail = matching[0].get("detail", {}) if len(matching) == 1 else {}
+        successor = detail.get("successor", {}) if isinstance(detail, Mapping) else {}
+        mode = successor.get("mode") if isinstance(successor, Mapping) else None
+        passed = (
+            result.get("status") == "PASS"
+            and len(matching) == 1
+            and matching[0].get("passed") is True
+            and mode in {"VERIFIED_S03_P04_SUCCESSOR", "VERIFIED_S03_STAGE_REVIEW_SUCCESSOR"}
+        )
+        _add(
+            checks,
+            "S03REVIEW-PREDECESSOR-MONOTONIC-PROGRESSION",
+            passed,
+            {"stage2_summary": result.get("summary"), "successor_mode": mode, "progression": detail},
+        )
+    except Exception as exc:
+        _add(
+            checks,
+            "S03REVIEW-PREDECESSOR-MONOTONIC-PROGRESSION",
+            False,
+            "%s: %s" % (type(exc).__name__, exc),
+        )
 
 
 def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], checks: List[Dict[str, Any]], verify_git_history: bool) -> None:
@@ -687,6 +722,7 @@ def evaluate_contract(
             _check_cross_phase_surfaces(root, contract, fixture, checks)
             _check_findings(findings, fixture, checks)
             _check_safety_and_progression(root, contract, checks, _verify_git_history)
+            _check_predecessor_monotonic_progression(root, checks, _verify_git_history)
         except Exception as exc:
             _add(checks, "S03REVIEW-INTERNAL-ERROR", False, "%s: %s" % (type(exc).__name__, exc))
         if require_external_reports:

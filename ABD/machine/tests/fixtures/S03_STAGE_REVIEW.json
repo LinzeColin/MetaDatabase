@@ -5,7 +5,7 @@
   "review_id": "ABD-S03-WHOLE-STAGE-REVIEW",
   "fixed_clock": "2026-07-20T18:00:00+10:00",
   "expected_phase_ids": ["P01", "P02", "P03", "P04"],
-  "expected_finding_ids": ["F-S03-REVIEW-001", "F-S03-REVIEW-002", "F-S03-REVIEW-003", "F-S03-REVIEW-004"],
+  "expected_finding_ids": ["F-S03-REVIEW-001", "F-S03-REVIEW-002", "F-S03-REVIEW-003", "F-S03-REVIEW-004", "F-S03-REVIEW-005"],
   "expected_phase_evidence_sha256": {
     "P01": "cc128b7e0b3552d7633239971250c357320f7a3edbbb9782ee23e1dc8a922d25",
     "P02": "5e6c4e710a1b74d374f60c91ff26cd365beb5f2b5ca244bea2add10df9d82c97",

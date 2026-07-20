@@ -22,7 +22,7 @@
   ],
   "contract_id": "STAGE-REVIEW-S03",
   "decision": "S03_WHOLE_STAGE_REVIEW_PASS",
-  "decision_sha256": "77f6cb53418e15a9322ee6be75d3c707abf5cff3b213188346d9e224c82ba9e7",
+  "decision_sha256": "44148be0e7ce17a08ce70dcec4ef80ba6f1864af1f6bd973a1117a6cc8807d71",
   "evidence_id": "EVD-S03-STAGE-REVIEW",
   "explicit_unknowns": [
     "The ten-second gate is structural information placement only, not observed human comprehension time.",
@@ -50,17 +50,17 @@
   },
   "fixed_clock": "2026-07-20T18:00:00+10:00",
   "hashes": {
-    "code": "72b3cf0f4fb1953e69f41236e5b6664c034b2b325808c5696d169f61fcca32a2",
+    "code": "18431889da80b66a6f6c35375859793bee2d811ce14228cec80f69f880902b93",
     "inputs": {
       ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
-      "README.md": "5fb9e9748e0b4db72722662971d6283d9ac1b96eb674e5c6f7d341ef6cc65749",
+      "README.md": "3f4f955b62dc02901dfb4ef24f4503b940566e1ada692c76ed29545cf50c4ccc",
       "abd_acceptance/__init__.py": "4178e5b2561fcf21af2cb71a95adf6f6a0b3a67f01a88bab81868110965e19b8",
       "abd_acceptance/__main__.py": "8b71ed0e39e933f0017314e848a3201a52d8e1631a36d9e568c3e35bbd9d032e",
-      "abd_acceptance/advice_card.py": "55c459f3da4dd624e0c8d4783734fdac24cfabc89bf5241bc74c134cbfecffe4",
-      "abd_acceptance/reason_next_action.py": "57ba25169061952a50334fbeddc4981ed1d275480cb21726ca5c83ce041556ed",
-      "abd_acceptance/stage3_review.py": "1eb8d2d5cae1eeefd57411c54f1f7f6b415d408d2ad82498ebe9eec48e64a23d",
+      "abd_acceptance/advice_card.py": "12160edde0940ecf51ae54ef23b763bce4480b1c5d97dacecec6fecc716acf3d",
+      "abd_acceptance/reason_next_action.py": "84667142fe18bfde2877fb7c3dd58bbd0af801a37a36d6e1481ce13abf59cc0e",
+      "abd_acceptance/stage3_review.py": "b8e44be3bc29ab0a0a159e9a847820770d7e4f16f8febedf578b5641dde1c945",
       "abd_acceptance/terminology_governance.py": "d51ae252e7d28addfa7097a2f4ccb5ba2f017ec0745a0eee4e0971fd744beded",
-      "abd_acceptance/usability_accessibility.py": "ec217b7c454ff618e10b39dfe3f8d47abcabfb8ffa44f7941778c376dce0e7cd",
+      "abd_acceptance/usability_accessibility.py": "0d03be66eb4b7e8d3da55d65b5b83cf1df44888c720b46e787462e5b7531b7c0",
       "accessibility_report.json": "845a784a44c45fc3f9d7a02519e39ea73c0d2c9f26a08d6ef90f22ae09cb3a7f",
       "advice_card_fixtures.json": "2f9a5f892eebf01dfbdf91e3c14c96ee59005cd801f169460514d8c4e5476eb5",
       "advice_card_schema.json": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
@@ -75,7 +75,7 @@
       "machine/evidence/EVD-S03-P04.json": "525bbf2003898755ad1d724681420b8d04eda25bb13e8cd26a41abfae9c81a0d",
       "machine/evidence/EVD-S03-P04_rollback.json": "9b75cb9d53512100da79164c1fa50bf0a785b943e4a713052d3a0326ac07eb45",
       "machine/evidence/S02/STAGE_REVIEW/github_delivery_receipt.json": "80a0a58f98ebea48d7b6ed80d57cef7f1d8410fccb89b25588d74b4a204bc6e4",
-      "machine/evidence/S03/STAGE_REVIEW/findings.json": "0ab1c79ddfb89fb264088e7e97715c9ae083fbe900f51a12bbb2bc7a388bb56e",
+      "machine/evidence/S03/STAGE_REVIEW/findings.json": "e62242685c6091564c92efc9d05be5b061e382cecfaa46bb39ae780eac072ea9",
       "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
       "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
       "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
@@ -85,16 +85,16 @@
       "machine/facts/stage3_review_contract.json": "9466f63e3f8029cba8b518e828b4d22113bf59ae7fa13b44470509ee8732d241",
       "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
       "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
-      "machine/tests/fixtures/S03_STAGE_REVIEW.json": "eecf680c131ace92e05be5c075781d70c6a6a5ac106080b06be159bb00b7a7fb",
+      "machine/tests/fixtures/S03_STAGE_REVIEW.json": "ca816f8e50b63fc38c0c1626351957104ad682a72e13455f7e789aa0f2a141bc",
       "next_action_matrix.json": "86e52de87b15a447a6d7d4683a8fe99b7f6f255552d05bde15dcf94928969f3d",
       "reason_codes_zh.json": "62c37e83b844b72fbeeebe5591a717d64c225629fb4ad421c44a6ad631ac8a20",
-      "tests/S03/stage_review_test.py": "9f3526da9b8a8dcbaf4935dba53f2bc33d837f2842d69a598277eaf747e22b3a",
+      "tests/S03/stage_review_test.py": "f9d55d572526e0e81f144d6ecb5c62e83ce0907f1ce5e1315d8bd4e1aa5ed103",
       "ux_test_plan.json": "a2e011cacd58b56f4094cbf969bba8c748f56df628dbbeef639c25ffa82fb936"
     },
     "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
     "model_not_executed_reason": "S03 whole-stage review replays Chinese presentation contracts offline; it executes no model, provider, human study, browser, screen reader, deployment, order or return evaluation.",
     "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
-    "rollback_evidence": "8221dd8a9b8227b6ef5b8a86201b5bb3586489b4e58f35058f69d00e993d24a2"
+    "rollback_evidence": "41111279b9a900947cd6b09df182028909887fad145d19d3719f638749422451"
   },
   "next": "S03/GITHUB_STAGE_UPLOAD_READY",
   "phase_completion": {
@@ -117,8 +117,8 @@
   "review_findings": {
     "open": 0,
     "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true,
-    "resolved_in_review_candidate": 4,
-    "total": 4
+    "resolved_in_review_candidate": 5,
+    "total": 5
   },
   "review_id": "ABD-S03-WHOLE-STAGE-REVIEW",
   "rollback": {
@@ -156,24 +156,24 @@
       },
       {
         "detail": {
-          "actual": "0ab1c79ddfb89fb264088e7e97715c9ae083fbe900f51a12bbb2bc7a388bb56e",
-          "expected": "0ab1c79ddfb89fb264088e7e97715c9ae083fbe900f51a12bbb2bc7a388bb56e"
+          "actual": "e62242685c6091564c92efc9d05be5b061e382cecfaa46bb39ae780eac072ea9",
+          "expected": "e62242685c6091564c92efc9d05be5b061e382cecfaa46bb39ae780eac072ea9"
         },
         "id": "S03REVIEW-PIN-MACHINE-EVIDENCE-S03-STAGE_REVIEW-FINDINGS-JSON",
         "passed": true
       },
       {
         "detail": {
-          "actual": "eecf680c131ace92e05be5c075781d70c6a6a5ac106080b06be159bb00b7a7fb",
-          "expected": "eecf680c131ace92e05be5c075781d70c6a6a5ac106080b06be159bb00b7a7fb"
+          "actual": "ca816f8e50b63fc38c0c1626351957104ad682a72e13455f7e789aa0f2a141bc",
+          "expected": "ca816f8e50b63fc38c0c1626351957104ad682a72e13455f7e789aa0f2a141bc"
         },
         "id": "S03REVIEW-PIN-MACHINE-TESTS-FIXTURES-S03_STAGE_REVIEW-JSON",
         "passed": true
       },
       {
         "detail": {
-          "actual": "9f3526da9b8a8dcbaf4935dba53f2bc33d837f2842d69a598277eaf747e22b3a",
-          "expected": "9f3526da9b8a8dcbaf4935dba53f2bc33d837f2842d69a598277eaf747e22b3a"
+          "actual": "f9d55d572526e0e81f144d6ecb5c62e83ce0907f1ce5e1315d8bd4e1aa5ed103",
+          "expected": "f9d55d572526e0e81f144d6ecb5c62e83ce0907f1ce5e1315d8bd4e1aa5ed103"
         },
         "id": "S03REVIEW-PIN-TESTS-S03-STAGE_REVIEW_TEST-PY",
         "passed": true
@@ -188,8 +188,8 @@
       },
       {
         "detail": {
-          "actual": "ac53b74eedff00e6d3da1210f06f74bf582e7d8bf41d5980dced4a352060d670",
-          "expected": "ac53b74eedff00e6d3da1210f06f74bf582e7d8bf41d5980dced4a352060d670"
+          "actual": "2bdff2a828d8dad956200e2205dfbc7141e55d20bff318d84075cdf7ef2431ed",
+          "expected": "2bdff2a828d8dad956200e2205dfbc7141e55d20bff318d84075cdf7ef2431ed"
         },
         "id": "S03REVIEW-ORACLE-SELF-INTEGRITY",
         "passed": true
@@ -927,7 +927,8 @@
           "F-S03-REVIEW-001",
           "F-S03-REVIEW-002",
           "F-S03-REVIEW-003",
-          "F-S03-REVIEW-004"
+          "F-S03-REVIEW-004",
+          "F-S03-REVIEW-005"
         ],
         "id": "S03REVIEW-FINDINGS-EXACT-RESOLVED",
         "passed": true
@@ -936,8 +937,8 @@
         "detail": {
           "open": 0,
           "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true,
-          "resolved_in_review_candidate": 4,
-          "total": 4
+          "resolved_in_review_candidate": 5,
+          "total": 5
         },
         "id": "S03REVIEW-FINDINGS-SUMMARY",
         "passed": true
@@ -1041,12 +1042,55 @@
       },
       {
         "detail": {
+          "progression": {
+            "actual_s03": [
+              "EVD-S03-P01.json",
+              "EVD-S03-P01_rollback.json",
+              "EVD-S03-P02.json",
+              "EVD-S03-P02_rollback.json",
+              "EVD-S03-P03.json",
+              "EVD-S03-P03_rollback.json",
+              "EVD-S03-P04.json",
+              "EVD-S03-P04_rollback.json",
+              "EVD-S03-STAGE-REVIEW.json",
+              "EVD-S03-STAGE-REVIEW_rollback.json"
+            ],
+            "review_route": "PLANNED_OR_SIGNED_PASS",
+            "s03": [
+              "PASS",
+              "PASS",
+              "PASS",
+              "PASS"
+            ],
+            "successor": {
+              "mode": "VERIFIED_S03_STAGE_REVIEW_SUCCESSOR",
+              "summary": {
+                "checks": 13,
+                "failed": 0,
+                "failed_check_ids": [],
+                "passed": 13
+              }
+            }
+          },
+          "stage2_summary": {
+            "checks": 57,
+            "failed": 0,
+            "failed_check_ids": [],
+            "passed": 57
+          },
+          "successor_mode": "VERIFIED_S03_STAGE_REVIEW_SUCCESSOR"
+        },
+        "id": "S03REVIEW-PREDECESSOR-MONOTONIC-PROGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
           "errors": 0,
           "failures": 0,
           "minimum": 120,
           "normalized": true,
           "skipped": 0,
-          "tests": 183
+          "tests": 184
         },
         "id": "S03REVIEW-TARGETED-PYTEST",
         "passed": true
@@ -1058,7 +1102,7 @@
           "minimum": 3200,
           "normalized": true,
           "skipped": 0,
-          "tests": 3339
+          "tests": 3340
         },
         "id": "S03REVIEW-FULL-REGRESSION",
         "passed": true
@@ -1099,13 +1143,13 @@
       ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
       "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
       "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
-      "abd_acceptance/stage3_review.py": "1eb8d2d5cae1eeefd57411c54f1f7f6b415d408d2ad82498ebe9eec48e64a23d",
+      "abd_acceptance/stage3_review.py": "b8e44be3bc29ab0a0a159e9a847820770d7e4f16f8febedf578b5641dde1c945",
       "accessibility_report.json": "845a784a44c45fc3f9d7a02519e39ea73c0d2c9f26a08d6ef90f22ae09cb3a7f",
       "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
       "machine/evidence/S02/STAGE_REVIEW/github_delivery_receipt.json": "80a0a58f98ebea48d7b6ed80d57cef7f1d8410fccb89b25588d74b4a204bc6e4",
-      "machine/evidence/S03/STAGE_REVIEW/findings.json": "0ab1c79ddfb89fb264088e7e97715c9ae083fbe900f51a12bbb2bc7a388bb56e",
-      "machine/evidence/S03/STAGE_REVIEW/full_regression.xml": "892ffa169fd7a803ff7925ff1ef2e71be792f5be8e447a19bcc4e487499c6a18",
-      "machine/evidence/S03/STAGE_REVIEW/pytest.xml": "4d38f2cd22fc633e46cfe53e70071d9c8795b7abb347f41540a1dc19fe696af2",
+      "machine/evidence/S03/STAGE_REVIEW/findings.json": "e62242685c6091564c92efc9d05be5b061e382cecfaa46bb39ae780eac072ea9",
+      "machine/evidence/S03/STAGE_REVIEW/full_regression.xml": "39988f6874150eb3bbee702572bc647b9ba206fefc1b95a59cc032c331d13d78",
+      "machine/evidence/S03/STAGE_REVIEW/pytest.xml": "bc367edd8a56829ddea462ef4242f45cef4e6be37b65b980c61d808ece387ea9",
       "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
       "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
       "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
@@ -1117,8 +1161,8 @@
       "machine/facts/stage3_review_contract.json": "9466f63e3f8029cba8b518e828b4d22113bf59ae7fa13b44470509ee8732d241",
       "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
       "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
-      "machine/tests/fixtures/S03_STAGE_REVIEW.json": "eecf680c131ace92e05be5c075781d70c6a6a5ac106080b06be159bb00b7a7fb",
-      "tests/S03/stage_review_test.py": "9f3526da9b8a8dcbaf4935dba53f2bc33d837f2842d69a598277eaf747e22b3a",
+      "machine/tests/fixtures/S03_STAGE_REVIEW.json": "ca816f8e50b63fc38c0c1626351957104ad682a72e13455f7e789aa0f2a141bc",
+      "tests/S03/stage_review_test.py": "f9d55d572526e0e81f144d6ecb5c62e83ce0907f1ce5e1315d8bd4e1aa5ed103",
       "ux_test_plan.json": "a2e011cacd58b56f4094cbf969bba8c748f56df628dbbeef639c25ffa82fb936"
     },
     "human_validation_status": "NOT_EXECUTED",
@@ -1130,10 +1174,10 @@
     "stage_id": "S03",
     "status": "PASS",
     "summary": {
-      "checks": 63,
+      "checks": 64,
       "failed": 0,
       "failed_check_ids": [],
-      "passed": 63
+      "passed": 64
     }
   }
 }

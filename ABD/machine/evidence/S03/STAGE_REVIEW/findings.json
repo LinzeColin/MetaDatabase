@@ -43,11 +43,21 @@
       "risk": "不区分当前候选与历史已交付commit会错误否定不可变Phase证据，或反向放宽哈希门。",
       "remediation": "P04 verifier仅对明确白名单路径允许从固定implementation commit重放历史blob和代码树；其余漂移继续失败关闭。",
       "verification_gate": "S03REVIEW-PHASE-RECEIPT-HISTORICAL-REPLAY"
+    },
+    {
+      "id": "F-S03-REVIEW-005",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "S02前序复审门未识别已签名的S03整体复审后继状态",
+      "observation": "GitHub Actions runs 29716681090与29716724592在最终签名证据存在时均失败于S02REVIEW-S03-NOT-STARTED；旧门只接受至S03/P04完成的8份证据，未接受新增的两份S03整体复审证据。",
+      "risk": "本地签名前回归可通过，但整Stage上传后的真实终态会被前序复审错误拒绝，导致远端交付失败或诱使实现者绕过不可变证据门。",
+      "remediation": "S02仅在S03/P01至P04均PASS、10份证据文件集合精确匹配，且S03整体复审回执13/13验证通过时接受该单调后继；P04为stage2_review.py绑定精确后继白名单与SHA-256，无效或额外证据继续失败关闭。",
+      "verification_gate": "S03REVIEW-PREDECESSOR-MONOTONIC-PROGRESSION"
     }
   ],
   "summary": {
-    "total": 4,
-    "resolved_in_review_candidate": 4,
+    "total": 5,
+    "resolved_in_review_candidate": 5,
     "open": 0,
     "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true
   },

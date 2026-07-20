@@ -73,7 +73,7 @@ SUCCESSOR_UNIT_PROFILE_HASHES = {
     "abd_acceptance/__main__.py": "ee2fae7089314bb135dbe13779d0f8b4f0c899a6ddab6c38510f1ce3e571f638",
     "tests/S02/stage_review_test.py": "40431438418cb4212c00c3e241b980b4188cd017af2722ffb267670a8aa0f124",
 }
-SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "5b55bb76671d76cbdcfcdf93d2ef5d34633ad734a70ed78c25872c334d140789"
+SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "b3aec624ae7113196e98d3b1b956581a5d5defc28dd82b1e9da2b133c46edbb4"
 
 PHASE_EVALUATORS = {"P01": evaluate_p01, "P02": evaluate_p02, "P03": evaluate_p03, "P04": evaluate_p04}
 PHASE_VERIFIERS = {"P01": verify_p01, "P02": verify_p02, "P03": verify_p03, "P04": verify_p04}
@@ -687,6 +687,7 @@ def _check_safety_and_progression(
         p02_delivered = False
         p03_delivered = False
         p04_delivered = False
+        stage_review_delivered = False
         successor_detail: Any = None
         if (
             base_ok
@@ -772,7 +773,38 @@ def _check_safety_and_progression(
             successor = verify_s03_p04(root, verify_git_history=(root.parent / ".git").exists())
             p04_delivered = successor.get("status") == "PASS" and successor.get("next") == "S03/STAGE_REVIEW_READY_NOT_STARTED"
             successor_detail = {"mode": "VERIFIED_S03_P04_SUCCESSOR", "summary": successor.get("summary")}
-        progression_ok = not_started or p01_delivered or p02_delivered or p03_delivered or p04_delivered
+        elif (
+            base_ok
+            and status_by_id == {
+                "INDEX-AC-S03-P01": "PASS",
+                "INDEX-AC-S03-P02": "PASS",
+                "INDEX-AC-S03-P03": "PASS",
+                "INDEX-AC-S03-P04": "PASS",
+            }
+            and actual_s03
+            == [
+                "EVD-S03-P01.json",
+                "EVD-S03-P01_rollback.json",
+                "EVD-S03-P02.json",
+                "EVD-S03-P02_rollback.json",
+                "EVD-S03-P03.json",
+                "EVD-S03-P03_rollback.json",
+                "EVD-S03-P04.json",
+                "EVD-S03-P04_rollback.json",
+                "EVD-S03-STAGE-REVIEW.json",
+                "EVD-S03-STAGE-REVIEW_rollback.json",
+            ]
+        ):
+            from .stage3_review import verify_existing_stage_review_evidence as verify_s03_stage_review
+
+            successor = verify_s03_stage_review(root)
+            stage_review_delivered = (
+                successor.get("status") == "PASS"
+                and successor.get("decision") == "S03_STAGE_REVIEW_EVIDENCE_VERIFIED"
+                and successor.get("next") == "S03/GITHUB_STAGE_UPLOAD_READY"
+            )
+            successor_detail = {"mode": "VERIFIED_S03_STAGE_REVIEW_SUCCESSOR", "summary": successor.get("summary")}
+        progression_ok = not_started or p01_delivered or p02_delivered or p03_delivered or p04_delivered or stage_review_delivered
         detail = {
             "review_route": "PLANNED_OR_SIGNED_PASS",
             "s03": [row.get("status") for row in s03],

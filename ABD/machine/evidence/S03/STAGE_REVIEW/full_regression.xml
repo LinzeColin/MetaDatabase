@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <testsuites name="pytest tests">
-  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="3339" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="3340" time="0.000" timestamp="2026-07-19T00:00:00+10:00">
     <testcase classname="tests.S00.P01_test" name="test_baseline_contract_passes_without_runtime_reports" time="0.000" />
     <testcase classname="tests.S00.P01_test" name="test_duplicate_json_key_is_rejected" time="0.000" />
     <testcase classname="tests.S00.P01_test" name="test_second_canonical_source_fails_closed" time="0.000" />
@@ -3326,6 +3326,7 @@
     <testcase classname="tests.S03.stage_review_test" name="test_each_review_finding_is_resolved_by_an_executable_gate[F-S03-REVIEW-002]" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_each_review_finding_is_resolved_by_an_executable_gate[F-S03-REVIEW-003]" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_each_review_finding_is_resolved_by_an_executable_gate[F-S03-REVIEW-004]" time="0.000" />
+    <testcase classname="tests.S03.stage_review_test" name="test_each_review_finding_is_resolved_by_an_executable_gate[F-S03-REVIEW-005]" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_review_finding_summary_has_zero_open_items" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_a300_a0_and_no_return_guarantee_are_unchanged" time="0.000" />
     <testcase classname="tests.S03.stage_review_test" name="test_s04_is_planned_and_not_started" time="0.000" />
