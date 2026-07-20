@@ -61,7 +61,7 @@ def old_task_mapping(task_id: str, stage: str):
         "ADP-S1-P03-T018": ("ADP-V12-S4-T001", "ACC-V12-S4-001;ACC-V12-S4-002"),
         "ADP-S1-P03-T019": ("ADP-V12-S4-T001", "ACC-V12-S4-002"),
         "ADP-S1-P03-T020": ("ADP-V12-S4-T001", "ACC-V12-S4-001;ACC-V12-S4-002"),
-        "ADP-S3-P01-T031": ("ADP-V12-S1-T001;ADP-V12-S2-T001;ADP-V12-S3-T001", "ACC-V12-S1-001;ACC-V12-S2-001;ACC-V12-S3-001"),
+        "ADP-S3-P01-T031": ("ADP-V12-S1-T001;ADP-V12-S2-T001;ADP-V12-S3-T001", "ACC-V12-S1-001;ACC-V12-S1-002;ACC-V12-S1-003;ACC-V12-S2-001;ACC-V12-S3-001"),
         "ADP-S3-P01-T032": ("ADP-V12-S1-T001;ADP-V12-S2-T001;ADP-V12-S3-T001", "ACC-V12-S1-001;ACC-V12-S2-001;ACC-V12-S3-002"),
         "ADP-S3-P02-T035": ("ADP-V12-S2-T001", "ACC-V12-S2-001;ACC-V12-S2-002"),
         "ADP-S3-P03-T038": ("ADP-V12-S1-T001", "ACC-V12-S1-001;ACC-V12-S1-004"),
@@ -198,7 +198,7 @@ E1AF_ROWS = [
 
 
 HANDOFF_ROWS = [
-    ("HO-001", "MetaDatabase/arxiv-daily-push 是唯一 canonical 源", "INHERITED_PROVEN", "ADP-V12-S0-T001", "ACC-V12-S0-004"),
+    ("HO-001", "MetaDatabase/arxiv-daily-push 是唯一 canonical 源", "INHERITED_PROVEN", "ADP-V12-S0-T001", "ACC-V12-S0-004;ACC-V12-S0-006"),
     ("HO-002", "CodexProject 已删除旧源不得恢复", "V1_2_ACTIVE", "ADP-V12-S0-T001;ADP-V12-S6-T001", "ACC-V12-S0-005;ACC-V12-S6-001"),
     ("HO-003", "Cloudflare 保持 canonical live，不迁 OVH/Coolify", "V1_2_ACTIVE", "ADP-V12-S5-T002;ADP-V12-S6-T001", "ACC-V12-S5-004;ACC-V12-S6-002"),
     ("HO-004", "来源顺序 Google News→stats-gov→Science Advances/PubMed", "V1_2_ACTIVE", "ADP-V12-S1-T001;ADP-V12-S2-T001;ADP-V12-S3-T001", "ACC-V12-S1-001;ACC-V12-S2-001;ACC-V12-S3-001"),
@@ -245,10 +245,13 @@ def build(pack_root: Path) -> str:
             tasks, acceptances, "INPUT-ACCEPTANCE-7FD!DEFECT_REPORT.md")
 
     for source_id, title in E1AF_ROWS:
+        acceptances = "ACC-V12-S0-004;ACC-V12-S6-001"
+        if source_id == "E1AF-006":
+            acceptances = "ACC-V12-S0-002;" + acceptances
         add(rows, "ACCEPTANCE_E1AF", source_id, title, "PASS", "INHERITED_PROVEN",
             "e1af 独立 verifier sealed evidence 已闭合迁移 developer_check；v1.2 将其作为回归基线而非新部署授权。",
             "arxiv-daily-push/docs/archive/taskpacks/2026-07-20/ADP_META_MIGRATION_e1af471c_2026-07-20_acceptance_review_taskpack.zip",
-            "ADP-V12-S0-T001;ADP-V12-S6-T001", "ACC-V12-S0-004;ACC-V12-S6-001",
+            "ADP-V12-S0-T001;ADP-V12-S6-T001", acceptances,
             "INPUT-ACCEPTANCE-E1AF!VERDICT.md")
 
     for source_id, title, disposition, tasks, acceptances in HANDOFF_ROWS:

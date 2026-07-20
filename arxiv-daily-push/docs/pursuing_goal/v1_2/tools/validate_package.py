@@ -205,6 +205,8 @@ def validate(repo_root: Path, write_tree: bool) -> list[str]:
         keys = [(row["source_family"], row["source_id"]) for row in trace_rows]
         if len(keys) != len(set(keys)):
             failures.append("duplicate historical source family/id")
+        trace_task_ids: set[str] = set()
+        trace_acceptance_ids: set[str] = set()
         for row in trace_rows:
             if row["disposition"] not in ALLOWED_DISPOSITIONS:
                 failures.append(f"invalid disposition for {row['source_family']}:{row['source_id']}")
@@ -213,11 +215,25 @@ def validate(repo_root: Path, write_tree: bool) -> list[str]:
             if not all(row.get(field) for field in ("disposition_reason", "current_evidence", "v1_2_task_ids", "v1_2_acceptance_ids", "source_ref")):
                 failures.append(f"incomplete trace row: {row['source_family']}:{row['source_id']}")
             for task_id in row["v1_2_task_ids"].split(";"):
+                trace_task_ids.add(task_id)
                 if task_id not in task_ids:
                     failures.append(f"trace row references unknown task {task_id}")
             for acceptance_id in row["v1_2_acceptance_ids"].split(";"):
+                trace_acceptance_ids.add(acceptance_id)
                 if acceptance_id not in acceptance_ids:
                     failures.append(f"trace row references unknown acceptance {acceptance_id}")
+        if trace_task_ids != set(task_ids):
+            failures.append(
+                "historical trace task reverse coverage mismatch "
+                f"missing={sorted(set(task_ids) - trace_task_ids)} "
+                f"extra={sorted(trace_task_ids - set(task_ids))}"
+            )
+        if trace_acceptance_ids != set(acceptance_ids):
+            failures.append(
+                "historical trace acceptance reverse coverage mismatch "
+                f"missing={sorted(set(acceptance_ids) - trace_acceptance_ids)} "
+                f"extra={sorted(trace_acceptance_ids - set(acceptance_ids))}"
+            )
 
     input_manifest_path = pack_root / "INPUT_ARCHIVE_MANIFEST.json"
     try:
