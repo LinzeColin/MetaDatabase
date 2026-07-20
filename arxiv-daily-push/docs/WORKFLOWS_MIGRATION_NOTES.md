@@ -31,13 +31,13 @@
 - `scripts/adp_liveness_check.py`
 - `tests/governance/test_adp_liveness_check.py`
 
-## 如实记录：两处**既有**悬空引用（非本次迁移造成）
+## 既有悬空引用的迁移闭合状态
 
-迁移前在源仓即已存在，原样保留、未擅自修改 ADP 的工作流：
+迁移前源仓已有两处悬空引用。本轮只闭合由仓位变化造成、可以无生产副作用修正的一处：
 
 | 工作流 | 悬空引用 | 状态 |
 |---|---|---|
-| `production-trial` | `scripts/validate_project_governance.py` | 该脚本属 CodexProject 专有治理框架，未随迁。**该工作流从未运行过**；首次启用前须改写或退休。 |
+| `production-trial` | `scripts/validate_project_governance.py` | 已改为当前 `machine/tools/check_dual_plane_ci.py`，并显式运行 supply-chain security regression；未启用或运行 production trial。 |
 | `visual-gate` | `arxiv-daily-push/docs/design/visual_change_approvals.json` | **该文件在源仓 CodexProject 中同样不存在**，是 visual-gate 在源仓即持续 failing 的既有原因，非迁移引入。 |
 
 ## 生产运行时不受迁移影响

@@ -343,7 +343,7 @@ class UserCenterCandidatePoolTests(unittest.TestCase):
             "本机/launchd 只作为历史与受控运行证据来源",
             "`ADP_ALLOW_SMTP_SEND` 原始值只接受 `UNSET` 或 false-like",
             "当前 MVP 准备只做复审修补、证据同步和防回归补强，不进入 S3/DAILY_OPERATION",
-            "以下命令必须从 CodexProject 仓库根目录运行；`tools/` 与 `FINAL_ACCEPTANCE_BUNDLE/` 均为仓库根路径",
+            "以下命令必须从 MetaDatabase 仓库根目录运行；`tools/` 与 `FINAL_ACCEPTANCE_BUNDLE/` 均为仓根 ADP 兼容路径",
             "不要给这些 root tools 追加 `--json`",
             "python3 -B tools/verify_acceptance_bundle.py --root . --require-zero P0 P1",
             'python3 -B tools/verify_daily_operation_readiness.py --root .; ec=$?; echo "EXPECTED_READINESS_EXIT=$ec"; test "$ec" -eq 2',

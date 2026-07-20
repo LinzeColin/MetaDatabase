@@ -1,8 +1,6 @@
 from pathlib import Path
-import importlib.util
 import json
 import re
-import sys
 import unittest
 
 
@@ -1144,7 +1142,8 @@ class GovernanceCurrentStateTests(unittest.TestCase):
         assurance = (ADP_ROOT / "docs/governance/ASSURANCE_STATUS.yaml").read_text(encoding="utf-8")
         owner_status = (ADP_ROOT / "docs/governance/OWNER_STATUS.md").read_text(encoding="utf-8")
         status = (ADP_ROOT / "docs/governance/STATUS.md").read_text(encoding="utf-8")
-        generator = (REPO_ROOT / "scripts/generate_governance_dashboard.py").read_text(encoding="utf-8")
+        dual_plane = (REPO_ROOT / ".github/workflows/dual-plane.yml").read_text(encoding="utf-8")
+        root_agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
         current_gate = _quoted_yaml_value(version_matrix, "current_gate")
 
         self.assertIn('task_id: "S2PMT07-DAILY-OPERATION-PERSISTENT-ENABLEMENT-AUTHORIZATION"', assurance)
@@ -1188,49 +1187,13 @@ class GovernanceCurrentStateTests(unittest.TestCase):
         self.assertNotIn("下一任务： `S2PMT07-S2PLT04-COMPLETION-REPORT`", owner_status)
         self.assertNotIn('task_id: "S2PMT07-INTEGRATED-PRODUCTION-ACCEPTANCE-OWNER-DECISION"', assurance)
         self.assertNotIn('task_id: "S2PMT07-INTEGRATED-PRODUCTION-ACCEPTANCE-EVIDENCE-WRITE"', assurance)
-        self.assertIn("owner_decision_recorded_write_gate_allowed", generator)
-        self.assertIn("integrated_production_accepted_no_daily_operation", generator)
-        self.assertIn("daily_operation_preflight_current", generator)
-        self.assertIn("daily_operation_owner_decision_keep_disabled", generator)
-        self.assertIn("daily_operation_persistent_authorization_request_ready", generator)
-        self.assertIn("daily_operation_persistent_authorization_missing", generator)
-        self.assertIn("production_boundary_preflight_ready", generator)
-        self.assertIn("ADP_SMTP_SEND_RAW_VALUE_EVIDENCE", generator)
-        self.assertIn("ADP_ALLOW_SMTP_SEND raw value is UNSET or false-like", generator)
-        self.assertNotIn(
-            "persistent ADP_ALLOW_SMTP_SEND=false, LaunchAgents disabled, open_pr_count=0, and no background ADP process",
-            generator,
+        self.assertIn("arxiv-daily-push", dual_plane)
+        self.assertIn("check_dual_plane_ci.py", dual_plane)
+        self.assertIn("治理框架来自共享仓库", root_agents)
+        self.assertFalse(
+            (REPO_ROOT / "scripts/generate_governance_dashboard.py").exists(),
+            "retired CodexProject governance generator must not be restored during ADP migration",
         )
-        self.assertIn("S2PMT07-INTEGRATED-PRODUCTION-ACCEPTANCE-PREFLIGHT", generator)
-        self.assertIn("S2PMT07-INTEGRATED-PRODUCTION-ACCEPTANCE-WRITE-GATE", generator)
-        self.assertIn("S2PMT07-DAILY-OPERATION-PERSISTENT-ENABLEMENT-AUTHORIZATION", generator)
-
-        sys.path.insert(0, str(REPO_ROOT / "scripts"))
-        try:
-            spec = importlib.util.spec_from_file_location(
-                "generate_governance_dashboard_for_status_test",
-                REPO_ROOT / "scripts/generate_governance_dashboard.py",
-            )
-            self.assertIsNotNone(spec)
-            self.assertIsNotNone(spec.loader)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            config = module.structural.load_yaml(module.structural.PROJECTS_FILE)
-            project = next(
-                project
-                for project in module.structural.as_list(config.get("projects"))
-                if module.structural.project_scope(project) == "arxiv-daily-push"
-            )
-            rendered_status = module.render_status(module.load_project(project))
-        finally:
-            try:
-                sys.path.remove(str(REPO_ROOT / "scripts"))
-            except ValueError:
-                pass
-        self.assertIn("- Readiness: `BLOCKED_PERSISTENT_DAILY_OPERATION_AUTHORIZATION_MISSING`", rendered_status)
-        self.assertNotIn("- Readiness: `BLOCKED_PRECHECK`", rendered_status)
-        self.assertIn("- Parallel shadow source task: `NONE_UNTIL_PRODUCTION_BOUNDARY_REVIEW`", rendered_status)
-        self.assertNotIn("- Parallel shadow source task: `NONE_WHILE_S2PMT07_BLOCKED`", rendered_status)
 
     def test_project_yaml_delivery_readiness_does_not_reopen_stage2_final_gate(self) -> None:
         project_yaml = (ADP_ROOT / "docs/governance/project.yaml").read_text(encoding="utf-8")

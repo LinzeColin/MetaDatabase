@@ -13,8 +13,10 @@
 
 - `LinzeDatabase/` 是原 CodexProject 的 `MetaDatabase/` 目录改名而来。
 - `LinzeDatabase/PFI` 与将来迁入的顶层 `PFI` 项目**不是同一个东西**，不要合并或互相引用。
-- 将来迁入的 `ADP` 在 CodexProject 中的真实路径是 `arxiv-daily-push`，
-  其 CI secrets 名为 `ADP_SMTP_*`。按 "ADP" 去找目录会一无所获。
+- `ADP` 已从 CodexProject 迁入本仓，canonical 路径是 `arxiv-daily-push/`；
+  其 CI secrets 名为 `ADP_SMTP_*`。按顶层目录名 `ADP` 去找会一无所获。
+- CodexProject 中已删除的 `arxiv-daily-push/` 是迁移后的预期状态，禁止从历史、
+  备份或任务包恢复；后续开发只在本仓的 `arxiv-daily-push/` 进行。
 
 ## 股票 Skill 路由（强制）
 
@@ -29,5 +31,19 @@
 
 本仓库正从 LinzeColin/CodexProject 分批迁入项目。
 EEI 已于 2026-07-15 迁入（wave 3，含完整历史与自带 CI `eei-validation`）。
-PFI / ADP 仍在 CodexProject 中，将在其静默后迁入。
-在它们迁入之前，不要在本仓库为它们创建占位目录或桩代码。
+ADP（`arxiv-daily-push/`）已于 2026-07-20 迁入并纳入 `dual-plane.yml`；
+canonical 交接入口是 `arxiv-daily-push/docs/HANDOFF.md`。
+PFI 仍在 CodexProject 中；迁入前不要在本仓库创建顶层 `PFI` 占位目录或桩代码。
+
+ADP 历史合同仍以仓根相对路径引用 `FINAL_ACCEPTANCE_BUNDLE/`、
+`governance/run_manifests/ADP-*` 和 4 个 `tools/` 只读校验入口；这些是迁入的
+ADP 证据/兼容面，不是本仓治理框架。禁止据此复制 CodexProject 的旧
+`repository_hygiene_policy.json`、`generate_governance_dashboard.py`、
+`validate_project_governance.py` 或 `project-governance.yml`。
+
+## ADP 来源与板块变更门（强制）
+
+Any ADP source or board add/delete/rename/enable/disable change must pass the
+user-center sync gate in `arxiv-daily-push/AGENTS.md`. config/code-only changes are not complete
+until every required owner-facing page and both named tests are
+synchronized in the same change.

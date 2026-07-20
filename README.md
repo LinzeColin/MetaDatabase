@@ -15,7 +15,7 @@
 | Stock_Skill/stock-commercial-opportunities-skill | ✅ 3.0.0（v3）当前 | “股票商业机会拆解”Codex Skill 源码、任务包、版本谱系与恢复证据；以 `Stock_Skill/REGISTRY.json` 为机器可读索引，未安装运行时 |
 | xhs-douyin-2notion | 🚧 Stage 0 | 个人小红书/抖音内容知识治理；Public Code / Private Runtime |
 | PFI | ⏳ 待迁入 | codex 正在开发 |
-| ADP | ⏳ 待迁入 | **原 arxiv-daily-push**；codex 正在开发 |
+| ADP | ✅ 已迁入 | canonical 路径 `arxiv-daily-push/`；2026-07-20 从 CodexProject 迁入并纳入 `dual-plane.yml` |
 
 ## 关于 LinzeDatabase 的命名
 

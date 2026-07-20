@@ -102,12 +102,12 @@ V5 到 V6 的 Stage 1 任务连续性：
 
 ## 本地验证
 
-以下命令必须从 CodexProject 仓库根目录运行；`tools/` 与 `FINAL_ACCEPTANCE_BUNDLE/` 均为仓库根路径。
+以下命令必须从 MetaDatabase 仓库根目录运行；`tools/` 与 `FINAL_ACCEPTANCE_BUNDLE/` 均为仓根 ADP 兼容路径。
 不要给这些 root tools 追加 `--json`；它们默认输出 JSON。
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=arxiv-daily-push/src python3 -m unittest discover -s arxiv-daily-push/tests -q
-PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=arxiv-daily-push/src python3 scripts/validate_project_governance.py --project arxiv-daily-push
+PYTHONDONTWRITEBYTECODE=1 python3 arxiv-daily-push/machine/tools/check_dual_plane_ci.py --root . --projects arxiv-daily-push --require-projects
 git diff --check
 python3 -B tools/verify_acceptance_bundle.py --root . --require-zero P0 P1
 python3 -B tools/verify_daily_operation_readiness.py --root .; ec=$?; echo "EXPECTED_READINESS_EXIT=$ec"; test "$ec" -eq 2

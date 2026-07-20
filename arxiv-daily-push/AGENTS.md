@@ -2,9 +2,23 @@
 
 This project follows the root `AGENTS.md` and `docs/governance/STANDARD.md`.
 
-## V0.3 重构指针（先读）
+## 当前控制优先级（先读）
 
-当前活动开发合同是 **V0.3 重构任务包**：从 `docs/v03/CONTRACT.md` 开始，只读 `docs/v03/`（<110 KB）与被任务直接点名的源码。参数唯一真相 `config/thresholds_v0_3.yaml`；阶段状态 `docs/v03/STATUS.yaml`。三大根级人读 md 与 docs/governance 巨型登记文件已按 R0-6 冻结（`archive/README.md`），不得作为阅读输入。本文件以下的 V7.2 规则仅约束旧运行时（保持失败关闭）。
+1. `docs/HANDOFF.md` 是迁入 MetaDatabase 后唯一的当前交接入口，负责仓位、
+   live Cloudflare Worker、Owner 决策、当前开发线与下一任务的事实路由。
+2. `machine/facts/` 与自动渲染的 `文档/` 是 MetaDatabase 双平面治理入口；
+   `CHANGELOG.md` 与 `docs/pursuing_goal/v0_2/evidence/` 保存 Cloudflare V0.2
+   生产开发证据。
+3. `docs/v03/` 是一次未接管生产面的本地重构任务包。只有任务显式点名 V0.3 时，
+   才从 `docs/v03/CONTRACT.md` 开始，并使用 `config/thresholds_v0_3.yaml`；
+   它不再是全项目默认活动合同。
+4. `docs/pursuing_goal/v7_2/` 与仓根 `FINAL_ACCEPTANCE_BUNDLE/` 保存旧本机
+   runner/SMTP 运行时的 fail-closed 兼容合同。它们继续约束相关旧路径与测试，
+   但不覆盖 Cloudflare V0.2 生产事实，也不自行授权任何 live 变更。
+
+本轮迁移闭合禁止恢复 CodexProject 中已删除的旧源目录，禁止修改或部署 live
+Worker。任何后续开发必须先在 `docs/HANDOFF.md` 中选择一条明确开发线，再读取该线
+直接点名的最小文件集。
 
 ## S4 精简执行胶囊
 
@@ -16,7 +30,7 @@ README、owner 页面或治理说明改动时，不得默认读取完整 `用户
 
 ```bash
 PYTHONPATH=arxiv-daily-push/src python -B -m unittest arxiv-daily-push/tests/test_owner_controls.py arxiv-daily-push/tests/test_user_center_candidate_pool.py -q
-python -B scripts/lean_governance.py check-render --project arxiv-daily-push
+python -B arxiv-daily-push/machine/tools/check_dual_plane_ci.py --root . --projects arxiv-daily-push --require-projects
 ```
 
 来源、板块、scheduler、SMTP、storage、security、ranking，或用户中心里的来源/板块
@@ -34,17 +48,18 @@ PYTHONPATH=arxiv-daily-push/src python -B -m unittest arxiv-daily-push/tests/tes
 ## Permanent Rules
 
 - Work one phase, one task ID, and one acceptance target at a time.
-- Use `docs/pursuing_goal/CURRENT.yaml`,
+- For V7.2 compatibility work, use `docs/pursuing_goal/CURRENT.yaml`,
   `docs/pursuing_goal/v7_2/V7_2_ROOT_LOCK.yaml`,
   `docs/pursuing_goal/v7_2/machine_readable/product_contract_v7_2.yaml`,
   `docs/pursuing_goal/v7_2/machine_readable/roadmap_v7_2.yaml`, and
-  `docs/pursuing_goal/v7_2/HANDOFF/00_下一Agent先读.md` as the current execution
-  contract. `docs/pursuing_goal/v7_1/V7_1_ROOT_LOCK.yaml` and the rest of
+  `docs/pursuing_goal/v7_2/HANDOFF/00_下一Agent先读.md` as that legacy runtime's
+  execution contract. It does not replace the repository-wide routing in
+  `docs/HANDOFF.md`. `docs/pursuing_goal/v7_1/V7_1_ROOT_LOCK.yaml` and the rest of
   `docs/pursuing_goal/v7_1/` remain a read-only historical baseline and must
   not be overwritten or deleted. V5/V6/V7.0 files remain historical evidence
   and alias references; they no longer override V7.2.
-- Every implementation closeout must state the current V7.2 contract, the
-  active contextual task, and any legacy alias. Stage 2 integrated acceptance 已
+- Every closeout that touches the V7.2 compatibility surface must state the V7.2
+  contract, the active contextual task, and any legacy alias. Stage 2 integrated acceptance 已
   记录并保持；当前事实以 `docs/pursuing_goal/CURRENT.yaml`,
   `FINAL_ACCEPTANCE_BUNDLE/manifest.json`, and
   `FINAL_ACCEPTANCE_BUNDLE/integrated_production_acceptance.json` 为准。
@@ -54,7 +69,8 @@ PYTHONPATH=arxiv-daily-push/src python -B -m unittest arxiv-daily-push/tests/tes
   不存在。下一可执行任务是
   `S2PMT07-DAILY-OPERATION-PERSISTENT-ENABLEMENT-AUTHORIZATION`；缺该显式
   owner 持久授权 artifact 时，只能继续 MVP 复审修补、fail-closed 复核和证据
-  同步，不得启用 SMTP、scheduler、Release、restore 或 DAILY_OPERATION。
+  同步，不得启用 SMTP、scheduler、Release、restore 或 DAILY_OPERATION。这一
+  S3 门仅是旧本机运行时的兼容边界，不是当前 Cloudflare V0.2 Worker 的部署授权。
   `S2PCT02`
   (`S2P2T02` legacy alias)
   Science/top-journal metadata-only no-send shadow evidence is completed
