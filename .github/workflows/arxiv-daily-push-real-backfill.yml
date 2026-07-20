@@ -90,7 +90,7 @@ jobs:
 
             if [ "$should_run" != "true" ]; then
               changed_files="$(git diff --name-only "$base" "$head")"
-              runtime_regex='^(arxiv-daily-push/(src|tests|config|schemas)/|arxiv-daily-push/(pyproject\.toml|VERSION|\.gitignore))'
+              runtime_regex='^(arxiv-daily-push/(src|config|schemas)/|arxiv-daily-push/(pyproject\.toml|VERSION|\.gitignore))'
               if printf '%s\n' "$changed_files" | grep -E "$runtime_regex" >/dev/null; then
                 should_run="true"
                 reason="runtime-relevant arxiv-daily-push change"
@@ -104,8 +104,8 @@ jobs:
             echo "## arXiv Daily Push runtime change scope"
             echo "- should_run: $should_run"
             echo "- reason: $reason"
-            echo "- runtime_paths: src, tests, config, schemas, pyproject.toml, VERSION, .gitignore"
-            echo "- governance-only paths do not run this external/runtime check"
+            echo "- runtime_paths: src, config, schemas, pyproject.toml, VERSION, .gitignore"
+            echo "- tests/docs/governance-only paths do not run this mutable external-data check"
             if [ -n "$changed_files" ]; then
               echo ""
               echo "Changed files:"
@@ -163,6 +163,9 @@ jobs:
           artifact_dir="$RUNNER_TEMP/adp-s1p5t03-real-backfill"
           report="$artifact_dir/adp-real-historical-replay-report.json"
           mkdir -p "$artifact_dir"
+          printf 'artifact_dir=%s\n' "$artifact_dir" >> "$GITHUB_OUTPUT"
+          printf 'report=%s\n' "$report" >> "$GITHUB_OUTPUT"
+          set +e
           PYTHONDONTWRITEBYTECODE=1 \
           PYTHONPYCACHEPREFIX="$RUNNER_TEMP/adp_pycache_real_backfill" \
           PYTHONPATH=arxiv-daily-push/src \
@@ -179,6 +182,8 @@ jobs:
               --polite-delay-seconds "${{ steps.params.outputs.polite_delay_seconds }}" \
               --json \
             > "$report"
+          replay_exit=$?
+          set -e
           python3 -m json.tool "$report" >/dev/null
           python3 - <<'PY' "$report"
           import json
@@ -205,8 +210,7 @@ jobs:
               print("blocking_reasons=", report.get("blocking_reasons"))
               raise SystemExit(2)
           PY
-          printf 'artifact_dir=%s\n' "$artifact_dir" >> "$GITHUB_OUTPUT"
-          printf 'report=%s\n' "$report" >> "$GITHUB_OUTPUT"
+          test "$replay_exit" -eq 0
 
       - name: Upload real 30-day backfill artifacts
         if: always() && steps.replay.outputs.artifact_dir != ''

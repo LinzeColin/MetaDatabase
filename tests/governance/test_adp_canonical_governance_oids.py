@@ -52,6 +52,8 @@ class TestAdpCanonicalGovernanceOids(unittest.TestCase):
         self.assertIn("可重放的 MetaDatabase 迁移前 base", project_handoff)
         self.assertIn("`54 failures + 50 errors + 49 skips`", project_handoff)
         self.assertIn("完整测试\n   名称集合", project_handoff)
+        self.assertIn("tests/docs/governance-only\n变更必须通过 scope classifier", project_handoff)
+        self.assertIn("不得靠降低“每日额外排队候选”质量门", project_handoff)
 
     def test_current_dual_plane_registers_adp_without_retired_root_policy(self):
         workflow = (ROOT / ".github/workflows/dual-plane.yml").read_text(encoding="utf-8")

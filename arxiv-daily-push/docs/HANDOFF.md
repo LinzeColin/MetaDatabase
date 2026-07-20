@@ -120,6 +120,11 @@ failure/error 均为 0。剩余 2 failures
 分别是 development-ledger/current matrix drift 与 video media gate，11 errors 仍全部来自
 上述三基文件缺失。不得以修改/跳过测试来伪造全绿。
 
+`arxiv-daily-push-real-backfill.yml` 查询的是会随论文修订而变化的外部历史元数据，因此重型
+30 日 replay 只在 `src/config/schemas/packaging` 运行面变化时执行；tests/docs/governance-only
+变更必须通过 scope classifier，但不得靠降低“每日额外排队候选”质量门来消除真实 runtime
+失败。replay 失败时必须保留并上传 JSON artifact、在日志打印 `blocking_reasons`。
+
 本轮还必须证明：
 
 1. `git diff origin/main -- arxiv-daily-push/deploy/cloudflare/worker_cloud.js` 为空；
