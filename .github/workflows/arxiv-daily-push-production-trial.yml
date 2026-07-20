@@ -73,6 +73,11 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - name: Install test-only YAML dependency
+        run: python3 -m pip install --quiet pyyaml==6.0.3
       - name: Install cloud MP4 runtime
         shell: bash
         run: |
@@ -125,15 +130,20 @@ jobs:
         shell: bash
         run: |
           PYTHONDONTWRITEBYTECODE=1 \
+          PYTHONPYCACHEPREFIX="$RUNNER_TEMP/adp_pycache_security" \
+          PYTHONPATH=arxiv-daily-push/src \
+            python3 -m unittest arxiv-daily-push/tests/test_security_boundary.py -q
+          PYTHONDONTWRITEBYTECODE=1 \
           PYTHONPYCACHEPREFIX="$RUNNER_TEMP/adp_pycache_tests" \
           PYTHONPATH=arxiv-daily-push/src \
             python3 -m unittest discover -s arxiv-daily-push/tests -q
-      - name: Run governance validator after preflight
+      - name: Run MetaDatabase dual-plane validator after preflight
         shell: bash
         run: |
           PYTHONDONTWRITEBYTECODE=1 \
           PYTHONPYCACHEPREFIX="$RUNNER_TEMP/adp_pycache_governance" \
-            python3 scripts/validate_project_governance.py --project arxiv-daily-push
+            python3 arxiv-daily-push/machine/tools/check_dual_plane_ci.py \
+              --root . --projects arxiv-daily-push --require-projects
       - name: Write bootstrap summary
         if: always()
         run: |
