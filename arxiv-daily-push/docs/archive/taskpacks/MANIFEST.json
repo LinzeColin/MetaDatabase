@@ -1,0 +1,49 @@
+{
+  "schema_version": "adp.archive_manifest.v1",
+  "as_of": "2026-07-20",
+  "repository_visibility": "public",
+  "license_policy": "preserve_repository_LICENSE_no_new_license",
+  "files": [
+    {
+      "id": "ADP-V01-BASELINE",
+      "path": "2026-07-15/ADP_V0.1_FINAL_EXECUTION_TASK_PACKAGE_2026-07-15.zip",
+      "size": 10367717,
+      "sha256": "c80d5b056aabe0d1a6bf7af6f5c28664bc3e0fd5dfc838fa22d349de3d87d10c",
+      "bytes_preserved": true
+    },
+    {
+      "id": "ADP-ACCEPTANCE-7FD07680",
+      "path": "2026-07-20/ADP_7fd07680_acceptance_review_taskpack.zip",
+      "size": 10382319,
+      "sha256": "7c48e2d5b1f5a93e2cddb7ca2521e741e0e8844afba524d62274e17a22872aba",
+      "bytes_preserved": true
+    },
+    {
+      "id": "ADP-MIGRATION-ACCEPTANCE-E1AF471C",
+      "path": "2026-07-20/ADP_META_MIGRATION_e1af471c_2026-07-20_acceptance_review_taskpack.zip",
+      "size": 217356,
+      "sha256": "c5ab970698f3ca3fd6bba6939123fae2c0cb6ecd5b7cd6058a622b7fabfcc084",
+      "bytes_preserved": true
+    }
+  ],
+  "deduplicated_references": [
+    {
+      "id": "ADP-FRONTEND-THEME-MOTION-V1.1",
+      "path": "../../design/前端呈现基线_v1/_原始存档/ADP主题动效v1.1.zip",
+      "size": 6106,
+      "sha256": "253f7bf6881bd2df377d6a286670f1441b3c093b94de34c7b01f1406dfda91a7",
+      "reason": "identical blob already committed; do not duplicate"
+    }
+  ],
+  "not_archived_separately": [
+    {
+      "id": "ADP-MIGRATION-ACCEPTANCE-E1AF471C-EXPANDED-DIRECTORY",
+      "covered_by": "ADP-MIGRATION-ACCEPTANCE-E1AF471C",
+      "reason": "the review ZIP contains the complete sealed acceptance directory"
+    },
+    {
+      "id": "MACOS-DS-STORE",
+      "reason": "operating-system metadata; excluded"
+    }
+  ]
+}

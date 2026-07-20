@@ -1,12 +1,12 @@
 {
-  "version": "0.23.1",
-  "stage": "S2",
-  "phase": "S2PM",
-  "task": "S2PMT07",
-  "real_progress": "80.95%（这是走完了多少道结构关卡；离真正做完还差多少，要对着真实数据核一遍才知道）",
-  "report_grade": "",
-  "business_verdict": "",
-  "evidence_status": "EXTRACTED",
-  "rendered_at": "2026-07-15",
-  "migrated_from_legacy": "功能清单.md"
+  "version": "0.41.0（目标 1.2.0）",
+  "stage": "S0",
+  "phase": "v1.2 任务包与归档",
+  "task": "ADP-V12-S0-T001",
+  "real_progress": "v1.2 路线共 10 个有界任务；当前只执行 S0，产品代码任务尚未开始",
+  "report_grade": "待独立 verifier 锁定 Subject 后裁定",
+  "business_verdict": "当前线上仍为 0.41.0；v1.2 尚未部署",
+  "evidence_status": "S0_IMPLEMENTATION_IN_PROGRESS",
+  "rendered_at": "2026-07-20",
+  "canonical_taskpack": "docs/pursuing_goal/v1_2"
 }

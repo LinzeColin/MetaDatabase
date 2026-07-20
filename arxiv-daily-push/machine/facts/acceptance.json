@@ -1,0 +1,10 @@
+{
+  "items": [
+    {"id": "ACC-V12-S0-001", "criteria": "七角色唯一且 verifier 可冻结双摘要", "status": "待独立复核"},
+    {"id": "ACC-V12-S0-002", "criteria": "历史 ZIP 哈希、安全和去重关系精确", "status": "待独立复核"},
+    {"id": "ACC-V12-S0-003", "criteria": "142 行历史追溯无缺失或未解释项", "status": "待独立复核"},
+    {"id": "ACC-V12-S0-004", "criteria": "HANDOFF、任务包与双平面路由一致", "status": "待独立复核"},
+    {"id": "ACC-V12-S0-005", "criteria": "本轮没有线上、来源、cron 或数据库变化", "status": "待独立复核"},
+    {"id": "ACC-V12-S0-006", "criteria": "远端干净恢复通过后才允许删除本地输入", "status": "待合并后验证"}
+  ]
+}

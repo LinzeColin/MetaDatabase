@@ -1,0 +1,13 @@
+{
+  "parameters": {
+    "current_product_version": {"value": "0.41.0", "where": "VERSION", "intent": "开发期间保持当前线上身份，不预签 v1.2"},
+    "target_product_version": {"value": "1.2.0", "where": "docs/pursuing_goal/v1_2/MANIFEST.yaml", "intent": "所有门和稳定期完成后的目标版本"},
+    "probe_interval_minutes": {"value": 15, "where": "未来 liveness workflow", "intent": "以低成本及时发现只读端点故障"},
+    "monthly_availability_min": {"value": 0.995, "where": "docs/pursuing_goal/v1_2/ACCEPTANCE_CONTRACT.yaml", "intent": "免费档优先下的内部长期运行目标"},
+    "probe_coverage_min": {"value": 0.95, "where": "docs/pursuing_goal/v1_2/ACCEPTANCE_CONTRACT.yaml", "intent": "防止缺测被误写成高可用"},
+    "pipeline_freshness_hours_max": {"value": 36, "where": "docs/pursuing_goal/v1_2/ACCEPTANCE_CONTRACT.yaml", "intent": "每日运行允许有限延迟但禁止静默过期"},
+    "rto_minutes_max": {"value": 60, "where": "docs/pursuing_goal/v1_2/ACCEPTANCE_CONTRACT.yaml", "intent": "限定核心只读旅程恢复时间"},
+    "rpo_hours_max": {"value": 24, "where": "docs/pursuing_goal/v1_2/ACCEPTANCE_CONTRACT.yaml", "intent": "每日数据可重放边界"},
+    "healthy_days_required": {"value": 14, "where": "docs/pursuing_goal/v1_2/ACCEPTANCE_CONTRACT.yaml", "intent": "避免短暂绿色被写成长期稳定"}
+  }
+}

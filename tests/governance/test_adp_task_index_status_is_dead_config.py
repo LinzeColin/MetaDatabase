@@ -82,6 +82,8 @@ KNOWN_PARSERS = (
     _TOOLS + "value_cost_scorecard.py",  # reads status off PARITY + its own card dict, not the index
     _TOOLS + "check_dag.py",             # never mentions status
     _TOOLS + "final_handoff.py",         # status is its own hardcoded literals
+    "arxiv-daily-push/docs/pursuing_goal/v1_2/tools/build_historical_traceability.py",  # IDs/titles only; emits a literal dead-config label
+    "arxiv-daily-push/docs/pursuing_goal/v1_2/tools/validate_package.py",  # compares the exact 90 task IDs only
 )
 
 
@@ -124,10 +126,11 @@ class TestTaskIndexStatusIsDeadConfig(unittest.TestCase):
         """Pin WHO parses TASK_INDEX.csv, so a new parser cannot slip past the reader check below.
 
         The reader check only inspects files that parse the index. If that set silently grows, the
-        check's coverage silently shrinks. Reviewed by hand on 2026-07-19: of these four, task_runner
-        says 'status' only in a docstring, value_cost_scorecard reads it off PARITY and its own card
-        dict, check_dag never mentions it, and final_handoff uses its own hardcoded literals. None
-        touches a TASK_INDEX row's status."""
+        check's coverage silently shrinks. The original four were reviewed on 2026-07-19; the two
+        v1.2 traceability readers were added after a 2026-07-20 hand review. task_runner says
+        'status' only in a docstring, value_cost_scorecard reads it off PARITY and its own card dict,
+        check_dag never mentions it, final_handoff uses hardcoded literals, and both v1.2 readers
+        consume IDs/titles only. None touches a TASK_INDEX row's status."""
         found = set()
         for path in _python_files():
             # Skip THIS guard by filename, not by resolved path: the V0.2 evidence bundle keeps a
