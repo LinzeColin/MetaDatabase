@@ -1,0 +1,14 @@
+{
+  "kind": "云端 72.0h 烤机",
+  "started_at": "2026-07-17T22:22:27.772444+00:00",
+  "cycles": 51373,
+  "heartbeat_gaps": 0,
+  "induced_notify_flaps": 10274,
+  "notify_retries_recovered": 10274,
+  "outbox_backlog_end": 0,
+  "emails_delivered": 51373,
+  "notify_latency_ms_p95": 25.04,
+  "mem_peak_growth_kb": 11758.3,
+  "kill_switch_engaged": false,
+  "verdict_engineering_ok": false
+}

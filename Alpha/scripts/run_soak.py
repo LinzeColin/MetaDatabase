@@ -72,6 +72,11 @@ def run(cycles: int, hours: float, out_dir: str) -> dict:
     reconnects = 0
     notify_latencies_ms = []
     last_beat = {"trading-worker": None, "notify-worker": None}
+    # 内存曲线:定期记录峰值增量,区分「缓存爬坡后趋平」与「线性泄漏」
+    # (72h 实测 11.5MB 超短跑门槛,单端点无法定性——曲线才是证据)
+    mem_curve: list[dict] = []
+    curve_every = 720 if not hours else max(1, int(3600 / 5))  # 真实模式≈每小时
+    start_mono = time.monotonic()
 
     i = 0
     while (cycles and i < cycles) or (deadline and time.monotonic() < deadline):
@@ -95,6 +100,11 @@ def run(cycles: int, hours: float, out_dir: str) -> dict:
         notify_latencies_ms.append((time.perf_counter() - t0) * 1000)
         if rep.retried:
             reconnects += rep.retried
+        if i % curve_every == 0:
+            _, pk = tracemalloc.get_traced_memory()
+            mem_curve.append({"cycle": i,
+                              "elapsed_min": round((time.monotonic() - start_mono) / 60, 1),
+                              "peak_growth_kb": round((pk - base_peak) / 1024, 1)})
         if cycles:
             vclock["t"] = vclock["t"] + timedelta(seconds=6)  # 压缩:虚拟推进 6 秒/周期
         elif deadline:
@@ -124,6 +134,7 @@ def run(cycles: int, hours: float, out_dir: str) -> dict:
         "emails_delivered": len(sink.sent),
         "notify_latency_ms_p95": round(p95, 2),
         "mem_peak_growth_kb": round((end_peak - base_peak) / 1024, 1),
+        "mem_curve": mem_curve,
         "kill_switch_engaged": ks.active(),
         "verdict_engineering_ok": (
             heartbeat_gaps == 0 and outbox.pending_count() == 0
