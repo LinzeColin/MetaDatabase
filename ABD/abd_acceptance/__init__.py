@@ -171,6 +171,14 @@ from .usability_accessibility import (
     verify_existing_phase_evidence as verify_usability_accessibility_evidence,
     write_phase_evidence as write_usability_accessibility_phase_evidence,
 )
+from .stage3_review import (
+    build_evidence as build_stage3_review_evidence,
+    evaluate_contract as evaluate_stage3_review_contract,
+    perform_rollback_drill as perform_stage3_review_rollback_drill,
+    validate_candidate_preflight as validate_stage3_review_candidate,
+    verify_existing_stage_review_evidence as verify_stage3_review_evidence,
+    write_stage3_review_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -303,4 +311,10 @@ __all__ = [
     "perform_usability_accessibility_rollback_drill",
     "verify_usability_accessibility_evidence",
     "write_usability_accessibility_phase_evidence",
+    "build_stage3_review_evidence",
+    "evaluate_stage3_review_contract",
+    "perform_stage3_review_rollback_drill",
+    "validate_stage3_review_candidate",
+    "verify_stage3_review_evidence",
+    "write_stage3_review_evidence",
 ]

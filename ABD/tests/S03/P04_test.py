@@ -13,6 +13,7 @@ from abd_acceptance.usability_accessibility import (
     ALLOWED_NUMERIC_BOUNDARY_DELTAS,
     CONTRACT_ID,
     DISPLAY_ORDER,
+    FAILURE_GUIDANCE_ORDER,
     EVIDENCE_PATH,
     FIXED_CLOCK,
     FIXTURE_PATH,
@@ -30,6 +31,7 @@ from abd_acceptance.usability_accessibility import (
     UsabilityAccessibilityError,
     _pack_report_passes,
     _paid_dependency_scan_passes,
+    _stage_review_progression,
     _structural_self_hash,
     build_evidence,
     evaluate_contract as _evaluate_contract,
@@ -143,6 +145,25 @@ def test_core_tasks_cover_the_complete_frozen_display_order() -> None:
     regions = {region for task in PLAN["core_tasks"] for region in task["required_regions"]}
     assert regions == set(DISPLAY_ORDER)
     assert PLAN["timing_contract"]["scenario_scope"] == "ALL_CORE_TASKS_IN_ORDER"
+
+
+def test_failure_guidance_is_explicitly_bound_to_keyboard_and_reader_order() -> None:
+    task = next(row for row in PLAN["core_tasks"] if row["id"] == "CORE-04")
+    integration = PLAN["failure_guidance_integration"]
+    assessment = REPORT["failure_guidance_assessment"]
+    assert task["required_failure_guidance_regions"] == FAILURE_GUIDANCE_ORDER
+    assert integration["region_order"] == FAILURE_GUIDANCE_ORDER
+    assert integration["keyboard_focus_order"] == FAILURE_GUIDANCE_ORDER
+    assert integration["screen_reader_order"] == FAILURE_GUIDANCE_ORDER
+    assert integration["declared_reason_count"] == 49
+    assert integration["machine_code_visible"] is False
+    assert integration["exactly_one_next_action_required"] is True
+    assert integration["chinese_ui_gate_required"] is True
+    assert integration["runtime_status"] == "NOT_EXECUTED"
+    assert assessment["deterministically_replayed_reason_count"] == 49
+    assert assessment["unique_next_action_gate_status"] == "PASS"
+    assert assessment["chinese_ui_gate_status"] == "PASS"
+    assert assessment["runtime_status"] == "NOT_EXECUTED"
 
 
 @pytest.mark.parametrize("profile_id", FIXTURE["expected_profile_ids"])
@@ -391,16 +412,16 @@ def test_signed_receipt_verifies_in_isolated_copy_without_git_history(tmp_path: 
     assert result["next"] == "S03/STAGE_REVIEW_READY_NOT_STARTED"
 
 
-def test_stage3_review_is_exactly_ready_but_not_started() -> None:
-    forbidden = [
-        Path("machine/facts/stage3_review_contract.json"),
-        Path("machine/evidence/S03/STAGE_REVIEW/findings.json"),
-        Path("machine/tests/fixtures/S03_STAGE_REVIEW.json"),
-        Path("tests/S03/stage_review_test.py"),
-        Path("machine/evidence/EVD-S03-STAGE-REVIEW.json"),
-        Path("machine/evidence/EVD-S03-STAGE-REVIEW_rollback.json"),
+def test_stage3_review_progression_is_exact_and_never_starts_s04() -> None:
+    progression = _stage_review_progression(ROOT)
+    assert progression["status"] in {"READY_NOT_STARTED", "CONTROLLED_CANDIDATE", "SIGNED_REVIEW_PASS"}
+    s04_forbidden = [
+        Path("machine/evidence/EVD-S04-P01.json"),
+        Path("machine/evidence/EVD-S04-P01_rollback.json"),
+        Path("tests/S04/P01_test.py"),
+        Path("machine/tests/fixtures/S04_P01.json"),
     ]
-    assert not [path.as_posix() for path in forbidden if (ROOT / path).exists()]
+    assert not [path.as_posix() for path in s04_forbidden if (ROOT / path).exists()]
     assert PLAN["next_on_pass"] == "S03/STAGE_REVIEW_READY_NOT_STARTED"
     assert REPORT["next"] == "S03/STAGE_REVIEW_READY_NOT_STARTED"
 

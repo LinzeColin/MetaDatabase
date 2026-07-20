@@ -37,6 +37,33 @@
       {"contract_id": "A11Y-SCREEN-READER-LINEAR", "profile_id": "SCREEN_READER_LINEAR", "status": "PASS_DESIGN_CONTRACT", "runtime_status": "NOT_EXECUTED"}
     ]
   },
+  "failure_guidance_assessment": {
+    "source_contract_id": "AC-S03-P03",
+    "declared_reason_count": 49,
+    "deterministically_replayed_reason_count": 49,
+    "region_order": [
+      "failure_status",
+      "failure_reason",
+      "next_action",
+      "safety"
+    ],
+    "keyboard_focus_order": [
+      "failure_status",
+      "failure_reason",
+      "next_action",
+      "safety"
+    ],
+    "screen_reader_order": [
+      "failure_status",
+      "failure_reason",
+      "next_action",
+      "safety"
+    ],
+    "unique_next_action_gate_status": "PASS",
+    "chinese_ui_gate_status": "PASS",
+    "status": "PASS_DESIGN_CONTRACT",
+    "runtime_status": "NOT_EXECUTED"
+  },
   "structured_failure_logs": [
     {"id": "FAULT-TIMING-MEDIAN", "injected_fault": "中位数超过600秒", "expected_action": "阻断验收并保留证据", "status": "FAIL_CLOSED_VERIFIED"},
     {"id": "FAULT-TIMING-P95", "injected_fault": "95分位超过1200秒", "expected_action": "阻断验收并保留证据", "status": "FAIL_CLOSED_VERIFIED"},

@@ -29,27 +29,28 @@
 - `S03/P03` 已冻结当前权威合同中 49 个失败原因、38 个本地安全动作和 72 条来源覆盖引用；每个原因只映射一个动作，多失败状态按唯一优先级确定一个结果，未知或畸形输入统一停止并保留证据；含外部报告门的独立 Oracle 302/302、定向测试 460/460、全回归 3014/3014、TaskPack 49/49、付费依赖扫描与 6/6 回滚均为 `PASS`，回放入口为 `tests/S03/P03_test.py` 与 `AC-S03-P03`，下一状态严格为 `S03/P04_READY_NOT_STARTED`；本 Phase 仅本地开发，尚未上传 GitHub；
 - `S03/P03` 的“全部”严格限定为当前版本已声明且可由权威文件枚举的失败类别；未来 Phase 新增原因时必须显式扩展目录、映射、覆盖引用和 Oracle，不得把未知状态静默归入已有原因；
 - `S03/P03` 只提供确定性的中文错误说明与本地下一步指引，不执行自动重试、真实下单、外部账户/API 访问、模型、部署或付费动作，也不放宽证据、数值、风险、安全或来源合同门；
-- `S03/P04` 已冻结手机、电脑、低带宽、颜色辨识受限、字号放大至 200%、仅键盘和屏幕阅读器线性阅读共 7 类结构化设计合同，以及覆盖全部 4 个核心任务的 21 个保守完成预算；最近秩法中位数为 540 秒、95 分位为 840 秒，分别不超过 600 秒与 1200 秒硬门；含外部报告门的独立 Oracle 116/116、定向测试 141/141、全回归 3155/3155、TaskPack 49/49、付费依赖扫描与 6/6 回滚均为 `PASS`，下一状态严格为 `S03/STAGE_REVIEW_READY_NOT_STARTED`；本 Phase 仅本地开发，尚未上传 GitHub；
-- `S03/P04` 的 21 个数值是冻结的保守任务预算，不是参与者观测时间；真人参与者 0、观测会话 0，真实设备、浏览器、低带宽网络、键盘旅程和屏幕阅读器运行均为 `NOT_EXECUTED`。本 Phase 不声称生产界面已实现或部署，不声称正式无障碍符合性或真人可用性结论；这些未知不能被机器设计合同的 `PASS` 覆盖；
-- `S02/P04` 与整体复审没有新增网络调研、访问平台或云账户、调用 API、clone/安装候选、执行模型、部署生产、提供真实下单能力或花费新增现金；30% 月度滚动复利目标仍为待证伪、未验证且不保证的目标；
+- `S03/P04` 已冻结手机、电脑、低带宽、颜色辨识受限、字号放大至 200%、仅键盘和屏幕阅读器线性阅读共 7 类结构化设计合同，以及覆盖全部 4 个核心任务的 21 个保守完成预算；最近秩法中位数为 540 秒、95 分位为 840 秒，分别不超过 600 秒与 1200 秒硬门；整体复审把 P03 的 49 个失败原因全部绑定到 `失败状态→失败原因→下一步→安全提示` 的键盘焦点与屏幕阅读器线性顺序，并逐项重放唯一中文下一步；
+- `S03/P04` 的 21 个数值是冻结的保守任务预算，不是参与者观测时间；“十秒”门只验证四个首要答案在结构上的信息放置，不是人类计时结果。真人参与者 0、观测会话 0，真实设备、浏览器、低带宽网络、键盘旅程和屏幕阅读器运行均为 `NOT_EXECUTED`；生产界面实现/部署、正式 WCAG 符合性和真人可用性仍未验证，不能被机器设计合同的 `PASS` 覆盖；
+- `S03 整体复审` 已冻结并解决 4 条 findings：失败指引无障碍顺序、建议/不建议与 49 个失败面的单一阶段重放、十秒结构门声明边界，以及后续演进下的不可变历史回执重放；独立 Oracle 59/59、定向测试 183/183、全回归 3339/3339、TaskPack 49/49、付费依赖扫描与 12/12 回滚均为 `PASS`，下一状态只允许 `S03/GITHUB_STAGE_UPLOAD_READY`，不得提前进入 S04；S03 四个 Phase 未单独上传，作为一个完整 Stage 交付；
+- `S03/P01` 至整体复审没有新增网络调研、访问平台或云账户、调用 API、clone/安装候选、执行模型、部署生产、提供真实下单能力或花费新增现金；A$300 本金、A$0 新增现金与用户唯一完成最终下单的边界保持不变，30% 月度滚动复利目标仍为待证伪、未验证且不保证的目标；
 - `S01/P01` 至 `S01/P04` 只冻结客户体验、疑问、需求、范围、指标、经济和证伪合同，不证明产品已实现、部署、接入账户或验证收益；四个中间 Phase 均未单独上传 GitHub；
 - `S00/P02` 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
 - `S00/P03` 只证明当前声明依赖的 ABD 新增现金成本为 A$0、付费接口不在关键路径；既有 OVH/账户总成本、外部能力与免费额度余量仍未知；
 - `S00/P04` 冻结 Gmail 可选 consent、精确 scope、方法白名单和降级状态机；本 phase 未生成 OAuth 链接、未访问账户、未取得或保存 token、未调用 Gmail API，Gmail 仍为 `NOT_CONNECTED / UNVERIFIED / NOT_READY`；
 - 当前禁止真实下单，30% 月度滚动复利只是待证伪和长期验证的目标，不是收益保证。
 
-当前 `S03/P04` 的定向与全回归验证命令：
+当前 `S03 整体复审` 的定向与全回归验证命令：
 
-`S02` 的远端交付前置和 `S03/P01` 至 `S03/P03` 的签名证据均由不可变收据与离线 Git 历史重放；以下命令只列 `S03/P04` 的新增验证。
+`S02` 的远端交付前置和 `S03/P01` 至 `S03/P04` 的签名证据均由不可变收据与离线 Git 历史重放；以下命令只列 S03 整体复审的新增验证。
 
 ```bash
 uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
 uv run --frozen --python 3.12 python machine/tools/validate_pack.py
-uv run --frozen --python 3.12 python -m pytest -q tests/S03/P04_test.py --junitxml=machine/evidence/S03/P04/pytest.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/P04/pytest.xml
-uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S03/P04/full_regression.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/P04/full_regression.xml
-uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S03-P04 --evidence machine/evidence
+uv run --frozen --python 3.12 python -m pytest -q tests/S03/stage_review_test.py --junitxml=machine/evidence/S03/STAGE_REVIEW/pytest.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/STAGE_REVIEW/pytest.xml
+uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S03/STAGE_REVIEW/full_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/STAGE_REVIEW/full_regression.xml
+uv run --frozen --python 3.12 python -m abd_acceptance --contract STAGE-REVIEW-S03 --evidence machine/evidence
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 

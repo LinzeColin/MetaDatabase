@@ -65,7 +65,7 @@ PINNED_BASELINE_HASHES = {
     "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
     "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
     "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
-    "tests/S03/P01_test.py": "880504cf0d7f4a5282f2facdc87e7eaa54f347aa3a593d04402778eadedde1ac",
+    "tests/S03/P01_test.py": "172fd4792995132b92e812205d9f92a9cada9dc9331d6fec63e2157cb71e0aa2",
 }
 
 PHASE_COMMIT = "b21f7a49f1d2f17c772cc6c1bd55e1add410cda2"
@@ -79,17 +79,17 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S03/P02_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES = {
-    "README.md": "75f94aedfbd9d04db4e5b69536e765791e521750a6a52cf32f639c1657d9998d",
-    "abd_acceptance/terminology_governance.py": "10cc90834d3a6a38e2b6ea92250bedb501b801d0a87f566a87cdeef893ab81f1",
-    "abd_acceptance/__main__.py": "ee2fae7089314bb135dbe13779d0f8b4f0c899a6ddab6c38510f1ce3e571f638",
-    "abd_acceptance/__init__.py": "ff867ad84ac593548e7b2e00f4b53ac49dc8f6de22ad7aa08c788c755d836597",
+    "README.md": "5fb9e9748e0b4db72722662971d6283d9ac1b96eb674e5c6f7d341ef6cc65749",
+    "abd_acceptance/terminology_governance.py": "d51ae252e7d28addfa7097a2f4ccb5ba2f017ec0745a0eee4e0971fd744beded",
+    "abd_acceptance/__main__.py": "8b71ed0e39e933f0017314e848a3201a52d8e1631a36d9e568c3e35bbd9d032e",
+    "abd_acceptance/__init__.py": "4178e5b2561fcf21af2cb71a95adf6f6a0b3a67f01a88bab81868110965e19b8",
     "tests/S03/P02_test.py": "04463326c983d22d53093609429c8ced6589445cb4cde40702f34ce3b33a54f0",
 }
 SUCCESSOR_EVOLVED_PHASE_HASHES = {
     TEST_PATH.as_posix(): "04463326c983d22d53093609429c8ced6589445cb4cde40702f34ce3b33a54f0",
 }
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "6720e3c972bc324a846354c79cedc76c296fe638a01cbcdfa9d8ed034be359d6"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "8c3a80a7cfc784491a871beb5325e70fa60134cf376253d0d30250294a1e17a5"
 
 DISPLAY_ORDER = ["status", "action", "countdown", "reasons", "evidence", "invalidation", "safety"]
 PRIMARY_ANSWER_KEYS = ["what_zh", "where_zh", "amount_zh", "minimum_odds_zh"]
@@ -858,6 +858,15 @@ def _check_p03_not_started(
     present_core = [path for path in core if (root / path).is_file()]
     present_receipts = [path for path in receipts if (root / path).is_file()]
     present_later = [path for path in later if (root / path).exists()]
+    stage_progression: Mapping[str, Any] = {"status": "READY_NOT_STARTED"}
+    if present_later:
+        try:
+            from .usability_accessibility import _stage_review_progression
+
+            stage_progression = _stage_review_progression(root)
+        except Exception as exc:
+            stage_progression = {"status": "INVALID", "error": "%s: %s" % (type(exc).__name__, exc)}
+    stage_progression_ok = stage_progression.get("status") in {"CONTROLLED_CANDIDATE", "SIGNED_REVIEW_PASS"}
     mode = "INVALID_PARTIAL_OR_LATER_SUCCESSOR"
     artifacts_ok = False
     successor: Any = None
@@ -871,21 +880,21 @@ def _check_p03_not_started(
         artifacts_ok = actual == P03_PINNED_PHASE_HASHES
         mode = "P03_CONTROLLED_BUILD" if artifacts_ok else "P03_CONTROLLED_BUILD_HASH_MISMATCH"
         successor = actual
-    elif len(present_core) == len(core) and len(present_receipts) == len(receipts) and not present_later:
+    elif len(present_core) == len(core) and len(present_receipts) == len(receipts) and (not present_later or stage_progression_ok):
         from .reason_next_action import (
-            evaluate_contract as evaluate_p03_contract,
             verify_existing_phase_evidence as verify_p03_evidence,
         )
 
         receipt = verify_p03_evidence(root, verify_git_history=verify_git_history)
-        live = evaluate_p03_contract(root, _verify_git_history=verify_git_history)
-        successor = {"receipt": receipt, "live": live}
+        successor = {"receipt": receipt, "stage_progression": stage_progression}
         artifacts_ok = (
             receipt.get("status") == "PASS"
             and receipt.get("next") == "S03/P04_READY_NOT_STARTED"
-            and live.get("status") == "PASS"
         )
-        mode = "P03_SIGNED_DELIVERY" if artifacts_ok else "P03_SIGNED_DELIVERY_INVALID"
+        if artifacts_ok:
+            mode = "P03_SIGNED_DELIVERY_WITH_STAGE_REVIEW" if present_later else "P03_SIGNED_DELIVERY"
+        else:
+            mode = "P03_SIGNED_DELIVERY_INVALID"
     _add(
         checks,
         "S03P02-SUCCESSOR-ARTIFACTS-NOT-STARTED",
@@ -901,7 +910,7 @@ def _check_p03_not_started(
     try:
         rows = [json.loads(line) for line in (root / EVIDENCE_INDEX_PATH).read_text(encoding="utf-8-sig").splitlines() if line]
         matching = [row for row in rows if row.get("id") == "INDEX-AC-S03-P03"]
-        if mode == "P03_SIGNED_DELIVERY":
+        if mode in {"P03_SIGNED_DELIVERY", "P03_SIGNED_DELIVERY_WITH_STAGE_REVIEW"}:
             ok = (
                 len(matching) == 1
                 and matching[0].get("status") == "PASS"

@@ -78,9 +78,9 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S03/P01_test.py",
 }
 SUCCESSOR_EVOLVED_PHASE_HASHES = {
-    TEST_PATH.as_posix(): "880504cf0d7f4a5282f2facdc87e7eaa54f347aa3a593d04402778eadedde1ac",
+    TEST_PATH.as_posix(): "172fd4792995132b92e812205d9f92a9cada9dc9331d6fec63e2157cb71e0aa2",
 }
-SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "cf74fe09d13e766abc3547d60cac024081b10a39ad37bb5dc88a10e3006b8f82"
+SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "89582f96eeb8033d1fe490d4cc1fd346e66bab07d569105b739c7164b8910b72"
 
 ALLOWED_UI_POLICIES = {
     "ZH_WITH_OPTIONAL_EXPLAINED_TOKEN",
@@ -581,6 +581,15 @@ def _check_p02_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
         p02 = [row for row in rows if row.get("id") == "INDEX-AC-S03-P02"]
         present = [path.as_posix() for path in p02_paths if (root / path).exists()]
         later = [path.as_posix() for path in later_paths if (root / path).exists()]
+        stage_progression: Mapping[str, Any] = {"status": "READY_NOT_STARTED"}
+        if later:
+            try:
+                from .usability_accessibility import _stage_review_progression
+
+                stage_progression = _stage_review_progression(root)
+            except Exception as exc:
+                stage_progression = {"status": "INVALID", "error": "%s: %s" % (type(exc).__name__, exc)}
+        stage_progression_ok = stage_progression.get("status") in {"CONTROLLED_CANDIDATE", "SIGNED_REVIEW_PASS"}
         if not present and not later:
             artifacts_ok = True
             index_ok = len(p02) == 1 and p02[0].get("status") == "PLANNED" and "actual_artifact" not in p02[0] and "artifact_sha256" not in p02[0]
@@ -604,7 +613,7 @@ def _check_p02_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
             artifacts_ok = p02_hashes_ok
             index_ok = len(p02) == 1 and p02[0].get("status") == "PLANNED" and "actual_artifact" not in p02[0] and "artifact_sha256" not in p02[0]
             detail = {"mode": "CONTROLLED_S03_P02_BUILD_IN_PROGRESS", "artifacts": present, "hashes_ok": p02_hashes_ok}
-        elif len(present) == len(p02_paths) and not later:
+        elif len(present) == len(p02_paths) and (not later or stage_progression_ok):
             from .advice_card import verify_existing_phase_evidence as verify_p02_evidence
 
             successor = verify_p02_evidence(root, verify_git_history=True)
@@ -615,7 +624,11 @@ def _check_p02_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
                 and p02[0].get("actual_artifact") == "machine/evidence/EVD-S03-P02.json"
                 and p02[0].get("next") == "S03/P03_READY_NOT_STARTED"
             )
-            detail = {"mode": "VERIFIED_S03_P02_SUCCESSOR", "summary": successor.get("summary")}
+            detail = {
+                "mode": "VERIFIED_S03_P02_SUCCESSOR_WITH_STAGE_REVIEW" if later else "VERIFIED_S03_P02_SUCCESSOR",
+                "summary": successor.get("summary"),
+                "stage_progression": stage_progression,
+            }
         else:
             artifacts_ok = False
             index_ok = False

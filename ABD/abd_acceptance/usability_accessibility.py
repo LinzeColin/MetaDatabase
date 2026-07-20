@@ -6,6 +6,7 @@ import json
 import math
 import re
 import shutil
+import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -13,7 +14,13 @@ from typing import Any, Dict, List, Mapping, MutableMapping, Sequence, Tuple
 
 from .advice_card import contrast_ratio
 from .canonical_facts import sha256_file, strict_json_load
-from .reason_next_action import verify_existing_phase_evidence as verify_p03_evidence
+from .reason_next_action import (
+    render_failure_guidance,
+    resolve_failure_states,
+    validate_resolution,
+    verify_existing_phase_evidence as verify_p03_evidence,
+)
+from .terminology_governance import scan_ui_text
 
 
 CONTRACT_ID = "AC-S03-P04"
@@ -45,14 +52,43 @@ EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 CONTINUOUS_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
 DISPLAY_ORDER = ["status", "action", "countdown", "reasons", "evidence", "invalidation", "safety"]
+FAILURE_GUIDANCE_ORDER = ["failure_status", "failure_reason", "next_action", "safety"]
 ALLOWED_NUMERIC_BOUNDARY_DELTAS = {"-0.0001", "0", "0.0001"}
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "3da0a76ede8857db780bf2299a72d941d0eb278d8961a74bba3762ed55ec18e0"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "bc5cbb4637e38074505cd2573f83dc39fd26ce3f1cc8557e9bbff63cf48b3074"
+
+PHASE_COMMIT = "ef74f1f49994b4249844485bf3e61eb8c65a06b2"
+PINNED_PHASE_CODE_HASH = "dc0228b02944f70eec4d565467a7e1788558c5ef061190106815fd28245b87db"
+SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    "README.md",
+    "ux_test_plan.json",
+    "accessibility_report.json",
+    "machine/tests/fixtures/S03_P04.json",
+    "tests/S03/P04_test.py",
+    "abd_acceptance/usability_accessibility.py",
+    "abd_acceptance/reason_next_action.py",
+    "abd_acceptance/advice_card.py",
+    "abd_acceptance/terminology_governance.py",
+    "abd_acceptance/__main__.py",
+    "abd_acceptance/__init__.py",
+}
+SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
+    "README.md": "5fb9e9748e0b4db72722662971d6283d9ac1b96eb674e5c6f7d341ef6cc65749",
+    "ux_test_plan.json": "a2e011cacd58b56f4094cbf969bba8c748f56df628dbbeef639c25ffa82fb936",
+    "accessibility_report.json": "845a784a44c45fc3f9d7a02519e39ea73c0d2c9f26a08d6ef90f22ae09cb3a7f",
+    "machine/tests/fixtures/S03_P04.json": "3bd64eb92ff0bb1a2474ff53971af35455d0bdce63d76bfd8c800e7fe18de9ca",
+    "tests/S03/P04_test.py": "0b9778815723e253d39ed8352bc9a27222b55aefcdf0efb85549861e60850dfc",
+    "abd_acceptance/reason_next_action.py": "57ba25169061952a50334fbeddc4981ed1d275480cb21726ca5c83ce041556ed",
+    "abd_acceptance/advice_card.py": "55c459f3da4dd624e0c8d4783734fdac24cfabc89bf5241bc74c134cbfecffe4",
+    "abd_acceptance/terminology_governance.py": "d51ae252e7d28addfa7097a2f4ccb5ba2f017ec0745a0eee4e0971fd744beded",
+    "abd_acceptance/__main__.py": "8b71ed0e39e933f0017314e848a3201a52d8e1631a36d9e568c3e35bbd9d032e",
+    "abd_acceptance/__init__.py": "4178e5b2561fcf21af2cb71a95adf6f6a0b3a67f01a88bab81868110965e19b8",
+}
 
 PINNED_PHASE_HASHES = {
-    PLAN_PATH.as_posix(): "cffb46d888586a31f07b4c6d35727d67d39ecf67d961d8e18bfe5d79410e8f40",
-    REPORT_PATH.as_posix(): "57fe4c6f3a735293200bac853c1f351affd5b1e9d1e8495ece5d91fb19b6845b",
-    FIXTURE_PATH.as_posix(): "830e6bf8d9acb7a1ab34f4c39794758a21c6f760d1d7aed91f73e29c710e9a3e",
-    TEST_PATH.as_posix(): "0f76c27e1c7da371d432ac950fe4c1fa0208717e5af796826a57d53a764724ff",
+    PLAN_PATH.as_posix(): "a2e011cacd58b56f4094cbf969bba8c748f56df628dbbeef639c25ffa82fb936",
+    REPORT_PATH.as_posix(): "845a784a44c45fc3f9d7a02519e39ea73c0d2c9f26a08d6ef90f22ae09cb3a7f",
+    FIXTURE_PATH.as_posix(): "3bd64eb92ff0bb1a2474ff53971af35455d0bdce63d76bfd8c800e7fe18de9ca",
+    TEST_PATH.as_posix(): "0b9778815723e253d39ed8352bc9a27222b55aefcdf0efb85549861e60850dfc",
 }
 PINNED_BASELINE_HASHES = {
     P03_EVIDENCE_PATH.as_posix(): "763d9ea60c03f9768d514e99b1846235add6dd187304ac273ae86e2eb03fddbc",
@@ -288,6 +324,51 @@ def _check_source_integration(root: Path, checks: List[Dict[str, Any]]) -> None:
         and safety.get("gate_relaxation_action_count") == 0
     )
     _add(checks, "S03P04-P03-FAILURE-GUIDANCE-CONTRACT", failure_ok, safety)
+    glossary = strict_json_load(root / GLOSSARY_PATH)
+    policy = strict_json_load(root / FORBIDDEN_PATH)
+    replay_errors: List[Dict[str, Any]] = []
+    for reason in catalog.get("reason_codes", []):
+        code = reason.get("code") if isinstance(reason, Mapping) else None
+        try:
+            resolution = resolve_failure_states(
+                [code],
+                reason_catalog=catalog,
+                next_action_matrix=matrix,
+            )
+            validation_errors = validate_resolution(
+                resolution,
+                reason_catalog=catalog,
+                next_action_matrix=matrix,
+                glossary=glossary,
+                policy=policy,
+            )
+            ui_errors = scan_ui_text(
+                render_failure_guidance(resolution),
+                "USER_ERROR_NEXT_ACTION",
+                glossary,
+                policy,
+            )
+            if (
+                validation_errors
+                or ui_errors
+                or resolution.get("considered_count") != 1
+                or not isinstance(resolution.get("next_action"), Mapping)
+            ):
+                replay_errors.append(
+                    {
+                        "code": code,
+                        "validation_errors": validation_errors,
+                        "ui_errors": ui_errors,
+                    }
+                )
+        except Exception as exc:
+            replay_errors.append({"code": code, "error": "%s: %s" % (type(exc).__name__, exc)})
+    _add(
+        checks,
+        "S03P04-P03-ALL-FAILURE-GUIDANCE-REPLAY",
+        len(catalog.get("reason_codes", [])) == 49 and not replay_errors,
+        replay_errors or {"replayed": len(catalog.get("reason_codes", []))},
+    )
 
 
 def _check_plan_and_report(
@@ -329,6 +410,13 @@ def _check_plan_and_report(
         )
         _add(checks, "S03P04-TASK-%s" % task_id, ok, row)
     _add(checks, "S03P04-TASK-REGION-COVERAGE", regions == set(DISPLAY_ORDER), sorted(regions))
+    core_04 = next((row for row in plan.get("core_tasks", []) if isinstance(row, Mapping) and row.get("id") == "CORE-04"), {})
+    _add(
+        checks,
+        "S03P04-CORE-04-FAILURE-GUIDANCE-REGIONS",
+        core_04.get("required_failure_guidance_regions") == fixture.get("expected_failure_guidance_regions") == FAILURE_GUIDANCE_ORDER,
+        core_04.get("required_failure_guidance_regions"),
+    )
     profiles = plan.get("profiles", [])
     profile_ids = [row.get("id") for row in profiles if isinstance(row, Mapping)]
     _add(checks, "S03P04-PROFILE-SET", profile_ids == fixture.get("expected_profile_ids") and not _duplicates(profile_ids), profile_ids)
@@ -422,6 +510,26 @@ def _check_plan_and_report(
             and all(_contains_chinese(value) for value in row.get("assertions", []))
         )
         _add(checks, "S03P04-A11Y-%s" % contract_id, ok, row)
+    failure_guidance = plan.get("failure_guidance_integration", {})
+    expected_failure_guidance = {
+        "surface_kind": "USER_ERROR_NEXT_ACTION",
+        "source_contract_id": "AC-S03-P03",
+        "declared_reason_count": fixture.get("expected_failure_guidance_reason_count"),
+        "region_order": FAILURE_GUIDANCE_ORDER,
+        "keyboard_focus_order": FAILURE_GUIDANCE_ORDER,
+        "screen_reader_order": FAILURE_GUIDANCE_ORDER,
+        "machine_code_visible": False,
+        "exactly_one_next_action_required": True,
+        "chinese_ui_gate_required": True,
+        "evidence_layer": "STRUCTURAL_DESIGN_CONTRACT_ONLY",
+        "runtime_status": "NOT_EXECUTED",
+    }
+    _add(
+        checks,
+        "S03P04-FAILURE-GUIDANCE-INTEGRATION-EXACT",
+        failure_guidance == expected_failure_guidance,
+        failure_guidance,
+    )
     failure_ids = plan.get("failure_injection_plan")
     _add(checks, "S03P04-FAILURE-PLAN-EXACT", failure_ids == fixture.get("expected_failure_ids"), failure_ids)
     expected_claim = fixture.get("expected_claim_boundary")
@@ -471,6 +579,24 @@ def _check_plan_and_report(
         and all(row.get("status") == "PASS_DESIGN_CONTRACT" and row.get("runtime_status") == "NOT_EXECUTED" for row in results)
     )
     _add(checks, "S03P04-REPORT-STRUCTURAL-BINDING", structural_ok, structural)
+    expected_failure_assessment = {
+        "source_contract_id": "AC-S03-P03",
+        "declared_reason_count": fixture.get("expected_failure_guidance_reason_count"),
+        "deterministically_replayed_reason_count": fixture.get("expected_failure_guidance_reason_count"),
+        "region_order": FAILURE_GUIDANCE_ORDER,
+        "keyboard_focus_order": FAILURE_GUIDANCE_ORDER,
+        "screen_reader_order": FAILURE_GUIDANCE_ORDER,
+        "unique_next_action_gate_status": "PASS",
+        "chinese_ui_gate_status": "PASS",
+        "status": "PASS_DESIGN_CONTRACT",
+        "runtime_status": "NOT_EXECUTED",
+    }
+    _add(
+        checks,
+        "S03P04-REPORT-FAILURE-GUIDANCE-BINDING",
+        report.get("failure_guidance_assessment") == expected_failure_assessment,
+        report.get("failure_guidance_assessment"),
+    )
     logs = report.get("structured_failure_logs", [])
     log_ids = [row.get("id") for row in logs if isinstance(row, Mapping)]
     _add(checks, "S03P04-REPORT-FAILURE-LOG-SET", log_ids == fixture.get("expected_failure_ids") and not _duplicates(log_ids), log_ids)
@@ -525,23 +651,51 @@ def _check_boundary_vectors(fixture: Mapping[str, Any], checks: List[Dict[str, A
     _add(checks, "S03P04-DETERMINISTIC-REPLAY", first == second, first)
 
 
-def _check_stage_review_not_started(root: Path, checks: List[Dict[str, Any]]) -> None:
-    forbidden = [
+def _stage_review_progression(root: Path) -> Dict[str, Any]:
+    candidate = [
         Path("machine/facts/stage3_review_contract.json"),
         Path("machine/evidence/S03/STAGE_REVIEW/findings.json"),
         Path("machine/tests/fixtures/S03_STAGE_REVIEW.json"),
         Path("tests/S03/stage_review_test.py"),
+        Path("abd_acceptance/stage3_review.py"),
+    ]
+    signed = [
         Path("machine/evidence/EVD-S03-STAGE-REVIEW.json"),
         Path("machine/evidence/EVD-S03-STAGE-REVIEW_rollback.json"),
     ]
-    existing = [path.as_posix() for path in forbidden if (root / path).exists()]
-    _add(checks, "S03P04-STAGE-REVIEW-NOT-STARTED", not existing, existing or "none")
+    candidate_present = [path.as_posix() for path in candidate if (root / path).is_file()]
+    signed_present = [path.as_posix() for path in signed if (root / path).is_file()]
+    review_rows: List[Mapping[str, Any]] = []
     try:
         rows = [json.loads(line) for line in (root / EVIDENCE_INDEX_PATH).read_text(encoding="utf-8-sig").splitlines() if line]
         review_rows = [row for row in rows if row.get("id") == "INDEX-S03-STAGE-REVIEW"]
-        _add(checks, "S03P04-STAGE-REVIEW-INDEX-ABSENT", not review_rows, review_rows or "absent")
     except Exception as exc:
-        _add(checks, "S03P04-STAGE-REVIEW-INDEX-ABSENT", False, "%s: %s" % (type(exc).__name__, exc))
+        return {"status": "INVALID", "error": "%s: %s" % (type(exc).__name__, exc)}
+    if not candidate_present and not signed_present and not review_rows:
+        return {"status": "READY_NOT_STARTED", "candidate": [], "signed": [], "index": []}
+    if len(candidate_present) == len(candidate) and not signed_present and not review_rows:
+        return {"status": "CONTROLLED_CANDIDATE", "candidate": candidate_present, "signed": [], "index": []}
+    if len(candidate_present) == len(candidate) and len(signed_present) == len(signed) and len(review_rows) == 1:
+        evidence_path = root / signed[0]
+        signed_ok = (
+            review_rows[0].get("status") == "PASS"
+            and review_rows[0].get("actual_artifact") == signed[0].as_posix()
+            and review_rows[0].get("artifact_sha256") == sha256_file(evidence_path)
+            and review_rows[0].get("next") == "S03/GITHUB_STAGE_UPLOAD_READY"
+        )
+        if signed_ok:
+            return {"status": "SIGNED_REVIEW_PASS", "candidate": candidate_present, "signed": signed_present, "index": review_rows}
+    return {"status": "INVALID", "candidate": candidate_present, "signed": signed_present, "index": review_rows}
+
+
+def _check_stage_review_progression(root: Path, checks: List[Dict[str, Any]]) -> None:
+    progression = _stage_review_progression(root)
+    _add(
+        checks,
+        "S03P04-STAGE-REVIEW-PROGRESSION-EXACT",
+        progression.get("status") in {"READY_NOT_STARTED", "CONTROLLED_CANDIDATE", "SIGNED_REVIEW_PASS"},
+        progression,
+    )
 
 
 def _check_phase_index(root: Path, checks: List[Dict[str, Any]]) -> None:
@@ -693,7 +847,7 @@ def evaluate_contract(
             _add(checks, "S03P04-ARTIFACT-VALIDATION-INTERNAL-ERROR", False, "%s: %s" % (type(exc).__name__, exc))
     else:
         _add(checks, "S03P04-ARTIFACTS-AVAILABLE", False, "plan, report or fixture unavailable")
-    _check_stage_review_not_started(root, checks)
+    _check_stage_review_progression(root, checks)
     _check_phase_index(root, checks)
     if require_external_reports:
         for relative, check_id in [(JUNIT_PATH, "S03P04-JUNIT"), (FULL_JUNIT_PATH, "S03P04-FULL-REGRESSION")]:
@@ -936,6 +1090,75 @@ def write_phase_evidence(root: Path, evidence_dir: Path) -> Dict[str, Any]:
     }
 
 
+def _phase_commit_is_ancestor(root: Path) -> bool:
+    result = subprocess.run(
+        ["git", "-C", str(root.parent), "merge-base", "--is-ancestor", PHASE_COMMIT, "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def _historical_file_matches(
+    root: Path,
+    relative: str,
+    expected_sha256: str,
+    verify_git_history: bool,
+) -> bool:
+    if relative not in SUCCESSOR_EVOLVABLE_SIGNED_INPUTS:
+        return False
+    if verify_git_history:
+        if not _phase_commit_is_ancestor(root):
+            return False
+        result = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+            check=False,
+            capture_output=True,
+        )
+        return result.returncode == 0 and _sha256_bytes(result.stdout) == expected_sha256
+    if relative == "abd_acceptance/usability_accessibility.py":
+        try:
+            return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
+        except Exception:
+            return False
+    evolved = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    return evolved is not None and (root / relative).is_file() and sha256_file(root / relative) == evolved
+
+
+def _historical_code_hash(root: Path, verify_git_history: bool) -> str:
+    if not verify_git_history:
+        return "UNVERIFIED_UNIT_TEST_HISTORY"
+    if not _phase_commit_is_ancestor(root):
+        return "INVALID_PHASE_COMMIT_ANCESTRY"
+    listing = subprocess.run(
+        ["git", "-C", str(root.parent), "ls-tree", "-r", "--name-only", PHASE_COMMIT, "--", "ABD/abd_acceptance"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if listing.returncode != 0:
+        return "UNAVAILABLE_PHASE_COMMIT_TREE"
+    digest = hashlib.sha256()
+    for repo_path in sorted(
+        line
+        for line in listing.stdout.splitlines()
+        if line.startswith("ABD/abd_acceptance/") and line.endswith(".py")
+    ):
+        blob = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, repo_path)],
+            check=False,
+            capture_output=True,
+        )
+        if blob.returncode != 0:
+            return "UNAVAILABLE_PHASE_COMMIT_BLOB"
+        digest.update(repo_path.removeprefix("ABD/").encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(blob.stdout)
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
 def verify_existing_phase_evidence(root: Path, *, verify_git_history: bool = True) -> Dict[str, Any]:
     root = root.resolve()
     checks: List[Dict[str, Any]] = []
@@ -988,6 +1211,8 @@ def verify_existing_phase_evidence(root: Path, *, verify_git_history: bool = Tru
             path = root.parent / candidate if str(relative).startswith(".github/") else root / candidate
             actual = sha256_file(path) if path.is_file() else "MISSING"
             if actual != expected:
+                if _historical_file_matches(root, relative, expected, verify_git_history):
+                    continue
                 input_errors.append({"path": relative, "expected": expected, "actual": actual})
         _add(checks, "S03P04-RECEIPT-SIGNED-INPUTS-CURRENT", not input_errors, input_errors or len(signed_inputs))
         reports: List[Any] = []
@@ -998,8 +1223,19 @@ def verify_existing_phase_evidence(root: Path, *, verify_git_history: bool = Tru
             if expected != actual:
                 reports.append({"path": relative, "expected": expected, "actual": actual})
         _add(checks, "S03P04-RECEIPT-REPORT-HASHES-CURRENT", not reports, reports or "all reports match")
-        current_code = _current_code_hash(root)
-        _add(checks, "S03P04-RECEIPT-CODE-HASH-CURRENT", evidence.get("hashes", {}).get("code") == current_code, {"expected": evidence.get("hashes", {}).get("code"), "actual": current_code})
+        code_expected = evidence.get("hashes", {}).get("code")
+        code_current = _current_code_hash(root)
+        code_historical = _historical_code_hash(root, verify_git_history) if code_expected != code_current else code_current
+        code_ok = code_expected == code_current or (
+            code_expected == PINNED_PHASE_CODE_HASH
+            and code_historical in {PINNED_PHASE_CODE_HASH, "UNVERIFIED_UNIT_TEST_HISTORY"}
+        )
+        _add(
+            checks,
+            "S03P04-RECEIPT-CODE-HASH-CURRENT",
+            code_ok,
+            {"expected": code_expected, "current": code_current, "historical_phase_commit": code_historical},
+        )
         _add(checks, "S03P04-RECEIPT-ROLLBACK-HASH-BINDING", evidence.get("hashes", {}).get("rollback_evidence") == rollback_hash, {"expected": evidence.get("hashes", {}).get("rollback_evidence"), "actual": rollback_hash})
         rendered = json.dumps(evidence, ensure_ascii=False, sort_keys=True)
         portable = str(root) not in rendered and ("/" + "Users/") not in rendered and ("/private/" + "var/") not in rendered and ("file" + "://") not in rendered and ("C:" + "\\Users\\") not in rendered

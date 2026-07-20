@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S03-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S03",
+  "review_id": "ABD-S03-WHOLE-STAGE-REVIEW",
+  "fixed_clock": "2026-07-20T18:00:00+10:00",
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_finding_ids": ["F-S03-REVIEW-001", "F-S03-REVIEW-002", "F-S03-REVIEW-003", "F-S03-REVIEW-004"],
+  "expected_phase_evidence_sha256": {
+    "P01": "cc128b7e0b3552d7633239971250c357320f7a3edbbb9782ee23e1dc8a922d25",
+    "P02": "5e6c4e710a1b74d374f60c91ff26cd365beb5f2b5ca244bea2add10df9d82c97",
+    "P03": "763d9ea60c03f9768d514e99b1846235add6dd187304ac273ae86e2eb03fddbc",
+    "P04": "525bbf2003898755ad1d724681420b8d04eda25bb13e8cd26a41abfae9c81a0d"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "4ebf1284026f1aacb5c9b37c193b814fd34f586f7befb93742e2b4231db5183e",
+    "P02": "4d104a9f6167721e3f9d62a1f94bc336155c8405febc0d8b8693299087edf2eb",
+    "P03": "888ef326c3bc5c8c830319c701805d89fae316e68da9b68b67bef01a7f486ad7",
+    "P04": "9b75cb9d53512100da79164c1fa50bf0a785b943e4a713052d3a0326ac07eb45"
+  },
+  "expected_display_order": ["status", "action", "countdown", "reasons", "evidence", "invalidation", "safety"],
+  "expected_failure_guidance_order": ["failure_status", "failure_reason", "next_action", "safety"],
+  "expected_glossary_term_count": 28,
+  "expected_reason_count": 49,
+  "expected_action_count": 38,
+  "expected_profile_count": 7,
+  "expected_budget_count": 21,
+  "expected_budget_summary": {"median_seconds": 540, "p95_seconds": 840, "median_max_seconds": 600, "p95_max_seconds": 1200},
+  "expected_claim_boundary": {
+    "ten_second_information_gate_kind": "STRUCTURAL_INFORMATION_PLACEMENT_ONLY",
+    "human_timing_observed": false,
+    "human_usability_conclusion_claimed": false,
+    "production_ui_implemented": false,
+    "production_ui_deployed": false,
+    "real_device_or_browser_run_executed": false,
+    "screen_reader_runtime_run_executed": false,
+    "formal_wcag_conformance_claimed": false,
+    "financial_target_verified_or_guaranteed": false
+  },
+  "allowed_numeric_boundary_deltas": ["-0.0001", "0", "0.0001"],
+  "expected_oracle_check_minimum": 55,
+  "minimum_targeted_pytest_cases": 120,
+  "minimum_full_pytest_cases": 3200,
+  "expected_rollback_artifact_count": 12,
+  "expected_release_status": "NOT_READY_STAGE_4_TO_19_AND_PRODUCTION_VALIDATION_REQUIRED",
+  "expected_next": "S03/GITHUB_STAGE_UPLOAD_READY"
+}

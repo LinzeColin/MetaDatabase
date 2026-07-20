@@ -38,6 +38,13 @@
     "FAULT-RUNTIME-CLAIM",
     "FAULT-UNKNOWN-PROFILE"
   ],
+  "expected_failure_guidance_regions": [
+    "failure_status",
+    "failure_reason",
+    "next_action",
+    "safety"
+  ],
+  "expected_failure_guidance_reason_count": 49,
   "expected_profile_budget_seconds": {
     "PHONE_BROWSER": [420, 480, 540],
     "DESKTOP_BROWSER": [360, 420, 480],
