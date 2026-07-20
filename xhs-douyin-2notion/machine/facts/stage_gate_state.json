@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.0",
+  "review_id": "STG.X2N.0.REVIEW.RESUME",
+  "run_id": "RUN-X2N-S00-REVIEW-RESUME",
+  "review_sync_target": "9f68c69becc31b0626b387eb36711235cf48af6f",
+  "review_status": "complete",
+  "automated_reacceptance": "pass",
+  "gate_id": "G0",
+  "gate_status": "pass",
+  "gate_decision": "pass",
+  "pass_conditions": {
+    "governance_registered": "pass",
+    "license_and_upstream_registry_complete": "pass",
+    "public_private_runtime_policy_machine_checkable": "pass",
+    "threat_model_and_adrs_complete": "pass",
+    "synthetic_fixtures_support_no_real_credentials": "pass"
+  },
+  "stop_conditions": {
+    "license_conflict": "inactive",
+    "bypass_requirement": "inactive",
+    "private_data_must_enter_public_repo": "inactive",
+    "no_reversible_data_design": "inactive"
+  },
+  "blocking_followups": [
+    {
+      "id": "INC-X2N-S00-P05-001",
+      "scope": "before_g0_pass",
+      "status": "resolved",
+      "required_resolution": "owner_directed_external_retention_with_x2n_zero_contact"
+    }
+  ],
+  "stage_1_authorized": true,
+  "remote_upload": "authorized_after_g0_pass",
+  "product_code": "not_started",
+  "real_account_execution": "not_run",
+  "platform_calls": "not_run",
+  "policy_recheck_required_at_platform_phase_start": true
+}

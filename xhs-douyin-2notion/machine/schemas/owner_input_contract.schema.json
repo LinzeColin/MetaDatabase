@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:x2n:owner-input-contract:1.0",
+  "title": "x2n private owner input contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project",
+    "input_state",
+    "environment",
+    "platforms",
+    "data_scale",
+    "first_sync",
+    "taxonomy",
+    "notion",
+    "models",
+    "gold_set",
+    "media_retention"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "project": {"const": "x2n"},
+    "input_state": {"enum": ["conservative_defaults", "owner_confirmed"]},
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os_strategy", "hardware_strategy", "detected_snapshot"],
+      "properties": {
+        "os_strategy": {"const": "auto_detect"},
+        "hardware_strategy": {"const": "auto_detect"},
+        "detected_snapshot": {"enum": ["not_run", "private_runtime_only"]}
+      }
+    },
+    "platforms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"],
+      "properties": {
+        "xiaohongshu": {"$ref": "#/$defs/platform"},
+        "douyin": {"$ref": "#/$defs/platform"},
+        "bilibili": {"$ref": "#/$defs/platform"},
+        "kuaishou": {"$ref": "#/$defs/platform"},
+        "weibo": {"$ref": "#/$defs/platform"},
+        "taobao": {"$ref": "#/$defs/platform"}
+      }
+    },
+    "data_scale": {"enum": ["unknown", "owner_manifested"]},
+    "first_sync": {"enum": ["disabled_synthetic_only", "owner_authorized_canary"]},
+    "taxonomy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["top_level_categories", "ai_may_create_top_level"],
+      "properties": {
+        "top_level_categories": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 80}
+        },
+        "ai_may_create_top_level": {"const": false}
+      }
+    },
+    "notion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "credential_reference", "parent_reference"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "credential_reference": {"enum": ["unset", "keychain_reference"]},
+        "parent_reference": {"enum": ["unset", "private_reference"]}
+      }
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cloud_enabled", "monthly_budget", "currency"],
+      "properties": {
+        "cloud_enabled": {"type": "boolean"},
+        "monthly_budget": {"type": "number", "minimum": 0},
+        "currency": {"const": "AUD"}
+      }
+    },
+    "gold_set": {"enum": ["synthetic_only", "private_owner_manifest"]},
+    "media_retention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["success", "failure_max_hours", "persist_platform_cdn_urls", "persist_raw_media"],
+      "properties": {
+        "success": {"const": "delete_immediately"},
+        "failure_max_hours": {"type": "integer", "minimum": 0, "maximum": 24},
+        "persist_platform_cdn_urls": {"const": false},
+        "persist_raw_media": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["login_state", "real_execution_authorized"],
+      "properties": {
+        "login_state": {"enum": ["not_run", "owner_managed_profile"]},
+        "real_execution_authorized": {"type": "boolean"}
+      }
+    }
+  }
+}

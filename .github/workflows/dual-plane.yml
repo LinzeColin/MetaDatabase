@@ -3,6 +3,7 @@ name: Dual-Plane Governance
 # 全仓强制：本仓每个双平面项目都必须就位七文件架构并过门。
 #
 # EEI 已于 2026-07-17 纳入双平面（41 功能从旧三基自动抽取），不再豁免。
+# arxiv-daily-push 已于 2026-07-20 从 CodexProject 迁入（保留完整历史），同步纳入双平面。
 on:
   push:
     branches: [main]
@@ -34,6 +35,7 @@ jobs:
               "PFI",
               "QBVS",
               "Serenity-Alipay",
+              "arxiv-daily-push",
           }
           specialized = {"ABD": ".github/workflows/abd-stage0-validation.yml"}
           discovered = {
@@ -73,5 +75,5 @@ jobs:
           fi
           echo "runner: $SCRIPT"
           python3 "$SCRIPT" --root . --projects \
-            Alpha EEI FIFA LinzeDatabase PFI QBVS Serenity-Alipay \
+            Alpha EEI FIFA LinzeDatabase PFI QBVS Serenity-Alipay arxiv-daily-push \
             --require-projects

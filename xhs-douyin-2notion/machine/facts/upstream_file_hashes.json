@@ -1,0 +1,196 @@
+{
+  "schema_version": "1.0",
+  "algorithm": "sha256",
+  "audited_at": "2026-07-19T10:51:46Z",
+  "files": [
+    {
+      "repository": "xiaohongshu-exporter",
+      "commit": "130b3ceb156278597c16f7e7e98d93ff42acaadf",
+      "path": "README.md",
+      "git_blob": "e20295854c503dfb73109c2a255cf219ff56a58f",
+      "sha256": "31215b2efa9e32e5a8b914c568f342bcd055c9226e296541a55fafb43a44f7b3"
+    },
+    {
+      "repository": "xiaohongshu-exporter",
+      "commit": "130b3ceb156278597c16f7e7e98d93ff42acaadf",
+      "path": "TEST.md",
+      "git_blob": "98221a4a697371b860255f00f7c4d965395d5e38",
+      "sha256": "ca0f5b296984c9ff39b054db885fee9588846350666af4c658b47fa165d2903f"
+    },
+    {
+      "repository": "xiaohongshu-exporter",
+      "commit": "130b3ceb156278597c16f7e7e98d93ff42acaadf",
+      "path": "manifest.json",
+      "git_blob": "ff99a5c5d78c667d323be8a282b3bc17a6b2721a",
+      "sha256": "318e255d9e76e10754c69e2589ce5207241508ffc7cc9be7e0fa62df7ed43710"
+    },
+    {
+      "repository": "xiaohongshu-exporter",
+      "commit": "130b3ceb156278597c16f7e7e98d93ff42acaadf",
+      "path": "background/background.js",
+      "git_blob": "992043b3caa72bdc6d6cb8274144d6ae058a5ab3",
+      "sha256": "22580c4ed1a4915acc76531644d65cd557e830bb45ed0430fb73149d40efe8a9"
+    },
+    {
+      "repository": "xiaohongshu-exporter",
+      "commit": "130b3ceb156278597c16f7e7e98d93ff42acaadf",
+      "path": "content/content.js",
+      "git_blob": "f491e004fc20dc77db5279bb307a528ad4ce9660",
+      "sha256": "c9edc4a67d92412b75cb356367935400837a5faf45a05263f32520e7543c5749"
+    },
+    {
+      "repository": "xiaohongshu-exporter",
+      "commit": "130b3ceb156278597c16f7e7e98d93ff42acaadf",
+      "path": "exporters/notion.js",
+      "git_blob": "937499e7e81767cb58bc16a9d9b155aa71ef243d",
+      "sha256": "fad5cf964ef548dc74214089c532519d50e29e37d7bafac6500e16e51a9fd0ba"
+    },
+    {
+      "repository": "douyin-downloader",
+      "commit": "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7",
+      "path": "LICENSE",
+      "git_blob": "33dca94901b8af585c49f03109e249690cea3a38",
+      "sha256": "d4c3afe9b57fa1854827210b501890d45018b90cfe6780cb843f1ea5de41ae41"
+    },
+    {
+      "repository": "douyin-downloader",
+      "commit": "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7",
+      "path": "pyproject.toml",
+      "git_blob": "17cb6f2ebdfca46489ca42053af0116603be721f",
+      "sha256": "4446ac9c958bbf85f31575da2f390d8cf2f7c67bae86ab201554b410a595c483"
+    },
+    {
+      "repository": "douyin-downloader",
+      "commit": "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7",
+      "path": "requirements.txt",
+      "git_blob": "3b0900b675722c3e3045620e89d8e0862b5a428d",
+      "sha256": "396c09aabccaee4080581f5008086fcb653e98eead7e2e955ca1735bdb0ff853"
+    },
+    {
+      "repository": "douyin-downloader",
+      "commit": "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7",
+      "path": "core/user_mode_registry.py",
+      "git_blob": "9443b6e39eb289a50a1d1e5e0a80db0f15113e9f",
+      "sha256": "e2a91fa8a73fdc3e8e373908e36df9f2a1c3232abaad6ca7ffc02e69631290c7"
+    },
+    {
+      "repository": "douyin-downloader",
+      "commit": "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7",
+      "path": "core/user_modes/like_strategy.py",
+      "git_blob": "6c4df2ac4511ccccff83ffcdfd5564c5d64caacc",
+      "sha256": "f56bfc3f664ac88d85357e020c44972b3b8be12e8f06e5e2700228daed43bbec"
+    },
+    {
+      "repository": "douyin-downloader",
+      "commit": "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7",
+      "path": "core/user_modes/collect_strategy.py",
+      "git_blob": "7056472b1ea3f12afff4f5b5047d8051a2ff96b4",
+      "sha256": "70669b504a1f083ce5fcaca1418627019a1304b3d5c9ae708a55816036857c6c"
+    },
+    {
+      "repository": "douyin-downloader",
+      "commit": "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7",
+      "path": "storage/database.py",
+      "git_blob": "8023e53cb0118812a8e2c3c4cba911fb77f5f236",
+      "sha256": "71d626b4a3fe56b8a4d9d21ae7d8fef07b896964af08bbc1d69c820dd86c5953"
+    },
+    {
+      "repository": "douyin-downloader",
+      "commit": "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7",
+      "path": "storage/metadata_handler.py",
+      "git_blob": "b812d9f6590aae8399c3716c32977736897c7aea",
+      "sha256": "8e2c9e668cc7d8b826a3a0da27fedb16c58777c0464f5b9f9172e6ad039c3efc"
+    },
+    {
+      "repository": "douyin-downloader",
+      "commit": "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7",
+      "path": "config/default_config.py",
+      "git_blob": "9961fadd66f4e24218268245a5c04e061fdfd201",
+      "sha256": "df065f813ed333d28d60f327431bca588c61c57815ad696584c6f2a0c14abf0d"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "LICENSE",
+      "git_blob": "78408f6201d46f746850c039ae5754b8fcc4b6c1",
+      "sha256": "aeff21de8609bec9d6e939bbbba7c2914ae0a6e7c9470ea7945c03f7d17a2a33"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "pyproject.toml",
+      "git_blob": "d68dec6a71ac23aae78a65f463aff797fb439fa1",
+      "sha256": "ff4fec0c40beec6d87f25cdc9c8f1082eca4b8403588cfdc5942b906c85b03a3"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "requirements.txt",
+      "git_blob": "5940f54f46be91744b233b07b870996f090c19bf",
+      "sha256": "338708aefac23dbc223f25dfd5687c558e81306e2dedfd3787da43f2e719220a"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "uv.lock",
+      "git_blob": "56d2b74f81406c630ef456e1840e8b689626b072",
+      "sha256": "fcf55d78b585b718a816f6c660162d3d692e00f3b043af916ae065cfe1abc661"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "main.py",
+      "git_blob": "2823a5f5eff2892708d0074028ad6fae2835e515",
+      "sha256": "32339cb53f87c15e954d4d179bd58d2ce27dba457e7315955f4cc12de0cff75a"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "config/base_config.py",
+      "git_blob": "28a852e08c045d537a213bddc851c3d8180fc3bb",
+      "sha256": "985b5ef5ccf9ece01078e9cc46ddac41ba95d2c71a1ba2a0ccae1391d6c83946"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "model/m_douyin.py",
+      "git_blob": "8b02ef79779938bf255d4a024da7b8155e14809e",
+      "sha256": "bbff4edeaa0a7dac8db101b327e4911e0adf430414271591cb07a8de4591f33a"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "model/m_xiaohongshu.py",
+      "git_blob": "d6d277c241f77f1791434d2e9bbc99a1f9df38da",
+      "sha256": "9b4e3cb590d8ccb363e0b7a1a199796212b634ba27a71af83b8de4404cefa001"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "store/douyin/_store_impl.py",
+      "git_blob": "cf70eabd13c59ae13da0321932473def233df900",
+      "sha256": "fbb5dfdc77aa20e9d287c40f69d71d3a6ec3ce00a9ddb3f837b794de3db8322a"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "store/douyin/douyin_store_media.py",
+      "git_blob": "baebf33e93753f788238948c75ebcd07a69fd901",
+      "sha256": "c4f40f9a32c0749f4e81834b811949a4257e2f0080ae9d7fc1d9282fef865c5a"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "store/xhs/_store_impl.py",
+      "git_blob": "bd1627b6046eeb678829440193daeb8d3525f760",
+      "sha256": "3159bfa9a39ebf01ec56f3f93781c6fd7f812f5b7753966be998b197c4bc6ff4"
+    },
+    {
+      "repository": "MediaCrawler",
+      "commit": "0625e01a6bc717a3fc9c96d3dac7fb8957043838",
+      "path": "store/xhs/xhs_store_media.py",
+      "git_blob": "c38a812f8a0cf46eb98552f8a6f617eab551b5c4",
+      "sha256": "f70061a29ccc344e53b199617f52d606119e10cffa0273dd997a05e3d207f6a5"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.gov.002",
+    "ACC.x2n.media.001",
+    "ACC.x2n.ops.002"
+  ],
+  "acceptance_scope": "phase_0_1_governance_baseline",
+  "downstream_release_scopes": "NOT_RUN",
+  "generated_at": "2026-07-19T20:55:14Z",
+  "phase": "PH.X2N.0.1",
+  "phase_status": "PASS",
+  "product_code": "NOT_STARTED",
+  "project": "x2n",
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_STAGE_GATE",
+  "run_id": "RUN-X2N-S00-P01",
+  "schema_version": "1.0",
+  "source_hashes": {
+    "roadmap": "66f949b2109ffe2701d7b74099430e862f4027bb4a429c56e84e13716c0bc906",
+    "taskpack_zip": "b32993f465888d9352d745b353c3b923c38406c941a8f357ddf1a64e2bba5a58"
+  },
+  "stage": "STG.X2N.0",
+  "stage_gate": "NOT_RUN",
+  "task_id": "TSK.x2n.discovery.003",
+  "task_status": "PASS"
+}

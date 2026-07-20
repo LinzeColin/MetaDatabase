@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "change_event": "CE-X2N-20260719-S00-P05",
+  "project_name_is_stable_brand_not_scope_limit": true,
+  "product_boundary": "personal_content_knowledge_governance",
+  "platforms": [
+    {"id": "xiaohongshu", "display_name": "小红书", "policy_state": "unknown_disabled", "preferred_strategy": "official_capability_then_user_gesture_clean_room_current_page"},
+    {"id": "douyin", "display_name": "抖音", "policy_state": "unknown_disabled", "preferred_strategy": "official_oauth_api_then_gated_current_page"},
+    {"id": "bilibili", "display_name": "哔哩哔哩", "policy_state": "unknown_disabled", "preferred_strategy": "official_open_platform_first"},
+    {"id": "kuaishou", "display_name": "快手", "policy_state": "unknown_disabled", "preferred_strategy": "official_oauth_api_first"},
+    {"id": "weibo", "display_name": "微博", "policy_state": "unknown_disabled", "preferred_strategy": "official_api_budget_gated"},
+    {"id": "taobao", "display_name": "淘宝", "policy_state": "unknown_disabled", "preferred_strategy": "official_oauth_api_first"}
+  ],
+  "capabilities": ["current_page", "selected_collection", "preview", "ephemeral_download", "classify"],
+  "capability_states": ["supported", "blocked_policy", "blocked_auth", "blocked_technical", "unknown_disabled"],
+  "common_constraints": [
+    "explicit_user_gesture_or_bounded_batch",
+    "no_automatic_scrolling",
+    "no_account_state_change",
+    "no_access_control_bypass",
+    "no_proxy_rotation_or_fingerprint_simulation",
+    "no_credentials_or_cookie_persistence",
+    "no_platform_cdn_url_or_raw_media_persistence",
+    "independent_platform_feature_flag_and_kill_switch"
+  ],
+  "implementation_started": false,
+  "real_platform_calls": false
+}

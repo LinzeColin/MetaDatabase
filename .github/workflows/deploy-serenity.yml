@@ -1,0 +1,15 @@
+name: deploy-serenity
+on:
+  push:
+    branches: [main]
+    paths: ['Serenity-Alipay/app/cloudflare-public/**']
+jobs:
+  golden-path:
+    uses: LinzeColin/CodexProject/.github/workflows/linze-golden-path.reusable.yml@main
+    with:
+      service_name: serenity-public
+      coolify_app_uuid: "zb7nt6zsf988arh3gukfnwrm"
+      home_live_url: "https://serenity.linzezhang.com"
+    secrets:
+      COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
+      COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}

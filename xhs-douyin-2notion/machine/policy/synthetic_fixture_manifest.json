@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "FIXTURE.X2N.002",
+  "phase": "PH.X2N.0.5",
+  "fixtures": [
+    {
+      "id": "FIXTURE.X2N.S00.P05.001",
+      "path": "machine/fixtures/stage_0_governance_cases.json",
+      "case_count": 50,
+      "purpose": "six-platform policy, SSRF, media, IPC, privacy, AI, license and release governance"
+    }
+  ],
+  "status": "synthetic_governance_fixture_ready_product_fixtures_not_started",
+  "future_requirements": {
+    "source_must_be_declared": true,
+    "real_account_content_allowed": false,
+    "credentials_allowed": false,
+    "media_cdn_urls_allowed": false,
+    "local_absolute_paths_allowed": false,
+    "expected_sensitive_pattern_hits": 0
+  }
+}

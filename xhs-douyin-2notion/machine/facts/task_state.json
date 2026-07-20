@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.2",
+  "project": "x2n",
+  "stage": "STG.X2N.0",
+  "last_completed_phase": "PH.X2N.0.5",
+  "review_id": "STG.X2N.0.REVIEW.RESUME",
+  "run_id": "RUN-X2N-S00-REVIEW-RESUME",
+  "run_kind": "stage_review_resume_no_new_dag_task",
+  "state": "stage_0_g0_pass",
+  "tasks": {
+    "TSK.x2n.discovery.001": "pass",
+    "TSK.x2n.discovery.002": "pass",
+    "TSK.x2n.discovery.003": "pass",
+    "TSK.x2n.discovery.004": "pass",
+    "TSK.x2n.discovery.005": "pass"
+  },
+  "downstream_acceptances": {
+    "ACC.x2n.gov.001": "pass",
+    "ACC.x2n.gov.002": "downstream_not_run",
+    "ACC.x2n.media.001": "downstream_not_run",
+    "ACC.x2n.ops.002": "downstream_not_run"
+  },
+  "acceptance_status": {
+    "ACC.x2n.gov.003": "pass_current_artifact_scope",
+    "ACC.x2n.dy.003": "baseline_pass_downstream_not_run",
+    "ACC.x2n.media.003": "design_fixture_pass_downstream_not_run",
+    "ACC.x2n.rel.003": "design_supply_chain_pass_downstream_not_run"
+  },
+  "blocking_followups": [
+    {
+      "id": "INC-X2N-S00-P05-001",
+      "scope": "before_g0_pass",
+      "status": "resolved",
+      "action": "owner_directed_external_retention_with_x2n_zero_contact"
+    }
+  ],
+  "next_phase": "PH.X2N.1.1",
+  "next_run": "TSK.x2n.foundation.001",
+  "next_phase_authorized": true,
+  "stage_1_authorized": true,
+  "stage_gate": "pass",
+  "remote_upload": "authorized_after_g0_pass"
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "project": "x2n",
+  "stage": "STG.X2N.0",
+  "phase": "PH.X2N.0.2",
+  "run_id": "RUN-X2N-S00-P02",
+  "generated_at": "2026-07-19T11:07:41Z",
+  "acceptance_id": "ACC.x2n.gov.003",
+  "status": "PASS_CURRENT_ARTIFACT_SCOPE",
+  "scope": "no_distribution_and_zero_actual_runtime_dependencies",
+  "thresholds": {
+    "unknown_license_runtime_dependencies": 0,
+    "unpinned_runtime_upstreams": 0,
+    "xiaohongshu_unverified_code_copies": 0,
+    "mediacrawler_bundled": false,
+    "douyin_mit_notice": true,
+    "sbom_matches_actual_package": true
+  },
+  "future_reacceptance_required_on_dependency_enablement": true,
+  "stage_gate": "NOT_RUN"
+}

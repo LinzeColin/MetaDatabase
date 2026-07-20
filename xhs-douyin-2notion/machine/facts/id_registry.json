@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "project_id": "PRJ.X2N",
+  "canonical_task_registry": "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml",
+  "canonical_acceptance_registry": "docs/product_design/v0.0.0.1/04_ACCEPTANCE_CONTRACT_TRACEABILITY.md",
+  "registered_stage_ids": [
+    "STG.X2N.0",
+    "STG.X2N.1",
+    "STG.X2N.2",
+    "STG.X2N.3",
+    "STG.X2N.4",
+    "STG.X2N.5",
+    "STG.X2N.6"
+  ],
+  "phase_0_1_task_ids": [
+    "TSK.x2n.discovery.001",
+    "TSK.x2n.discovery.002",
+    "TSK.x2n.discovery.003"
+  ],
+  "phase_0_1_acceptance_ids": [
+    "ACC.x2n.gov.001",
+    "ACC.x2n.gov.002",
+    "ACC.x2n.media.001",
+    "ACC.x2n.ops.002"
+  ],
+  "phase_0_5_task_ids": [
+    "TSK.x2n.discovery.005"
+  ],
+  "phase_0_5_acceptance_ids": [
+    "ACC.x2n.gov.003",
+    "ACC.x2n.media.003",
+    "ACC.x2n.rel.003"
+  ],
+  "registered_counts": {
+    "stages": 7,
+    "tasks": 43,
+    "requirements": 32,
+    "acceptances": 61,
+    "platforms": 6
+  },
+  "duplication_policy": "IDs are listed only for registration; definitions remain in canonical registries."
+}
