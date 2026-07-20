@@ -135,6 +135,21 @@ from .terminology_governance import (
     verify_existing_phase_evidence as verify_terminology_governance_evidence,
     write_phase_evidence as write_terminology_governance_phase_evidence,
 )
+from .advice_card import (
+    CardContractError,
+    build_advice_card,
+    build_evidence as build_advice_card_evidence,
+    contrast_ratio,
+    evaluate_contract as evaluate_advice_card_contract,
+    extract_primary_answers,
+    perform_rollback_drill as perform_advice_card_rollback_drill,
+    render_visible_text,
+    safe_build_advice_card,
+    validate_card,
+    validate_daily_card_set,
+    verify_existing_phase_evidence as verify_advice_card_evidence,
+    write_phase_evidence as write_advice_card_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -237,4 +252,17 @@ __all__ = [
     "scan_ui_text",
     "verify_terminology_governance_evidence",
     "write_terminology_governance_phase_evidence",
+    "CardContractError",
+    "build_advice_card",
+    "build_advice_card_evidence",
+    "contrast_ratio",
+    "evaluate_advice_card_contract",
+    "extract_primary_answers",
+    "perform_advice_card_rollback_drill",
+    "render_visible_text",
+    "safe_build_advice_card",
+    "validate_card",
+    "validate_daily_card_set",
+    "verify_advice_card_evidence",
+    "write_advice_card_phase_evidence",
 ]

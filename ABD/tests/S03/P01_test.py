@@ -22,6 +22,7 @@ from abd_acceptance.terminology_governance import (
     LEGACY_GLOSSARY_PATH,
     PINNED_BASELINE_HASHES,
     PINNED_PHASE_HASHES,
+    SUCCESSOR_EVOLVED_PHASE_HASHES,
     ROLLBACK_EVIDENCE_PATH,
     TEST_PATH,
     build_evidence,
@@ -104,7 +105,10 @@ def test_stage2_github_delivery_is_exact_start_prerequisite() -> None:
 
 @pytest.mark.parametrize("relative", [GLOSSARY_PATH, FORBIDDEN_PATH, FIXTURE_PATH, TEST_PATH])
 def test_frozen_phase_artifact_hashes_match_oracle_pins(relative: Path) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_PHASE_HASHES[relative.as_posix()]
+    accepted = {PINNED_PHASE_HASHES[relative.as_posix()]}
+    if relative.as_posix() in SUCCESSOR_EVOLVED_PHASE_HASHES:
+        accepted.add(SUCCESSOR_EVOLVED_PHASE_HASHES[relative.as_posix()])
+    assert sha256_file(ROOT / relative) in accepted
 
 
 @pytest.mark.parametrize("relative", sorted(PINNED_BASELINE_HASHES))
@@ -269,7 +273,7 @@ def test_existing_evidence_verifier_is_fail_closed_when_evidence_absent_or_curre
         ("external_effect", "S03P01-POLICY-EXTERNAL-EFFECT-BOUNDARY"),
         ("absolute_local_path", "S03P01-GLOSSARY-PORTABLE-NO-LOCAL-PATH"),
         ("p02_started", "S03P01-SUCCESSOR-ARTIFACTS-NOT-STARTED"),
-        ("p02_index_started", "S03P01-SUCCESSOR-INDEX-PLANNED"),
+        ("p02_index_state_flip", "S03P01-SUCCESSOR-INDEX-PLANNED"),
         ("receipt_tamper", "S03P01-S02-DELIVERY-PREREQUISITE"),
         ("bankroll_drift", "S03P01-AUD300-AUD0-TARGET-BASELINE"),
         ("positive_cash", "S03P01-COSTS-ZERO-INCREMENTAL-CASH"),
@@ -321,10 +325,11 @@ def test_contract_mutations_fail_closed(tmp_path: Path, mutation: str, expected_
         _write_json(project / GLOSSARY_PATH, glossary)
     elif mutation == "p02_started":
         _write_json(project / "advice_card_schema.json", {"status": "STARTED"})
-    elif mutation == "p02_index_started":
+    elif mutation == "p02_index_state_flip":
         index = project / "machine/evidence/evidence_index.jsonl"
         rows = [json.loads(line) for line in index.read_text(encoding="utf-8").splitlines() if line]
-        next(row for row in rows if row["id"] == "INDEX-AC-S03-P02")["status"] = "PASS"
+        row = next(row for row in rows if row["id"] == "INDEX-AC-S03-P02")
+        row["status"] = "PASS" if row.get("status") == "PLANNED" else "PLANNED"
         index.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows), encoding="utf-8")
     elif mutation == "receipt_tamper":
         receipt = strict_json_load(project / RECEIPT_PATH)
@@ -398,21 +403,42 @@ def test_malformed_inputs_fail_closed_without_crashing(tmp_path: Path) -> None:
         _failed(result, check_id)
 
 
-def test_no_s03_p02_or_stage_review_artifact_exists() -> None:
-    forbidden = [
+def test_s03_p02_is_absent_or_an_exact_controlled_successor() -> None:
+    p02_paths = [
         "advice_card_schema.json",
         "advice_card_fixtures.json",
         "tests/S03/P02_test.py",
         "machine/tests/fixtures/S03_P02.json",
         "machine/evidence/EVD-S03-P02.json",
+        "machine/evidence/EVD-S03-P02_rollback.json",
+    ]
+    later_paths = [
+        "reason_codes_zh.json",
+        "next_action_matrix.json",
         "machine/facts/stage3_review_contract.json",
         "tests/S03/stage_review_test.py",
     ]
-    assert all(not (ROOT / relative).exists() for relative in forbidden)
+    present = [relative for relative in p02_paths if (ROOT / relative).exists()]
+    assert all(not (ROOT / relative).exists() for relative in later_paths)
     index_rows = [json.loads(line) for line in (ROOT / "machine/evidence/evidence_index.jsonl").read_text(encoding="utf-8").splitlines() if line]
     p02 = [row for row in index_rows if row["id"] == "INDEX-AC-S03-P02"]
     assert len(p02) == 1
-    assert p02[0]["status"] == "PLANNED"
+    if not present:
+        assert p02[0]["status"] == "PLANNED"
+        return
+    in_progress = set(p02_paths[:4])
+    assert set(present) == in_progress or set(present) == set(p02_paths)
+    if set(present) == in_progress:
+        from abd_acceptance.advice_card import PINNED_PHASE_HASHES as P02_PINNED_PHASE_HASHES
+
+        assert p02[0]["status"] == "PLANNED"
+        assert all(sha256_file(ROOT / relative) == expected for relative, expected in P02_PINNED_PHASE_HASHES.items())
+    else:
+        from abd_acceptance.advice_card import verify_existing_phase_evidence as verify_p02_evidence
+
+        successor = verify_p02_evidence(ROOT, verify_git_history=True)
+        assert successor["status"] == "PASS", successor
+        assert successor["next"] == "S03/P03_READY_NOT_STARTED"
 
 
 def test_no_artifact_contains_secret_or_absolute_local_path() -> None:

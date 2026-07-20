@@ -1,0 +1,42 @@
+{
+  "artifacts": {
+    "advice_card_fixtures.json": {
+      "corrupted_sha256": "8e5cd4af9d1ddca6d874d1348d6aee8b66bef46ccf411fd6b74e034f4919253f",
+      "restored_sha256": "2f9a5f892eebf01dfbdf91e3c14c96ee59005cd801f169460514d8c4e5476eb5",
+      "signed_sha256": "2f9a5f892eebf01dfbdf91e3c14c96ee59005cd801f169460514d8c4e5476eb5",
+      "status": "PASS"
+    },
+    "advice_card_schema.json": {
+      "corrupted_sha256": "11359aa5cdcd731929e2c7da8e44c46df0adb985567076586507ef4b5cdc9a32",
+      "restored_sha256": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+      "signed_sha256": "213f1f467d3421f56382f8de247842d23b3ece1ce726e83af13269caa6febc9a",
+      "status": "PASS"
+    },
+    "glossary_zh.json": {
+      "corrupted_sha256": "90c34ada92c3da6191b64ca83a8653e285d5c27b92bd6b80231cacbd53aa087f",
+      "restored_sha256": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "signed_sha256": "ffaf3a6c66533ce89bd8dc788b1bbfb09754bb8af0dec1355c90544eb4151097",
+      "status": "PASS"
+    },
+    "machine/evidence/EVD-S03-P01.json": {
+      "corrupted_sha256": "659d65d96eeb23f9d1b3c4cc89ea176bde269ce0a6b92490bae01944a6a63d35",
+      "restored_sha256": "cc128b7e0b3552d7633239971250c357320f7a3edbbb9782ee23e1dc8a922d25",
+      "signed_sha256": "cc128b7e0b3552d7633239971250c357320f7a3edbbb9782ee23e1dc8a922d25",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S03_P02.json": {
+      "corrupted_sha256": "c8316c4e3f3a4258bce0b76867b43fd81585f15f176cc13331dbb03aeb4cc674",
+      "restored_sha256": "26bdaef3a2335204e5acaecb4e7ed8a91959c649c42aed637192e089efc8978d",
+      "signed_sha256": "26bdaef3a2335204e5acaecb4e7ed8a91959c649c42aed637192e089efc8978d",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S03-P02",
+  "evidence_id": "EVD-S03-P02-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-20T09:00:00+10:00",
+  "mode": "EPHEMERAL_SIGNED_ADVICE_CARD_ARTIFACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

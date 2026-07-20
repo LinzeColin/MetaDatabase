@@ -73,7 +73,7 @@ SUCCESSOR_UNIT_PROFILE_HASHES = {
     "abd_acceptance/__main__.py": "77ed53daf201c59aedd72c9e5d10207997353a5bbd097fa599fd65f9ebb8806a",
     "tests/S02/stage_review_test.py": "40431438418cb4212c00c3e241b980b4188cd017af2722ffb267670a8aa0f124",
 }
-SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "53c87cf3e90ae5a24661c06ad190e76f6d2d4fb0143a9c107269db69bdc82d5d"
+SUCCESSOR_UNIT_SELF_NORMALIZED_SHA256 = "1c652e72083750e4a939c185bf5ae949df27932845acfeebb4d727978339066d"
 
 PHASE_EVALUATORS = {"P01": evaluate_p01, "P02": evaluate_p02, "P03": evaluate_p03, "P04": evaluate_p04}
 PHASE_VERIFIERS = {"P01": verify_p01, "P02": verify_p02, "P03": verify_p03, "P04": verify_p04}
@@ -676,17 +676,58 @@ def _check_safety_and_progression(
         s03 = [row for row in rows if str(row.get("id", "")).startswith("INDEX-AC-S03-")]
         actual_s03 = sorted(path.name for path in (root / "machine/evidence").glob("EVD-S03-*.json"))
         review_rows = [row for row in rows if row.get("id") == "INDEX-S02-STAGE-REVIEW"]
-        progression_ok = (
-            len(review_rows) == 1
-            and review_rows[0].get("status") in {"PLANNED", "PASS"}
-            and len(s03) == 4
+        status_by_id = {row.get("id"): row.get("status") for row in s03}
+        base_ok = len(review_rows) == 1 and review_rows[0].get("status") in {"PLANNED", "PASS"} and len(s03) == 4
+        not_started = (
+            base_ok
             and all(row.get("status") == "PLANNED" and "actual_artifact" not in row for row in s03)
             and not actual_s03
         )
+        p01_delivered = False
+        p02_delivered = False
+        successor_detail: Any = None
+        if (
+            base_ok
+            and status_by_id == {
+                "INDEX-AC-S03-P01": "PASS",
+                "INDEX-AC-S03-P02": "PLANNED",
+                "INDEX-AC-S03-P03": "PLANNED",
+                "INDEX-AC-S03-P04": "PLANNED",
+            }
+            and actual_s03 == ["EVD-S03-P01.json", "EVD-S03-P01_rollback.json"]
+        ):
+            from .terminology_governance import verify_existing_phase_evidence as verify_s03_p01
+
+            successor = verify_s03_p01(root, verify_git_history=(root.parent / ".git").exists())
+            p01_delivered = successor.get("status") == "PASS" and successor.get("next") == "S03/P02_READY_NOT_STARTED"
+            successor_detail = {"mode": "VERIFIED_S03_P01_SUCCESSOR_OR_P02_BUILD", "summary": successor.get("summary")}
+        elif (
+            base_ok
+            and status_by_id == {
+                "INDEX-AC-S03-P01": "PASS",
+                "INDEX-AC-S03-P02": "PASS",
+                "INDEX-AC-S03-P03": "PLANNED",
+                "INDEX-AC-S03-P04": "PLANNED",
+            }
+            and actual_s03
+            == [
+                "EVD-S03-P01.json",
+                "EVD-S03-P01_rollback.json",
+                "EVD-S03-P02.json",
+                "EVD-S03-P02_rollback.json",
+            ]
+        ):
+            from .advice_card import verify_existing_phase_evidence as verify_s03_p02
+
+            successor = verify_s03_p02(root, verify_git_history=(root.parent / ".git").exists())
+            p02_delivered = successor.get("status") == "PASS" and successor.get("next") == "S03/P03_READY_NOT_STARTED"
+            successor_detail = {"mode": "VERIFIED_S03_P02_SUCCESSOR", "summary": successor.get("summary")}
+        progression_ok = not_started or p01_delivered or p02_delivered
         detail = {
             "review_route": "PLANNED_OR_SIGNED_PASS",
             "s03": [row.get("status") for row in s03],
             "actual_s03": actual_s03,
+            "successor": successor_detail,
         }
     except Exception as exc:
         progression_ok = False
@@ -768,10 +809,17 @@ def _check_integration_and_security(root: Path, contract: Mapping[str, Any], fix
         and "S03/P02_READY_NOT_STARTED" in readme
         and "本 Phase 仅本地开发" in readme
     )
+    p02_successor_readme_route = (
+        "Stage 2 已通过 GitHub PR #65" in readme
+        and "tests/S03/P02_test.py" in readme
+        and "AC-S03-P02" in readme
+        and "S03/P03_READY_NOT_STARTED" in readme
+        and "本 Phase 仅本地开发" in readme
+    )
     registration_ok = (
         re.search(r'["\']STAGE-REVIEW-S02["\']\s*:\s*write_stage2_review_evidence', main_text) is not None
         and "stage2_review" in init_text
-        and (historical_readme_route or successor_readme_route)
+        and (historical_readme_route or successor_readme_route or p02_successor_readme_route)
     )
     _add(checks, "S02REVIEW-CLI-TEST-README-REPLAY-ROUTED", registration_ok, {"test": (root / TEST_PATH).is_file(), "cli": "STAGE-REVIEW-S02" in main_text})
 

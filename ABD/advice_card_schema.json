@@ -1,0 +1,658 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abd.invalid/schemas/advice-card-0.0.0.1.json",
+  "title": "ABD 0.0.0.1 唯一中文建议卡",
+  "description": "冻结每日唯一建议卡的机器字段、中文展示顺序与安全边界；本 Schema 不证明界面已部署、真人可用性已验证或存在可下单建议。",
+  "x-abd-contract": {
+    "product_version": "0.0.0.1",
+    "stage_id": "S03",
+    "phase_id": "P02",
+    "contract_id": "AC-S03-P02",
+    "requirement_id": "REQ-S03-P02",
+    "scope_status": "SCHEMA_AND_DETERMINISTIC_PRESENTATION_MODEL_FROZEN_NOT_DEPLOYED",
+    "timezone": "Australia/Sydney",
+    "daily_card_limit": 1,
+    "allowed_statuses": [
+      "RECOMMENDATION",
+      "NO_RECOMMENDATION"
+    ],
+    "primary_questions": [
+      {
+        "id": "WHAT",
+        "question_zh": "做什么？",
+        "answer_pointer": "/action/selection_zh"
+      },
+      {
+        "id": "WHERE",
+        "question_zh": "在哪做？",
+        "answer_pointer": "/action/platform_zh"
+      },
+      {
+        "id": "AMOUNT",
+        "question_zh": "金额是多少？",
+        "answer_pointer": "/action/stake_display_zh"
+      },
+      {
+        "id": "MINIMUM_ODDS",
+        "question_zh": "最低赔率是多少？",
+        "answer_pointer": "/action/minimum_odds_display_zh"
+      }
+    ],
+    "ten_second_information_gate": {
+      "type": "STRUCTURAL_SCAN_PATH_PROXY",
+      "maximum_primary_answers": 4,
+      "primary_section": "action",
+      "primary_section_position": 2,
+      "human_timing_validation": "DEFERRED_TO_S03_P04",
+      "claim_boundary_zh": "本门只证明四个答案位于固定首屏行动区，不声称真人已在十秒内完成理解。"
+    },
+    "non_claims": [
+      "没有实现或部署网页、移动端、推送或浏览器伴随组件。",
+      "没有执行模型、选择真实市场、连接平台账户或提交真实订单。",
+      "没有用结构化扫描代理冒充真人十秒可用性、无障碍或跨设备验收。",
+      "没有验证或保证月度30%滚动复利目标。"
+    ]
+  },
+  "x-abd-display-contract": {
+    "section_order": [
+      "status",
+      "action",
+      "countdown",
+      "reasons",
+      "evidence",
+      "invalidation",
+      "safety"
+    ],
+    "section_labels_zh": {
+      "status": "结论",
+      "action": "行动",
+      "countdown": "剩余时间",
+      "reasons": "主要理由",
+      "evidence": "证据状态",
+      "invalidation": "必须取消的情况",
+      "safety": "安全边界"
+    },
+    "status_palette": {
+      "RECOMMENDATION": {
+        "label_zh": "建议",
+        "symbol": "✓",
+        "background": "#005A3C",
+        "foreground": "#FFFFFF"
+      },
+      "NO_RECOMMENDATION": {
+        "label_zh": "不建议",
+        "symbol": "×",
+        "background": "#9B1C1C",
+        "foreground": "#FFFFFF"
+      }
+    },
+    "countdown_palette": {
+      "ACTIVE": {
+        "label_zh": "有效",
+        "background": "#1F4E79",
+        "foreground": "#FFFFFF"
+      },
+      "EXPIRING": {
+        "label_zh": "即将失效",
+        "background": "#7A3E00",
+        "foreground": "#FFFFFF"
+      },
+      "EXPIRED": {
+        "label_zh": "已失效",
+        "background": "#9B1C1C",
+        "foreground": "#FFFFFF"
+      }
+    },
+    "color_is_only_signal": false,
+    "required_redundant_signals": [
+      "中文状态文字",
+      "状态符号",
+      "明确行动句"
+    ]
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "card_id",
+    "sydney_date",
+    "timezone",
+    "generated_at",
+    "status",
+    "status_label_zh",
+    "status_symbol",
+    "status_color",
+    "headline_zh",
+    "summary_zh",
+    "display_order",
+    "action",
+    "countdown",
+    "reasons",
+    "evidence",
+    "invalidation",
+    "safety",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "card_id": {
+      "type": "string",
+      "pattern": "^CARD-[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-f0-9]{12}$"
+    },
+    "sydney_date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "timezone": {
+      "const": "Australia/Sydney"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\+10:00|\\+11:00)$"
+    },
+    "status": {
+      "enum": [
+        "RECOMMENDATION",
+        "NO_RECOMMENDATION"
+      ]
+    },
+    "status_label_zh": {
+      "enum": [
+        "建议",
+        "不建议"
+      ]
+    },
+    "status_symbol": {
+      "enum": [
+        "✓",
+        "×"
+      ]
+    },
+    "status_color": {
+      "$ref": "#/$defs/color_pair"
+    },
+    "headline_zh": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 40
+    },
+    "summary_zh": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 120
+    },
+    "display_order": {
+      "const": [
+        "status",
+        "action",
+        "countdown",
+        "reasons",
+        "evidence",
+        "invalidation",
+        "safety"
+      ]
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_type",
+        "platform_zh",
+        "event_zh",
+        "market_zh",
+        "selection_zh",
+        "stake_cents",
+        "stake_display_zh",
+        "observed_odds_decimal",
+        "observed_odds_display_zh",
+        "minimum_odds_decimal",
+        "minimum_odds_display_zh",
+        "user_instruction_zh"
+      ],
+      "properties": {
+        "action_type": {
+          "enum": [
+            "OWNER_FINAL_ORDER_ONLY",
+            "NO_ACTION"
+          ]
+        },
+        "platform_zh": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 2,
+          "maxLength": 40
+        },
+        "event_zh": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "market_zh": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "selection_zh": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "stake_cents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stake_display_zh": {
+          "type": "string",
+          "pattern": "^A\\$[0-9]+\\.[0-9]{2}$"
+        },
+        "observed_odds_decimal": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[1-9][0-9]*\\.[0-9]{6}$"
+        },
+        "observed_odds_display_zh": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 40
+        },
+        "minimum_odds_decimal": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[1-9][0-9]*\\.[0-9]{6}$"
+        },
+        "minimum_odds_display_zh": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 50
+        },
+        "user_instruction_zh": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 160
+        }
+      }
+    },
+    "countdown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "seconds_remaining",
+        "expires_at",
+        "display_zh",
+        "color"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "ACTIVE",
+            "EXPIRING",
+            "EXPIRED"
+          ]
+        },
+        "seconds_remaining": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\+10:00|\\+11:00)$"
+        },
+        "display_zh": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 40
+        },
+        "color": {
+          "$ref": "#/$defs/color_pair"
+        }
+      }
+    },
+    "reasons": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/reason"
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "label_zh",
+        "checked_at",
+        "reference_count"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE",
+            "UNVERIFIED"
+          ]
+        },
+        "label_zh": {
+          "enum": [
+            "证据已通过",
+            "证据不足",
+            "证据未验证"
+          ]
+        },
+        "checked_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reference_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "invalidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conditions_zh",
+        "behavior_zh"
+      ],
+      "properties": {
+        "conditions_zh": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 80
+          }
+        },
+        "behavior_zh": {
+          "const": "任一条件出现立即作废并停止下单。"
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "auto_order_enabled",
+        "owner_final_action_required",
+        "guaranteed_return",
+        "target_shortfall_may_relax_gate",
+        "boundary_zh"
+      ],
+      "properties": {
+        "auto_order_enabled": {
+          "const": false
+        },
+        "owner_final_action_required": {
+          "const": true
+        },
+        "guaranteed_return": {
+          "const": false
+        },
+        "target_shortfall_may_relax_gate": {
+          "const": false
+        },
+        "boundary_zh": {
+          "const": "系统只提供分析建议；最终下单只能由用户自行决定并完成，月度30%目标未验证且不保证。"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_sha256",
+        "parameters_sha256",
+        "model_sha256",
+        "artifact_sha256"
+      ],
+      "properties": {
+        "input_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "parameters_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "model_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "artifact_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "RECOMMENDATION"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "status_label_zh": {
+            "const": "建议"
+          },
+          "status_symbol": {
+            "const": "✓"
+          },
+          "status_color": {
+            "const": {
+              "background": "#005A3C",
+              "foreground": "#FFFFFF"
+            }
+          },
+          "action": {
+            "properties": {
+              "action_type": {
+                "const": "OWNER_FINAL_ORDER_ONLY"
+              },
+              "platform_zh": {
+                "type": "string"
+              },
+              "event_zh": {
+                "type": "string"
+              },
+              "market_zh": {
+                "type": "string"
+              },
+              "selection_zh": {
+                "type": "string"
+              },
+              "stake_cents": {
+                "minimum": 1
+              },
+              "observed_odds_decimal": {
+                "type": "string"
+              },
+              "minimum_odds_decimal": {
+                "type": "string"
+              }
+            }
+          },
+          "evidence": {
+            "properties": {
+              "status": {
+                "const": "COMPLETE"
+              },
+              "label_zh": {
+                "const": "证据已通过"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "status_label_zh": {
+            "const": "不建议"
+          },
+          "status_symbol": {
+            "const": "×"
+          },
+          "status_color": {
+            "const": {
+              "background": "#9B1C1C",
+              "foreground": "#FFFFFF"
+            }
+          },
+          "action": {
+            "properties": {
+              "action_type": {
+                "const": "NO_ACTION"
+              },
+              "platform_zh": {
+                "const": null
+              },
+              "event_zh": {
+                "const": null
+              },
+              "market_zh": {
+                "const": null
+              },
+              "selection_zh": {
+                "const": null
+              },
+              "stake_cents": {
+                "const": 0
+              },
+              "stake_display_zh": {
+                "const": "A$0.00"
+              },
+              "observed_odds_decimal": {
+                "const": null
+              },
+              "observed_odds_display_zh": {
+                "const": "不适用"
+              },
+              "minimum_odds_decimal": {
+                "const": null
+              },
+              "minimum_odds_display_zh": {
+                "const": "不适用"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "countdown": {
+            "properties": {
+              "state": {
+                "const": "EXPIRED"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          }
+        },
+        "required": [
+          "countdown"
+        ]
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "const": "NO_RECOMMENDATION"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "color_pair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "background",
+        "foreground"
+      ],
+      "properties": {
+        "background": {
+          "type": "string",
+          "pattern": "^#[0-9A-F]{6}$"
+        },
+        "foreground": {
+          "type": "string",
+          "pattern": "^#[0-9A-F]{6}$"
+        }
+      }
+    },
+    "reason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "title_zh",
+        "detail_zh",
+        "evidence_refs"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+        },
+        "title_zh": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 40
+        },
+        "detail_zh": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 160
+        },
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Z0-9._:/-]{2,127}$"
+          }
+        }
+      }
+    }
+  }
+}

@@ -23,6 +23,9 @@
 - `S02 整体复审` 已冻结并解决 4 条 findings，覆盖跨 Phase 来源图、历史 commit/收据重放、A$300/A$0、无自动下单、无收益保证、全回归与回滚门；GitHub 上传预检暴露的绝对本地路径变异测试跨平台缺口已通过 POSIX/Windows/UNC/file URI 统一拒绝规则修复；独立 Oracle 63/63、定向测试 339/339、全回归 2155/2155、TaskPack 49/49、付费依赖扫描与 13/13 回滚均为 `PASS`；Stage 2 已通过 GitHub PR #65 合并到 `main`，两条 main CI 成功记录、A$0 交付门和离线 Git 历史已固化为不可变交付收据；
 - `S03/P01` 已冻结 28 条中文术语与机器映射、5 类日常界面、3 条通用机器词拦截模式和逐词展示策略；含外部报告门的独立 Oracle 180/180、定向测试 164/164、全回归 2319/2319、TaskPack 49/49、付费依赖扫描与 5/5 回滚均为 `PASS`，下一状态严格为 `S03/P02_READY_NOT_STARTED`；本 Phase 仅本地开发，尚未上传 GitHub；
 - `S03/P01` 只冻结中文术语与界面暴露合同，不声称首页、建议卡、错误路径或无障碍界面已实现、部署或完成可用性验证；源代码、机器字段和不可渲染证据保留英文标识，任何进入用户界面的内容必须重新通过中文门；
+- `S03/P02` 已冻结每日唯一建议卡的 19 个根字段、7 段固定展示顺序、建议/不建议双色加文字与符号冗余、三态倒计时、四个首要答案、理由和五项失效条件；含外部报告门的独立 Oracle 194/194、定向测试 235/235、全回归 2554/2554、TaskPack 49/49、付费依赖扫描与 5/5 回滚均为 `PASS`，下一状态严格为 `S03/P03_READY_NOT_STARTED`；本 Phase 仅本地开发，尚未上传 GitHub；
+- `S03/P02` 的推荐样例全部是冻结的合成合同向量；结构化四答案扫描门只证明“做什么、在哪做、金额和最低赔率”位于固定首屏行动区，不冒充真人十秒理解、无障碍、跨设备或生产界面验收，这些仍属于 `S03/P04`；
+- `S03/P02` 未执行模型、选择真实市场、连接平台账户、部署界面或提交订单；任何输入缺失、过期、赔率不足、上游门失败或不利扰动动作翻转均降级为“不建议”，用户仍是唯一可完成最终下单的人；
 - `S02/P04` 与整体复审没有新增网络调研、访问平台或云账户、调用 API、clone/安装候选、执行模型、部署生产、提供真实下单能力或花费新增现金；30% 月度滚动复利目标仍为待证伪、未验证且不保证的目标；
 - `S01/P01` 至 `S01/P04` 只冻结客户体验、疑问、需求、范围、指标、经济和证伪合同，不证明产品已实现、部署、接入账户或验证收益；四个中间 Phase 均未单独上传 GitHub；
 - `S00/P02` 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
@@ -30,18 +33,18 @@
 - `S00/P04` 冻结 Gmail 可选 consent、精确 scope、方法白名单和降级状态机；本 phase 未生成 OAuth 链接、未访问账户、未取得或保存 token、未调用 Gmail API，Gmail 仍为 `NOT_CONNECTED / UNVERIFIED / NOT_READY`；
 - 当前禁止真实下单，30% 月度滚动复利只是待证伪和长期验证的目标，不是收益保证。
 
-当前 `S03/P01` 的定向与全回归验证命令：
+当前 `S03/P02` 的定向与全回归验证命令：
 
-`S02` 的远端交付前置由 PR #65、两条 main CI、不可变收据和离线 Git 历史共同重放；以下命令只列 `S03/P01` 的新增验证。
+`S02` 的远端交付前置和 `S03/P01` 的本地签名证据均由不可变收据与离线 Git 历史重放；以下命令只列 `S03/P02` 的新增验证。
 
 ```bash
 uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
 uv run --frozen --python 3.12 python machine/tools/validate_pack.py
-uv run --frozen --python 3.12 python -m pytest -q tests/S03/P01_test.py --junitxml=machine/evidence/S03/P01/pytest.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/P01/pytest.xml
-uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S03/P01/full_regression.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/P01/full_regression.xml
-uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S03-P01 --evidence machine/evidence
+uv run --frozen --python 3.12 python -m pytest -q tests/S03/P02_test.py --junitxml=machine/evidence/S03/P02/pytest.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/P02/pytest.xml
+uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S03/P02/full_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S03/P02/full_regression.xml
+uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S03-P02 --evidence machine/evidence
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 

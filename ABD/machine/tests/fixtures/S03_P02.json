@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "stage_id": "S03",
+  "phase_id": "P02",
+  "contract_id": "AC-S03-P02",
+  "requirement_id": "REQ-S03-P02",
+  "fixed_clock": "2026-07-20T09:00:00+10:00",
+  "expected_outputs": [
+    "advice_card_schema.json",
+    "advice_card_fixtures.json"
+  ],
+  "expected_artifacts": {
+    "ART-S03-P02-01": "advice_card_schema.json",
+    "ART-S03-P02-02": "advice_card_fixtures.json"
+  },
+  "expected_decision": "ADVICE_CARD_INFORMATION_CONTRACT_FROZEN",
+  "expected_phase_status": "S03_P02_PASS",
+  "expected_next": "S03/P03_READY_NOT_STARTED",
+  "expected_release_status": "NOT_READY_S03_P03_P04_AND_STAGE_REVIEW_REQUIRED",
+  "expected_ui_status": "SCHEMA_AND_DETERMINISTIC_PRESENTATION_MODEL_ONLY_NOT_DEPLOYED",
+  "expected_human_timing_status": "STRUCTURAL_INFORMATION_GATE_PASS_HUMAN_TIMING_DEFERRED_TO_S03_P04",
+  "expected_primary_answers": {
+    "what_zh": "演示甲队 对 演示乙队｜全场胜负｜演示甲队获胜",
+    "where_zh": "演示平台",
+    "amount_zh": "A$4.50",
+    "minimum_odds_zh": "最低可接受赔率2.050000"
+  },
+  "expected_no_recommendation_answers": {
+    "what_zh": "不下单",
+    "where_zh": "无需前往平台",
+    "amount_zh": "A$0.00",
+    "minimum_odds_zh": "不适用"
+  },
+  "expected_rollback_artifact_count": 5,
+  "expected_external_effect_boundary": {
+    "network_accessed": false,
+    "provider_account_accessed": false,
+    "gmail_account_accessed": false,
+    "hosting_or_cdn_account_accessed": false,
+    "model_executed": false,
+    "production_deployed": false,
+    "real_order_submitted": false,
+    "incremental_cash_spent_aud": "0.00",
+    "return_or_roi_verified": false,
+    "human_usability_timing_verified": false
+  },
+  "required_explicit_unknown_fragments": [
+    "no web, mobile, notification or browser interface has been implemented or deployed",
+    "not a human ten-second timing study",
+    "S03/P03",
+    "synthetic contract vectors",
+    "TAB, Gmail, OVH and Cloudflare",
+    "30% monthly compounding target"
+  ],
+  "expected_oracle_check_minimum": 120,
+  "minimum_targeted_pytest_cases": 140,
+  "minimum_full_pytest_cases": 2400
+}
