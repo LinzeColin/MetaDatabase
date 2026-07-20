@@ -31,6 +31,7 @@ class Foundation002Tests(unittest.TestCase):
         self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.foundation.002")
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S01-F002")
         self.assertEqual(VERIFY.TASK_BASE_COMMIT, "69130c1db9946850b23e1c78f771129eb094eea2")
+        self.assertEqual(VERIFY.FINAL_COMMIT, "ae17e377090ef3bc1123d2512cda0daef9efe1cb")
         self.assertNotIn("apps/extension/", VERIFY.ALLOWED_CHANGED_PREFIXES)
         self.assertNotIn("apps/companion/", VERIFY.ALLOWED_CHANGED_PREFIXES)
 
@@ -38,8 +39,12 @@ class Foundation002Tests(unittest.TestCase):
         state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
         self.assertEqual(state["current_stage_gate"], "not_run")
         self.assertEqual(state["current_stage_remote_upload"], "forbidden_until_g1_pass")
-        for acceptance_id in ("ACC.x2n.ext.003", "ACC.x2n.data.001", "ACC.x2n.data.003"):
+        for acceptance_id in ("ACC.x2n.ext.003", "ACC.x2n.data.003"):
             self.assertIn("downstream_not_run", state["acceptance_status"][acceptance_id])
+        self.assertEqual(
+            state["acceptance_status"]["ACC.x2n.data.001"],
+            "pass_sqlite_store_scope_schema_fk_unique_integrity",
+        )
 
     def test_contract_dependency_sbom_is_reproducible(self) -> None:
         result = subprocess.run(

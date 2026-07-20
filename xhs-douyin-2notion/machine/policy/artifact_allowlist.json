@@ -27,7 +27,10 @@
     "scripts/verify_stage_0_review_resume.py",
     "scripts/verify_foundation_001.py",
     "scripts/verify_foundation_002.py",
+    "scripts/verify_foundation_003.py",
     "scripts/generate_foundation_002_sbom.py",
+    "scripts/generate_foundation_003_schema.py",
+    "scripts/run_foundation_003_acceptance.py",
     "scripts/public_source_snapshot.py",
     "future_shared_governance_ci"
   ]

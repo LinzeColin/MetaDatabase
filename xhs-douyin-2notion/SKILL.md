@@ -28,7 +28,7 @@ Notion writes, model calls, media handling, or mutation of another project.
 - Execute at most one Task and its Acceptance per ordinary Run. Do not push an
   intermediate Stage branch before its Stage Review passes.
 
-## Current capability: Stage 1 scaffold + Contract only
+## Current capability: Stage 1 scaffold + Contract + Canonical Store
 
 Run these commands from the project root. They perform deterministic,
 network-free scaffold rehearsals; they do not install a released product or
@@ -52,9 +52,25 @@ python3.12 -B scripts/verify_foundation_002.py --verify-worktree --allow-externa
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Foundation.002 只新增 `1.0` Pydantic/JSON Schema/TypeScript Contract、错误码
-Registry 与合成 fuzz。它可以验证消息和数据形状，但不会启动 Native Host、创建 Job、
-写 SQLite、连接平台或写 Markdown/Notion；这些能力仍是 `DOWNSTREAM_NOT_RUN`。
+Foundation.002 的历史范围仍只证明 `1.0` Contract。Foundation.003 已新增仓库外
+Private Runtime、SQLite Schema v2、Migration、Request Ledger、Outbox/Lease 与本地
+Backup/Restore；它不启动 Native Host/Worker，不连接平台，也不写 Markdown/Notion。
+
+Store 命令只从显式环境变量解析唯一私有根，没有路径参数或默认目录：
+
+```bash
+export X2N_DOWNLOAD_DESTINATION="<owner-private-download-destination>"
+export X2N_DATA_ROOT="${X2N_DOWNLOAD_DESTINATION}/xhs-douyin-2notion"
+export PYTHONPATH="apps/companion/src:packages/contracts/src"
+
+python3.12 -B -m x2n_companion.runtime_cli init
+python3.12 -B -m x2n_companion.runtime_cli health
+python3.12 -B -m x2n_companion.runtime_cli backup --label manual
+python3.12 -B -m x2n_companion.runtime_cli recover
+```
+
+降级、恢复和 Recovery apply 都要求命令定义的显式确认值；Backup ID/Hash 来自私有
+命令回执，不得复制到公共证据。当前同盘备份只证明本地恢复，不能称为异地灾备。
 
 ## Failure protocol
 
@@ -68,13 +84,14 @@ name, or private content while diagnosing.
 - `install`: validates the source scaffold and required local tools; writes
   nothing.
 - `canary --synthetic`: validates only the registered synthetic fixture.
-- `upgrade --dry-run` and `rollback --dry-run`: rehearse source-layout checks;
-  no version or data changes occur.
+- `upgrade --dry-run` and scaffold `rollback --dry-run`: still rehearse source layout only.
+- Store migration/downgrade/restore: real Private Runtime operations with verified local backup,
+  explicit confirmation, integrity checks, and no public path output.
 - `diagnose`: reports capability booleans and stable codes, never paths or
   secrets.
 - `uninstall --dry-run --retain-data`: documents the future safe default. It
   removes nothing and preserves all data.
 
-Real install, real Canary, migration, rollback, diagnostics bundle, uninstall,
-and data-retention behavior remain `DOWNSTREAM_NOT_RUN` and must not be
-reported as PASS until their own Tasks and Acceptance run.
+Native Host install, real platform Canary, diagnostics bundle, uninstall,
+Markdown/Notion reconciliation and full data-retention behavior remain
+`DOWNSTREAM_NOT_RUN` and must not be reported as PASS until their own Tasks run.

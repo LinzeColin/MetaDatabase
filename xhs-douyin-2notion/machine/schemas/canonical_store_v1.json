@@ -1,0 +1,275 @@
+{
+  "contract_version": "1.0",
+  "database_schema_version": 2,
+  "forbidden_persistent_fields": [
+    "cookie",
+    "credentials",
+    "media_cdn_url",
+    "raw_media",
+    "token"
+  ],
+  "migration_set_sha256": "60affcd826fa82ca431285789a1d6ea581ed7fbf924626edcff913c3bbb3e997",
+  "object_counts": {
+    "index": 9,
+    "table": 17,
+    "trigger": 15
+  },
+  "objects": [
+    {
+      "name": "idx_artifact_content",
+      "sql": "CREATE INDEX idx_artifact_content ON artifact(content_key, artifact_type, artifact_sequence)",
+      "table": "artifact",
+      "type": "index"
+    },
+    {
+      "name": "idx_checkpoint_resume",
+      "sql": "CREATE INDEX idx_checkpoint_resume ON checkpoint(adapter_name, account_ref_hash, relation_type, state)",
+      "table": "checkpoint",
+      "type": "index"
+    },
+    {
+      "name": "idx_classification_content",
+      "sql": "CREATE INDEX idx_classification_content ON classification(content_key, created_at)",
+      "table": "classification",
+      "type": "index"
+    },
+    {
+      "name": "idx_media_lease_expiry",
+      "sql": "CREATE INDEX idx_media_lease_expiry ON media_lease(status, expires_at)",
+      "table": "media_lease",
+      "type": "index"
+    },
+    {
+      "name": "idx_observation_content",
+      "sql": "CREATE INDEX idx_observation_content ON source_observation(content_key, observed_at)",
+      "table": "source_observation",
+      "type": "index"
+    },
+    {
+      "name": "idx_outbox_claim",
+      "sql": "CREATE INDEX idx_outbox_claim ON outbox_event(status, not_before, created_at)",
+      "table": "outbox_event",
+      "type": "index"
+    },
+    {
+      "name": "idx_outbox_lease",
+      "sql": "CREATE INDEX idx_outbox_lease ON outbox_event(status, lease_expires_at)",
+      "table": "outbox_event",
+      "type": "index"
+    },
+    {
+      "name": "idx_receipt_content",
+      "sql": "CREATE INDEX idx_receipt_content ON sink_receipt(content_key, sink, delivered_at)",
+      "table": "sink_receipt",
+      "type": "index"
+    },
+    {
+      "name": "idx_relation_content",
+      "sql": "CREATE INDEX idx_relation_content ON user_relation(content_key, status)",
+      "table": "user_relation",
+      "type": "index"
+    },
+    {
+      "name": "account_ref",
+      "sql": "CREATE TABLE account_ref ( account_ref_hash TEXT PRIMARY KEY CHECK(length(account_ref_hash) = 64 AND account_ref_hash NOT GLOB '*[^0-9a-f]*'), platform TEXT NOT NULL CHECK(platform IN ('xiaohongshu','douyin','bilibili','kuaishou','weibo','taobao')), created_at TEXT NOT NULL ) STRICT",
+      "table": "account_ref",
+      "type": "table"
+    },
+    {
+      "name": "artifact",
+      "sql": "CREATE TABLE artifact ( artifact_id TEXT PRIMARY KEY, artifact_key TEXT NOT NULL UNIQUE, content_key TEXT NOT NULL REFERENCES content(content_key), artifact_type TEXT NOT NULL CHECK(artifact_type IN ('transcript','ocr','vision','fusion_summary','search_text')), input_hash TEXT NOT NULL CHECK(length(input_hash) = 64 AND input_hash NOT GLOB '*[^0-9a-f]*'), processor TEXT NOT NULL, processor_version TEXT NOT NULL, model_provider TEXT, model_name TEXT, model_snapshot TEXT, prompt_version TEXT, language TEXT, private_payload_present INTEGER NOT NULL CHECK(private_payload_present IN (0,1)), private_payload_ref TEXT, private_payload_hash TEXT CHECK(private_payload_hash IS NULL OR (length(private_payload_hash) = 64 AND private_payload_hash NOT GLOB '*[^0-9a-f]*')), artifact_sequence INTEGER NOT NULL CHECK(artifact_sequence >= 1), created_at TEXT NOT NULL, supersedes_artifact_id TEXT REFERENCES artifact(artifact_id), payload_json TEXT NOT NULL, payload_sha256 TEXT NOT NULL CHECK(length(payload_sha256) = 64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'), UNIQUE(content_key, artifact_type, artifact_sequence), CHECK((private_payload_present = 1 AND private_payload_ref IS NOT NULL AND private_payload_hash IS NOT NULL) OR (private_payload_present = 0 AND private_payload_ref IS NULL AND private_payload_hash IS NULL)), CHECK(supersedes_artifact_id IS NULL OR supersedes_artifact_id <> artifact_id) ) STRICT",
+      "table": "artifact",
+      "type": "table"
+    },
+    {
+      "name": "checkpoint",
+      "sql": "CREATE TABLE checkpoint ( checkpoint_id TEXT PRIMARY KEY, adapter_name TEXT NOT NULL, adapter_version TEXT NOT NULL, account_ref_hash TEXT NOT NULL REFERENCES account_ref(account_ref_hash), relation_type TEXT NOT NULL CHECK(relation_type IN ('liked','favorited','saved_current')), cursor_kind TEXT NOT NULL, cursor_value_private TEXT, last_stable_content_id TEXT, full_scan_id TEXT, observed_count INTEGER NOT NULL CHECK(observed_count >= 0), completion_confidence REAL NOT NULL CHECK(completion_confidence >= 0.0 AND completion_confidence <= 1.0), resume_compatibility_version TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('active','complete','invalidated')), created_at TEXT NOT NULL, updated_at TEXT NOT NULL ) STRICT",
+      "table": "checkpoint",
+      "type": "table"
+    },
+    {
+      "name": "classification",
+      "sql": "CREATE TABLE classification ( classification_id TEXT PRIMARY KEY, content_key TEXT NOT NULL REFERENCES content(content_key), taxonomy_version INTEGER NOT NULL CHECK(taxonomy_version >= 1), primary_category_id TEXT NOT NULL REFERENCES taxonomy_category(category_id), decision_mode TEXT NOT NULL CHECK(decision_mode IN ('rule','model','hybrid','human')), confidence_raw REAL CHECK(confidence_raw IS NULL OR (confidence_raw >= 0.0 AND confidence_raw <= 1.0)), calibration_bucket TEXT, review_status TEXT NOT NULL CHECK(review_status IN ('auto_accepted','suggested','owner_confirmed','owner_corrected')), created_at TEXT NOT NULL, supersedes_classification_id TEXT REFERENCES classification(classification_id), payload_json TEXT NOT NULL, payload_sha256 TEXT NOT NULL CHECK(length(payload_sha256) = 64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'), CHECK(supersedes_classification_id IS NULL OR supersedes_classification_id <> classification_id) ) STRICT",
+      "table": "classification",
+      "type": "table"
+    },
+    {
+      "name": "classification_artifact",
+      "sql": "CREATE TABLE classification_artifact ( classification_id TEXT NOT NULL REFERENCES classification(classification_id), artifact_id TEXT NOT NULL REFERENCES artifact(artifact_id), PRIMARY KEY(classification_id, artifact_id) ) WITHOUT ROWID, STRICT",
+      "table": "classification_artifact",
+      "type": "table"
+    },
+    {
+      "name": "content",
+      "sql": "CREATE TABLE content ( content_key TEXT PRIMARY KEY, platform TEXT NOT NULL CHECK(platform IN ('xiaohongshu','douyin','bilibili','kuaishou','weibo','taobao')), platform_content_id TEXT NOT NULL, canonical_source_url TEXT NOT NULL CHECK(canonical_source_url LIKE 'https://%/%' AND instr(canonical_source_url, '?') = 0 AND instr(canonical_source_url, '#') = 0), content_type TEXT NOT NULL CHECK(content_type IN ('text','image_gallery','video','mixed','unknown')), title TEXT, description TEXT, author_name TEXT, author_platform_id TEXT, published_at TEXT, content_hash TEXT NOT NULL CHECK(length(content_hash) = 64 AND content_hash NOT GLOB '*[^0-9a-f]*'), first_observed_at TEXT NOT NULL, last_observed_at TEXT NOT NULL, record_version INTEGER NOT NULL CHECK(record_version >= 1), status TEXT NOT NULL CHECK(status IN ('active','unavailable','unknown','deleted_by_user')), payload_json TEXT NOT NULL, payload_sha256 TEXT NOT NULL CHECK(length(payload_sha256) = 64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'), created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(platform, platform_content_id), CHECK(content_key = platform || ':' || platform_content_id), CHECK(first_observed_at <= last_observed_at) ) STRICT",
+      "table": "content",
+      "type": "table"
+    },
+    {
+      "name": "media_lease",
+      "sql": "CREATE TABLE media_lease ( lease_id TEXT PRIMARY KEY, run_id TEXT NOT NULL REFERENCES run_record(run_id), content_key TEXT NOT NULL REFERENCES content(content_key), purpose TEXT NOT NULL, content_hash TEXT NOT NULL CHECK(length(content_hash) = 64 AND content_hash NOT GLOB '*[^0-9a-f]*'), mime TEXT NOT NULL, size_bytes INTEGER NOT NULL CHECK(size_bytes >= 0), duration_seconds REAL CHECK(duration_seconds IS NULL OR duration_seconds >= 0.0), created_at TEXT NOT NULL, expires_at TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('active','processing','cleanup_pending','deleted','expired','blocked_policy')), local_relative_path TEXT NOT NULL CHECK(substr(local_relative_path, 1, 1) <> '/' AND instr(local_relative_path, '..') = 0 AND instr(local_relative_path, '://') = 0), cleanup_error_code TEXT, CHECK(created_at <= expires_at) ) STRICT",
+      "table": "media_lease",
+      "type": "table"
+    },
+    {
+      "name": "notion_mapping",
+      "sql": "CREATE TABLE notion_mapping ( content_key TEXT PRIMARY KEY REFERENCES content(content_key), notion_page_ref_private TEXT NOT NULL UNIQUE, external_ref_hash TEXT NOT NULL CHECK(length(external_ref_hash) = 64 AND external_ref_hash NOT GLOB '*[^0-9a-f]*'), created_at TEXT NOT NULL, updated_at TEXT NOT NULL ) STRICT",
+      "table": "notion_mapping",
+      "type": "table"
+    },
+    {
+      "name": "outbox_event",
+      "sql": "CREATE TABLE outbox_event ( event_id TEXT PRIMARY KEY, event_key TEXT NOT NULL UNIQUE, sink TEXT NOT NULL CHECK(sink IN ('markdown','notion')), content_key TEXT NOT NULL REFERENCES content(content_key), desired_projection_hash TEXT NOT NULL CHECK(length(desired_projection_hash) = 64 AND desired_projection_hash NOT GLOB '*[^0-9a-f]*'), sink_schema_version TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('pending','leased','delivered','dead_letter','cancelled')), attempt_count INTEGER NOT NULL DEFAULT 0 CHECK(attempt_count >= 0), not_before TEXT NOT NULL, lease_id TEXT, lease_owner TEXT, lease_expires_at TEXT, last_error_code TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(sink, content_key, desired_projection_hash, sink_schema_version), CHECK((status = 'leased' AND lease_id IS NOT NULL AND lease_owner IS NOT NULL AND lease_expires_at IS NOT NULL) OR (status <> 'leased' AND lease_id IS NULL AND lease_owner IS NULL AND lease_expires_at IS NULL)) ) STRICT",
+      "table": "outbox_event",
+      "type": "table"
+    },
+    {
+      "name": "recovery_event",
+      "sql": "CREATE TABLE recovery_event ( event_id TEXT PRIMARY KEY, created_at TEXT NOT NULL, quick_check TEXT NOT NULL CHECK(quick_check = 'ok'), integrity_check TEXT NOT NULL CHECK(integrity_check = 'ok'), expired_outbox_leases INTEGER NOT NULL CHECK(expired_outbox_leases >= 0), expired_media_leases INTEGER NOT NULL CHECK(expired_media_leases >= 0), running_jobs INTEGER NOT NULL CHECK(running_jobs >= 0), result_hash TEXT NOT NULL CHECK(length(result_hash) = 64 AND result_hash NOT GLOB '*[^0-9a-f]*') ) STRICT",
+      "table": "recovery_event",
+      "type": "table"
+    },
+    {
+      "name": "request_ledger",
+      "sql": "CREATE TABLE request_ledger ( request_id TEXT PRIMARY KEY, payload_hash TEXT NOT NULL CHECK(length(payload_hash) = 64 AND payload_hash NOT GLOB '*[^0-9a-f]*'), job_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL ) STRICT",
+      "table": "request_ledger",
+      "type": "table"
+    },
+    {
+      "name": "run_record",
+      "sql": "CREATE TABLE run_record ( run_id TEXT PRIMARY KEY, run_kind TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('pending','running','succeeded','failed','cancelled','recovery')), input_manifest_hash TEXT CHECK(input_manifest_hash IS NULL OR (length(input_manifest_hash) = 64 AND input_manifest_hash NOT GLOB '*[^0-9a-f]*')), started_at TEXT NOT NULL, finished_at TEXT, created_at TEXT NOT NULL, CHECK((state IN ('pending','running','recovery') AND finished_at IS NULL) OR (state IN ('succeeded','failed','cancelled') AND finished_at IS NOT NULL)) ) STRICT",
+      "table": "run_record",
+      "type": "table"
+    },
+    {
+      "name": "schema_migration",
+      "sql": "CREATE TABLE schema_migration ( version INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, checksum TEXT NOT NULL, applied_at TEXT NOT NULL ) STRICT",
+      "table": "schema_migration",
+      "type": "table"
+    },
+    {
+      "name": "sink_receipt",
+      "sql": "CREATE TABLE sink_receipt ( receipt_id TEXT PRIMARY KEY, sink_key TEXT NOT NULL, sink TEXT NOT NULL CHECK(sink IN ('markdown','notion')), content_key TEXT NOT NULL REFERENCES content(content_key), sink_schema_version TEXT NOT NULL, desired_projection_hash TEXT NOT NULL CHECK(length(desired_projection_hash) = 64 AND desired_projection_hash NOT GLOB '*[^0-9a-f]*'), output_hash TEXT NOT NULL CHECK(length(output_hash) = 64 AND output_hash NOT GLOB '*[^0-9a-f]*'), sink_object_ref TEXT NOT NULL, external_ref_hash TEXT CHECK(external_ref_hash IS NULL OR (length(external_ref_hash) = 64 AND external_ref_hash NOT GLOB '*[^0-9a-f]*')), status TEXT NOT NULL CHECK(status IN ('delivered','verified','failed')), delivered_at TEXT NOT NULL, run_id TEXT NOT NULL REFERENCES run_record(run_id), payload_json TEXT NOT NULL, payload_sha256 TEXT NOT NULL CHECK(length(payload_sha256) = 64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'), UNIQUE(sink, content_key, desired_projection_hash, sink_schema_version), CHECK((sink = 'notion' AND external_ref_hash IS NOT NULL) OR (sink = 'markdown' AND external_ref_hash IS NULL)) ) STRICT",
+      "table": "sink_receipt",
+      "type": "table"
+    },
+    {
+      "name": "source_observation",
+      "sql": "CREATE TABLE source_observation ( observation_id TEXT PRIMARY KEY, content_key TEXT NOT NULL REFERENCES content(content_key), adapter_name TEXT NOT NULL, adapter_version TEXT NOT NULL, source_method TEXT NOT NULL CHECK(source_method IN ('current_page','selected_collection','adapter_supplement')), observed_at TEXT NOT NULL, raw_text_hash TEXT NOT NULL CHECK(length(raw_text_hash) = 64 AND raw_text_hash NOT GLOB '*[^0-9a-f]*'), completeness REAL NOT NULL CHECK(completeness >= 0.0 AND completeness <= 1.0), run_id TEXT NOT NULL REFERENCES run_record(run_id), payload_json TEXT NOT NULL, payload_sha256 TEXT NOT NULL CHECK(length(payload_sha256) = 64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'), created_at TEXT NOT NULL ) STRICT",
+      "table": "source_observation",
+      "type": "table"
+    },
+    {
+      "name": "taxonomy_category",
+      "sql": "CREATE TABLE taxonomy_category ( category_id TEXT PRIMARY KEY, name TEXT NOT NULL COLLATE NOCASE UNIQUE, slug TEXT NOT NULL UNIQUE, priority INTEGER NOT NULL, enabled INTEGER NOT NULL CHECK(enabled IN (0,1)), version INTEGER NOT NULL CHECK(version >= 1), level INTEGER NOT NULL CHECK(level = 1), created_by TEXT NOT NULL CHECK(created_by = 'owner'), payload_json TEXT NOT NULL, payload_sha256 TEXT NOT NULL CHECK(length(payload_sha256) = 64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'), created_at TEXT NOT NULL, updated_at TEXT NOT NULL ) STRICT",
+      "table": "taxonomy_category",
+      "type": "table"
+    },
+    {
+      "name": "user_relation",
+      "sql": "CREATE TABLE user_relation ( relation_key TEXT PRIMARY KEY, account_ref_hash TEXT NOT NULL REFERENCES account_ref(account_ref_hash), content_key TEXT NOT NULL REFERENCES content(content_key), relation_type TEXT NOT NULL CHECK(relation_type IN ('liked','favorited','saved_current')), source_collection_id TEXT, source_collection_name_private TEXT, first_seen_at TEXT NOT NULL, last_seen_at TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('active','unknown','tombstone_candidate','removed')), confirmed_by TEXT NOT NULL CHECK(confirmed_by IN ('scan','owner')), scan_receipt_id TEXT NOT NULL, payload_json TEXT NOT NULL, payload_sha256 TEXT NOT NULL CHECK(length(payload_sha256) = 64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'), created_at TEXT NOT NULL, updated_at TEXT NOT NULL, CHECK(first_seen_at <= last_seen_at), CHECK(source_collection_name_private IS NULL OR source_collection_id IS NOT NULL) ) STRICT",
+      "table": "user_relation",
+      "type": "table"
+    },
+    {
+      "name": "artifact_no_delete",
+      "sql": "CREATE TRIGGER artifact_no_delete BEFORE DELETE ON artifact BEGIN SELECT RAISE(ABORT, 'X2N_ARTIFACT_APPEND_ONLY'); END",
+      "table": "artifact",
+      "type": "trigger"
+    },
+    {
+      "name": "artifact_no_update",
+      "sql": "CREATE TRIGGER artifact_no_update BEFORE UPDATE ON artifact BEGIN SELECT RAISE(ABORT, 'X2N_ARTIFACT_APPEND_ONLY'); END",
+      "table": "artifact",
+      "type": "trigger"
+    },
+    {
+      "name": "classification_no_delete",
+      "sql": "CREATE TRIGGER classification_no_delete BEFORE DELETE ON classification BEGIN SELECT RAISE(ABORT, 'X2N_CLASSIFICATION_APPEND_ONLY'); END",
+      "table": "classification",
+      "type": "trigger"
+    },
+    {
+      "name": "classification_no_update",
+      "sql": "CREATE TRIGGER classification_no_update BEFORE UPDATE ON classification BEGIN SELECT RAISE(ABORT, 'X2N_CLASSIFICATION_APPEND_ONLY'); END",
+      "table": "classification",
+      "type": "trigger"
+    },
+    {
+      "name": "content_no_delete",
+      "sql": "CREATE TRIGGER content_no_delete BEFORE DELETE ON content BEGIN SELECT RAISE(ABORT, 'X2N_CONTENT_PHYSICAL_DELETE_BLOCKED'); END",
+      "table": "content",
+      "type": "trigger"
+    },
+    {
+      "name": "observation_no_delete",
+      "sql": "CREATE TRIGGER observation_no_delete BEFORE DELETE ON source_observation BEGIN SELECT RAISE(ABORT, 'X2N_OBSERVATION_APPEND_ONLY'); END",
+      "table": "source_observation",
+      "type": "trigger"
+    },
+    {
+      "name": "observation_no_update",
+      "sql": "CREATE TRIGGER observation_no_update BEFORE UPDATE ON source_observation BEGIN SELECT RAISE(ABORT, 'X2N_OBSERVATION_APPEND_ONLY'); END",
+      "table": "source_observation",
+      "type": "trigger"
+    },
+    {
+      "name": "outbox_no_delete",
+      "sql": "CREATE TRIGGER outbox_no_delete BEFORE DELETE ON outbox_event BEGIN SELECT RAISE(ABORT, 'X2N_OUTBOX_DELETE_BLOCKED'); END",
+      "table": "outbox_event",
+      "type": "trigger"
+    },
+    {
+      "name": "receipt_no_delete",
+      "sql": "CREATE TRIGGER receipt_no_delete BEFORE DELETE ON sink_receipt BEGIN SELECT RAISE(ABORT, 'X2N_RECEIPT_APPEND_ONLY'); END",
+      "table": "sink_receipt",
+      "type": "trigger"
+    },
+    {
+      "name": "receipt_no_update",
+      "sql": "CREATE TRIGGER receipt_no_update BEFORE UPDATE ON sink_receipt BEGIN SELECT RAISE(ABORT, 'X2N_RECEIPT_APPEND_ONLY'); END",
+      "table": "sink_receipt",
+      "type": "trigger"
+    },
+    {
+      "name": "recovery_event_no_delete",
+      "sql": "CREATE TRIGGER recovery_event_no_delete BEFORE DELETE ON recovery_event BEGIN SELECT RAISE(ABORT, 'X2N_RECOVERY_EVENT_APPEND_ONLY'); END",
+      "table": "recovery_event",
+      "type": "trigger"
+    },
+    {
+      "name": "recovery_event_no_update",
+      "sql": "CREATE TRIGGER recovery_event_no_update BEFORE UPDATE ON recovery_event BEGIN SELECT RAISE(ABORT, 'X2N_RECOVERY_EVENT_APPEND_ONLY'); END",
+      "table": "recovery_event",
+      "type": "trigger"
+    },
+    {
+      "name": "relation_no_delete",
+      "sql": "CREATE TRIGGER relation_no_delete BEFORE DELETE ON user_relation BEGIN SELECT RAISE(ABORT, 'X2N_RELATION_PHYSICAL_DELETE_BLOCKED'); END",
+      "table": "user_relation",
+      "type": "trigger"
+    },
+    {
+      "name": "request_ledger_no_delete",
+      "sql": "CREATE TRIGGER request_ledger_no_delete BEFORE DELETE ON request_ledger BEGIN SELECT RAISE(ABORT, 'X2N_REQUEST_LEDGER_APPEND_ONLY'); END",
+      "table": "request_ledger",
+      "type": "trigger"
+    },
+    {
+      "name": "request_ledger_no_update",
+      "sql": "CREATE TRIGGER request_ledger_no_update BEFORE UPDATE ON request_ledger BEGIN SELECT RAISE(ABORT, 'X2N_REQUEST_LEDGER_APPEND_ONLY'); END",
+      "table": "request_ledger",
+      "type": "trigger"
+    }
+  ],
+  "schema_sha256": "303603d7aa234734b45309cdfb14401e78bdb9590ac8300a0b752137dde7229d",
+  "schema_version": "1.0",
+  "sqlite_mode": {
+    "busy_timeout_required": true,
+    "foreign_keys": true,
+    "integrity_check": "required",
+    "journal_mode": "wal",
+    "synchronous": "full"
+  },
+  "truth_source": "local_sqlite_canonical_store"
+}

@@ -28,6 +28,7 @@ class Foundation001Tests(unittest.TestCase):
     def test_declared_task_scope_is_exact(self) -> None:
         self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.foundation.001")
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S01-F001")
+        self.assertEqual(VERIFY.FINAL_COMMIT, "69130c1db9946850b23e1c78f771129eb094eea2")
         self.assertNotIn("packages/contracts/src", VERIFY.ALLOWED_CHANGED_PREFIXES)
 
     def test_scaffold_remains_permission_free_with_only_registered_contract_dependencies(self) -> None:

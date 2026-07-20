@@ -23,6 +23,7 @@ TASK_ID = "TSK.x2n.foundation.001"
 RUN_ID = "RUN-X2N-S01-F001"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s01-foundation001"
 BASE_COMMIT = "f1e5016a4e1bba10c86d8dd017868d5d64835f42"
+FINAL_COMMIT = "69130c1db9946850b23e1c78f771129eb094eea2"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 ACCEPTANCE_DOC = PROJECT_ROOT / "docs/product_design/v0.0.0.1/04_ACCEPTANCE_CONTRACT_TRACEABILITY.md"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
@@ -175,11 +176,11 @@ def validate_governance() -> Check:
     for relative in ("功能清单.md", "开发记录.md", "模型参数文件.md", "machine/facts/project.json", "machine/facts/task_state.json"):
         _require((PROJECT_ROOT / relative).is_file(), "governance registration file missing")
 
-    status_paths = _porcelain_paths(
-        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
-    )
-    committed_paths = _git(["-c", "core.quotePath=false", "diff", "--name-only", f"{BASE_COMMIT}...HEAD"]).splitlines()
-    changed = sorted(set(status_paths + committed_paths))
+    # Scope is historical: later DAG Tasks must not be attributed to
+    # foundation.001 merely because this verifier is run from the live tree.
+    changed = _git(
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{BASE_COMMIT}..{FINAL_COMMIT}"]
+    ).splitlines()
     relative_changes: list[str] = []
     for path in changed:
         relative = _project_relative(path)
@@ -267,7 +268,26 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         is not None,
         "wrong or authenticated persisted origin",
     )
-    _git(["cat-file", "-e", f"{BASE_COMMIT}^{{commit}}"])
+    for commit in (BASE_COMMIT, FINAL_COMMIT):
+        _git(["cat-file", "-e", f"{commit}^{{commit}}"])
+    _require(
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", BASE_COMMIT, FINAL_COMMIT],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+        ).returncode
+        == 0,
+        "foundation.001 final commit no longer descends from its recorded base",
+    )
+    _require(
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+        ).returncode
+        == 0,
+        "foundation branch no longer contains the verified foundation.001 commit",
+    )
     base_is_ancestor = subprocess.run(
         ["git", "merge-base", "--is-ancestor", BASE_COMMIT, "HEAD"],
         cwd=REPOSITORY_ROOT,
@@ -328,15 +348,16 @@ def validate_task_and_state() -> Check:
         "Task dependency drifted",
     )
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.gov.001", "ACC.x2n.rel.008"], "Task Acceptance drifted")
-    _require("  status: STAGE_1_FOUNDATION_002_COMPLETE_G1_NOT_RUN\n" in taskpack_text, "Taskpack status drifted")
+    _require("  status: STAGE_1_FOUNDATION_003_COMPLETE_G1_NOT_RUN\n" in taskpack_text, "Taskpack status drifted")
 
     state = _load_json(TASK_STATE)
-    _require(state.get("schema_version") == "1.4", "task state schema drifted")
-    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.2", "current Stage state drifted")
-    _require(state.get("run_id") == "RUN-X2N-S01-F002" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
+    _require(state.get("schema_version") == "1.5", "task state schema drifted")
+    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.3", "current Stage state drifted")
+    _require(state.get("run_id") == "RUN-X2N-S01-F003" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "foundation Task state is not pass")
     _require(state.get("tasks", {}).get("TSK.x2n.foundation.002") == "pass", "foundation.002 Task state is not pass")
-    _require(state.get("next_phase") == "PH.X2N.1.3" and state.get("next_run") == "TSK.x2n.foundation.003", "next Task routing drifted")
+    _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task state is not pass")
+    _require(state.get("next_phase") == "PH.X2N.1.4" and state.get("next_run") == "TSK.x2n.foundation.004", "next Task routing drifted")
     _require(state.get("next_phase_authorized") is True, "next Task authorization missing")
     _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
     acceptances = state.get("acceptance_status", {})
@@ -347,13 +368,13 @@ def validate_task_and_state() -> Check:
     )
 
     project = _load_json(PROJECT_FACT)
-    _require(project.get("status") == "stage_1_foundation_002_complete_g1_not_run", "project state drifted")
+    _require(project.get("status") == "stage_1_foundation_003_complete_g1_not_run", "project state drifted")
     return Check(
         "task_state",
         "PASS",
         {
             "acceptance_scope": "CURRENT_SCAFFOLD_ONLY",
-            "next_task": "TSK.x2n.foundation.003",
+            "next_task": "TSK.x2n.foundation.004",
             "product_lifecycle": "DOWNSTREAM_NOT_RUN",
             "task": TASK_ID,
         },

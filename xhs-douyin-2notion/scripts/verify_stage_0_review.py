@@ -305,8 +305,8 @@ def validate_canonical_boundaries() -> Check:
     if architecture.get("implementation_started") is False:
         _require(architecture.get("status") == "accepted_design_not_implemented", "historical architecture status drifted")
     else:
-        _require(architecture.get("status") == "foundation_contracts_started", "foundation architecture status drifted")
-        _require(architecture.get("implementation_scope") == "TSK.x2n.foundation.001-002_contracts_only", "foundation implementation scope overstated")
+        _require(architecture.get("status") == "foundation_003_canonical_store_implemented_g1_not_run", "foundation architecture status drifted")
+        _require(architecture.get("implementation_scope") == "TSK.x2n.foundation.001-003_scaffold_contracts_and_canonical_store", "foundation implementation scope overstated")
         _require(architecture.get("real_account_execution") is False and architecture.get("stage_gate") == "g1_not_run", "foundation Gate/account status overstated")
     stop_kill = _load_json(STOP_KILL)
     _require([item.get("id") for item in stop_kill.get("rules", [])] == [f"SK-X2N-{index:03d}" for index in range(1, 21)], "Stop/Kill rule set drifted")
@@ -460,13 +460,14 @@ def validate_current_state() -> Check:
         _require(project.get("status") == "stage_0_g0_pass_stage_1_authorized", "project fact does not reflect G0 pass")
         details = {"review": "RESUME_COMPLETE", "g0": "PASS", "stage_1_authorized": True, "remote_upload": "AUTHORIZED"}
     else:
-        _require(state.get("schema_version") == "1.4", "unsupported current task state")
+        _require(state.get("schema_version") == "1.5", "unsupported current task state")
         _require(state.get("review_id") == RESUME_ID, "G0 Resume identity was lost")
-        _require(state.get("run_id") == "RUN-X2N-S01-F002" and state.get("run_kind") == "single_dag_task", "foundation Run identity mismatch")
-        _require(state.get("stage") == "STG.X2N.1" and state.get("state") == "stage_1_foundation_002_pass_g1_not_run", "current Stage state is invalid")
+        _require(state.get("run_id") == "RUN-X2N-S01-F003" and state.get("run_kind") == "single_dag_task", "foundation Run identity mismatch")
+        _require(state.get("stage") == "STG.X2N.1" and state.get("state") == "stage_1_foundation_003_pass_g1_not_run", "current Stage state is invalid")
         _require(state.get("stage_1_authorized") is True and state.get("next_phase_authorized") is True, "Stage 1 authorization drifted")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.002") == "pass", "foundation.002 Task is not pass")
-        _require(state.get("next_phase") == "PH.X2N.1.3" and state.get("next_run") == "TSK.x2n.foundation.003", "foundation next route drifted")
+        _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task is not pass")
+        _require(state.get("next_phase") == "PH.X2N.1.4" and state.get("next_run") == "TSK.x2n.foundation.004", "foundation next route drifted")
         _require(state.get("blocking_followups") == [{
             "id": INCIDENT_ID,
             "scope": "before_g0_pass",
@@ -474,7 +475,7 @@ def validate_current_state() -> Check:
             "action": "owner_directed_external_retention_with_x2n_zero_contact",
         }], "task state Resume resolution is missing or ambiguous")
         _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
-        _require(project.get("status") == "stage_1_foundation_002_complete_g1_not_run", "project fact does not reflect foundation completion")
+        _require(project.get("status") == "stage_1_foundation_003_complete_g1_not_run", "project fact does not reflect foundation completion")
         details = {"review": "RESUME_COMPLETE", "g0": "PASS", "stage_1_authorized": True, "remote_upload": "STAGE_1_FORBIDDEN_UNTIL_G1"}
     return Check("current_stage_state", "PASS", details)
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.0.1 — Stage 1 / Foundation 003
+
+- 新增只接受显式 `X2N_DOWNLOAD_DESTINATION`/`X2N_DATA_ROOT` 的 Owner-only Private Runtime；无默认目录、任意路径参数或符号链接逃逸。
+- 落地 SQLite Schema v2：17 tables、9 indexes、15 triggers，启用 WAL、FK、FULL synchronous、busy timeout 与启动完整性检查。
+- Content/Relation/Artifact/Observation/Classification、Owner Taxonomy、Checkpoint、Request Ledger、Outbox/Receipt、Notion Mapping、Media Lease 和 Recovery Event 进入同一 Canonical Store；Artifact 等追加记录禁止更新/删除。
+- 迁移支持前进与强制备份后降级；Backup/Restore 校验文件 Hash、Schema、完整性、表计数与逻辑摘要并原子替换。当前同盘副本不冒充异地灾备。
+- 纯合成门禁覆盖 80 条连续两次、100 个并发重复消息和 10k DB；重复副作用、数据丢失、不可读记录和 orphan FK 均为 0，`integrity_check=ok`。
+- Owner 私有根只初始化 Schema v2 空库，不含账号、平台内容、媒体或 Sink 数据。`G1=NOT_RUN`，Stage 1 仍不得 push，下一独立 Run 为 `TSK.x2n.foundation.004`。
+
 ## v0.0.0.1 — Stage 1 / Foundation 002
 
 - 冻结 `1.0` IPC、Canonical、Relation、Observation、Artifact、Taxonomy、Classification、Sink、Health、Error、Provenance 与 Compatibility Contract；Pydantic 是 JSON Schema、错误 Registry 和 TypeScript shared enums 的生成真源。

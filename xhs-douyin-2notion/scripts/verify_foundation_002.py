@@ -23,6 +23,7 @@ TASK_ID = "TSK.x2n.foundation.002"
 RUN_ID = "RUN-X2N-S01-F002"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s01-foundation001"
 TASK_BASE_COMMIT = "69130c1db9946850b23e1c78f771129eb094eea2"
+FINAL_COMMIT = "ae17e377090ef3bc1123d2512cda0daef9efe1cb"
 ORIGIN_CUTOFF = "f1e5016a4e1bba10c86d8dd017868d5d64835f42"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
@@ -189,13 +190,11 @@ def _iter_files() -> Iterable[Path]:
 
 
 def validate_scope() -> Check:
-    status_paths = _porcelain_paths(
-        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
-    )
-    committed_paths = _git(
-        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]
+    # Scope is historical: later DAG Tasks are verified independently and
+    # must not be charged to the completed foundation.002 Run.
+    changed = _git(
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}"]
     ).splitlines()
-    changed = sorted(set(status_paths + committed_paths))
     relative_changes: list[str] = []
     for path in changed:
         relative = _project_relative(path)
@@ -249,7 +248,26 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote) is not None,
         "wrong or authenticated persisted origin",
     )
-    _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
+    for commit in (TASK_BASE_COMMIT, FINAL_COMMIT):
+        _git(["cat-file", "-e", f"{commit}^{{commit}}"])
+    _require(
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, FINAL_COMMIT],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+        ).returncode
+        == 0,
+        "foundation.002 final commit no longer descends from its Task base",
+    )
+    _require(
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+        ).returncode
+        == 0,
+        "foundation branch no longer contains the verified foundation.002 commit",
+    )
     _git(["cat-file", "-e", f"{ORIGIN_CUTOFF}^{{commit}}"])
     _require(
         subprocess.run(["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"], cwd=REPOSITORY_ROOT, check=False).returncode == 0,
@@ -299,28 +317,29 @@ def validate_task_and_state() -> Check:
     _require(_field(task, "stage") == "STG.X2N.1" and _field(task, "phase") == "PH.X2N.1.2", "foundation.002 routing drifted")
     _require(_list_field(task, "depends_on") == ["TSK.x2n.foundation.001", "TSK.x2n.discovery.005"], "foundation.002 dependency drifted")
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.ext.003", "ACC.x2n.data.001", "ACC.x2n.data.003"], "foundation.002 Acceptance drifted")
-    _require("  status: STAGE_1_FOUNDATION_002_COMPLETE_G1_NOT_RUN\n" in taskpack, "Taskpack current status drifted")
+    _require("  status: STAGE_1_FOUNDATION_003_COMPLETE_G1_NOT_RUN\n" in taskpack, "Taskpack current status drifted")
 
     state = _load_json(TASK_STATE)
-    _require(state.get("schema_version") == "1.4", "task state schema drifted")
-    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.2", "current Stage routing drifted")
-    _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "foundation.002 Run identity drifted")
+    _require(state.get("schema_version") == "1.5", "task state schema drifted")
+    _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.3", "current Stage routing drifted")
+    _require(state.get("run_id") == "RUN-X2N-S01-F003" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
     _require(state.get("tasks", {}).get(TASK_ID) == "pass", "foundation.002 Task state is not pass")
-    _require(state.get("next_phase") == "PH.X2N.1.3" and state.get("next_run") == "TSK.x2n.foundation.003", "next Task routing drifted")
+    _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task state is not pass")
+    _require(state.get("next_phase") == "PH.X2N.1.4" and state.get("next_run") == "TSK.x2n.foundation.004", "next Task routing drifted")
     _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
     acceptance = state.get("acceptance_status", {})
     _require(acceptance.get("ACC.x2n.ext.003") == "pass_current_contract_scope_host_job_downstream_not_run", "Native Acceptance overstated")
-    _require(acceptance.get("ACC.x2n.data.001") == "pass_current_contract_scope_sqlite_downstream_not_run", "data schema Acceptance overstated")
+    _require(acceptance.get("ACC.x2n.data.001") == "pass_sqlite_store_scope_schema_fk_unique_integrity", "data schema Acceptance did not advance through foundation.003")
     _require(acceptance.get("ACC.x2n.data.003") == "pass_synthetic_contract_scope_real_sinks_downstream_not_run", "provenance Acceptance overstated")
     project = _load_json(PROJECT_FACT)
-    _require(project.get("status") == "stage_1_foundation_002_complete_g1_not_run", "project state drifted")
+    _require(project.get("status") == "stage_1_foundation_003_complete_g1_not_run", "project state drifted")
     return Check(
         "task_state",
         "PASS",
         {
             "acceptance_scope": "CURRENT_CONTRACT_AND_SYNTHETIC_ONLY",
             "downstream": "HOST_JOB_SQLITE_REAL_SINKS_NOT_RUN",
-            "next_task": "TSK.x2n.foundation.003",
+            "next_task": "TSK.x2n.foundation.004",
             "task": TASK_ID,
         },
     )
@@ -397,7 +416,7 @@ def validate_error_registry() -> Check:
 def validate_fixtures() -> Check:
     main = _load_json(FIXTURE_MANIFEST)
     rows = main.get("fixtures", [])
-    _require(len(rows) == 3, "synthetic fixture registration must be exact")
+    _require(len(rows) == 4, "synthetic fixture registration must preserve foundation.002 and append foundation.003")
     _require(rows[2] == {
         "id": "FIXTURE.X2N.S01.F002.001",
         "path": "packages/test-fixtures/contracts/v1/fixture_manifest.json",

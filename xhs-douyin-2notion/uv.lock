@@ -133,6 +133,12 @@ wheels = [
 name = "x2n-companion"
 version = "0.0.0.1"
 source = { virtual = "apps/companion" }
+dependencies = [
+    { name = "x2n-contracts" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "x2n-contracts", virtual = "packages/contracts" }]
 
 [[package]]
 name = "x2n-contracts"
