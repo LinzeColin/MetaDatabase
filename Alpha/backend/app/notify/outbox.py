@@ -41,9 +41,13 @@ _EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
         "打开后在输入框粘贴你的控制令牌进入;令牌不变,别转发给任何人。")),
     "DEPLOY_ACCEPTANCE_TEST": ("部署验收测试", lambda p: (
         f"{p.get('msg', '')}\n\n这封邮件本身就是通知链路打通的证据。")),
-    "WORKER_HEARTBEAT_LOST": ("进程失联告警", lambda p: (
-        f"进程 {p.get('worker', '?')} 心跳超时(上次 {p.get('age_seconds', '?')} 秒前)。\n"
-        "系统已按失败关闭原则处置;若持续收到本告警请联系运维会话。")),
+    "WORKER_HEARTBEAT_LOST": ("系统组件失联,已自动停车保护", lambda p: (
+        f"失联组件:{'、'.join(list(p.get('stale', [])) + list(p.get('missing', []))) or '未知'}\n"
+        "系统已自动拉下紧急刹车(不会再下任何单),并由守护程序自动拉起恢复。\n"
+        "同一故障最多每 6 小时提醒一次;恢复后你会收到一封『已恢复』。")),
+    "WORKER_RECOVERED": ("系统组件已恢复", lambda p: (
+        "刚才失联的组件已全部恢复心跳。\n"
+        "若紧急刹车仍处于拉下状态,恢复交易前会先完成对账核验,无需你操作。")),
     "DAILY_SUMMARY": ("每日小结", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
 }
 

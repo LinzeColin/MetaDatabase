@@ -92,3 +92,45 @@ def test_worker_crash_marks_error_and_reraises(tmp_path):
         w.run()                                    # 失败关闭:异常上抛由 systemd 拉起
     assert hb.snapshot()[WORKER_NAME]["status"] == "ERROR"
     assert w.cycles_run == 0
+
+
+def test_supervisor_alarm_dedup_and_recovery(tmp_path):
+    """去重:持续故障只告警一次;6小时后重提醒;恢复发一封平安信。杀开关行为不变。"""
+    from datetime import datetime, timedelta, timezone
+
+    from backend.app.notify.outbox import Outbox
+    from backend.app.store.db import create_session_factory, init_engine
+    from backend.app.workers.heartbeat import HeartbeatStore
+    from backend.app.workers.killswitch import KillSwitch
+    from backend.app.workers.supervisor import Supervisor
+
+    factory = create_session_factory(init_engine(f"sqlite:///{tmp_path/'d.sqlite'}"))
+    clock = {"t": datetime(2026, 7, 21, 0, 0, tzinfo=timezone.utc)}
+    hb = HeartbeatStore(factory, now_fn=lambda: clock["t"])
+    ob = Outbox(factory, now_fn=lambda: clock["t"])
+    ks = KillSwitch(tmp_path / "KS")
+    sup = Supervisor(heartbeats=hb, outbox=ob, kill_switch=ks,
+                     expected_workers=("trading-worker",),
+                     engage_kill_switch_on_loss=True, now_fn=lambda: clock["t"])
+
+    # 从未心跳 = missing:第一拍告警 1 条 + 拉闸
+    sup.check_once()
+    assert ob.pending_count() == 1 and ks.active()
+    # 之后连续 10 拍同一故障:不再新增(旧行为会 +10)
+    for _ in range(10):
+        clock["t"] += timedelta(seconds=30)
+        sup.check_once()
+    assert ob.pending_count() == 1
+    # 过 6 小时仍未修:补一条提醒
+    clock["t"] += timedelta(hours=6, seconds=1)
+    sup.check_once()
+    assert ob.pending_count() == 2
+    # 心跳恢复:发『已恢复』;后续健康拍不再发
+    hb.beat("trading-worker", status="RUNNING", detail="回来了")
+    sup.check_once()
+    assert ob.pending_count() == 3
+    for _ in range(5):
+        clock["t"] += timedelta(seconds=30)
+        hb.beat("trading-worker", status="RUNNING", detail="稳")
+        sup.check_once()
+    assert ob.pending_count() == 3
