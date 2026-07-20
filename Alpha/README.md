@@ -1,5 +1,6 @@
 # Alpha｜7*24 自主实盘交易 Agent Workspace
 
+Alpha 是一个由 AI coding agents 在开发阶段协助构建、但在生产阶段独立运行的 7×24 autonomous live trading agent workspace。ChatGPT 或其他 LLM 与 Codex 或其他 Agent 仅负责需求、架构、任务分解、代码、测试和部署制品，不接收实时市场数据、不持有券商凭据、不参与任何生产交易决策。部署并经 owner 预授权后，Alpha 软件自行收集市场信息、识别交易机会、形成策略与组合决策、通过风险门禁，并直接连接券商或交易所完成真实下单、改单、撤单、成交处理与对账；不要求 owner 逐笔审批。
 Alpha 是 Linze 本人自有资金的全自动实盘交易工作台：多 Agent 并行研究，唯一执行网关经 Moomoo OpenD 在预签授权内自动真实下单、对账、通知。产品目的是直接真实交易（real trading）；Paper/Shadow 只是上线前的验证工具。
 
 **30 秒了解现状**：读 `文档/00_我在哪.md`（状态/卡点/路线图）。全部七份文档由机器平面自动渲染，禁止手写。
