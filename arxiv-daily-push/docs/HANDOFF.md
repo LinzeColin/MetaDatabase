@@ -1,207 +1,153 @@
-# ADP 交接文档 — 2026-07-20
+# ADP canonical HANDOFF — 2026-07-20
 
-给接手的 agent。Owner 已暂停本线开发，本文件是**唯一入口**：读完这一份 + 它指的 3 个文件，你就能安全接手。
-
----
+本文件是 ADP 迁入 MetaDatabase 后的**唯一当前交接入口**。先读本文件，再按任务路由到
+被点名的最小文件集；不要把 V0.1、V0.3、V7.2 或旧 CodexProject 根级文档各自解释成
+全项目“当前合同”。
 
 ## 0. 三十秒版
 
-- **产品**：ADP（arxiv-daily-push），live 在 https://adp.linzezhang.com ，Cloudflare Worker `adp-cloud`（免费档）。
-- **今天状态**：main 全绿，生产 build 与 git 一致，无遗留资源，无未收尾的分支/worktree。
-- **开发进度**：V0.1 任务包 90 个**代码全部完成**（有证据包）；其中约 **51 个尚未推上生产**，V0.2 这条线就是逐个推上线（已推 20 个阶段）。
-- **最大的坑**：`docs/pursuing_goal/v0_1/TASK_INDEX.csv` 的 **status 列是死配置**（90 行全写 `NOT_STARTED`，实际全做完了）。**别信它**。
+- canonical 仓库是 `LinzeColin/MetaDatabase`，项目路径是 `arxiv-daily-push/`。
+  CodexProject 中已删除的旧源目录不得恢复。
+- live 面仍是 Cloudflare Worker `adp-cloud` / `https://adp.linzezhang.com`；本轮迁移闭合
+  **不修改、不部署、不启用** Worker、SMTP、scheduler、Release 或 restore。
+- 2026-07-20 封存验收记录的 live/git build 为 `c2ccc1fd01ec`。本轮必须以
+  `git diff origin/main -- arxiv-daily-push/deploy/cloudflare/worker_cloud.js` 为空证明零变更，
+  不能用这份文字替代未来的 live 复查。
+- Owner 的晚到决策已定案：3 个 dormant Cloudflare 资源均删除；继续救援剩余来源；
+  不迁 OVH/Coolify；不修 V0.1 `TASK_INDEX.csv` 的死状态列。
+- 当前开发任务是**迁移闭合**：补齐 ADP 历史证据/只读工具、修正 MetaDatabase 根契约，
+  让 65 个 ADP governance tests 全绿且 full suite 不新增迁移失败。
+- 迁移闭合后，下一条开发线是来源救援；优先做 Google News 重试/退避的本地实现与负控，
+  再诊断 stats-gov，最后实现 science-advances 的 PubMed 解析层。每条另开 Run Contract，
+  未获新的部署授权前只做到代码、测试和部署候选。
 
----
+## 1. 合同路由与优先级
 
-## 1. 你必须先读的 3 个文件
+| 范围 | 当前用途 | 是否可覆盖 live/仓位事实 |
+|---|---|---|
+| `docs/HANDOFF.md` | 仓位、Owner 决策、当前开发线、下一步 | 是，唯一当前入口 |
+| `machine/facts/` + `文档/` | MetaDatabase 双平面治理；由机器事实渲染 | 只覆盖其已登记事实 |
+| `CHANGELOG.md` + `docs/pursuing_goal/v0_2/evidence/` | Cloudflare V0.2 生产开发证据 | 可证明对应阶段，不自动授权下一次部署 |
+| `docs/pursuing_goal/v0_1/` | V0.1 需求谱系与历史任务包 | 否；`TASK_INDEX.csv.status` 是已裁定不修的死配置 |
+| `docs/v03/` | 被显式点名时才启用的本地重构任务包 | 否，不是默认活动合同 |
+| `docs/pursuing_goal/v7_2/` + 根级 compatibility artifacts | 旧本机 runner/SMTP 的 fail-closed 合同与回归面 | 否；不覆盖 V0.2，也不授权 live 运行 |
 
-| 文件 | 为什么 |
+发生冲突时按“当前 HANDOFF → 当前任务 Run Contract → 对应开发线证据 → 历史合同”的顺序
+解释；任何证据不足的状态保持 `UNKNOWN`/`BLOCKED`，不得自行拼接出授权。
+
+## 2. 生产面封存事实与边界
+
+| 项 | 2026-07-20 封存事实 |
 |---|---|
-| `governance/infrastructure_registry.json`（仓根） | 统一治理入口：所有部署面、约束（含 **Cloudflare 免费档 5 个 cron 触发器上限**）、废弃资源。**加任何 cron / 资源前先查这里**——P19 就是没先查，撞了 CF 10072。 |
-| `arxiv-daily-push/CHANGELOG.md` | 倒序，每条含 build id + 部署态。近 20 条是 V0.2 各阶段。 |
-| `arxiv-daily-push/docs/pursuing_goal/v0_2/evidence/*/TASK_REPORT.md` | 每阶段的「为什么/做了什么/诚实边界/复核记录」。**诚实边界那节最有价值**——写着每个阶段没做什么。 |
+| Worker | `adp-cloud`，Cloudflare 免费档 |
+| 域名 | `adp.linzezhang.com` |
+| build | `c2ccc1fd01ec` |
+| 存储 | D1 `adp-mirror` + R2 `adp-raw-artifacts` |
+| cron | 3/5 槽位已用；不得越过免费档上限 |
+| liveness | `.github/workflows/arxiv-daily-push-liveness.yml` |
 
----
+本轮停止条件：任何方案需要改 Worker、部署、增加 cron/资源、读取 secret、恢复旧源目录、
+弱化 fail-closed 测试，或把历史 artifact 当作新授权时，立即停止并回报。
 
-## 2. 生产环境实况（2026-07-20）
+## 3. Owner 晚到决策（已定案，不再询问）
 
-```
-Worker      adp-cloud（Cloudflare 免费档）
-域名        adp.linzezhang.com（自定义域）
-build       c2ccc1fd01ec   ← 必须与 git 里 worker_cloud.js 的 BUILD 常量一致
-cron 槽     3/5 已用（账号上限 5）
-  30 20 * * *  每日流水线（抓取→选择→讲义→排程）
-  30 8  * * *  历史回填槽 A
-  30 2  * * *  历史回填槽 B（P19 加的，吞吐 2x）
-存储        D1 `adp-mirror` + R2 `adp-raw-artifacts`
-监控        GitHub Actions `arxiv-daily-push-liveness.yml` 每日 22:00 UTC 巡夜
-```
+| 事项 | Owner 决策 | 当前执行状态 |
+|---|---|---|
+| dormant Cloudflare 资源 | 删除 | `adp-mirror` legacy Worker、`adp-origin` DNS、`adp` Tunnel 均已删除并复核；不得重建 |
+| 剩余来源救援 | 继续投入 | 已授权、尚未开始本轮开发 |
+| science-advances | 走 PubMed 解析层 | 待独立 Run Contract；先做本地 adapter/fixture/负控，不直接上线 |
+| stats-gov | 继续诊断 | 待独立 Run Contract；当前只有边缘超时事实，不能先写死结论 |
+| Google News | 加重试/退避后评估回切 | 待独立 Run Contract；历史采样是间歇 503，不是“被墙” |
+| OVH VPS / Coolify | 不迁 | Cloudflare 免费档保持 canonical live 面 |
+| `TASK_INDEX.csv.status` | 不修 | 90 行 `NOT_STARTED` 不代表代码未完成；只把它当历史字段 |
 
-**部署命令**（仓内 `arxiv-daily-push/deploy/cloudflare/`）：
-```bash
-npx wrangler@4 deploy --config wrangler_cloud.jsonc      # 脚本 + 触发器
-npx wrangler@4 versions deploy <version-id>              # 回滚
-```
+来源与板块变更必须满足根 `AGENTS.md` 与项目 `AGENTS.md` 的 user-center sync gate；
+config/code-only change 不算完成。
 
-### BUILD 自哈希（改 worker 必做，否则漂移守卫会红）
-`worker_cloud.js` 第 12 行 `const BUILD = {...}` 是**自排除哈希**：
-1. 把 `source_sha256` 换成 64 个 `0`，**再**把 `build_id` 换成 12 个 `0`（顺序不能反——build_id 是 source_sha256 的前缀）；
-2. `sha256` 整个文件；
-3. `build_id` = 该 sha 前 12 位，`source_sha256` = 全 64 位。
+## 4. 迁移闭合资产
 
-`tests/governance/test_adp_v02_evidence_bundles.py` 会重算并要求 **最新 PRODUCTION 证据包的 `live_build_after` == 提交的 worker 自哈希**。改了 worker 不重新 stamp = CI 红。
+为保持历史引用与内容哈希，以下 ADP 专属兼容面保留在 MetaDatabase 仓根：
 
----
+- `FINAL_ACCEPTANCE_BUNDLE/`：30 个历史 final-bundle 文件；
+- `governance/run_manifests/ADP-*`：424 个历史 run manifests；
+- `tools/validate_task_pack.py`、`verify_acceptance_bundle.py`、
+  `verify_daily_operation_readiness.py`、`verify_daily_operation_enablement_preflight.py`：
+  只读、fail-closed 兼容入口。
 
-## 3. 只读验收（3 条 curl，不花任何外部配额）
+它们不是 MetaDatabase 治理框架。治理框架继续从 `LinzeColin/Governance` 消费；禁止恢复
+CodexProject 的 `repository_hygiene_policy.json`、`generate_governance_dashboard.py`、
+`validate_project_governance.py` 或 `project-governance.yml`。根级 `HANDOFF/` 也保持缺席，
+不得为了唤醒 29 个冻结的旧 final-bundle 测试而重建。
 
-```bash
-curl https://adp.linzezhang.com/build.json      # build_id 应 == git 里的
-curl https://adp.linzezhang.com/api/runhealth   # 最近一次 RAN run
-curl https://adp.linzezhang.com/api/backfill    # 回填游标与上次跑
-```
+## 5. 验收合同
 
-**两个看着像 bug 其实正常的信号**（别误报，已验证过）：
-- `runhealth.meta == null` 且 `degraded[]` 里**没有** `meta:` 开头的项 ⟺ 当天没有可富集的 DOI，良性。若有 `meta:http429` 标记才是真病（P08 那次的病）。
-- `backfill.last_run == null` ⟺ cron 还没到点，不是没接线。
-
----
-
-## 4. 开发纪律（这条线为什么慢，也为什么可信）
-
-每个阶段必须走完：
-
-1. **verify-not-live 再动手** — 索引不可信，动手前先确认「这功能真没上线」。我今天靠这招拦下两次重复造轮子（T019 内容 QA、T041 都早已上线）。
-2. **载荷型验证器** — 从**已部署的** worker 里抽取真代码跑（不复刻），带**负控**（把修复改回去，验证器必须 FAIL）。
-3. **破坏测试要真跑** — 见 §6 的教训 2。
-4. **独立对抗复核** — 另开 agent 审，返回 CONFIRMED_SOUND 才能提交。**实施者绝不自签**。
-5. **治理同步** — 改了 `governance/` 或 worker，要同步 VERSION + CHANGELOG + DEVELOPMENT_LEDGER + development_events.jsonl + 3 个矩阵 + run manifest + hygiene OID，然后 `lean_governance.py ci` 必须 `SHIP`。
-6. **推前跑全套审计** — 见 §5。
-
-> 这套流程重，但它今天抓出了 3 个我自己没发现的真问题（见 §6）。**不要为了快而跳过复核**。
-
----
-
-## 5. 推送前必跑（少跑一个就可能红 CI）
+从 MetaDatabase 仓根、使用已安装 `arxiv-daily-push/requirements.txt` 的 Python 3.12 运行；
+macOS 系统 Python 3.9 无法运行当前 ADP 验收入口：
 
 ```bash
-python3 scripts/lean_governance.py ci --changed-only --base-ref origin/main   # 要 SHIP
-python3 scripts/validate_governance_sync.py --changed-only --base-ref origin/main
-python3 scripts/repository_hygiene_audit.py --root . --tree-ish $(git write-tree)
-python3 scripts/root_cleanliness_audit.py --root . --json      # 最常被漏
-python3 scripts/validate_project_governance.py
-python3 scripts/governance_id_audit.py --json
-python3 scripts/workflow_security_audit.py audit --json
-python3 scripts/lean_governance.py artifact-audit --base-ref origin/main
-python3 -m unittest discover -s tests/governance -p "test_adp_*.py"
+# 当前双平面项目门
+python3 arxiv-daily-push/machine/tools/check_dual_plane_ci.py \
+  --root . --projects arxiv-daily-push --require-projects
+
+# 历史 V7.2 + 当前双平面兼容入口（只读；需先安装 requirements.txt）
+PYTHONPATH=arxiv-daily-push/src python3 -B tools/validate_task_pack.py --root .
+
+# 迁移治理回归：必须 65/65
+PYTHONPATH=arxiv-daily-push/src python3 -B -m unittest discover \
+  -s tests/governance -p 'test_adp_*.py' -q
+
+# ADP full suite：按测试名称集合比较，不得相对两条基线新增 failure/error
+PYTHONPATH=arxiv-daily-push/src python3 -B -m unittest discover \
+  -s arxiv-daily-push/tests -q
 ```
 
-**注意**：`validate_information_quality.py` 在 clean HEAD 上就失败（~700 条 STALE_PENDING 历史债），且 CI 的 push 事件**不跑它**（只在 workflow_dispatch/schedule 跑）。别被它吓到。
+验收时必须区分两条不可混用的比较面：
 
----
+1. **迁移线程封存的历史旧控制口径**：923 tests、`3 failures + 11 errors + 62 skips`。
+   它用于核对剩余 failure/error 是否仍在历史允许集合内，不是对 MetaDatabase
+   `7fd0768002081f27c070561fa855a08713d1bc00` 的重放结果。
+2. **可重放的 MetaDatabase 迁移前 base**：在精确 `7fd0768` detached checkout、Python 3.12
+   环境重跑同一命令，结果为 923 tests、`54 failures + 50 errors + 49 skips`；大量失败来自当时
+   尚未迁入的根级 ADP compatibility dependencies。迁移判定必须比较 failure/error 的完整测试
+   名称集合，不能只看总数；本轮候选相对该 base 的新增集合为 0。
 
-## 6. 今天踩过的坑（都被独立复核抓出，别重蹈）
+历史旧控制口径中的 11 errors 来自仓拆分前已缺失的 `功能清单.md` / `开发记录.md` /
+`模型参数文件.md`，另有 development-ledger 与 video gate 历史债；本轮不伪装为已修复。
 
-**教训 1：预签复核结论 = 自签。**
-我把「独立复核 CONFIRMED_SOUND」预先写进了三份治理记录，复核还没返回。审查者判 BLOCK 判得对——用「未自签」措辞包装的预写判决本身就是自签。
-→ **所有治理记录在复核返回前一律写 PENDING/进行中。**
+本轮 pre-commit 实测是 923 tests、`2 failures + 11 errors + 49 skips`：根来源同步契约的
+旧 failure 已修复，skip 比历史旧控制口径少 13 个；相对上述两条比较面的迁移新增
+failure/error 均为 0。剩余 2 failures
+分别是 development-ledger/current matrix drift 与 video media gate，11 errors 仍全部来自
+上述三基文件缺失。不得以修改/跳过测试来伪造全绿。
 
-**教训 2：声称一个没跑过的测试结果。**
-我告诉审查者「去掉 <> 子句会让不等式夹具 FAIL」——没跑过。审查者跑了：验证器仍 exit 0（那个夹具因双重转义永远打不出 FAIL，是个装样子的测试）。
-→ **任何测试/破坏测试结果，必须实跑并拿到输出后才能陈述。** 夹具写原始文本 + 单一转义helper + 硬断言。
+`arxiv-daily-push-real-backfill.yml` 查询的是会随论文修订而变化的外部历史元数据，因此重型
+30 日 replay 只在 `src/config/schemas/packaging` 运行面变化时执行；tests/docs/governance-only
+变更必须通过 scope classifier，但不得靠降低“每日额外排队候选”质量门来消除真实 runtime
+失败。replay 失败时必须保留并上传 JSON artifact、在日志打印 `blocking_reasons`。
 
-**教训 3：把「间歇失败」误诊成「被墙」。**
-仓里长期记着「6 个源被数据中心 IP 墙」。今天从 CF 边缘采样 6 次，Google News 是 **2 次成功(78 条) + 4 次 503** —— 不是墙，是间歇失败 + 无重试。cell/lancet 才是确定性 403(3/3)。
-→ **诊断要有样本量。** 已加守卫钉住这个区分（`test_adp_source_replacement.py`）。
+本轮还必须证明：
 
-**教训 4：修了 A 面，记录写成 B 面。**
-P18 我修的是 radar 列表标题，记录/pin 都写成「history 列表」，真的 /history 根本没修，复扫也从没扫过 /history。
-→ **改完要按面清点，复扫清单要覆盖你声称修的每一个面。**
+1. `git diff origin/main -- arxiv-daily-push/deploy/cloudflare/worker_cloud.js` 为空；
+2. 30 个 bundle、424 个 manifests 与前端原始存档内容哈希不漂移；
+3. CodexProject 主线不重新出现 `arxiv-daily-push/`；
+4. PR CI 通过后，才可把迁移闭合写成完成；
+5. 合并提交必须由独立 `verifier` 在新上下文复验，实施者不能自签。
 
-**教训 5：改了 worker 不重新 stamp = live≠git 漂移（最严重）。**
-P20 我 stamp+部署后又改了一行源码，没重新 stamp/部署。线上跑的是旧源，仓里是新源，戳还是旧的——
-**build 戳失去意义，「线上跑的就是仓里这份」这个全项目复核赖以成立的地基就塌了**。
-→ **改 worker 的任何一个字符后，必须重新 stamp + 重新部署 + 实跑 `test_adp_worker_build_stamp`。**
-   提交前固定跑这一条：`curl /build.json` 的 build_id 必须等于 `worker_cloud.js` 里的 BUILD 常量。
+## 6. 下一轮推荐 Run Contract
 
-> 教训 2 和教训 5 是同一个病的两次发作：**把没验证的事当成已验证的说出去**。
-> 这条线 20 个阶段里，独立复核抓出的问题**全部**是这个形状。接手后请把「实跑再声称」当成第一纪律。
+**目标**：在不部署、不改 cron、不引入付费 API 的前提下，为 Google News adapter 增加
+有上限的 retry/backoff，并用确定性夹具和负控证明“间歇 503 可恢复、确定性拒绝仍失败关闭”。
 
----
+**最小范围**：Google News adapter、相关 source registry/fixtures、来源与用户中心同步文件、
+目标测试；不顺带做 stats-gov 或 PubMed adapter。
 
-## 7. 剩余工作（约 51 个 V0.1 能力未上线）
+**验收**：真实实现路径测试 + 负控 + source/board sync gate + full suite 与迁移基线对比；
+部署候选与 live 部署分离，Owner 未给新部署授权时在本地/PR 处停止。
 
-按 Stage 分组 + 我的判断：
+## 7. 永久提醒
 
-| Stage | 个数 | 内容 | 建议 |
-|---|---|---|---|
-| S5 多板块深度 | 8 | 事件聚合、跨源实体解析、跨板块关系 | **优先级最高**，直击「多板块+深度」，确定未上线 |
-| S7 UI/性能 | 5 | 移动端溢出、RUM/CWV、动效性能 | 次优先，可见收益快 |
-| S3 中国官方源 | 8 | 国务院/统计局/发改委适配器 | 部分已活，**逐个 verify-not-live** |
-| S4 历史回填 | 13 | A0/A1/A2 分批回填 | **交给 cron 自己跑**（P19 已提速 2x） |
-| S2 证据与版本 | 6 | R2 双写、快照、DuckDB 验证 | 部分是 SHADOW 观察态 |
-| S6 预测与回测 | 8 | 预测标签、滚动回测、校准 | **设计上就是 SHADOW/研究性**，未必该上生产 |
-| S8 发布演练 | 3 | 迁移彩排、灾备、14 天浸泡 | 卡时间（14 天浸泡跑不快） |
-
-**这个 51 是粗测**（CHANGELOG 文本匹配），动手前务必逐个 verify-not-live。
-
-### 立刻可做的两件小事
-1. **给 gnews 加重试/退避** — 今天发现它是间歇 503 而非被墙；加重试后可能可以回切 Google News 原源（主题精度比 Bing 简化查询高）。
-2. **诊断 stats-gov** — 边缘 30s 超时，未定性，是 6 源里仅剩的两个未解之一（另一个 science-advances 是确定性硬墙，需 PubMed 解析层）。
-
----
-
-## 8. 待 Owner 决策（不要替他决定）
-
-- **删剩余 2 个废弃 Cloudflare 资源**：`adp-origin` DNS 记录、`adp` Tunnel 对象。均已验证不在服务路径，Owner 表示自行在控制台删。（`adp-mirror` worker 已按授权删除。）
-- **6 个被墙源里剩余 2 个**：是否投入做 PubMed 解析层（science-advances）/ 诊断 stats-gov。
-- **是否迁 OVH VPS / Coolify**：注册表里有完整分析，**建议不迁**（ADP 是无状态边缘负载，留 Cloudflare 免费档最省）。
-- **TASK_INDEX.csv 的 status 死列**：已有守卫钉住「它是死配置」，是删列还是补数据，属 Owner。
-
----
-
-## 11. 数据存哪、去哪找（2026-07-19 全仓统一；由「仓库拆分」线程提供）
-
-**所有原始/业务数据的唯一落地处 = 私有仓 `LinzeColin/Private-Database`**（PRIVATE，由 KMFA-Private-Runtime 更名）。三大数据区：
-
-| 数据区 | 谁的数据 |
-|---|---|
-| `Private-KMDatabase/` | KMOS / KMFA 经营数据（财务、红圈、绩效） |
-| `Private-AgentDatabase/` | AgentDatabase / OpenAIDatabase 会话与派生数据 |
-| `Private-MetaDatabase/` | MetaDatabase 各项目数据（含本项目迁入后） |
-
-**铁律**：
-- **禁止 `git clone` Private-Database**（预计 500GB+，会损伤本地机器）；只按需下载单文件。
-- **不要把数据留在本地或提交进代码仓**；该仓只存数据、不存代码。
-- 读写用 SDK `private_db_client.py`（在 `LinzeColin/KMOS` 的 `KMDatabase/machine/tools/` 或 `LinzeColin/AgentDatabase` 的 `OpenAIDatabase/scripts/`），底层 GitHub API、零 clone：`ingest / get / put / list / delete / verify`。语言无关协议见 `Private-Database/PROTOCOL.md`。
-- 已知天花板：Git 后端不适合 500GB（单文件 100MB 硬限、无并发写）；触发信号与对象存储逃生口写在该仓根 README，到点由 Owner 决策。
-
-### 本项目仓位变更（重要）
-`arxiv-daily-push` 按全仓拆分计划将迁往 **`LinzeColin/MetaDatabase`**（保留完整 git 历史）。
-**目录从 CodexProject 消失是有意迁移，不是数据丢失，禁止从历史或备份恢复。**
-Owner 已于 2026-07-20 授权：ADP 线收工后即可执行迁移。
-
-> 以上内容由「仓库拆分」线程提供并入。ADP 线未独立验证其中的 SDK 路径与容量数字，如实标注来源。
-
----
-
-## 12. main 分支 CI 状态（2026-07-20 交接时）
-
-交接时 CodexProject main 的 CI 曾红，**原因不在 ADP 线**：`linze-golden-path.reusable.yml` 新增 `smoke` job（#289）未登记进 `governance/workflow_policy.json` 的 `expected_jobs`，触发 job topology drift。
-已核实三条独立证据：(a) ADP 推送前的 `bf60d902d` 已同样失败、错误逐字相同；(b) ADP 的 P20 提交改动 0 个 workflow 文件；(c) `smoke` job 由 #289 引入。
-Owner 授权后由 ADP 线补了登记（策略 +1 行、角色矩阵 +1 行重生成），未触碰 golden-path 的 workflow 逻辑。
-
----
-
-## 9. 铁律（Owner 的，必须守）
-
-- **主树只读**，开发一律用 `git worktree add`；
-- **谁开的谁收**：worktree / 分支 / PR / 临时云资源，开的人自己收干净；
-- `git gc` **禁用 `--prune=now`**（曾因此丢过 2467 个提交）；
-- **DIR-007**：永不超 Cloudflare 免费档，升付费需 Owner 三次确认。
-
----
-
-## 10. 一句话交接
-
-**系统是健康的、有守卫的、有诚实记录的。接手时先跑 §3 的 3 条 curl 确认生产正常，再读你要动的那个阶段的 TASK_REPORT「诚实边界」节，然后按 §4 的纪律做。最容易犯的错是信 TASK_INDEX 的 status 列，和为了快而跳过独立复核。**
+- 主树只读，开发使用 `GithubProject/_scratch` worktree；谁开的谁收。
+- 不使用 `git gc --prune=now`。
+- Cloudflare 免费档边界不可越过；付费升级需 Owner 明确授权。
+- 任何测试、live 状态、删除结果或独立复核结论都必须实跑后再写，不预签、不猜测。
+- `TASK_INDEX.csv.status` 不是真实完成度；逐项开发前必须 `verify-not-live`。

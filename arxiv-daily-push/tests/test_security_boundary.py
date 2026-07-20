@@ -25,7 +25,7 @@ from arxiv_daily_push.security_boundary import (
 
 ROOT = Path(__file__).resolve().parents[2]
 ADP_WORKFLOWS = sorted((ROOT / ".github" / "workflows").glob("arxiv-daily-push-*.yml")) + [
-    ROOT / ".github" / "workflows" / "project-governance.yml"
+    ROOT / ".github" / "workflows" / "dual-plane.yml"
 ]
 
 

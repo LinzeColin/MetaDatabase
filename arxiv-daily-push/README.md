@@ -102,19 +102,20 @@ V5 到 V6 的 Stage 1 任务连续性：
 
 ## 本地验证
 
-以下命令必须从 CodexProject 仓库根目录运行；`tools/` 与 `FINAL_ACCEPTANCE_BUNDLE/` 均为仓库根路径。
+以下命令必须从 MetaDatabase 仓库根目录运行；`tools/` 与 `FINAL_ACCEPTANCE_BUNDLE/` 均为仓根 ADP 兼容路径。
 不要给这些 root tools 追加 `--json`；它们默认输出 JSON。
+以下 `python3` 必须指向已安装 `arxiv-daily-push/requirements.txt` 的 Python 3.12 环境；macOS 系统 Python 3.9 无法运行当前 ADP 验收入口。
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=arxiv-daily-push/src python3 -m unittest discover -s arxiv-daily-push/tests -q
-PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=arxiv-daily-push/src python3 scripts/validate_project_governance.py --project arxiv-daily-push
+PYTHONDONTWRITEBYTECODE=1 python3 arxiv-daily-push/machine/tools/check_dual_plane_ci.py --root . --projects arxiv-daily-push --require-projects
 git diff --check
-python3 -B tools/verify_acceptance_bundle.py --root . --require-zero P0 P1
+python3 -B tools/verify_acceptance_bundle.py --root . --require-zero P0 P1; ec=$?; echo "EXPECTED_BUNDLE_EXIT=$ec"; test "$ec" -eq 2
 python3 -B tools/verify_daily_operation_readiness.py --root .; ec=$?; echo "EXPECTED_READINESS_EXIT=$ec"; test "$ec" -eq 2
 python3 -B tools/verify_daily_operation_enablement_preflight.py --root .; ec=$?; echo "EXPECTED_PREFLIGHT_EXIT=$ec"; test "$ec" -eq 2
 ```
 
-预期：前两个 S3/DAILY_OPERATION 专用命令本体仍输出 `status=FAIL`，随后 shell 断言分别显示 `EXPECTED_READINESS_EXIT=2` 和 `EXPECTED_PREFLIGHT_EXIT=2`。这是缺持久授权 artifact 时的正确阻断，不得为了让命令直接返回 0 而启用 SMTP、scheduler、Release、restore 或 DAILY_OPERATION。
+预期：后三个历史 final-bundle / S3 兼容命令本体均输出 `status=FAIL` 且退出码为 `2`。`verify_acceptance_bundle.py` 因迁移后刻意不恢复旧根级 `HANDOFF/00_下一Agent先读.md` 而 fail closed；readiness 与 preflight 则因缺持久授权 artifact 而 fail closed。三条 shell 断言应分别显示 `EXPECTED_BUNDLE_EXIT=2`、`EXPECTED_READINESS_EXIT=2` 和 `EXPECTED_PREFLIGHT_EXIT=2`；不得为了让命令直接返回 0 而恢复旧 HANDOFF，或启用 SMTP、scheduler、Release、restore、DAILY_OPERATION。
 
 ## 资源和安全边界
 

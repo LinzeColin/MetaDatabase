@@ -208,6 +208,22 @@ class Stage1RealReplayTests(unittest.TestCase):
         self.assertIn("contents: read", workflow)
         self.assertIn("real-historical-arxiv-replay", workflow)
         self.assertIn("adp-s1p5t03-real-arxiv-30-day-backfill", workflow)
+        self.assertIn(
+            "runtime_regex='^(arxiv-daily-push/(src|config|schemas)/",
+            workflow,
+        )
+        self.assertNotIn("(src|tests|config|schemas)", workflow)
+        self.assertIn(
+            "tests/docs/governance-only paths do not run this mutable external-data check",
+            workflow,
+        )
+        artifact_output = 'printf \'artifact_dir=%s\\n\' "$artifact_dir" >> "$GITHUB_OUTPUT"'
+        replay_command = "python3 -m arxiv_daily_push real-historical-arxiv-replay"
+        self.assertIn(artifact_output, workflow)
+        self.assertLess(workflow.index(artifact_output), workflow.index(replay_command))
+        self.assertIn("replay_exit=$?", workflow)
+        self.assertIn('test "$replay_exit" -eq 0', workflow)
+        self.assertIn("if: always() && steps.replay.outputs.artifact_dir != ''", workflow)
         self.assertIn('ADP_PRODUCTION_ENABLED: "false"', workflow)
         self.assertIn('ADP_SCHEDULED_RUN_ENABLED: "false"', workflow)
         self.assertIn('ADP_ALLOW_SMTP_SEND: "false"', workflow)
