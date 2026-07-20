@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "manifest_id": "FIXTURE.X2N.005",
-  "phase": "PH.X2N.1.4",
+  "phase": "PH.X2N.1.5",
   "fixtures": [
     {
       "id": "FIXTURE.X2N.S00.P05.001",
@@ -32,9 +32,27 @@
       "path": "packages/test-fixtures/extension/v1/page_cases.json",
       "case_count": 20,
       "purpose": "MV3 Side Panel six-platform page recognition and unsupported-page fail-closed behavior"
+    },
+    {
+      "id": "FIXTURE.X2N.S01.F005.001",
+      "path": "packages/test-fixtures/ci/v1/change_scope_cases.json",
+      "case_count": 8,
+      "purpose": "changed-scope routing including critical, documentation-only and unrelated paths"
+    },
+    {
+      "id": "FIXTURE.X2N.S01.F005.002",
+      "path": "packages/test-fixtures/ci/v1/model_eval_dataset.json",
+      "case_count": 8,
+      "purpose": "versioned synthetic model dataset contract and disabled capability status baseline"
+    },
+    {
+      "id": "FIXTURE.X2N.S01.F005.003",
+      "path": "packages/test-fixtures/ci/v1/seeded_failure_fragments.json",
+      "case_count": 5,
+      "purpose": "ephemeral seeded-failure construction without committed secret, CDN URL or local path values"
     }
   ],
-  "status": "synthetic_governance_contract_store_and_extension_fixtures_ready_real_platform_fixtures_not_started",
+  "status": "synthetic_governance_contract_store_extension_and_ci_fixtures_ready_real_platform_fixtures_not_started",
   "future_requirements": {
     "source_must_be_declared": true,
     "real_account_content_allowed": false,

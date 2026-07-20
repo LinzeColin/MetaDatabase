@@ -25,6 +25,7 @@ RUN_ID = "RUN-X2N-S01-F004"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s01-foundation001"
 TASK_BASE_COMMIT = "84731bde18495ab20af005bc70d59d5ce73cbe93"
 ORIGIN_CUTOFF = "baac314b7d97369496212ae89057ec107d187f23"
+FINAL_COMMIT = "09d5cdf1993080401f99e023feb03be479baca27"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 PROJECT_FACT = PROJECT_ROOT / "machine/facts/project.json"
@@ -54,6 +55,11 @@ EXPECTED_REGISTRY_DEPENDENCIES = {
     "pydantic-core": "2.46.4",
     "typing-extensions": "4.16.0",
     "typing-inspection": "0.4.2",
+}
+EXPECTED_CI_DEPENDENCIES = {
+    "coverage": "7.15.2",
+    "pyyaml": "6.0.3",
+    "ruff": "0.15.22",
 }
 ALLOWED_CHANGED_EXACT = {
     ".npmrc",
@@ -142,6 +148,16 @@ def _git(args: Sequence[str], cwd: Path = REPOSITORY_ROOT) -> str:
     return result.stdout.rstrip()
 
 
+def _load_baseline_json(path: Path) -> dict[str, Any]:
+    relative = path.relative_to(REPOSITORY_ROOT).as_posix()
+    try:
+        value = json.loads(_git(["show", f"{FINAL_COMMIT}:{relative}"]))
+    except json.JSONDecodeError as error:
+        raise VerificationError(f"baseline JSON unavailable: {path.name}") from error
+    _require(isinstance(value, dict), f"baseline JSON object required: {path.name}")
+    return value
+
+
 def _porcelain_paths(status: str) -> list[str]:
     paths: list[str] = []
     for line in status.splitlines():
@@ -190,13 +206,10 @@ def _iter_files() -> Iterable[Path]:
 
 
 def validate_scope() -> Check:
-    status_paths = _porcelain_paths(
-        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
-    )
     committed_paths = _git(
-        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...{FINAL_COMMIT}"]
     ).splitlines()
-    changed = sorted(set(status_paths + committed_paths))
+    changed = sorted(set(committed_paths))
     relative_changes: list[str] = []
     for path in changed:
         relative = _project_relative(path)
@@ -305,7 +318,7 @@ def validate_task_and_state() -> Check:
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.ext.001", "ACC.x2n.ext.002", "ACC.x2n.ext.003", "ACC.x2n.ext.004"], "Foundation004 Acceptance drifted")
     _require("  status: STAGE_1_FOUNDATION_004_COMPLETE_G1_NOT_RUN\n" in taskpack, "Taskpack current status drifted")
 
-    state = _load_json(TASK_STATE)
+    state = _load_baseline_json(TASK_STATE)
     _require(state.get("schema_version") == "1.6", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4", "current Stage routing drifted")
     _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Foundation004 Run identity drifted")
@@ -324,9 +337,9 @@ def validate_task_and_state() -> Check:
     _require(state.get("native_host_execution") == "pass_isolated_synthetic_owner_install_not_run", "Native Host execution overstated")
     for field in ("real_account_execution", "platform_calls", "notion_calls", "model_calls", "media_processing", "real_sink_execution"):
         _require(state.get(field) == "not_run", f"downstream execution overstated: {field}")
-    project = _load_json(PROJECT_FACT)
+    project = _load_baseline_json(PROJECT_FACT)
     _require(project.get("status") == "stage_1_foundation_004_complete_g1_not_run", "project state drifted")
-    architecture = _load_json(ARCHITECTURE_FACT)
+    architecture = _load_baseline_json(ARCHITECTURE_FACT)
     _require(architecture.get("phase") == "PH.X2N.1.4" and architecture.get("status") == "foundation_004_extension_native_skeleton_implemented_g1_not_run", "architecture state drifted")
     return Check(
         "task_state",
@@ -469,7 +482,7 @@ def validate_fixtures_and_dependencies() -> Check:
     for field in ("real_accounts", "contains_credentials", "contains_private_content", "contains_media_urls", "contains_local_absolute_paths"):
         _require(fixture.get(field) is False, f"Extension fixture public boundary weakened: {field}")
     rows = _load_json(FIXTURE_MANIFEST).get("fixtures", [])
-    _require(len(rows) == 5 and rows[-1] == {
+    _require(len(rows) >= 5 and rows[4] == {
         "id": "FIXTURE.X2N.S01.F004.001",
         "path": "packages/test-fixtures/extension/v1/page_cases.json",
         "case_count": 20,
@@ -488,7 +501,11 @@ def validate_fixtures_and_dependencies() -> Check:
     _require(len(typescript_names) == 21 and set(npm) == typescript_names | {"@playwright/test", "playwright", "playwright-core", "fsevents"}, "npm dependency set drifted")
     _require({name for name, item in npm.items() if item.get("hasInstallScript") is True} == {"fsevents"}, "install-script set drifted")
     _require("ignore-scripts=true" in (PROJECT_ROOT / ".npmrc").read_text(encoding="utf-8").splitlines(), "npm scripts are not disabled")
-    _require(_uv_registry_versions((PROJECT_ROOT / "uv.lock").read_text(encoding="utf-8")) == EXPECTED_REGISTRY_DEPENDENCIES, "Python registry dependency set drifted")
+    _require(
+        _uv_registry_versions((PROJECT_ROOT / "uv.lock").read_text(encoding="utf-8"))
+        == EXPECTED_REGISTRY_DEPENDENCIES | EXPECTED_CI_DEPENDENCIES,
+        "Python runtime or later CI dependency set drifted",
+    )
     sbom = _load_json(SBOM)
     _require(len(sbom.get("components", [])) == 30, "Foundation004 SBOM component count drifted")
     component_refs = {item.get("bom-ref") for item in sbom.get("components", [])}
@@ -514,7 +531,7 @@ def validate_fixtures_and_dependencies() -> Check:
     )
 
 
-def _isolated_env(home: Path) -> dict[str, str]:
+def _isolated_env(home: Path, *, require_browser: bool = False) -> dict[str, str]:
     env = {
         "HOME": str(home),
         "LANG": "C.UTF-8",
@@ -528,9 +545,12 @@ def _isolated_env(home: Path) -> dict[str, str]:
         "UV_NO_CONFIG": "1",
         "npm_config_ignore_scripts": "true",
     }
-    browser_cache = Path.home() / "Library/Caches/ms-playwright"
-    _require(browser_cache.is_dir(), "Playwright Chromium cache is unavailable")
-    env["PLAYWRIGHT_BROWSERS_PATH"] = str(browser_cache)
+    configured_cache = os.environ.get("PLAYWRIGHT_BROWSERS_PATH")
+    browser_cache = Path(configured_cache) if configured_cache else Path.home() / "Library/Caches/ms-playwright"
+    if browser_cache.is_dir():
+        env["PLAYWRIGHT_BROWSERS_PATH"] = str(browser_cache)
+    elif require_browser:
+        raise VerificationError("Playwright Chromium cache is unavailable")
     return env
 
 
@@ -559,7 +579,7 @@ def validate_execution() -> Check:
     with tempfile.TemporaryDirectory(prefix="x2n-f004-verify-") as value:
         home = Path(value) / "home"
         home.mkdir(mode=0o700)
-        env = _isolated_env(home)
+        env = _isolated_env(home, require_browser=True)
         sbom = _json_line(
             _run_external("sbom", (os.sys.executable, "-B", "scripts/generate_foundation_004_sbom.py", "--check"), env=env),
             "sbom",

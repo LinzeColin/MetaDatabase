@@ -27,6 +27,7 @@ RUN_ID = "RUN-X2N-S01-F001"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s01-foundation001"
 BASE_COMMIT = "f1e5016a4e1bba10c86d8dd017868d5d64835f42"
 FINAL_COMMIT = "69130c1db9946850b23e1c78f771129eb094eea2"
+STATE_BASELINE_COMMIT = "09d5cdf1993080401f99e023feb03be479baca27"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 ACCEPTANCE_DOC = PROJECT_ROOT / "docs/product_design/v0.0.0.1/04_ACCEPTANCE_CONTRACT_TRACEABILITY.md"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
@@ -122,6 +123,16 @@ def _git(args: Sequence[str], cwd: Path = REPOSITORY_ROOT) -> str:
     )
     _require(result.returncode == 0, "Git scope check failed")
     return result.stdout.rstrip()
+
+
+def _load_baseline_json(path: Path) -> dict[str, Any]:
+    relative = path.relative_to(REPOSITORY_ROOT).as_posix()
+    try:
+        value = json.loads(_git(["show", f"{STATE_BASELINE_COMMIT}:{relative}"]))
+    except json.JSONDecodeError as error:
+        raise VerificationError(f"baseline JSON unavailable: {path.name}") from error
+    _require(isinstance(value, dict), f"baseline JSON object required: {path.name}")
+    return value
 
 
 def _porcelain_paths(status: str) -> list[str]:
@@ -353,7 +364,7 @@ def validate_task_and_state() -> Check:
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.gov.001", "ACC.x2n.rel.008"], "Task Acceptance drifted")
     _require("  status: STAGE_1_FOUNDATION_004_COMPLETE_G1_NOT_RUN\n" in taskpack_text, "Taskpack status drifted")
 
-    state = _load_json(TASK_STATE)
+    state = _load_baseline_json(TASK_STATE)
     _require(state.get("schema_version") == "1.6", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4", "current Stage state drifted")
     _require(state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
@@ -371,7 +382,7 @@ def validate_task_and_state() -> Check:
         "Skill Acceptance overstated or missing",
     )
 
-    project = _load_json(PROJECT_FACT)
+    project = _load_baseline_json(PROJECT_FACT)
     _require(project.get("status") == "stage_1_foundation_004_complete_g1_not_run", "project state drifted")
     return Check(
         "task_state",
@@ -415,16 +426,18 @@ def validate_scaffold_tree() -> Check:
     )
     _require(all((PROJECT_ROOT / relative).is_file() for relative in required_files), "minimal source tree is incomplete")
 
-    forbidden_names = {"node_modules", "dist", "build", ".venv", "runtime", "downloads"}
-    forbidden_directories = [
+    runtime_directories = [
         path
         for path in PROJECT_ROOT.rglob("*")
         if path.is_dir()
-        and path.name in forbidden_names
-        and path != PROJECT_ROOT / "node_modules"
+        and path.name in {"runtime", "downloads"}
         and "node_modules" not in path.relative_to(PROJECT_ROOT).parts
     ]
-    _require(not forbidden_directories, "build output or Runtime entered the repository")
+    _require(not runtime_directories, "Runtime/download directory entered the project")
+    tracked = _git(["-c", "core.quotePath=false", "ls-files", "-z", "--", "xhs-douyin-2notion"]).split("\0")
+    generated_names = {"node_modules", "dist", "build", ".venv"}
+    tracked_generated = [path for path in tracked if generated_names.intersection(Path(path).parts)]
+    _require(not tracked_generated, "generated dependency or build output entered Git")
     _require(not (PROJECT_ROOT / ".x2n-root.json").exists(), "private Runtime marker entered Git")
 
     manifest = _load_json(PROJECT_ROOT / "apps/extension/manifest.json")
@@ -508,7 +521,23 @@ def validate_locks() -> Check:
     uv_text = (PROJECT_ROOT / "uv.lock").read_text(encoding="utf-8")
     uv_packages = _packages_from_uv_lock(uv_text)
     names = {item.get("name") for item in uv_packages}
-    _require(names == {"annotated-types", "pydantic", "pydantic-core", "typing-extensions", "typing-inspection", "x2n-companion", "x2n-contracts", "x2n-workspace"}, "uv lock contains unexpected packages")
+    _require(
+        names
+        == {
+            "annotated-types",
+            "coverage",
+            "pydantic",
+            "pydantic-core",
+            "pyyaml",
+            "ruff",
+            "typing-extensions",
+            "typing-inspection",
+            "x2n-companion",
+            "x2n-contracts",
+            "x2n-workspace",
+        },
+        "uv runtime or later CI package set drifted",
+    )
     _require(all("virtual" in item.get("source", "") or "editable" in item.get("source", "") or "registry" in item.get("source", "") for item in uv_packages), "uv lock source is unsupported")
     return Check(
         "package_locks",

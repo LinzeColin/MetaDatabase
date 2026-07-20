@@ -24,6 +24,7 @@ RUN_ID = "RUN-X2N-S01-F002"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s01-foundation001"
 TASK_BASE_COMMIT = "69130c1db9946850b23e1c78f771129eb094eea2"
 FINAL_COMMIT = "ae17e377090ef3bc1123d2512cda0daef9efe1cb"
+STATE_BASELINE_COMMIT = "09d5cdf1993080401f99e023feb03be479baca27"
 ORIGIN_CUTOFF = "f1e5016a4e1bba10c86d8dd017868d5d64835f42"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
@@ -56,6 +57,11 @@ PYTHON_DEPENDENCIES = {
     "pydantic-core": "2.46.4",
     "typing-extensions": "4.16.0",
     "typing-inspection": "0.4.2",
+}
+CI_BUILD_DEPENDENCIES = {
+    "coverage": "7.15.2",
+    "pyyaml": "6.0.3",
+    "ruff": "0.15.22",
 }
 ERROR_CLASSES = {
     "user_action_required",
@@ -136,6 +142,16 @@ def _git(args: Sequence[str], cwd: Path = REPOSITORY_ROOT) -> str:
     result = subprocess.run(["git", *args], cwd=cwd, check=False, capture_output=True, text=True)
     _require(result.returncode == 0, "Git scope check failed")
     return result.stdout.rstrip()
+
+
+def _load_baseline_json(path: Path) -> dict[str, Any]:
+    relative = path.relative_to(REPOSITORY_ROOT).as_posix()
+    try:
+        value = json.loads(_git(["show", f"{STATE_BASELINE_COMMIT}:{relative}"]))
+    except json.JSONDecodeError as error:
+        raise VerificationError(f"baseline JSON unavailable: {path.name}") from error
+    _require(isinstance(value, dict), f"baseline JSON object required: {path.name}")
+    return value
 
 
 def _porcelain_paths(status: str) -> list[str]:
@@ -319,7 +335,7 @@ def validate_task_and_state() -> Check:
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.ext.003", "ACC.x2n.data.001", "ACC.x2n.data.003"], "foundation.002 Acceptance drifted")
     _require("  status: STAGE_1_FOUNDATION_004_COMPLETE_G1_NOT_RUN\n" in taskpack, "Taskpack current status drifted")
 
-    state = _load_json(TASK_STATE)
+    state = _load_baseline_json(TASK_STATE)
     _require(state.get("schema_version") == "1.6", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4", "current Stage routing drifted")
     _require(state.get("run_id") == "RUN-X2N-S01-F004" and state.get("run_kind") == "single_dag_task", "current Run identity drifted")
@@ -332,7 +348,7 @@ def validate_task_and_state() -> Check:
     _require(acceptance.get("ACC.x2n.ext.003") == "pass_temp_native_host_contract_idempotency_injection", "Native Acceptance did not advance through foundation.004")
     _require(acceptance.get("ACC.x2n.data.001") == "pass_sqlite_store_scope_schema_fk_unique_integrity", "data schema Acceptance did not advance through foundation.003")
     _require(acceptance.get("ACC.x2n.data.003") == "pass_synthetic_contract_scope_real_sinks_downstream_not_run", "provenance Acceptance overstated")
-    project = _load_json(PROJECT_FACT)
+    project = _load_baseline_json(PROJECT_FACT)
     _require(project.get("status") == "stage_1_foundation_004_complete_g1_not_run", "project state drifted")
     return Check(
         "task_state",
@@ -417,7 +433,7 @@ def validate_error_registry() -> Check:
 def validate_fixtures() -> Check:
     main = _load_json(FIXTURE_MANIFEST)
     rows = main.get("fixtures", [])
-    _require(len(rows) == 5, "synthetic fixture registration must preserve foundation.002 and append later Task fixtures")
+    _require(len(rows) >= 5, "synthetic fixture registration must preserve foundation.002 and append later Task fixtures")
     _require(rows[2] == {
         "id": "FIXTURE.X2N.S01.F002.001",
         "path": "packages/test-fixtures/contracts/v1/fixture_manifest.json",
@@ -471,7 +487,10 @@ def validate_dependencies() -> Check:
         source = re.search(r"(?m)^source = (.+)$", block)
         if name and version and source and "registry" in source.group(1):
             registry_python[name.group(1)] = version.group(1)
-    _require(registry_python == PYTHON_DEPENDENCIES, "Python registry dependency set/version drifted")
+    _require(
+        registry_python == PYTHON_DEPENDENCIES | CI_BUILD_DEPENDENCIES,
+        "Python runtime or later CI dependency set/version drifted",
+    )
     contract_pyproject = (CONTRACT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     _require(re.findall(r'(?m)^\s*"([^"]+)",?$', contract_pyproject) == ["pydantic==2.13.4"], "Pydantic direct pin drifted")
 
@@ -487,7 +506,7 @@ def validate_dependencies() -> Check:
         {
             "build_registry_packages": len(registry_npm),
             "install_scripts": 0,
-            "runtime_registry_packages": len(registry_python),
+            "runtime_registry_packages": len(PYTHON_DEPENDENCIES),
             "sbom_components": len(sbom["components"]),
         },
     )

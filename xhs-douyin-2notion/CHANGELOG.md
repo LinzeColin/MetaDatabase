@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.0.1 — Stage 1 / Foundation 005
+
+- 新增根级 `x2n-ci.yml`：changed-scope 快速门禁与 macOS full-release 候选门禁；Actions 全 SHA pin、`contents: read`、checkout 不持久化凭据，阻断项不可 `continue-on-error`。
+- 软件门禁覆盖 format/lint/type/unit/contract/migration/integration/Extension E2E；full lane 两次重放，风险覆盖阈值登记到机器 policy，关键 Store/Host/Runtime/Contract 模块提供 branch evidence。
+- 新增合成 seeded-failure 自测、Secret/Private/CDN/Fixture scan、SAST/SARIF、CSP、匿名 OSV、License、33-component Foundation005 SBOM 与确定性 source candidate allowlist；Runtime Data 和 Unknown License 阈值均为 0。
+- 新增 `x2n-synthetic-model-contract-v1@1.0.0` 与模型 System Card；Dataset Contract 通过，但 ASR/OCR/Fusion/Classify/真实 Red Team 均未运行且 Feature Flag 关闭，自动分类等待 `ACC.x2n.ai.006`。
+- 当前结论只证明本地合成 CI baseline；远端 GitHub Actions、正式 Release、真实模型、账号、平台、Notion 和媒体均 `NOT_RUN`。`G1=NOT_RUN`，Stage 1 不得 push，下一独立 Run 只能做 Stage 1 Review。
+
 ## v0.0.0.1 — Stage 1 / Foundation 004
 
 - 新增固定开发 Extension ID 的 Chrome MV3 Side Panel，权限精确为 `activeTab`、`nativeMessaging`、`sidePanel`，无 `host_permissions`、Content Script、远程代码或 Extension Storage。

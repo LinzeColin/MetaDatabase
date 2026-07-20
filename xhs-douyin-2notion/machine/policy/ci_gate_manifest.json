@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "CI.X2N.001",
+  "task_id": "TSK.x2n.foundation.005",
+  "workflow": ".github/workflows/x2n-ci.yml",
+  "data_class": "synthetic_only",
+  "credentials_required": false,
+  "blocking_checks_may_skip": false,
+  "nonblocking_optional_skips": {
+    "per_repetition": 3,
+    "reasons": [
+      {
+        "count_per_repetition": 2,
+        "reason": "owner-private root is intentionally absent in public CI"
+      },
+      {
+        "count_per_repetition": 1,
+        "reason": "private source snapshots are intentionally absent in public CI"
+      }
+    ]
+  },
+  "toolchain": {
+    "python": "3.12",
+    "node": "24",
+    "npm": "11.16.0",
+    "uv": "0.11.28",
+    "ruff": "0.15.22",
+    "coverage": "7.15.2",
+    "pyyaml": "6.0.3"
+  },
+  "lanes": {
+    "changed_scope": {
+      "runner": "ubuntu-latest",
+      "required_for": "every workflow invocation",
+      "blocking_gates": [
+        "format",
+        "lint",
+        "type",
+        "unit",
+        "contract",
+        "ci_seeded_failure_self_test",
+        "fixture_leak",
+        "secret_private_cdn",
+        "sast",
+        "sbom",
+        "license",
+        "csp",
+        "model_eval_contract"
+      ]
+    },
+    "full_release": {
+      "runner": "macos-15",
+      "required_for": "main, workflow_dispatch, workflow_or_non_documentation_x2n_change",
+      "blocking_gates": [
+        "format",
+        "lint",
+        "type",
+        "unit",
+        "contract",
+        "migration",
+        "integration",
+        "extension_e2e",
+        "coverage",
+        "live_osv",
+        "release_artifact_allowlist",
+        "determinism_replay"
+      ],
+      "blocking_repetitions": 2
+    }
+  },
+  "coverage": {
+    "branch_mode_required": true,
+    "overall_combined_percent_min": 70.0,
+    "critical_module_combined_percent_min": {
+      "apps/companion/src/x2n_companion/canonical_store.py": 80.0,
+      "apps/companion/src/x2n_companion/migrations.py": 80.0,
+      "apps/companion/src/x2n_companion/native_host.py": 75.0,
+      "apps/companion/src/x2n_companion/native_host_installer.py": 72.0,
+      "apps/companion/src/x2n_companion/runtime.py": 80.0,
+      "packages/contracts/src/x2n_contracts/base.py": 70.0,
+      "packages/contracts/src/x2n_contracts/models.py": 75.0
+    }
+  },
+  "model_features": {
+    "asr": false,
+    "ocr": false,
+    "fusion": false,
+    "classification": false,
+    "automatic_classification": false,
+    "automatic_classification_gate": "ACC.x2n.ai.006"
+  },
+  "release": {
+    "candidate_only": true,
+    "remote_workflow_execution": "NOT_RUN_UNTIL_G1_REVIEW_UPLOAD",
+    "g1": "NOT_RUN",
+    "upload_before_g1": false
+  }
+}

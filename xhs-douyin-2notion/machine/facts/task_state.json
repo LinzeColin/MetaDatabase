@@ -1,12 +1,12 @@
 {
-  "schema_version": "1.6",
+  "schema_version": "1.7",
   "project": "x2n",
   "stage": "STG.X2N.1",
-  "last_completed_phase": "PH.X2N.1.4",
+  "last_completed_phase": "PH.X2N.1.5",
   "review_id": "STG.X2N.0.REVIEW.RESUME",
-  "run_id": "RUN-X2N-S01-F004",
+  "run_id": "RUN-X2N-S01-F005",
   "run_kind": "single_dag_task",
-  "state": "stage_1_foundation_004_pass_g1_not_run",
+  "state": "stage_1_foundation_005_pass_g1_not_run",
   "tasks": {
     "TSK.x2n.discovery.001": "pass",
     "TSK.x2n.discovery.002": "pass",
@@ -16,7 +16,8 @@
     "TSK.x2n.foundation.001": "pass",
     "TSK.x2n.foundation.002": "pass",
     "TSK.x2n.foundation.003": "pass",
-    "TSK.x2n.foundation.004": "pass"
+    "TSK.x2n.foundation.004": "pass",
+    "TSK.x2n.foundation.005": "pass"
   },
   "downstream_acceptances": {
     "ACC.x2n.gov.001": "pass",
@@ -38,7 +39,10 @@
     "ACC.x2n.data.001": "pass_sqlite_store_scope_schema_fk_unique_integrity",
     "ACC.x2n.data.002": "pass_synthetic_store_scope_markdown_notion_owner_alpha_downstream_not_run",
     "ACC.x2n.data.003": "pass_synthetic_contract_scope_real_sinks_downstream_not_run",
-    "ACC.x2n.data.004": "pass_synthetic_local_recovery_scope_release_disaster_recovery_downstream_not_run"
+    "ACC.x2n.data.004": "pass_synthetic_local_recovery_scope_release_disaster_recovery_downstream_not_run",
+    "ACC.x2n.rel.001": "pass_local_synthetic_pipeline_remote_ci_g1_not_run",
+    "ACC.x2n.rel.002": "pass_runner_dataset_contract_capabilities_disabled_model_not_run",
+    "ACC.x2n.rel.003": "pass_local_current_locks_candidate_scans_remote_release_not_run"
   },
   "blocking_followups": [
     {
@@ -54,17 +58,19 @@
     "stage": "STG.X2N.0",
     "remote_upload": "merged"
   },
-  "next_phase": "PH.X2N.1.5",
-  "next_run": "TSK.x2n.foundation.005",
+  "next_phase": "STG.X2N.1.REVIEW",
+  "next_run": "STG.X2N.1.REVIEW",
   "next_phase_authorized": true,
   "stage_1_authorized": true,
   "stage_gate": "pass",
   "remote_upload": "authorized_after_g0_pass",
   "current_stage_gate": "not_run",
   "current_stage_remote_upload": "forbidden_until_g1_pass",
-  "product_code": "scaffold_contracts_canonical_store_extension_native_skeleton",
+  "product_code": "scaffold_contracts_canonical_store_extension_native_skeleton_ci_baseline",
   "contract_version": "1.0",
   "native_host_execution": "pass_isolated_synthetic_owner_install_not_run",
+  "local_ci_execution": "pass_synthetic_full_lane_two_repetitions",
+  "remote_ci_execution": "not_run_until_g1_review_upload",
   "sqlite_store": "pass_schema_v2_owner_empty_runtime_initialized",
   "real_sink_execution": "not_run",
   "real_account_execution": "not_run",

@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 1` 的 `TSK.x2n.foundation.001–004` 已分别完成 scaffold、`1.0` Contract、SQLite Canonical Store，以及 MV3 Side Panel＋Native Host skeleton；Stage 0 已合并且 `G0=PASS`，但 `G1=NOT_RUN`，Stage 1 不得上传。当前 Extension 以固定开发 ID、3 项权限、零 Host Permission 提供五区 Side Panel；短进程 Native Host 把合成请求原子写入 SQLite，并在 100 次 Service Worker 终止后完成零丢失/零重复/零错状态对账。所有验证均在临时 HOME/Profile/Runtime 中执行并清理，Owner Chrome 安装与 Canary 仍为 `NOT_RUN`。真实采集、账号访问、平台动作、Markdown/Notion、模型和媒体仍未实现；六平台与所有上游候选保持关闭。Owner 保留的外部共享认证材料不由 x2n 读取、使用或修改；与 MetaDatabase 其他长期开发采用零重叠 worktree 隔离，外部文件不进入本项目证据或提交。
+当前状态：`v0.0.0.1 / Stage 1` 的 `TSK.x2n.foundation.001–005` 已完成当前范围：scaffold、`1.0` Contract、SQLite Canonical Store、MV3 Side Panel＋Native Host skeleton，以及软件/模型 CI baseline。Stage 0 已合并且 `G0=PASS`，但 `G1=NOT_RUN`，Stage 1 不得上传。changed-scope 与 full-release 候选门禁只使用合成数据；本地 full lane 重放两次，远端 GitHub Actions 仍为 `NOT_RUN`。模型侧只验证 versioned Dataset Contract，ASR/OCR/Fusion/Classify/Red Team 模型执行和自动分类全部关闭。真实采集、账号访问、平台动作、Markdown/Notion、模型和媒体仍未实现；六平台与所有上游候选保持关闭。Owner 保留的外部共享认证材料不由 x2n 读取、使用或修改；与 MetaDatabase 其他长期开发采用零重叠 worktree 隔离，外部文件不进入本项目证据或提交。
 
 ## 固定边界
 
@@ -20,6 +20,24 @@
 ## v0.0.0.1 DAG
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
+
+## Foundation 005 验证
+
+```bash
+npm ci --ignore-scripts
+uv sync --frozen --all-packages --group ci
+.venv/bin/python scripts/ci/run_lane.py \
+  --lane fast --repetitions 1 --reports-dir build/ci-public
+.venv/bin/python scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/ci-public
+python3.12 -B scripts/verify_foundation_005.py \
+  --verify-worktree --allow-external-main-dirty --require-evidence
+```
+
+full lane 包含 format/lint/type/unit/contract/migration/integration/Extension E2E、风险覆盖率、
+SAST/SARIF、Secret/Private/CDN/Fixture、OSV、33-component SBOM、License、CSP 与临时
+source candidate allowlist。CI 使用完整 SHA 固定 Actions、最小 `contents: read` 权限，
+不读取共享认证环境；正式远端运行和 G1 仍需下一独立 Review Run。
 
 ## Foundation 004 验证
 

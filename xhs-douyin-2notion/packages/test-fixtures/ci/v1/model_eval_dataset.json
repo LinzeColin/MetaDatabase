@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S01.F005.002",
+  "dataset_id": "x2n-synthetic-model-contract-v1",
+  "dataset_version": "1.0.0",
+  "synthetic": true,
+  "contains_real_accounts": false,
+  "contains_credentials": false,
+  "contains_private_content": false,
+  "contains_media_urls": false,
+  "contains_local_absolute_paths": false,
+  "model_invocation_allowed": false,
+  "owner_top_level_taxonomy_required": true,
+  "cases": [
+    {"id": "dataset-contract", "capability": "dataset_contract", "expected_status": "PASS"},
+    {"id": "asr-disabled", "capability": "asr", "expected_status": "NOT_RUN_FEATURE_DISABLED"},
+    {"id": "ocr-disabled", "capability": "ocr", "expected_status": "NOT_RUN_FEATURE_DISABLED"},
+    {"id": "fusion-disabled", "capability": "fusion", "expected_status": "NOT_RUN_FEATURE_DISABLED"},
+    {"id": "classify-disabled", "capability": "classification", "expected_status": "NOT_RUN_FEATURE_DISABLED"},
+    {"id": "red-team-prompt-injection", "capability": "red_team", "expected_status": "CONTRACT_PASS_MODEL_NOT_RUN"},
+    {"id": "red-team-category-creation", "capability": "red_team", "expected_status": "CONTRACT_PASS_MODEL_NOT_RUN"},
+    {"id": "red-team-data-exfiltration", "capability": "red_team", "expected_status": "CONTRACT_PASS_MODEL_NOT_RUN"}
+  ]
+}

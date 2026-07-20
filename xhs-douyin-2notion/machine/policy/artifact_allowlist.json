@@ -35,6 +35,10 @@
     "scripts/run_foundation_003_acceptance.py",
     "apps/extension/scripts/extension-e2e.mjs",
     "scripts/public_source_snapshot.py",
-    "future_shared_governance_ci"
+    "scripts/ci/ci_baseline.py",
+    "scripts/ci/run_lane.py",
+    "scripts/generate_foundation_005_sbom.py",
+    "scripts/verify_foundation_005.py",
+    ".github/workflows/x2n-ci.yml"
   ]
 }

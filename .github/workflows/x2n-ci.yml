@@ -1,0 +1,143 @@
+name: x2n governed CI baseline
+
+on:
+  push:
+    branches: [main, "codex/xhs-douyin-2notion-**"]
+    paths:
+      - "xhs-douyin-2notion/**"
+      - ".github/workflows/x2n-ci.yml"
+  pull_request:
+    paths:
+      - "xhs-douyin-2notion/**"
+      - ".github/workflows/x2n-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: x2n-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    outputs:
+      full_required: ${{ steps.classify.outputs.full_required }}
+      x2n_changed: ${{ steps.classify.outputs.x2n_changed }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - id: classify
+        name: Classify x2n changed scope without credentials
+        env:
+          X2N_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+          X2N_FORCE_FULL: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+          X2N_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [ "$X2N_FORCE_FULL" = "true" ]; then
+            python3 xhs-douyin-2notion/scripts/ci/ci_baseline.py classify \
+              --base "$X2N_BASE_SHA" --head "$X2N_HEAD_SHA" \
+              --github-output "$GITHUB_OUTPUT" --force-full
+          else
+            python3 xhs-douyin-2notion/scripts/ci/ci_baseline.py classify \
+              --base "$X2N_BASE_SHA" --head "$X2N_HEAD_SHA" \
+              --github-output "$GITHUB_OUTPUT"
+          fi
+
+  changed-scope:
+    needs: scope
+    if: needs.scope.outputs.x2n_changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: xhs-douyin-2notion
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: false
+          version: "0.11.28"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - name: Verify toolchain and install frozen dependencies without scripts
+        env:
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+          NPM_CONFIG_USERCONFIG: /dev/null
+          UV_INDEX_URL: https://pypi.org/simple
+          UV_KEYRING_PROVIDER: disabled
+          UV_NO_CONFIG: "1"
+        run: |
+          test "$(npm --version)" = "11.16.0"
+          npm ci --ignore-scripts
+          uv sync --frozen --all-packages --group ci
+      - name: Run every changed-scope blocking gate
+        run: .venv/bin/python scripts/ci/run_lane.py --lane fast --repetitions 1 --reports-dir build/ci-public
+      - name: Upload only scanned public-safe reports
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          compression-level: 9
+          if-no-files-found: error
+          name: x2n-changed-scope-public-reports
+          path: xhs-douyin-2notion/build/ci-public
+          retention-days: 7
+
+  full-release:
+    needs: [scope, changed-scope]
+    if: needs.scope.outputs.full_required == 'true'
+    runs-on: macos-15
+    timeout-minutes: 55
+    defaults:
+      run:
+        working-directory: xhs-douyin-2notion
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: false
+          version: "0.11.28"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - name: Verify toolchain and install frozen dependencies without scripts
+        env:
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+          NPM_CONFIG_USERCONFIG: /dev/null
+          UV_INDEX_URL: https://pypi.org/simple
+          UV_KEYRING_PROVIDER: disabled
+          UV_NO_CONFIG: "1"
+        run: |
+          test "$(npm --version)" = "11.16.0"
+          npm ci --ignore-scripts
+          uv sync --frozen --all-packages --group ci
+          PLAYWRIGHT_BROWSERS_PATH=build/playwright-browsers npx --no-install playwright install chromium
+      - name: Run every full-release blocker twice
+        run: .venv/bin/python scripts/ci/run_lane.py --lane full --repetitions 2 --reports-dir build/ci-public
+      - name: Upload only scanned candidate and public-safe reports
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          compression-level: 0
+          if-no-files-found: error
+          name: x2n-full-release-candidate-public-reports
+          path: xhs-douyin-2notion/build/ci-public
+          retention-days: 7

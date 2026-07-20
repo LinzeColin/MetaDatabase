@@ -14,6 +14,10 @@ security_assurance_required: true
 
 > Scope amendment `CE-X2N-20260719-S00-P05`：平台面扩为六个独立 Adapter/Policy Boundary；项目名保持稳定。详细 ADR/Threat Model 以 `docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md` 和 `docs/security/THREAT_MODEL_S00_P05.md` 为准。
 
+> Foundation005 executable assurance update：模型 Dataset Contract、能力禁用状态、
+> Feature Flag 降级与自动分类门禁见
+> `docs/model/MODEL_SYSTEM_CARD_S01_F005.md`。该更新不表示任何模型调用或质量验收已运行。
+
 ## 1. 架构结论
 
 ```text

@@ -20,6 +20,11 @@ PYTHON_EXPECTED: dict[str, tuple[str, str, str]] = {
     "typing-extensions": ("4.16.0", "PSF-2.0", "runtime_transitive"),
     "typing-inspection": ("0.4.2", "MIT", "runtime_transitive"),
 }
+CI_BUILD_EXPECTED = {
+    "coverage": "7.15.2",
+    "pyyaml": "6.0.3",
+    "ruff": "0.15.22",
+}
 
 
 class SbomError(RuntimeError):
@@ -68,7 +73,10 @@ def _uv_registry_versions(text: str) -> dict[str, str]:
 
 def build_sbom() -> dict[str, Any]:
     locked_python = _uv_registry_versions((PROJECT_ROOT / "uv.lock").read_text(encoding="utf-8"))
-    _require(locked_python == {name: row[0] for name, row in PYTHON_EXPECTED.items()}, "uv registry dependency set/version drifted")
+    _require(
+        locked_python == {name: row[0] for name, row in PYTHON_EXPECTED.items()} | CI_BUILD_EXPECTED,
+        "uv runtime or later CI dependency set/version drifted",
+    )
 
     npm = json.loads((PROJECT_ROOT / "package-lock.json").read_text(encoding="utf-8"))
     registry_npm: dict[str, dict[str, Any]] = {}
@@ -153,7 +161,7 @@ def build_sbom() -> dict[str, Any]:
             "properties": [
                 {"name": "x2n:build-registry-packages", "value": str(len(registry_npm))},
                 {"name": "x2n:install-scripts", "value": "0"},
-                {"name": "x2n:runtime-registry-packages", "value": str(len(locked_python))},
+                {"name": "x2n:runtime-registry-packages", "value": str(len(PYTHON_EXPECTED))},
                 {"name": "x2n:source", "value": "frozen-package-lock-and-uv-lock"},
             ],
         },

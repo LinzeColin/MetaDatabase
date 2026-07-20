@@ -10,8 +10,8 @@
 - 首次 `STG.X2N.0.REVIEW`：历史结论 `BLOCKED_OWNER_ACTION`，原报告与 3 份机器证据保持不变。
 - `STG.X2N.0.REVIEW.RESUME`：完整复验通过；当前 `G0=PASS`。
 - Stage 0 整阶段已通过 PR #66 合并；G0 历史/Resume 证据保持不变。
-- Stage 1：`TSK.x2n.foundation.001–004` 已分别完成 scaffold、`1.0` Contract、SQLite Canonical Store 与 MV3 Side Panel＋Native Host skeleton；`G1=NOT_RUN`，不得 push。
-- 下一独立 Run：只执行 `TSK.x2n.foundation.005` / `PH.X2N.1.5`。
+- Stage 1：`TSK.x2n.foundation.001–005` 已完成 scaffold、`1.0` Contract、SQLite Canonical Store、MV3 Side Panel＋Native Host skeleton，以及软件/模型 CI baseline；`G1=NOT_RUN`，不得 push。
+- 下一独立 Run：只执行 `STG.X2N.1.REVIEW`（Review/Fix/Re-acceptance，不执行新 DAG Task）。
 - 真实账号、Chrome 控制、六平台调用、Notion、模型、媒体与全部下游用户旅程 Acceptance：`NOT_RUN`。
 - 六平台：全部 `UNKNOWN_DISABLED`；各平台实现开始时重新通过 Policy/Auth/Technical Gate。
 
@@ -44,7 +44,10 @@
 - Native Host：精确单 Origin、短进程 stdio、1 MiB 上限、严格 Contract；24 个 Companion tests 覆盖 Origin/Schema/Action/Size/Injection、100 个并发重复、payload-free SQLite Job、unowned 文件拒绝与 installer 首次/升级失败回滚。
 - 隔离 Chromium E2E：临时 HOME/Profile/Runtime/Host 注册；100 次真实 Service Worker 终止/重启，任务丢失/重复/错状态和 uncaught console error 均为 0；Owner Chrome/Profile/Canary 未运行。
 - Foundation 004 供应链：当前 SBOM 30 components；Playwright `1.61.1` 精确锁定；可选 `fsevents` install script 由 `.npmrc` 和验收命令禁用，执行数 0。历史 Foundation002 SBOM 保持 26-component 原事实。
-- 当前根回归：76 tests PASS，3 个需要私有可选输入的测试按设计跳过；Foundation001 固定提交 fresh replay、Foundation002 Contract、Foundation003 Store 与 Foundation004 完整 verifier 均 PASS。Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
+- Foundation 005：changed-scope/full-release candidate CI 已建立；Actions 全 SHA pin、最小权限且 checkout 不持久化凭据。full lane 本地两次重放，format/lint/type/unit/contract/migration/integration/E2E、风险覆盖率和 seeded-failure 均通过；silent Blocking skip/failure/flaky 为 0，3 个公开 CI 无私有输入的显式非阻断 skip 每轮按固定 reason/count allowlist 验证（full 共 6）；远端 Actions 未运行。
+- Foundation 005 Assurance：当前 33-component SBOM、Unknown License 0、匿名 OSV vulnerability 0、SAST Critical/High 0、Secret/Private/CDN/Fixture/Artifact Runtime Data 0；确定性 source candidate 只在 ignored build/临时目录生成并扫描。
+- Model baseline：`x2n-synthetic-model-contract-v1@1.0.0` Dataset Contract PASS；ASR/OCR/Fusion/Classify 为禁用且 NOT_RUN，Red Team 只过合同，自动分类等待 `ACC.x2n.ai.006`，模型调用 0。
+- 当前根回归：88 tests PASS，3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对；Foundation001 固定提交 fresh replay、Foundation002 Contract、Foundation003 Store 与 Foundation004 完整 verifier 均 PASS。Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
 - Fresh copy：隔离 HOME 中 frozen locks、Extension 与 7 个 lifecycle rehearsal 加 1 个负向 Canary 均通过。
 
 ```bash
@@ -52,6 +55,7 @@ python3.12 -B scripts/verify_foundation_001.py --verify-worktree --allow-externa
 python3.12 -B scripts/verify_foundation_002.py --verify-worktree --allow-external-main-dirty --require-evidence
 python3.12 -B scripts/verify_foundation_003.py --verify-worktree --allow-external-main-dirty --validate-owner-runtime --require-evidence
 python3 -B scripts/verify_foundation_004.py --verify-worktree --allow-external-main-dirty --require-evidence
+python3.12 -B scripts/verify_foundation_005.py --verify-worktree --allow-external-main-dirty --require-evidence
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
@@ -72,6 +76,6 @@ Run Contract 执行。
 
 ## 下一步
 
-1. 保留本地 foundation.001–004 commits，不 push；Stage 1 只有 G1 Review/Fix/Re-acceptance 通过后才整阶段上传。
-2. 另开单 Task Run：`TSK.x2n.foundation.005` / `PH.X2N.1.5`，建立软件与模型 CI baseline；不得顺带实现 Adapter 或真实产品行为。
+1. 保留本地 foundation.001–005 commits，不 push；Stage 1 只有 G1 Review/Fix/Re-acceptance 通过后才整阶段上传。
+2. 另开 Review Run：`STG.X2N.1.REVIEW`，复核 Foundation001–005、修复并重新整体验收；不得顺带进入 Stage 2 或实现 Adapter。
 3. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Runtime/越界写入命中立即 Fail Closed。

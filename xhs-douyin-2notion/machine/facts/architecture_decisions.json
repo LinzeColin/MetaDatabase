@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.1.4",
-  "status": "foundation_004_extension_native_skeleton_implemented_g1_not_run",
+  "phase": "PH.X2N.1.5",
+  "status": "foundation_005_ci_and_model_assurance_baseline_implemented_g1_not_run",
   "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
   "decisions": [
     {"id": "ADR-001", "topic": "personal_knowledge_governance_boundary", "state": "accepted_design"},
@@ -13,10 +13,10 @@
     {"id": "ADR-007", "topic": "user_gesture_and_bounded_batches", "state": "accepted_design"},
     {"id": "ADR-008", "topic": "safe_preview_download_media_lease", "state": "accepted_design", "implementation_state": "lease_metadata_schema_only_media_processing_not_run"},
     {"id": "ADR-009", "topic": "owner_top_level_taxonomy", "state": "accepted_design"},
-    {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design", "implementation_state": "local_backup_restore_recovery_pass_release_not_run"}
+    {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design", "implementation_state": "local_backup_restore_and_synthetic_ci_baseline_pass_remote_release_not_run"}
   ],
   "implementation_started": true,
-  "implementation_scope": "TSK.x2n.foundation.001-004_scaffold_contracts_store_extension_native_skeleton",
+  "implementation_scope": "TSK.x2n.foundation.001-005_scaffold_contracts_store_extension_native_and_ci_baseline",
   "real_account_execution": false,
   "stage_gate": "g1_not_run"
 }
