@@ -4,7 +4,6 @@
 
 ## 永久规则
 
-- 代码与数据默认专有，不得以任何开源许可对外发布。
 - 治理框架来自共享仓库 LinzeColin/Governance。
   禁止在本仓库内复制、分叉或重建治理框架。
   禁止用 git submodule 引入它 —— 通过 CI checkout 或 pip 安装消费。
