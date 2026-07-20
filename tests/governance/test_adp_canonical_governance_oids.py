@@ -35,11 +35,18 @@ class TestAdpCanonicalGovernanceOids(unittest.TestCase):
     def test_root_contract_names_the_canonical_migrated_location(self):
         agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        project_readme = (ADP / "README.md").read_text(encoding="utf-8")
 
         self.assertIn("ADP（`arxiv-daily-push/`）已于 2026-07-20 迁入", agents)
         self.assertIn("canonical 交接入口是 `arxiv-daily-push/docs/HANDOFF.md`", agents)
         self.assertIn("禁止从历史、\n  备份或任务包恢复", agents)
         self.assertIn("| ADP | ✅ 已迁入 | canonical 路径 `arxiv-daily-push/`", readme)
+        self.assertIn("macOS 系统 Python 3.9 无法运行当前 ADP 验收入口", project_readme)
+        self.assertIn(
+            'echo "EXPECTED_BUNDLE_EXIT=$ec"; test "$ec" -eq 2',
+            project_readme,
+        )
+        self.assertIn("迁移后刻意不恢复旧根级 `HANDOFF/00_下一Agent先读.md`", project_readme)
 
     def test_current_dual_plane_registers_adp_without_retired_root_policy(self):
         workflow = (ROOT / ".github/workflows/dual-plane.yml").read_text(encoding="utf-8")
