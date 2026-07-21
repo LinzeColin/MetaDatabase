@@ -202,3 +202,53 @@ def test_makeup_eval_window_any_weekday():
     assert in_eval_window(wed) is False               # 正常节拍仍然只认周二
     minute = wed.hour * 60 + wed.minute
     assert (9 * 60 + 60) <= minute <= (9 * 60 + 120)  # 但补评估窗口覆盖它
+
+
+# ---------- 080:模式解析与 REAL 桥红线 ----------
+
+def test_resolve_mode_fail_closed_matrix():
+    from backend.app.adapters.brokers.base import SystemMode
+    from backend.app.workers.live_cycle import resolve_mode
+
+    assert resolve_mode("PAPER", "SIMULATE", live_flag="0",
+                        auth_ok=False, auth_reasons=[]) is SystemMode.PAPER
+    with pytest.raises(RuntimeError):   # PAPER 绑真实账户 = 拒
+        resolve_mode("PAPER", "REAL", live_flag="0", auth_ok=True, auth_reasons=[])
+    with pytest.raises(RuntimeError):   # MICRO_LIVE 绑模拟账户 = 拒
+        resolve_mode("MICRO_LIVE", "SIMULATE", live_flag="1", auth_ok=True, auth_reasons=[])
+    with pytest.raises(RuntimeError):   # 总开关 0 = 拒
+        resolve_mode("MICRO_LIVE", "REAL", live_flag="0", auth_ok=True, auth_reasons=[])
+    with pytest.raises(RuntimeError):   # 授权无效 = 拒
+        resolve_mode("MICRO_LIVE", "REAL", live_flag="1", auth_ok=False, auth_reasons=["x"])
+    assert resolve_mode("MICRO_LIVE", "REAL", live_flag="1",
+                        auth_ok=True, auth_reasons=[]) is SystemMode.MICRO_LIVE
+
+
+def test_real_bridge_rejects_simulate_and_unlock_needs_password(monkeypatch):
+    from backend.app.adapters.brokers.moomoo_trade_bridge import RealTradingClient
+
+    b = RealTradingClient(FakeSDK(), acc_id="284008280622194851")
+    with pytest.raises(PermissionError):
+        b.place_order(symbol="SPY", side="BUY", quantity=1, order_type="LIMIT",
+                      limit_price=Decimal("500"), trd_env="SIMULATE", remark="k")
+    monkeypatch.delenv("MOOMOO_UNLOCK_PASSWORD", raising=False)
+    with pytest.raises(PermissionError):
+        b.unlock()   # 无解锁密码 = 失败关闭
+
+
+def test_prepare_authorization_schema_valid(tmp_path, monkeypatch):
+    """生成器产物必须一次通过 validate_authorization(在仓库根目录取真实配置哈希)。"""
+    import scripts.prepare_live_authorization as pa
+    from backend.app.execution.gates import validate_authorization
+    from datetime import datetime, timezone
+    import json as _json
+
+    signed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    auth = pa.build("我确认授权(测试短语)", 14, signed_at)
+    p = tmp_path / "AUTH.json"
+    p.write_text(_json.dumps(auth, ensure_ascii=False))
+    ok, reasons = validate_authorization(
+        p, policy_path="configs/trading_governor_policy.yaml",
+        promotion_config_path="configs/strategy_promotion.yaml",
+        now=datetime.now(timezone.utc))
+    assert ok, reasons

@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable, Optional, Sequence
 from zoneinfo import ZoneInfo
 
 from backend.app.adapters.brokers.base import SystemMode
@@ -320,13 +320,38 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     return summary
 
 
+def resolve_mode(mode_name: str, acc_trd_env: str, *, live_flag: str,
+                 auth_ok: bool, auth_reasons: Sequence[str]) -> SystemMode:
+    """模式解析(纯函数,失败关闭):
+    PAPER 必须绑 SIMULATE 账户;MICRO_LIVE 必须绑 REAL 账户 + 实盘总开关=1 +
+    预签授权文件有效。任何不合规直接抛错拒绝启动,绝不静默降级。"""
+    m = (mode_name or "PAPER").upper()
+    env = (acc_trd_env or "").upper()
+    if m == "PAPER":
+        if env != "SIMULATE":
+            raise RuntimeError(f"PAPER 模式必须绑 SIMULATE 账户,实为 {env}(失败关闭)")
+        return SystemMode.PAPER
+    if m == "MICRO_LIVE":
+        if env != "REAL":
+            raise RuntimeError(f"MICRO_LIVE 必须绑 REAL 账户,实为 {env}(失败关闭)")
+        if live_flag != "1":
+            raise RuntimeError("实盘总开关(环境值)不为 1,MICRO_LIVE 拒绝启动")
+        if not auth_ok:
+            raise RuntimeError(f"预签授权无效: {list(auth_reasons)}")
+        return SystemMode.MICRO_LIVE
+    raise RuntimeError(f"未知模式 {mode_name}(只认 PAPER/MICRO_LIVE)")
+
+
 def build_live_cycle(*, factory, kill_switch) -> Callable[[], dict]:
-    """真机装配(部署主机;SDK/账户/探针缺任何一环都如实抛错拒绝启动)。"""
+    """真机装配(部署主机;SDK/账户/探针/授权缺任何一环都如实抛错拒绝启动)。"""
     import socket
 
     from backend.app.adapters.brokers.moomoo import build_real_opend_client
-    from backend.app.adapters.brokers.moomoo_trade_bridge import build_simulate_trading_client
+    from backend.app.adapters.brokers.moomoo_trade_bridge import (
+        build_real_trading_client, build_simulate_trading_client,
+    )
     from backend.app.backtest.fees import FeeModel
+    from backend.app.execution.gates import validate_authorization
     from backend.app.execution.gateway import ExecutionGateway
     from backend.app.execution.lease import LeaseManager
     from backend.app.shadow.recorder import ShadowRecorder
@@ -336,19 +361,30 @@ def build_live_cycle(*, factory, kill_switch) -> Callable[[], dict]:
     if not acc_id or "<" in acc_id:
         raise RuntimeError("ALPHA_EXPECTED_ACC_ID 未配置")
     firm = os.environ.get("MOOMOO_SECURITY_FIRM", "FUTUAU")
+    mode_name = os.environ.get("ALPHA_MODE", "PAPER")
 
     read_client = build_real_opend_client()
     accs = {r["acc_id"]: r for r in read_client.get_acc_list()}
     if acc_id not in accs:
         raise RuntimeError(f"账户 {acc_id} 不在券商列表")
-    if str(accs[acc_id].get("trd_env", "")).upper() != "SIMULATE":
-        raise RuntimeError(f"账户 {acc_id} 非 SIMULATE 环境,070 拒绝启动(失败关闭)")
+
+    auth_ok, auth_reasons = validate_authorization(
+        os.environ.get("ALPHA_AUTHORIZATION_PATH", "runtime/LIVE_AUTHORIZATION.json"),
+        policy_path="configs/trading_governor_policy.yaml",
+        promotion_config_path="configs/strategy_promotion.yaml",
+        now=datetime.now(timezone.utc))
+    mode = resolve_mode(mode_name, str(accs[acc_id].get("trd_env", "")),
+                        live_flag=os.environ.get("LIVE_TRADING_ENABLED", "0"),
+                        auth_ok=auth_ok, auth_reasons=auth_reasons)
 
     store = OrderStore(factory)
     lease = LeaseManager(factory, holder_id=f"trading-worker@{socket.gethostname()}")
-    trade_client = build_simulate_trading_client(acc_id=acc_id, security_firm=firm)
+    if mode is SystemMode.MICRO_LIVE:
+        trade_client = build_real_trading_client(acc_id=acc_id, security_firm=firm)
+    else:
+        trade_client = build_simulate_trading_client(acc_id=acc_id, security_firm=firm)
     gateway = ExecutionGateway(store=store, client=trade_client, lease=lease,
-                               mode=SystemMode.PAPER,
+                               mode=mode,
                                kill_switch_check=kill_switch.active)
     recover = gateway.recover_in_flight()
     lease.acquire()   # 慢活(SDK 上下文+悬单恢复)全部完成后才拿租约,避免拿了就过期
