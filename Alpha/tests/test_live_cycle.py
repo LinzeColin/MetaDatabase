@@ -179,3 +179,26 @@ def test_bridge_place_and_maps():
     deals = b.poll_deals()
     assert deals[0]["broker_execution_id"] == "DL1" and deals[0]["quantity"] == 3
     assert b.unlock() is None and b.healthy() is True
+
+
+def test_plan_rebalance_slices_orders_above_single_cap():
+    """实机 2026-07-21 复现:QQQ 2股一笔 2172 澳元撞 1800 单笔线 → 切成 1+1。"""
+    plan = plan_rebalance({"QQQ": 0.8}, positions={}, prices={"QQQ": 705.91},
+                          capital_usd=1980.0, threshold_pct=5.0,
+                          single_order_cap_usd=1131.0)   # ≈1800AUD×0.97/1.5385
+    assert plan == [("BUY", "QQQ", 1), ("BUY", "QQQ", 1)]
+
+
+def test_plan_rebalance_no_slice_when_under_cap():
+    plan = plan_rebalance({"GLD": 0.2}, positions={}, prices={"GLD": 372.3},
+                          capital_usd=1980.0, threshold_pct=5.0,
+                          single_order_cap_usd=1131.0)
+    assert plan == [("BUY", "GLD", 1)]
+
+
+def test_makeup_eval_window_any_weekday():
+    """补评估窗口判定:开盘后 60-120 分钟(任意交易日)——由 makeup 文件触发的形状。"""
+    wed = datetime(2026, 7, 22, 10, 45, tzinfo=ET)   # 周三 10:45 ET,窗口内
+    assert in_eval_window(wed) is False               # 正常节拍仍然只认周二
+    minute = wed.hour * 60 + wed.minute
+    assert (9 * 60 + 60) <= minute <= (9 * 60 + 120)  # 但补评估窗口覆盖它

@@ -30,15 +30,17 @@ from backend.app.workers.supervisor import Supervisor
 
 
 class MemoryEmailSink:
+    """只计数不囤积:72h 实测囤 5.1 万封 ≈ +11.5MB 峰值,曾把内存门误判成泄漏。"""
+
     def __init__(self):
-        self.sent = []
+        self.delivered = 0
         self.fail_next = 0
 
     def send(self, *, subject, body):
         if self.fail_next > 0:
             self.fail_next -= 1
             raise ConnectionError("模拟发信抖动")
-        self.sent.append((subject, body))
+        self.delivered += 1
 
 
 def run(cycles: int, hours: float, out_dir: str) -> dict:
@@ -131,7 +133,7 @@ def run(cycles: int, hours: float, out_dir: str) -> dict:
         "induced_notify_flaps": i // 5,
         "notify_retries_recovered": reconnects,
         "outbox_backlog_end": outbox.pending_count(),
-        "emails_delivered": len(sink.sent),
+        "emails_delivered": sink.delivered,
         "notify_latency_ms_p95": round(p95, 2),
         "mem_peak_growth_kb": round((end_peak - base_peak) / 1024, 1),
         "mem_curve": mem_curve,

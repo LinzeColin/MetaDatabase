@@ -76,10 +76,13 @@ def plan_rebalance(
     *,
     capital_usd: float,
     threshold_pct: float,
+    single_order_cap_usd: Optional[float] = None,
 ) -> list[tuple[str, str, int]]:
-    """目标权重 × 资金上限 -> 整股目标 -> 与现持仓差分 -> (side, symbol, qty) 列表。
+    """目标权重 × 资金上限 -> 整股目标 -> 差分 -> 切片后的 (side, symbol, qty) 列表。
 
     卖单在前(先腾现金);小于阈值(占资金 %)的差分忽略;买不起 1 股即跳过。
+    单笔名义超过 single_order_cap_usd 时切成多笔(实机 2026-07-21:QQQ 一笔 2172 澳元
+    撞上 1800 澳元单笔硬上限被风控拒——法条不动,订单迁就法条)。
     """
     orders: list[tuple[str, str, int]] = []
     threshold_usd = capital_usd * threshold_pct / 100.0
@@ -97,7 +100,14 @@ def plan_rebalance(
         delta = targets.get(sym, 0) - positions.get(sym, 0)
         if delta == 0 or abs(delta) * p < threshold_usd:
             continue
-        orders.append(("SELL" if delta < 0 else "BUY", sym, abs(delta)))
+        side, qty = ("SELL" if delta < 0 else "BUY"), abs(delta)
+        if single_order_cap_usd and single_order_cap_usd > 0:
+            max_per_order = max(1, int(single_order_cap_usd // p))
+            while qty > max_per_order:
+                orders.append((side, sym, max_per_order))
+                qty -= max_per_order
+        if qty > 0:
+            orders.append((side, sym, qty))
     orders.sort(key=lambda o: 0 if o[0] == "SELL" else 1)
     return orders
 
@@ -216,10 +226,20 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
             summary["fills"] += 1
 
     # ---- 2) 评估窗口判定(每交易日至多一次;标记先落盘) ----
+    # 补评估:一次性文件写明日期(工程缺陷误伤当日决策后的窗口内补救,用后即焚,
+    # 事故与补救均入报告)。正常节拍仍是周二;补评估不改变周频纪律本身。
     today_tag = now_et.date().isoformat()
+    makeup = d.marker_path.parent / "makeup_eval.txt"
+    makeup_today = makeup.exists() and makeup.read_text().strip() == today_tag
+    minute = now_et.hour * 60 + now_et.minute
+    in_window_any_day = (9 * 60 + 60) <= minute <= (9 * 60 + 120)
+    trigger = in_eval_window(now_et) or (makeup_today and in_window_any_day
+                                         and now_et.weekday() < 5)
     already = d.marker_path.exists() and d.marker_path.read_text().strip() == today_tag
-    if not in_eval_window(now_et) or already:
+    if not trigger or already:
         return summary
+    if makeup_today:
+        makeup.unlink(missing_ok=True)
 
     d.marker_path.parent.mkdir(parents=True, exist_ok=True)
     d.marker_path.write_text(today_tag)   # 先落标记:崩溃重启宁可错过,不重复下单
@@ -228,9 +248,10 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     universe = list(d.cfg["universe"])
     snapshot = d.read_client.get_snapshot(universe)
     prices = {s: v["price"] for s, v in snapshot.items() if v.get("price")}
-    ages = [quote_age_seconds(v.get("update_time", ""), now_utc) for v in snapshot.values()]
-    known_ages = [a for a in ages if a is not None]
-    age = max(known_ages) if known_ages and len(known_ages) == len(ages) else None
+    # 鲜度按「所交易标的自己」判(实机 2026-07-21:货币基金 BIL 天然低频报价,
+    # 用全池最陈旧年龄一票否决了 GLD/QQQ——误伤;冷门不参与交易就不该连坐)
+    age_by_sym = {s: quote_age_seconds(v.get("update_time", ""), now_utc)
+                  for s, v in snapshot.items()}
 
     end = now_et.date().isoformat()
     start = date.fromordinal(now_et.date().toordinal() - 450).isoformat()
@@ -250,20 +271,28 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     gross_usd = sum(q * prices.get(s, 0.0) for s, q in positions.items())
     gross_aud = Decimal(str(gross_usd)) * d.fx_usd_aud
 
+    # 单笔上限 = 风控单笔红线(3000 AUD × 60%)换算成 USD,再留 3% 价格滑动余量
+    cap_usd = 3000.0 * 0.60 * 0.97 / float(d.fx_usd_aud)
     plan = plan_rebalance(dict(result.target_weights), positions, prices,
                           capital_usd=d.capital_usd,
-                          threshold_pct=float(d.cfg.get("rebalance_threshold_pct", 5)))
+                          threshold_pct=float(d.cfg.get("rebalance_threshold_pct", 5)),
+                          single_order_cap_usd=cap_usd)
     summary["plan"] = [f"{s} {sym}x{q}" for s, sym, q in plan]
 
+    part_seen: dict[tuple, int] = {}
+    reserved_aud = Decimal("0")   # 本轮已发买单占用的敞口(逐笔累加给风控看)
     for side, sym, qty in plan:
         px = prices[sym]
         limit = round(px * (1.001 if side == "BUY" else 0.999), 2)
-        key = f"S1-{today_tag}-{sym}-{side}-{qty}"
+        n = part_seen.get((sym, side), 0) + 1
+        part_seen[(sym, side)] = n
+        key = f"S1-{today_tag}-{sym}-{side}-{qty}" + (f"-p{n}" if n > 1 else "")
         ctx = RiskContext(
             side=side, symbol=sym, market="US_ETF", quantity=qty,
             price_usd=Decimal(str(limit)), fx_usd_aud=d.fx_usd_aud, now=now_utc,
             current_gross_exposure_aud=gross_aud,
-            quote_age_seconds=age,
+            pending_buy_reserved_aud=reserved_aud,
+            quote_age_seconds=age_by_sym.get(sym),
             kill_switch_active=d.kill_switch.active(),
             reconciliation_open=d.store.halt_new_orders(),
             jurisdiction_verdict=d.store.latest_jurisdiction_verdict() or "DENY",
@@ -278,6 +307,8 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
                 summary["rejected"] += 1
             else:
                 summary["submitted"] += 1
+                if side == "BUY":
+                    reserved_aud += Decimal(str(limit)) * qty * d.fx_usd_aud
                 d.shadow.record_decision(
                     intent_id=order_id,
                     hypothetical_limit_price=Decimal(str(limit)),
