@@ -1,5 +1,11 @@
 # ADP v1.2 Taskpack Changelog
 
+## 1.2.0 — S3 Run Contract — 2026-07-22
+
+- 为 `ADP-V12-S3-T001` 增加唯一 `RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md`，锁定 NLM
+  期刊身份、最多 20 PMID/2 请求、`<=1 req/s`、无 API key、失败关闭和零 live 接线边界。
+- `TASK_GRAPH.yaml` 明确绑定该合同；实现、整阶段独立复审和 GitHub 上传尚未预签。
+
 ## 1.2.0 — S2 closeout — 2026-07-22
 
 - stats-gov 四类只读诊断与事实链完成；首轮独立复审发现的 Owner receipt P1 修复后，fresh

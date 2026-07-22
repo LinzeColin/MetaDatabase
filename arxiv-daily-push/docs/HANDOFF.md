@@ -28,14 +28,16 @@
   `2026-07-22T10:36:47.591Z` 得到 `SUCCESS/15`。
   edge 在零 adapter 变更下自行恢复，因此决定仍是 `degraded_preserved` / `NO_ADAPTER_FIX`；
   前者只表示保留失败时降级行为，不是当前瞬时健康断言。Worker、cron、来源启停和部署均未改。
-- 当前唯一下一任务是 `ADP-V12-S3-T001`（Science Advances PubMed E-utilities adapter）；
-  S3 仍为 `NOT_RUN`，Run Contract 尚未创建，必须在下一轮先独立锁定后才能实现。
+- 当前唯一活动任务是 `ADP-V12-S3-T001`（Science Advances PubMed E-utilities adapter）；
+  独立 `RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md` 已锁定，candidate-only 实现与确定性负控
+  已进入 builder 验证，整阶段独立 verifier 尚未裁决，因此不得写成 S3 PASS 或进入 S4。
 - S1 候选实现位于 [`google_news_candidate.mjs`](../deploy/cloudflare/google_news_candidate.mjs)：
   `gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`，live
   `gnews-us-tech` 仍是 Bing News RSS；机器登记见
   [`cloudflare_source_candidates_v1_2.json`](../config/cloudflare_source_candidates_v1_2.json)。
   当前单次 scheduled invocation 的 external 上界为 `32`，以后获授权替换时投影
-  `34/50`；S1 没有接线或部署。
+  `34/50`；S3 PubMed 候选未来若也另获授权替换现有 Science.org RSS，合并投影 `35/50`；
+  当前两者均没有接线或部署。
 - S0 已以相对 source base、merge 双亲和 Worker 精确路径的零差异证明无 runtime/live 变化；
   后续仍不得用状态文字替代真实 diff 或 live 复查。
 - Owner 的晚到决策已定案：3 个 dormant Cloudflare 资源均删除；继续救援剩余来源；
@@ -213,15 +215,20 @@ hash 绑定、canonical renderer fail-closed 校验与 Owner 同步。fresh veri
 `711d324114d5fa0659954abe5ce31909eed7aa55596d656f948afabb91e2b36d`。这只关闭 S2，不签署
 S3–S6，也不授权部署。
 
-## 8. v1.2 第三个产品 Run Contract（S3 下一轮待创建）
+## 8. v1.2 第三个产品 Run Contract（S3 builder 验证中）
 
-**下一任务**：`ADP-V12-S3-T001`，通过 PubMed E-utilities 为 Science Advances 建立本地、
+**活动任务**：`ADP-V12-S3-T001`，通过 PubMed E-utilities 为 Science Advances 建立本地、
 可注入、失败关闭的 ESearch→EFetch 解析层，保留 PMID/DOI provenance，并证明期刊/日期过滤、
 去重、坏 XML、空搜索、限流与 HTTP error 边界。
 
-**当前状态**：`NOT_RUN`。任务包尚无 S3 Run Contract；下一轮必须先按 `TASK_GRAPH.yaml` 与
-`ACCEPTANCE_CONTRACT.yaml` 锁定一个任务的合同。不得在合同前修改 adapter，不得复用 S2 授权，
-不得引入 API key、付费服务、bulk download、live 接线或部署。
+**已锁合同**：[`RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md`](pursuing_goal/v1_2/RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md)
+固定 NLM ID `101653440`、电子 ISSN `2375-2548`、最多 20 PMID/2 请求、请求起始间隔至少
+1000ms、无 API key/bulk、零写入。候选 `science-advances-pubmed-candidate` 保持
+`candidate_not_live`；现有 `science-advances` RSS、Worker、cron 和 live `0.41.0` 不变。
+
+**当前状态**：`IN_PROGRESS_INDEPENDENT_REVIEW_NOT_RUN`。builder 可执行验证尚不能替代独立
+整阶段裁决；只有 `ACC-V12-S3-001..003` 全部 PASS 且 P0/P1/UNKNOWN/BLOCKED 为零，才能同步为
+S3 完成并转向 S4。不得复用 S2 授权，不得引入付费服务、live 接线或部署。
 
 ## 9. 永久提醒
 

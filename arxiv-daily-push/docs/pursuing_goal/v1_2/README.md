@@ -19,8 +19,8 @@
 - WIP=1；严格按 Task Graph 依赖执行。
 - 每个任务使用独立分支、Run Contract、测试证据和独立 verifier。
 - `NOT_RUN`、`UNKNOWN`、`BLOCKED`、缺阈值或缺 Subject 均不是 PASS。
-- S1、S2 已关闭；当前下一任务 S3 仍为 `NOT_RUN`，必须先锁定独立 Run Contract，之后才可做
-  Science Advances/PubMed adapter，不顺带做 UI、版本、运维或部署。
+- S1、S2 已关闭；S3 的独立 `RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md` 已锁定，当前只允许
+  实现 `ADP-V12-S3-T001` 的 Science Advances/PubMed candidate，不顺带做 UI、版本、运维或部署。
 - v0.1 和 V7.2 保留为历史/兼容面，不恢复 CodexProject 旧源。
 
 ## 本地验证

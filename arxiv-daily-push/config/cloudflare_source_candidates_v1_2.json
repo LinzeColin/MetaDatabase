@@ -1,6 +1,7 @@
 {
   "schema_version": "adp-cloud-source-candidate-registry-v1",
   "task_id": "ADP-V12-S1-T001",
+  "task_ids": ["ADP-V12-S1-T001", "ADP-V12-S2-T001", "ADP-V12-S3-T001"],
   "scope": "cloudflare_v1_2_source_rescue",
   "implementation_path": "deploy/cloudflare/google_news_candidate.mjs",
   "verification_path": "tools/verify_google_news_candidate.mjs",
@@ -67,6 +68,47 @@
       "minimum_next_condition": "当前 control 已自行恢复 SUCCESS，本轮无需 adapter 修复。只有未来再次出现可复核的重复 EDGE_TIMEOUT，且获授权的隔离 matched control/candidate 在相同 URL、parser 与成本下证明候选至少两次 HTTP 2xx 且 parsed_count>0、同时 control 仍超时，才另开 Run Contract 评估最小 adapter 变更。"
     }
   ],
+  "pubmed_routes": [
+    {
+      "task_id": "ADP-V12-S3-T001",
+      "source_id": "science-advances-pubmed-candidate",
+      "live_source_id": "science-advances",
+      "board_id": "board2",
+      "provider": "NCBI PubMed E-utilities",
+      "state": "candidate_not_live",
+      "live": false,
+      "query": "\"Science Advances\"[jour]",
+      "journal_identity": {
+        "nlm_unique_id": "101653440",
+        "electronic_issn": "2375-2548",
+        "journal_title": "Science advances",
+        "iso_abbreviation": "Sci Adv",
+        "official_evidence": "https://www.ncbi.nlm.nih.gov/nlmcatalog/101653440"
+      },
+      "request_identity": {
+        "tool": "adp_cloud",
+        "email_source": "config/owner_controls.yaml#email.recipients[0]",
+        "api_key_used": false
+      },
+      "request_policy": {
+        "max_ids": 20,
+        "max_window_days": 7,
+        "max_external_subrequests": 2,
+        "min_request_start_interval_ms": 1000,
+        "timeout_ms": 15000,
+        "redirect": "manual_fail_closed",
+        "pagination": false,
+        "history_or_epost": false,
+        "bulk_download": false
+      },
+      "existing_item_schema": ["guid", "title", "link", "summary", "published"],
+      "implementation_path": "deploy/cloudflare/science_advances_pubmed_candidate.mjs",
+      "verification_path": "tools/verify_science_advances_pubmed_candidate.mjs",
+      "run_contract_path": "docs/pursuing_goal/v1_2/RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md",
+      "write_allowed": false,
+      "live_change_authorized": false
+    }
+  ],
   "subrequest_budget": {
     "accounting_scope": "external_subrequests_per_daily_invocation_if_candidate_replaces_current_bing_single_attempt",
     "arxiv_oai_max": 2,
@@ -83,6 +125,19 @@
     "cloudflare_limit_source": "https://developers.cloudflare.com/workers/platform/limits/",
     "limit_checked_on": "2026-07-22"
   },
+  "pubmed_subrequest_budget": {
+    "accounting_scope": "external_subrequests_per_daily_invocation_if_pubmed_candidate_replaces_current_science_advances_rss_single_attempt",
+    "current_live_max": 32,
+    "current_science_advances_rss_max": 1,
+    "pubmed_candidate_max": 2,
+    "pubmed_candidate_net_increment_max": 1,
+    "s1_google_candidate_net_increment_max": 2,
+    "projected_max_with_s1_and_s3": 35,
+    "cloudflare_workers_free_limit": 50,
+    "projected_headroom_with_s1_and_s3": 15,
+    "cloudflare_limit_source": "https://developers.cloudflare.com/workers/platform/limits/",
+    "limit_checked_on": "2026-07-22"
+  },
   "live_change_authorized": false,
-  "rollback": "Remove the candidate-only module/config; worker_cloud.js and its Bing route remain unchanged."
+  "rollback": "Remove candidate-only modules/config; worker_cloud.js, Bing News RSS and Science.org RSS live routes remain unchanged."
 }

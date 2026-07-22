@@ -63,6 +63,7 @@ tasks:
     stage: S3
     title: Science Advances PubMed E-utilities adapter
     dependencies: [ADP-V12-S2-T001]
+    run_contract: RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md
     acceptance_ids:
       - ACC-V12-S3-001
       - ACC-V12-S3-002

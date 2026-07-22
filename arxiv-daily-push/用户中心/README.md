@@ -14,7 +14,7 @@
 | 邮件发送模板 | [Email V1 学习邮件模板界面预览](./邮件模板预览.md) | 先看用户真实会看到的版式，再看源码和模板规则证据 |
 | 截至今日总候选池 | [299 条总候选记录](./截至今日候选池.md)；候选队列前20精选已列分数 | 总候选池来源是 `docs/owner/CONTENT_LEDGER.csv`，前20精选是按公开评分抽取的阅读入口 |
 | 各板块数据源 | [5 个板块 / 6 个数据源](./数据源与板块健康.md)；当前生产启用 1 个来源 | 公开每个板块对应来源、启用状态、影子测试/规划状态和证据链接 |
-| v1.2 来源救援 | S1 `ADP-V12-S1-T001` 的 `gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`，`gnews-us-tech`（Bing News RSS）仍为 live；`ADP-V12-S2-T001` 的 stats-gov 历史 edge `EDGE_TIMEOUT/0` 点样无原始 receipt，最新已绑定哈希的本地与 edge 点样均为 `SUCCESS` / 15 项，结论仍为 `degraded_preserved` / `NO_ADAPTER_FIX` | [事实型诊断 receipt](../machine/runs/ADP-V12-S2-T001-diagnosis.json) 将 `2026-07-22T10:07:12Z` 的 stale timeout 与 `2026-07-22T10:36:47.591Z` 的最新 edge 成功分列；[候选 registry](../config/cloudflare_source_candidates_v1_2.json) 保留 S1 `32→34/50` 预算，并登记 S2 单次只读 1 subrequest、零写入；两轮均不部署、不改 cron、不切 live，详见[数据源与板块健康](./数据源与板块健康.md) |
+| v1.2 来源救援 | S1 `ADP-V12-S1-T001` 的 `gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`，`gnews-us-tech`（Bing News RSS）仍为 live；S2 `ADP-V12-S2-T001` 的 stats-gov 历史 edge `EDGE_TIMEOUT/0` 点样无原始 receipt，最新已绑定哈希的本地与 edge 点样均为 `SUCCESS` / 15 项，结论仍为 `degraded_preserved` / `NO_ADAPTER_FIX`；S3 `ADP-V12-S3-T001` 新增 `science-advances-pubmed-candidate`，以 NLM ID `101653440`、电子 ISSN `2375-2548` 校验 Science Advances，并保留 PMID/DOI provenance | [事实型诊断 receipt](../machine/runs/ADP-V12-S2-T001-diagnosis.json) 将 `2026-07-22T10:07:12Z` 的 stale timeout 与 `2026-07-22T10:36:47.591Z` 的最新 edge 成功分列；[候选 registry](../config/cloudflare_source_candidates_v1_2.json) 保留 S1 `32→34/50` 预算，并登记 S3 最多 20 PMID、2 请求、起始间隔至少 1000ms、无 API key/bulk/写入；S1+S3 若未来分别获授权替换时合并投影 `35/50`，三轮均不部署、不改 Worker/cron、不切 live，详见[数据源与板块健康](./数据源与板块健康.md) |
 | 复习、行动、收益 | [复习行动与收益](./复习行动与收益.md) 已显示字段、证据链和 2026-06-28 服务日快照数字 | 当前页面数字不是当前自然日持续生产日报；后续每日必须继续由真实运行报告同步 |
 | Stage 2 integrated acceptance | 已记录并保持 `true` | 可以宣称 Stage 2 acceptance 已记录；仍不能宣称 S3/DAILY_OPERATION 已进入、每日生产运行已验收或 M1-M4 全量后台自动发送已启用 |
 | 最终验收包与 S3 阻断 | [最终验收包与 S3 阻断](./最终验收包与S3阻断.md) | 一页核对 final bundle、P0/P1 zero-proof、S2PLT04、Stage 2 acceptance 和 DAILY_OPERATION 当前阻断 |
@@ -75,7 +75,7 @@
 | 总候选池来源 | [CONTENT_LEDGER.csv](../docs/owner/CONTENT_LEDGER.csv) |
 | 板块和数据源配置 | [owner_controls.yaml](../config/owner_controls.yaml) |
 | 板块和数据源生成目录 | [SOURCE_CATALOG.md](../docs/owner/SOURCE_CATALOG.md) |
-| Cloudflare v1.2 来源候选 | [cloudflare_source_candidates_v1_2.json](../config/cloudflare_source_candidates_v1_2.json) / [可执行候选实现](../deploy/cloudflare/google_news_candidate.mjs) / [确定性验收](../tools/verify_google_news_candidate.mjs) |
+| Cloudflare v1.2 来源候选 | [候选 registry](../config/cloudflare_source_candidates_v1_2.json) / [Google 实现](../deploy/cloudflare/google_news_candidate.mjs) / [Google 验收](../tools/verify_google_news_candidate.mjs) / [PubMed 实现](../deploy/cloudflare/science_advances_pubmed_candidate.mjs) / [PubMed 验收](../tools/verify_science_advances_pubmed_candidate.mjs) |
 | 功能到证据追踪链 | [功能任务测试证据追踪链](./功能任务测试证据追踪链.md) |
 | 最终验收包与 S3 阻断 | [最终验收包与 S3 阻断](./最终验收包与S3阻断.md) |
 | 恢复路径安全扫描 | [恢复路径安全扫描](./恢复路径安全扫描.md) |
