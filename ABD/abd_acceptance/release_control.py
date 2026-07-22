@@ -81,15 +81,17 @@ EXPECTED_CANARY_BASIS_POINTS = [0, 100, 500, 2500, 10000]
 
 # Filled only with repository-relative, non-secret artifacts. The self hash is
 # normalized so that changing its literal cannot make an invalid file valid.
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "eb8bfc6e970ca02f01278d547d13efc4421f1cbd4880722fefd34b01f31068c3"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "16933cfd797c703ac3597eba5c48666284f7293f999e49726ed2c55f1cd09f55"
 PHASE_COMMIT = "eead856a87fc15a7b25d08723e021111265c85e6"
 PINNED_PHASE_CODE_HASH = "eebf67dce7cec0e45def06f922d559e5d1d52800a09ab8ef9d6b2c13ac804aad"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    "release_slots.json",
     "abd_acceptance/release_control.py",
     "tests/S04/P03_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "tests/S04/P03_test.py": "bf9b3d6a85314c2f9e01d8834fe494092d89d3d612f49d89f8206602fc34c425",
+    "release_slots.json": "e7893e29f85fe9cf0ec68a2aff6f8814051c54b97c665c9a79cc8c903264dfb8",
+    "tests/S04/P03_test.py": "2db3f3f50990c7edf1cae518fccd2da699976edb04755d3f6d15220a553773f3",
 }
 PINNED_PHASE_HASHES: Dict[str, str] = {
     SLOTS_PATH.as_posix(): "f5a157b0806da5d62791bde33712bc149dbfc964f0536114caf4e123bcfe749e",
@@ -312,6 +314,7 @@ def validate_release_slots(config: Any, release_policy: Mapping[str, Any] | None
         "time_contract",
         "slots",
         "routing",
+        "runtime_profiles",
         "shared_durable_state",
         "promotion_protocol",
         "canary_profiles",
@@ -363,6 +366,38 @@ def validate_release_slots(config: Any, release_policy: Mapping[str, Any] | None
         errors.append("routing must use the fixed atomic symlink switch")
     if routing.get("allowed_targets") != expected_paths or routing.get("partial_or_external_target_policy") != "REJECT_AND_KEEP_PREVIOUS":
         errors.append("routing targets must be exactly the two slots")
+
+    expected_profiles = {
+        "active": {
+            "compose_service": "abd-core",
+            "compose_profile": "DEFAULT",
+            "project_name": "abd",
+            "bind_address": "127.0.0.1",
+            "bind_port": 8080,
+            "state_access": "READ_WRITE_SINGLE_WRITER",
+            "cpu_hard_limit_millicores": 1500,
+            "memory_hard_limit_mib": 2560,
+            "swap_limit_mib": 0,
+            "live_recommendation_enabled_by_profile": False,
+            "order_submission_enabled": False,
+        },
+        "candidate_shadow": {
+            "compose_service": "abd-shadow",
+            "compose_profile": "shadow",
+            "project_name_pattern": "^abd-shadow-(blue|green)$",
+            "bind_address": "127.0.0.1",
+            "allowed_bind_ports": [8081, 8082],
+            "state_access": "READ_ONLY",
+            "cpu_hard_limit_millicores": 250,
+            "memory_hard_limit_mib": 512,
+            "swap_limit_mib": 0,
+            "maximum_concurrent_instances": 1,
+            "live_recommendation_enabled_by_profile": False,
+            "order_submission_enabled": False,
+        },
+    }
+    if config.get("runtime_profiles") != expected_profiles:
+        errors.append("runtime profiles must bind active and shadow services to exact resources, ports and state access")
 
     state = config.get("shared_durable_state", {})
     if not isinstance(state, Mapping) or state.get("root") != "/var/lib/abd" or state.get("outside_release_slots") is not True or state.get("slot_specific_copy_forbidden") is not True:
@@ -954,6 +989,30 @@ def _check_artifacts(
     state = slots.get("shared_durable_state", {})
     _add(checks, "S04P03-SHARED-STATE-OUTSIDE-SLOTS", state.get("root") == "/var/lib/abd" and state.get("outside_release_slots") is True and state.get("slot_specific_copy_forbidden") is True, state)
     _add(checks, "S04P03-CANDIDATE-SHADOW-READ-ONLY", state.get("candidate_shadow_access") == "READ_ONLY" and state.get("single_writer_during_cutover") is True, state)
+    profiles = slots.get("runtime_profiles", {})
+    active_profile = profiles.get("active", {}) if isinstance(profiles, Mapping) else {}
+    shadow_profile = profiles.get("candidate_shadow", {}) if isinstance(profiles, Mapping) else {}
+    _add(
+        checks,
+        "S04P03-RUNTIME-PROFILES-EXACT",
+        active_profile.get("compose_service") == "abd-core"
+        and active_profile.get("bind_port") == 8080
+        and active_profile.get("state_access") == "READ_WRITE_SINGLE_WRITER"
+        and active_profile.get("cpu_hard_limit_millicores") == 1500
+        and active_profile.get("memory_hard_limit_mib") == 2560
+        and active_profile.get("swap_limit_mib") == 0
+        and shadow_profile.get("compose_service") == "abd-shadow"
+        and shadow_profile.get("compose_profile") == "shadow"
+        and shadow_profile.get("allowed_bind_ports") == [8081, 8082]
+        and shadow_profile.get("state_access") == "READ_ONLY"
+        and shadow_profile.get("cpu_hard_limit_millicores") == 250
+        and shadow_profile.get("memory_hard_limit_mib") == 512
+        and shadow_profile.get("swap_limit_mib") == 0
+        and shadow_profile.get("maximum_concurrent_instances") == 1
+        and active_profile.get("order_submission_enabled") is False
+        and shadow_profile.get("order_submission_enabled") is False,
+        profiles,
+    )
     _add(checks, "S04P03-ROLLBACK-DEADLINE-INCLUSIVE", slots.get("time_contract", {}).get("rollback_deadline_seconds") == 900 and slots.get("time_contract", {}).get("deadline_inclusive") is True and slots.get("time_contract", {}).get("frozen_boundary_seconds") == [899, 900, 901], slots.get("time_contract"))
     _add(checks, "S04P03-RPO-60", slots.get("time_contract", {}).get("ledger_recovery_point_target_seconds") == 60, slots.get("time_contract"))
     _add(checks, "S04P03-RELEASE-POLICY-TRIGGERS-COVERED", set(release_policy.get("auto_rollback_on", [])) == set(EXPECTED_TRIGGER_REASONS.values()) - {"未知或畸形发布探针"}, release_policy.get("auto_rollback_on"))
@@ -1036,6 +1095,7 @@ def _p04_candidate_contract(root: Path) -> Dict[str, Any]:
         from .capacity_governance import (
             PINNED_PHASE_HASHES as P04_PHASE_HASHES,
             STRUCTURAL_SELF_NORMALIZED_SHA256 as P04_SELF_HASH,
+            SUCCESSOR_UNIT_PROFILE_HASHES as P04_SUCCESSOR_HASHES,
             _structural_self_hash as p04_structural_self_hash,
             validate_capacity_budget,
             validate_load_baseline,
@@ -1046,7 +1106,8 @@ def _p04_candidate_contract(root: Path) -> Dict[str, Any]:
         for relative, expected in P04_PHASE_HASHES.items():
             path = root / relative
             actual = sha256_file(path) if path.is_file() else "MISSING"
-            if expected == "TO_BE_FILLED" or actual != expected:
+            successor = P04_SUCCESSOR_HASHES.get(relative)
+            if expected == "TO_BE_FILLED" or (actual != expected and actual != successor):
                 mismatches[relative] = {"expected": expected, "actual": actual}
         capacity = strict_json_load(root / "capacity_budget.json")
         policy = strict_json_load(root / "resource_shedding.json")
@@ -1138,16 +1199,22 @@ def _p04_progression_contract(root: Path) -> Dict[str, Any]:
         Path("machine/evidence/EVD-S04-P04.json"),
         Path("machine/evidence/EVD-S04-P04_rollback.json"),
     ]
-    stage_review_paths = [
+    stage_review_candidate_paths = [
+        Path("machine/facts/stage4_review_contract.json"),
+        Path("machine/evidence/S04/STAGE_REVIEW/findings.json"),
         Path("tests/S04/stage_review_test.py"),
         Path("machine/tests/fixtures/S04_STAGE_REVIEW.json"),
+        Path("abd_acceptance/stage4_review.py"),
+        Path("infra/systemd/abd-cloudflared.service"),
+    ]
+    stage_review_signed_paths = [
         Path("machine/evidence/EVD-S04-STAGE-REVIEW.json"),
         Path("machine/evidence/EVD-S04-STAGE-REVIEW_rollback.json"),
-        Path("abd_acceptance/stage4_review.py"),
     ]
     candidate_present = [path.as_posix() for path in candidate_paths if (root / path).exists()]
     signed_present = [path.as_posix() for path in signed_paths if (root / path).exists()]
-    stage_review_present = [path.as_posix() for path in stage_review_paths if (root / path).exists()]
+    stage_review_candidate_present = [path.as_posix() for path in stage_review_candidate_paths if (root / path).exists()]
+    stage_review_signed_present = [path.as_posix() for path in stage_review_signed_paths if (root / path).exists()]
     rows = _load_index(root)
     p04 = [row for row in rows if row.get("id") == "INDEX-AC-S04-P04"]
     stage_review = [row for row in rows if row.get("id") == "INDEX-S04-STAGE-REVIEW"]
@@ -1170,15 +1237,54 @@ def _p04_progression_contract(root: Path) -> Dict[str, Any]:
         mode = "VERIFIED_S04_P04_SIGNED_SUCCESSOR" if progression_ok else "INVALID_S04_P04_SIGNED_SUCCESSOR"
     else:
         progression_ok = False
-    progression_ok = progression_ok and not stage_review_present and not stage_review
+    stage_mode = "INVALID_PARTIAL_S04_STAGE_REVIEW"
+    stage_successor: Dict[str, Any] = {}
+    if not stage_review_candidate_present and not stage_review_signed_present and not stage_review:
+        stage_ok = True
+        stage_mode = "S04_STAGE_REVIEW_NOT_STARTED"
+    elif (
+        len(stage_review_candidate_present) == len(stage_review_candidate_paths)
+        and not stage_review_signed_present
+        and not stage_review
+    ):
+        try:
+            from .stage4_review import validate_candidate_preflight
+
+            stage_successor = validate_candidate_preflight(root)
+            stage_ok = stage_successor.get("status") == "PASS"
+            stage_mode = "VERIFIED_S04_STAGE_REVIEW_CANDIDATE" if stage_ok else "INVALID_S04_STAGE_REVIEW_CANDIDATE"
+        except Exception as exc:
+            stage_ok = False
+            stage_successor = {"error": "%s: %s" % (type(exc).__name__, exc)}
+    elif (
+        len(stage_review_candidate_present) == len(stage_review_candidate_paths)
+        and len(stage_review_signed_present) == len(stage_review_signed_paths)
+        and len(stage_review) == 1
+        and stage_review[0].get("status") == "PASS"
+    ):
+        try:
+            from .stage4_review import validate_signed_receipt_preflight
+
+            stage_successor = validate_signed_receipt_preflight(root)
+            stage_ok = stage_successor.get("status") == "PASS"
+            stage_mode = "VERIFIED_S04_STAGE_REVIEW_SIGNED" if stage_ok else "INVALID_S04_STAGE_REVIEW_SIGNED"
+        except Exception as exc:
+            stage_ok = False
+            stage_successor = {"error": "%s: %s" % (type(exc).__name__, exc)}
+    else:
+        stage_ok = False
+    progression_ok = progression_ok and stage_ok
     return {
         "status": "PASS" if progression_ok else "FAIL",
         "mode": mode,
         "candidate_present": candidate_present,
         "signed_present": signed_present,
         "p04_index": p04,
-        "stage_review_present": stage_review_present,
+        "stage_review_candidate_present": stage_review_candidate_present,
+        "stage_review_signed_present": stage_review_signed_present,
         "stage_review_index": stage_review,
+        "stage_review_mode": stage_mode,
+        "stage_review_successor": stage_successor,
         "successor": successor,
     }
 

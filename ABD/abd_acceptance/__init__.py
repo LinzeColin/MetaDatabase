@@ -192,6 +192,15 @@ from .infrastructure_iac import (
     verify_existing_phase_evidence as verify_infrastructure_iac_evidence,
     write_phase_evidence as write_infrastructure_iac_phase_evidence,
 )
+from .stage4_review import (
+    build_evidence as build_stage4_review_evidence,
+    evaluate_contract as evaluate_stage4_review_contract,
+    perform_rollback_drill as perform_stage4_review_rollback_drill,
+    validate_candidate_preflight as validate_stage4_review_candidate,
+    validate_signed_receipt_preflight as validate_stage4_review_signed_receipt,
+    verify_existing_stage_review_evidence as verify_stage4_review_evidence,
+    write_stage4_review_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -341,4 +350,11 @@ __all__ = [
     "validate_infrastructure_config",
     "verify_infrastructure_iac_evidence",
     "write_infrastructure_iac_phase_evidence",
+    "build_stage4_review_evidence",
+    "evaluate_stage4_review_contract",
+    "perform_stage4_review_rollback_drill",
+    "validate_stage4_review_candidate",
+    "validate_stage4_review_signed_receipt",
+    "verify_stage4_review_evidence",
+    "write_stage4_review_evidence",
 ]

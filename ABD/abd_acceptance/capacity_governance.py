@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import subprocess
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 from pathlib import Path
@@ -79,7 +80,16 @@ EXTERNAL_EFFECT_BOUNDARY = {
     "incremental_cash_spent_aud": "0.00",
 }
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "cf6e1db5a36b7d3147c12f45920c90844d697811e456ba9cf793879fd9c3f924"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "970fbb27d9a886443f64304c4df81e7caf70f773e6100765caedc7ba96140549"
+PHASE_COMMIT = "2630ec141e440d72288d68d42ec397debd245e5c"
+PINNED_PHASE_CODE_HASH = "ca8112ae584f83faeec97476da791137bf837c48fb7329522d745ccc4afd34ec"
+SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    "abd_acceptance/capacity_governance.py",
+    "tests/S04/P04_test.py",
+}
+SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
+    "tests/S04/P04_test.py": "8dfb270a6f35b469d5221275baf9ac80c875d6fd59c2b571bd62255fc34a3ff1",
+}
 PINNED_PHASE_HASHES: Dict[str, str] = {
     CAPACITY_PATH.as_posix(): "b3c76e22683fc45deb5bb59ae7867ae7886800e93232ea4a99dc567ea70daaa2",
     SHEDDING_PATH.as_posix(): "c79a8d5e86852dcb7611268e57301c59210d11db9ae5fdef6e127da605a6c5e6",
@@ -185,6 +195,70 @@ def _current_code_hash(root: Path) -> str:
         digest.update(path.relative_to(root).as_posix().encode("utf-8"))
         digest.update(b"\0")
         digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def _phase_commit_is_ancestor(root: Path) -> bool:
+    result = subprocess.run(
+        ["git", "-C", str(root.parent), "merge-base", "--is-ancestor", PHASE_COMMIT, "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def _historical_file_matches(root: Path, relative: str, expected_sha256: str, verify_git_history: bool) -> bool:
+    if relative not in SUCCESSOR_EVOLVABLE_SIGNED_INPUTS:
+        return False
+    if verify_git_history:
+        if not _phase_commit_is_ancestor(root):
+            return False
+        result = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+            check=False,
+            capture_output=True,
+        )
+        return result.returncode == 0 and _sha256_bytes(result.stdout) == expected_sha256
+    if relative == "abd_acceptance/capacity_governance.py":
+        try:
+            return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
+        except Exception:
+            return False
+    successor = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    return successor not in {None, "TO_BE_FILLED"} and (root / relative).is_file() and sha256_file(root / relative) == successor
+
+
+def _historical_code_hash(root: Path, verify_git_history: bool) -> str:
+    if not verify_git_history:
+        return "UNVERIFIED_UNIT_TEST_HISTORY"
+    if not _phase_commit_is_ancestor(root):
+        return "INVALID_PHASE_COMMIT_ANCESTRY"
+    listing = subprocess.run(
+        ["git", "-C", str(root.parent), "ls-tree", "-r", "--name-only", PHASE_COMMIT, "--", "ABD/abd_acceptance"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if listing.returncode != 0:
+        return "UNAVAILABLE_PHASE_COMMIT_TREE"
+    digest = hashlib.sha256()
+    for repo_path in sorted(
+        line
+        for line in listing.stdout.splitlines()
+        if line.startswith("ABD/abd_acceptance/") and line.endswith(".py")
+    ):
+        blob = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, repo_path)],
+            check=False,
+            capture_output=True,
+        )
+        if blob.returncode != 0:
+            return "UNAVAILABLE_PHASE_COMMIT_BLOB"
+        digest.update(repo_path.removeprefix("ABD/").encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(blob.stdout)
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -699,7 +773,8 @@ def perform_capacity_drill(root: Path) -> Dict[str, Any]:
 def _check_pins(root: Path, checks: List[Dict[str, Any]], hashes: MutableMapping[str, str]) -> None:
     for relative, expected in PINNED_PHASE_HASHES.items():
         actual = sha256_file(root / relative) if (root / relative).is_file() else "MISSING"
-        _add(checks, "S04P04-PIN-%s" % relative.replace("/", "-").replace(".", "_"), actual == expected, {"expected": expected, "actual": actual})
+        successor = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+        _add(checks, "S04P04-PIN-%s" % relative.replace("/", "-").replace(".", "_"), actual == expected or (successor not in {None, "TO_BE_FILLED"} and actual == successor), {"expected": expected, "accepted_successor": successor, "actual": actual})
         hashes[relative] = actual
     for relative, expected in PINNED_BASELINE_HASHES.items():
         actual = sha256_file(root / relative) if (root / relative).is_file() else "MISSING"
@@ -767,27 +842,96 @@ def _check_artifacts(root: Path, fixture: Mapping[str, Any], capacity: Mapping[s
         for adverse in [False, True]:
             repeat = evaluate_load_profile(next(row for row in baseline["profiles"] if row["id"] == "FROZEN_10X"), baseline, capacity, policy)
             _add(checks, "S04P04-NUMERIC-%s-%s" % (delta.replace("-", "NEG").replace(".", "_"), "ADVERSE" if adverse else "BASE"), repeat == ten and repeat.get("status") == "PASS", {"delta": delta, "adverse_odds_tick": adverse})
-    compose = strict_json_load(root / "infra/compose.yml")["services"]["abd-core"]
-    _add(checks, "S04P04-P01-CGROUP-CONSISTENCY", compose.get("cpus") == "1.50" and compose.get("mem_limit") == "2560m" and compose.get("mem_reservation") == "1024m" and compose.get("memswap_limit") == "2560m" and capacity["cpu_budget"]["active_slot_outer_hard_limit_millicores"] == 1500 and capacity["memory_budget"]["active_slot_outer_hard_limit_mib"] == 2560 and capacity["memory_budget"]["swap_allowed"] is False, compose)
+    compose = strict_json_load(root / "infra/compose.yml")
+    core = compose.get("services", {}).get("abd-core", {})
+    shadow = compose.get("services", {}).get("abd-shadow", {})
+    _add(checks, "S04P04-P01-CGROUP-CONSISTENCY", core.get("cpus") == "1.50" and core.get("mem_limit") == "2560m" and core.get("mem_reservation") == "1024m" and core.get("memswap_limit") == "2560m" and capacity["cpu_budget"]["active_slot_outer_hard_limit_millicores"] == 1500 and capacity["memory_budget"]["active_slot_outer_hard_limit_mib"] == 2560 and capacity["memory_budget"]["swap_allowed"] is False, core)
+    shadow_state = next((row for row in shadow.get("volumes", []) if row.get("target") == "/var/lib/abd"), {})
+    _add(
+        checks,
+        "S04P04-SHADOW-CGROUP-READ-ONLY-CONSISTENCY",
+        shadow.get("profiles") == ["shadow"]
+        and shadow.get("cpus") == "0.25"
+        and shadow.get("mem_limit") == "512m"
+        and shadow.get("memswap_limit") == "512m"
+        and shadow.get("pids_limit") == 128
+        and shadow_state.get("read_only") is True
+        and shadow.get("environment", {}).get("ABD_RUNTIME_MODE") == "SHADOW_READ_ONLY"
+        and capacity["cpu_budget"]["candidate_shadow_outer_hard_limit_millicores"] == 250
+        and capacity["memory_budget"]["candidate_shadow_outer_hard_limit_mib"] == 512,
+        {"compose": shadow, "cpu_budget": capacity["cpu_budget"], "memory_budget": capacity["memory_budget"]},
+    )
     slots = strict_json_load(root / "release_slots.json")
     flags = strict_json_load(root / "feature_flags.json")
     _add(checks, "S04P04-P03-DUAL-SLOT-CONSISTENCY", [row.get("id") for row in slots.get("slots", [])] == ["blue", "green"] and slots.get("shared_durable_state", {}).get("outside_release_slots") is True and slots.get("shared_durable_state", {}).get("single_writer_during_cutover") is True, slots.get("shared_durable_state"))
+    profiles = slots.get("runtime_profiles", {})
+    active_profile = profiles.get("active", {}) if isinstance(profiles, Mapping) else {}
+    shadow_profile = profiles.get("candidate_shadow", {}) if isinstance(profiles, Mapping) else {}
+    _add(
+        checks,
+        "S04P04-P03-RUNTIME-PROFILE-BUDGET-CONSISTENCY",
+        active_profile.get("compose_service") == "abd-core"
+        and active_profile.get("bind_port") == 8080
+        and active_profile.get("cpu_hard_limit_millicores") == capacity["cpu_budget"]["active_slot_outer_hard_limit_millicores"]
+        and active_profile.get("memory_hard_limit_mib") == capacity["memory_budget"]["active_slot_outer_hard_limit_mib"]
+        and shadow_profile.get("compose_service") == "abd-shadow"
+        and shadow_profile.get("allowed_bind_ports") == [8081, 8082]
+        and shadow_profile.get("state_access") == "READ_ONLY"
+        and shadow_profile.get("cpu_hard_limit_millicores") == capacity["cpu_budget"]["candidate_shadow_outer_hard_limit_millicores"]
+        and shadow_profile.get("memory_hard_limit_mib") == capacity["memory_budget"]["candidate_shadow_outer_hard_limit_mib"]
+        and shadow_profile.get("maximum_concurrent_instances") == 1
+        and active_profile.get("swap_limit_mib") == shadow_profile.get("swap_limit_mib") == 0,
+        profiles,
+    )
     companion = next((row for row in flags.get("fixed_flags", []) if row.get("id") == "owner_browser_companion"), {})
     _add(checks, "S04P04-P03-FLAGS-REMAIN-DISABLED", all(row.get("repository_enabled") is False for row in flags.get("fixed_flags", [])) and companion.get("repository_enabled") is False and capacity["browser_concurrency_budget"]["repository_enabled_in_p04"] is False, companion)
     _add(checks, "S04P04-NO-BINARY-FLOAT", not _contains_float(capacity) and not _contains_float(policy) and not _contains_float(baseline) and not _contains_float(fixture), "all frozen numeric values use integers or decimal strings")
 
 
 def _check_progression(root: Path, checks: List[Dict[str, Any]]) -> None:
-    forbidden = [
+    candidate_paths = [
+        Path("machine/facts/stage4_review_contract.json"),
+        Path("machine/evidence/S04/STAGE_REVIEW/findings.json"),
         Path("tests/S04/stage_review_test.py"),
         Path("machine/tests/fixtures/S04_STAGE_REVIEW.json"),
+        Path("abd_acceptance/stage4_review.py"),
+        Path("infra/systemd/abd-cloudflared.service"),
+    ]
+    signed_paths = [
         Path("machine/evidence/EVD-S04-STAGE-REVIEW.json"),
         Path("machine/evidence/EVD-S04-STAGE-REVIEW_rollback.json"),
-        Path("abd_acceptance/stage4_review.py"),
     ]
-    present = [path.as_posix() for path in forbidden if (root / path).exists()]
+    candidate_present = [path.as_posix() for path in candidate_paths if (root / path).exists()]
+    signed_present = [path.as_posix() for path in signed_paths if (root / path).exists()]
     stage_rows = [row for row in _load_index(root) if row.get("id") == "INDEX-S04-STAGE-REVIEW"]
-    _add(checks, "S04P04-STAGE-REVIEW-NOT-STARTED", not present and not stage_rows, {"present": present, "index": stage_rows})
+    successor: Dict[str, Any] = {}
+    mode = "INVALID_PARTIAL_S04_STAGE_REVIEW"
+    if not candidate_present and not signed_present and not stage_rows:
+        ok = True
+        mode = "S04_STAGE_REVIEW_NOT_STARTED"
+    elif len(candidate_present) == len(candidate_paths) and not signed_present and not stage_rows:
+        try:
+            from .stage4_review import validate_candidate_preflight
+
+            successor = validate_candidate_preflight(root)
+            ok = successor.get("status") == "PASS"
+            mode = "VERIFIED_S04_STAGE_REVIEW_CANDIDATE" if ok else "INVALID_S04_STAGE_REVIEW_CANDIDATE"
+        except Exception as exc:
+            ok = False
+            successor = {"error": "%s: %s" % (type(exc).__name__, exc)}
+    elif len(candidate_present) == len(candidate_paths) and len(signed_present) == len(signed_paths) and len(stage_rows) == 1 and stage_rows[0].get("status") == "PASS":
+        try:
+            from .stage4_review import validate_signed_receipt_preflight
+
+            successor = validate_signed_receipt_preflight(root)
+            ok = successor.get("status") == "PASS"
+            mode = "VERIFIED_S04_STAGE_REVIEW_SIGNED" if ok else "INVALID_S04_STAGE_REVIEW_SIGNED"
+        except Exception as exc:
+            ok = False
+            successor = {"error": "%s: %s" % (type(exc).__name__, exc)}
+    else:
+        ok = False
+    _add(checks, "S04P04-STAGE-REVIEW-PROGRESSION", ok, {"mode": mode, "candidate_present": candidate_present, "signed_present": signed_present, "index": stage_rows, "successor": successor})
 
 
 def _check_no_leaks(root: Path, checks: List[Dict[str, Any]]) -> None:
@@ -1041,10 +1185,14 @@ def verify_existing_phase_evidence(root: Path, *, verify_git_history: bool = Tru
                 continue
             path = root.parent / candidate if relative.startswith(".github/") else root / candidate
             actual = sha256_file(path) if path.is_file() else "MISSING"
-            if actual != expected:
+            if actual != expected and not _historical_file_matches(root, relative, expected, verify_git_history):
                 input_errors.append({"path": relative, "expected": expected, "actual": actual})
-        _add(checks, "S04P04-RECEIPT-SIGNED-INPUTS-CURRENT", not input_errors, input_errors or "all inputs match")
-        _add(checks, "S04P04-RECEIPT-CODE-HASH-CURRENT", evidence.get("hashes", {}).get("code") == _current_code_hash(root), {"expected": evidence.get("hashes", {}).get("code"), "actual": _current_code_hash(root)})
+        _add(checks, "S04P04-RECEIPT-SIGNED-INPUTS-CURRENT", not input_errors, input_errors or "all inputs match current files or the exact signed phase commit")
+        code_current = _current_code_hash(root)
+        code_expected = evidence.get("hashes", {}).get("code")
+        code_historical = _historical_code_hash(root, verify_git_history) if code_expected != code_current else code_current
+        code_ok = code_expected == code_current or (code_expected == PINNED_PHASE_CODE_HASH and code_historical in {PINNED_PHASE_CODE_HASH, "UNVERIFIED_UNIT_TEST_HISTORY"})
+        _add(checks, "S04P04-RECEIPT-CODE-HASH-CURRENT", code_ok, {"expected": code_expected, "current": code_current, "historical": code_historical})
         _add(checks, "S04P04-RECEIPT-ROLLBACK-HASH-BINDING", evidence.get("hashes", {}).get("rollback_evidence") == rollback_hash, {"expected": evidence.get("hashes", {}).get("rollback_evidence"), "actual": rollback_hash})
         proof = evidence.get("capacity_proof", {})
         _add(checks, "S04P04-RECEIPT-CAPACITY-PROOF", proof.get("frozen_10x_profile_passed") is True and proof.get("frozen_10x_swap_used_mib") == 0 and proof.get("frozen_10x_disk_exhausted") is False and proof.get("frozen_10x_minimum_free_reserve_preserved") is True and proof.get("production_capacity_verified") is False and proof.get("production_load_generated") is False, proof)

@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S04-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S04",
+  "review_id": "ABD-S04-WHOLE-STAGE-REVIEW",
+  "fixed_clock": "2026-07-22T23:59:00+10:00",
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_finding_ids": [
+    "F-S04-REVIEW-001",
+    "F-S04-REVIEW-002",
+    "F-S04-REVIEW-003",
+    "F-S04-REVIEW-004",
+    "F-S04-REVIEW-005",
+    "F-S04-REVIEW-006"
+  ],
+  "expected_phase_evidence_sha256": {
+    "P01": "57c81a3d5807389237fe78b596b6251bd585e58e0925a829ec4a81da3b0957a6",
+    "P02": "a7dc214a406d8776eb67d5fe436092e4b1c87f1951d9f394e65565502f43eda4",
+    "P03": "a83dd53611d45af498ea1f70a7363aa3666021057a13c2b661abe89ca0bec1e7",
+    "P04": "cc5c845238614bdb7c1fb3ad5706363453ec84880c6cf44430ffef3f9d23bb69"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "438b0f42396afd8ab399d46b588d470453eca2ea20bda6bee83a6f9acc84ce34",
+    "P02": "6fdc7890e2baecbea37bc981ec1224821904542c0a35c3d8de4ced5edd9bdb3e",
+    "P03": "4658549bc64b5097104a0cf72bfc4af48c844eb599709ab8ecec2e4d81ed64b5",
+    "P04": "a60e512777101405ee60e21de0bce4c20eccd24035ec71995084802c68d7ebbf"
+  },
+  "expected_active_profile": {
+    "service": "abd-core",
+    "bind_address": "127.0.0.1",
+    "bind_port": 8080,
+    "cpu_millicores": 1500,
+    "memory_mib": 2560,
+    "swap_mib": 0,
+    "state_access": "READ_WRITE_SINGLE_WRITER"
+  },
+  "expected_shadow_profile": {
+    "service": "abd-shadow",
+    "profile": "shadow",
+    "bind_address": "127.0.0.1",
+    "allowed_bind_ports": [8081, 8082],
+    "cpu_millicores": 250,
+    "memory_mib": 512,
+    "swap_mib": 0,
+    "state_access": "READ_ONLY",
+    "maximum_concurrent_instances": 1
+  },
+  "expected_claim_boundary": {
+    "ovh_7x24_runtime_verified": false,
+    "global_chinese_access_verified": false,
+    "china_mainland_reachability_or_acceleration_guaranteed": false,
+    "cloudflare_tunnel_or_access_applied": false,
+    "static_degraded_page_automatically_wired": false,
+    "production_10x_throughput_verified": false,
+    "production_rto_rpo_verified": false,
+    "production_capacity_or_disk_verified": false,
+    "financial_target_verified_or_guaranteed": false
+  },
+  "allowed_numeric_boundary_deltas": ["-0.0001", "0", "0.0001"],
+  "expected_oracle_check_minimum": 55,
+  "minimum_targeted_pytest_cases": 60,
+  "minimum_full_pytest_cases": 3861,
+  "minimum_signed_state_pytest_cases": 847,
+  "expected_rollback_artifact_count": 18,
+  "expected_release_status": "NOT_READY_S05_TO_S19_AND_TARGET_RUNTIME_ACTIVATION_REQUIRED",
+  "expected_next": "S04/GITHUB_STAGE_UPLOAD_READY"
+}

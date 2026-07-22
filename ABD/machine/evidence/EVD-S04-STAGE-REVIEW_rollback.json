@@ -1,0 +1,123 @@
+{
+  "artifacts": {
+    "access_policy.md": {
+      "corrupted_sha256": "ee70984eeaab9a9afff7b7aa725d6634913dae217e7dda0905d48d670b898839",
+      "restored_sha256": "2fcbaaaaecdfc361d695caad6c1924cfaaa9ceb98538cb5c2f7c1930af99bbc7",
+      "signed_sha256": "2fcbaaaaecdfc361d695caad6c1924cfaaa9ceb98538cb5c2f7c1930af99bbc7",
+      "status": "PASS"
+    },
+    "capacity_budget.json": {
+      "corrupted_sha256": "e84aed45f65898f3f01158f8befff3d0f70f7efd394c989f5cbb8404e3f13393",
+      "restored_sha256": "b3c76e22683fc45deb5bb59ae7867ae7886800e93232ea4a99dc567ea70daaa2",
+      "signed_sha256": "b3c76e22683fc45deb5bb59ae7867ae7886800e93232ea4a99dc567ea70daaa2",
+      "status": "PASS"
+    },
+    "degraded_page.html": {
+      "corrupted_sha256": "e0413f2428378f308a405bf0b85e48f6735c21d0d3c896d384fc7c06e449423f",
+      "restored_sha256": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40",
+      "signed_sha256": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40",
+      "status": "PASS"
+    },
+    "feature_flags.json": {
+      "corrupted_sha256": "28edf722ee6731dd255ea3974a824db91fd0e1d7f0a7d4f8c0fdc8ce526a8027",
+      "restored_sha256": "36b366ced826c3addb402526256e12f1a9fd7bdee56e321d8dc441a3f558d254",
+      "signed_sha256": "36b366ced826c3addb402526256e12f1a9fd7bdee56e321d8dc441a3f558d254",
+      "status": "PASS"
+    },
+    "infra/cloudflared.yml": {
+      "corrupted_sha256": "b85a854e876de7a2c69267a6608e02d8e8a7ad81c25a7b6a5ccfcceb74e723f7",
+      "restored_sha256": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+      "signed_sha256": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+      "status": "PASS"
+    },
+    "infra/compose.yml": {
+      "corrupted_sha256": "a60fb45d557a179ec9cfd69b2b6509effa9a7e61f9e47ede505d1e111d9dc17a",
+      "restored_sha256": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+      "signed_sha256": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+      "status": "PASS"
+    },
+    "infra/config.schema.json": {
+      "corrupted_sha256": "3d91dafeaa60f7c8da2ac172d5357d8702ebfff42d52e37c9a4d3109575f9254",
+      "restored_sha256": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+      "signed_sha256": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+      "status": "PASS"
+    },
+    "infra/rebuild.sh": {
+      "corrupted_sha256": "3eb439f3ca294873a4c49171ff356d1eff82fb802918705fd8a869a0c125f6e2",
+      "restored_sha256": "07e38ac597543b184884290985769f177f5a1c05ab76e1a9c426f104f44249cf",
+      "signed_sha256": "07e38ac597543b184884290985769f177f5a1c05ab76e1a9c426f104f44249cf",
+      "status": "PASS"
+    },
+    "infra/systemd/abd-cloudflared.service": {
+      "corrupted_sha256": "13661c1f6d386c08fcd1ff48e9a09a47229243890094b226f6b3571fcca8f1fb",
+      "restored_sha256": "de84c188229b3cef601ff8c6a1edb21215535fe8329072185a4848e6d08cb68c",
+      "signed_sha256": "de84c188229b3cef601ff8c6a1edb21215535fe8329072185a4848e6d08cb68c",
+      "status": "PASS"
+    },
+    "infra/systemd/abd.service": {
+      "corrupted_sha256": "2832400c1952a99a0f3b455412e78d86728caadda7a6132ffd870347789630c5",
+      "restored_sha256": "256b30a69ca27f0a3bb566d3ca722d19c0ba00a09d4869ef218d15f5e1cf76bf",
+      "signed_sha256": "256b30a69ca27f0a3bb566d3ca722d19c0ba00a09d4869ef218d15f5e1cf76bf",
+      "status": "PASS"
+    },
+    "load_baseline.json": {
+      "corrupted_sha256": "793bd959c31f86155e7daac1524105ef97f245b26ec2d847d4bac941a578e523",
+      "restored_sha256": "395135bfd165c37700c2f4e41a14691dbd06d0d59e9b358b437a7ee38adbe695",
+      "signed_sha256": "395135bfd165c37700c2f4e41a14691dbd06d0d59e9b358b437a7ee38adbe695",
+      "status": "PASS"
+    },
+    "machine/evidence/S04/STAGE_REVIEW/findings.json": {
+      "corrupted_sha256": "23c89d2a36e0f6ea3da2b52da39c48735da28917712200da6f884971da723e7e",
+      "restored_sha256": "f861ebe1b6120706b6b495076e499f3af817c666a75434265a9c7993a82905d0",
+      "signed_sha256": "f861ebe1b6120706b6b495076e499f3af817c666a75434265a9c7993a82905d0",
+      "status": "PASS"
+    },
+    "machine/facts/stage4_review_contract.json": {
+      "corrupted_sha256": "81b9a8b191fde3f3e756782024a9db6fbaf6a471b8b9b98b3d3af9df3a1ffca3",
+      "restored_sha256": "fecee345c17c94623a8a86629efe6f885da61e69b102c8c56362382d339d3c3b",
+      "signed_sha256": "fecee345c17c94623a8a86629efe6f885da61e69b102c8c56362382d339d3c3b",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S04_STAGE_REVIEW.json": {
+      "corrupted_sha256": "4b884ce5d5d5738ab1d09c8467958c724022acfb4fcbb0e3e5dec6f5261b9412",
+      "restored_sha256": "faa3b99005c41c8ce17a7c67c58013aeae21bd2f92db8eeee734af36aea65111",
+      "signed_sha256": "faa3b99005c41c8ce17a7c67c58013aeae21bd2f92db8eeee734af36aea65111",
+      "status": "PASS"
+    },
+    "release_slots.json": {
+      "corrupted_sha256": "a7807cd5834b30fb84ba24363fd52f761d26bc8c72137eb3886a441a1bd2d7f7",
+      "restored_sha256": "e7893e29f85fe9cf0ec68a2aff6f8814051c54b97c665c9a79cc8c903264dfb8",
+      "signed_sha256": "e7893e29f85fe9cf0ec68a2aff6f8814051c54b97c665c9a79cc8c903264dfb8",
+      "status": "PASS"
+    },
+    "resource_shedding.json": {
+      "corrupted_sha256": "43a501fee57b07a64d40c88af71dadff94a29af9d5ec336f2330c35e58c689b1",
+      "restored_sha256": "c79a8d5e86852dcb7611268e57301c59210d11db9ae5fdef6e127da605a6c5e6",
+      "signed_sha256": "c79a8d5e86852dcb7611268e57301c59210d11db9ae5fdef6e127da605a6c5e6",
+      "status": "PASS"
+    },
+    "rollback.sh": {
+      "corrupted_sha256": "20aad196205e153b66e5741573b6b6e3b10a8d38e1ea798ad14d0b561a0cf259",
+      "restored_sha256": "01e8b38329707d31de514249d2f7e096d0dc7a280ca204d5004e3d9e29c5168e",
+      "signed_sha256": "01e8b38329707d31de514249d2f7e096d0dc7a280ca204d5004e3d9e29c5168e",
+      "status": "PASS"
+    },
+    "tests/S04/stage_review_test.py": {
+      "corrupted_sha256": "b5ba16f5385797ddb1a30729b720eaa36567a88393842f5e11e320304d1712d7",
+      "restored_sha256": "681e9656a28c276072fb1b4742b8279c6122fa49521f27c5e7cfe997afbb05b9",
+      "signed_sha256": "681e9656a28c276072fb1b4742b8279c6122fa49521f27c5e7cfe997afbb05b9",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "STAGE-REVIEW-S04",
+  "docker_or_systemd_invoked": false,
+  "evidence_id": "EVD-S04-STAGE-REVIEW-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-22T23:59:00+10:00",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "EPHEMERAL_SIGNED_STAGE_ARTIFACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS",
+  "target_host_accessed": false
+}

@@ -183,6 +183,27 @@ def test_slots_share_one_durable_state_root_outside_both_releases() -> None:
     assert not any(path.startswith("/opt/abd/releases/") for path in state["paths"])
 
 
+def test_active_and_candidate_runtime_profiles_bind_resources_ports_and_state_access() -> None:
+    active = SLOTS["runtime_profiles"]["active"]
+    shadow = SLOTS["runtime_profiles"]["candidate_shadow"]
+    assert [active["compose_service"], active["bind_address"], active["bind_port"]] == ["abd-core", "127.0.0.1", 8080]
+    assert [active["cpu_hard_limit_millicores"], active["memory_hard_limit_mib"], active["swap_limit_mib"]] == [1500, 2560, 0]
+    assert active["state_access"] == "READ_WRITE_SINGLE_WRITER"
+    assert [shadow["compose_service"], shadow["compose_profile"]] == ["abd-shadow", "shadow"]
+    assert shadow["allowed_bind_ports"] == [8081, 8082]
+    assert [shadow["cpu_hard_limit_millicores"], shadow["memory_hard_limit_mib"], shadow["swap_limit_mib"]] == [250, 512, 0]
+    assert shadow["state_access"] == "READ_ONLY"
+    assert shadow["maximum_concurrent_instances"] == 1
+    assert active["order_submission_enabled"] is False
+    assert shadow["order_submission_enabled"] is False
+
+
+def test_runtime_profile_mutation_fails_closed() -> None:
+    candidate = copy.deepcopy(SLOTS)
+    candidate["runtime_profiles"]["candidate_shadow"]["state_access"] = "READ_WRITE"
+    assert validate_release_slots(candidate, RELEASE_POLICY)
+
+
 def test_atomic_route_allows_only_the_two_frozen_slots() -> None:
     routing = SLOTS["routing"]
     assert routing["current_release_symlink"] == "/opt/abd/current"
@@ -503,7 +524,7 @@ def test_p02_prerequisite_receipt_mutations_block_p03(tmp_path: Path, path: list
     _failed(evaluate_contract(root), "S04P03-P02-PREREQUISITE")
 
 
-def test_p04_is_exact_candidate_or_signed_successor_and_stage_review_is_not_started() -> None:
+def test_p04_and_stage_review_progression_is_monotonic_and_verified() -> None:
     candidate = [
         Path("capacity_budget.json"),
         Path("resource_shedding.json"),
@@ -516,19 +537,16 @@ def test_p04_is_exact_candidate_or_signed_successor_and_stage_review_is_not_star
         Path("machine/evidence/EVD-S04-P04.json"),
         Path("machine/evidence/EVD-S04-P04_rollback.json"),
     ]
-    forbidden = [
-        Path("tests/S04/stage_review_test.py"),
-        Path("machine/tests/fixtures/S04_STAGE_REVIEW.json"),
-        Path("machine/evidence/EVD-S04-STAGE-REVIEW.json"),
-        Path("machine/evidence/EVD-S04-STAGE-REVIEW_rollback.json"),
-        Path("abd_acceptance/stage4_review.py"),
-    ]
     assert all((ROOT / path).is_file() for path in candidate)
     assert len([path for path in signed if (ROOT / path).exists()]) in {0, 2}
-    assert not [path.as_posix() for path in forbidden if (ROOT / path).exists()]
     progression = _p04_progression_contract(ROOT)
     assert progression["status"] == "PASS", progression
     assert progression["mode"] in {"VERIFIED_S04_P04_CANDIDATE", "VERIFIED_S04_P04_SIGNED_SUCCESSOR"}
+    assert progression["stage_review_mode"] in {
+        "S04_STAGE_REVIEW_NOT_STARTED",
+        "VERIFIED_S04_STAGE_REVIEW_CANDIDATE",
+        "VERIFIED_S04_STAGE_REVIEW_SIGNED",
+    }
 
 
 def test_taskpack_artifacts_commands_and_local_paths_remain_exact() -> None:

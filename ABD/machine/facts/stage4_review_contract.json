@@ -1,0 +1,172 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "stage_id": "S04",
+  "review_id": "ABD-S04-WHOLE-STAGE-REVIEW",
+  "fixed_at": "2026-07-22T23:59:00+10:00",
+  "review_scope": {
+    "phase_ids": ["P01", "P02", "P03", "P04"],
+    "requirement_ids": ["REQ-S04-P01", "REQ-S04-P02", "REQ-S04-P03", "REQ-S04-P04"],
+    "acceptance_contract_ids": ["AC-S04-P01", "AC-S04-P02", "AC-S04-P03", "AC-S04-P04"],
+    "task_ids": [
+      "T-S04-P01-01", "T-S04-P01-02", "T-S04-P01-03",
+      "T-S04-P02-01", "T-S04-P02-02", "T-S04-P02-03",
+      "T-S04-P03-01", "T-S04-P03-02", "T-S04-P03-03",
+      "T-S04-P04-01", "T-S04-P04-02", "T-S04-P04-03"
+    ]
+  },
+  "supplied_source_receipts": [
+    {
+      "artifact_label": "ABD_Roadmap_Stage_Phase_v0.0.0.1.md",
+      "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "repository_equivalent": "machine/evidence/roadmap_stage_phase.md",
+      "repository_equivalent_required": true
+    },
+    {
+      "artifact_label": "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip",
+      "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+      "original_file_count": 53,
+      "repository_equivalent": null,
+      "repository_equivalent_required": false,
+      "verification_boundary": "LOCAL_OWNER_SUPPLIED_ARCHIVE_RECEIPT; CI verifies pinned critical repository files, not the absent ZIP"
+    }
+  ],
+  "baseline_critical_artifacts": {
+    "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+    "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+    "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+    "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+    "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+    "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+    "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+    "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+    "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+    "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+    "machine/evidence/S03/STAGE_REVIEW/github_delivery_receipt.json": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0"
+  },
+  "phase_records": [
+    {
+      "phase_id": "P01",
+      "requirement_id": "REQ-S04-P01",
+      "acceptance_contract_id": "AC-S04-P01",
+      "task_ids": ["T-S04-P01-01", "T-S04-P01-02", "T-S04-P01-03"],
+      "evidence_path": "machine/evidence/EVD-S04-P01.json",
+      "evidence_sha256": "57c81a3d5807389237fe78b596b6251bd585e58e0925a829ec4a81da3b0957a6",
+      "rollback_path": "machine/evidence/EVD-S04-P01_rollback.json",
+      "rollback_sha256": "438b0f42396afd8ab399d46b588d470453eca2ea20bda6bee83a6f9acc84ce34",
+      "implementation_commit": "4cd838a3fa27ee29857afd4a2bce632252d2c0b8",
+      "implementation_code_sha256": "1255629d805986ee3c79dc0dc7d2223b63424a671d901bf05098d6b4d6f295c3",
+      "expected_next": "S04/P02_READY_NOT_STARTED",
+      "required_outputs": ["infra/compose.yml", "infra/systemd", "infra/config.schema.json"]
+    },
+    {
+      "phase_id": "P02",
+      "requirement_id": "REQ-S04-P02",
+      "acceptance_contract_id": "AC-S04-P02",
+      "task_ids": ["T-S04-P02-01", "T-S04-P02-02", "T-S04-P02-03"],
+      "evidence_path": "machine/evidence/EVD-S04-P02.json",
+      "evidence_sha256": "a7dc214a406d8776eb67d5fe436092e4b1c87f1951d9f394e65565502f43eda4",
+      "rollback_path": "machine/evidence/EVD-S04-P02_rollback.json",
+      "rollback_sha256": "6fdc7890e2baecbea37bc981ec1224821904542c0a35c3d8de4ced5edd9bdb3e",
+      "implementation_commit": "52e85f6626cde511c9b9679e126cfb536d612ddd",
+      "implementation_code_sha256": "e30dbd30561188059b1cf7d528f5651d95f3cc7065c82de05644d56ea40a45a4",
+      "expected_next": "S04/P03_READY_NOT_STARTED",
+      "required_outputs": ["infra/cloudflared.yml", "access_policy.md", "degraded_page.html"]
+    },
+    {
+      "phase_id": "P03",
+      "requirement_id": "REQ-S04-P03",
+      "acceptance_contract_id": "AC-S04-P03",
+      "task_ids": ["T-S04-P03-01", "T-S04-P03-02", "T-S04-P03-03"],
+      "evidence_path": "machine/evidence/EVD-S04-P03.json",
+      "evidence_sha256": "a83dd53611d45af498ea1f70a7363aa3666021057a13c2b661abe89ca0bec1e7",
+      "rollback_path": "machine/evidence/EVD-S04-P03_rollback.json",
+      "rollback_sha256": "4658549bc64b5097104a0cf72bfc4af48c844eb599709ab8ecec2e4d81ed64b5",
+      "implementation_commit": "eead856a87fc15a7b25d08723e021111265c85e6",
+      "implementation_code_sha256": "eebf67dce7cec0e45def06f922d559e5d1d52800a09ab8ef9d6b2c13ac804aad",
+      "expected_next": "S04/P04_READY_NOT_STARTED",
+      "required_outputs": ["release_slots.json", "feature_flags.json", "rollback.sh"]
+    },
+    {
+      "phase_id": "P04",
+      "requirement_id": "REQ-S04-P04",
+      "acceptance_contract_id": "AC-S04-P04",
+      "task_ids": ["T-S04-P04-01", "T-S04-P04-02", "T-S04-P04-03"],
+      "evidence_path": "machine/evidence/EVD-S04-P04.json",
+      "evidence_sha256": "cc5c845238614bdb7c1fb3ad5706363453ec84880c6cf44430ffef3f9d23bb69",
+      "rollback_path": "machine/evidence/EVD-S04-P04_rollback.json",
+      "rollback_sha256": "a60e512777101405ee60e21de0bce4c20eccd24035ec71995084802c68d7ebbf",
+      "implementation_commit": "2630ec141e440d72288d68d42ec397debd245e5c",
+      "implementation_code_sha256": "ca8112ae584f83faeec97476da791137bf837c48fb7329522d745ccc4afd34ec",
+      "expected_next": "S04/STAGE_REVIEW_READY_NOT_STARTED",
+      "required_outputs": ["capacity_budget.json", "resource_shedding.json", "load_baseline.json"]
+    }
+  ],
+  "remediated_artifacts": {
+    "infra/compose.yml": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+    "release_slots.json": "e7893e29f85fe9cf0ec68a2aff6f8814051c54b97c665c9a79cc8c903264dfb8",
+    "infra/systemd/abd-cloudflared.service": "de84c188229b3cef601ff8c6a1edb21215535fe8329072185a4848e6d08cb68c"
+  },
+  "review_findings_path": "machine/evidence/S04/STAGE_REVIEW/findings.json",
+  "review_gates": [
+    "SUPPLIED_BASELINE_CRITICAL_HASHES_MATCH",
+    "S04_REQUIREMENT_ACCEPTANCE_TASK_TRACE_EXACT",
+    "P01_TO_P04_SIGNED_RECEIPTS_AND_HISTORICAL_GIT_CHAIN_PASS",
+    "ALL_FOUR_CURRENT_PHASE_ORACLES_PASS",
+    "ACTIVE_SHADOW_PORT_RESOURCE_AND_STATE_ACCESS_BINDING_EXACT",
+    "CLOUDFLARED_OUTBOUND_CONNECTOR_LIFECYCLE_HARDENED",
+    "CAPACITY_SHEDDING_RELEASE_AND_COMPOSE_CONTRACTS_COUPLED",
+    "RUNTIME_GLOBAL_ACCESS_10X_RTO_RPO_AND_DEGRADED_FALLBACK_REMAIN_UNVERIFIED",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "A300_A0_NO_ORDER_NO_SECRET_NO_GATE_RELAXATION_NO_RETURN_CLAIM",
+    "FULL_STAGE_REGRESSION_TASKPACK_SIGNED_STATE_AND_ROLLBACK_PASS"
+  ],
+  "upload_preconditions": [
+    "ALL_STAGE_PHASES_PASS",
+    "WHOLE_STAGE_REVIEW_PASS",
+    "ALL_REVIEW_FINDINGS_RESOLVED",
+    "FULL_STAGE_REGRESSION_PASS",
+    "SIGNED_STATE_REGRESSION_PASS",
+    "PAID_DEPENDENCY_SCAN_PASS",
+    "CLEAN_WORKTREE_AFTER_COMMIT",
+    "NO_INCREMENTAL_CASH_COST"
+  ],
+  "stage_stop_conditions": [
+    "发现法律、监管或来源合同实质冲突且无安全默认",
+    "需要不可逆操作",
+    "新增现金支出将超过A$0",
+    "严重安全事故或证据完整性失败",
+    "阶段终止条件被触发"
+  ],
+  "external_effect_boundary": {
+    "github_upload_performed_by_local_review": false,
+    "remote_ci_result_claimed_by_local_review": false,
+    "external_network_accessed_for_product_runtime": false,
+    "ovh_account_or_host_accessed": false,
+    "cloudflare_account_or_api_accessed": false,
+    "gmail_account_or_api_accessed": false,
+    "docker_or_systemd_invoked": false,
+    "secret_provisioned_or_read": false,
+    "production_deployed_or_activated": false,
+    "real_traffic_or_load_generated": false,
+    "model_or_strategy_executed": false,
+    "order_submitted_or_retried": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "owner_final_order_only": true
+  },
+  "claim_boundary": {
+    "ovh_7x24_runtime_verified": false,
+    "global_chinese_access_verified": false,
+    "china_mainland_reachability_or_acceleration_guaranteed": false,
+    "cloudflare_tunnel_or_access_applied": false,
+    "static_degraded_page_automatically_wired": false,
+    "production_10x_throughput_verified": false,
+    "production_rto_rpo_verified": false,
+    "production_capacity_or_disk_verified": false,
+    "financial_target_verified_or_guaranteed": false
+  },
+  "release_status_on_pass": "NOT_READY_S05_TO_S19_AND_TARGET_RUNTIME_ACTIVATION_REQUIRED",
+  "next_on_pass": "S04/GITHUB_STAGE_UPLOAD_READY"
+}

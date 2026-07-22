@@ -53,6 +53,38 @@
     ],
     "partial_or_external_target_policy": "REJECT_AND_KEEP_PREVIOUS"
   },
+  "runtime_profiles": {
+    "active": {
+      "compose_service": "abd-core",
+      "compose_profile": "DEFAULT",
+      "project_name": "abd",
+      "bind_address": "127.0.0.1",
+      "bind_port": 8080,
+      "state_access": "READ_WRITE_SINGLE_WRITER",
+      "cpu_hard_limit_millicores": 1500,
+      "memory_hard_limit_mib": 2560,
+      "swap_limit_mib": 0,
+      "live_recommendation_enabled_by_profile": false,
+      "order_submission_enabled": false
+    },
+    "candidate_shadow": {
+      "compose_service": "abd-shadow",
+      "compose_profile": "shadow",
+      "project_name_pattern": "^abd-shadow-(blue|green)$",
+      "bind_address": "127.0.0.1",
+      "allowed_bind_ports": [
+        8081,
+        8082
+      ],
+      "state_access": "READ_ONLY",
+      "cpu_hard_limit_millicores": 250,
+      "memory_hard_limit_mib": 512,
+      "swap_limit_mib": 0,
+      "maximum_concurrent_instances": 1,
+      "live_recommendation_enabled_by_profile": false,
+      "order_submission_enabled": false
+    }
+  },
   "shared_durable_state": {
     "root": "/var/lib/abd",
     "outside_release_slots": true,

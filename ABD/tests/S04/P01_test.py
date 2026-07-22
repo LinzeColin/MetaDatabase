@@ -163,7 +163,7 @@ def test_duplicate_json_key_fails_closed(tmp_path: Path) -> None:
 )
 def test_compose_security_and_resource_contract(name: str, predicate) -> None:
     assert name
-    assert set(COMPOSE["services"]) == {"abd-core"}
+    assert set(COMPOSE["services"]) == {"abd-core", "abd-shadow"}
     assert predicate(COMPOSE["services"]["abd-core"])
 
 
@@ -183,6 +183,25 @@ def test_compose_mounts_do_not_create_host_paths_and_secret_is_reference_only() 
         }
     }
     assert core["secrets"] == [{"source": "abd_runtime_secret", "target": "abd_runtime"}]
+
+
+def test_shadow_profile_is_loopback_read_only_and_hard_bounded() -> None:
+    shadow = COMPOSE["services"]["abd-shadow"]
+    volumes = {row["target"]: row for row in shadow["volumes"]}
+    assert shadow["profiles"] == ["shadow"]
+    assert shadow["restart"] == "no"
+    assert [shadow["cpus"], shadow["mem_limit"], shadow["mem_reservation"], shadow["memswap_limit"], shadow["pids_limit"]] == ["0.25", "512m", "128m", "512m", 128]
+    assert shadow["ports"] == [{
+        "target": 8080,
+        "published": "${ABD_SHADOW_BIND_PORT:?ABD_SHADOW_BIND_PORT must be 8081 or 8082}",
+        "host_ip": "127.0.0.1",
+        "protocol": "tcp",
+    }]
+    assert volumes["/var/lib/abd"]["read_only"] is True
+    assert volumes["/etc/abd/config.json"]["read_only"] is True
+    assert all(row["bind"]["create_host_path"] is False for row in shadow["volumes"])
+    assert shadow["environment"]["ABD_RUNTIME_MODE"] == "SHADOW_READ_ONLY"
+    assert shadow["environment"]["ABD_ORDER_SUBMISSION_ENABLED"] == "false"
 
 
 def test_systemd_unit_has_exact_offline_preflight_and_bounded_start() -> None:

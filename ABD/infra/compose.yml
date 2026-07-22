@@ -85,6 +85,96 @@
         "com.linze.abd.phase": "S04-P01",
         "com.linze.abd.product-version": "0.0.0.1"
       }
+    },
+    "abd-shadow": {
+      "profiles": [
+        "shadow"
+      ],
+      "image": "${ABD_IMAGE:?ABD_IMAGE must be pinned by sha256 digest}",
+      "pull_policy": "never",
+      "user": "${ABD_RUNTIME_UID_GID:?ABD_RUNTIME_UID_GID is required}",
+      "restart": "no",
+      "init": true,
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pids_limit": 128,
+      "cpus": "0.25",
+      "mem_limit": "512m",
+      "mem_reservation": "128m",
+      "memswap_limit": "512m",
+      "ports": [
+        {
+          "target": 8080,
+          "published": "${ABD_SHADOW_BIND_PORT:?ABD_SHADOW_BIND_PORT must be 8081 or 8082}",
+          "host_ip": "127.0.0.1",
+          "protocol": "tcp"
+        }
+      ],
+      "environment": {
+        "ABD_CONFIG_FILE": "/etc/abd/config.json",
+        "ABD_ORDER_SUBMISSION_ENABLED": "false",
+        "ABD_RUNTIME_MODE": "SHADOW_READ_ONLY",
+        "ABD_RUNTIME_SECRET_FILE": "/run/secrets/abd_runtime"
+      },
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "${ABD_CONFIG_FILE:-/etc/abd/config.json}",
+          "target": "/etc/abd/config.json",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        },
+        {
+          "type": "bind",
+          "source": "${ABD_STATE_DIR:-/var/lib/abd}",
+          "target": "/var/lib/abd",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        },
+        {
+          "type": "bind",
+          "source": "${ABD_SHADOW_LOG_DIR:?ABD_SHADOW_LOG_DIR is required}",
+          "target": "/var/log/abd",
+          "read_only": false,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ],
+      "secrets": [
+        {
+          "source": "abd_runtime_secret",
+          "target": "abd_runtime"
+        }
+      ],
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,nodev,size=32m"
+      ],
+      "networks": [
+        "abd_internal"
+      ],
+      "logging": {
+        "driver": "local",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "labels": {
+        "com.linze.abd.order-submission": "disabled",
+        "com.linze.abd.phase": "S04-STAGE-REVIEW",
+        "com.linze.abd.product-version": "0.0.0.1",
+        "com.linze.abd.runtime-role": "candidate-shadow"
+      }
     }
   },
   "networks": {

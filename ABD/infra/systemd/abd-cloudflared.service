@@ -1,0 +1,30 @@
+[Unit]
+Description=ABD outbound-only Cloudflare Tunnel connector
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/ABD
+Wants=network-online.target abd.service
+After=network-online.target abd.service
+ConditionPathExists=/usr/bin/cloudflared
+ConditionPathExists=/etc/cloudflared/config.yml
+
+[Service]
+Type=simple
+User=cloudflared
+Group=cloudflared
+UMask=0077
+ExecStart=/usr/bin/cloudflared --config /etc/cloudflared/config.yml tunnel run
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

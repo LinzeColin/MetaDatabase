@@ -46,15 +46,17 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S04-P01_rollback.json")
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "f4dc3422e87733ad2baaf60a7b064244431cc8319dcdc370bf29f9c302092162"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "739e4d867221375577fda911ae37fde59b2f3a90db1a203d1d9085148f76bd0c"
 PHASE_COMMIT = "4cd838a3fa27ee29857afd4a2bce632252d2c0b8"
 PINNED_PHASE_CODE_HASH = "1255629d805986ee3c79dc0dc7d2223b63424a671d901bf05098d6b4d6f295c3"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    "infra/compose.yml",
     "abd_acceptance/infrastructure_iac.py",
     "tests/S04/P01_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "tests/S04/P01_test.py": "b3c12007887852ab2d788c0621a83c88638015aac6a03bd97678670a04d071c6",
+    "infra/compose.yml": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+    "tests/S04/P01_test.py": "8adde86953d2ff3579bfc3ececb3314a3362aae747e57d03eae9b7a68090c846",
 }
 
 PINNED_PHASE_HASHES: Dict[str, str] = {
@@ -423,7 +425,8 @@ def _check_taskpack_trace(root: Path, fixture: Mapping[str, Any], checks: List[D
 def _check_compose(compose: Mapping[str, Any], checks: List[Dict[str, Any]]) -> None:
     services = compose.get("services", {})
     core = services.get("abd-core", {}) if isinstance(services, Mapping) else {}
-    _add(checks, "S04P01-COMPOSE-SERVICE-SET", compose.get("name") == "abd" and set(services) == {"abd-core"}, list(services))
+    shadow = services.get("abd-shadow", {}) if isinstance(services, Mapping) else {}
+    _add(checks, "S04P01-COMPOSE-SERVICE-SET", compose.get("name") == "abd" and set(services) == {"abd-core", "abd-shadow"}, list(services))
     _add(checks, "S04P01-COMPOSE-DIGEST-INPUT-REQUIRED", core.get("image") == "${ABD_IMAGE:?ABD_IMAGE must be pinned by sha256 digest}" and core.get("pull_policy") == "never" and "build" not in core, {"image": core.get("image"), "pull": core.get("pull_policy")})
     _add(checks, "S04P01-COMPOSE-RESOURCE-LIMITS", core.get("cpus") == "1.50" and core.get("mem_limit") == "2560m" and core.get("mem_reservation") == "1024m" and core.get("memswap_limit") == "2560m" and core.get("pids_limit") == 512, {key: core.get(key) for key in ["cpus", "mem_limit", "mem_reservation", "memswap_limit", "pids_limit"]})
     _add(checks, "S04P01-COMPOSE-HARDENING", core.get("read_only") is True and core.get("cap_drop") == ["ALL"] and core.get("security_opt") == ["no-new-privileges:true"] and core.get("init") is True and core.get("user") == "${ABD_RUNTIME_UID_GID:?ABD_RUNTIME_UID_GID is required}" and core.get("privileged") is None, {key: core.get(key) for key in ["read_only", "cap_drop", "security_opt", "init", "user", "privileged"]})
@@ -448,6 +451,56 @@ def _check_compose(compose: Mapping[str, Any], checks: List[Dict[str, Any]]) -> 
     _add(checks, "S04P01-COMPOSE-NO-ORDER-CAPABILITY", core.get("environment", {}).get("ABD_ORDER_SUBMISSION_ENABLED") == "false", core.get("environment"))
     logging = core.get("logging", {})
     _add(checks, "S04P01-COMPOSE-BOUNDED-LOGGING", logging == {"driver": "local", "options": {"max-size": "10m", "max-file": "3"}}, logging)
+    shadow_ports = shadow.get("ports", [])
+    shadow_volumes = shadow.get("volumes", [])
+    shadow_volume_map = {
+        row.get("target"): row
+        for row in shadow_volumes
+        if isinstance(row, Mapping) and isinstance(row.get("target"), str)
+    }
+    shadow_exact = (
+        shadow.get("profiles") == ["shadow"]
+        and shadow.get("image") == core.get("image")
+        and shadow.get("pull_policy") == "never"
+        and "build" not in shadow
+        and shadow.get("user") == core.get("user")
+        and shadow.get("restart") == "no"
+        and shadow.get("read_only") is True
+        and shadow.get("cap_drop") == ["ALL"]
+        and shadow.get("security_opt") == ["no-new-privileges:true"]
+        and shadow.get("cpus") == "0.25"
+        and shadow.get("mem_limit") == "512m"
+        and shadow.get("mem_reservation") == "128m"
+        and shadow.get("memswap_limit") == "512m"
+        and shadow.get("pids_limit") == 128
+        and shadow_ports == [{
+            "target": 8080,
+            "published": "${ABD_SHADOW_BIND_PORT:?ABD_SHADOW_BIND_PORT must be 8081 or 8082}",
+            "host_ip": "127.0.0.1",
+            "protocol": "tcp",
+        }]
+        and set(shadow_volume_map) == {"/etc/abd/config.json", "/var/lib/abd", "/var/log/abd"}
+        and all(row.get("type") == "bind" and row.get("bind", {}).get("create_host_path") is False for row in shadow_volumes)
+        and shadow_volume_map.get("/etc/abd/config.json", {}).get("read_only") is True
+        and shadow_volume_map.get("/var/lib/abd", {}).get("read_only") is True
+        and shadow_volume_map.get("/var/log/abd", {}).get("read_only") is False
+        and shadow.get("environment", {}).get("ABD_RUNTIME_MODE") == "SHADOW_READ_ONLY"
+        and shadow.get("environment", {}).get("ABD_ORDER_SUBMISSION_ENABLED") == "false"
+        and shadow.get("secrets") == core.get("secrets")
+        and shadow.get("logging") == logging
+    )
+    _add(
+        checks,
+        "S04P01-COMPOSE-SHADOW-RESOURCE-READ-ONLY-PROFILE",
+        shadow_exact,
+        {
+            "profiles": shadow.get("profiles"),
+            "resources": {key: shadow.get(key) for key in ["cpus", "mem_limit", "mem_reservation", "memswap_limit", "pids_limit"]},
+            "ports": shadow_ports,
+            "volumes": shadow_volumes,
+            "environment": shadow.get("environment"),
+        },
+    )
 
 
 def _check_systemd(root: Path, checks: List[Dict[str, Any]]) -> None:

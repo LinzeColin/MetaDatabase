@@ -1,0 +1,1482 @@
+{
+  "claim_boundary": {
+    "china_mainland_reachability_or_acceleration_guaranteed": false,
+    "cloudflare_tunnel_or_access_applied": false,
+    "financial_target_verified_or_guaranteed": false,
+    "global_chinese_access_verified": false,
+    "ovh_7x24_runtime_verified": false,
+    "production_10x_throughput_verified": false,
+    "production_capacity_or_disk_verified": false,
+    "production_rto_rpo_verified": false,
+    "static_degraded_page_automatically_wired": false
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S04/stage_review_test.py --junitxml=machine/evidence/S04/STAGE_REVIEW/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S04/STAGE_REVIEW/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S04/STAGE_REVIEW/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S04/STAGE_REVIEW/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S03/P04_test.py tests/S03/stage_review_test.py tests/S04/P01_test.py tests/S04/P02_test.py tests/S04/P03_test.py tests/S04/P04_test.py tests/S04/stage_review_test.py --junitxml=machine/evidence/S04/STAGE_REVIEW/signed_state_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S04/STAGE_REVIEW/signed_state_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract STAGE-REVIEW-S04 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "STAGE-REVIEW-S04",
+  "decision": "S04_WHOLE_STAGE_REVIEW_PASS",
+  "decision_sha256": "c448ed121085afd89c0edef2b1e4138045af2c141bff494e57ee012a0f94aa93",
+  "evidence_id": "EVD-S04-STAGE-REVIEW",
+  "explicit_unknowns": [
+    "No OVH host, Cloudflare or Gmail account, API, dashboard, DNS, credential or secret was accessed.",
+    "Docker, systemd and cloudflared were not invoked; the new unit is a repository configuration contract only.",
+    "OVH 7x24 operation, global Chinese reachability, China mainland reach or acceleration, and end-to-end Access remain unverified.",
+    "The static degraded page is not claimed to be automatically wired into a runtime fallback path.",
+    "The frozen 10x profile is deterministic engineering input, not observed production traffic or a target-host benchmark.",
+    "The 900-second rollback and 60-second ledger recovery objectives are not real OVH RTO/RPO evidence.",
+    "No model, market, quote, stake, account or order was selected or executed.",
+    "The 30% monthly compounding target remains falsifiable, unverified and not guaranteed; target shortfall cannot relax any gate.",
+    "Remote GitHub CI is not claimed by local review evidence and must be observed after whole-stage upload."
+  ],
+  "external_effect_boundary": {
+    "cloudflare_account_or_api_accessed": false,
+    "docker_or_systemd_invoked": false,
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed_for_product_runtime": false,
+    "github_upload_performed_by_local_review": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "order_submitted_or_retried": false,
+    "ovh_account_or_host_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "real_traffic_or_load_generated": false,
+    "remote_ci_result_claimed_by_local_review": false,
+    "secret_provisioned_or_read": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-22T23:59:00+10:00",
+  "hashes": {
+    "code": "e9b16505eec08cdffc69f21eddc3a9c2c7b9cb262116b406019da32e9d8e6458",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "README.md": "ca08e83f0f5ef7f67cd3bfafba34929d60a1a0661b32d2df3791f6d19efbde74",
+      "abd_acceptance/__init__.py": "9ed14ef9bcab1a89cb2414d562ac71568d969bd3d355a020aca807403abeab95",
+      "abd_acceptance/__main__.py": "17e23feed67fe6ff9070d44cb5d7ecc9bce93d9e1a96edc83dce7363d99708ad",
+      "abd_acceptance/capacity_governance.py": "d6e9b863b8948998c26fd0091a07a29e676e954ed2545988e55c08c20effc39a",
+      "abd_acceptance/cloudflare_edge.py": "92cc656d78b2f5ab46ac96f479b37791dbdb494b6622987e68a294ddf692a77c",
+      "abd_acceptance/infrastructure_iac.py": "84a6daa80540361b847764d92ccb2a744172873f270eb6d09a907dcd842b87a8",
+      "abd_acceptance/release_control.py": "2203175bf9cf79a7d072f8904562123d8cc3dfc71edce6057bed3b8dea41b416",
+      "abd_acceptance/stage4_review.py": "6c2ab2badd15bd91bb9e5fc6614874347fcf2f8b9918fab8d0f7036151bff446",
+      "access_policy.md": "2fcbaaaaecdfc361d695caad6c1924cfaaa9ceb98538cb5c2f7c1930af99bbc7",
+      "capacity_budget.json": "b3c76e22683fc45deb5bb59ae7867ae7886800e93232ea4a99dc567ea70daaa2",
+      "degraded_page.html": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40",
+      "feature_flags.json": "36b366ced826c3addb402526256e12f1a9fd7bdee56e321d8dc441a3f558d254",
+      "infra/cloudflared.yml": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+      "infra/compose.yml": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+      "infra/config.schema.json": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+      "infra/rebuild.sh": "07e38ac597543b184884290985769f177f5a1c05ab76e1a9c426f104f44249cf",
+      "infra/systemd/abd-cloudflared.service": "de84c188229b3cef601ff8c6a1edb21215535fe8329072185a4848e6d08cb68c",
+      "infra/systemd/abd.service": "256b30a69ca27f0a3bb566d3ca722d19c0ba00a09d4869ef218d15f5e1cf76bf",
+      "load_baseline.json": "395135bfd165c37700c2f4e41a14691dbd06d0d59e9b358b437a7ee38adbe695",
+      "machine/evidence/EVD-S04-P01.json": "57c81a3d5807389237fe78b596b6251bd585e58e0925a829ec4a81da3b0957a6",
+      "machine/evidence/EVD-S04-P01_rollback.json": "438b0f42396afd8ab399d46b588d470453eca2ea20bda6bee83a6f9acc84ce34",
+      "machine/evidence/EVD-S04-P02.json": "a7dc214a406d8776eb67d5fe436092e4b1c87f1951d9f394e65565502f43eda4",
+      "machine/evidence/EVD-S04-P02_rollback.json": "6fdc7890e2baecbea37bc981ec1224821904542c0a35c3d8de4ced5edd9bdb3e",
+      "machine/evidence/EVD-S04-P03.json": "a83dd53611d45af498ea1f70a7363aa3666021057a13c2b661abe89ca0bec1e7",
+      "machine/evidence/EVD-S04-P03_rollback.json": "4658549bc64b5097104a0cf72bfc4af48c844eb599709ab8ecec2e4d81ed64b5",
+      "machine/evidence/EVD-S04-P04.json": "cc5c845238614bdb7c1fb3ad5706363453ec84880c6cf44430ffef3f9d23bb69",
+      "machine/evidence/EVD-S04-P04_rollback.json": "a60e512777101405ee60e21de0bce4c20eccd24035ec71995084802c68d7ebbf",
+      "machine/evidence/S03/STAGE_REVIEW/github_delivery_receipt.json": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0",
+      "machine/evidence/S04/STAGE_REVIEW/findings.json": "f861ebe1b6120706b6b495076e499f3af817c666a75434265a9c7993a82905d0",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/stage4_review_contract.json": "fecee345c17c94623a8a86629efe6f885da61e69b102c8c56362382d339d3c3b",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S04_STAGE_REVIEW.json": "faa3b99005c41c8ce17a7c67c58013aeae21bd2f92db8eeee734af36aea65111",
+      "release_slots.json": "e7893e29f85fe9cf0ec68a2aff6f8814051c54b97c665c9a79cc8c903264dfb8",
+      "resource_shedding.json": "c79a8d5e86852dcb7611268e57301c59210d11db9ae5fdef6e127da605a6c5e6",
+      "rollback.sh": "01e8b38329707d31de514249d2f7e096d0dc7a280ca204d5004e3d9e29c5168e",
+      "tests/S04/stage_review_test.py": "681e9656a28c276072fb1b4742b8279c6122fa49521f27c5e7cfe997afbb05b9"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S04 whole-stage review validates infrastructure, edge, release and capacity contracts offline; it executes no model, provider, host, account, container engine, systemd, browser, traffic, order or return evaluation.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "0cb65c9b4c37a0d20cd98d732bf4d8bc4aab8739080f3604de587ce2a787be79"
+  },
+  "next": "S04/GITHUB_STAGE_UPLOAD_READY",
+  "phase_completion": {
+    "active_service": "abd-core",
+    "offline_frozen_10x_design_envelope": true,
+    "phase_count": 4,
+    "phase_evidence_status": "PASS",
+    "phase_ids": [
+      "P01",
+      "P02",
+      "P03",
+      "P04"
+    ],
+    "production_10x_runtime_verified": false,
+    "shadow_service": "abd-shadow",
+    "task_count": 12
+  },
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "NOT_READY_S05_TO_S19_AND_TARGET_RUNTIME_ACTIVATION_REQUIRED",
+  "review_findings": {
+    "open": 0,
+    "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true,
+    "resolved_in_review_candidate": 6,
+    "total": 6
+  },
+  "review_id": "ABD-S04-WHOLE-STAGE-REVIEW",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S04-STAGE-REVIEW_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S04",
+  "stage_status": "S04_WHOLE_STAGE_REVIEW_PASS",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "stage4_review_contract.json",
+        "id": "S04REVIEW-PREFLIGHT-CONTRACT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "findings.json",
+        "id": "S04REVIEW-PREFLIGHT-FINDINGS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "S04_STAGE_REVIEW.json",
+        "id": "S04REVIEW-PREFLIGHT-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "fecee345c17c94623a8a86629efe6f885da61e69b102c8c56362382d339d3c3b",
+          "expected": "fecee345c17c94623a8a86629efe6f885da61e69b102c8c56362382d339d3c3b"
+        },
+        "id": "S04REVIEW-PIN-MACHINE-FACTS-STAGE4_REVIEW_CONTRACT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f861ebe1b6120706b6b495076e499f3af817c666a75434265a9c7993a82905d0",
+          "expected": "f861ebe1b6120706b6b495076e499f3af817c666a75434265a9c7993a82905d0"
+        },
+        "id": "S04REVIEW-PIN-MACHINE-EVIDENCE-S04-STAGE_REVIEW-FINDINGS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "faa3b99005c41c8ce17a7c67c58013aeae21bd2f92db8eeee734af36aea65111",
+          "expected": "faa3b99005c41c8ce17a7c67c58013aeae21bd2f92db8eeee734af36aea65111"
+        },
+        "id": "S04REVIEW-PIN-MACHINE-TESTS-FIXTURES-S04_STAGE_REVIEW-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "681e9656a28c276072fb1b4742b8279c6122fa49521f27c5e7cfe997afbb05b9",
+          "expected": "681e9656a28c276072fb1b4742b8279c6122fa49521f27c5e7cfe997afbb05b9"
+        },
+        "id": "S04REVIEW-PIN-TESTS-S04-STAGE_REVIEW_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S04REVIEW-WORKFLOW-PIN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ea4242f0e5f822c4f1a7297f672966828781cd903bc2fe44063c1db8d63471e2",
+          "expected": "ea4242f0e5f822c4f1a7297f672966828781cd903bc2fe44063c1db8d63471e2"
+        },
+        "id": "S04REVIEW-ORACLE-SELF-INTEGRITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "phase_records": 4,
+          "scope": {
+            "acceptance_contract_ids": [
+              "AC-S04-P01",
+              "AC-S04-P02",
+              "AC-S04-P03",
+              "AC-S04-P04"
+            ],
+            "phase_ids": [
+              "P01",
+              "P02",
+              "P03",
+              "P04"
+            ],
+            "requirement_ids": [
+              "REQ-S04-P01",
+              "REQ-S04-P02",
+              "REQ-S04-P03",
+              "REQ-S04-P04"
+            ],
+            "task_ids": [
+              "T-S04-P01-01",
+              "T-S04-P01-02",
+              "T-S04-P01-03",
+              "T-S04-P02-01",
+              "T-S04-P02-02",
+              "T-S04-P02-03",
+              "T-S04-P03-01",
+              "T-S04-P03-02",
+              "T-S04-P03-03",
+              "T-S04-P04-01",
+              "T-S04-P04-02",
+              "T-S04-P04-03"
+            ]
+          }
+        },
+        "id": "S04REVIEW-CONTRACT-SHAPE",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "artifact_label": "ABD_Roadmap_Stage_Phase_v0.0.0.1.md",
+            "repository_equivalent": "machine/evidence/roadmap_stage_phase.md",
+            "repository_equivalent_required": true,
+            "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+          },
+          {
+            "artifact_label": "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip",
+            "original_file_count": 53,
+            "repository_equivalent": null,
+            "repository_equivalent_required": false,
+            "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+            "verification_boundary": "LOCAL_OWNER_SUPPLIED_ARCHIVE_RECEIPT; CI verifies pinned critical repository files, not the absent ZIP"
+          }
+        ],
+        "id": "S04REVIEW-SUPPLIED-SOURCE-RECEIPTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cloudflare_account_or_api_accessed": false,
+          "docker_or_systemd_invoked": false,
+          "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+          "external_network_accessed_for_product_runtime": false,
+          "github_upload_performed_by_local_review": false,
+          "gmail_account_or_api_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "model_or_strategy_executed": false,
+          "order_submitted_or_retried": false,
+          "ovh_account_or_host_accessed": false,
+          "owner_final_order_only": true,
+          "production_deployed_or_activated": false,
+          "real_traffic_or_load_generated": false,
+          "remote_ci_result_claimed_by_local_review": false,
+          "secret_provisioned_or_read": false
+        },
+        "id": "S04REVIEW-EXTERNAL-EFFECT-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "china_mainland_reachability_or_acceleration_guaranteed": false,
+          "cloudflare_tunnel_or_access_applied": false,
+          "financial_target_verified_or_guaranteed": false,
+          "global_chinese_access_verified": false,
+          "ovh_7x24_runtime_verified": false,
+          "production_10x_throughput_verified": false,
+          "production_capacity_or_disk_verified": false,
+          "production_rto_rpo_verified": false,
+          "static_degraded_page_automatically_wired": false
+        },
+        "id": "S04REVIEW-RUNTIME-OVERCLAIM-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ALL_STAGE_PHASES_PASS",
+          "WHOLE_STAGE_REVIEW_PASS",
+          "ALL_REVIEW_FINDINGS_RESOLVED",
+          "FULL_STAGE_REGRESSION_PASS",
+          "SIGNED_STATE_REGRESSION_PASS",
+          "PAID_DEPENDENCY_SCAN_PASS",
+          "CLEAN_WORKTREE_AFTER_COMMIT",
+          "NO_INCREMENTAL_CASH_COST"
+        ],
+        "id": "S04REVIEW-UPLOAD-PRECONDITIONS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "open": 0,
+          "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true,
+          "resolved_in_review_candidate": 6,
+          "total": 6
+        },
+        "id": "S04REVIEW-ALL-FINDINGS-RESOLVED",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04REVIEW-CLOUDFLARED-CONFIG-VALID",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04REVIEW-ACCESS-POLICY-VALID",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04REVIEW-RELEASE-SLOTS-VALID",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04REVIEW-FEATURE-FLAGS-VALID",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04REVIEW-CAPACITY-VALID",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04REVIEW-SHEDDING-VALID",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04REVIEW-LOAD-BASELINE-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "compose": {
+            "cap_drop": [
+              "ALL"
+            ],
+            "cpus": "1.50",
+            "environment": {
+              "ABD_CONFIG_FILE": "/etc/abd/config.json",
+              "ABD_ORDER_SUBMISSION_ENABLED": "false",
+              "ABD_RUNTIME_SECRET_FILE": "/run/secrets/abd_runtime"
+            },
+            "image": "${ABD_IMAGE:?ABD_IMAGE must be pinned by sha256 digest}",
+            "init": true,
+            "labels": {
+              "com.linze.abd.order-submission": "disabled",
+              "com.linze.abd.phase": "S04-P01",
+              "com.linze.abd.product-version": "0.0.0.1"
+            },
+            "logging": {
+              "driver": "local",
+              "options": {
+                "max-file": "3",
+                "max-size": "10m"
+              }
+            },
+            "mem_limit": "2560m",
+            "mem_reservation": "1024m",
+            "memswap_limit": "2560m",
+            "networks": [
+              "abd_internal"
+            ],
+            "pids_limit": 512,
+            "ports": [
+              {
+                "host_ip": "127.0.0.1",
+                "protocol": "tcp",
+                "published": "${ABD_BIND_PORT:-8080}",
+                "target": 8080
+              }
+            ],
+            "pull_policy": "never",
+            "read_only": true,
+            "restart": "unless-stopped",
+            "secrets": [
+              {
+                "source": "abd_runtime_secret",
+                "target": "abd_runtime"
+              }
+            ],
+            "security_opt": [
+              "no-new-privileges:true"
+            ],
+            "tmpfs": [
+              "/tmp:rw,noexec,nosuid,nodev,size=64m"
+            ],
+            "user": "${ABD_RUNTIME_UID_GID:?ABD_RUNTIME_UID_GID is required}",
+            "volumes": [
+              {
+                "bind": {
+                  "create_host_path": false
+                },
+                "read_only": true,
+                "source": "${ABD_CONFIG_FILE:-/etc/abd/config.json}",
+                "target": "/etc/abd/config.json",
+                "type": "bind"
+              },
+              {
+                "bind": {
+                  "create_host_path": false
+                },
+                "read_only": false,
+                "source": "${ABD_STATE_DIR:-/var/lib/abd}",
+                "target": "/var/lib/abd",
+                "type": "bind"
+              },
+              {
+                "bind": {
+                  "create_host_path": false
+                },
+                "read_only": false,
+                "source": "${ABD_LOG_DIR:-/var/log/abd}",
+                "target": "/var/log/abd",
+                "type": "bind"
+              }
+            ]
+          },
+          "profile": {
+            "bind_address": "127.0.0.1",
+            "bind_port": 8080,
+            "compose_profile": "DEFAULT",
+            "compose_service": "abd-core",
+            "cpu_hard_limit_millicores": 1500,
+            "live_recommendation_enabled_by_profile": false,
+            "memory_hard_limit_mib": 2560,
+            "order_submission_enabled": false,
+            "project_name": "abd",
+            "state_access": "READ_WRITE_SINGLE_WRITER",
+            "swap_limit_mib": 0
+          }
+        },
+        "id": "S04REVIEW-ACTIVE-RUNTIME-BINDING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "compose": {
+            "cap_drop": [
+              "ALL"
+            ],
+            "cpus": "0.25",
+            "environment": {
+              "ABD_CONFIG_FILE": "/etc/abd/config.json",
+              "ABD_ORDER_SUBMISSION_ENABLED": "false",
+              "ABD_RUNTIME_MODE": "SHADOW_READ_ONLY",
+              "ABD_RUNTIME_SECRET_FILE": "/run/secrets/abd_runtime"
+            },
+            "image": "${ABD_IMAGE:?ABD_IMAGE must be pinned by sha256 digest}",
+            "init": true,
+            "labels": {
+              "com.linze.abd.order-submission": "disabled",
+              "com.linze.abd.phase": "S04-STAGE-REVIEW",
+              "com.linze.abd.product-version": "0.0.0.1",
+              "com.linze.abd.runtime-role": "candidate-shadow"
+            },
+            "logging": {
+              "driver": "local",
+              "options": {
+                "max-file": "3",
+                "max-size": "10m"
+              }
+            },
+            "mem_limit": "512m",
+            "mem_reservation": "128m",
+            "memswap_limit": "512m",
+            "networks": [
+              "abd_internal"
+            ],
+            "pids_limit": 128,
+            "ports": [
+              {
+                "host_ip": "127.0.0.1",
+                "protocol": "tcp",
+                "published": "${ABD_SHADOW_BIND_PORT:?ABD_SHADOW_BIND_PORT must be 8081 or 8082}",
+                "target": 8080
+              }
+            ],
+            "profiles": [
+              "shadow"
+            ],
+            "pull_policy": "never",
+            "read_only": true,
+            "restart": "no",
+            "secrets": [
+              {
+                "source": "abd_runtime_secret",
+                "target": "abd_runtime"
+              }
+            ],
+            "security_opt": [
+              "no-new-privileges:true"
+            ],
+            "tmpfs": [
+              "/tmp:rw,noexec,nosuid,nodev,size=32m"
+            ],
+            "user": "${ABD_RUNTIME_UID_GID:?ABD_RUNTIME_UID_GID is required}",
+            "volumes": [
+              {
+                "bind": {
+                  "create_host_path": false
+                },
+                "read_only": true,
+                "source": "${ABD_CONFIG_FILE:-/etc/abd/config.json}",
+                "target": "/etc/abd/config.json",
+                "type": "bind"
+              },
+              {
+                "bind": {
+                  "create_host_path": false
+                },
+                "read_only": true,
+                "source": "${ABD_STATE_DIR:-/var/lib/abd}",
+                "target": "/var/lib/abd",
+                "type": "bind"
+              },
+              {
+                "bind": {
+                  "create_host_path": false
+                },
+                "read_only": false,
+                "source": "${ABD_SHADOW_LOG_DIR:?ABD_SHADOW_LOG_DIR is required}",
+                "target": "/var/log/abd",
+                "type": "bind"
+              }
+            ]
+          },
+          "profile": {
+            "allowed_bind_ports": [
+              8081,
+              8082
+            ],
+            "bind_address": "127.0.0.1",
+            "compose_profile": "shadow",
+            "compose_service": "abd-shadow",
+            "cpu_hard_limit_millicores": 250,
+            "live_recommendation_enabled_by_profile": false,
+            "maximum_concurrent_instances": 1,
+            "memory_hard_limit_mib": 512,
+            "order_submission_enabled": false,
+            "project_name_pattern": "^abd-shadow-(blue|green)$",
+            "state_access": "READ_ONLY",
+            "swap_limit_mib": 0
+          }
+        },
+        "id": "S04REVIEW-SHADOW-RUNTIME-BINDING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cpu": {
+            "active_slot_outer_hard_limit_millicores": 1500,
+            "allocated_millicores": 2000,
+            "candidate_shadow_outer_hard_limit_millicores": 250,
+            "host_system_and_tunnel_reserve_millicores": 250,
+            "total_millicores": 2000,
+            "unit": "MILLICORES",
+            "unknown_or_overcommit_action": "STOP_NEW_ADVICE_AND_SHED_OPTIONAL_WORK",
+            "utilization_thresholds_basis_points": {
+              "constrained_at": 7000,
+              "critical_at": 8500,
+              "emergency_at": 9000
+            }
+          },
+          "memory": {
+            "active_slot_outer_hard_limit_mib": 2560,
+            "allocated_mib": 4096,
+            "candidate_shadow_outer_hard_limit_mib": 512,
+            "host_system_and_tunnel_reserve_mib": 1024,
+            "oom_score_policy": "CANDIDATE_AND_OPTIONAL_WORK_BEFORE_ACTIVE_SAFETY_PATH",
+            "swap_allowed": false,
+            "total_mib": 4096,
+            "unit": "MIB",
+            "unknown_swap_or_oom_action": "STOP_NEW_ADVICE_AND_ROLL_BACK_FAIL_CLOSED",
+            "utilization_thresholds_basis_points": {
+              "constrained_at": 7000,
+              "critical_at": 8500,
+              "emergency_at": 9000
+            }
+          },
+          "profiles": {
+            "active": {
+              "bind_address": "127.0.0.1",
+              "bind_port": 8080,
+              "compose_profile": "DEFAULT",
+              "compose_service": "abd-core",
+              "cpu_hard_limit_millicores": 1500,
+              "live_recommendation_enabled_by_profile": false,
+              "memory_hard_limit_mib": 2560,
+              "order_submission_enabled": false,
+              "project_name": "abd",
+              "state_access": "READ_WRITE_SINGLE_WRITER",
+              "swap_limit_mib": 0
+            },
+            "candidate_shadow": {
+              "allowed_bind_ports": [
+                8081,
+                8082
+              ],
+              "bind_address": "127.0.0.1",
+              "compose_profile": "shadow",
+              "compose_service": "abd-shadow",
+              "cpu_hard_limit_millicores": 250,
+              "live_recommendation_enabled_by_profile": false,
+              "maximum_concurrent_instances": 1,
+              "memory_hard_limit_mib": 512,
+              "order_submission_enabled": false,
+              "project_name_pattern": "^abd-shadow-(blue|green)$",
+              "state_access": "READ_ONLY",
+              "swap_limit_mib": 0
+            }
+          }
+        },
+        "id": "S04REVIEW-CAPACITY-SHEDDING-RELEASE-COMPOSE-COUPLING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "access": {
+            "catch_all_action": "HTTP_404",
+            "metrics_bind": "127.0.0.1:49312",
+            "origin_business_inbound_required": false,
+            "origin_service": "http://127.0.0.1:8080",
+            "tunnel_connector_direction": "OUTBOUND_ONLY"
+          },
+          "edge": "http://127.0.0.1:8080",
+          "routing": {
+            "allowed_targets": [
+              "/opt/abd/releases/blue",
+              "/opt/abd/releases/green"
+            ],
+            "atomic_switch_method": "CREATE_SIBLING_SYMLINK_THEN_RENAME",
+            "current_release_symlink": "/opt/abd/current",
+            "partial_or_external_target_policy": "REJECT_AND_KEEP_PREVIOUS",
+            "public_origin": "http://127.0.0.1:8080"
+          }
+        },
+        "id": "S04REVIEW-ENDPOINT-ALIGNMENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "china_mainland_reachability_or_acceleration_guaranteed": false,
+          "cloudflare_tunnel_or_access_applied": false,
+          "financial_target_verified_or_guaranteed": false,
+          "global_chinese_access_verified": false,
+          "ovh_7x24_runtime_verified": false,
+          "production_10x_throughput_verified": false,
+          "production_capacity_or_disk_verified": false,
+          "production_rto_rpo_verified": false,
+          "static_degraded_page_automatically_wired": false
+        },
+        "id": "S04REVIEW-DEGRADED-PAGE-STATIC-UNWIRED-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "Install": {
+            "WantedBy": [
+              "multi-user.target"
+            ]
+          },
+          "Service": {
+            "ExecStart": [
+              "/usr/bin/cloudflared --config /etc/cloudflared/config.yml tunnel run"
+            ],
+            "Group": [
+              "cloudflared"
+            ],
+            "LockPersonality": [
+              "true"
+            ],
+            "MemoryDenyWriteExecute": [
+              "true"
+            ],
+            "NoNewPrivileges": [
+              "true"
+            ],
+            "PrivateDevices": [
+              "true"
+            ],
+            "PrivateTmp": [
+              "true"
+            ],
+            "ProtectControlGroups": [
+              "true"
+            ],
+            "ProtectHome": [
+              "true"
+            ],
+            "ProtectKernelModules": [
+              "true"
+            ],
+            "ProtectKernelTunables": [
+              "true"
+            ],
+            "ProtectSystem": [
+              "strict"
+            ],
+            "Restart": [
+              "on-failure"
+            ],
+            "RestartSec": [
+              "5s"
+            ],
+            "RestrictSUIDSGID": [
+              "true"
+            ],
+            "Type": [
+              "simple"
+            ],
+            "UMask": [
+              "0077"
+            ],
+            "User": [
+              "cloudflared"
+            ]
+          },
+          "Unit": {
+            "After": [
+              "network-online.target abd.service"
+            ],
+            "ConditionPathExists": [
+              "/usr/bin/cloudflared",
+              "/etc/cloudflared/config.yml"
+            ],
+            "Description": [
+              "ABD outbound-only Cloudflare Tunnel connector"
+            ],
+            "Documentation": [
+              "https://github.com/LinzeColin/MetaDatabase/tree/main/ABD"
+            ],
+            "Wants": [
+              "network-online.target abd.service"
+            ]
+          }
+        },
+        "id": "S04REVIEW-CLOUDFLARED-LIFECYCLE-HARDENED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "infra/compose.yml": "babed827948b77e28d395b0d36d2142605b8144f7e778302d6c384930aa54808",
+          "infra/systemd/abd-cloudflared.service": "de84c188229b3cef601ff8c6a1edb21215535fe8329072185a4848e6d08cb68c",
+          "release_slots.json": "e7893e29f85fe9cf0ec68a2aff6f8814051c54b97c665c9a79cc8c903264dfb8"
+        },
+        "id": "S04REVIEW-REMEDIATED-ARTIFACT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S04REVIEW-BASELINE-PURSUE_GOAL_PROMPT-TXT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S04REVIEW-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+          "expected": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+        },
+        "id": "S04REVIEW-BASELINE-MACHINE-EVIDENCE-ROADMAP_STAGE_PHASE-MD",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S04REVIEW-BASELINE-MACHINE-FACTS-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S04REVIEW-BASELINE-MACHINE-FACTS-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S04REVIEW-BASELINE-MACHINE-FACTS-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S04REVIEW-BASELINE-MACHINE-FACTS-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S04REVIEW-BASELINE-MACHINE-FACTS-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S04REVIEW-BASELINE-MACHINE-FACTS-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S04REVIEW-BASELINE-MACHINE-FACTS-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S04REVIEW-BASELINE-MACHINE-FACTS-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0",
+          "expected": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0"
+        },
+        "id": "S04REVIEW-BASELINE-MACHINE-EVIDENCE-S03-STAGE_REVIEW-GITHUB_DELIVERY_RECEIPT-JSON",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "depends_on": [
+              "S00",
+              "S01"
+            ],
+            "goal": "在VPS-1资源和A$0新增预算内实现全天候分析、全球中文访问和可恢复发布。",
+            "id": "S04",
+            "phases": [
+              {
+                "hours": {
+                  "high": 6,
+                  "likely": 4,
+                  "low": 3
+                },
+                "id": "P01",
+                "objective": "声明OVH主机、系统服务、容器、目录、秘密和资源限制。",
+                "outputs": [
+                  "infra/compose.yml",
+                  "infra/systemd",
+                  "infra/config.schema.json"
+                ],
+                "pass_gate": "一条命令可重建，秘密不进入仓库。",
+                "title": "基础设施即代码"
+              },
+              {
+                "hours": {
+                  "high": 6,
+                  "likely": 4,
+                  "low": 3
+                },
+                "id": "P02",
+                "objective": "建立身份保护、Named Tunnel、中文降级页和最小暴露面。",
+                "outputs": [
+                  "infra/cloudflared.yml",
+                  "access_policy.md",
+                  "degraded_page.html"
+                ],
+                "pass_gate": "OVH无需公开业务入站端口即可访问。",
+                "title": "Cloudflare 全球入口"
+              },
+              {
+                "hours": {
+                  "high": 6,
+                  "likely": 4,
+                  "low": 3
+                },
+                "id": "P03",
+                "objective": "建立同机双环境切换、小流量试运行、功能开关和自动回滚。",
+                "outputs": [
+                  "release_slots.json",
+                  "feature_flags.json",
+                  "rollback.sh"
+                ],
+                "pass_gate": "发布不丢账本，失败在15分钟内回旧版。",
+                "title": "单机双环境发布"
+              },
+              {
+                "hours": {
+                  "high": 6,
+                  "likely": 4,
+                  "low": 3
+                },
+                "id": "P04",
+                "objective": "建立CPU、内存、磁盘、浏览器并发和保留期预算。",
+                "outputs": [
+                  "capacity_budget.json",
+                  "resource_shedding.json",
+                  "load_baseline.json"
+                ],
+                "pass_gate": "VPS-1在10倍预期负载下不触发失控交换或磁盘耗尽。",
+                "title": "容量与资源治理"
+              }
+            ],
+            "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+            "stop_conditions": [
+              "发现法律、监管或来源合同实质冲突且无安全默认",
+              "需要不可逆操作",
+              "新增现金支出将超过A$0",
+              "严重安全事故或证据完整性失败",
+              "阶段终止条件被触发"
+            ],
+            "title": "OVH 7×24 与全球访问架构"
+          }
+        ],
+        "id": "S04REVIEW-ROADMAP-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S04-P01",
+          "requirement": "REQ-S04-P01",
+          "tasks": [
+            "T-S04-P01-01",
+            "T-S04-P01-02",
+            "T-S04-P01-03"
+          ]
+        },
+        "id": "S04REVIEW-TASKPACK-P01-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S04-P02",
+          "requirement": "REQ-S04-P02",
+          "tasks": [
+            "T-S04-P02-01",
+            "T-S04-P02-02",
+            "T-S04-P02-03"
+          ]
+        },
+        "id": "S04REVIEW-TASKPACK-P02-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S04-P03",
+          "requirement": "REQ-S04-P03",
+          "tasks": [
+            "T-S04-P03-01",
+            "T-S04-P03-02",
+            "T-S04-P03-03"
+          ]
+        },
+        "id": "S04REVIEW-TASKPACK-P03-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S04-P04",
+          "requirement": "REQ-S04-P04",
+          "tasks": [
+            "T-S04-P04-01",
+            "T-S04-P04-02",
+            "T-S04-P04-03"
+          ]
+        },
+        "id": "S04REVIEW-TASKPACK-P04-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "57c81a3d5807389237fe78b596b6251bd585e58e0925a829ec4a81da3b0957a6",
+          "rollback": "438b0f42396afd8ab399d46b588d470453eca2ea20bda6bee83a6f9acc84ce34"
+        },
+        "id": "S04REVIEW-P01-SIGNED-ARTIFACT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 11,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 11
+        },
+        "id": "S04REVIEW-P01-SIGNED-RECEIPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 62,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 62
+        },
+        "id": "S04REVIEW-P01-CURRENT-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "1255629d805986ee3c79dc0dc7d2223b63424a671d901bf05098d6b4d6f295c3",
+          "expected": "1255629d805986ee3c79dc0dc7d2223b63424a671d901bf05098d6b4d6f295c3"
+        },
+        "id": "S04REVIEW-P01-HISTORICAL-CODE-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "infra/compose.yml",
+          "infra/systemd",
+          "infra/config.schema.json"
+        ],
+        "id": "S04REVIEW-P01-REQUIRED-OUTPUTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "a7dc214a406d8776eb67d5fe436092e4b1c87f1951d9f394e65565502f43eda4",
+          "rollback": "6fdc7890e2baecbea37bc981ec1224821904542c0a35c3d8de4ced5edd9bdb3e"
+        },
+        "id": "S04REVIEW-P02-SIGNED-ARTIFACT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 12,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 12
+        },
+        "id": "S04REVIEW-P02-SIGNED-RECEIPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 77,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 77
+        },
+        "id": "S04REVIEW-P02-CURRENT-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e30dbd30561188059b1cf7d528f5651d95f3cc7065c82de05644d56ea40a45a4",
+          "expected": "e30dbd30561188059b1cf7d528f5651d95f3cc7065c82de05644d56ea40a45a4"
+        },
+        "id": "S04REVIEW-P02-HISTORICAL-CODE-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "infra/cloudflared.yml",
+          "access_policy.md",
+          "degraded_page.html"
+        ],
+        "id": "S04REVIEW-P02-REQUIRED-OUTPUTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "a83dd53611d45af498ea1f70a7363aa3666021057a13c2b661abe89ca0bec1e7",
+          "rollback": "4658549bc64b5097104a0cf72bfc4af48c844eb599709ab8ecec2e4d81ed64b5"
+        },
+        "id": "S04REVIEW-P03-SIGNED-ARTIFACT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 13,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 13
+        },
+        "id": "S04REVIEW-P03-SIGNED-RECEIPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 86,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 86
+        },
+        "id": "S04REVIEW-P03-CURRENT-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "eebf67dce7cec0e45def06f922d559e5d1d52800a09ab8ef9d6b2c13ac804aad",
+          "expected": "eebf67dce7cec0e45def06f922d559e5d1d52800a09ab8ef9d6b2c13ac804aad"
+        },
+        "id": "S04REVIEW-P03-HISTORICAL-CODE-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "release_slots.json",
+          "feature_flags.json",
+          "rollback.sh"
+        ],
+        "id": "S04REVIEW-P03-REQUIRED-OUTPUTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "cc5c845238614bdb7c1fb3ad5706363453ec84880c6cf44430ffef3f9d23bb69",
+          "rollback": "a60e512777101405ee60e21de0bce4c20eccd24035ec71995084802c68d7ebbf"
+        },
+        "id": "S04REVIEW-P04-SIGNED-ARTIFACT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 13,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 13
+        },
+        "id": "S04REVIEW-P04-SIGNED-RECEIPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 72,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 72
+        },
+        "id": "S04REVIEW-P04-CURRENT-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ca8112ae584f83faeec97476da791137bf837c48fb7329522d745ccc4afd34ec",
+          "expected": "ca8112ae584f83faeec97476da791137bf837c48fb7329522d745ccc4afd34ec"
+        },
+        "id": "S04REVIEW-P04-HISTORICAL-CODE-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "capacity_budget.json",
+          "resource_shedding.json",
+          "load_baseline.json"
+        ],
+        "id": "S04REVIEW-P04-REQUIRED-OUTPUTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "product": {
+            "id": "ABD",
+            "incremental_cash_budget_aud": "0.00",
+            "initial_bankroll_aud": "300.00",
+            "language": "zh-CN",
+            "monthly_target_return": "0.30",
+            "name_zh": "全天候投注决策辅助系统",
+            "owner": "单一账户持有人",
+            "primary_goal": "在不降低证据、风险、安全与合规门槛的前提下，分析全部可观察市场并追求 A$300×1.3^n 的月度滚动复利目标。",
+            "status": "FINAL_ACCEPTANCE_DELIVERY",
+            "target_curve": "B_n = 300 * (1.3 ** n)",
+            "version": "0.0.0.1"
+          },
+          "target": {
+            "falsification_gate": [
+              "至少6个完整自然月",
+              "至少1000个独立等效信号",
+              "月收益率的95%上界仍低于30%"
+            ],
+            "formula": "B_n = 300 * 1.3^n",
+            "guaranteed": false,
+            "monthly_log_growth": "0.26236426446749106",
+            "monthly_return": "0.30",
+            "plausible_gate": [
+              "保守月度对数增长中位数 >= ln(1.3)",
+              "月度对数增长第5百分位 > 0",
+              "按来源、平台限额、机会数量和相关性校正后的容量通过"
+            ],
+            "shadow_min_days": 90,
+            "shadow_min_independent_equivalent_signals": 1000,
+            "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+            "verification_gate": [
+              "至少12个完整自然月",
+              "按现金流调整后的月度几何收益 >= 30%",
+              "证据完整",
+              "未解决对账差异为0"
+            ]
+          }
+        },
+        "id": "S04REVIEW-A300-A0-NO-ORDER-NO-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifacts": [],
+          "index": [
+            {
+              "acceptance_contract_id": "AC-S05-P01",
+              "expected_artifact": "machine/evidence/EVD-S05-P01.json",
+              "id": "INDEX-AC-S05-P01",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "所有发现对象都有唯一类型或明确未知状态。",
+              "requirement_id": "REQ-S05-P01",
+              "status": "PLANNED"
+            },
+            {
+              "acceptance_contract_id": "AC-S05-P02",
+              "expected_artifact": "machine/evidence/EVD-S05-P02.json",
+              "id": "INDEX-AC-S05-P02",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "任何采集能力必须先通过来源合同。",
+              "requirement_id": "REQ-S05-P02",
+              "status": "PLANNED"
+            },
+            {
+              "acceptance_contract_id": "AC-S05-P03",
+              "expected_artifact": "machine/evidence/EVD-S05-P03.json",
+              "id": "INDEX-AC-S05-P03",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。",
+              "requirement_id": "REQ-S05-P03",
+              "status": "PLANNED"
+            },
+            {
+              "acceptance_contract_id": "AC-S05-P04",
+              "expected_artifact": "machine/evidence/EVD-S05-P04.json",
+              "id": "INDEX-AC-S05-P04",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "静默缺口=0；每个缺口都有原因和恢复动作。",
+              "requirement_id": "REQ-S05-P04",
+              "status": "PLANNED"
+            }
+          ]
+        },
+        "id": "S04REVIEW-S05-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "actual_artifact": "machine/evidence/EVD-S04-STAGE-REVIEW.json",
+            "artifact_sha256": "528564105da5e4192152a92e5036db75311966e969cf84b8dcb2f31e91493b07",
+            "id": "INDEX-S04-STAGE-REVIEW",
+            "kind": "STAGE_REVIEW_EVIDENCE",
+            "next": "S04/GITHUB_STAGE_UPLOAD_READY",
+            "stage_id": "S04",
+            "status": "PASS",
+            "verified_at": "2026-07-22T23:59:00+10:00"
+          }
+        ],
+        "id": "S04REVIEW-INDEX-STATE-MONOTONIC",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S04REVIEW-NO-SECRET-OR-LOCAL-PATH",
+        "passed": true
+      },
+      {
+        "detail": "review artifacts are regular files",
+        "id": "S04REVIEW-NO-REVIEW-ARTIFACT-SYMLINK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifacts": 18,
+          "status": "PASS"
+        },
+        "id": "S04REVIEW-ROLLBACK-DRILL",
+        "passed": true
+      },
+      {
+        "detail": "-0.0001",
+        "id": "S04REVIEW-NUMERIC-BOUNDARY-NEG0_0001",
+        "passed": true
+      },
+      {
+        "detail": "0",
+        "id": "S04REVIEW-NUMERIC-BOUNDARY-0",
+        "passed": true
+      },
+      {
+        "detail": "0.0001",
+        "id": "S04REVIEW-NUMERIC-BOUNDARY-0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 94
+        },
+        "id": "S04REVIEW-TARGETED-PYTEST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 3958
+        },
+        "id": "S04REVIEW-FULL-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 944
+        },
+        "id": "S04REVIEW-SIGNED-STATE-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S04REVIEW-TASKPACK-49-PASS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ABD S00/P03 PAID DEPENDENCY SCAN",
+          "STATUS: PASS",
+          "FIXED_CLOCK: 2026-07-19T00:00:00+10:00",
+          "MAX_INCREMENTAL_CASH_AUD: 0.00",
+          "DEPENDENCY_MANIFESTS: 2",
+          "RUNTIME_DIRECT_DEPENDENCIES: 0",
+          "LOCKED_REGISTRY_PACKAGES: 12",
+          "PAID_OR_UNKNOWN_DEPENDENCIES: 0",
+          "EXTERNAL_NETWORK_ACCESS_PERFORMED: false",
+          "EXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false"
+        ],
+        "id": "S04REVIEW-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "claim_boundary": {
+      "china_mainland_reachability_or_acceleration_guaranteed": false,
+      "cloudflare_tunnel_or_access_applied": false,
+      "financial_target_verified_or_guaranteed": false,
+      "global_chinese_access_verified": false,
+      "ovh_7x24_runtime_verified": false,
+      "production_10x_throughput_verified": false,
+      "production_capacity_or_disk_verified": false,
+      "production_rto_rpo_verified": false,
+      "static_degraded_page_automatically_wired": false
+    },
+    "contract_id": "STAGE-REVIEW-S04",
+    "decision": "S04_WHOLE_STAGE_REVIEW_PASS",
+    "external_effect_boundary": {
+      "cloudflare_account_or_api_accessed": false,
+      "docker_or_systemd_invoked": false,
+      "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+      "external_network_accessed_for_product_runtime": false,
+      "github_upload_performed_by_local_review": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "model_or_strategy_executed": false,
+      "order_submitted_or_retried": false,
+      "ovh_account_or_host_accessed": false,
+      "owner_final_order_only": true,
+      "production_deployed_or_activated": false,
+      "real_traffic_or_load_generated": false,
+      "remote_ci_result_claimed_by_local_review": false,
+      "secret_provisioned_or_read": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-22T23:59:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "abd_acceptance/stage4_review.py": "6c2ab2badd15bd91bb9e5fc6614874347fcf2f8b9918fab8d0f7036151bff446",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S03/STAGE_REVIEW/github_delivery_receipt.json": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0",
+      "machine/evidence/S04/STAGE_REVIEW/findings.json": "f861ebe1b6120706b6b495076e499f3af817c666a75434265a9c7993a82905d0",
+      "machine/evidence/S04/STAGE_REVIEW/full_regression.xml": "c8b929c3f989bf5f21877ea36b6b59f86e4b79a8837ab9007817b2e49fb37f30",
+      "machine/evidence/S04/STAGE_REVIEW/pytest.xml": "9d143028a1a2394bb391dfa7237f1276371c3d833a50884d14b4f0e84d3011d8",
+      "machine/evidence/S04/STAGE_REVIEW/signed_state_regression.xml": "aa39ab805df8b79d3c02b3d76b0b1d754edf906adcb2f3a6b1cd440b239cf444",
+      "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/stage4_review_contract.json": "fecee345c17c94623a8a86629efe6f885da61e69b102c8c56362382d339d3c3b",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S04_STAGE_REVIEW.json": "faa3b99005c41c8ce17a7c67c58013aeae21bd2f92db8eeee734af36aea65111",
+      "tests/S04/stage_review_test.py": "681e9656a28c276072fb1b4742b8279c6122fa49521f27c5e7cfe997afbb05b9"
+    },
+    "next": "S04/GITHUB_STAGE_UPLOAD_READY",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "release_status": "NOT_READY_S05_TO_S19_AND_TARGET_RUNTIME_ACTIVATION_REQUIRED",
+    "review_id": "ABD-S04-WHOLE-STAGE-REVIEW",
+    "schema_version": "1.0.0",
+    "stage_id": "S04",
+    "stage_status": "S04_WHOLE_STAGE_REVIEW_PASS",
+    "status": "PASS",
+    "summary": {
+      "checks": 80,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 80
+    }
+  }
+}

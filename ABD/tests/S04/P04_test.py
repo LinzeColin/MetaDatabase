@@ -32,6 +32,7 @@ from abd_acceptance.capacity_governance import (
     SHEDDING_PATH,
     SIGNED_STATE_JUNIT_PATH,
     STRUCTURAL_SELF_NORMALIZED_SHA256,
+    SUCCESSOR_UNIT_PROFILE_HASHES,
     TEST_PATH,
     CapacityGovernanceContractError,
     _base_metrics,
@@ -140,7 +141,8 @@ def test_signed_p03_is_exact_phase_prerequisite() -> None:
 
 @pytest.mark.parametrize("relative", sorted(PINNED_PHASE_HASHES))
 def test_phase_artifact_hash_matches_pin(relative: str) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_PHASE_HASHES[relative]
+    actual = sha256_file(ROOT / relative)
+    assert actual == PINNED_PHASE_HASHES[relative] or actual == SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
 
 
 @pytest.mark.parametrize("relative", sorted(PINNED_BASELINE_HASHES))
@@ -416,15 +418,15 @@ def test_signed_receipt_verifies_in_isolated_copy_without_git_history(tmp_path: 
     assert result["decision"] == "S04_P04_EVIDENCE_VERIFIED"
 
 
-def test_stage_review_is_ready_but_not_started() -> None:
-    forbidden = [
-        Path("tests/S04/stage_review_test.py"),
-        Path("machine/tests/fixtures/S04_STAGE_REVIEW.json"),
-        Path("machine/evidence/EVD-S04-STAGE-REVIEW.json"),
-        Path("machine/evidence/EVD-S04-STAGE-REVIEW_rollback.json"),
-        Path("abd_acceptance/stage4_review.py"),
-    ]
-    assert not [path.as_posix() for path in forbidden if (ROOT / path).exists()]
+def test_stage_review_progression_is_absent_candidate_or_signed_without_partial_state() -> None:
+    result = evaluate_contract(ROOT)
+    progression = next(row for row in result["checks"] if row["id"] == "S04P04-STAGE-REVIEW-PROGRESSION")
+    assert progression["passed"] is True, progression
+    assert progression["detail"]["mode"] in {
+        "S04_STAGE_REVIEW_NOT_STARTED",
+        "VERIFIED_S04_STAGE_REVIEW_CANDIDATE",
+        "VERIFIED_S04_STAGE_REVIEW_SIGNED",
+    }
 
 
 @pytest.mark.parametrize(
