@@ -1,0 +1,39 @@
+{
+  "automated_reacceptance": "pass",
+  "blocking_followups": [],
+  "gate_decision": "pass",
+  "gate_id": "G1",
+  "gate_status": "pass",
+  "media_processing": "not_run",
+  "model_calls": "not_run",
+  "next_task": "TSK.x2n.skeleton.001",
+  "notion_calls": "not_run",
+  "pass_conditions": {
+    "contracts_round_trip": "pass",
+    "db_migrations_and_rollback": "pass",
+    "extension_native_host_restart_safe": "pass",
+    "synthetic_ci_and_scans": "pass"
+  },
+  "platform_calls": "not_run",
+  "product_scope": "stage_1_foundation_only",
+  "project": "x2n",
+  "real_account_execution": "not_run",
+  "remote_ci_execution": "pending_post_g1_upload",
+  "remote_upload": "authorized_after_g1_pass",
+  "review_base_commit": "5f770b6daf63d57ec4698dc7fbc95a9dfeab2669",
+  "review_id": "STG.X2N.1.REVIEW",
+  "review_status": "complete",
+  "review_sync_target": "3e7094774158ead8751a7189041d8d1eeff2b50c",
+  "run_id": "RUN-X2N-S01-REVIEW",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.1",
+  "stage_2_authorized": true,
+  "stop_conditions": {
+    "blocking_test_silently_skipped": "inactive",
+    "migration_without_verified_rollback": "inactive",
+    "real_credentials_or_accounts_required": "inactive",
+    "runtime_root_inside_repository": "inactive",
+    "sensitive_or_cdn_material_presence": "inactive",
+    "wildcard_origin_or_arbitrary_command": "inactive"
+  }
+}

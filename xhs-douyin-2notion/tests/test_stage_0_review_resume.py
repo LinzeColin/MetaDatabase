@@ -4,6 +4,7 @@ import importlib.util
 import json
 import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -42,6 +43,17 @@ class Stage0ReviewResumeTests(unittest.TestCase):
         shaped = "github" + "_pat_" + "synthetic"
         self.assertEqual(VERIFY._sensitive_hit_count((shaped,)), 1)
         self.assertEqual(VERIFY._sensitive_hit_count(("ordinary governance text",)), 0)
+
+    def test_generated_dependency_and_build_trees_are_not_source_scan_inputs(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="x2n-zero-contact-scope-") as value:
+            root = Path(value)
+            source = root / "source.py"
+            source.write_text("ordinary source", encoding="utf-8")
+            for directory in VERIFY.GENERATED_TREE_PARTS:
+                ignored = root / directory / "ignored.py"
+                ignored.parent.mkdir(parents=True, exist_ok=True)
+                ignored.write_text("generated dependency content", encoding="utf-8")
+            self.assertEqual(list(VERIFY._text_files(root)), [source])
 
     def test_public_evidence_rejects_private_metadata_and_paths(self) -> None:
         VERIFY._assert_public_evidence_safe({"status": "PASS", "secret_presence_waiver": False})

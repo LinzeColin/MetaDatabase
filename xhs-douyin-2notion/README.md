@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 1` 的 `TSK.x2n.foundation.001–005` 已完成当前范围：scaffold、`1.0` Contract、SQLite Canonical Store、MV3 Side Panel＋Native Host skeleton，以及软件/模型 CI baseline。Stage 0 已合并且 `G0=PASS`，但 `G1=NOT_RUN`，Stage 1 不得上传。changed-scope 与 full-release 候选门禁只使用合成数据；本地 full lane 重放两次，远端 GitHub Actions 仍为 `NOT_RUN`。模型侧只验证 versioned Dataset Contract，ASR/OCR/Fusion/Classify/Red Team 模型执行和自动分类全部关闭。真实采集、账号访问、平台动作、Markdown/Notion、模型和媒体仍未实现；六平台与所有上游候选保持关闭。Owner 保留的外部共享认证材料不由 x2n 读取、使用或修改；与 MetaDatabase 其他长期开发采用零重叠 worktree 隔离，外部文件不进入本项目证据或提交。
+当前状态：`v0.0.0.1 / Stage 1` 的 `TSK.x2n.foundation.001–005` 与独立 `STG.X2N.1.REVIEW` 已完成，`G1=PASS`，Stage 1 整体上传与下一独立 Stage 2 Task 已获授权，但 Stage 2 尚未开始。Review 修复 8 个 finding；两轮 full lane 的 24 次阻塞执行、Task Pack 固定版本差分、PR merge-parent 隔离、逐提交历史扫描、风险覆盖率、OSV、SAST、隐私扫描、制品白名单和确定性复现均通过。远端 GitHub Actions 仍为 `PENDING_POST_G1_UPLOAD`，最后提交的远端 x2n CI 通过前不得 merge。模型侧只验证 versioned Dataset Contract，ASR/OCR/Fusion/Classify/Red Team 模型执行和自动分类全部关闭。真实采集、账号访问、平台动作、Markdown/Notion、模型和媒体仍未实现；六平台与所有上游候选保持关闭。Owner 保留的外部共享认证材料不由 x2n 读取、使用或修改；与 MetaDatabase 其他长期开发采用零重叠 worktree 隔离，外部文件不进入本项目证据或提交。
 
 ## 固定边界
 
@@ -21,7 +21,25 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Foundation 005 验证
+## Stage 1 Review / G1 验证
+
+```bash
+npm ci --ignore-scripts
+uv sync --frozen --all-packages --group ci
+PLAYWRIGHT_BROWSERS_PATH=build/playwright-browsers npx --no-install playwright install chromium
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/g1-review
+.venv/bin/python -B scripts/verify_stage_1_review.py \
+  --verify-worktree --allow-external-main-dirty \
+  --lane-report build/g1-review/software-lane.json --require-evidence
+```
+
+G1 只证明 Foundation001–005 的本地公共安全合成范围。机器证据位于
+`machine/evidence/stage_1/review/`；远端 Actions、Owner Chrome、真实账号、平台、
+Notion、模型、媒体和 Sink 均不因 G1 自动变为已运行。下一独立产品 Run 只能执行
+`TSK.x2n.skeleton.001`。
+
+## Foundation 005 历史范围验证
 
 ```bash
 npm ci --ignore-scripts
@@ -37,7 +55,8 @@ python3.12 -B scripts/verify_foundation_005.py \
 full lane 包含 format/lint/type/unit/contract/migration/integration/Extension E2E、风险覆盖率、
 SAST/SARIF、Secret/Private/CDN/Fixture、OSV、33-component SBOM、License、CSP 与临时
 source candidate allowlist。CI 使用完整 SHA 固定 Actions、最小 `contents: read` 权限，
-不读取共享认证环境；正式远端运行和 G1 仍需下一独立 Review Run。
+不读取共享认证环境。Foundation005 的历史证据保持 `G1=NOT_RUN`；当前 G1 结论只来自
+后续独立 Stage 1 Review 证据，远端运行仍待整阶段上传后完成。
 
 ## Foundation 004 验证
 

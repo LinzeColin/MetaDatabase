@@ -217,15 +217,26 @@ def run_lane(*, lane: str, repetitions: int, reports: Path) -> dict[str, Any]:
         home = Path(value)
         env = _safe_environment(home)
         commands = _base_commands() + (_full_commands() if lane == "full" else [])
+        blocking_results: list[dict[str, Any]] = []
         explicit_nonblocking_skips = 0
         labels: list[str] = []
         for repetition in range(1, repetitions + 1):
             for label, command, timeout in commands:
-                output = _run(f"{label}_r{repetition}", command, env=env, home=home, timeout=timeout)
+                execution_label = f"{label}_r{repetition}"
+                output = _run(execution_label, command, env=env, home=home, timeout=timeout)
                 if label == "root_unit":
                     skip_report = validate_unittest_skips(output)
                     explicit_nonblocking_skips += skip_report["explicit_nonblocking_skips"]
-                labels.append(f"{label}_r{repetition}")
+                labels.append(execution_label)
+                blocking_results.append(
+                    {
+                        "blocking": True,
+                        "gate": label,
+                        "label": execution_label,
+                        "repetition": repetition,
+                        "status": "PASS",
+                    }
+                )
 
         self_test = run_self_test()
         fixture = fixture_guard()
@@ -269,6 +280,7 @@ def run_lane(*, lane: str, repetitions: int, reports: Path) -> dict[str, Any]:
             "blocking_executions": len(labels),
             "blocking_failures": 0,
             "blocking_repetitions": repetitions,
+            "blocking_results": blocking_results,
             "coverage": coverage_report,
             "explicit_nonblocking_skips": explicit_nonblocking_skips,
             "flaky_blocking_tests": 0,

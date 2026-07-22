@@ -36,7 +36,13 @@ class Foundation005Tests(unittest.TestCase):
         self.assertEqual(VERIFY.ORIGIN_CUTOFF, "7fd0768002081f27c070561fa855a08713d1bc00")
         self.assertEqual(
             VERIFY.ALLOWED_CHANGED_PREFIXES,
-            ("docs/model/", "evidence/ci/", "packages/test-fixtures/ci/", "scripts/ci/"),
+            (
+                "docs/model/",
+                "evidence/ci/",
+                "packages/test-fixtures/ci/",
+                "scripts/ci/",
+                "machine/evidence/stage_1/review/",
+            ),
         )
 
     def test_changed_scope_fixture_has_no_critical_false_negative(self) -> None:
@@ -124,12 +130,15 @@ class Foundation005Tests(unittest.TestCase):
         self.assertEqual(sast["critical_high_findings"], 0)
         self.assertEqual(sarif["runs"][0]["results"], [])
 
-    def test_state_does_not_claim_remote_or_downstream_execution(self) -> None:
+    def test_state_separates_g1_from_remote_and_downstream_execution(self) -> None:
         state = json.loads(VERIFY.TASK_STATE.read_text(encoding="utf-8"))
-        self.assertEqual(state["current_stage_gate"], "not_run")
-        self.assertEqual(state["current_stage_remote_upload"], "forbidden_until_g1_pass")
-        self.assertEqual(state["remote_ci_execution"], "not_run_until_g1_review_upload")
-        self.assertEqual(state["next_run"], "STG.X2N.1.REVIEW")
+        self.assertEqual(state["current_stage_gate"], "pass")
+        self.assertEqual(state["current_stage_remote_upload"], "authorized_after_g1_pass")
+        self.assertEqual(state["remote_ci_execution"], "pending_post_g1_upload")
+        self.assertEqual(state["next_run"], "TSK.x2n.skeleton.001")
+        historical = json.loads(VERIFY.EVIDENCE.read_text(encoding="utf-8"))
+        self.assertEqual(historical["g1"], "NOT_RUN")
+        self.assertEqual(historical["remote_github_actions"], "NOT_RUN")
         for field in ("real_account_execution", "platform_calls", "notion_calls", "model_calls", "media_processing"):
             self.assertEqual(state[field], "not_run")
 

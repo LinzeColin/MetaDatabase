@@ -365,11 +365,15 @@ def validate_architecture_and_stop_kill() -> Check:
             "foundation_005_ci_and_model_assurance_baseline_implemented_g1_not_run": (
                 "TSK.x2n.foundation.001-005_scaffold_contracts_store_extension_native_and_ci_baseline"
             ),
+            "stage_1_review_pass_g1_pass": (
+                "TSK.x2n.foundation.001-005_scaffold_contracts_store_extension_native_and_ci_baseline"
+            ),
         }
         status = decisions.get("status")
         _require(status in implementation_scopes, "foundation implementation status drifted")
         _require(decisions.get("implementation_scope") == implementation_scopes[status], "foundation scope overstated")
-        _require(decisions.get("stage_gate") == "g1_not_run", "G1 status overstated")
+        expected_gate = "g1_pass" if status == "stage_1_review_pass_g1_pass" else "g1_not_run"
+        _require(decisions.get("stage_gate") == expected_gate, "G1 status mismatch")
     _require(decisions.get("real_account_execution") is False, "real account execution was enabled")
 
     stop_kill = _load_json(STOP_KILL)
@@ -419,7 +423,7 @@ def validate_task_state() -> Check:
     _require(project.get("data_root_namespace") == "xhs-douyin-2notion", "private namespace drifted")
     _require(project.get("source_taskpack_absolute_path_status") == "unspecified_owner_resolved", "original taskpack path gap not recorded")
     _require(project.get("platform_scope") == ["xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"], "project platform scope drifted")
-    _require(project.get("status") in {"stage_0_review_complete_g0_blocked_owner_action", "stage_0_g0_pass_stage_1_authorized", "stage_1_foundation_001_complete_g1_not_run", "stage_1_foundation_002_complete_g1_not_run", "stage_1_foundation_003_complete_g1_not_run", "stage_1_foundation_004_complete_g1_not_run", "stage_1_foundation_005_complete_g1_not_run"}, "project readiness status is invalid")
+    _require(project.get("status") in {"stage_0_review_complete_g0_blocked_owner_action", "stage_0_g0_pass_stage_1_authorized", "stage_1_foundation_001_complete_g1_not_run", "stage_1_foundation_002_complete_g1_not_run", "stage_1_foundation_003_complete_g1_not_run", "stage_1_foundation_004_complete_g1_not_run", "stage_1_foundation_005_complete_g1_not_run", "stage_1_review_pass_g1_pass_stage_2_authorized"}, "project readiness status is invalid")
     state = _load_json(TASK_STATE)
     _require(state.get("tasks", {}).get(PHASE_TASK) == "pass", "Phase 0.5 task not pass")
     acceptances = state.get("acceptance_status", {})
@@ -430,6 +434,7 @@ def validate_task_state() -> Check:
         in {
             "design_supply_chain_pass_downstream_not_run",
             "pass_local_current_locks_candidate_scans_remote_release_not_run",
+            "pass_local_current_locks_candidate_history_scans_g1_pass_remote_release_not_run",
         },
         "release acceptance overstated",
     )
@@ -461,7 +466,7 @@ def validate_task_state() -> Check:
         gate_status, next_run = "PASS", "TSK.x2n.foundation.001"
     else:
         schema_version = state.get("schema_version")
-        _require(schema_version in {"1.6", "1.7"}, "unsupported current task state")
+        _require(schema_version in {"1.6", "1.7", "1.8"}, "unsupported current task state")
         expected_current = {
             "1.6": {
                 "last_completed_phase": "PH.X2N.1.4",
@@ -475,17 +480,31 @@ def validate_task_state() -> Check:
                 "next_run": "STG.X2N.1.REVIEW",
                 "run_id": "RUN-X2N-S01-F005",
             },
+            "1.8": {
+                "last_completed_phase": "PH.X2N.1.5",
+                "next_phase": "PH.X2N.2.1",
+                "next_run": "TSK.x2n.skeleton.001",
+                "run_id": "RUN-X2N-S01-REVIEW",
+            },
         }[schema_version]
         _require(
             state.get("stage") == "STG.X2N.1"
             and state.get("last_completed_phase") == expected_current["last_completed_phase"],
             "current Stage routing mismatch",
         )
-        _require(state.get("review_id") == "STG.X2N.0.REVIEW.RESUME", "G0 Resume identity was lost")
-        _require(
-            state.get("run_id") == expected_current["run_id"] and state.get("run_kind") == "single_dag_task",
-            "foundation Run identity mismatch",
-        )
+        if schema_version == "1.8":
+            _require(state.get("review_id") == "STG.X2N.1.REVIEW", "G1 Review identity mismatch")
+            _require(
+                state.get("run_id") == expected_current["run_id"]
+                and state.get("run_kind") == "stage_review_no_new_dag_task",
+                "G1 Review Run identity mismatch",
+            )
+        else:
+            _require(state.get("review_id") == "STG.X2N.0.REVIEW.RESUME", "G0 Resume identity was lost")
+            _require(
+                state.get("run_id") == expected_current["run_id"] and state.get("run_kind") == "single_dag_task",
+                "foundation Run identity mismatch",
+            )
         _require(state.get("blocking_followups") == [{
             "id": "INC-X2N-S00-P05-001",
             "scope": "before_g0_pass",
@@ -495,15 +514,27 @@ def validate_task_state() -> Check:
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.002") == "pass", "foundation.002 Task is not pass")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task is not pass")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task is not pass")
-        if schema_version == "1.7":
+        if schema_version in {"1.7", "1.8"}:
             _require(state.get("tasks", {}).get("TSK.x2n.foundation.005") == "pass", "foundation.005 Task is not pass")
         _require(
             state.get("next_phase") == expected_current["next_phase"]
             and state.get("next_run") == expected_current["next_run"],
             "current next route mismatch",
         )
-        _require(state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass", "historical G0 status drifted")
-        _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
+        if schema_version == "1.8":
+            _require(
+                state.get("previous_stage_gate")
+                == {"gate_id": "G0", "status": "pass", "stage": "STG.X2N.0", "remote_upload": "merged"},
+                "historical G0 status drifted",
+            )
+            _require(
+                state.get("current_stage_gate") == "pass"
+                and state.get("current_stage_remote_upload") == "authorized_after_g1_pass",
+                "G1 Review state mismatch",
+            )
+        else:
+            _require(state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass", "historical G0 status drifted")
+            _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
         gate_status, next_run = "PASS", expected_current["next_run"]
     return Check("phase_task_state", "PASS", {"task": PHASE_TASK, "stage_gate": gate_status, "next": next_run})
 

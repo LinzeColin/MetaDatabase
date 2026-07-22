@@ -321,11 +321,19 @@ def validate_canonical_boundaries() -> Check:
             "foundation_005_ci_and_model_assurance_baseline_implemented_g1_not_run": (
                 "TSK.x2n.foundation.001-005_scaffold_contracts_store_extension_native_and_ci_baseline"
             ),
+            "stage_1_review_pass_g1_pass": (
+                "TSK.x2n.foundation.001-005_scaffold_contracts_store_extension_native_and_ci_baseline"
+            ),
         }
         status = architecture.get("status")
         _require(status in implementation_scopes, "foundation architecture status drifted")
         _require(architecture.get("implementation_scope") == implementation_scopes[status], "foundation implementation scope overstated")
-        _require(architecture.get("real_account_execution") is False and architecture.get("stage_gate") == "g1_not_run", "foundation Gate/account status overstated")
+        expected_gate = "g1_pass" if status == "stage_1_review_pass_g1_pass" else "g1_not_run"
+        _require(
+            architecture.get("real_account_execution") is False
+            and architecture.get("stage_gate") == expected_gate,
+            "foundation Gate/account status mismatch",
+        )
     stop_kill = _load_json(STOP_KILL)
     _require([item.get("id") for item in stop_kill.get("rules", [])] == [f"SK-X2N-{index:03d}" for index in range(1, 21)], "Stop/Kill rule set drifted")
     fixtures = _load_json(FIXTURES)
@@ -455,8 +463,15 @@ def validate_current_state() -> Check:
     state = _load_json(TASK_STATE)
     _require(tuple(state.get("tasks", {}).keys())[: len(STAGE_TASKS)] == STAGE_TASKS, "Stage 0 task order drifted")
     _require(all(state.get("tasks", {}).get(task) == "pass" for task in STAGE_TASKS), "Stage 0 task state drifted")
-    _require(state.get("stage_gate") == gate["gate_status"], "task/gate state disagree")
-    _require(state.get("remote_upload") == gate["remote_upload"], "task/gate upload state disagree")
+    if state.get("schema_version") == "1.8":
+        _require(
+            state.get("previous_stage_gate")
+            == {"gate_id": "G0", "status": gate["gate_status"], "stage": "STG.X2N.0", "remote_upload": "merged"},
+            "task state lost the historical G0 result",
+        )
+    else:
+        _require(state.get("stage_gate") == gate["gate_status"], "task/gate state disagree")
+        _require(state.get("remote_upload") == gate["remote_upload"], "task/gate upload state disagree")
     project = _load_json(PROJECT_FACT)
     if gate.get("gate_status") == "blocked_owner_action":
         _require(state.get("schema_version") == "1.1", "blocked task state schema drifted")
@@ -483,7 +498,7 @@ def validate_current_state() -> Check:
         details = {"review": "RESUME_COMPLETE", "g0": "PASS", "stage_1_authorized": True, "remote_upload": "AUTHORIZED"}
     else:
         schema_version = state.get("schema_version")
-        _require(schema_version in {"1.6", "1.7"}, "unsupported current task state")
+        _require(schema_version in {"1.6", "1.7", "1.8"}, "unsupported current task state")
         expected_current = {
             "1.6": {
                 "next_phase": "PH.X2N.1.5",
@@ -499,18 +514,33 @@ def validate_current_state() -> Check:
                 "run_id": "RUN-X2N-S01-F005",
                 "state": "stage_1_foundation_005_pass_g1_not_run",
             },
+            "1.8": {
+                "next_phase": "PH.X2N.2.1",
+                "next_run": "TSK.x2n.skeleton.001",
+                "project_status": "stage_1_review_pass_g1_pass_stage_2_authorized",
+                "run_id": "RUN-X2N-S01-REVIEW",
+                "state": "stage_1_review_pass_g1_pass_remote_upload_authorized",
+            },
         }[schema_version]
-        _require(state.get("review_id") == RESUME_ID, "G0 Resume identity was lost")
-        _require(
-            state.get("run_id") == expected_current["run_id"] and state.get("run_kind") == "single_dag_task",
-            "foundation Run identity mismatch",
-        )
+        if schema_version == "1.8":
+            _require(state.get("review_id") == "STG.X2N.1.REVIEW", "G1 Review identity mismatch")
+            _require(
+                state.get("run_id") == expected_current["run_id"]
+                and state.get("run_kind") == "stage_review_no_new_dag_task",
+                "G1 Review Run identity mismatch",
+            )
+        else:
+            _require(state.get("review_id") == RESUME_ID, "G0 Resume identity was lost")
+            _require(
+                state.get("run_id") == expected_current["run_id"] and state.get("run_kind") == "single_dag_task",
+                "foundation Run identity mismatch",
+            )
         _require(state.get("stage") == "STG.X2N.1" and state.get("state") == expected_current["state"], "current Stage state is invalid")
         _require(state.get("stage_1_authorized") is True and state.get("next_phase_authorized") is True, "Stage 1 authorization drifted")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.002") == "pass", "foundation.002 Task is not pass")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task is not pass")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task is not pass")
-        if schema_version == "1.7":
+        if schema_version in {"1.7", "1.8"}:
             _require(state.get("tasks", {}).get("TSK.x2n.foundation.005") == "pass", "foundation.005 Task is not pass")
         _require(
             state.get("next_phase") == expected_current["next_phase"]
@@ -523,9 +553,21 @@ def validate_current_state() -> Check:
             "status": "resolved",
             "action": "owner_directed_external_retention_with_x2n_zero_contact",
         }], "task state Resume resolution is missing or ambiguous")
-        _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
+        if schema_version == "1.8":
+            _require(
+                state.get("current_stage_gate") == "pass"
+                and state.get("current_stage_remote_upload") == "authorized_after_g1_pass",
+                "G1 Review state mismatch",
+            )
+        else:
+            _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
         _require(project.get("status") == expected_current["project_status"], "project fact does not reflect foundation completion")
-        details = {"review": "RESUME_COMPLETE", "g0": "PASS", "stage_1_authorized": True, "remote_upload": "STAGE_1_FORBIDDEN_UNTIL_G1"}
+        details = {
+            "review": "RESUME_COMPLETE",
+            "g0": "PASS",
+            "stage_1_authorized": True,
+            "remote_upload": "AUTHORIZED_AFTER_G1_PASS" if schema_version == "1.8" else "STAGE_1_FORBIDDEN_UNTIL_G1",
+        }
     return Check("current_stage_state", "PASS", details)
 
 

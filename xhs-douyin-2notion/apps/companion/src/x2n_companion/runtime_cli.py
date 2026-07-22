@@ -25,10 +25,10 @@ def _emit(payload: dict[str, Any], *, stream: Any = sys.stdout) -> None:
 
 def _success(action: str, **details: Any) -> dict[str, Any]:
     return {
+        "acceptance_scope": "FOUNDATION_003_LOCAL_STORE",
         "action": action,
         "private_path_emitted": False,
         "real_account_execution": "NOT_RUN",
-        "stage_gate": "G1_NOT_RUN",
         "status": "PASS",
         "task_id": TASK_ID,
         **details,

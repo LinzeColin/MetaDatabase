@@ -10,8 +10,9 @@
 - 首次 `STG.X2N.0.REVIEW`：历史结论 `BLOCKED_OWNER_ACTION`，原报告与 3 份机器证据保持不变。
 - `STG.X2N.0.REVIEW.RESUME`：完整复验通过；当前 `G0=PASS`。
 - Stage 0 整阶段已通过 PR #66 合并；G0 历史/Resume 证据保持不变。
-- Stage 1：`TSK.x2n.foundation.001–005` 已完成 scaffold、`1.0` Contract、SQLite Canonical Store、MV3 Side Panel＋Native Host skeleton，以及软件/模型 CI baseline；`G1=NOT_RUN`，不得 push。
-- 下一独立 Run：只执行 `STG.X2N.1.REVIEW`（Review/Fix/Re-acceptance，不执行新 DAG Task）。
+- Stage 1：`TSK.x2n.foundation.001–005` 与独立 `STG.X2N.1.REVIEW` 已完成；8 个 finding 全部关闭，当前 `G1=PASS`，Stage 1 整体上传与 Stage 2 下一 Task 已授权。
+- 当前 Review 分支：`codex/xhs-douyin-2notion-v0001-s01-review`，基于 Foundation005 固定提交 `5f770b6d…`，Review cutoff 为 `origin/main@3e709477…`；远端 CI 仍为 `PENDING_POST_G1_UPLOAD`。
+- 下一独立产品 Run：只执行 `TSK.x2n.skeleton.001`（`PH.X2N.2.1`）；本 Review Run 不进入 Stage 2。
 - 真实账号、Chrome 控制、六平台调用、Notion、模型、媒体与全部下游用户旅程 Acceptance：`NOT_RUN`。
 - 六平台：全部 `UNKNOWN_DISABLED`；各平台实现开始时重新通过 Policy/Auth/Technical Gate。
 
@@ -46,8 +47,12 @@
 - Foundation 004 供应链：当前 SBOM 30 components；Playwright `1.61.1` 精确锁定；可选 `fsevents` install script 由 `.npmrc` 和验收命令禁用，执行数 0。历史 Foundation002 SBOM 保持 26-component 原事实。
 - Foundation 005：changed-scope/full-release candidate CI 已建立；Actions 全 SHA pin、最小权限且 checkout 不持久化凭据。full lane 本地两次重放，format/lint/type/unit/contract/migration/integration/E2E、风险覆盖率和 seeded-failure 均通过；silent Blocking skip/failure/flaky 为 0，3 个公开 CI 无私有输入的显式非阻断 skip 每轮按固定 reason/count allowlist 验证（full 共 6）；远端 Actions 未运行。
 - Foundation 005 Assurance：当前 33-component SBOM、Unknown License 0、匿名 OSV vulnerability 0、SAST Critical/High 0、Secret/Private/CDN/Fixture/Artifact Runtime Data 0；确定性 source candidate 只在 ignored build/临时目录生成并扫描。
+- Stage 1 Review：关闭 8 个 finding；DAG/Task State/G1 Fact 一致，Task Pack 只允许精确 Review 状态差分，PR 合成 merge 只选择唯一继承 Foundation005 的父提交，duplicate JSON key 被拒绝，full lane 记录精确 24 项 gate/repetition/status，Runtime CLI 不再硬编码动态 Gate。
+- G1 独立复验：全新 frozen npm/uv 环境与隔离 Chromium；12 门禁×2 共 24/24 PASS，blocking failure/flaky/silent skip 均 0；overall combined coverage 70.88%，7 个关键模块过阈值；OSV 查询 33 个依赖、漏洞 0。
+- Review 证据：5 份 Foundation 历史 receipt 与固定提交逐字节一致；Stage 1 提交消息、逐提交变更 blob、当前 Source 与根 workflow 的 Secret/Private/CDN 扫描 0 命中；53-member candidate 无 Runtime Data 且两次 Hash 一致。
+- Review 机器证据：`machine/evidence/stage_1/review/{findings,verification,G1}.json`；人类报告：`docs/governance/STAGE_1_REVIEW.md`。本地 `G1=PASS`，远端 x2n CI 尚待上传后运行。
 - Model baseline：`x2n-synthetic-model-contract-v1@1.0.0` Dataset Contract PASS；ASR/OCR/Fusion/Classify 为禁用且 NOT_RUN，Red Team 只过合同，自动分类等待 `ACC.x2n.ai.006`，模型调用 0。
-- 当前根回归：88 tests PASS，3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对；Foundation001 固定提交 fresh replay、Foundation002 Contract、Foundation003 Store 与 Foundation004 完整 verifier 均 PASS。Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
+- 当前根回归：98 tests PASS，3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对；Foundation001 固定提交 fresh replay、Foundation002 Contract、Foundation003 Store、Foundation004 与 Foundation005 完整 verifier 均 PASS。Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
 - Fresh copy：隔离 HOME 中 frozen locks、Extension 与 7 个 lifecycle rehearsal 加 1 个负向 Canary 均通过。
 
 ```bash
@@ -56,6 +61,8 @@ python3.12 -B scripts/verify_foundation_002.py --verify-worktree --allow-externa
 python3.12 -B scripts/verify_foundation_003.py --verify-worktree --allow-external-main-dirty --validate-owner-runtime --require-evidence
 python3 -B scripts/verify_foundation_004.py --verify-worktree --allow-external-main-dirty --require-evidence
 python3.12 -B scripts/verify_foundation_005.py --verify-worktree --allow-external-main-dirty --require-evidence
+.venv/bin/python -B scripts/ci/run_lane.py --lane full --repetitions 2 --reports-dir build/g1-review
+.venv/bin/python -B scripts/verify_stage_1_review.py --verify-worktree --allow-external-main-dirty --lane-report build/g1-review/software-lane.json --require-evidence
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
@@ -76,6 +83,6 @@ Run Contract 执行。
 
 ## 下一步
 
-1. 保留本地 foundation.001–005 commits，不 push；Stage 1 只有 G1 Review/Fix/Re-acceptance 通过后才整阶段上传。
-2. 另开 Review Run：`STG.X2N.1.REVIEW`，复核 Foundation001–005、修复并重新整体验收；不得顺带进入 Stage 2 或实现 Adapter。
+1. 提交并整体上传 Stage 1 Review 分支；远端最后提交的 x2n CI 必须通过，才允许 merge。
+2. Stage 1 远端交付完成后另开单 Task Run，只执行 `TSK.x2n.skeleton.001`；不得顺带实现 Adapter。
 3. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Runtime/越界写入命中立即 Fail Closed。

@@ -199,7 +199,17 @@ def _list_field(block: str, name: str) -> list[str]:
 
 
 def _iter_files() -> Iterable[Path]:
-    ignored = {".git", "node_modules", "__pycache__", ".pytest_cache", ".venv", "dist", "build"}
+    ignored = {
+        ".git",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        "node_modules",
+    }
     for path in PROJECT_ROOT.rglob("*"):
         if path.is_file() and not any(part in ignored for part in path.parts):
             yield path
@@ -316,7 +326,7 @@ def validate_task_and_state() -> Check:
     _require(_field(task, "stage") == "STG.X2N.1" and _field(task, "phase") == "PH.X2N.1.4", "Foundation004 routing drifted")
     _require(_list_field(task, "depends_on") == ["TSK.x2n.foundation.002", "TSK.x2n.foundation.003"], "Foundation004 dependency drifted")
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.ext.001", "ACC.x2n.ext.002", "ACC.x2n.ext.003", "ACC.x2n.ext.004"], "Foundation004 Acceptance drifted")
-    _require("  status: STAGE_1_FOUNDATION_004_COMPLETE_G1_NOT_RUN\n" in taskpack, "Taskpack current status drifted")
+    _require("  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in taskpack, "Taskpack current status drifted")
 
     state = _load_baseline_json(TASK_STATE)
     _require(state.get("schema_version") == "1.6", "task state schema drifted")

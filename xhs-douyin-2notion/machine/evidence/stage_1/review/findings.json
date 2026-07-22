@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "review_id": "STG.X2N.1.REVIEW",
+  "run_id": "RUN-X2N-S01-REVIEW",
+  "findings": [
+    {
+      "id": "F-X2N-S01-R01",
+      "severity": "HIGH",
+      "status": "RESOLVED",
+      "finding": "task_dag_and_current_state_disagreed_after_foundation_005",
+      "resolution": "task_dag_state_and_g1_fact_are_machine_consistent"
+    },
+    {
+      "id": "F-X2N-S01-R02",
+      "severity": "HIGH",
+      "status": "RESOLVED",
+      "finding": "full_lane_report_lacked_per_execution_identity",
+      "resolution": "exact_gate_label_repetition_and_status_are_recorded_and_verified"
+    },
+    {
+      "id": "F-X2N-S01-R03",
+      "severity": "HIGH",
+      "status": "RESOLVED",
+      "finding": "stage_1_commit_history_had_no_version_by_version_sensitive_scan",
+      "resolution": "every_stage_1_changed_blob_commit_message_current_source_and_workflow_are_scanned"
+    },
+    {
+      "id": "F-X2N-S01-R04",
+      "severity": "HIGH",
+      "status": "RESOLVED",
+      "finding": "task_state_contained_a_duplicate_acceptance_json_key",
+      "resolution": "duplicate_removed_and_all_review_json_uses_duplicate_rejecting_parser"
+    },
+    {
+      "id": "F-X2N-S01-R05",
+      "severity": "MEDIUM",
+      "status": "RESOLVED",
+      "finding": "runtime_cli_hard_coded_the_historical_g1_not_run_state",
+      "resolution": "runtime_cli_reports_stable_foundation_003_scope_and_gate_state_remains_in_machine_facts"
+    },
+    {
+      "id": "F-X2N-S01-R06",
+      "severity": "HIGH",
+      "status": "RESOLVED",
+      "finding": "zero_contact_source_scan_included_generated_dependency_and_build_trees",
+      "resolution": "all_current_tree_scanners_exclude_generated_cache_dependency_and_build_trees_while_source_remains_scanned"
+    },
+    {
+      "id": "F-X2N-S01-R07",
+      "severity": "HIGH",
+      "status": "RESOLVED",
+      "finding": "review_verifier_claimed_zero_new_dag_tasks_without_an_exact_baseline_delta",
+      "resolution": "taskpack_must_equal_the_frozen_foundation_005_version_after_normalizing_only_the_exact_review_state_delta"
+    },
+    {
+      "id": "F-X2N-S01-R08",
+      "severity": "HIGH",
+      "status": "RESOLVED",
+      "finding": "review_scope_used_the_github_pr_synthetic_merge_commit_as_the_branch_head",
+      "resolution": "scope_history_and_overlap_use_the_unique_merge_parent_descended_from_the_frozen_foundation_005_commit"
+    }
+  ],
+  "summary": {
+    "blocking_open": 0,
+    "resolved": 8,
+    "total": 8
+  }
+}

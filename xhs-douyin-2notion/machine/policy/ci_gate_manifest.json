@@ -91,8 +91,8 @@
   },
   "release": {
     "candidate_only": true,
-    "remote_workflow_execution": "NOT_RUN_UNTIL_G1_REVIEW_UPLOAD",
-    "g1": "NOT_RUN",
+    "g1_gate_source": "machine/facts/stage_1_gate_state.json",
+    "remote_workflow_required_before_merge": true,
     "upload_before_g1": false
   }
 }

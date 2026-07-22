@@ -41,8 +41,20 @@ class Phase01Tests(unittest.TestCase):
         else:
             self.assertTrue(state["next_phase_authorized"])
             self.assertTrue(state["stage_1_authorized"])
-            self.assertEqual(state["remote_upload"], "authorized_after_g0_pass")
-        for acceptance_id in ("ACC.x2n.gov.002", "ACC.x2n.media.001", "ACC.x2n.ops.002"):
+            expected_upload = (
+                "authorized_after_g1_pass"
+                if state.get("current_stage_gate") == "pass"
+                else "authorized_after_g0_pass"
+            )
+            self.assertEqual(state["remote_upload"], expected_upload)
+        self.assertIn(
+            state["downstream_acceptances"]["ACC.x2n.gov.002"],
+            {
+                "downstream_not_run",
+                "pass_current_source_build_candidate_scope_owner_release_downstream_not_run",
+            },
+        )
+        for acceptance_id in ("ACC.x2n.media.001", "ACC.x2n.ops.002"):
             self.assertEqual(state["downstream_acceptances"][acceptance_id], "downstream_not_run")
 
     def test_private_root_when_explicitly_supplied(self) -> None:

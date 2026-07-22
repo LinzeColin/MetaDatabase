@@ -37,8 +37,8 @@ class Foundation002Tests(unittest.TestCase):
 
     def test_acceptance_scope_does_not_claim_downstream_products(self) -> None:
         state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
-        self.assertEqual(state["current_stage_gate"], "not_run")
-        self.assertEqual(state["current_stage_remote_upload"], "forbidden_until_g1_pass")
+        self.assertEqual(state["current_stage_gate"], "pass")
+        self.assertEqual(state["current_stage_remote_upload"], "authorized_after_g1_pass")
         self.assertEqual(
             state["acceptance_status"]["ACC.x2n.ext.003"],
             "pass_temp_native_host_contract_idempotency_injection",

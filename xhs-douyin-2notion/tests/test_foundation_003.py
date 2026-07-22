@@ -72,8 +72,8 @@ class Foundation003Tests(unittest.TestCase):
 
     def test_acceptance_scope_does_not_claim_downstream_products(self) -> None:
         state = json.loads(VERIFY.TASK_STATE.read_text(encoding="utf-8"))
-        self.assertEqual(state["current_stage_gate"], "not_run")
-        self.assertEqual(state["current_stage_remote_upload"], "forbidden_until_g1_pass")
+        self.assertEqual(state["current_stage_gate"], "pass")
+        self.assertEqual(state["current_stage_remote_upload"], "authorized_after_g1_pass")
         self.assertIn("markdown_notion_owner_alpha_downstream_not_run", state["acceptance_status"]["ACC.x2n.data.002"])
         self.assertIn("release_disaster_recovery_downstream_not_run", state["acceptance_status"]["ACC.x2n.data.004"])
         for field in ("real_account_execution", "real_sink_execution", "platform_calls", "notion_calls"):

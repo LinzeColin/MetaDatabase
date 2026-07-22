@@ -48,6 +48,7 @@ TASK_ID = "TSK.x2n.foundation.005"
 RUN_ID = "RUN-X2N-S01-F005"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s01-foundation001"
 TASK_BASE_COMMIT = "09d5cdf1993080401f99e023feb03be479baca27"
+FINAL_COMMIT = "5f770b6daf63d57ec4698dc7fbc95a9dfeab2669"
 ORIGIN_CUTOFF = "7fd0768002081f27c070561fa855a08713d1bc00"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 ACCEPTANCE = PROJECT_ROOT / "docs/product_design/v0.0.0.1/04_ACCEPTANCE_CONTRACT_TRACEABILITY.md"
@@ -55,6 +56,7 @@ RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S01_FOUNDATION_005.m
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 PROJECT_FACT = PROJECT_ROOT / "machine/facts/project.json"
 ARCHITECTURE_FACT = PROJECT_ROOT / "machine/facts/architecture_decisions.json"
+G1_FACT = PROJECT_ROOT / "machine/facts/stage_1_gate_state.json"
 MODEL_CARD = PROJECT_ROOT / "docs/model/MODEL_SYSTEM_CARD_S01_F005.md"
 FIXTURE_MANIFEST = PROJECT_ROOT / "machine/policy/synthetic_fixture_manifest.json"
 EVIDENCE = PROJECT_ROOT / "evidence/ci/TSK.x2n.foundation.005.json"
@@ -65,17 +67,23 @@ ALLOWED_CHANGED_EXACT = {
     "HANDOFF.md",
     "README.md",
     "THIRD_PARTY_NOTICES.md",
+    "apps/companion/src/x2n_companion/runtime_cli.py",
     "apps/companion/tests/test_canonical_store.py",
     "docs/governance/RUN_CONTRACT_S01_FOUNDATION_005.md",
+    "docs/governance/RUN_CONTRACT_S01_REVIEW.md",
+    "docs/governance/STAGE_1_REVIEW.md",
+    "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml",
     "docs/product_design/v0.0.0.1/03_ARCHITECTURE_SECURITY_SYSTEM_CARD.md",
     "machine/facts/architecture_decisions.json",
     "machine/facts/project.json",
     "machine/facts/task_state.json",
+    "machine/facts/stage_1_gate_state.json",
     "machine/policy/artifact_allowlist.json",
     "machine/policy/ci_gate_manifest.json",
     "machine/policy/dependency_license_policy.json",
     "machine/policy/release_artifact_allowlist.json",
     "machine/policy/synthetic_fixture_manifest.json",
+    "machine/schemas/stage_1_gate_state.schema.json",
     "machine/sbom/stage_1_foundation_005.cdx.json",
     "pyproject.toml",
     "scripts/generate_foundation_002_sbom.py",
@@ -86,11 +94,13 @@ ALLOWED_CHANGED_EXACT = {
     "scripts/verify_foundation_003.py",
     "scripts/verify_foundation_004.py",
     "scripts/verify_foundation_005.py",
+    "scripts/verify_stage_1_review.py",
     "scripts/verify_phase_0_2.py",
     "scripts/verify_phase_0_5.py",
     "scripts/verify_stage_0_review.py",
     "scripts/verify_stage_0_review_resume.py",
     "tests/test_foundation_005.py",
+    "tests/test_stage_1_review.py",
     "uv.lock",
     "功能清单.md",
     "开发记录.md",
@@ -101,6 +111,22 @@ ALLOWED_CHANGED_PREFIXES = (
     "evidence/ci/",
     "packages/test-fixtures/ci/",
     "scripts/ci/",
+    "machine/evidence/stage_1/review/",
+)
+
+EXPECTED_BLOCKING_GATES = (
+    "format",
+    "lint",
+    "python_compile",
+    "typescript_contract",
+    "root_unit",
+    "companion_unit_integration",
+    "contract_unit",
+    "contract_acceptance",
+    "sbom_drift",
+    "scaffold_acceptance",
+    "migration_integration",
+    "extension_native_e2e",
 )
 
 
@@ -153,9 +179,18 @@ def _git(args: Sequence[str], cwd: Path = REPOSITORY_ROOT, *, binary: bool = Fal
 
 
 def _changed_paths() -> set[str]:
-    changed = set(str(_git(["-c", "core.quotePath=false", "diff", "--name-only", TASK_BASE_COMMIT])).splitlines())
-    untracked = str(_git(["-c", "core.quotePath=false", "ls-files", "--others", "--exclude-standard"])).splitlines()
-    return {path for path in changed | set(untracked) if path}
+    changed = str(
+        _git(
+            [
+                "-c",
+                "core.quotePath=false",
+                "diff",
+                "--name-only",
+                f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}",
+            ]
+        )
+    ).splitlines()
+    return {path for path in changed if path}
 
 
 def _porcelain_paths(output: str) -> list[str]:
@@ -297,6 +332,7 @@ def validate_task_contract() -> Check:
     _require(match is not None, "Foundation005 Task missing")
     block = match.group(0)
     for token in (
+        "status: completed",
         "phase: PH.X2N.1.5",
         "Create fast changed-scope gates and full release pipelines using only synthetic data.",
         "ACC.x2n.rel.001",
@@ -415,8 +451,14 @@ def validate_ci_policy() -> Check:
     )
     release = policy.get("release", {})
     _require(
-        release.get("remote_workflow_execution") == "NOT_RUN_UNTIL_G1_REVIEW_UPLOAD" and release.get("g1") == "NOT_RUN",
-        "remote/G1 state overstated",
+        release
+        == {
+            "candidate_only": True,
+            "g1_gate_source": "machine/facts/stage_1_gate_state.json",
+            "remote_workflow_required_before_merge": True,
+            "upload_before_g1": False,
+        },
+        "release policy drifted",
     )
     return Check(
         "ci_policy",
@@ -595,28 +637,30 @@ def validate_model_baseline() -> Check:
 def validate_state_and_truthfulness() -> Check:
     state = _load_json(TASK_STATE)
     _require(
-        state.get("schema_version") == "1.7" and state.get("last_completed_phase") == "PH.X2N.1.5",
+        state.get("schema_version") == "1.8" and state.get("last_completed_phase") == "PH.X2N.1.5",
         "task state phase drifted",
     )
     _require(
-        state.get("tasks", {}).get(TASK_ID) == "pass" and state.get("run_id") == RUN_ID,
+        state.get("tasks", {}).get(TASK_ID) == "pass"
+        and state.get("run_id") == "RUN-X2N-S01-REVIEW"
+        and state.get("review_id") == "STG.X2N.1.REVIEW",
         "Foundation005 Task state missing",
     )
     expected_acceptance = {
-        "ACC.x2n.rel.001": "pass_local_synthetic_pipeline_remote_ci_g1_not_run",
+        "ACC.x2n.rel.001": "pass_local_synthetic_pipeline_g1_pass_remote_ci_pending_post_upload",
         "ACC.x2n.rel.002": "pass_runner_dataset_contract_capabilities_disabled_model_not_run",
-        "ACC.x2n.rel.003": "pass_local_current_locks_candidate_scans_remote_release_not_run",
+        "ACC.x2n.rel.003": "pass_local_current_locks_candidate_history_scans_g1_pass_remote_release_not_run",
     }
     _require(
         all(state.get("acceptance_status", {}).get(key) == value for key, value in expected_acceptance.items()),
         "Foundation005 Acceptance scope drifted",
     )
     _require(
-        state.get("next_run") == "STG.X2N.1.REVIEW" and state.get("current_stage_gate") == "not_run",
+        state.get("next_run") == "TSK.x2n.skeleton.001" and state.get("current_stage_gate") == "pass",
         "next route or G1 state drifted",
     )
-    _require(state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "Stage 1 upload gate weakened")
-    _require(state.get("remote_ci_execution") == "not_run_until_g1_review_upload", "remote CI status overstated")
+    _require(state.get("current_stage_remote_upload") == "authorized_after_g1_pass", "Stage 1 upload gate drifted")
+    _require(state.get("remote_ci_execution") == "pending_post_g1_upload", "remote CI status overstated")
     for field in (
         "real_account_execution",
         "platform_calls",
@@ -628,15 +672,24 @@ def validate_state_and_truthfulness() -> Check:
         _require(state.get(field) == "not_run", f"downstream execution overstated: {field}")
     project = _load_json(PROJECT_FACT)
     architecture = _load_json(ARCHITECTURE_FACT)
-    _require(project.get("status") == "stage_1_foundation_005_complete_g1_not_run", "project status drifted")
+    gate = _load_json(G1_FACT)
+    _require(project.get("status") == "stage_1_review_pass_g1_pass_stage_2_authorized", "project status drifted")
     _require(
-        architecture.get("phase") == "PH.X2N.1.5" and architecture.get("stage_gate") == "g1_not_run",
+        architecture.get("phase") == "PH.X2N.1.5"
+        and architecture.get("stage_gate") == "g1_pass"
+        and gate.get("gate_status") == "pass",
         "architecture status drifted",
     )
     return Check(
         "state_and_truthfulness",
         "PASS",
-        {"g1": "NOT_RUN", "next_run": "STG.X2N.1.REVIEW", "platform_calls": 0, "remote_actions": "NOT_RUN"},
+        {
+            "current_g1": "PASS",
+            "g1_at_task_completion": "NOT_RUN",
+            "next_run": "TSK.x2n.skeleton.001",
+            "platform_calls": 0,
+            "remote_actions_at_task_completion": "NOT_RUN",
+        },
     )
 
 
@@ -656,6 +709,18 @@ def validate_lane_report(path: Path) -> Check:
         report.get("blocking_repetitions") == 2 and report.get("blocking_executions", 0) >= 24,
         "full lane repetition evidence incomplete",
     )
+    expected_results = [
+        {
+            "blocking": True,
+            "gate": gate,
+            "label": f"{gate}_r{repetition}",
+            "repetition": repetition,
+            "status": "PASS",
+        }
+        for repetition in (1, 2)
+        for gate in EXPECTED_BLOCKING_GATES
+    ]
+    _require(report.get("blocking_results") == expected_results, "full lane execution identity drifted")
     _require(report.get("explicit_nonblocking_skips") == 6, "explicit optional skip evidence drifted")
     _require(report.get("artifact_deterministic") is True, "artifact determinism evidence missing")
     _require(report.get("coverage", {}).get("branch_mode") is True, "coverage branch evidence missing")
@@ -805,6 +870,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             json.dumps(
                 {
                     "checks": [{"name": item.name, "status": item.status} for item in checks],
+                    "current_g1": "PASS",
+                    "current_remote_github_actions": "PENDING_POST_G1_UPLOAD",
                     "g1": "NOT_RUN",
                     "remote_github_actions": "NOT_RUN",
                     "status": "PASS",

@@ -239,7 +239,16 @@ def validate_sbom() -> Check:
 
 
 def _text_files() -> Iterable[Path]:
-    ignored = {"node_modules", "__pycache__", ".pytest_cache", ".venv", "dist", "build"}
+    ignored = {
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        "node_modules",
+    }
     for path in PROJECT_ROOT.rglob("*"):
         if path.is_file() and not any(part in ignored for part in path.parts):
             if path.suffix.lower() in {"", ".md", ".json", ".yaml", ".yml", ".py", ".toml", ".txt"}:
@@ -248,7 +257,16 @@ def _text_files() -> Iterable[Path]:
 
 def validate_repository_boundary() -> Check:
     forbidden_directories = {"vendor", "third_party", "upstreams", "xiaohongshu-exporter", "douyin-downloader", "MediaCrawler"}
-    ignored = {"node_modules", "__pycache__", ".pytest_cache", ".venv", "dist", "build"}
+    ignored = {
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        "node_modules",
+    }
     directory_hits = [
         path.name
         for path in PROJECT_ROOT.rglob("*")
@@ -309,7 +327,7 @@ def validate_task_state() -> Check:
         gate_status = "PASS"
     else:
         schema_version = state.get("schema_version")
-        _require(schema_version in {"1.6", "1.7"}, "unsupported current task state")
+        _require(schema_version in {"1.6", "1.7", "1.8"}, "unsupported current task state")
         expected_current = {
             "1.6": {
                 "last_completed_phase": "PH.X2N.1.4",
@@ -323,30 +341,56 @@ def validate_task_state() -> Check:
                 "next_run": "STG.X2N.1.REVIEW",
                 "run_id": "RUN-X2N-S01-F005",
             },
+            "1.8": {
+                "last_completed_phase": "PH.X2N.1.5",
+                "next_phase": "PH.X2N.2.1",
+                "next_run": "TSK.x2n.skeleton.001",
+                "run_id": "RUN-X2N-S01-REVIEW",
+            },
         }[schema_version]
         _require(
             state.get("stage") == "STG.X2N.1"
             and state.get("last_completed_phase") == expected_current["last_completed_phase"],
             "current Stage routing mismatch",
         )
-        _require(state.get("review_id") == "STG.X2N.0.REVIEW.RESUME", "G0 Resume identity was lost")
-        _require(
-            state.get("run_id") == expected_current["run_id"] and state.get("run_kind") == "single_dag_task",
-            "foundation Run identity mismatch",
-        )
+        if schema_version == "1.8":
+            _require(state.get("review_id") == "STG.X2N.1.REVIEW", "G1 Review identity mismatch")
+            _require(
+                state.get("run_id") == expected_current["run_id"]
+                and state.get("run_kind") == "stage_review_no_new_dag_task",
+                "G1 Review Run identity mismatch",
+            )
+        else:
+            _require(state.get("review_id") == "STG.X2N.0.REVIEW.RESUME", "G0 Resume identity was lost")
+            _require(
+                state.get("run_id") == expected_current["run_id"] and state.get("run_kind") == "single_dag_task",
+                "foundation Run identity mismatch",
+            )
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.001") == "pass", "foundation Task is not pass")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.002") == "pass", "foundation.002 Task is not pass")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task is not pass")
         _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task is not pass")
-        if schema_version == "1.7":
+        if schema_version in {"1.7", "1.8"}:
             _require(state.get("tasks", {}).get("TSK.x2n.foundation.005") == "pass", "foundation.005 Task is not pass")
         _require(
             state.get("next_phase") == expected_current["next_phase"]
             and state.get("next_run") == expected_current["next_run"],
             "current next route mismatch",
         )
-        _require(state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass", "historical G0 status drifted")
-        _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
+        if schema_version == "1.8":
+            _require(
+                state.get("previous_stage_gate")
+                == {"gate_id": "G0", "status": "pass", "stage": "STG.X2N.0", "remote_upload": "merged"},
+                "historical G0 status drifted",
+            )
+            _require(
+                state.get("current_stage_gate") == "pass"
+                and state.get("current_stage_remote_upload") == "authorized_after_g1_pass",
+                "G1 Review state mismatch",
+            )
+        else:
+            _require(state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass", "historical G0 status drifted")
+            _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
         gate_status = "PASS"
     return Check("phase_task_state", "PASS", {"task": PHASE_TASK, "stage_gate": gate_status, "adapter_contract": "DOWNSTREAM_NOT_RUN"})
 

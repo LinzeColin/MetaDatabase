@@ -95,8 +95,8 @@ class Foundation004Tests(unittest.TestCase):
 
     def test_acceptance_scope_does_not_claim_owner_or_downstream_execution(self) -> None:
         state = json.loads(VERIFY.TASK_STATE.read_text(encoding="utf-8"))
-        self.assertEqual(state["current_stage_gate"], "not_run")
-        self.assertEqual(state["current_stage_remote_upload"], "forbidden_until_g1_pass")
+        self.assertEqual(state["current_stage_gate"], "pass")
+        self.assertEqual(state["current_stage_remote_upload"], "authorized_after_g1_pass")
         self.assertEqual(state["native_host_execution"], "pass_isolated_synthetic_owner_install_not_run")
         self.assertIn("owner_canary_not_run", state["acceptance_status"]["ACC.x2n.ext.001"])
         for field in ("real_account_execution", "platform_calls", "notion_calls", "model_calls", "media_processing"):

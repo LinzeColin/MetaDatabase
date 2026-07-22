@@ -80,7 +80,16 @@ def _sha256(path: Path) -> str:
 
 
 def _text_files() -> Iterable[Path]:
-    ignored_parts = {"node_modules", "__pycache__", ".pytest_cache", ".venv", "dist", "build"}
+    ignored_parts = {
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        "node_modules",
+    }
     suffixes = {"", ".md", ".json", ".yaml", ".yml", ".py", ".txt", ".toml"}
     for path in PROJECT_ROOT.rglob("*"):
         if not path.is_file() or any(part in ignored_parts for part in path.parts):
@@ -384,7 +393,20 @@ def validate_repository_boundary() -> Check:
         str(path.relative_to(PROJECT_ROOT))
         for path in PROJECT_ROOT.rglob("*")
         if path.is_file()
-        and not any(part in {"node_modules", "__pycache__", ".pytest_cache", ".venv", "dist", "build"} for part in path.parts)
+        and not any(
+            part
+            in {
+                ".mypy_cache",
+                ".pytest_cache",
+                ".ruff_cache",
+                ".venv",
+                "__pycache__",
+                "build",
+                "dist",
+                "node_modules",
+            }
+            for part in path.parts
+        )
         and path.suffix.lower() in forbidden_suffixes
     ]
     _require(not private_files, f"private/runtime file types in repository: {private_files}")

@@ -26,6 +26,19 @@ import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PROJECT_ROOT.parent
+GENERATED_TREE_PARTS = frozenset(
+    {
+        ".git",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        "node_modules",
+    }
+)
 POLICY = PROJECT_ROOT / "machine/policy/external_auth_material_isolation_policy.json"
 CHANGE_EVENT = PROJECT_ROOT / "docs/governance/CHANGE_EVENT_S00_REVIEW_RESUME.md"
 ACCEPTANCE = PROJECT_ROOT / "docs/product_design/v0.0.0.1/04_ACCEPTANCE_CONTRACT_TRACEABILITY.md"
@@ -85,10 +98,14 @@ def _git_required(args: list[str]) -> str:
 
 
 def _text_files(root: Path) -> Iterable[Path]:
-    ignored = {"__pycache__", ".pytest_cache", ".git"}
     suffixes = {"", ".md", ".json", ".yaml", ".yml", ".py", ".txt", ".toml"}
     for path in root.rglob("*"):
-        if not path.is_file() or path.is_symlink() or any(part in ignored for part in path.parts):
+        relative = path.relative_to(root)
+        if (
+            not path.is_file()
+            or path.is_symlink()
+            or any(part in GENERATED_TREE_PARTS for part in relative.parts)
+        ):
             continue
         if path.suffix.lower() in suffixes or path.name in {"VERSION", ".gitignore"}:
             yield path
