@@ -1,0 +1,116 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "TAOBAO.CURRENT_PAGE.X2N.001",
+  "phase": "PH.X2N.2.6",
+  "default": "deny",
+  "feature_flag": {
+    "name": "taobao_current_page",
+    "value": "ci_synth_only",
+    "real_page_execution": false,
+    "owner_canary": "not_run"
+  },
+  "platform_policy_state": "unknown_disabled_application_scope_retention_and_dom_fallback",
+  "execution_environment": "ENV-CI-SYNTH",
+  "production_top_api_transport": false,
+  "official_first_gate": {
+    "item_api": "taobao.item.get",
+    "item_api_documented": true,
+    "item_api_requires_authorization": true,
+    "item_api_fee_class": "value_added_api",
+    "item_identity": "num_iid",
+    "item_detail_url_shape": "item_taobao_com_item_htm_semantic_id_query",
+    "oauth_documented_for_goods_orders_and_favorites": true,
+    "official_top_signing_protocol_documented": true,
+    "official_top_signing_protocol_implemented": false,
+    "browser_dom_collection_permission": "not_found_and_platform_crawling_prohibited"
+  },
+  "application_gate": {
+    "application_registered": false,
+    "application_approved": false,
+    "item_api_permission_approved": false,
+    "oauth_configured": false,
+    "paid_api_plan_approved": false,
+    "approved_budget_units": 0,
+    "field_scope_approved": false
+  },
+  "retention_gate": {
+    "purpose_and_scope_disclosure_required": true,
+    "withdrawal_and_service_end_deletion_required": true,
+    "retention_expiry_deletion_required": true,
+    "user_delete_and_revoke_flow_implemented": false,
+    "retention_period_approved": false,
+    "deletion_receipt_implemented": false,
+    "unknown_scope_or_retention_state": "UNKNOWN_DISABLED"
+  },
+  "auth_gate": {
+    "oauth_input": false,
+    "top_session_input": false,
+    "application_confidential_material_input": false,
+    "cookie_input": false,
+    "browser_profile_input": false
+  },
+  "route_evidence": {
+    "official_item_identity": "num_iid",
+    "official_detail_url": "item_taobao_com_item_htm_with_id",
+    "public_item_dom_route": "unverified_route_assumption_ci_fixture_only",
+    "selected_collection": "not_in_scope_unknown_disabled"
+  },
+  "canonical_query_contract": {
+    "allowed_persisted_query_keys": [],
+    "semantic_id_observed_but_stored_as_content_id": true,
+    "synthetic_control_persisted": false,
+    "any_query_persisted": false,
+    "fragment_persisted": false
+  },
+  "current_page_contract": {
+    "owner_action_required": true,
+    "active_tab_required": true,
+    "isolated_world": true,
+    "focused_tab_and_url_rechecked": true,
+    "automatic_scrolling": false,
+    "automatic_pagination": false,
+    "account_state_change": false,
+    "media_url_or_raw_dom_output": false,
+    "non_synthetic_identity_capture": false
+  },
+  "undocumented_signature_surface": {
+    "browser_mtop_cookie_signing": false,
+    "cookie_derived_token_input": false,
+    "signature_material_input": false,
+    "undocumented_endpoint_transport": false,
+    "official_top_sdk_or_protocol_transport": false,
+    "rejection_case_count": 16,
+    "rejection_rate_percent": 100
+  },
+  "synthetic_gate": {
+    "item_id_namespace": "9900000000000_plus_six_digits",
+    "canonical_host": "item.taobao.com",
+    "synthetic_control": "x2n_fixture_equals_1_input_only",
+    "dom_case_count": 8,
+    "policy_case_count": 14,
+    "scope_retention_disabled_case_count": 2,
+    "schema_drift_rejection_count": 7,
+    "platform_network_calls": 0
+  },
+  "official_evidence_registry": "machine/policy/platform_policy_registry.json#official_sources.taobao",
+  "policy_findings": {
+    "official_item_api": "documented_authorized_value_added_api_with_num_iid",
+    "oauth": "documented_for_private_goods_orders_and_favorites_data",
+    "api_cost": "paid_api_plan_not_approved_for_this_application",
+    "data_scope": "application_field_scope_not_approved",
+    "retention": "deletion_obligations_documented_but_product_flow_and_period_not_approved",
+    "dom_fallback": "not_authorized_and_platform_crawling_prohibited",
+    "decision": "retain_unknown_disabled_for_real_pages_api_and_dom_fallback"
+  },
+  "rollback": "set_taobao_current_page_false_and_retain_public_synthetic_fixtures",
+  "future_enablement_requires": [
+    "independent_versioned_task",
+    "approved_application_and_owner_consent",
+    "documented_minimum_item_field_scope",
+    "approved_paid_plan_and_budget",
+    "local_companion_only_official_top_transport",
+    "documented_retention_period_and_delete_revoke_flow",
+    "deletion_receipt_and_audit_evidence",
+    "owner_canary_and_completeness_receipt"
+  ]
+}

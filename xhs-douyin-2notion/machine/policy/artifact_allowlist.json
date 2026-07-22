@@ -39,6 +39,19 @@
     "scripts/ci/run_lane.py",
     "scripts/generate_foundation_005_sbom.py",
     "scripts/verify_foundation_005.py",
+    "scripts/verify_skeleton_001.py",
+    "scripts/verify_skeleton_002.py",
+    "scripts/verify_skeleton_006.py",
+    "scripts/verify_skeleton_007.py",
+    "scripts/verify_skeleton_008.py",
+    "scripts/verify_skeleton_009.py",
+    "scripts/run_skeleton_003_acceptance.py",
+    "scripts/verify_skeleton_003.py",
+    "scripts/run_skeleton_004_acceptance.py",
+    "scripts/verify_skeleton_004.py",
+    "scripts/run_skeleton_005_acceptance.py",
+    "scripts/verify_skeleton_005.py",
+    "scripts/verify_stage_2_review.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

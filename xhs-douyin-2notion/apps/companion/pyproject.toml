@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = ["x2n-contracts"]
 
 [project.scripts]
+x2n = "x2n_companion.runtime_cli:main"
 x2n-scaffold = "x2n_companion.scaffold:main"
 x2n-store = "x2n_companion.runtime_cli:main"
 x2n-native-host = "x2n_companion.native_host:main"

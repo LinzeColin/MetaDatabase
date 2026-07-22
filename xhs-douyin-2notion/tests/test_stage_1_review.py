@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -67,10 +67,22 @@ class Stage1ReviewTests(unittest.TestCase):
             self.assertEqual(VERIFY._changed_review_paths(), {allowed_path})
 
     def test_foundation_receipts_are_frozen_at_review_base(self) -> None:
-        check = VERIFY.validate_foundation_evidence()
+        physical_head = VERIFY._git(["rev-parse", "HEAD"])
+        with (
+            patch.object(
+                VERIFY,
+                "_logical_review_head",
+                side_effect=AssertionError("historical evidence must not re-resolve a later PR parent"),
+            ),
+            patch.object(VERIFY, "_is_ancestor", wraps=VERIFY._is_ancestor) as is_ancestor,
+        ):
+            check = VERIFY.validate_foundation_evidence()
         self.assertEqual(check.status, "PASS")
         self.assertEqual(check.details["frozen_receipts"], 5)
         self.assertEqual(check.details["rewritten_receipts"], 0)
+        self.assertIn(call(VERIFY.REVIEW_FINAL_COMMIT, physical_head), is_ancestor.call_args_list)
+        for commit in VERIFY.FOUNDATION_COMMITS.values():
+            self.assertIn(call(commit, VERIFY.REVIEW_FINAL_COMMIT), is_ancestor.call_args_list)
 
     def test_blocking_execution_identity_is_exact_and_ordered(self) -> None:
         rows = VERIFY._expected_blocking_results()

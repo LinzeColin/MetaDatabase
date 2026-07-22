@@ -11,7 +11,7 @@ import sqlite3
 import uuid
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
@@ -28,6 +28,7 @@ from x2n_contracts import (
     SourceObservation,
     TaxonomyCategory,
     UserRelation,
+    build_artifact_key,
 )
 
 from .migrations import (
@@ -42,13 +43,26 @@ from .runtime import RuntimePaths, X2NRuntimeError, _atomic_private_json
 
 SAFE_TOKEN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
+MEDIA_LEASE_ID = re.compile(r"^media_[0-9a-f]{32}$")
+MEDIA_TIMESTAMP = re.compile(
+    r"^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])"
+    r"T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z$"
+)
 MAX_MEDIA_LEASE_SECONDS = 24 * 60 * 60
+PENDING_MEDIA_SHA256 = "0" * 64
+PENDING_MEDIA_MIME = "application/x-x2n-pending"
 HEALTHY_CHECKS: dict[str, str | int] = {
     "foreign_key_check": "ok",
     "foreign_key_violations": 0,
     "integrity_check": "ok",
     "quick_check": "ok",
 }
+CURRENT_PAGE_RUN_KIND = "current_page_capture_v1"
+CURRENT_PAGE_CURSOR_CANONICAL = "canonical_committed"
+CURRENT_PAGE_CURSOR_COMPLETE = "artifact_placeholder_committed"
+CURRENT_PAGE_RESUME_VERSION = "orchestrator-1.0.0"
+CURRENT_PAGE_PLACEHOLDER_PROCESSOR = "x2n-canonical-placeholder"
+CURRENT_PAGE_PLACEHOLDER_VERSION = "placeholder-1.0.0"
 
 
 class WriteDisposition(str, Enum):
@@ -89,6 +103,42 @@ class OutboxClaim:
 
 
 @dataclass(frozen=True)
+class OutboxState:
+    """Public-safe durable delivery state without sink payloads or private refs."""
+
+    event_id: str
+    sink: str
+    content_key: str
+    desired_projection_hash: str
+    sink_schema_version: str
+    status: str
+    attempt_count: int
+    not_before: str
+    last_error_code: str | None
+
+
+@dataclass(frozen=True)
+class NotionMapping:
+    """Private Runtime mapping; page_ref must never enter a public receipt."""
+
+    content_key: str
+    page_ref: str = field(repr=False)
+    external_ref_hash: str
+
+
+@dataclass(frozen=True)
+class CanonicalProjection:
+    """Private Canonical snapshot consumed by deterministic derived sinks."""
+
+    content: CanonicalContent
+    relations: tuple[str, ...]
+    observation: SourceObservation
+    artifacts: tuple[Artifact, ...]
+    classification: Classification | None
+    category: TaxonomyCategory | None
+
+
+@dataclass(frozen=True)
 class RecoveryPlan:
     foreign_key_check: str
     foreign_key_violations: int
@@ -119,6 +169,106 @@ class SkeletonJob:
     job_id: str
     state: str
     disposition: DuplicateDisposition
+    run_kind: str = "unknown"
+
+
+@dataclass(frozen=True)
+class CurrentPageIdentity:
+    """Deterministic external Job and internal opaque SQLite identities."""
+
+    job_id: str
+    run_id: str
+    checkpoint_id: str
+    observation_id: str
+    scan_receipt_id: str
+
+
+@dataclass(frozen=True)
+class CurrentPageReceipt:
+    """Reproducible receipt that never emits page facts or Canonical Store paths."""
+
+    job_id: str
+    state: str
+    disposition: DuplicateDisposition
+    checkpoint_state: str
+    transition: str
+    adapter_name: str
+    adapter_version: str
+    content_ref_sha256: str
+    relation_ref_sha256: str
+    observation_ref_sha256: str
+    artifact_ref_sha256: str | None
+
+    def safe_dict(self) -> dict[str, Any]:
+        completed = self.state == "succeeded"
+        return {
+            "adapter": {"name": self.adapter_name, "version": self.adapter_version},
+            "checkpoint": {"state": self.checkpoint_state, "transition": self.transition},
+            "disposition": self.disposition.value,
+            "downstream": {
+                "classification": "DOWNSTREAM_NOT_RUN",
+                "markdown": "DOWNSTREAM_NOT_RUN",
+                "media_processing": "DOWNSTREAM_NOT_RUN",
+                "notion": "DOWNSTREAM_NOT_RUN",
+                "renderer": "DOWNSTREAM_NOT_RUN",
+            },
+            "entity_counts": {
+                "artifact_placeholder": int(completed),
+                "checkpoint": 1,
+                "content": 1,
+                "observation": 1,
+                "relation": 1,
+                "run": 1,
+            },
+            "job_id": self.job_id,
+            "persistence": {
+                "browser_state": 0,
+                "credentials": 0,
+                "media_cdn_urls": 0,
+                "raw_media": 0,
+            },
+            "provenance_refs": {
+                "artifact_sha256": self.artifact_ref_sha256,
+                "content_sha256": self.content_ref_sha256,
+                "observation_sha256": self.observation_ref_sha256,
+                "relation_sha256": self.relation_ref_sha256,
+            },
+            "receipt_type": "canonical_current_page",
+            "schema_version": "1.0",
+            "state": self.state,
+        }
+
+
+@dataclass(frozen=True)
+class MediaLeaseRecord:
+    """Internal lease state; the private relative path is excluded from receipts."""
+
+    lease_id: str
+    run_id: str
+    content_key: str
+    purpose: str
+    content_hash: str
+    mime: str
+    size_bytes: int
+    duration_seconds: float | None
+    created_at: str
+    expires_at: str
+    status: str
+    local_relative_path: str = field(repr=False)
+    cleanup_error_code: str | None = None
+
+    def safe_dict(self) -> dict[str, Any]:
+        return {
+            "cleanup_error_code": self.cleanup_error_code,
+            "content_hash": self.content_hash,
+            "duration_seconds": self.duration_seconds,
+            "expires_at": self.expires_at,
+            "lease_id": self.lease_id,
+            "mime": self.mime,
+            "purpose": self.purpose,
+            "size_bytes": self.size_bytes,
+            "status": self.status,
+        }
 
 
 def _now() -> str:
@@ -136,10 +286,48 @@ def _validate_token(value: str, *, label: str) -> str:
     return value
 
 
+def _validate_media_timestamp(value: str, *, label: str) -> str:
+    if not isinstance(value, str) or MEDIA_TIMESTAMP.fullmatch(value) is None:
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} is invalid")
+    try:
+        datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} is invalid") from None
+    return value
+
+
 def _validate_sha256(value: str, *, label: str) -> str:
     if SHA256.fullmatch(value) is None:
         raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} is invalid")
     return value
+
+
+def _uuid(value: str, *, label: str) -> uuid.UUID:
+    try:
+        parsed = uuid.UUID(value)
+    except (ValueError, AttributeError, TypeError):
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} is invalid") from None
+    if str(parsed) != value.lower():
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} is not canonical")
+    return parsed
+
+
+def current_page_identity_from_job(job_id: str) -> CurrentPageIdentity:
+    parsed = _uuid(job_id, label="job_id")
+    suffix = parsed.hex
+    return CurrentPageIdentity(
+        job_id=str(parsed),
+        run_id=f"run_capture_{suffix}",
+        checkpoint_id=f"checkpoint_capture_{suffix}",
+        observation_id=f"obs_capture_{suffix}",
+        scan_receipt_id=f"receipt_capture_{suffix}",
+    )
+
+
+def current_page_identity_from_request(request_id: str) -> CurrentPageIdentity:
+    parsed = _uuid(request_id, label="request_id")
+    job_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"x2n-native-request:{parsed}"))
+    return current_page_identity_from_job(job_id)
 
 
 def _payload(model: Any) -> tuple[str, str]:
@@ -222,7 +410,15 @@ class CanonicalStore:
         for suffix in ("", "-wal", "-shm"):
             path = Path(str(self.paths.database) + suffix)
             if path.exists():
-                self.paths.ensure_private_file(path)
+                try:
+                    self.paths.ensure_private_file(path)
+                except FileNotFoundError:
+                    # SQLite may delete a transient WAL/SHM sidecar after the
+                    # existence check while another connection is closing.
+                    # The canonical database must never receive this waiver.
+                    if suffix in {"-wal", "-shm"} and not path.exists():
+                        continue
+                    raise
         if self._lock_path.exists():
             self.paths.ensure_private_file(self._lock_path)
 
@@ -239,10 +435,17 @@ class CanonicalStore:
                 raise
             except sqlite3.IntegrityError as error:
                 connection.rollback()
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Canonical write violated a Store invariant") from error
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Canonical write violated a Store invariant"
+                ) from error
             except sqlite3.Error as error:
                 connection.rollback()
                 raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Canonical transaction failed atomically") from error
+            except BaseException:
+                # Abrupt in-process interruption mirrors SQLite's process-exit
+                # rollback and keeps kill-point tests honest.
+                connection.rollback()
+                raise
             finally:
                 connection.close()
                 self._secure_sqlite_files()
@@ -337,7 +540,9 @@ class CanonicalStore:
         if existing is not None and str(existing["payload_sha256"]) == payload_sha:
             return WriteDisposition.UNCHANGED
         if existing is not None and content.record_version <= int(existing["record_version"]):
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Canonical content version conflicts with stored truth")
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED, "Canonical content version conflicts with stored truth"
+            )
         values = (
             content.content_key,
             content.platform.value,
@@ -484,7 +689,9 @@ class CanonicalStore:
         if existing is not None:
             if str(existing["payload_sha256"]) == payload_sha:
                 return WriteDisposition.UNCHANGED
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Observation identity conflicts with append-only history")
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED, "Observation identity conflicts with append-only history"
+            )
         observed_at = observation.observed_at.isoformat().replace("+00:00", "Z")
         CanonicalStore._ensure_run(connection, observation.run_id, observed_at)
         connection.execute(
@@ -522,7 +729,9 @@ class CanonicalStore:
         if existing is not None:
             if str(existing["payload_sha256"]) == payload_sha:
                 return WriteDisposition.UNCHANGED
-            raise X2NRuntimeError(ErrorCode.ARTIFACT_VERSION_CONFLICT, "Artifact identity conflicts with append-only history")
+            raise X2NRuntimeError(
+                ErrorCode.ARTIFACT_VERSION_CONFLICT, "Artifact identity conflicts with append-only history"
+            )
         connection.execute(
             """
             INSERT INTO artifact(
@@ -607,7 +816,9 @@ class CanonicalStore:
             if existing is not None and str(existing["payload_sha256"]) == payload_sha:
                 return WriteDisposition.UNCHANGED
             if existing is not None and category.version <= int(existing["version"]):
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy category version conflicts with Owner truth")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy category version conflicts with Owner truth"
+                )
             if existing is None:
                 connection.execute(
                     """
@@ -617,9 +828,18 @@ class CanonicalStore:
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
-                        str(category.category_id), category.name, category.slug, category.priority,
-                        int(category.enabled), category.version, category.level, category.created_by,
-                        payload_json, payload_sha, now, now,
+                        str(category.category_id),
+                        category.name,
+                        category.slug,
+                        category.priority,
+                        int(category.enabled),
+                        category.version,
+                        category.level,
+                        category.created_by,
+                        payload_json,
+                        payload_sha,
+                        now,
+                        now,
                     ),
                 )
                 return WriteDisposition.INSERTED
@@ -631,8 +851,15 @@ class CanonicalStore:
                 WHERE category_id = ?
                 """,
                 (
-                    category.name, category.slug, category.priority, int(category.enabled),
-                    category.version, payload_json, payload_sha, now, str(category.category_id),
+                    category.name,
+                    category.slug,
+                    category.priority,
+                    int(category.enabled),
+                    category.version,
+                    payload_json,
+                    payload_sha,
+                    now,
+                    str(category.category_id),
                 ),
             )
             return WriteDisposition.UPDATED
@@ -647,7 +874,9 @@ class CanonicalStore:
             if existing is not None:
                 if str(existing["payload_sha256"]) == payload_sha:
                     return WriteDisposition.UNCHANGED
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Classification identity conflicts with append-only history")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Classification identity conflicts with append-only history"
+                )
             connection.execute(
                 """
                 INSERT INTO classification(
@@ -678,6 +907,411 @@ class CanonicalStore:
                 )
             return WriteDisposition.INSERTED
 
+    @staticmethod
+    def _current_page_receipt(
+        connection: sqlite3.Connection,
+        identity: CurrentPageIdentity,
+        disposition: DuplicateDisposition,
+    ) -> CurrentPageReceipt:
+        ledger = connection.execute(
+            "SELECT payload_hash FROM request_ledger WHERE job_id = ?",
+            (identity.job_id,),
+        ).fetchone()
+        run = connection.execute(
+            "SELECT state, input_manifest_hash FROM run_record WHERE run_id = ? AND run_kind = ?",
+            (identity.run_id, CURRENT_PAGE_RUN_KIND),
+        ).fetchone()
+        checkpoint = connection.execute(
+            """
+            SELECT adapter_name, adapter_version, account_ref_hash, cursor_kind, state, full_scan_id
+            FROM checkpoint WHERE checkpoint_id = ?
+            """,
+            (identity.checkpoint_id,),
+        ).fetchone()
+        observation_rows = connection.execute(
+            """
+            SELECT observation_id, content_key, adapter_name, adapter_version, raw_text_hash
+            FROM source_observation WHERE run_id = ?
+            """,
+            (identity.run_id,),
+        ).fetchall()
+        if ledger is None or run is None or checkpoint is None or len(observation_rows) != 1:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page orchestration graph is incomplete")
+        observation = observation_rows[0]
+        if (
+            str(run["input_manifest_hash"]) != str(ledger["payload_hash"])
+            or str(observation["raw_text_hash"]) != str(ledger["payload_hash"])
+            or str(observation["observation_id"]) != identity.observation_id
+            or str(checkpoint["full_scan_id"]) != identity.run_id
+            or str(checkpoint["adapter_name"]) != str(observation["adapter_name"])
+            or str(checkpoint["adapter_version"]) != str(observation["adapter_version"])
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page orchestration identity diverged")
+
+        content_key = str(observation["content_key"])
+        content = connection.execute(
+            "SELECT platform, content_hash FROM content WHERE content_key = ?",
+            (content_key,),
+        ).fetchone()
+        relations = connection.execute(
+            """
+            SELECT relation_key FROM user_relation
+            WHERE account_ref_hash = ? AND content_key = ? AND relation_type = 'saved_current'
+            """,
+            (str(checkpoint["account_ref_hash"]), content_key),
+        ).fetchall()
+        account = connection.execute(
+            "SELECT platform FROM account_ref WHERE account_ref_hash = ?",
+            (str(checkpoint["account_ref_hash"]),),
+        ).fetchone()
+        if (
+            content is None
+            or account is None
+            or len(relations) != 1
+            or str(content["platform"]) != str(account["platform"])
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page canonical graph is incomplete")
+
+        run_state = str(run["state"])
+        checkpoint_state = str(checkpoint["state"])
+        transition = str(checkpoint["cursor_kind"])
+        if (run_state, checkpoint_state, transition) not in {
+            ("running", "active", CURRENT_PAGE_CURSOR_CANONICAL),
+            ("succeeded", "complete", CURRENT_PAGE_CURSOR_COMPLETE),
+        }:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page orchestration state is invalid")
+
+        artifact_id: str | None = None
+        if run_state == "succeeded":
+            artifacts = connection.execute(
+                """
+                SELECT artifact_id FROM artifact
+                WHERE content_key = ? AND artifact_type = 'search_text' AND input_hash = ?
+                  AND processor = ? AND processor_version = ?
+                """,
+                (
+                    content_key,
+                    str(content["content_hash"]),
+                    CURRENT_PAGE_PLACEHOLDER_PROCESSOR,
+                    CURRENT_PAGE_PLACEHOLDER_VERSION,
+                ),
+            ).fetchall()
+            if len(artifacts) != 1:
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED,
+                    "Completed current-page Run lacks one placeholder Artifact",
+                )
+            artifact_id = str(artifacts[0]["artifact_id"])
+
+        relation_key = str(relations[0]["relation_key"])
+        return CurrentPageReceipt(
+            job_id=identity.job_id,
+            state=run_state,
+            disposition=disposition,
+            checkpoint_state=checkpoint_state,
+            transition=transition,
+            adapter_name=str(observation["adapter_name"]),
+            adapter_version=str(observation["adapter_version"]),
+            content_ref_sha256=hashlib.sha256(content_key.encode("utf-8")).hexdigest(),
+            relation_ref_sha256=hashlib.sha256(relation_key.encode("utf-8")).hexdigest(),
+            observation_ref_sha256=hashlib.sha256(identity.observation_id.encode("utf-8")).hexdigest(),
+            artifact_ref_sha256=(
+                hashlib.sha256(artifact_id.encode("utf-8")).hexdigest() if artifact_id is not None else None
+            ),
+        )
+
+    def begin_current_page_capture(
+        self,
+        *,
+        request_id: str,
+        payload_hash: str,
+        content: CanonicalContent,
+        relation: UserRelation,
+        observation: SourceObservation,
+        adapter_name: str,
+        adapter_version: str,
+    ) -> CurrentPageReceipt:
+        """Commit the replayable canonical phase in one SQLite transaction."""
+
+        identity = current_page_identity_from_request(request_id)
+        _validate_sha256(payload_hash, label="payload_hash")
+        _validate_token(adapter_name, label="adapter_name")
+        _validate_token(adapter_version, label="adapter_version")
+        if (
+            relation.content_key != content.content_key
+            or observation.content_key != content.content_key
+            or observation.run_id != identity.run_id
+            or observation.observation_id != identity.observation_id
+            or observation.raw_text_hash != payload_hash
+            or relation.scan_receipt_id != identity.scan_receipt_id
+            or observation.adapter_name != adapter_name
+            or observation.adapter_version != adapter_version
+            or relation.relation_type.value != "saved_current"
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page canonical plan is inconsistent")
+
+        observed_at = observation.observed_at.isoformat().replace("+00:00", "Z")
+        with self._transaction() as connection:
+            existing = connection.execute(
+                "SELECT payload_hash, job_id FROM request_ledger WHERE request_id = ?",
+                (str(_uuid(request_id, label="request_id")),),
+            ).fetchone()
+            if existing is not None:
+                if str(existing["payload_hash"]) != payload_hash:
+                    raise X2NRuntimeError(
+                        ErrorCode.NATIVE_DUPLICATE_REQUEST,
+                        "Request identity conflicts with the existing payload",
+                    )
+                if str(existing["job_id"]) != identity.job_id:
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page Job identity diverged")
+                return self._current_page_receipt(
+                    connection,
+                    identity,
+                    DuplicateDisposition.RETURN_EXISTING_JOB,
+                )
+
+            if (
+                connection.execute("SELECT 1 FROM run_record WHERE run_id = ?", (identity.run_id,)).fetchone()
+                is not None
+            ):
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page Run exists without its request")
+            connection.execute(
+                """
+                INSERT INTO run_record(
+                    run_id, run_kind, state, input_manifest_hash, started_at, finished_at, created_at
+                ) VALUES (?, ?, 'running', ?, ?, NULL, ?)
+                """,
+                (identity.run_id, CURRENT_PAGE_RUN_KIND, payload_hash, observed_at, observed_at),
+            )
+            connection.execute(
+                "INSERT INTO request_ledger(request_id, payload_hash, job_id, created_at) VALUES (?, ?, ?, ?)",
+                (str(_uuid(request_id, label="request_id")), payload_hash, identity.job_id, observed_at),
+            )
+
+            existing_content = connection.execute(
+                "SELECT first_observed_at, last_observed_at, record_version FROM content WHERE content_key = ?",
+                (content.content_key,),
+            ).fetchone()
+            canonical = content
+            if existing_content is not None:
+                stored_last = datetime.fromisoformat(str(existing_content["last_observed_at"]).replace("Z", "+00:00"))
+                if observation.observed_at < stored_last:
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Content observation would move backward")
+                canonical = content.model_copy(
+                    update={
+                        "first_observed_at": datetime.fromisoformat(
+                            str(existing_content["first_observed_at"]).replace("Z", "+00:00")
+                        ),
+                        "record_version": int(existing_content["record_version"]) + 1,
+                    }
+                )
+            self._upsert_content(connection, canonical, observed_at)
+
+            existing_relation = connection.execute(
+                "SELECT first_seen_at, last_seen_at FROM user_relation WHERE relation_key = ?",
+                (relation.relation_key,),
+            ).fetchone()
+            canonical_relation = relation
+            if existing_relation is not None:
+                stored_last = datetime.fromisoformat(str(existing_relation["last_seen_at"]).replace("Z", "+00:00"))
+                if relation.last_seen_at < stored_last:
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Relation observation would move backward")
+                canonical_relation = relation.model_copy(
+                    update={
+                        "first_seen_at": datetime.fromisoformat(
+                            str(existing_relation["first_seen_at"]).replace("Z", "+00:00")
+                        )
+                    }
+                )
+            self._upsert_relation(connection, canonical_relation, canonical.platform.value, observed_at)
+            self._append_observation(connection, observation, observed_at)
+            connection.execute(
+                """
+                INSERT INTO checkpoint(
+                    checkpoint_id, adapter_name, adapter_version, account_ref_hash, relation_type,
+                    cursor_kind, cursor_value_private, last_stable_content_id, full_scan_id,
+                    observed_count, completion_confidence, resume_compatibility_version, state,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, 'saved_current', ?, NULL, ?, ?, 1, 1.0, ?, 'active', ?, ?)
+                """,
+                (
+                    identity.checkpoint_id,
+                    adapter_name,
+                    adapter_version,
+                    canonical_relation.account_ref_hash,
+                    CURRENT_PAGE_CURSOR_CANONICAL,
+                    canonical.platform_content_id,
+                    identity.run_id,
+                    CURRENT_PAGE_RESUME_VERSION,
+                    observed_at,
+                    observed_at,
+                ),
+            )
+            return self._current_page_receipt(connection, identity, DuplicateDisposition.NEW_REQUEST)
+
+    def finalize_current_page_capture(
+        self,
+        job_id: str,
+        *,
+        disposition: DuplicateDisposition = DuplicateDisposition.RETURN_EXISTING_JOB,
+    ) -> CurrentPageReceipt:
+        """Append/reuse the URL-free placeholder and atomically complete the Run."""
+
+        identity = current_page_identity_from_job(job_id)
+        with self._transaction() as connection:
+            current = self._current_page_receipt(connection, identity, disposition)
+            if current.state == "succeeded":
+                return current
+            run = connection.execute(
+                "SELECT started_at FROM run_record WHERE run_id = ?",
+                (identity.run_id,),
+            ).fetchone()
+            content = connection.execute(
+                """
+                SELECT c.content_key, c.content_hash
+                FROM content AS c
+                INNER JOIN source_observation AS o ON o.content_key = c.content_key
+                WHERE o.run_id = ? AND o.observation_id = ?
+                """,
+                (identity.run_id, identity.observation_id),
+            ).fetchone()
+            if run is None or content is None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page finalize input is incomplete")
+            content_key = str(content["content_key"])
+            input_hash = str(content["content_hash"])
+            artifact_key = build_artifact_key(
+                content_key,
+                "search_text",
+                input_hash,
+                CURRENT_PAGE_PLACEHOLDER_VERSION,
+            )
+            artifact_id = f"art_placeholder_{hashlib.sha256(artifact_key.encode('utf-8')).hexdigest()[:32]}"
+            existing_artifact = connection.execute(
+                "SELECT payload_json FROM artifact WHERE artifact_key = ?",
+                (artifact_key,),
+            ).fetchone()
+            if existing_artifact is not None:
+                placeholder = Artifact.model_validate_json(str(existing_artifact["payload_json"]))
+                if (
+                    placeholder.artifact_id != artifact_id
+                    or placeholder.processor != CURRENT_PAGE_PLACEHOLDER_PROCESSOR
+                    or placeholder.private_payload_present
+                    or placeholder.private_payload_ref is not None
+                    or placeholder.private_payload_hash is not None
+                ):
+                    raise X2NRuntimeError(
+                        ErrorCode.ARTIFACT_VERSION_CONFLICT,
+                        "Current-page placeholder identity conflicts with append-only history",
+                    )
+            else:
+                sequence = (
+                    int(
+                        connection.execute(
+                            "SELECT COALESCE(MAX(artifact_sequence), 0) FROM artifact WHERE content_key = ? AND artifact_type = 'search_text'",
+                            (content_key,),
+                        ).fetchone()[0]
+                    )
+                    + 1
+                )
+                previous = connection.execute(
+                    """
+                    SELECT artifact_id FROM artifact
+                    WHERE content_key = ? AND artifact_type = 'search_text' AND processor = ?
+                    ORDER BY artifact_sequence DESC LIMIT 1
+                    """,
+                    (content_key, CURRENT_PAGE_PLACEHOLDER_PROCESSOR),
+                ).fetchone()
+                placeholder = Artifact.model_validate_json(
+                    json.dumps(
+                        {
+                            "append_only": True,
+                            "artifact_id": artifact_id,
+                            "artifact_key": artifact_key,
+                            "artifact_sequence": sequence,
+                            "artifact_type": "search_text",
+                            "content_key": content_key,
+                            "created_at": str(run["started_at"]),
+                            "input_hash": input_hash,
+                            "language": None,
+                            "model_name": None,
+                            "model_provider": None,
+                            "model_snapshot": None,
+                            "private_payload_hash": None,
+                            "private_payload_present": False,
+                            "private_payload_ref": None,
+                            "processor": CURRENT_PAGE_PLACEHOLDER_PROCESSOR,
+                            "processor_version": CURRENT_PAGE_PLACEHOLDER_VERSION,
+                            "prompt_version": None,
+                            "quality": {"grade": "unknown", "metric_name": None, "metric_value": None},
+                            "schema_version": "1.0",
+                            "supersedes_artifact_id": str(previous["artifact_id"]) if previous is not None else None,
+                        },
+                        ensure_ascii=False,
+                    )
+                )
+            self._append_artifact(connection, placeholder)
+            checkpoint_update = connection.execute(
+                """
+                UPDATE checkpoint SET cursor_kind = ?, state = 'complete', updated_at = ?
+                WHERE checkpoint_id = ? AND state = 'active' AND cursor_kind = ?
+                """,
+                (CURRENT_PAGE_CURSOR_COMPLETE, _now(), identity.checkpoint_id, CURRENT_PAGE_CURSOR_CANONICAL),
+            )
+            run_update = connection.execute(
+                """
+                UPDATE run_record SET state = 'succeeded', finished_at = ?
+                WHERE run_id = ? AND state = 'running' AND run_kind = ?
+                """,
+                (_now(), identity.run_id, CURRENT_PAGE_RUN_KIND),
+            )
+            if checkpoint_update.rowcount != 1 or run_update.rowcount != 1:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page finalize transition raced")
+            return self._current_page_receipt(connection, identity, disposition)
+
+    def current_page_receipt(self, job_id: str) -> CurrentPageReceipt:
+        identity = current_page_identity_from_job(job_id)
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                return self._current_page_receipt(
+                    connection,
+                    identity,
+                    DuplicateDisposition.RETURN_EXISTING_JOB,
+                )
+            finally:
+                connection.close()
+
+    def resumable_current_page_jobs(self, *, limit: int = 80) -> tuple[str, ...]:
+        if not isinstance(limit, int) or isinstance(limit, bool) or limit < 1 or limit > 80:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Resume batch limit is invalid")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                rows = connection.execute(
+                    """
+                    SELECT run_id FROM run_record
+                    WHERE run_kind = ? AND state = 'running'
+                    ORDER BY started_at, run_id LIMIT ?
+                    """,
+                    (CURRENT_PAGE_RUN_KIND, limit),
+                ).fetchall()
+                job_ids: list[str] = []
+                for row in rows:
+                    run_id = str(row["run_id"])
+                    if not run_id.startswith("run_capture_"):
+                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page Run identity is invalid")
+                    job_id = str(uuid.UUID(hex=run_id.removeprefix("run_capture_")))
+                    ledger = connection.execute(
+                        "SELECT 1 FROM request_ledger WHERE job_id = ?",
+                        (job_id,),
+                    ).fetchone()
+                    if ledger is None:
+                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Resumable Run lacks its request")
+                    job_ids.append(job_id)
+                return tuple(job_ids)
+            finally:
+                connection.close()
+
     def record_request(self, request_id: str, payload_hash: str, job_id: str) -> tuple[DuplicateDisposition, str]:
         _validate_token(request_id, label="request_id")
         _validate_sha256(payload_hash, label="payload_hash")
@@ -695,7 +1329,9 @@ class CanonicalStore:
                 return DuplicateDisposition.NEW_REQUEST, job_id
             if str(existing["payload_hash"]) == payload_hash:
                 return DuplicateDisposition.RETURN_EXISTING_JOB, str(existing["job_id"])
-            raise X2NRuntimeError(ErrorCode.NATIVE_DUPLICATE_REQUEST, "Request identity conflicts with the existing payload")
+            raise X2NRuntimeError(
+                ErrorCode.NATIVE_DUPLICATE_REQUEST, "Request identity conflicts with the existing payload"
+            )
 
     def submit_skeleton_job(self, *, request_id: str, payload_hash: str, run_kind: str) -> SkeletonJob:
         """Atomically create a durable, non-executing Native request Job.
@@ -736,6 +1372,7 @@ class CanonicalStore:
                     job_id=stored_job_id,
                     state=str(job["state"]),
                     disposition=DuplicateDisposition.RETURN_EXISTING_JOB,
+                    run_kind=run_kind,
                 )
             connection.execute(
                 """
@@ -753,6 +1390,7 @@ class CanonicalStore:
                 job_id=job_id,
                 state="pending",
                 disposition=DuplicateDisposition.NEW_REQUEST,
+                run_kind=run_kind,
             )
 
     def get_skeleton_job(self, job_id: str) -> SkeletonJob:
@@ -762,13 +1400,24 @@ class CanonicalStore:
             try:
                 row = connection.execute(
                     """
-                    SELECT r.state
+                    SELECT r.state, r.run_kind
                     FROM run_record AS r
                     INNER JOIN request_ledger AS l ON l.job_id = r.run_id
                     WHERE r.run_id = ? AND r.run_kind IN ('native_capture_skeleton','native_sync_skeleton')
                     """,
                     (job_id,),
                 ).fetchone()
+                if row is None:
+                    identity = current_page_identity_from_job(job_id)
+                    row = connection.execute(
+                        """
+                        SELECT r.state, r.run_kind
+                        FROM request_ledger AS l
+                        INNER JOIN run_record AS r ON r.run_id = ?
+                        WHERE l.job_id = ? AND r.run_kind = ?
+                        """,
+                        (identity.run_id, identity.job_id, CURRENT_PAGE_RUN_KIND),
+                    ).fetchone()
             finally:
                 connection.close()
         if row is None:
@@ -777,6 +1426,7 @@ class CanonicalStore:
             job_id=job_id,
             state=str(row["state"]),
             disposition=DuplicateDisposition.RETURN_EXISTING_JOB,
+            run_kind=str(row["run_kind"]),
         )
 
     def enqueue_outbox(
@@ -811,8 +1461,15 @@ class CanonicalStore:
                 ) VALUES (?, ?, ?, ?, ?, ?, 'pending', 0, ?, NULL, NULL, NULL, NULL, ?, ?)
                 """,
                 (
-                    event_id, event_key, sink, content_key, desired_projection_hash,
-                    sink_schema_version, observed_at, observed_at, observed_at,
+                    event_id,
+                    event_key,
+                    sink,
+                    content_key,
+                    desired_projection_hash,
+                    sink_schema_version,
+                    observed_at,
+                    observed_at,
+                    observed_at,
                 ),
             )
             return WriteDisposition.INSERTED, event_id
@@ -821,27 +1478,75 @@ class CanonicalStore:
         self,
         *,
         worker_id: str,
+        sink: str | None = None,
+        event_id: str | None = None,
         now: str | None = None,
         lease_seconds: int = 60,
     ) -> OutboxClaim | None:
         _validate_token(worker_id, label="worker_id")
+        if sink is not None and sink not in {"markdown", "notion"}:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Outbox sink is invalid")
+        if event_id is not None:
+            _validate_token(event_id, label="event_id")
         if lease_seconds < 1 or lease_seconds > 3_600:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Outbox lease duration is invalid")
-        claimed_at = now or _now()
+        claimed_at = _validate_media_timestamp(now or _now(), label="outbox_claimed_at")
         expires_at = _future(claimed_at, lease_seconds)
         with self._transaction() as connection:
-            row = connection.execute(
-                """
-                SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
-                       attempt_count
-                FROM outbox_event
-                WHERE (status = 'pending' AND not_before <= ?)
-                   OR (status = 'leased' AND lease_expires_at <= ?)
-                ORDER BY created_at, event_id
-                LIMIT 1
-                """,
-                (claimed_at, claimed_at),
-            ).fetchone()
+            if sink is None and event_id is None:
+                row = connection.execute(
+                    """
+                    SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
+                           attempt_count
+                    FROM outbox_event
+                    WHERE (status = 'pending' AND not_before <= ?)
+                       OR (status = 'leased' AND lease_expires_at <= ?)
+                    ORDER BY created_at, event_id
+                    LIMIT 1
+                    """,
+                    (claimed_at, claimed_at),
+                ).fetchone()
+            elif sink is not None and event_id is None:
+                row = connection.execute(
+                    """
+                    SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
+                           attempt_count
+                    FROM outbox_event
+                    WHERE sink = ? AND (
+                        (status = 'pending' AND not_before <= ?)
+                        OR (status = 'leased' AND lease_expires_at <= ?)
+                    )
+                    ORDER BY created_at, event_id
+                    LIMIT 1
+                    """,
+                    (sink, claimed_at, claimed_at),
+                ).fetchone()
+            elif sink is None:
+                row = connection.execute(
+                    """
+                    SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
+                           attempt_count
+                    FROM outbox_event
+                    WHERE event_id = ? AND (
+                        (status = 'pending' AND not_before <= ?)
+                        OR (status = 'leased' AND lease_expires_at <= ?)
+                    )
+                    """,
+                    (event_id, claimed_at, claimed_at),
+                ).fetchone()
+            else:
+                row = connection.execute(
+                    """
+                    SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
+                           attempt_count
+                    FROM outbox_event
+                    WHERE event_id = ? AND sink = ? AND (
+                        (status = 'pending' AND not_before <= ?)
+                        OR (status = 'leased' AND lease_expires_at <= ?)
+                    )
+                    """,
+                    (event_id, sink, claimed_at, claimed_at),
+                ).fetchone()
             if row is None:
                 return None
             lease_id = f"lease_{uuid.uuid4().hex}"
@@ -865,29 +1570,125 @@ class CanonicalStore:
                 attempt_count=attempt_count,
             )
 
+    @staticmethod
+    def _leased_outbox_row(connection: sqlite3.Connection, claim: OutboxClaim) -> sqlite3.Row:
+        row = connection.execute(
+            """
+            SELECT sink, content_key, desired_projection_hash, sink_schema_version, status, lease_id
+            FROM outbox_event WHERE event_id = ?
+            """,
+            (claim.event_id,),
+        ).fetchone()
+        if row is None or str(row["status"]) != "leased" or str(row["lease_id"]) != claim.lease_id:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Outbox lease is stale or unavailable")
+        expected = (
+            str(row["sink"]),
+            str(row["content_key"]),
+            str(row["desired_projection_hash"]),
+            str(row["sink_schema_version"]),
+        )
+        actual = (claim.sink, claim.content_key, claim.desired_projection_hash, claim.sink_schema_version)
+        if actual != expected:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Outbox claim identity diverged")
+        return row
+
+    def retry_outbox(
+        self,
+        claim: OutboxClaim,
+        *,
+        error_code: str,
+        not_before: str,
+        now: str | None = None,
+    ) -> WriteDisposition:
+        _validate_token(error_code, label="outbox_error_code")
+        observed_at = _validate_media_timestamp(now or _now(), label="outbox_retry_at")
+        scheduled_at = _validate_media_timestamp(not_before, label="outbox_not_before")
+        if scheduled_at < observed_at:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Outbox retry cannot be scheduled in the past")
+        with self._transaction() as connection:
+            self._leased_outbox_row(connection, claim)
+            connection.execute(
+                """
+                UPDATE outbox_event SET
+                    status = 'pending', not_before = ?, lease_id = NULL, lease_owner = NULL,
+                    lease_expires_at = NULL, last_error_code = ?, updated_at = ?
+                WHERE event_id = ?
+                """,
+                (scheduled_at, error_code, observed_at, claim.event_id),
+            )
+        return WriteDisposition.UPDATED
+
+    def dead_letter_outbox(
+        self,
+        claim: OutboxClaim,
+        *,
+        error_code: str,
+        now: str | None = None,
+    ) -> WriteDisposition:
+        _validate_token(error_code, label="outbox_error_code")
+        observed_at = _validate_media_timestamp(now or _now(), label="outbox_dead_letter_at")
+        with self._transaction() as connection:
+            self._leased_outbox_row(connection, claim)
+            connection.execute(
+                """
+                UPDATE outbox_event SET
+                    status = 'dead_letter', lease_id = NULL, lease_owner = NULL,
+                    lease_expires_at = NULL, last_error_code = ?, updated_at = ?
+                WHERE event_id = ?
+                """,
+                (error_code, observed_at, claim.event_id),
+            )
+        return WriteDisposition.UPDATED
+
+    def outbox_state(self, event_id: str) -> OutboxState | None:
+        _validate_token(event_id, label="event_id")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    """
+                    SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
+                           status, attempt_count, not_before, last_error_code
+                    FROM outbox_event WHERE event_id = ?
+                    """,
+                    (event_id,),
+                ).fetchone()
+            finally:
+                connection.close()
+        if row is None:
+            return None
+        return OutboxState(
+            event_id=str(row["event_id"]),
+            sink=str(row["sink"]),
+            content_key=str(row["content_key"]),
+            desired_projection_hash=str(row["desired_projection_hash"]),
+            sink_schema_version=str(row["sink_schema_version"]),
+            status=str(row["status"]),
+            attempt_count=int(row["attempt_count"]),
+            not_before=str(row["not_before"]),
+            last_error_code=None if row["last_error_code"] is None else str(row["last_error_code"]),
+        )
+
     def complete_outbox(self, claim: OutboxClaim, receipt: SinkReceipt) -> WriteDisposition:
         payload_json, payload_sha = _payload(receipt)
         with self._transaction() as connection:
-            row = connection.execute(
-                """
-                SELECT sink, content_key, desired_projection_hash, sink_schema_version, status,
-                       lease_id
-                FROM outbox_event WHERE event_id = ?
-                """,
-                (claim.event_id,),
-            ).fetchone()
-            if row is None or str(row["status"]) != "leased" or str(row["lease_id"]) != claim.lease_id:
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Outbox lease is stale or unavailable")
+            row = self._leased_outbox_row(connection, claim)
             expected = (
-                str(row["sink"]), str(row["content_key"]),
-                str(row["desired_projection_hash"]), str(row["sink_schema_version"]),
+                str(row["sink"]),
+                str(row["content_key"]),
+                str(row["desired_projection_hash"]),
+                str(row["sink_schema_version"]),
             )
             actual = (
-                receipt.sink.value, receipt.content_key,
-                receipt.desired_projection_hash, receipt.sink_schema_version,
+                receipt.sink.value,
+                receipt.content_key,
+                receipt.desired_projection_hash,
+                receipt.sink_schema_version,
             )
             if actual != expected:
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink receipt does not match the leased Outbox event")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Sink receipt does not match the leased Outbox event"
+                )
             delivered_at = receipt.delivered_at.isoformat().replace("+00:00", "Z")
             self._ensure_run(connection, receipt.run_id, delivered_at)
             existing = connection.execute(
@@ -895,7 +1696,9 @@ class CanonicalStore:
                 (receipt.receipt_id,),
             ).fetchone()
             if existing is not None and str(existing["payload_sha256"]) != payload_sha:
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink receipt identity conflicts with append-only history")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Sink receipt identity conflicts with append-only history"
+                )
             if existing is None:
                 connection.execute(
                     """
@@ -906,12 +1709,20 @@ class CanonicalStore:
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
-                        receipt.receipt_id, receipt.sink_key, receipt.sink.value,
-                        receipt.content_key, receipt.sink_schema_version,
-                        receipt.desired_projection_hash, receipt.output_hash,
-                        receipt.sink_object_ref, receipt.external_ref_hash,
-                        receipt.status.value, delivered_at, receipt.run_id,
-                        payload_json, payload_sha,
+                        receipt.receipt_id,
+                        receipt.sink_key,
+                        receipt.sink.value,
+                        receipt.content_key,
+                        receipt.sink_schema_version,
+                        receipt.desired_projection_hash,
+                        receipt.output_hash,
+                        receipt.sink_object_ref,
+                        receipt.external_ref_hash,
+                        receipt.status.value,
+                        delivered_at,
+                        receipt.run_id,
+                        payload_json,
+                        payload_sha,
                     ),
                 )
             connection.execute(
@@ -925,6 +1736,134 @@ class CanonicalStore:
             )
             return WriteDisposition.INSERTED if existing is None else WriteDisposition.UNCHANGED
 
+    def notion_mapping(self, content_key: str) -> NotionMapping | None:
+        if not isinstance(content_key, str) or not content_key or len(content_key) > 512:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "content_key is invalid")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    """
+                    SELECT content_key, notion_page_ref_private, external_ref_hash
+                    FROM notion_mapping WHERE content_key = ?
+                    """,
+                    (content_key,),
+                ).fetchone()
+            finally:
+                connection.close()
+        if row is None:
+            return None
+        return NotionMapping(
+            content_key=str(row["content_key"]),
+            page_ref=str(row["notion_page_ref_private"]),
+            external_ref_hash=str(row["external_ref_hash"]),
+        )
+
+    def record_notion_mapping(
+        self,
+        *,
+        content_key: str,
+        page_ref: str,
+        now: str | None = None,
+    ) -> WriteDisposition:
+        page_id = str(_uuid(page_ref, label="notion_page_ref"))
+        external_ref_hash = hashlib.sha256(page_id.encode("utf-8")).hexdigest()
+        observed_at = _validate_media_timestamp(now or _now(), label="notion_mapping_at")
+        with self._transaction() as connection:
+            content = connection.execute(
+                "SELECT 1 FROM content WHERE content_key = ?",
+                (content_key,),
+            ).fetchone()
+            if content is None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Notion mapping Content is missing")
+            existing = connection.execute(
+                """
+                SELECT notion_page_ref_private, external_ref_hash
+                FROM notion_mapping WHERE content_key = ?
+                """,
+                (content_key,),
+            ).fetchone()
+            page_owner = connection.execute(
+                "SELECT content_key FROM notion_mapping WHERE notion_page_ref_private = ?",
+                (page_id,),
+            ).fetchone()
+            if page_owner is not None and str(page_owner["content_key"]) != content_key:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Notion page is mapped to another Content")
+            if existing is not None:
+                if (
+                    str(existing["notion_page_ref_private"]) != page_id
+                    or str(existing["external_ref_hash"]) != external_ref_hash
+                ):
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Notion mapping conflicts with stored truth")
+                return WriteDisposition.UNCHANGED
+            connection.execute(
+                """
+                INSERT INTO notion_mapping(
+                    content_key, notion_page_ref_private, external_ref_hash, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?)
+                """,
+                (content_key, page_id, external_ref_hash, observed_at, observed_at),
+            )
+        return WriteDisposition.INSERTED
+
+    def _insert_media_lease(
+        self,
+        *,
+        run_id: str,
+        content_key: str,
+        purpose: str,
+        content_hash: str,
+        mime: str,
+        size_bytes: int,
+        duration_seconds: float | None,
+        ttl_seconds: int,
+        now: str | None = None,
+        lease_id: str | None = None,
+        initial_status: str,
+    ) -> str:
+        _validate_token(run_id, label="run_id")
+        _validate_token(purpose, label="purpose")
+        _validate_sha256(content_hash, label="content_hash")
+        if not mime or len(mime) > 127 or "/" not in mime:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media MIME is invalid")
+        if size_bytes < 0 or duration_seconds is not None and duration_seconds < 0:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media dimensions are invalid")
+        if ttl_seconds < 1 or ttl_seconds > MAX_MEDIA_LEASE_SECONDS:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Media lease exceeds the retention policy")
+        created_at = _validate_media_timestamp(now or _now(), label="media_created_at")
+        lease_id_value = lease_id or f"media_{uuid.uuid4().hex}"
+        if MEDIA_LEASE_ID.fullmatch(lease_id_value) is None:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media lease identity is invalid")
+        if initial_status not in {"active", "processing"}:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media lease initial status is invalid")
+        relative_path = f"{run_id}/{lease_id_value}.bin"
+        with self._transaction() as connection:
+            self._ensure_run(connection, run_id, created_at)
+            connection.execute(
+                """
+                INSERT INTO media_lease(
+                    lease_id, run_id, content_key, purpose, content_hash, mime, size_bytes,
+                    duration_seconds, created_at, expires_at, status, local_relative_path,
+                    cleanup_error_code
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+                """,
+                (
+                    lease_id_value,
+                    run_id,
+                    content_key,
+                    purpose,
+                    content_hash,
+                    mime,
+                    size_bytes,
+                    duration_seconds,
+                    created_at,
+                    _future(created_at, ttl_seconds),
+                    initial_status,
+                    relative_path,
+                ),
+            )
+        return lease_id_value
+
     def create_media_lease(
         self,
         *,
@@ -937,35 +1876,184 @@ class CanonicalStore:
         duration_seconds: float | None,
         ttl_seconds: int,
         now: str | None = None,
+        lease_id: str | None = None,
     ) -> str:
-        _validate_token(run_id, label="run_id")
-        _validate_token(purpose, label="purpose")
+        return self._insert_media_lease(
+            run_id=run_id,
+            content_key=content_key,
+            purpose=purpose,
+            content_hash=content_hash,
+            mime=mime,
+            size_bytes=size_bytes,
+            duration_seconds=duration_seconds,
+            ttl_seconds=ttl_seconds,
+            now=now,
+            lease_id=lease_id,
+            initial_status="active",
+        )
+
+    def reserve_media_lease(
+        self,
+        *,
+        run_id: str,
+        content_key: str,
+        purpose: str,
+        ttl_seconds: int,
+        now: str,
+        lease_id: str,
+    ) -> str:
+        """Persist a URL-free cleanup identity before any media bytes are acquired."""
+
+        return self._insert_media_lease(
+            run_id=run_id,
+            content_key=content_key,
+            purpose=purpose,
+            content_hash=PENDING_MEDIA_SHA256,
+            mime=PENDING_MEDIA_MIME,
+            size_bytes=0,
+            duration_seconds=None,
+            ttl_seconds=ttl_seconds,
+            now=now,
+            lease_id=lease_id,
+            initial_status="processing",
+        )
+
+    def finalize_media_lease(
+        self,
+        lease_id: str,
+        *,
+        content_hash: str,
+        mime: str,
+        size_bytes: int,
+        duration_seconds: float | None,
+    ) -> WriteDisposition:
+        """Replace pending metadata without ever persisting a source URL."""
+
+        if MEDIA_LEASE_ID.fullmatch(lease_id) is None:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media lease identity is invalid")
         _validate_sha256(content_hash, label="content_hash")
         if not mime or len(mime) > 127 or "/" not in mime:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media MIME is invalid")
         if size_bytes < 0 or duration_seconds is not None and duration_seconds < 0:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media dimensions are invalid")
-        if ttl_seconds < 1 or ttl_seconds > MAX_MEDIA_LEASE_SECONDS:
-            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Media lease exceeds the retention policy")
-        created_at = now or _now()
-        lease_id = f"media_{uuid.uuid4().hex}"
-        relative_path = f"{run_id}/{lease_id}.bin"
         with self._transaction() as connection:
-            self._ensure_run(connection, run_id, created_at)
+            row = connection.execute(
+                """
+                SELECT content_hash, mime, size_bytes, duration_seconds, status
+                FROM media_lease WHERE lease_id = ?
+                """,
+                (lease_id,),
+            ).fetchone()
+            if row is None or str(row["status"]) != "processing":
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pending media lease is unavailable")
+            current = (
+                str(row["content_hash"]),
+                str(row["mime"]),
+                int(row["size_bytes"]),
+                None if row["duration_seconds"] is None else float(row["duration_seconds"]),
+            )
+            desired = (content_hash, mime, size_bytes, duration_seconds)
+            if current == desired:
+                return WriteDisposition.UNCHANGED
             connection.execute(
                 """
-                INSERT INTO media_lease(
-                    lease_id, run_id, content_key, purpose, content_hash, mime, size_bytes,
-                    duration_seconds, created_at, expires_at, status, local_relative_path,
-                    cleanup_error_code
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, NULL)
+                UPDATE media_lease
+                SET content_hash = ?, mime = ?, size_bytes = ?, duration_seconds = ?
+                WHERE lease_id = ?
                 """,
-                (
-                    lease_id, run_id, content_key, purpose, content_hash, mime, size_bytes,
-                    duration_seconds, created_at, _future(created_at, ttl_seconds), relative_path,
-                ),
+                (*desired, lease_id),
             )
-        return lease_id
+        return WriteDisposition.UPDATED
+
+    @staticmethod
+    def _media_lease_record(row: sqlite3.Row) -> MediaLeaseRecord:
+        return MediaLeaseRecord(
+            lease_id=str(row["lease_id"]),
+            run_id=str(row["run_id"]),
+            content_key=str(row["content_key"]),
+            purpose=str(row["purpose"]),
+            content_hash=str(row["content_hash"]),
+            mime=str(row["mime"]),
+            size_bytes=int(row["size_bytes"]),
+            duration_seconds=None if row["duration_seconds"] is None else float(row["duration_seconds"]),
+            created_at=str(row["created_at"]),
+            expires_at=str(row["expires_at"]),
+            status=str(row["status"]),
+            local_relative_path=str(row["local_relative_path"]),
+            cleanup_error_code=None if row["cleanup_error_code"] is None else str(row["cleanup_error_code"]),
+        )
+
+    def get_media_lease(self, lease_id: str) -> MediaLeaseRecord | None:
+        _validate_token(lease_id, label="lease_id")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    "SELECT * FROM media_lease WHERE lease_id = ?",
+                    (lease_id,),
+                ).fetchone()
+            finally:
+                connection.close()
+        return None if row is None else self._media_lease_record(row)
+
+    def list_media_leases(self) -> tuple[MediaLeaseRecord, ...]:
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                rows = connection.execute("SELECT * FROM media_lease ORDER BY lease_id").fetchall()
+            finally:
+                connection.close()
+        return tuple(self._media_lease_record(row) for row in rows)
+
+    def media_cleanup_candidates(self, *, now: str | None = None) -> tuple[MediaLeaseRecord, ...]:
+        observed_at = _validate_media_timestamp(now or _now(), label="media_cleanup_at")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                rows = connection.execute(
+                    """
+                    SELECT * FROM media_lease
+                    WHERE status IN ('cleanup_pending', 'expired')
+                       OR (status IN ('active', 'processing') AND expires_at <= ?)
+                    ORDER BY expires_at, lease_id
+                    """,
+                    (observed_at,),
+                ).fetchall()
+            finally:
+                connection.close()
+        return tuple(self._media_lease_record(row) for row in rows)
+
+    def record_media_cleanup(
+        self,
+        lease_id: str,
+        *,
+        deleted: bool,
+        error_code: str | None = None,
+    ) -> WriteDisposition:
+        _validate_token(lease_id, label="lease_id")
+        if deleted and error_code is not None:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Deleted media cannot retain a cleanup error")
+        if not deleted:
+            if error_code is None:
+                raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media cleanup failure requires a stable code")
+            _validate_token(error_code, label="cleanup_error_code")
+        target_status = "deleted" if deleted else "cleanup_pending"
+        with self._transaction() as connection:
+            row = connection.execute(
+                "SELECT status, cleanup_error_code FROM media_lease WHERE lease_id = ?",
+                (lease_id,),
+            ).fetchone()
+            if row is None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Media lease is missing")
+            if str(row["status"]) == "deleted" and not deleted:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Deleted media lease cannot be reopened")
+            if str(row["status"]) == target_status and row["cleanup_error_code"] == error_code:
+                return WriteDisposition.UNCHANGED
+            connection.execute(
+                "UPDATE media_lease SET status = ?, cleanup_error_code = ? WHERE lease_id = ?",
+                (target_status, error_code, lease_id),
+            )
+        return WriteDisposition.UPDATED
 
     def recovery_plan(self, *, now: str | None = None) -> RecoveryPlan:
         observed_at = now or _now()
@@ -974,20 +2062,28 @@ class CanonicalStore:
             try:
                 checks = self._integrity(connection)
                 values = {
-                    "expired_outbox_leases": int(connection.execute(
-                        "SELECT COUNT(*) FROM outbox_event WHERE status = 'leased' AND lease_expires_at <= ?",
-                        (observed_at,),
-                    ).fetchone()[0]),
-                    "expired_media_leases": int(connection.execute(
-                        "SELECT COUNT(*) FROM media_lease WHERE status IN ('active','processing','cleanup_pending') AND expires_at <= ?",
-                        (observed_at,),
-                    ).fetchone()[0]),
-                    "running_jobs": int(connection.execute(
-                        "SELECT COUNT(*) FROM run_record WHERE state IN ('running','recovery')"
-                    ).fetchone()[0]),
-                    "pending_outbox": int(connection.execute(
-                        "SELECT COUNT(*) FROM outbox_event WHERE status IN ('pending','leased')"
-                    ).fetchone()[0]),
+                    "expired_outbox_leases": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM outbox_event WHERE status = 'leased' AND lease_expires_at <= ?",
+                            (observed_at,),
+                        ).fetchone()[0]
+                    ),
+                    "expired_media_leases": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM media_lease WHERE status IN ('active','processing','cleanup_pending') AND expires_at <= ?",
+                            (observed_at,),
+                        ).fetchone()[0]
+                    ),
+                    "running_jobs": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM run_record WHERE state IN ('running','recovery')"
+                        ).fetchone()[0]
+                    ),
+                    "pending_outbox": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM outbox_event WHERE status IN ('pending','leased')"
+                        ).fetchone()[0]
+                    ),
                 }
             finally:
                 connection.close()
@@ -1032,9 +2128,12 @@ class CanonicalStore:
                 ) VALUES (?, ?, 'ok', 'ok', ?, ?, ?, ?)
                 """,
                 (
-                    f"recovery_{uuid.uuid4().hex}", observed_at,
-                    before.expired_outbox_leases, before.expired_media_leases,
-                    before.running_jobs, result_hash,
+                    f"recovery_{uuid.uuid4().hex}",
+                    observed_at,
+                    before.expired_outbox_leases,
+                    before.expired_media_leases,
+                    before.running_jobs,
+                    result_hash,
                 ),
             )
         return self.recovery_plan(now=observed_at)
@@ -1061,14 +2160,30 @@ class CanonicalStore:
         for table in tables:
             columns = [str(row[1]) for row in connection.execute(f'PRAGMA table_info("{table}")').fetchall()]
             safe_columns = [
-                column for column in columns
+                column
+                for column in columns
                 if column.endswith("_sha256")
                 or column.endswith("_hash")
-                or column in {
-                    "version", "name", "checksum", "content_key", "relation_key",
-                    "artifact_id", "classification_id", "observation_id", "receipt_id",
-                    "event_id", "request_id", "job_id", "lease_id", "category_id",
-                    "checkpoint_id", "schema_version", "status", "state",
+                or column
+                in {
+                    "version",
+                    "name",
+                    "checksum",
+                    "content_key",
+                    "relation_key",
+                    "artifact_id",
+                    "classification_id",
+                    "observation_id",
+                    "receipt_id",
+                    "event_id",
+                    "request_id",
+                    "job_id",
+                    "lease_id",
+                    "category_id",
+                    "checkpoint_id",
+                    "schema_version",
+                    "status",
+                    "state",
                 }
             ]
             if not safe_columns:
@@ -1088,6 +2203,124 @@ class CanonicalStore:
                 return self._table_counts(connection)
             finally:
                 connection.close()
+
+    def content_exists(self, content_key: str) -> bool:
+        return self.content_platform(content_key) is not None
+
+    def content_platform(self, content_key: str) -> str | None:
+        if not isinstance(content_key, str) or not content_key or len(content_key) > 512:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "content_key is invalid")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    "SELECT platform FROM content WHERE content_key = ?",
+                    (content_key,),
+                ).fetchone()
+            finally:
+                connection.close()
+        return None if row is None else str(row["platform"])
+
+    def projection_snapshot(self, content_key: str) -> CanonicalProjection:
+        """Read one internally consistent private snapshot for derived sinks."""
+
+        if not isinstance(content_key, str) or not content_key or len(content_key) > 512:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "content_key is invalid")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                connection.execute("BEGIN")
+                content_row = connection.execute(
+                    "SELECT payload_json FROM content WHERE content_key = ?",
+                    (content_key,),
+                ).fetchone()
+                relation_rows = connection.execute(
+                    """
+                    SELECT relation_type FROM user_relation
+                    WHERE content_key = ? AND status = 'active'
+                    ORDER BY relation_type
+                    """,
+                    (content_key,),
+                ).fetchall()
+                observation_row = connection.execute(
+                    """
+                    SELECT payload_json FROM source_observation
+                    WHERE content_key = ?
+                    ORDER BY observed_at DESC, observation_id DESC LIMIT 1
+                    """,
+                    (content_key,),
+                ).fetchone()
+                artifact_rows = connection.execute(
+                    """
+                    SELECT artifact_type, payload_json FROM artifact
+                    WHERE content_key = ?
+                    ORDER BY artifact_type, artifact_sequence DESC, artifact_id DESC
+                    """,
+                    (content_key,),
+                ).fetchall()
+                classification_row = connection.execute(
+                    """
+                    SELECT payload_json, primary_category_id FROM classification
+                    WHERE content_key = ?
+                    ORDER BY created_at DESC, classification_id DESC LIMIT 1
+                    """,
+                    (content_key,),
+                ).fetchone()
+                category_row = None
+                if classification_row is not None:
+                    category_row = connection.execute(
+                        "SELECT payload_json FROM taxonomy_category WHERE category_id = ?",
+                        (str(classification_row["primary_category_id"]),),
+                    ).fetchone()
+            finally:
+                if connection.in_transaction:
+                    connection.rollback()
+                connection.close()
+        if content_row is None or observation_row is None:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection lacks Canonical provenance")
+        if classification_row is not None and category_row is None:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection category is missing")
+        try:
+            content = CanonicalContent.model_validate_json(str(content_row["payload_json"]))
+            observation = SourceObservation.model_validate_json(str(observation_row["payload_json"]))
+            latest_artifacts: list[Artifact] = []
+            seen_types: set[str] = set()
+            for row in artifact_rows:
+                artifact_type = str(row["artifact_type"])
+                if artifact_type in seen_types:
+                    continue
+                seen_types.add(artifact_type)
+                latest_artifacts.append(Artifact.model_validate_json(str(row["payload_json"])))
+            classification = (
+                Classification.model_validate_json(str(classification_row["payload_json"]))
+                if classification_row is not None
+                else None
+            )
+            category = (
+                TaxonomyCategory.model_validate_json(str(category_row["payload_json"]))
+                if category_row is not None
+                else None
+            )
+        except (TypeError, ValueError):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection payload is invalid") from None
+        if observation.content_key != content.content_key:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection provenance diverged")
+        if classification is not None and (
+            classification.content_key != content.content_key
+            or category is None
+            or str(classification.primary_category_id) != str(category.category_id)
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection classification diverged")
+        if any(artifact.content_key != content.content_key for artifact in latest_artifacts):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection Artifact diverged")
+        return CanonicalProjection(
+            content=content,
+            relations=tuple(str(row["relation_type"]) for row in relation_rows),
+            observation=observation,
+            artifacts=tuple(latest_artifacts),
+            classification=classification,
+            category=category,
+        )
 
     def logical_digest(self) -> str:
         with self._file_lock(exclusive=False):
@@ -1178,7 +2411,11 @@ class CanonicalStore:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as error:
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Backup manifest is invalid") from error
-        if not isinstance(manifest, dict) or manifest.get("backup_id") != backup_id or manifest.get("file_name") != target.name:
+        if (
+            not isinstance(manifest, dict)
+            or manifest.get("backup_id") != backup_id
+            or manifest.get("file_name") != target.name
+        ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Backup manifest identity is invalid")
         actual_sha = _file_sha256(target)
         required_sha = expected_sha256 or str(manifest.get("database_sha256", ""))
@@ -1235,7 +2472,9 @@ class CanonicalStore:
                 migrate_backward(connection, target_version, verified_backup=True)
                 checks = self._integrity(connection)
                 if checks != HEALTHY_CHECKS:
-                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Downgraded Store failed integrity verification")
+                    raise X2NRuntimeError(
+                        ErrorCode.DATA_INTEGRITY_FAILED, "Downgraded Store failed integrity verification"
+                    )
             finally:
                 connection.close()
             self._secure_sqlite_files()
@@ -1254,11 +2493,17 @@ class CanonicalStore:
                     source.backup(destination)
                     destination.row_factory = sqlite3.Row
                     if self._integrity(destination) != HEALTHY_CHECKS:
-                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate failed integrity verification")
+                        raise X2NRuntimeError(
+                            ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate failed integrity verification"
+                        )
                     if current_version(destination) != receipt.schema_version:
-                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate schema is incompatible")
+                        raise X2NRuntimeError(
+                            ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate schema is incompatible"
+                        )
                     if self._logical_digest(destination) != receipt.logical_sha256:
-                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate logical digest changed")
+                        raise X2NRuntimeError(
+                            ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate logical digest changed"
+                        )
                 finally:
                     destination.close()
                     source.close()
@@ -1283,7 +2528,9 @@ class CanonicalStore:
                 restored = self._open(writable=True)
                 try:
                     if self._integrity(restored) != HEALTHY_CHECKS:
-                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restored Store failed final integrity verification")
+                        raise X2NRuntimeError(
+                            ErrorCode.DATA_INTEGRITY_FAILED, "Restored Store failed final integrity verification"
+                        )
                     restored.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                 finally:
                     restored.close()

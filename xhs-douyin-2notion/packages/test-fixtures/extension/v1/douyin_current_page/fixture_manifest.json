@@ -1,0 +1,258 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S02.S002.001",
+  "synthetic": true,
+  "cases": [
+    {
+      "id": "douyin-video-detail",
+      "file": "video_detail.html",
+      "page_url": "https://www.douyin.com/video/synthetic-video-001?tracking=synthetic-fixture#sanitized",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-video-001",
+        "content_type": "video",
+        "title": "Synthetic Douyin video",
+        "page_url": "https://www.douyin.com/video/synthetic-video-001"
+      }
+    },
+    {
+      "id": "douyin-gallery-detail",
+      "file": "gallery_detail.html",
+      "page_url": "https://www.douyin.com/note/synthetic-gallery-002?tracking=synthetic-fixture",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-gallery-002",
+        "content_type": "image_gallery",
+        "title": "Synthetic Douyin gallery",
+        "page_url": "https://www.douyin.com/note/synthetic-gallery-002"
+      }
+    },
+    {
+      "id": "douyin-short-link-detail",
+      "file": "short_link_detail.html",
+      "page_url": "https://v.douyin.com/synthetic-short-003/?tracking=synthetic-fixture#sanitized",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-short-video-003",
+        "content_type": "video",
+        "title": "Synthetic short-link video",
+        "page_url": "https://www.douyin.com/video/synthetic-short-video-003"
+      }
+    },
+    {
+      "id": "douyin-missing-optional-fields",
+      "file": "missing_fields.html",
+      "page_url": "https://www.douyin.com/video/synthetic-missing-004",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-missing-004",
+        "content_type": "unknown",
+        "title": null,
+        "page_url": "https://www.douyin.com/video/synthetic-missing-004"
+      }
+    },
+    {
+      "id": "douyin-stable-id-mismatch",
+      "file": "changed_id.html",
+      "page_url": "https://www.douyin.com/video/synthetic-changed-005",
+      "expected": {
+        "status": "platform_changed",
+        "reason": "stable_id_signal_mismatch"
+      }
+    },
+    {
+      "id": "douyin-feed-card-not-detail",
+      "file": "feed_card.html",
+      "page_url": "https://www.douyin.com/video/synthetic-feed-006",
+      "expected": {
+        "status": "platform_changed",
+        "reason": "detail_surface_missing"
+      }
+    },
+    {
+      "id": "douyin-multiple-detail-roots",
+      "file": "ambiguous_detail.html",
+      "page_url": "https://www.douyin.com/video/synthetic-ambiguous-007",
+      "expected": {
+        "status": "platform_changed",
+        "reason": "detail_surface_ambiguous"
+      }
+    },
+    {
+      "id": "douyin-short-link-non-synthetic-identity",
+      "file": "short_non_synthetic_identity.html",
+      "page_url": "https://v.douyin.com/synthetic-identity-008/",
+      "expected": {
+        "status": "platform_changed",
+        "reason": "stable_id_signal_invalid"
+      }
+    }
+  ],
+  "short_link_cases": [
+    {
+      "id": "short-valid-two-hop",
+      "start_url": "https://v.douyin.com/synthetic-start-001/?tracking=discarded#fragment",
+      "responses": [
+        {"status": 302, "location": "https://v.douyin.com/synthetic-hop-001/?tracking=discarded"},
+        {"status": 302, "location": "https://www.douyin.com/video/synthetic-resolved-001?tracking=discarded#fragment"}
+      ],
+      "expected_request_urls": [
+        "https://v.douyin.com/synthetic-start-001/",
+        "https://v.douyin.com/synthetic-hop-001/"
+      ],
+      "expected": {
+        "status": "resolved",
+        "content_id": "synthetic-resolved-001",
+        "content_kind": "video",
+        "page_url": "https://www.douyin.com/video/synthetic-resolved-001",
+        "redirect_count": 2
+      }
+    },
+    {
+      "id": "short-http-start-blocked",
+      "start_url": "http://v.douyin.com/synthetic-http-002/",
+      "responses": [],
+      "expected_error": "X2N_SHORTLINK_HOST_BLOCKED"
+    },
+    {
+      "id": "short-userinfo-blocked",
+      "start_url": "https://user@v.douyin.com/synthetic-userinfo-003/",
+      "responses": [],
+      "expected_error": "X2N_SHORTLINK_HOST_BLOCKED"
+    },
+    {
+      "id": "short-port-blocked",
+      "start_url": "https://v.douyin.com:444/synthetic-port-004/",
+      "responses": [],
+      "expected_error": "X2N_SHORTLINK_HOST_BLOCKED"
+    },
+    {
+      "id": "short-foreign-host-blocked",
+      "start_url": "https://redirect.example.invalid/synthetic-host-005/",
+      "responses": [],
+      "expected_error": "X2N_SHORTLINK_HOST_BLOCKED"
+    },
+    {
+      "id": "short-private-ip-redirect-blocked",
+      "start_url": "https://v.douyin.com/synthetic-private-006/",
+      "responses": [{"status": 302, "location": "https://127.0.0.1/private"}],
+      "expected_request_urls": ["https://v.douyin.com/synthetic-private-006/"],
+      "expected_error": "X2N_SHORTLINK_HOST_BLOCKED"
+    },
+    {
+      "id": "short-lookalike-redirect-blocked",
+      "start_url": "https://v.douyin.com/synthetic-lookalike-007/",
+      "responses": [{"status": 302, "location": "https://www.douyin.com.example.invalid/video/synthetic-target"}],
+      "expected_request_urls": ["https://v.douyin.com/synthetic-lookalike-007/"],
+      "expected_error": "X2N_SHORTLINK_HOST_BLOCKED"
+    },
+    {
+      "id": "short-sensitive-path-blocked",
+      "start_url": "https://v.douyin.com/synthetic-path-008/",
+      "responses": [{"status": 302, "location": "https://www.douyin.com/passport/sso"}],
+      "expected_request_urls": ["https://v.douyin.com/synthetic-path-008/"],
+      "expected_error": "X2N_SHORTLINK_PATH_BLOCKED"
+    },
+    {
+      "id": "short-loop-blocked",
+      "start_url": "https://v.douyin.com/synthetic-loop-009/",
+      "responses": [{"status": 302, "location": "https://v.douyin.com/synthetic-loop-009/"}],
+      "expected_request_urls": ["https://v.douyin.com/synthetic-loop-009/"],
+      "expected_error": "X2N_SHORTLINK_REDIRECT_LOOP"
+    },
+    {
+      "id": "short-location-missing",
+      "start_url": "https://v.douyin.com/synthetic-location-010/",
+      "responses": [{"status": 302, "location": ""}],
+      "expected_request_urls": ["https://v.douyin.com/synthetic-location-010/"],
+      "expected_error": "X2N_SHORTLINK_LOCATION_INVALID"
+    },
+    {
+      "id": "short-limit-blocked",
+      "start_url": "https://v.douyin.com/synthetic-limit-011/",
+      "responses": [
+        {"status": 302, "location": "https://v.douyin.com/synthetic-limit-hop-1/"},
+        {"status": 302, "location": "https://v.douyin.com/synthetic-limit-hop-2/"},
+        {"status": 302, "location": "https://v.douyin.com/synthetic-limit-hop-3/"}
+      ],
+      "expected_request_urls": [
+        "https://v.douyin.com/synthetic-limit-011/",
+        "https://v.douyin.com/synthetic-limit-hop-1/",
+        "https://v.douyin.com/synthetic-limit-hop-2/"
+      ],
+      "expected_error": "X2N_SHORTLINK_REDIRECT_LIMIT"
+    },
+    {
+      "id": "short-response-extra-field-blocked",
+      "start_url": "https://v.douyin.com/synthetic-response-012/",
+      "responses": [
+        {
+          "status": 302,
+          "location": "https://www.douyin.com/video/synthetic-target-012",
+          "unexpected": "field"
+        }
+      ],
+      "expected_request_urls": ["https://v.douyin.com/synthetic-response-012/"],
+      "expected_error": "X2N_SHORTLINK_RESPONSE_INVALID"
+    },
+    {
+      "id": "short-status-blocked",
+      "start_url": "https://v.douyin.com/synthetic-status-013/",
+      "responses": [
+        {"status": 200, "location": "https://www.douyin.com/video/synthetic-target-013"}
+      ],
+      "expected_request_urls": ["https://v.douyin.com/synthetic-status-013/"],
+      "expected_error": "X2N_SHORTLINK_STATUS_BLOCKED"
+    },
+    {
+      "id": "short-request-failed",
+      "start_url": "https://v.douyin.com/synthetic-request-014/",
+      "responses": [],
+      "expected_request_urls": ["https://v.douyin.com/synthetic-request-014/"],
+      "request_error_at": 0,
+      "expected_error": "X2N_SHORTLINK_REQUEST_FAILED"
+    },
+    {
+      "id": "short-valid-relative-301-303-308",
+      "start_url": "https://v.douyin.com/synthetic-start-015/",
+      "responses": [
+        {"status": 301, "location": "/synthetic-relative-015/"},
+        {"status": 303, "location": "https://v.douyin.com/synthetic-final-hop-015/"},
+        {"status": 308, "location": "https://www.douyin.com/note/synthetic-resolved-015"}
+      ],
+      "expected_request_urls": [
+        "https://v.douyin.com/synthetic-start-015/",
+        "https://v.douyin.com/synthetic-relative-015/",
+        "https://v.douyin.com/synthetic-final-hop-015/"
+      ],
+      "expected": {
+        "status": "resolved",
+        "content_id": "synthetic-resolved-015",
+        "content_kind": "note",
+        "page_url": "https://www.douyin.com/note/synthetic-resolved-015",
+        "redirect_count": 3
+      }
+    },
+    {
+      "id": "short-valid-307",
+      "start_url": "https://v.douyin.com/synthetic-start-016/",
+      "responses": [
+        {"status": 307, "location": "https://www.douyin.com/video/synthetic-resolved-016"}
+      ],
+      "expected_request_urls": ["https://v.douyin.com/synthetic-start-016/"],
+      "expected": {
+        "status": "resolved",
+        "content_id": "synthetic-resolved-016",
+        "content_kind": "video",
+        "page_url": "https://www.douyin.com/video/synthetic-resolved-016",
+        "redirect_count": 1
+      }
+    }
+  ],
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "contains_real_accounts": false,
+  "real_accounts": false
+}

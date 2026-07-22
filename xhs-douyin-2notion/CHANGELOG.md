@@ -1,5 +1,113 @@
 # Changelog
 
+## v0.0.0.1 — Stage 2 Review / G2
+
+- 独立复核 Skeleton001–009 的 Task、Acceptance、固定提交、九份历史 evidence 与 Stage 2 全提交；Review 不执行新 DAG Task，也没有 `apps/`/`packages/` 产品改动。
+- 修复 8 个 finding：Skeleton005 后代分支历史回放、76 tests/76.93% 文档漂移、软件 lane 动态 G1 误报、实际工具链未绑定、G2 跨 Task Oracle、九证据冻结、逐版本隐私扫描、Task Pack/PR merge/历史 Review 后代重放/G2 事实负向闭合。
+- 五项项目原生本地 G2 条件通过：六平台独立 current-page E2E、zero duplicate、zero CDN persistence、媒体清理、Notion outage 不阻断 canonical/Markdown；真实平台、真实 Notion、模型、媒体网络与 Owner Chrome 调用均为 0/NOT_RUN。
+- 最终 186 root tests PASS（3 fixed optional skips）、76 Companion tests PASS；两份独立 full lane 各 24/24，coverage 76.93%、33 dependencies vulnerability 0、65-member candidate SHA 完全一致，实际工具链与政策一致。
+- `G2=PASS` 只授权 Stage 2 整体上传；远端 CI/merge 保持 `PENDING_POST_G2_UPLOAD`，此前 Stage 3 禁止开始。正式 Verifier release-candidate 因原任务包缺少 canonical `MANIFEST` role 保持 `BLOCKED_REQUIREMENT_GAP`。
+
+## v0.0.0.1 — Stage 2 / Skeleton 005
+
+- 保持 SQLite Schema v2 与 Canonical 事务边界不变，新增一致性 snapshot、精确 Outbox event claim、retry/dead-letter state、私有 Notion Mapping 与 append-only Sink Receipt primitive；Notion 永不进入 Canonical 写事务。
+- 新增固定 `runtime/library/content/<platform>/<content_id>.md` 的确定性 Markdown renderer；路径不依赖标题/分类，同目录 `0600` 临时文件经 file/directory `fsync` 后原子替换，symlink/path escape Fail Closed。`Unclassified` 只生成派生 Index，不创建 Taxonomy row。
+- 新增 Notion `2026-03-11` Data Source/Page 语义合同、Items/Categories 加法式 Schema、Owner category 显式 Relation mapping、projection-hash no-op、用户字段保留与每 `content_key` 唯一 Page 约束；实现仅为进程内 deterministic Mock，不含真实 HTTP/SDK/凭据。
+- 新增 2 req/s 串行限速、429/529 `Retry-After`、timeout/reset、一小时 outage、最大 4 次尝试、Dead Letter 与成功后本地 Receipt 前 kill-reconcile；重复 Page Fail Closed，Canonical/Markdown 在 Notion outage 时继续完成。
+- 六平台 80 个 Canonical 输入两轮投影通过：80 Markdown、80 Notion Mock Pages、160 Outbox/Receipts；无半文件、无断链、Frontmatter invalid 0、CDN finding 0、duplicate Page 0、hash 相同 replay request 0、真实 Notion call 0。16 个 sink 单测覆盖长文本、特殊字符、分类 Relation、原子 kill、symlink、Schema conflict 与反向长队列。
+- Skeleton004 历史 Task/State/Policy/Evidence 固定到 `36bd1213…`，旧 verifier 从最终 commit blob 验收，不再读取 S005 的当前状态或实现。
+- 根回归 175 tests PASS、3 个显式可选 Owner-private input skip；76 个 Companion tests PASS。两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 76.93%，33 dependencies 的 OSV vulnerability 0，65-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.md.001` 与 `ACC.x2n.notion.001/.002/.003` 仅 CI-SYNTH/Mock scoped pass；真实 Notion 与 Owner Canary 均 `NOT_RUN`。`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 只能执行 `STG.X2N.2.REVIEW`。
+
+## v0.0.0.1 — Stage 2 / Skeleton 004
+
+- 新增 `CurrentPageOrchestrator`，把六平台已经净化并通过 Native v1 Contract 的 `capture_current` 输入接入 SQLite Canonical Store；不增加平台网络、媒体处理、分类、Markdown 或 Notion 行为。
+- 保持 Schema v2 不变，以两事务状态机落地：事务 1 原子写 Request Ledger、running Run、Content、Owner-confirmed `saved_current` Relation、SourceObservation 与 `canonical_committed` Checkpoint；事务 2 追加/复用无私有 payload 的确定性 placeholder Artifact，并原子完成 Checkpoint 与 Run。
+- Native Job UUID 与内部 Opaque Run 确定性映射；canonical commit 后即使进程退出，重复 `capture_current`、`GET_JOB` 或 bounded resume 都可只凭 SQLite 完成，不需要原请求 payload。请求冲突、Canonical URL/Content ID 不一致、非空分类 ID 均 Fail Closed。
+- Receipt 只输出 Job、状态、计数和 entity hash refs，不输出页地址、内容 ID、标题、本机路径或匹配值；Classification、Renderer、Markdown、Notion 与媒体处理全部明确为 `DOWNSTREAM_NOT_RUN`。
+- 合成验收通过六平台、80 个输入连续两轮、100 个并发重复、4 个 kill point 与完整 scoped provenance；重复实体、stuck Run、non-replayable state、broken trace、private placeholder payload 均为 0。
+- Extension 当前页成功状态改为 Canonical Store 已提交；Service Worker restart 对账以 SQLite `completed` 为准，仍不触碰 Owner Chrome/Profile、真实账号或平台网络。
+- Skeleton003 历史 Task/State/Policy/Evidence 固定到 `d5f61f30…`；历史验收读取最终 blob，当前树继续媒体安全回归且不重写历史 Evidence。
+- 根回归 166 tests PASS、3 个显式可选 Owner-private input skip；59 个 Companion tests PASS。两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 74.61%，33 dependencies 的 OSV vulnerability 0，62-member source candidate 无 Runtime Data且可确定性重建。G2、Stage 2 上传、真实平台/媒体/模型/Notion/Markdown 仍未运行，下一独立 Run 为 `TSK.x2n.skeleton.005`。
+
+## v0.0.0.1 — Stage 2 / Skeleton 003
+
+- 实现进程内、不可序列化且 `repr` 脱敏的 `EphemeralMediaSource` 与 `ValidatedMediaTarget`；原始 CDN URL、Query/签名值不进入 SQLite、日志、Evidence、Markdown、Notion-export 或 Artifact。
+- 实现六平台精确 suffix 的 HTTPS/443 URL firewall：拒绝 userinfo、IP literal、非标准端口、fragment、多重编码 traversal、控制字符和 lookalike；校验全部 DNS answer 为 global，拒绝 IPv4-mapped IPv6，并对每个 redirect 重新解析/解析 DNS。
+- 定义绑定已校验 IP、保留 TLS hostname 的 transport 合同；本 Task 不提供生产 transport，也未执行真实媒体网络。安全下载使用调用方生成路径、`0600`、hard-link promotion、64 MiB stream limit、60 秒 Deadline、identity encoding、MIME sniff 与必需的隔离 Inspector。
+- 扩展 Canonical Store media lease primitive，数据库继续没有 URL 列；acquisition 前先登记 URL-free cleanup identity，校验后再原位 finalize hash/MIME/size metadata，使下载/登记中途的删除失败也能写入 `cleanup_pending` 高优先级回执；实现共享 active-context/独占 cleaner 生命周期锁，成功/异常立即清理、crash orphan 最长 24h、活跃 lease 零误删。
+- 新增固定 `db,markdown,logs,notion-export,artifacts` 逻辑 scope 的 chunk-boundary CDN scanner 与 `x2n verify cdn-zero`；拒绝任意路径、symlink 和 matched-value/private-path 输出。
+- 合成验收通过 512 URL fuzz（64 allowlisted、448 forbidden、0 mismatch）、32 SSRF（0 forbidden success、0 local read）、8 cleanup chaos、8 acquisition resource block 和 23 个媒体安全单测；FFmpeg/image decode/repeated key frame/ASR/OCR 保持 `DOWNSTREAM_NOT_RUN`。
+- Skeleton009 历史 Task/State/Policy/Evidence 固定到 `0af2d3b2…`；历史验收读取最终 blob，当前树继续六平台回归且不重写历史 Evidence。
+- 根回归 158 tests PASS、3 个显式可选 Owner-private input skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 73.67%，33 dependencies 的 OSV vulnerability 0，61-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.media.001–003` 与 `media.004` acquisition layer 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 为 `TSK.x2n.skeleton.004`。
+
+## v0.0.0.1 — Stage 2 / Skeleton 009
+
+- 复核淘宝一手 API/协议/隐私规则：`taobao.item.get` 是需授权的增值 API，以 `num_iid` 标识商品；私有商品/订单/收藏数据需要 OAuth，TOP 官方签名协议有文档，但本应用无 App/OAuth/API Permission/付费计划/字段范围/保留期/删除回执审批。
+- 实现淘宝独立 CI-synthetic 当前页 detector/extractor：精确 `item.taobao.com/item.htm`、合成数字 `num_iid`、location/canonical/OG/detail `data-num-iid` 交叉校验、净化标题/null、既有 ContentType 与 provenance；不读取 media `src`、raw DOM、Cookie 或浏览器状态。
+- 新增 8 个 DOM Fixture（4 ready、4 platform-changed）、14 个 Policy Fixture、2 个 Scope/Retention 未知拒绝、16 个未文档化 Cookie/MTop 签名输入拒绝及 7 个 schema-drift 拒绝；真实路由只登记为未验证合成假设。
+- 页面观察 `id` 后只把值存为 `content_id`，Canonical 固定为无 Query/Fragment 的 Host/Path，继续满足 Native v1 合同；生产 TOP/OAuth transport、凭据/Cookie/Profile 输入、DOM fallback 与 Owner Canary 全部关闭或未运行。
+- 复用 4 权限、0 Host Permission 的 Side Panel/`activeTab`/ISOLATED world/Native v1/SQLite 链路；六平台真实按钮合成采集、Action 前各 2 个拒绝、各 100 次 Service Worker 重启均通过，平台调用、丢单、重单、错状态为 0。
+- Skeleton008 历史 Task/State/Policy/Evidence 固定到 `7e8a3dbf…`，旧验收只读取历史 blob；当前树继续此前五个平台安全与行为回归，历史 Evidence 不重写。
+- 根回归 149 tests PASS、3 个显式可选 Owner-private input skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 70.95%，33 dependencies 的 OSV vulnerability 0，60-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.capture.006` 与 `ACC.x2n.ext.001` 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 为 `TSK.x2n.skeleton.003`。
+
+## v0.0.0.1 — Stage 2 / Skeleton 008
+
+- 复核微博一手 API/CLI/协议：`statuses/show` 需要 OAuth 且只查询授权用户本人发布内容；应用/user/IP 有频率控制，额外容量可能涉及付费，但本应用价格、Scope、配额与付费层均未批准。
+- 实现微博独立 CI-synthetic 当前页 detector/extractor：精确 `www.weibo.com`、合成 `/detail/<mid>`、location/canonical/OG/detail `data-mid` 交叉校验、净化标题/null、五类既有 ContentType 与 provenance；不读取 media `src`、raw DOM、Cookie 或浏览器状态。
+- 新增 8 个 DOM Fixture（4 ready、4 platform-changed）、12 个 Policy Fixture、2 个真实形态预算拒绝、16 个任意 URL/Redirect-SSRF 拒绝及 7 个 schema-drift 拒绝；公开详情/用户状态路由只登记为未验证合成或预算拒绝假设。
+- 预算默认 0；真实页、生产 API/CLI、OAuth/凭据输入、DOM fallback、任意 URL preview/proxy/redirect transport 与 Owner Canary 全部关闭或未运行。官方 CLI 只登记，未安装、未登录、未执行。
+- 复用 4 权限、0 Host Permission 的 Side Panel/`activeTab`/ISOLATED world/Native v1/SQLite 链路；五平台真实按钮合成采集、Action 前各 2 个拒绝、各 100 次 Service Worker 重启均通过，平台调用、丢单、重单、错状态为 0。
+- Skeleton007 历史 Task/State/Policy/Evidence 固定到 `17f1988b…`，旧验收只读取历史 blob；当前树继续 XHS/Douyin/Bilibili/Kuaishou 安全与行为回归，历史 Evidence 不重写。
+- 根回归 140 tests PASS、3 个显式可选 Owner-private input skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 70.95%，33 dependencies 的 OSV vulnerability 0，59-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.capture.005` 与 `ACC.x2n.ext.001` 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 为 `TSK.x2n.skeleton.009`。
+
+## v0.0.0.1 — Stage 2 / Skeleton 007
+
+- 复核快手一手 Open Platform/协议：OAuth 需应用登记、动态用户同意与最小 Scope；`user_video_info` 只证明授权用户已发布作品列表和 `photoId` 详情，不证明任意公开当前页、点赞/收藏读取或自动化 DOM 采集权限。
+- 实现快手独立 CI-synthetic 当前页 detector/extractor：精确 `www.kuaishou.com`、合成 `/short-video/<id>`、location/canonical/OG/detail `photoId` 交叉校验、净化标题/null、`video/unknown` 与 provenance；不读取 media `src`、raw DOM、hydration、Cookie 或浏览器状态。
+- 新增 8 个 DOM Fixture（4 ready、4 platform-changed）、10 个 Policy Fixture、2 个真实形态 `BLOCKED_AUTH` 与 5 个 schema-drift 拒绝；公开短视频路由只登记为未验证的合成假设。
+- 真实页保持 `BLOCKED_AUTH`，生产 API transport、Access Token/Cookie/Profile 输入、DOM fallback 与 Owner Canary 全部关闭或未运行；无真实账号、OAuth、平台请求或自动滚动/分页。
+- 复用 4 权限、0 Host Permission 的 Side Panel/`activeTab`/ISOLATED world/Native v1/SQLite 链路；四平台真实按钮合成采集、Action 前各 2 个拒绝、各 100 次 Service Worker 重启均通过，平台调用、丢单、重单、错状态为 0。
+- Skeleton006 历史 Task/State/Policy/Evidence 固定到 `a314a1d…`，旧验收只读取历史 blob；当前树继续 XHS/Douyin/Bilibili 安全与行为回归，历史 Evidence 不重写。
+- 根回归 131 tests PASS、3 个显式可选 Owner-private input skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 70.95%，33 dependencies 的 OSV vulnerability 0，58-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.capture.004` 与 `ACC.x2n.ext.001` 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 为 `TSK.x2n.skeleton.008`。
+
+## v0.0.0.1 — Stage 2 / Skeleton 006
+
+- 复核 Bilibili 一手 Open Platform/协议：官方能力要求应用入驻、OAuth、具体 Scope 与关联 UP 主授权，只证明授权稿件管理，不证明任意当前页、点赞或收藏读取；真实页面/API 和 Owner Canary 保持 `UNKNOWN_DISABLED / NOT_RUN`。
+- 实现 Bilibili 独立 CI-synthetic 当前页 detector/extractor：视频与文章稳定 ID、规范 Host/Path、净化标题/null、`video/text/image_gallery/mixed/unknown` 与 provenance；不读取 media `src`、hydration、raw DOM、Cookie 或浏览器状态。
+- 新增 10 个 DOM Fixture（5 ready、5 platform-changed）、8 个 Policy Fixture 与 5 个 schema-drift 拒绝；文章 `/read/cv…` 明确登记为未验证现实路由，只是合成 Oracle。
+- 对 `?p=<n>` 分 P 语义 Fail Closed；当前 v1 Canonical Contract 不保存 Query，禁止把所选分 P 错折叠成顶层视频。
+- 复用 4 权限、0 Host Permission 的 Side Panel/`activeTab`/ISOLATED world/Native v1/SQLite 链路；真实按钮采集、Action 前 2 个拒绝、100 次 Service Worker 重启均通过，平台调用、丢单、重单、错状态为 0。
+- Skeleton002 历史 Task/State/Policy/Evidence 固定到 `2a91efbc…`，旧验收只读取历史 blob，同时保留当前 XHS/Douyin 行为回归；历史 Evidence 不重写。
+- 根回归 122 tests PASS、3 个显式可选 Owner-private input skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 70.95%，33 dependencies 的 OSV vulnerability 0，57-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.capture.003` 与 `ACC.x2n.ext.001` 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 为 `TSK.x2n.skeleton.007`。
+
+## v0.0.0.1 — Stage 2 / Skeleton 002
+
+- 实现抖音当前详情页 clean-room 合成检测/提取：稳定字符串 ID、无 Query/Fragment 的 canonical 重建、净化标题/null、视频/图集/unknown 类型与 provenance；身份冲突、feed card、多详情根和非合成短链身份均 `X2N_PLATFORM_CHANGED`。
+- 新增 8 个公共安全 DOM Fixture（4 ready、4 platform-changed）与 16 个短链安全用例（3 resolved、13 blocked）；覆盖五类 Redirect status、相对跳转、精确请求 URL、非允许 Host/Path、IP、lookalike、userinfo、port、loop、limit、额外响应字段、非 Redirect status 与 transport failure。
+- 短链实现严格是 network-free、transport-injected 的 CI synthetic core；Extension/Service Worker/Companion 均无生产 requester，真实短链和真实页面保持 `UNKNOWN_DISABLED`，没有新增 Host Permission、Native Action 或 v1.0 Contract 字段。
+- Service Worker 在注入前后复核 focused active tab 与完整 URL，阻止导航竞态；Side Panel 增加 stale refresh generation 与 in-flight guard，不再把迟到成功误报为“未执行”或允许重复提交。
+- XHS/Douyin 两条 Playwright 链路均通过真实 Side Panel 按钮进入 Native Host/SQLite；所有平台形态请求被 catch-all route 拦截，实测平台调用 0；各 100 次 Worker restart 均 0 丢单/重单/错状态。
+- Skeleton001 历史 Task/State/Policy/Evidence 固定到 `894553c6…`，当前树只做追加式 XHS 行为回归；历史 acceptance receipt 保持逐字节不变。
+- 根回归 112 tests PASS、3 个显式可选私有输入 skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 70.95%，33 dependencies 的 OSV vulnerability 0，56-member source candidate 无 Runtime Data。
+- `ACC.x2n.capture.002` 与 `ACC.x2n.ext.001` 仅 CI-SYNTH scoped pass；Owner Canary、真实账号/平台、生产网络、G2 与 Stage 2 上传均 `NOT_RUN/DISABLED`，下一独立 Run 为 `TSK.x2n.skeleton.006`。
+
+## v0.0.0.1 — Stage 2 / Skeleton 001
+
+- 实现小红书当前详情页 clean-room 检测与提取：稳定 ID、无 Query/Fragment 的规范 URL、净化标题或显式 null、图文/视频/unknown 类型及字段状态；身份冲突和 feed card 均返回 `X2N_PLATFORM_CHANGED`。
+- 新增 5 个公共安全合成 DOM Fixture；3 个 ready 与 2 个 platform-changed Observation Diff 全部通过，媒体/raw DOM/Query/Fragment 返回或持久化为 0。
+- Extension 增加最小 `scripting` 权限，但仍无 Host Permission、静态 Content Script、Storage/Cookie/Tabs/Downloads 或远程代码；默认 Action 前注入和采集均拒绝，Action 后仅凭临时 `activeTab` 执行隔离世界提取。
+- Playwright 通过 Chromium 官方 CDP 默认 Action 触发测试真实权限语义；合成当前页进入 Native Host/SQLite skeleton Job 后，100 次 Service Worker 重启 0 丢单/重单/错状态。
+- 两轮 full lane 共 24/24 Blocking Gate 通过，blocking failure/flaky/silent skip 为 0；新增的并发回归测试修复 SQLite `-wal/-shm` 在连接关闭期间消失引发的 chmod 竞态，Canonical DB 文件仍严格 Fail Closed。
+- 历史 Foundation/Review verifier 改为固定提交取证并对 live tree 做追加式验证；历史测试数、权限与 Gate 事实不改写，当前新增测试不再被误判为历史漂移。
+- 当前能力位为 `ci_synth_only`；小红书一手开放资料未提供可验证的个人内容读取能力，真实页面与 Owner Canary 保持 `UNKNOWN_DISABLED / NOT_RUN`。
+- `ACC.x2n.capture.001` 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 为 `TSK.x2n.skeleton.002`。
+
 ## v0.0.0.1 — Stage 1 Review / G1
 
 - 独立复核 Foundation001–005 的 Task、Acceptance、固定提交与历史证据；Review 不执行新 DAG Task，下一产品 Task 固定为 `TSK.x2n.skeleton.001`。

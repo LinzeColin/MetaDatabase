@@ -18,6 +18,10 @@ sys.modules[SPEC.name] = VERIFY
 SPEC.loader.exec_module(VERIFY)
 
 
+def _historical_json(commit: str, relative: str) -> dict[str, object]:
+    return json.loads(VERIFY._git(["show", f"{commit}:xhs-douyin-2notion/{relative}"]))
+
+
 class Foundation003Tests(unittest.TestCase):
     def test_static_task_checks_pass(self) -> None:
         checks = VERIFY.run_checks(
@@ -71,7 +75,7 @@ class Foundation003Tests(unittest.TestCase):
         self.assertNotIn("X2N_DOWNLOAD_DESTINATION", env)
 
     def test_acceptance_scope_does_not_claim_downstream_products(self) -> None:
-        state = json.loads(VERIFY.TASK_STATE.read_text(encoding="utf-8"))
+        state = _historical_json(VERIFY.STAGE_1_REVIEW_COMMIT, "machine/facts/task_state.json")
         self.assertEqual(state["current_stage_gate"], "pass")
         self.assertEqual(state["current_stage_remote_upload"], "authorized_after_g1_pass")
         self.assertIn("markdown_notion_owner_alpha_downstream_not_run", state["acceptance_status"]["ACC.x2n.data.002"])

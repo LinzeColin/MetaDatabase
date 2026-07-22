@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "MEDIA.X2N.SAFETY.001",
+  "task_id": "TSK.x2n.skeleton.003",
+  "phase": "PH.X2N.2.7",
+  "default": "deny",
+  "pattern_set_version": "x2n-media-zero-v1",
+  "source_url_lifecycle": {
+    "storage_class": "process_memory_only_nonserializable_redacted",
+    "persisted_in_sqlite": false,
+    "persisted_in_markdown": false,
+    "persisted_in_logs": false,
+    "persisted_in_notion_export": false,
+    "persisted_in_artifacts": false
+  },
+  "platform_cdn_suffixes": {
+    "xiaohongshu": ["xhscdn.com"],
+    "douyin": ["douyinvod.com", "byteimg.com", "pstatp.com"],
+    "bilibili": ["bilivideo.com", "hdslb.com"],
+    "kuaishou": ["kscdn.com", "yximgs.com"],
+    "weibo": ["sinaimg.cn"],
+    "taobao": ["alicdn.com", "tbcdn.cn"]
+  },
+  "url_firewall": {
+    "schemes": ["https"],
+    "ports": [443],
+    "exact_or_subdomain_suffix_match": true,
+    "userinfo_allowed": false,
+    "ip_literal_allowed": false,
+    "fragment_allowed": false,
+    "path_traversal_allowed": false,
+    "maximum_url_bytes": 2048,
+    "maximum_redirects": 3,
+    "validate_every_redirect": true,
+    "validate_all_dns_answers": true,
+    "required_ip_class": "global",
+    "ipv4_mapped_ipv6_allowed": false,
+    "transport_must_connect_to_validated_ip": true,
+    "transport_must_preserve_tls_hostname": true,
+    "production_transport_implemented": false,
+    "real_media_network_execution": "NOT_RUN"
+  },
+  "download_limits": {
+    "maximum_bytes": 67108864,
+    "maximum_duration_seconds": 7200,
+    "maximum_width": 16384,
+    "maximum_height": 16384,
+    "maximum_decoded_pixels": 100000000,
+    "deadline_seconds": 60,
+    "stream_chunk_bytes": 1048576,
+    "content_encoding": "identity_only",
+    "remote_filename_used": false,
+    "owner_only_file_mode": "0600",
+    "required_isolated_inspector": true
+  },
+  "lease_lifecycle": {
+    "sqlite_url_column_present": false,
+    "local_path_source": "run_id_and_random_lease_id_only",
+    "cleanup_identity_registered_before_acquisition": true,
+    "pending_identity_contains_source_url": false,
+    "verified_metadata_finalized_before_yield": true,
+    "success_cleanup": "immediate",
+    "handled_failure_cleanup": "immediate",
+    "crash_orphan_maximum_seconds": 86400,
+    "cleaner_lock": "exclusive_against_shared_active_context",
+    "unexpired_active_delete_allowed": false,
+    "delete_failure_priority": "high",
+    "delete_failure_receipt_required": true
+  },
+  "scanner": {
+    "arbitrary_path_input_allowed": false,
+    "logical_scopes": ["db", "markdown", "logs", "notion-export", "artifacts"],
+    "matched_values_emitted": false,
+    "private_paths_emitted": false,
+    "symbolic_links_allowed": false,
+    "chunk_boundary_overlap_bytes": 4096
+  },
+  "ci_synthetic_acceptance": {
+    "url_fuzz_cases": 512,
+    "ssrf_cases": 32,
+    "cleanup_chaos_cases": 8,
+    "acquisition_resource_cases": 8,
+    "real_accounts": false,
+    "real_media": false,
+    "platform_calls": 0
+  },
+  "downstream_not_run": [
+    "production_media_transport",
+    "ffmpeg_subprocess",
+    "asr",
+    "ocr",
+    "key_frame_extraction",
+    "image_bomb_decode",
+    "repeated_key_frame_detection"
+  ],
+  "rollback": "disable_media_acquisition_retain_text_only_capture"
+}

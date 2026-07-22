@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Execute the Foundation005 changed-scope or full-release local CI lane."""
+"""Execute the x2n changed-scope or full-release local CI lane."""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib.metadata
 import json
+import platform
 import re
 import shutil
 import subprocess
@@ -33,6 +36,9 @@ from ci_baseline import (
 
 class LaneError(RuntimeError):
     pass
+
+
+CI_POLICY = PROJECT_ROOT / "machine/policy/ci_gate_manifest.json"
 
 
 def _require(condition: bool, message: str) -> None:
@@ -107,6 +113,45 @@ def _run(label: str, command: Sequence[str], *, env: dict[str, str], home: Path,
         diagnostic = _sanitize_output(result.stdout + result.stderr, home)
         raise LaneError(f"blocking gate failed: {label}\n{diagnostic}")
     return result.stdout + result.stderr
+
+
+def _semantic_version(output: str, tool: str) -> str:
+    match = re.search(r"(?<!\d)(\d+\.\d+(?:\.\d+)?)(?!\d)", output)
+    _require(match is not None, f"unable to parse {tool} version")
+    return match.group(1)
+
+
+def _validate_toolchain_versions(expected: dict[str, str], actual: dict[str, str]) -> None:
+    required = {"python", "node", "npm", "uv", "ruff", "coverage", "pyyaml"}
+    _require(set(expected) == required and set(actual) == required, "CI toolchain identity fields drifted")
+    _require(".".join(actual["python"].split(".")[:2]) == expected["python"], "Python CI version drifted")
+    _require(actual["node"].split(".")[0] == expected["node"], "Node CI version drifted")
+    for name in ("npm", "uv", "ruff", "coverage", "pyyaml"):
+        _require(actual[name] == expected[name], f"{name} CI version drifted")
+
+
+def _toolchain_identity(*, env: dict[str, str], home: Path) -> dict[str, Any]:
+    policy = json.loads(CI_POLICY.read_text(encoding="utf-8"))
+    expected = policy.get("toolchain", {})
+    actual = {
+        "coverage": _semantic_version(
+            _run("coverage_version", [_tool("coverage"), "--version"], env=env, home=home), "coverage"
+        ),
+        "node": _semantic_version(_run("node_version", [_tool("node"), "--version"], env=env, home=home), "node"),
+        "npm": _semantic_version(_run("npm_version", [_tool("npm"), "--version"], env=env, home=home), "npm"),
+        "pyyaml": importlib.metadata.version("PyYAML"),
+        "python": platform.python_version(),
+        "ruff": _semantic_version(_run("ruff_version", [_tool("ruff"), "--version"], env=env, home=home), "ruff"),
+        "uv": _semantic_version(_run("uv_version", [_tool("uv"), "--version"], env=env, home=home), "uv"),
+    }
+    _validate_toolchain_versions(expected, actual)
+    return {
+        "actual": actual,
+        "expected": expected,
+        "policy_id": policy.get("policy_id"),
+        "policy_sha256": hashlib.sha256(CI_POLICY.read_bytes()).hexdigest(),
+        "status": "PASS",
+    }
 
 
 def _base_commands() -> list[tuple[str, list[str], int]]:
@@ -216,6 +261,7 @@ def run_lane(*, lane: str, repetitions: int, reports: Path) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="x2n-f005-lane-") as value:
         home = Path(value)
         env = _safe_environment(home)
+        toolchain = _toolchain_identity(env=env, home=home)
         commands = _base_commands() + (_full_commands() if lane == "full" else [])
         blocking_results: list[dict[str, Any]] = []
         explicit_nonblocking_skips = 0
@@ -284,7 +330,6 @@ def run_lane(*, lane: str, repetitions: int, reports: Path) -> dict[str, Any]:
             "coverage": coverage_report,
             "explicit_nonblocking_skips": explicit_nonblocking_skips,
             "flaky_blocking_tests": 0,
-            "g1": "NOT_RUN",
             "lane": lane,
             "model_calls": 0,
             "osv": osv_report,
@@ -292,7 +337,9 @@ def run_lane(*, lane: str, repetitions: int, reports: Path) -> dict[str, Any]:
             "real_accounts": 0,
             "remote_github_actions": "NOT_RUN_LOCAL_BASELINE",
             "silent_blocking_skips": 0,
+            "stage_gate_evaluation": "NOT_PERFORMED_BY_SOFTWARE_LANE",
             "status": "PASS",
+            "toolchain": toolchain,
         }
         _write_json(reports / "software-lane.json", report)
         public_scan = _scan_public_reports(reports)
@@ -301,7 +348,7 @@ def run_lane(*, lane: str, repetitions: int, reports: Path) -> dict[str, Any]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run x2n Foundation005 CI lane")
+    parser = argparse.ArgumentParser(description="Run x2n local CI lane")
     parser.add_argument("--lane", choices=("fast", "full"), required=True)
     parser.add_argument("--repetitions", type=int)
     parser.add_argument("--reports-dir", type=Path, required=True)

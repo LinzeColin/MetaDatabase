@@ -1,17 +1,67 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { recognizePage, SUPPORTED_PLATFORMS } from "../src/page-support.js";
+import { buildBilibiliCapturePayload, validateBilibiliPageFacts } from "../src/bilibili-current-page.js";
+import { buildDouyinCapturePayload, validateDouyinPageFacts } from "../src/douyin-current-page.js";
+import { DouyinShortLinkError, resolveDouyinShortLink } from "../src/douyin-short-link.js";
+import { buildKuaishouCapturePayload, validateKuaishouPageFacts } from "../src/kuaishou-current-page.js";
+import { buildTaobaoCapturePayload, validateTaobaoPageFacts } from "../src/taobao-current-page.js";
+import { buildWeiboCapturePayload, validateWeiboPageFacts } from "../src/weibo-current-page.js";
+import { buildXhsCapturePayload, validateXhsPageFacts } from "../src/xhs-current-page.js";
 
 const root = new URL("../", import.meta.url);
 const manifest = JSON.parse(await readFile(new URL("manifest.json", root), "utf8"));
 const fixture = JSON.parse(
   await readFile(new URL("../../packages/test-fixtures/extension/v1/page_cases.json", root), "utf8"),
 );
+const xhsFixture = JSON.parse(
+  await readFile(
+    new URL("../../packages/test-fixtures/extension/v1/xhs_current_page/fixture_manifest.json", root),
+    "utf8",
+  ),
+);
+const douyinFixture = JSON.parse(
+  await readFile(
+    new URL("../../packages/test-fixtures/extension/v1/douyin_current_page/fixture_manifest.json", root),
+    "utf8",
+  ),
+);
+const bilibiliFixture = JSON.parse(
+  await readFile(
+    new URL("../../packages/test-fixtures/extension/v1/bilibili_current_page/fixture_manifest.json", root),
+    "utf8",
+  ),
+);
+const kuaishouFixture = JSON.parse(
+  await readFile(
+    new URL("../../packages/test-fixtures/extension/v1/kuaishou_current_page/fixture_manifest.json", root),
+    "utf8",
+  ),
+);
+const weiboFixture = JSON.parse(
+  await readFile(
+    new URL("../../packages/test-fixtures/extension/v1/weibo_current_page/fixture_manifest.json", root),
+    "utf8",
+  ),
+);
+const taobaoFixture = JSON.parse(
+  await readFile(
+    new URL("../../packages/test-fixtures/extension/v1/taobao_current_page/fixture_manifest.json", root),
+    "utf8",
+  ),
+);
 const sourceFiles = [
   "sidepanel.html",
+  "src/bilibili-current-page.js",
+  "src/douyin-current-page.js",
+  "src/douyin-short-link.js",
+  "src/kuaishou-current-page.js",
   "src/page-support.js",
   "src/service-worker.js",
   "src/sidepanel.js",
+  "src/taobao-current-page.js",
+  "src/weibo-current-page.js",
+  "src/xhs-current-page.js",
   "styles/sidepanel.css",
 ];
 const sources = Object.fromEntries(
@@ -19,7 +69,7 @@ const sources = Object.fromEntries(
 );
 
 const failures = [];
-const expectedPermissions = ["activeTab", "nativeMessaging", "sidePanel"];
+const expectedPermissions = ["activeTab", "nativeMessaging", "scripting", "sidePanel"];
 if (manifest.manifest_version !== 3) failures.push("manifest_version");
 if (manifest.version !== "0.0.0.1") failures.push("version");
 if (manifest.minimum_chrome_version !== "120") failures.push("minimum_chrome_version");
@@ -35,7 +85,7 @@ const digest = createHash("sha256").update(publicKey).digest().subarray(0, 16).t
 const extensionId = [...digest].map((nibble) => String.fromCharCode("a".charCodeAt(0) + Number.parseInt(nibble, 16))).join("");
 if (extensionId !== "chheapilbdfnpajmlkijppmblnlheeac") failures.push("extension_id");
 
-const forbiddenManifestValues = ["<all_urls>", "cookies", "storage", "scripting", "tabs"];
+const forbiddenManifestValues = ["<all_urls>", "cookies", "storage", "tabs"];
 const renderedManifest = JSON.stringify(manifest);
 for (const value of forbiddenManifestValues) if (renderedManifest.includes(value)) failures.push(`forbidden_manifest_${value}`);
 
@@ -55,7 +105,8 @@ if (!e2eSource.includes('PATH: process.env.PATH ?? ""')) failures.push("e2e_path
 let recognized = 0;
 for (const item of fixture.cases) {
   const actual = recognizePage(item.url);
-  if (actual.supported !== item.supported || actual.platform !== item.platform || actual.executable !== false) {
+  const expectedExecutable = item.supported && item.platform === "xiaohongshu";
+  if (actual.supported !== item.supported || actual.platform !== item.platform || actual.executable !== expectedExecutable) {
     failures.push(`page_case_${item.id}`);
   } else {
     recognized += 1;
@@ -63,6 +114,424 @@ for (const item of fixture.cases) {
 }
 if (new Set(fixture.cases.filter((item) => item.supported).map((item) => item.platform)).size !== 6) failures.push("six_platform_coverage");
 if (SUPPORTED_PLATFORMS.length !== 6) failures.push("platform_registry");
+if (recognizePage("https://www.xiaohongshu.com/explore/64f000000000000000000001").executable) {
+  failures.push("xhs_real_page_gate");
+}
+if (recognizePage("https://www.douyin.com/video/7485211130848218428").executable) {
+  failures.push("douyin_real_page_gate");
+}
+if (recognizePage("https://v.douyin.com/opaque-real-shaped/").supported) {
+  failures.push("douyin_real_short_link_gate");
+}
+if (recognizePage("https://www.douyin.com/note/7485211130848218428").supported) {
+  failures.push("douyin_unknown_gallery_route_gate");
+}
+for (const url of [
+  "https://www.bilibili.com/video/BV1RealShape0",
+  "https://www.bilibili.com/read/cv100000001",
+]) {
+  const support = recognizePage(url);
+  if (!support.supported || support.executable || support.platform !== "bilibili") {
+    failures.push("bilibili_real_page_gate");
+  }
+}
+for (const url of [
+  "https://www.bilibili.com/video/synthetic-bili-video-self-test",
+  "https://www.bilibili.com/read/synthetic-bili-article-self-test",
+]) {
+  const support = recognizePage(url);
+  if (!support.supported || !support.executable || support.platform !== "bilibili") {
+    failures.push("bilibili_synthetic_page_gate");
+  }
+}
+if (recognizePage("https://bilibili.com/read/synthetic-bili-article-self-test").executable) {
+  failures.push("bilibili_noncanonical_host_gate");
+}
+if (recognizePage("https://www.bilibili.com/video/synthetic-bili-video-self-test?p=2").executable) {
+  failures.push("bilibili_semantic_query_gate");
+}
+const kuaishouRealSupport = recognizePage("https://www.kuaishou.com/short-video/3xRealShapeSelfTest");
+if (
+  !kuaishouRealSupport.supported
+  || kuaishouRealSupport.executable
+  || kuaishouRealSupport.platform !== "kuaishou"
+  || kuaishouRealSupport.reason !== "kuaishou_oauth_scope_missing_blocked_auth"
+) failures.push("kuaishou_real_page_blocked_auth_gate");
+const kuaishouSyntheticSupport = recognizePage(
+  "https://www.kuaishou.com/short-video/synthetic-ks-video-self-test",
+);
+if (
+  !kuaishouSyntheticSupport.supported
+  || !kuaishouSyntheticSupport.executable
+  || kuaishouSyntheticSupport.platform !== "kuaishou"
+) failures.push("kuaishou_synthetic_page_gate");
+if (recognizePage("https://kuaishou.com/short-video/synthetic-ks-video-self-test").executable) {
+  failures.push("kuaishou_noncanonical_host_gate");
+}
+const weiboRealSupport = recognizePage("https://www.weibo.com/detail/NrRealShapeSelfTest");
+if (
+  !weiboRealSupport.supported
+  || weiboRealSupport.executable
+  || weiboRealSupport.platform !== "weibo"
+  || weiboRealSupport.reason !== "weibo_budget_zero_quota_unknown_disabled"
+) failures.push("weibo_real_page_blocked_budget_gate");
+const weiboSyntheticSupport = recognizePage(
+  "https://www.weibo.com/detail/synthetic-wb-status-self-test",
+);
+if (
+  !weiboSyntheticSupport.supported
+  || !weiboSyntheticSupport.executable
+  || weiboSyntheticSupport.platform !== "weibo"
+) failures.push("weibo_synthetic_page_gate");
+for (const url of [
+  "https://www.weibo.com/detail/synthetic-wb-status-self-test?tracking=synthetic",
+  "https://www.weibo.com/detail/synthetic-wb-status-self-test#synthetic",
+  "https://weibo.com/detail/synthetic-wb-status-self-test",
+]) {
+  if (recognizePage(url).executable) failures.push("weibo_noncanonical_or_query_gate");
+}
+const weiboArbitraryControl = recognizePage(
+  "https://www.weibo.com/detail/synthetic-wb-status-self-test?url=https%3A%2F%2Fexample.invalid%2Fitem",
+);
+if (
+  weiboArbitraryControl.executable
+  || weiboArbitraryControl.reason !== "weibo_arbitrary_url_control_rejected"
+) failures.push("weibo_arbitrary_url_control_gate");
+const taobaoRealSupport = recognizePage("https://item.taobao.com/item.htm?id=1234567890123");
+if (
+  !taobaoRealSupport.supported
+  || taobaoRealSupport.executable
+  || taobaoRealSupport.platform !== "taobao"
+  || taobaoRealSupport.reason !== "taobao_scope_retention_unknown_disabled"
+) failures.push("taobao_real_page_scope_retention_gate");
+const taobaoSyntheticSupport = recognizePage(
+  "https://item.taobao.com/item.htm?id=9900000000000999001&x2n_fixture=1",
+);
+if (
+  !taobaoSyntheticSupport.supported
+  || !taobaoSyntheticSupport.executable
+  || taobaoSyntheticSupport.platform !== "taobao"
+) failures.push("taobao_synthetic_page_gate");
+for (const url of [
+  "https://item.taobao.com/item.htm?id=9900000000000999002&x2n_fixture=1&tracking=synthetic",
+  "https://item.taobao.com/item.htm?id=9900000000000999003&x2n_fixture=1#synthetic",
+  "https://item.taobao.com/item.htm?id=9900000000000999004&x2n_fixture=0",
+]) {
+  const support = recognizePage(url);
+  if (support.executable || support.reason !== "taobao_nonsemantic_query_fragment_unsupported") {
+    failures.push("taobao_nonsemantic_query_fragment_gate");
+  }
+}
+const taobaoSignatureInput = recognizePage(
+  "https://item.taobao.com/item.htm?id=9900000000000999005&x2n_fixture=1&sign=",
+);
+if (
+  taobaoSignatureInput.executable
+  || taobaoSignatureInput.reason !== "taobao_undocumented_signature_input_rejected"
+) failures.push("taobao_signature_input_gate");
+for (const url of [
+  "https://www.douyin.com/video/synthetic-video-self-test",
+  "https://www.douyin.com/note/synthetic-gallery-self-test",
+  "https://v.douyin.com/synthetic-short-self-test/",
+]) {
+  const support = recognizePage(url);
+  if (!support.supported || !support.executable || support.platform !== "douyin") {
+    failures.push("douyin_synthetic_page_gate");
+  }
+}
+
+if (xhsFixture.synthetic !== true || xhsFixture.cases.length !== 5) failures.push("xhs_fixture_manifest");
+for (const field of [
+  "contains_credentials",
+  "contains_local_absolute_paths",
+  "contains_media_urls",
+  "contains_private_content",
+  "contains_real_accounts",
+  "real_accounts",
+]) {
+  if (xhsFixture[field] !== false) failures.push(`xhs_fixture_${field}`);
+  if (douyinFixture[field] !== false) failures.push(`douyin_fixture_${field}`);
+  if (bilibiliFixture[field] !== false) failures.push(`bilibili_fixture_${field}`);
+  if (kuaishouFixture[field] !== false) failures.push(`kuaishou_fixture_${field}`);
+  if (taobaoFixture[field] !== false) failures.push(`taobao_fixture_${field}`);
+  if (weiboFixture[field] !== false) failures.push(`weibo_fixture_${field}`);
+}
+if (kuaishouFixture.contains_cookies !== false) failures.push("kuaishou_fixture_contains_cookies");
+if (taobaoFixture.contains_cookies !== false) failures.push("taobao_fixture_contains_cookies");
+if (taobaoFixture.contains_signature_material !== false) failures.push("taobao_fixture_signature_material");
+if (weiboFixture.contains_cookies !== false) failures.push("weibo_fixture_contains_cookies");
+if (
+  bilibiliFixture.synthetic !== true
+  || bilibiliFixture.cases.length !== 10
+  || bilibiliFixture.policy_cases.length !== 8
+) failures.push("bilibili_fixture_manifest");
+if (
+  kuaishouFixture.synthetic !== true
+  || kuaishouFixture.cases.length !== 8
+  || kuaishouFixture.policy_cases.length !== 10
+  || kuaishouFixture.auth_contract?.required_scope !== "user_video_info"
+  || kuaishouFixture.auth_contract?.missing_scope_state !== "BLOCKED_AUTH"
+) failures.push("kuaishou_fixture_manifest");
+if (
+  weiboFixture.synthetic !== true
+  || weiboFixture.cases.length !== 8
+  || weiboFixture.policy_cases.length !== 12
+  || weiboFixture.redirect_ssrf_cases.length !== 16
+  || weiboFixture.budget_contract?.default_budget_units !== 0
+  || weiboFixture.budget_contract?.approved_paid_tier !== false
+  || weiboFixture.budget_contract?.arbitrary_url_preview_proxy !== false
+) failures.push("weibo_fixture_manifest");
+if (
+  taobaoFixture.synthetic !== true
+  || taobaoFixture.cases.length !== 8
+  || taobaoFixture.policy_cases.length !== 14
+  || taobaoFixture.undocumented_signature_cases.length !== 16
+  || taobaoFixture.scope_retention_contract?.real_page_state !== "UNKNOWN_DISABLED"
+  || taobaoFixture.scope_retention_contract?.production_top_api_transport !== false
+  || taobaoFixture.scope_retention_contract?.dom_fallback !== false
+  || taobaoFixture.signature_contract?.browser_mtop_cookie_signature_route !== false
+  || taobaoFixture.signature_contract?.official_top_protocol_implemented !== false
+) failures.push("taobao_fixture_manifest");
+if (douyinFixture.synthetic !== true || douyinFixture.cases.length !== 8) failures.push("douyin_fixture_manifest");
+if (!Array.isArray(douyinFixture.short_link_cases) || douyinFixture.short_link_cases.length !== 16) {
+  failures.push("douyin_short_link_fixture_manifest");
+}
+const contractFact = validateXhsPageFacts({
+  page_context: {
+    content_id: "synthetic-note-contract-001",
+    content_type: "unknown",
+    title: null,
+  },
+  page_url: "https://www.xiaohongshu.com/explore/synthetic-note-contract-001",
+  platform: "xiaohongshu",
+  provenance: {
+    canonical_url: { source: "stable_content_id", status: "derived" },
+    content_id: { source: "location_path_and_detail_surface", status: "observed_verified" },
+    content_type: { source: null, status: "unknown" },
+    title: { source: null, status: "missing" },
+  },
+  schema_version: "1.0",
+  status: "ready",
+});
+const contractPayload = buildXhsCapturePayload(contractFact);
+if (new URL(contractPayload.page_url).search || new URL(contractPayload.page_url).hash) failures.push("xhs_canonical_url");
+try {
+  buildXhsCapturePayload(validateXhsPageFacts({
+    code: "X2N_PLATFORM_CHANGED",
+    platform: "xiaohongshu",
+    reason: "detail_surface_missing",
+    schema_version: "1.0",
+    status: "platform_changed",
+  }));
+  failures.push("xhs_platform_changed_capture");
+} catch {
+  // Expected fail-closed path.
+}
+
+const bilibiliContractFact = validateBilibiliPageFacts({
+  page_context: {
+    content_id: "synthetic-bili-article-contract-001",
+    content_type: "text",
+    title: null,
+  },
+  page_url: "https://www.bilibili.com/read/synthetic-bili-article-contract-001",
+  platform: "bilibili",
+  provenance: {
+    canonical_url: { source: "stable_content_id_and_page_kind", status: "derived" },
+    content_id: { source: "location_path_and_detail_surface", status: "observed_verified" },
+    content_type: { source: "detail_text_marker", status: "observed" },
+    title: { source: null, status: "missing" },
+  },
+  schema_version: "1.0",
+  status: "ready",
+});
+const bilibiliContractPayload = buildBilibiliCapturePayload(bilibiliContractFact);
+if (new URL(bilibiliContractPayload.page_url).search || new URL(bilibiliContractPayload.page_url).hash) {
+  failures.push("bilibili_canonical_url");
+}
+try {
+  buildBilibiliCapturePayload(validateBilibiliPageFacts({
+    code: "X2N_PLATFORM_CHANGED",
+    platform: "bilibili",
+    reason: "detail_surface_missing",
+    schema_version: "1.0",
+    status: "platform_changed",
+  }));
+  failures.push("bilibili_platform_changed_capture");
+} catch {
+  // Expected fail-closed path.
+}
+
+const kuaishouContractFact = validateKuaishouPageFacts({
+  page_context: {
+    content_id: "synthetic-ks-video-contract-001",
+    content_type: "video",
+    title: null,
+  },
+  page_url: "https://www.kuaishou.com/short-video/synthetic-ks-video-contract-001",
+  platform: "kuaishou",
+  provenance: {
+    canonical_url: { source: "stable_photo_id", status: "derived" },
+    content_id: { source: "location_path_and_detail_surface", status: "observed_verified" },
+    content_type: { source: "detail_video_marker", status: "observed" },
+    title: { source: null, status: "missing" },
+  },
+  schema_version: "1.0",
+  status: "ready",
+});
+const kuaishouContractPayload = buildKuaishouCapturePayload(kuaishouContractFact);
+if (new URL(kuaishouContractPayload.page_url).search || new URL(kuaishouContractPayload.page_url).hash) {
+  failures.push("kuaishou_canonical_url");
+}
+try {
+  buildKuaishouCapturePayload(validateKuaishouPageFacts({
+    code: "X2N_PLATFORM_CHANGED",
+    platform: "kuaishou",
+    reason: "detail_surface_missing",
+    schema_version: "1.0",
+    status: "platform_changed",
+  }));
+  failures.push("kuaishou_platform_changed_capture");
+} catch {
+  // Expected fail-closed path.
+}
+
+const weiboContractFact = validateWeiboPageFacts({
+  page_context: {
+    content_id: "synthetic-wb-status-contract-001",
+    content_type: "text",
+    title: null,
+  },
+  page_url: "https://www.weibo.com/detail/synthetic-wb-status-contract-001",
+  platform: "weibo",
+  provenance: {
+    canonical_url: { source: "stable_mid", status: "derived" },
+    content_id: { source: "location_path_and_status_surface", status: "observed_verified" },
+    content_type: { source: "detail_text_marker", status: "observed" },
+    title: { source: null, status: "missing" },
+  },
+  schema_version: "1.0",
+  status: "ready",
+});
+const weiboContractPayload = buildWeiboCapturePayload(weiboContractFact);
+if (new URL(weiboContractPayload.page_url).search || new URL(weiboContractPayload.page_url).hash) {
+  failures.push("weibo_canonical_url");
+}
+try {
+  buildWeiboCapturePayload(validateWeiboPageFacts({
+    code: "X2N_PLATFORM_CHANGED",
+    platform: "weibo",
+    reason: "detail_surface_missing",
+    schema_version: "1.0",
+    status: "platform_changed",
+  }));
+  failures.push("weibo_platform_changed_capture");
+} catch {
+  // Expected fail-closed path.
+}
+
+const taobaoContractFact = validateTaobaoPageFacts({
+  page_context: {
+    content_id: "9900000000000999101",
+    content_type: "unknown",
+    title: null,
+  },
+  page_url: "https://item.taobao.com/item.htm",
+  platform: "taobao",
+  provenance: {
+    canonical_url: { source: "stable_num_iid_and_official_item_route", status: "derived" },
+    content_id: { source: "location_semantic_id_and_item_surface", status: "observed_verified" },
+    content_type: { source: null, status: "unknown" },
+    title: { source: null, status: "missing" },
+  },
+  schema_version: "1.0",
+  status: "ready",
+});
+const taobaoContractPayload = buildTaobaoCapturePayload(taobaoContractFact);
+const taobaoCanonical = new URL(taobaoContractPayload.page_url);
+if (
+  taobaoCanonical.protocol !== "https:"
+  || taobaoCanonical.hostname !== "item.taobao.com"
+  || taobaoCanonical.pathname !== "/item.htm"
+  || taobaoCanonical.search
+  || taobaoCanonical.hash
+) failures.push("taobao_canonical_url");
+try {
+  buildTaobaoCapturePayload(validateTaobaoPageFacts({
+    code: "X2N_PLATFORM_CHANGED",
+    platform: "taobao",
+    reason: "detail_surface_missing",
+    schema_version: "1.0",
+    status: "platform_changed",
+  }));
+  failures.push("taobao_platform_changed_capture");
+} catch {
+  // Expected fail-closed path.
+}
+
+const douyinContractFact = validateDouyinPageFacts({
+  page_context: {
+    content_id: "synthetic-video-contract-001",
+    content_type: "unknown",
+    title: null,
+  },
+  page_url: "https://www.douyin.com/video/synthetic-video-contract-001",
+  platform: "douyin",
+  provenance: {
+    canonical_url: { source: "stable_content_id_and_kind", status: "derived" },
+    content_id: { source: "location_path_and_detail_surface", status: "observed_verified" },
+    content_type: { source: null, status: "unknown" },
+    title: { source: null, status: "missing" },
+  },
+  schema_version: "1.0",
+  status: "ready",
+});
+const douyinContractPayload = buildDouyinCapturePayload(douyinContractFact);
+if (new URL(douyinContractPayload.page_url).search || new URL(douyinContractPayload.page_url).hash) {
+  failures.push("douyin_canonical_url");
+}
+try {
+  buildDouyinCapturePayload(validateDouyinPageFacts({
+    code: "X2N_PLATFORM_CHANGED",
+    platform: "douyin",
+    reason: "detail_surface_missing",
+    schema_version: "1.0",
+    status: "platform_changed",
+  }));
+  failures.push("douyin_platform_changed_capture");
+} catch {
+  // Expected fail-closed path.
+}
+
+const shortRequestOptions = [];
+const shortResolved = await resolveDouyinShortLink(
+  "https://v.douyin.com/synthetic-self-test/",
+  async (request) => {
+    shortRequestOptions.push(request);
+    return {
+      location: "https://www.douyin.com/video/synthetic-resolved-self-test?tracking=discarded",
+      status: 302,
+    };
+  },
+);
+if (
+  shortResolved.page_url !== "https://www.douyin.com/video/synthetic-resolved-self-test"
+  || shortResolved.redirect_count !== 1
+  || shortRequestOptions.length !== 1
+  || shortRequestOptions[0].credentials !== "omit"
+  || shortRequestOptions[0].redirect !== "manual"
+) failures.push("douyin_short_link_resolution");
+try {
+  await resolveDouyinShortLink(
+    "https://v.douyin.com/synthetic-self-test-blocked/",
+    async () => ({ location: "https://127.0.0.1/private", status: 302 }),
+  );
+  failures.push("douyin_short_link_ssrf");
+} catch (error) {
+  if (!(error instanceof DouyinShortLinkError) || error.code !== "X2N_SHORTLINK_HOST_BLOCKED") {
+    failures.push("douyin_short_link_ssrf_error");
+  }
+}
 
 if (failures.length > 0) {
   process.stderr.write(`${JSON.stringify({ code: "X2N_EXTENSION_INVALID", failures, status: "FAIL_CLOSED" })}\n`);
@@ -72,12 +541,25 @@ if (failures.length > 0) {
 process.stdout.write(
   `${JSON.stringify({
     action: "extension_self_test",
+    bilibili_fixture_cases: bilibiliFixture.cases.length,
+    bilibili_policy_cases: bilibiliFixture.policy_cases.length,
+    douyin_fixture_cases: douyinFixture.cases.length,
+    douyin_shortlink_cases: douyinFixture.short_link_cases.length,
     extension_id: extensionId,
     fixture_cases: fixture.cases.length,
     fixture_recognition_passed: recognized,
     host_permissions: 0,
+    kuaishou_fixture_cases: kuaishouFixture.cases.length,
+    kuaishou_policy_cases: kuaishouFixture.policy_cases.length,
     permissions: expectedPermissions.length,
     platform_execution: "NOT_RUN",
     status: "PASS",
+    taobao_fixture_cases: taobaoFixture.cases.length,
+    taobao_policy_cases: taobaoFixture.policy_cases.length,
+    taobao_signature_rejection_cases: taobaoFixture.undocumented_signature_cases.length,
+    weibo_fixture_cases: weiboFixture.cases.length,
+    weibo_policy_cases: weiboFixture.policy_cases.length,
+    weibo_redirect_ssrf_cases: weiboFixture.redirect_ssrf_cases.length,
+    xhs_fixture_cases: xhsFixture.cases.length,
   })}\n`,
 );

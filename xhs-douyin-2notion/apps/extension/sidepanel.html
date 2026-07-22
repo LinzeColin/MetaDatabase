@@ -25,8 +25,9 @@
     <main>
       <section id="panel-save" role="tabpanel" aria-labelledby="tab-save">
         <h2>Save current content</h2>
-        <p>User-selected current-page capture will be enabled by a later platform gate.</p>
-        <button type="button" disabled>Save unavailable</button>
+        <p>Only the active Xiaohongshu detail page is read after your explicit action. No scrolling or account changes.</p>
+        <button id="save-current" type="button" disabled>Save unavailable</button>
+        <p id="capture-status" aria-live="polite"></p>
       </section>
       <section id="panel-sync" role="tabpanel" aria-labelledby="tab-sync" hidden>
         <h2>Sync selected list</h2>
@@ -47,12 +48,12 @@
         <dl>
           <div><dt>Runtime truth</dt><dd>Local SQLite only</dd></div>
           <div><dt>Extension storage</dt><dd>Not used</dd></div>
-          <div><dt>Platform gates</dt><dd>All disabled</dd></div>
+          <div><dt>Platform gates</dt><dd>XHS current page only</dd></div>
         </dl>
       </section>
     </main>
 
-    <footer>Stage 1 skeleton · fail closed</footer>
+    <footer>Stage 2 · current page · fail closed</footer>
     <script type="module" src="src/sidepanel.js"></script>
   </body>
 </html>

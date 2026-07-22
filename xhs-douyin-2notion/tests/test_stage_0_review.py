@@ -72,7 +72,7 @@ class Stage0ReviewTests(unittest.TestCase):
         )
 
     def test_all_six_platforms_remain_disabled(self) -> None:
-        registry = VERIFY._load_json(VERIFY.PLATFORM_SCOPE)
+        registry = VERIFY._load_json_at(VERIFY.REVIEW_FINAL_COMMIT, VERIFY.PLATFORM_SCOPE)
         self.assertEqual(tuple(item["id"] for item in registry["platforms"]), VERIFY.PLATFORMS)
         self.assertTrue(all(item["policy_state"] == "unknown_disabled" for item in registry["platforms"]))
         self.assertFalse(registry["implementation_started"])

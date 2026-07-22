@@ -49,6 +49,7 @@ RUN_ID = "RUN-X2N-S01-F005"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s01-foundation001"
 TASK_BASE_COMMIT = "09d5cdf1993080401f99e023feb03be479baca27"
 FINAL_COMMIT = "5f770b6daf63d57ec4698dc7fbc95a9dfeab2669"
+STAGE_1_REVIEW_COMMIT = "2a81db2dd36638b00175ec6226462b37905d4705"
 ORIGIN_CUTOFF = "7fd0768002081f27c070561fa855a08713d1bc00"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 ACCEPTANCE = PROJECT_ROOT / "docs/product_design/v0.0.0.1/04_ACCEPTANCE_CONTRACT_TRACEABILITY.md"
@@ -176,6 +177,13 @@ def _git(args: Sequence[str], cwd: Path = REPOSITORY_ROOT, *, binary: bool = Fal
     )
     _require(result.returncode == 0, "local Git verification failed")
     return result.stdout if binary else str(result.stdout).rstrip()
+
+
+def _load_json_at(commit: str, path: Path) -> dict[str, Any]:
+    relative = path.relative_to(REPOSITORY_ROOT).as_posix()
+    value = json.loads(str(_git(["show", f"{commit}:{relative}"])))
+    _require(isinstance(value, dict), f"historical JSON object required: {path.name}")
+    return value
 
 
 def _changed_paths() -> set[str]:
@@ -531,15 +539,20 @@ def validate_fixtures_and_self_test() -> Check:
     self_test = run_self_test()
     manifest = _load_json(FIXTURE_MANIFEST)
     rows = manifest.get("fixtures", [])
+    frozen_rows = _load_json_at(FINAL_COMMIT, FIXTURE_MANIFEST).get("fixtures", [])
     _require(
-        len(rows) == 8
-        and [row.get("id") for row in rows[-3:]]
+        len(frozen_rows) == 8
+        and [row.get("id") for row in frozen_rows[-3:]]
         == [
             "FIXTURE.X2N.S01.F005.001",
             "FIXTURE.X2N.S01.F005.002",
             "FIXTURE.X2N.S01.F005.003",
         ],
-        "Foundation005 fixture registration drifted",
+        "historical Foundation005 fixture registration drifted",
+    )
+    _require(
+        len(rows) >= len(frozen_rows) and rows[: len(frozen_rows)] == frozen_rows,
+        "Foundation005 fixture history was modified instead of append-only extended",
     )
     _require(
         self_test.get("silent_skips") == 0 and self_test.get("seeded_failure_categories", 0) >= 8,
@@ -635,7 +648,7 @@ def validate_model_baseline() -> Check:
 
 
 def validate_state_and_truthfulness() -> Check:
-    state = _load_json(TASK_STATE)
+    state = _load_json_at(STAGE_1_REVIEW_COMMIT, TASK_STATE)
     _require(
         state.get("schema_version") == "1.8" and state.get("last_completed_phase") == "PH.X2N.1.5",
         "task state phase drifted",
@@ -670,8 +683,8 @@ def validate_state_and_truthfulness() -> Check:
         "real_sink_execution",
     ):
         _require(state.get(field) == "not_run", f"downstream execution overstated: {field}")
-    project = _load_json(PROJECT_FACT)
-    architecture = _load_json(ARCHITECTURE_FACT)
+    project = _load_json_at(STAGE_1_REVIEW_COMMIT, PROJECT_FACT)
+    architecture = _load_json_at(STAGE_1_REVIEW_COMMIT, ARCHITECTURE_FACT)
     gate = _load_json(G1_FACT)
     _require(project.get("status") == "stage_1_review_pass_g1_pass_stage_2_authorized", "project status drifted")
     _require(
@@ -727,8 +740,26 @@ def validate_lane_report(path: Path) -> Check:
     _require(len(report.get("coverage", {}).get("critical_modules", {})) == 7, "critical coverage evidence incomplete")
     _require(report.get("osv", {}).get("critical_high_unresolved") == 0, "OSV evidence missing")
     _require(
-        report.get("remote_github_actions") == "NOT_RUN_LOCAL_BASELINE" and report.get("g1") == "NOT_RUN",
-        "remote/G1 lane status overstated",
+        report.get("remote_github_actions") == "NOT_RUN_LOCAL_BASELINE"
+        and report.get("stage_gate_evaluation") == "NOT_PERFORMED_BY_SOFTWARE_LANE"
+        and "g1" not in report,
+        "software lane overstated a remote or dynamic stage-gate decision",
+    )
+    toolchain = report.get("toolchain", {})
+    expected_toolchain = _load_json(CI_POLICY).get("toolchain", {})
+    actual_toolchain = toolchain.get("actual", {})
+    _require(
+        toolchain.get("status") == "PASS"
+        and toolchain.get("policy_id") == "CI.X2N.001"
+        and toolchain.get("policy_sha256") == hashlib.sha256(CI_POLICY.read_bytes()).hexdigest()
+        and toolchain.get("expected") == expected_toolchain
+        and ".".join(str(actual_toolchain.get("python", "")).split(".")[:2]) == expected_toolchain.get("python")
+        and str(actual_toolchain.get("node", "")).split(".")[0] == expected_toolchain.get("node")
+        and all(
+            actual_toolchain.get(name) == expected_toolchain.get(name)
+            for name in ("npm", "uv", "ruff", "coverage", "pyyaml")
+        ),
+        "software lane toolchain identity drifted",
     )
     artifact = path.parent / "x2n-source-candidate.zip"
     _require(

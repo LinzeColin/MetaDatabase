@@ -20,6 +20,10 @@ sys.modules[SPEC.name] = VERIFY
 SPEC.loader.exec_module(VERIFY)
 
 
+def _historical_json(commit: str, relative: str) -> dict[str, object]:
+    return json.loads(VERIFY._git(["show", f"{commit}:xhs-douyin-2notion/{relative}"]))
+
+
 class Foundation001Tests(unittest.TestCase):
     def test_core_checks_pass(self) -> None:
         checks = VERIFY.run_checks(verify_worktree=False, allow_external_main_dirty=False)
@@ -49,10 +53,13 @@ class Foundation001Tests(unittest.TestCase):
         }
         self.assertEqual(scripted, {"fsevents"})
         self.assertIn("ignore-scripts=true", (PROJECT_ROOT / ".npmrc").read_text(encoding="utf-8").splitlines())
+        historical_manifest = _historical_json(VERIFY.STATE_BASELINE_COMMIT, "apps/extension/manifest.json")
+        self.assertEqual(historical_manifest["permissions"], ["activeTab", "nativeMessaging", "sidePanel"])
         manifest = json.loads((PROJECT_ROOT / "apps/extension/manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["permissions"], ["activeTab", "nativeMessaging", "sidePanel"])
-        self.assertNotIn("host_permissions", manifest)
-        self.assertEqual(manifest["side_panel"], {"default_path": "sidepanel.html"})
+        self.assertEqual(manifest["permissions"], ["activeTab", "nativeMessaging", "scripting", "sidePanel"])
+        for value in (historical_manifest, manifest):
+            self.assertNotIn("host_permissions", value)
+            self.assertEqual(value["side_panel"], {"default_path": "sidepanel.html"})
 
     def test_real_canary_fails_with_minimum_decision_question(self) -> None:
         python = sys.executable if sys.version_info >= (3, 12) else VERIFY.shutil.which("python3.12")
@@ -78,7 +85,7 @@ class Foundation001Tests(unittest.TestCase):
         self.assertTrue(payload["minimum_decision_question"])
 
     def test_current_acceptance_does_not_claim_product_lifecycle(self) -> None:
-        state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
+        state = _historical_json(VERIFY.STAGE_1_REVIEW_COMMIT, "machine/facts/task_state.json")
         self.assertEqual(state["current_stage_gate"], "pass")
         self.assertEqual(state["current_stage_remote_upload"], "authorized_after_g1_pass")
         self.assertIn("downstream_not_run", state["acceptance_status"]["ACC.x2n.rel.008"])

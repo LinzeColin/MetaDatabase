@@ -1,0 +1,129 @@
+{
+  "assurance_scope": "PROJECT_NATIVE_LOCAL_DEVELOPER_GATE",
+  "automated_reacceptance": "PASS",
+  "checks": [
+    {
+      "details": {
+        "findings_declared": 8,
+        "json_files": 147,
+        "new_dag_tasks": 0,
+        "yaml_files": 3
+      },
+      "name": "review_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "g2_conditions": 5,
+        "next_action": "STG.X2N.2.REMOTE_UPLOAD",
+        "skeleton_tasks": 9,
+        "stage_3_tasks_run": 0
+      },
+      "name": "task_dag_and_state",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "blocking_followups": 0,
+        "pass_conditions": 5,
+        "stage_3_authorized": false,
+        "stop_conditions": 6
+      },
+      "name": "g2_fact",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "blocking_open": 0,
+        "resolved": 8
+      },
+      "name": "review_findings",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "frozen_receipts": 9,
+        "historical_checks": 9,
+        "rewritten_receipts": 0,
+        "skeleton_tasks": 9
+      },
+      "name": "skeleton_evidence",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "artifact_members": 65,
+        "blocking_executions": 24,
+        "blocking_failures": 0,
+        "blocking_repetitions": 2,
+        "explicit_nonblocking_skips": 6,
+        "python": "3.12.13",
+        "silent_blocking_skips": 0
+      },
+      "name": "g2_full_lane",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "blob_versions_scanned": 343,
+        "commit_messages_scanned": 10,
+        "commits_scanned": 10,
+        "current_source_files_scanned": 368,
+        "findings": 0
+      },
+      "name": "stage_2_history_privacy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "changed_files": 26,
+        "new_dag_tasks": 0,
+        "product_changes": 0,
+        "stage_3_tasks_run": 0
+      },
+      "name": "review_scope",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "cdn_persistence_findings": 0,
+        "duplicate_entities": 0,
+        "duplicate_notion_pages": 0,
+        "media_cleanup_cases": 8,
+        "notion_outage_canonical_markdown_independent": true,
+        "platform_calls": 0,
+        "platforms": 6,
+        "service_worker_restarts_per_platform": 100
+      },
+      "name": "g2_acceptance",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s02-review",
+        "external_main_dirty_paths": 0,
+        "origin_drift_commits": 8,
+        "origin_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    }
+  ],
+  "formal_verifier_release_candidate": "BLOCKED_REQUIREMENT_GAP_MISSING_CANONICAL_MANIFEST",
+  "g2": "PASS",
+  "generated_at": "2026-07-22T13:01:47Z",
+  "model_calls": 0,
+  "notion_real_api_calls": 0,
+  "platform_calls": 0,
+  "private_content_included": false,
+  "real_account_execution": "NOT_RUN",
+  "remote_ci_execution": "PENDING_POST_G2_UPLOAD",
+  "review_base_commit": "c133e1d4c1cbc17a3165e19fa5dbb2368da6b32b",
+  "review_id": "STG.X2N.2.REVIEW",
+  "review_sync_target": "6777c8fcce75a36741b70c2858c8bc5fff17d440",
+  "run_id": "RUN-X2N-S02-REVIEW",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.2",
+  "status": "PASS"
+}

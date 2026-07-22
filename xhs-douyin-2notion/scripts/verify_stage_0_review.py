@@ -50,6 +50,8 @@ REVIEW_EVIDENCE_DIR = PROJECT_ROOT / "machine/evidence/stage_0/review"
 REVIEW_BRANCH = "codex/xhs-douyin-2notion-v0001-s00-review"
 REVIEW_ID = "STG.X2N.0.REVIEW"
 REVIEW_RUN_ID = "RUN-X2N-S00-REVIEW"
+REVIEW_FINAL_COMMIT = "623ba01c951aa6d5d11bfecda6b482efac4a4d1f"
+STAGE_1_REVIEW_COMMIT = "2a81db2dd36638b00175ec6226462b37905d4705"
 RESUME_ID = "STG.X2N.0.REVIEW.RESUME"
 RESUME_RUN_ID = "RUN-X2N-S00-REVIEW-RESUME"
 INCIDENT_ID = "INC-X2N-S00-P05-001"
@@ -156,6 +158,13 @@ def _git(args: list[str], cwd: Path = REPOSITORY_ROOT) -> str:
     result = subprocess.run(["git", *args], cwd=cwd, check=False, capture_output=True, text=True)
     _require(result.returncode == 0, f"git command failed: {' '.join(args)}")
     return result.stdout.rstrip()
+
+
+def _load_json_at(commit: str, path: Path) -> dict[str, Any]:
+    relative = path.relative_to(REPOSITORY_ROOT).as_posix()
+    value = json.loads(_git(["show", f"{commit}:{relative}"]))
+    _require(isinstance(value, dict), f"historical JSON object required: {path.name}")
+    return value
 
 
 def _text_files() -> Iterable[Path]:
@@ -295,7 +304,7 @@ def validate_canonical_boundaries() -> Check:
     for platform in PLATFORMS:
         _require(f"downloads/{platform}/runs" in required_dirs, f"download namespace missing: {platform}")
 
-    platforms = _load_json(PLATFORM_SCOPE)
+    platforms = _load_json_at(REVIEW_FINAL_COMMIT, PLATFORM_SCOPE)
     rows = platforms.get("platforms", [])
     _require(tuple(item.get("id") for item in rows) == PLATFORMS, "platform registry drifted")
     _require(all(item.get("policy_state") == "unknown_disabled" for item in rows), "a platform was enabled without its Gate")
@@ -309,7 +318,7 @@ def validate_canonical_boundaries() -> Check:
     upstream = _load_json(UPSTREAM_REGISTRY)
     _require(upstream.get("actual_runtime_dependencies") == [], "Stage 0 has an actual runtime dependency")
 
-    architecture = _load_json(ARCHITECTURE)
+    architecture = _load_json_at(REVIEW_FINAL_COMMIT, ARCHITECTURE)
     _require([item.get("id") for item in architecture.get("decisions", [])] == [f"ADR-{index:03d}" for index in range(1, 11)], "ADR set drifted")
     if architecture.get("implementation_started") is False:
         _require(architecture.get("status") == "accepted_design_not_implemented", "historical architecture status drifted")
@@ -460,7 +469,7 @@ def validate_current_state() -> Check:
     _require(set(gate).issubset(allowed), f"gate state has unknown fields: {sorted(set(gate) - allowed)}")
     validate_gate_payload(gate)
 
-    state = _load_json(TASK_STATE)
+    state = _load_json_at(STAGE_1_REVIEW_COMMIT, TASK_STATE)
     _require(tuple(state.get("tasks", {}).keys())[: len(STAGE_TASKS)] == STAGE_TASKS, "Stage 0 task order drifted")
     _require(all(state.get("tasks", {}).get(task) == "pass" for task in STAGE_TASKS), "Stage 0 task state drifted")
     if state.get("schema_version") == "1.8":
@@ -472,7 +481,7 @@ def validate_current_state() -> Check:
     else:
         _require(state.get("stage_gate") == gate["gate_status"], "task/gate state disagree")
         _require(state.get("remote_upload") == gate["remote_upload"], "task/gate upload state disagree")
-    project = _load_json(PROJECT_FACT)
+    project = _load_json_at(STAGE_1_REVIEW_COMMIT, PROJECT_FACT)
     if gate.get("gate_status") == "blocked_owner_action":
         _require(state.get("schema_version") == "1.1", "blocked task state schema drifted")
         _require(state.get("review_id") == REVIEW_ID and state.get("run_id") == REVIEW_RUN_ID, "blocked task state Review identity drifted")

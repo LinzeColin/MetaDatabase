@@ -28,6 +28,7 @@ BRANCH = "codex/xhs-douyin-2notion-v0001-s01-foundation001"
 BASE_COMMIT = "f1e5016a4e1bba10c86d8dd017868d5d64835f42"
 FINAL_COMMIT = "69130c1db9946850b23e1c78f771129eb094eea2"
 STATE_BASELINE_COMMIT = "09d5cdf1993080401f99e023feb03be479baca27"
+STAGE_1_REVIEW_COMMIT = "2a81db2dd36638b00175ec6226462b37905d4705"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 ACCEPTANCE_DOC = PROJECT_ROOT / "docs/product_design/v0.0.0.1/04_ACCEPTANCE_CONTRACT_TRACEABILITY.md"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
@@ -355,6 +356,9 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
 def validate_task_and_state() -> Check:
     taskpack_text = TASKPACK.read_text(encoding="utf-8")
     task = _task_block(taskpack_text, TASK_ID)
+    taskpack_relative = TASKPACK.relative_to(REPOSITORY_ROOT).as_posix()
+    review_taskpack = _git(["show", f"{STAGE_1_REVIEW_COMMIT}:{taskpack_relative}"])
+    _require(task == _task_block(review_taskpack, TASK_ID), "foundation Task block drifted after its completed Review")
     _require(_field(task, "status") == "completed", "foundation Task is not completed")
     _require(_field(task, "phase") == "PH.X2N.1.1" and _field(task, "stage") == "STG.X2N.1", "Task routing drifted")
     _require(
@@ -362,7 +366,7 @@ def validate_task_and_state() -> Check:
         "Task dependency drifted",
     )
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.gov.001", "ACC.x2n.rel.008"], "Task Acceptance drifted")
-    _require("  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in taskpack_text, "Taskpack status drifted")
+    _require("  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in review_taskpack, "historical Stage 1 Review Taskpack status drifted")
 
     state = _load_baseline_json(TASK_STATE)
     _require(state.get("schema_version") == "1.6", "task state schema drifted")
@@ -450,9 +454,16 @@ def validate_scaffold_tree() -> Check:
     _require(not tracked_generated, "generated dependency or build output entered Git")
     _require(not (PROJECT_ROOT / ".x2n-root.json").exists(), "private Runtime marker entered Git")
 
-    manifest = _load_json(PROJECT_ROOT / "apps/extension/manifest.json")
+    manifest_path = PROJECT_ROOT / "apps/extension/manifest.json"
+    historical_manifest = json.loads(_git(["show", f"{STATE_BASELINE_COMMIT}:{manifest_path.relative_to(REPOSITORY_ROOT).as_posix()}"]))
+    _require(
+        historical_manifest.get("permissions") == ["activeTab", "nativeMessaging", "sidePanel"]
+        and "host_permissions" not in historical_manifest,
+        "historical extension permission allowlist drifted",
+    )
+    manifest = _load_json(manifest_path)
     _require(manifest.get("manifest_version") == 3, "extension no longer uses MV3")
-    _require(manifest.get("permissions") == ["activeTab", "nativeMessaging", "sidePanel"], "current extension permission allowlist drifted")
+    _require(manifest.get("permissions") == ["activeTab", "nativeMessaging", "scripting", "sidePanel"], "current extension permission allowlist drifted")
     _require("host_permissions" not in manifest and manifest.get("side_panel") == {"default_path": "sidepanel.html"}, "current extension boundary drifted")
 
     fixture = _load_json(PROJECT_ROOT / "packages/test-fixtures/scaffold_case.json")

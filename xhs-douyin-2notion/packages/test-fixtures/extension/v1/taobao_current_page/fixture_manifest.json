@@ -1,0 +1,201 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S02.S009.001",
+  "synthetic": true,
+  "route_assumptions": {
+    "official_item_identity": "num_iid",
+    "official_detail_url_shape": "item_taobao_com_item_htm_semantic_id_query",
+    "public_dom_route": "unverified_real_route_not_enabled"
+  },
+  "scope_retention_contract": {
+    "application_approved": false,
+    "oauth_configured": false,
+    "item_api_permission_approved": false,
+    "paid_api_plan_approved": false,
+    "field_scope_approved": false,
+    "retention_and_deletion_receipt": false,
+    "real_page_state": "UNKNOWN_DISABLED",
+    "production_top_api_transport": false,
+    "dom_fallback": false
+  },
+  "signature_contract": {
+    "official_top_protocol_documented": true,
+    "official_top_protocol_implemented": false,
+    "browser_mtop_cookie_signature_route": false,
+    "signature_material_input": false,
+    "rejection_case_count": 16,
+    "rejection_rate_percent": 100
+  },
+  "cases": [
+    {
+      "id": "taobao-image-gallery",
+      "file": "image_gallery.html",
+      "page_url": "https://item.taobao.com/item.htm?id=9900000000000000001&x2n_fixture=1",
+      "expected": {
+        "status": "ready",
+        "content_id": "9900000000000000001",
+        "content_type": "image_gallery",
+        "title": "Synthetic Taobao image item",
+        "page_url": "https://item.taobao.com/item.htm"
+      }
+    },
+    {
+      "id": "taobao-video-detail",
+      "file": "video_detail.html",
+      "page_url": "https://item.taobao.com/item.htm?id=9900000000000000002&x2n_fixture=1",
+      "expected": {
+        "status": "ready",
+        "content_id": "9900000000000000002",
+        "content_type": "video",
+        "title": null,
+        "page_url": "https://item.taobao.com/item.htm"
+      }
+    },
+    {
+      "id": "taobao-mixed-detail",
+      "file": "mixed_detail.html",
+      "page_url": "https://item.taobao.com/item.htm?id=9900000000000000003&x2n_fixture=1",
+      "expected": {
+        "status": "ready",
+        "content_id": "9900000000000000003",
+        "content_type": "mixed",
+        "title": "Synthetic Taobao mixed item",
+        "page_url": "https://item.taobao.com/item.htm"
+      }
+    },
+    {
+      "id": "taobao-unknown-type",
+      "file": "unknown_type.html",
+      "page_url": "https://item.taobao.com/item.htm?id=9900000000000000004&x2n_fixture=1",
+      "expected": {
+        "status": "ready",
+        "content_id": "9900000000000000004",
+        "content_type": "unknown",
+        "title": null,
+        "page_url": "https://item.taobao.com/item.htm"
+      }
+    },
+    {
+      "id": "taobao-changed-id",
+      "file": "changed_id.html",
+      "page_url": "https://item.taobao.com/item.htm?id=9900000000000000005&x2n_fixture=1",
+      "expected": {"status": "platform_changed", "reason": "stable_id_signal_mismatch"}
+    },
+    {
+      "id": "taobao-kind-mismatch",
+      "file": "kind_mismatch.html",
+      "page_url": "https://item.taobao.com/item.htm?id=9900000000000000006&x2n_fixture=1",
+      "expected": {"status": "platform_changed", "reason": "content_type_signal_mismatch"}
+    },
+    {
+      "id": "taobao-feed-card",
+      "file": "feed_card.html",
+      "page_url": "https://item.taobao.com/item.htm?id=9900000000000000007&x2n_fixture=1",
+      "expected": {"status": "platform_changed", "reason": "detail_surface_missing"}
+    },
+    {
+      "id": "taobao-ambiguous-detail",
+      "file": "ambiguous_detail.html",
+      "page_url": "https://item.taobao.com/item.htm?id=9900000000000000008&x2n_fixture=1",
+      "expected": {"status": "platform_changed", "reason": "detail_surface_ambiguous"}
+    }
+  ],
+  "policy_cases": [
+    {
+      "id": "taobao-synthetic-item-enabled",
+      "url": "https://item.taobao.com/item.htm?id=9900000000000900001&x2n_fixture=1",
+      "expected": {"executable": true, "platform": "taobao", "reason": "current_page_ci_synth_enabled", "supported": true}
+    },
+    {
+      "id": "taobao-real-item-scope-retention-disabled",
+      "url": "https://item.taobao.com/item.htm?id=1234567890123",
+      "expected": {"executable": false, "platform": "taobao", "reason": "taobao_scope_retention_unknown_disabled", "supported": true}
+    },
+    {
+      "id": "taobao-fixture-shaped-id-without-control-disabled",
+      "url": "https://item.taobao.com/item.htm?id=9900000000000900002",
+      "expected": {"executable": false, "platform": "taobao", "reason": "taobao_scope_retention_unknown_disabled", "supported": true}
+    },
+    {
+      "id": "taobao-wrong-fixture-control-rejected",
+      "url": "https://item.taobao.com/item.htm?id=9900000000000900003&x2n_fixture=0",
+      "expected": {"executable": false, "platform": "taobao", "reason": "taobao_nonsemantic_query_fragment_unsupported", "supported": true}
+    },
+    {
+      "id": "taobao-tracking-query-rejected",
+      "url": "https://item.taobao.com/item.htm?id=9900000000000900004&x2n_fixture=1&tracking=synthetic",
+      "expected": {"executable": false, "platform": "taobao", "reason": "taobao_nonsemantic_query_fragment_unsupported", "supported": true}
+    },
+    {
+      "id": "taobao-fragment-rejected",
+      "url": "https://item.taobao.com/item.htm?id=9900000000000900005&x2n_fixture=1#synthetic",
+      "expected": {"executable": false, "platform": "taobao", "reason": "taobao_nonsemantic_query_fragment_unsupported", "supported": true}
+    },
+    {
+      "id": "taobao-signature-input-rejected",
+      "url": "https://item.taobao.com/item.htm?id=9900000000000900006&x2n_fixture=1&sign=",
+      "expected": {"executable": false, "platform": "taobao", "reason": "taobao_undocumented_signature_input_rejected", "supported": true}
+    },
+    {
+      "id": "taobao-missing-id-unsupported",
+      "url": "https://item.taobao.com/item.htm",
+      "expected": {"executable": false, "platform": null, "reason": "unsupported_page", "supported": false}
+    },
+    {
+      "id": "taobao-invalid-id-unsupported",
+      "url": "https://item.taobao.com/item.htm?id=synthetic-item",
+      "expected": {"executable": false, "platform": null, "reason": "unsupported_page", "supported": false}
+    },
+    {
+      "id": "taobao-tmall-route-unsupported",
+      "url": "https://detail.tmall.com/item.htm?id=9900000000000900007",
+      "expected": {"executable": false, "platform": null, "reason": "unsupported_page", "supported": false}
+    },
+    {
+      "id": "taobao-http-rejected",
+      "url": "http://item.taobao.com/item.htm?id=9900000000000900008&x2n_fixture=1",
+      "expected": {"executable": false, "platform": null, "reason": "unsafe_url", "supported": false}
+    },
+    {
+      "id": "taobao-explicit-port-rejected",
+      "url": "https://item.taobao.com:444/item.htm?id=9900000000000900009&x2n_fixture=1",
+      "expected": {"executable": false, "platform": null, "reason": "unsafe_url", "supported": false}
+    },
+    {
+      "id": "taobao-lookalike-unsupported",
+      "url": "https://item.taobao.com.example/item.htm?id=9900000000000900010&x2n_fixture=1",
+      "expected": {"executable": false, "platform": null, "reason": "unsupported_page", "supported": false}
+    },
+    {
+      "id": "taobao-userinfo-rejected",
+      "url": "https://synthetic@item.taobao.com/item.htm?id=9900000000000900011&x2n_fixture=1",
+      "expected": {"executable": false, "platform": null, "reason": "unsafe_url", "supported": false}
+    }
+  ],
+  "undocumented_signature_cases": [
+    {"id": "signature-sign", "url": "https://item.taobao.com/item.htm?id=9900000000000910001&x2n_fixture=1&sign="},
+    {"id": "signature-method", "url": "https://item.taobao.com/item.htm?id=9900000000000910002&x2n_fixture=1&sign_method="},
+    {"id": "signature-m-h5-token", "url": "https://item.taobao.com/item.htm?id=9900000000000910003&x2n_fixture=1&_m_h5_tk="},
+    {"id": "signature-m-h5-token-encoding", "url": "https://item.taobao.com/item.htm?id=9900000000000910004&x2n_fixture=1&_m_h5_tk_enc="},
+    {"id": "signature-h5st", "url": "https://item.taobao.com/item.htm?id=9900000000000910005&x2n_fixture=1&h5st="},
+    {"id": "signature-x-sign", "url": "https://item.taobao.com/item.htm?id=9900000000000910006&x2n_fixture=1&x-sign="},
+    {"id": "signature-x-mini-wua", "url": "https://item.taobao.com/item.htm?id=9900000000000910007&x2n_fixture=1&x-mini-wua="},
+    {"id": "signature-x-sgext", "url": "https://item.taobao.com/item.htm?id=9900000000000910008&x2n_fixture=1&x-sgext="},
+    {"id": "signature-x-umt", "url": "https://item.taobao.com/item.htm?id=9900000000000910009&x2n_fixture=1&x-umt="},
+    {"id": "signature-x-bx-version", "url": "https://item.taobao.com/item.htm?id=9900000000000910010&x2n_fixture=1&x-bx-version="},
+    {"id": "signature-api", "url": "https://item.taobao.com/item.htm?id=9900000000000910011&x2n_fixture=1&api=mtop.synthetic.item"},
+    {"id": "signature-data", "url": "https://item.taobao.com/item.htm?id=9900000000000910012&x2n_fixture=1&data="},
+    {"id": "signature-timestamp", "url": "https://item.taobao.com/item.htm?id=9900000000000910013&x2n_fixture=1&t="},
+    {"id": "signature-jsv", "url": "https://item.taobao.com/item.htm?id=9900000000000910014&x2n_fixture=1&jsv="},
+    {"id": "signature-ecode", "url": "https://item.taobao.com/item.htm?id=9900000000000910015&x2n_fixture=1&ecode="},
+    {"id": "signature-anti-flood", "url": "https://item.taobao.com/item.htm?id=9900000000000910016&x2n_fixture=1&anti_flood="}
+  ],
+  "contains_cookies": false,
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "contains_real_accounts": false,
+  "contains_signature_material": false,
+  "real_accounts": false
+}

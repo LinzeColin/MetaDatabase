@@ -12,25 +12,34 @@ from typing import Any
 from x2n_contracts import ErrorCode
 
 from .canonical_store import CanonicalStore
+from .media_safety import scan_persisted_scopes
 from .runtime import RuntimePaths, X2NRuntimeError
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 TASK_ID = "TSK.x2n.foundation.003"
+MEDIA_TASK_ID = "TSK.x2n.skeleton.003"
+FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
 def _emit(payload: dict[str, Any], *, stream: Any = sys.stdout) -> None:
     stream.write(json.dumps(payload, ensure_ascii=False, sort_keys=True) + "\n")
 
 
-def _success(action: str, **details: Any) -> dict[str, Any]:
+def _success(
+    action: str,
+    *,
+    acceptance_scope: str = FOUNDATION_RECEIPT_DEFAULTS["acceptance_scope"],
+    task_id: str = TASK_ID,
+    **details: Any,
+) -> dict[str, Any]:
     return {
-        "acceptance_scope": "FOUNDATION_003_LOCAL_STORE",
+        "acceptance_scope": acceptance_scope,
         "action": action,
         "private_path_emitted": False,
         "real_account_execution": "NOT_RUN",
         "status": "PASS",
-        "task_id": TASK_ID,
+        "task_id": task_id,
         **details,
     }
 
@@ -40,7 +49,24 @@ def _store(*, create: bool) -> CanonicalStore:
     return CanonicalStore(paths)
 
 
+def _paths() -> RuntimePaths:
+    return RuntimePaths.from_environment(repository_root=PROJECT_ROOT, create=False)
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if args.action == "verify":
+        if args.verify_action != "cdn-zero":
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown verification action")
+        scopes = tuple(item.strip() for item in args.scopes.split(",") if item.strip())
+        report = scan_persisted_scopes(_paths(), scopes)
+        if report.total_findings:
+            raise X2NRuntimeError(ErrorCode.CDN_PERSISTENCE_BLOCKED, "Persistent media address findings blocked verification")
+        return _success(
+            "verify_cdn_zero",
+            acceptance_scope="SKELETON_003_MEDIA_ZERO",
+            task_id=MEDIA_TASK_ID,
+            **report.safe_dict(),
+        )
     if args.action == "init":
         return _success("store_init", **_store(create=True).initialize())
     store = _store(create=False)
@@ -109,11 +135,20 @@ def build_parser() -> argparse.ArgumentParser:
     recover = subparsers.add_parser("recover")
     recover.add_argument("--apply", action="store_true")
     recover.add_argument("--confirm")
+    verify = subparsers.add_parser("verify")
+    verify_actions = verify.add_subparsers(dest="verify_action", required=True)
+    cdn_zero = verify_actions.add_parser("cdn-zero")
+    cdn_zero.add_argument(
+        "--scopes",
+        required=True,
+        help="Comma-separated fixed logical scopes: db,markdown,logs,notion-export,artifacts",
+    )
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    task_id = MEDIA_TASK_ID if args.action == "verify" else TASK_ID
     try:
         payload = run(args)
     except X2NRuntimeError as error:
@@ -123,7 +158,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "private_path_emitted": False,
                 "safe_message": error.safe_message,
                 "status": "FAIL_CLOSED",
-                "task_id": TASK_ID,
+                "task_id": task_id,
             },
             stream=sys.stderr,
         )
@@ -135,7 +170,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "private_path_emitted": False,
                 "safe_message": "Store operation failed closed",
                 "status": "FAIL_CLOSED",
-                "task_id": TASK_ID,
+                "task_id": task_id,
             },
             stream=sys.stderr,
         )

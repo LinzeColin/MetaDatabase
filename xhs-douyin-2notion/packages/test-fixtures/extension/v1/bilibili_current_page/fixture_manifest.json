@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S02.S006.001",
+  "synthetic": true,
+  "route_assumptions": {
+    "article_read_cv_route": "unverified_real_route_not_enabled",
+    "video_bv_route": "official_shape_evidence_real_route_not_enabled"
+  },
+  "cases": [
+    {
+      "id": "bilibili-video-detail",
+      "file": "video_detail.html",
+      "page_url": "https://www.bilibili.com/video/synthetic-bili-video-001?tracking=discarded#discarded",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-bili-video-001",
+        "content_type": "video",
+        "title": "Synthetic Bilibili video",
+        "page_url": "https://www.bilibili.com/video/synthetic-bili-video-001"
+      }
+    },
+    {
+      "id": "bilibili-article-text",
+      "file": "article_text.html",
+      "page_url": "https://www.bilibili.com/read/synthetic-bili-article-001?tracking=discarded",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-bili-article-001",
+        "content_type": "text",
+        "title": "Synthetic Bilibili article",
+        "page_url": "https://www.bilibili.com/read/synthetic-bili-article-001"
+      }
+    },
+    {
+      "id": "bilibili-article-gallery",
+      "file": "article_gallery.html",
+      "page_url": "https://www.bilibili.com/read/synthetic-bili-article-002",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-bili-article-002",
+        "content_type": "image_gallery",
+        "title": "Synthetic gallery article",
+        "page_url": "https://www.bilibili.com/read/synthetic-bili-article-002"
+      }
+    },
+    {
+      "id": "bilibili-article-mixed",
+      "file": "article_mixed.html",
+      "page_url": "https://www.bilibili.com/read/synthetic-bili-article-003#discarded",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-bili-article-003",
+        "content_type": "mixed",
+        "title": "Synthetic mixed article",
+        "page_url": "https://www.bilibili.com/read/synthetic-bili-article-003"
+      }
+    },
+    {
+      "id": "bilibili-missing-fields",
+      "file": "missing_fields.html",
+      "page_url": "https://www.bilibili.com/video/synthetic-bili-video-002",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-bili-video-002",
+        "content_type": "unknown",
+        "title": null,
+        "page_url": "https://www.bilibili.com/video/synthetic-bili-video-002"
+      }
+    },
+    {
+      "id": "bilibili-changed-id",
+      "file": "changed_id.html",
+      "page_url": "https://www.bilibili.com/video/synthetic-bili-video-003",
+      "expected": {"status": "platform_changed", "reason": "stable_id_signal_mismatch"}
+    },
+    {
+      "id": "bilibili-kind-mismatch",
+      "file": "kind_mismatch.html",
+      "page_url": "https://www.bilibili.com/video/synthetic-bili-video-004",
+      "expected": {"status": "platform_changed", "reason": "content_type_signal_mismatch"}
+    },
+    {
+      "id": "bilibili-feed-card",
+      "file": "feed_card.html",
+      "page_url": "https://www.bilibili.com/video/synthetic-bili-video-005",
+      "expected": {"status": "platform_changed", "reason": "detail_surface_missing"}
+    },
+    {
+      "id": "bilibili-ambiguous-detail",
+      "file": "ambiguous_detail.html",
+      "page_url": "https://www.bilibili.com/read/synthetic-bili-article-004",
+      "expected": {"status": "platform_changed", "reason": "detail_surface_ambiguous"}
+    },
+    {
+      "id": "bilibili-semantic-query",
+      "file": "semantic_query.html",
+      "page_url": "https://www.bilibili.com/video/synthetic-bili-video-006?p=2",
+      "expected": {"status": "platform_changed", "reason": "semantic_query_unsupported"}
+    }
+  ],
+  "policy_cases": [
+    {
+      "id": "bilibili-real-shaped-video-disabled",
+      "url": "https://www.bilibili.com/video/BV1RealShape0",
+      "expected": {"executable": false, "platform": "bilibili", "reason": "bilibili_policy_unknown_real_page_disabled", "supported": true}
+    },
+    {
+      "id": "bilibili-real-shaped-article-disabled",
+      "url": "https://www.bilibili.com/read/cv100000001",
+      "expected": {"executable": false, "platform": "bilibili", "reason": "bilibili_policy_unknown_real_page_disabled", "supported": true}
+    },
+    {
+      "id": "bilibili-foundation-video-remains-disabled",
+      "url": "https://www.bilibili.com/video/BV1Synthetic001",
+      "expected": {"executable": false, "platform": "bilibili", "reason": "bilibili_policy_unknown_real_page_disabled", "supported": true}
+    },
+    {
+      "id": "bilibili-bare-host-disabled",
+      "url": "https://bilibili.com/read/synthetic-bili-article-007",
+      "expected": {"executable": false, "platform": "bilibili", "reason": "bilibili_noncanonical_host_disabled", "supported": true}
+    },
+    {
+      "id": "bilibili-semantic-query-disabled",
+      "url": "https://www.bilibili.com/video/synthetic-bili-video-007?p=2",
+      "expected": {"executable": false, "platform": "bilibili", "reason": "bilibili_semantic_query_unsupported", "supported": true}
+    },
+    {
+      "id": "bilibili-space-unsupported",
+      "url": "https://space.bilibili.com/synthetic",
+      "expected": {"executable": false, "platform": null, "reason": "unsupported_page", "supported": false}
+    },
+    {
+      "id": "bilibili-short-host-unsupported",
+      "url": "https://b23.tv/synthetic",
+      "expected": {"executable": false, "platform": null, "reason": "unsupported_page", "supported": false}
+    },
+    {
+      "id": "bilibili-explicit-port-rejected",
+      "url": "https://www.bilibili.com:444/video/synthetic-bili-video-008",
+      "expected": {"executable": false, "platform": null, "reason": "unsafe_url", "supported": false}
+    }
+  ],
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "contains_real_accounts": false,
+  "real_accounts": false
+}

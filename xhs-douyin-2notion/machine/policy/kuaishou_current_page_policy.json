@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "KUAISHOU.CURRENT_PAGE.X2N.001",
+  "phase": "PH.X2N.2.4",
+  "default": "deny",
+  "feature_flag": {
+    "name": "kuaishou_current_page",
+    "value": "ci_synth_only",
+    "real_page_execution": false,
+    "owner_canary": "not_run"
+  },
+  "platform_policy_state": "blocked_auth_real_page_unknown_disabled_dom_fallback",
+  "execution_environment": "ENV-CI-SYNTH",
+  "production_api_transport": false,
+  "official_first_gate": {
+    "oauth_available": true,
+    "application_registration_required": true,
+    "dynamic_user_consent_required": true,
+    "minimum_necessary_scope_required": true,
+    "authorized_user_video_info_available": true,
+    "arbitrary_public_current_page_read_capability": "not_found",
+    "likes_or_favorites_read_capability": "not_found",
+    "automated_dom_collection_permission": "not_found"
+  },
+  "auth_gate": {
+    "required_scope": "user_video_info",
+    "current_scope_state": "not_configured",
+    "missing_or_withdrawn_scope_state": "BLOCKED_AUTH",
+    "access_token_input": false,
+    "cookie_input": false,
+    "browser_profile_input": false
+  },
+  "route_evidence": {
+    "official_content_identity": "photo_id_for_oauth_authorized_user_video_info",
+    "public_short_video_route": "unverified_route_assumption_ci_fixture_only",
+    "short_link_route": "not_in_scope_unknown_disabled",
+    "profile_or_selected_collection": "not_in_scope_unknown_disabled"
+  },
+  "current_page_contract": {
+    "owner_action_required": true,
+    "active_tab_required": true,
+    "isolated_world": true,
+    "focused_tab_and_url_rechecked": true,
+    "automatic_scrolling": false,
+    "automatic_pagination": false,
+    "account_state_change": false,
+    "query_or_fragment_persistence": false,
+    "media_url_or_raw_dom_output": false,
+    "non_synthetic_identity_capture": false
+  },
+  "synthetic_gate": {
+    "video_id_prefix": "synthetic-ks-video-",
+    "canonical_host": "www.kuaishou.com",
+    "dom_case_count": 8,
+    "policy_case_count": 10,
+    "blocked_auth_case_count": 2,
+    "platform_network_calls": 0
+  },
+  "official_evidence_registry": "machine/policy/platform_policy_registry.json#official_sources.kuaishou",
+  "policy_findings": {
+    "unauthorized_automated_collection": "forbidden_by_developer_service_agreement",
+    "user_video_scope": "oauth_authorized_user_published_works_only",
+    "real_current_page_dom_exemption": "not_found",
+    "decision": "retain_blocked_auth_for_real_pages_and_unknown_disabled_for_dom_fallback"
+  },
+  "rollback": "set_kuaishou_current_page_false_and_retain_public_synthetic_fixtures",
+  "future_enablement_requires": [
+    "independent_versioned_task",
+    "approved_application",
+    "dynamic_owner_consent",
+    "user_video_info_scope_receipt",
+    "documented_current_page_identity_mapping",
+    "data_deletion_and_revocation_design",
+    "owner_canary_and_completeness_receipt"
+  ]
+}
