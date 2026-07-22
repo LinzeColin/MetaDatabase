@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 / Adapters 008
+
+- 基于固定 `Adapters007@a088ea87…` 在独立 worktree 开发；A007 verifier 固定到 final commit blob，旧 Evidence 逐字节不改写，A009/A005/G3/上传均未进入。
+- 复核 Weibo 一手 favorites/OAuth/Scope/限频/错误码/计划配额与存储规则，以及 RFC 429/`Retry-After`：官方存在当前登录用户 favorites API，但本应用权限、价格、配额和 canonical route 未获批准，Owner 预算为 0，因此真实请求继续关闭。
+- 新增 credential-free App/OAuth/cost/quota receipt 与单页 `WeiboSelectedIterator`：仅接受 page 1、固定 20 条、Owner 明确动作的严格净化清单；无 network/OAuth/DOM/cursor transport、自动分页/滚动/重试、代理、购买或 raw API response。
+- 新增 SQLite `WeiboSelectedAdapter`：20 条合成 favorites 原子映射为 20 Content、20 scan-confirmed `favorited` Relation 与 20 Observation；`source_collection_id`/`full_scan_id` 为空，fake `liked`/`saved_current`、删除和分类写入均为 0。
+- HTTP 429 必须携带 canonical `Retry-After` 秒数或日期；120 秒保持窗内恢复拒绝，checkpoint/Canonical 写入、自动请求、代理轮换均为 0，保持窗后仍需新的显式 Owner batch。Auth/OAuth/Budget/Policy kill 只影响对应 scan，撤权后请求 0 并生成 1 个 cleanup-required receipt。
+- 58 个公共合成合同 cases、18 个专项单测和 50 次真实进程事务内 Kill 通过；lost/duplicate/checkpoint premature advance 均为 0。固定 20 条 Canary 只生成非执行计划，真实 App/OAuth/API/CLI/DOM/Profile/账号/Canary `NOT_RUN`。
+- 最终 240 个 root tests（237 PASS、3 个固定可选 skip）、188 个 Companion tests 与 12 个 Contract tests 通过；full lane 两轮 24/24，coverage 79.30%，33 个依赖漏洞 0，76-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
 ## v0.0.0.1 — Stage 3 / Adapters 007
 
 - 基于固定 `Adapters006@5b6564d2…` 在独立 worktree 开发；A006 verifier 改为从 final commit blob 验收历史 Task/State/实现/Fixture/Evidence，旧证据逐字节不改写。

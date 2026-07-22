@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "manifest_id": "FIXTURE.X2N.016",
-  "phase": "PH.X2N.3.6",
+  "manifest_id": "FIXTURE.X2N.017",
+  "phase": "PH.X2N.3.7",
   "fixtures": [
     {
       "id": "FIXTURE.X2N.S00.P05.001",
@@ -140,9 +140,15 @@
       "path": "packages/test-fixtures/adapters/v1/kuaishou_selected/fixture_manifest.json",
       "case_count": 43,
       "purpose": "Kuaishou documented user_video_info owner-published-video selection, 20 owner-confirmed saved_current mappings, consent-revocation retention gate, seven blocked states and 50 process-kill recovery"
+    },
+    {
+      "id": "FIXTURE.X2N.S03.A008.001",
+      "path": "packages/test-fixtures/adapters/v1/weibo_selected/fixture_manifest.json",
+      "case_count": 58,
+      "purpose": "Weibo official current-user favorites selection, 20 scan-confirmed favorited mappings, zero-budget and unknown-price/quota gates, RFC Retry-After hold, eight blocked states and 50 process-kill recovery"
     }
   ],
-  "status": "six_platform_current_page_plus_profile_session_guard_plus_xhs_favorites_likes_checkpoint_plus_pinned_douyin_sidecar_plus_bilibili_and_kuaishou_authorized_owner_selection_contracts_ci_synthetic_fixtures_pass_owner_canary_not_run",
+  "status": "six_platform_current_page_plus_profile_session_guard_plus_xhs_favorites_likes_checkpoint_plus_pinned_douyin_sidecar_plus_bilibili_kuaishou_and_weibo_authorized_owner_selection_contracts_ci_synthetic_fixtures_pass_owner_canary_not_run",
   "future_requirements": {
     "source_must_be_declared": true,
     "real_account_content_allowed": false,

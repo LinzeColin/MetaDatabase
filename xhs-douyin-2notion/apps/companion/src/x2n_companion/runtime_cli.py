@@ -31,6 +31,7 @@ from .profile_session import (
     safe_reference_configured,
 )
 from .runtime import PROFILE_PLATFORMS, RuntimePaths, X2NRuntimeError
+from .weibo_selected import build_weibo_canary_plan
 from .xiaohongshu_favorites import build_xhs_favorites_canary_plan
 from .xiaohongshu_likes import build_xhs_likes_canary_plan
 
@@ -44,6 +45,7 @@ XHS_LIKES_TASK_ID = "TSK.x2n.adapters.003"
 DOUYIN_TASK_ID = "TSK.x2n.adapters.004"
 BILIBILI_TASK_ID = "TSK.x2n.adapters.006"
 KUAISHOU_TASK_ID = "TSK.x2n.adapters.007"
+WEIBO_TASK_ID = "TSK.x2n.adapters.008"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
@@ -118,6 +120,15 @@ def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if args.action == "weibo":
+        if args.weibo_action != "canary-plan":
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Weibo action")
+        return _success(
+            "weibo_canary_plan",
+            acceptance_scope="ADAPTERS_008_CANARY_TOOLING",
+            task_id=WEIBO_TASK_ID,
+            plan=build_weibo_canary_plan(args.max_items),
+        )
     if args.action == "kuaishou":
         if args.kuaishou_action != "canary-plan":
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Kuaishou action")
@@ -267,6 +278,10 @@ def build_parser() -> argparse.ArgumentParser:
     kuaishou_actions = kuaishou.add_subparsers(dest="kuaishou_action", required=True)
     kuaishou_canary_plan = kuaishou_actions.add_parser("canary-plan")
     kuaishou_canary_plan.add_argument("--max-items", type=int, default=20)
+    weibo = subparsers.add_parser("weibo")
+    weibo_actions = weibo.add_subparsers(dest="weibo_action", required=True)
+    weibo_canary_plan = weibo_actions.add_parser("canary-plan")
+    weibo_canary_plan.add_argument("--max-items", type=int, default=20)
     douyin = subparsers.add_parser("douyin")
     douyin_actions = douyin.add_subparsers(dest="douyin_action", required=True)
     douyin_canary_plan = douyin_actions.add_parser("canary-plan")
@@ -319,6 +334,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     task_id = (
         MEDIA_TASK_ID
         if args.action == "verify"
+        else WEIBO_TASK_ID
+        if args.action == "weibo"
         else KUAISHOU_TASK_ID
         if args.action == "kuaishou"
         else BILIBILI_TASK_ID

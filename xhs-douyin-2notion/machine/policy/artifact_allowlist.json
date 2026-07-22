@@ -70,6 +70,9 @@
     "scripts/kuaishou_selected_chaos_worker.py",
     "scripts/run_adapters_007_acceptance.py",
     "scripts/verify_adapters_007.py",
+    "scripts/weibo_selected_chaos_worker.py",
+    "scripts/run_adapters_008_acceptance.py",
+    "scripts/verify_adapters_008.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

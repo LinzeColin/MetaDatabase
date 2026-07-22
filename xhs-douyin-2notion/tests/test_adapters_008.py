@@ -10,8 +10,8 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
-    "verify_adapters_007",
-    PROJECT_ROOT / "scripts/verify_adapters_007.py",
+    "verify_adapters_008",
+    PROJECT_ROOT / "scripts/verify_adapters_008.py",
 )
 assert SPEC and SPEC.loader
 VERIFY = importlib.util.module_from_spec(SPEC)
@@ -19,7 +19,7 @@ sys.modules[SPEC.name] = VERIFY
 SPEC.loader.exec_module(VERIFY)
 
 
-class Adapters007VerifierTests(unittest.TestCase):
+class Adapters008VerifierTests(unittest.TestCase):
     def test_static_task_checks_pass(self) -> None:
         checks = VERIFY.run_checks(
             verify_worktree=False,
@@ -28,14 +28,13 @@ class Adapters007VerifierTests(unittest.TestCase):
         )
         self.assertEqual([item.status for item in checks], ["PASS"] * len(checks))
 
-    def test_run_is_exactly_one_task_and_pinned_by_adapters008(self) -> None:
-        self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.adapters.007")
-        self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S03-A007")
-        self.assertEqual(VERIFY.PHASE, "PH.X2N.3.6")
-        self.assertEqual(VERIFY.TASK_BASE_COMMIT, "5b6564d289ab3d188015265faf55cceb13fd577a")
-        self.assertEqual(VERIFY.FINAL_COMMIT, "a088ea8787acf5b4b2f358317135b089054f1160")
+    def test_run_is_exactly_one_task(self) -> None:
+        self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.adapters.008")
+        self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S03-A008")
+        self.assertEqual(VERIFY.PHASE, "PH.X2N.3.7")
+        self.assertEqual(VERIFY.TASK_BASE_COMMIT, "a088ea8787acf5b4b2f358317135b089054f1160")
         rendered = "\n".join(sorted(VERIFY.ALLOWED_CHANGED_EXACT | set(VERIFY.ALLOWED_CHANGED_PREFIXES)))
-        self.assertIn("kuaishou_selected", rendered)
+        self.assertIn("weibo_selected", rendered)
         self.assertNotIn("migrations.py", rendered)
         self.assertNotIn("apps/extension/src", rendered)
 
@@ -46,50 +45,37 @@ class Adapters007VerifierTests(unittest.TestCase):
             VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, VERIFY.PREVIOUS.EVIDENCE),
         )
         for path in VERIFY.UNCHANGED_SECURITY_SURFACES:
-            self.assertEqual(
-                VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, path),
-                VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path),
-            )
+            self.assertEqual(path.read_bytes(), VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path))
 
-    def test_historical_inputs_and_evidence_are_read_from_final_commit(self) -> None:
-        self.assertEqual(VERIFY.PREVIOUS.FINAL_COMMIT, VERIFY.TASK_BASE_COMMIT)
-        self.assertEqual(
-            VERIFY.EVIDENCE.read_bytes(),
-            VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, VERIFY.EVIDENCE),
-        )
-        historical_state = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.TASK_STATE)
-        self.assertEqual(historical_state["next_run"], "TSK.x2n.adapters.008")
-        self.assertNotIn("TSK.x2n.adapters.008", historical_state["tasks"])
-
-    def test_policy_keeps_real_transport_and_unsupported_lists_disabled(self) -> None:
+    def test_policy_keeps_real_transport_budget_and_unknown_quota_disabled(self) -> None:
         policy = VERIFY._load_json(VERIFY.POLICY)
         self.assertFalse(policy["feature_gate"]["production_enabled"])
         self.assertFalse(policy["feature_gate"]["platform_requests"])
         self.assertFalse(policy["transport"]["network_client"])
-        self.assertFalse(policy["transport"]["browser_dom_iterator"])
+        self.assertFalse(policy["transport"]["oauth_client"])
         self.assertFalse(policy["official_capability"]["canonical_public_route_attested"])
-        self.assertFalse(policy["consent_and_retention"]["production_delete_executor_present"])
-        self.assertEqual(policy["consent_and_retention"]["new_requests_after_revocation"], 0)
-        capability = policy["official_capability"]
-        self.assertEqual(capability["required_scope"], "user_video_info")
-        self.assertEqual(capability["arbitrary_personal_favorites_list"], "unknown_disabled")
-        self.assertEqual(capability["arbitrary_personal_likes_list"], "unknown_disabled")
+        budget = policy["budget_and_quota"]
+        self.assertEqual(budget["owner_approved_budget_units"], 0)
+        self.assertEqual(budget["pricing_snapshot"], "unknown_not_approved")
+        self.assertEqual(budget["quota_snapshot"], "unknown_not_approved")
+        rate = policy["rate_limit"]
+        self.assertTrue(rate["retry_after_required_for_429"])
+        self.assertFalse(rate["automatic_retry"])
+        self.assertFalse(rate["proxy_rotation"])
 
-    def test_fixture_is_public_synthetic_and_maps_owner_saved_current(self) -> None:
+    def test_fixture_is_public_synthetic_and_maps_official_favorites(self) -> None:
         fixture = VERIFY._load_json(VERIFY.FIXTURE)
         self.assertTrue(fixture["synthetic"])
-        self.assertEqual(len(fixture["cases"]), 43)
-        self.assertEqual(len(set(fixture["cases"])), 43)
+        self.assertEqual(len(fixture["cases"]), 58)
+        self.assertEqual(len(set(fixture["cases"])), 58)
         mapping = fixture["mapping"]
         self.assertEqual(mapping["selected_manifest_items"], 20)
         self.assertEqual(mapping["expected_identified_percent"], 100)
-        self.assertEqual(mapping["expected_saved_current_relations"], 20)
+        self.assertEqual(mapping["expected_favorited_relations"], 20)
+        self.assertEqual(mapping["expected_scan_confirmed_relations"], 20)
         self.assertEqual(mapping["expected_liked_relations"], 0)
-        self.assertEqual(mapping["expected_favorited_relations"], 0)
-        retention = fixture["consent_and_retention"]
-        self.assertEqual(retention["expected_new_requests_after_revocation"], 0)
-        self.assertEqual(retention["expected_retention_delete_required_receipts"], 1)
-        self.assertEqual(retention["expected_historical_relation_deletes"], 0)
+        self.assertEqual(mapping["expected_saved_current_relations"], 0)
+        self.assertEqual(fixture["rate_limit"]["retry_after_seconds"], 120)
         for field in (
             "contains_accounts",
             "contains_cookies",
@@ -101,6 +87,7 @@ class Adapters007VerifierTests(unittest.TestCase):
             self.assertFalse(fixture[field])
 
     def test_full_lane_report_is_independently_fail_closed(self) -> None:
+        gates = VERIFY.PREVIOUS.PREVIOUS.PREVIOUS.PREVIOUS.PREVIOUS.PREVIOUS.FULL_LANE_GATES
         report = {
             "artifact_deterministic": True,
             "artifact_report": {
@@ -122,7 +109,7 @@ class Adapters007VerifierTests(unittest.TestCase):
                     "status": "PASS",
                 }
                 for repetition in (1, 2)
-                for gate in VERIFY.PREVIOUS.PREVIOUS.PREVIOUS.PREVIOUS.PREVIOUS.FULL_LANE_GATES
+                for gate in gates
             ],
             "coverage": {"branch_mode": True, "overall_combined_percent": 78.0, "status": "PASS"},
             "explicit_nonblocking_skips": 6,
@@ -140,7 +127,7 @@ class Adapters007VerifierTests(unittest.TestCase):
             "silent_blocking_skips": 0,
             "status": "PASS",
         }
-        with tempfile.TemporaryDirectory(prefix="x2n-a007-lane-") as value:
+        with tempfile.TemporaryDirectory(prefix="x2n-a008-lane-") as value:
             path = Path(value) / "software-lane.json"
             path.write_text(json.dumps(report), encoding="utf-8")
             self.assertEqual(VERIFY.validate_full_lane_report(path).status, "PASS")
