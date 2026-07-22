@@ -9,7 +9,7 @@
     {"id": "bilibili", "display_name": "哔哩哔哩", "policy_state": "unknown_disabled", "preferred_strategy": "official_open_platform_first", "current_page_implementation_state": "ci_synth_pass_real_page_and_api_disabled_article_route_unverified_owner_canary_not_run"},
     {"id": "kuaishou", "display_name": "快手", "policy_state": "unknown_disabled", "preferred_strategy": "official_oauth_api_first", "current_page_implementation_state": "ci_synth_pass_real_page_blocked_auth_api_transport_and_dom_fallback_disabled_route_unverified_owner_canary_not_run"},
     {"id": "weibo", "display_name": "微博", "policy_state": "unknown_disabled", "preferred_strategy": "official_api_budget_gated", "current_page_implementation_state": "ci_synth_pass_real_page_blocked_budget_api_and_dom_fallback_disabled_arbitrary_url_surface_absent_route_unverified_owner_canary_not_run"},
-    {"id": "taobao", "display_name": "淘宝", "policy_state": "unknown_disabled", "preferred_strategy": "official_oauth_api_first"}
+    {"id": "taobao", "display_name": "淘宝", "policy_state": "unknown_disabled", "preferred_strategy": "official_oauth_api_first", "current_page_implementation_state": "ci_synth_pass_real_page_api_and_dom_unknown_disabled_scope_retention_unapproved_cookie_mtop_signature_surface_absent_owner_canary_not_run"}
   ],
   "capabilities": ["current_page", "selected_collection", "preview", "ephemeral_download", "classify"],
   "capability_states": ["supported", "blocked_policy", "blocked_auth", "blocked_technical", "unknown_disabled"],
@@ -24,6 +24,6 @@
     "independent_platform_feature_flag_and_kill_switch"
   ],
   "implementation_started": true,
-  "implementation_scope": "xiaohongshu_douyin_bilibili_kuaishou_and_weibo_current_page_ci_synth_only",
+  "implementation_scope": "six_platform_current_page_ci_synth_only",
   "real_platform_calls": false
 }

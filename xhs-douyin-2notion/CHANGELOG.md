@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.0.1 — Stage 2 / Skeleton 009
+
+- 复核淘宝一手 API/协议/隐私规则：`taobao.item.get` 是需授权的增值 API，以 `num_iid` 标识商品；私有商品/订单/收藏数据需要 OAuth，TOP 官方签名协议有文档，但本应用无 App/OAuth/API Permission/付费计划/字段范围/保留期/删除回执审批。
+- 实现淘宝独立 CI-synthetic 当前页 detector/extractor：精确 `item.taobao.com/item.htm`、合成数字 `num_iid`、location/canonical/OG/detail `data-num-iid` 交叉校验、净化标题/null、既有 ContentType 与 provenance；不读取 media `src`、raw DOM、Cookie 或浏览器状态。
+- 新增 8 个 DOM Fixture（4 ready、4 platform-changed）、14 个 Policy Fixture、2 个 Scope/Retention 未知拒绝、16 个未文档化 Cookie/MTop 签名输入拒绝及 7 个 schema-drift 拒绝；真实路由只登记为未验证合成假设。
+- 页面观察 `id` 后只把值存为 `content_id`，Canonical 固定为无 Query/Fragment 的 Host/Path，继续满足 Native v1 合同；生产 TOP/OAuth transport、凭据/Cookie/Profile 输入、DOM fallback 与 Owner Canary 全部关闭或未运行。
+- 复用 4 权限、0 Host Permission 的 Side Panel/`activeTab`/ISOLATED world/Native v1/SQLite 链路；六平台真实按钮合成采集、Action 前各 2 个拒绝、各 100 次 Service Worker 重启均通过，平台调用、丢单、重单、错状态为 0。
+- Skeleton008 历史 Task/State/Policy/Evidence 固定到 `7e8a3dbf…`，旧验收只读取历史 blob；当前树继续此前五个平台安全与行为回归，历史 Evidence 不重写。
+- 根回归 149 tests PASS、3 个显式可选 Owner-private input skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 70.95%，33 dependencies 的 OSV vulnerability 0，60-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.capture.006` 与 `ACC.x2n.ext.001` 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 为 `TSK.x2n.skeleton.003`。
+
 ## v0.0.0.1 — Stage 2 / Skeleton 008
 
 - 复核微博一手 API/CLI/协议：`statuses/show` 需要 OAuth 且只查询授权用户本人发布内容；应用/user/IP 有频率控制，额外容量可能涉及付费，但本应用价格、Scope、配额与付费层均未批准。

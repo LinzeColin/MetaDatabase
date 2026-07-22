@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.2.5",
+  "phase": "PH.X2N.2.6",
   "default": "deny",
   "research_cutoff": "2026-07-22",
   "policy_recheck_required_at_platform_phase_start": true,
@@ -68,7 +68,16 @@
       "https://open.weibo.com/wiki/应用安全开发注意事项",
       "https://weibo.com/openapi"
     ],
-    "taobao": ["https://developer.alibaba.com/docs/doc.htm?articleId=103499&docType=1&treeId=782"]
+    "taobao": [
+      "https://developer.alibaba.com/docs/api.htm?apiId=20",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=101617&docType=1&treeId=153",
+      "https://developer.alibaba.com/docs/doc.htm.htm?articleId=118&docType=1",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=104559&docType=1",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=104560&docType=1&treeId=713",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=117471&docType=1&treeId=775",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=120402&docType=1&treeId=253",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=121325&docType=1&treeId=775"
+    ]
   },
   "forbidden_methods": [
     "automatic_scrolling",
@@ -97,8 +106,8 @@
     "bilibili_current_page": "ci_synth_only_policy_unknown_real_page_and_api_disabled_article_route_unverified_owner_canary_not_run",
     "kuaishou_current_page": "ci_synth_only_real_page_blocked_auth_api_transport_and_dom_fallback_disabled_route_unverified_owner_canary_not_run",
     "weibo_current_page": "ci_synth_only_real_page_blocked_budget_api_transport_dom_fallback_and_arbitrary_url_surface_disabled_route_unverified_owner_canary_not_run",
-    "xiaohongshu_selected_collection": "unknown_disabled",
-    "taobao_current_page": "unknown_disabled"
+    "taobao_current_page": "ci_synth_only_real_page_api_and_dom_unknown_disabled_scope_retention_unapproved_cookie_mtop_signature_surface_disabled_route_unverified_owner_canary_not_run",
+    "xiaohongshu_selected_collection": "unknown_disabled"
   },
   "policy_recheck": {
     "date": "2026-07-22",
@@ -156,9 +165,25 @@
       "arbitrary_url_preview_proxy": "permanently_forbidden_and_not_implemented",
       "current_budget_state": "blocked_budget",
       "decision": "retain_blocked_budget_for_real_pages_and_unknown_disabled_for_api_and_dom_fallback"
+    },
+    "taobao": {
+      "official_item_api": "taobao_item_get",
+      "official_item_api_class": "authorized_value_added_api",
+      "official_item_identity": "num_iid",
+      "official_item_detail_url": "item_taobao_com_item_htm_semantic_id_query",
+      "oauth": "documented_for_private_goods_orders_and_favorites_data",
+      "official_top_signing_protocol": "documented_not_implemented",
+      "application_and_item_api_permission": "not_configured_not_approved",
+      "paid_plan_and_budget": "not_approved_budget_zero",
+      "field_scope": "not_approved",
+      "retention_and_deletion_flow": "required_not_implemented_or_approved",
+      "platform_crawling": "prohibited",
+      "browser_mtop_cookie_signature_route": "permanently_forbidden_and_not_implemented",
+      "current_state": "unknown_disabled",
+      "decision": "retain_unknown_disabled_for_real_pages_top_api_and_dom_fallback"
     }
   },
   "product_code_started": true,
-  "product_code_scope": "xiaohongshu_douyin_bilibili_kuaishou_and_weibo_current_page_ci_synth_only",
+  "product_code_scope": "six_platform_current_page_ci_synth_only",
   "real_account_execution": false
 }

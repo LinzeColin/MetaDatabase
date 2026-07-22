@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 2` 的 `TSK.x2n.skeleton.001/.002/.006/.007/.008` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。小红书、抖音、哔哩哔哩、快手与微博当前详情页均具备稳定合成 ID、净化页面事实、`platform_changed`、Extension Action/临时 `activeTab`、Native Host 与 SQLite 队列闭环。微博新增 8/8 DOM、12/12 Policy、16/16 任意 URL/Redirect-SSRF 拒绝、2/2 真实形态预算拒绝与 7/7 schema-drift 拒绝；官方能力只证明 OAuth 授权用户本人发布内容的 `statuses/show`，本应用预算为 0，价格、Scope 与配额未获批准，因此真实页面、API/CLI transport 与 DOM fallback 保持关闭。五个平台各完成 Action 前 2 个拒绝、真实 Side Panel 按钮合成采集及 100 次 Service Worker 重启；无 Host Permission、静态 Content Script、Extension Storage、平台网络调用、Query/Fragment、任意 URL transport 或媒体地址持久化。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.009`。Markdown/Notion、ASR/OCR、分类、媒体、淘宝动作和真实平台执行均未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 2` 的 `TSK.x2n.skeleton.001/.002/.006/.007/.008/.009` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。小红书、抖音、哔哩哔哩、快手、微博和淘宝当前详情页均具备稳定合成 ID、净化页面事实、`platform_changed`、Extension Action/临时 `activeTab`、Native Host 与 SQLite 队列闭环。淘宝新增 8/8 DOM、14/14 Policy、16/16 未文档化 Cookie/MTop 签名输入拒绝、2/2 Scope/Retention 未知拒绝与 7/7 schema-drift 拒绝；一手资料只证明需授权且可能付费的 `taobao.item.get`、OAuth/TOP 协议与数据删除义务，本应用尚无 App/OAuth/API/付费/字段范围/保留期/删除回执审批，因此真实页面、TOP API 与 DOM fallback 保持 `UNKNOWN_DISABLED`。六个平台各完成 Action 前 2 个拒绝、真实 Side Panel 按钮合成采集及 100 次 Service Worker 重启；无 Host Permission、静态 Content Script、Extension Storage、平台网络调用、Query/Fragment、Cookie/签名材料或媒体地址持久化。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.003`。Markdown/Notion、ASR/OCR、分类、媒体、列表/Adapter 和真实平台执行均未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,34 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 2 / Skeleton 008 验证
+## Stage 2 / Skeleton 009 验证
+
+```bash
+npm run self-test --workspace @x2n/extension
+npm run test:taobao-fixtures --workspace @x2n/extension
+npm run test:taobao-extension --workspace @x2n/extension
+.venv/bin/python -B scripts/verify_skeleton_009.py \
+  --verify-worktree --allow-external-main-dirty \
+  --lane-report build/s02-skeleton009-final3/software-lane.json --require-evidence
+```
+
+`ACC.x2n.capture.006` 当前只达到 `ENV-CI-SYNTH`：4 个 ready、4 个
+`platform_changed`、14 个政策状态、2 个 Scope/Retention 未知拒绝、16/16 未文档化
+Cookie/MTop 签名输入拒绝与 7 个 schema-drift 拒绝全部通过。页面先交叉验证一手资料证明的
+`num_iid`，只把它写入 `content_id`；Canonical 只保留精确 `item.taobao.com/item.htm`
+Host/Path，Query/Fragment、Cookie/签名材料、媒体/raw DOM 与平台调用为 0。
+
+一手资料证明 `taobao.item.get` 是需授权的增值 API，私有商品/订单/收藏数据需要 OAuth，
+TOP 官方签名协议已登记；同时要求最小目的/范围与撤回、服务结束、保留期届满时删除，并禁止
+未授权爬取。本应用尚无 AppKey/OAuth/API Permission/付费计划/字段范围/保留期/删除撤销流程
+及删除回执审批，故真实页面、TOP API 和 DOM fallback 为 `UNKNOWN_DISABLED`。官方 TOP
+签名不是被禁止的未来路线，但本 Run 未实现；浏览器 Cookie/MTop 逆向签名输入永久拒绝。
+
+最终本地回归为 149 个根测试 PASS、3 个固定 Owner-private 可选输入 skip；full lane
+两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage
+70.95%，33 个依赖 OSV 漏洞 0，60-member source candidate 确定性一致且 Runtime Data 0。
+
+## Stage 2 / Skeleton 008 历史验证
 
 ```bash
 npm run self-test --workspace @x2n/extension

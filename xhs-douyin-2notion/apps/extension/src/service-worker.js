@@ -15,6 +15,11 @@ import {
   validateKuaishouPageFacts,
 } from "./kuaishou-current-page.js";
 import {
+  buildTaobaoCapturePayload,
+  extractTaobaoCurrentPage,
+  validateTaobaoPageFacts,
+} from "./taobao-current-page.js";
+import {
   buildWeiboCapturePayload,
   extractWeiboCurrentPage,
   validateWeiboPageFacts,
@@ -39,6 +44,11 @@ const CURRENT_PAGE_ADAPTERS = Object.freeze({
     buildPayload: buildKuaishouCapturePayload,
     extract: extractKuaishouCurrentPage,
     validate: validateKuaishouPageFacts,
+  }),
+  taobao: Object.freeze({
+    buildPayload: buildTaobaoCapturePayload,
+    extract: extractTaobaoCurrentPage,
+    validate: validateTaobaoPageFacts,
   }),
   weibo: Object.freeze({
     buildPayload: buildWeiboCapturePayload,

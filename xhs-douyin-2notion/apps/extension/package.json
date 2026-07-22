@@ -12,6 +12,8 @@
     "test:e2e": "node scripts/extension-e2e.mjs",
     "test:kuaishou-extension": "node scripts/extension-e2e.mjs kuaishou",
     "test:kuaishou-fixtures": "node scripts/kuaishou-fixture-e2e.mjs",
+    "test:taobao-extension": "node scripts/extension-e2e.mjs taobao",
+    "test:taobao-fixtures": "node scripts/taobao-fixture-e2e.mjs",
     "test:weibo-extension": "node scripts/extension-e2e.mjs weibo",
     "test:weibo-fixtures": "node scripts/weibo-fixture-e2e.mjs",
     "test:xhs-fixtures": "node scripts/xhs-fixture-e2e.mjs"

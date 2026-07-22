@@ -34,6 +34,13 @@ const CURRENT_PAGE_CONFIGS = Object.freeze({
     fixtureRoot: join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/kuaishou_current_page"),
     metricPrefix: "kuaishou",
   }),
+  taobao: Object.freeze({
+    caseId: "taobao-image-gallery",
+    expectedPath: "/item.htm",
+    expectedUrlFragment: "item.taobao.com/item.htm?id=9900000000000000001",
+    fixtureRoot: join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/taobao_current_page"),
+    metricPrefix: "taobao",
+  }),
   weibo: Object.freeze({
     caseId: "weibo-text-detail",
     expectedPath: "/detail/synthetic-wb-status-001",
@@ -483,11 +490,22 @@ try {
     timeout: 10_000,
   });
   await page.locator("#save-current").evaluate((button) => button.click());
-  await page.waitForFunction(
-    () => /^[0-9a-f-]{36}$/u.test(document.querySelector("#capture-status")?.dataset.jobId ?? ""),
-    undefined,
-    { timeout: 15_000 },
-  );
+  try {
+    await page.waitForFunction(
+      () => /^[0-9a-f-]{36}$/u.test(document.querySelector("#capture-status")?.dataset.jobId ?? ""),
+      undefined,
+      { timeout: 15_000 },
+    );
+  } catch (error) {
+    if (process.env.X2N_E2E_DEBUG === "1") {
+      const captureProbe = await page.locator("#capture-status").evaluate((element) => ({
+        hasJobId: Boolean(element.dataset.jobId),
+        status: element.textContent,
+      }));
+      process.stderr.write(`E2E_CAPTURE=${JSON.stringify(captureProbe)}\n`);
+    }
+    throw error;
+  }
   const submission = await page.locator("#capture-status").evaluate((element) => ({
     jobId: element.dataset.jobId,
     status: element.textContent,

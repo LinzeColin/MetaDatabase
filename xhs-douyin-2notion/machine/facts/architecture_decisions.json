@@ -1,15 +1,15 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.2.5",
-  "status": "skeleton_008_xhs_douyin_bilibili_kuaishou_weibo_current_page_ci_synth_pass_g2_not_run",
+  "phase": "PH.X2N.2.6",
+  "status": "skeleton_009_six_platform_current_page_ci_synth_pass_g2_not_run",
   "review_id": "STG.X2N.2.REVIEW",
   "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
   "decisions": [
     {"id": "ADR-001", "topic": "personal_knowledge_governance_boundary", "state": "accepted_design"},
     {"id": "ADR-002", "topic": "sqlite_canonical_truth", "state": "accepted_design", "implementation_state": "sqlite_schema_v2_store_scope_pass"},
-    {"id": "ADR-003", "topic": "chrome_side_panel_native_messaging_companion", "state": "accepted_design", "implementation_state": "xhs_douyin_bilibili_kuaishou_weibo_current_page_active_tab_scripting_isolated_synthetic_pass_owner_install_not_run"},
+    {"id": "ADR-003", "topic": "chrome_side_panel_native_messaging_companion", "state": "accepted_design", "implementation_state": "six_platform_current_page_active_tab_scripting_isolated_synthetic_pass_owner_install_not_run"},
     {"id": "ADR-004", "topic": "single_private_data_root_and_credentials", "state": "accepted_design", "implementation_state": "owner_empty_private_store_initialized_credentials_not_used"},
-    {"id": "ADR-005", "topic": "six_platform_policy_and_clean_room", "state": "accepted_design", "implementation_state": "weibo_official_api_budget_gate_rechecked_ci_synth_only_real_page_blocked_budget_api_dom_and_arbitrary_url_surfaces_disabled"},
+    {"id": "ADR-005", "topic": "six_platform_policy_and_clean_room", "state": "accepted_design", "implementation_state": "taobao_official_oauth_top_api_scope_retention_gate_rechecked_ci_synth_only_real_page_api_dom_cookie_mtop_signature_surfaces_disabled"},
     {"id": "ADR-006", "topic": "capability_negotiation", "state": "accepted_design"},
     {"id": "ADR-007", "topic": "user_gesture_and_bounded_batches", "state": "accepted_design"},
     {"id": "ADR-008", "topic": "safe_preview_download_media_lease", "state": "accepted_design", "implementation_state": "lease_metadata_schema_only_media_processing_not_run"},
@@ -17,7 +17,7 @@
     {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design", "implementation_state": "local_backup_restore_stage_1_reacceptance_and_g1_pass_remote_ci_pending"}
   ],
   "implementation_started": true,
-  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-002-006-007-008_xhs_douyin_bilibili_kuaishou_weibo_current_page_ci_synth",
+  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-002-006-007-008-009_six_platform_current_page_ci_synth",
   "real_account_execution": false,
   "stage_gate": "g2_not_run"
 }

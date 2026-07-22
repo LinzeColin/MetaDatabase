@@ -6,7 +6,7 @@ project:
   token: x2n
   version: v0.0.0.1
   owner: LinzeColin
-  status: STAGE_2_SKELETON_008_PASS_G2_NOT_RUN
+  status: STAGE_2_SKELETON_009_PASS_G2_NOT_RUN
   owner_change_event: CE-X2N-20260720-S00-REVIEW-RESUME
   repository: https://github.com/LinzeColin/MetaDatabase
   skill_path: xhs-douyin-2notion/
@@ -38,7 +38,7 @@ authorization:
   real_account_execution: false
   public_release: false
   vps_data_plane: false
-  instruction: G0/G1 已通过且 Stage 0/1 已合并、远端门禁通过；TSK.x2n.skeleton.001/.002/.006/.007/.008 已在公共安全合成范围完成，G2 尚未运行且 Stage 2 禁止上传。下一产品 Run 只能执行 TSK.x2n.skeleton.009；Owner Chrome 安装/Canary、真实账号、平台/Notion/模型调用、媒体与公开产品 Release 仍未授权。
+  instruction: G0/G1 已通过且 Stage 0/1 已合并、远端门禁通过；TSK.x2n.skeleton.001/.002/.006/.007/.008/.009 已在公共安全合成范围完成，G2 尚未运行且 Stage 2 禁止上传。下一产品 Run 只能执行 TSK.x2n.skeleton.003；Owner Chrome 安装/Canary、真实账号、平台/Notion/模型调用、媒体与公开产品 Release 仍未授权。
 canonical_decisions:
 - id: DEC-X2N-001
   decision: Chrome MV3 Side Panel + Local Companion/WebUI
@@ -1074,7 +1074,7 @@ tasks:
   title: Implement Taobao current-page capture
   stage: STG.X2N.2
   phase: PH.X2N.2.6
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none

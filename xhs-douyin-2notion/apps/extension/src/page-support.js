@@ -38,7 +38,9 @@ const RULES = Object.freeze([
     platform: "taobao",
     hosts: Object.freeze(["item.taobao.com"]),
     paths: Object.freeze([/^\/item\.htm\/?$/]),
-    validate: (url) => /^[1-9][0-9]{5,20}$/.test(url.searchParams.get("id") ?? ""),
+    validate: (url) =>
+      url.searchParams.getAll("id").length === 1
+      && /^[1-9][0-9]{5,20}$/.test(url.searchParams.get("id") ?? ""),
   }),
 ]);
 
@@ -47,10 +49,45 @@ export const CURRENT_PAGE_FEATURES = Object.freeze({
   bilibili: "ci_synth_only",
   douyin: "ci_synth_only",
   kuaishou: "ci_synth_only",
-  taobao: false,
+  taobao: "ci_synth_only",
   weibo: "ci_synth_only",
   xiaohongshu: "ci_synth_only",
 });
+
+const TAOBAO_SIGNATURE_INPUT_KEYS = Object.freeze(new Set([
+  "_m_h5_tk",
+  "_m_h5_tk_enc",
+  "anti_flood",
+  "api",
+  "data",
+  "ecode",
+  "h5st",
+  "jsv",
+  "sign",
+  "sign_method",
+  "t",
+  "x-bx-version",
+  "x-mini-wua",
+  "x-sgext",
+  "x-sign",
+  "x-umt",
+]));
+
+function hasTaobaoSignatureInput(url) {
+  return [...url.searchParams.keys()].some((key) => TAOBAO_SIGNATURE_INPUT_KEYS.has(key.toLowerCase()));
+}
+
+function isSyntheticTaobaoItem(url) {
+  const keys = [...url.searchParams.keys()].sort();
+  return url.hostname.toLowerCase() === "item.taobao.com"
+    && /^\/item\.htm\/?$/u.test(url.pathname)
+    && JSON.stringify(keys) === JSON.stringify(["id", "x2n_fixture"])
+    && url.searchParams.getAll("id").length === 1
+    && url.searchParams.getAll("x2n_fixture").length === 1
+    && /^9900000000000[0-9]{6}$/u.test(url.searchParams.get("id") ?? "")
+    && url.searchParams.get("x2n_fixture") === "1"
+    && url.hash === "";
+}
 
 const WEIBO_ARBITRARY_URL_KEYS = Object.freeze(new Set([
   "callback",
@@ -76,7 +113,7 @@ function currentPageExecutable(match, url) {
   if (mode === true) return true;
   if (
     mode !== "ci_synth_only"
-    || !new Set(["bilibili", "douyin", "kuaishou", "weibo", "xiaohongshu"]).has(match.platform)
+    || !new Set(["bilibili", "douyin", "kuaishou", "taobao", "weibo", "xiaohongshu"]).has(match.platform)
   ) return false;
   const contentId = url.pathname.split("/").filter(Boolean).at(-1) ?? "";
   if (match.platform === "douyin") return contentId.startsWith("synthetic-");
@@ -89,6 +126,7 @@ function currentPageExecutable(match, url) {
     return url.hostname.toLowerCase() === "www.kuaishou.com"
       && contentId.startsWith("synthetic-ks-video-");
   }
+  if (match.platform === "taobao") return isSyntheticTaobaoItem(url);
   if (match.platform === "weibo") {
     return url.hostname.toLowerCase() === "www.weibo.com"
       && url.pathname.startsWith("/detail/")
@@ -108,6 +146,18 @@ function disabledReason(match, url) {
   if (match.platform === "kuaishou") {
     if (url.hostname.toLowerCase() !== "www.kuaishou.com") return "kuaishou_noncanonical_host_disabled";
     return "kuaishou_oauth_scope_missing_blocked_auth";
+  }
+  if (match.platform === "taobao") {
+    if (hasTaobaoSignatureInput(url)) return "taobao_undocumented_signature_input_rejected";
+    const keys = [...url.searchParams.keys()];
+    const allowedKeys = new Set(["id", "x2n_fixture"]);
+    if (
+      url.hash
+      || keys.some((key) => !allowedKeys.has(key))
+      || url.searchParams.getAll("x2n_fixture").length > 1
+      || (url.searchParams.has("x2n_fixture") && url.searchParams.get("x2n_fixture") !== "1")
+    ) return "taobao_nonsemantic_query_fragment_unsupported";
+    return "taobao_scope_retention_unknown_disabled";
   }
   if (match.platform === "weibo") {
     if (url.hostname.toLowerCase() !== "www.weibo.com") return "weibo_noncanonical_host_disabled";

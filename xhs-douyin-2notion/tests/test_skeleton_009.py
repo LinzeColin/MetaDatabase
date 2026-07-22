@@ -10,8 +10,8 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
-    "verify_skeleton_008",
-    PROJECT_ROOT / "scripts/verify_skeleton_008.py",
+    "verify_skeleton_009",
+    PROJECT_ROOT / "scripts/verify_skeleton_009.py",
 )
 assert SPEC and SPEC.loader
 VERIFY = importlib.util.module_from_spec(SPEC)
@@ -19,69 +19,80 @@ sys.modules[SPEC.name] = VERIFY
 SPEC.loader.exec_module(VERIFY)
 
 
-class Skeleton008Tests(unittest.TestCase):
+class Skeleton009Tests(unittest.TestCase):
     def test_static_task_checks_pass(self) -> None:
         checks = VERIFY.run_checks(verify_worktree=False, allow_external_main_dirty=False, run_external=False)
         self.assertEqual([item.status for item in checks], ["PASS"] * len(checks))
 
     def test_run_is_exactly_one_task(self) -> None:
-        self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.skeleton.008")
-        self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S02-S008")
-        self.assertEqual(VERIFY.PHASE, "PH.X2N.2.5")
-        self.assertEqual(VERIFY.TASK_BASE_COMMIT, "17f1988b309fe62071c273369f7088b7f6cc6046")
-        self.assertEqual(VERIFY.FINAL_COMMIT, "7e8a3dbf3c4c27643330489353ed162130fba506")
+        self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.skeleton.009")
+        self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S02-S009")
+        self.assertEqual(VERIFY.PHASE, "PH.X2N.2.6")
+        self.assertEqual(VERIFY.TASK_BASE_COMMIT, "7e8a3dbf3c4c27643330489353ed162130fba506")
+        self.assertFalse(hasattr(VERIFY, "FINAL_COMMIT"))
         rendered = "\n".join(sorted(VERIFY.ALLOWED_CHANGED_EXACT | set(VERIFY.ALLOWED_CHANGED_PREFIXES)))
-        self.assertNotIn("taobao", rendered.lower())
+        self.assertIn("taobao", rendered.lower())
         self.assertNotIn("apps/companion/src/", rendered)
+        self.assertNotIn("media-url-scrubber", rendered)
 
     def test_manifest_native_contract_and_locks_are_unchanged(self) -> None:
         self.assertEqual(
             json.loads(VERIFY.MANIFEST.read_text(encoding="utf-8")),
-            VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.MANIFEST),
+            VERIFY._load_json_at(VERIFY.TASK_BASE_COMMIT, VERIFY.MANIFEST),
         )
         self.assertEqual(
             json.loads(VERIFY.NATIVE_POLICY.read_text(encoding="utf-8")),
-            VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.NATIVE_POLICY),
+            VERIFY._load_json_at(VERIFY.TASK_BASE_COMMIT, VERIFY.NATIVE_POLICY),
         )
         self.assertEqual(
             json.loads((PROJECT_ROOT / "package-lock.json").read_text(encoding="utf-8")),
-            VERIFY._load_json_at(VERIFY.FINAL_COMMIT, PROJECT_ROOT / "package-lock.json"),
+            VERIFY._load_json_at(VERIFY.TASK_BASE_COMMIT, PROJECT_ROOT / "package-lock.json"),
         )
         self.assertEqual(
             (PROJECT_ROOT / "uv.lock").read_bytes(),
-            VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, PROJECT_ROOT / "uv.lock"),
+            VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, PROJECT_ROOT / "uv.lock"),
         )
 
-    def test_real_pages_api_cli_dom_and_paid_tier_remain_disabled(self) -> None:
-        policy = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.WEIBO_POLICY)
+    def test_real_pages_top_dom_scope_and_retention_remain_unknown_disabled(self) -> None:
+        policy = VERIFY._load_json(VERIFY.TAOBAO_POLICY)
         self.assertFalse(policy["feature_flag"]["real_page_execution"])
-        self.assertFalse(policy["production_api_transport"])
+        self.assertFalse(policy["production_top_api_transport"])
         self.assertEqual(
             policy["platform_policy_state"],
-            "blocked_budget_real_page_unknown_disabled_api_and_dom_fallback",
+            "unknown_disabled_application_scope_retention_and_dom_fallback",
         )
-        self.assertEqual(policy["budget_gate"]["default_budget_units"], 0)
-        self.assertFalse(policy["budget_gate"]["approved_paid_tier"])
-        self.assertEqual(policy["budget_gate"]["application_quota_state"], "unknown")
-        self.assertFalse(policy["official_first_gate"]["official_cli_installed_or_executed"])
-        self.assertEqual(
-            policy["official_first_gate"]["authorized_status_show_scope"],
-            "status_authored_by_authorized_user_only",
-        )
-        self.assertEqual(policy["official_first_gate"]["arbitrary_public_current_page_read_capability"], "not_found")
+        application = policy["application_gate"]
+        for field in (
+            "application_registered",
+            "application_approved",
+            "item_api_permission_approved",
+            "oauth_configured",
+            "paid_api_plan_approved",
+            "field_scope_approved",
+        ):
+            self.assertFalse(application[field])
+        self.assertEqual(application["approved_budget_units"], 0)
+        retention = policy["retention_gate"]
+        self.assertEqual(retention["unknown_scope_or_retention_state"], "UNKNOWN_DISABLED")
+        self.assertFalse(retention["user_delete_and_revoke_flow_implemented"])
+        self.assertFalse(retention["retention_period_approved"])
+        self.assertFalse(retention["deletion_receipt_implemented"])
+        self.assertTrue(policy["official_first_gate"]["official_top_signing_protocol_documented"])
+        self.assertFalse(policy["official_first_gate"]["official_top_signing_protocol_implemented"])
 
     def test_fixture_matrix_is_synthetic_complete_and_media_free(self) -> None:
-        fixture = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.FIXTURE_MANIFEST)
+        fixture = VERIFY._load_json(VERIFY.FIXTURE_MANIFEST)
         self.assertEqual(len(fixture["cases"]), 8)
-        self.assertEqual(len(fixture["policy_cases"]), 12)
-        self.assertEqual(len(fixture["redirect_ssrf_cases"]), 16)
+        self.assertEqual(len(fixture["policy_cases"]), 14)
+        self.assertEqual(len(fixture["undocumented_signature_cases"]), 16)
         self.assertEqual(sum(item["expected"].get("status") == "ready" for item in fixture["cases"]), 4)
         self.assertEqual(
             sum(item["expected"].get("status") == "platform_changed" for item in fixture["cases"]),
             4,
         )
-        self.assertEqual(fixture["budget_contract"]["default_budget_units"], 0)
-        self.assertFalse(fixture["budget_contract"]["arbitrary_url_preview_proxy"])
+        self.assertEqual(fixture["scope_retention_contract"]["real_page_state"], "UNKNOWN_DISABLED")
+        self.assertFalse(fixture["scope_retention_contract"]["production_top_api_transport"])
+        self.assertFalse(fixture["signature_contract"]["browser_mtop_cookie_signature_route"])
         for field in (
             "contains_cookies",
             "contains_credentials",
@@ -89,27 +100,29 @@ class Skeleton008Tests(unittest.TestCase):
             "contains_media_urls",
             "contains_private_content",
             "contains_real_accounts",
+            "contains_signature_material",
             "real_accounts",
         ):
             self.assertFalse(fixture[field])
 
-    def test_arbitrary_url_redirect_and_synthetic_identity_have_double_gates(self) -> None:
+    def test_signature_query_and_synthetic_identity_have_fail_closed_gates(self) -> None:
         support = (PROJECT_ROOT / "apps/extension/src/page-support.js").read_text(encoding="utf-8")
-        extractor = (PROJECT_ROOT / "apps/extension/src/weibo-current-page.js").read_text(encoding="utf-8")
+        extractor = (PROJECT_ROOT / "apps/extension/src/taobao-current-page.js").read_text(encoding="utf-8")
         for source in (support, extractor):
-            self.assertIn("synthetic-wb-status-", source)
-        self.assertIn("weibo_arbitrary_url_control_rejected", support)
-        self.assertIn("weibo_budget_zero_quota_unknown_disabled", support)
-        self.assertIn("weibo_query_fragment_unsupported", support)
-        self.assertNotIn('["weibo.com", "www.weibo.com"]', extractor)
-        self.assertGreaterEqual(extractor.count('!== "www.weibo.com"'), 2)
-        self.assertIn("data-mid", extractor)
+            self.assertIn("9900000000000", source)
+        self.assertIn("taobao_undocumented_signature_input_rejected", support)
+        self.assertIn("taobao_scope_retention_unknown_disabled", support)
+        self.assertIn("taobao_nonsemantic_query_fragment_unsupported", support)
+        self.assertGreaterEqual(extractor.count('hostname.toLowerCase() !== "item.taobao.com"'), 2)
+        self.assertIn("data-num-iid", extractor)
+        self.assertIn("stable_num_iid_and_official_item_route", extractor)
         self.assertNotIn('.getAttribute("src")', extractor)
         self.assertNotIn(".src", extractor)
         self.assertNotIn("fetch(", extractor)
+        self.assertNotIn("document.cookie", extractor)
 
     def test_external_environment_does_not_inherit_credentials(self) -> None:
-        with tempfile.TemporaryDirectory(prefix="x2n-s008-env-") as value:
+        with tempfile.TemporaryDirectory(prefix="x2n-s009-env-") as value:
             env = VERIFY._isolated_env(Path(value))
         for field in ("GITHUB_TOKEN", "GH_TOKEN", "NPM_TOKEN", "NODE_AUTH_TOKEN"):
             self.assertNotIn(field, env)
@@ -122,7 +135,7 @@ class Skeleton008Tests(unittest.TestCase):
             "artifact_deterministic": True,
             "artifact_report": {
                 "allowlist_findings": 0,
-                "member_count": 59,
+                "member_count": 60,
                 "runtime_data_files": 0,
                 "status": "PASS",
             },
@@ -161,7 +174,7 @@ class Skeleton008Tests(unittest.TestCase):
             "silent_blocking_skips": 0,
             "status": "PASS",
         }
-        with tempfile.TemporaryDirectory(prefix="x2n-s008-lane-") as value:
+        with tempfile.TemporaryDirectory(prefix="x2n-s009-lane-") as value:
             path = Path(value) / "software-lane.json"
             path.write_text(json.dumps(report), encoding="utf-8")
             check = VERIFY.validate_full_lane_report(path)
@@ -178,7 +191,6 @@ class Skeleton008Tests(unittest.TestCase):
             self.assertFalse(VERIFY.EVIDENCE.exists())
             return
         evidence = json.loads(VERIFY.EVIDENCE.read_text(encoding="utf-8"))
-        self.assertEqual(VERIFY.EVIDENCE.read_bytes(), VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, VERIFY.EVIDENCE))
         self.assertEqual(evidence["owner_canary"], "NOT_RUN")
         self.assertEqual(evidence["real_account_execution"], "NOT_RUN")
         self.assertEqual(evidence["production_network_transport"], "DISABLED")

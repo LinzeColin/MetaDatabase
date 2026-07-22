@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "manifest_id": "FIXTURE.X2N.010",
-  "phase": "PH.X2N.2.5",
+  "manifest_id": "FIXTURE.X2N.011",
+  "phase": "PH.X2N.2.6",
   "fixtures": [
     {
       "id": "FIXTURE.X2N.S00.P05.001",
@@ -80,9 +80,15 @@
       "path": "packages/test-fixtures/extension/v1/weibo_current_page/fixture_manifest.json",
       "case_count": 36,
       "purpose": "Weibo current-page mid, sanitized facts, budget-zero real-page rejection, arbitrary-URL and Redirect-SSRF rejection, schema drift and real-route-disabled behavior"
+    },
+    {
+      "id": "FIXTURE.X2N.S02.S009.001",
+      "path": "packages/test-fixtures/extension/v1/taobao_current_page/fixture_manifest.json",
+      "case_count": 38,
+      "purpose": "Taobao current-page num_iid, sanitized query-free facts, scope/retention disabled behavior, undocumented Cookie/MTop signature-input rejection and schema drift"
     }
   ],
-  "status": "xhs_douyin_bilibili_kuaishou_weibo_current_page_ci_synthetic_fixtures_pass_owner_canary_not_run_taobao_capture_fixtures_not_started",
+  "status": "six_platform_current_page_ci_synthetic_fixtures_pass_owner_canary_not_run",
   "future_requirements": {
     "source_must_be_declared": true,
     "real_account_content_allowed": false,
