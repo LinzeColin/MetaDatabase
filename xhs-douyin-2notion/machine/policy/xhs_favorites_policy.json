@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "POLICY.X2N.XHS-FAVORITES.001",
+  "task_id": "TSK.x2n.adapters.002",
+  "phase": "PH.X2N.3.2",
+  "reviewed_at": "2026-07-23",
+  "default": "deny",
+  "official_research": {
+    "personal_ui_self_access": "documented",
+    "personal_favorites_read_api": "not_found_in_reviewed_official_sources",
+    "inference_not_claim_of_nonexistence": true,
+    "sources": [
+      {
+        "url": "https://fe.xiaohongshu.com/dittossr/vincent/ae18bde7446e4899a08877e1bc47cd33",
+        "scope": "privacy_and_user_visible_self_management"
+      },
+      {
+        "url": "https://redopen.xiaohongshu.com/",
+        "scope": "official_miniapp_platform"
+      },
+      {
+        "url": "https://miniapp.xiaohongshu.com/third/api-3rd-doc/authProcess",
+        "scope": "merchant_miniapp_authorization_not_personal_favorites"
+      },
+      {
+        "url": "https://agora.xiaohongshu.com/doc",
+        "scope": "official_share_publish_capability_not_personal_favorites_read"
+      },
+      {
+        "url": "https://open.xiaohongshu.com/document/developer/file/38",
+        "scope": "official_open_platform_oauth_not_personal_favorites_read"
+      }
+    ]
+  },
+  "feature_gate": {
+    "flag": "xhs_favorites",
+    "ci_synthetic_enabled": true,
+    "owner_canary_enabled": false,
+    "production_enabled": false,
+    "current_page_fallback_preserved": true,
+    "enablement_requires": [
+      "current_official_policy_recheck",
+      "dedicated_profile_health",
+      "owner_explicit_authorization",
+      "twenty_item_private_gold_manifest",
+      "owner_canary_pass"
+    ]
+  },
+  "clean_room": {
+    "chrome_permission": "activeTab_after_explicit_owner_action",
+    "host_permissions": 0,
+    "static_content_scripts": 0,
+    "network_transport": false,
+    "private_or_undocumented_endpoint": false,
+    "cookie_or_credential_access": false,
+    "browser_profile_read": false,
+    "automatic_scroll": false,
+    "automatic_pagination": false,
+    "event_synthesis": false,
+    "account_state_change": false,
+    "verification_bypass": false,
+    "max_visible_items_per_action": 20,
+    "max_concurrent_adapters": 1,
+    "automatic_retry": false
+  },
+  "observation_contract": {
+    "allowed_statuses": [
+      "ready",
+      "partial",
+      "auth_required",
+      "verification_required",
+      "platform_changed",
+      "empty_unverified"
+    ],
+    "persisted_fields": [
+      "stable_content_id",
+      "canonical_page_url",
+      "sanitized_title",
+      "content_type",
+      "source_collection_id",
+      "source_collection_name_private"
+    ],
+    "forbidden_fields": [
+      "raw_dom",
+      "media_address",
+      "browser_state",
+      "credential",
+      "request_header",
+      "raw_media"
+    ],
+    "silent_loss_allowed": 0,
+    "unidentified_card_requires_error_evidence": true
+  },
+  "checkpoint": {
+    "canonical_store": "sqlite",
+    "resume_compatibility_version": "xhs-favorites-1.0.0",
+    "batch_sequence_strict_successor": true,
+    "exact_last_batch_replay": "return_existing_without_side_effect",
+    "unknown_or_partial_advances_cursor": false,
+    "bounded_canary_is_full_scan": false,
+    "full_scan_requires_authoritative_visible_end": true,
+    "false_full_scan_allowed": 0
+  },
+  "deletion_protection": {
+    "non_authoritative_outcomes": [
+      "auth_required",
+      "network_error",
+      "platform_changed",
+      "empty_unverified",
+      "partial"
+    ],
+    "removed_count": 0,
+    "physical_delete_count": 0,
+    "automatic_content_delete_count": 0,
+    "relation_reconciliation_owner_task": "TSK.x2n.adapters.005"
+  },
+  "canary": {
+    "item_limit": 20,
+    "tooling_available": true,
+    "execution": "NOT_RUN",
+    "private_gold_manifest_in_repository": false,
+    "redacted_summary_in_repository_before_execution": false,
+    "failure_rollback": "disable_xhs_favorites_keep_current_page"
+  }
+}

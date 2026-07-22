@@ -54,6 +54,9 @@
     "scripts/verify_stage_2_review.py",
     "scripts/run_adapters_001_acceptance.py",
     "scripts/verify_adapters_001.py",
+    "apps/extension/scripts/xhs-favorites-fixture-e2e.mjs",
+    "scripts/run_adapters_002_acceptance.py",
+    "scripts/verify_adapters_002.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

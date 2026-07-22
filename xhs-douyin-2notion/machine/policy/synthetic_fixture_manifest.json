@@ -110,9 +110,15 @@
       "path": "packages/test-fixtures/adapters/v1/profile_session/fixture_manifest.json",
       "case_count": 14,
       "purpose": "credential-free Profile session health, expired-login user action and batch deletion protection"
+    },
+    {
+      "id": "FIXTURE.X2N.S03.A002.001",
+      "path": "packages/test-fixtures/adapters/v1/xhs_favorites/fixture_manifest.json",
+      "case_count": 107,
+      "purpose": "Xiaohongshu visible favorites DOM, two collection mappings, 100-item durable checkpoint and 50 process-kill recovery"
     }
   ],
-  "status": "six_platform_current_page_plus_profile_session_health_and_batch_deletion_guard_ci_synthetic_fixtures_pass_owner_canary_not_run",
+  "status": "six_platform_current_page_plus_profile_session_guard_plus_xhs_favorites_checkpoint_ci_synthetic_fixtures_pass_owner_canary_not_run",
   "future_requirements": {
     "source_must_be_declared": true,
     "real_account_content_allowed": false,

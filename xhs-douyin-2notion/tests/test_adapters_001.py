@@ -28,12 +28,12 @@ class Adapters001VerifierTests(unittest.TestCase):
         )
         self.assertEqual([item.status for item in checks], ["PASS"] * len(checks))
 
-    def test_run_is_exactly_one_task_and_unpinned_until_next_task(self) -> None:
+    def test_run_is_exactly_one_task_and_pinned_for_descendant_regression(self) -> None:
         self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.adapters.001")
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S03-A001")
         self.assertEqual(VERIFY.PHASE, "PH.X2N.3.1")
         self.assertEqual(VERIFY.TASK_BASE_COMMIT, "ee5d251ca30eab226c4df75c53965f312c2d9b05")
-        self.assertFalse(hasattr(VERIFY, "FINAL_COMMIT"))
+        self.assertEqual(VERIFY.FINAL_COMMIT, "ea44053528a6cdec342fff946a35a525e8daf385")
         rendered = "\n".join(sorted(VERIFY.ALLOWED_CHANGED_EXACT | set(VERIFY.ALLOWED_CHANGED_PREFIXES)))
         self.assertIn("profile_session", rendered)
         self.assertNotIn("apps/extension/src/", rendered)

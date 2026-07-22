@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 3` 已进入且只完成 `PH.X2N.3.1 / TSK.x2n.adapters.001`。Stage 2 九个 Skeleton 与独立 Review 已通过 PR #78 合并，x2n 与 Dual-Plane 远端门禁均成功；旧 G2 pre-upload Evidence 不改写。Adapters001 新增固定 Chrome 候选的 Private Runtime Profile launcher、五分钟 enum-only Session Health、八组件 `x2n doctor`、全局单 Adapter 非等待互斥、30 秒 batch/3 秒 item 低频门和两次完整成功才可进入 `tombstone_candidate` 的删除保护。能力仅为 CI-SYNTH policy primitive；Owner Profile/Canary、真实账号/平台、列表迭代器、真实 Notion、媒体与模型仍 `NOT_RUN`。`G3=NOT_RUN`，Stage 3 整体上传禁止；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 3` 已完成 `PH.X2N.3.1–3.2 / TSK.x2n.adapters.001–002`。Stage 2 九个 Skeleton 与独立 Review 已通过 PR #78 合并，x2n 与 Dual-Plane 远端门禁均成功；旧 G2 pre-upload Evidence 不改写。除 Profile/session/Doctor/全局互斥与删除保护外，现已实现小红书收藏的显式可见 20 条批次、两收藏夹映射、SQLite Durable Checkpoint、精确 replay、100 条/50 次进程 Kill 恢复和非执行 Canary 计划。能力仍仅为 CI-SYNTH：`xhs_favorites` 生产位关闭，Owner Profile/真实页/Canary、真实账号/平台、点赞列表、真实 Notion、媒体与模型均 `NOT_RUN`。`G3=NOT_RUN`，Stage 3 整体上传禁止；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,29 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 3 / Adapters 001 验证
+## Stage 3 / Adapters 002 验证
+
+```bash
+.venv/bin/python -B scripts/run_adapters_002_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters002-final
+.venv/bin/python -B scripts/verify_adapters_002.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters002-final/software-lane.json --require-evidence
+```
+
+Extension 只在 Owner 显式动作后读取当前可见、最多 20 条的净化 DOM 事实，不滚动、不翻页、不联网；
+未知空页、部分识别、登录/验证和页面变化都不能推进或完成 Checkpoint。20 条 Canary 只能完成 bounded
+scope，不会冒充 full scan；full scan 只接受权威可见结束信号。Companion 以单个 SQLite 事务写入
+Content、`favorited` Relation、`selected_collection` Observation 与 Checkpoint，精确最后批次 replay 无副作用。
+
+公共合成验收为 7 个 DOM cases、100 条两收藏夹、5 个显式批次和 50 次真实子进程事务内退出；最终
+ID 集精确，lost/duplicate/infinite loop/automatic scroll/removed/physical delete 均为 0。最终本地回归为
+201 个 root tests PASS（3 个固定可选 skip）、105 个 Companion tests 与 12 个 Contract tests PASS；
+full lane 两轮 24/24 Blocking Gate PASS，coverage 77.73%，33 个依赖漏洞 0，69-member source
+candidate 无 Runtime Data。Owner Alpha 20 条/private-gold Canary 仍 `NOT_RUN`，真实页面保持禁用。
+
+## Stage 3 / Adapters 001 历史验证
 
 ```bash
 .venv/bin/python -B scripts/run_adapters_001_acceptance.py
@@ -42,7 +64,7 @@ Provider、Notion 与 Adapter；非核心依赖缺失只降级。全局 mutex �
 登录过期、HTTP、DOM 改版、空响应和部分扫描的 removed 恒为 0，两次完整成功也只生成候选状态。
 Owner Profile 登录、真实账号、平台调用和 G3 均未运行。
 
-最终本地回归为 194 个 root tests PASS（3 个固定可选 skip）、92 个 Companion tests 与
+该 Task 完成时本地回归为 194 个 root tests PASS（3 个固定可选 skip）、92 个 Companion tests 与
 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，coverage 77.66%，
 33 个依赖漏洞 0，67-member source candidate 无 Runtime Data。
 

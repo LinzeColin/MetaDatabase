@@ -28,12 +28,14 @@ from .profile_session import (
     safe_reference_configured,
 )
 from .runtime import PROFILE_PLATFORMS, RuntimePaths, X2NRuntimeError
+from .xiaohongshu_favorites import build_xhs_favorites_canary_plan
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 TASK_ID = "TSK.x2n.foundation.003"
 MEDIA_TASK_ID = "TSK.x2n.skeleton.003"
 ADAPTER_TASK_ID = "TSK.x2n.adapters.001"
+XHS_FAVORITES_TASK_ID = "TSK.x2n.adapters.002"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
@@ -108,6 +110,15 @@ def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if args.action == "xhs-favorites":
+        if args.favorites_action != "canary-plan":
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Xiaohongshu favorites action")
+        return _success(
+            "xhs_favorites_canary_plan",
+            acceptance_scope="ADAPTERS_002_CANARY_TOOLING",
+            task_id=XHS_FAVORITES_TASK_ID,
+            plan=build_xhs_favorites_canary_plan(args.max_items),
+        )
     if args.action == "doctor":
         report = build_doctor_report(_doctor_probe(_paths()))
         return _success(
@@ -204,6 +215,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="x2n private Canonical Store operations")
     subparsers = parser.add_subparsers(dest="action", required=True)
     subparsers.add_parser("doctor")
+    favorites = subparsers.add_parser("xhs-favorites")
+    favorites_actions = favorites.add_subparsers(dest="favorites_action", required=True)
+    canary_plan = favorites_actions.add_parser("canary-plan")
+    canary_plan.add_argument("--max-items", type=int, default=20)
     profile = subparsers.add_parser("profile")
     profile_actions = profile.add_subparsers(dest="profile_action", required=True)
     for action in ("plan", "health"):
@@ -243,6 +258,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     task_id = (
         MEDIA_TASK_ID
         if args.action == "verify"
+        else XHS_FAVORITES_TASK_ID
+        if args.action == "xhs-favorites"
         else ADAPTER_TASK_ID
         if args.action in {"doctor", "profile"}
         else TASK_ID

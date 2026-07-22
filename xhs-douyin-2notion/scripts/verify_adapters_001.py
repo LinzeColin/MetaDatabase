@@ -35,6 +35,7 @@ Check = PREVIOUS.Check
 _require = PREVIOUS._require
 _pairs = PREVIOUS._pairs
 _load_json = PREVIOUS._load_json
+_load_json_at = PREVIOUS._load_json_at
 _read_blob_at = PREVIOUS._read_blob_at
 _git = PREVIOUS._git
 _porcelain_paths = PREVIOUS._porcelain_paths
@@ -53,6 +54,7 @@ RUN_ID = "RUN-X2N-S03-A001"
 PHASE = "PH.X2N.3.1"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s03-adapters001"
 TASK_BASE_COMMIT = "ee5d251ca30eab226c4df75c53965f312c2d9b05"
+FINAL_COMMIT = "ea44053528a6cdec342fff946a35a525e8daf385"
 STAGE_2_REVIEW_FINAL_COMMIT = "bfea9f8d4fc0f6d691544c28a641624ed37122fa"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 ACCEPTANCE = PROJECT_ROOT / "docs/product_design/v0.0.0.1/04_ACCEPTANCE_CONTRACT_TRACEABILITY.md"
@@ -126,13 +128,12 @@ def _yaml(path: Path) -> dict[str, Any]:
 
 
 def validate_scope() -> Check:
-    _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
-    committed = _git(["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]).splitlines()
-    working = _porcelain_paths(
-        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
-    )
+    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
+    committed = _git(
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}"]
+    ).splitlines()
     relative_changes: list[str] = []
-    for path in sorted(set(committed + working)):
+    for path in sorted(set(committed)):
         relative = _project_relative(path)
         _require(relative is not None, "Adapters001 changed scope escaped x2n")
         _require(
@@ -215,7 +216,8 @@ def validate_scope() -> Check:
 
 def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Adapters001 worktree branch")
+    current_branch = _git(["branch", "--show-current"])
+    _require(current_branch not in {"", "main"}, "Adapters001 regression requires a non-main worktree")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
         re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
@@ -224,12 +226,21 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
     )
     _require(
         subprocess.run(
-            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"],
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, FINAL_COMMIT],
             cwd=REPOSITORY_ROOT,
             check=False,
         ).returncode
         == 0,
-        "Adapters001 branch no longer descends from the Stage 2 merge",
+        "Adapters001 final commit no longer descends from the Stage 2 merge",
+    )
+    _require(
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+        ).returncode
+        == 0,
+        "current worktree no longer descends from the Adapters001 final commit",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
@@ -268,8 +279,9 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "worktree_isolation",
         "PASS",
         {
-            "branch": BRANCH,
+            "current_branch": current_branch,
             "external_main_dirty_paths": len(main_paths),
+            "historical_branch": BRANCH,
             "origin_drift_commits": int(_git(["rev-list", "--count", f"{TASK_BASE_COMMIT}..{live_origin}"])),
             "origin_project_overlap": origin_overlap,
             "project_overlap_paths": main_overlap,
@@ -291,10 +303,10 @@ def validate_stage_2_transition() -> Check:
     )
     for path in HISTORICAL_STAGE_2_EVIDENCE:
         _require(
-            path.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, path),
+            _read_blob_at(FINAL_COMMIT, path) == _read_blob_at(TASK_BASE_COMMIT, path),
             f"historical Stage 2 evidence changed: {path.name}",
         )
-    fact = _load_json(REMOTE_MERGE_FACT)
+    fact = _load_json_at(FINAL_COMMIT, REMOTE_MERGE_FACT)
     pull = fact.get("pull_request", {})
     checks = fact.get("remote_checks", [])
     _require(
@@ -330,7 +342,7 @@ def validate_stage_2_transition() -> Check:
 
 
 def validate_task_and_state() -> Check:
-    taskpack_text = TASKPACK.read_text(encoding="utf-8")
+    taskpack_text = _read_blob_at(FINAL_COMMIT, TASKPACK).decode("utf-8")
     base_taskpack = _read_blob_at(TASK_BASE_COMMIT, TASKPACK).decode("utf-8")
     task = _task_block(taskpack_text, TASK_ID)
     base_task = _task_block(base_taskpack, TASK_ID)
@@ -349,7 +361,8 @@ def validate_task_and_state() -> Check:
         _task_block(taskpack_text, "TSK.x2n.adapters.002") == _task_block(base_taskpack, "TSK.x2n.adapters.002"),
         "Adapters002 was entered by this Run",
     )
-    taskpack = _yaml(TASKPACK)
+    taskpack = yaml.safe_load(taskpack_text)
+    _require(isinstance(taskpack, dict), "Task Pack root must be an object")
     project = taskpack.get("project", {})
     authorization = taskpack.get("authorization", {})
     _require(project.get("status") == "STAGE_3_ADAPTERS_001_PASS_G3_NOT_RUN", "Task Pack status drifted")
@@ -360,7 +373,7 @@ def validate_task_and_state() -> Check:
         "Task Pack authorization drifted",
     )
 
-    state = _load_json(TASK_STATE)
+    state = _load_json_at(FINAL_COMMIT, TASK_STATE)
     _require(state.get("schema_version") == "1.19", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.3" and state.get("last_completed_phase") == PHASE, "phase drifted")
     _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Run drifted")
@@ -407,17 +420,17 @@ def validate_task_and_state() -> Check:
     ):
         _require(state.get(field) == "not_run", f"external execution overstated: {field}")
     _require(
-        _load_json(PROJECT_FACT).get("status") == "stage_3_adapters_001_pass_g3_not_run",
+        _load_json_at(FINAL_COMMIT, PROJECT_FACT).get("status") == "stage_3_adapters_001_pass_g3_not_run",
         "project status drifted",
     )
-    architecture = _load_json(ARCHITECTURE_FACT)
+    architecture = _load_json_at(FINAL_COMMIT, ARCHITECTURE_FACT)
     _require(
         architecture.get("phase") == PHASE
         and architecture.get("stage_gate") == "g3_not_run"
         and architecture.get("real_account_execution") is False,
         "architecture state drifted",
     )
-    contract = RUN_CONTRACT.read_text(encoding="utf-8")
+    contract = _read_blob_at(FINAL_COMMIT, RUN_CONTRACT).decode("utf-8")
     for value in (TASK_ID, RUN_ID, PHASE, TASK_BASE_COMMIT, BRANCH, "PASS_CI_SYNTH_SCOPED"):
         _require(value in contract, f"Run Contract identity missing: {value}")
     return Check(
@@ -435,7 +448,7 @@ def validate_task_and_state() -> Check:
 
 
 def validate_policy_and_implementation() -> Check:
-    policy = _load_json(POLICY)
+    policy = _load_json_at(FINAL_COMMIT, POLICY)
     _require(
         policy.get("policy_id") == "POLICY.X2N.ADAPTER-RUNTIME.001"
         and policy.get("task_id") == TASK_ID
@@ -501,10 +514,10 @@ def validate_policy_and_implementation() -> Check:
         "batch deletion policy drifted",
     )
 
-    profile_source = PROFILE_SOURCE.read_text(encoding="utf-8")
-    guard_source = GUARD_SOURCE.read_text(encoding="utf-8")
-    runtime_source = RUNTIME_SOURCE.read_text(encoding="utf-8")
-    cli_source = CLI_SOURCE.read_text(encoding="utf-8")
+    profile_source = _read_blob_at(FINAL_COMMIT, PROFILE_SOURCE).decode("utf-8")
+    guard_source = _read_blob_at(FINAL_COMMIT, GUARD_SOURCE).decode("utf-8")
+    runtime_source = _read_blob_at(FINAL_COMMIT, RUNTIME_SOURCE).decode("utf-8")
+    cli_source = _read_blob_at(FINAL_COMMIT, CLI_SOURCE).decode("utf-8")
     for token in (
         "PROFILE_LAUNCH_CONFIRMATION",
         "chrome://newtab/",
@@ -543,10 +556,10 @@ def validate_policy_and_implementation() -> Check:
         _require(forbidden_option not in cli_source, f"arbitrary CLI input entered: {forbidden_option}")
     for path in UNCHANGED_SECURITY_SURFACES:
         _require(
-            path.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, path),
+            _read_blob_at(FINAL_COMMIT, path) == _read_blob_at(TASK_BASE_COMMIT, path),
             f"unapproved contract surface changed: {path.name}",
         )
-    artifact = _load_json(ARTIFACT_POLICY)
+    artifact = _load_json_at(FINAL_COMMIT, ARTIFACT_POLICY)
     enforcement = artifact.get("enforcement", [])
     _require(
         "scripts/run_adapters_001_acceptance.py" in enforcement and "scripts/verify_adapters_001.py" in enforcement,
@@ -571,7 +584,7 @@ def validate_policy_and_implementation() -> Check:
 
 
 def validate_fixtures() -> Check:
-    fixture = _load_json(FIXTURE)
+    fixture = _load_json_at(FINAL_COMMIT, FIXTURE)
     _require(
         fixture.get("fixture_id") == "FIXTURE.X2N.S03.A001.001" and fixture.get("synthetic") is True,
         "Adapters001 fixture identity drifted",
@@ -607,7 +620,7 @@ def validate_fixtures() -> Check:
         and fixture.get("physical_delete_cases") == 0,
         "batch deletion fixture oracle drifted",
     )
-    global_rows = _load_json(GLOBAL_FIXTURE_MANIFEST).get("fixtures", [])
+    global_rows = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST).get("fixtures", [])
     _require(
         {
             "id": "FIXTURE.X2N.S03.A001.001",
@@ -779,7 +792,7 @@ def _acceptance_input_receipt() -> str:
     ):
         digest.update(path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
-        digest.update(path.read_bytes())
+        digest.update(_read_blob_at(FINAL_COMMIT, path))
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -842,6 +855,7 @@ def write_evidence(checks: list[Check]) -> None:
 
 def verify_evidence() -> Check:
     evidence = _load_json(EVIDENCE)
+    _require(EVIDENCE.read_bytes() == _read_blob_at(FINAL_COMMIT, EVIDENCE), "historical evidence was rewritten")
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
     _require(

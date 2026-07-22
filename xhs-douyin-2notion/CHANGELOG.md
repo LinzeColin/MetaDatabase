@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 / Adapters 002
+
+- 基于固定 `Adapters001@ea440535…` 开发且不吸收 `main`/其他 worktree；历史 Adapters001 verifier 改为固定提交回放，Skeleton009 Extension 源清单改从历史 tree 枚举，避免后代新增文件污染旧验收。
+- 新增小红书收藏 clean-room visible-batch extractor：只在 Owner gesture 后读取最多 20 条稳定 ID、Canonical Page URL、净化标题/类型和可见收藏夹映射；无 Host Permission、静态 Content Script、网络、自动滚动/分页、事件合成、账号状态变化或 Cookie/Profile 读取。
+- 新增 SQLite `xhs_favorites` Adapter：原子写 Content、`favorited` Relation、`selected_collection` Observation 和 versioned Checkpoint；严格 successor、精确最后批次 replay、部分批次保留证据但不推进、未知结束不完成。
+- Canary 固定 20 条且只生成非执行计划；bounded scope 与 full scan 分离，只有权威可见结束可写 `full_scan_id`。真实页面/账号/Profile/Canary 继续关闭或 `NOT_RUN`。
+- 新增 7 个 DOM Fixture 与 100 条两收藏夹控制数据；5 个显式批次每批 10 次真实子进程在事务内随机退出，共 50 Kill。恢复只读 Durable Checkpoint，最终 ID 集精确，lost/duplicate/infinite loop/automatic scroll/removed/tombstone/physical delete/Content delete 均为 0。
+- 官方一手材料复核只确认用户可见自主管理与商家/分享开发面，未在已审阅来源中找到个人收藏读取 API；此为范围化研究结论而非“不存在”断言，因此生产能力默认 deny、当前页 fallback 保留。
+- 最终 201 个 root tests PASS（3 个固定可选 skip）、105 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，coverage 77.73%，33 个依赖漏洞 0，69-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
 ## v0.0.0.1 — Stage 3 / Adapters 001
 
 - 以 Stage 2 PR #78 合并提交为 Task base，核对 x2n/Dual-Plane 两条远端门禁成功后授权 Stage 3；新增 transition fact，不改写 G2 历史 Evidence。
