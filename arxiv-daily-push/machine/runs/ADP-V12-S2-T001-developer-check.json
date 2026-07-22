@@ -1,0 +1,144 @@
+{
+  "schema_version": "adp-v12-stage-developer-check-v1",
+  "run_id": "ADP-V12-S2-T001-20260722",
+  "task_id": "ADP-V12-S2-T001",
+  "action": "stats-gov 四类只读诊断、事实链修复与整阶段独立复审",
+  "result": "ACC-V12-S2-001..003 为 3/3 PASS；P0/P1/UNKNOWN/BLOCKED 均为 0；S3 保持 NOT_RUN",
+  "ts": "2026-07-22T21:36:01+10:00",
+  "decision_scope": "developer_check",
+  "independent_verdict": "PASS",
+  "verified_subject": {
+    "identity_algorithm": "SHA-256 over deterministic full dirty-source byte-tree manifest",
+    "sha256": "c4174a1712d6b102a543f900cbf4d44447115e5cdeabe6a78a86ff5438d55c13",
+    "file_count": 2180,
+    "total_bytes": 66978779,
+    "source_base_git_head": "0704f48b26364067842def6d35ef11db4f08982b",
+    "stability_before_after_tests": true,
+    "closeout_exclusions": [
+      "machine/runs/ADP-V12-S2-T001-developer-check.json",
+      "docs/phase_records/PHASE_ADP_V12_S2_STATS_GOV_DIAGNOSIS.md",
+      "machine/facts/status.json",
+      "machine/facts/plan.json",
+      "machine/facts/acceptance.json",
+      "machine/facts/roadmap.json",
+      "machine/facts/changelog.json",
+      "文档/*.md",
+      "用户中心/*.md timestamp-only update mandated before commit",
+      "docs/HANDOFF.md closeout-only status wording",
+      "docs/pursuing_goal/v1_2/README.md closeout-only status wording",
+      "docs/pursuing_goal/v1_2/CHANGELOG.md closeout entry",
+      "docs/pursuing_goal/v1_2/TREE_SHA256.txt regenerated digest"
+    ],
+    "exclusion_reason": "这些文件记录已经完成的独立 verdict 或由机器事实确定性生成；把它们放入待验 Subject 会形成自引用。最终 Git tree 与 PR CI 另行绑定并复核。"
+  },
+  "taskpack_lock": {
+    "full_pack_sha256": "769eee7cd32bd3f2ef35ed84cc1491fe0877ae8be745f4e17b82712602e64a9d",
+    "seven_role_contract_sha256": "7b10853786f0a7abd538c51c8aa4a505d85b1ee648a7118f23aa9cc0f1a64d4b",
+    "source_snapshot_sha256": "f189fba8bfb97575b15583af15c11452d7469256965e500ec3ea2d578524cbb5",
+    "source_file_count": 16,
+    "declared_task_count": 10,
+    "declared_acceptance_count": 33,
+    "mapped_acceptance_count": 33
+  },
+  "run_contract": {
+    "path": "docs/pursuing_goal/v1_2/RUN_CONTRACT_02_STATS_GOV_DIAGNOSIS.md",
+    "sha256": "433fa7f72dd635372cb296403865adb42e3d908f72f5cbec5246710d5f361b09"
+  },
+  "diagnosis_receipt": {
+    "path": "machine/runs/ADP-V12-S2-T001-diagnosis.json",
+    "sha256": "093a10ec7c33a126c5998b2515d7658fb3b7a4ee800e691d899f31d473c4ae2f",
+    "acceptance_claimed": false,
+    "decision": "NO_ADAPTER_FIX",
+    "state": "degraded_preserved"
+  },
+  "implementation": {
+    "path": "deploy/cloudflare/stats_gov_diagnostic.mjs",
+    "sha256": "fb31dcac1510dc3c3afe808adcf9e4843a97e79e9702d63e9f7bef13899d9d86"
+  },
+  "candidate_registry": {
+    "path": "config/cloudflare_source_candidates_v1_2.json",
+    "sha256": "bb51ebe61a880499b225df149eb0db9ecb44fbaefa4d7328ad39e87f5f65891a"
+  },
+  "acceptances": {
+    "ACC-V12-S2-001": "PASS",
+    "ACC-V12-S2-002": "PASS",
+    "ACC-V12-S2-003": "PASS"
+  },
+  "counts": {
+    "pass": 3,
+    "p0": 0,
+    "p1": 0,
+    "unknown": 0,
+    "blocked": 0,
+    "waiver": 0
+  },
+  "stage_review": {
+    "initial": {
+      "verdict": "FAIL",
+      "action": "ACT",
+      "subject_sha256": "ebc00c7c0a87bcbb8964dbdce61f3dc3a2e36c183a5d14abbf7b933c152ac76d",
+      "evidence_root_sha256": "d84946e612c52fdfeb68efe007c48e3f5e31a6a1b2612ae7f2b9bdc4fe6c79f0",
+      "review_zip_sha256": "a987bb1a79dc99c23c4ee7e2147a698956c3c0701003345cbc38513ea1b22736",
+      "finding": "F-ADP-V12-S2-001 / P1 DELIVERY_CONTENT_MISMATCH"
+    },
+    "finding_fix": "新增非自签事实 receipt；把历史无 raw timeout 标为 stale；以 hash、时间、结果绑定最新 official/edge 点样；registry/canonical renderer 对 receipt 缺失和事实漂移 fail-closed；同步 Owner 六个表面。",
+    "fresh_r2": {
+      "verdict": "PASS",
+      "action": "NONE",
+      "finalized_at": "2026-07-22T11:33:08.745386+00:00",
+      "subject_sha256": "c4174a1712d6b102a543f900cbf4d44447115e5cdeabe6a78a86ff5438d55c13",
+      "evidence_root_sha256": "711d324114d5fa0659954abe5ce31909eed7aa55596d656f948afabb91e2b36d",
+      "review_zip": {
+        "storage": "OWNER_LOCAL_NOT_COMMITTED",
+        "sha256": "4c8f11fe52379e2c8fadc17c31d93e0a6a69c8cc6340a9b3a51f92dfadd5d744",
+        "size_bytes": 340687,
+        "entry_count": 78,
+        "finalizer_verified": true,
+        "unzip_test_passed": true
+      },
+      "external_resampling_performed": false,
+      "raw_evidence_review": "对前序 sealed A7 包内的 raw bytes/hash 与公开事实链做复验，不形成新的实时健康点样。",
+      "open_findings": [],
+      "closed_findings": ["F-ADP-V12-S2-001"]
+    }
+  },
+  "closeout_validation": {
+    "stats_classification_tests": {"ran": 10, "passed": 10},
+    "stats_node_verifier": "PASS",
+    "independent_fail_closed_matrix_cases": 9,
+    "independent_owner_evidence_chain_checks": 14,
+    "google_bing_regression_tests": {"ran": 16, "passed": 16},
+    "security_tests": {"ran": 14, "passed": 14},
+    "governance_tests": {"ran": 65, "passed": 65},
+    "dual_plane": "PASS",
+    "taskpack_integrity_compatibility_drift": "PASS/PASS/PASS",
+    "full_suite": {"ran": 949, "failures": 2, "errors": 11, "skipped": 29, "raw_status": "FAIL"},
+    "sealed_failure_error_name_set_exact_match": true,
+    "candidate_only": [],
+    "baseline_only": [],
+    "worker_path_changed": false,
+    "wrangler_path_changed": false,
+    "cron_count": 3,
+    "source_enablement_changed": false
+  },
+  "full_suite_evidence": {
+    "builder_runner_log": {
+      "storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "sha256": "baca165f949468e93ec8b93585d949668f32857f66867ad29423635f60a4871d"
+    },
+    "builder_differential": {
+      "storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "sha256": "8594ac9b56fba8804aa3a9a7a593fe7289852572f05fda3bc3246be10428461f",
+      "status": "PASS"
+    },
+    "sealed_baseline": {
+      "path": "docs/archive/taskpacks/2026-07-20/ADP_META_MIGRATION_e1af471c_2026-07-20_acceptance_review_taskpack.zip",
+      "sha256": "c5ab970698f3ca3fd6bba6939123fae2c0cb6ecd5b7cd6058a622b7fabfcc084"
+    }
+  },
+  "runtime_or_live_change": false,
+  "deployment_authorized": false,
+  "deployment_performed": false,
+  "s3_status": "NOT_RUN",
+  "public_receipt": "docs/phase_records/PHASE_ADP_V12_S2_STATS_GOV_DIAGNOSIS.md"
+}

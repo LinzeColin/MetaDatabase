@@ -13,5 +13,10 @@
     "version": "任务包 1.2.0 / S1",
     "date": "2026-07-22",
     "summary": "Google News 候选实现完成有界 3 次 retry/backoff、手动重定向失败关闭和可追溯预算核算；独立验收 5/5 PASS，Bing 仍 live，Google 仍 candidate_not_live，未修改 Worker/cron 或部署。"
+  },
+  {
+    "version": "任务包 1.2.0 / S2",
+    "date": "2026-07-22",
+    "summary": "国家统计来源四类只读诊断、事实回执与负责人证据链完成；首轮 P1 修复后全新独立验收 3/3 PASS，工程决定为保持失败时降级且不改适配器，未修改 Worker、来源启停、cron 或部署。"
   }
 ]

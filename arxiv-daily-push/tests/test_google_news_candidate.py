@@ -14,6 +14,7 @@ REPO_ROOT = ROOT.parent
 VERIFY = ROOT / "tools" / "verify_google_news_candidate.mjs"
 WORKER = ROOT / "deploy" / "cloudflare" / "worker_cloud.js"
 REGISTRY = ROOT / "config" / "cloudflare_source_candidates_v1_2.json"
+DIAGNOSIS_RECEIPT = ROOT / "machine" / "runs" / "ADP-V12-S2-T001-diagnosis.json"
 CONTROLS = ROOT / "config" / "owner_controls.yaml"
 OWNER_PAGES = (
     ROOT / "用户中心" / "数据源与板块健康.md",
@@ -180,6 +181,9 @@ class GoogleNewsCandidateTests(unittest.TestCase):
             temporary_registry = temporary_root / "config" / REGISTRY.name
             temporary_registry.parent.mkdir(parents=True)
             temporary_registry.write_text(REGISTRY.read_text(encoding="utf-8"), encoding="utf-8")
+            temporary_receipt = temporary_root / DIAGNOSIS_RECEIPT.relative_to(ROOT)
+            temporary_receipt.parent.mkdir(parents=True)
+            temporary_receipt.write_bytes(DIAGNOSIS_RECEIPT.read_bytes())
             report = render_owner_documents(
                 load_owner_controls(CONTROLS),
                 project_path=temporary_root,
@@ -198,7 +202,11 @@ class GoogleNewsCandidateTests(unittest.TestCase):
             self.assertIn("34/50", rendered_catalog)
             self.assertEqual(
                 report["source_catalog_inputs"],
-                ["config/owner_controls.yaml", f"config/{REGISTRY.name}"],
+                [
+                    "config/owner_controls.yaml",
+                    f"config/{REGISTRY.name}",
+                    str(DIAGNOSIS_RECEIPT.relative_to(ROOT)),
+                ],
             )
         for removed_legacy_file in ("功能清单.md", "开发记录.md", "模型参数文件.md"):
             self.assertFalse(
