@@ -14,7 +14,7 @@
 - Stage 1 已通过 PR #73 合并到 `main`，远端 PR 与合并后 x2n CI 均通过；历史 G1 Evidence 不改写。
 - Stage 2 九个独立单 Task `TSK.x2n.skeleton.001–009`（Phase 2.1–2.9）与独立 `STG.X2N.2.REVIEW` 已完成项目原生本地验收；8 个 finding 全部关闭。当前 Review 分支为 `codex/xhs-douyin-2notion-v0001-s02-review`，Review base 为 `c133e1d4…`、origin cutoff 为 `6777c8fc…`。
 - Stage 2 已通过 PR #78 合并到 `main@ee5d251c…`；最终 x2n run `29922576589` 与 Dual-Plane run `29922576674` 均成功。新增 `stage_2_remote_merge_state.json` 只记录 Stage 3 授权前置事实，旧 G2 pre-upload Evidence 保持逐字节不变。
-- Stage 3 当前完成 `PH.X2N.3.1–3.7` 中的 `TSK.x2n.adapters.001–004/006–008`：Profile/session/Doctor/全局非等待互斥/低频与删除保护，小红书收藏/点赞显式可见批次，固定 Pin 抖音 owner-managed sidecar，Bilibili/Kuaishou 授权用户本人内容，以及 Weibo 官方当前用户 favorites 的单次 Owner 选择合同。A008 已通过 20 条 scan-confirmed `favorited` 映射、零预算/未知价格配额与 RFC Retry-After 门禁、50 次 Kill 恢复。下一独立 Run 为 `TSK.x2n.adapters.009`；`adapters.005` 关系对账删除尚未进入。
+- Stage 3 当前完成 `PH.X2N.3.1–3.8` 中的 `TSK.x2n.adapters.001–004/006–009`：Profile/session/Doctor/全局非等待互斥/低频与删除保护，小红书收藏/点赞显式可见批次，固定 Pin 抖音 owner-managed sidecar，Bilibili/Kuaishou 授权用户本人内容，Weibo 官方当前用户 favorites，以及淘宝 Owner 明确 item ID＋授权 `taobao.item.get` 最小字段合同。A009 已通过 20 条 Owner-confirmed `saved_current` 映射、授权/预算/配额/Retention/RFC Retry-After 门禁与 50 次 Kill 恢复。下一独立 Run 为 `TSK.x2n.adapters.005`。
 - 小红书收藏生产位保持关闭：Extension 只处理 Owner gesture 后最多 20 条可见净化 DOM，不滚动、不翻页、不联网；partial/auth/verification/platform-change/empty-unverified 不推进或完成。bounded Canary 不写 full scan，只有权威可见结束可完成 full scan；真实页面、Owner Profile/private gold/Canary 均 `NOT_RUN`。
 - 小红书点赞生产位同样关闭：同一可见批次/Checkpoint 边界，不调用私有端点、不读取 Cookie/Profile、不执行 like/unlike。100 个合成点赞与 20 个预置收藏最终保持 100 Content、100 `liked`、20 `favorited`；自动归档、Classification/Taxonomy/Owner 分类覆盖均为 0。
 - 小红书当前页代码、5 个 DOM Fixture、Action/临时 `activeTab`、Native Host/SQLite 闭环与 100 次 Worker restart 已通过；能力位仍为 `ci_synth_only`，真实页面禁用。
@@ -23,7 +23,7 @@
 - 哔哩哔哩所选列表只实现当前一手资料证明的 `authorized_uploader_video_manuscripts` 净化合同：真实启用要求 App 审批、关联 UP 主授权、`ARC_BASE`、书面自动化许可、受审净化 transport 和撤回/删除路径；当前均未满足/未运行，生产 Feature Flag 关闭。CI 合成清单一次最多 20 条，映射为 Owner-confirmed `saved_current`，不冒充平台点赞/收藏；无 network/DOM/next-page transport、自动滚动/分页或 raw API response。
 - 快手当前页代码、8 个 DOM、10 个 Policy、2 个 `BLOCKED_AUTH` 与 5 个 schema-drift rejection 通过；A007 进一步只实现 `user_video_info` 下授权用户本人发布作品的严格净化选择合同。任意点赞/收藏仍 `UNKNOWN_DISABLED`，公开路由仍为未验证合成假设；真实 App/OAuth/动态同意/API/DOM transport、删除执行器与 Owner Canary 均关闭。Scope 撤回使新请求固定为 0，并生成待删除证据；本 Task 不自动删除历史 Canonical 数据。
 - 微博当前页代码、8 个 DOM、12 个 Policy、2 个 `BLOCKED_BUDGET`、16 个任意 URL/Redirect-SSRF rejection 与 7 个 schema-drift rejection 通过。A008 进一步按官方 `GET /2/favorites.json` 只实现当前 OAuth 用户 favorites 的严格净化单页合同：20 条映射为 scan-confirmed `favorited`，不推断 like/本地收藏夹/full scan；预算 0、价格/配额/应用权限/canonical route 未批准，真实 API/OAuth/CLI/DOM/Profile/Canary 关闭。HTTP 429 只持久化 bounded `Retry-After` hold，不自动重试或代理轮换。
-- 淘宝当前页代码、8 个 DOM、14 个 Policy、2 个 Scope/Retention 未知拒绝、16 个未文档化 Cookie/MTop 签名输入拒绝与 7 个 schema-drift rejection 通过；官方只证明需授权的增值 `taobao.item.get`、OAuth/TOP 协议及删除义务，本应用无 App/OAuth/API/付费/字段范围/保留期/删除回执审批，真实页/TOP API/DOM fallback 与 Owner Canary 均关闭。
+- 淘宝当前页代码、8 个 DOM、14 个 Policy、2 个 Scope/Retention 未知拒绝、16 个未文档化 Cookie/MTop 签名输入拒绝与 7 个 schema-drift rejection 通过。A009 当前只实现 Owner 明确提供最多 20 个 `num_iid`、未来独立获授权的 `taobao.item.get` 严格 `{num_iid,title}` 净化合同和 Owner-confirmed `saved_current`；当前一手导航未建立买家个人收藏列表能力，故不枚举、不冒充收藏。无 App/OAuth/Scope/增值计划/预算/当前价格配额/官方净化 transport/保留期/撤回删除流程与回执时真实 TOP API、Profile 与 Canary 均关闭。
 - Media Safety 已实现不可序列化 URL 引用、六平台精确 suffix＋HTTPS/443＋DNS 全地址＋逐 redirect 防火墙、绑定已校验 IP 的 transport 合同、流式 byte/deadline/MIME/Inspector 限制、下载前 URL-free cleanup reservation＋校验后 metadata finalize 的 SQLite lease、共享/独占 lifecycle lock、24h cleaner 与五个固定 sink scanner；生产 transport、真实媒体、FFmpeg/ASR/OCR/关键帧仍关闭或未运行。
 - Canonical orchestration 保持 Schema v2 不变，以两个 SQLite 事务把六平台净化当前页落为 Request Ledger、Run、Content、Owner-confirmed `saved_current` Relation、SourceObservation、Checkpoint 与 URL-free/private-payload-free placeholder Artifact；canonical commit 后可由重复请求、`GET_JOB` 或 bounded resume 只凭 SQLite 恢复。
 - Markdown Sink 使用固定 `platform/content_id` 路径、JSON-compatible YAML Frontmatter、同目录 `0600` atomic replace 与 Unclassified 派生 Index；Notion Sink 仅实现 `2026-03-11` 语义合同和进程内 Mock，以加法式 Schema、Owner category 显式映射、2 req/s、Outbox/Retry/Dead Letter/Mapping/Receipt 支持 kill-reconcile，真实 transport/凭据/Workspace/Page 为 0。
@@ -38,7 +38,7 @@
 - Skeleton005 最终全量回归：六平台 80×2 的 80 Markdown/80 Notion Mock Pages/160 Outbox+Receipt 通过；partial file、invalid Frontmatter、dead link、CDN finding、duplicate Page、hash-noop replay request 与真实 Notion call 均为 0；175 个根测试 PASS（3 skip）、76 个 Companion tests PASS；两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；overall combined coverage 76.93%，33 个依赖 OSV 漏洞 0，65-member source candidate 确定性一致且 Runtime Data 0。
 - Stage 2 Review 最终回归：186 个根测试 PASS（3 个固定可选 skip）、76 个 Companion tests PASS；两份独立 full lane 各 24/24 Blocking Gate PASS，coverage 均 76.93%，33 个依赖漏洞 0，65-member source candidate SHA 一致；实际 Python 3.12.13 与全部工具链版本匹配政策。
 - 回归捕获并修复 SQLite transient `-wal/-shm` 在并发连接关闭时消失的 chmod 竞态；只豁免已经消失的 sidecar，Canonical DB 或仍存在 sidecar 的加固失败继续 Fail Closed。
-- 当前 `G2=PASS/REMOTE_MERGED`；Stage 3 当前 Gate 为 `G3=NOT_RUN`，整阶段上传禁止。Adapters001–004/006–008 只证明 CI-SYNTH Profile/session/guard、小红书收藏/点赞 DOM/Checkpoint/Chaos、抖音固定 Pin sidecar、Bilibili/Kuaishou 授权本人内容与 Weibo 官方 favorites 的 Owner-selection/Checkpoint/Kill/授权成本限频门禁范围；Owner Alpha/Canary 与正式 Release 均未通过。
+- 当前 `G2=PASS/REMOTE_MERGED`；Stage 3 当前 Gate 为 `G3=NOT_RUN`，整阶段上传禁止。Adapters001–004/006–009 只证明 CI-SYNTH Profile/session/guard、小红书收藏/点赞 DOM/Checkpoint/Chaos、抖音固定 Pin sidecar、Bilibili/Kuaishou 授权本人内容、Weibo 官方 favorites 与 Taobao Owner-explicit item selection 的 Checkpoint/Kill/授权成本配额保留期限频门禁范围；Owner Alpha/Canary 与正式 Release 均未通过。
 - 真实账号、Owner Chrome/Profile、六平台调用、真实 Notion、模型、真实媒体处理与全部下游用户旅程 Acceptance：`NOT_RUN`；Markdown/Notion Mock 仅 CI-SYNTH scoped pass。
 - 六平台真实执行：全部 `UNKNOWN_DISABLED`、`BLOCKED_AUTH` 或 `BLOCKED_BUDGET`；六平台均仅 `current_page=CI_SYNTH_ONLY`；各平台真实启用时重新通过 Policy/Auth/Technical/Canary Gate。
 
@@ -94,10 +94,11 @@
 - Adapters006：17 个 Companion 专项测试、38 个公共合成合同 cases、六种非权威状态和 50 次真实子进程事务内 Kill 通过。20 条授权稿件形态清单精确映射为 20 Content、20 Owner-confirmed `saved_current`、20 Observation，识别率 100%、silent loss/fake liked-or-favorited/lost/duplicate/removed/tombstone/physical delete/Content delete/Classification/Taxonomy/network/platform call 均为 0；Owner Canary/真实 transport `NOT_RUN`。
 - Adapters007：17 个 Companion 专项测试、43 个公共合成合同 cases、七种非权威状态和 50 次真实进程事务内 Kill 通过。20 条授权用户本人发布作品形态清单精确映射为 20 Content、20 Owner-confirmed `saved_current`、20 Observation；识别率 100%，silent loss/fake liked-or-favorited/lost/duplicate/removed/tombstone/physical delete/Content delete/Classification/Taxonomy/network/platform call 均为 0。Scope 撤回后请求 0、待删除回执 1、历史关系删除 0；Owner Canary/真实 OAuth/API/DOM transport/删除执行器 `NOT_RUN`。
 - Adapters008：18 个 Companion 专项测试、58 个公共合成合同 cases、八种非权威状态和 50 次真实进程事务内 Kill 通过。20 条官方 favorites 形态清单精确映射为 20 Content、20 scan-confirmed `favorited`、20 Observation；识别率 100%，fake liked/saved-current、lost/duplicate/delete/classification/network/platform call 均为 0。预算 0、价格/配额未知、429 `Retry-After=120` 早恢复阻断、自动 retry/proxy 0；Owner Canary/真实 OAuth/API/DOM transport `NOT_RUN`。
-- 历史重放：Adapters001 固定到 `ea440535…`，Adapters002 固定到 `050ec0c9…`，Adapters003 固定到 `0939d783…`，Adapters004 固定到 `37ec58cb…`，Adapters006 固定到 `5b6564d2…`，Adapters007 固定到 `a088ea87…`；六者都从 final commit blob 验收，Skeleton009 从固定提交 `git ls-tree` 枚举 Extension 源文件。旧 Task/Evidence 不重写。
+- Adapters009：18 个 Companion 专项测试、70 个公共合成合同 cases、九种非权威状态和 50 次真实进程事务内 Kill 通过。20 条 Owner 明确 item ID＋最小净化结果精确映射为 20 Content、20 Owner-confirmed `saved_current`、20 Observation；fake liked/favorited、lost/duplicate/delete/classification/network/platform call 均为 0。预算 0、价格/配额/Retention 未批准、429 `Retry-After=120` 早恢复阻断、Cookie/MTop/signing/未文档化 endpoint/自动 retry/proxy 为 0；Owner Canary/真实 OAuth/TOP API/DOM transport `NOT_RUN`。
+- 历史重放：Adapters001 固定到 `ea440535…`，Adapters002 固定到 `050ec0c9…`，Adapters003 固定到 `0939d783…`，Adapters004 固定到 `37ec58cb…`，Adapters006 固定到 `5b6564d2…`，Adapters007 固定到 `a088ea87…`，Adapters008 固定到 `a0f4a346…`；七者都从 final commit blob 验收，Skeleton009 从固定提交 `git ls-tree` 枚举 Extension 源文件。旧 Task/Evidence 不重写。
 - 当前 Extension 权限为 `activeTab`/`nativeMessaging`/`scripting`/`sidePanel`；历史 Foundation004 的 3 权限事实保持在固定提交与 Evidence 中。当前无 Host Permission、静态 Content Script、Storage/Cookie/Tabs/Downloads 或远程代码。
 - Chromium E2E 在默认 Action 前验证注入与采集 2/2 拒绝；用官方 CDP Action 驱动后才取得临时 `activeTab`，并通过真实 Side Panel 按钮把 XHS/Douyin/Bilibili/Kuaishou/Weibo/Taobao 合成当前页分别送入 Native Host/SQLite；每平台 100 次 Worker 重启仍 0 丢单/重单/错状态。平台形态网络请求由 catch-all route 拦截，实测平台调用 0；Owner Canary 与真实页面均 `NOT_RUN/DISABLED`。
-- 当前根回归：240 tests（237 PASS、3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对）；188 个 Companion tests、12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 79.30%，33 个依赖漏洞 0，76-member candidate 无 Runtime Data。Foundation001–005、Skeleton001–009、Stage 2 Review 与固定 Adapters001–004/006/007 predecessor 均 PASS；Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
+- 当前根回归：248 tests（245 PASS、3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对）；206 个 Companion tests、12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 79.59%，33 个依赖漏洞 0，77-member candidate 无 Runtime Data。Foundation001–005、Skeleton001–009、Stage 2 Review 与固定 Adapters001–004/006–008 predecessor 均 PASS；Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
 - Fresh copy：隔离 HOME 中 frozen locks、Extension 与 7 个 lifecycle rehearsal 加 1 个负向 Canary 均通过。
 
 ```bash
@@ -124,6 +125,9 @@ python3 -B scripts/verify_skeleton_009.py --verify-worktree --allow-external-mai
 .venv/bin/python -B scripts/run_adapters_007_acceptance.py
 .venv/bin/python -B scripts/ci/run_lane.py --lane full --repetitions 2 --reports-dir build/s03-adapters007-final
 .venv/bin/python -B scripts/verify_adapters_007.py --verify-worktree --allow-external-main-dirty --skip-external --lane-report build/s03-adapters007-final/software-lane.json --require-evidence
+.venv/bin/python -B scripts/run_adapters_009_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py --lane full --repetitions 2 --reports-dir build/s03-adapters009-final
+.venv/bin/python -B scripts/verify_adapters_009.py --verify-worktree --allow-external-main-dirty --skip-external --lane-report build/s03-adapters009-final/software-lane.json --require-evidence
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
@@ -144,7 +148,7 @@ Run Contract 执行。
 
 ## 下一步
 
-1. 下一独立产品 Run 只能执行 `PH.X2N.3.8 / TSK.x2n.adapters.009`；先固定当前 Adapters008 final commit，再让新 verifier 从该提交 blob 验收历史事实。
+1. 下一独立产品 Run 只能执行 `PH.X2N.3.9 / TSK.x2n.adapters.005`；先固定当前 Adapters009 final commit，再让新 verifier 从该提交 blob 验收历史事实。
 2. Stage 3 中间 Task 只本地提交；完成全部 Stage 3 Task 后才做独立 Review/Fix/Re-acceptance 与 G3，之后才允许整阶段上传。
 3. Owner Profile 登录、真实账号、六平台批量调用和 Canary 继续 `NOT_RUN`；对应平台真实启用前必须重新通过一手 Policy/Auth/Technical/Canary Gate。
 4. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Profile/Runtime/越界写入命中立即 Fail Closed。

@@ -6,7 +6,7 @@ project:
   token: x2n
   version: v0.0.0.1
   owner: LinzeColin
-  status: STAGE_3_ADAPTERS_008_PASS_G3_NOT_RUN
+  status: STAGE_3_ADAPTERS_009_PASS_G3_NOT_RUN
   owner_change_event: CE-X2N-20260720-S00-REVIEW-RESUME
   repository: https://github.com/LinzeColin/MetaDatabase
   skill_path: xhs-douyin-2notion/
@@ -41,7 +41,7 @@ authorization:
   real_account_execution: false
   public_release: false
   vps_data_plane: false
-  instruction: Stage 2 已通过 G2、PR 78 合并及 x2n/Dual-Plane 远端门禁；TSK.x2n.adapters.001–004、006–008 已在公共安全合成范围完成 Profile/session/guard、小红书收藏/点赞、固定 Pin 抖音 owner-managed sidecar、Bilibili 与 Kuaishou 授权用户本人内容，以及 Weibo 官方当前用户 favorites 的单次 Owner 选择、20 条 scan-confirmed favorited 映射、零预算/未知价格配额门禁、Retry-After 与 50 次 Kill 恢复。Weibo 真实应用权限、OAuth、价格、配额、公开详情路由及所有真实 API/DOM transport/Profile/Canary/账号仍未运行，Feature Flag 关闭且平台请求为 0。下一独立 Run 只能执行 TSK.x2n.adapters.009；G3 与 Stage 3 上传仍未运行/禁止。真实六平台批量调用、Notion/模型、媒体处理与正式 Release 均未授权。
+  instruction: Stage 2 已通过 G2、PR 78 合并及 x2n/Dual-Plane 远端门禁；TSK.x2n.adapters.001–004、006–009 已在公共安全合成范围完成 Profile/session/guard、小红书收藏/点赞、固定 Pin 抖音 owner-managed sidecar、Bilibili/Kuaishou/Weibo 的受限官方能力合同，以及淘宝 Owner 显式 num_iid 清单经最小 taobao.item.get 脱敏形态映射为 saved_current、保留/删除门禁、未文档化 Cookie/MTop 签名拒绝、Retry-After 与 50 次 Kill 恢复。淘宝买家收藏夹列表接口未获一手证实，不作存在或不存在断言；真实应用/OAuth/权限/计费/配额/保留期/删除回执/官方 transport/Profile/Canary/账号均未运行，Feature Flag 关闭且平台请求为 0。下一独立 Run 只能执行 TSK.x2n.adapters.005；G3 与 Stage 3 上传仍未运行/禁止。真实六平台批量调用、Notion/模型、媒体处理与正式 Release 均未授权。
 canonical_decisions:
 - id: DEC-X2N-001
   decision: Chrome MV3 Side Panel + Local Companion/WebUI
@@ -1583,7 +1583,7 @@ tasks:
   title: Implement Taobao selected-collection adapter
   stage: STG.X2N.3
   phase: PH.X2N.3.8
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: Owner grants a minimum official OAuth scope and selects a supported personal list

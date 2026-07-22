@@ -73,6 +73,9 @@
     "scripts/weibo_selected_chaos_worker.py",
     "scripts/run_adapters_008_acceptance.py",
     "scripts/verify_adapters_008.py",
+    "scripts/taobao_selected_chaos_worker.py",
+    "scripts/run_adapters_009_acceptance.py",
+    "scripts/verify_adapters_009.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

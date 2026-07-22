@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 3` 已完成 `PH.X2N.3.1–3.7` 中的 `TSK.x2n.adapters.001–004/006–008`；下一独立 Run 为 `adapters.009`，`adapters.005` 尚未进入。Stage 2 九个 Skeleton 与独立 Review 已通过 PR #78 合并，旧 G2 Evidence 不改写。除既有 Profile/session/guard、小红书、抖音、Bilibili 与 Kuaishou 合同外，A008 已加入 Weibo 官方当前用户 favorites 的严格单页合同：20 条 scan-confirmed `favorited` 映射、零预算/未知价格配额门禁、RFC `Retry-After` 保持窗和 50 次 Kill 恢复。能力仍仅为 CI-SYNTH；真实应用权限、OAuth、价格/配额、canonical route、transport、Profile/Canary、账号/平台、Notion、媒体与模型均未运行，生产 Feature Flag 关闭且平台请求为 0。`G3=NOT_RUN`，Stage 3 整体上传禁止；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 3` 已完成 `PH.X2N.3.1–3.8` 中的 `TSK.x2n.adapters.001–004/006–009`；下一独立 Run 为 `adapters.005`。Stage 2 九个 Skeleton 与独立 Review 已通过 PR #78 合并，旧 G2 Evidence 不改写。A009 在未证明淘宝个人收藏列表接口的边界下，只接受 Owner 明确提供的最多 20 个 `num_iid`，并为未来独立获授权的 `taobao.item.get` 最小字段净化结果建立 Owner-confirmed `saved_current`、Retention/授权/预算/配额门禁、RFC `Retry-After` 保持窗和 50 次 Kill 恢复合同。能力仍仅为 CI-SYNTH；真实应用权限、OAuth、价格/配额、保留期/删除流程、transport、Profile/Canary、账号/平台、Notion、媒体与模型均未运行，生产 Feature Flag 关闭且平台请求为 0。`G3=NOT_RUN`，Stage 3 整体上传禁止；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -20,6 +20,24 @@
 ## v0.0.0.1 DAG
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
+
+## Stage 3 / Adapters 009 验证
+
+```bash
+PYTHONPATH=apps/companion/src:packages/contracts/src \
+  .venv/bin/python -B scripts/run_adapters_009_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters009-final
+.venv/bin/python -B scripts/verify_adapters_009.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters009-final/software-lane.json --require-evidence
+```
+
+当前一手 Alibaba 文档证明 `taobao.item.get` 是需授权的增值 API，可按 `num_iid` 请求显式字段；已审阅的当前一手导航没有为本产品建立买家个人收藏列表接口，因此该能力保持 `UNKNOWN_DISABLED`，并不构成“不存在”断言。`TaobaoSelectedIterator` 不包含 network/OAuth/SDK/DOM/MTop/Cookie/signing/proxy/retry transport，只接受 Owner 明确清单与严格 `{num_iid,title}` 净化结果；Canonical URL 由 ID 派生且无 Query/Fragment。
+
+20 条合成条目精确落为 20 Content、20 Owner-confirmed `saved_current` Relation 与 20 Observation，不冒充 `liked`/`favorited` 或 full scan。App/OAuth/Scope、增值计划、当前价格/配额、非零预算、官方 TOP＋净化 transport、目的披露、保留期、撤回删除路径与删除回执缺一即阻断；HTTP 429 在 `Retry-After=120` 前禁止恢复且不自动请求或轮换代理。50 次进程退出后 lost/duplicate 均为 0；真实 transport、Owner Canary 和删除执行器 `NOT_RUN`。
+
+最终 248 个 root tests（245 PASS、3 个固定可选 skip）、206 个 Companion tests、12 个 Contract tests 通过；full lane 24/24、coverage 79.59%、33 个依赖漏洞 0、77-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传未运行。
 
 ## Stage 3 / Adapters 008 验证
 

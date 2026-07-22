@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 / Adapters 009
+
+- 基于固定 `Adapters008@a0f4a346…` 在独立 worktree 开发；A008 verifier 固定到 final commit blob，旧 Evidence 逐字节不改写，A005/G3/上传均未进入。
+- 复核 Alibaba 一手 `taobao.item.get`、授权/增值 API、最小必要、可追溯授权、保留期/撤回/服务与合作终止删除及加密/去标识规则。当前审阅没有为本产品建立买家个人收藏列表能力，结论为 `UNKNOWN_DISABLED` 而非“不存在”。
+- 新增 credential-free App/OAuth/Scope/cost/quota/retention receipt 与 `TaobaoSelectedIterator`：只接受 Owner 明确提供的最多 20 个 `num_iid` 及严格 `{num_iid,title}` 净化结果；无 network/OAuth/SDK/DOM/MTop/Cookie/signing/代理/自动重试或 raw API response。
+- 新增 SQLite `TaobaoSelectedAdapter`：20 条合成条目原子映射为 20 Content、20 Owner-confirmed `saved_current` Relation 与 20 Observation；不伪造 `liked`/`favorited`、平台收藏夹或 full scan，分类、删除及多余字段写入为 0。
+- App/OAuth/字段 Scope、增值计划、价格/配额、非零预算、官方 TOP＋净化 transport、local-only/canonical route、目的披露、保留期、撤回删除路径与删除回执均独立 Fail Closed。OAuth 撤回生成 cleanup-required receipt；本 Task 不执行历史 Canonical 删除。
+- HTTP 429 必须携带 bounded `Retry-After`；120 秒保持窗内恢复拒绝，无 checkpoint/Canonical 写入、自动请求或代理轮换。70 个公共合成合同 cases、18 个专项单测和 50 次真实进程事务内 Kill 通过，lost/duplicate 均为 0；真实账号/API/Profile/Canary `NOT_RUN`。
+- 最终 248 个 root tests（245 PASS、3 个固定可选 skip）、206 个 Companion tests 与 12 个 Contract tests 通过；full lane 两轮 24/24，coverage 79.59%，33 个依赖漏洞 0，77-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止；下一独立 Run 为 `TSK.x2n.adapters.005`。
+
 ## v0.0.0.1 — Stage 3 / Adapters 008
 
 - 基于固定 `Adapters007@a088ea87…` 在独立 worktree 开发；A007 verifier 固定到 final commit blob，旧 Evidence 逐字节不改写，A009/A005/G3/上传均未进入。

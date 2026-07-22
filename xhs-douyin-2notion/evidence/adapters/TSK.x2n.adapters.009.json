@@ -1,0 +1,171 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.tb.001",
+    "ACC.x2n.tb.002",
+    "ACC.x2n.batch.001"
+  ],
+  "acceptance_input_sha256": "adcce13287a13fb687bd87460c916528805812aaf3711adde63a05733571e701",
+  "acceptance_status": {
+    "ACC.x2n.batch.001": "PASS_CI_SYNTH_NINE_NON_AUTHORITATIVE_REMOVED_ZERO_RETENTION_RECEIPT_ONE_RECONCILIATION_DOWNSTREAM_NOT_RUN",
+    "ACC.x2n.tb.001": "PASS_CI_SYNTH_OWNER_EXPLICIT_ITEM_GET_MINIMUM_FIELDS_20_OF_20_OWNER_CONFIRMED_SAVED_CURRENT_ZERO_FAKE_LIKE_FAVORITE_OWNER_CANARY_NOT_RUN",
+    "ACC.x2n.tb.002": "PASS_CI_SYNTH_FIFTY_PROCESS_KILLS_ZERO_LOSS_DUPLICATE_FIVE_PLATFORM_KILLS_ZERO_UNDOCUMENTED_COOKIE_SIGNING_HTTP_429_RETRY_AFTER_HOLD"
+  },
+  "checks": [
+    {
+      "details": {
+        "changed_files": 23,
+        "local_path_findings": 0,
+        "out_of_scope_writes": 0,
+        "runtime_artifacts": 0,
+        "sensitive_or_media_url_hits": 0,
+        "text_files_scanned": 474
+      },
+      "name": "scope_and_public_private_boundary",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s03-adapters009",
+        "external_main_dirty_paths": 0,
+        "origin_drift_commits": 15,
+        "origin_project_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "evidence_mutations": 0,
+        "historical_checks": 6,
+        "predecessor_commit": "a0f4a34675d4b2b8b02c9195976a787d2fbf9c59"
+      },
+      "name": "adapters_008_fixed_predecessor",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "acceptance_ids": 3,
+        "next_task": "TSK.x2n.adapters.005",
+        "owner_canary": "NOT_RUN",
+        "phase": "PH.X2N.3.8",
+        "single_task": true,
+        "stage_gate": "G3_NOT_RUN"
+      },
+      "name": "task_and_acceptance_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "automatic_pagination": 0,
+        "minimum_sanitized_fields": 2,
+        "official_sources": 8,
+        "owner_canary": "NOT_RUN",
+        "platform_requests": 0,
+        "production_enabled": false,
+        "raw_api_responses": 0,
+        "relation_semantics": "owner_saved_current",
+        "retention_ready": false,
+        "undocumented_cookie_signing": 0
+      },
+      "name": "official_scope_retention_policy_and_adapter_containment",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "blocked_states": 9,
+        "contract_cases": 70,
+        "kill_runs": 50,
+        "owner_canary": "NOT_RUN",
+        "platform_calls": 0,
+        "selected_items": 20,
+        "synthetic_only": true,
+        "undocumented_signing_rejections": 11
+      },
+      "name": "synthetic_capability_retention_signing_and_chaos_fixtures",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "approved_budget_units": 0,
+        "authorization_cleanup_required_receipts": 1,
+        "automatic_pagination": 0,
+        "automatic_scroll": 0,
+        "blocked_state_cases": 8,
+        "content_count": 20,
+        "duplicate_side_effects": 0,
+        "early_resume_blocks": 1,
+        "fake_liked_or_favorited_relations": 0,
+        "identified_item_success_percent": 100.0,
+        "kill_runs": 50,
+        "lost_ids": 0,
+        "new_requests_after_revocation": 0,
+        "owner_canary": "NOT_RUN",
+        "owner_confirmed_saved_current_relations": 20,
+        "platform_calls": 0,
+        "removed_relations": 0,
+        "retention_receipts": 1,
+        "retry_after_seconds": 120,
+        "silent_losses": 0,
+        "undocumented_signing_rejections": 11,
+        "unit_tests": 18
+      },
+      "name": "taobao_selected_scope_retention_checkpoint_and_kill_acceptance",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "artifact_members": 77,
+        "blocking_executions": 24,
+        "blocking_failures": 0,
+        "coverage_percent": 79.59,
+        "dependencies_queried": 33,
+        "explicit_nonblocking_skips": 6,
+        "flaky_blocking_tests": 0,
+        "runtime_data_files": 0,
+        "silent_blocking_skips": 0,
+        "vulnerabilities_reported": 0
+      },
+      "name": "full_lane_replay",
+      "status": "PASS"
+    }
+  ],
+  "generated_at": "2026-07-22T21:08:45Z",
+  "owner_canary": "NOT_RUN",
+  "owner_profile_login": "NOT_RUN",
+  "phase": "PH.X2N.3.8",
+  "platform_calls": 0,
+  "private_content_included": false,
+  "profile_path_included": false,
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_G3_PASS",
+  "run_id": "RUN-X2N-S03-A009",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.3",
+  "stage_gate": "G3_NOT_RUN",
+  "status": "PASS_CI_SYNTH_SCOPED",
+  "task_id": "TSK.x2n.adapters.009",
+  "task_metrics": {
+    "approved_budget_units": 0,
+    "authorization_cleanup_required_receipts": 1,
+    "automatic_pagination": 0,
+    "automatic_scroll": 0,
+    "blocking_executions": 24,
+    "content_count": 20,
+    "coverage_percent": 79.59,
+    "duplicate_side_effects": 0,
+    "early_resume_blocks": 1,
+    "fake_liked_or_favorited_relations": 0,
+    "identified_item_success_percent": 100.0,
+    "kill_runs": 50,
+    "lost_ids": 0,
+    "new_requests_after_revocation": 0,
+    "owner_confirmed_saved_current_relations": 20,
+    "removed_relations": 0,
+    "retention_receipts": 1,
+    "retry_after_seconds": 120,
+    "silent_losses": 0,
+    "undocumented_signing_rejections": 11,
+    "unit_tests": 18
+  }
+}
