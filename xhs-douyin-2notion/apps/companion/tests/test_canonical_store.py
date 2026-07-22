@@ -9,6 +9,7 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
+from unittest import mock
 
 from x2n_contracts import (
     Artifact,
@@ -188,6 +189,41 @@ class CanonicalStoreTests(unittest.TestCase):
             observations=(synthetic_observation(content, index),),
             artifacts=(synthetic_artifact(content, index),),
         )
+
+    def test_transient_sqlite_sidecar_disappearance_is_bounded(self) -> None:
+        sidecar = Path(f"{self.paths.database}-shm")
+        sidecar.write_bytes(b"")
+        original = RuntimePaths.ensure_private_file
+
+        def disappear_transient(paths: RuntimePaths, path: Path) -> None:
+            if path == sidecar:
+                path.unlink()
+                raise FileNotFoundError(path)
+            original(paths, path)
+
+        with mock.patch.object(
+            RuntimePaths,
+            "ensure_private_file",
+            autospec=True,
+            side_effect=disappear_transient,
+        ):
+            self.store._secure_sqlite_files()
+
+        def reject_persistent(paths: RuntimePaths, path: Path) -> None:
+            if path == self.paths.database:
+                raise FileNotFoundError(path)
+            original(paths, path)
+
+        with (
+            mock.patch.object(
+                RuntimePaths,
+                "ensure_private_file",
+                autospec=True,
+                side_effect=reject_persistent,
+            ),
+            self.assertRaises(FileNotFoundError),
+        ):
+            self.store._secure_sqlite_files()
 
     def test_runtime_root_is_exact_owner_namespace_and_owner_only(self) -> None:
         self.assertEqual(self.paths.data_root.parent, self.paths.download_destination)

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "manifest_id": "FIXTURE.X2N.005",
-  "phase": "PH.X2N.1.5",
+  "manifest_id": "FIXTURE.X2N.006",
+  "phase": "PH.X2N.2.1",
   "fixtures": [
     {
       "id": "FIXTURE.X2N.S00.P05.001",
@@ -50,9 +50,15 @@
       "path": "packages/test-fixtures/ci/v1/seeded_failure_fragments.json",
       "case_count": 5,
       "purpose": "ephemeral seeded-failure construction without committed secret, CDN URL or local path values"
+    },
+    {
+      "id": "FIXTURE.X2N.S02.S001.001",
+      "path": "packages/test-fixtures/extension/v1/xhs_current_page/fixture_manifest.json",
+      "case_count": 5,
+      "purpose": "Xiaohongshu current-page stable ID, sanitized facts, missing fields, platform change and feed-card rejection"
     }
   ],
-  "status": "synthetic_governance_contract_store_extension_and_ci_fixtures_ready_real_platform_fixtures_not_started",
+  "status": "xhs_current_page_ci_synthetic_fixtures_pass_owner_canary_not_run_other_platform_capture_fixtures_not_started",
   "future_requirements": {
     "source_must_be_declared": true,
     "real_account_content_allowed": false,

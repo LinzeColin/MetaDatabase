@@ -222,7 +222,15 @@ class CanonicalStore:
         for suffix in ("", "-wal", "-shm"):
             path = Path(str(self.paths.database) + suffix)
             if path.exists():
-                self.paths.ensure_private_file(path)
+                try:
+                    self.paths.ensure_private_file(path)
+                except FileNotFoundError:
+                    # SQLite may delete a transient WAL/SHM sidecar after the
+                    # existence check while another connection is closing.
+                    # The canonical database must never receive this waiver.
+                    if suffix in {"-wal", "-shm"} and not path.exists():
+                        continue
+                    raise
         if self._lock_path.exists():
             self.paths.ensure_private_file(self._lock_path)
 

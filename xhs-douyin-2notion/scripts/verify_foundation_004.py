@@ -39,7 +39,8 @@ SBOM = PROJECT_ROOT / "machine/sbom/stage_1_foundation_004.cdx.json"
 EVIDENCE = PROJECT_ROOT / "evidence/extension/TSK.x2n.foundation.004.json"
 EXTENSION_ID = "chheapilbdfnpajmlkijppmblnlheeac"
 EXTENSION_ORIGIN = f"chrome-extension://{EXTENSION_ID}/"
-EXPECTED_PERMISSIONS = ["activeTab", "nativeMessaging", "sidePanel"]
+HISTORICAL_PERMISSIONS = ["activeTab", "nativeMessaging", "sidePanel"]
+CURRENT_PERMISSIONS = ["activeTab", "nativeMessaging", "scripting", "sidePanel"]
 EXPECTED_ACTIONS = [
     "capture_current",
     "start_sync",
@@ -322,12 +323,12 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
 def validate_task_and_state() -> Check:
     taskpack = TASKPACK.read_text(encoding="utf-8")
     task = _task_block(taskpack, TASK_ID)
+    historical_taskpack = _git(["show", f"{FINAL_COMMIT}:{TASKPACK.relative_to(REPOSITORY_ROOT).as_posix()}"])
+    _require(task == _task_block(historical_taskpack, TASK_ID), "Foundation004 Task block history was rewritten")
     _require(_field(task, "status") == "completed", "Foundation004 Task is not completed")
     _require(_field(task, "stage") == "STG.X2N.1" and _field(task, "phase") == "PH.X2N.1.4", "Foundation004 routing drifted")
     _require(_list_field(task, "depends_on") == ["TSK.x2n.foundation.002", "TSK.x2n.foundation.003"], "Foundation004 dependency drifted")
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.ext.001", "ACC.x2n.ext.002", "ACC.x2n.ext.003", "ACC.x2n.ext.004"], "Foundation004 Acceptance drifted")
-    _require("  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in taskpack, "Taskpack current status drifted")
-
     state = _load_baseline_json(TASK_STATE)
     _require(state.get("schema_version") == "1.6", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.1" and state.get("last_completed_phase") == "PH.X2N.1.4", "current Stage routing drifted")
@@ -365,8 +366,15 @@ def validate_task_and_state() -> Check:
 
 def validate_extension() -> Check:
     manifest = _load_json(MANIFEST)
+    historical_manifest = _load_baseline_json(MANIFEST)
+    _require(
+        historical_manifest.get("permissions") == HISTORICAL_PERMISSIONS
+        and "host_permissions" not in historical_manifest
+        and "content_scripts" not in historical_manifest,
+        "Foundation004 historical permission receipt drifted",
+    )
     _require(manifest.get("manifest_version") == 3 and manifest.get("minimum_chrome_version") == "120", "MV3 baseline drifted")
-    _require(manifest.get("permissions") == EXPECTED_PERMISSIONS, "extension permission allowlist drifted")
+    _require(manifest.get("permissions") == CURRENT_PERMISSIONS, "current extension permission allowlist drifted")
     _require("host_permissions" not in manifest and "content_scripts" not in manifest, "broad host/content-script surface entered extension")
     _require(manifest.get("background") == {"service_worker": "src/service-worker.js", "type": "module"}, "service worker declaration drifted")
     _require(manifest.get("side_panel") == {"default_path": "sidepanel.html"}, "Side Panel declaration drifted")
@@ -384,6 +392,7 @@ def validate_extension() -> Check:
         PROJECT_ROOT / "apps/extension/src/page-support.js",
         PROJECT_ROOT / "apps/extension/src/service-worker.js",
         PROJECT_ROOT / "apps/extension/src/sidepanel.js",
+        PROJECT_ROOT / "apps/extension/src/xhs-current-page.js",
         PROJECT_ROOT / "apps/extension/styles/sidepanel.css",
     ]
     _require(all(path.is_file() for path in production_files), "Extension source surface is incomplete")
@@ -407,8 +416,9 @@ def validate_extension() -> Check:
         {
             "extension_id": EXTENSION_ID,
             "host_permissions": 0,
+            "historical_permissions": len(HISTORICAL_PERMISSIONS),
             "navigation_tabs": 5,
-            "permissions": len(EXPECTED_PERMISSIONS),
+            "permissions": len(CURRENT_PERMISSIONS),
             "remote_scripts": 0,
         },
     )
@@ -608,10 +618,22 @@ def validate_execution() -> Check:
             env=env,
         )
         test_count = re.search(r"Ran (\d+) tests", native_tests)
-        _require(test_count is not None and int(test_count.group(1)) == 24, "Companion test count drifted")
+        historical_test_paths = [
+            path
+            for path in _git(["ls-tree", "-r", "--name-only", FINAL_COMMIT, "xhs-douyin-2notion/apps/companion/tests"]).splitlines()
+            if Path(path).name.startswith("test_") and path.endswith(".py")
+        ]
+        historical_count = sum(len(re.findall(r"(?m)^    def test_", _git(["show", f"{FINAL_COMMIT}:{path}"]))) for path in historical_test_paths)
+        current_count = sum(len(re.findall(r"(?m)^    def test_", path.read_text(encoding="utf-8"))) for path in sorted((PROJECT_ROOT / "apps/companion/tests").glob("test_*.py")))
+        _require(historical_count == 24, "historical Companion test count drifted")
+        _require(test_count is not None and int(test_count.group(1)) == current_count and current_count >= historical_count, "current Companion tests were skipped or removed")
         e2e = _json_line(
             _run_external("extension_e2e", ("npm", "run", "test:e2e", "--workspace", "@x2n/extension"), env=env),
             "extension_e2e",
+        )
+        xhs_fixtures = _json_line(
+            _run_external("xhs_fixture_e2e", ("npm", "run", "test:xhs-fixtures", "--workspace", "@x2n/extension"), env=env),
+            "xhs_fixture_e2e",
         )
     expected = {
         "console_uncaught_errors": 0,
@@ -627,6 +649,11 @@ def validate_execution() -> Check:
         "service_worker_restarts": 100,
         "status": "PASS",
         "wrong_statuses": 0,
+        "xhs_action_before_grant_rejections": 2,
+        "xhs_action_trigger": "PASS_CDP_DEFAULT_ACTION",
+        "xhs_current_page_capture": "PASS_CI_SYNTH",
+        "xhs_owner_canary": "NOT_RUN",
+        "xhs_query_fragment_persisted": 0,
     }
     for key, expected_value in expected.items():
         _require(e2e.get(key) == expected_value, f"Extension E2E metric drifted: {key}")
@@ -634,11 +661,22 @@ def validate_execution() -> Check:
         receipt = e2e.get(name, {})
         _require(isinstance(receipt.get("bytes"), int) and receipt["bytes"] > 0, f"E2E {name} is empty")
         _require(re.fullmatch(r"[0-9a-f]{64}", str(receipt.get("sha256", ""))) is not None, f"E2E {name} receipt is invalid")
+    _require(xhs_fixtures == {
+        "console_uncaught_errors": 0,
+        "fixture_cases": 5,
+        "observation_diff_mismatches": 0,
+        "owner_canary": "NOT_RUN",
+        "platform_changed_verified": 2,
+        "platform_calls": 0,
+        "query_fragment_persisted": 0,
+        "stable_ids_verified": 3,
+        "status": "PASS",
+    }, "XHS fixture E2E metrics drifted")
     return Check(
         "isolated_extension_e2e",
         "PASS",
         {
-            "companion_tests": 24,
+            "companion_tests": current_count,
             "console_uncaught_errors": 0,
             "duplicate_jobs": 0,
             "fixture_recognition": "20/20",
@@ -649,6 +687,8 @@ def validate_execution() -> Check:
             "service_worker_restarts": 100,
             "trace": e2e["trace"],
             "wrong_statuses": 0,
+            "xhs_fixture_cases": 5,
+            "xhs_platform_changed_verified": 2,
         },
     )
 

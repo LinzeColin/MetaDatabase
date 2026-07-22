@@ -21,7 +21,7 @@ class Phase05Tests(unittest.TestCase):
         self.assertEqual([check.status for check in checks], ["PASS"] * len(checks))
 
     def test_six_platforms_are_exact_and_disabled(self) -> None:
-        registry = json.loads((PROJECT_ROOT / "machine/facts/platform_scope_registry.json").read_text(encoding="utf-8"))
+        registry = VERIFY._load_json_at(VERIFY.PHASE_FINAL_COMMIT, VERIFY.PLATFORMS)
         self.assertEqual({item["id"] for item in registry["platforms"]}, VERIFY.PLATFORM_IDS)
         self.assertTrue(all(item["policy_state"] == "unknown_disabled" for item in registry["platforms"]))
         self.assertFalse(registry["implementation_started"])
@@ -62,7 +62,7 @@ class Phase05Tests(unittest.TestCase):
         self.assertEqual(media["failure_max_hours"]["maximum"], 24)
 
     def test_stage_and_external_execution_remain_not_run(self) -> None:
-        state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
+        state = VERIFY._load_json_at(VERIFY.STAGE_1_REVIEW_COMMIT, VERIFY.TASK_STATE)
         self.assertEqual(state["tasks"]["TSK.x2n.discovery.005"], "pass")
         self.assertIn(
             state["review_id"],

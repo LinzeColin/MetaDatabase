@@ -33,6 +33,22 @@ const RULES = Object.freeze([
 ]);
 
 export const SUPPORTED_PLATFORMS = Object.freeze(RULES.map((rule) => rule.platform));
+export const CURRENT_PAGE_FEATURES = Object.freeze({
+  bilibili: false,
+  douyin: false,
+  kuaishou: false,
+  taobao: false,
+  weibo: false,
+  xiaohongshu: "ci_synth_only",
+});
+
+function currentPageExecutable(match, url) {
+  const mode = CURRENT_PAGE_FEATURES[match.platform];
+  if (mode === true) return true;
+  if (mode !== "ci_synth_only" || match.platform !== "xiaohongshu") return false;
+  const contentId = url.pathname.split("/").filter(Boolean).at(-1) ?? "";
+  return contentId.startsWith("synthetic-") || contentId.startsWith("synthetic_");
+}
 
 export function recognizePage(rawUrl) {
   if (typeof rawUrl !== "string" || rawUrl.length === 0) {
@@ -66,10 +82,11 @@ export function recognizePage(rawUrl) {
     return Object.freeze({ executable: false, platform: null, reason: "unsupported_page", supported: false });
   }
 
+  const executable = currentPageExecutable(match, url);
   return Object.freeze({
-    executable: false,
+    executable,
     platform: match.platform,
-    reason: "platform_gate_disabled_stage_1",
+    reason: executable ? "current_page_ci_synth_enabled" : "platform_gate_disabled",
     supported: true,
   });
 }

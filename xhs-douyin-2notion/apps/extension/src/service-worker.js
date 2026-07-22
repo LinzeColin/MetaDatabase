@@ -1,6 +1,9 @@
+import { recognizePage } from "./page-support.js";
+import { buildXhsCapturePayload, extractXhsCurrentPage, validateXhsPageFacts } from "./xhs-current-page.js";
+
 const NATIVE_HOST = "com.linzecolin.x2n";
 const CONTRACT_VERSION = "1.0";
-const MESSAGE_TYPES = Object.freeze(new Set(["X2N_HEALTH", "X2N_GET_JOB"]));
+const MESSAGE_TYPES = Object.freeze(new Set(["X2N_CAPTURE_CURRENT", "X2N_GET_JOB", "X2N_HEALTH"]));
 
 // Lifecycle-only probe used by restart chaos. Product behavior never reads it;
 // every durable status still comes from the Native Host and SQLite.
@@ -42,11 +45,59 @@ function trustedSender(sender) {
     && sender.url === chrome.runtime.getURL("sidepanel.html");
 }
 
+async function captureCurrent(message) {
+  if (!Number.isSafeInteger(message.tabId) || message.tabId <= 0) {
+    return { ok: false, code: "X2N_INVALID_INPUT", status: "rejected" };
+  }
+  let tab;
+  try {
+    tab = await chrome.tabs.get(message.tabId);
+    if (!tab.active) throw new Error("active tab mismatch");
+  } catch {
+    return { ok: false, code: "X2N_POLICY_BLOCKED", status: "active_tab_unavailable" };
+  }
+  const support = recognizePage(tab.url ?? "");
+  if (!support.executable || support.platform !== "xiaohongshu") {
+    return { ok: false, code: "X2N_POLICY_BLOCKED", status: "platform_disabled" };
+  }
+
+  let injected;
+  try {
+    injected = await chrome.scripting.executeScript({
+      func: extractXhsCurrentPage,
+      target: { tabId: tab.id },
+      world: "ISOLATED",
+    });
+  } catch {
+    return { ok: false, code: "X2N_POLICY_BLOCKED", status: "active_tab_permission_required" };
+  }
+  if (!Array.isArray(injected) || injected.length !== 1) {
+    return { ok: false, code: "X2N_PLATFORM_CHANGED", status: "platform_changed" };
+  }
+
+  let facts;
+  try {
+    facts = validateXhsPageFacts(injected[0]?.result);
+  } catch {
+    return { ok: false, code: "X2N_PLATFORM_CHANGED", status: "platform_changed" };
+  }
+  if (facts.status === "platform_changed") {
+    return { ok: false, code: facts.code, reason: facts.reason, status: facts.status };
+  }
+  const response = await nativeRequest("capture_current", buildXhsCapturePayload(facts));
+  return {
+    ok: response?.accepted === true,
+    response,
+    status: response?.status ?? "rejected",
+  };
+}
+
 async function handleMessage(message, sender) {
   if (!trustedSender(sender) || !message || typeof message !== "object" || !MESSAGE_TYPES.has(message.type)) {
     return { ok: false, code: "X2N_EXTENSION_MESSAGE_REJECTED", status: "rejected" };
   }
   try {
+    if (message.type === "X2N_CAPTURE_CURRENT") return captureCurrent(message);
     if (message.type === "X2N_HEALTH") {
       const response = await nativeRequest("health", {});
       return { ok: response?.accepted === true, response };
@@ -74,10 +125,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-function configurePanel() {
-  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => undefined);
-}
-
-chrome.runtime.onInstalled.addListener(configurePanel);
-chrome.runtime.onStartup.addListener(configurePanel);
-configurePanel();
+chrome.action.onClicked.addListener((tab) => {
+  if (Number.isSafeInteger(tab?.id)) chrome.sidePanel.open({ tabId: tab.id }).catch(() => undefined);
+});

@@ -33,6 +33,7 @@ RUN_ID = "RUN-X2N-S01-REVIEW"
 REVIEW_BRANCH = "codex/xhs-douyin-2notion-v0001-s01-review"
 STAGE_BASE_COMMIT = "f1e5016a4e1bba10c86d8dd017868d5d64835f42"
 REVIEW_BASE_COMMIT = "5f770b6daf63d57ec4698dc7fbc95a9dfeab2669"
+REVIEW_FINAL_COMMIT = "2a81db2dd36638b00175ec6226462b37905d4705"
 ORIGIN_CUTOFF = "3e7094774158ead8751a7189041d8d1eeff2b50c"
 
 FOUNDATION_COMMITS = {
@@ -197,6 +198,13 @@ def _load_yaml_at(commit: str, path: Path) -> dict[str, Any]:
     return value
 
 
+def _load_json_at(commit: str, path: Path) -> dict[str, Any]:
+    relative = path.relative_to(REPOSITORY_ROOT).as_posix()
+    value = json.loads(str(_git(["show", f"{commit}:{relative}"])))
+    _require(isinstance(value, dict), f"historical JSON object required: {path.name}")
+    return value
+
+
 def _validate_taskpack_review_delta(current: dict[str, Any], baseline: dict[str, Any]) -> None:
     normalized = copy.deepcopy(current)
     normalized["project"]["status"] = baseline["project"]["status"]
@@ -338,7 +346,7 @@ def validate_review_documents() -> Check:
 
 
 def validate_task_dag_and_state() -> Check:
-    taskpack = _load_yaml(TASKPACK)
+    taskpack = _load_yaml_at(REVIEW_FINAL_COMMIT, TASKPACK)
     _validate_taskpack_review_delta(taskpack, _load_yaml_at(REVIEW_BASE_COMMIT, TASKPACK))
     project = taskpack.get("project", {})
     authorization = taskpack.get("authorization", {})
@@ -360,7 +368,13 @@ def validate_task_dag_and_state() -> Check:
     _require(tuple(g1.get("requires_tasks", [])) == EXPECTED_G1_TASKS, "G1 Task set drifted")
     _require(tuple(g1.get("pass_conditions", [])) == EXPECTED_G1_CONDITIONS, "G1 conditions drifted")
 
-    state = _load_json(TASK_STATE)
+    current_taskpack = _load_yaml(TASKPACK)
+    current_tasks = {row.get("id"): row for row in current_taskpack.get("tasks", [])}
+    _require(all(current_tasks.get(task_id) == tasks[task_id] for task_id in EXPECTED_G1_TASKS), "a completed Foundation Task changed after G1")
+    current_gates = {row.get("id"): row for row in current_taskpack.get("stage_gates", [])}
+    _require(current_gates.get("G1") == g1, "G1 contract changed after Review")
+
+    state = _load_json_at(REVIEW_FINAL_COMMIT, TASK_STATE)
     _require(state.get("schema_version") == "1.8", "task state schema drifted")
     _require(state.get("review_id") == REVIEW_ID and state.get("run_id") == RUN_ID, "Review state identity drifted")
     _require(state.get("run_kind") == "stage_review_no_new_dag_task", "Review run kind drifted")
@@ -385,9 +399,9 @@ def validate_task_dag_and_state() -> Check:
     ):
         _require(state.get(field) == "not_run", f"downstream execution overstated: {field}")
 
-    project_fact = _load_json(PROJECT_FACT)
+    project_fact = _load_json_at(REVIEW_FINAL_COMMIT, PROJECT_FACT)
     _require(project_fact.get("status") == "stage_1_review_pass_g1_pass_stage_2_authorized", "project fact drifted")
-    architecture = _load_json(ARCHITECTURE_FACT)
+    architecture = _load_json_at(REVIEW_FINAL_COMMIT, ARCHITECTURE_FACT)
     _require(
         architecture.get("stage_gate") == "g1_pass" and architecture.get("review_id") == REVIEW_ID,
         "architecture G1 fact drifted",
@@ -665,7 +679,8 @@ def _changed_review_paths() -> set[str]:
 
 
 def validate_review_scope() -> Check:
-    changes = _changed_review_paths()
+    changes = set(str(_git(["-c", "core.quotePath=false", "diff", "--name-only", f"{REVIEW_BASE_COMMIT}..{REVIEW_FINAL_COMMIT}"])).splitlines())
+    changes.discard("")
     _require(changes, "Stage 1 Review has no recorded change")
     for path in changes:
         allowed = path in ALLOWED_REVIEW_EXACT or any(path.startswith(prefix) for prefix in ALLOWED_REVIEW_PREFIXES)

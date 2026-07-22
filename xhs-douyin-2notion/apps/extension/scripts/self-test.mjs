@@ -1,17 +1,25 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { recognizePage, SUPPORTED_PLATFORMS } from "../src/page-support.js";
+import { buildXhsCapturePayload, validateXhsPageFacts } from "../src/xhs-current-page.js";
 
 const root = new URL("../", import.meta.url);
 const manifest = JSON.parse(await readFile(new URL("manifest.json", root), "utf8"));
 const fixture = JSON.parse(
   await readFile(new URL("../../packages/test-fixtures/extension/v1/page_cases.json", root), "utf8"),
 );
+const xhsFixture = JSON.parse(
+  await readFile(
+    new URL("../../packages/test-fixtures/extension/v1/xhs_current_page/fixture_manifest.json", root),
+    "utf8",
+  ),
+);
 const sourceFiles = [
   "sidepanel.html",
   "src/page-support.js",
   "src/service-worker.js",
   "src/sidepanel.js",
+  "src/xhs-current-page.js",
   "styles/sidepanel.css",
 ];
 const sources = Object.fromEntries(
@@ -19,7 +27,7 @@ const sources = Object.fromEntries(
 );
 
 const failures = [];
-const expectedPermissions = ["activeTab", "nativeMessaging", "sidePanel"];
+const expectedPermissions = ["activeTab", "nativeMessaging", "scripting", "sidePanel"];
 if (manifest.manifest_version !== 3) failures.push("manifest_version");
 if (manifest.version !== "0.0.0.1") failures.push("version");
 if (manifest.minimum_chrome_version !== "120") failures.push("minimum_chrome_version");
@@ -35,7 +43,7 @@ const digest = createHash("sha256").update(publicKey).digest().subarray(0, 16).t
 const extensionId = [...digest].map((nibble) => String.fromCharCode("a".charCodeAt(0) + Number.parseInt(nibble, 16))).join("");
 if (extensionId !== "chheapilbdfnpajmlkijppmblnlheeac") failures.push("extension_id");
 
-const forbiddenManifestValues = ["<all_urls>", "cookies", "storage", "scripting", "tabs"];
+const forbiddenManifestValues = ["<all_urls>", "cookies", "storage", "tabs"];
 const renderedManifest = JSON.stringify(manifest);
 for (const value of forbiddenManifestValues) if (renderedManifest.includes(value)) failures.push(`forbidden_manifest_${value}`);
 
@@ -55,7 +63,8 @@ if (!e2eSource.includes('PATH: process.env.PATH ?? ""')) failures.push("e2e_path
 let recognized = 0;
 for (const item of fixture.cases) {
   const actual = recognizePage(item.url);
-  if (actual.supported !== item.supported || actual.platform !== item.platform || actual.executable !== false) {
+  const expectedExecutable = item.supported && item.platform === "xiaohongshu";
+  if (actual.supported !== item.supported || actual.platform !== item.platform || actual.executable !== expectedExecutable) {
     failures.push(`page_case_${item.id}`);
   } else {
     recognized += 1;
@@ -63,6 +72,52 @@ for (const item of fixture.cases) {
 }
 if (new Set(fixture.cases.filter((item) => item.supported).map((item) => item.platform)).size !== 6) failures.push("six_platform_coverage");
 if (SUPPORTED_PLATFORMS.length !== 6) failures.push("platform_registry");
+if (recognizePage("https://www.xiaohongshu.com/explore/64f000000000000000000001").executable) {
+  failures.push("xhs_real_page_gate");
+}
+
+if (xhsFixture.synthetic !== true || xhsFixture.cases.length !== 5) failures.push("xhs_fixture_manifest");
+for (const field of [
+  "contains_credentials",
+  "contains_local_absolute_paths",
+  "contains_media_urls",
+  "contains_private_content",
+  "contains_real_accounts",
+  "real_accounts",
+]) {
+  if (xhsFixture[field] !== false) failures.push(`xhs_fixture_${field}`);
+}
+const contractFact = validateXhsPageFacts({
+  page_context: {
+    content_id: "synthetic-note-contract-001",
+    content_type: "unknown",
+    title: null,
+  },
+  page_url: "https://www.xiaohongshu.com/explore/synthetic-note-contract-001",
+  platform: "xiaohongshu",
+  provenance: {
+    canonical_url: { source: "stable_content_id", status: "derived" },
+    content_id: { source: "location_path_and_detail_surface", status: "observed_verified" },
+    content_type: { source: null, status: "unknown" },
+    title: { source: null, status: "missing" },
+  },
+  schema_version: "1.0",
+  status: "ready",
+});
+const contractPayload = buildXhsCapturePayload(contractFact);
+if (new URL(contractPayload.page_url).search || new URL(contractPayload.page_url).hash) failures.push("xhs_canonical_url");
+try {
+  buildXhsCapturePayload(validateXhsPageFacts({
+    code: "X2N_PLATFORM_CHANGED",
+    platform: "xiaohongshu",
+    reason: "detail_surface_missing",
+    schema_version: "1.0",
+    status: "platform_changed",
+  }));
+  failures.push("xhs_platform_changed_capture");
+} catch {
+  // Expected fail-closed path.
+}
 
 if (failures.length > 0) {
   process.stderr.write(`${JSON.stringify({ code: "X2N_EXTENSION_INVALID", failures, status: "FAIL_CLOSED" })}\n`);
@@ -79,5 +134,6 @@ process.stdout.write(
     permissions: expectedPermissions.length,
     platform_execution: "NOT_RUN",
     status: "PASS",
+    xhs_fixture_cases: xhsFixture.cases.length,
   })}\n`,
 );

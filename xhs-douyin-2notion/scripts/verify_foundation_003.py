@@ -26,6 +26,7 @@ BRANCH = "codex/xhs-douyin-2notion-v0001-s01-foundation001"
 TASK_BASE_COMMIT = "ae17e377090ef3bc1123d2512cda0daef9efe1cb"
 FINAL_COMMIT = "84731bde18495ab20af005bc70d59d5ce73cbe93"
 STATE_BASELINE_COMMIT = "09d5cdf1993080401f99e023feb03be479baca27"
+STAGE_1_REVIEW_COMMIT = "2a81db2dd36638b00175ec6226462b37905d4705"
 ORIGIN_CUTOFF = "a444a3e9e8ee3246f2f1763aceb55d519795e30b"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
@@ -314,11 +315,14 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
 def validate_task_and_state() -> Check:
     taskpack = TASKPACK.read_text(encoding="utf-8")
     task = _task_block(taskpack, TASK_ID)
+    taskpack_relative = TASKPACK.relative_to(REPOSITORY_ROOT).as_posix()
+    review_taskpack = _git(["show", f"{STAGE_1_REVIEW_COMMIT}:{taskpack_relative}"])
+    _require(task == _task_block(review_taskpack, TASK_ID), "foundation.003 Task block drifted after its completed Review")
     _require(_field(task, "status") == "completed", "foundation.003 Task is not completed")
     _require(_field(task, "stage") == "STG.X2N.1" and _field(task, "phase") == "PH.X2N.1.3", "foundation.003 routing drifted")
     _require(_list_field(task, "depends_on") == ["TSK.x2n.foundation.002"], "foundation.003 dependency drifted")
     _require(_list_field(task, "acceptance_ids") == ["ACC.x2n.data.001", "ACC.x2n.data.002", "ACC.x2n.data.004"], "foundation.003 Acceptance drifted")
-    _require("  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in taskpack, "Taskpack current status drifted")
+    _require("  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED\n" in review_taskpack, "historical Stage 1 Review Taskpack status drifted")
 
     state = _load_baseline_json(TASK_STATE)
     _require(state.get("schema_version") == "1.6", "task state schema drifted")
@@ -502,7 +506,13 @@ def validate_store_execution() -> Check:
             env=env,
         )
         match = re.search(r"Ran (\d+) tests", tests)
-        _require(match is not None and int(match.group(1)) == 13, "Companion Store test count drifted")
+        test_path = PROJECT_ROOT / "apps/companion/tests/test_canonical_store.py"
+        historical_test_path = test_path.relative_to(REPOSITORY_ROOT).as_posix()
+        historical_source = _git(["show", f"{FINAL_COMMIT}:{historical_test_path}"])
+        historical_count = len(re.findall(r"(?m)^    def test_", historical_source))
+        current_count = len(re.findall(r"(?m)^    def test_", test_path.read_text(encoding="utf-8")))
+        _require(historical_count == 13, "historical Companion Store test count drifted")
+        _require(match is not None and int(match.group(1)) == current_count and current_count >= historical_count, "current Companion Store tests were skipped or removed")
         acceptance_raw = _run_external(
             "store_acceptance",
             (*prefix, "scripts/run_foundation_003_acceptance.py"),

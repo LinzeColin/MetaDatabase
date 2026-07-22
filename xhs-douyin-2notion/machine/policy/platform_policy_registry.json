@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.0.5",
+  "phase": "PH.X2N.2.1",
   "default": "deny",
-  "research_cutoff": "2026-07-19",
+  "research_cutoff": "2026-07-22",
   "policy_recheck_required_at_platform_phase_start": true,
   "unknown_means": "unknown_disabled",
   "platform_states": {
@@ -16,6 +16,8 @@
   "official_sources": {
     "chrome": [
       "https://developer.chrome.com/docs/extensions/reference/api/sidePanel",
+      "https://developer.chrome.com/docs/extensions/develop/concepts/activeTab",
+      "https://developer.chrome.com/docs/extensions/reference/api/scripting",
       "https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code",
       "https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging",
       "https://developer.chrome.com/docs/webstore/program-policies/user-data-faq",
@@ -55,6 +57,18 @@
     "canary_and_completeness_receipt",
     "cdn_credentials_private_zero_scan"
   ],
-  "product_code_started": false,
+  "capability_states": {
+    "xiaohongshu_current_page": "ci_synth_only_policy_unknown_real_page_disabled_owner_canary_not_run",
+    "xiaohongshu_selected_collection": "unknown_disabled",
+    "other_platform_current_page": "unknown_disabled"
+  },
+  "policy_recheck": {
+    "date": "2026-07-22",
+    "official_personal_content_read_capability": "not_found",
+    "official_share_platform_scope": "publishing_and_sharing_not_personal_content_read",
+    "decision": "retain_unknown_disabled_for_real_pages"
+  },
+  "product_code_started": true,
+  "product_code_scope": "xiaohongshu_current_page_ci_synth_only",
   "real_account_execution": false
 }

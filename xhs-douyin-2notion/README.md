@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 1` 的 `TSK.x2n.foundation.001–005` 与独立 `STG.X2N.1.REVIEW` 已完成，`G1=PASS`，Stage 1 整体上传与下一独立 Stage 2 Task 已获授权，但 Stage 2 尚未开始。Review 修复 8 个 finding；两轮 full lane 的 24 次阻塞执行、Task Pack 固定版本差分、PR merge-parent 隔离、逐提交历史扫描、风险覆盖率、OSV、SAST、隐私扫描、制品白名单和确定性复现均通过。远端 GitHub Actions 仍为 `PENDING_POST_G1_UPLOAD`，最后提交的远端 x2n CI 通过前不得 merge。模型侧只验证 versioned Dataset Contract，ASR/OCR/Fusion/Classify/Red Team 模型执行和自动分类全部关闭。真实采集、账号访问、平台动作、Markdown/Notion、模型和媒体仍未实现；六平台与所有上游候选保持关闭。Owner 保留的外部共享认证材料不由 x2n 读取、使用或修改；与 MetaDatabase 其他长期开发采用零重叠 worktree 隔离，外部文件不进入本项目证据或提交。
+当前状态：`v0.0.0.1 / Stage 2` 的单一 `TSK.x2n.skeleton.001` 已完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。小红书当前详情页已具备稳定 ID、净化页面事实、`platform_changed`、Extension Action/临时 `activeTab`、Native Host 与 SQLite 队列闭环，但能力位固定为 `ci_synth_only`：真实页面、Owner Chrome/账号和 Canary 仍禁用。5/5 DOM Fixture、Action 前 2 个拒绝、Action 后一次合成采集及 100 次 Service Worker 重启均通过；无 Host Permission、静态 Content Script、Extension Storage、Query/Fragment 或媒体地址持久化。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.002`。Markdown/Notion、ASR/OCR、分类、媒体和其余平台动作均未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,27 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 1 Review / G1 验证
+## Stage 2 / Skeleton 001 验证
+
+```bash
+npm ci --ignore-scripts
+uv sync --frozen --all-packages --group ci
+PLAYWRIGHT_BROWSERS_PATH=build/playwright-browsers \
+  npx --no-install playwright install chromium
+npm run self-test --workspace @x2n/extension
+npm run test:xhs-fixtures --workspace @x2n/extension
+npm run test:e2e --workspace @x2n/extension
+python3.12 -B scripts/verify_skeleton_001.py \
+  --verify-worktree --allow-external-main-dirty --require-evidence
+```
+
+`ACC.x2n.capture.001` 当前只达到 `ENV-CI-SYNTH`：3 个 ready 与 2 个
+`platform_changed` Fixture 全部通过；Owner Canary 所需真实图文/视频各 1 为 `NOT_RUN`，
+因此真实页面保持 `UNKNOWN_DISABLED`。Manifest 当前权限为 `activeTab`、
+`nativeMessaging`、`scripting`、`sidePanel`；`scripting` 只能在 Extension Action 授予临时
+`activeTab` 后执行，持久 Host Permission 仍为 0。
+
+## Stage 1 Review / G1 历史验证
 
 ```bash
 npm ci --ignore-scripts
@@ -34,10 +54,9 @@ PLAYWRIGHT_BROWSERS_PATH=build/playwright-browsers npx --no-install playwright i
   --lane-report build/g1-review/software-lane.json --require-evidence
 ```
 
-G1 只证明 Foundation001–005 的本地公共安全合成范围。机器证据位于
-`machine/evidence/stage_1/review/`；远端 Actions、Owner Chrome、真实账号、平台、
-Notion、模型、媒体和 Sink 均不因 G1 自动变为已运行。下一独立产品 Run 只能执行
-`TSK.x2n.skeleton.001`。
+G1 只证明 Foundation001–005 的公共安全合成范围。机器证据位于
+`machine/evidence/stage_1/review/`；Stage 1 后续已整体上传、远端通过并合并，但 Owner
+Chrome、真实账号、平台、Notion、模型、媒体和 Sink 均不因 G1 自动变为已运行。
 
 ## Foundation 005 历史范围验证
 
@@ -67,8 +86,13 @@ python3 -B scripts/verify_foundation_004.py \
 python3 -B -m unittest tests.test_foundation_004
 ```
 
-门禁执行 20 个公共合成页面、五区 Side Panel、临时 Native Host 注册、24 个
-Companion tests 与 100 次真实 Service Worker 终止/重启；SQLite 是唯一任务状态源。
+Foundation004 历史提交仍精确记录 3 权限；当前前向验证同时允许 Skeleton001 经独立
+Acceptance 增加的 `scripting`，并继续拒绝 Host Permission。门禁执行 20 个公共合成页面、
+五区 Side Panel、临时 Native Host 注册、当前 25 个 Companion tests（Foundation004 固定
+提交历史为 24）与 100 次真实 Service
+Worker 终止/重启；SQLite 是唯一任务状态源。Skeleton001 最终 full lane 两轮 24/24
+Blocking Gate 通过，0 failure/flaky/silent skip；SQLite transient WAL/SHM 消失竞态已有
+确定性回归，Canonical DB 权限加固仍 Fail Closed。
 截图和 trace 仅生成在临时目录，Git 证据只保存大小与 SHA-256。Owner Chrome、共享
 Profile、真实账号与平台请求均不参与。Playwright 测试栈已进入独立 30-component
 SBOM；可选 `fsevents` 的 install script 由 `.npmrc` 和验收命令共同禁止执行。

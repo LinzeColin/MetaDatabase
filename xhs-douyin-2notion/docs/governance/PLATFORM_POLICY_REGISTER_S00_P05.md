@@ -1,10 +1,10 @@
-# 六平台政策与能力门禁 — 2026-07-19 快照
+# 六平台政策与能力门禁 — 2026-07-19 基线 / 2026-07-22 小红书当前页复核
 
 本登记只回答“未来可以研究哪条合规路线”，不构成平台授权或法律意见。实现时必须重新核验当时的一手条款；任何未知都按 `UNKNOWN_DISABLED` 处理。
 
 | 平台 | 一手能力证据 | v0.0.0.1 允许研究的首选路线 | 当前启用状态 |
 |---|---|---|---|
-| 小红书 | 官方开放平台公开资料以分享/发布能力为主；本轮未获得可验证的个人收藏/点赞读取授权证据 | 用户手势触发的当前页 clean-room 解析；个人列表能力保持未知，禁止自动滚动 | `UNKNOWN_DISABLED` |
+| 小红书 | 官方分享开放平台当前公开资料仍以分享/发布能力为主；2026-07-22 复核仍未找到可验证的个人内容读取授权能力 | 已实现用户手势当前页 clean-room 解析，但本轮只允许公共安全合成 ID；真实页面与个人列表继续禁用 | `CI_SYNTH_ONLY / UNKNOWN_DISABLED_REAL` |
 | 抖音 | 开放平台提供 OAuth/权限体系；用户视频等 Scope 需申请/授权 | 官方 API 优先；必要的当前页读取仅限用户选择、可见内容；禁止把第三方实现当授权 | `UNKNOWN_DISABLED` |
 | 哔哩哔哩 | 开放平台提供用户授权/开放数据；开发者协议禁止未经书面同意用机器人/爬虫取得开放平台、用户或运营数据 | 官方 API 优先；当前页只读 fallback 必须通过独立 Gate | `UNKNOWN_DISABLED` |
 | 快手 | 开放平台提供 OAuth、用户信息及内容能力，并要求明确同意与最小必要 | 官方 API/OAuth 优先；无 Scope 不启用个人列表 | `UNKNOWN_DISABLED` |
@@ -20,6 +20,12 @@
 5. 每个平台采用独立 Capability Manifest：`current_page`、`selected_collection`、`preview`、`ephemeral_download`、`classify`；状态只能是 `SUPPORTED`、`BLOCKED_POLICY`、`BLOCKED_AUTH`、`BLOCKED_TECHNICAL`、`UNKNOWN_DISABLED`。
 6. “预览/下载”是 Local Companion 的临时媒体 Lease；成功后立即删除，失败最长 24h；数据库、日志、Markdown、Notion 和证据中平台 CDN URL 必须为 0。
 7. 分类发生在 Canonical Content 上；平台适配器不能直接写 Markdown/Notion，AI 不能创建一级分类。
+
+## 2026-07-22 小红书当前页复核结论
+
+- `TSK.x2n.skeleton.001` 只证明合成 DOM、最小 Chrome 权限和本地链路；不构成平台授权或真实账号验收。
+- 源码能力位固定为 `ci_synth_only`；非合成页面即使 URL 形态受支持也保持不可执行。
+- 真实页面启用仍需当时的一手政策证据、Owner 明确授权、独立 Canary 和隐私披露复核；未知一律关闭。
 
 ## 一手参考
 

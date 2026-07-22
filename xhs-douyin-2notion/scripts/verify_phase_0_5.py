@@ -51,6 +51,8 @@ TEMP_COMPETITOR = (
 )
 
 PHASE_TASK = "TSK.x2n.discovery.005"
+PHASE_FINAL_COMMIT = "ff38638f008881ee28cb805597b049f6a8227f54"
+STAGE_1_REVIEW_COMMIT = "2a81db2dd36638b00175ec6226462b37905d4705"
 PLATFORM_IDS = {"xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"}
 NEW_PLATFORM_TASKS = {
     "TSK.x2n.skeleton.006": "PH.X2N.2.3",
@@ -132,6 +134,13 @@ def _git(args: list[str], cwd: Path = REPOSITORY_ROOT) -> str:
     result = subprocess.run(["git", *args], cwd=cwd, check=False, capture_output=True, text=True)
     _require(result.returncode == 0, f"git command failed: {' '.join(args)}")
     return result.stdout.rstrip()
+
+
+def _load_json_at(commit: str, path: Path) -> dict[str, Any]:
+    relative = path.relative_to(REPOSITORY_ROOT).as_posix()
+    value = json.loads(_git(["show", f"{commit}:{relative}"]))
+    _require(isinstance(value, dict), f"historical JSON object required: {path.name}")
+    return value
 
 
 def validate_required_artifacts() -> Check:
@@ -275,7 +284,7 @@ def validate_taskpack_amendment() -> Check:
 
 
 def validate_platform_and_competitor_policy() -> Check:
-    platforms = _load_json(PLATFORMS)
+    platforms = _load_json_at(PHASE_FINAL_COMMIT, PLATFORMS)
     platform_rows = platforms.get("platforms", [])
     _require({item.get("id") for item in platform_rows} == PLATFORM_IDS, "platform registry must contain exactly six platforms")
     _require(all(item.get("policy_state") == "unknown_disabled" for item in platform_rows), "pre-development platform must remain disabled")
@@ -351,7 +360,7 @@ def validate_platform_and_competitor_policy() -> Check:
 
 
 def validate_architecture_and_stop_kill() -> Check:
-    decisions = _load_json(DECISIONS)
+    decisions = _load_json_at(PHASE_FINAL_COMMIT, DECISIONS)
     rows = decisions.get("decisions", [])
     _require([item.get("id") for item in rows] == [f"ADR-{index:03d}" for index in range(1, 11)], "decision registry mismatch")
     if decisions.get("implementation_started") is False:
@@ -414,7 +423,7 @@ def validate_synthetic_cases() -> Check:
 
 
 def validate_task_state() -> Check:
-    project = _load_json(PROJECT_FACT)
+    project = _load_json_at(STAGE_1_REVIEW_COMMIT, PROJECT_FACT)
     _require(project.get("name") == "xhs-douyin-2notion" and project.get("project_path") == "xhs-douyin-2notion/", "project identity drifted")
     _require(project.get("parent_repository") == "LinzeColin/MetaDatabase", "parent repository drifted")
     _require(project.get("runtime_root_ref") == "X2N_DATA_ROOT" and project.get("downloads_root_ref") == "X2N_DATA_ROOT", "runtime/download root drifted")
@@ -424,7 +433,7 @@ def validate_task_state() -> Check:
     _require(project.get("source_taskpack_absolute_path_status") == "unspecified_owner_resolved", "original taskpack path gap not recorded")
     _require(project.get("platform_scope") == ["xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"], "project platform scope drifted")
     _require(project.get("status") in {"stage_0_review_complete_g0_blocked_owner_action", "stage_0_g0_pass_stage_1_authorized", "stage_1_foundation_001_complete_g1_not_run", "stage_1_foundation_002_complete_g1_not_run", "stage_1_foundation_003_complete_g1_not_run", "stage_1_foundation_004_complete_g1_not_run", "stage_1_foundation_005_complete_g1_not_run", "stage_1_review_pass_g1_pass_stage_2_authorized"}, "project readiness status is invalid")
-    state = _load_json(TASK_STATE)
+    state = _load_json_at(STAGE_1_REVIEW_COMMIT, TASK_STATE)
     _require(state.get("tasks", {}).get(PHASE_TASK) == "pass", "Phase 0.5 task not pass")
     acceptances = state.get("acceptance_status", {})
     _require(acceptances.get("ACC.x2n.gov.003") == "pass_current_artifact_scope", "governance acceptance status mismatch")

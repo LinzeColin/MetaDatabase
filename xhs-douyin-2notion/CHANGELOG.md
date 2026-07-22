@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.0.1 — Stage 2 / Skeleton 001
+
+- 实现小红书当前详情页 clean-room 检测与提取：稳定 ID、无 Query/Fragment 的规范 URL、净化标题或显式 null、图文/视频/unknown 类型及字段状态；身份冲突和 feed card 均返回 `X2N_PLATFORM_CHANGED`。
+- 新增 5 个公共安全合成 DOM Fixture；3 个 ready 与 2 个 platform-changed Observation Diff 全部通过，媒体/raw DOM/Query/Fragment 返回或持久化为 0。
+- Extension 增加最小 `scripting` 权限，但仍无 Host Permission、静态 Content Script、Storage/Cookie/Tabs/Downloads 或远程代码；默认 Action 前注入和采集均拒绝，Action 后仅凭临时 `activeTab` 执行隔离世界提取。
+- Playwright 通过 Chromium 官方 CDP 默认 Action 触发测试真实权限语义；合成当前页进入 Native Host/SQLite skeleton Job 后，100 次 Service Worker 重启 0 丢单/重单/错状态。
+- 两轮 full lane 共 24/24 Blocking Gate 通过，blocking failure/flaky/silent skip 为 0；新增的并发回归测试修复 SQLite `-wal/-shm` 在连接关闭期间消失引发的 chmod 竞态，Canonical DB 文件仍严格 Fail Closed。
+- 历史 Foundation/Review verifier 改为固定提交取证并对 live tree 做追加式验证；历史测试数、权限与 Gate 事实不改写，当前新增测试不再被误判为历史漂移。
+- 当前能力位为 `ci_synth_only`；小红书一手开放资料未提供可验证的个人内容读取能力，真实页面与 Owner Canary 保持 `UNKNOWN_DISABLED / NOT_RUN`。
+- `ACC.x2n.capture.001` 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 为 `TSK.x2n.skeleton.002`。
+
 ## v0.0.0.1 — Stage 1 Review / G1
 
 - 独立复核 Foundation001–005 的 Task、Acceptance、固定提交与历史证据；Review 不执行新 DAG Task，下一产品 Task 固定为 `TSK.x2n.skeleton.001`。

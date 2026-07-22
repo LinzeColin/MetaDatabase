@@ -32,7 +32,10 @@ class Phase01Tests(unittest.TestCase):
         )
 
     def test_downstream_gates_fail_closed(self) -> None:
-        state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
+        state = json.loads(VERIFY._run_git(
+            ["show", "2a81db2dd36638b00175ec6226462b37905d4705:xhs-douyin-2notion/machine/facts/task_state.json"],
+            VERIFY.PROJECT_ROOT.parent,
+        ))
         self.assertIn(state["stage_gate"], {"blocked_owner_action", "pass"})
         if state["stage_gate"] == "blocked_owner_action":
             self.assertFalse(state["next_phase_authorized"])

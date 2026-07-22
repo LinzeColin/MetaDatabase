@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "EXTENSION.PERMISSION.X2N.001",
+  "phase": "PH.X2N.2.1",
+  "permissions": [
+    {
+      "name": "activeTab",
+      "requirements": ["REQ.X2N.003", "REQ.X2N.008"],
+      "purpose": "temporary access only after the owner invokes the extension action",
+      "persistent_host_access": false
+    },
+    {
+      "name": "nativeMessaging",
+      "requirements": ["REQ.X2N.001", "REQ.X2N.021"],
+      "purpose": "short-lived messages to the exact local companion host",
+      "persistent_host_access": false
+    },
+    {
+      "name": "scripting",
+      "requirements": ["REQ.X2N.003", "REQ.X2N.008"],
+      "purpose": "isolated-world current-page fact extraction after an activeTab grant",
+      "persistent_host_access": false
+    },
+    {
+      "name": "sidePanel",
+      "requirements": ["REQ.X2N.001"],
+      "purpose": "owner-visible interaction surface opened by the extension action",
+      "persistent_host_access": false
+    }
+  ],
+  "forbidden_permissions": [
+    "<all_urls>",
+    "cookies",
+    "debugger",
+    "downloads",
+    "history",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [],
+  "content_scripts": [],
+  "remote_code": false,
+  "feature_flag": {
+    "name": "xiaohongshu_current_page",
+    "value": "ci_synth_only",
+    "real_page_execution": false,
+    "owner_canary": "not_run"
+  },
+  "rollback_value": false
+}

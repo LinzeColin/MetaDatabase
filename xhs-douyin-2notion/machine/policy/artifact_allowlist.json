@@ -39,6 +39,7 @@
     "scripts/ci/run_lane.py",
     "scripts/generate_foundation_005_sbom.py",
     "scripts/verify_foundation_005.py",
+    "scripts/verify_skeleton_001.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }
