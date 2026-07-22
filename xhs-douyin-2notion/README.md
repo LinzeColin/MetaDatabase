@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 2` 的九个 `TSK.x2n.skeleton.001–009` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。Skeleton005 在 SQLite Schema v2 之外新增可重建 Markdown 与进程内 Notion Mock Sink：六平台 80×2 投影使用固定 `platform/content_id` 路径、原子写、有效 Frontmatter、稳定 Unclassified Index；Notion 使用 `2026-03-11` Data Source 语义、加法式 Schema、Outbox、2 req/s、429/529/断网/kill 重试与对账。重复 Page、半文件、断链、CDN finding 与真实 Notion 调用均为 0。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `STG.X2N.2.REVIEW`，不得进入 Stage 3。分类、列表 Adapter、真实平台/Notion、Owner Canary、真实媒体与模型处理仍未运行；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 2` 的九个 `TSK.x2n.skeleton.001–009` 与独立 `STG.X2N.2.REVIEW` 已完成项目原生本地验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。Skeleton005 在 SQLite Schema v2 之外新增可重建 Markdown 与进程内 Notion Mock Sink：六平台 80×2 投影使用固定 `platform/content_id` 路径、原子写、有效 Frontmatter、稳定 Unclassified Index；Notion 使用 `2026-03-11` Data Source 语义、加法式 Schema、Outbox、2 req/s、429/529/断网/kill 重试与对账。重复 Page、半文件、断链、CDN finding 与真实 Notion 调用均为 0。项目原生本地 `G2=PASS`，Stage 2 整体上传已授权；远端 CI/merge 仍为 `PENDING_POST_G2_UPLOAD`，此前不得进入 Stage 3。正式 Verifier release-candidate 因原任务包缺少 canonical `MANIFEST` role 保持 `BLOCKED_REQUIREMENT_GAP`。分类、列表 Adapter、真实平台/Notion、Owner Canary、真实媒体与模型处理仍未运行；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,25 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 2 / Skeleton 005 验证
+## Stage 2 / Review 与 G2 验证
+
+```bash
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/g2-review
+.venv/bin/python -B scripts/verify_stage_2_review.py \
+  --verify-worktree --allow-external-main-dirty \
+  --lane-report build/g2-review/software-lane.json --require-evidence
+```
+
+Review 冻结九个 Task final commit 与 evidence，逐版本扫描 Stage 2 历史，并聚合六平台独立
+current-page E2E、zero duplicate、zero CDN persistence、媒体清理和 Notion outage 独立性。
+软件 lane 只验证软件，不决定动态 Stage Gate；实际 Python/Node/npm/uv/ruff/coverage/PyYAML
+必须与政策一致。项目原生 G2 只授权 Stage 2 上传；远端 CI/merge 前 `stage_3_task_start=false`。
+Review 最终根回归为 186 tests PASS、3 个固定 Owner-private 可选输入 skip；76 个 Companion
+tests PASS。两份独立 full lane 均为 24/24 Blocking Gate PASS，coverage 76.93%、33 个依赖
+vulnerability 0；65-member 候选制品 SHA 一致且 Runtime Data 0。
+
+## Stage 2 / Skeleton 005 历史验证
 
 ```bash
 .venv/bin/python -B scripts/run_skeleton_005_acceptance.py
@@ -41,10 +59,10 @@ transport，也未读取 Notion 凭据。Items/Categories Schema 只加字段，
 映射。Outbox 在 429/529、timeout、reset、一小时 outage、成功后 Receipt 前 kill 与 Schema 冲突下，
 最终进入 Receipt 或 bounded Dead Letter；Canonical/Markdown 不与 Notion 事务耦合。
 
-最终根回归为 175 个测试 PASS、3 个固定 Owner-private 可选输入 skip；75 个 Companion tests PASS。
-full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 76.86%，
+最终根回归为 175 个测试 PASS、3 个固定 Owner-private 可选输入 skip；76 个 Companion tests PASS。
+full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 76.93%，
 33 个依赖 OSV 漏洞 0，65-member source candidate 确定性一致且 Runtime Data 0。真实 Notion、Owner
-Chrome/Profile、真实账号、平台调用、真实媒体、模型与 G2 均未运行。
+Chrome/Profile、真实账号、平台调用、真实媒体与模型均未运行；Skeleton005 完成当时 `G2=NOT_RUN`，当前 G2 状态以上述独立 Review 事实为准。
 
 ## Stage 2 / Skeleton 004 历史验证
 

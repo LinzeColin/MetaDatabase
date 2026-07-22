@@ -32,6 +32,7 @@ VerificationError = PREVIOUS.VerificationError
 Check = PREVIOUS.Check
 _require = PREVIOUS._require
 _load_json = PREVIOUS._load_json
+_load_json_at = PREVIOUS._load_json_at
 _read_blob_at = PREVIOUS._read_blob_at
 _git = PREVIOUS._git
 _porcelain_paths = PREVIOUS._porcelain_paths
@@ -49,6 +50,7 @@ RUN_ID = "RUN-X2N-S02-S005"
 PHASE = "PH.X2N.2.9"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s02-skeleton005"
 TASK_BASE_COMMIT = "36bd12133f402321b160292ea13ca51272c63e93"
+FINAL_COMMIT = "c133e1d4c1cbc17a3165e19fa5dbb2368da6b32b"
 ORIGIN_CUTOFF = "6777c8fcce75a36741b70c2858c8bc5fff17d440"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S02_SKELETON_005.md"
@@ -101,12 +103,12 @@ ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/sinks/v1/",)
 
 
 def validate_scope() -> Check:
-    committed = _git(["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]).splitlines()
-    working = _porcelain_paths(
-        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
-    )
+    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
+    committed = _git(
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}"]
+    ).splitlines()
     changes: list[str] = []
-    for path in sorted(set(committed + working)):
+    for path in sorted(set(committed)):
         relative = _project_relative(path)
         _require(relative is not None, "Skeleton005 changed scope escaped x2n")
         _require(
@@ -181,7 +183,8 @@ def validate_scope() -> Check:
 
 def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Skeleton005 worktree branch")
+    current_branch = _git(["branch", "--show-current"])
+    _require(current_branch not in {"", "main"}, "Skeleton005 regression must run in a non-main worktree")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
         re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
@@ -189,14 +192,24 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "wrong or authenticated persisted origin",
     )
     _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
+    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
     _require(
         subprocess.run(
-            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"],
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, FINAL_COMMIT],
             cwd=REPOSITORY_ROOT,
             check=False,
         ).returncode
         == 0,
-        "Skeleton005 branch no longer descends from its Task base",
+        "Skeleton005 final commit no longer descends from its Task base",
+    )
+    _require(
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+        ).returncode
+        == 0,
+        "current tree no longer descends from the Skeleton005 final commit",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
@@ -235,8 +248,9 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "worktree_isolation",
         "PASS",
         {
-            "branch": BRANCH,
+            "current_branch": current_branch,
             "external_main_dirty_paths": len(main_paths),
+            "historical_branch": BRANCH,
             "origin_drift_commits": int(_git(["rev-list", "--count", f"{ORIGIN_CUTOFF}..{live_origin}"])),
             "origin_project_overlap": origin_overlap,
             "project_overlap_paths": overlap,
@@ -261,7 +275,7 @@ def validate_previous_history() -> Check:
 
 
 def validate_task_and_state() -> Check:
-    taskpack = TASKPACK.read_text(encoding="utf-8")
+    taskpack = _read_blob_at(FINAL_COMMIT, TASKPACK).decode("utf-8")
     base_taskpack = _read_blob_at(TASK_BASE_COMMIT, TASKPACK).decode("utf-8")
     task = _task_block(taskpack, TASK_ID)
     base_task = _task_block(base_taskpack, TASK_ID)
@@ -280,7 +294,7 @@ def validate_task_and_state() -> Check:
         "Stage 3 adapter Task was entered by this Run",
     )
 
-    state = _load_json(TASK_STATE)
+    state = _load_json_at(FINAL_COMMIT, TASK_STATE)
     _require(state.get("schema_version") == "1.17", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.2" and state.get("last_completed_phase") == PHASE, "phase drifted")
     _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Run drifted")
@@ -318,14 +332,17 @@ def validate_task_and_state() -> Check:
         == "pass_ci_synth_in_process_mock_80x2_upsert_outbox_retry_dead_letter_reconcile_real_api_not_run",
         "Notion execution state drifted",
     )
-    _require(_load_json(PROJECT_FACT).get("status") == "stage_2_skeleton_005_pass_g2_not_run", "project drifted")
-    architecture = _load_json(ARCHITECTURE_FACT)
+    _require(
+        _load_json_at(FINAL_COMMIT, PROJECT_FACT).get("status") == "stage_2_skeleton_005_pass_g2_not_run",
+        "project drifted",
+    )
+    architecture = _load_json_at(FINAL_COMMIT, ARCHITECTURE_FACT)
     _require(architecture.get("phase") == PHASE and architecture.get("stage_gate") == "g2_not_run", "ADR drifted")
     adr2 = next((item for item in architecture.get("decisions", []) if item.get("id") == "ADR-002"), {})
     adr9 = next((item for item in architecture.get("decisions", []) if item.get("id") == "ADR-009"), {})
     _require("rebuildable_markdown_notion_mock_sinks" in adr2.get("implementation_state", ""), "ADR-002 drifted")
     _require("unclassified_projection_seed" in adr9.get("implementation_state", ""), "ADR-009 drifted")
-    contract = RUN_CONTRACT.read_text(encoding="utf-8")
+    contract = _read_blob_at(FINAL_COMMIT, RUN_CONTRACT).decode("utf-8")
     for value in (TASK_ID, RUN_ID, PHASE, TASK_BASE_COMMIT, BRANCH, "PASS_CI_SYNTH_MOCK_SCOPED"):
         _require(value in contract, f"Run Contract identity missing: {value}")
     return Check(
@@ -342,7 +359,7 @@ def validate_task_and_state() -> Check:
 
 
 def validate_policy_and_implementation() -> Check:
-    policy = _load_json(SINK_POLICY)
+    policy = _load_json_at(FINAL_COMMIT, SINK_POLICY)
     _require(
         policy.get("policy_id") == "SINK_PROJECTION.X2N.001"
         and policy.get("task_id") == TASK_ID
@@ -386,10 +403,11 @@ def validate_policy_and_implementation() -> Check:
         "Outbox policy weakened",
     )
 
-    store = STORE_SOURCE.read_text(encoding="utf-8")
-    projection = PROJECTION_SOURCE.read_text(encoding="utf-8")
-    markdown = MARKDOWN_SOURCE.read_text(encoding="utf-8")
-    notion = NOTION_SOURCE.read_text(encoding="utf-8")
+    store = _read_blob_at(FINAL_COMMIT, STORE_SOURCE).decode("utf-8")
+    projection = _read_blob_at(FINAL_COMMIT, PROJECTION_SOURCE).decode("utf-8")
+    markdown = _read_blob_at(FINAL_COMMIT, MARKDOWN_SOURCE).decode("utf-8")
+    notion = _read_blob_at(FINAL_COMMIT, NOTION_SOURCE).decode("utf-8")
+    sink_tests = _read_blob_at(FINAL_COMMIT, SINK_TEST).decode("utf-8")
     for marker in (
         "class OutboxState",
         "class CanonicalProjection",
@@ -443,11 +461,18 @@ def validate_policy_and_implementation() -> Check:
             _require(forbidden not in source, "production network/shell surface entered Skeleton005")
     _require("external" not in notion or '"external"' not in notion, "external media block entered Notion projection")
     _require(
-        MIGRATION_SOURCE.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, MIGRATION_SOURCE),
+        "def test_one_hour_notion_outage_does_not_block_canonical_or_markdown" in sink_tests,
+        "Notion outage independence oracle is missing",
+    )
+    _require(
+        _read_blob_at(FINAL_COMMIT, MIGRATION_SOURCE) == _read_blob_at(TASK_BASE_COMMIT, MIGRATION_SOURCE),
         "Skeleton005 unexpectedly changed Schema v2 migrations",
     )
     for lock in (PROJECT_ROOT / "uv.lock", PROJECT_ROOT / "package-lock.json"):
-        _require(lock.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, lock), f"dependency lock changed: {lock.name}")
+        _require(
+            _read_blob_at(FINAL_COMMIT, lock) == _read_blob_at(TASK_BASE_COMMIT, lock),
+            f"dependency lock changed: {lock.name}",
+        )
     return Check(
         "sink_policy_and_implementation",
         "PASS",
@@ -464,7 +489,7 @@ def validate_policy_and_implementation() -> Check:
 
 
 def validate_fixtures() -> Check:
-    fixture = _load_json(FIXTURE_MANIFEST)
+    fixture = _load_json_at(FINAL_COMMIT, FIXTURE_MANIFEST)
     _require(
         fixture.get("fixture_id") == "FIXTURE.X2N.S02.S005.001"
         and fixture.get("task_id") == TASK_ID
@@ -493,7 +518,7 @@ def validate_fixtures() -> Check:
         and "Owner Notes" in notion.get("initial_user_fields", []),
         "sink fixture matrix drifted",
     )
-    global_manifest = _load_json(GLOBAL_FIXTURE_MANIFEST)
+    global_manifest = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST)
     _require(
         global_manifest.get("manifest_id") == "FIXTURE.X2N.014" and global_manifest.get("phase") == PHASE,
         "global fixture manifest drifted",
@@ -572,7 +597,7 @@ def validate_execution() -> Check:
     )
     unit = acceptance.get("unit_suite", {})
     _require(
-        int(unit.get("tests", 0)) >= 16
+        int(unit.get("tests", 0)) >= 17
         and unit.get("errors") == 0
         and unit.get("failures") == 0
         and unit.get("skips") == 0,
@@ -711,7 +736,7 @@ def _acceptance_input_receipt() -> str:
     for path in sorted(paths):
         digest.update(path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
-        digest.update(path.read_bytes())
+        digest.update(_read_blob_at(FINAL_COMMIT, path))
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -776,7 +801,8 @@ def write_evidence(checks: list[Check]) -> None:
 
 
 def verify_evidence() -> Check:
-    evidence = _load_json(EVIDENCE)
+    _require(EVIDENCE.read_bytes() == _read_blob_at(FINAL_COMMIT, EVIDENCE), "historical evidence was rewritten")
+    evidence = _load_json_at(FINAL_COMMIT, EVIDENCE)
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
     _require(
@@ -811,7 +837,7 @@ def verify_evidence() -> Check:
     return Check(
         "evidence",
         "PASS",
-        {"receipt_sha256": hashlib.sha256(EVIDENCE.read_bytes()).hexdigest(), "task": TASK_ID},
+        {"receipt_sha256": hashlib.sha256(_read_blob_at(FINAL_COMMIT, EVIDENCE)).hexdigest(), "task": TASK_ID},
     )
 
 

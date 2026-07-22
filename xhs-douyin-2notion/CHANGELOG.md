@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.0.1 — Stage 2 Review / G2
+
+- 独立复核 Skeleton001–009 的 Task、Acceptance、固定提交、九份历史 evidence 与 Stage 2 全提交；Review 不执行新 DAG Task，也没有 `apps/`/`packages/` 产品改动。
+- 修复 8 个 finding：Skeleton005 后代分支历史回放、76 tests/76.93% 文档漂移、软件 lane 动态 G1 误报、实际工具链未绑定、G2 跨 Task Oracle、九证据冻结、逐版本隐私扫描、Task Pack/PR merge/历史 Review 后代重放/G2 事实负向闭合。
+- 五项项目原生本地 G2 条件通过：六平台独立 current-page E2E、zero duplicate、zero CDN persistence、媒体清理、Notion outage 不阻断 canonical/Markdown；真实平台、真实 Notion、模型、媒体网络与 Owner Chrome 调用均为 0/NOT_RUN。
+- 最终 186 root tests PASS（3 fixed optional skips）、76 Companion tests PASS；两份独立 full lane 各 24/24，coverage 76.93%、33 dependencies vulnerability 0、65-member candidate SHA 完全一致，实际工具链与政策一致。
+- `G2=PASS` 只授权 Stage 2 整体上传；远端 CI/merge 保持 `PENDING_POST_G2_UPLOAD`，此前 Stage 3 禁止开始。正式 Verifier release-candidate 因原任务包缺少 canonical `MANIFEST` role 保持 `BLOCKED_REQUIREMENT_GAP`。
+
 ## v0.0.0.1 — Stage 2 / Skeleton 005
 
 - 保持 SQLite Schema v2 与 Canonical 事务边界不变，新增一致性 snapshot、精确 Outbox event claim、retry/dead-letter state、私有 Notion Mapping 与 append-only Sink Receipt primitive；Notion 永不进入 Canonical 写事务。
@@ -8,7 +16,7 @@
 - 新增 2 req/s 串行限速、429/529 `Retry-After`、timeout/reset、一小时 outage、最大 4 次尝试、Dead Letter 与成功后本地 Receipt 前 kill-reconcile；重复 Page Fail Closed，Canonical/Markdown 在 Notion outage 时继续完成。
 - 六平台 80 个 Canonical 输入两轮投影通过：80 Markdown、80 Notion Mock Pages、160 Outbox/Receipts；无半文件、无断链、Frontmatter invalid 0、CDN finding 0、duplicate Page 0、hash 相同 replay request 0、真实 Notion call 0。16 个 sink 单测覆盖长文本、特殊字符、分类 Relation、原子 kill、symlink、Schema conflict 与反向长队列。
 - Skeleton004 历史 Task/State/Policy/Evidence 固定到 `36bd1213…`，旧 verifier 从最终 commit blob 验收，不再读取 S005 的当前状态或实现。
-- 根回归 175 tests PASS、3 个显式可选 Owner-private input skip；75 个 Companion tests PASS。两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 76.86%，33 dependencies 的 OSV vulnerability 0，65-member source candidate 无 Runtime Data 且可确定性重建。
+- 根回归 175 tests PASS、3 个显式可选 Owner-private input skip；76 个 Companion tests PASS。两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 76.93%，33 dependencies 的 OSV vulnerability 0，65-member source candidate 无 Runtime Data 且可确定性重建。
 - `ACC.x2n.md.001` 与 `ACC.x2n.notion.001/.002/.003` 仅 CI-SYNTH/Mock scoped pass；真实 Notion 与 Owner Canary 均 `NOT_RUN`。`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 只能执行 `STG.X2N.2.REVIEW`。
 
 ## v0.0.0.1 — Stage 2 / Skeleton 004

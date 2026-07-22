@@ -12,7 +12,7 @@
 - Stage 0 整阶段已通过 PR #66 合并；G0 历史/Resume 证据保持不变。
 - Stage 1：`TSK.x2n.foundation.001–005` 与独立 `STG.X2N.1.REVIEW` 已完成；8 个 finding 全部关闭，当前 `G1=PASS`，Stage 1 整体上传与 Stage 2 下一 Task 已授权。
 - Stage 1 已通过 PR #73 合并到 `main`，远端 PR 与合并后 x2n CI 均通过；历史 G1 Evidence 不改写。
-- Stage 2 九个独立单 Task `TSK.x2n.skeleton.001–009`（Phase 2.1–2.9）已全部完成；真实平台/媒体/Notion 均未运行。当前 Skeleton005 分支为 `codex/xhs-douyin-2notion-v0001-s02-skeleton005`，Task base 为 `36bd1213…`、origin cutoff 为 `6777c8fc…`。
+- Stage 2 九个独立单 Task `TSK.x2n.skeleton.001–009`（Phase 2.1–2.9）与独立 `STG.X2N.2.REVIEW` 已完成项目原生本地验收；8 个 finding 全部关闭。当前 Review 分支为 `codex/xhs-douyin-2notion-v0001-s02-review`，Review base 为 `c133e1d4…`、origin cutoff 为 `6777c8fc…`。
 - 小红书当前页代码、5 个 DOM Fixture、Action/临时 `activeTab`、Native Host/SQLite 闭环与 100 次 Worker restart 已通过；能力位仍为 `ci_synth_only`，真实页面禁用。
 - 抖音当前页代码、8 个 DOM Fixture 与 16 个合成短链 redirect 用例通过；短链核心无生产 transport，Extension/Companion 不联网解析，真实页面、真实短链和 Owner Canary 均禁用。
 - 哔哩哔哩当前页代码、10 个 DOM、8 个 Policy 与 5 个 schema-drift rejection 通过；文章公开路由未由当前 Open Platform 文档证明，`?p=` 分 P Fail Closed，真实页面/API 与 Owner Canary 均禁用。
@@ -30,9 +30,10 @@
 - Skeleton009 最终全量回归：两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；149 个根测试 PASS、3 个 Owner-private 可选输入按 allowlist skip；overall combined coverage 70.95%，33 个依赖 OSV 漏洞 0，60-member source candidate 确定性一致且 Runtime Data 0。
 - Skeleton003 最终全量回归：两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；158 个根测试 PASS、3 个 Owner-private 可选输入按 allowlist skip；overall combined coverage 73.67%，33 个依赖 OSV 漏洞 0，61-member source candidate 确定性一致且 Runtime Data 0。
 - Skeleton004 最终全量回归：80 个六平台输入两轮、100 个并发重复与 4 个 kill point 通过；duplicate entity、stuck Run、non-replayable state、broken provenance trace、private placeholder payload 均为 0；166 个根测试 PASS（3 skip）、59 个 Companion tests PASS；两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；overall combined coverage 74.61%，33 个依赖 OSV 漏洞 0，62-member source candidate 确定性一致且 Runtime Data 0。
-- Skeleton005 最终全量回归：六平台 80×2 的 80 Markdown/80 Notion Mock Pages/160 Outbox+Receipt 通过；partial file、invalid Frontmatter、dead link、CDN finding、duplicate Page、hash-noop replay request 与真实 Notion call 均为 0；175 个根测试 PASS（3 skip）、75 个 Companion tests PASS；两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；overall combined coverage 76.86%，33 个依赖 OSV 漏洞 0，65-member source candidate 确定性一致且 Runtime Data 0。
+- Skeleton005 最终全量回归：六平台 80×2 的 80 Markdown/80 Notion Mock Pages/160 Outbox+Receipt 通过；partial file、invalid Frontmatter、dead link、CDN finding、duplicate Page、hash-noop replay request 与真实 Notion call 均为 0；175 个根测试 PASS（3 skip）、76 个 Companion tests PASS；两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；overall combined coverage 76.93%，33 个依赖 OSV 漏洞 0，65-member source candidate 确定性一致且 Runtime Data 0。
+- Stage 2 Review 最终回归：186 个根测试 PASS（3 个固定可选 skip）、76 个 Companion tests PASS；两份独立 full lane 各 24/24 Blocking Gate PASS，coverage 均 76.93%，33 个依赖漏洞 0，65-member source candidate SHA 一致；实际 Python 3.12.13 与全部工具链版本匹配政策。
 - 回归捕获并修复 SQLite transient `-wal/-shm` 在并发连接关闭时消失的 chmod 竞态；只豁免已经消失的 sidecar，Canonical DB 或仍存在 sidecar 的加固失败继续 Fail Closed。
-- 当前 `G2=NOT_RUN`、Stage 2 上传禁止；下一独立 Run 只能执行 `STG.X2N.2.REVIEW`，不得进入 Stage 3 产品 Task。
+- 当前项目原生本地 `G2=PASS`，Stage 2 整体上传已授权；远端 CI/merge 为 `PENDING_POST_G2_UPLOAD`，下一动作只能是 `STG.X2N.2.REMOTE_UPLOAD`，此前 `stage_3_task_start=false`。正式 Verifier release-candidate 因缺少 canonical `MANIFEST` role 保持 `BLOCKED_REQUIREMENT_GAP`。
 - 真实账号、Owner Chrome/Profile、六平台调用、真实 Notion、模型、真实媒体处理与全部下游用户旅程 Acceptance：`NOT_RUN`；Markdown/Notion Mock 仅 CI-SYNTH scoped pass。
 - 六平台真实执行：全部 `UNKNOWN_DISABLED`、`BLOCKED_AUTH` 或 `BLOCKED_BUDGET`；六平台均仅 `current_page=CI_SYNTH_ONLY`；各平台真实启用时重新通过 Policy/Auth/Technical/Canary Gate。
 
@@ -83,7 +84,7 @@
 - Skeleton005：六平台 80×2 固定路径 Markdown 与进程内 Notion Mock 通过；Schema v2 不迁移，Unclassified 不建 taxonomy row，Owner category Relation 只接受显式 mapping；7 类 retry/outage/kill/schema fault 最终 Receipt 或 bounded Dead Letter，真实 Notion/Owner Canary `NOT_RUN`。
 - 当前 Extension 权限为 `activeTab`/`nativeMessaging`/`scripting`/`sidePanel`；历史 Foundation004 的 3 权限事实保持在固定提交与 Evidence 中。当前无 Host Permission、静态 Content Script、Storage/Cookie/Tabs/Downloads 或远程代码。
 - Chromium E2E 在默认 Action 前验证注入与采集 2/2 拒绝；用官方 CDP Action 驱动后才取得临时 `activeTab`，并通过真实 Side Panel 按钮把 XHS/Douyin/Bilibili/Kuaishou/Weibo/Taobao 合成当前页分别送入 Native Host/SQLite；每平台 100 次 Worker 重启仍 0 丢单/重单/错状态。平台形态网络请求由 catch-all route 拦截，实测平台调用 0；Owner Canary 与真实页面均 `NOT_RUN/DISABLED`。
-- 当前根回归：175 tests PASS，3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对；75 个 Companion tests PASS；Foundation001–005 与 Skeleton001–009 的当前/固定历史 verifier 均 PASS。Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
+- 当前根回归：186 tests PASS，3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对；76 个 Companion tests PASS；Foundation001–005、Skeleton001–009 与 Stage 2 Review 的当前/固定历史 verifier 均 PASS。Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
 - Fresh copy：隔离 HOME 中 frozen locks、Extension 与 7 个 lifecycle rehearsal 加 1 个负向 Canary 均通过。
 
 ```bash
@@ -121,7 +122,7 @@ Run Contract 执行。
 
 ## 下一步
 
-1. 保留 Skeleton001–009 的九个本地提交，不上传；Stage 2 必须完成独立 Review/Fix/Re-acceptance 并取得 `G2=PASS` 后才整体上传。
-2. 下一独立 Run 只执行 `STG.X2N.2.REVIEW`（不创建新 DAG Task）；不得顺带进入 Stage 3、列表 Adapter、真实下载/媒体处理、分类、真实 Notion 或 Canary。
+1. 将 Skeleton001–009 与唯一 Review commit 作为 Stage 2 整体上传，运行远端 x2n CI 并完成 merge；不得使用或改变共享认证材料。
+2. 远端 CI/merge 前不得执行 Stage 3；完成后另开单 Task Run，重新核验并授权 `TSK.x2n.adapters.001`。
 3. 六平台真实页面、API/CLI/TOP 与抖音生产短链解析继续关闭，直到当时的一手政策证据、Owner 明确授权、对应 Canary、隐私披露与网络安全门禁独立通过。
 4. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Runtime/越界写入命中立即 Fail Closed。

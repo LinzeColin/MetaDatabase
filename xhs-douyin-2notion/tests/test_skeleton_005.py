@@ -42,10 +42,22 @@ class Skeleton005Tests(unittest.TestCase):
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S02-S005")
         self.assertEqual(VERIFY.PHASE, "PH.X2N.2.9")
         self.assertEqual(VERIFY.TASK_BASE_COMMIT, "36bd12133f402321b160292ea13ca51272c63e93")
+        self.assertEqual(VERIFY.FINAL_COMMIT, "c133e1d4c1cbc17a3165e19fa5dbb2368da6b32b")
         rendered = "\n".join(sorted(VERIFY.ALLOWED_CHANGED_EXACT | set(VERIFY.ALLOWED_CHANGED_PREFIXES)))
         self.assertIn("markdown_sink.py", rendered)
         self.assertIn("notion_sink.py", rendered)
         self.assertNotIn("adapters.001", rendered)
+
+    def test_task_is_frozen_to_exact_final_commit_for_descendant_review(self) -> None:
+        self.assertEqual(VERIFY.PREVIOUS.FINAL_COMMIT, VERIFY.TASK_BASE_COMMIT)
+        self.assertNotEqual(VERIFY.FINAL_COMMIT, VERIFY.TASK_BASE_COMMIT)
+        self.assertEqual(
+            VERIFY.EVIDENCE.read_bytes(),
+            VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, VERIFY.EVIDENCE),
+        )
+        previous = VERIFY.validate_previous_history()
+        self.assertEqual(previous.status, "PASS")
+        self.assertFalse(previous.details["history_rewritten"])
 
     def test_previous_task_is_fixed_to_exact_final_commit(self) -> None:
         self.assertEqual(VERIFY.PREVIOUS.FINAL_COMMIT, VERIFY.TASK_BASE_COMMIT)

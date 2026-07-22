@@ -370,7 +370,10 @@ def validate_task_dag_and_state() -> Check:
 
     current_taskpack = _load_yaml(TASKPACK)
     current_tasks = {row.get("id"): row for row in current_taskpack.get("tasks", [])}
-    _require(all(current_tasks.get(task_id) == tasks[task_id] for task_id in EXPECTED_G1_TASKS), "a completed Foundation Task changed after G1")
+    _require(
+        all(current_tasks.get(task_id) == tasks[task_id] for task_id in EXPECTED_G1_TASKS),
+        "a completed Foundation Task changed after G1",
+    )
     current_gates = {row.get("id"): row for row in current_taskpack.get("stage_gates", [])}
     _require(current_gates.get("G1") == g1, "G1 contract changed after Review")
 
@@ -477,9 +480,16 @@ def validate_findings() -> Check:
 
 
 def validate_foundation_evidence() -> Check:
-    review_head = _logical_review_head()
+    physical_head = str(_git(["rev-parse", "HEAD"]))
+    _require(
+        _is_ancestor(REVIEW_FINAL_COMMIT, physical_head),
+        "historical Stage 1 Review final commit is not an ancestor of the current checkout",
+    )
     for task_id, commit in FOUNDATION_COMMITS.items():
-        _require(_is_ancestor(commit, review_head), f"Foundation commit is not an ancestor: {task_id}")
+        _require(
+            _is_ancestor(commit, REVIEW_FINAL_COMMIT),
+            f"Foundation commit is not an ancestor of the historical Stage 1 Review: {task_id}",
+        )
         path = FOUNDATION_EVIDENCE[task_id]
         relative = path.relative_to(REPOSITORY_ROOT).as_posix()
         frozen = _git(["show", f"{REVIEW_BASE_COMMIT}:{relative}"], binary=True)
@@ -523,8 +533,26 @@ def validate_lane_report(path: Path) -> Check:
     _require(len(report.get("coverage", {}).get("critical_modules", {})) == 7, "critical coverage evidence incomplete")
     _require(report.get("osv", {}).get("status") == "PASS", "OSV report failed")
     _require(
-        report.get("g1") == "NOT_RUN" and report.get("remote_github_actions") == "NOT_RUN_LOCAL_BASELINE",
-        "local lane overstated G1 or remote CI",
+        report.get("stage_gate_evaluation") == "NOT_PERFORMED_BY_SOFTWARE_LANE"
+        and report.get("remote_github_actions") == "NOT_RUN_LOCAL_BASELINE"
+        and "g1" not in report,
+        "software lane overstated a dynamic stage gate or remote CI",
+    )
+    toolchain = report.get("toolchain", {})
+    expected_toolchain = _load_json(CI_POLICY).get("toolchain", {})
+    actual_toolchain = toolchain.get("actual", {})
+    _require(
+        toolchain.get("status") == "PASS"
+        and toolchain.get("policy_id") == "CI.X2N.001"
+        and toolchain.get("policy_sha256") == hashlib.sha256(CI_POLICY.read_bytes()).hexdigest()
+        and toolchain.get("expected") == expected_toolchain
+        and ".".join(str(actual_toolchain.get("python", "")).split(".")[:2]) == expected_toolchain.get("python")
+        and str(actual_toolchain.get("node", "")).split(".")[0] == expected_toolchain.get("node")
+        and all(
+            actual_toolchain.get(name) == expected_toolchain.get(name)
+            for name in ("npm", "uv", "ruff", "coverage", "pyyaml")
+        ),
+        "software lane toolchain identity drifted",
     )
 
     report_statuses = {
@@ -679,7 +707,11 @@ def _changed_review_paths() -> set[str]:
 
 
 def validate_review_scope() -> Check:
-    changes = set(str(_git(["-c", "core.quotePath=false", "diff", "--name-only", f"{REVIEW_BASE_COMMIT}..{REVIEW_FINAL_COMMIT}"])).splitlines())
+    changes = set(
+        str(
+            _git(["-c", "core.quotePath=false", "diff", "--name-only", f"{REVIEW_BASE_COMMIT}..{REVIEW_FINAL_COMMIT}"])
+        ).splitlines()
+    )
     changes.discard("")
     _require(changes, "Stage 1 Review has no recorded change")
     for path in changes:

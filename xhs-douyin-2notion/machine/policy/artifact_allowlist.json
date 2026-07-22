@@ -51,6 +51,7 @@
     "scripts/verify_skeleton_004.py",
     "scripts/run_skeleton_005_acceptance.py",
     "scripts/verify_skeleton_005.py",
+    "scripts/verify_stage_2_review.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

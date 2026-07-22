@@ -740,8 +740,26 @@ def validate_lane_report(path: Path) -> Check:
     _require(len(report.get("coverage", {}).get("critical_modules", {})) == 7, "critical coverage evidence incomplete")
     _require(report.get("osv", {}).get("critical_high_unresolved") == 0, "OSV evidence missing")
     _require(
-        report.get("remote_github_actions") == "NOT_RUN_LOCAL_BASELINE" and report.get("g1") == "NOT_RUN",
-        "remote/G1 lane status overstated",
+        report.get("remote_github_actions") == "NOT_RUN_LOCAL_BASELINE"
+        and report.get("stage_gate_evaluation") == "NOT_PERFORMED_BY_SOFTWARE_LANE"
+        and "g1" not in report,
+        "software lane overstated a remote or dynamic stage-gate decision",
+    )
+    toolchain = report.get("toolchain", {})
+    expected_toolchain = _load_json(CI_POLICY).get("toolchain", {})
+    actual_toolchain = toolchain.get("actual", {})
+    _require(
+        toolchain.get("status") == "PASS"
+        and toolchain.get("policy_id") == "CI.X2N.001"
+        and toolchain.get("policy_sha256") == hashlib.sha256(CI_POLICY.read_bytes()).hexdigest()
+        and toolchain.get("expected") == expected_toolchain
+        and ".".join(str(actual_toolchain.get("python", "")).split(".")[:2]) == expected_toolchain.get("python")
+        and str(actual_toolchain.get("node", "")).split(".")[0] == expected_toolchain.get("node")
+        and all(
+            actual_toolchain.get(name) == expected_toolchain.get(name)
+            for name in ("npm", "uv", "ruff", "coverage", "pyyaml")
+        ),
+        "software lane toolchain identity drifted",
     )
     artifact = path.parent / "x2n-source-candidate.zip"
     _require(
