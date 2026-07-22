@@ -16,9 +16,17 @@
   上完成独立 post-merge clean-room 验收，`ACC-V12-S0-001..006 = 6/6 PASS`；公开安全的
   收尾 receipt 位于
   [`PHASE_ADP_V12_S0_POSTMERGE_CLOSEOUT.md`](phase_records/PHASE_ADP_V12_S0_POSTMERGE_CLOSEOUT.md)。
-- 当前唯一可执行任务是 `ADP-V12-S1-T001`，合同为
-  `docs/pursuing_goal/v1_2/RUN_CONTRACT_01_GOOGLE_NEWS_RETRY.md`；目前仍是 `NOT_RUN`，
-  本次 S0 收尾没有修改或部署产品运行面。
+- `ADP-V12-S1-T001` 已完成整阶段独立复审，`ACC-V12-S1-001..005 = 5/5 PASS`，
+  `P0/P1/UNKNOWN/BLOCKED = 0`；公开 receipt 位于
+  [`PHASE_ADP_V12_S1_GOOGLE_NEWS_RETRY.md`](phase_records/PHASE_ADP_V12_S1_GOOGLE_NEWS_RETRY.md)。
+- 下一轮唯一任务是 `ADP-V12-S2-T001`。当前任务包尚无 S2 Run Contract 文件，必须先按
+  `TASK_GRAPH.yaml` 与 `ACCEPTANCE_CONTRACT.yaml` 锁定独立合同再诊断；S2 仍是 `NOT_RUN`。
+- S1 候选实现位于 [`google_news_candidate.mjs`](../deploy/cloudflare/google_news_candidate.mjs)：
+  `gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`，live
+  `gnews-us-tech` 仍是 Bing News RSS；机器登记见
+  [`cloudflare_source_candidates_v1_2.json`](../config/cloudflare_source_candidates_v1_2.json)。
+  当前单次 scheduled invocation 的 external 上界为 `32`，以后获授权替换时投影
+  `34/50`；S1 没有接线或部署。
 - S0 已以相对 source base、merge 双亲和 Worker 精确路径的零差异证明无 runtime/live 变化；
   后续仍不得用状态文字替代真实 diff 或 live 复查。
 - Owner 的晚到决策已定案：3 个 dormant Cloudflare 资源均删除；继续救援剩余来源；
@@ -61,10 +69,10 @@ secret、恢复旧源目录、弱化 fail-closed 测试，或把历史 artifact 
 | 事项 | Owner 决策 | 当前执行状态 |
 |---|---|---|
 | dormant Cloudflare 资源 | 删除 | `adp-mirror` legacy Worker、`adp-origin` DNS、`adp` Tunnel 均已删除并复核；不得重建 |
-| 剩余来源救援 | 继续投入 | 已授权、尚未开始本轮开发 |
+| 剩余来源救援 | 继续投入 | Google 候选 S1 已通过；stats-gov S2 尚未运行 |
 | science-advances | 走 PubMed 解析层 | 待独立 Run Contract；先做本地 adapter/fixture/负控，不直接上线 |
-| stats-gov | 继续诊断 | 待独立 Run Contract；当前只有边缘超时事实，不能先写死结论 |
-| Google News | 加重试/退避后评估回切 | 当前唯一 Run Contract，尚未执行；历史采样是间歇 503，不是“被墙” |
+| stats-gov | 继续诊断 | 下一轮先锁定独立 Run Contract；当前只有边缘超时事实，不能先写死结论 |
+| Google News | 加重试/退避后评估回切 | S1 5/5 PASS；仍为 candidate_not_live，历史采样是间歇 503，不是“被墙” |
 | OVH VPS / Coolify | 不迁 | Cloudflare 免费档保持 canonical live 面 |
 | `TASK_INDEX.csv.status` | 不修 | 90 行 `NOT_STARTED` 不代表代码未完成；只把它当历史字段 |
 | v1.2 部署 | 全部门禁通过即部署 | P0/P1/UNKNOWN 为零、独立验收和回滚门均 PASS 后才生效 |
@@ -124,11 +132,15 @@ PYTHONPATH=arxiv-daily-push/src python3 -B -m unittest discover \
 历史旧控制口径中的 11 errors 来自仓拆分前已缺失的 `功能清单.md` / `开发记录.md` /
 `模型参数文件.md`，另有 development-ledger 与 video gate 历史债；本轮不伪装为已修复。
 
-本轮 pre-commit 实测是 923 tests、`2 failures + 11 errors + 49 skips`：根来源同步契约的
+S0 pre-commit 实测是 923 tests、`2 failures + 11 errors + 49 skips`：根来源同步契约的
 旧 failure 已修复，skip 比历史旧控制口径少 13 个；相对上述两条比较面的迁移新增
 failure/error 均为 0。剩余 2 failures
 分别是 development-ledger/current matrix drift 与 video media gate，11 errors 仍全部来自
 上述三基文件缺失。不得以修改/跳过测试来伪造全绿。
+
+S1 收尾在隔离 Python 3.12 环境实测 939 tests、`2 failures + 11 errors + 29 skips`；新增
+16 项候选专项测试，failure/error 完整测试名集合仍与 sealed 基线精确一致，
+`candidate_only=[]`、`baseline_only=[]`。S1 没有恢复上述三份缺失旧文件。
 
 `arxiv-daily-push-real-backfill.yml` 查询的是会随论文修订而变化的外部历史元数据，因此重型
 30 日 replay 只在 `src/config/schemas/packaging` 运行面变化时执行；tests/docs/governance-only
@@ -143,7 +155,7 @@ failure/error 均为 0。剩余 2 failures
 4. PR CI 通过后，才可把迁移闭合写成完成；
 5. 合并提交必须由独立 `verifier` 在新上下文复验，实施者不能自签。
 
-## 6. v1.2 第一个产品 Run Contract
+## 6. v1.2 第一个产品 Run Contract（S1 已关闭）
 
 **目标**：在不部署、不改 cron、不引入付费 API 的前提下，为 Google News adapter 增加
 有上限的 retry/backoff，并用确定性夹具和负控证明“间歇 503 可恢复、确定性拒绝仍失败关闭”。
@@ -153,6 +165,12 @@ failure/error 均为 0。剩余 2 failures
 
 **验收**：真实实现路径测试 + 负控 + source/board sync gate + full suite 与迁移基线对比；
 S1 不切换 live、不改 cron；最终部署权仍由 v1.2 S6 的全部阻断门控制。
+
+S1 终局边界：`gnews-us-tech`（Bing News RSS）保持 live，
+`gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`。可执行验证器从真实
+Worker registry/常量核算 daily external 最坏 `32` 次，候选将来替换单次 Bing 路径时最多
+`34/50`；当前没有发生该替换。独立 verifier 已在修复自动重定向计数与 canonical 文档渲染
+两个 P1 后裁定 `5/5 PASS`。下一阶段仍须另建、另验 S2 Run Contract，不复用 S1 授权。
 
 ## 7. 永久提醒
 

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>FTC antitrust - Google News</title>
+    <item>
+      <title><![CDATA[FTC announces a technology competition update - Example News]]></title>
+      <link>https://news.google.com/rss/articles/example-one</link>
+      <guid isPermaLink="false">example-one</guid>
+      <pubDate>Tue, 21 Jul 2026 10:30:00 GMT</pubDate>
+      <description><![CDATA[<a href="https://example.com/one">Evidence-linked summary</a>]]></description>
+    </item>
+    <item>
+      <title>Regulators publish an antitrust filing - Example Wire</title>
+      <link>https://news.google.com/rss/articles/example-two</link>
+      <guid isPermaLink="false">example-two</guid>
+      <pubDate>Tue, 21 Jul 2026 09:15:00 GMT</pubDate>
+      <description>Second evidence-linked summary</description>
+    </item>
+  </channel>
+</rss>
