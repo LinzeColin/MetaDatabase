@@ -71,19 +71,32 @@ function escapeCdataText(value) {
   return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
+function isValidXml10CodePoint(codePoint) {
+  return codePoint === 0x09
+    || codePoint === 0x0a
+    || codePoint === 0x0d
+    || (codePoint >= 0x20 && codePoint <= 0xd7ff)
+    || (codePoint >= 0xe000 && codePoint <= 0xfffd)
+    || (codePoint >= 0x10000 && codePoint <= 0x10ffff);
+}
+
+function validateLiteralXmlCharacters(value, stage) {
+  for (const character of String(value)) {
+    if (!isValidXml10CodePoint(character.codePointAt(0))) {
+      throw candidateError(`${stage}_XML_MALFORMED`, stage);
+    }
+  }
+}
+
 function validateEntityReferences(value, stage) {
-  if (/&(?!(?:amp|lt|gt|quot|apos|nbsp);|#\d+;|#x[0-9a-f]+;)/i.test(value)) {
+  // XML entity names are case-sensitive. Because this candidate deliberately
+  // does not read DTDs, only XML's five predefined entities are accepted.
+  if (/&(?!(?:amp|lt|gt|quot|apos);|#\d+;|#x[0-9A-Fa-f]+;)/.test(value)) {
     throw candidateError(`${stage}_XML_UNKNOWN_ENTITY`, stage);
   }
-  for (const match of String(value).matchAll(/&#(?:x([0-9a-f]+)|(\d+));/gi)) {
+  for (const match of String(value).matchAll(/&#(?:x([0-9A-Fa-f]+)|(\d+));/g)) {
     const codePoint = Number.parseInt(match[1] || match[2], match[1] ? 16 : 10);
-    const validXmlCodePoint = codePoint === 0x09
-      || codePoint === 0x0a
-      || codePoint === 0x0d
-      || (codePoint >= 0x20 && codePoint <= 0xd7ff)
-      || (codePoint >= 0xe000 && codePoint <= 0xfffd)
-      || (codePoint >= 0x10000 && codePoint <= 0x10ffff);
-    if (!Number.isSafeInteger(codePoint) || !validXmlCodePoint) {
+    if (!Number.isSafeInteger(codePoint) || !isValidXml10CodePoint(codePoint)) {
       throw candidateError(`${stage}_XML_ENTITY_INVALID`, stage);
     }
   }
@@ -128,6 +141,7 @@ function validateWellFormedXml(rawXml, expectedRoot, maxBytes, stage) {
   const xml = String(rawXml ?? '');
   if (!xml.trim()) throw candidateError(`${stage}_XML_EMPTY`, stage);
   if (byteLength(xml) > maxBytes) throw candidateError(`${stage}_XML_TOO_LARGE`, stage);
+  validateLiteralXmlCharacters(xml, stage);
 
   const stack = [];
   const roots = [];
@@ -253,14 +267,13 @@ function validateWellFormedXml(rawXml, expectedRoot, maxBytes, stage) {
 function decodeXmlText(value, stage) {
   return String(value ?? '')
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/&quot;/gi, '"')
-    .replace(/&apos;|&#39;/gi, "'")
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&#x([0-9a-f]+);/gi, (_, codePoint) => String.fromCodePoint(Number.parseInt(codePoint, 16)))
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;|&#39;/g, "'")
+    .replace(/&#x([0-9A-Fa-f]+);/g, (_, codePoint) => String.fromCodePoint(Number.parseInt(codePoint, 16)))
     .replace(/&#(\d+);/g, (_, codePoint) => String.fromCodePoint(Number(codePoint)))
-    .replace(/&amp;/gi, '&');
+    .replace(/&amp;/g, '&');
 }
 
 function childElements(node, name = null) {

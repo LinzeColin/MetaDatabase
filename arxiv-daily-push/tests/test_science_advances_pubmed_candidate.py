@@ -93,6 +93,12 @@ class ScienceAdvancesPubmedCandidateTests(unittest.TestCase):
             cdata_title["items"][0]["title"],
             "Fixture record inside the requested publication window.",
         )
+        predefined_entities = self.scenario("predefined_entities_title")["result"]
+        self.assertEqual(predefined_entities["reason_code"], "SUCCESS")
+        self.assertEqual(
+            predefined_entities["items"][0]["title"],
+            'Fixture & < > " \' record inside the requested publication window.',
+        )
 
     def test_TST_V12_PUBMED_NEGATIVE_MATRIX_is_reason_coded_and_zero_item(self) -> None:
         required_review_regressions = {
@@ -107,6 +113,9 @@ class ScienceAdvancesPubmedCandidateTests(unittest.TestCase):
             "efetch_nested_doctype": "EFETCH_XML_UNSAFE_DECLARATION",
             "efetch_nested_xml_declaration": "EFETCH_XML_MALFORMED",
             "efetch_undefined_entity": "EFETCH_XML_UNKNOWN_ENTITY",
+            "efetch_invalid_xml10_character": "EFETCH_XML_MALFORMED",
+            "efetch_undeclared_named_entity": "EFETCH_XML_UNKNOWN_ENTITY",
+            "efetch_case_folded_predefined_entity": "EFETCH_XML_UNKNOWN_ENTITY",
             "duplicate_conflicting_citation_pmid": "EFETCH_PMID_CARDINALITY_INVALID",
             "duplicate_conflicting_pubmed_provenance_id": (
                 "EFETCH_PMID_PROVENANCE_CARDINALITY_INVALID"

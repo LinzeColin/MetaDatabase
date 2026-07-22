@@ -267,6 +267,27 @@ const scenarios = {
     events: [{ body: singlePmidEsearch() }, { body: withoutSecondArticle(EFETCH)
       .replace('<PubmedArticleSet>', '<PubmedArticleSet><Ignored>&undefined;</Ignored>') }],
   }),
+  efetch_invalid_xml10_character: await runScenario({
+    events: [{ body: singlePmidEsearch() }, { body: withoutSecondArticle(EFETCH)
+      .replace(
+        'Fixture record inside the requested publication window.',
+        `Fixture${String.fromCodePoint(1)} record inside the requested publication window.`,
+      ) }],
+  }),
+  efetch_undeclared_named_entity: await runScenario({
+    events: [{ body: singlePmidEsearch() }, { body: withoutSecondArticle(EFETCH)
+      .replace(
+        'Fixture record inside the requested publication window.',
+        'Fixture&nbsp;record inside the requested publication window.',
+      ) }],
+  }),
+  efetch_case_folded_predefined_entity: await runScenario({
+    events: [{ body: singlePmidEsearch() }, { body: withoutSecondArticle(EFETCH)
+      .replace(
+        'Fixture record inside the requested publication window.',
+        'Fixture &AMP; record inside the requested publication window.',
+      ) }],
+  }),
   incomplete_article_date_fallback: await runScenario({
     events: [{ body: singlePmidEsearch() }, { body: withoutSecondArticle(EFETCH)
       .replace('<ArticleDate DateType="Electronic"><Year>2024</Year><Month>01</Month><Day>12</Day></ArticleDate>', '<ArticleDate DateType="Electronic"><Year>2024</Year><Month>01</Month></ArticleDate>') }],
@@ -276,6 +297,13 @@ const scenarios = {
       .replace(
         '<ArticleTitle>Fixture record inside the requested publication window.</ArticleTitle>',
         '<ArticleTitle><![CDATA[Fixture record inside the requested publication window.]]></ArticleTitle>',
+      ) }],
+  }),
+  predefined_entities_title: await runScenario({
+    events: [{ body: singlePmidEsearch() }, { body: withoutSecondArticle(EFETCH)
+      .replace(
+        'Fixture record inside the requested publication window.',
+        'Fixture &amp; &lt; &gt; &quot; &apos; record inside the requested publication window.',
       ) }],
   }),
   outside_window_only: await runScenario({
@@ -353,6 +381,9 @@ const expectedFailures = {
   efetch_nested_doctype: 'EFETCH_XML_UNSAFE_DECLARATION',
   efetch_nested_xml_declaration: 'EFETCH_XML_MALFORMED',
   efetch_undefined_entity: 'EFETCH_XML_UNKNOWN_ENTITY',
+  efetch_invalid_xml10_character: 'EFETCH_XML_MALFORMED',
+  efetch_undeclared_named_entity: 'EFETCH_XML_UNKNOWN_ENTITY',
+  efetch_case_folded_predefined_entity: 'EFETCH_XML_UNKNOWN_ENTITY',
   outside_window_only: 'EFETCH_DATE_FILTER_ZERO',
   missing_date: 'EFETCH_PUBLISHED_DATE_MISSING',
   invalid_date: 'EFETCH_PUBLISHED_DATE_INVALID',
@@ -400,6 +431,7 @@ const happyItem = happy.result.items[0] || {};
 const happyRecord = happy.result.records[0] || { provenance: {} };
 const fallbackDate = scenarios.incomplete_article_date_fallback;
 const cdataTitle = scenarios.cdata_title_literal;
+const predefinedEntityTitle = scenarios.predefined_entities_title;
 
 const failureMatrixPass = Object.entries(expectedFailures).every(([name, reasonCode]) => {
   const scenario = scenarios[name];
@@ -471,6 +503,8 @@ const checks = {
     && fallbackDate.result.items[0].published === '2024-01-12T00:00:00.000Z'
     && cdataTitle.result.reason_code === 'SUCCESS'
     && cdataTitle.result.items[0].title === 'Fixture record inside the requested publication window.'
+    && predefinedEntityTitle.result.reason_code === 'SUCCESS'
+    && predefinedEntityTitle.result.items[0].title === 'Fixture & < > " \' record inside the requested publication window.'
     && legalTruncation.result.reason_code === 'SUCCESS'
     && legalTruncation.result.search_count === 2
     && legalTruncation.result.search_truncated_by_bound === true
