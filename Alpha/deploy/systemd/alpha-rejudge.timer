@@ -1,0 +1,11 @@
+# 美股收盘后 10 分钟(20:10 UTC,工作日)触发每日复判
+[Unit]
+Description=Alpha 每日收盘复判定时器
+
+[Timer]
+OnCalendar=Mon..Fri 20:10:00 UTC
+Persistent=true
+RandomizedDelaySec=90
+
+[Install]
+WantedBy=timers.target

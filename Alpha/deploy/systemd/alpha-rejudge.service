@@ -1,0 +1,15 @@
+# 每日收盘复判(oneshot,由 alpha-rejudge.timer 驱动)
+# 只读复判+出报告+按纪律邮件;无任何激活权限(切实盘永远走门禁矩阵)。
+[Unit]
+Description=Alpha 每日收盘复判(出四件套+四灯判定,无激活权限)
+After=network-online.target postgresql.service
+
+[Service]
+Type=oneshot
+User=alpha
+Group=alpha
+SupplementaryGroups=systemd-journal
+WorkingDirectory=/opt/alpha/MetaDatabase/Alpha
+EnvironmentFile=/opt/alpha/env
+ExecStart=/opt/alpha/venv/bin/python scripts/daily_rejudge.py
+TimeoutStartSec=600

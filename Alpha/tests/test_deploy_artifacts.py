@@ -5,17 +5,23 @@ from pathlib import Path
 DEPLOY = Path("deploy")
 
 
-def test_five_systemd_units_exist():
+def test_systemd_units_ledger():
     units = {p.name for p in (DEPLOY / "systemd").glob("*.service")}
     assert units == {
         "alpha-opend.service", "alpha-trading-worker.service",
         "alpha-notify-worker.service", "alpha-supervisor.service",
-        "alpha-control-page.service",
+        "alpha-control-page.service", "alpha-rejudge.service",
     }
     for p in (DEPLOY / "systemd").glob("*.service"):
         text = p.read_text()
-        assert "Restart=always" in text, p.name
         assert "EnvironmentFile=/opt/alpha/env" in text, p.name
+        if "Type=oneshot" in text:
+            # oneshot(每日复判)由 timer 驱动,不设 Restart;且必须无激活权限声明
+            assert "rejudge" in p.name and "无激活权限" in text, p.name
+        else:
+            assert "Restart=always" in text, p.name
+    timers = {p.name for p in (DEPLOY / "systemd").glob("*.timer")}
+    assert timers == {"alpha-rejudge.timer"}
 
 
 def test_env_template_contains_no_real_secrets():
