@@ -1,0 +1,1383 @@
+{
+  "activation_gate": "BLOCKED_RUNTIME_PREREQUISITES_AND_STAGE_REVIEW_NOT_VERIFIED",
+  "artifacts": {
+    "ART-S04-P03-01": "release_slots.json",
+    "ART-S04-P03-02": "feature_flags.json",
+    "ART-S04-P03-03": "rollback.sh"
+  },
+  "contract_id": "AC-S04-P03",
+  "decision": "SAME_HOST_BLUE_GREEN_RELEASE_CONTRACT_FROZEN",
+  "decision_sha256": "2ee8c40fac685d642745705815a66f4c863fa5cdaad2290de96c070c8896873a",
+  "evidence_id": "EVD-S04-P03",
+  "external_effect_boundary": {
+    "cloudflare_changed": false,
+    "docker_or_systemd_invoked": false,
+    "incremental_cash_spent_aud": "0.00",
+    "network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "production_activated": false,
+    "real_order_submitted": false,
+    "real_traffic_switched": false,
+    "return_or_roi_verified": false,
+    "shared_production_ledger_read_or_written": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-22T23:00:00+10:00",
+  "hashes": {
+    "code": "eebf67dce7cec0e45def06f922d559e5d1d52800a09ab8ef9d6b2c13ac804aad",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/release_control.py": "8894b5e721f851ad802baf51d574121d47ee1cd4ee81d0c15a7dbcb3682853bd",
+      "feature_flags.json": "36b366ced826c3addb402526256e12f1a9fd7bdee56e321d8dc441a3f558d254",
+      "machine/evidence/EVD-S04-P02.json": "a7dc214a406d8776eb67d5fe436092e4b1c87f1951d9f394e65565502f43eda4",
+      "machine/evidence/EVD-S04-P02_rollback.json": "6fdc7890e2baecbea37bc981ec1224821904542c0a35c3d8de4ced5edd9bdb3e",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S04_P03.json": "30fa200d5f24f462589881930f11e919fbb626c84f7b8b6e8ee54c49c1705123",
+      "release_slots.json": "f5a157b0806da5d62791bde33712bc149dbfc964f0536114caf4e123bcfe749e",
+      "rollback.sh": "01e8b38329707d31de514249d2f7e096d0dc7a280ca204d5004e3d9e29c5168e",
+      "tests/S04/P03_test.py": "0df9ee48a58356220dd78fe42df534a85e8f4663ae0eca2d667727dc2a465383"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S04/P03 validates release control and synthetic ledger preservation offline; it executes no model, provider, host, container engine, systemd, real traffic, order or return evaluation.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "4658549bc64b5097104a0cf72bfc4af48c844eb599709ab8ecec2e4d81ed64b5"
+  },
+  "next": "S04/P04_READY_NOT_STARTED",
+  "pass_gate_interpretation": "OFFLINE_FAILURE_INJECTION_PROVES_SHARED_LEDGER_BYTES_UNCHANGED_AND_ROLLBACK_AT_900_SECONDS; PRODUCTION_RUNTIME_REMAINS_UNVERIFIED",
+  "phase_id": "P03",
+  "phase_status": "S04_P03_PASS",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_proof": {
+    "all_expected_dispositions_met": true,
+    "all_success_scenarios_preserved_ledger_bytes": true,
+    "mode": "DETERMINISTIC_EPHEMERAL_SAME_HOST_BLUE_GREEN_FAILURE_INJECTION",
+    "production_activation_performed": false,
+    "production_runtime_verified": false,
+    "rollback_at_900_seconds_passed": true,
+    "rollback_at_901_seconds_failed_closed": true,
+    "scenario_count": 16
+  },
+  "release_status": "NOT_READY_S04_P04_AND_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S04-P03",
+  "runtime_release_status": "NOT_EXECUTED_OR_VERIFIED_ON_OVH",
+  "schema_version": "1.0.0",
+  "scope_boundary": {
+    "offline_drill_ledger_is_frozen_synthetic_evidence_only": true,
+    "ovh_rto_and_rpo_not_runtime_verified": true,
+    "p03_delivers_release_control_contract_not_production_activation": true,
+    "p04_capacity_governance_not_started": true,
+    "real_traffic_canary_not_run": true,
+    "shared_production_ledger_not_read_or_written": true,
+    "single_host_physical_zero_downtime_not_claimed": true
+  },
+  "stage_id": "S04",
+  "status": "PASS",
+  "validation": {
+    "activation_gate": "BLOCKED_RUNTIME_PREREQUISITES_AND_STAGE_REVIEW_NOT_VERIFIED",
+    "checks": [
+      {
+        "detail": "S04_P03.json",
+        "id": "S04P03-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "release_slots.json",
+        "id": "S04P03-SLOTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "feature_flags.json",
+        "id": "S04P03-FLAGS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "release_policy.json",
+        "id": "S04P03-RELEASE-POLICY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f5a157b0806da5d62791bde33712bc149dbfc964f0536114caf4e123bcfe749e",
+          "expected": "f5a157b0806da5d62791bde33712bc149dbfc964f0536114caf4e123bcfe749e"
+        },
+        "id": "S04P03-PIN-release_slots_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "36b366ced826c3addb402526256e12f1a9fd7bdee56e321d8dc441a3f558d254",
+          "expected": "36b366ced826c3addb402526256e12f1a9fd7bdee56e321d8dc441a3f558d254"
+        },
+        "id": "S04P03-PIN-feature_flags_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "01e8b38329707d31de514249d2f7e096d0dc7a280ca204d5004e3d9e29c5168e",
+          "expected": "01e8b38329707d31de514249d2f7e096d0dc7a280ca204d5004e3d9e29c5168e"
+        },
+        "id": "S04P03-PIN-rollback_sh",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "30fa200d5f24f462589881930f11e919fbb626c84f7b8b6e8ee54c49c1705123",
+          "expected": "30fa200d5f24f462589881930f11e919fbb626c84f7b8b6e8ee54c49c1705123"
+        },
+        "id": "S04P03-PIN-machine-tests-fixtures-S04_P03_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "0df9ee48a58356220dd78fe42df534a85e8f4663ae0eca2d667727dc2a465383",
+          "expected": "0df9ee48a58356220dd78fe42df534a85e8f4663ae0eca2d667727dc2a465383"
+        },
+        "id": "S04P03-PIN-tests-S04-P03_test_py",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S04P03-BASELINE-machine-facts-canonical_facts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S04P03-BASELINE-machine-facts-costs_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S04P03-BASELINE-machine-facts-parameters_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "expected": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b"
+        },
+        "id": "S04P03-BASELINE-machine-facts-release_policy_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S04P03-BASELINE-machine-facts-roadmap_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S04P03-BASELINE-machine-facts-requirements_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S04P03-BASELINE-machine-facts-acceptance_contracts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S04P03-BASELINE-machine-facts-task_graph_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S04P03-BASELINE-machine-facts-traceability_matrix_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a7dc214a406d8776eb67d5fe436092e4b1c87f1951d9f394e65565502f43eda4",
+          "expected": "a7dc214a406d8776eb67d5fe436092e4b1c87f1951d9f394e65565502f43eda4"
+        },
+        "id": "S04P03-BASELINE-machine-evidence-EVD-S04-P02_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "6fdc7890e2baecbea37bc981ec1224821904542c0a35c3d8de4ced5edd9bdb3e",
+          "expected": "6fdc7890e2baecbea37bc981ec1224821904542c0a35c3d8de4ced5edd9bdb3e"
+        },
+        "id": "S04P03-BASELINE-machine-evidence-EVD-S04-P02_rollback_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S04P03-REPO-_github-workflows-abd-stage0-validation_yml",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "013d47d166957cdddb28d518d3e083d9f53be298b5fcf2d4905341b3720fdf91",
+          "expected": "013d47d166957cdddb28d518d3e083d9f53be298b5fcf2d4905341b3720fdf91"
+        },
+        "id": "S04P03-ORACLE-STRUCTURAL-INTEGRITY",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "baseline": "未实现或旧包存在冲突/缺口",
+            "id": "REQ-S04-P03",
+            "measurement": "由 AC-S04-P03 的机器验收判定器执行固定输入、阈值和证据检查。",
+            "non_goals": [
+              "不自动提交、确认或重试真实订单",
+              "不以降低证据或风险门追赶30%月目标",
+              "不引入付费数据或付费程序接口依赖"
+            ],
+            "observation_period": "开发期每次提交；上线后持续",
+            "owner_input_required_during_development": false,
+            "phase_id": "P03",
+            "primary_acceptance_criteria_id": "AC-S04-P03",
+            "priority": "P0",
+            "problem": "若未完成“单机双环境发布”，在VPS-1资源和A$0新增预算内实现全天候分析、全球中文访问和可恢复发布。将缺少可执行、可验收或可恢复的基础。",
+            "scope": [
+              "release_slots.json",
+              "feature_flags.json",
+              "rollback.sh"
+            ],
+            "stage_id": "S04",
+            "target": "发布不丢账本，失败在15分钟内回旧版。",
+            "title": "单机双环境发布",
+            "user": "单一账户持有人及自动开发/运维代理",
+            "value": "建立同机双环境切换、小流量试运行、功能开关和自动回滚。"
+          }
+        ],
+        "id": "S04P03-TASKPACK-REQUIREMENT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "environment": [
+              "Ubuntu Linux 持续集成环境",
+              "固定时钟",
+              "冻结测试夹具",
+              "无外部网络的确定性测试模式",
+              "生产等价配置Schema"
+            ],
+            "evidence_requirements": [
+              "machine/evidence/EVD-S04-P03.json",
+              "测试报告及命令退出码",
+              "输入、参数、代码、模型和输出SHA-256",
+              "失败路径截图或结构化日志",
+              "回滚演练记录"
+            ],
+            "id": "AC-S04-P03",
+            "inputs": [
+              "REQ-S04-P03 对应机器事实",
+              "S04/P03 冻结正向、边界、负向和故障输入",
+              "参数版本和来源版本哈希"
+            ],
+            "oracle": {
+              "command": "python -m abd_acceptance --contract AC-S04-P03 --evidence machine/evidence",
+              "rule": "发布不丢账本，失败在15分钟内回旧版。",
+              "type": "EXECUTABLE"
+            },
+            "pass_gate": "发布不丢账本，失败在15分钟内回旧版。",
+            "requirement_id": "REQ-S04-P03",
+            "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+            "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+            "stop_condition": [
+              "发现法律、监管或来源合同实质冲突且无安全默认",
+              "需要不可逆操作",
+              "新增现金支出将超过A$0",
+              "严重安全事故或证据完整性失败",
+              "阶段终止条件被触发"
+            ],
+            "tests": [
+              {
+                "id": "TEST-S04-P03",
+                "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+              },
+              {
+                "id": "TEST-S04-P03-BOUNDARY",
+                "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+              },
+              {
+                "id": "TEST-S04-P03-REPLAY",
+                "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+              }
+            ],
+            "threshold": "发布不丢账本，失败在15分钟内回旧版。",
+            "title": "单机双环境发布唯一主验收"
+          }
+        ],
+        "id": "S04P03-TASKPACK-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S04-P03-01",
+          "T-S04-P03-02",
+          "T-S04-P03-03"
+        ],
+        "id": "S04P03-TASKPACK-TASKS",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_criteria_id": "AC-S04-P03",
+            "artifact_ids": [
+              "ART-S04-P03-01",
+              "ART-S04-P03-02",
+              "ART-S04-P03-03"
+            ],
+            "evidence_id": "EVD-S04-P03",
+            "phase_id": "P03",
+            "requirement_id": "REQ-S04-P03",
+            "stage_id": "S04",
+            "task_ids": [
+              "T-S04-P03-01",
+              "T-S04-P03-02",
+              "T-S04-P03-03"
+            ],
+            "test_ids": [
+              "TEST-S04-P03",
+              "TEST-S04-P03-BOUNDARY",
+              "TEST-S04-P03-REPLAY"
+            ]
+          }
+        ],
+        "id": "S04P03-TASKPACK-TRACEABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 12,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 12
+        },
+        "id": "S04P03-P02-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04P03-SLOTS-VALID",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04P03-FLAGS-VALID",
+        "passed": true
+      },
+      {
+        "detail": "BLOCKED_RUNTIME_PREREQUISITES_AND_STAGE_REVIEW_NOT_VERIFIED",
+        "id": "S04P03-ACTIVATION-GATE",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "bind_address": "127.0.0.1",
+            "bind_port": 8081,
+            "id": "blue",
+            "log_path": "/var/log/abd/blue",
+            "release_path": "/opt/abd/releases/blue",
+            "repository_runtime_status": "NOT_RUNNING_OR_VERIFIED",
+            "runtime_env_file": "/etc/abd/slots/blue.env",
+            "runtime_manifest": "/opt/abd/releases/blue/release_manifest.json"
+          },
+          {
+            "bind_address": "127.0.0.1",
+            "bind_port": 8082,
+            "id": "green",
+            "log_path": "/var/log/abd/green",
+            "release_path": "/opt/abd/releases/green",
+            "repository_runtime_status": "NOT_RUNNING_OR_VERIFIED",
+            "runtime_env_file": "/etc/abd/slots/green.env",
+            "runtime_manifest": "/opt/abd/releases/green/release_manifest.json"
+          }
+        ],
+        "id": "S04P03-TWO-DISTINCT-LOOPBACK-SLOTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "candidate_shadow_access": "READ_ONLY",
+          "integrity_failure_action": "STOP_NEW_ADVICE_AND_ROLL_BACK",
+          "outside_release_slots": true,
+          "paths": [
+            "/var/lib/abd/ledger",
+            "/var/lib/abd/evidence",
+            "/var/lib/abd/mail",
+            "/var/lib/abd/outbox",
+            "/var/lib/abd/checkpoints"
+          ],
+          "post_switch_requirements": [
+            "VERIFY_LEDGER_WATERMARK_NOT_DECREASED",
+            "VERIFY_NO_DUPLICATE_LEDGER_EVENT_IDS",
+            "VERIFY_HASH_CHAIN",
+            "KEEP_OLD_SLOT_IMMUTABLE_UNTIL_RELEASE_SETTLES"
+          ],
+          "pre_switch_requirements": [
+            "STOP_NEW_ADVICE",
+            "INVALIDATE_UNEXPIRED_ADVICE",
+            "DRAIN_OR_CHECKPOINT_WRITER",
+            "CAPTURE_LEDGER_WATERMARK",
+            "VERIFY_LEDGER_AND_EVIDENCE_HASH_CHAIN",
+            "VERIFY_PREVIOUS_RELEASE_MANIFEST"
+          ],
+          "root": "/var/lib/abd",
+          "single_writer_during_cutover": true,
+          "slot_specific_copy_forbidden": true
+        },
+        "id": "S04P03-SHARED-STATE-OUTSIDE-SLOTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "candidate_shadow_access": "READ_ONLY",
+          "integrity_failure_action": "STOP_NEW_ADVICE_AND_ROLL_BACK",
+          "outside_release_slots": true,
+          "paths": [
+            "/var/lib/abd/ledger",
+            "/var/lib/abd/evidence",
+            "/var/lib/abd/mail",
+            "/var/lib/abd/outbox",
+            "/var/lib/abd/checkpoints"
+          ],
+          "post_switch_requirements": [
+            "VERIFY_LEDGER_WATERMARK_NOT_DECREASED",
+            "VERIFY_NO_DUPLICATE_LEDGER_EVENT_IDS",
+            "VERIFY_HASH_CHAIN",
+            "KEEP_OLD_SLOT_IMMUTABLE_UNTIL_RELEASE_SETTLES"
+          ],
+          "pre_switch_requirements": [
+            "STOP_NEW_ADVICE",
+            "INVALIDATE_UNEXPIRED_ADVICE",
+            "DRAIN_OR_CHECKPOINT_WRITER",
+            "CAPTURE_LEDGER_WATERMARK",
+            "VERIFY_LEDGER_AND_EVIDENCE_HASH_CHAIN",
+            "VERIFY_PREVIOUS_RELEASE_MANIFEST"
+          ],
+          "root": "/var/lib/abd",
+          "single_writer_during_cutover": true,
+          "slot_specific_copy_forbidden": true
+        },
+        "id": "S04P03-CANDIDATE-SHADOW-READ-ONLY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "clock": "MONOTONIC_INTEGER_SECONDS",
+          "deadline_inclusive": true,
+          "frozen_boundary_seconds": [
+            899,
+            900,
+            901
+          ],
+          "ledger_recovery_point_target_seconds": 60,
+          "rollback_deadline_seconds": 900,
+          "service_recovery_target_seconds": 900
+        },
+        "id": "S04P03-ROLLBACK-DEADLINE-INCLUSIVE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "clock": "MONOTONIC_INTEGER_SECONDS",
+          "deadline_inclusive": true,
+          "frozen_boundary_seconds": [
+            899,
+            900,
+            901
+          ],
+          "ledger_recovery_point_target_seconds": 60,
+          "rollback_deadline_seconds": 900,
+          "service_recovery_target_seconds": 900
+        },
+        "id": "S04P03-RPO-60",
+        "passed": true
+      },
+      {
+        "detail": [
+          "健康探针失败",
+          "数值交叉实现不一致",
+          "新版本建议与冻结重放不一致",
+          "静默缺口增加",
+          "模型漂移越过停止线",
+          "安全严重/高危未处置",
+          "账本或证据完整性失败"
+        ],
+        "id": "S04P03-RELEASE-POLICY-TRIGGERS-COVERED",
+        "passed": true
+      },
+      {
+        "detail": [
+          "source:<id>",
+          "sport:<id>",
+          "market_family:<id>",
+          "model:<id>",
+          "live_recommendation",
+          "gmail_ingestion",
+          "owner_browser_companion"
+        ],
+        "id": "S04P03-RELEASE-POLICY-FLAGS-COVERED",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "default_enabled": false,
+            "enable_requires": [
+              "S04_STAGE_REVIEW_PASS",
+              "SOFTWARE_MODEL_AND_RELEASE_GATES_PASS",
+              "SIGNED_RUNTIME_ACTIVATION_RECORD",
+              "ALL_ITEM_LEVEL_EVIDENCE_GATES_PASS"
+            ],
+            "id": "live_recommendation",
+            "repository_enabled": false,
+            "rollback_value": false,
+            "unknown_state_enabled": false
+          },
+          {
+            "default_enabled": false,
+            "enable_requires": [
+              "GMAIL_CONSENT_VERIFIED",
+              "TOKEN_STORAGE_VERIFIED",
+              "MAIL_SAFETY_AND_RECOVERY_GATES_PASS"
+            ],
+            "id": "gmail_ingestion",
+            "repository_enabled": false,
+            "rollback_value": false,
+            "unknown_state_enabled": false
+          },
+          {
+            "default_enabled": false,
+            "enable_requires": [
+              "SIGNED_BROWSER_ARTIFACT",
+              "CURRENT_PAGE_FIELD_MATCH_VERIFIED",
+              "ORDER_SUBMISSION_CAPABILITY_ABSENT"
+            ],
+            "id": "owner_browser_companion",
+            "repository_enabled": false,
+            "rollback_value": false,
+            "unknown_state_enabled": false
+          }
+        ],
+        "id": "S04P03-LIVE-RECOMMENDATION-OFF",
+        "passed": true
+      },
+      {
+        "detail": {
+          "incremental_cash_budget_aud": "0.00",
+          "initial_bankroll_aud": "300.00",
+          "monthly_target_guaranteed": false,
+          "monthly_target_return": "0.30",
+          "order_submission_module_present": false
+        },
+        "id": "S04P03-NO-ORDER-CAPABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "incremental_cash_budget_aud": "0.00",
+          "initial_bankroll_aud": "300.00",
+          "monthly_target_guaranteed": false,
+          "monthly_target_return": "0.30",
+          "order_submission_module_present": false
+        },
+        "id": "S04P03-A300-A0-NO-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cloudflare_changed": false,
+          "docker_or_systemd_invoked": false,
+          "incremental_cash_spent_aud": "0.00",
+          "network_accessed": false,
+          "ovh_account_or_host_accessed": false,
+          "production_activated": false,
+          "real_order_submitted": false,
+          "real_traffic_switched": false,
+          "return_or_roi_verified": false,
+          "shared_production_ledger_read_or_written": false
+        },
+        "id": "S04P03-EXTERNAL-EFFECT-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ADD-SECRET-BEARING-KEY": true,
+          "ALLOW-ARBITRARY-ROLLBACK-PATH": true,
+          "ALLOW-LEDGER-MUTATION": true,
+          "CANARY-OVER-100-PERCENT": true,
+          "CANDIDATE-WRITES-SHARED-STATE": true,
+          "CLAIM-EXTERNAL-PRODUCTION-ACTIVATION": true,
+          "CLAIM-PRODUCTION-ACTIVATED": true,
+          "CLAIM-REAL-TRAFFIC-SWITCHED": true,
+          "DUPLICATE-SLOT-ID": true,
+          "ENABLE-LIVE-CANARY": true,
+          "EXCLUDE-900-SECOND-BOUNDARY": true,
+          "EXTEND-ROLLBACK-DEADLINE": true,
+          "PUBLIC-SLOT-BIND": true,
+          "REMOVE-LEDGER-HASH-VERIFY": true,
+          "REMOVE-LEDGER-PROBE": true,
+          "REMOVE-SECURITY-ROLLBACK-TRIGGER": true,
+          "ROUTE-OUTSIDE-RELEASE-ROOT": true,
+          "STATE-INSIDE-RELEASE-SLOT": true
+        },
+        "id": "S04P03-ALL-SLOT-MUTATIONS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ALLOW-PATH-TRAVERSAL-ID": true,
+          "CANARY-LIVE-RECOMMENDATION": true,
+          "CLAIM-FLAGS-APPLIED": true,
+          "INCREMENTAL-CASH-NONZERO": true,
+          "LIVE-DEFAULT-ON": true,
+          "LIVE-REPOSITORY-ON": true,
+          "MONTHLY-TARGET-GUARANTEED": true,
+          "NO-AUDIT-EVENT": true,
+          "NONMONOTONIC-REVISION": true,
+          "ORDER-MODULE-PRESENT": true,
+          "REMOVE-MODEL-TEMPLATE": true,
+          "REMOVE-NO-ORDER-EFFECT": true,
+          "ROLLBACK-ENABLES-GMAIL": true,
+          "SKIP-CANARY-STAGE": true,
+          "UNKNOWN-ACTION-ENABLE": true,
+          "UNKNOWN-FLAG-ON": true
+        },
+        "id": "S04P03-ALL-FLAG-MUTATIONS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action": "HOLD_FOR_SIGNED_PROMOTION",
+          "advice_enabled": false,
+          "deadline_met": true,
+          "failed_probes": []
+        },
+        "id": "S04P03-ALL-PROBES-HOLD-FOR-SIGNED-PROMOTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action": "ROLL_BACK_FAIL_CLOSED",
+          "advice_enabled": false,
+          "deadline_met": true,
+          "failed_probes": [
+            "HEALTH_PROBE"
+          ]
+        },
+        "id": "S04P03-PROBE-HEALTH_PROBE-ROLLBACK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action": "ROLL_BACK_FAIL_CLOSED",
+          "advice_enabled": false,
+          "deadline_met": true,
+          "failed_probes": [
+            "NUMERIC_CROSS_IMPLEMENTATION"
+          ]
+        },
+        "id": "S04P03-PROBE-NUMERIC_CROSS_IMPLEMENTATION-ROLLBACK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action": "ROLL_BACK_FAIL_CLOSED",
+          "advice_enabled": false,
+          "deadline_met": true,
+          "failed_probes": [
+            "FROZEN_REPLAY_ACTION_MATCH"
+          ]
+        },
+        "id": "S04P03-PROBE-FROZEN_REPLAY_ACTION_MATCH-ROLLBACK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action": "ROLL_BACK_FAIL_CLOSED",
+          "advice_enabled": false,
+          "deadline_met": true,
+          "failed_probes": [
+            "SILENT_COVERAGE_GAP_NONINCREASE"
+          ]
+        },
+        "id": "S04P03-PROBE-SILENT_COVERAGE_GAP_NONINCREASE-ROLLBACK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action": "ROLL_BACK_FAIL_CLOSED",
+          "advice_enabled": false,
+          "deadline_met": true,
+          "failed_probes": [
+            "MODEL_DRIFT_WITHIN_STOP_LINE"
+          ]
+        },
+        "id": "S04P03-PROBE-MODEL_DRIFT_WITHIN_STOP_LINE-ROLLBACK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action": "ROLL_BACK_FAIL_CLOSED",
+          "advice_enabled": false,
+          "deadline_met": true,
+          "failed_probes": [
+            "SECURITY_HIGH_CRITICAL_ZERO"
+          ]
+        },
+        "id": "S04P03-PROBE-SECURITY_HIGH_CRITICAL_ZERO-ROLLBACK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action": "ROLL_BACK_FAIL_CLOSED",
+          "advice_enabled": false,
+          "deadline_met": true,
+          "failed_probes": [
+            "LEDGER_AND_EVIDENCE_INTEGRITY"
+          ]
+        },
+        "id": "S04P03-PROBE-LEDGER_AND_EVIDENCE_INTEGRITY-ROLLBACK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action": "ROLL_BACK_FAIL_CLOSED",
+          "advice_enabled": false,
+          "deadline_met": true,
+          "failed_probes": [
+            "HEALTH_PROBE"
+          ]
+        },
+        "id": "S04P03-DEADLINE-899",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action": "ROLL_BACK_FAIL_CLOSED",
+          "advice_enabled": false,
+          "deadline_met": true,
+          "failed_probes": [
+            "HEALTH_PROBE"
+          ]
+        },
+        "id": "S04P03-DEADLINE-900",
+        "passed": true
+      },
+      {
+        "detail": {
+          "action": "ROLL_BACK_FAIL_CLOSED",
+          "advice_enabled": false,
+          "deadline_met": false,
+          "failed_probes": [
+            "HEALTH_PROBE"
+          ]
+        },
+        "id": "S04P03-DEADLINE-901",
+        "passed": true
+      },
+      {
+        "detail": {
+          "delta": "-0.0001",
+          "result": {
+            "action": "ROLL_BACK_FAIL_CLOSED",
+            "advice_enabled": false,
+            "deadline_met": true,
+            "failed_probes": [
+              "HEALTH_PROBE"
+            ]
+          }
+        },
+        "id": "S04P03-NUMERIC-BOUNDARY-NEG0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "delta": "0",
+          "result": {
+            "action": "ROLL_BACK_FAIL_CLOSED",
+            "advice_enabled": false,
+            "deadline_met": true,
+            "failed_probes": [
+              "HEALTH_PROBE"
+            ]
+          }
+        },
+        "id": "S04P03-NUMERIC-BOUNDARY-0",
+        "passed": true
+      },
+      {
+        "detail": {
+          "delta": "0.0001",
+          "result": {
+            "action": "ROLL_BACK_FAIL_CLOSED",
+            "advice_enabled": false,
+            "deadline_met": true,
+            "failed_probes": [
+              "HEALTH_PROBE"
+            ]
+          }
+        },
+        "id": "S04P03-NUMERIC-BOUNDARY-0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed": {
+            "enabled": true,
+            "fail_closed": false,
+            "flag_id": "live_recommendation",
+            "missing": [],
+            "reason": "ALL_DECLARED_PREREQUISITES_MET"
+          },
+          "denied": {
+            "enabled": false,
+            "fail_closed": true,
+            "flag_id": "live_recommendation",
+            "missing": [
+              "ALL_ITEM_LEVEL_EVIDENCE_GATES_PASS",
+              "S04_STAGE_REVIEW_PASS",
+              "SIGNED_RUNTIME_ACTIVATION_RECORD",
+              "SOFTWARE_MODEL_AND_RELEASE_GATES_PASS"
+            ],
+            "reason": "PREREQUISITES_NOT_MET"
+          },
+          "killed": {
+            "enabled": false,
+            "fail_closed": true,
+            "flag_id": "live_recommendation",
+            "reason": "EMERGENCY_ADVICE_KILL_SWITCH"
+          }
+        },
+        "id": "S04P03-FLAG-LIVE_RECOMMENDATION-PREREQUISITES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed": {
+            "enabled": true,
+            "fail_closed": false,
+            "flag_id": "gmail_ingestion",
+            "missing": [],
+            "reason": "ALL_DECLARED_PREREQUISITES_MET"
+          },
+          "denied": {
+            "enabled": false,
+            "fail_closed": true,
+            "flag_id": "gmail_ingestion",
+            "missing": [
+              "GMAIL_CONSENT_VERIFIED",
+              "MAIL_SAFETY_AND_RECOVERY_GATES_PASS",
+              "TOKEN_STORAGE_VERIFIED"
+            ],
+            "reason": "PREREQUISITES_NOT_MET"
+          },
+          "killed": {
+            "enabled": false,
+            "fail_closed": true,
+            "flag_id": "gmail_ingestion",
+            "reason": "EMERGENCY_ADVICE_KILL_SWITCH"
+          }
+        },
+        "id": "S04P03-FLAG-GMAIL_INGESTION-PREREQUISITES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed": {
+            "enabled": true,
+            "fail_closed": false,
+            "flag_id": "owner_browser_companion",
+            "missing": [],
+            "reason": "ALL_DECLARED_PREREQUISITES_MET"
+          },
+          "denied": {
+            "enabled": false,
+            "fail_closed": true,
+            "flag_id": "owner_browser_companion",
+            "missing": [
+              "CURRENT_PAGE_FIELD_MATCH_VERIFIED",
+              "ORDER_SUBMISSION_CAPABILITY_ABSENT",
+              "SIGNED_BROWSER_ARTIFACT"
+            ],
+            "reason": "PREREQUISITES_NOT_MET"
+          },
+          "killed": {
+            "enabled": false,
+            "fail_closed": true,
+            "flag_id": "owner_browser_companion",
+            "reason": "EMERGENCY_ADVICE_KILL_SWITCH"
+          }
+        },
+        "id": "S04P03-FLAG-OWNER_BROWSER_COMPANION-PREREQUISITES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "enabled": false,
+          "fail_closed": true,
+          "flag_id": "unknown:escape",
+          "reason": "UNKNOWN_OR_MALFORMED_FLAG"
+        },
+        "id": "S04P03-UNKNOWN-FLAG-DISABLED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "scenarios": 16,
+          "status": "PASS"
+        },
+        "id": "S04P03-ROLLBACK-DRILL-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_state_changed": false,
+          "production_runtime_verified": false,
+          "production_state_changed": false
+        },
+        "id": "S04P03-ROLLBACK-DRILL-PRODUCTION-UNTOUCHED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "PASS",
+          "ledger_unchanged": true,
+          "status": "PASS"
+        },
+        "id": "S04P03-DRILL-HEALTH_PROBE_FAILED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "PASS",
+          "ledger_unchanged": true,
+          "status": "PASS"
+        },
+        "id": "S04P03-DRILL-NUMERIC_CROSS_IMPLEMENTATION_MISMATCH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "PASS",
+          "ledger_unchanged": true,
+          "status": "PASS"
+        },
+        "id": "S04P03-DRILL-FROZEN_REPLAY_ACTION_MISMATCH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "PASS",
+          "ledger_unchanged": true,
+          "status": "PASS"
+        },
+        "id": "S04P03-DRILL-SILENT_COVERAGE_GAP_INCREASED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "PASS",
+          "ledger_unchanged": true,
+          "status": "PASS"
+        },
+        "id": "S04P03-DRILL-MODEL_DRIFT_STOP_LINE_BREACHED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "PASS",
+          "ledger_unchanged": true,
+          "status": "PASS"
+        },
+        "id": "S04P03-DRILL-SECURITY_HIGH_OR_CRITICAL_UNRESOLVED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "PASS",
+          "ledger_unchanged": true,
+          "status": "PASS"
+        },
+        "id": "S04P03-DRILL-LEDGER_OR_EVIDENCE_INTEGRITY_FAILED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "PASS",
+          "ledger_unchanged": true,
+          "status": "PASS"
+        },
+        "id": "S04P03-DRILL-UNKNOWN_OR_MALFORMED_PROBE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "PASS",
+          "ledger_unchanged": true,
+          "status": "PASS"
+        },
+        "id": "S04P03-DRILL-BOUNDARY_899",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "PASS",
+          "ledger_unchanged": true,
+          "status": "PASS"
+        },
+        "id": "S04P03-DRILL-BOUNDARY_900",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": false,
+          "expected": "FAIL",
+          "ledger_unchanged": true,
+          "status": "FAIL"
+        },
+        "id": "S04P03-DRILL-BOUNDARY_901",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "FAIL",
+          "ledger_unchanged": false,
+          "status": "FAIL"
+        },
+        "id": "S04P03-DRILL-LEDGER_MUTATED_DURING_ROLLBACK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "FAIL",
+          "ledger_unchanged": true,
+          "status": "FAIL"
+        },
+        "id": "S04P03-DRILL-UNSAFE_PREVIOUS_SLOT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "FAIL",
+          "ledger_unchanged": true,
+          "status": "FAIL"
+        },
+        "id": "S04P03-DRILL-MALFORMED_CONTROL_STATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "FAIL",
+          "ledger_unchanged": true,
+          "status": "FAIL"
+        },
+        "id": "S04P03-DRILL-CURRENT_POINTER_ESCAPE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "deadline_met": true,
+          "expected": "FAIL",
+          "ledger_unchanged": true,
+          "status": "FAIL"
+        },
+        "id": "S04P03-DRILL-PREVIOUS_MANIFEST_MISMATCH",
+        "passed": true
+      },
+      {
+        "detail": "0o755",
+        "id": "S04P03-ROLLBACK-SCRIPT-EXECUTABLE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "#!/bin/sh",
+          "set -eu",
+          "",
+          "SCRIPT_DIR=$(CDPATH= cd -- \"$(dirname -- \"$0\")\" && pwd)",
+          "cd \"$SCRIPT_DIR\"",
+          "",
+          "if [ -n \"${ABD_PYTHON:-}\" ]; then",
+          "    PYTHON_BIN=$ABD_PYTHON",
+          "elif [ -x \"$SCRIPT_DIR/.venv/bin/python\" ]; then",
+          "    PYTHON_BIN=$SCRIPT_DIR/.venv/bin/python",
+          "elif command -v python3.12 >/dev/null 2>&1; then",
+          "    PYTHON_BIN=$(command -v python3.12)",
+          "elif command -v python3 >/dev/null 2>&1; then",
+          "    PYTHON_BIN=$(command -v python3)",
+          "else",
+          "    echo \"rollback blocked: Python 3.12 runtime not found\" >&2",
+          "    exit 78",
+          "fi",
+          "",
+          "if [ ! -x \"$PYTHON_BIN\" ] || ! \"$PYTHON_BIN\" -c 'import sys; raise SystemExit(0 if (3, 12) <= sys.version_info[:2] < (3, 13) else 1)' >/dev/null 2>&1; then",
+          "    echo \"rollback blocked: ABD requires an executable Python 3.12 runtime\" >&2",
+          "    exit 78",
+          "fi",
+          "",
+          "exec \"$PYTHON_BIN\" -m abd_acceptance.release_control rollback \"$@\""
+        ],
+        "id": "S04P03-ROLLBACK-SCRIPT-STRICT-WRAPPER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index": [
+            {
+              "acceptance_contract_id": "AC-S04-P04",
+              "expected_artifact": "machine/evidence/EVD-S04-P04.json",
+              "id": "INDEX-AC-S04-P04",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "VPS-1在10倍预期负载下不触发失控交换或磁盘耗尽。",
+              "requirement_id": "REQ-S04-P04",
+              "status": "PLANNED"
+            }
+          ],
+          "present": []
+        },
+        "id": "S04P03-P04-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S04P03-NO-SECRET-OR-LOCAL-PATH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "product": {
+            "id": "ABD",
+            "incremental_cash_budget_aud": "0.00",
+            "initial_bankroll_aud": "300.00",
+            "language": "zh-CN",
+            "monthly_target_return": "0.30",
+            "name_zh": "全天候投注决策辅助系统",
+            "owner": "单一账户持有人",
+            "primary_goal": "在不降低证据、风险、安全与合规门槛的前提下，分析全部可观察市场并追求 A$300×1.3^n 的月度滚动复利目标。",
+            "status": "FINAL_ACCEPTANCE_DELIVERY",
+            "target_curve": "B_n = 300 * (1.3 ** n)",
+            "version": "0.0.0.1"
+          },
+          "runtime": {
+            "availability_slo": "0.995",
+            "deployment": "SAME_HOST_BLUE_GREEN_WITH_CANARY_AND_AUTO_ROLLBACK",
+            "llm_in_money_critical_path": false,
+            "operator_clients": [
+              "手机浏览器",
+              "电脑浏览器"
+            ],
+            "primary": "OVH_SINGAPORE_VPS1_24X7",
+            "remote_access": "CLOUDFLARE_ACCESS_AND_NAMED_TUNNEL",
+            "single_host_zero_downtime_guaranteed": false
+          },
+          "target": {
+            "falsification_gate": [
+              "至少6个完整自然月",
+              "至少1000个独立等效信号",
+              "月收益率的95%上界仍低于30%"
+            ],
+            "formula": "B_n = 300 * 1.3^n",
+            "guaranteed": false,
+            "monthly_log_growth": "0.26236426446749106",
+            "monthly_return": "0.30",
+            "plausible_gate": [
+              "保守月度对数增长中位数 >= ln(1.3)",
+              "月度对数增长第5百分位 > 0",
+              "按来源、平台限额、机会数量和相关性校正后的容量通过"
+            ],
+            "shadow_min_days": 90,
+            "shadow_min_independent_equivalent_signals": 1000,
+            "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+            "verification_gate": [
+              "至少12个完整自然月",
+              "按现金流调整后的月度几何收益 >= 30%",
+              "证据完整",
+              "未解决对账差异为0"
+            ]
+          }
+        },
+        "id": "S04P03-CANONICAL-A300-A0-NO-ORDER-NO-ZERO-DOWNTIME-NO-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": "all frozen numeric values avoid binary floats",
+        "id": "S04P03-NO-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 155
+        },
+        "id": "S04P03-TARGETED-PYTEST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 3696
+        },
+        "id": "S04P03-FULL-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 682
+        },
+        "id": "S04P03-SIGNED-STATE-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S04P03-TASKPACK-49-PASS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ABD S00/P03 PAID DEPENDENCY SCAN",
+          "STATUS: PASS",
+          "FIXED_CLOCK: 2026-07-19T00:00:00+10:00",
+          "MAX_INCREMENTAL_CASH_AUD: 0.00",
+          "DEPENDENCY_MANIFESTS: 2",
+          "RUNTIME_DIRECT_DEPENDENCIES: 0",
+          "LOCKED_REGISTRY_PACKAGES: 12",
+          "PAID_OR_UNKNOWN_DEPENDENCIES: 0",
+          "EXTERNAL_NETWORK_ACCESS_PERFORMED: false",
+          "EXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false"
+        ],
+        "id": "S04P03-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S04-P03",
+    "decision": "SAME_HOST_BLUE_GREEN_RELEASE_CONTRACT_FROZEN",
+    "external_effect_boundary": {
+      "cloudflare_changed": false,
+      "docker_or_systemd_invoked": false,
+      "incremental_cash_spent_aud": "0.00",
+      "network_accessed": false,
+      "ovh_account_or_host_accessed": false,
+      "production_activated": false,
+      "real_order_submitted": false,
+      "real_traffic_switched": false,
+      "return_or_roi_verified": false,
+      "shared_production_ledger_read_or_written": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-22T23:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "feature_flags.json": "36b366ced826c3addb402526256e12f1a9fd7bdee56e321d8dc441a3f558d254",
+      "machine/evidence/EVD-S04-P02.json": "a7dc214a406d8776eb67d5fe436092e4b1c87f1951d9f394e65565502f43eda4",
+      "machine/evidence/EVD-S04-P02_rollback.json": "6fdc7890e2baecbea37bc981ec1224821904542c0a35c3d8de4ced5edd9bdb3e",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S04/P03/full_regression.xml": "d71a7e60f72e60ab75e38a081e2dcac1851fb2da7cc3f7ba35f133f5bd2ff1ca",
+      "machine/evidence/S04/P03/pytest.xml": "32843b76bde29023561947b02605c1494b8f43398595714f8b56cc3df88cdfa0",
+      "machine/evidence/S04/P03/signed_state_regression.xml": "133c0c549fa37d8d04245c4e05183ba2af2e44a9f002a8f9d557ff10d624992b",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S04_P03.json": "30fa200d5f24f462589881930f11e919fbb626c84f7b8b6e8ee54c49c1705123",
+      "release_slots.json": "f5a157b0806da5d62791bde33712bc149dbfc964f0536114caf4e123bcfe749e",
+      "rollback.sh": "01e8b38329707d31de514249d2f7e096d0dc7a280ca204d5004e3d9e29c5168e",
+      "tests/S04/P03_test.py": "0df9ee48a58356220dd78fe42df534a85e8f4663ae0eca2d667727dc2a465383"
+    },
+    "next": "S04/P04_READY_NOT_STARTED",
+    "pass_gate_interpretation": "OFFLINE_FAILURE_INJECTION_PROVES_SHARED_LEDGER_BYTES_UNCHANGED_AND_ROLLBACK_AT_900_SECONDS; PRODUCTION_RUNTIME_REMAINS_UNVERIFIED",
+    "phase_id": "P03",
+    "phase_status": "S04_P03_PASS",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "release_status": "NOT_READY_S04_P04_AND_STAGE_REVIEW_REQUIRED",
+    "requirement_id": "REQ-S04-P03",
+    "runtime_release_status": "NOT_EXECUTED_OR_VERIFIED_ON_OVH",
+    "schema_version": "1.0.0",
+    "stage_id": "S04",
+    "status": "PASS",
+    "summary": {
+      "checks": 90,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 90
+    }
+  }
+}

@@ -414,7 +414,7 @@ def test_signed_receipt_verifies_in_isolated_copy_without_git_history(tmp_path: 
     assert result["next"] == "S03/STAGE_REVIEW_READY_NOT_STARTED"
 
 
-def test_stage3_review_progression_allows_exact_s04_p02_successor_and_forbids_p03() -> None:
+def test_stage3_review_progression_allows_exact_s04_p03_successor_and_forbids_p04() -> None:
     progression = _stage_review_progression(ROOT)
     assert progression["status"] in {"READY_NOT_STARTED", "CONTROLLED_CANDIDATE", "SIGNED_REVIEW_PASS"}
     s04_required = [
@@ -448,12 +448,22 @@ def test_stage3_review_progression_allows_exact_s04_p02_successor_and_forbids_p0
         Path("machine/evidence/EVD-S04-P02_rollback.json"),
     ]
     assert len([path for path in p02_signed if (ROOT / path).exists()]) in {0, 2}
-    p03_forbidden = [
+    p03_required = [
         Path("release_slots.json"), Path("feature_flags.json"), Path("rollback.sh"),
         Path("tests/S04/P03_test.py"), Path("machine/tests/fixtures/S04_P03.json"),
+        Path("abd_acceptance/release_control.py"),
+    ]
+    assert all((ROOT / path).is_file() for path in p03_required)
+    p03_signed = [
         Path("machine/evidence/EVD-S04-P03.json"), Path("machine/evidence/EVD-S04-P03_rollback.json"),
     ]
-    assert not [path.as_posix() for path in p03_forbidden if (ROOT / path).exists()]
+    assert len([path for path in p03_signed if (ROOT / path).exists()]) in {0, 2}
+    p04_forbidden = [
+        Path("capacity_budget.json"), Path("resource_shedding.json"), Path("load_baseline.json"),
+        Path("tests/S04/P04_test.py"), Path("machine/tests/fixtures/S04_P04.json"),
+        Path("machine/evidence/EVD-S04-P04.json"), Path("machine/evidence/EVD-S04-P04_rollback.json"),
+    ]
+    assert not [path.as_posix() for path in p04_forbidden if (ROOT / path).exists()]
     assert PLAN["next_on_pass"] == "S03/STAGE_REVIEW_READY_NOT_STARTED"
     assert REPORT["next"] == "S03/STAGE_REVIEW_READY_NOT_STARTED"
 

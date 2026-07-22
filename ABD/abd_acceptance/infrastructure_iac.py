@@ -46,7 +46,7 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S04-P01_rollback.json")
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "096dab28542ed09faf541ac3bf067349da0f2dbc6c43634a7e3f5450d175b2fe"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "480be645b71d42ddbf023b2117e93d3e695c2f18e1cc983a4ef82d775afeac83"
 PHASE_COMMIT = "4cd838a3fa27ee29857afd4a2bce632252d2c0b8"
 PINNED_PHASE_CODE_HASH = "1255629d805986ee3c79dc0dc7d2223b63424a671d901bf05098d6b4d6f295c3"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -54,7 +54,7 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S04/P01_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "tests/S04/P01_test.py": "0f3b5c22836564ecf150ee0cdd2c162ba5592a406d7e8d1adef5e884bb548a97",
+    "tests/S04/P01_test.py": "1460be68a9583f9cab2827e41426439b2c9d112b9b03a679a626def92ca6efe2",
 }
 
 PINNED_PHASE_HASHES: Dict[str, str] = {
@@ -591,6 +591,7 @@ def _check_progression(root: Path, checks: List[Dict[str, Any]], verify_git_hist
         Path("rollback.sh"),
         Path("tests/S04/P03_test.py"),
         Path("machine/tests/fixtures/S04_P03.json"),
+        Path("abd_acceptance/release_control.py"),
         Path("machine/evidence/EVD-S04-P03.json"),
         Path("machine/evidence/EVD-S04-P03_rollback.json"),
     ]
@@ -641,7 +642,11 @@ def _check_progression(root: Path, checks: List[Dict[str, Any]], verify_git_hist
             successor = {"error": "%s: %s" % (type(exc).__name__, exc)}
     else:
         progression_ok = False
-    progression_ok = progression_ok and p03_planned
+    # Once P02 is signed, its evolved verifier owns the exact P03 candidate or
+    # signed-successor gate and also proves P04 remains untouched. Earlier P02
+    # states must still have a completely absent, PLANNED P03.
+    downstream_ok = True if mode == "VERIFIED_S04_P02_SIGNED_SUCCESSOR" else p03_planned
+    progression_ok = progression_ok and downstream_ok
     _add(
         checks,
         "S04P01-P02-NOT-STARTED",

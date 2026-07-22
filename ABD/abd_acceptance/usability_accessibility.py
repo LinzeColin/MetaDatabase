@@ -54,7 +54,7 @@ CONTINUOUS_WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 DISPLAY_ORDER = ["status", "action", "countdown", "reasons", "evidence", "invalidation", "safety"]
 FAILURE_GUIDANCE_ORDER = ["failure_status", "failure_reason", "next_action", "safety"]
 ALLOWED_NUMERIC_BOUNDARY_DELTAS = {"-0.0001", "0", "0.0001"}
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "1d791f654d52de576446eb18633a0c27790ebc6237bca410eef6622ad0e3af1e"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "f99f172d941812cc7c0a01d3837d30e9ce11b598925f526a63de80d40ee20143"
 
 PHASE_COMMIT = "ef74f1f49994b4249844485bf3e61eb8c65a06b2"
 PINNED_PHASE_CODE_HASH = "dc0228b02944f70eec4d565467a7e1788558c5ef061190106815fd28245b87db"
@@ -73,16 +73,16 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "abd_acceptance/__init__.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "README.md": "48d52787eaad33a68e6dc67e86796f8a74058b6d3b42397068c06f300b78186a",
+    "README.md": "fb0c962612be021abf465be26074a6e0ff46d9bc25c4a7ce2432c02f3374968c",
     "ux_test_plan.json": "a2e011cacd58b56f4094cbf969bba8c748f56df628dbbeef639c25ffa82fb936",
     "accessibility_report.json": "845a784a44c45fc3f9d7a02519e39ea73c0d2c9f26a08d6ef90f22ae09cb3a7f",
     "machine/tests/fixtures/S03_P04.json": "3bd64eb92ff0bb1a2474ff53971af35455d0bdce63d76bfd8c800e7fe18de9ca",
-    "tests/S03/P04_test.py": "c9ce4289a0c6223e770d6d528db561628199db19c5d52fe33639b70328c24558",
-    "abd_acceptance/reason_next_action.py": "3f5a259d392c85340d3aa43de9c145763ad4ca81ef725c33455e55206b59a05c",
-    "abd_acceptance/advice_card.py": "5098719843dd5edecf773dbaea50736a284acc01d9789a223465fbdb9c66a7bf",
+    "tests/S03/P04_test.py": "b5978ab3cabaf3c16fb5416146a4ba5c549436b5c6ad6ddf17ff417a1a6cd9a0",
+    "abd_acceptance/reason_next_action.py": "c5663eca14366b7de8be0a0eb6f467dcced24f0f7c533f48be9014929df6586a",
+    "abd_acceptance/advice_card.py": "a31616463d5d9690b94f352844adbfadae3186fbbded498bb17ec3aaf90c8a73",
     "abd_acceptance/terminology_governance.py": "d51ae252e7d28addfa7097a2f4ccb5ba2f017ec0745a0eee4e0971fd744beded",
     "abd_acceptance/stage2_review.py": "6f3647013cd3a401dd09e3e0d40d1309d63ab33fd487fed9cf450d903a185d8a",
-    "abd_acceptance/__main__.py": "d9b0c869020daa4fa0a6c71c1386f623d52611d1a9e8923aee89a8f4facccabb",
+    "abd_acceptance/__main__.py": "503506166d69074632b16a5705e6251357148ad961ce1d1d783a36a48de7012b",
     "abd_acceptance/__init__.py": "2b394b3fd25d68c920031d01e17da4c39cfafd80a4c27933c8ebe5a6d794e562",
 }
 

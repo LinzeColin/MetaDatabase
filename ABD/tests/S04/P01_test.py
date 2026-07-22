@@ -375,7 +375,7 @@ def test_stage3_delivery_receipt_mutations_fail_closed(tmp_path: Path, path: lis
     _failed(verify_stage3_delivery(root, verify_git_history=False), check_id)
 
 
-def test_p02_candidate_or_signed_successor_is_exact_and_p03_is_not_started() -> None:
+def test_p02_is_signed_p03_is_complete_successor_and_p04_is_not_started() -> None:
     candidate = [
         Path("infra/cloudflared.yml"),
         Path("access_policy.md"),
@@ -401,15 +401,34 @@ def test_p02_candidate_or_signed_successor_is_exact_and_p03_is_not_started() -> 
         assert all((ROOT / path).is_file() for path in signed)
         assert p02[0]["actual_artifact"] == "machine/evidence/EVD-S04-P02.json"
         assert p02[0]["next"] == "S04/P03_READY_NOT_STARTED"
-    p03_forbidden = [
+    p03_candidate = [
         Path("release_slots.json"), Path("feature_flags.json"), Path("rollback.sh"),
         Path("tests/S04/P03_test.py"), Path("machine/tests/fixtures/S04_P03.json"),
+        Path("abd_acceptance/release_control.py"),
+    ]
+    p03_signed = [
         Path("machine/evidence/EVD-S04-P03.json"), Path("machine/evidence/EVD-S04-P03_rollback.json"),
     ]
-    assert not [path.as_posix() for path in p03_forbidden if (ROOT / path).exists()]
+    assert all((ROOT / path).is_file() for path in p03_candidate)
+    assert len([path for path in p03_signed if (ROOT / path).exists()]) in {0, 2}
     p03 = [row for row in rows if row["id"] == "INDEX-AC-S04-P03"]
-    assert len(p03) == 1 and p03[0]["status"] == "PLANNED"
-    assert "actual_artifact" not in p03[0]
+    assert len(p03) == 1 and p03[0]["status"] in {"PLANNED", "PASS"}
+    if p03[0]["status"] == "PLANNED":
+        assert not [path for path in p03_signed if (ROOT / path).exists()]
+        assert "actual_artifact" not in p03[0]
+    else:
+        assert all((ROOT / path).is_file() for path in p03_signed)
+        assert p03[0]["actual_artifact"] == "machine/evidence/EVD-S04-P03.json"
+        assert p03[0]["next"] == "S04/P04_READY_NOT_STARTED"
+    p04_forbidden = [
+        Path("capacity_budget.json"), Path("resource_shedding.json"), Path("load_baseline.json"),
+        Path("tests/S04/P04_test.py"), Path("machine/tests/fixtures/S04_P04.json"),
+        Path("machine/evidence/EVD-S04-P04.json"), Path("machine/evidence/EVD-S04-P04_rollback.json"),
+    ]
+    assert not [path.as_posix() for path in p04_forbidden if (ROOT / path).exists()]
+    p04 = [row for row in rows if row["id"] == "INDEX-AC-S04-P04"]
+    assert len(p04) == 1 and p04[0]["status"] == "PLANNED"
+    assert "actual_artifact" not in p04[0]
 
 
 def test_source_receipts_are_official_current_and_portable() -> None:

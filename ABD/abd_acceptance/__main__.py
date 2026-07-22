@@ -30,6 +30,7 @@ from .usability_accessibility import write_phase_evidence as write_usability_acc
 from .stage3_review import write_stage3_review_evidence
 from .infrastructure_iac import write_phase_evidence as write_infrastructure_iac_phase_evidence
 from .cloudflare_edge import write_phase_evidence as write_cloudflare_edge_phase_evidence
+from .release_control import write_phase_evidence as write_release_control_phase_evidence
 
 
 def main() -> int:
@@ -98,6 +99,7 @@ def main() -> int:
         "STAGE-REVIEW-S03": write_stage3_review_evidence,
         "AC-S04-P01": write_infrastructure_iac_phase_evidence,
         "AC-S04-P02": write_cloudflare_edge_phase_evidence,
+        "AC-S04-P03": write_release_control_phase_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

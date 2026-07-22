@@ -1,0 +1,509 @@
+{
+  "contract_id": "AC-S04-P03",
+  "evidence_id": "EVD-S04-P03-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-22T23:00:00+10:00",
+  "mode": "EPHEMERAL_SAME_HOST_BLUE_GREEN_FAILURE_INJECTION",
+  "production_runtime_verified": false,
+  "production_state_changed": false,
+  "scenarios": {
+    "BOUNDARY_899": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 899,
+      "expectation_met": true,
+      "expected_status": "PASS",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "NONE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "HEALTH_PROBE_FAILED",
+      "schema_version": "1.0.0",
+      "status": "PASS"
+    },
+    "BOUNDARY_900": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 900,
+      "expectation_met": true,
+      "expected_status": "PASS",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "NONE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "HEALTH_PROBE_FAILED",
+      "schema_version": "1.0.0",
+      "status": "PASS"
+    },
+    "BOUNDARY_901": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": false,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 901,
+      "expectation_met": true,
+      "expected_status": "FAIL",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "NONE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "HEALTH_PROBE_FAILED",
+      "schema_version": "1.0.0",
+      "status": "FAIL"
+    },
+    "CURRENT_POINTER_ESCAPE": {
+      "action": "ROLLBACK_BLOCKED_KEEP_ADVICE_DISABLED",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "FAIL",
+      "external_state_changed": false,
+      "failure": "ReleaseControlContractError: current release pointer does not match the active slot",
+      "fault": "CURRENT_POINTER_ESCAPE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "outside",
+      "pointer_before": "green",
+      "pointer_switched": false,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "HEALTH_PROBE_FAILED",
+      "schema_version": "1.0.0",
+      "status": "FAIL"
+    },
+    "FROZEN_REPLAY_ACTION_MISMATCH": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "PASS",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "NONE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "FROZEN_REPLAY_ACTION_MISMATCH",
+      "schema_version": "1.0.0",
+      "status": "PASS"
+    },
+    "HEALTH_PROBE_FAILED": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "PASS",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "NONE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "HEALTH_PROBE_FAILED",
+      "schema_version": "1.0.0",
+      "status": "PASS"
+    },
+    "LEDGER_MUTATED_DURING_ROLLBACK": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "FAIL",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "LEDGER_MUTATED_DURING_ROLLBACK",
+      "ledger_after": {
+        "bytes": 193,
+        "files": 3,
+        "sha256": "67291f6eea5a5ceb318d7cb33eefcbbd233cb118d1d1fdfb98dc71bf6b3becef"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": false,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "HEALTH_PROBE_FAILED",
+      "schema_version": "1.0.0",
+      "status": "FAIL"
+    },
+    "LEDGER_OR_EVIDENCE_INTEGRITY_FAILED": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "PASS",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "NONE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "LEDGER_OR_EVIDENCE_INTEGRITY_FAILED",
+      "schema_version": "1.0.0",
+      "status": "PASS"
+    },
+    "MALFORMED_CONTROL_STATE": {
+      "action": "ROLLBACK_BLOCKED_KEEP_ADVICE_DISABLED",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "FAIL",
+      "external_state_changed": false,
+      "failure": "ReleaseControlContractError: control-state revision is invalid",
+      "fault": "MALFORMED_CONTROL_STATE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "green",
+      "pointer_before": "green",
+      "pointer_switched": false,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "HEALTH_PROBE_FAILED",
+      "schema_version": "1.0.0",
+      "status": "FAIL"
+    },
+    "MODEL_DRIFT_STOP_LINE_BREACHED": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "PASS",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "NONE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "MODEL_DRIFT_STOP_LINE_BREACHED",
+      "schema_version": "1.0.0",
+      "status": "PASS"
+    },
+    "NUMERIC_CROSS_IMPLEMENTATION_MISMATCH": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "PASS",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "NONE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "NUMERIC_CROSS_IMPLEMENTATION_MISMATCH",
+      "schema_version": "1.0.0",
+      "status": "PASS"
+    },
+    "PREVIOUS_MANIFEST_MISMATCH": {
+      "action": "ROLLBACK_BLOCKED_KEEP_ADVICE_DISABLED",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "FAIL",
+      "external_state_changed": false,
+      "failure": "ReleaseControlContractError: release manifest digest does not match verified control state",
+      "fault": "PREVIOUS_MANIFEST_MISMATCH",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "green",
+      "pointer_before": "green",
+      "pointer_switched": false,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "HEALTH_PROBE_FAILED",
+      "schema_version": "1.0.0",
+      "status": "FAIL"
+    },
+    "SECURITY_HIGH_OR_CRITICAL_UNRESOLVED": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "PASS",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "NONE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "SECURITY_HIGH_OR_CRITICAL_UNRESOLVED",
+      "schema_version": "1.0.0",
+      "status": "PASS"
+    },
+    "SILENT_COVERAGE_GAP_INCREASED": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "PASS",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "NONE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "SILENT_COVERAGE_GAP_INCREASED",
+      "schema_version": "1.0.0",
+      "status": "PASS"
+    },
+    "UNKNOWN_OR_MALFORMED_PROBE": {
+      "action": "ROLLED_BACK_TO_PREVIOUS_VERIFIED_SLOT",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "PASS",
+      "external_state_changed": false,
+      "failure": null,
+      "fault": "NONE",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "blue",
+      "pointer_before": "green",
+      "pointer_switched": true,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "UNKNOWN_OR_MALFORMED_PROBE",
+      "schema_version": "1.0.0",
+      "status": "PASS"
+    },
+    "UNSAFE_PREVIOUS_SLOT": {
+      "action": "ROLLBACK_BLOCKED_KEEP_ADVICE_DISABLED",
+      "advice_enabled": false,
+      "deadline_met": true,
+      "deadline_seconds": 900,
+      "elapsed_seconds": 300,
+      "expectation_met": true,
+      "expected_status": "FAIL",
+      "external_state_changed": false,
+      "failure": "ReleaseControlContractError: control state does not name two distinct allowed slots",
+      "fault": "UNSAFE_PREVIOUS_SLOT",
+      "ledger_after": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_before": {
+        "bytes": 158,
+        "files": 3,
+        "sha256": "6aa4f2989e760e69383390e086943b6ed151c7d495c2ed69fa3c4c9462276da6"
+      },
+      "ledger_unchanged": true,
+      "pointer_after": "green",
+      "pointer_before": "green",
+      "pointer_switched": false,
+      "production_state_changed": false,
+      "requested_trigger_known": true,
+      "scenario": "HEALTH_PROBE_FAILED",
+      "schema_version": "1.0.0",
+      "status": "FAIL"
+    }
+  },
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

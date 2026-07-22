@@ -30,6 +30,7 @@ from abd_acceptance.cloudflare_edge import (
     ROLLBACK_EVIDENCE_PATH,
     SCAN_REPORT_PATH,
     STRUCTURAL_SELF_NORMALIZED_SHA256,
+    SUCCESSOR_UNIT_PROFILE_HASHES,
     TEST_PATH,
     CloudflareEdgeContractError,
     _set_or_delete_path,
@@ -126,7 +127,9 @@ def test_signed_p01_is_exact_phase_prerequisite() -> None:
 
 @pytest.mark.parametrize("relative", sorted(PINNED_PHASE_HASHES))
 def test_phase_artifact_hash_matches_pin(relative: str) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_PHASE_HASHES[relative]
+    actual = sha256_file(ROOT / relative)
+    successor = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    assert actual == PINNED_PHASE_HASHES[relative] or (successor not in {None, "TO_BE_FILLED"} and actual == successor)
 
 
 @pytest.mark.parametrize("relative", sorted(PINNED_BASELINE_HASHES))
@@ -398,22 +401,41 @@ def test_p01_prerequisite_receipt_mutations_block_p02(tmp_path: Path, path: list
     _failed(evaluate_contract(root), "S04P02-P01-PREREQUISITE")
 
 
-def test_p03_and_later_work_is_not_started() -> None:
-    forbidden = [
+def test_p03_successor_is_complete_and_p04_is_not_started() -> None:
+    candidate = [
         Path("release_slots.json"),
         Path("feature_flags.json"),
         Path("rollback.sh"),
         Path("tests/S04/P03_test.py"),
         Path("machine/tests/fixtures/S04_P03.json"),
+        Path("abd_acceptance/release_control.py"),
+    ]
+    signed = [
         Path("machine/evidence/EVD-S04-P03.json"),
         Path("machine/evidence/EVD-S04-P03_rollback.json"),
     ]
-    assert not [path.as_posix() for path in forbidden if (ROOT / path).exists()]
+    assert all((ROOT / path).is_file() for path in candidate)
+    assert len([path for path in signed if (ROOT / path).exists()]) in {0, 2}
     rows = [json.loads(line) for line in (ROOT / "machine/evidence/evidence_index.jsonl").read_text(encoding="utf-8-sig").splitlines() if line]
     p03 = [row for row in rows if row["id"] == "INDEX-AC-S04-P03"]
     assert len(p03) == 1
-    assert p03[0]["status"] == "PLANNED"
-    assert "actual_artifact" not in p03[0]
+    assert p03[0]["status"] in {"PLANNED", "PASS"}
+    if p03[0]["status"] == "PLANNED":
+        assert not [path for path in signed if (ROOT / path).exists()]
+        assert "actual_artifact" not in p03[0]
+    else:
+        assert all((ROOT / path).is_file() for path in signed)
+        assert p03[0]["actual_artifact"] == "machine/evidence/EVD-S04-P03.json"
+        assert p03[0]["next"] == "S04/P04_READY_NOT_STARTED"
+    p04_forbidden = [
+        Path("capacity_budget.json"), Path("resource_shedding.json"), Path("load_baseline.json"),
+        Path("tests/S04/P04_test.py"), Path("machine/tests/fixtures/S04_P04.json"),
+        Path("machine/evidence/EVD-S04-P04.json"), Path("machine/evidence/EVD-S04-P04_rollback.json"),
+    ]
+    assert not [path.as_posix() for path in p04_forbidden if (ROOT / path).exists()]
+    p04 = [row for row in rows if row["id"] == "INDEX-AC-S04-P04"]
+    assert len(p04) == 1 and p04[0]["status"] == "PLANNED"
+    assert "actual_artifact" not in p04[0]
 
 
 @pytest.mark.parametrize("source", FIXTURE["official_sources"], ids=lambda row: row["id"])
