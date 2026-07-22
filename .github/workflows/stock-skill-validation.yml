@@ -1,0 +1,186 @@
+name: Stock Skill validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Stock_Skill/**"
+      - "AGENTS.md"
+      - "README.md"
+      - ".github/workflows/stock-skill-validation.yml"
+  pull_request:
+    paths:
+      - "Stock_Skill/**"
+      - "AGENTS.md"
+      - "README.md"
+      - ".github/workflows/stock-skill-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stock-skill-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository without persisted credentials
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Set up pinned Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Validate registry and registered artifacts
+        run: python3 -B Stock_Skill/scripts/validate_registry.py
+
+      - name: Run every Stock Skill unittest suite
+        run: python3 -B Stock_Skill/scripts/run_unittests.py
+
+      - name: Verify every Stock Skill manifest and SHA256SUMS
+        run: |
+          set -euo pipefail
+          python3 -B - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path, PurePosixPath
+          import re
+          import stat
+          import unicodedata
+
+          stock_root = Path("Stock_Skill")
+          manifest_line = re.compile(r"([0-9a-f]{64})  \./(.+)")
+          sums_line = re.compile(r"([0-9a-f]{64})  (.+)")
+          errors: list[str] = []
+
+
+          def digest(path: Path) -> str:
+              value = sha256()
+              with path.open("rb") as handle:
+                  for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                      value.update(chunk)
+              return value.hexdigest()
+
+
+          def safe_relative(base: Path, raw: str, label: str):
+              posix = PurePosixPath(raw)
+              if (
+                  not raw
+                  or raw.startswith("/")
+                  or raw != unicodedata.normalize("NFC", raw)
+                  or raw != posix.as_posix()
+                  or any(part in {"", ".", ".."} for part in posix.parts)
+              ):
+                  errors.append(f"{label}: unsafe or non-canonical path {raw!r}")
+                  return None
+              target = base.joinpath(*posix.parts)
+              current = base
+              for part in posix.parts:
+                  current = current / part
+                  if current.is_symlink():
+                      errors.append(f"{label}: symlink path component {current}")
+                      return None
+              try:
+                  target.resolve().relative_to(base.resolve())
+              except (OSError, ValueError):
+                  errors.append(f"{label}: path escapes base {raw!r}")
+                  return None
+              return target
+
+
+          def actual_files(base: Path, control: Path, label: str) -> set[str]:
+              actual: set[str] = set()
+              for path in base.rglob("*"):
+                  if path == control or "__pycache__" in path.parts:
+                      continue
+                  relative = path.relative_to(base).as_posix()
+                  if path.is_symlink():
+                      errors.append(f"{label}: symlink is prohibited: {relative}")
+                      continue
+                  mode = path.lstat().st_mode
+                  if stat.S_ISDIR(mode):
+                      continue
+                  if not stat.S_ISREG(mode):
+                      errors.append(f"{label}: non-regular file is prohibited: {relative}")
+                      continue
+                  actual.add(relative)
+              return actual
+
+
+          def verify_control_file(path: Path, line_pattern: re.Pattern[str], dot_prefix: bool) -> None:
+              label = path.as_posix()
+              if path.is_symlink() or not stat.S_ISREG(path.lstat().st_mode):
+                  errors.append(f"{label}: control file must be a regular non-symlink")
+                  return
+              lines = path.read_text(encoding="utf-8").splitlines()
+              if not lines:
+                  errors.append(f"{label}: control file must not be empty")
+                  return
+              declared: set[str] = set()
+              for number, line in enumerate(lines, 1):
+                  match = line_pattern.fullmatch(line)
+                  if not match:
+                      errors.append(f"{label}:{number}: invalid hash line")
+                      continue
+                  raw = match.group(2)
+                  if dot_prefix and line != f"{match.group(1)}  ./{raw}":
+                      errors.append(f"{label}:{number}: missing canonical ./ prefix")
+                      continue
+                  if raw in declared:
+                      errors.append(f"{label}:{number}: duplicate path {raw!r}")
+                      continue
+                  declared.add(raw)
+                  target = safe_relative(path.parent, raw, f"{label}:{number}")
+                  if target is None:
+                      continue
+                  if not target.exists() or target.is_symlink() or not target.is_file():
+                      errors.append(f"{label}:{number}: missing regular file {raw!r}")
+                      continue
+                  actual_hash = digest(target)
+                  if actual_hash != match.group(1):
+                      errors.append(
+                          f"{label}:{number}: SHA-256 mismatch for {raw!r}: "
+                          f"expected {match.group(1)}, got {actual_hash}"
+                      )
+              actual = actual_files(path.parent, path, label)
+              if declared != actual:
+                  missing = sorted(actual - declared)
+                  stale = sorted(declared - actual)
+                  if missing:
+                      errors.append(f"{label}: unlisted files: {', '.join(missing)}")
+                  if stale:
+                      errors.append(f"{label}: stale paths: {', '.join(stale)}")
+
+
+          manifests = sorted(stock_root.rglob("*MANIFEST.sha256"), key=lambda path: path.as_posix())
+          sums_files = sorted(stock_root.rglob("SHA256SUMS"), key=lambda path: path.as_posix())
+          if not manifests:
+              errors.append("Stock_Skill: no manifest files discovered")
+          if not sums_files:
+              errors.append("Stock_Skill: no SHA256SUMS files discovered")
+          for manifest in manifests:
+              verify_control_file(manifest, manifest_line, dot_prefix=True)
+          for sums in sums_files:
+              verify_control_file(sums, sums_line, dot_prefix=False)
+
+          if errors:
+              print(f"FAIL: Stock Skill hash validation ({len(errors)} error(s))")
+              for error in errors:
+                  print(f"- {error}")
+              raise SystemExit(1)
+          print(
+              f"PASS: {len(manifests)} manifest(s) and {len(sums_files)} SHA256SUMS file(s)"
+          )
+          PY
+
+      - name: Scan public surfaces and ZIP payloads for private material
+        run: python3 -B Stock_Skill/scripts/validate_public_safety.py
