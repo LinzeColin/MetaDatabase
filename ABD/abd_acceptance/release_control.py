@@ -81,7 +81,16 @@ EXPECTED_CANARY_BASIS_POINTS = [0, 100, 500, 2500, 10000]
 
 # Filled only with repository-relative, non-secret artifacts. The self hash is
 # normalized so that changing its literal cannot make an invalid file valid.
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "013d47d166957cdddb28d518d3e083d9f53be298b5fcf2d4905341b3720fdf91"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "eb8bfc6e970ca02f01278d547d13efc4421f1cbd4880722fefd34b01f31068c3"
+PHASE_COMMIT = "eead856a87fc15a7b25d08723e021111265c85e6"
+PINNED_PHASE_CODE_HASH = "eebf67dce7cec0e45def06f922d559e5d1d52800a09ab8ef9d6b2c13ac804aad"
+SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    "abd_acceptance/release_control.py",
+    "tests/S04/P03_test.py",
+}
+SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
+    "tests/S04/P03_test.py": "bf9b3d6a85314c2f9e01d8834fe494092d89d3d612f49d89f8206602fc34c425",
+}
 PINNED_PHASE_HASHES: Dict[str, str] = {
     SLOTS_PATH.as_posix(): "f5a157b0806da5d62791bde33712bc149dbfc964f0536114caf4e123bcfe749e",
     FLAGS_PATH.as_posix(): "36b366ced826c3addb402526256e12f1a9fd7bdee56e321d8dc441a3f558d254",
@@ -192,6 +201,76 @@ def _current_code_hash(root: Path) -> str:
         digest.update(path.relative_to(root).as_posix().encode("utf-8"))
         digest.update(b"\0")
         digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def _phase_commit_is_ancestor(root: Path) -> bool:
+    result = subprocess.run(
+        ["git", "-C", str(root.parent), "merge-base", "--is-ancestor", PHASE_COMMIT, "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def _historical_file_matches(
+    root: Path,
+    relative: str,
+    expected_sha256: str,
+    verify_git_history: bool,
+) -> bool:
+    if relative not in SUCCESSOR_EVOLVABLE_SIGNED_INPUTS:
+        return False
+    if verify_git_history:
+        if not _phase_commit_is_ancestor(root):
+            return False
+        result = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+            check=False,
+            capture_output=True,
+        )
+        return result.returncode == 0 and _sha256_bytes(result.stdout) == expected_sha256
+    if relative == "abd_acceptance/release_control.py":
+        try:
+            return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
+        except Exception:
+            return False
+    successor = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    return successor not in {None, "TO_BE_FILLED"} and (root / relative).is_file() and sha256_file(root / relative) == successor
+
+
+def _historical_code_hash(root: Path, verify_git_history: bool) -> str:
+    if not verify_git_history:
+        return "UNVERIFIED_UNIT_TEST_HISTORY"
+    if not _phase_commit_is_ancestor(root):
+        return "INVALID_PHASE_COMMIT_ANCESTRY"
+    listing = subprocess.run(
+        ["git", "-C", str(root.parent), "ls-tree", "-r", "--name-only", PHASE_COMMIT, "--", "ABD/abd_acceptance"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if listing.returncode != 0:
+        return "UNAVAILABLE_PHASE_COMMIT_TREE"
+    digest = hashlib.sha256()
+    repo_paths = sorted(
+        line
+        for line in listing.stdout.splitlines()
+        if line.startswith("ABD/abd_acceptance/") and line.endswith(".py")
+    )
+    for repo_path in repo_paths:
+        blob = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, repo_path)],
+            check=False,
+            capture_output=True,
+        )
+        if blob.returncode != 0:
+            return "UNAVAILABLE_PHASE_COMMIT_BLOB"
+        digest.update(repo_path.removeprefix("ABD/").encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(blob.stdout)
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -811,7 +890,13 @@ def _check_pins(root: Path, checks: List[Dict[str, Any]], hashes: MutableMapping
     for relative, expected in PINNED_PHASE_HASHES.items():
         path = root / relative
         actual = sha256_file(path) if path.is_file() else "MISSING"
-        _add(checks, "S04P03-PIN-%s" % relative.replace("/", "-").replace(".", "_"), actual == expected, {"expected": expected, "actual": actual})
+        successor = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+        _add(
+            checks,
+            "S04P03-PIN-%s" % relative.replace("/", "-").replace(".", "_"),
+            actual == expected or (successor not in {None, "TO_BE_FILLED"} and actual == successor),
+            {"expected": expected, "accepted_successor": successor, "actual": actual},
+        )
         hashes[relative] = actual
     for relative, expected in PINNED_BASELINE_HASHES.items():
         path = root / relative
@@ -946,21 +1031,166 @@ def _check_artifacts(
     _add(checks, "S04P03-ROLLBACK-SCRIPT-STRICT-WRAPPER", all(line in script_text for line in expected_lines) and not any(token in script_text for token in ["curl ", "wget ", "rm -rf", "eval ", "sudo "]), script_text.splitlines())
 
 
-def _check_progression(root: Path, checks: List[Dict[str, Any]]) -> None:
-    forbidden = [
+def _p04_candidate_contract(root: Path) -> Dict[str, Any]:
+    try:
+        from .capacity_governance import (
+            PINNED_PHASE_HASHES as P04_PHASE_HASHES,
+            STRUCTURAL_SELF_NORMALIZED_SHA256 as P04_SELF_HASH,
+            _structural_self_hash as p04_structural_self_hash,
+            validate_capacity_budget,
+            validate_load_baseline,
+            validate_resource_shedding,
+        )
+
+        mismatches: Dict[str, Dict[str, str]] = {}
+        for relative, expected in P04_PHASE_HASHES.items():
+            path = root / relative
+            actual = sha256_file(path) if path.is_file() else "MISSING"
+            if expected == "TO_BE_FILLED" or actual != expected:
+                mismatches[relative] = {"expected": expected, "actual": actual}
+        capacity = strict_json_load(root / "capacity_budget.json")
+        policy = strict_json_load(root / "resource_shedding.json")
+        baseline = strict_json_load(root / "load_baseline.json")
+        capacity_errors = validate_capacity_budget(capacity)
+        policy_errors = validate_resource_shedding(policy, capacity)
+        baseline_errors = validate_load_baseline(baseline)
+        self_actual = p04_structural_self_hash(root)
+        ok = (
+            not mismatches
+            and not capacity_errors
+            and not policy_errors
+            and not baseline_errors
+            and P04_SELF_HASH != "TO_BE_FILLED"
+            and self_actual == P04_SELF_HASH
+        )
+        return {
+            "status": "PASS" if ok else "FAIL",
+            "mismatches": mismatches,
+            "capacity_errors": capacity_errors,
+            "policy_errors": policy_errors,
+            "baseline_errors": baseline_errors,
+            "self_expected": P04_SELF_HASH,
+            "self_actual": self_actual,
+        }
+    except Exception as exc:
+        return {"status": "FAIL", "error": "%s: %s" % (type(exc).__name__, exc)}
+
+
+def _p04_signed_contract(root: Path, index_row: Mapping[str, Any]) -> Dict[str, Any]:
+    try:
+        evidence_path = root / "machine/evidence/EVD-S04-P04.json"
+        rollback_path = root / "machine/evidence/EVD-S04-P04_rollback.json"
+        evidence = strict_json_load(evidence_path)
+        rollback = strict_json_load(rollback_path)
+        unsigned = deepcopy(evidence)
+        decision_sha256 = unsigned.pop("decision_sha256", None)
+        evidence_hash = sha256_file(evidence_path)
+        rollback_hash = sha256_file(rollback_path)
+        validation = evidence.get("validation", {})
+        proof = evidence.get("capacity_proof", {})
+        ok = (
+            evidence.get("evidence_id") == "EVD-S04-P04"
+            and evidence.get("contract_id") == "AC-S04-P04"
+            and evidence.get("status") == "PASS"
+            and evidence.get("decision") == "CAPACITY_RESOURCE_GOVERNANCE_CONTRACT_FROZEN"
+            and evidence.get("next") == "S04/STAGE_REVIEW_READY_NOT_STARTED"
+            and decision_sha256 == _sha256_bytes(_json_bytes(unsigned))
+            and isinstance(validation, Mapping)
+            and validation.get("status") == "PASS"
+            and validation.get("summary", {}).get("failed") == 0
+            and all(row.get("passed") is True for row in validation.get("checks", []))
+            and proof.get("frozen_10x_profile_passed") is True
+            and proof.get("frozen_10x_swap_used_mib") == 0
+            and proof.get("frozen_10x_disk_exhausted") is False
+            and proof.get("frozen_10x_minimum_free_reserve_preserved") is True
+            and proof.get("production_capacity_verified") is False
+            and evidence.get("hashes", {}).get("rollback_evidence") == rollback_hash
+            and rollback.get("evidence_id") == "EVD-S04-P04-ROLLBACK"
+            and rollback.get("status") == "PASS"
+            and rollback.get("production_state_changed") is False
+            and rollback.get("external_state_changed") is False
+            and rollback.get("target_host_accessed") is False
+            and rollback.get("production_runtime_verified") is False
+            and index_row.get("status") == "PASS"
+            and index_row.get("actual_artifact") == "machine/evidence/EVD-S04-P04.json"
+            and index_row.get("artifact_sha256") == evidence_hash
+            and index_row.get("next") == "S04/STAGE_REVIEW_READY_NOT_STARTED"
+        )
+        return {
+            "status": "PASS" if ok else "FAIL",
+            "evidence_sha256": evidence_hash,
+            "rollback_sha256": rollback_hash,
+        }
+    except Exception as exc:
+        return {"status": "FAIL", "error": "%s: %s" % (type(exc).__name__, exc)}
+
+
+def _p04_progression_contract(root: Path) -> Dict[str, Any]:
+    candidate_paths = [
         Path("capacity_budget.json"),
         Path("resource_shedding.json"),
         Path("load_baseline.json"),
         Path("tests/S04/P04_test.py"),
         Path("machine/tests/fixtures/S04_P04.json"),
+        Path("abd_acceptance/capacity_governance.py"),
+    ]
+    signed_paths = [
         Path("machine/evidence/EVD-S04-P04.json"),
         Path("machine/evidence/EVD-S04-P04_rollback.json"),
     ]
-    present = [path.as_posix() for path in forbidden if (root / path).exists()]
+    stage_review_paths = [
+        Path("tests/S04/stage_review_test.py"),
+        Path("machine/tests/fixtures/S04_STAGE_REVIEW.json"),
+        Path("machine/evidence/EVD-S04-STAGE-REVIEW.json"),
+        Path("machine/evidence/EVD-S04-STAGE-REVIEW_rollback.json"),
+        Path("abd_acceptance/stage4_review.py"),
+    ]
+    candidate_present = [path.as_posix() for path in candidate_paths if (root / path).exists()]
+    signed_present = [path.as_posix() for path in signed_paths if (root / path).exists()]
+    stage_review_present = [path.as_posix() for path in stage_review_paths if (root / path).exists()]
     rows = _load_index(root)
     p04 = [row for row in rows if row.get("id") == "INDEX-AC-S04-P04"]
-    ok = not present and len(p04) == 1 and p04[0].get("status") == "PLANNED" and "actual_artifact" not in p04[0] and "artifact_sha256" not in p04[0]
-    _add(checks, "S04P03-P04-NOT-STARTED", ok, {"present": present, "index": p04})
+    stage_review = [row for row in rows if row.get("id") == "INDEX-S04-STAGE-REVIEW"]
+    p04_planned = len(p04) == 1 and p04[0].get("status") == "PLANNED" and "actual_artifact" not in p04[0] and "artifact_sha256" not in p04[0]
+    p04_signed = len(p04) == 1 and p04[0].get("status") == "PASS"
+    successor: Dict[str, Any] = {}
+    mode = "INVALID_PARTIAL_S04_P04_SUCCESSOR"
+    if not candidate_present and not signed_present and p04_planned:
+        progression_ok = True
+        mode = "S04_P04_NOT_STARTED"
+    elif len(candidate_present) == len(candidate_paths) and not signed_present and p04_planned:
+        successor = _p04_candidate_contract(root)
+        progression_ok = successor.get("status") == "PASS"
+        mode = "VERIFIED_S04_P04_CANDIDATE" if progression_ok else "INVALID_S04_P04_CANDIDATE"
+    elif len(candidate_present) == len(candidate_paths) and len(signed_present) == len(signed_paths) and p04_signed:
+        candidate = _p04_candidate_contract(root)
+        signed = _p04_signed_contract(root, p04[0])
+        successor = {"candidate": candidate, "signed": signed}
+        progression_ok = candidate.get("status") == "PASS" and signed.get("status") == "PASS"
+        mode = "VERIFIED_S04_P04_SIGNED_SUCCESSOR" if progression_ok else "INVALID_S04_P04_SIGNED_SUCCESSOR"
+    else:
+        progression_ok = False
+    progression_ok = progression_ok and not stage_review_present and not stage_review
+    return {
+        "status": "PASS" if progression_ok else "FAIL",
+        "mode": mode,
+        "candidate_present": candidate_present,
+        "signed_present": signed_present,
+        "p04_index": p04,
+        "stage_review_present": stage_review_present,
+        "stage_review_index": stage_review,
+        "successor": successor,
+    }
+
+
+def _check_progression(root: Path, checks: List[Dict[str, Any]]) -> None:
+    progression = _p04_progression_contract(root)
+    _add(
+        checks,
+        "S04P03-P04-PROGRESSION",
+        progression.get("status") == "PASS",
+        progression,
+    )
 
 
 def _check_no_leaks(root: Path, checks: List[Dict[str, Any]]) -> None:
@@ -1135,7 +1365,7 @@ def build_evidence(
         },
         "scope_boundary": {
             "p03_delivers_release_control_contract_not_production_activation": True,
-            "p04_capacity_governance_not_started": True,
+            "p04_capacity_governance_is_separate_successor_scope": True,
             "shared_production_ledger_not_read_or_written": True,
             "offline_drill_ledger_is_frozen_synthetic_evidence_only": True,
             "single_host_physical_zero_downtime_not_claimed": True,
@@ -1231,11 +1461,14 @@ def verify_existing_phase_evidence(root: Path, *, verify_git_history: bool = Tru
                 continue
             path = root.parent / candidate if relative.startswith(".github/") else root / candidate
             actual = sha256_file(path) if path.is_file() else "MISSING"
-            if actual != expected:
+            if actual != expected and not _historical_file_matches(root, relative, expected, verify_git_history):
                 input_errors.append({"path": relative, "expected": expected, "actual": actual})
-        _add(checks, "S04P03-RECEIPT-SIGNED-INPUTS-CURRENT", not input_errors, input_errors or "all inputs match")
+        _add(checks, "S04P03-RECEIPT-SIGNED-INPUTS-CURRENT", not input_errors, input_errors or "all inputs match current files or the exact signed phase commit")
         current_code = _current_code_hash(root)
-        _add(checks, "S04P03-RECEIPT-CODE-HASH-CURRENT", evidence.get("hashes", {}).get("code") == current_code, {"expected": evidence.get("hashes", {}).get("code"), "actual": current_code})
+        code_expected = evidence.get("hashes", {}).get("code")
+        code_historical = _historical_code_hash(root, verify_git_history) if code_expected != current_code else current_code
+        code_ok = code_expected == current_code or (code_expected == PINNED_PHASE_CODE_HASH and code_historical in {PINNED_PHASE_CODE_HASH, "UNVERIFIED_UNIT_TEST_HISTORY"})
+        _add(checks, "S04P03-RECEIPT-CODE-HASH-CURRENT", code_ok, {"expected": code_expected, "current": current_code, "historical": code_historical})
         _add(checks, "S04P03-RECEIPT-ROLLBACK-HASH-BINDING", evidence.get("hashes", {}).get("rollback_evidence") == rollback_hash, {"expected": evidence.get("hashes", {}).get("rollback_evidence"), "actual": rollback_hash})
         proof = evidence.get("release_proof", {})
         proof_ok = proof.get("rollback_at_900_seconds_passed") is True and proof.get("rollback_at_901_seconds_failed_closed") is True and proof.get("all_success_scenarios_preserved_ledger_bytes") is True and proof.get("production_activation_performed") is False and proof.get("production_runtime_verified") is False

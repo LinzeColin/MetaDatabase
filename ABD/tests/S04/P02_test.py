@@ -49,6 +49,7 @@ from abd_acceptance.cloudflare_edge import (
     verify_existing_phase_evidence,
 )
 from abd_acceptance.infrastructure_iac import verify_existing_phase_evidence as verify_p01_evidence
+from abd_acceptance.release_control import _p04_progression_contract
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -401,7 +402,7 @@ def test_p01_prerequisite_receipt_mutations_block_p02(tmp_path: Path, path: list
     _failed(evaluate_contract(root), "S04P02-P01-PREREQUISITE")
 
 
-def test_p03_successor_is_complete_and_p04_is_not_started() -> None:
+def test_p03_is_signed_and_owns_exact_p04_successor_progression() -> None:
     candidate = [
         Path("release_slots.json"),
         Path("feature_flags.json"),
@@ -419,23 +420,13 @@ def test_p03_successor_is_complete_and_p04_is_not_started() -> None:
     rows = [json.loads(line) for line in (ROOT / "machine/evidence/evidence_index.jsonl").read_text(encoding="utf-8-sig").splitlines() if line]
     p03 = [row for row in rows if row["id"] == "INDEX-AC-S04-P03"]
     assert len(p03) == 1
-    assert p03[0]["status"] in {"PLANNED", "PASS"}
-    if p03[0]["status"] == "PLANNED":
-        assert not [path for path in signed if (ROOT / path).exists()]
-        assert "actual_artifact" not in p03[0]
-    else:
-        assert all((ROOT / path).is_file() for path in signed)
-        assert p03[0]["actual_artifact"] == "machine/evidence/EVD-S04-P03.json"
-        assert p03[0]["next"] == "S04/P04_READY_NOT_STARTED"
-    p04_forbidden = [
-        Path("capacity_budget.json"), Path("resource_shedding.json"), Path("load_baseline.json"),
-        Path("tests/S04/P04_test.py"), Path("machine/tests/fixtures/S04_P04.json"),
-        Path("machine/evidence/EVD-S04-P04.json"), Path("machine/evidence/EVD-S04-P04_rollback.json"),
-    ]
-    assert not [path.as_posix() for path in p04_forbidden if (ROOT / path).exists()]
-    p04 = [row for row in rows if row["id"] == "INDEX-AC-S04-P04"]
-    assert len(p04) == 1 and p04[0]["status"] == "PLANNED"
-    assert "actual_artifact" not in p04[0]
+    assert p03[0]["status"] == "PASS"
+    assert all((ROOT / path).is_file() for path in signed)
+    assert p03[0]["actual_artifact"] == "machine/evidence/EVD-S04-P03.json"
+    assert p03[0]["next"] == "S04/P04_READY_NOT_STARTED"
+    progression = _p04_progression_contract(ROOT)
+    assert progression["status"] == "PASS", progression
+    assert progression["mode"] in {"VERIFIED_S04_P04_CANDIDATE", "VERIFIED_S04_P04_SIGNED_SUCCESSOR"}
 
 
 @pytest.mark.parametrize("source", FIXTURE["official_sources"], ids=lambda row: row["id"])

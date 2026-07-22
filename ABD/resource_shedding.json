@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "phase": "S04/P04",
+  "policy": "HIGHEST_SEVERITY_WINS_NEVER_ENABLE_A_DISABLED_FEATURE",
+  "telemetry_unknown_policy": "EMERGENCY_FAIL_CLOSED",
+  "state_order": [
+    "NORMAL",
+    "CONSTRAINED",
+    "CRITICAL",
+    "EMERGENCY"
+  ],
+  "states": [
+    {
+      "id": "NORMAL",
+      "capacity_admission_allowed": true,
+      "new_browser_sessions_allowed": true,
+      "optional_writes_allowed": true,
+      "new_advice_capacity_allowed": true,
+      "actions": [
+        "KEEP_FIXED_RESOURCE_CAPS",
+        "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+      ]
+    },
+    {
+      "id": "CONSTRAINED",
+      "capacity_admission_allowed": true,
+      "new_browser_sessions_allowed": false,
+      "optional_writes_allowed": false,
+      "new_advice_capacity_allowed": true,
+      "actions": [
+        "STOP_CANDIDATE_SHADOW_FIRST",
+        "PAUSE_BACKFILL_AND_OPTIONAL_REPLAY",
+        "PAUSE_OPTIONAL_GMAIL_INGESTION",
+        "REJECT_NEW_BROWSER_SESSIONS",
+        "KEEP_LEDGER_AND_INTEGRITY_WRITES"
+      ]
+    },
+    {
+      "id": "CRITICAL",
+      "capacity_admission_allowed": false,
+      "new_browser_sessions_allowed": false,
+      "optional_writes_allowed": false,
+      "new_advice_capacity_allowed": false,
+      "actions": [
+        "STOP_NEW_ADVICE",
+        "INVALIDATE_UNEXPIRED_ADVICE",
+        "STOP_ALL_INGESTION_AND_OPTIONAL_WORK",
+        "CHECKPOINT_SINGLE_WRITER",
+        "KEEP_ONLY_INTEGRITY_SHUTDOWN_WRITES",
+        "ROLL_BACK_CANDIDATE_IF_PRESENT"
+      ]
+    },
+    {
+      "id": "EMERGENCY",
+      "capacity_admission_allowed": false,
+      "new_browser_sessions_allowed": false,
+      "optional_writes_allowed": false,
+      "new_advice_capacity_allowed": false,
+      "actions": [
+        "STOP_NEW_ADVICE",
+        "INVALIDATE_UNEXPIRED_ADVICE",
+        "STOP_ALL_NON_INTEGRITY_WRITES",
+        "PRESERVE_EXISTING_LEDGER_AND_EVIDENCE_BYTES",
+        "ROLL_BACK_TO_PREVIOUS_VERIFIED_RELEASE_IF_SAFE",
+        "ESCALATE_WITHOUT_PAID_SCALE_UP"
+      ]
+    }
+  ],
+  "trigger_thresholds": {
+    "cpu_or_memory_basis_points": {
+      "constrained_at": 7000,
+      "critical_at": 8500,
+      "emergency_at": 9000
+    },
+    "disk_used_mib": {
+      "constrained_at": 32768,
+      "critical_at": 34816,
+      "emergency_at": 36864,
+      "hard_capacity": 40960
+    },
+    "browser_sessions": {
+      "maximum_admitted": 20,
+      "over_maximum_state": "CRITICAL"
+    },
+    "swap_used_mib": {
+      "allowed": 0,
+      "positive_state": "EMERGENCY"
+    },
+    "telemetry_age_seconds": {
+      "maximum": 30,
+      "over_maximum_state": "EMERGENCY"
+    }
+  },
+  "hysteresis": {
+    "consecutive_healthy_samples_to_lower_state": 6,
+    "minimum_state_hold_seconds": 60,
+    "unknown_sample_resets_recovery_counter": true,
+    "emergency_requires_explicit_operator_or_signed_automation_clear": true
+  },
+  "priority_classes": [
+    {
+      "priority": 0,
+      "id": "INTEGRITY_AND_ROLLBACK",
+      "shed_allowed": false,
+      "members": [
+        "LEDGER_HASH_CHAIN",
+        "EVIDENCE_SHUTDOWN_RECEIPT",
+        "ADVICE_INVALIDATION",
+        "ROLLBACK_CONTROLLER"
+      ]
+    },
+    {
+      "priority": 1,
+      "id": "CURRENT_EVIDENCE_GATED_ANALYSIS",
+      "shed_allowed": true,
+      "shed_action": "STOP_NEW_ADVICE_NOT_LOWER_GATE"
+    },
+    {
+      "priority": 2,
+      "id": "SOURCE_REFRESH_AND_OPTIONAL_MAIL",
+      "shed_allowed": true,
+      "shed_action": "PAUSE_AND_MARK_VISIBLE_GAP"
+    },
+    {
+      "priority": 3,
+      "id": "BACKFILL_REPLAY_CANDIDATE_AND_BROWSER_ADMISSION",
+      "shed_allowed": true,
+      "shed_action": "STOP_FIRST"
+    }
+  ],
+  "forbidden_effects": [
+    "ENABLE_LIVE_RECOMMENDATION",
+    "SUBMIT_CONFIRM_OR_RETRY_REAL_ORDER",
+    "DELETE_OR_MUTATE_IMMUTABLE_LEDGER_OR_ACCEPTANCE_EVIDENCE",
+    "LOWER_EVIDENCE_NUMERIC_RISK_SAFETY_OR_SOURCE_GATE",
+    "SILENTLY_DROP_COVERAGE_GAP",
+    "ENABLE_SWAP",
+    "AUTO_PURCHASE_CAPACITY_STORAGE_OR_PAID_SERVICE",
+    "CLAIM_PRODUCTION_CAPACITY_VERIFIED"
+  ],
+  "recovery_contract": {
+    "restore_order": [
+      "VERIFY_TELEMETRY_FRESHNESS",
+      "VERIFY_NO_SWAP_OR_OOM",
+      "VERIFY_DISK_RESERVE_AND_LEDGER_HASH_CHAIN",
+      "VERIFY_PREVIOUS_RELEASE_AND_CHECKPOINT",
+      "RESTORE_CORE_ANALYSIS",
+      "RESTORE_SOURCE_REFRESH",
+      "RESTORE_OPTIONAL_WORK_LAST"
+    ],
+    "automatic_return_to_normal_from_emergency": false,
+    "prior_advice_automatically_revalidated": false
+  },
+  "external_effect_boundary": {
+    "production_policy_applied": false,
+    "production_process_killed": false,
+    "production_writes_stopped": false,
+    "production_rollback_invoked": false,
+    "paid_capacity_added": false,
+    "real_order_submitted": false
+  }
+}

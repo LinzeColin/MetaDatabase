@@ -50,7 +50,7 @@ PLACEHOLDER_HOSTNAME = "abd.example.invalid"
 OWNER_PLACEHOLDER = "${ABD_OWNER_EMAIL}"
 ALLOWED_NUMERIC_BOUNDARY_DELTAS = {"-0.0001", "0", "0.0001"}
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "e6c9aa9a344269b1a2754c5d124503311d33f043968a963ccbfcb5f7c2532e32"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "73b141654fa2de9ccd4ef8408d287a176263284488a7502f2771a796bb0a667b"
 PHASE_COMMIT = "52e85f6626cde511c9b9679e126cfb536d612ddd"
 PINNED_PHASE_CODE_HASH = "e30dbd30561188059b1cf7d528f5651d95f3cc7065c82de05644d56ea40a45a4"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -58,7 +58,7 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S04/P02_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "tests/S04/P02_test.py": "003b56b6a4706e58894123229d3c34933d3b516f9f1e8bee654d372e8eaf2a86",
+    "tests/S04/P02_test.py": "4fa75d47e28c0dc61df2f99221dfded66644c3778605470cd129062c43a847f2",
 }
 PINNED_PHASE_HASHES: Dict[str, str] = {
     CONFIG_PATH.as_posix(): "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
@@ -698,6 +698,7 @@ def _p03_candidate_contract(root: Path) -> Dict[str, Any]:
         from .release_control import (
             PINNED_PHASE_HASHES as P03_PHASE_HASHES,
             STRUCTURAL_SELF_NORMALIZED_SHA256 as P03_SELF_HASH,
+            SUCCESSOR_UNIT_PROFILE_HASHES as P03_SUCCESSOR_HASHES,
             _structural_self_hash as p03_structural_self_hash,
             validate_feature_flags,
             validate_release_slots,
@@ -707,7 +708,7 @@ def _p03_candidate_contract(root: Path) -> Dict[str, Any]:
         for relative, expected in P03_PHASE_HASHES.items():
             path = root / relative
             actual = sha256_file(path) if path.is_file() else "MISSING"
-            if actual != expected:
+            if actual != expected and actual != P03_SUCCESSOR_HASHES.get(relative):
                 mismatches[relative] = {"expected": expected, "actual": actual}
         slots = strict_json_load(root / "release_slots.json")
         flags = strict_json_load(root / "feature_flags.json")
@@ -803,12 +804,19 @@ def _check_progression(root: Path, checks: List[Dict[str, Any]]) -> None:
     elif len(candidate_present) == len(candidate_paths) and len(signed_present) == len(signed_paths) and p03_signed:
         candidate = _p03_candidate_contract(root)
         signed = _p03_signed_contract(root, p03[0])
-        successor = {"candidate": candidate, "signed": signed}
-        progression_ok = candidate.get("status") == "PASS" and signed.get("status") == "PASS"
+        try:
+            from .release_control import _p04_progression_contract
+
+            p04_progression = _p04_progression_contract(root)
+        except Exception as exc:
+            p04_progression = {"status": "FAIL", "error": "%s: %s" % (type(exc).__name__, exc)}
+        successor = {"candidate": candidate, "signed": signed, "p04_progression": p04_progression}
+        progression_ok = candidate.get("status") == "PASS" and signed.get("status") == "PASS" and p04_progression.get("status") == "PASS"
         mode = "VERIFIED_S04_P03_SIGNED_SUCCESSOR" if progression_ok else "INVALID_S04_P03_SIGNED_SUCCESSOR"
     else:
         progression_ok = False
-    progression_ok = progression_ok and p04_planned
+    if mode != "VERIFIED_S04_P03_SIGNED_SUCCESSOR":
+        progression_ok = progression_ok and p04_planned
     _add(checks, "S04P02-P03-PROGRESSION", progression_ok, {"mode": mode, "candidate_present": candidate_present, "signed_present": signed_present, "p03_index": p03, "p04_present": p04_present, "p04_index": p04, "successor": successor})
 
 

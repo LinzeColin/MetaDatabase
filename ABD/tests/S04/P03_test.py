@@ -39,9 +39,11 @@ from abd_acceptance.release_control import (
     SIGNED_STATE_JUNIT_PATH,
     SLOTS_PATH,
     STRUCTURAL_SELF_NORMALIZED_SHA256,
+    SUCCESSOR_UNIT_PROFILE_HASHES,
     TEST_PATH,
     ReleaseControlContractError,
     _set_or_delete_path,
+    _p04_progression_contract,
     _structural_self_hash,
     _tree_digest,
     activation_gate,
@@ -122,7 +124,8 @@ def test_signed_p02_is_exact_phase_prerequisite() -> None:
 
 @pytest.mark.parametrize("relative", sorted(PINNED_PHASE_HASHES))
 def test_phase_artifact_hash_matches_pin(relative: str) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_PHASE_HASHES[relative]
+    actual = sha256_file(ROOT / relative)
+    assert actual == PINNED_PHASE_HASHES[relative] or actual == SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
 
 
 @pytest.mark.parametrize("relative", sorted(PINNED_BASELINE_HASHES))
@@ -500,24 +503,32 @@ def test_p02_prerequisite_receipt_mutations_block_p03(tmp_path: Path, path: list
     _failed(evaluate_contract(root), "S04P03-P02-PREREQUISITE")
 
 
-def test_p04_and_stage_review_work_is_not_started() -> None:
-    forbidden = [
+def test_p04_is_exact_candidate_or_signed_successor_and_stage_review_is_not_started() -> None:
+    candidate = [
         Path("capacity_budget.json"),
         Path("resource_shedding.json"),
         Path("load_baseline.json"),
         Path("tests/S04/P04_test.py"),
         Path("machine/tests/fixtures/S04_P04.json"),
+        Path("abd_acceptance/capacity_governance.py"),
+    ]
+    signed = [
         Path("machine/evidence/EVD-S04-P04.json"),
         Path("machine/evidence/EVD-S04-P04_rollback.json"),
-        Path("tests/S04/stage_review_test.py"),
-        Path("machine/evidence/EVD-S04-STAGE-REVIEW.json"),
     ]
+    forbidden = [
+        Path("tests/S04/stage_review_test.py"),
+        Path("machine/tests/fixtures/S04_STAGE_REVIEW.json"),
+        Path("machine/evidence/EVD-S04-STAGE-REVIEW.json"),
+        Path("machine/evidence/EVD-S04-STAGE-REVIEW_rollback.json"),
+        Path("abd_acceptance/stage4_review.py"),
+    ]
+    assert all((ROOT / path).is_file() for path in candidate)
+    assert len([path for path in signed if (ROOT / path).exists()]) in {0, 2}
     assert not [path.as_posix() for path in forbidden if (ROOT / path).exists()]
-    rows = [json.loads(line) for line in (ROOT / "machine/evidence/evidence_index.jsonl").read_text(encoding="utf-8-sig").splitlines() if line]
-    p04 = [row for row in rows if row["id"] == "INDEX-AC-S04-P04"]
-    assert len(p04) == 1
-    assert p04[0]["status"] == "PLANNED"
-    assert "actual_artifact" not in p04[0]
+    progression = _p04_progression_contract(ROOT)
+    assert progression["status"] == "PASS", progression
+    assert progression["mode"] in {"VERIFIED_S04_P04_CANDIDATE", "VERIFIED_S04_P04_SIGNED_SUCCESSOR"}
 
 
 def test_taskpack_artifacts_commands_and_local_paths_remain_exact() -> None:

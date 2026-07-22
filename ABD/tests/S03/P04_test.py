@@ -9,6 +9,7 @@ import pytest
 
 from abd_acceptance.canonical_facts import sha256_file, strict_json_load
 from abd_acceptance.reason_next_action import verify_existing_phase_evidence as verify_p03_evidence
+from abd_acceptance.release_control import _p04_progression_contract
 from abd_acceptance.usability_accessibility import (
     ALLOWED_NUMERIC_BOUNDARY_DELTAS,
     CONTRACT_ID,
@@ -414,7 +415,7 @@ def test_signed_receipt_verifies_in_isolated_copy_without_git_history(tmp_path: 
     assert result["next"] == "S03/STAGE_REVIEW_READY_NOT_STARTED"
 
 
-def test_stage3_review_progression_allows_exact_s04_p03_successor_and_forbids_p04() -> None:
+def test_stage3_review_progression_allows_exact_s04_p04_successor_without_s04_review() -> None:
     progression = _stage_review_progression(ROOT)
     assert progression["status"] in {"READY_NOT_STARTED", "CONTROLLED_CANDIDATE", "SIGNED_REVIEW_PASS"}
     s04_required = [
@@ -458,12 +459,14 @@ def test_stage3_review_progression_allows_exact_s04_p03_successor_and_forbids_p0
         Path("machine/evidence/EVD-S04-P03.json"), Path("machine/evidence/EVD-S04-P03_rollback.json"),
     ]
     assert len([path for path in p03_signed if (ROOT / path).exists()]) in {0, 2}
-    p04_forbidden = [
+    p04_required = [
         Path("capacity_budget.json"), Path("resource_shedding.json"), Path("load_baseline.json"),
-        Path("tests/S04/P04_test.py"), Path("machine/tests/fixtures/S04_P04.json"),
-        Path("machine/evidence/EVD-S04-P04.json"), Path("machine/evidence/EVD-S04-P04_rollback.json"),
+        Path("tests/S04/P04_test.py"), Path("machine/tests/fixtures/S04_P04.json"), Path("abd_acceptance/capacity_governance.py"),
     ]
-    assert not [path.as_posix() for path in p04_forbidden if (ROOT / path).exists()]
+    assert all((ROOT / path).is_file() for path in p04_required)
+    p04_progression = _p04_progression_contract(ROOT)
+    assert p04_progression["status"] == "PASS", p04_progression
+    assert p04_progression["mode"] in {"VERIFIED_S04_P04_CANDIDATE", "VERIFIED_S04_P04_SIGNED_SUCCESSOR"}
     assert PLAN["next_on_pass"] == "S03/STAGE_REVIEW_READY_NOT_STARTED"
     assert REPORT["next"] == "S03/STAGE_REVIEW_READY_NOT_STARTED"
 

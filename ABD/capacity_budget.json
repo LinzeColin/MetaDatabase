@@ -1,0 +1,209 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "phase": "S04/P04",
+  "contract": "DECLARED_VPS1_INTEGER_RESOURCE_BUDGET_WITH_FAIL_CLOSED_ADMISSION",
+  "measurement_boundary": {
+    "kind": "DETERMINISTIC_ENGINEERING_BUDGET_NOT_TARGET_HOST_MEASUREMENT",
+    "target_host_inspected": false,
+    "production_telemetry_observed": false,
+    "production_capacity_verified": false,
+    "runtime_calibration_required_before_activation": true,
+    "frozen_load_horizon_days": 365,
+    "claim": "The frozen design envelope and shedding state machine are validated offline; actual OVH capacity and sustained production throughput remain unverified."
+  },
+  "target_host": {
+    "provider": "OVHcloud",
+    "region": "Singapore",
+    "plan": "VPS-1",
+    "operating_system": "Ubuntu Linux",
+    "capacity_verification_status": "DECLARED_TARGET_NOT_ACCOUNT_VERIFIED",
+    "vcpu": 2,
+    "cpu_total_millicores": 2000,
+    "memory_total_mib": 4096,
+    "disk_total_mib": 40960,
+    "swap_allowed": false
+  },
+  "cpu_budget": {
+    "unit": "MILLICORES",
+    "total_millicores": 2000,
+    "active_slot_outer_hard_limit_millicores": 1500,
+    "candidate_shadow_outer_hard_limit_millicores": 250,
+    "host_system_and_tunnel_reserve_millicores": 250,
+    "allocated_millicores": 2000,
+    "unknown_or_overcommit_action": "STOP_NEW_ADVICE_AND_SHED_OPTIONAL_WORK",
+    "utilization_thresholds_basis_points": {
+      "constrained_at": 7000,
+      "critical_at": 8500,
+      "emergency_at": 9000
+    }
+  },
+  "memory_budget": {
+    "unit": "MIB",
+    "total_mib": 4096,
+    "active_slot_outer_hard_limit_mib": 2560,
+    "candidate_shadow_outer_hard_limit_mib": 512,
+    "host_system_and_tunnel_reserve_mib": 1024,
+    "allocated_mib": 4096,
+    "swap_allowed": false,
+    "oom_score_policy": "CANDIDATE_AND_OPTIONAL_WORK_BEFORE_ACTIVE_SAFETY_PATH",
+    "unknown_swap_or_oom_action": "STOP_NEW_ADVICE_AND_ROLL_BACK_FAIL_CLOSED",
+    "utilization_thresholds_basis_points": {
+      "constrained_at": 7000,
+      "critical_at": 8500,
+      "emergency_at": 9000
+    }
+  },
+  "disk_budget": {
+    "unit": "MIB",
+    "total_mib": 40960,
+    "allocation_buckets": [
+      {
+        "id": "host_os_and_container_runtime",
+        "budget_mib": 8192
+      },
+      {
+        "id": "two_release_slots",
+        "budget_mib": 4096
+      },
+      {
+        "id": "immutable_ledger_and_acceptance_evidence",
+        "budget_mib": 8192
+      },
+      {
+        "id": "mail_archive_future_s06",
+        "budget_mib": 8192
+      },
+      {
+        "id": "outbox_and_checkpoints",
+        "budget_mib": 2048
+      },
+      {
+        "id": "bounded_operational_logs",
+        "budget_mib": 2048
+      },
+      {
+        "id": "bounded_temporary_files",
+        "budget_mib": 1024
+      },
+      {
+        "id": "unallocated_emergency_reserve",
+        "budget_mib": 7168
+      }
+    ],
+    "allocated_mib": 40960,
+    "watermarks_used_mib": {
+      "warning": 28672,
+      "shed_optional_writes": 32768,
+      "stop_new_advice": 34816,
+      "emergency": 36864,
+      "hard_capacity": 40960
+    },
+    "minimum_free_reserve_mib": 4096,
+    "immutable_evidence_deletion_allowed": false,
+    "unknown_usage_action": "STOP_ALL_NON_INTEGRITY_WRITES_FAIL_CLOSED",
+    "hard_capacity_action": "DISABLE_ADVICE_PRESERVE_EXISTING_BYTES_ESCALATE"
+  },
+  "browser_concurrency_budget": {
+    "feature_flag": "owner_browser_companion",
+    "repository_enabled_in_p04": false,
+    "expected_1x_sessions": 2,
+    "frozen_10x_sessions": 20,
+    "admission_cap_sessions": 20,
+    "over_cap_action": "REJECT_NEW_SESSION_KEEP_EXISTING_READ_ONLY",
+    "per_session_memory_budget_mib": 16,
+    "per_session_cpu_budget_millicores": 5,
+    "resource_cost_included_in_active_slot_profile": true
+  },
+  "retention_budget": {
+    "policy": "PRESERVE_IMMUTABLE_EVIDENCE_AND_STOP_PRODUCERS_BEFORE_CAPACITY",
+    "classes": [
+      {
+        "id": "immutable_ledger",
+        "budget_mib": 4096,
+        "retention": "PERMANENT",
+        "automatic_delete": false,
+        "at_budget": "STOP_NEW_ADVICE"
+      },
+      {
+        "id": "acceptance_evidence",
+        "budget_mib": 4096,
+        "retention": "PERMANENT_SUMMARY_RAW_TIERING_REQUIRES_SIGNED_RUNBOOK",
+        "automatic_delete": false,
+        "at_budget": "STOP_NEW_EVIDENCE_PRODUCERS_EXCEPT_INTEGRITY_SHUTDOWN_RECEIPT"
+      },
+      {
+        "id": "mail_archive",
+        "budget_mib": 8192,
+        "retention": "UNTIL_S06_SIGNED_RETENTION_AND_RESTORE_POLICY",
+        "automatic_delete": false,
+        "at_budget": "DISABLE_GMAIL_INGESTION_CONTINUE_CORE_IF_SAFE"
+      },
+      {
+        "id": "operational_logs",
+        "budget_mib": 2048,
+        "retention": "MAX_7_DAYS_AND_SIZE_ROTATION",
+        "automatic_delete": true,
+        "at_budget": "ROTATE_NON_EVIDENCE_LOGS"
+      },
+      {
+        "id": "temporary_files",
+        "budget_mib": 1024,
+        "retention": "MAX_1_DAY",
+        "automatic_delete": true,
+        "at_budget": "REJECT_NEW_TEMPORARY_WORK"
+      },
+      {
+        "id": "release_slots",
+        "budget_mib": 4096,
+        "retention": "EXACTLY_CURRENT_AND_PREVIOUS_VERIFIED_RELEASE",
+        "automatic_delete": false,
+        "at_budget": "BLOCK_NEW_RELEASE"
+      },
+      {
+        "id": "outbox_and_checkpoints",
+        "budget_mib": 2048,
+        "retention": "UNTIL_ACKNOWLEDGED_OR_SIGNED_COMPACTION",
+        "automatic_delete": false,
+        "at_budget": "STOP_NEW_ADVICE_AND_CHECKPOINT"
+      }
+    ]
+  },
+  "telemetry_contract": {
+    "sample_period_seconds": 10,
+    "stale_after_seconds": 30,
+    "required_metrics": [
+      "cpu_usage_basis_points",
+      "memory_usage_basis_points",
+      "disk_used_mib",
+      "swap_used_mib",
+      "browser_sessions",
+      "telemetry_age_seconds"
+    ],
+    "unknown_missing_negative_or_stale_action": "EMERGENCY_FAIL_CLOSED",
+    "runtime_source_status": "NOT_CONNECTED_OR_VERIFIED_ON_OVH"
+  },
+  "financial_and_order_boundary": {
+    "initial_bankroll_aud": "300.00",
+    "incremental_cash_budget_aud": "0.00",
+    "automatic_paid_scale_up_allowed": false,
+    "automatic_new_instance_allowed": false,
+    "automatic_storage_upgrade_allowed": false,
+    "order_submission_module_present": false,
+    "monthly_30pct_target_guaranteed": false,
+    "target_shortfall_may_relax_capacity_or_safety_gate": false
+  },
+  "external_effect_boundary": {
+    "network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "target_host_telemetry_read": false,
+    "docker_or_systemd_invoked": false,
+    "swap_or_disk_configuration_changed": false,
+    "cloudflare_changed": false,
+    "production_activated": false,
+    "real_traffic_generated": false,
+    "real_order_submitted": false,
+    "return_or_roi_verified": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

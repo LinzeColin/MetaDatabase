@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "phase": "S04/P04",
+  "baseline_id": "ABD-S04-P04-FROZEN-DESIGN-LOAD",
+  "baseline_kind": "DETERMINISTIC_SYNTHETIC_ENGINEERING_BASELINE_NOT_OBSERVED_TRAFFIC",
+  "fixed_clock": "2026-07-22T23:30:00+10:00",
+  "random_seed": 404,
+  "runtime_measurement": {
+    "target_host_benchmark_executed": false,
+    "production_traffic_observed": false,
+    "ovh_telemetry_read": false,
+    "results_may_be_called_production_capacity": false,
+    "required_future_evidence": [
+      "TARGET_HOST_CGROUP_TELEMETRY",
+      "TARGET_HOST_DISK_GROWTH_AND_RETENTION_CALIBRATION",
+      "PRODUCTION_EQUIVALENT_10X_LOAD_RUN",
+      "S04_WHOLE_STAGE_REVIEW"
+    ]
+  },
+  "horizon_days": 365,
+  "initial_disk_used_mib": 10496,
+  "profiles": [
+    {
+      "id": "EXPECTED_1X",
+      "multiplier": 1,
+      "normalized_work_units_per_window": 100,
+      "browser_sessions": 2,
+      "active_slot_cpu_millicores": 350,
+      "candidate_shadow_cpu_millicores": 100,
+      "host_cpu_millicores": 250,
+      "active_slot_memory_mib": 768,
+      "candidate_shadow_memory_mib": 128,
+      "host_memory_mib": 1024,
+      "swap_used_mib": 0,
+      "immutable_daily_growth_mib": 6,
+      "optional_daily_growth_mib": 14,
+      "telemetry_age_seconds": 10,
+      "expected_pre_shed_state": "NORMAL",
+      "expected_post_shed_state": "NORMAL"
+    },
+    {
+      "id": "FROZEN_10X",
+      "multiplier": 10,
+      "normalized_work_units_per_window": 1000,
+      "browser_sessions": 20,
+      "active_slot_cpu_millicores": 1100,
+      "candidate_shadow_cpu_millicores": 150,
+      "host_cpu_millicores": 250,
+      "active_slot_memory_mib": 1792,
+      "candidate_shadow_memory_mib": 384,
+      "host_memory_mib": 1024,
+      "swap_used_mib": 0,
+      "immutable_daily_growth_mib": 60,
+      "optional_daily_growth_mib": 128,
+      "telemetry_age_seconds": 10,
+      "expected_pre_shed_state": "CONSTRAINED",
+      "expected_post_shed_state": "NORMAL"
+    }
+  ],
+  "ten_x_acceptance": {
+    "profile_id": "FROZEN_10X",
+    "core_safety_horizon_days": 365,
+    "optional_work_may_be_shed": true,
+    "core_analysis_throughput_claimed_sustained_in_production": false,
+    "uncontrolled_swap_allowed": false,
+    "disk_exhaustion_allowed": false,
+    "immutable_evidence_deletion_allowed": false,
+    "paid_scale_up_allowed": false,
+    "pass_interpretation": "Offline integer accounting proves the frozen 10x design workload is admitted only with bounded shedding and cannot consume swap or cross disk hard capacity; it does not verify OVH runtime throughput."
+  },
+  "numeric_stability_boundary": {
+    "allowed_probability_or_threshold_deltas": [
+      "-0.0001",
+      "0",
+      "0.0001"
+    ],
+    "adverse_odds_tick_values": [
+      false,
+      true
+    ],
+    "capacity_safety_may_change": false,
+    "financial_target_shortfall_may_relax_resource_gate": false
+  },
+  "external_effect_boundary": {
+    "network_accessed": false,
+    "target_host_accessed": false,
+    "real_load_generated": false,
+    "production_disk_written": false,
+    "production_swap_changed": false,
+    "production_browser_sessions_opened": false,
+    "real_order_submitted": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

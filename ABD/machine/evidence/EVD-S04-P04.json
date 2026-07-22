@@ -1,0 +1,1285 @@
+{
+  "activation_gate": "BLOCKED_TARGET_HOST_BASELINE_AND_STAGE_REVIEW_NOT_VERIFIED",
+  "artifacts": {
+    "ART-S04-P04-01": "capacity_budget.json",
+    "ART-S04-P04-02": "resource_shedding.json",
+    "ART-S04-P04-03": "load_baseline.json"
+  },
+  "capacity_proof": {
+    "all_expected_dispositions_met": true,
+    "candidate_shadow_shed_before_core": true,
+    "frozen_10x_disk_exhausted": false,
+    "frozen_10x_minimum_free_reserve_preserved": true,
+    "frozen_10x_profile_passed": true,
+    "frozen_10x_swap_used_mib": 0,
+    "mode": "DETERMINISTIC_INTEGER_CAPACITY_AND_SHEDDING_FAILURE_INJECTION",
+    "one_x_profile_passed": true,
+    "production_capacity_verified": false,
+    "production_load_generated": false,
+    "scenario_count": 21
+  },
+  "contract_id": "AC-S04-P04",
+  "decision": "CAPACITY_RESOURCE_GOVERNANCE_CONTRACT_FROZEN",
+  "decision_sha256": "916666427b08893837212c023b0bf63c4d11067fca38cc97564a37b232378a7f",
+  "evidence_id": "EVD-S04-P04",
+  "external_effect_boundary": {
+    "cloudflare_changed": false,
+    "docker_or_systemd_invoked": false,
+    "incremental_cash_spent_aud": "0.00",
+    "network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "production_activated": false,
+    "real_order_submitted": false,
+    "real_traffic_generated": false,
+    "return_or_roi_verified": false,
+    "swap_or_disk_configuration_changed": false,
+    "target_host_telemetry_read": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-22T23:30:00+10:00",
+  "hashes": {
+    "code": "ca8112ae584f83faeec97476da791137bf837c48fb7329522d745ccc4afd34ec",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/capacity_governance.py": "1e2d65a022dd8e380a749250027fc13f78d41f95d2ff67390b900b35f8cdf740",
+      "capacity_budget.json": "b3c76e22683fc45deb5bb59ae7867ae7886800e93232ea4a99dc567ea70daaa2",
+      "load_baseline.json": "395135bfd165c37700c2f4e41a14691dbd06d0d59e9b358b437a7ee38adbe695",
+      "machine/evidence/EVD-S04-P03.json": "a83dd53611d45af498ea1f70a7363aa3666021057a13c2b661abe89ca0bec1e7",
+      "machine/evidence/EVD-S04-P03_rollback.json": "4658549bc64b5097104a0cf72bfc4af48c844eb599709ab8ecec2e4d81ed64b5",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S04_P04.json": "10736c964ccf145e5cb391e25e26041233ee71abf7f004feec2742195d2aaa3e",
+      "resource_shedding.json": "c79a8d5e86852dcb7611268e57301c59210d11db9ae5fdef6e127da605a6c5e6",
+      "tests/S04/P04_test.py": "de127a154696d51b46818c684b88a8d649e679490a5dbd8839ca395a5fd79d6d"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S04/P04 validates integer resource accounting and deterministic shedding only; it executes no model, provider, host, container engine, systemd, browser, real traffic, order or return evaluation.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "a60e512777101405ee60e21de0bce4c20eccd24035ec71995084802c68d7ebbf"
+  },
+  "next": "S04/STAGE_REVIEW_READY_NOT_STARTED",
+  "pass_gate_interpretation": "OFFLINE_INTEGER_365_DAY_FROZEN_10X_DESIGN_ENVELOPE_AVOIDS_SWAP_AND_DISK_EXHAUSTION_BY_BOUNDED_SHEDDING; OVH_RUNTIME_CAPACITY_REMAINS_UNVERIFIED",
+  "phase_id": "P04",
+  "phase_status": "S04_P04_PASS",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "NOT_READY_S04_WHOLE_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S04-P04",
+  "runtime_capacity_status": "NOT_MEASURED_OR_VERIFIED_ON_OVH",
+  "schema_version": "1.0.0",
+  "scope_boundary": {
+    "frozen_load_is_synthetic_engineering_input": true,
+    "immutable_ledger_or_evidence_not_deleted": true,
+    "optional_work_may_be_shed_to_preserve_core_integrity": true,
+    "p04_delivers_capacity_contract_not_target_host_benchmark": true,
+    "production_10x_throughput_not_claimed": true,
+    "runtime_activation_not_performed": true,
+    "stage_review_not_started": true
+  },
+  "stage_id": "S04",
+  "status": "PASS",
+  "validation": {
+    "activation_gate": "BLOCKED_TARGET_HOST_BASELINE_AND_STAGE_REVIEW_NOT_VERIFIED",
+    "checks": [
+      {
+        "detail": "S04_P04.json",
+        "id": "S04P04-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "capacity_budget.json",
+        "id": "S04P04-CAPACITY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "resource_shedding.json",
+        "id": "S04P04-SHEDDING-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "load_baseline.json",
+        "id": "S04P04-BASELINE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b3c76e22683fc45deb5bb59ae7867ae7886800e93232ea4a99dc567ea70daaa2",
+          "expected": "b3c76e22683fc45deb5bb59ae7867ae7886800e93232ea4a99dc567ea70daaa2"
+        },
+        "id": "S04P04-PIN-capacity_budget_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c79a8d5e86852dcb7611268e57301c59210d11db9ae5fdef6e127da605a6c5e6",
+          "expected": "c79a8d5e86852dcb7611268e57301c59210d11db9ae5fdef6e127da605a6c5e6"
+        },
+        "id": "S04P04-PIN-resource_shedding_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "395135bfd165c37700c2f4e41a14691dbd06d0d59e9b358b437a7ee38adbe695",
+          "expected": "395135bfd165c37700c2f4e41a14691dbd06d0d59e9b358b437a7ee38adbe695"
+        },
+        "id": "S04P04-PIN-load_baseline_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "10736c964ccf145e5cb391e25e26041233ee71abf7f004feec2742195d2aaa3e",
+          "expected": "10736c964ccf145e5cb391e25e26041233ee71abf7f004feec2742195d2aaa3e"
+        },
+        "id": "S04P04-PIN-machine-tests-fixtures-S04_P04_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "de127a154696d51b46818c684b88a8d649e679490a5dbd8839ca395a5fd79d6d",
+          "expected": "de127a154696d51b46818c684b88a8d649e679490a5dbd8839ca395a5fd79d6d"
+        },
+        "id": "S04P04-PIN-tests-S04-P04_test_py",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S04P04-BASELINE-machine-facts-canonical_facts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S04P04-BASELINE-machine-facts-costs_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S04P04-BASELINE-machine-facts-parameters_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+          "expected": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b"
+        },
+        "id": "S04P04-BASELINE-machine-facts-release_policy_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S04P04-BASELINE-machine-facts-requirements_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S04P04-BASELINE-machine-facts-acceptance_contracts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S04P04-BASELINE-machine-facts-task_graph_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S04P04-BASELINE-machine-facts-traceability_matrix_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a83dd53611d45af498ea1f70a7363aa3666021057a13c2b661abe89ca0bec1e7",
+          "expected": "a83dd53611d45af498ea1f70a7363aa3666021057a13c2b661abe89ca0bec1e7"
+        },
+        "id": "S04P04-BASELINE-machine-evidence-EVD-S04-P03_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4658549bc64b5097104a0cf72bfc4af48c844eb599709ab8ecec2e4d81ed64b5",
+          "expected": "4658549bc64b5097104a0cf72bfc4af48c844eb599709ab8ecec2e4d81ed64b5"
+        },
+        "id": "S04P04-BASELINE-machine-evidence-EVD-S04-P03_rollback_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S04P04-REPO-_github-workflows-abd-stage0-validation_yml",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "cf6e1db5a36b7d3147c12f45920c90844d697811e456ba9cf793879fd9c3f924",
+          "expected": "cf6e1db5a36b7d3147c12f45920c90844d697811e456ba9cf793879fd9c3f924"
+        },
+        "id": "S04P04-ORACLE-SELF-INTEGRITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "baseline": "未实现或旧包存在冲突/缺口",
+          "id": "REQ-S04-P04",
+          "measurement": "由 AC-S04-P04 的机器验收判定器执行固定输入、阈值和证据检查。",
+          "non_goals": [
+            "不自动提交、确认或重试真实订单",
+            "不以降低证据或风险门追赶30%月目标",
+            "不引入付费数据或付费程序接口依赖"
+          ],
+          "observation_period": "开发期每次提交；上线后持续",
+          "owner_input_required_during_development": false,
+          "phase_id": "P04",
+          "primary_acceptance_criteria_id": "AC-S04-P04",
+          "priority": "P0",
+          "problem": "若未完成“容量与资源治理”，在VPS-1资源和A$0新增预算内实现全天候分析、全球中文访问和可恢复发布。将缺少可执行、可验收或可恢复的基础。",
+          "scope": [
+            "capacity_budget.json",
+            "resource_shedding.json",
+            "load_baseline.json"
+          ],
+          "stage_id": "S04",
+          "target": "VPS-1在10倍预期负载下不触发失控交换或磁盘耗尽。",
+          "title": "容量与资源治理",
+          "user": "单一账户持有人及自动开发/运维代理",
+          "value": "建立CPU、内存、磁盘、浏览器并发和保留期预算。"
+        },
+        "id": "S04P04-TASKPACK-REQUIREMENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "environment": [
+            "Ubuntu Linux 持续集成环境",
+            "固定时钟",
+            "冻结测试夹具",
+            "无外部网络的确定性测试模式",
+            "生产等价配置Schema"
+          ],
+          "evidence_requirements": [
+            "machine/evidence/EVD-S04-P04.json",
+            "测试报告及命令退出码",
+            "输入、参数、代码、模型和输出SHA-256",
+            "失败路径截图或结构化日志",
+            "回滚演练记录"
+          ],
+          "id": "AC-S04-P04",
+          "inputs": [
+            "REQ-S04-P04 对应机器事实",
+            "S04/P04 冻结正向、边界、负向和故障输入",
+            "参数版本和来源版本哈希"
+          ],
+          "oracle": {
+            "command": "python -m abd_acceptance --contract AC-S04-P04 --evidence machine/evidence",
+            "rule": "VPS-1在10倍预期负载下不触发失控交换或磁盘耗尽。",
+            "type": "EXECUTABLE"
+          },
+          "pass_gate": "VPS-1在10倍预期负载下不触发失控交换或磁盘耗尽。",
+          "requirement_id": "REQ-S04-P04",
+          "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_condition": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "tests": [
+            {
+              "id": "TEST-S04-P04",
+              "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+            },
+            {
+              "id": "TEST-S04-P04-BOUNDARY",
+              "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+            },
+            {
+              "id": "TEST-S04-P04-REPLAY",
+              "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+            }
+          ],
+          "threshold": "VPS-1在10倍预期负载下不触发失控交换或磁盘耗尽。",
+          "title": "容量与资源治理唯一主验收"
+        },
+        "id": "S04P04-TASKPACK-CONTRACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S04-P04-01",
+          "T-S04-P04-02",
+          "T-S04-P04-03"
+        ],
+        "id": "S04P04-TASKPACK-TASKS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_criteria_id": "AC-S04-P04",
+          "artifact_ids": [
+            "ART-S04-P04-01",
+            "ART-S04-P04-02",
+            "ART-S04-P04-03"
+          ],
+          "evidence_id": "EVD-S04-P04",
+          "phase_id": "P04",
+          "requirement_id": "REQ-S04-P04",
+          "stage_id": "S04",
+          "task_ids": [
+            "T-S04-P04-01",
+            "T-S04-P04-02",
+            "T-S04-P04-03"
+          ],
+          "test_ids": [
+            "TEST-S04-P04",
+            "TEST-S04-P04-BOUNDARY",
+            "TEST-S04-P04-REPLAY"
+          ]
+        },
+        "id": "S04P04-TASKPACK-TRACEABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ART-S04-P04-01": "capacity_budget.json",
+          "ART-S04-P04-02": "resource_shedding.json",
+          "ART-S04-P04-03": "load_baseline.json"
+        },
+        "id": "S04P04-FIXTURE-TRACEABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 13,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 13
+        },
+        "id": "S04P04-P03-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04P04-CAPACITY-VALID",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04P04-SHEDDING-VALID",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04P04-BASELINE-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ADD-CASH": true,
+          "ADD-ORDER-MODULE": true,
+          "ALLOW-AUTO-EMERGENCY-RECOVERY": true,
+          "ALLOW-DISK-EXHAUSTION": true,
+          "ALLOW-PAID-SCALEUP": true,
+          "ALLOW-STALE-TELEMETRY": true,
+          "ALLOW-SWAP": true,
+          "ALLOW-TARGET-TO-RELAX-GATE": true,
+          "AUTO-DELETE-LEDGER": true,
+          "BASELINE-ADD-CASH": true,
+          "BASELINE-ALLOW-PAID-SCALEUP": true,
+          "CHANGE-HOST-MEMORY": true,
+          "CHANGE-SEED": true,
+          "CLAIM-BENCHMARK": true,
+          "CLAIM-HOST-INSPECTED": true,
+          "CLAIM-NETWORK-EFFECT": true,
+          "CLAIM-PRODUCTION-CAPACITY": true,
+          "CLAIM-PRODUCTION-POLICY": true,
+          "CLAIM-PRODUCTION-THROUGHPUT": true,
+          "CLAIM-PRODUCTION-TRAFFIC": true,
+          "CLAIM-REAL-LOAD": true,
+          "CONSTRAINED-KEEPS-CANDIDATE": true,
+          "CRITICAL-ALLOWS-ADVICE": true,
+          "DELETE-IMMUTABLE-EVIDENCE": true,
+          "DROP-NEGATIVE-DELTA": true,
+          "DUPLICATE-DISK-BUCKET": true,
+          "EMERGENCY-ALLOWS-WRITES": true,
+          "ENABLE-BROWSER-FLAG": true,
+          "ENABLE-SWAP": true,
+          "GUARANTEE-RETURN": true,
+          "LOWER-CPU-CONSTRAINED": true,
+          "NEGATIVE-GROWTH": true,
+          "NOT-TEN-X-BROWSERS": true,
+          "NOT-TEN-X-WORK": true,
+          "OVER-ADMIT-BROWSER": true,
+          "OVERCOMMIT-CPU": true,
+          "OVERCOMMIT-MEMORY": true,
+          "RAISE-BROWSER-CAP": true,
+          "RAISE-DISK-EMERGENCY": true,
+          "REMOVE-HOST-CPU-RESERVE": true,
+          "REMOVE-NO-GATE-LOWERING": true,
+          "REMOVE-STAGE-REVIEW-EVIDENCE": true,
+          "REORDER-SEVERITY": true,
+          "REVALIDATE-OLD-ADVICE": true,
+          "SHED-INTEGRITY": true,
+          "SHORTEN-HORIZON": true,
+          "SHRINK-DISK-RESERVE": true,
+          "STALE-TELEMETRY-WINDOW": true,
+          "UNKNOWN-TELEMETRY-NORMAL": true,
+          "USE-SWAP": true,
+          "WRONG-PRE-SHED-STATE": true
+        },
+        "id": "S04P04-ALL-DECLARED-MUTATIONS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "scenarios": 21,
+          "status": "PASS"
+        },
+        "id": "S04P04-DRILL-ALL-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "NORMAL",
+          "expected": "NORMAL"
+        },
+        "id": "S04P04-DRILL-CPU_6999",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "CONSTRAINED",
+          "expected": "CONSTRAINED"
+        },
+        "id": "S04P04-DRILL-CPU_7000",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "CRITICAL",
+          "expected": "CRITICAL"
+        },
+        "id": "S04P04-DRILL-CPU_8500",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "EMERGENCY",
+          "expected": "EMERGENCY"
+        },
+        "id": "S04P04-DRILL-CPU_9000",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "CONSTRAINED",
+          "expected": "CONSTRAINED"
+        },
+        "id": "S04P04-DRILL-MEMORY_7000",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "CRITICAL",
+          "expected": "CRITICAL"
+        },
+        "id": "S04P04-DRILL-MEMORY_8500",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "EMERGENCY",
+          "expected": "EMERGENCY"
+        },
+        "id": "S04P04-DRILL-MEMORY_9000",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "NORMAL",
+          "expected": "NORMAL"
+        },
+        "id": "S04P04-DRILL-DISK_32767",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "CONSTRAINED",
+          "expected": "CONSTRAINED"
+        },
+        "id": "S04P04-DRILL-DISK_32768",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "CRITICAL",
+          "expected": "CRITICAL"
+        },
+        "id": "S04P04-DRILL-DISK_34816",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "EMERGENCY",
+          "expected": "EMERGENCY"
+        },
+        "id": "S04P04-DRILL-DISK_36864",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "EMERGENCY",
+          "expected": "EMERGENCY"
+        },
+        "id": "S04P04-DRILL-DISK_40960",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "NORMAL",
+          "expected": "NORMAL"
+        },
+        "id": "S04P04-DRILL-BROWSER_20",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "CRITICAL",
+          "expected": "CRITICAL"
+        },
+        "id": "S04P04-DRILL-BROWSER_21",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "EMERGENCY",
+          "expected": "EMERGENCY"
+        },
+        "id": "S04P04-DRILL-SWAP_1",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "NORMAL",
+          "expected": "NORMAL"
+        },
+        "id": "S04P04-DRILL-TELEMETRY_30",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "EMERGENCY",
+          "expected": "EMERGENCY"
+        },
+        "id": "S04P04-DRILL-TELEMETRY_31",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "EMERGENCY",
+          "expected": "EMERGENCY"
+        },
+        "id": "S04P04-DRILL-MISSING_METRIC",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "EMERGENCY",
+          "expected": "EMERGENCY"
+        },
+        "id": "S04P04-DRILL-NEGATIVE_METRIC",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "EMERGENCY",
+          "expected": "EMERGENCY"
+        },
+        "id": "S04P04-DRILL-BOOLEAN_METRIC",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "CONSTRAINED_THEN_NORMAL",
+          "expected": "CONSTRAINED_THEN_NORMAL"
+        },
+        "id": "S04P04-DRILL-FROZEN_10X",
+        "passed": true
+      },
+      {
+        "detail": {
+          "browser_sessions": 2,
+          "candidate_shadow_shed": false,
+          "disk_horizon": {
+            "core_stop_day": null,
+            "core_writes_allowed_at_end": true,
+            "disk_exhausted": false,
+            "final_used_mib": 17796,
+            "free_mib": 23164,
+            "hard_capacity_mib": 40960,
+            "horizon_days": 365,
+            "initial_used_mib": 10496,
+            "minimum_free_reserve_preserved": true,
+            "optional_shed_day": null,
+            "optional_writes_allowed_at_end": true,
+            "production_disk_written": false
+          },
+          "post_shed_disposition": {
+            "actions": [
+              "KEEP_FIXED_RESOURCE_CAPS",
+              "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+            ],
+            "capacity_admission_allowed": true,
+            "effective_live_recommendation_enabled": false,
+            "external_state_changed": false,
+            "new_advice_capacity_allowed": true,
+            "new_browser_sessions_allowed": true,
+            "optional_writes_allowed": true,
+            "production_state_changed": false,
+            "reasons": [
+              "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+            ],
+            "schema_version": "1.0.0",
+            "state": "NORMAL"
+          },
+          "post_shed_metrics": {
+            "browser_sessions": 2,
+            "cpu_usage_basis_points": 3500,
+            "disk_used_mib": 10496,
+            "memory_usage_basis_points": 4688,
+            "swap_used_mib": 0,
+            "telemetry_age_seconds": 10
+          },
+          "pre_shed_disposition": {
+            "actions": [
+              "KEEP_FIXED_RESOURCE_CAPS",
+              "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+            ],
+            "capacity_admission_allowed": true,
+            "effective_live_recommendation_enabled": false,
+            "external_state_changed": false,
+            "new_advice_capacity_allowed": true,
+            "new_browser_sessions_allowed": true,
+            "optional_writes_allowed": true,
+            "production_state_changed": false,
+            "reasons": [
+              "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+            ],
+            "schema_version": "1.0.0",
+            "state": "NORMAL"
+          },
+          "pre_shed_metrics": {
+            "browser_sessions": 2,
+            "cpu_usage_basis_points": 3500,
+            "disk_used_mib": 10496,
+            "memory_usage_basis_points": 4688,
+            "swap_used_mib": 0,
+            "telemetry_age_seconds": 10
+          },
+          "production_runtime_verified": false,
+          "profile_id": "EXPECTED_1X",
+          "real_load_generated": false,
+          "status": "PASS",
+          "swap_used_mib": 0
+        },
+        "id": "S04P04-PROFILE-EXPECTED_1X",
+        "passed": true
+      },
+      {
+        "detail": {
+          "browser_sessions": 20,
+          "candidate_shadow_shed": true,
+          "disk_horizon": {
+            "core_stop_day": null,
+            "core_writes_allowed_at_end": true,
+            "disk_exhausted": false,
+            "final_used_mib": 32396,
+            "free_mib": 8564,
+            "hard_capacity_mib": 40960,
+            "horizon_days": 365,
+            "initial_used_mib": 10496,
+            "minimum_free_reserve_preserved": true,
+            "optional_shed_day": null,
+            "optional_writes_allowed_at_end": false,
+            "production_disk_written": false
+          },
+          "post_shed_disposition": {
+            "actions": [
+              "KEEP_FIXED_RESOURCE_CAPS",
+              "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+            ],
+            "capacity_admission_allowed": true,
+            "effective_live_recommendation_enabled": false,
+            "external_state_changed": false,
+            "new_advice_capacity_allowed": true,
+            "new_browser_sessions_allowed": true,
+            "optional_writes_allowed": true,
+            "production_state_changed": false,
+            "reasons": [
+              "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+            ],
+            "schema_version": "1.0.0",
+            "state": "NORMAL"
+          },
+          "post_shed_metrics": {
+            "browser_sessions": 20,
+            "cpu_usage_basis_points": 6750,
+            "disk_used_mib": 10496,
+            "memory_usage_basis_points": 6875,
+            "swap_used_mib": 0,
+            "telemetry_age_seconds": 10
+          },
+          "pre_shed_disposition": {
+            "actions": [
+              "STOP_CANDIDATE_SHADOW_FIRST",
+              "PAUSE_BACKFILL_AND_OPTIONAL_REPLAY",
+              "PAUSE_OPTIONAL_GMAIL_INGESTION",
+              "REJECT_NEW_BROWSER_SESSIONS",
+              "KEEP_LEDGER_AND_INTEGRITY_WRITES"
+            ],
+            "capacity_admission_allowed": true,
+            "effective_live_recommendation_enabled": false,
+            "external_state_changed": false,
+            "new_advice_capacity_allowed": true,
+            "new_browser_sessions_allowed": false,
+            "optional_writes_allowed": false,
+            "production_state_changed": false,
+            "reasons": [
+              "CONSTRAINED_RESOURCE_THRESHOLD"
+            ],
+            "schema_version": "1.0.0",
+            "state": "CONSTRAINED"
+          },
+          "pre_shed_metrics": {
+            "browser_sessions": 20,
+            "cpu_usage_basis_points": 7500,
+            "disk_used_mib": 10496,
+            "memory_usage_basis_points": 7813,
+            "swap_used_mib": 0,
+            "telemetry_age_seconds": 10
+          },
+          "production_runtime_verified": false,
+          "profile_id": "FROZEN_10X",
+          "real_load_generated": false,
+          "status": "PASS",
+          "swap_used_mib": 0
+        },
+        "id": "S04P04-PROFILE-FROZEN_10X",
+        "passed": true
+      },
+      {
+        "detail": {
+          "browser_sessions": 20,
+          "candidate_shadow_shed": true,
+          "disk_horizon": {
+            "core_stop_day": null,
+            "core_writes_allowed_at_end": true,
+            "disk_exhausted": false,
+            "final_used_mib": 32396,
+            "free_mib": 8564,
+            "hard_capacity_mib": 40960,
+            "horizon_days": 365,
+            "initial_used_mib": 10496,
+            "minimum_free_reserve_preserved": true,
+            "optional_shed_day": null,
+            "optional_writes_allowed_at_end": false,
+            "production_disk_written": false
+          },
+          "post_shed_disposition": {
+            "actions": [
+              "KEEP_FIXED_RESOURCE_CAPS",
+              "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+            ],
+            "capacity_admission_allowed": true,
+            "effective_live_recommendation_enabled": false,
+            "external_state_changed": false,
+            "new_advice_capacity_allowed": true,
+            "new_browser_sessions_allowed": true,
+            "optional_writes_allowed": true,
+            "production_state_changed": false,
+            "reasons": [
+              "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+            ],
+            "schema_version": "1.0.0",
+            "state": "NORMAL"
+          },
+          "post_shed_metrics": {
+            "browser_sessions": 20,
+            "cpu_usage_basis_points": 6750,
+            "disk_used_mib": 10496,
+            "memory_usage_basis_points": 6875,
+            "swap_used_mib": 0,
+            "telemetry_age_seconds": 10
+          },
+          "pre_shed_disposition": {
+            "actions": [
+              "STOP_CANDIDATE_SHADOW_FIRST",
+              "PAUSE_BACKFILL_AND_OPTIONAL_REPLAY",
+              "PAUSE_OPTIONAL_GMAIL_INGESTION",
+              "REJECT_NEW_BROWSER_SESSIONS",
+              "KEEP_LEDGER_AND_INTEGRITY_WRITES"
+            ],
+            "capacity_admission_allowed": true,
+            "effective_live_recommendation_enabled": false,
+            "external_state_changed": false,
+            "new_advice_capacity_allowed": true,
+            "new_browser_sessions_allowed": false,
+            "optional_writes_allowed": false,
+            "production_state_changed": false,
+            "reasons": [
+              "CONSTRAINED_RESOURCE_THRESHOLD"
+            ],
+            "schema_version": "1.0.0",
+            "state": "CONSTRAINED"
+          },
+          "pre_shed_metrics": {
+            "browser_sessions": 20,
+            "cpu_usage_basis_points": 7500,
+            "disk_used_mib": 10496,
+            "memory_usage_basis_points": 7813,
+            "swap_used_mib": 0,
+            "telemetry_age_seconds": 10
+          },
+          "production_runtime_verified": false,
+          "profile_id": "FROZEN_10X",
+          "real_load_generated": false,
+          "status": "PASS",
+          "swap_used_mib": 0
+        },
+        "id": "S04P04-10X-CANDIDATE-SHED-FIRST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "core_stop_day": null,
+          "core_writes_allowed_at_end": true,
+          "disk_exhausted": false,
+          "final_used_mib": 32396,
+          "free_mib": 8564,
+          "hard_capacity_mib": 40960,
+          "horizon_days": 365,
+          "initial_used_mib": 10496,
+          "minimum_free_reserve_preserved": true,
+          "optional_shed_day": null,
+          "optional_writes_allowed_at_end": false,
+          "production_disk_written": false
+        },
+        "id": "S04P04-10X-DISK-RESERVE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": false,
+          "delta": "-0.0001"
+        },
+        "id": "S04P04-NUMERIC-NEG0_0001-BASE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": true,
+          "delta": "-0.0001"
+        },
+        "id": "S04P04-NUMERIC-NEG0_0001-ADVERSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": false,
+          "delta": "0"
+        },
+        "id": "S04P04-NUMERIC-0-BASE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": true,
+          "delta": "0"
+        },
+        "id": "S04P04-NUMERIC-0-ADVERSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": false,
+          "delta": "0.0001"
+        },
+        "id": "S04P04-NUMERIC-0_0001-BASE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": true,
+          "delta": "0.0001"
+        },
+        "id": "S04P04-NUMERIC-0_0001-ADVERSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cap_drop": [
+            "ALL"
+          ],
+          "cpus": "1.50",
+          "environment": {
+            "ABD_CONFIG_FILE": "/etc/abd/config.json",
+            "ABD_ORDER_SUBMISSION_ENABLED": "false",
+            "ABD_RUNTIME_SECRET_FILE": "/run/secrets/abd_runtime"
+          },
+          "image": "${ABD_IMAGE:?ABD_IMAGE must be pinned by sha256 digest}",
+          "init": true,
+          "labels": {
+            "com.linze.abd.order-submission": "disabled",
+            "com.linze.abd.phase": "S04-P01",
+            "com.linze.abd.product-version": "0.0.0.1"
+          },
+          "logging": {
+            "driver": "local",
+            "options": {
+              "max-file": "3",
+              "max-size": "10m"
+            }
+          },
+          "mem_limit": "2560m",
+          "mem_reservation": "1024m",
+          "memswap_limit": "2560m",
+          "networks": [
+            "abd_internal"
+          ],
+          "pids_limit": 512,
+          "ports": [
+            {
+              "host_ip": "127.0.0.1",
+              "protocol": "tcp",
+              "published": "${ABD_BIND_PORT:-8080}",
+              "target": 8080
+            }
+          ],
+          "pull_policy": "never",
+          "read_only": true,
+          "restart": "unless-stopped",
+          "secrets": [
+            {
+              "source": "abd_runtime_secret",
+              "target": "abd_runtime"
+            }
+          ],
+          "security_opt": [
+            "no-new-privileges:true"
+          ],
+          "tmpfs": [
+            "/tmp:rw,noexec,nosuid,nodev,size=64m"
+          ],
+          "user": "${ABD_RUNTIME_UID_GID:?ABD_RUNTIME_UID_GID is required}",
+          "volumes": [
+            {
+              "bind": {
+                "create_host_path": false
+              },
+              "read_only": true,
+              "source": "${ABD_CONFIG_FILE:-/etc/abd/config.json}",
+              "target": "/etc/abd/config.json",
+              "type": "bind"
+            },
+            {
+              "bind": {
+                "create_host_path": false
+              },
+              "read_only": false,
+              "source": "${ABD_STATE_DIR:-/var/lib/abd}",
+              "target": "/var/lib/abd",
+              "type": "bind"
+            },
+            {
+              "bind": {
+                "create_host_path": false
+              },
+              "read_only": false,
+              "source": "${ABD_LOG_DIR:-/var/log/abd}",
+              "target": "/var/log/abd",
+              "type": "bind"
+            }
+          ]
+        },
+        "id": "S04P04-P01-CGROUP-CONSISTENCY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "candidate_shadow_access": "READ_ONLY",
+          "integrity_failure_action": "STOP_NEW_ADVICE_AND_ROLL_BACK",
+          "outside_release_slots": true,
+          "paths": [
+            "/var/lib/abd/ledger",
+            "/var/lib/abd/evidence",
+            "/var/lib/abd/mail",
+            "/var/lib/abd/outbox",
+            "/var/lib/abd/checkpoints"
+          ],
+          "post_switch_requirements": [
+            "VERIFY_LEDGER_WATERMARK_NOT_DECREASED",
+            "VERIFY_NO_DUPLICATE_LEDGER_EVENT_IDS",
+            "VERIFY_HASH_CHAIN",
+            "KEEP_OLD_SLOT_IMMUTABLE_UNTIL_RELEASE_SETTLES"
+          ],
+          "pre_switch_requirements": [
+            "STOP_NEW_ADVICE",
+            "INVALIDATE_UNEXPIRED_ADVICE",
+            "DRAIN_OR_CHECKPOINT_WRITER",
+            "CAPTURE_LEDGER_WATERMARK",
+            "VERIFY_LEDGER_AND_EVIDENCE_HASH_CHAIN",
+            "VERIFY_PREVIOUS_RELEASE_MANIFEST"
+          ],
+          "root": "/var/lib/abd",
+          "single_writer_during_cutover": true,
+          "slot_specific_copy_forbidden": true
+        },
+        "id": "S04P04-P03-DUAL-SLOT-CONSISTENCY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "default_enabled": false,
+          "enable_requires": [
+            "SIGNED_BROWSER_ARTIFACT",
+            "CURRENT_PAGE_FIELD_MATCH_VERIFIED",
+            "ORDER_SUBMISSION_CAPABILITY_ABSENT"
+          ],
+          "id": "owner_browser_companion",
+          "repository_enabled": false,
+          "rollback_value": false,
+          "unknown_state_enabled": false
+        },
+        "id": "S04P04-P03-FLAGS-REMAIN-DISABLED",
+        "passed": true
+      },
+      {
+        "detail": "all frozen numeric values use integers or decimal strings",
+        "id": "S04P04-NO-BINARY-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index": [],
+          "present": []
+        },
+        "id": "S04P04-STAGE-REVIEW-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S04P04-NO-SECRET-OR-LOCAL-PATH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "product": {
+            "id": "ABD",
+            "incremental_cash_budget_aud": "0.00",
+            "initial_bankroll_aud": "300.00",
+            "language": "zh-CN",
+            "monthly_target_return": "0.30",
+            "name_zh": "全天候投注决策辅助系统",
+            "owner": "单一账户持有人",
+            "primary_goal": "在不降低证据、风险、安全与合规门槛的前提下，分析全部可观察市场并追求 A$300×1.3^n 的月度滚动复利目标。",
+            "status": "FINAL_ACCEPTANCE_DELIVERY",
+            "target_curve": "B_n = 300 * (1.3 ** n)",
+            "version": "0.0.0.1"
+          },
+          "runtime": {
+            "availability_slo": "0.995",
+            "deployment": "SAME_HOST_BLUE_GREEN_WITH_CANARY_AND_AUTO_ROLLBACK",
+            "llm_in_money_critical_path": false,
+            "operator_clients": [
+              "手机浏览器",
+              "电脑浏览器"
+            ],
+            "primary": "OVH_SINGAPORE_VPS1_24X7",
+            "remote_access": "CLOUDFLARE_ACCESS_AND_NAMED_TUNNEL",
+            "single_host_zero_downtime_guaranteed": false
+          },
+          "target": {
+            "falsification_gate": [
+              "至少6个完整自然月",
+              "至少1000个独立等效信号",
+              "月收益率的95%上界仍低于30%"
+            ],
+            "formula": "B_n = 300 * 1.3^n",
+            "guaranteed": false,
+            "monthly_log_growth": "0.26236426446749106",
+            "monthly_return": "0.30",
+            "plausible_gate": [
+              "保守月度对数增长中位数 >= ln(1.3)",
+              "月度对数增长第5百分位 > 0",
+              "按来源、平台限额、机会数量和相关性校正后的容量通过"
+            ],
+            "shadow_min_days": 90,
+            "shadow_min_independent_equivalent_signals": 1000,
+            "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+            "verification_gate": [
+              "至少12个完整自然月",
+              "按现金流调整后的月度几何收益 >= 30%",
+              "证据完整",
+              "未解决对账差异为0"
+            ]
+          }
+        },
+        "id": "S04P04-CANONICAL-A300-A0-NO-ORDER-NO-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 165
+        },
+        "id": "S04P04-TARGETED-PYTEST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 3861
+        },
+        "id": "S04P04-FULL-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 847
+        },
+        "id": "S04P04-SIGNED-STATE-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S04P04-TASKPACK-49-PASS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ABD S00/P03 PAID DEPENDENCY SCAN",
+          "STATUS: PASS",
+          "FIXED_CLOCK: 2026-07-19T00:00:00+10:00",
+          "MAX_INCREMENTAL_CASH_AUD: 0.00",
+          "DEPENDENCY_MANIFESTS: 2",
+          "RUNTIME_DIRECT_DEPENDENCIES: 0",
+          "LOCKED_REGISTRY_PACKAGES: 12",
+          "PAID_OR_UNKNOWN_DEPENDENCIES: 0",
+          "EXTERNAL_NETWORK_ACCESS_PERFORMED: false",
+          "EXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false"
+        ],
+        "id": "S04P04-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S04-P04",
+    "decision": "CAPACITY_RESOURCE_GOVERNANCE_CONTRACT_FROZEN",
+    "external_effect_boundary": {
+      "cloudflare_changed": false,
+      "docker_or_systemd_invoked": false,
+      "incremental_cash_spent_aud": "0.00",
+      "network_accessed": false,
+      "ovh_account_or_host_accessed": false,
+      "production_activated": false,
+      "real_order_submitted": false,
+      "real_traffic_generated": false,
+      "return_or_roi_verified": false,
+      "swap_or_disk_configuration_changed": false,
+      "target_host_telemetry_read": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-22T23:30:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "capacity_budget.json": "b3c76e22683fc45deb5bb59ae7867ae7886800e93232ea4a99dc567ea70daaa2",
+      "load_baseline.json": "395135bfd165c37700c2f4e41a14691dbd06d0d59e9b358b437a7ee38adbe695",
+      "machine/evidence/EVD-S04-P03.json": "a83dd53611d45af498ea1f70a7363aa3666021057a13c2b661abe89ca0bec1e7",
+      "machine/evidence/EVD-S04-P03_rollback.json": "4658549bc64b5097104a0cf72bfc4af48c844eb599709ab8ecec2e4d81ed64b5",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S04/P04/full_regression.xml": "7e1c6b228da6cef234ef1a88ad84462a34f7ccd87d4c6624d14b9cf1d2de94bd",
+      "machine/evidence/S04/P04/pytest.xml": "23634ceff95155ffc362c88f8c8f5587ea27ab42f8480fb52f4068a02f09a06a",
+      "machine/evidence/S04/P04/signed_state_regression.xml": "6e502096d142df3b4cb961575cfd1f06bb9a669477644fda0ccc6984dc94e819",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/release_policy.json": "c1e9b0dfb263d4a5bcef9630b71ddf4b69836d07ace28ad978691c0b8be59c6b",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S04_P04.json": "10736c964ccf145e5cb391e25e26041233ee71abf7f004feec2742195d2aaa3e",
+      "resource_shedding.json": "c79a8d5e86852dcb7611268e57301c59210d11db9ae5fdef6e127da605a6c5e6",
+      "tests/S04/P04_test.py": "de127a154696d51b46818c684b88a8d649e679490a5dbd8839ca395a5fd79d6d"
+    },
+    "next": "S04/STAGE_REVIEW_READY_NOT_STARTED",
+    "pass_gate_interpretation": "OFFLINE_INTEGER_365_DAY_FROZEN_10X_DESIGN_ENVELOPE_AVOIDS_SWAP_AND_DISK_EXHAUSTION_BY_BOUNDED_SHEDDING; OVH_RUNTIME_CAPACITY_REMAINS_UNVERIFIED",
+    "phase_id": "P04",
+    "phase_status": "S04_P04_PASS",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "release_status": "NOT_READY_S04_WHOLE_STAGE_REVIEW_REQUIRED",
+    "requirement_id": "REQ-S04-P04",
+    "runtime_capacity_status": "NOT_MEASURED_OR_VERIFIED_ON_OVH",
+    "schema_version": "1.0.0",
+    "stage_id": "S04",
+    "status": "PASS",
+    "summary": {
+      "checks": 75,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 75
+    }
+  }
+}
