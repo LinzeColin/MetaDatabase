@@ -34,7 +34,8 @@
 - `S03 整体复审` 已冻结并解决 5 条 findings：失败指引无障碍顺序、建议/不建议与 49 个失败面的单一阶段重放、十秒结构门声明边界、后续演进下的不可变历史回执重放，以及 GitHub 双 run 暴露的 S02 前序复审门不识别已签名 S03 整体后继；独立 Oracle 60/60、定向测试 184/184、全回归 3340/3340、TaskPack 49/49、付费依赖扫描与 12/12 回滚均为 `PASS`；S03 四个 Phase 未单独上传，整体已通过 GitHub PR #69 合并到 `main`，两条 main CI 成功记录、A$0 交付门和离线 Git 历史已固化为不可变交付收据，因此才允许进入 `S04/P01`；
 - `S03/P01` 至整体复审没有新增网络调研、访问平台或云账户、调用 API、clone/安装候选、执行模型、部署生产、提供真实下单能力或花费新增现金；A$300 本金、A$0 新增现金与用户唯一完成最终下单的边界保持不变，30% 月度滚动复利目标仍为待证伪、未验证且不保证的目标；
 - `S04/P01` 已实现任务包唯一要求的基础设施即代码面：`infra/compose.yml`、`infra/systemd/abd.service`、`infra/config.schema.json` 与 `infra/rebuild.sh`。一条命令可从外部配置确定性生成公开部署 bundle；镜像必须使用 SHA-256 digest、禁止本 Phase build/pull，容器固定非 root、只读根目录、移除 capabilities、禁止提权、限制 CPU/内存/PID、仅监听 `127.0.0.1`，秘密只以宿主机文件路径引用且不读取、不写入仓库；候选 Oracle 61/61、定向测试 91/91、全回归 3431/3431 均为 `PASS`；
-- `S04/P01` 只交付离线可重建合同，不等于已部署或 7×24 运行。本 Phase 未调用 Docker Engine 或 systemd，未访问 OVH 账户/主机、未验证目标容量、未构建或拉取镜像、未读取秘密、未配置 Cloudflare、未开放业务公网入口、未激活生产、未提交订单，也未验证收益；Cloudflare 全球中文访问属于 `S04/P02`，蓝绿激活属于 `S04/P03`，两者均保持 `PLANNED / NOT_STARTED`；
+- `S04/P01` 只交付离线可重建合同，不等于已部署或 7×24 运行；其不可变签名证据现由 Phase commit 历史回放验证。`S04/P02` 已在此基础上实现 `infra/cloudflared.yml`、`access_policy.md` 与 `degraded_page.html`：Named Tunnel 模板只指向 `127.0.0.1:8080`，指标只绑定 loopback，入口以拒绝式 404 catch-all 结束；Access 合同默认拒绝，只允许唯一账户持有人的精确外部身份并强制后续验证 MFA，禁止 Everyone、通配邮箱域、Bypass 与 Service Auth；中文静态降级页会停止新建议并使旧建议失效；
+- `S04/P02` 的 77/77 离线 Oracle、110/110 定向测试、3541/3541 全量回归、TaskPack 49/49、A$0 依赖扫描和 6/6 回滚均已通过。该 PASS 只证明“无需开放 OVH 业务入站端口”的配置合同与确定性回放，不证明真实可访问、7×24 或生产已上线：本 Phase 未访问 Cloudflare/OVH 账户、API、Dashboard、DNS 或主机，未创建或运行 Tunnel，未应用 Access 策略，未读取秘密，也未激活生产、提交订单或验证收益；普通全球中文页面不构成中国大陆境内加速、可用性或可达性保证，China Network 的 Enterprise 单独订阅与 ICP 前置不属于 A$0；`S04/P03` 仍为 `PLANNED / NOT_STARTED`；
 - `S01/P01` 至 `S01/P04` 只冻结客户体验、疑问、需求、范围、指标、经济和证伪合同，不证明产品已实现、部署、接入账户或验证收益；四个中间 Phase 均未单独上传 GitHub；
 - `S00/P02` 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
 - `S00/P03` 只证明当前声明依赖的 ABD 新增现金成本为 A$0、付费接口不在关键路径；既有 OVH/账户总成本、外部能力与免费额度余量仍未知；
@@ -56,16 +57,16 @@ uv run --frozen --python 3.12 python -m abd_acceptance --contract STAGE-REVIEW-S
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 
-当前 `S04/P01` 的验证与签署命令：
+当前 `S04/P02` 的验证与签署命令：
 
 ```bash
 uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
 uv run --frozen --python 3.12 python machine/tools/validate_pack.py
-uv run --frozen --python 3.12 python -m pytest -q tests/S04/P01_test.py --junitxml=machine/evidence/S04/P01/pytest.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S04/P01/pytest.xml
-uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S04/P01/full_regression.xml
-uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S04/P01/full_regression.xml
-uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S04-P01 --evidence machine/evidence
+uv run --frozen --python 3.12 python -m pytest -q tests/S04/P02_test.py --junitxml=machine/evidence/S04/P02/pytest.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S04/P02/pytest.xml
+uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S04/P02/full_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S04/P02/full_regression.xml
+uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S04-P02 --evidence machine/evidence
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 

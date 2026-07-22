@@ -63,7 +63,7 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S03-STAGE-REVIEW_rollback.js
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "e727c16555eb741d18fe1c13238748f7b25a96d9556d30b48c134069e721bf7d"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "f92baad31ae5e5971f915e208d3adca76761cab8e22622ce4737c005dfa58112"
 STAGE_REVIEW_COMMIT = "4168321dee17540bdba5763271694f78b33e3c42"
 PINNED_STAGE_REVIEW_CODE_HASH = "18431889da80b66a6f6c35375859793bee2d811ce14228cec80f69f880902b93"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -77,12 +77,12 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "abd_acceptance/__init__.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "README.md": "f91f296f892cf19e002c75765805ec478f242e05c66a5ab8dee6176cc17cbc26",
+    "README.md": "48d52787eaad33a68e6dc67e86796f8a74058b6d3b42397068c06f300b78186a",
     "tests/S03/stage_review_test.py": "4a140a8848b2990873c1e568588336d05d24311ce966ed3ed627ac9d7c3e4b5d",
-    "abd_acceptance/usability_accessibility.py": "69daa4137bba258e3bb517002ebb90402132dbbfa7e2b2d50ee67617dbc3a9b2",
-    "abd_acceptance/reason_next_action.py": "e2dfe6ea400640e8a9a86227bd7e16b5eb40bf09d37302a18988f31df8aee569",
-    "abd_acceptance/advice_card.py": "9c837a0e787425beebbf096741e313199370f00c6630a48becde615a18fa03b3",
-    "abd_acceptance/__main__.py": "bd6c8452099c408358b89734e9d785f92384a3d63a06bd800e8a06b83cb65124",
+    "abd_acceptance/usability_accessibility.py": "e5941256c9c6540d0e583fb81923a90bcf3e421985bbffd6dd383c72b4b04035",
+    "abd_acceptance/reason_next_action.py": "3f5a259d392c85340d3aa43de9c145763ad4ca81ef725c33455e55206b59a05c",
+    "abd_acceptance/advice_card.py": "5098719843dd5edecf773dbaea50736a284acc01d9789a223465fbdb9c66a7bf",
+    "abd_acceptance/__main__.py": "d9b0c869020daa4fa0a6c71c1386f623d52611d1a9e8923aee89a8f4facccabb",
     "abd_acceptance/__init__.py": "2b394b3fd25d68c920031d01e17da4c39cfafd80a4c27933c8ebe5a6d794e562",
 }
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {

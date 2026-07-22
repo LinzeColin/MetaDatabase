@@ -28,6 +28,7 @@ from abd_acceptance.infrastructure_iac import (
     SCAN_REPORT_PATH,
     SCHEMA_PATH,
     STRUCTURAL_SELF_NORMALIZED_SHA256,
+    SUCCESSOR_UNIT_PROFILE_HASHES,
     SYSTEMD_PATH,
     TEST_PATH,
     _set_path,
@@ -107,7 +108,8 @@ def test_stage3_github_delivery_is_exact_start_prerequisite() -> None:
 
 @pytest.mark.parametrize("relative", sorted(PINNED_PHASE_HASHES))
 def test_phase_artifact_hash_matches_pin(relative: str) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_PHASE_HASHES[relative]
+    actual = sha256_file(ROOT / relative)
+    assert actual == PINNED_PHASE_HASHES[relative] or actual == SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
 
 
 @pytest.mark.parametrize("relative", sorted(PINNED_BASELINE_HASHES))
@@ -373,22 +375,41 @@ def test_stage3_delivery_receipt_mutations_fail_closed(tmp_path: Path, path: lis
     _failed(verify_stage3_delivery(root, verify_git_history=False), check_id)
 
 
-def test_p02_and_later_infrastructure_work_is_not_started() -> None:
-    forbidden = [
+def test_p02_candidate_or_signed_successor_is_exact_and_p03_is_not_started() -> None:
+    candidate = [
         Path("infra/cloudflared.yml"),
         Path("access_policy.md"),
         Path("degraded_page.html"),
         Path("tests/S04/P02_test.py"),
         Path("machine/tests/fixtures/S04_P02.json"),
+        Path("abd_acceptance/cloudflare_edge.py"),
+    ]
+    signed = [
         Path("machine/evidence/EVD-S04-P02.json"),
         Path("machine/evidence/EVD-S04-P02_rollback.json"),
     ]
-    assert not [path.as_posix() for path in forbidden if (ROOT / path).exists()]
+    assert all((ROOT / path).is_file() for path in candidate)
+    assert len([path for path in signed if (ROOT / path).exists()]) in {0, 2}
     rows = [json.loads(line) for line in (ROOT / "machine/evidence/evidence_index.jsonl").read_text(encoding="utf-8-sig").splitlines() if line]
     p02 = [row for row in rows if row["id"] == "INDEX-AC-S04-P02"]
     assert len(p02) == 1
-    assert p02[0]["status"] == "PLANNED"
-    assert "actual_artifact" not in p02[0]
+    assert p02[0]["status"] in {"PLANNED", "PASS"}
+    if p02[0]["status"] == "PLANNED":
+        assert not [path for path in signed if (ROOT / path).exists()]
+        assert "actual_artifact" not in p02[0]
+    else:
+        assert all((ROOT / path).is_file() for path in signed)
+        assert p02[0]["actual_artifact"] == "machine/evidence/EVD-S04-P02.json"
+        assert p02[0]["next"] == "S04/P03_READY_NOT_STARTED"
+    p03_forbidden = [
+        Path("release_slots.json"), Path("feature_flags.json"), Path("rollback.sh"),
+        Path("tests/S04/P03_test.py"), Path("machine/tests/fixtures/S04_P03.json"),
+        Path("machine/evidence/EVD-S04-P03.json"), Path("machine/evidence/EVD-S04-P03_rollback.json"),
+    ]
+    assert not [path.as_posix() for path in p03_forbidden if (ROOT / path).exists()]
+    p03 = [row for row in rows if row["id"] == "INDEX-AC-S04-P03"]
+    assert len(p03) == 1 and p03[0]["status"] == "PLANNED"
+    assert "actual_artifact" not in p03[0]
 
 
 def test_source_receipts_are_official_current_and_portable() -> None:
