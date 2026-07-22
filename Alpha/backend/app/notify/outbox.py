@@ -52,6 +52,7 @@ _EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
     "PAPER_3DAY_REPORT": ("三日模拟盘考核报告", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
     "DASHBOARD_UPGRADED": ("看盘页升级上线", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
     "FUNDING_NOTICE": ("实盘启动前需要你入金", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "STRATEGY_DECISION": ("策略证据与你的三个选项", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
 }
 
 
