@@ -78,7 +78,7 @@ PINNED_BASELINE_HASHES = {
     "machine/facts/risk_register.json": "6f50e159f000ac4a1c714d08cff239e524a58c679cd77c05d7b4944a7b602888",
     "machine/facts/email_ingestion.json": "7d40a142a482b5179aa6bb11fa0694fa5576a770f0b2a5af751615da3dea53cd",
 }
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "6d5dbd522541d9a20fd0e0b342155b66f5c3e9c4a1702e4c6abe86be6c7e4b68"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "ea52f91cfd9339e079113da7ee568c375d39ed915ba0944c9022128ee9ce8133"
 
 PHASE_COMMIT = "86f268310e24eeab10639c6c36cbfcec544f9c74"
 PINNED_PHASE_CODE_HASH = "eba903e5593fcc5aebfb1432ec8b8f3614680d1898fc5e101e4a9de07fd564b2"
@@ -92,11 +92,11 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S03/P03_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES = {
-    "README.md": "3f4f955b62dc02901dfb4ef24f4503b940566e1ada692c76ed29545cf50c4ccc",
-    "abd_acceptance/advice_card.py": "12160edde0940ecf51ae54ef23b763bce4480b1c5d97dacecec6fecc716acf3d",
+    "README.md": "f91f296f892cf19e002c75765805ec478f242e05c66a5ab8dee6176cc17cbc26",
+    "abd_acceptance/advice_card.py": "9c837a0e787425beebbf096741e313199370f00c6630a48becde615a18fa03b3",
     "abd_acceptance/terminology_governance.py": "d51ae252e7d28addfa7097a2f4ccb5ba2f017ec0745a0eee4e0971fd744beded",
-    "abd_acceptance/__main__.py": "8b71ed0e39e933f0017314e848a3201a52d8e1631a36d9e568c3e35bbd9d032e",
-    "abd_acceptance/__init__.py": "4178e5b2561fcf21af2cb71a95adf6f6a0b3a67f01a88bab81868110965e19b8",
+    "abd_acceptance/__main__.py": "bd6c8452099c408358b89734e9d785f92384a3d63a06bd800e8a06b83cb65124",
+    "abd_acceptance/__init__.py": "2b394b3fd25d68c920031d01e17da4c39cfafd80a4c27933c8ebe5a6d794e562",
     "tests/S03/P03_test.py": "39bbb785926ae83dc84768d83b28ad2c21d3acbed05c588284b2d1682a639f71",
 }
 

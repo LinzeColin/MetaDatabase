@@ -179,6 +179,19 @@ from .stage3_review import (
     verify_existing_stage_review_evidence as verify_stage3_review_evidence,
     write_stage3_review_evidence,
 )
+from .stage3_delivery import verify_stage3_delivery
+from .infrastructure_iac import (
+    InfrastructureContractError,
+    activation_gate,
+    build_evidence as build_infrastructure_iac_evidence,
+    evaluate_contract as evaluate_infrastructure_iac_contract,
+    parse_systemd_unit,
+    perform_rollback_drill as perform_infrastructure_iac_rollback_drill,
+    rebuild_bundle,
+    validate_config as validate_infrastructure_config,
+    verify_existing_phase_evidence as verify_infrastructure_iac_evidence,
+    write_phase_evidence as write_infrastructure_iac_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -317,4 +330,15 @@ __all__ = [
     "validate_stage3_review_candidate",
     "verify_stage3_review_evidence",
     "write_stage3_review_evidence",
+    "verify_stage3_delivery",
+    "InfrastructureContractError",
+    "activation_gate",
+    "build_infrastructure_iac_evidence",
+    "evaluate_infrastructure_iac_contract",
+    "parse_systemd_unit",
+    "perform_infrastructure_iac_rollback_drill",
+    "rebuild_bundle",
+    "validate_infrastructure_config",
+    "verify_infrastructure_iac_evidence",
+    "write_infrastructure_iac_phase_evidence",
 ]

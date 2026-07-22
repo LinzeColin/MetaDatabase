@@ -1,0 +1,28 @@
+[Unit]
+Description=ABD 0.0.0.1 analysis and advice stack
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/ABD
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+RequiresMountsFor=/etc/abd /var/lib/abd /var/log/abd /opt/abd/current
+ConditionPathExists=/etc/abd/config.json
+ConditionPathExists=/etc/abd/runtime.env
+ConditionPathExists=/etc/abd/secrets/runtime
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/abd/current
+EnvironmentFile=/etc/abd/runtime.env
+UMask=0077
+ExecStartPre=/opt/abd/current/infra/rebuild.sh check --config /etc/abd/config.json
+ExecStartPre=/usr/bin/docker compose --project-name abd --env-file /etc/abd/runtime.env --file /opt/abd/current/infra/compose.yml config --quiet
+ExecStart=/usr/bin/docker compose --project-name abd --env-file /etc/abd/runtime.env --file /opt/abd/current/infra/compose.yml up --detach --remove-orphans --wait --wait-timeout 120
+ExecReload=/usr/bin/docker compose --project-name abd --env-file /etc/abd/runtime.env --file /opt/abd/current/infra/compose.yml up --detach --remove-orphans --wait --wait-timeout 120
+ExecStop=/usr/bin/docker compose --project-name abd --env-file /etc/abd/runtime.env --file /opt/abd/current/infra/compose.yml stop --timeout 120
+TimeoutStartSec=900
+TimeoutStopSec=180
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

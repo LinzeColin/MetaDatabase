@@ -1,0 +1,226 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "ABD-S04-P01-INFRASTRUCTURE-IAC",
+  "fixed_clock": "2026-07-22T16:00:00+10:00",
+  "expected_requirement_id": "REQ-S04-P01",
+  "expected_contract_id": "AC-S04-P01",
+  "expected_task_ids": [
+    "T-S04-P01-01",
+    "T-S04-P01-02",
+    "T-S04-P01-03"
+  ],
+  "expected_artifacts": {
+    "ART-S04-P01-01": "infra/compose.yml",
+    "ART-S04-P01-02": "infra/systemd",
+    "ART-S04-P01-03": "infra/config.schema.json"
+  },
+  "expected_phase_hashes": {
+    "infra/compose.yml": "f6d75aba62f4efbec14e579a6cdfad76c979376ae4778195a4e0afca756b8b50",
+    "infra/config.schema.json": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+    "infra/systemd/abd.service": "256b30a69ca27f0a3bb566d3ca722d19c0ba00a09d4869ef218d15f5e1cf76bf",
+    "infra/rebuild.sh": "07e38ac597543b184884290985769f177f5a1c05ab76e1a9c426f104f44249cf"
+  },
+  "official_sources": [
+    {
+      "id": "S04P01-SRC-DOCKER-SERVICES",
+      "publisher": "Docker",
+      "url": "https://docs.docker.com/reference/compose-file/services/",
+      "retrieved_at": "2026-07-22",
+      "fact": "Compose services support read_only, pids_limit, mem_limit, explicit secret grants and no-new-privileges security options."
+    },
+    {
+      "id": "S04P01-SRC-DOCKER-UP",
+      "publisher": "Docker",
+      "url": "https://docs.docker.com/reference/cli/docker/compose/up/",
+      "retrieved_at": "2026-07-22",
+      "fact": "docker compose up supports detached reconstruction, orphan removal and waiting for running or healthy services."
+    },
+    {
+      "id": "S04P01-SRC-GITHUB-BILLING",
+      "publisher": "GitHub",
+      "url": "https://docs.github.com/en/actions/concepts/billing-and-usage",
+      "retrieved_at": "2026-07-22",
+      "fact": "Standard GitHub-hosted runners are documented as free for public repositories."
+    }
+  ],
+  "valid_config": {
+    "schema_version": "1.0.0",
+    "product_version": "0.0.0.1",
+    "deployment_id": "abd-s04-p01-fixture",
+    "host": {
+      "provider": "OVHcloud",
+      "region": "Singapore",
+      "plan": "VPS-1",
+      "operating_system": "Ubuntu Linux",
+      "vcpu": 2,
+      "memory_mib": 4096,
+      "disk_gib": 40,
+      "capacity_verification_status": "DECLARED_TARGET_NOT_ACCOUNT_VERIFIED"
+    },
+    "budget": {
+      "incremental_cash_aud": "0.00",
+      "new_instance_allowed": false,
+      "paid_upgrade_allowed": false,
+      "automatic_overage_allowed": false
+    },
+    "image": {
+      "reference": "registry.example.invalid/abd/core@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "pull_policy": "never",
+      "build_or_pull_performed_in_p01": false
+    },
+    "network": {
+      "bind_address": "127.0.0.1",
+      "bind_port": 8080,
+      "public_business_inbound_enabled": false,
+      "cloudflare_tunnel_configured_in_p01": false
+    },
+    "directories": {
+      "config": "/etc/abd",
+      "state": "/var/lib/abd",
+      "logs": "/var/log/abd",
+      "secrets": "/etc/abd/secrets",
+      "releases": "/opt/abd/releases"
+    },
+    "secrets": {
+      "runtime_secret_file": "/etc/abd/secrets/runtime",
+      "inline_secret_values_present": false,
+      "repository_secret_files": []
+    },
+    "runtime": {
+      "uid_gid": "10001:10001",
+      "cpus": "1.50",
+      "memory_limit_mib": 2560,
+      "memory_reservation_mib": 1024,
+      "pids_limit": 512,
+      "read_only_root": true,
+      "no_new_privileges": true,
+      "swap_disabled": true,
+      "order_submission_enabled": false
+    },
+    "runtime_prerequisites": {
+      "target_host_access": "NOT_EXECUTED",
+      "docker_compose": "NOT_EXECUTED",
+      "systemd": "NOT_EXECUTED",
+      "image_availability": "NOT_EXECUTED",
+      "secret_files": "NOT_EXECUTED"
+    },
+    "activation_requested": false
+  },
+  "invalid_mutations": [
+    {
+      "id": "VCPU-BELOW-FLOOR",
+      "path": ["host", "vcpu"],
+      "value": 1
+    },
+    {
+      "id": "MEMORY-BELOW-FLOOR",
+      "path": ["host", "memory_mib"],
+      "value": 4095
+    },
+    {
+      "id": "DISK-BELOW-FLOOR",
+      "path": ["host", "disk_gib"],
+      "value": 39
+    },
+    {
+      "id": "POSITIVE-INCREMENTAL-CASH",
+      "path": ["budget", "incremental_cash_aud"],
+      "value": "0.0001"
+    },
+    {
+      "id": "NEW-INSTANCE",
+      "path": ["budget", "new_instance_allowed"],
+      "value": true
+    },
+    {
+      "id": "UNPINNED-IMAGE",
+      "path": ["image", "reference"],
+      "value": "registry.example.invalid/abd/core:latest"
+    },
+    {
+      "id": "IMAGE-PULL",
+      "path": ["image", "pull_policy"],
+      "value": "always"
+    },
+    {
+      "id": "PUBLIC-BIND",
+      "path": ["network", "bind_address"],
+      "value": "0.0.0.0"
+    },
+    {
+      "id": "PUBLIC-INBOUND",
+      "path": ["network", "public_business_inbound_enabled"],
+      "value": true
+    },
+    {
+      "id": "INLINE-SECRET",
+      "path": ["secrets", "inline_secret_values_present"],
+      "value": true
+    },
+    {
+      "id": "REPOSITORY-SECRET-FILE",
+      "path": ["secrets", "repository_secret_files"],
+      "value": ["secret.txt"]
+    },
+    {
+      "id": "UNSAFE-SECRET-PATH",
+      "path": ["secrets", "runtime_secret_file"],
+      "value": "/tmp/runtime-secret"
+    },
+    {
+      "id": "OVER-MEMORY-BUDGET",
+      "path": ["runtime", "memory_limit_mib"],
+      "value": 3201
+    },
+    {
+      "id": "SWAP-ENABLED",
+      "path": ["runtime", "swap_disabled"],
+      "value": false
+    },
+    {
+      "id": "ORDER-SUBMISSION-ENABLED",
+      "path": ["runtime", "order_submission_enabled"],
+      "value": true
+    },
+    {
+      "id": "ACTIVATION-REQUESTED-IN-P01",
+      "path": ["activation_requested"],
+      "value": true
+    }
+  ],
+  "expected_bundle_files": [
+    "infra/compose.yml",
+    "infra/config.schema.json",
+    "infra/rebuild.sh",
+    "infra/systemd/abd.service",
+    "rebuild_manifest.json",
+    "runtime.env"
+  ],
+  "expected_runtime_env_keys": [
+    "ABD_BIND_PORT",
+    "ABD_CONFIG_FILE",
+    "ABD_IMAGE",
+    "ABD_LOG_DIR",
+    "ABD_RUNTIME_SECRET_FILE",
+    "ABD_RUNTIME_UID_GID",
+    "ABD_STATE_DIR"
+  ],
+  "expected_activation_gate": "BLOCKED_RUNTIME_PREREQUISITES_NOT_VERIFIED",
+  "expected_external_effect_boundary": {
+    "network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "docker_engine_invoked": false,
+    "systemd_invoked": false,
+    "container_image_built_or_pulled": false,
+    "secret_value_read_or_stored": false,
+    "cloudflare_configured": false,
+    "production_activated": false,
+    "real_order_submitted": false,
+    "return_or_roi_verified": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "expected_next": "S04/P02_READY_NOT_STARTED",
+  "minimum_oracle_checks": 45,
+  "minimum_targeted_pytest_cases": 45,
+  "minimum_full_pytest_cases": 3340
+}

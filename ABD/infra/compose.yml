@@ -1,0 +1,100 @@
+{
+  "name": "abd",
+  "services": {
+    "abd-core": {
+      "image": "${ABD_IMAGE:?ABD_IMAGE must be pinned by sha256 digest}",
+      "pull_policy": "never",
+      "user": "${ABD_RUNTIME_UID_GID:?ABD_RUNTIME_UID_GID is required}",
+      "restart": "unless-stopped",
+      "init": true,
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pids_limit": 512,
+      "cpus": "1.50",
+      "mem_limit": "2560m",
+      "mem_reservation": "1024m",
+      "memswap_limit": "2560m",
+      "ports": [
+        {
+          "target": 8080,
+          "published": "${ABD_BIND_PORT:-8080}",
+          "host_ip": "127.0.0.1",
+          "protocol": "tcp"
+        }
+      ],
+      "environment": {
+        "ABD_CONFIG_FILE": "/etc/abd/config.json",
+        "ABD_ORDER_SUBMISSION_ENABLED": "false",
+        "ABD_RUNTIME_SECRET_FILE": "/run/secrets/abd_runtime"
+      },
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "${ABD_CONFIG_FILE:-/etc/abd/config.json}",
+          "target": "/etc/abd/config.json",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        },
+        {
+          "type": "bind",
+          "source": "${ABD_STATE_DIR:-/var/lib/abd}",
+          "target": "/var/lib/abd",
+          "read_only": false,
+          "bind": {
+            "create_host_path": false
+          }
+        },
+        {
+          "type": "bind",
+          "source": "${ABD_LOG_DIR:-/var/log/abd}",
+          "target": "/var/log/abd",
+          "read_only": false,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ],
+      "secrets": [
+        {
+          "source": "abd_runtime_secret",
+          "target": "abd_runtime"
+        }
+      ],
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,nodev,size=64m"
+      ],
+      "networks": [
+        "abd_internal"
+      ],
+      "logging": {
+        "driver": "local",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "labels": {
+        "com.linze.abd.order-submission": "disabled",
+        "com.linze.abd.phase": "S04-P01",
+        "com.linze.abd.product-version": "0.0.0.1"
+      }
+    }
+  },
+  "networks": {
+    "abd_internal": {
+      "driver": "bridge"
+    }
+  },
+  "secrets": {
+    "abd_runtime_secret": {
+      "file": "${ABD_RUNTIME_SECRET_FILE:?host runtime secret file is required}"
+    }
+  }
+}

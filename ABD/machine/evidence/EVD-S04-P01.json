@@ -1,0 +1,1142 @@
+{
+  "artifacts": {
+    "ART-S04-P01-01": "infra/compose.yml",
+    "ART-S04-P01-02": "infra/systemd",
+    "ART-S04-P01-03": "infra/config.schema.json"
+  },
+  "contract_id": "AC-S04-P01",
+  "decision": "INFRASTRUCTURE_IAC_REBUILD_CONTRACT_FROZEN",
+  "decision_sha256": "db5516578c78fbfa6bc0a51c771cc8915b523ddc02345fa444ec282dea1d05ce",
+  "evidence_id": "EVD-S04-P01",
+  "external_effect_boundary": {
+    "cloudflare_configured": false,
+    "container_image_built_or_pulled": false,
+    "docker_engine_invoked": false,
+    "incremental_cash_spent_aud": "0.00",
+    "network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "production_activated": false,
+    "real_order_submitted": false,
+    "return_or_roi_verified": false,
+    "secret_value_read_or_stored": false,
+    "systemd_invoked": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-22T16:00:00+10:00",
+  "hashes": {
+    "code": "1255629d805986ee3c79dc0dc7d2223b63424a671d901bf05098d6b4d6f295c3",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/infrastructure_iac.py": "705ced1f592af8852a93c92ea59d34599aaa8d659f8d34ee92e996e704076729",
+      "abd_acceptance/stage3_delivery.py": "4fc1a73192108f224685029dc774bd600388e407beedf530358d2ace90f278c8",
+      "infra/compose.yml": "f6d75aba62f4efbec14e579a6cdfad76c979376ae4778195a4e0afca756b8b50",
+      "infra/config.schema.json": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+      "infra/rebuild.sh": "07e38ac597543b184884290985769f177f5a1c05ab76e1a9c426f104f44249cf",
+      "infra/systemd/abd.service": "256b30a69ca27f0a3bb566d3ca722d19c0ba00a09d4869ef218d15f5e1cf76bf",
+      "machine/evidence/EVD-S03-STAGE-REVIEW.json": "f636457a578723a5c98799bf4450754d331291fa29444c453630c5d0b81aea21",
+      "machine/evidence/EVD-S03-STAGE-REVIEW_rollback.json": "41111279b9a900947cd6b09df182028909887fad145d19d3719f638749422451",
+      "machine/evidence/S03/STAGE_REVIEW/github_delivery_receipt.json": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S04_P01.json": "877ee84b749f0140ac090da4c4045bdb9db3f95fc85eff27a7ed9f9d9fe34529",
+      "tests/S04/P01_test.py": "792b4434c4f792fb61e68843f1d4d70f20aab53eee3a4301e7f7dcf7ca0ffb21"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S04/P01 builds and replays infrastructure configuration offline; it executes no model, provider, host, container engine, order or return evaluation.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "438b0f42396afd8ab399d46b588d470453eca2ea20bda6bee83a6f9acc84ce34"
+  },
+  "next": "S04/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "phase_status": "S04_P01_PASS",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "rebuild_proof": {
+    "activation_gate": "BLOCKED_RUNTIME_PREREQUISITES_NOT_VERIFIED",
+    "mode": "DETERMINISTIC_OFFLINE_PUBLIC_BUNDLE_MATERIALIZATION",
+    "one_command_entrypoint": "infra/rebuild.sh rebuild --config <external-config.json> --destination <new-empty-directory>",
+    "production_activation_performed": false
+  },
+  "release_status": "NOT_READY_S04_P02_TO_P04_AND_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S04-P01",
+  "schema_version": "1.0.0",
+  "scope_boundary": {
+    "container_image_not_built_or_pulled": true,
+    "p01_delivers_iac_not_runtime_activation": true,
+    "p02_cloudflare_not_started": true,
+    "p03_blue_green_activation_not_started": true,
+    "systemd_and_docker_runtime_not_executed": true,
+    "target_host_capacity_not_account_verified": true
+  },
+  "stage_id": "S04",
+  "status": "PASS",
+  "validation": {
+    "activation_gate": "BLOCKED_RUNTIME_PREREQUISITES_NOT_VERIFIED",
+    "checks": [
+      {
+        "detail": "S04_P01.json",
+        "id": "S04P01-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "config.schema.json",
+        "id": "S04P01-SCHEMA-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "compose.yml",
+        "id": "S04P01-COMPOSE-STRICT-JSON-YAML-SUBSET",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f6d75aba62f4efbec14e579a6cdfad76c979376ae4778195a4e0afca756b8b50",
+          "expected": "f6d75aba62f4efbec14e579a6cdfad76c979376ae4778195a4e0afca756b8b50"
+        },
+        "id": "S04P01-PIN-INFRA-COMPOSE-YML",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+          "expected": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da"
+        },
+        "id": "S04P01-PIN-INFRA-CONFIG-SCHEMA-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "256b30a69ca27f0a3bb566d3ca722d19c0ba00a09d4869ef218d15f5e1cf76bf",
+          "expected": "256b30a69ca27f0a3bb566d3ca722d19c0ba00a09d4869ef218d15f5e1cf76bf"
+        },
+        "id": "S04P01-PIN-INFRA-SYSTEMD-ABD-SERVICE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "07e38ac597543b184884290985769f177f5a1c05ab76e1a9c426f104f44249cf",
+          "expected": "07e38ac597543b184884290985769f177f5a1c05ab76e1a9c426f104f44249cf"
+        },
+        "id": "S04P01-PIN-INFRA-REBUILD-SH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "877ee84b749f0140ac090da4c4045bdb9db3f95fc85eff27a7ed9f9d9fe34529",
+          "expected": "877ee84b749f0140ac090da4c4045bdb9db3f95fc85eff27a7ed9f9d9fe34529"
+        },
+        "id": "S04P01-PIN-MACHINE-TESTS-FIXTURES-S04_P01-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "792b4434c4f792fb61e68843f1d4d70f20aab53eee3a4301e7f7dcf7ca0ffb21",
+          "expected": "792b4434c4f792fb61e68843f1d4d70f20aab53eee3a4301e7f7dcf7ca0ffb21"
+        },
+        "id": "S04P01-PIN-TESTS-S04-P01_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "8093bea18a47706f9996b91fa8977d1ebfe3526737165ff7f8ddebccf45d71a3",
+          "expected": "8093bea18a47706f9996b91fa8977d1ebfe3526737165ff7f8ddebccf45d71a3"
+        },
+        "id": "S04P01-ORACLE-SELF-INTEGRITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S04P01-BASELINE-MACHINE-FACTS-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S04P01-BASELINE-MACHINE-FACTS-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S04P01-BASELINE-MACHINE-FACTS-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S04P01-BASELINE-MACHINE-FACTS-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S04P01-BASELINE-MACHINE-FACTS-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S04P01-BASELINE-MACHINE-FACTS-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S04P01-BASELINE-MACHINE-FACTS-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S04P01-BASELINE-MACHINE-FACTS-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f636457a578723a5c98799bf4450754d331291fa29444c453630c5d0b81aea21",
+          "expected": "f636457a578723a5c98799bf4450754d331291fa29444c453630c5d0b81aea21"
+        },
+        "id": "S04P01-BASELINE-MACHINE-EVIDENCE-EVD-S03-STAGE-REVIEW-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "41111279b9a900947cd6b09df182028909887fad145d19d3719f638749422451",
+          "expected": "41111279b9a900947cd6b09df182028909887fad145d19d3719f638749422451"
+        },
+        "id": "S04P01-BASELINE-MACHINE-EVIDENCE-EVD-S03-STAGE-REVIEW_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0",
+          "expected": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0"
+        },
+        "id": "S04P01-BASELINE-MACHINE-EVIDENCE-S03-STAGE_REVIEW-GITHUB_DELIVERY_RECEIPT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4fc1a73192108f224685029dc774bd600388e407beedf530358d2ace90f278c8",
+          "expected": "4fc1a73192108f224685029dc774bd600388e407beedf530358d2ace90f278c8"
+        },
+        "id": "S04P01-BASELINE-ABD_ACCEPTANCE-STAGE3_DELIVERY-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S04P01-REPO--GITHUB-WORKFLOWS-ABD-STAGE0-VALIDATION-YML",
+        "passed": true
+      },
+      {
+        "detail": {
+          "product": {
+            "id": "ABD",
+            "incremental_cash_budget_aud": "0.00",
+            "initial_bankroll_aud": "300.00",
+            "language": "zh-CN",
+            "monthly_target_return": "0.30",
+            "name_zh": "全天候投注决策辅助系统",
+            "owner": "单一账户持有人",
+            "primary_goal": "在不降低证据、风险、安全与合规门槛的前提下，分析全部可观察市场并追求 A$300×1.3^n 的月度滚动复利目标。",
+            "status": "FINAL_ACCEPTANCE_DELIVERY",
+            "target_curve": "B_n = 300 * (1.3 ** n)",
+            "version": "0.0.0.1"
+          },
+          "target": {
+            "falsification_gate": [
+              "至少6个完整自然月",
+              "至少1000个独立等效信号",
+              "月收益率的95%上界仍低于30%"
+            ],
+            "formula": "B_n = 300 * 1.3^n",
+            "guaranteed": false,
+            "monthly_log_growth": "0.26236426446749106",
+            "monthly_return": "0.30",
+            "plausible_gate": [
+              "保守月度对数增长中位数 >= ln(1.3)",
+              "月度对数增长第5百分位 > 0",
+              "按来源、平台限额、机会数量和相关性校正后的容量通过"
+            ],
+            "shadow_min_days": 90,
+            "shadow_min_independent_equivalent_signals": 1000,
+            "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+            "verification_gate": [
+              "至少12个完整自然月",
+              "按现金流调整后的月度几何收益 >= 30%",
+              "证据完整",
+              "未解决对账差异为0"
+            ]
+          }
+        },
+        "id": "S04P01-A300-A0-NO-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "fact": "Compose services support read_only, pids_limit, mem_limit, explicit secret grants and no-new-privileges security options.",
+            "id": "S04P01-SRC-DOCKER-SERVICES",
+            "publisher": "Docker",
+            "retrieved_at": "2026-07-22",
+            "url": "https://docs.docker.com/reference/compose-file/services/"
+          },
+          {
+            "fact": "docker compose up supports detached reconstruction, orphan removal and waiting for running or healthy services.",
+            "id": "S04P01-SRC-DOCKER-UP",
+            "publisher": "Docker",
+            "retrieved_at": "2026-07-22",
+            "url": "https://docs.docker.com/reference/cli/docker/compose/up/"
+          },
+          {
+            "fact": "Standard GitHub-hosted runners are documented as free for public repositories.",
+            "id": "S04P01-SRC-GITHUB-BILLING",
+            "publisher": "GitHub",
+            "retrieved_at": "2026-07-22",
+            "url": "https://docs.github.com/en/actions/concepts/billing-and-usage"
+          }
+        ],
+        "id": "S04P01-OFFICIAL-SOURCE-RECEIPTS",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "baseline": "未实现或旧包存在冲突/缺口",
+            "id": "REQ-S04-P01",
+            "measurement": "由 AC-S04-P01 的机器验收判定器执行固定输入、阈值和证据检查。",
+            "non_goals": [
+              "不自动提交、确认或重试真实订单",
+              "不以降低证据或风险门追赶30%月目标",
+              "不引入付费数据或付费程序接口依赖"
+            ],
+            "observation_period": "开发期每次提交；上线后持续",
+            "owner_input_required_during_development": false,
+            "phase_id": "P01",
+            "primary_acceptance_criteria_id": "AC-S04-P01",
+            "priority": "P0",
+            "problem": "若未完成“基础设施即代码”，在VPS-1资源和A$0新增预算内实现全天候分析、全球中文访问和可恢复发布。将缺少可执行、可验收或可恢复的基础。",
+            "scope": [
+              "infra/compose.yml",
+              "infra/systemd",
+              "infra/config.schema.json"
+            ],
+            "stage_id": "S04",
+            "target": "一条命令可重建，秘密不进入仓库。",
+            "title": "基础设施即代码",
+            "user": "单一账户持有人及自动开发/运维代理",
+            "value": "声明OVH主机、系统服务、容器、目录、秘密和资源限制。"
+          }
+        ],
+        "id": "S04P01-REQUIREMENT-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "environment": [
+              "Ubuntu Linux 持续集成环境",
+              "固定时钟",
+              "冻结测试夹具",
+              "无外部网络的确定性测试模式",
+              "生产等价配置Schema"
+            ],
+            "evidence_requirements": [
+              "machine/evidence/EVD-S04-P01.json",
+              "测试报告及命令退出码",
+              "输入、参数、代码、模型和输出SHA-256",
+              "失败路径截图或结构化日志",
+              "回滚演练记录"
+            ],
+            "id": "AC-S04-P01",
+            "inputs": [
+              "REQ-S04-P01 对应机器事实",
+              "S04/P01 冻结正向、边界、负向和故障输入",
+              "参数版本和来源版本哈希"
+            ],
+            "oracle": {
+              "command": "python -m abd_acceptance --contract AC-S04-P01 --evidence machine/evidence",
+              "rule": "一条命令可重建，秘密不进入仓库。",
+              "type": "EXECUTABLE"
+            },
+            "pass_gate": "一条命令可重建，秘密不进入仓库。",
+            "requirement_id": "REQ-S04-P01",
+            "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+            "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+            "stop_condition": [
+              "发现法律、监管或来源合同实质冲突且无安全默认",
+              "需要不可逆操作",
+              "新增现金支出将超过A$0",
+              "严重安全事故或证据完整性失败",
+              "阶段终止条件被触发"
+            ],
+            "tests": [
+              {
+                "id": "TEST-S04-P01",
+                "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+              },
+              {
+                "id": "TEST-S04-P01-BOUNDARY",
+                "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+              },
+              {
+                "id": "TEST-S04-P01-REPLAY",
+                "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+              }
+            ],
+            "threshold": "一条命令可重建，秘密不进入仓库。",
+            "title": "基础设施即代码唯一主验收"
+          }
+        ],
+        "id": "S04P01-ACCEPTANCE-CONTRACT-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_criteria_ids": [
+              "AC-S04-P01"
+            ],
+            "auto_advance_on_pass": true,
+            "confidence": "0.80",
+            "depends_on": [
+              "T-S00-P04-03",
+              "T-S01-P04-03"
+            ],
+            "environment": [
+              "Ubuntu Linux",
+              "Python 3.12",
+              "固定时钟与冻结随机种子",
+              "测试夹具不访问真实账户或提交订单"
+            ],
+            "evidence": [
+              "machine/evidence/EVD-S04-P01.json",
+              "测试命令、退出码、时间戳和SHA-256",
+              "输入/输出/参数/代码/模型版本"
+            ],
+            "hours": {
+              "high": 2.0,
+              "likely": 1.5,
+              "low": 1.0
+            },
+            "id": "T-S04-P01-01",
+            "inputs": [
+              "machine/facts/canonical_facts.json",
+              "machine/facts/parameters.json",
+              "requirement:REQ-S04-P01",
+              "acceptance_contract:AC-S04-P01",
+              "所有依赖任务的已签名输出和证据"
+            ],
+            "objective": "根据机器事实实现或生成“基础设施即代码”核心制品。",
+            "oracle": {
+              "contract_id": "AC-S04-P01",
+              "expected": "一条命令可重建，秘密不进入仓库。",
+              "mode": "DETERMINISTIC_FAIL_CLOSED"
+            },
+            "outputs": [
+              "infra/compose.yml",
+              "infra/systemd",
+              "infra/config.schema.json"
+            ],
+            "owner_input_required": false,
+            "pass_gate": "一条命令可重建，秘密不进入仓库。",
+            "phase_id": "P01",
+            "requirement_ids": [
+              "REQ-S04-P01"
+            ],
+            "risks": [
+              "旧事实与新真源冲突",
+              "测试只覆盖正常路径",
+              "外部来源变化",
+              "数值边界或时间边界引起动作翻转"
+            ],
+            "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+            "stage_id": "S04",
+            "stop_condition": [
+              "发现法律、监管或来源合同实质冲突且无安全默认",
+              "需要不可逆操作",
+              "新增现金支出将超过A$0",
+              "严重安全事故或证据完整性失败",
+              "阶段终止条件被触发"
+            ],
+            "tests": [
+              "pytest -q tests/S04/P01_test.py",
+              "python -m abd_acceptance --contract AC-S04-P01",
+              "python machine/tools/validate_pack.py"
+            ],
+            "threshold": "一条命令可重建，秘密不进入仓库。",
+            "title": "实现｜基础设施即代码",
+            "verification": "独立验收进程读取冻结输入和制品，不信任任务自报结果。"
+          },
+          {
+            "acceptance_criteria_ids": [
+              "AC-S04-P01"
+            ],
+            "auto_advance_on_pass": true,
+            "confidence": "0.80",
+            "depends_on": [
+              "T-S04-P01-01"
+            ],
+            "environment": [
+              "Ubuntu Linux",
+              "Python 3.12",
+              "固定时钟与冻结随机种子",
+              "测试夹具不访问真实账户或提交订单"
+            ],
+            "evidence": [
+              "machine/evidence/EVD-S04-P01.json",
+              "测试命令、退出码、时间戳和SHA-256",
+              "输入/输出/参数/代码/模型版本"
+            ],
+            "hours": {
+              "high": 2.0,
+              "likely": 1.5,
+              "low": 1.0
+            },
+            "id": "T-S04-P01-02",
+            "inputs": [
+              "machine/facts/canonical_facts.json",
+              "machine/facts/parameters.json",
+              "requirement:REQ-S04-P01",
+              "acceptance_contract:AC-S04-P01",
+              "所有依赖任务的已签名输出和证据"
+            ],
+            "objective": "建立“基础设施即代码”正向、边界、负向、故障和万分之一稳定性测试。",
+            "oracle": {
+              "contract_id": "AC-S04-P01",
+              "expected": "一条命令可重建，秘密不进入仓库。",
+              "mode": "DETERMINISTIC_FAIL_CLOSED"
+            },
+            "outputs": [
+              "tests/S04/P01_test.py",
+              "machine/tests/fixtures/S04_P01.json"
+            ],
+            "owner_input_required": false,
+            "pass_gate": "一条命令可重建，秘密不进入仓库。",
+            "phase_id": "P01",
+            "requirement_ids": [
+              "REQ-S04-P01"
+            ],
+            "risks": [
+              "旧事实与新真源冲突",
+              "测试只覆盖正常路径",
+              "外部来源变化",
+              "数值边界或时间边界引起动作翻转"
+            ],
+            "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+            "stage_id": "S04",
+            "stop_condition": [
+              "发现法律、监管或来源合同实质冲突且无安全默认",
+              "需要不可逆操作",
+              "新增现金支出将超过A$0",
+              "严重安全事故或证据完整性失败",
+              "阶段终止条件被触发"
+            ],
+            "tests": [
+              "pytest -q tests/S04/P01_test.py",
+              "python -m abd_acceptance --contract AC-S04-P01",
+              "python machine/tools/validate_pack.py"
+            ],
+            "threshold": "一条命令可重建，秘密不进入仓库。",
+            "title": "验证｜基础设施即代码",
+            "verification": "独立验收进程读取冻结输入和制品，不信任任务自报结果。"
+          },
+          {
+            "acceptance_criteria_ids": [
+              "AC-S04-P01"
+            ],
+            "auto_advance_on_pass": true,
+            "confidence": "0.80",
+            "depends_on": [
+              "T-S04-P01-02"
+            ],
+            "environment": [
+              "Ubuntu Linux",
+              "Python 3.12",
+              "固定时钟与冻结随机种子",
+              "测试夹具不访问真实账户或提交订单"
+            ],
+            "evidence": [
+              "machine/evidence/EVD-S04-P01.json",
+              "测试命令、退出码、时间戳和SHA-256",
+              "输入/输出/参数/代码/模型版本"
+            ],
+            "hours": {
+              "high": 2.0,
+              "likely": 1.0,
+              "low": 1.0
+            },
+            "id": "T-S04-P01-03",
+            "inputs": [
+              "machine/facts/canonical_facts.json",
+              "machine/facts/parameters.json",
+              "requirement:REQ-S04-P01",
+              "acceptance_contract:AC-S04-P01",
+              "所有依赖任务的已签名输出和证据"
+            ],
+            "objective": "执行验收、固化证据、验证回滚，并只在通过后开放后继任务。",
+            "oracle": {
+              "contract_id": "AC-S04-P01",
+              "expected": "一条命令可重建，秘密不进入仓库。",
+              "mode": "DETERMINISTIC_FAIL_CLOSED"
+            },
+            "outputs": [
+              "machine/evidence/EVD-S04-P01.json",
+              "machine/evidence/EVD-S04-P01_rollback.json"
+            ],
+            "owner_input_required": false,
+            "pass_gate": "一条命令可重建，秘密不进入仓库。",
+            "phase_id": "P01",
+            "requirement_ids": [
+              "REQ-S04-P01"
+            ],
+            "risks": [
+              "旧事实与新真源冲突",
+              "测试只覆盖正常路径",
+              "外部来源变化",
+              "数值边界或时间边界引起动作翻转"
+            ],
+            "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+            "stage_id": "S04",
+            "stop_condition": [
+              "发现法律、监管或来源合同实质冲突且无安全默认",
+              "需要不可逆操作",
+              "新增现金支出将超过A$0",
+              "严重安全事故或证据完整性失败",
+              "阶段终止条件被触发"
+            ],
+            "tests": [
+              "pytest -q tests/S04/P01_test.py",
+              "python -m abd_acceptance --contract AC-S04-P01",
+              "python machine/tools/validate_pack.py"
+            ],
+            "threshold": "一条命令可重建，秘密不进入仓库。",
+            "title": "证据与通过门｜基础设施即代码",
+            "verification": "独立验收进程读取冻结输入和制品，不信任任务自报结果。"
+          }
+        ],
+        "id": "S04P01-TASK-CHAIN-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_criteria_id": "AC-S04-P01",
+            "artifact_ids": [
+              "ART-S04-P01-01",
+              "ART-S04-P01-02",
+              "ART-S04-P01-03"
+            ],
+            "evidence_id": "EVD-S04-P01",
+            "phase_id": "P01",
+            "requirement_id": "REQ-S04-P01",
+            "stage_id": "S04",
+            "task_ids": [
+              "T-S04-P01-01",
+              "T-S04-P01-02",
+              "T-S04-P01-03"
+            ],
+            "test_ids": [
+              "TEST-S04-P01",
+              "TEST-S04-P01-BOUNDARY",
+              "TEST-S04-P01-REPLAY"
+            ]
+          }
+        ],
+        "id": "S04P01-TRACEABILITY-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "hours": {
+              "high": 6,
+              "likely": 4,
+              "low": 3
+            },
+            "id": "P01",
+            "objective": "声明OVH主机、系统服务、容器、目录、秘密和资源限制。",
+            "outputs": [
+              "infra/compose.yml",
+              "infra/systemd",
+              "infra/config.schema.json"
+            ],
+            "pass_gate": "一条命令可重建，秘密不进入仓库。",
+            "title": "基础设施即代码"
+          }
+        ],
+        "id": "S04P01-ROADMAP-PHASE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 18,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 18
+        },
+        "id": "S04P01-S03-DELIVERY-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": "https://json-schema.org/draft/2020-12/schema",
+        "id": "S04P01-CONFIG-SCHEMA-META-VALID",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04P01-CONFIG-VALID-FIXTURE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ACTIVATION-REQUESTED-IN-P01": true,
+          "DISK-BELOW-FLOOR": true,
+          "IMAGE-PULL": true,
+          "INLINE-SECRET": true,
+          "MEMORY-BELOW-FLOOR": true,
+          "NEW-INSTANCE": true,
+          "ORDER-SUBMISSION-ENABLED": true,
+          "OVER-MEMORY-BUDGET": true,
+          "POSITIVE-INCREMENTAL-CASH": true,
+          "PUBLIC-BIND": true,
+          "PUBLIC-INBOUND": true,
+          "REPOSITORY-SECRET-FILE": true,
+          "SWAP-ENABLED": true,
+          "UNPINNED-IMAGE": true,
+          "UNSAFE-SECRET-PATH": true,
+          "VCPU-BELOW-FLOOR": true
+        },
+        "id": "S04P01-CONFIG-ALL-FAULTS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "decimal and resource boundaries are serialized without binary floats",
+        "id": "S04P01-CONFIG-NO-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "abd-core"
+        ],
+        "id": "S04P01-COMPOSE-SERVICE-SET",
+        "passed": true
+      },
+      {
+        "detail": {
+          "image": "${ABD_IMAGE:?ABD_IMAGE must be pinned by sha256 digest}",
+          "pull": "never"
+        },
+        "id": "S04P01-COMPOSE-DIGEST-INPUT-REQUIRED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cpus": "1.50",
+          "mem_limit": "2560m",
+          "mem_reservation": "1024m",
+          "memswap_limit": "2560m",
+          "pids_limit": 512
+        },
+        "id": "S04P01-COMPOSE-RESOURCE-LIMITS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cap_drop": [
+            "ALL"
+          ],
+          "init": true,
+          "privileged": null,
+          "read_only": true,
+          "security_opt": [
+            "no-new-privileges:true"
+          ],
+          "user": "${ABD_RUNTIME_UID_GID:?ABD_RUNTIME_UID_GID is required}"
+        },
+        "id": "S04P01-COMPOSE-HARDENING",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "host_ip": "127.0.0.1",
+            "protocol": "tcp",
+            "published": "${ABD_BIND_PORT:-8080}",
+            "target": 8080
+          }
+        ],
+        "id": "S04P01-COMPOSE-LOOPBACK-ONLY",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "bind": {
+              "create_host_path": false
+            },
+            "read_only": true,
+            "source": "${ABD_CONFIG_FILE:-/etc/abd/config.json}",
+            "target": "/etc/abd/config.json",
+            "type": "bind"
+          },
+          {
+            "bind": {
+              "create_host_path": false
+            },
+            "read_only": false,
+            "source": "${ABD_STATE_DIR:-/var/lib/abd}",
+            "target": "/var/lib/abd",
+            "type": "bind"
+          },
+          {
+            "bind": {
+              "create_host_path": false
+            },
+            "read_only": false,
+            "source": "${ABD_LOG_DIR:-/var/log/abd}",
+            "target": "/var/log/abd",
+            "type": "bind"
+          }
+        ],
+        "id": "S04P01-COMPOSE-DIRECTORY-BINDS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "service": [
+            {
+              "source": "abd_runtime_secret",
+              "target": "abd_runtime"
+            }
+          ],
+          "top": {
+            "abd_runtime_secret": {
+              "file": "${ABD_RUNTIME_SECRET_FILE:?host runtime secret file is required}"
+            }
+          }
+        },
+        "id": "S04P01-COMPOSE-SECRET-FILE-REFERENCE-ONLY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ABD_CONFIG_FILE": "/etc/abd/config.json",
+          "ABD_ORDER_SUBMISSION_ENABLED": "false",
+          "ABD_RUNTIME_SECRET_FILE": "/run/secrets/abd_runtime"
+        },
+        "id": "S04P01-COMPOSE-NO-ORDER-CAPABILITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "driver": "local",
+          "options": {
+            "max-file": "3",
+            "max-size": "10m"
+          }
+        },
+        "id": "S04P01-COMPOSE-BOUNDED-LOGGING",
+        "passed": true
+      },
+      {
+        "detail": [
+          "Install",
+          "Service",
+          "Unit"
+        ],
+        "id": "S04P01-SYSTEMD-STRICT-PARSE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "Install",
+          "Service",
+          "Unit"
+        ],
+        "id": "S04P01-SYSTEMD-SECTIONS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "/etc/abd/config.json",
+          "/etc/abd/runtime.env",
+          "/etc/abd/secrets/runtime"
+        ],
+        "id": "S04P01-SYSTEMD-PREREQUISITE-PATHS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "/opt/abd/current/infra/rebuild.sh check --config /etc/abd/config.json",
+          "/usr/bin/docker compose --project-name abd --env-file /etc/abd/runtime.env --file /opt/abd/current/infra/compose.yml config --quiet"
+        ],
+        "id": "S04P01-SYSTEMD-PREFLIGHT-CHAIN",
+        "passed": true
+      },
+      {
+        "detail": [
+          "/usr/bin/docker compose --project-name abd --env-file /etc/abd/runtime.env --file /opt/abd/current/infra/compose.yml up --detach --remove-orphans --wait --wait-timeout 120"
+        ],
+        "id": "S04P01-SYSTEMD-REBUILD-COMMAND",
+        "passed": true
+      },
+      {
+        "detail": {
+          "EnvironmentFile": [
+            "/etc/abd/runtime.env"
+          ],
+          "NoNewPrivileges": [
+            "true"
+          ],
+          "UMask": [
+            "0077"
+          ]
+        },
+        "id": "S04P01-SYSTEMD-HARDENING",
+        "passed": true
+      },
+      {
+        "detail": "no inline secret assignments",
+        "id": "S04P01-SYSTEMD-NO-INLINE-SECRET",
+        "passed": true
+      },
+      {
+        "detail": "infra/rebuild.sh",
+        "id": "S04P01-ONE-COMMAND-ENTRYPOINT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "infra/compose.yml",
+          "infra/config.schema.json",
+          "infra/rebuild.sh",
+          "infra/systemd/abd.service",
+          "rebuild_manifest.json",
+          "runtime.env"
+        ],
+        "id": "S04P01-REBUILD-FILE-SET-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "first": "4da5e3addcd927b24a8c9f83f4bce2124b05bbcef0c164508b46b860d131ff73",
+          "second": "4da5e3addcd927b24a8c9f83f4bce2124b05bbcef0c164508b46b860d131ff73"
+        },
+        "id": "S04P01-REBUILD-DETERMINISTIC",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ABD_BIND_PORT",
+          "ABD_CONFIG_FILE",
+          "ABD_IMAGE",
+          "ABD_LOG_DIR",
+          "ABD_RUNTIME_SECRET_FILE",
+          "ABD_RUNTIME_UID_GID",
+          "ABD_STATE_DIR"
+        ],
+        "id": "S04P01-REBUILD-RUNTIME-ENV-KEYS",
+        "passed": true
+      },
+      {
+        "detail": true,
+        "id": "S04P01-REBUILD-SECRET-REFERENCE-ONLY",
+        "passed": true
+      },
+      {
+        "detail": "BLOCKED_RUNTIME_PREREQUISITES_NOT_VERIFIED",
+        "id": "S04P01-REBUILD-ACTIVATION-BLOCKED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index": [
+            {
+              "acceptance_contract_id": "AC-S04-P02",
+              "expected_artifact": "machine/evidence/EVD-S04-P02.json",
+              "id": "INDEX-AC-S04-P02",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "OVH无需公开业务入站端口即可访问。",
+              "requirement_id": "REQ-S04-P02",
+              "status": "PLANNED"
+            }
+          ],
+          "present": []
+        },
+        "id": "S04P01-P02-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S04P01-NO-SECRET-OR-LOCAL-PATH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cloudflare_configured": false,
+          "container_image_built_or_pulled": false,
+          "docker_engine_invoked": false,
+          "incremental_cash_spent_aud": "0.00",
+          "network_accessed": false,
+          "ovh_account_or_host_accessed": false,
+          "production_activated": false,
+          "real_order_submitted": false,
+          "return_or_roi_verified": false,
+          "secret_value_read_or_stored": false,
+          "systemd_invoked": false
+        },
+        "id": "S04P01-EXTERNAL-EFFECT-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": "BLOCKED_RUNTIME_PREREQUISITES_NOT_VERIFIED",
+        "id": "S04P01-ACTIVATION-GATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 91
+        },
+        "id": "S04P01-TARGETED-PYTEST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 3431
+        },
+        "id": "S04P01-FULL-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S04P01-TASKPACK-49-PASS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ABD S00/P03 PAID DEPENDENCY SCAN",
+          "STATUS: PASS",
+          "FIXED_CLOCK: 2026-07-19T00:00:00+10:00",
+          "MAX_INCREMENTAL_CASH_AUD: 0.00",
+          "DEPENDENCY_MANIFESTS: 2",
+          "RUNTIME_DIRECT_DEPENDENCIES: 0",
+          "LOCKED_REGISTRY_PACKAGES: 12",
+          "PAID_OR_UNKNOWN_DEPENDENCIES: 0",
+          "EXTERNAL_NETWORK_ACCESS_PERFORMED: false",
+          "EXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false"
+        ],
+        "id": "S04P01-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S04-P01",
+    "decision": "INFRASTRUCTURE_IAC_REBUILD_CONTRACT_FROZEN",
+    "external_effect_boundary": {
+      "cloudflare_configured": false,
+      "container_image_built_or_pulled": false,
+      "docker_engine_invoked": false,
+      "incremental_cash_spent_aud": "0.00",
+      "network_accessed": false,
+      "ovh_account_or_host_accessed": false,
+      "production_activated": false,
+      "real_order_submitted": false,
+      "return_or_roi_verified": false,
+      "secret_value_read_or_stored": false,
+      "systemd_invoked": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-22T16:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/infrastructure_iac.py": "705ced1f592af8852a93c92ea59d34599aaa8d659f8d34ee92e996e704076729",
+      "abd_acceptance/stage3_delivery.py": "4fc1a73192108f224685029dc774bd600388e407beedf530358d2ace90f278c8",
+      "infra/compose.yml": "f6d75aba62f4efbec14e579a6cdfad76c979376ae4778195a4e0afca756b8b50",
+      "infra/config.schema.json": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+      "infra/rebuild.sh": "07e38ac597543b184884290985769f177f5a1c05ab76e1a9c426f104f44249cf",
+      "infra/systemd/abd.service": "256b30a69ca27f0a3bb566d3ca722d19c0ba00a09d4869ef218d15f5e1cf76bf",
+      "machine/evidence/EVD-S03-STAGE-REVIEW.json": "f636457a578723a5c98799bf4450754d331291fa29444c453630c5d0b81aea21",
+      "machine/evidence/EVD-S03-STAGE-REVIEW_rollback.json": "41111279b9a900947cd6b09df182028909887fad145d19d3719f638749422451",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S03/STAGE_REVIEW/github_delivery_receipt.json": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0",
+      "machine/evidence/S04/P01/full_regression.xml": "1b588f15b7b8bf7abd4e285e5211e0c2794ab9c4ae3ba29d1466570b14988506",
+      "machine/evidence/S04/P01/pytest.xml": "d20f7909c8b9e006a4d9cab521744e5125f9fa2584f6278cd9db78ff14810925",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S04_P01.json": "877ee84b749f0140ac090da4c4045bdb9db3f95fc85eff27a7ed9f9d9fe34529",
+      "tests/S04/P01_test.py": "792b4434c4f792fb61e68843f1d4d70f20aab53eee3a4301e7f7dcf7ca0ffb21"
+    },
+    "next": "S04/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "phase_status": "S04_P01_PASS",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "release_status": "NOT_READY_S04_P02_TO_P04_AND_STAGE_REVIEW_REQUIRED",
+    "requirement_id": "REQ-S04-P01",
+    "schema_version": "1.0.0",
+    "stage_id": "S04",
+    "status": "PASS",
+    "summary": {
+      "checks": 65,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 65
+    }
+  }
+}
