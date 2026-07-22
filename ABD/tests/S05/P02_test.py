@@ -29,6 +29,7 @@ from abd_acceptance.source_capabilities import (
     ROLLBACK_EVIDENCE_PATH,
     SOURCE_CAPABILITIES_PATH,
     STRUCTURAL_SELF_NORMALIZED_SHA256,
+    SUCCESSOR_UNIT_PROFILE_HASHES,
     SourceCapabilityContractError,
     _structural_self_hash,
     build_evidence,
@@ -110,7 +111,8 @@ def test_signed_p01_is_exact_phase_prerequisite() -> None:
 
 @pytest.mark.parametrize("relative", sorted(PINNED_PHASE_HASHES))
 def test_phase_artifact_hash_matches_pin(relative: str) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_PHASE_HASHES[relative]
+    actual = sha256_file(ROOT / relative)
+    assert actual == PINNED_PHASE_HASHES[relative] or actual == SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
 
 
 @pytest.mark.parametrize("relative", sorted(PINNED_BASELINE_HASHES))
@@ -319,18 +321,18 @@ def test_claim_boundary_mutation_fails_closed(tmp_path: Path) -> None:
     _failed(evaluate_contract(root), "S05P02-CAPABILITY-CLAIM-BOUNDARY")
 
 
-def test_p03_remains_planned_and_unstarted() -> None:
+def test_p03_progression_accepts_only_a_complete_verified_successor() -> None:
     result = evaluate_contract(ROOT)
-    check = next(row for row in result["checks"] if row["id"] == "S05P02-P03-NOT-STARTED")
+    check = next(row for row in result["checks"] if row["id"] == "S05P02-P03-PROGRESSION")
     assert check["passed"] is True, check
-    assert check["detail"]["present"] == []
-    assert check["detail"]["index"][0]["status"] == "PLANNED"
+    assert check["detail"]["mode"] in {"VERIFIED_S05_P03_CANDIDATE", "VERIFIED_S05_P03_SIGNED"}
+    assert len(check["detail"]["candidate_present"]) == 6
 
 
 def test_partial_p03_candidate_fails_closed(tmp_path: Path) -> None:
     root = _clone_project(tmp_path)
-    (root / "scheduler.py").write_text("# partial and invalid\n", encoding="utf-8")
-    _failed(evaluate_contract(root), "S05P02-P03-NOT-STARTED")
+    (root / "cadence_tests.json").unlink()
+    _failed(evaluate_contract(root), "S05P02-P03-PROGRESSION")
 
 
 def test_evidence_build_is_deterministic_without_external_reports() -> None:
@@ -438,4 +440,3 @@ def test_canonical_financial_order_and_target_boundaries_are_unchanged() -> None
     assert parameters["target_30pct"]["guaranteed"] is False
     assert parameters["target_30pct"]["shortfall_behavior"] == "REPORT_ONLY_NO_GATE_RELAXATION"
     assert set(costs["incremental_cash_budget"].values()) == {"0.00"}
-

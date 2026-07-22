@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S05-P03-03",
+  "requirement_id": "REQ-S05-P03",
+  "acceptance_contract_id": "AC-S05-P03",
+  "product_version": "0.0.0.1",
+  "contract_version": "0.0.0.1-S05P03",
+  "fixed_at": "2026-07-23T18:00:00+10:00",
+  "status": "FROZEN_ZERO_REAL_SOURCE_RATE_BUDGET",
+  "authority": {
+    "source_capabilities": {
+      "path": "source_capabilities.json",
+      "sha256": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539"
+    },
+    "provider_contracts": {
+      "path": "provider_contracts.json",
+      "sha256": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6"
+    },
+    "predecessor_evidence": {
+      "path": "machine/evidence/EVD-S05-P02.json",
+      "sha256": "c7594b54822a0292911c696533e199b97f3af3bba4e363149ab35f154388988b"
+    }
+  },
+  "budget_semantics": {
+    "source_specific": true,
+    "missing_or_duplicate_budget_action": "NO_DISPATCH_NO_ADVICE",
+    "zero_or_unknown_budget_action": "NO_DISPATCH_NO_ADVICE",
+    "exhausted_budget_action": "NO_DISPATCH_NO_ADVICE",
+    "source_contract_pass_required": true,
+    "rate_budget_does_not_grant_source_permission": true,
+    "rate_budget_does_not_enable_advice_or_order": true,
+    "all_current_real_capabilities_disabled": true
+  },
+  "backoff_policy": {
+    "algorithm": "DETERMINISTIC_EXPONENTIAL_NO_JITTER",
+    "initial_seconds": 30,
+    "multiplier": 2,
+    "maximum_seconds": 1800,
+    "jitter_seconds": 0,
+    "challenge_action": "STOP_RETRY_AND_SURFACE_GAP",
+    "unknown_failure_action": "STOP_RETRY_AND_SURFACE_GAP"
+  },
+  "capability_budgets": [
+    {"capability_id": "CAP-TAB-PUBLIC_BROWSER", "provider_id": "TAB", "mode": "PUBLIC_BROWSER", "provider_contract_version": "TAB-2026-07-20-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-TAB-FILE_OR_STATIC_DATA", "provider_id": "TAB", "mode": "FILE_OR_STATIC_DATA", "provider_contract_version": "TAB-2026-07-20-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-TAB-FREE_ENDPOINT", "provider_id": "TAB", "mode": "FREE_ENDPOINT", "provider_contract_version": "TAB-2026-07-20-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-TAB-AUTHENTICATED_OBSERVER", "provider_id": "TAB", "mode": "AUTHENTICATED_OBSERVER", "provider_contract_version": "TAB-2026-07-20-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-TAB-OWNER_DEVICE_OVERLAY", "provider_id": "TAB", "mode": "OWNER_DEVICE_OVERLAY", "provider_contract_version": "TAB-2026-07-20-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-SPORTSBET-PUBLIC_BROWSER", "provider_id": "SPORTSBET", "mode": "PUBLIC_BROWSER", "provider_contract_version": "SPORTSBET-2026-07-20-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-SPORTSBET-FILE_OR_STATIC_DATA", "provider_id": "SPORTSBET", "mode": "FILE_OR_STATIC_DATA", "provider_contract_version": "SPORTSBET-2026-07-20-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-SPORTSBET-FREE_ENDPOINT", "provider_id": "SPORTSBET", "mode": "FREE_ENDPOINT", "provider_contract_version": "SPORTSBET-2026-07-20-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-SPORTSBET-AUTHENTICATED_OBSERVER", "provider_id": "SPORTSBET", "mode": "AUTHENTICATED_OBSERVER", "provider_contract_version": "SPORTSBET-2026-07-20-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-SPORTSBET-OWNER_DEVICE_OVERLAY", "provider_id": "SPORTSBET", "mode": "OWNER_DEVICE_OVERLAY", "provider_contract_version": "SPORTSBET-2026-07-20-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-PUBLIC_BROWSER", "provider_id": "OTHER_OBSERVABLE_PROVIDER", "mode": "PUBLIC_BROWSER", "provider_contract_version": "UNBOUND-SOURCE-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FILE_OR_STATIC_DATA", "provider_id": "OTHER_OBSERVABLE_PROVIDER", "mode": "FILE_OR_STATIC_DATA", "provider_contract_version": "UNBOUND-SOURCE-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FREE_ENDPOINT", "provider_id": "OTHER_OBSERVABLE_PROVIDER", "mode": "FREE_ENDPOINT", "provider_contract_version": "UNBOUND-SOURCE-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-AUTHENTICATED_OBSERVER", "provider_id": "OTHER_OBSERVABLE_PROVIDER", "mode": "AUTHENTICATED_OBSERVER", "provider_contract_version": "UNBOUND-SOURCE-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"},
+    {"capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-OWNER_DEVICE_OVERLAY", "provider_id": "OTHER_OBSERVABLE_PROVIDER", "mode": "OWNER_DEVICE_OVERLAY", "provider_contract_version": "UNBOUND-SOURCE-S05P02", "production_collection_enabled": false, "max_dispatches_per_window": 0, "window_seconds": 0, "reason": "P02_CAPABILITY_DISABLED"}
+  ],
+  "frozen_test_only_budget": {
+    "capability_id": "CAP-FROZEN-SYNTHETIC-SCHEDULER",
+    "provider_id": "FROZEN_SYNTHETIC_PROVIDER",
+    "mode": "FILE_OR_STATIC_DATA",
+    "provider_contract_version": "FIXTURE-ONLY-1",
+    "production_collection_enabled": true,
+    "test_fixture_only": true,
+    "max_dispatches_per_window": 120,
+    "window_seconds": 60,
+    "external_action_permitted": false,
+    "reason": "DETERMINISTIC_OFFLINE_TEST_ONLY"
+  },
+  "cost_boundary": {
+    "initial_bankroll_aud": "300.00",
+    "incremental_cash_budget_aud": "0.00",
+    "paid_data_or_api_dependency_allowed": false,
+    "target_shortfall_may_increase_or_bypass_budget": false
+  },
+  "claim_boundary": {
+    "real_provider_rate_verified": false,
+    "real_provider_budget_enabled": false,
+    "real_provider_dispatch_performed": false,
+    "provider_permission_inferred": false,
+    "external_network_accessed": false,
+    "market_data_collected": false,
+    "advice_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed": false,
+    "financial_return_verified_or_guaranteed": false
+  }
+}

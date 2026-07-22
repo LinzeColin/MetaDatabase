@@ -228,6 +228,16 @@ from .source_capabilities import (
     verify_existing_phase_evidence as verify_source_capability_evidence,
     write_phase_evidence as write_source_capability_phase_evidence,
 )
+from .source_scheduler import (
+    SourceSchedulerContractError,
+    build_evidence as build_source_scheduler_evidence,
+    evaluate_contract as evaluate_source_scheduler_contract,
+    perform_rollback_drill as perform_source_scheduler_rollback_drill,
+    validate_candidate_preflight as validate_source_scheduler_candidate,
+    validate_signed_receipt_preflight as validate_source_scheduler_signed_receipt,
+    verify_existing_phase_evidence as verify_source_scheduler_evidence,
+    write_phase_evidence as write_source_scheduler_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -407,4 +417,12 @@ __all__ = [
     "validate_source_capability_signed_receipt",
     "verify_source_capability_evidence",
     "write_source_capability_phase_evidence",
+    "SourceSchedulerContractError",
+    "build_source_scheduler_evidence",
+    "evaluate_source_scheduler_contract",
+    "perform_source_scheduler_rollback_drill",
+    "validate_source_scheduler_candidate",
+    "validate_source_scheduler_signed_receipt",
+    "verify_source_scheduler_evidence",
+    "write_source_scheduler_phase_evidence",
 ]

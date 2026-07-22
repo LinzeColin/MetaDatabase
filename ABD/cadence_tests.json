@@ -1,0 +1,245 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S05-P03-02",
+  "requirement_id": "REQ-S05-P03",
+  "acceptance_contract_id": "AC-S05-P03",
+  "product_version": "0.0.0.1",
+  "contract_version": "0.0.0.1-S05P03",
+  "fixed_at": "2026-07-23T18:00:00+10:00",
+  "status": "FROZEN_OFFLINE_CADENCE_CONTRACT",
+  "authority": {
+    "canonical_facts": {
+      "path": "machine/facts/canonical_facts.json",
+      "sha256": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+    },
+    "parameters": {
+      "path": "machine/facts/parameters.json",
+      "sha256": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+    },
+    "taskpack_schedule_vectors": {
+      "path": "machine/tests/fixtures/schedule_boundary_vectors.json",
+      "sha256": "4b23ecbdaa11e4bd5df20c06d717ea8d60cf705f2ed86f3329912b4e848fd35b"
+    },
+    "predecessor_evidence": {
+      "path": "machine/evidence/EVD-S05-P02.json",
+      "sha256": "c7594b54822a0292911c696533e199b97f3af3bba4e363149ab35f154388988b"
+    },
+    "scheduler": {
+      "path": "scheduler.py",
+      "sha256": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91"
+    }
+  },
+  "boundary_policy": {
+    "classification": "ADVERSE_MORE_URGENT_BAND",
+    "exact_24h_band": "2h_to_24h",
+    "exact_2h_band": "15m_to_2h",
+    "exact_15m_band": "0_to_15m",
+    "nonpositive_prematch_time_action": "NO_DISPATCH_NO_ADVICE",
+    "unknown_time_or_status_action": "NO_DISPATCH_NO_ADVICE"
+  },
+  "cadence_bands": [
+    {
+      "band": "more_than_24h",
+      "refresh_seconds": 1800,
+      "quote_usable_seconds": 2100,
+      "advice_usable_seconds": 1500
+    },
+    {
+      "band": "2h_to_24h",
+      "refresh_seconds": 300,
+      "quote_usable_seconds": 420,
+      "advice_usable_seconds": 240
+    },
+    {
+      "band": "15m_to_2h",
+      "refresh_seconds": 60,
+      "quote_usable_seconds": 90,
+      "advice_usable_seconds": 45
+    },
+    {
+      "band": "0_to_15m",
+      "refresh_seconds": 20,
+      "quote_usable_seconds": 30,
+      "advice_usable_seconds": 15
+    },
+    {
+      "band": "live",
+      "refresh_seconds": 10,
+      "quote_usable_seconds": 12,
+      "advice_usable_seconds": 8
+    }
+  ],
+  "fixed_clock_gate": {
+    "distance_recalculation_seconds": 60,
+    "maximum_dispatch_deviation_seconds": 2,
+    "comparison_unit": "INTEGER_MICROSECONDS",
+    "at_exact_limit": "PASS",
+    "above_exact_limit": "NO_DISPATCH_NO_ADVICE"
+  },
+  "freshness_gate": {
+    "required_quote_fields": [
+      "source_timestamp",
+      "observed_timestamp",
+      "content_sha256",
+      "source_clock_trusted"
+    ],
+    "effective_age": "MAX_AGE_OF_SOURCE_AND_OBSERVATION_TIMESTAMPS",
+    "future_timestamp_action": "NO_ADVICE",
+    "unknown_or_untrusted_clock_action": "NO_ADVICE",
+    "quote_older_than_advice_limit_action": "DO_NOT_ENTER_ADVICE_EVALUATION",
+    "quote_older_than_quote_limit_action": "STALE_QUOTE_BLOCKED",
+    "pass_does_not_generate_recommendation": true
+  },
+  "cadence_vectors": [
+    {
+      "id": "MORE-THAN-24H",
+      "time_to_start_seconds": 86401,
+      "status": "PREMATCH",
+      "source_live_supported": false,
+      "expected_band": "more_than_24h",
+      "expected_refresh_seconds": 1800
+    },
+    {
+      "id": "EXACT-24H-ADVERSE",
+      "time_to_start_seconds": 86400,
+      "status": "PREMATCH",
+      "source_live_supported": false,
+      "expected_band": "2h_to_24h",
+      "expected_refresh_seconds": 300
+    },
+    {
+      "id": "ABOVE-2H",
+      "time_to_start_seconds": 7201,
+      "status": "PREMATCH",
+      "source_live_supported": false,
+      "expected_band": "2h_to_24h",
+      "expected_refresh_seconds": 300
+    },
+    {
+      "id": "EXACT-2H-ADVERSE",
+      "time_to_start_seconds": 7200,
+      "status": "PREMATCH",
+      "source_live_supported": false,
+      "expected_band": "15m_to_2h",
+      "expected_refresh_seconds": 60
+    },
+    {
+      "id": "ABOVE-15M",
+      "time_to_start_seconds": 901,
+      "status": "PREMATCH",
+      "source_live_supported": false,
+      "expected_band": "15m_to_2h",
+      "expected_refresh_seconds": 60
+    },
+    {
+      "id": "EXACT-15M-ADVERSE",
+      "time_to_start_seconds": 900,
+      "status": "PREMATCH",
+      "source_live_supported": false,
+      "expected_band": "0_to_15m",
+      "expected_refresh_seconds": 20
+    },
+    {
+      "id": "LIVE-SUPPORTED",
+      "time_to_start_seconds": 0,
+      "status": "LIVE",
+      "source_live_supported": true,
+      "expected_band": "live",
+      "expected_refresh_seconds": 10
+    },
+    {
+      "id": "LIVE-UNSUPPORTED",
+      "time_to_start_seconds": 0,
+      "status": "LIVE",
+      "source_live_supported": false,
+      "expected_action": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "LIVE_REFRESH_UNSUPPORTED"
+    }
+  ],
+  "dispatch_vectors": [
+    {
+      "id": "EARLY-EXACT-TWO-SECONDS",
+      "scheduled_at": "2026-07-23T18:00:00+10:00",
+      "actual_dispatch_at": "2026-07-23T17:59:58+10:00",
+      "expected_pass": true,
+      "expected_deviation_microseconds": 2000000
+    },
+    {
+      "id": "ON-CLOCK",
+      "scheduled_at": "2026-07-23T18:00:00+10:00",
+      "actual_dispatch_at": "2026-07-23T18:00:00+10:00",
+      "expected_pass": true,
+      "expected_deviation_microseconds": 0
+    },
+    {
+      "id": "LATE-EXACT-TWO-SECONDS",
+      "scheduled_at": "2026-07-23T18:00:00+10:00",
+      "actual_dispatch_at": "2026-07-23T18:00:02+10:00",
+      "expected_pass": true,
+      "expected_deviation_microseconds": 2000000
+    },
+    {
+      "id": "LATE-THREE-SECONDS",
+      "scheduled_at": "2026-07-23T18:00:00+10:00",
+      "actual_dispatch_at": "2026-07-23T18:00:03+10:00",
+      "expected_pass": false,
+      "expected_deviation_microseconds": 3000000
+    }
+  ],
+  "freshness_vectors": [
+    {
+      "id": "ADVICE-EXACT-LIMIT",
+      "band": "15m_to_2h",
+      "now": "2026-07-23T18:00:00+10:00",
+      "source_timestamp": "2026-07-23T17:59:15+10:00",
+      "observed_timestamp": "2026-07-23T17:59:30+10:00",
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "source_clock_trusted": true,
+      "expected_quote_usable": true,
+      "expected_advice_input_eligible": true
+    },
+    {
+      "id": "ADVICE-ONE-SECOND-STALE",
+      "band": "15m_to_2h",
+      "now": "2026-07-23T18:00:00+10:00",
+      "source_timestamp": "2026-07-23T17:59:14+10:00",
+      "observed_timestamp": "2026-07-23T17:59:30+10:00",
+      "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_clock_trusted": true,
+      "expected_quote_usable": true,
+      "expected_advice_input_eligible": false
+    },
+    {
+      "id": "QUOTE-ONE-SECOND-STALE",
+      "band": "15m_to_2h",
+      "now": "2026-07-23T18:00:00+10:00",
+      "source_timestamp": "2026-07-23T17:58:29+10:00",
+      "observed_timestamp": "2026-07-23T17:59:30+10:00",
+      "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "source_clock_trusted": true,
+      "expected_quote_usable": false,
+      "expected_advice_input_eligible": false
+    }
+  ],
+  "numeric_stability": {
+    "tested_deltas": [
+      "-0.0001",
+      "0",
+      "0.0001"
+    ],
+    "adverse_odds_tick": "NOT_APPLICABLE_TO_INTEGER_TIME_CLASSIFICATION",
+    "required_action": "NO_CHANGE_TO_CADENCE_SOURCE_OR_FRESHNESS_GATES"
+  },
+  "claim_boundary": {
+    "fixed_clock_contract_implemented": true,
+    "scheduler_daemon_started": false,
+    "external_network_accessed": false,
+    "real_provider_dispatch_enabled": false,
+    "real_market_data_collected": false,
+    "runtime_freshness_verified": false,
+    "advice_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed": false,
+    "financial_return_verified_or_guaranteed": false
+  }
+}

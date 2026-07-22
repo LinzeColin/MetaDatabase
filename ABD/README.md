@@ -47,6 +47,8 @@
 - `S05/P01` 只建立市场对象类型与覆盖清单 Schema，不枚举或证明“全部可观察市场”，不解决跨来源实体身份，不验证来源条款/能力、实时性、调度或静默缺口，不访问 TAB、Gmail、OVH、Cloudflare 或任何外部账户/页面/API，不执行模型、生成建议、提交订单、部署生产或验证收益；这些边界分别留给后续合同与运行时证据，30% 月度滚动复利目标继续保持未验证且不保证；
 - `S05/P02` 已把 TAB、Sportsbet 与未绑定的其他可观察来源，按公开页面、静态文件、免费端点、只读登录观察和用户页面即时校验 5 种方式展开为 15 条版本化能力记录；每条记录都绑定来源事实、合同版本、必需门、失败动作与零请求预算。TAB 的屏幕抓取/第三方凭证访问、未获明确授权的 TAB Web Services/Studio，以及未有官方许可证据的 Sportsbet 自动化/API 均失败关闭；未绑定来源不得隐式继承任何能力；
 - 当前 15/15 个真实来源能力全部为 `production_collection_enabled=false`、`runtime_verified=false`，这不是“来源永久不可用”，而是缺少来源特定的当前权限、许可证、身份、频率、Schema、时间与运行证据时不得采集。正向 Oracle 只使用冻结合成静态文件合同且不会执行外部动作；本 Phase 未访问 TAB、Sportsbet、Gmail、OVH、Cloudflare 或任何页面、账户/API，未观察真实市场、实现调度、生成建议、提交订单、部署或验证收益，下一状态只能是 `S05/P03_READY_NOT_STARTED`；
+- `S05/P03` 已实现纯函数式 `scheduler.py`、`cadence_tests.json` 与 `rate_budget.json`：五档刷新、报价与建议时效严格绑定 Canonical Facts，恰好 24 小时、2 小时和 15 分钟采用更紧的“不利分类”；每分钟重算距离，固定时钟偏差以整数微秒判定，正负恰好 2 秒通过、超过 2 秒失败关闭；报价必须同时具备可信来源时间、观察时间和内容哈希，并以两者中更老的时间计算有效年龄，超过建议时效即不得进入建议评估；
+- 当前 `S05/P03` 的 15/15 个真实来源频率预算仍为 0 且禁用，未从 P02 推断任何权限或运行能力。唯一正向计划使用冻结合成来源，指数退避无随机抖动且只生成下一到期时间，不执行网络、进程、采集、模型、建议、下单或部署；P04 静默缺口审计保持未启动，30% 月度目标仍未验证、不保证且不能放宽来源、时效、证据、数值、风险或安全门；
 - `S01/P01` 至 `S01/P04` 只冻结客户体验、疑问、需求、范围、指标、经济和证伪合同，不证明产品已实现、部署、接入账户或验证收益；四个中间 Phase 均未单独上传 GitHub；
 - `S00/P02` 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
 - `S00/P03` 只证明当前声明依赖的 ABD 新增现金成本为 A$0、付费接口不在关键路径；既有 OVH/账户总成本、外部能力与免费额度余量仍未知；
@@ -123,6 +125,21 @@ uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/ev
 uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/P02/full_regression.xml
 uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P02/full_regression.xml
 uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S05-P02 --evidence machine/evidence
+uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
+```
+
+当前 `S05/P03` 的验证与签署命令：
+
+```bash
+uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
+uv run --frozen --python 3.12 python machine/tools/validate_pack.py
+uv run --frozen --python 3.12 python -m pytest -q tests/S05/P03_test.py --junitxml=machine/evidence/S05/P03/pytest.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P03/pytest.xml
+uv run --frozen --python 3.12 python -m pytest -q tests/S03/P02_test.py tests/S03/P03_test.py tests/S03/P04_test.py tests/S03/stage_review_test.py tests/S04/stage_review_test.py tests/S05/P01_test.py tests/S05/P02_test.py tests/S05/P03_test.py --junitxml=machine/evidence/S05/P03/signed_state_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P03/signed_state_regression.xml
+uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/P03/full_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P03/full_regression.xml
+uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S05-P03 --evidence machine/evidence
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 
