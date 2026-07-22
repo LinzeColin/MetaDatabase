@@ -1,0 +1,48 @@
+{
+  "run_id": "ADP-V12-S0-T001-20260722",
+  "task_id": "ADP-V12-S0-T001",
+  "action": "S0 独立验收与状态收尾",
+  "result": "ACC-V12-S0-001..006 为 6/6 PASS；P0/P1/UNKNOWN/BLOCKED 均为 0；S1 保持 NOT_RUN",
+  "ts": "2026-07-22T17:31:50+10:00",
+  "verified_subject_commit": "46dae697b81843b26fe5f4b97ccaa75a38622307",
+  "verified_subject_tree": "a121d98695f1ed619efb8fc711416b78651222bc",
+  "reviewed_origin_main_commit": "ff54b7ca238a1228a172414b273068762bee0da5",
+  "taskpack_digest_sha256": "3cc3fbc50ac6b478b6e17983d38c5284d14bd4189f5c60898947748ce17c6815",
+  "contract_digest_sha256": "bb8ec2d659ad79b76e64bdc69917ad71219aa7e4536bf361fcadd01fd1b00f6e",
+  "taskpack_source_snapshot_sha256": "f848a8cb1774fd249427aeebe04304225fcd19ce086f5efcc2cb518d8d22ba19",
+  "evidence_root_sha256": "b4827c0de3cd8b043557d706fd7ca21c4e0c50b2244b8302d365ac8bf5497dcd",
+  "acceptance_review_zip_sha256": "54506b391ccad561e6f25b29e9ab30ddb93d115f02d4574862c0ec2539cd4c3d",
+  "acceptances": {
+    "ACC-V12-S0-001": "PASS",
+    "ACC-V12-S0-002": "PASS",
+    "ACC-V12-S0-003": "PASS",
+    "ACC-V12-S0-004": "PASS",
+    "ACC-V12-S0-005": "PASS",
+    "ACC-V12-S0-006": "PASS"
+  },
+  "counts": {
+    "pass": 6,
+    "p0": 0,
+    "p1": 0,
+    "unknown": 0,
+    "blocked": 0
+  },
+  "closeout_validation": {
+    "taskpack_validator": "PASS",
+    "dual_plane": "PASS",
+    "governance_tests": {"ran": 65, "passed": 65},
+    "security_tests": {"ran": 14, "passed": 14},
+    "full_suite": {"ran": 923, "failures": 2, "errors": 11, "skipped": 29},
+    "sealed_failure_error_name_set_exact_match": true,
+    "candidate_only": [],
+    "baseline_only": [],
+    "taskpack_path_changed": false,
+    "runtime_paths_changed": false,
+    "public_absolute_paths_found": false
+  },
+  "runtime_or_live_change": false,
+  "s1_status": "NOT_RUN",
+  "deployment_authorized": false,
+  "raw_evidence_policy": "OWNER_LOCAL_NOT_COMMITTED_PUBLIC_RECEIPT_HASHES_ONLY",
+  "public_receipt": "docs/phase_records/PHASE_ADP_V12_S0_POSTMERGE_CLOSEOUT.md"
+}

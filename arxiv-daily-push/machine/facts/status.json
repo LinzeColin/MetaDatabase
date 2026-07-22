@@ -1,12 +1,13 @@
 {
   "version": "0.41.0（目标 1.2.0）",
-  "stage": "S0",
-  "phase": "v1.2 任务包与归档",
-  "task": "ADP-V12-S0-T001",
-  "real_progress": "v1.2 路线共 10 个有界任务；当前只执行 S0，产品代码任务尚未开始",
-  "report_grade": "待独立 verifier 锁定 Subject 后裁定",
-  "business_verdict": "当前线上仍为 0.41.0；v1.2 尚未部署",
-  "evidence_status": "S0_IMPLEMENTATION_IN_PROGRESS",
-  "rendered_at": "2026-07-20",
-  "canonical_taskpack": "docs/pursuing_goal/v1_2"
+  "stage": "S1",
+  "phase": "Google News 有界 retry/backoff 候选",
+  "task": "ADP-V12-S1-T001",
+  "real_progress": "S0 已由独立 verifier 裁定 6/6 PASS；10 个有界任务完成 1 个，S1 尚未运行",
+  "report_grade": "S0 developer_check PASS；S1 未运行（NOT_RUN）",
+  "business_verdict": "当前线上仍为 0.41.0；v1.2 尚未部署，S1 不改 live 或 cron",
+  "evidence_status": "S0_ACCEPTED_S1_NOT_RUN",
+  "rendered_at": "2026-07-22",
+  "canonical_taskpack": "docs/pursuing_goal/v1_2",
+  "previous_task_receipt": "machine/runs/ADP-V12-S0-T001-postmerge-closeout.json"
 }

@@ -1,8 +1,10 @@
 {
-  "stage": "S0",
-  "phase": "v1.2 任务包与归档",
-  "task": "ADP-V12-S0-T001",
-  "owner": "ADP 开发线程；独立 verifier 负责裁决",
+  "stage": "S1",
+  "phase": "Google News 有界 retry/backoff 候选",
+  "task": "ADP-V12-S1-T001",
+  "owner": "下一 ADP 开发线程；独立 verifier 负责裁决",
   "taskpack": "docs/pursuing_goal/v1_2",
-  "next_task_after_pass": "ADP-V12-S1-T001"
+  "run_contract": "docs/pursuing_goal/v1_2/RUN_CONTRACT_01_GOOGLE_NEWS_RETRY.md",
+  "previous_task_receipt": "machine/runs/ADP-V12-S0-T001-postmerge-closeout.json",
+  "next_task_after_pass": "ADP-V12-S2-T001"
 }

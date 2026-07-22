@@ -80,7 +80,8 @@
   {
     "id": "FEAT-ADP-014",
     "name": "v1.2 七角色任务包、历史归档与强追溯",
-    "status": "in_progress",
-    "evidence": "declared"
+    "status": "completed",
+    "evidence": "extracted",
+    "evidence_ref": "machine/runs/ADP-V12-S0-T001-postmerge-closeout.json"
   }
 ]
