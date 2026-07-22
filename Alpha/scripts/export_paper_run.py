@@ -132,11 +132,13 @@ def collect(session_factory, days: list[str], *, mark_prices: dict[str, float]) 
     outbox_failed = sum(1 for x in outbox if x.delivery_status == "FAILED")
     recon_open = sum(1 for r in recons if r.status == "OPEN")
 
-    # 通知延迟(投递成功样本的 created->delivered 秒数 p95)
+    # 通知延迟与成功率:按申报窗口取样(与漏斗各指标同口径);失败计数保持全历史从严
     lat = sorted((x.delivered_at - x.created_at).total_seconds()
-                 for x in outbox if x.delivery_status == "DELIVERED" and x.delivered_at)
+                 for x in outbox if x.delivery_status == "DELIVERED" and x.delivered_at
+                 and in_window(x.created_at))
     p95 = lat[max(0, int(len(lat) * 0.95) - 1)] if lat else 0.0
-    delivered = sum(1 for x in outbox if x.delivery_status == "DELIVERED")
+    delivered = sum(1 for x in outbox
+                    if x.delivery_status == "DELIVERED" and in_window(x.created_at))
     notify_total = delivered + outbox_failed
 
     return RunInputs(

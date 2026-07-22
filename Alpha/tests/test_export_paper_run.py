@@ -48,6 +48,24 @@ def test_collect_unpriced_positions_declared(tmp_path):
     assert pnl["mark_value_usd"] == 0.0
 
 
+def test_notify_p95_windowed_to_declared_days(tmp_path):
+    """通知 p95 只取申报窗口样本(与漏斗同口径);窗口外的历史慢样本不许污染。"""
+    from datetime import timedelta
+
+    from backend.app.domain.models import OutboxEvent
+
+    factory = seed(tmp_path)
+    today = datetime.now(timezone.utc)
+    old = today - timedelta(days=30)
+    with factory() as s, s.begin():
+        s.add(OutboxEvent(event_type="T1", payload="{}", delivery_status="DELIVERED",
+                          created_at=today, delivered_at=today + timedelta(seconds=2)))
+        s.add(OutboxEvent(event_type="T0", payload="{}", delivery_status="DELIVERED",
+                          created_at=old, delivered_at=old + timedelta(seconds=100)))
+    inputs, _ = ex.collect(factory, [today.date().isoformat()], mark_prices={})
+    assert inputs.notify_p95_seconds == 2.0     # 窗口外 100s 样本被正确排除
+
+
 def test_end_to_end_generates_four_artifacts(tmp_path):
     factory = seed(tmp_path)
     today = datetime.now(timezone.utc).date().isoformat()
