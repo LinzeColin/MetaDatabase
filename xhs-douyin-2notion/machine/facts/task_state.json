@@ -1,12 +1,12 @@
 {
-  "schema_version": "1.18",
+  "schema_version": "1.19",
   "project": "x2n",
-  "stage": "STG.X2N.2",
-  "last_completed_phase": "STG.X2N.2.REVIEW",
+  "stage": "STG.X2N.3",
+  "last_completed_phase": "PH.X2N.3.1",
   "review_id": "STG.X2N.2.REVIEW",
-  "run_id": "RUN-X2N-S02-REVIEW",
-  "run_kind": "stage_review_no_new_dag_task",
-  "state": "stage_2_review_pass_g2_pass_remote_upload_authorized_stage_3_pending_remote_merge",
+  "run_id": "RUN-X2N-S03-A001",
+  "run_kind": "single_dag_task",
+  "state": "stage_3_adapters_001_pass_g3_not_run_remote_upload_forbidden",
   "tasks": {
     "TSK.x2n.discovery.001": "pass",
     "TSK.x2n.discovery.002": "pass",
@@ -26,7 +26,8 @@
     "TSK.x2n.skeleton.006": "pass",
     "TSK.x2n.skeleton.007": "pass",
     "TSK.x2n.skeleton.008": "pass",
-    "TSK.x2n.skeleton.009": "pass"
+    "TSK.x2n.skeleton.009": "pass",
+    "TSK.x2n.adapters.001": "pass"
   },
   "downstream_acceptances": {
     "ACC.x2n.gov.001": "pass",
@@ -43,7 +44,9 @@
     "ACC.x2n.notion.002": "pass_ci_synth_mock_retry_after_2rps_max_attempts_4_retry_storm_0_real_notion_not_run",
     "ACC.x2n.notion.003": "pass_ci_synth_mock_outage_kill_reconcile_duplicate_pages_0_real_notion_not_run",
     "ACC.x2n.ops.001": "pass_ci_synth_current_page_four_kill_points_plus_sink_kill_reconcile_non_replayable_states_0",
-    "ACC.x2n.ops.002": "downstream_not_run"
+    "ACC.x2n.ops.002": "downstream_not_run",
+    "ACC.x2n.batch.001": "pass_ci_synth_policy_primitive_adapter_integration_and_owner_alpha_downstream_not_run",
+    "ACC.x2n.ops.004": "pass_ci_synth_doctor_contract_owner_alpha_install_downstream_not_run"
   },
   "acceptance_status": {
     "ACC.x2n.gov.001": "pass_current_scaffold_scope",
@@ -75,7 +78,10 @@
     "ACC.x2n.rel.001": "pass_local_synthetic_pipeline_g1_pass_remote_ci_pending_post_upload",
     "ACC.x2n.rel.002": "pass_runner_dataset_contract_capabilities_disabled_model_not_run",
     "ACC.x2n.rel.003": "pass_local_current_locks_candidate_history_scans_g1_pass_remote_release_not_run",
-    "ACC.x2n.ops.001": "pass_ci_synth_current_page_four_kill_points_plus_sink_kill_reconcile_non_replayable_states_0"
+    "ACC.x2n.ops.001": "pass_ci_synth_current_page_four_kill_points_plus_sink_kill_reconcile_non_replayable_states_0",
+    "ACC.x2n.gov.002": "pass_current_source_build_candidate_profile_path_browser_state_sensitive_private_content_0_owner_release_downstream_not_run",
+    "ACC.x2n.batch.001": "pass_ci_synth_5_non_authoritative_removed_0_two_complete_candidate_only_physical_and_content_delete_0_adapter_integration_downstream_not_run",
+    "ACC.x2n.ops.004": "pass_ci_synth_8_components_missing_dependency_profile_and_db_busy_ok_degraded_blocked_path_sensitive_0_owner_alpha_not_run"
   },
   "blocking_followups": [
     {
@@ -86,34 +92,34 @@
     }
   ],
   "previous_stage_gate": {
-    "gate_id": "G1",
+    "gate_id": "G2",
     "status": "pass",
-    "stage": "STG.X2N.1",
+    "stage": "STG.X2N.2",
     "remote_upload": "merged"
   },
   "completed_stage_gate": {
     "gate_id": "G2",
     "status": "pass",
     "stage": "STG.X2N.2",
-    "remote_upload": "pending_post_g2_upload"
+    "remote_upload": "merged"
   },
-  "next_phase": "STG.X2N.2.REMOTE_UPLOAD",
-  "next_run": "STG.X2N.2.REMOTE_UPLOAD",
+  "next_phase": "PH.X2N.3.2",
+  "next_run": "TSK.x2n.adapters.002",
   "next_phase_authorized": true,
   "stage_1_authorized": true,
   "stage_2_authorized": true,
   "stage_2_review_complete": true,
   "stage_2_remote_upload_authorized": true,
-  "stage_3_authorized": false,
-  "stage_gate": "pass",
-  "remote_upload": "authorized_after_g2_pass",
-  "current_stage_gate": "pass",
-  "current_stage_remote_upload": "authorized_after_g2_pass",
-  "product_code": "foundation_plus_six_platform_current_page_capture_plus_media_safety_canonical_orchestration_markdown_and_notion_mock_sinks_ci_synth",
+  "stage_3_authorized": true,
+  "stage_gate": "not_run",
+  "remote_upload": "forbidden_until_g3_pass",
+  "current_stage_gate": "not_run",
+  "current_stage_remote_upload": "forbidden_until_g3_pass",
+  "product_code": "foundation_plus_six_platform_current_page_capture_plus_profile_session_health_adapter_guards_plus_media_safety_canonical_orchestration_markdown_and_notion_mock_sinks_ci_synth",
   "contract_version": "1.0",
   "native_host_execution": "pass_isolated_synthetic_six_platform_capture_to_canonical_store_owner_install_not_run",
-  "local_ci_execution": "pass_stage_2_review_g2_project_native_toolchain_bound_full_regression_24_of_24_no_flaky",
-  "remote_ci_execution": "pending_stage_2_post_g2_upload",
+  "local_ci_execution": "pass_adapters_001_acceptance_and_full_regression_24_of_24_no_flaky",
+  "remote_ci_execution": "pass_stage_2_post_merge_stage_3_not_uploaded",
   "xhs_current_page_execution": "pass_ci_synth_real_page_policy_disabled_action_before_grant_rejected_owner_canary_not_run",
   "douyin_current_page_execution": "pass_ci_synth_real_page_and_network_transport_disabled_action_before_grant_rejected_owner_canary_not_run",
   "bilibili_current_page_execution": "pass_ci_synth_real_page_and_api_disabled_semantic_query_rejected_action_before_grant_rejected_owner_canary_not_run",
@@ -124,8 +130,13 @@
   "canonical_orchestration_execution": "pass_ci_synth_schema_v2_two_transaction_resume_80x2_100_concurrent_four_kill_points_broken_traces_0",
   "markdown_sink_execution": "pass_ci_synth_80x2_atomic_fixed_path_frontmatter_index_links_cdn_0",
   "notion_sink_execution": "pass_ci_synth_in_process_mock_80x2_upsert_outbox_retry_dead_letter_reconcile_real_api_not_run",
+  "profile_launcher_execution": "pass_ci_synth_fixed_chrome_candidates_private_runtime_profile_no_arbitrary_path_url_login_or_cookie_owner_launch_not_run",
+  "session_health_execution": "pass_ci_synth_enum_only_short_ttl_expired_verification_and_stale_blocked_user_action_profile_path_cookie_0",
+  "adapter_guard_execution": "pass_ci_synth_global_mutex_nonwaiting_low_frequency_no_auto_retry_and_batch_deletion_protection",
   "sqlite_store": "pass_schema_v2_owner_empty_runtime_initialized",
   "real_sink_execution": "pass_ci_synth_markdown_and_notion_mock_real_notion_not_run",
+  "owner_profile_login": "not_run",
+  "owner_canary": "not_run",
   "real_account_execution": "not_run",
   "platform_calls": "not_run",
   "notion_calls": "mock_only_real_api_not_run",

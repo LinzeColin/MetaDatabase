@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import sqlite3
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -13,12 +15,25 @@ from x2n_contracts import ErrorCode
 
 from .canonical_store import CanonicalStore
 from .media_safety import scan_persisted_scopes
-from .runtime import RuntimePaths, X2NRuntimeError
+from .profile_session import (
+    PROFILE_LAUNCH_CONFIRMATION,
+    DoctorProbe,
+    ProfileLauncher,
+    SessionHealth,
+    SessionHealthStore,
+    build_doctor_report,
+    chrome_available,
+    ffmpeg_available,
+    native_host_registered,
+    safe_reference_configured,
+)
+from .runtime import PROFILE_PLATFORMS, RuntimePaths, X2NRuntimeError
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 TASK_ID = "TSK.x2n.foundation.003"
 MEDIA_TASK_ID = "TSK.x2n.skeleton.003"
+ADAPTER_TASK_ID = "TSK.x2n.adapters.001"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
@@ -53,14 +68,82 @@ def _paths() -> RuntimePaths:
     return RuntimePaths.from_environment(repository_root=PROJECT_ROOT, create=False)
 
 
+def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
+    try:
+        database_health = CanonicalStore(paths).health()
+        database_state = "ok" if database_health.get("status") == "healthy" else "failed"
+    except sqlite3.OperationalError:
+        database_state = "busy"
+    except Exception:
+        database_state = "failed"
+
+    sessions_store = SessionHealthStore(paths)
+    try:
+        sessions = sessions_store.evaluate_all()
+    except X2NRuntimeError:
+        sessions = tuple(
+            SessionHealth(
+                platform,
+                "blocked",
+                "session_checkpoint_invalid",
+                ErrorCode.DATA_INTEGRITY_FAILED,
+                "inspect_diagnostics_and_keep_adapter_disabled",
+                False,
+            )
+            for platform in PROFILE_PLATFORMS
+        )
+    home_value = os.environ.get("HOME")
+    host_registered = bool(home_value and Path(home_value).is_absolute() and native_host_registered(Path(home_value)))
+    return DoctorProbe(
+        extension_reachable=host_registered,
+        native_host_registered=host_registered,
+        companion_reachable=True,
+        canonical_db_state=database_state,
+        ffmpeg_available=ffmpeg_available(),
+        provider_configured=safe_reference_configured(os.environ, "X2N_PROVIDER_SECRET_REF"),
+        notion_authorized=safe_reference_configured(os.environ, "X2N_NOTION_SECRET_REF"),
+        chrome_available=chrome_available(),
+        sessions=sessions,
+    )
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if args.action == "doctor":
+        report = build_doctor_report(_doctor_probe(_paths()))
+        return _success(
+            "doctor",
+            acceptance_scope="ADAPTERS_001_HEALTH_DOCTOR",
+            task_id=ADAPTER_TASK_ID,
+            doctor=report.safe_dict(),
+        )
+    if args.action == "profile":
+        paths = _paths()
+        if args.profile_action == "plan":
+            details = ProfileLauncher(paths).plan(args.platform)
+            action = "profile_launch_plan"
+        elif args.profile_action == "launch":
+            details = ProfileLauncher(paths).launch(args.platform, confirmation=args.confirm)
+            action = "profile_launch"
+        elif args.profile_action == "health":
+            details = SessionHealthStore(paths).evaluate(args.platform).safe_dict()
+            action = "profile_session_health"
+        else:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Profile action")
+        return _success(
+            action,
+            acceptance_scope="ADAPTERS_001_PROFILE_SESSION",
+            task_id=ADAPTER_TASK_ID,
+            **details,
+        )
     if args.action == "verify":
         if args.verify_action != "cdn-zero":
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown verification action")
         scopes = tuple(item.strip() for item in args.scopes.split(",") if item.strip())
         report = scan_persisted_scopes(_paths(), scopes)
         if report.total_findings:
-            raise X2NRuntimeError(ErrorCode.CDN_PERSISTENCE_BLOCKED, "Persistent media address findings blocked verification")
+            raise X2NRuntimeError(
+                ErrorCode.CDN_PERSISTENCE_BLOCKED, "Persistent media address findings blocked verification"
+            )
         return _success(
             "verify_cdn_zero",
             acceptance_scope="SKELETON_003_MEDIA_ZERO",
@@ -120,6 +203,15 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="x2n private Canonical Store operations")
     subparsers = parser.add_subparsers(dest="action", required=True)
+    subparsers.add_parser("doctor")
+    profile = subparsers.add_parser("profile")
+    profile_actions = profile.add_subparsers(dest="profile_action", required=True)
+    for action in ("plan", "health"):
+        command = profile_actions.add_parser(action)
+        command.add_argument("--platform", required=True, choices=PROFILE_PLATFORMS)
+    launch = profile_actions.add_parser("launch")
+    launch.add_argument("--platform", required=True, choices=PROFILE_PLATFORMS)
+    launch.add_argument("--confirm", required=True, help=f"Required literal: {PROFILE_LAUNCH_CONFIRMATION}")
     subparsers.add_parser("init")
     subparsers.add_parser("health")
     backup = subparsers.add_parser("backup")
@@ -148,7 +240,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    task_id = MEDIA_TASK_ID if args.action == "verify" else TASK_ID
+    task_id = (
+        MEDIA_TASK_ID
+        if args.action == "verify"
+        else ADAPTER_TASK_ID
+        if args.action in {"doctor", "profile"}
+        else TASK_ID
+    )
     try:
         payload = run(args)
     except X2NRuntimeError as error:

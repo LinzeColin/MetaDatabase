@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S03.A001.001",
+  "synthetic": true,
+  "contains_accounts": false,
+  "contains_cookies": false,
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "contains_profile_paths": false,
+  "session_cases": [
+    {
+      "id": "session-authenticated",
+      "signal": "authenticated",
+      "fresh": true,
+      "expected_state": "ok",
+      "expected_error_code": null
+    },
+    {
+      "id": "session-missing",
+      "signal": null,
+      "fresh": false,
+      "expected_state": "blocked",
+      "expected_error_code": "X2N_ADAPTER_AUTH_EXPIRED"
+    },
+    {
+      "id": "session-login-required",
+      "signal": "login_required",
+      "fresh": true,
+      "expected_state": "blocked",
+      "expected_error_code": "X2N_ADAPTER_AUTH_EXPIRED"
+    },
+    {
+      "id": "session-expired",
+      "signal": "expired",
+      "fresh": true,
+      "expected_state": "blocked",
+      "expected_error_code": "X2N_ADAPTER_AUTH_EXPIRED"
+    },
+    {
+      "id": "session-verification-required",
+      "signal": "verification_required",
+      "fresh": true,
+      "expected_state": "blocked",
+      "expected_error_code": "X2N_ADAPTER_AUTH_EXPIRED"
+    },
+    {
+      "id": "session-platform-changed",
+      "signal": "platform_changed",
+      "fresh": true,
+      "expected_state": "blocked",
+      "expected_error_code": "X2N_PLATFORM_CHANGED"
+    },
+    {
+      "id": "session-stale",
+      "signal": "authenticated",
+      "fresh": false,
+      "expected_state": "blocked",
+      "expected_error_code": "X2N_ADAPTER_AUTH_EXPIRED"
+    }
+  ],
+  "batch_cases": [
+    {
+      "id": "batch-auth-expired",
+      "outcome": "auth_expired",
+      "expected_removed": 0,
+      "expected_tombstone_candidates": 0
+    },
+    {
+      "id": "batch-http-error",
+      "outcome": "http_error",
+      "expected_removed": 0,
+      "expected_tombstone_candidates": 0
+    },
+    {
+      "id": "batch-dom-changed",
+      "outcome": "platform_changed",
+      "expected_removed": 0,
+      "expected_tombstone_candidates": 0
+    },
+    {
+      "id": "batch-empty-response",
+      "outcome": "empty_response",
+      "expected_removed": 0,
+      "expected_tombstone_candidates": 0
+    },
+    {
+      "id": "batch-partial-scan",
+      "outcome": "partial_scan",
+      "expected_removed": 0,
+      "expected_tombstone_candidates": 0
+    },
+    {
+      "id": "batch-first-complete-missing",
+      "outcome": "complete_success",
+      "sequence": 1,
+      "expected_removed": 0,
+      "expected_tombstone_candidates": 0
+    },
+    {
+      "id": "batch-second-complete-missing",
+      "outcome": "complete_success",
+      "sequence": 2,
+      "expected_removed": 0,
+      "expected_tombstone_candidates": 1
+    }
+  ],
+  "physical_delete_cases": 0,
+  "owner_canary": "NOT_RUN",
+  "real_account_execution": "NOT_RUN",
+  "platform_calls": 0
+}

@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 / Adapters 001
+
+- 以 Stage 2 PR #78 合并提交为 Task base，核对 x2n/Dual-Plane 两条远端门禁成功后授权 Stage 3；新增 transition fact，不改写 G2 历史 Evidence。
+- 新增专用 Profile launcher：只选择固定 OS Chrome candidate 和 `X2N_DATA_ROOT` 内的平台 Profile，显式确认后只开内部新标签；无任意 executable/path/URL、remote debugging、Cookie 导入导出、自动登录或验证码绕过。
+- 新增五分钟 enum-only session checkpoint；只保存 platform/signal/time，缺失、未来、过期、login/verification required 与 platform drift 均给出最小 Blocked User Action，Profile path 和账号标识不输出。
+- 新增八组件 `x2n doctor`：Native Host/Companion/DB 核心阻断，FFmpeg/Provider/Notion 与 Profile Adapter 缺失按能力降级或单项阻断；每项有稳定错误码和不含 Secret/path 的修复动作。
+- 新增跨进程全局 Adapter `flock` 非等待互斥、30 秒 batch/3 秒 item 持久低频门、时钟回退/弱策略/状态损坏 Fail Closed；不 sleep、不自动重试。
+- 新增 batch deletion guard：登录过期、HTTP、DOM、空数组、部分扫描均 removed 0；两次连续完整成功最多产生 `tombstone_candidate`，物理删除和 Content 自动删除为 0。
+- 新增 7 session＋7 batch 公共合成 Fixture、16 个专项单测、独立 Acceptance runner/verifier 与 Public Code/Private Runtime 扫描；Owner Profile、真实账号/平台、Canary 与 G3 均 `NOT_RUN`，Stage 3 上传禁止。
+- 最终 194 个 root tests PASS（3 个固定可选 skip）、92 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 77.66%，33 个依赖漏洞 0，67-member candidate 无 Runtime Data。Stage 2 verifier 固定到已合并 Review final commit，旧 G2 Evidence 逐字节不变。
+
 ## v0.0.0.1 — Stage 2 Review / G2
 
 - 独立复核 Skeleton001–009 的 Task、Acceptance、固定提交、九份历史 evidence 与 Stage 2 全提交；Review 不执行新 DAG Task，也没有 `apps/`/`packages/` 产品改动。

@@ -50,6 +50,15 @@ REQUIRED_DIRECTORIES = (
     "runtime/provider_cache",
 )
 
+PROFILE_PLATFORMS = (
+    "xiaohongshu",
+    "douyin",
+    "bilibili",
+    "kuaishou",
+    "weibo",
+    "taobao",
+)
+
 
 class X2NRuntimeError(RuntimeError):
     """Fail-closed Runtime error without private path disclosure."""
@@ -212,6 +221,28 @@ class RuntimePaths:
     @property
     def temp_media_directory(self) -> Path:
         return self.data_root / "runtime/temp_media"
+
+    @property
+    def checkpoints_directory(self) -> Path:
+        return self.data_root / "runtime/checkpoints"
+
+    @property
+    def browser_profiles_directory(self) -> Path:
+        return self.data_root / "runtime/browser_profiles"
+
+    def browser_profile_directory(self, platform: str) -> Path:
+        if platform not in PROFILE_PLATFORMS:
+            _fail(ErrorCode.INVALID_INPUT, "Browser Profile platform is unsupported")
+        current = self.data_root
+        for part in ("runtime", "browser_profiles", platform):
+            current = current / part
+            if current.is_symlink():
+                _fail(ErrorCode.POLICY_BLOCKED, "Dedicated Browser Profile cannot contain symbolic links")
+        profile = self._safe_child(f"runtime/browser_profiles/{platform}")
+        if not profile.is_dir():
+            _fail(ErrorCode.POLICY_BLOCKED, "Dedicated Browser Profile is unavailable")
+        _private_mode(profile, 0o700, label="Dedicated Browser Profile")
+        return profile
 
     def _safe_child(self, relative: str) -> Path:
         candidate = Path(relative)

@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 2` 的九个 `TSK.x2n.skeleton.001–009` 与独立 `STG.X2N.2.REVIEW` 已完成项目原生本地验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。Skeleton005 在 SQLite Schema v2 之外新增可重建 Markdown 与进程内 Notion Mock Sink：六平台 80×2 投影使用固定 `platform/content_id` 路径、原子写、有效 Frontmatter、稳定 Unclassified Index；Notion 使用 `2026-03-11` Data Source 语义、加法式 Schema、Outbox、2 req/s、429/529/断网/kill 重试与对账。重复 Page、半文件、断链、CDN finding 与真实 Notion 调用均为 0。项目原生本地 `G2=PASS`，Stage 2 整体上传已授权；远端 CI/merge 仍为 `PENDING_POST_G2_UPLOAD`，此前不得进入 Stage 3。正式 Verifier release-candidate 因原任务包缺少 canonical `MANIFEST` role 保持 `BLOCKED_REQUIREMENT_GAP`。分类、列表 Adapter、真实平台/Notion、Owner Canary、真实媒体与模型处理仍未运行；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 3` 已进入且只完成 `PH.X2N.3.1 / TSK.x2n.adapters.001`。Stage 2 九个 Skeleton 与独立 Review 已通过 PR #78 合并，x2n 与 Dual-Plane 远端门禁均成功；旧 G2 pre-upload Evidence 不改写。Adapters001 新增固定 Chrome 候选的 Private Runtime Profile launcher、五分钟 enum-only Session Health、八组件 `x2n doctor`、全局单 Adapter 非等待互斥、30 秒 batch/3 秒 item 低频门和两次完整成功才可进入 `tombstone_candidate` 的删除保护。能力仅为 CI-SYNTH policy primitive；Owner Profile/Canary、真实账号/平台、列表迭代器、真实 Notion、媒体与模型仍 `NOT_RUN`。`G3=NOT_RUN`，Stage 3 整体上传禁止；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,6 +21,31 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
+## Stage 3 / Adapters 001 验证
+
+```bash
+.venv/bin/python -B scripts/run_adapters_001_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters001-final
+.venv/bin/python -B scripts/verify_adapters_001.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters001-final/software-lane.json --require-evidence
+```
+
+Profile 只允许 Runtime 内六个平台固定逻辑目录，CLI 不接收 executable/Profile path/URL；launcher
+只开 Chrome 内部新标签页，登录和验证码完全由 Owner 手工完成。Companion 不读 Cookie，只接受未来
+live Adapter probe 产生的短 TTL 枚举状态。缺失、过期、验证码和页面变化均阻断对应 Adapter，并保留
+Stage 2 当前页与 Canonical 能力。
+
+`x2n doctor` 复用 Health/Error Contract，覆盖 Extension、Native Host、Companion、DB、FFmpeg、
+Provider、Notion 与 Adapter；非核心依赖缺失只降级。全局 mutex 不等待，低频门不 sleep/自动重试；
+登录过期、HTTP、DOM 改版、空响应和部分扫描的 removed 恒为 0，两次完整成功也只生成候选状态。
+Owner Profile 登录、真实账号、平台调用和 G3 均未运行。
+
+最终本地回归为 194 个 root tests PASS（3 个固定可选 skip）、92 个 Companion tests 与
+12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，coverage 77.66%，
+33 个依赖漏洞 0，67-member source candidate 无 Runtime Data。
+
 ## Stage 2 / Review 与 G2 验证
 
 ```bash
@@ -34,7 +59,8 @@
 Review 冻结九个 Task final commit 与 evidence，逐版本扫描 Stage 2 历史，并聚合六平台独立
 current-page E2E、zero duplicate、zero CDN persistence、媒体清理和 Notion outage 独立性。
 软件 lane 只验证软件，不决定动态 Stage Gate；实际 Python/Node/npm/uv/ruff/coverage/PyYAML
-必须与政策一致。项目原生 G2 只授权 Stage 2 上传；远端 CI/merge 前 `stage_3_task_start=false`。
+必须与政策一致。项目原生 G2 已通过 PR #78 完成整阶段上传、远端双门禁与 merge；其历史
+pre-upload Evidence 保持不变，后续 Stage 3 授权事实由独立机器文件追加记录。
 Review 最终根回归为 186 tests PASS、3 个固定 Owner-private 可选输入 skip；76 个 Companion
 tests PASS。两份独立 full lane 均为 24/24 Blocking Gate PASS，coverage 76.93%、33 个依赖
 vulnerability 0；65-member 候选制品 SHA 一致且 Runtime Data 0。
