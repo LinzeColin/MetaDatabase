@@ -45,6 +45,8 @@
 - `S05/P01` 已冻结运动、联赛/竞赛、赛事、周期、盘口、选择、线和结算规则 8 类市场本体，并以显式 `UNKNOWN`、原因码、隔离动作和禁止建议状态承接歧义、未知或关系错误；`coverage_manifest.schema.json` 要求每个已观察输入恰好生成一条记录，唯一 source reference、record/object ID、可解析父关系、无环图、每个盘口至少一个选择且恰好一个结算规则，任何静默丢失、重复或越权声明均失败关闭；
 - `S05/P01` 的冻结夹具仅含 9 个合成对象（8 个已知类型和 1 个显式未知），不是真实供应商或真实市场证据。独立 Oracle 52/52、定向测试 115/115、全量回归 4074/4074、TaskPack 49/49、A$0 扫描与 13/13 回滚均为 `PASS`，下一状态严格为 `S05/P02_READY_NOT_STARTED`；本 Phase 不单独上传 GitHub，须等 S05 四个 Phase 完成并整体复审后统一上传；
 - `S05/P01` 只建立市场对象类型与覆盖清单 Schema，不枚举或证明“全部可观察市场”，不解决跨来源实体身份，不验证来源条款/能力、实时性、调度或静默缺口，不访问 TAB、Gmail、OVH、Cloudflare 或任何外部账户/页面/API，不执行模型、生成建议、提交订单、部署生产或验证收益；这些边界分别留给后续合同与运行时证据，30% 月度滚动复利目标继续保持未验证且不保证；
+- `S05/P02` 已把 TAB、Sportsbet 与未绑定的其他可观察来源，按公开页面、静态文件、免费端点、只读登录观察和用户页面即时校验 5 种方式展开为 15 条版本化能力记录；每条记录都绑定来源事实、合同版本、必需门、失败动作与零请求预算。TAB 的屏幕抓取/第三方凭证访问、未获明确授权的 TAB Web Services/Studio，以及未有官方许可证据的 Sportsbet 自动化/API 均失败关闭；未绑定来源不得隐式继承任何能力；
+- 当前 15/15 个真实来源能力全部为 `production_collection_enabled=false`、`runtime_verified=false`，这不是“来源永久不可用”，而是缺少来源特定的当前权限、许可证、身份、频率、Schema、时间与运行证据时不得采集。正向 Oracle 只使用冻结合成静态文件合同且不会执行外部动作；本 Phase 未访问 TAB、Sportsbet、Gmail、OVH、Cloudflare 或任何页面、账户/API，未观察真实市场、实现调度、生成建议、提交订单、部署或验证收益，下一状态只能是 `S05/P03_READY_NOT_STARTED`；
 - `S01/P01` 至 `S01/P04` 只冻结客户体验、疑问、需求、范围、指标、经济和证伪合同，不证明产品已实现、部署、接入账户或验证收益；四个中间 Phase 均未单独上传 GitHub；
 - `S00/P02` 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
 - `S00/P03` 只证明当前声明依赖的 ABD 新增现金成本为 A$0、付费接口不在关键路径；既有 OVH/账户总成本、外部能力与免费额度余量仍未知；
@@ -106,6 +108,21 @@ uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/ev
 uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/P01/full_regression.xml
 uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P01/full_regression.xml
 uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S05-P01 --evidence machine/evidence
+uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
+```
+
+当前 `S05/P02` 的验证与签署命令：
+
+```bash
+uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
+uv run --frozen --python 3.12 python machine/tools/validate_pack.py
+uv run --frozen --python 3.12 python -m pytest -q tests/S05/P02_test.py --junitxml=machine/evidence/S05/P02/pytest.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P02/pytest.xml
+uv run --frozen --python 3.12 python -m pytest -q tests/S03/P02_test.py tests/S03/P03_test.py tests/S03/P04_test.py tests/S03/stage_review_test.py tests/S04/stage_review_test.py tests/S05/P01_test.py tests/S05/P02_test.py --junitxml=machine/evidence/S05/P02/signed_state_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P02/signed_state_regression.xml
+uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/P02/full_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P02/full_regression.xml
+uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S05-P02 --evidence machine/evidence
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 

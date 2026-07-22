@@ -1,0 +1,229 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S05-P02-01",
+  "requirement_id": "REQ-S05-P02",
+  "acceptance_contract_id": "AC-S05-P02",
+  "product_version": "0.0.0.1",
+  "contract_version": "0.0.0.1-S05P02",
+  "fixed_at": "2026-07-23T12:00:00+10:00",
+  "status": "FROZEN_OFFLINE_CONTRACT",
+  "authority": {
+    "provider_mode_facts": {
+      "path": "machine/facts/provider_contracts.json",
+      "sha256": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a"
+    },
+    "provider_research_snapshot": {
+      "path": "provider_facts_snapshot.json",
+      "sha256": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06"
+    },
+    "official_source_registry": {
+      "path": "sources.json",
+      "sha256": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966"
+    },
+    "regulatory_matrix": {
+      "path": "regulatory_matrix.json",
+      "sha256": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f"
+    },
+    "authorization_matrix": {
+      "path": "machine/facts/authorization_matrix.json",
+      "sha256": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe"
+    },
+    "predecessor_evidence": {
+      "path": "machine/evidence/EVD-S05-P01.json",
+      "sha256": "a5f2014009c92b50e49be7ad6260979ad8bb546d25b1d2f606ba745006fb8239"
+    }
+  },
+  "semantics": {
+    "authorization_is_not_capability": true,
+    "source_document_is_not_runtime_proof": true,
+    "scoped_absence_is_not_universal_prohibition": true,
+    "unknown_or_stale_default": "DENY_COLLECTION_AND_SURFACE_GAP",
+    "source_failure_scope": "DISABLE_ONLY_AFFECTED_PROVIDER_MODE",
+    "contract_pass_is_required_before_collection": true,
+    "contract_pass_does_not_enable_advice_or_order": true,
+    "all_observable_markets_claimed_complete": false
+  },
+  "review_policy": {
+    "source_snapshot_retrieved_on": "2026-07-20",
+    "latest_review_by": "2026-08-20",
+    "live_revalidation_required_before_enablement": true,
+    "terms_or_price_drift_action": "DISABLE_AFFECTED_CAPABILITY_AND_REVIEW",
+    "unreachable_or_missing_source_action": "UNKNOWN_FAIL_CLOSED",
+    "review_clock_source": "SIGNED_UTC_OFFSET_TIMESTAMP"
+  },
+  "mode_contracts": [
+    {
+      "mode": "PUBLIC_BROWSER",
+      "name_zh": "公开页面观察",
+      "default_state": "CONDITIONAL",
+      "required_gate_ids": [
+        "PUBLIC_ACCESS_VERIFIED",
+        "SOURCE_PERMISSION_VERIFIED",
+        "RATE_BUDGET_VERIFIED",
+        "PARSER_FIXTURE_PASS",
+        "SOURCE_VERSION_HASHED",
+        "CHALLENGE_BACKOFF_ENABLED"
+      ],
+      "minimum_fields": ["source_id", "source_version", "retrieved_at", "review_by", "content_sha256", "observed_at"],
+      "frequency_budget": "SOURCE_SPECIFIC_ZERO_UNTIL_VERIFIED",
+      "failure_action": "DEGRADE_AND_SWITCH_SOURCE"
+    },
+    {
+      "mode": "FILE_OR_STATIC_DATA",
+      "name_zh": "公开文件或静态数据",
+      "default_state": "CONDITIONAL_UNTIL_SOURCE_SPECIFIC_PROOF",
+      "required_gate_ids": [
+        "LICENSE_AND_USE_VERIFIED",
+        "SOURCE_VERSION_HASHED",
+        "UPDATE_DATE_PRESENT",
+        "FIELD_LINEAGE_PRESENT",
+        "PARSER_FIXTURE_PASS"
+      ],
+      "minimum_fields": ["source_id", "source_version", "retrieved_at", "review_by", "content_sha256", "updated_at", "field_lineage"],
+      "frequency_budget": "SOURCE_SPECIFIC_ZERO_UNTIL_VERIFIED",
+      "failure_action": "QUARANTINE_SOURCE_VERSION"
+    },
+    {
+      "mode": "FREE_ENDPOINT",
+      "name_zh": "免费程序端点",
+      "default_state": "OPTIONAL_NON_CRITICAL",
+      "required_gate_ids": [
+        "EXPLICIT_ACCESS_GRANT_VERIFIED",
+        "ZERO_INCREMENTAL_CASH_VERIFIED",
+        "QUOTA_OBSERVABLE",
+        "REPLACEABLE_SOURCE_PRESENT",
+        "NOT_SINGLE_TRUTH_SOURCE",
+        "RATE_BUDGET_VERIFIED",
+        "SOURCE_VERSION_HASHED"
+      ],
+      "minimum_fields": ["source_id", "source_version", "retrieved_at", "review_by", "quota_state", "observed_at"],
+      "frequency_budget": "SOURCE_SPECIFIC_ZERO_UNTIL_VERIFIED",
+      "failure_action": "FALLBACK_TO_OTHER_SOURCES"
+    },
+    {
+      "mode": "AUTHENTICATED_OBSERVER",
+      "name_zh": "只读登录观察",
+      "default_state": "OFF",
+      "required_gate_ids": [
+        "OWNER_EXPLICIT_CONFIGURATION",
+        "SECRET_ENCRYPTION_VERIFIED",
+        "LEAST_PRIVILEGE_VERIFIED",
+        "SOURCE_PERMISSION_VERIFIED",
+        "READ_ONLY_METHOD_ALLOWLIST_VERIFIED",
+        "NO_ORDER_CAPABILITY_VERIFIED",
+        "SESSION_KILL_SWITCH_VERIFIED"
+      ],
+      "minimum_fields": ["source_id", "source_version", "retrieved_at", "review_by", "session_scope", "observed_at"],
+      "frequency_budget": "ZERO_UNTIL_ALL_AUTHENTICATED_GATES_PASS",
+      "failure_action": "DISABLE_SESSION_AND_ALERT"
+    },
+    {
+      "mode": "OWNER_DEVICE_OVERLAY",
+      "name_zh": "用户页面即时校验",
+      "default_state": "OFF_UNTIL_INSTALLED_AND_VERIFIED",
+      "required_gate_ids": [
+        "OWNER_INSTALLATION_VERIFIED",
+        "VISIBLE_FIELDS_ONLY",
+        "PAGE_TEXT_TREATED_AS_UNTRUSTED_DATA",
+        "NO_CLICK_OR_SUBMIT_CAPABILITY_VERIFIED",
+        "CURRENT_PAGE_IDENTITY_MATCHED"
+      ],
+      "minimum_fields": ["provider_id", "event", "market", "selection", "visible_odds", "observed_at"],
+      "frequency_budget": "OWNER_INITIATED_CURRENT_PAGE_ONLY",
+      "failure_action": "SHOW_MANUAL_CHECK_OR_CANCEL_TICKET"
+    }
+  ],
+  "provider_contracts": [
+    {
+      "provider_id": "TAB",
+      "contract_version": "TAB-2026-07-20-S05P02",
+      "source_facts_retrieved_on": "2026-07-20",
+      "review_by": "2026-08-20",
+      "source_fact_ids": ["PF-TAB-001", "PF-TAB-002", "PF-TAB-003", "PF-TAB-004", "PF-TAB-005", "PF-TAB-006"],
+      "official_source_ids": ["SRC-TAB-001", "SRC-TAB-002", "SRC-TAB-003", "SRC-TAB-004", "SRC-TAB-005", "SRC-ACMA-001"],
+      "applicable_licensed_entity": "UNKNOWN_REQUIRES_CURRENT_OWNER_JURISDICTION_MATCH",
+      "allowed_access_methods": ["OWNER_VISIBLE_MANUAL_OBSERVATION_AFTER_IDENTITY_MATCH"],
+      "prohibited_access_methods": ["SCREEN_SCRAPING", "THIRD_PARTY_CREDENTIAL_ACCESS", "ACCOUNT_CONTROL", "ORDER_SUBMISSION_CONFIRMATION_OR_RETRY"],
+      "conditional_access_methods": ["MONTHLY_ACTIVITY_STATEMENT_AFTER_OWNER_AUTHORIZATION", "DETAILED_TRANSACTION_CSV_FOR_RECONCILIATION_ONLY", "WEB_SERVICES_AFTER_EXPLICIT_GRANT_AND_METHOD_CONTRACT", "STUDIO_AFTER_EXPLICIT_GRANT_AND_ZERO_COST_PROOF"],
+      "realtime_truth": "NOT_FROM_EMAIL_OR_ACTIVITY_STATEMENT",
+      "rate_budget": {"enabled_requests_per_period": 0, "period": "DISABLED_UNTIL_SOURCE_SPECIFIC_CONTRACT_PASS"},
+      "field_precision": "UNKNOWN_UNTIL_METHOD_SPECIFIC_SCHEMA_IS_VERIFIED",
+      "time_semantics": "UNKNOWN_UNTIL_SOURCE_TIMESTAMP_AND_OBSERVATION_TIMESTAMP_ARE_VERIFIED",
+      "identity_mapping": "REQUIRES_S05_P01_ONTOLOGY_AND_SOURCE_SPECIFIC_FIXTURE",
+      "settlement_rules": "REQUIRE_VERSIONED_PROVIDER_RULE_SOURCE_BEFORE_ADVICE_ELIGIBILITY",
+      "stop_conditions": ["TERMS_OR_PERMISSION_DRIFT", "ENTITY_OR_JURISDICTION_UNKNOWN", "CHALLENGE_OR_RATE_LIMIT", "CREDENTIAL_OR_ACCOUNT_CONTROL_RISK", "NONZERO_INCREMENTAL_COST"],
+      "backoff": "NO_BACKGROUND_COLLECTION; ON_FAILURE_DISABLE_AFFECTED_MODE_AND_PRESERVE_GAP",
+      "production_collection_enabled": false
+    },
+    {
+      "provider_id": "SPORTSBET",
+      "contract_version": "SPORTSBET-2026-07-20-S05P02",
+      "source_facts_retrieved_on": "2026-07-20",
+      "review_by": "2026-08-20",
+      "source_fact_ids": ["PF-SPORTSBET-001", "PF-SPORTSBET-002", "PF-SPORTSBET-003"],
+      "official_source_ids": ["SRC-SPORTSBET-001", "SRC-SPORTSBET-002"],
+      "applicable_licensed_entity": "UNKNOWN_REQUIRES_CURRENT_ELIGIBILITY_KYC_AND_LICENSE_CHECK",
+      "allowed_access_methods": ["OWNER_VISIBLE_MANUAL_OBSERVATION_AFTER_IDENTITY_MATCH"],
+      "prohibited_access_methods": ["UNPROVEN_SCRAPING_AUTOMATION_OR_API", "ORDER_SUBMISSION_CONFIRMATION_OR_RETRY"],
+      "conditional_access_methods": ["MONTHLY_ACTIVITY_STATEMENT_AFTER_OWNER_AUTHORIZATION", "ANY_AUTOMATION_ONLY_AFTER_SEPARATE_OFFICIAL_PERMISSION_EVIDENCE"],
+      "realtime_truth": "OWNER_VISIBLE_PRICE_OR_SEPARATELY_VERIFIED_FRESH_SOURCE",
+      "rate_budget": {"enabled_requests_per_period": 0, "period": "DISABLED_UNTIL_SOURCE_SPECIFIC_CONTRACT_PASS"},
+      "field_precision": "UNKNOWN_UNTIL_METHOD_SPECIFIC_SCHEMA_IS_VERIFIED",
+      "time_semantics": "UNKNOWN_UNTIL_SOURCE_TIMESTAMP_AND_OBSERVATION_TIMESTAMP_ARE_VERIFIED",
+      "identity_mapping": "REQUIRES_S05_P01_ONTOLOGY_AND_SOURCE_SPECIFIC_FIXTURE",
+      "settlement_rules": "REQUIRE_VERSIONED_PROVIDER_RULE_SOURCE_BEFORE_ADVICE_ELIGIBILITY",
+      "stop_conditions": ["PERMISSION_UNKNOWN_OR_DRIFT", "ELIGIBILITY_KYC_OR_LICENSE_UNKNOWN", "CHALLENGE_OR_RATE_LIMIT", "NONZERO_INCREMENTAL_COST"],
+      "backoff": "NO_BACKGROUND_COLLECTION; ON_FAILURE_DISABLE_AFFECTED_MODE_AND_PRESERVE_GAP",
+      "production_collection_enabled": false
+    },
+    {
+      "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+      "contract_version": "UNBOUND-SOURCE-S05P02",
+      "source_facts_retrieved_on": "NOT_APPLICABLE_UNBOUND",
+      "review_by": "SOURCE_BINDING_REQUIRED_BEFORE_REVIEW_DATE_EXISTS",
+      "source_fact_ids": [],
+      "official_source_ids": [],
+      "applicable_licensed_entity": "UNBOUND_UNKNOWN",
+      "allowed_access_methods": [],
+      "prohibited_access_methods": ["UNCONTRACTED_COLLECTION", "ORDER_SUBMISSION_CONFIRMATION_OR_RETRY"],
+      "conditional_access_methods": ["ANY_MODE_AFTER_SOURCE_IDENTITY_L1_PERMISSION_LICENSE_RATE_SCHEMA_TIME_AND_SETTLEMENT_PROOF"],
+      "realtime_truth": "SEPARATELY_VERIFIED_FRESH_SOURCE_ONLY",
+      "rate_budget": {"enabled_requests_per_period": 0, "period": "DISABLED_UNTIL_SOURCE_SPECIFIC_CONTRACT_PASS"},
+      "field_precision": "UNKNOWN",
+      "time_semantics": "UNKNOWN",
+      "identity_mapping": "UNKNOWN_UNTIL_SOURCE_BOUND",
+      "settlement_rules": "UNKNOWN_UNTIL_SOURCE_SPECIFIC_RULE_SOURCE_IS_VERSIONED",
+      "stop_conditions": ["SOURCE_IDENTITY_UNKNOWN", "PERMISSION_LICENSE_OR_USE_UNKNOWN", "RATE_OR_SCHEMA_UNKNOWN", "NONZERO_INCREMENTAL_COST"],
+      "backoff": "DO_NOT_COLLECT; SURFACE EXPLICIT COVERAGE GAP",
+      "production_collection_enabled": false
+    }
+  ],
+  "adjacent_systems_out_of_scope": [
+    {"system_id": "GMAIL", "reason": "S06 evidence ingestion scope; not a real-time market source and remains not connected"},
+    {"system_id": "CLOUDFLARE", "reason": "S04 edge/runtime scope; not a market source and production access remains unverified"},
+    {"system_id": "OVH", "reason": "S04 host/runtime scope; not a market source and 7x24 remains unverified"}
+  ],
+  "hard_boundaries": {
+    "initial_bankroll_aud": "300.00",
+    "incremental_cash_budget_aud": "0.00",
+    "paid_data_or_api_dependency_allowed": false,
+    "real_order_submission_confirmation_or_retry_present": false,
+    "target_30pct_guaranteed": false,
+    "target_shortfall_may_relax_source_gate": false,
+    "page_or_email_text_is_instruction": false
+  },
+  "claim_boundary": {
+    "provider_account_or_page_accessed": false,
+    "provider_permission_or_api_grant_obtained": false,
+    "production_collection_enabled": false,
+    "real_market_coverage_verified": false,
+    "all_observable_markets_enumerated": false,
+    "source_freshness_runtime_verified": false,
+    "source_schedule_implemented": false,
+    "advice_or_order_enabled": false,
+    "production_deployed": false,
+    "ovh_7x24_verified": false,
+    "cloudflare_global_or_mainland_reach_verified": false,
+    "financial_return_verified_or_guaranteed": false
+  }
+}

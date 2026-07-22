@@ -27,6 +27,7 @@ from abd_acceptance.market_ontology import (
     ROLLBACK_EVIDENCE_PATH,
     SCHEMA_PATH,
     STRUCTURAL_SELF_NORMALIZED_SHA256,
+    SUCCESSOR_UNIT_PROFILE_HASHES,
     TEST_PATH,
     UNKNOWN_REASON_CODES,
     MarketOntologyError,
@@ -119,7 +120,7 @@ def test_taskpack_identity_and_scope_are_exact() -> None:
 
 @pytest.mark.parametrize("relative", sorted(PINNED_PHASE_HASHES))
 def test_phase_artifact_hash_matches_pin(relative: str) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_PHASE_HASHES[relative]
+    assert sha256_file(ROOT / relative) in {PINNED_PHASE_HASHES[relative], SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)}
 
 
 def test_oracle_source_has_normalized_structural_integrity() -> None:
@@ -450,14 +451,23 @@ def test_stage4_delivery_cli_is_wired() -> None:
     main = (ROOT / "abd_acceptance/__main__.py").read_text(encoding="utf-8")
     assert '"STAGE-REVIEW-S04": cli_verify_stage4_delivery' in main
     assert '"AC-S05-P01": write_market_ontology_phase_evidence' in main
+    assert '"AC-S05-P02": write_source_capability_phase_evidence' in main
 
 
-def test_p02_remains_planned_and_unstarted() -> None:
+def test_p02_progression_accepts_only_complete_verified_candidate_or_receipt() -> None:
     result = evaluate_contract(ROOT)
-    check = next(row for row in result["checks"] if row["id"] == "S05P01-P02-NOT-STARTED")
+    check = next(row for row in result["checks"] if row["id"] == "S05P01-P02-PROGRESSION")
     assert check["passed"] is True, check
-    assert not check["detail"]["present"]
-    assert check["detail"]["index"][0]["status"] == "PLANNED"
+    assert check["detail"]["mode"] in {"VERIFIED_S05_P02_CANDIDATE", "VERIFIED_S05_P02_SIGNED"}
+    assert len(check["detail"]["candidate_present"]) == 5
+
+
+def test_partial_p02_candidate_fails_closed(tmp_path: Path) -> None:
+    root = _clone_project(tmp_path)
+    (root / "provider_contracts.json").unlink()
+    result = evaluate_contract(root)
+    _assert_failed(result)
+    assert "S05P01-P02-PROGRESSION" in result["summary"]["failed_check_ids"]
 
 
 def test_p01_artifacts_contain_no_secret_or_machine_specific_path() -> None:

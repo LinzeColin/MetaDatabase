@@ -4,6 +4,7 @@ import hashlib
 import json
 import re
 import shutil
+import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
 from collections import Counter
@@ -43,7 +44,26 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S05-P01_rollback.json")
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "6e8f25f182ea02e88be3ad960470a5763a0c09080553b8b660671bcc91db82a7"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "6bbb7d6cdade75bae68b9cd51832363870ab1676738960a8a9779223e210241c"
+PHASE_COMMIT = "6ddbf8a36b4b089ab0511bd26f7d0c0fa2662bcc"
+PINNED_PHASE_CODE_HASH = "e5ebba41d7a5943b5302cf0d5813a165aae77cb99fc84d8de72c5f358cf9bc1e"
+SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
+    "README.md",
+    "abd_acceptance/__init__.py",
+    "abd_acceptance/__main__.py",
+    "abd_acceptance/market_ontology.py",
+    "abd_acceptance/stage4_review.py",
+    "tests/S04/stage_review_test.py",
+    "tests/S05/P01_test.py",
+}
+SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
+    "README.md": "ff1c4f4d9146496772a66c527bc7c5aba36cb3bc7ce2bd99700f33b115853d47",
+    "abd_acceptance/__init__.py": "a99a38901124e8e9cab0e4b3402ff6d809989e438d9226b6bc30f793336d1af5",
+    "abd_acceptance/__main__.py": "cd49b1652dc98a812d03fbbf7cfaaa345e676fbab28132d8263134a6f6ea027e",
+    "abd_acceptance/stage4_review.py": "d011f699cd792f4fffd00d81e967e17f35741cc7bcbbb2d241838f40ae6cff35",
+    "tests/S04/stage_review_test.py": "5bbdbd6ddfb0bc65358fb14c29eeac6f42d41f7804a8746bb2489b912d7809d5",
+    "tests/S05/P01_test.py": "44f2132acd1a9f04ef1b3297300f22e2cbcb86e0db10ec8cf5ca90fa48cab8f7",
+}
 PINNED_PHASE_HASHES: Dict[str, str] = {
     ONTOLOGY_PATH.as_posix(): "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe",
     SCHEMA_PATH.as_posix(): "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2",
@@ -188,6 +208,66 @@ def _structural_self_hash(root: Path) -> str:
     if normalized == text:
         return "NORMALIZATION_FAILED"
     return _sha256_bytes(normalized.encode("utf-8"))
+
+
+def _phase_commit_is_ancestor(root: Path) -> bool:
+    result = subprocess.run(
+        ["git", "-C", str(root.parent), "merge-base", "--is-ancestor", PHASE_COMMIT, "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def _historical_file_matches(root: Path, relative: str, expected_sha256: str, verify_git_history: bool) -> bool:
+    if relative not in SUCCESSOR_EVOLVABLE_SIGNED_INPUTS:
+        return False
+    if verify_git_history:
+        if not _phase_commit_is_ancestor(root):
+            return False
+        result = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:ABD/%s" % (PHASE_COMMIT, relative)],
+            check=False,
+            capture_output=True,
+        )
+        return result.returncode == 0 and _sha256_bytes(result.stdout) == expected_sha256
+    if relative == "abd_acceptance/market_ontology.py":
+        try:
+            return _structural_self_hash(root) == STRUCTURAL_SELF_NORMALIZED_SHA256
+        except Exception:
+            return False
+    successor = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+    return successor not in {None, "TO_BE_FILLED"} and (root / relative).is_file() and sha256_file(root / relative) == successor
+
+
+def _historical_code_hash(root: Path, verify_git_history: bool) -> str:
+    if not verify_git_history:
+        return "UNVERIFIED_UNIT_TEST_HISTORY"
+    if not _phase_commit_is_ancestor(root):
+        return "INVALID_PHASE_COMMIT_ANCESTRY"
+    listing = subprocess.run(
+        ["git", "-C", str(root.parent), "ls-tree", "-r", "--name-only", PHASE_COMMIT, "--", "ABD/abd_acceptance"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if listing.returncode != 0:
+        return "UNAVAILABLE_PHASE_COMMIT_TREE"
+    digest = hashlib.sha256()
+    for repo_path in sorted(row for row in listing.stdout.splitlines() if row.startswith("ABD/abd_acceptance/") and row.endswith(".py")):
+        blob = subprocess.run(
+            ["git", "-C", str(root.parent), "show", "%s:%s" % (PHASE_COMMIT, repo_path)],
+            check=False,
+            capture_output=True,
+        )
+        if blob.returncode != 0:
+            return "UNAVAILABLE_PHASE_COMMIT_BLOB"
+        digest.update(repo_path.removeprefix("ABD/").encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(blob.stdout)
+        digest.update(b"\0")
+    return digest.hexdigest()
 
 
 def _load_index(root: Path) -> List[Dict[str, Any]]:
@@ -561,7 +641,8 @@ def _check_pins(root: Path, checks: List[Dict[str, Any]], hashes: MutableMapping
     for relative, expected in PINNED_PHASE_HASHES.items():
         actual = sha256_file(root / relative) if (root / relative).is_file() else "MISSING"
         hashes[relative] = actual
-        _add(checks, "S05P01-PIN-%s" % relative.upper().replace("/", "-").replace(".", "-"), actual == expected, {"expected": expected, "actual": actual})
+        successor = SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
+        _add(checks, "S05P01-PIN-%s" % relative.upper().replace("/", "-").replace(".", "-"), actual == expected or (successor not in {None, "TO_BE_FILLED"} and actual == successor), {"expected": expected, "successor": successor, "actual": actual})
     structural = _structural_self_hash(root)
     hashes["abd_acceptance/market_ontology.py"] = sha256_file(root / "abd_acceptance/market_ontology.py")
     _add(checks, "S05P01-ORACLE-SELF-INTEGRITY", structural == STRUCTURAL_SELF_NORMALIZED_SHA256, {"expected": STRUCTURAL_SELF_NORMALIZED_SHA256, "actual": structural})
@@ -715,24 +796,56 @@ def _check_numeric_stability(ontology: Mapping[str, Any], fixture: Mapping[str, 
 
 
 def _check_progression(root: Path, checks: List[Dict[str, Any]]) -> None:
-    p02_paths = [
+    candidate_paths = [
         Path("provider_contracts.json"),
         Path("source_capabilities.json"),
         Path("tests/S05/P02_test.py"),
         Path("machine/tests/fixtures/S05_P02.json"),
-        Path("machine/evidence/EVD-S05-P02.json"),
         Path("abd_acceptance/source_capabilities.py"),
     ]
-    present = [path.as_posix() for path in p02_paths if (root / path).exists()]
-    p02_rows = [row for row in _load_index(root) if row.get("id") == "INDEX-AC-S05-P02"]
-    ok = (
-        not present
-        and len(p02_rows) == 1
-        and p02_rows[0].get("status") == "PLANNED"
-        and "actual_artifact" not in p02_rows[0]
-        and "artifact_sha256" not in p02_rows[0]
-    )
-    _add(checks, "S05P01-P02-NOT-STARTED", ok, {"present": present, "index": p02_rows})
+    signed_paths = [Path("machine/evidence/EVD-S05-P02.json"), Path("machine/evidence/EVD-S05-P02_rollback.json")]
+    candidate_present = [path.as_posix() for path in candidate_paths if (root / path).exists()]
+    signed_present = [path.as_posix() for path in signed_paths if (root / path).exists()]
+    rows = [row for row in _load_index(root) if row.get("id") == "INDEX-AC-S05-P02"]
+
+    def planned(row: Mapping[str, Any]) -> bool:
+        return row.get("status") == "PLANNED" and "actual_artifact" not in row and "artifact_sha256" not in row
+
+    successor: Dict[str, Any] = {}
+    mode = "INVALID_PARTIAL_S05_P02"
+    if not candidate_present and not signed_present and len(rows) == 1 and planned(rows[0]):
+        ok = True
+        mode = "S05_P02_NOT_STARTED"
+    elif len(candidate_present) == len(candidate_paths) and not signed_present and len(rows) == 1 and planned(rows[0]):
+        try:
+            from .source_capabilities import validate_candidate_preflight as validate_s05_p02_candidate
+
+            successor = validate_s05_p02_candidate(root)
+            ok = successor.get("status") == "PASS" and successor.get("next") == "S05/P03_READY_NOT_STARTED"
+            mode = "VERIFIED_S05_P02_CANDIDATE" if ok else "INVALID_S05_P02_CANDIDATE"
+        except Exception as exc:
+            ok = False
+            successor = {"error": "%s: %s" % (type(exc).__name__, exc)}
+    elif (
+        len(candidate_present) == len(candidate_paths)
+        and len(signed_present) == len(signed_paths)
+        and len(rows) == 1
+        and rows[0].get("status") == "PASS"
+        and rows[0].get("actual_artifact") == "machine/evidence/EVD-S05-P02.json"
+        and isinstance(rows[0].get("artifact_sha256"), str)
+    ):
+        try:
+            from .source_capabilities import validate_signed_receipt_preflight as validate_s05_p02_signed
+
+            successor = validate_s05_p02_signed(root)
+            ok = successor.get("status") == "PASS" and successor.get("next") == "S05/P03_READY_NOT_STARTED"
+            mode = "VERIFIED_S05_P02_SIGNED" if ok else "INVALID_S05_P02_SIGNED"
+        except Exception as exc:
+            ok = False
+            successor = {"error": "%s: %s" % (type(exc).__name__, exc)}
+    else:
+        ok = False
+    _add(checks, "S05P01-P02-PROGRESSION", ok, {"mode": mode, "candidate_present": candidate_present, "signed_present": signed_present, "index": rows, "successor_summary": successor.get("summary") if isinstance(successor, Mapping) else successor})
 
 
 def _junit_summary(path: Path) -> Dict[str, int]:
@@ -1077,7 +1190,7 @@ def _decision_hash_matches(evidence: Mapping[str, Any]) -> bool:
     return isinstance(expected, str) and expected == _sha256_bytes(_json_bytes(unsigned))
 
 
-def validate_signed_receipt_preflight(root: Path) -> Dict[str, Any]:
+def validate_signed_receipt_preflight(root: Path, *, verify_git_history: bool = True) -> Dict[str, Any]:
     root = root.resolve()
     checks: List[Dict[str, Any]] = []
     candidate = validate_candidate_preflight(root)
@@ -1113,11 +1226,14 @@ def validate_signed_receipt_preflight(root: Path) -> Dict[str, Any]:
                 continue
             path = root.parent / candidate_path if relative.startswith(".github/") else root / candidate_path
             actual = sha256_file(path) if path.is_file() else "MISSING"
-            if actual != expected:
+            if actual != expected and not _historical_file_matches(root, relative, expected, verify_git_history):
                 input_errors.append({"path": relative, "expected": expected, "actual": actual})
-        _add(checks, "S05P01-SIGNED-INPUT-HASHES", not input_errors, input_errors or "all inputs match")
+        _add(checks, "S05P01-SIGNED-INPUT-HASHES", not input_errors, input_errors or "all inputs match current files or the exact signed P01 commit")
         current_code = _current_code_hash(root)
-        _add(checks, "S05P01-SIGNED-CODE-HASH", evidence.get("hashes", {}).get("code") == current_code, {"expected": evidence.get("hashes", {}).get("code"), "actual": current_code})
+        expected_code = evidence.get("hashes", {}).get("code")
+        historical_code = _historical_code_hash(root, verify_git_history) if expected_code != current_code else current_code
+        code_ok = expected_code == current_code or (expected_code == PINNED_PHASE_CODE_HASH and historical_code in {PINNED_PHASE_CODE_HASH, "UNVERIFIED_UNIT_TEST_HISTORY"})
+        _add(checks, "S05P01-SIGNED-CODE-HASH", code_ok, {"expected": expected_code, "actual": current_code, "historical": historical_code})
         report_errors: List[Dict[str, str]] = []
         validation_hashes = validation.get("hashes", {}) if isinstance(validation, Mapping) else {}
         for relative in [JUNIT_PATH, FULL_JUNIT_PATH, PACK_REPORT_PATH, SCAN_REPORT_PATH]:
@@ -1167,7 +1283,7 @@ def validate_signed_receipt_preflight(root: Path) -> Dict[str, Any]:
 def verify_existing_phase_evidence(root: Path, *, verify_git_history: bool = True) -> Dict[str, Any]:
     root = root.resolve()
     checks: List[Dict[str, Any]] = []
-    preflight = validate_signed_receipt_preflight(root)
+    preflight = validate_signed_receipt_preflight(root, verify_git_history=verify_git_history)
     _add(checks, "S05P01-RECEIPT-PREFLIGHT", preflight.get("status") == "PASS", preflight.get("summary"))
     try:
         s02 = verify_stage2_delivery(root, verify_git_history=verify_git_history)

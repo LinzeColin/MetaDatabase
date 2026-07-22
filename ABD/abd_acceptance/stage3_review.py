@@ -63,7 +63,7 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S03-STAGE-REVIEW_rollback.js
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "7e37e34e9e9646ed5658e15150be8cb0e8b5243137b3de3bca39186a7c3eacbb"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "57743c9c3093ecb5cd4323225a7012bcec127bc463b93c6cdda93da33861051d"
 STAGE_REVIEW_COMMIT = "4168321dee17540bdba5763271694f78b33e3c42"
 PINNED_STAGE_REVIEW_CODE_HASH = "18431889da80b66a6f6c35375859793bee2d811ce14228cec80f69f880902b93"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -77,13 +77,13 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "abd_acceptance/__init__.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "README.md": "31cb0d0054f346742f878773e6980ae9b08c67a0fb42f666db320043618d3c88",
+    "README.md": "ff1c4f4d9146496772a66c527bc7c5aba36cb3bc7ce2bd99700f33b115853d47",
     "tests/S03/stage_review_test.py": "4a140a8848b2990873c1e568588336d05d24311ce966ed3ed627ac9d7c3e4b5d",
-    "abd_acceptance/usability_accessibility.py": "66eca3546a53b6f81c4580fa67cd24d57ec5de2a8ef89d3a0002b77324fd493f",
-    "abd_acceptance/reason_next_action.py": "0305adad5c5f1f3d667ab11cf0763e1ffcfe1a3f2aee9b6a47e812d75983cb7b",
-    "abd_acceptance/advice_card.py": "af397ffde20c5db11a6f1cc05e6192cfbff6b8ce65f9523ec9070f8655a5e373",
-    "abd_acceptance/__main__.py": "11fbcd6680878e0ae2e2befaff9bf3f2b3335905775781e28a72b43d26646e43",
-    "abd_acceptance/__init__.py": "0706ddb7dd259dc4bd209be3306c01ee62d8d71c0d535a8b0b8a1148a78d1f55",
+    "abd_acceptance/usability_accessibility.py": "e1cc98969d55e6b1c860c2f89a906147e589acba0c2ed07ed3fbd4c775104004",
+    "abd_acceptance/reason_next_action.py": "c28816b1413d85158264245c2b5b13ec41057011a0afc940a4a9a9614f96cf34",
+    "abd_acceptance/advice_card.py": "3be8e309504b4bd9e74aca8b46c128be7ce8b10a75f570a3c2ba2a94b211128e",
+    "abd_acceptance/__main__.py": "cd49b1652dc98a812d03fbbf7cfaaa345e676fbab28132d8263134a6f6ea027e",
+    "abd_acceptance/__init__.py": "a99a38901124e8e9cab0e4b3402ff6d809989e438d9226b6bc30f793336d1af5",
 }
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
     CONTRACT_PATH.as_posix(): "9466f63e3f8029cba8b518e828b4d22113bf59ae7fa13b44470509ee8732d241",

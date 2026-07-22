@@ -1,0 +1,112 @@
+{
+  "artifacts": {
+    "README.md": {
+      "corrupted_sha256": "fec73172998adbeb51c61cad9cbcc4413f926b9db176e4af6d695cff1fd2cd4e",
+      "restored_sha256": "ff1c4f4d9146496772a66c527bc7c5aba36cb3bc7ce2bd99700f33b115853d47",
+      "signed_sha256": "ff1c4f4d9146496772a66c527bc7c5aba36cb3bc7ce2bd99700f33b115853d47",
+      "status": "PASS"
+    },
+    "abd_acceptance/__init__.py": {
+      "corrupted_sha256": "f89ead61f2b13fe3bbf488f185c4a50a53c394aed1de42aea4eb43fb5d6f4549",
+      "restored_sha256": "a99a38901124e8e9cab0e4b3402ff6d809989e438d9226b6bc30f793336d1af5",
+      "signed_sha256": "a99a38901124e8e9cab0e4b3402ff6d809989e438d9226b6bc30f793336d1af5",
+      "status": "PASS"
+    },
+    "abd_acceptance/__main__.py": {
+      "corrupted_sha256": "db99d26c59a1d2cefa7dfd635f54149f0bb653f8dca3a460305776ed150d67d7",
+      "restored_sha256": "cd49b1652dc98a812d03fbbf7cfaaa345e676fbab28132d8263134a6f6ea027e",
+      "signed_sha256": "cd49b1652dc98a812d03fbbf7cfaaa345e676fbab28132d8263134a6f6ea027e",
+      "status": "PASS"
+    },
+    "abd_acceptance/advice_card.py": {
+      "corrupted_sha256": "5671b00f9032ff4c0d6e356c115bcf6539d5bcefec9ed9172ad5c66f32dec112",
+      "restored_sha256": "3be8e309504b4bd9e74aca8b46c128be7ce8b10a75f570a3c2ba2a94b211128e",
+      "signed_sha256": "3be8e309504b4bd9e74aca8b46c128be7ce8b10a75f570a3c2ba2a94b211128e",
+      "status": "PASS"
+    },
+    "abd_acceptance/market_ontology.py": {
+      "corrupted_sha256": "7b98b673bb884711d0715fbe97a74e0314a292f75eb05844da14f8995cdfb962",
+      "restored_sha256": "04233ad46c1693fa22ac778ca0f7943038eeec8f45bcc39245c9b50563ed43f9",
+      "signed_sha256": "04233ad46c1693fa22ac778ca0f7943038eeec8f45bcc39245c9b50563ed43f9",
+      "status": "PASS"
+    },
+    "abd_acceptance/reason_next_action.py": {
+      "corrupted_sha256": "e45bb6ccd45d92dfdcbfe006f1777eca8f5952ea14e99af36f5acbf903989d8a",
+      "restored_sha256": "c28816b1413d85158264245c2b5b13ec41057011a0afc940a4a9a9614f96cf34",
+      "signed_sha256": "c28816b1413d85158264245c2b5b13ec41057011a0afc940a4a9a9614f96cf34",
+      "status": "PASS"
+    },
+    "abd_acceptance/source_capabilities.py": {
+      "corrupted_sha256": "fb41dcdb1f128c7e76252c873486120d8a987aa92ed9b87393371f7784f95622",
+      "restored_sha256": "f2400fc8dd4f1ac8a12ec0adc0983a26db5b23564682a11fa34acde1612e3e79",
+      "signed_sha256": "f2400fc8dd4f1ac8a12ec0adc0983a26db5b23564682a11fa34acde1612e3e79",
+      "status": "PASS"
+    },
+    "abd_acceptance/stage3_review.py": {
+      "corrupted_sha256": "640dfd3780da096d2ca615d93bb1d125ce77af97e07e8a3e63eccf883f6c4b2e",
+      "restored_sha256": "0694b6a13bff0c9a383be57798266e8a14feb5ada0b66f5237e124dd954821ef",
+      "signed_sha256": "0694b6a13bff0c9a383be57798266e8a14feb5ada0b66f5237e124dd954821ef",
+      "status": "PASS"
+    },
+    "abd_acceptance/stage4_review.py": {
+      "corrupted_sha256": "9e1c4e49dcd49c2fa44e6b5a86133147860de09586b04bace14e6cfe70e4c170",
+      "restored_sha256": "d011f699cd792f4fffd00d81e967e17f35741cc7bcbbb2d241838f40ae6cff35",
+      "signed_sha256": "d011f699cd792f4fffd00d81e967e17f35741cc7bcbbb2d241838f40ae6cff35",
+      "status": "PASS"
+    },
+    "abd_acceptance/usability_accessibility.py": {
+      "corrupted_sha256": "b9d42618cbfdd2d7decdf2391dd4ad586d227b5cd95c3a28faa1c4c3bf0f4f3d",
+      "restored_sha256": "e1cc98969d55e6b1c860c2f89a906147e589acba0c2ed07ed3fbd4c775104004",
+      "signed_sha256": "e1cc98969d55e6b1c860c2f89a906147e589acba0c2ed07ed3fbd4c775104004",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S05_P02.json": {
+      "corrupted_sha256": "fc3a49b2c6e339d91cac04813428d1b3c85e454ee9cc772e74488cf2310dce27",
+      "restored_sha256": "26b5f58830ff9add93bf8466383122eb5945ea2fd827ad1d2f11c7bb9ff256b2",
+      "signed_sha256": "26b5f58830ff9add93bf8466383122eb5945ea2fd827ad1d2f11c7bb9ff256b2",
+      "status": "PASS"
+    },
+    "provider_contracts.json": {
+      "corrupted_sha256": "a4d5cd3330a2d5c0ba0527b38cd72697497c40ff63b1f829adf05cc3fe4a3624",
+      "restored_sha256": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+      "signed_sha256": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+      "status": "PASS"
+    },
+    "source_capabilities.json": {
+      "corrupted_sha256": "063202e1541438506829aebdc7996eed40ca65b4cd08e5c82d758654f2cd899b",
+      "restored_sha256": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+      "signed_sha256": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+      "status": "PASS"
+    },
+    "tests/S04/stage_review_test.py": {
+      "corrupted_sha256": "7be72a2c8bcf8280c2d02b9f15b49f1c93da9631539293aae02586e725b4c48a",
+      "restored_sha256": "5bbdbd6ddfb0bc65358fb14c29eeac6f42d41f7804a8746bb2489b912d7809d5",
+      "signed_sha256": "5bbdbd6ddfb0bc65358fb14c29eeac6f42d41f7804a8746bb2489b912d7809d5",
+      "status": "PASS"
+    },
+    "tests/S05/P01_test.py": {
+      "corrupted_sha256": "b1df20ddb21cb89ead9991cef9229909fa3bb2629353c6828770d083d865909f",
+      "restored_sha256": "44f2132acd1a9f04ef1b3297300f22e2cbcb86e0db10ec8cf5ca90fa48cab8f7",
+      "signed_sha256": "44f2132acd1a9f04ef1b3297300f22e2cbcb86e0db10ec8cf5ca90fa48cab8f7",
+      "status": "PASS"
+    },
+    "tests/S05/P02_test.py": {
+      "corrupted_sha256": "8050e9e18c1ddefa4490a51a0466611f791b3bbedc540d28fb8f345d232039d3",
+      "restored_sha256": "4e41ce1aedde1b8cb39fc9326041468224c4b0ca5e4aea23a5fbf0e21801c115",
+      "signed_sha256": "4e41ce1aedde1b8cb39fc9326041468224c4b0ca5e4aea23a5fbf0e21801c115",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S05-P02",
+  "evidence_id": "EVD-S05-P02-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-23T12:00:00+10:00",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "EPHEMERAL_SIGNED_SOURCE_CONTRACT_RESTORE",
+  "production_state_changed": false,
+  "provider_account_api_or_page_accessed": false,
+  "real_market_data_collected": false,
+  "recommendation_or_order_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

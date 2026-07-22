@@ -217,6 +217,17 @@ from .market_ontology import (
     verify_existing_phase_evidence as verify_market_ontology_evidence,
     write_phase_evidence as write_market_ontology_phase_evidence,
 )
+from .source_capabilities import (
+    SourceCapabilityContractError,
+    build_evidence as build_source_capability_evidence,
+    evaluate_contract as evaluate_source_capability_contract,
+    perform_rollback_drill as perform_source_capability_rollback_drill,
+    resolve_capability_request,
+    validate_candidate_preflight as validate_source_capability_candidate,
+    validate_signed_receipt_preflight as validate_source_capability_signed_receipt,
+    verify_existing_phase_evidence as verify_source_capability_evidence,
+    write_phase_evidence as write_source_capability_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -387,4 +398,13 @@ __all__ = [
     "validate_market_ontology_signed_receipt",
     "verify_market_ontology_evidence",
     "write_market_ontology_phase_evidence",
+    "SourceCapabilityContractError",
+    "build_source_capability_evidence",
+    "evaluate_source_capability_contract",
+    "perform_source_capability_rollback_drill",
+    "resolve_capability_request",
+    "validate_source_capability_candidate",
+    "validate_source_capability_signed_receipt",
+    "verify_source_capability_evidence",
+    "write_source_capability_phase_evidence",
 ]
