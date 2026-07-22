@@ -67,6 +67,9 @@
     "scripts/bilibili_selected_chaos_worker.py",
     "scripts/run_adapters_006_acceptance.py",
     "scripts/verify_adapters_006.py",
+    "scripts/kuaishou_selected_chaos_worker.py",
+    "scripts/run_adapters_007_acceptance.py",
+    "scripts/verify_adapters_007.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

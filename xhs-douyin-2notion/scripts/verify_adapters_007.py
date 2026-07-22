@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed verifier for TSK.x2n.adapters.006."""
+"""Fail-closed verifier for TSK.x2n.adapters.007."""
 
 from __future__ import annotations
 
@@ -22,8 +22,8 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PROJECT_ROOT.parent
 PREVIOUS_SPEC = importlib.util.spec_from_file_location(
-    "verify_adapters_004_for_adapters_006",
-    PROJECT_ROOT / "scripts/verify_adapters_004.py",
+    "verify_adapters_006_for_adapters_007",
+    PROJECT_ROOT / "scripts/verify_adapters_006.py",
 )
 assert PREVIOUS_SPEC and PREVIOUS_SPEC.loader
 PREVIOUS = importlib.util.module_from_spec(PREVIOUS_SPEC)
@@ -34,7 +34,6 @@ VerificationError = PREVIOUS.VerificationError
 Check = PREVIOUS.Check
 _require = PREVIOUS._require
 _load_json = PREVIOUS._load_json
-_load_json_at = PREVIOUS._load_json_at
 _read_blob_at = PREVIOUS._read_blob_at
 _git = PREVIOUS._git
 _porcelain_paths = PREVIOUS._porcelain_paths
@@ -47,40 +46,39 @@ _isolated_env = PREVIOUS._isolated_env
 _run_external = PREVIOUS._run_external
 _json_line = PREVIOUS._json_line
 
-TASK_ID = "TSK.x2n.adapters.006"
-RUN_ID = "RUN-X2N-S03-A006"
-PHASE = "PH.X2N.3.5"
-BRANCH = "codex/xhs-douyin-2notion-v0001-s03-adapters006"
-TASK_BASE_COMMIT = "37ec58cb51d5720bdbe16a67a6e4ea82107c3eb0"
-FINAL_COMMIT = "5b6564d289ab3d188015265faf55cceb13fd577a"
+TASK_ID = "TSK.x2n.adapters.007"
+RUN_ID = "RUN-X2N-S03-A007"
+PHASE = "PH.X2N.3.6"
+BRANCH = "codex/xhs-douyin-2notion-v0001-s03-adapters007"
+TASK_BASE_COMMIT = "5b6564d289ab3d188015265faf55cceb13fd577a"
 ORIGIN_CUTOFF = PREVIOUS.ORIGIN_CUTOFF
 
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 ACCEPTANCE = PROJECT_ROOT / "docs/product_design/v0.0.0.1/04_ACCEPTANCE_CONTRACT_TRACEABILITY.md"
-RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S03_ADAPTERS_006.md"
+RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S03_ADAPTERS_007.md"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 PROJECT_FACT = PROJECT_ROOT / "machine/facts/project.json"
 ARCHITECTURE_FACT = PROJECT_ROOT / "machine/facts/architecture_decisions.json"
-POLICY = PROJECT_ROOT / "machine/policy/bilibili_selected_collection_policy.json"
-FIXTURE = PROJECT_ROOT / "packages/test-fixtures/adapters/v1/bilibili_selected/fixture_manifest.json"
+POLICY = PROJECT_ROOT / "machine/policy/kuaishou_selected_collection_policy.json"
+FIXTURE = PROJECT_ROOT / "packages/test-fixtures/adapters/v1/kuaishou_selected/fixture_manifest.json"
 GLOBAL_FIXTURE_MANIFEST = PROJECT_ROOT / "machine/policy/synthetic_fixture_manifest.json"
 ARTIFACT_POLICY = PROJECT_ROOT / "machine/policy/artifact_allowlist.json"
-COMPANION_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/bilibili_selected.py"
-COMPANION_TEST = PROJECT_ROOT / "apps/companion/tests/test_bilibili_selected.py"
+COMPANION_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/kuaishou_selected.py"
+COMPANION_TEST = PROJECT_ROOT / "apps/companion/tests/test_kuaishou_selected.py"
 CLI_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/runtime_cli.py"
-CHAOS_WORKER = PROJECT_ROOT / "scripts/bilibili_selected_chaos_worker.py"
-ACCEPTANCE_RUNNER = PROJECT_ROOT / "scripts/run_adapters_006_acceptance.py"
-EVIDENCE = PROJECT_ROOT / "evidence/adapters/TSK.x2n.adapters.006.json"
+CHAOS_WORKER = PROJECT_ROOT / "scripts/kuaishou_selected_chaos_worker.py"
+ACCEPTANCE_RUNNER = PROJECT_ROOT / "scripts/run_adapters_007_acceptance.py"
+EVIDENCE = PROJECT_ROOT / "evidence/adapters/TSK.x2n.adapters.007.json"
 
 UNCHANGED_SECURITY_SURFACES = (
     PROJECT_ROOT / "apps/extension/manifest.json",
     PROJECT_ROOT / "apps/extension/src/service-worker.js",
-    PROJECT_ROOT / "apps/extension/src/bilibili-current-page.js",
+    PROJECT_ROOT / "apps/extension/src/kuaishou-current-page.js",
     PROJECT_ROOT / "apps/companion/native-host/policy.json",
     PROJECT_ROOT / "apps/companion/src/x2n_companion/canonical_store.py",
     PROJECT_ROOT / "apps/companion/src/x2n_companion/migrations.py",
     PROJECT_ROOT / "packages/contracts/src/x2n_contracts/models.py",
-    PROJECT_ROOT / "machine/policy/bilibili_current_page_policy.json",
+    PROJECT_ROOT / "machine/policy/kuaishou_current_page_policy.json",
     PROJECT_ROOT / "package-lock.json",
     PROJECT_ROOT / "uv.lock",
     PREVIOUS.EVIDENCE,
@@ -90,43 +88,45 @@ ALLOWED_CHANGED_EXACT = {
     "CHANGELOG.md",
     "HANDOFF.md",
     "README.md",
-    "apps/companion/src/x2n_companion/bilibili_selected.py",
+    "apps/companion/src/x2n_companion/kuaishou_selected.py",
     "apps/companion/src/x2n_companion/runtime_cli.py",
-    "apps/companion/tests/test_bilibili_selected.py",
-    "docs/governance/RUN_CONTRACT_S03_ADAPTERS_006.md",
+    "apps/companion/tests/test_kuaishou_selected.py",
+    "docs/governance/RUN_CONTRACT_S03_ADAPTERS_007.md",
     "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml",
-    "evidence/adapters/TSK.x2n.adapters.006.json",
+    "evidence/adapters/TSK.x2n.adapters.007.json",
     "machine/facts/architecture_decisions.json",
     "machine/facts/project.json",
     "machine/facts/task_state.json",
     "machine/policy/artifact_allowlist.json",
-    "machine/policy/bilibili_selected_collection_policy.json",
+    "machine/policy/kuaishou_selected_collection_policy.json",
     "machine/policy/synthetic_fixture_manifest.json",
-    "scripts/bilibili_selected_chaos_worker.py",
-    "scripts/run_adapters_006_acceptance.py",
-    "scripts/verify_adapters_004.py",
+    "scripts/kuaishou_selected_chaos_worker.py",
+    "scripts/run_adapters_007_acceptance.py",
     "scripts/verify_adapters_006.py",
-    "tests/test_adapters_004.py",
+    "scripts/verify_adapters_007.py",
     "tests/test_adapters_006.py",
+    "tests/test_adapters_007.py",
     "功能清单.md",
     "开发记录.md",
 }
-ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/adapters/v1/bilibili_selected/",)
+ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/adapters/v1/kuaishou_selected/",)
 
 
 def validate_scope() -> Check:
-    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
     _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
     committed = _git(
-        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}"]
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]
     ).splitlines()
+    working = _porcelain_paths(
+        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
+    )
     relative_changes: list[str] = []
-    for path in sorted(set(committed)):
+    for path in sorted(set(committed + working)):
         relative = _project_relative(path)
-        _require(relative is not None, "Adapters006 changed scope escaped x2n")
+        _require(relative is not None, "Adapters007 changed scope escaped x2n")
         _require(
             relative in ALLOWED_CHANGED_EXACT or relative.startswith(ALLOWED_CHANGED_PREFIXES),
-            f"unregistered Adapters006 change: {relative}",
+            f"unregistered Adapters007 change: {relative}",
         )
         relative_changes.append(relative)
 
@@ -199,8 +199,7 @@ def validate_scope() -> Check:
 
 def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    current_branch = _git(["branch", "--show-current"])
-    _require(current_branch not in {"", "main"}, "Adapters006 regression requires a non-main worktree")
+    _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Adapters007 worktree branch")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
         re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
@@ -209,21 +208,12 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
     )
     _require(
         subprocess.run(
-            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, FINAL_COMMIT],
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"],
             cwd=REPOSITORY_ROOT,
             check=False,
         ).returncode
         == 0,
-        "Adapters006 final commit no longer descends from Adapters004",
-    )
-    _require(
-        subprocess.run(
-            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
-            cwd=REPOSITORY_ROOT,
-            check=False,
-        ).returncode
-        == 0,
-        "current worktree no longer descends from Adapters006",
+        "Adapters007 branch no longer descends from Adapters006",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
@@ -261,8 +251,7 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "worktree_isolation",
         "PASS",
         {
-            "historical_branch": BRANCH,
-            "current_branch": current_branch,
+            "branch": BRANCH,
             "external_main_dirty_paths": len(main_paths),
             "origin_drift_commits": int(_git(["rev-list", "--count", f"{ORIGIN_CUTOFF}..{live_origin}"])),
             "origin_project_overlap": origin_overlap,
@@ -272,44 +261,44 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
 
 
 def validate_predecessor() -> Check:
-    _require(PREVIOUS.FINAL_COMMIT == TASK_BASE_COMMIT, "Adapters004 final pin differs from Adapters006 base")
+    _require(PREVIOUS.FINAL_COMMIT == TASK_BASE_COMMIT, "Adapters006 final pin differs from Adapters007 base")
     _require(
         PREVIOUS.EVIDENCE.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, PREVIOUS.EVIDENCE),
-        "Adapters004 evidence was rewritten",
+        "Adapters006 evidence was rewritten",
     )
     checks = PREVIOUS.run_checks(
         verify_worktree=False,
         allow_external_main_dirty=False,
         run_external=False,
     )
-    _require(all(item.status == "PASS" for item in checks), "Adapters004 historical regression failed")
+    _require(all(item.status == "PASS" for item in checks), "Adapters006 historical regression failed")
     PREVIOUS.verify_evidence()
     return Check(
-        "adapters_004_fixed_predecessor",
+        "adapters_006_fixed_predecessor",
         "PASS",
         {"evidence_mutations": 0, "historical_checks": len(checks) + 1, "predecessor_commit": TASK_BASE_COMMIT},
     )
 
 
 def validate_task_and_state() -> Check:
-    taskpack_text = _read_blob_at(FINAL_COMMIT, TASKPACK).decode("utf-8")
+    taskpack_text = TASKPACK.read_text(encoding="utf-8")
     base_taskpack = _read_blob_at(TASK_BASE_COMMIT, TASKPACK).decode("utf-8")
     task = _task_block(taskpack_text, TASK_ID)
     base_task = _task_block(base_taskpack, TASK_ID)
-    _require(_field(task, "status") == "completed", "Adapters006 Task is not completed")
+    _require(_field(task, "status") == "completed", "Adapters007 Task is not completed")
     _require(_field(task, "stage") == "STG.X2N.3" and _field(task, "phase") == PHASE, "Task routing drifted")
     _require(
         _list_field(task, "depends_on")
-        == ["TSK.x2n.adapters.001", "TSK.x2n.skeleton.006", "TSK.x2n.skeleton.004"],
-        "Adapters006 dependency drifted",
+        == ["TSK.x2n.adapters.001", "TSK.x2n.skeleton.007", "TSK.x2n.skeleton.004"],
+        "Adapters007 dependency drifted",
     )
     _require(
         _list_field(task, "acceptance_ids")
-        == ["ACC.x2n.bili.001", "ACC.x2n.bili.002", "ACC.x2n.batch.001"],
-        "Adapters006 Acceptance drifted",
+        == ["ACC.x2n.ks.001", "ACC.x2n.ks.002", "ACC.x2n.batch.001"],
+        "Adapters007 Acceptance drifted",
     )
     _require(task == base_task.replace("  status: planned\n", "  status: completed\n", 1), "Task changed beyond status")
-    for future in ("TSK.x2n.adapters.007", "TSK.x2n.adapters.005"):
+    for future in ("TSK.x2n.adapters.008", "TSK.x2n.adapters.005"):
         _require(
             _task_block(taskpack_text, future) == _task_block(base_taskpack, future),
             f"{future} was entered by this Run",
@@ -317,7 +306,7 @@ def validate_task_and_state() -> Check:
     taskpack = yaml.safe_load(taskpack_text)
     _require(isinstance(taskpack, dict), "Task Pack root must be an object")
     _require(
-        taskpack.get("project", {}).get("status") == "STAGE_3_ADAPTERS_006_PASS_G3_NOT_RUN",
+        taskpack.get("project", {}).get("status") == "STAGE_3_ADAPTERS_007_PASS_G3_NOT_RUN",
         "Task Pack status drifted",
     )
     authorization = taskpack.get("authorization", {})
@@ -327,15 +316,15 @@ def validate_task_and_state() -> Check:
         and authorization.get("public_release") is False,
         "Task Pack authorization drifted",
     )
-    state = _load_json_at(FINAL_COMMIT, TASK_STATE)
-    _require(state.get("schema_version") == "1.23", "task state schema drifted")
+    state = _load_json(TASK_STATE)
+    _require(state.get("schema_version") == "1.24", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.3" and state.get("last_completed_phase") == PHASE, "phase drifted")
     _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Run drifted")
-    _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Adapters006 state is not pass")
-    _require("TSK.x2n.adapters.007" not in state.get("tasks", {}), "Adapters007 state was entered")
+    _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Adapters007 state is not pass")
+    _require("TSK.x2n.adapters.008" not in state.get("tasks", {}), "Adapters008 state was entered")
     _require("TSK.x2n.adapters.005" not in state.get("tasks", {}), "Adapters005 state was entered")
     _require(
-        state.get("next_phase") == "PH.X2N.3.6" and state.get("next_run") == "TSK.x2n.adapters.007",
+        state.get("next_phase") == "PH.X2N.3.7" and state.get("next_run") == "TSK.x2n.adapters.008",
         "next Task routing drifted",
     )
     _require(
@@ -345,24 +334,24 @@ def validate_task_and_state() -> Check:
     )
     acceptance = state.get("acceptance_status", {})
     _require(
-        acceptance.get("ACC.x2n.bili.001")
-        == "pass_ci_synth_documented_authorized_uploader_videos_20_of_20_saved_current_owner_confirmed_fake_like_favorite_0_owner_canary_not_run_production_disabled",
-        "Bilibili completeness Acceptance drifted",
+        acceptance.get("ACC.x2n.ks.001")
+        == "pass_ci_synth_documented_user_video_info_owner_published_videos_20_of_20_saved_current_owner_confirmed_fake_like_favorite_0_owner_canary_not_run_production_disabled",
+        "Kuaishou completeness Acceptance drifted",
     )
     _require(
-        acceptance.get("ACC.x2n.bili.002")
-        == "pass_ci_synth_50_process_kills_lost_duplicate_0_policy_auth_captcha_platform_kill_3_auto_scroll_pagination_0",
-        "Bilibili Kill Acceptance drifted",
+        acceptance.get("ACC.x2n.ks.002")
+        == "pass_ci_synth_50_process_kills_lost_duplicate_0_policy_auth_scope_revoked_captcha_platform_kill_4_new_requests_after_revocation_0_auto_scroll_pagination_0",
+        "Kuaishou Kill Acceptance drifted",
     )
     _require(
         acceptance.get("ACC.x2n.batch.001")
-        == "pass_ci_synth_6_non_authoritative_removed_0_adapter006_physical_content_delete_0_second_complete_candidate_only_reconciliation_downstream_not_run",
+        == "pass_ci_synth_7_non_authoritative_removed_0_adapter007_physical_content_delete_0_retention_required_1_reconciliation_downstream_not_run",
         "batch Acceptance drifted",
     )
     _require(
-        state.get("bilibili_selected_execution")
-        == "pass_ci_synth_official_arc_base_authorized_uploader_video_contract_only_20_saved_current_owner_confirmed_50_process_kills_real_transport_owner_canary_not_run",
-        "Bilibili execution boundary drifted",
+        state.get("kuaishou_selected_execution")
+        == "pass_ci_synth_official_user_video_info_authorized_owner_published_video_contract_only_20_saved_current_owner_confirmed_50_process_kills_scope_revocation_gated_real_transport_owner_canary_not_run",
+        "Kuaishou execution boundary drifted",
     )
     for field in (
         "owner_profile_login",
@@ -374,24 +363,24 @@ def validate_task_and_state() -> Check:
     ):
         _require(state.get(field) == "not_run", f"external execution overstated: {field}")
     _require(
-        _load_json_at(FINAL_COMMIT, PROJECT_FACT).get("status") == "stage_3_adapters_006_pass_g3_not_run",
+        _load_json(PROJECT_FACT).get("status") == "stage_3_adapters_007_pass_g3_not_run",
         "project status drifted",
     )
-    architecture = _load_json_at(FINAL_COMMIT, ARCHITECTURE_FACT)
+    architecture = _load_json(ARCHITECTURE_FACT)
     _require(
         architecture.get("phase") == PHASE
         and architecture.get("stage_gate") == "g3_not_run"
         and architecture.get("real_account_execution") is False,
         "architecture state drifted",
     )
-    contract = _read_blob_at(FINAL_COMMIT, RUN_CONTRACT).decode("utf-8")
+    contract = RUN_CONTRACT.read_text(encoding="utf-8")
     for value in (
         TASK_ID,
         RUN_ID,
         PHASE,
         TASK_BASE_COMMIT,
         BRANCH,
-        "ARC_BASE",
+        "user_video_info",
         "PASS_CI_SYNTH_SCOPED",
         "NOT_RUN",
     ):
@@ -401,7 +390,7 @@ def validate_task_and_state() -> Check:
         "PASS",
         {
             "acceptance_ids": 3,
-            "next_task": "TSK.x2n.adapters.007",
+            "next_task": "TSK.x2n.adapters.008",
             "owner_canary": "NOT_RUN",
             "phase": PHASE,
             "single_task": True,
@@ -411,10 +400,10 @@ def validate_task_and_state() -> Check:
 
 
 def validate_policy_and_implementation() -> Check:
-    policy = _load_json_at(FINAL_COMMIT, POLICY)
+    policy = _load_json(POLICY)
     flags = policy.get("feature_gate", {})
     _require(
-        policy.get("policy_id") == "POLICY.X2N.BILIBILI-SELECTED.001"
+        policy.get("policy_id") == "POLICY.X2N.KUAISHOU-SELECTED.001"
         and policy.get("task_id") == TASK_ID
         and policy.get("reviewed_at") == "2026-07-23"
         and policy.get("default") == "deny"
@@ -422,26 +411,31 @@ def validate_policy_and_implementation() -> Check:
         and flags.get("owner_canary_enabled") is False
         and flags.get("production_enabled") is False
         and flags.get("platform_requests") is False,
-        "Bilibili policy identity or gate drifted",
+        "Kuaishou policy identity or gate drifted",
     )
     capability = policy.get("official_capability", {})
     _require(
-        capability.get("supported_contract_shape") == "authorized_uploader_video_manuscripts"
-        and capability.get("required_scope") == "ARC_BASE"
-        and capability.get("written_automation_permission_required") is True
+        capability.get("supported_contract_shape") == "authorized_user_published_videos"
+        and capability.get("required_scope") == "user_video_info"
+        and capability.get("oauth_flow") == "authorization_code"
+        and capability.get("application_registration_and_approval_required") is True
+        and capability.get("dynamic_owner_consent_required") is True
+        and capability.get("minimum_necessary_scope_required") is True
+        and capability.get("canonical_public_route_attested") is False
+        and capability.get("revocation_delete_route_ready") is False
         and capability.get("arbitrary_personal_favorites_list") == "unknown_disabled"
         and capability.get("arbitrary_personal_likes_list") == "unknown_disabled"
-        and capability.get("article_selected_list") == "unknown_disabled"
         and capability.get("inference_not_claim_of_nonexistence") is True,
-        "Bilibili documented capability boundary drifted",
+        "Kuaishou documented capability boundary drifted",
     )
     research = policy.get("official_research", {})
     sources = research.get("sources", [])
     _require(
-        len(sources) == 10
-        and all(str(url).startswith("https://openhome.bilibili.com/") for url in sources)
-        and "written consent" in str(research.get("crawler_constraint", "")),
-        "Bilibili first-party research registry drifted",
+        len(sources) == 7
+        and all(str(url).startswith("https://open.kuaishou.com/") for url in sources)
+        and "unauthorized" in str(research.get("crawler_constraint", ""))
+        and "delet" in str(research.get("revocation_constraint", "")).lower(),
+        "Kuaishou first-party research registry drifted",
     )
     owner_action = policy.get("owner_action", {})
     _require(
@@ -452,9 +446,10 @@ def validate_policy_and_implementation() -> Check:
         and owner_action.get("automatic_scroll") is False
         and owner_action.get("automatic_retry") is False
         and owner_action.get("account_state_change") is False
-        and owner_action.get("next_page_token_accepted") is False
+        and owner_action.get("cursor_accepted") is False
+        and owner_action.get("has_more_causes_request") is False
         and owner_action.get("full_source_list_completion_claim") is False,
-        "Bilibili Owner batch boundary drifted",
+        "Kuaishou Owner batch boundary drifted",
     )
     transport = policy.get("transport", {})
     _require(
@@ -466,8 +461,8 @@ def validate_policy_and_implementation() -> Check:
         and transport.get("signature_reverse_engineering") is False
         and transport.get("raw_open_api_response_accepted") is False
         and transport.get("sanitized_contract_only") is True
-        and len(transport.get("forbidden_raw_fields", [])) == 10,
-        "Bilibili transport containment drifted",
+        and len(transport.get("forbidden_raw_fields", [])) == 12,
+        "Kuaishou transport containment drifted",
     )
     canonical = policy.get("canonical", {})
     _require(
@@ -482,25 +477,39 @@ def validate_policy_and_implementation() -> Check:
         and canonical.get("content_auto_deletes") == 0
         and canonical.get("classification_writes") == 0
         and canonical.get("taxonomy_mutations") == 0,
-        "Bilibili Canonical containment drifted",
+        "Kuaishou Canonical containment drifted",
+    )
+    retention = policy.get("consent_and_retention", {})
+    _require(
+        retention.get("scope_revocation_stops_new_requests") is True
+        and retention.get("new_requests_after_revocation") == 0
+        and retention.get("retention_delete_required_receipt") is True
+        and retention.get("production_delete_executor_present") is False
+        and retention.get("automatic_historical_delete_in_this_task") is False
+        and retention.get("two_complete_scan_reconciliation_task") == "TSK.x2n.adapters.005"
+        and retention.get("reconciliation_entered") is False,
+        "Kuaishou consent and retention boundary drifted",
     )
 
-    source = _read_blob_at(FINAL_COMMIT, COMPANION_SOURCE).decode("utf-8")
-    cli = _read_blob_at(FINAL_COMMIT, CLI_SOURCE).decode("utf-8")
+    source = COMPANION_SOURCE.read_text(encoding="utf-8")
+    cli = CLI_SOURCE.read_text(encoding="utf-8")
     for token in (
-        "class BilibiliCapabilityReceipt",
-        "class BilibiliSelectedIterator",
-        "class BilibiliSelectedAdapter",
-        "class BilibiliSelectedBatchCoordinator",
-        "evaluate_bilibili_capability",
+        "class KuaishouCapabilityReceipt",
+        "class KuaishouSelectedIterator",
+        "class KuaishouSelectedAdapter",
+        "class KuaishouSelectedBatchCoordinator",
+        "evaluate_kuaishou_capability",
         "RelationType.SAVED_CURRENT",
         "ConfirmationSource.OWNER",
         "SourceMethod.SELECTED_COLLECTION",
         "full_scan_id = NULL",
         "PRODUCTION_ENABLED = False",
         "CANARY_ITEM_LIMIT = 20",
+        '"scope_revoked"',
+        '"retention_delete_required"',
+        '"new_requests_after_revocation": 0',
     ):
-        _require(token in source, f"Bilibili implementation contract missing: {token}")
+        _require(token in source, f"Kuaishou implementation contract missing: {token}")
     for forbidden in (
         "RelationType.LIKED",
         "RelationType.FAVORITED",
@@ -510,26 +519,23 @@ def validate_policy_and_implementation() -> Check:
         "selenium",
         "playwright",
     ):
-        _require(forbidden not in source, f"forbidden Bilibili behavior entered Adapter: {forbidden}")
+        _require(forbidden not in source, f"forbidden Kuaishou behavior entered Adapter: {forbidden}")
     _require(
-        'subparsers.add_parser("bilibili")' in cli
-        and 'bilibili_actions.add_parser("canary-plan")' in cli
-        and "build_bilibili_canary_plan" in cli,
-        "non-executing Bilibili Canary CLI is missing",
+        'subparsers.add_parser("kuaishou")' in cli
+        and 'kuaishou_actions.add_parser("canary-plan")' in cli
+        and "build_kuaishou_canary_plan" in cli,
+        "non-executing Kuaishou Canary CLI is missing",
     )
     for path in UNCHANGED_SECURITY_SURFACES:
-        _require(
-            _read_blob_at(FINAL_COMMIT, path) == _read_blob_at(TASK_BASE_COMMIT, path),
-            f"security surface changed: {path.name}",
-        )
-    artifact = _load_json_at(FINAL_COMMIT, ARTIFACT_POLICY)
+        _require(path.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, path), f"security surface changed: {path.name}")
+    artifact = _load_json(ARTIFACT_POLICY)
     enforcement = artifact.get("enforcement", [])
     for required in (
-        "scripts/bilibili_selected_chaos_worker.py",
-        "scripts/run_adapters_006_acceptance.py",
-        "scripts/verify_adapters_006.py",
+        "scripts/kuaishou_selected_chaos_worker.py",
+        "scripts/run_adapters_007_acceptance.py",
+        "scripts/verify_adapters_007.py",
     ):
-        _require(required in enforcement, f"Adapters006 enforcement is not registered: {required}")
+        _require(required in enforcement, f"Adapters007 enforcement is not registered: {required}")
     return Check(
         "official_scope_policy_and_adapter_containment",
         "PASS",
@@ -542,16 +548,16 @@ def validate_policy_and_implementation() -> Check:
             "production_enabled": False,
             "raw_api_responses": 0,
             "relation_semantics": "owner_saved_current",
-            "unsupported_personal_list_capabilities": 3,
+            "unsupported_personal_list_capabilities": 2,
         },
     )
 
 
 def validate_fixtures() -> Check:
-    fixture = _load_json_at(FINAL_COMMIT, FIXTURE)
+    fixture = _load_json(FIXTURE)
     _require(
-        fixture.get("fixture_id") == "FIXTURE.X2N.S03.A006.001" and fixture.get("synthetic") is True,
-        "Adapters006 fixture identity drifted",
+        fixture.get("fixture_id") == "FIXTURE.X2N.S03.A007.001" and fixture.get("synthetic") is True,
+        "Adapters007 fixture identity drifted",
     )
     for field in (
         "contains_accounts",
@@ -565,13 +571,15 @@ def validate_fixtures() -> Check:
         _require(fixture.get(field) is False, f"fixture privacy drifted: {field}")
     source = fixture.get("source_contract", {})
     _require(
-        source.get("source_kind") == "authorized_uploader_video_manuscripts"
-        and source.get("official_scope") == "ARC_BASE"
+        source.get("source_kind") == "authorized_user_published_videos"
+        and source.get("official_scope") == "user_video_info"
         and source.get("environment") == "ci_synthetic"
         and source.get("raw_open_api_response") is False
         and source.get("transport_present") is False
+        and source.get("canonical_public_route") == "UNVERIFIED_DISABLED"
         and source.get("page_number") == 1
         and source.get("page_size") == 20
+        and source.get("cursor_accepted") is False
         and source.get("automatic_pagination") is False
         and source.get("automatic_scroll") is False,
         "fixture source contract drifted",
@@ -598,6 +606,18 @@ def validate_fixtures() -> Check:
         and mapping.get("expected_persisted_credentials") == 0,
         "fixture mapping drifted",
     )
+    retention = fixture.get("consent_and_retention", {})
+    _require(
+        retention.get("dynamic_owner_consent_required") is True
+        and retention.get("minimum_necessary_scope_required") is True
+        and retention.get("expected_new_requests_after_revocation") == 0
+        and retention.get("expected_retention_delete_required_receipts") == 1
+        and retention.get("expected_historical_relation_deletes") == 0
+        and retention.get("expected_historical_relations_preserved") == 1
+        and retention.get("production_delete_route_ready") is False
+        and retention.get("real_historical_data_present") is False,
+        "fixture consent and retention contract drifted",
+    )
     chaos = fixture.get("chaos", {})
     _require(
         chaos.get("kill_runs") == 50
@@ -608,17 +628,23 @@ def validate_fixtures() -> Check:
         "fixture chaos contract drifted",
     )
     cases = fixture.get("cases", [])
-    _require(len(cases) == 38 and len(set(cases)) == 38, "Adapters006 fixture cases drifted")
-    global_rows = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST).get("fixtures", [])
+    _require(len(cases) == 43 and len(set(cases)) == 43, "Adapters007 fixture cases drifted")
+    global_manifest = _load_json(GLOBAL_FIXTURE_MANIFEST)
+    _require(
+        global_manifest.get("manifest_id") == "FIXTURE.X2N.016"
+        and global_manifest.get("phase") == PHASE,
+        "global fixture manifest identity drifted",
+    )
+    global_rows = global_manifest.get("fixtures", [])
     _require(
         {
-            "id": "FIXTURE.X2N.S03.A006.001",
-            "path": "packages/test-fixtures/adapters/v1/bilibili_selected/fixture_manifest.json",
-            "case_count": 38,
-            "purpose": "Bilibili documented authorized-uploader video selection strict scope, 20 owner-confirmed saved_current mappings, six blocked states and 50 process-kill recovery",
+            "id": "FIXTURE.X2N.S03.A007.001",
+            "path": "packages/test-fixtures/adapters/v1/kuaishou_selected/fixture_manifest.json",
+            "case_count": 43,
+            "purpose": "Kuaishou documented user_video_info owner-published-video selection, 20 owner-confirmed saved_current mappings, consent-revocation retention gate, seven blocked states and 50 process-kill recovery",
         }
         in global_rows,
-        "Adapters006 fixture is not globally registered",
+        "Adapters007 fixture is not globally registered",
     )
     return Check(
         "synthetic_capability_mapping_and_chaos_fixtures",
@@ -636,20 +662,20 @@ def validate_fixtures() -> Check:
 
 
 def validate_execution() -> Check:
-    with tempfile.TemporaryDirectory(prefix="x2n-a006-verify-") as value:
+    with tempfile.TemporaryDirectory(prefix="x2n-a007-verify-") as value:
         home = Path(value) / "home"
         home.mkdir(mode=0o700)
         output = _json_line(
             _run_external(
-                "adapters_006_acceptance",
+                "adapters_007_acceptance",
                 (sys.executable, "-B", str(ACCEPTANCE_RUNNER)),
                 env=_isolated_env(home),
                 timeout=900,
             ),
-            "Adapters006 acceptance",
+            "Adapters007 acceptance",
         )
     expected = {
-        "acceptance_scope": "ADAPTERS_006_BILIBILI_SELECTED_CI_SYNTH",
+        "acceptance_scope": "ADAPTERS_007_KUAISHOU_SELECTED_CI_SYNTH",
         "automatic_pagination": 0,
         "automatic_scroll": 0,
         "canary_item_limit": 20,
@@ -666,18 +692,26 @@ def validate_execution() -> Check:
         "task_id": TASK_ID,
     }
     for field, value in expected.items():
-        _require(output.get(field) == value, f"Adapters006 acceptance metric drifted: {field}")
+        _require(output.get(field) == value, f"Adapters007 acceptance metric drifted: {field}")
     capability = output.get("capability", {})
     _require(
-        capability.get("documented_source_kind") == "authorized_uploader_video_manuscripts"
-        and capability.get("official_scope") == "ARC_BASE"
+        capability.get("documented_source_kind") == "authorized_user_published_videos"
+        and capability.get("official_scope") == "user_video_info"
+        and capability.get("canonical_public_route") == "UNVERIFIED_DISABLED"
+        and capability.get("consent_revoked_status") == "BLOCKED_CONSENT_REVOKED"
+        and capability.get("data_delete_on_revocation_required") is True
+        and capability.get("dynamic_owner_consent_required") is True
+        and capability.get("minimum_necessary_scope_required") is True
+        and capability.get("missing_requirement_count") == 6
+        and capability.get("new_requests_after_revocation") == 0
         and capability.get("owner_runtime_status") == "BLOCKED_FEATURE_DISABLED"
         and capability.get("personal_favorites_api") == "UNKNOWN_DISABLED"
         and capability.get("personal_likes_api") == "UNKNOWN_DISABLED"
         and capability.get("platform_requests") == 0
         and capability.get("production_enabled") is False
-        and capability.get("raw_open_api_responses") == 0,
-        "Adapters006 capability acceptance failed",
+        and capability.get("raw_open_api_responses") == 0
+        and capability.get("retention_delete_route_ready") is False,
+        "Adapters007 capability acceptance failed",
     )
     chaos = output.get("chaos", {})
     _require(
@@ -696,25 +730,29 @@ def validate_execution() -> Check:
         and chaos.get("physical_deletes") == 0
         and chaos.get("content_auto_deletes") == 0
         and chaos.get("taxonomy_mutations") == 0
-        and chaos.get("resume_from_durable_checkpoint") is True,
-        "Adapters006 chaos acceptance failed",
+        and chaos.get("resume_from_durable_checkpoint") is True
+        and chaos.get("retention_delete_required") is False,
+        "Adapters007 chaos acceptance failed",
     )
     blocked = output.get("blocked", {})
     _require(
-        blocked.get("blocked_state_cases") == 6
+        blocked.get("blocked_state_cases") == 7
         and blocked.get("canonical_writes") == 0
         and blocked.get("historical_relation_deletes") == 0
+        and blocked.get("historical_relations_preserved") == 1
+        and blocked.get("new_requests_after_revocation") == 0
         and blocked.get("partial_identified_percent") == 50.0
-        and blocked.get("platform_kills") == 3,
-        "Adapters006 blocked-state acceptance failed",
+        and blocked.get("platform_kills") == 4
+        and blocked.get("retention_delete_required_receipts") == 1,
+        "Adapters007 blocked-state acceptance failed",
     )
     unit = output.get("unit_suite", {})
     _require(
         unit.get("tests") == 17 and unit.get("errors") == 0 and unit.get("failures") == 0 and unit.get("skips") == 0,
-        "Adapters006 unit acceptance failed",
+        "Adapters007 unit acceptance failed",
     )
     return Check(
-        "bilibili_selected_scope_checkpoint_and_kill_acceptance",
+        "kuaishou_selected_scope_checkpoint_and_kill_acceptance",
         "PASS",
         {
             "automatic_pagination": 0,
@@ -729,7 +767,9 @@ def validate_execution() -> Check:
             "owner_canary": "NOT_RUN",
             "owner_confirmed_saved_current_relations": chaos["owner_confirmed_saved_current_relations"],
             "platform_calls": 0,
+            "new_requests_after_revocation": blocked["new_requests_after_revocation"],
             "removed_relations": chaos["removed_relations"],
+            "retention_delete_required_receipts": blocked["retention_delete_required_receipts"],
             "silent_losses": chaos["silent_losses"],
             "unit_tests": unit["tests"],
         },
@@ -757,7 +797,7 @@ def _acceptance_input_receipt() -> str:
     ):
         digest.update(path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
-        digest.update(_read_blob_at(FINAL_COMMIT, path))
+        digest.update(path.read_bytes())
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -771,16 +811,16 @@ def _safe_evidence(payload: dict[str, Any]) -> None:
 
 def write_evidence(checks: list[Check]) -> None:
     details = {item.name: item.details for item in checks}
-    acceptance = details.get("bilibili_selected_scope_checkpoint_and_kill_acceptance", {})
+    acceptance = details.get("kuaishou_selected_scope_checkpoint_and_kill_acceptance", {})
     lane = details.get("full_lane_replay", {})
     _require(acceptance and lane, "final evidence requires acceptance and full lane")
     payload = {
-        "acceptance_ids": ["ACC.x2n.bili.001", "ACC.x2n.bili.002", "ACC.x2n.batch.001"],
+        "acceptance_ids": ["ACC.x2n.ks.001", "ACC.x2n.ks.002", "ACC.x2n.batch.001"],
         "acceptance_input_sha256": _acceptance_input_receipt(),
         "acceptance_status": {
-            "ACC.x2n.batch.001": "PASS_CI_SYNTH_SIX_NON_AUTHORITATIVE_REMOVED_ZERO_RECONCILIATION_DOWNSTREAM_NOT_RUN",
-            "ACC.x2n.bili.001": "PASS_CI_SYNTH_DOCUMENTED_AUTHORIZED_UPLOADER_VIDEO_SELECTION_20_OF_20_OWNER_CANARY_NOT_RUN",
-            "ACC.x2n.bili.002": "PASS_CI_SYNTH_FIFTY_PROCESS_KILLS_ZERO_LOSS_DUPLICATE_AND_THREE_PLATFORM_KILLS",
+            "ACC.x2n.batch.001": "PASS_CI_SYNTH_SEVEN_NON_AUTHORITATIVE_REMOVED_ZERO_RETENTION_REQUIRED_ONE_RECONCILIATION_DOWNSTREAM_NOT_RUN",
+            "ACC.x2n.ks.001": "PASS_CI_SYNTH_DOCUMENTED_USER_VIDEO_INFO_OWNER_PUBLISHED_VIDEO_SELECTION_20_OF_20_OWNER_CANARY_NOT_RUN",
+            "ACC.x2n.ks.002": "PASS_CI_SYNTH_FIFTY_PROCESS_KILLS_ZERO_LOSS_DUPLICATE_FOUR_PLATFORM_KILLS_AND_ZERO_POST_REVOCATION_REQUESTS",
         },
         "checks": [{"name": item.name, "status": item.status, "details": item.details} for item in checks],
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
@@ -809,8 +849,10 @@ def write_evidence(checks: list[Check]) -> None:
             "identified_item_success_percent": acceptance.get("identified_item_success_percent"),
             "kill_runs": acceptance.get("kill_runs"),
             "lost_ids": acceptance.get("lost_ids"),
+            "new_requests_after_revocation": acceptance.get("new_requests_after_revocation"),
             "owner_confirmed_saved_current_relations": acceptance.get("owner_confirmed_saved_current_relations"),
             "removed_relations": acceptance.get("removed_relations"),
+            "retention_delete_required_receipts": acceptance.get("retention_delete_required_receipts"),
             "silent_losses": acceptance.get("silent_losses"),
             "unit_tests": acceptance.get("unit_tests"),
         },
@@ -821,8 +863,7 @@ def write_evidence(checks: list[Check]) -> None:
 
 
 def verify_evidence() -> Check:
-    evidence = _load_json_at(FINAL_COMMIT, EVIDENCE)
-    _require(EVIDENCE.read_bytes() == _read_blob_at(FINAL_COMMIT, EVIDENCE), "historical evidence was rewritten")
+    evidence = _load_json(EVIDENCE)
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
     _require(
@@ -854,8 +895,10 @@ def verify_evidence() -> Check:
         and metrics.get("identified_item_success_percent") == 100.0
         and metrics.get("kill_runs") == 50
         and metrics.get("lost_ids") == 0
+        and metrics.get("new_requests_after_revocation") == 0
         and metrics.get("owner_confirmed_saved_current_relations") == 20
         and metrics.get("removed_relations") == 0
+        and metrics.get("retention_delete_required_receipts") == 1
         and metrics.get("silent_losses") == 0
         and metrics.get("unit_tests") == 17
         and metrics.get("blocking_executions") == 24,
@@ -864,7 +907,7 @@ def verify_evidence() -> Check:
     return Check(
         "evidence",
         "PASS",
-        {"receipt_sha256": hashlib.sha256(_read_blob_at(FINAL_COMMIT, EVIDENCE)).hexdigest(), "task": TASK_ID},
+        {"receipt_sha256": hashlib.sha256(EVIDENCE.read_bytes()).hexdigest(), "task": TASK_ID},
     )
 
 
@@ -888,12 +931,12 @@ def run_checks(
         checks.append(validate_execution())
     if lane_report is not None:
         checks.append(validate_full_lane_report(lane_report))
-    _require(all(check.status == "PASS" for check in checks), "an Adapters006 check failed")
+    _require(all(check.status == "PASS" for check in checks), "an Adapters007 check failed")
     return checks
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Verify TSK.x2n.adapters.006")
+    parser = argparse.ArgumentParser(description="Verify TSK.x2n.adapters.007")
     parser.add_argument("--verify-worktree", action="store_true")
     parser.add_argument("--allow-external-main-dirty", action="store_true")
     parser.add_argument("--skip-external", action="store_true")

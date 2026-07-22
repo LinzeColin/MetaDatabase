@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 / Adapters 007
+
+- 基于固定 `Adapters006@5b6564d2…` 在独立 worktree 开发；A006 verifier 改为从 final commit blob 验收历史 Task/State/实现/Fixture/Evidence，旧证据逐字节不改写。
+- 复核 Kuaishou 一手 OAuth、Open API、应用管理与平台协议：当前只证明经审批应用、动态最小同意和 `user_video_info` 覆盖的授权用户本人发布作品列表；任意个人点赞/收藏仍 `UNKNOWN_DISABLED`，公开详情路由仍为待独立证明的合成假设。
+- 新增 credential-free capability receipt 与单次 `KuaishouSelectedIterator`：只接受 page 1、固定 page size 20、Owner 明确选择的严格净化清单；无 network/OAuth/DOM/cursor transport、自动滚动/分页/重试、Cookie/Profile、未知字段或 raw Open API response。
+- 新增 SQLite `KuaishouSelectedAdapter`：20 条合成作品原子映射为 20 Content、20 Owner-confirmed `saved_current` Relation 与 20 `selected_collection` Observation；本地 selection ID 不冒充平台收藏夹，`liked`/`favorited` 写入与 full scan 均为 0。
+- Scope 撤回立即使新请求为 0、使对应 scan invalidated 并生成待删除标记；本 Task 没有删除执行器，不自动删除历史 Canonical 关系。Partial/Empty/Platform Changed 写入 0；Auth/Scope Revoked/Policy/CAPTCHA 只影响对应 scan。
+- 50 次真实进程在 item/checkpoint 事务点随机退出后 lost/duplicate/checkpoint premature advance 均为 0，随后恢复提交一次且 exact replay 无副作用。Canary 固定 20 条且只输出非执行计划；真实 App/OAuth/同意/API/DOM/删除/Profile/账号/Owner Canary 全部关闭或 `NOT_RUN`。
+- 最终 233 个 root tests（230 PASS、3 个固定可选 skip）、170 个 Companion tests 与 12 个 Contract tests 通过；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 78.99%，33 个依赖漏洞 0，75-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
 ## v0.0.0.1 — Stage 3 / Adapters 006
 
 - 基于固定 `Adapters004@37ec58cb…` 在独立 worktree 开发；A004 verifier 改为从 final commit blob 验收历史 Task/State/实现/Fixture/Evidence，旧证据逐字节不改写。

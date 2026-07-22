@@ -16,6 +16,7 @@ from x2n_contracts import ErrorCode
 from .bilibili_selected import build_bilibili_canary_plan
 from .canonical_store import CanonicalStore
 from .douyin_adapter import build_douyin_canary_plan
+from .kuaishou_selected import build_kuaishou_canary_plan
 from .media_safety import scan_persisted_scopes
 from .profile_session import (
     PROFILE_LAUNCH_CONFIRMATION,
@@ -42,6 +43,7 @@ XHS_FAVORITES_TASK_ID = "TSK.x2n.adapters.002"
 XHS_LIKES_TASK_ID = "TSK.x2n.adapters.003"
 DOUYIN_TASK_ID = "TSK.x2n.adapters.004"
 BILIBILI_TASK_ID = "TSK.x2n.adapters.006"
+KUAISHOU_TASK_ID = "TSK.x2n.adapters.007"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
@@ -116,6 +118,15 @@ def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if args.action == "kuaishou":
+        if args.kuaishou_action != "canary-plan":
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Kuaishou action")
+        return _success(
+            "kuaishou_canary_plan",
+            acceptance_scope="ADAPTERS_007_CANARY_TOOLING",
+            task_id=KUAISHOU_TASK_ID,
+            plan=build_kuaishou_canary_plan(args.max_items),
+        )
     if args.action == "bilibili":
         if args.bilibili_action != "canary-plan":
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Bilibili action")
@@ -252,6 +263,10 @@ def build_parser() -> argparse.ArgumentParser:
     bilibili_actions = bilibili.add_subparsers(dest="bilibili_action", required=True)
     bilibili_canary_plan = bilibili_actions.add_parser("canary-plan")
     bilibili_canary_plan.add_argument("--max-items", type=int, default=20)
+    kuaishou = subparsers.add_parser("kuaishou")
+    kuaishou_actions = kuaishou.add_subparsers(dest="kuaishou_action", required=True)
+    kuaishou_canary_plan = kuaishou_actions.add_parser("canary-plan")
+    kuaishou_canary_plan.add_argument("--max-items", type=int, default=20)
     douyin = subparsers.add_parser("douyin")
     douyin_actions = douyin.add_subparsers(dest="douyin_action", required=True)
     douyin_canary_plan = douyin_actions.add_parser("canary-plan")
@@ -304,6 +319,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     task_id = (
         MEDIA_TASK_ID
         if args.action == "verify"
+        else KUAISHOU_TASK_ID
+        if args.action == "kuaishou"
         else BILIBILI_TASK_ID
         if args.action == "bilibili"
         else DOUYIN_TASK_ID
