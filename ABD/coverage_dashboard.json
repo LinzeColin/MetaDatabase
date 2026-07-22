@@ -1,0 +1,546 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ART-S05-P04-01",
+  "requirement_id": "REQ-S05-P04",
+  "acceptance_contract_id": "AC-S05-P04",
+  "product_version": "0.0.0.1",
+  "contract_version": "0.0.0.1-S05P04",
+  "fixed_at": "2026-07-23T21:00:00+10:00",
+  "status": "PASS_EXPLICIT_GAPS_ZERO_SILENT",
+  "scope": {
+    "declared_discovery_scope": "ALL_OBSERVABLE_MARKETS",
+    "coverage_dimension": "SIGNED_PROVIDER_BY_ACCESS_MODE_CONTRACT_MATRIX",
+    "provider_count": 3,
+    "mode_count": 5,
+    "expected_coverage_unit_count": 15,
+    "actual_market_universe_enumerated_or_verified": false,
+    "runtime_provider_coverage_verified": false,
+    "production_covered_count": 0,
+    "interpretation": "P04 proves every unit in the frozen provider-mode contract matrix is explicit; it does not prove real market enumeration, provider access, runtime collection, advice eligibility or production availability."
+  },
+  "authority": {
+    "market_ontology": {
+      "path": "market_ontology.json",
+      "sha256": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe"
+    },
+    "provider_contracts": {
+      "path": "provider_contracts.json",
+      "sha256": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6"
+    },
+    "source_capabilities": {
+      "path": "source_capabilities.json",
+      "sha256": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539"
+    },
+    "rate_budget": {
+      "path": "rate_budget.json",
+      "sha256": "7dc8db47146f38ab3e3b888d9e2757ac38ff53a3785fb2bd66580a4b0a970323"
+    },
+    "predecessor_evidence": {
+      "path": "machine/evidence/EVD-S05-P03.json",
+      "sha256": "0ad9ae6a259f811c2587cd305b2996b42665c94f8ebc389b3e0ea3a24112e599"
+    },
+    "silent_gap_oracle": {
+      "path": "silent_gap_oracle.py",
+      "sha256": "e83fc758c42a1061259bcf9b556eb0f184fc27322d5b5f329b7187e1a0c2653d"
+    }
+  },
+  "status_contract": {
+    "allowed_statuses": [
+      "COVERED",
+      "PENDING_PARSE",
+      "NON_ADVISABLE",
+      "DEGRADED",
+      "UNKNOWN"
+    ],
+    "gap_statuses": [
+      "PENDING_PARSE",
+      "NON_ADVISABLE",
+      "DEGRADED",
+      "UNKNOWN"
+    ],
+    "silent_gap_definition": "A coverage unit required by the pinned provider-by-mode universe has no exactly-one valid dashboard record.",
+    "exactly_once_rule": "EVERY_EXPECTED_COVERAGE_UNIT_HAS_EXACTLY_ONE_RECORD",
+    "gap_reason_required": true,
+    "gap_recovery_action_required": true,
+    "gap_action_owner_required": true,
+    "unknown_or_malformed_action": "BLOCK_COVERAGE_AND_ADVICE",
+    "silent_gap_threshold": "0",
+    "binary_float_allowed": false
+  },
+  "recovery_actions": [
+    {
+      "action_id": "MONITOR_FRESHNESS_AND_REVALIDATE",
+      "owner": "SOURCE_GOVERNANCE",
+      "action_zh": "持续监测时效、来源版本和权限，并在漂移时重新验证。",
+      "automatic": true,
+      "changes_external_state": false
+    },
+    {
+      "action_id": "VERIFY_SOURCE_SCHEMA_AND_PARSER",
+      "owner": "SOURCE_GOVERNANCE",
+      "action_zh": "保持采集和建议关闭，补齐来源许可、Schema、血缘和解析夹具验证。",
+      "automatic": false,
+      "changes_external_state": false
+    },
+    {
+      "action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT",
+      "owner": "SOURCE_GOVERNANCE",
+      "action_zh": "保持该模式禁用，只在来源合同和权限证据重新通过后复审。",
+      "automatic": false,
+      "changes_external_state": false
+    },
+    {
+      "action_id": "OWNER_MAY_CONFIGURE_VISIBLE_OVERLAY",
+      "owner": "OWNER",
+      "action_zh": "用户可选择配置仅观察可见字段的叠加层；未配置时继续降级且不阻塞其他路径。",
+      "automatic": false,
+      "changes_external_state": false
+    },
+    {
+      "action_id": "BIND_SOURCE_AND_VERIFY_PERMISSION",
+      "owner": "SOURCE_GOVERNANCE",
+      "action_zh": "先绑定唯一来源身份，再验证许可、零成本、配额、替代源和只读边界。",
+      "automatic": false,
+      "changes_external_state": false
+    },
+    {
+      "action_id": "REBUILD_FROM_PINNED_INPUTS",
+      "owner": "SOURCE_GOVERNANCE",
+      "action_zh": "从固定哈希的来源合同、能力矩阵和速率预算重建仪表盘。",
+      "automatic": true,
+      "changes_external_state": false
+    },
+    {
+      "action_id": "QUARANTINE_UNDECLARED_UNIT",
+      "owner": "SOURCE_GOVERNANCE",
+      "action_zh": "隔离未声明单元，补齐来源合同后才能进入正式覆盖矩阵。",
+      "automatic": true,
+      "changes_external_state": false
+    }
+  ],
+  "expected_coverage_units": [
+    {
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "provider_id": "TAB",
+      "mode": "PUBLIC_BROWSER"
+    },
+    {
+      "coverage_unit_id": "CAP-TAB-FILE_OR_STATIC_DATA",
+      "provider_id": "TAB",
+      "mode": "FILE_OR_STATIC_DATA"
+    },
+    {
+      "coverage_unit_id": "CAP-TAB-FREE_ENDPOINT",
+      "provider_id": "TAB",
+      "mode": "FREE_ENDPOINT"
+    },
+    {
+      "coverage_unit_id": "CAP-TAB-AUTHENTICATED_OBSERVER",
+      "provider_id": "TAB",
+      "mode": "AUTHENTICATED_OBSERVER"
+    },
+    {
+      "coverage_unit_id": "CAP-TAB-OWNER_DEVICE_OVERLAY",
+      "provider_id": "TAB",
+      "mode": "OWNER_DEVICE_OVERLAY"
+    },
+    {
+      "coverage_unit_id": "CAP-SPORTSBET-PUBLIC_BROWSER",
+      "provider_id": "SPORTSBET",
+      "mode": "PUBLIC_BROWSER"
+    },
+    {
+      "coverage_unit_id": "CAP-SPORTSBET-FILE_OR_STATIC_DATA",
+      "provider_id": "SPORTSBET",
+      "mode": "FILE_OR_STATIC_DATA"
+    },
+    {
+      "coverage_unit_id": "CAP-SPORTSBET-FREE_ENDPOINT",
+      "provider_id": "SPORTSBET",
+      "mode": "FREE_ENDPOINT"
+    },
+    {
+      "coverage_unit_id": "CAP-SPORTSBET-AUTHENTICATED_OBSERVER",
+      "provider_id": "SPORTSBET",
+      "mode": "AUTHENTICATED_OBSERVER"
+    },
+    {
+      "coverage_unit_id": "CAP-SPORTSBET-OWNER_DEVICE_OVERLAY",
+      "provider_id": "SPORTSBET",
+      "mode": "OWNER_DEVICE_OVERLAY"
+    },
+    {
+      "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-PUBLIC_BROWSER",
+      "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+      "mode": "PUBLIC_BROWSER"
+    },
+    {
+      "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FILE_OR_STATIC_DATA",
+      "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+      "mode": "FILE_OR_STATIC_DATA"
+    },
+    {
+      "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FREE_ENDPOINT",
+      "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+      "mode": "FREE_ENDPOINT"
+    },
+    {
+      "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-AUTHENTICATED_OBSERVER",
+      "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+      "mode": "AUTHENTICATED_OBSERVER"
+    },
+    {
+      "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-OWNER_DEVICE_OVERLAY",
+      "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+      "mode": "OWNER_DEVICE_OVERLAY"
+    }
+  ],
+  "coverage_records": [
+    {
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "provider_id": "TAB",
+      "mode": "PUBLIC_BROWSER",
+      "coverage_status": "NON_ADVISABLE",
+      "reason_code": "SOURCE_MODE_PROHIBITED_OR_BLOCKED",
+      "source_state": "PROHIBITED_SCREEN_SCRAPING",
+      "source_reason_codes": [
+        "PF-TAB-003",
+        "CURRENT_PAGE_PERMISSION_NOT_SEPARATELY_VERIFIED"
+      ],
+      "source_failure_action": "DISABLE_AFFECTED_MODE_AND_SURFACE_GAP",
+      "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-TAB-FILE_OR_STATIC_DATA",
+      "provider_id": "TAB",
+      "mode": "FILE_OR_STATIC_DATA",
+      "coverage_status": "PENDING_PARSE",
+      "reason_code": "SOURCE_PARSER_GATES_PENDING",
+      "source_state": "CONDITIONAL_ACCOUNT_EVIDENCE_ONLY_NOT_REALTIME",
+      "source_reason_codes": [
+        "PF-TAB-001",
+        "PF-TAB-002",
+        "OWNER_AUTHORIZATION_AND_SCHEMA_NOT_VERIFIED"
+      ],
+      "source_failure_action": "QUARANTINE_SOURCE_VERSION_AND_SURFACE_GAP",
+      "recovery_action_id": "VERIFY_SOURCE_SCHEMA_AND_PARSER",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-TAB-FREE_ENDPOINT",
+      "provider_id": "TAB",
+      "mode": "FREE_ENDPOINT",
+      "coverage_status": "NON_ADVISABLE",
+      "reason_code": "SOURCE_MODE_PROHIBITED_OR_BLOCKED",
+      "source_state": "BLOCKED_MISSING_EXPLICIT_GRANT_AND_ZERO_COST_TERMS",
+      "source_reason_codes": [
+        "PF-TAB-004",
+        "PF-TAB-005"
+      ],
+      "source_failure_action": "DO_NOT_CALL_ENDPOINT_AND_SURFACE_GAP",
+      "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-TAB-AUTHENTICATED_OBSERVER",
+      "provider_id": "TAB",
+      "mode": "AUTHENTICATED_OBSERVER",
+      "coverage_status": "NON_ADVISABLE",
+      "reason_code": "SOURCE_MODE_PROHIBITED_OR_BLOCKED",
+      "source_state": "PROHIBITED_THIRD_PARTY_CREDENTIAL_ACCESS",
+      "source_reason_codes": [
+        "PF-TAB-003",
+        "NO_OWNER_CONFIGURATION_OR_READ_ONLY_ALLOWLIST"
+      ],
+      "source_failure_action": "DISABLE_SESSION_AND_ALERT",
+      "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-TAB-OWNER_DEVICE_OVERLAY",
+      "provider_id": "TAB",
+      "mode": "OWNER_DEVICE_OVERLAY",
+      "coverage_status": "DEGRADED",
+      "reason_code": "OPTIONAL_OWNER_VISIBLE_MODE_NOT_READY",
+      "source_state": "CONDITIONAL_OWNER_VISIBLE_ONLY_NOT_INSTALLED",
+      "source_reason_codes": [
+        "OWNER_INSTALLATION_NOT_VERIFIED",
+        "CURRENT_PAGE_IDENTITY_NOT_RUNTIME_VERIFIED"
+      ],
+      "source_failure_action": "SHOW_MANUAL_CHECK_OR_CANCEL_TICKET",
+      "recovery_action_id": "OWNER_MAY_CONFIGURE_VISIBLE_OVERLAY",
+      "action_owner": "OWNER",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-SPORTSBET-PUBLIC_BROWSER",
+      "provider_id": "SPORTSBET",
+      "mode": "PUBLIC_BROWSER",
+      "coverage_status": "UNKNOWN",
+      "reason_code": "SOURCE_IDENTITY_OR_PERMISSION_UNKNOWN",
+      "source_state": "UNKNOWN_AUTOMATION_PERMISSION_FAIL_CLOSED",
+      "source_reason_codes": [
+        "PF-SPORTSBET-003"
+      ],
+      "source_failure_action": "DISABLE_AFFECTED_MODE_AND_SURFACE_GAP",
+      "recovery_action_id": "BIND_SOURCE_AND_VERIFY_PERMISSION",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-SPORTSBET-FILE_OR_STATIC_DATA",
+      "provider_id": "SPORTSBET",
+      "mode": "FILE_OR_STATIC_DATA",
+      "coverage_status": "PENDING_PARSE",
+      "reason_code": "SOURCE_PARSER_GATES_PENDING",
+      "source_state": "CONDITIONAL_ACCOUNT_EVIDENCE_ONLY_NOT_REALTIME",
+      "source_reason_codes": [
+        "PF-SPORTSBET-002",
+        "OWNER_AUTHORIZATION_AND_SCHEMA_NOT_VERIFIED"
+      ],
+      "source_failure_action": "QUARANTINE_SOURCE_VERSION_AND_SURFACE_GAP",
+      "recovery_action_id": "VERIFY_SOURCE_SCHEMA_AND_PARSER",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-SPORTSBET-FREE_ENDPOINT",
+      "provider_id": "SPORTSBET",
+      "mode": "FREE_ENDPOINT",
+      "coverage_status": "NON_ADVISABLE",
+      "reason_code": "SOURCE_MODE_PROHIBITED_OR_BLOCKED",
+      "source_state": "BLOCKED_NO_OFFICIAL_API_PERMISSION_EVIDENCE",
+      "source_reason_codes": [
+        "PF-SPORTSBET-003"
+      ],
+      "source_failure_action": "DO_NOT_CALL_ENDPOINT_AND_SURFACE_GAP",
+      "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-SPORTSBET-AUTHENTICATED_OBSERVER",
+      "provider_id": "SPORTSBET",
+      "mode": "AUTHENTICATED_OBSERVER",
+      "coverage_status": "UNKNOWN",
+      "reason_code": "SOURCE_IDENTITY_OR_PERMISSION_UNKNOWN",
+      "source_state": "UNKNOWN_ACCOUNT_AUTOMATION_PERMISSION_FAIL_CLOSED",
+      "source_reason_codes": [
+        "PF-SPORTSBET-003",
+        "NO_OWNER_CONFIGURATION_OR_READ_ONLY_ALLOWLIST"
+      ],
+      "source_failure_action": "DISABLE_SESSION_AND_ALERT",
+      "recovery_action_id": "BIND_SOURCE_AND_VERIFY_PERMISSION",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-SPORTSBET-OWNER_DEVICE_OVERLAY",
+      "provider_id": "SPORTSBET",
+      "mode": "OWNER_DEVICE_OVERLAY",
+      "coverage_status": "DEGRADED",
+      "reason_code": "OPTIONAL_OWNER_VISIBLE_MODE_NOT_READY",
+      "source_state": "CONDITIONAL_OWNER_VISIBLE_ONLY_NOT_INSTALLED",
+      "source_reason_codes": [
+        "OWNER_INSTALLATION_NOT_VERIFIED",
+        "CURRENT_PAGE_IDENTITY_NOT_RUNTIME_VERIFIED"
+      ],
+      "source_failure_action": "SHOW_MANUAL_CHECK_OR_CANCEL_TICKET",
+      "recovery_action_id": "OWNER_MAY_CONFIGURE_VISIBLE_OVERLAY",
+      "action_owner": "OWNER",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-PUBLIC_BROWSER",
+      "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+      "mode": "PUBLIC_BROWSER",
+      "coverage_status": "UNKNOWN",
+      "reason_code": "SOURCE_IDENTITY_OR_PERMISSION_UNKNOWN",
+      "source_state": "UNBOUND_SOURCE_UNKNOWN_FAIL_CLOSED",
+      "source_reason_codes": [
+        "SOURCE_IDENTITY_AND_PERMISSION_NOT_BOUND"
+      ],
+      "source_failure_action": "SURFACE_EXPLICIT_COVERAGE_GAP",
+      "recovery_action_id": "BIND_SOURCE_AND_VERIFY_PERMISSION",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FILE_OR_STATIC_DATA",
+      "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+      "mode": "FILE_OR_STATIC_DATA",
+      "coverage_status": "UNKNOWN",
+      "reason_code": "SOURCE_IDENTITY_OR_PERMISSION_UNKNOWN",
+      "source_state": "UNBOUND_SOURCE_UNKNOWN_FAIL_CLOSED",
+      "source_reason_codes": [
+        "SOURCE_IDENTITY_LICENSE_SCHEMA_AND_LINEAGE_NOT_BOUND"
+      ],
+      "source_failure_action": "SURFACE_EXPLICIT_COVERAGE_GAP",
+      "recovery_action_id": "BIND_SOURCE_AND_VERIFY_PERMISSION",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FREE_ENDPOINT",
+      "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+      "mode": "FREE_ENDPOINT",
+      "coverage_status": "UNKNOWN",
+      "reason_code": "SOURCE_IDENTITY_OR_PERMISSION_UNKNOWN",
+      "source_state": "UNBOUND_SOURCE_UNKNOWN_FAIL_CLOSED",
+      "source_reason_codes": [
+        "SOURCE_IDENTITY_GRANT_COST_QUOTA_AND_REPLACEMENT_NOT_BOUND"
+      ],
+      "source_failure_action": "SURFACE_EXPLICIT_COVERAGE_GAP",
+      "recovery_action_id": "BIND_SOURCE_AND_VERIFY_PERMISSION",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-AUTHENTICATED_OBSERVER",
+      "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+      "mode": "AUTHENTICATED_OBSERVER",
+      "coverage_status": "UNKNOWN",
+      "reason_code": "SOURCE_IDENTITY_OR_PERMISSION_UNKNOWN",
+      "source_state": "UNBOUND_SOURCE_UNKNOWN_FAIL_CLOSED",
+      "source_reason_codes": [
+        "SOURCE_IDENTITY_ACCOUNT_PERMISSION_AND_OWNER_CONFIGURATION_NOT_BOUND"
+      ],
+      "source_failure_action": "SURFACE_EXPLICIT_COVERAGE_GAP",
+      "recovery_action_id": "BIND_SOURCE_AND_VERIFY_PERMISSION",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    },
+    {
+      "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-OWNER_DEVICE_OVERLAY",
+      "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+      "mode": "OWNER_DEVICE_OVERLAY",
+      "coverage_status": "UNKNOWN",
+      "reason_code": "SOURCE_IDENTITY_OR_PERMISSION_UNKNOWN",
+      "source_state": "UNBOUND_SOURCE_UNKNOWN_FAIL_CLOSED",
+      "source_reason_codes": [
+        "SOURCE_IDENTITY_AND_OWNER_INSTALLATION_NOT_BOUND"
+      ],
+      "source_failure_action": "SHOW_MANUAL_CHECK_OR_CANCEL_TICKET",
+      "recovery_action_id": "BIND_SOURCE_AND_VERIFY_PERMISSION",
+      "action_owner": "SOURCE_GOVERNANCE",
+      "production_collection_enabled": false,
+      "runtime_verified": false,
+      "rate_budget_enabled": false,
+      "advice_eligible": false,
+      "observed_at": "2026-07-23T21:00:00+10:00"
+    }
+  ],
+  "summary": {
+    "expected_unit_count": 15,
+    "represented_unit_count": 15,
+    "silent_gap_count": 0,
+    "explicit_gap_count": 15,
+    "covered_count": 0,
+    "production_collection_enabled_count": 0,
+    "runtime_verified_count": 0,
+    "status_counts": {
+      "COVERED": 0,
+      "PENDING_PARSE": 2,
+      "NON_ADVISABLE": 4,
+      "DEGRADED": 2,
+      "UNKNOWN": 7
+    },
+    "all_explicit_gaps_have_reason": true,
+    "all_explicit_gaps_have_recovery_action": true,
+    "all_explicit_gaps_have_action_owner": true,
+    "advice_enabled": false
+  },
+  "oracle_expectation": {
+    "status": "PASS",
+    "decision": "EXPLICIT_GAPS_ONLY_NO_SILENT_GAPS",
+    "silent_gap_count": 0,
+    "finding_count": 0,
+    "advice_allowed": false,
+    "external_action_performed": false
+  },
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "provider_account_api_or_page_accessed": false,
+    "real_market_data_collected": false,
+    "real_provider_dispatch_performed": false,
+    "scheduler_daemon_started": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "model_or_strategy_executed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "claim_boundary": {
+    "all_observable_markets_enumerated_or_verified": false,
+    "real_provider_access_or_permission_verified": false,
+    "runtime_collection_or_freshness_verified": false,
+    "production_coverage_verified": false,
+    "zero_silent_gaps_applies_only_to_pinned_provider_mode_contract_universe": true,
+    "recommendation_or_order_enabled": false,
+    "financial_return_verified_or_guaranteed": false
+  }
+}

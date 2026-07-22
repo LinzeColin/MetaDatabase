@@ -54,7 +54,7 @@ EXPECTED_ARTIFACTS = {
 }
 EXPECTED_NUMERIC_DELTAS = ["-0.0001", "0", "0.0001"]
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "4d5fa6d6173fafcf165ee8c27348386b934f3f70bc0442bcb9bdd9b280a40e05"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "18e285be6c7a122b373819d24b14174e3127963c07c296187ced1e54313534d2"
 PHASE_COMMIT = "8c0d0ec526e0bbbe571cc4f8dbf603bc7d4899c2"
 PINNED_PHASE_CODE_HASH = "a5942113d4018639dbaa718c97dd0a8b1d76635057da12177df9d56bebbf8b6a"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -72,16 +72,16 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S05/P02_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "README.md": "cdeb85233247f078f9b8d7380e182a6eb905bde133ac05246231a559c2cbe8ef",
-    "abd_acceptance/__init__.py": "dd43b55546ecbb245bc4b97a201563454f20766666bbaf37a3741f89375e594b",
-    "abd_acceptance/__main__.py": "6f1d82c21751c665a8b33b93178fc98db8a7545a095141c9c63811be1871d2f9",
-    "abd_acceptance/advice_card.py": "c1961b3a6f4abc623aa6f4c2bfa83588b6d44c5e5adf5d276982c93460df1ff4",
-    "abd_acceptance/market_ontology.py": "19993c503b05f3424ddfd3237b8ac8baa5799d133e545ee838d5c3b43743070c",
-    "abd_acceptance/reason_next_action.py": "41e24f5487db85648fe19d2893fd29a3283db101f04b66a1ea8afd5321c717cd",
-    "abd_acceptance/stage3_review.py": "5002d1027ebbd603aab6ae49d5ad3d190b7534065191d5feb8c21eab7096109d",
-    "abd_acceptance/stage4_review.py": "9c7307f3437600f034520070ba085d66ac2f6c9335338e07d9282729af315646",
-    "abd_acceptance/usability_accessibility.py": "91909f739040669de90cda1975bc4678c10909e8a838f85ae6637fdd42a41394",
-    "tests/S04/stage_review_test.py": "eeb679801de3c73049cd64859bc3e46a31aae0954e6bde02674bffded1731206",
+    "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
+    "abd_acceptance/__init__.py": "969cc5d7d8c8e187b9bfd6679b7b51a47607ceeee703ddcc71be747957636f8e",
+    "abd_acceptance/__main__.py": "e29a648fcb0582c2139593cf0d42670893580d30879412664a5605c3772f93cc",
+    "abd_acceptance/advice_card.py": "d8ad7722996915fd4743bcf3039492ff102705e001c5926b14cb009a379f1ff5",
+    "abd_acceptance/market_ontology.py": "02b22cdda58425675a0e3fc021efbafee6f23e7b50321428dca3259aee3af556",
+    "abd_acceptance/reason_next_action.py": "8dbcc6640745e75723c24eaea40c0fc6ae83742f5520e17c59884be0fdb419c6",
+    "abd_acceptance/stage3_review.py": "b9dcf6c0a9946ca51131581c8387395276cfcc6060dc139f3aef6cf8fbd965b0",
+    "abd_acceptance/stage4_review.py": "1015f1a84cb485d6a1206da0d2478873c316a508793f4ba1456a3d179ffba948",
+    "abd_acceptance/usability_accessibility.py": "3a140e2062c1a4bdda7492f0b8240ac6c44840aaf3774695bebe25201101f9aa",
+    "tests/S04/stage_review_test.py": "c0ffce73ea7fda1771db9634e3883902b12a7c473adb06f5ec882acffa8c8686",
     "tests/S05/P02_test.py": "da9cacf2f864cb60bf0866c072da34685c4d57ff2180acced4b79f1567819cd2",
 }
 PINNED_PHASE_HASHES: Dict[str, str] = {
@@ -527,6 +527,7 @@ def _check_progression(root: Path, checks: List[Dict[str, Any]]) -> None:
     candidate_present = [path.as_posix() for path in candidate_paths if (root / path).exists()]
     signed_present = [path.as_posix() for path in signed_paths if (root / path).exists()]
     rows = [row for row in _load_index(root) if row.get("id") == "INDEX-AC-S05-P03"]
+    verify_history = (root.parent / ".git").exists()
 
     def planned(row: Mapping[str, Any]) -> bool:
         return row.get("status") == "PLANNED" and "actual_artifact" not in row and "artifact_sha256" not in row
@@ -557,7 +558,7 @@ def _check_progression(root: Path, checks: List[Dict[str, Any]]) -> None:
         try:
             from .source_scheduler import validate_signed_receipt_preflight as validate_s05_p03_signed
 
-            successor = validate_s05_p03_signed(root)
+            successor = validate_s05_p03_signed(root, verify_git_history=verify_history)
             ok = successor.get("status") == "PASS" and successor.get("next") == "S05/P04_READY_NOT_STARTED"
             mode = "VERIFIED_S05_P03_SIGNED" if ok else "INVALID_S05_P03_SIGNED"
         except Exception as exc:

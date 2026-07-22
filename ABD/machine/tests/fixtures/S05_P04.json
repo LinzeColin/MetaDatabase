@@ -1,0 +1,239 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "ABD-S05-P04-COVERAGE-OBSERVABILITY",
+  "fixed_clock": "2026-07-23T21:00:00+10:00",
+  "expected_requirement_id": "REQ-S05-P04",
+  "expected_contract_id": "AC-S05-P04",
+  "expected_task_ids": [
+    "T-S05-P04-01",
+    "T-S05-P04-02",
+    "T-S05-P04-03"
+  ],
+  "expected_test_ids": [
+    "TEST-S05-P04",
+    "TEST-S05-P04-BOUNDARY",
+    "TEST-S05-P04-REPLAY"
+  ],
+  "expected_artifacts": {
+    "ART-S05-P04-01": "coverage_dashboard.json",
+    "ART-S05-P04-02": "silent_gap_oracle.py"
+  },
+  "expected_providers": [
+    "TAB",
+    "SPORTSBET",
+    "OTHER_OBSERVABLE_PROVIDER"
+  ],
+  "expected_modes": [
+    "PUBLIC_BROWSER",
+    "FILE_OR_STATIC_DATA",
+    "FREE_ENDPOINT",
+    "AUTHENTICATED_OBSERVER",
+    "OWNER_DEVICE_OVERLAY"
+  ],
+  "expected_coverage_unit_count": 15,
+  "expected_status_counts": {
+    "COVERED": 0,
+    "PENDING_PARSE": 2,
+    "NON_ADVISABLE": 4,
+    "DEGRADED": 2,
+    "UNKNOWN": 7
+  },
+  "expected_positive_result": {
+    "status": "PASS",
+    "decision": "EXPLICIT_GAPS_ONLY_NO_SILENT_GAPS",
+    "expected_unit_count": 15,
+    "represented_unit_count": 15,
+    "silent_gap_count": 0,
+    "explicit_gap_count": 15,
+    "covered_count": 0,
+    "finding_count": 0,
+    "advice_allowed": false,
+    "external_action_performed": false,
+    "input_sha256": "632ea3d90993a3a96dff6659039350d5913fc40afb45895bd3f2d5ce8e0384d5",
+    "decision_sha256": "835e471f7b3677b45c2d6555d97d36c84f570c2dcd132e3b972d9f7c16d88123"
+  },
+  "negative_dashboard_mutations": [
+    {
+      "id": "MISSING-EXPECTED-RECORD",
+      "operation": "DELETE_RECORD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "expected_reason": "EXPECTED_COVERAGE_UNIT_MISSING",
+      "expected_silent_gap_count": 1
+    },
+    {
+      "id": "DUPLICATE-RECORD",
+      "operation": "DUPLICATE_RECORD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "expected_reason": "DUPLICATE_COVERAGE_RECORD",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "MISSING-REASON",
+      "operation": "DELETE_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "reason_code",
+      "expected_reason": "MISSING_OR_INVALID_REASON_CODE",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "MISSING-RECOVERY",
+      "operation": "DELETE_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "recovery_action_id",
+      "expected_reason": "MISSING_OR_INVALID_RECOVERY_ACTION",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "MISSING-ACTION-OWNER",
+      "operation": "DELETE_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "action_owner",
+      "expected_reason": "MISSING_OR_INVALID_ACTION_OWNER",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "UNKNOWN-STATUS",
+      "operation": "SET_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "coverage_status",
+      "value": "SILENTLY_IGNORED",
+      "expected_reason": "UNKNOWN_COVERAGE_STATUS",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "IDENTITY-MISMATCH",
+      "operation": "SET_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "provider_id",
+      "value": "SPORTSBET",
+      "expected_reason": "COVERAGE_UNIT_IDENTITY_MISMATCH",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "ADVICE-ENABLED",
+      "operation": "SET_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "advice_eligible",
+      "value": true,
+      "expected_reason": "ADVICE_ELIGIBILITY_NOT_FAIL_CLOSED",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "PRODUCTION-COLLECTION-ENABLED",
+      "operation": "SET_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "production_collection_enabled",
+      "value": true,
+      "expected_reason": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "RUNTIME-VERIFIED",
+      "operation": "SET_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "runtime_verified",
+      "value": true,
+      "expected_reason": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "RATE-BUDGET-ENABLED",
+      "operation": "SET_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "rate_budget_enabled",
+      "value": true,
+      "expected_reason": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "MISSING-SOURCE-STATE",
+      "operation": "DELETE_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "source_state",
+      "expected_reason": "SOURCE_STATE_MISSING",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "EMPTY-SOURCE-REASONS",
+      "operation": "SET_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "source_reason_codes",
+      "value": [],
+      "expected_reason": "SOURCE_REASON_CODES_MISSING",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "MISSING-SOURCE-FAILURE-ACTION",
+      "operation": "DELETE_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "source_failure_action",
+      "expected_reason": "SOURCE_FAILURE_ACTION_MISSING",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "NAIVE-OBSERVED-TIME",
+      "operation": "SET_RECORD_FIELD",
+      "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+      "field": "observed_at",
+      "value": "2026-07-23T21:00:00",
+      "expected_reason": "OBSERVATION_TIMESTAMP_INVALID",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "RECOVERY-CATALOG-MISSING-ACTION",
+      "operation": "DELETE_RECOVERY_ACTION",
+      "action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT",
+      "expected_reason": "MISSING_OR_INVALID_RECOVERY_ACTION",
+      "expected_silent_gap_count": 0
+    },
+    {
+      "id": "INVALID-FIXED-CLOCK",
+      "operation": "SET_TOP_LEVEL_FIELD",
+      "field": "fixed_at",
+      "value": "2026-07-23T21:00:00",
+      "expected_reason": "INVALID_FIXED_CLOCK",
+      "expected_silent_gap_count": 0
+    }
+  ],
+  "gap_threshold_vectors": [
+    {
+      "value": "-0.0001",
+      "expected_status": "FAIL",
+      "expected_reason": "GAP_COUNT_NEGATIVE_OR_NONFINITE"
+    },
+    {
+      "value": "0",
+      "expected_status": "PASS",
+      "expected_reason": "SILENT_GAP_COUNT_ZERO"
+    },
+    {
+      "value": "0.0001",
+      "expected_status": "FAIL",
+      "expected_reason": "SILENT_GAP_COUNT_NONZERO"
+    }
+  ],
+  "adverse_odds_tick": {
+    "applies": false,
+    "reason": "S05/P04 contains no odds, probability, price or recommendation calculation; the exact zero-gap boundary remains fail-closed."
+  },
+  "expected_external_effect_boundary": {
+    "external_network_accessed": false,
+    "provider_account_api_or_page_accessed": false,
+    "real_market_data_collected": false,
+    "real_provider_dispatch_performed": false,
+    "scheduler_daemon_started": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "model_or_strategy_executed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "expected_next": "S05/STAGE_REVIEW_READY_NOT_STARTED",
+  "minimum_oracle_checks": 60,
+  "minimum_targeted_pytest_cases": 100,
+  "minimum_affected_pytest_cases": 1200,
+  "minimum_full_pytest_cases": 4351
+}

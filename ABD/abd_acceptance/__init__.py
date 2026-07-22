@@ -238,6 +238,16 @@ from .source_scheduler import (
     verify_existing_phase_evidence as verify_source_scheduler_evidence,
     write_phase_evidence as write_source_scheduler_phase_evidence,
 )
+from .coverage_observability import (
+    CoverageObservabilityContractError,
+    build_evidence as build_coverage_observability_evidence,
+    evaluate_contract as evaluate_coverage_observability_contract,
+    perform_rollback_drill as perform_coverage_observability_rollback_drill,
+    validate_candidate_preflight as validate_coverage_observability_candidate,
+    validate_signed_receipt_preflight as validate_coverage_observability_signed_receipt,
+    verify_existing_phase_evidence as verify_coverage_observability_evidence,
+    write_phase_evidence as write_coverage_observability_phase_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -425,4 +435,12 @@ __all__ = [
     "validate_source_scheduler_signed_receipt",
     "verify_source_scheduler_evidence",
     "write_source_scheduler_phase_evidence",
+    "CoverageObservabilityContractError",
+    "build_coverage_observability_evidence",
+    "evaluate_coverage_observability_contract",
+    "perform_coverage_observability_rollback_drill",
+    "validate_coverage_observability_candidate",
+    "validate_coverage_observability_signed_receipt",
+    "verify_coverage_observability_evidence",
+    "write_coverage_observability_phase_evidence",
 ]

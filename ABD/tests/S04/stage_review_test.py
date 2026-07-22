@@ -406,12 +406,17 @@ def test_canonical_financial_order_and_no_guarantee_boundaries_are_unchanged() -
     assert set(costs["incremental_cash_budget"].values()) == {"0.00"}
 
 
-def test_stage5_progression_accepts_only_complete_verified_p03_successor() -> None:
+def test_stage5_progression_accepts_only_complete_verified_successor() -> None:
     result = evaluate_contract(ROOT)
     check = next(row for row in result["checks"] if row["id"] == "S04REVIEW-S05-PROGRESSION")
     assert check["passed"] is True, check
     assert len(check["detail"]["index"]) == 4
-    assert check["detail"]["mode"] in {"VERIFIED_S05_P03_CANDIDATE", "VERIFIED_S05_P03_SIGNED"}
+    assert check["detail"]["mode"] in {
+        "VERIFIED_S05_P03_CANDIDATE",
+        "VERIFIED_S05_P03_SIGNED",
+        "VERIFIED_S05_P04_CANDIDATE",
+        "VERIFIED_S05_P04_SIGNED",
+    }
     assert len(check["detail"]["p01_candidate_present"]) == 8
     assert len(check["detail"]["p02_candidate_present"]) == 5
     assert len(check["detail"]["p03_candidate_present"]) == 6

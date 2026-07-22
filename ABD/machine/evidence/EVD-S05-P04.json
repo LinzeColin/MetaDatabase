@@ -1,0 +1,2136 @@
+{
+  "artifacts": {
+    "ART-S05-P04-01": {
+      "path": "coverage_dashboard.json",
+      "sha256": "6cafc06b9979c37d774f126c84608b841bf3ea4d7d132643d294718d516d5744"
+    },
+    "ART-S05-P04-02": {
+      "path": "silent_gap_oracle.py",
+      "sha256": "e83fc758c42a1061259bcf9b556eb0f184fc27322d5b5f329b7187e1a0c2653d"
+    }
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python silent_gap_oracle.py coverage_dashboard.json",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S05/P04_test.py --junitxml=machine/evidence/S05/P04/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S03/P02_test.py tests/S03/P03_test.py tests/S03/P04_test.py tests/S03/stage_review_test.py tests/S04/stage_review_test.py tests/S05/P01_test.py tests/S05/P02_test.py tests/S05/P03_test.py tests/S05/P04_test.py --junitxml=machine/evidence/S05/P04/signed_state_regression.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/P04/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P04/pytest.xml machine/evidence/S05/P04/signed_state_regression.xml machine/evidence/S05/P04/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S05-P04 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S05-P04",
+  "coverage_proof": {
+    "covered_count": 0,
+    "expected_unit_count": 15,
+    "explicit_gap_count": 15,
+    "finding_count": 0,
+    "oracle_decision": "EXPLICIT_GAPS_ONLY_NO_SILENT_GAPS",
+    "oracle_decision_sha256": "835e471f7b3677b45c2d6555d97d36c84f570c2dcd132e3b972d9f7c16d88123",
+    "represented_unit_count": 15,
+    "silent_gap_count": 0,
+    "status_counts": {
+      "COVERED": 0,
+      "DEGRADED": 2,
+      "NON_ADVISABLE": 4,
+      "PENDING_PARSE": 2,
+      "UNKNOWN": 7
+    }
+  },
+  "decision": "COVERAGE_GAPS_EXPLICIT_ZERO_SILENT",
+  "decision_sha256": "7ed924b5568309e207b282b1186da32499300cd5a5de830a0cc994a1e1427a52",
+  "evidence_id": "EVD-S05-P04",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "provider_account_api_or_page_accessed": false,
+    "real_market_data_collected": false,
+    "real_provider_dispatch_performed": false,
+    "recommendation_generated_or_enabled": false,
+    "scheduler_daemon_started": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-23T21:00:00+10:00",
+  "hashes": {
+    "code": "ce412627d902eb65e517c5281277062d7429f3dc86321c4b8e2b8335388a6747",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
+      "abd_acceptance/__init__.py": "969cc5d7d8c8e187b9bfd6679b7b51a47607ceeee703ddcc71be747957636f8e",
+      "abd_acceptance/__main__.py": "e29a648fcb0582c2139593cf0d42670893580d30879412664a5605c3772f93cc",
+      "abd_acceptance/advice_card.py": "d8ad7722996915fd4743bcf3039492ff102705e001c5926b14cb009a379f1ff5",
+      "abd_acceptance/coverage_observability.py": "d5dab221627f44c3b0e2741f4d4b8d51f2588b382089160f80a0caf18cede5e7",
+      "abd_acceptance/market_ontology.py": "02b22cdda58425675a0e3fc021efbafee6f23e7b50321428dca3259aee3af556",
+      "abd_acceptance/reason_next_action.py": "8dbcc6640745e75723c24eaea40c0fc6ae83742f5520e17c59884be0fdb419c6",
+      "abd_acceptance/source_capabilities.py": "5e9666b994bc117338f5c80900ff2d906f20e2905116863588e355ef6d8d3e70",
+      "abd_acceptance/source_scheduler.py": "11464f879697f77bf72d5df1b4e3e7c8e3123967a3688d6bceabd2f500ec3959",
+      "abd_acceptance/stage3_review.py": "b9dcf6c0a9946ca51131581c8387395276cfcc6060dc139f3aef6cf8fbd965b0",
+      "abd_acceptance/stage4_review.py": "1015f1a84cb485d6a1206da0d2478873c316a508793f4ba1456a3d179ffba948",
+      "abd_acceptance/usability_accessibility.py": "3a140e2062c1a4bdda7492f0b8240ac6c44840aaf3774695bebe25201101f9aa",
+      "cadence_tests.json": "f9afb627048ea10219545a04082ee2402a16deb549ea792aeced85d78c1aadbc",
+      "coverage_dashboard.json": "6cafc06b9979c37d774f126c84608b841bf3ea4d7d132643d294718d516d5744",
+      "coverage_manifest.schema.json": "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2",
+      "machine/evidence/EVD-S05-P03.json": "0ad9ae6a259f811c2587cd305b2996b42665c94f8ebc389b3e0ea3a24112e599",
+      "machine/evidence/EVD-S05-P03_rollback.json": "45560fa18fdef1783de8ef9af1b902b1c247eee18a7f57ed455ecb8ba71f32a8",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S05/P04/full_regression.xml": "52ba3e9584b2f0edf7de72458d2e14507116e75bb99bf2cdf83c56f3b47abe7b",
+      "machine/evidence/S05/P04/pytest.xml": "08a16ef79bb377697127c3e6b14c842ed2a0226825bd92199b25cd8348be875a",
+      "machine/evidence/S05/P04/signed_state_regression.xml": "9f9a5bb1025f42696f51e6ae2bea6c36dd55f9f750657897a6f7b7c628c0bc10",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S05_P04.json": "261f2546f0f8d4e411038beb1929ab9f3213f0f60f039931186f63574b8a1985",
+      "market_ontology.json": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe",
+      "provider_contracts.json": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+      "rate_budget.json": "7dc8db47146f38ab3e3b888d9e2757ac38ff53a3785fb2bd66580a4b0a970323",
+      "scheduler.py": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91",
+      "silent_gap_oracle.py": "e83fc758c42a1061259bcf9b556eb0f184fc27322d5b5f329b7187e1a0c2653d",
+      "source_capabilities.json": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+      "tests/S04/stage_review_test.py": "c0ffce73ea7fda1771db9634e3883902b12a7c473adb06f5ec882acffa8c8686",
+      "tests/S05/P03_test.py": "082b057150b1d4325d3528b100b27f9b4537a3daafcaa6547138be60e2f0ded4",
+      "tests/S05/P04_test.py": "e579336018e71bb627c2c8f98b7c6e95fa3af7e0d3855bb8fa6cd899dbde579b"
+    },
+    "model": "NOT_EXECUTED",
+    "model_not_executed_reason": "S05/P04 audits frozen provider-mode coverage records offline and executes no model, provider, deployment, recommendation, order or return evaluation.",
+    "oracle_report": "266ce8980b4a93d7233cf57eaee31d00dc5efee56ca3e8702084bb18c044f69d",
+    "output_dashboard": "6cafc06b9979c37d774f126c84608b841bf3ea4d7d132643d294718d516d5744",
+    "output_oracle": "e83fc758c42a1061259bcf9b556eb0f184fc27322d5b5f329b7187e1a0c2653d",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "3a8825f0c7b8b9daf2c7d95646db79ad5e224c637eed31f5736e683a67a41c28",
+    "structured_failure_log": "a752b64a80386fd107b52a98a65729e2c4361bbeb0a5a5a84cf6889baaa8cf0d"
+  },
+  "next": "S05/STAGE_REVIEW_READY_NOT_STARTED",
+  "pass_gate_interpretation": "ZERO_SILENT_GAPS_IN_THE_PINNED_PROVIDER_MODE_UNIVERSE;_ALL_15_CURRENT_REAL_CAPABILITIES_REMAIN_EXPLICIT_NON_PRODUCTION_GAPS_WITH_REASON_ACTION_AND_OWNER",
+  "phase_id": "P04",
+  "phase_status": "S05_P04_PASS",
+  "product_version": "0.0.0.1",
+  "production_coverage_status": "ZERO_OF_15_REAL_PROVIDER_MODE_UNITS_COVERED_ALL_15_EXPLICIT_GAPS",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "NOT_READY_S05_WHOLE_STAGE_REVIEW_AND_GITHUB_UPLOAD_REQUIRED",
+  "requirement_id": "REQ-S05-P04",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S05-P04_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "scope_boundary": {
+    "all_15_real_provider_mode_units_are_explicit_gaps": true,
+    "no_provider_account_page_api_or_network_access": true,
+    "p04_validates_observability_not_real_market_coverage": true,
+    "production_covered_count_is_zero": true,
+    "recommendation_order_and_deployment_not_performed": true,
+    "stage_review_not_started": true
+  },
+  "stage_id": "S05",
+  "status": "PASS",
+  "structured_failure_log": [
+    {
+      "actual_reasons": [
+        "EXPECTED_COVERAGE_UNIT_MISSING"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "EXPECTED_COVERAGE_UNIT_MISSING",
+      "id": "MISSING-EXPECTED-RECORD",
+      "matched": true,
+      "silent_gap_count": 1
+    },
+    {
+      "actual_reasons": [
+        "DUPLICATE_COVERAGE_RECORD"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "DUPLICATE_COVERAGE_RECORD",
+      "id": "DUPLICATE-RECORD",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "MISSING_OR_INVALID_REASON_CODE"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "MISSING_OR_INVALID_REASON_CODE",
+      "id": "MISSING-REASON",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "MISSING_OR_INVALID_RECOVERY_ACTION"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "MISSING_OR_INVALID_RECOVERY_ACTION",
+      "id": "MISSING-RECOVERY",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "MISSING_OR_INVALID_ACTION_OWNER"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "MISSING_OR_INVALID_ACTION_OWNER",
+      "id": "MISSING-ACTION-OWNER",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "UNKNOWN_COVERAGE_STATUS"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "UNKNOWN_COVERAGE_STATUS",
+      "id": "UNKNOWN-STATUS",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "COVERAGE_UNIT_IDENTITY_MISMATCH"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "COVERAGE_UNIT_IDENTITY_MISMATCH",
+      "id": "IDENTITY-MISMATCH",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "ADVICE_ELIGIBILITY_NOT_FAIL_CLOSED"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "ADVICE_ELIGIBILITY_NOT_FAIL_CLOSED",
+      "id": "ADVICE-ENABLED",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+      "id": "PRODUCTION-COLLECTION-ENABLED",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+      "id": "RUNTIME-VERIFIED",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+      "id": "RATE-BUDGET-ENABLED",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "SOURCE_STATE_MISSING"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "SOURCE_STATE_MISSING",
+      "id": "MISSING-SOURCE-STATE",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "SOURCE_REASON_CODES_MISSING"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "SOURCE_REASON_CODES_MISSING",
+      "id": "EMPTY-SOURCE-REASONS",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "SOURCE_FAILURE_ACTION_MISSING"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "SOURCE_FAILURE_ACTION_MISSING",
+      "id": "MISSING-SOURCE-FAILURE-ACTION",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "OBSERVATION_TIMESTAMP_INVALID"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "OBSERVATION_TIMESTAMP_INVALID",
+      "id": "NAIVE-OBSERVED-TIME",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "MISSING_OR_INVALID_RECOVERY_ACTION",
+        "MISSING_OR_INVALID_RECOVERY_ACTION",
+        "MISSING_OR_INVALID_RECOVERY_ACTION",
+        "MISSING_OR_INVALID_RECOVERY_ACTION"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "MISSING_OR_INVALID_RECOVERY_ACTION",
+      "id": "RECOVERY-CATALOG-MISSING-ACTION",
+      "matched": true,
+      "silent_gap_count": 0
+    },
+    {
+      "actual_reasons": [
+        "INVALID_FIXED_CLOCK"
+      ],
+      "decision": "BLOCK_COVERAGE_AND_ADVICE",
+      "expected_reason": "INVALID_FIXED_CLOCK",
+      "id": "INVALID-FIXED-CLOCK",
+      "matched": true,
+      "silent_gap_count": 0
+    }
+  ],
+  "validation": {
+    "checks": [
+      {
+        "detail": {
+          "actual": "6cafc06b9979c37d774f126c84608b841bf3ea4d7d132643d294718d516d5744",
+          "expected": "6cafc06b9979c37d774f126c84608b841bf3ea4d7d132643d294718d516d5744"
+        },
+        "id": "S05P04-PHASE-PIN-coverage_dashboard_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "261f2546f0f8d4e411038beb1929ab9f3213f0f60f039931186f63574b8a1985",
+          "expected": "261f2546f0f8d4e411038beb1929ab9f3213f0f60f039931186f63574b8a1985"
+        },
+        "id": "S05P04-PHASE-PIN-machine-tests-fixtures-S05_P04_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e83fc758c42a1061259bcf9b556eb0f184fc27322d5b5f329b7187e1a0c2653d",
+          "expected": "e83fc758c42a1061259bcf9b556eb0f184fc27322d5b5f329b7187e1a0c2653d"
+        },
+        "id": "S05P04-PHASE-PIN-silent_gap_oracle_py",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e579336018e71bb627c2c8f98b7c6e95fa3af7e0d3855bb8fa6cd899dbde579b",
+          "expected": "e579336018e71bb627c2c8f98b7c6e95fa3af7e0d3855bb8fa6cd899dbde579b"
+        },
+        "id": "S05P04-PHASE-PIN-tests-S05-P04_test_py",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b192010cb822a083fb2041cff14677ca675ee3f4caa51de752369cc15b987622",
+          "expected": "b192010cb822a083fb2041cff14677ca675ee3f4caa51de752369cc15b987622"
+        },
+        "id": "S05P04-ORACLE-STRUCTURAL-HASH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f9afb627048ea10219545a04082ee2402a16deb549ea792aeced85d78c1aadbc",
+          "expected": "f9afb627048ea10219545a04082ee2402a16deb549ea792aeced85d78c1aadbc"
+        },
+        "id": "S05P04-BASELINE-PIN-cadence_tests_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2",
+          "expected": "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2"
+        },
+        "id": "S05P04-BASELINE-PIN-coverage_manifest_schema_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "0ad9ae6a259f811c2587cd305b2996b42665c94f8ebc389b3e0ea3a24112e599",
+          "expected": "0ad9ae6a259f811c2587cd305b2996b42665c94f8ebc389b3e0ea3a24112e599"
+        },
+        "id": "S05P04-BASELINE-PIN-machine-evidence-EVD-S05-P03_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "45560fa18fdef1783de8ef9af1b902b1c247eee18a7f57ed455ecb8ba71f32a8",
+          "expected": "45560fa18fdef1783de8ef9af1b902b1c247eee18a7f57ed455ecb8ba71f32a8"
+        },
+        "id": "S05P04-BASELINE-PIN-machine-evidence-EVD-S05-P03_rollback_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S05P04-BASELINE-PIN-machine-facts-acceptance_contracts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S05P04-BASELINE-PIN-machine-facts-canonical_facts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S05P04-BASELINE-PIN-machine-facts-costs_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S05P04-BASELINE-PIN-machine-facts-model_system_card_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S05P04-BASELINE-PIN-machine-facts-parameters_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S05P04-BASELINE-PIN-machine-facts-requirements_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S05P04-BASELINE-PIN-machine-facts-roadmap_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S05P04-BASELINE-PIN-machine-facts-task_graph_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S05P04-BASELINE-PIN-machine-facts-traceability_matrix_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe",
+          "expected": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe"
+        },
+        "id": "S05P04-BASELINE-PIN-market_ontology_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+          "expected": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6"
+        },
+        "id": "S05P04-BASELINE-PIN-provider_contracts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "7dc8db47146f38ab3e3b888d9e2757ac38ff53a3785fb2bd66580a4b0a970323",
+          "expected": "7dc8db47146f38ab3e3b888d9e2757ac38ff53a3785fb2bd66580a4b0a970323"
+        },
+        "id": "S05P04-BASELINE-PIN-rate_budget_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91",
+          "expected": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91"
+        },
+        "id": "S05P04-BASELINE-PIN-scheduler_py",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+          "expected": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539"
+        },
+        "id": "S05P04-BASELINE-PIN-source_capabilities_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S05P04-REPO-PIN-_github-workflows-abd-stage0-validation_yml",
+        "passed": true
+      },
+      {
+        "detail": "S05_P04.json",
+        "id": "S05P04-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "coverage_dashboard.json",
+        "id": "S05P04-DASHBOARD-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "baseline": "未实现或旧包存在冲突/缺口",
+          "id": "REQ-S05-P04",
+          "measurement": "由 AC-S05-P04 的机器验收判定器执行固定输入、阈值和证据检查。",
+          "non_goals": [
+            "不自动提交、确认或重试真实订单",
+            "不以降低证据或风险门追赶30%月目标",
+            "不引入付费数据或付费程序接口依赖"
+          ],
+          "observation_period": "开发期每次提交；上线后持续",
+          "owner_input_required_during_development": false,
+          "phase_id": "P04",
+          "primary_acceptance_criteria_id": "AC-S05-P04",
+          "priority": "P1",
+          "problem": "若未完成“覆盖缺口可观测”，覆盖所有可观察市场，按来源事实决定访问方式，任何未知或失效都可见。将缺少可执行、可验收或可恢复的基础。",
+          "scope": [
+            "coverage_dashboard.json",
+            "silent_gap_oracle.py"
+          ],
+          "stage_id": "S05",
+          "target": "静默缺口=0；每个缺口都有原因和恢复动作。",
+          "title": "覆盖缺口可观测",
+          "user": "单一账户持有人及自动开发/运维代理",
+          "value": "建立已覆盖、待解析、不可建议、降级、未知和静默缺口检测。"
+        },
+        "id": "S05P04-TASKPACK-REQUIREMENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "environment": [
+            "Ubuntu Linux 持续集成环境",
+            "固定时钟",
+            "冻结测试夹具",
+            "无外部网络的确定性测试模式",
+            "生产等价配置Schema"
+          ],
+          "evidence_requirements": [
+            "machine/evidence/EVD-S05-P04.json",
+            "测试报告及命令退出码",
+            "输入、参数、代码、模型和输出SHA-256",
+            "失败路径截图或结构化日志",
+            "回滚演练记录"
+          ],
+          "id": "AC-S05-P04",
+          "inputs": [
+            "REQ-S05-P04 对应机器事实",
+            "S05/P04 冻结正向、边界、负向和故障输入",
+            "参数版本和来源版本哈希"
+          ],
+          "oracle": {
+            "command": "python -m abd_acceptance --contract AC-S05-P04 --evidence machine/evidence",
+            "rule": "静默缺口=0；每个缺口都有原因和恢复动作。",
+            "type": "EXECUTABLE"
+          },
+          "pass_gate": "静默缺口=0；每个缺口都有原因和恢复动作。",
+          "requirement_id": "REQ-S05-P04",
+          "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_condition": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "tests": [
+            {
+              "id": "TEST-S05-P04",
+              "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+            },
+            {
+              "id": "TEST-S05-P04-BOUNDARY",
+              "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+            },
+            {
+              "id": "TEST-S05-P04-REPLAY",
+              "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+            }
+          ],
+          "threshold": "静默缺口=0；每个缺口都有原因和恢复动作。",
+          "title": "覆盖缺口可观测唯一主验收"
+        },
+        "id": "S05P04-TASKPACK-ACCEPTANCE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S05-P04-01",
+          "T-S05-P04-02",
+          "T-S05-P04-03"
+        ],
+        "id": "S05P04-TASKPACK-TASKS",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_criteria_id": "AC-S05-P04",
+            "artifact_ids": [
+              "ART-S05-P04-01",
+              "ART-S05-P04-02"
+            ],
+            "evidence_id": "EVD-S05-P04",
+            "phase_id": "P04",
+            "requirement_id": "REQ-S05-P04",
+            "stage_id": "S05",
+            "task_ids": [
+              "T-S05-P04-01",
+              "T-S05-P04-02",
+              "T-S05-P04-03"
+            ],
+            "test_ids": [
+              "TEST-S05-P04",
+              "TEST-S05-P04-BOUNDARY",
+              "TEST-S05-P04-REPLAY"
+            ]
+          }
+        ],
+        "id": "S05P04-TASKPACK-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "hours": {
+            "high": 6,
+            "likely": 4,
+            "low": 3
+          },
+          "id": "P04",
+          "objective": "建立已覆盖、待解析、不可建议、降级、未知和静默缺口检测。",
+          "outputs": [
+            "coverage_dashboard.json",
+            "silent_gap_oracle.py"
+          ],
+          "pass_gate": "静默缺口=0；每个缺口都有原因和恢复动作。",
+          "title": "覆盖缺口可观测"
+        },
+        "id": "S05P04-TASKPACK-ROADMAP",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ART-S05-P04-01": "coverage_dashboard.json",
+          "ART-S05-P04-02": "silent_gap_oracle.py"
+        },
+        "id": "S05P04-FIXTURE-BINDING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_id": "AC-S05-P04",
+          "artifact_id": "ART-S05-P04-01",
+          "fixed_at": "2026-07-23T21:00:00+10:00",
+          "requirement_id": "REQ-S05-P04"
+        },
+        "id": "S05P04-DASHBOARD-IDENTITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_market_universe_enumerated_or_verified": false,
+          "coverage_dimension": "SIGNED_PROVIDER_BY_ACCESS_MODE_CONTRACT_MATRIX",
+          "declared_discovery_scope": "ALL_OBSERVABLE_MARKETS",
+          "expected_coverage_unit_count": 15,
+          "interpretation": "P04 proves every unit in the frozen provider-mode contract matrix is explicit; it does not prove real market enumeration, provider access, runtime collection, advice eligibility or production availability.",
+          "mode_count": 5,
+          "production_covered_count": 0,
+          "provider_count": 3,
+          "runtime_provider_coverage_verified": false
+        },
+        "id": "S05P04-DASHBOARD-SCOPE",
+        "passed": true
+      },
+      {
+        "detail": "all authority hashes match",
+        "id": "S05P04-DASHBOARD-AUTHORITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed_statuses": [
+            "COVERED",
+            "PENDING_PARSE",
+            "NON_ADVISABLE",
+            "DEGRADED",
+            "UNKNOWN"
+          ],
+          "binary_float_allowed": false,
+          "exactly_once_rule": "EVERY_EXPECTED_COVERAGE_UNIT_HAS_EXACTLY_ONE_RECORD",
+          "gap_action_owner_required": true,
+          "gap_reason_required": true,
+          "gap_recovery_action_required": true,
+          "gap_statuses": [
+            "PENDING_PARSE",
+            "NON_ADVISABLE",
+            "DEGRADED",
+            "UNKNOWN"
+          ],
+          "silent_gap_definition": "A coverage unit required by the pinned provider-by-mode universe has no exactly-one valid dashboard record.",
+          "silent_gap_threshold": "0",
+          "unknown_or_malformed_action": "BLOCK_COVERAGE_AND_ADVICE"
+        },
+        "id": "S05P04-STATUS-CATALOG",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+            "mode": "PUBLIC_BROWSER",
+            "provider_id": "TAB"
+          },
+          {
+            "coverage_unit_id": "CAP-TAB-FILE_OR_STATIC_DATA",
+            "mode": "FILE_OR_STATIC_DATA",
+            "provider_id": "TAB"
+          },
+          {
+            "coverage_unit_id": "CAP-TAB-FREE_ENDPOINT",
+            "mode": "FREE_ENDPOINT",
+            "provider_id": "TAB"
+          },
+          {
+            "coverage_unit_id": "CAP-TAB-AUTHENTICATED_OBSERVER",
+            "mode": "AUTHENTICATED_OBSERVER",
+            "provider_id": "TAB"
+          },
+          {
+            "coverage_unit_id": "CAP-TAB-OWNER_DEVICE_OVERLAY",
+            "mode": "OWNER_DEVICE_OVERLAY",
+            "provider_id": "TAB"
+          },
+          {
+            "coverage_unit_id": "CAP-SPORTSBET-PUBLIC_BROWSER",
+            "mode": "PUBLIC_BROWSER",
+            "provider_id": "SPORTSBET"
+          },
+          {
+            "coverage_unit_id": "CAP-SPORTSBET-FILE_OR_STATIC_DATA",
+            "mode": "FILE_OR_STATIC_DATA",
+            "provider_id": "SPORTSBET"
+          },
+          {
+            "coverage_unit_id": "CAP-SPORTSBET-FREE_ENDPOINT",
+            "mode": "FREE_ENDPOINT",
+            "provider_id": "SPORTSBET"
+          },
+          {
+            "coverage_unit_id": "CAP-SPORTSBET-AUTHENTICATED_OBSERVER",
+            "mode": "AUTHENTICATED_OBSERVER",
+            "provider_id": "SPORTSBET"
+          },
+          {
+            "coverage_unit_id": "CAP-SPORTSBET-OWNER_DEVICE_OVERLAY",
+            "mode": "OWNER_DEVICE_OVERLAY",
+            "provider_id": "SPORTSBET"
+          },
+          {
+            "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-PUBLIC_BROWSER",
+            "mode": "PUBLIC_BROWSER",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER"
+          },
+          {
+            "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FILE_OR_STATIC_DATA",
+            "mode": "FILE_OR_STATIC_DATA",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER"
+          },
+          {
+            "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FREE_ENDPOINT",
+            "mode": "FREE_ENDPOINT",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER"
+          },
+          {
+            "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-AUTHENTICATED_OBSERVER",
+            "mode": "AUTHENTICATED_OBSERVER",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER"
+          },
+          {
+            "coverage_unit_id": "CAP-OTHER_OBSERVABLE_PROVIDER-OWNER_DEVICE_OVERLAY",
+            "mode": "OWNER_DEVICE_OVERLAY",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER"
+          }
+        ],
+        "id": "S05P04-EXPECTED-UNIVERSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": 15,
+          "expected": 15
+        },
+        "id": "S05P04-RECORD-DERIVATION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "EXPLICIT_GAPS_ONLY_NO_SILENT_GAPS",
+          "decision_sha256": "835e471f7b3677b45c2d6555d97d36c84f570c2dcd132e3b972d9f7c16d88123",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 0,
+          "findings": [],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "632ea3d90993a3a96dff6659039350d5913fc40afb45895bd3f2d5ce8e0384d5",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "PASS",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-ORACLE-POSITIVE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "all_explicit_gaps_have_action_owner": true,
+          "all_explicit_gaps_have_reason": true,
+          "all_explicit_gaps_have_recovery_action": true,
+          "covered_count": 0,
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "production_collection_enabled_count": 0,
+          "represented_unit_count": 15,
+          "runtime_verified_count": 0,
+          "silent_gap_count": 0,
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-SUMMARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "decision": "EXPLICIT_GAPS_ONLY_NO_SILENT_GAPS",
+          "external_action_performed": false,
+          "finding_count": 0,
+          "silent_gap_count": 0,
+          "status": "PASS"
+        },
+        "id": "S05P04-ORACLE-EXPECTATION",
+        "passed": true
+      },
+      {
+        "detail": "all 15 real units remain explicit gaps",
+        "id": "S05P04-ZERO-PRODUCTION-COVERAGE-HONEST",
+        "passed": true
+      },
+      {
+        "detail": [
+          "MONITOR_FRESHNESS_AND_REVALIDATE",
+          "VERIFY_SOURCE_SCHEMA_AND_PARSER",
+          "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT",
+          "OWNER_MAY_CONFIGURE_VISIBLE_OVERLAY",
+          "BIND_SOURCE_AND_VERIFY_PERMISSION",
+          "REBUILD_FROM_PINNED_INPUTS",
+          "QUARANTINE_UNDECLARED_UNIT"
+        ],
+        "id": "S05P04-RECOVERY-CATALOG",
+        "passed": true
+      },
+      {
+        "detail": "dashboard and fixture contain no binary float",
+        "id": "S05P04-NO-BINARY-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "all_observable_markets_enumerated_or_verified": false,
+          "financial_return_verified_or_guaranteed": false,
+          "production_coverage_verified": false,
+          "real_provider_access_or_permission_verified": false,
+          "recommendation_or_order_enabled": false,
+          "runtime_collection_or_freshness_verified": false,
+          "zero_silent_gaps_applies_only_to_pinned_provider_mode_contract_universe": true
+        },
+        "id": "S05P04-CLAIM-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "3f8745b75c5eeeea470b392e732eac4114a21a7b5e700ac819a6dae31cb29eb4",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 14,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FM-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "SILENT_GAP",
+              "reason_code": "EXPECTED_COVERAGE_UNIT_MISSING",
+              "recovery_action_id": "REBUILD_FROM_PINNED_INPUTS"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "f39ddbaa74075429160ce48e5e579d86a252d271b3f025dfd3cdf9283ca88545",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 14,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 1,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 3,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-MISSING-EXPECTED-RECORD",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "262359930ad1e0261fb2a1b2c70847bd92b7d7b870d95a7dfb024cb394dfeef5",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FR0015",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "DUPLICATE_COVERAGE_RECORD",
+              "recovery_action_id": "REBUILD_FROM_PINNED_INPUTS"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "3a4242cd7b193a28f8e84c9b016c88c0014bb400678c9a9c8c1c6f4c956a604f",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-DUPLICATE-RECORD",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "9e881773a8837bdd26161429a32deac1bb128dcb5b026e5cb41fbfc576b4afa0",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FQ-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "MISSING_OR_INVALID_REASON_CODE",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "166748b7704c3a9481a07158735ed11f72997d1d4ad0f008e6ec5b502f00f7e1",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-MISSING-REASON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "7d0475b0a721bad7f7473715619118b921833c3c2ceb6e377faad8c7eb228798",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FX-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "MISSING_OR_INVALID_RECOVERY_ACTION",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "c574b912a0524fa121027b317ad338bd45090ff6b8f051ba4bd38b403378868e",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-MISSING-RECOVERY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "d0a806e9b180a21010bea87b77f70cee0a72605e9a6502a86871ff725321ab3e",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FO-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "MISSING_OR_INVALID_ACTION_OWNER",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "744f98003ff299e08f3ff52bddb863d27146badaf59814d1d6b19abad735576e",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-MISSING-ACTION-OWNER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "b1fcee1937d3f7d583191eac1e29b8ca0f54dfb1bfd97ddcc5e916b34282e3da",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 14,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FS-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "UNKNOWN_COVERAGE_STATUS",
+              "recovery_action_id": "QUARANTINE_UNDECLARED_UNIT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "e736d375d5ada20b4d2e60504219025ed024f4237f3df1b0dc7dee853995297c",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 3,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-UNKNOWN-STATUS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "039bd93b9cfe1cc8937a1588f51957afe21aa3e1d2d24d7c25e1deb4c4272ddf",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FI-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "COVERAGE_UNIT_IDENTITY_MISMATCH",
+              "recovery_action_id": "REBUILD_FROM_PINNED_INPUTS"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "8a25faf2f3189d44948e69f6292bcf214e0b1622d23e7cb5c0c7e033cafe9eb2",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-IDENTITY-MISMATCH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "a09255dd4580e6658b41f5264a193771a8875113e9a8de904b74f36c6b1deaa8",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FV-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "ADVICE_ELIGIBILITY_NOT_FAIL_CLOSED",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "6f5d8587c6140ed6831fb29b8dc9c0ad78f2faebf4a8ddbed0f8fde480c7f009",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-ADVICE-ENABLED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "2a4d80d65d177ef5154e11f36ed53d35fe38ad4556ac2f795198d9567a3c08f2",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FH-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "5610666957533c7afa472862a71d8f18f88d78f492b6c6736f5e5f528c463bf0",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-PRODUCTION-COLLECTION-ENABLED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "ddf0bb78d9b06ed92b36b5db63952a33a34fb5ba2c00ac088f253b34114aa1be",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FH-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "0f922222e10db99fc3fb74e8083c810f8867550c1a3f95cc1864e3ba884be788",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-RUNTIME-VERIFIED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "e8524effd31e054f013b07b414daa68e40588dbc0746cfc7b2d7f8203b29fe1f",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FH-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "d3b0e0a0ea0cb345802f1145c26d272b3f395410a9152a551ed5caaebc40b20e",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-RATE-BUDGET-ENABLED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "4be1668dd1dba1a04fd26590466d8abd2820dafa71230ab87108ba2ebe1d3237",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FT-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "SOURCE_STATE_MISSING",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "a7bb1a39098ab2866d3808be79db3afb36062bb1311705ba260c00c647042ef6",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-MISSING-SOURCE-STATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "4465bd9fb48c2ccbb2848acce7ceb5c65b6fb117bb2ba0151e4ab760422d562f",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FC-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "SOURCE_REASON_CODES_MISSING",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "0697a52a6f6fd19d8320fe8dcecff901a04fc31686d0d09a96e4725abe5e7b92",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-EMPTY-SOURCE-REASONS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "00b9ec8ee2df7aaa6598abd77a63302cda5f48fe2761ac9194db7b00953cb263",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FF-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "SOURCE_FAILURE_ACTION_MISSING",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "cf4950a4ffd8183eb26a940cebd6c31e8fcededd6233506c4031613a1f90e627",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-MISSING-SOURCE-FAILURE-ACTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "67e653c3390ccbd3a1a40032880d84852c65b85f07a7200c5d80fb610e48bc2c",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FD-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "OBSERVATION_TIMESTAMP_INVALID",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "55c835cf81028b0d8d7cc94deb00ace90d57a4298f396f9b793d9dfea1038e37",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-NAIVE-OBSERVED-TIME",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "f07f81d10d48d839382c30220fa131b5e8d37e5681c019b2176e6f452b27d855",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 4,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-SPORTSBET-FREE_ENDPOINT",
+              "finding_id": "FX-CAP-SPORTSBET-FREE_ENDPOINT",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "MISSING_OR_INVALID_RECOVERY_ACTION",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            },
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-AUTHENTICATED_OBSERVER",
+              "finding_id": "FX-CAP-TAB-AUTHENTICATED_OBSERVER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "MISSING_OR_INVALID_RECOVERY_ACTION",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            },
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-FREE_ENDPOINT",
+              "finding_id": "FX-CAP-TAB-FREE_ENDPOINT",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "MISSING_OR_INVALID_RECOVERY_ACTION",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            },
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "CAP-TAB-PUBLIC_BROWSER",
+              "finding_id": "FX-CAP-TAB-PUBLIC_BROWSER",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "MISSING_OR_INVALID_RECOVERY_ACTION",
+              "recovery_action_id": "KEEP_MODE_DISABLED_AND_REVIEW_CONTRACT"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00+10:00",
+          "input_sha256": "c3ce23a546e476b15b15151076679ac5c59f5b16534e4d27d0dff67abedcc266",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-RECOVERY-CATALOG-MISSING-ACTION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_allowed": false,
+          "covered_count": 0,
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "decision_sha256": "4abb99ad7e8342495530f93d3192599bad8983e37731c91731f3d14e5c8f1e0b",
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "external_action_performed": false,
+          "finding_count": 1,
+          "findings": [
+            {
+              "advice_allowed": false,
+              "coverage_unit_id": "__DASHBOARD__",
+              "finding_id": "F0001",
+              "finding_type": "EXPLICIT_INVALIDITY",
+              "reason_code": "INVALID_FIXED_CLOCK",
+              "recovery_action_id": "REBUILD_FROM_PINNED_INPUTS"
+            }
+          ],
+          "fixed_clock": "2026-07-23T21:00:00",
+          "input_sha256": "9d9857db5830b872eab4463d4c0c8ee9b4e15f47cb60858b197a9f90c72dca58",
+          "oracle_id": "ABD-S05-P04-SILENT-GAP-ORACLE",
+          "represented_unit_count": 15,
+          "schema_version": "1.0.0",
+          "silent_gap_count": 0,
+          "status": "FAIL",
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05P04-MUTATION-INVALID-FIXED-CLOCK",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "expected_reason": "GAP_COUNT_NEGATIVE_OR_NONFINITE",
+            "expected_status": "FAIL",
+            "value": "-0.0001"
+          },
+          {
+            "expected_reason": "SILENT_GAP_COUNT_ZERO",
+            "expected_status": "PASS",
+            "value": "0"
+          },
+          {
+            "expected_reason": "SILENT_GAP_COUNT_NONZERO",
+            "expected_status": "FAIL",
+            "value": "0.0001"
+          }
+        ],
+        "id": "S05P04-BOUNDARY-VECTOR-SET",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "reason_code": "GAP_COUNT_NEGATIVE_OR_NONFINITE",
+          "silent_gap_count": "-0.0001",
+          "status": "FAIL"
+        },
+        "id": "S05P04-BOUNDARY-NEG0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "NO_SILENT_GAPS",
+          "reason_code": "SILENT_GAP_COUNT_ZERO",
+          "silent_gap_count": "0",
+          "status": "PASS"
+        },
+        "id": "S05P04-BOUNDARY-0",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "reason_code": "SILENT_GAP_COUNT_NONZERO",
+          "silent_gap_count": "0.0001",
+          "status": "FAIL"
+        },
+        "id": "S05P04-BOUNDARY-0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "applies": false,
+          "reason": "S05/P04 contains no odds, probability, price or recommendation calculation; the exact zero-gap boundary remains fail-closed."
+        },
+        "id": "S05P04-ADVERSE-ODDS-NOT-APPLICABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "reason_code": "GAP_COUNT_MUST_BE_DECIMAL_STRING",
+          "silent_gap_count": null,
+          "status": "FAIL"
+        },
+        "id": "S05P04-BOUNDARY-INVALID-01-BOOL",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "reason_code": "GAP_COUNT_MUST_BE_DECIMAL_STRING",
+          "silent_gap_count": null,
+          "status": "FAIL"
+        },
+        "id": "S05P04-BOUNDARY-INVALID-02-INT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "reason_code": "GAP_COUNT_MUST_BE_DECIMAL_STRING",
+          "silent_gap_count": null,
+          "status": "FAIL"
+        },
+        "id": "S05P04-BOUNDARY-INVALID-03-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "reason_code": "GAP_COUNT_MUST_BE_DECIMAL_STRING",
+          "silent_gap_count": null,
+          "status": "FAIL"
+        },
+        "id": "S05P04-BOUNDARY-INVALID-04-NONETYPE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "reason_code": "GAP_COUNT_NEGATIVE_OR_NONFINITE",
+          "silent_gap_count": "NaN",
+          "status": "FAIL"
+        },
+        "id": "S05P04-BOUNDARY-INVALID-05-STR",
+        "passed": true
+      },
+      {
+        "detail": {
+          "decision": "BLOCK_COVERAGE_AND_ADVICE",
+          "reason_code": "GAP_COUNT_NEGATIVE_OR_NONFINITE",
+          "silent_gap_count": "Infinity",
+          "status": "FAIL"
+        },
+        "id": "S05P04-BOUNDARY-INVALID-06-STR",
+        "passed": true
+      },
+      {
+        "detail": {
+          "first": "266ce8980b4a93d7233cf57eaee31d00dc5efee56ca3e8702084bb18c044f69d",
+          "second": "266ce8980b4a93d7233cf57eaee31d00dc5efee56ca3e8702084bb18c044f69d"
+        },
+        "id": "S05P04-DETERMINISTIC-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "actual_reasons": [
+              "EXPECTED_COVERAGE_UNIT_MISSING"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "EXPECTED_COVERAGE_UNIT_MISSING",
+            "id": "MISSING-EXPECTED-RECORD",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "DUPLICATE_COVERAGE_RECORD"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "DUPLICATE_COVERAGE_RECORD",
+            "id": "DUPLICATE-RECORD",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "MISSING_OR_INVALID_REASON_CODE"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "MISSING_OR_INVALID_REASON_CODE",
+            "id": "MISSING-REASON",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "MISSING_OR_INVALID_RECOVERY_ACTION"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "MISSING_OR_INVALID_RECOVERY_ACTION",
+            "id": "MISSING-RECOVERY",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "MISSING_OR_INVALID_ACTION_OWNER"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "MISSING_OR_INVALID_ACTION_OWNER",
+            "id": "MISSING-ACTION-OWNER",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "UNKNOWN_COVERAGE_STATUS"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "UNKNOWN_COVERAGE_STATUS",
+            "id": "UNKNOWN-STATUS",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "COVERAGE_UNIT_IDENTITY_MISMATCH"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "COVERAGE_UNIT_IDENTITY_MISMATCH",
+            "id": "IDENTITY-MISMATCH",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "ADVICE_ELIGIBILITY_NOT_FAIL_CLOSED"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "ADVICE_ELIGIBILITY_NOT_FAIL_CLOSED",
+            "id": "ADVICE-ENABLED",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+            "id": "PRODUCTION-COLLECTION-ENABLED",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+            "id": "RUNTIME-VERIFIED",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "GAP_RECORD_HAS_ACTIVE_RUNTIME_FLAG",
+            "id": "RATE-BUDGET-ENABLED",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "SOURCE_STATE_MISSING"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "SOURCE_STATE_MISSING",
+            "id": "MISSING-SOURCE-STATE",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "SOURCE_REASON_CODES_MISSING"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "SOURCE_REASON_CODES_MISSING",
+            "id": "EMPTY-SOURCE-REASONS",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "SOURCE_FAILURE_ACTION_MISSING"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "SOURCE_FAILURE_ACTION_MISSING",
+            "id": "MISSING-SOURCE-FAILURE-ACTION",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "OBSERVATION_TIMESTAMP_INVALID"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "OBSERVATION_TIMESTAMP_INVALID",
+            "id": "NAIVE-OBSERVED-TIME",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "MISSING_OR_INVALID_RECOVERY_ACTION",
+              "MISSING_OR_INVALID_RECOVERY_ACTION",
+              "MISSING_OR_INVALID_RECOVERY_ACTION",
+              "MISSING_OR_INVALID_RECOVERY_ACTION"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "MISSING_OR_INVALID_RECOVERY_ACTION",
+            "id": "RECOVERY-CATALOG-MISSING-ACTION",
+            "matched": true
+          },
+          {
+            "actual_reasons": [
+              "INVALID_FIXED_CLOCK"
+            ],
+            "decision": "BLOCK_COVERAGE_AND_ADVICE",
+            "expected_reason": "INVALID_FIXED_CLOCK",
+            "id": "INVALID-FIXED-CLOCK",
+            "matched": true
+          }
+        ],
+        "id": "S05P04-FAILURE-LOG-COMPLETE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "bankroll": "300.00",
+          "incremental_cash": "0.00",
+          "target_guaranteed": false
+        },
+        "id": "S05P04-GLOBAL-SAFETY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "external_network_accessed": false,
+          "financial_return_verified_or_guaranteed": false,
+          "gmail_account_or_api_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "model_or_strategy_executed": false,
+          "order_submitted_confirmed_or_retried": false,
+          "ovh_or_cloudflare_runtime_accessed": false,
+          "production_deployed_or_activated": false,
+          "provider_account_api_or_page_accessed": false,
+          "real_market_data_collected": false,
+          "real_provider_dispatch_performed": false,
+          "recommendation_generated_or_enabled": false,
+          "scheduler_daemon_started": false
+        },
+        "id": "S05P04-EXTERNAL-EFFECT-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": "coverage_dashboard.json",
+        "id": "S05P04-NO-SECRET-coverage_dashboard.json",
+        "passed": true
+      },
+      {
+        "detail": "coverage_dashboard.json",
+        "id": "S05P04-NO-LOCAL-PATH-coverage_dashboard.json",
+        "passed": true
+      },
+      {
+        "detail": "silent_gap_oracle.py",
+        "id": "S05P04-NO-SECRET-silent_gap_oracle.py",
+        "passed": true
+      },
+      {
+        "detail": "silent_gap_oracle.py",
+        "id": "S05P04-NO-LOCAL-PATH-silent_gap_oracle.py",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S05_P04.json",
+        "id": "S05P04-NO-SECRET-machine-tests-fixtures-S05_P04.json",
+        "passed": true
+      },
+      {
+        "detail": "machine/tests/fixtures/S05_P04.json",
+        "id": "S05P04-NO-LOCAL-PATH-machine-tests-fixtures-S05_P04.json",
+        "passed": true
+      },
+      {
+        "detail": "tests/S05/P04_test.py",
+        "id": "S05P04-NO-SECRET-tests-S05-P04_test.py",
+        "passed": true
+      },
+      {
+        "detail": "tests/S05/P04_test.py",
+        "id": "S05P04-NO-LOCAL-PATH-tests-S05-P04_test.py",
+        "passed": true
+      },
+      {
+        "detail": "abd_acceptance/coverage_observability.py",
+        "id": "S05P04-NO-SECRET-abd_acceptance-coverage_observability.py",
+        "passed": true
+      },
+      {
+        "detail": "abd_acceptance/coverage_observability.py",
+        "id": "S05P04-NO-LOCAL-PATH-abd_acceptance-coverage_observability.py",
+        "passed": true
+      },
+      {
+        "detail": "no S05 whole-stage review artifacts",
+        "id": "S05P04-STAGE-REVIEW-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_contract_id": "AC-S05-P04",
+            "expected_artifact": "machine/evidence/EVD-S05-P04.json",
+            "id": "INDEX-AC-S05-P04",
+            "kind": "ACCEPTANCE_EVIDENCE",
+            "next": "S05/P04_READY_NOT_STARTED",
+            "pass_gate": "静默缺口=0；每个缺口都有原因和恢复动作。",
+            "requirement_id": "REQ-S05-P04",
+            "status": "PLANNED"
+          }
+        ],
+        "id": "S05P04-INDEX-STATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 2,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 2
+        },
+        "id": "S05P04-P03-SIGNED-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "hostnames": [],
+          "skipped": 0,
+          "tests": 144,
+          "times": [
+            "0.000"
+          ],
+          "timestamps": [
+            "2026-07-19T00:00:00+10:00"
+          ]
+        },
+        "id": "S05P04-TARGETED-JUNIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "hostnames": [],
+          "skipped": 0,
+          "tests": 1652,
+          "times": [
+            "0.000"
+          ],
+          "timestamps": [
+            "2026-07-19T00:00:00+10:00"
+          ]
+        },
+        "id": "S05P04-AFFECTED-JUNIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "hostnames": [],
+          "skipped": 0,
+          "tests": 4495,
+          "times": [
+            "0.000"
+          ],
+          "timestamps": [
+            "2026-07-19T00:00:00+10:00"
+          ]
+        },
+        "id": "S05P04-FULL-JUNIT",
+        "passed": true
+      },
+      {
+        "detail": "validation_report.json",
+        "id": "S05P04-PACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S05P04-PACK-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S00/P03/paid_dependency_scan.txt",
+        "id": "S05P04-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S05-P04",
+    "decision": "COVERAGE_GAPS_EXPLICIT_ZERO_SILENT",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "model_or_strategy_executed": false,
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "provider_account_api_or_page_accessed": false,
+      "real_market_data_collected": false,
+      "real_provider_dispatch_performed": false,
+      "recommendation_generated_or_enabled": false,
+      "scheduler_daemon_started": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-23T21:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "cadence_tests.json": "f9afb627048ea10219545a04082ee2402a16deb549ea792aeced85d78c1aadbc",
+      "coverage_dashboard.json": "6cafc06b9979c37d774f126c84608b841bf3ea4d7d132643d294718d516d5744",
+      "coverage_manifest.schema.json": "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2",
+      "machine/evidence/EVD-S05-P03.json": "0ad9ae6a259f811c2587cd305b2996b42665c94f8ebc389b3e0ea3a24112e599",
+      "machine/evidence/EVD-S05-P03_rollback.json": "45560fa18fdef1783de8ef9af1b902b1c247eee18a7f57ed455ecb8ba71f32a8",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S05/P04/full_regression.xml": "52ba3e9584b2f0edf7de72458d2e14507116e75bb99bf2cdf83c56f3b47abe7b",
+      "machine/evidence/S05/P04/pytest.xml": "08a16ef79bb377697127c3e6b14c842ed2a0226825bd92199b25cd8348be875a",
+      "machine/evidence/S05/P04/signed_state_regression.xml": "9f9a5bb1025f42696f51e6ae2bea6c36dd55f9f750657897a6f7b7c628c0bc10",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S05_P04.json": "261f2546f0f8d4e411038beb1929ab9f3213f0f60f039931186f63574b8a1985",
+      "market_ontology.json": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe",
+      "provider_contracts.json": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+      "rate_budget.json": "7dc8db47146f38ab3e3b888d9e2757ac38ff53a3785fb2bd66580a4b0a970323",
+      "scheduler.py": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91",
+      "silent_gap_oracle.py": "e83fc758c42a1061259bcf9b556eb0f184fc27322d5b5f329b7187e1a0c2653d",
+      "source_capabilities.json": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+      "tests/S05/P04_test.py": "e579336018e71bb627c2c8f98b7c6e95fa3af7e0d3855bb8fa6cd899dbde579b"
+    },
+    "next": "S05/STAGE_REVIEW_READY_NOT_STARTED",
+    "pass_gate_interpretation": "ZERO_SILENT_GAPS_IN_THE_PINNED_PROVIDER_MODE_UNIVERSE;_ALL_15_CURRENT_REAL_CAPABILITIES_REMAIN_EXPLICIT_NON_PRODUCTION_GAPS_WITH_REASON_ACTION_AND_OWNER",
+    "phase_id": "P04",
+    "phase_status": "S05_P04_PASS",
+    "product_version": "0.0.0.1",
+    "production_coverage_status": "ZERO_OF_15_REAL_PROVIDER_MODE_UNITS_COVERED_ALL_15_EXPLICIT_GAPS",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "release_status": "NOT_READY_S05_WHOLE_STAGE_REVIEW_AND_GITHUB_UPLOAD_REQUIRED",
+    "requirement_id": "REQ-S05-P04",
+    "schema_version": "1.0.0",
+    "stage_id": "S05",
+    "status": "PASS",
+    "summary": {
+      "checks": 96,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 96
+    }
+  }
+}

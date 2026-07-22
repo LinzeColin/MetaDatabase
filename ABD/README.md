@@ -49,6 +49,8 @@
 - 当前 15/15 个真实来源能力全部为 `production_collection_enabled=false`、`runtime_verified=false`，这不是“来源永久不可用”，而是缺少来源特定的当前权限、许可证、身份、频率、Schema、时间与运行证据时不得采集。正向 Oracle 只使用冻结合成静态文件合同且不会执行外部动作；本 Phase 未访问 TAB、Sportsbet、Gmail、OVH、Cloudflare 或任何页面、账户/API，未观察真实市场、实现调度、生成建议、提交订单、部署或验证收益，下一状态只能是 `S05/P03_READY_NOT_STARTED`；
 - `S05/P03` 已实现纯函数式 `scheduler.py`、`cadence_tests.json` 与 `rate_budget.json`：五档刷新、报价与建议时效严格绑定 Canonical Facts，恰好 24 小时、2 小时和 15 分钟采用更紧的“不利分类”；每分钟重算距离，固定时钟偏差以整数微秒判定，正负恰好 2 秒通过、超过 2 秒失败关闭；报价必须同时具备可信来源时间、观察时间和内容哈希，并以两者中更老的时间计算有效年龄，超过建议时效即不得进入建议评估；
 - 当前 `S05/P03` 的 15/15 个真实来源频率预算仍为 0 且禁用，未从 P02 推断任何权限或运行能力。唯一正向计划使用冻结合成来源，指数退避无随机抖动且只生成下一到期时间，不执行网络、进程、采集、模型、建议、下单或部署；P04 静默缺口审计保持未启动，30% 月度目标仍未验证、不保证且不能放宽来源、时效、证据、数值、风险或安全门；
+- `S05/P04` 已建立 `coverage_dashboard.json` 与纯标准库 `silent_gap_oracle.py`：覆盖宇宙严格来自 P02 已签名的 3 个 provider × 5 种访问模式，共 15 个唯一能力单元；每个单元恰好一条记录，缺失、重复、身份错配、未知状态、缺少原因/恢复动作/Owner、伪造运行门或建议资格都会失败关闭。当前矩阵为 2 个待解析、4 个不可建议、2 个降级、7 个未知，15/15 均为显式缺口，静默缺口为 0；
+- 当前 `S05/P04` 的 PASS 只证明固定 provider-mode 合同宇宙内不存在被吞掉的缺口，并且每个显式缺口都有原因、恢复动作和 Owner；它不证明已枚举全部真实市场，不证明任何真实来源许可、账户、页面、API、运行采集、时效、生产覆盖或上线。生产覆盖仍为 0/15，所有真实能力与频率预算继续禁用，未访问网络/TAB/Sportsbet/Gmail/OVH/Cloudflare，未执行模型、生成建议、提交订单、部署或验证收益；下一状态只能是 `S05/STAGE_REVIEW_READY_NOT_STARTED`，须在下一独立 Run 完成整个 S05 复审和整改后才可统一上传 GitHub；
 - `S01/P01` 至 `S01/P04` 只冻结客户体验、疑问、需求、范围、指标、经济和证伪合同，不证明产品已实现、部署、接入账户或验证收益；四个中间 Phase 均未单独上传 GitHub；
 - `S00/P02` 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
 - `S00/P03` 只证明当前声明依赖的 ABD 新增现金成本为 A$0、付费接口不在关键路径；既有 OVH/账户总成本、外部能力与免费额度余量仍未知；
@@ -140,6 +142,22 @@ uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/ev
 uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/P03/full_regression.xml
 uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P03/full_regression.xml
 uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S05-P03 --evidence machine/evidence
+uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
+```
+
+当前 `S05/P04` 的验证与签署命令：
+
+```bash
+uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
+uv run --frozen --python 3.12 python machine/tools/validate_pack.py
+uv run --frozen --python 3.12 python silent_gap_oracle.py coverage_dashboard.json
+uv run --frozen --python 3.12 python -m pytest -q tests/S05/P04_test.py --junitxml=machine/evidence/S05/P04/pytest.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P04/pytest.xml
+uv run --frozen --python 3.12 python -m pytest -q tests/S03/P02_test.py tests/S03/P03_test.py tests/S03/P04_test.py tests/S03/stage_review_test.py tests/S04/stage_review_test.py tests/S05/P01_test.py tests/S05/P02_test.py tests/S05/P03_test.py tests/S05/P04_test.py --junitxml=machine/evidence/S05/P04/signed_state_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P04/signed_state_regression.xml
+uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/P04/full_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P04/full_regression.xml
+uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S05-P04 --evidence machine/evidence
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 

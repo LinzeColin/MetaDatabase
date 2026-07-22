@@ -61,7 +61,7 @@ EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 CLOUDFLARED_UNIT_PATH = Path("infra/systemd/abd-cloudflared.service")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "eb9e44369436a5cdbdc64d62f5fd57385f4e6d1e21fdc22f8b3148df21c4b0e8"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "b30e20e4ffa1ca0a115d4ee0afcfbc487e8adfd98fd83353cca33c94322d0fac"
 STAGE_REVIEW_COMMIT = "258e335ed01a40e6b6ae197bbb8b92398c73b64b"
 PINNED_STAGE_REVIEW_CODE_HASH = "e9b16505eec08cdffc69f21eddc3a9c2c7b9cb262116b406019da32e9d8e6458"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -72,10 +72,10 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "abd_acceptance/__init__.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
-    "README.md": "cdeb85233247f078f9b8d7380e182a6eb905bde133ac05246231a559c2cbe8ef",
-    "tests/S04/stage_review_test.py": "eeb679801de3c73049cd64859bc3e46a31aae0954e6bde02674bffded1731206",
-    "abd_acceptance/__main__.py": "6f1d82c21751c665a8b33b93178fc98db8a7545a095141c9c63811be1871d2f9",
-    "abd_acceptance/__init__.py": "dd43b55546ecbb245bc4b97a201563454f20766666bbaf37a3741f89375e594b",
+    "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
+    "tests/S04/stage_review_test.py": "c0ffce73ea7fda1771db9634e3883902b12a7c473adb06f5ec882acffa8c8686",
+    "abd_acceptance/__main__.py": "e29a648fcb0582c2139593cf0d42670893580d30879412664a5605c3772f93cc",
+    "abd_acceptance/__init__.py": "969cc5d7d8c8e187b9bfd6679b7b51a47607ceeee703ddcc71be747957636f8e",
 }
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
     CONTRACT_PATH.as_posix(): "fecee345c17c94623a8a86629efe6f885da61e69b102c8c56362382d339d3c3b",
@@ -783,12 +783,25 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
         Path("machine/evidence/EVD-S05-P03.json"),
         Path("machine/evidence/EVD-S05-P03_rollback.json"),
     ]
+    p04_candidate_paths = [
+        Path("coverage_dashboard.json"),
+        Path("silent_gap_oracle.py"),
+        Path("machine/tests/fixtures/S05_P04.json"),
+        Path("tests/S05/P04_test.py"),
+        Path("abd_acceptance/coverage_observability.py"),
+    ]
+    p04_signed_paths = [
+        Path("machine/evidence/EVD-S05-P04.json"),
+        Path("machine/evidence/EVD-S05-P04_rollback.json"),
+    ]
     p01_candidate_present = [path.as_posix() for path in p01_candidate_paths if (root / path).exists()]
     p01_signed_present = [path.as_posix() for path in p01_signed_paths if (root / path).exists()]
     p02_candidate_present = [path.as_posix() for path in p02_candidate_paths if (root / path).exists()]
     p02_signed_present = [path.as_posix() for path in p02_signed_paths if (root / path).exists()]
     p03_candidate_present = [path.as_posix() for path in p03_candidate_paths if (root / path).exists()]
     p03_signed_present = [path.as_posix() for path in p03_signed_paths if (root / path).exists()]
+    p04_candidate_present = [path.as_posix() for path in p04_candidate_paths if (root / path).exists()]
+    p04_signed_present = [path.as_posix() for path in p04_signed_paths if (root / path).exists()]
     by_contract = {str(row.get("acceptance_contract_id")): row for row in s05_rows}
     p01 = by_contract.get("AC-S05-P01", {})
     p02 = by_contract.get("AC-S05-P02", {})
@@ -801,7 +814,6 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
     base_ok = (
         len(s05_rows) == 4
         and set(by_contract) == {"AC-S05-P01", "AC-S05-P02", "AC-S05-P03", "AC-S05-P04"}
-        and planned(p04)
         and contract.get("next_on_pass") == "S04/GITHUB_STAGE_UPLOAD_READY"
     )
     successors: Dict[str, Any] = {}
@@ -812,9 +824,14 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
     p02_signed_complete = len(p02_signed_present) == len(p02_signed_paths)
     p03_candidate_complete = len(p03_candidate_present) == len(p03_candidate_paths)
     p03_signed_complete = len(p03_signed_present) == len(p03_signed_paths)
+    p04_candidate_complete = len(p04_candidate_present) == len(p04_candidate_paths)
+    p04_signed_complete = len(p04_signed_present) == len(p04_signed_paths)
     p01_index_signed = p01.get("status") == "PASS" and p01.get("actual_artifact") == "machine/evidence/EVD-S05-P01.json" and isinstance(p01.get("artifact_sha256"), str)
     p02_index_signed = p02.get("status") == "PASS" and p02.get("actual_artifact") == "machine/evidence/EVD-S05-P02.json" and isinstance(p02.get("artifact_sha256"), str)
     p03_index_signed = p03.get("status") == "PASS" and p03.get("actual_artifact") == "machine/evidence/EVD-S05-P03.json" and isinstance(p03.get("artifact_sha256"), str)
+    p04_index_signed = p04.get("status") == "PASS" and p04.get("actual_artifact") == "machine/evidence/EVD-S05-P04.json" and isinstance(p04.get("artifact_sha256"), str)
+    p04_not_started = not p04_candidate_present and not p04_signed_present and planned(p04)
+    verify_history = (root.parent / ".git").exists()
 
     def validate_p01_candidate() -> Dict[str, Any]:
         from .market_ontology import validate_candidate_preflight
@@ -824,7 +841,7 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
     def validate_p01_signed() -> Dict[str, Any]:
         from .market_ontology import validate_signed_receipt_preflight
 
-        return validate_signed_receipt_preflight(root)
+        return validate_signed_receipt_preflight(root, verify_git_history=verify_history)
 
     def validate_p02_candidate() -> Dict[str, Any]:
         from .source_capabilities import validate_candidate_preflight
@@ -834,7 +851,7 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
     def validate_p02_signed() -> Dict[str, Any]:
         from .source_capabilities import validate_signed_receipt_preflight
 
-        return validate_signed_receipt_preflight(root)
+        return validate_signed_receipt_preflight(root, verify_git_history=verify_history)
 
     def validate_p03_candidate() -> Dict[str, Any]:
         from .source_scheduler import validate_candidate_preflight
@@ -844,12 +861,22 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
     def validate_p03_signed() -> Dict[str, Any]:
         from .source_scheduler import validate_signed_receipt_preflight
 
+        return validate_signed_receipt_preflight(root, verify_git_history=verify_history)
+
+    def validate_p04_candidate() -> Dict[str, Any]:
+        from .coverage_observability import validate_candidate_preflight
+
+        return validate_candidate_preflight(root)
+
+    def validate_p04_signed() -> Dict[str, Any]:
+        from .coverage_observability import validate_signed_receipt_preflight
+
         return validate_signed_receipt_preflight(root)
 
-    if not p01_candidate_present and not p01_signed_present and not p02_candidate_present and not p02_signed_present and not p03_candidate_present and not p03_signed_present and planned(p01) and planned(p02) and planned(p03):
+    if not p01_candidate_present and not p01_signed_present and not p02_candidate_present and not p02_signed_present and not p03_candidate_present and not p03_signed_present and planned(p01) and planned(p02) and planned(p03) and p04_not_started:
         progression_ok = base_ok
         mode = "S05_NOT_STARTED" if progression_ok else mode
-    elif p01_candidate_complete and not p01_signed_present and not p02_candidate_present and not p02_signed_present and not p03_candidate_present and not p03_signed_present and planned(p01) and planned(p02) and planned(p03):
+    elif p01_candidate_complete and not p01_signed_present and not p02_candidate_present and not p02_signed_present and not p03_candidate_present and not p03_signed_present and planned(p01) and planned(p02) and planned(p03) and p04_not_started:
         try:
             successors["p01"] = validate_p01_candidate()
             progression_ok = base_ok and successors["p01"].get("status") == "PASS" and successors["p01"].get("next") == "S05/P02_READY_NOT_STARTED"
@@ -857,7 +884,7 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
         except Exception as exc:
             progression_ok = False
             successors["p01"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
-    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and not p02_candidate_present and not p02_signed_present and not p03_candidate_present and not p03_signed_present and planned(p02) and planned(p03):
+    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and not p02_candidate_present and not p02_signed_present and not p03_candidate_present and not p03_signed_present and planned(p02) and planned(p03) and p04_not_started:
         try:
             successors["p01"] = validate_p01_signed()
             progression_ok = base_ok and successors["p01"].get("status") == "PASS" and successors["p01"].get("next") == "S05/P02_READY_NOT_STARTED"
@@ -865,7 +892,7 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
         except Exception as exc:
             progression_ok = False
             successors["p01"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
-    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and p02_candidate_complete and not p02_signed_present and not p03_candidate_present and not p03_signed_present and planned(p02) and planned(p03):
+    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and p02_candidate_complete and not p02_signed_present and not p03_candidate_present and not p03_signed_present and planned(p02) and planned(p03) and p04_not_started:
         try:
             successors["p01"] = validate_p01_signed()
             successors["p02"] = validate_p02_candidate()
@@ -874,7 +901,7 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
         except Exception as exc:
             progression_ok = False
             successors["p02"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
-    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and p02_candidate_complete and p02_signed_complete and p02_index_signed and not p03_candidate_present and not p03_signed_present and planned(p03):
+    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and p02_candidate_complete and p02_signed_complete and p02_index_signed and not p03_candidate_present and not p03_signed_present and planned(p03) and p04_not_started:
         try:
             successors["p01"] = validate_p01_signed()
             successors["p02"] = validate_p02_signed()
@@ -883,7 +910,7 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
         except Exception as exc:
             progression_ok = False
             successors["p02"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
-    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and p02_candidate_complete and p02_signed_complete and p02_index_signed and p03_candidate_complete and not p03_signed_present and planned(p03):
+    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and p02_candidate_complete and p02_signed_complete and p02_index_signed and p03_candidate_complete and not p03_signed_present and planned(p03) and p04_not_started:
         try:
             successors["p01"] = validate_p01_signed()
             successors["p02"] = validate_p02_signed()
@@ -893,7 +920,7 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
         except Exception as exc:
             progression_ok = False
             successors["p03"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
-    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and p02_candidate_complete and p02_signed_complete and p02_index_signed and p03_candidate_complete and p03_signed_complete and p03_index_signed:
+    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and p02_candidate_complete and p02_signed_complete and p02_index_signed and p03_candidate_complete and p03_signed_complete and p03_index_signed and p04_not_started:
         try:
             successors["p01"] = validate_p01_signed()
             successors["p02"] = validate_p02_signed()
@@ -903,6 +930,28 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
         except Exception as exc:
             progression_ok = False
             successors["p03"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
+    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and p02_candidate_complete and p02_signed_complete and p02_index_signed and p03_candidate_complete and p03_signed_complete and p03_index_signed and p04_candidate_complete and not p04_signed_present and planned(p04):
+        try:
+            successors["p01"] = validate_p01_signed()
+            successors["p02"] = validate_p02_signed()
+            successors["p03"] = validate_p03_signed()
+            successors["p04"] = validate_p04_candidate()
+            progression_ok = base_ok and all(successors[key].get("status") == "PASS" for key in ("p01", "p02", "p03", "p04")) and successors["p04"].get("next") == "S05/STAGE_REVIEW_READY_NOT_STARTED"
+            mode = "VERIFIED_S05_P04_CANDIDATE" if progression_ok else "INVALID_S05_P04_CANDIDATE"
+        except Exception as exc:
+            progression_ok = False
+            successors["p04"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
+    elif p01_candidate_complete and p01_signed_complete and p01_index_signed and p02_candidate_complete and p02_signed_complete and p02_index_signed and p03_candidate_complete and p03_signed_complete and p03_index_signed and p04_candidate_complete and p04_signed_complete and p04_index_signed:
+        try:
+            successors["p01"] = validate_p01_signed()
+            successors["p02"] = validate_p02_signed()
+            successors["p03"] = validate_p03_signed()
+            successors["p04"] = validate_p04_signed()
+            progression_ok = base_ok and all(successors[key].get("status") == "PASS" for key in ("p01", "p02", "p03", "p04")) and successors["p04"].get("next") == "S05/STAGE_REVIEW_READY_NOT_STARTED"
+            mode = "VERIFIED_S05_P04_SIGNED" if progression_ok else "INVALID_S05_P04_SIGNED"
+        except Exception as exc:
+            progression_ok = False
+            successors["p04"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
     else:
         progression_ok = False
     _add(
@@ -918,6 +967,8 @@ def _check_safety_and_progression(root: Path, contract: Mapping[str, Any], check
             "p02_signed_present": p02_signed_present,
             "p03_candidate_present": p03_candidate_present,
             "p03_signed_present": p03_signed_present,
+            "p04_candidate_present": p04_candidate_present,
+            "p04_signed_present": p04_signed_present,
             "successor_summaries": {key: value.get("summary", value) if isinstance(value, Mapping) else value for key, value in successors.items()},
         },
     )

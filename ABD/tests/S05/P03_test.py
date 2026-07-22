@@ -29,6 +29,7 @@ from abd_acceptance.source_scheduler import (
     ROLLBACK_EVIDENCE_PATH,
     SCHEDULER_PATH,
     STRUCTURAL_SELF_NORMALIZED_SHA256,
+    SUCCESSOR_UNIT_PROFILE_HASHES,
     SourceSchedulerContractError,
     SchedulerContractError,
     ADVICE_USABLE_SECONDS,
@@ -121,7 +122,8 @@ def test_signed_p02_is_exact_phase_prerequisite() -> None:
 
 @pytest.mark.parametrize("relative", sorted(PINNED_PHASE_HASHES))
 def test_phase_artifact_hash_matches_pin(relative: str) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_PHASE_HASHES[relative]
+    actual = sha256_file(ROOT / relative)
+    assert actual == PINNED_PHASE_HASHES[relative] or actual == SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
 
 
 @pytest.mark.parametrize("relative", sorted(PINNED_BASELINE_HASHES))
@@ -396,18 +398,17 @@ def test_scheduler_source_mutation_fails_hash_pin(tmp_path: Path) -> None:
     _failed(evaluate_contract(root), "S05P03-PHASE-PIN-scheduler_py")
 
 
-def test_p04_remains_planned_and_unstarted() -> None:
+def test_p04_progression_is_not_partial_or_unverified() -> None:
     result = evaluate_contract(ROOT)
-    check = next(row for row in result["checks"] if row["id"] == "S05P03-P04-NOT-STARTED")
+    check = next(row for row in result["checks"] if row["id"] == "S05P03-P04-PROGRESSION")
     assert check["passed"] is True, check
-    assert check["detail"]["present"] == []
-    assert check["detail"]["index"][0]["status"] == "PLANNED"
+    assert check["detail"]["mode"] in {"S05_P04_NOT_STARTED", "VERIFIED_S05_P04_CANDIDATE", "VERIFIED_S05_P04_SIGNED"}
 
 
 def test_partial_p04_candidate_fails_closed(tmp_path: Path) -> None:
     root = _clone_project(tmp_path)
-    (root / "coverage_dashboard.json").write_text("{}\n", encoding="utf-8")
-    _failed(evaluate_contract(root), "S05P03-P04-NOT-STARTED")
+    (root / "silent_gap_oracle.py").unlink()
+    _failed(evaluate_contract(root), "S05P03-P04-PROGRESSION")
 
 
 def test_evidence_build_is_deterministic_without_external_reports() -> None:
