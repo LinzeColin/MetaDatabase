@@ -463,12 +463,15 @@ def _render_source_catalog(
 
 def _render_cloudflare_candidate_catalog(registry: Mapping[str, Any]) -> list[str]:
     task_id = str(registry.get("task_id") or "")
+    task_ids = [str(value) for value in _as_sequence(registry.get("task_ids")) if str(value)]
     implementation_path = str(registry.get("implementation_path") or "")
     verification_path = str(registry.get("verification_path") or "")
     live = _mapping(registry.get("live_route"))
     candidates = _sequence_of_mappings(registry.get("candidate_routes"))
     diagnostics = _sequence_of_mappings(registry.get("diagnostic_routes"))
+    pubmed_routes = _sequence_of_mappings(registry.get("pubmed_routes"))
     budget = _mapping(registry.get("subrequest_budget"))
+    pubmed_budget = _mapping(registry.get("pubmed_subrequest_budget"))
     required = {
         "task_id": task_id,
         "implementation_path": implementation_path,
@@ -486,7 +489,7 @@ def _render_cloudflare_candidate_catalog(registry: Mapping[str, Any]) -> list[st
         "",
         "## Cloudflare v1.2 来源救援补充面",
         "",
-        f"本节由 [`{CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH}`](../../{CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH}) 生成，属于当前 Cloudflare 产品线，不改变上方旧本机 `owner_controls.yaml` 目录。任务为 `{task_id}`；真实 live 路由仍由 [Worker registry](../../deploy/cloudflare/worker_cloud.js) 决定。",
+        f"本节由 [`{CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH}`](../../{CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH}) 生成，属于当前 Cloudflare 产品线，不改变上方旧本机 `owner_controls.yaml` 目录。登记任务为 `{', '.join(task_ids) if task_ids else task_id}`；真实 live 路由仍由 [Worker registry](../../deploy/cloudflare/worker_cloud.js) 决定。",
         "",
         "| 来源 ID | 板块 | 提供方 | 状态 | 重试/活动边界 |",
         "|---|---|---|---|---|",
@@ -610,6 +613,153 @@ def _render_cloudflare_candidate_catalog(registry: Mapping[str, Any]) -> list[st
                     f"重新评估的最小条件：{diagnostic.get('minimum_next_condition')}",
                 ]
             )
+    if pubmed_routes:
+        lines.extend(
+            [
+                "",
+                "### S3 Science Advances / PubMed 候选面",
+                "",
+                "| 任务 | 候选来源 | 现有 live 路由 | 期刊身份 | 请求边界 | 状态 |",
+                "|---|---|---|---|---|---|",
+            ]
+        )
+        for route in pubmed_routes:
+            identity = _mapping(route.get("journal_identity"))
+            request_identity = _mapping(route.get("request_identity"))
+            policy = _mapping(route.get("request_policy"))
+            route_required = {
+                "task_id": str(route.get("task_id") or ""),
+                "source_id": str(route.get("source_id") or ""),
+                "live_source_id": str(route.get("live_source_id") or ""),
+                "board_id": str(route.get("board_id") or ""),
+                "provider": str(route.get("provider") or ""),
+                "state": str(route.get("state") or ""),
+                "query": str(route.get("query") or ""),
+                "nlm_unique_id": str(identity.get("nlm_unique_id") or ""),
+                "electronic_issn": str(identity.get("electronic_issn") or ""),
+                "official_evidence": str(identity.get("official_evidence") or ""),
+                "tool": str(request_identity.get("tool") or ""),
+                "email_source": str(request_identity.get("email_source") or ""),
+                "max_ids": str(policy.get("max_ids") or ""),
+                "max_external_subrequests": str(policy.get("max_external_subrequests") or ""),
+                "min_request_start_interval_ms": str(policy.get("min_request_start_interval_ms") or ""),
+                "implementation_path": str(route.get("implementation_path") or ""),
+                "verification_path": str(route.get("verification_path") or ""),
+                "run_contract_path": str(route.get("run_contract_path") or ""),
+            }
+            route_missing = [name for name, value in route_required.items() if not value]
+            if route_missing:
+                raise OwnerControlsError(
+                    "Cloudflare PubMed candidate route missing required fields: "
+                    + ", ".join(route_missing)
+                )
+            if route.get("task_id") not in task_ids:
+                raise OwnerControlsError("Cloudflare PubMed candidate task must be registered in task_ids")
+            if (
+                route.get("state") != "candidate_not_live"
+                or route.get("live") is not False
+                or route.get("write_allowed") is not False
+                or route.get("live_change_authorized") is not False
+            ):
+                raise OwnerControlsError(
+                    "Cloudflare PubMed candidate must remain non-live, read-only and unauthorized"
+                )
+            if request_identity.get("api_key_used") is not False:
+                raise OwnerControlsError("Cloudflare PubMed candidate must not use an API key")
+            expected_policy = {
+                "max_ids": 20,
+                "max_window_days": 7,
+                "max_external_subrequests": 2,
+                "min_request_start_interval_ms": 1000,
+                "timeout_ms": 15000,
+                "redirect": "manual_fail_closed",
+                "pagination": False,
+                "history_or_epost": False,
+                "bulk_download": False,
+            }
+            policy_drift = {
+                name: {"expected": expected, "actual": policy.get(name)}
+                for name, expected in expected_policy.items()
+                if policy.get(name) != expected
+            }
+            if policy_drift:
+                raise OwnerControlsError(
+                    "Cloudflare PubMed candidate request policy drift: "
+                    + json.dumps(policy_drift, ensure_ascii=False, sort_keys=True)
+                )
+            lines.append(
+                f"| `{route.get('task_id')}` | `{route.get('source_id')}` / `{route.get('board_id')}` / "
+                f"{route.get('provider')} | `{route.get('live_source_id')}` RSS 保持不变 "
+                f"| [NLM `{identity.get('nlm_unique_id')}` / ISSN `{identity.get('electronic_issn')}`]({identity.get('official_evidence')}) "
+                f"| PMID≤{policy.get('max_ids')}；最多 {policy.get('max_external_subrequests')} 请求；"
+                f"起始间隔≥{policy.get('min_request_start_interval_ms')}ms；`tool={request_identity.get('tool')}`；无 key/bulk "
+                f"| `{route.get('state')}`；不接 Worker、不部署 |"
+            )
+            lines.extend(
+                [
+                    "",
+                    f"S3 证据入口为 [候选实现](../../{route.get('implementation_path')}) / "
+                    f"[可执行验证](../../{route.get('verification_path')}) / "
+                    f"[Run Contract](../../{route.get('run_contract_path')})。联系邮箱从 "
+                    f"`{request_identity.get('email_source')}` 取得；参数存在不等于已完成 NCBI 注册。",
+                ]
+            )
+
+        pubmed_budget_required = (
+            "current_live_max",
+            "current_science_advances_rss_max",
+            "pubmed_candidate_max",
+            "pubmed_candidate_net_increment_max",
+            "s1_google_candidate_net_increment_max",
+            "projected_max_with_s1_and_s3",
+            "cloudflare_workers_free_limit",
+            "projected_headroom_with_s1_and_s3",
+        )
+        pubmed_budget_missing = [
+            name for name in pubmed_budget_required if pubmed_budget.get(name) is None
+        ]
+        if pubmed_budget_missing:
+            raise OwnerControlsError(
+                "Cloudflare PubMed candidate budget missing required fields: "
+                + ", ".join(pubmed_budget_missing)
+            )
+        current_live = pubmed_budget.get("current_live_max")
+        current_science = pubmed_budget.get("current_science_advances_rss_max")
+        candidate_max = pubmed_budget.get("pubmed_candidate_max")
+        pubmed_increment = pubmed_budget.get("pubmed_candidate_net_increment_max")
+        google_increment = pubmed_budget.get("s1_google_candidate_net_increment_max")
+        projected = pubmed_budget.get("projected_max_with_s1_and_s3")
+        free_limit = pubmed_budget.get("cloudflare_workers_free_limit")
+        headroom = pubmed_budget.get("projected_headroom_with_s1_and_s3")
+        numeric_values = (
+            current_live,
+            current_science,
+            candidate_max,
+            pubmed_increment,
+            google_increment,
+            projected,
+            free_limit,
+            headroom,
+        )
+        if any(type(value) is not int or value < 0 for value in numeric_values):
+            raise OwnerControlsError("Cloudflare PubMed candidate budget must use non-negative integers")
+        if (
+            candidate_max - current_science != pubmed_increment
+            or current_live + pubmed_increment + google_increment != projected
+            or free_limit - projected != headroom
+            or projected > free_limit
+        ):
+            raise OwnerControlsError("Cloudflare PubMed candidate budget arithmetic is inconsistent")
+        lines.extend(
+            [
+                "",
+                "当前 live external 上界仍为 "
+                f"`{pubmed_budget.get('current_live_max')}`。未来若分别获合同授权替换 Google/Bing "
+                f"与 Science Advances RSS，两候选合并投影为 "
+                f"`{pubmed_budget.get('projected_max_with_s1_and_s3')}/{pubmed_budget.get('cloudflare_workers_free_limit')}`，"
+                f"保留 {pubmed_budget.get('projected_headroom_with_s1_and_s3')} 次余量；本轮没有发生替换。",
+            ]
+        )
     return lines
 
 

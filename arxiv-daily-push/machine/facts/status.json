@@ -1,13 +1,13 @@
 {
   "version": "0.41.0（目标 1.2.0）",
-  "stage": "S3",
-  "phase": "Science Advances 公共文献接入合同锁定（下一轮）",
-  "task": "ADP-V12-S3-T001",
-  "real_progress": "S0 6/6、S1 5/5、S2 3/3 均由独立 verifier 裁定 PASS；10 个有界任务完成 3 个，S3 尚未运行",
-  "report_grade": "S2 developer_check PASS；P0/P1/UNKNOWN/BLOCKED 均为 0；S3 未运行（NOT_RUN）",
-  "business_verdict": "当前线上仍为 0.41.0；v1.2 尚未部署；国家统计诊断保持失败时降级且不改适配器，Worker、来源启停与定时配置未改",
-  "evidence_status": "S2_ACCEPTED_S3_NOT_RUN",
-  "rendered_at": "2026-07-22",
+  "stage": "S4.1",
+  "phase": "中文人话版 fail-closed Run Contract 待创建",
+  "task": "ADP-V12-S4-T001",
+  "real_progress": "S0 6/6、S1 5/5、S2 3/3、S3 3/3 均由独立 verifier 裁定 PASS；10 个有界任务完成 4 个；S4.1 尚未创建 Run Contract，保持 NOT_RUN",
+  "report_grade": "S3 冻结 Git Subject 经全新上下文独立复审 3/3 PASS，P0/P1/UNKNOWN/BLOCKED/豁免均为 0；S4.1 未运行",
+  "business_verdict": "当前线上仍为 0.41.0；v1.2 尚未部署；Science Advances PubMed 候选路径已完成开发验收但未接 live，Worker、现有订阅源、来源启停、定时配置与存储均未改",
+  "evidence_status": "S3_ACCEPTED_S4_NOT_RUN",
+  "rendered_at": "2026-07-23",
   "canonical_taskpack": "docs/pursuing_goal/v1_2",
-  "previous_task_receipt": "machine/runs/ADP-V12-S2-T001-developer-check.json"
+  "previous_task_receipt": "machine/runs/ADP-V12-S3-T001-developer-check.json"
 }

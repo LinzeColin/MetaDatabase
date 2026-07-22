@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE eSearchResult PUBLIC "-//NLM//DTD esearch 20060628//EN" "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20060628/esearch.dtd">
+<eSearchResult>
+  <Count>2</Count>
+  <RetMax>2</RetMax>
+  <RetStart>0</RetStart>
+  <IdList>
+    <Id>99000001</Id>
+    <Id>99000002</Id>
+  </IdList>
+  <TranslationSet/>
+  <QueryTranslation>"Science Advances"[Journal] AND 2024/01/10:2024/01/12[Date - Publication]</QueryTranslation>
+</eSearchResult>

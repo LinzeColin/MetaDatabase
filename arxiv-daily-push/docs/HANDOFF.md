@@ -1,4 +1,4 @@
-# ADP canonical HANDOFF — 2026-07-22
+# ADP canonical HANDOFF — 2026-07-23
 
 本文件是 ADP 迁入 MetaDatabase 后的**唯一当前交接入口**。先读本文件，再按任务路由到
 被点名的最小文件集；不要把 V0.1、V0.3、V7.2 或旧 CodexProject 根级文档各自解释成
@@ -28,21 +28,24 @@
   `2026-07-22T10:36:47.591Z` 得到 `SUCCESS/15`。
   edge 在零 adapter 变更下自行恢复，因此决定仍是 `degraded_preserved` / `NO_ADAPTER_FIX`；
   前者只表示保留失败时降级行为，不是当前瞬时健康断言。Worker、cron、来源启停和部署均未改。
-- 当前唯一下一任务是 `ADP-V12-S3-T001`（Science Advances PubMed E-utilities adapter）；
-  S3 仍为 `NOT_RUN`，Run Contract 尚未创建，必须在下一轮先独立锁定后才能实现。
+- `ADP-V12-S3-T001` 已在首轮 XML/实体边界修复后通过 fresh-context 整阶段复审，
+  `ACC-V12-S3-001..003 = 3/3 PASS`，`P0/P1/UNKNOWN/BLOCKED/waiver = 0`；公开 receipt 位于
+  [`PHASE_ADP_V12_S3_SCIENCE_ADVANCES_PUBMED.md`](phase_records/PHASE_ADP_V12_S3_SCIENCE_ADVANCES_PUBMED.md)。
+- 当前唯一下一任务是 `ADP-V12-S4-T001`（中文人话版 fail-closed 闭合）；它仍为 `NOT_RUN`，
+  Run Contract 尚未创建。必须先锁定独立合同，不得把 S3 验收外推为 S4、部署或 live 授权。
 - S1 候选实现位于 [`google_news_candidate.mjs`](../deploy/cloudflare/google_news_candidate.mjs)：
   `gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`，live
   `gnews-us-tech` 仍是 Bing News RSS；机器登记见
   [`cloudflare_source_candidates_v1_2.json`](../config/cloudflare_source_candidates_v1_2.json)。
   当前单次 scheduled invocation 的 external 上界为 `32`，以后获授权替换时投影
-  `34/50`；S1 没有接线或部署。
+  `34/50`；S3 PubMed 候选未来若也另获授权替换现有 Science.org RSS，合并投影 `35/50`；
+  当前两者均没有接线或部署。
 - S0 已以相对 source base、merge 双亲和 Worker 精确路径的零差异证明无 runtime/live 变化；
   后续仍不得用状态文字替代真实 diff 或 live 复查。
 - Owner 的晚到决策已定案：3 个 dormant Cloudflare 资源均删除；继续救援剩余来源；
   不迁 OVH/Coolify；不修 V0.1 `TASK_INDEX.csv` 的死状态列。
-- S0 通过后下一条开发线是来源救援；优先做 Google News 重试/退避的本地实现与负控，
-  再诊断 stats-gov，最后实现 science-advances 的 PubMed 解析层。每条另开 Run Contract，
-  前九个任务只做到对应合同边界；最终部署仅在 v1.2 全部门禁 PASS 后自动执行。
+- S1–S3 来源救援开发线已按独立 Run Contract 完成 candidate-only 验收；下一条开发线是
+  S4.1 中文人话内容。前九个任务仍只做到对应合同边界；最终部署仅在 v1.2 全部门禁 PASS 后自动执行。
 
 ## 1. 合同路由与优先级
 
@@ -78,8 +81,8 @@ secret、恢复旧源目录、弱化 fail-closed 测试，或把历史 artifact 
 | 事项 | Owner 决策 | 当前执行状态 |
 |---|---|---|
 | dormant Cloudflare 资源 | 删除 | `adp-mirror` legacy Worker、`adp-origin` DNS、`adp` Tunnel 均已删除并复核；不得重建 |
-| 剩余来源救援 | 继续投入 | Google 候选 S1 与 stats-gov 诊断 S2 均已独立验收通过；下一任务是 Science Advances/PubMed S3 |
-| science-advances | 走 PubMed 解析层 | 待独立 Run Contract；先做本地 adapter/fixture/负控，不直接上线 |
+| 剩余来源救援 | 继续投入 | Google 候选 S1、stats-gov 诊断 S2、Science Advances/PubMed S3 均已完成 candidate-only 独立验收；未切 live |
+| science-advances | 走 PubMed 解析层 | S3 已 3/3 PASS；候选仍未接 Worker、现有来源、cron、存储或部署 |
 | stats-gov | 继续诊断 | S2 已 3/3 PASS；历史 edge timeout 点样无 raw，最新本地/edge 均为 `SUCCESS/15` 且由事实 receipt 绑定 hash；保持失败时降级语义与 `NO_ADAPTER_FIX`，未来满足最小重开条件才另立合同 |
 | Google News | 加重试/退避后评估回切 | S1 5/5 PASS；仍为 candidate_not_live，历史采样是间歇 503，不是“被墙” |
 | OVH VPS / Coolify | 不迁 | Cloudflare 免费档保持 canonical live 面 |
@@ -213,17 +216,39 @@ hash 绑定、canonical renderer fail-closed 校验与 Owner 同步。fresh veri
 `711d324114d5fa0659954abe5ce31909eed7aa55596d656f948afabb91e2b36d`。这只关闭 S2，不签署
 S3–S6，也不授权部署。
 
-## 8. v1.2 第三个产品 Run Contract（S3 下一轮待创建）
+## 8. v1.2 第三个产品 Run Contract（S3 已关闭）
 
-**下一任务**：`ADP-V12-S3-T001`，通过 PubMed E-utilities 为 Science Advances 建立本地、
+**活动任务**：`ADP-V12-S3-T001`，通过 PubMed E-utilities 为 Science Advances 建立本地、
 可注入、失败关闭的 ESearch→EFetch 解析层，保留 PMID/DOI provenance，并证明期刊/日期过滤、
 去重、坏 XML、空搜索、限流与 HTTP error 边界。
 
-**当前状态**：`NOT_RUN`。任务包尚无 S3 Run Contract；下一轮必须先按 `TASK_GRAPH.yaml` 与
-`ACCEPTANCE_CONTRACT.yaml` 锁定一个任务的合同。不得在合同前修改 adapter，不得复用 S2 授权，
-不得引入 API key、付费服务、bulk download、live 接线或部署。
+**已锁合同**：[`RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md`](pursuing_goal/v1_2/RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md)
+固定 NLM ID `101653440`、电子 ISSN `2375-2548`、最多 20 PMID/2 请求、请求起始间隔至少
+1000ms、无 API key/bulk、零写入。候选 `science-advances-pubmed-candidate` 保持
+`candidate_not_live`；现有 `science-advances` RSS、Worker、cron 和 live `0.41.0` 不变。
 
-## 9. 永久提醒
+**整阶段复审**：首轮 fresh verifier 对旧 Subject `3cd2138c` 裁定 `FAIL / ACTION ACT`：
+XML 1.0 非法 literal 字符未失败关闭，未声明命名实体边界为 `UNKNOWN`。实现随后增加严格
+XML 1.0 code point 校验，仅按大小写精确接受五个预定义实体，并补对应正负控。fresh r2 对
+冻结 commit `7e5ab5ae3152844e8d073bc2e0074d8bf0f5a8f7` / tree
+`dab9106886077a549b5b424a098943430e6e8b91` 独立复跑后裁定 `3/3 PASS`；
+P0/P1/UNKNOWN/BLOCKED/waiver 均为零，evidence root 为
+`08fb4185df9c9c7a497673ca0c1299cb313c9aa0672c824202d616acf5bf6fbb`。
+
+**诚实回归边界**：full suite 原始结果为 `962 tests / 2 failures / 11 errors / 29 skips`；
+与 sealed baseline 的失败/错误测试名集合精确一致，`candidate_only=[]`、
+`baseline_only=[]`。这只关闭 S3 candidate 开发验收，不签署接入、部署、S4–S6 或生产验收。
+
+## 9. v1.2 下一任务（S4.1 NOT_RUN）
+
+**下一任务**：`ADP-V12-S4-T001`，关闭真实英文论文的中文人话结构与无可靠翻译时的诚实
+fail-closed 回退，对应 `ACC-V12-S4-001..002`。
+
+**当前状态**：`NOT_RUN`，Run Contract 尚未创建。下一线程必须先从 Task Graph 与 Acceptance
+Contract 锁定唯一 S4.1 合同，再收集真实用户旅程与破坏负控；不得复用 S3 receipt 预签内容、
+UI、模型、版本、运维或部署。
+
+## 10. 永久提醒
 
 - 主树只读，开发使用 `GithubProject/_scratch` worktree；谁开的谁收。
 - 不使用 `git gc --prune=now`。

@@ -27,7 +27,7 @@
 
 ## Cloudflare v1.2 来源救援补充面
 
-本节由 [`config/cloudflare_source_candidates_v1_2.json`](../../config/cloudflare_source_candidates_v1_2.json) 生成，属于当前 Cloudflare 产品线，不改变上方旧本机 `owner_controls.yaml` 目录。任务为 `ADP-V12-S1-T001`；真实 live 路由仍由 [Worker registry](../../deploy/cloudflare/worker_cloud.js) 决定。
+本节由 [`config/cloudflare_source_candidates_v1_2.json`](../../config/cloudflare_source_candidates_v1_2.json) 生成，属于当前 Cloudflare 产品线，不改变上方旧本机 `owner_controls.yaml` 目录。登记任务为 `ADP-V12-S1-T001, ADP-V12-S2-T001, ADP-V12-S3-T001`；真实 live 路由仍由 [Worker registry](../../deploy/cloudflare/worker_cloud.js) 决定。
 
 | 来源 ID | 板块 | 提供方 | 状态 | 重试/活动边界 |
 |---|---|---|---|---|
@@ -47,3 +47,13 @@
 该诊断每次只发 1 个只读外部请求，`write_allowed=false`、`live_change_authorized=false`。证据入口为 [诊断实现](../../deploy/cloudflare/stats_gov_diagnostic.mjs) / [可执行验证](../../tools/verify_stats_gov_diagnostic.mjs) / [Run Contract](../../docs/pursuing_goal/v1_2/RUN_CONTRACT_02_STATS_GOV_DIAGNOSIS.md) / [事实型 receipt](../../machine/runs/ADP-V12-S2-T001-diagnosis.json)（SHA-256 `093a10ec7c33a126c5998b2515d7658fb3b7a4ee800e691d899f31d473c4ae2f`；不自签验收）。
 
 重新评估的最小条件：当前 control 已自行恢复 SUCCESS，本轮无需 adapter 修复。只有未来再次出现可复核的重复 EDGE_TIMEOUT，且获授权的隔离 matched control/candidate 在相同 URL、parser 与成本下证明候选至少两次 HTTP 2xx 且 parsed_count>0、同时 control 仍超时，才另开 Run Contract 评估最小 adapter 变更。
+
+### S3 Science Advances / PubMed 候选面
+
+| 任务 | 候选来源 | 现有 live 路由 | 期刊身份 | 请求边界 | 状态 |
+|---|---|---|---|---|---|
+| `ADP-V12-S3-T001` | `science-advances-pubmed-candidate` / `board2` / NCBI PubMed E-utilities | `science-advances` RSS 保持不变 | [NLM `101653440` / ISSN `2375-2548`](https://www.ncbi.nlm.nih.gov/nlmcatalog/101653440) | PMID≤20；最多 2 请求；起始间隔≥1000ms；`tool=adp_cloud`；无 key/bulk | `candidate_not_live`；不接 Worker、不部署 |
+
+S3 证据入口为 [候选实现](../../deploy/cloudflare/science_advances_pubmed_candidate.mjs) / [可执行验证](../../tools/verify_science_advances_pubmed_candidate.mjs) / [Run Contract](../../docs/pursuing_goal/v1_2/RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md)。联系邮箱从 `config/owner_controls.yaml#email.recipients[0]` 取得；参数存在不等于已完成 NCBI 注册。
+
+当前 live external 上界仍为 `32`。未来若分别获合同授权替换 Google/Bing 与 Science Advances RSS，两候选合并投影为 `35/50`，保留 15 次余量；本轮没有发生替换。
