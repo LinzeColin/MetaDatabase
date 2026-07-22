@@ -50,6 +50,7 @@ tasks:
     stage: S2
     title: stats-gov 可观测诊断与证据支持的最小修复
     dependencies: [ADP-V12-S1-T001]
+    run_contract: RUN_CONTRACT_02_STATS_GOV_DIAGNOSIS.md
     acceptance_ids:
       - ACC-V12-S2-001
       - ACC-V12-S2-002

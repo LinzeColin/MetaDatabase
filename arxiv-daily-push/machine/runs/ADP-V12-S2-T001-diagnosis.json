@@ -1,0 +1,94 @@
+{
+  "schema_version": "adp-v12-stats-gov-diagnosis-receipt-v1",
+  "task_id": "ADP-V12-S2-T001",
+  "source_id": "stats-gov",
+  "board_id": "board3",
+  "decision_scope": "DIAGNOSTIC_FACTS_ONLY_NOT_ACCEPTANCE",
+  "generated_at": "2026-07-22T20:46:59+10:00",
+  "state": "degraded_preserved",
+  "state_semantics": "保留既有失败时降级行为与来源启停状态；不是对当前瞬时可达性的断言。",
+  "decision": "NO_ADAPTER_FIX",
+  "acceptance_claimed": false,
+  "observations": [
+    {
+      "observation_id": "builder-official-direct-a1",
+      "path": "official_direct",
+      "observed_at": "2026-07-22T10:07:03.487Z",
+      "classification": "SUCCESS",
+      "http_status": 200,
+      "parsed_count": 15,
+      "external_subrequests": 1,
+      "read_only": true,
+      "verification_status": "STALE_UNVERIFIED_RAW_UNAVAILABLE",
+      "raw_evidence": {
+        "storage": "NOT_RETAINED",
+        "sha256": null
+      },
+      "inference_boundary": "历史点样；原始 receipt 未保留，不用于最新事实或永久可达性结论。"
+    },
+    {
+      "observation_id": "builder-edge-canary-timeout-a1",
+      "path": "cloudflare_edge_existing_canary",
+      "observed_at": "2026-07-22T10:07:12Z",
+      "observation_time_basis": "request_started_at",
+      "classification": "EDGE_TIMEOUT",
+      "http_status": null,
+      "parsed_count": 0,
+      "external_subrequests": 1,
+      "read_only": true,
+      "verification_status": "STALE_UNVERIFIED_RAW_UNAVAILABLE",
+      "raw_evidence": {
+        "storage": "NOT_RETAINED",
+        "sha256": null
+      },
+      "inference_boundary": "历史点样；原始 receipt 未保留且时间仅绑定请求开始，不用于最新事实或永久不可达性结论。"
+    },
+    {
+      "observation_id": "fresh-verifier-official-direct-a1",
+      "path": "official_direct",
+      "observed_at": "2026-07-22T10:36:12.687Z",
+      "classification": "SUCCESS",
+      "http_status": 200,
+      "parsed_count": 15,
+      "external_subrequests": 1,
+      "read_only": true,
+      "verification_status": "VERIFIED_LOCAL_RAW_HASH",
+      "raw_evidence": {
+        "storage": "OWNER_LOCAL_NOT_COMMITTED",
+        "sha256": "0f20ac48d65d0e09d7251745027f2a862fcf97134760618ee15d73f22f2d566b"
+      },
+      "items_sha256": "00329a09a0d59130371cfa87ffcff087f673525421dcf3ea7603ba0ec96bc336",
+      "inference_boundary": "单次只读点样；不建立永久可达性。"
+    },
+    {
+      "observation_id": "fresh-verifier-edge-canary-a1",
+      "path": "cloudflare_edge_existing_canary",
+      "observed_at": "2026-07-22T10:36:47.591Z",
+      "classification": "SUCCESS",
+      "http_status": null,
+      "parsed_count": 15,
+      "external_subrequests": 1,
+      "read_only": true,
+      "verification_status": "VERIFIED_LOCAL_RAW_HASH",
+      "raw_evidence": {
+        "storage": "OWNER_LOCAL_NOT_COMMITTED",
+        "sha256": "01b8cd73943b36729ab8c06b8cfa2e39e0c9e80f1b180d297067684a929934f2"
+      },
+      "derived_evidence_sha256": "bc79a1be1e88f9be5798fb83065254cea1386d73202c4456da03540170a8c9c0",
+      "inference_boundary": "单次只读 edge 点样；证明 control 曾自行恢复，不建立永久可达性。"
+    }
+  ],
+  "latest_official_observation_id": "fresh-verifier-official-direct-a1",
+  "latest_edge_observation_id": "fresh-verifier-edge-canary-a1",
+  "decision_basis": "同一 edge control 先出现未保留原始证据的 EDGE_TIMEOUT，随后在零 adapter 变更下恢复 SUCCESS/15；没有证据证明 timeout、retry、header 或其他 adapter 改动会带来因果改善，因此不提交修复。",
+  "minimum_next_condition": "当前 control 已自行恢复 SUCCESS，本轮无需 adapter 修复。只有未来再次出现可复核的重复 EDGE_TIMEOUT，且获授权的隔离 matched control/candidate 在相同 URL、parser 与成本下证明候选至少两次 HTTP 2xx 且 parsed_count>0、同时 control 仍超时，才另开 Run Contract 评估最小 adapter 变更。",
+  "runtime_boundary": {
+    "worker_changed": false,
+    "wrangler_changed": false,
+    "cron_count": 3,
+    "source_enablement_changed": false,
+    "write_allowed": false,
+    "deployment_performed": false,
+    "paid_or_bypass_dependency_added": false
+  }
+}

@@ -1,11 +1,11 @@
 {
-  "stage": "S2",
-  "phase": "stats-gov 可观测诊断合同锁定（下一轮）",
-  "task": "ADP-V12-S2-T001",
+  "stage": "S3",
+  "phase": "Science Advances 公共文献接入合同锁定（下一轮）",
+  "task": "ADP-V12-S3-T001",
   "owner": "下一 ADP 开发线程；独立 verifier 负责裁决",
   "taskpack": "docs/pursuing_goal/v1_2",
   "run_contract": null,
-  "run_contract_status": "NOT_CREATED；下一轮必须先按 TASK_GRAPH.yaml 与 ACCEPTANCE_CONTRACT.yaml 锁定独立 S2 Run Contract，之后才可实现",
-  "previous_task_receipt": "machine/runs/ADP-V12-S1-T001-developer-check.json",
-  "next_task_after_pass": "ADP-V12-S3-T001"
+  "run_contract_status": "NOT_CREATED；下一轮必须先按 TASK_GRAPH.yaml 与 ACCEPTANCE_CONTRACT.yaml 锁定独立 S3 Run Contract，之后才可实现",
+  "previous_task_receipt": "machine/runs/ADP-V12-S2-T001-developer-check.json",
+  "next_task_after_pass": "ADP-V12-S4-T001"
 }
