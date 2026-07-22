@@ -1,0 +1,71 @@
+{
+  "kind": "云端 12.0h 烤机",
+  "started_at": "2026-07-21T06:49:23.762771+00:00",
+  "cycles": 8575,
+  "heartbeat_gaps": 0,
+  "induced_notify_flaps": 1715,
+  "notify_retries_recovered": 1715,
+  "outbox_backlog_end": 0,
+  "emails_delivered": 8575,
+  "notify_latency_ms_p95": 12.41,
+  "mem_peak_growth_kb": 2881.7,
+  "mem_curve": [
+    {
+      "cycle": 720,
+      "elapsed_min": 60.4,
+      "peak_growth_kb": 1032.1
+    },
+    {
+      "cycle": 1440,
+      "elapsed_min": 120.8,
+      "peak_growth_kb": 1200.8
+    },
+    {
+      "cycle": 2160,
+      "elapsed_min": 181.3,
+      "peak_growth_kb": 1376.5
+    },
+    {
+      "cycle": 2880,
+      "elapsed_min": 241.7,
+      "peak_growth_kb": 1540.0
+    },
+    {
+      "cycle": 3600,
+      "elapsed_min": 302.2,
+      "peak_growth_kb": 1707.1
+    },
+    {
+      "cycle": 4320,
+      "elapsed_min": 362.6,
+      "peak_growth_kb": 1876.9
+    },
+    {
+      "cycle": 5040,
+      "elapsed_min": 423.1,
+      "peak_growth_kb": 2045.1
+    },
+    {
+      "cycle": 5760,
+      "elapsed_min": 483.5,
+      "peak_growth_kb": 2209.3
+    },
+    {
+      "cycle": 6480,
+      "elapsed_min": 544.0,
+      "peak_growth_kb": 2375.9
+    },
+    {
+      "cycle": 7200,
+      "elapsed_min": 604.5,
+      "peak_growth_kb": 2544.2
+    },
+    {
+      "cycle": 7920,
+      "elapsed_min": 664.9,
+      "peak_growth_kb": 2716.8
+    }
+  ],
+  "kill_switch_engaged": false,
+  "verdict_engineering_ok": true
+}

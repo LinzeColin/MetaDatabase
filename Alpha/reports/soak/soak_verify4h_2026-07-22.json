@@ -1,0 +1,31 @@
+{
+  "kind": "云端 4.0h 烤机",
+  "started_at": "2026-07-21T21:46:09.374287+00:00",
+  "cycles": 2849,
+  "heartbeat_gaps": 0,
+  "induced_notify_flaps": 569,
+  "notify_retries_recovered": 569,
+  "outbox_backlog_end": 0,
+  "emails_delivered": 2849,
+  "notify_latency_ms_p95": 10.46,
+  "mem_peak_growth_kb": 956.0,
+  "mem_curve": [
+    {
+      "cycle": 720,
+      "elapsed_min": 60.3,
+      "peak_growth_kb": 881.2
+    },
+    {
+      "cycle": 1440,
+      "elapsed_min": 121.8,
+      "peak_growth_kb": 905.1
+    },
+    {
+      "cycle": 2160,
+      "elapsed_min": 182.2,
+      "peak_growth_kb": 928.2
+    }
+  ],
+  "kill_switch_engaged": false,
+  "verdict_engineering_ok": true
+}
