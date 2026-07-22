@@ -76,6 +76,9 @@
     "scripts/taobao_selected_chaos_worker.py",
     "scripts/run_adapters_009_acceptance.py",
     "scripts/verify_adapters_009.py",
+    "scripts/relation_reconciliation_chaos_worker.py",
+    "scripts/run_adapters_005_acceptance.py",
+    "scripts/verify_adapters_005.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

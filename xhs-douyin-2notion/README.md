@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 3` 已完成 `PH.X2N.3.1–3.8` 中的 `TSK.x2n.adapters.001–004/006–009`；下一独立 Run 为 `adapters.005`。Stage 2 九个 Skeleton 与独立 Review 已通过 PR #78 合并，旧 G2 Evidence 不改写。A009 在未证明淘宝个人收藏列表接口的边界下，只接受 Owner 明确提供的最多 20 个 `num_iid`，并为未来独立获授权的 `taobao.item.get` 最小字段净化结果建立 Owner-confirmed `saved_current`、Retention/授权/预算/配额门禁、RFC `Retry-After` 保持窗和 50 次 Kill 恢复合同。能力仍仅为 CI-SYNTH；真实应用权限、OAuth、价格/配额、保留期/删除流程、transport、Profile/Canary、账号/平台、Notion、媒体与模型均未运行，生产 Feature Flag 关闭且平台请求为 0。`G3=NOT_RUN`，Stage 3 整体上传禁止；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 3` 的九个 Adapter Task 已在各自 CI-SYNTH 范围完成；下一独立 Run 只能是 `STG.X2N.3.REVIEW`。A005 新增持久化关系对账：只有证据图完整、扫描 ID 不同且时间严格递增的小红书收藏/点赞完整扫描可进入 `active -> unknown -> tombstone_candidate`；抖音及 Bilibili/Kuaishou/Weibo/Taobao 的受限选择合同不得冒充 full scan。五类非权威结果关系写入 0，removed/物理删除/Content 自动删除均为 0。Owner Alpha 80 条仅有非执行工具，真实 Profile、私有 Manifest、平台、Notion、媒体与模型均未运行。`G3=NOT_RUN`，Stage 3 整体上传禁止；旧 Evidence 不改写，共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,25 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 3 / Adapters 009 验证
+## Stage 3 / Adapters 005 验证
+
+```bash
+PYTHONPATH=apps/companion/src:packages/contracts/src \
+  .venv/bin/python -B scripts/run_adapters_005_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters005-final
+.venv/bin/python -B scripts/verify_adapters_005.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters005-final/software-lane.json --require-evidence
+```
+
+对账状态存在 SQLite `run_record + checkpoint`，不新增 Schema。完整扫描必须精确绑定 succeeded source Run、complete checkpoint、`authoritative_visible_end`、confidence 1.0、receipt、Relation 与 Observation；空响应、bounded scan、重复或旧 source scan 均 Fail Closed。两次独立完整缺失扫描只把 10 条关系推进到 `tombstone_candidate`，不会写 `removed` 或删除 Content/Relation。
+
+80 条合成输入连续两轮与 100 个并发重复消息通过，重复 Content/Relation/Artifact/Markdown/Notion Page 均为 0；五类非权威结果 no-write，50 次真实子进程 Kill 后 partial write/checkpoint advance 为 0。Owner Alpha 固定 20+20+20+20 计划为 `NOT_RUN`，公开计划不含 relation key，平台调用 0。
+
+最终 256 个 root tests（253 PASS、3 个固定可选 skip）、221 个 Companion tests、12 个 Contract tests 通过；full lane 两轮 24/24，coverage 79.61%、33 个依赖漏洞 0、78-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传未运行。
+
+## Stage 3 / Adapters 009 历史验证
 
 ```bash
 PYTHONPATH=apps/companion/src:packages/contracts/src \

@@ -30,6 +30,7 @@ from .profile_session import (
     native_host_registered,
     safe_reference_configured,
 )
+from .relation_reconciliation import build_owner_alpha_80_manifest_plan
 from .runtime import PROFILE_PLATFORMS, RuntimePaths, X2NRuntimeError
 from .taobao_selected import build_taobao_canary_plan
 from .weibo_selected import build_weibo_canary_plan
@@ -48,6 +49,7 @@ BILIBILI_TASK_ID = "TSK.x2n.adapters.006"
 KUAISHOU_TASK_ID = "TSK.x2n.adapters.007"
 WEIBO_TASK_ID = "TSK.x2n.adapters.008"
 TAOBAO_TASK_ID = "TSK.x2n.adapters.009"
+RECONCILIATION_TASK_ID = "TSK.x2n.adapters.005"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
@@ -122,6 +124,15 @@ def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if args.action == "reconcile":
+        if args.reconcile_action != "owner-alpha-plan":
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown reconciliation action")
+        return _success(
+            "reconciliation_owner_alpha_plan",
+            acceptance_scope="ADAPTERS_005_OWNER_ALPHA_TOOLING",
+            task_id=RECONCILIATION_TASK_ID,
+            plan=build_owner_alpha_80_manifest_plan(args.items),
+        )
     if args.action == "taobao":
         if args.taobao_action != "canary-plan":
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Taobao action")
@@ -281,6 +292,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="x2n private Canonical Store operations")
     subparsers = parser.add_subparsers(dest="action", required=True)
     subparsers.add_parser("doctor")
+    reconcile = subparsers.add_parser("reconcile")
+    reconcile_actions = reconcile.add_subparsers(dest="reconcile_action", required=True)
+    owner_alpha_plan = reconcile_actions.add_parser("owner-alpha-plan")
+    owner_alpha_plan.add_argument("--items", type=int, default=80)
     bilibili = subparsers.add_parser("bilibili")
     bilibili_actions = bilibili.add_subparsers(dest="bilibili_action", required=True)
     bilibili_canary_plan = bilibili_actions.add_parser("canary-plan")
@@ -349,6 +364,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     task_id = (
         MEDIA_TASK_ID
         if args.action == "verify"
+        else RECONCILIATION_TASK_ID
+        if args.action == "reconcile"
         else TAOBAO_TASK_ID
         if args.action == "taobao"
         else WEIBO_TASK_ID

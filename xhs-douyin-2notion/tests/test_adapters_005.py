@@ -10,8 +10,8 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
-    "verify_adapters_009",
-    PROJECT_ROOT / "scripts/verify_adapters_009.py",
+    "verify_adapters_005",
+    PROJECT_ROOT / "scripts/verify_adapters_005.py",
 )
 assert SPEC and SPEC.loader
 VERIFY = importlib.util.module_from_spec(SPEC)
@@ -19,7 +19,7 @@ sys.modules[SPEC.name] = VERIFY
 SPEC.loader.exec_module(VERIFY)
 
 
-class Adapters009VerifierTests(unittest.TestCase):
+class Adapters005VerifierTests(unittest.TestCase):
     def test_static_task_checks_pass(self) -> None:
         checks = VERIFY.run_checks(
             verify_worktree=False,
@@ -28,14 +28,14 @@ class Adapters009VerifierTests(unittest.TestCase):
         )
         self.assertEqual([item.status for item in checks], ["PASS"] * len(checks))
 
-    def test_run_is_exactly_one_pinned_historical_task(self) -> None:
-        self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.adapters.009")
-        self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S03-A009")
-        self.assertEqual(VERIFY.PHASE, "PH.X2N.3.8")
-        self.assertEqual(VERIFY.TASK_BASE_COMMIT, "a0f4a34675d4b2b8b02c9195976a787d2fbf9c59")
-        self.assertEqual(VERIFY.FINAL_COMMIT, "8c6442a251f73e645e292a4e77dd03448d153b64")
+    def test_run_is_exactly_one_unpinned_task(self) -> None:
+        self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.adapters.005")
+        self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S03-A005")
+        self.assertEqual(VERIFY.PHASE, "PH.X2N.3.9")
+        self.assertEqual(VERIFY.TASK_BASE_COMMIT, "8c6442a251f73e645e292a4e77dd03448d153b64")
+        self.assertFalse(hasattr(VERIFY, "FINAL_COMMIT"))
         rendered = "\n".join(sorted(VERIFY.ALLOWED_CHANGED_EXACT | set(VERIFY.ALLOWED_CHANGED_PREFIXES)))
-        self.assertIn("taobao_selected", rendered)
+        self.assertIn("relation_reconciliation", rendered)
         self.assertNotIn("migrations.py", rendered)
         self.assertNotIn("apps/extension/src/", rendered)
 
@@ -46,44 +46,36 @@ class Adapters009VerifierTests(unittest.TestCase):
             VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, VERIFY.PREVIOUS.EVIDENCE),
         )
         for path in VERIFY.UNCHANGED_SECURITY_SURFACES:
-            self.assertEqual(
-                VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, path),
-                VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path),
-            )
+            self.assertEqual(path.read_bytes(), VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path))
 
-    def test_policy_keeps_transport_budget_scope_and_retention_disabled(self) -> None:
-        policy = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.POLICY)
-        self.assertFalse(policy["feature_gate"]["production_enabled"])
-        self.assertFalse(policy["feature_gate"]["platform_requests"])
-        self.assertEqual(policy["official_capability"]["documented_endpoint"], "taobao.item.get")
-        self.assertEqual(
-            policy["official_capability"]["personal_favorites_list_endpoint"],
-            "not_verified_unknown_disabled",
-        )
-        self.assertEqual(policy["official_capability"]["minimum_requested_fields"], ["num_iid", "title"])
-        self.assertEqual(policy["budget_and_quota"]["owner_approved_budget_units"], 0)
-        self.assertFalse(policy["transport"]["network_client"])
-        self.assertFalse(policy["transport"]["browser_mtop_cookie_signing"])
-        self.assertFalse(policy["transport"]["signature_reverse_engineering"])
-        retention = policy["retention_gate"]
-        self.assertFalse(retention["retention_period_approved"])
-        self.assertFalse(retention["user_delete_and_revoke_flow_ready"])
-        self.assertFalse(retention["deletion_receipt_ready"])
+    def test_policy_only_allows_proven_xhs_full_scans(self) -> None:
+        policy = VERIFY._load_json(VERIFY.POLICY)
+        sources = policy["authoritative_sources"]
+        self.assertTrue(sources["xhs_favorites"]["full_scan_permitted"])
+        self.assertTrue(sources["xhs_likes"]["full_scan_permitted"])
+        for source in (
+            "douyin_upstream",
+            "bilibili_selected_collection",
+            "kuaishou_selected_collection",
+            "weibo_selected_collection",
+            "taobao_selected_collection",
+        ):
+            self.assertFalse(sources[source]["full_scan_permitted"])
+        self.assertFalse(policy["full_scan_proof"]["empty_scan_permitted"])
+        self.assertTrue(policy["full_scan_proof"]["distinct_source_run_required"])
+        self.assertFalse(policy["state_machine"]["automatic_removed_transition"])
+        self.assertFalse(policy["scope"]["physical_delete"])
 
-    def test_fixture_is_public_synthetic_minimum_field_and_owner_saved_current(self) -> None:
-        fixture = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.FIXTURE)
+    def test_fixture_covers_state_idempotency_and_kill_without_private_data(self) -> None:
+        fixture = VERIFY._load_json(VERIFY.FIXTURE)
         self.assertTrue(fixture["synthetic"])
-        self.assertEqual(len(fixture["cases"]), 70)
-        self.assertEqual(len(set(fixture["cases"])), 70)
-        self.assertEqual(fixture["source_contract"]["minimum_sanitized_fields"], ["num_iid", "title"])
-        mapping = fixture["mapping"]
-        self.assertEqual(mapping["selected_manifest_items"], 20)
-        self.assertEqual(mapping["expected_identified_percent"], 100)
-        self.assertEqual(mapping["expected_saved_current_relations"], 20)
-        self.assertEqual(mapping["expected_owner_confirmed_relations"], 20)
-        self.assertEqual(mapping["expected_favorited_relations"], 0)
-        self.assertEqual(mapping["expected_liked_relations"], 0)
-        self.assertEqual(fixture["undocumented_signing_rejection"]["expected_rejections"], 11)
+        self.assertEqual(len(fixture["cases"]), 40)
+        self.assertEqual(len(set(fixture["cases"])), 40)
+        self.assertEqual(fixture["state_machine"]["expected_candidates_after_second_complete_missing_scan"], 10)
+        self.assertEqual(fixture["idempotency"]["input_items"], 80)
+        self.assertEqual(fixture["idempotency"]["concurrent_duplicate_messages"], 100)
+        self.assertEqual(fixture["chaos"]["kill_runs"], 50)
+        self.assertEqual(fixture["owner_alpha_tooling"]["execution"], "NOT_RUN")
         for field in (
             "contains_accounts",
             "contains_cookies",
@@ -94,13 +86,25 @@ class Adapters009VerifierTests(unittest.TestCase):
         ):
             self.assertFalse(fixture[field])
 
+    def test_implementation_has_no_delete_or_network_client(self) -> None:
+        source = VERIFY.COMPANION_SOURCE.read_text(encoding="utf-8")
+        self.assertIn("RelationStatus.TOMBSTONE_CANDIDATE", source)
+        self.assertIn("last_source_checkpoint_at", source)
+        self.assertNotIn("DELETE FROM user_relation", source)
+        self.assertNotIn("DELETE FROM content", source)
+        self.assertNotIn("requests.", source)
+        self.assertNotIn("httpx.", source)
+
     def test_full_lane_report_is_independently_fail_closed(self) -> None:
-        gates = VERIFY.PREVIOUS.PREVIOUS.PREVIOUS.PREVIOUS.PREVIOUS.PREVIOUS.PREVIOUS.FULL_LANE_GATES
+        module = VERIFY
+        while not hasattr(module, "FULL_LANE_GATES"):
+            module = module.PREVIOUS
+        gates = module.FULL_LANE_GATES
         report = {
             "artifact_deterministic": True,
             "artifact_report": {
                 "allowlist_findings": 0,
-                "member_count": 84,
+                "member_count": 89,
                 "runtime_data_files": 0,
                 "status": "PASS",
             },
@@ -135,7 +139,7 @@ class Adapters009VerifierTests(unittest.TestCase):
             "silent_blocking_skips": 0,
             "status": "PASS",
         }
-        with tempfile.TemporaryDirectory(prefix="x2n-a009-lane-") as value:
+        with tempfile.TemporaryDirectory(prefix="x2n-a005-lane-") as value:
             path = Path(value) / "software-lane.json"
             path.write_text(json.dumps(report), encoding="utf-8")
             self.assertEqual(VERIFY.validate_full_lane_report(path).status, "PASS")
@@ -149,11 +153,13 @@ class Adapters009VerifierTests(unittest.TestCase):
             self.assertFalse(VERIFY.EVIDENCE.exists())
             return
         evidence = json.loads(VERIFY.EVIDENCE.read_text(encoding="utf-8"))
+        self.assertEqual(evidence["owner_alpha"], "NOT_RUN")
         self.assertEqual(evidence["owner_profile_login"], "NOT_RUN")
-        self.assertEqual(evidence["owner_canary"], "NOT_RUN")
         self.assertEqual(evidence["real_account_execution"], "NOT_RUN")
         self.assertEqual(evidence["platform_calls"], 0)
+        self.assertFalse(evidence["owner_alpha_private_manifest_created"])
         self.assertFalse(evidence["private_content_included"])
+        self.assertEqual(evidence["task_metrics"]["synthetic_chaos_manifest_residuals"], 0)
         self.assertEqual(evidence["acceptance_input_sha256"], VERIFY._acceptance_input_receipt())
 
 

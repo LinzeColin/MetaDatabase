@@ -1,0 +1,170 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "POLICY.X2N.RELATION-RECONCILIATION.001",
+  "task_id": "TSK.x2n.adapters.005",
+  "phase": "PH.X2N.3.9",
+  "reviewed_at": "2026-07-23",
+  "default": "deny",
+  "feature_gate": {
+    "name": "relation_reconciliation",
+    "ci_synthetic_enabled": true,
+    "owner_alpha_enabled": false,
+    "production_enabled": false,
+    "real_account_execution": false,
+    "platform_requests": false
+  },
+  "scope": {
+    "truth_source": "local_sqlite_canonical_store",
+    "maximum_relations_per_scope": 10000,
+    "scope_fields": [
+      "source_adapter",
+      "platform",
+      "account_ref_hash",
+      "relation_type"
+    ],
+    "cross_platform_scope": false,
+    "cross_relation_type_scope": false,
+    "physical_delete": false,
+    "content_auto_delete": false,
+    "removed_write": false,
+    "taxonomy_mutation": false
+  },
+  "authoritative_sources": {
+    "xhs_favorites": {
+      "platform": "xiaohongshu",
+      "relation_types": [
+        "favorited"
+      ],
+      "full_scan_permitted": true,
+      "required_run_kind": "xhs_favorites_scan_v1",
+      "required_checkpoint_state": "complete",
+      "required_cursor_kind": "authoritative_visible_end",
+      "required_completion_confidence": 1.0,
+      "required_observation_method": "selected_collection",
+      "exact_relation_observation_graph": true
+    },
+    "xhs_likes": {
+      "platform": "xiaohongshu",
+      "relation_types": [
+        "liked"
+      ],
+      "full_scan_permitted": true,
+      "required_run_kind": "xhs_likes_scan_v1",
+      "required_checkpoint_state": "complete",
+      "required_cursor_kind": "authoritative_visible_end",
+      "required_completion_confidence": 1.0,
+      "required_observation_method": "selected_collection",
+      "exact_relation_observation_graph": true
+    },
+    "douyin_upstream": {
+      "platform": "douyin",
+      "relation_types": [
+        "favorited",
+        "liked"
+      ],
+      "full_scan_permitted": false,
+      "reason": "pinned_sidecar_contract_has_no_authoritative_full_scan_receipt"
+    },
+    "bilibili_selected_collection": {
+      "platform": "bilibili",
+      "relation_types": [
+        "saved_current"
+      ],
+      "full_scan_permitted": false,
+      "reason": "bounded_owner_selection_is_not_a_full_platform_list"
+    },
+    "kuaishou_selected_collection": {
+      "platform": "kuaishou",
+      "relation_types": [
+        "saved_current"
+      ],
+      "full_scan_permitted": false,
+      "reason": "bounded_owner_selection_is_not_a_full_platform_list"
+    },
+    "weibo_selected_collection": {
+      "platform": "weibo",
+      "relation_types": [
+        "favorited"
+      ],
+      "full_scan_permitted": false,
+      "reason": "bounded_capability_contract_is_not_an_authoritative_full_scan"
+    },
+    "taobao_selected_collection": {
+      "platform": "taobao",
+      "relation_types": [
+        "saved_current"
+      ],
+      "full_scan_permitted": false,
+      "reason": "owner_item_manifest_is_not_a_platform_favorites_list"
+    }
+  },
+  "full_scan_proof": {
+    "empty_scan_permitted": false,
+    "distinct_source_run_required": true,
+    "strictly_newer_source_checkpoint_required": true,
+    "source_run_must_be_succeeded": true,
+    "source_run_checkpoint_reconciliation_time_must_be_ordered": true,
+    "source_checkpoint_must_name_run": true,
+    "source_receipt_must_match_run": true,
+    "source_observation_count_must_match": true,
+    "source_observation_adapter_version_method_must_match": true,
+    "source_relation_set_must_match_manifest": true,
+    "source_content_set_must_match_observations": true,
+    "source_relations_must_be_active": true,
+    "source_relations_must_be_scan_confirmed": true,
+    "relation_columns_payload_and_hash_must_match": true,
+    "source_platform_must_match_scope": true
+  },
+  "state_machine": {
+    "first_consecutive_complete_missing": "unknown",
+    "second_consecutive_distinct_complete_missing": "tombstone_candidate",
+    "third_or_later_complete_missing": "tombstone_candidate",
+    "observed_again": "active",
+    "removed_relation": "preserve_removed",
+    "automatic_removed_transition": false,
+    "owner_confirmation_required_for_removed": true,
+    "physical_delete_transition": false
+  },
+  "non_authoritative_outcomes": {
+    "auth_expired": "clear_pending_chain_no_relation_write",
+    "http_error": "clear_pending_chain_no_relation_write",
+    "platform_changed": "clear_pending_chain_no_relation_write",
+    "empty_response": "clear_pending_chain_no_relation_write",
+    "partial_scan": "clear_pending_chain_no_relation_write"
+  },
+  "durability": {
+    "state_store": "checkpoint.cursor_value_private",
+    "event_ledger": "run_record",
+    "transaction": "sqlite_begin_immediate",
+    "exact_event_replay": "return_replayed_no_write",
+    "succeeded_run_requires_existing_scope_checkpoint": true,
+    "cursor_last_event_requires_succeeded_run": true,
+    "pending_relation_keys_must_be_unknown_or_currently_observed_active_in_scope": true,
+    "conflicting_event_identity": "fail_closed",
+    "process_kill_before_commit": "rollback_all_relation_run_checkpoint_changes"
+  },
+  "public_receipt": {
+    "relation_keys": false,
+    "account_ref_hash": false,
+    "source_checkpoint_id": false,
+    "source_scan_receipt_id": false,
+    "local_paths": false,
+    "credentials": false,
+    "media_urls": false,
+    "hashed_scope_and_source_refs_only": true
+  },
+  "owner_alpha": {
+    "execution": "NOT_RUN",
+    "item_count": 80,
+    "private_manifest_required": true,
+    "scopes": {
+      "xiaohongshu_favorited": 20,
+      "xiaohongshu_liked": 20,
+      "douyin_favorited": 20,
+      "douyin_liked": 20
+    },
+    "public_plan_contains_relation_keys": false,
+    "platform_calls": 0
+  },
+  "rollback": "disable_relation_reconciliation_and_preserve_all_canonical_content_and_relations"
+}

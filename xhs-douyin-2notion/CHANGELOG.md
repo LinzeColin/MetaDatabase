@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 / Adapters 005
+
+- 基于固定 `Adapters009@8c6442a2…` 在独立 worktree 开发；A009 verifier 改为从 final commit blob 验收，旧 Task/Evidence 逐字节不改写，Stage 4/G3/上传均未进入。
+- 新增 SQLite `run_record + checkpoint` 关系对账，不改 Schema。仅 `xhs_favorites`/`xhs_likes` 的 succeeded Run、complete/authoritative checkpoint、receipt、Relation 与 Observation 精确一致时可声明完整扫描；扫描必须 ID 不同且时间严格递增。
+- 实现 `active -> unknown -> tombstone_candidate`；观察恢复为 active，既有 removed 原样保留。auth/HTTP/platform-change/empty/partial 清除连续缺失链且关系写入 0；代码没有 removed 写入或 Content/Relation DELETE 路径。
+- 40 条关系中连续两次各缺失 10 条时，第一次生成 10 unknown、第二次生成 10 candidate；同一 source scan 换 event ID 重放、bounded/空/证据不完整、游标损坏和时间倒退均 Fail Closed。
+- 80 条合成输入连续两轮、100 concurrent duplicate、40 个公开合同 cases、15 个专项单测与 50 次真实进程事务内 Kill 通过；重复实体、partial write、checkpoint premature advance、removed、物理删除、Content 自动删除均为 0。重放保持同一 source full-scan 哈希；成功 Run 若丢失 durable checkpoint 则 Fail Closed，不重建空游标。
+- Owner Alpha 80 条只新增固定非执行 20+20+20+20 计划；Owner Profile、私有 Manifest、真实账号/平台、Notion、模型与媒体全部 `NOT_RUN`，平台调用 0，不声明 Alpha PASS。
+- 最终 256 个 root tests（253 PASS、3 个固定可选 skip）、221 个 Companion tests 与 12 个 Contract tests 通过；full lane 两轮 24/24，coverage 79.61%，33 个依赖漏洞 0，78-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止；下一独立 Run 为 `STG.X2N.3.REVIEW`。
+
 ## v0.0.0.1 — Stage 3 / Adapters 009
 
 - 基于固定 `Adapters008@a0f4a346…` 在独立 worktree 开发；A008 verifier 固定到 final commit blob，旧 Evidence 逐字节不改写，A005/G3/上传均未进入。

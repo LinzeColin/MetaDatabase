@@ -34,6 +34,7 @@ VerificationError = PREVIOUS.VerificationError
 Check = PREVIOUS.Check
 _require = PREVIOUS._require
 _load_json = PREVIOUS._load_json
+_load_json_at = PREVIOUS._load_json_at
 _read_blob_at = PREVIOUS._read_blob_at
 _git = PREVIOUS._git
 _porcelain_paths = PREVIOUS._porcelain_paths
@@ -51,6 +52,7 @@ RUN_ID = "RUN-X2N-S03-A009"
 PHASE = "PH.X2N.3.8"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s03-adapters009"
 TASK_BASE_COMMIT = "a0f4a34675d4b2b8b02c9195976a787d2fbf9c59"
+FINAL_COMMIT = "8c6442a251f73e645e292a4e77dd03448d153b64"
 ORIGIN_CUTOFF = PREVIOUS.ORIGIN_CUTOFF
 
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
@@ -113,13 +115,13 @@ ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/adapters/v1/taobao_selected/
 
 
 def validate_scope() -> Check:
+    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
     _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
-    committed = _git(["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]).splitlines()
-    working = _porcelain_paths(
-        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
-    )
+    committed = _git(
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}"]
+    ).splitlines()
     relative_changes: list[str] = []
-    for path in sorted(set(committed + working)):
+    for path in sorted(set(committed)):
         relative = _project_relative(path)
         _require(relative is not None, "Adapters009 changed scope escaped x2n")
         _require(
@@ -197,7 +199,8 @@ def validate_scope() -> Check:
 
 def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Adapters009 worktree branch")
+    current_branch = _git(["branch", "--show-current"])
+    _require(current_branch not in {"", "main"}, "Adapters009 regression requires a non-main worktree")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
         re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
@@ -206,12 +209,21 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
     )
     _require(
         subprocess.run(
-            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"],
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, FINAL_COMMIT],
             cwd=REPOSITORY_ROOT,
             check=False,
         ).returncode
         == 0,
-        "Adapters009 branch no longer descends from Adapters008",
+        "Adapters009 final commit no longer descends from Adapters008",
+    )
+    _require(
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+        ).returncode
+        == 0,
+        "current worktree no longer descends from Adapters009",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
@@ -249,7 +261,8 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "worktree_isolation",
         "PASS",
         {
-            "branch": BRANCH,
+            "historical_branch": BRANCH,
+            "current_branch": current_branch,
             "external_main_dirty_paths": len(main_paths),
             "origin_drift_commits": int(_git(["rev-list", "--count", f"{ORIGIN_CUTOFF}..{live_origin}"])),
             "origin_project_overlap": origin_overlap,
@@ -279,7 +292,7 @@ def validate_predecessor() -> Check:
 
 
 def validate_task_and_state() -> Check:
-    taskpack_text = TASKPACK.read_text(encoding="utf-8")
+    taskpack_text = _read_blob_at(FINAL_COMMIT, TASKPACK).decode("utf-8")
     base_taskpack = _read_blob_at(TASK_BASE_COMMIT, TASKPACK).decode("utf-8")
     task = _task_block(taskpack_text, TASK_ID)
     base_task = _task_block(base_taskpack, TASK_ID)
@@ -312,7 +325,7 @@ def validate_task_and_state() -> Check:
         and authorization.get("public_release") is False,
         "Task Pack authorization drifted",
     )
-    state = _load_json(TASK_STATE)
+    state = _load_json_at(FINAL_COMMIT, TASK_STATE)
     _require(state.get("schema_version") == "1.26", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.3" and state.get("last_completed_phase") == PHASE, "phase drifted")
     _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Run drifted")
@@ -358,17 +371,17 @@ def validate_task_and_state() -> Check:
     ):
         _require(state.get(field) == "not_run", f"external execution overstated: {field}")
     _require(
-        _load_json(PROJECT_FACT).get("status") == "stage_3_adapters_009_pass_g3_not_run",
+        _load_json_at(FINAL_COMMIT, PROJECT_FACT).get("status") == "stage_3_adapters_009_pass_g3_not_run",
         "project status drifted",
     )
-    architecture = _load_json(ARCHITECTURE_FACT)
+    architecture = _load_json_at(FINAL_COMMIT, ARCHITECTURE_FACT)
     _require(
         architecture.get("phase") == PHASE
         and architecture.get("stage_gate") == "g3_not_run"
         and architecture.get("real_account_execution") is False,
         "architecture state drifted",
     )
-    contract = RUN_CONTRACT.read_text(encoding="utf-8")
+    contract = _read_blob_at(FINAL_COMMIT, RUN_CONTRACT).decode("utf-8")
     for value in (
         TASK_ID,
         RUN_ID,
@@ -397,7 +410,7 @@ def validate_task_and_state() -> Check:
 
 
 def validate_policy_and_implementation() -> Check:
-    policy = _load_json(POLICY)
+    policy = _load_json_at(FINAL_COMMIT, POLICY)
     flags = policy.get("feature_gate", {})
     _require(
         policy.get("policy_id") == "POLICY.X2N.TAOBAO-SELECTED.001"
@@ -531,8 +544,8 @@ def validate_policy_and_implementation() -> Check:
         and canonical.get("taxonomy_mutations") == 0,
         "Taobao Canonical containment drifted",
     )
-    source = COMPANION_SOURCE.read_text(encoding="utf-8")
-    cli = CLI_SOURCE.read_text(encoding="utf-8")
+    source = _read_blob_at(FINAL_COMMIT, COMPANION_SOURCE).decode("utf-8")
+    cli = _read_blob_at(FINAL_COMMIT, CLI_SOURCE).decode("utf-8")
     for token in (
         "class TaobaoCapabilityReceipt",
         "class TaobaoSelectedIterator",
@@ -571,8 +584,11 @@ def validate_policy_and_implementation() -> Check:
         "non-executing Taobao Canary CLI is missing",
     )
     for path in UNCHANGED_SECURITY_SURFACES:
-        _require(path.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, path), "security surface changed: " + path.name)
-    artifact = _load_json(ARTIFACT_POLICY)
+        _require(
+            _read_blob_at(FINAL_COMMIT, path) == _read_blob_at(TASK_BASE_COMMIT, path),
+            "security surface changed: " + path.name,
+        )
+    artifact = _load_json_at(FINAL_COMMIT, ARTIFACT_POLICY)
     enforcement = artifact.get("enforcement", [])
     for required in (
         "scripts/taobao_selected_chaos_worker.py",
@@ -596,8 +612,10 @@ def validate_policy_and_implementation() -> Check:
             "undocumented_cookie_signing": 0,
         },
     )
+
+
 def validate_fixtures() -> Check:
-    fixture = _load_json(FIXTURE)
+    fixture = _load_json_at(FINAL_COMMIT, FIXTURE)
     _require(
         fixture.get("fixture_id") == "FIXTURE.X2N.S03.A009.001"
         and fixture.get("task_id") == TASK_ID
@@ -621,8 +639,7 @@ def validate_fixtures() -> Check:
     _require(
         source.get("source_kind") == "owner_explicit_item_ids_for_authorized_item_get"
         and source.get("official_endpoint") == "taobao.item.get"
-        and source.get("official_access")
-        == "approved_application_item_get_scope_owner_oauth_and_value_added_plan"
+        and source.get("official_access") == "approved_application_item_get_scope_owner_oauth_and_value_added_plan"
         and source.get("environment") == "ci_synthetic"
         and source.get("raw_open_api_response") is False
         and source.get("transport_present") is False
@@ -724,7 +741,7 @@ def validate_fixtures() -> Check:
     cases = fixture.get("cases", [])
     _require(len(cases) == 70 and len(set(cases)) == 70, "Adapters009 fixture cases drifted")
     _require(len(fixture.get("blocked_states", [])) == 9, "Adapters009 blocked states drifted")
-    global_manifest = _load_json(GLOBAL_FIXTURE_MANIFEST)
+    global_manifest = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST)
     _require(
         global_manifest.get("manifest_id") == "FIXTURE.X2N.018" and global_manifest.get("phase") == PHASE,
         "global fixture manifest identity drifted",
@@ -754,6 +771,8 @@ def validate_fixtures() -> Check:
             "undocumented_signing_rejections": signing["expected_rejections"],
         },
     )
+
+
 def validate_execution() -> Check:
     with tempfile.TemporaryDirectory(prefix="x2n-a009-verify-") as value:
         home = Path(value) / "home"
@@ -879,10 +898,7 @@ def validate_execution() -> Check:
     )
     unit = output.get("unit_suite", {})
     _require(
-        unit.get("tests") == 18
-        and unit.get("errors") == 0
-        and unit.get("failures") == 0
-        and unit.get("skips") == 0,
+        unit.get("tests") == 18 and unit.get("errors") == 0 and unit.get("failures") == 0 and unit.get("skips") == 0,
         "Adapters009 unit acceptance failed",
     )
     return Check(
@@ -913,6 +929,8 @@ def validate_execution() -> Check:
             "unit_tests": unit["tests"],
         },
     )
+
+
 def validate_full_lane_report(path: Path) -> Check:
     result = PREVIOUS.validate_full_lane_report(path)
     return Check("full_lane_replay", result.status, result.details)
@@ -934,7 +952,7 @@ def _acceptance_input_receipt() -> str:
     ):
         digest.update(path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
-        digest.update(path.read_bytes())
+        digest.update(_read_blob_at(FINAL_COMMIT, path))
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -1005,7 +1023,8 @@ def write_evidence(checks: list[Check]) -> None:
 
 
 def verify_evidence() -> Check:
-    evidence = _load_json(EVIDENCE)
+    evidence = _load_json_at(FINAL_COMMIT, EVIDENCE)
+    _require(EVIDENCE.read_bytes() == _read_blob_at(FINAL_COMMIT, EVIDENCE), "historical evidence was rewritten")
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
     _require(
@@ -1054,7 +1073,7 @@ def verify_evidence() -> Check:
     return Check(
         "evidence",
         "PASS",
-        {"receipt_sha256": hashlib.sha256(EVIDENCE.read_bytes()).hexdigest(), "task": TASK_ID},
+        {"receipt_sha256": hashlib.sha256(_read_blob_at(FINAL_COMMIT, EVIDENCE)).hexdigest(), "task": TASK_ID},
     )
 
 
