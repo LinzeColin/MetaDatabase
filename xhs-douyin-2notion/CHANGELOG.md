@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 / Adapters 006
+
+- 基于固定 `Adapters004@37ec58cb…` 在独立 worktree 开发；A004 verifier 改为从 final commit blob 验收历史 Task/State/实现/Fixture/Evidence，旧证据逐字节不改写。
+- 复核 Bilibili 一手开发者协议、OAuth/Scope 与稿件接口：当前只证明经审批应用、关联 UP 主授权和 `ARC_BASE` 覆盖的授权用户自有视频稿件列表；任意个人点赞/收藏和文章列表仍 `UNKNOWN_DISABLED`。无书面自动化许可不得用 crawler/script，这是一项有界研究结论而非“不存在”断言。
+- 新增 credential-free capability receipt 与单次 `BilibiliSelectedIterator`：只接受一页、最多 20 条、Owner 明确选择的严格净化稿件清单；无 network/DOM transport、自动滚动/分页/重试、Cookie/Profile、未知字段或 raw API response。
+- 新增 SQLite `BilibiliSelectedAdapter`：20 条合成稿件原子映射为 20 Content、20 Owner-confirmed `saved_current` Relation 与 20 `selected_collection` Observation；本地 selection ID 不冒充平台收藏夹，`liked`/`favorited` 写入为 0，`full_scan_id` 始终为空。
+- Partial/Empty/Platform Changed 只保留差集证据且 Canonical 写入 0；Auth/Policy/CAPTCHA 各自只使一个 Bilibili scan 失效，历史关系的 removed/tombstone/physical delete/Content delete 均为 0。50 次真实子进程事务内随机退出后 lost/duplicate/checkpoint premature advance 均为 0，随后一次提交与 exact replay 通过。
+- Canary 固定 20 条且只输出非执行计划；生产 Feature Flag、真实 API/DOM transport、App/OAuth/书面许可/Profile/账号/Owner Canary 全部关闭或 `NOT_RUN`。现有 Bilibili current-page fallback、Chrome 权限、Native v1、Schema v2 和 A004 evidence 均未修改。
+- 最终 224 个 root tests PASS（3 个固定可选 skip）、153 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 78.69%，33 个依赖漏洞 0，74-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
 ## v0.0.0.1 — Stage 3 / Adapters 004
 
 - 基于固定 `Adapters003@0939d783…` 开发；A003 verifier 改为从其 final commit blob 验收历史 Task/State/实现/Fixture/Evidence，A004 不吸收 `main`、其他 worktree 或共享认证材料。

@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 3` 已完成 `PH.X2N.3.1–3.4 / TSK.x2n.adapters.001–004`。Stage 2 九个 Skeleton 与独立 Review 已通过 PR #78 合并，x2n 与 Dual-Plane 远端门禁均成功；旧 G2 pre-upload Evidence 不改写。除 Profile/session/Doctor/全局互斥与删除保护，以及小红书收藏/点赞可见批次外，现已加入固定 Pin 的抖音 owner-managed sidecar 合同包装、严格 health/build attestation、受限 subprocess/loopback REST transport、20 收藏＋20 点赞的 SQLite Canonical 映射和只能阻断不能晋级的 shadow comparator。能力仍仅为 CI-SYNTH：小红书与抖音批量生产位均关闭，Owner Profile/private sidecar/真实页/Canary、真实账号/平台、真实 Notion、媒体与模型均 `NOT_RUN`。`G3=NOT_RUN`，Stage 3 整体上传禁止；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 3` 已完成 `PH.X2N.3.1–3.5` 中的 `TSK.x2n.adapters.001–004/006`；按 DAG，`adapters.005` 尚未进入。Stage 2 九个 Skeleton 与独立 Review 已通过 PR #78 合并，旧 G2 Evidence 不改写。除 Profile/session/guard、小红书收藏/点赞和固定 Pin 抖音 sidecar 合同外，现已加入 Bilibili 官方 `ARC_BASE` 授权 UP 主自有视频稿件的一次 Owner 选择合同、20 条 Owner-confirmed `saved_current` Canonical 映射与 50 次 Kill 恢复。能力仍仅为 CI-SYNTH：Bilibili 任意点赞/收藏/文章列表保持 `UNKNOWN_DISABLED`，真实 App/OAuth/书面许可/API/DOM/Profile/Canary、真实账号/平台、Notion、媒体与模型均 `NOT_RUN`。`G3=NOT_RUN`，Stage 3 整体上传禁止；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,22 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 3 / Adapters 004 验证
+## Stage 3 / Adapters 006 验证
+
+```bash
+.venv/bin/python -B scripts/run_adapters_006_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters006-final2
+.venv/bin/python -B scripts/verify_adapters_006.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters006-final2/software-lane.json --require-evidence
+```
+
+当前一手能力只支持经审批应用、关联 UP 主授权与 `ARC_BASE` 覆盖的授权用户自有视频稿件列表；未证明任意个人点赞/收藏或文章列表。`BilibiliSelectedIterator` 没有网络、DOM 或 next-page transport，只接受 page 1、最多 20 条、Owner 明确选择的严格净化清单；raw cover/CID/filename/share/iframe/media/credential/token 字段全部拒绝。
+
+20 条合成稿件精确落为 20 Content、20 Owner-confirmed `saved_current` Relation 与 20 Observation；它们不冒充 Bilibili `liked`/`favorited`，`full_scan_id` 为空。50 次事务内子进程退出后 lost/duplicate/checkpoint premature advance 均为 0；Auth/Policy/CAPTCHA 只 invalidates 对应 Bilibili scan，历史关系删除为 0。最终 224 个 root tests PASS（3 skip）、153 个 Companion tests、12 个 Contract tests PASS；full lane 24/24、coverage 78.69%、33 个依赖漏洞 0、74-member candidate 无 Runtime Data。Owner Canary 与真实 transport `NOT_RUN`，生产 Feature Flag 关闭，G3/上传未运行。
+
+## Stage 3 / Adapters 004 历史验证
 
 ```bash
 .venv/bin/python -B scripts/run_adapters_004_acceptance.py

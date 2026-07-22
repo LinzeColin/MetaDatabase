@@ -13,6 +13,7 @@ from typing import Any
 
 from x2n_contracts import ErrorCode
 
+from .bilibili_selected import build_bilibili_canary_plan
 from .canonical_store import CanonicalStore
 from .douyin_adapter import build_douyin_canary_plan
 from .media_safety import scan_persisted_scopes
@@ -40,6 +41,7 @@ ADAPTER_TASK_ID = "TSK.x2n.adapters.001"
 XHS_FAVORITES_TASK_ID = "TSK.x2n.adapters.002"
 XHS_LIKES_TASK_ID = "TSK.x2n.adapters.003"
 DOUYIN_TASK_ID = "TSK.x2n.adapters.004"
+BILIBILI_TASK_ID = "TSK.x2n.adapters.006"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
@@ -114,6 +116,15 @@ def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if args.action == "bilibili":
+        if args.bilibili_action != "canary-plan":
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Bilibili action")
+        return _success(
+            "bilibili_canary_plan",
+            acceptance_scope="ADAPTERS_006_CANARY_TOOLING",
+            task_id=BILIBILI_TASK_ID,
+            plan=build_bilibili_canary_plan(args.max_items),
+        )
     if args.action == "douyin":
         if args.douyin_action != "canary-plan":
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Douyin action")
@@ -237,6 +248,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="x2n private Canonical Store operations")
     subparsers = parser.add_subparsers(dest="action", required=True)
     subparsers.add_parser("doctor")
+    bilibili = subparsers.add_parser("bilibili")
+    bilibili_actions = bilibili.add_subparsers(dest="bilibili_action", required=True)
+    bilibili_canary_plan = bilibili_actions.add_parser("canary-plan")
+    bilibili_canary_plan.add_argument("--max-items", type=int, default=20)
     douyin = subparsers.add_parser("douyin")
     douyin_actions = douyin.add_subparsers(dest="douyin_action", required=True)
     douyin_canary_plan = douyin_actions.add_parser("canary-plan")
@@ -289,6 +304,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     task_id = (
         MEDIA_TASK_ID
         if args.action == "verify"
+        else BILIBILI_TASK_ID
+        if args.action == "bilibili"
         else DOUYIN_TASK_ID
         if args.action == "douyin"
         else XHS_LIKES_TASK_ID

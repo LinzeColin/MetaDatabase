@@ -64,6 +64,9 @@
     "scripts/run_douyin_shadow_upgrade.py",
     "scripts/run_adapters_004_acceptance.py",
     "scripts/verify_adapters_004.py",
+    "scripts/bilibili_selected_chaos_worker.py",
+    "scripts/run_adapters_006_acceptance.py",
+    "scripts/verify_adapters_006.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

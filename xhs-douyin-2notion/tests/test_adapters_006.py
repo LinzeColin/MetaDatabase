@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import importlib.util
 import json
 import sys
@@ -11,8 +10,8 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
-    "verify_adapters_004",
-    PROJECT_ROOT / "scripts/verify_adapters_004.py",
+    "verify_adapters_006",
+    PROJECT_ROOT / "scripts/verify_adapters_006.py",
 )
 assert SPEC and SPEC.loader
 VERIFY = importlib.util.module_from_spec(SPEC)
@@ -20,7 +19,7 @@ sys.modules[SPEC.name] = VERIFY
 SPEC.loader.exec_module(VERIFY)
 
 
-class Adapters004VerifierTests(unittest.TestCase):
+class Adapters006VerifierTests(unittest.TestCase):
     def test_static_task_checks_pass(self) -> None:
         checks = VERIFY.run_checks(
             verify_worktree=False,
@@ -29,84 +28,48 @@ class Adapters004VerifierTests(unittest.TestCase):
         )
         self.assertEqual([item.status for item in checks], ["PASS"] * len(checks))
 
-    def test_run_is_exactly_one_task_and_pinned_by_next_task(self) -> None:
-        self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.adapters.004")
-        self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S03-A004")
-        self.assertEqual(VERIFY.PHASE, "PH.X2N.3.4")
-        self.assertEqual(VERIFY.TASK_BASE_COMMIT, "0939d78303f5e96ddedf9c8ef8a01a8dce03574a")
-        self.assertEqual(VERIFY.FINAL_COMMIT, "37ec58cb51d5720bdbe16a67a6e4ea82107c3eb0")
+    def test_run_is_exactly_one_unpinned_task(self) -> None:
+        self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.adapters.006")
+        self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S03-A006")
+        self.assertEqual(VERIFY.PHASE, "PH.X2N.3.5")
+        self.assertEqual(VERIFY.TASK_BASE_COMMIT, "37ec58cb51d5720bdbe16a67a6e4ea82107c3eb0")
+        self.assertFalse(hasattr(VERIFY, "FINAL_COMMIT"))
         rendered = "\n".join(sorted(VERIFY.ALLOWED_CHANGED_EXACT | set(VERIFY.ALLOWED_CHANGED_PREFIXES)))
-        self.assertIn("douyin_upstream", rendered)
+        self.assertIn("bilibili_selected", rendered)
         self.assertNotIn("migrations.py", rendered)
         self.assertNotIn("apps/extension/src", rendered)
 
     def test_predecessor_and_security_surfaces_are_immutable(self) -> None:
+        self.assertEqual(VERIFY.PREVIOUS.FINAL_COMMIT, VERIFY.TASK_BASE_COMMIT)
         self.assertEqual(
             VERIFY.PREVIOUS.EVIDENCE.read_bytes(),
             VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, VERIFY.PREVIOUS.EVIDENCE),
         )
         for path in VERIFY.UNCHANGED_SECURITY_SURFACES:
-            self.assertEqual(
-                VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, path),
-                VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path),
-            )
+            self.assertEqual(path.read_bytes(), VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path))
 
-    def test_historical_inputs_and_evidence_are_read_from_final_commit(self) -> None:
-        self.assertEqual(
-            VERIFY.EVIDENCE.read_bytes(),
-            VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, VERIFY.EVIDENCE),
-        )
-        self.assertEqual(
-            VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.TASK_STATE)["next_run"],
-            "TSK.x2n.adapters.006",
-        )
-
-    def test_exact_integration_lock_is_disabled_and_synthetic_digests_are_real(self) -> None:
-        lock = VERIFY._load_json(VERIFY.INTEGRATION_LOCK)
-        self.assertEqual(lock["upstream"]["commit"], VERIFY.UPSTREAM_COMMIT)
-        self.assertEqual(lock["upstream"]["tree"], VERIFY.UPSTREAM_TREE)
-        self.assertEqual(lock["integration_contract"]["sha256"], VERIFY.INTEGRATION_CONTRACT_SHA256)
-        runtime = lock["runtime_integration"]
-        self.assertFalse(runtime["enabled"])
-        self.assertFalse(runtime["bundled"])
-        self.assertFalse(runtime["runtime_dependency"])
-        self.assertFalse(runtime["raw_cli_allowed"])
-        self.assertFalse(runtime["raw_rest_allowed"])
-        attestation = lock["ci_synthetic_attestation"]
-        expected = {
-            "executable_sha256": VERIFY.FIXTURE_WORKER,
-            "resolved_lock_sha256": VERIFY.SYNTHETIC_LOCK,
-            "transitive_license_report_sha256": VERIFY.SYNTHETIC_LICENSES,
-            "sbom_sha256": VERIFY.SYNTHETIC_SBOM,
-        }
-        for field, path in expected.items():
-            self.assertEqual(attestation[field], hashlib.sha256(path.read_bytes()).hexdigest())
-        self.assertFalse(attestation["production_accepted"])
-
-    def test_policy_keeps_owner_and_real_features_disabled(self) -> None:
+    def test_policy_keeps_real_transport_and_unsupported_lists_disabled(self) -> None:
         policy = VERIFY._load_json(VERIFY.POLICY)
-        flags = policy["feature_gate"]
-        self.assertFalse(flags["owner_canary_enabled"])
-        self.assertFalse(flags["production_enabled"])
-        self.assertEqual(flags["official_personal_likes_api"], "unknown_disabled")
-        self.assertEqual(flags["official_personal_favorites_api"], "unknown_disabled")
-        action = policy["owner_action"]
-        self.assertEqual(action["max_items"], 20)
-        self.assertFalse(action["automatic_pagination"])
-        self.assertFalse(action["automatic_retry"])
-        self.assertFalse(action["account_state_change"])
+        self.assertFalse(policy["feature_gate"]["production_enabled"])
+        self.assertFalse(policy["feature_gate"]["platform_requests"])
+        self.assertFalse(policy["transport"]["network_client"])
+        self.assertFalse(policy["transport"]["browser_dom_iterator"])
+        capability = policy["official_capability"]
+        self.assertEqual(capability["required_scope"], "ARC_BASE")
+        self.assertEqual(capability["arbitrary_personal_favorites_list"], "unknown_disabled")
+        self.assertEqual(capability["arbitrary_personal_likes_list"], "unknown_disabled")
 
-    def test_fixture_is_public_synthetic_and_maps_twenty_plus_twenty(self) -> None:
+    def test_fixture_is_public_synthetic_and_maps_owner_saved_current(self) -> None:
         fixture = VERIFY._load_json(VERIFY.FIXTURE)
         self.assertTrue(fixture["synthetic"])
         self.assertEqual(len(fixture["cases"]), 38)
         self.assertEqual(len(set(fixture["cases"])), 38)
         mapping = fixture["mapping"]
-        self.assertEqual(mapping["favorites_items"], 20)
-        self.assertEqual(mapping["likes_items"], 20)
-        self.assertEqual(mapping["expected_content_rows"], 40)
-        self.assertEqual(mapping["expected_upstream_paths_in_canonical"], 0)
-        self.assertEqual(mapping["expected_upstream_database_primary_keys_in_canonical"], 0)
+        self.assertEqual(mapping["selected_manifest_items"], 20)
+        self.assertEqual(mapping["expected_identified_percent"], 100)
+        self.assertEqual(mapping["expected_saved_current_relations"], 20)
+        self.assertEqual(mapping["expected_liked_relations"], 0)
+        self.assertEqual(mapping["expected_favorited_relations"], 0)
         for field in (
             "contains_accounts",
             "contains_cookies",
@@ -122,7 +85,7 @@ class Adapters004VerifierTests(unittest.TestCase):
             "artifact_deterministic": True,
             "artifact_report": {
                 "allowlist_findings": 0,
-                "member_count": 90,
+                "member_count": 80,
                 "runtime_data_files": 0,
                 "status": "PASS",
             },
@@ -139,7 +102,7 @@ class Adapters004VerifierTests(unittest.TestCase):
                     "status": "PASS",
                 }
                 for repetition in (1, 2)
-                for gate in VERIFY.PREVIOUS.PREVIOUS.PREVIOUS.FULL_LANE_GATES
+                for gate in VERIFY.PREVIOUS.PREVIOUS.PREVIOUS.PREVIOUS.FULL_LANE_GATES
             ],
             "coverage": {"branch_mode": True, "overall_combined_percent": 78.0, "status": "PASS"},
             "explicit_nonblocking_skips": 6,
@@ -157,7 +120,7 @@ class Adapters004VerifierTests(unittest.TestCase):
             "silent_blocking_skips": 0,
             "status": "PASS",
         }
-        with tempfile.TemporaryDirectory(prefix="x2n-a004-lane-") as value:
+        with tempfile.TemporaryDirectory(prefix="x2n-a006-lane-") as value:
             path = Path(value) / "software-lane.json"
             path.write_text(json.dumps(report), encoding="utf-8")
             self.assertEqual(VERIFY.validate_full_lane_report(path).status, "PASS")
@@ -166,14 +129,13 @@ class Adapters004VerifierTests(unittest.TestCase):
             with self.assertRaisesRegex(VERIFY.VerificationError, "forbidden external surface"):
                 VERIFY.validate_full_lane_report(path)
 
-    def test_evidence_never_claims_owner_upstream_or_real_execution(self) -> None:
+    def test_evidence_never_claims_owner_or_real_execution(self) -> None:
         if not VERIFY.EVIDENCE.is_file():
             self.assertFalse(VERIFY.EVIDENCE.exists())
             return
         evidence = json.loads(VERIFY.EVIDENCE.read_text(encoding="utf-8"))
         self.assertEqual(evidence["owner_profile_login"], "NOT_RUN")
         self.assertEqual(evidence["owner_canary"], "NOT_RUN")
-        self.assertEqual(evidence["owner_private_sidecar"], "NOT_INSTALLED")
         self.assertEqual(evidence["real_account_execution"], "NOT_RUN")
         self.assertEqual(evidence["platform_calls"], 0)
         self.assertFalse(evidence["private_content_included"])

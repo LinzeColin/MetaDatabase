@@ -34,6 +34,7 @@ VerificationError = PREVIOUS.VerificationError
 Check = PREVIOUS.Check
 _require = PREVIOUS._require
 _load_json = PREVIOUS._load_json
+_load_json_at = PREVIOUS._load_json_at
 _read_blob_at = PREVIOUS._read_blob_at
 _git = PREVIOUS._git
 _porcelain_paths = PREVIOUS._porcelain_paths
@@ -51,6 +52,7 @@ RUN_ID = "RUN-X2N-S03-A004"
 PHASE = "PH.X2N.3.4"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s03-adapters004"
 TASK_BASE_COMMIT = "0939d78303f5e96ddedf9c8ef8a01a8dce03574a"
+FINAL_COMMIT = "37ec58cb51d5720bdbe16a67a6e4ea82107c3eb0"
 ORIGIN_CUTOFF = PREVIOUS.ORIGIN_CUTOFF
 UPSTREAM_COMMIT = "ef3ad18c2b50e38e534f72aabe2b3fbb0b3fadd7"
 UPSTREAM_TREE = "ff7774b618f269fcdc750e17dc63612f159b6b46"
@@ -129,18 +131,18 @@ ALLOWED_CHANGED_EXACT = {
 ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/adapters/v1/douyin_upstream/",)
 
 
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def _sha256_at(commit: str, path: Path) -> str:
+    return hashlib.sha256(_read_blob_at(commit, path)).hexdigest()
 
 
 def validate_scope() -> Check:
+    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
     _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
-    committed = _git(["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]).splitlines()
-    working = _porcelain_paths(
-        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
-    )
+    committed = _git(
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}"]
+    ).splitlines()
     relative_changes: list[str] = []
-    for path in sorted(set(committed + working)):
+    for path in sorted(set(committed)):
         relative = _project_relative(path)
         _require(relative is not None, "Adapters004 changed scope escaped x2n")
         _require(
@@ -217,7 +219,8 @@ def validate_scope() -> Check:
 
 def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Adapters004 worktree branch")
+    current_branch = _git(["branch", "--show-current"])
+    _require(current_branch not in {"", "main"}, "Adapters004 regression requires a non-main worktree")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
         re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
@@ -226,12 +229,21 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
     )
     _require(
         subprocess.run(
-            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"],
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, FINAL_COMMIT],
             cwd=REPOSITORY_ROOT,
             check=False,
         ).returncode
         == 0,
-        "Adapters004 branch no longer descends from Adapters003",
+        "Adapters004 final commit no longer descends from Adapters003",
+    )
+    _require(
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+        ).returncode
+        == 0,
+        "current worktree no longer descends from Adapters004",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
@@ -269,7 +281,8 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "worktree_isolation",
         "PASS",
         {
-            "branch": BRANCH,
+            "historical_branch": BRANCH,
+            "current_branch": current_branch,
             "external_main_dirty_paths": len(main_paths),
             "origin_drift_commits": int(_git(["rev-list", "--count", f"{ORIGIN_CUTOFF}..{live_origin}"])),
             "origin_project_overlap": origin_overlap,
@@ -299,7 +312,7 @@ def validate_predecessor() -> Check:
 
 
 def validate_task_and_state() -> Check:
-    taskpack_text = TASKPACK.read_text(encoding="utf-8")
+    taskpack_text = _read_blob_at(FINAL_COMMIT, TASKPACK).decode("utf-8")
     base_taskpack = _read_blob_at(TASK_BASE_COMMIT, TASKPACK).decode("utf-8")
     task = _task_block(taskpack_text, TASK_ID)
     base_task = _task_block(base_taskpack, TASK_ID)
@@ -333,7 +346,7 @@ def validate_task_and_state() -> Check:
         and authorization.get("public_release") is False,
         "Task Pack authorization drifted",
     )
-    state = _load_json(TASK_STATE)
+    state = _load_json_at(FINAL_COMMIT, TASK_STATE)
     _require(state.get("schema_version") == "1.22", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.3" and state.get("last_completed_phase") == PHASE, "phase drifted")
     _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Run drifted")
@@ -375,15 +388,18 @@ def validate_task_and_state() -> Check:
         "media_processing",
     ):
         _require(state.get(field) == "not_run", f"external execution overstated: {field}")
-    _require(_load_json(PROJECT_FACT).get("status") == "stage_3_adapters_004_pass_g3_not_run", "project status drifted")
-    architecture = _load_json(ARCHITECTURE_FACT)
+    _require(
+        _load_json_at(FINAL_COMMIT, PROJECT_FACT).get("status") == "stage_3_adapters_004_pass_g3_not_run",
+        "project status drifted",
+    )
+    architecture = _load_json_at(FINAL_COMMIT, ARCHITECTURE_FACT)
     _require(
         architecture.get("phase") == PHASE
         and architecture.get("stage_gate") == "g3_not_run"
         and architecture.get("real_account_execution") is False,
         "architecture state drifted",
     )
-    contract = RUN_CONTRACT.read_text(encoding="utf-8")
+    contract = _read_blob_at(FINAL_COMMIT, RUN_CONTRACT).decode("utf-8")
     for value in (
         TASK_ID,
         RUN_ID,
@@ -411,7 +427,7 @@ def validate_task_and_state() -> Check:
 
 
 def validate_pin_policy_and_implementation() -> Check:
-    registry = _load_json(UPSTREAM_REGISTRY)
+    registry = _load_json_at(FINAL_COMMIT, UPSTREAM_REGISTRY)
     rows = {row["id"]: row for row in registry.get("repositories", [])}
     upstream = rows.get("douyin-downloader", {})
     _require(
@@ -423,7 +439,7 @@ def validate_pin_policy_and_implementation() -> Check:
         and upstream.get("integration", {}).get("runtime_dependency") is False,
         "Stage0 upstream registry drifted",
     )
-    lock = _load_json(INTEGRATION_LOCK)
+    lock = _load_json_at(FINAL_COMMIT, INTEGRATION_LOCK)
     _require(
         lock.get("lock_id") == "LOCK.X2N.DOUYIN-DOWNLOADER.001"
         and lock.get("task_id") == TASK_ID
@@ -455,10 +471,10 @@ def validate_pin_policy_and_implementation() -> Check:
     )
     synthetic = lock.get("ci_synthetic_attestation", {})
     expected_digests = {
-        "executable_sha256": _sha256(FIXTURE_WORKER),
-        "resolved_lock_sha256": _sha256(SYNTHETIC_LOCK),
-        "transitive_license_report_sha256": _sha256(SYNTHETIC_LICENSES),
-        "sbom_sha256": _sha256(SYNTHETIC_SBOM),
+        "executable_sha256": _sha256_at(FINAL_COMMIT, FIXTURE_WORKER),
+        "resolved_lock_sha256": _sha256_at(FINAL_COMMIT, SYNTHETIC_LOCK),
+        "transitive_license_report_sha256": _sha256_at(FINAL_COMMIT, SYNTHETIC_LICENSES),
+        "sbom_sha256": _sha256_at(FINAL_COMMIT, SYNTHETIC_SBOM),
     }
     _require(
         synthetic.get("scope") == "ci_synthetic" and synthetic.get("production_accepted") is False,
@@ -466,7 +482,7 @@ def validate_pin_policy_and_implementation() -> Check:
     )
     for field, expected in expected_digests.items():
         _require(synthetic.get(field) == expected, f"synthetic attestation digest drifted: {field}")
-    policy = _load_json(POLICY)
+    policy = _load_json_at(FINAL_COMMIT, POLICY)
     flags = policy.get("feature_gate", {})
     _require(
         policy.get("policy_id") == "POLICY.X2N.DOUYIN-UPSTREAM.001"
@@ -505,10 +521,10 @@ def validate_pin_policy_and_implementation() -> Check:
         and canonical.get("content_auto_deletes") == 0,
         "Canonical containment drifted",
     )
-    upstream_source = UPSTREAM_SOURCE.read_text(encoding="utf-8")
-    adapter_source = ADAPTER_SOURCE.read_text(encoding="utf-8")
-    cli = CLI_SOURCE.read_text(encoding="utf-8")
-    worker = FIXTURE_WORKER.read_text(encoding="utf-8")
+    upstream_source = _read_blob_at(FINAL_COMMIT, UPSTREAM_SOURCE).decode("utf-8")
+    adapter_source = _read_blob_at(FINAL_COMMIT, ADAPTER_SOURCE).decode("utf-8")
+    cli = _read_blob_at(FINAL_COMMIT, CLI_SOURCE).decode("utf-8")
+    worker = _read_blob_at(FINAL_COMMIT, FIXTURE_WORKER).decode("utf-8")
     for token in (
         "class SubprocessDouyinTransport",
         "shell=False",
@@ -544,11 +560,14 @@ def validate_pin_policy_and_implementation() -> Check:
     )
     _require("UPSTREAM_COMMIT" in worker and "ci_synthetic" in worker, "synthetic worker identity is missing")
     for path in UNCHANGED_SECURITY_SURFACES:
-        _require(path.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, path), f"security surface changed: {path.name}")
-    notice = NOTICE.read_text(encoding="utf-8")
+        _require(
+            _read_blob_at(FINAL_COMMIT, path) == _read_blob_at(TASK_BASE_COMMIT, path),
+            f"security surface changed: {path.name}",
+        )
+    notice = _read_blob_at(FINAL_COMMIT, NOTICE).decode("utf-8")
     for value in ("jiji262/douyin-downloader", UPSTREAM_COMMIT, "MIT", "Copyright (c) 2026 jiji262"):
         _require(value in notice, f"NOTICE identity missing: {value}")
-    artifact = _load_json(ARTIFACT_POLICY)
+    artifact = _load_json_at(FINAL_COMMIT, ARTIFACT_POLICY)
     enforcement = artifact.get("enforcement", [])
     for required in (
         "scripts/douyin_sidecar_fixture_worker.py",
@@ -577,7 +596,7 @@ def validate_pin_policy_and_implementation() -> Check:
 
 
 def validate_fixtures() -> Check:
-    fixture = _load_json(FIXTURE)
+    fixture = _load_json_at(FINAL_COMMIT, FIXTURE)
     _require(
         fixture.get("fixture_id") == "FIXTURE.X2N.S03.A004.001" and fixture.get("synthetic") is True,
         "Adapters004 fixture identity drifted",
@@ -620,11 +639,20 @@ def validate_fixtures() -> Check:
     cases = fixture.get("cases", [])
     _require(len(cases) == 38 and len(set(cases)) == 38, "contract fixture cases drifted")
     for path in (SYNTHETIC_LOCK, SYNTHETIC_LICENSES, SYNTHETIC_SBOM):
-        _require(path.is_file(), f"synthetic attestation fixture missing: {path.name}")
-    _require(_load_json(SYNTHETIC_LOCK).get("upstream_runtime_installed") is False, "synthetic lock overstated")
-    _require(_load_json(SYNTHETIC_LICENSES).get("upstream_runtime_installed") is False, "synthetic licenses overstated")
-    _require(len(_load_json(SYNTHETIC_SBOM).get("components", [])) == 0, "synthetic SBOM contains runtime packages")
-    global_rows = _load_json(GLOBAL_FIXTURE_MANIFEST).get("fixtures", [])
+        _read_blob_at(FINAL_COMMIT, path)
+    _require(
+        _load_json_at(FINAL_COMMIT, SYNTHETIC_LOCK).get("upstream_runtime_installed") is False,
+        "synthetic lock overstated",
+    )
+    _require(
+        _load_json_at(FINAL_COMMIT, SYNTHETIC_LICENSES).get("upstream_runtime_installed") is False,
+        "synthetic licenses overstated",
+    )
+    _require(
+        len(_load_json_at(FINAL_COMMIT, SYNTHETIC_SBOM).get("components", [])) == 0,
+        "synthetic SBOM contains runtime packages",
+    )
+    global_rows = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST).get("fixtures", [])
     _require(
         {
             "id": "FIXTURE.X2N.S03.A004.001",
@@ -785,7 +813,7 @@ def _acceptance_input_receipt() -> str:
     ):
         digest.update(path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
-        digest.update(path.read_bytes())
+        digest.update(_read_blob_at(FINAL_COMMIT, path))
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -850,7 +878,8 @@ def write_evidence(checks: list[Check]) -> None:
 
 
 def verify_evidence() -> Check:
-    evidence = _load_json(EVIDENCE)
+    evidence = _load_json_at(FINAL_COMMIT, EVIDENCE)
+    _require(EVIDENCE.read_bytes() == _read_blob_at(FINAL_COMMIT, EVIDENCE), "historical evidence was rewritten")
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
     _require(
@@ -892,7 +921,9 @@ def verify_evidence() -> Check:
         "evidence metrics drifted",
     )
     return Check(
-        "evidence", "PASS", {"receipt_sha256": hashlib.sha256(EVIDENCE.read_bytes()).hexdigest(), "task": TASK_ID}
+        "evidence",
+        "PASS",
+        {"receipt_sha256": hashlib.sha256(_read_blob_at(FINAL_COMMIT, EVIDENCE)).hexdigest(), "task": TASK_ID},
     )
 
 
