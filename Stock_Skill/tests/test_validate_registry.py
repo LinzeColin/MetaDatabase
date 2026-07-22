@@ -107,14 +107,17 @@ class RegistryValidatorIsolationTests(unittest.TestCase):
     def _build_fixture(
         self,
         *,
+        skill_id: str = "fixture-skill",
+        display_name: str = "Fixture Skill",
+        project_relative: str | None = None,
+        release_filename: str | None = None,
         version_scheme: str = "numeric-quad",
         version: str = "0.0.0.1",
         latest_major: object = 0,
         archive_versions: tuple[str, ...] = (),
     ) -> None:
-        skill_id = "fixture-skill"
-        display_name = "Fixture Skill"
-        project_relative = "Stock_Skill/fixture-skill-project"
+        if project_relative is None:
+            project_relative = "Stock_Skill/fixture-skill-project"
         skill_relative = f"{project_relative}/task-pack/skill_draft/{skill_id}"
         project = self.fixture_repo.joinpath(*project_relative.split("/"))
         task_pack = project / "task-pack"
@@ -150,9 +153,9 @@ class RegistryValidatorIsolationTests(unittest.TestCase):
             f"display_name: {display_name}\ndefault_prompt: Use ${skill_id}\n",
         )
 
-        release_relative = (
-            f"{project_relative}/releases/{skill_id}_task-pack_v{version}.zip"
-        )
+        if release_filename is None:
+            release_filename = f"{skill_id}_task-pack_v{version}.zip"
+        release_relative = f"{project_relative}/releases/{release_filename}"
         release = self._write_text(release_relative, f"release {version}\n")
         release_sha = digest(release)
         self._write_text(
@@ -279,6 +282,87 @@ class RegistryValidatorIsolationTests(unittest.TestCase):
         self.assertIn(
             "CURRENT: fixture-skill=0.0.0.1 (v0.0.0.1)", result.stdout
         )
+
+    def test_bottleneck_serenity_activation_plan_passes_in_isolation(self) -> None:
+        active_before = REGISTRY_PATH.read_bytes()
+        skill_id = "bottleneck-serenity-skill"
+        version = "0.0.0.1"
+        project_relative = f"Stock_Skill/{skill_id}"
+        skill_relative = f"{project_relative}/task-pack/skill_draft/{skill_id}"
+        release_filename = (
+            "bottleneck-serenity-skill_codex-skill-task-pack_v0.0.0.1.zip"
+        )
+        claim_paths = [
+            "AGENTS.md",
+            "README.md",
+            "Stock_Skill/AGENTS.md",
+            "Stock_Skill/README.md",
+            f"{project_relative}/AGENTS.md",
+            f"{project_relative}/README.md",
+        ]
+
+        self._build_fixture(
+            skill_id=skill_id,
+            display_name=skill_id,
+            project_relative=project_relative,
+            release_filename=release_filename,
+        )
+        assert self.registry is not None
+        entry = self.registry["skills"][0]
+        fixture_release_sha = entry["release"]["sha256"]
+        self.assertRegex(fixture_release_sha, r"^[0-9a-f]{64}$")
+        self.assertEqual(
+            list(entry),
+            [
+                "id",
+                "display_name",
+                "latest_version",
+                "version_scheme",
+                "latest_major",
+                "current",
+                "distribution_mode",
+                "local_install_policy",
+                "canonical_project_path",
+                "canonical_skill_path",
+                "version_sources",
+                "version_claim_paths",
+                "release",
+                "superseded_archives",
+            ],
+        )
+        self.assertEqual(
+            entry,
+            {
+                "id": skill_id,
+                "display_name": skill_id,
+                "latest_version": version,
+                "version_scheme": "numeric-quad",
+                "latest_major": 0,
+                "current": True,
+                "distribution_mode": "SOURCE_ONLY",
+                "local_install_policy": "PROHIBITED",
+                "canonical_project_path": project_relative,
+                "canonical_skill_path": skill_relative,
+                "version_sources": [
+                    f"{project_relative}/VERSION",
+                    f"{project_relative}/task-pack/VERSION",
+                ],
+                "version_claim_paths": claim_paths,
+                "release": {
+                    "path": f"{project_relative}/releases/{release_filename}",
+                    "sha256": fixture_release_sha,
+                },
+                "superseded_archives": [],
+            },
+        )
+
+        result = self._run_fixture_validator()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn(
+            "CURRENT: bottleneck-serenity-skill=0.0.0.1 (v0.0.0.1)",
+            result.stdout,
+        )
+        self.assertEqual(REGISTRY_PATH.read_bytes(), active_before)
 
     def test_scheme_is_required_known_and_string(self) -> None:
         self._build_fixture()

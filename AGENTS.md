@@ -30,9 +30,9 @@
   `python3 Stock_Skill/scripts/validate_registry.py`。校验失败、未运行或字段冲突时，版本状态只能是 `UNKNOWN`，不得猜测。
 - `stock-commercial-opportunities`（股票商业机会拆解）当前唯一最新版本是 `3.0.0`（v3）；
   v1/v2 只在 `archives/` 中作为不可变历史谱系，不是当前版本、安装源或回退默认值。
-- `bottleneck-serenity-skill` 的冻结机器版本是 `0.0.0.1`，展示/release label 是 `v0.0.0.1`；在其完整
-  source、真实 release SHA、manifest 与 registry entry 于 Stage 2 原子激活并通过 validator 前，它不是
-  active/current registry 项，不得仅凭目录或 Task Pack 声称已登记或“最新”。
+- `bottleneck-serenity-skill=0.0.0.1` 已按 `numeric-quad` 登记为 active/current source entry，展示与
+  release label 是完整 `v0.0.0.1`；该状态必须由 canonical source、真实 release SHA、manifest、registry
+  entry 与 validator 共同证明，且不代表已安装到本机运行时。
 - Validator 的 current 输出保留 semver major shorthand（例如 `3.0.0` 显示 `v3`），但
   `numeric-quad` 必须显示完整版本（`0.0.0.1` 显示 `v0.0.0.1`，不得缩写为 `v0`）；release 文件名使用
   完整的 `v<latest_version>`。

@@ -23,12 +23,10 @@ Active registry 使用 schema `1.1`，版本字段合同如下：
 - Validator current 输出对 `semver` 保留 major shorthand（`3.0.0` → `v3`）；`numeric-quad` 使用完整
   展示（`0.0.0.1` → `v0.0.0.1`，不得写成 `v0`）。release 文件名一律使用完整 `v<version>`。
 
-当前登记：`stock-commercial-opportunities`（股票商业机会拆解）的唯一最新版本为 `3.0.0`（v3）。
-`1.0.0` 与 `2.0.0` 只允许作为 `archives/` 中的不可变历史，不得称为最新、默认恢复版本或安装目标。
-
-待激活项目：`bottleneck-serenity-skill` 冻结使用 `version_scheme=numeric-quad`、机器版本 `0.0.0.1`、
-展示/release label `v0.0.0.1` 和空 archive 数组。在完整 source、真实 release SHA、manifest 与 entry
-同时写入并通过 validator 前，它不是 active/current registry 项；目录或 Task Pack 存在不构成登记证据。
+当前登记：`stock-commercial-opportunities=3.0.0`（股票商业机会拆解，v3，`semver`）与
+`bottleneck-serenity-skill=0.0.0.1`（v0.0.0.1，`numeric-quad`）均为 active/current source entries。
+前者的 `1.0.0` 与 `2.0.0` 只允许作为不可变历史；后者首版 archive 数组为 `[]`。两者均 source-only，
+禁止把 registry current 解释为本机安装、默认回退或交易执行能力。
 
 ## 修改边界
 

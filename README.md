@@ -13,7 +13,7 @@
 | SerenityAlipay | ✅ 已迁入 | 目录名 `Serenity-Alipay` |
 | EEI | ✅ 已迁入 | 商域帝国（Enterprise Ecosystem Intelligence）；自带 CI：`eei-validation` |
 | Stock_Skill/stock-commercial-opportunities-skill | ✅ 3.0.0（v3）当前 | “股票商业机会拆解”Codex Skill 源码、任务包、版本谱系与恢复证据；以 `Stock_Skill/REGISTRY.json` 为机器可读索引，未安装运行时 |
-| Stock_Skill/bottleneck-serenity-skill | 🚧 v0.0.0.1 规划中、未登记 | 机器版本 `0.0.0.1`；当前仅推进 Task Pack 与 registry 能力，待完整 source、真实 release SHA、manifest 和 registry entry 在 Stage 2 原子激活后才可成为 current |
+| Stock_Skill/bottleneck-serenity-skill | ✅ 0.0.0.1（v0.0.0.1）当前 | source-only、`numeric-quad`；canonical source、确定性 release、manifest 与 registry entry 已在 Stage 2 用真实 SHA 激活，未安装本机运行时 |
 | xhs-douyin-2notion | 🚧 Stage 0 | 个人小红书/抖音内容知识治理；Public Code / Private Runtime |
 | PFI | ⏳ 待迁入 | codex 正在开发 |
 | ADP | ✅ 已迁入 | canonical 路径 `arxiv-daily-push/`；2026-07-20 从 CodexProject 迁入并纳入 `dual-plane.yml` |
@@ -34,13 +34,15 @@ suffix。`latest_major` 必须是版本首段对应的 JSON integer。`supersede
 arity、前导零、archive 自声明 scheme、跨 scheme 比较，或 identity、路径、版本、SHA、manifest 的任一
 冲突都会 fail closed；此时 current/latest 状态只能报告为 `UNKNOWN`。
 
-当前 active entry 仍只有 `stock-commercial-opportunities=3.0.0`（v3，`semver`）。
-`bottleneck-serenity-skill=0.0.0.1`（`v0.0.0.1`，`numeric-quad`）目前只是已冻结的待激活版本合同，不能
-当作已登记版本。权威判定必须从仓库根运行：
+当前 active entries 为 `stock-commercial-opportunities=3.0.0`（v3，`semver`）与
+`bottleneck-serenity-skill=0.0.0.1`（`v0.0.0.1`，`numeric-quad`）。两者均为 source-only，未写入本机
+Codex/Agents Skill 运行时。权威判定必须从仓库根运行：
 
 ```bash
 python3 Stock_Skill/scripts/validate_registry.py
 ```
+
+预期输出同时包含两个 `CURRENT` 行；任一 source、版本、manifest、release 或 SHA 漂移都会使验证失败。
 
 ## 关于 LinzeDatabase 的命名
 

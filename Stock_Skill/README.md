@@ -7,12 +7,13 @@ MetaDatabase 的股票类 Codex Skill 规范集合。人工先看本页，agent 
 | Stable ID | 中文名 | Version scheme | 唯一最新版本 | 规范项目路径 | 分发状态 |
 |---|---|---|---:|---|---|
 | `stock-commercial-opportunities` | 股票商业机会拆解 | `semver` | `3.0.0`（v3） | `Stock_Skill/stock-commercial-opportunities-skill/` | source-only，禁止本地安装 |
+| `bottleneck-serenity-skill` | bottleneck-serenity-skill | `numeric-quad` | `0.0.0.1`（v0.0.0.1） | `Stock_Skill/bottleneck-serenity-skill/` | source-only，禁止本地安装 |
 
 v1 (`1.0.0`) 与 v2 (`2.0.0`) 只作为不可变历史 ZIP 保存在项目 `archives/` 中；它们不是当前版本、默认恢复源或安装目标。
 
-`bottleneck-serenity-skill` 尚未登记。它冻结使用 `numeric-quad` 机器版本 `0.0.0.1`，展示/release label
-为 `v0.0.0.1`，首版 archive 数组为 `[]`；只有完整 source、真实 release SHA、manifest、发现文档和
-registry entry 在 Stage 2 原子激活且 validator `PASS` 后，才可列入上方 current 表。
+`bottleneck-serenity-skill=0.0.0.1` 使用完整展示/release label `v0.0.0.1`，首版 archive 数组为 `[]`；
+其 current 状态由 canonical source、真实 release SHA、两个 manifest、发现文档和 registry validator
+共同证明，不构成本机安装或自动交易能力。
 
 ## Schema `1.1` 版本模型
 
@@ -48,6 +49,7 @@ python3 Stock_Skill/scripts/validate_registry.py
 ```text
 PASS: stock Skill registry valid
 CURRENT: stock-commercial-opportunities=3.0.0 (v3)
+CURRENT: bottleneck-serenity-skill=0.0.0.1 (v0.0.0.1)
 ```
 
 如果 registry、两个 `VERSION` 文件、Skill frontmatter、UI metadata、release/archive SHA 或路径有任何冲突，validator 会非零退出；此时任何 agent 都必须把“最新版本”报告为 `UNKNOWN`，而不是猜测。
@@ -63,4 +65,5 @@ MetaDatabase/AGENTS.md
       -> current release SHA + zero or more inherited-scheme archive SHA
 ```
 
-`REGISTRY.json` 负责发现和路由；项目文件与制品负责证实。只有全部一致，`3.0.0` 才是有效的 current version。
+`REGISTRY.json` 负责发现和路由；项目文件与制品负责证实。只有全部一致，上表两个版本才是有效的 current
+version；source-only current 不等于本机 runtime 安装。

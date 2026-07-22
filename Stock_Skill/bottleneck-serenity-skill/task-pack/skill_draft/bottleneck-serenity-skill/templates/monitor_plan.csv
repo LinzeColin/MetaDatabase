@@ -1,0 +1,9 @@
+schema_version,skill_version,as_of,source_cutoff,previous_version,indicator,category,source,cadence,current_value,expected_range,alert_threshold,thesis_implication,last_checked,next_check
+1.0,0.0.0.1,YYYY-MM-DD,YYYY-MM-DD,,lead_time,constraint,,,,,,,,
+1.0,0.0.0.1,YYYY-MM-DD,YYYY-MM-DD,,capacity_additions,resolution,,,,,,,,
+1.0,0.0.0.1,YYYY-MM-DD,YYYY-MM-DD,,qualification_status,monetization,,,,,,,,
+1.0,0.0.0.1,YYYY-MM-DD,YYYY-MM-DD,,gross_margin,capture,,,,,,,,
+1.0,0.0.0.1,YYYY-MM-DD,YYYY-MM-DD,,fully_diluted_share_count,dilution,,,,,,,,
+1.0,0.0.0.1,YYYY-MM-DD,YYYY-MM-DD,,customer_capex,demand,,,,,,,,
+1.0,0.0.0.1,YYYY-MM-DD,YYYY-MM-DD,,substitute_milestone,substitution,,,,,,,,
+1.0,0.0.0.1,YYYY-MM-DD,YYYY-MM-DD,,valuation_multiple,expectations,,,,,,,,

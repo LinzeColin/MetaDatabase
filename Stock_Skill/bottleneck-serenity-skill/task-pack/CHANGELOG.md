@@ -171,6 +171,228 @@
   scope/index/cache/runtime/main 与 PR mergeability 全部 PASS；main 增量与本 Stage subject 零重叠。
 - 无新增 finding，ledger 23/23 `CLOSED`，Stage 1 Review verdict `PASS`；唯一下一 Task 是
   `BSS-S1-P4-T001` Stage 1 Publish，真实新 workflow PR check 留给该 push，成功前不得进入 Stage 2。
+- `BSS-S1-P4-T001` 重新封印 Stage 1：Task Pack/source digest 分别为 `336ff05d...d570b` 与
+  `75b9bda1...b22ab`，current、staged tree `8ca5889b...e3` 与 proposed merge tree
+  `ae6c8cf4...19c` 三个快照均重放 63 tests、manifest/hash 与公开安全四道 workflow 门并 PASS。
+- Stage 1 commit `8308d170325c2ce35581d3fb757a2b731f7803dc` 已 push 到 draft PR #76；本地、remote、
+  PR head 一致，完整 21-path diff 一致，PR `OPEN`/`DRAFT`/`CLEAN`，`dual-plane` 与 Stock Skill
+  `validate` 两项真实 CI 均 `SUCCESS`。该外部叶子由下一 Stage 首个本地 Task 查询后回填为 `DONE`。
+
+### Stage 2
+
+- `BSS-S2-P1-T001` 按远端 commit/PR/diff/CI 实证回填 `BSS-S1-P4-T001`；active registry validator
+  继续 PASS，唯一 current 仍是 `stock-commercial-opportunities=3.0.0 (v3)`。
+- 使用官方 `skill-creator/scripts/init_skill.py` 初始化
+  `task-pack/skill_draft/bottleneck-serenity-skill/`；只生成 `SKILL.md` 与 `agents/openai.yaml`，未创建
+  resource/example 占位，未导入输入包。
+- canonical basename、frontmatter `name` 与 UI `display_name` 均精确等于 `bottleneck-serenity-skill`；
+  default prompt 调用 `$bottleneck-serenity-skill`，官方 quick validator 与独立结构/YAML 断言 PASS。
+- 本 Task 未执行 import/rename/semantic parity、metadata/project/registry/release、Review/Publish、
+  commit/push 或本机 runtime 安装；唯一下一 Task 为 `BSS-S2-P1-T002`。
+- `BSS-S2-P1-T002` 封印输入归档 SHA `541fce14...90815` 与 53-entry 集合：45 files、8 directories、
+  152,598 bytes payload，`unzip -t`、canonical path/type/mode 安全检查、源 validator 和源 9/9 tests PASS。
+- 新建 `SOURCE_INVENTORY.md`，以完整 53 行 source path/type/mode/SHA 记录唯一决定：
+  `IMPORT 43 / MIGRATE 9 / EXCLUDE 1`；ledger 与 ZIP 顺序及集合精确相等，inventory SHA 为
+  `01e0c912775649c72915751e7882779d9ad1d43c6903f1fe0d5e888a70962a94`。
+- 原样导入 scripts/references/schemas/templates/evals/examples/tests：36 个文件 bytes/SHA 与 ZIP 全等，
+  7 个目录、5 个 executable script 及其余文件 mode 全等；未把 README/install、build/provenance/notice
+  或冲突的源 `VERSION=0.1.0` 塞入 canonical root。
+- 导入后官方 skill-creator validator、源 validator 与 9/9 tests PASS；旧身份保留为
+  `21 matches / 14 files` 的 T003 输入，本 Task 未静默改名或改语义。
+- GitHub workflow 四个原始 run blocks 本地重放 PASS：active registry current 无漂移，72 tests、
+  3 manifests + 1 SHA256SUMS，以及 114 files/239 blobs/125 ZIP entries 公开安全扫描全部通过。
+- 本 Task 未执行 rename/semantic parity、metadata/project/registry/release、Review/Publish、commit/push
+  或本机 runtime 安装；唯一下一 Task 为 `BSS-S2-P1-T003`。
+- `BSS-S2-P1-T003` 只执行三项冻结身份映射：旧 display/kebab/snake-form token 分别 15/5/1 处，共
+  21 matches / 14 files；token 以 SHA `25fd0e9c...8015` / `13b191ed...66e1` / `15684214...f5f39a9`
+  绑定，不把旧字面量重新放入 current release；通用方法术语、阈值、评分与硬门逻辑未改写。
+- 36 个 imported resource files 的逐字节 forward-transform Oracle PASS：14 个 renamed files 精确等于源 bytes
+  应用三项 replacement，另 22 个文件逐字节不变；source tree digest 为 `48f87244...3960c`，expected 与
+  actual renamed tree digest 均为 `ae21e31b...16fb4`。
+- canonical path/content 的旧身份大小写不敏感命中归零；新 invocation、三个 schema `$id` 与唯一 completion
+  event `bottleneck_serenity_skill.thesis.completed` 精确成立。`SOURCE_INVENTORY.md` SHA 仍为
+  `01e0c912...62a94`，source path/hash 历史未改写。
+- 官方 quick validator、导入 validator、9/9 imported unittest、8 个 JSON 解析、两个 example parity 与
+  whitespace 检查 PASS；GitHub workflow 四个原始 `run` blocks 本地重放继续通过 active registry、
+  72 tests、3 manifests + 1 SHA256SUMS 及 114 files/239 blobs/125 ZIP entries 公开安全门。
+- 本 Task 未执行 T004 semantic parity、metadata/project/registry/release、Review/Publish、commit/push 或
+  本机 runtime 安装；唯一下一 Task 为 `BSS-S2-P1-T004`。
+- `BSS-S2-P1-T004` 将审计边界精确冻结为 T002 导入的 36 个 resources；源 `SKILL.md` 仍按 inventory
+  留给 T005 Metadata 重构，未把尚未发生的入口迁移伪称完成。
+- 独立 Ruby identity-neutral diff 覆盖 8 Python、8 JSON、4 CSV、16 Markdown：36/36 相等、
+  `NON_IDENTITY_DIFFS=0`，neutral tree SHA 为 `69b20481...a840d`。8/8 neutral AST、8/8 JSON semantic
+  object、4/4 CSV row matrix 也分别同 digest。
+- source/canonical 各 9/9 tests PASS；34 个 score 正例、4 个失败输入、5 个 evidence 与 5 个 portfolio
+  case 双运行完全一致，behavior SHA 为 `d1badec3...c92a8`。几何聚合、硬 flag、60/55/60/50/45 门槛、
+  三个时钟、独立一手证据、根因聚类与 7-file 历史快照覆盖保护均通过专门 Oracle。
+- 角色中立搜索、负向搜索、系统需求→每股收益桥、价格不作为基本面反证、append-only 历史与无交易边界
+  均保持 neutral-byte-equal；Python import 仅标准库，网络/券商模块为 0。
+- 版本结论：输入 `0.1.0` 是已排除、未登记的三段源包值；目标 `0.0.0.1` 是冻结 numeric-quad 首版，
+  禁止跨 scheme 比较。身份 API 变化发生在首次激活前，active registry/release 和项目外运行时消费者均为 0；
+  核心语义 diff 为零，因此保持 `0.0.0.1`，无需用户版本决策。
+- `ACC-S2-012` Producer evidence 判定 `PASS`，但仍须由 Stage 2 Review 在 T005/T006 等完成后的完整
+  subject 上独立复验；四个 GitHub workflow 原始 `run` blocks 本地重放通过 active registry、72 tests、
+  3 manifests + 1 SHA256SUMS 和 114 files/239 blobs/125 ZIP entries 公开安全门。
+- 本 Task 未执行 Metadata/Project/registry/release、Review/Publish、commit/push 或本机 runtime 安装，
+  唯一下一 Task 为 `BSS-S2-P2-T001`。
+- `BSS-S2-P2-T001` 将源 `SKILL.md` 重构为 204 行 stable-ID 入口；frontmatter 仅保留 name/description，
+  SHA-256=`afc2d411...32ffc`，五种 mode、四门、三时钟、rent-capture、valuation/red-team、几何评分硬门、
+  causal portfolio、append-only 与 research-only/no-order 语义均保留。
+- 入口显式路由 11 references、4 runtime scripts、3 schemas 与四类 bundled resource；官方 quick validator、
+  项目 validator、9/9 tests、8/8 JSON、UTF-8 静态合同与 whitespace 全部 PASS。T004 的 36-file resource tree
+  SHA 仍为 `ae21e31b...16fb4`，旧身份命中为 0。
+- 官方 generator 以冻结的 display name、57-char short description 与含唯一精确调用
+  `$bottleneck-serenity-skill` 的 default prompt 生成 `agents/openai.yaml`；隔离重生成 byte-identical，SHA-256=
+  `e90b9449...dc27`。
+- 源 provenance/notice hashes 保持 `0fb17bab...89f9` / `7b2c21c8...885e`，canonical Skill 中均不存在；
+  `SOURCE_INVENTORY.md` 仍把二者唯一分配给 T006 的外层 `LICENSE_AND_ATTRIBUTION.md`，inventory SHA 未变。
+- 正向只读前测以 2024-12-31 cutoff 输出完整 `WATCH_EVIDENCE` 研究合同；负向只读前测拒绝实时报价猜测、
+  broker/order、杠杆期权与保证收益。两者均无网络、文件写入或外部副作用。
+- GitHub workflow 四个原始 run blocks 本地重放继续通过 active registry、72 tests、3 manifests + 1
+  SHA256SUMS 及 114 files/239 blobs/125 ZIP entries 公开安全门；Task Graph 为 34 DONE / 18 PENDING /
+  6 CONDITIONAL，首个 pending 为 T006。
+- 本 Task 未执行 Project/registry/release、Stage Test/Review/Publish、commit/push 或 runtime 安装；唯一下一
+  Task 为 `BSS-S2-P2-T002`。
+- `BSS-S2-P2-T002` 新增 outer `AGENTS/README/VERSION/CHANGELOG/LICENSE_AND_ATTRIBUTION/
+  RESTORE_AND_VERIFY` 并追加 `SOURCE_INVENTORY` destination evidence；双 VERSION 均为 `0.0.0.1`，项目明确
+  保持 `REGISTRY_NOT_ACTIVE / RELEASE_NOT_BUILT / NOT_INSTALLED`。
+- README/AGENTS 逐项覆盖用户、五种 mode、默认值、输入/输出 schema namespace、Owner、adapter、source-only、
+  freshness 与无交易/无服务边界；源 quickstart 的 runtime 安装命令未复制。
+- 完整历史许可审计覆盖 38 target text files × 1,951 upstream blobs：exact file=0、四行 match=1；唯一实质
+  相似面来自 muxuuu MIT scaffolding，已保守标注 `POSSIBLE_ADAPTATION / MIT-COVERED` 并保存完整 notice。
+  两个无明确 license 仓只作事实/思想引用，零 exact/四行 match，无 code/data/media payload。
+- `SOURCE_INVENTORY` 保持 53 行与 43/9/1 决定不变，仅追加九项 destination completion 与 license evidence，
+  SHA-256 更新为 `e46b0eb4...b23d`；源 `0.1.0` 继续排除且不建伪 archive。
+- `RESTORE.md` 状态句误写按 architecture/ACC/同仓约定纠正为 `RESTORE_AND_VERIFY.md`；当前 source checks
+  可执行，未实现 release/hash 明确 `NOT_AVAILABLE`，proposed-tree/clean-checkout 最终 Oracle 留给 T008。
+- 官方 validators、9/9 tests、8 JSON、双接口、source/license contract、5-script 标准库与零
+  network/broker/order/daemon/scheduler capability、120 files/245 blobs/125 ZIP entries 安全扫描全部 PASS；
+  T004 resource tree SHA 不变。
+- GitHub workflow 四个原始 run blocks 本地重放继续通过 active registry、72 tests、3 manifests + 1
+  SHA256SUMS 与 120 files/245 blobs/125 ZIP entries 公开安全门；Task Graph 为 35 DONE / 17 PENDING /
+  6 CONDITIONAL，首个 pending 为 T007。
+- 本 Task 未执行 registry prep/release/Stage Test/Review/Publish、commit/push 或 runtime 安装；唯一下一 Task
+  为 `BSS-S2-P2-T003`。
+- `BSS-S2-P2-T003` 参数化既有临时仓 registry fixture，并新增精确 activation-plan Oracle；它逐字段冻结
+  stable ID/display name、numeric-quad `0.0.0.1`、major `0`、SOURCE_ONLY/PROHIBITED、两个 canonical path、
+  两条 VERSION 来源、六个发现面、完整 release filename 与空 archive 数组。
+- Fixture 使用临时合成 release 的动态实算 SHA，通过真实 validator 核对 release bytes、`SHA256SUMS` 与
+  manifests；该 SHA 不持久化、不进入 source/active registry，也不冒充 T004 的真实候选 SHA。
+- 定向 Oracle 1/1、完整 registry suite 12/12 PASS；active registry validator 仍只输出
+  `stock-commercial-opportunities=3.0.0 (v3)`，before/after SHA-256 均为 `45c43e54...9646`，Git diff 为空且
+  active skills 集合不含新 stable ID。
+- GitHub workflow 四个原始 run blocks 本地重放继续通过 active registry、73 tests、3 manifests + 1
+  SHA256SUMS 与公开安全门；Task Graph 为 36 DONE / 16 PENDING / 6 CONDITIONAL，首个 pending 为 T008。
+- 本 Task 未构建 release、激活 registry/发现面、执行 Stage Test/Review/Publish、commit/push 或 runtime
+  安装；唯一下一 Task 为 `BSS-S2-P2-T004`。
+- `BSS-S2-P2-T004` 新增 mode `0755` 的标准库 deterministic builder：默认 build、`--activate` 与
+  `--verify` 分离；activation 在写任何 SHA 消费面前先从当前 Task Pack byte-identical 重现现有 ZIP。
+- ZIP 固定完整 v0.0.0.1 filename/root、UTF-8 byte order、1980 timestamp、`ZIP_STORED` 与
+  `0755/0644` mode，拒绝 unsafe path、duplicate、symlink、non-regular/cache、错误 type 与 manifest/file-set
+  漂移；预备和最终 candidate 的连续双构建均同 SHA。
+- T003 的 14-field entry plan 以真实 SHA 物化；existing v3 projection 保持，new entry 使用
+  `numeric-quad=0.0.0.1`、major `0`、SOURCE_ONLY/PROHIBITED 与 `superseded_archives=[]`，不建伪 archive。
+- 无环职责保持 task files→task manifest→release→release SHA→sums/registry，outer project→backup
+  manifest；真实 SHA 只写三个消费面，backup 最后生成，Task Pack/inventory/changelog 不复制该值。
+- 六个 README/AGENTS 发现面同步 exact active claim；project CHANGELOG/SOURCE_INVENTORY/RESTORE 记录候选、
+  rebuild 与 source-only/not-installed 边界，不提前声称 Stage Review/GitHub Publish 已完成。
+- builder activate/verify、独立 ZIP/DAG 审计、registry 双 current、官方/项目 validators、9 project tests、
+  73 repository tests、4 manifests + 2 SHA256SUMS 和公开安全门全部 PASS；Task Graph 为 37 DONE / 15
+  PENDING / 6 CONDITIONAL，首个 pending 为 `BSS-S2-P3-T001`。
+- 本 Task 未执行 Stage Test/Review/Publish、commit/push 或 runtime 安装；唯一下一 Task 为
+  `BSS-S2-P3-T001`。
+- `BSS-S2-P3-T001` 新增仓级 durable release/hash-DAG Oracle：5 个 case 覆盖 active verify、两个 manifest、
+  deterministic ZIP、registry 双 current、existing v3 projection、三 SHA 消费面与隔离双构建；stale Task
+  Pack、release/sums/registry/backup/discovery drift、manifest drift 与 symlink 共 8 类变异全部 fail closed。
+- canonical Skill 新增标准库 schema contract tests：全部 8 个 JSON 可解析，三份 Draft 2020-12 schema 的已用
+  keyword/local `$ref` 可执行，两个示例与 synthetic evidence 正例通过；missing required、三个 range、
+  additional property、date、enum、minLength 共 8 类反例被拒绝。未知 schema keyword 默认失败，避免
+  “文件存在即通过”。
+- source/Task Pack 改变后重算 task manifest，从新 subject 连续双构建同 bytes，并用 `--activate`/`--verify`
+  刷新完整无环 DAG；实际 release SHA 仍只进入 sums/registry/backup 三个许可消费面，不写回 release 输入。
+- 官方/项目 validators、13 canonical tests、82 个仓库 tests（9 files/3 suites）、registry 双 current、
+  4 manifests + 2 SHA256SUMS、ZIP/hash DAG、公开安全与 whitespace 门全部 PASS；最终 proposed-tree 与 clean
+  sparse-checkout seal 仍保留给 Review PASS 后的 Publish Task。
+- Task Graph 为 38 DONE / 14 PENDING / 6 CONDITIONAL，首个 pending 为 `BSS-S2-P4-T001`；本 Task 未执行
+  Stage Review/Publish、commit/push 或 runtime 安装。
+- `BSS-S2-P4-T001` 在任何 subject 修改前由 Python 规范实现与独立 Ruby 实现锁定 47-file Task Pack 和
+  61-path 完整 Stage source；双实现分别同得 taskpack digest
+  `cdbe9cf21c1f2929b79b47cb41011f914cdc3cd6a233c42bfcdd7d2d74e9f347` 与 stage digest
+  `e65847005cee5e03a949168e724ca01928731d0e0551530d1da22c09d889609c`，base HEAD 为
+  `8308d170325c2ce35581d3fb757a2b731f7803dc`。
+- 迁移 53-entry/43-9-1 决定、36-file semantic parity、身份/metadata/双 VERSION、old token、registry 双
+  current、deterministic ZIP、三 SHA 消费面、两个 manifest、六发现面、source-only 边界与临时 proposed-tree
+  双构建均 PASS；44 ACC/23 REQ/9 CAP/7 NG 追溯与 58 个 Task ID 精确，官方/项目 validators、13 canonical
+  tests、82 个仓库 tests、四个 workflow 原始 run blocks、4 manifests + 2 SHA256SUMS 与公开安全门均 PASS。
+- Review 新增两个 P1 finding：`S2-R001` 为 canonical completion/input/artifact versioning 合同与 Task Pack、
+  README、SKILL 及 scaffold 不一致，现有 schema tests 不覆盖跨文档 projection；`S2-R002` 为许可相似性审计
+  仍只声明覆盖 38 个 target files，而 current canonical 已有 39 个，且 blob eligibility/规范化算法未固化，
+  精确计数不可独立复现。
+- Stage 2 Review verdict=`FAIL`：`ACC-S2-010/013` FAIL，最终 clean-checkout seal 仍保留给 Publish；启用
+  `BSS-S2-P4-T002/T003` 为 `PENDING`，两个 finding 保持 `OPEN`。Task Graph 为 39 DONE / 15 PENDING /
+  4 CONDITIONAL，首个 pending 为 T002；本 Task 未整改、Publish、commit/push 或安装 runtime。
+- `BSS-S2-P4-T002` 只整改 `S2-R001/S2-R002`：Task Pack、项目 README 与 canonical integration 的
+  input/completion projection 逐字段/值/顺序相等；五字段 runtime artifact envelope 已落实到三 schema、
+  JSON/CSV templates、examples、initializer 与三个 JSON-producing validators/analyzers。
+- canonical durable Oracle 从 13 增至 19 cases，覆盖 schema vocabulary/nullable string、全部 envelope field
+  missing/rename、错误 schema/Skill version、未来 cutoff、UUID/scaffold validity 与 overwrite；仓级 projection
+  Oracle 的正例及三类跨文档 mutant 均 PASS。
+- 新增标准库 full-history 许可审计器、39-file 确定性报告和 3-case 仓级 fixture/mutation Oracle。四个冻结
+  upstream 共 2,489 reachable blob instances / 2,485 text-eligible；两次完整重算报告 byte-identical，
+  exact=`0`、four-line pairs=`3`、token20 pairs=`1`，两个无明确许可仓 exact/token20 均为 `0`。
+- `LICENSE_AND_ATTRIBUTION.md`、`SOURCE_INVENTORY.md`、`RESTORE_AND_VERIFY.md` 与 discovery/architecture 已同步；
+  `S2-R001/R002` 只推进为 `FIXED_PENDING_REREVIEW`。Task Graph 为 40 DONE / 14 PENDING / 4 CONDITIONAL，
+  唯一下一 Task 是 T003；本 Task 未 Re-review、关闭 finding、Publish、commit/push 或安装 runtime。
+- `BSS-S2-P4-T003` 在任何 subject 修改前冻结 base HEAD
+  `8308d170325c2ce35581d3fb757a2b731f7803dc` 与 66-path Stage 2 subject；Python 规范实现和独立 Ruby 实现
+  同得 47-file `taskpack-tree-sha256-v1`=
+  `7f3e9238a81de7a0d6d738411d2709b62831de3a16acb85a7f93900daeec5486` 及
+  `stage-worktree-source-sha256-v1`=
+  `d956354782afb6979a68519cce79e5b465c14d5203c751aade0c231da0847b0b`，记录 verdict 前复算无漂移。
+- `S2-R002` `CLOSED`：四个 fresh、非 shallow、credential-free HTTPS clone 上，规范 Python 重算报告与
+  committed report byte-identical；独立 Ruby 实现同得 39 targets、2,489 reachable blobs、2,485 eligible
+  text blobs、exact=`0`、four-line pairs=`3`、token20 pairs=`1`，并逐 pair/evidence 精确相等。冻结 commit、
+  origin、license history、current target hash/file set 与三类 mutation Oracle 全部 PASS。
+- `S2-R001` 仍为 `OPEN`：三条 JSON 运行时入口都用 `payload.get("previous_version")`，使字段缺失与显式
+  首版 `null` 不可区分。对 score/evidence/portfolio 分别删除或改名该字段的 6 个独立探针全部被接受并重新
+  输出 `previous_version:null`；schema 层虽拒绝，但现有 19 个 canonical case 未覆盖三条 runtime nullable
+  presence 分支，因此 `ACC-S2-013` 的 missing/rename fail-closed Oracle 仍 FAIL。
+- 53-entry/43-9-1 来源映射、36-file 核心语义等价、identity/version/UI、registry 双 current、候选 release/
+  hash DAG、六发现面、source-only/runtime 边界、19 canonical tests、93 repository tests、四个 workflow 原始
+  run blocks、4 manifests + 2 SHA256SUMS 与 129 files/301 blobs/172 ZIP entries 公开安全门全部 PASS。
+  `ACC-S2-005/010/012` PASS，`ACC-S2-013` FAIL；Publish 所属 proposed-tree/clean-checkout seal 未提前执行。
+- Stage 2 Re-review verdict=`FAIL`。按最大 suffix+1/+2 追加 `BSS-S2-P4-T004/T005` 为 `PENDING`；唯一下一
+  Task 是 T004，只能整改 `S2-R001` 并推进到 `FIXED_PENDING_REREVIEW`，再由 T005 在新双 digest subject
+  上关闭。Task Graph 为 60 total / 41 DONE / 15 PENDING / 4 CONDITIONAL；本 Task 未修复、Publish、
+  commit/push 或安装 runtime。
+- `BSS-S2-P4-T004` 只整改 `S2-R001`：score/evidence/portfolio 三条 `_artifact_metadata` 在读取 nullable
+  值前先要求 `previous_version` key 存在，继续允许显式首版 `null` 与非空 lineage ID，并继续拒绝错误类型、
+  空字符串、未来 cutoff 和错误 schema/Skill version。
+- 整改前删除/改名 `previous_version` 的 6/6 runtime 探针全部被接受并输出 `null`；整改后 6/6 均以精确
+  `previous_version is required` 拒绝。三组持久化测试同时保护非空 lineage 正例；canonical suite 从 19 增至
+  22 cases。临时副本精确删除三处 presence 分支后，新增测试产生 6 failures，证明回退 mutant 被杀死。
+- canonical 六文件变化使旧 39-target 许可报告按预期因 hash/size drift 非零；四个 fresh、非 shallow、
+  credential-free HTTPS clone 上重新生成后，再次完整复算 byte-identical。计数保持 2,489 reachable / 2,485
+  eligible、exact=`0`、four-line=`3`、token20=`1`，未改变 `S2-R002` 的关闭结论或许可归属。
+- `ACC-S2-013` 的完整验收能力与主制品集合首次成立于 T004，Producer 按稳定 Owner 规则转移到本 Task；
+  `S2-R001` 只推进为 `FIXED_PENDING_REREVIEW`，不得由 Builder 自行关闭。Task Graph 为 60 total / 42 DONE /
+  14 PENDING / 4 CONDITIONAL，首个 pending 为 T005；本 Task 未执行 T005、Publish、commit/push 或安装 runtime。
+- `BSS-S2-P4-T005` 在任何 subject 修改前冻结 base HEAD
+  `8308d170325c2ce35581d3fb757a2b731f7803dc` 与 66-path Stage 2 subject；Python 规范实现和独立 Ruby 实现
+  同得 47-file `taskpack-tree-sha256-v1`=
+  `f92345a4d7ee05f84dba2c88c2c88ebbc0156c2ccc09f8cc6fceb68c36bdd6f0` 及
+  `stage-worktree-source-sha256-v1`=
+  `795ac48e7293d1604724cd107ba3c73e90f2ba9308921b39c9c2c0faa251af63`，记录 verdict 前复算无漂移。
+- `S2-R001` `CLOSED`：三条 runtime missing/renamed `previous_version` 6/6 精确拒绝，显式 `null`/lineage
+  6/6 通过；22 canonical cases PASS，删除三处 presence 分支的回退 mutant 产生 6 failures。三份 machine
+  projection、三 schema、四个 static artifact 与 scaffold 的四 JSON/一 CSV envelope 全部一致，`ACC-S2-013` PASS。
+- 完整 Stage 2 重审 PASS：五个输入 artifact 与 53-entry/43-9-1 ledger 精确；8 个 Python 源函数零删除，
+  30+5+5 个 core valid-input behavior 相等；identity/version/UI、registry、release/hash DAG、runtime 边界、
+  44 ACC/23 REQ/9 CAP/7 NG 追溯、96 tests、四个 workflow 原始 run blocks、4 manifests + 2 SHA256SUMS 与
+  129 files/301 blobs/172 ZIP entries 公开安全门均 PASS。
+- 四个 fresh full-history clone 上规范 Python 报告 byte-identical；独立 Ruby target/report 复核同得
+  39/2,489/2,485 与 exact/four-line/token20=`0/3/1`。无新增 finding，ledger 25/25 `CLOSED`，Stage 2
+  verdict=`PASS`；Task Graph 为 43 DONE / 13 PENDING / 4 CONDITIONAL，唯一下一 Task 是 P5 Publish。
 
 ## Stage review ledger
 
@@ -201,8 +423,11 @@
 | `S1-R009` user-home case/Unicode 变体漏检 | `P1` | `taskpack=97cc05b8...281aa; stage=664bd041...82f15; base=287488a3; paths=20` | `BSS-S1-P3-T006` | `CLOSED` | macOS/Windows root 大小写语义与三平台 Unicode 用户段已覆盖 plain/ZIP；ellipsis/历史正例保持；12/12 原探针非零且回退 mutant 被 10 个 subtest failure 杀死 | `BSS-S1-P3-T007 — 原 12 个与额外 5 个边界探针、6 个正例、4 个历史反例及回退 mutant 复验 PASS` |
 | `S1-R010` Stage digest execute mode 不等于 Git mode | `P1` | `taskpack=97cc05b8...281aa; stage=664bd041...82f15; base=287488a3; paths=20` | `BSS-S1-P3-T006` | `CLOSED` | 只按 owner execute bit 映射；`0644=0654`、Git=`100644`、`0755` 不同，任一 execute-bit 回退 mutant 被 durable mode 测试杀死 | `BSS-S1-P3-T007 — 16-mode Git/helper 矩阵一致，regular/executable 分离且回退 mutant 被杀死` |
 | `S1-R011` 历史路径 allowlist closing-backtick 右边界缺失 | `P1` | `taskpack=01de05cc...37bc1; stage=10b429e2...ad22; base=287488a3; paths=20` | `BSS-S1-P3-T008` | `CLOSED` | closing backtick 后只允许 EOF/Unicode whitespace/显式句末或闭合标点；8 类 plain/ZIP continuation 16/16 非零、4 类正边界通过、反引号内 child 失败，回退 mutant 被 16 failures 杀死 | `BSS-S1-P3-T009 — 新双 digest subject 上 16/16 continuation、6 个正边界、3 个历史反例与 16-failure mutant 复验 PASS` |
+| `S2-R001` canonical machine interface/versioning 合同漂移 | `P1` | `taskpack=f92345a4d7ee05f84dba2c88c2c88ebbc0156c2ccc09f8cc6fceb68c36bdd6f0; stage=795ac48e7293d1604724cd107ba3c73e90f2ba9308921b39c9c2c0faa251af63; base=8308d170325c2ce35581d3fb757a2b731f7803dc; paths=66` | `BSS-S2-P4-T004` | `CLOSED` | 三条 runtime 显式要求 `previous_version` key；missing/rename 6/6 非零，null/lineage 正例 PASS；22 canonical cases PASS，删除 presence 分支的回退 mutant 产生 6 failures；39-target 许可报告双重算 byte-identical | `BSS-S2-P4-T005 — 新双 digest 无漂移；6/6 负向、6/6 正向、6-failure rollback mutant 与完整 Stage 2 重审 PASS` |
+| `S2-R002` current payload 许可相似性审计覆盖/算法未封印 | `P1` | `taskpack=7f3e9238a81de7a0d6d738411d2709b62831de3a16acb85a7f93900daeec5486; stage=d956354782afb6979a68519cce79e5b465c14d5203c751aade0c231da0847b0b; base=8308d170325c2ce35581d3fb757a2b731f7803dc; paths=66` | `BSS-S2-P4-T002` | `CLOSED` | 标准库审计器/39-file hash-bound report；2,485 eligible blobs 两次 full-history 重算 byte-identical；算法/target/upstream mutation Oracle PASS；无许可仓 exact/token20=0 | `BSS-S2-P4-T003 — fresh full clones 上规范 Python 报告 byte-identical；独立 Ruby 同得 2,489/2,485、0/3/1 与逐 pair/evidence，PASS` |
 
 ### Pending
 
-- 唯一下一 Task 是 `BSS-S1-P4-T001`：重新封印完整 Stage 1 source，从 staged/proposed tree 重放全门，
-  统一 commit/push 到 draft PR 并验证远端 Stage diff 与真实 workflow check；成功前不得进入 Stage 2。
+- Stage 2 review ledger 25/25 `CLOSED`，verdict `PASS`。唯一下一 Task 是 `BSS-S2-P5-T001 — Publish`：
+  从复审通过后的 frozen source 重新封印 release/hash DAG，并执行 staged/proposed-tree replay；T005 未提前
+  commit/push、安装 runtime 或进入 Stage 3。

@@ -1,0 +1,4 @@
+interface:
+  display_name: "bottleneck-serenity-skill"
+  short_description: "Build auditable, falsifiable bottleneck investment theses"
+  default_prompt: "Use $bottleneck-serenity-skill to turn this investment theme into an auditable, falsifiable bottleneck thesis."

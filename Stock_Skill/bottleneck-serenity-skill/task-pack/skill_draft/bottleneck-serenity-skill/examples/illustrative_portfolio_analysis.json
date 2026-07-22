@@ -1,0 +1,94 @@
+{
+  "valid": true,
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "as_of": "2026-07-22",
+  "source_cutoff": "2026-07-22",
+  "previous_version": null,
+  "total_weight": 0.5,
+  "limits": {
+    "max_single_position": 0.15,
+    "max_root_driver": 0.35,
+    "max_constraint": 0.25,
+    "max_customer_ecosystem": 0.3,
+    "max_binary_risk": 0.1,
+    "max_illiquid_total": 0.15
+  },
+  "aggregates": {
+    "drivers": {
+      "hyperscaler-ai-capex": 0.38,
+      "grid-modernization": 0.15,
+      "healthcare-automation": 0.12
+    },
+    "constraints": {
+      "optical-interconnect": 0.22999999999999998,
+      "electrical-equipment": 0.15,
+      "clinical-workflow": 0.12
+    },
+    "customers": {
+      "hyperscalers": 0.38,
+      "utilities": 0.15,
+      "hospitals": 0.12
+    },
+    "regions": {
+      "US": 0.39,
+      "Europe": 0.11
+    },
+    "risk_factors": {
+      "growth-duration": 0.22999999999999998,
+      "small-cap": 0.22999999999999998,
+      "industrial-cycle": 0.15,
+      "regulation": 0.12
+    }
+  },
+  "binary_risk_weight": 0.11,
+  "illiquid_weight": 0.11,
+  "pair_overlaps": [
+    {
+      "left": "OPT-A",
+      "right": "OPT-B",
+      "jaccard": 0.75,
+      "shared": [
+        "architectures:cpo",
+        "constraints:optical-interconnect",
+        "customers:hyperscalers",
+        "drivers:hyperscaler-ai-capex",
+        "risk_factors:growth-duration",
+        "risk_factors:small-cap"
+      ]
+    }
+  ],
+  "alerts": [
+    {
+      "severity": "info",
+      "type": "unallocated_weight",
+      "value": 0.5
+    },
+    {
+      "severity": "high",
+      "type": "root_driver",
+      "value": "hyperscaler-ai-capex",
+      "weight": 0.38,
+      "limit": 0.35
+    },
+    {
+      "severity": "medium",
+      "type": "customer_ecosystem",
+      "value": "hyperscalers",
+      "weight": 0.38,
+      "limit": 0.3
+    },
+    {
+      "severity": "high",
+      "type": "binary_risk_total",
+      "weight": 0.11,
+      "limit": 0.1
+    },
+    {
+      "severity": "medium",
+      "type": "near_duplicate_pairs",
+      "count": 1
+    }
+  ],
+  "errors": []
+}

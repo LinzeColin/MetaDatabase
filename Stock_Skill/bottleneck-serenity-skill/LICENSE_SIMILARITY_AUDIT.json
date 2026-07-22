@@ -1,0 +1,401 @@
+{
+  "algorithm": {
+    "evidence_limit_per_pair": 20,
+    "evidence_payload": "line starts, normalized-window SHA-256, and token count; no upstream text",
+    "exact_match": "SHA-256 equality of complete raw payload bytes",
+    "history_scope": "each unique Git blob reachable from the frozen commit, including all ancestors; no size or path exclusion",
+    "line_normalization": "Unicode NFC, strip leading/trailing Unicode whitespace, then collapse each Unicode whitespace run to one ASCII space",
+    "line_split": "Python str.splitlines physical lines",
+    "pair_count": "one per unique pair identity with at least one matching window",
+    "pair_identity": "canonical target relative path + upstream repository name + Git blob OID",
+    "target_scope": "every regular file recursively present in the canonical Skill root; symlinks, non-UTF-8, or NUL-bearing target files fail the audit",
+    "text_blob_eligibility": "strict UTF-8 decode succeeds and raw payload contains no NUL byte",
+    "token20_candidate": "a normalized-window pair with at least one matching window containing 20 or more ASCII [A-Za-z0-9]+ tokens; this is a review candidate, not a legal conclusion",
+    "token20_threshold": 20,
+    "window": "four physically contiguous normalized lines, all four non-empty",
+    "window_lines": 4
+  },
+  "audit_date": "2026-07-23",
+  "audit_id": "bss-license-similarity-v1",
+  "exact_pairs": [],
+  "normalized_four_line_pairs": [
+    {
+      "blob_oid": "1b6db36513a1ce49b5fd9c0eefb776afa9c05c79",
+      "matching_window_count": 7,
+      "target_path": "scripts/score_opportunity.py",
+      "token20_matching_window_count": 2,
+      "upstream": "muxuuu/serenity-skill",
+      "window_evidence": [
+        {
+          "ascii_alnum_token_count": 18,
+          "normalized_window_sha256": "0fc35be12cfe4d60d617c97d934ab783624838e2c7d2a4bc3800012fffdb62ac",
+          "target_line_start": 503,
+          "upstream_line_start": 67
+        },
+        {
+          "ascii_alnum_token_count": 22,
+          "normalized_window_sha256": "321da288c20e42352e8f14bfe65d42d186d5b9b5d69679cddcf3ec32bbf440d4",
+          "target_line_start": 504,
+          "upstream_line_start": 68
+        },
+        {
+          "ascii_alnum_token_count": 21,
+          "normalized_window_sha256": "6035e7aba223b1b09aa17992ec8e8d5ba1e84b56037575b4c3d4166b6f093c4d",
+          "target_line_start": 530,
+          "upstream_line_start": 190
+        },
+        {
+          "ascii_alnum_token_count": 18,
+          "normalized_window_sha256": "d3d1b1d034de7d3d8fde42bcd4eb83bf897d2e74f94db57817a1b914dbd5a67c",
+          "target_line_start": 531,
+          "upstream_line_start": 191
+        },
+        {
+          "ascii_alnum_token_count": 18,
+          "normalized_window_sha256": "0f49adc34f202496deaef1c2a284e010ad103ce82b92821354256da7a8d64d9b",
+          "target_line_start": 532,
+          "upstream_line_start": 192
+        },
+        {
+          "ascii_alnum_token_count": 17,
+          "normalized_window_sha256": "f20d2aa9fd09ea1a36013ef77a4e17bf268fb9fb80d9d99b0f1faefffddb9c90",
+          "target_line_start": 533,
+          "upstream_line_start": 193
+        },
+        {
+          "ascii_alnum_token_count": 17,
+          "normalized_window_sha256": "8925db7426224da68e477ca48cb1e5d3e2a47866c382df799b36e846e8506cb2",
+          "target_line_start": 534,
+          "upstream_line_start": 194
+        }
+      ],
+      "window_evidence_truncated": false
+    },
+    {
+      "blob_oid": "b58d99d0bb1526d20a6befee47db52805d563a7e",
+      "matching_window_count": 3,
+      "target_path": "scripts/validate_skill.py",
+      "token20_matching_window_count": 0,
+      "upstream": "muxuuu/serenity-skill",
+      "window_evidence": [
+        {
+          "ascii_alnum_token_count": 15,
+          "normalized_window_sha256": "60f4300a077e7acec8817010d7d755f8ed6a6fad4ad2794ada57fdd63ab0c882",
+          "target_line_start": 32,
+          "upstream_line_start": 22
+        },
+        {
+          "ascii_alnum_token_count": 16,
+          "normalized_window_sha256": "3974e3dc2e619ee1211b6173a2e9501730fbb33385ef70c3658946d13949843c",
+          "target_line_start": 33,
+          "upstream_line_start": 23
+        },
+        {
+          "ascii_alnum_token_count": 13,
+          "normalized_window_sha256": "c89e321d549430e9cb9c3fbcb120a66fc0ff63ab62b91f27e2f8f2854c88d18a",
+          "target_line_start": 64,
+          "upstream_line_start": 51
+        }
+      ],
+      "window_evidence_truncated": false
+    },
+    {
+      "blob_oid": "fae5dcacd060e01c7cc102304c39b0e3139b78fe",
+      "matching_window_count": 2,
+      "target_path": "tests/test_validate_evidence.py",
+      "token20_matching_window_count": 0,
+      "upstream": "wesson9527/chokepoint-atlas",
+      "window_evidence": [
+        {
+          "ascii_alnum_token_count": 0,
+          "normalized_window_sha256": "146bd5b771bb4e8ff0898f811687c2404e9a34cb5a31124497e4a08864c2fd1a",
+          "target_line_start": 39,
+          "upstream_line_start": 191
+        },
+        {
+          "ascii_alnum_token_count": 0,
+          "normalized_window_sha256": "146bd5b771bb4e8ff0898f811687c2404e9a34cb5a31124497e4a08864c2fd1a",
+          "target_line_start": 62,
+          "upstream_line_start": 191
+        }
+      ],
+      "window_evidence_truncated": false
+    }
+  ],
+  "report_schema_version": "1.0",
+  "summary": {
+    "exact_pair_count": 0,
+    "normalized_four_line_pair_count": 3,
+    "target_file_count": 39,
+    "token20_pair_count": 1,
+    "unlicensed_exact_pair_count": 0,
+    "unlicensed_normalized_four_line_pair_count": 1,
+    "unlicensed_token20_pair_count": 0,
+    "upstream_eligible_text_blob_instances": 2485,
+    "upstream_reachable_unique_blob_instances": 2489,
+    "upstream_repository_count": 4
+  },
+  "target": {
+    "file_count": 39,
+    "files": [
+      {
+        "byte_count": 13200,
+        "path": "SKILL.md",
+        "sha256": "afc2d411182697c0efa9fc693c89efd007c75e415831f0a0bc6d2ac199a32ffc"
+      },
+      {
+        "byte_count": 267,
+        "path": "agents/openai.yaml",
+        "sha256": "e90b9449d3cb2df99ad5f67eeb4097de2d0171a2dce5853f880e9603bdb7dc27"
+      },
+      {
+        "byte_count": 1053,
+        "path": "evals/golden_cases.json",
+        "sha256": "7de22b669a29cd3a2d2ed74334a95fcef2afcac950e8a4868a0e8670076f84a3"
+      },
+      {
+        "byte_count": 2304,
+        "path": "evals/prompts.csv",
+        "sha256": "08b5566bac7c6703d7ad4c7bcd665ef3caadb596eaf09ed1c7dcb6c7d98f2b62"
+      },
+      {
+        "byte_count": 1594,
+        "path": "evals/rubric.md",
+        "sha256": "fd7a078a0f03cc18d7c1f2b32a6fc3a3159bec01f63fcd8733a0a1f964396d04"
+      },
+      {
+        "byte_count": 1799,
+        "path": "examples/illustrative_portfolio.json",
+        "sha256": "f5f8e506a19640a687366bf1f8be664fd452b4e6703b1db44124f96e69a03cb2"
+      },
+      {
+        "byte_count": 2074,
+        "path": "examples/illustrative_portfolio_analysis.json",
+        "sha256": "a853dd7eddf612252d8fb0737ad4d851e656d2b1412b3160ededc645cd1dfbdd"
+      },
+      {
+        "byte_count": 3061,
+        "path": "examples/illustrative_transformer_equipment.json",
+        "sha256": "e45e5497d77d57a1421d3b04c9e399d763f91fd38f22bef1e4e859ed940d818f"
+      },
+      {
+        "byte_count": 813,
+        "path": "examples/illustrative_transformer_equipment_score.md",
+        "sha256": "87a7987ce4888682b8c2cb6bfd980e993f5176ba3f792bd0ca77ff1e9a1e10b4"
+      },
+      {
+        "byte_count": 4176,
+        "path": "references/backtest_and_evals.md",
+        "sha256": "8f090737636a2272386ab44aacc49e1380b2c8f1ae9599a85e7ac82465fe126b"
+      },
+      {
+        "byte_count": 3319,
+        "path": "references/failure_modes.md",
+        "sha256": "faefd4b704d56fe9b0a46925490368e5466a395b77c0ad706c68467523562dd3"
+      },
+      {
+        "byte_count": 3878,
+        "path": "references/integration_contract.md",
+        "sha256": "b7b12ef9600ebbe53fb83bda99254aaae4702b93d75e4d7f5bc01f325de1c46c"
+      },
+      {
+        "byte_count": 11692,
+        "path": "references/methodology.md",
+        "sha256": "603bd9db6cabffbdeacbcf58490ec0fc8d2fefb323f720f952cc78723516b2a7"
+      },
+      {
+        "byte_count": 3148,
+        "path": "references/output_contract.md",
+        "sha256": "602417c7a88c91acb33830a3a0fa052c5ec606f38fb128c8d150329c269391e0"
+      },
+      {
+        "byte_count": 3943,
+        "path": "references/portfolio_risk.md",
+        "sha256": "e06fe9293f557470a7e394850404583e2809ddf1cc31809dd301b053e37b3c21"
+      },
+      {
+        "byte_count": 6211,
+        "path": "references/research_workflow.md",
+        "sha256": "bf6ce75626dd5757eac8dd6595f946828b2d89b147433824b37c22ed7645952d"
+      },
+      {
+        "byte_count": 5535,
+        "path": "references/scoring_model.md",
+        "sha256": "5d3ae07b9e1ef61405e005a79c17dd38773190acd1b40e7fbf9b494ff59147c9"
+      },
+      {
+        "byte_count": 9452,
+        "path": "references/serenity_audit.md",
+        "sha256": "4335c3fda13ca569581e294d66d24beba0a7313ca50784b118bebb6d6b8b6729"
+      },
+      {
+        "byte_count": 2866,
+        "path": "references/source_catalog.md",
+        "sha256": "eb853d306d70455c1dd496b445ff9f0033ff347d661700e0dae563efea2fee7e"
+      },
+      {
+        "byte_count": 4905,
+        "path": "references/source_policy.md",
+        "sha256": "03b296596a3821cedd3ca98d8950a8585c651d572d0806c0c7d8c8198bb17c47"
+      },
+      {
+        "byte_count": 2254,
+        "path": "schemas/evidence.schema.json",
+        "sha256": "1815e20b3698b4f7842ddc2fe292a2aec497a283270970b8e4fd193c43c0e2eb"
+      },
+      {
+        "byte_count": 4195,
+        "path": "schemas/opportunity.schema.json",
+        "sha256": "21430a2373e7087e76f41c55c2d58ab4f4adb4aa2d77a74caa52e814dc0ca19f"
+      },
+      {
+        "byte_count": 2092,
+        "path": "schemas/portfolio.schema.json",
+        "sha256": "3b746457ea50bb3f7ea6fc46081378d87c1c689cc472df37d1a622cfea74f4b5"
+      },
+      {
+        "byte_count": 9126,
+        "path": "scripts/analyze_portfolio_clusters.py",
+        "sha256": "7feb2a42a9e0c1ea44cdf25e59feb33705c4d01f16842adb1d8b4cd39328b6c7"
+      },
+      {
+        "byte_count": 5298,
+        "path": "scripts/new_research_case.py",
+        "sha256": "93e965c2cd028c7a5f72605a7510870f0423ef3d242525a8a323a89a47ad059a"
+      },
+      {
+        "byte_count": 20440,
+        "path": "scripts/score_opportunity.py",
+        "sha256": "45dd76746e3446b1785979e90a092a6dc7e5c9acd309ac1315469aae1c09e408"
+      },
+      {
+        "byte_count": 8693,
+        "path": "scripts/validate_evidence.py",
+        "sha256": "5a7b9193a331f93b77710d9b6413c2be11daa9cff663143c57e3cf87804f28fa"
+      },
+      {
+        "byte_count": 2391,
+        "path": "scripts/validate_skill.py",
+        "sha256": "367f34c7d6c31773b2f20ea99ec9dd77da9d4d0cac80ee9f377f1ee463370189"
+      },
+      {
+        "byte_count": 1208,
+        "path": "templates/candidate_card.md",
+        "sha256": "3c255931bea5311d28e0a540a8e03a5097dad0ca84c115c4682a91fa37e0dca4"
+      },
+      {
+        "byte_count": 236,
+        "path": "templates/evidence_ledger.csv",
+        "sha256": "3760dc5841f2fb237c2d3694e73bf54b96f36b92754929474ad6161877d640ae"
+      },
+      {
+        "byte_count": 475,
+        "path": "templates/investment_memo.md",
+        "sha256": "374993e5e83641c6a04cd490304594c710498d8144cf7decb53d84842360dfde"
+      },
+      {
+        "byte_count": 761,
+        "path": "templates/monitor_plan.csv",
+        "sha256": "148895d0a04556ef9bf9b2a211eb0cc251ae6c7a16f46fe9a79dc0e59dbd8b5e"
+      },
+      {
+        "byte_count": 600,
+        "path": "templates/research_config.json",
+        "sha256": "fe9017bb6b5f69277f6b3cdd4ad2fd98bf48dfec8dee1db53a44acb51822717b"
+      },
+      {
+        "byte_count": 1104,
+        "path": "templates/theme_map.md",
+        "sha256": "f7e2f08d64a33e9982985d4908eac8d9c376c6f1e40d6f889671013d4c56197c"
+      },
+      {
+        "byte_count": 307,
+        "path": "templates/thesis_ledger.csv",
+        "sha256": "2061ea0e872658f10837ecd879602b05b0fbb8c804bee9f3070a544cf04ef949"
+      },
+      {
+        "byte_count": 2803,
+        "path": "tests/test_portfolio_clusters.py",
+        "sha256": "0d32b355e2bd1cc1f4e164a9beb79d2240f526901106607c79ed09ec0e6504f9"
+      },
+      {
+        "byte_count": 20402,
+        "path": "tests/test_schema_contracts.py",
+        "sha256": "77f4058d3af58b4f192ba419b3c9dcc02e5a859656f0c1501ff5a13647e0508b"
+      },
+      {
+        "byte_count": 4422,
+        "path": "tests/test_score_opportunity.py",
+        "sha256": "9ae7de8208a949434edfcbb55bc3e841572f8913ccd6ca7fce8ac6abc33f8224"
+      },
+      {
+        "byte_count": 3787,
+        "path": "tests/test_validate_evidence.py",
+        "sha256": "30e084be1e939723904feb4fd5100a72d5733169b26f52cf9c9f6c1348f970a8"
+      }
+    ],
+    "root": "task-pack/skill_draft/bottleneck-serenity-skill"
+  },
+  "upstreams": [
+    {
+      "commit": "c2fe93deedfd0d1bd9fe7ef0601ea1b9c20ea24a",
+      "eligible_text_blob_bytes": 131253,
+      "eligible_text_blob_count": 34,
+      "license_paths_ever_in_reachable_history": [
+        "LICENSE"
+      ],
+      "license_paths_in_frozen_tree": [
+        "LICENSE"
+      ],
+      "license_status": "MIT",
+      "name": "muxuuu/serenity-skill",
+      "non_utf8_rejected_blob_count": 0,
+      "nul_rejected_blob_count": 0,
+      "reachable_unique_blob_count": 34,
+      "url": "https://github.com/muxuuu/serenity-skill"
+    },
+    {
+      "commit": "3fe902b29aa7f32d8ab245c5b87b596cb4d85eb9",
+      "eligible_text_blob_bytes": 3261303054,
+      "eligible_text_blob_count": 2265,
+      "license_paths_ever_in_reachable_history": [],
+      "license_paths_in_frozen_tree": [],
+      "license_status": "NO_LICENSE_FOUND",
+      "name": "yan-labs/serenity-aleabitoreddit",
+      "non_utf8_rejected_blob_count": 0,
+      "nul_rejected_blob_count": 1,
+      "reachable_unique_blob_count": 2266,
+      "url": "https://github.com/yan-labs/serenity-aleabitoreddit"
+    },
+    {
+      "commit": "15bb654f41cb39f442ba2076b4023436a0d7554d",
+      "eligible_text_blob_bytes": 2412310,
+      "eligible_text_blob_count": 139,
+      "license_paths_ever_in_reachable_history": [
+        "LICENSE"
+      ],
+      "license_paths_in_frozen_tree": [
+        "LICENSE"
+      ],
+      "license_status": "MIT",
+      "name": "Mrjie7205/serenity-bottleneck-hunter",
+      "non_utf8_rejected_blob_count": 0,
+      "nul_rejected_blob_count": 1,
+      "reachable_unique_blob_count": 140,
+      "url": "https://github.com/Mrjie7205/serenity-bottleneck-hunter"
+    },
+    {
+      "commit": "207bf340a86c0342b28934e578162610accefe73",
+      "eligible_text_blob_bytes": 255938,
+      "eligible_text_blob_count": 47,
+      "license_paths_ever_in_reachable_history": [],
+      "license_paths_in_frozen_tree": [],
+      "license_status": "NO_LICENSE_FOUND",
+      "name": "wesson9527/chokepoint-atlas",
+      "non_utf8_rejected_blob_count": 0,
+      "nul_rejected_blob_count": 2,
+      "reachable_unique_blob_count": 49,
+      "url": "https://github.com/wesson9527/chokepoint-atlas"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "golden-real-bottleneck-wrong-equity",
+    "description": "Constraint is strong but listed exposure and capacity are weak.",
+    "expected_label": "BOTTLENECK_NOT_EQUITY",
+    "required_reason": "rent capture"
+  },
+  {
+    "id": "golden-no-primary-evidence",
+    "description": "Social and trade-press claims only for sole-source status.",
+    "expected_label": "WATCH_EVIDENCE",
+    "required_reason": "primary evidence"
+  },
+  {
+    "id": "golden-priced-quality",
+    "description": "Constraint and capture are strong but valuation embeds the bull case.",
+    "expected_label": "WATCH_PRICED",
+    "required_reason": "mispricing"
+  },
+  {
+    "id": "golden-candidate",
+    "description": "All gates pass with a two-year monetizable runway and positive asymmetry.",
+    "expected_label": "CANDIDATE",
+    "required_reason": "all hard gates"
+  },
+  {
+    "id": "golden-broken",
+    "description": "A pre-declared substitute-qualification kill switch triggers.",
+    "expected_label": "BROKEN",
+    "required_reason": "kill switch"
+  }
+]

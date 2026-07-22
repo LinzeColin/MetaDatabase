@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "registry_id": "stock-skill",
-  "updated_at": "2026-07-22",
+  "updated_at": "2026-07-23",
   "latest_resolution_rule": "A version is current only when this registry, all version_sources, Skill identity, UI metadata, release hash, archive lineage, and manifests validate. Any mismatch resolves to UNKNOWN.",
   "legacy_paths_must_not_exist": [
     "stock-commercial-opportunities-skill"
@@ -48,6 +48,35 @@
           "sha256": "73f6934529b401a33271e8bc2f2bf7c89979a2dbb56e92e5abb4e8ff2fc40792"
         }
       ]
+    },
+    {
+      "id": "bottleneck-serenity-skill",
+      "display_name": "bottleneck-serenity-skill",
+      "latest_version": "0.0.0.1",
+      "version_scheme": "numeric-quad",
+      "latest_major": 0,
+      "current": true,
+      "distribution_mode": "SOURCE_ONLY",
+      "local_install_policy": "PROHIBITED",
+      "canonical_project_path": "Stock_Skill/bottleneck-serenity-skill",
+      "canonical_skill_path": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill",
+      "version_sources": [
+        "Stock_Skill/bottleneck-serenity-skill/VERSION",
+        "Stock_Skill/bottleneck-serenity-skill/task-pack/VERSION"
+      ],
+      "version_claim_paths": [
+        "AGENTS.md",
+        "README.md",
+        "Stock_Skill/AGENTS.md",
+        "Stock_Skill/README.md",
+        "Stock_Skill/bottleneck-serenity-skill/AGENTS.md",
+        "Stock_Skill/bottleneck-serenity-skill/README.md"
+      ],
+      "release": {
+        "path": "Stock_Skill/bottleneck-serenity-skill/releases/bottleneck-serenity-skill_codex-skill-task-pack_v0.0.0.1.zip",
+        "sha256": "8ed2abbb47ccd4deddf1f0ac92f9009b6bc228ca942c3b0507f6dc0797d2a304"
+      },
+      "superseded_archives": []
     }
   ]
 }

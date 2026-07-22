@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/bottleneck-serenity-skill/portfolio.schema.json",
+  "title": "bottleneck-serenity-skill Portfolio Tags",
+  "type": "object",
+  "required": ["schema_version", "skill_version", "as_of", "source_cutoff", "previous_version", "positions"],
+  "properties": {
+    "schema_version": {"type": "string", "enum": ["1.0"]},
+    "skill_version": {"type": "string", "enum": ["0.0.0.1"]},
+    "as_of": {"type": "string", "format": "date"},
+    "source_cutoff": {"type": "string", "format": "date"},
+    "previous_version": {"type": ["string", "null"], "minLength": 1},
+    "limits": {
+      "type": "object",
+      "properties": {
+        "max_single_position": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_root_driver": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_constraint": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_customer_ecosystem": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_binary_risk": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_illiquid_total": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "positions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ticker", "weight", "drivers", "constraints"],
+        "properties": {
+          "ticker": {"type": "string"},
+          "weight": {"type": "number", "minimum": 0, "maximum": 1},
+          "drivers": {"type": "array", "items": {"type": "string"}},
+          "constraints": {"type": "array", "items": {"type": "string"}},
+          "architectures": {"type": "array", "items": {"type": "string"}},
+          "customers": {"type": "array", "items": {"type": "string"}},
+          "regions": {"type": "array", "items": {"type": "string"}},
+          "risk_factors": {"type": "array", "items": {"type": "string"}},
+          "binary_risk": {"type": "boolean"},
+          "illiquid": {"type": "boolean"}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

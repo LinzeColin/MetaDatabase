@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "as_of": "2026-07-22",
+  "source_cutoff": "2026-07-22",
+  "previous_version": null,
+  "thesis_id": "illustrative-grid-equipment-20260722",
+  "candidate": {
+    "ticker": "EXMPL",
+    "company": "Synthetic Grid Equipment Co",
+    "market": "US",
+    "currency": "USD",
+    "role": "unlocker",
+    "lifecycle_stage": "CONTRACTED_RAMP"
+  },
+  "scores": {
+    "constraint": {
+      "funded_demand": 4.5,
+      "architectural_necessity": 5,
+      "current_tightness": 4,
+      "supplier_concentration": 3.5,
+      "qualification_barrier": 4,
+      "substitution_difficulty": 4,
+      "expansion_lead_time": 4.5,
+      "policy_resilience": 3.5
+    },
+    "capture": {
+      "exposure_materiality": 4,
+      "pricing_power": 3.5,
+      "capacity_to_ship": 3.5,
+      "unit_economics": 3.5,
+      "contract_counterparty": 4,
+      "appropriability": 3.5,
+      "balance_sheet": 4,
+      "dilution_discipline": 4,
+      "capital_allocation": 3.5
+    },
+    "mispricing": {
+      "expectations_gap": 3,
+      "valuation_asymmetry": 2.5,
+      "coverage_gap": 2.5,
+      "catalyst_clarity": 3.5,
+      "estimate_revision_potential": 3.5,
+      "crowding_headroom": 2.5,
+      "entry_setup": 2.5
+    },
+    "evidence": {
+      "primary_source_coverage": 4,
+      "independent_corroboration": 4,
+      "numerical_traceability": 3.5,
+      "freshness": 4,
+      "contradiction_search": 4,
+      "source_independence": 4
+    },
+    "investability": {
+      "liquidity": 4.5,
+      "governance_accounting": 4,
+      "geopolitical_regulatory": 3.5,
+      "customer_diversification": 3.5,
+      "technology_resilience": 4,
+      "balance_sheet_survival": 4.5,
+      "float_gap_risk": 4,
+      "portfolio_fit": 3.5
+    }
+  },
+  "clocks": {
+    "scarcity_p10_months": 18,
+    "scarcity_p50_months": 42,
+    "scarcity_p90_months": 72,
+    "monetization_lag_months": 6,
+    "market_discovery_months": 9,
+    "contracted_forward_ramp": true
+  },
+  "scenarios": {
+    "bear": {"probability": 0.3, "return_pct": -30, "summary": "Capacity normalizes faster and margins compress."},
+    "base": {"probability": 0.5, "return_pct": 25, "summary": "Backlog converts with moderate price and volume upside."},
+    "bull": {"probability": 0.2, "return_pct": 65, "summary": "Grid demand persists and estimate revisions continue."}
+  },
+  "hard_flags": {
+    "no_primary_evidence": false,
+    "wrong_entity_or_ticker": false,
+    "no_material_revenue_bridge": false,
+    "substitution_before_monetization": false,
+    "unfunded_financing_gap": false,
+    "kill_switch_triggered": false,
+    "bull_case_required_to_avoid_loss": false
+  },
+  "kill_switches": [
+    {
+      "condition": "Qualified industry capacity additions exceed base demand growth for two reporting periods.",
+      "metric": "qualified capacity / demand",
+      "source": "industry and company filings",
+      "review_date": "quarterly",
+      "triggered": false
+    }
+  ],
+  "notes": [
+    "Synthetic example only; no real company, price, or recommendation."
+  ]
+}
