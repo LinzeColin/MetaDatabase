@@ -91,9 +91,14 @@ jobs:
             if [ "$should_run" != "true" ]; then
               changed_files="$(git diff --name-only "$base" "$head")"
               runtime_regex='^(arxiv-daily-push/(src|config|schemas)/|arxiv-daily-push/(pyproject\.toml|VERSION|\.gitignore))'
-              if printf '%s\n' "$changed_files" | grep -E "$runtime_regex" >/dev/null; then
+              replay_irrelevant_regex='^(arxiv-daily-push/src/arxiv_daily_push/owner_controls\.py|arxiv-daily-push/config/cloudflare_source_candidates_v1_2\.json)$'
+              runtime_files="$(printf '%s\n' "$changed_files" | grep -E "$runtime_regex" || true)"
+              replay_runtime_files="$(printf '%s\n' "$runtime_files" | grep -Ev "$replay_irrelevant_regex" || true)"
+              if [ -n "$replay_runtime_files" ]; then
                 should_run="true"
                 reason="runtime-relevant arxiv-daily-push change"
+              elif [ -n "$runtime_files" ]; then
+                reason="backfill-irrelevant control-plane-only change"
               fi
             fi
           fi
@@ -105,6 +110,7 @@ jobs:
             echo "- should_run: $should_run"
             echo "- reason: $reason"
             echo "- runtime_paths: src, config, schemas, pyproject.toml, VERSION, .gitignore"
+            echo "- replay_exclusions: owner_controls.py and cloudflare_source_candidates_v1_2.json"
             echo "- tests/docs/governance-only paths do not run this mutable external-data check"
             if [ -n "$changed_files" ]; then
               echo ""

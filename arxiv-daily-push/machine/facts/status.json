@@ -1,13 +1,13 @@
 {
   "version": "0.41.0（目标 1.2.0）",
-  "stage": "S1",
-  "phase": "Google News 有界 retry/backoff 候选",
-  "task": "ADP-V12-S1-T001",
-  "real_progress": "S0 已由独立 verifier 裁定 6/6 PASS；10 个有界任务完成 1 个，S1 尚未运行",
-  "report_grade": "S0 developer_check PASS；S1 未运行（NOT_RUN）",
-  "business_verdict": "当前线上仍为 0.41.0；v1.2 尚未部署，S1 不改 live 或 cron",
-  "evidence_status": "S0_ACCEPTED_S1_NOT_RUN",
+  "stage": "S2",
+  "phase": "stats-gov 可观测诊断合同锁定（下一轮）",
+  "task": "ADP-V12-S2-T001",
+  "real_progress": "S0 6/6、S1 5/5 均由独立 verifier 裁定 PASS；10 个有界任务完成 2 个，S2 尚未运行",
+  "report_grade": "S1 developer_check PASS；P0/P1/UNKNOWN/BLOCKED 均为 0；S2 未运行（NOT_RUN）",
+  "business_verdict": "当前线上仍为 0.41.0；v1.2 尚未部署；必应保持线上来源，谷歌保持未上线候选，运行代码与定时配置未改",
+  "evidence_status": "S1_ACCEPTED_S2_NOT_RUN",
   "rendered_at": "2026-07-22",
   "canonical_taskpack": "docs/pursuing_goal/v1_2",
-  "previous_task_receipt": "machine/runs/ADP-V12-S0-T001-postmerge-closeout.json"
+  "previous_task_receipt": "machine/runs/ADP-V12-S1-T001-developer-check.json"
 }
