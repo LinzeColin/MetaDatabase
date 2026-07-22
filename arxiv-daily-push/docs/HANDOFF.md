@@ -19,8 +19,17 @@
 - `ADP-V12-S1-T001` 已完成整阶段独立复审，`ACC-V12-S1-001..005 = 5/5 PASS`，
   `P0/P1/UNKNOWN/BLOCKED = 0`；公开 receipt 位于
   [`PHASE_ADP_V12_S1_GOOGLE_NEWS_RETRY.md`](phase_records/PHASE_ADP_V12_S1_GOOGLE_NEWS_RETRY.md)。
-- 下一轮唯一任务是 `ADP-V12-S2-T001`。当前任务包尚无 S2 Run Contract 文件，必须先按
-  `TASK_GRAPH.yaml` 与 `ACCEPTANCE_CONTRACT.yaml` 锁定独立合同再诊断；S2 仍是 `NOT_RUN`。
+- `ADP-V12-S2-T001` 已在首轮 P1 修复后通过 fresh-context 整阶段复审，
+  `ACC-V12-S2-001..003 = 3/3 PASS`，`P0/P1/UNKNOWN/BLOCKED = 0`；公开 receipt 位于
+  [`PHASE_ADP_V12_S2_STATS_GOV_DIAGNOSIS.md`](phase_records/PHASE_ADP_V12_S2_STATS_GOV_DIAGNOSIS.md)。
+- 公开安全的[事实型诊断 receipt](../machine/runs/ADP-V12-S2-T001-diagnosis.json)已区分两类事实：
+  `2026-07-22T10:07:12Z` 的历史 edge `EDGE_TIMEOUT/0` 未保留 raw，标为 stale；最新已绑定
+  raw hash 的本地与 edge 点样分别在 `2026-07-22T10:36:12.687Z`、
+  `2026-07-22T10:36:47.591Z` 得到 `SUCCESS/15`。
+  edge 在零 adapter 变更下自行恢复，因此决定仍是 `degraded_preserved` / `NO_ADAPTER_FIX`；
+  前者只表示保留失败时降级行为，不是当前瞬时健康断言。Worker、cron、来源启停和部署均未改。
+- 当前唯一下一任务是 `ADP-V12-S3-T001`（Science Advances PubMed E-utilities adapter）；
+  S3 仍为 `NOT_RUN`，Run Contract 尚未创建，必须在下一轮先独立锁定后才能实现。
 - S1 候选实现位于 [`google_news_candidate.mjs`](../deploy/cloudflare/google_news_candidate.mjs)：
   `gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`，live
   `gnews-us-tech` 仍是 Bing News RSS；机器登记见
@@ -69,9 +78,9 @@ secret、恢复旧源目录、弱化 fail-closed 测试，或把历史 artifact 
 | 事项 | Owner 决策 | 当前执行状态 |
 |---|---|---|
 | dormant Cloudflare 资源 | 删除 | `adp-mirror` legacy Worker、`adp-origin` DNS、`adp` Tunnel 均已删除并复核；不得重建 |
-| 剩余来源救援 | 继续投入 | Google 候选 S1 已通过；stats-gov S2 尚未运行 |
+| 剩余来源救援 | 继续投入 | Google 候选 S1 与 stats-gov 诊断 S2 均已独立验收通过；下一任务是 Science Advances/PubMed S3 |
 | science-advances | 走 PubMed 解析层 | 待独立 Run Contract；先做本地 adapter/fixture/负控，不直接上线 |
-| stats-gov | 继续诊断 | 下一轮先锁定独立 Run Contract；当前只有边缘超时事实，不能先写死结论 |
+| stats-gov | 继续诊断 | S2 已 3/3 PASS；历史 edge timeout 点样无 raw，最新本地/edge 均为 `SUCCESS/15` 且由事实 receipt 绑定 hash；保持失败时降级语义与 `NO_ADAPTER_FIX`，未来满足最小重开条件才另立合同 |
 | Google News | 加重试/退避后评估回切 | S1 5/5 PASS；仍为 candidate_not_live，历史采样是间歇 503，不是“被墙” |
 | OVH VPS / Coolify | 不迁 | Cloudflare 免费档保持 canonical live 面 |
 | `TASK_INDEX.csv.status` | 不修 | 90 行 `NOT_STARTED` 不代表代码未完成；只把它当历史字段 |
@@ -142,6 +151,11 @@ S1 收尾在隔离 Python 3.12 环境实测 939 tests、`2 failures + 11 errors 
 16 项候选专项测试，failure/error 完整测试名集合仍与 sealed 基线精确一致，
 `candidate_only=[]`、`baseline_only=[]`。S1 没有恢复上述三份缺失旧文件。
 
+S2 收尾在 requirements-locked Python 3.12 环境实测 949 tests、
+`2 failures + 11 errors + 29 skips`；原始 suite 状态仍为 FAIL。相对 sealed baseline 的
+failure/error 完整测试名集合差分为 `PASS`，`candidate_only=[]`、`baseline_only=[]`。
+独立复审没有把历史失败包装成绿色，也没有恢复上述三份缺失旧文件。
+
 `arxiv-daily-push-real-backfill.yml` 查询的是会随论文修订而变化的外部历史元数据，因此重型
 30 日 replay 只在 `src/config/schemas/packaging` 运行面变化时执行；tests/docs/governance-only
 变更必须通过 scope classifier，但不得靠降低“每日额外排队候选”质量门来消除真实 runtime
@@ -172,7 +186,44 @@ Worker registry/常量核算 daily external 最坏 `32` 次，候选将来替换
 `34/50`；当前没有发生该替换。独立 verifier 已在修复自动重定向计数与 canonical 文档渲染
 两个 P1 后裁定 `5/5 PASS`。下一阶段仍须另建、另验 S2 Run Contract，不复用 S1 授权。
 
-## 7. 永久提醒
+## 7. v1.2 第二个产品 Run Contract（S2 已关闭）
+
+**目标**：只读区分 stats-gov 的 `EDGE_TIMEOUT`、`HTTP_STATUS`、`PARSE_ZERO` 与 `SUCCESS`，
+仅在免费、边缘安全、可复跑的证据支持时修改 adapter；否则保持 degraded 并给出最小下一条件。
+
+**诊断事实**：专项测试与可执行 verifier 已让四类互斥通过；候选 parser 与当前 Worker
+`parseA0` 在正/负夹具上逐项一致。历史 edge `EDGE_TIMEOUT/0` 点样没有保留 raw receipt，现已
+标记 `STALE_UNVERIFIED_RAW_UNAVAILABLE`；前序 A7 验证运行在 `2026-07-22T10:36:12.687Z`
+直连官方入口得到 `SUCCESS` / HTTP 200 / 15 项，又在 `10:36:47.591Z` 从既有只读 edge canary
+得到 `SUCCESS/15`。r2 没有重新请求外部来源，只对前序 sealed A7 包内的 raw bytes/hash 与
+事实链做复验，因此不外推当前健康；公开 receipt 登记 SHA-256 与推断边界。
+
+**当前决定**：`degraded_preserved` / `NO_ADAPTER_FIX`。edge control 已在零 adapter 变更下
+自行恢复，故没有因果证据支持 timeout/retry/header 等猜测性修复；`degraded_preserved` 只保留
+既有失败时降级行为与来源启停状态。诊断模块不接入 Worker、单次只读 1 subrequest、零写入、
+零新增服务、零付费；本轮不部署、不改 cron、不改变来源启停。只有未来再次出现带 raw hash 的
+重复 `EDGE_TIMEOUT`，且获授权的隔离 matched control/candidate 证明候选至少两次
+`HTTP 2xx + parsed_count>0` 而 control 同时仍超时，才另开 Run Contract 评估最小变更。
+
+**整阶段复审**：首轮独立 verifier 发现 Owner 页面把无 raw 的旧 timeout 写成无时间戳当前事实，
+且链接到尚不存在的 developer-check receipt，定级 P1。现已新增非自签的事实型 receipt、registry
+hash 绑定、canonical renderer fail-closed 校验与 Owner 同步。fresh verifier 对新 Subject
+`c4174a1712d6b102a543f900cbf4d44447115e5cdeabe6a78a86ff5438d55c13` 独立复跑后关闭 finding，
+裁定 `3/3 PASS`；evidence root 为
+`711d324114d5fa0659954abe5ce31909eed7aa55596d656f948afabb91e2b36d`。这只关闭 S2，不签署
+S3–S6，也不授权部署。
+
+## 8. v1.2 第三个产品 Run Contract（S3 下一轮待创建）
+
+**下一任务**：`ADP-V12-S3-T001`，通过 PubMed E-utilities 为 Science Advances 建立本地、
+可注入、失败关闭的 ESearch→EFetch 解析层，保留 PMID/DOI provenance，并证明期刊/日期过滤、
+去重、坏 XML、空搜索、限流与 HTTP error 边界。
+
+**当前状态**：`NOT_RUN`。任务包尚无 S3 Run Contract；下一轮必须先按 `TASK_GRAPH.yaml` 与
+`ACCEPTANCE_CONTRACT.yaml` 锁定一个任务的合同。不得在合同前修改 adapter，不得复用 S2 授权，
+不得引入 API key、付费服务、bulk download、live 接线或部署。
+
+## 9. 永久提醒
 
 - 主树只读，开发使用 `GithubProject/_scratch` worktree；谁开的谁收。
 - 不使用 `git gc --prune=now`。

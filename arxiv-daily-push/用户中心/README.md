@@ -1,6 +1,6 @@
 # ADP 用户中心
 
-更新时间：2026-07-22 18:52:30 Australia/Sydney
+更新时间：2026-07-22 21:43:04 Australia/Sydney
 
 这里是 ADP 在 GitHub 上的唯一中文用户入口。你不需要打开本机目录、运行文件、深层治理文件或原始 JSON，也能判断邮件证据是否正常、队列里还有什么、学习闭环到了哪一步、哪些结论仍被停止门禁止。
 
@@ -14,7 +14,7 @@
 | 邮件发送模板 | [Email V1 学习邮件模板界面预览](./邮件模板预览.md) | 先看用户真实会看到的版式，再看源码和模板规则证据 |
 | 截至今日总候选池 | [299 条总候选记录](./截至今日候选池.md)；候选队列前20精选已列分数 | 总候选池来源是 `docs/owner/CONTENT_LEDGER.csv`，前20精选是按公开评分抽取的阅读入口 |
 | 各板块数据源 | [5 个板块 / 6 个数据源](./数据源与板块健康.md)；当前生产启用 1 个来源 | 公开每个板块对应来源、启用状态、影子测试/规划状态和证据链接 |
-| v1.2 来源救援 | `ADP-V12-S1-T001` 已登记 `gnews-us-tech-google-candidate`（Google News RSS，`candidate_not_live`）；`gnews-us-tech`（Bing News RSS）仍为 live | [候选 registry](../config/cloudflare_source_candidates_v1_2.json) 可复算当前 `32` 次、未来投影 `34/50`；本轮不部署、不改 cron、不切 live，详见[数据源与板块健康](./数据源与板块健康.md) |
+| v1.2 来源救援 | S1 `ADP-V12-S1-T001` 的 `gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`，`gnews-us-tech`（Bing News RSS）仍为 live；`ADP-V12-S2-T001` 的 stats-gov 历史 edge `EDGE_TIMEOUT/0` 点样无原始 receipt，最新已绑定哈希的本地与 edge 点样均为 `SUCCESS` / 15 项，结论仍为 `degraded_preserved` / `NO_ADAPTER_FIX` | [事实型诊断 receipt](../machine/runs/ADP-V12-S2-T001-diagnosis.json) 将 `2026-07-22T10:07:12Z` 的 stale timeout 与 `2026-07-22T10:36:47.591Z` 的最新 edge 成功分列；[候选 registry](../config/cloudflare_source_candidates_v1_2.json) 保留 S1 `32→34/50` 预算，并登记 S2 单次只读 1 subrequest、零写入；两轮均不部署、不改 cron、不切 live，详见[数据源与板块健康](./数据源与板块健康.md) |
 | 复习、行动、收益 | [复习行动与收益](./复习行动与收益.md) 已显示字段、证据链和 2026-06-28 服务日快照数字 | 当前页面数字不是当前自然日持续生产日报；后续每日必须继续由真实运行报告同步 |
 | Stage 2 integrated acceptance | 已记录并保持 `true` | 可以宣称 Stage 2 acceptance 已记录；仍不能宣称 S3/DAILY_OPERATION 已进入、每日生产运行已验收或 M1-M4 全量后台自动发送已启用 |
 | 最终验收包与 S3 阻断 | [最终验收包与 S3 阻断](./最终验收包与S3阻断.md) | 一页核对 final bundle、P0/P1 zero-proof、S2PLT04、Stage 2 acceptance 和 DAILY_OPERATION 当前阻断 |

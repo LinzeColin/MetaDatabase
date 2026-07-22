@@ -1,5 +1,18 @@
 # ADP v1.2 Taskpack Changelog
 
+## 1.2.0 — S2 closeout — 2026-07-22
+
+- stats-gov 四类只读诊断与事实链完成；首轮独立复审发现的 Owner receipt P1 修复后，fresh
+  verifier 对新 Subject 裁定 `ACC-V12-S2-001..003 = 3/3 PASS`，无 P0/P1/UNKNOWN/BLOCKED。
+- 决定保持 `degraded_preserved` / `NO_ADAPTER_FIX`；未改 Worker、来源启停、cron 或部署。
+- S3 仍为 `NOT_RUN`；下一轮必须先为 `ADP-V12-S3-T001` 新建独立 Run Contract。
+
+## 1.2.0 — S2 Run Contract — 2026-07-22
+
+- 为 `ADP-V12-S2-T001` 增加唯一 `RUN_CONTRACT_02_STATS_GOV_DIAGNOSIS.md`，锁定四类互斥诊断、
+  证据支持才修复、否则保持 degraded 的决策门，以及零付费、零绕过、零部署边界。
+- `TASK_GRAPH.yaml` 明确绑定该合同；S3 仍必须等待 S2 整阶段独立复审通过。
+
 ## 1.2.0 — 2026-07-20
 
 - 以 MetaDatabase 为唯一真源建立 verifier 可识别的七角色任务包。

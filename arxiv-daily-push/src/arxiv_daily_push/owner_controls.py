@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from collections.abc import Mapping, Sequence
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .stage1_queue import (
@@ -18,6 +19,8 @@ from .stage1_queue import (
 OWNER_CONTROLS_MODEL_ID = "adp-owner-controls-v1"
 OWNER_CONTROLS_SCHEMA_VERSION = 1
 CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH = "config/cloudflare_source_candidates_v1_2.json"
+STATS_GOV_DIAGNOSIS_RECEIPT_SCHEMA = "adp-v12-stats-gov-diagnosis-receipt-v1"
+SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 OWNER_CONTROL_DOCS: tuple[str, ...] = (
     "docs/owner/OWNER_CONSOLE.md",
     "docs/owner/SOURCE_CATALOG.md",
@@ -57,17 +60,165 @@ def load_owner_controls(path: str | Path | None = None) -> dict[str, Any]:
     return data
 
 
-def _load_optional_cloudflare_candidate_registry(root: Path) -> Mapping[str, Any] | None:
+def _load_optional_cloudflare_candidate_registry(
+    root: Path,
+) -> tuple[Mapping[str, Any] | None, tuple[str, ...]]:
     registry_path = root / CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH
     if not registry_path.is_file():
-        return None
+        return None, ()
     try:
         data = json.loads(registry_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise OwnerControlsError(f"invalid Cloudflare candidate registry: {registry_path}") from exc
     if not isinstance(data, Mapping):
         raise OwnerControlsError("Cloudflare candidate registry root must be a mapping")
-    return data
+    receipt_paths = _validate_cloudflare_diagnostic_receipts(root, data)
+    return data, receipt_paths
+
+
+def _validate_cloudflare_diagnostic_receipts(
+    root: Path,
+    registry: Mapping[str, Any],
+) -> tuple[str, ...]:
+    receipt_paths: list[str] = []
+    for diagnostic in _sequence_of_mappings(registry.get("diagnostic_routes")):
+        task_id = str(diagnostic.get("task_id") or "")
+        receipt_ref = str(diagnostic.get("receipt_path") or "")
+        receipt_sha256 = str(diagnostic.get("receipt_sha256") or "")
+        if not receipt_ref:
+            raise OwnerControlsError(f"Cloudflare diagnostic receipt path missing: {task_id}")
+        portable_ref = PurePosixPath(receipt_ref)
+        if portable_ref.is_absolute() or ".." in portable_ref.parts:
+            raise OwnerControlsError(f"Cloudflare diagnostic receipt path is unsafe: {receipt_ref}")
+        if not SHA256_PATTERN.fullmatch(receipt_sha256):
+            raise OwnerControlsError(f"Cloudflare diagnostic receipt SHA-256 is invalid: {task_id}")
+
+        receipt_path = root.joinpath(*portable_ref.parts)
+        if not receipt_path.is_file():
+            raise OwnerControlsError(f"Cloudflare diagnostic receipt not found: {receipt_ref}")
+        receipt_bytes = receipt_path.read_bytes()
+        actual_sha256 = hashlib.sha256(receipt_bytes).hexdigest()
+        if actual_sha256 != receipt_sha256:
+            raise OwnerControlsError(
+                f"Cloudflare diagnostic receipt SHA-256 mismatch: {receipt_ref}"
+            )
+        try:
+            receipt = json.loads(receipt_bytes)
+        except json.JSONDecodeError as exc:
+            raise OwnerControlsError(f"invalid Cloudflare diagnostic receipt: {receipt_ref}") from exc
+        if not isinstance(receipt, Mapping):
+            raise OwnerControlsError(f"Cloudflare diagnostic receipt root must be a mapping: {receipt_ref}")
+
+        expected_receipt_fields = {
+            "schema_version": STATS_GOV_DIAGNOSIS_RECEIPT_SCHEMA,
+            "task_id": task_id,
+            "source_id": str(diagnostic.get("source_id") or ""),
+            "board_id": str(diagnostic.get("board_id") or ""),
+            "state": str(diagnostic.get("state") or ""),
+            "decision": str(diagnostic.get("decision") or ""),
+        }
+        for field, expected in expected_receipt_fields.items():
+            if receipt.get(field) != expected:
+                raise OwnerControlsError(
+                    f"Cloudflare diagnostic receipt {field} mismatch: {receipt_ref}"
+                )
+        if receipt.get("acceptance_claimed") is not False:
+            raise OwnerControlsError(
+                f"Cloudflare diagnostic facts receipt must not claim acceptance: {receipt_ref}"
+            )
+
+        observations = _sequence_of_mappings(receipt.get("observations"))
+        observations_by_id: dict[str, Mapping[str, Any]] = {}
+        for observation in observations:
+            observation_id = str(observation.get("observation_id") or "")
+            if not observation_id or observation_id in observations_by_id:
+                raise OwnerControlsError(
+                    f"Cloudflare diagnostic receipt has missing or duplicate observation_id: {receipt_ref}"
+                )
+            if observation.get("read_only") is not True:
+                raise OwnerControlsError(
+                    f"Cloudflare diagnostic observation must be read-only: {observation_id}"
+                )
+            verification_status = str(observation.get("verification_status") or "")
+            raw_evidence = _mapping(observation.get("raw_evidence"))
+            raw_sha256 = raw_evidence.get("sha256")
+            if verification_status.startswith("VERIFIED_"):
+                if not isinstance(raw_sha256, str) or not SHA256_PATTERN.fullmatch(raw_sha256):
+                    raise OwnerControlsError(
+                        f"verified Cloudflare diagnostic observation needs raw SHA-256: {observation_id}"
+                    )
+            elif verification_status == "STALE_UNVERIFIED_RAW_UNAVAILABLE":
+                if raw_sha256 is not None:
+                    raise OwnerControlsError(
+                        f"stale Cloudflare diagnostic observation must not invent raw SHA-256: {observation_id}"
+                    )
+            else:
+                raise OwnerControlsError(
+                    f"Cloudflare diagnostic observation has invalid verification_status: {observation_id}"
+                )
+            observations_by_id[observation_id] = observation
+
+        bindings = (
+            (
+                "latest_official_observation_id",
+                "local_observation_id",
+                "local_observed_at",
+                "local_classification",
+                "local_http_status",
+                "local_parsed_count",
+            ),
+            (
+                "latest_edge_observation_id",
+                "edge_observation_id",
+                "edge_observed_at",
+                "edge_classification",
+                "edge_http_status",
+                "edge_parsed_count",
+            ),
+        )
+        for receipt_id_field, registry_id_field, time_field, class_field, http_field, count_field in bindings:
+            observation_id = str(receipt.get(receipt_id_field) or "")
+            if observation_id != str(diagnostic.get(registry_id_field) or ""):
+                raise OwnerControlsError(
+                    f"Cloudflare diagnostic latest observation ID mismatch: {receipt_ref}"
+                )
+            observation = observations_by_id.get(observation_id)
+            if observation is None:
+                raise OwnerControlsError(
+                    f"Cloudflare diagnostic latest observation missing: {observation_id}"
+                )
+            comparisons = (
+                ("observed_at", diagnostic.get(time_field)),
+                ("classification", diagnostic.get(class_field)),
+                ("http_status", diagnostic.get(http_field)),
+                ("parsed_count", diagnostic.get(count_field)),
+            )
+            for observation_field, registry_value in comparisons:
+                if observation.get(observation_field) != registry_value:
+                    raise OwnerControlsError(
+                        "Cloudflare diagnostic latest observation mismatch: "
+                        f"{observation_id}.{observation_field}"
+                    )
+            if not str(observation.get("verification_status") or "").startswith("VERIFIED_"):
+                raise OwnerControlsError(
+                    f"Cloudflare diagnostic latest observation is not verified: {observation_id}"
+                )
+
+        runtime_boundary = _mapping(receipt.get("runtime_boundary"))
+        forbidden_true = (
+            "worker_changed",
+            "wrangler_changed",
+            "source_enablement_changed",
+            "write_allowed",
+            "deployment_performed",
+            "paid_or_bypass_dependency_added",
+        )
+        if any(runtime_boundary.get(field) is not False for field in forbidden_true):
+            raise OwnerControlsError(
+                f"Cloudflare diagnostic receipt violates no-live boundary: {receipt_ref}"
+            )
+        receipt_paths.append(receipt_ref)
+    return tuple(receipt_paths)
 
 
 def validate_owner_controls(controls: Mapping[str, Any]) -> dict[str, Any]:
@@ -192,7 +343,7 @@ def render_owner_documents(
     root = Path(project_path) if project_path else project_root_default()
     validation = validate_owner_controls(controls)
     preview = build_owner_impact_preview(controls)
-    candidate_registry = _load_optional_cloudflare_candidate_registry(root)
+    candidate_registry, diagnostic_receipt_paths = _load_optional_cloudflare_candidate_registry(root)
     docs = {
         "docs/owner/OWNER_CONSOLE.md": _render_owner_console(controls, validation, preview, generated_at),
         "docs/owner/SOURCE_CATALOG.md": _render_source_catalog(controls, generated_at, candidate_registry),
@@ -215,6 +366,7 @@ def render_owner_documents(
         "source_catalog_inputs": [
             "config/owner_controls.yaml",
             *([CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH] if candidate_registry else []),
+            *diagnostic_receipt_paths,
         ],
         "owner_view_files": list(docs),
         "written_files": written,
@@ -315,6 +467,7 @@ def _render_cloudflare_candidate_catalog(registry: Mapping[str, Any]) -> list[st
     verification_path = str(registry.get("verification_path") or "")
     live = _mapping(registry.get("live_route"))
     candidates = _sequence_of_mappings(registry.get("candidate_routes"))
+    diagnostics = _sequence_of_mappings(registry.get("diagnostic_routes"))
     budget = _mapping(registry.get("subrequest_budget"))
     required = {
         "task_id": task_id,
@@ -387,6 +540,76 @@ def _render_cloudflare_candidate_catalog(registry: Mapping[str, Any]) -> list[st
             f"[候选实现](../../{implementation_path}) / [可执行验证](../../{verification_path})。",
         ]
     )
+    if diagnostics:
+        lines.extend(
+            [
+                "",
+                "### S2 stats-gov 诊断面",
+                "",
+                "| 任务 | 来源 | 状态 | 本地直连 | Cloudflare edge | 决策 |",
+                "|---|---|---|---|---|---|",
+            ]
+        )
+        for diagnostic in diagnostics:
+            diagnostic_required = {
+                "task_id": str(diagnostic.get("task_id") or ""),
+                "source_id": str(diagnostic.get("source_id") or ""),
+                "board_id": str(diagnostic.get("board_id") or ""),
+                "provider": str(diagnostic.get("provider") or ""),
+                "list_url": str(diagnostic.get("list_url") or ""),
+                "state": str(diagnostic.get("state") or ""),
+                "decision": str(diagnostic.get("decision") or ""),
+                "state_semantics": str(diagnostic.get("state_semantics") or ""),
+                "local_classification": str(diagnostic.get("local_classification") or ""),
+                "local_observed_at": str(diagnostic.get("local_observed_at") or ""),
+                "local_observation_id": str(diagnostic.get("local_observation_id") or ""),
+                "edge_classification": str(diagnostic.get("edge_classification") or ""),
+                "edge_observed_at": str(diagnostic.get("edge_observed_at") or ""),
+                "edge_observation_id": str(diagnostic.get("edge_observation_id") or ""),
+                "implementation_path": str(diagnostic.get("implementation_path") or ""),
+                "verification_path": str(diagnostic.get("verification_path") or ""),
+                "run_contract_path": str(diagnostic.get("run_contract_path") or ""),
+                "receipt_path": str(diagnostic.get("receipt_path") or ""),
+                "receipt_sha256": str(diagnostic.get("receipt_sha256") or ""),
+                "minimum_next_condition": str(diagnostic.get("minimum_next_condition") or ""),
+            }
+            diagnostic_missing = [name for name, value in diagnostic_required.items() if not value]
+            if diagnostic_missing:
+                raise OwnerControlsError(
+                    "Cloudflare diagnostic route missing required fields: " + ", ".join(diagnostic_missing)
+                )
+            lines.append(
+                f"| `{diagnostic.get('task_id')}` | `{diagnostic.get('source_id')}` / `{diagnostic.get('board_id')}` "
+                f"| `{diagnostic.get('state')}` | `{diagnostic.get('local_classification')}` / HTTP "
+                f"{diagnostic.get('local_http_status')} / {diagnostic.get('local_parsed_count')} 项 / "
+                f"`{diagnostic.get('local_observed_at')}` "
+                f"| `{diagnostic.get('edge_classification')}` / {diagnostic.get('edge_parsed_count')} 项 / "
+                f"`{diagnostic.get('edge_observed_at')}` "
+                f"| `{diagnostic.get('decision')}`；不改 Worker、不部署 |"
+            )
+            historical_edge = _mapping(diagnostic.get("historical_edge_observation"))
+            lines.extend(
+                [
+                    "",
+                    f"状态语义：{diagnostic.get('state_semantics')} 历史 edge 点样在 "
+                    f"`{historical_edge.get('observed_at')}`（{historical_edge.get('observation_time_basis')}）"
+                    f"记录 `{historical_edge.get('classification')}` / {historical_edge.get('parsed_count')} 项，"
+                    f"但标记为 `{historical_edge.get('verification_status')}`；最新已绑定原始哈希的 edge 点样"
+                    f"在零 adapter 变更下恢复 `{diagnostic.get('edge_classification')}` / "
+                    f"{diagnostic.get('edge_parsed_count')} 项。两者都只是点样，不能外推永久状态。",
+                    "",
+                    f"该诊断每次只发 {diagnostic.get('external_subrequests_per_probe')} 个只读外部请求，"
+                    f"`write_allowed={str(bool(diagnostic.get('write_allowed'))).lower()}`、"
+                    f"`live_change_authorized={str(bool(diagnostic.get('live_change_authorized'))).lower()}`。"
+                    f"证据入口为 [诊断实现](../../{diagnostic.get('implementation_path')}) / "
+                    f"[可执行验证](../../{diagnostic.get('verification_path')}) / "
+                    f"[Run Contract](../../{diagnostic.get('run_contract_path')}) / "
+                    f"[事实型 receipt](../../{diagnostic.get('receipt_path')})（SHA-256 "
+                    f"`{diagnostic.get('receipt_sha256')}`；不自签验收）。",
+                    "",
+                    f"重新评估的最小条件：{diagnostic.get('minimum_next_condition')}",
+                ]
+            )
     return lines
 
 
