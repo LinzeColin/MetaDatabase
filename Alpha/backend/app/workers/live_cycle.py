@@ -309,11 +309,17 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
                 summary["submitted"] += 1
                 if side == "BUY":
                     reserved_aud += Decimal(str(limit)) * qty * d.fx_usd_aud
-                d.shadow.record_decision(
-                    intent_id=order_id,
-                    hypothetical_limit_price=Decimal(str(limit)),
-                    estimated_fees=Decimal(str(round(d.fee_estimate(side, qty, limit), 4))),
-                    rationale={"as_of": today_tag, "side": side, "symbol": sym, "qty": qty})
+                # 影子记录独立 try:影子失败绝不污染下单账目(实机教训:外键传错时
+                # 三笔成交被误计成 skipped;且影子键是意图号不是订单号)
+                try:
+                    d.shadow.record_decision(
+                        intent_id=d.store.get_intent_id(order_id) or order_id,
+                        hypothetical_limit_price=Decimal(str(limit)),
+                        estimated_fees=Decimal(str(round(d.fee_estimate(side, qty, limit), 4))),
+                        rationale={"as_of": today_tag, "side": side, "symbol": sym, "qty": qty})
+                except Exception as sexc:
+                    summary.setdefault("shadow_errors", []).append(
+                        f"{sym}:{type(sexc).__name__}")
         except Exception as exc:  # 单笔被闸(幂等已用/频控/租约)不拖垮整拍:如实计数
             summary["skipped"] += 1
             summary.setdefault("skip_reasons", []).append(f"{sym}:{type(exc).__name__}")
