@@ -17,6 +17,7 @@ from .stage1_queue import (
 
 OWNER_CONTROLS_MODEL_ID = "adp-owner-controls-v1"
 OWNER_CONTROLS_SCHEMA_VERSION = 1
+CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH = "config/cloudflare_source_candidates_v1_2.json"
 OWNER_CONTROL_DOCS: tuple[str, ...] = (
     "docs/owner/OWNER_CONSOLE.md",
     "docs/owner/SOURCE_CATALOG.md",
@@ -53,6 +54,19 @@ def load_owner_controls(path: str | Path | None = None) -> dict[str, Any]:
     data = _load_yaml(controls_path)
     if not isinstance(data, dict):
         raise OwnerControlsError("owner controls root must be a mapping")
+    return data
+
+
+def _load_optional_cloudflare_candidate_registry(root: Path) -> Mapping[str, Any] | None:
+    registry_path = root / CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH
+    if not registry_path.is_file():
+        return None
+    try:
+        data = json.loads(registry_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise OwnerControlsError(f"invalid Cloudflare candidate registry: {registry_path}") from exc
+    if not isinstance(data, Mapping):
+        raise OwnerControlsError("Cloudflare candidate registry root must be a mapping")
     return data
 
 
@@ -178,9 +192,10 @@ def render_owner_documents(
     root = Path(project_path) if project_path else project_root_default()
     validation = validate_owner_controls(controls)
     preview = build_owner_impact_preview(controls)
+    candidate_registry = _load_optional_cloudflare_candidate_registry(root)
     docs = {
         "docs/owner/OWNER_CONSOLE.md": _render_owner_console(controls, validation, preview, generated_at),
-        "docs/owner/SOURCE_CATALOG.md": _render_source_catalog(controls, generated_at),
+        "docs/owner/SOURCE_CATALOG.md": _render_source_catalog(controls, generated_at, candidate_registry),
         "docs/owner/MODEL_AND_QUEUE.md": _render_model_and_queue(controls, validation, preview, generated_at),
         "docs/owner/CONTENT_LEDGER.csv": _render_content_ledger_csv(generated_at),
     }
@@ -197,6 +212,10 @@ def render_owner_documents(
         "generated_at": generated_at,
         "config_version": str(controls.get("config_version") or ""),
         "generated_from": "config/owner_controls.yaml",
+        "source_catalog_inputs": [
+            "config/owner_controls.yaml",
+            *([CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH] if candidate_registry else []),
+        ],
         "owner_view_files": list(docs),
         "written_files": written,
         "errors": validation["errors"],
@@ -256,7 +275,11 @@ def _render_owner_console(
     return "\n".join(lines) + "\n"
 
 
-def _render_source_catalog(controls: Mapping[str, Any], generated_at: str) -> str:
+def _render_source_catalog(
+    controls: Mapping[str, Any],
+    generated_at: str,
+    candidate_registry: Mapping[str, Any] | None = None,
+) -> str:
     lines = [
         "# 来源目录",
         "",
@@ -281,7 +304,90 @@ def _render_source_catalog(controls: Mapping[str, Any], generated_at: str) -> st
             f"{source.get('name')} | `{source.get('access_method')}` | `{source.get('tier')}` | "
             f"`{source.get('frequency')}` | {source.get('weight')} | {_health_status_text_zh(source.get('health_status'))} |"
         )
+    if candidate_registry is not None:
+        lines.extend(_render_cloudflare_candidate_catalog(candidate_registry))
     return "\n".join(lines) + "\n"
+
+
+def _render_cloudflare_candidate_catalog(registry: Mapping[str, Any]) -> list[str]:
+    task_id = str(registry.get("task_id") or "")
+    implementation_path = str(registry.get("implementation_path") or "")
+    verification_path = str(registry.get("verification_path") or "")
+    live = _mapping(registry.get("live_route"))
+    candidates = _sequence_of_mappings(registry.get("candidate_routes"))
+    budget = _mapping(registry.get("subrequest_budget"))
+    required = {
+        "task_id": task_id,
+        "implementation_path": implementation_path,
+        "verification_path": verification_path,
+        "live_route.source_id": str(live.get("source_id") or ""),
+        "live_route.provider": str(live.get("provider") or ""),
+        "live_route.state": str(live.get("state") or ""),
+    }
+    missing = [name for name, value in required.items() if not value]
+    if missing or not candidates:
+        detail = ", ".join([*missing, *(["candidate_routes"] if not candidates else [])])
+        raise OwnerControlsError(f"Cloudflare candidate registry missing required fields: {detail}")
+
+    lines = [
+        "",
+        "## Cloudflare v1.2 来源救援补充面",
+        "",
+        f"本节由 [`{CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH}`](../../{CLOUDFLARE_SOURCE_CANDIDATE_REGISTRY_PATH}) 生成，属于当前 Cloudflare 产品线，不改变上方旧本机 `owner_controls.yaml` 目录。任务为 `{task_id}`；真实 live 路由仍由 [Worker registry](../../deploy/cloudflare/worker_cloud.js) 决定。",
+        "",
+        "| 来源 ID | 板块 | 提供方 | 状态 | 重试/活动边界 |",
+        "|---|---|---|---|---|",
+        f"| `{live.get('source_id')}` | `{live.get('board_id')}` | {live.get('provider')} | `{live.get('state')}` | 当前单次 live 抓取保持不变 |",
+    ]
+    for candidate in candidates:
+        policy = _mapping(candidate.get("fetch_policy"))
+        retry_statuses = "/".join(str(value) for value in _as_sequence(policy.get("retry_statuses")))
+        delays = "/".join(str(value) for value in _as_sequence(policy.get("delays_ms")))
+        redirect = str(policy.get("redirect") or "")
+        candidate_required = {
+            "source_id": str(candidate.get("source_id") or ""),
+            "board_id": str(candidate.get("board_id") or ""),
+            "provider": str(candidate.get("provider") or ""),
+            "state": str(candidate.get("state") or ""),
+            "max_attempts": str(policy.get("max_attempts") or ""),
+            "retry_statuses": retry_statuses,
+            "delays_ms": delays,
+            "redirect": redirect,
+        }
+        candidate_missing = [name for name, value in candidate_required.items() if not value]
+        if candidate_missing:
+            raise OwnerControlsError(
+                "Cloudflare candidate route missing required fields: " + ", ".join(candidate_missing)
+            )
+        lines.append(
+            f"| `{candidate.get('source_id')}` | `{candidate.get('board_id')}` | {candidate.get('provider')} | `{candidate.get('state')}` | timeout/{retry_statuses} 最多 {policy.get('max_attempts')} 次，{delays}ms；redirect=`{redirect}`，不接入 Worker、不部署 |"
+        )
+
+    budget_required = (
+        "current_live_max",
+        "candidate_retry_increment_max",
+        "projected_max_if_enabled",
+        "cloudflare_workers_free_limit",
+        "projected_headroom",
+        "redirect_subrequests_per_attempt_max",
+    )
+    budget_missing = [name for name in budget_required if budget.get(name) is None]
+    if budget_missing:
+        raise OwnerControlsError(
+            "Cloudflare candidate budget missing required fields: " + ", ".join(budget_missing)
+        )
+    lines.extend(
+        [
+            "",
+            "可执行预算从真实 Worker registry/常量推导：当前 daily live external 最坏 "
+            f"`{budget.get('current_live_max')}` 次；候选以后若获授权替换现有 Bing 单次路径，最多增加 "
+            f"{budget.get('candidate_retry_increment_max')} 次，投影 `{budget.get('projected_max_if_enabled')}/{budget.get('cloudflare_workers_free_limit')}`，"
+            f"保留 {budget.get('projected_headroom')} 次余量。手动 redirect 把每个 attempt 封顶为 "
+            f"{budget.get('redirect_subrequests_per_attempt_max')} 个 subrequest。验收入口为 "
+            f"[候选实现](../../{implementation_path}) / [可执行验证](../../{verification_path})。",
+        ]
+    )
+    return lines
 
 
 def _render_model_and_queue(

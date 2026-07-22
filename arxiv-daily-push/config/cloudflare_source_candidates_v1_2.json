@@ -1,0 +1,50 @@
+{
+  "schema_version": "adp-cloud-source-candidate-registry-v1",
+  "task_id": "ADP-V12-S1-T001",
+  "scope": "cloudflare_v1_2_source_rescue",
+  "implementation_path": "deploy/cloudflare/google_news_candidate.mjs",
+  "verification_path": "tools/verify_google_news_candidate.mjs",
+  "live_route": {
+    "source_id": "gnews-us-tech",
+    "board_id": "board4",
+    "provider": "Bing News RSS",
+    "feed_url": "https://www.bing.com/news/search?q=FTC+antitrust&format=rss&mkt=en-US",
+    "state": "active_live"
+  },
+  "candidate_routes": [
+    {
+      "source_id": "gnews-us-tech-google-candidate",
+      "board_id": "board4",
+      "provider": "Google News RSS",
+      "feed_url": "https://news.google.com/rss/search?q=FTC+antitrust&hl=en-US&gl=US&ceid=US%3Aen",
+      "state": "candidate_not_live",
+      "live": false,
+      "fallback_source_id": "gnews-us-tech",
+      "fetch_policy": {
+        "max_attempts": 3,
+        "retry_statuses": [502, 503, 504],
+        "delays_ms": [1000, 3000],
+        "timeout_ms": 15000,
+        "redirect": "manual_fail_closed"
+      }
+    }
+  ],
+  "subrequest_budget": {
+    "accounting_scope": "external_subrequests_per_daily_invocation_if_candidate_replaces_current_bing_single_attempt",
+    "arxiv_oai_max": 2,
+    "biorxiv_max": 1,
+    "rotated_rss_max": 13,
+    "a0_max": 4,
+    "openalex_max": 12,
+    "current_live_max": 32,
+    "candidate_retry_increment_max": 2,
+    "redirect_subrequests_per_attempt_max": 1,
+    "projected_max_if_enabled": 34,
+    "cloudflare_workers_free_limit": 50,
+    "projected_headroom": 16,
+    "cloudflare_limit_source": "https://developers.cloudflare.com/workers/platform/limits/",
+    "limit_checked_on": "2026-07-22"
+  },
+  "live_change_authorized": false,
+  "rollback": "Remove the candidate-only module/config; worker_cloud.js and its Bing route remain unchanged."
+}

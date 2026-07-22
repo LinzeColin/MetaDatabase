@@ -1,0 +1,110 @@
+{
+  "run_id": "ADP-V12-S1-T001-20260722",
+  "task_id": "ADP-V12-S1-T001",
+  "action": "Google News 有界 retry/backoff 候选实现、整阶段复审与修复",
+  "result": "ACC-V12-S1-001..005 为 5/5 PASS；P0/P1/UNKNOWN/BLOCKED 均为 0；S2 保持 NOT_RUN",
+  "initial_review_completed_at": "2026-07-22T18:49:46+10:00",
+  "ts": "2026-07-22T19:45:14+10:00",
+  "decision_scope": "developer_check",
+  "independent_verdict": "PASS",
+  "verified_subject_manifest": {
+    "scope": "S1 candidate implementation, executable verification, required owner-facing source sync, canonical HANDOFF, and the real-backfill CI scope correction; closeout receipt, phase record, machine facts, generated human plane, and timestamp-only owner pages are excluded to avoid self-reference and are bound by the final Git tree",
+    "root": "repository root",
+    "path_order": "ascending UTF-8 bytes",
+    "line_format": "<lowercase file SHA-256><two ASCII spaces><POSIX relative path><LF>",
+    "aggregate_algorithm": "SHA-256 over the concatenated UTF-8 manifest lines",
+    "files": [
+      {"path": ".github/workflows/arxiv-daily-push-real-backfill.yml", "sha256": "89d9baaf50caea7a59b6dc70dcbb4c24631ebc6b5dd21827450eacf3e24733e7"},
+      {"path": "arxiv-daily-push/config/cloudflare_source_candidates_v1_2.json", "sha256": "61246e1a3790daeb9073ef06e7855af5d927da2ab0357fe1ed6d66b94772b9c9"},
+      {"path": "arxiv-daily-push/deploy/cloudflare/google_news_candidate.mjs", "sha256": "31b3540f3943ccc80be9e04fe7f2ebe3e020eb5cef7128f89865a4d724769318"},
+      {"path": "arxiv-daily-push/docs/HANDOFF.md", "sha256": "51e4b98ccac88bb823568ac4904260edb20a3988709bc825ea508e5370c18603"},
+      {"path": "arxiv-daily-push/docs/owner/SOURCE_CATALOG.md", "sha256": "55413d486cf5b2733a1e4ccb0ad145fffdb09e8fff317a8cbc237f3a359e9082"},
+      {"path": "arxiv-daily-push/src/arxiv_daily_push/owner_controls.py", "sha256": "723188438ad8331d7480f7a5e86b8d9f03aeff1ac0c99a64531c464c0d714ac0"},
+      {"path": "arxiv-daily-push/tests/fixtures/google_news_rss_empty.xml", "sha256": "2aa1bc81fa518f7d24e8cf238e9fb53942ff7c3e51c731cd9b45ed730ae776bd"},
+      {"path": "arxiv-daily-push/tests/fixtures/google_news_rss_sample.xml", "sha256": "f3f190124294170cb4cf5af715ec6098efcbbded44e352d82034cfe359047ec8"},
+      {"path": "arxiv-daily-push/tests/test_google_news_candidate.py", "sha256": "1cadfda3e3dcb2ab32b37cbfb32bbf6066e501250f6b84533d4579897bbf3b20"},
+      {"path": "arxiv-daily-push/tests/test_stage1_real_replay.py", "sha256": "d196c355137ef0c59bf9380d4d7a6bf4a2d4a1277bf98c32e481c6f09362e93e"},
+      {"path": "arxiv-daily-push/tools/compare_full_suite_issue_set.py", "sha256": "b0f239028a670dda4123e6186eefbce4cf0c3cbbca35fc8b25cc64d4ff2a3773"},
+      {"path": "arxiv-daily-push/tools/verify_google_news_candidate.mjs", "sha256": "7039cf4f3c806e1a7b3f114ea9fa5d0ba1c89366280bb3cd0e8bcea71d714080"},
+      {"path": "arxiv-daily-push/用户中心/README.md", "sha256": "89a523080d570ef1c4af137ed04e62868dbbbb773795ac220149fbe4b3f215cb"},
+      {"path": "arxiv-daily-push/用户中心/一看三查.md", "sha256": "36467528d3369ec84756db02139ddad9f44b4a14d8e6987d458f188b10909d0a"},
+      {"path": "arxiv-daily-push/用户中心/关键结论与用户决策.md", "sha256": "f7495208e6cca27e979e5893b1842c2d40f6a3049288fb2908701e804f363a98"},
+      {"path": "arxiv-daily-push/用户中心/数据源与板块健康.md", "sha256": "b0589f7f5ee507541cdb378dfbf49674586e0943dc76ee83aa7a09ebaf43b88d"}
+    ],
+    "aggregate_sha256": "132ebad15ecb2c73282be05466a8a4d924521f2f910b6f80ba325a0d49f0087e"
+  },
+  "run_contract_sha256": "929e4b014c949972248afc8d9df2fe677051becb4a71107f8ca025eab68ec1bc",
+  "implementation_sha256": "31b3540f3943ccc80be9e04fe7f2ebe3e020eb5cef7128f89865a4d724769318",
+  "candidate_registry_sha256": "61246e1a3790daeb9073ef06e7855af5d927da2ab0357fe1ed6d66b94772b9c9",
+  "acceptances": {
+    "ACC-V12-S1-001": "PASS",
+    "ACC-V12-S1-002": "PASS",
+    "ACC-V12-S1-003": "PASS",
+    "ACC-V12-S1-004": "PASS",
+    "ACC-V12-S1-005": "PASS"
+  },
+  "counts": {
+    "pass": 5,
+    "p0": 0,
+    "p1": 0,
+    "unknown": 0,
+    "blocked": 0
+  },
+  "stage_review_findings_fixed": [
+    "显式使用 redirect=manual；真实本地 302→200 负控证明只发出 1 个外部请求并以 HTTP_302 失败关闭",
+    "候选登记由 owner_controls canonical renderer 生成；临时渲染与仓内 SOURCE_CATALOG.md 字节一致",
+    "最终机器状态改用已登记中文事实表述，避免未登记英文术语污染双平面总览",
+    "real backfill CI 只精确排除不进入 replay 数据流的 owner_controls.py 与候选 registry；真实 replay 源码、其他 config 或混合变更仍触发完整质量门"
+  ],
+  "closeout_validation": {
+    "focused_candidate_tests": {"ran": 16, "passed": 16},
+    "real_replay_scope_tests": {"ran": 5, "passed": 5},
+    "owner_controls_tests": {"ran": 5, "passed": 5},
+    "source_registry_tests": {"ran": 3, "passed": 3},
+    "security_tests": {"ran": 14, "passed": 14},
+    "governance_tests": {"ran": 65, "passed": 65},
+    "full_suite": {"ran": 939, "failures": 2, "errors": 11, "skipped": 29},
+    "sealed_failure_error_name_set_exact_match": true,
+    "candidate_only": [],
+    "baseline_only": [],
+    "new_tests": 16,
+    "worker_path_changed": false,
+    "wrangler_path_changed": false,
+    "cron_changed": false
+  },
+  "full_suite_evidence": {
+    "runner_log": {
+      "storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "sha256": "7630eb16d69f4b694c5d8697c5fecb1c4aa6229e4d9e001438ca83bf4c952b60"
+    },
+    "sealed_baseline": {
+      "path": "docs/archive/taskpacks/2026-07-20/ADP_META_MIGRATION_e1af471c_2026-07-20_acceptance_review_taskpack.zip",
+      "sha256": "c5ab970698f3ca3fd6bba6939123fae2c0cb6ecd5b7cd6058a622b7fabfcc084"
+    },
+    "comparator": {
+      "path": "tools/compare_full_suite_issue_set.py",
+      "output_storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "output_sha256": "f10cd57a63a9381c8df188d1670ecd7418e166132c433cba77e951c78e841bda",
+      "status": "PASS",
+      "candidate_only": [],
+      "baseline_only": [],
+      "exact_issue_set_match": true
+    }
+  },
+  "subrequest_budget": {
+    "scope": "single scheduled invocation if the candidate later replaces the current one-attempt Bing route",
+    "current_live_max": 32,
+    "candidate_retry_increment_max": 2,
+    "projected_max_if_enabled": 34,
+    "cloudflare_free_limit": 50,
+    "headroom": 16,
+    "redirect_subrequests_per_attempt_max": 1
+  },
+  "live_source": "gnews-us-tech (Bing News RSS)",
+  "candidate_source": "gnews-us-tech-google-candidate (Google News RSS; candidate_not_live)",
+  "runtime_or_live_change": false,
+  "s2_status": "NOT_RUN",
+  "deployment_authorized": false,
+  "raw_evidence_policy": "OWNER_LOCAL_NOT_COMMITTED_PUBLIC_RECEIPT_HASHES_ONLY",
+  "public_receipt": "docs/phase_records/PHASE_ADP_V12_S1_GOOGLE_NEWS_RETRY.md"
+}

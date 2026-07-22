@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import subprocess
 import tempfile
 import unittest
@@ -212,6 +213,42 @@ class Stage1RealReplayTests(unittest.TestCase):
             "runtime_regex='^(arxiv-daily-push/(src|config|schemas)/",
             workflow,
         )
+        runtime_match = re.search(r"runtime_regex='([^']+)'", workflow)
+        exclusion_match = re.search(r"replay_irrelevant_regex='([^']+)'", workflow)
+        self.assertIsNotNone(runtime_match)
+        self.assertIsNotNone(exclusion_match)
+
+        runtime_regex = runtime_match.group(1)
+        exclusion_regex = exclusion_match.group(1)
+
+        def should_run_real_backfill(paths: list[str]) -> bool:
+            runtime_paths = [path for path in paths if re.search(runtime_regex, path)]
+            replay_paths = [path for path in runtime_paths if not re.search(exclusion_regex, path)]
+            return bool(replay_paths)
+
+        self.assertFalse(
+            should_run_real_backfill(
+                [
+                    "arxiv-daily-push/src/arxiv_daily_push/owner_controls.py",
+                    "arxiv-daily-push/config/cloudflare_source_candidates_v1_2.json",
+                    "arxiv-daily-push/tests/test_google_news_candidate.py",
+                ]
+            )
+        )
+        self.assertTrue(
+            should_run_real_backfill(
+                ["arxiv-daily-push/src/arxiv_daily_push/stage1_real_replay.py"]
+            )
+        )
+        self.assertTrue(
+            should_run_real_backfill(
+                [
+                    "arxiv-daily-push/src/arxiv_daily_push/owner_controls.py",
+                    "arxiv-daily-push/config/source_registry.yaml",
+                ]
+            )
+        )
+        self.assertIn("backfill-irrelevant control-plane-only change", workflow)
         self.assertNotIn("(src|tests|config|schemas)", workflow)
         self.assertIn(
             "tests/docs/governance-only paths do not run this mutable external-data check",
