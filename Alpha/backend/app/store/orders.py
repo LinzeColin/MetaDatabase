@@ -355,6 +355,12 @@ class OrderStore:
             order = session.scalar(select(BrokerOrder).where(BrokerOrder.intent_id == intent.intent_id))
             return order.order_id if order else None
 
+    def get_intent_id(self, order_id: str) -> Optional[str]:
+        """订单号 -> 意图号(影子单外键用意图号;实机 2026-07-23 曾错传订单号致影子静默缺失)。"""
+        with self._sessions() as session:
+            order = session.get(BrokerOrder, order_id)
+            return order.intent_id if order else None
+
     def get_filled_quantity(self, order_id: str) -> int:
         """已入账成交量(070 SIMULATE 派生成交的增量基准)。"""
         with self._sessions() as session:

@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S02.S001.001",
+  "synthetic": true,
+  "cases": [
+    {
+      "id": "xhs-image-detail",
+      "file": "image_detail.html",
+      "page_url": "https://www.xiaohongshu.com/explore/synthetic-note-image-001?tracking=synthetic-fixture#sanitized",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-note-image-001",
+        "content_type": "image_gallery",
+        "title": "Synthetic image note"
+      }
+    },
+    {
+      "id": "xhs-video-detail",
+      "file": "video_detail.html",
+      "page_url": "https://www.xiaohongshu.com/discovery/item/synthetic-note-video-002",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-note-video-002",
+        "content_type": "video",
+        "title": "Synthetic video note"
+      }
+    },
+    {
+      "id": "xhs-missing-optional-fields",
+      "file": "missing_fields.html",
+      "page_url": "https://www.xiaohongshu.com/explore/synthetic-note-missing-003",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-note-missing-003",
+        "content_type": "unknown",
+        "title": null
+      }
+    },
+    {
+      "id": "xhs-stable-id-mismatch",
+      "file": "changed_id.html",
+      "page_url": "https://www.xiaohongshu.com/explore/synthetic-note-changed-004",
+      "expected": {
+        "status": "platform_changed",
+        "reason": "stable_id_signal_mismatch"
+      }
+    },
+    {
+      "id": "xhs-feed-card-not-detail",
+      "file": "feed_card.html",
+      "page_url": "https://www.xiaohongshu.com/explore/synthetic-note-feed-005",
+      "expected": {
+        "status": "platform_changed",
+        "reason": "detail_surface_missing"
+      }
+    }
+  ],
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "contains_real_accounts": false,
+  "real_accounts": false
+}

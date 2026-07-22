@@ -1,0 +1,40 @@
+{
+  "case_count": 80,
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_owner_content": false,
+  "fixture_id": "FIXTURE.X2N.S02.S005.001",
+  "generation": {
+    "category_fallback": "unclassified",
+    "deterministic_index_end_exclusive": 80,
+    "deterministic_index_start": 0,
+    "platform_cycle": [
+      "xiaohongshu",
+      "douyin",
+      "bilibili",
+      "kuaishou",
+      "weibo",
+      "taobao"
+    ],
+    "synthetic_ocr_characters": 8192,
+    "synthetic_transcript_characters": 16384
+  },
+  "notion_mock": {
+    "api_version": "2026-03-11",
+    "faults": [
+      "http_429_retry_after",
+      "http_529_retry_after",
+      "timeout",
+      "connection_reset",
+      "one_hour_outage",
+      "success_before_receipt_kill",
+      "schema_type_conflict"
+    ],
+    "initial_user_fields": ["Owner Notes"],
+    "real_api_calls": 0
+  },
+  "replay_rounds": 2,
+  "schema_version": "1.0",
+  "task_id": "TSK.x2n.skeleton.005"
+}

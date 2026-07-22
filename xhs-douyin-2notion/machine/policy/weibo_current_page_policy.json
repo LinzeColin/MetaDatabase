@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "WEIBO.CURRENT_PAGE.X2N.001",
+  "phase": "PH.X2N.2.5",
+  "default": "deny",
+  "feature_flag": {
+    "name": "weibo_current_page",
+    "value": "ci_synth_only",
+    "real_page_execution": false,
+    "owner_canary": "not_run"
+  },
+  "platform_policy_state": "blocked_budget_real_page_unknown_disabled_api_and_dom_fallback",
+  "execution_environment": "ENV-CI-SYNTH",
+  "production_api_transport": false,
+  "official_first_gate": {
+    "official_cli_available": true,
+    "official_cli_installed_or_executed": false,
+    "oauth_application_required": true,
+    "authorized_status_show_available": true,
+    "authorized_status_show_scope": "status_authored_by_authorized_user_only",
+    "arbitrary_public_current_page_read_capability": "not_found",
+    "likes_or_favorites_read_capability": "not_found",
+    "automated_dom_collection_permission": "not_found"
+  },
+  "budget_gate": {
+    "default_budget_units": 0,
+    "approved_paid_tier": false,
+    "application_plan_state": "not_configured",
+    "application_quota_state": "unknown",
+    "api_price_state": "unknown_for_this_application",
+    "unknown_quota_or_positive_cost_state": "BLOCKED_BUDGET"
+  },
+  "auth_gate": {
+    "application_registered": false,
+    "oauth_configured": false,
+    "access_token_input": false,
+    "application_confidential_material_input": false,
+    "cookie_input": false,
+    "browser_profile_input": false
+  },
+  "route_evidence": {
+    "official_status_identity": "id_and_mid_for_authorized_users_own_status",
+    "public_detail_route": "unverified_route_assumption_ci_fixture_only",
+    "public_user_status_route": "recognition_only_real_execution_budget_blocked",
+    "selected_collection": "not_in_scope_unknown_disabled"
+  },
+  "current_page_contract": {
+    "owner_action_required": true,
+    "active_tab_required": true,
+    "isolated_world": true,
+    "focused_tab_and_url_rechecked": true,
+    "automatic_scrolling": false,
+    "automatic_pagination": false,
+    "account_state_change": false,
+    "query_or_fragment_persistence": false,
+    "media_url_or_raw_dom_output": false,
+    "non_synthetic_identity_capture": false
+  },
+  "arbitrary_url_surface": {
+    "preview_handler": false,
+    "proxy_handler": false,
+    "redirect_follower": false,
+    "network_fetcher": false,
+    "url_control_query_keys_rejected": true,
+    "redirect_ssrf_case_count": 16,
+    "redirect_ssrf_rejection_rate_percent": 100
+  },
+  "synthetic_gate": {
+    "status_id_prefix": "synthetic-wb-status-",
+    "canonical_host": "www.weibo.com",
+    "dom_case_count": 8,
+    "policy_case_count": 12,
+    "blocked_budget_case_count": 2,
+    "schema_drift_rejection_count": 7,
+    "platform_network_calls": 0
+  },
+  "official_evidence_registry": "machine/policy/platform_policy_registry.json#official_sources.weibo",
+  "policy_findings": {
+    "authorized_status_api": "documented_for_statuses_authored_by_authorized_user",
+    "rate_limit_and_paid_capacity": "application_specific_approval_price_and_quota_not_established",
+    "credential_material": "oauth_authorization_and_application_confidential_material_must_not_enter_extension_or_repository",
+    "real_current_page_dom_exemption": "not_found",
+    "decision": "retain_blocked_budget_for_real_pages_and_unknown_disabled_for_api_and_dom_fallback"
+  },
+  "rollback": "set_weibo_current_page_false_and_retain_public_synthetic_fixtures",
+  "future_enablement_requires": [
+    "independent_versioned_task",
+    "approved_application_and_owner_consent",
+    "documented_minimum_scope",
+    "approved_budget_and_measured_quota_receipt",
+    "documented_current_page_identity_mapping",
+    "data_deletion_and_revocation_design",
+    "owner_canary_and_completeness_receipt"
+  ]
+}

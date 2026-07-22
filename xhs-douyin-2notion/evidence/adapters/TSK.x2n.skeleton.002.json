@@ -1,0 +1,117 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.capture.002",
+    "ACC.x2n.ext.001"
+  ],
+  "acceptance_input_sha256": "4b11ddccac5a8168b804a7e0dea9ccfc9440011451a63f1cae7fed37046ab1ba",
+  "acceptance_status": {
+    "ACC.x2n.capture.002": "PASS_CI_SYNTH_8_DOM_16_REDIRECT_OWNER_CANARY_NOT_RUN_REAL_PAGE_DISABLED",
+    "ACC.x2n.ext.001": "PASS_DOUYIN_CURRENT_PAGE_CI_SYNTH_ACTION_GATED_OWNER_CANARY_NOT_RUN"
+  },
+  "checks": [
+    {
+      "details": {
+        "changed_files": 37,
+        "out_of_scope_writes": 0,
+        "private_runtime_files": 0,
+        "sensitive_or_media_url_hits": 0,
+        "text_files_scanned": 264
+      },
+      "name": "scope_and_privacy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s02-skeleton002",
+        "external_main_dirty_paths": 0,
+        "origin_drift_commits": 0,
+        "origin_project_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "acceptance_ids": 2,
+        "next_task": "TSK.x2n.skeleton.006",
+        "owner_canary": "NOT_RUN",
+        "phase": "PH.X2N.2.2",
+        "real_page_execution": "DISABLED",
+        "single_task": true
+      },
+      "name": "task_and_acceptance_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "content_scripts": 0,
+        "host_permissions": 0,
+        "native_actions": 7,
+        "permissions": 4,
+        "production_network_transport": 0,
+        "real_page_execution": "DISABLED"
+      },
+      "name": "extension_permission_and_security_surface",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "dom_fixture_cases": 8,
+        "fixture_html_bytes": 4435,
+        "platform_changed_cases": 4,
+        "policy_state": "UNKNOWN_DISABLED_REAL",
+        "ready_cases": 4,
+        "short_link_cases": 16,
+        "synthetic_only": true
+      },
+      "name": "fixtures_and_platform_policy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "action_before_grant_rejections": 2,
+        "blocked_platform_network_requests": 0,
+        "dom_fixture_cases": 8,
+        "douyin_screenshot": {
+          "bytes": 26983,
+          "sha256": "ac1cfa36787cf464f20736a175df823ac0fe6cb1d920429819089125ae21e71e"
+        },
+        "douyin_trace": {
+          "bytes": 252761,
+          "sha256": "379fa03695d770ff113f32c4094e0bcea039be50ea55f8840d0ff0dbdff3db69"
+        },
+        "owner_canary": "NOT_RUN",
+        "platform_calls": 0,
+        "redirect_security_cases": 16,
+        "service_worker_restarts_per_platform": 100,
+        "short_links_persisted": 0,
+        "xhs_screenshot": {
+          "bytes": 26983,
+          "sha256": "ac1cfa36787cf464f20736a175df823ac0fe6cb1d920429819089125ae21e71e"
+        },
+        "xhs_trace": {
+          "bytes": 252044,
+          "sha256": "5c81b462b814aee1b09d1652f7172da668a0c3a1395fc385e6a621894cc95e0a"
+        }
+      },
+      "name": "isolated_current_page_e2e",
+      "status": "PASS"
+    }
+  ],
+  "feature_flag": "CI_SYNTH_ONLY_REAL_PAGE_AND_NETWORK_TRANSPORT_DISABLED",
+  "generated_at": "2026-07-22T04:08:12Z",
+  "owner_canary": "NOT_RUN",
+  "phase": "PH.X2N.2.2",
+  "platform_calls": 0,
+  "private_content_included": false,
+  "production_network_transport": "DISABLED",
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_G2_PASS",
+  "run_id": "RUN-X2N-S02-S002",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.2",
+  "stage_gate": "G2_NOT_RUN",
+  "status": "PASS_CI_SYNTH_SCOPED",
+  "task_id": "TSK.x2n.skeleton.002"
+}

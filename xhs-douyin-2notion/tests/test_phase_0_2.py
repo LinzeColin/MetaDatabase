@@ -51,7 +51,7 @@ class Phase02Tests(unittest.TestCase):
             self.assertEqual(values["x2n:actual-runtime"], "false")
 
     def test_adapter_acceptance_is_not_overstated(self) -> None:
-        state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
+        state = VERIFY._load_json_at(VERIFY.STAGE_1_REVIEW_COMMIT, VERIFY.TASK_STATE)
         self.assertEqual(state["acceptance_status"]["ACC.x2n.dy.003"], "baseline_pass_downstream_not_run")
         self.assertIn(state["stage_gate"], {"blocked_owner_action", "pass"})
         self.assertEqual(state["next_phase_authorized"], state["stage_gate"] == "pass")

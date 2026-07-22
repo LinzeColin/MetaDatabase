@@ -1,0 +1,48 @@
+{
+  "acceptance_scope": "ci_synthetic_and_in_process_notion_mock_scoped",
+  "canonical_source": "sqlite_schema_v2",
+  "category_fallback": {
+    "creates_taxonomy_row": false,
+    "display_name": "Unclassified",
+    "slug": "unclassified"
+  },
+  "default": "deny",
+  "markdown": {
+    "atomic_replace": true,
+    "canonical_path_template": "runtime/library/content/<platform>/<content_id>.md",
+    "category_index_template": "runtime/library/categories/<category_slug>/INDEX.md",
+    "file_mode": "0600",
+    "path_uses_category": false,
+    "path_uses_title": false
+  },
+  "migration": "not_required_schema_v2_unchanged",
+  "notion": {
+    "api_version": "2026-03-11",
+    "credential_access": "NOT_RUN",
+    "default_requests_per_second": 2,
+    "external_file_or_media_blocks": false,
+    "mock_transport": "in_process_deterministic",
+    "real_api_calls": 0,
+    "schema_changes": "additive_only",
+    "user_fields": "preserve",
+    "views": "DOWNSTREAM_NOT_RUN"
+  },
+  "outbox": {
+    "dead_letter_bounded": true,
+    "max_attempts": 4,
+    "retry_after_statuses": [429, 529],
+    "success_before_receipt_reconcile": true
+  },
+  "phase": "PH.X2N.2.9",
+  "policy_id": "SINK_PROJECTION.X2N.001",
+  "prohibited_persistence": [
+    "platform_media_cdn_url",
+    "credential",
+    "cookie",
+    "browser_state",
+    "raw_media",
+    "local_absolute_path"
+  ],
+  "schema_version": "1.0",
+  "task_id": "TSK.x2n.skeleton.005"
+}

@@ -1,0 +1,148 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S02.S007.001",
+  "synthetic": true,
+  "route_assumptions": {
+    "public_short_video_route": "unverified_real_route_not_enabled",
+    "official_stable_identity": "photo_id_verified_for_oauth_user_video_info_only"
+  },
+  "auth_contract": {
+    "required_scope": "user_video_info",
+    "missing_scope_state": "BLOCKED_AUTH",
+    "cookie_read_allowed": false,
+    "production_api_transport": false
+  },
+  "cases": [
+    {
+      "id": "kuaishou-video-detail",
+      "file": "video_detail.html",
+      "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-001?tracking=discarded#discarded",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-ks-video-001",
+        "content_type": "video",
+        "title": "Synthetic Kuaishou video",
+        "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-001"
+      }
+    },
+    {
+      "id": "kuaishou-open-graph-title",
+      "file": "open_graph_title.html",
+      "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-002",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-ks-video-002",
+        "content_type": "video",
+        "title": "Synthetic Open Graph title",
+        "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-002"
+      }
+    },
+    {
+      "id": "kuaishou-missing-title",
+      "file": "missing_title.html",
+      "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-003",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-ks-video-003",
+        "content_type": "video",
+        "title": null,
+        "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-003"
+      }
+    },
+    {
+      "id": "kuaishou-unknown-type",
+      "file": "unknown_type.html",
+      "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-004#discarded",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-ks-video-004",
+        "content_type": "unknown",
+        "title": "Synthetic unknown type",
+        "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-004"
+      }
+    },
+    {
+      "id": "kuaishou-changed-id",
+      "file": "changed_id.html",
+      "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-005",
+      "expected": {"status": "platform_changed", "reason": "stable_id_signal_mismatch"}
+    },
+    {
+      "id": "kuaishou-kind-mismatch",
+      "file": "kind_mismatch.html",
+      "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-006",
+      "expected": {"status": "platform_changed", "reason": "content_type_signal_mismatch"}
+    },
+    {
+      "id": "kuaishou-feed-card",
+      "file": "feed_card.html",
+      "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-007",
+      "expected": {"status": "platform_changed", "reason": "detail_surface_missing"}
+    },
+    {
+      "id": "kuaishou-ambiguous-detail",
+      "file": "ambiguous_detail.html",
+      "page_url": "https://www.kuaishou.com/short-video/synthetic-ks-video-008",
+      "expected": {"status": "platform_changed", "reason": "detail_surface_ambiguous"}
+    }
+  ],
+  "policy_cases": [
+    {
+      "id": "kuaishou-synthetic-video-enabled",
+      "url": "https://www.kuaishou.com/short-video/synthetic-ks-video-policy-001",
+      "expected": {"executable": true, "platform": "kuaishou", "reason": "current_page_ci_synth_enabled", "supported": true}
+    },
+    {
+      "id": "kuaishou-real-shaped-video-blocked-auth",
+      "url": "https://www.kuaishou.com/short-video/3xRealShape001",
+      "expected": {"executable": false, "platform": "kuaishou", "reason": "kuaishou_oauth_scope_missing_blocked_auth", "supported": true}
+    },
+    {
+      "id": "kuaishou-second-real-shaped-video-blocked-auth",
+      "url": "https://www.kuaishou.com/short-video/9ZRealShape002",
+      "expected": {"executable": false, "platform": "kuaishou", "reason": "kuaishou_oauth_scope_missing_blocked_auth", "supported": true}
+    },
+    {
+      "id": "kuaishou-bare-host-disabled",
+      "url": "https://kuaishou.com/short-video/synthetic-ks-video-policy-002",
+      "expected": {"executable": false, "platform": "kuaishou", "reason": "kuaishou_noncanonical_host_disabled", "supported": true}
+    },
+    {
+      "id": "kuaishou-profile-unsupported",
+      "url": "https://www.kuaishou.com/profile/synthetic",
+      "expected": {"executable": false, "platform": null, "reason": "unsupported_page", "supported": false}
+    },
+    {
+      "id": "kuaishou-short-host-unsupported",
+      "url": "https://v.kuaishou.com/synthetic",
+      "expected": {"executable": false, "platform": null, "reason": "unsupported_page", "supported": false}
+    },
+    {
+      "id": "kuaishou-explicit-port-rejected",
+      "url": "https://www.kuaishou.com:444/short-video/synthetic-ks-video-policy-003",
+      "expected": {"executable": false, "platform": null, "reason": "unsafe_url", "supported": false}
+    },
+    {
+      "id": "kuaishou-http-rejected",
+      "url": "http://www.kuaishou.com/short-video/synthetic-ks-video-policy-004",
+      "expected": {"executable": false, "platform": null, "reason": "unsafe_url", "supported": false}
+    },
+    {
+      "id": "kuaishou-lookalike-unsupported",
+      "url": "https://www.kuaishou.com.example/short-video/synthetic-ks-video-policy-005",
+      "expected": {"executable": false, "platform": null, "reason": "unsupported_page", "supported": false}
+    },
+    {
+      "id": "kuaishou-userinfo-rejected",
+      "url": "https://synthetic@www.kuaishou.com/short-video/synthetic-ks-video-policy-006",
+      "expected": {"executable": false, "platform": null, "reason": "unsafe_url", "supported": false}
+    }
+  ],
+  "contains_cookies": false,
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "contains_real_accounts": false,
+  "real_accounts": false
+}

@@ -1,0 +1,137 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.data.001",
+    "ACC.x2n.data.002",
+    "ACC.x2n.data.003",
+    "ACC.x2n.ops.001"
+  ],
+  "acceptance_input_sha256": "acc1301029c9613c9b82d8639a53ade8260baf493b24dee7dd667494caa07283",
+  "acceptance_status": {
+    "ACC.x2n.data.001": "PASS_CI_SYNTH_SCHEMA_V2_CANONICAL_GRAPH_INTEGRITY",
+    "ACC.x2n.data.002": "PASS_CI_SYNTH_80X2_100_CONCURRENT_DUPLICATE_ENTITIES_0_SINKS_DOWNSTREAM_NOT_RUN",
+    "ACC.x2n.data.003": "PASS_CI_SYNTH_CANONICAL_TRACE_BROKEN_0_CLASSIFICATION_RENDERER_SINKS_DOWNSTREAM_NOT_RUN",
+    "ACC.x2n.ops.001": "PASS_CI_SYNTH_4_KILL_POINTS_NON_REPLAYABLE_0_DOWNSTREAM_KILL_POINTS_NOT_RUN"
+  },
+  "checks": [
+    {
+      "details": {
+        "changed_files": 27,
+        "out_of_scope_writes": 0,
+        "private_runtime_files": 0,
+        "sensitive_or_media_url_hits": 0,
+        "text_files_scanned": 347
+      },
+      "name": "scope_and_privacy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s02-skeleton004",
+        "external_main_dirty_paths": 0,
+        "origin_drift_commits": 3,
+        "origin_project_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "checks": 5,
+        "final_commit": "d5f61f30657ac6aa1bc7be3f7942d4b77df5b8ae",
+        "history_rewritten": false
+      },
+      "name": "skeleton_003_history",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "acceptance_ids": 4,
+        "downstream": "DOWNSTREAM_NOT_RUN",
+        "next_task": "TSK.x2n.skeleton.005",
+        "phase": "PH.X2N.2.8",
+        "single_task": true
+      },
+      "name": "task_and_acceptance_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "migration": "NOT_REQUIRED_SCHEMA_V2_UNCHANGED",
+        "network_transports": 0,
+        "resume_without_payload": true,
+        "schema_version": 2,
+        "transactions": 2
+      },
+      "name": "orchestrator_policy_and_implementation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "concurrent_duplicates": 100,
+        "kill_points": 4,
+        "replay_inputs": 80,
+        "replay_rounds": 2
+      },
+      "name": "synthetic_orchestrator_fixtures",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "broken_provenance_traces": 0,
+        "concurrent_requests": 100,
+        "duplicate_entities": 0,
+        "kill_points": 4,
+        "replay_inputs": 80,
+        "replay_rounds": 2,
+        "stuck_runs": 0,
+        "unit_tests": 11
+      },
+      "name": "canonical_orchestration_acceptance",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "artifact_members": 62,
+        "blocking_executions": 24,
+        "blocking_failures": 0,
+        "coverage_percent": 74.61,
+        "dependencies_queried": 33,
+        "explicit_nonblocking_skips": 6,
+        "flaky_blocking_tests": 0,
+        "runtime_data_files": 0,
+        "silent_blocking_skips": 0,
+        "vulnerabilities_reported": 0
+      },
+      "name": "full_lane_replay",
+      "status": "PASS"
+    }
+  ],
+  "generated_at": "2026-07-22T09:41:54Z",
+  "matched_values_included": false,
+  "migration": "NOT_REQUIRED_SCHEMA_V2_UNCHANGED",
+  "model_calls": 0,
+  "notion_calls": 0,
+  "owner_canary": "NOT_RUN",
+  "phase": "PH.X2N.2.8",
+  "platform_calls": 0,
+  "private_content_included": false,
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_G2_PASS",
+  "run_id": "RUN-X2N-S02-S004",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.2",
+  "stage_gate": "G2_NOT_RUN",
+  "status": "PASS_CI_SYNTH_SCOPED",
+  "task_id": "TSK.x2n.skeleton.004",
+  "task_metrics": {
+    "broken_provenance_traces": 0,
+    "concurrent_requests": 100,
+    "duplicate_entities": 0,
+    "kill_points": 4,
+    "replay_inputs": 80,
+    "replay_rounds": 2,
+    "stuck_runs": 0,
+    "unit_tests": 11
+  }
+}

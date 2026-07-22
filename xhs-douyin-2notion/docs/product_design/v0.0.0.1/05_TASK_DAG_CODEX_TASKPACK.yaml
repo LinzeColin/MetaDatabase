@@ -6,7 +6,7 @@ project:
   token: x2n
   version: v0.0.0.1
   owner: LinzeColin
-  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED
+  status: STAGE_2_REVIEW_PASS_G2_PASS_REMOTE_UPLOAD_AUTHORIZED_STAGE_3_PENDING_REMOTE_MERGE
   owner_change_event: CE-X2N-20260720-S00-REVIEW-RESUME
   repository: https://github.com/LinzeColin/MetaDatabase
   skill_path: xhs-douyin-2notion/
@@ -34,11 +34,14 @@ authorization:
   stage_1_review: true
   stage_1_remote_upload: true
   stage_2_task_start: true
+  stage_2_review: true
+  stage_2_remote_upload: true
+  stage_3_task_start: false
   product_code_changes: true
   real_account_execution: false
   public_release: false
   vps_data_plane: false
-  instruction: G0 已通过且 Stage 0 已合并；TSK.x2n.foundation.001–005 与独立 Stage 1 Review/Fix/Re-acceptance 均已完成，G1 PASS 后 Stage 1 整体上传和 Stage 2 首个单 Task Run 已授权。下一产品 Run 只能执行 TSK.x2n.skeleton.001；Owner Chrome 安装/Canary、真实账号、平台/Notion/模型调用、媒体与公开产品 Release 仍未授权。
+  instruction: G0/G1 已通过且 Stage 0/1 已合并、远端门禁通过；TSK.x2n.skeleton.001-.009 与 STG.X2N.2.REVIEW 已在公共安全合成、进程内 Notion Mock 和本地工具链绑定范围通过，G2 项目原生本地门禁通过并授权 Stage 2 整体上传。下一动作只能是 Stage 2 远端上传与 CI/merge；远端门禁和 merge 完成前不得执行 Stage 3 产品 Task。Owner Chrome 安装/Canary、真实账号、平台/真实 Notion/模型调用、真实媒体处理、正式 Verifier release-candidate 与公开产品 Release 仍未授权。
 canonical_decisions:
 - id: DEC-X2N-001
   decision: Chrome MV3 Side Panel + Local Companion/WebUI
@@ -872,7 +875,7 @@ tasks:
   title: Implement Xiaohongshu current-page capture
   stage: STG.X2N.2
   phase: PH.X2N.2.1
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -913,7 +916,7 @@ tasks:
   title: Implement Douyin current-page capture
   stage: STG.X2N.2
   phase: PH.X2N.2.2
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -954,7 +957,7 @@ tasks:
   title: Implement Bilibili current-page capture
   stage: STG.X2N.2
   phase: PH.X2N.2.3
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -994,7 +997,7 @@ tasks:
   title: Implement Kuaishou current-page capture
   stage: STG.X2N.2
   phase: PH.X2N.2.4
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -1034,7 +1037,7 @@ tasks:
   title: Implement Weibo current-page capture
   stage: STG.X2N.2
   phase: PH.X2N.2.5
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -1074,7 +1077,7 @@ tasks:
   title: Implement Taobao current-page capture
   stage: STG.X2N.2
   phase: PH.X2N.2.6
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -1114,7 +1117,7 @@ tasks:
   title: Implement URL scrubber and temporary media lease
   stage: STG.X2N.2
   phase: PH.X2N.2.7
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -1162,7 +1165,7 @@ tasks:
   title: Implement canonical orchestration walking path
   stage: STG.X2N.2
   phase: PH.X2N.2.8
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -1213,7 +1216,7 @@ tasks:
   title: Implement minimal Markdown and Notion sinks
   stage: STG.X2N.2
   phase: PH.X2N.2.9
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: Notion credentials optional; mock server allows completion without them

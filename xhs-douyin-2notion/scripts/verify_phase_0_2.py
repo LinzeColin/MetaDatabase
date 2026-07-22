@@ -33,6 +33,7 @@ TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPA
 EVIDENCE_DIR = PROJECT_ROOT / "machine/evidence/stage_0/phase_0_2"
 
 PHASE_TASK = "TSK.x2n.discovery.004"
+STAGE_1_REVIEW_COMMIT = "2a81db2dd36638b00175ec6226462b37905d4705"
 EXPECTED = {
     "xiaohongshu-exporter": {
         "remote": "https://github.com/zhulin025/xiaohongshu-exporter.git",
@@ -92,6 +93,13 @@ def _run(args: list[str], cwd: Path, *, binary: bool = False) -> str | bytes:
     if binary:
         return result.stdout
     return result.stdout.rstrip()
+
+
+def _load_json_at(commit: str, path: Path) -> dict[str, Any]:
+    relative = path.relative_to(REPOSITORY_ROOT).as_posix()
+    value = json.loads(str(_run(["git", "show", f"{commit}:{relative}"], REPOSITORY_ROOT)))
+    _require(isinstance(value, dict), f"historical JSON object required: {path.name}")
+    return value
 
 
 def validate_registry() -> Check:
@@ -306,7 +314,7 @@ def validate_task_state() -> Check:
     _require(task.get("depends_on") == ["TSK.x2n.discovery.001"], "Phase dependency drift")
     _require(task.get("acceptance_ids") == ["ACC.x2n.gov.003", "ACC.x2n.dy.003"], "Phase acceptances drift")
 
-    state = _load_json(TASK_STATE)
+    state = _load_json_at(STAGE_1_REVIEW_COMMIT, TASK_STATE)
     _require(state.get("tasks", {}).get(PHASE_TASK) == "pass", "Phase task state not pass")
     acceptances = state.get("acceptance_status", {})
     _require(acceptances.get("ACC.x2n.gov.003") == "pass_current_artifact_scope", "governance acceptance status mismatch")

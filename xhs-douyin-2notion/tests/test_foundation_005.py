@@ -131,7 +131,7 @@ class Foundation005Tests(unittest.TestCase):
         self.assertEqual(sarif["runs"][0]["results"], [])
 
     def test_state_separates_g1_from_remote_and_downstream_execution(self) -> None:
-        state = json.loads(VERIFY.TASK_STATE.read_text(encoding="utf-8"))
+        state = VERIFY._load_json_at(VERIFY.STAGE_1_REVIEW_COMMIT, VERIFY.TASK_STATE)
         self.assertEqual(state["current_stage_gate"], "pass")
         self.assertEqual(state["current_stage_remote_upload"], "authorized_after_g1_pass")
         self.assertEqual(state["remote_ci_execution"], "pending_post_g1_upload")

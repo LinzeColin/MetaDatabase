@@ -1,0 +1,142 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.media.001",
+    "ACC.x2n.media.002",
+    "ACC.x2n.media.003",
+    "ACC.x2n.media.004"
+  ],
+  "acceptance_input_sha256": "4825774bdfcaedd56e31f3474f538b2efe302bc927e3a6af8fccd759aa59fd60",
+  "acceptance_status": {
+    "ACC.x2n.media.001": "PASS_CI_SYNTH_5_FIXED_SCOPES_ZERO_FINDINGS_OWNER_ALPHA_REAL_SINKS_NOT_RUN",
+    "ACC.x2n.media.002": "PASS_CI_SYNTH_SUCCESS_AND_EXPIRED_RESIDUAL_0_ACTIVE_MISDELETE_0_DELETE_ERROR_RECEIPT_100_PERCENT",
+    "ACC.x2n.media.003": "PASS_CI_SYNTH_512_URL_FUZZ_32_SSRF_FORBIDDEN_SUCCESS_0_LOCAL_FILE_READS_0",
+    "ACC.x2n.media.004": "PASS_CI_SYNTH_ACQUISITION_LIMITS_PROCESSOR_FFMPEG_DECODE_KEYFRAME_DOWNSTREAM_NOT_RUN"
+  },
+  "checks": [
+    {
+      "details": {
+        "changed_files": 24,
+        "out_of_scope_writes": 0,
+        "private_runtime_files": 0,
+        "sensitive_or_media_url_hits": 0,
+        "text_files_scanned": 339
+      },
+      "name": "scope_and_privacy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s02-skeleton003",
+        "external_main_dirty_paths": 0,
+        "origin_drift_commits": 3,
+        "origin_project_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "checks": 4,
+        "final_commit": "0af2d3b269e7d5631257cb49f41f75cc79438f70",
+        "history_rewritten": false
+      },
+      "name": "skeleton_009_history",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "acceptance_ids": 4,
+        "media_processors": "DOWNSTREAM_NOT_RUN",
+        "next_task": "TSK.x2n.skeleton.004",
+        "phase": "PH.X2N.2.7",
+        "real_media_network": "NOT_RUN",
+        "single_task": true
+      },
+      "name": "task_and_acceptance_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "cdn_suffixes": 11,
+        "fixed_scanner_scopes": 5,
+        "production_transports": 0,
+        "raw_url_database_columns": 0,
+        "retention_max_seconds": 86400,
+        "six_platforms": 6
+      },
+      "name": "media_policy_and_implementation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "cleanup_cases": 8,
+        "resource_cases": 8,
+        "ssrf_cases": 32,
+        "total_matrix_cases": 560,
+        "url_fuzz_cases": 512
+      },
+      "name": "synthetic_media_fixtures",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "active_lease_misdeletes": 0,
+        "cleanup_cases": 8,
+        "forbidden_target_successes": 0,
+        "local_file_reads": 0,
+        "resource_blocks": 8,
+        "scanner_findings": 0,
+        "ssrf_cases": 32,
+        "unit_tests": 23,
+        "url_fuzz_cases": 512
+      },
+      "name": "media_security_acceptance",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "artifact_members": 61,
+        "blocking_executions": 24,
+        "blocking_failures": 0,
+        "coverage_percent": 73.67,
+        "dependencies_queried": 33,
+        "explicit_nonblocking_skips": 6,
+        "flaky_blocking_tests": 0,
+        "runtime_data_files": 0,
+        "silent_blocking_skips": 0,
+        "vulnerabilities_reported": 0
+      },
+      "name": "full_lane_replay",
+      "status": "PASS"
+    }
+  ],
+  "generated_at": "2026-07-22T08:54:00Z",
+  "matched_values_included": false,
+  "media_processing": "NOT_RUN",
+  "owner_canary": "NOT_RUN",
+  "pattern_set_version": "x2n-media-zero-v1",
+  "phase": "PH.X2N.2.7",
+  "platform_calls": 0,
+  "private_content_included": false,
+  "production_media_transport": "DISABLED",
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_G2_PASS",
+  "run_id": "RUN-X2N-S02-S003",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.2",
+  "stage_gate": "G2_NOT_RUN",
+  "status": "PASS_CI_SYNTH_SCOPED",
+  "task_id": "TSK.x2n.skeleton.003",
+  "task_metrics": {
+    "active_lease_misdeletes": 0,
+    "cleanup_cases": 8,
+    "forbidden_target_successes": 0,
+    "local_file_reads": 0,
+    "resource_blocks": 8,
+    "scanner_findings": 0,
+    "ssrf_cases": 32,
+    "unit_tests": 23,
+    "url_fuzz_cases": 512
+  }
+}

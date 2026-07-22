@@ -1,0 +1,36 @@
+{
+  "case_count": 80,
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "fixture_id": "FIXTURE.X2N.S02.S004.001",
+  "generation": {
+    "content_id_prefix": "synthetic",
+    "deterministic_index_end_exclusive": 80,
+    "deterministic_index_start": 0,
+    "platform_cycle": [
+      "xiaohongshu",
+      "douyin",
+      "bilibili",
+      "kuaishou",
+      "weibo",
+      "taobao"
+    ],
+    "relation": "saved_current",
+    "request_namespace": "x2n-s004",
+    "title_null_modulus": 7
+  },
+  "real_accounts": false,
+  "schema_version": "1.0",
+  "tests": {
+    "concurrent_duplicate_count": 100,
+    "kill_points": [
+      "before_canonical_transaction",
+      "inside_canonical_transaction",
+      "after_canonical_commit",
+      "after_completion_commit"
+    ],
+    "replay_rounds": 2
+  }
+}

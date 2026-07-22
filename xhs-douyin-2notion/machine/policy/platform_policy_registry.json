@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.0.5",
+  "phase": "PH.X2N.2.6",
   "default": "deny",
-  "research_cutoff": "2026-07-19",
+  "research_cutoff": "2026-07-22",
   "policy_recheck_required_at_platform_phase_start": true,
   "unknown_means": "unknown_disabled",
   "platform_states": {
@@ -16,6 +16,8 @@
   "official_sources": {
     "chrome": [
       "https://developer.chrome.com/docs/extensions/reference/api/sidePanel",
+      "https://developer.chrome.com/docs/extensions/develop/concepts/activeTab",
+      "https://developer.chrome.com/docs/extensions/reference/api/scripting",
       "https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code",
       "https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging",
       "https://developer.chrome.com/docs/webstore/program-policies/user-data-faq",
@@ -28,11 +30,54 @@
       "https://developers.notion.com/guides/data-apis/working-with-files-and-media"
     ],
     "xiaohongshu": ["https://agora.xiaohongshu.com/doc"],
-    "douyin": ["https://open.douyin.com/platform/resource/docs/operation-standard/agreement-protocol"],
-    "bilibili": ["https://openhome.bilibili.com/agreement/developer-service"],
-    "kuaishou": ["https://open.kuaishou.com/platform/protocol"],
-    "weibo": ["https://open.weibo.com/cli/index"],
-    "taobao": ["https://developer.alibaba.com/docs/doc.htm?articleId=103499&docType=1&treeId=782"]
+    "douyin": [
+      "https://open.douyin.com/platform/resource/docs/operation-standard/agreement-protocol",
+      "https://www.douyin.com/agreements/?id=6773906068725565448",
+      "https://developer.open-douyin.com/docs/resource/zh-CN/dop/develop/openapi/video-management/douyin/iframe-player/get-iframe-by-video",
+      "https://open.douyin.com/platform/resource/docs/openapi/video-management/douyin/search-video/account-video-list"
+    ],
+    "bilibili": [
+      "https://openhome.bilibili.com/agreement/developer-service",
+      "https://openhome.bilibili.com/agreement/management-protocol",
+      "https://openhome.bilibili.com/agreement/privacy-policy",
+      "https://www.bilibili.com/blackboard/user-rule-linux.html?night=1&padding=0",
+      "https://openhome.bilibili.com/doc",
+      "https://openhome.bilibili.com/doc/4/d9554788-dcef-f139-6217-b487d41c3826",
+      "https://openhome.bilibili.com/doc/4/a24030b7-6b8f-b36c-32d8-a4aae67fcc35",
+      "https://openhome.bilibili.com/doc/4/243457f6-9d44-9348-06ef-366cdbb44eb4",
+      "https://openhome.bilibili.com/doc/4/225be808-a81a-cd82-7703-1bbd601e243d",
+      "https://openhome.bilibili.com/doc/4/eaf0e2b5-bde9-b9a0-9be1-019bb455701c",
+      "https://openhome.bilibili.com/doc/4/feb66f99-7d87-c206-00e7-d84164cd701c",
+      "https://openhome.bilibili.com/doc/4/90936ab5-7c06-e24f-2ad0-0fd6e10c7386",
+      "https://openhome.bilibili.com/doc/4/c381daac-4b6d-9ed3-3604-19a78d358eec"
+    ],
+    "kuaishou": [
+      "https://open.kuaishou.com/platform/protocol",
+      "https://open.kuaishou.com/platform/openApi?menu=13",
+      "https://open.kuaishou.com/platformDocs/develop/serverSDK",
+      "https://open.kuaishou.com/platformDocs/newGuide/applicationManagementSpecifica",
+      "https://open.kuaishou.com/platformDocs/openAbility/userInformation/publicInformation"
+    ],
+    "weibo": [
+      "https://open.weibo.com/wiki/2/statuses/show",
+      "https://open.weibo.com/wiki/Rate-limiting",
+      "https://open.weibo.com/wiki/Oauth2/access_token",
+      "https://open.weibo.com/cli/index",
+      "https://open.weibo.com/wiki/开发者协议",
+      "https://open.weibo.com/wiki/应用运营管理规范",
+      "https://open.weibo.com/wiki/应用安全开发注意事项",
+      "https://weibo.com/openapi"
+    ],
+    "taobao": [
+      "https://developer.alibaba.com/docs/api.htm?apiId=20",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=101617&docType=1&treeId=153",
+      "https://developer.alibaba.com/docs/doc.htm.htm?articleId=118&docType=1",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=104559&docType=1",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=104560&docType=1&treeId=713",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=117471&docType=1&treeId=775",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=120402&docType=1&treeId=253",
+      "https://developer.alibaba.com/docs/doc.htm?articleId=121325&docType=1&treeId=775"
+    ]
   },
   "forbidden_methods": [
     "automatic_scrolling",
@@ -55,6 +100,90 @@
     "canary_and_completeness_receipt",
     "cdn_credentials_private_zero_scan"
   ],
-  "product_code_started": false,
+  "capability_states": {
+    "xiaohongshu_current_page": "ci_synth_only_policy_unknown_real_page_disabled_owner_canary_not_run",
+    "douyin_current_page": "ci_synth_only_policy_unknown_real_page_and_network_transport_disabled_owner_canary_not_run",
+    "bilibili_current_page": "ci_synth_only_policy_unknown_real_page_and_api_disabled_article_route_unverified_owner_canary_not_run",
+    "kuaishou_current_page": "ci_synth_only_real_page_blocked_auth_api_transport_and_dom_fallback_disabled_route_unverified_owner_canary_not_run",
+    "weibo_current_page": "ci_synth_only_real_page_blocked_budget_api_transport_dom_fallback_and_arbitrary_url_surface_disabled_route_unverified_owner_canary_not_run",
+    "taobao_current_page": "ci_synth_only_real_page_api_and_dom_unknown_disabled_scope_retention_unapproved_cookie_mtop_signature_surface_disabled_route_unverified_owner_canary_not_run",
+    "xiaohongshu_selected_collection": "unknown_disabled"
+  },
+  "policy_recheck": {
+    "date": "2026-07-22",
+    "xiaohongshu": {
+      "official_personal_content_read_capability": "not_found",
+      "official_share_platform_scope": "publishing_and_sharing_not_personal_content_read",
+      "decision": "retain_unknown_disabled_for_real_pages"
+    },
+    "douyin": {
+      "user_agreement_updated": "2026-02-13",
+      "user_agreement_effective": "2026-02-20",
+      "official_personal_likes_or_favorites_read_capability": "not_found",
+      "official_published_video_list_scope": "oauth_and_approved_authorized_account_only",
+      "official_public_video_scope": "narrow_iframe_by_video_id_only",
+      "stable_gallery_route": "not_established",
+      "short_link_object_contract": "not_exhaustive",
+      "decision": "retain_unknown_disabled_for_real_pages_and_network_resolution"
+    },
+    "bilibili": {
+      "official_video_identity": "bvid_is_top_level_manuscript_identity_cid_is_not_substitute",
+      "official_video_share_route": "www_bilibili_com_video_bv_shape_verified",
+      "official_article_identity": "integer_id_and_cv_prefix_verified",
+      "public_article_read_route": "not_found_in_current_open_platform_documentation",
+      "oauth_and_application_registration": "required_for_documented_authorized_capabilities",
+      "authorized_video_and_article_management": "available_for_associated_uploader_with_scope",
+      "arbitrary_current_page_read_capability": "not_found",
+      "official_personal_likes_or_favorites_read_capability": "not_found",
+      "automated_script_exemption_for_user_gesture_dom_read": "not_found",
+      "semantic_part_query_contract": "not_supported_by_current_canonical_contract",
+      "decision": "retain_unknown_disabled_for_real_pages_and_api"
+    },
+    "kuaishou": {
+      "oauth_and_application_registration": "required",
+      "required_user_video_scope": "user_video_info",
+      "authorized_video_identity": "photo_id",
+      "authorized_video_access": "authorized_users_published_works_only",
+      "dynamic_minimum_necessary_consent": "required",
+      "arbitrary_public_current_page_read_capability": "not_found",
+      "official_personal_likes_or_favorites_read_capability": "not_found",
+      "public_short_video_route": "not_found_in_current_open_platform_documentation",
+      "automated_dom_collection_permission": "not_found_and_unauthorized_automation_forbidden",
+      "current_auth_state": "scope_not_configured_blocked_auth",
+      "decision": "retain_blocked_auth_for_real_pages_and_unknown_disabled_for_dom_fallback"
+    },
+    "weibo": {
+      "official_status_show": "authorized_users_own_status_only",
+      "official_status_identity": "id_and_mid",
+      "oauth_and_application_registration": "required_for_documented_status_api",
+      "official_cli": "available_not_installed_or_executed",
+      "arbitrary_public_current_page_read_capability": "not_found",
+      "official_personal_likes_or_favorites_read_capability": "not_found",
+      "automated_dom_collection_permission": "not_found",
+      "application_budget": "zero",
+      "application_price_scope_and_quota": "unknown_not_approved",
+      "arbitrary_url_preview_proxy": "permanently_forbidden_and_not_implemented",
+      "current_budget_state": "blocked_budget",
+      "decision": "retain_blocked_budget_for_real_pages_and_unknown_disabled_for_api_and_dom_fallback"
+    },
+    "taobao": {
+      "official_item_api": "taobao_item_get",
+      "official_item_api_class": "authorized_value_added_api",
+      "official_item_identity": "num_iid",
+      "official_item_detail_url": "item_taobao_com_item_htm_semantic_id_query",
+      "oauth": "documented_for_private_goods_orders_and_favorites_data",
+      "official_top_signing_protocol": "documented_not_implemented",
+      "application_and_item_api_permission": "not_configured_not_approved",
+      "paid_plan_and_budget": "not_approved_budget_zero",
+      "field_scope": "not_approved",
+      "retention_and_deletion_flow": "required_not_implemented_or_approved",
+      "platform_crawling": "prohibited",
+      "browser_mtop_cookie_signature_route": "permanently_forbidden_and_not_implemented",
+      "current_state": "unknown_disabled",
+      "decision": "retain_unknown_disabled_for_real_pages_top_api_and_dom_fallback"
+    }
+  },
+  "product_code_started": true,
+  "product_code_scope": "six_platform_current_page_ci_synth_only",
   "real_account_execution": false
 }

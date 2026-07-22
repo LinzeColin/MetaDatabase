@@ -41,11 +41,14 @@ class Foundation004Tests(unittest.TestCase):
         ))
 
     def test_extension_permissions_and_origin_are_exact(self) -> None:
+        historical = VERIFY._load_baseline_json(VERIFY.MANIFEST)
         manifest = json.loads(VERIFY.MANIFEST.read_text(encoding="utf-8"))
         policy = json.loads(VERIFY.HOST_POLICY.read_text(encoding="utf-8"))
-        self.assertEqual(manifest["permissions"], ["activeTab", "nativeMessaging", "sidePanel"])
-        self.assertNotIn("host_permissions", manifest)
-        self.assertNotIn("content_scripts", manifest)
+        self.assertEqual(historical["permissions"], VERIFY.HISTORICAL_PERMISSIONS)
+        self.assertEqual(manifest["permissions"], VERIFY.CURRENT_PERMISSIONS)
+        for value in (historical, manifest):
+            self.assertNotIn("host_permissions", value)
+            self.assertNotIn("content_scripts", value)
         self.assertEqual(policy["allowed_origins"], [VERIFY.EXTENSION_ORIGIN])
         self.assertNotIn("*", json.dumps(policy, sort_keys=True))
 
@@ -94,9 +97,9 @@ class Foundation004Tests(unittest.TestCase):
         self.assertIn('PATH: process.env.PATH ?? ""', source)
 
     def test_acceptance_scope_does_not_claim_owner_or_downstream_execution(self) -> None:
-        state = json.loads(VERIFY.TASK_STATE.read_text(encoding="utf-8"))
-        self.assertEqual(state["current_stage_gate"], "pass")
-        self.assertEqual(state["current_stage_remote_upload"], "authorized_after_g1_pass")
+        state = VERIFY._load_baseline_json(VERIFY.TASK_STATE)
+        self.assertEqual(state["current_stage_gate"], "not_run")
+        self.assertEqual(state["current_stage_remote_upload"], "forbidden_until_g1_pass")
         self.assertEqual(state["native_host_execution"], "pass_isolated_synthetic_owner_install_not_run")
         self.assertIn("owner_canary_not_run", state["acceptance_status"]["ACC.x2n.ext.001"])
         for field in ("real_account_execution", "platform_calls", "notion_calls", "model_calls", "media_processing"):

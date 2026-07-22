@@ -21,11 +21,25 @@ class Phase05Tests(unittest.TestCase):
         self.assertEqual([check.status for check in checks], ["PASS"] * len(checks))
 
     def test_six_platforms_are_exact_and_disabled(self) -> None:
-        registry = json.loads((PROJECT_ROOT / "machine/facts/platform_scope_registry.json").read_text(encoding="utf-8"))
+        registry = VERIFY._load_json_at(VERIFY.PHASE_FINAL_COMMIT, VERIFY.PLATFORMS)
         self.assertEqual({item["id"] for item in registry["platforms"]}, VERIFY.PLATFORM_IDS)
         self.assertTrue(all(item["policy_state"] == "unknown_disabled" for item in registry["platforms"]))
         self.assertFalse(registry["implementation_started"])
         self.assertFalse(registry["real_platform_calls"])
+
+    def test_platform_tasks_are_historically_planned_and_may_progress_with_pass_state(self) -> None:
+        historical = VERIFY._load_yaml_unique_at(VERIFY.PHASE_FINAL_COMMIT, VERIFY.TASKPACK)
+        historical_by_id = {item["id"]: item for item in historical["tasks"]}
+        self.assertTrue(
+            all(historical_by_id[task_id]["status"] == "planned" for task_id in VERIFY.NEW_PLATFORM_TASKS)
+        )
+        current = VERIFY._load_yaml_unique(VERIFY.TASKPACK)
+        current_by_id = {item["id"]: item for item in current["tasks"]}
+        state = VERIFY._load_json(VERIFY.TASK_STATE)
+        for task_id in VERIFY.NEW_PLATFORM_TASKS:
+            self.assertIn(current_by_id[task_id]["status"], {"planned", "completed"})
+            if current_by_id[task_id]["status"] == "completed":
+                self.assertEqual(state["tasks"][task_id], "pass")
 
     def test_competitor_is_clean_room_only(self) -> None:
         registry = json.loads((PROJECT_ROOT / "machine/facts/competitor_registry.json").read_text(encoding="utf-8"))
@@ -62,7 +76,7 @@ class Phase05Tests(unittest.TestCase):
         self.assertEqual(media["failure_max_hours"]["maximum"], 24)
 
     def test_stage_and_external_execution_remain_not_run(self) -> None:
-        state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
+        state = VERIFY._load_json_at(VERIFY.STAGE_1_REVIEW_COMMIT, VERIFY.TASK_STATE)
         self.assertEqual(state["tasks"]["TSK.x2n.discovery.005"], "pass")
         self.assertIn(
             state["review_id"],

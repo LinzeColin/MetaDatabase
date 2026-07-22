@@ -101,16 +101,21 @@ class NativeHostTests(unittest.TestCase):
             self.assertIsNone(response.job_id)
         self.assertEqual(self.store.counts()["request_ledger"], 0)
 
-    def test_submission_is_atomic_idempotent_and_payload_free(self) -> None:
+    def test_capture_walk_is_atomic_idempotent_and_canonical_only(self) -> None:
         request_id = str(uuid.uuid4())
         wire = _request("capture_current", _capture_payload(), request_id=request_id)
         first = dispatch_wire(wire, origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
         duplicate = dispatch_wire(wire, origin=DEVELOPMENT_EXTENSION_ORIGIN, store=self.store)
         self.assertTrue(first.accepted)
-        self.assertEqual(first.status.value, "queued")
+        self.assertEqual(first.status.value, "completed")
         self.assertEqual(first.job_id, duplicate.job_id)
         self.assertEqual(self.store.counts()["request_ledger"], 1)
         self.assertEqual(self.store.counts()["run_record"], 1)
+        self.assertEqual(self.store.counts()["content"], 1)
+        self.assertEqual(self.store.counts()["user_relation"], 1)
+        self.assertEqual(self.store.counts()["source_observation"], 1)
+        self.assertEqual(self.store.counts()["artifact"], 1)
+        self.assertEqual(self.store.counts()["checkpoint"], 1)
 
         state = dispatch_wire(
             _request("get_job", {"job_id": str(first.job_id)}),
@@ -118,12 +123,14 @@ class NativeHostTests(unittest.TestCase):
             store=self.store,
         )
         self.assertTrue(state.accepted)
-        self.assertEqual(state.status.value, "queued")
+        self.assertEqual(state.status.value, "completed")
         self.assertEqual(state.job_id, first.job_id)
 
         rendered_database = self.paths.database.read_bytes()
-        self.assertNotIn(b"xiaohongshu.com", rendered_database)
-        self.assertNotIn(b"Synthetic", rendered_database)
+        self.assertIn(b"xiaohongshu.com", rendered_database)
+        self.assertIn(b"Synthetic", rendered_database)
+        self.assertNotIn(b"media_url", rendered_database)
+        self.assertNotIn(b"cookie", rendered_database.lower())
 
     def test_one_hundred_concurrent_duplicates_create_one_job(self) -> None:
         request_id = str(uuid.uuid4())
