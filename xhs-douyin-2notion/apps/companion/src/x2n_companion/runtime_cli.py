@@ -14,6 +14,7 @@ from typing import Any
 from x2n_contracts import ErrorCode
 
 from .canonical_store import CanonicalStore
+from .douyin_adapter import build_douyin_canary_plan
 from .media_safety import scan_persisted_scopes
 from .profile_session import (
     PROFILE_LAUNCH_CONFIRMATION,
@@ -38,6 +39,7 @@ MEDIA_TASK_ID = "TSK.x2n.skeleton.003"
 ADAPTER_TASK_ID = "TSK.x2n.adapters.001"
 XHS_FAVORITES_TASK_ID = "TSK.x2n.adapters.002"
 XHS_LIKES_TASK_ID = "TSK.x2n.adapters.003"
+DOUYIN_TASK_ID = "TSK.x2n.adapters.004"
 FOUNDATION_RECEIPT_DEFAULTS = {"acceptance_scope": "FOUNDATION_003_LOCAL_STORE"}
 
 
@@ -112,6 +114,15 @@ def _doctor_probe(paths: RuntimePaths) -> DoctorProbe:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if args.action == "douyin":
+        if args.douyin_action != "canary-plan":
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Douyin action")
+        return _success(
+            "douyin_canary_plan",
+            acceptance_scope="ADAPTERS_004_CANARY_TOOLING",
+            task_id=DOUYIN_TASK_ID,
+            plan=build_douyin_canary_plan(args.mode, args.max_items),
+        )
     if args.action == "xhs-likes":
         if args.likes_action != "canary-plan":
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Unknown Xiaohongshu likes action")
@@ -226,6 +237,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="x2n private Canonical Store operations")
     subparsers = parser.add_subparsers(dest="action", required=True)
     subparsers.add_parser("doctor")
+    douyin = subparsers.add_parser("douyin")
+    douyin_actions = douyin.add_subparsers(dest="douyin_action", required=True)
+    douyin_canary_plan = douyin_actions.add_parser("canary-plan")
+    douyin_canary_plan.add_argument("--mode", choices=("favorites", "likes"), required=True)
+    douyin_canary_plan.add_argument("--max-items", type=int, default=20)
     favorites = subparsers.add_parser("xhs-favorites")
     favorites_actions = favorites.add_subparsers(dest="favorites_action", required=True)
     canary_plan = favorites_actions.add_parser("canary-plan")
@@ -273,6 +289,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     task_id = (
         MEDIA_TASK_ID
         if args.action == "verify"
+        else DOUYIN_TASK_ID
+        if args.action == "douyin"
         else XHS_LIKES_TASK_ID
         if args.action == "xhs-likes"
         else XHS_FAVORITES_TASK_ID

@@ -6,7 +6,7 @@ project:
   token: x2n
   version: v0.0.0.1
   owner: LinzeColin
-  status: STAGE_3_ADAPTERS_003_PASS_G3_NOT_RUN
+  status: STAGE_3_ADAPTERS_004_PASS_G3_NOT_RUN
   owner_change_event: CE-X2N-20260720-S00-REVIEW-RESUME
   repository: https://github.com/LinzeColin/MetaDatabase
   skill_path: xhs-douyin-2notion/
@@ -41,7 +41,7 @@ authorization:
   real_account_execution: false
   public_release: false
   vps_data_plane: false
-  instruction: Stage 2 已通过 G2、PR 78 合并及 x2n/Dual-Plane 远端门禁；TSK.x2n.adapters.001–003 已在公共安全合成范围完成 Profile/session/guard、小红书收藏及点赞可见批次、Durable Checkpoint、100 条 50 次进程 Kill、收藏与点赞同 Content 双 Relation、保守 Unclassified Inbox 及非执行 20 条 Canary 工具。下一独立 Run 只能执行 TSK.x2n.adapters.004；G3 与 Stage 3 上传仍未运行/禁止。Owner Profile 登录/Canary、真实账号、六平台批量调用、真实 Notion/模型、真实媒体处理、正式 Release 均未授权。
+  instruction: Stage 2 已通过 G2、PR 78 合并及 x2n/Dual-Plane 远端门禁；TSK.x2n.adapters.001–004 已在公共安全合成范围完成 Profile/session/guard、小红书收藏/点赞及固定 Pin 抖音 owner-managed sidecar 严格协议、subprocess/loopback REST containment、20 收藏+20 点赞 Canonical 映射与 shadow block。抖音真实 upstream/Owner private sidecar/Profile/Canary/账号均未运行，双 Feature Flag 保持关闭。下一独立 Run 只能执行 TSK.x2n.adapters.006；G3 与 Stage 3 上传仍未运行/禁止。真实六平台批量调用、Notion/模型、媒体处理与正式 Release 均未授权。
 canonical_decisions:
 - id: DEC-X2N-001
   decision: Chrome MV3 Side Panel + Local Companion/WebUI
@@ -1400,7 +1400,7 @@ tasks:
   title: Wrap pinned douyin-downloader for likes and favorites
   stage: STG.X2N.3
   phase: PH.X2N.3.4
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none

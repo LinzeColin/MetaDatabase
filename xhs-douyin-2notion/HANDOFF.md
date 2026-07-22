@@ -14,11 +14,11 @@
 - Stage 1 已通过 PR #73 合并到 `main`，远端 PR 与合并后 x2n CI 均通过；历史 G1 Evidence 不改写。
 - Stage 2 九个独立单 Task `TSK.x2n.skeleton.001–009`（Phase 2.1–2.9）与独立 `STG.X2N.2.REVIEW` 已完成项目原生本地验收；8 个 finding 全部关闭。当前 Review 分支为 `codex/xhs-douyin-2notion-v0001-s02-review`，Review base 为 `c133e1d4…`、origin cutoff 为 `6777c8fc…`。
 - Stage 2 已通过 PR #78 合并到 `main@ee5d251c…`；最终 x2n run `29922576589` 与 Dual-Plane run `29922576674` 均成功。新增 `stage_2_remote_merge_state.json` 只记录 Stage 3 授权前置事实，旧 G2 pre-upload Evidence 保持逐字节不变。
-- Stage 3 当前完成 `PH.X2N.3.1–3.3 / TSK.x2n.adapters.001–003`：Profile/session/Doctor/全局非等待互斥/低频与删除保护基础，以及小红书收藏/点赞显式可见批次、SQLite Durable Checkpoint、精确 replay、各自 100 条/50 次进程 Kill 恢复和 20 条非执行 Canary 工具。点赞复用 Content 并写独立 `liked` Relation，固定保守 `unclassified` Inbox；`TSK.x2n.adapters.004+` 未进入。
+- Stage 3 当前完成 `PH.X2N.3.1–3.4 / TSK.x2n.adapters.001–004`：Profile/session/Doctor/全局非等待互斥/低频与删除保护，小红书收藏/点赞显式可见批次，以及固定 Pin 抖音 owner-managed sidecar 合同包装、20 收藏＋20 点赞 Canonical 映射与 shadow block。下一独立 Run 为 `TSK.x2n.adapters.006`；`adapters.005` 的关系对账删除尚未进入。
 - 小红书收藏生产位保持关闭：Extension 只处理 Owner gesture 后最多 20 条可见净化 DOM，不滚动、不翻页、不联网；partial/auth/verification/platform-change/empty-unverified 不推进或完成。bounded Canary 不写 full scan，只有权威可见结束可完成 full scan；真实页面、Owner Profile/private gold/Canary 均 `NOT_RUN`。
 - 小红书点赞生产位同样关闭：同一可见批次/Checkpoint 边界，不调用私有端点、不读取 Cookie/Profile、不执行 like/unlike。100 个合成点赞与 20 个预置收藏最终保持 100 Content、100 `liked`、20 `favorited`；自动归档、Classification/Taxonomy/Owner 分类覆盖均为 0。
 - 小红书当前页代码、5 个 DOM Fixture、Action/临时 `activeTab`、Native Host/SQLite 闭环与 100 次 Worker restart 已通过；能力位仍为 `ci_synth_only`，真实页面禁用。
-- 抖音当前页代码、8 个 DOM Fixture 与 16 个合成短链 redirect 用例通过；短链核心无生产 transport，Extension/Companion 不联网解析，真实页面、真实短链和 Owner Canary 均禁用。
+- 抖音当前页代码、8 个 DOM Fixture 与 16 个合成短链 redirect 用例通过；A004 另固定 `jiji262/douyin-downloader@ef3ad18c…`、tree `ff7774b6…`、version `2.0.0` 与 MIT identity，以严格 health/build attestation、递归封闭 Schema、`shell=False` subprocess 和数字 loopback REST 包装 owner-managed sidecar。20 收藏＋20 点赞合成映射、18 个负向合同用例和 shadow block 通过；原始上游未 vendor/安装/导入/执行，真实 Scope/private sidecar/Profile/账号/Canary 均 `UNKNOWN_DISABLED/NOT_RUN`。
 - 哔哩哔哩当前页代码、10 个 DOM、8 个 Policy 与 5 个 schema-drift rejection 通过；文章公开路由未由当前 Open Platform 文档证明，`?p=` 分 P Fail Closed，真实页面/API 与 Owner Canary 均禁用。
 - 快手当前页代码、8 个 DOM、10 个 Policy、2 个 `BLOCKED_AUTH` 与 5 个 schema-drift rejection 通过；官方只证明 `user_video_info` 下授权用户已发布作品和 `photoId`，公开路由仍为未验证合成假设，真实页/API transport/DOM fallback 与 Owner Canary 均关闭。
 - 微博当前页代码、8 个 DOM、12 个 Policy、2 个 `BLOCKED_BUDGET`、16 个任意 URL/Redirect-SSRF rejection 与 7 个 schema-drift rejection 通过；官方 `statuses/show` 只证明 OAuth 授权用户本人发布内容读取，本应用预算为 0，价格、Scope 与配额未获批准，公开路由仍为未验证合成假设，真实页/API/CLI transport、OAuth 输入、DOM fallback 与 Owner Canary 均关闭。
@@ -37,7 +37,7 @@
 - Skeleton005 最终全量回归：六平台 80×2 的 80 Markdown/80 Notion Mock Pages/160 Outbox+Receipt 通过；partial file、invalid Frontmatter、dead link、CDN finding、duplicate Page、hash-noop replay request 与真实 Notion call 均为 0；175 个根测试 PASS（3 skip）、76 个 Companion tests PASS；两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；overall combined coverage 76.93%，33 个依赖 OSV 漏洞 0，65-member source candidate 确定性一致且 Runtime Data 0。
 - Stage 2 Review 最终回归：186 个根测试 PASS（3 个固定可选 skip）、76 个 Companion tests PASS；两份独立 full lane 各 24/24 Blocking Gate PASS，coverage 均 76.93%，33 个依赖漏洞 0，65-member source candidate SHA 一致；实际 Python 3.12.13 与全部工具链版本匹配政策。
 - 回归捕获并修复 SQLite transient `-wal/-shm` 在并发连接关闭时消失的 chmod 竞态；只豁免已经消失的 sidecar，Canonical DB 或仍存在 sidecar 的加固失败继续 Fail Closed。
-- 当前 `G2=PASS/REMOTE_MERGED`；Stage 3 当前 Gate 为 `G3=NOT_RUN`，整阶段上传禁止。Adapters001–003 只证明 CI-SYNTH Profile/session/guard 与小红书收藏/点赞 DOM/Checkpoint/Chaos/保守 Inbox 范围；Owner Alpha 与正式 Release 均未通过。
+- 当前 `G2=PASS/REMOTE_MERGED`；Stage 3 当前 Gate 为 `G3=NOT_RUN`，整阶段上传禁止。Adapters001–004 只证明 CI-SYNTH Profile/session/guard、小红书收藏/点赞 DOM/Checkpoint/Chaos/保守 Inbox，以及抖音固定 Pin sidecar 合同/Canonical 映射/shadow block 范围；Owner Alpha 与正式 Release 均未通过。
 - 真实账号、Owner Chrome/Profile、六平台调用、真实 Notion、模型、真实媒体处理与全部下游用户旅程 Acceptance：`NOT_RUN`；Markdown/Notion Mock 仅 CI-SYNTH scoped pass。
 - 六平台真实执行：全部 `UNKNOWN_DISABLED`、`BLOCKED_AUTH` 或 `BLOCKED_BUDGET`；六平台均仅 `current_page=CI_SYNTH_ONLY`；各平台真实启用时重新通过 Policy/Auth/Technical/Canary Gate。
 
@@ -89,10 +89,11 @@
 - Adapters001：7 个 session＋7 个 batch 公共合成 Fixture 与 16 个专项单测通过；Profile symlink/权限/路径泄漏、过期/缺失/未来/验证码状态、Native Host 缺失、DB Busy、非核心依赖降级、互斥竞争、限速/时钟回退、异常/空/部分扫描删除均 Fail Closed。Cookie/Profile path/真实账号/平台调用/物理删除为 0/NOT_RUN。
 - Adapters002：7 个 DOM cases 与 13 个专项单测通过；100 条两收藏夹数据经 5 个显式批次落为 Content/`favorited` Relation/`selected_collection` Observation/Checkpoint，每批 10 次真实子进程事务内退出、共 50 Kill 后均从 Durable Checkpoint 恢复。最终 ID 集精确，lost/duplicate/infinite loop/automatic scroll/removed/tombstone/physical delete/Content delete 为 0；20 条 Canary 仅工具、Owner Alpha `NOT_RUN`。
 - Adapters003：7 个 DOM cases 与 14 个专项单测通过；100 条点赞中 20 条预置收藏，经 5 个显式批次、每批 10 次真实子进程事务内退出、共 50 Kill 后从 Durable Checkpoint 精确恢复。最终 100 Content、100 `liked`、20 `favorited`、120 Observation；lost/duplicate/infinite loop/automatic scroll/removed/tombstone/physical delete/Content delete/分类写入为 0；20 条 Canary 仅工具、Owner Alpha `NOT_RUN`。
-- 历史重放：Adapters001 固定到 `ea440535…`，Adapters002 固定到 `050ec0c9…`；两者都从 final commit blob 验收，Skeleton009 从固定提交 `git ls-tree` 枚举 Extension 源文件，避免后代新增文件进入旧 commit 读取清单。旧 Task/Evidence 不重写。
+- Adapters004：17 个 Companion 专项测试和 18 个负向合同用例通过；严格拒绝 JSON 布尔伪整数与损坏的 cursor/Run/Checkpoint 状态组合。20 收藏跨两个散列化收藏夹、20 点赞最终精确为 40 Content、20 `favorited`、20 `liked`、40 Observation，两次 replay 无副作用。upstream path/database primary key、full scan、removed/tombstone/physical delete/Content delete、Classification/Taxonomy 写入、外部 network/platform/upstream execution 均为 0；20＋20 Canary 仅工具，Owner private sidecar 未安装，Owner Alpha `NOT_RUN`。
+- 历史重放：Adapters001 固定到 `ea440535…`，Adapters002 固定到 `050ec0c9…`，Adapters003 固定到 `0939d783…`；三者都从 final commit blob 验收，Skeleton009 从固定提交 `git ls-tree` 枚举 Extension 源文件，避免后代新增文件进入旧 commit 读取清单。旧 Task/Evidence 不重写。
 - 当前 Extension 权限为 `activeTab`/`nativeMessaging`/`scripting`/`sidePanel`；历史 Foundation004 的 3 权限事实保持在固定提交与 Evidence 中。当前无 Host Permission、静态 Content Script、Storage/Cookie/Tabs/Downloads 或远程代码。
 - Chromium E2E 在默认 Action 前验证注入与采集 2/2 拒绝；用官方 CDP Action 驱动后才取得临时 `activeTab`，并通过真实 Side Panel 按钮把 XHS/Douyin/Bilibili/Kuaishou/Weibo/Taobao 合成当前页分别送入 Native Host/SQLite；每平台 100 次 Worker 重启仍 0 丢单/重单/错状态。平台形态网络请求由 catch-all route 拦截，实测平台调用 0；Owner Canary 与真实页面均 `NOT_RUN/DISABLED`。
-- 当前根回归：208 tests PASS，3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对；119 个 Companion tests、12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 77.79%，33 个依赖漏洞 0，71-member candidate 无 Runtime Data。Foundation001–005、Skeleton001–009、Stage 2 Review 与固定 Adapters001/002 predecessor 均 PASS；Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
+- 当前根回归：216 tests PASS，3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对；136 个 Companion tests、12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 78.36%，33 个依赖漏洞 0，73-member candidate 无 Runtime Data。Foundation001–005、Skeleton001–009、Stage 2 Review 与固定 Adapters001/002/003 predecessor 均 PASS；Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
 - Fresh copy：隔离 HOME 中 frozen locks、Extension 与 7 个 lifecycle rehearsal 加 1 个负向 Canary 均通过。
 
 ```bash
@@ -110,6 +111,9 @@ python3 -B scripts/verify_skeleton_009.py --verify-worktree --allow-external-mai
 .venv/bin/python -B scripts/run_skeleton_004_acceptance.py
 .venv/bin/python -B scripts/verify_skeleton_004.py --verify-worktree --allow-external-main-dirty --skip-external --lane-report build/s02-skeleton004-final/software-lane.json --require-evidence
 .venv/bin/python -B scripts/ci/run_lane.py --lane full --repetitions 2 --reports-dir build/s02-skeleton004-final
+.venv/bin/python -B scripts/run_adapters_004_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py --lane full --repetitions 2 --reports-dir build/s03-adapters004-final
+.venv/bin/python -B scripts/verify_adapters_004.py --verify-worktree --allow-external-main-dirty --skip-external --lane-report build/s03-adapters004-final/software-lane.json --require-evidence
 python3 -B -m unittest discover -s tests -p 'test_*.py'
 ```
 
@@ -130,7 +134,7 @@ Run Contract 执行。
 
 ## 下一步
 
-1. 下一独立产品 Run 只能执行 `PH.X2N.3.4 / TSK.x2n.adapters.004`；先固定当前 Adapters003 final commit，再让新 verifier 从该提交 blob 验收历史事实。
+1. 下一独立产品 Run 只能执行 `PH.X2N.3.5 / TSK.x2n.adapters.006`；先固定当前 Adapters004 final commit，再让新 verifier 从该提交 blob 验收历史事实。
 2. Stage 3 中间 Task 只本地提交；完成全部 Stage 3 Task 后才做独立 Review/Fix/Re-acceptance 与 G3，之后才允许整阶段上传。
 3. Owner Profile 登录、真实账号、六平台批量调用和 Canary 继续 `NOT_RUN`；对应平台真实启用前必须重新通过一手 Policy/Auth/Technical/Canary Gate。
 4. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Profile/Runtime/越界写入命中立即 Fail Closed。

@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 3` 已完成 `PH.X2N.3.1–3.3 / TSK.x2n.adapters.001–003`。Stage 2 九个 Skeleton 与独立 Review 已通过 PR #78 合并，x2n 与 Dual-Plane 远端门禁均成功；旧 G2 pre-upload Evidence 不改写。除 Profile/session/Doctor/全局互斥与删除保护外，现已实现小红书收藏与点赞的显式可见 20 条批次、SQLite Durable Checkpoint、精确 replay、各自 100 条/50 次进程 Kill 恢复和非执行 Canary 计划；同一 Content 可同时保有独立 `favorited`/`liked` Relation，点赞默认进入保守 `unclassified` Inbox，不写分类或 Taxonomy。能力仍仅为 CI-SYNTH：`xhs_favorites`/`xhs_likes` 生产位关闭，Owner Profile/真实页/Canary、真实账号/平台、真实 Notion、媒体与模型均 `NOT_RUN`。`G3=NOT_RUN`，Stage 3 整体上传禁止；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 3` 已完成 `PH.X2N.3.1–3.4 / TSK.x2n.adapters.001–004`。Stage 2 九个 Skeleton 与独立 Review 已通过 PR #78 合并，x2n 与 Dual-Plane 远端门禁均成功；旧 G2 pre-upload Evidence 不改写。除 Profile/session/Doctor/全局互斥与删除保护，以及小红书收藏/点赞可见批次外，现已加入固定 Pin 的抖音 owner-managed sidecar 合同包装、严格 health/build attestation、受限 subprocess/loopback REST transport、20 收藏＋20 点赞的 SQLite Canonical 映射和只能阻断不能晋级的 shadow comparator。能力仍仅为 CI-SYNTH：小红书与抖音批量生产位均关闭，Owner Profile/private sidecar/真实页/Canary、真实账号/平台、真实 Notion、媒体与模型均 `NOT_RUN`。`G3=NOT_RUN`，Stage 3 整体上传禁止；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,35 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 3 / Adapters 003 验证
+## Stage 3 / Adapters 004 验证
+
+```bash
+.venv/bin/python -B scripts/run_adapters_004_acceptance.py
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-adapters004-final
+.venv/bin/python -B scripts/verify_adapters_004.py \
+  --verify-worktree --allow-external-main-dirty --skip-external \
+  --lane-report build/s03-adapters004-final/software-lane.json --require-evidence
+```
+
+`DouyinAdapter` 只接受 x2n sidecar 的严格、递归封闭 Schema；每次 bounded action 前都核对固定
+commit/tree/version/license、协议、capability、persistence-off 声明，以及 executable、resolved lock、
+transitive-license report 与 SBOM 摘要。subprocess 固定 `shell=False`、最小环境和 bounded pipe；REST
+只允许数字 `127.0.0.1`、固定 POST path、bounded response。原始上游 CLI/REST 不是该协议，禁止直接
+调用；本 Task 未 vendor、安装、导入或执行上游代码，也没有新增上游 Runtime dependency。
+
+公共合成验收覆盖 18 个负向合同用例、20 条收藏（两个散列化收藏夹）和 20 条点赞；最终精确为
+40 Content、20 `favorited`、20 `liked`、40 Observation 和两次无副作用精确 replay。Canonical 中
+upstream path/database primary key、`full_scan_id`、removed/tombstone/physical delete/Content delete、
+Classification/Taxonomy 写入均为 0。固定 20＋20 Canary 只生成非执行计划；Owner private sidecar 未
+安装，Owner Profile/真实账号/真实平台/Canary 均 `NOT_RUN`。approved pin 保持不变，匿名观察到的
+upstream candidate 只进入 `BLOCKED_SHADOW`，promotion 为 0。
+
+最终本地回归为 216 个 root tests PASS（3 个固定可选 skip）、136 个 Companion tests 与 12 个
+Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage
+78.36%，33 个依赖漏洞 0，73-member source candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
+## Stage 3 / Adapters 003 历史验证
 
 ```bash
 .venv/bin/python -B scripts/run_adapters_003_acceptance.py

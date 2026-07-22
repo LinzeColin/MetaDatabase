@@ -60,6 +60,10 @@
     "apps/extension/scripts/xhs-likes-fixture-e2e.mjs",
     "scripts/run_adapters_003_acceptance.py",
     "scripts/verify_adapters_003.py",
+    "scripts/douyin_sidecar_fixture_worker.py",
+    "scripts/run_douyin_shadow_upgrade.py",
+    "scripts/run_adapters_004_acceptance.py",
+    "scripts/verify_adapters_004.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

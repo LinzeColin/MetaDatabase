@@ -28,12 +28,12 @@ class Adapters003VerifierTests(unittest.TestCase):
         )
         self.assertEqual([item.status for item in checks], ["PASS"] * len(checks))
 
-    def test_run_is_exactly_one_task_and_unpinned_until_next_task(self) -> None:
+    def test_run_is_exactly_one_task_and_pinned_for_descendant_regression(self) -> None:
         self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.adapters.003")
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S03-A003")
         self.assertEqual(VERIFY.PHASE, "PH.X2N.3.3")
         self.assertEqual(VERIFY.TASK_BASE_COMMIT, "050ec0c93ff4b1d6020a5c8e12f79320fc401f53")
-        self.assertFalse(hasattr(VERIFY, "FINAL_COMMIT"))
+        self.assertEqual(VERIFY.FINAL_COMMIT, "0939d78303f5e96ddedf9c8ef8a01a8dce03574a")
         rendered = "\n".join(sorted(VERIFY.ALLOWED_CHANGED_EXACT | set(VERIFY.ALLOWED_CHANGED_PREFIXES)))
         self.assertIn("xhs_likes", rendered)
         self.assertNotIn("douyin", rendered)
@@ -45,10 +45,13 @@ class Adapters003VerifierTests(unittest.TestCase):
             VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, VERIFY.PREVIOUS.EVIDENCE),
         )
         for path in VERIFY.UNCHANGED_SECURITY_SURFACES:
-            self.assertEqual(path.read_bytes(), VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path))
+            self.assertEqual(
+                VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, path),
+                VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path),
+            )
 
     def test_policy_keeps_real_feature_disabled_and_visible_batch_bounded(self) -> None:
-        policy = VERIFY._load_json(VERIFY.POLICY)
+        policy = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.POLICY)
         self.assertFalse(policy["feature_gate"]["production_enabled"])
         self.assertFalse(policy["feature_gate"]["owner_canary_enabled"])
         clean = policy["clean_room"]
@@ -61,7 +64,7 @@ class Adapters003VerifierTests(unittest.TestCase):
         self.assertFalse(clean["unlike_or_like_mutation"])
 
     def test_inbox_and_identity_never_promote_or_duplicate_content(self) -> None:
-        policy = VERIFY._load_json(VERIFY.POLICY)
+        policy = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.POLICY)
         inbox = policy["inbox_policy"]
         self.assertEqual(inbox["default_disposition"], "unclassified")
         self.assertFalse(inbox["automatic_filing"])

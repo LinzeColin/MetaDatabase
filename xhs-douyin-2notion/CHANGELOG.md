@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 / Adapters 004
+
+- 基于固定 `Adapters003@0939d783…` 开发；A003 verifier 改为从其 final commit blob 验收历史 Task/State/实现/Fixture/Evidence，A004 不吸收 `main`、其他 worktree 或共享认证材料。
+- 固定审计 `jiji262/douyin-downloader@ef3ad18c…`、tree `ff7774b6…`、version `2.0.0` 与 MIT identity；原始上游 CLI/REST 不满足 x2n 的 build/schema/persistence 合同，故不 vendor、不安装、不导入、不执行，也不成为 Runtime dependency 或真相源。
+- 新增严格 `DouyinAdapter` sidecar protocol：每次 action 前核对 commit/tree/version/license、capability、persistence-off、integration lock、executable、resolved lock、transitive-license report 与 SBOM 摘要；递归拒绝未知/缺失字段和 URL/path/credential/raw/media/upstream primary key。
+- 新增 `shell=False`、最小环境、bounded timeout/pipe 的 subprocess transport，以及仅数字 `127.0.0.1`、固定 POST path、bounded response 的 loopback REST transport；错误归一化为稳定安全合同，任一 mismatch 在 Canonical transaction 前 Fail Closed。
+- 20 条合成收藏跨两个散列化收藏夹映射为 20 Content＋20 `favorited`；20 条合成点赞映射为 20 Content＋20 `liked`，共 40 Observation、两次 exact replay。upstream path/database primary key、full-scan completion、removed/tombstone/physical delete/Content delete 与分类写入均为 0。
+- 新增 18 个负向合同用例、5 个非权威删除保护用例、固定 20＋20 非执行 Canary plan 与只能阻断不能晋级的 shadow comparator；JSON 布尔伪整数和损坏的 cursor/Run/Checkpoint 状态组合均 Fail Closed。approved pin 不变，观察到的当前 candidate 为 `BLOCKED_SHADOW`、promotion 0。
+- 当前一手资料审阅未发现明确的个人点赞列表或收藏夹/列表 Scope；这是范围化研究结果而非不存在断言。抖音真实 upstream/private sidecar/Profile/账号/平台/Canary 均 `NOT_RUN`，两项生产 Feature Flag 关闭。
+- 最终 216 个 root tests PASS（3 个固定可选 skip）、136 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 78.36%，33 个依赖漏洞 0，73-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
 ## v0.0.0.1 — Stage 3 / Adapters 003
 
 - 基于固定 `Adapters002@050ec0c9…` 开发；A002 verifier 改为从其 final commit blob 验收 Task、状态、实现、Fixture、Receipt 与 Evidence，A003 新文件不会污染历史结论。
