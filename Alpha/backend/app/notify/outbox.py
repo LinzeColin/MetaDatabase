@@ -49,6 +49,7 @@ _EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
         "刚才失联的组件已全部恢复心跳。\n"
         "若紧急刹车仍处于拉下状态,恢复交易前会先完成对账核验,无需你操作。")),
     "DAILY_SUMMARY": ("每日小结", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "PAPER_3DAY_REPORT": ("三日模拟盘考核报告", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
 }
 
 

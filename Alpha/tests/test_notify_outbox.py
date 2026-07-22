@@ -96,3 +96,7 @@ def test_render_email_human_readable():
     s2, b2 = render_email("SOME_NEW_EVENT", {"msg": "你好", "count": 3})
     assert s2 == "【Alpha】SOME_NEW_EVENT"
     assert "msg:你好" in b2 and "count:3" in b2 and not b2.startswith("{")
+
+    s3, b3 = render_email("PAPER_3DAY_REPORT", {"text": "结论:不晋级,继续模拟盘。"})
+    assert s3 == "【Alpha】三日模拟盘考核报告"
+    assert b3 == "结论:不晋级,继续模拟盘。"
