@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "manifest_id": "FIXTURE.X2N.006",
-  "phase": "PH.X2N.2.1",
+  "manifest_id": "FIXTURE.X2N.007",
+  "phase": "PH.X2N.2.2",
   "fixtures": [
     {
       "id": "FIXTURE.X2N.S00.P05.001",
@@ -56,9 +56,15 @@
       "path": "packages/test-fixtures/extension/v1/xhs_current_page/fixture_manifest.json",
       "case_count": 5,
       "purpose": "Xiaohongshu current-page stable ID, sanitized facts, missing fields, platform change and feed-card rejection"
+    },
+    {
+      "id": "FIXTURE.X2N.S02.S002.001",
+      "path": "packages/test-fixtures/extension/v1/douyin_current_page/fixture_manifest.json",
+      "case_count": 24,
+      "purpose": "Douyin current-page stable ID, sanitized facts, platform change, synthetic short-link canonicalization and redirect allowlist rejection"
     }
   ],
-  "status": "xhs_current_page_ci_synthetic_fixtures_pass_owner_canary_not_run_other_platform_capture_fixtures_not_started",
+  "status": "xhs_douyin_current_page_ci_synthetic_fixtures_pass_owner_canary_not_run_other_platform_capture_fixtures_not_started",
   "future_requirements": {
     "source_must_be_declared": true,
     "real_account_content_allowed": false,

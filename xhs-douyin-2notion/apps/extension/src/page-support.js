@@ -6,8 +6,18 @@ const RULES = Object.freeze([
   }),
   Object.freeze({
     platform: "douyin",
-    hosts: Object.freeze(["douyin.com", "www.douyin.com"]),
-    paths: Object.freeze([/^\/video\/[A-Za-z0-9_-]+\/?$/]),
+    hosts: Object.freeze(["v.douyin.com", "www.douyin.com"]),
+    paths: Object.freeze([
+      /^\/video\/[A-Za-z0-9_-]+\/?$/,
+      /^\/note\/synthetic-[A-Za-z0-9_-]+\/?$/,
+      /^\/synthetic-[A-Za-z0-9_-]+\/?$/,
+    ]),
+    validate: (url) => {
+      const host = url.hostname.toLowerCase();
+      if (host === "v.douyin.com") return /^\/synthetic-[A-Za-z0-9_-]+\/?$/.test(url.pathname);
+      if (url.pathname.startsWith("/note/")) return /^\/note\/synthetic-[A-Za-z0-9_-]+\/?$/.test(url.pathname);
+      return /^\/video\/[A-Za-z0-9_-]+\/?$/.test(url.pathname);
+    },
   }),
   Object.freeze({
     platform: "bilibili",
@@ -28,14 +38,14 @@ const RULES = Object.freeze([
     platform: "taobao",
     hosts: Object.freeze(["item.taobao.com"]),
     paths: Object.freeze([/^\/item\.htm\/?$/]),
-    query: (url) => /^[1-9][0-9]{5,20}$/.test(url.searchParams.get("id") ?? ""),
+    validate: (url) => /^[1-9][0-9]{5,20}$/.test(url.searchParams.get("id") ?? ""),
   }),
 ]);
 
 export const SUPPORTED_PLATFORMS = Object.freeze(RULES.map((rule) => rule.platform));
 export const CURRENT_PAGE_FEATURES = Object.freeze({
   bilibili: false,
-  douyin: false,
+  douyin: "ci_synth_only",
   kuaishou: false,
   taobao: false,
   weibo: false,
@@ -45,8 +55,9 @@ export const CURRENT_PAGE_FEATURES = Object.freeze({
 function currentPageExecutable(match, url) {
   const mode = CURRENT_PAGE_FEATURES[match.platform];
   if (mode === true) return true;
-  if (mode !== "ci_synth_only" || match.platform !== "xiaohongshu") return false;
+  if (mode !== "ci_synth_only" || !new Set(["douyin", "xiaohongshu"]).has(match.platform)) return false;
   const contentId = url.pathname.split("/").filter(Boolean).at(-1) ?? "";
+  if (match.platform === "douyin") return contentId.startsWith("synthetic-");
   return contentId.startsWith("synthetic-") || contentId.startsWith("synthetic_");
 }
 
@@ -76,7 +87,7 @@ export function recognizePage(rawUrl) {
     (rule) =>
       rule.hosts.includes(host)
       && rule.paths.some((pathPattern) => pathPattern.test(url.pathname))
-      && (typeof rule.query !== "function" || rule.query(url)),
+      && (typeof rule.validate !== "function" || rule.validate(url)),
   );
   if (!match) {
     return Object.freeze({ executable: false, platform: null, reason: "unsupported_page", supported: false });

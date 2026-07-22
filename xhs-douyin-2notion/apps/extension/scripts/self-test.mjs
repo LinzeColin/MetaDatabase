@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { recognizePage, SUPPORTED_PLATFORMS } from "../src/page-support.js";
+import { buildDouyinCapturePayload, validateDouyinPageFacts } from "../src/douyin-current-page.js";
+import { DouyinShortLinkError, resolveDouyinShortLink } from "../src/douyin-short-link.js";
 import { buildXhsCapturePayload, validateXhsPageFacts } from "../src/xhs-current-page.js";
 
 const root = new URL("../", import.meta.url);
@@ -14,8 +16,16 @@ const xhsFixture = JSON.parse(
     "utf8",
   ),
 );
+const douyinFixture = JSON.parse(
+  await readFile(
+    new URL("../../packages/test-fixtures/extension/v1/douyin_current_page/fixture_manifest.json", root),
+    "utf8",
+  ),
+);
 const sourceFiles = [
   "sidepanel.html",
+  "src/douyin-current-page.js",
+  "src/douyin-short-link.js",
   "src/page-support.js",
   "src/service-worker.js",
   "src/sidepanel.js",
@@ -75,6 +85,25 @@ if (SUPPORTED_PLATFORMS.length !== 6) failures.push("platform_registry");
 if (recognizePage("https://www.xiaohongshu.com/explore/64f000000000000000000001").executable) {
   failures.push("xhs_real_page_gate");
 }
+if (recognizePage("https://www.douyin.com/video/7485211130848218428").executable) {
+  failures.push("douyin_real_page_gate");
+}
+if (recognizePage("https://v.douyin.com/opaque-real-shaped/").supported) {
+  failures.push("douyin_real_short_link_gate");
+}
+if (recognizePage("https://www.douyin.com/note/7485211130848218428").supported) {
+  failures.push("douyin_unknown_gallery_route_gate");
+}
+for (const url of [
+  "https://www.douyin.com/video/synthetic-video-self-test",
+  "https://www.douyin.com/note/synthetic-gallery-self-test",
+  "https://v.douyin.com/synthetic-short-self-test/",
+]) {
+  const support = recognizePage(url);
+  if (!support.supported || !support.executable || support.platform !== "douyin") {
+    failures.push("douyin_synthetic_page_gate");
+  }
+}
 
 if (xhsFixture.synthetic !== true || xhsFixture.cases.length !== 5) failures.push("xhs_fixture_manifest");
 for (const field of [
@@ -86,6 +115,11 @@ for (const field of [
   "real_accounts",
 ]) {
   if (xhsFixture[field] !== false) failures.push(`xhs_fixture_${field}`);
+  if (douyinFixture[field] !== false) failures.push(`douyin_fixture_${field}`);
+}
+if (douyinFixture.synthetic !== true || douyinFixture.cases.length !== 8) failures.push("douyin_fixture_manifest");
+if (!Array.isArray(douyinFixture.short_link_cases) || douyinFixture.short_link_cases.length !== 16) {
+  failures.push("douyin_short_link_fixture_manifest");
 }
 const contractFact = validateXhsPageFacts({
   page_context: {
@@ -119,6 +153,70 @@ try {
   // Expected fail-closed path.
 }
 
+const douyinContractFact = validateDouyinPageFacts({
+  page_context: {
+    content_id: "synthetic-video-contract-001",
+    content_type: "unknown",
+    title: null,
+  },
+  page_url: "https://www.douyin.com/video/synthetic-video-contract-001",
+  platform: "douyin",
+  provenance: {
+    canonical_url: { source: "stable_content_id_and_kind", status: "derived" },
+    content_id: { source: "location_path_and_detail_surface", status: "observed_verified" },
+    content_type: { source: null, status: "unknown" },
+    title: { source: null, status: "missing" },
+  },
+  schema_version: "1.0",
+  status: "ready",
+});
+const douyinContractPayload = buildDouyinCapturePayload(douyinContractFact);
+if (new URL(douyinContractPayload.page_url).search || new URL(douyinContractPayload.page_url).hash) {
+  failures.push("douyin_canonical_url");
+}
+try {
+  buildDouyinCapturePayload(validateDouyinPageFacts({
+    code: "X2N_PLATFORM_CHANGED",
+    platform: "douyin",
+    reason: "detail_surface_missing",
+    schema_version: "1.0",
+    status: "platform_changed",
+  }));
+  failures.push("douyin_platform_changed_capture");
+} catch {
+  // Expected fail-closed path.
+}
+
+const shortRequestOptions = [];
+const shortResolved = await resolveDouyinShortLink(
+  "https://v.douyin.com/synthetic-self-test/",
+  async (request) => {
+    shortRequestOptions.push(request);
+    return {
+      location: "https://www.douyin.com/video/synthetic-resolved-self-test?tracking=discarded",
+      status: 302,
+    };
+  },
+);
+if (
+  shortResolved.page_url !== "https://www.douyin.com/video/synthetic-resolved-self-test"
+  || shortResolved.redirect_count !== 1
+  || shortRequestOptions.length !== 1
+  || shortRequestOptions[0].credentials !== "omit"
+  || shortRequestOptions[0].redirect !== "manual"
+) failures.push("douyin_short_link_resolution");
+try {
+  await resolveDouyinShortLink(
+    "https://v.douyin.com/synthetic-self-test-blocked/",
+    async () => ({ location: "https://127.0.0.1/private", status: 302 }),
+  );
+  failures.push("douyin_short_link_ssrf");
+} catch (error) {
+  if (!(error instanceof DouyinShortLinkError) || error.code !== "X2N_SHORTLINK_HOST_BLOCKED") {
+    failures.push("douyin_short_link_ssrf_error");
+  }
+}
+
 if (failures.length > 0) {
   process.stderr.write(`${JSON.stringify({ code: "X2N_EXTENSION_INVALID", failures, status: "FAIL_CLOSED" })}\n`);
   process.exit(2);
@@ -127,6 +225,8 @@ if (failures.length > 0) {
 process.stdout.write(
   `${JSON.stringify({
     action: "extension_self_test",
+    douyin_fixture_cases: douyinFixture.cases.length,
+    douyin_shortlink_cases: douyinFixture.short_link_cases.length,
     extension_id: extensionId,
     fixture_cases: fixture.cases.length,
     fixture_recognition_passed: recognized,

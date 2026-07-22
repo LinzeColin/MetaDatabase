@@ -1,9 +1,26 @@
 import { recognizePage } from "./page-support.js";
+import {
+  buildDouyinCapturePayload,
+  extractDouyinCurrentPage,
+  validateDouyinPageFacts,
+} from "./douyin-current-page.js";
 import { buildXhsCapturePayload, extractXhsCurrentPage, validateXhsPageFacts } from "./xhs-current-page.js";
 
 const NATIVE_HOST = "com.linzecolin.x2n";
 const CONTRACT_VERSION = "1.0";
 const MESSAGE_TYPES = Object.freeze(new Set(["X2N_CAPTURE_CURRENT", "X2N_GET_JOB", "X2N_HEALTH"]));
+const CURRENT_PAGE_ADAPTERS = Object.freeze({
+  douyin: Object.freeze({
+    buildPayload: buildDouyinCapturePayload,
+    extract: extractDouyinCurrentPage,
+    validate: validateDouyinPageFacts,
+  }),
+  xiaohongshu: Object.freeze({
+    buildPayload: buildXhsCapturePayload,
+    extract: extractXhsCurrentPage,
+    validate: validateXhsPageFacts,
+  }),
+});
 
 // Lifecycle-only probe used by restart chaos. Product behavior never reads it;
 // every durable status still comes from the Native Host and SQLite.
@@ -51,20 +68,24 @@ async function captureCurrent(message) {
   }
   let tab;
   try {
+    const [focusedTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
     tab = await chrome.tabs.get(message.tabId);
-    if (!tab.active) throw new Error("active tab mismatch");
+    if (!tab.active || focusedTab?.id !== tab.id || focusedTab.windowId !== tab.windowId) {
+      throw new Error("active tab mismatch");
+    }
   } catch {
     return { ok: false, code: "X2N_POLICY_BLOCKED", status: "active_tab_unavailable" };
   }
   const support = recognizePage(tab.url ?? "");
-  if (!support.executable || support.platform !== "xiaohongshu") {
+  const adapter = CURRENT_PAGE_ADAPTERS[support.platform];
+  if (!support.executable || !adapter) {
     return { ok: false, code: "X2N_POLICY_BLOCKED", status: "platform_disabled" };
   }
 
   let injected;
   try {
     injected = await chrome.scripting.executeScript({
-      func: extractXhsCurrentPage,
+      func: adapter.extract,
       target: { tabId: tab.id },
       world: "ISOLATED",
     });
@@ -75,16 +96,29 @@ async function captureCurrent(message) {
     return { ok: false, code: "X2N_PLATFORM_CHANGED", status: "platform_changed" };
   }
 
+  try {
+    const [focusedTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    const currentTab = await chrome.tabs.get(message.tabId);
+    if (
+      !currentTab.active
+      || focusedTab?.id !== currentTab.id
+      || focusedTab.windowId !== currentTab.windowId
+      || currentTab.url !== tab.url
+    ) throw new Error("active tab changed during capture");
+  } catch {
+    return { ok: false, code: "X2N_POLICY_BLOCKED", status: "active_tab_changed" };
+  }
+
   let facts;
   try {
-    facts = validateXhsPageFacts(injected[0]?.result);
+    facts = adapter.validate(injected[0]?.result);
   } catch {
     return { ok: false, code: "X2N_PLATFORM_CHANGED", status: "platform_changed" };
   }
   if (facts.status === "platform_changed") {
     return { ok: false, code: facts.code, reason: facts.reason, status: facts.status };
   }
-  const response = await nativeRequest("capture_current", buildXhsCapturePayload(facts));
+  const response = await nativeRequest("capture_current", adapter.buildPayload(facts));
   return {
     ok: response?.accepted === true,
     response,

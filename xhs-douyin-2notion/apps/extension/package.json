@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "self-test": "node scripts/self-test.mjs",
+    "test:douyin-extension": "node scripts/extension-e2e.mjs douyin",
+    "test:douyin-fixtures": "node scripts/douyin-fixture-e2e.mjs",
     "test:e2e": "node scripts/extension-e2e.mjs",
     "test:xhs-fixtures": "node scripts/xhs-fixture-e2e.mjs"
   }

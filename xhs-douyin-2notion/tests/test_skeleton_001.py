@@ -33,11 +33,12 @@ class Skeleton001Tests(unittest.TestCase):
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S02-S001")
         self.assertEqual(VERIFY.PHASE, "PH.X2N.2.1")
         self.assertEqual(VERIFY.TASK_BASE_COMMIT, "6777c8fcce75a36741b70c2858c8bc5fff17d440")
+        self.assertEqual(VERIFY.FINAL_COMMIT, "894553c6d15c3c73315e54429c8bd26588b6f83a")
         self.assertNotIn("apps/companion/", VERIFY.ALLOWED_CHANGED_PREFIXES)
 
     def test_permissions_are_minimal_and_mapped(self) -> None:
         manifest = json.loads(VERIFY.MANIFEST.read_text(encoding="utf-8"))
-        policy = json.loads(VERIFY.PERMISSION_POLICY.read_text(encoding="utf-8"))
+        policy = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.PERMISSION_POLICY)
         self.assertEqual(manifest["permissions"], VERIFY.CURRENT_PERMISSIONS)
         self.assertNotIn("host_permissions", manifest)
         self.assertNotIn("content_scripts", manifest)
@@ -67,8 +68,8 @@ class Skeleton001Tests(unittest.TestCase):
             self.assertFalse(fixture[field])
 
     def test_real_pages_and_owner_canary_remain_disabled(self) -> None:
-        state = json.loads(VERIFY.TASK_STATE.read_text(encoding="utf-8"))
-        platform = json.loads(VERIFY.PLATFORM_FACT.read_text(encoding="utf-8"))
+        state = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.TASK_STATE)
+        platform = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.PLATFORM_FACT)
         xhs = next(item for item in platform["platforms"] if item["id"] == "xiaohongshu")
         self.assertEqual(state["current_stage_gate"], "not_run")
         self.assertEqual(state["current_stage_remote_upload"], "forbidden_until_g2_pass")
@@ -89,6 +90,8 @@ class Skeleton001Tests(unittest.TestCase):
         if not VERIFY.EVIDENCE.is_file():
             self.skipTest("Task evidence is written only after full E2E")
         evidence = json.loads(VERIFY.EVIDENCE.read_text(encoding="utf-8"))
+        self.assertEqual(VERIFY.EVIDENCE.read_bytes(), VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, VERIFY.EVIDENCE))
+        self.assertEqual(evidence["acceptance_input_sha256"], "4b922a8e80fe6359071b694ef540818bcff91c8927b16b8e6722e6530a320b92")
         self.assertEqual(evidence["owner_canary"], "NOT_RUN")
         self.assertEqual(evidence["real_account_execution"], "NOT_RUN")
         self.assertEqual(evidence["feature_flag"], "CI_SYNTH_ONLY_REAL_PAGE_DISABLED")

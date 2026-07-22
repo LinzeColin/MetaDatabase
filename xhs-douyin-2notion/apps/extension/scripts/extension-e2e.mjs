@@ -11,7 +11,24 @@ import { chromium } from "@playwright/test";
 const PROJECT_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 const EXTENSION_ROOT = join(PROJECT_ROOT, "apps/extension");
 const FIXTURE_PATH = join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/page_cases.json");
-const XHS_FIXTURE_ROOT = join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/xhs_current_page");
+const REQUESTED_PLATFORM = process.argv[2] ?? "xiaohongshu";
+const CURRENT_PAGE_CONFIGS = Object.freeze({
+  douyin: Object.freeze({
+    caseId: "douyin-video-detail",
+    expectedPath: "/video/synthetic-video-001",
+    expectedUrlFragment: "douyin.com/video/",
+    fixtureRoot: join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/douyin_current_page"),
+    metricPrefix: "douyin",
+  }),
+  xiaohongshu: Object.freeze({
+    caseId: "xhs-image-detail",
+    expectedPath: "/explore/synthetic-note-image-001",
+    expectedUrlFragment: "xiaohongshu.com/explore/",
+    fixtureRoot: join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/xhs_current_page"),
+    metricPrefix: "xhs",
+  }),
+});
+const CURRENT_PAGE_CONFIG = CURRENT_PAGE_CONFIGS[REQUESTED_PLATFORM];
 const EXPECTED_EXTENSION_ID = "chheapilbdfnpajmlkijppmblnlheeac";
 const NATIVE_HOST = "com.linzecolin.x2n";
 const INSTALL_CONFIRMATION = "INSTALL_X2N_NATIVE_HOST";
@@ -127,6 +144,7 @@ let env;
 let currentStep = "bootstrap";
 
 try {
+  requireCondition(Boolean(CURRENT_PAGE_CONFIG), "unsupported_e2e_platform");
   temporaryRoot = await mkdtemp(join(tmpdir(), "x2n-f004-e2e-"));
   const home = join(temporaryRoot, "home");
   const destination = join(temporaryRoot, "MediaCrawler");
@@ -289,21 +307,41 @@ try {
   });
   requireCondition(fixtureFailures.length === 0, "fixture_recognition");
 
-  currentStep = "xhs_active_tab_grant";
-  const xhsFixture = JSON.parse(await readFile(join(XHS_FIXTURE_ROOT, "fixture_manifest.json"), "utf8"));
-  const imageCase = xhsFixture.cases.find((item) => item.id === "xhs-image-detail");
-  requireCondition(Boolean(imageCase), "xhs_image_fixture_missing");
-  const imageHtml = await readFile(join(XHS_FIXTURE_ROOT, imageCase.file), "utf8");
-  const routedUrl = new URL(imageCase.page_url);
+  currentStep = `${CURRENT_PAGE_CONFIG.metricPrefix}_active_tab_grant`;
+  const currentPageFixture = JSON.parse(
+    await readFile(join(CURRENT_PAGE_CONFIG.fixtureRoot, "fixture_manifest.json"), "utf8"),
+  );
+  const captureCase = currentPageFixture.cases.find((item) => item.id === CURRENT_PAGE_CONFIG.caseId);
+  requireCondition(Boolean(captureCase), `${CURRENT_PAGE_CONFIG.metricPrefix}_fixture_missing`);
+  const captureHtml = await readFile(join(CURRENT_PAGE_CONFIG.fixtureRoot, captureCase.file), "utf8");
+  const routedUrl = new URL(captureCase.page_url);
   routedUrl.hash = "";
-  const xhsPage = await context.newPage();
-  await xhsPage.route(routedUrl.href, (route) => route.fulfill({
-    body: imageHtml,
-    contentType: "text/html; charset=utf-8",
-    status: 200,
-  }));
-  await xhsPage.goto(imageCase.page_url, { waitUntil: "domcontentloaded" });
-  await xhsPage.bringToFront();
+  const capturePage = await context.newPage();
+  let blockedPlatformNetworkRequests = 0;
+  let fixtureDocumentsFulfilled = 0;
+  let platformCalls = 0;
+  await capturePage.route("**/*", (route) => {
+    const requestUrl = new URL(route.request().url());
+    requestUrl.hash = "";
+    if (
+      requestUrl.href === routedUrl.href
+      && route.request().isNavigationRequest()
+      && route.request().resourceType() === "document"
+    ) {
+      fixtureDocumentsFulfilled += 1;
+      return route.fulfill({
+        body: captureHtml,
+        contentType: "text/html; charset=utf-8",
+        status: 200,
+      });
+    }
+    blockedPlatformNetworkRequests += 1;
+    return route.abort("blockedbyclient");
+  });
+  await capturePage.goto(captureCase.page_url, { waitUntil: "domcontentloaded" });
+  requireCondition(fixtureDocumentsFulfilled === 1, `${CURRENT_PAGE_CONFIG.metricPrefix}_fixture_document_count`);
+  requireCondition(platformCalls === 0, `${CURRENT_PAGE_CONFIG.metricPrefix}_platform_network_call`);
+  await capturePage.bringToFront();
   const beforeAction = await page.evaluate(async () => {
     const tabs = await chrome.tabs.query({});
     const tab = tabs.find((candidate) => candidate.active === true);
@@ -325,10 +363,13 @@ try {
       : { ok: false, status: "test_tab_unavailable" };
     return { capture, injection };
   });
-  requireCondition(beforeAction.injection === "rejected", "xhs_pre_action_injection_allowed");
+  requireCondition(
+    beforeAction.injection === "rejected",
+    `${CURRENT_PAGE_CONFIG.metricPrefix}_pre_action_injection_allowed`,
+  );
   requireCondition(
     beforeAction.capture?.ok === false && beforeAction.capture?.code === "X2N_POLICY_BLOCKED",
-    "xhs_pre_action_capture_allowed",
+    `${CURRENT_PAGE_CONFIG.metricPrefix}_pre_action_capture_allowed`,
   );
   const browser = context.browser();
   requireCondition(Boolean(browser), "browser_cdp_unavailable");
@@ -337,13 +378,13 @@ try {
     const { targetInfos } = await actionCdp.send("Target.getTargets", {
       filter: [{ exclude: false, type: "tab" }],
     });
-    const xhsTarget = targetInfos.find(
+    const captureTarget = targetInfos.find(
       (target) => target.type === "tab" && target.url.startsWith(routedUrl.href),
     );
-    requireCondition(Boolean(xhsTarget), "cdp_target_info_unavailable");
+    requireCondition(Boolean(captureTarget), "cdp_target_info_unavailable");
     await actionCdp.send("Extensions.triggerAction", {
       id: extensionId,
-      targetId: xhsTarget.targetId,
+      targetId: captureTarget.targetId,
     });
     await actionCdp.detach();
   } catch (error) {
@@ -361,7 +402,7 @@ try {
     if (/newBrowserCDPSession/iu.test(diagnostic)) throw new E2EFailure("browser_cdp_method_missing");
     throw new E2EFailure("cdp_trigger_action_failed");
   }
-  const activeTabProbe = await page.evaluate(async () => {
+  const activeTabProbe = await page.evaluate(async (expected) => {
     const tabs = await chrome.tabs.query({});
     const tab = tabs.find((candidate) => candidate.active === true);
     let injection = false;
@@ -374,36 +415,68 @@ try {
           world: "ISOLATED",
         });
         injection = result.length === 1 && result[0]?.result?.protocol === "https:";
-        injectedExpectedPage = result[0]?.result?.path === "/explore/synthetic-note-image-001";
+        injectedExpectedPage = result[0]?.result?.path === expected.path;
       } catch {
         injection = false;
       }
     }
     return {
-      has_expected_url: typeof tab?.url === "string" && tab.url.includes("xiaohongshu.com/explore/"),
+      has_expected_url: typeof tab?.url === "string" && tab.url.includes(expected.urlFragment),
       injection,
       injected_expected_page: injectedExpectedPage,
       is_active: tab?.active === true,
       tab_available: Number.isSafeInteger(tab?.id),
     };
-  });
-  requireCondition(activeTabProbe.tab_available, "xhs_active_tab_missing");
-  requireCondition(activeTabProbe.injection, "xhs_active_tab_not_granted");
-  requireCondition(activeTabProbe.injected_expected_page, "xhs_active_page_mismatch");
-  requireCondition(activeTabProbe.has_expected_url, "xhs_active_url_unavailable");
-  requireCondition(activeTabProbe.is_active, "xhs_target_not_active");
+  }, { path: CURRENT_PAGE_CONFIG.expectedPath, urlFragment: CURRENT_PAGE_CONFIG.expectedUrlFragment });
+  requireCondition(activeTabProbe.tab_available, `${CURRENT_PAGE_CONFIG.metricPrefix}_active_tab_missing`);
+  requireCondition(activeTabProbe.injection, `${CURRENT_PAGE_CONFIG.metricPrefix}_active_tab_not_granted`);
+  requireCondition(activeTabProbe.injected_expected_page, `${CURRENT_PAGE_CONFIG.metricPrefix}_active_page_mismatch`);
+  requireCondition(activeTabProbe.has_expected_url, `${CURRENT_PAGE_CONFIG.metricPrefix}_active_url_unavailable`);
+  requireCondition(activeTabProbe.is_active, `${CURRENT_PAGE_CONFIG.metricPrefix}_target_not_active`);
+  // Headless Chromium does not expose the opened side panel as a Playwright
+  // Page target. Reload the test-owned Side Panel document in the background
+  // so its real initialization path observes the action-granted active tab.
+  await page.reload({ waitUntil: "domcontentloaded" });
+  if (process.env.X2N_E2E_DEBUG === "1") {
+    const pageUrls = context.pages().map((item) => item.url().replace(/[?#].*$/u, ""));
+    process.stderr.write(`E2E_PAGES=${JSON.stringify(pageUrls)}\n`);
+    const sidePanelProbe = await page.evaluate(async () => {
+      const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+      const { recognizePage } = await import(chrome.runtime.getURL("src/page-support.js"));
+      return {
+        buttonDisabled: document.querySelector("#save-current")?.disabled,
+        pageStatus: document.querySelector("#page-status")?.textContent,
+        support: recognizePage(tab?.url ?? ""),
+        tabActive: tab?.active,
+      };
+    });
+    process.stderr.write(`E2E_SIDEPANEL=${JSON.stringify(sidePanelProbe)}\n`);
+  }
 
-  currentStep = "xhs_current_page_submission";
-  const submission = await page.evaluate(async () => {
-    const tabs = await chrome.tabs.query({});
-    const tab = tabs.find((candidate) => candidate.active === true);
-    if (!Number.isSafeInteger(tab?.id)) return { ok: false, status: "test_tab_unavailable" };
-    return chrome.runtime.sendMessage({ tabId: tab.id, type: "X2N_CAPTURE_CURRENT" });
+  currentStep = `${CURRENT_PAGE_CONFIG.metricPrefix}_current_page_submission`;
+  await page.waitForFunction(() => document.querySelector("#save-current")?.disabled === false, undefined, {
+    timeout: 10_000,
   });
-  requireCondition(submission?.ok === true && submission.response?.status === "queued", "xhs_capture_rejected");
-  const jobId = submission.response.job_id;
-  requireCondition(typeof jobId === "string" && /^[0-9a-f-]{36}$/.test(jobId), "xhs_capture_job_missing");
-  await xhsPage.close();
+  await page.locator("#save-current").evaluate((button) => button.click());
+  await page.waitForFunction(
+    () => /^[0-9a-f-]{36}$/u.test(document.querySelector("#capture-status")?.dataset.jobId ?? ""),
+    undefined,
+    { timeout: 15_000 },
+  );
+  const submission = await page.locator("#capture-status").evaluate((element) => ({
+    jobId: element.dataset.jobId,
+    status: element.textContent,
+  }));
+  requireCondition(
+    submission.status === "Current page queued in the local companion",
+    `${CURRENT_PAGE_CONFIG.metricPrefix}_capture_rejected`,
+  );
+  const jobId = submission.jobId;
+  requireCondition(
+    typeof jobId === "string" && /^[0-9a-f-]{36}$/.test(jobId),
+    `${CURRENT_PAGE_CONFIG.metricPrefix}_capture_job_missing`,
+  );
+  await capturePage.close();
   await page.bringToFront();
 
   currentStep = "restart_chaos";
@@ -452,7 +525,9 @@ try {
     fixture_recognition_passed: fixture.cases.length - fixtureFailures.length,
     lost_jobs: lostJobs,
     owner_canary: "NOT_RUN",
-    platform_calls: 0,
+    blocked_platform_network_requests: blockedPlatformNetworkRequests,
+    fixture_documents_fulfilled: fixtureDocumentsFulfilled,
+    platform_calls: platformCalls,
     real_accounts: 0,
     request_ledger_rows: health.table_counts.request_ledger,
     screenshot,
@@ -460,14 +535,20 @@ try {
     status: "PASS",
     trace,
     wrong_statuses: wrongStatuses,
-    xhs_action_before_grant_rejections: 2,
-    xhs_action_trigger: "PASS_CDP_DEFAULT_ACTION",
-    xhs_current_page_capture: "PASS_CI_SYNTH",
-    xhs_owner_canary: "NOT_RUN",
-    xhs_query_fragment_persisted: 0,
+    [`${CURRENT_PAGE_CONFIG.metricPrefix}_action_before_grant_rejections`]: 2,
+    [`${CURRENT_PAGE_CONFIG.metricPrefix}_action_trigger`]: "PASS_CDP_DEFAULT_ACTION",
+    [`${CURRENT_PAGE_CONFIG.metricPrefix}_current_page_capture`]: "PASS_CI_SYNTH",
+    [`${CURRENT_PAGE_CONFIG.metricPrefix}_owner_canary`]: "NOT_RUN",
+    [`${CURRENT_PAGE_CONFIG.metricPrefix}_query_fragment_persisted`]: 0,
   };
   process.stdout.write(`${JSON.stringify(result)}\n`);
 } catch (error) {
+  if (process.env.X2N_E2E_DEBUG === "1" && !(error instanceof E2EFailure)) {
+    const safeDiagnostic = String(error?.message ?? error)
+      .replace(/\/(?:Users|home)\/[^/\s]+\//gu, "<local-root>/")
+      .replace(/[0-9a-f]{32,}/giu, "<opaque-id>");
+    process.stderr.write(`E2E_DIAGNOSTIC=${safeDiagnostic.slice(0, 400)}\n`);
+  }
   const code = error instanceof E2EFailure ? error.code : `unexpected_${currentStep}`;
   process.stderr.write(`${JSON.stringify({ code, status: "FAIL_CLOSED" })}\n`);
   process.exitCode = 1;

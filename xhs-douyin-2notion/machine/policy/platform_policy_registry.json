@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.2.1",
+  "phase": "PH.X2N.2.2",
   "default": "deny",
   "research_cutoff": "2026-07-22",
   "policy_recheck_required_at_platform_phase_start": true,
@@ -30,7 +30,12 @@
       "https://developers.notion.com/guides/data-apis/working-with-files-and-media"
     ],
     "xiaohongshu": ["https://agora.xiaohongshu.com/doc"],
-    "douyin": ["https://open.douyin.com/platform/resource/docs/operation-standard/agreement-protocol"],
+    "douyin": [
+      "https://open.douyin.com/platform/resource/docs/operation-standard/agreement-protocol",
+      "https://www.douyin.com/agreements/?id=6773906068725565448",
+      "https://developer.open-douyin.com/docs/resource/zh-CN/dop/develop/openapi/video-management/douyin/iframe-player/get-iframe-by-video",
+      "https://open.douyin.com/platform/resource/docs/openapi/video-management/douyin/search-video/account-video-list"
+    ],
     "bilibili": ["https://openhome.bilibili.com/agreement/developer-service"],
     "kuaishou": ["https://open.kuaishou.com/platform/protocol"],
     "weibo": ["https://open.weibo.com/cli/index"],
@@ -59,16 +64,29 @@
   ],
   "capability_states": {
     "xiaohongshu_current_page": "ci_synth_only_policy_unknown_real_page_disabled_owner_canary_not_run",
+    "douyin_current_page": "ci_synth_only_policy_unknown_real_page_and_network_transport_disabled_owner_canary_not_run",
     "xiaohongshu_selected_collection": "unknown_disabled",
     "other_platform_current_page": "unknown_disabled"
   },
   "policy_recheck": {
     "date": "2026-07-22",
-    "official_personal_content_read_capability": "not_found",
-    "official_share_platform_scope": "publishing_and_sharing_not_personal_content_read",
-    "decision": "retain_unknown_disabled_for_real_pages"
+    "xiaohongshu": {
+      "official_personal_content_read_capability": "not_found",
+      "official_share_platform_scope": "publishing_and_sharing_not_personal_content_read",
+      "decision": "retain_unknown_disabled_for_real_pages"
+    },
+    "douyin": {
+      "user_agreement_updated": "2026-02-13",
+      "user_agreement_effective": "2026-02-20",
+      "official_personal_likes_or_favorites_read_capability": "not_found",
+      "official_published_video_list_scope": "oauth_and_approved_authorized_account_only",
+      "official_public_video_scope": "narrow_iframe_by_video_id_only",
+      "stable_gallery_route": "not_established",
+      "short_link_object_contract": "not_exhaustive",
+      "decision": "retain_unknown_disabled_for_real_pages_and_network_resolution"
+    }
   },
   "product_code_started": true,
-  "product_code_scope": "xiaohongshu_current_page_ci_synth_only",
+  "product_code_scope": "xiaohongshu_and_douyin_current_page_ci_synth_only",
   "real_account_execution": false
 }

@@ -12,13 +12,15 @@
 - Stage 0 整阶段已通过 PR #66 合并；G0 历史/Resume 证据保持不变。
 - Stage 1：`TSK.x2n.foundation.001–005` 与独立 `STG.X2N.1.REVIEW` 已完成；8 个 finding 全部关闭，当前 `G1=PASS`，Stage 1 整体上传与 Stage 2 下一 Task 已授权。
 - Stage 1 已通过 PR #73 合并到 `main`，远端 PR 与合并后 x2n CI 均通过；历史 G1 Evidence 不改写。
-- Stage 2 当前单 Task：`TSK.x2n.skeleton.001`（`PH.X2N.2.1`）已完成 CI 合成 scoped pass；开发分支为 `codex/xhs-douyin-2notion-v0001-s02-skeleton001`，Task base/cutoff 均为 `6777c8fc…`。
+- Stage 2 已完成两个独立单 Task：`TSK.x2n.skeleton.001`（`PH.X2N.2.1`）与 `TSK.x2n.skeleton.002`（`PH.X2N.2.2`），均仅为 CI 合成 scoped pass；当前 Skeleton002 分支为 `codex/xhs-douyin-2notion-v0001-s02-skeleton002`，Task base 为 `894553c6…`、origin cutoff 为 `6777c8fc…`。
 - 小红书当前页代码、5 个 DOM Fixture、Action/临时 `activeTab`、Native Host/SQLite 闭环与 100 次 Worker restart 已通过；能力位仍为 `ci_synth_only`，真实页面禁用。
+- 抖音当前页代码、8 个 DOM Fixture 与 16 个合成短链 redirect 用例通过；短链核心无生产 transport，Extension/Companion 不联网解析，真实页面、真实短链和 Owner Canary 均禁用。
 - Skeleton001 最终全量回归：两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；105 个根测试 PASS、3 个 Owner-private 可选输入按 allowlist skip；overall combined coverage 70.95%，33 个依赖 OSV 漏洞 0，54-member source candidate 确定性一致且 Runtime Data 0。
+- Skeleton002 最终全量回归：两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；112 个根测试 PASS、3 个 Owner-private 可选输入按 allowlist skip；overall combined coverage 70.95%，33 个依赖 OSV 漏洞 0，56-member source candidate 确定性一致且 Runtime Data 0。
 - 回归捕获并修复 SQLite transient `-wal/-shm` 在并发连接关闭时消失的 chmod 竞态；只豁免已经消失的 sidecar，Canonical DB 或仍存在 sidecar 的加固失败继续 Fail Closed。
-- 当前 `G2=NOT_RUN`、Stage 2 上传禁止；下一独立产品 Run 只能执行 `TSK.x2n.skeleton.002`（`PH.X2N.2.2`）。
-- 真实账号、Chrome 控制、六平台调用、Notion、模型、媒体与全部下游用户旅程 Acceptance：`NOT_RUN`。
-- 六平台真实执行：全部 `UNKNOWN_DISABLED`；小红书仅 `current_page=CI_SYNTH_ONLY`，各平台真实启用时重新通过 Policy/Auth/Technical/Canary Gate。
+- 当前 `G2=NOT_RUN`、Stage 2 上传禁止；下一独立产品 Run 只能执行 `TSK.x2n.skeleton.006`（`PH.X2N.2.3`）。
+- 真实账号、Owner Chrome/Profile、六平台调用、Notion、模型、媒体与全部下游用户旅程 Acceptance：`NOT_RUN`。
+- 六平台真实执行：全部 `UNKNOWN_DISABLED`；小红书与抖音仅 `current_page=CI_SYNTH_ONLY`，各平台真实启用时重新通过 Policy/Auth/Technical/Canary Gate。
 
 ## Resume 关键决策
 
@@ -57,9 +59,10 @@
 - Review 机器证据：`machine/evidence/stage_1/review/{findings,verification,G1}.json`；人类报告：`docs/governance/STAGE_1_REVIEW.md`。本地 `G1=PASS`，远端 x2n CI 尚待上传后运行。
 - Model baseline：`x2n-synthetic-model-contract-v1@1.0.0` Dataset Contract PASS；ASR/OCR/Fusion/Classify 为禁用且 NOT_RUN，Red Team 只过合同，自动分类等待 `ACC.x2n.ai.006`，模型调用 0。
 - Skeleton001：5/5 公共合成 DOM 通过；3 个 ready 的稳定 ID/Host/Path/标题/null/类型完全匹配，2 个改版或 feed-card Fixture 返回 `platform_changed`；Query/Fragment、媒体/raw DOM 持久化为 0。
+- Skeleton002：8/8 公共合成 DOM 通过；4 个 ready、4 个 `platform_changed`；16 个短链 redirect 用例中 3 个 canonical resolved、13 个 fail-closed。短链、Query/Fragment、媒体/raw DOM 持久化为 0，生产网络 transport 与平台调用为 0。
 - 当前 Extension 权限为 `activeTab`/`nativeMessaging`/`scripting`/`sidePanel`；历史 Foundation004 的 3 权限事实保持在固定提交与 Evidence 中。当前无 Host Permission、静态 Content Script、Storage/Cookie/Tabs/Downloads 或远程代码。
-- Chromium E2E 在默认 Action 前验证注入与采集 2/2 拒绝；用官方 CDP Action 驱动后才取得临时 `activeTab`，合成当前页进入 Native Host/SQLite Job；100 次 Worker 重启仍 0 丢单/重单/错状态。Owner Canary 与真实页面均 `NOT_RUN/DISABLED`。
-- 当前根回归：105 tests PASS，3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对；Foundation001 固定提交 fresh replay、Foundation002 Contract、Foundation003 Store、Foundation004、Foundation005 与 Skeleton001 完整 verifier 均 PASS。Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
+- Chromium E2E 在默认 Action 前验证注入与采集 2/2 拒绝；用官方 CDP Action 驱动后才取得临时 `activeTab`，并通过真实 Side Panel 按钮把 XHS/Douyin 合成当前页分别送入 Native Host/SQLite；每平台 100 次 Worker 重启仍 0 丢单/重单/错状态。平台形态网络请求由 catch-all route 拦截，实测平台调用 0；Owner Canary 与真实页面均 `NOT_RUN/DISABLED`。
+- 当前根回归：112 tests PASS，3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对；Foundation001 固定提交 fresh replay、Foundation002 Contract、Foundation003 Store、Foundation004、Foundation005、Skeleton001 历史固定＋当前 XHS 回归与 Skeleton002 完整 verifier 均 PASS。Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
 - Fresh copy：隔离 HOME 中 frozen locks、Extension 与 7 个 lifecycle rehearsal 加 1 个负向 Canary 均通过。
 
 ```bash
@@ -90,7 +93,7 @@ Run Contract 执行。
 
 ## 下一步
 
-1. 保留 Skeleton001 本地提交，不上传；Stage 2 必须等全部 9 个 Skeleton Task、独立 Review/Fix/Re-acceptance 与 `G2=PASS` 后整体上传。
-2. 下一独立 Run 只执行 `TSK.x2n.skeleton.002`（抖音当前页）；不得顺带进入 Adapter、列表、媒体或真实 Canary。
-3. 小红书真实页面继续关闭，直到当时的一手政策证据、Owner 明确授权、真实图文/视频各 1 Canary 与隐私披露门禁独立通过。
+1. 保留 Skeleton001 与 Skeleton002 本地提交，不上传；Stage 2 必须等全部 9 个 Skeleton Task、独立 Review/Fix/Re-acceptance 与 `G2=PASS` 后整体上传。
+2. 下一独立 Run 只执行 `TSK.x2n.skeleton.006`（哔哩哔哩当前页）；不得顺带进入 Adapter、列表、媒体或真实 Canary。
+3. 小红书/抖音真实页面与抖音生产短链解析继续关闭，直到当时的一手政策证据、Owner 明确授权、对应 Canary、隐私披露与网络安全门禁独立通过。
 4. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Runtime/越界写入命中立即 Fail Closed。

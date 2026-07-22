@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "DOUYIN.CURRENT_PAGE.X2N.001",
+  "phase": "PH.X2N.2.2",
+  "default": "deny",
+  "feature_flag": {
+    "name": "douyin_current_page",
+    "value": "ci_synth_only",
+    "real_page_execution": false,
+    "owner_canary": "not_run"
+  },
+  "platform_policy_state": "unknown_disabled",
+  "execution_environment": "ENV-CI-SYNTH",
+  "production_network_transport": false,
+  "real_short_link_resolution": "unknown_disabled",
+  "synthetic_redirect_validator": {
+    "enabled": true,
+    "transport": "injected_fixture_requester_only",
+    "start_host": "v.douyin.com",
+    "final_host": "www.douyin.com",
+    "accepted_detail_paths": [
+      "/video/<synthetic-id>",
+      "/note/<synthetic-id>"
+    ],
+    "synthetic_id_prefix": "synthetic-",
+    "https_only": true,
+    "credentials": "omit",
+    "redirect": "manual",
+    "maximum_redirects": 3,
+    "maximum_allowed_redirects": 5,
+    "synthetic_case_count": 16,
+    "allowed_redirect_statuses": [301, 302, 303, 307, 308],
+    "request_fields": ["cache", "credentials", "method", "redirect", "referrerPolicy", "url"],
+    "response_fields": ["location", "status"],
+    "output_contains_short_link": false
+  },
+  "current_page_contract": {
+    "owner_action_required": true,
+    "active_tab_required": true,
+    "isolated_world": true,
+    "focused_tab_and_url_rechecked": true,
+    "automatic_scrolling": false,
+    "account_state_change": false,
+    "query_or_fragment_persistence": false,
+    "media_url_or_raw_dom_output": false,
+    "non_synthetic_identity_capture": false
+  },
+  "official_evidence_registry": "machine/policy/platform_policy_registry.json#official_sources.douyin",
+  "policy_findings": {
+    "official_personal_likes_or_favorites_read_capability": "not_found",
+    "published_video_list": "oauth_and_approved_authorized_account_only",
+    "public_video_iframe": "narrow_video_id_scope_only",
+    "stable_gallery_route": "not_established",
+    "short_link_object_contract": "not_exhaustive"
+  },
+  "rollback": "set_douyin_current_page_false_and_retain_public_synthetic_fixtures",
+  "future_enablement_requires": [
+    "independent_versioned_task",
+    "current_first_party_policy_evidence",
+    "approved_scope_or_owner_authorization_evidence",
+    "versioned_network_or_official_api_contract",
+    "dns_tls_redirect_ssrf_acceptance_when_network_exists",
+    "owner_canary_and_completeness_receipt"
+  ]
+}

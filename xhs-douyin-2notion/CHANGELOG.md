@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.0.1 — Stage 2 / Skeleton 002
+
+- 实现抖音当前详情页 clean-room 合成检测/提取：稳定字符串 ID、无 Query/Fragment 的 canonical 重建、净化标题/null、视频/图集/unknown 类型与 provenance；身份冲突、feed card、多详情根和非合成短链身份均 `X2N_PLATFORM_CHANGED`。
+- 新增 8 个公共安全 DOM Fixture（4 ready、4 platform-changed）与 16 个短链安全用例（3 resolved、13 blocked）；覆盖五类 Redirect status、相对跳转、精确请求 URL、非允许 Host/Path、IP、lookalike、userinfo、port、loop、limit、额外响应字段、非 Redirect status 与 transport failure。
+- 短链实现严格是 network-free、transport-injected 的 CI synthetic core；Extension/Service Worker/Companion 均无生产 requester，真实短链和真实页面保持 `UNKNOWN_DISABLED`，没有新增 Host Permission、Native Action 或 v1.0 Contract 字段。
+- Service Worker 在注入前后复核 focused active tab 与完整 URL，阻止导航竞态；Side Panel 增加 stale refresh generation 与 in-flight guard，不再把迟到成功误报为“未执行”或允许重复提交。
+- XHS/Douyin 两条 Playwright 链路均通过真实 Side Panel 按钮进入 Native Host/SQLite；所有平台形态请求被 catch-all route 拦截，实测平台调用 0；各 100 次 Worker restart 均 0 丢单/重单/错状态。
+- Skeleton001 历史 Task/State/Policy/Evidence 固定到 `894553c6…`，当前树只做追加式 XHS 行为回归；历史 acceptance receipt 保持逐字节不变。
+- 根回归 112 tests PASS、3 个显式可选私有输入 skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 70.95%，33 dependencies 的 OSV vulnerability 0，56-member source candidate 无 Runtime Data。
+- `ACC.x2n.capture.002` 与 `ACC.x2n.ext.001` 仅 CI-SYNTH scoped pass；Owner Canary、真实账号/平台、生产网络、G2 与 Stage 2 上传均 `NOT_RUN/DISABLED`，下一独立 Run 为 `TSK.x2n.skeleton.006`。
+
 ## v0.0.0.1 — Stage 2 / Skeleton 001
 
 - 实现小红书当前详情页 clean-room 检测与提取：稳定 ID、无 Query/Fragment 的规范 URL、净化标题或显式 null、图文/视频/unknown 类型及字段状态；身份冲突和 feed card 均返回 `X2N_PLATFORM_CHANGED`。

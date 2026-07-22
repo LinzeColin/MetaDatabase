@@ -9,6 +9,9 @@ const refreshButton = document.querySelector("#refresh-status");
 const saveButton = document.querySelector("#save-current");
 const captureStatus = document.querySelector("#capture-status");
 let activeTabId = null;
+let currentPageExecutable = false;
+let captureInFlight = false;
+let pageRefreshGeneration = 0;
 
 function selectTab(selected) {
   for (const tab of tabs) {
@@ -42,12 +45,19 @@ async function activePage() {
 
 function renderPage(result) {
   activeTabId = Number.isSafeInteger(result.tabId) ? result.tabId : null;
-  saveButton.disabled = !(result.executable && result.platform === "xiaohongshu" && activeTabId !== null);
+  const executablePlatform = result.executable
+    && new Set(["douyin", "xiaohongshu"]).has(result.platform)
+    && activeTabId !== null;
+  currentPageExecutable = executablePlatform;
+  saveButton.disabled = !executablePlatform;
   saveButton.textContent = saveButton.disabled ? "Save unavailable" : "Save current page";
-  captureStatus.textContent = "";
-  delete captureStatus.dataset.jobId;
-  if (result.executable && result.platform === "xiaohongshu") {
-    pageStatus.textContent = "Xiaohongshu detail page recognized";
+  if (!captureInFlight) {
+    captureStatus.textContent = "";
+    delete captureStatus.dataset.jobId;
+  }
+  if (executablePlatform) {
+    const platformName = result.platform === "douyin" ? "Douyin" : "Xiaohongshu";
+    pageStatus.textContent = `${platformName} detail page recognized`;
     platformStatus.textContent = "Only this explicitly selected current page will be read";
     return;
   }
@@ -61,19 +71,22 @@ function renderPage(result) {
 }
 
 async function refreshPage() {
+  const generation = ++pageRefreshGeneration;
   const result = await activePage();
-  renderPage(result);
+  if (generation === pageRefreshGeneration) renderPage(result);
 }
 
 async function captureCurrentPage() {
-  if (activeTabId === null || saveButton.disabled) return;
+  if (activeTabId === null || saveButton.disabled || captureInFlight) return;
+  const requestedTabId = activeTabId;
+  captureInFlight = true;
   saveButton.disabled = true;
   captureStatus.textContent = "Reading sanitized current-page facts…";
+  const pendingNotice = setTimeout(() => {
+    captureStatus.textContent = "Still waiting for local confirmation — do not retry";
+  }, 15_000);
   try {
-    const result = await Promise.race([
-      chrome.runtime.sendMessage({ tabId: activeTabId, type: "X2N_CAPTURE_CURRENT" }),
-      new Promise((resolve) => setTimeout(() => resolve({ ok: false, status: "timeout" }), 15_000)),
-    ]);
+    const result = await chrome.runtime.sendMessage({ tabId: requestedTabId, type: "X2N_CAPTURE_CURRENT" });
     if (result?.ok && result.response?.job_id) {
       captureStatus.dataset.jobId = result.response.job_id;
       captureStatus.textContent = "Current page queued in the local companion";
@@ -87,7 +100,9 @@ async function captureCurrentPage() {
   } catch {
     captureStatus.textContent = "Capture unavailable — no action executed";
   } finally {
-    saveButton.disabled = activeTabId === null;
+    clearTimeout(pendingNotice);
+    captureInFlight = false;
+    saveButton.disabled = !(currentPageExecutable && activeTabId === requestedTabId);
   }
 }
 
@@ -110,20 +125,20 @@ async function refreshStatus() {
 refreshButton.addEventListener("click", refreshStatus);
 saveButton.addEventListener("click", captureCurrentPage);
 chrome.tabs.onActivated.addListener(() => {
-  refreshPage().catch(() => renderPage({ ...recognizePage(""), tabId: null }));
+  refreshPage().catch(() => undefined);
 });
 chrome.tabs.onUpdated.addListener((_tabId, changeInfo) => {
   if (changeInfo.status === "complete" || typeof changeInfo.url === "string") {
-    refreshPage().catch(() => renderPage({ ...recognizePage(""), tabId: null }));
+    refreshPage().catch(() => undefined);
   }
 });
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
-    refreshPage().catch(() => renderPage({ ...recognizePage(""), tabId: null }));
+    refreshPage().catch(() => undefined);
     refreshStatus().catch(() => undefined);
   }
 });
 
 selectTab(tabs[0]);
-refreshPage().catch(() => renderPage({ ...recognizePage(""), tabId: null }));
+refreshPage().catch(() => undefined);
 refreshStatus().catch(() => undefined);

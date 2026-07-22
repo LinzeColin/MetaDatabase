@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 2` 的单一 `TSK.x2n.skeleton.001` 已完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。小红书当前详情页已具备稳定 ID、净化页面事实、`platform_changed`、Extension Action/临时 `activeTab`、Native Host 与 SQLite 队列闭环，但能力位固定为 `ci_synth_only`：真实页面、Owner Chrome/账号和 Canary 仍禁用。5/5 DOM Fixture、Action 前 2 个拒绝、Action 后一次合成采集及 100 次 Service Worker 重启均通过；无 Host Permission、静态 Content Script、Extension Storage、Query/Fragment 或媒体地址持久化。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.002`。Markdown/Notion、ASR/OCR、分类、媒体和其余平台动作均未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 2` 的 `TSK.x2n.skeleton.001/.002` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。小红书与抖音当前详情页均具备稳定合成 ID、净化页面事实、`platform_changed`、Extension Action/临时 `activeTab`、Native Host 与 SQLite 队列闭环。抖音新增 8/8 DOM 与 16/16 合成短链重定向矩阵，但短链核心只有注入式 Fixture requester，生产网络 transport、真实页面、真实短链、Owner Chrome/账号和 Canary 全部关闭。两平台各完成 Action 前 2 个拒绝、真实 Side Panel 按钮合成采集及 100 次 Service Worker 重启；无 Host Permission、静态 Content Script、Extension Storage、平台网络调用、Query/Fragment、短链或媒体地址持久化。根回归 112 tests PASS、3 个公开 CI 可选私有输入 skip；两轮 full lane 24/24 PASS。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.006`。Markdown/Notion、ASR/OCR、分类、媒体和其余平台动作均未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,26 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 2 / Skeleton 001 验证
+## Stage 2 / Skeleton 002 验证
+
+```bash
+npm run self-test --workspace @x2n/extension
+npm run test:xhs-fixtures --workspace @x2n/extension
+npm run test:douyin-fixtures --workspace @x2n/extension
+npm run test:e2e --workspace @x2n/extension
+npm run test:douyin-extension --workspace @x2n/extension
+python3.12 -B scripts/verify_skeleton_002.py \
+  --verify-worktree --allow-external-main-dirty --require-evidence
+```
+
+`ACC.x2n.capture.002` 当前只达到 `ENV-CI-SYNTH`：4 个 ready、4 个
+`platform_changed` 与 16 个重定向安全用例全部通过；3 个合成短链完成 canonical
+重建，13 个非允许输入/跳转/响应/transport 故障全部拒绝。E2E 对所有平台形态网络请求
+先拦截再本地 fulfill/abort，实测平台调用为 0。生产网络 transport、真实视频/图集/短链、
+Owner Canary 和真实账号均为 `UNKNOWN_DISABLED / NOT_RUN`；`/note` 与短链形态仅是合成
+Oracle，不是现实平台支持声明。
+
+## Stage 2 / Skeleton 001 历史验证
 
 ```bash
 npm ci --ignore-scripts
@@ -35,11 +54,14 @@ python3.12 -B scripts/verify_skeleton_001.py \
   --verify-worktree --allow-external-main-dirty --require-evidence
 ```
 
-`ACC.x2n.capture.001` 当前只达到 `ENV-CI-SYNTH`：3 个 ready 与 2 个
+`ACC.x2n.capture.001` 只达到 `ENV-CI-SYNTH`：3 个 ready 与 2 个
 `platform_changed` Fixture 全部通过；Owner Canary 所需真实图文/视频各 1 为 `NOT_RUN`，
 因此真实页面保持 `UNKNOWN_DISABLED`。Manifest 当前权限为 `activeTab`、
 `nativeMessaging`、`scripting`、`sidePanel`；`scripting` 只能在 Extension Action 授予临时
 `activeTab` 后执行，持久 Host Permission 仍为 0。
+
+Skeleton001 的 Task State、Policy 与 acceptance input receipt 固定在最终提交
+`894553c6…`；当前树继续运行 XHS 静态安全、Fixture 和 E2E 回归，历史 Evidence 不重写。
 
 ## Stage 1 Review / G1 历史验证
 
