@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "BILIBILI.CURRENT_PAGE.X2N.001",
+  "phase": "PH.X2N.2.3",
+  "default": "deny",
+  "feature_flag": {
+    "name": "bilibili_current_page",
+    "value": "ci_synth_only",
+    "real_page_execution": false,
+    "owner_canary": "not_run"
+  },
+  "platform_policy_state": "unknown_disabled",
+  "execution_environment": "ENV-CI-SYNTH",
+  "production_network_transport": false,
+  "official_first_gate": {
+    "oauth_available": true,
+    "application_registration_required": true,
+    "user_authorization_and_scope_required": true,
+    "authorized_uploader_video_management_available": true,
+    "authorized_uploader_article_management_available": true,
+    "arbitrary_current_page_read_capability": "not_found",
+    "likes_or_favorites_read_capability": "not_found",
+    "undocumented_api_use": "forbidden"
+  },
+  "route_evidence": {
+    "video_bv_route": "official_share_url_shape_verified_real_route_disabled",
+    "video_top_level_identity": "bvid_not_cid",
+    "article_cv_identity": "official_prefix_and_integer_identity_verified",
+    "article_read_route": "unverified_route_assumption_ci_fixture_only",
+    "opus_route": "not_in_scope_unknown_disabled",
+    "semantic_query_p": "unsupported_fail_closed_to_prevent_part_identity_collapse"
+  },
+  "current_page_contract": {
+    "owner_action_required": true,
+    "active_tab_required": true,
+    "isolated_world": true,
+    "focused_tab_and_url_rechecked": true,
+    "automatic_scrolling": false,
+    "automatic_pagination": false,
+    "account_state_change": false,
+    "query_or_fragment_persistence": false,
+    "media_url_or_raw_dom_output": false,
+    "non_synthetic_identity_capture": false
+  },
+  "synthetic_gate": {
+    "video_id_prefix": "synthetic-bili-video-",
+    "article_id_prefix": "synthetic-bili-article-",
+    "canonical_host": "www.bilibili.com",
+    "dom_case_count": 10,
+    "policy_case_count": 8,
+    "platform_network_calls": 0
+  },
+  "official_evidence_registry": "machine/policy/platform_policy_registry.json#official_sources.bilibili",
+  "policy_findings": {
+    "automated_script_access_without_prior_written_permission": "not_justified",
+    "associated_uploader_authorization_required_for_user_and_manuscript_data": true,
+    "real_current_page_clean_room_exemption": "not_found",
+    "decision": "retain_unknown_disabled_for_real_pages"
+  },
+  "rollback": "set_bilibili_current_page_false_and_retain_public_synthetic_fixtures",
+  "future_enablement_requires": [
+    "independent_versioned_task",
+    "current_first_party_policy_evidence",
+    "documented_current_page_or_owner_data_scope",
+    "approved_application_and_user_authorization_when_official_api_is_used",
+    "article_route_identity_contract",
+    "semantic_query_identity_contract",
+    "owner_canary_and_completeness_receipt"
+  ]
+}

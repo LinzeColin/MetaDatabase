@@ -44,7 +44,7 @@ const RULES = Object.freeze([
 
 export const SUPPORTED_PLATFORMS = Object.freeze(RULES.map((rule) => rule.platform));
 export const CURRENT_PAGE_FEATURES = Object.freeze({
-  bilibili: false,
+  bilibili: "ci_synth_only",
   douyin: "ci_synth_only",
   kuaishou: false,
   taobao: false,
@@ -55,10 +55,22 @@ export const CURRENT_PAGE_FEATURES = Object.freeze({
 function currentPageExecutable(match, url) {
   const mode = CURRENT_PAGE_FEATURES[match.platform];
   if (mode === true) return true;
-  if (mode !== "ci_synth_only" || !new Set(["douyin", "xiaohongshu"]).has(match.platform)) return false;
+  if (mode !== "ci_synth_only" || !new Set(["bilibili", "douyin", "xiaohongshu"]).has(match.platform)) return false;
   const contentId = url.pathname.split("/").filter(Boolean).at(-1) ?? "";
   if (match.platform === "douyin") return contentId.startsWith("synthetic-");
+  if (match.platform === "bilibili") {
+    if (url.hostname.toLowerCase() !== "www.bilibili.com" || url.searchParams.has("p")) return false;
+    if (url.pathname.startsWith("/video/")) return contentId.startsWith("synthetic-bili-video-");
+    return contentId.startsWith("synthetic-bili-article-");
+  }
   return contentId.startsWith("synthetic-") || contentId.startsWith("synthetic_");
+}
+
+function disabledReason(match, url) {
+  if (match.platform !== "bilibili") return "platform_gate_disabled";
+  if (url.hostname.toLowerCase() !== "www.bilibili.com") return "bilibili_noncanonical_host_disabled";
+  if (url.searchParams.has("p")) return "bilibili_semantic_query_unsupported";
+  return "bilibili_policy_unknown_real_page_disabled";
 }
 
 export function recognizePage(rawUrl) {
@@ -97,7 +109,7 @@ export function recognizePage(rawUrl) {
   return Object.freeze({
     executable,
     platform: match.platform,
-    reason: executable ? "current_page_ci_synth_enabled" : "platform_gate_disabled",
+    reason: executable ? "current_page_ci_synth_enabled" : disabledReason(match, url),
     supported: true,
   });
 }

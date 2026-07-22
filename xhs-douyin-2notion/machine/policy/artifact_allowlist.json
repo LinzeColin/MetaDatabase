@@ -41,6 +41,7 @@
     "scripts/verify_foundation_005.py",
     "scripts/verify_skeleton_001.py",
     "scripts/verify_skeleton_002.py",
+    "scripts/verify_skeleton_006.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

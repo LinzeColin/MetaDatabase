@@ -12,6 +12,11 @@ let activeTabId = null;
 let currentPageExecutable = false;
 let captureInFlight = false;
 let pageRefreshGeneration = 0;
+const EXECUTABLE_PLATFORM_NAMES = Object.freeze({
+  bilibili: "Bilibili",
+  douyin: "Douyin",
+  xiaohongshu: "Xiaohongshu",
+});
 
 function selectTab(selected) {
   for (const tab of tabs) {
@@ -46,7 +51,7 @@ async function activePage() {
 function renderPage(result) {
   activeTabId = Number.isSafeInteger(result.tabId) ? result.tabId : null;
   const executablePlatform = result.executable
-    && new Set(["douyin", "xiaohongshu"]).has(result.platform)
+    && Object.hasOwn(EXECUTABLE_PLATFORM_NAMES, result.platform)
     && activeTabId !== null;
   currentPageExecutable = executablePlatform;
   saveButton.disabled = !executablePlatform;
@@ -56,7 +61,7 @@ function renderPage(result) {
     delete captureStatus.dataset.jobId;
   }
   if (executablePlatform) {
-    const platformName = result.platform === "douyin" ? "Douyin" : "Xiaohongshu";
+    const platformName = EXECUTABLE_PLATFORM_NAMES[result.platform];
     pageStatus.textContent = `${platformName} detail page recognized`;
     platformStatus.textContent = "Only this explicitly selected current page will be read";
     return;

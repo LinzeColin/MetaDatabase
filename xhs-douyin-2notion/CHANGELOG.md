@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.0.1 — Stage 2 / Skeleton 006
+
+- 复核 Bilibili 一手 Open Platform/协议：官方能力要求应用入驻、OAuth、具体 Scope 与关联 UP 主授权，只证明授权稿件管理，不证明任意当前页、点赞或收藏读取；真实页面/API 和 Owner Canary 保持 `UNKNOWN_DISABLED / NOT_RUN`。
+- 实现 Bilibili 独立 CI-synthetic 当前页 detector/extractor：视频与文章稳定 ID、规范 Host/Path、净化标题/null、`video/text/image_gallery/mixed/unknown` 与 provenance；不读取 media `src`、hydration、raw DOM、Cookie 或浏览器状态。
+- 新增 10 个 DOM Fixture（5 ready、5 platform-changed）、8 个 Policy Fixture 与 5 个 schema-drift 拒绝；文章 `/read/cv…` 明确登记为未验证现实路由，只是合成 Oracle。
+- 对 `?p=<n>` 分 P 语义 Fail Closed；当前 v1 Canonical Contract 不保存 Query，禁止把所选分 P 错折叠成顶层视频。
+- 复用 4 权限、0 Host Permission 的 Side Panel/`activeTab`/ISOLATED world/Native v1/SQLite 链路；真实按钮采集、Action 前 2 个拒绝、100 次 Service Worker 重启均通过，平台调用、丢单、重单、错状态为 0。
+- Skeleton002 历史 Task/State/Policy/Evidence 固定到 `2a91efbc…`，旧验收只读取历史 blob，同时保留当前 XHS/Douyin 行为回归；历史 Evidence 不重写。
+- 根回归 122 tests PASS、3 个显式可选 Owner-private input skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 70.95%，33 dependencies 的 OSV vulnerability 0，57-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.capture.003` 与 `ACC.x2n.ext.001` 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 为 `TSK.x2n.skeleton.007`。
+
 ## v0.0.0.1 — Stage 2 / Skeleton 002
 
 - 实现抖音当前详情页 clean-room 合成检测/提取：稳定字符串 ID、无 Query/Fragment 的 canonical 重建、净化标题/null、视频/图集/unknown 类型与 provenance；身份冲突、feed card、多详情根和非合成短链身份均 `X2N_PLATFORM_CHANGED`。

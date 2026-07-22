@@ -27,6 +27,20 @@ class Phase05Tests(unittest.TestCase):
         self.assertFalse(registry["implementation_started"])
         self.assertFalse(registry["real_platform_calls"])
 
+    def test_platform_tasks_are_historically_planned_and_may_progress_with_pass_state(self) -> None:
+        historical = VERIFY._load_yaml_unique_at(VERIFY.PHASE_FINAL_COMMIT, VERIFY.TASKPACK)
+        historical_by_id = {item["id"]: item for item in historical["tasks"]}
+        self.assertTrue(
+            all(historical_by_id[task_id]["status"] == "planned" for task_id in VERIFY.NEW_PLATFORM_TASKS)
+        )
+        current = VERIFY._load_yaml_unique(VERIFY.TASKPACK)
+        current_by_id = {item["id"]: item for item in current["tasks"]}
+        state = VERIFY._load_json(VERIFY.TASK_STATE)
+        for task_id in VERIFY.NEW_PLATFORM_TASKS:
+            self.assertIn(current_by_id[task_id]["status"], {"planned", "completed"})
+            if current_by_id[task_id]["status"] == "completed":
+                self.assertEqual(state["tasks"][task_id], "pass")
+
     def test_competitor_is_clean_room_only(self) -> None:
         registry = json.loads((PROJECT_ROOT / "machine/facts/competitor_registry.json").read_text(encoding="utf-8"))
         item = registry["competitors"][0]

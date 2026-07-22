@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.2.2",
+  "phase": "PH.X2N.2.3",
   "default": "deny",
   "research_cutoff": "2026-07-22",
   "policy_recheck_required_at_platform_phase_start": true,
@@ -36,7 +36,21 @@
       "https://developer.open-douyin.com/docs/resource/zh-CN/dop/develop/openapi/video-management/douyin/iframe-player/get-iframe-by-video",
       "https://open.douyin.com/platform/resource/docs/openapi/video-management/douyin/search-video/account-video-list"
     ],
-    "bilibili": ["https://openhome.bilibili.com/agreement/developer-service"],
+    "bilibili": [
+      "https://openhome.bilibili.com/agreement/developer-service",
+      "https://openhome.bilibili.com/agreement/management-protocol",
+      "https://openhome.bilibili.com/agreement/privacy-policy",
+      "https://www.bilibili.com/blackboard/user-rule-linux.html?night=1&padding=0",
+      "https://openhome.bilibili.com/doc",
+      "https://openhome.bilibili.com/doc/4/d9554788-dcef-f139-6217-b487d41c3826",
+      "https://openhome.bilibili.com/doc/4/a24030b7-6b8f-b36c-32d8-a4aae67fcc35",
+      "https://openhome.bilibili.com/doc/4/243457f6-9d44-9348-06ef-366cdbb44eb4",
+      "https://openhome.bilibili.com/doc/4/225be808-a81a-cd82-7703-1bbd601e243d",
+      "https://openhome.bilibili.com/doc/4/eaf0e2b5-bde9-b9a0-9be1-019bb455701c",
+      "https://openhome.bilibili.com/doc/4/feb66f99-7d87-c206-00e7-d84164cd701c",
+      "https://openhome.bilibili.com/doc/4/90936ab5-7c06-e24f-2ad0-0fd6e10c7386",
+      "https://openhome.bilibili.com/doc/4/c381daac-4b6d-9ed3-3604-19a78d358eec"
+    ],
     "kuaishou": ["https://open.kuaishou.com/platform/protocol"],
     "weibo": ["https://open.weibo.com/cli/index"],
     "taobao": ["https://developer.alibaba.com/docs/doc.htm?articleId=103499&docType=1&treeId=782"]
@@ -65,6 +79,7 @@
   "capability_states": {
     "xiaohongshu_current_page": "ci_synth_only_policy_unknown_real_page_disabled_owner_canary_not_run",
     "douyin_current_page": "ci_synth_only_policy_unknown_real_page_and_network_transport_disabled_owner_canary_not_run",
+    "bilibili_current_page": "ci_synth_only_policy_unknown_real_page_and_api_disabled_article_route_unverified_owner_canary_not_run",
     "xiaohongshu_selected_collection": "unknown_disabled",
     "other_platform_current_page": "unknown_disabled"
   },
@@ -84,9 +99,22 @@
       "stable_gallery_route": "not_established",
       "short_link_object_contract": "not_exhaustive",
       "decision": "retain_unknown_disabled_for_real_pages_and_network_resolution"
+    },
+    "bilibili": {
+      "official_video_identity": "bvid_is_top_level_manuscript_identity_cid_is_not_substitute",
+      "official_video_share_route": "www_bilibili_com_video_bv_shape_verified",
+      "official_article_identity": "integer_id_and_cv_prefix_verified",
+      "public_article_read_route": "not_found_in_current_open_platform_documentation",
+      "oauth_and_application_registration": "required_for_documented_authorized_capabilities",
+      "authorized_video_and_article_management": "available_for_associated_uploader_with_scope",
+      "arbitrary_current_page_read_capability": "not_found",
+      "official_personal_likes_or_favorites_read_capability": "not_found",
+      "automated_script_exemption_for_user_gesture_dom_read": "not_found",
+      "semantic_part_query_contract": "not_supported_by_current_canonical_contract",
+      "decision": "retain_unknown_disabled_for_real_pages_and_api"
     }
   },
   "product_code_started": true,
-  "product_code_scope": "xiaohongshu_and_douyin_current_page_ci_synth_only",
+  "product_code_scope": "xiaohongshu_douyin_and_bilibili_current_page_ci_synth_only",
   "real_account_execution": false
 }

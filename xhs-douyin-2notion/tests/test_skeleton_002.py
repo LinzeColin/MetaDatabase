@@ -29,10 +29,11 @@ class Skeleton002Tests(unittest.TestCase):
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S02-S002")
         self.assertEqual(VERIFY.PHASE, "PH.X2N.2.2")
         self.assertEqual(VERIFY.TASK_BASE_COMMIT, "894553c6d15c3c73315e54429c8bd26588b6f83a")
+        self.assertEqual(VERIFY.FINAL_COMMIT, "2a91efbc899aaaf3f6191ba3fb93ac825e3a9a0d")
         self.assertNotIn("apps/companion/", VERIFY.ALLOWED_CHANGED_PREFIXES)
 
     def test_real_pages_and_network_transport_remain_disabled(self) -> None:
-        policy = json.loads(VERIFY.DOUYIN_POLICY.read_text(encoding="utf-8"))
+        policy = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.DOUYIN_POLICY)
         self.assertFalse(policy["feature_flag"]["real_page_execution"])
         self.assertFalse(policy["production_network_transport"])
         self.assertEqual(policy["real_short_link_resolution"], "unknown_disabled")
@@ -79,6 +80,8 @@ class Skeleton002Tests(unittest.TestCase):
         if not VERIFY.EVIDENCE.is_file():
             self.skipTest("Task evidence is written only after full E2E")
         evidence = json.loads(VERIFY.EVIDENCE.read_text(encoding="utf-8"))
+        self.assertEqual(VERIFY.EVIDENCE.read_bytes(), VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, VERIFY.EVIDENCE))
+        self.assertEqual(evidence["acceptance_input_sha256"], VERIFY._acceptance_input_receipt())
         self.assertEqual(evidence["owner_canary"], "NOT_RUN")
         self.assertEqual(evidence["real_account_execution"], "NOT_RUN")
         self.assertEqual(evidence["production_network_transport"], "DISABLED")

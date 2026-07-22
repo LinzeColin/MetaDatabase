@@ -13,6 +13,13 @@ const EXTENSION_ROOT = join(PROJECT_ROOT, "apps/extension");
 const FIXTURE_PATH = join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/page_cases.json");
 const REQUESTED_PLATFORM = process.argv[2] ?? "xiaohongshu";
 const CURRENT_PAGE_CONFIGS = Object.freeze({
+  bilibili: Object.freeze({
+    caseId: "bilibili-video-detail",
+    expectedPath: "/video/synthetic-bili-video-001",
+    expectedUrlFragment: "bilibili.com/video/",
+    fixtureRoot: join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/bilibili_current_page"),
+    metricPrefix: "bilibili",
+  }),
   douyin: Object.freeze({
     caseId: "douyin-video-detail",
     expectedPath: "/video/synthetic-video-001",
@@ -319,10 +326,13 @@ try {
   const capturePage = await context.newPage();
   let blockedPlatformNetworkRequests = 0;
   let fixtureDocumentsFulfilled = 0;
+  let platformRequestsObserved = 0;
   let platformCalls = 0;
   await capturePage.route("**/*", (route) => {
     const requestUrl = new URL(route.request().url());
     requestUrl.hash = "";
+    const platformRequest = requestUrl.hostname.toLowerCase() === routedUrl.hostname.toLowerCase();
+    if (platformRequest) platformRequestsObserved += 1;
     if (
       requestUrl.href === routedUrl.href
       && route.request().isNavigationRequest()
@@ -335,10 +345,11 @@ try {
         status: 200,
       });
     }
-    blockedPlatformNetworkRequests += 1;
+    if (platformRequest) blockedPlatformNetworkRequests += 1;
     return route.abort("blockedbyclient");
   });
   await capturePage.goto(captureCase.page_url, { waitUntil: "domcontentloaded" });
+  platformCalls = platformRequestsObserved - fixtureDocumentsFulfilled - blockedPlatformNetworkRequests;
   requireCondition(fixtureDocumentsFulfilled === 1, `${CURRENT_PAGE_CONFIG.metricPrefix}_fixture_document_count`);
   requireCondition(platformCalls === 0, `${CURRENT_PAGE_CONFIG.metricPrefix}_platform_network_call`);
   await capturePage.bringToFront();
@@ -528,6 +539,7 @@ try {
     blocked_platform_network_requests: blockedPlatformNetworkRequests,
     fixture_documents_fulfilled: fixtureDocumentsFulfilled,
     platform_calls: platformCalls,
+    platform_requests_observed: platformRequestsObserved,
     real_accounts: 0,
     request_ledger_rows: health.table_counts.request_ledger,
     screenshot,

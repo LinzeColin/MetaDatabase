@@ -1,5 +1,10 @@
 import { recognizePage } from "./page-support.js";
 import {
+  buildBilibiliCapturePayload,
+  extractBilibiliCurrentPage,
+  validateBilibiliPageFacts,
+} from "./bilibili-current-page.js";
+import {
   buildDouyinCapturePayload,
   extractDouyinCurrentPage,
   validateDouyinPageFacts,
@@ -10,6 +15,11 @@ const NATIVE_HOST = "com.linzecolin.x2n";
 const CONTRACT_VERSION = "1.0";
 const MESSAGE_TYPES = Object.freeze(new Set(["X2N_CAPTURE_CURRENT", "X2N_GET_JOB", "X2N_HEALTH"]));
 const CURRENT_PAGE_ADAPTERS = Object.freeze({
+  bilibili: Object.freeze({
+    buildPayload: buildBilibiliCapturePayload,
+    extract: extractBilibiliCurrentPage,
+    validate: validateBilibiliPageFacts,
+  }),
   douyin: Object.freeze({
     buildPayload: buildDouyinCapturePayload,
     extract: extractDouyinCurrentPage,

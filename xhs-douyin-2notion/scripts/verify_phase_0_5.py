@@ -103,7 +103,7 @@ def _load_json(path: Path) -> dict[str, Any]:
     return value
 
 
-def _load_yaml_unique(path: Path) -> dict[str, Any]:
+def _load_yaml_unique_text(text: str, label: str) -> dict[str, Any]:
     class UniqueKeyLoader(yaml.SafeLoader):
         pass
 
@@ -112,14 +112,23 @@ def _load_yaml_unique(path: Path) -> dict[str, Any]:
         mapping: dict[Any, Any] = {}
         for key_node, value_node in node.value:
             key = loader.construct_object(key_node, deep=deep)
-            _require(key not in mapping, f"duplicate YAML key in {path.name}: {key}")
+            _require(key not in mapping, f"duplicate YAML key in {label}: {key}")
             mapping[key] = loader.construct_object(value_node, deep=deep)
         return mapping
 
     UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_unique_mapping)
-    value = yaml.load(path.read_text(encoding="utf-8"), Loader=UniqueKeyLoader)
-    _require(isinstance(value, dict), f"YAML object required: {path.name}")
+    value = yaml.load(text, Loader=UniqueKeyLoader)
+    _require(isinstance(value, dict), f"YAML object required: {label}")
     return value
+
+
+def _load_yaml_unique(path: Path) -> dict[str, Any]:
+    return _load_yaml_unique_text(path.read_text(encoding="utf-8"), path.name)
+
+
+def _load_yaml_unique_at(commit: str, path: Path) -> dict[str, Any]:
+    relative = path.relative_to(REPOSITORY_ROOT).as_posix()
+    return _load_yaml_unique_text(_git(["show", f"{commit}:{relative}"]), f"{commit}:{path.name}")
 
 
 def _sha256(path: Path) -> str:
@@ -222,15 +231,25 @@ def validate_worktree_isolation_policy() -> Check:
 
 def validate_taskpack_amendment() -> Check:
     taskpack = _load_yaml_unique(TASKPACK)
+    historical_taskpack = _load_yaml_unique_at(PHASE_FINAL_COMMIT, TASKPACK)
     tasks = taskpack.get("tasks", [])
     requirements = [item.get("id") for item in taskpack.get("requirements", [])]
     _require(len(tasks) == 43, "six-platform DAG must contain 43 tasks")
     _require(requirements == [f"REQ.X2N.{index:03d}" for index in range(1, 33)], "REQ.X2N.001-032 registry drifted")
     by_id = {item.get("id"): item for item in tasks}
+    historical_by_id = {item.get("id"): item for item in historical_taskpack.get("tasks", [])}
+    current_state = _load_json(TASK_STATE)
     _require(len(by_id) == 43 and None not in by_id, "task IDs missing or duplicated")
     for task_id, phase in NEW_PLATFORM_TASKS.items():
         _require(by_id.get(task_id, {}).get("phase") == phase, f"new platform task phase mismatch: {task_id}")
-        _require(by_id[task_id].get("status") == "planned", f"future platform task must remain planned: {task_id}")
+        _require(
+            historical_by_id.get(task_id, {}).get("status") == "planned",
+            f"Phase 0.5 platform task was not originally planned: {task_id}",
+        )
+        current_status = by_id[task_id].get("status")
+        _require(current_status in {"planned", "completed"}, f"platform task status invalid: {task_id}")
+        if current_status == "completed":
+            _require(current_state.get("tasks", {}).get(task_id) == "pass", f"completed platform task lacks pass state: {task_id}")
     _require(by_id[PHASE_TASK].get("status") == "completed", "Phase 0.5 task must be completed")
 
     stage_counts = {f"STG.X2N.{index}": 0 for index in range(7)}

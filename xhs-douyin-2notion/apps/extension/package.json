@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "self-test": "node scripts/self-test.mjs",
+    "test:bilibili-extension": "node scripts/extension-e2e.mjs bilibili",
+    "test:bilibili-fixtures": "node scripts/bilibili-fixture-e2e.mjs",
     "test:douyin-extension": "node scripts/extension-e2e.mjs douyin",
     "test:douyin-fixtures": "node scripts/douyin-fixture-e2e.mjs",
     "test:e2e": "node scripts/extension-e2e.mjs",

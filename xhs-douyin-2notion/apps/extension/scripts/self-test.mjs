@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { recognizePage, SUPPORTED_PLATFORMS } from "../src/page-support.js";
+import { buildBilibiliCapturePayload, validateBilibiliPageFacts } from "../src/bilibili-current-page.js";
 import { buildDouyinCapturePayload, validateDouyinPageFacts } from "../src/douyin-current-page.js";
 import { DouyinShortLinkError, resolveDouyinShortLink } from "../src/douyin-short-link.js";
 import { buildXhsCapturePayload, validateXhsPageFacts } from "../src/xhs-current-page.js";
@@ -22,8 +23,15 @@ const douyinFixture = JSON.parse(
     "utf8",
   ),
 );
+const bilibiliFixture = JSON.parse(
+  await readFile(
+    new URL("../../packages/test-fixtures/extension/v1/bilibili_current_page/fixture_manifest.json", root),
+    "utf8",
+  ),
+);
 const sourceFiles = [
   "sidepanel.html",
+  "src/bilibili-current-page.js",
   "src/douyin-current-page.js",
   "src/douyin-short-link.js",
   "src/page-support.js",
@@ -95,6 +103,30 @@ if (recognizePage("https://www.douyin.com/note/7485211130848218428").supported) 
   failures.push("douyin_unknown_gallery_route_gate");
 }
 for (const url of [
+  "https://www.bilibili.com/video/BV1RealShape0",
+  "https://www.bilibili.com/read/cv100000001",
+]) {
+  const support = recognizePage(url);
+  if (!support.supported || support.executable || support.platform !== "bilibili") {
+    failures.push("bilibili_real_page_gate");
+  }
+}
+for (const url of [
+  "https://www.bilibili.com/video/synthetic-bili-video-self-test",
+  "https://www.bilibili.com/read/synthetic-bili-article-self-test",
+]) {
+  const support = recognizePage(url);
+  if (!support.supported || !support.executable || support.platform !== "bilibili") {
+    failures.push("bilibili_synthetic_page_gate");
+  }
+}
+if (recognizePage("https://bilibili.com/read/synthetic-bili-article-self-test").executable) {
+  failures.push("bilibili_noncanonical_host_gate");
+}
+if (recognizePage("https://www.bilibili.com/video/synthetic-bili-video-self-test?p=2").executable) {
+  failures.push("bilibili_semantic_query_gate");
+}
+for (const url of [
   "https://www.douyin.com/video/synthetic-video-self-test",
   "https://www.douyin.com/note/synthetic-gallery-self-test",
   "https://v.douyin.com/synthetic-short-self-test/",
@@ -116,7 +148,13 @@ for (const field of [
 ]) {
   if (xhsFixture[field] !== false) failures.push(`xhs_fixture_${field}`);
   if (douyinFixture[field] !== false) failures.push(`douyin_fixture_${field}`);
+  if (bilibiliFixture[field] !== false) failures.push(`bilibili_fixture_${field}`);
 }
+if (
+  bilibiliFixture.synthetic !== true
+  || bilibiliFixture.cases.length !== 10
+  || bilibiliFixture.policy_cases.length !== 8
+) failures.push("bilibili_fixture_manifest");
 if (douyinFixture.synthetic !== true || douyinFixture.cases.length !== 8) failures.push("douyin_fixture_manifest");
 if (!Array.isArray(douyinFixture.short_link_cases) || douyinFixture.short_link_cases.length !== 16) {
   failures.push("douyin_short_link_fixture_manifest");
@@ -149,6 +187,40 @@ try {
     status: "platform_changed",
   }));
   failures.push("xhs_platform_changed_capture");
+} catch {
+  // Expected fail-closed path.
+}
+
+const bilibiliContractFact = validateBilibiliPageFacts({
+  page_context: {
+    content_id: "synthetic-bili-article-contract-001",
+    content_type: "text",
+    title: null,
+  },
+  page_url: "https://www.bilibili.com/read/synthetic-bili-article-contract-001",
+  platform: "bilibili",
+  provenance: {
+    canonical_url: { source: "stable_content_id_and_page_kind", status: "derived" },
+    content_id: { source: "location_path_and_detail_surface", status: "observed_verified" },
+    content_type: { source: "detail_text_marker", status: "observed" },
+    title: { source: null, status: "missing" },
+  },
+  schema_version: "1.0",
+  status: "ready",
+});
+const bilibiliContractPayload = buildBilibiliCapturePayload(bilibiliContractFact);
+if (new URL(bilibiliContractPayload.page_url).search || new URL(bilibiliContractPayload.page_url).hash) {
+  failures.push("bilibili_canonical_url");
+}
+try {
+  buildBilibiliCapturePayload(validateBilibiliPageFacts({
+    code: "X2N_PLATFORM_CHANGED",
+    platform: "bilibili",
+    reason: "detail_surface_missing",
+    schema_version: "1.0",
+    status: "platform_changed",
+  }));
+  failures.push("bilibili_platform_changed_capture");
 } catch {
   // Expected fail-closed path.
 }
@@ -225,6 +297,8 @@ if (failures.length > 0) {
 process.stdout.write(
   `${JSON.stringify({
     action: "extension_self_test",
+    bilibili_fixture_cases: bilibiliFixture.cases.length,
+    bilibili_policy_cases: bilibiliFixture.policy_cases.length,
     douyin_fixture_cases: douyinFixture.cases.length,
     douyin_shortlink_cases: douyinFixture.short_link_cases.length,
     extension_id: extensionId,

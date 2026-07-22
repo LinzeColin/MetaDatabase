@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed verifier for TSK.x2n.skeleton.002."""
+"""Fail-closed verifier for TSK.x2n.skeleton.006."""
 
 from __future__ import annotations
 
@@ -20,27 +20,28 @@ from urllib.parse import urlsplit
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PROJECT_ROOT.parent
-TASK_ID = "TSK.x2n.skeleton.002"
-RUN_ID = "RUN-X2N-S02-S002"
-PHASE = "PH.X2N.2.2"
-BRANCH = "codex/xhs-douyin-2notion-v0001-s02-skeleton002"
-TASK_BASE_COMMIT = "894553c6d15c3c73315e54429c8bd26588b6f83a"
+TASK_ID = "TSK.x2n.skeleton.006"
+RUN_ID = "RUN-X2N-S02-S006"
+PHASE = "PH.X2N.2.3"
+BRANCH = "codex/xhs-douyin-2notion-v0001-s02-skeleton006"
+TASK_BASE_COMMIT = "2a91efbc899aaaf3f6191ba3fb93ac825e3a9a0d"
 ORIGIN_CUTOFF = "6777c8fcce75a36741b70c2858c8bc5fff17d440"
-FINAL_COMMIT = "2a91efbc899aaaf3f6191ba3fb93ac825e3a9a0d"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
-RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S02_SKELETON_002.md"
+RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S02_SKELETON_006.md"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 PROJECT_FACT = PROJECT_ROOT / "machine/facts/project.json"
 ARCHITECTURE_FACT = PROJECT_ROOT / "machine/facts/architecture_decisions.json"
 PLATFORM_FACT = PROJECT_ROOT / "machine/facts/platform_scope_registry.json"
 PLATFORM_POLICY = PROJECT_ROOT / "machine/policy/platform_policy_registry.json"
-DOUYIN_POLICY = PROJECT_ROOT / "machine/policy/douyin_current_page_policy.json"
+BILIBILI_POLICY = PROJECT_ROOT / "machine/policy/bilibili_current_page_policy.json"
 PERMISSION_POLICY = PROJECT_ROOT / "machine/policy/extension_permission_policy.json"
 GLOBAL_FIXTURE_MANIFEST = PROJECT_ROOT / "machine/policy/synthetic_fixture_manifest.json"
-FIXTURE_MANIFEST = PROJECT_ROOT / "packages/test-fixtures/extension/v1/douyin_current_page/fixture_manifest.json"
+FIXTURE_MANIFEST = (
+    PROJECT_ROOT / "packages/test-fixtures/extension/v1/bilibili_current_page/fixture_manifest.json"
+)
 MANIFEST = PROJECT_ROOT / "apps/extension/manifest.json"
 NATIVE_POLICY = PROJECT_ROOT / "apps/companion/native-host/policy.json"
-EVIDENCE = PROJECT_ROOT / "evidence/adapters/TSK.x2n.skeleton.002.json"
+EVIDENCE = PROJECT_ROOT / "evidence/adapters/TSK.x2n.skeleton.006.json"
 EXTENSION_ID = "chheapilbdfnpajmlkijppmblnlheeac"
 CURRENT_PERMISSIONS = ["activeTab", "nativeMessaging", "scripting", "sidePanel"]
 NATIVE_ACTIONS = [
@@ -52,38 +53,53 @@ NATIVE_ACTIONS = [
     "get_capabilities",
     "health",
 ]
+FULL_LANE_GATES = (
+    "format",
+    "lint",
+    "python_compile",
+    "typescript_contract",
+    "root_unit",
+    "companion_unit_integration",
+    "contract_unit",
+    "contract_acceptance",
+    "sbom_drift",
+    "scaffold_acceptance",
+    "migration_integration",
+    "extension_native_e2e",
+)
 
 ALLOWED_CHANGED_EXACT = {
     "CHANGELOG.md",
     "HANDOFF.md",
     "README.md",
     "apps/extension/package.json",
-    "apps/extension/scripts/douyin-fixture-e2e.mjs",
+    "apps/extension/scripts/bilibili-fixture-e2e.mjs",
     "apps/extension/scripts/extension-e2e.mjs",
     "apps/extension/scripts/self-test.mjs",
-    "apps/extension/src/douyin-current-page.js",
-    "apps/extension/src/douyin-short-link.js",
+    "apps/extension/src/bilibili-current-page.js",
     "apps/extension/src/page-support.js",
     "apps/extension/src/service-worker.js",
     "apps/extension/src/sidepanel.js",
-    "docs/governance/RUN_CONTRACT_S02_SKELETON_002.md",
+    "docs/governance/RUN_CONTRACT_S02_SKELETON_006.md",
     "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml",
-    "evidence/adapters/TSK.x2n.skeleton.002.json",
+    "evidence/adapters/TSK.x2n.skeleton.006.json",
     "machine/facts/architecture_decisions.json",
     "machine/facts/platform_scope_registry.json",
     "machine/facts/project.json",
     "machine/facts/task_state.json",
     "machine/policy/artifact_allowlist.json",
-    "machine/policy/douyin_current_page_policy.json",
+    "machine/policy/bilibili_current_page_policy.json",
     "machine/policy/platform_policy_registry.json",
     "machine/policy/synthetic_fixture_manifest.json",
-    "scripts/verify_skeleton_001.py",
     "scripts/verify_skeleton_002.py",
-    "tests/test_skeleton_001.py",
+    "scripts/verify_phase_0_5.py",
+    "scripts/verify_skeleton_006.py",
+    "tests/test_phase_0_5.py",
     "tests/test_skeleton_002.py",
+    "tests/test_skeleton_006.py",
     "开发记录.md",
 }
-ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/extension/v1/douyin_current_page/",)
+ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/extension/v1/bilibili_current_page/",)
 
 
 class VerificationError(RuntimeError):
@@ -132,17 +148,10 @@ def _read_blob_at(commit: str, path: Path) -> bytes:
     return result.stdout
 
 
-def _read_text_at(commit: str, path: Path) -> str:
-    try:
-        return _read_blob_at(commit, path).decode("utf-8")
-    except UnicodeDecodeError as error:
-        raise VerificationError(f"historical text is not UTF-8: {path.name}") from error
-
-
 def _load_json_at(commit: str, path: Path) -> dict[str, Any]:
     try:
-        value = json.loads(_read_text_at(commit, path), object_pairs_hook=_pairs)
-    except json.JSONDecodeError as error:
+        value = json.loads(_read_blob_at(commit, path).decode("utf-8"), object_pairs_hook=_pairs)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise VerificationError(f"historical JSON invalid: {path.name}") from error
     _require(isinstance(value, dict), f"historical JSON object required: {path.name}")
     return value
@@ -212,17 +221,19 @@ def _iter_files() -> Iterable[Path]:
 
 
 def validate_scope() -> Check:
-    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
     committed = _git(
-        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}"]
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]
     ).splitlines()
+    working = _porcelain_paths(
+        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
+    )
     relative_changes: list[str] = []
-    for path in sorted(set(committed)):
+    for path in sorted(set(committed + working)):
         relative = _project_relative(path)
-        _require(relative is not None, "Skeleton002 changed scope escaped x2n")
+        _require(relative is not None, "Skeleton006 changed scope escaped x2n")
         _require(
             relative in ALLOWED_CHANGED_EXACT or relative.startswith(ALLOWED_CHANGED_PREFIXES),
-            f"unregistered Skeleton002 change: {relative}",
+            f"unregistered Skeleton006 change: {relative}",
         )
         relative_changes.append(relative)
 
@@ -277,9 +288,7 @@ def validate_scope() -> Check:
         ".p12",
         ".pfx",
     }
-    _require(
-        not any(path.suffix.lower() in forbidden_suffixes for path in files), "private runtime artifact entered x2n"
-    )
+    _require(not any(path.suffix.lower() in forbidden_suffixes for path in files), "private runtime artifact entered x2n")
     return Check(
         "scope_and_privacy",
         "PASS",
@@ -295,8 +304,7 @@ def validate_scope() -> Check:
 
 def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    current_branch = _git(["branch", "--show-current"])
-    _require(current_branch not in {"", "main"}, "Skeleton002 regression must run in a non-main worktree")
+    _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Skeleton006 worktree branch")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
         re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
@@ -304,24 +312,14 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "wrong or authenticated persisted origin",
     )
     _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
-    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
     _require(
         subprocess.run(
-            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, FINAL_COMMIT],
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"],
             cwd=REPOSITORY_ROOT,
             check=False,
         ).returncode
         == 0,
-        "Skeleton002 final commit no longer descends from its Task base",
-    )
-    _require(
-        subprocess.run(
-            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
-            cwd=REPOSITORY_ROOT,
-            check=False,
-        ).returncode
-        == 0,
-        "current tree no longer descends from the Skeleton002 final commit",
+        "Skeleton006 branch no longer descends from its Task base",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
@@ -331,7 +329,7 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
             check=False,
         ).returncode
         == 0,
-        "origin/main no longer descends from the Run cutoff",
+        "origin/main no longer descends from the review cutoff",
     )
     origin_paths = _git(
         ["-c", "core.quotePath=false", "diff", "--name-only", f"{ORIGIN_CUTOFF}..{live_origin}"]
@@ -339,6 +337,8 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
     origin_overlap = sum(
         path == "xhs-douyin-2notion" or path.startswith("xhs-douyin-2notion/") for path in origin_paths
     )
+    _require(origin_overlap == 0, "origin/main changed x2n before the Stage 2 review/upload gate")
+
     main_path: Optional[Path] = None
     for block in _git(["worktree", "list", "--porcelain"]).split("\n\n"):
         lines = block.splitlines()
@@ -358,9 +358,8 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "worktree_isolation",
         "PASS",
         {
-            "current_branch": current_branch,
+            "branch": BRANCH,
             "external_main_dirty_paths": len(main_paths),
-            "historical_branch": BRANCH,
             "origin_drift_commits": int(_git(["rev-list", "--count", f"{ORIGIN_CUTOFF}..{live_origin}"])),
             "origin_project_overlap": origin_overlap,
             "project_overlap_paths": main_overlap,
@@ -369,34 +368,30 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
 
 
 def validate_task_and_state() -> Check:
-    taskpack = _read_text_at(FINAL_COMMIT, TASKPACK)
+    taskpack = TASKPACK.read_text(encoding="utf-8")
     task = _task_block(taskpack, TASK_ID)
-    _require(_field(task, "status") == "completed", "Skeleton002 Task is not completed")
+    _require(_field(task, "status") == "completed", "Skeleton006 Task is not completed")
     _require(_field(task, "stage") == "STG.X2N.2" and _field(task, "phase") == PHASE, "Task routing drifted")
     _require(
         _list_field(task, "depends_on") == ["TSK.x2n.foundation.004", "TSK.x2n.foundation.005"],
-        "Skeleton002 dependency drifted",
+        "Skeleton006 dependency drifted",
     )
     _require(
-        _list_field(task, "acceptance_ids") == ["ACC.x2n.capture.002", "ACC.x2n.ext.001"],
-        "Skeleton002 Acceptance drifted",
+        _list_field(task, "acceptance_ids") == ["ACC.x2n.capture.003", "ACC.x2n.ext.001"],
+        "Skeleton006 Acceptance drifted",
     )
-    _require("  status: STAGE_2_SKELETON_002_PASS_G2_NOT_RUN\n" in taskpack, "Task Pack status drifted")
-    _require("TSK.x2n.skeleton.006" in taskpack, "next Task missing")
+    _require("  status: STAGE_2_SKELETON_006_PASS_G2_NOT_RUN\n" in taskpack, "Task Pack status drifted")
+    next_task = _task_block(taskpack, "TSK.x2n.skeleton.007")
+    _require(_field(next_task, "status") == "planned", "Skeleton007 was entered by this Run")
 
-    current_task = _task_block(TASKPACK.read_text(encoding="utf-8"), TASK_ID)
-    for name in ("status", "stage", "phase"):
-        _require(_field(current_task, name) == _field(task, name), f"Skeleton002 current Task field drifted: {name}")
-    for name in ("depends_on", "acceptance_ids"):
-        _require(_list_field(current_task, name) == _list_field(task, name), f"Skeleton002 Task list drifted: {name}")
-
-    state = _load_json_at(FINAL_COMMIT, TASK_STATE)
-    _require(state.get("schema_version") == "1.10", "task state schema drifted")
+    state = _load_json(TASK_STATE)
+    _require(state.get("schema_version") == "1.11", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.2" and state.get("last_completed_phase") == PHASE, "phase drifted")
     _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Run drifted")
-    _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Skeleton002 state is not pass")
+    _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Skeleton006 state is not pass")
+    _require("TSK.x2n.skeleton.007" not in state.get("tasks", {}), "Skeleton007 state was entered")
     _require(
-        state.get("next_phase") == "PH.X2N.2.3" and state.get("next_run") == "TSK.x2n.skeleton.006",
+        state.get("next_phase") == "PH.X2N.2.4" and state.get("next_run") == "TSK.x2n.skeleton.007",
         "next Task routing drifted",
     )
     _require(
@@ -406,18 +401,19 @@ def validate_task_and_state() -> Check:
     )
     acceptance = state.get("acceptance_status", {})
     _require(
-        acceptance.get("ACC.x2n.capture.002") == "pass_ci_synth_8_dom_plus_16_shortlink_owner_canary_not_run",
-        "Douyin capture Acceptance drifted",
+        acceptance.get("ACC.x2n.capture.003")
+        == "pass_ci_synth_10_dom_plus_8_policy_owner_canary_not_run_real_page_disabled",
+        "Bilibili capture Acceptance drifted",
     )
     _require(
         acceptance.get("ACC.x2n.ext.001")
-        == "pass_stage_1_scaffold_plus_xhs_douyin_current_page_ci_synth_owner_canary_not_run",
+        == "pass_stage_1_scaffold_plus_xhs_douyin_bilibili_current_page_ci_synth_owner_canary_not_run",
         "Extension Acceptance drifted",
     )
     _require(
-        state.get("douyin_current_page_execution")
-        == "pass_ci_synth_real_page_and_network_transport_disabled_action_before_grant_rejected_owner_canary_not_run",
-        "Douyin execution boundary drifted",
+        state.get("bilibili_current_page_execution")
+        == "pass_ci_synth_real_page_and_api_disabled_semantic_query_rejected_action_before_grant_rejected_owner_canary_not_run",
+        "Bilibili execution boundary drifted",
     )
     for field in (
         "real_account_execution",
@@ -428,13 +424,10 @@ def validate_task_and_state() -> Check:
         "real_sink_execution",
     ):
         _require(state.get(field) == "not_run", f"downstream execution overstated: {field}")
-    _require(
-        _load_json_at(FINAL_COMMIT, PROJECT_FACT).get("status") == "stage_2_skeleton_002_pass_g2_not_run",
-        "project drifted",
-    )
-    architecture = _load_json_at(FINAL_COMMIT, ARCHITECTURE_FACT)
+    _require(_load_json(PROJECT_FACT).get("status") == "stage_2_skeleton_006_pass_g2_not_run", "project drifted")
+    architecture = _load_json(ARCHITECTURE_FACT)
     _require(architecture.get("phase") == PHASE and architecture.get("stage_gate") == "g2_not_run", "ADR drifted")
-    contract = _read_text_at(FINAL_COMMIT, RUN_CONTRACT)
+    contract = RUN_CONTRACT.read_text(encoding="utf-8")
     for value in (TASK_ID, RUN_ID, PHASE, TASK_BASE_COMMIT, BRANCH, "PASS_CI_SYNTH_SCOPED"):
         _require(value in contract, f"Run Contract identity missing: {value}")
     return Check(
@@ -442,7 +435,7 @@ def validate_task_and_state() -> Check:
         "PASS",
         {
             "acceptance_ids": 2,
-            "next_task": "TSK.x2n.skeleton.006",
+            "next_task": "TSK.x2n.skeleton.007",
             "owner_canary": "NOT_RUN",
             "phase": PHASE,
             "real_page_execution": "DISABLED",
@@ -453,6 +446,7 @@ def validate_task_and_state() -> Check:
 
 def validate_extension_surface() -> Check:
     manifest = _load_json(MANIFEST)
+    _require(manifest == _load_json_at(TASK_BASE_COMMIT, MANIFEST), "Extension Manifest changed in Skeleton006")
     _require(manifest.get("manifest_version") == 3 and manifest.get("minimum_chrome_version") == "120", "MV3 drifted")
     _require(manifest.get("permissions") == CURRENT_PERMISSIONS, "permission allowlist drifted")
     _require("host_permissions" not in manifest and "content_scripts" not in manifest, "persistent page access entered")
@@ -460,30 +454,15 @@ def validate_extension_surface() -> Check:
         manifest.get("content_security_policy", {}).get("extension_pages") == "script-src 'self'; object-src 'none';",
         "Extension CSP weakened",
     )
-    permission = _load_json_at(FINAL_COMMIT, PERMISSION_POLICY)
-    _require(
-        [item.get("name") for item in permission.get("permissions", [])] == CURRENT_PERMISSIONS,
-        "permission policy drifted",
-    )
+    permission = _load_json(PERMISSION_POLICY)
+    _require([item.get("name") for item in permission.get("permissions", [])] == CURRENT_PERMISSIONS, "permission policy drifted")
     _require(permission.get("host_permissions") == [] and permission.get("content_scripts") == [], "policy widened")
-    native = _load_json_at(FINAL_COMMIT, NATIVE_POLICY)
-    _require(
-        native.get("schema_version") == "1.0" and native.get("allowed_actions") == NATIVE_ACTIONS, "Native v1.0 widened"
-    )
-    _require(
-        native.get("arbitrary_url") == "reject" and native.get("unknown_fields") == "reject",
-        "Native fail-closed drifted",
-    )
+    native = _load_json(NATIVE_POLICY)
+    _require(native == _load_json_at(TASK_BASE_COMMIT, NATIVE_POLICY), "Native policy changed in Skeleton006")
+    _require(native.get("schema_version") == "1.0" and native.get("allowed_actions") == NATIVE_ACTIONS, "Native v1.0 widened")
 
-    names = [
-        "douyin-current-page.js",
-        "douyin-short-link.js",
-        "page-support.js",
-        "service-worker.js",
-        "sidepanel.js",
-        "xhs-current-page.js",
-    ]
-    sources = {name: (PROJECT_ROOT / "apps/extension/src" / name).read_text(encoding="utf-8") for name in names}
+    source_paths = sorted((PROJECT_ROOT / "apps/extension/src").glob("*.js"))
+    sources = {path.name: path.read_text(encoding="utf-8") for path in source_paths}
     rendered = "\n".join(sources.values())
     for pattern in (
         r"\beval\s*\(",
@@ -497,31 +476,25 @@ def validate_extension_surface() -> Check:
         r"chrome\.tabs\.update",
     ):
         _require(re.search(pattern, rendered, flags=re.IGNORECASE) is None, "unsafe Extension surface detected")
-    _require('douyin: "ci_synth_only"' in sources["page-support.js"], "Douyin real gate opened")
-    _require(
-        'hosts: Object.freeze(["v.douyin.com", "www.douyin.com"])' in sources["page-support.js"],
-        "Douyin host allowlist drifted",
-    )
-    _require("CURRENT_PAGE_ADAPTERS" in sources["service-worker.js"], "adapter registry missing")
-    _require('world: "ISOLATED"' in sources["service-worker.js"], "isolated execution missing")
-    _require("lastFocusedWindow: true" in sources["service-worker.js"], "focused-tab check missing")
-    _require("currentTab.url !== tab.url" in sources["service-worker.js"], "navigation race check missing")
-    _require(
-        "douyin-short-link" not in sources["service-worker.js"], "short-link network core entered product dispatch"
-    )
-    _require("captureInFlight" in sources["sidepanel.js"], "Side Panel duplicate guard missing")
-    _require("Still waiting for local confirmation" in sources["sidepanel.js"], "pending outcome truth missing")
-    _require("pageRefreshGeneration" in sources["sidepanel.js"], "stale refresh guard missing")
-    douyin = sources["douyin-current-page.js"]
-    _require("auto_scroll: false" in douyin and "change_account_state: false" in douyin, "capture literals drifted")
-    _require('startsWith("synthetic-")' in douyin, "synthetic identity gate missing")
-    _require('.getAttribute("src")' not in douyin and ".src" not in douyin, "media source read entered extractor")
-    shortlink = sources["douyin-short-link.js"]
-    _require(
-        "requestHop" in shortlink and "injected manual-redirect transport" in shortlink, "synthetic resolver drifted"
-    )
-    _require("v.douyin.com" in shortlink and "www.douyin.com" in shortlink, "short-link hosts missing")
-    _require('"douyin.com"' not in shortlink, "bare Douyin host entered short-link allowlist")
+    page_support = sources["page-support.js"]
+    worker = sources["service-worker.js"]
+    panel = sources["sidepanel.js"]
+    bilibili = sources["bilibili-current-page.js"]
+    _require('bilibili: "ci_synth_only"' in page_support, "Bilibili feature gate drifted")
+    _require('startsWith("synthetic-bili-video-")' in page_support, "Bilibili video synthetic gate missing")
+    _require('startsWith("synthetic-bili-article-")' in page_support, "Bilibili article synthetic gate missing")
+    _require("bilibili_semantic_query_unsupported" in page_support, "semantic Query policy gate missing")
+    _require("buildBilibiliCapturePayload" in worker and "extractBilibiliCurrentPage" in worker, "Bilibili adapter missing")
+    _require('world: "ISOLATED"' in worker and "currentTab.url !== tab.url" in worker, "injection race gate missing")
+    _require('bilibili: "Bilibili"' in panel and "captureInFlight" in panel, "Side Panel gate missing")
+    _require("auto_scroll: false" in bilibili and "change_account_state: false" in bilibili, "capture literals drifted")
+    _require("semantic_query_unsupported" in bilibili, "semantic Query extractor gate missing")
+    _require('.getAttribute("src")' not in bilibili and ".src" not in bilibili, "media source read entered extractor")
+    _require("hydration" not in bilibili.lower() and "innerhtml" not in bilibili.lower(), "raw page state read entered extractor")
+    package = _load_json(PROJECT_ROOT / "apps/extension/package.json")
+    scripts = package.get("scripts", {})
+    _require(scripts.get("test:bilibili-fixtures") == "node scripts/bilibili-fixture-e2e.mjs", "fixture script missing")
+    _require(scripts.get("test:bilibili-extension") == "node scripts/extension-e2e.mjs bilibili", "E2E script missing")
     return Check(
         "extension_permission_and_security_surface",
         "PASS",
@@ -539,21 +512,25 @@ def validate_extension_surface() -> Check:
 def validate_fixtures_and_policy() -> Check:
     fixture = _load_json(FIXTURE_MANIFEST)
     _require(
-        fixture.get("fixture_id") == "FIXTURE.X2N.S02.S002.001" and fixture.get("synthetic") is True, "fixture drifted"
+        fixture.get("fixture_id") == "FIXTURE.X2N.S02.S006.001" and fixture.get("synthetic") is True,
+        "fixture drifted",
     )
     cases = fixture.get("cases", [])
-    short_cases = fixture.get("short_link_cases", [])
-    _require(isinstance(cases, list) and len(cases) == 8, "Douyin DOM fixture count drifted")
-    _require(isinstance(short_cases, list) and len(short_cases) == 16, "short-link matrix count drifted")
-    _require(len({item.get("id") for item in cases}) == 8, "DOM fixture IDs are not unique")
-    _require(len({item.get("id") for item in short_cases}) == 16, "short-link IDs are not unique")
-    _require(sum(item.get("expected", {}).get("status") == "ready" for item in cases) == 4, "ready threshold drifted")
+    policy_cases = fixture.get("policy_cases", [])
+    _require(isinstance(cases, list) and len(cases) == 10, "Bilibili DOM fixture count drifted")
+    _require(isinstance(policy_cases, list) and len(policy_cases) == 8, "Bilibili policy fixture count drifted")
+    _require(len({item.get("id") for item in cases}) == 10, "DOM fixture IDs are not unique")
+    _require(len({item.get("id") for item in policy_cases}) == 8, "policy fixture IDs are not unique")
+    _require(sum(item.get("expected", {}).get("status") == "ready" for item in cases) == 5, "ready threshold drifted")
     _require(
-        sum(item.get("expected", {}).get("status") == "platform_changed" for item in cases) == 4,
+        sum(item.get("expected", {}).get("status") == "platform_changed" for item in cases) == 5,
         "platform-changed threshold drifted",
     )
-    _require(sum("expected" in item for item in short_cases) == 3, "resolved short-link threshold drifted")
-    _require(sum("expected_error" in item for item in short_cases) == 13, "blocked short-link threshold drifted")
+    _require(
+        fixture.get("route_assumptions", {}).get("article_read_cv_route")
+        == "unverified_real_route_not_enabled",
+        "article route assumption was overstated",
+    )
     for field in (
         "contains_credentials",
         "contains_local_absolute_paths",
@@ -571,70 +548,76 @@ def validate_fixtures_and_policy() -> Check:
         path = fixture_root / name
         _require(path.is_file() and path.resolve().is_relative_to(fixture_root.resolve()), "HTML fixture missing")
         html = path.read_text(encoding="utf-8")
-        _require(re.search(r"<script|\bsrc\s*=|<form", html, flags=re.IGNORECASE) is None, "unsafe fixture surface")
+        _require(
+            re.search(r"<(?:form|iframe|script)\b|\b(?:poster|src|srcset)\s*=|url\s*\(", html, flags=re.IGNORECASE)
+            is None,
+            "unsafe fixture surface",
+        )
         html_bytes += len(html.encode("utf-8"))
-    for item in short_cases:
-        for value in item.get("expected_request_urls", []):
-            parsed = urlsplit(value)
-            _require(
-                parsed.scheme == "https" and not parsed.query and not parsed.fragment, "unsafe expected request URL"
-            )
+    for item in policy_cases:
+        parsed = urlsplit(str(item.get("url", "")))
+        _require(parsed.scheme == "https" and not parsed.username and not parsed.password, "unsafe policy fixture URL")
+
     global_rows = _load_json(GLOBAL_FIXTURE_MANIFEST).get("fixtures", [])
     _require(
         {
-            "id": "FIXTURE.X2N.S02.S002.001",
-            "path": "packages/test-fixtures/extension/v1/douyin_current_page/fixture_manifest.json",
-            "case_count": 24,
-            "purpose": "Douyin current-page stable ID, sanitized facts, platform change, synthetic short-link canonicalization and redirect allowlist rejection",
+            "id": "FIXTURE.X2N.S02.S006.001",
+            "path": "packages/test-fixtures/extension/v1/bilibili_current_page/fixture_manifest.json",
+            "case_count": 18,
+            "purpose": "Bilibili current-page video/article identity, sanitized facts, semantic-query rejection, schema drift and real-page policy-disabled behavior",
         }
         in global_rows,
-        "Douyin fixture is not globally registered",
+        "Bilibili fixture is not globally registered",
     )
-    policy = _load_json_at(FINAL_COMMIT, DOUYIN_POLICY)
-    _require(policy.get("phase") == PHASE and policy.get("default") == "deny", "Douyin policy identity drifted")
+    policy = _load_json(BILIBILI_POLICY)
+    _require(policy.get("phase") == PHASE and policy.get("default") == "deny", "Bilibili policy identity drifted")
     _require(policy.get("production_network_transport") is False, "production network transport was enabled")
-    _require(policy.get("real_short_link_resolution") == "unknown_disabled", "real short-link gate opened")
     _require(
         policy.get("feature_flag")
         == {
-            "name": "douyin_current_page",
+            "name": "bilibili_current_page",
             "value": "ci_synth_only",
             "real_page_execution": False,
             "owner_canary": "not_run",
         },
-        "Douyin feature flag drifted",
+        "Bilibili feature flag drifted",
     )
-    redirect = policy.get("synthetic_redirect_validator", {})
-    _require(redirect.get("synthetic_case_count") == 16, "redirect policy matrix drifted")
-    _require(redirect.get("response_fields") == ["location", "status"], "redirect response widened")
-    platform = _load_json_at(FINAL_COMMIT, PLATFORM_FACT)
-    douyin = next((item for item in platform.get("platforms", []) if item.get("id") == "douyin"), {})
-    _require(douyin.get("policy_state") == "unknown_disabled", "real Douyin policy was enabled")
     _require(
-        douyin.get("current_page_implementation_state")
-        == "ci_synth_pass_real_page_and_network_transport_disabled_owner_canary_not_run",
-        "Douyin platform fact drifted",
+        policy.get("route_evidence", {}).get("article_read_route")
+        == "unverified_route_assumption_ci_fixture_only",
+        "article route was overstated",
     )
-    registry = _load_json_at(FINAL_COMMIT, PLATFORM_POLICY)
+    platform = _load_json(PLATFORM_FACT)
+    bilibili_fact = next((item for item in platform.get("platforms", []) if item.get("id") == "bilibili"), {})
+    _require(bilibili_fact.get("policy_state") == "unknown_disabled", "real Bilibili policy was enabled")
     _require(
-        registry.get("phase") == PHASE and registry.get("research_cutoff") == "2026-07-22", "policy recheck drifted"
+        bilibili_fact.get("current_page_implementation_state")
+        == "ci_synth_pass_real_page_and_api_disabled_article_route_unverified_owner_canary_not_run",
+        "Bilibili platform fact drifted",
     )
-    _require(len(registry.get("official_sources", {}).get("douyin", [])) == 4, "official Douyin evidence drifted")
+    registry = _load_json(PLATFORM_POLICY)
+    _require(registry.get("phase") == PHASE and registry.get("research_cutoff") == "2026-07-22", "policy recheck drifted")
+    official_sources = registry.get("official_sources", {}).get("bilibili", [])
+    _require(isinstance(official_sources, list) and len(official_sources) >= 10, "official Bilibili evidence incomplete")
     _require(
-        registry.get("capability_states", {}).get("douyin_current_page")
-        == "ci_synth_only_policy_unknown_real_page_and_network_transport_disabled_owner_canary_not_run",
-        "real Douyin policy gate widened",
+        all(urlsplit(value).hostname in {"openhome.bilibili.com", "www.bilibili.com"} for value in official_sources),
+        "non-first-party Bilibili evidence entered registry",
+    )
+    _require(
+        registry.get("capability_states", {}).get("bilibili_current_page")
+        == "ci_synth_only_policy_unknown_real_page_and_api_disabled_article_route_unverified_owner_canary_not_run",
+        "real Bilibili policy gate widened",
     )
     return Check(
         "fixtures_and_platform_policy",
         "PASS",
         {
-            "dom_fixture_cases": 8,
+            "dom_fixture_cases": 10,
             "fixture_html_bytes": html_bytes,
-            "platform_changed_cases": 4,
+            "platform_changed_cases": 5,
+            "policy_cases": 8,
             "policy_state": "UNKNOWN_DISABLED_REAL",
-            "ready_cases": 4,
-            "short_link_cases": 16,
+            "ready_cases": 5,
             "synthetic_only": True,
         },
     )
@@ -668,9 +651,15 @@ def _isolated_env(home: Path, *, require_browser: bool = False) -> dict[str, str
 
 def _run_external(label: str, command: Sequence[str], *, env: dict[str, str], timeout: int) -> str:
     result = subprocess.run(
-        command, cwd=PROJECT_ROOT, env=env, check=False, capture_output=True, text=True, timeout=timeout
+        command,
+        cwd=PROJECT_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
     )
-    _require(result.returncode == 0, f"external Skeleton002 verification failed: {label}")
+    _require(result.returncode == 0, f"external Skeleton006 verification failed: {label}")
     combined = result.stdout + result.stderr
     _require(
         "/" + "Users/" not in combined and "github" + "_pat_" not in combined,
@@ -690,7 +679,7 @@ def _json_line(output: str, label: str) -> dict[str, Any]:
     return value
 
 
-def _require_metrics_subset(value: dict[str, Any], expected: dict[str, Any], label: str) -> None:
+def _require_metrics(value: dict[str, Any], expected: dict[str, Any], label: str) -> None:
     for key, expected_value in expected.items():
         _require(value.get(key) == expected_value, f"{label} metric drifted: {key}")
 
@@ -707,6 +696,7 @@ def _validate_extension_metrics(value: dict[str, Any], prefix: str) -> dict[str,
         "lost_jobs": 0,
         "owner_canary": "NOT_RUN",
         "platform_calls": 0,
+        "platform_requests_observed": 1,
         "real_accounts": 0,
         "request_ledger_rows": 1,
         "service_worker_restarts": 100,
@@ -718,8 +708,7 @@ def _validate_extension_metrics(value: dict[str, Any], prefix: str) -> dict[str,
         f"{prefix}_owner_canary": "NOT_RUN",
         f"{prefix}_query_fragment_persisted": 0,
     }
-    for key, expected_value in expected.items():
-        _require(value.get(key) == expected_value, f"Extension E2E metric drifted: {prefix}.{key}")
+    _require_metrics(value, expected, f"Extension E2E {prefix}")
     receipts: dict[str, dict[str, Any]] = {}
     for name in ("screenshot", "trace"):
         receipt = value.get(name, {})
@@ -732,68 +721,48 @@ def _validate_extension_metrics(value: dict[str, Any], prefix: str) -> dict[str,
 def validate_execution() -> Check:
     for command in ("node", "npm", "uv"):
         _require(shutil.which(command) is not None, f"required verifier tool unavailable: {command}")
-    with tempfile.TemporaryDirectory(prefix="x2n-s002-verify-") as value:
+    with tempfile.TemporaryDirectory(prefix="x2n-s006-verify-") as value:
         home = Path(value) / "home"
         home.mkdir(mode=0o700)
         env = _isolated_env(home, require_browser=True)
-        self_test = _json_line(
-            _run_external(
-                "extension_self_test",
-                ("npm", "run", "self-test", "--workspace", "@x2n/extension"),
-                env=env,
-                timeout=120,
-            ),
-            "extension_self_test",
-        )
-        xhs_fixture = _json_line(
-            _run_external(
-                "xhs_fixture",
-                ("npm", "run", "test:xhs-fixtures", "--workspace", "@x2n/extension"),
-                env=env,
-                timeout=240,
-            ),
-            "xhs_fixture",
-        )
-        douyin_fixture = _json_line(
-            _run_external(
-                "douyin_fixture",
-                ("npm", "run", "test:douyin-fixtures", "--workspace", "@x2n/extension"),
-                env=env,
-                timeout=240,
-            ),
-            "douyin_fixture",
-        )
-        xhs_extension = _json_line(
-            _run_external(
-                "xhs_extension", ("npm", "run", "test:e2e", "--workspace", "@x2n/extension"), env=env, timeout=1_200
-            ),
-            "xhs_extension",
-        )
-        douyin_extension = _json_line(
-            _run_external(
-                "douyin_extension",
-                ("npm", "run", "test:douyin-extension", "--workspace", "@x2n/extension"),
-                env=env,
-                timeout=1_200,
-            ),
-            "douyin_extension",
-        )
-    expected_self = {
-        "action": "extension_self_test",
-        "douyin_fixture_cases": 8,
-        "douyin_shortlink_cases": 16,
-        "extension_id": EXTENSION_ID,
-        "fixture_cases": 20,
-        "fixture_recognition_passed": 20,
-        "host_permissions": 0,
-        "permissions": 4,
-        "platform_execution": "NOT_RUN",
-        "status": "PASS",
-        "xhs_fixture_cases": 5,
-    }
-    _require_metrics_subset(self_test, expected_self, "Extension self-test")
-    _require_metrics_subset(
-        xhs_fixture,
+        commands = {
+            "self_test": ("npm", "run", "self-test", "--workspace", "@x2n/extension"),
+            "xhs_fixture": ("npm", "run", "test:xhs-fixtures", "--workspace", "@x2n/extension"),
+            "douyin_fixture": ("npm", "run", "test:douyin-fixtures", "--workspace", "@x2n/extension"),
+            "bilibili_fixture": ("npm", "run", "test:bilibili-fixtures", "--workspace", "@x2n/extension"),
+            "xhs_extension": ("npm", "run", "test:e2e", "--workspace", "@x2n/extension"),
+            "douyin_extension": ("npm", "run", "test:douyin-extension", "--workspace", "@x2n/extension"),
+            "bilibili_extension": ("npm", "run", "test:bilibili-extension", "--workspace", "@x2n/extension"),
+        }
+        outputs = {
+            label: _json_line(
+                _run_external(label, command, env=env, timeout=1_200 if "extension" in label else 240),
+                label,
+            )
+            for label, command in commands.items()
+        }
+
+    _require_metrics(
+        outputs["self_test"],
+        {
+            "action": "extension_self_test",
+            "bilibili_fixture_cases": 10,
+            "bilibili_policy_cases": 8,
+            "douyin_fixture_cases": 8,
+            "douyin_shortlink_cases": 16,
+            "extension_id": EXTENSION_ID,
+            "fixture_cases": 20,
+            "fixture_recognition_passed": 20,
+            "host_permissions": 0,
+            "permissions": 4,
+            "platform_execution": "NOT_RUN",
+            "status": "PASS",
+            "xhs_fixture_cases": 5,
+        },
+        "Extension self-test",
+    )
+    _require_metrics(
+        outputs["xhs_fixture"],
         {
             "console_uncaught_errors": 0,
             "fixture_cases": 5,
@@ -807,8 +776,8 @@ def validate_execution() -> Check:
         },
         "XHS fixture regression",
     )
-    _require_metrics_subset(
-        douyin_fixture,
+    _require_metrics(
+        outputs["douyin_fixture"],
         {
             "blocked_platform_network_requests": 0,
             "console_uncaught_errors": 0,
@@ -826,57 +795,165 @@ def validate_execution() -> Check:
             "status": "PASS",
             "synthetic_redirect_requests": 17,
         },
-        "Douyin fixture E2E",
+        "Douyin fixture regression",
     )
-    xhs_receipts = _validate_extension_metrics(xhs_extension, "xhs")
-    douyin_receipts = _validate_extension_metrics(douyin_extension, "douyin")
+    _require_metrics(
+        outputs["bilibili_fixture"],
+        {
+            "blocked_platform_network_requests": 0,
+            "console_uncaught_errors": 0,
+            "fixture_cases": 10,
+            "fixture_documents_fulfilled": 10,
+            "observation_diff_mismatches": 0,
+            "owner_canary": "NOT_RUN",
+            "platform_changed_verified": 5,
+            "platform_calls": 0,
+            "platform_requests_observed": 10,
+            "policy_cases_verified": 8,
+            "query_fragment_persisted": 0,
+            "schema_drift_rejections": 5,
+            "stable_ids_verified": 5,
+            "status": "PASS",
+        },
+        "Bilibili fixture E2E",
+    )
+    receipts = {
+        "xhs": _validate_extension_metrics(outputs["xhs_extension"], "xhs"),
+        "douyin": _validate_extension_metrics(outputs["douyin_extension"], "douyin"),
+        "bilibili": _validate_extension_metrics(outputs["bilibili_extension"], "bilibili"),
+    }
     return Check(
         "isolated_current_page_e2e",
         "PASS",
         {
-            "action_before_grant_rejections": 2,
+            "action_before_grant_rejections_per_platform": 2,
+            "bilibili_dom_fixture_cases": 10,
+            "bilibili_policy_cases": 8,
             "blocked_platform_network_requests": 0,
-            "dom_fixture_cases": 8,
             "owner_canary": "NOT_RUN",
             "platform_calls": 0,
-            "redirect_security_cases": 16,
             "service_worker_restarts_per_platform": 100,
-            "short_links_persisted": 0,
-            "douyin_screenshot": douyin_receipts["screenshot"],
-            "douyin_trace": douyin_receipts["trace"],
-            "xhs_screenshot": xhs_receipts["screenshot"],
-            "xhs_trace": xhs_receipts["trace"],
+            "bilibili_screenshot": receipts["bilibili"]["screenshot"],
+            "bilibili_trace": receipts["bilibili"]["trace"],
+            "douyin_screenshot": receipts["douyin"]["screenshot"],
+            "douyin_trace": receipts["douyin"]["trace"],
+            "xhs_screenshot": receipts["xhs"]["screenshot"],
+            "xhs_trace": receipts["xhs"]["trace"],
+        },
+    )
+
+
+def validate_full_lane_report(path: Path) -> Check:
+    _require(path.is_file(), "full lane report is unavailable")
+    report = _load_json(path)
+    _require(report.get("status") == "PASS" and report.get("lane") == "full", "full lane did not pass")
+    _require(
+        report.get("blocking_commands") == 12
+        and report.get("blocking_repetitions") == 2
+        and report.get("blocking_executions") == 24,
+        "full lane execution cardinality drifted",
+    )
+    _require(
+        report.get("blocking_failures") == 0
+        and report.get("flaky_blocking_tests") == 0
+        and report.get("silent_blocking_skips") == 0,
+        "full lane blocking quality gate failed",
+    )
+    _require(report.get("explicit_nonblocking_skips") == 6, "full lane optional skip allowlist drifted")
+    results = report.get("blocking_results", [])
+    expected_results = [
+        {
+            "blocking": True,
+            "gate": gate,
+            "label": f"{gate}_r{repetition}",
+            "repetition": repetition,
+            "status": "PASS",
+        }
+        for repetition in (1, 2)
+        for gate in FULL_LANE_GATES
+    ]
+    _require(results == expected_results, "full lane execution identity or result drifted")
+    _require(
+        report.get("platform_calls") == 0
+        and report.get("model_calls") == 0
+        and report.get("real_accounts") == 0,
+        "full lane executed a forbidden external surface",
+    )
+    coverage = report.get("coverage", {})
+    _require(
+        coverage.get("status") == "PASS"
+        and coverage.get("branch_mode") is True
+        and float(coverage.get("overall_combined_percent", 0)) >= 70.0,
+        "full lane coverage gate failed",
+    )
+    osv = report.get("osv", {})
+    _require(
+        osv.get("status") == "PASS"
+        and osv.get("dependencies_queried") == 33
+        and osv.get("vulnerabilities_reported") == 0
+        and osv.get("critical_high_unresolved") == 0,
+        "full lane OSV gate failed",
+    )
+    artifact = report.get("artifact_report", {})
+    _require(
+        report.get("artifact_deterministic") is True
+        and artifact.get("status") == "PASS"
+        and artifact.get("member_count") == 57
+        and artifact.get("runtime_data_files") == 0
+        and artifact.get("allowlist_findings") == 0,
+        "full lane artifact gate failed",
+    )
+    return Check(
+        "full_lane_replay",
+        "PASS",
+        {
+            "artifact_members": 57,
+            "blocking_executions": 24,
+            "blocking_failures": 0,
+            "coverage_percent": coverage["overall_combined_percent"],
+            "dependencies_queried": 33,
+            "explicit_nonblocking_skips": 6,
+            "flaky_blocking_tests": 0,
+            "runtime_data_files": 0,
+            "silent_blocking_skips": 0,
+            "vulnerabilities_reported": 0,
         },
     )
 
 
 def _acceptance_input_receipt() -> str:
-    historical_fixture = _load_json_at(FINAL_COMMIT, FIXTURE_MANIFEST)
+    fixture = _load_json(FIXTURE_MANIFEST)
     paths = [
         MANIFEST,
         NATIVE_POLICY,
         PERMISSION_POLICY,
-        DOUYIN_POLICY,
+        BILIBILI_POLICY,
         PLATFORM_FACT,
         PLATFORM_POLICY,
         TASK_STATE,
         TASKPACK,
+        RUN_CONTRACT,
         FIXTURE_MANIFEST,
-        *[FIXTURE_MANIFEST.parent / item["file"] for item in historical_fixture["cases"]],
-        PROJECT_ROOT / "apps/extension/src/douyin-current-page.js",
-        PROJECT_ROOT / "apps/extension/src/douyin-short-link.js",
+        *[FIXTURE_MANIFEST.parent / item["file"] for item in fixture["cases"]],
+        PROJECT_ROOT / "apps/extension/src/bilibili-current-page.js",
         PROJECT_ROOT / "apps/extension/src/page-support.js",
         PROJECT_ROOT / "apps/extension/src/service-worker.js",
         PROJECT_ROOT / "apps/extension/src/sidepanel.js",
-        PROJECT_ROOT / "apps/extension/scripts/douyin-fixture-e2e.mjs",
+        PROJECT_ROOT / "apps/extension/scripts/bilibili-fixture-e2e.mjs",
         PROJECT_ROOT / "apps/extension/scripts/extension-e2e.mjs",
         PROJECT_ROOT / "apps/extension/scripts/self-test.mjs",
+        PROJECT_ROOT / "scripts/verify_skeleton_002.py",
+        PROJECT_ROOT / "scripts/verify_phase_0_5.py",
+        PROJECT_ROOT / "scripts/verify_skeleton_006.py",
+        PROJECT_ROOT / "tests/test_phase_0_5.py",
+        PROJECT_ROOT / "tests/test_skeleton_002.py",
+        PROJECT_ROOT / "tests/test_skeleton_006.py",
     ]
     digest = hashlib.sha256()
     for path in sorted(paths):
         digest.update(path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
-        digest.update(_read_blob_at(FINAL_COMMIT, path))
+        digest.update(path.read_bytes())
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -889,18 +966,20 @@ def _safe_evidence(payload: dict[str, Any]) -> None:
 
 
 def write_evidence(checks: list[Check]) -> None:
-    _require(_git(["rev-parse", "HEAD"]) == FINAL_COMMIT, "historical Skeleton002 evidence is immutable")
     names = {check.name for check in checks}
-    _require({"isolated_current_page_e2e", "worktree_isolation"} <= names, "evidence requires full validation")
+    _require(
+        {"full_lane_replay", "isolated_current_page_e2e", "worktree_isolation"} <= names,
+        "evidence requires Task E2E, worktree and two-repetition full lane validation",
+    )
     payload = {
-        "acceptance_ids": ["ACC.x2n.capture.002", "ACC.x2n.ext.001"],
+        "acceptance_ids": ["ACC.x2n.capture.003", "ACC.x2n.ext.001"],
         "acceptance_input_sha256": _acceptance_input_receipt(),
         "acceptance_status": {
-            "ACC.x2n.capture.002": "PASS_CI_SYNTH_8_DOM_16_REDIRECT_OWNER_CANARY_NOT_RUN_REAL_PAGE_DISABLED",
-            "ACC.x2n.ext.001": "PASS_DOUYIN_CURRENT_PAGE_CI_SYNTH_ACTION_GATED_OWNER_CANARY_NOT_RUN",
+            "ACC.x2n.capture.003": "PASS_CI_SYNTH_10_DOM_8_POLICY_OWNER_CANARY_NOT_RUN_REAL_PAGE_DISABLED",
+            "ACC.x2n.ext.001": "PASS_BILIBILI_CURRENT_PAGE_CI_SYNTH_ACTION_GATED_OWNER_CANARY_NOT_RUN",
         },
         "checks": [{"details": check.details, "name": check.name, "status": check.status} for check in checks],
-        "feature_flag": "CI_SYNTH_ONLY_REAL_PAGE_AND_NETWORK_TRANSPORT_DISABLED",
+        "feature_flag": "CI_SYNTH_ONLY_REAL_PAGE_AND_API_DISABLED_ARTICLE_ROUTE_UNVERIFIED",
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "owner_canary": "NOT_RUN",
         "phase": PHASE,
@@ -923,7 +1002,6 @@ def write_evidence(checks: list[Check]) -> None:
 
 def verify_evidence() -> Check:
     evidence = _load_json(EVIDENCE)
-    _require(EVIDENCE.read_bytes() == _read_blob_at(FINAL_COMMIT, EVIDENCE), "historical evidence was rewritten")
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
     _require(
@@ -931,8 +1009,8 @@ def verify_evidence() -> Check:
         "evidence overstated",
     )
     _require(
-        evidence.get("feature_flag") == "CI_SYNTH_ONLY_REAL_PAGE_AND_NETWORK_TRANSPORT_DISABLED",
-        "evidence real-page/network gate drifted",
+        evidence.get("feature_flag") == "CI_SYNTH_ONLY_REAL_PAGE_AND_API_DISABLED_ARTICLE_ROUTE_UNVERIFIED",
+        "evidence real-page/API gate drifted",
     )
     _require(
         evidence.get("owner_canary") == "NOT_RUN" and evidence.get("real_account_execution") == "NOT_RUN",
@@ -943,31 +1021,40 @@ def verify_evidence() -> Check:
         "platform execution overstated",
     )
     _require(evidence.get("acceptance_input_sha256") == _acceptance_input_receipt(), "evidence input receipt is stale")
-    _require(
-        all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check"
-    )
+    _require(all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains a failed check")
     return Check(
-        "evidence", "PASS", {"receipt_sha256": hashlib.sha256(EVIDENCE.read_bytes()).hexdigest(), "task": TASK_ID}
+        "evidence",
+        "PASS",
+        {"receipt_sha256": hashlib.sha256(EVIDENCE.read_bytes()).hexdigest(), "task": TASK_ID},
     )
 
 
-def run_checks(*, verify_worktree: bool, allow_external_main_dirty: bool, run_external: bool) -> list[Check]:
+def run_checks(
+    *,
+    verify_worktree: bool,
+    allow_external_main_dirty: bool,
+    run_external: bool,
+    lane_report: Optional[Path] = None,
+) -> list[Check]:
     checks = [validate_scope(), validate_task_and_state(), validate_extension_surface(), validate_fixtures_and_policy()]
     if verify_worktree:
         checks.insert(1, validate_worktree(allow_external_main_dirty))
     if run_external:
         checks.append(validate_execution())
-    _require(all(check.status == "PASS" for check in checks), "a Skeleton002 check failed")
+    if lane_report is not None:
+        checks.append(validate_full_lane_report(lane_report))
+    _require(all(check.status == "PASS" for check in checks), "a Skeleton006 check failed")
     return checks
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Verify TSK.x2n.skeleton.002")
+    parser = argparse.ArgumentParser(description="Verify TSK.x2n.skeleton.006")
     parser.add_argument("--verify-worktree", action="store_true")
     parser.add_argument("--allow-external-main-dirty", action="store_true")
     parser.add_argument("--skip-external", action="store_true")
     parser.add_argument("--write-evidence", action="store_true")
     parser.add_argument("--require-evidence", action="store_true")
+    parser.add_argument("--lane-report", type=Path)
     return parser
 
 
@@ -978,6 +1065,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             verify_worktree=args.verify_worktree,
             allow_external_main_dirty=args.allow_external_main_dirty,
             run_external=not args.skip_external,
+            lane_report=args.lane_report,
         )
         if args.write_evidence:
             write_evidence(checks)
@@ -998,7 +1086,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     except (OSError, subprocess.TimeoutExpired, VerificationError) as error:
         print(
             json.dumps(
-                {"reason": str(error), "status": "FAIL_CLOSED", "task": TASK_ID}, ensure_ascii=False, sort_keys=True
+                {"reason": str(error), "status": "FAIL_CLOSED", "task": TASK_ID},
+                ensure_ascii=False,
+                sort_keys=True,
             ),
             file=os.sys.stderr,
         )
