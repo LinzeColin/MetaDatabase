@@ -30,6 +30,7 @@ from abd_acceptance.stage4_review import (
     SCAN_REPORT_PATH,
     SIGNED_STATE_JUNIT_PATH,
     STRUCTURAL_SELF_NORMALIZED_SHA256,
+    SUCCESSOR_UNIT_PROFILE_HASHES,
     TEST_PATH,
     Stage4ReviewContractError,
     _structural_self_hash,
@@ -119,7 +120,8 @@ def test_contract_identity_scope_and_terminal_state_are_exact() -> None:
 
 @pytest.mark.parametrize("relative", sorted(PINNED_REVIEW_ARTIFACT_HASHES))
 def test_review_artifact_hash_matches_pin(relative: str) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_REVIEW_ARTIFACT_HASHES[relative]
+    actual = sha256_file(ROOT / relative)
+    assert actual in {PINNED_REVIEW_ARTIFACT_HASHES[relative], SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)}
 
 
 def test_oracle_source_has_normalized_structural_integrity() -> None:
@@ -404,11 +406,20 @@ def test_canonical_financial_order_and_no_guarantee_boundaries_are_unchanged() -
     assert set(costs["incremental_cash_budget"].values()) == {"0.00"}
 
 
-def test_stage5_remains_planned_and_not_started() -> None:
+def test_stage5_progression_accepts_only_complete_verified_p01() -> None:
     result = evaluate_contract(ROOT)
-    check = next(row for row in result["checks"] if row["id"] == "S04REVIEW-S05-NOT-STARTED")
+    check = next(row for row in result["checks"] if row["id"] == "S04REVIEW-S05-PROGRESSION")
     assert check["passed"] is True, check
     assert len(check["detail"]["index"]) == 4
+    assert check["detail"]["mode"] in {"VERIFIED_S05_P01_CANDIDATE", "VERIFIED_S05_P01_SIGNED"}
+    assert len(check["detail"]["candidate_present"]) == 8
+
+
+def test_partial_stage5_p01_candidate_fails_closed(tmp_path: Path) -> None:
+    root = _clone_project(tmp_path)
+    (root / "market_ontology.json").unlink()
+    result = evaluate_contract(root)
+    _failed(result, "S04REVIEW-S05-PROGRESSION")
 
 
 def test_review_artifacts_contain_no_secret_or_machine_specific_path() -> None:
@@ -437,5 +448,9 @@ def test_readme_and_cli_wiring_reference_stage_review_contract() -> None:
     main = (ROOT / "abd_acceptance/__main__.py").read_text(encoding="utf-8")
     init = (ROOT / "abd_acceptance/__init__.py").read_text(encoding="utf-8")
     assert '"STAGE-REVIEW-S04": write_stage4_review_evidence' in main
+    assert '"STAGE-REVIEW-S04": cli_verify_stage4_delivery' in main
+    assert '"AC-S05-P01": write_market_ontology_phase_evidence' in main
     assert "write_stage4_review_evidence" in init
     assert "validate_stage4_review_candidate" in init
+    assert "verify_stage4_delivery" in init
+    assert "validate_market_ontology_candidate" in init

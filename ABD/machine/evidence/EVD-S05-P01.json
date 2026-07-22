@@ -1,0 +1,795 @@
+{
+  "artifacts": [
+    "market_ontology.json",
+    "coverage_manifest.schema.json"
+  ],
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S05/P01_test.py --junitxml=machine/evidence/S05/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P01/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/P01/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P01/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S05-P01 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S05-P01",
+  "decision": "MARKET_ONTOLOGY_AND_COVERAGE_SCHEMA_FROZEN",
+  "decision_sha256": "d87dcae5e77a8f5636fee2ecc74c302361dc932bb0e3cf3e5c6c4d813d519273",
+  "evidence_id": "EVD-S05-P01",
+  "external_effect_boundary": {
+    "external_network_accessed_for_market_discovery": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "order_submitted_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "provider_account_or_page_accessed": false,
+    "recommendation_generated": false,
+    "source_terms_or_capabilities_changed": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-23T01:02:53+10:00",
+  "frozen_manifest_proof": {
+    "all_observed_inputs_represented": true,
+    "manifest_id": "COV-C1E6533B6DB77252502E374E",
+    "manifest_sha256": "c76544cd7bff2baba5d2d29fa351394cfb88d2853c064dfcfa95a740b47bc3f1",
+    "summary": {
+      "counts_by_kind": {
+        "COMPETITION": 1,
+        "EVENT": 1,
+        "LINE": 1,
+        "MARKET": 1,
+        "PERIOD": 1,
+        "SELECTION": 1,
+        "SETTLEMENT_RULE": 1,
+        "SPORT": 1,
+        "UNKNOWN": 1
+      },
+      "known_count": 8,
+      "total_records": 9,
+      "unknown_count": 1
+    },
+    "unknown_is_explicit_and_advice_ineligible": true
+  },
+  "hashes": {
+    "code": "e5ebba41d7a5943b5302cf0d5813a165aae77cb99fc84d8de72c5f358cf9bc1e",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "README.md": "31cb0d0054f346742f878773e6980ae9b08c67a0fb42f666db320043618d3c88",
+      "abd_acceptance/__init__.py": "0706ddb7dd259dc4bd209be3306c01ee62d8d71c0d535a8b0b8a1148a78d1f55",
+      "abd_acceptance/__main__.py": "11fbcd6680878e0ae2e2befaff9bf3f2b3335905775781e28a72b43d26646e43",
+      "abd_acceptance/market_ontology.py": "4efd03b76109b9d36866df9398106a373a34fba7ecc93341f9e2256f1947cdf9",
+      "abd_acceptance/stage2_delivery.py": "d031952a2a1e756a53ca9d572ed4226a572c371ae0850d306de1645468620650",
+      "abd_acceptance/stage4_delivery.py": "1688b6042cb0d4e21c305fef05dfc0dee720abda57106bb9f0a4d5e2b3fca732",
+      "abd_acceptance/stage4_review.py": "33b5975fb5b4aff8525c2b45c6073c9e37cb6448340d1f286ab0d31e5ad04d87",
+      "coverage_manifest.schema.json": "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2",
+      "machine/evidence/EVD-S02-STAGE-REVIEW.json": "7164544cf192a5ce45b093eccc4d310e9fce811900a1cef3b277834e01292569",
+      "machine/evidence/EVD-S02-STAGE-REVIEW_rollback.json": "d0f9815ee7c483df7a8d5a3747fe5c5e6c0506062e6be4751580c876a195f867",
+      "machine/evidence/EVD-S04-STAGE-REVIEW.json": "1dc45c997a4544370e724b9828459ac8ba8e0d3990aec9b380528818a15bf708",
+      "machine/evidence/EVD-S04-STAGE-REVIEW_rollback.json": "0cb65c9b4c37a0d20cd98d732bf4d8bc4aab8739080f3604de587ce2a787be79",
+      "machine/evidence/S02/STAGE_REVIEW/github_delivery_receipt.json": "80a0a58f98ebea48d7b6ed80d57cef7f1d8410fccb89b25588d74b4a204bc6e4",
+      "machine/evidence/S04/STAGE_REVIEW/github_delivery_receipt.json": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S05_P01.json": "bd8dc5ae5616fa4815ecae5dc23a8b86eb2940a817b63cdd54078e5e10f46557",
+      "market_ontology.json": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe",
+      "tests/S04/stage_review_test.py": "76b1b501f09c1c3b87ba7c771e1c7ccf84a51200e85eb6deada63cfaf4e4aa75",
+      "tests/S05/P01_test.py": "b42a0af4c57b70684911403c68df8df5d76ad90f36e041be076ab7660d9a5d6b"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S05/P01 classifies frozen synthetic discovery objects and validates an offline schema; it accesses no provider, account, market, host, model, recommendation, order or return.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "9b88961d0fec3cb9409706cc879c80506c909894eba28e61ed98714b12b702f9"
+  },
+  "next": "S05/P02_READY_NOT_STARTED",
+  "phase_id": "P01",
+  "phase_status": "S05_P01_PASS",
+  "prerequisite_delivery": {
+    "s02_status": "VERIFIED_MERGED_AND_MAIN_CI_PASS",
+    "s04_receipt": "machine/evidence/S04/STAGE_REVIEW/github_delivery_receipt.json",
+    "s04_receipt_sha256": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+    "s04_status": "VERIFIED_MERGED_AND_MAIN_CI_PASS"
+  },
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "NOT_READY_S05_P02_TO_S19_AND_RUNTIME_VALIDATION_REQUIRED",
+  "requirement_id": "REQ-S05-P01",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S05-P01_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "scope_boundary": {
+    "actual_market_universe_enumerated_or_verified": false,
+    "cross_source_identity_resolution_not_started": true,
+    "fixture_is_synthetic_and_not_market_evidence": true,
+    "p01_defines_types_and_manifest_schema_only": true,
+    "p02_source_capability_contract_not_started": true,
+    "p03_scheduler_not_started": true,
+    "p04_silent_gap_oracle_not_started": true
+  },
+  "stage_id": "S05",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "market_ontology.json",
+        "id": "S05P01-ONTOLOGY-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "coverage_manifest.schema.json",
+        "id": "S05P01-SCHEMA-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "S05_P01.json",
+        "id": "S05P01-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe",
+          "expected": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe"
+        },
+        "id": "S05P01-PIN-MARKET_ONTOLOGY-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2",
+          "expected": "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2"
+        },
+        "id": "S05P01-PIN-COVERAGE_MANIFEST-SCHEMA-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bd8dc5ae5616fa4815ecae5dc23a8b86eb2940a817b63cdd54078e5e10f46557",
+          "expected": "bd8dc5ae5616fa4815ecae5dc23a8b86eb2940a817b63cdd54078e5e10f46557"
+        },
+        "id": "S05P01-PIN-MACHINE-TESTS-FIXTURES-S05_P01-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b42a0af4c57b70684911403c68df8df5d76ad90f36e041be076ab7660d9a5d6b",
+          "expected": "b42a0af4c57b70684911403c68df8df5d76ad90f36e041be076ab7660d9a5d6b"
+        },
+        "id": "S05P01-PIN-TESTS-S05-P01_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "6e8f25f182ea02e88be3ad960470a5763a0c09080553b8b660671bcc91db82a7",
+          "expected": "6e8f25f182ea02e88be3ad960470a5763a0c09080553b8b660671bcc91db82a7"
+        },
+        "id": "S05P01-ORACLE-SELF-INTEGRITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S05P01-BASELINE-MACHINE-FACTS-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S05P01-BASELINE-MACHINE-FACTS-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S05P01-BASELINE-MACHINE-FACTS-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S05P01-BASELINE-MACHINE-FACTS-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S05P01-BASELINE-MACHINE-FACTS-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S05P01-BASELINE-MACHINE-FACTS-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S05P01-BASELINE-MACHINE-FACTS-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S05P01-BASELINE-MACHINE-FACTS-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S05P01-BASELINE-MACHINE-FACTS-MODEL_SYSTEM_CARD-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "80a0a58f98ebea48d7b6ed80d57cef7f1d8410fccb89b25588d74b4a204bc6e4",
+          "expected": "80a0a58f98ebea48d7b6ed80d57cef7f1d8410fccb89b25588d74b4a204bc6e4"
+        },
+        "id": "S05P01-BASELINE-MACHINE-EVIDENCE-S02-STAGE_REVIEW-GITHUB_DELIVERY_RECEIPT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "7164544cf192a5ce45b093eccc4d310e9fce811900a1cef3b277834e01292569",
+          "expected": "7164544cf192a5ce45b093eccc4d310e9fce811900a1cef3b277834e01292569"
+        },
+        "id": "S05P01-BASELINE-MACHINE-EVIDENCE-EVD-S02-STAGE-REVIEW-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d0f9815ee7c483df7a8d5a3747fe5c5e6c0506062e6be4751580c876a195f867",
+          "expected": "d0f9815ee7c483df7a8d5a3747fe5c5e6c0506062e6be4751580c876a195f867"
+        },
+        "id": "S05P01-BASELINE-MACHINE-EVIDENCE-EVD-S02-STAGE-REVIEW_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d031952a2a1e756a53ca9d572ed4226a572c371ae0850d306de1645468620650",
+          "expected": "d031952a2a1e756a53ca9d572ed4226a572c371ae0850d306de1645468620650"
+        },
+        "id": "S05P01-BASELINE-ABD_ACCEPTANCE-STAGE2_DELIVERY-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+          "expected": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36"
+        },
+        "id": "S05P01-BASELINE-MACHINE-EVIDENCE-S04-STAGE_REVIEW-GITHUB_DELIVERY_RECEIPT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "1dc45c997a4544370e724b9828459ac8ba8e0d3990aec9b380528818a15bf708",
+          "expected": "1dc45c997a4544370e724b9828459ac8ba8e0d3990aec9b380528818a15bf708"
+        },
+        "id": "S05P01-BASELINE-MACHINE-EVIDENCE-EVD-S04-STAGE-REVIEW-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "0cb65c9b4c37a0d20cd98d732bf4d8bc4aab8739080f3604de587ce2a787be79",
+          "expected": "0cb65c9b4c37a0d20cd98d732bf4d8bc4aab8739080f3604de587ce2a787be79"
+        },
+        "id": "S05P01-BASELINE-MACHINE-EVIDENCE-EVD-S04-STAGE-REVIEW_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "1688b6042cb0d4e21c305fef05dfc0dee720abda57106bb9f0a4d5e2b3fca732",
+          "expected": "1688b6042cb0d4e21c305fef05dfc0dee720abda57106bb9f0a4d5e2b3fca732"
+        },
+        "id": "S05P01-BASELINE-ABD_ACCEPTANCE-STAGE4_DELIVERY-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S05P01-REPO--GITHUB-WORKFLOWS-ABD-STAGE0-VALIDATION-YML",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S05-P01",
+          "requirement": "REQ-S05-P01",
+          "tasks": [
+            "T-S05-P01-01",
+            "T-S05-P01-02",
+            "T-S05-P01-03"
+          ]
+        },
+        "id": "S05P01-TASKPACK-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S05P01-ONTOLOGY-VALID",
+        "passed": true
+      },
+      {
+        "detail": "urn:abd:schema:coverage-manifest:0.0.0.1-s05p01",
+        "id": "S05P01-COVERAGE-SCHEMA-META-VALID",
+        "passed": true
+      },
+      {
+        "detail": "FIX-S05-P01",
+        "id": "S05P01-FIXTURE-SHAPE",
+        "passed": true
+      },
+      {
+        "detail": "COV-C1E6533B6DB77252502E374E",
+        "id": "S05P01-FROZEN-MANIFEST-BUILD",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S05P01-FROZEN-MANIFEST-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "counts_by_kind": {
+            "COMPETITION": 1,
+            "EVENT": 1,
+            "LINE": 1,
+            "MARKET": 1,
+            "PERIOD": 1,
+            "SELECTION": 1,
+            "SETTLEMENT_RULE": 1,
+            "SPORT": 1,
+            "UNKNOWN": 1
+          },
+          "known_count": 8,
+          "total_records": 9,
+          "unknown_count": 1
+        },
+        "id": "S05P01-FROZEN-MANIFEST-SUMMARY",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "advice_eligible": false,
+            "classification_status": "UNKNOWN",
+            "object_id": "UNKNOWN:c222f1cdfcb9fd9acd640d22",
+            "object_kind": "UNKNOWN",
+            "observed_at": "2026-07-23T01:02:53+10:00",
+            "parent_refs": [],
+            "raw_type_label": "synthetic source-specific oddity",
+            "record_id": "REC-bdda95cce031385402916fb0",
+            "routing_action": "QUARANTINE_AND_SURFACE_COVERAGE_GAP",
+            "source_id": "FIXTURE-S05-P01",
+            "source_object_ref": "mystery/1",
+            "source_payload_sha256": "248e48065c3029d3a994ec58a3c47e9e4ed882918d275827ab2820939e3b75d2",
+            "unknown_reason_code": "UNRECOGNIZED_TYPE"
+          }
+        ],
+        "id": "S05P01-EXPLICIT-UNKNOWN-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "all_observable_markets_verified": false,
+          "cross_source_identity_resolved": false,
+          "market_data_freshness_verified": false,
+          "recommendation_or_order_enabled": false,
+          "source_capabilities_verified": false
+        },
+        "id": "S05P01-CLAIM-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": "COV-C1E6533B6DB77252502E374E",
+        "id": "S05P01-DETERMINISTIC-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_eligible": false,
+          "classification_status": "UNKNOWN",
+          "object_id": "UNKNOWN:1a22fff54b51a503294cf806",
+          "object_kind": "UNKNOWN",
+          "observed_at": "2026-07-23T01:02:53+10:00",
+          "parent_refs": [],
+          "raw_type_label": "synthetic sport",
+          "record_id": "REC-2c6cd3578c9b8b8bcfcea782",
+          "routing_action": "QUARANTINE_AND_SURFACE_COVERAGE_GAP",
+          "source_id": "FIXTURE-S05-P01",
+          "source_object_ref": "sport/1",
+          "source_payload_sha256": "ef5398194197c1b7ded1bfba09b82a0cbca6d82e0a2526b77d6c66d4e4d12d50",
+          "unknown_reason_code": "AMBIGUOUS_TYPE"
+        },
+        "id": "S05P01-CLASSIFY-AMBIGUOUS_TYPE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_eligible": false,
+          "classification_status": "UNKNOWN",
+          "object_id": "UNKNOWN:1a22fff54b51a503294cf806",
+          "object_kind": "UNKNOWN",
+          "observed_at": "2026-07-23T01:02:53+10:00",
+          "parent_refs": [],
+          "raw_type_label": "synthetic sport",
+          "record_id": "REC-2c6cd3578c9b8b8bcfcea782",
+          "routing_action": "QUARANTINE_AND_SURFACE_COVERAGE_GAP",
+          "source_id": "FIXTURE-S05-P01",
+          "source_object_ref": "sport/1",
+          "source_payload_sha256": "ef5398194197c1b7ded1bfba09b82a0cbca6d82e0a2526b77d6c66d4e4d12d50",
+          "unknown_reason_code": "UNRECOGNIZED_TYPE"
+        },
+        "id": "S05P01-CLASSIFY-UNRECOGNIZED_TYPE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_eligible": false,
+          "classification_status": "UNKNOWN",
+          "object_id": "UNKNOWN:1a22fff54b51a503294cf806",
+          "object_kind": "UNKNOWN",
+          "observed_at": "2026-07-23T01:02:53+10:00",
+          "parent_refs": [],
+          "raw_type_label": "synthetic sport",
+          "record_id": "REC-2c6cd3578c9b8b8bcfcea782",
+          "routing_action": "QUARANTINE_AND_SURFACE_COVERAGE_GAP",
+          "source_id": "FIXTURE-S05-P01",
+          "source_object_ref": "sport/1",
+          "source_payload_sha256": "ef5398194197c1b7ded1bfba09b82a0cbca6d82e0a2526b77d6c66d4e4d12d50",
+          "unknown_reason_code": "MALFORMED_IDENTIFIER"
+        },
+        "id": "S05P01-CLASSIFY-MALFORMED-IDENTIFIER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_eligible": false,
+          "classification_status": "UNKNOWN",
+          "object_id": "UNKNOWN:8668f52a6137551b318344b1",
+          "object_kind": "UNKNOWN",
+          "observed_at": "2026-07-23T01:02:53+10:00",
+          "parent_refs": [],
+          "raw_type_label": "synthetic result market",
+          "record_id": "REC-6b0e2b51f58cd9a8fb7c6fa2",
+          "routing_action": "QUARANTINE_AND_SURFACE_COVERAGE_GAP",
+          "source_id": "FIXTURE-S05-P01",
+          "source_object_ref": "market/1",
+          "source_payload_sha256": "105eb3c574ba655cffb4b43771226fc7ff1629064d0cd16f6edbbb43d57b4806",
+          "unknown_reason_code": "MISSING_REQUIRED_RELATION"
+        },
+        "id": "S05P01-MISSING-PARENT-BECOMES-UNKNOWN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_eligible": false,
+          "classification_status": "UNKNOWN",
+          "object_id": "UNKNOWN:c3bd281b649ee3cbfcdb195b",
+          "object_kind": "UNKNOWN",
+          "observed_at": "2026-07-23T01:02:53+10:00",
+          "parent_refs": [],
+          "raw_type_label": "synthetic option a",
+          "record_id": "REC-33a7bde5f7a582743ae0199f",
+          "routing_action": "QUARANTINE_AND_SURFACE_COVERAGE_GAP",
+          "source_id": "FIXTURE-S05-P01",
+          "source_object_ref": "selection/1",
+          "source_payload_sha256": "11cbae53a6c95fbc8888de5cfbff6637475309c19d013601514f7b8862dee270",
+          "unknown_reason_code": "INVALID_PARENT_RELATION"
+        },
+        "id": "S05P01-WRONG-PARENT-BECOMES-UNKNOWN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "error": {
+            "message": "duplicate source object reference",
+            "type": "MarketOntologyError"
+          },
+          "manifest": null,
+          "status": "BLOCKED_INVALID_INPUT"
+        },
+        "id": "S05P01-DUPLICATE-SOURCE-REF-BLOCKED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "error": {
+            "message": "source_payload_sha256 is missing or malformed",
+            "type": "MarketOntologyError"
+          },
+          "manifest": null,
+          "status": "BLOCKED_INVALID_INPUT"
+        },
+        "id": "S05P01-MALFORMED-RAW-BLOCKED",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "message": "all parents must resolve to known records",
+            "path": "records.0.parent_refs"
+          },
+          {
+            "message": "all parents must resolve to known records",
+            "path": "records.1.parent_refs"
+          },
+          {
+            "message": "summary does not match records",
+            "path": "summary"
+          },
+          {
+            "message": "every observed input must produce exactly one record",
+            "path": "input_set.observed_object_count"
+          },
+          {
+            "message": "input reference digest mismatch",
+            "path": "input_set.source_object_refs_sha256"
+          }
+        ],
+        "id": "S05P01-SILENT-DROP-DETECTED",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "message": "False was expected",
+            "path": "claim_boundary.recommendation_or_order_enabled"
+          }
+        ],
+        "id": "S05P01-ADVICE-CLAIM-FAILS-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actions_stable": true,
+          "adverse_odds_tick": "NOT_APPLICABLE",
+          "delta": "-0.0001"
+        },
+        "id": "S05P01-NUMERIC-STABILITY-NEG0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actions_stable": true,
+          "adverse_odds_tick": "NOT_APPLICABLE",
+          "delta": "0"
+        },
+        "id": "S05P01-NUMERIC-STABILITY-0",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actions_stable": true,
+          "adverse_odds_tick": "NOT_APPLICABLE",
+          "delta": "0.0001"
+        },
+        "id": "S05P01-NUMERIC-STABILITY-0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index": [
+            {
+              "acceptance_contract_id": "AC-S05-P02",
+              "expected_artifact": "machine/evidence/EVD-S05-P02.json",
+              "id": "INDEX-AC-S05-P02",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "任何采集能力必须先通过来源合同。",
+              "requirement_id": "REQ-S05-P02",
+              "status": "PLANNED"
+            }
+          ],
+          "present": []
+        },
+        "id": "S05P01-P02-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 18,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 18
+        },
+        "id": "S05P01-S02-DELIVERY-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 18,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 18
+        },
+        "id": "S05P01-S04-DELIVERY-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "product": {
+            "id": "ABD",
+            "incremental_cash_budget_aud": "0.00",
+            "initial_bankroll_aud": "300.00",
+            "language": "zh-CN",
+            "monthly_target_return": "0.30",
+            "name_zh": "全天候投注决策辅助系统",
+            "owner": "单一账户持有人",
+            "primary_goal": "在不降低证据、风险、安全与合规门槛的前提下，分析全部可观察市场并追求 A$300×1.3^n 的月度滚动复利目标。",
+            "status": "FINAL_ACCEPTANCE_DELIVERY",
+            "target_curve": "B_n = 300 * (1.3 ** n)",
+            "version": "0.0.0.1"
+          },
+          "scope": {
+            "discovery_scope": "ALL_OBSERVABLE_MARKETS",
+            "free_data_api_required": false,
+            "market_time_scope": [
+              "PREMATCH",
+              "FUTURES",
+              "LIVE_WHEN_SOURCE_FRESHNESS_AND_ACTION_CHANNEL_ARE_VERIFIED"
+            ],
+            "normal_owner_action": "FINAL_ORDER_ONLY",
+            "order_submission_module_present": false,
+            "paid_data_api_required": false,
+            "product_role": "ANALYSIS_AND_ADVICE_ONLY",
+            "providers": "DYNAMIC_SELECTION_BY_EXECUTABLE_VALUE_AND_RULES",
+            "recommendation_scope": "EVIDENCE_GATED"
+          }
+        },
+        "id": "S05P01-A300-A0-NO-ORDER-NO-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 115
+        },
+        "id": "S05P01-TARGETED-PYTEST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 4074
+        },
+        "id": "S05P01-FULL-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S05P01-TASKPACK-49-PASS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ABD S00/P03 PAID DEPENDENCY SCAN",
+          "STATUS: PASS",
+          "FIXED_CLOCK: 2026-07-19T00:00:00+10:00",
+          "MAX_INCREMENTAL_CASH_AUD: 0.00",
+          "DEPENDENCY_MANIFESTS: 2",
+          "RUNTIME_DIRECT_DEPENDENCIES: 0",
+          "LOCKED_REGISTRY_PACKAGES: 12",
+          "PAID_OR_UNKNOWN_DEPENDENCIES: 0",
+          "EXTERNAL_NETWORK_ACCESS_PERFORMED: false",
+          "EXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false"
+        ],
+        "id": "S05P01-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S05-P01",
+    "decision": "MARKET_ONTOLOGY_AND_COVERAGE_SCHEMA_FROZEN",
+    "external_effect_boundary": {
+      "external_network_accessed_for_market_discovery": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "model_or_strategy_executed": false,
+      "order_submitted_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "provider_account_or_page_accessed": false,
+      "recommendation_generated": false,
+      "source_terms_or_capabilities_changed": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-23T01:02:53+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/market_ontology.py": "4efd03b76109b9d36866df9398106a373a34fba7ecc93341f9e2256f1947cdf9",
+      "abd_acceptance/stage2_delivery.py": "d031952a2a1e756a53ca9d572ed4226a572c371ae0850d306de1645468620650",
+      "abd_acceptance/stage4_delivery.py": "1688b6042cb0d4e21c305fef05dfc0dee720abda57106bb9f0a4d5e2b3fca732",
+      "coverage_manifest.schema.json": "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2",
+      "machine/evidence/EVD-S02-STAGE-REVIEW.json": "7164544cf192a5ce45b093eccc4d310e9fce811900a1cef3b277834e01292569",
+      "machine/evidence/EVD-S02-STAGE-REVIEW_rollback.json": "d0f9815ee7c483df7a8d5a3747fe5c5e6c0506062e6be4751580c876a195f867",
+      "machine/evidence/EVD-S04-STAGE-REVIEW.json": "1dc45c997a4544370e724b9828459ac8ba8e0d3990aec9b380528818a15bf708",
+      "machine/evidence/EVD-S04-STAGE-REVIEW_rollback.json": "0cb65c9b4c37a0d20cd98d732bf4d8bc4aab8739080f3604de587ce2a787be79",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S02/STAGE_REVIEW/github_delivery_receipt.json": "80a0a58f98ebea48d7b6ed80d57cef7f1d8410fccb89b25588d74b4a204bc6e4",
+      "machine/evidence/S04/STAGE_REVIEW/github_delivery_receipt.json": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+      "machine/evidence/S05/P01/full_regression.xml": "266ffc3d8dce6762f936d73503d5486b95a81f3acc97fa8f3622a634b1d3cf61",
+      "machine/evidence/S05/P01/pytest.xml": "b3f062a445e0711880603d127b50880064f5db765586473856d4fd4afa9d7dea",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S05_P01.json": "bd8dc5ae5616fa4815ecae5dc23a8b86eb2940a817b63cdd54078e5e10f46557",
+      "market_ontology.json": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe",
+      "tests/S05/P01_test.py": "b42a0af4c57b70684911403c68df8df5d76ad90f36e041be076ab7660d9a5d6b"
+    },
+    "next": "S05/P02_READY_NOT_STARTED",
+    "phase_id": "P01",
+    "phase_status": "S05_P01_PASS",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "release_status": "NOT_READY_S05_P02_TO_S19_AND_RUNTIME_VALIDATION_REQUIRED",
+    "requirement_id": "REQ-S05-P01",
+    "schema_version": "1.0.0",
+    "stage_id": "S05",
+    "status": "PASS",
+    "summary": {
+      "checks": 56,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 56
+    }
+  }
+}

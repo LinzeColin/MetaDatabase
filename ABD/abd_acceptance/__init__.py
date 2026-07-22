@@ -180,6 +180,7 @@ from .stage3_review import (
     write_stage3_review_evidence,
 )
 from .stage3_delivery import verify_stage3_delivery
+from .stage4_delivery import verify_stage4_delivery
 from .infrastructure_iac import (
     InfrastructureContractError,
     activation_gate,
@@ -200,6 +201,21 @@ from .stage4_review import (
     validate_signed_receipt_preflight as validate_stage4_review_signed_receipt,
     verify_existing_stage_review_evidence as verify_stage4_review_evidence,
     write_stage4_review_evidence,
+)
+from .market_ontology import (
+    MarketOntologyError,
+    build_coverage_manifest,
+    build_evidence as build_market_ontology_evidence,
+    classify_discovery_object,
+    evaluate_contract as evaluate_market_ontology_contract,
+    perform_rollback_drill as perform_market_ontology_rollback_drill,
+    safe_build_coverage_manifest,
+    validate_candidate_preflight as validate_market_ontology_candidate,
+    validate_coverage_manifest,
+    validate_ontology,
+    validate_signed_receipt_preflight as validate_market_ontology_signed_receipt,
+    verify_existing_phase_evidence as verify_market_ontology_evidence,
+    write_phase_evidence as write_market_ontology_phase_evidence,
 )
 
 __all__ = [
@@ -340,6 +356,7 @@ __all__ = [
     "verify_stage3_review_evidence",
     "write_stage3_review_evidence",
     "verify_stage3_delivery",
+    "verify_stage4_delivery",
     "InfrastructureContractError",
     "activation_gate",
     "build_infrastructure_iac_evidence",
@@ -357,4 +374,17 @@ __all__ = [
     "validate_stage4_review_signed_receipt",
     "verify_stage4_review_evidence",
     "write_stage4_review_evidence",
+    "MarketOntologyError",
+    "build_coverage_manifest",
+    "build_market_ontology_evidence",
+    "classify_discovery_object",
+    "evaluate_market_ontology_contract",
+    "perform_market_ontology_rollback_drill",
+    "safe_build_coverage_manifest",
+    "validate_market_ontology_candidate",
+    "validate_coverage_manifest",
+    "validate_ontology",
+    "validate_market_ontology_signed_receipt",
+    "verify_market_ontology_evidence",
+    "write_market_ontology_phase_evidence",
 ]

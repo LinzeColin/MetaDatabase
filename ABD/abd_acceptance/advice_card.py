@@ -79,17 +79,17 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
     "tests/S03/P02_test.py",
 }
 SUCCESSOR_UNIT_PROFILE_HASHES = {
-    "README.md": "ca08e83f0f5ef7f67cd3bfafba34929d60a1a0661b32d2df3791f6d19efbde74",
+    "README.md": "31cb0d0054f346742f878773e6980ae9b08c67a0fb42f666db320043618d3c88",
     "abd_acceptance/terminology_governance.py": "d51ae252e7d28addfa7097a2f4ccb5ba2f017ec0745a0eee4e0971fd744beded",
-    "abd_acceptance/__main__.py": "17e23feed67fe6ff9070d44cb5d7ecc9bce93d9e1a96edc83dce7363d99708ad",
-    "abd_acceptance/__init__.py": "9ed14ef9bcab1a89cb2414d562ac71568d969bd3d355a020aca807403abeab95",
+    "abd_acceptance/__main__.py": "11fbcd6680878e0ae2e2befaff9bf3f2b3335905775781e28a72b43d26646e43",
+    "abd_acceptance/__init__.py": "0706ddb7dd259dc4bd209be3306c01ee62d8d71c0d535a8b0b8a1148a78d1f55",
     "tests/S03/P02_test.py": "04463326c983d22d53093609429c8ced6589445cb4cde40702f34ce3b33a54f0",
 }
 SUCCESSOR_EVOLVED_PHASE_HASHES = {
     TEST_PATH.as_posix(): "04463326c983d22d53093609429c8ced6589445cb4cde40702f34ce3b33a54f0",
 }
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "bc40f8d695ad87167c8de75192208696ffa4edaa8f97074d02970ba326b31f91"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "934a89048353e57023675f8529d90372b19fda2046892b7eb3690bf2908cf9bc"
 
 DISPLAY_ORDER = ["status", "action", "countdown", "reasons", "evidence", "invalidation", "safety"]
 PRIMARY_ANSWER_KEYS = ["what_zh", "where_zh", "amount_zh", "minimum_odds_zh"]

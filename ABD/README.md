@@ -40,8 +40,11 @@
 - `S04/P03` 的 90/90 离线 Oracle、155/155 定向测试、3696/3696 全量回归、682/682 跨阶段签名态回归、TaskPack 49/49、A$0 依赖扫描与 16/16 回滚/故障场景均为 `PASS`。确定性演练证明成功回滚场景的冻结合成账本文件名、字节数和 SHA-256 完全不变，`899s` 与 `900s` 通过、`901s` 明确超时并保持建议关闭；这不冒充真实 OVH RTO/RPO 或生产账本验证。本 Phase 未访问主机、账户或网络，未调用 Docker/systemd，未切真实流量、未部署、未提交订单、未验证收益；生产执行继续由外部 activation record、S04 整体复审和未来运行时账本 Oracle 阻断；
 - `S04/P04` 已实现 `capacity_budget.json`、`resource_shedding.json` 与 `load_baseline.json`：声明但未实机核验的 VPS-1 包络固定为 2 vCPU、4096 MiB 内存、40960 MiB 磁盘和禁用 swap；CPU、内存与磁盘桶均以整数完整分配，账本和验收证据禁止自动删除，只有有界运维日志与临时文件可自动轮转。资源状态严格按 `NORMAL → CONSTRAINED → CRITICAL → EMERGENCY` 升级，未知、缺失、负数、布尔冒充数值或超过 30 秒的遥测统一进入 `EMERGENCY`；候选槽、回填、可选 Gmail 工作与新浏览器会话先于核心完整性路径降级，任何状态都不能自动启用真实建议、真实下单、付费扩容、swap 或降低证据/数值/风险/安全/来源门；
 - `S04/P04` 的 70/70 离线 Oracle、165/165 定向测试、3861/3861 全量回归、847/847 跨阶段签名态回归、TaskPack 49/49、A$0 依赖扫描与 21/21 资源边界/故障场景均为 `PASS`。365 天冻结合成 10× 设计负载先进入 `CONSTRAINED`，停止候选槽与可选写入后回到 `NORMAL`；模型使用 0 MiB swap，最终磁盘占用 32396 MiB、剩余 8564 MiB，未触及硬容量且保留至少 4096 MiB 安全余量。这只证明确定性整数预算和有界降级设计，不证明真实 OVH 容量、生产 10× 吞吐、7×24、Cloudflare 可达性、收益或上线；本 Phase 未访问 OVH/Cloudflare/Gmail/账户/API/网络，未运行 Docker/systemd/真实浏览器或真实负载，未改变 swap/磁盘、未部署、未提交订单、未花新增现金。其不可变 Phase 回执仍以 `S04/STAGE_REVIEW_READY_NOT_STARTED` 结束，中间 Phase 未单独上传 GitHub；
-- `S04 整体复审` 已建立独立合同、findings、fixture、Oracle 和回滚演练。复审发现并在同一候选中关闭 6 项跨 Phase 问题：为候选影子槽补上显式 Compose profile，将 250m CPU、512 MiB 内存、0 MiB swap、单实例、`127.0.0.1:8081/8082` 和 `/var/lib/abd` 只读访问绑定到发布与容量合同；新增非 root、仅出站、前置路径 fail-closed 且经 systemd 硬化的 `abd-cloudflared.service`；用单一 Oracle 耦合 active `127.0.0.1:8080`、Tunnel/Access origin、双槽端口、资源预算和先停 shadow 的降级动作；P04 与前序 Phase 只对白名单文件允许从固定 implementation commit 精确回放，部分候选或部分签名状态继续失败关闭。候选 preflight 29/29、整体 Oracle 75/75、复审定向测试 94/94 已通过；最终签署仍必须同时通过 3958 项全量回归、944 项跨阶段签名态回归、TaskPack 49/49、A$0 扫描、回滚和回执复验；
+- `S04 整体复审` 已建立独立合同、findings、fixture、Oracle 和回滚演练。复审发现并在同一候选中关闭 6 项跨 Phase 问题：为候选影子槽补上显式 Compose profile，将 250m CPU、512 MiB 内存、0 MiB swap、单实例、`127.0.0.1:8081/8082` 和 `/var/lib/abd` 只读访问绑定到发布与容量合同；新增非 root、仅出站、前置路径 fail-closed 且经 systemd 硬化的 `abd-cloudflared.service`；用单一 Oracle 耦合 active `127.0.0.1:8080`、Tunnel/Access origin、双槽端口、资源预算和先停 shadow 的降级动作；P04 与前序 Phase 只对白名单文件允许从固定 implementation commit 精确回放，部分候选或部分签名状态继续失败关闭。候选 preflight 29/29、整体 Oracle 75/75、复审定向测试 94/94、全量回归 3958/3958、跨阶段签名态回归 944/944、TaskPack 49/49、A$0 扫描和 18/18 回滚均已通过；Stage 4 已通过 GitHub PR #79 合并到 `main`，两条 main CI、A$0 交付门和精确 Git 历史已固化为不可变交付收据，因此才允许进入 `S05/P01`；
 - `S04 整体复审` 不把配置合同升级为运行事实：本地复审没有访问 OVH、Cloudflare 或 Gmail 账户/API/主机，没有读取或配置秘密，没有运行 Docker、systemd 或 `cloudflared`，没有产生真实流量或负载。OVH 7×24、全球中文可达、中国大陆加速/可达、Tunnel/Access 已应用、静态降级页已自动接线、真实 10× 吞吐、真实 RTO/RPO、磁盘容量与生产上线均保持未验证；A$300/A$0、无真实下单模块、用户唯一完成最终下单、目标不足不得放宽门和 30% 月度目标不保证的边界不变。Stage Review PASS 只会进入 `S04/GITHUB_STAGE_UPLOAD_READY`，不会激活生产或开始 S05；
+- `S05/P01` 已冻结运动、联赛/竞赛、赛事、周期、盘口、选择、线和结算规则 8 类市场本体，并以显式 `UNKNOWN`、原因码、隔离动作和禁止建议状态承接歧义、未知或关系错误；`coverage_manifest.schema.json` 要求每个已观察输入恰好生成一条记录，唯一 source reference、record/object ID、可解析父关系、无环图、每个盘口至少一个选择且恰好一个结算规则，任何静默丢失、重复或越权声明均失败关闭；
+- `S05/P01` 的冻结夹具仅含 9 个合成对象（8 个已知类型和 1 个显式未知），不是真实供应商或真实市场证据。独立 Oracle 52/52、定向测试 115/115、全量回归 4074/4074、TaskPack 49/49、A$0 扫描与 13/13 回滚均为 `PASS`，下一状态严格为 `S05/P02_READY_NOT_STARTED`；本 Phase 不单独上传 GitHub，须等 S05 四个 Phase 完成并整体复审后统一上传；
+- `S05/P01` 只建立市场对象类型与覆盖清单 Schema，不枚举或证明“全部可观察市场”，不解决跨来源实体身份，不验证来源条款/能力、实时性、调度或静默缺口，不访问 TAB、Gmail、OVH、Cloudflare 或任何外部账户/页面/API，不执行模型、生成建议、提交订单、部署生产或验证收益；这些边界分别留给后续合同与运行时证据，30% 月度滚动复利目标继续保持未验证且不保证；
 - `S01/P01` 至 `S01/P04` 只冻结客户体验、疑问、需求、范围、指标、经济和证伪合同，不证明产品已实现、部署、接入账户或验证收益；四个中间 Phase 均未单独上传 GitHub；
 - `S00/P02` 冻结的是授权规则，不证明 OVH、Cloudflare、GitHub、Gmail 或任何平台凭证/能力当前可用；
 - `S00/P03` 只证明当前声明依赖的 ABD 新增现金成本为 A$0、付费接口不在关键路径；既有 OVH/账户总成本、外部能力与免费额度余量仍未知；
@@ -90,6 +93,19 @@ uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/ev
 uv run --frozen --python 3.12 python -m pytest -q tests/S03/P04_test.py tests/S03/stage_review_test.py tests/S04/P01_test.py tests/S04/P02_test.py tests/S04/P03_test.py tests/S04/P04_test.py tests/S04/stage_review_test.py --junitxml=machine/evidence/S04/STAGE_REVIEW/signed_state_regression.xml
 uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S04/STAGE_REVIEW/signed_state_regression.xml
 uv run --frozen --python 3.12 python -m abd_acceptance --contract STAGE-REVIEW-S04 --evidence machine/evidence
+uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
+```
+
+当前 `S05/P01` 的验证与签署命令：
+
+```bash
+uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py
+uv run --frozen --python 3.12 python machine/tools/validate_pack.py
+uv run --frozen --python 3.12 python -m pytest -q tests/S05/P01_test.py --junitxml=machine/evidence/S05/P01/pytest.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P01/pytest.xml
+uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/P01/full_regression.xml
+uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P01/full_regression.xml
+uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S05-P01 --evidence machine/evidence
 uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py
 ```
 
