@@ -103,6 +103,42 @@ class OutboxClaim:
 
 
 @dataclass(frozen=True)
+class OutboxState:
+    """Public-safe durable delivery state without sink payloads or private refs."""
+
+    event_id: str
+    sink: str
+    content_key: str
+    desired_projection_hash: str
+    sink_schema_version: str
+    status: str
+    attempt_count: int
+    not_before: str
+    last_error_code: str | None
+
+
+@dataclass(frozen=True)
+class NotionMapping:
+    """Private Runtime mapping; page_ref must never enter a public receipt."""
+
+    content_key: str
+    page_ref: str = field(repr=False)
+    external_ref_hash: str
+
+
+@dataclass(frozen=True)
+class CanonicalProjection:
+    """Private Canonical snapshot consumed by deterministic derived sinks."""
+
+    content: CanonicalContent
+    relations: tuple[str, ...]
+    observation: SourceObservation
+    artifacts: tuple[Artifact, ...]
+    classification: Classification | None
+    category: TaxonomyCategory | None
+
+
+@dataclass(frozen=True)
 class RecoveryPlan:
     foreign_key_check: str
     foreign_key_violations: int
@@ -399,7 +435,9 @@ class CanonicalStore:
                 raise
             except sqlite3.IntegrityError as error:
                 connection.rollback()
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Canonical write violated a Store invariant") from error
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Canonical write violated a Store invariant"
+                ) from error
             except sqlite3.Error as error:
                 connection.rollback()
                 raise X2NRuntimeError(ErrorCode.STORAGE_FAILED, "Canonical transaction failed atomically") from error
@@ -502,7 +540,9 @@ class CanonicalStore:
         if existing is not None and str(existing["payload_sha256"]) == payload_sha:
             return WriteDisposition.UNCHANGED
         if existing is not None and content.record_version <= int(existing["record_version"]):
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Canonical content version conflicts with stored truth")
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED, "Canonical content version conflicts with stored truth"
+            )
         values = (
             content.content_key,
             content.platform.value,
@@ -649,7 +689,9 @@ class CanonicalStore:
         if existing is not None:
             if str(existing["payload_sha256"]) == payload_sha:
                 return WriteDisposition.UNCHANGED
-            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Observation identity conflicts with append-only history")
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED, "Observation identity conflicts with append-only history"
+            )
         observed_at = observation.observed_at.isoformat().replace("+00:00", "Z")
         CanonicalStore._ensure_run(connection, observation.run_id, observed_at)
         connection.execute(
@@ -687,7 +729,9 @@ class CanonicalStore:
         if existing is not None:
             if str(existing["payload_sha256"]) == payload_sha:
                 return WriteDisposition.UNCHANGED
-            raise X2NRuntimeError(ErrorCode.ARTIFACT_VERSION_CONFLICT, "Artifact identity conflicts with append-only history")
+            raise X2NRuntimeError(
+                ErrorCode.ARTIFACT_VERSION_CONFLICT, "Artifact identity conflicts with append-only history"
+            )
         connection.execute(
             """
             INSERT INTO artifact(
@@ -772,7 +816,9 @@ class CanonicalStore:
             if existing is not None and str(existing["payload_sha256"]) == payload_sha:
                 return WriteDisposition.UNCHANGED
             if existing is not None and category.version <= int(existing["version"]):
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy category version conflicts with Owner truth")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Taxonomy category version conflicts with Owner truth"
+                )
             if existing is None:
                 connection.execute(
                     """
@@ -782,9 +828,18 @@ class CanonicalStore:
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
-                        str(category.category_id), category.name, category.slug, category.priority,
-                        int(category.enabled), category.version, category.level, category.created_by,
-                        payload_json, payload_sha, now, now,
+                        str(category.category_id),
+                        category.name,
+                        category.slug,
+                        category.priority,
+                        int(category.enabled),
+                        category.version,
+                        category.level,
+                        category.created_by,
+                        payload_json,
+                        payload_sha,
+                        now,
+                        now,
                     ),
                 )
                 return WriteDisposition.INSERTED
@@ -796,8 +851,15 @@ class CanonicalStore:
                 WHERE category_id = ?
                 """,
                 (
-                    category.name, category.slug, category.priority, int(category.enabled),
-                    category.version, payload_json, payload_sha, now, str(category.category_id),
+                    category.name,
+                    category.slug,
+                    category.priority,
+                    int(category.enabled),
+                    category.version,
+                    payload_json,
+                    payload_sha,
+                    now,
+                    str(category.category_id),
                 ),
             )
             return WriteDisposition.UPDATED
@@ -812,7 +874,9 @@ class CanonicalStore:
             if existing is not None:
                 if str(existing["payload_sha256"]) == payload_sha:
                     return WriteDisposition.UNCHANGED
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Classification identity conflicts with append-only history")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Classification identity conflicts with append-only history"
+                )
             connection.execute(
                 """
                 INSERT INTO classification(
@@ -900,7 +964,12 @@ class CanonicalStore:
             "SELECT platform FROM account_ref WHERE account_ref_hash = ?",
             (str(checkpoint["account_ref_hash"]),),
         ).fetchone()
-        if content is None or account is None or len(relations) != 1 or str(content["platform"]) != str(account["platform"]):
+        if (
+            content is None
+            or account is None
+            or len(relations) != 1
+            or str(content["platform"]) != str(account["platform"])
+        ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page canonical graph is incomplete")
 
         run_state = str(run["state"])
@@ -1001,7 +1070,10 @@ class CanonicalStore:
                     DuplicateDisposition.RETURN_EXISTING_JOB,
                 )
 
-            if connection.execute("SELECT 1 FROM run_record WHERE run_id = ?", (identity.run_id,)).fetchone() is not None:
+            if (
+                connection.execute("SELECT 1 FROM run_record WHERE run_id = ?", (identity.run_id,)).fetchone()
+                is not None
+            ):
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Current-page Run exists without its request")
             connection.execute(
                 """
@@ -1132,12 +1204,15 @@ class CanonicalStore:
                         "Current-page placeholder identity conflicts with append-only history",
                     )
             else:
-                sequence = int(
-                    connection.execute(
-                        "SELECT COALESCE(MAX(artifact_sequence), 0) FROM artifact WHERE content_key = ? AND artifact_type = 'search_text'",
-                        (content_key,),
-                    ).fetchone()[0]
-                ) + 1
+                sequence = (
+                    int(
+                        connection.execute(
+                            "SELECT COALESCE(MAX(artifact_sequence), 0) FROM artifact WHERE content_key = ? AND artifact_type = 'search_text'",
+                            (content_key,),
+                        ).fetchone()[0]
+                    )
+                    + 1
+                )
                 previous = connection.execute(
                     """
                     SELECT artifact_id FROM artifact
@@ -1254,7 +1329,9 @@ class CanonicalStore:
                 return DuplicateDisposition.NEW_REQUEST, job_id
             if str(existing["payload_hash"]) == payload_hash:
                 return DuplicateDisposition.RETURN_EXISTING_JOB, str(existing["job_id"])
-            raise X2NRuntimeError(ErrorCode.NATIVE_DUPLICATE_REQUEST, "Request identity conflicts with the existing payload")
+            raise X2NRuntimeError(
+                ErrorCode.NATIVE_DUPLICATE_REQUEST, "Request identity conflicts with the existing payload"
+            )
 
     def submit_skeleton_job(self, *, request_id: str, payload_hash: str, run_kind: str) -> SkeletonJob:
         """Atomically create a durable, non-executing Native request Job.
@@ -1384,8 +1461,15 @@ class CanonicalStore:
                 ) VALUES (?, ?, ?, ?, ?, ?, 'pending', 0, ?, NULL, NULL, NULL, NULL, ?, ?)
                 """,
                 (
-                    event_id, event_key, sink, content_key, desired_projection_hash,
-                    sink_schema_version, observed_at, observed_at, observed_at,
+                    event_id,
+                    event_key,
+                    sink,
+                    content_key,
+                    desired_projection_hash,
+                    sink_schema_version,
+                    observed_at,
+                    observed_at,
+                    observed_at,
                 ),
             )
             return WriteDisposition.INSERTED, event_id
@@ -1394,27 +1478,75 @@ class CanonicalStore:
         self,
         *,
         worker_id: str,
+        sink: str | None = None,
+        event_id: str | None = None,
         now: str | None = None,
         lease_seconds: int = 60,
     ) -> OutboxClaim | None:
         _validate_token(worker_id, label="worker_id")
+        if sink is not None and sink not in {"markdown", "notion"}:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Outbox sink is invalid")
+        if event_id is not None:
+            _validate_token(event_id, label="event_id")
         if lease_seconds < 1 or lease_seconds > 3_600:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Outbox lease duration is invalid")
-        claimed_at = now or _now()
+        claimed_at = _validate_media_timestamp(now or _now(), label="outbox_claimed_at")
         expires_at = _future(claimed_at, lease_seconds)
         with self._transaction() as connection:
-            row = connection.execute(
-                """
-                SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
-                       attempt_count
-                FROM outbox_event
-                WHERE (status = 'pending' AND not_before <= ?)
-                   OR (status = 'leased' AND lease_expires_at <= ?)
-                ORDER BY created_at, event_id
-                LIMIT 1
-                """,
-                (claimed_at, claimed_at),
-            ).fetchone()
+            if sink is None and event_id is None:
+                row = connection.execute(
+                    """
+                    SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
+                           attempt_count
+                    FROM outbox_event
+                    WHERE (status = 'pending' AND not_before <= ?)
+                       OR (status = 'leased' AND lease_expires_at <= ?)
+                    ORDER BY created_at, event_id
+                    LIMIT 1
+                    """,
+                    (claimed_at, claimed_at),
+                ).fetchone()
+            elif sink is not None and event_id is None:
+                row = connection.execute(
+                    """
+                    SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
+                           attempt_count
+                    FROM outbox_event
+                    WHERE sink = ? AND (
+                        (status = 'pending' AND not_before <= ?)
+                        OR (status = 'leased' AND lease_expires_at <= ?)
+                    )
+                    ORDER BY created_at, event_id
+                    LIMIT 1
+                    """,
+                    (sink, claimed_at, claimed_at),
+                ).fetchone()
+            elif sink is None:
+                row = connection.execute(
+                    """
+                    SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
+                           attempt_count
+                    FROM outbox_event
+                    WHERE event_id = ? AND (
+                        (status = 'pending' AND not_before <= ?)
+                        OR (status = 'leased' AND lease_expires_at <= ?)
+                    )
+                    """,
+                    (event_id, claimed_at, claimed_at),
+                ).fetchone()
+            else:
+                row = connection.execute(
+                    """
+                    SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
+                           attempt_count
+                    FROM outbox_event
+                    WHERE event_id = ? AND sink = ? AND (
+                        (status = 'pending' AND not_before <= ?)
+                        OR (status = 'leased' AND lease_expires_at <= ?)
+                    )
+                    """,
+                    (event_id, sink, claimed_at, claimed_at),
+                ).fetchone()
             if row is None:
                 return None
             lease_id = f"lease_{uuid.uuid4().hex}"
@@ -1438,29 +1570,125 @@ class CanonicalStore:
                 attempt_count=attempt_count,
             )
 
+    @staticmethod
+    def _leased_outbox_row(connection: sqlite3.Connection, claim: OutboxClaim) -> sqlite3.Row:
+        row = connection.execute(
+            """
+            SELECT sink, content_key, desired_projection_hash, sink_schema_version, status, lease_id
+            FROM outbox_event WHERE event_id = ?
+            """,
+            (claim.event_id,),
+        ).fetchone()
+        if row is None or str(row["status"]) != "leased" or str(row["lease_id"]) != claim.lease_id:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Outbox lease is stale or unavailable")
+        expected = (
+            str(row["sink"]),
+            str(row["content_key"]),
+            str(row["desired_projection_hash"]),
+            str(row["sink_schema_version"]),
+        )
+        actual = (claim.sink, claim.content_key, claim.desired_projection_hash, claim.sink_schema_version)
+        if actual != expected:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Outbox claim identity diverged")
+        return row
+
+    def retry_outbox(
+        self,
+        claim: OutboxClaim,
+        *,
+        error_code: str,
+        not_before: str,
+        now: str | None = None,
+    ) -> WriteDisposition:
+        _validate_token(error_code, label="outbox_error_code")
+        observed_at = _validate_media_timestamp(now or _now(), label="outbox_retry_at")
+        scheduled_at = _validate_media_timestamp(not_before, label="outbox_not_before")
+        if scheduled_at < observed_at:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Outbox retry cannot be scheduled in the past")
+        with self._transaction() as connection:
+            self._leased_outbox_row(connection, claim)
+            connection.execute(
+                """
+                UPDATE outbox_event SET
+                    status = 'pending', not_before = ?, lease_id = NULL, lease_owner = NULL,
+                    lease_expires_at = NULL, last_error_code = ?, updated_at = ?
+                WHERE event_id = ?
+                """,
+                (scheduled_at, error_code, observed_at, claim.event_id),
+            )
+        return WriteDisposition.UPDATED
+
+    def dead_letter_outbox(
+        self,
+        claim: OutboxClaim,
+        *,
+        error_code: str,
+        now: str | None = None,
+    ) -> WriteDisposition:
+        _validate_token(error_code, label="outbox_error_code")
+        observed_at = _validate_media_timestamp(now or _now(), label="outbox_dead_letter_at")
+        with self._transaction() as connection:
+            self._leased_outbox_row(connection, claim)
+            connection.execute(
+                """
+                UPDATE outbox_event SET
+                    status = 'dead_letter', lease_id = NULL, lease_owner = NULL,
+                    lease_expires_at = NULL, last_error_code = ?, updated_at = ?
+                WHERE event_id = ?
+                """,
+                (error_code, observed_at, claim.event_id),
+            )
+        return WriteDisposition.UPDATED
+
+    def outbox_state(self, event_id: str) -> OutboxState | None:
+        _validate_token(event_id, label="event_id")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    """
+                    SELECT event_id, sink, content_key, desired_projection_hash, sink_schema_version,
+                           status, attempt_count, not_before, last_error_code
+                    FROM outbox_event WHERE event_id = ?
+                    """,
+                    (event_id,),
+                ).fetchone()
+            finally:
+                connection.close()
+        if row is None:
+            return None
+        return OutboxState(
+            event_id=str(row["event_id"]),
+            sink=str(row["sink"]),
+            content_key=str(row["content_key"]),
+            desired_projection_hash=str(row["desired_projection_hash"]),
+            sink_schema_version=str(row["sink_schema_version"]),
+            status=str(row["status"]),
+            attempt_count=int(row["attempt_count"]),
+            not_before=str(row["not_before"]),
+            last_error_code=None if row["last_error_code"] is None else str(row["last_error_code"]),
+        )
+
     def complete_outbox(self, claim: OutboxClaim, receipt: SinkReceipt) -> WriteDisposition:
         payload_json, payload_sha = _payload(receipt)
         with self._transaction() as connection:
-            row = connection.execute(
-                """
-                SELECT sink, content_key, desired_projection_hash, sink_schema_version, status,
-                       lease_id
-                FROM outbox_event WHERE event_id = ?
-                """,
-                (claim.event_id,),
-            ).fetchone()
-            if row is None or str(row["status"]) != "leased" or str(row["lease_id"]) != claim.lease_id:
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Outbox lease is stale or unavailable")
+            row = self._leased_outbox_row(connection, claim)
             expected = (
-                str(row["sink"]), str(row["content_key"]),
-                str(row["desired_projection_hash"]), str(row["sink_schema_version"]),
+                str(row["sink"]),
+                str(row["content_key"]),
+                str(row["desired_projection_hash"]),
+                str(row["sink_schema_version"]),
             )
             actual = (
-                receipt.sink.value, receipt.content_key,
-                receipt.desired_projection_hash, receipt.sink_schema_version,
+                receipt.sink.value,
+                receipt.content_key,
+                receipt.desired_projection_hash,
+                receipt.sink_schema_version,
             )
             if actual != expected:
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink receipt does not match the leased Outbox event")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Sink receipt does not match the leased Outbox event"
+                )
             delivered_at = receipt.delivered_at.isoformat().replace("+00:00", "Z")
             self._ensure_run(connection, receipt.run_id, delivered_at)
             existing = connection.execute(
@@ -1468,7 +1696,9 @@ class CanonicalStore:
                 (receipt.receipt_id,),
             ).fetchone()
             if existing is not None and str(existing["payload_sha256"]) != payload_sha:
-                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink receipt identity conflicts with append-only history")
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED, "Sink receipt identity conflicts with append-only history"
+                )
             if existing is None:
                 connection.execute(
                     """
@@ -1479,12 +1709,20 @@ class CanonicalStore:
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
-                        receipt.receipt_id, receipt.sink_key, receipt.sink.value,
-                        receipt.content_key, receipt.sink_schema_version,
-                        receipt.desired_projection_hash, receipt.output_hash,
-                        receipt.sink_object_ref, receipt.external_ref_hash,
-                        receipt.status.value, delivered_at, receipt.run_id,
-                        payload_json, payload_sha,
+                        receipt.receipt_id,
+                        receipt.sink_key,
+                        receipt.sink.value,
+                        receipt.content_key,
+                        receipt.sink_schema_version,
+                        receipt.desired_projection_hash,
+                        receipt.output_hash,
+                        receipt.sink_object_ref,
+                        receipt.external_ref_hash,
+                        receipt.status.value,
+                        delivered_at,
+                        receipt.run_id,
+                        payload_json,
+                        payload_sha,
                     ),
                 )
             connection.execute(
@@ -1497,6 +1735,76 @@ class CanonicalStore:
                 (delivered_at, claim.event_id),
             )
             return WriteDisposition.INSERTED if existing is None else WriteDisposition.UNCHANGED
+
+    def notion_mapping(self, content_key: str) -> NotionMapping | None:
+        if not isinstance(content_key, str) or not content_key or len(content_key) > 512:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "content_key is invalid")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    """
+                    SELECT content_key, notion_page_ref_private, external_ref_hash
+                    FROM notion_mapping WHERE content_key = ?
+                    """,
+                    (content_key,),
+                ).fetchone()
+            finally:
+                connection.close()
+        if row is None:
+            return None
+        return NotionMapping(
+            content_key=str(row["content_key"]),
+            page_ref=str(row["notion_page_ref_private"]),
+            external_ref_hash=str(row["external_ref_hash"]),
+        )
+
+    def record_notion_mapping(
+        self,
+        *,
+        content_key: str,
+        page_ref: str,
+        now: str | None = None,
+    ) -> WriteDisposition:
+        page_id = str(_uuid(page_ref, label="notion_page_ref"))
+        external_ref_hash = hashlib.sha256(page_id.encode("utf-8")).hexdigest()
+        observed_at = _validate_media_timestamp(now or _now(), label="notion_mapping_at")
+        with self._transaction() as connection:
+            content = connection.execute(
+                "SELECT 1 FROM content WHERE content_key = ?",
+                (content_key,),
+            ).fetchone()
+            if content is None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Notion mapping Content is missing")
+            existing = connection.execute(
+                """
+                SELECT notion_page_ref_private, external_ref_hash
+                FROM notion_mapping WHERE content_key = ?
+                """,
+                (content_key,),
+            ).fetchone()
+            page_owner = connection.execute(
+                "SELECT content_key FROM notion_mapping WHERE notion_page_ref_private = ?",
+                (page_id,),
+            ).fetchone()
+            if page_owner is not None and str(page_owner["content_key"]) != content_key:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Notion page is mapped to another Content")
+            if existing is not None:
+                if (
+                    str(existing["notion_page_ref_private"]) != page_id
+                    or str(existing["external_ref_hash"]) != external_ref_hash
+                ):
+                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Notion mapping conflicts with stored truth")
+                return WriteDisposition.UNCHANGED
+            connection.execute(
+                """
+                INSERT INTO notion_mapping(
+                    content_key, notion_page_ref_private, external_ref_hash, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?)
+                """,
+                (content_key, page_id, external_ref_hash, observed_at, observed_at),
+            )
+        return WriteDisposition.INSERTED
 
     def _insert_media_lease(
         self,
@@ -1540,8 +1848,17 @@ class CanonicalStore:
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
                 """,
                 (
-                    lease_id_value, run_id, content_key, purpose, content_hash, mime, size_bytes,
-                    duration_seconds, created_at, _future(created_at, ttl_seconds), initial_status,
+                    lease_id_value,
+                    run_id,
+                    content_key,
+                    purpose,
+                    content_hash,
+                    mime,
+                    size_bytes,
+                    duration_seconds,
+                    created_at,
+                    _future(created_at, ttl_seconds),
+                    initial_status,
                     relative_path,
                 ),
             )
@@ -1683,9 +2000,7 @@ class CanonicalStore:
         with self._file_lock(exclusive=False):
             connection = self._open(writable=False)
             try:
-                rows = connection.execute(
-                    "SELECT * FROM media_lease ORDER BY lease_id"
-                ).fetchall()
+                rows = connection.execute("SELECT * FROM media_lease ORDER BY lease_id").fetchall()
             finally:
                 connection.close()
         return tuple(self._media_lease_record(row) for row in rows)
@@ -1747,20 +2062,28 @@ class CanonicalStore:
             try:
                 checks = self._integrity(connection)
                 values = {
-                    "expired_outbox_leases": int(connection.execute(
-                        "SELECT COUNT(*) FROM outbox_event WHERE status = 'leased' AND lease_expires_at <= ?",
-                        (observed_at,),
-                    ).fetchone()[0]),
-                    "expired_media_leases": int(connection.execute(
-                        "SELECT COUNT(*) FROM media_lease WHERE status IN ('active','processing','cleanup_pending') AND expires_at <= ?",
-                        (observed_at,),
-                    ).fetchone()[0]),
-                    "running_jobs": int(connection.execute(
-                        "SELECT COUNT(*) FROM run_record WHERE state IN ('running','recovery')"
-                    ).fetchone()[0]),
-                    "pending_outbox": int(connection.execute(
-                        "SELECT COUNT(*) FROM outbox_event WHERE status IN ('pending','leased')"
-                    ).fetchone()[0]),
+                    "expired_outbox_leases": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM outbox_event WHERE status = 'leased' AND lease_expires_at <= ?",
+                            (observed_at,),
+                        ).fetchone()[0]
+                    ),
+                    "expired_media_leases": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM media_lease WHERE status IN ('active','processing','cleanup_pending') AND expires_at <= ?",
+                            (observed_at,),
+                        ).fetchone()[0]
+                    ),
+                    "running_jobs": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM run_record WHERE state IN ('running','recovery')"
+                        ).fetchone()[0]
+                    ),
+                    "pending_outbox": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM outbox_event WHERE status IN ('pending','leased')"
+                        ).fetchone()[0]
+                    ),
                 }
             finally:
                 connection.close()
@@ -1805,9 +2128,12 @@ class CanonicalStore:
                 ) VALUES (?, ?, 'ok', 'ok', ?, ?, ?, ?)
                 """,
                 (
-                    f"recovery_{uuid.uuid4().hex}", observed_at,
-                    before.expired_outbox_leases, before.expired_media_leases,
-                    before.running_jobs, result_hash,
+                    f"recovery_{uuid.uuid4().hex}",
+                    observed_at,
+                    before.expired_outbox_leases,
+                    before.expired_media_leases,
+                    before.running_jobs,
+                    result_hash,
                 ),
             )
         return self.recovery_plan(now=observed_at)
@@ -1834,14 +2160,30 @@ class CanonicalStore:
         for table in tables:
             columns = [str(row[1]) for row in connection.execute(f'PRAGMA table_info("{table}")').fetchall()]
             safe_columns = [
-                column for column in columns
+                column
+                for column in columns
                 if column.endswith("_sha256")
                 or column.endswith("_hash")
-                or column in {
-                    "version", "name", "checksum", "content_key", "relation_key",
-                    "artifact_id", "classification_id", "observation_id", "receipt_id",
-                    "event_id", "request_id", "job_id", "lease_id", "category_id",
-                    "checkpoint_id", "schema_version", "status", "state",
+                or column
+                in {
+                    "version",
+                    "name",
+                    "checksum",
+                    "content_key",
+                    "relation_key",
+                    "artifact_id",
+                    "classification_id",
+                    "observation_id",
+                    "receipt_id",
+                    "event_id",
+                    "request_id",
+                    "job_id",
+                    "lease_id",
+                    "category_id",
+                    "checkpoint_id",
+                    "schema_version",
+                    "status",
+                    "state",
                 }
             ]
             if not safe_columns:
@@ -1878,6 +2220,107 @@ class CanonicalStore:
             finally:
                 connection.close()
         return None if row is None else str(row["platform"])
+
+    def projection_snapshot(self, content_key: str) -> CanonicalProjection:
+        """Read one internally consistent private snapshot for derived sinks."""
+
+        if not isinstance(content_key, str) or not content_key or len(content_key) > 512:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "content_key is invalid")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                connection.execute("BEGIN")
+                content_row = connection.execute(
+                    "SELECT payload_json FROM content WHERE content_key = ?",
+                    (content_key,),
+                ).fetchone()
+                relation_rows = connection.execute(
+                    """
+                    SELECT relation_type FROM user_relation
+                    WHERE content_key = ? AND status = 'active'
+                    ORDER BY relation_type
+                    """,
+                    (content_key,),
+                ).fetchall()
+                observation_row = connection.execute(
+                    """
+                    SELECT payload_json FROM source_observation
+                    WHERE content_key = ?
+                    ORDER BY observed_at DESC, observation_id DESC LIMIT 1
+                    """,
+                    (content_key,),
+                ).fetchone()
+                artifact_rows = connection.execute(
+                    """
+                    SELECT artifact_type, payload_json FROM artifact
+                    WHERE content_key = ?
+                    ORDER BY artifact_type, artifact_sequence DESC, artifact_id DESC
+                    """,
+                    (content_key,),
+                ).fetchall()
+                classification_row = connection.execute(
+                    """
+                    SELECT payload_json, primary_category_id FROM classification
+                    WHERE content_key = ?
+                    ORDER BY created_at DESC, classification_id DESC LIMIT 1
+                    """,
+                    (content_key,),
+                ).fetchone()
+                category_row = None
+                if classification_row is not None:
+                    category_row = connection.execute(
+                        "SELECT payload_json FROM taxonomy_category WHERE category_id = ?",
+                        (str(classification_row["primary_category_id"]),),
+                    ).fetchone()
+            finally:
+                if connection.in_transaction:
+                    connection.rollback()
+                connection.close()
+        if content_row is None or observation_row is None:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection lacks Canonical provenance")
+        if classification_row is not None and category_row is None:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection category is missing")
+        try:
+            content = CanonicalContent.model_validate_json(str(content_row["payload_json"]))
+            observation = SourceObservation.model_validate_json(str(observation_row["payload_json"]))
+            latest_artifacts: list[Artifact] = []
+            seen_types: set[str] = set()
+            for row in artifact_rows:
+                artifact_type = str(row["artifact_type"])
+                if artifact_type in seen_types:
+                    continue
+                seen_types.add(artifact_type)
+                latest_artifacts.append(Artifact.model_validate_json(str(row["payload_json"])))
+            classification = (
+                Classification.model_validate_json(str(classification_row["payload_json"]))
+                if classification_row is not None
+                else None
+            )
+            category = (
+                TaxonomyCategory.model_validate_json(str(category_row["payload_json"]))
+                if category_row is not None
+                else None
+            )
+        except (TypeError, ValueError):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection payload is invalid") from None
+        if observation.content_key != content.content_key:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection provenance diverged")
+        if classification is not None and (
+            classification.content_key != content.content_key
+            or category is None
+            or str(classification.primary_category_id) != str(category.category_id)
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection classification diverged")
+        if any(artifact.content_key != content.content_key for artifact in latest_artifacts):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Sink projection Artifact diverged")
+        return CanonicalProjection(
+            content=content,
+            relations=tuple(str(row["relation_type"]) for row in relation_rows),
+            observation=observation,
+            artifacts=tuple(latest_artifacts),
+            classification=classification,
+            category=category,
+        )
 
     def logical_digest(self) -> str:
         with self._file_lock(exclusive=False):
@@ -1968,7 +2411,11 @@ class CanonicalStore:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as error:
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Backup manifest is invalid") from error
-        if not isinstance(manifest, dict) or manifest.get("backup_id") != backup_id or manifest.get("file_name") != target.name:
+        if (
+            not isinstance(manifest, dict)
+            or manifest.get("backup_id") != backup_id
+            or manifest.get("file_name") != target.name
+        ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Backup manifest identity is invalid")
         actual_sha = _file_sha256(target)
         required_sha = expected_sha256 or str(manifest.get("database_sha256", ""))
@@ -2025,7 +2472,9 @@ class CanonicalStore:
                 migrate_backward(connection, target_version, verified_backup=True)
                 checks = self._integrity(connection)
                 if checks != HEALTHY_CHECKS:
-                    raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Downgraded Store failed integrity verification")
+                    raise X2NRuntimeError(
+                        ErrorCode.DATA_INTEGRITY_FAILED, "Downgraded Store failed integrity verification"
+                    )
             finally:
                 connection.close()
             self._secure_sqlite_files()
@@ -2044,11 +2493,17 @@ class CanonicalStore:
                     source.backup(destination)
                     destination.row_factory = sqlite3.Row
                     if self._integrity(destination) != HEALTHY_CHECKS:
-                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate failed integrity verification")
+                        raise X2NRuntimeError(
+                            ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate failed integrity verification"
+                        )
                     if current_version(destination) != receipt.schema_version:
-                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate schema is incompatible")
+                        raise X2NRuntimeError(
+                            ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate schema is incompatible"
+                        )
                     if self._logical_digest(destination) != receipt.logical_sha256:
-                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate logical digest changed")
+                        raise X2NRuntimeError(
+                            ErrorCode.DATA_INTEGRITY_FAILED, "Restore candidate logical digest changed"
+                        )
                 finally:
                     destination.close()
                     source.close()
@@ -2073,7 +2528,9 @@ class CanonicalStore:
                 restored = self._open(writable=True)
                 try:
                     if self._integrity(restored) != HEALTHY_CHECKS:
-                        raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Restored Store failed final integrity verification")
+                        raise X2NRuntimeError(
+                            ErrorCode.DATA_INTEGRITY_FAILED, "Restored Store failed final integrity verification"
+                        )
                     restored.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                 finally:
                     restored.close()

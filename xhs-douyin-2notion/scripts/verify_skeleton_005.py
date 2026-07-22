@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed verifier for TSK.x2n.skeleton.004."""
+"""Fail-closed verifier for TSK.x2n.skeleton.005."""
 
 from __future__ import annotations
 
@@ -20,8 +20,8 @@ from typing import Any, Optional, Sequence
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PROJECT_ROOT.parent
 PREVIOUS_SPEC = importlib.util.spec_from_file_location(
-    "verify_skeleton_003_for_004",
-    PROJECT_ROOT / "scripts/verify_skeleton_003.py",
+    "verify_skeleton_004_for_005",
+    PROJECT_ROOT / "scripts/verify_skeleton_004.py",
 )
 assert PREVIOUS_SPEC and PREVIOUS_SPEC.loader
 PREVIOUS = importlib.util.module_from_spec(PREVIOUS_SPEC)
@@ -32,7 +32,6 @@ VerificationError = PREVIOUS.VerificationError
 Check = PREVIOUS.Check
 _require = PREVIOUS._require
 _load_json = PREVIOUS._load_json
-_load_json_at = PREVIOUS._load_json_at
 _read_blob_at = PREVIOUS._read_blob_at
 _git = PREVIOUS._git
 _porcelain_paths = PREVIOUS._porcelain_paths
@@ -45,34 +44,31 @@ _isolated_env = PREVIOUS._isolated_env
 _run_external = PREVIOUS._run_external
 _json_line = PREVIOUS._json_line
 
-TASK_ID = "TSK.x2n.skeleton.004"
-RUN_ID = "RUN-X2N-S02-S004"
-PHASE = "PH.X2N.2.8"
-BRANCH = "codex/xhs-douyin-2notion-v0001-s02-skeleton004"
-TASK_BASE_COMMIT = "d5f61f30657ac6aa1bc7be3f7942d4b77df5b8ae"
-FINAL_COMMIT = "36bd12133f402321b160292ea13ca51272c63e93"
+TASK_ID = "TSK.x2n.skeleton.005"
+RUN_ID = "RUN-X2N-S02-S005"
+PHASE = "PH.X2N.2.9"
+BRANCH = "codex/xhs-douyin-2notion-v0001-s02-skeleton005"
+TASK_BASE_COMMIT = "36bd12133f402321b160292ea13ca51272c63e93"
 ORIGIN_CUTOFF = "6777c8fcce75a36741b70c2858c8bc5fff17d440"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
-RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S02_SKELETON_004.md"
+RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S02_SKELETON_005.md"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 PROJECT_FACT = PROJECT_ROOT / "machine/facts/project.json"
 ARCHITECTURE_FACT = PROJECT_ROOT / "machine/facts/architecture_decisions.json"
-ORCHESTRATOR_POLICY = PROJECT_ROOT / "machine/policy/orchestrator_policy.json"
+SINK_POLICY = PROJECT_ROOT / "machine/policy/sink_projection_policy.json"
 ARTIFACT_POLICY = PROJECT_ROOT / "machine/policy/artifact_allowlist.json"
 GLOBAL_FIXTURE_MANIFEST = PROJECT_ROOT / "machine/policy/synthetic_fixture_manifest.json"
-FIXTURE_MANIFEST = PROJECT_ROOT / "packages/test-fixtures/orchestrator/v1/fixture_manifest.json"
+FIXTURE_MANIFEST = PROJECT_ROOT / "packages/test-fixtures/sinks/v1/fixture_manifest.json"
 STORE_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/canonical_store.py"
-ORCHESTRATOR_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/orchestrator.py"
-NATIVE_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/native_host.py"
+PROJECTION_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/sink_projection.py"
+MARKDOWN_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/markdown_sink.py"
+NOTION_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/notion_sink.py"
 MIGRATION_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/migrations.py"
-ORCHESTRATOR_TEST = PROJECT_ROOT / "apps/companion/tests/test_orchestrator.py"
-NATIVE_TEST = PROJECT_ROOT / "apps/companion/tests/test_native_host.py"
-EXTENSION_E2E = PROJECT_ROOT / "apps/extension/scripts/extension-e2e.mjs"
-SIDEPANEL = PROJECT_ROOT / "apps/extension/src/sidepanel.js"
-ACCEPTANCE_RUNNER = PROJECT_ROOT / "scripts/run_skeleton_004_acceptance.py"
-EVIDENCE = PROJECT_ROOT / "evidence/orchestrator/TSK.x2n.skeleton.004.json"
+SINK_TEST = PROJECT_ROOT / "apps/companion/tests/test_sinks.py"
+ACCEPTANCE_RUNNER = PROJECT_ROOT / "scripts/run_skeleton_005_acceptance.py"
+EVIDENCE = PROJECT_ROOT / "evidence/sinks/TSK.x2n.skeleton.005.json"
 FULL_LANE_GATES = PREVIOUS.FULL_LANE_GATES
-EXPECTED_ARTIFACT_MEMBERS = 62
+EXPECTED_ARTIFACT_MEMBERS = 65
 
 ALLOWED_CHANGED_EXACT = {
     "CHANGELOG.md",
@@ -80,44 +76,42 @@ ALLOWED_CHANGED_EXACT = {
     "README.md",
     "SKILL.md",
     "apps/companion/src/x2n_companion/canonical_store.py",
-    "apps/companion/src/x2n_companion/native_host.py",
-    "apps/companion/src/x2n_companion/orchestrator.py",
-    "apps/companion/tests/test_native_host.py",
-    "apps/companion/tests/test_orchestrator.py",
-    "apps/extension/scripts/extension-e2e.mjs",
-    "apps/extension/src/sidepanel.js",
-    "docs/governance/RUN_CONTRACT_S02_SKELETON_004.md",
+    "apps/companion/src/x2n_companion/markdown_sink.py",
+    "apps/companion/src/x2n_companion/notion_sink.py",
+    "apps/companion/src/x2n_companion/sink_projection.py",
+    "apps/companion/tests/test_sinks.py",
+    "docs/governance/RUN_CONTRACT_S02_SKELETON_005.md",
     "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml",
-    "evidence/orchestrator/TSK.x2n.skeleton.004.json",
+    "evidence/sinks/TSK.x2n.skeleton.005.json",
     "machine/facts/architecture_decisions.json",
     "machine/facts/project.json",
     "machine/facts/task_state.json",
     "machine/policy/artifact_allowlist.json",
-    "machine/policy/orchestrator_policy.json",
+    "machine/policy/sink_projection_policy.json",
     "machine/policy/synthetic_fixture_manifest.json",
-    "scripts/run_skeleton_004_acceptance.py",
-    "scripts/verify_skeleton_003.py",
+    "scripts/run_skeleton_005_acceptance.py",
     "scripts/verify_skeleton_004.py",
-    "tests/test_skeleton_003.py",
+    "scripts/verify_skeleton_005.py",
     "tests/test_skeleton_004.py",
+    "tests/test_skeleton_005.py",
     "功能清单.md",
     "开发记录.md",
 }
-ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/orchestrator/v1/",)
+ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/sinks/v1/",)
 
 
 def validate_scope() -> Check:
-    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
-    committed = _git(
-        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}"]
-    ).splitlines()
+    committed = _git(["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]).splitlines()
+    working = _porcelain_paths(
+        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
+    )
     changes: list[str] = []
-    for path in sorted(set(committed)):
+    for path in sorted(set(committed + working)):
         relative = _project_relative(path)
-        _require(relative is not None, "Skeleton004 changed scope escaped x2n")
+        _require(relative is not None, "Skeleton005 changed scope escaped x2n")
         _require(
             relative in ALLOWED_CHANGED_EXACT or relative.startswith(ALLOWED_CHANGED_PREFIXES),
-            f"unregistered Skeleton004 change: {relative}",
+            f"unregistered Skeleton005 change: {relative}",
         )
         changes.append(relative)
 
@@ -187,8 +181,7 @@ def validate_scope() -> Check:
 
 def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    current_branch = _git(["branch", "--show-current"])
-    _require(current_branch not in {"", "main"}, "Skeleton004 regression must run in a non-main worktree")
+    _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Skeleton005 worktree branch")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
         re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
@@ -196,24 +189,14 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "wrong or authenticated persisted origin",
     )
     _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
-    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
     _require(
         subprocess.run(
-            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, FINAL_COMMIT],
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"],
             cwd=REPOSITORY_ROOT,
             check=False,
         ).returncode
         == 0,
-        "Skeleton004 final commit no longer descends from its Task base",
-    )
-    _require(
-        subprocess.run(
-            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
-            cwd=REPOSITORY_ROOT,
-            check=False,
-        ).returncode
-        == 0,
-        "current tree no longer descends from the Skeleton004 final commit",
+        "Skeleton005 branch no longer descends from its Task base",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
@@ -252,9 +235,8 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "worktree_isolation",
         "PASS",
         {
-            "current_branch": current_branch,
+            "branch": BRANCH,
             "external_main_dirty_paths": len(main_paths),
-            "historical_branch": BRANCH,
             "origin_drift_commits": int(_git(["rev-list", "--count", f"{ORIGIN_CUTOFF}..{live_origin}"])),
             "origin_project_overlap": origin_overlap,
             "project_overlap_paths": overlap,
@@ -263,62 +245,49 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
 
 
 def validate_previous_history() -> Check:
-    _require(PREVIOUS.FINAL_COMMIT == TASK_BASE_COMMIT, "Skeleton003 final commit is not the Skeleton004 base")
+    _require(PREVIOUS.FINAL_COMMIT == TASK_BASE_COMMIT, "Skeleton004 final commit is not the Skeleton005 base")
     checks = PREVIOUS.run_checks(
         verify_worktree=False,
         allow_external_main_dirty=False,
         run_external=False,
     )
-    _require(all(item.status == "PASS" for item in checks), "Skeleton003 historical regression failed")
+    checks.append(PREVIOUS.verify_evidence())
+    _require(all(item.status == "PASS" for item in checks), "Skeleton004 historical regression failed")
     return Check(
-        "skeleton_003_history",
+        "skeleton_004_history",
         "PASS",
         {"checks": len(checks), "final_commit": TASK_BASE_COMMIT, "history_rewritten": False},
     )
 
 
 def validate_task_and_state() -> Check:
-    taskpack = _read_blob_at(FINAL_COMMIT, TASKPACK).decode("utf-8")
+    taskpack = TASKPACK.read_text(encoding="utf-8")
     base_taskpack = _read_blob_at(TASK_BASE_COMMIT, TASKPACK).decode("utf-8")
     task = _task_block(taskpack, TASK_ID)
     base_task = _task_block(base_taskpack, TASK_ID)
-    _require(_field(task, "status") == "completed", "Skeleton004 Task is not completed")
+    _require(_field(task, "status") == "completed", "Skeleton005 Task is not completed")
     _require(_field(task, "stage") == "STG.X2N.2" and _field(task, "phase") == PHASE, "Task routing drifted")
-    _require(
-        _list_field(task, "depends_on")
-        == [
-            "TSK.x2n.skeleton.001",
-            "TSK.x2n.skeleton.002",
-            "TSK.x2n.skeleton.006",
-            "TSK.x2n.skeleton.007",
-            "TSK.x2n.skeleton.008",
-            "TSK.x2n.skeleton.009",
-            "TSK.x2n.skeleton.003",
-            "TSK.x2n.foundation.003",
-        ],
-        "Skeleton004 dependency drifted",
-    )
+    _require(_list_field(task, "depends_on") == ["TSK.x2n.skeleton.004"], "Skeleton005 dependency drifted")
     _require(
         _list_field(task, "acceptance_ids")
-        == ["ACC.x2n.data.001", "ACC.x2n.data.002", "ACC.x2n.data.003", "ACC.x2n.ops.001"],
-        "Skeleton004 Acceptance drifted",
+        == ["ACC.x2n.md.001", "ACC.x2n.notion.001", "ACC.x2n.notion.002", "ACC.x2n.notion.003"],
+        "Skeleton005 Acceptance drifted",
     )
     _require(task == base_task.replace("  status: planned\n", "  status: completed\n", 1), "Task changed beyond status")
-    _require("  status: STAGE_2_SKELETON_004_PASS_G2_NOT_RUN\n" in taskpack, "Task Pack status drifted")
+    _require("  status: STAGE_2_SKELETON_005_PASS_G2_NOT_RUN\n" in taskpack, "Task Pack status drifted")
     _require(
-        _task_block(taskpack, "TSK.x2n.skeleton.005") == _task_block(base_taskpack, "TSK.x2n.skeleton.005"),
-        "Skeleton005 was entered by this Run",
+        _task_block(taskpack, "TSK.x2n.adapters.001") == _task_block(base_taskpack, "TSK.x2n.adapters.001"),
+        "Stage 3 adapter Task was entered by this Run",
     )
 
-    state = _load_json_at(FINAL_COMMIT, TASK_STATE)
-    _require(state.get("schema_version") == "1.16", "task state schema drifted")
+    state = _load_json(TASK_STATE)
+    _require(state.get("schema_version") == "1.17", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.2" and state.get("last_completed_phase") == PHASE, "phase drifted")
     _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Run drifted")
-    _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Skeleton004 state is not pass")
-    _require("TSK.x2n.skeleton.005" not in state.get("tasks", {}), "Skeleton005 state was entered")
+    _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Skeleton005 state is not pass")
     _require(
-        state.get("next_phase") == "PH.X2N.2.9" and state.get("next_run") == "TSK.x2n.skeleton.005",
-        "next Task routing drifted",
+        state.get("next_phase") == "STG.X2N.2.REVIEW" and state.get("next_run") == "STG.X2N.2.REVIEW",
+        "Stage 2 review routing drifted",
     )
     _require(
         state.get("current_stage_gate") == "not_run"
@@ -327,44 +296,45 @@ def validate_task_and_state() -> Check:
     )
     acceptance = state.get("acceptance_status", {})
     expected = {
-        "ACC.x2n.data.001": "pass_ci_synth_schema_v2_run_content_relation_observation_checkpoint_artifact_graph_integrity",
-        "ACC.x2n.data.002": "pass_ci_synth_80x2_plus_100_concurrent_duplicate_entities_0_markdown_notion_downstream_not_run",
-        "ACC.x2n.data.003": "pass_ci_synth_canonical_provenance_broken_traces_0_classification_renderer_sinks_downstream_not_run",
-        "ACC.x2n.ops.001": "pass_ci_synth_four_kill_points_non_replayable_states_0_downstream_kill_points_not_run",
+        "ACC.x2n.md.001": "pass_ci_synth_80_six_platform_valid_frontmatter_atomic_path_stable_cdn_0_owner_alpha_not_run",
+        "ACC.x2n.notion.001": "pass_ci_synth_mock_80_unique_pages_relation_contract_user_fields_preserved_hash_noop_real_notion_not_run",
+        "ACC.x2n.notion.002": "pass_ci_synth_mock_429_529_retry_after_2rps_max_attempts_4_retry_storm_0",
+        "ACC.x2n.notion.003": "pass_ci_synth_mock_outage_kill_reconcile_receipt_or_dead_letter_100_duplicate_pages_0_real_notion_not_run",
     }
-    _require(all(acceptance.get(key) == value for key, value in expected.items()), "Acceptance state drifted")
-    for field in (
-        "real_account_execution",
-        "platform_calls",
-        "notion_calls",
-        "model_calls",
-        "media_processing",
-        "real_sink_execution",
-    ):
-        _require(state.get(field) == "not_run", f"downstream execution overstated: {field}")
+    _require(all(acceptance.get(key) == value for key, value in expected.items()), "sink Acceptance state drifted")
+    for field in ("real_account_execution", "platform_calls", "model_calls", "media_processing"):
+        _require(state.get(field) == "not_run", f"external execution overstated: {field}")
+    _require(state.get("notion_calls") == "mock_only_real_api_not_run", "real Notion execution overstated")
     _require(
-        state.get("canonical_orchestration_execution")
-        == "pass_ci_synth_schema_v2_two_transaction_resume_80x2_100_concurrent_four_kill_points_broken_traces_0",
-        "orchestration execution state drifted",
+        state.get("real_sink_execution") == "pass_ci_synth_markdown_and_notion_mock_real_notion_not_run",
+        "sink execution state drifted",
     )
     _require(
-        _load_json_at(FINAL_COMMIT, PROJECT_FACT).get("status") == "stage_2_skeleton_004_pass_g2_not_run",
-        "project drifted",
+        state.get("markdown_sink_execution") == "pass_ci_synth_80x2_atomic_fixed_path_frontmatter_index_links_cdn_0",
+        "Markdown execution state drifted",
     )
-    architecture = _load_json_at(FINAL_COMMIT, ARCHITECTURE_FACT)
+    _require(
+        state.get("notion_sink_execution")
+        == "pass_ci_synth_in_process_mock_80x2_upsert_outbox_retry_dead_letter_reconcile_real_api_not_run",
+        "Notion execution state drifted",
+    )
+    _require(_load_json(PROJECT_FACT).get("status") == "stage_2_skeleton_005_pass_g2_not_run", "project drifted")
+    architecture = _load_json(ARCHITECTURE_FACT)
     _require(architecture.get("phase") == PHASE and architecture.get("stage_gate") == "g2_not_run", "ADR drifted")
     adr2 = next((item for item in architecture.get("decisions", []) if item.get("id") == "ADR-002"), {})
-    _require("two_transaction_current_page_orchestration" in adr2.get("implementation_state", ""), "ADR-002 drifted")
-    contract = _read_blob_at(FINAL_COMMIT, RUN_CONTRACT).decode("utf-8")
-    for value in (TASK_ID, RUN_ID, PHASE, TASK_BASE_COMMIT, BRANCH, "PASS_CI_SYNTH_SCOPED"):
+    adr9 = next((item for item in architecture.get("decisions", []) if item.get("id") == "ADR-009"), {})
+    _require("rebuildable_markdown_notion_mock_sinks" in adr2.get("implementation_state", ""), "ADR-002 drifted")
+    _require("unclassified_projection_seed" in adr9.get("implementation_state", ""), "ADR-009 drifted")
+    contract = RUN_CONTRACT.read_text(encoding="utf-8")
+    for value in (TASK_ID, RUN_ID, PHASE, TASK_BASE_COMMIT, BRANCH, "PASS_CI_SYNTH_MOCK_SCOPED"):
         _require(value in contract, f"Run Contract identity missing: {value}")
     return Check(
         "task_and_acceptance_contract",
         "PASS",
         {
             "acceptance_ids": 4,
-            "downstream": "DOWNSTREAM_NOT_RUN",
-            "next_task": "TSK.x2n.skeleton.005",
+            "next_run": "STG.X2N.2.REVIEW",
+            "notion_real_api": "NOT_RUN",
             "phase": PHASE,
             "single_task": True,
         },
@@ -372,213 +342,263 @@ def validate_task_and_state() -> Check:
 
 
 def validate_policy_and_implementation() -> Check:
-    policy = _load_json_at(FINAL_COMMIT, ORCHESTRATOR_POLICY)
+    policy = _load_json(SINK_POLICY)
     _require(
-        policy.get("policy_id") == "ORCHESTRATOR.X2N.001"
+        policy.get("policy_id") == "SINK_PROJECTION.X2N.001"
         and policy.get("task_id") == TASK_ID
         and policy.get("phase") == PHASE
         and policy.get("default") == "deny"
         and policy.get("migration") == "not_required_schema_v2_unchanged",
-        "orchestrator policy identity drifted",
+        "sink policy identity drifted",
     )
-    _require(policy.get("transaction_count") == 2, "orchestrator transaction boundary drifted")
-    _require(policy.get("replay", {}).get("fixture_inputs") == 80, "idempotency fixture count drifted")
-    _require(policy.get("replay", {}).get("concurrent_duplicate_requests") == 100, "concurrency count drifted")
-    _require(policy.get("replay", {}).get("original_payload_required_for_resume") is False, "resume needs payload")
-    _require(set(policy.get("downstream", {}).values()) == {"DOWNSTREAM_NOT_RUN"}, "downstream scope overstated")
+    markdown_policy = policy.get("markdown", {})
     _require(
-        policy.get("evidence_receipt", {}).get("redacted_hash_refs_only") is True
-        and policy.get("evidence_receipt", {}).get("reproducible_from_sqlite") is True,
-        "receipt policy weakened",
+        markdown_policy.get("canonical_path_template") == "runtime/library/content/<platform>/<content_id>.md"
+        and markdown_policy.get("atomic_replace") is True
+        and markdown_policy.get("file_mode") == "0600"
+        and markdown_policy.get("path_uses_title") is False
+        and markdown_policy.get("path_uses_category") is False,
+        "Markdown policy weakened",
+    )
+    fallback = policy.get("category_fallback", {})
+    _require(
+        fallback.get("slug") == "unclassified" and fallback.get("creates_taxonomy_row") is False,
+        "category ownership boundary weakened",
+    )
+    notion_policy = policy.get("notion", {})
+    _require(
+        notion_policy.get("api_version") == "2026-03-11"
+        and notion_policy.get("default_requests_per_second") == 2
+        and notion_policy.get("schema_changes") == "additive_only"
+        and notion_policy.get("user_fields") == "preserve"
+        and notion_policy.get("mock_transport") == "in_process_deterministic"
+        and notion_policy.get("real_api_calls") == 0
+        and notion_policy.get("credential_access") == "NOT_RUN"
+        and notion_policy.get("external_file_or_media_blocks") is False,
+        "Notion policy weakened",
+    )
+    outbox = policy.get("outbox", {})
+    _require(
+        outbox.get("max_attempts") == 4
+        and outbox.get("retry_after_statuses") == [429, 529]
+        and outbox.get("dead_letter_bounded") is True
+        and outbox.get("success_before_receipt_reconcile") is True,
+        "Outbox policy weakened",
     )
 
-    store = _read_blob_at(FINAL_COMMIT, STORE_SOURCE).decode("utf-8")
-    orchestrator = _read_blob_at(FINAL_COMMIT, ORCHESTRATOR_SOURCE).decode("utf-8")
-    native = _read_blob_at(FINAL_COMMIT, NATIVE_SOURCE).decode("utf-8")
+    store = STORE_SOURCE.read_text(encoding="utf-8")
+    projection = PROJECTION_SOURCE.read_text(encoding="utf-8")
+    markdown = MARKDOWN_SOURCE.read_text(encoding="utf-8")
+    notion = NOTION_SOURCE.read_text(encoding="utf-8")
     for marker in (
-        "class CurrentPageReceipt",
-        "def begin_current_page_capture",
-        "def finalize_current_page_capture",
-        "def resumable_current_page_jobs",
-        "canonical_committed",
-        "artifact_placeholder_committed",
+        "class OutboxState",
+        "class CanonicalProjection",
+        "def projection_snapshot",
+        "def retry_outbox",
+        "def dead_letter_outbox",
+        "def notion_mapping",
+        "def record_notion_mapping",
     ):
-        _require(marker in store, f"Store orchestration primitive missing: {marker}")
+        _require(marker in store, f"Store sink primitive missing: {marker}")
     for marker in (
-        "class CurrentPageOrchestrator",
-        "def execute",
-        "def resume",
-        "def resume_pending",
-        "TRANSITION_BEFORE_CANONICAL",
-        "TRANSITION_AFTER_CANONICAL",
-        "DOWNSTREAM_NOT_RUN" if "DOWNSTREAM_NOT_RUN" in orchestrator else "Category assignment belongs",
+        "class SinkProjection",
+        "class ProjectionText",
+        "def build_sink_projection",
+        "UNCLASSIFIED_SLUG",
     ):
-        _require(marker in orchestrator, f"orchestrator implementation missing: {marker}")
-    for forbidden in (
-        "import requests",
-        "import httpx",
-        "import aiohttp",
-        "urllib.request",
-        "subprocess",
-        "os.system",
-        "shell=True",
+        _require(marker in projection, f"projection primitive missing: {marker}")
+    for marker in (
+        "class MarkdownSink",
+        "def render_markdown",
+        "def parse_frontmatter",
+        "def _atomic_write",
+        "os.replace(",
+        "os.fsync(",
+        "def seed_unclassified_index",
+        "def validate_unclassified_links",
     ):
-        _require(forbidden not in orchestrator, "network/shell surface entered canonical orchestration")
-    _require("CurrentPageOrchestrator(active_store).execute" in native, "Native capture does not enter orchestrator")
-    _require('run_kind="native_sync_skeleton"' in native, "Skeleton005 list/sink path was entered")
+        _require(marker in markdown, f"Markdown implementation missing: {marker}")
+    for marker in (
+        'NOTION_API_VERSION = "2026-03-11"',
+        "class RequestRateGate",
+        "class RateLimitedNotionClient",
+        "class NotionMockServer",
+        "class NotionSinkWorker",
+        "def plan_additive_schema",
+        "def build_notion_projection",
+        "def reconcile",
+        "category_page_refs",
+        "TRANSITION_AFTER_NOTION_SUCCESS",
+    ):
+        _require(marker in notion, f"Notion implementation missing: {marker}")
+    for source in (projection, markdown, notion):
+        for forbidden in (
+            "import requests",
+            "import httpx",
+            "import aiohttp",
+            "urllib.request",
+            "import socket",
+            "subprocess",
+        ):
+            _require(forbidden not in source, "production network/shell surface entered Skeleton005")
+    _require("external" not in notion or '"external"' not in notion, "external media block entered Notion projection")
     _require(
-        "Current page committed to the canonical store" in _read_blob_at(FINAL_COMMIT, SIDEPANEL).decode("utf-8"),
-        "UI completion drifted",
-    )
-    _require(
-        'status !== "completed"' in _read_blob_at(FINAL_COMMIT, EXTENSION_E2E).decode("utf-8"),
-        "E2E durable status drifted",
-    )
-    _require(
-        _read_blob_at(FINAL_COMMIT, MIGRATION_SOURCE) == _read_blob_at(TASK_BASE_COMMIT, MIGRATION_SOURCE),
-        "Skeleton004 unexpectedly changed Schema v2 migrations",
+        MIGRATION_SOURCE.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, MIGRATION_SOURCE),
+        "Skeleton005 unexpectedly changed Schema v2 migrations",
     )
     for lock in (PROJECT_ROOT / "uv.lock", PROJECT_ROOT / "package-lock.json"):
-        _require(
-            _read_blob_at(FINAL_COMMIT, lock) == _read_blob_at(TASK_BASE_COMMIT, lock),
-            f"dependency lock changed: {lock.name}",
-        )
+        _require(lock.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, lock), f"dependency lock changed: {lock.name}")
     return Check(
-        "orchestrator_policy_and_implementation",
+        "sink_policy_and_implementation",
         "PASS",
         {
+            "category_rows_created_by_fallback": 0,
+            "markdown_atomic": True,
             "migration": "NOT_REQUIRED_SCHEMA_V2_UNCHANGED",
-            "network_transports": 0,
-            "resume_without_payload": True,
-            "schema_version": 2,
-            "transactions": 2,
+            "notion_api_version": "2026-03-11",
+            "notion_real_api_calls": 0,
+            "production_transports": 0,
+            "requests_per_second": 2,
         },
     )
 
 
 def validate_fixtures() -> Check:
-    fixture = _load_json_at(FINAL_COMMIT, FIXTURE_MANIFEST)
+    fixture = _load_json(FIXTURE_MANIFEST)
     _require(
-        fixture.get("fixture_id") == "FIXTURE.X2N.S02.S004.001"
+        fixture.get("fixture_id") == "FIXTURE.X2N.S02.S005.001"
+        and fixture.get("task_id") == TASK_ID
         and fixture.get("schema_version") == "1.0"
         and fixture.get("case_count") == 80,
-        "orchestrator fixture identity drifted",
+        "sink fixture identity drifted",
     )
     for field in (
-        "real_accounts",
         "contains_credentials",
         "contains_media_urls",
-        "contains_private_content",
+        "contains_private_owner_content",
         "contains_local_absolute_paths",
     ):
-        _require(fixture.get(field) is False, f"orchestrator fixture boundary weakened: {field}")
+        _require(fixture.get(field) is False, f"sink fixture boundary weakened: {field}")
     _require(
         fixture.get("generation", {}).get("platform_cycle")
         == ["xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"],
         "six-platform fixture cycle drifted",
     )
+    notion = fixture.get("notion_mock", {})
     _require(
-        fixture.get("tests", {}).get("replay_rounds") == 2
-        and fixture.get("tests", {}).get("concurrent_duplicate_count") == 100
-        and len(fixture.get("tests", {}).get("kill_points", [])) == 4,
-        "orchestrator fixture matrix drifted",
+        fixture.get("replay_rounds") == 2
+        and notion.get("api_version") == "2026-03-11"
+        and notion.get("real_api_calls") == 0
+        and len(notion.get("faults", [])) == 7
+        and "Owner Notes" in notion.get("initial_user_fields", []),
+        "sink fixture matrix drifted",
     )
-    global_manifest = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST)
+    global_manifest = _load_json(GLOBAL_FIXTURE_MANIFEST)
     _require(
-        global_manifest.get("manifest_id") == "FIXTURE.X2N.013" and global_manifest.get("phase") == PHASE,
+        global_manifest.get("manifest_id") == "FIXTURE.X2N.014" and global_manifest.get("phase") == PHASE,
         "global fixture manifest drifted",
     )
     _require(
         {
-            "id": "FIXTURE.X2N.S02.S004.001",
-            "path": "packages/test-fixtures/orchestrator/v1/fixture_manifest.json",
+            "id": "FIXTURE.X2N.S02.S005.001",
+            "path": "packages/test-fixtures/sinks/v1/fixture_manifest.json",
             "case_count": 80,
-            "purpose": "six-platform current-page canonical orchestration, 80x2 replay, 100 concurrent duplicates, kill-resume and scoped provenance",
+            "purpose": "six-platform canonical Markdown and in-process Notion mock projection, 80x2 replay, retry, dead-letter and kill-reconcile",
         }
         in global_manifest.get("fixtures", []),
-        "orchestrator fixture is not globally registered",
+        "sink fixture is not globally registered",
     )
     return Check(
-        "synthetic_orchestrator_fixtures",
+        "synthetic_sink_fixtures",
         "PASS",
-        {"concurrent_duplicates": 100, "kill_points": 4, "replay_inputs": 80, "replay_rounds": 2},
+        {"fault_cases": 7, "replay_inputs": 80, "replay_rounds": 2, "six_platforms": 6},
     )
 
 
 def validate_execution() -> Check:
     _require(shutil.which("uv") is not None, "required verifier tool unavailable: uv")
-    with tempfile.TemporaryDirectory(prefix="x2n-s004-verify-") as value:
+    with tempfile.TemporaryDirectory(prefix="x2n-s005-verify-") as value:
         home = Path(value) / "home"
         home.mkdir(mode=0o700)
         env = _isolated_env(home)
         acceptance = _json_line(
             _run_external(
-                "canonical_orchestration_acceptance",
-                (sys.executable, "-B", "scripts/run_skeleton_004_acceptance.py"),
+                "sink_projection_acceptance",
+                (sys.executable, "-B", "scripts/run_skeleton_005_acceptance.py"),
                 env=env,
                 timeout=300,
             ),
-            "canonical_orchestration_acceptance",
+            "sink_projection_acceptance",
         )
         _run_external("uv_lock_check", ("uv", "lock", "--check"), env=env, timeout=120)
     _require(
         acceptance.get("task_id") == TASK_ID
         and acceptance.get("phase") == PHASE
-        and acceptance.get("status") == "PASS_CI_SYNTH_SCOPED"
+        and acceptance.get("status") == "PASS_CI_SYNTH_MOCK_SCOPED"
         and acceptance.get("schema_version") == 2
-        and acceptance.get("migration") == "NOT_REQUIRED_SCHEMA_V2_UNCHANGED",
-        "orchestration acceptance identity drifted",
+        and acceptance.get("migration") == "NOT_REQUIRED_SCHEMA_V2_UNCHANGED"
+        and acceptance.get("notion_api_version") == "2026-03-11",
+        "sink acceptance identity drifted",
     )
-    idempotency = acceptance.get("idempotency", {})
+    end_to_end = acceptance.get("end_to_end", {})
     _require(
-        idempotency.get("case_count") == 80
-        and idempotency.get("replay_rounds") == 2
-        and idempotency.get("new_jobs_round_1") == 80
-        and idempotency.get("existing_jobs_round_2") == 80
-        and idempotency.get("duplicate_entities") == 0
-        and idempotency.get("broken_provenance_traces") == 0
-        and idempotency.get("private_placeholder_payloads") == 0
-        and idempotency.get("stuck_runs") == 0,
-        "80x2 idempotency acceptance drifted",
+        acceptance.get("case_count") == 80
+        and end_to_end.get("replay_rounds") == 2
+        and end_to_end.get("markdown_files") == 80
+        and end_to_end.get("markdown_frontmatter_invalid") == 0
+        and end_to_end.get("markdown_partial_files") == 0
+        and end_to_end.get("markdown_cdn_findings") == 0
+        and end_to_end.get("index_entries") == 80
+        and end_to_end.get("index_dead_links") == 0,
+        "Markdown acceptance drifted",
     )
-    _require(set(idempotency.get("entity_counts", {}).values()) == {80}, "canonical entity cardinality drifted")
-    concurrency = acceptance.get("concurrency", {})
     _require(
-        concurrency.get("requests") == 100
-        and concurrency.get("job_count") == 1
-        and concurrency.get("new_jobs") == 1
-        and concurrency.get("existing_jobs") == 99
-        and concurrency.get("duplicate_entities") == 0,
-        "100-concurrent duplicate acceptance drifted",
+        end_to_end.get("notion_mock_pages") == 80
+        and end_to_end.get("notion_duplicate_pages") == 0
+        and end_to_end.get("notion_projection_hash_replay_requests") == 0
+        and end_to_end.get("notion_schema_user_fields_preserved") is True
+        and end_to_end.get("rate_maximum_average_requests_per_second") <= 2.0
+        and end_to_end.get("outbox_states") == {"delivered": 160}
+        and set(end_to_end.get("durable_counts", {}).values()) == {80, 160},
+        "Notion mock acceptance drifted",
     )
-    kill = acceptance.get("kill_points", {})
-    _require(kill.get("cases") == 4 and kill.get("non_replayable_states") == 0, "kill-resume acceptance drifted")
+    fault = acceptance.get("fault_matrix", {})
+    _require(
+        fault.get("cases") == 7
+        and fault.get("max_attempts") == 4
+        and fault.get("retry_after_statuses") == [429, 529]
+        and fault.get("status") == "PASS_CI_SYNTH_MOCK_SCOPED",
+        "Notion fault matrix drifted",
+    )
     unit = acceptance.get("unit_suite", {})
     _require(
-        int(unit.get("tests", 0)) >= 11
+        int(unit.get("tests", 0)) >= 16
         and unit.get("errors") == 0
         and unit.get("failures") == 0
         and unit.get("skips") == 0,
-        "orchestrator unit suite drifted",
+        "sink unit suite drifted",
     )
-    _require(set(acceptance.get("downstream", {}).values()) == {"DOWNSTREAM_NOT_RUN"}, "downstream overstated")
     _require(
-        acceptance.get("platform_calls") == 0
-        and acceptance.get("notion_calls") == 0
+        acceptance.get("notion_real_api_calls") == 0
+        and acceptance.get("owner_notion_canary") == "NOT_RUN"
+        and acceptance.get("platform_calls") == 0
         and acceptance.get("real_account_execution") == "NOT_RUN",
         "external execution overstated",
     )
     return Check(
-        "canonical_orchestration_acceptance",
+        "sink_projection_acceptance",
         "PASS",
         {
-            "broken_provenance_traces": 0,
-            "concurrent_requests": 100,
-            "duplicate_entities": 0,
-            "kill_points": 4,
+            "dead_links": 0,
+            "duplicate_pages": 0,
+            "fault_cases": 7,
+            "frontmatter_invalid": 0,
+            "markdown_files": 80,
+            "notion_mock_pages": 80,
+            "notion_real_api_calls": 0,
+            "partial_files": 0,
             "replay_inputs": 80,
             "replay_rounds": 2,
-            "stuck_runs": 0,
             "unit_tests": unit["tests"],
         },
     )
@@ -668,32 +688,30 @@ def _acceptance_input_receipt() -> str:
         PROJECT_ROOT / "功能清单.md",
         PROJECT_ROOT / "开发记录.md",
         STORE_SOURCE,
-        ORCHESTRATOR_SOURCE,
-        NATIVE_SOURCE,
-        ORCHESTRATOR_TEST,
-        NATIVE_TEST,
-        EXTENSION_E2E,
-        SIDEPANEL,
+        PROJECTION_SOURCE,
+        MARKDOWN_SOURCE,
+        NOTION_SOURCE,
+        SINK_TEST,
         RUN_CONTRACT,
         TASKPACK,
         TASK_STATE,
         PROJECT_FACT,
         ARCHITECTURE_FACT,
-        ORCHESTRATOR_POLICY,
+        SINK_POLICY,
         ARTIFACT_POLICY,
         GLOBAL_FIXTURE_MANIFEST,
         FIXTURE_MANIFEST,
         ACCEPTANCE_RUNNER,
-        PROJECT_ROOT / "scripts/verify_skeleton_003.py",
         PROJECT_ROOT / "scripts/verify_skeleton_004.py",
-        PROJECT_ROOT / "tests/test_skeleton_003.py",
+        PROJECT_ROOT / "scripts/verify_skeleton_005.py",
         PROJECT_ROOT / "tests/test_skeleton_004.py",
+        PROJECT_ROOT / "tests/test_skeleton_005.py",
     ]
     digest = hashlib.sha256()
     for path in sorted(paths):
         digest.update(path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
-        digest.update(_read_blob_at(FINAL_COMMIT, path))
+        digest.update(path.read_bytes())
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -708,26 +726,32 @@ def _safe_evidence(payload: dict[str, Any]) -> None:
 def build_evidence(checks: list[Check]) -> dict[str, Any]:
     names = {check.name for check in checks}
     _require(
-        {"canonical_orchestration_acceptance", "full_lane_replay", "worktree_isolation"} <= names,
-        "evidence requires acceptance, worktree and two-repetition full lane validation",
+        {"sink_projection_acceptance", "full_lane_replay", "worktree_isolation"} <= names,
+        "evidence requires sink acceptance, worktree and two-repetition full lane validation",
     )
-    acceptance = next(check for check in checks if check.name == "canonical_orchestration_acceptance")
+    acceptance = next(check for check in checks if check.name == "sink_projection_acceptance")
     payload = {
-        "acceptance_ids": ["ACC.x2n.data.001", "ACC.x2n.data.002", "ACC.x2n.data.003", "ACC.x2n.ops.001"],
+        "acceptance_ids": [
+            "ACC.x2n.md.001",
+            "ACC.x2n.notion.001",
+            "ACC.x2n.notion.002",
+            "ACC.x2n.notion.003",
+        ],
         "acceptance_input_sha256": _acceptance_input_receipt(),
         "acceptance_status": {
-            "ACC.x2n.data.001": "PASS_CI_SYNTH_SCHEMA_V2_CANONICAL_GRAPH_INTEGRITY",
-            "ACC.x2n.data.002": "PASS_CI_SYNTH_80X2_100_CONCURRENT_DUPLICATE_ENTITIES_0_SINKS_DOWNSTREAM_NOT_RUN",
-            "ACC.x2n.data.003": "PASS_CI_SYNTH_CANONICAL_TRACE_BROKEN_0_CLASSIFICATION_RENDERER_SINKS_DOWNSTREAM_NOT_RUN",
-            "ACC.x2n.ops.001": "PASS_CI_SYNTH_4_KILL_POINTS_NON_REPLAYABLE_0_DOWNSTREAM_KILL_POINTS_NOT_RUN",
+            "ACC.x2n.md.001": "PASS_CI_SYNTH_80_SIX_PLATFORM_ATOMIC_FIXED_PATH_FRONTMATTER_CDN_0_OWNER_ALPHA_NOT_RUN",
+            "ACC.x2n.notion.001": "PASS_CI_SYNTH_MOCK_80_UNIQUE_PAGES_RELATION_CONTRACT_USER_FIELDS_PRESERVED_REAL_NOTION_NOT_RUN",
+            "ACC.x2n.notion.002": "PASS_CI_SYNTH_MOCK_RETRY_AFTER_2RPS_MAX_ATTEMPTS_4_RETRY_STORM_0",
+            "ACC.x2n.notion.003": "PASS_CI_SYNTH_MOCK_OUTAGE_KILL_RECONCILE_DUPLICATE_PAGES_0_REAL_NOTION_NOT_RUN",
         },
         "checks": [{"details": check.details, "name": check.name, "status": check.status} for check in checks],
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "matched_values_included": False,
         "migration": "NOT_REQUIRED_SCHEMA_V2_UNCHANGED",
         "model_calls": 0,
-        "notion_calls": 0,
-        "owner_canary": "NOT_RUN",
+        "notion_api_version": "2026-03-11",
+        "notion_real_api_calls": 0,
+        "owner_notion_canary": "NOT_RUN",
         "phase": PHASE,
         "platform_calls": 0,
         "private_content_included": False,
@@ -737,7 +761,7 @@ def build_evidence(checks: list[Check]) -> dict[str, Any]:
         "schema_version": "1.0",
         "stage": "STG.X2N.2",
         "stage_gate": "G2_NOT_RUN",
-        "status": "PASS_CI_SYNTH_SCOPED",
+        "status": "PASS_CI_SYNTH_MOCK_SCOPED",
         "task_id": TASK_ID,
         "task_metrics": acceptance.details,
     }
@@ -752,12 +776,11 @@ def write_evidence(checks: list[Check]) -> None:
 
 
 def verify_evidence() -> Check:
-    _require(EVIDENCE.read_bytes() == _read_blob_at(FINAL_COMMIT, EVIDENCE), "historical evidence was rewritten")
-    evidence = _load_json_at(FINAL_COMMIT, EVIDENCE)
+    evidence = _load_json(EVIDENCE)
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
     _require(
-        evidence.get("status") == "PASS_CI_SYNTH_SCOPED"
+        evidence.get("status") == "PASS_CI_SYNTH_MOCK_SCOPED"
         and evidence.get("stage_gate") == "G2_NOT_RUN"
         and evidence.get("remote_upload") == "FORBIDDEN_UNTIL_G2_PASS",
         "evidence overstated",
@@ -765,10 +788,11 @@ def verify_evidence() -> Check:
     _require(
         evidence.get("real_account_execution") == "NOT_RUN"
         and evidence.get("platform_calls") == 0
-        and evidence.get("notion_calls") == 0
+        and evidence.get("notion_real_api_calls") == 0
         and evidence.get("model_calls") == 0,
         "external execution overstated",
     )
+    _require(evidence.get("owner_notion_canary") == "NOT_RUN", "Owner Notion Canary overstated")
     _require(evidence.get("matched_values_included") is False, "evidence includes matched values")
     _require(evidence.get("acceptance_input_sha256") == _acceptance_input_receipt(), "evidence input receipt is stale")
     _require(all(item.get("status") == "PASS" for item in evidence.get("checks", [])), "evidence contains failure")
@@ -776,17 +800,18 @@ def verify_evidence() -> Check:
     _require(
         metrics.get("replay_inputs") == 80
         and metrics.get("replay_rounds") == 2
-        and metrics.get("concurrent_requests") == 100
-        and metrics.get("kill_points") == 4
-        and metrics.get("duplicate_entities") == 0
-        and metrics.get("broken_provenance_traces") == 0
-        and metrics.get("stuck_runs") == 0,
+        and metrics.get("markdown_files") == 80
+        and metrics.get("notion_mock_pages") == 80
+        and metrics.get("duplicate_pages") == 0
+        and metrics.get("frontmatter_invalid") == 0
+        and metrics.get("partial_files") == 0
+        and metrics.get("dead_links") == 0,
         "evidence metrics drifted",
     )
     return Check(
         "evidence",
         "PASS",
-        {"receipt_sha256": hashlib.sha256(_read_blob_at(FINAL_COMMIT, EVIDENCE)).hexdigest(), "task": TASK_ID},
+        {"receipt_sha256": hashlib.sha256(EVIDENCE.read_bytes()).hexdigest(), "task": TASK_ID},
     )
 
 
@@ -810,12 +835,12 @@ def run_checks(
         checks.append(validate_execution())
     if lane_report is not None:
         checks.append(validate_full_lane_report(lane_report))
-    _require(all(check.status == "PASS" for check in checks), "a Skeleton004 check failed")
+    _require(all(check.status == "PASS" for check in checks), "a Skeleton005 check failed")
     return checks
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Verify TSK.x2n.skeleton.004")
+    parser = argparse.ArgumentParser(description="Verify TSK.x2n.skeleton.005")
     parser.add_argument("--verify-worktree", action="store_true")
     parser.add_argument("--allow-external-main-dirty", action="store_true")
     parser.add_argument("--skip-external", action="store_true")

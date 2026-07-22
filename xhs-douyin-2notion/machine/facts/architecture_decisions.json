@@ -1,23 +1,23 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.2.8",
-  "status": "skeleton_004_canonical_orchestration_ci_synth_pass_g2_not_run",
+  "phase": "PH.X2N.2.9",
+  "status": "skeleton_005_markdown_notion_mock_ci_synth_pass_g2_not_run",
   "review_id": "STG.X2N.2.REVIEW",
   "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
   "decisions": [
     {"id": "ADR-001", "topic": "personal_knowledge_governance_boundary", "state": "accepted_design"},
-    {"id": "ADR-002", "topic": "sqlite_canonical_truth", "state": "accepted_design", "implementation_state": "sqlite_schema_v2_store_plus_two_transaction_current_page_orchestration_ci_synth_pass"},
+    {"id": "ADR-002", "topic": "sqlite_canonical_truth", "state": "accepted_design", "implementation_state": "sqlite_schema_v2_store_plus_two_transaction_current_page_orchestration_plus_rebuildable_markdown_notion_mock_sinks_ci_synth_pass"},
     {"id": "ADR-003", "topic": "chrome_side_panel_native_messaging_companion", "state": "accepted_design", "implementation_state": "six_platform_current_page_active_tab_scripting_to_canonical_store_isolated_synthetic_pass_owner_install_not_run"},
     {"id": "ADR-004", "topic": "single_private_data_root_and_credentials", "state": "accepted_design", "implementation_state": "owner_empty_private_store_initialized_credentials_not_used"},
     {"id": "ADR-005", "topic": "six_platform_policy_and_clean_room", "state": "accepted_design", "implementation_state": "taobao_official_oauth_top_api_scope_retention_gate_rechecked_ci_synth_only_real_page_api_dom_cookie_mtop_signature_surfaces_disabled"},
     {"id": "ADR-006", "topic": "capability_negotiation", "state": "accepted_design"},
     {"id": "ADR-007", "topic": "user_gesture_and_bounded_batches", "state": "accepted_design"},
     {"id": "ADR-008", "topic": "safe_preview_download_media_lease", "state": "accepted_design", "implementation_state": "url_firewall_ip_pinned_transport_contract_bounded_download_temporary_lease_cleaner_and_fixed_scope_scanner_ci_synth_pass_real_network_and_media_processors_not_run"},
-    {"id": "ADR-009", "topic": "owner_top_level_taxonomy", "state": "accepted_design"},
-    {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design", "implementation_state": "local_backup_restore_plus_current_page_kill_resume_ci_synth_pass_stage_1_g1_pass"}
+    {"id": "ADR-009", "topic": "owner_top_level_taxonomy", "state": "accepted_design", "implementation_state": "owner_only_top_level_taxonomy_plus_unclassified_projection_seed_ci_synth_pass_ai_category_creation_not_run"},
+    {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design", "implementation_state": "local_backup_restore_plus_current_page_and_sink_outbox_kill_reconcile_ci_synth_pass_stage_1_g1_pass"}
   ],
   "implementation_started": true,
-  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-002-003-004-006-007-008-009_six_platform_current_page_plus_media_safety_plus_canonical_orchestration_ci_synth",
+  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_six_platform_current_page_plus_media_safety_canonical_orchestration_markdown_and_notion_mock_sinks_ci_synth",
   "real_account_execution": false,
   "stage_gate": "g2_not_run"
 }

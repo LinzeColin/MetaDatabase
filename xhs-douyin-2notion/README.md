@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 2` 的 `TSK.x2n.skeleton.001/.002/.003/.004/.006/.007/.008/.009` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。六平台当前详情页继续保持稳定合成 ID、净化页面事实、Extension Action/临时 `activeTab` 与 Native Host；真实页面与平台 API 仍按各自 Policy/Auth/Budget Gate 关闭。Skeleton003 的媒体 URL 零持久化、防 SSRF、bounded temporary media lease 与 cleaner 保持有效；Skeleton004 在不改变 SQLite Schema v2 的前提下新增两事务 Canonical walking path，把当前页落为 Run、Observation、Content、Owner-confirmed `saved_current` Relation、Checkpoint 和无私有 payload 的 placeholder Artifact。80×2 重放、100 并发重复、4 个 kill point 与 scoped provenance 均通过，重复实体、stuck Run、non-replayable state 和 broken trace 为 0。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.005`。Markdown/Notion、分类、列表 Adapter、真实平台执行与真实媒体处理仍未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 2` 的九个 `TSK.x2n.skeleton.001–009` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。Skeleton005 在 SQLite Schema v2 之外新增可重建 Markdown 与进程内 Notion Mock Sink：六平台 80×2 投影使用固定 `platform/content_id` 路径、原子写、有效 Frontmatter、稳定 Unclassified Index；Notion 使用 `2026-03-11` Data Source 语义、加法式 Schema、Outbox、2 req/s、429/529/断网/kill 重试与对账。重复 Page、半文件、断链、CDN finding 与真实 Notion 调用均为 0。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `STG.X2N.2.REVIEW`，不得进入 Stage 3。分类、列表 Adapter、真实平台/Notion、Owner Canary、真实媒体与模型处理仍未运行；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,32 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 2 / Skeleton 004 验证
+## Stage 2 / Skeleton 005 验证
+
+```bash
+.venv/bin/python -B scripts/run_skeleton_005_acceptance.py
+.venv/bin/python -B scripts/verify_skeleton_005.py \
+  --verify-worktree --allow-external-main-dirty \
+  --lane-report build/s02-skeleton005-final/software-lane.json --require-evidence
+```
+
+Markdown Canonical 路径固定为 `runtime/library/content/<platform>/<content_id>.md`，不使用标题或分类；
+同目录 `0600` 临时文件经 `fsync` 后原子替换，kill 后只保留旧完整文件或新完整文件。Frontmatter、
+正文与 Provenance 均由 SQLite snapshot 和私有 Artifact 文本确定性投影；`Unclassified` 只生成派生
+Index，不创建一级分类。
+
+Notion 实现只包含凭据无关的投影合同、限速客户端接口与进程内 deterministic Mock，不包含真实 HTTP
+transport，也未读取 Notion 凭据。Items/Categories Schema 只加字段，Owner 自定义字段保留；同
+`content_key` 只允许一个 Page，Projection Hash 一致不写，Owner category Relation 只接受显式 Page
+映射。Outbox 在 429/529、timeout、reset、一小时 outage、成功后 Receipt 前 kill 与 Schema 冲突下，
+最终进入 Receipt 或 bounded Dead Letter；Canonical/Markdown 不与 Notion 事务耦合。
+
+最终根回归为 175 个测试 PASS、3 个固定 Owner-private 可选输入 skip；75 个 Companion tests PASS。
+full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 76.86%，
+33 个依赖 OSV 漏洞 0，65-member source candidate 确定性一致且 Runtime Data 0。真实 Notion、Owner
+Chrome/Profile、真实账号、平台调用、真实媒体、模型与 G2 均未运行。
+
+## Stage 2 / Skeleton 004 历史验证
 
 ```bash
 .venv/bin/python -B scripts/run_skeleton_004_acceptance.py

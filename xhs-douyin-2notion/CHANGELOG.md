@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.0.1 — Stage 2 / Skeleton 005
+
+- 保持 SQLite Schema v2 与 Canonical 事务边界不变，新增一致性 snapshot、精确 Outbox event claim、retry/dead-letter state、私有 Notion Mapping 与 append-only Sink Receipt primitive；Notion 永不进入 Canonical 写事务。
+- 新增固定 `runtime/library/content/<platform>/<content_id>.md` 的确定性 Markdown renderer；路径不依赖标题/分类，同目录 `0600` 临时文件经 file/directory `fsync` 后原子替换，symlink/path escape Fail Closed。`Unclassified` 只生成派生 Index，不创建 Taxonomy row。
+- 新增 Notion `2026-03-11` Data Source/Page 语义合同、Items/Categories 加法式 Schema、Owner category 显式 Relation mapping、projection-hash no-op、用户字段保留与每 `content_key` 唯一 Page 约束；实现仅为进程内 deterministic Mock，不含真实 HTTP/SDK/凭据。
+- 新增 2 req/s 串行限速、429/529 `Retry-After`、timeout/reset、一小时 outage、最大 4 次尝试、Dead Letter 与成功后本地 Receipt 前 kill-reconcile；重复 Page Fail Closed，Canonical/Markdown 在 Notion outage 时继续完成。
+- 六平台 80 个 Canonical 输入两轮投影通过：80 Markdown、80 Notion Mock Pages、160 Outbox/Receipts；无半文件、无断链、Frontmatter invalid 0、CDN finding 0、duplicate Page 0、hash 相同 replay request 0、真实 Notion call 0。16 个 sink 单测覆盖长文本、特殊字符、分类 Relation、原子 kill、symlink、Schema conflict 与反向长队列。
+- Skeleton004 历史 Task/State/Policy/Evidence 固定到 `36bd1213…`，旧 verifier 从最终 commit blob 验收，不再读取 S005 的当前状态或实现。
+- 根回归 175 tests PASS、3 个显式可选 Owner-private input skip；75 个 Companion tests PASS。两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 76.86%，33 dependencies 的 OSV vulnerability 0，65-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.md.001` 与 `ACC.x2n.notion.001/.002/.003` 仅 CI-SYNTH/Mock scoped pass；真实 Notion 与 Owner Canary 均 `NOT_RUN`。`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 只能执行 `STG.X2N.2.REVIEW`。
+
 ## v0.0.0.1 — Stage 2 / Skeleton 004
 
 - 新增 `CurrentPageOrchestrator`，把六平台已经净化并通过 Native v1 Contract 的 `capture_current` 输入接入 SQLite Canonical Store；不增加平台网络、媒体处理、分类、Markdown 或 Notion 行为。

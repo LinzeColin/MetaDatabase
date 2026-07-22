@@ -1,0 +1,146 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.md.001",
+    "ACC.x2n.notion.001",
+    "ACC.x2n.notion.002",
+    "ACC.x2n.notion.003"
+  ],
+  "acceptance_input_sha256": "237eb4f1d537d9defd76445a12390475a84f72fe9ae51f5429b0d83c0b5aebff",
+  "acceptance_status": {
+    "ACC.x2n.md.001": "PASS_CI_SYNTH_80_SIX_PLATFORM_ATOMIC_FIXED_PATH_FRONTMATTER_CDN_0_OWNER_ALPHA_NOT_RUN",
+    "ACC.x2n.notion.001": "PASS_CI_SYNTH_MOCK_80_UNIQUE_PAGES_RELATION_CONTRACT_USER_FIELDS_PRESERVED_REAL_NOTION_NOT_RUN",
+    "ACC.x2n.notion.002": "PASS_CI_SYNTH_MOCK_RETRY_AFTER_2RPS_MAX_ATTEMPTS_4_RETRY_STORM_0",
+    "ACC.x2n.notion.003": "PASS_CI_SYNTH_MOCK_OUTAGE_KILL_RECONCILE_DUPLICATE_PAGES_0_REAL_NOTION_NOT_RUN"
+  },
+  "checks": [
+    {
+      "details": {
+        "changed_files": 26,
+        "out_of_scope_writes": 0,
+        "private_runtime_files": 0,
+        "sensitive_or_media_url_hits": 0,
+        "text_files_scanned": 359
+      },
+      "name": "scope_and_privacy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s02-skeleton005",
+        "external_main_dirty_paths": 0,
+        "origin_drift_commits": 6,
+        "origin_project_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "checks": 6,
+        "final_commit": "36bd12133f402321b160292ea13ca51272c63e93",
+        "history_rewritten": false
+      },
+      "name": "skeleton_004_history",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "acceptance_ids": 4,
+        "next_run": "STG.X2N.2.REVIEW",
+        "notion_real_api": "NOT_RUN",
+        "phase": "PH.X2N.2.9",
+        "single_task": true
+      },
+      "name": "task_and_acceptance_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "category_rows_created_by_fallback": 0,
+        "markdown_atomic": true,
+        "migration": "NOT_REQUIRED_SCHEMA_V2_UNCHANGED",
+        "notion_api_version": "2026-03-11",
+        "notion_real_api_calls": 0,
+        "production_transports": 0,
+        "requests_per_second": 2
+      },
+      "name": "sink_policy_and_implementation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "fault_cases": 7,
+        "replay_inputs": 80,
+        "replay_rounds": 2,
+        "six_platforms": 6
+      },
+      "name": "synthetic_sink_fixtures",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "dead_links": 0,
+        "duplicate_pages": 0,
+        "fault_cases": 7,
+        "frontmatter_invalid": 0,
+        "markdown_files": 80,
+        "notion_mock_pages": 80,
+        "notion_real_api_calls": 0,
+        "partial_files": 0,
+        "replay_inputs": 80,
+        "replay_rounds": 2,
+        "unit_tests": 17
+      },
+      "name": "sink_projection_acceptance",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "artifact_members": 65,
+        "blocking_executions": 24,
+        "blocking_failures": 0,
+        "coverage_percent": 76.93,
+        "dependencies_queried": 33,
+        "explicit_nonblocking_skips": 6,
+        "flaky_blocking_tests": 0,
+        "runtime_data_files": 0,
+        "silent_blocking_skips": 0,
+        "vulnerabilities_reported": 0
+      },
+      "name": "full_lane_replay",
+      "status": "PASS"
+    }
+  ],
+  "generated_at": "2026-07-22T11:10:36Z",
+  "matched_values_included": false,
+  "migration": "NOT_REQUIRED_SCHEMA_V2_UNCHANGED",
+  "model_calls": 0,
+  "notion_api_version": "2026-03-11",
+  "notion_real_api_calls": 0,
+  "owner_notion_canary": "NOT_RUN",
+  "phase": "PH.X2N.2.9",
+  "platform_calls": 0,
+  "private_content_included": false,
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_G2_PASS",
+  "run_id": "RUN-X2N-S02-S005",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.2",
+  "stage_gate": "G2_NOT_RUN",
+  "status": "PASS_CI_SYNTH_MOCK_SCOPED",
+  "task_id": "TSK.x2n.skeleton.005",
+  "task_metrics": {
+    "dead_links": 0,
+    "duplicate_pages": 0,
+    "fault_cases": 7,
+    "frontmatter_invalid": 0,
+    "markdown_files": 80,
+    "notion_mock_pages": 80,
+    "notion_real_api_calls": 0,
+    "partial_files": 0,
+    "replay_inputs": 80,
+    "replay_rounds": 2,
+    "unit_tests": 17
+  }
+}
