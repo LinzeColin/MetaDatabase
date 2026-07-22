@@ -1,0 +1,206 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.rel.001",
+    "ACC.x2n.rel.002",
+    "ACC.x2n.rel.003"
+  ],
+  "acceptance_status": {
+    "ACC.x2n.rel.001": "PASS_LOCAL_SYNTHETIC_PIPELINE_REMOTE_CI_G1_NOT_RUN",
+    "ACC.x2n.rel.002": "PASS_DATASET_RUNNER_SKELETON_CAPABILITIES_DISABLED_MODEL_NOT_RUN",
+    "ACC.x2n.rel.003": "PASS_LOCAL_LOCK_AND_CANDIDATE_SCANS_REMOTE_RELEASE_NOT_RUN"
+  },
+  "artifact": {
+    "deterministic": true,
+    "member_count": 53,
+    "runtime_data_files": 0,
+    "sha256": "06a4a97ca41b4bc2749c43787783199fa69b9bac9cbd9711a71892185df57854"
+  },
+  "checks": [
+    {
+      "details": {
+        "acceptance_ids": 3,
+        "phase": "PH.X2N.1.5",
+        "single_task": true,
+        "stop_conditions": 2
+      },
+      "name": "task_and_acceptance_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "critical_coverage_modules": 7,
+        "explicit_nonblocking_skips_per_repetition": 3,
+        "fast_blockers": 13,
+        "full_blockers": 12,
+        "silent_skips": 0
+      },
+      "name": "ci_policy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "action_uses": 12,
+        "full_sha_pins": 12,
+        "jobs": 3,
+        "permissions": "contents_read",
+        "secret_references": 0
+      },
+      "name": "workflow_security_and_routing",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "change_scope_cases": 8,
+        "registered_fixtures": 8,
+        "seeded_failure_categories": 8,
+        "sensitive_fixture_hits": 0
+      },
+      "name": "fixtures_and_seeded_failures",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "artifact_members": 53,
+        "artifact_runtime_data": 0,
+        "csp_remote_resources": 0,
+        "licenses_unknown": 0,
+        "sast_critical_high": 0,
+        "sbom_components": 33
+      },
+      "name": "security_supply_chain_and_artifact",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "dataset_contract": "PASS",
+        "disabled_capabilities": 4,
+        "model_calls": 0,
+        "red_team_model_execution": "NOT_RUN"
+      },
+      "name": "model_eval_baseline",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "g1": "NOT_RUN",
+        "next_run": "STG.X2N.1.REVIEW",
+        "platform_calls": 0,
+        "remote_actions": "NOT_RUN"
+      },
+      "name": "state_and_truthfulness",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "changed_files": 44,
+        "format_only_python_files": 0,
+        "out_of_scope_writes": 0,
+        "private_secret_cdn_findings": 0,
+        "workflow_root_files": 1
+      },
+      "name": "scope_and_privacy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s01-foundation001",
+        "external_main_dirty_paths": 0,
+        "origin_drift_commits": 5,
+        "origin_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "blocking_executions": 24,
+        "blocking_failures": 0,
+        "blocking_repetitions": 2,
+        "explicit_nonblocking_skips": 6,
+        "flaky_blocking_tests": 0,
+        "remote_github_actions": "NOT_RUN",
+        "silent_blocking_skips": 0
+      },
+      "name": "local_full_lane",
+      "status": "PASS"
+    }
+  ],
+  "coverage": {
+    "branch_mode": true,
+    "critical_modules": {
+      "apps/companion/src/x2n_companion/canonical_store.py": {
+        "combined_percent": 82.31,
+        "covered_branches": 97,
+        "total_branches": 154
+      },
+      "apps/companion/src/x2n_companion/migrations.py": {
+        "combined_percent": 84.07,
+        "covered_branches": 18,
+        "total_branches": 24
+      },
+      "apps/companion/src/x2n_companion/native_host.py": {
+        "combined_percent": 77.55,
+        "covered_branches": 20,
+        "total_branches": 32
+      },
+      "apps/companion/src/x2n_companion/native_host_installer.py": {
+        "combined_percent": 75.3,
+        "covered_branches": 80,
+        "total_branches": 120
+      },
+      "apps/companion/src/x2n_companion/runtime.py": {
+        "combined_percent": 82.33,
+        "covered_branches": 41,
+        "total_branches": 62
+      },
+      "packages/contracts/src/x2n_contracts/base.py": {
+        "combined_percent": 72.03,
+        "covered_branches": 30,
+        "total_branches": 48
+      },
+      "packages/contracts/src/x2n_contracts/models.py": {
+        "combined_percent": 76.95,
+        "covered_branches": 59,
+        "total_branches": 140
+      }
+    },
+    "overall_combined_percent": 70.88,
+    "status": "PASS"
+  },
+  "g1": "NOT_RUN",
+  "generated_at": "2026-07-20T04:20:22Z",
+  "model_evaluation": {
+    "automatic_classification": "DISABLED_PENDING_ACC.x2n.ai.006",
+    "capabilities": {
+      "asr": "NOT_RUN_FEATURE_DISABLED",
+      "classification": "NOT_RUN_FEATURE_DISABLED",
+      "dataset_contract": "PASS",
+      "fusion": "NOT_RUN_FEATURE_DISABLED",
+      "ocr": "NOT_RUN_FEATURE_DISABLED",
+      "red_team": "CONTRACT_PASS_MODEL_NOT_RUN"
+    },
+    "dataset_id": "x2n-synthetic-model-contract-v1",
+    "dataset_version": "1.0.0",
+    "fallback": "DISABLE_RELATED_CAPABILITY_AND_REQUIRE_REVIEW",
+    "model_calls": 0,
+    "red_team_contract_cases": 3,
+    "status": "PASS_BASELINE_SKELETON"
+  },
+  "osv": {
+    "critical_high_unresolved": 0,
+    "dependencies_queried": 33,
+    "status": "PASS",
+    "vulnerabilities_reported": 0
+  },
+  "phase": "PH.X2N.1.5",
+  "private_content_included": false,
+  "real_account_execution": "NOT_RUN",
+  "remote_github_actions": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_G1_PASS",
+  "run_id": "RUN-X2N-S01-F005",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.1",
+  "status": "PASS",
+  "task_id": "TSK.x2n.foundation.005"
+}

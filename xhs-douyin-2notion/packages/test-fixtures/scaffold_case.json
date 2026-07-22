@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S01.F001.001",
+  "synthetic_only": true,
+  "real_account": false,
+  "contains_credentials": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "expected": {
+    "status": "PASS",
+    "product_lifecycle": "DOWNSTREAM_NOT_RUN"
+  }
+}

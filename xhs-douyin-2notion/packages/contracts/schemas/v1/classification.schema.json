@@ -1,0 +1,183 @@
+{
+  "$defs": {
+    "ClassificationCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "calibrated_score": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Calibrated Score",
+          "type": "number"
+        },
+        "category_id": {
+          "format": "uuid",
+          "title": "Category Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "category_id",
+        "calibrated_score"
+      ],
+      "title": "ClassificationCandidate",
+      "type": "object"
+    },
+    "DecisionMode": {
+      "enum": [
+        "rule",
+        "model",
+        "hybrid",
+        "human"
+      ],
+      "title": "DecisionMode",
+      "type": "string"
+    },
+    "ReviewStatus": {
+      "enum": [
+        "auto_accepted",
+        "suggested",
+        "owner_confirmed",
+        "owner_corrected"
+      ],
+      "title": "ReviewStatus",
+      "type": "string"
+    }
+  },
+  "$id": "urn:x2n:contract:1.0:classification",
+  "additionalProperties": false,
+  "properties": {
+    "calibration_bucket": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Calibration Bucket"
+    },
+    "candidate_ranking": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ClassificationCandidate"
+      },
+      "maxItems": 20,
+      "title": "Candidate Ranking",
+      "type": "array"
+    },
+    "classification_id": {
+      "pattern": "^[a-z][a-z0-9_]{1,31}_[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+      "title": "Classification Id",
+      "type": "string"
+    },
+    "confidence_raw": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confidence Raw"
+    },
+    "content_key": {
+      "maxLength": 768,
+      "minLength": 3,
+      "title": "Content Key",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "decision_mode": {
+      "$ref": "#/$defs/DecisionMode"
+    },
+    "evidence_artifact_ids": {
+      "items": {
+        "pattern": "^[a-z][a-z0-9_]{1,31}_[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Artifact Ids",
+      "type": "array"
+    },
+    "explanation_private_ref": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9_]{1,31}_[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Explanation Private Ref"
+    },
+    "primary_category_id": {
+      "format": "uuid",
+      "title": "Primary Category Id",
+      "type": "string"
+    },
+    "review_status": {
+      "$ref": "#/$defs/ReviewStatus"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "supersedes_classification_id": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9_]{1,31}_[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes Classification Id"
+    },
+    "tags": {
+      "default": [],
+      "items": {
+        "maxLength": 100,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+    },
+    "taxonomy_version": {
+      "minimum": 1,
+      "title": "Taxonomy Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "classification_id",
+    "content_key",
+    "taxonomy_version",
+    "primary_category_id",
+    "decision_mode",
+    "evidence_artifact_ids",
+    "review_status",
+    "created_at"
+  ],
+  "title": "Classification",
+  "type": "object",
+  "x-x2n-compatibility": "exact_match_fail_closed",
+  "x-x2n-contract-version": "1.0"
+}

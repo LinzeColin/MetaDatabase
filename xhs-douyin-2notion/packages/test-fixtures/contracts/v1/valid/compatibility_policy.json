@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "contract_version": "1.0",
+  "accepted_read_versions": ["1.0"],
+  "compatibility_mode": "exact_match_fail_closed",
+  "unknown_fields": "reject",
+  "unknown_versions": "reject",
+  "destructive_migration": "forbidden_without_versioned_migration"
+}

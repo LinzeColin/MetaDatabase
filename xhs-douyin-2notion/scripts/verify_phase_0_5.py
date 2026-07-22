@@ -354,9 +354,27 @@ def validate_architecture_and_stop_kill() -> Check:
     decisions = _load_json(DECISIONS)
     rows = decisions.get("decisions", [])
     _require([item.get("id") for item in rows] == [f"ADR-{index:03d}" for index in range(1, 11)], "decision registry mismatch")
-    _require(decisions.get("status") == "accepted_design_not_implemented", "design status overstated")
-    _require(decisions.get("implementation_started") is False and decisions.get("real_account_execution") is False, "implementation/account state overstated")
-    _require(decisions.get("stage_gate") == "not_run", "Stage gate changed")
+    if decisions.get("implementation_started") is False:
+        _require(decisions.get("status") == "accepted_design_not_implemented", "historical design status drifted")
+        _require(decisions.get("stage_gate") == "not_run", "historical Stage gate changed")
+    else:
+        implementation_scopes = {
+            "foundation_004_extension_native_skeleton_implemented_g1_not_run": (
+                "TSK.x2n.foundation.001-004_scaffold_contracts_store_extension_native_skeleton"
+            ),
+            "foundation_005_ci_and_model_assurance_baseline_implemented_g1_not_run": (
+                "TSK.x2n.foundation.001-005_scaffold_contracts_store_extension_native_and_ci_baseline"
+            ),
+            "stage_1_review_pass_g1_pass": (
+                "TSK.x2n.foundation.001-005_scaffold_contracts_store_extension_native_and_ci_baseline"
+            ),
+        }
+        status = decisions.get("status")
+        _require(status in implementation_scopes, "foundation implementation status drifted")
+        _require(decisions.get("implementation_scope") == implementation_scopes[status], "foundation scope overstated")
+        expected_gate = "g1_pass" if status == "stage_1_review_pass_g1_pass" else "g1_not_run"
+        _require(decisions.get("stage_gate") == expected_gate, "G1 status mismatch")
+    _require(decisions.get("real_account_execution") is False, "real account execution was enabled")
 
     stop_kill = _load_json(STOP_KILL)
     rules = stop_kill.get("rules", [])
@@ -376,8 +394,14 @@ def validate_synthetic_cases() -> Check:
     _require(ids == [f"GOV-{index:03d}" for index in range(1, len(cases) + 1)], "synthetic case IDs must be contiguous")
     _require(len(ids) == len(set(ids)), "duplicate synthetic case ID")
     rows = manifest.get("fixtures", [])
-    _require(len(rows) == 1 and rows[0].get("path") == "machine/fixtures/stage_0_governance_cases.json", "synthetic fixture manifest path drifted")
+    _require(rows and rows[0].get("path") == "machine/fixtures/stage_0_governance_cases.json", "synthetic fixture manifest path drifted")
     _require(rows[0].get("case_count") == len(cases) == 50, "synthetic fixture count drifted")
+    if len(rows) > 1:
+        _require(len(rows) >= 5, "historical foundation fixture registrations are incomplete")
+        _require(rows[1].get("path") == "packages/test-fixtures/scaffold_case.json" and rows[1].get("case_count") == 1, "foundation fixture registration drifted")
+        _require(rows[2].get("path") == "packages/test-fixtures/contracts/v1/fixture_manifest.json" and rows[2].get("case_count") == 144, "foundation.002 fixture registration drifted")
+        _require(rows[3].get("path") == "packages/test-fixtures/store/v1/seed_manifest.json" and rows[3].get("case_count") == 10_182, "foundation.003 fixture registration drifted")
+        _require(rows[4].get("path") == "packages/test-fixtures/extension/v1/page_cases.json" and rows[4].get("case_count") == 20, "foundation.004 fixture registration drifted")
     by_id = {item["id"]: item for item in cases}
     _require(by_id["GOV-049"].get("expected_decision") == "incident_delete_clone_rotate_or_prove_expiry", "credentialed remote incident case missing")
     _require(by_id["GOV-050"].get("expected_decision") == "reject_product_adapter", "restricted crawler isolation case missing")
@@ -399,14 +423,21 @@ def validate_task_state() -> Check:
     _require(project.get("data_root_namespace") == "xhs-douyin-2notion", "private namespace drifted")
     _require(project.get("source_taskpack_absolute_path_status") == "unspecified_owner_resolved", "original taskpack path gap not recorded")
     _require(project.get("platform_scope") == ["xiaohongshu", "douyin", "bilibili", "kuaishou", "weibo", "taobao"], "project platform scope drifted")
-    _require(project.get("status") in {"stage_0_review_complete_g0_blocked_owner_action", "stage_0_g0_pass_stage_1_authorized"}, "project readiness status is invalid")
+    _require(project.get("status") in {"stage_0_review_complete_g0_blocked_owner_action", "stage_0_g0_pass_stage_1_authorized", "stage_1_foundation_001_complete_g1_not_run", "stage_1_foundation_002_complete_g1_not_run", "stage_1_foundation_003_complete_g1_not_run", "stage_1_foundation_004_complete_g1_not_run", "stage_1_foundation_005_complete_g1_not_run", "stage_1_review_pass_g1_pass_stage_2_authorized"}, "project readiness status is invalid")
     state = _load_json(TASK_STATE)
-    _require(state.get("last_completed_phase") == "PH.X2N.0.5", "last completed Phase drifted")
     _require(state.get("tasks", {}).get(PHASE_TASK) == "pass", "Phase 0.5 task not pass")
     acceptances = state.get("acceptance_status", {})
     _require(acceptances.get("ACC.x2n.gov.003") == "pass_current_artifact_scope", "governance acceptance status mismatch")
     _require(acceptances.get("ACC.x2n.media.003") == "design_fixture_pass_downstream_not_run", "media acceptance overstated")
-    _require(acceptances.get("ACC.x2n.rel.003") == "design_supply_chain_pass_downstream_not_run", "release acceptance overstated")
+    _require(
+        acceptances.get("ACC.x2n.rel.003")
+        in {
+            "design_supply_chain_pass_downstream_not_run",
+            "pass_local_current_locks_candidate_scans_remote_release_not_run",
+            "pass_local_current_locks_candidate_history_scans_g1_pass_remote_release_not_run",
+        },
+        "release acceptance overstated",
+    )
     if state.get("review_id") == "STG.X2N.0.REVIEW":
         _require(state.get("schema_version") == "1.1" and state.get("run_id") == "RUN-X2N-S00-REVIEW", "blocked Review identity mismatch")
         _require(state.get("run_kind") == "stage_review_no_new_dag_task" and state.get("state") == "review_complete_gate_blocked", "blocked Review state is invalid")
@@ -420,7 +451,7 @@ def validate_task_state() -> Check:
         _require(state.get("next_phase_authorized") is False and state.get("stage_1_authorized") is False, "blocked Review authorized Stage 1")
         _require(state.get("stage_gate") == "blocked_owner_action" and state.get("remote_upload") == "forbidden_until_g0_pass", "blocked Stage/upload gate weakened")
         gate_status, next_run = "BLOCKED_OWNER_ACTION", "STG.X2N.0.REVIEW.RESUME"
-    else:
+    elif state.get("schema_version") == "1.2":
         _require(state.get("schema_version") == "1.2" and state.get("review_id") == "STG.X2N.0.REVIEW.RESUME" and state.get("run_id") == "RUN-X2N-S00-REVIEW-RESUME", "Resume identity mismatch")
         _require(state.get("run_kind") == "stage_review_resume_no_new_dag_task" and state.get("state") == "stage_0_g0_pass", "Resume state is invalid")
         _require(state.get("blocking_followups") == [{
@@ -433,6 +464,78 @@ def validate_task_state() -> Check:
         _require(state.get("next_phase_authorized") is True and state.get("stage_1_authorized") is True, "post-G0 Stage 1 authorization missing")
         _require(state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass", "post-G0 Stage/upload gate mismatch")
         gate_status, next_run = "PASS", "TSK.x2n.foundation.001"
+    else:
+        schema_version = state.get("schema_version")
+        _require(schema_version in {"1.6", "1.7", "1.8"}, "unsupported current task state")
+        expected_current = {
+            "1.6": {
+                "last_completed_phase": "PH.X2N.1.4",
+                "next_phase": "PH.X2N.1.5",
+                "next_run": "TSK.x2n.foundation.005",
+                "run_id": "RUN-X2N-S01-F004",
+            },
+            "1.7": {
+                "last_completed_phase": "PH.X2N.1.5",
+                "next_phase": "STG.X2N.1.REVIEW",
+                "next_run": "STG.X2N.1.REVIEW",
+                "run_id": "RUN-X2N-S01-F005",
+            },
+            "1.8": {
+                "last_completed_phase": "PH.X2N.1.5",
+                "next_phase": "PH.X2N.2.1",
+                "next_run": "TSK.x2n.skeleton.001",
+                "run_id": "RUN-X2N-S01-REVIEW",
+            },
+        }[schema_version]
+        _require(
+            state.get("stage") == "STG.X2N.1"
+            and state.get("last_completed_phase") == expected_current["last_completed_phase"],
+            "current Stage routing mismatch",
+        )
+        if schema_version == "1.8":
+            _require(state.get("review_id") == "STG.X2N.1.REVIEW", "G1 Review identity mismatch")
+            _require(
+                state.get("run_id") == expected_current["run_id"]
+                and state.get("run_kind") == "stage_review_no_new_dag_task",
+                "G1 Review Run identity mismatch",
+            )
+        else:
+            _require(state.get("review_id") == "STG.X2N.0.REVIEW.RESUME", "G0 Resume identity was lost")
+            _require(
+                state.get("run_id") == expected_current["run_id"] and state.get("run_kind") == "single_dag_task",
+                "foundation Run identity mismatch",
+            )
+        _require(state.get("blocking_followups") == [{
+            "id": "INC-X2N-S00-P05-001",
+            "scope": "before_g0_pass",
+            "status": "resolved",
+            "action": "owner_directed_external_retention_with_x2n_zero_contact",
+        }], "Resume resolution missing or ambiguous")
+        _require(state.get("tasks", {}).get("TSK.x2n.foundation.002") == "pass", "foundation.002 Task is not pass")
+        _require(state.get("tasks", {}).get("TSK.x2n.foundation.003") == "pass", "foundation.003 Task is not pass")
+        _require(state.get("tasks", {}).get("TSK.x2n.foundation.004") == "pass", "foundation.004 Task is not pass")
+        if schema_version in {"1.7", "1.8"}:
+            _require(state.get("tasks", {}).get("TSK.x2n.foundation.005") == "pass", "foundation.005 Task is not pass")
+        _require(
+            state.get("next_phase") == expected_current["next_phase"]
+            and state.get("next_run") == expected_current["next_run"],
+            "current next route mismatch",
+        )
+        if schema_version == "1.8":
+            _require(
+                state.get("previous_stage_gate")
+                == {"gate_id": "G0", "status": "pass", "stage": "STG.X2N.0", "remote_upload": "merged"},
+                "historical G0 status drifted",
+            )
+            _require(
+                state.get("current_stage_gate") == "pass"
+                and state.get("current_stage_remote_upload") == "authorized_after_g1_pass",
+                "G1 Review state mismatch",
+            )
+        else:
+            _require(state.get("stage_gate") == "pass" and state.get("remote_upload") == "authorized_after_g0_pass", "historical G0 status drifted")
+            _require(state.get("current_stage_gate") == "not_run" and state.get("current_stage_remote_upload") == "forbidden_until_g1_pass", "G1/upload overstated")
+        gate_status, next_run = "PASS", expected_current["next_run"]
     return Check("phase_task_state", "PASS", {"task": PHASE_TASK, "stage_gate": gate_status, "next": next_run})
 
 
@@ -465,7 +568,17 @@ def validate_owner_input(root: Path) -> Check:
     for pattern in (r"https?://", re.escape("/" + "Users/"), r"(?i)bearer\s+", r"(?i)(?:cookie|token)\s*[:=]"):
         _require(re.search(pattern, rendered) is None, f"owner input contains forbidden value: {pattern}")
     marker = _load_json(root / contract["private_marker"])
-    _require(marker.get("real_data_state") == "stage_0_owner_input_defaults_no_content", "private marker state mismatch")
+    marker_state = marker.get("real_data_state")
+    _require(
+        marker_state
+        in {
+            "stage_0_owner_input_defaults_no_content",
+            "stage_1_canonical_store_initialized_no_content",
+        },
+        "private marker state mismatch",
+    )
+    if marker_state == "stage_1_canonical_store_initialized_no_content":
+        _require(marker.get("canonical_store_schema_version") == 2, "private Store schema marker mismatch")
     _require(marker.get("product_execution_authorized") is False, "private marker enabled execution")
     return Check("private_owner_input", "PASS", {"platforms": 6, "real_accounts": 0, "external_integrations_enabled": 0})
 

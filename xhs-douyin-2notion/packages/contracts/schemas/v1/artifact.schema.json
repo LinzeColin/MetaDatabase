@@ -1,0 +1,253 @@
+{
+  "$defs": {
+    "ArtifactQuality": {
+      "additionalProperties": false,
+      "properties": {
+        "grade": {
+          "$ref": "#/$defs/QualityGrade"
+        },
+        "metric_name": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metric Name"
+        },
+        "metric_value": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metric Value"
+        }
+      },
+      "required": [
+        "grade"
+      ],
+      "title": "ArtifactQuality",
+      "type": "object"
+    },
+    "ArtifactType": {
+      "enum": [
+        "transcript",
+        "ocr",
+        "vision",
+        "fusion_summary",
+        "search_text"
+      ],
+      "title": "ArtifactType",
+      "type": "string"
+    },
+    "QualityGrade": {
+      "enum": [
+        "high",
+        "medium",
+        "low",
+        "unknown"
+      ],
+      "title": "QualityGrade",
+      "type": "string"
+    }
+  },
+  "$id": "urn:x2n:contract:1.0:artifact",
+  "additionalProperties": false,
+  "properties": {
+    "append_only": {
+      "const": true,
+      "title": "Append Only",
+      "type": "boolean"
+    },
+    "artifact_id": {
+      "pattern": "^[a-z][a-z0-9_]{1,31}_[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+      "title": "Artifact Id",
+      "type": "string"
+    },
+    "artifact_key": {
+      "maxLength": 768,
+      "minLength": 3,
+      "title": "Artifact Key",
+      "type": "string"
+    },
+    "artifact_sequence": {
+      "minimum": 1,
+      "title": "Artifact Sequence",
+      "type": "integer"
+    },
+    "artifact_type": {
+      "$ref": "#/$defs/ArtifactType"
+    },
+    "content_key": {
+      "maxLength": 768,
+      "minLength": 3,
+      "title": "Content Key",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "input_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "language": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Language"
+    },
+    "model_name": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Name"
+    },
+    "model_provider": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Provider"
+    },
+    "model_snapshot": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Snapshot"
+    },
+    "private_payload_hash": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Private Payload Hash"
+    },
+    "private_payload_present": {
+      "title": "Private Payload Present",
+      "type": "boolean"
+    },
+    "private_payload_ref": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9_]{1,31}_[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Private Payload Ref"
+    },
+    "processor": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "title": "Processor",
+      "type": "string"
+    },
+    "processor_version": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "title": "Processor Version",
+      "type": "string"
+    },
+    "prompt_version": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Prompt Version"
+    },
+    "quality": {
+      "$ref": "#/$defs/ArtifactQuality"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "supersedes_artifact_id": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9_]{1,31}_[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes Artifact Id"
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "artifact_key",
+    "content_key",
+    "artifact_type",
+    "input_hash",
+    "processor",
+    "processor_version",
+    "quality",
+    "private_payload_present",
+    "append_only",
+    "artifact_sequence",
+    "created_at"
+  ],
+  "title": "Artifact",
+  "type": "object",
+  "x-x2n-compatibility": "exact_match_fail_closed",
+  "x-x2n-contract-version": "1.0"
+}

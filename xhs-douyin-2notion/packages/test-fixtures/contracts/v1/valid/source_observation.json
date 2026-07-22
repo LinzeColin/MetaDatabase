@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "observation_id": "obs_synthetic001",
+  "content_key": "xiaohongshu:synthetic-note-001",
+  "adapter_name": "xhs-clean-room",
+  "adapter_version": "1.0.0",
+  "source_method": "current_page",
+  "observed_at": "2026-07-20T00:00:00Z",
+  "raw_text_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "normalized_fields": [
+    "platform_content_id",
+    "canonical_source_url",
+    "content_type",
+    "title"
+  ],
+  "field_provenance": [
+    {"field": "platform_content_id", "source": "dom", "status": "present", "confidence": 1.0},
+    {"field": "canonical_source_url", "source": "derived", "status": "present", "confidence": 1.0},
+    {"field": "content_type", "source": "dom", "status": "present", "confidence": 0.99},
+    {"field": "title", "source": "dom", "status": "present", "confidence": 0.95}
+  ],
+  "completeness": 1.0,
+  "warning_codes": [],
+  "ephemeral_media_ref_ids": ["emr_synthetic001"],
+  "run_id": "run_synthetic001"
+}

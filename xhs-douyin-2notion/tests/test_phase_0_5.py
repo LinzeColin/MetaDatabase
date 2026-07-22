@@ -63,10 +63,16 @@ class Phase05Tests(unittest.TestCase):
 
     def test_stage_and_external_execution_remain_not_run(self) -> None:
         state = json.loads((PROJECT_ROOT / "machine/facts/task_state.json").read_text(encoding="utf-8"))
-        self.assertEqual(state["last_completed_phase"], "PH.X2N.0.5")
-        self.assertIn(state["review_id"], {"STG.X2N.0.REVIEW", "STG.X2N.0.REVIEW.RESUME"})
+        self.assertEqual(state["tasks"]["TSK.x2n.discovery.005"], "pass")
+        self.assertIn(
+            state["review_id"],
+            {"STG.X2N.0.REVIEW", "STG.X2N.0.REVIEW.RESUME", "STG.X2N.1.REVIEW"},
+        )
         self.assertIn(state["stage_gate"], {"blocked_owner_action", "pass"})
-        expected_upload = "authorized_after_g0_pass" if state["stage_gate"] == "pass" else "forbidden_until_g0_pass"
+        if state.get("current_stage_gate") == "pass":
+            expected_upload = "authorized_after_g1_pass"
+        else:
+            expected_upload = "authorized_after_g0_pass" if state["stage_gate"] == "pass" else "forbidden_until_g0_pass"
         self.assertEqual(state["remote_upload"], expected_upload)
         self.assertEqual(state["stage_1_authorized"], state["stage_gate"] == "pass")
         self.assertEqual(state["acceptance_status"]["ACC.x2n.media.003"], "design_fixture_pass_downstream_not_run")

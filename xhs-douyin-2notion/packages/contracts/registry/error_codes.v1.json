@@ -1,0 +1,213 @@
+{
+  "classes": [
+    "user_action_required",
+    "platform_changed",
+    "rate_limited",
+    "network",
+    "dependency_missing",
+    "provider",
+    "invalid_input",
+    "security_blocked",
+    "storage",
+    "data_integrity",
+    "policy",
+    "unknown"
+  ],
+  "contract_version": "1.0",
+  "errors": [
+    {
+      "class": "invalid_input",
+      "code": "X2N_INVALID_SCHEMA_VERSION",
+      "data_effect": "none",
+      "default_safe_message": "消息版本不受支持",
+      "next_action": "correct_input",
+      "retryable": false
+    },
+    {
+      "class": "invalid_input",
+      "code": "X2N_UNKNOWN_FIELD",
+      "data_effect": "none",
+      "default_safe_message": "消息包含未声明字段",
+      "next_action": "correct_input",
+      "retryable": false
+    },
+    {
+      "class": "invalid_input",
+      "code": "X2N_INVALID_INPUT",
+      "data_effect": "none",
+      "default_safe_message": "输入未通过严格合同",
+      "next_action": "correct_input",
+      "retryable": false
+    },
+    {
+      "class": "security_blocked",
+      "code": "X2N_NATIVE_ORIGIN_REJECTED",
+      "data_effect": "none",
+      "default_safe_message": "调用来源未获允许",
+      "next_action": "review_security_event",
+      "retryable": false
+    },
+    {
+      "class": "security_blocked",
+      "code": "X2N_NATIVE_MESSAGE_TOO_LARGE",
+      "data_effect": "none",
+      "default_safe_message": "消息超过允许大小",
+      "next_action": "correct_input",
+      "retryable": false
+    },
+    {
+      "class": "invalid_input",
+      "code": "X2N_NATIVE_ACTION_UNKNOWN",
+      "data_effect": "none",
+      "default_safe_message": "消息动作不受支持",
+      "next_action": "correct_input",
+      "retryable": false
+    },
+    {
+      "class": "data_integrity",
+      "code": "X2N_NATIVE_DUPLICATE_REQUEST",
+      "data_effect": "none",
+      "default_safe_message": "请求标识与既有请求冲突",
+      "next_action": "use_existing_job",
+      "retryable": false
+    },
+    {
+      "class": "data_integrity",
+      "code": "X2N_CANONICAL_KEY_INVALID",
+      "data_effect": "none",
+      "default_safe_message": "内容键不符合确定性规则",
+      "next_action": "correct_input",
+      "retryable": false
+    },
+    {
+      "class": "data_integrity",
+      "code": "X2N_RELATION_KEY_INVALID",
+      "data_effect": "none",
+      "default_safe_message": "关系键不符合确定性规则",
+      "next_action": "correct_input",
+      "retryable": false
+    },
+    {
+      "class": "data_integrity",
+      "code": "X2N_ARTIFACT_VERSION_CONFLICT",
+      "data_effect": "canonical_unchanged",
+      "default_safe_message": "派生资产版本发生冲突",
+      "next_action": "restore_backup",
+      "retryable": false
+    },
+    {
+      "class": "data_integrity",
+      "code": "X2N_PROVENANCE_INCOMPLETE",
+      "data_effect": "canonical_unchanged",
+      "default_safe_message": "来源链不完整",
+      "next_action": "correct_input",
+      "retryable": false
+    },
+    {
+      "class": "policy",
+      "code": "X2N_CDN_PERSISTENCE_BLOCKED",
+      "data_effect": "none",
+      "default_safe_message": "平台媒体地址不得持久化",
+      "next_action": "review_policy",
+      "retryable": false
+    },
+    {
+      "class": "security_blocked",
+      "code": "X2N_URL_REJECTED",
+      "data_effect": "none",
+      "default_safe_message": "地址不在允许范围",
+      "next_action": "review_security_event",
+      "retryable": false
+    },
+    {
+      "class": "security_blocked",
+      "code": "X2N_SECURITY_INJECTION_BLOCKED",
+      "data_effect": "none",
+      "default_safe_message": "危险输入已阻断",
+      "next_action": "review_security_event",
+      "retryable": false
+    },
+    {
+      "class": "user_action_required",
+      "code": "X2N_ADAPTER_AUTH_EXPIRED",
+      "data_effect": "canonical_unchanged",
+      "default_safe_message": "请在专用浏览器配置中重新登录",
+      "next_action": "open_login_profile",
+      "retryable": false
+    },
+    {
+      "class": "platform_changed",
+      "code": "X2N_PLATFORM_CHANGED",
+      "data_effect": "canonical_unchanged",
+      "default_safe_message": "平台页面结构已变化",
+      "next_action": "inspect_platform_fixture",
+      "retryable": false
+    },
+    {
+      "class": "rate_limited",
+      "code": "X2N_RATE_LIMITED",
+      "data_effect": "canonical_unchanged",
+      "default_safe_message": "请求受到速率限制",
+      "next_action": "wait_and_retry",
+      "retryable": true
+    },
+    {
+      "class": "network",
+      "code": "X2N_NETWORK_FAILED",
+      "data_effect": "canonical_unchanged",
+      "default_safe_message": "网络请求失败",
+      "next_action": "retry",
+      "retryable": true
+    },
+    {
+      "class": "dependency_missing",
+      "code": "X2N_DEPENDENCY_MISSING",
+      "data_effect": "canonical_unchanged",
+      "default_safe_message": "所需本地依赖不可用",
+      "next_action": "install_dependency",
+      "retryable": false
+    },
+    {
+      "class": "provider",
+      "code": "X2N_PROVIDER_FAILED",
+      "data_effect": "derived_output_missing",
+      "default_safe_message": "处理服务失败",
+      "next_action": "inspect_provider",
+      "retryable": true
+    },
+    {
+      "class": "storage",
+      "code": "X2N_STORAGE_FAILED",
+      "data_effect": "unknown_fail_closed",
+      "default_safe_message": "本地存储操作失败",
+      "next_action": "free_disk_space",
+      "retryable": true
+    },
+    {
+      "class": "data_integrity",
+      "code": "X2N_DATA_INTEGRITY_FAILED",
+      "data_effect": "unknown_fail_closed",
+      "default_safe_message": "数据完整性检查失败",
+      "next_action": "restore_backup",
+      "retryable": false
+    },
+    {
+      "class": "policy",
+      "code": "X2N_POLICY_BLOCKED",
+      "data_effect": "none",
+      "default_safe_message": "当前策略禁止此操作",
+      "next_action": "review_policy",
+      "retryable": false
+    },
+    {
+      "class": "unknown",
+      "code": "X2N_UNKNOWN_FAILURE",
+      "data_effect": "unknown_fail_closed",
+      "default_safe_message": "发生未知错误，系统已停止副作用",
+      "next_action": "inspect_diagnostics",
+      "retryable": false
+    }
+  ],
+  "schema_version": "1.0",
+  "unknown_code_policy": "reject"
+}

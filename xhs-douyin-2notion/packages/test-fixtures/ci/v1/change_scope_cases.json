@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S01.F005.001",
+  "synthetic": true,
+  "contains_credentials": false,
+  "contains_private_content": false,
+  "contains_media_urls": false,
+  "contains_local_absolute_paths": false,
+  "cases": [
+    {"id": "product-code", "paths": ["xhs-douyin-2notion/apps/companion/src/x2n_companion/runtime.py"], "x2n_changed": true, "full_required": true},
+    {"id": "contract", "paths": ["xhs-douyin-2notion/packages/contracts/schemas/v1/error.schema.json"], "x2n_changed": true, "full_required": true},
+    {"id": "fixture", "paths": ["xhs-douyin-2notion/packages/test-fixtures/ci/v1/model_eval_dataset.json"], "x2n_changed": true, "full_required": true},
+    {"id": "lock", "paths": ["xhs-douyin-2notion/uv.lock"], "x2n_changed": true, "full_required": true},
+    {"id": "workflow", "paths": [".github/workflows/x2n-ci.yml"], "x2n_changed": true, "full_required": true},
+    {"id": "documentation", "paths": ["xhs-douyin-2notion/docs/governance/example.md"], "x2n_changed": true, "full_required": false},
+    {"id": "redacted-evidence", "paths": ["xhs-douyin-2notion/evidence/example.json"], "x2n_changed": true, "full_required": false},
+    {"id": "other-project", "paths": ["EEI/README.md"], "x2n_changed": false, "full_required": false}
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "relation_key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:xiaohongshu:synthetic-note-001:favorited:collection-001",
+  "account_ref_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "content_key": "xiaohongshu:synthetic-note-001",
+  "relation_type": "favorited",
+  "source_collection_id": "collection-001",
+  "source_collection_name_private": "Synthetic collection",
+  "first_seen_at": "2026-07-20T00:00:00Z",
+  "last_seen_at": "2026-07-20T00:05:00Z",
+  "status": "active",
+  "confirmed_by": "scan",
+  "scan_receipt_id": "receipt_scan001"
+}

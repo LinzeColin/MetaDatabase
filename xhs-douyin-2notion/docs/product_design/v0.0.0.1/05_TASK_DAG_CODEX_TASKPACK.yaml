@@ -6,7 +6,7 @@ project:
   token: x2n
   version: v0.0.0.1
   owner: LinzeColin
-  status: STAGE_0_G0_PASS
+  status: STAGE_1_REVIEW_PASS_G1_PASS_STAGE_2_AUTHORIZED
   owner_change_event: CE-X2N-20260720-S00-REVIEW-RESUME
   repository: https://github.com/LinzeColin/MetaDatabase
   skill_path: xhs-douyin-2notion/
@@ -31,11 +31,14 @@ authorization:
   stage_0_review_resume: true
   stage_0_remote_upload: true
   stage_1_task_start: true
+  stage_1_review: true
+  stage_1_remote_upload: true
+  stage_2_task_start: true
   product_code_changes: true
   real_account_execution: false
   public_release: false
   vps_data_plane: false
-  instruction: G0 已由独立 Stage 0 Review Resume 签发；可上传整个 Stage 0，并在后续独立 Run 启动 TSK.x2n.foundation.001。当前 Run 不执行 Stage 1；真实账号、平台/Notion/模型调用、媒体与公开产品 Release 仍未授权。
+  instruction: G0 已通过且 Stage 0 已合并；TSK.x2n.foundation.001–005 与独立 Stage 1 Review/Fix/Re-acceptance 均已完成，G1 PASS 后 Stage 1 整体上传和 Stage 2 首个单 Task Run 已授权。下一产品 Run 只能执行 TSK.x2n.skeleton.001；Owner Chrome 安装/Canary、真实账号、平台/Notion/模型调用、媒体与公开产品 Release 仍未授权。
 canonical_decisions:
 - id: DEC-X2N-001
   decision: Chrome MV3 Side Panel + Local Companion/WebUI
@@ -639,7 +642,7 @@ tasks:
   title: Scaffold governed Skill and build workspaces
   stage: STG.X2N.1
   phase: PH.X2N.1.1
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -684,7 +687,7 @@ tasks:
   title: Implement versioned contracts and error taxonomy
   stage: STG.X2N.1
   phase: PH.X2N.1.2
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -729,7 +732,7 @@ tasks:
   title: Implement private runtime root, SQLite canonical store and migrations
   stage: STG.X2N.1
   phase: PH.X2N.1.3
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -775,7 +778,7 @@ tasks:
   title: Build MV3 Side Panel and Native Host skeleton
   stage: STG.X2N.1
   phase: PH.X2N.1.4
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none
@@ -822,7 +825,7 @@ tasks:
   title: Establish software and model CI baselines
   stage: STG.X2N.1
   phase: PH.X2N.1.5
-  status: planned
+  status: completed
   owner: codex
   authorization: owner_starts_codex_dev
   human_input: none

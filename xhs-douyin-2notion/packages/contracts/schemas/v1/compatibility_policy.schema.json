@@ -1,0 +1,57 @@
+{
+  "$id": "urn:x2n:contract:1.0:compatibility_policy",
+  "additionalProperties": false,
+  "properties": {
+    "accepted_read_versions": {
+      "items": {
+        "const": "1.0",
+        "type": "string"
+      },
+      "title": "Accepted Read Versions",
+      "type": "array"
+    },
+    "compatibility_mode": {
+      "const": "exact_match_fail_closed",
+      "title": "Compatibility Mode",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "destructive_migration": {
+      "const": "forbidden_without_versioned_migration",
+      "title": "Destructive Migration",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "unknown_fields": {
+      "const": "reject",
+      "title": "Unknown Fields",
+      "type": "string"
+    },
+    "unknown_versions": {
+      "const": "reject",
+      "title": "Unknown Versions",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "contract_version",
+    "accepted_read_versions",
+    "compatibility_mode",
+    "unknown_fields",
+    "unknown_versions",
+    "destructive_migration"
+  ],
+  "title": "CompatibilityPolicy",
+  "type": "object",
+  "x-x2n-compatibility": "exact_match_fail_closed",
+  "x-x2n-contract-version": "1.0"
+}

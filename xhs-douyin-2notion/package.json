@@ -1,0 +1,19 @@
+{
+  "name": "x2n-workspace",
+  "version": "0.0.0.1",
+  "private": true,
+  "packageManager": "npm@11.16.0",
+  "workspaces": [
+    "apps/extension",
+    "packages/contracts",
+    "packages/test-fixtures"
+  ],
+  "scripts": {
+    "test:extension": "npm run self-test --workspace @x2n/extension && npm run test:e2e --workspace @x2n/extension",
+    "test:scaffold": "npm run self-test --workspace @x2n/extension",
+    "check:contracts:types": "npm run check:types --workspace @x2n/contracts"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1"
+  }
+}

@@ -56,7 +56,10 @@ class Phase02Tests(unittest.TestCase):
         self.assertIn(state["stage_gate"], {"blocked_owner_action", "pass"})
         self.assertEqual(state["next_phase_authorized"], state["stage_gate"] == "pass")
         self.assertEqual(state["stage_1_authorized"], state["stage_gate"] == "pass")
-        expected_upload = "authorized_after_g0_pass" if state["stage_gate"] == "pass" else "forbidden_until_g0_pass"
+        if state.get("current_stage_gate") == "pass":
+            expected_upload = "authorized_after_g1_pass"
+        else:
+            expected_upload = "authorized_after_g0_pass" if state["stage_gate"] == "pass" else "forbidden_until_g0_pass"
         self.assertEqual(state["remote_upload"], expected_upload)
 
     def test_private_source_snapshots_when_explicitly_supplied(self) -> None:

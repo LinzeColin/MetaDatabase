@@ -1,0 +1,109 @@
+{
+  "automated_reacceptance": "PASS",
+  "checks": [
+    {
+      "details": {
+        "findings_declared": 8,
+        "new_dag_tasks": 0
+      },
+      "name": "review_contract",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "foundation_tasks": 5,
+        "g1_conditions": 4,
+        "next_task": "TSK.x2n.skeleton.001",
+        "stage_2_tasks_run": 0
+      },
+      "name": "task_dag_and_state",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "blocking_followups": 0,
+        "pass_conditions": 4,
+        "stop_conditions": 6
+      },
+      "name": "g1_fact",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "blocking_open": 0,
+        "resolved": 8
+      },
+      "name": "review_findings",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "foundation_commits": 5,
+        "frozen_receipts": 5,
+        "rewritten_receipts": 0
+      },
+      "name": "foundation_evidence",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "blocking_executions": 24,
+        "blocking_failures": 0,
+        "blocking_repetitions": 2,
+        "explicit_nonblocking_skips": 6,
+        "flaky_blocking_tests": 0,
+        "silent_blocking_skips": 0
+      },
+      "name": "g1_full_lane",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "blob_versions_scanned": 283,
+        "commit_messages_scanned": 6,
+        "commits_scanned": 6,
+        "current_source_files_scanned": 234,
+        "findings": 0
+      },
+      "name": "stage_1_history_privacy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "changed_files": 40,
+        "new_dag_tasks": 0,
+        "stage_1_state_surface_fixes": 1,
+        "stage_2_product_changes": 0
+      },
+      "name": "review_scope",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s01-review",
+        "external_main_dirty_paths": 0,
+        "origin_drift_commits": 0,
+        "origin_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    }
+  ],
+  "foundation_task_count": 5,
+  "g1": "PASS",
+  "generated_at": "2026-07-22T01:18:29Z",
+  "model_calls": 0,
+  "notion_calls": 0,
+  "platform_calls": 0,
+  "private_content_included": false,
+  "real_account_execution": "NOT_RUN",
+  "remote_ci_execution": "PENDING_POST_G1_UPLOAD",
+  "review_base_commit": "5f770b6daf63d57ec4698dc7fbc95a9dfeab2669",
+  "review_id": "STG.X2N.1.REVIEW",
+  "review_sync_target": "3e7094774158ead8751a7189041d8d1eeff2b50c",
+  "run_id": "RUN-X2N-S01-REVIEW",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.1",
+  "status": "PASS"
+}

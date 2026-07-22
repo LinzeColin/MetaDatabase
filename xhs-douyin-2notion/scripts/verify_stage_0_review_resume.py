@@ -18,7 +18,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Optional, Pattern
+from typing import Any, Iterable, Pattern
 from urllib.parse import urlsplit
 
 import yaml
@@ -26,11 +26,25 @@ import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PROJECT_ROOT.parent
+GENERATED_TREE_PARTS = frozenset(
+    {
+        ".git",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        "node_modules",
+    }
+)
 POLICY = PROJECT_ROOT / "machine/policy/external_auth_material_isolation_policy.json"
 CHANGE_EVENT = PROJECT_ROOT / "docs/governance/CHANGE_EVENT_S00_REVIEW_RESUME.md"
 ACCEPTANCE = PROJECT_ROOT / "docs/product_design/v0.0.0.1/04_ACCEPTANCE_CONTRACT_TRACEABILITY.md"
 SNAPSHOT_TOOL = PROJECT_ROOT / "scripts/public_source_snapshot.py"
 GATE_STATE = PROJECT_ROOT / "machine/facts/stage_gate_state.json"
+TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 EVIDENCE_DIR = PROJECT_ROOT / "machine/evidence/stage_0/review_resume"
 
 RESUME_ID = "STG.X2N.0.REVIEW.RESUME"
@@ -84,10 +98,14 @@ def _git_required(args: list[str]) -> str:
 
 
 def _text_files(root: Path) -> Iterable[Path]:
-    ignored = {"__pycache__", ".pytest_cache", ".git"}
     suffixes = {"", ".md", ".json", ".yaml", ".yml", ".py", ".txt", ".toml"}
     for path in root.rglob("*"):
-        if not path.is_file() or path.is_symlink() or any(part in ignored for part in path.parts):
+        relative = path.relative_to(root)
+        if (
+            not path.is_file()
+            or path.is_symlink()
+            or any(part in GENERATED_TREE_PARTS for part in relative.parts)
+        ):
             continue
         if path.suffix.lower() in suffixes or path.name in {"VERSION", ".gitignore"}:
             yield path
@@ -227,12 +245,17 @@ def validate_repository_zero_contact() -> Check:
             remote_values.append(parts[1])
     remote_hits = _authenticated_remote_hit_count(remote_values)
 
-    product_paths = ("apps", "packages", "extension", "companion")
-    product_or_runtime_references = sum((PROJECT_ROOT / relative).exists() for relative in product_paths)
+    current_state = _load_json(TASK_STATE)
+    foundation_complete = current_state.get("tasks", {}).get("TSK.x2n.foundation.001") == "pass"
+    if foundation_complete:
+        _require((PROJECT_ROOT / "apps").is_dir() and (PROJECT_ROOT / "packages").is_dir() and (PROJECT_ROOT / "SKILL.md").is_file(), "registered foundation scaffold missing")
+        product_or_runtime_references = sum((PROJECT_ROOT / relative).exists() for relative in ("extension", "companion", "runtime", "downloads"))
+    else:
+        product_or_runtime_references = sum((PROJECT_ROOT / relative).exists() for relative in ("apps", "packages", "extension", "companion"))
     _require(current_hits == 0, "sensitive-shaped value found in current x2n tree")
     _require(history_hits == 0, "sensitive-shaped value found in x2n history")
     _require(remote_hits == 0, "authenticated repository remote found")
-    _require(product_or_runtime_references == 0, "product or runtime implementation entered Stage 0")
+    _require(product_or_runtime_references == 0, "unregistered product or runtime implementation entered the repository")
     return Check("repository_zero_contact", "PASS", {
         "project_current_tree_credential_hits": current_hits,
         "project_history_credential_hits": history_hits,

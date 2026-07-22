@@ -1,0 +1,111 @@
+{
+  "acceptance_ids": [
+    "ACC.x2n.ext.003",
+    "ACC.x2n.data.001",
+    "ACC.x2n.data.003"
+  ],
+  "acceptance_status": {
+    "ACC.x2n.data.001": "PASS_CURRENT_CONTRACT_SCOPE_SQLITE_DOWNSTREAM_NOT_RUN",
+    "ACC.x2n.data.003": "PASS_SYNTHETIC_CONTRACT_SCOPE_REAL_SINKS_DOWNSTREAM_NOT_RUN",
+    "ACC.x2n.ext.003": "PASS_CURRENT_CONTRACT_SCOPE_HOST_JOB_DOWNSTREAM_NOT_RUN"
+  },
+  "checks": [
+    {
+      "details": {
+        "changed_files": 74,
+        "out_of_scope_writes": 0,
+        "sensitive_or_media_url_hits": 0,
+        "text_files_scanned": 178
+      },
+      "name": "scope_and_privacy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "branch": "codex/xhs-douyin-2notion-v0001-s01-foundation001",
+        "external_main_dirty_paths": 1,
+        "origin_drift_commits": 900,
+        "origin_project_overlap": 0,
+        "project_overlap_paths": 0
+      },
+      "name": "worktree_isolation",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "acceptance_scope": "CURRENT_CONTRACT_AND_SYNTHETIC_ONLY",
+        "downstream": "HOST_JOB_SQLITE_REAL_SINKS_NOT_RUN",
+        "next_task": "TSK.x2n.foundation.003",
+        "task": "TSK.x2n.foundation.002"
+      },
+      "name": "task_state",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "contract_version": "1.0",
+        "contracts": 14,
+        "dangerous_persistent_properties": 0,
+        "object_schemas_default_deny": 33,
+        "typescript_single_generated_surface": true
+      },
+      "name": "contract_artifacts",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "classes": 12,
+        "codes": 24,
+        "unknown_code_policy": "reject"
+      },
+      "name": "error_taxonomy",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "declared_invalid": 22,
+        "generated_native_fuzz": 106,
+        "public_sensitive_inputs": 0,
+        "total_cases": 144,
+        "valid_round_trip": 16
+      },
+      "name": "contract_fixtures",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "build_registry_packages": 21,
+        "install_scripts": 0,
+        "runtime_registry_packages": 5,
+        "sbom_components": 26
+      },
+      "name": "dependency_supply_chain",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "fixture_cases": 144,
+        "generator_drift": 0,
+        "network_or_process_product_calls": 0,
+        "python_contract_tests": 12,
+        "python_typescript_payload_hash_vectors": 1,
+        "typescript_strict_compile": true
+      },
+      "name": "contract_execution",
+      "status": "PASS"
+    }
+  ],
+  "contract_version": "1.0",
+  "generated_at": "2026-07-19T23:53:27Z",
+  "phase": "PH.X2N.1.2",
+  "private_content_included": false,
+  "product_lifecycle": "DOWNSTREAM_NOT_RUN",
+  "real_account_execution": "NOT_RUN",
+  "remote_upload": "FORBIDDEN_UNTIL_G1_PASS",
+  "run_id": "RUN-X2N-S01-F002",
+  "schema_version": "1.0",
+  "stage": "STG.X2N.1",
+  "stage_gate": "G1_NOT_RUN",
+  "status": "PASS",
+  "task_id": "TSK.x2n.foundation.002"
+}

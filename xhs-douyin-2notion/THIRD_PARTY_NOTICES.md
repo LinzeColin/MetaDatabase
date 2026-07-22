@@ -1,6 +1,33 @@
 # Third-Party Notices and Exclusion Register
 
-当前 `xhs-douyin-2notion` 没有发布包、没有第三方 runtime dependency，也没有复制或捆绑下列上游代码。此文件汇总 Phase 0.2 依赖审计与 Phase 0.5 竞品排除结论，不代表已授权启用 Adapter。
+当前 `xhs-douyin-2notion` 没有发布包，也没有复制或捆绑下列研究上游代码。`TSK.x2n.foundation.002` 为 Contract 开发新增 5 个冻结 Python Runtime registry packages，以及 TypeScript `7.0.2` 与 20 个同版本、按平台可选的 build-only packages。`TSK.x2n.foundation.004` 新增 Playwright `1.61.1` 测试栈与 macOS 可选 `fsevents 2.3.2`；后者是唯一声明 install script 的 lock 包，但仓库 `.npmrc` 强制 `ignore-scripts=true`，验收安装执行脚本数为 0。`TSK.x2n.foundation.005` 再新增 Coverage.py `7.15.2`、PyYAML `6.0.3` 与 Ruff `0.15.22` 三个 CI-only package；当前 CI baseline SBOM 为 33 components，历史 Foundation002/004 的 26/30-component SBOM 保持原事实。Node、npm、Python 和 uv 仍是外部构建工具，不随产品分发；本文件不授权任何 Adapter、真实账号或平台执行。
+
+## Contract Runtime / Build Dependencies
+
+| Package | Version | License | Scope |
+|---|---:|---|---|
+| `pydantic` | `2.13.4` | MIT | Direct Contract runtime |
+| `pydantic-core` | `2.46.4` | MIT | Transitive Contract runtime |
+| `annotated-types` | `0.7.0` | MIT | Transitive Contract runtime |
+| `typing-extensions` | `4.16.0` | PSF-2.0 | Transitive Contract runtime |
+| `typing-inspection` | `0.4.2` | MIT | Transitive Contract runtime |
+| `typescript` | `7.0.2` | Apache-2.0 | Direct build/check only |
+| `@typescript/typescript-*` | `7.0.2` | Apache-2.0 | 20 lock-resolved optional platform build packages |
+| `@playwright/test` | `1.61.1` | Apache-2.0 | Direct isolated E2E test dependency |
+| `playwright` | `1.61.1` | Apache-2.0 | Transitive E2E test dependency |
+| `playwright-core` | `1.61.1` | Apache-2.0 | Transitive E2E test dependency |
+| `fsevents` | `2.3.2` | MIT | Optional macOS test dependency; install script disabled |
+| `coverage` | `7.15.2` | Apache-2.0 | Direct CI-only branch coverage gate |
+| `pyyaml` | `6.0.3` | MIT | Direct CI-only historical governance verifier support |
+| `ruff` | `0.15.22` | MIT | Direct CI-only format/lint gate |
+
+- Pydantic 与 transitives 只用于严格 JSON/Schema Contract validation；不提供网络、浏览器、数据库或平台能力。
+- TypeScript 只用于 `tsc --noEmit` 类型对等检查，不进入 Companion Runtime；npm lock 中 registry component 共 21 个，均无 install script。
+- Playwright 仅用于临时 Profile、临时 HOME、合成页面和临时 Native Host 的 Extension E2E；不使用共享 Chrome、Owner Profile 或真实账号。当前 npm registry component 共 25 个，唯一 install-script 包 `fsevents` 由仓库策略禁止执行。
+- Coverage.py、PyYAML 与 Ruff 仅在 CI dependency group 中使用，不进入 Companion Runtime 或产品 candidate 的可执行依赖；Foundation005 SBOM 仍将它们作为构建/Assurance 软件列入。CI 下载的 Playwright Chromium 只存在于临时 runner，不进入 Git 或 source candidate。
+- GitHub Actions checkout/setup/upload 均以完整 Commit SHA 固定，属于外部 CI 执行组件；它们不进入产品 Runtime，工作流本身由 SAST pin gate 校验。
+- 当前源码阶段通过 package manager 消费原包，没有将依赖源码复制进仓库。任何未来 Installer/Release 必须保留对应包内 License/NOTICE，并以 Release SBOM 重新验证实际打包集合。
+- `package-lock.json` 与 `uv.lock` 是版本真源；SBOM 生成器对包集合、版本、License、作用域和 install-script 字段 Fail Closed。
 
 ## douyin-downloader
 

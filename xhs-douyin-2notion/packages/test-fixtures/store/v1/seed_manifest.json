@@ -1,0 +1,30 @@
+{
+  "case_count": 10182,
+  "concurrent_duplicate_messages": 100,
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "fixture_id": "FIXTURE.X2N.S01.F003.001",
+  "idempotency_items": 80,
+  "idempotency_runs": 2,
+  "migration_recovery_cases": 2,
+  "platform_cycle": [
+    "xiaohongshu",
+    "douyin",
+    "bilibili",
+    "kuaishou",
+    "weibo",
+    "taobao"
+  ],
+  "real_accounts": false,
+  "relation_cycle": [
+    "liked",
+    "favorited",
+    "saved_current"
+  ],
+  "scale_records": 10000,
+  "schema_version": "1.0",
+  "seed_algorithm": "deterministic_indexed_contract_v1",
+  "synthetic_only": true
+}

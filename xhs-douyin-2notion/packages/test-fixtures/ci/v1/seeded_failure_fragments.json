@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S01.F005.003",
+  "synthetic": true,
+  "contains_credentials": false,
+  "contains_private_content": false,
+  "contains_media_urls": false,
+  "contains_local_absolute_paths": false,
+  "join_only_in_ephemeral_self_test": true,
+  "cases": [
+    {"id": "secret-shape", "fragments": ["github", "_pat_", "SyntheticOnlyValue000000000000"]},
+    {"id": "local-path", "fragments": ["/", "Users/", "synthetic-owner/private.txt"]},
+    {"id": "cdn-url", "fragments": ["https://asset.", "xhscdn", ".invalid/media"]},
+    {"id": "sast-eval", "fragments": ["ev", "al", "(input())"]},
+    {"id": "unpinned-action", "fragments": ["actions/checkout", "@", "v7"]}
+  ]
+}

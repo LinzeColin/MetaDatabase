@@ -1,0 +1,194 @@
+{
+  "schema_version": "1.0",
+  "synthetic_only": true,
+  "cases": [
+    {
+      "id": "F002-INVALID-001",
+      "contract": "canonical_content",
+      "base": "valid/canonical_content.json",
+      "operation": "set",
+      "path": ["schema_version"],
+      "value": "2.0",
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-002",
+      "contract": "canonical_content",
+      "base": "valid/canonical_content.json",
+      "operation": "add",
+      "path": ["unexpected_field"],
+      "value": "synthetic",
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-003",
+      "contract": "canonical_content",
+      "base": "valid/canonical_content.json",
+      "operation": "set",
+      "path": ["content_key"],
+      "value": "xiaohongshu:mismatched",
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-004",
+      "contract": "canonical_content",
+      "base": "valid/canonical_content.json",
+      "operation": "set",
+      "path": ["canonical_source_url"],
+      "value": "https://www.xiaohongshu.com/explore/synthetic-note-001?synthetic=1",
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-005",
+      "contract": "native_message_request",
+      "base": "valid/native_capture.json",
+      "operation": "set",
+      "path": ["action"],
+      "value": "generic_action",
+      "expected": "X2N_NATIVE_ACTION_UNKNOWN"
+    },
+    {
+      "id": "F002-INVALID-006",
+      "contract": "native_message_request",
+      "base": "valid/native_capture.json",
+      "operation": "add",
+      "path": ["command"],
+      "value": "synthetic-noop",
+      "expected": "X2N_SECURITY_INJECTION_BLOCKED"
+    },
+    {
+      "id": "F002-INVALID-007",
+      "contract": "native_message_request",
+      "base": "valid/native_capture.json",
+      "operation": "add",
+      "path": ["payload", "local_path"],
+      "value": "../../synthetic",
+      "expected": "X2N_SECURITY_INJECTION_BLOCKED"
+    },
+    {
+      "id": "F002-INVALID-008",
+      "contract": "native_message_request",
+      "base": "valid/native_capture.json",
+      "operation": "add",
+      "path": ["payload", "callback_url"],
+      "value": "https://untrusted.invalid/callback",
+      "expected": "X2N_URL_REJECTED"
+    },
+    {
+      "id": "F002-INVALID-009",
+      "contract": "native_message_request",
+      "base": "valid/native_capture.json",
+      "operation": "set_and_rehash",
+      "path": ["payload", "page_url"],
+      "value": "https://untrusted.invalid/item/synthetic",
+      "expected": "X2N_URL_REJECTED"
+    },
+    {
+      "id": "F002-INVALID-010",
+      "contract": "native_message_request",
+      "base": "valid/native_capture.json",
+      "operation": "oversize",
+      "expected": "X2N_NATIVE_MESSAGE_TOO_LARGE"
+    },
+    {
+      "id": "F002-INVALID-011",
+      "contract": "native_message_request",
+      "base": "valid/native_capture.json",
+      "operation": "invalid_origin",
+      "expected": "X2N_NATIVE_ORIGIN_REJECTED"
+    },
+    {
+      "id": "F002-INVALID-012",
+      "contract": "native_message_request",
+      "base": "valid/native_capture.json",
+      "operation": "duplicate_same_hash",
+      "expected": "return_existing_job"
+    },
+    {
+      "id": "F002-INVALID-013",
+      "contract": "native_message_request",
+      "base": "valid/native_capture.json",
+      "operation": "duplicate_conflicting_hash",
+      "expected": "reject_conflict"
+    },
+    {
+      "id": "F002-INVALID-014",
+      "contract": "native_host_policy",
+      "base": "valid/native_host_policy.json",
+      "operation": "set",
+      "path": ["allowed_origins"],
+      "value": ["chrome-extension://*/"],
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-015",
+      "contract": "user_relation",
+      "base": "valid/user_relation.json",
+      "operation": "set",
+      "path": ["relation_key"],
+      "value": "synthetic:mismatch",
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-016",
+      "contract": "artifact",
+      "base": "valid/artifact.json",
+      "operation": "set",
+      "path": ["artifact_key"],
+      "value": "synthetic:mismatch",
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-017",
+      "contract": "taxonomy_category",
+      "base": "valid/taxonomy_category.json",
+      "operation": "set",
+      "path": ["created_by"],
+      "value": "ai",
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-018",
+      "contract": "classification",
+      "base": "valid/classification.json",
+      "operation": "set",
+      "path": ["candidate_ranking", 0, "calibrated_score"],
+      "value": 0.1,
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-019",
+      "contract": "sink_receipt",
+      "base": "valid/sink_receipt_markdown.json",
+      "operation": "set",
+      "path": ["sink_key"],
+      "value": "notion:xiaohongshu:synthetic-note-001:1.0",
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-020",
+      "contract": "provenance_chain",
+      "base": "valid/provenance_markdown.json",
+      "operation": "remove_node_kind",
+      "value": "adapter",
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-021",
+      "contract": "error",
+      "base": "valid/error.json",
+      "operation": "set",
+      "path": ["class"],
+      "value": "network",
+      "expected": "validation_error"
+    },
+    {
+      "id": "F002-INVALID-022",
+      "contract": "canonical_content",
+      "base": "valid/canonical_content.json",
+      "operation": "dynamic_platform_media_url",
+      "path": ["description"],
+      "expected": "validation_error"
+    }
+  ]
+}

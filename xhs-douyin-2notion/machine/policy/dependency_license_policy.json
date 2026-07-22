@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "LICENSE.X2N.CI.001",
+  "allowed_spdx_ids": [
+    "Apache-2.0",
+    "MIT",
+    "PSF-2.0"
+  ],
+  "unknown_licenses_allowed": false,
+  "runtime_python": {
+    "annotated-types": {"version": "0.7.0", "license": "MIT"},
+    "pydantic": {"version": "2.13.4", "license": "MIT"},
+    "pydantic-core": {"version": "2.46.4", "license": "MIT"},
+    "typing-extensions": {"version": "4.16.0", "license": "PSF-2.0"},
+    "typing-inspection": {"version": "0.4.2", "license": "MIT"}
+  },
+  "ci_python": {
+    "coverage": {"version": "7.15.2", "license": "Apache-2.0"},
+    "pyyaml": {"version": "6.0.3", "license": "MIT"},
+    "ruff": {"version": "0.15.22", "license": "MIT"}
+  },
+  "npm_license_source": "package-lock.json",
+  "excluded_research_references_are_dependencies": false
+}

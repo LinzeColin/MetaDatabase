@@ -42,8 +42,11 @@ dist/
 build/
 .venv/
 venv/
+.uv-cache/
+.npm-cache/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.ruff_cache/
 .coverage
 coverage/

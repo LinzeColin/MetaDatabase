@@ -80,7 +80,16 @@ def _sha256(path: Path) -> str:
 
 
 def _text_files() -> Iterable[Path]:
-    ignored_parts = {"__pycache__", ".pytest_cache"}
+    ignored_parts = {
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        "node_modules",
+    }
     suffixes = {"", ".md", ".json", ".yaml", ".yml", ".py", ".txt", ".toml"}
     for path in PROJECT_ROOT.rglob("*"):
         if not path.is_file() or any(part in ignored_parts for part in path.parts):
@@ -383,7 +392,22 @@ def validate_repository_boundary() -> Check:
     private_files = [
         str(path.relative_to(PROJECT_ROOT))
         for path in PROJECT_ROOT.rglob("*")
-        if path.is_file() and path.suffix.lower() in forbidden_suffixes
+        if path.is_file()
+        and not any(
+            part
+            in {
+                ".mypy_cache",
+                ".pytest_cache",
+                ".ruff_cache",
+                ".venv",
+                "__pycache__",
+                "build",
+                "dist",
+                "node_modules",
+            }
+            for part in path.parts
+        )
+        and path.suffix.lower() in forbidden_suffixes
     ]
     _require(not private_files, f"private/runtime file types in repository: {private_files}")
     _require(not (PROJECT_ROOT / ".x2n-root.json").exists(), "private root marker entered repository")
@@ -489,11 +513,18 @@ def validate_local_root(root: Path) -> Check:
     _require(marker_data.get("project") == "xhs-douyin-2notion", "private marker project mismatch")
     _require(marker_data.get("root_ref") == "X2N_DATA_ROOT", "private marker root ref mismatch")
     _require(Path(marker_data.get("resolved_root", "")).resolve() == root, "private marker resolved root mismatch")
+    private_state = marker_data.get("real_data_state")
     _require(
-        marker_data.get("real_data_state") in {"empty_pre_stage_00", "stage_0_owner_input_defaults_no_content"},
+        private_state
+        in {
+            "empty_pre_stage_00",
+            "stage_0_owner_input_defaults_no_content",
+            "stage_1_canonical_store_initialized_no_content",
+        },
         "unexpected private data state",
     )
     _require(marker_data.get("legacy_import") is False, "legacy import must be false")
+    _require(marker_data.get("product_execution_authorized") is False, "private marker enabled product execution")
 
     for relative in contract["required_directories"]:
         directory = root / relative
@@ -511,7 +542,25 @@ def validate_local_root(root: Path) -> Check:
     _require(not unexpected, f"unexpected private-root entries: {unexpected}")
 
     allowed_private_files = set(contract.get("allowed_private_contract_files", []))
-    allowed_files = {contract["private_marker"], *allowed_system_files, *allowed_private_files}
+    controlled_store_files: set[str] = set()
+    if private_state == "stage_1_canonical_store_initialized_no_content":
+        _require(marker_data.get("canonical_store_schema_version") == 2, "private Store schema marker mismatch")
+        controlled_store_files = {
+            "runtime/canonical/canonical.sqlite",
+            "runtime/canonical/canonical.sqlite-shm",
+            "runtime/canonical/canonical.sqlite-wal",
+            "runtime/canonical/store.lock",
+        }
+        for required_store_file in ("runtime/canonical/canonical.sqlite", "runtime/canonical/store.lock"):
+            _require((root / required_store_file).is_file(), f"initialized private Store file missing: {required_store_file}")
+    else:
+        _require(marker_data.get("canonical_store_schema_version") is None, "pre-Store marker contains a schema claim")
+    allowed_files = {
+        contract["private_marker"],
+        *allowed_system_files,
+        *allowed_private_files,
+        *controlled_store_files,
+    }
     unexpected_files = [
         path.relative_to(root).as_posix()
         for path in root.rglob("*")
@@ -520,6 +569,14 @@ def validate_local_root(root: Path) -> Check:
         and path.name not in allowed_system_files
     ]
     _require(not unexpected_files, f"private root contains unexpected pre-Stage-00 files: {unexpected_files}")
+    present_store_files = []
+    for relative in controlled_store_files:
+        store_file = root / relative
+        if not store_file.exists():
+            continue
+        _require(store_file.is_file() and not store_file.is_symlink(), f"invalid private Store file: {relative}")
+        _require(stat.S_IMODE(store_file.stat().st_mode) == 0o600, f"private Store file must be 0600: {relative}")
+        present_store_files.append(relative)
     for relative in allowed_private_files:
         private_file = root / relative
         if private_file.exists():
@@ -558,6 +615,8 @@ def validate_local_root(root: Path) -> Check:
             "directories_checked": len(all_directories),
             "system_metadata_files": len(present_system_files),
             "real_data_files": 0,
+            "canonical_store_files": len(present_store_files),
+            "canonical_store_state": private_state,
             "private_contract_files": sum(1 for relative in allowed_private_files if (root / relative).is_file()),
             "download_destination_ref": "X2N_DOWNLOAD_DESTINATION",
             "existing_destination_entries_touched": 0,

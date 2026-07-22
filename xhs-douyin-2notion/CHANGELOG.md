@@ -1,5 +1,58 @@
 # Changelog
 
+## v0.0.0.1 — Stage 1 Review / G1
+
+- 独立复核 Foundation001–005 的 Task、Acceptance、固定提交与历史证据；Review 不执行新 DAG Task，下一产品 Task 固定为 `TSK.x2n.skeleton.001`。
+- 修复 8 个 Review finding：DAG/状态漂移、full lane 缺少逐执行身份、Stage 1 历史扫描缺口、重复 JSON 键、Runtime CLI 过期 Gate 输出、生成依赖/Build 树造成的零接触扫描误报、缺少 Task Pack 固定版本精确差分，以及 PR 合成 merge commit 误纳入 `main` 并行改动。
+- 两轮 full lane 共 24/24 阻塞执行通过，silent skip/failure/flaky 为 0；整体风险覆盖率 70.88%，7 个关键模块均过阈值，33 个依赖的 OSV 漏洞为 0。
+- Stage 1 逐提交变更 blob、提交消息、当前 Source 与 workflow 的 Secret/Private/CDN 扫描为 0；53-member 候选制品无 Runtime Data，确定性复现一致。
+- 当前结论为 `REVIEW_COMPLETE / G1_PASS / STAGE_2_AUTHORIZED / STAGE_1_REMOTE_UPLOAD_AUTHORIZED`；远端 x2n CI 仍为 `PENDING_POST_G1_UPLOAD`，真实账号、平台、Notion、模型、媒体与 Sink 均 `NOT_RUN`。
+
+## v0.0.0.1 — Stage 1 / Foundation 005
+
+- 新增根级 `x2n-ci.yml`：changed-scope 快速门禁与 macOS full-release 候选门禁；Actions 全 SHA pin、`contents: read`、checkout 不持久化凭据，阻断项不可 `continue-on-error`。
+- 软件门禁覆盖 format/lint/type/unit/contract/migration/integration/Extension E2E；full lane 两次重放，风险覆盖阈值登记到机器 policy，关键 Store/Host/Runtime/Contract 模块提供 branch evidence。
+- 新增合成 seeded-failure 自测、Secret/Private/CDN/Fixture scan、SAST/SARIF、CSP、匿名 OSV、License、33-component Foundation005 SBOM 与确定性 source candidate allowlist；Runtime Data 和 Unknown License 阈值均为 0。
+- 新增 `x2n-synthetic-model-contract-v1@1.0.0` 与模型 System Card；Dataset Contract 通过，但 ASR/OCR/Fusion/Classify/真实 Red Team 均未运行且 Feature Flag 关闭，自动分类等待 `ACC.x2n.ai.006`。
+- 该 Foundation005 Run 当时只证明本地合成 CI baseline；远端 GitHub Actions、正式 Release、真实模型、账号、平台、Notion 和媒体均 `NOT_RUN`。其历史证据保持 `G1=NOT_RUN`，下一独立 Run 当时只能做 Stage 1 Review。
+
+## v0.0.0.1 — Stage 1 / Foundation 004
+
+- 新增固定开发 Extension ID 的 Chrome MV3 Side Panel，权限精确为 `activeTab`、`nativeMessaging`、`sidePanel`，无 `host_permissions`、Content Script、远程代码或 Extension Storage。
+- Save/Sync/Review/Status/Settings 五区可访问；20 个公共合成 URL 覆盖六平台支持/非支持识别，所有平台动作仍 `executable=false`。
+- 新增短进程 Native Messaging Host：精确 Origin、1 MiB 上限、未知动作/字段/版本与 Shell/Path/任意 URL 注入拒绝；重复 Request 只返回同一个 SQLite skeleton Job。
+- 用户级 installer 默认 `plan`，写操作需要固定确认词；依赖从 frozen `uv.lock` 导出并强制 hash 校验，私有 Runtime 在 staging 中验证后原子替换；首次/升级失败均清理临时目录并保留旧 Runtime，安装/卸载用内容 hash 拒绝被篡改或非自有文件。
+- Playwright 在临时 HOME/Profile/Runtime 中完成真实 Extension E2E：20/20 识别、五区导航、0 uncaught console error、100 次 Service Worker 终止/重启、任务丢失/重复/错状态均为 0；截图与 trace 只保留聚合 hash。
+- 新增当前 30-component SBOM 与 Playwright/fsevents NOTICE；`.npmrc` 强制禁用 install scripts，验收执行数为 0。历史 Foundation002 的 26-component SBOM 保持原事实。
+- Owner Chrome 安装/Canary、真实账号、平台调用、自动滚动、账号状态改变、Markdown/Notion、模型和媒体均未运行；该 Foundation004 Run 的历史状态为 `G1=NOT_RUN`，下一独立 Run 当时为 `TSK.x2n.foundation.005`。
+
+## v0.0.0.1 — Stage 1 / Foundation 003
+
+- 新增只接受显式 `X2N_DOWNLOAD_DESTINATION`/`X2N_DATA_ROOT` 的 Owner-only Private Runtime；无默认目录、任意路径参数或符号链接逃逸。
+- 落地 SQLite Schema v2：17 tables、9 indexes、15 triggers，启用 WAL、FK、FULL synchronous、busy timeout 与启动完整性检查。
+- Content/Relation/Artifact/Observation/Classification、Owner Taxonomy、Checkpoint、Request Ledger、Outbox/Receipt、Notion Mapping、Media Lease 和 Recovery Event 进入同一 Canonical Store；Artifact 等追加记录禁止更新/删除。
+- 迁移支持前进与强制备份后降级；Backup/Restore 校验文件 Hash、Schema、完整性、表计数与逻辑摘要并原子替换。当前同盘副本不冒充异地灾备。
+- 纯合成门禁覆盖 80 条连续两次、100 个并发重复消息和 10k DB；重复副作用、数据丢失、不可读记录和 orphan FK 均为 0，`integrity_check=ok`。
+- Owner 私有根只初始化 Schema v2 空库，不含账号、平台内容、媒体或 Sink 数据。该 Foundation003 Run 的历史状态为 `G1=NOT_RUN`，下一独立 Run 当时为 `TSK.x2n.foundation.004`。
+
+## v0.0.0.1 — Stage 1 / Foundation 002
+
+- 冻结 `1.0` IPC、Canonical、Relation、Observation、Artifact、Taxonomy、Classification、Sink、Health、Error、Provenance 与 Compatibility Contract；Pydantic 是 JSON Schema、错误 Registry 和 TypeScript shared enums 的生成真源。
+- 默认拒绝未知字段/版本/动作；固定 Native Origin 无通配符，消息有大小与动作边界，不存在 Shell、任意路径、任意 URL、Cookie/Header/Token 输入面。
+- 用 opaque ephemeral media refs 表达临时媒体，Canonical Contract 无平台媒体 URL 字段；四类 key 确定性校验，Artifact append-only，一级分类仅 `created_by=owner`。
+- Markdown/Notion 合成 Provenance 从最终节点连通 Canonical、Observation、Adapter、Artifact、Classification、Run 与 Renderer；真实 Sink/Canary 未运行。
+- 新增 16 个有效 round-trip、22 个负向 fixture 和 106 个 Native fuzz；生成物 `--check` 与 TypeScript strict compile 通过。
+- 精确锁定 5 个 Python Runtime registry packages 与 21 个 TypeScript build-only registry packages，生成 26-component CycloneDX SBOM；npm install script 为 0。
+- 三项 Acceptance 仅在当时 Contract/合成范围 PASS；真实 Host/Job、SQLite/Migration/Integrity、Markdown/Notion 均为 `DOWNSTREAM_NOT_RUN`。该 Foundation002 Run 未运行 G1，下一独立 Run 当时为 `TSK.x2n.foundation.003`。
+
+## v0.0.0.1 — Stage 1 / Foundation 001
+
+- 新增受治理 Skill 入口、OpenAI agent metadata、npm/uv workspace 与冻结 lock；当前第三方 package 和 install script 均为 0。
+- 建立无权限、无 Side Panel/Background/Host Permission 的 MV3 Extension scaffold，以及不含 Server、IPC、DB、Adapter、模型、媒体或 Sink 的 Python Companion scaffold。
+- 增加纯合成 lifecycle rehearsal：install、self-test、synthetic Canary、upgrade/rollback dry-run、diagnose、uninstall dry-run，全部明确真实产品 lifecycle 为 `DOWNSTREAM_NOT_RUN`。
+- 在隔离临时 HOME 的新副本验证 frozen locks、Extension 与正/负 lifecycle；证据不含私有路径、URL、凭据或内容。
+- `TSK.x2n.foundation.001` 当时范围 PASS；该 Run 未运行 G1，下一独立 Run 当时为 `TSK.x2n.foundation.002`。
+
 ## v0.0.0.1 — Stage 0 Review Resume / G0 PASS
 
 - 依据 `CE-X2N-20260720-S00-REVIEW-RESUME` 将共享认证材料限定为 x2n 外部、Owner 管理的并行基础设施；x2n 不读取、使用、改变或显示它，也不修改全局 Git 配置或 Credential Helper。

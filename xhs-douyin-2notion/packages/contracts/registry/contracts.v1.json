@@ -1,0 +1,102 @@
+{
+  "compatibility_mode": "exact_match_fail_closed",
+  "contract_version": "1.0",
+  "contracts": [
+    {
+      "json_schema": "schemas/v1/native_message_request.schema.json",
+      "name": "native_message_request",
+      "python_model": "x2n_contracts.models.NativeMessageRequest",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/native_message_response.schema.json",
+      "name": "native_message_response",
+      "python_model": "x2n_contracts.models.NativeMessageResponse",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/native_host_policy.schema.json",
+      "name": "native_host_policy",
+      "python_model": "x2n_contracts.models.NativeHostPolicy",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/canonical_content.schema.json",
+      "name": "canonical_content",
+      "python_model": "x2n_contracts.models.CanonicalContent",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/user_relation.schema.json",
+      "name": "user_relation",
+      "python_model": "x2n_contracts.models.UserRelation",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/source_observation.schema.json",
+      "name": "source_observation",
+      "python_model": "x2n_contracts.models.SourceObservation",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/artifact.schema.json",
+      "name": "artifact",
+      "python_model": "x2n_contracts.models.Artifact",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/taxonomy_category.schema.json",
+      "name": "taxonomy_category",
+      "python_model": "x2n_contracts.models.TaxonomyCategory",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/classification.schema.json",
+      "name": "classification",
+      "python_model": "x2n_contracts.models.Classification",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/sink_receipt.schema.json",
+      "name": "sink_receipt",
+      "python_model": "x2n_contracts.models.SinkReceipt",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/health_report.schema.json",
+      "name": "health_report",
+      "python_model": "x2n_contracts.models.HealthReport",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/error.schema.json",
+      "name": "error",
+      "python_model": "x2n_contracts.models.ErrorContract",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/provenance_chain.schema.json",
+      "name": "provenance_chain",
+      "python_model": "x2n_contracts.models.ProvenanceChain",
+      "typescript": "types/contracts.ts"
+    },
+    {
+      "json_schema": "schemas/v1/compatibility_policy.schema.json",
+      "name": "compatibility_policy",
+      "python_model": "x2n_contracts.models.CompatibilityPolicy",
+      "typescript": "types/contracts.ts"
+    }
+  ],
+  "generator": "x2n_contracts.generate",
+  "payload_hash": {
+    "algorithm": "sha256",
+    "canonicalization": "utf8_json_sorted_keys_compact_safe_integer_v1",
+    "typescript_helpers": [
+      "canonicalPayloadJson",
+      "computePayloadHash"
+    ]
+  },
+  "schema_version": "1.0",
+  "unknown_fields": "reject",
+  "unknown_versions": "reject"
+}

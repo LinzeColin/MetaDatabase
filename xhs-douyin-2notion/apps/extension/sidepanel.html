@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>x2n</title>
+    <link rel="stylesheet" href="styles/sidepanel.css">
+  </head>
+  <body>
+    <header>
+      <p class="eyebrow">Personal knowledge governance</p>
+      <h1>x2n</h1>
+      <p id="page-status" aria-live="polite">Checking current page…</p>
+      <p id="platform-status" class="muted" aria-live="polite"></p>
+    </header>
+
+    <nav role="tablist" aria-label="x2n sections">
+      <button id="tab-save" role="tab" aria-controls="panel-save" aria-selected="true">Save</button>
+      <button id="tab-sync" role="tab" aria-controls="panel-sync" aria-selected="false" tabindex="-1">Sync</button>
+      <button id="tab-review" role="tab" aria-controls="panel-review" aria-selected="false" tabindex="-1">Review</button>
+      <button id="tab-status" role="tab" aria-controls="panel-status" aria-selected="false" tabindex="-1">Status</button>
+      <button id="tab-settings" role="tab" aria-controls="panel-settings" aria-selected="false" tabindex="-1">Settings</button>
+    </nav>
+
+    <main>
+      <section id="panel-save" role="tabpanel" aria-labelledby="tab-save">
+        <h2>Save current content</h2>
+        <p>User-selected current-page capture will be enabled by a later platform gate.</p>
+        <button type="button" disabled>Save unavailable</button>
+      </section>
+      <section id="panel-sync" role="tabpanel" aria-labelledby="tab-sync" hidden>
+        <h2>Sync selected list</h2>
+        <p>No automatic scrolling or account-state changes are implemented.</p>
+        <button type="button" disabled>Sync unavailable</button>
+      </section>
+      <section id="panel-review" role="tabpanel" aria-labelledby="tab-review" hidden>
+        <h2>Review</h2>
+        <p>No classification suggestion exists in this skeleton.</p>
+      </section>
+      <section id="panel-status" role="tabpanel" aria-labelledby="tab-status" hidden>
+        <h2>Status</h2>
+        <p id="host-status" aria-live="polite">Checking local companion…</p>
+        <button id="refresh-status" type="button">Reconnect</button>
+      </section>
+      <section id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
+        <h2>Settings</h2>
+        <dl>
+          <div><dt>Runtime truth</dt><dd>Local SQLite only</dd></div>
+          <div><dt>Extension storage</dt><dd>Not used</dd></div>
+          <div><dt>Platform gates</dt><dd>All disabled</dd></div>
+        </dl>
+      </section>
+    </main>
+
+    <footer>Stage 1 skeleton · fail closed</footer>
+    <script type="module" src="src/sidepanel.js"></script>
+  </body>
+</html>

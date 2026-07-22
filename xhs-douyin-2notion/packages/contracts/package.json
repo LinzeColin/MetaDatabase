@@ -1,0 +1,13 @@
+{
+  "name": "@x2n/contracts",
+  "version": "0.0.0.1",
+  "private": true,
+  "type": "module",
+  "types": "types/contracts.ts",
+  "scripts": {
+    "check:types": "tsc --project tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
+}

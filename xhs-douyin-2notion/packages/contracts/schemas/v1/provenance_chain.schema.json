@@ -1,0 +1,154 @@
+{
+  "$defs": {
+    "ProvenanceEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "from_node_id": {
+          "pattern": "^node_[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "From Node Id",
+          "type": "string"
+        },
+        "relation": {
+          "const": "traces_to",
+          "title": "Relation",
+          "type": "string"
+        },
+        "to_node_id": {
+          "pattern": "^node_[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "To Node Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_node_id",
+        "to_node_id",
+        "relation"
+      ],
+      "title": "ProvenanceEdge",
+      "type": "object"
+    },
+    "ProvenanceNode": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ProvenanceNodeKind"
+        },
+        "node_id": {
+          "pattern": "^node_[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Node Id",
+          "type": "string"
+        },
+        "reference": {
+          "maxLength": 768,
+          "minLength": 1,
+          "title": "Reference",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "node_id",
+        "kind",
+        "reference",
+        "version",
+        "evidence_hash"
+      ],
+      "title": "ProvenanceNode",
+      "type": "object"
+    },
+    "ProvenanceNodeKind": {
+      "enum": [
+        "canonical",
+        "source_observation",
+        "adapter",
+        "artifact",
+        "classification",
+        "run",
+        "renderer",
+        "sink_receipt"
+      ],
+      "title": "ProvenanceNodeKind",
+      "type": "string"
+    },
+    "SinkKind": {
+      "enum": [
+        "markdown",
+        "notion"
+      ],
+      "title": "SinkKind",
+      "type": "string"
+    }
+  },
+  "$id": "urn:x2n:contract:1.0:provenance_chain",
+  "additionalProperties": false,
+  "properties": {
+    "chain_id": {
+      "pattern": "^[a-z][a-z0-9_]{1,31}_[A-Za-z0-9][A-Za-z0-9._-]{0,191}$",
+      "title": "Chain Id",
+      "type": "string"
+    },
+    "completeness_percent": {
+      "const": 100,
+      "title": "Completeness Percent",
+      "type": "integer"
+    },
+    "content_key": {
+      "maxLength": 768,
+      "minLength": 3,
+      "title": "Content Key",
+      "type": "string"
+    },
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/ProvenanceEdge"
+      },
+      "minItems": 6,
+      "title": "Edges",
+      "type": "array"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/ProvenanceNode"
+      },
+      "minItems": 7,
+      "title": "Nodes",
+      "type": "array"
+    },
+    "output_kind": {
+      "$ref": "#/$defs/SinkKind"
+    },
+    "output_node_id": {
+      "pattern": "^node_[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "title": "Output Node Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "chain_id",
+    "content_key",
+    "output_kind",
+    "output_node_id",
+    "nodes",
+    "edges",
+    "completeness_percent"
+  ],
+  "title": "ProvenanceChain",
+  "type": "object",
+  "x-x2n-compatibility": "exact_match_fail_closed",
+  "x-x2n-contract-version": "1.0"
+}

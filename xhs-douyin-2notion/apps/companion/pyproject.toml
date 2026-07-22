@@ -1,0 +1,15 @@
+[project]
+name = "x2n-companion"
+version = "0.0.0.1"
+description = "Stage 1 governed local companion and Canonical Store"
+requires-python = ">=3.12"
+dependencies = ["x2n-contracts"]
+
+[project.scripts]
+x2n-scaffold = "x2n_companion.scaffold:main"
+x2n-store = "x2n_companion.runtime_cli:main"
+x2n-native-host = "x2n_companion.native_host:main"
+x2n-native-host-installer = "x2n_companion.native_host_installer:main"
+
+[tool.uv.sources]
+x2n-contracts = { workspace = true }
