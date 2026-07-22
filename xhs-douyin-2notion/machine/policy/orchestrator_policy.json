@@ -1,0 +1,62 @@
+{
+  "acceptance_scope": "ci_synthetic_scoped",
+  "category_assignment": "downstream_owner_gated_not_run",
+  "default": "deny",
+  "downstream": {
+    "classification": "DOWNSTREAM_NOT_RUN",
+    "markdown": "DOWNSTREAM_NOT_RUN",
+    "media_processing": "DOWNSTREAM_NOT_RUN",
+    "notion": "DOWNSTREAM_NOT_RUN",
+    "renderer": "DOWNSTREAM_NOT_RUN"
+  },
+  "durable_entities": [
+    "request_ledger",
+    "run_record",
+    "content",
+    "user_relation",
+    "source_observation",
+    "checkpoint",
+    "artifact"
+  ],
+  "evidence_receipt": {
+    "content_identity_emitted": false,
+    "credential_values_emitted": false,
+    "local_paths_emitted": false,
+    "media_urls_emitted": false,
+    "redacted_hash_refs_only": true,
+    "reproducible_from_sqlite": true
+  },
+  "external_job_identity": "uuid",
+  "fixture_id": "FIXTURE.X2N.S02.S004.001",
+  "internal_run_identity": "opaque_ref_derived_from_job_uuid",
+  "migration": "not_required_schema_v2_unchanged",
+  "phase": "PH.X2N.2.8",
+  "policy_id": "ORCHESTRATOR.X2N.001",
+  "replay": {
+    "concurrent_duplicate_requests": 100,
+    "fixture_inputs": 80,
+    "fixture_replay_rounds": 2,
+    "maximum_resume_batch": 80,
+    "original_payload_required_for_resume": false
+  },
+  "schema_version": "1.0",
+  "state_machine": [
+    {
+      "checkpoint": "none",
+      "run": "none",
+      "state": "before_canonical_transaction"
+    },
+    {
+      "checkpoint": "active:canonical_committed",
+      "run": "running",
+      "state": "canonical_committed"
+    },
+    {
+      "checkpoint": "complete:artifact_placeholder_committed",
+      "run": "succeeded",
+      "state": "completed"
+    }
+  ],
+  "task_id": "TSK.x2n.skeleton.004",
+  "transaction_count": 2
+}

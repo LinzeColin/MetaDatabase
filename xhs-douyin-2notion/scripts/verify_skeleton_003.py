@@ -33,6 +33,7 @@ Check = PREVIOUS.Check
 _require = PREVIOUS._require
 _pairs = PREVIOUS._pairs
 _load_json = PREVIOUS._load_json
+_load_json_at = PREVIOUS._load_json_at
 _read_blob_at = PREVIOUS._read_blob_at
 _git = PREVIOUS._git
 _porcelain_paths = PREVIOUS._porcelain_paths
@@ -50,6 +51,7 @@ RUN_ID = "RUN-X2N-S02-S003"
 PHASE = "PH.X2N.2.7"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s02-skeleton003"
 TASK_BASE_COMMIT = "0af2d3b269e7d5631257cb49f41f75cc79438f70"
+FINAL_COMMIT = "d5f61f30657ac6aa1bc7be3f7942d4b77df5b8ae"
 ORIGIN_CUTOFF = "6777c8fcce75a36741b70c2858c8bc5fff17d440"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S02_SKELETON_003.md"
@@ -98,14 +100,12 @@ ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/media/v1/",)
 
 
 def validate_scope() -> Check:
+    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
     committed = _git(
-        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}"]
     ).splitlines()
-    working = _porcelain_paths(
-        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
-    )
     relative_changes: list[str] = []
-    for path in sorted(set(committed + working)):
+    for path in sorted(set(committed)):
         relative = _project_relative(path)
         _require(relative is not None, "Skeleton003 changed scope escaped x2n")
         _require(
@@ -166,7 +166,8 @@ def validate_scope() -> Check:
 
 def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Skeleton003 worktree branch")
+    current_branch = _git(["branch", "--show-current"])
+    _require(current_branch not in {"", "main"}, "Skeleton003 regression must run in a non-main worktree")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
         re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
@@ -174,14 +175,24 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "wrong or authenticated persisted origin",
     )
     _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
+    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
     _require(
         subprocess.run(
-            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"],
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, FINAL_COMMIT],
             cwd=REPOSITORY_ROOT,
             check=False,
         ).returncode
         == 0,
-        "Skeleton003 branch no longer descends from its Task base",
+        "Skeleton003 final commit no longer descends from its Task base",
+    )
+    _require(
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+        ).returncode
+        == 0,
+        "current tree no longer descends from the Skeleton003 final commit",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
@@ -220,8 +231,9 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "worktree_isolation",
         "PASS",
         {
-            "branch": BRANCH,
+            "current_branch": current_branch,
             "external_main_dirty_paths": len(main_paths),
+            "historical_branch": BRANCH,
             "origin_drift_commits": int(_git(["rev-list", "--count", f"{ORIGIN_CUTOFF}..{live_origin}"])),
             "origin_project_overlap": origin_overlap,
             "project_overlap_paths": main_overlap,
@@ -244,7 +256,7 @@ def validate_previous_history() -> Check:
 
 
 def validate_task_and_state() -> Check:
-    taskpack = TASKPACK.read_text(encoding="utf-8")
+    taskpack = _read_blob_at(FINAL_COMMIT, TASKPACK).decode("utf-8")
     base_taskpack = _read_blob_at(TASK_BASE_COMMIT, TASKPACK).decode("utf-8")
     task = _task_block(taskpack, TASK_ID)
     base_task = _task_block(base_taskpack, TASK_ID)
@@ -266,7 +278,7 @@ def validate_task_and_state() -> Check:
         "Skeleton004 was entered by this Run",
     )
 
-    state = _load_json(TASK_STATE)
+    state = _load_json_at(FINAL_COMMIT, TASK_STATE)
     _require(state.get("schema_version") == "1.15", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.2" and state.get("last_completed_phase") == PHASE, "phase drifted")
     _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Run drifted")
@@ -298,12 +310,15 @@ def validate_task_and_state() -> Check:
         == "pass_ci_synth_url_fuzz_ssrf_bounded_download_temporary_lease_cleanup_and_fixed_scope_scanner_real_network_and_processors_not_run",
         "media safety execution scope drifted",
     )
-    _require(_load_json(PROJECT_FACT).get("status") == "stage_2_skeleton_003_pass_g2_not_run", "project drifted")
-    architecture = _load_json(ARCHITECTURE_FACT)
+    _require(
+        _load_json_at(FINAL_COMMIT, PROJECT_FACT).get("status") == "stage_2_skeleton_003_pass_g2_not_run",
+        "project drifted",
+    )
+    architecture = _load_json_at(FINAL_COMMIT, ARCHITECTURE_FACT)
     _require(architecture.get("phase") == PHASE and architecture.get("stage_gate") == "g2_not_run", "ADR drifted")
     adr8 = next((item for item in architecture.get("decisions", []) if item.get("id") == "ADR-008"), {})
     _require("url_firewall_ip_pinned_transport_contract" in adr8.get("implementation_state", ""), "ADR-008 not implemented")
-    contract = RUN_CONTRACT.read_text(encoding="utf-8")
+    contract = _read_blob_at(FINAL_COMMIT, RUN_CONTRACT).decode("utf-8")
     for value in (TASK_ID, RUN_ID, PHASE, TASK_BASE_COMMIT, BRANCH, "PASS_CI_SYNTH_SCOPED"):
         _require(value in contract, f"Run Contract identity missing: {value}")
     return Check(
@@ -321,7 +336,7 @@ def validate_task_and_state() -> Check:
 
 
 def validate_policy_and_implementation() -> Check:
-    policy = _load_json(MEDIA_POLICY)
+    policy = _load_json_at(FINAL_COMMIT, MEDIA_POLICY)
     _require(
         policy.get("policy_id") == "MEDIA.X2N.SAFETY.001"
         and policy.get("task_id") == TASK_ID
@@ -372,7 +387,7 @@ def validate_policy_and_implementation() -> Check:
         "persistence scanner policy drifted",
     )
 
-    source = MEDIA_SOURCE.read_text(encoding="utf-8")
+    source = _read_blob_at(FINAL_COMMIT, MEDIA_SOURCE).decode("utf-8")
     for marker in (
         "class EphemeralMediaSource",
         "class ValidatedMediaTarget",
@@ -392,10 +407,10 @@ def validate_policy_and_implementation() -> Check:
         _require(forbidden not in source, "production network implementation entered Skeleton003")
     _require("__getstate__" in source and source.count("cannot be serialized") >= 4, "ephemeral objects are serializable")
 
-    migrations = MIGRATION_SOURCE.read_text(encoding="utf-8")
+    migrations = _read_blob_at(FINAL_COMMIT, MIGRATION_SOURCE).decode("utf-8")
     media_schema = migrations.split("CREATE TABLE media_lease", 1)[1].split(") STRICT", 1)[0]
     _require("url" not in media_schema.lower(), "media lease schema acquired a URL column")
-    store = STORE_SOURCE.read_text(encoding="utf-8")
+    store = _read_blob_at(FINAL_COMMIT, STORE_SOURCE).decode("utf-8")
     for marker in (
         "class MediaLeaseRecord",
         "def media_cleanup_candidates",
@@ -404,17 +419,18 @@ def validate_policy_and_implementation() -> Check:
         "lease_id: str | None = None",
     ):
         _require(marker in store, f"Store lease primitive missing: {marker}")
-    cli = RUNTIME_CLI.read_text(encoding="utf-8")
+    cli = _read_blob_at(FINAL_COMMIT, RUNTIME_CLI).decode("utf-8")
     _require("cdn-zero" in cli and "scan_persisted_scopes" in cli and 'MEDIA_TASK_ID = "TSK.x2n.skeleton.003"' in cli, "CDN-zero CLI missing")
     _require("--path" not in cli and "--root" not in cli, "media CLI acquired an arbitrary path input")
-    package = COMPANION_PACKAGE.read_text(encoding="utf-8")
+    package = _read_blob_at(FINAL_COMMIT, COMPANION_PACKAGE).decode("utf-8")
     _require('x2n = "x2n_companion.runtime_cli:main"' in package, "x2n CLI entry point missing")
     _require(
-        (PROJECT_ROOT / "uv.lock").read_bytes() == _read_blob_at(TASK_BASE_COMMIT, PROJECT_ROOT / "uv.lock"),
+        _read_blob_at(FINAL_COMMIT, PROJECT_ROOT / "uv.lock")
+        == _read_blob_at(TASK_BASE_COMMIT, PROJECT_ROOT / "uv.lock"),
         "Python dependency lock changed in Skeleton003",
     )
     _require(
-        (PROJECT_ROOT / "package-lock.json").read_bytes()
+        _read_blob_at(FINAL_COMMIT, PROJECT_ROOT / "package-lock.json")
         == _read_blob_at(TASK_BASE_COMMIT, PROJECT_ROOT / "package-lock.json"),
         "npm dependency lock changed in Skeleton003",
     )
@@ -433,7 +449,7 @@ def validate_policy_and_implementation() -> Check:
 
 
 def validate_fixtures() -> Check:
-    fixture = _load_json(FIXTURE_MANIFEST)
+    fixture = _load_json_at(FINAL_COMMIT, FIXTURE_MANIFEST)
     _require(
         fixture.get("fixture_id") == "FIXTURE.X2N.S02.S003.001"
         and fixture.get("task_id") == TASK_ID
@@ -456,10 +472,10 @@ def validate_fixtures() -> Check:
         fixture.get("scanner", {}).get("scopes") == ["db", "markdown", "logs", "notion-export", "artifacts"],
         "scanner fixture scope drifted",
     )
-    rendered = FIXTURE_MANIFEST.read_text(encoding="utf-8")
+    rendered = _read_blob_at(FINAL_COMMIT, FIXTURE_MANIFEST).decode("utf-8")
     _require(re.search(r"https?://", rendered) is None, "media fixture contains a URL literal")
     _require("/" + "Users/" not in rendered and "github" + "_pat_" not in rendered, "media fixture contains private data")
-    global_manifest = _load_json(GLOBAL_FIXTURE_MANIFEST)
+    global_manifest = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST)
     _require(global_manifest.get("manifest_id") == "FIXTURE.X2N.012" and global_manifest.get("phase") == PHASE, "global fixture manifest drifted")
     _require(
         {
@@ -686,7 +702,7 @@ def _acceptance_input_receipt() -> str:
     for path in sorted(paths):
         digest.update(path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
-        digest.update(path.read_bytes())
+        digest.update(_read_blob_at(FINAL_COMMIT, path))
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -745,6 +761,7 @@ def write_evidence(checks: list[Check]) -> None:
 
 
 def verify_evidence() -> Check:
+    _require(EVIDENCE.read_bytes() == _read_blob_at(FINAL_COMMIT, EVIDENCE), "historical evidence was rewritten")
     evidence = _load_json(EVIDENCE)
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")

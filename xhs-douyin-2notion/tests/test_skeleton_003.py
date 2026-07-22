@@ -42,6 +42,7 @@ class Skeleton003Tests(unittest.TestCase):
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S02-S003")
         self.assertEqual(VERIFY.PHASE, "PH.X2N.2.7")
         self.assertEqual(VERIFY.TASK_BASE_COMMIT, "0af2d3b269e7d5631257cb49f41f75cc79438f70")
+        self.assertEqual(VERIFY.FINAL_COMMIT, "d5f61f30657ac6aa1bc7be3f7942d4b77df5b8ae")
         rendered = "\n".join(sorted(VERIFY.ALLOWED_CHANGED_EXACT | set(VERIFY.ALLOWED_CHANGED_PREFIXES)))
         self.assertIn("media_safety.py", rendered)
         self.assertNotIn("skeleton.004", rendered)
@@ -49,6 +50,7 @@ class Skeleton003Tests(unittest.TestCase):
 
     def test_previous_task_is_fixed_to_its_final_commit(self) -> None:
         self.assertEqual(VERIFY.PREVIOUS.FINAL_COMMIT, VERIFY.TASK_BASE_COMMIT)
+        self.assertNotEqual(VERIFY.FINAL_COMMIT, VERIFY.TASK_BASE_COMMIT)
         previous = VERIFY.validate_previous_history()
         self.assertEqual(previous.status, "PASS")
         self.assertFalse(previous.details["history_rewritten"])

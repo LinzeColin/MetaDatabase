@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 2` 的 `TSK.x2n.skeleton.001/.002/.003/.006/.007/.008/.009` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。六平台当前详情页继续保持稳定合成 ID、净化页面事实、Extension Action/临时 `activeTab`、Native Host 与 SQLite 队列闭环；真实页面与平台 API 仍按各自 Policy/Auth/Budget Gate 关闭。Skeleton003 新增不可序列化 URL 引用、精确 CDN suffix/HTTPS/443/DNS 全地址/逐跳 redirect 防火墙、绑定已校验 IP 的 transport 合同、流式大小/Deadline/MIME/Inspector 限制、下载前无 URL 清理身份预约与校验后 metadata finalize 的 SQLite 临时 lease、共享/独占生命周期锁、24h cleaner 与五个固定逻辑 sink 的零持久化扫描。512 个 URL fuzz、32 个 SSRF、8 个 cleanup chaos、8 个 acquisition resource case 和 23 个媒体安全单测通过；生产网络 transport、真实媒体、FFmpeg、ASR/OCR 与关键帧处理均未运行。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.004`。Markdown/Notion、分类、列表 Adapter、真实平台执行与真实媒体处理仍未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 2` 的 `TSK.x2n.skeleton.001/.002/.003/.004/.006/.007/.008/.009` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。六平台当前详情页继续保持稳定合成 ID、净化页面事实、Extension Action/临时 `activeTab` 与 Native Host；真实页面与平台 API 仍按各自 Policy/Auth/Budget Gate 关闭。Skeleton003 的媒体 URL 零持久化、防 SSRF、bounded temporary media lease 与 cleaner 保持有效；Skeleton004 在不改变 SQLite Schema v2 的前提下新增两事务 Canonical walking path，把当前页落为 Run、Observation、Content、Owner-confirmed `saved_current` Relation、Checkpoint 和无私有 payload 的 placeholder Artifact。80×2 重放、100 并发重复、4 个 kill point 与 scoped provenance 均通过，重复实体、stuck Run、non-replayable state 和 broken trace 为 0。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.005`。Markdown/Notion、分类、列表 Adapter、真实平台执行与真实媒体处理仍未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,32 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 2 / Skeleton 003 验证
+## Stage 2 / Skeleton 004 验证
+
+```bash
+.venv/bin/python -B scripts/run_skeleton_004_acceptance.py
+.venv/bin/python -B scripts/verify_skeleton_004.py \
+  --verify-worktree --allow-external-main-dirty \
+  --lane-report build/s02-skeleton004-final/software-lane.json --require-evidence
+```
+
+`capture_current` 只接收 Native v1 已净化的六平台当前页事实。事务 1 原子提交 Request Ledger、
+running Run、Content、`saved_current` Relation、SourceObservation 与 active Checkpoint；事务 2
+追加或复用确定性的 URL-free/private-payload-free placeholder Artifact，并在同一提交中把 Checkpoint
+与 Run 标为完成。事务内中断全回滚，canonical commit 后中断可由重复请求、`GET_JOB` 或 bounded
+resume 只凭 SQLite 恢复；不需要原 payload，也没有新 Migration。
+
+CI 合成范围覆盖 80 个输入连续两轮与 100 个并发重复：每类 scoped entity 分别保持 80/1，
+duplicate entity 为 0；4 个 kill point 的 non-replayable state 为 0，完整 Run→Observation/Adapter→
+Content/Relation→placeholder Artifact trace 的 broken 数为 0。Receipt 只输出状态、计数和 hash ref；
+Classification、Renderer、Markdown、Notion 与媒体处理明确为 `DOWNSTREAM_NOT_RUN`。
+
+最终根回归为 166 个测试 PASS、3 个固定 Owner-private 可选输入 skip；59 个 Companion 测试 PASS。
+full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 74.61%，
+33 个依赖 OSV 漏洞 0，62-member source candidate 确定性一致且 Runtime Data 0。Owner Chrome/Profile、
+真实账号、平台调用、真实媒体、Markdown/Notion 与 G2 均未运行。
+
+## Stage 2 / Skeleton 003 历史验证
 
 ```bash
 .venv/bin/python -B scripts/run_skeleton_003_acceptance.py

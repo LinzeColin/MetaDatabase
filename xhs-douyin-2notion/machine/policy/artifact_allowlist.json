@@ -47,6 +47,8 @@
     "scripts/verify_skeleton_009.py",
     "scripts/run_skeleton_003_acceptance.py",
     "scripts/verify_skeleton_003.py",
+    "scripts/run_skeleton_004_acceptance.py",
+    "scripts/verify_skeleton_004.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

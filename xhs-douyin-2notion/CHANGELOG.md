@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.0.1 — Stage 2 / Skeleton 004
+
+- 新增 `CurrentPageOrchestrator`，把六平台已经净化并通过 Native v1 Contract 的 `capture_current` 输入接入 SQLite Canonical Store；不增加平台网络、媒体处理、分类、Markdown 或 Notion 行为。
+- 保持 Schema v2 不变，以两事务状态机落地：事务 1 原子写 Request Ledger、running Run、Content、Owner-confirmed `saved_current` Relation、SourceObservation 与 `canonical_committed` Checkpoint；事务 2 追加/复用无私有 payload 的确定性 placeholder Artifact，并原子完成 Checkpoint 与 Run。
+- Native Job UUID 与内部 Opaque Run 确定性映射；canonical commit 后即使进程退出，重复 `capture_current`、`GET_JOB` 或 bounded resume 都可只凭 SQLite 完成，不需要原请求 payload。请求冲突、Canonical URL/Content ID 不一致、非空分类 ID 均 Fail Closed。
+- Receipt 只输出 Job、状态、计数和 entity hash refs，不输出页地址、内容 ID、标题、本机路径或匹配值；Classification、Renderer、Markdown、Notion 与媒体处理全部明确为 `DOWNSTREAM_NOT_RUN`。
+- 合成验收通过六平台、80 个输入连续两轮、100 个并发重复、4 个 kill point 与完整 scoped provenance；重复实体、stuck Run、non-replayable state、broken trace、private placeholder payload 均为 0。
+- Extension 当前页成功状态改为 Canonical Store 已提交；Service Worker restart 对账以 SQLite `completed` 为准，仍不触碰 Owner Chrome/Profile、真实账号或平台网络。
+- Skeleton003 历史 Task/State/Policy/Evidence 固定到 `d5f61f30…`；历史验收读取最终 blob，当前树继续媒体安全回归且不重写历史 Evidence。
+- 根回归 166 tests PASS、3 个显式可选 Owner-private input skip；59 个 Companion tests PASS。两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 74.61%，33 dependencies 的 OSV vulnerability 0，62-member source candidate 无 Runtime Data且可确定性重建。G2、Stage 2 上传、真实平台/媒体/模型/Notion/Markdown 仍未运行，下一独立 Run 为 `TSK.x2n.skeleton.005`。
+
 ## v0.0.0.1 — Stage 2 / Skeleton 003
 
 - 实现进程内、不可序列化且 `repr` 脱敏的 `EphemeralMediaSource` 与 `ValidatedMediaTarget`；原始 CDN URL、Query/签名值不进入 SQLite、日志、Evidence、Markdown、Notion-export 或 Artifact。

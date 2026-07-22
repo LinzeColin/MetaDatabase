@@ -19,7 +19,8 @@ from x2n_contracts import (
 from x2n_contracts.errors import ERROR_SPECS
 from x2n_contracts.models import NativeAction
 
-from .canonical_store import CanonicalStore, SkeletonJob
+from .canonical_store import CURRENT_PAGE_RUN_KIND, CanonicalStore, SkeletonJob
+from .orchestrator import CurrentPageOrchestrator
 from .runtime import RuntimePaths, X2NRuntimeError
 
 
@@ -131,20 +132,36 @@ def dispatch_wire(raw: bytes, *, origin: str, store: CanonicalStore | None = Non
             if health.get("status") != "healthy":
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Canonical Store health check failed")
             return _accepted(request_id=request_id, status="completed")
-        if request.action in {NativeAction.CAPTURE_CURRENT, NativeAction.START_SYNC}:
-            run_kind = (
-                "native_capture_skeleton"
-                if request.action is NativeAction.CAPTURE_CURRENT
-                else "native_sync_skeleton"
+        if request.action is NativeAction.CAPTURE_CURRENT:
+            receipt = CurrentPageOrchestrator(active_store).execute(
+                request.payload,
+                request_id=request_id,
+                payload_hash=request.payload_hash,
             )
+            job = SkeletonJob(
+                job_id=receipt.job_id,
+                state=receipt.state,
+                disposition=receipt.disposition,
+                run_kind=CURRENT_PAGE_RUN_KIND,
+            )
+            return _accepted(request_id=request_id, status=_native_status(job), job_id=job.job_id)
+        if request.action is NativeAction.START_SYNC:
             job = active_store.submit_skeleton_job(
                 request_id=request_id,
                 payload_hash=request.payload_hash,
-                run_kind=run_kind,
+                run_kind="native_sync_skeleton",
             )
             return _accepted(request_id=request_id, status=_native_status(job), job_id=job.job_id)
         if request.action is NativeAction.GET_JOB:
             job = active_store.get_skeleton_job(str(request.payload.job_id))
+            if job.run_kind == CURRENT_PAGE_RUN_KIND and job.state == "running":
+                receipt = CurrentPageOrchestrator(active_store).resume(job.job_id)
+                job = SkeletonJob(
+                    job_id=receipt.job_id,
+                    state=receipt.state,
+                    disposition=receipt.disposition,
+                    run_kind=CURRENT_PAGE_RUN_KIND,
+                )
             return _accepted(request_id=request_id, status=_native_status(job), job_id=job.job_id)
         raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Job mutation is not enabled in this skeleton")
     except ContractViolation as error:

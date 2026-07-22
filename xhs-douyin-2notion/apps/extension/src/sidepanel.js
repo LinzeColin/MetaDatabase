@@ -97,7 +97,9 @@ async function captureCurrentPage() {
     const result = await chrome.runtime.sendMessage({ tabId: requestedTabId, type: "X2N_CAPTURE_CURRENT" });
     if (result?.ok && result.response?.job_id) {
       captureStatus.dataset.jobId = result.response.job_id;
-      captureStatus.textContent = "Current page queued in the local companion";
+      captureStatus.textContent = result.response.status === "completed"
+        ? "Current page committed to the canonical store"
+        : "Current page queued in the local companion";
     } else if (result?.code === "X2N_PLATFORM_CHANGED") {
       captureStatus.textContent = "Page structure changed — capture stopped without saving";
     } else if (result?.status === "active_tab_permission_required") {

@@ -511,7 +511,7 @@ try {
     status: element.textContent,
   }));
   requireCondition(
-    submission.status === "Current page queued in the local companion",
+    submission.status === "Current page committed to the canonical store",
     `${CURRENT_PAGE_CONFIG.metricPrefix}_capture_rejected`,
   );
   const jobId = submission.jobId;
@@ -538,7 +538,7 @@ try {
       jobId,
     );
     if (!state?.ok || state.response?.job_id !== jobId) lostJobs += 1;
-    if (state?.response?.status !== "queued") wrongStatuses += 1;
+    if (state?.response?.status !== "completed") wrongStatuses += 1;
     const availableWorkers = context.serviceWorkers().filter((item) => item.url().startsWith(`chrome-extension://${extensionId}/`));
     if (availableWorkers.length > 0) worker = availableWorkers[0];
     const lifecycleAfter = await lifecycleProbe(worker);
