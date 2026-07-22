@@ -288,11 +288,17 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         d += timedelta(days=1)
     curve.append({"date": today_et.isoformat(), "equity_aud": round(equity_aud, 2),
                   "live": True})
-    prev_equity = curve[-2]["equity_aud"] if len(curve) >= 2 else capital_aud
-    today_pnl_aud = equity_aud - prev_equity
 
     # ---------- 考核卡 ----------
     report = _latest_report(Path(reports_dir))
+    # 报告里的合格交易日早于首笔订单的,是纯现金日 → 以本金为锚补齐曲线起点
+    if report:
+        run_days = (report.get("run", {}) or {}).get("trading_days", []) or []
+        flat = sorted({day for day in run_days
+                       if curve and day < curve[0]["date"]})
+        curve[:0] = [{"date": day, "equity_aud": round(capital_aud, 2)} for day in flat]
+    prev_equity = curve[-2]["equity_aud"] if len(curve) >= 2 else capital_aud
+    today_pnl_aud = equity_aud - prev_equity
     exam = None
     if report:
         promo = report.get("promotion", {})
@@ -343,10 +349,11 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         events.append({"at": _utc(e.executed_at), "kind": "fill",
                        "text": f"成交:{SIDE_CN.get(i.side, i.side)} {i.symbol} "
                                f"{e.quantity} 股 @ {float(e.price):.2f} 美元"})
-    for x in outbox:
-        if x.delivery_status == "DELIVERED" and x.delivered_at:
-            events.append({"at": _utc(x.delivered_at), "kind": "mail",
-                           "text": f"已邮件你:{_email_title(x.event_type)}"})
+    mails = sorted((x for x in outbox if x.delivery_status == "DELIVERED" and x.delivered_at),
+                   key=lambda x: x.delivered_at, reverse=True)
+    for x in mails[:3]:      # 邮件只留最近 3 封,别让告警旧账刷掉交易动作
+        events.append({"at": _utc(x.delivered_at), "kind": "mail",
+                       "text": f"已邮件你:{_email_title(x.event_type)}"})
     events.sort(key=lambda ev: ev["at"], reverse=True)
     timeline = [{"at_syd": f"{ev['at'].astimezone(SYD):%m-%d %H:%M}",
                  "kind": ev["kind"], "text": ev["text"]} for ev in events[:24]]
