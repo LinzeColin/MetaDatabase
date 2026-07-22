@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed verifier for TSK.x2n.adapters.002."""
+"""Fail-closed verifier for TSK.x2n.adapters.003."""
 
 from __future__ import annotations
 
@@ -22,8 +22,8 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PROJECT_ROOT.parent
 PREVIOUS_SPEC = importlib.util.spec_from_file_location(
-    "verify_adapters_001_for_adapters_002",
-    PROJECT_ROOT / "scripts/verify_adapters_001.py",
+    "verify_adapters_002_for_adapters_003",
+    PROJECT_ROOT / "scripts/verify_adapters_002.py",
 )
 assert PREVIOUS_SPEC and PREVIOUS_SPEC.loader
 PREVIOUS = importlib.util.module_from_spec(PREVIOUS_SPEC)
@@ -34,7 +34,6 @@ VerificationError = PREVIOUS.VerificationError
 Check = PREVIOUS.Check
 _require = PREVIOUS._require
 _load_json = PREVIOUS._load_json
-_load_json_at = PREVIOUS._load_json_at
 _read_blob_at = PREVIOUS._read_blob_at
 _git = PREVIOUS._git
 _porcelain_paths = PREVIOUS._porcelain_paths
@@ -47,33 +46,32 @@ _isolated_env = PREVIOUS._isolated_env
 _run_external = PREVIOUS._run_external
 _json_line = PREVIOUS._json_line
 
-TASK_ID = "TSK.x2n.adapters.002"
-RUN_ID = "RUN-X2N-S03-A002"
-PHASE = "PH.X2N.3.2"
-BRANCH = "codex/xhs-douyin-2notion-v0001-s03-adapters002"
-TASK_BASE_COMMIT = "ea44053528a6cdec342fff946a35a525e8daf385"
-FINAL_COMMIT = "050ec0c93ff4b1d6020a5c8e12f79320fc401f53"
-ORIGIN_CUTOFF = PREVIOUS.TASK_BASE_COMMIT
+TASK_ID = "TSK.x2n.adapters.003"
+RUN_ID = "RUN-X2N-S03-A003"
+PHASE = "PH.X2N.3.3"
+BRANCH = "codex/xhs-douyin-2notion-v0001-s03-adapters003"
+TASK_BASE_COMMIT = "050ec0c93ff4b1d6020a5c8e12f79320fc401f53"
+ORIGIN_CUTOFF = PREVIOUS.ORIGIN_CUTOFF
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 ACCEPTANCE = PROJECT_ROOT / "docs/product_design/v0.0.0.1/04_ACCEPTANCE_CONTRACT_TRACEABILITY.md"
-RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S03_ADAPTERS_002.md"
+RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S03_ADAPTERS_003.md"
 TASK_STATE = PROJECT_ROOT / "machine/facts/task_state.json"
 PROJECT_FACT = PROJECT_ROOT / "machine/facts/project.json"
 ARCHITECTURE_FACT = PROJECT_ROOT / "machine/facts/architecture_decisions.json"
-POLICY = PROJECT_ROOT / "machine/policy/xhs_favorites_policy.json"
-FIXTURE = PROJECT_ROOT / "packages/test-fixtures/adapters/v1/xhs_favorites/fixture_manifest.json"
-DOM_FIXTURE = PROJECT_ROOT / "packages/test-fixtures/adapters/v1/xhs_favorites/dom/fixture_manifest.json"
+POLICY = PROJECT_ROOT / "machine/policy/xhs_likes_policy.json"
+FIXTURE = PROJECT_ROOT / "packages/test-fixtures/adapters/v1/xhs_likes/fixture_manifest.json"
+DOM_FIXTURE = PROJECT_ROOT / "packages/test-fixtures/adapters/v1/xhs_likes/dom/fixture_manifest.json"
 GLOBAL_FIXTURE_MANIFEST = PROJECT_ROOT / "machine/policy/synthetic_fixture_manifest.json"
 ARTIFACT_POLICY = PROJECT_ROOT / "machine/policy/artifact_allowlist.json"
-EXTENSION_SOURCE = PROJECT_ROOT / "apps/extension/src/xhs-favorites.js"
-EXTENSION_RUNNER = PROJECT_ROOT / "apps/extension/scripts/xhs-favorites-fixture-e2e.mjs"
+EXTENSION_SOURCE = PROJECT_ROOT / "apps/extension/src/xhs-likes.js"
+EXTENSION_RUNNER = PROJECT_ROOT / "apps/extension/scripts/xhs-likes-fixture-e2e.mjs"
 EXTENSION_PACKAGE = PROJECT_ROOT / "apps/extension/package.json"
-COMPANION_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/xiaohongshu_favorites.py"
-COMPANION_TEST = PROJECT_ROOT / "apps/companion/tests/test_xiaohongshu_favorites.py"
+COMPANION_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/xiaohongshu_likes.py"
+COMPANION_TEST = PROJECT_ROOT / "apps/companion/tests/test_xiaohongshu_likes.py"
 CLI_SOURCE = PROJECT_ROOT / "apps/companion/src/x2n_companion/runtime_cli.py"
-CHAOS_WORKER = PROJECT_ROOT / "scripts/xhs_favorites_chaos_worker.py"
-ACCEPTANCE_RUNNER = PROJECT_ROOT / "scripts/run_adapters_002_acceptance.py"
-EVIDENCE = PROJECT_ROOT / "evidence/adapters/TSK.x2n.adapters.002.json"
+CHAOS_WORKER = PROJECT_ROOT / "scripts/xhs_likes_chaos_worker.py"
+ACCEPTANCE_RUNNER = PROJECT_ROOT / "scripts/run_adapters_003_acceptance.py"
+EVIDENCE = PROJECT_ROOT / "evidence/adapters/TSK.x2n.adapters.003.json"
 
 UNCHANGED_SECURITY_SURFACES = (
     PROJECT_ROOT / "apps/extension/manifest.json",
@@ -91,45 +89,45 @@ ALLOWED_CHANGED_EXACT = {
     "HANDOFF.md",
     "README.md",
     "apps/companion/src/x2n_companion/runtime_cli.py",
-    "apps/companion/src/x2n_companion/xiaohongshu_favorites.py",
-    "apps/companion/tests/test_xiaohongshu_favorites.py",
+    "apps/companion/src/x2n_companion/xiaohongshu_likes.py",
+    "apps/companion/tests/test_xiaohongshu_likes.py",
     "apps/extension/package.json",
-    "apps/extension/scripts/xhs-favorites-fixture-e2e.mjs",
-    "apps/extension/src/xhs-favorites.js",
-    "docs/governance/RUN_CONTRACT_S03_ADAPTERS_002.md",
+    "apps/extension/scripts/xhs-likes-fixture-e2e.mjs",
+    "apps/extension/src/xhs-likes.js",
+    "docs/governance/RUN_CONTRACT_S03_ADAPTERS_003.md",
     "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml",
-    "evidence/adapters/TSK.x2n.adapters.002.json",
+    "evidence/adapters/TSK.x2n.adapters.003.json",
     "machine/facts/architecture_decisions.json",
     "machine/facts/project.json",
     "machine/facts/task_state.json",
     "machine/policy/artifact_allowlist.json",
     "machine/policy/synthetic_fixture_manifest.json",
-    "machine/policy/xhs_favorites_policy.json",
-    "scripts/run_adapters_002_acceptance.py",
-    "scripts/verify_adapters_001.py",
+    "machine/policy/xhs_likes_policy.json",
+    "scripts/run_adapters_003_acceptance.py",
     "scripts/verify_adapters_002.py",
-    "scripts/verify_skeleton_009.py",
-    "scripts/xhs_favorites_chaos_worker.py",
-    "tests/test_adapters_001.py",
+    "scripts/verify_adapters_003.py",
+    "scripts/xhs_likes_chaos_worker.py",
     "tests/test_adapters_002.py",
+    "tests/test_adapters_003.py",
     "功能清单.md",
     "开发记录.md",
 }
-ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/adapters/v1/xhs_favorites/",)
+ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/adapters/v1/xhs_likes/",)
 
 
 def validate_scope() -> Check:
-    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
-    committed = _git(
-        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}"]
-    ).splitlines()
+    _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
+    committed = _git(["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]).splitlines()
+    working = _porcelain_paths(
+        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
+    )
     relative_changes: list[str] = []
-    for path in sorted(set(committed)):
+    for path in sorted(set(committed + working)):
         relative = _project_relative(path)
-        _require(relative is not None, "Adapters002 changed scope escaped x2n")
+        _require(relative is not None, "Adapters003 changed scope escaped x2n")
         _require(
             relative in ALLOWED_CHANGED_EXACT or relative.startswith(ALLOWED_CHANGED_PREFIXES),
-            f"unregistered Adapters002 change: {relative}",
+            f"unregistered Adapters003 change: {relative}",
         )
         relative_changes.append(relative)
 
@@ -183,7 +181,8 @@ def validate_scope() -> Check:
         ".pfx",
     }
     _require(
-        not any(path.suffix.lower() in forbidden_suffixes for path in files), "private Runtime artifact entered x2n"
+        not any(path.suffix.lower() in forbidden_suffixes for path in files),
+        "private Runtime artifact entered x2n",
     )
     return Check(
         "scope_and_public_private_boundary",
@@ -201,8 +200,7 @@ def validate_scope() -> Check:
 
 def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    current_branch = _git(["branch", "--show-current"])
-    _require(current_branch not in {"", "main"}, "Adapters002 regression requires a non-main worktree")
+    _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Adapters003 worktree branch")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
         re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
@@ -211,21 +209,12 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
     )
     _require(
         subprocess.run(
-            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, FINAL_COMMIT],
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"],
             cwd=REPOSITORY_ROOT,
             check=False,
         ).returncode
         == 0,
-        "Adapters002 final commit no longer descends from Adapters001",
-    )
-    _require(
-        subprocess.run(
-            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
-            cwd=REPOSITORY_ROOT,
-            check=False,
-        ).returncode
-        == 0,
-        "current worktree no longer descends from the Adapters002 final commit",
+        "Adapters003 branch no longer descends from Adapters002",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
@@ -264,9 +253,8 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "worktree_isolation",
         "PASS",
         {
-            "current_branch": current_branch,
+            "branch": BRANCH,
             "external_main_dirty_paths": len(main_paths),
-            "historical_branch": BRANCH,
             "origin_drift_commits": int(_git(["rev-list", "--count", f"{ORIGIN_CUTOFF}..{live_origin}"])),
             "origin_project_overlap": origin_overlap,
             "project_overlap_paths": main_overlap,
@@ -275,20 +263,20 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
 
 
 def validate_predecessor() -> Check:
-    _require(PREVIOUS.FINAL_COMMIT == TASK_BASE_COMMIT, "Adapters001 final pin differs from Adapters002 base")
+    _require(PREVIOUS.FINAL_COMMIT == TASK_BASE_COMMIT, "Adapters002 final pin differs from Adapters003 base")
     _require(
         PREVIOUS.EVIDENCE.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, PREVIOUS.EVIDENCE),
-        "Adapters001 evidence was rewritten",
+        "Adapters002 evidence was rewritten",
     )
     checks = PREVIOUS.run_checks(
         verify_worktree=False,
         allow_external_main_dirty=False,
         run_external=False,
     )
-    _require(all(item.status == "PASS" for item in checks), "Adapters001 historical regression failed")
+    _require(all(item.status == "PASS" for item in checks), "Adapters002 historical regression failed")
     PREVIOUS.verify_evidence()
     return Check(
-        "adapters_001_fixed_predecessor",
+        "adapters_002_fixed_predecessor",
         "PASS",
         {
             "evidence_mutations": 0,
@@ -299,29 +287,30 @@ def validate_predecessor() -> Check:
 
 
 def validate_task_and_state() -> Check:
-    taskpack_text = _read_blob_at(FINAL_COMMIT, TASKPACK).decode("utf-8")
+    taskpack_text = TASKPACK.read_text(encoding="utf-8")
     base_taskpack = _read_blob_at(TASK_BASE_COMMIT, TASKPACK).decode("utf-8")
     task = _task_block(taskpack_text, TASK_ID)
     base_task = _task_block(base_taskpack, TASK_ID)
-    _require(_field(task, "status") == "completed", "Adapters002 Task is not completed")
+    _require(_field(task, "status") == "completed", "Adapters003 Task is not completed")
     _require(_field(task, "stage") == "STG.X2N.3" and _field(task, "phase") == PHASE, "Task routing drifted")
     _require(
         _list_field(task, "depends_on") == ["TSK.x2n.adapters.001", "TSK.x2n.skeleton.001", "TSK.x2n.skeleton.004"],
-        "Adapters002 dependency drifted",
+        "Adapters003 dependency drifted",
     )
     _require(
-        _list_field(task, "acceptance_ids") == ["ACC.x2n.xhs.001", "ACC.x2n.xhs.003", "ACC.x2n.batch.001"],
-        "Adapters002 Acceptance drifted",
+        _list_field(task, "acceptance_ids") == ["ACC.x2n.xhs.002", "ACC.x2n.xhs.003", "ACC.x2n.batch.001"],
+        "Adapters003 Acceptance drifted",
     )
     _require(task == base_task.replace("  status: planned\n", "  status: completed\n", 1), "Task changed beyond status")
     _require(
-        _task_block(taskpack_text, "TSK.x2n.adapters.003") == _task_block(base_taskpack, "TSK.x2n.adapters.003"),
-        "Adapters003 was entered by this Run",
+        _task_block(taskpack_text, "TSK.x2n.adapters.004") == _task_block(base_taskpack, "TSK.x2n.adapters.004"),
+        "Adapters004 was entered by this Run",
     )
     taskpack = yaml.safe_load(taskpack_text)
     _require(isinstance(taskpack, dict), "Task Pack root must be an object")
     _require(
-        taskpack.get("project", {}).get("status") == "STAGE_3_ADAPTERS_002_PASS_G3_NOT_RUN", "Task Pack status drifted"
+        taskpack.get("project", {}).get("status") == "STAGE_3_ADAPTERS_003_PASS_G3_NOT_RUN",
+        "Task Pack status drifted",
     )
     authorization = taskpack.get("authorization", {})
     _require(
@@ -331,14 +320,14 @@ def validate_task_and_state() -> Check:
         "Task Pack authorization drifted",
     )
 
-    state = _load_json_at(FINAL_COMMIT, TASK_STATE)
-    _require(state.get("schema_version") == "1.20", "task state schema drifted")
+    state = _load_json(TASK_STATE)
+    _require(state.get("schema_version") == "1.21", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.3" and state.get("last_completed_phase") == PHASE, "phase drifted")
     _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Run drifted")
-    _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Adapters002 state is not pass")
-    _require("TSK.x2n.adapters.003" not in state.get("tasks", {}), "Adapters003 state was entered")
+    _require(state.get("tasks", {}).get(TASK_ID) == "pass", "Adapters003 state is not pass")
+    _require("TSK.x2n.adapters.004" not in state.get("tasks", {}), "Adapters004 state was entered")
     _require(
-        state.get("next_phase") == "PH.X2N.3.3" and state.get("next_run") == "TSK.x2n.adapters.003",
+        state.get("next_phase") == "PH.X2N.3.4" and state.get("next_run") == "TSK.x2n.adapters.004",
         "next Task routing drifted",
     )
     _require(
@@ -348,9 +337,9 @@ def validate_task_and_state() -> Check:
     )
     acceptance = state.get("acceptance_status", {})
     _require(
-        acceptance.get("ACC.x2n.xhs.001")
-        == "pass_ci_synth_dom_collection_and_canary_tooling_owner_alpha_not_run_real_page_disabled",
-        "XHS favorites Owner Acceptance boundary drifted",
+        acceptance.get("ACC.x2n.xhs.002")
+        == "pass_ci_synth_dom_unclassified_inbox_duplicate_content_0_canary_tooling_owner_alpha_not_run_real_page_disabled",
+        "XHS likes Owner Acceptance boundary drifted",
     )
     _require(
         acceptance.get("ACC.x2n.xhs.003") == "pass_ci_synth_100_items_50_process_kills_exact_resume_auto_scroll_0",
@@ -358,13 +347,13 @@ def validate_task_and_state() -> Check:
     )
     _require(
         acceptance.get("ACC.x2n.batch.001")
-        == "pass_ci_synth_5_non_authoritative_removed_0_adapter002_physical_and_content_delete_0_reconciliation_downstream_not_run",
+        == "pass_ci_synth_5_non_authoritative_removed_0_adapter003_physical_content_and_unlike_delete_0_reconciliation_downstream_not_run",
         "batch Acceptance drifted",
     )
     _require(
-        state.get("xhs_favorites_execution")
-        == "pass_ci_synth_visible_dom_100_items_50_process_kills_two_collections_canary_tooling_owner_alpha_not_run_real_page_disabled",
-        "XHS favorites execution boundary drifted",
+        state.get("xhs_likes_execution")
+        == "pass_ci_synth_visible_dom_100_items_50_process_kills_unclassified_inbox_20_favorite_overlap_canary_tooling_owner_alpha_not_run_real_page_disabled",
+        "XHS likes execution boundary drifted",
     )
     for field in (
         "owner_profile_login",
@@ -376,17 +365,17 @@ def validate_task_and_state() -> Check:
     ):
         _require(state.get(field) == "not_run", f"external execution overstated: {field}")
     _require(
-        _load_json_at(FINAL_COMMIT, PROJECT_FACT).get("status") == "stage_3_adapters_002_pass_g3_not_run",
+        _load_json(PROJECT_FACT).get("status") == "stage_3_adapters_003_pass_g3_not_run",
         "project status drifted",
     )
-    architecture = _load_json_at(FINAL_COMMIT, ARCHITECTURE_FACT)
+    architecture = _load_json(ARCHITECTURE_FACT)
     _require(
         architecture.get("phase") == PHASE
         and architecture.get("stage_gate") == "g3_not_run"
         and architecture.get("real_account_execution") is False,
         "architecture state drifted",
     )
-    contract = _read_blob_at(FINAL_COMMIT, RUN_CONTRACT).decode("utf-8")
+    contract = RUN_CONTRACT.read_text(encoding="utf-8")
     for value in (TASK_ID, RUN_ID, PHASE, TASK_BASE_COMMIT, BRANCH, "PASS_CI_SYNTH_SCOPED"):
         _require(value in contract, f"Run Contract identity missing: {value}")
     return Check(
@@ -394,7 +383,7 @@ def validate_task_and_state() -> Check:
         "PASS",
         {
             "acceptance_ids": 3,
-            "next_task": "TSK.x2n.adapters.003",
+            "next_task": "TSK.x2n.adapters.004",
             "owner_canary": "NOT_RUN",
             "phase": PHASE,
             "single_task": True,
@@ -404,33 +393,35 @@ def validate_task_and_state() -> Check:
 
 
 def validate_policy_and_implementation() -> Check:
-    policy = _load_json_at(FINAL_COMMIT, POLICY)
+    policy = _load_json(POLICY)
     _require(
-        policy.get("policy_id") == "POLICY.X2N.XHS-FAVORITES.001"
+        policy.get("policy_id") == "POLICY.X2N.XHS-LIKES.001"
         and policy.get("task_id") == TASK_ID
         and policy.get("default") == "deny",
-        "XHS favorites policy identity drifted",
+        "XHS likes policy identity drifted",
     )
     research = policy.get("official_research", {})
     _require(
-        research.get("personal_ui_self_access") == "documented"
-        and research.get("personal_favorites_read_api") == "not_found_in_reviewed_official_sources"
+        research.get("personal_ui_self_access") == "documented_for_my_notes_favorites_and_likes"
+        and research.get("personal_likes_read_api") == "not_found_in_reviewed_official_sources"
         and research.get("inference_not_claim_of_nonexistence") is True
-        and len(research.get("sources", [])) == 5,
+        and len(research.get("sources", [])) == 4,
         "official research boundary drifted",
     )
     flags = policy.get("feature_gate", {})
     clean = policy.get("clean_room", {})
+    inbox = policy.get("inbox_policy", {})
+    identity = policy.get("canonical_identity", {})
     checkpoint = policy.get("checkpoint", {})
     deletion = policy.get("deletion_protection", {})
     canary = policy.get("canary", {})
     _require(
-        flags.get("flag") == "xhs_favorites"
+        flags.get("flag") == "xhs_likes"
         and flags.get("ci_synthetic_enabled") is True
         and flags.get("owner_canary_enabled") is False
         and flags.get("production_enabled") is False
         and flags.get("current_page_fallback_preserved") is True,
-        "XHS favorites feature gate drifted",
+        "XHS likes feature gate drifted",
     )
     _require(
         clean.get("chrome_permission") == "activeTab_after_explicit_owner_action"
@@ -439,9 +430,12 @@ def validate_policy_and_implementation() -> Check:
         and clean.get("network_transport") is False
         and clean.get("private_or_undocumented_endpoint") is False
         and clean.get("cookie_or_credential_access") is False
+        and clean.get("browser_profile_read") is False
         and clean.get("automatic_scroll") is False
         and clean.get("automatic_pagination") is False
+        and clean.get("event_synthesis") is False
         and clean.get("account_state_change") is False
+        and clean.get("unlike_or_like_mutation") is False
         and clean.get("verification_bypass") is False
         and clean.get("max_visible_items_per_action") == 20
         and clean.get("max_concurrent_adapters") == 1
@@ -449,8 +443,25 @@ def validate_policy_and_implementation() -> Check:
         "clean-room policy drifted",
     )
     _require(
+        inbox.get("default_disposition") == "unclassified"
+        and inbox.get("automatic_filing") is False
+        and inbox.get("automatic_classification_writes") == 0
+        and inbox.get("taxonomy_mutations") == 0
+        and inbox.get("ai_top_level_category_creation") is False
+        and inbox.get("existing_owner_classification_preserved") is True,
+        "conservative Inbox policy drifted",
+    )
+    _require(
+        identity.get("content_key") == "platform_plus_stable_content_id"
+        and identity.get("relation_key") == "account_plus_content_plus_liked"
+        and identity.get("liked_and_favorited_may_coexist") is True
+        and identity.get("duplicate_content_rows_allowed") == 0
+        and identity.get("source_collection_for_liked") is None,
+        "Content/relation identity drifted",
+    )
+    _require(
         checkpoint.get("canonical_store") == "sqlite"
-        and checkpoint.get("resume_compatibility_version") == "xhs-favorites-1.0.0"
+        and checkpoint.get("resume_compatibility_version") == "xhs-likes-1.0.0"
         and checkpoint.get("unknown_or_partial_advances_cursor") is False
         and checkpoint.get("bounded_canary_is_full_scan") is False
         and checkpoint.get("full_scan_requires_authoritative_visible_end") is True
@@ -462,6 +473,7 @@ def validate_policy_and_implementation() -> Check:
         and deletion.get("removed_count") == 0
         and deletion.get("physical_delete_count") == 0
         and deletion.get("automatic_content_delete_count") == 0
+        and deletion.get("unlike_automation_count") == 0
         and deletion.get("relation_reconciliation_owner_task") == "TSK.x2n.adapters.005",
         "deletion policy drifted",
     )
@@ -473,16 +485,18 @@ def validate_policy_and_implementation() -> Check:
         "Canary boundary drifted",
     )
 
-    extension = _read_blob_at(FINAL_COMMIT, EXTENSION_SOURCE).decode("utf-8")
-    companion = _read_blob_at(FINAL_COMMIT, COMPANION_SOURCE).decode("utf-8")
-    cli = _read_blob_at(FINAL_COMMIT, CLI_SOURCE).decode("utf-8")
-    runner = _read_blob_at(FINAL_COMMIT, EXTENSION_RUNNER).decode("utf-8")
+    extension = EXTENSION_SOURCE.read_text(encoding="utf-8")
+    companion = COMPANION_SOURCE.read_text(encoding="utf-8")
+    cli = CLI_SOURCE.read_text(encoding="utf-8")
+    runner = EXTENSION_RUNNER.read_text(encoding="utf-8")
     for token in (
-        "extractXhsFavoritesVisibleBatch",
-        "validateXhsFavoritesBatch",
-        "maxItems = 20",
+        "extractXhsLikesVisibleBatch",
+        "validateXhsLikesBatch",
+        "const maxItems = 20",
         "automatic_scroll: false",
         "explicit_owner_action: true",
+        'disposition: "unclassified"',
+        "taxonomy_mutation: false",
         "bounded_limit_reached",
         "authoritative_end",
     ):
@@ -498,22 +512,23 @@ def validate_policy_and_implementation() -> Check:
     ):
         _require(forbidden not in extension, f"forbidden Extension surface entered: {forbidden}")
     for token in (
-        "class XhsFavoritesAdapter",
-        "class XhsFavoritesBatchCoordinator",
-        'RESUME_COMPATIBILITY_VERSION = "xhs-favorites-1.0.0"',
-        "bounded_scope_complete",
-        "authoritative_visible_end",
-        "SourceMethod.SELECTED_COLLECTION",
-        "RelationType.FAVORITED",
+        "class XhsLikesAdapter",
+        "class XhsLikesBatchCoordinator",
+        'RESUME_COMPATIBILITY_VERSION = "xhs-likes-1.0.0"',
+        'inbox_disposition: Literal["unclassified"]',
+        "RelationType.LIKED",
+        "source_collection_id=None",
+        'automatic_classification_writes": 0',
+        'taxonomy_mutations": 0',
         "full_scan_id = None",
     ):
         _require(token in companion, f"Companion implementation missing: {token}")
     for forbidden in ("requests.get(", "urllib.request", "httpx.", "selenium", "playwright"):
         _require(forbidden not in companion, f"forbidden Companion transport entered: {forbidden}")
     _require(
-        'subparsers.add_parser("xhs-favorites")' in cli
-        and 'favorites_actions.add_parser("canary-plan")' in cli
-        and "build_xhs_favorites_canary_plan" in cli,
+        'subparsers.add_parser("xhs-likes")' in cli
+        and 'likes_actions.add_parser("canary-plan")' in cli
+        and "build_xhs_likes_canary_plan" in cli,
         "non-executing Canary CLI is missing",
     )
     _require(
@@ -522,50 +537,48 @@ def validate_policy_and_implementation() -> Check:
         and "network_calls: unexpectedRequests.length" in runner,
         "DOM runner isolation is missing",
     )
-    package = _load_json_at(FINAL_COMMIT, EXTENSION_PACKAGE)
+    package = _load_json(EXTENSION_PACKAGE)
     _require(
-        package.get("scripts", {}).get("test:xhs-favorites-fixtures") == "node scripts/xhs-favorites-fixture-e2e.mjs",
+        package.get("scripts", {}).get("test:xhs-likes-fixtures") == "node scripts/xhs-likes-fixture-e2e.mjs",
         "Extension fixture script is not registered",
     )
     for path in UNCHANGED_SECURITY_SURFACES:
-        _require(
-            _read_blob_at(FINAL_COMMIT, path) == _read_blob_at(TASK_BASE_COMMIT, path),
-            f"security surface changed: {path.name}",
-        )
-    artifact = _load_json_at(FINAL_COMMIT, ARTIFACT_POLICY)
+        _require(path.read_bytes() == _read_blob_at(TASK_BASE_COMMIT, path), f"security surface changed: {path.name}")
+    artifact = _load_json(ARTIFACT_POLICY)
     enforcement = artifact.get("enforcement", [])
     for required in (
-        "apps/extension/scripts/xhs-favorites-fixture-e2e.mjs",
-        "scripts/run_adapters_002_acceptance.py",
-        "scripts/verify_adapters_002.py",
+        "apps/extension/scripts/xhs-likes-fixture-e2e.mjs",
+        "scripts/run_adapters_003_acceptance.py",
+        "scripts/verify_adapters_003.py",
     ):
-        _require(required in enforcement, f"Adapters002 enforcement is not registered: {required}")
+        _require(required in enforcement, f"Adapters003 enforcement is not registered: {required}")
     return Check(
-        "clean_room_policy_and_implementation",
+        "clean_room_inbox_policy_and_implementation",
         "PASS",
         {
+            "automatic_classification_writes": 0,
             "automatic_pagination": 0,
             "automatic_scrolls": 0,
             "canary_item_limit": 20,
             "host_permissions": 0,
-            "native_contract_changes": 0,
             "network_transports": 0,
             "owner_canary": "NOT_RUN",
             "production_enabled": False,
             "sqlite_migrations": 0,
+            "taxonomy_mutations": 0,
         },
     )
 
 
 def validate_fixtures() -> Check:
-    fixture = _load_json_at(FINAL_COMMIT, FIXTURE)
-    dom = _load_json_at(FINAL_COMMIT, DOM_FIXTURE)
+    fixture = _load_json(FIXTURE)
+    dom = _load_json(DOM_FIXTURE)
     _require(
-        fixture.get("fixture_id") == "FIXTURE.X2N.S03.A002.001"
+        fixture.get("fixture_id") == "FIXTURE.X2N.S03.A003.001"
         and fixture.get("synthetic") is True
-        and dom.get("fixture_id") == "FIXTURE.X2N.S03.A002.DOM.001"
+        and dom.get("fixture_id") == "FIXTURE.X2N.S03.A003.DOM.001"
         and dom.get("synthetic") is True,
-        "Adapters002 fixture identity drifted",
+        "Adapters003 fixture identity drifted",
     )
     for field in (
         "contains_accounts",
@@ -582,13 +595,26 @@ def validate_fixtures() -> Check:
         and chaos.get("batch_size") == 20
         and chaos.get("owner_actions") == 5
         and chaos.get("kill_runs") == 50
+        and chaos.get("favorite_overlap_items") == 20
+        and chaos.get("expected_content_rows") == 100
+        and chaos.get("expected_liked_relations") == 100
+        and chaos.get("expected_favorited_relations") == 20
+        and chaos.get("expected_total_relations") == 120
         and chaos.get("automatic_scrolls") == 0
         and chaos.get("expected_lost_ids") == 0
+        and chaos.get("expected_duplicate_content_rows") == 0
         and chaos.get("expected_duplicate_side_effects") == 0
         and chaos.get("expected_infinite_loops") == 0,
         "chaos fixture drifted",
     )
-    _require(len(fixture.get("collection_cases", [])) == 2, "collection fixture drifted")
+    inbox = fixture.get("inbox_policy", {})
+    _require(
+        inbox.get("disposition") == "unclassified"
+        and inbox.get("automatic_filing") is False
+        and inbox.get("automatic_classification_writes") == 0
+        and inbox.get("taxonomy_mutations") == 0,
+        "Inbox fixture drifted",
+    )
     non_authoritative = fixture.get("non_authoritative_cases", [])
     _require(
         len(non_authoritative) == 5 and all(row.get("removed") == 0 for row in non_authoritative),
@@ -600,27 +626,27 @@ def validate_fixtures() -> Check:
     for row in cases:
         path = DOM_FIXTURE.parent / str(row.get("file"))
         _require(path.is_file(), "DOM fixture file is missing")
-        rendered = _read_blob_at(FINAL_COMMIT, path).decode("utf-8")
+        rendered = path.read_text(encoding="utf-8")
         _require("http://" not in rendered, "DOM fixture contains an insecure URL")
-    global_rows = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST).get("fixtures", [])
+    global_rows = _load_json(GLOBAL_FIXTURE_MANIFEST).get("fixtures", [])
     _require(
         {
-            "id": "FIXTURE.X2N.S03.A002.001",
-            "path": "packages/test-fixtures/adapters/v1/xhs_favorites/fixture_manifest.json",
+            "id": "FIXTURE.X2N.S03.A003.001",
+            "path": "packages/test-fixtures/adapters/v1/xhs_likes/fixture_manifest.json",
             "case_count": 107,
-            "purpose": "Xiaohongshu visible favorites DOM, two collection mappings, 100-item durable checkpoint and 50 process-kill recovery",
+            "purpose": "Xiaohongshu visible likes DOM, conservative unclassified Inbox, 20 favorite overlaps, 100-item durable checkpoint and 50 process-kill recovery",
         }
         in global_rows,
-        "Adapters002 fixture is not globally registered",
+        "Adapters003 fixture is not globally registered",
     )
     return Check(
-        "synthetic_dom_checkpoint_and_deletion_fixtures",
+        "synthetic_dom_identity_inbox_checkpoint_and_deletion_fixtures",
         "PASS",
         {
             "automatic_scrolls": 0,
             "chaos_items": 100,
-            "collection_cases": 2,
             "dom_cases": 7,
+            "favorite_overlap_items": 20,
             "kill_runs": 50,
             "non_authoritative_cases": 5,
             "removed_relations": 0,
@@ -630,20 +656,20 @@ def validate_fixtures() -> Check:
 
 
 def validate_execution() -> Check:
-    with tempfile.TemporaryDirectory(prefix="x2n-a002-verify-") as value:
+    with tempfile.TemporaryDirectory(prefix="x2n-a003-verify-") as value:
         home = Path(value) / "home"
         home.mkdir(mode=0o700)
         output = _json_line(
             _run_external(
-                "adapters_002_acceptance",
+                "adapters_003_acceptance",
                 (sys.executable, "-B", str(ACCEPTANCE_RUNNER)),
                 env=_isolated_env(home),
                 timeout=900,
             ),
-            "Adapters002 acceptance",
+            "Adapters003 acceptance",
         )
     expected = {
-        "acceptance_scope": "ADAPTERS_002_XHS_FAVORITES_CI_SYNTH",
+        "acceptance_scope": "ADAPTERS_003_XHS_LIKES_CI_SYNTH",
         "automatic_scrolls": 0,
         "canary_item_limit": 20,
         "canary_tooling": "PASS_NONEXECUTING",
@@ -659,22 +685,29 @@ def validate_execution() -> Check:
         "task_id": TASK_ID,
     }
     for field, value in expected.items():
-        _require(output.get(field) == value, f"Adapters002 acceptance metric drifted: {field}")
+        _require(output.get(field) == value, f"Adapters003 acceptance metric drifted: {field}")
     chaos = output.get("chaos", {})
     _require(
         chaos.get("kill_runs") == 50
         and chaos.get("final_id_set_exact") is True
         and chaos.get("lost_ids") == 0
+        and chaos.get("duplicate_content_rows") == 0
         and chaos.get("duplicate_side_effects") == 0
         and chaos.get("infinite_loops") == 0
         and chaos.get("resume_from_durable_checkpoint") is True
-        and chaos.get("observation_count") == 100
-        and chaos.get("relation_count") == 100
-        and chaos.get("collection_count") == 2
+        and chaos.get("content_count") == 100
+        and chaos.get("liked_relation_count") == 100
+        and chaos.get("favorited_relation_count") == 20
+        and chaos.get("relation_count") == 120
+        and chaos.get("likes_observation_count") == 100
+        and chaos.get("observation_count") == 120
+        and chaos.get("automatic_classification_writes") == 0
+        and chaos.get("taxonomy_mutations") == 0
         and chaos.get("removed_relations") == 0
+        and chaos.get("tombstone_candidates") == 0
         and chaos.get("physical_deletes") == 0
         and chaos.get("content_auto_deletes") == 0,
-        "Adapters002 chaos acceptance failed",
+        "Adapters003 chaos acceptance failed",
     )
     dom = output.get("dom", {})
     _require(
@@ -684,29 +717,34 @@ def validate_execution() -> Check:
         and dom.get("error_evidence") == 5
         and dom.get("network_calls") == 0
         and dom.get("platform_calls") == 0,
-        "Adapters002 DOM acceptance failed",
+        "Adapters003 DOM acceptance failed",
     )
     unit = output.get("unit_suite", {})
     _require(
-        unit.get("tests") == 13 and unit.get("errors") == 0 and unit.get("failures") == 0 and unit.get("skips") == 0,
-        "Adapters002 unit acceptance failed",
+        unit.get("tests") == 14 and unit.get("errors") == 0 and unit.get("failures") == 0 and unit.get("skips") == 0,
+        "Adapters003 unit acceptance failed",
     )
     return Check(
-        "xhs_favorites_acceptance",
+        "xhs_likes_acceptance",
         "PASS",
         {
+            "automatic_classification_writes": 0,
             "automatic_scrolls": 0,
             "canary_item_limit": 20,
             "chaos_items": 100,
-            "collection_count": 2,
+            "content_count": 100,
             "dom_cases": 7,
+            "duplicate_content_rows": 0,
             "duplicate_side_effects": 0,
+            "favorited_relations": 20,
             "kill_runs": 50,
+            "liked_relations": 100,
             "lost_ids": 0,
             "owner_canary": "NOT_RUN",
             "platform_calls": 0,
             "removed_relations": 0,
-            "unit_tests": 13,
+            "taxonomy_mutations": 0,
+            "unit_tests": 14,
         },
     )
 
@@ -735,7 +773,7 @@ def _acceptance_input_receipt() -> str:
     ):
         digest.update(path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
-        digest.update(_read_blob_at(FINAL_COMMIT, path))
+        digest.update(path.read_bytes())
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -749,15 +787,15 @@ def _safe_evidence(payload: dict[str, Any]) -> None:
 
 def write_evidence(checks: list[Check]) -> None:
     details = {item.name: item.details for item in checks}
-    acceptance = details.get("xhs_favorites_acceptance", {})
+    acceptance = details.get("xhs_likes_acceptance", {})
     lane = details.get("full_lane_replay", {})
     _require(acceptance and lane, "final evidence requires acceptance and full lane")
     payload = {
-        "acceptance_ids": ["ACC.x2n.xhs.001", "ACC.x2n.xhs.003", "ACC.x2n.batch.001"],
+        "acceptance_ids": ["ACC.x2n.xhs.002", "ACC.x2n.xhs.003", "ACC.x2n.batch.001"],
         "acceptance_input_sha256": _acceptance_input_receipt(),
         "acceptance_status": {
             "ACC.x2n.batch.001": "PASS_CI_SYNTH_NON_AUTHORITATIVE_REMOVED_0_RECONCILIATION_DOWNSTREAM_NOT_RUN",
-            "ACC.x2n.xhs.001": "PASS_CI_SYNTH_DOM_COLLECTION_CANARY_TOOLING_OWNER_ALPHA_NOT_RUN",
+            "ACC.x2n.xhs.002": "PASS_CI_SYNTH_DOM_UNCLASSIFIED_INBOX_OWNER_ALPHA_NOT_RUN",
             "ACC.x2n.xhs.003": "PASS_CI_SYNTH_100_ITEMS_50_PROCESS_KILLS_EXACT_RESUME",
         },
         "checks": [{"name": item.name, "status": item.status, "details": item.details} for item in checks],
@@ -777,17 +815,21 @@ def write_evidence(checks: list[Check]) -> None:
         "status": "PASS_CI_SYNTH_SCOPED",
         "task_id": TASK_ID,
         "task_metrics": {
+            "automatic_classification_writes": acceptance.get("automatic_classification_writes"),
             "automatic_scrolls": acceptance.get("automatic_scrolls"),
             "blocking_executions": lane.get("blocking_executions"),
             "canary_item_limit": acceptance.get("canary_item_limit"),
             "chaos_items": acceptance.get("chaos_items"),
-            "collection_count": acceptance.get("collection_count"),
+            "content_count": acceptance.get("content_count"),
             "coverage_percent": lane.get("coverage_percent"),
             "dom_cases": acceptance.get("dom_cases"),
-            "duplicate_side_effects": acceptance.get("duplicate_side_effects"),
+            "duplicate_content_rows": acceptance.get("duplicate_content_rows"),
+            "favorited_relations": acceptance.get("favorited_relations"),
             "kill_runs": acceptance.get("kill_runs"),
+            "liked_relations": acceptance.get("liked_relations"),
             "lost_ids": acceptance.get("lost_ids"),
             "removed_relations": acceptance.get("removed_relations"),
+            "taxonomy_mutations": acceptance.get("taxonomy_mutations"),
             "unit_tests": acceptance.get("unit_tests"),
         },
     }
@@ -797,8 +839,7 @@ def write_evidence(checks: list[Check]) -> None:
 
 
 def verify_evidence() -> Check:
-    evidence = _load_json_at(FINAL_COMMIT, EVIDENCE)
-    _require(EVIDENCE.read_bytes() == _read_blob_at(FINAL_COMMIT, EVIDENCE), "historical evidence was rewritten")
+    evidence = _load_json(EVIDENCE)
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
     _require(
@@ -824,16 +865,20 @@ def verify_evidence() -> Check:
     )
     metrics = evidence.get("task_metrics", {})
     _require(
-        metrics.get("automatic_scrolls") == 0
+        metrics.get("automatic_classification_writes") == 0
+        and metrics.get("automatic_scrolls") == 0
         and metrics.get("canary_item_limit") == 20
         and metrics.get("chaos_items") == 100
-        and metrics.get("collection_count") == 2
+        and metrics.get("content_count") == 100
         and metrics.get("dom_cases") == 7
-        and metrics.get("duplicate_side_effects") == 0
+        and metrics.get("duplicate_content_rows") == 0
+        and metrics.get("favorited_relations") == 20
         and metrics.get("kill_runs") == 50
+        and metrics.get("liked_relations") == 100
         and metrics.get("lost_ids") == 0
         and metrics.get("removed_relations") == 0
-        and metrics.get("unit_tests") == 13
+        and metrics.get("taxonomy_mutations") == 0
+        and metrics.get("unit_tests") == 14
         and metrics.get("blocking_executions") == 24,
         "evidence metrics drifted",
     )
@@ -864,12 +909,12 @@ def run_checks(
         checks.append(validate_execution())
     if lane_report is not None:
         checks.append(validate_full_lane_report(lane_report))
-    _require(all(check.status == "PASS" for check in checks), "an Adapters002 check failed")
+    _require(all(check.status == "PASS" for check in checks), "an Adapters003 check failed")
     return checks
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Verify TSK.x2n.adapters.002")
+    parser = argparse.ArgumentParser(description="Verify TSK.x2n.adapters.003")
     parser.add_argument("--verify-worktree", action="store_true")
     parser.add_argument("--allow-external-main-dirty", action="store_true")
     parser.add_argument("--skip-external", action="store_true")

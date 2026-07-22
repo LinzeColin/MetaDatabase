@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 / Adapters 003
+
+- 基于固定 `Adapters002@050ec0c9…` 开发；A002 verifier 改为从其 final commit blob 验收 Task、状态、实现、Fixture、Receipt 与 Evidence，A003 新文件不会污染历史结论。
+- 新增小红书点赞 clean-room visible-batch extractor：仅在 Owner gesture 后读取最多 20 条可见卡片，输出 stable ID、Canonical Page URL、净化标题/类型与固定 `unclassified` Inbox；无 Host Permission、静态 Content Script、网络、Cookie/Profile、自动滚动/分页、事件合成或 like/unlike/账号状态改变。
+- 新增 SQLite `xhs_likes` Adapter：复用 platform＋stable ID Content key，原子写独立 `liked` Relation、Observation 与 versioned Checkpoint；既有 `favorited` Relation 和 Owner 分类不覆盖，自动归档、Classification/Taxonomy 写入均为 0。
+- 严格 successor、精确最后批次 replay、partial/auth/verification/platform-change/empty-unverified 不推进或完成；bounded Canary 不冒充 full scan，只有权威可见结束可完成。20 条 Canary 仍是非执行计划，Owner/private-gold/真实页面均 `NOT_RUN`。
+- 新增 7 个 DOM Fixture 与 100 条控制数据，其中 20 条预置收藏 Relation；5 个显式批次各执行 10 次真实子进程事务内退出，共 50 Kill。最终精确为 100 Content、100 `liked`、20 `favorited`、120 Observation；lost/duplicate/infinite loop/automatic scroll/removed/tombstone/physical delete/Content delete 为 0。
+- 已审阅小红书一手材料只证明用户可见的笔记/收藏/赞过自主管理面；未在所审阅 Open/Mini Program 材料中发现个人点赞读取 API。这是范围化研究结果而非不存在断言，因此生产能力默认 deny。
+- 最终 208 个 root tests PASS（3 个固定可选 skip）、119 个 Companion tests 与 12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 77.79%，33 个依赖漏洞 0，71-member candidate 无 Runtime Data。`G3=NOT_RUN`，Stage 3 上传禁止。
+
 ## v0.0.0.1 — Stage 3 / Adapters 002
 
 - 基于固定 `Adapters001@ea440535…` 开发且不吸收 `main`/其他 worktree；历史 Adapters001 verifier 改为固定提交回放，Skeleton009 Extension 源清单改从历史 tree 枚举，避免后代新增文件污染旧验收。

@@ -116,9 +116,15 @@
       "path": "packages/test-fixtures/adapters/v1/xhs_favorites/fixture_manifest.json",
       "case_count": 107,
       "purpose": "Xiaohongshu visible favorites DOM, two collection mappings, 100-item durable checkpoint and 50 process-kill recovery"
+    },
+    {
+      "id": "FIXTURE.X2N.S03.A003.001",
+      "path": "packages/test-fixtures/adapters/v1/xhs_likes/fixture_manifest.json",
+      "case_count": 107,
+      "purpose": "Xiaohongshu visible likes DOM, conservative unclassified Inbox, 20 favorite overlaps, 100-item durable checkpoint and 50 process-kill recovery"
     }
   ],
-  "status": "six_platform_current_page_plus_profile_session_guard_plus_xhs_favorites_checkpoint_ci_synthetic_fixtures_pass_owner_canary_not_run",
+  "status": "six_platform_current_page_plus_profile_session_guard_plus_xhs_favorites_likes_checkpoint_and_conservative_inbox_ci_synthetic_fixtures_pass_owner_canary_not_run",
   "future_requirements": {
     "source_must_be_declared": true,
     "real_account_content_allowed": false,
