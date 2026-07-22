@@ -11,11 +11,17 @@ from backend.app.workers.killswitch import KillSwitch
 
 
 def build_app():
+    from backend.app.control_page.dashboard_data import OpenDQuoteSource
+
     factory = create_session_factory(init_engine())
     app = build_control_app(
         kill_switch=KillSwitch(os.environ.get("ALPHA_KILL_SWITCH_PATH", "runtime/KILL_SWITCH")),
         heartbeats=HeartbeatStore(factory),
         session_factory=factory,
+        quotes=OpenDQuoteSource(
+            host=os.environ.get("ALPHA_OPEND_HOST", "127.0.0.1"),
+            port=int(os.environ.get("ALPHA_OPEND_PORT", "11111")),
+        ),
     )
     assert_no_trading_routes(app)  # 启动自检:出现交易端点直接拒绝启动
     return app

@@ -36,9 +36,9 @@ class DeliveryReport:
 #: 邮件人话模板:owner 只看中文与关键值;URL 独占一行让邮件客户端自动成链。
 _EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
     "DASHBOARD_URL_CHANGED": ("看盘地址更新", lambda p: (
-        "你的模拟盘仪表盘地址更新了(服务器重启后地址会更换,以最新一封为准):\n\n"
+        "你的看盘地址:\n\n"
         f"{p.get('url', '')}\n\n"
-        "打开后在输入框粘贴你的控制令牌进入;令牌不变,别转发给任何人。")),
+        "打开即看,无需任何密码;此页只读,任何人拿到链接也动不了系统。")),
     "DEPLOY_ACCEPTANCE_TEST": ("部署验收测试", lambda p: (
         f"{p.get('msg', '')}\n\n这封邮件本身就是通知链路打通的证据。")),
     "WORKER_HEARTBEAT_LOST": ("系统组件失联,已自动停车保护", lambda p: (

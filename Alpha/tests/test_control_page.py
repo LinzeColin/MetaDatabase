@@ -68,6 +68,120 @@ def test_never_able_to_trade(tmp_path):
         assert client.post(path, headers=auth()).status_code in (404, 405)
 
 
+def seed_trading_db(tmp_path):
+    """种子:2 笔成交(QQQ 2股/GLD 1股)+ 1 笔风控拦截,复刻真实三日盘面形状。"""
+    from decimal import Decimal
+
+    from backend.app.domain.state_machine import OrderState
+    from backend.app.store.orders import OrderStore
+
+    factory = create_session_factory(init_engine(f"sqlite:///{tmp_path / 'dash2.sqlite'}"))
+    store = OrderStore(factory)
+    for key, sym, qty, px in [("S1-T-QQQ-BUY-2", "QQQ", 2, "707.74"),
+                              ("S1-T-GLD-BUY-1", "GLD", 1, "381.25")]:
+        oid = store.create_intent(idempotency_key=key, symbol=sym, side="BUY",
+                                  quantity=qty, currency="USD",
+                                  strategy_source="S1_GOLD_BLEND", order_type="LIMIT",
+                                  limit_price=Decimal(px))
+        store.record_risk_decision(oid, allowed=True, triggered_rules=[], exposure_snapshot={})
+        store.apply_transition(oid, OrderState.SUBMITTING, event_type="GATEWAY_SUBMIT")
+        store.apply_transition(oid, OrderState.SUBMITTED, event_type="BROKER_SYNC_ACK",
+                               broker_order_id=f"SIM-{sym}")
+        store.apply_fill_event(oid, quantity=qty, price=Decimal(px),
+                               broker_execution_id=f"SIMFILL-{key}")
+    rej = store.create_intent(idempotency_key="S1-T-GLD-BUY-REJ", symbol="GLD", side="BUY",
+                              quantity=1, currency="USD", strategy_source="S1_GOLD_BLEND",
+                              order_type="LIMIT", limit_price=Decimal("372.30"))
+    store.record_risk_decision(rej, allowed=False,
+                               triggered_rules=["RULE_MARKET_DATA_STALE"], exposure_snapshot={})
+    return factory
+
+
+class FakeQuotes:
+    """测试行情源:固定现价与日线收盘,只读断言用。"""
+
+    def __init__(self, prices, closes=None):
+        self.prices, self.closes = prices, closes or {}
+
+    def snapshots(self, symbols):
+        return {s: {"price": self.prices[s], "at": "2026-07-22 16:00:00"}
+                for s in symbols if s in self.prices}
+
+    def daily_closes(self, symbol, start, end):
+        return self.closes.get(symbol, [])
+
+
+def make_v2_client(tmp_path, factory, quotes):
+    import json as _json
+
+    rep = tmp_path / "reports" / "2026-07-22"
+    rep.mkdir(parents=True)
+    (rep / "report.json").write_text(_json.dumps({
+        "promotion": {"days_qualified": 3, "days_required": 3, "auto_promote": False,
+                      "decision": "未全绿:保持 Paper,进入调参循环并邮件报告差距",
+                      "PROMO-2": {"passed": True, "reason": "行为样本齐备"},
+                      "PROMO-3": {"passed": False, "pace_month_pct": -2.48, "target_pct": 0.36},
+                      "PROMO-4": {"passed": True, "uptime_pct": 99.91,
+                                  "notify_p95_seconds": 4.98}}}, ensure_ascii=False))
+    hb = HeartbeatStore(factory)
+    hb.beat("trading-worker", status="RUNNING", detail="{'mode': 'PAPER'}")
+    hb.beat("notify-worker", status="RUNNING", detail="")
+    app = build_control_app(kill_switch=KillSwitch(tmp_path / "KSV2"), heartbeats=hb,
+                            token_reader=lambda: TOKEN, ack_path=tmp_path / "ACKV2.json",
+                            session_factory=factory, quotes=quotes,
+                            reports_dir=tmp_path / "reports",
+                            runtime_dir=tmp_path / "runtime", fx_aud_usd=0.65)
+    return TestClient(app)
+
+
+def test_dashboard_v2_full_page_and_api(tmp_path):
+    """重构版:英雄净值/持仓盈亏/考核四灯/风控人话/机器可读接口,全部只读可公开。"""
+    factory = seed_trading_db(tmp_path)
+    client = make_v2_client(tmp_path, factory,
+                            FakeQuotes({"QQQ": 710.00, "GLD": 380.00}))
+
+    page = client.get("/")
+    assert page.status_code == 200
+    body = page.text
+    # 英雄区与持仓(现价 710/380 → 市值 1800 美元,净值 3005.03 澳元)
+    assert "管理资金净值" in body and "3,005.03" in body
+    assert "纳指100" in body and "黄金" in body and "710.00" in body
+    # 考核四灯 + 结论人话
+    assert "三日模拟盘考核" in body and "收益速度" in body and "未达标" in body
+    assert "保持 Paper" in body
+    # 风控拦截说人话
+    assert "行情数据太旧,拒单保护" in body
+    # 只读边界不变:无表单;黑话不出现在正文(折叠技术细节除外)
+    assert "<form" not in body
+    assert "RUNNING" not in body.split("技术细节")[0]
+
+    api = client.get("/api/overview")
+    assert api.status_code == 200
+    data = api.json()
+    assert data["hero"]["equity_aud"] == 3005.03
+    assert data["hero"]["cash_usd"] == 153.27
+    assert {p["symbol"]: p["qty"] for p in data["positions"]} == {"QQQ": 2, "GLD": 1}
+    qqq = next(p for p in data["positions"] if p["symbol"] == "QQQ")
+    assert abs(qqq["upl_usd"] - 4.52) < 0.01 and qqq["priced"] is True
+    assert data["exam"]["lights"][2]["ok"] is False      # 收益速度红灯
+    assert data["curve"][-1]["equity_aud"] == 3005.03
+    # 机器接口同样公开只读:不含任何令牌/秘密字段
+    assert "token" not in api.text.lower() and "Bearer" not in api.text
+
+
+def test_dashboard_v2_quote_outage_fails_soft(tmp_path):
+    """行情源整体失效:页面照常打开,持仓按成本估值并如实标注,绝不编价。"""
+    factory = seed_trading_db(tmp_path)
+    client = make_v2_client(tmp_path, factory, FakeQuotes({}))
+    page = client.get("/")
+    assert page.status_code == 200
+    assert "行情暂不可用,按成本估值" in page.text
+    data = client.get("/api/overview").json()
+    assert all(p["priced"] is False for p in data["positions"])
+    # 成本口径:市值=成本 → 浮动盈亏 0,净值=本金-零头(无编造)
+    assert all(p["upl_usd"] == 0.0 for p in data["positions"])
+
+
 def test_dashboard_readonly_html(tmp_path):
     """仪表盘:无令牌 401;?token= 可看;含关键区块;绝无动作按钮。"""
     factory = create_session_factory(init_engine(f"sqlite:///{tmp_path / 'dash.sqlite'}"))
