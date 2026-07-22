@@ -47,3 +47,6 @@
 - 完整 Stage 2 重审同时复验 53-entry/43-9-1 来源、40 组核心行为、许可全历史、identity/version/UI、
   registry/release/hash DAG、96 tests、四个 workflow 原始 run blocks 与公开安全门；无新增 finding，ledger
   25/25 `CLOSED`，Stage verdict=`PASS`。下一 Task 是 P5 Publish；T005 未 commit/push 或安装 runtime。
+- P5 的真实 clean sparse clone 暴露恢复命令在默认 cone-mode 下把 file operand 当作目录；命令已最小修正为
+  显式 `--skip-checks`，并在隔离 clone 验证可精确物化声明 surface。该修正须在同一 P5 内重新封印，不提前
+  声称最终 commit/push/CI 或 clean-checkout 验收完成。

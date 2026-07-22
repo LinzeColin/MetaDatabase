@@ -27,7 +27,7 @@ frozen source 重建，并完成 staged/proposed-tree 与最终 clean-checkout �
 restore_root=$(mktemp -d)
 git clone --filter=blob:none --sparse https://github.com/LinzeColin/MetaDatabase.git "$restore_root/MetaDatabase"
 cd "$restore_root/MetaDatabase"
-git sparse-checkout set Stock_Skill .github/workflows/stock-skill-validation.yml AGENTS.md README.md LICENSE
+git sparse-checkout set --skip-checks Stock_Skill .github/workflows/stock-skill-validation.yml AGENTS.md README.md LICENSE
 git checkout <sealed-commit>
 ```
 

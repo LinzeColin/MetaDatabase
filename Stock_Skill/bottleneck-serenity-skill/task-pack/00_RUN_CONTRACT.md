@@ -861,7 +861,9 @@ python3 -B Stock_Skill/scripts/digest_stage_source.py
 - Restore boundary：Task Pack 状态句的 `RESTORE.md` 误写已按 architecture、`ACC-S2-011` 与同仓约定统一为
   `RESTORE_AND_VERIFY.md`。文档可执行当前 source checks，并明确未实现 builder/release/hash 时必须
   `NOT_AVAILABLE`；proposed-tree 和 final clean sparse-checkout 流程只冻结后续接口，`ACC-S2-011` 仍由 T008
-  产生真实双重建证据。当前 sparse-checkout command 已在隔离 clone 语法/checkout 验证通过。
+  产生真实双重建证据。当时的隔离检查未覆盖 `git clone --sparse` 默认 cone-mode 对 file operand 的目录校验；
+  P5 的真实 clean clone 已复现该失败，恢复命令现显式使用已在隔离 clone 验证的 `--skip-checks`，最终 sealed
+  commit 仍须由 P5 重放。
 - ACC producer evidence：`ACC-S2-003` 的双 VERSION 已建立；`ACC-S2-009` 证明 5 scripts/10 import roots 全部
   标准库且 network/broker/order/daemon/scheduler capability=0、两个用户 runtime target 均不存在；
   `ACC-S2-010` 的 proprietary/逐来源/copy decision/redistribution 证据已建立；`ACC-S2-013` 的用户、接口、

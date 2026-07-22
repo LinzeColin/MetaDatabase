@@ -393,6 +393,9 @@
 - 四个 fresh full-history clone 上规范 Python 报告 byte-identical；独立 Ruby target/report 复核同得
   39/2,489/2,485 与 exact/four-line/token20=`0/3/1`。无新增 finding，ledger 25/25 `CLOSED`，Stage 2
   verdict=`PASS`；Task Graph 为 43 DONE / 13 PENDING / 4 CONDITIONAL，唯一下一 Task 是 P5 Publish。
+- P5 首轮 clean-checkout pre-seal 在真实 `git clone --sparse` 默认 cone-mode 下复现 file operand 被当作目录的
+  失败；隔离 clone 已证明加入 `--skip-checks` 后精确恢复五个声明 surface。按同一 Publish Task 重封印规则，
+  修正文档、manifest 与 release/hash DAG 后重新 replay；本记录不预写最终 commit/push/CI 或 P5 `DONE`。
 
 ## Stage review ledger
 
