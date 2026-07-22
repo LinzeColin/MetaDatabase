@@ -1,11 +1,11 @@
 {
-  "stage": "S3",
-  "phase": "Science Advances 公共文献候选整阶段复审待执行",
-  "task": "ADP-V12-S3-T001",
-  "owner": "当前 S3 开发线程；全新上下文独立 verifier 负责裁决",
+  "stage": "S4.1",
+  "phase": "中文人话版 fail-closed Run Contract 待创建",
+  "task": "ADP-V12-S4-T001",
+  "owner": "下一独立开发线程；必须先锁定 S4.1 唯一 Run Contract，当前不得实现或预签",
   "taskpack": "docs/pursuing_goal/v1_2",
-  "run_contract": "docs/pursuing_goal/v1_2/RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md",
-  "run_contract_status": "LOCKED；仅候选实现与开发侧聚焦验证已完成，独立整阶段复审仍为 NOT_RUN",
-  "previous_task_receipt": "machine/runs/ADP-V12-S2-T001-developer-check.json",
-  "next_task_after_pass": "ADP-V12-S4-T001"
+  "run_contract": null,
+  "run_contract_status": "NOT_CREATED；S4.1 保持 NOT_RUN，需单独锁定合同后才能执行",
+  "previous_task_receipt": "machine/runs/ADP-V12-S3-T001-developer-check.json",
+  "next_task_after_pass": "ADP-V12-S4-T002"
 }

@@ -1,5 +1,15 @@
 # ADP v1.2 Taskpack Changelog
 
+## 1.2.0 — S3 closeout — 2026-07-23
+
+- Science Advances PubMed candidate 经首轮独立复审发现并修复 XML 1.0 非法 literal 与未声明/
+  大小写伪装实体边界；fresh-context r2 对冻结 Git Subject 裁定
+  `ACC-V12-S3-001..003 = 3/3 PASS`，无 P0/P1/UNKNOWN/BLOCKED/waiver。
+- 26/26 有效独立对抗 Oracle、63-scenario 可执行验证及 962-test 精确密封基线差分通过；
+  原始 full suite 仍如实为历史 `2 failures + 11 errors + 29 skips`，未包装成绿色。
+- 候选保持 `candidate_not_live`；未改 Worker、现有 Science.org RSS、cron、D1/R2 或部署。
+  下一任务 `ADP-V12-S4-T001` 保持 `NOT_RUN`，Run Contract 尚未创建。
+
 ## 1.2.0 — S3 Run Contract — 2026-07-22
 
 - 为 `ADP-V12-S3-T001` 增加唯一 `RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md`，锁定 NLM

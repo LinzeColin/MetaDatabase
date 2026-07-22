@@ -1,0 +1,236 @@
+{
+  "schema_version": "adp-v12-stage-developer-check-v1",
+  "run_id": "ADP-V12-S3-T001-20260723",
+  "task_id": "ADP-V12-S3-T001",
+  "action": "Science Advances PubMed 检索到详情候选、标记文档失败关闭修复与整阶段独立复审",
+  "result": "ACC-V12-S3-001..003 为 3/3 PASS；P0/P1/UNKNOWN/BLOCKED/豁免均为 0；S4.1 保持 NOT_RUN",
+  "ts": "2026-07-23T06:27:22+10:00",
+  "decision_scope": "developer_check",
+  "independent_verdict": "PASS",
+  "verified_subject": {
+    "identity_algorithm": "clean Git commit plus Git tree, both bound to upstream origin/main",
+    "repository": "LinzeColin/MetaDatabase",
+    "branch": "codex/adp-v12-s3-pubmed",
+    "upstream_commit": "33c9ca3d60128243d9d853059c6d546d12453a4a",
+    "git_head": "7e5ab5ae3152844e8d073bc2e0074d8bf0f5a8f7",
+    "git_tree": "dab9106886077a549b5b424a098943430e6e8b91",
+    "ahead_count": 2,
+    "changed_path_count": 32,
+    "git_status": "clean",
+    "stability_before_after_tests": true,
+    "closeout_exclusions": [
+      "machine/runs/ADP-V12-S3-T001-developer-check.json",
+      "docs/phase_records/PHASE_ADP_V12_S3_SCIENCE_ADVANCES_PUBMED.md",
+      "machine/facts/status.json",
+      "machine/facts/plan.json",
+      "machine/facts/acceptance.json",
+      "machine/facts/roadmap.json",
+      "machine/facts/changelog.json",
+      "machine/facts/features.json",
+      "文档/*.md deterministic render from machine facts",
+      "用户中心/*.md timestamp-only closeout update mandated before commit",
+      "docs/HANDOFF.md closeout-only status wording",
+      "docs/pursuing_goal/v1_2/README.md closeout-only status wording",
+      "docs/pursuing_goal/v1_2/CHANGELOG.md closeout entry",
+      "docs/pursuing_goal/v1_2/TREE_SHA256.txt regenerated digest",
+      "CHANGELOG.md closeout entry"
+    ],
+    "exclusion_reason": "这些文件记录已经完成的独立 verdict，或由机器事实和项目脚本确定性生成；把它们放入待验 Subject 会形成自引用。任何已验产品、测试、registry、Owner 内容或 live 边界字节变化都不在排除范围内，并会触发重新验收。"
+  },
+  "taskpack_lock": {
+    "full_pack_sha256": "d2f17fd1bcfbe056a3a91bce058426fa7e3c0a567adbc503c10855f26b71ee30",
+    "seven_role_contract_sha256": "df212c7ec82fdd6bb1dfa2385ef32348140301482c28db94d9ed421b7d4100e4",
+    "source_snapshot_sha256": "48f28f6455bb09347f0a47aa5dc05368d3b4bf8fda6957d1473df67c1da2c6df",
+    "source_file_count": 17,
+    "declared_task_count": 10,
+    "declared_acceptance_count": 33,
+    "mapped_acceptance_count": 33
+  },
+  "run_contract": {
+    "path": "docs/pursuing_goal/v1_2/RUN_CONTRACT_03_SCIENCE_ADVANCES_PUBMED.md",
+    "sha256": "234ed849bbc6375ad127ab65b1a8329ead586ddee01ca9f7b6fe160a784edc73"
+  },
+  "implementation": {
+    "candidate_module": {
+      "path": "deploy/cloudflare/science_advances_pubmed_candidate.mjs",
+      "sha256": "ebc11bd9eb50af19783dc3e6c3fdaddc958d201ac16dc85b2b225f88a5f9f325"
+    },
+    "executable_verifier": {
+      "path": "tools/verify_science_advances_pubmed_candidate.mjs",
+      "sha256": "a2d2f8e03401914eb96e2cff80fef0a62ccaee8c443b0a4b72b8640fbe02a120"
+    },
+    "focused_tests": {
+      "path": "tests/test_science_advances_pubmed_candidate.py",
+      "sha256": "8aa8851eeca0acd6abe6ae5b4bfd474d7e5adc61599f2b5d9d1670acf7cf3514"
+    },
+    "candidate_registry": {
+      "path": "config/cloudflare_source_candidates_v1_2.json",
+      "sha256": "88b5eb08c752a6c9099fc8f22da55efa66817b168acefa496de4a20968f2c4a0",
+      "state": "candidate_not_live"
+    }
+  },
+  "acceptances": {
+    "ACC-V12-S3-001": "PASS",
+    "ACC-V12-S3-002": "PASS",
+    "ACC-V12-S3-003": "PASS"
+  },
+  "counts": {
+    "pass": 3,
+    "p0": 0,
+    "p1": 0,
+    "unknown": 0,
+    "blocked": 0,
+    "waiver": 0
+  },
+  "stage_review": {
+    "initial": {
+      "verdict": "FAIL",
+      "action": "ACT",
+      "subject_git_head": "3cd2138c51d14ed9717991cd5353f1fe3f517ab3",
+      "evidence_root_sha256": "ea43e7ec864ebda2e21f6219b2d29163354ea7993c63da22aa278ec83a783e11",
+      "review_zip_sha256": "8f34704d8f82b9bc292669848819e2d545040a24896f5e3f5c5085dbd054b511",
+      "review_zip_entry_count": 42,
+      "findings": [
+        "ADP-S3-F001 / L1 P1: XML 1.0 非法 literal 字符未失败关闭",
+        "ADP-S3-F002 / L2 requirement gap: 未声明命名实体 Oracle 为 UNKNOWN"
+      ]
+    },
+    "finding_fix": "对每个 literal code point 执行 XML 1.0 合法性检查；命名实体大小写敏感且只接受 amp/lt/gt/apos/quot 五个预定义实体或合法 numeric reference；补非法 literal、未声明实体、大小写伪装实体和五实体正控。",
+    "fresh_r2": {
+      "verdict": "PASS",
+      "action": "NONE",
+      "finalized_at": "2026-07-22T20:19:15.618026+00:00",
+      "subject_git_head": "7e5ab5ae3152844e8d073bc2e0074d8bf0f5a8f7",
+      "subject_git_tree": "dab9106886077a549b5b424a098943430e6e8b91",
+      "evidence_root_sha256": "08fb4185df9c9c7a497673ca0c1299cb313c9aa0672c824202d616acf5bf6fbb",
+      "review_zip": {
+        "storage": "OWNER_LOCAL_NOT_COMMITTED",
+        "sha256": "782254fdd58a56722a988f6473f560c0dc006f08972fc62e5be4c8a24ffe3624",
+        "size_bytes": 143008,
+        "entry_count": 47,
+        "readme_first": true,
+        "finalizer_verified": true,
+        "unzip_test_passed": true,
+        "text_control_byte_scan_passed": true,
+        "common_secret_pattern_scan_passed": true
+      },
+      "open_findings": [],
+      "closed_findings": [
+        "ADP-S3-F001",
+        "ADP-S3-F002"
+      ]
+    },
+    "verifier_test_definition_correction": {
+      "status": "CLOSED_TEST_DEFECT_NOT_PRODUCT_WAIVER",
+      "attempt_1": "24/26 有效产品 Oracle 通过；2 项因 verifier 在已有 PUBLIC DOCTYPE fixture 上插入第二个 DOCTYPE 而按产品合同正确失败关闭",
+      "attempt_2": "修正测试构造后对应 2/2 PASS；a1 与 a2 证据均保留",
+      "aggregate_valid_product_oracles": "26/26 PASS",
+      "waiver_used": false
+    }
+  },
+  "closeout_validation": {
+    "pubmed_focused_tests": {
+      "ran": 12,
+      "passed": 12
+    },
+    "pubmed_node_verifier": {
+      "scenarios": 63,
+      "checks": 7,
+      "status": "PASS"
+    },
+    "independent_adversarial_valid_oracles": {
+      "ran": 26,
+      "passed": 26
+    },
+    "security_tests": {
+      "ran": 14,
+      "passed": 14
+    },
+    "s1_s2_regression_tests": {
+      "ran": 26,
+      "passed": 26
+    },
+    "source_owner_sync_tests": {
+      "ran": 56,
+      "errors": 7,
+      "skipped": 2,
+      "raw_status": "ERROR",
+      "s3_specific_issue_count": 0,
+      "assessment": "only sealed historical missing legacy owner files; no file restored and no issue hidden"
+    },
+    "governance_tests": {
+      "ran": 65,
+      "passed": 65
+    },
+    "dual_plane": "PASS",
+    "taskpack_integrity_compatibility_drift": "PASS/PASS/PASS",
+    "v72_root_taskpack_validator": "PASS",
+    "root_acceptance_bundle_runtime_status": "BLOCKED_EXPECTED_HISTORICAL_NEXT_AGENT_HANDOFF_AND_PERSISTENT_DAILY_OPERATION_AUTHORIZATION_MISSING",
+    "user_center_timestamps": {
+      "validated": 20
+    },
+    "full_suite": {
+      "ran": 962,
+      "failures": 2,
+      "errors": 11,
+      "skipped": 29,
+      "raw_status": "FAIL"
+    },
+    "sealed_failure_error_name_set_exact_match": true,
+    "candidate_only": [],
+    "baseline_only": [],
+    "historical_archive_boundary": {
+      "final_acceptance_bundle_files": 30,
+      "adp_run_manifests": 424
+    },
+    "worker_path_changed": false,
+    "wrangler_path_changed": false,
+    "cron_count": 3,
+    "source_enablement_changed": false,
+    "storage_schema_or_data_changed": false
+  },
+  "full_suite_evidence": {
+    "builder_runner_log": {
+      "storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "sha256": "24e23a1b2eebc488b1c9401675254efe19d2542ea817c28d631171d41042ed1f"
+    },
+    "builder_differential": {
+      "storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "sha256": "acb9119d9ba99e30abba871a22761af8c6ad0d453a0e14b0c5290ed0914cc7f7",
+      "status": "PASS"
+    },
+    "independent_runner_log": {
+      "storage": "INSIDE_OWNER_LOCAL_REVIEW_ZIP",
+      "sha256": "b8cf449df1e30f5ed3c940914a73bbafb1f3feae60aca2af027f7d841c1847a"
+    },
+    "independent_differential": {
+      "storage": "INSIDE_OWNER_LOCAL_REVIEW_ZIP",
+      "sha256": "acb9119d9ba99e30abba871a22761af8c6ad0d453a0e14b0c5290ed0914cc7f7",
+      "status": "PASS"
+    },
+    "closeout_runner_log": {
+      "storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "sha256": "27752a91a569915b102ee3c37db444fb256543bbe4d1ab27e40e3ac3d722d306"
+    },
+    "closeout_differential": {
+      "storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "sha256": "acb9119d9ba99e30abba871a22761af8c6ad0d453a0e14b0c5290ed0914cc7f7",
+      "status": "PASS"
+    },
+    "sealed_baseline": {
+      "path": "docs/archive/taskpacks/2026-07-20/ADP_META_MIGRATION_e1af471c_2026-07-20_acceptance_review_taskpack.zip",
+      "sha256": "c5ab970698f3ca3fd6bba6939123fae2c0cb6ecd5b7cd6058a622b7fabfcc084"
+    }
+  },
+  "xml_oracle": {
+    "source": "W3C XML 1.0",
+    "url": "https://www.w3.org/TR/xml/#sec-predefined-ent",
+    "interpretation": "Only the five predefined named entities are accepted without a declared internal entity; DTD and external entities remain unexpanded."
+  },
+  "runtime_or_live_change": false,
+  "deployment_authorized": false,
+  "deployment_performed": false,
+  "s4_status": "NOT_RUN",
+  "s4_run_contract_status": "NOT_CREATED",
+  "public_receipt": "docs/phase_records/PHASE_ADP_V12_S3_SCIENCE_ADVANCES_PUBMED.md"
+}
