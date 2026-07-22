@@ -1,0 +1,18 @@
+{
+  "tunnel": "00000000-0000-4000-8000-000000000000",
+  "credentials-file": "/etc/cloudflared/00000000-0000-4000-8000-000000000000.json",
+  "no-autoupdate": true,
+  "metrics": "127.0.0.1:49312",
+  "ingress": [
+    {
+      "hostname": "abd.example.invalid",
+      "service": "http://127.0.0.1:8080",
+      "originRequest": {
+        "connectTimeout": "10s"
+      }
+    },
+    {
+      "service": "http_status:404"
+    }
+  ]
+}

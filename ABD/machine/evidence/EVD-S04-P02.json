@@ -1,0 +1,1065 @@
+{
+  "artifacts": {
+    "ART-S04-P02-01": "infra/cloudflared.yml",
+    "ART-S04-P02-02": "access_policy.md",
+    "ART-S04-P02-03": "degraded_page.html"
+  },
+  "contract_id": "AC-S04-P02",
+  "decision": "OUTBOUND_ONLY_EDGE_CONFIGURATION_CONTRACT_FROZEN",
+  "decision_sha256": "81915621a17c6839c03a042565ec3c6ef170d04279a6a74603729975311502dd",
+  "evidence_id": "EVD-S04-P02",
+  "external_effect_boundary": {
+    "cloudflare_access_application_or_policy_applied": false,
+    "cloudflare_account_api_or_dashboard_accessed": false,
+    "cloudflare_dns_changed": false,
+    "cloudflare_tunnel_created_configured_or_run": false,
+    "incremental_cash_spent_aud": "0.00",
+    "network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "production_activated": false,
+    "public_business_inbound_opened": false,
+    "real_order_submitted": false,
+    "return_or_roi_verified": false,
+    "secret_value_read_or_stored": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-22T20:00:00+10:00",
+  "hashes": {
+    "code": "e30dbd30561188059b1cf7d528f5651d95f3cc7065c82de05644d56ea40a45a4",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/cloudflare_edge.py": "d8ffd8cbd69a2c3087c92ea9cea60b3194fb01e0883e3501ee539cf1ec43e132",
+      "access_policy.md": "2fcbaaaaecdfc361d695caad6c1924cfaaa9ceb98538cb5c2f7c1930af99bbc7",
+      "degraded_page.html": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40",
+      "infra/cloudflared.yml": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+      "machine/evidence/EVD-S04-P01.json": "57c81a3d5807389237fe78b596b6251bd585e58e0925a829ec4a81da3b0957a6",
+      "machine/evidence/EVD-S04-P01_rollback.json": "438b0f42396afd8ab399d46b588d470453eca2ea20bda6bee83a6f9acc84ce34",
+      "machine/evidence/S03/STAGE_REVIEW/github_delivery_receipt.json": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S04_P02.json": "1bb8196810d33b9947d6b2988c07936eff8198743af5663ca9b8cd6b8e25dbff",
+      "tests/S04/P02_test.py": "3046bb914d4a8482bd29936fd6f3e08ac5f91ebd7f8109f1829c39a507fb01a4"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S04/P02 validates an offline Cloudflare edge configuration contract; it executes no model, network, account, host, DNS, tunnel, Access policy, order or return evaluation.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "6fdc7890e2baecbea37bc981ec1224821904542c0a35c3d8de4ced5edd9bdb3e"
+  },
+  "next": "S04/P03_READY_NOT_STARTED",
+  "pass_gate_interpretation": "OFFLINE_CONFIGURATION_PROVES_NO_PUBLIC_BUSINESS_INBOUND_REQUIRED; RUNTIME_ACCESS_REMAINS_UNVERIFIED",
+  "phase_id": "P02",
+  "phase_status": "S04_P02_PASS",
+  "product_version": "0.0.0.1",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "NOT_READY_S04_P03_TO_P04_AND_STAGE_REVIEW_REQUIRED",
+  "replay_proof": {
+    "activation_gate": "BLOCKED_EXTERNAL_PREREQUISITES_NOT_VERIFIED",
+    "mode": "DETERMINISTIC_OFFLINE_EDGE_BUNDLE_MATERIALIZATION",
+    "production_activation_performed": false,
+    "runtime_access_verified": false
+  },
+  "requirement_id": "REQ-S04-P02",
+  "runtime_access_status": "NOT_EXECUTED_OR_VERIFIED",
+  "schema_version": "1.0.0",
+  "scope_boundary": {
+    "cloudflare_account_dns_access_and_tunnel_not_inspected_or_changed": true,
+    "mainland_china_acceleration_availability_or_reach_not_claimed": true,
+    "ordinary_global_chinese_access_not_runtime_verified": true,
+    "ovh_host_and_firewall_not_accessed_or_changed": true,
+    "p02_delivers_configuration_contract_not_account_configuration": true,
+    "p03_activation_not_started": true
+  },
+  "stage_id": "S04",
+  "status": "PASS",
+  "validation": {
+    "activation_gate": "BLOCKED_EXTERNAL_PREREQUISITES_NOT_VERIFIED",
+    "checks": [
+      {
+        "detail": "S04_P02.json",
+        "id": "S04P02-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "cloudflared.yml",
+        "id": "S04P02-CONFIG-STRICT-JSON-YAML-SUBSET",
+        "passed": true
+      },
+      {
+        "detail": "access_policy.md",
+        "id": "S04P02-POLICY-STRICT-JSON-BLOCK",
+        "passed": true
+      },
+      {
+        "detail": "degraded_page.html",
+        "id": "S04P02-DEGRADED-PAGE-UTF8",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+          "expected": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1"
+        },
+        "id": "S04P02-PIN-INFRA-CLOUDFLARED-YML",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "2fcbaaaaecdfc361d695caad6c1924cfaaa9ceb98538cb5c2f7c1930af99bbc7",
+          "expected": "2fcbaaaaecdfc361d695caad6c1924cfaaa9ceb98538cb5c2f7c1930af99bbc7"
+        },
+        "id": "S04P02-PIN-ACCESS_POLICY-MD",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40",
+          "expected": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40"
+        },
+        "id": "S04P02-PIN-DEGRADED_PAGE-HTML",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "1bb8196810d33b9947d6b2988c07936eff8198743af5663ca9b8cd6b8e25dbff",
+          "expected": "1bb8196810d33b9947d6b2988c07936eff8198743af5663ca9b8cd6b8e25dbff"
+        },
+        "id": "S04P02-PIN-MACHINE-TESTS-FIXTURES-S04_P02-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "3046bb914d4a8482bd29936fd6f3e08ac5f91ebd7f8109f1829c39a507fb01a4",
+          "expected": "3046bb914d4a8482bd29936fd6f3e08ac5f91ebd7f8109f1829c39a507fb01a4"
+        },
+        "id": "S04P02-PIN-TESTS-S04-P02_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f52dd05ac86203529702b69056fab5f188518b8777ad6369111a17825f43a189",
+          "expected": "f52dd05ac86203529702b69056fab5f188518b8777ad6369111a17825f43a189"
+        },
+        "id": "S04P02-ORACLE-SELF-INTEGRITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S04P02-BASELINE-MACHINE-FACTS-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S04P02-BASELINE-MACHINE-FACTS-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S04P02-BASELINE-MACHINE-FACTS-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S04P02-BASELINE-MACHINE-FACTS-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S04P02-BASELINE-MACHINE-FACTS-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S04P02-BASELINE-MACHINE-FACTS-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S04P02-BASELINE-MACHINE-FACTS-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S04P02-BASELINE-MACHINE-FACTS-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "57c81a3d5807389237fe78b596b6251bd585e58e0925a829ec4a81da3b0957a6",
+          "expected": "57c81a3d5807389237fe78b596b6251bd585e58e0925a829ec4a81da3b0957a6"
+        },
+        "id": "S04P02-BASELINE-MACHINE-EVIDENCE-EVD-S04-P01-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "438b0f42396afd8ab399d46b588d470453eca2ea20bda6bee83a6f9acc84ce34",
+          "expected": "438b0f42396afd8ab399d46b588d470453eca2ea20bda6bee83a6f9acc84ce34"
+        },
+        "id": "S04P02-BASELINE-MACHINE-EVIDENCE-EVD-S04-P01_ROLLBACK-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0",
+          "expected": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0"
+        },
+        "id": "S04P02-BASELINE-MACHINE-EVIDENCE-S03-STAGE_REVIEW-GITHUB_DELIVERY_RECEIPT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S04P02-REPO--GITHUB-WORKFLOWS-ABD-STAGE0-VALIDATION-YML",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "baseline": "未实现或旧包存在冲突/缺口",
+            "id": "REQ-S04-P02",
+            "measurement": "由 AC-S04-P02 的机器验收判定器执行固定输入、阈值和证据检查。",
+            "non_goals": [
+              "不自动提交、确认或重试真实订单",
+              "不以降低证据或风险门追赶30%月目标",
+              "不引入付费数据或付费程序接口依赖"
+            ],
+            "observation_period": "开发期每次提交；上线后持续",
+            "owner_input_required_during_development": false,
+            "phase_id": "P02",
+            "primary_acceptance_criteria_id": "AC-S04-P02",
+            "priority": "P0",
+            "problem": "若未完成“Cloudflare 全球入口”，在VPS-1资源和A$0新增预算内实现全天候分析、全球中文访问和可恢复发布。将缺少可执行、可验收或可恢复的基础。",
+            "scope": [
+              "infra/cloudflared.yml",
+              "access_policy.md",
+              "degraded_page.html"
+            ],
+            "stage_id": "S04",
+            "target": "OVH无需公开业务入站端口即可访问。",
+            "title": "Cloudflare 全球入口",
+            "user": "单一账户持有人及自动开发/运维代理",
+            "value": "建立身份保护、Named Tunnel、中文降级页和最小暴露面。"
+          }
+        ],
+        "id": "S04P02-TASKPACK-REQUIREMENT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "environment": [
+              "Ubuntu Linux 持续集成环境",
+              "固定时钟",
+              "冻结测试夹具",
+              "无外部网络的确定性测试模式",
+              "生产等价配置Schema"
+            ],
+            "evidence_requirements": [
+              "machine/evidence/EVD-S04-P02.json",
+              "测试报告及命令退出码",
+              "输入、参数、代码、模型和输出SHA-256",
+              "失败路径截图或结构化日志",
+              "回滚演练记录"
+            ],
+            "id": "AC-S04-P02",
+            "inputs": [
+              "REQ-S04-P02 对应机器事实",
+              "S04/P02 冻结正向、边界、负向和故障输入",
+              "参数版本和来源版本哈希"
+            ],
+            "oracle": {
+              "command": "python -m abd_acceptance --contract AC-S04-P02 --evidence machine/evidence",
+              "rule": "OVH无需公开业务入站端口即可访问。",
+              "type": "EXECUTABLE"
+            },
+            "pass_gate": "OVH无需公开业务入站端口即可访问。",
+            "requirement_id": "REQ-S04-P02",
+            "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+            "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+            "stop_condition": [
+              "发现法律、监管或来源合同实质冲突且无安全默认",
+              "需要不可逆操作",
+              "新增现金支出将超过A$0",
+              "严重安全事故或证据完整性失败",
+              "阶段终止条件被触发"
+            ],
+            "tests": [
+              {
+                "id": "TEST-S04-P02",
+                "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+              },
+              {
+                "id": "TEST-S04-P02-BOUNDARY",
+                "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+              },
+              {
+                "id": "TEST-S04-P02-REPLAY",
+                "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+              }
+            ],
+            "threshold": "OVH无需公开业务入站端口即可访问。",
+            "title": "Cloudflare 全球入口唯一主验收"
+          }
+        ],
+        "id": "S04P02-TASKPACK-ACCEPTANCE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S04-P02-01",
+          "T-S04-P02-02",
+          "T-S04-P02-03"
+        ],
+        "id": "S04P02-TASKPACK-TASK-IDS",
+        "passed": true
+      },
+      {
+        "detail": [
+          [
+            "infra/cloudflared.yml",
+            "access_policy.md",
+            "degraded_page.html"
+          ],
+          [
+            "tests/S04/P02_test.py",
+            "machine/tests/fixtures/S04_P02.json"
+          ],
+          [
+            "machine/evidence/EVD-S04-P02.json",
+            "machine/evidence/EVD-S04-P02_rollback.json"
+          ]
+        ],
+        "id": "S04P02-TASKPACK-TASK-OUTPUTS",
+        "passed": true
+      },
+      {
+        "detail": [
+          [
+            "T-S04-P01-03"
+          ],
+          [
+            "T-S04-P02-01"
+          ],
+          [
+            "T-S04-P02-02"
+          ]
+        ],
+        "id": "S04P02-TASKPACK-TASK-DEPENDENCIES",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_criteria_id": "AC-S04-P02",
+            "artifact_ids": [
+              "ART-S04-P02-01",
+              "ART-S04-P02-02",
+              "ART-S04-P02-03"
+            ],
+            "evidence_id": "EVD-S04-P02",
+            "phase_id": "P02",
+            "requirement_id": "REQ-S04-P02",
+            "stage_id": "S04",
+            "task_ids": [
+              "T-S04-P02-01",
+              "T-S04-P02-02",
+              "T-S04-P02-03"
+            ],
+            "test_ids": [
+              "TEST-S04-P02",
+              "TEST-S04-P02-BOUNDARY",
+              "TEST-S04-P02-REPLAY"
+            ]
+          }
+        ],
+        "id": "S04P02-TASKPACK-TRACE",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "hours": {
+              "high": 6,
+              "likely": 4,
+              "low": 3
+            },
+            "id": "P02",
+            "objective": "建立身份保护、Named Tunnel、中文降级页和最小暴露面。",
+            "outputs": [
+              "infra/cloudflared.yml",
+              "access_policy.md",
+              "degraded_page.html"
+            ],
+            "pass_gate": "OVH无需公开业务入站端口即可访问。",
+            "title": "Cloudflare 全球入口"
+          }
+        ],
+        "id": "S04P02-TASKPACK-ROADMAP",
+        "passed": true
+      },
+      {
+        "detail": [
+          "S04P02-SRC-TUNNEL-CONFIG",
+          "S04P02-SRC-OUTBOUND-ONLY",
+          "S04P02-SRC-ACCESS-POLICIES",
+          "S04P02-SRC-MFA",
+          "S04P02-SRC-CHINA-NETWORK"
+        ],
+        "id": "S04P02-SOURCE-IDS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "fact": "Locally-managed Tunnel configuration files with ingress rules must end with a catch-all rule.",
+          "id": "S04P02-SRC-TUNNEL-CONFIG",
+          "publisher": "Cloudflare",
+          "retrieved_at": "2026-07-22",
+          "url": "https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/local-management/configuration-file/"
+        },
+        "id": "S04P02-SOURCE-S04P02-SRC-TUNNEL-CONFIG",
+        "passed": true
+      },
+      {
+        "detail": {
+          "fact": "cloudflared establishes outbound-only connections to the Cloudflare network, so the origin service need not expose inbound business ports.",
+          "id": "S04P02-SRC-OUTBOUND-ONLY",
+          "publisher": "Cloudflare",
+          "retrieved_at": "2026-07-22",
+          "url": "https://developers.cloudflare.com/cloudflare-one/networks/connectivity-options/"
+        },
+        "id": "S04P02-SOURCE-S04P02-SRC-OUTBOUND-ONLY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "fact": "Cloudflare Access is deny by default; Bypass disables Access enforcement and logging for matching traffic.",
+          "id": "S04P02-SRC-ACCESS-POLICIES",
+          "publisher": "Cloudflare",
+          "retrieved_at": "2026-07-22",
+          "url": "https://developers.cloudflare.com/cloudflare-one/access-controls/policies/"
+        },
+        "id": "S04P02-SOURCE-S04P02-SRC-ACCESS-POLICIES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "fact": "Cloudflare Access supports identity-provider-based MFA and independent MFA, which must be explicitly configured and verified.",
+          "id": "S04P02-SRC-MFA",
+          "publisher": "Cloudflare",
+          "retrieved_at": "2026-07-22",
+          "url": "https://developers.cloudflare.com/cloudflare-one/access-controls/policies/mfa-requirements/"
+        },
+        "id": "S04P02-SOURCE-S04P02-SRC-MFA",
+        "passed": true
+      },
+      {
+        "detail": {
+          "fact": "Cloudflare China Network is a separate Enterprise subscription and requires a valid ICP filing or license for each onboarded apex domain.",
+          "id": "S04P02-SRC-CHINA-NETWORK",
+          "publisher": "Cloudflare",
+          "retrieved_at": "2026-07-22",
+          "url": "https://developers.cloudflare.com/china-network/"
+        },
+        "id": "S04P02-SOURCE-S04P02-SRC-CHINA-NETWORK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 11,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 11
+        },
+        "id": "S04P02-P01-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04P02-CONFIG-VALID",
+        "passed": true
+      },
+      {
+        "detail": {
+          "credentials-file": "/etc/cloudflared/00000000-0000-4000-8000-000000000000.json",
+          "ingress": [
+            {
+              "hostname": "abd.example.invalid",
+              "originRequest": {
+                "connectTimeout": "10s"
+              },
+              "service": "http://127.0.0.1:8080"
+            },
+            {
+              "service": "http_status:404"
+            }
+          ],
+          "metrics": "127.0.0.1:49312",
+          "no-autoupdate": true,
+          "tunnel": "00000000-0000-4000-8000-000000000000"
+        },
+        "id": "S04P02-CONFIG-FROZEN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "credentials-file": "/etc/cloudflared/00000000-0000-4000-8000-000000000000.json",
+          "tunnel": "00000000-0000-4000-8000-000000000000"
+        },
+        "id": "S04P02-CONFIG-NAMED-TUNNEL",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "hostname": "abd.example.invalid",
+            "originRequest": {
+              "connectTimeout": "10s"
+            },
+            "service": "http://127.0.0.1:8080"
+          },
+          {
+            "service": "http_status:404"
+          }
+        ],
+        "id": "S04P02-CONFIG-LOOPBACK-ORIGIN",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "hostname": "abd.example.invalid",
+            "originRequest": {
+              "connectTimeout": "10s"
+            },
+            "service": "http://127.0.0.1:8080"
+          },
+          {
+            "service": "http_status:404"
+          }
+        ],
+        "id": "S04P02-CONFIG-CATCH-ALL-LAST",
+        "passed": true
+      },
+      {
+        "detail": "127.0.0.1:49312",
+        "id": "S04P02-CONFIG-METRICS-LOOPBACK",
+        "passed": true
+      },
+      {
+        "detail": true,
+        "id": "S04P02-CONFIG-NO-AUTOUPDATE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "tunnel",
+          "credentials-file",
+          "no-autoupdate",
+          "metrics",
+          "ingress",
+          "hostname",
+          "service",
+          "originRequest",
+          "connectTimeout",
+          "service"
+        ],
+        "id": "S04P02-CONFIG-NO-TLS-BYPASS-OR-PRIVATE-ROUTING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ACTUAL-HOSTNAME-IN-REPOSITORY": true,
+          "ACTUAL-TUNNEL-ID-IN-REPOSITORY": true,
+          "AUTOUPDATE-ENABLED": true,
+          "CREDENTIALS-OUTSIDE-RESTRICTED-PATH": true,
+          "MISSING-CATCH-ALL": true,
+          "OPEN-CATCH-ALL": true,
+          "PUBLIC-METRICS": true,
+          "PUBLIC-ORIGIN": true,
+          "REMOTE-ORIGIN": true,
+          "TLS-VERIFICATION-BYPASS": true
+        },
+        "id": "S04P02-CONFIG-ALL-MUTATIONS-FAIL-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": "valid",
+        "id": "S04P02-POLICY-VALID",
+        "passed": true
+      },
+      {
+        "detail": "DENY",
+        "id": "S04P02-POLICY-DENY-DEFAULT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "exact_owner_count": 1,
+          "selector": "EMAIL",
+          "value": "${ABD_OWNER_EMAIL}"
+        },
+        "id": "S04P02-POLICY-EXACT-OWNER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "mfa": true,
+          "mfa_mode": "INDEPENDENT_OR_IDP_MFA_MUST_BE_VERIFIED"
+        },
+        "id": "S04P02-POLICY-MFA",
+        "passed": true
+      },
+      {
+        "detail": [
+          "BYPASS",
+          "SERVICE_AUTH"
+        ],
+        "id": "S04P02-POLICY-NO-BYPASS-SERVICE-AUTH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allow_policies": [
+            {
+              "action": "ALLOW",
+              "include": {
+                "exact_owner_count": 1,
+                "selector": "EMAIL",
+                "value": "${ABD_OWNER_EMAIL}"
+              },
+              "require": {
+                "mfa": true,
+                "mfa_mode": "INDEPENDENT_OR_IDP_MFA_MUST_BE_VERIFIED"
+              },
+              "session_duration": "1h"
+            }
+          ],
+          "audit_logging_required": true,
+          "default_action": "DENY",
+          "email_domain_wildcard_allowed": false,
+          "everyone_selector_allowed": false,
+          "forbidden_actions": [
+            "BYPASS",
+            "SERVICE_AUTH"
+          ]
+        },
+        "id": "S04P02-POLICY-NO-EVERYONE-OR-WILDCARD",
+        "passed": true
+      },
+      {
+        "detail": true,
+        "id": "S04P02-POLICY-AUDIT-LOGS",
+        "passed": true
+      },
+      {
+        "detail": "BLOCKED_EXTERNAL_PREREQUISITES_NOT_VERIFIED",
+        "id": "S04P02-POLICY-ACTIVATION-BLOCKED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "mainland_china_acceleration_availability_or_reach": "NOT_IN_ZERO_CASH_SCOPE_NO_CLAIM",
+          "ordinary_global_network_chinese_ui": "CONFIGURATION_INTENT_ONLY_NOT_RUNTIME_VERIFIED",
+          "ovh_7x24": "UNVERIFIED_REQUIRES_RUNTIME_EVIDENCE",
+          "returns": "UNVERIFIED_NOT_GUARANTEED"
+        },
+        "id": "S04P02-POLICY-MAINLAND-CLAIM-REJECTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "automatic_overage_allowed": false,
+          "china_network_subscription_allowed": false,
+          "incremental_cash_aud": "0.00",
+          "paid_upgrade_allowed": false
+        },
+        "id": "S04P02-POLICY-A0",
+        "passed": true
+      },
+      {
+        "detail": {
+          "csp": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+          "external_references": [],
+          "forbidden_tags": [],
+          "issues": [],
+          "lang": "zh-CN",
+          "status": "PASS",
+          "visible_text_sha256": "f37527df515f9228975f7744a00da8df218a03f7edfdae1a8522f43ce9730dd8"
+        },
+        "id": "S04P02-DEGRADED-PAGE-VALID",
+        "passed": true
+      },
+      {
+        "detail": "zh-CN",
+        "id": "S04P02-DEGRADED-PAGE-ZH",
+        "passed": true
+      },
+      {
+        "detail": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+        "id": "S04P02-DEGRADED-PAGE-CSP",
+        "passed": true
+      },
+      {
+        "detail": [],
+        "id": "S04P02-DEGRADED-PAGE-NO-ACTIVE-TAGS",
+        "passed": true
+      },
+      {
+        "detail": [],
+        "id": "S04P02-DEGRADED-PAGE-NO-EXTERNAL-REFERENCES",
+        "passed": true
+      },
+      {
+        "detail": "fail-closed guidance",
+        "id": "S04P02-DEGRADED-PAGE-STOP-AND-INVALIDATE",
+        "passed": true
+      },
+      {
+        "detail": "explicit safe next action",
+        "id": "S04P02-DEGRADED-PAGE-NEXT-ACTION",
+        "passed": true
+      },
+      {
+        "detail": "30% target is not a guarantee",
+        "id": "S04P02-DEGRADED-PAGE-NO-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "activation_gate": "BLOCKED_EXTERNAL_PREREQUISITES_NOT_VERIFIED",
+          "adverse_odds_tick": false,
+          "config_errors": [],
+          "decision": "OUTBOUND_ONLY_EDGE_CONFIGURATION_CONTRACT_FROZEN",
+          "degraded_page": {
+            "csp": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+            "external_references": [],
+            "forbidden_tags": [],
+            "issues": [],
+            "lang": "zh-CN",
+            "status": "PASS",
+            "visible_text_sha256": "f37527df515f9228975f7744a00da8df218a03f7edfdae1a8522f43ce9730dd8"
+          },
+          "numeric_boundary_delta": "0",
+          "policy_errors": [],
+          "public_business_inbound_required": false,
+          "runtime_access_verified": false,
+          "status": "PASS"
+        },
+        "id": "S04P02-DISPOSITION-PASS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse": false,
+          "delta": "-0.0001",
+          "result": "PASS"
+        },
+        "id": "S04P02-NUMERIC-NEG0_0001-BASE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse": true,
+          "delta": "-0.0001",
+          "result": "PASS"
+        },
+        "id": "S04P02-NUMERIC-NEG0_0001-ADVERSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse": false,
+          "delta": "0",
+          "result": "PASS"
+        },
+        "id": "S04P02-NUMERIC-0-BASE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse": true,
+          "delta": "0",
+          "result": "PASS"
+        },
+        "id": "S04P02-NUMERIC-0-ADVERSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse": false,
+          "delta": "0.0001",
+          "result": "PASS"
+        },
+        "id": "S04P02-NUMERIC-0_0001-BASE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse": true,
+          "delta": "0.0001",
+          "result": "PASS"
+        },
+        "id": "S04P02-NUMERIC-0_0001-ADVERSE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "access_policy.md",
+          "degraded_page.html",
+          "edge_manifest.json",
+          "infra/cloudflared.yml"
+        ],
+        "id": "S04P02-BUNDLE-FILES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "first": "c94bb9a586fd395b2d962913f7a52699b79b73c2ef826c42c7abbd8c831ded41",
+          "second": "c94bb9a586fd395b2d962913f7a52699b79b73c2ef826c42c7abbd8c831ded41"
+        },
+        "id": "S04P02-BUNDLE-DETERMINISTIC-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index": [
+            {
+              "acceptance_contract_id": "AC-S04-P03",
+              "expected_artifact": "machine/evidence/EVD-S04-P03.json",
+              "id": "INDEX-AC-S04-P03",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "发布不丢账本，失败在15分钟内回旧版。",
+              "requirement_id": "REQ-S04-P03",
+              "status": "PLANNED"
+            }
+          ],
+          "present": []
+        },
+        "id": "S04P02-P03-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S04P02-NO-SECRET-OR-LOCAL-PATH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "product": {
+            "id": "ABD",
+            "incremental_cash_budget_aud": "0.00",
+            "initial_bankroll_aud": "300.00",
+            "language": "zh-CN",
+            "monthly_target_return": "0.30",
+            "name_zh": "全天候投注决策辅助系统",
+            "owner": "单一账户持有人",
+            "primary_goal": "在不降低证据、风险、安全与合规门槛的前提下，分析全部可观察市场并追求 A$300×1.3^n 的月度滚动复利目标。",
+            "status": "FINAL_ACCEPTANCE_DELIVERY",
+            "target_curve": "B_n = 300 * (1.3 ** n)",
+            "version": "0.0.0.1"
+          },
+          "target": {
+            "falsification_gate": [
+              "至少6个完整自然月",
+              "至少1000个独立等效信号",
+              "月收益率的95%上界仍低于30%"
+            ],
+            "formula": "B_n = 300 * 1.3^n",
+            "guaranteed": false,
+            "monthly_log_growth": "0.26236426446749106",
+            "monthly_return": "0.30",
+            "plausible_gate": [
+              "保守月度对数增长中位数 >= ln(1.3)",
+              "月度对数增长第5百分位 > 0",
+              "按来源、平台限额、机会数量和相关性校正后的容量通过"
+            ],
+            "shadow_min_days": 90,
+            "shadow_min_independent_equivalent_signals": 1000,
+            "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+            "verification_gate": [
+              "至少12个完整自然月",
+              "按现金流调整后的月度几何收益 >= 30%",
+              "证据完整",
+              "未解决对账差异为0"
+            ]
+          }
+        },
+        "id": "S04P02-A300-A0-NO-ORDER-NO-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cloudflare_access_application_or_policy_applied": false,
+          "cloudflare_account_api_or_dashboard_accessed": false,
+          "cloudflare_dns_changed": false,
+          "cloudflare_tunnel_created_configured_or_run": false,
+          "incremental_cash_spent_aud": "0.00",
+          "network_accessed": false,
+          "ovh_account_or_host_accessed": false,
+          "production_activated": false,
+          "public_business_inbound_opened": false,
+          "real_order_submitted": false,
+          "return_or_roi_verified": false,
+          "secret_value_read_or_stored": false
+        },
+        "id": "S04P02-EXTERNAL-EFFECT-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": "all frozen numeric values avoid binary floats",
+        "id": "S04P02-NO-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 110
+        },
+        "id": "S04P02-TARGETED-PYTEST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 3541
+        },
+        "id": "S04P02-FULL-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S04P02-TASKPACK-49-PASS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ABD S00/P03 PAID DEPENDENCY SCAN",
+          "STATUS: PASS",
+          "FIXED_CLOCK: 2026-07-19T00:00:00+10:00",
+          "MAX_INCREMENTAL_CASH_AUD: 0.00",
+          "DEPENDENCY_MANIFESTS: 2",
+          "RUNTIME_DIRECT_DEPENDENCIES: 0",
+          "LOCKED_REGISTRY_PACKAGES: 12",
+          "PAID_OR_UNKNOWN_DEPENDENCIES: 0",
+          "EXTERNAL_NETWORK_ACCESS_PERFORMED: false",
+          "EXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false"
+        ],
+        "id": "S04P02-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S04-P02",
+    "decision": "OUTBOUND_ONLY_EDGE_CONFIGURATION_CONTRACT_FROZEN",
+    "external_effect_boundary": {
+      "cloudflare_access_application_or_policy_applied": false,
+      "cloudflare_account_api_or_dashboard_accessed": false,
+      "cloudflare_dns_changed": false,
+      "cloudflare_tunnel_created_configured_or_run": false,
+      "incremental_cash_spent_aud": "0.00",
+      "network_accessed": false,
+      "ovh_account_or_host_accessed": false,
+      "production_activated": false,
+      "public_business_inbound_opened": false,
+      "real_order_submitted": false,
+      "return_or_roi_verified": false,
+      "secret_value_read_or_stored": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-22T20:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/cloudflare_edge.py": "d8ffd8cbd69a2c3087c92ea9cea60b3194fb01e0883e3501ee539cf1ec43e132",
+      "access_policy.md": "2fcbaaaaecdfc361d695caad6c1924cfaaa9ceb98538cb5c2f7c1930af99bbc7",
+      "degraded_page.html": "29c49f3388f8b7214c1d75869ebc2c8434d502972cb74a2883595c10d89f6b40",
+      "infra/cloudflared.yml": "7f3855b637a020b3769d93bcbaa2539a692ab6eec314a8b722d29c6e0f5118f1",
+      "machine/evidence/EVD-S04-P01.json": "57c81a3d5807389237fe78b596b6251bd585e58e0925a829ec4a81da3b0957a6",
+      "machine/evidence/EVD-S04-P01_rollback.json": "438b0f42396afd8ab399d46b588d470453eca2ea20bda6bee83a6f9acc84ce34",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S03/STAGE_REVIEW/github_delivery_receipt.json": "617b7e18f615b46a3217569b271a553434673f26a494c846c3aef032c800f5c0",
+      "machine/evidence/S04/P02/full_regression.xml": "d740d55a58125f479ba677c7aad818a529a99f8170ed66957627f35cf403f31b",
+      "machine/evidence/S04/P02/pytest.xml": "0991087e0b6353231a46528722dd4a10785ee761540b0ad82f7f7bc1106a9295",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S04_P02.json": "1bb8196810d33b9947d6b2988c07936eff8198743af5663ca9b8cd6b8e25dbff",
+      "tests/S04/P02_test.py": "3046bb914d4a8482bd29936fd6f3e08ac5f91ebd7f8109f1829c39a507fb01a4"
+    },
+    "next": "S04/P03_READY_NOT_STARTED",
+    "pass_gate_interpretation": "OFFLINE_CONFIGURATION_PROVES_NO_PUBLIC_BUSINESS_INBOUND_REQUIRED; RUNTIME_ACCESS_REMAINS_UNVERIFIED",
+    "phase_id": "P02",
+    "phase_status": "S04_P02_PASS",
+    "product_version": "0.0.0.1",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "release_status": "NOT_READY_S04_P03_TO_P04_AND_STAGE_REVIEW_REQUIRED",
+    "requirement_id": "REQ-S04-P02",
+    "runtime_access_status": "NOT_EXECUTED_OR_VERIFIED",
+    "schema_version": "1.0.0",
+    "stage_id": "S04",
+    "status": "PASS",
+    "summary": {
+      "checks": 81,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 81
+    }
+  }
+}

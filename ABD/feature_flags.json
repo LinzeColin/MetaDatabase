@@ -1,0 +1,159 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "policy": "DENY_UNKNOWN_AND_NEVER_OVERRIDE_EVIDENCE_RISK_SAFETY_OR_SOURCE_GATES",
+  "repository_runtime_status": "NOT_APPLIED_TO_PRODUCTION",
+  "evaluation_order": [
+    "EMERGENCY_ADVICE_KILL_SWITCH",
+    "SIGNED_RELEASE_SLOT",
+    "SOURCE_CONTRACT_AND_FRESHNESS",
+    "IDENTITY_SETTLEMENT_MODEL_VALUE_RISK_AND_NUMERIC_GATES",
+    "EXACT_FEATURE_FLAG",
+    "CANARY_PROFILE"
+  ],
+  "fixed_flags": [
+    {
+      "id": "live_recommendation",
+      "default_enabled": false,
+      "repository_enabled": false,
+      "unknown_state_enabled": false,
+      "enable_requires": [
+        "S04_STAGE_REVIEW_PASS",
+        "SOFTWARE_MODEL_AND_RELEASE_GATES_PASS",
+        "SIGNED_RUNTIME_ACTIVATION_RECORD",
+        "ALL_ITEM_LEVEL_EVIDENCE_GATES_PASS"
+      ],
+      "rollback_value": false
+    },
+    {
+      "id": "gmail_ingestion",
+      "default_enabled": false,
+      "repository_enabled": false,
+      "unknown_state_enabled": false,
+      "enable_requires": [
+        "GMAIL_CONSENT_VERIFIED",
+        "TOKEN_STORAGE_VERIFIED",
+        "MAIL_SAFETY_AND_RECOVERY_GATES_PASS"
+      ],
+      "rollback_value": false
+    },
+    {
+      "id": "owner_browser_companion",
+      "default_enabled": false,
+      "repository_enabled": false,
+      "unknown_state_enabled": false,
+      "enable_requires": [
+        "SIGNED_BROWSER_ARTIFACT",
+        "CURRENT_PAGE_FIELD_MATCH_VERIFIED",
+        "ORDER_SUBMISSION_CAPABILITY_ABSENT"
+      ],
+      "rollback_value": false
+    }
+  ],
+  "scoped_flag_templates": [
+    {
+      "template": "source:<id>",
+      "id_pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+      "default_enabled": false,
+      "unknown_state_enabled": false,
+      "enable_requires": [
+        "VERSIONED_SOURCE_CONTRACT_PASS",
+        "CURRENT_SOURCE_FRESHNESS_PASS"
+      ]
+    },
+    {
+      "template": "sport:<id>",
+      "id_pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+      "default_enabled": false,
+      "unknown_state_enabled": false,
+      "enable_requires": [
+        "SPORT_IDENTITY_AND_SETTLEMENT_RULES_PASS"
+      ]
+    },
+    {
+      "template": "market_family:<id>",
+      "id_pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+      "default_enabled": false,
+      "unknown_state_enabled": false,
+      "enable_requires": [
+        "MARKET_IDENTITY_SETTLEMENT_AND_MODEL_GATES_PASS"
+      ]
+    },
+    {
+      "template": "model:<id>",
+      "id_pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+      "default_enabled": false,
+      "unknown_state_enabled": false,
+      "enable_requires": [
+        "SIGNED_MODEL_ARTIFACT",
+        "CALIBRATION_AND_DRIFT_GATES_PASS",
+        "MODEL_STAGE_ALLOWS_REQUESTED_ACTION"
+      ]
+    }
+  ],
+  "canary_profiles": [
+    {
+      "id": "shadow",
+      "enabled_scoped_flag_limit": 0,
+      "maximum_traffic_basis_points": 0,
+      "live_recommendation": false
+    },
+    {
+      "id": "one_source",
+      "enabled_scoped_flag_limit": 1,
+      "maximum_traffic_basis_points": 100,
+      "live_recommendation": false
+    },
+    {
+      "id": "one_sport",
+      "enabled_scoped_flag_limit": 2,
+      "maximum_traffic_basis_points": 500,
+      "live_recommendation": false
+    },
+    {
+      "id": "one_market_family",
+      "enabled_scoped_flag_limit": 3,
+      "maximum_traffic_basis_points": 2500,
+      "live_recommendation": false
+    },
+    {
+      "id": "eligible_full",
+      "enabled_scoped_flag_limit": 4,
+      "maximum_traffic_basis_points": 10000,
+      "live_recommendation": false
+    }
+  ],
+  "allowed_profile_transitions": [
+    "shadow->one_source",
+    "one_source->one_sport",
+    "one_sport->one_market_family",
+    "one_market_family->eligible_full"
+  ],
+  "forbidden_effects": [
+    "SUBMIT_CONFIRM_OR_RETRY_REAL_ORDER",
+    "LOWER_EVIDENCE_GATE",
+    "LOWER_NUMERIC_STABILITY_GATE",
+    "LOWER_RISK_OR_SAFETY_GATE",
+    "BYPASS_SOURCE_CONTRACT",
+    "ENABLE_STALE_ADVICE",
+    "CHANGE_IMMUTABLE_LEDGER_FACT",
+    "SPEND_INCREMENTAL_CASH"
+  ],
+  "mutation_contract": {
+    "runtime_source": "/var/lib/abd/release/feature_flags.json",
+    "requires_signed_release_id": true,
+    "requires_monotonic_revision": true,
+    "append_only_audit_event_required": true,
+    "partial_write_method": "WRITE_FSYNC_RENAME",
+    "malformed_or_unknown_action": "DISABLE_AND_ROLL_BACK",
+    "rollback_resets_candidate_flags": true,
+    "rollback_preserves_previous_signed_snapshot": true
+  },
+  "financial_and_order_boundary": {
+    "initial_bankroll_aud": "300.00",
+    "incremental_cash_budget_aud": "0.00",
+    "monthly_target_return": "0.30",
+    "monthly_target_guaranteed": false,
+    "order_submission_module_present": false
+  }
+}

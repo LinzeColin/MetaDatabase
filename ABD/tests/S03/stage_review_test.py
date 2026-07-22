@@ -32,6 +32,7 @@ from abd_acceptance.stage3_review import (
     PINNED_REVIEW_ARTIFACT_HASHES,
     ROLLBACK_EVIDENCE_PATH,
     STRUCTURAL_SELF_NORMALIZED_SHA256,
+    SUCCESSOR_UNIT_PROFILE_HASHES,
     TEST_PATH,
     WORKFLOW_PATH,
     WORKFLOW_SHA256,
@@ -123,7 +124,8 @@ def test_candidate_preflight_is_fail_closed_and_upload_ready_only_on_pass() -> N
 
 @pytest.mark.parametrize("relative", sorted(PINNED_REVIEW_ARTIFACT_HASHES))
 def test_review_artifact_hash_matches_pin(relative: str) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_REVIEW_ARTIFACT_HASHES[relative]
+    actual = sha256_file(ROOT / relative)
+    assert actual == PINNED_REVIEW_ARTIFACT_HASHES[relative] or actual == SUCCESSOR_UNIT_PROFILE_HASHES.get(relative)
 
 
 def test_review_oracle_source_has_normalized_structural_integrity() -> None:
@@ -285,15 +287,26 @@ def test_a300_a0_and_no_return_guarantee_are_unchanged() -> None:
     assert set(costs["incremental_cash_budget"].values()) == {"0.00"}
 
 
-def test_s04_is_planned_and_not_started() -> None:
-    assert not (ROOT / "tests/S04/P01_test.py").exists()
-    assert not (ROOT / "machine/tests/fixtures/S04_P01.json").exists()
-    assert not (ROOT / "machine/evidence/EVD-S04-P01.json").exists()
+def test_s04_p01_is_an_exact_candidate_or_signed_successor() -> None:
+    result = evaluate_contract(ROOT)
+    matching = [row for row in result["checks"] if row["id"] == "S03REVIEW-S04-NOT-STARTED"]
+    assert len(matching) == 1
+    assert matching[0]["passed"] is True, matching[0]
+    assert matching[0]["detail"]["mode"] in {
+        "VERIFIED_S04_P01_CANDIDATE",
+        "VERIFIED_S04_P01_SIGNED_SUCCESSOR",
+    }
+    assert (ROOT / "tests/S04/P01_test.py").is_file()
+    assert (ROOT / "machine/tests/fixtures/S04_P01.json").is_file()
     rows = [json.loads(line) for line in (ROOT / "machine/evidence/evidence_index.jsonl").read_text(encoding="utf-8-sig").splitlines() if line]
     s04 = [row for row in rows if row["id"] == "INDEX-AC-S04-P01"]
     assert len(s04) == 1
-    assert s04[0]["status"] == "PLANNED"
-    assert "actual_artifact" not in s04[0]
+    if (ROOT / "machine/evidence/EVD-S04-P01.json").is_file():
+        assert s04[0]["status"] == "PASS"
+        assert s04[0]["actual_artifact"] == "machine/evidence/EVD-S04-P01.json"
+    else:
+        assert s04[0]["status"] == "PLANNED"
+        assert "actual_artifact" not in s04[0]
 
 
 def test_rollback_restores_all_twelve_signed_review_inputs_without_external_effect() -> None:

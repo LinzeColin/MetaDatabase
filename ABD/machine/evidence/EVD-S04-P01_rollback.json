@@ -1,0 +1,54 @@
+{
+  "artifacts": {
+    "abd_acceptance/infrastructure_iac.py": {
+      "corrupted_sha256": "c9c3f53c4d4d062325f62269654b30f7912336dc41e38e9134426473017fd065",
+      "restored_sha256": "705ced1f592af8852a93c92ea59d34599aaa8d659f8d34ee92e996e704076729",
+      "signed_sha256": "705ced1f592af8852a93c92ea59d34599aaa8d659f8d34ee92e996e704076729",
+      "status": "PASS"
+    },
+    "infra/compose.yml": {
+      "corrupted_sha256": "a9f7bfe4b05e80f9bcf0229cd6da38c5e68d76808795590b1bf4a111eb2c767c",
+      "restored_sha256": "f6d75aba62f4efbec14e579a6cdfad76c979376ae4778195a4e0afca756b8b50",
+      "signed_sha256": "f6d75aba62f4efbec14e579a6cdfad76c979376ae4778195a4e0afca756b8b50",
+      "status": "PASS"
+    },
+    "infra/config.schema.json": {
+      "corrupted_sha256": "3d91dafeaa60f7c8da2ac172d5357d8702ebfff42d52e37c9a4d3109575f9254",
+      "restored_sha256": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+      "signed_sha256": "bb08e4dd88137d88b5d842bd5ed2fb815163d53ab44f33d21730fdb2dd2f27da",
+      "status": "PASS"
+    },
+    "infra/rebuild.sh": {
+      "corrupted_sha256": "3eb439f3ca294873a4c49171ff356d1eff82fb802918705fd8a869a0c125f6e2",
+      "restored_sha256": "07e38ac597543b184884290985769f177f5a1c05ab76e1a9c426f104f44249cf",
+      "signed_sha256": "07e38ac597543b184884290985769f177f5a1c05ab76e1a9c426f104f44249cf",
+      "status": "PASS"
+    },
+    "infra/systemd/abd.service": {
+      "corrupted_sha256": "2832400c1952a99a0f3b455412e78d86728caadda7a6132ffd870347789630c5",
+      "restored_sha256": "256b30a69ca27f0a3bb566d3ca722d19c0ba00a09d4869ef218d15f5e1cf76bf",
+      "signed_sha256": "256b30a69ca27f0a3bb566d3ca722d19c0ba00a09d4869ef218d15f5e1cf76bf",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S04_P01.json": {
+      "corrupted_sha256": "6150f530efbc2046579b35fb47284e67cf1354568618ce7ed7538086b838a811",
+      "restored_sha256": "877ee84b749f0140ac090da4c4045bdb9db3f95fc85eff27a7ed9f9d9fe34529",
+      "signed_sha256": "877ee84b749f0140ac090da4c4045bdb9db3f95fc85eff27a7ed9f9d9fe34529",
+      "status": "PASS"
+    },
+    "tests/S04/P01_test.py": {
+      "corrupted_sha256": "701d40a11c26226fc6be4bb71e4a306554bc0a8c427d8cd86e2571998da0c944",
+      "restored_sha256": "792b4434c4f792fb61e68843f1d4d70f20aab53eee3a4301e7f7dcf7ca0ffb21",
+      "signed_sha256": "792b4434c4f792fb61e68843f1d4d70f20aab53eee3a4301e7f7dcf7ca0ffb21",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S04-P01",
+  "evidence_id": "EVD-S04-P01-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-22T16:00:00+10:00",
+  "mode": "EPHEMERAL_IAC_ARTIFACT_RESTORE",
+  "production_state_changed": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

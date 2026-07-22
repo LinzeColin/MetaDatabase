@@ -1,0 +1,776 @@
+{
+  "contract_id": "AC-S04-P04",
+  "evidence_id": "EVD-S04-P04-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-22T23:30:00+10:00",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "DETERMINISTIC_INTEGER_CAPACITY_AND_SHEDDING_FAILURE_INJECTION",
+  "production_runtime_verified": false,
+  "production_state_changed": false,
+  "profiles": {
+    "EXPECTED_1X": {
+      "browser_sessions": 2,
+      "candidate_shadow_shed": false,
+      "disk_horizon": {
+        "core_stop_day": null,
+        "core_writes_allowed_at_end": true,
+        "disk_exhausted": false,
+        "final_used_mib": 17796,
+        "free_mib": 23164,
+        "hard_capacity_mib": 40960,
+        "horizon_days": 365,
+        "initial_used_mib": 10496,
+        "minimum_free_reserve_preserved": true,
+        "optional_shed_day": null,
+        "optional_writes_allowed_at_end": true,
+        "production_disk_written": false
+      },
+      "post_shed_disposition": {
+        "actions": [
+          "KEEP_FIXED_RESOURCE_CAPS",
+          "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+        ],
+        "capacity_admission_allowed": true,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": true,
+        "new_browser_sessions_allowed": true,
+        "optional_writes_allowed": true,
+        "production_state_changed": false,
+        "reasons": [
+          "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+        ],
+        "schema_version": "1.0.0",
+        "state": "NORMAL"
+      },
+      "post_shed_metrics": {
+        "browser_sessions": 2,
+        "cpu_usage_basis_points": 3500,
+        "disk_used_mib": 10496,
+        "memory_usage_basis_points": 4688,
+        "swap_used_mib": 0,
+        "telemetry_age_seconds": 10
+      },
+      "pre_shed_disposition": {
+        "actions": [
+          "KEEP_FIXED_RESOURCE_CAPS",
+          "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+        ],
+        "capacity_admission_allowed": true,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": true,
+        "new_browser_sessions_allowed": true,
+        "optional_writes_allowed": true,
+        "production_state_changed": false,
+        "reasons": [
+          "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+        ],
+        "schema_version": "1.0.0",
+        "state": "NORMAL"
+      },
+      "pre_shed_metrics": {
+        "browser_sessions": 2,
+        "cpu_usage_basis_points": 3500,
+        "disk_used_mib": 10496,
+        "memory_usage_basis_points": 4688,
+        "swap_used_mib": 0,
+        "telemetry_age_seconds": 10
+      },
+      "production_runtime_verified": false,
+      "profile_id": "EXPECTED_1X",
+      "real_load_generated": false,
+      "status": "PASS",
+      "swap_used_mib": 0
+    },
+    "FROZEN_10X": {
+      "browser_sessions": 20,
+      "candidate_shadow_shed": true,
+      "disk_horizon": {
+        "core_stop_day": null,
+        "core_writes_allowed_at_end": true,
+        "disk_exhausted": false,
+        "final_used_mib": 32396,
+        "free_mib": 8564,
+        "hard_capacity_mib": 40960,
+        "horizon_days": 365,
+        "initial_used_mib": 10496,
+        "minimum_free_reserve_preserved": true,
+        "optional_shed_day": null,
+        "optional_writes_allowed_at_end": false,
+        "production_disk_written": false
+      },
+      "post_shed_disposition": {
+        "actions": [
+          "KEEP_FIXED_RESOURCE_CAPS",
+          "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+        ],
+        "capacity_admission_allowed": true,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": true,
+        "new_browser_sessions_allowed": true,
+        "optional_writes_allowed": true,
+        "production_state_changed": false,
+        "reasons": [
+          "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+        ],
+        "schema_version": "1.0.0",
+        "state": "NORMAL"
+      },
+      "post_shed_metrics": {
+        "browser_sessions": 20,
+        "cpu_usage_basis_points": 6750,
+        "disk_used_mib": 10496,
+        "memory_usage_basis_points": 6875,
+        "swap_used_mib": 0,
+        "telemetry_age_seconds": 10
+      },
+      "pre_shed_disposition": {
+        "actions": [
+          "STOP_CANDIDATE_SHADOW_FIRST",
+          "PAUSE_BACKFILL_AND_OPTIONAL_REPLAY",
+          "PAUSE_OPTIONAL_GMAIL_INGESTION",
+          "REJECT_NEW_BROWSER_SESSIONS",
+          "KEEP_LEDGER_AND_INTEGRITY_WRITES"
+        ],
+        "capacity_admission_allowed": true,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": true,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "CONSTRAINED_RESOURCE_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "CONSTRAINED"
+      },
+      "pre_shed_metrics": {
+        "browser_sessions": 20,
+        "cpu_usage_basis_points": 7500,
+        "disk_used_mib": 10496,
+        "memory_usage_basis_points": 7813,
+        "swap_used_mib": 0,
+        "telemetry_age_seconds": 10
+      },
+      "production_runtime_verified": false,
+      "profile_id": "FROZEN_10X",
+      "real_load_generated": false,
+      "status": "PASS",
+      "swap_used_mib": 0
+    }
+  },
+  "real_load_generated": false,
+  "scenarios": {
+    "BOOLEAN_METRIC": {
+      "actual_state": "EMERGENCY",
+      "expectation_met": true,
+      "expected_state": "EMERGENCY",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_NON_INTEGRITY_WRITES",
+          "PRESERVE_EXISTING_LEDGER_AND_EVIDENCE_BYTES",
+          "ROLL_BACK_TO_PREVIOUS_VERIFIED_RELEASE_IF_SAFE",
+          "ESCALATE_WITHOUT_PAID_SCALE_UP"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "UNKNOWN_OR_MALFORMED_TELEMETRY"
+        ],
+        "schema_version": "1.0.0",
+        "state": "EMERGENCY"
+      }
+    },
+    "BROWSER_20": {
+      "actual_state": "NORMAL",
+      "expectation_met": true,
+      "expected_state": "NORMAL",
+      "result": {
+        "actions": [
+          "KEEP_FIXED_RESOURCE_CAPS",
+          "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+        ],
+        "capacity_admission_allowed": true,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": true,
+        "new_browser_sessions_allowed": true,
+        "optional_writes_allowed": true,
+        "production_state_changed": false,
+        "reasons": [
+          "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+        ],
+        "schema_version": "1.0.0",
+        "state": "NORMAL"
+      }
+    },
+    "BROWSER_21": {
+      "actual_state": "CRITICAL",
+      "expectation_met": true,
+      "expected_state": "CRITICAL",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_INGESTION_AND_OPTIONAL_WORK",
+          "CHECKPOINT_SINGLE_WRITER",
+          "KEEP_ONLY_INTEGRITY_SHUTDOWN_WRITES",
+          "ROLL_BACK_CANDIDATE_IF_PRESENT"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "CRITICAL_RESOURCE_OR_BROWSER_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "CRITICAL"
+      }
+    },
+    "CPU_6999": {
+      "actual_state": "NORMAL",
+      "expectation_met": true,
+      "expected_state": "NORMAL",
+      "result": {
+        "actions": [
+          "KEEP_FIXED_RESOURCE_CAPS",
+          "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+        ],
+        "capacity_admission_allowed": true,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": true,
+        "new_browser_sessions_allowed": true,
+        "optional_writes_allowed": true,
+        "production_state_changed": false,
+        "reasons": [
+          "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+        ],
+        "schema_version": "1.0.0",
+        "state": "NORMAL"
+      }
+    },
+    "CPU_7000": {
+      "actual_state": "CONSTRAINED",
+      "expectation_met": true,
+      "expected_state": "CONSTRAINED",
+      "result": {
+        "actions": [
+          "STOP_CANDIDATE_SHADOW_FIRST",
+          "PAUSE_BACKFILL_AND_OPTIONAL_REPLAY",
+          "PAUSE_OPTIONAL_GMAIL_INGESTION",
+          "REJECT_NEW_BROWSER_SESSIONS",
+          "KEEP_LEDGER_AND_INTEGRITY_WRITES"
+        ],
+        "capacity_admission_allowed": true,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": true,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "CONSTRAINED_RESOURCE_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "CONSTRAINED"
+      }
+    },
+    "CPU_8500": {
+      "actual_state": "CRITICAL",
+      "expectation_met": true,
+      "expected_state": "CRITICAL",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_INGESTION_AND_OPTIONAL_WORK",
+          "CHECKPOINT_SINGLE_WRITER",
+          "KEEP_ONLY_INTEGRITY_SHUTDOWN_WRITES",
+          "ROLL_BACK_CANDIDATE_IF_PRESENT"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "CRITICAL_RESOURCE_OR_BROWSER_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "CRITICAL"
+      }
+    },
+    "CPU_9000": {
+      "actual_state": "EMERGENCY",
+      "expectation_met": true,
+      "expected_state": "EMERGENCY",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_NON_INTEGRITY_WRITES",
+          "PRESERVE_EXISTING_LEDGER_AND_EVIDENCE_BYTES",
+          "ROLL_BACK_TO_PREVIOUS_VERIFIED_RELEASE_IF_SAFE",
+          "ESCALATE_WITHOUT_PAID_SCALE_UP"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "EMERGENCY_RESOURCE_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "EMERGENCY"
+      }
+    },
+    "DISK_32767": {
+      "actual_state": "NORMAL",
+      "expectation_met": true,
+      "expected_state": "NORMAL",
+      "result": {
+        "actions": [
+          "KEEP_FIXED_RESOURCE_CAPS",
+          "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+        ],
+        "capacity_admission_allowed": true,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": true,
+        "new_browser_sessions_allowed": true,
+        "optional_writes_allowed": true,
+        "production_state_changed": false,
+        "reasons": [
+          "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+        ],
+        "schema_version": "1.0.0",
+        "state": "NORMAL"
+      }
+    },
+    "DISK_32768": {
+      "actual_state": "CONSTRAINED",
+      "expectation_met": true,
+      "expected_state": "CONSTRAINED",
+      "result": {
+        "actions": [
+          "STOP_CANDIDATE_SHADOW_FIRST",
+          "PAUSE_BACKFILL_AND_OPTIONAL_REPLAY",
+          "PAUSE_OPTIONAL_GMAIL_INGESTION",
+          "REJECT_NEW_BROWSER_SESSIONS",
+          "KEEP_LEDGER_AND_INTEGRITY_WRITES"
+        ],
+        "capacity_admission_allowed": true,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": true,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "CONSTRAINED_RESOURCE_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "CONSTRAINED"
+      }
+    },
+    "DISK_34816": {
+      "actual_state": "CRITICAL",
+      "expectation_met": true,
+      "expected_state": "CRITICAL",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_INGESTION_AND_OPTIONAL_WORK",
+          "CHECKPOINT_SINGLE_WRITER",
+          "KEEP_ONLY_INTEGRITY_SHUTDOWN_WRITES",
+          "ROLL_BACK_CANDIDATE_IF_PRESENT"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "CRITICAL_RESOURCE_OR_BROWSER_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "CRITICAL"
+      }
+    },
+    "DISK_36864": {
+      "actual_state": "EMERGENCY",
+      "expectation_met": true,
+      "expected_state": "EMERGENCY",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_NON_INTEGRITY_WRITES",
+          "PRESERVE_EXISTING_LEDGER_AND_EVIDENCE_BYTES",
+          "ROLL_BACK_TO_PREVIOUS_VERIFIED_RELEASE_IF_SAFE",
+          "ESCALATE_WITHOUT_PAID_SCALE_UP"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "EMERGENCY_RESOURCE_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "EMERGENCY"
+      }
+    },
+    "DISK_40960": {
+      "actual_state": "EMERGENCY",
+      "expectation_met": true,
+      "expected_state": "EMERGENCY",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_NON_INTEGRITY_WRITES",
+          "PRESERVE_EXISTING_LEDGER_AND_EVIDENCE_BYTES",
+          "ROLL_BACK_TO_PREVIOUS_VERIFIED_RELEASE_IF_SAFE",
+          "ESCALATE_WITHOUT_PAID_SCALE_UP"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "DISK_HARD_CAPACITY_REACHED",
+          "EMERGENCY_RESOURCE_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "EMERGENCY"
+      }
+    },
+    "FROZEN_10X": {
+      "actual_state": "CONSTRAINED_THEN_NORMAL",
+      "expectation_met": true,
+      "expected_state": "CONSTRAINED_THEN_NORMAL",
+      "result": {
+        "browser_sessions": 20,
+        "candidate_shadow_shed": true,
+        "disk_horizon": {
+          "core_stop_day": null,
+          "core_writes_allowed_at_end": true,
+          "disk_exhausted": false,
+          "final_used_mib": 32396,
+          "free_mib": 8564,
+          "hard_capacity_mib": 40960,
+          "horizon_days": 365,
+          "initial_used_mib": 10496,
+          "minimum_free_reserve_preserved": true,
+          "optional_shed_day": null,
+          "optional_writes_allowed_at_end": false,
+          "production_disk_written": false
+        },
+        "post_shed_disposition": {
+          "actions": [
+            "KEEP_FIXED_RESOURCE_CAPS",
+            "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+          ],
+          "capacity_admission_allowed": true,
+          "effective_live_recommendation_enabled": false,
+          "external_state_changed": false,
+          "new_advice_capacity_allowed": true,
+          "new_browser_sessions_allowed": true,
+          "optional_writes_allowed": true,
+          "production_state_changed": false,
+          "reasons": [
+            "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+          ],
+          "schema_version": "1.0.0",
+          "state": "NORMAL"
+        },
+        "post_shed_metrics": {
+          "browser_sessions": 20,
+          "cpu_usage_basis_points": 6750,
+          "disk_used_mib": 10496,
+          "memory_usage_basis_points": 6875,
+          "swap_used_mib": 0,
+          "telemetry_age_seconds": 10
+        },
+        "pre_shed_disposition": {
+          "actions": [
+            "STOP_CANDIDATE_SHADOW_FIRST",
+            "PAUSE_BACKFILL_AND_OPTIONAL_REPLAY",
+            "PAUSE_OPTIONAL_GMAIL_INGESTION",
+            "REJECT_NEW_BROWSER_SESSIONS",
+            "KEEP_LEDGER_AND_INTEGRITY_WRITES"
+          ],
+          "capacity_admission_allowed": true,
+          "effective_live_recommendation_enabled": false,
+          "external_state_changed": false,
+          "new_advice_capacity_allowed": true,
+          "new_browser_sessions_allowed": false,
+          "optional_writes_allowed": false,
+          "production_state_changed": false,
+          "reasons": [
+            "CONSTRAINED_RESOURCE_THRESHOLD"
+          ],
+          "schema_version": "1.0.0",
+          "state": "CONSTRAINED"
+        },
+        "pre_shed_metrics": {
+          "browser_sessions": 20,
+          "cpu_usage_basis_points": 7500,
+          "disk_used_mib": 10496,
+          "memory_usage_basis_points": 7813,
+          "swap_used_mib": 0,
+          "telemetry_age_seconds": 10
+        },
+        "production_runtime_verified": false,
+        "profile_id": "FROZEN_10X",
+        "real_load_generated": false,
+        "status": "PASS",
+        "swap_used_mib": 0
+      }
+    },
+    "MEMORY_7000": {
+      "actual_state": "CONSTRAINED",
+      "expectation_met": true,
+      "expected_state": "CONSTRAINED",
+      "result": {
+        "actions": [
+          "STOP_CANDIDATE_SHADOW_FIRST",
+          "PAUSE_BACKFILL_AND_OPTIONAL_REPLAY",
+          "PAUSE_OPTIONAL_GMAIL_INGESTION",
+          "REJECT_NEW_BROWSER_SESSIONS",
+          "KEEP_LEDGER_AND_INTEGRITY_WRITES"
+        ],
+        "capacity_admission_allowed": true,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": true,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "CONSTRAINED_RESOURCE_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "CONSTRAINED"
+      }
+    },
+    "MEMORY_8500": {
+      "actual_state": "CRITICAL",
+      "expectation_met": true,
+      "expected_state": "CRITICAL",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_INGESTION_AND_OPTIONAL_WORK",
+          "CHECKPOINT_SINGLE_WRITER",
+          "KEEP_ONLY_INTEGRITY_SHUTDOWN_WRITES",
+          "ROLL_BACK_CANDIDATE_IF_PRESENT"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "CRITICAL_RESOURCE_OR_BROWSER_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "CRITICAL"
+      }
+    },
+    "MEMORY_9000": {
+      "actual_state": "EMERGENCY",
+      "expectation_met": true,
+      "expected_state": "EMERGENCY",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_NON_INTEGRITY_WRITES",
+          "PRESERVE_EXISTING_LEDGER_AND_EVIDENCE_BYTES",
+          "ROLL_BACK_TO_PREVIOUS_VERIFIED_RELEASE_IF_SAFE",
+          "ESCALATE_WITHOUT_PAID_SCALE_UP"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "EMERGENCY_RESOURCE_THRESHOLD"
+        ],
+        "schema_version": "1.0.0",
+        "state": "EMERGENCY"
+      }
+    },
+    "MISSING_METRIC": {
+      "actual_state": "EMERGENCY",
+      "expectation_met": true,
+      "expected_state": "EMERGENCY",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_NON_INTEGRITY_WRITES",
+          "PRESERVE_EXISTING_LEDGER_AND_EVIDENCE_BYTES",
+          "ROLL_BACK_TO_PREVIOUS_VERIFIED_RELEASE_IF_SAFE",
+          "ESCALATE_WITHOUT_PAID_SCALE_UP"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "UNKNOWN_OR_MALFORMED_TELEMETRY"
+        ],
+        "schema_version": "1.0.0",
+        "state": "EMERGENCY"
+      }
+    },
+    "NEGATIVE_METRIC": {
+      "actual_state": "EMERGENCY",
+      "expectation_met": true,
+      "expected_state": "EMERGENCY",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_NON_INTEGRITY_WRITES",
+          "PRESERVE_EXISTING_LEDGER_AND_EVIDENCE_BYTES",
+          "ROLL_BACK_TO_PREVIOUS_VERIFIED_RELEASE_IF_SAFE",
+          "ESCALATE_WITHOUT_PAID_SCALE_UP"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "UNKNOWN_OR_MALFORMED_TELEMETRY"
+        ],
+        "schema_version": "1.0.0",
+        "state": "EMERGENCY"
+      }
+    },
+    "SWAP_1": {
+      "actual_state": "EMERGENCY",
+      "expectation_met": true,
+      "expected_state": "EMERGENCY",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_NON_INTEGRITY_WRITES",
+          "PRESERVE_EXISTING_LEDGER_AND_EVIDENCE_BYTES",
+          "ROLL_BACK_TO_PREVIOUS_VERIFIED_RELEASE_IF_SAFE",
+          "ESCALATE_WITHOUT_PAID_SCALE_UP"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "SWAP_USED"
+        ],
+        "schema_version": "1.0.0",
+        "state": "EMERGENCY"
+      }
+    },
+    "TELEMETRY_30": {
+      "actual_state": "NORMAL",
+      "expectation_met": true,
+      "expected_state": "NORMAL",
+      "result": {
+        "actions": [
+          "KEEP_FIXED_RESOURCE_CAPS",
+          "KEEP_TELEMETRY_AND_EVIDENCE_GATES"
+        ],
+        "capacity_admission_allowed": true,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": true,
+        "new_browser_sessions_allowed": true,
+        "optional_writes_allowed": true,
+        "production_state_changed": false,
+        "reasons": [
+          "WITHIN_FROZEN_RESOURCE_ENVELOPE"
+        ],
+        "schema_version": "1.0.0",
+        "state": "NORMAL"
+      }
+    },
+    "TELEMETRY_31": {
+      "actual_state": "EMERGENCY",
+      "expectation_met": true,
+      "expected_state": "EMERGENCY",
+      "result": {
+        "actions": [
+          "STOP_NEW_ADVICE",
+          "INVALIDATE_UNEXPIRED_ADVICE",
+          "STOP_ALL_NON_INTEGRITY_WRITES",
+          "PRESERVE_EXISTING_LEDGER_AND_EVIDENCE_BYTES",
+          "ROLL_BACK_TO_PREVIOUS_VERIFIED_RELEASE_IF_SAFE",
+          "ESCALATE_WITHOUT_PAID_SCALE_UP"
+        ],
+        "capacity_admission_allowed": false,
+        "effective_live_recommendation_enabled": false,
+        "external_state_changed": false,
+        "new_advice_capacity_allowed": false,
+        "new_browser_sessions_allowed": false,
+        "optional_writes_allowed": false,
+        "production_state_changed": false,
+        "reasons": [
+          "TELEMETRY_STALE"
+        ],
+        "schema_version": "1.0.0",
+        "state": "EMERGENCY"
+      }
+    }
+  },
+  "schema_version": "1.0.0",
+  "status": "PASS",
+  "target_host_accessed": false
+}

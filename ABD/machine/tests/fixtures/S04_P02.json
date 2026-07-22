@@ -1,0 +1,159 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "ABD-S04-P02-CLOUDFLARE-EDGE",
+  "fixed_clock": "2026-07-22T20:00:00+10:00",
+  "expected_requirement_id": "REQ-S04-P02",
+  "expected_contract_id": "AC-S04-P02",
+  "expected_task_ids": [
+    "T-S04-P02-01",
+    "T-S04-P02-02",
+    "T-S04-P02-03"
+  ],
+  "expected_test_ids": [
+    "TEST-S04-P02",
+    "TEST-S04-P02-BOUNDARY",
+    "TEST-S04-P02-REPLAY"
+  ],
+  "expected_artifacts": {
+    "ART-S04-P02-01": "infra/cloudflared.yml",
+    "ART-S04-P02-02": "access_policy.md",
+    "ART-S04-P02-03": "degraded_page.html"
+  },
+  "official_sources": [
+    {
+      "id": "S04P02-SRC-TUNNEL-CONFIG",
+      "publisher": "Cloudflare",
+      "url": "https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/local-management/configuration-file/",
+      "retrieved_at": "2026-07-22",
+      "fact": "Locally-managed Tunnel configuration files with ingress rules must end with a catch-all rule."
+    },
+    {
+      "id": "S04P02-SRC-OUTBOUND-ONLY",
+      "publisher": "Cloudflare",
+      "url": "https://developers.cloudflare.com/cloudflare-one/networks/connectivity-options/",
+      "retrieved_at": "2026-07-22",
+      "fact": "cloudflared establishes outbound-only connections to the Cloudflare network, so the origin service need not expose inbound business ports."
+    },
+    {
+      "id": "S04P02-SRC-ACCESS-POLICIES",
+      "publisher": "Cloudflare",
+      "url": "https://developers.cloudflare.com/cloudflare-one/access-controls/policies/",
+      "retrieved_at": "2026-07-22",
+      "fact": "Cloudflare Access is deny by default; Bypass disables Access enforcement and logging for matching traffic."
+    },
+    {
+      "id": "S04P02-SRC-MFA",
+      "publisher": "Cloudflare",
+      "url": "https://developers.cloudflare.com/cloudflare-one/access-controls/policies/mfa-requirements/",
+      "retrieved_at": "2026-07-22",
+      "fact": "Cloudflare Access supports identity-provider-based MFA and independent MFA, which must be explicitly configured and verified."
+    },
+    {
+      "id": "S04P02-SRC-CHINA-NETWORK",
+      "publisher": "Cloudflare",
+      "url": "https://developers.cloudflare.com/china-network/",
+      "retrieved_at": "2026-07-22",
+      "fact": "Cloudflare China Network is a separate Enterprise subscription and requires a valid ICP filing or license for each onboarded apex domain."
+    }
+  ],
+  "expected_config": {
+    "tunnel": "00000000-0000-4000-8000-000000000000",
+    "credentials-file": "/etc/cloudflared/00000000-0000-4000-8000-000000000000.json",
+    "no-autoupdate": true,
+    "metrics": "127.0.0.1:49312",
+    "ingress": [
+      {
+        "hostname": "abd.example.invalid",
+        "service": "http://127.0.0.1:8080",
+        "originRequest": {
+          "connectTimeout": "10s"
+        }
+      },
+      {
+        "service": "http_status:404"
+      }
+    ]
+  },
+  "invalid_config_mutations": [
+    {
+      "id": "ACTUAL-TUNNEL-ID-IN-REPOSITORY",
+      "path": ["tunnel"],
+      "value": "11111111-1111-4111-8111-111111111111"
+    },
+    {
+      "id": "CREDENTIALS-OUTSIDE-RESTRICTED-PATH",
+      "path": ["credentials-file"],
+      "value": "./tunnel.json"
+    },
+    {
+      "id": "AUTOUPDATE-ENABLED",
+      "path": ["no-autoupdate"],
+      "value": false
+    },
+    {
+      "id": "PUBLIC-METRICS",
+      "path": ["metrics"],
+      "value": "0.0.0.0:49312"
+    },
+    {
+      "id": "ACTUAL-HOSTNAME-IN-REPOSITORY",
+      "path": ["ingress", 0, "hostname"],
+      "value": "abd.example.com"
+    },
+    {
+      "id": "PUBLIC-ORIGIN",
+      "path": ["ingress", 0, "service"],
+      "value": "http://0.0.0.0:8080"
+    },
+    {
+      "id": "REMOTE-ORIGIN",
+      "path": ["ingress", 0, "service"],
+      "value": "https://origin.example.com"
+    },
+    {
+      "id": "MISSING-CATCH-ALL",
+      "path": ["ingress", 1],
+      "delete": true
+    },
+    {
+      "id": "OPEN-CATCH-ALL",
+      "path": ["ingress", 1, "service"],
+      "value": "http://127.0.0.1:8080"
+    },
+    {
+      "id": "TLS-VERIFICATION-BYPASS",
+      "path": ["ingress", 0, "originRequest", "noTLSVerify"],
+      "value": true
+    }
+  ],
+  "expected_activation_gate": "BLOCKED_EXTERNAL_PREREQUISITES_NOT_VERIFIED",
+  "allowed_numeric_boundary_deltas": [
+    "-0.0001",
+    "0",
+    "0.0001"
+  ],
+  "expected_external_effect_boundary": {
+    "network_accessed": false,
+    "cloudflare_account_api_or_dashboard_accessed": false,
+    "cloudflare_tunnel_created_configured_or_run": false,
+    "cloudflare_dns_changed": false,
+    "cloudflare_access_application_or_policy_applied": false,
+    "ovh_account_or_host_accessed": false,
+    "public_business_inbound_opened": false,
+    "secret_value_read_or_stored": false,
+    "production_activated": false,
+    "real_order_submitted": false,
+    "return_or_roi_verified": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "expected_bundle_files": [
+    "access_policy.md",
+    "degraded_page.html",
+    "edge_manifest.json",
+    "infra/cloudflared.yml"
+  ],
+  "expected_next": "S04/P03_READY_NOT_STARTED",
+  "minimum_oracle_checks": 50,
+  "minimum_targeted_pytest_cases": 70,
+  "minimum_full_pytest_cases": 3400
+}

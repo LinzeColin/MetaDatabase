@@ -1,0 +1,258 @@
+{
+  "schema_version": "1.0.0",
+  "product_version": "0.0.0.1",
+  "deployment_mode": "SAME_HOST_BLUE_GREEN_WITH_CANARY_AND_AUTO_ROLLBACK",
+  "production_activation": {
+    "repository_status": "NOT_REQUESTED_OR_VERIFIED",
+    "runtime_control_state_source": "/var/lib/abd/release/control_state.json",
+    "external_activation_record": "/etc/abd/release-activation.json",
+    "required_stage_review": "STAGE-REVIEW-S04",
+    "real_traffic_switched_in_s04_p03": false
+  },
+  "time_contract": {
+    "clock": "MONOTONIC_INTEGER_SECONDS",
+    "rollback_deadline_seconds": 900,
+    "service_recovery_target_seconds": 900,
+    "ledger_recovery_point_target_seconds": 60,
+    "deadline_inclusive": true,
+    "frozen_boundary_seconds": [
+      899,
+      900,
+      901
+    ]
+  },
+  "slots": [
+    {
+      "id": "blue",
+      "release_path": "/opt/abd/releases/blue",
+      "bind_address": "127.0.0.1",
+      "bind_port": 8081,
+      "runtime_manifest": "/opt/abd/releases/blue/release_manifest.json",
+      "runtime_env_file": "/etc/abd/slots/blue.env",
+      "log_path": "/var/log/abd/blue",
+      "repository_runtime_status": "NOT_RUNNING_OR_VERIFIED"
+    },
+    {
+      "id": "green",
+      "release_path": "/opt/abd/releases/green",
+      "bind_address": "127.0.0.1",
+      "bind_port": 8082,
+      "runtime_manifest": "/opt/abd/releases/green/release_manifest.json",
+      "runtime_env_file": "/etc/abd/slots/green.env",
+      "log_path": "/var/log/abd/green",
+      "repository_runtime_status": "NOT_RUNNING_OR_VERIFIED"
+    }
+  ],
+  "routing": {
+    "public_origin": "http://127.0.0.1:8080",
+    "current_release_symlink": "/opt/abd/current",
+    "atomic_switch_method": "CREATE_SIBLING_SYMLINK_THEN_RENAME",
+    "allowed_targets": [
+      "/opt/abd/releases/blue",
+      "/opt/abd/releases/green"
+    ],
+    "partial_or_external_target_policy": "REJECT_AND_KEEP_PREVIOUS"
+  },
+  "runtime_profiles": {
+    "active": {
+      "compose_service": "abd-core",
+      "compose_profile": "DEFAULT",
+      "project_name": "abd",
+      "bind_address": "127.0.0.1",
+      "bind_port": 8080,
+      "state_access": "READ_WRITE_SINGLE_WRITER",
+      "cpu_hard_limit_millicores": 1500,
+      "memory_hard_limit_mib": 2560,
+      "swap_limit_mib": 0,
+      "live_recommendation_enabled_by_profile": false,
+      "order_submission_enabled": false
+    },
+    "candidate_shadow": {
+      "compose_service": "abd-shadow",
+      "compose_profile": "shadow",
+      "project_name_pattern": "^abd-shadow-(blue|green)$",
+      "bind_address": "127.0.0.1",
+      "allowed_bind_ports": [
+        8081,
+        8082
+      ],
+      "state_access": "READ_ONLY",
+      "cpu_hard_limit_millicores": 250,
+      "memory_hard_limit_mib": 512,
+      "swap_limit_mib": 0,
+      "maximum_concurrent_instances": 1,
+      "live_recommendation_enabled_by_profile": false,
+      "order_submission_enabled": false
+    }
+  },
+  "shared_durable_state": {
+    "root": "/var/lib/abd",
+    "outside_release_slots": true,
+    "slot_specific_copy_forbidden": true,
+    "paths": [
+      "/var/lib/abd/ledger",
+      "/var/lib/abd/evidence",
+      "/var/lib/abd/mail",
+      "/var/lib/abd/outbox",
+      "/var/lib/abd/checkpoints"
+    ],
+    "candidate_shadow_access": "READ_ONLY",
+    "single_writer_during_cutover": true,
+    "pre_switch_requirements": [
+      "STOP_NEW_ADVICE",
+      "INVALIDATE_UNEXPIRED_ADVICE",
+      "DRAIN_OR_CHECKPOINT_WRITER",
+      "CAPTURE_LEDGER_WATERMARK",
+      "VERIFY_LEDGER_AND_EVIDENCE_HASH_CHAIN",
+      "VERIFY_PREVIOUS_RELEASE_MANIFEST"
+    ],
+    "post_switch_requirements": [
+      "VERIFY_LEDGER_WATERMARK_NOT_DECREASED",
+      "VERIFY_NO_DUPLICATE_LEDGER_EVENT_IDS",
+      "VERIFY_HASH_CHAIN",
+      "KEEP_OLD_SLOT_IMMUTABLE_UNTIL_RELEASE_SETTLES"
+    ],
+    "integrity_failure_action": "STOP_NEW_ADVICE_AND_ROLL_BACK"
+  },
+  "promotion_protocol": [
+    {
+      "order": 1,
+      "action": "VERIFY_CANDIDATE_MANIFEST_DIGEST_AND_SIGNATURE_RECEIPT",
+      "writes_shared_ledger": false
+    },
+    {
+      "order": 2,
+      "action": "START_CANDIDATE_IN_SHADOW_READ_ONLY_MODE",
+      "writes_shared_ledger": false
+    },
+    {
+      "order": 3,
+      "action": "REPLAY_FROZEN_INPUT_AND_COMPARE_ACTIONS",
+      "writes_shared_ledger": false
+    },
+    {
+      "order": 4,
+      "action": "RUN_CANARY_SCOPES_WITH_LIVE_RECOMMENDATION_DISABLED",
+      "writes_shared_ledger": false
+    },
+    {
+      "order": 5,
+      "action": "STOP_NEW_ADVICE_CHECKPOINT_AND_CAPTURE_LEDGER_WATERMARK",
+      "writes_shared_ledger": true
+    },
+    {
+      "order": 6,
+      "action": "ATOMICALLY_SWITCH_CURRENT_RELEASE_SYMLINK",
+      "writes_shared_ledger": false
+    },
+    {
+      "order": 7,
+      "action": "RUN_POST_SWITCH_HEALTH_NUMERIC_COVERAGE_LEDGER_MODEL_PROBES",
+      "writes_shared_ledger": false
+    },
+    {
+      "order": 8,
+      "action": "PROMOTE_OR_ROLL_BACK_WITHIN_DEADLINE",
+      "writes_shared_ledger": true
+    }
+  ],
+  "canary_profiles": [
+    {
+      "id": "shadow",
+      "maximum_traffic_basis_points": 0,
+      "required_scope": "FROZEN_REPLAY_ONLY",
+      "live_recommendation": false
+    },
+    {
+      "id": "one_source",
+      "maximum_traffic_basis_points": 100,
+      "required_scope": "ONE_EXACT_SOURCE_ID",
+      "live_recommendation": false
+    },
+    {
+      "id": "one_sport",
+      "maximum_traffic_basis_points": 500,
+      "required_scope": "ONE_EXACT_SPORT_ID",
+      "live_recommendation": false
+    },
+    {
+      "id": "one_market_family",
+      "maximum_traffic_basis_points": 2500,
+      "required_scope": "ONE_EXACT_MARKET_FAMILY_ID",
+      "live_recommendation": false
+    },
+    {
+      "id": "eligible_full",
+      "maximum_traffic_basis_points": 10000,
+      "required_scope": "ONLY_EVIDENCE_GATED_ELIGIBLE_SCOPES",
+      "live_recommendation": false
+    }
+  ],
+  "required_probes": [
+    "HEALTH_PROBE",
+    "NUMERIC_CROSS_IMPLEMENTATION",
+    "FROZEN_REPLAY_ACTION_MATCH",
+    "SILENT_COVERAGE_GAP_NONINCREASE",
+    "MODEL_DRIFT_WITHIN_STOP_LINE",
+    "SECURITY_HIGH_CRITICAL_ZERO",
+    "LEDGER_AND_EVIDENCE_INTEGRITY"
+  ],
+  "auto_rollback_triggers": [
+    {
+      "id": "HEALTH_PROBE_FAILED",
+      "canonical_reason": "健康探针失败"
+    },
+    {
+      "id": "NUMERIC_CROSS_IMPLEMENTATION_MISMATCH",
+      "canonical_reason": "数值交叉实现不一致"
+    },
+    {
+      "id": "FROZEN_REPLAY_ACTION_MISMATCH",
+      "canonical_reason": "新版本建议与冻结重放不一致"
+    },
+    {
+      "id": "SILENT_COVERAGE_GAP_INCREASED",
+      "canonical_reason": "静默缺口增加"
+    },
+    {
+      "id": "MODEL_DRIFT_STOP_LINE_BREACHED",
+      "canonical_reason": "模型漂移越过停止线"
+    },
+    {
+      "id": "SECURITY_HIGH_OR_CRITICAL_UNRESOLVED",
+      "canonical_reason": "安全严重/高危未处置"
+    },
+    {
+      "id": "LEDGER_OR_EVIDENCE_INTEGRITY_FAILED",
+      "canonical_reason": "账本或证据完整性失败"
+    },
+    {
+      "id": "UNKNOWN_OR_MALFORMED_PROBE",
+      "canonical_reason": "未知或畸形发布探针"
+    }
+  ],
+  "rollback": {
+    "entrypoint": "rollback.sh",
+    "lock_file": "/run/lock/abd-release.lock",
+    "control_state": "/var/lib/abd/release/control_state.json",
+    "append_only_events": "/var/lib/abd/release/events.jsonl",
+    "advice_invalidation_marker": "/var/lib/abd/release/advice_invalidated.json",
+    "previous_slot_source": "LAST_VERIFIED_CONTROL_STATE_ONLY",
+    "arbitrary_path_or_slot_allowed": false,
+    "unknown_trigger_action": "ROLL_BACK_FAIL_CLOSED",
+    "deadline_breach_action": "KEEP_ADVICE_DISABLED_AND_ESCALATE",
+    "ledger_or_evidence_mutation_allowed": false
+  },
+  "external_effect_boundary": {
+    "network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "docker_or_systemd_invoked": false,
+    "cloudflare_changed": false,
+    "real_traffic_switched": false,
+    "production_activated": false,
+    "shared_production_ledger_read_or_written": false,
+    "real_order_submitted": false,
+    "return_or_roi_verified": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

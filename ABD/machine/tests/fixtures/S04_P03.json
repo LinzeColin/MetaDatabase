@@ -1,0 +1,227 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "ABD-S04-P03-SAME-HOST-BLUE-GREEN",
+  "fixed_clock": "2026-07-22T23:00:00+10:00",
+  "expected_requirement_id": "REQ-S04-P03",
+  "expected_contract_id": "AC-S04-P03",
+  "expected_task_ids": [
+    "T-S04-P03-01",
+    "T-S04-P03-02",
+    "T-S04-P03-03"
+  ],
+  "expected_test_ids": [
+    "TEST-S04-P03",
+    "TEST-S04-P03-BOUNDARY",
+    "TEST-S04-P03-REPLAY"
+  ],
+  "expected_artifacts": {
+    "ART-S04-P03-01": "release_slots.json",
+    "ART-S04-P03-02": "feature_flags.json",
+    "ART-S04-P03-03": "rollback.sh"
+  },
+  "expected_pass_gate": "发布不丢账本，失败在15分钟内回旧版。",
+  "expected_activation_gate": "BLOCKED_RUNTIME_PREREQUISITES_AND_STAGE_REVIEW_NOT_VERIFIED",
+  "expected_financial_and_order_boundary": {
+    "initial_bankroll_aud": "300.00",
+    "incremental_cash_budget_aud": "0.00",
+    "monthly_target_return": "0.30",
+    "monthly_target_guaranteed": false,
+    "order_submission_module_present": false
+  },
+  "expected_external_effect_boundary": {
+    "network_accessed": false,
+    "ovh_account_or_host_accessed": false,
+    "docker_or_systemd_invoked": false,
+    "cloudflare_changed": false,
+    "real_traffic_switched": false,
+    "production_activated": false,
+    "shared_production_ledger_read_or_written": false,
+    "real_order_submitted": false,
+    "return_or_roi_verified": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "invalid_slot_mutations": [
+    {
+      "id": "CLAIM-PRODUCTION-ACTIVATED",
+      "path": ["production_activation", "repository_status"],
+      "value": "ACTIVATION_PREREQUISITES_VERIFIED"
+    },
+    {
+      "id": "CLAIM-REAL-TRAFFIC-SWITCHED",
+      "path": ["production_activation", "real_traffic_switched_in_s04_p03"],
+      "value": true
+    },
+    {
+      "id": "EXTEND-ROLLBACK-DEADLINE",
+      "path": ["time_contract", "rollback_deadline_seconds"],
+      "value": 901
+    },
+    {
+      "id": "EXCLUDE-900-SECOND-BOUNDARY",
+      "path": ["time_contract", "deadline_inclusive"],
+      "value": false
+    },
+    {
+      "id": "DUPLICATE-SLOT-ID",
+      "path": ["slots", 1, "id"],
+      "value": "blue"
+    },
+    {
+      "id": "PUBLIC-SLOT-BIND",
+      "path": ["slots", 0, "bind_address"],
+      "value": "0.0.0.0"
+    },
+    {
+      "id": "ROUTE-OUTSIDE-RELEASE-ROOT",
+      "path": ["routing", "allowed_targets", 1],
+      "value": "/tmp/green"
+    },
+    {
+      "id": "STATE-INSIDE-RELEASE-SLOT",
+      "path": ["shared_durable_state", "root"],
+      "value": "/opt/abd/releases/blue/state"
+    },
+    {
+      "id": "CANDIDATE-WRITES-SHARED-STATE",
+      "path": ["shared_durable_state", "candidate_shadow_access"],
+      "value": "READ_WRITE"
+    },
+    {
+      "id": "REMOVE-LEDGER-HASH-VERIFY",
+      "path": ["shared_durable_state", "pre_switch_requirements", 4],
+      "delete": true
+    },
+    {
+      "id": "ENABLE-LIVE-CANARY",
+      "path": ["canary_profiles", 1, "live_recommendation"],
+      "value": true
+    },
+    {
+      "id": "CANARY-OVER-100-PERCENT",
+      "path": ["canary_profiles", 4, "maximum_traffic_basis_points"],
+      "value": 10001
+    },
+    {
+      "id": "REMOVE-LEDGER-PROBE",
+      "path": ["required_probes", 6],
+      "delete": true
+    },
+    {
+      "id": "REMOVE-SECURITY-ROLLBACK-TRIGGER",
+      "path": ["auto_rollback_triggers", 5],
+      "delete": true
+    },
+    {
+      "id": "ALLOW-ARBITRARY-ROLLBACK-PATH",
+      "path": ["rollback", "arbitrary_path_or_slot_allowed"],
+      "value": true
+    },
+    {
+      "id": "ALLOW-LEDGER-MUTATION",
+      "path": ["rollback", "ledger_or_evidence_mutation_allowed"],
+      "value": true
+    },
+    {
+      "id": "CLAIM-EXTERNAL-PRODUCTION-ACTIVATION",
+      "path": ["external_effect_boundary", "production_activated"],
+      "value": true
+    },
+    {
+      "id": "ADD-SECRET-BEARING-KEY",
+      "path": ["api_token"],
+      "value": "not-a-real-value"
+    }
+  ],
+  "invalid_flag_mutations": [
+    {
+      "id": "CLAIM-FLAGS-APPLIED",
+      "path": ["repository_runtime_status"],
+      "value": "SIGNED_RUNTIME_SNAPSHOT_VERIFIED"
+    },
+    {
+      "id": "LIVE-DEFAULT-ON",
+      "path": ["fixed_flags", 0, "default_enabled"],
+      "value": true
+    },
+    {
+      "id": "LIVE-REPOSITORY-ON",
+      "path": ["fixed_flags", 0, "repository_enabled"],
+      "value": true
+    },
+    {
+      "id": "ROLLBACK-ENABLES-GMAIL",
+      "path": ["fixed_flags", 1, "rollback_value"],
+      "value": true
+    },
+    {
+      "id": "UNKNOWN-FLAG-ON",
+      "path": ["fixed_flags", 2, "unknown_state_enabled"],
+      "value": true
+    },
+    {
+      "id": "REMOVE-MODEL-TEMPLATE",
+      "path": ["scoped_flag_templates", 3],
+      "delete": true
+    },
+    {
+      "id": "ALLOW-PATH-TRAVERSAL-ID",
+      "path": ["scoped_flag_templates", 0, "id_pattern"],
+      "value": "^.*$"
+    },
+    {
+      "id": "CANARY-LIVE-RECOMMENDATION",
+      "path": ["canary_profiles", 2, "live_recommendation"],
+      "value": true
+    },
+    {
+      "id": "SKIP-CANARY-STAGE",
+      "path": ["allowed_profile_transitions", 0],
+      "value": "shadow->eligible_full"
+    },
+    {
+      "id": "REMOVE-NO-ORDER-EFFECT",
+      "path": ["forbidden_effects", 0],
+      "delete": true
+    },
+    {
+      "id": "NONMONOTONIC-REVISION",
+      "path": ["mutation_contract", "requires_monotonic_revision"],
+      "value": false
+    },
+    {
+      "id": "NO-AUDIT-EVENT",
+      "path": ["mutation_contract", "append_only_audit_event_required"],
+      "value": false
+    },
+    {
+      "id": "UNKNOWN-ACTION-ENABLE",
+      "path": ["mutation_contract", "malformed_or_unknown_action"],
+      "value": "ENABLE"
+    },
+    {
+      "id": "INCREMENTAL-CASH-NONZERO",
+      "path": ["financial_and_order_boundary", "incremental_cash_budget_aud"],
+      "value": "0.01"
+    },
+    {
+      "id": "MONTHLY-TARGET-GUARANTEED",
+      "path": ["financial_and_order_boundary", "monthly_target_guaranteed"],
+      "value": true
+    },
+    {
+      "id": "ORDER-MODULE-PRESENT",
+      "path": ["financial_and_order_boundary", "order_submission_module_present"],
+      "value": true
+    }
+  ],
+  "allowed_numeric_boundary_deltas": [
+    "-0.0001",
+    "0",
+    "0.0001"
+  ],
+  "expected_next": "S04/P04_READY_NOT_STARTED",
+  "minimum_oracle_checks": 75,
+  "minimum_targeted_pytest_cases": 100,
+  "minimum_full_pytest_cases": 3600,
+  "minimum_signed_state_pytest_cases": 280
+}

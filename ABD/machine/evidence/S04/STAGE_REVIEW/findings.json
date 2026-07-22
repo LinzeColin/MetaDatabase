@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S04-WHOLE-STAGE-REVIEW",
+  "stage_id": "S04",
+  "fixed_at": "2026-07-22T23:59:00+10:00",
+  "findings": [
+    {
+      "id": "F-S04-REVIEW-001",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "候选影子槽缺少可执行资源上限与共享状态只读挂载",
+      "observation": "P03声明候选影子槽只读，P04为其分配250m CPU与512 MiB，但P01 Compose原先只有active服务。",
+      "risk": "实现者可能以active资源启动候选，或让候选成为共享状态第二写者，破坏单写者、容量和账本完整性合同。",
+      "remediation": "新增显式shadow Compose profile，将CPU、内存、swap、端口、共享状态只读和无下单能力绑定到release_slots运行配置。",
+      "verification_gate": "S04REVIEW-ACTIVE-SHADOW-RUNTIME-BINDING"
+    },
+    {
+      "id": "F-S04-REVIEW-002",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "缺少整Stage端口、资源、状态路径与降级策略的单一Oracle",
+      "observation": "P01至P04各自验证局部工件，但没有一个Oracle同时证明8080 active、8081/8082 shadow、资源预算与只读状态完全一致。",
+      "risk": "单个Phase继续PASS时仍可能产生跨文件配置漂移，直到真实部署才暴露。",
+      "remediation": "Stage Review加入跨工件精确耦合、故障注入与回滚恢复，任何端口、资源或状态访问漂移都fail closed。",
+      "verification_gate": "S04REVIEW-CROSS-PHASE-CONTRACT-COUPLING"
+    },
+    {
+      "id": "F-S04-REVIEW-003",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "Cloudflare Tunnel配置缺少宿主机连接器生命周期合同",
+      "observation": "P02提供Named Tunnel与Access离线配置，但未提供连接器systemd单元。",
+      "risk": "配置存在并不等于连接器可在宿主机重启后恢复，无法支撑后续7×24运行验证。",
+      "remediation": "新增仅出站、非root、fail-closed前置路径和systemd硬化的abd-cloudflared.service；真实安装、启动和可用性仍留待目标主机验证。",
+      "verification_gate": "S04REVIEW-CLOUDFLARED-LIFECYCLE-CONTRACT"
+    },
+    {
+      "id": "F-S04-REVIEW-004",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "离线设计结果存在被升级为生产可用性结论的风险",
+      "observation": "P02、P03、P04分别产生全球入口、15分钟回滚和10×容量设计合同，但本Stage没有访问目标账户、主机或生产流量。",
+      "risk": "把离线确定性回放误报为OVH 7×24、全球中文访问、自动降级页、生产RTO/RPO或10×吞吐已验证。",
+      "remediation": "冻结明确claim boundary：Tunnel、Access、降级页自动接线、全球/中国大陆可达性、真实RTO/RPO、容量和吞吐全部未验证，生产激活继续阻断。",
+      "verification_gate": "S04REVIEW-RUNTIME-OVERCLAIM-BOUNDARY"
+    },
+    {
+      "id": "F-S04-REVIEW-005",
+      "severity": "MEDIUM",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "复审演进会使P04不可变签名输入看似漂移",
+      "observation": "P04证据签名全abd_acceptance代码树；合法Stage Review必须演进P04 Oracle和测试。",
+      "risk": "只比较当前文件会错误否定已签名Phase，放宽比较又会损害证据不可变性。",
+      "remediation": "仅对白名单Oracle与测试允许从固定P04 implementation commit精确回放历史blob与代码树，其他漂移继续失败关闭。",
+      "verification_gate": "S04REVIEW-P04-HISTORICAL-REPLAY"
+    },
+    {
+      "id": "F-S04-REVIEW-006",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "前序Phase门拒绝合法Stage Review后继状态",
+      "observation": "P03和P04 progression原先要求Stage Review文件与索引完全不存在。",
+      "risk": "本地候选可通过，但签名复审一出现就使前序Phase回执失效，诱发绕过或无法交付。",
+      "remediation": "前序门只接受ABSENT、完整候选或完整签名三种单调状态，并调用无递归的Stage Review preflight；任意部分状态或额外索引失败关闭。",
+      "verification_gate": "S04REVIEW-PREDECESSOR-MONOTONIC-PROGRESSION"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "resolved_in_review_candidate": 6,
+    "open": 0,
+    "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true
+  },
+  "scope_boundaries": {
+    "target_host_or_account_accessed": false,
+    "docker_systemd_or_cloudflared_executed": false,
+    "global_or_china_mainland_reachability_verified": false,
+    "production_load_rto_rpo_or_capacity_verified": false,
+    "degraded_page_automatic_runtime_fallback_verified": false,
+    "model_or_strategy_executed": false,
+    "order_submitted_or_retried": false,
+    "gate_relaxed": false,
+    "return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}
