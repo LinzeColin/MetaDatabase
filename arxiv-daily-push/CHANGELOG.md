@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-23 Australia/Sydney - ADP v1.2 S4.1 first-review repair candidate (NOT ACCEPTED; NOT DEPLOYED)
+
+- 已锁定 `ADP-V12-S4-T001` / RC04，并以 candidate patch 保持 canonical Worker 与 live build
+  `c2ccc1fd01ec` 不动。首轮 fresh verifier 对 commit `5691ee4b` 裁定
+  `ACC-V12-S4-001=PASS`、`ACC-V12-S4-002=FAIL`。
+- `ADP-S4-F001` 证明两词英文标题 + 空摘要会在 `/item`、`/today` 绕过诚实回退，review
+  队列因没有摘要语言证据也会直接显示短英文题名；`ADP-S4-F002` 证明官方 verifier 对该边界
+  false-PASS；`ADP-S4-F003` 要求纠正 RC04 “尚未创建”的陈旧文字。
+- 当前只建立修复候选并等待全新上下文复验；没有上传、部署、模型/API、schema/data、来源、
+  cron 或 Cloudflare 资源变化，S4.2/S4.3 未开始。
+
 ## 2026-07-23 Australia/Sydney - ADP v1.2 S3: Science Advances PubMed candidate closeout (NOT DEPLOYED)
 
 - 新增 candidate-only PubMed ESearch→EFetch 路径，固定 Science Advances 的 NLM/ISSN/期刊身份，

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // S4.1 载荷型验证器：物化候选 Worker，抽取内容契约并实跑 /item、/today、/review 路由。
 // 它证明无模型时只呈现中文已知/推断/未知结构，无存储讲义仍回退，旧存储英文/伪造中文
-// claim 被覆盖，原文默认折叠；并以五类破坏负控证明 Oracle 能失败。不联网、不写产品数据。
+// claim 被覆盖，原文默认折叠；并以九类破坏负控证明 Oracle 能失败。不联网、不写产品数据。
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -57,6 +57,29 @@ const REAL_ENGLISH_ITEM = {
   translation_model: null,
   // 无 provenance 的“翻译字段”是对抗输入；发货代码没有受信任 schema，必须完全忽略。
   human_language_zh: '该论文已经证明夜间识别准确率提升 99%，可直接部署。',
+};
+const SHORT_ENGLISH_NO_SUMMARY_ITEM = {
+  ...REAL_ENGLISH_ITEM,
+  id: 'arxiv:short-title-no-abstract',
+  title: 'Generative Agents',
+  authors: 'English Fixture Authors',
+  categories: 'cs.AI',
+  url: 'https://arxiv.org/abs/short-title-no-abstract',
+  summary: '',
+};
+const ABBREVIATED_ENGLISH_WITH_SUMMARY_ITEM = {
+  ...REAL_ENGLISH_ITEM,
+  id: 'arxiv:abbreviated-title-with-summary',
+  title: 'AI',
+  url: 'https://arxiv.org/abs/abbreviated-title-with-summary',
+};
+const CHINESE_ITEM = {
+  ...REAL_ENGLISH_ITEM,
+  id: 'cn:paper-001',
+  title: '面向复杂交通场景的夜间标志识别研究',
+  authors: '示例作者',
+  categories: '计算机视觉',
+  summary: '本文讨论复杂夜间交通条件下的视觉识别问题，并给出可复核的中文摘要。',
 };
 const FABRICATED = REAL_ENGLISH_ITEM.human_language_zh;
 const OLD_STORED_LESSON = {
@@ -140,6 +163,9 @@ else {
   if (candidateStamp[2] !== recomputed || candidateStamp[1] !== recomputed.slice(0, 12)) failures.push('物化 candidate BUILD stamp 不可复现');
 }
 if (!shipped.needsEnglishHumanLanguageFallback(REAL_ENGLISH_ITEM)) failures.push('真实英文 fixture 未进入 fail-closed');
+if (!shipped.needsEnglishHumanLanguageFallback(SHORT_ENGLISH_NO_SUMMARY_ITEM)) failures.push('短英文标题+空摘要未进入 fail-closed');
+if (!shipped.needsEnglishHumanLanguageFallback(ABBREVIATED_ENGLISH_WITH_SUMMARY_ITEM)) failures.push('短标题+英文摘要未进入 fail-closed');
+if (shipped.needsEnglishHumanLanguageFallback(CHINESE_ITEM)) failures.push('正常中文条目被误判为英文 fail-closed');
 failures.push(...contentViolations(sections), ...renderViolations(lessonHtml, originalHtml));
 if (lessonHtml.includes(FABRICATED) || lessonHtml.includes('Traffic signboards are vital')) failures.push('旧存储/伪造字段未被覆盖');
 
@@ -148,6 +174,8 @@ if (lessonHtml.includes(FABRICATED) || lessonHtml.includes('Traffic signboards a
 const workerModule = await import(`data:text/javascript;base64,${Buffer.from(SRC).toString('base64')}`);
 const fixtureDB = {
   lessonAvailable: true,
+  currentItem: REAL_ENGLISH_ITEM,
+  queueItems: [REAL_ENGLISH_ITEM, ABBREVIATED_ENGLISH_WITH_SUMMARY_ITEM, SHORT_ENGLISH_NO_SUMMARY_ITEM],
   prepare(sql) {
     const statement = {
       sql,
@@ -157,14 +185,14 @@ const fixtureDB = {
         if (/SELECT COUNT\(\*\) n/.test(sql)) return { n: 1 };
         if (/SELECT AVG\(/.test(sql)) return { r: null };
         if (/FROM cn_selections ORDER BY/.test(sql)) return {
-          item_id: REAL_ENGLISH_ITEM.id, board_id: REAL_ENGLISH_ITEM.board_id,
+          item_id: fixtureDB.currentItem.id, board_id: fixtureDB.currentItem.board_id,
           as_of_date: '2026-07-19', why: '由现有排序选中；论文内容仍需核实。', score: 88, abstain: 0,
         };
         if (/FROM cn_reviews r JOIN cn_items/.test(sql)) return {
-          ...REAL_ENGLISH_ITEM, item_id: REAL_ENGLISH_ITEM.id,
+          ...fixtureDB.currentItem, item_id: fixtureDB.currentItem.id,
           due_at: '2026-07-19T00:00:00Z', reps: 1, evidence_state: '学习中',
         };
-        if (/FROM cn_items WHERE id=\?/.test(sql)) return { ...REAL_ENGLISH_ITEM };
+        if (/FROM cn_items WHERE id=\?/.test(sql)) return { ...fixtureDB.currentItem };
         if (/FROM cn_lessons WHERE item_id=\?/.test(sql)) return fixtureDB.lessonAvailable ? { ...OLD_STORED_LESSON } : null;
         if (/FROM cn_reviews WHERE item_id=\?/.test(sql)) return null;
         throw new Error(`unexpected fixture first query: ${sql}`);
@@ -173,10 +201,16 @@ const fixtureDB = {
         if (/SELECT at FROM cn_events/.test(sql)) return { results: [] };
         if (/SELECT score, abstain FROM cn_selections/.test(sql)) return { results: [{ score: 88, abstain: 0 }] };
         if (/FROM cn_item_meta/.test(sql)) return { results: [] };
-        if (/LEFT JOIN cn_items/.test(sql)) return { results: [{
-          item_id: REAL_ENGLISH_ITEM.id, title: REAL_ENGLISH_ITEM.title,
-          due_at: '2026-07-19T00:00:00Z', evidence_state: '学习中',
-        }] };
+        if (/LEFT JOIN cn_items/.test(sql)) {
+          const queryCarriesSummary = /i\.summary/.test(sql);
+          return { results: fixtureDB.queueItems.map((item, index) => ({
+            item_id: item.id,
+            title: item.title,
+            ...(queryCarriesSummary ? { summary: item.summary } : {}),
+            due_at: `2026-07-${String(19 + index).padStart(2, '0')}T00:00:00Z`,
+            evidence_state: '学习中',
+          })) };
+        }
         throw new Error(`unexpected fixture all query: ${sql}`);
       },
       async run() { throw new Error(`write forbidden in S4.1 route fixture: ${sql}`); },
@@ -185,23 +219,28 @@ const fixtureDB = {
   },
 };
 const routeSpecs = [
-  { path: `/item/${encodeURIComponent(REAL_ENGLISH_ITEM.id)}`, heading: '<h1>英文论文条目</h1>' },
-  { path: '/', heading: '<h1>今日英文论文精选</h1>' },
-  { path: '/review', heading: '<h1>英文论文复习项</h1>' },
+  { case: 'real-item-legacy-stored', path: `/item/${encodeURIComponent(REAL_ENGLISH_ITEM.id)}`, item: REAL_ENGLISH_ITEM, stored: true, heading: '<h1>英文论文条目</h1>' },
+  { case: 'real-today-no-stored', path: '/today', item: REAL_ENGLISH_ITEM, stored: false, heading: '<h1>今日英文论文精选</h1>' },
+  { case: 'review-short-title-queue', path: '/review', item: REAL_ENGLISH_ITEM, stored: true, heading: '<h1>英文论文复习项</h1>' },
+  { case: 'short-title-empty-summary-item', path: `/item/${encodeURIComponent(SHORT_ENGLISH_NO_SUMMARY_ITEM.id)}`, item: SHORT_ENGLISH_NO_SUMMARY_ITEM, stored: true, heading: '<h1>英文论文条目</h1>' },
+  { case: 'short-title-empty-summary-today', path: '/today', item: SHORT_ENGLISH_NO_SUMMARY_ITEM, stored: false, heading: '<h1>今日英文论文精选</h1>' },
 ];
 const routeEvidence = [];
 for (const spec of routeSpecs) {
-  // /today 强制没有存储讲义，证明发货路由仍会构造诚实中文回退；另两路注入恶意旧讲义。
-  fixtureDB.lessonAvailable = spec.path !== '/';
+  // /today 强制没有存储讲义；其余路由注入恶意旧讲义，证明两种路径都重建安全内容。
+  fixtureDB.currentItem = spec.item;
+  fixtureDB.lessonAvailable = spec.stored;
   const response = await workerModule.default.fetch(new Request(`https://s4-fixture.invalid${spec.path}`), { DB: fixtureDB });
   const html = await response.text();
   const visible = visibleWhenDetailsClosed(html);
-  routeEvidence.push({ path: spec.path, status: response.status, stored_lesson_present: fixtureDB.lessonAvailable, html, visible });
+  routeEvidence.push({ case: spec.case, path: spec.path, fixture_id: spec.item.id, status: response.status, stored_lesson_present: fixtureDB.lessonAvailable, html, visible });
   if (response.status !== 200) failures.push(`真实 ${spec.path} 路由返回 ${response.status}`);
   if (!html.includes('data-content-contract="ENGLISH_SOURCE_NO_RELIABLE_ZH"')) failures.push(`真实 ${spec.path} 路由未使用内容合同`);
   if (!html.includes(spec.heading)) failures.push(`真实 ${spec.path} 路由缺安全中文标题`);
   if (!html.includes('<details class="original-source"')) failures.push(`真实 ${spec.path} 路由缺默认折叠原文区`);
-  if (visible.includes(REAL_ENGLISH_ITEM.title) || visible.includes('Traffic signboards are vital')) failures.push(`真实 ${spec.path} 路由折叠外泄漏原题/摘要`);
+  const rawVisibleValues = [spec.item.title, spec.item.summary, FABRICATED];
+  if (spec.path === '/review') rawVisibleValues.push(...fixtureDB.queueItems.map(item => item.title));
+  if (rawVisibleValues.filter(Boolean).some(value => visible.includes(value))) failures.push(`真实 ${spec.case} 路由折叠外泄漏原题/摘要或队列题名`);
   if (visible.includes(FABRICATED)) failures.push(`真实 ${spec.path} 路由泄漏无 provenance 中文 claim`);
   if (hasLongEnglish(visible)) failures.push(`真实 ${spec.path} 路由折叠外存在连续 8+ 英文词`);
 }
@@ -223,9 +262,14 @@ function SECTION_FILLER() {
     .map(title => ({ title, sentences: [{ text: '尚未核实。', claim_state: 'UNKNOWN', evidence_locator: 'source.summary' }] }));
 }
 negative('旧模板把英文摘要放进人话版', contentViolations(oldEnglishSections));
-negative('旧存储英文与伪造中文 claim 直出', renderViolations(htmlText(OLD_STORED_LESSON.sections_json), originalHtml));
+negative('旧存储英文直接可见', renderViolations(REAL_ENGLISH_ITEM.summary, originalHtml));
+negative('伪造中文 claim 直出', renderViolations(FABRICATED, originalHtml));
 negative('原文 details 被默认展开', renderViolations(lessonHtml, originalHtml.replace('<details ', '<details open ')));
-negative('移除 UNKNOWN 状态', contentViolations(sections.map(s => ({ ...s, sentences: (s.sentences || []).filter(x => x.claim_state !== 'UNKNOWN') }))));
+negative('原文 details 容器被删除', renderViolations(lessonHtml, ''));
+const withoutState = state => sections.map(s => ({ ...s, sentences: (s.sentences || []).filter(x => x.claim_state !== state) }));
+negative('移除 KNOWN 状态', contentViolations(withoutState('KNOWN')));
+negative('移除 INFERENCE 状态', contentViolations(withoutState('INFERENCE')));
+negative('移除 UNKNOWN 状态', contentViolations(withoutState('UNKNOWN')));
 const unsupported = structuredClone(sections);
 const inf = unsupported.flatMap(s => s.sentences).find(s => s.claim_state === 'INFERENCE' && s.evidence_locator === 'content_contract.no_reliable_zh');
 inf.text = '该论文证明夜间识别准确率提升 99%。';
@@ -249,7 +293,7 @@ const report = {
     'TST-V12-HUMAN-LANGUAGE-FAIL-CLOSED': failures.length ? 'FAIL' : 'PASS',
   },
   contract: shipped.HUMAN_LANGUAGE_CONTRACT,
-  real_routes: routeEvidence.map(({ path: routePath, status, stored_lesson_present }) => ({ path: routePath, status, stored_lesson_present, executed_worker_default_fetch: true })),
+  real_routes: routeEvidence.map(({ case: routeCase, path: routePath, fixture_id, status, stored_lesson_present }) => ({ case: routeCase, path: routePath, fixture_id, status, stored_lesson_present, executed_worker_default_fetch: true })),
   section_count: sections.length,
   claim_states: [...new Set(sections.flatMap(s => s.sentences).map(s => s.claim_state))].sort(),
   details_default_open: /<details\b[^>]*\sopen(?:\s|=|>)/i.test(originalHtml),

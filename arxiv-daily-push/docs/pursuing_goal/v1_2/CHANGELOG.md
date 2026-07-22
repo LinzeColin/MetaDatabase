@@ -1,5 +1,15 @@
 # ADP v1.2 Taskpack Changelog
 
+## 1.2.0 — S4.1 first-review repair candidate — 2026-07-23
+
+- fresh-context verifier 对冻结 Subject `5691ee4b` 裁定 `FAIL / ACT`：长英文条目路径满足
+  `ACC-V12-S4-001`，但短英文标题与 review 队列绕过 fail-closed，`ACC-V12-S4-002` 失败。
+- `ADP-S4-F001..003` 分别锁定产品缺陷、官方 verifier false-PASS 和 README/HANDOFF 陈旧状态；
+  修复必须覆盖 `Generative Agents` + 空摘要、短标题 + 英文摘要队列、三路由、逐项状态/details
+  破坏负控，并由新不可变 Subject 的全新 verifier 复验。
+- 当前仍为 `NOT_ACCEPTED`；canonical Worker、production bundle、D1/R2、cron、来源和 live
+  `0.41.0` 均未改变，不上传或部署。
+
 ## 1.2.0 — S4.1 Run Contract — 2026-07-23
 
 - 为 `ADP-V12-S4-T001` 增加唯一 `RUN_CONTRACT_04_HUMAN_LANGUAGE_FAIL_CLOSED.md`，锁定

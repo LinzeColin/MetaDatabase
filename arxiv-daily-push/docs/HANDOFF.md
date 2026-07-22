@@ -31,8 +31,10 @@
 - `ADP-V12-S3-T001` 已在首轮 XML/实体边界修复后通过 fresh-context 整阶段复审，
   `ACC-V12-S3-001..003 = 3/3 PASS`，`P0/P1/UNKNOWN/BLOCKED/waiver = 0`；公开 receipt 位于
   [`PHASE_ADP_V12_S3_SCIENCE_ADVANCES_PUBMED.md`](phase_records/PHASE_ADP_V12_S3_SCIENCE_ADVANCES_PUBMED.md)。
-- 当前唯一下一任务是 `ADP-V12-S4-T001`（中文人话版 fail-closed 闭合）；它仍为 `NOT_RUN`，
-  Run Contract 尚未创建。必须先锁定独立合同，不得把 S3 验收外推为 S4、部署或 live 授权。
+- 当前唯一任务是 `ADP-V12-S4-T001`（中文人话版 fail-closed 闭合）；唯一
+  `RUN_CONTRACT_04_HUMAN_LANGUAGE_FAIL_CLOSED.md` 已锁定。首轮 fresh verifier 对冻结 Subject
+  `5691ee4b` 裁定 `ACC-V12-S4-001=PASS`、`ACC-V12-S4-002=FAIL`，开放
+  `ADP-S4-F001..003`；修复候选待全新上下文复验，S4.1 保持 `NOT_ACCEPTED`。
 - S1 候选实现位于 [`google_news_candidate.mjs`](../deploy/cloudflare/google_news_candidate.mjs)：
   `gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`，live
   `gnews-us-tech` 仍是 Bing News RSS；机器登记见
@@ -44,8 +46,9 @@
   后续仍不得用状态文字替代真实 diff 或 live 复查。
 - Owner 的晚到决策已定案：3 个 dormant Cloudflare 资源均删除；继续救援剩余来源；
   不迁 OVH/Coolify；不修 V0.1 `TASK_INDEX.csv` 的死状态列。
-- S1–S3 来源救援开发线已按独立 Run Contract 完成 candidate-only 验收；下一条开发线是
-  S4.1 中文人话内容。前九个任务仍只做到对应合同边界；最终部署仅在 v1.2 全部门禁 PASS 后自动执行。
+- S1–S3 来源救援开发线已按独立 Run Contract 完成 candidate-only 验收；当前开发线是
+  S4.1 中文人话内容的问题修复与全新上下文复验。前九个任务仍只做到对应合同边界；最终部署
+  仅在 v1.2 全部门禁 PASS 后自动执行。
 
 ## 1. 合同路由与优先级
 
@@ -239,14 +242,16 @@ P0/P1/UNKNOWN/BLOCKED/waiver 均为零，evidence root 为
 与 sealed baseline 的失败/错误测试名集合精确一致，`candidate_only=[]`、
 `baseline_only=[]`。这只关闭 S3 candidate 开发验收，不签署接入、部署、S4–S6 或生产验收。
 
-## 9. v1.2 下一任务（S4.1 NOT_RUN）
+## 9. v1.2 当前任务（S4.1 修复候选待全新上下文复验）
 
-**下一任务**：`ADP-V12-S4-T001`，关闭真实英文论文的中文人话结构与无可靠翻译时的诚实
+**当前任务**：`ADP-V12-S4-T001`，关闭真实英文论文的中文人话结构与无可靠翻译时的诚实
 fail-closed 回退，对应 `ACC-V12-S4-001..002`。
 
-**当前状态**：`NOT_RUN`，Run Contract 尚未创建。下一线程必须先从 Task Graph 与 Acceptance
-Contract 锁定唯一 S4.1 合同，再收集真实用户旅程与破坏负控；不得复用 S3 receipt 预签内容、
-UI、模型、版本、运维或部署。
+**当前状态**：唯一 RC04 已锁定；首轮独立验收为 `FAIL / ACT`。`ADP-S4-F001` 证明短英文
+标题与 review 队列会绕过 fail-closed，`ADP-S4-F002` 证明官方 verifier 对该边界误报 PASS，
+`ADP-S4-F003` 是本节与 taskpack README 的陈旧状态文字。当前只允许修复这三项并生成新
+不可变 Subject 复验；在全新上下文独立复核关闭全部已登记问题前，S4.1 为 `NOT_ACCEPTED`，不得外推
+为 S4.2/S4.3、模型、版本、运维、部署或 live 授权。
 
 ## 10. 永久提醒
 

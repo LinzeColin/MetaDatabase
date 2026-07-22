@@ -41,6 +41,8 @@ class TestAdpHumanLanguageFailClosed(unittest.TestCase):
         )
         for value in required:
             self.assertIn(value, self.patch)
+        self.assertIn("title.han === 0 && title.latin >= 4 && title.latinWords >= 1", self.patch)
+        self.assertIn("i.title, i.summary, i.id item_id", self.patch)
         self.assertRegex(
             self.patch,
             r"const sections = failClosed \? buildEnglishFailClosedLesson\(item\) : JSON\.parse\(lesson\.sections_json\)",
@@ -63,6 +65,10 @@ class TestAdpHumanLanguageFailClosed(unittest.TestCase):
         self.assertIn("${originalSourceHTML(item)}", self.patch)
         self.assertIn("${englishFallback ? originalSourceHTML(dueRow) : ''}", self.patch)
         self.assertIn("needsEnglishHumanLanguageFallback(r) ? '英文论文复习项'", self.patch)
+        verifier = VERIFIER.read_text(encoding="utf-8")
+        self.assertIn("title: 'Generative Agents'", verifier)
+        self.assertIn("title: 'AI'", verifier)
+        self.assertIn("path: '/today'", verifier)
         # `<details open>` would defeat the product contract; selector CSS may mention [open], renderer may not.
         start = self.patch.find("+function originalSourceHTML(item) {")
         end = self.patch.find(" function itemListHTML", start)
@@ -79,8 +85,12 @@ class TestAdpHumanLanguageFailClosed(unittest.TestCase):
         body = VERIFIER.read_text(encoding="utf-8")
         for name in (
             "旧模板把英文摘要放进人话版",
-            "旧存储英文与伪造中文 claim 直出",
+            "旧存储英文直接可见",
+            "伪造中文 claim 直出",
             "原文 details 被默认展开",
+            "原文 details 容器被删除",
+            "移除 KNOWN 状态",
+            "移除 INFERENCE 状态",
             "移除 UNKNOWN 状态",
             "把未生成推断改成 unsupported claim",
         ):
@@ -93,7 +103,7 @@ class TestAdpHumanLanguageFailClosed(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}")
         self.assertIn("ACC-V12-S4-001..002", result.stdout)
-        self.assertEqual(result.stdout.count("✅ 负控:"), 5)
+        self.assertEqual(result.stdout.count("✅ 负控:"), 9)
 
 
 if __name__ == "__main__":
