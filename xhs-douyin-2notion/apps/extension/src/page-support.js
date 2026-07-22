@@ -46,7 +46,7 @@ export const SUPPORTED_PLATFORMS = Object.freeze(RULES.map((rule) => rule.platfo
 export const CURRENT_PAGE_FEATURES = Object.freeze({
   bilibili: "ci_synth_only",
   douyin: "ci_synth_only",
-  kuaishou: false,
+  kuaishou: "ci_synth_only",
   taobao: false,
   weibo: false,
   xiaohongshu: "ci_synth_only",
@@ -55,7 +55,10 @@ export const CURRENT_PAGE_FEATURES = Object.freeze({
 function currentPageExecutable(match, url) {
   const mode = CURRENT_PAGE_FEATURES[match.platform];
   if (mode === true) return true;
-  if (mode !== "ci_synth_only" || !new Set(["bilibili", "douyin", "xiaohongshu"]).has(match.platform)) return false;
+  if (
+    mode !== "ci_synth_only"
+    || !new Set(["bilibili", "douyin", "kuaishou", "xiaohongshu"]).has(match.platform)
+  ) return false;
   const contentId = url.pathname.split("/").filter(Boolean).at(-1) ?? "";
   if (match.platform === "douyin") return contentId.startsWith("synthetic-");
   if (match.platform === "bilibili") {
@@ -63,14 +66,24 @@ function currentPageExecutable(match, url) {
     if (url.pathname.startsWith("/video/")) return contentId.startsWith("synthetic-bili-video-");
     return contentId.startsWith("synthetic-bili-article-");
   }
+  if (match.platform === "kuaishou") {
+    return url.hostname.toLowerCase() === "www.kuaishou.com"
+      && contentId.startsWith("synthetic-ks-video-");
+  }
   return contentId.startsWith("synthetic-") || contentId.startsWith("synthetic_");
 }
 
 function disabledReason(match, url) {
-  if (match.platform !== "bilibili") return "platform_gate_disabled";
-  if (url.hostname.toLowerCase() !== "www.bilibili.com") return "bilibili_noncanonical_host_disabled";
-  if (url.searchParams.has("p")) return "bilibili_semantic_query_unsupported";
-  return "bilibili_policy_unknown_real_page_disabled";
+  if (match.platform === "bilibili") {
+    if (url.hostname.toLowerCase() !== "www.bilibili.com") return "bilibili_noncanonical_host_disabled";
+    if (url.searchParams.has("p")) return "bilibili_semantic_query_unsupported";
+    return "bilibili_policy_unknown_real_page_disabled";
+  }
+  if (match.platform === "kuaishou") {
+    if (url.hostname.toLowerCase() !== "www.kuaishou.com") return "kuaishou_noncanonical_host_disabled";
+    return "kuaishou_oauth_scope_missing_blocked_auth";
+  }
+  return "platform_gate_disabled";
 }
 
 export function recognizePage(rawUrl) {

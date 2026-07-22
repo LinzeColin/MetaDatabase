@@ -9,6 +9,11 @@ import {
   extractDouyinCurrentPage,
   validateDouyinPageFacts,
 } from "./douyin-current-page.js";
+import {
+  buildKuaishouCapturePayload,
+  extractKuaishouCurrentPage,
+  validateKuaishouPageFacts,
+} from "./kuaishou-current-page.js";
 import { buildXhsCapturePayload, extractXhsCurrentPage, validateXhsPageFacts } from "./xhs-current-page.js";
 
 const NATIVE_HOST = "com.linzecolin.x2n";
@@ -24,6 +29,11 @@ const CURRENT_PAGE_ADAPTERS = Object.freeze({
     buildPayload: buildDouyinCapturePayload,
     extract: extractDouyinCurrentPage,
     validate: validateDouyinPageFacts,
+  }),
+  kuaishou: Object.freeze({
+    buildPayload: buildKuaishouCapturePayload,
+    extract: extractKuaishouCurrentPage,
+    validate: validateKuaishouPageFacts,
   }),
   xiaohongshu: Object.freeze({
     buildPayload: buildXhsCapturePayload,

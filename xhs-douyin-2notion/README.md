@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 2` 的 `TSK.x2n.skeleton.001/.002/.006` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。小红书、抖音与哔哩哔哩当前详情页均具备稳定合成 ID、净化页面事实、`platform_changed`、Extension Action/临时 `activeTab`、Native Host 与 SQLite 队列闭环。Bilibili 新增 10/10 DOM、8/8 Policy 与 5/5 schema-drift 拒绝矩阵，并明确拒绝会改变分 P 身份的 `?p=`；真实页面/API、文章公开路由、Owner Chrome/账号和 Canary 全部关闭。三平台各完成 Action 前 2 个拒绝、真实 Side Panel 按钮合成采集及 100 次 Service Worker 重启；无 Host Permission、静态 Content Script、Extension Storage、平台网络调用、Query/Fragment、短链或媒体地址持久化。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.007`。Markdown/Notion、ASR/OCR、分类、媒体和其余平台动作均未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 2` 的 `TSK.x2n.skeleton.001/.002/.006/.007` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。小红书、抖音、哔哩哔哩与快手当前详情页均具备稳定合成 ID、净化页面事实、`platform_changed`、Extension Action/临时 `activeTab`、Native Host 与 SQLite 队列闭环。快手新增 8/8 DOM、10/10 Policy、2/2 `BLOCKED_AUTH` 与 5/5 schema-drift 拒绝矩阵；一手能力只证明 OAuth 授权用户已发布作品的 `user_video_info`/`photoId`，未证明任意公开当前页、点赞/收藏或 DOM 自动采集权限，所以真实页保持 `BLOCKED_AUTH`、API transport 与 DOM fallback 关闭。四平台各完成 Action 前 2 个拒绝、真实 Side Panel 按钮合成采集及 100 次 Service Worker 重启；无 Host Permission、静态 Content Script、Extension Storage、平台网络调用、Query/Fragment、短链或媒体地址持久化。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.008`。Markdown/Notion、ASR/OCR、分类、媒体和其余平台动作均未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,31 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 2 / Skeleton 006 验证
+## Stage 2 / Skeleton 007 验证
+
+```bash
+npm run self-test --workspace @x2n/extension
+npm run test:kuaishou-fixtures --workspace @x2n/extension
+npm run test:kuaishou-extension --workspace @x2n/extension
+python3.12 -B scripts/verify_skeleton_007.py \
+  --verify-worktree --allow-external-main-dirty \
+  --lane-report build/s02-skeleton007-final/software-lane.json --require-evidence
+```
+
+`ACC.x2n.capture.004` 当前只达到 `ENV-CI-SYNTH`：4 个 ready、4 个
+`platform_changed`、10 个政策状态、2 个真实形态 `BLOCKED_AUTH` 与 5 个 schema-drift
+拒绝全部通过；Canonical Host/Path 正确，Query/Fragment、平台调用、Cookie、媒体/raw DOM
+输出均为 0。快手一手资料证明 OAuth、应用登记、动态最小授权与 `user_video_info` 下授权
+用户已发布作品的 `photoId`，未证明任意公开当前页或点赞/收藏读取能力，并明确限制未经
+授权的自动化采集。因此真实页面为 `BLOCKED_AUTH`，生产 API transport、Access Token/
+Cookie/Profile 输入、DOM fallback 与 Owner Canary 均为 `DISABLED / NOT_RUN`；
+`/short-video/<id>` 仅是明确标注的未验证合成路由假设。
+
+最终本地回归为 131 个根测试 PASS、3 个固定 Owner-private 可选输入 skip；full lane
+两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage
+70.95%，33 个依赖 OSV 漏洞 0，58-member source candidate 确定性一致且 Runtime Data 0。
+
+## Stage 2 / Skeleton 006 历史验证
 
 ```bash
 npm run self-test --workspace @x2n/extension

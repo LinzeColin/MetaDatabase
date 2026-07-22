@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.0.1 — Stage 2 / Skeleton 007
+
+- 复核快手一手 Open Platform/协议：OAuth 需应用登记、动态用户同意与最小 Scope；`user_video_info` 只证明授权用户已发布作品列表和 `photoId` 详情，不证明任意公开当前页、点赞/收藏读取或自动化 DOM 采集权限。
+- 实现快手独立 CI-synthetic 当前页 detector/extractor：精确 `www.kuaishou.com`、合成 `/short-video/<id>`、location/canonical/OG/detail `photoId` 交叉校验、净化标题/null、`video/unknown` 与 provenance；不读取 media `src`、raw DOM、hydration、Cookie 或浏览器状态。
+- 新增 8 个 DOM Fixture（4 ready、4 platform-changed）、10 个 Policy Fixture、2 个真实形态 `BLOCKED_AUTH` 与 5 个 schema-drift 拒绝；公开短视频路由只登记为未验证的合成假设。
+- 真实页保持 `BLOCKED_AUTH`，生产 API transport、Access Token/Cookie/Profile 输入、DOM fallback 与 Owner Canary 全部关闭或未运行；无真实账号、OAuth、平台请求或自动滚动/分页。
+- 复用 4 权限、0 Host Permission 的 Side Panel/`activeTab`/ISOLATED world/Native v1/SQLite 链路；四平台真实按钮合成采集、Action 前各 2 个拒绝、各 100 次 Service Worker 重启均通过，平台调用、丢单、重单、错状态为 0。
+- Skeleton006 历史 Task/State/Policy/Evidence 固定到 `a314a1d…`，旧验收只读取历史 blob；当前树继续 XHS/Douyin/Bilibili 安全与行为回归，历史 Evidence 不重写。
+- 根回归 131 tests PASS、3 个显式可选 Owner-private input skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 70.95%，33 dependencies 的 OSV vulnerability 0，58-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.capture.004` 与 `ACC.x2n.ext.001` 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 为 `TSK.x2n.skeleton.008`。
+
 ## v0.0.0.1 — Stage 2 / Skeleton 006
 
 - 复核 Bilibili 一手 Open Platform/协议：官方能力要求应用入驻、OAuth、具体 Scope 与关联 UP 主授权，只证明授权稿件管理，不证明任意当前页、点赞或收藏读取；真实页面/API 和 Owner Canary 保持 `UNKNOWN_DISABLED / NOT_RUN`。

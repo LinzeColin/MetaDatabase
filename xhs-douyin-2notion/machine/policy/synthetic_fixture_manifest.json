@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "manifest_id": "FIXTURE.X2N.008",
-  "phase": "PH.X2N.2.3",
+  "manifest_id": "FIXTURE.X2N.009",
+  "phase": "PH.X2N.2.4",
   "fixtures": [
     {
       "id": "FIXTURE.X2N.S00.P05.001",
@@ -68,9 +68,15 @@
       "path": "packages/test-fixtures/extension/v1/bilibili_current_page/fixture_manifest.json",
       "case_count": 18,
       "purpose": "Bilibili current-page video/article identity, sanitized facts, semantic-query rejection, schema drift and real-page policy-disabled behavior"
+    },
+    {
+      "id": "FIXTURE.X2N.S02.S007.001",
+      "path": "packages/test-fixtures/extension/v1/kuaishou_current_page/fixture_manifest.json",
+      "case_count": 18,
+      "purpose": "Kuaishou current-page photoId, sanitized facts, OAuth-scope BLOCKED_AUTH, schema drift and real-route-disabled behavior"
     }
   ],
-  "status": "xhs_douyin_bilibili_current_page_ci_synthetic_fixtures_pass_owner_canary_not_run_remaining_platform_capture_fixtures_not_started",
+  "status": "xhs_douyin_bilibili_kuaishou_current_page_ci_synthetic_fixtures_pass_owner_canary_not_run_remaining_platform_capture_fixtures_not_started",
   "future_requirements": {
     "source_must_be_declared": true,
     "real_account_content_allowed": false,

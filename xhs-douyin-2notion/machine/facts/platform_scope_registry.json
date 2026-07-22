@@ -7,7 +7,7 @@
     {"id": "xiaohongshu", "display_name": "小红书", "policy_state": "unknown_disabled", "preferred_strategy": "official_capability_then_user_gesture_clean_room_current_page", "current_page_implementation_state": "ci_synth_pass_real_page_disabled_owner_canary_not_run"},
     {"id": "douyin", "display_name": "抖音", "policy_state": "unknown_disabled", "preferred_strategy": "official_oauth_api_then_gated_current_page", "current_page_implementation_state": "ci_synth_pass_real_page_and_network_transport_disabled_owner_canary_not_run"},
     {"id": "bilibili", "display_name": "哔哩哔哩", "policy_state": "unknown_disabled", "preferred_strategy": "official_open_platform_first", "current_page_implementation_state": "ci_synth_pass_real_page_and_api_disabled_article_route_unverified_owner_canary_not_run"},
-    {"id": "kuaishou", "display_name": "快手", "policy_state": "unknown_disabled", "preferred_strategy": "official_oauth_api_first"},
+    {"id": "kuaishou", "display_name": "快手", "policy_state": "unknown_disabled", "preferred_strategy": "official_oauth_api_first", "current_page_implementation_state": "ci_synth_pass_real_page_blocked_auth_api_transport_and_dom_fallback_disabled_route_unverified_owner_canary_not_run"},
     {"id": "weibo", "display_name": "微博", "policy_state": "unknown_disabled", "preferred_strategy": "official_api_budget_gated"},
     {"id": "taobao", "display_name": "淘宝", "policy_state": "unknown_disabled", "preferred_strategy": "official_oauth_api_first"}
   ],
@@ -24,6 +24,6 @@
     "independent_platform_feature_flag_and_kill_switch"
   ],
   "implementation_started": true,
-  "implementation_scope": "xiaohongshu_douyin_and_bilibili_current_page_ci_synth_only",
+  "implementation_scope": "xiaohongshu_douyin_bilibili_and_kuaishou_current_page_ci_synth_only",
   "real_platform_calls": false
 }

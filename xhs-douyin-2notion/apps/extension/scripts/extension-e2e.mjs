@@ -27,6 +27,13 @@ const CURRENT_PAGE_CONFIGS = Object.freeze({
     fixtureRoot: join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/douyin_current_page"),
     metricPrefix: "douyin",
   }),
+  kuaishou: Object.freeze({
+    caseId: "kuaishou-video-detail",
+    expectedPath: "/short-video/synthetic-ks-video-001",
+    expectedUrlFragment: "kuaishou.com/short-video/",
+    fixtureRoot: join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/kuaishou_current_page"),
+    metricPrefix: "kuaishou",
+  }),
   xiaohongshu: Object.freeze({
     caseId: "xhs-image-detail",
     expectedPath: "/explore/synthetic-note-image-001",

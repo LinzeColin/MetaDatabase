@@ -15,6 +15,7 @@ let pageRefreshGeneration = 0;
 const EXECUTABLE_PLATFORM_NAMES = Object.freeze({
   bilibili: "Bilibili",
   douyin: "Douyin",
+  kuaishou: "Kuaishou",
   xiaohongshu: "Xiaohongshu",
 });
 

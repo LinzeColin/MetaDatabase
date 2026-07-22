@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.2.3",
+  "phase": "PH.X2N.2.4",
   "default": "deny",
   "research_cutoff": "2026-07-22",
   "policy_recheck_required_at_platform_phase_start": true,
@@ -51,7 +51,13 @@
       "https://openhome.bilibili.com/doc/4/90936ab5-7c06-e24f-2ad0-0fd6e10c7386",
       "https://openhome.bilibili.com/doc/4/c381daac-4b6d-9ed3-3604-19a78d358eec"
     ],
-    "kuaishou": ["https://open.kuaishou.com/platform/protocol"],
+    "kuaishou": [
+      "https://open.kuaishou.com/platform/protocol",
+      "https://open.kuaishou.com/platform/openApi?menu=13",
+      "https://open.kuaishou.com/platformDocs/develop/serverSDK",
+      "https://open.kuaishou.com/platformDocs/newGuide/applicationManagementSpecifica",
+      "https://open.kuaishou.com/platformDocs/openAbility/userInformation/publicInformation"
+    ],
     "weibo": ["https://open.weibo.com/cli/index"],
     "taobao": ["https://developer.alibaba.com/docs/doc.htm?articleId=103499&docType=1&treeId=782"]
   },
@@ -80,6 +86,7 @@
     "xiaohongshu_current_page": "ci_synth_only_policy_unknown_real_page_disabled_owner_canary_not_run",
     "douyin_current_page": "ci_synth_only_policy_unknown_real_page_and_network_transport_disabled_owner_canary_not_run",
     "bilibili_current_page": "ci_synth_only_policy_unknown_real_page_and_api_disabled_article_route_unverified_owner_canary_not_run",
+    "kuaishou_current_page": "ci_synth_only_real_page_blocked_auth_api_transport_and_dom_fallback_disabled_route_unverified_owner_canary_not_run",
     "xiaohongshu_selected_collection": "unknown_disabled",
     "other_platform_current_page": "unknown_disabled"
   },
@@ -112,9 +119,22 @@
       "automated_script_exemption_for_user_gesture_dom_read": "not_found",
       "semantic_part_query_contract": "not_supported_by_current_canonical_contract",
       "decision": "retain_unknown_disabled_for_real_pages_and_api"
+    },
+    "kuaishou": {
+      "oauth_and_application_registration": "required",
+      "required_user_video_scope": "user_video_info",
+      "authorized_video_identity": "photo_id",
+      "authorized_video_access": "authorized_users_published_works_only",
+      "dynamic_minimum_necessary_consent": "required",
+      "arbitrary_public_current_page_read_capability": "not_found",
+      "official_personal_likes_or_favorites_read_capability": "not_found",
+      "public_short_video_route": "not_found_in_current_open_platform_documentation",
+      "automated_dom_collection_permission": "not_found_and_unauthorized_automation_forbidden",
+      "current_auth_state": "scope_not_configured_blocked_auth",
+      "decision": "retain_blocked_auth_for_real_pages_and_unknown_disabled_for_dom_fallback"
     }
   },
   "product_code_started": true,
-  "product_code_scope": "xiaohongshu_douyin_and_bilibili_current_page_ci_synth_only",
+  "product_code_scope": "xiaohongshu_douyin_bilibili_and_kuaishou_current_page_ci_synth_only",
   "real_account_execution": false
 }

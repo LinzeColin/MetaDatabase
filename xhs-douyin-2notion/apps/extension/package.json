@@ -10,6 +10,8 @@
     "test:douyin-extension": "node scripts/extension-e2e.mjs douyin",
     "test:douyin-fixtures": "node scripts/douyin-fixture-e2e.mjs",
     "test:e2e": "node scripts/extension-e2e.mjs",
+    "test:kuaishou-extension": "node scripts/extension-e2e.mjs kuaishou",
+    "test:kuaishou-fixtures": "node scripts/kuaishou-fixture-e2e.mjs",
     "test:xhs-fixtures": "node scripts/xhs-fixture-e2e.mjs"
   }
 }

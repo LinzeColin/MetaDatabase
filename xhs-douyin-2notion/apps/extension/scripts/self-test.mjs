@@ -4,6 +4,7 @@ import { recognizePage, SUPPORTED_PLATFORMS } from "../src/page-support.js";
 import { buildBilibiliCapturePayload, validateBilibiliPageFacts } from "../src/bilibili-current-page.js";
 import { buildDouyinCapturePayload, validateDouyinPageFacts } from "../src/douyin-current-page.js";
 import { DouyinShortLinkError, resolveDouyinShortLink } from "../src/douyin-short-link.js";
+import { buildKuaishouCapturePayload, validateKuaishouPageFacts } from "../src/kuaishou-current-page.js";
 import { buildXhsCapturePayload, validateXhsPageFacts } from "../src/xhs-current-page.js";
 
 const root = new URL("../", import.meta.url);
@@ -29,11 +30,18 @@ const bilibiliFixture = JSON.parse(
     "utf8",
   ),
 );
+const kuaishouFixture = JSON.parse(
+  await readFile(
+    new URL("../../packages/test-fixtures/extension/v1/kuaishou_current_page/fixture_manifest.json", root),
+    "utf8",
+  ),
+);
 const sourceFiles = [
   "sidepanel.html",
   "src/bilibili-current-page.js",
   "src/douyin-current-page.js",
   "src/douyin-short-link.js",
+  "src/kuaishou-current-page.js",
   "src/page-support.js",
   "src/service-worker.js",
   "src/sidepanel.js",
@@ -126,6 +134,24 @@ if (recognizePage("https://bilibili.com/read/synthetic-bili-article-self-test").
 if (recognizePage("https://www.bilibili.com/video/synthetic-bili-video-self-test?p=2").executable) {
   failures.push("bilibili_semantic_query_gate");
 }
+const kuaishouRealSupport = recognizePage("https://www.kuaishou.com/short-video/3xRealShapeSelfTest");
+if (
+  !kuaishouRealSupport.supported
+  || kuaishouRealSupport.executable
+  || kuaishouRealSupport.platform !== "kuaishou"
+  || kuaishouRealSupport.reason !== "kuaishou_oauth_scope_missing_blocked_auth"
+) failures.push("kuaishou_real_page_blocked_auth_gate");
+const kuaishouSyntheticSupport = recognizePage(
+  "https://www.kuaishou.com/short-video/synthetic-ks-video-self-test",
+);
+if (
+  !kuaishouSyntheticSupport.supported
+  || !kuaishouSyntheticSupport.executable
+  || kuaishouSyntheticSupport.platform !== "kuaishou"
+) failures.push("kuaishou_synthetic_page_gate");
+if (recognizePage("https://kuaishou.com/short-video/synthetic-ks-video-self-test").executable) {
+  failures.push("kuaishou_noncanonical_host_gate");
+}
 for (const url of [
   "https://www.douyin.com/video/synthetic-video-self-test",
   "https://www.douyin.com/note/synthetic-gallery-self-test",
@@ -149,12 +175,21 @@ for (const field of [
   if (xhsFixture[field] !== false) failures.push(`xhs_fixture_${field}`);
   if (douyinFixture[field] !== false) failures.push(`douyin_fixture_${field}`);
   if (bilibiliFixture[field] !== false) failures.push(`bilibili_fixture_${field}`);
+  if (kuaishouFixture[field] !== false) failures.push(`kuaishou_fixture_${field}`);
 }
+if (kuaishouFixture.contains_cookies !== false) failures.push("kuaishou_fixture_contains_cookies");
 if (
   bilibiliFixture.synthetic !== true
   || bilibiliFixture.cases.length !== 10
   || bilibiliFixture.policy_cases.length !== 8
 ) failures.push("bilibili_fixture_manifest");
+if (
+  kuaishouFixture.synthetic !== true
+  || kuaishouFixture.cases.length !== 8
+  || kuaishouFixture.policy_cases.length !== 10
+  || kuaishouFixture.auth_contract?.required_scope !== "user_video_info"
+  || kuaishouFixture.auth_contract?.missing_scope_state !== "BLOCKED_AUTH"
+) failures.push("kuaishou_fixture_manifest");
 if (douyinFixture.synthetic !== true || douyinFixture.cases.length !== 8) failures.push("douyin_fixture_manifest");
 if (!Array.isArray(douyinFixture.short_link_cases) || douyinFixture.short_link_cases.length !== 16) {
   failures.push("douyin_short_link_fixture_manifest");
@@ -221,6 +256,40 @@ try {
     status: "platform_changed",
   }));
   failures.push("bilibili_platform_changed_capture");
+} catch {
+  // Expected fail-closed path.
+}
+
+const kuaishouContractFact = validateKuaishouPageFacts({
+  page_context: {
+    content_id: "synthetic-ks-video-contract-001",
+    content_type: "video",
+    title: null,
+  },
+  page_url: "https://www.kuaishou.com/short-video/synthetic-ks-video-contract-001",
+  platform: "kuaishou",
+  provenance: {
+    canonical_url: { source: "stable_photo_id", status: "derived" },
+    content_id: { source: "location_path_and_detail_surface", status: "observed_verified" },
+    content_type: { source: "detail_video_marker", status: "observed" },
+    title: { source: null, status: "missing" },
+  },
+  schema_version: "1.0",
+  status: "ready",
+});
+const kuaishouContractPayload = buildKuaishouCapturePayload(kuaishouContractFact);
+if (new URL(kuaishouContractPayload.page_url).search || new URL(kuaishouContractPayload.page_url).hash) {
+  failures.push("kuaishou_canonical_url");
+}
+try {
+  buildKuaishouCapturePayload(validateKuaishouPageFacts({
+    code: "X2N_PLATFORM_CHANGED",
+    platform: "kuaishou",
+    reason: "detail_surface_missing",
+    schema_version: "1.0",
+    status: "platform_changed",
+  }));
+  failures.push("kuaishou_platform_changed_capture");
 } catch {
   // Expected fail-closed path.
 }
@@ -305,6 +374,8 @@ process.stdout.write(
     fixture_cases: fixture.cases.length,
     fixture_recognition_passed: recognized,
     host_permissions: 0,
+    kuaishou_fixture_cases: kuaishouFixture.cases.length,
+    kuaishou_policy_cases: kuaishouFixture.policy_cases.length,
     permissions: expectedPermissions.length,
     platform_execution: "NOT_RUN",
     status: "PASS",
