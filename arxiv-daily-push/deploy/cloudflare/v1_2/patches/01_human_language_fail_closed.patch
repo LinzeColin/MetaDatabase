@@ -1,0 +1,217 @@
+diff --git a/arxiv-daily-push/deploy/cloudflare/worker_cloud.js b/arxiv-daily-push/deploy/cloudflare/worker_cloud.js
+index 3264b481..ef1c58fa 100644
+--- a/arxiv-daily-push/deploy/cloudflare/worker_cloud.js
++++ b/arxiv-daily-push/deploy/cloudflare/worker_cloud.js
+@@ -9,7 +9,7 @@
+ // Build identity (ADP-S1-P01-T010): read-only /build.json + footer build id. No secret.
+ // build_id/source_sha256 are a self-excluding hash: reset both values back to their
+ // zero-placeholders ('0'*12 and '0'*64) and sha256 the file to reproduce source_sha256.
+-const BUILD = { build_id: 'c2ccc1fd01ec', source_sha256: 'c2ccc1fd01ecbbfc846241a7a4380de182c4a20cd8215903ba3e65b2b1e0de15', schema_version: 'cn_v0_3', built_at: '2026-07-20' };
++const BUILD = { build_id: 'f3436fea9c97', source_sha256: 'f3436fea9c9766118718961366e548916457d7227dc59f22a03286fab4f4a071', schema_version: 'cn_v0_3', built_at: '2026-07-23' };
+-
++
+ // ── S3-P03-T040 Board 3 官方视图 A0 canary 切换（Owner S3 Exit 已批准 A0 晋级）──
+ // 默认关 = 部署即基线（生产 Board 3 与六主题不变）。开=Board 3 只把 A0 官方原文作默认证据、媒体降为 discovery。
+@@ -608,11 +608,57 @@ function parseA0(html, sourceId) {
+-
++
+ // ───────────────────────── 讲义（确定性八段模板） ─────────────────────────
+ const SECTION_TITLES = ['人话版', '领域脉络', '机制拆解', '证据与数字', '反例与边界', '跨领域连接与意外收获', '可复用方法', '术语表'];
+-const LESSON_TEMPLATE_VER = 'cloud-lesson-v1';
++const LESSON_TEMPLATE_VER = 'cloud-lesson-v2-human-language-fail-closed';
++const HUMAN_LANGUAGE_CONTRACT = 'ENGLISH_SOURCE_NO_RELIABLE_ZH';
++const CLAIM_STATES = new Set(['KNOWN', 'INFERENCE', 'UNKNOWN']);
++function languageProfile(text) {
++  const sample = String(text || '').slice(0, 4000);
++  let latin = 0, han = 0;
++  for (const c of sample) {
++    if (/[A-Za-z]/.test(c)) latin++;
++    else if (/[㐀-鿿]/.test(c)) han++;
++  }
++  const latinWords = (sample.match(/[A-Za-z]{2,}/g) || []).length;
++  return { latin, han, latinWords };
++}
++function needsEnglishHumanLanguageFallback(it) {
++  const p = languageProfile(`${String((it && it.title) || '').slice(0, 500)} ${String((it && it.summary) || '').slice(0, 3000)}`);
++  return p.latin >= 16 && p.latinWords >= 3 && p.latin > p.han * 2;
++}
++const lessonClaim = (text, claimState, evidenceLocator) => ({
++  text,
++  claim_state: CLAIM_STATES.has(claimState) ? claimState : 'UNKNOWN',
++  evidence_locator: evidenceLocator,
++});
++function buildEnglishFailClosedLesson(it) {
++  const board = BOARD_NAMES[it.board_id] || it.board_id || '未标明板块';
++  const date = /^\d{4}-\d{2}-\d{2}/.exec(String(it.published_at || it.published || ''));
++  const known = `系统收录了一条来自「${board}」的英文论文记录${date ? `，记录日期为 ${date[0]}` : ''}${it.url ? '，并保留原文入口' : ''}。`;
++  const inference = '未生成。当前没有经过验证的中文翻译或解释能力。';
++  const contentUnknown = '论文的研究问题、方法、结果、数字、创新、局限与结论尚未由中文证据核实。';
++  return [
++    { title: '人话版', sentences: [
++      lessonClaim(known, 'KNOWN', 'item.board_id,item.published_at,item.url'),
++      lessonClaim(inference, 'INFERENCE', 'content_contract.no_reliable_zh'),
++      lessonClaim(contentUnknown, 'UNKNOWN', 'source.title,source.summary'),
++    ] },
++    { title: '领域脉络', sentences: [
++      lessonClaim(`来源板块为「${board}」。`, 'KNOWN', 'item.board_id'),
++      lessonClaim('这篇论文在具体研究领域中的位置尚未核实。', 'UNKNOWN', 'source.categories,source.summary'),
++    ] },
++    { title: '机制拆解', sentences: [lessonClaim('研究对象、方法步骤和作用机制尚未核实。', 'UNKNOWN', 'source.summary')] },
++    { title: '证据与数字', sentences: [lessonClaim('实验设计、样本、指标和量化结果尚未核实。', 'UNKNOWN', 'source.summary')] },
++    { title: '反例与边界', sentences: [lessonClaim('适用条件、局限、反例和争议尚未核实。', 'UNKNOWN', 'source.summary')] },
++    { title: '跨领域连接与意外收获', sentences: [lessonClaim('未生成跨领域推断，避免在证据不足时编造关联。', 'INFERENCE', 'content_contract.no_reliable_zh')] },
++    { title: '可复用方法', sentences: [lessonClaim('先展开英文原文区核对摘要，再通过原文入口阅读；在核实前不据此采取结论性行动。', 'INFERENCE', 'content_contract.safe_next_action')] },
++    { title: '术语表', sentences: [lessonClaim('没有经过核实的中文术语映射；请以原文术语为准。', 'UNKNOWN', 'source.title,source.summary')] },
++  ];
++}
+ function splitSentences(text) {
+   return (text || '').split(/(?<=[.。!?！？])\s+/).map(s => s.trim()).filter(s => s.length > 12);
+ }
+ function buildLesson(it) {
++  if (needsEnglishHumanLanguageFallback(it)) return buildEnglishFailClosedLesson(it);
+   const sents = splitSentences(it.summary);
+   const cats = (it.categories || '').split(',').filter(Boolean);
+   // 去重：一句话只进它最专属的段落，绝不在多段逐字重复(损「深度/权威」)。认领优先级——
+@@ -625,7 +671,10 @@ function buildLesson(it) {
+   const loreSents = cats.length ? [] : sents.slice(2, 3).filter(s => !claimed.has(s));
+   loreSents.forEach(s => claimed.add(s));
+   const mechanism = sents.slice(2, 5).filter(s => !claimed.has(s));
+-  const sec = (title, arr, fallback) => ({ title, sentences: (arr.length ? arr : [fallback]).slice(0, 4).map(text => ({ text })) });
++  const sec = (title, arr, fallback) => ({
++    title,
++    sentences: (arr.length ? arr : [fallback]).slice(0, 4).map(text => lessonClaim(text, 'INFERENCE', 'source.summary_or_template')),
++  });
+   return [
+     sec('人话版', intro, `本文标题：${it.title}。摘要过短，请点原文精读。`),
+     sec('领域脉络', cats.length ? [`本文类目：${cats.slice(0, 5).join('、')}，属于其所在研究脉络的最新进展。`] : loreSents, `来源板块：${BOARD_NAMES[it.board_id] || it.board_id}。`),
+@@ -1033,6 +1082,8 @@ main{max-width:760px;margin:0 auto;padding:18px 18px 60px}
+ .card{background:var(--glass-bg);backdrop-filter:blur(var(--glass-blur));border:1px solid var(--hairline);border-radius:var(--radius-lg);padding:16px 18px;margin:14px 0;box-shadow:var(--shadow);overflow-wrap:break-word}
+ .badge{display:inline-block;border:1px solid var(--hairline);border-radius:999px;padding:1px 10px;font-size:12px;margin-left:6px;color:var(--mt)}
+ .badge.ok{color:var(--ok);border-color:var(--ok)}
++.claim-state{margin:0 6px 0 0;font-weight:700}.claim-state[data-claim-state="KNOWN"]{color:var(--ok);border-color:var(--ok)}.claim-state[data-claim-state="UNKNOWN"]{color:var(--warn);border-color:var(--warn)}
++details.original-source{margin-top:12px;border:1px solid var(--hairline);border-radius:var(--radius);padding:8px 12px}details.original-source summary{cursor:pointer;color:var(--ac);font-weight:700}details.original-source[open] summary{margin-bottom:8px}
+ button{min-height:44px;padding:9px 17px;border-radius:var(--pill);border:1px solid var(--bd);background:var(--glass-bg);font-size:15px;color:var(--tx);cursor:pointer;font-family:var(--font-body)}
+ button.picked{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+ table{width:100%;border-collapse:collapse;font-size:13.5px}
+@@ -1216,7 +1267,7 @@ function sparkSVG(scores) {
+ function heroSection(sel, item, v, spark) {
+   const abstain = !sel || sel.abstain;
+   const eyebrow = abstain ? '今日弃权 · 宁缺毋滥' : (BOARD_NAMES[sel.board_id] || '每日前沿');
+-  const title = (abstain ? '今天没有达标的精选' : (item ? item.title : '今日精选')).slice(0, 46);
++  const title = (abstain ? '今天没有达标的精选' : (item ? (needsEnglishHumanLanguageFallback(item) ? '今日英文论文精选' : item.title) : '今日精选')).slice(0, 46);
+   const sub = ((abstain ? (sel && sel.abstain_reason) : (sel && sel.why)) || '').slice(0, 100);
+   const score = sel && sel.score != null ? Number(sel.score) : 0;
+   const circ = 2 * Math.PI * 54;
+@@ -1269,11 +1320,13 @@ async function todayPage(env) {
+   let body = `<span id="todaymain"></span>` + vitalsCard(v) + `<div class="card"><h2>为什么今天选它</h2><p>${esc(sel.why)}</p>
+     <p class="mt">决策日期 ${esc(sel.as_of_date)} · ${esc(BOARD_NAMES[sel.board_id] || sel.board_id || '')}${review ? ' · 证据态 ' + esc(review.evidence_state) : ''}</p></div>`;
+   if (item) {
+-    body += `<div class="card"><h1>${esc(deMath(item.title))}</h1>
+-      <p class="mt">${esc(item.authors || '')}${item.categories ? ' · ' + esc(item.categories) : ''} · <a href="${safeHref(item.url)}" rel="noopener">原文</a></p>
++    const englishFallback = needsEnglishHumanLanguageFallback(item);
++    body += `<div class="card"><h1>${englishFallback ? '今日英文论文精选' : esc(deMath(item.title))}</h1>
++      <p class="mt">${englishFallback ? '' : esc(item.authors || '') + (item.categories ? ' · ' + esc(item.categories) : '') + ' · '}<a href="${safeHref(item.url)}" rel="noopener">原文</a></p>
+       ${factsheetHTML(item)}
++      ${englishFallback ? originalSourceHTML(item) : ''}
+       <p style="margin:4px 0 2px">${deepDiveBtn(item)}</p>`;
+-    if (lesson) body += lessonHTML(lesson);   // T084 用中心化 lessonHTML（带证据/推断 provenance 标注）
++    if (lesson || englishFallback) body += lessonHTML(lesson || { sections_json: JSON.stringify(buildEnglishFailClosedLesson(item)) }, item); // 无存储讲义也诚实回退
+     body += `</div><div class="card"><h2>主动回忆</h2>
+       <p class="mt">先合上讲义复述，再自评。评分即时进 FSRS 排程（云端即真相）。</p>
+       <div class="gradeRow">${[[1,'忘了'],[2,'困难'],[3,'良好'],[4,'轻松']].map(([g,l]) =>
+@@ -1559,16 +1612,36 @@ const chatgptHref = (prompt) => CHATGPT_URL + '?hints=search&q=' + encodeURIComp
+ function deepDiveBtn(item, label) {
+   return `<a class="deep-btn" href="${esc(chatgptHref(deepDivePrompt(item)))}" target="_blank" rel="noopener noreferrer" title="把这条的信息带到 ChatGPT，让它联网深搜 + 深度讲解并给你一些 surprise">🔮 ${esc(label || '让 ChatGPT 全网深度追问')}</a>`;
+ }
+-// T084 证据/推断区分：讲义是「依据原文自动生成的结构化推断」，与「原文（证据）」明确区分，避免读者误把推断当原文。
++// T084 证据/推断区分；v1.2 S4.1 再把已知/推断/未知做成逐句可见状态。
+ const PROVENANCE_NOTE = '<p class="mt"><span class="badge">讲义·推断</span> 依据「原文」自动生成的结构化摘要（推断），非原文表述；以原文为准。</p>';
++const CLAIM_LABELS = { KNOWN: '已知', INFERENCE: '推断', UNKNOWN: '未知' };
+ // 讲义渲染层的轻量 LaTeX 内联数学清理:arXiv 摘要常含 $H=0.91$ 式内联数学,裸 $ 呈现给读者读作生成 bug(损权威)。
+ // 只在「像数学」时剥 $ 定界符——内含 =\^_{} 之一(如 $H=0.91$/$\alpha$),或无空白(如 $1.0$),或含 <> 的短式(<=24 字符且无 3+ 字母词,如 $0 < m < d$——散文/货币语境有整词,不会误剥);
+ // 含空白且无数学符的 $…$ 保持原样(金融文本 "raised $5 and $10 billion" 的货币绝不动)。在 esc 之前跑,纯删字符、零注入面。
+ const deMath = t => String(t == null ? '' : t).replace(/\$\$?([^$]+)\$\$?/g, (m, inner) => (/[=\\^_{}]/.test(inner) || !/\s/.test(inner) || (/[<>]/.test(inner) && inner.length <= 24 && !/[A-Za-z]{3,}/.test(inner))) ? inner : m);
+-function lessonHTML(lesson) {
++function lessonHTML(lesson, item) {
+   if (!lesson) return '';
+-  return PROVENANCE_NOTE + JSON.parse(lesson.sections_json).map((s, i) =>
+-    `<h3>${i + 1}. ${esc(s.title)}</h3>${(s.sentences || []).map(x => `<p>${esc(deMath(x.text))}</p>`).join('')}`).join('');
++  const failClosed = needsEnglishHumanLanguageFallback(item);
++  // 英文 item 一律重建安全回退：旧 cn_lessons 中的英文模板或无 provenance 中文 claim 不得泄漏。
++  const sections = failClosed ? buildEnglishFailClosedLesson(item) : JSON.parse(lesson.sections_json);
++  const note = failClosed
++    ? `<p class="mt" data-content-contract="${HUMAN_LANGUAGE_CONTRACT}"><span class="badge">诚实回退</span> 当前没有可靠的中文翻译或解释；以下只陈述可核实元数据，论文内容保持未知。</p>`
++    : PROVENANCE_NOTE;
++  return note + sections.map((s, i) =>
++    `<h3>${i + 1}. ${esc(s.title)}</h3>${(s.sentences || []).map(x => {
++      const state = CLAIM_STATES.has(x.claim_state) ? x.claim_state : 'INFERENCE';
++      return `<p><span class="badge claim-state" data-claim-state="${state}">${CLAIM_LABELS[state]}</span>${esc(deMath(x.text))}</p>`;
++    }).join('')}`).join('');
++}
++function originalSourceHTML(item) {
++  if (!needsEnglishHumanLanguageFallback(item)) return item.summary ? `<p>${esc(deMath(item.summary))}</p>` : '';
++  const rows = [
++    item.title ? `<p><strong>英文原题</strong><br>${esc(deMath(item.title))}</p>` : '',
++    item.authors ? `<p><strong>原文作者</strong><br>${esc(item.authors)}</p>` : '',
++    item.categories ? `<p><strong>原文分类</strong><br>${esc(item.categories)}</p>` : '',
++    item.summary ? `<p><strong>英文摘要</strong><br>${esc(deMath(item.summary))}</p>` : '<p>该来源未提供摘要。</p>',
++  ].filter(Boolean).join('');
++  return `<details class="original-source" data-content-contract="${HUMAN_LANGUAGE_CONTRACT}"><summary>查看英文原文标题与摘要（默认折叠）</summary>${rows}</details>`;
+ }
+ function itemListHTML(items, { study = true } = {}) {
+   if (!items.length) return '<p class="mt">暂无条目。</p>';
+@@ -1608,14 +1681,16 @@ async function reviewPage(env) {
+   const now = nowISO();
+   const v = await computeVitals(env);
+   const dueRow = await env.DB.prepare(
+-    "SELECT r.*, i.title, i.summary, i.url, i.categories, i.board_id FROM cn_reviews r JOIN cn_items i ON i.id=r.item_id WHERE r.due_at<=? AND r.reps>0 ORDER BY r.due_at ASC LIMIT 1").bind(now).first();
++    "SELECT r.*, i.title, i.summary, i.url, i.authors, i.categories, i.board_id, i.published_at FROM cn_reviews r JOIN cn_items i ON i.id=r.item_id WHERE r.due_at<=? AND r.reps>0 ORDER BY r.due_at ASC LIMIT 1").bind(now).first();
+   let body = vitalsCard(v);
+   if (dueRow) {
+     const stored = await env.DB.prepare("SELECT * FROM cn_lessons WHERE item_id=? ORDER BY created_at DESC LIMIT 1").bind(dueRow.item_id).first();
+     // 无存储讲义则确定性现算(同 itemPage),让板块二/三/四到期卡也有八段讲义可复习,而非空盒
+-    const reveal = lessonHTML(stored || { sections_json: JSON.stringify(buildLesson(dueRow)) });
+-    body += `<div class="card"><p class="mt">还有 ${v.due} 项到期</p><h1>${esc(deMath(dueRow.title))}</h1>
++    const reveal = lessonHTML(stored || { sections_json: JSON.stringify(buildLesson(dueRow)) }, dueRow);
++    const englishFallback = needsEnglishHumanLanguageFallback(dueRow);
++    body += `<div class="card"><p class="mt">还有 ${v.due} 项到期</p><h1>${englishFallback ? '英文论文复习项' : esc(deMath(dueRow.title))}</h1>
+       <p class="mt"><a href="${safeHref(dueRow.url)}" rel="noopener">原文</a> · <a href="/item/${encodeURIComponent(dueRow.item_id)}">详情</a></p>
++      ${englishFallback ? originalSourceHTML(dueRow) : ''}
+       <p style="margin:4px 0 0">${deepDiveBtn(dueRow)}</p></div>`;
+     body += graderHTML(dueRow.item_id, reveal, '/review');
+   } else {
+@@ -1623,8 +1698,8 @@ async function reviewPage(env) {
+   }
+   const { results: queue } = await env.DB.prepare(
+     "SELECT r.due_at, r.evidence_state, i.title, i.id item_id FROM cn_reviews r LEFT JOIN cn_items i ON i.id=r.item_id WHERE r.reps>0 ORDER BY r.due_at ASC LIMIT 60").all();
+-  const rows = (queue || []).map(r => `<tr><td><a href="/item/${encodeURIComponent(r.item_id || '')}">${esc((r.title || r.item_id || '').slice(0, 64))}</a></td>
++  const rows = (queue || []).map(r => `<tr><td><a href="/item/${encodeURIComponent(r.item_id || '')}">${needsEnglishHumanLanguageFallback(r) ? '英文论文复习项' : esc((r.title || r.item_id || '').slice(0, 64))}</a></td>
+     <td><span class="badge">${esc(r.evidence_state || '—')}</span></td><td class="mt">${esc((r.due_at || '').slice(0, 10))}</td></tr>`).join('');
+   body += `<div class="card"><h2>复习队列</h2><table><tr><th>条目</th><th>证据态</th><th>下次复习</th></tr>${rows || '<tr><td colspan=3>队列为空。</td></tr>'}</table></div>`;
+   return PAGE('/review', body, { title: '复习' });
+ }
+@@ -1908,16 +1983,17 @@ async function itemPage(env, id) {
+   const lesson = stored || { sections_json: JSON.stringify(buildLesson(item)) };
+   const review = await env.DB.prepare("SELECT * FROM cn_reviews WHERE item_id=?").bind(id).first();
+   await attachMeta(env, [item]);
++  const englishFallback = needsEnglishHumanLanguageFallback(item);
+   let body = `<div class="card"><p class="mt"><a href="/board/${esc(item.board_id)}">← ${esc(BOARD_NAMES[item.board_id] || item.board_id)}</a></p>
+-    <h1>${esc(deMath(item.title))}</h1>
+-    <p class="mt">${esc(item.authors || '')}${item.categories ? ' · ' + esc(item.categories) : ''}${item.published_at ? ' · ' + esc(item.published_at.slice(0, 10)) : ''} · <a href="${safeHref(item.url)}" rel="noopener">原文</a>${review ? ' · 证据态 ' + esc(review.evidence_state) : ''}</p>
++    <h1>${englishFallback ? '英文论文条目' : esc(deMath(item.title))}</h1>
++    <p class="mt">${englishFallback ? '' : esc(item.authors || '') + (item.categories ? ' · ' + esc(item.categories) : '')}${item.published_at ? ' · ' + esc(item.published_at.slice(0, 10)) : ''} · <a href="${safeHref(item.url)}" rel="noopener">原文</a>${review ? ' · 证据态 ' + esc(review.evidence_state) : ''}</p>
+     ${factsheetHTML(item)}
+-    ${item.summary ? `<p>${esc(deMath(item.summary))}</p>` : ''}
++    ${originalSourceHTML(item)}
+     ${review ? '' : `<button class="btn-sm" data-id="${esc(item.id)}" onclick="study(this)">加入复习队列</button>`}
+     <p style="margin:8px 0 0">${deepDiveBtn(item)}</p></div>`;
+-  if (lesson) body += `<div class="card"><h2>讲义</h2>${lessonHTML(lesson)}</div>`;
+-  if (review) body += graderHTML(item.id, lesson ? lessonHTML(lesson) : `<p>${esc(deMath((item.summary || '').slice(0, 500)))}</p>`, null);
+-  return PAGE('/', body + STUDY_JS, { title: deMath(item.title).slice(0, 40) });
++  if (lesson) body += `<div class="card"><h2>讲义</h2>${lessonHTML(lesson, item)}</div>`;
++  if (review) body += graderHTML(item.id, lesson ? lessonHTML(lesson, item) : `<p>该条目暂无安全讲义。</p>`, null);
++  return PAGE('/', body + STUDY_JS, { title: englishFallback ? '英文论文条目' : deMath(item.title).slice(0, 40) });
+ }
+-
++
+ async function studyItem(env, id) {

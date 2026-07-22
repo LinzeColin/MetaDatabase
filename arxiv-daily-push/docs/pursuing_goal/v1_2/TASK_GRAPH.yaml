@@ -76,6 +76,7 @@ tasks:
     stage: S4.1
     title: 中文人话版 fail-closed 闭合
     dependencies: [ADP-V12-S3-T001]
+    run_contract: RUN_CONTRACT_04_HUMAN_LANGUAGE_FAIL_CLOSED.md
     acceptance_ids:
       - ACC-V12-S4-001
       - ACC-V12-S4-002

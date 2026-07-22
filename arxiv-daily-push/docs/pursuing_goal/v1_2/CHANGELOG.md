@@ -1,5 +1,14 @@
 # ADP v1.2 Taskpack Changelog
 
+## 1.2.0 — S4.1 Run Contract — 2026-07-23
+
+- 为 `ADP-V12-S4-T001` 增加唯一 `RUN_CONTRACT_04_HUMAN_LANGUAGE_FAIL_CLOSED.md`，锁定
+  无可靠中文解释时的已知/推断/未知结构、默认折叠英文原文、旧存储讲义 fail-closed 和
+  unsupported-claim 破坏负控。
+- 本合同锁定为基于封存 live Worker 的可确定性 candidate patch；canonical Worker 与 production
+  bundle 保持不动。不引入模型/API/付费服务，不修改 D1/R2 schema 或数据，不处理 S4.2/S4.3，
+  不上传或部署；实现与独立验收尚未预签。
+
 ## 1.2.0 — S3 closeout — 2026-07-23
 
 - Science Advances PubMed candidate 经首轮独立复审发现并修复 XML 1.0 非法 literal 与未声明/
