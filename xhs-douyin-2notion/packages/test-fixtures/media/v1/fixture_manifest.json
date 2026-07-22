@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S02.S003.001",
+  "task_id": "TSK.x2n.skeleton.003",
+  "phase": "PH.X2N.2.7",
+  "data_class": "public_safe_synthetic",
+  "raw_url_literals_present": false,
+  "real_account_data_present": false,
+  "real_media_present": false,
+  "platform_network_execution": false,
+  "url_fuzz": {
+    "seed": 27003,
+    "cases": 512,
+    "allowed_platforms": [
+      "xiaohongshu",
+      "douyin",
+      "bilibili",
+      "kuaishou",
+      "weibo",
+      "taobao"
+    ],
+    "mutations": [
+      "scheme",
+      "userinfo",
+      "port",
+      "suffix_lookalike",
+      "trailing_dot",
+      "fragment",
+      "path_traversal",
+      "control_character",
+      "oversize",
+      "wrong_platform"
+    ]
+  },
+  "ssrf": {
+    "cases": 32,
+    "classes": [
+      "loopback",
+      "rfc1918",
+      "carrier_grade_nat",
+      "link_local",
+      "metadata",
+      "multicast",
+      "reserved",
+      "unspecified",
+      "ipv4_mapped_ipv6",
+      "mixed_dns_answer",
+      "dns_rebind",
+      "redirect_private_target",
+      "file_scheme",
+      "data_scheme",
+      "path_traversal",
+      "userinfo"
+    ]
+  },
+  "cleanup_chaos": {
+    "cases": 8,
+    "classes": [
+      "success",
+      "processing_error",
+      "expired_after_kill",
+      "missing_file",
+      "permission_error",
+      "active_lease",
+      "cleaner_race",
+      "old_orphan"
+    ]
+  },
+  "resource_limits": {
+    "cases": 8,
+    "classes": [
+      "declared_oversize",
+      "stream_oversize",
+      "fake_mime",
+      "corrupt_header",
+      "encoded_body",
+      "length_mismatch",
+      "overlong_metadata",
+      "decoded_pixel_limit"
+    ],
+    "processor_cases_downstream_not_run": [
+      "ffmpeg_hang",
+      "image_bomb_decode",
+      "repeated_key_frame"
+    ]
+  },
+  "scanner": {
+    "scopes": [
+      "db",
+      "markdown",
+      "logs",
+      "notion-export",
+      "artifacts"
+    ],
+    "chunk_boundary_case": true,
+    "matched_values_emitted": false
+  }
+}

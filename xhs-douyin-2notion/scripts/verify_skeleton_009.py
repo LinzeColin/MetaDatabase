@@ -55,6 +55,7 @@ RUN_ID = "RUN-X2N-S02-S009"
 PHASE = "PH.X2N.2.6"
 BRANCH = "codex/xhs-douyin-2notion-v0001-s02-skeleton009"
 TASK_BASE_COMMIT = "7e8a3dbf3c4c27643330489353ed162130fba506"
+FINAL_COMMIT = "0af2d3b269e7d5631257cb49f41f75cc79438f70"
 ORIGIN_CUTOFF = "6777c8fcce75a36741b70c2858c8bc5fff17d440"
 TASKPACK = PROJECT_ROOT / "docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml"
 RUN_CONTRACT = PROJECT_ROOT / "docs/governance/RUN_CONTRACT_S02_SKELETON_009.md"
@@ -116,14 +117,12 @@ ALLOWED_CHANGED_PREFIXES = ("packages/test-fixtures/extension/v1/taobao_current_
 
 
 def validate_scope() -> Check:
+    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
     committed = _git(
-        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}...HEAD"]
+        ["-c", "core.quotePath=false", "diff", "--name-only", f"{TASK_BASE_COMMIT}..{FINAL_COMMIT}"]
     ).splitlines()
-    working = _porcelain_paths(
-        _git(["-c", "core.quotePath=false", "status", "--porcelain=v1", "--untracked-files=all"])
-    )
     relative_changes: list[str] = []
-    for path in sorted(set(committed + working)):
+    for path in sorted(set(committed)):
         relative = _project_relative(path)
         _require(relative is not None, "Skeleton009 changed scope escaped x2n")
         _require(
@@ -199,7 +198,8 @@ def validate_scope() -> Check:
 
 def validate_worktree(allow_external_main_dirty: bool) -> Check:
     _require(Path(_git(["rev-parse", "--show-toplevel"])).resolve() == REPOSITORY_ROOT.resolve(), "wrong Git root")
-    _require(_git(["branch", "--show-current"]) == BRANCH, "wrong Skeleton009 worktree branch")
+    current_branch = _git(["branch", "--show-current"])
+    _require(current_branch not in {"", "main"}, "Skeleton009 regression must run in a non-main worktree")
     persisted_remote = _git(["config", "--local", "--get", "remote.origin.url"])
     _require(
         re.fullmatch(r"(?:https://github\.com/|git@github\.com:)LinzeColin/MetaDatabase(?:\.git)?", persisted_remote)
@@ -207,14 +207,24 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "wrong or authenticated persisted origin",
     )
     _git(["cat-file", "-e", f"{TASK_BASE_COMMIT}^{{commit}}"])
+    _git(["cat-file", "-e", f"{FINAL_COMMIT}^{{commit}}"])
     _require(
         subprocess.run(
-            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, "HEAD"],
+            ["git", "merge-base", "--is-ancestor", TASK_BASE_COMMIT, FINAL_COMMIT],
             cwd=REPOSITORY_ROOT,
             check=False,
         ).returncode
         == 0,
-        "Skeleton009 branch no longer descends from its Task base",
+        "Skeleton009 final commit no longer descends from its Task base",
+    )
+    _require(
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", FINAL_COMMIT, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+        ).returncode
+        == 0,
+        "current tree no longer descends from the Skeleton009 final commit",
     )
     live_origin = _git(["rev-parse", "origin/main"])
     _require(
@@ -252,8 +262,9 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
         "worktree_isolation",
         "PASS",
         {
-            "branch": BRANCH,
+            "current_branch": current_branch,
             "external_main_dirty_paths": len(main_paths),
+            "historical_branch": BRANCH,
             "origin_drift_commits": int(_git(["rev-list", "--count", f"{ORIGIN_CUTOFF}..{live_origin}"])),
             "origin_project_overlap": origin_overlap,
             "project_overlap_paths": main_overlap,
@@ -262,7 +273,7 @@ def validate_worktree(allow_external_main_dirty: bool) -> Check:
 
 
 def validate_task_and_state() -> Check:
-    taskpack = TASKPACK.read_text(encoding="utf-8")
+    taskpack = _read_blob_at(FINAL_COMMIT, TASKPACK).decode("utf-8")
     base_taskpack = _read_blob_at(TASK_BASE_COMMIT, TASKPACK).decode("utf-8")
     task = _task_block(taskpack, TASK_ID)
     base_task = _task_block(base_taskpack, TASK_ID)
@@ -281,7 +292,7 @@ def validate_task_and_state() -> Check:
     next_task = _task_block(taskpack, "TSK.x2n.skeleton.003")
     _require(next_task == _task_block(base_taskpack, "TSK.x2n.skeleton.003"), "Skeleton003 was entered by this Run")
 
-    state = _load_json(TASK_STATE)
+    state = _load_json_at(FINAL_COMMIT, TASK_STATE)
     _require(state.get("schema_version") == "1.14", "task state schema drifted")
     _require(state.get("stage") == "STG.X2N.2" and state.get("last_completed_phase") == PHASE, "phase drifted")
     _require(state.get("run_id") == RUN_ID and state.get("run_kind") == "single_dag_task", "Run drifted")
@@ -321,10 +332,13 @@ def validate_task_and_state() -> Check:
         "real_sink_execution",
     ):
         _require(state.get(field) == "not_run", f"downstream execution overstated: {field}")
-    _require(_load_json(PROJECT_FACT).get("status") == "stage_2_skeleton_009_pass_g2_not_run", "project drifted")
-    architecture = _load_json(ARCHITECTURE_FACT)
+    _require(
+        _load_json_at(FINAL_COMMIT, PROJECT_FACT).get("status") == "stage_2_skeleton_009_pass_g2_not_run",
+        "project drifted",
+    )
+    architecture = _load_json_at(FINAL_COMMIT, ARCHITECTURE_FACT)
     _require(architecture.get("phase") == PHASE and architecture.get("stage_gate") == "g2_not_run", "ADR drifted")
-    contract = RUN_CONTRACT.read_text(encoding="utf-8")
+    contract = _read_blob_at(FINAL_COMMIT, RUN_CONTRACT).decode("utf-8")
     for value in (TASK_ID, RUN_ID, PHASE, TASK_BASE_COMMIT, BRANCH, "PASS_CI_SYNTH_SCOPED"):
         _require(value in contract, f"Run Contract identity missing: {value}")
     return Check(
@@ -342,7 +356,7 @@ def validate_task_and_state() -> Check:
 
 
 def validate_extension_surface() -> Check:
-    manifest = _load_json(MANIFEST)
+    manifest = _load_json_at(FINAL_COMMIT, MANIFEST)
     _require(manifest == _load_json_at(TASK_BASE_COMMIT, MANIFEST), "Extension Manifest changed in Skeleton009")
     _require(manifest.get("manifest_version") == 3 and manifest.get("minimum_chrome_version") == "120", "MV3 drifted")
     _require(manifest.get("permissions") == CURRENT_PERMISSIONS, "permission allowlist drifted")
@@ -351,17 +365,25 @@ def validate_extension_surface() -> Check:
         manifest.get("content_security_policy", {}).get("extension_pages") == "script-src 'self'; object-src 'none';",
         "Extension CSP weakened",
     )
-    _require(_load_json(PROJECT_ROOT / "package-lock.json") == _load_json_at(TASK_BASE_COMMIT, PROJECT_ROOT / "package-lock.json"), "npm lock changed")
-    _require((PROJECT_ROOT / "uv.lock").read_bytes() == _read_blob_at(TASK_BASE_COMMIT, PROJECT_ROOT / "uv.lock"), "uv lock changed")
-    permission = _load_json(PERMISSION_POLICY)
+    _require(
+        _load_json_at(FINAL_COMMIT, PROJECT_ROOT / "package-lock.json")
+        == _load_json_at(TASK_BASE_COMMIT, PROJECT_ROOT / "package-lock.json"),
+        "npm lock changed",
+    )
+    _require(
+        _read_blob_at(FINAL_COMMIT, PROJECT_ROOT / "uv.lock")
+        == _read_blob_at(TASK_BASE_COMMIT, PROJECT_ROOT / "uv.lock"),
+        "uv lock changed",
+    )
+    permission = _load_json_at(FINAL_COMMIT, PERMISSION_POLICY)
     _require([item.get("name") for item in permission.get("permissions", [])] == CURRENT_PERMISSIONS, "permission policy drifted")
     _require(permission.get("host_permissions") == [] and permission.get("content_scripts") == [], "policy widened")
-    native = _load_json(NATIVE_POLICY)
+    native = _load_json_at(FINAL_COMMIT, NATIVE_POLICY)
     _require(native == _load_json_at(TASK_BASE_COMMIT, NATIVE_POLICY), "Native policy changed in Skeleton009")
     _require(native.get("schema_version") == "1.0" and native.get("allowed_actions") == NATIVE_ACTIONS, "Native v1.0 widened")
 
     source_paths = sorted((PROJECT_ROOT / "apps/extension/src").glob("*.js"))
-    sources = {path.name: path.read_text(encoding="utf-8") for path in source_paths}
+    sources = {path.name: _read_blob_at(FINAL_COMMIT, path).decode("utf-8") for path in source_paths}
     rendered = "\n".join(sources.values())
     for pattern in (
         r"\beval\s*\(",
@@ -403,7 +425,7 @@ def validate_extension_surface() -> Check:
     _require('.getAttribute("src")' not in taobao and ".src" not in taobao, "media source read entered extractor")
     _require("hydration" not in taobao.lower() and "innerhtml" not in taobao.lower(), "raw page state read entered extractor")
     _require("document.cookie" not in taobao and "fetch(" not in taobao, "Cookie or network surface entered extractor")
-    package = _load_json(PROJECT_ROOT / "apps/extension/package.json")
+    package = _load_json_at(FINAL_COMMIT, PROJECT_ROOT / "apps/extension/package.json")
     scripts = package.get("scripts", {})
     _require(scripts.get("test:taobao-fixtures") == "node scripts/taobao-fixture-e2e.mjs", "fixture script missing")
     _require(scripts.get("test:taobao-extension") == "node scripts/extension-e2e.mjs taobao", "E2E script missing")
@@ -423,7 +445,7 @@ def validate_extension_surface() -> Check:
 
 
 def validate_fixtures_and_policy() -> Check:
-    fixture = _load_json(FIXTURE_MANIFEST)
+    fixture = _load_json_at(FINAL_COMMIT, FIXTURE_MANIFEST)
     _require(
         fixture.get("fixture_id") == "FIXTURE.X2N.S02.S009.001" and fixture.get("synthetic") is True,
         "fixture drifted",
@@ -487,8 +509,8 @@ def validate_fixtures_and_policy() -> Check:
         name = item.get("file")
         _require(isinstance(name, str) and re.fullmatch(r"[a-z_]+\.html", name) is not None, "unsafe fixture filename")
         path = fixture_root / name
-        _require(path.is_file() and path.resolve().is_relative_to(fixture_root.resolve()), "HTML fixture missing")
-        html = path.read_text(encoding="utf-8")
+        _require(path.resolve().is_relative_to(fixture_root.resolve()), "HTML fixture escaped its root")
+        html = _read_blob_at(FINAL_COMMIT, path).decode("utf-8")
         _require(
             re.search(r"<(?:form|iframe|script)\b|\b(?:poster|src|srcset)\s*=|url\s*\(", html, flags=re.IGNORECASE)
             is None,
@@ -545,7 +567,7 @@ def validate_fixtures_and_policy() -> Check:
         observed_signature_keys.update(matched)
     _require(observed_signature_keys == signature_keys, "signature-input rejection matrix drifted")
 
-    global_rows = _load_json(GLOBAL_FIXTURE_MANIFEST).get("fixtures", [])
+    global_rows = _load_json_at(FINAL_COMMIT, GLOBAL_FIXTURE_MANIFEST).get("fixtures", [])
     _require(
         {
             "id": "FIXTURE.X2N.S02.S009.001",
@@ -556,7 +578,7 @@ def validate_fixtures_and_policy() -> Check:
         in global_rows,
         "Taobao fixture is not globally registered",
     )
-    policy = _load_json(TAOBAO_POLICY)
+    policy = _load_json_at(FINAL_COMMIT, TAOBAO_POLICY)
     _require(policy.get("phase") == PHASE and policy.get("default") == "deny", "Taobao policy identity drifted")
     _require(policy.get("production_top_api_transport") is False, "production TOP transport was enabled")
     _require(
@@ -615,7 +637,7 @@ def validate_fixtures_and_policy() -> Check:
         and canonical.get("fragment_persisted") is False,
         "query-free canonical contract drifted",
     )
-    platform = _load_json(PLATFORM_FACT)
+    platform = _load_json_at(FINAL_COMMIT, PLATFORM_FACT)
     taobao_fact = next((item for item in platform.get("platforms", []) if item.get("id") == "taobao"), {})
     _require(taobao_fact.get("policy_state") == "unknown_disabled", "real Taobao policy was enabled")
     _require(
@@ -623,7 +645,7 @@ def validate_fixtures_and_policy() -> Check:
         == "ci_synth_pass_real_page_api_and_dom_unknown_disabled_scope_retention_unapproved_cookie_mtop_signature_surface_absent_owner_canary_not_run",
         "Taobao platform fact drifted",
     )
-    registry = _load_json(PLATFORM_POLICY)
+    registry = _load_json_at(FINAL_COMMIT, PLATFORM_POLICY)
     _require(registry.get("phase") == PHASE and registry.get("research_cutoff") == "2026-07-22", "policy recheck drifted")
     official_sources = registry.get("official_sources", {}).get("taobao", [])
     _require(isinstance(official_sources, list) and len(official_sources) >= 8, "official Taobao evidence incomplete")
@@ -821,7 +843,7 @@ def validate_full_lane_report(path: Path) -> Check:
 
 
 def _acceptance_input_receipt() -> str:
-    fixture = _load_json(FIXTURE_MANIFEST)
+    fixture = _load_json_at(FINAL_COMMIT, FIXTURE_MANIFEST)
     paths = [
         MANIFEST,
         NATIVE_POLICY,
@@ -850,7 +872,7 @@ def _acceptance_input_receipt() -> str:
     for path in sorted(paths):
         digest.update(path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
-        digest.update(path.read_bytes())
+        digest.update(_read_blob_at(FINAL_COMMIT, path))
         digest.update(b"\0")
     return digest.hexdigest()
 
@@ -863,6 +885,7 @@ def _safe_evidence(payload: dict[str, Any]) -> None:
 
 
 def write_evidence(checks: list[Check]) -> None:
+    _require(_git(["rev-parse", "HEAD"]) == FINAL_COMMIT, "historical Skeleton009 evidence is immutable")
     names = {check.name for check in checks}
     _require(
         {"full_lane_replay", "isolated_current_page_e2e", "worktree_isolation"} <= names,
@@ -899,6 +922,7 @@ def write_evidence(checks: list[Check]) -> None:
 
 def verify_evidence() -> Check:
     evidence = _load_json(EVIDENCE)
+    _require(EVIDENCE.read_bytes() == _read_blob_at(FINAL_COMMIT, EVIDENCE), "historical evidence was rewritten")
     _safe_evidence(evidence)
     _require(evidence.get("task_id") == TASK_ID and evidence.get("run_id") == RUN_ID, "evidence identity drifted")
     _require(

@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 2` 的 `TSK.x2n.skeleton.001/.002/.006/.007/.008/.009` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。小红书、抖音、哔哩哔哩、快手、微博和淘宝当前详情页均具备稳定合成 ID、净化页面事实、`platform_changed`、Extension Action/临时 `activeTab`、Native Host 与 SQLite 队列闭环。淘宝新增 8/8 DOM、14/14 Policy、16/16 未文档化 Cookie/MTop 签名输入拒绝、2/2 Scope/Retention 未知拒绝与 7/7 schema-drift 拒绝；一手资料只证明需授权且可能付费的 `taobao.item.get`、OAuth/TOP 协议与数据删除义务，本应用尚无 App/OAuth/API/付费/字段范围/保留期/删除回执审批，因此真实页面、TOP API 与 DOM fallback 保持 `UNKNOWN_DISABLED`。六个平台各完成 Action 前 2 个拒绝、真实 Side Panel 按钮合成采集及 100 次 Service Worker 重启；无 Host Permission、静态 Content Script、Extension Storage、平台网络调用、Query/Fragment、Cookie/签名材料或媒体地址持久化。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.003`。Markdown/Notion、ASR/OCR、分类、媒体、列表/Adapter 和真实平台执行均未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 2` 的 `TSK.x2n.skeleton.001/.002/.003/.006/.007/.008/.009` 已分别完成 CI 合成范围验收；Stage 1 已通过 PR #73 合并且远端/合并后门禁通过。六平台当前详情页继续保持稳定合成 ID、净化页面事实、Extension Action/临时 `activeTab`、Native Host 与 SQLite 队列闭环；真实页面与平台 API 仍按各自 Policy/Auth/Budget Gate 关闭。Skeleton003 新增不可序列化 URL 引用、精确 CDN suffix/HTTPS/443/DNS 全地址/逐跳 redirect 防火墙、绑定已校验 IP 的 transport 合同、流式大小/Deadline/MIME/Inspector 限制、下载前无 URL 清理身份预约与校验后 metadata finalize 的 SQLite 临时 lease、共享/独占生命周期锁、24h cleaner 与五个固定逻辑 sink 的零持久化扫描。512 个 URL fuzz、32 个 SSRF、8 个 cleanup chaos、8 个 acquisition resource case 和 23 个媒体安全单测通过；生产网络 transport、真实媒体、FFmpeg、ASR/OCR 与关键帧处理均未运行。`G2=NOT_RUN`，Stage 2 禁止上传，下一独立 Run 只能执行 `TSK.x2n.skeleton.004`。Markdown/Notion、分类、列表 Adapter、真实平台执行与真实媒体处理仍未实现或未运行；共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -21,7 +21,31 @@
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
 
-## Stage 2 / Skeleton 009 验证
+## Stage 2 / Skeleton 003 验证
+
+```bash
+.venv/bin/python -B scripts/run_skeleton_003_acceptance.py
+.venv/bin/python -B scripts/verify_skeleton_003.py \
+  --verify-worktree --allow-external-main-dirty \
+  --lane-report build/s02-skeleton003-final/software-lane.json --require-evidence
+```
+
+`ACC.x2n.media.001–003` 在 `ENV-CI-SYNTH` 范围通过：五个固定逻辑 sink 的 CDN、签名/追踪参数与
+Canonical Query/Fragment finding 均为 0；512 个 URL fuzz 中 64 个 allowlisted、448 个 forbidden，
+Oracle mismatch 为 0；32 个 SSRF 目标成功数与本地文件读取均为 0。成功与异常处理后残留为 0，
+过期 failure/kill 残留为 0，活跃 lease 误删为 0，注入的删除失败 100% 写入高优先级稳定错误并可重试。
+
+下载核心不提供默认或生产网络 transport；调用方只能向 transport 交付已校验 hostname、已绑定的
+global IP 和被隐藏的 request target。响应需通过逐跳重验、64 MiB stream limit、60 秒 Deadline、
+identity encoding、MIME sniff 与隔离 Inspector；远端文件名不参与本地路径。`ACC.x2n.media.004`
+只完成 8 个 acquisition-layer 结构化阻断，Companion crash 为 0；FFmpeg hang、image-bomb decode、
+重复关键帧、ASR/OCR/关键帧处理明确为 `DOWNSTREAM_NOT_RUN`，未冒充完整媒体处理验收。
+
+最终本地回归为 158 个根测试 PASS、3 个固定 Owner-private 可选输入 skip；full lane 两轮
+24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 73.67%，
+33 个依赖 OSV 漏洞 0，61-member source candidate 确定性一致且 Runtime Data 0。
+
+## Stage 2 / Skeleton 009 历史验证
 
 ```bash
 npm run self-test --workspace @x2n/extension

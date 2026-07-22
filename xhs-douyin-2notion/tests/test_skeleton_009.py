@@ -29,7 +29,7 @@ class Skeleton009Tests(unittest.TestCase):
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S02-S009")
         self.assertEqual(VERIFY.PHASE, "PH.X2N.2.6")
         self.assertEqual(VERIFY.TASK_BASE_COMMIT, "7e8a3dbf3c4c27643330489353ed162130fba506")
-        self.assertFalse(hasattr(VERIFY, "FINAL_COMMIT"))
+        self.assertEqual(VERIFY.FINAL_COMMIT, "0af2d3b269e7d5631257cb49f41f75cc79438f70")
         rendered = "\n".join(sorted(VERIFY.ALLOWED_CHANGED_EXACT | set(VERIFY.ALLOWED_CHANGED_PREFIXES)))
         self.assertIn("taobao", rendered.lower())
         self.assertNotIn("apps/companion/src/", rendered)
@@ -37,24 +37,24 @@ class Skeleton009Tests(unittest.TestCase):
 
     def test_manifest_native_contract_and_locks_are_unchanged(self) -> None:
         self.assertEqual(
-            json.loads(VERIFY.MANIFEST.read_text(encoding="utf-8")),
+            VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.MANIFEST),
             VERIFY._load_json_at(VERIFY.TASK_BASE_COMMIT, VERIFY.MANIFEST),
         )
         self.assertEqual(
-            json.loads(VERIFY.NATIVE_POLICY.read_text(encoding="utf-8")),
+            VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.NATIVE_POLICY),
             VERIFY._load_json_at(VERIFY.TASK_BASE_COMMIT, VERIFY.NATIVE_POLICY),
         )
         self.assertEqual(
-            json.loads((PROJECT_ROOT / "package-lock.json").read_text(encoding="utf-8")),
+            VERIFY._load_json_at(VERIFY.FINAL_COMMIT, PROJECT_ROOT / "package-lock.json"),
             VERIFY._load_json_at(VERIFY.TASK_BASE_COMMIT, PROJECT_ROOT / "package-lock.json"),
         )
         self.assertEqual(
-            (PROJECT_ROOT / "uv.lock").read_bytes(),
+            VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, PROJECT_ROOT / "uv.lock"),
             VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, PROJECT_ROOT / "uv.lock"),
         )
 
     def test_real_pages_top_dom_scope_and_retention_remain_unknown_disabled(self) -> None:
-        policy = VERIFY._load_json(VERIFY.TAOBAO_POLICY)
+        policy = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.TAOBAO_POLICY)
         self.assertFalse(policy["feature_flag"]["real_page_execution"])
         self.assertFalse(policy["production_top_api_transport"])
         self.assertEqual(
@@ -81,7 +81,7 @@ class Skeleton009Tests(unittest.TestCase):
         self.assertFalse(policy["official_first_gate"]["official_top_signing_protocol_implemented"])
 
     def test_fixture_matrix_is_synthetic_complete_and_media_free(self) -> None:
-        fixture = VERIFY._load_json(VERIFY.FIXTURE_MANIFEST)
+        fixture = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.FIXTURE_MANIFEST)
         self.assertEqual(len(fixture["cases"]), 8)
         self.assertEqual(len(fixture["policy_cases"]), 14)
         self.assertEqual(len(fixture["undocumented_signature_cases"]), 16)

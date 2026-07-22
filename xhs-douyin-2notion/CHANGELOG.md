@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.0.1 — Stage 2 / Skeleton 003
+
+- 实现进程内、不可序列化且 `repr` 脱敏的 `EphemeralMediaSource` 与 `ValidatedMediaTarget`；原始 CDN URL、Query/签名值不进入 SQLite、日志、Evidence、Markdown、Notion-export 或 Artifact。
+- 实现六平台精确 suffix 的 HTTPS/443 URL firewall：拒绝 userinfo、IP literal、非标准端口、fragment、多重编码 traversal、控制字符和 lookalike；校验全部 DNS answer 为 global，拒绝 IPv4-mapped IPv6，并对每个 redirect 重新解析/解析 DNS。
+- 定义绑定已校验 IP、保留 TLS hostname 的 transport 合同；本 Task 不提供生产 transport，也未执行真实媒体网络。安全下载使用调用方生成路径、`0600`、hard-link promotion、64 MiB stream limit、60 秒 Deadline、identity encoding、MIME sniff 与必需的隔离 Inspector。
+- 扩展 Canonical Store media lease primitive，数据库继续没有 URL 列；acquisition 前先登记 URL-free cleanup identity，校验后再原位 finalize hash/MIME/size metadata，使下载/登记中途的删除失败也能写入 `cleanup_pending` 高优先级回执；实现共享 active-context/独占 cleaner 生命周期锁，成功/异常立即清理、crash orphan 最长 24h、活跃 lease 零误删。
+- 新增固定 `db,markdown,logs,notion-export,artifacts` 逻辑 scope 的 chunk-boundary CDN scanner 与 `x2n verify cdn-zero`；拒绝任意路径、symlink 和 matched-value/private-path 输出。
+- 合成验收通过 512 URL fuzz（64 allowlisted、448 forbidden、0 mismatch）、32 SSRF（0 forbidden success、0 local read）、8 cleanup chaos、8 acquisition resource block 和 23 个媒体安全单测；FFmpeg/image decode/repeated key frame/ASR/OCR 保持 `DOWNSTREAM_NOT_RUN`。
+- Skeleton009 历史 Task/State/Policy/Evidence 固定到 `0af2d3b2…`；历史验收读取最终 blob，当前树继续六平台回归且不重写历史 Evidence。
+- 根回归 158 tests PASS、3 个显式可选 Owner-private input skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 73.67%，33 dependencies 的 OSV vulnerability 0，61-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.media.001–003` 与 `media.004` acquisition layer 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 为 `TSK.x2n.skeleton.004`。
+
 ## v0.0.0.1 — Stage 2 / Skeleton 009
 
 - 复核淘宝一手 API/协议/隐私规则：`taobao.item.get` 是需授权的增值 API，以 `num_iid` 标识商品；私有商品/订单/收藏数据需要 OAuth，TOP 官方签名协议有文档，但本应用无 App/OAuth/API Permission/付费计划/字段范围/保留期/删除回执审批。

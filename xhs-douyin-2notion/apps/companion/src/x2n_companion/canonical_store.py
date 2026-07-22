@@ -11,7 +11,7 @@ import sqlite3
 import uuid
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
@@ -42,7 +42,14 @@ from .runtime import RuntimePaths, X2NRuntimeError, _atomic_private_json
 
 SAFE_TOKEN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,191}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
+MEDIA_LEASE_ID = re.compile(r"^media_[0-9a-f]{32}$")
+MEDIA_TIMESTAMP = re.compile(
+    r"^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])"
+    r"T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z$"
+)
 MAX_MEDIA_LEASE_SECONDS = 24 * 60 * 60
+PENDING_MEDIA_SHA256 = "0" * 64
+PENDING_MEDIA_MIME = "application/x-x2n-pending"
 HEALTHY_CHECKS: dict[str, str | int] = {
     "foreign_key_check": "ok",
     "foreign_key_violations": 0,
@@ -121,6 +128,38 @@ class SkeletonJob:
     disposition: DuplicateDisposition
 
 
+@dataclass(frozen=True)
+class MediaLeaseRecord:
+    """Internal lease state; the private relative path is excluded from receipts."""
+
+    lease_id: str
+    run_id: str
+    content_key: str
+    purpose: str
+    content_hash: str
+    mime: str
+    size_bytes: int
+    duration_seconds: float | None
+    created_at: str
+    expires_at: str
+    status: str
+    local_relative_path: str = field(repr=False)
+    cleanup_error_code: str | None = None
+
+    def safe_dict(self) -> dict[str, Any]:
+        return {
+            "cleanup_error_code": self.cleanup_error_code,
+            "content_hash": self.content_hash,
+            "duration_seconds": self.duration_seconds,
+            "expires_at": self.expires_at,
+            "lease_id": self.lease_id,
+            "mime": self.mime,
+            "purpose": self.purpose,
+            "size_bytes": self.size_bytes,
+            "status": self.status,
+        }
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -133,6 +172,16 @@ def _future(now: str, seconds: int) -> str:
 def _validate_token(value: str, *, label: str) -> str:
     if SAFE_TOKEN.fullmatch(value) is None:
         raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} is invalid")
+    return value
+
+
+def _validate_media_timestamp(value: str, *, label: str) -> str:
+    if not isinstance(value, str) or MEDIA_TIMESTAMP.fullmatch(value) is None:
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} is invalid")
+    try:
+        datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} is invalid") from None
     return value
 
 
@@ -933,6 +982,55 @@ class CanonicalStore:
             )
             return WriteDisposition.INSERTED if existing is None else WriteDisposition.UNCHANGED
 
+    def _insert_media_lease(
+        self,
+        *,
+        run_id: str,
+        content_key: str,
+        purpose: str,
+        content_hash: str,
+        mime: str,
+        size_bytes: int,
+        duration_seconds: float | None,
+        ttl_seconds: int,
+        now: str | None = None,
+        lease_id: str | None = None,
+        initial_status: str,
+    ) -> str:
+        _validate_token(run_id, label="run_id")
+        _validate_token(purpose, label="purpose")
+        _validate_sha256(content_hash, label="content_hash")
+        if not mime or len(mime) > 127 or "/" not in mime:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media MIME is invalid")
+        if size_bytes < 0 or duration_seconds is not None and duration_seconds < 0:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media dimensions are invalid")
+        if ttl_seconds < 1 or ttl_seconds > MAX_MEDIA_LEASE_SECONDS:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Media lease exceeds the retention policy")
+        created_at = _validate_media_timestamp(now or _now(), label="media_created_at")
+        lease_id_value = lease_id or f"media_{uuid.uuid4().hex}"
+        if MEDIA_LEASE_ID.fullmatch(lease_id_value) is None:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media lease identity is invalid")
+        if initial_status not in {"active", "processing"}:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media lease initial status is invalid")
+        relative_path = f"{run_id}/{lease_id_value}.bin"
+        with self._transaction() as connection:
+            self._ensure_run(connection, run_id, created_at)
+            connection.execute(
+                """
+                INSERT INTO media_lease(
+                    lease_id, run_id, content_key, purpose, content_hash, mime, size_bytes,
+                    duration_seconds, created_at, expires_at, status, local_relative_path,
+                    cleanup_error_code
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+                """,
+                (
+                    lease_id_value, run_id, content_key, purpose, content_hash, mime, size_bytes,
+                    duration_seconds, created_at, _future(created_at, ttl_seconds), initial_status,
+                    relative_path,
+                ),
+            )
+        return lease_id_value
+
     def create_media_lease(
         self,
         *,
@@ -945,35 +1043,186 @@ class CanonicalStore:
         duration_seconds: float | None,
         ttl_seconds: int,
         now: str | None = None,
+        lease_id: str | None = None,
     ) -> str:
-        _validate_token(run_id, label="run_id")
-        _validate_token(purpose, label="purpose")
+        return self._insert_media_lease(
+            run_id=run_id,
+            content_key=content_key,
+            purpose=purpose,
+            content_hash=content_hash,
+            mime=mime,
+            size_bytes=size_bytes,
+            duration_seconds=duration_seconds,
+            ttl_seconds=ttl_seconds,
+            now=now,
+            lease_id=lease_id,
+            initial_status="active",
+        )
+
+    def reserve_media_lease(
+        self,
+        *,
+        run_id: str,
+        content_key: str,
+        purpose: str,
+        ttl_seconds: int,
+        now: str,
+        lease_id: str,
+    ) -> str:
+        """Persist a URL-free cleanup identity before any media bytes are acquired."""
+
+        return self._insert_media_lease(
+            run_id=run_id,
+            content_key=content_key,
+            purpose=purpose,
+            content_hash=PENDING_MEDIA_SHA256,
+            mime=PENDING_MEDIA_MIME,
+            size_bytes=0,
+            duration_seconds=None,
+            ttl_seconds=ttl_seconds,
+            now=now,
+            lease_id=lease_id,
+            initial_status="processing",
+        )
+
+    def finalize_media_lease(
+        self,
+        lease_id: str,
+        *,
+        content_hash: str,
+        mime: str,
+        size_bytes: int,
+        duration_seconds: float | None,
+    ) -> WriteDisposition:
+        """Replace pending metadata without ever persisting a source URL."""
+
+        if MEDIA_LEASE_ID.fullmatch(lease_id) is None:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media lease identity is invalid")
         _validate_sha256(content_hash, label="content_hash")
         if not mime or len(mime) > 127 or "/" not in mime:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media MIME is invalid")
         if size_bytes < 0 or duration_seconds is not None and duration_seconds < 0:
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media dimensions are invalid")
-        if ttl_seconds < 1 or ttl_seconds > MAX_MEDIA_LEASE_SECONDS:
-            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Media lease exceeds the retention policy")
-        created_at = now or _now()
-        lease_id = f"media_{uuid.uuid4().hex}"
-        relative_path = f"{run_id}/{lease_id}.bin"
         with self._transaction() as connection:
-            self._ensure_run(connection, run_id, created_at)
+            row = connection.execute(
+                """
+                SELECT content_hash, mime, size_bytes, duration_seconds, status
+                FROM media_lease WHERE lease_id = ?
+                """,
+                (lease_id,),
+            ).fetchone()
+            if row is None or str(row["status"]) != "processing":
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Pending media lease is unavailable")
+            current = (
+                str(row["content_hash"]),
+                str(row["mime"]),
+                int(row["size_bytes"]),
+                None if row["duration_seconds"] is None else float(row["duration_seconds"]),
+            )
+            desired = (content_hash, mime, size_bytes, duration_seconds)
+            if current == desired:
+                return WriteDisposition.UNCHANGED
             connection.execute(
                 """
-                INSERT INTO media_lease(
-                    lease_id, run_id, content_key, purpose, content_hash, mime, size_bytes,
-                    duration_seconds, created_at, expires_at, status, local_relative_path,
-                    cleanup_error_code
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, NULL)
+                UPDATE media_lease
+                SET content_hash = ?, mime = ?, size_bytes = ?, duration_seconds = ?
+                WHERE lease_id = ?
                 """,
-                (
-                    lease_id, run_id, content_key, purpose, content_hash, mime, size_bytes,
-                    duration_seconds, created_at, _future(created_at, ttl_seconds), relative_path,
-                ),
+                (*desired, lease_id),
             )
-        return lease_id
+        return WriteDisposition.UPDATED
+
+    @staticmethod
+    def _media_lease_record(row: sqlite3.Row) -> MediaLeaseRecord:
+        return MediaLeaseRecord(
+            lease_id=str(row["lease_id"]),
+            run_id=str(row["run_id"]),
+            content_key=str(row["content_key"]),
+            purpose=str(row["purpose"]),
+            content_hash=str(row["content_hash"]),
+            mime=str(row["mime"]),
+            size_bytes=int(row["size_bytes"]),
+            duration_seconds=None if row["duration_seconds"] is None else float(row["duration_seconds"]),
+            created_at=str(row["created_at"]),
+            expires_at=str(row["expires_at"]),
+            status=str(row["status"]),
+            local_relative_path=str(row["local_relative_path"]),
+            cleanup_error_code=None if row["cleanup_error_code"] is None else str(row["cleanup_error_code"]),
+        )
+
+    def get_media_lease(self, lease_id: str) -> MediaLeaseRecord | None:
+        _validate_token(lease_id, label="lease_id")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    "SELECT * FROM media_lease WHERE lease_id = ?",
+                    (lease_id,),
+                ).fetchone()
+            finally:
+                connection.close()
+        return None if row is None else self._media_lease_record(row)
+
+    def list_media_leases(self) -> tuple[MediaLeaseRecord, ...]:
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                rows = connection.execute(
+                    "SELECT * FROM media_lease ORDER BY lease_id"
+                ).fetchall()
+            finally:
+                connection.close()
+        return tuple(self._media_lease_record(row) for row in rows)
+
+    def media_cleanup_candidates(self, *, now: str | None = None) -> tuple[MediaLeaseRecord, ...]:
+        observed_at = _validate_media_timestamp(now or _now(), label="media_cleanup_at")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                rows = connection.execute(
+                    """
+                    SELECT * FROM media_lease
+                    WHERE status IN ('cleanup_pending', 'expired')
+                       OR (status IN ('active', 'processing') AND expires_at <= ?)
+                    ORDER BY expires_at, lease_id
+                    """,
+                    (observed_at,),
+                ).fetchall()
+            finally:
+                connection.close()
+        return tuple(self._media_lease_record(row) for row in rows)
+
+    def record_media_cleanup(
+        self,
+        lease_id: str,
+        *,
+        deleted: bool,
+        error_code: str | None = None,
+    ) -> WriteDisposition:
+        _validate_token(lease_id, label="lease_id")
+        if deleted and error_code is not None:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Deleted media cannot retain a cleanup error")
+        if not deleted:
+            if error_code is None:
+                raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Media cleanup failure requires a stable code")
+            _validate_token(error_code, label="cleanup_error_code")
+        target_status = "deleted" if deleted else "cleanup_pending"
+        with self._transaction() as connection:
+            row = connection.execute(
+                "SELECT status, cleanup_error_code FROM media_lease WHERE lease_id = ?",
+                (lease_id,),
+            ).fetchone()
+            if row is None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Media lease is missing")
+            if str(row["status"]) == "deleted" and not deleted:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Deleted media lease cannot be reopened")
+            if str(row["status"]) == target_status and row["cleanup_error_code"] == error_code:
+                return WriteDisposition.UNCHANGED
+            connection.execute(
+                "UPDATE media_lease SET status = ?, cleanup_error_code = ? WHERE lease_id = ?",
+                (target_status, error_code, lease_id),
+            )
+        return WriteDisposition.UPDATED
 
     def recovery_plan(self, *, now: str | None = None) -> RecoveryPlan:
         observed_at = now or _now()
@@ -1096,6 +1345,23 @@ class CanonicalStore:
                 return self._table_counts(connection)
             finally:
                 connection.close()
+
+    def content_exists(self, content_key: str) -> bool:
+        return self.content_platform(content_key) is not None
+
+    def content_platform(self, content_key: str) -> str | None:
+        if not isinstance(content_key, str) or not content_key or len(content_key) > 512:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "content_key is invalid")
+        with self._file_lock(exclusive=False):
+            connection = self._open(writable=False)
+            try:
+                row = connection.execute(
+                    "SELECT platform FROM content WHERE content_key = ?",
+                    (content_key,),
+                ).fetchone()
+            finally:
+                connection.close()
+        return None if row is None else str(row["platform"])
 
     def logical_digest(self) -> str:
         with self._file_lock(exclusive=False):
