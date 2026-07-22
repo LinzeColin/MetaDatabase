@@ -16,6 +16,7 @@ const EXECUTABLE_PLATFORM_NAMES = Object.freeze({
   bilibili: "Bilibili",
   douyin: "Douyin",
   kuaishou: "Kuaishou",
+  weibo: "Weibo",
   xiaohongshu: "Xiaohongshu",
 });
 

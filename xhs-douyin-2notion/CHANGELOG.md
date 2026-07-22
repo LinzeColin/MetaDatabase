@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.0.1 — Stage 2 / Skeleton 008
+
+- 复核微博一手 API/CLI/协议：`statuses/show` 需要 OAuth 且只查询授权用户本人发布内容；应用/user/IP 有频率控制，额外容量可能涉及付费，但本应用价格、Scope、配额与付费层均未批准。
+- 实现微博独立 CI-synthetic 当前页 detector/extractor：精确 `www.weibo.com`、合成 `/detail/<mid>`、location/canonical/OG/detail `data-mid` 交叉校验、净化标题/null、五类既有 ContentType 与 provenance；不读取 media `src`、raw DOM、Cookie 或浏览器状态。
+- 新增 8 个 DOM Fixture（4 ready、4 platform-changed）、12 个 Policy Fixture、2 个真实形态预算拒绝、16 个任意 URL/Redirect-SSRF 拒绝及 7 个 schema-drift 拒绝；公开详情/用户状态路由只登记为未验证合成或预算拒绝假设。
+- 预算默认 0；真实页、生产 API/CLI、OAuth/凭据输入、DOM fallback、任意 URL preview/proxy/redirect transport 与 Owner Canary 全部关闭或未运行。官方 CLI 只登记，未安装、未登录、未执行。
+- 复用 4 权限、0 Host Permission 的 Side Panel/`activeTab`/ISOLATED world/Native v1/SQLite 链路；五平台真实按钮合成采集、Action 前各 2 个拒绝、各 100 次 Service Worker 重启均通过，平台调用、丢单、重单、错状态为 0。
+- Skeleton007 历史 Task/State/Policy/Evidence 固定到 `17f1988b…`，旧验收只读取历史 blob；当前树继续 XHS/Douyin/Bilibili/Kuaishou 安全与行为回归，历史 Evidence 不重写。
+- 根回归 140 tests PASS、3 个显式可选 Owner-private input skip；两轮 full lane 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，overall combined coverage 70.95%，33 dependencies 的 OSV vulnerability 0，59-member source candidate 无 Runtime Data 且可确定性重建。
+- `ACC.x2n.capture.005` 与 `ACC.x2n.ext.001` 仅 CI-SYNTH scoped pass；`G2=NOT_RUN`、Stage 2 上传禁止，下一独立 Run 为 `TSK.x2n.skeleton.009`。
+
 ## v0.0.0.1 — Stage 2 / Skeleton 007
 
 - 复核快手一手 Open Platform/协议：OAuth 需应用登记、动态用户同意与最小 Scope；`user_video_info` 只证明授权用户已发布作品列表和 `photoId` 详情，不证明任意公开当前页、点赞/收藏读取或自动化 DOM 采集权限。

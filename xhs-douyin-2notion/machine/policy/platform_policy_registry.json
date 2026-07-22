@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.2.4",
+  "phase": "PH.X2N.2.5",
   "default": "deny",
   "research_cutoff": "2026-07-22",
   "policy_recheck_required_at_platform_phase_start": true,
@@ -58,7 +58,16 @@
       "https://open.kuaishou.com/platformDocs/newGuide/applicationManagementSpecifica",
       "https://open.kuaishou.com/platformDocs/openAbility/userInformation/publicInformation"
     ],
-    "weibo": ["https://open.weibo.com/cli/index"],
+    "weibo": [
+      "https://open.weibo.com/wiki/2/statuses/show",
+      "https://open.weibo.com/wiki/Rate-limiting",
+      "https://open.weibo.com/wiki/Oauth2/access_token",
+      "https://open.weibo.com/cli/index",
+      "https://open.weibo.com/wiki/开发者协议",
+      "https://open.weibo.com/wiki/应用运营管理规范",
+      "https://open.weibo.com/wiki/应用安全开发注意事项",
+      "https://weibo.com/openapi"
+    ],
     "taobao": ["https://developer.alibaba.com/docs/doc.htm?articleId=103499&docType=1&treeId=782"]
   },
   "forbidden_methods": [
@@ -87,8 +96,9 @@
     "douyin_current_page": "ci_synth_only_policy_unknown_real_page_and_network_transport_disabled_owner_canary_not_run",
     "bilibili_current_page": "ci_synth_only_policy_unknown_real_page_and_api_disabled_article_route_unverified_owner_canary_not_run",
     "kuaishou_current_page": "ci_synth_only_real_page_blocked_auth_api_transport_and_dom_fallback_disabled_route_unverified_owner_canary_not_run",
+    "weibo_current_page": "ci_synth_only_real_page_blocked_budget_api_transport_dom_fallback_and_arbitrary_url_surface_disabled_route_unverified_owner_canary_not_run",
     "xiaohongshu_selected_collection": "unknown_disabled",
-    "other_platform_current_page": "unknown_disabled"
+    "taobao_current_page": "unknown_disabled"
   },
   "policy_recheck": {
     "date": "2026-07-22",
@@ -132,9 +142,23 @@
       "automated_dom_collection_permission": "not_found_and_unauthorized_automation_forbidden",
       "current_auth_state": "scope_not_configured_blocked_auth",
       "decision": "retain_blocked_auth_for_real_pages_and_unknown_disabled_for_dom_fallback"
+    },
+    "weibo": {
+      "official_status_show": "authorized_users_own_status_only",
+      "official_status_identity": "id_and_mid",
+      "oauth_and_application_registration": "required_for_documented_status_api",
+      "official_cli": "available_not_installed_or_executed",
+      "arbitrary_public_current_page_read_capability": "not_found",
+      "official_personal_likes_or_favorites_read_capability": "not_found",
+      "automated_dom_collection_permission": "not_found",
+      "application_budget": "zero",
+      "application_price_scope_and_quota": "unknown_not_approved",
+      "arbitrary_url_preview_proxy": "permanently_forbidden_and_not_implemented",
+      "current_budget_state": "blocked_budget",
+      "decision": "retain_blocked_budget_for_real_pages_and_unknown_disabled_for_api_and_dom_fallback"
     }
   },
   "product_code_started": true,
-  "product_code_scope": "xiaohongshu_douyin_bilibili_and_kuaishou_current_page_ci_synth_only",
+  "product_code_scope": "xiaohongshu_douyin_bilibili_kuaishou_and_weibo_current_page_ci_synth_only",
   "real_account_execution": false
 }

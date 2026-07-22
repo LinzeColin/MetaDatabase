@@ -34,6 +34,13 @@ const CURRENT_PAGE_CONFIGS = Object.freeze({
     fixtureRoot: join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/kuaishou_current_page"),
     metricPrefix: "kuaishou",
   }),
+  weibo: Object.freeze({
+    caseId: "weibo-text-detail",
+    expectedPath: "/detail/synthetic-wb-status-001",
+    expectedUrlFragment: "weibo.com/detail/",
+    fixtureRoot: join(PROJECT_ROOT, "packages/test-fixtures/extension/v1/weibo_current_page"),
+    metricPrefix: "weibo",
+  }),
   xiaohongshu: Object.freeze({
     caseId: "xhs-image-detail",
     expectedPath: "/explore/synthetic-note-image-001",

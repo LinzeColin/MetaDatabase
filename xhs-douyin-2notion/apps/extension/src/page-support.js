@@ -48,16 +48,35 @@ export const CURRENT_PAGE_FEATURES = Object.freeze({
   douyin: "ci_synth_only",
   kuaishou: "ci_synth_only",
   taobao: false,
-  weibo: false,
+  weibo: "ci_synth_only",
   xiaohongshu: "ci_synth_only",
 });
+
+const WEIBO_ARBITRARY_URL_KEYS = Object.freeze(new Set([
+  "callback",
+  "continue",
+  "dest",
+  "destination",
+  "next",
+  "proxy",
+  "redirect",
+  "redirect_url",
+  "return_url",
+  "target",
+  "uri",
+  "url",
+]));
+
+function hasWeiboArbitraryUrlControl(url) {
+  return [...url.searchParams.keys()].some((key) => WEIBO_ARBITRARY_URL_KEYS.has(key.toLowerCase()));
+}
 
 function currentPageExecutable(match, url) {
   const mode = CURRENT_PAGE_FEATURES[match.platform];
   if (mode === true) return true;
   if (
     mode !== "ci_synth_only"
-    || !new Set(["bilibili", "douyin", "kuaishou", "xiaohongshu"]).has(match.platform)
+    || !new Set(["bilibili", "douyin", "kuaishou", "weibo", "xiaohongshu"]).has(match.platform)
   ) return false;
   const contentId = url.pathname.split("/").filter(Boolean).at(-1) ?? "";
   if (match.platform === "douyin") return contentId.startsWith("synthetic-");
@@ -69,6 +88,13 @@ function currentPageExecutable(match, url) {
   if (match.platform === "kuaishou") {
     return url.hostname.toLowerCase() === "www.kuaishou.com"
       && contentId.startsWith("synthetic-ks-video-");
+  }
+  if (match.platform === "weibo") {
+    return url.hostname.toLowerCase() === "www.weibo.com"
+      && url.pathname.startsWith("/detail/")
+      && contentId.startsWith("synthetic-wb-status-")
+      && url.search === ""
+      && url.hash === "";
   }
   return contentId.startsWith("synthetic-") || contentId.startsWith("synthetic_");
 }
@@ -82,6 +108,12 @@ function disabledReason(match, url) {
   if (match.platform === "kuaishou") {
     if (url.hostname.toLowerCase() !== "www.kuaishou.com") return "kuaishou_noncanonical_host_disabled";
     return "kuaishou_oauth_scope_missing_blocked_auth";
+  }
+  if (match.platform === "weibo") {
+    if (url.hostname.toLowerCase() !== "www.weibo.com") return "weibo_noncanonical_host_disabled";
+    if (hasWeiboArbitraryUrlControl(url)) return "weibo_arbitrary_url_control_rejected";
+    if (url.search || url.hash) return "weibo_query_fragment_unsupported";
+    return "weibo_budget_zero_quota_unknown_disabled";
   }
   return "platform_gate_disabled";
 }

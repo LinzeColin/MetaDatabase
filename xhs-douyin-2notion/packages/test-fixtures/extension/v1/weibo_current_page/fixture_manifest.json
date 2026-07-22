@@ -1,0 +1,179 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "FIXTURE.X2N.S02.S008.001",
+  "synthetic": true,
+  "route_assumptions": {
+    "public_detail_route": "unverified_real_route_not_enabled",
+    "public_user_status_route": "recognized_for_budget_block_only",
+    "official_status_identity": "id_or_mid_for_authorized_users_own_status_only"
+  },
+  "budget_contract": {
+    "default_budget_units": 0,
+    "approved_paid_tier": false,
+    "application_quota_state": "unknown",
+    "real_page_state": "UNKNOWN_DISABLED",
+    "arbitrary_url_preview_proxy": false,
+    "production_api_transport": false
+  },
+  "cases": [
+    {
+      "id": "weibo-text-detail",
+      "file": "text_detail.html",
+      "page_url": "https://www.weibo.com/detail/synthetic-wb-status-001",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-wb-status-001",
+        "content_type": "text",
+        "title": "Synthetic Weibo text status",
+        "page_url": "https://www.weibo.com/detail/synthetic-wb-status-001"
+      }
+    },
+    {
+      "id": "weibo-image-gallery",
+      "file": "image_gallery.html",
+      "page_url": "https://www.weibo.com/detail/synthetic-wb-status-002",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-wb-status-002",
+        "content_type": "image_gallery",
+        "title": "Synthetic Weibo image gallery",
+        "page_url": "https://www.weibo.com/detail/synthetic-wb-status-002"
+      }
+    },
+    {
+      "id": "weibo-video-detail",
+      "file": "video_detail.html",
+      "page_url": "https://www.weibo.com/detail/synthetic-wb-status-003",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-wb-status-003",
+        "content_type": "video",
+        "title": null,
+        "page_url": "https://www.weibo.com/detail/synthetic-wb-status-003"
+      }
+    },
+    {
+      "id": "weibo-mixed-detail",
+      "file": "mixed_detail.html",
+      "page_url": "https://www.weibo.com/detail/synthetic-wb-status-004",
+      "expected": {
+        "status": "ready",
+        "content_id": "synthetic-wb-status-004",
+        "content_type": "mixed",
+        "title": "Synthetic Weibo mixed status",
+        "page_url": "https://www.weibo.com/detail/synthetic-wb-status-004"
+      }
+    },
+    {
+      "id": "weibo-changed-id",
+      "file": "changed_id.html",
+      "page_url": "https://www.weibo.com/detail/synthetic-wb-status-005",
+      "expected": {"status": "platform_changed", "reason": "stable_id_signal_mismatch"}
+    },
+    {
+      "id": "weibo-kind-mismatch",
+      "file": "kind_mismatch.html",
+      "page_url": "https://www.weibo.com/detail/synthetic-wb-status-006",
+      "expected": {"status": "platform_changed", "reason": "content_type_signal_mismatch"}
+    },
+    {
+      "id": "weibo-feed-card",
+      "file": "feed_card.html",
+      "page_url": "https://www.weibo.com/detail/synthetic-wb-status-007",
+      "expected": {"status": "platform_changed", "reason": "detail_surface_missing"}
+    },
+    {
+      "id": "weibo-ambiguous-detail",
+      "file": "ambiguous_detail.html",
+      "page_url": "https://www.weibo.com/detail/synthetic-wb-status-008",
+      "expected": {"status": "platform_changed", "reason": "detail_surface_ambiguous"}
+    }
+  ],
+  "policy_cases": [
+    {
+      "id": "weibo-synthetic-detail-enabled",
+      "url": "https://www.weibo.com/detail/synthetic-wb-status-policy-001",
+      "expected": {"executable": true, "platform": "weibo", "reason": "current_page_ci_synth_enabled", "supported": true}
+    },
+    {
+      "id": "weibo-real-detail-budget-blocked",
+      "url": "https://www.weibo.com/detail/NrRealShape001",
+      "expected": {"executable": false, "platform": "weibo", "reason": "weibo_budget_zero_quota_unknown_disabled", "supported": true}
+    },
+    {
+      "id": "weibo-user-status-budget-blocked",
+      "url": "https://www.weibo.com/1234567890/NrRealShape002",
+      "expected": {"executable": false, "platform": "weibo", "reason": "weibo_budget_zero_quota_unknown_disabled", "supported": true}
+    },
+    {
+      "id": "weibo-bare-host-disabled",
+      "url": "https://weibo.com/detail/synthetic-wb-status-policy-002",
+      "expected": {"executable": false, "platform": "weibo", "reason": "weibo_noncanonical_host_disabled", "supported": true}
+    },
+    {
+      "id": "weibo-query-unsupported",
+      "url": "https://www.weibo.com/detail/synthetic-wb-status-policy-003?tracking=synthetic",
+      "expected": {"executable": false, "platform": "weibo", "reason": "weibo_query_fragment_unsupported", "supported": true}
+    },
+    {
+      "id": "weibo-fragment-unsupported",
+      "url": "https://www.weibo.com/detail/synthetic-wb-status-policy-004#synthetic",
+      "expected": {"executable": false, "platform": "weibo", "reason": "weibo_query_fragment_unsupported", "supported": true}
+    },
+    {
+      "id": "weibo-arbitrary-url-control-rejected",
+      "url": "https://www.weibo.com/detail/synthetic-wb-status-policy-005?url=https%3A%2F%2Fexample.invalid%2Fitem",
+      "expected": {"executable": false, "platform": "weibo", "reason": "weibo_arbitrary_url_control_rejected", "supported": true}
+    },
+    {
+      "id": "weibo-preview-path-unsupported",
+      "url": "https://www.weibo.com/preview?url=https%3A%2F%2Fexample.invalid%2Fitem",
+      "expected": {"executable": false, "platform": null, "reason": "unsupported_page", "supported": false}
+    },
+    {
+      "id": "weibo-explicit-port-rejected",
+      "url": "https://www.weibo.com:444/detail/synthetic-wb-status-policy-006",
+      "expected": {"executable": false, "platform": null, "reason": "unsafe_url", "supported": false}
+    },
+    {
+      "id": "weibo-http-rejected",
+      "url": "http://www.weibo.com/detail/synthetic-wb-status-policy-007",
+      "expected": {"executable": false, "platform": null, "reason": "unsafe_url", "supported": false}
+    },
+    {
+      "id": "weibo-lookalike-unsupported",
+      "url": "https://www.weibo.com.example/detail/synthetic-wb-status-policy-008",
+      "expected": {"executable": false, "platform": null, "reason": "unsupported_page", "supported": false}
+    },
+    {
+      "id": "weibo-userinfo-rejected",
+      "url": "https://synthetic@www.weibo.com/detail/synthetic-wb-status-policy-009",
+      "expected": {"executable": false, "platform": null, "reason": "unsafe_url", "supported": false}
+    }
+  ],
+  "redirect_ssrf_cases": [
+    {"id": "url-loopback-v4", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-001?url=http%3A%2F%2F127.0.0.1%2Fprivate"},
+    {"id": "url-localhost", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-002?url=http%3A%2F%2Flocalhost%2Fprivate"},
+    {"id": "url-loopback-v6", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-003?url=http%3A%2F%2F%5B%3A%3A1%5D%2Fprivate"},
+    {"id": "uri-link-local", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-004?uri=http%3A%2F%2F169.254.169.254%2Flatest"},
+    {"id": "target-rfc1918-a", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-005?target=https%3A%2F%2F10.0.0.1%2Fprivate"},
+    {"id": "target-rfc1918-b", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-006?target=https%3A%2F%2F172.16.0.1%2Fprivate"},
+    {"id": "redirect-rfc1918-c", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-007?redirect=https%3A%2F%2F192.168.1.1%2Fprivate"},
+    {"id": "redirect-url-file", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-008?redirect_url=file%3A%2F%2F%2Fetc%2Fhosts"},
+    {"id": "return-url-ftp", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-009?return_url=ftp%3A%2F%2Fexample.invalid%2Fitem"},
+    {"id": "next-userinfo", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-010?next=https%3A%2F%2Fwww.weibo.com%40example.invalid%2Fitem"},
+    {"id": "continue-lookalike", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-011?continue=https%3A%2F%2Fwww.weibo.com.example%2Fitem"},
+    {"id": "destination-port", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-012?destination=https%3A%2F%2Fexample.invalid%3A444%2Fitem"},
+    {"id": "dest-scheme-relative", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-013?dest=%2F%2Fexample.invalid%2Fitem"},
+    {"id": "proxy-public", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-014?proxy=https%3A%2F%2Fexample.invalid%2Fitem"},
+    {"id": "callback-data", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-015?callback=data%3Atext%2Fplain%2Csynthetic"},
+    {"id": "url-encoded-newline", "url": "https://www.weibo.com/detail/synthetic-wb-status-ssrf-016?url=https%3A%2F%2Fexample.invalid%2Fitem%250d%250aX-Synthetic%3A1"}
+  ],
+  "contains_cookies": false,
+  "contains_credentials": false,
+  "contains_local_absolute_paths": false,
+  "contains_media_urls": false,
+  "contains_private_content": false,
+  "contains_real_accounts": false,
+  "real_accounts": false
+}

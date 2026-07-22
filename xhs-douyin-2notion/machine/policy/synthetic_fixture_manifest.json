@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "manifest_id": "FIXTURE.X2N.009",
-  "phase": "PH.X2N.2.4",
+  "manifest_id": "FIXTURE.X2N.010",
+  "phase": "PH.X2N.2.5",
   "fixtures": [
     {
       "id": "FIXTURE.X2N.S00.P05.001",
@@ -74,9 +74,15 @@
       "path": "packages/test-fixtures/extension/v1/kuaishou_current_page/fixture_manifest.json",
       "case_count": 18,
       "purpose": "Kuaishou current-page photoId, sanitized facts, OAuth-scope BLOCKED_AUTH, schema drift and real-route-disabled behavior"
+    },
+    {
+      "id": "FIXTURE.X2N.S02.S008.001",
+      "path": "packages/test-fixtures/extension/v1/weibo_current_page/fixture_manifest.json",
+      "case_count": 36,
+      "purpose": "Weibo current-page mid, sanitized facts, budget-zero real-page rejection, arbitrary-URL and Redirect-SSRF rejection, schema drift and real-route-disabled behavior"
     }
   ],
-  "status": "xhs_douyin_bilibili_kuaishou_current_page_ci_synthetic_fixtures_pass_owner_canary_not_run_remaining_platform_capture_fixtures_not_started",
+  "status": "xhs_douyin_bilibili_kuaishou_weibo_current_page_ci_synthetic_fixtures_pass_owner_canary_not_run_taobao_capture_fixtures_not_started",
   "future_requirements": {
     "source_must_be_declared": true,
     "real_account_content_allowed": false,

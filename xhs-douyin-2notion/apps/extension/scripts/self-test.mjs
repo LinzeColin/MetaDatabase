@@ -5,6 +5,7 @@ import { buildBilibiliCapturePayload, validateBilibiliPageFacts } from "../src/b
 import { buildDouyinCapturePayload, validateDouyinPageFacts } from "../src/douyin-current-page.js";
 import { DouyinShortLinkError, resolveDouyinShortLink } from "../src/douyin-short-link.js";
 import { buildKuaishouCapturePayload, validateKuaishouPageFacts } from "../src/kuaishou-current-page.js";
+import { buildWeiboCapturePayload, validateWeiboPageFacts } from "../src/weibo-current-page.js";
 import { buildXhsCapturePayload, validateXhsPageFacts } from "../src/xhs-current-page.js";
 
 const root = new URL("../", import.meta.url);
@@ -36,6 +37,12 @@ const kuaishouFixture = JSON.parse(
     "utf8",
   ),
 );
+const weiboFixture = JSON.parse(
+  await readFile(
+    new URL("../../packages/test-fixtures/extension/v1/weibo_current_page/fixture_manifest.json", root),
+    "utf8",
+  ),
+);
 const sourceFiles = [
   "sidepanel.html",
   "src/bilibili-current-page.js",
@@ -45,6 +52,7 @@ const sourceFiles = [
   "src/page-support.js",
   "src/service-worker.js",
   "src/sidepanel.js",
+  "src/weibo-current-page.js",
   "src/xhs-current-page.js",
   "styles/sidepanel.css",
 ];
@@ -152,6 +160,35 @@ if (
 if (recognizePage("https://kuaishou.com/short-video/synthetic-ks-video-self-test").executable) {
   failures.push("kuaishou_noncanonical_host_gate");
 }
+const weiboRealSupport = recognizePage("https://www.weibo.com/detail/NrRealShapeSelfTest");
+if (
+  !weiboRealSupport.supported
+  || weiboRealSupport.executable
+  || weiboRealSupport.platform !== "weibo"
+  || weiboRealSupport.reason !== "weibo_budget_zero_quota_unknown_disabled"
+) failures.push("weibo_real_page_blocked_budget_gate");
+const weiboSyntheticSupport = recognizePage(
+  "https://www.weibo.com/detail/synthetic-wb-status-self-test",
+);
+if (
+  !weiboSyntheticSupport.supported
+  || !weiboSyntheticSupport.executable
+  || weiboSyntheticSupport.platform !== "weibo"
+) failures.push("weibo_synthetic_page_gate");
+for (const url of [
+  "https://www.weibo.com/detail/synthetic-wb-status-self-test?tracking=synthetic",
+  "https://www.weibo.com/detail/synthetic-wb-status-self-test#synthetic",
+  "https://weibo.com/detail/synthetic-wb-status-self-test",
+]) {
+  if (recognizePage(url).executable) failures.push("weibo_noncanonical_or_query_gate");
+}
+const weiboArbitraryControl = recognizePage(
+  "https://www.weibo.com/detail/synthetic-wb-status-self-test?url=https%3A%2F%2Fexample.invalid%2Fitem",
+);
+if (
+  weiboArbitraryControl.executable
+  || weiboArbitraryControl.reason !== "weibo_arbitrary_url_control_rejected"
+) failures.push("weibo_arbitrary_url_control_gate");
 for (const url of [
   "https://www.douyin.com/video/synthetic-video-self-test",
   "https://www.douyin.com/note/synthetic-gallery-self-test",
@@ -176,8 +213,10 @@ for (const field of [
   if (douyinFixture[field] !== false) failures.push(`douyin_fixture_${field}`);
   if (bilibiliFixture[field] !== false) failures.push(`bilibili_fixture_${field}`);
   if (kuaishouFixture[field] !== false) failures.push(`kuaishou_fixture_${field}`);
+  if (weiboFixture[field] !== false) failures.push(`weibo_fixture_${field}`);
 }
 if (kuaishouFixture.contains_cookies !== false) failures.push("kuaishou_fixture_contains_cookies");
+if (weiboFixture.contains_cookies !== false) failures.push("weibo_fixture_contains_cookies");
 if (
   bilibiliFixture.synthetic !== true
   || bilibiliFixture.cases.length !== 10
@@ -190,6 +229,15 @@ if (
   || kuaishouFixture.auth_contract?.required_scope !== "user_video_info"
   || kuaishouFixture.auth_contract?.missing_scope_state !== "BLOCKED_AUTH"
 ) failures.push("kuaishou_fixture_manifest");
+if (
+  weiboFixture.synthetic !== true
+  || weiboFixture.cases.length !== 8
+  || weiboFixture.policy_cases.length !== 12
+  || weiboFixture.redirect_ssrf_cases.length !== 16
+  || weiboFixture.budget_contract?.default_budget_units !== 0
+  || weiboFixture.budget_contract?.approved_paid_tier !== false
+  || weiboFixture.budget_contract?.arbitrary_url_preview_proxy !== false
+) failures.push("weibo_fixture_manifest");
 if (douyinFixture.synthetic !== true || douyinFixture.cases.length !== 8) failures.push("douyin_fixture_manifest");
 if (!Array.isArray(douyinFixture.short_link_cases) || douyinFixture.short_link_cases.length !== 16) {
   failures.push("douyin_short_link_fixture_manifest");
@@ -294,6 +342,40 @@ try {
   // Expected fail-closed path.
 }
 
+const weiboContractFact = validateWeiboPageFacts({
+  page_context: {
+    content_id: "synthetic-wb-status-contract-001",
+    content_type: "text",
+    title: null,
+  },
+  page_url: "https://www.weibo.com/detail/synthetic-wb-status-contract-001",
+  platform: "weibo",
+  provenance: {
+    canonical_url: { source: "stable_mid", status: "derived" },
+    content_id: { source: "location_path_and_status_surface", status: "observed_verified" },
+    content_type: { source: "detail_text_marker", status: "observed" },
+    title: { source: null, status: "missing" },
+  },
+  schema_version: "1.0",
+  status: "ready",
+});
+const weiboContractPayload = buildWeiboCapturePayload(weiboContractFact);
+if (new URL(weiboContractPayload.page_url).search || new URL(weiboContractPayload.page_url).hash) {
+  failures.push("weibo_canonical_url");
+}
+try {
+  buildWeiboCapturePayload(validateWeiboPageFacts({
+    code: "X2N_PLATFORM_CHANGED",
+    platform: "weibo",
+    reason: "detail_surface_missing",
+    schema_version: "1.0",
+    status: "platform_changed",
+  }));
+  failures.push("weibo_platform_changed_capture");
+} catch {
+  // Expected fail-closed path.
+}
+
 const douyinContractFact = validateDouyinPageFacts({
   page_context: {
     content_id: "synthetic-video-contract-001",
@@ -379,6 +461,9 @@ process.stdout.write(
     permissions: expectedPermissions.length,
     platform_execution: "NOT_RUN",
     status: "PASS",
+    weibo_fixture_cases: weiboFixture.cases.length,
+    weibo_policy_cases: weiboFixture.policy_cases.length,
+    weibo_redirect_ssrf_cases: weiboFixture.redirect_ssrf_cases.length,
     xhs_fixture_cases: xhsFixture.cases.length,
   })}\n`,
 );

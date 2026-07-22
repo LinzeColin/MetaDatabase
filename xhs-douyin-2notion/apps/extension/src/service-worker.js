@@ -14,6 +14,11 @@ import {
   extractKuaishouCurrentPage,
   validateKuaishouPageFacts,
 } from "./kuaishou-current-page.js";
+import {
+  buildWeiboCapturePayload,
+  extractWeiboCurrentPage,
+  validateWeiboPageFacts,
+} from "./weibo-current-page.js";
 import { buildXhsCapturePayload, extractXhsCurrentPage, validateXhsPageFacts } from "./xhs-current-page.js";
 
 const NATIVE_HOST = "com.linzecolin.x2n";
@@ -34,6 +39,11 @@ const CURRENT_PAGE_ADAPTERS = Object.freeze({
     buildPayload: buildKuaishouCapturePayload,
     extract: extractKuaishouCurrentPage,
     validate: validateKuaishouPageFacts,
+  }),
+  weibo: Object.freeze({
+    buildPayload: buildWeiboCapturePayload,
+    extract: extractWeiboCurrentPage,
+    validate: validateWeiboPageFacts,
   }),
   xiaohongshu: Object.freeze({
     buildPayload: buildXhsCapturePayload,
