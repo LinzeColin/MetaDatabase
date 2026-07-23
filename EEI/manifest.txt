@@ -291,6 +291,7 @@ diagrams/module_architecture_v5_review.mmd
 diagrams/recursive_focus_flow.mmd
 diagrams/system_context.mmd
 diagrams/user_flow.mmd
+docker-compose.ovh.yml
 docker-compose.yml
 docs/01_PRODUCT_REQUIREMENTS.md
 docs/02_SCOPE_AND_BOUNDARIES.md
@@ -391,7 +392,11 @@ infra/db/migrations/0011_operator_source_capture_constraints/up.sql
 infra/db/migrations/README.md
 infra/db/seeds/README.md
 infra/docker/README.md
+infra/docker/refresh-entrypoint.sh
+infra/docker/refresh.Dockerfile
 infra/docker/worker.Dockerfile
+infra/ovh/RESOURCE_SAFETY_ANALYSIS.md
+infra/ovh/RUNBOOK_OVH_EEI.md
 machine/facts/blockers.json
 machine/facts/features.json
 machine/facts/glossary.json
