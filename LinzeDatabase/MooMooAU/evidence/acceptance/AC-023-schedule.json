@@ -1,0 +1,121 @@
+{
+  "acceptance_id": "AC-023",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_NOT_RUN",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "49c4eefc54bc0976415c4ca3dba6b2694af75fe4ec1b743aa174f25441cb1691",
+    "evidence_required": "evidence/acceptance/AC-023-schedule.json",
+    "pass_gate_text": "AC-023 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_023.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-023-RMD01-20260723",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0002.json",
+      "evidence_sha256": "47973adfe8c29bab08644aa902c53a1664ab393983b00bfbe6833467bec7bc2a",
+      "final_claim_status": "NO_FINAL_CLAIM",
+      "reason": "The source task evidence has no final Acceptance claim.",
+      "source_record_status": "VALID",
+      "task_id": "T0002"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0302.json",
+      "evidence_sha256": "8375652e740b4657a09b281782fa2c536b3739ab47d969a17dd0d2caf95f6a08",
+      "final_claim_status": "NOT_RUN",
+      "reason": "Only Sydney Sunday decision logic is present; the deployed 04:30 scheduler and compensation belong to Stage 5.",
+      "source_record_status": "PASS",
+      "task_id": "T0302"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0507.json",
+      "evidence_sha256": "ae5cb1351085c7c67093fa96599735b3a27b4415de6e4466f861165f62d45d13",
+      "final_claim_status": "PARTIAL",
+      "reason": "The exact timezone-aware schedule and catch-up semantics are defined; no remote scheduled run was observed.",
+      "source_record_status": "PASS",
+      "task_id": "T0507"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0705.json",
+      "evidence_sha256": "815534b2749b6678d1a897b042030495c15c667d15286e31cdbce0ddc59ec106",
+      "final_claim_status": "PARTIAL",
+      "reason": "The local mechanism binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up, but no GitHub-hosted schedule execution is observed.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0705"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-023",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_023_pass_gate",
+    "path": "tests/acceptance/test_ac_023.py",
+    "sha256": "f191a1b7d703ddb64819cf1014950d168dcdeca3d73bf03a3c2080167950f326"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0002",
+      "T0302",
+      "T0507",
+      "T0705"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "4a036c17c0d215674830af49a18e4a33551337d32ecf02c67c65f1ad2d0e27c3"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "moomooau.stage0-evidence.v2",
+  "evidence_id": "S0-LATEST-20260720",
+  "stage_id": "S0",
+  "task_id": null,
+  "stage_acceptance_id": null,
+  "observed_at_utc": "2026-07-19T22:40:33Z",
+  "base_commit": "67a324a95cb66e7a4e8b6081625300ae68fa6327",
+  "source_package_version": "1.0.1",
+  "record_status": "VALID",
+  "delivery_status": "PASS",
+  "checks": [
+    {
+      "id": "seven-stage-local-acceptances",
+      "status": "PASS",
+      "evidence_ref": "machine/contracts/stage_acceptance_contract.json"
+    },
+    {
+      "id": "read-only-package",
+      "status": "PASS",
+      "evidence_ref": "machine/tools/validate_package.py"
+    },
+    {
+      "id": "frozen-invariants",
+      "status": "PASS",
+      "evidence_ref": "machine/facts/canonical_facts.json"
+    },
+    {
+      "id": "publication-safety",
+      "status": "PASS",
+      "evidence_ref": "machine/contracts/publication_safety.json"
+    },
+    {
+      "id": "external-governance",
+      "status": "PASS",
+      "evidence_ref": "machine/contracts/governance_binding.json"
+    },
+    {
+      "id": "semantic-delivery-gate",
+      "status": "PASS",
+      "evidence_ref": "machine/contracts/stage0_semantic_gate.json"
+    }
+  ],
+  "blockers": [],
+  "next_action": "Stage 0 已完成；Stage 1 只能在下一次独立运行开始，且不得提前发布。"
+}

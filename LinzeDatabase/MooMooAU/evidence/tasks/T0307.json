@@ -1,0 +1,31 @@
+{
+  "schema_version": "moomooau.stage3-evidence.v1",
+  "evidence_id": "S3-T0307-LOCAL-20260720",
+  "stage_id": "S3",
+  "task_id": "T0307",
+  "stage_acceptance_id": "S3AC-007",
+  "observed_at_utc": "2026-07-20T01:07:05Z",
+  "baseline_commit": "19167f94ed82cc44ff92ee9c46d3e606612fbd27",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "opaque_keyed_content_addresses", "status": "PASS", "evidence_ref": "src/moomooau_archive/raw_commit.py"},
+    {"id": "all_memory_store_objects_match_pinned_age_v1_x25519_structure", "status": "PASS", "evidence_ref": "tests/tasks/test_t0307.py"},
+    {"id": "append_only_deduplicated_manifest_last", "status": "PASS", "evidence_ref": "tests/tasks/test_t0307.py"},
+    {"id": "partial_failure_resumable_without_overwrite", "status": "PASS", "evidence_ref": "tests/tasks/test_t0307.py"},
+    {"id": "plaintext_and_magic_only_github_put_blocked_pre_network", "status": "PASS", "evidence_ref": "src/moomooau_archive/github_guard.py"},
+    {"id": "recovery_public_m3_claims_false", "status": "PASS", "evidence_ref": "RawCommitState.PRIVATE_COMMITTED_RECOVERY_PENDING"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-011", "status": "PARTIAL", "reason": "Every synthetic Raw object persisted to the memory adapter is an age envelope; all later Processed, State and Timeline object classes are not present."},
+    {"id": "AC-026", "status": "PARTIAL", "reason": "Repeated and resumed synthetic Raw commits create no duplicate logical object; end-to-end concurrency, Timeline and Trash are not present."},
+    {"id": "AC-027", "status": "NOT_RUN", "reason": "The private repository adapter was not called and no public evidence lane exists in Stage 3."}
+  ],
+  "production_oracles": [
+    {"id": "PRIVATE_APPEND_AND_REMOTE_RECOVERY", "status": "NOT_RUN", "reason": "No protected GitHub token, private repository call or recovery identity was used."},
+    {"id": "REMOTE_STAGE3_CI", "status": "NOT_RUN", "reason": "Intermediate GitHub publication is prohibited."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0},
+  "next_action": "Do not enable recovery, M3, Trash or public evidence until later protected stages execute and verify the private object remotely."
+}

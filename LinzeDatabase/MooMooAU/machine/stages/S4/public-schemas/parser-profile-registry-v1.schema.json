@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://metadatabase.example/schemas/moomooau/parser-profile-registry-v1",
+  "title": "MooMooAU Parser Profile Registry v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "registry_version",
+    "issued_at_utc",
+    "activation_state",
+    "profiles"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "moomooau.parser-profile-registry.v1"
+    },
+    "registry_version": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+    },
+    "issued_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "activation_state": {
+      "enum": [
+        "ACTIVE",
+        "EMPTY_PROTECTED_EVIDENCE_REQUIRED"
+      ]
+    },
+    "profiles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/profile"
+      }
+    }
+  },
+  "$defs": {
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "output_name",
+        "labels",
+        "value_kind",
+        "required",
+        "date_formats"
+      ],
+      "properties": {
+        "output_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{1,63}$"
+        },
+        "labels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "value_kind": {
+          "enum": [
+            "TEXT",
+            "DATE",
+            "DECIMAL",
+            "CURRENCY"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "date_formats": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "parser_name",
+        "parser_version",
+        "document_class",
+        "supported_kinds",
+        "fields",
+        "table_columns",
+        "evidence_digest"
+      ],
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "pattern": "^[A-Z0-9][A-Z0-9_-]{2,63}$"
+        },
+        "parser_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}$"
+        },
+        "parser_version": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+        },
+        "document_class": {
+          "enum": [
+            "DAILY_STATEMENT",
+            "MONTHLY_STATEMENT",
+            "FINANCIAL_YEAR_SUMMARY",
+            "CONTRACT_NOTE"
+          ]
+        },
+        "supported_kinds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "PDF",
+              "XLSX",
+              "CSV"
+            ]
+          }
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "table_columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "evidence_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "fields": {
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "properties": {
+            "table_columns": {
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    }
+  }
+}

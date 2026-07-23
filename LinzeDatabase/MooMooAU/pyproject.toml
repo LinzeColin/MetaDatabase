@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools==83.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "moomooau-archive"
+version = "0.1.0"
+description = "Deterministic, cloud-only MooMooAU archive pipeline"
+requires-python = ">=3.12"
+dependencies = [
+  "cryptography==49.0.0",
+  "defusedxml==0.7.1",
+  "exchange-calendars==4.13.2",
+  "jsonschema==4.26.0",
+  "openpyxl==3.1.5",
+  "pandas==3.0.3",
+  "pandera[pandas]==0.32.1",
+  "pikepdf==10.10.0",
+  "pillow==12.3.0",
+  "pyarrow==25.0.0",
+  "pypdf==6.14.2",
+]
+
+[project.scripts]
+moomooau-archive = "moomooau_archive.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+moomooau_archive = ["contracts/*.json"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --strict-markers -p no:cacheprovider"
+testpaths = ["tests/tasks"]
+pythonpath = ["src"]
+python_files = ["test_t01*.py", "test_t02*.py", "test_t03*.py", "test_t04*.py", "test_t05*.py", "test_t06*.py", "test_t07*.py"]

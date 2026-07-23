@@ -1,0 +1,30 @@
+{
+  "schema_version": "moomooau.stage4-evidence.v1",
+  "evidence_id": "S4-T0407-LOCAL-20260720",
+  "stage_id": "S4",
+  "task_id": "T0407",
+  "stage_acceptance_id": "S4AC-007",
+  "observed_at_utc": "2026-07-20T02:39:28Z",
+  "baseline_commit": "b15ccdbe0e4ed16e3a01e17431360f844621b852",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "count_and_freshness_bucket_only", "status": "PASS", "evidence_ref": "tests/tasks/test_t0407.py"},
+    {"id": "schema_parser_versions_and_allowlisted_datasets_only", "status": "PASS", "evidence_ref": "public-inventory-v1.schema.json"},
+    {"id": "private_root_hmac_opaque", "status": "PASS", "evidence_ref": "StrictPublicInventoryPublisher"},
+    {"id": "private_identifier_value_path_and_date_fields_absent", "status": "PASS", "evidence_ref": "tests/tasks/test_t0407.py"},
+    {"id": "diagnostic_state_and_next_action_coverage", "status": "PASS", "evidence_ref": "PublicRunState"},
+    {"id": "external_public_writes_zero", "status": "PASS", "evidence_ref": "StrictPublicInventoryPublisher.render"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-016", "status": "PARTIAL", "reason": "The synthetic public document exposes no private source, path, exact count or timestamp field and passes the local publication scan; a real PR/publication leak scan is not run."},
+    {"id": "AC-031", "status": "PARTIAL", "reason": "All frozen diagnostic state/action categories are representable without private details; continuous production evidence publication is not deployed."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_PUBLIC_INVENTORY_PUBLICATION", "status": "NOT_RUN", "reason": "No external public write, production observation or public endpoint was used."},
+    {"id": "REMOTE_STAGE4_CI", "status": "NOT_RUN", "reason": "Intermediate GitHub publication is prohibited; only local equivalent gates can run."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "production_classification_rules": 0, "production_parser_profiles": 0, "protected_approvals_executed": 0},
+  "next_action": "Publish no inventory until later protected recovery and production observation can populate a truthful bucket-only document."
+}

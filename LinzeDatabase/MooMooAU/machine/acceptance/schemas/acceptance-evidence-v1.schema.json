@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Final Acceptance Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_id",
+    "acceptance_id",
+    "requirement_id",
+    "observed_at_utc",
+    "remediation_base_commit",
+    "scope",
+    "record_status",
+    "delivery_status",
+    "acceptance_status",
+    "oracle_status",
+    "pass_gate",
+    "contract_binding",
+    "traceability_binding",
+    "test_entry",
+    "linked_task_evidence",
+    "oracle_observations",
+    "checks",
+    "blockers",
+    "prohibition_counters",
+    "next_action"
+  ],
+  "properties": {
+    "schema_version": {"const": "moomooau.acceptance-evidence.v1"},
+    "evidence_id": {"type": "string", "pattern": "^AC-[0-9]{3}-RMD01-[0-9]{8}$"},
+    "acceptance_id": {"type": "string", "pattern": "^AC-[0-9]{3}$"},
+    "requirement_id": {"type": "string", "pattern": "^RQ-[0-9]{3}$"},
+    "observed_at_utc": {"type": "string", "format": "date-time"},
+    "remediation_base_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "scope": {"const": "LOCAL_ACCEPTANCE_CONTROL_PLANE"},
+    "record_status": {"const": "VALID"},
+    "delivery_status": {"const": "LOCAL_ONLY_NOT_PUBLISHED"},
+    "acceptance_status": {"enum": ["PASS", "BLOCKED"]},
+    "oracle_status": {"enum": ["PASS", "FAIL", "NOT_RUN"]},
+    "pass_gate": {"type": "boolean"},
+    "contract_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_ref", "contract_sha256", "verification", "evidence_required", "pass_gate_text"],
+      "properties": {
+        "contract_ref": {"const": "machine/contracts/acceptance_contract.json"},
+        "contract_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "verification": {"type": "string", "minLength": 1},
+        "evidence_required": {"type": "string", "pattern": "^evidence/acceptance/AC-[0-9]{3}-.+\\.json$"},
+        "pass_gate_text": {"type": "string", "minLength": 1}
+      }
+    },
+    "traceability_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["traceability_ref", "traceability_row_sha256", "task_ids"],
+      "properties": {
+        "traceability_ref": {"const": "machine/contracts/traceability_matrix.csv"},
+        "traceability_row_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "task_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^T[0-9]{4}$"}
+        }
+      }
+    },
+    "test_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "entrypoint", "sha256"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^tests/acceptance/test_ac_[0-9]{3}\\.py$"},
+        "entrypoint": {"type": "string", "pattern": "^test_ac_[0-9]{3}_pass_gate$"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "linked_task_evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["task_id", "evidence_ref", "evidence_sha256", "source_record_status", "final_claim_status", "reason"],
+        "properties": {
+          "task_id": {"type": "string", "pattern": "^T[0-9]{4}$"},
+          "evidence_ref": {"type": "string", "pattern": "^evidence/tasks/T[0-9]{4}\\.json$"},
+          "evidence_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "source_record_status": {"type": "string", "minLength": 1},
+          "final_claim_status": {"enum": ["PASS", "PARTIAL", "NOT_RUN", "BLOCKED", "NO_FINAL_CLAIM"]},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "oracle_observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["observation_ref", "observation_sha256", "oracle_id", "environment", "status", "observed_at_utc"],
+        "properties": {
+          "observation_ref": {"type": "string", "pattern": "^evidence/acceptance/oracles/AC-[0-9]{3}-.+\\.json$"},
+          "observation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "oracle_id": {"type": "string", "minLength": 1},
+          "environment": {"enum": ["LOCAL_SYNTHETIC", "GITHUB_ACTIONS_PROTECTED", "CODEX_AUTOMATION"]},
+          "status": {"enum": ["PASS", "FAIL"]},
+          "observed_at_utc": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "status": {"enum": ["PASS", "BLOCKED"]}
+        }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "prohibition_counters": {"$ref": "#/$defs/prohibitionCounters"},
+    "next_action": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"acceptance_status": {"const": "PASS"}}},
+      "then": {
+        "properties": {
+          "oracle_status": {"const": "PASS"},
+          "pass_gate": {"const": true},
+          "blockers": {"maxItems": 0}
+        }
+      },
+      "else": {
+        "properties": {
+          "pass_gate": {"const": false},
+          "blockers": {"minItems": 1}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "prohibitionCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "real_gmail_calls", "gmail_mutations", "private_repository_calls", "real_secrets_read",
+        "protected_key_deliveries", "external_writes", "remote_publication", "non_moomoo_full_reads",
+        "non_moomoo_downloads", "non_moomoo_mutations", "raw_before_verification",
+        "untrusted_content_execution", "model_real_data_calls", "model_secret_requests",
+        "moomoo_portal_calls", "persistent_plaintext_objects", "thread_trash_calls",
+        "permanent_delete_calls", "release_assets_above_one", "production_workflow_runs"
+      ],
+      "properties": {
+        "real_gmail_calls": {"const": 0}, "gmail_mutations": {"const": 0},
+        "private_repository_calls": {"const": 0}, "real_secrets_read": {"const": 0},
+        "protected_key_deliveries": {"const": 0}, "external_writes": {"const": 0},
+        "remote_publication": {"const": 0}, "non_moomoo_full_reads": {"const": 0},
+        "non_moomoo_downloads": {"const": 0}, "non_moomoo_mutations": {"const": 0},
+        "raw_before_verification": {"const": 0}, "untrusted_content_execution": {"const": 0},
+        "model_real_data_calls": {"const": 0}, "model_secret_requests": {"const": 0},
+        "moomoo_portal_calls": {"const": 0}, "persistent_plaintext_objects": {"const": 0},
+        "thread_trash_calls": {"const": 0}, "permanent_delete_calls": {"const": 0},
+        "release_assets_above_one": {"const": 0}, "production_workflow_runs": {"const": 0}
+      }
+    }
+  }
+}

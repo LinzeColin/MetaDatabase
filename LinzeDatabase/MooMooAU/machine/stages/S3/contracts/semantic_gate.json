@@ -1,0 +1,57 @@
+{
+  "schema_version": "moomooau.stage3-semantic-gate.v1",
+  "stage_id": "S3",
+  "status": "PASS",
+  "baseline_commit": "19167f94ed82cc44ff92ee9c46d3e606612fbd27",
+  "policy": "Stage-local PASS requires deterministic synthetic boundaries and explicit CONTROLLED_NOT_RUN status for every production or protected assertion; none can enable RAW, recovery, M3, Trash or publication.",
+  "resolutions": [
+    {
+      "id": "S3-SEM-001",
+      "status": "RESOLVED",
+      "finding": "Gmail messages.list returns message references rather than candidate classification facts and may paginate each mailbox scope.",
+      "resolution": "The discoverer pages fixed message-level scopes with includeSpamTrash=true, deduplicates opaque IDs, fetches only allowlisted metadata headers and audits filters read-only."
+    },
+    {
+      "id": "S3-SEM-002",
+      "status": "RESOLVED",
+      "finding": "Gmail History IDs are non-contiguous and an old watermark can expire or return 404.",
+      "resolution": "The reconciler treats the watermark as opaque, advances only after complete pagination and deterministically falls back to full reconciliation for initial, Sunday, expired, 404, difference and manual modes."
+    },
+    {
+      "id": "S3-SEM-003",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "No authoritative protected owner evidence for exact production Moomoo AU sender identities is available in this run.",
+      "resolution": "The committed production registry is versioned but empty, all real candidates remain UNKNOWN, and only synthetic evidence-backed entries are used in tests."
+    },
+    {
+      "id": "S3-SEM-004",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "Real mailbox coverage, candidate parity and Gmail RAW byte parity require protected Gmail authority and private message data.",
+      "resolution": "Injected synthetic transports prove local algorithms only; real Gmail calls, full reads and mutations remain zero and linked final acceptances are not PASS."
+    },
+    {
+      "id": "S3-SEM-005",
+      "status": "RESOLVED",
+      "finding": "Attachment MIME labels and filenames are untrusted and parsing can create execution, traversal or resource-exhaustion risk.",
+      "resolution": "Classification uses bounded in-memory magic and container inspection, rejects active/polyglot/macro/formula/path/bomb inputs, never extracts paths, executes code, invokes a model or accesses a network."
+    },
+    {
+      "id": "S3-SEM-006",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "Private-first Raw commit and remote recovery require protected GitHub credentials and the unique private repository.",
+      "resolution": "The production-capable adapter remains uncalled; local append-only storage and the pre-network guard prove encryption/order/idempotency only, with recovery, public evidence, M3 and Trash all false."
+    },
+    {
+      "id": "S3-SEM-007",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "AC-023 requires a deployed production schedule and compensation behavior, which belongs to Stage 5 and later observation.",
+      "resolution": "Stage 3 proves only Australia/Sydney Sunday/full-reconcile decision logic and makes no exact-start or deployed-schedule claim."
+    },
+    {
+      "id": "S3-SEM-008",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "The no-Secret Stage 3 CI definition cannot execute remotely because intermediate uploads are prohibited.",
+      "resolution": "Local equivalent gates are required for this run; remote CI remains NOT_RUN until the single final publication."
+    }
+  ]
+}

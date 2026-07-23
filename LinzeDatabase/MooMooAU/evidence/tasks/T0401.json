@@ -1,0 +1,26 @@
+{
+  "schema_version": "moomooau.stage4-evidence.v1",
+  "evidence_id": "S4-T0401-LOCAL-20260720",
+  "stage_id": "S4",
+  "task_id": "T0401",
+  "stage_acceptance_id": "S4AC-001",
+  "observed_at_utc": "2026-07-20T02:39:28Z",
+  "baseline_commit": "b15ccdbe0e4ed16e3a01e17431360f844621b852",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "frozen_document_class_enum_18_of_18", "status": "PASS", "evidence_ref": "tests/tasks/test_t0401.py"},
+    {"id": "unique_synthetic_profile_classification", "status": "PASS", "evidence_ref": "DocumentClassifier"},
+    {"id": "verified_unknown_retained_on_no_match", "status": "PASS", "evidence_ref": "tests/tasks/test_t0401.py"},
+    {"id": "production_classification_registry_empty", "status": "PASS", "evidence_ref": "machine/stages/S4/registry/document-classification.v1.json"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-002", "status": "PARTIAL", "reason": "All 18 frozen classes and VERIFIED_UNKNOWN retention pass with verified synthetic fixtures; authoritative real templates, production coverage and post-recovery Trash are not run."}
+  ],
+  "production_oracles": [
+    {"id": "PROTECTED_REAL_TEMPLATE_CLASSIFICATION", "status": "NOT_RUN", "reason": "No protected real Moomoo message template or owner-approved classification rule was used."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "production_classification_rules": 0, "production_parser_profiles": 0, "protected_approvals_executed": 0},
+  "next_action": "Keep the production registry empty until protected owner-approved real templates are available in a later controlled canary."
+}

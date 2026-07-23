@@ -1,0 +1,39 @@
+{
+  "schema_version": "moomooau.stage2-semantic-gate.v1",
+  "stage_id": "S2",
+  "status": "PASS",
+  "baseline_commit": "932e3970490f87fd46671bc6a461340a339887ef",
+  "policy": "Stage-local PASS is allowed only when every unresolved external assertion is explicitly controlled as NOT_RUN and cannot enable production or M3.",
+  "resolutions": [
+    {
+      "id": "S2-SEM-001",
+      "status": "RESOLVED",
+      "finding": "gmail.modify is a broad restricted scope rather than an endpoint-level capability.",
+      "resolution": "The credential contract permits exactly that one scope while a separate raw-request guard rejects every non-allowlisted method, authority, path, query and body before transport."
+    },
+    {
+      "id": "S2-SEM-002",
+      "status": "RESOLVED",
+      "finding": "GitHub App Contents permission also covers operations beyond this product path.",
+      "resolution": "The token request is restricted to one protected Repository ID and exact Contents write/Metadata read; a second guard limits target paths to MooMooAU/ and the fixed live Release surface."
+    },
+    {
+      "id": "S2-SEM-003",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "A real private-repository canary requires protected installation credentials and another repository target.",
+      "resolution": "Only synthetic transport isolation is Stage-locally proven; AC-019 remains PARTIAL and no private call or write occurred."
+    },
+    {
+      "id": "S2-SEM-004",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "The taskpack requires one-time Recovery Key delivery through the development thread, but no authorized plaintext delivery connector is available in this run.",
+      "resolution": "A fail-closed asynchronous port/state contract is implemented and synthetically proven; real generation/delivery stays AC-012 NOT_RUN and M3 cannot be enabled without exactly one claim plus recovery proof."
+    },
+    {
+      "id": "S2-SEM-005",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "Committed CodeQL and dependency-review workflow definitions have not executed remotely because intermediate Stage uploads are prohibited.",
+      "resolution": "All Action references are immutable and local supply-chain gates pass; remote security jobs remain part of AC-021/AC-033 protected final execution, not claimed PASS."
+    }
+  ]
+}

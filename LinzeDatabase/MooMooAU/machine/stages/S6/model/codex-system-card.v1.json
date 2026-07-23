@@ -1,0 +1,27 @@
+{
+  "schema_version": "moomooau.codex-system-card.v1",
+  "model_surfaces": ["DEVELOPMENT_THREAD", "PUBLIC_HEALTH_MONITOR"],
+  "allowed_development_inputs": ["FROZEN_TASKPACK", "PUBLIC_CODE", "SYNTHETIC_FIXTURE", "PUBLIC_EVIDENCE"],
+  "denied_inputs": ["REAL_EMAIL", "PRIVATE_OBJECT", "SECRET"],
+  "data_plane_components": ["GMAIL_DISCOVERY", "FULL_FETCH", "VERIFICATION", "RAW", "PROCESSED", "AGE", "PRIVATE_COMMIT", "REMOTE_RECOVERY", "M3", "TIMELINE"],
+  "data_plane_model_calls": 0,
+  "runtime_model_dispatch_surface": false,
+  "monitor_contract": {
+    "input": "STRICT_PUBLIC_INVENTORY_ONLY",
+    "healthy_action": "NONE",
+    "abnormal_action": "UPDATE_SINGLE_OPS_ISSUE",
+    "maximum_issue_updates": 1,
+    "production_trigger_allowed": false,
+    "data_plane_dependency": false
+  },
+  "known_limitations": [
+    "Models can omit requirements or overstate evidence.",
+    "Models can propose forbidden local, second-repository or broad-permission designs.",
+    "Policy Evals do not prove remote model behavior; independent review remains separate evidence."
+  ],
+  "fail_closed_rules": [
+    "Missing or failed evidence is not success.",
+    "The application runtime exposes no model dispatch interface; real data therefore has no model call path.",
+    "No model can authorize Gmail mutation, private publication or production dispatch."
+  ]
+}

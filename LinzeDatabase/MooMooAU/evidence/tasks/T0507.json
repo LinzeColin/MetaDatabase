@@ -1,0 +1,27 @@
+{
+  "schema_version": "moomooau.stage5-evidence.v1",
+  "evidence_id": "S5-T0507-LOCAL-20260720",
+  "stage_id": "S5",
+  "task_id": "T0507",
+  "stage_acceptance_id": "S5AC-007",
+  "observed_at_utc": "2026-07-20T03:21:33Z",
+  "baseline_commit": "9394585329a52c4d269da220bd66ce8ec9b820b3",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "exact_0430_australia_sydney_schedule", "status": "PASS", "evidence_ref": ".github/workflows/moomooau-production.yml"},
+    {"id": "sunday_and_manual_full_reconcile", "status": "PASS", "evidence_ref": "tests/tasks/test_t0507.py"},
+    {"id": "dst_and_delayed_run_plan", "status": "PASS", "evidence_ref": "RunPlanner"},
+    {"id": "github_hosted_feature_gated_no_local_scheduler", "status": "PASS", "evidence_ref": ".github/workflows/moomooau-production.yml"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-023", "status": "PARTIAL", "reason": "The exact timezone-aware schedule and catch-up semantics are defined; no remote scheduled run was observed."},
+    {"id": "AC-025", "status": "PARTIAL", "reason": "Sunday and workflow_dispatch full-reconcile plans pass synthetically; protected execution and completion are not run."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_SCHEDULED_AND_MANUAL_RUNS", "status": "NOT_RUN", "reason": "The protected workflow remains disabled and no scheduled, Sunday or manual production execution occurred."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
+  "next_action": "Keep MOOMOOAU_PRODUCTION_ENABLED false until Stage 6 canary authority, Secrets and observation gates are satisfied."
+}

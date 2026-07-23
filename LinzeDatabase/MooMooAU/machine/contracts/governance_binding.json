@@ -1,0 +1,38 @@
+{
+  "schema_version": "moomooau.governance-binding.v1",
+  "version": "1.0.2",
+  "repository": "LinzeColin/Governance",
+  "commit": "ebc6c2e4884edc959118cfc56d0e18a86c49460f",
+  "consumption_mode": "external pinned read-only deploy-key checkout",
+  "local_framework_copy_allowed": false,
+  "workflow_authentication": {
+    "policy": "DEPENDENCY_AUTH_ONLY_ZERO_PRODUCTION_SECRET",
+    "credential_kind": "GITHUB_READ_ONLY_DEPLOY_KEY",
+    "actions_secret_name": "MOOMOOAU_GOVERNANCE_DEPLOY_KEY",
+    "repository_scope": "LinzeColin/Governance",
+    "allowed_consumer": "actions/checkout with.ssh-key only",
+    "write_access": false,
+    "persist_credentials": false,
+    "fork_pull_request_policy": "FAIL_CLOSED_BEFORE_PROTECTED_DEPENDENCY_CHECKOUT",
+    "pull_request_target_allowed": false,
+    "production_secret_reads": 0,
+    "project_runtime_secret_reads": 0
+  },
+  "fact_adapter": "machine/tools/build_governance_facts.py",
+  "tools": [
+    {
+      "path": "dual_plane/machine/tools/render_human.py",
+      "sha256": "f18dee1c491ad5d7a89477629cba43a834aa46f776e01fc621588c7e267ff3a4"
+    },
+    {
+      "path": "dual_plane/machine/tools/check_doc_budget.py",
+      "sha256": "f542127c647fccffe6c8a25b663b06daa683a40f64add8a06fe81eda4124b819"
+    },
+    {
+      "path": "dual_plane/machine/tools/check_blocker_stop.py",
+      "sha256": "afcc4bfd0d9c13e62ed4929968f5ff92dcf95eb2413dbcf7aba2b4dd935e9267"
+    }
+  ],
+  "render_policy": "Render in a temporary project copy and compare all seven committed documents byte-for-byte.",
+  "production_ci_policy": "A root validation workflow must fail closed for fork pull requests, consume only the repository-scoped read-only Governance deploy key through actions/checkout, checkout the pinned commit without retained credentials, and never expose that credential to project runtime; no production Secret, submodule or vendored copy is allowed."
+}

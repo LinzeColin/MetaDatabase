@@ -1,0 +1,6 @@
+{
+  "stage": "RMD-06 受保护验收准备",
+  "phase": "RMD-06 受保护验收准备",
+  "task": "T0702 入口仅本地就绪；先解决顺序与 protected prerequisites，不进入 M3",
+  "owner": "Codex 开发线程"
+}

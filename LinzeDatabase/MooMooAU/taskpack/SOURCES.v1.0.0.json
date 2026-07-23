@@ -1,0 +1,191 @@
+[
+  {
+    "id": "SRC-001",
+    "name": "GitHub Spec Kit",
+    "type": "public_project",
+    "url": "https://github.github.com/spec-kit/",
+    "use": "借鉴 Spec → Plan → Tasks → Implement、结构化模板、跨制品一致性检查；不引入其 CLI 作为运行时依赖。"
+  },
+  {
+    "id": "SRC-002",
+    "name": "BMAD Method",
+    "type": "public_project",
+    "url": "https://github.com/bmad-code-org/BMAD-METHOD",
+    "use": "借鉴 Working Backwards、PRD/PRFAQ、按复杂度自适应、测试架构和多角色互审；不复制多代理运行时。"
+  },
+  {
+    "id": "SRC-003",
+    "name": "Got Your Back (GYB)",
+    "type": "public_project",
+    "url": "https://github.com/GAM-team/got-your-back",
+    "use": "借鉴 Gmail API 全量/增量备份、RFC 邮件原件保留和恢复思路；拒绝本地持久化与本地 cron。"
+  },
+  {
+    "id": "SRC-004",
+    "name": "Paperless-ngx",
+    "type": "public_project",
+    "url": "https://github.com/paperless-ngx/paperless-ngx",
+    "use": "借鉴邮件规则、processed-mail 去重、未知类型隔离和文档生命周期；不部署常驻服务。"
+  },
+  {
+    "id": "SRC-005",
+    "name": "age",
+    "type": "public_project",
+    "url": "https://github.com/FiloSottile/age",
+    "use": "采用流式 X25519 Recipient 加密；运行时只需公开 Recipient，恢复身份不写入 Git。"
+  },
+  {
+    "id": "SRC-006",
+    "name": "SOPS",
+    "type": "public_project",
+    "url": "https://github.com/getsops/sops",
+    "use": "借鉴密钥轮换、云 KMS 与加密配置治理；本项目大对象仍直接使用 age，避免引入多余格式层。"
+  },
+  {
+    "id": "SRC-007",
+    "name": "OpenMetadata",
+    "type": "public_project",
+    "url": "https://github.com/open-metadata/OpenMetadata",
+    "use": "借鉴目录、所有权、质量和血缘模型；只实现无常驻服务的轻量公开 Inventory/Schema/Evidence。"
+  },
+  {
+    "id": "SRC-008",
+    "name": "DataHub",
+    "type": "public_project",
+    "url": "https://github.com/datahub-project/datahub",
+    "use": "借鉴数据产品、版本化 Schema 和跨项目消费契约；不部署数据库、搜索或消息中间件。"
+  },
+  {
+    "id": "SRC-009",
+    "name": "OpenLineage",
+    "type": "public_project",
+    "url": "https://github.com/OpenLineage/OpenLineage",
+    "use": "借鉴输入、运行、输出三元血缘模型和可重放 Run Event；实现精简私有 lineage manifest。"
+  },
+  {
+    "id": "SRC-010",
+    "name": "in-toto",
+    "type": "public_project",
+    "url": "https://github.com/in-toto/in-toto",
+    "use": "借鉴供应链步骤声明、材料/产物摘要和可验证证据；公开面只发布脱敏声明。"
+  },
+  {
+    "id": "SRC-011",
+    "name": "Pandera",
+    "type": "public_project",
+    "url": "https://github.com/unionai-oss/pandera",
+    "use": "借鉴 DataFrame/Parquet 字段、类型和统计约束；同时保留 JSON Schema 作为交换契约。"
+  },
+  {
+    "id": "SRC-012",
+    "name": "Gmail messages.list",
+    "type": "official_doc",
+    "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list",
+    "use": "使用 includeSpamTrash=true，分页遍历消息级候选。"
+  },
+  {
+    "id": "SRC-013",
+    "name": "Gmail message format RAW",
+    "type": "official_doc",
+    "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/Format",
+    "use": "Canonical Raw 使用完整 RFC 2822/RAW，而非仅附件。"
+  },
+  {
+    "id": "SRC-014",
+    "name": "Gmail sync guide",
+    "type": "official_doc",
+    "url": "https://developers.google.com/workspace/gmail/api/guides/sync",
+    "use": "增量 History 水位失效或 404 时执行 Full Reconciliation。"
+  },
+  {
+    "id": "SRC-015",
+    "name": "Gmail filters.list",
+    "type": "official_doc",
+    "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.settings.filters/list",
+    "use": "只读审计 Filters；不声称标准 API 可直接列出 Blocked Addresses。"
+  },
+  {
+    "id": "SRC-016",
+    "name": "Gmail messages.trash",
+    "type": "official_doc",
+    "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/trash",
+    "use": "M3 只允许精确消息级 Trash。"
+  },
+  {
+    "id": "SRC-017",
+    "name": "Gmail threads.trash",
+    "type": "official_doc",
+    "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/trash",
+    "use": "作为明确禁用接口；线程级会移动线程内所有消息。"
+  },
+  {
+    "id": "SRC-018",
+    "name": "Gmail messages.delete",
+    "type": "official_doc",
+    "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/delete",
+    "use": "作为明确禁用的不可逆接口。"
+  },
+  {
+    "id": "SRC-019",
+    "name": "GitHub Actions schedule",
+    "type": "official_doc",
+    "url": "https://docs.github.com/actions/reference/workflows-and-actions/events-that-trigger-workflows",
+    "use": "使用 IANA timezone 与 04:30 Australia/Sydney；保留 workflow_dispatch 和补偿对账。"
+  },
+  {
+    "id": "SRC-020",
+    "name": "GitHub App installation token",
+    "type": "official_doc",
+    "url": "https://docs.github.com/en/enterprise-cloud@latest/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app",
+    "use": "跨仓写入使用短时、仓库限定 Token，适应私有仓改名。"
+  },
+  {
+    "id": "SRC-021",
+    "name": "GitHub Release assets",
+    "type": "official_doc",
+    "url": "https://docs.github.com/en/rest/releases/assets",
+    "use": "固定 live Release 只保留一张 timeline-latest.png.age，避免 Git 历史污染。"
+  },
+  {
+    "id": "SRC-022",
+    "name": "GitHub repository limits",
+    "type": "official_doc",
+    "url": "https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits",
+    "use": "建立仓库/LFS 容量阈值与停止门，拒绝无界增长。"
+  },
+  {
+    "id": "SRC-023",
+    "name": "Codex Automations",
+    "type": "official_doc",
+    "url": "https://openai.com/academy/codex-automations/",
+    "use": "仅配置普通、被动、非关键的健康检查；不让 Auto 接触 Gmail、私有数据、Secret 或执行修复。"
+  },
+  {
+    "id": "SRC-024",
+    "name": "Moomoo statement manual",
+    "type": "official_doc",
+    "url": "https://www.moomoo.com/au/manual/topic-14-184",
+    "use": "确认 Statement 类型、下载入口与 PDF 密码规则；密码未知时 Raw 仍归档。"
+  },
+  {
+    "id": "SRC-025",
+    "name": "Moomoo Financial Year Summary",
+    "type": "official_doc",
+    "url": "https://www.moomoo.com/au/support/topic6_554",
+    "use": "作为报表分类和 Processed Schema 的参考，不设计 Portal 自动下载。"
+  },
+  {
+    "id": "SRC-026",
+    "name": "Moomoo ASX statements and contract notes",
+    "type": "official_doc",
+    "url": "https://www.moomoo.com/au/support/topic6_662",
+    "use": "覆盖 Daily/Monthly/Contract Note 生态分类，但只有邮件中实际存在的内容进入范围。"
+  },
+  {
+    "id": "SRC-027",
+    "name": "Moomoo AU support contact",
+    "type": "official_doc",
+    "url": "https://www.moomoo.com/au/support/topic6_394",
+    "use": "建立初始 verified sender 候选和人工证据源，不能单靠显示名或主题。"
+  }
+]

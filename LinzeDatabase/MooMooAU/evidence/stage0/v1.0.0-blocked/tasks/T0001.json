@@ -1,0 +1,30 @@
+{
+  "schema_version": "moomooau.stage0-evidence.v1",
+  "evidence_id": "S0-T0001-20260720",
+  "stage_id": "S0",
+  "task_id": "T0001",
+  "observed_at_utc": "2026-07-19T21:09:30Z",
+  "base_commit": "2f77723bf52f54e16f23958cc72e5bcfc3dcae71",
+  "source_package_version": "1.0.0",
+  "record_status": "VALID",
+  "delivery_status": "BLOCKED",
+  "checks": [
+    {
+      "id": "source-project-subtree-integrity",
+      "status": "PASS",
+      "evidence_ref": "taskpack/SOURCE_PROVENANCE.json"
+    },
+    {
+      "id": "frozen-contract-import",
+      "status": "PASS",
+      "evidence_ref": "machine/contracts/task_graph.json"
+    },
+    {
+      "id": "literal-linked-acceptance-gate",
+      "status": "BLOCKED",
+      "evidence_ref": "machine/contracts/stage0_semantic_gate.json"
+    }
+  ],
+  "blockers": ["S0G-001", "S0G-002", "S0G-005"],
+  "next_action": "Authorize a versioned baseline-preserving repair before changing frozen contracts or publishing this branch."
+}

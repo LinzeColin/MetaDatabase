@@ -1,0 +1,147 @@
+{
+  "acceptance_id": "AC-032",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "a16d0585e5af9379bfff9e287bf59a8a4460098d5c850bbaacb78eb90f537ff5",
+    "evidence_required": "evidence/acceptance/AC-032-chaos-recovery.json",
+    "pass_gate_text": "AC-032 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_032.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-032-RMD01-20260723",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0004.json",
+      "evidence_sha256": "d31f7364ee7b1bfd6cbaaa238db931e426e4fcab08b6ece915845d6f254e8416",
+      "final_claim_status": "NO_FINAL_CLAIM",
+      "reason": "The source task evidence has no final Acceptance claim.",
+      "source_record_status": "VALID",
+      "task_id": "T0004"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0406.json",
+      "evidence_sha256": "ffe31bf0e0294b14fb8866bcb0de82249f7cec2ddd6b16a0fe19067caa0b9114",
+      "final_claim_status": "PARTIAL",
+      "reason": "Stage 4 retry, version reuse, observation and CAS controls pass synthetically; the full cross-stage Chaos Matrix remains pending.",
+      "source_record_status": "PASS",
+      "task_id": "T0406"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0608.json",
+      "evidence_sha256": "4a61ecea54e9abf938b11e3a9036e2c96b50bfc37d4c01ddedb3727f4c32a2bd",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic error paths preserve truthful state and idempotent recovery; quarterly protected recovery drill remains not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0608"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0701.json",
+      "evidence_sha256": "a3490818ea02b780be3a0a9ee299d97fae0d1d10915eb46cd12332a3d8714c25",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic release rollback is bounded; real cloud rollback and recovery remain not run.",
+      "source_record_status": "READY",
+      "task_id": "T0701"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0705.json",
+      "evidence_sha256": "815534b2749b6678d1a897b042030495c15c667d15286e31cdbce0ddc59ec106",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic Raw, Processed, Timeline and Gmail checkpoint recovery plus idempotent backlog replay pass; no protected GA recovery or rollback is exercised.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0705"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0707.json",
+      "evidence_sha256": "ba28ba42b6955d75e55af2951a098f1c28f026aab9e1d384d68acf43dbad0d9e",
+      "final_claim_status": "PARTIAL",
+      "reason": "A nonce-bound, one-per-role, official-age streaming mechanism recovers synthetic Raw, Processed and Timeline into digest-only sinks and arms KILL-005 on mismatch, wrong identity or safety findings; no private-repository sample or protected rollback was exercised.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0707"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0708.json",
+      "evidence_sha256": "55a075085836243be67c3e2a4509246d4a29ba2989325ab6906bf95d7f6ef610",
+      "final_claim_status": "PARTIAL",
+      "reason": "Recovery readiness, active Kill state, capacity, Full Reconciliation, Timeline repair and exact rollback are deterministic gates and remediation instructions; no protected canary, rollback or recovery operation ran.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0708"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-032",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_032_pass_gate",
+    "path": "tests/acceptance/test_ac_032.py",
+    "sha256": "eb3bb1eeb3df7d09d9746a623a4b46479cf87d5f73fe2e6f1e52746711471dfc"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0004",
+      "T0406",
+      "T0608",
+      "T0701",
+      "T0705",
+      "T0707",
+      "T0708"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "fb0a45726d34a4f903bd0cbd5ea9861a3e10b3f1b3ab0e04b1d079e3ea579169"
+  }
+}

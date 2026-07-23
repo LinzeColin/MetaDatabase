@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Lineage v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_id",
+    "parser_name",
+    "parser_version",
+    "schema_version",
+    "imported_at_utc",
+    "key_epoch"
+  ],
+  "properties": {
+    "source_id": {"type": "string"},
+    "source_message_id_hmac": {"type": "string"},
+    "raw_ciphertext_digest": {"type": "string"},
+    "raw_plaintext_digest_private": {"type": "string"},
+    "attachment_object_ids": {"type": "array", "items": {"type": "string"}},
+    "parser_name": {"type": "string"},
+    "parser_version": {"type": "string"},
+    "schema_version": {"type": "string"},
+    "imported_at_utc": {"type": "string", "format": "date-time"},
+    "field_lineage": {"type": "object", "additionalProperties": true},
+    "key_epoch": {"type": "string"}
+  }
+}

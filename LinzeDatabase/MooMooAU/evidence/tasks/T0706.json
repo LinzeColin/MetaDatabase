@@ -1,0 +1,75 @@
+{
+  "schema_version": "moomooau.stage7-evidence.v1",
+  "evidence_id": "S7-T0706-LOCAL_PASSIVE_POLICY_20260722",
+  "stage_id": "S7",
+  "task_id": "T0706",
+  "stage_acceptance_id": "S7AC-006",
+  "observed_at_utc": "2026-07-22T03:22:51Z",
+  "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
+  "record_status": "BLOCKED",
+  "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {
+      "id": "passive_auto_exact_noncritical_authority",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0706.py::test_t0706_auto_contract_has_only_noncritical_public_issue_authority"
+    },
+    {
+      "id": "fresh_health_zero_action_stale_or_abnormal_single_issue",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0706.py::test_t0706_auto_is_passive_public_health_only_and_data_plane_independent"
+    },
+    {
+      "id": "nonlatest_path_and_invalid_freshness_fail_closed",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0706.py::test_t0706_auto_rejects_nonlatest_path_and_invalid_freshness_metadata"
+    },
+    {
+      "id": "frozen_setup_prompt_matches_executable_contract",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0706.py::test_t0706_frozen_setup_prompt_matches_the_executable_passive_contract"
+    }
+  ],
+  "linked_final_acceptance": [
+    {
+      "id": "AC-024",
+      "status": "PARTIAL",
+      "reason": "The local executable policy constrains one public inventory at the frozen latest path, a validated UTC public commit timestamp and 48-hour boundary, zero action when healthy, at most one moomooau-ops Issue instruction when stale or abnormal, and zero data-plane authority; no owner-created Automation, connector-source proof or external Issue update is observed."
+    }
+  ],
+  "production_oracles": [
+    {
+      "id": "OWNER_CREATED_PASSIVE_CODEX_AUTOMATION",
+      "status": "NOT_RUN",
+      "reason": "T0705 has not completed its protected GA oracle, so no Automation was created, modified, enabled or run and no connector or Issue authority was exercised."
+    }
+  ],
+  "blockers": [
+    "GA_NOT_COMPLETE",
+    "CODEX_AUTOMATION_NOT_CREATED"
+  ],
+  "prohibition_counters": {
+    "real_gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "real_secrets_read": 0,
+    "protected_key_deliveries": 0,
+    "external_writes": 0,
+    "remote_publication": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_mutations": 0,
+    "raw_before_verification": 0,
+    "untrusted_content_execution": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "thread_trash_calls": 0,
+    "permanent_delete_calls": 0,
+    "release_assets_above_one": 0,
+    "production_workflow_runs": 0
+  },
+  "next_action": "Keep the actual Automation absent until protected GA is complete; then the owner may create exactly one ordinary passive monitor matching the frozen prompt and must capture connector, freshness, no-action and single-Issue evidence without granting data-plane authority."
+}

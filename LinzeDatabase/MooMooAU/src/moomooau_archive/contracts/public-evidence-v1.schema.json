@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Public Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_status",
+    "freshness_bucket",
+    "count_bucket",
+    "code_version",
+    "parser_versions",
+    "opaque_evidence_root",
+    "gates"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "run_status": {"enum": ["HEALTHY", "DEGRADED", "UNHEALTHY"]},
+    "freshness_bucket": {"enum": ["LT_24H", "D1_TO_D7", "GT_7D", "UNKNOWN"]},
+    "count_bucket": {"enum": ["ZERO", "ONE_TO_NINE", "TEN_TO_NINETY_NINE", "HUNDRED_PLUS", "UNKNOWN"]},
+    "code_version": {"type": "string"},
+    "parser_versions": {"type": "array", "items": {"type": "string"}},
+    "opaque_evidence_root": {"type": "string", "pattern": "^[A-Za-z0-9_-]{16,}$"},
+    "gates": {
+      "type": "object",
+      "additionalProperties": {"enum": ["PASS", "FAIL", "DEGRADED", "NOT_RUN"]}
+    },
+    "failure_code": {"type": ["string", "null"]}
+  }
+}

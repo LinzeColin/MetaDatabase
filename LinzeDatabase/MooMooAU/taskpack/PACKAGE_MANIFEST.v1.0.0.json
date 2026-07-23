@@ -1,0 +1,417 @@
+{
+  "package_id": "MMAU-ARCHIVE-TP-2026-07-19-FINAL",
+  "product": "MooMooAU Archive",
+  "version": "1.0.0",
+  "generated_at_utc": "2026-07-19T00:00:00Z",
+  "status": "validated-final-taskpack",
+  "file_count_excluding_manifest": 81,
+  "files": [
+    {
+      "path": "00_READ_ME_FIRST.md",
+      "bytes": 3117,
+      "sha256": "7f237a6825805e8003ff3aa06c736c0315ca654efd3fdac0d28cc26b488483ab"
+    },
+    {
+      "path": "MooMooAU/AGENTS.md",
+      "bytes": 1102,
+      "sha256": "da0c80315d6a676deeaf6242c54bbbd982fac7d96f8ca3d0dcdd1bc953880534"
+    },
+    {
+      "path": "MooMooAU/README.md",
+      "bytes": 1186,
+      "sha256": "41cc1e3f6f6d05164ed95e189a3255896580baefdaa279960defb6640d0eb7c3"
+    },
+    {
+      "path": "MooMooAU/VERSION",
+      "bytes": 6,
+      "sha256": "59854984853104df5c353e2f681a15fc7924742f9a2e468c29af248dce45ce03"
+    },
+    {
+      "path": "MooMooAU/design/ARCHITECTURE.md",
+      "bytes": 5063,
+      "sha256": "345deabf165b9a5f27d38be461d5d5db014f33ffed8fb61ebaff5b1763f1704a"
+    },
+    {
+      "path": "MooMooAU/design/CODEX_AUTOMATION_SPEC.md",
+      "bytes": 1457,
+      "sha256": "3bd8dcc952a13c0eea3e8227df8e99932b3ceb626b4ee98b5b5d33a129ebe969"
+    },
+    {
+      "path": "MooMooAU/design/CODEX_GITHUB_RESPONSIBILITIES.md",
+      "bytes": 2226,
+      "sha256": "1e6d89e0b760bee556ac804ce549cc94ff9e42d2b0b244cbb2e1332515ac1349"
+    },
+    {
+      "path": "MooMooAU/design/DATA_MODEL.md",
+      "bytes": 2148,
+      "sha256": "7f34981dfd3c001389ed312df67c727b1de601c6ee1b315812fc4c81cfff3ef9"
+    },
+    {
+      "path": "MooMooAU/design/ENCRYPTION_AND_KEY_DELIVERY.md",
+      "bytes": 1901,
+      "sha256": "202bc27b95d4ea9ba0d436e65b81817cbe9d2df11e1726495247809d44aef3ae"
+    },
+    {
+      "path": "MooMooAU/design/GMAIL_CLASSIFICATION_AND_M3.md",
+      "bytes": 2571,
+      "sha256": "f9811de0e6f712f6d77924f2604e650277c11f9f1be2e9b8ae643f98b5ed23a8"
+    },
+    {
+      "path": "MooMooAU/design/REPOSITORY_LAYOUT.md",
+      "bytes": 1814,
+      "sha256": "1574d9029f4760291ff948d76e898999edec23d202a5a64988611050acd724e4"
+    },
+    {
+      "path": "MooMooAU/design/TIMELINE_PRODUCT.md",
+      "bytes": 2151,
+      "sha256": "d4a14a1b02e349237811623f853ed0e7c2f248fc6fdaa7a31e3cc7d937d6cc2e"
+    },
+    {
+      "path": "MooMooAU/evidence/README.md",
+      "bytes": 285,
+      "sha256": "2ab3cb9a833968ae7d20812285031d110f9088f79fed11e10cc89511b809ada7"
+    },
+    {
+      "path": "MooMooAU/implementation/CODEX_AUTO_SETUP.txt",
+      "bytes": 819,
+      "sha256": "d45d0130249c945794dfe2542d610343d4571a84dd11ddc1dd1ff261784c2966"
+    },
+    {
+      "path": "MooMooAU/implementation/DEPENDENCIES_AND_VERSIONS.md",
+      "bytes": 1448,
+      "sha256": "b6622969e0e48f3cb1ed1bfe4f80b7c20ff67f08ad604d9272cfa532007be51e"
+    },
+    {
+      "path": "MooMooAU/implementation/DEVELOPMENT_THREAD_PLAYBOOK.md",
+      "bytes": 3297,
+      "sha256": "09cb61c4bd09a96305d95d261e044d60204f776c36cef4da117d993975d3f264"
+    },
+    {
+      "path": "MooMooAU/implementation/GITHUB_ACTIONS_BLUEPRINTS.md",
+      "bytes": 2404,
+      "sha256": "390e08e5fd291301aacfa8bb4e2e55814342a155fe5127ad618d522814f580bc"
+    },
+    {
+      "path": "MooMooAU/implementation/ONE_TIME_SETUP.md",
+      "bytes": 1645,
+      "sha256": "976d6b3c6a8abdb237f05fcf4a10a9b69302322566fc01688a7b418fc4b9fea9"
+    },
+    {
+      "path": "MooMooAU/implementation/TASK_GRAPH.md",
+      "bytes": 35395,
+      "sha256": "c761a46f53919d5a278c1c3169bb287f21dd6c8405202a0a9875526db80cb196"
+    },
+    {
+      "path": "MooMooAU/inventory/README.md",
+      "bytes": 257,
+      "sha256": "9d1952b17b13701c17fd4ac64bb8ecaac601bbd36b084dcd2c5494de43c2607c"
+    },
+    {
+      "path": "MooMooAU/machine/contracts/acceptance_contract.json",
+      "bytes": 28168,
+      "sha256": "c194d99dc73d12828f1c02651068e387d169fd826f4c31a201489a4a6d41e624"
+    },
+    {
+      "path": "MooMooAU/machine/contracts/kill_criteria.json",
+      "bytes": 2291,
+      "sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc"
+    },
+    {
+      "path": "MooMooAU/machine/contracts/requirements.json",
+      "bytes": 15663,
+      "sha256": "ef2949e466937e3bd7c6e39167b65728c0ca22e9d938f5c972d78a8876966fe3"
+    },
+    {
+      "path": "MooMooAU/machine/contracts/risk_register.json",
+      "bytes": 4503,
+      "sha256": "5cc6ac53d2791400f6684a210586ce1880ce0494f45bd39787fab5a006290e5b"
+    },
+    {
+      "path": "MooMooAU/machine/contracts/task_graph.json",
+      "bytes": 90063,
+      "sha256": "859ba188defe9da008bd844c3117d720eb253a223ed89b344495bea7bd9e192c"
+    },
+    {
+      "path": "MooMooAU/machine/contracts/traceability_matrix.csv",
+      "bytes": 8168,
+      "sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2"
+    },
+    {
+      "path": "MooMooAU/machine/facts/canonical_facts.json",
+      "bytes": 3857,
+      "sha256": "eeeaae5329a5afe6c4c0f2827f588562ffc31f0005fcabf48b049d455022d052"
+    },
+    {
+      "path": "MooMooAU/machine/facts/metrics.json",
+      "bytes": 2734,
+      "sha256": "409a7af7ceb992653e222e15f8be9a6290031ae05e606251ea26977e6ed97a95"
+    },
+    {
+      "path": "MooMooAU/machine/tools/README.md",
+      "bytes": 305,
+      "sha256": "0aad3fe400ceaedd9cf43b3897bfef751e146bf6e236e243e8384ecf350007cb"
+    },
+    {
+      "path": "MooMooAU/prd/BASELINE_METRICS.md",
+      "bytes": 2739,
+      "sha256": "79d519f5b7904d9dcfdf75722a01876476b45e0033bb71318a55dad4975224fd"
+    },
+    {
+      "path": "MooMooAU/prd/COST_BENEFIT_AND_KILL.md",
+      "bytes": 4098,
+      "sha256": "a30316b976c0872af360fd613f7ee2a4c066db556a27f3a2049a82cd4f5e319c"
+    },
+    {
+      "path": "MooMooAU/prd/FINAL_BLIND_SPOT_REVIEW.md",
+      "bytes": 3274,
+      "sha256": "b9518de3add56a4e54967d0cd37395faaef0e311e437778b48404f185a6ebc61"
+    },
+    {
+      "path": "MooMooAU/prd/PRD.md",
+      "bytes": 12207,
+      "sha256": "998e983f423cb699c88acbc8232030571f7a19a5f0844be3701471bb7261006b"
+    },
+    {
+      "path": "MooMooAU/prd/PR_FAQ.md",
+      "bytes": 3706,
+      "sha256": "179cecf48704d29022dc788b0acde9fd88f6afaa66d95b1ed5bdcd965547fea3"
+    },
+    {
+      "path": "MooMooAU/release/FEATURE_FLAGS_AND_CANARY.md",
+      "bytes": 1305,
+      "sha256": "ca492b4dcf3acd4d49d17dd264e57c79c117bee1c91b1e4171356485ddc66b77"
+    },
+    {
+      "path": "MooMooAU/release/MIGRATION_AND_BOOTSTRAP.md",
+      "bytes": 1587,
+      "sha256": "f56ccb1a0934ae23b87fd87145eccc36daec6032b74d5a299ef58f336fbf3f98"
+    },
+    {
+      "path": "MooMooAU/release/ROLLBACK.md",
+      "bytes": 1210,
+      "sha256": "8db914a6372a412f6239b0311bb4652e27fadae2e32528cefa829e128157bf75"
+    },
+    {
+      "path": "MooMooAU/release/WORKING_BACKWARDS_RELEASE.md",
+      "bytes": 1406,
+      "sha256": "3c5d4a28cd294afc0619ec11567c232618e87d8acbd6f8cbf66c7a88e36972dc"
+    },
+    {
+      "path": "MooMooAU/research/BUILD_BUY_BORROW_DECISIONS.md",
+      "bytes": 1976,
+      "sha256": "372943c34b23251dd6de31602db669442358653385e288bae87eeb102ece2b93"
+    },
+    {
+      "path": "MooMooAU/research/PUBLIC_LANDSCAPE_RESEARCH.md",
+      "bytes": 8238,
+      "sha256": "e01de5a6150c04d47b5fec0e7aa7ed80e1730bd8d84cff147b1dcc8d70179034"
+    },
+    {
+      "path": "MooMooAU/research/SOURCES.md",
+      "bytes": 6577,
+      "sha256": "728ee64e9be6f929c3b6927b802e791e118ceffb654905a1544a66d6d7198220"
+    },
+    {
+      "path": "MooMooAU/schemas/document-class-v1.schema.json",
+      "bytes": 536,
+      "sha256": "a099544c761b999b7bcafbf6ac5f5ff813dc9f3939edc93d28bf606c61bb3f8f"
+    },
+    {
+      "path": "MooMooAU/schemas/lineage-v1.schema.json",
+      "bytes": 1045,
+      "sha256": "451e31aa9bab01597b865cb74eb120e1d1691cacb0cc5dd4e3880ea11e61c2ca"
+    },
+    {
+      "path": "MooMooAU/schemas/message-envelope-v1.schema.json",
+      "bytes": 1670,
+      "sha256": "08d4c162b5237437d27cb0053ae3d02e3f39d168cd0a2638ab169ad9037489ba"
+    },
+    {
+      "path": "MooMooAU/schemas/public-evidence-v1.schema.json",
+      "bytes": 1363,
+      "sha256": "55bdf2e37aa8cb7e4421c2c523c44a9c0a8ee5ae62b271d3efa83a3eacb752cb"
+    },
+    {
+      "path": "MooMooAU/schemas/statement-v1.schema.json",
+      "bytes": 1200,
+      "sha256": "0afa3fa5fc0be30556cf65ecdbd3c15ebc9a6a13a53435dc71a5cb0c4b7eb5fe"
+    },
+    {
+      "path": "MooMooAU/schemas/timeline-event-v1.schema.json",
+      "bytes": 1618,
+      "sha256": "1e82d8a6469ad541f3f25656a883a30f6cd479de1e24437df1cf50346af7ba3c"
+    },
+    {
+      "path": "MooMooAU/security/PRIVACY_MODEL.md",
+      "bytes": 1828,
+      "sha256": "ee4c19502883ffb7a215976cb66c030f449744358d5c9ffec11901160be87033"
+    },
+    {
+      "path": "MooMooAU/security/SECURITY_ASSURANCE.md",
+      "bytes": 2236,
+      "sha256": "ca482803ce0cb1d38737e1a8db7ca7c6ab28d55c600f5a71fb7431be97ad74e9"
+    },
+    {
+      "path": "MooMooAU/security/SUPPLY_CHAIN.md",
+      "bytes": 1225,
+      "sha256": "f42b60636eb0cfee9b7f200d7da04e66fcc3b9a4948b2ae12cfecc1c85c198e3"
+    },
+    {
+      "path": "MooMooAU/security/THREAT_MODEL.md",
+      "bytes": 3237,
+      "sha256": "a3de1cd061bcede198b5b6c962149f199606dc728c171dd29d8fa7b9fad527b9"
+    },
+    {
+      "path": "MooMooAU/testing/CHAOS_AND_RECOVERY.md",
+      "bytes": 2360,
+      "sha256": "efd0c7a2f4ec679c589bb2b55bd3442542b97a79fbc92daca26d0af2656f3c27"
+    },
+    {
+      "path": "MooMooAU/testing/LOAD_AND_LIMITS.md",
+      "bytes": 1300,
+      "sha256": "40c308772895c43204d4457d851f3f9a3a422954d26cd1bf92a5901479a08e9f"
+    },
+    {
+      "path": "MooMooAU/testing/MODEL_EVALS_AND_SYSTEM_CARD.md",
+      "bytes": 2232,
+      "sha256": "17036f8c847d7fdaf4e46ef66d3c0c4434fd50f0e00c07fd732229b13a88a1ec"
+    },
+    {
+      "path": "MooMooAU/testing/ORACLE_CATALOG.md",
+      "bytes": 11944,
+      "sha256": "b743c86ca0d710067ecb9437179f7c633b0b01f82de429794e0b24aa5e4d12ce"
+    },
+    {
+      "path": "MooMooAU/testing/TEST_STRATEGY.md",
+      "bytes": 2023,
+      "sha256": "73152b6e29705568d5cdb82f27bfcb39381eeee5d371e65bc738fd83bd79ed5f"
+    },
+    {
+      "path": "MooMooAU/文档/00_我在哪.md",
+      "bytes": 1550,
+      "sha256": "618ff2289ce908adde369d0f50b3b6b509289f6f95d41ab964101ae871e29127"
+    },
+    {
+      "path": "MooMooAU/文档/01_产品需求.md",
+      "bytes": 3825,
+      "sha256": "48595e215cfd4b1a5e90c4391dcc2c71e668a44b417667bb6c3d6308fec401b8"
+    },
+    {
+      "path": "MooMooAU/文档/02_系统架构.md",
+      "bytes": 1382,
+      "sha256": "21f147f69fb3878a48868044c7d1f96736fc1b3c577228cec22446deb2f54fc7"
+    },
+    {
+      "path": "MooMooAU/文档/03_口径字典.md",
+      "bytes": 1626,
+      "sha256": "1cf76d7ea0490a2b6b444adbc1988e43eb5b2b3f50a3636548b48b6c702b38df"
+    },
+    {
+      "path": "MooMooAU/文档/04_操作流程.md",
+      "bytes": 1512,
+      "sha256": "21ff9a58c26ebd74d20a01079c030bdc761395be025ebe401a571b1b1148f359"
+    },
+    {
+      "path": "MooMooAU/文档/05_执行与验收.md",
+      "bytes": 7352,
+      "sha256": "3fe4b1902092cd17b177ead4b277d544700a8cf4af81552ce14897f19552f6bd"
+    },
+    {
+      "path": "MooMooAU/文档/06_运维手册.md",
+      "bytes": 1461,
+      "sha256": "fcb20c45303ed1237aec7a710b5957e4412b39e434fb856cb864f709486f6efb"
+    },
+    {
+      "path": "PURSUING_GOAL.txt",
+      "bytes": 557,
+      "sha256": "fcb3a5573fd0b2cd5c91a7bebcd5f21c8234eb0bba4c741e5bdb183236c40a1a"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/README.md",
+      "bytes": 771,
+      "sha256": "aa59ad8bbed5fe43b1711e7482739d764535544d8bf31f62aacf0f6ad9882574"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/SKILL.md",
+      "bytes": 7902,
+      "sha256": "1023926edfd999dc08b8752b5692ff65473f0bfe760f6c130ade2232e05f44cb"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/schemas/acceptance.schema.json",
+      "bytes": 1100,
+      "sha256": "533cb467902bce99f8daa1c928ca5d13117b875361656017475f3dd1fbd9390f"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/schemas/requirement.schema.json",
+      "bytes": 952,
+      "sha256": "89887bae78e16c40022320803684423d950d7d54e14bb8e227ae320fd37ce7bd"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/schemas/task.schema.json",
+      "bytes": 1811,
+      "sha256": "196c2546dce7506252a84f8b223707b59f6d8a659ff0c6f827b05176ffaec9e6"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/templates/acceptance.template.json",
+      "bytes": 214,
+      "sha256": "44d823528c9833fbc62c8b73b7f97b08bf14a26ce1ae4eb35ae732090bc658c0"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/templates/canonical_facts.template.json",
+      "bytes": 385,
+      "sha256": "06b92d7925b6a000e666a9a431f7f8186263c4ea214c9afb4d62db018694ebbc"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/templates/final_response.template.txt",
+      "bytes": 127,
+      "sha256": "f89d266000ab96032ed1e0bffee83f7c1cc04b1706a4dcc4356247a3b026ce92"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/templates/requirement.template.json",
+      "bytes": 161,
+      "sha256": "8778ad1e003b18d8e9be5f0a8557dca39ca667ffca14971133a892c6fd8c3cc5"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/templates/task.template.json",
+      "bytes": 330,
+      "sha256": "8f8a6518433ddb61160808ce492db8c37c320eb93bc6bfa28d46b2acb8a766e4"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/templates/traceability.template.csv",
+      "bytes": 89,
+      "sha256": "6eb3cff9e7ed5657890d71c6c7009ecc1f6fc6d439d117d3da7e8432fe6b6147"
+    },
+    {
+      "path": "Product-Design-Taskpack-Skill/validators/validate_taskpack.py",
+      "bytes": 6448,
+      "sha256": "2aa4129d1ca40f082d0318808d17706a47430f16b4236cf6fdf3170f2dfff507"
+    },
+    {
+      "path": "ROADMAP.md",
+      "bytes": 6305,
+      "sha256": "36dc9546a77fdaa09bd7db19a6d53e02668505e85224bf79d33245fbd7cfaf71"
+    },
+    {
+      "path": "VERSION",
+      "bytes": 6,
+      "sha256": "59854984853104df5c353e2f681a15fc7924742f9a2e468c29af248dce45ce03"
+    },
+    {
+      "path": "checks/validate_package.py",
+      "bytes": 6448,
+      "sha256": "2aa4129d1ca40f082d0318808d17706a47430f16b4236cf6fdf3170f2dfff507"
+    },
+    {
+      "path": "evidence/validation_report.json",
+      "bytes": 101947,
+      "sha256": "e85db0c6f8ad9f3cc7df2d662fedeb411e3cf864e6163b36396ff5225fd2ac6a"
+    },
+    {
+      "path": "research/sources.json",
+      "bytes": 7396,
+      "sha256": "00753ae989bddabaec138457712888a3b69ddaa3de32525b14702991d21994c0"
+    }
+  ],
+  "validation_report": "evidence/validation_report.json",
+  "pursuing_goal": "Build MooMooAU Archive as a zero-collateral, cloud-only deterministic system that at 04:30 Australia/Sydney archives every deterministically verified inbound Moomoo-related Gmail message into the single private GitHub database with age-encrypted Raw and Processed data, replaces exactly one encrypted latest timeline, moves only that verified source message to Trash after remote recovery verification, and remains fully maintainable through the Codex development thread without local persistence, special Codex Automation behavior, or manual routine work."
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": "moomooau.stage6-evidence.v2",
+  "evidence_id": "S6-T0606-LOCAL-20260720",
+  "stage_id": "S6",
+  "task_id": "T0606",
+  "stage_acceptance_id": "S6AC-006",
+  "observed_at_utc": "2026-07-20T04:50:06Z",
+  "baseline_commit": "2b8625a83e69093b9dce989f4eb964556e1b5fa2",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {
+      "id": "two_distinct_model_families",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0606.py::test_t0606_two_distinct_model_families_independently_pass_after_remediation"
+    },
+    {
+      "id": "all_review_dimensions_pass",
+      "status": "PASS",
+      "evidence_ref": "machine/stages/S6/reviews/gpt-5.6-sol.json and machine/stages/S6/reviews/gpt-5.6-terra.json"
+    },
+    {
+      "id": "all_findings_resolved",
+      "status": "PASS",
+      "evidence_ref": "machine/stages/S6/reviews"
+    },
+    {
+      "id": "model_assurance_workflow_closure",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0606.py::test_t0606_model_assurance_workflow_closes_review_command_paths"
+    }
+  ],
+  "linked_final_acceptance": [
+    {
+      "id": "AC-033",
+      "status": "PARTIAL",
+      "reason": "Two actual read-only reviewers from distinct model families independently returned conditional pass after remediation; remote post-deployment review remains not run."
+    }
+  ],
+  "production_oracles": [
+    {
+      "id": "POST_DEPLOYMENT_INDEPENDENT_REVIEW",
+      "status": "NOT_RUN",
+      "reason": "Stage 6 is local-only and has no deployment or production observation to review."
+    }
+  ],
+  "prohibition_counters": {
+    "real_gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "real_secrets_read": 0,
+    "protected_key_deliveries": 0,
+    "external_writes": 0,
+    "remote_publication": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_mutations": 0,
+    "raw_before_verification": 0,
+    "untrusted_content_execution": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "thread_trash_calls": 0,
+    "permanent_delete_calls": 0,
+    "release_assets_above_one": 0,
+    "production_workflow_runs": 0
+  },
+  "next_action": "Preserve the original conditional verdicts and require a fresh overall review after Stage 7 as specified by the roadmap.",
+  "candidate_commit": "dc8f7be36f45d3368cb2a6931fdb6cdcdf1fefc1",
+  "candidate_tree": "673132302ed909d8c02e856fdb19887b20c3f447",
+  "execution_binding": {
+    "path": "machine/stages/S6/reviews/rmd05/execution-receipt17.json",
+    "sha256": "6e8fd35c8d5d3dac2d1320713d3b17d32fa9c285e2bc77146565fef4e44beef0",
+    "command_ids": [
+      "assurance-history",
+      "delivery-status-validation",
+      "governance-facts-check",
+      "stage6-task-tests",
+      "stage6-validation"
+    ]
+  }
+}

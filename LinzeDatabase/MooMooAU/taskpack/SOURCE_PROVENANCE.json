@@ -1,0 +1,68 @@
+{
+  "schema_version": "moomooau.source-provenance.v2",
+  "source_package": {
+    "package_id": "MMAU-ARCHIVE-TP-2026-07-19-FINAL",
+    "version": "1.0.0",
+    "archive_sha256": "c827b672388e4c2688c17f5cae9e7f73d578d8c73444e680ef6f177f24b80563",
+    "zip_integrity": "PASS",
+    "files_excluding_manifest": 81,
+    "manifest_entries_verified_before_import": 81,
+    "project_entries_verified_at_import": 62,
+    "local_import_commit": "67a324a95cb66e7a4e8b6081625300ae68fa6327",
+    "local_import_commit_publication_allowed": false
+  },
+  "independent_roadmap": {
+    "sha256": "36dc9546a77fdaa09bd7db19a6d53e02668505e85224bf79d33245fbd7cfaf71",
+    "matches_packaged_roadmap_byte_for_byte": true
+  },
+  "retained_source_artifacts": [
+    {
+      "path": "taskpack/PACKAGE_MANIFEST.v1.0.0.json",
+      "bytes": 14989,
+      "sha256": "7783ea58ed37ec7829cb91e96f40fc484904a6f4eb4f0d0802040839e2add643"
+    },
+    {
+      "path": "taskpack/ROADMAP.v1.0.0.md",
+      "bytes": 6305,
+      "sha256": "36dc9546a77fdaa09bd7db19a6d53e02668505e85224bf79d33245fbd7cfaf71"
+    },
+    {
+      "path": "taskpack/PURSUING_GOAL.v1.0.0.txt",
+      "bytes": 557,
+      "sha256": "fcb3a5573fd0b2cd5c91a7bebcd5f21c8234eb0bba4c741e5bdb183236c40a1a"
+    },
+    {
+      "path": "taskpack/SOURCES.v1.0.0.json",
+      "bytes": 7396,
+      "sha256": "00753ae989bddabaec138457712888a3b69ddaa3de32525b14702991d21994c0"
+    }
+  ],
+  "withheld_source_artifacts": [
+    {
+      "reason": "conflicts with public locator policy",
+      "bytes": 3117,
+      "sha256": "7f237a6825805e8003ff3aa06c736c0315ca654efd3fdac0d28cc26b488483ab"
+    },
+    {
+      "reason": "self-generated report is redundant and invalidated by its own validator",
+      "bytes": 101947,
+      "sha256": "e85db0c6f8ad9f3cc7df2d662fedeb411e3cf864e6163b36396ff5225fd2ac6a"
+    }
+  ],
+  "source_validator_reproduction": {
+    "isolated_temporary_copy": true,
+    "reported_status": "PASS",
+    "reported_checks": 807,
+    "reported_failures": 0,
+    "validation_report_before_sha256": "e85db0c6f8ad9f3cc7df2d662fedeb411e3cf864e6163b36396ff5225fd2ac6a",
+    "validation_report_after_sha256": "16b7ac32d54872944b08e4cdf3da97abc5a37f839b709c0bfd28e70a345f7eb0",
+    "manifest_preservation": "FAIL",
+    "finding": "The source validator rewrites its own declared evidence file and does not validate package hashes."
+  },
+  "effective_package": {
+    "package_id": "MMAU-ARCHIVE-TP-2026-07-20-V1.0.1",
+    "version": "1.0.1",
+    "authorization": "Owner option 1: baseline-preserving repair",
+    "manifest": "taskpack/PACKAGE_MANIFEST.v1.0.1.json"
+  }
+}

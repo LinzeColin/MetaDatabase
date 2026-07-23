@@ -1,0 +1,111 @@
+{
+  "acceptance_id": "AC-002",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "151526ec1deae6b61efba5a9ccb7f7ec1721dc0cda7a004c99598a5b6b95f627",
+    "evidence_required": "evidence/acceptance/AC-002-all-types.json",
+    "pass_gate_text": "AC-002 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_002.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-002-RMD01-20260723",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0401.json",
+      "evidence_sha256": "e6a3586b1ae8c0fbb89123ea8e147d8d059cbb3f7a154fb0055bc93e8125f9e3",
+      "final_claim_status": "PARTIAL",
+      "reason": "All 18 frozen classes and VERIFIED_UNKNOWN retention pass with verified synthetic fixtures; authoritative real templates, production coverage and post-recovery Trash are not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0401"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0502.json",
+      "evidence_sha256": "97662bac1bc0791af7b0e514e16cf2202868a7667bcdb647220dc9b710554429",
+      "final_claim_status": "PARTIAL",
+      "reason": "Exact verified source identity is preserved synthetically; real Moomoo message coverage and mutation are not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0502"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0705.json",
+      "evidence_sha256": "815534b2749b6678d1a897b042030495c15c667d15286e31cdbce0ddc59ec106",
+      "final_claim_status": "PARTIAL",
+      "reason": "The dependency-injected local GA mechanism processes only deterministically verified synthetic candidates; real coverage of every protected document class is not run.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0705"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-002",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_002_pass_gate",
+    "path": "tests/acceptance/test_ac_002.py",
+    "sha256": "68f9a0d2eb2083a358f7947711eb6d28229aed1db6ec43312f5c9c9daf02c845"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0401",
+      "T0502",
+      "T0705"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "68795f66cde946dfa5781749931b6d649e56c58f930744a3ad321bce21ffc449"
+  }
+}

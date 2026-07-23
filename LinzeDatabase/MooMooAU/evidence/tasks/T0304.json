@@ -1,0 +1,30 @@
+{
+  "schema_version": "moomooau.stage3-evidence.v1",
+  "evidence_id": "S3-T0304-LOCAL-20260720",
+  "stage_id": "S3",
+  "task_id": "T0304",
+  "stage_acceptance_id": "S3AC-004",
+  "observed_at_utc": "2026-07-20T01:07:05Z",
+  "baseline_commit": "19167f94ed82cc44ff92ee9c46d3e606612fbd27",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "independent_pre_raw_and_pre_m3", "status": "PASS", "evidence_ref": "tests/tasks/test_t0304.py"},
+    {"id": "double_verification_same_message_identity", "status": "PASS", "evidence_ref": "tests/tasks/test_t0304.py"},
+    {"id": "exact_authentication_alignment", "status": "PASS", "evidence_ref": "src/moomooau_archive/sender_registry.py"},
+    {"id": "spoof_and_registry_drift_fail_closed", "status": "PASS", "evidence_ref": "tests/tasks/test_t0304.py"},
+    {"id": "unrelated_permits_zero_of_1000", "status": "PASS", "evidence_ref": "tests/tasks/test_t0304.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-001", "status": "PARTIAL", "reason": "One thousand unrelated synthetic metadata records obtain zero RAW permits; the full production archive/mutation flow is not run."},
+    {"id": "AC-004", "status": "PARTIAL", "reason": "Double verification and synthetic spoof controls pass; protected real fixtures remain unavailable."},
+    {"id": "AC-005", "status": "PARTIAL", "reason": "Unknown synthetic candidates remain metadata-only; real registry backfill is not run."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_TEMPLATE_DOUBLE_VERIFICATION", "status": "NOT_RUN", "reason": "No private message template or verified production sender was read."},
+    {"id": "ZERO_COLLATERAL_END_TO_END", "status": "NOT_RUN", "reason": "No real Gmail or mutation authority was used."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0},
+  "next_action": "Require the same registry digest, verifier version and decision again before any later M3 implementation can proceed."
+}

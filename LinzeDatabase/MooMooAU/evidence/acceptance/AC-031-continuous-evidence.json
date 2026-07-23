@@ -1,0 +1,166 @@
+{
+  "acceptance_id": "AC-031",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_NOT_RUN",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "1dc80f2697b0509ed9faea83fe99a4b0d98d8c4677aa1198d4b24fbd9a73e269",
+    "evidence_required": "evidence/acceptance/AC-031-continuous-evidence.json",
+    "pass_gate_text": "AC-031 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_031.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-031-RMD01-20260723",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0003.json",
+      "evidence_sha256": "8c6de3bd1770c06b931ddba4e6c854f1a3e606f47306d595f40ced3ffa584947",
+      "final_claim_status": "NO_FINAL_CLAIM",
+      "reason": "The source task evidence has no final Acceptance claim.",
+      "source_record_status": "VALID",
+      "task_id": "T0003"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0004.json",
+      "evidence_sha256": "d31f7364ee7b1bfd6cbaaa238db931e426e4fcab08b6ece915845d6f254e8416",
+      "final_claim_status": "NO_FINAL_CLAIM",
+      "reason": "The source task evidence has no final Acceptance claim.",
+      "source_record_status": "VALID",
+      "task_id": "T0004"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0006.json",
+      "evidence_sha256": "bec51c3d169f810b46d0b423921081aed098160bf08980ad165f35b1b0e0240b",
+      "final_claim_status": "NO_FINAL_CLAIM",
+      "reason": "The source task evidence has no final Acceptance claim.",
+      "source_record_status": "VALID",
+      "task_id": "T0006"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0104.json",
+      "evidence_sha256": "4cfa3c4c601e3e391eef5cc07ee127850e7ec24649cd5ed7d5b32eb8a9b847d7",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic public evidence is schema-valid and redacted; production diagnosis remains unrun.",
+      "source_record_status": "PASS",
+      "task_id": "T0104"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0105.json",
+      "evidence_sha256": "cb8fb079b9015688610e7ff27a375d5d1edfc120e30de25710bfd43452656f03",
+      "final_claim_status": "PARTIAL",
+      "reason": "Evidence fields are constrained; production diagnostic coverage remains unrun.",
+      "source_record_status": "PASS",
+      "task_id": "T0105"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0407.json",
+      "evidence_sha256": "ef98e4f167d2379c8785a34110e34e1ea36b0fe39783956e02a49a98cde7696f",
+      "final_claim_status": "PARTIAL",
+      "reason": "All frozen diagnostic state/action categories are representable without private details; continuous production evidence publication is not deployed.",
+      "source_record_status": "PASS",
+      "task_id": "T0407"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0607.json",
+      "evidence_sha256": "b6d8a15f645cf584e5c1dffa6f60593a337a7b6009b66dc596f08381f97e2329",
+      "final_claim_status": "PARTIAL",
+      "reason": "Green, Yellow, Red and Unknown capacity states gate callable operations and ten-year partitions synthetically; provisioned capacity remains unknown.",
+      "source_record_status": "PASS",
+      "task_id": "T0607"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0705.json",
+      "evidence_sha256": "815534b2749b6678d1a897b042030495c15c667d15286e31cdbce0ddc59ec106",
+      "final_claim_status": "NOT_RUN",
+      "reason": "Only an aggregate-safe local run result is produced; no real continuous public health evidence is published.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0705"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0708.json",
+      "evidence_sha256": "55a075085836243be67c3e2a4509246d4a29ba2989325ab6906bf95d7f6ef610",
+      "final_claim_status": "PARTIAL",
+      "reason": "The decision is aggregate-only, redacts changed paths behind an opaque root and fixes every external effect to zero; no production patch evidence or fresh public operations inventory exists.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0708"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-031",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_031_pass_gate",
+    "path": "tests/acceptance/test_ac_031.py",
+    "sha256": "a12104f241689971b53a59b6bedfe6343c1fbcccc9153caf45a058c85b63bf47"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0003",
+      "T0004",
+      "T0006",
+      "T0104",
+      "T0105",
+      "T0407",
+      "T0607",
+      "T0705",
+      "T0708"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "b81c7846df1572640bd41fcd2e24fbe3bff9ae389eeb97f18ab1becdbee9b690"
+  }
+}

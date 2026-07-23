@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.invalid/moomooau/stage5/timeline-event-complete-v1.schema.json",
+  "title": "MooMooAU Stage 5 complete private Timeline Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_id",
+    "document_class",
+    "statement_label_date",
+    "email_internal_date_utc",
+    "email_received_at_sydney",
+    "date_header_observed",
+    "calendar_lag_days",
+    "elapsed_hours",
+    "us_market_session_lag",
+    "lag_reason_code",
+    "label_state_at_discovery",
+    "expectation_state",
+    "expectation_reason_code",
+    "m3_state",
+    "parser_state"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "source_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "document_class": {"type": "string", "minLength": 1},
+    "statement_label_date": {"type": ["string", "null"], "format": "date"},
+    "email_internal_date_utc": {"type": "string", "format": "date-time", "pattern": "Z$"},
+    "email_received_at_sydney": {"type": "string", "format": "date-time"},
+    "date_header_observed": {"type": ["string", "null"]},
+    "calendar_lag_days": {"type": ["integer", "null"]},
+    "elapsed_hours": {"type": ["number", "null"]},
+    "us_market_session_lag": {"type": ["integer", "null"]},
+    "lag_reason_code": {"type": ["string", "null"]},
+    "label_state_at_discovery": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,256}$"},
+      "uniqueItems": true
+    },
+    "expectation_state": {
+      "enum": ["EXPECTED", "NOT_EXPECTED", "NOT_OBSERVED", "MISSING", "UNKNOWN"]
+    },
+    "expectation_reason_code": {"type": "string", "minLength": 1},
+    "m3_state": {
+      "enum": ["NOT_ELIGIBLE", "ELIGIBLE", "TRASHED", "ALREADY_TRASHED", "FAILED", "UNKNOWN"]
+    },
+    "parser_state": {
+      "enum": ["COMPLETE", "WAITING_FOR_PDF_PASSWORD", "UNSUPPORTED", "QUARANTINED", "RAW_ONLY"]
+    }
+  }
+}

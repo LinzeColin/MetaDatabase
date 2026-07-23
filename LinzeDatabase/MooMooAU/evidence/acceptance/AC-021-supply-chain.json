@@ -1,0 +1,129 @@
+{
+  "acceptance_id": "AC-021",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "2edcca91034eb2ffd6d1fa39964388c300e3699d65c255c7900c61e26f520114",
+    "evidence_required": "evidence/acceptance/AC-021-supply-chain.json",
+    "pass_gate_text": "AC-021 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_021.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-021-RMD01-20260723",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0107.json",
+      "evidence_sha256": "8b1fd8ab818a707830f4d3ed3b2262475c7ffa4631cf554d93f9c8426a35f6af",
+      "final_claim_status": "PARTIAL",
+      "reason": "Direct pins and immutable Action SHAs exist; transitive hashes, SBOM and vulnerability acceptance belong to Stage 2.",
+      "source_record_status": "PASS",
+      "task_id": "T0107"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0207.json",
+      "evidence_sha256": "0513146158c83f4c13c0c6dac172ad921ad133ad47add92ba4b96bff56518e94",
+      "final_claim_status": "PARTIAL",
+      "reason": "Local lock, SBOM, pin, vulnerability and secret gates pass; candidate-branch CI does not replace the final clean-snapshot CodeQL/dependency-review Oracle.",
+      "source_record_status": "PASS",
+      "task_id": "T0207"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0604.json",
+      "evidence_sha256": "85c0da18fcbc04fb3b891f38cfb6f32b0fe7ae728e8ce4cb874afb466cb21223",
+      "final_claim_status": "PARTIAL",
+      "reason": "Arena-owned buffers are cleared on cooperative exits and no filesystem API is exposed; hard-kill RAM erasure is not claimed.",
+      "source_record_status": "PASS",
+      "task_id": "T0604"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0701.json",
+      "evidence_sha256": "a3490818ea02b780be3a0a9ee299d97fae0d1d10915eb46cd12332a3d8714c25",
+      "final_claim_status": "PARTIAL",
+      "reason": "Local immutable controls exist; protected environment and live credentials were not exercised.",
+      "source_record_status": "READY",
+      "task_id": "T0701"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0708.json",
+      "evidence_sha256": "55a075085836243be67c3e2a4509246d4a29ba2989325ab6906bf95d7f6ef610",
+      "final_claim_status": "PARTIAL",
+      "reason": "The local policy requires verified candidate and rollback commits, immutable pins, hash lock, reproducible SBOM/build, provenance, full tests, dependency audit, zero High/Critical and Secret findings, frozen baseline and synthetic recovery; no protected candidate or external check provenance was observed.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0708"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-021",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_021_pass_gate",
+    "path": "tests/acceptance/test_ac_021.py",
+    "sha256": "582abf27c8c22f9060ca4bf76ac74ca08b6e9a027e7aa86b9a3879b4d0620254"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0107",
+      "T0207",
+      "T0604",
+      "T0701",
+      "T0708"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "9b7c13773da2a4ce1748e9dedb52ac26281778f81718c61c669a0a036b85c0b8"
+  }
+}

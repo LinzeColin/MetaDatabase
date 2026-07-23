@@ -1,0 +1,29 @@
+{
+  "schema_version": "moomooau.stage5-evidence.v1",
+  "evidence_id": "S5-T0506-LOCAL-20260720",
+  "stage_id": "S5",
+  "task_id": "T0506",
+  "stage_acceptance_id": "S5AC-006",
+  "observed_at_utc": "2026-07-20T03:21:33Z",
+  "baseline_commit": "9394585329a52c4d269da220bd66ce8ec9b820b3",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "fixed_live_tag_and_single_asset_name", "status": "PASS", "evidence_ref": "tests/tasks/test_t0506.py"},
+    {"id": "same_snapshot_no_redraw_or_mutation", "status": "PASS", "evidence_ref": "TimelinePublisher"},
+    {"id": "serial_delete_upload_max_one", "status": "PASS", "evidence_ref": "tests/tasks/test_t0506.py"},
+    {"id": "uncertain_or_corrupt_upload_has_no_stranded_asset", "status": "PASS", "evidence_ref": "tests/tasks/test_t0506.py"},
+    {"id": "encrypted_repair_replays_before_newer", "status": "PASS", "evidence_ref": "tests/tasks/test_t0506.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-011", "status": "PARTIAL", "reason": "Fixed one-asset protocol and encrypted state pass in memory; no real Release asset was mutated."},
+    {"id": "AC-022", "status": "PARTIAL", "reason": "Zero-asset repair state and replay order pass synthetic failures; remote recovery is not run."},
+    {"id": "AC-028", "status": "PARTIAL", "reason": "Unchanged snapshots are idempotent and encrypted candidates are deterministic; live remote replacement is not run."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_LIVE_RELEASE_REPLACEMENT", "status": "NOT_RUN", "reason": "No private GitHub Release, asset, Contents state or production age identity was accessed."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
+  "next_action": "Exercise zero/one-asset and delete-upload repair branches only in an authorized protected Stage 6 canary."
+}

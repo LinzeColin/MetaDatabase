@@ -1,0 +1,25 @@
+{
+  "schema_version": "moomooau.stage0-evidence.v1",
+  "evidence_id": "S0-T0007-20260720",
+  "stage_id": "S0",
+  "task_id": "T0007",
+  "observed_at_utc": "2026-07-19T21:09:30Z",
+  "base_commit": "2f77723bf52f54e16f23958cc72e5bcfc3dcae71",
+  "source_package_version": "1.0.0",
+  "record_status": "VALID",
+  "delivery_status": "BLOCKED",
+  "checks": [
+    {
+      "id": "one-time-setup-checklist",
+      "status": "PASS",
+      "evidence_ref": "implementation/ONE_TIME_SETUP.md"
+    },
+    {
+      "id": "protected-deployment-oracles",
+      "status": "NOT_RUN",
+      "evidence_ref": "machine/contracts/acceptance_contract.json"
+    }
+  ],
+  "blockers": ["S0G-001"],
+  "next_action": "Keep deployment actions unexecuted and repair the stage-local gate before later protected-environment work."
+}

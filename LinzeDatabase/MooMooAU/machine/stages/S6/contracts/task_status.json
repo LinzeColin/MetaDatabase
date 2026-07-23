@@ -1,0 +1,17 @@
+{
+  "schema_version": "moomooau.stage-task-status.v1",
+  "stage_id": "S6",
+  "baseline_commit": "2b8625a83e69093b9dce989f4eb964556e1b5fa2",
+  "tasks": [
+    {"id": "T0601", "status": "completed"},
+    {"id": "T0602", "status": "completed"},
+    {"id": "T0603", "status": "completed"},
+    {"id": "T0604", "status": "completed"},
+    {"id": "T0605", "status": "completed"},
+    {"id": "T0606", "status": "completed"},
+    {"id": "T0607", "status": "completed"},
+    {"id": "T0608", "status": "completed"}
+  ],
+  "later_stage_status": "planned_unchanged",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED"
+}

@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://metadatabase.example/schemas/moomooau/processed-statement-v1",
+  "title": "MooMooAU Processed Statement v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_id",
+    "document_class",
+    "statement_type",
+    "statement_label_date",
+    "currency",
+    "summary",
+    "transactions",
+    "cash_flows",
+    "lineage"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "source_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "document_class": {
+      "enum": [
+        "DAILY_STATEMENT",
+        "MONTHLY_STATEMENT",
+        "FINANCIAL_YEAR_SUMMARY",
+        "CONTRACT_NOTE",
+        "TRADE_NOTICE",
+        "CASH_NOTICE",
+        "FX_NOTICE",
+        "DIVIDEND_NOTICE",
+        "TAX_NOTICE",
+        "CORPORATE_ACTION",
+        "TRANSFER_CUSTODY",
+        "SECURITY_ALERT",
+        "KYC_COMPLIANCE",
+        "SUPPORT",
+        "FEE_NOTICE",
+        "PROMOTION_REWARD",
+        "RESEARCH_MARKETING",
+        "VERIFIED_UNKNOWN"
+      ]
+    },
+    "statement_type": {
+      "enum": ["DAILY", "MONTHLY", "FINANCIAL_YEAR", "CONTRACT_NOTE"]
+    },
+    "statement_label_date": {
+      "type": ["string", "null"],
+      "format": "date"
+    },
+    "currency": {
+      "type": ["string", "null"],
+      "pattern": "^[A-Z]{3}$"
+    },
+    "summary": {"$ref": "#/$defs/nullable-fields"},
+    "transactions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/nullable-fields"}
+    },
+    "cash_flows": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/nullable-fields"}
+    },
+    "lineage": {"$ref": "#/$defs/lineage"}
+  },
+  "$defs": {
+    "nullable-fields": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_]{1,63}$"},
+      "additionalProperties": {"type": ["string", "null"]}
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_message_id_hmac",
+        "raw_ciphertext_digest",
+        "raw_plaintext_digest_private",
+        "attachment_object_ids",
+        "parser_name",
+        "parser_version",
+        "schema_version",
+        "imported_at_utc",
+        "field_lineage",
+        "key_epoch"
+      ],
+      "properties": {
+        "source_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "source_message_id_hmac": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "raw_ciphertext_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "raw_plaintext_digest_private": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "attachment_object_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "parser_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}$"
+        },
+        "parser_version": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+        },
+        "schema_version": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+        },
+        "imported_at_utc": {"type": "string", "format": "date-time"},
+        "field_lineage": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {"pattern": "^/"},
+          "additionalProperties": {"type": "string", "minLength": 1}
+        },
+        "key_epoch": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+        }
+      }
+    }
+  }
+}

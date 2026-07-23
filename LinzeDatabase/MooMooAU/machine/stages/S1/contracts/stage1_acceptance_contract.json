@@ -1,0 +1,99 @@
+{
+  "schema_version": "moomooau.stage-local-acceptance.v1",
+  "stage_id": "S1",
+  "policy": "FAIL_CLOSED",
+  "final_acceptance_policy": "Stage-local PASS does not imply linked AC-* PASS; final oracles remain NOT_RUN or PARTIAL until their owning stages and final review.",
+  "acceptance_contracts": [
+    {
+      "id": "S1AC-001",
+      "task_id": "T0101",
+      "linked_final_acceptance_ids": ["AC-008", "AC-009"],
+      "title": "公开项目和包骨架",
+      "environment": "local dedicated worktree; no remote write",
+      "input": "frozen Stage 0 manifest plus Stage 1 additions",
+      "oracle": "Implementation, tests, contracts and evidence are under the public project path except the single repository-root CI workflow; the Stage 0 package selection remains byte-identical.",
+      "threshold": "required paths 100%; frozen manifest mismatches 0; remote writes 0",
+      "evidence_required": "evidence/tasks/T0101.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0101.py",
+      "failure_action": "Remove the out-of-scope artifact and keep Stage 1 open."
+    },
+    {
+      "id": "S1AC-002",
+      "task_id": "T0102",
+      "linked_final_acceptance_ids": ["AC-010", "AC-034"],
+      "title": "Actions-only CLI 和纯函数边界",
+      "environment": "synthetic fixture process",
+      "input": "seven required command names",
+      "oracle": "All seven commands exist, reject non-Actions and non-synthetic execution, and expose no credential or production endpoint option.",
+      "threshold": "commands 7/7; external calls 0; Gmail mutations 0",
+      "evidence_required": "evidence/tasks/T0102.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0102.py",
+      "failure_action": "Disable the CLI entry point and repair the boundary."
+    },
+    {
+      "id": "S1AC-003",
+      "task_id": "T0103",
+      "linked_final_acceptance_ids": ["AC-013", "AC-014", "AC-020"],
+      "title": "确定性 RFC EML 与 Abuse Fixture",
+      "environment": "reserved synthetic values only",
+      "input": "MIME, RAW, metadata, authentication and abuse fixture factory",
+      "oracle": "Repeated generation is byte-identical; base64url decoding reproduces RAW; target, unrelated, spoofed and abuse classes are represented without real data.",
+      "threshold": "fixture determinism 100%; real messages 0; unsafe parser execution 0",
+      "evidence_required": "evidence/tasks/T0103.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0103.py",
+      "failure_action": "Reject the fixture set and do not proceed to archive tests."
+    },
+    {
+      "id": "S1AC-004",
+      "task_id": "T0104",
+      "linked_final_acceptance_ids": ["AC-011", "AC-013", "AC-027", "AC-031"],
+      "title": "官方 age 合成恢复 Skeleton",
+      "environment": "official age CLI, ephemeral synthetic identity, in-memory ciphertext store",
+      "input": "one verified and two rejected synthetic messages",
+      "oracle": "Only the verified fixture is RAW-fetched; age ciphertext alone reaches the in-memory remote; recovered bytes exactly equal canonical RAW; public evidence is redacted and production gates are NOT_RUN.",
+      "threshold": "verified RAW round-trip 100%; rejected RAW fetches 0; plaintext remote objects 0; external writes 0",
+      "evidence_required": "evidence/tasks/T0104.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0104.py",
+      "failure_action": "Fail Stage 1; retain every production and mutation capability as absent."
+    },
+    {
+      "id": "S1AC-005",
+      "task_id": "T0105",
+      "linked_final_acceptance_ids": ["AC-015", "AC-029", "AC-031"],
+      "title": "JSON Schema 与 Pandera 契约",
+      "environment": "Python 3.12 with pinned direct dependencies",
+      "input": "Message, Document, Transaction, Timeline, Lineage and Evidence valid/invalid samples",
+      "oracle": "All six JSON contracts accept valid and reject invalid values; the Pandera transaction contract accepts a valid frame and rejects schema drift.",
+      "threshold": "contracts 6/6; negative controls rejected 100%",
+      "evidence_required": "evidence/tasks/T0105.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0105.py",
+      "failure_action": "Block packaging and repair the versioned contract."
+    },
+    {
+      "id": "S1AC-006",
+      "task_id": "T0106",
+      "linked_final_acceptance_ids": ["AC-008", "AC-034"],
+      "title": "只读任务包和仓库验证器",
+      "environment": "current public tree and pinned external Governance checkout",
+      "input": "frozen baseline, task DAG, traceability, Stage 1 overlay and prohibitions",
+      "oracle": "The validator is read-only, checks unique requirements and acceptances, acyclic dependencies, complete traceability, frozen baseline integrity, Stage 1 evidence and prohibitions.",
+      "threshold": "validator mutations 0; failed checks 0",
+      "evidence_required": "evidence/tasks/T0106.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0106.py",
+      "failure_action": "Treat Stage 1 as BLOCKED and preserve the last verified commit."
+    },
+    {
+      "id": "S1AC-007",
+      "task_id": "T0107",
+      "linked_final_acceptance_ids": ["AC-021", "AC-033"],
+      "title": "无 Secret 公共基础 CI",
+      "environment": "GitHub-hosted runner, synthetic fixtures only",
+      "input": "repository-root workflow and direct dependency pins",
+      "oracle": "The workflow has read-only permissions, immutable Action SHAs, no schedule, cache, artifact, secret reference, self-hosted runner or production command, and runs lint, type, unit, schema, package, dual-plane and publication gates.",
+      "threshold": "unpinned Actions 0; secret references 0; required gate families 7/7",
+      "evidence_required": "evidence/tasks/T0107.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0107.py",
+      "failure_action": "Do not publish the workflow; repair CI and rerun all Stage 1 gates."
+    }
+  ]
+}

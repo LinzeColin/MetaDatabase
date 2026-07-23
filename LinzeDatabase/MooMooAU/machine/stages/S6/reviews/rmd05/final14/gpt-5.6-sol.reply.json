@@ -1,0 +1,279 @@
+{
+  "schema_version": "moomooau.independent-review-reply.v2",
+  "target": {
+    "baseline_commit": "2b8625a83e69093b9dce989f4eb964556e1b5fa2",
+    "candidate_commit": "2ba0d34cee89672297d7c575205c3d4bf854461b",
+    "candidate_tree": "673132302ed909d8c02e856fdb19887b20c3f447",
+    "request_sha256": "c6969cc36d18454ded24b6a69679d4b6b7a6b89acab13300a68a7393a260fecf"
+  },
+  "review_mode": "READ_ONLY_INDEPENDENT",
+  "verdict": "PASS",
+  "dimensions": [
+    {
+      "id": "SCOPE",
+      "status": "PASS",
+      "evidence_refs": [
+        "git:2ba0d34cee89672297d7c575205c3d4bf854461b",
+        "git-parent:dc8f7be36f45d3368cb2a6931fdb6cdcdf1fefc1",
+        "git-tree:673132302ed909d8c02e856fdb19887b20c3f447",
+        "request-sha256:c6969cc36d18454ded24b6a69679d4b6b7a6b89acab13300a68a7393a260fecf",
+        "receipt-sha256:6e8fd35c8d5d3dac2d1320713d3b17d32fa9c285e2bc77146565fef4e44beef0"
+      ],
+      "rationale": "只读审查锁定了指定 baseline、单父 same-tree anchor、执行 parent、外部 request/receipt 和本地临时合成复验。Anchor 的两个识别 trailer 各恰好一次，工作树保持干净；未访问远端、Gmail、Secrets、protected Oracle、生产、部署或发布。"
+    },
+    {
+      "id": "EVIDENCE_QUALITY",
+      "status": "PASS",
+      "evidence_refs": [
+        "machine/stages/S6/schemas/execution-receipt-v1.schema.json",
+        "post-candidate:execution-receipt17.json#sha256=6e8fd35c8d5d3dac2d1320713d3b17d32fa9c285e2bc77146565fef4e44beef0",
+        "local-replay:test_rmd05_public_closure_uses_real_git_and_the_full_authority_set=1 passed in 27.18s",
+        "local-direct-cli:clean fully-materialized fixture exit=0,status=PASS,errors=[]",
+        "local-regression:pre-fix materialization 4b2956fce34d72dd09be7225e785e3119e109f15 exit=1,status=BLOCKED",
+        "local-render:Governance@ebc6c2e4884edc959118cfc56d0e18a86c49460f=7/7 fixed SHA-256 match,budget PASS,blocker PASS"
+      ],
+      "rationale": "Receipt17 通过 v1 schema，19 个命令 ID 唯一且退出码全零；dependency lock 和全部 sanitized stdout/stderr 摘要已独立复算。当前 direct CLI 在 clean real-Git fully-materialized fixture 中实际返回 PASS，修复前最终物化 commit 可复现虚假 authority BLOCKED；固定 Governance renderer 从 closed facts 重渲染七文档并逐一匹配指定摘要。"
+    },
+    {
+      "id": "FAILURE_HONESTY",
+      "status": "PASS",
+      "evidence_refs": [
+        "machine/stages/S6/reviews/gpt-5.6-sol.json",
+        "machine/stages/S6/reviews/gpt-5.6-terra.json",
+        "machine/stages/S6/schemas/review-provenance-v2.schema.json",
+        "machine/tools/validate_assurance_reviews.py:REQUIRED_FINAL_CLOSURE_FINDINGS",
+        "local-history:17 attempts/model,34 distinct task IDs,closure_status=BLOCKED,pending_final_review=true",
+        "machine/status/latest.json:LOCAL_MECHANISMS_EVIDENCED_FINAL_ACCEPTANCE_BLOCKED"
+      ],
+      "rationale": "两份 provenance 如实保留 17 次有序尝试，attempt17 为 REREVIEW_ASSURANCE_CLI_IMPORT_SUPERSEDED，当前仍 BLOCKED。只有第 18 次两个不同任务的 PASS 回复、完整 finding 闭合和实际最终物化通过后才允许 closure PASS；本地 synthetic 证据未被提升为 protected、production 或 final acceptance。"
+    },
+    {
+      "id": "ROLLBACK",
+      "status": "PASS",
+      "evidence_refs": [
+        "git:4b2956fce34d72dd09be7225e785e3119e109f15",
+        "git:d4eb12bbfd9bb51e8aa09d553e1a73c873f26a76",
+        "machine/tools/validate_assurance_reviews.py:POST_REVIEW_AUTHORITY_PATHS",
+        "machine/tools/validate_assurance_reviews.py:POST_REVIEW_ALLOWED_NON_AUTHORITY_PATHS",
+        "machine/tools/validate_assurance_reviews.py:_validate_post_review_authorities",
+        "machine/tools/validate_delivery_status.py"
+      ],
+      "rationale": "先前有缺陷的最终物化已通过显式 revert 恢复到 PRE_CLOSURE。最终转换只允许精确 67 条 deterministic authority 和 12 条 final-output 非 authority，其他漂移 fail closed；实际物化后仍须在 clean delivery commit 上重跑固定 Governance、实际 secret scan、direct assurance CLI 和 delivery-status validation。"
+    }
+  ],
+  "findings": [
+    {
+      "id": "RMD05-001",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "初始独立审查发现保证来源链不完整。",
+      "evidence_refs": [
+        "machine/stages/S6/reviews/rmd05/initial/gpt-5.6-sol.reply.json",
+        "machine/stages/S6/reviews/rmd05/initial/gpt-5.6-terra.reply.json",
+        "local-audit:complete historical finding union"
+      ],
+      "resolution_ref": "两份 schema-valid provenance 保留完整有序历史；第 18 次 final reply 被要求闭合全部历史 finding，本回复显式处置完整历史至 RMD05-CLOSURE-012。"
+    },
+    {
+      "id": "RMD05-EVIDENCE-001",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "候选、tree、请求、回复、模型家族与平台 task 身份需要不可变绑定。",
+      "evidence_refs": [
+        "machine/stages/S6/schemas/review-provenance-v2.schema.json",
+        "machine/tools/validate_assurance_reviews.py:evaluate_assurance_reviews",
+        "local-audit:all preserved request/reply/receipt artifact hashes match"
+      ],
+      "resolution_ref": "Schema、对象哈希和 validator 绑定两个模型家族、17/18 attempt 协议、共享最终 request/receipt、不同 final replies 及全局互异 task IDs。"
+    },
+    {
+      "id": "RMD05-EVIDENCE-002",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "本地 gate 声明需要精确候选绑定的结构化执行回执。",
+      "evidence_refs": [
+        "post-candidate:execution-receipt17.json#sha256=6e8fd35c8d5d3dac2d1320713d3b17d32fa9c285e2bc77146565fef4e44beef0",
+        "machine/stages/S6/schemas/execution-receipt-v1.schema.json",
+        "git:2ba0d34cee89672297d7c575205c3d4bf854461b trailers"
+      ],
+      "resolution_ref": "Receipt17 schema-valid，绑定执行 parent dc8f7be36f45d3368cb2a6931fdb6cdcdf1fefc1 与共享 tree；19 个命令唯一且零退出，dependency lock 与全部 sanitized output digest 可复算，anchor 两个 trailer 各恰好一次。"
+    },
+    {
+      "id": "RMD05-CAPACITY-001",
+      "severity": "HIGH",
+      "status": "RESOLVED",
+      "finding": "Effectful-write 容量授权边界及其本地回归需要确定性保存。",
+      "evidence_refs": [
+        "src/moomooau_archive/capacity.py",
+        "src/moomooau_archive/operation_gate.py",
+        "tests/tasks/test_t0607.py",
+        "post-candidate:execution-receipt17.json:stage6-task-tests"
+      ],
+      "resolution_ref": "容量投影与授权门保持在 effectful callback 前 fail closed；receipt17 记录 Stage 6 55 tests 和受影响 Stage 7 37 tests 通过，本轮没有执行真实副作用。"
+    },
+    {
+      "id": "RMD05-CLOSURE-001",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "Post-review 漂移保护需要覆盖精确允许集合以外的所有 descendant paths。",
+      "evidence_refs": [
+        "machine/tools/validate_assurance_reviews.py:_protected_post_review_paths",
+        "machine/tools/validate_assurance_reviews.py:_validate_git_subject",
+        "tests/remediation/test_rmd05.py:test_rmd05_public_closure_blocks_forbidden_paths_with_a_synchronized_manifest"
+      ],
+      "resolution_ref": "精确 67 条 authority 与 12 条 final-output 非 authority 之外的实现、schema、facts、Acceptance、Oracle 或其他路径，即使同步重建 manifest，也会被阻断。"
+    },
+    {
+      "id": "RMD05-CLOSURE-002",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "PRE_CLOSURE 与 CLOSED 的 package、finding、blocker 和 next-action 状态需要严格耦合。",
+      "evidence_refs": [
+        "schemas/delivery-status-v1.schema.json",
+        "machine/contracts/delivery_status_model.json",
+        "machine/tools/build_delivery_status.py",
+        "machine/tools/validate_delivery_status.py"
+      ],
+      "resolution_ref": "v1.0.4 保持 RMD-05 pending；只有完整 assurance PASS 才能选择 v1.0.5 CLOSED，并继续要求 receipt-bound Stage 6 v2、clean Git、固定 authorities 和最终治理与 secret checks。"
+    },
+    {
+      "id": "RMD05-CLOSURE-003",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "History integrity PASS 不得被误解释为 closure PASS。",
+      "evidence_refs": [
+        "machine/tools/validate_assurance_reviews.py:BLOCKED_REVIEW_ATTEMPTS_PER_MODEL",
+        "machine/tools/validate_assurance_reviews.py:FINAL_REVIEW_ATTEMPTS_PER_MODEL",
+        "post-candidate:execution-receipt17.json:assurance-history"
+      ],
+      "resolution_ref": "当前 17-attempt history 只返回 BLOCKED 和 pending_final_review；只有第 18 次双 PASS、完整历史闭合及实际 final materialization 才能返回 closure PASS。"
+    },
+    {
+      "id": "RMD05-CLOSURE-004",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "Stage 6 v1 review-input 与 receipt-bound v2 CLOSED evidence 必须分离并绑定候选。",
+      "evidence_refs": [
+        "machine/stages/S6/schemas/stage6-evidence-v2.schema.json",
+        "machine/stages/S6/tools/validate_stage6.py",
+        "machine/tools/validate_evidence.py:validate_stage6_candidate_bundle",
+        "machine/tools/validate_delivery_status.py"
+      ],
+      "resolution_ref": "CLOSED 路径只接受绑定 receipt17、执行 parent、anchor/tree、命令集合及零 protected/production counters 的 Stage 6 v2 bundle；PRE_CLOSURE 继续使用诚实的 v1 review-input。"
+    },
+    {
+      "id": "RMD05-CLOSURE-005",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "同步替换 receipt 与 evidence/provenance bindings 不得绕过 immutable same-tree anchor。",
+      "evidence_refs": [
+        "git:2ba0d34cee89672297d7c575205c3d4bf854461b",
+        "git:dc8f7be36f45d3368cb2a6931fdb6cdcdf1fefc1",
+        "machine/tools/validate_evidence.py:validate_stage6_receipt_anchor",
+        "tests/remediation/test_rmd05.py:test_rmd05_git_anchor_rejects_synchronized_receipt_bundle_replacement"
+      ],
+      "resolution_ref": "Anchor 只有执行 candidate 一个 parent，二者 tree 均为 673132302ed909d8c02e856fdb19887b20c3f447；commit message 精确固定执行 parent 和 receipt17 digest。"
+    },
+    {
+      "id": "RMD05-CLOSURE-006",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "历史输出物化与非循环最终转换需要 schema 和 validator 机械约束。",
+      "evidence_refs": [
+        "machine/stages/S6/schemas/review-provenance-v2.schema.json",
+        "machine/tools/validate_assurance_reviews.py:expected_phases",
+        "machine/tools/validate_assurance_reviews.py:final rereview conclusion"
+      ],
+      "resolution_ref": "Attempt17 固定为 superseded PASS 且 closure_status 仍为 BLOCKED；REREVIEW_FINAL 只能作为第 18 次，要求四维 PASS、无 OPEN finding、两个 distinct replies 和完整历史闭合。"
+    },
+    {
+      "id": "RMD05-CLOSURE-007",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "Stage 6 evidence 与 Acceptance 必须维持 local synthetic 口径和零 protected/production 执行声明。",
+      "evidence_refs": [
+        "evidence/acceptance/latest.json",
+        "machine/acceptance/evidence.py",
+        "machine/contracts/production_composition.json",
+        "post-candidate:execution-receipt17.json"
+      ],
+      "resolution_ref": "候选 Acceptance summary 仍为 BLOCKED、0/34 final passes；状态权威和 receipt17 均保持 real Gmail、private repository、protected Oracle、Secrets、production workflow、外部写入及发布计数为零。"
+    },
+    {
+      "id": "RMD05-CLOSURE-008",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "全部 adverse、rejected、superseded 尝试及 attempt17 superseded PASS 必须原样保留。",
+      "evidence_refs": [
+        "machine/stages/S6/reviews/gpt-5.6-sol.json",
+        "machine/stages/S6/reviews/gpt-5.6-terra.json",
+        "machine/stages/S6/reviews/rmd05/final13/gpt-5.6-sol.reply.json#sha256=affcfd9e1c2977a19ad9a80f3f1024e9cf9a6b9626937153dc8d5e493e3adcc3",
+        "machine/stages/S6/reviews/rmd05/final13/gpt-5.6-terra.reply.json#sha256=941b8564a33469668c61abb74c30d857f73415df736802fff22b32a84f06fb0d"
+      ],
+      "resolution_ref": "两份 provenance 各精确 17 attempts、closure_status=BLOCKED，共 34 个不同 task IDs；attempt17 的 request、receipt、anchor、tree、phase、verdict 和 reply 均 hash-pinned，旧 PASS 没有被改写为最终 authority。"
+    },
+    {
+      "id": "RMD05-CLOSURE-009",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "真实 public closure 与 Acceptance materialization 输入冻结缺口需要关闭。",
+      "evidence_refs": [
+        "machine/tools/validate_assurance_reviews.py:_candidate_blob",
+        "machine/tools/validate_assurance_reviews.py:_validate_post_review_authorities",
+        "tests/remediation/test_rmd05.py:test_rmd05_public_closure_uses_real_git_and_the_full_authority_set",
+        "tests/remediation/test_rmd05.py:test_rmd05_public_closure_freezes_acceptance_inputs_to_the_review_candidate",
+        "local-direct-cli:clean fully-materialized fixture status=PASS"
+      ],
+      "resolution_ref": "Validator 从 reviewed candidate Git blob 冻结 Acceptance 参数并逐字节比较完整 bundle；真实 clean committed public closure 在完整 authority set 上通过 direct CLI 验证。"
+    },
+    {
+      "id": "RMD05-CLOSURE-010",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "最终 Governance 文档漂移、未登记术语和七文档遗漏 authority 的缺陷需要关闭。",
+      "evidence_refs": [
+        "machine/tools/validate_assurance_reviews.py:GOVERNANCE_DOCUMENT_AUTHORITY_SHA256",
+        "machine/tools/validate_assurance_reviews.py:POST_REVIEW_AUTHORITY_PATHS",
+        "tests/remediation/test_rmd05.py:test_rmd05_public_closure_rejects_governance_document_render_drift",
+        "local-render:Governance@ebc6c2e4884edc959118cfc56d0e18a86c49460f=7/7 fixed hashes"
+      ],
+      "resolution_ref": "七份 UTF-8 文档属于 67-path authority 并绑定固定 SHA-256；固定 Governance renderer 对 exact closed-facts fixture 重渲染后七个摘要全部匹配，budget 与 blocker gates 均 PASS，fixture 保持 clean，篡改路径 fail closed。"
+    },
+    {
+      "id": "RMD05-CLOSURE-011",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "最终物化后的结构化 receipt 曾被 generic high-entropy scanner 二次扫描并误报合法 digest，导致实际 final secret scan 失败。",
+      "evidence_refs": [
+        "machine/tools/validate_stage6_secret_scan.py:STRUCTURED_RECEIPT_PATHS",
+        "machine/tools/validate_stage6_secret_scan.py:generic receipt exclusion through execution-receipt17.json",
+        "tests/remediation/test_rmd05.py:test_rmd05_public_closure_uses_real_git_and_the_full_authority_set",
+        "tests/remediation/test_rmd05.py:test_rmd05_structured_receipt_secret_patterns_are_blocked"
+      ],
+      "resolution_ref": "Receipts 1–17 均由结构化 credential/private-key patterns 扫描并从 generic high-entropy 层排除；fully-materialized real-Git closure 调用实际 secret validator 获得零 finding，向 receipt17 注入敏感值的负向回归仍会失败关闭。"
+    },
+    {
+      "id": "RMD05-CLOSURE-012",
+      "severity": "BLOCKING",
+      "status": "RESOLVED",
+      "finding": "直接执行 validate_assurance_reviews.py 时项目根未进入 sys.path，最终 authority 校验导入 machine.acceptance 失败并产生虚假阻断。",
+      "evidence_refs": [
+        "machine/tools/validate_assurance_reviews.py:PROJECT_ROOT/sys.path bootstrap",
+        "tests/remediation/test_rmd05.py:test_rmd05_public_closure_uses_real_git_and_the_full_authority_set",
+        "local-direct-cli:current candidate clean fully-materialized fixture exit=0,status=PASS,errors=[]",
+        "local-regression:pre-fix materialization 4b2956fce34d72dd09be7225e785e3119e109f15 exit=1,status=BLOCKED,Acceptance authority error"
+      ],
+      "resolution_ref": "Standalone CLI 现从自身文件路径确定 PROJECT_ROOT，并在导入 sibling validator 及后续 machine.acceptance 前把该根插入 sys.path；重复的后置 root 声明已移除。新鲜 subprocess 对 clean fully-materialized real-Git fixture 的精确 direct CLI 返回零退出码和 status=PASS，修复前最终物化 commit 则独立复现原虚假失败。"
+    }
+  ],
+  "limitations": [
+    "本审查只证明本地不可变 Git 对象、确定性 post-candidate authority 路径及本地 synthetic gates；不证明 protected Oracles、真实 Gmail、私有 repository、真实 Secrets、生产健康、production workflow、deployment、publication、RMD-06、RMD-07 或 final AC-033。",
+    "两份 attempt18 回复和实际 final outputs 尚未物化到真实 delivery tree；物化后仍必须在实际 clean commit 上运行固定 Governance final check、实际 final secret scan、direct verify_git assurance CLI 和 delivery-status validation，才能记录 RMD-05 CLOSED。",
+    "Receipt17 的 raw_logs_retained=false；本轮独立复算了 schema、19 个 sanitized output digest、dependency lock 和历史 artifact hashes，并重跑关键 direct CLI、finding/task 隔离、Stage 6、delivery-status 与 Governance render 检查，但没有重跑 receipt 中全部 19 条构建、容器和审计命令。",
+    "Repository provenance 只证明结构、哈希和 task ID；哈希不是第三方签名，平台执行身份仍依赖保留的 Codex task audit log。",
+    "本轮没有联系或检查当前另一位 attempt18 审查员。"
+  ],
+  "sensitive_data_observed": false,
+  "production_or_protected_claimed": false,
+  "summary": "PASS：四个维度全部通过，完整适用 finding 历史至 RMD05-CLOSURE-012 均为 RESOLVED，无新 OPEN finding。Receipt17、17/18 fail-closed 协议、精确 direct CLI fully-materialized regression、67-path authority、12-path final-output boundary 和固定 Governance 七文档渲染均已独立核验；该结论不代表 protected、production、deployment、publication、RMD-06、RMD-07 或 final AC-033 已完成。"
+}

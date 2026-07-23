@@ -1,0 +1,23 @@
+{
+  "schema_version": "moomooau.load-profiles.v1",
+  "profiles": [
+    {"id": "L0", "messages": 10, "attachments": 20, "concurrency": 1},
+    {"id": "L1", "messages": 1000, "attachments": 2000, "concurrency": 2},
+    {"id": "L2", "messages": 10000, "attachments": 20000, "concurrency": 4},
+    {"id": "L3", "messages": 100000, "attachments": 200000, "concurrency": 8}
+  ],
+  "required_boundaries": [
+    "GMAIL_500_PAGES",
+    "GMAIL_PAGE_SIZE_500",
+    "LARGE_ATTACHMENT_QUARANTINE",
+    "MIME_DEPTH_LIMIT",
+    "ZIP_RATIO_LIMIT",
+    "TWO_WORKFLOW_CONCURRENCY",
+    "TEN_YEAR_PARTITIONS",
+    "GIT_LFS_GREEN_YELLOW_RED_UNKNOWN",
+    "ONE_RELEASE_ASSET",
+    "PUBLIC_EVIDENCE_VOLUME"
+  ],
+  "maximum_stream_batch": 500,
+  "status": "PASS"
+}

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Statement v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_id",
+    "statement_type",
+    "statement_label_date",
+    "currency",
+    "lineage"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "statement_type": {
+      "enum": [
+        "DAILY",
+        "MONTHLY",
+        "FINANCIAL_YEAR",
+        "CONTRACT_NOTE",
+        "OTHER"
+      ]
+    },
+    "statement_label_date": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "transactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "cash_flows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "lineage": {
+      "$ref": "lineage-v1.schema.json"
+    }
+  }
+}

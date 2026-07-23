@@ -1,0 +1,23 @@
+{
+  "schema_version": "moomooau.stage2-evidence.v1",
+  "evidence_id": "S2-T0202-LOCAL-20260720",
+  "stage_id": "S2",
+  "task_id": "T0202",
+  "stage_acceptance_id": "S2AC-002",
+  "observed_at_utc": "2026-07-19T23:37:27Z",
+  "baseline_commit": "932e3970490f87fd46671bc6a461340a339887ef",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "five_operation_allowlist", "status": "PASS", "evidence_ref": "tests/tasks/test_t0202.py"},
+    {"id": "forbidden_pre_network_rejection", "status": "PASS", "evidence_ref": "gmail_guard.GmailGuardMetrics.forbidden_network_calls=0"},
+    {"id": "exact_message_trash_shape", "status": "PASS", "evidence_ref": "src/moomooau_archive/gmail_guard.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-006", "status": "PARTIAL", "reason": "Exact message-level Trash request shape is proven, but no real or protected thread labels were mutated."},
+    {"id": "AC-018", "status": "PARTIAL", "reason": "Synthetic proxy tests prove forbidden calls stop before transport; protected OAuth execution remains not run."},
+    {"id": "AC-034", "status": "PARTIAL", "reason": "The Gmail surface is narrow at Stage 2; complete final non-goal scanning awaits all stages."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Use this guard as the only Gmail transport path when Stage 3 discovery is implemented."
+}

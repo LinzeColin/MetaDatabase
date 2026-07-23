@@ -1,0 +1,33 @@
+{
+  "schema_version": "moomooau.stage4-evidence.v1",
+  "evidence_id": "S4-T0406-LOCAL-20260720",
+  "stage_id": "S4",
+  "task_id": "T0406",
+  "stage_acceptance_id": "S4AC-006",
+  "observed_at_utc": "2026-07-20T02:39:28Z",
+  "baseline_commit": "b15ccdbe0e4ed16e3a01e17431360f844621b852",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "versioned_v1_v2_paths_append_only", "status": "PASS", "evidence_ref": "tests/tasks/test_t0406.py"},
+    {"id": "fourteen_day_threshold_enforced_synthetically", "status": "PASS", "evidence_ref": "ParserBlueGreenComparator"},
+    {"id": "changed_business_output_requires_signed_bound_approval", "status": "PASS", "evidence_ref": "ProtectedPromotionApproval"},
+    {"id": "current_pointer_exact_cas_only", "status": "PASS", "evidence_ref": "GitHubEndpointGuard"},
+    {"id": "partial_and_repeat_commit_converges", "status": "PASS", "evidence_ref": "tests/tasks/test_t0406.py"},
+    {"id": "version_reuse_conflict_and_rollback_not_committed", "status": "PASS", "evidence_ref": "ProcessedCommitPlanner"},
+    {"id": "all_synthetic_persisted_objects_age_envelopes", "status": "PASS", "evidence_ref": "MemoryProcessedCiphertextStore"},
+    {"id": "recovery_public_m3_claims_false", "status": "PASS", "evidence_ref": "ProcessedCommitResult"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-015", "status": "PARTIAL", "reason": "Synthetic v1 remains immutable, v2 appends with complete lineage, and current changes by CAS; real private-repository recovery and downstream reads are not run."},
+    {"id": "AC-032", "status": "PARTIAL", "reason": "Stage 4 retry, version reuse, observation and CAS controls pass synthetically; the full cross-stage Chaos Matrix remains pending."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_FOURTEEN_DAY_BLUE_GREEN", "status": "NOT_RUN", "reason": "No elapsed real observation window or protected production data was used."},
+    {"id": "PRIVATE_PROCESSED_APPEND_CAS_RECOVERY", "status": "NOT_RUN", "reason": "No protected GitHub token, private repository write, decrypt or remote recovery occurred."},
+    {"id": "PROTECTED_CHANGED_OUTPUT_APPROVAL", "status": "NOT_RUN", "reason": "Only a synthetic HMAC-bound approval was tested; no owner production approval was executed."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "production_classification_rules": 0, "production_parser_profiles": 0, "protected_approvals_executed": 0},
+  "next_action": "Run real parallel observation, protected approval and remote recovery only in later authorized release stages."
+}

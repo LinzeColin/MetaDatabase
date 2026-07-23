@@ -1,0 +1,121 @@
+{
+  "acceptance_id": "AC-007",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_NOT_RUN",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "7a9a251c4450ae19dd175aad5bb80a1303cd2db82ad2c3bc4fdfe8db3762116e",
+    "evidence_required": "evidence/acceptance/AC-007-remote-recovery-gate.json",
+    "pass_gate_text": "AC-007 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_007.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-007-RMD01-20260723",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0501.json",
+      "evidence_sha256": "9dd4f9a38af907b712e13b58e6fa724252f396e9bee9bd7bb44578c04b625560",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic remote refetch and official-age recovery pass; no real private-repository object was read.",
+      "source_record_status": "PASS",
+      "task_id": "T0501"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0602.json",
+      "evidence_sha256": "923882a6127fb41e6f228ba3286dfc440a529939af4ee9622c12f66eb9787c62",
+      "final_claim_status": "PARTIAL",
+      "reason": "The synthetic publication saga proves private-first ordering and truthful pending states; no private remote was called.",
+      "source_record_status": "PASS",
+      "task_id": "T0602"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0702.json",
+      "evidence_sha256": "d5509d1531e221208f9e9201a499d9fb9729ee5b92034856a0bce6da961d3569",
+      "final_claim_status": "NOT_RUN",
+      "reason": "No real ciphertext was committed or remotely recovered.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0702"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0703.json",
+      "evidence_sha256": "72c66209f3fb2345b414f24ee19d0ac9109b01c593af42266f68a355a9a0ad86",
+      "final_claim_status": "NOT_RUN",
+      "reason": "No real remote recovery preceded a Gmail mutation.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0703"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-007",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_007_pass_gate",
+    "path": "tests/acceptance/test_ac_007.py",
+    "sha256": "c26b28ad4a55c042c1ec2378679f7fa4320dd2b6221532742a43a080eb2c985c"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0501",
+      "T0602",
+      "T0702",
+      "T0703"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "bcc2a159f070c0eadca0c5887065a5007970b097b4a2a0de74d0a473d21b0e79"
+  }
+}

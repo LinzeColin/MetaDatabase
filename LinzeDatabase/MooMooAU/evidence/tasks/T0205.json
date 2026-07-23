@@ -1,0 +1,23 @@
+{
+  "schema_version": "moomooau.stage2-evidence.v1",
+  "evidence_id": "S2-T0205-LOCAL-20260720",
+  "stage_id": "S2",
+  "task_id": "T0205",
+  "stage_acceptance_id": "S2AC-005",
+  "observed_at_utc": "2026-07-19T23:37:27Z",
+  "baseline_commit": "932e3970490f87fd46671bc6a461340a339887ef",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "official_age_multi_chunk_roundtrip", "status": "PASS", "evidence_ref": "tests/tasks/test_t0205.py"},
+    {"id": "plaintext_payload_files_zero", "status": "PASS", "evidence_ref": "age_stream.OfficialAgeStream pipe boundary"},
+    {"id": "identity_root_and_mode_guard", "status": "PASS", "evidence_ref": "src/moomooau_archive/age_stream.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-010", "status": "PARTIAL", "reason": "Payload streaming and ephemeral-root guards are proven locally; hosted runner filesystem audit remains not run."},
+    {"id": "AC-011", "status": "PARTIAL", "reason": "Official age byte round-trip is proven for synthetic bytes; all production object classes and remote surfaces are not yet present."},
+    {"id": "AC-022", "status": "PARTIAL", "reason": "Normal and rejection cleanup paths are covered; cancel, timeout and OOM hosted-runner paths remain later acceptance work."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Route every future sensitive object through OfficialAgeStream before a persistence adapter."
+}

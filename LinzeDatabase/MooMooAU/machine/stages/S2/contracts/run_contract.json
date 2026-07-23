@@ -1,0 +1,52 @@
+{
+  "schema_version": "moomooau.run-contract.v1",
+  "run_id": "S2-20260720-security-boundaries",
+  "stage_id": "S2",
+  "goal": "Complete T0201-T0207 with fail-closed identity, endpoint, age, recovery-ceremony and immutable supply-chain boundaries before real data access.",
+  "baseline_commit": "932e3970490f87fd46671bc6a461340a339887ef",
+  "baseline_manifest_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
+  "scope": [
+    "single gmail.modify OAuth Secret contract",
+    "exact Gmail endpoint guard before transport",
+    "Repository-ID anchored GitHub endpoint guard and short token client",
+    "official age streaming boundary",
+    "protected Recovery Key ceremony ports and one-time synthetic proof",
+    "transitive dependency hash lock, CycloneDX SBOM, Action SHA, age checksum and container digest",
+    "no-Secret Stage 2 security workflow"
+  ],
+  "non_goals": [
+    "real Gmail authorization or message access",
+    "real Gmail Trash mutation",
+    "real private repository discovery, write or cross-repository canary",
+    "real GitHub App or protected Environment Secret use",
+    "real Recovery Key delivery through the development thread",
+    "Processed parsers, timeline publishing, M3 or production deployment",
+    "Stage 3 or later tasks",
+    "final AC-* verdicts"
+  ],
+  "prohibitions": {
+    "real_gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "real_secrets_read": 0,
+    "protected_key_deliveries": 0,
+    "external_writes": 0,
+    "remote_publication": 0
+  },
+  "protected_oracles": [
+    "AC-006 exact-message canary",
+    "AC-012 real one-time key delivery and recovery",
+    "AC-019 real target-versus-other-repository token isolation",
+    "AC-021 remote CodeQL and dependency review execution",
+    "AC-027 private-first saga"
+  ],
+  "rollback": "Revert the single local Stage 2 commit; Stage 1 remains at its pinned verified commit and no remote state has changed.",
+  "stop_conditions": [
+    "frozen Stage 0 manifest or Stage 1 cumulative gates drift",
+    "real or sensitive value enters the publishable tree",
+    "a forbidden endpoint reaches a transport",
+    "a protected oracle would require credential or remote write authority",
+    "a critical or high unaccepted dependency vulnerability is observed",
+    "an immutable pin or recovery boundary cannot be verified"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Timeline Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_id",
+    "document_class",
+    "email_internal_date_utc",
+    "email_received_at_sydney",
+    "expectation_state",
+    "m3_state"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "source_id": {"type": "string"},
+    "document_class": {"type": "string"},
+    "statement_label_date": {"type": ["string", "null"], "format": "date"},
+    "email_internal_date_utc": {"type": "string", "format": "date-time"},
+    "email_received_at_sydney": {"type": "string", "format": "date-time"},
+    "date_header_observed": {"type": ["string", "null"]},
+    "calendar_lag_days": {"type": ["integer", "null"]},
+    "elapsed_hours": {"type": ["number", "null"]},
+    "us_market_session_lag": {"type": ["integer", "null"]},
+    "expectation_state": {"enum": ["EXPECTED", "NOT_EXPECTED", "NOT_OBSERVED", "MISSING", "UNKNOWN"]},
+    "m3_state": {"enum": ["NOT_ELIGIBLE", "ELIGIBLE", "TRASHED", "ALREADY_TRASHED", "FAILED", "UNKNOWN"]},
+    "parser_state": {"type": ["string", "null"]}
+  }
+}

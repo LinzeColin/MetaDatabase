@@ -1,0 +1,30 @@
+{
+  "schema_version": "moomooau.stage4-evidence.v1",
+  "evidence_id": "S4-T0403-LOCAL-20260720",
+  "stage_id": "S4",
+  "task_id": "T0403",
+  "stage_acceptance_id": "S4AC-003",
+  "observed_at_utc": "2026-07-20T02:39:28Z",
+  "baseline_commit": "b15ccdbe0e4ed16e3a01e17431360f844621b852",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "daily_monthly_contract_synthetic_parse", "status": "PASS", "evidence_ref": "tests/tasks/test_t0403.py"},
+    {"id": "exact_date_currency_decimal_and_table_conversion", "status": "PASS", "evidence_ref": "StatementParser"},
+    {"id": "field_conflict_quarantine_without_guess", "status": "PASS", "evidence_ref": "tests/tasks/test_t0403.py"},
+    {"id": "canonical_jsonl_and_parquet_repeatability", "status": "PASS", "evidence_ref": "ProcessedProductBuilder"},
+    {"id": "parquet_schema_roundtrip", "status": "PASS", "evidence_ref": "tests/tasks/test_t0403.py"},
+    {"id": "statement_jsonl_public_schema_exact", "status": "PASS", "evidence_ref": "machine/stages/S4/public-schemas/statement-v1.schema.json"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-014", "status": "PARTIAL", "reason": "Bounded synthetic CSV parsing and inherited Stage 3 malicious-container controls pass; protected real octet-stream PDF and complete format canaries are not run."},
+    {"id": "AC-015", "status": "PARTIAL", "reason": "Synthetic statement fields carry unique Raw and parser lineage with deterministic JSONL and Parquet; real versioned remote recovery is not run."},
+    {"id": "AC-029", "status": "PARTIAL", "reason": "Synthetic statement-label dates are exact or null and never guessed; full Timeline/calendar semantics are not implemented in Stage 4."}
+  ],
+  "production_oracles": [
+    {"id": "PROTECTED_REAL_STATEMENT_GOLDEN_FIXTURES", "status": "NOT_RUN", "reason": "No protected real Daily, Monthly or Contract Note fixture or production parser profile was used."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "production_classification_rules": 0, "production_parser_profiles": 0, "protected_approvals_executed": 0},
+  "next_action": "Keep parser profiles disabled until protected Golden Fixtures establish exact real labels and field mappings."
+}

@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU independent review provenance v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "review_id",
+    "stage_id",
+    "model_family",
+    "review_mode",
+    "subject",
+    "execution_receipt",
+    "attempts",
+    "closure_status",
+    "provenance_limitations"
+  ],
+  "properties": {
+    "schema_version": {"const": "moomooau.independent-review-provenance.v2"},
+    "review_id": {"pattern": "^S6-RMD05-[A-Z0-9_-]+$"},
+    "stage_id": {"const": "S6"},
+    "model_family": {"enum": ["gpt-5.6-sol", "gpt-5.6-terra"]},
+    "review_mode": {"const": "READ_ONLY_INDEPENDENT"},
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baseline_commit", "candidate_commit", "candidate_tree"],
+      "properties": {
+        "baseline_commit": {"pattern": "^[0-9a-f]{40}$"},
+        "candidate_commit": {"pattern": "^[0-9a-f]{40}$"},
+        "candidate_tree": {"pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "execution_receipt": {"$ref": "#/$defs/artifact"},
+    "attempts": {
+      "type": "array",
+      "minItems": 17,
+      "maxItems": 18,
+      "prefixItems": [
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "INITIAL"}}}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_ADVERSE"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_SUPERSEDED"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_TRANSITION_ADVERSE"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_OUTPUT_INTEGRATION_SUPERSEDED"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_EVIDENCE_COUPLING_ADVERSE"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_RECEIPT_ANCHOR_ADVERSE"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_GOVERNANCE_FACTS_SUPERSEDED"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_OUTPUT_MATERIALIZATION_ADVERSE"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_CLOSURE_PATH_SUPERSEDED"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_FINAL_REJECTED"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_AUTHORITY_DRIFT_ADVERSE"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_AUTHORITY_MATERIALIZATION_ADVERSE"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_PUBLIC_CLOSURE_ADVERSE"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_GOVERNANCE_MATERIALIZATION_SUPERSEDED"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_SECRET_SCAN_MATERIALIZATION_SUPERSEDED"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_ASSURANCE_CLI_IMPORT_SUPERSEDED"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        },
+        {
+          "allOf": [
+            {"$ref": "#/$defs/attempt"},
+            {"properties": {"phase": {"const": "REREVIEW_FINAL"}}},
+            {"required": ["execution_receipt"]}
+          ]
+        }
+      ]
+    },
+    "closure_status": {"enum": ["BLOCKED", "PASS"]},
+    "provenance_limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"closure_status": {"const": "BLOCKED"}}},
+      "then": {"properties": {"attempts": {"minItems": 17, "maxItems": 17}}}
+    },
+    {
+      "if": {"properties": {"closure_status": {"const": "PASS"}}},
+      "then": {"properties": {"attempts": {"minItems": 18, "maxItems": 18}}}
+    }
+  ],
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^[A-Za-z0-9._/-]+$"},
+        "sha256": {"pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase",
+        "platform_task_id",
+        "invocation_tool",
+        "requested_model",
+        "fork_turns",
+        "inherited_thread_context",
+        "request",
+        "reply",
+        "verdict",
+        "receipt_scope",
+        "repository_only_proves_platform_execution"
+      ],
+      "properties": {
+        "phase": {
+          "enum": [
+            "INITIAL",
+            "REREVIEW_ADVERSE",
+            "REREVIEW_SUPERSEDED",
+            "REREVIEW_TRANSITION_ADVERSE",
+            "REREVIEW_OUTPUT_INTEGRATION_SUPERSEDED",
+            "REREVIEW_EVIDENCE_COUPLING_ADVERSE",
+            "REREVIEW_RECEIPT_ANCHOR_ADVERSE",
+            "REREVIEW_GOVERNANCE_FACTS_SUPERSEDED",
+            "REREVIEW_OUTPUT_MATERIALIZATION_ADVERSE",
+            "REREVIEW_CLOSURE_PATH_SUPERSEDED",
+            "REREVIEW_FINAL_REJECTED",
+            "REREVIEW_AUTHORITY_DRIFT_ADVERSE",
+            "REREVIEW_AUTHORITY_MATERIALIZATION_ADVERSE",
+            "REREVIEW_PUBLIC_CLOSURE_ADVERSE",
+            "REREVIEW_GOVERNANCE_MATERIALIZATION_SUPERSEDED",
+            "REREVIEW_SECRET_SCAN_MATERIALIZATION_SUPERSEDED",
+            "REREVIEW_ASSURANCE_CLI_IMPORT_SUPERSEDED",
+            "REREVIEW_FINAL"
+          ]
+        },
+        "platform_task_id": {"pattern": "^/root/rmd05_[a-z0-9_]+$"},
+        "invocation_tool": {"const": "collaboration.spawn_agent"},
+        "requested_model": {"enum": ["gpt-5.6-sol", "gpt-5.6-terra"]},
+        "fork_turns": {"const": "none"},
+        "inherited_thread_context": {"const": false},
+        "request": {"$ref": "#/$defs/artifact"},
+        "reply": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256", "normalization"],
+          "properties": {
+            "path": {"type": "string", "pattern": "^[A-Za-z0-9._/-]+$"},
+            "sha256": {"pattern": "^[0-9a-f]{64}$"},
+            "normalization": {"const": "UTF8_JSON_SINGLE_TRAILING_LF"}
+          }
+        },
+        "execution_receipt": {"$ref": "#/$defs/artifact"},
+        "verdict": {"enum": ["PASS", "FAIL"]},
+        "receipt_scope": {"const": "CODEX_THREAD_AUDIT_LOG"},
+        "repository_only_proves_platform_execution": {"const": false}
+      }
+    }
+  }
+}

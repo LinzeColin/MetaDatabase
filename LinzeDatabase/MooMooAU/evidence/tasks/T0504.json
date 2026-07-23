@@ -1,0 +1,27 @@
+{
+  "schema_version": "moomooau.stage5-evidence.v1",
+  "evidence_id": "S5-T0504-LOCAL-20260720",
+  "stage_id": "S5",
+  "task_id": "T0504",
+  "stage_acceptance_id": "S5AC-004",
+  "observed_at_utc": "2026-07-20T03:21:33Z",
+  "baseline_commit": "9394585329a52c4d269da220bd66ce8ec9b820b3",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "xnys_session_lag_not_calendar_days", "status": "PASS", "evidence_ref": "tests/tasks/test_t0504.py"},
+    {"id": "weekend_and_closure_not_expected", "status": "PASS", "evidence_ref": "ExpectationPolicy"},
+    {"id": "no_evidence_not_observed_not_missing", "status": "PASS", "evidence_ref": "tests/tasks/test_t0504.py"},
+    {"id": "waiting_password_unknown", "status": "PASS", "evidence_ref": "tests/tasks/test_t0504.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-029", "status": "PARTIAL", "reason": "XNYS-backed synthetic lag is deterministic; real statement arrival coverage is not run."},
+    {"id": "AC-030", "status": "PARTIAL", "reason": "False-MISSING controls pass fixed dates; real SLA and independent expectation evidence are not run."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_MARKET_EXPECTATION_OBSERVATION", "status": "NOT_RUN", "reason": "No real market-linked statement expectation or elapsed production SLA was evaluated."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
+  "next_action": "Keep real MISSING conclusions disabled until Stage 6 supplies an independently verifiable expectation and observed SLA."
+}

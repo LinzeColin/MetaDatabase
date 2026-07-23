@@ -1,0 +1,102 @@
+{
+  "acceptance_id": "AC-016",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "4578996d9a9f9eedb71794d1fb261b53fc6ec3c4ddc5feb533ef411aa77a806d",
+    "evidence_required": "evidence/acceptance/AC-016-public-redaction.json",
+    "pass_gate_text": "AC-016 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_016.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-016-RMD01-20260723",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0407.json",
+      "evidence_sha256": "ef98e4f167d2379c8785a34110e34e1ea36b0fe39783956e02a49a98cde7696f",
+      "final_claim_status": "PARTIAL",
+      "reason": "The synthetic public document exposes no private source, path, exact count or timestamp field and passes the local publication scan; a real PR/publication leak scan is not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0407"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0601.json",
+      "evidence_sha256": "32b1ab1ded2897cc92bf9aab81abe90f5cb4342cd7f779eca1ca362b8002b682",
+      "final_claim_status": "PARTIAL",
+      "reason": "Public redaction and strict evidence shapes pass locally; no remote public write occurred.",
+      "source_record_status": "PASS",
+      "task_id": "T0601"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-016",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_016_pass_gate",
+    "path": "tests/acceptance/test_ac_016.py",
+    "sha256": "1e94fb934a8598851749039f3f50e36976ea766678b33a636c44b9a4a521b78c"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0407",
+      "T0601"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "3471b37e19c4723d040980fd95dda1913659ecdaebf1f0caabfadd90b0a6d8e6"
+  }
+}

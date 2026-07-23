@@ -1,0 +1,249 @@
+{
+  "schema_version": "moomooau.delivery-status.v1",
+  "status_model_version": "moomooau.delivery-status-model.v3",
+  "package_version": "1.0.6",
+  "status_as_of_utc": "2026-07-23T08:55:58Z",
+  "authority": {
+    "path": "machine/status/latest.json",
+    "precedence": [
+      "machine/contracts/requirements.json and machine/contracts/acceptance_contract.json define product obligations",
+      "machine/contracts/task_graph.json defines formal task completion only",
+      "machine/status/latest.json is the sole current cross-dimensional delivery status",
+      "evidence/tasks and machine/stages are source records, not overall status authorities",
+      "machine/facts and the seven human documents are deterministic derivatives"
+    ]
+  },
+  "overall_status": "LOCAL_MECHANISMS_EVIDENCED_FINAL_ACCEPTANCE_BLOCKED",
+  "dimensions": {
+    "evidence_integrity": {
+      "status": "PASS",
+      "verified_records": 58,
+      "total_records": 58,
+      "failures": 0
+    },
+    "mechanism_implementation": {
+      "status": "LOCAL_MECHANISMS_EVIDENCED",
+      "evidenced_tasks": 58,
+      "total_tasks": 58,
+      "scope": "LOCAL_OR_SYNTHETIC_ONLY"
+    },
+    "formal_task_completion": {
+      "status": "INCOMPLETE",
+      "completed": 7,
+      "planned": 51,
+      "total": 58,
+      "contract_version": "1.0.1"
+    },
+    "protected_oracles": {
+      "status": "NOT_RUN",
+      "declared": 43,
+      "executed": 0,
+      "passed": 0,
+      "not_run": 43
+    },
+    "final_acceptance": {
+      "status": "BLOCKED",
+      "passed": 0,
+      "blocked": 34,
+      "total": 34
+    },
+    "production_readiness": {
+      "status": "BLOCKED",
+      "workflow_runs": 0,
+      "reason_codes": [
+        "FORMAL_TASKS_INCOMPLETE",
+        "PROTECTED_ORACLES_NOT_RUN",
+        "FINAL_ACCEPTANCE_BLOCKED",
+        "PRODUCTION_WORKFLOW_NOT_RUN"
+      ]
+    },
+    "publication": {
+      "status": "LOCAL_ONLY_NOT_PUBLISHED",
+      "remote_publications": 0
+    }
+  },
+  "stage_summary": [
+    {
+      "stage_id": "S0",
+      "evidence_validation_status": "PASS",
+      "evidence_records": 7,
+      "mechanism_status": "BASELINE_COMPLETE",
+      "formal_completed": 7,
+      "formal_planned": 0,
+      "record_status_counts": {
+        "VALID": 7
+      },
+      "linked_final_claim_counts": {},
+      "protected_oracles_executed": 0
+    },
+    {
+      "stage_id": "S1",
+      "evidence_validation_status": "PASS",
+      "evidence_records": 7,
+      "mechanism_status": "LOCAL_SYNTHETIC_MECHANISMS_EVIDENCED",
+      "formal_completed": 0,
+      "formal_planned": 7,
+      "record_status_counts": {
+        "PASS": 7
+      },
+      "linked_final_claim_counts": {
+        "NOT_RUN": 2,
+        "PARTIAL": 16
+      },
+      "protected_oracles_executed": 0
+    },
+    {
+      "stage_id": "S2",
+      "evidence_validation_status": "PASS",
+      "evidence_records": 7,
+      "mechanism_status": "LOCAL_SYNTHETIC_MECHANISMS_EVIDENCED",
+      "formal_completed": 0,
+      "formal_planned": 7,
+      "record_status_counts": {
+        "PASS": 7
+      },
+      "linked_final_claim_counts": {
+        "NOT_RUN": 3,
+        "PARTIAL": 12
+      },
+      "protected_oracles_executed": 0
+    },
+    {
+      "stage_id": "S3",
+      "evidence_validation_status": "PASS",
+      "evidence_records": 7,
+      "mechanism_status": "LOCAL_SYNTHETIC_MECHANISMS_EVIDENCED",
+      "formal_completed": 0,
+      "formal_planned": 7,
+      "record_status_counts": {
+        "PASS": 7
+      },
+      "linked_final_claim_counts": {
+        "NOT_RUN": 2,
+        "PARTIAL": 14
+      },
+      "protected_oracles_executed": 0
+    },
+    {
+      "stage_id": "S4",
+      "evidence_validation_status": "PASS",
+      "evidence_records": 7,
+      "mechanism_status": "LOCAL_SYNTHETIC_MECHANISMS_EVIDENCED",
+      "formal_completed": 0,
+      "formal_planned": 7,
+      "record_status_counts": {
+        "PASS": 7
+      },
+      "linked_final_claim_counts": {
+        "PARTIAL": 13
+      },
+      "protected_oracles_executed": 0
+    },
+    {
+      "stage_id": "S5",
+      "evidence_validation_status": "PASS",
+      "evidence_records": 7,
+      "mechanism_status": "LOCAL_SYNTHETIC_MECHANISMS_EVIDENCED",
+      "formal_completed": 0,
+      "formal_planned": 7,
+      "record_status_counts": {
+        "PASS": 7
+      },
+      "linked_final_claim_counts": {
+        "PARTIAL": 17
+      },
+      "protected_oracles_executed": 0
+    },
+    {
+      "stage_id": "S6",
+      "evidence_validation_status": "PASS",
+      "evidence_records": 8,
+      "mechanism_status": "LOCAL_SYNTHETIC_MECHANISMS_EVIDENCED",
+      "formal_completed": 0,
+      "formal_planned": 8,
+      "record_status_counts": {
+        "PASS": 8
+      },
+      "linked_final_claim_counts": {
+        "PARTIAL": 23
+      },
+      "protected_oracles_executed": 0
+    },
+    {
+      "stage_id": "S7",
+      "evidence_validation_status": "PASS",
+      "evidence_records": 8,
+      "mechanism_status": "LOCAL_PREFLIGHT_MECHANISMS_EVIDENCED",
+      "formal_completed": 0,
+      "formal_planned": 8,
+      "record_status_counts": {
+        "BLOCKED": 7,
+        "READY": 1
+      },
+      "linked_final_claim_counts": {
+        "NOT_RUN": 12,
+        "PARTIAL": 12
+      },
+      "protected_oracles_executed": 0
+    }
+  ],
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_calls": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_classification_rules": 0,
+    "production_parser_profiles": 0,
+    "production_workflow_runs": 0,
+    "protected_approvals_executed": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "secrets_read": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "blockers": [
+    "FORMAL_TASKS_INCOMPLETE",
+    "PROTECTED_ORACLES_NOT_RUN",
+    "FINAL_ACCEPTANCE_BLOCKED",
+    "PRODUCTION_WORKFLOW_NOT_RUN",
+    "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+    "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+  ],
+  "resolved_review_findings": [
+    "REV-P0-002",
+    "REV-P0-003",
+    "REV-P1-004",
+    "REV-P1-006",
+    "REV-P2-007"
+  ],
+  "next_action": "Use the one owner-authorized controlled main delivery to provision and execute exactly one T0702 Raw-only Beta dispatch; keep Gmail mutation, M3, Processed, Timeline, schedule, any second delivery and final publication blocked.",
+  "source_digests": {
+    "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
+    "acceptance_summary_sha256": "cb3becb0dfb5a01a384d3b34c164cba9ad449a2389aa8d80cbb3e62087920ab8",
+    "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
+    "delivery_status_model_sha256": "45d00bad7b6e86235290e4a4012a1cac8c7103a73964bd93c91d06fa2b7a6e8a",
+    "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
+    "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
+    "production_composition_sha256": "7b0574674e39d257439db56fa85fdac13a7f511f06cdcebb8474c2ff4e2ec75f",
+    "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
+    "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
+    "task_evidence_root_sha256": "ca457270bd52b2e475702ecc9242a8785159c1abfbd1f85cdab31f8171eb9487",
+    "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
+    "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
+    "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",
+    "assurance_provenance_root_sha256": "65eaaa037e17b7011b78410c50e3534a7d4e6e8cf65f624d684b4f968275cbea"
+  }
+}

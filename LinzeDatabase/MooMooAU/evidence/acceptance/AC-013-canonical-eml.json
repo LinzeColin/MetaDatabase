@@ -1,0 +1,120 @@
+{
+  "acceptance_id": "AC-013",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "459435e061ca6ad42e41d44187f2e68929f7510940266c5e39fad58a7a6fa92c",
+    "evidence_required": "evidence/acceptance/AC-013-canonical-eml.json",
+    "pass_gate_text": "AC-013 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_013.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-013-RMD01-20260723",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0103.json",
+      "evidence_sha256": "3d2d68289cd092afc0aa9c6a4f9a46678d37b86776a0c695b2b9a01ff134265e",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic EML RAW is canonical; real Gmail RAW coverage belongs to Stage 3.",
+      "source_record_status": "PASS",
+      "task_id": "T0103"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0104.json",
+      "evidence_sha256": "4cfa3c4c601e3e391eef5cc07ee127850e7ec24649cd5ed7d5b32eb8a9b847d7",
+      "final_claim_status": "PARTIAL",
+      "reason": "Recovered synthetic RAW is byte-exact; the protected Gmail oracle remains unrun.",
+      "source_record_status": "PASS",
+      "task_id": "T0104"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0305.json",
+      "evidence_sha256": "20ea44873b3b54868f8d21388f7996282c07fefec2adbaf381ea6245c9f1cd98",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic Gmail RAW bytes and SHA-256 match exactly; no real Gmail RAW object or remote decrypt round-trip was used.",
+      "source_record_status": "PASS",
+      "task_id": "T0305"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0601.json",
+      "evidence_sha256": "32b1ab1ded2897cc92bf9aab81abe90f5cb4342cd7f779eca1ca362b8002b682",
+      "final_claim_status": "PARTIAL",
+      "reason": "Canonical Raw and deterministic identifiers pass property tests with synthetic bytes; real Gmail source bytes were not read.",
+      "source_record_status": "PASS",
+      "task_id": "T0601"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-013",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_013_pass_gate",
+    "path": "tests/acceptance/test_ac_013.py",
+    "sha256": "9e698a9ec19f336577c160c77f2b5276e924436cf9e056d5d3aadbab26e0cdf9"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0103",
+      "T0104",
+      "T0305",
+      "T0601"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "ec1fe37aafc7809e4e0166a7a6ef651f3b100824e3b2fb98cc1d9c93c4347eeb"
+  }
+}

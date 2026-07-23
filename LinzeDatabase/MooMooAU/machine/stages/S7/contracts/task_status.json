@@ -1,0 +1,23 @@
+{
+  "schema_version": "moomooau.stage-task-status.v1",
+  "stage_id": "S7",
+  "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
+  "stage_status": "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES",
+  "tasks": [
+    {"id": "T0701", "status": "implementation_ready_protected_not_run"},
+    {"id": "T0702", "status": "owner_authorized_provisioning_pending_protected_oracle"},
+    {"id": "T0703", "status": "implementation_ready_blocked_beta_predecessor_and_observation_window"},
+    {"id": "T0704", "status": "implementation_ready_blocked_registry_predecessor_and_observation_window"},
+    {"id": "T0705", "status": "implementation_ready_blocked_blue_green_budget_and_protected_schedule"},
+    {"id": "T0706", "status": "local_policy_ready_blocked_ga_and_owner_created_automation"},
+    {"id": "T0707", "status": "local_mechanism_ready_blocked_predecessor_owner_key_adapters_and_protected_drill"},
+    {"id": "T0708", "status": "local_policy_ready_blocked_recovery_predecessor_candidate_canary_and_protected_operations"}
+  ],
+  "scoped_preflight_task_oracle_file_count": 8,
+  "implementation_completion_status": "LOCAL_MECHANISMS_READY",
+  "completed_task_count": 0,
+  "protected_oracles_executed": 0,
+  "final_acceptances_passed": 0,
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "ordering_status": "OWNER_AUTHORIZED_ONE_CONTROLLED_MAIN_DELIVERY"
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://metadatabase.example/schemas/moomooau/transaction-v1",
+  "title": "MooMooAU Transaction v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_id",
+    "transaction_id",
+    "transaction_date_utc",
+    "currency",
+    "amount",
+    "quantity",
+    "status"
+  ],
+  "properties": {
+    "source_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{16,}$"},
+    "transaction_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{8,}$"},
+    "transaction_date_utc": {"type": ["string", "null"], "format": "date-time"},
+    "currency": {"type": "string", "pattern": "^[A-Z]{3}$"},
+    "amount": {"type": ["number", "null"]},
+    "quantity": {"type": ["number", "null"]},
+    "status": {"enum": ["OBSERVED", "PENDING", "UNKNOWN"]}
+  }
+}

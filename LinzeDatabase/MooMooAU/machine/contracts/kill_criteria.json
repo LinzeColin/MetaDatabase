@@ -1,0 +1,64 @@
+{
+  "kill_criteria": [
+    {
+      "id": "KILL-001",
+      "condition": "任何非 Moomoo 邮件被完整读取、下载或修改",
+      "action": "立即关闭发现后续与 M3，撤销 OAuth，安全调查",
+      "resume_gate": "根因修复且 AC-001/004/006 全量通过"
+    },
+    {
+      "id": "KILL-002",
+      "condition": "公开仓、日志、Issue、PR 或 Artifact 出现敏感明文/Secret",
+      "action": "停机、清理、轮换、历史修复",
+      "resume_gate": "事件关闭且 AC-011/012/016/022 通过"
+    },
+    {
+      "id": "KILL-003",
+      "condition": "Raw 远端恢复 SHA 与 Gmail RAW 不一致",
+      "action": "禁止 M3，保留 Gmail 原件",
+      "resume_gate": "AC-007/013/027 通过"
+    },
+    {
+      "id": "KILL-004",
+      "condition": "禁止 Gmail 端点被调用或 thread trash 发生",
+      "action": "撤销 OAuth、尝试可逆恢复、停止生产",
+      "resume_gate": "AC-006/018 通过并安全复审"
+    },
+    {
+      "id": "KILL-005",
+      "condition": "Recovery Key 无法恢复抽样密文",
+      "action": "停止 M3 和新写入，修复密钥链",
+      "resume_gate": "AC-012/032 通过"
+    },
+    {
+      "id": "KILL-006",
+      "condition": "真实邮件/附件/Secret 被发送给模型",
+      "action": "禁用模型相关自动化并安全调查",
+      "resume_gate": "AC-020/024/033 通过"
+    },
+    {
+      "id": "KILL-007",
+      "condition": "私有仓或 LFS 达到 Red 容量阈值",
+      "action": "停止回填和非必要衍生数据",
+      "resume_gate": "容量方案通过且不增加第二数据仓"
+    },
+    {
+      "id": "KILL-008",
+      "condition": "Full Reconciliation 存在无法解释漏件",
+      "action": "降级 Raw-only，停止 M3",
+      "resume_gate": "AC-003/025 通过"
+    },
+    {
+      "id": "KILL-009",
+      "condition": "Parser 静默地产生错误业务数据",
+      "action": "回退 current 指针，隔离新版本",
+      "resume_gate": "Golden/Blue-Green/Oracle 全通过"
+    },
+    {
+      "id": "KILL-010",
+      "condition": "连续 90 天维护成本持续显著高于避免的手工与重复处理收益",
+      "action": "保留加密 Raw，暂停 Processed/Timeline 自动化",
+      "resume_gate": "重新证实收益覆盖成本"
+    }
+  ]
+}

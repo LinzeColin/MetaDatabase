@@ -1,0 +1,86 @@
+{
+  "schema_version": "moomooau.stage0-semantic-gate.v2",
+  "stage_id": "S0",
+  "baseline_version": "1.0.1",
+  "gate_policy": "FAIL_CLOSED",
+  "current_status": "PASS",
+  "baseline_repair_authorized": true,
+  "authorization": {
+    "decision": "Owner selected option 1",
+    "scope": "baseline-preserving v1.0.1 Stage 0 repair only",
+    "authorized_at_utc": "2026-07-19T22:06:11Z"
+  },
+  "blocking_issues": [
+    {
+      "id": "S0G-001",
+      "title": "Stage 0 task pass gates depend on later-stage acceptance",
+      "status": "RESOLVED",
+      "severity": "BLOCKER",
+      "resolution": "Added S0AC-001 through S0AC-007 as stage-local gates while preserving all AC-* links for their owning stages and final review.",
+      "evidence_refs": [
+        "machine/contracts/stage_acceptance_contract.json",
+        "machine/contracts/task_graph.json",
+        "evidence/tasks"
+      ]
+    },
+    {
+      "id": "S0G-002",
+      "title": "Source validator invalidates its declared package integrity",
+      "status": "RESOLVED",
+      "severity": "BLOCKER",
+      "resolution": "Replaced it with a read-only manifest validator; manifest generation is a separate explicit command and validation checks before/after tree digests.",
+      "evidence_refs": [
+        "machine/tools/validate_package.py",
+        "machine/tools/build_package_manifest.py",
+        "taskpack/PACKAGE_MANIFEST.v1.0.1.json"
+      ]
+    },
+    {
+      "id": "S0G-003",
+      "title": "Atomic one-asset replacement is not backed by the selected platform API",
+      "status": "RESOLVED",
+      "severity": "BLOCKER",
+      "resolution": "Removed the atomic claim and contracted verified serial delete-upload: healthy state exactly one, every state at most one, explicit zero-asset repair after failure, no persistent backup image.",
+      "evidence_refs": [
+        "machine/contracts/timeline_publish_protocol.json",
+        "machine/contracts/acceptance_contract.json",
+        "research/platform_capabilities.v1.0.1.json"
+      ]
+    },
+    {
+      "id": "S0G-004",
+      "title": "Frozen seven-file plane is not renderable by current shared Governance",
+      "status": "RESOLVED",
+      "severity": "BLOCKER",
+      "resolution": "Pinned an external Governance checkout, added only a project-specific fact adapter, and made byte-identical temporary rendering plus shared gates mandatory.",
+      "evidence_refs": [
+        "machine/contracts/governance_binding.json",
+        "machine/tools/build_governance_facts.py",
+        "machine/tools/validate_governance.py",
+        "文档"
+      ]
+    },
+    {
+      "id": "S0G-005",
+      "title": "Frozen public source discloses private repository locators",
+      "status": "RESOLVED",
+      "severity": "BLOCKER",
+      "resolution": "Removed private names from the publishable tree, retained only hashed detection tokens, and prohibited pushing local v1.0.0 history; final upload requires a clean snapshot history.",
+      "evidence_refs": [
+        "machine/contracts/publication_safety.json",
+        "machine/tools/validate_publication.py",
+        "taskpack/SOURCE_PROVENANCE.json"
+      ]
+    }
+  ],
+  "nonblocking_unknowns": [
+    {
+      "id": "S0R-001",
+      "title": "One proposed sender seed lacks authoritative public verification",
+      "status": "CONTROLLED_UNKNOWN",
+      "resolution": "Removed it from the verified seed claim; Stage 3 must keep every unverified candidate UNKNOWN until authoritative or protected Owner evidence exists."
+    }
+  ],
+  "stage_pass_rule": "All seven S0AC records PASS, the read-only package and publication validators PASS, pinned shared Governance renders byte-identical documents and all frozen invariants remain unchanged.",
+  "next_stage": "S1 may start only in a later run; no remote publication is allowed."
+}

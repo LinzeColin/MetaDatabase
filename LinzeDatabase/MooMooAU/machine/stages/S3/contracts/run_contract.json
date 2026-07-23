@@ -1,0 +1,61 @@
+{
+  "schema_version": "moomooau.run-contract.v1",
+  "run_id": "S3-20260720-gmail-raw-boundary",
+  "stage_id": "S3",
+  "goal": "Complete T0301-T0307 with deterministic full-mailbox discovery, fail-closed sender verification, byte-exact Gmail RAW handling, bounded attachment inspection and encrypted append-only Raw commit boundaries without production authority.",
+  "baseline_commit": "19167f94ed82cc44ff92ee9c46d3e606612fbd27",
+  "baseline_manifest_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
+  "scope": [
+    "message-level All Mail, Inbox, Spam and Trash discovery with complete pagination",
+    "read-only Gmail Filter audit counts",
+    "Gmail History incremental sync with deterministic full-reconciliation fallback",
+    "versioned verified-sender registry that is empty until protected evidence exists",
+    "independent pre-RAW and pre-M3 sender, authentication and fingerprint verification",
+    "byte-exact Gmail RAW base64url decode and RFC message preservation",
+    "bounded PDF, XLSX and CSV attachment inspection with quarantine",
+    "opaque content addressing, official age encryption and append-only private-first Raw planning",
+    "local synthetic Stage 3 evidence and no-Secret CI definition"
+  ],
+  "non_goals": [
+    "real Gmail authorization, message access or mutation",
+    "activation of any production sender entry without protected first-party evidence",
+    "real private repository lookup, write, recovery or public evidence publication",
+    "M3 authorization or source-message Trash",
+    "Processed parsing, timeline publishing, production scheduling or deployment",
+    "Stage 4 or later tasks",
+    "final AC-* verdicts"
+  ],
+  "prohibitions": {
+    "real_gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "real_secrets_read": 0,
+    "protected_key_deliveries": 0,
+    "external_writes": 0,
+    "remote_publication": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_mutations": 0,
+    "raw_before_verification": 0,
+    "untrusted_content_execution": 0
+  },
+  "protected_oracles": [
+    "authoritative owner-approved Moomoo AU sender evidence and production registry activation",
+    "real Gmail full-mailbox candidate-set reconciliation",
+    "real Gmail RAW byte parity for verified source messages",
+    "real private GitHub append and remote recovery verification",
+    "AC-001 zero-collateral end-to-end canary",
+    "AC-023 deployed 04:30 Australia/Sydney schedule and compensation",
+    "remote Stage 3 CI execution"
+  ],
+  "rollback": "Revert the single local Stage 3 commit; Stage 2 remains at its pinned verified commit and no remote state has changed.",
+  "stop_conditions": [
+    "frozen Stage 0 manifest or cumulative Stage 2 gate drifts",
+    "real or sensitive sender, message, credential or repository data enters the publishable tree",
+    "an unverified candidate can receive a RAW permit",
+    "plaintext can reach a persistence adapter",
+    "untrusted attachment content can execute, escape a path or access a network",
+    "a protected oracle would require credential, mailbox or remote-write authority",
+    "Stage 4 behavior is required to make a Stage 3 local gate pass"
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "acceptance_id": "AC-033",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_NOT_RUN",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "cc8da4c9d7dfab52a8e37bfcf4636e0041ca05b6e1c2913262562a73687ee4b0",
+    "evidence_required": "evidence/acceptance/AC-033-dual-assurance.json",
+    "pass_gate_text": "AC-033 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_033.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-033-RMD01-20260723",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0107.json",
+      "evidence_sha256": "8b1fd8ab818a707830f4d3ed3b2262475c7ffa4631cf554d93f9c8426a35f6af",
+      "final_claim_status": "PARTIAL",
+      "reason": "Base software gates run on synthetic inputs; load, chaos, security and model pipelines belong to Stage 6.",
+      "source_record_status": "PASS",
+      "task_id": "T0107"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0207.json",
+      "evidence_sha256": "0513146158c83f4c13c0c6dac172ad921ad133ad47add92ba4b96bff56518e94",
+      "final_claim_status": "NOT_RUN",
+      "reason": "This stage defines the software security lane only; full software/model dual assurance belongs to later stages and final review.",
+      "source_record_status": "PASS",
+      "task_id": "T0207"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0605.json",
+      "evidence_sha256": "e88e0fd4c535ab5c92b350999b2b79b1dce7056c3f000791d55d898012805cd5",
+      "final_claim_status": "PARTIAL",
+      "reason": "Codex maintenance is constrained to strict public health evidence and zero or one Issue update; remote monitoring was not executed.",
+      "source_record_status": "PASS",
+      "task_id": "T0605"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0606.json",
+      "evidence_sha256": "685c143f90ea8e2693bfd445dedd23c316ab3965bde8dae230575a1d47de6910",
+      "final_claim_status": "PARTIAL",
+      "reason": "Two actual read-only reviewers from distinct model families independently returned conditional pass after remediation; remote post-deployment review remains not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0606"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0701.json",
+      "evidence_sha256": "a3490818ea02b780be3a0a9ee299d97fae0d1d10915eb46cd12332a3d8714c25",
+      "final_claim_status": "PARTIAL",
+      "reason": "Local taskpack and implementation checks pass; remote Alpha and later observations remain not run.",
+      "source_record_status": "READY",
+      "task_id": "T0701"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-033",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_033_pass_gate",
+    "path": "tests/acceptance/test_ac_033.py",
+    "sha256": "ba91a9bd556f545ce1ce79d108ecc3ededa25026a1b942c58f7b7313eae25429"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0107",
+      "T0207",
+      "T0605",
+      "T0606",
+      "T0701"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "4a5f657d02305ce52fc7d0d3197c6a1e1727d2fbcd286c9bd22aaa1db3dc57ec"
+  }
+}

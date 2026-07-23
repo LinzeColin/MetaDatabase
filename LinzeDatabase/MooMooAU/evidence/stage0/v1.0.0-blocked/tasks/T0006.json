@@ -1,0 +1,25 @@
+{
+  "schema_version": "moomooau.stage0-evidence.v1",
+  "evidence_id": "S0-T0006-20260720",
+  "stage_id": "S0",
+  "task_id": "T0006",
+  "observed_at_utc": "2026-07-19T21:09:30Z",
+  "base_commit": "2f77723bf52f54e16f23958cc72e5bcfc3dcae71",
+  "source_package_version": "1.0.0",
+  "record_status": "VALID",
+  "delivery_status": "BLOCKED",
+  "checks": [
+    {
+      "id": "seven-human-files-present",
+      "status": "PASS",
+      "evidence_ref": "文档"
+    },
+    {
+      "id": "current-governance-render-consistency",
+      "status": "BLOCKED",
+      "evidence_ref": "machine/contracts/stage0_semantic_gate.json"
+    }
+  ],
+  "blockers": ["S0G-004"],
+  "next_action": "Regenerate all seven files through the current shared renderer only after a lossless adapter is approved."
+}

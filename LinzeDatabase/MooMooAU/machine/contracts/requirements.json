@@ -1,0 +1,345 @@
+{
+  "version": "1.0.1",
+  "requirements": [
+    {
+      "id": "RQ-001",
+      "title": "对象零误伤边界",
+      "module": "scope",
+      "priority": "P0",
+      "statement": "系统只处理经确定性验证为 Moomoo AU 相关的入站 Gmail 消息；对任何其他消息不得读取完整正文、下载附件、写入数据库或修改标签。",
+      "rationale": "零误伤优先级高于新发件人即时召回。",
+      "acceptance_id": "AC-001",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-002",
+      "title": "全部已验证邮件类型覆盖",
+      "module": "scope",
+      "priority": "P0",
+      "statement": "所有已验证的 Moomoo AU 入站邮件类型都进入归档和 M3，不因营销、安全、KYC、税务或交易类别而例外。",
+      "rationale": "用户明确要求 M3 覆盖所有 Moomoo 相关类型。",
+      "acceptance_id": "AC-002",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-003",
+      "title": "全邮箱位置覆盖",
+      "module": "discovery",
+      "priority": "P0",
+      "statement": "发现流程必须覆盖 Inbox、All Mail、Spam 与 Trash，并以 includeSpamTrash=true 执行消息级分页；同时只读审计 Gmail Filters。",
+      "rationale": "现有真实邮件大量位于 Trash，且 Block 后通常进入 Spam。",
+      "acceptance_id": "AC-003",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-004",
+      "title": "发件人确定性双重验证",
+      "module": "classification",
+      "priority": "P0",
+      "statement": "消息在获取完整 Raw 前和执行 M3 前各进行一次独立验证：精确 verified sender、身份验证对齐、Moomoo AU 业务指纹必须同时成立。",
+      "rationale": "主题、显示名和正文关键词均可伪造，不能作为单独依据。",
+      "acceptance_id": "AC-004",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-005",
+      "title": "新发件人安全默认",
+      "module": "classification",
+      "priority": "P0",
+      "statement": "疑似新 Moomoo 发件人未进入版本化 verified sender 注册表前，不读取完整正文、不下载、不归档、不移动。",
+      "rationale": "防止攻击者利用品牌关键词诱导归档和删除。",
+      "acceptance_id": "AC-005",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-006",
+      "title": "消息级 M3",
+      "module": "gmail-mutation",
+      "priority": "P0",
+      "statement": "系统只能对已通过完整 Gate 的单封消息调用 users.messages.trash；禁止 threads.trash、messages.delete、batchDelete 和任何永久删除。",
+      "rationale": "线程级 Trash 可能误伤同一对话中的其他邮件。",
+      "acceptance_id": "AC-006",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-007",
+      "title": "M3 远端恢复 Gate",
+      "module": "gmail-mutation",
+      "priority": "P0",
+      "statement": "只有完整 Raw 已 age 加密、提交到私有远端、重新拉取、成功解密并与 Gmail Raw SHA-256 一致后，才允许 M3。",
+      "rationale": "本地成功不等于远端可恢复，M3 会启动 Gmail 30 天清理窗口。",
+      "acceptance_id": "AC-007",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-008",
+      "title": "单一公开代码位置",
+      "module": "repository",
+      "priority": "P0",
+      "statement": "全部代码、工作流、测试、Schema 与公开证据只能位于公开仓 LinzeColin/MetaDatabase 的 LinzeDatabase/MooMooAU 及仓根 .github/workflows 中。",
+      "rationale": "保持代码永远公开并复用现有 MetaDatabase 治理。",
+      "acceptance_id": "AC-008",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-009",
+      "title": "单一私有数据仓",
+      "module": "repository",
+      "priority": "P0",
+      "statement": "只使用受保护配置提供的同一个私有仓 immutable Repository ID，运行时解析当前名称；公开树不保存私有仓名称，只写 MooMooAU/ 命名空间。",
+      "rationale": "用户不接受第二数据仓或额外治理面。",
+      "acceptance_id": "AC-009",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-010",
+      "title": "云端临时执行",
+      "module": "runtime",
+      "priority": "P0",
+      "statement": "生产数据平面只运行在 GitHub-hosted Runner；明文只存在于进程内存或 Job 期间 tmpfs，Job 后不建立项目控制的持久明文。",
+      "rationale": "保证用户电脑零负担、无本地脚本和无自建服务器。",
+      "acceptance_id": "AC-010",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-011",
+      "title": "全部敏感数据 age 加密",
+      "module": "encryption",
+      "priority": "P0",
+      "statement": "完整 Raw、附件、精确私有 Inventory、State 和所有敏感 Processed 在进入 GitHub 持久层前必须使用 age X25519 加密。",
+      "rationale": "公开代码仓和私有 Git 持久层均不得出现金融明文。",
+      "acceptance_id": "AC-011",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-012",
+      "title": "恢复钥匙一次性交付",
+      "module": "encryption",
+      "priority": "P0",
+      "statement": "部署时在临时云端生成 age X25519 Identity，私钥写入受保护 GitHub Environment Secret，并通过开发线程提供一次性下载文件 MooMooAU-Recovery-Key.agekey；不得打印或写入代码/任务包。",
+      "rationale": "用户需要持有恢复钥匙，但不能在聊天、Git、日志中泄漏。",
+      "acceptance_id": "AC-012",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-013",
+      "title": "Canonical Raw 完整邮件",
+      "module": "data",
+      "priority": "P0",
+      "statement": "Canonical Raw 必须是 Gmail messages.get(format=RAW) 的完整 RFC 2822/EML 字节；附件拆出对象仅作为附加 Raw，不替代 EML。",
+      "rationale": "保留 Headers、身份验证结果、MIME 边界、正文、内嵌资源和附件的完整审计证据。",
+      "acceptance_id": "AC-013",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-014",
+      "title": "附件 Magic Bytes 识别",
+      "module": "data",
+      "priority": "P0",
+      "statement": "附件分类不能只依赖 MIME；必须结合扩展名、Magic Bytes、格式解析和安全限额识别 PDF、XLSX、CSV 等。",
+      "rationale": "真实 Moomoo PDF 可能标为 application/octet-stream。",
+      "acceptance_id": "AC-014",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-015",
+      "title": "Processed 版本化与血缘",
+      "module": "data",
+      "priority": "P0",
+      "statement": "Processed 以版本化 Canonical JSON 与 Partitioned Parquet 保存，每条记录保留 source_id、Raw 摘要、parser 版本、导入时间和字段级来源。",
+      "rationale": "供 MetaDatabase 下游项目直接复用，避免重复首次解析。",
+      "acceptance_id": "AC-015",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-016",
+      "title": "公开面严格脱敏",
+      "module": "privacy",
+      "priority": "P0",
+      "statement": "公开 Inventory、Schema 和 Evidence 只能包含桶化数量/新鲜度、Schema/Parser 版本、状态和 Opaque Evidence Root。",
+      "rationale": "公开仓不得泄漏账户活动、身份、证券或私有仓位置。",
+      "acceptance_id": "AC-016",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-017",
+      "title": "PDF 密码未知不阻塞 Raw/M3",
+      "module": "processing",
+      "priority": "P0",
+      "statement": "Moomoo PDF Password 缺失或错误时，完整 EML 与附件仍归档和远端恢复；Processed 标记 WAITING_FOR_PDF_PASSWORD，满足 Raw Gate 后仍可 M3。",
+      "rationale": "用户尚不确定手机号和开户证件尾号，不能丢失邮件或阻塞全系统。",
+      "acceptance_id": "AC-017",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-018",
+      "title": "单一 Gmail OAuth 与端点守卫",
+      "module": "identity",
+      "priority": "P0",
+      "statement": "为降低治理复杂度使用一个 gmail.modify OAuth 凭证，但实现硬编码 HTTP 方法/路径允许名单和单元/集成测试。",
+      "rationale": "M3 需要 gmail.modify；用户不接受双凭证复杂度。",
+      "acceptance_id": "AC-018",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-019",
+      "title": "私有仓短时最小权限",
+      "module": "identity",
+      "priority": "P0",
+      "statement": "跨仓写入必须使用仅安装到单一私有数据仓、仅 Contents/Metadata 必需权限、短时生成的 GitHub App Installation Token。",
+      "rationale": "避免长期 PAT，并适应仓库改名。",
+      "acceptance_id": "AC-019",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-020",
+      "title": "不可信内容隔离",
+      "module": "security",
+      "priority": "P0",
+      "statement": "邮件正文、HTML、附件、文件名和公式必须视为不可信数据，不得作为 Codex 指令或执行脚本、宏、链接、公式和嵌入代码。",
+      "rationale": "防 Prompt Injection、路径穿越、宏、PDF JavaScript、CSV 公式和压缩炸弹。",
+      "acceptance_id": "AC-020",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-021",
+      "title": "供应链可复现与治理",
+      "module": "security",
+      "priority": "P0",
+      "statement": "依赖与 Actions 固定版本/完整 SHA，生成 SBOM，执行 CodeQL、依赖审计、Secret Scan 和补丁生命周期检查。",
+      "rationale": "公开工作流将处理高敏金融邮件，供应链是主要攻击面。",
+      "acceptance_id": "AC-021",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-022",
+      "title": "明文零持久缓存",
+      "module": "runtime",
+      "priority": "P0",
+      "statement": "不得使用 GitHub Actions Cache、明文 Artifact、持久 Volume、Core Dump、Swap 或 Debug Dump 存放敏感数据；Job 结束强制清理。",
+      "rationale": "满足用户对本地和云端持久负担最小化的要求。",
+      "acceptance_id": "AC-022",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-023",
+      "title": "04:30 悉尼时区运行",
+      "module": "operations",
+      "priority": "P0",
+      "statement": "主 GitHub Actions 工作流每天以 cron 30 4 * * *、timezone Australia/Sydney 建立 04:30 本地调度目标，并支持 workflow_dispatch；平台排队延迟或丢弃不得伪报准点，下一次运行执行幂等补偿，周日同一次运行增加 Full Reconciliation。",
+      "rationale": "用户明确指定 04:30，IANA 时区自动处理 AEST/AEDT；GitHub 官方说明 schedule 可能延迟或丢弃，因此契约冻结调度目标与自动补偿，而不虚构精确启动 SLA。",
+      "acceptance_id": "AC-023",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-024",
+      "title": "Codex 职责简单稳定",
+      "module": "operations",
+      "priority": "P0",
+      "statement": "用户只在 Codex 开发线程交互；Codex Automation 仅为普通、被动、非关键健康检查，不回到同一对话、不触发工作流、不读取 Gmail/私有数据/Secret、不修改代码。",
+      "rationale": "Codex Auto 容易出错，不能成为生产控制或用户入口。",
+      "acceptance_id": "AC-024",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-025",
+      "title": "Gmail History 与全量补偿",
+      "module": "discovery",
+      "priority": "P0",
+      "statement": "日常使用 Gmail History 增量水位；水位失效、404、差异或每周日时执行有界 Full Reconciliation。",
+      "rationale": "History 保留有限且定时任务可能延迟，必须防静默漏件。",
+      "acceptance_id": "AC-025",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-026",
+      "title": "端到端幂等",
+      "module": "reliability",
+      "priority": "P0",
+      "statement": "同一消息、附件、批次和 Timeline Snapshot 可重复运行而不生成重复逻辑对象、重复 Commit 或重复 Trash 调用；age 密文随机性不得作为逻辑变更或重复对象依据。",
+      "rationale": "自动重试、并发和失败恢复不可造成污染；语义幂等基于内容、Snapshot Root 与明文摘要，而不是随机密文字节。",
+      "acceptance_id": "AC-026",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-027",
+      "title": "私有优先跨仓一致性",
+      "module": "reliability",
+      "priority": "P0",
+      "statement": "私有数据远端提交与恢复验证必须先完成，之后才能发布公开 Evidence；公开失败可补偿，绝不能先声明成功。",
+      "rationale": "GitHub 不提供跨仓原子事务，需用 Saga 保证真相顺序。",
+      "acceptance_id": "AC-027",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-028",
+      "title": "单一最新 Timeline",
+      "module": "timeline",
+      "priority": "P0",
+      "statement": "Timeline 健康稳态只能作为私有 live Release moomooau-live 的单一加密资产 timeline-latest.png.age 存在，任何时刻最多一个；同一 Processed Snapshot 以 Snapshot Root 与已验证明文摘要判定无变化，不比较随机 age 密文；串行替换失败可短暂为零并必须确定性修复，不得保存历史图片、Git 版本、Artifact 或 Cache。",
+      "rationale": "满足不浪费、不占用、不污染 GitHub 和本地存储的要求。",
+      "acceptance_id": "AC-028",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-029",
+      "title": "Timeline 时间语义正确",
+      "module": "timeline",
+      "priority": "P0",
+      "statement": "Timeline 以 Gmail internalDate 为到达事实，保存 UTC 并渲染 Australia/Sydney；保留 statement_label_date，计算日历日、小时和美国市场交易日延迟。",
+      "rationale": "避免 Date Header、AEST 硬编码、夏令时和休市日误判。",
+      "acceptance_id": "AC-029",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-030",
+      "title": "不误报报表缺失",
+      "module": "timeline",
+      "priority": "P0",
+      "statement": "没有独立账户活动证据时，某交易日未收到 Daily Statement 只能标记 NOT_OBSERVED，不能标记 MISSING。",
+      "rationale": "Daily Statement 可能仅在账户发生交易、现金、股息、税费或公司行动时生成。",
+      "acceptance_id": "AC-030",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-031",
+      "title": "公开持续证据",
+      "module": "evidence",
+      "priority": "P0",
+      "statement": "每次运行和发布生成不含敏感数据的 Evidence：版本、状态、桶化覆盖、新鲜度、测试、Private Opaque Root 和恢复结果。",
+      "rationale": "Codex 和开发线程需要在不接触金融明文的情况下诊断。",
+      "acceptance_id": "AC-031",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-032",
+      "title": "主动恢复与混沌验证",
+      "module": "reliability",
+      "priority": "P0",
+      "statement": "发布前和常态化运行必须主动注入 Gmail/GitHub 429/5xx、网络中断、Push 冲突、密文损坏、错误 Secret、取消和超时，验证恢复而非等待真实故障。",
+      "rationale": "高敏 M3 系统必须证明故障时不误删且可恢复。",
+      "acceptance_id": "AC-032",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-033",
+      "title": "双 assurance 流水线",
+      "module": "assurance",
+      "priority": "P0",
+      "statement": "必须分别运行软件正确性/安全流水线与 Codex 能力/安全流水线，真实数据平面不得使用模型。",
+      "rationale": "AI 参与开发和运维时需独立评估越权、幻觉、提示注入和证据诚实性。",
+      "acceptance_id": "AC-033",
+      "status": "frozen"
+    },
+    {
+      "id": "RQ-034",
+      "title": "严格范围与非目标",
+      "module": "scope",
+      "priority": "P0",
+      "statement": "v1 不实现 Moomoo Portal/H2、交易或券商 API、下单、融资期权、Sent/Drafts、永久删除、本地运行、自建服务器、第二私有仓或历史 Timeline。",
+      "rationale": "防范围膨胀、误伤和治理复杂度。",
+      "acceptance_id": "AC-034",
+      "status": "frozen"
+    }
+  ]
+}

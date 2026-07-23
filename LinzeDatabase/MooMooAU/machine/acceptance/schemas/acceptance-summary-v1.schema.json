@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Final Acceptance Summary v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "observed_at_utc", "remediation_base_commit", "scope", "delivery_status",
+    "status", "total_acceptances", "final_acceptances_passed", "final_acceptances_blocked",
+    "passed_acceptance_ids", "blocked_acceptance_ids", "blockers_by_acceptance",
+    "record_root_sha256", "prohibition_counters", "next_action"
+  ],
+  "properties": {
+    "schema_version": {"const": "moomooau.acceptance-summary.v1"},
+    "observed_at_utc": {"type": "string", "format": "date-time"},
+    "remediation_base_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "scope": {"const": "LOCAL_ACCEPTANCE_CONTROL_PLANE"},
+    "delivery_status": {"const": "LOCAL_ONLY_NOT_PUBLISHED"},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "total_acceptances": {"const": 34},
+    "final_acceptances_passed": {"type": "integer", "minimum": 0, "maximum": 34},
+    "final_acceptances_blocked": {"type": "integer", "minimum": 0, "maximum": 34},
+    "passed_acceptance_ids": {"$ref": "#/$defs/acceptanceIds"},
+    "blocked_acceptance_ids": {"$ref": "#/$defs/acceptanceIds"},
+    "blockers_by_acceptance": {
+      "type": "object",
+      "patternProperties": {
+        "^AC-[0-9]{3}$": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      },
+      "additionalProperties": false
+    },
+    "record_root_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "prohibition_counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 20,
+      "maxProperties": 20,
+      "patternProperties": {"^[a-z][a-z0-9_]+$": {"const": 0}}
+    },
+    "next_action": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "acceptanceIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^AC-[0-9]{3}$"}
+    }
+  }
+}

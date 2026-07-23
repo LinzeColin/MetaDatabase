@@ -1,0 +1,22 @@
+{
+  "schema_version": "moomooau.stage1-evidence.v1",
+  "evidence_id": "S1-T0102-LOCAL-20260719",
+  "stage_id": "S1",
+  "task_id": "T0102",
+  "stage_acceptance_id": "S1AC-002",
+  "observed_at_utc": "2026-07-19T23:04:46Z",
+  "baseline_commit": "31a51114f8749b93b1da53f7bb11a7e2f7f916de",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "seven_cli_commands", "status": "PASS", "evidence_ref": "tests/tasks/test_t0102.py"},
+    {"id": "actions_only", "status": "PASS", "evidence_ref": "tests/tasks/test_t0102.py"},
+    {"id": "synthetic_only", "status": "PASS", "evidence_ref": "scope.zero_external_authority"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-010", "status": "PARTIAL", "reason": "The CLI rejects local and non-synthetic runs; production tmpfs and hosted-runner audit remain unrun."},
+    {"id": "AC-034", "status": "PARTIAL", "reason": "Stage 1 non-goals have no implementation entry, but final scope review belongs after Stage 7."}
+  ],
+  "prohibition_counters": {"gmail_calls": 0, "gmail_mutations": 0, "secrets_read": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Keep every production command absent until its owning stage."
+}

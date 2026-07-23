@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://metadatabase.example/schemas/moomooau/classification-registry-v1",
+  "title": "MooMooAU Classification Registry v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "registry_version",
+    "issued_at_utc",
+    "activation_state",
+    "rules"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "moomooau.classification-registry.v1"
+    },
+    "registry_version": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+    },
+    "issued_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "activation_state": {
+      "enum": [
+        "ACTIVE",
+        "EMPTY_PROTECTED_EVIDENCE_REQUIRED"
+      ]
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rule_id",
+          "document_class",
+          "subject_phrases_all",
+          "attachment_kinds_any",
+          "filename_suffixes_any",
+          "evidence_digest"
+        ],
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Z0-9_-]{2,63}$"
+          },
+          "document_class": {
+            "enum": [
+              "DAILY_STATEMENT",
+              "MONTHLY_STATEMENT",
+              "FINANCIAL_YEAR_SUMMARY",
+              "CONTRACT_NOTE",
+              "TRADE_NOTICE",
+              "CASH_NOTICE",
+              "FX_NOTICE",
+              "DIVIDEND_NOTICE",
+              "TAX_NOTICE",
+              "CORPORATE_ACTION",
+              "TRANSFER_CUSTODY",
+              "SECURITY_ALERT",
+              "KYC_COMPLIANCE",
+              "SUPPORT",
+              "FEE_NOTICE",
+              "PROMOTION_REWARD",
+              "RESEARCH_MARKETING"
+            ]
+          },
+          "subject_phrases_all": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "uniqueItems": true
+          },
+          "attachment_kinds_any": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "PDF",
+                "XLSX",
+                "CSV"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "filename_suffixes_any": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^\\.[A-Za-z0-9._-]+$"
+            },
+            "maxItems": 16,
+            "uniqueItems": true
+          },
+          "evidence_digest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "anyOf": [
+          {
+            "properties": {
+              "subject_phrases_all": {
+                "minItems": 1
+              }
+            }
+          },
+          {
+            "properties": {
+              "attachment_kinds_any": {
+                "minItems": 1
+              }
+            }
+          },
+          {
+            "properties": {
+              "filename_suffixes_any": {
+                "minItems": 1
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

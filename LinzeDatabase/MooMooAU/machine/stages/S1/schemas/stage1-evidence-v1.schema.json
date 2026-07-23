@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Stage 1 Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_id",
+    "stage_id",
+    "task_id",
+    "stage_acceptance_id",
+    "observed_at_utc",
+    "baseline_commit",
+    "record_status",
+    "delivery_status",
+    "checks",
+    "linked_final_acceptance",
+    "prohibition_counters",
+    "next_action"
+  ],
+  "properties": {
+    "schema_version": {"const": "moomooau.stage1-evidence.v1"},
+    "evidence_id": {"type": "string", "pattern": "^S1-T010[1-7]-[A-Z0-9_-]+$"},
+    "stage_id": {"const": "S1"},
+    "task_id": {"pattern": "^T010[1-7]$"},
+    "stage_acceptance_id": {"pattern": "^S1AC-00[1-7]$"},
+    "observed_at_utc": {"type": "string", "format": "date-time"},
+    "baseline_commit": {"const": "31a51114f8749b93b1da53f7bb11a7e2f7f916de"},
+    "record_status": {"enum": ["PASS", "FAIL"]},
+    "delivery_status": {"const": "LOCAL_ONLY_NOT_PUBLISHED"},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "evidence_ref"],
+        "properties": {
+          "id": {"type": "string"},
+          "status": {"enum": ["PASS", "FAIL"]},
+          "evidence_ref": {"type": "string"}
+        }
+      }
+    },
+    "linked_final_acceptance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "reason"],
+        "properties": {
+          "id": {"pattern": "^AC-[0-9]{3}$"},
+          "status": {"enum": ["PARTIAL", "NOT_RUN"]},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "prohibition_counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gmail_calls", "gmail_mutations", "secrets_read", "external_writes", "remote_publication"],
+      "properties": {
+        "gmail_calls": {"const": 0},
+        "gmail_mutations": {"const": 0},
+        "secrets_read": {"const": 0},
+        "external_writes": {"const": 0},
+        "remote_publication": {"const": 0}
+      }
+    },
+    "next_action": {"type": "string", "minLength": 1}
+  }
+}
