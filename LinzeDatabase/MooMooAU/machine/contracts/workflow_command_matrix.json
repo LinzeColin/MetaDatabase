@@ -1,0 +1,89 @@
+{
+  "schema_version": "moomooau.workflow-command-matrix.v1",
+  "finding_id": "REV-P1-004",
+  "governance_pin": "ebc6c2e4884edc959118cfc56d0e18a86c49460f",
+  "scope": "OFFLINE_READ_ONLY_FINAL_TREE_ENTRYPOINT_REPLAY",
+  "entries": [
+    {
+      "stage_id": "S3",
+      "workflow": ".github/workflows/moomooau-stage3-ci.yml",
+      "workflow_sha256": "8203acd48e09bd770f91b599508f6b16662238e37dadff7b20dd3f48554739c7",
+      "working_directory": "LinzeDatabase/MooMooAU",
+      "workflow_command": "python machine/stages/S3/tools/validate_stage3.py --governance-root \"$GITHUB_WORKSPACE/.governance\" --cumulative-final",
+      "cumulative_expectation": {
+        "exit_code": 0,
+        "status": "PASS",
+        "failed_check_ids": []
+      },
+      "historical_default_expectation": {
+        "exit_code": 1,
+        "status": "BLOCKED",
+        "failed_check_ids": ["scope.no_stage4_or_production_authority"]
+      }
+    },
+    {
+      "stage_id": "S4",
+      "workflow": ".github/workflows/moomooau-stage4-ci.yml",
+      "workflow_sha256": "92dbeb37da484de581565b3aeba7d000b1b2ba08b7fc68ab05fa1353f9e0f752",
+      "working_directory": "LinzeDatabase/MooMooAU",
+      "workflow_command": "python machine/stages/S4/tools/validate_stage4.py --governance-root \"$GITHUB_WORKSPACE/.governance\" --cumulative-final",
+      "cumulative_expectation": {
+        "exit_code": 0,
+        "status": "PASS",
+        "failed_check_ids": []
+      },
+      "historical_default_expectation": {
+        "exit_code": 1,
+        "status": "BLOCKED",
+        "failed_check_ids": ["scope.no_stage5_or_production_authority"]
+      }
+    },
+    {
+      "stage_id": "S5",
+      "workflow": ".github/workflows/moomooau-stage5-ci.yml",
+      "workflow_sha256": "5dda7eb163b9b57cb494a3a3950e95f6bf11d03b9a4388d753ecfa862551f558",
+      "working_directory": "LinzeDatabase/MooMooAU",
+      "workflow_command": "python machine/stages/S5/tools/validate_stage5.py --governance-root \"$GITHUB_WORKSPACE/.governance\" --cumulative-final",
+      "cumulative_expectation": {
+        "exit_code": 0,
+        "status": "PASS",
+        "failed_check_ids": []
+      },
+      "historical_default_expectation": {
+        "exit_code": 1,
+        "status": "BLOCKED",
+        "failed_check_ids": ["scope.no_stage6_or_production_execution"]
+      }
+    },
+    {
+      "stage_id": "S6",
+      "workflow": ".github/workflows/moomooau-stage6-ci.yml",
+      "workflow_sha256": "19397ad4bd1599933f658f99b3100abe1e2ab075db301d72b73cc9aa3ce6ce4a",
+      "working_directory": "LinzeDatabase/MooMooAU",
+      "workflow_command": "python machine/stages/S6/tools/validate_stage6.py --governance-root \"$GITHUB_WORKSPACE/.governance\" --cumulative-final",
+      "cumulative_expectation": {
+        "exit_code": 0,
+        "status": "PASS",
+        "failed_check_ids": []
+      },
+      "historical_default_expectation": {
+        "exit_code": 1,
+        "status": "BLOCKED",
+        "failed_check_ids": ["scope.no_stage7_or_production_execution"]
+      }
+    }
+  ],
+  "observation": {
+    "observed_at_utc": "2026-07-23T04:49:02Z",
+    "status": "PASS",
+    "executed_entries": 4,
+    "cumulative_passed": 4,
+    "historical_fail_closed": 4,
+    "tree_mutations": 0,
+    "protected_oracles_executed": 0,
+    "production_workflow_runs": 0,
+    "remote_workflow_runs": 0,
+    "external_writes": 0,
+    "remote_publications": 0
+  }
+}

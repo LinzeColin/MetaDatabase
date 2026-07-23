@@ -1,0 +1,99 @@
+{
+  "schema_version": "moomooau.stage-acceptance.v1",
+  "version": "1.0.1",
+  "stage_id": "S0",
+  "policy": "Stage-local acceptance proves the current stage only; final AC-* links remain mandatory at their owning implementation stages and at final review.",
+  "acceptance_contracts": [
+    {
+      "id": "S0AC-001",
+      "task_id": "T0001",
+      "title": "版本化任务包导入",
+      "environment": "local development worktree with no remote write",
+      "input": "v1.0.0 source provenance and authorized v1.0.1 repair set",
+      "oracle": "v1.0.1 manifest is complete and read-only validation leaves the tree byte-identical; v1.0.0 provenance remains traceable without publishing withheld sensitive source.",
+      "threshold": "manifest mismatch 0; validator-created or modified files 0; remote writes 0",
+      "evidence_required": "evidence/tasks/T0001.json",
+      "verification": "python3 -m pytest -q tests/tasks/test_t0001.py",
+      "pass_gate": "S0AC-001 evidence valid and threshold satisfied",
+      "failure_action": "Stop Stage 0 and restore the last verified local commit."
+    },
+    {
+      "id": "S0AC-002",
+      "task_id": "T0002",
+      "title": "冻结不变量与可实现协议",
+      "environment": "read-only contract validation",
+      "input": "canonical facts, platform capability evidence and timeline protocol",
+      "oracle": "All frozen product boundaries are unchanged; schedule, single repository, exact message trash and timeline cardinality have executable checks; unsupported atomic replacement is absent.",
+      "threshold": "invariant drift 0; unsupported platform primitive 0",
+      "evidence_required": "evidence/tasks/T0002.json",
+      "verification": "python3 -m pytest -q tests/tasks/test_t0002.py",
+      "pass_gate": "S0AC-002 evidence valid and threshold satisfied",
+      "failure_action": "Keep every production flag disabled and repair the contract."
+    },
+    {
+      "id": "S0AC-003",
+      "task_id": "T0003",
+      "title": "合成与公开脱敏基线",
+      "environment": "synthetic fixture only",
+      "input": "synthetic public evidence fixture and current public tree",
+      "oracle": "The synthetic fixture satisfies the public schema and the publishable tree contains no live secret, private repository locator or real message field.",
+      "threshold": "sensitive matches 0; real Gmail calls 0",
+      "evidence_required": "evidence/tasks/T0003.json",
+      "verification": "python3 -m pytest -q tests/tasks/test_t0003.py",
+      "pass_gate": "S0AC-003 evidence valid and threshold satisfied",
+      "failure_action": "Block publication and remove the sensitive value without rewriting evidence."
+    },
+    {
+      "id": "S0AC-004",
+      "task_id": "T0004",
+      "title": "收益成本与停止标准冻结",
+      "environment": "read-only machine contract validation",
+      "input": "metrics, cost-benefit document and kill criteria",
+      "oracle": "Every metric and kill criterion has an identifier, measurable condition and explicit action; no production claim is inferred from a planned baseline.",
+      "threshold": "12 metrics; 10 kill criteria; incomplete entries 0",
+      "evidence_required": "evidence/tasks/T0004.json",
+      "verification": "python3 -m pytest -q tests/tasks/test_t0004.py",
+      "pass_gate": "S0AC-004 evidence valid and threshold satisfied",
+      "failure_action": "Keep Stage 0 open until measurable stop rules exist."
+    },
+    {
+      "id": "S0AC-005",
+      "task_id": "T0005",
+      "title": "外部共享 Governance 绑定",
+      "environment": "pinned external Governance checkout",
+      "input": "governance binding and project-specific fact adapter",
+      "oracle": "The exact pinned shared tools are consumed from an external checkout; no shared framework file is copied, forked or reconstructed in this project.",
+      "threshold": "pinned tool hash mismatch 0; copied shared tools 0",
+      "evidence_required": "evidence/tasks/T0005.json",
+      "verification": "python3 -m pytest -q tests/tasks/test_t0005.py",
+      "pass_gate": "S0AC-005 evidence valid and threshold satisfied",
+      "failure_action": "Reject the governance integration and restore external-only consumption."
+    },
+    {
+      "id": "S0AC-006",
+      "task_id": "T0006",
+      "title": "双平面七文件确定性一致",
+      "environment": "pinned external Governance checkout and temporary render directory",
+      "input": "canonical machine facts, derived Governance facts and seven committed documents",
+      "oracle": "Regenerating through the pinned shared renderer produces byte-identical seven files and the shared document-budget and blocker gates pass.",
+      "threshold": "render drift 0; shared gate failures 0",
+      "evidence_required": "evidence/tasks/T0006.json",
+      "verification": "python3 -m pytest -q tests/tasks/test_t0006.py",
+      "pass_gate": "S0AC-006 evidence valid and threshold satisfied",
+      "failure_action": "Regenerate from machine facts; never hand-edit the seven files."
+    },
+    {
+      "id": "S0AC-007",
+      "task_id": "T0007",
+      "title": "一次性部署动作清单完整",
+      "environment": "documentation and contract validation only",
+      "input": "one-time setup checklist and non-goal guard",
+      "oracle": "OAuth, GitHub App, protected secrets, recovery delivery and repository settings are explicit while no external setup action has run.",
+      "threshold": "required setup domains 5/5; secrets read 0; deployment actions 0",
+      "evidence_required": "evidence/tasks/T0007.json",
+      "verification": "python3 -m pytest -q tests/tasks/test_t0007.py",
+      "pass_gate": "S0AC-007 evidence valid and threshold satisfied",
+      "failure_action": "Do not begin protected deployment work."
+    }
+  ]
+}

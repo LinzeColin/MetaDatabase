@@ -1,0 +1,27 @@
+{
+  "schema_version": "moomooau.stage5-evidence.v1",
+  "evidence_id": "S5-T0505-LOCAL-20260720",
+  "stage_id": "S5",
+  "task_id": "T0505",
+  "stage_acceptance_id": "S5AC-005",
+  "observed_at_utc": "2026-07-20T03:21:33Z",
+  "baseline_commit": "9394585329a52c4d269da220bd66ce8ec9b820b3",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "fixed_1200x720_png_and_default_font", "status": "PASS", "evidence_ref": "TimelineRenderer"},
+    {"id": "input_order_byte_determinism", "status": "PASS", "evidence_ref": "tests/tasks/test_t0505.py"},
+    {"id": "semantic_m3_and_closure_change_pixels", "status": "PASS", "evidence_ref": "tests/tasks/test_t0505.py"},
+    {"id": "rendered_plaintext_memory_only", "status": "PASS", "evidence_ref": "tests/tasks/test_t0505.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-028", "status": "PARTIAL", "reason": "Deterministic in-memory PNG and semantic snapshot controls pass; real encrypted live publication is not run."},
+    {"id": "AC-029", "status": "PARTIAL", "reason": "Synthetic Timeline visual semantics pass; real archive coverage and visual review are not run."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_TIMELINE_RENDER", "status": "NOT_RUN", "reason": "No real Timeline snapshot was rendered, encrypted or published."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
+  "next_action": "Bind the deterministic renderer digest to the later protected live-asset canary without persisting plaintext PNG."
+}

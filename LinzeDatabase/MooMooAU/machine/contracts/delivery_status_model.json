@@ -1,0 +1,74 @@
+{
+  "schema_version": "moomooau.delivery-status-model.v3",
+  "transition": "RMD-06_PROTECTED_ACCEPTANCE_PREPARATION",
+  "authorization": {
+    "decision": "Owner selected option 2: keep Governance private and provision a repository-scoped read-only Deploy Key",
+    "authorized_on": "2026-07-23",
+    "scope": "RMD-06 cloud execution prerequisite only: dependency authentication, workflow syntax repair and fail-closed fork handling; production remains blocked"
+  },
+  "authority": {
+    "current_status": "machine/status/latest.json",
+    "builder": "machine/tools/build_delivery_status.py",
+    "validator": "machine/tools/validate_delivery_status.py",
+    "precedence": [
+      "machine/contracts/requirements.json and machine/contracts/acceptance_contract.json define product obligations",
+      "machine/contracts/task_graph.json defines formal task completion only",
+      "machine/status/latest.json is the sole current cross-dimensional delivery status",
+      "evidence/tasks and machine/stages are source records, not overall status authorities",
+      "machine/facts and the seven human documents are deterministic derivatives"
+    ]
+  },
+  "dimensions": {
+    "evidence_integrity": "Schema, path, task, stage-local acceptance, final Acceptance and prohibition bindings validate.",
+    "mechanism_implementation": "Local or synthetic mechanism evidence exists; this does not satisfy a protected Oracle.",
+    "formal_task_completion": "Only the frozen task_graph status and its final Acceptance pass gate control this dimension.",
+    "protected_oracles": "Only protected observations with valid provenance can change NOT_RUN.",
+    "final_acceptance": "Only the exact 34 Acceptance Oracles can pass this dimension.",
+    "production_readiness": "Requires all formal tasks, protected Oracles and final Acceptance gates; local evidence cannot promote it.",
+    "publication": "Remains LOCAL_ONLY_NOT_PUBLISHED until the owner-ordered final clean snapshot publication."
+  },
+  "inherited_contract_hashes": {
+    "machine/contracts/requirements.json": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
+    "machine/contracts/acceptance_contract.json": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
+    "machine/contracts/traceability_matrix.csv": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
+    "machine/contracts/kill_criteria.json": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
+    "machine/facts/canonical_facts.json": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
+    "machine/contracts/task_graph.json": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9"
+  },
+  "legacy_manifest": {
+    "path": "taskpack/PACKAGE_MANIFEST.v1.0.1.json",
+    "sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
+    "status": "IMMUTABLE_HISTORICAL_BASELINE"
+  },
+  "states": {
+    "PRE_CLOSURE": {
+      "package_version": "1.0.4",
+      "resolved_review_findings": [
+        "REV-P0-002",
+        "REV-P0-003",
+        "REV-P1-004",
+        "REV-P2-007"
+      ],
+      "current_remediation_blockers": [
+        "RMD-05_ASSURANCE_PROVENANCE_PENDING",
+        "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+      ],
+      "next_action": "Finalize RMD-05 assurance provenance; keep protected Oracles, production execution and publication blocked."
+    },
+    "DEPENDENCY_AUTH_READY": {
+      "package_version": "1.0.6",
+      "resolved_review_findings": [
+        "REV-P0-002",
+        "REV-P0-003",
+        "REV-P1-004",
+        "REV-P1-006",
+        "REV-P2-007"
+      ],
+      "current_remediation_blockers": [
+        "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+        "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+      ],
+      "next_action": "Execute the RMD-06 protected cloud preflight with dependency authentication; keep production execution and final publication blocked."
+    }
+  }
+}

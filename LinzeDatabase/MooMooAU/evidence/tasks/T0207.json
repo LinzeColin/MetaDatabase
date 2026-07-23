@@ -1,0 +1,27 @@
+{
+  "schema_version": "moomooau.stage2-evidence.v1",
+  "evidence_id": "S2-T0207-LOCAL-20260720",
+  "stage_id": "S2",
+  "task_id": "T0207",
+  "stage_acceptance_id": "S2AC-007",
+  "observed_at_utc": "2026-07-19T23:37:27Z",
+  "baseline_commit": "932e3970490f87fd46671bc6a461340a339887ef",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "transitive_hash_lock_78_packages", "status": "PASS", "evidence_ref": "requirements/stage2.lock"},
+    {"id": "sbom_exact_lock_parity", "status": "PASS", "evidence_ref": "machine/stages/S2/supply-chain/sbom.cdx.json"},
+    {"id": "sbom_dependency_graph_complete", "status": "PASS", "evidence_ref": "CycloneDX root direct edges=14; dependency nodes with edges=34; all refs valid"},
+    {"id": "immutable_action_age_container_pins", "status": "PASS", "evidence_ref": "machine/stages/S2/supply-chain/pins.json"},
+    {"id": "known_vulnerability_observation_zero", "status": "PASS", "evidence_ref": "command:python -m pip_audit -r requirements/stage2.lock --require-hashes; observed_at_utc=2026-07-19T23:37:27Z"},
+    {"id": "local_secret_scan_zero", "status": "PASS", "evidence_ref": "command:detect-secrets scan selected Stage 2 source/test/workflow; committed_report=none"},
+    {"id": "native_pip_hash_install_and_package_smoke", "status": "PASS", "evidence_ref": "command:fresh Python 3.12 pip --require-hashes install, wheel/sdist build, force-reinstall and CLI smoke"},
+    {"id": "digest_pinned_container_build_smoke", "status": "PASS", "evidence_ref": "command:docker build --no-cache then network-none read-only synthetic CLI smoke; validation image deleted"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-021", "status": "PARTIAL", "reason": "Local lock, SBOM, pin, vulnerability and secret gates pass; the committed CodeQL/dependency-review workflow cannot run until final upload."},
+    {"id": "AC-033", "status": "NOT_RUN", "reason": "This stage defines the software security lane only; full software/model dual assurance belongs to later stages and final review."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Rerun advisory, CodeQL and dependency-review gates at final clean-snapshot publication before deployment."
+}

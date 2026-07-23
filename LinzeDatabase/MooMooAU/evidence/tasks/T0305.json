@@ -1,0 +1,26 @@
+{
+  "schema_version": "moomooau.stage3-evidence.v1",
+  "evidence_id": "S3-T0305-LOCAL-20260720",
+  "stage_id": "S3",
+  "task_id": "T0305",
+  "stage_acceptance_id": "S3AC-005",
+  "observed_at_utc": "2026-07-20T01:07:05Z",
+  "baseline_commit": "19167f94ed82cc44ff92ee9c46d3e606612fbd27",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "permit_required_before_raw", "status": "PASS", "evidence_ref": "CanonicalRawFetcher.fetch"},
+    {"id": "strict_base64url_decode", "status": "PASS", "evidence_ref": "tests/tasks/test_t0305.py"},
+    {"id": "synthetic_raw_byte_parity_100_percent", "status": "PASS", "evidence_ref": "tests/tasks/test_t0305.py"},
+    {"id": "mime_reconstruction_not_canonical", "status": "PASS", "evidence_ref": "src/moomooau_archive/canonical_raw.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-013", "status": "PARTIAL", "reason": "Synthetic Gmail RAW bytes and SHA-256 match exactly; no real Gmail RAW object or remote decrypt round-trip was used."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_GMAIL_RAW_BYTE_PARITY", "status": "NOT_RUN", "reason": "Protected Gmail message access was intentionally not authorized."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0},
+  "next_action": "Preserve the decoded source bytes unchanged and route them through age before any future persistence adapter."
+}

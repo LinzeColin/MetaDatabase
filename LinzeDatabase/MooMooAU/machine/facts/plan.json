@@ -1,0 +1,6 @@
+{
+  "stage": "整体复审修复",
+  "phase": "RMD-06 受保护验收准备",
+  "task": "只读 Governance 依赖认证已就绪；下一步仅运行 RMD-06 受保护云预检",
+  "owner": "Codex 开发线程"
+}

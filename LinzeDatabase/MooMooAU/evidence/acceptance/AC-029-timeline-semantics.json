@@ -1,0 +1,148 @@
+{
+  "acceptance_id": "AC-029",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_NOT_RUN",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "4dc311f9dfaef9bf54d0d5b01141a2dc1014d5f3ac9a5879043400ecec22ec62",
+    "evidence_required": "evidence/acceptance/AC-029-timeline-semantics.json",
+    "pass_gate_text": "AC-029 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_029.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-029-RMD01-20260722",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0105.json",
+      "evidence_sha256": "cb8fb079b9015688610e7ff27a375d5d1edfc120e30de25710bfd43452656f03",
+      "final_claim_status": "PARTIAL",
+      "reason": "UTC and nullable unknown fields are contracted; market-calendar behavior remains unrun.",
+      "source_record_status": "PASS",
+      "task_id": "T0105"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0402.json",
+      "evidence_sha256": "635139cadc7e5c83e6418b90d79f46949b7f4321eb38fe02c87fe7ed6dcd5323",
+      "final_claim_status": "PARTIAL",
+      "reason": "InternalDate UTC and Australia/Sydney conversion are exact for synthetic input; the full market-calendar and Timeline oracle belongs to later stages.",
+      "source_record_status": "PASS",
+      "task_id": "T0402"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0403.json",
+      "evidence_sha256": "7f8b297fa0c12e564e695cf2e20171852decc1e4dbc160b42160e46216420504",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic statement-label dates are exact or null and never guessed; full Timeline/calendar semantics are not implemented in Stage 4.",
+      "source_record_status": "PASS",
+      "task_id": "T0403"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0503.json",
+      "evidence_sha256": "f5ec686a0e6eb2958ab5e9e5afb6db20e329f5949c7032eac3515265b1805730",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic Timeline events are complete and deterministic; real longitudinal archive coverage is not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0503"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0504.json",
+      "evidence_sha256": "b32bda66f6120f62c12d7616c6affc0b6d281c865e2e42e1f055410f2415d6a8",
+      "final_claim_status": "PARTIAL",
+      "reason": "XNYS-backed synthetic lag is deterministic; real statement arrival coverage is not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0504"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0505.json",
+      "evidence_sha256": "41140b4153c88ce96c07961600d48a082a3e7f0425d80b6f76091f30e0683475",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic Timeline visual semantics pass; real archive coverage and visual review are not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0505"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0704.json",
+      "evidence_sha256": "09d889eb9ee39216697ab7584968075c3682ffad4248f99a52c36d7eb1507d20",
+      "final_claim_status": "NOT_RUN",
+      "reason": "Timeline time semantics used synthetic Gmail internalDate facts; no protected Processed facts were rendered.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0704"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-22T05:12:40Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "391a4a5afcd673bfb95bf9a7c9e38197479eb159",
+  "requirement_id": "RQ-029",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_029_pass_gate",
+    "path": "tests/acceptance/test_ac_029.py",
+    "sha256": "7e1cf2a7dcc81a67825bb440c34acc2256e88f2f17da535d0adb051f6c6e2c6b"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0105",
+      "T0402",
+      "T0403",
+      "T0503",
+      "T0504",
+      "T0505",
+      "T0704"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "0764847ced08ed2418d5820bde5655bf2774b12abafba114986c67f93e35e26a"
+  }
+}

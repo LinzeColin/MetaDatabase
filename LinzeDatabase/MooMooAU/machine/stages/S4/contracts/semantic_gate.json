@@ -1,0 +1,69 @@
+{
+  "schema_version": "moomooau.stage4-semantic-gate.v1",
+  "stage_id": "S4",
+  "status": "PASS",
+  "baseline_commit": "b15ccdbe0e4ed16e3a01e17431360f844621b852",
+  "policy": "Stage-local PASS requires deterministic synthetic Processed boundaries and explicit CONTROLLED_NOT_RUN status for every production or protected assertion; none can claim real template coverage, remote recovery, M3, Trash, publication or deployment.",
+  "resolutions": [
+    {
+      "id": "S4-SEM-001",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "No authoritative protected real Moomoo AU message or statement templates are available, and the frozen public Moomoo references returned access-denied responses during this run.",
+      "resolution": "Production classification and parser registries remain versioned and empty; no real label, filename, field or sender pattern is inferred, while synthetic profiles exercise algorithms only."
+    },
+    {
+      "id": "S4-SEM-002",
+      "status": "RESOLVED",
+      "finding": "Every verified message must be retained even when no protected document profile matches.",
+      "resolution": "The classifier exposes all 18 frozen classes and deterministically maps zero or conflicting profile matches to VERIFIED_UNKNOWN rather than dropping the verified Raw."
+    },
+    {
+      "id": "S4-SEM-003",
+      "status": "RESOLVED",
+      "finding": "Processed records need one source identity and complete private lineage without exposing Gmail IDs in diagnostics.",
+      "resolution": "The Document Envelope binds the verified Canonical Raw, HMAC source ID, ciphertext and plaintext digests, sender and classification registry versions, UTC and Australia/Sydney time, labels, attachments, parser, schema, key epoch and field origins; repr output redacts private values."
+    },
+    {
+      "id": "S4-SEM-004",
+      "status": "RESOLVED",
+      "finding": "PDF, XLSX and CSV parsing can execute active content, recover damaged structures, follow links, exhaust resources or guess conflicting fields.",
+      "resolution": "Extraction is bounded and in-memory, disables PDF recovery, rejects workbook formulas and external-link structures, uses strict canonical text, and requires exact protected labels; conflicts quarantine and missing required fields safely defer."
+    },
+    {
+      "id": "S4-SEM-005",
+      "status": "RESOLVED",
+      "finding": "Encrypted PDFs must not yield partial or guessed structured data without the correct protected Secret.",
+      "resolution": "Missing and incorrect Secrets converge to WAITING_FOR_PDF_PASSWORD with zero extracted artifacts; only an explicitly supplied correct in-memory Secret allows parsing, and no brute-force path exists."
+    },
+    {
+      "id": "S4-SEM-006",
+      "status": "RESOLVED",
+      "finding": "Private Processed data must support deterministic migration and analysis while never persisting plaintext.",
+      "resolution": "The product builder emits deterministic Canonical JSONL and explicit-schema Parquet in memory; the only persistence plan encrypts every dataset, manifest and current pointer with official age before any adapter call."
+    },
+    {
+      "id": "S4-SEM-007",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "Parser promotion requires parallel comparison over fourteen elapsed days and protected approval when business output changes.",
+      "resolution": "Synthetic tests prove immutable v1/v2 paths, a 14-day threshold, business-root comparison, signed approval binding and strict current CAS; no real elapsed observation or protected approval is claimed."
+    },
+    {
+      "id": "S4-SEM-008",
+      "status": "RESOLVED",
+      "finding": "Public inventory must diagnose health without exposing exact counts, dates, source identifiers, statement values or private paths.",
+      "resolution": "The publisher emits only allowlisted dataset and version fields, availability, count and freshness buckets, conclusion enums, next-action enums and an HMAC opaque root; it performs no external write."
+    },
+    {
+      "id": "S4-SEM-009",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "Real private append, decrypt, recovery, public publication and remote CI need protected credentials or an intermediate upload.",
+      "resolution": "Production-capable adapters remain uncalled, all recovery/public/M3 flags remain false, and remote CI is NOT_RUN until the single final publication."
+    },
+    {
+      "id": "S4-SEM-010",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "M3, source Trash, timeline, 04:30 deployment and observation belong to later stages.",
+      "resolution": "Stage 4 contains no Gmail mutation, timeline renderer, production schedule or deployment path and makes no Stage 5+ acceptance claim."
+    }
+  ]
+}

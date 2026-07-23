@@ -1,0 +1,37 @@
+{
+  "schema_version": "moomooau.stage2-verification.v1",
+  "stage_id": "S2",
+  "status": "PASS",
+  "observed_at_utc": "2026-07-19T23:50:38Z",
+  "baseline_commit": "932e3970490f87fd46671bc6a461340a339887ef",
+  "task_pass_count": 7,
+  "task_total": 7,
+  "final_acceptance_policy": "NOT_FINAL",
+  "final_acceptances_passed": 0,
+  "protected_oracles_executed": 0,
+  "supply_chain_observation": {
+    "advisory_checked_at_utc": "2026-07-19T23:37:27Z",
+    "known_vulnerabilities_observed": 0,
+    "hash_locked_packages": 78,
+    "sbom_components": 78,
+    "sbom_root_direct_edges": 14,
+    "sbom_dependency_nodes_with_edges": 34,
+    "native_pip_hash_install": "PASS",
+    "digest_pinned_container_build": "PASS",
+    "network_none_read_only_container_smoke": "PASS",
+    "remote_codeql": "NOT_RUN",
+    "remote_dependency_review": "NOT_RUN"
+  },
+  "prohibition_counters": {
+    "real_gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "real_secrets_read": 0,
+    "protected_key_deliveries": 0,
+    "external_writes": 0,
+    "remote_publication": 0
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "next_stage": "S3",
+  "next_stage_status": "NOT_STARTED"
+}

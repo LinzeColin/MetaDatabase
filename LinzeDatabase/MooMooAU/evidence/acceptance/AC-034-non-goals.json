@@ -1,0 +1,147 @@
+{
+  "acceptance_id": "AC-034",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "e62364eaee264edfecfa7eb33c0963035a0b7bc99b304d8dfc75319836606bca",
+    "evidence_required": "evidence/acceptance/AC-034-non-goals.json",
+    "pass_gate_text": "AC-034 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_034.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-034-RMD01-20260722",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0001.json",
+      "evidence_sha256": "b31bd893d7dc72cf2aaf5d1e2bc58d478d3081c9ecebf15ffe3a523644419a3a",
+      "final_claim_status": "NO_FINAL_CLAIM",
+      "reason": "The source task evidence has no final Acceptance claim.",
+      "source_record_status": "VALID",
+      "task_id": "T0001"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0004.json",
+      "evidence_sha256": "d31f7364ee7b1bfd6cbaaa238db931e426e4fcab08b6ece915845d6f254e8416",
+      "final_claim_status": "NO_FINAL_CLAIM",
+      "reason": "The source task evidence has no final Acceptance claim.",
+      "source_record_status": "VALID",
+      "task_id": "T0004"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0102.json",
+      "evidence_sha256": "78f661f1f13df1050313bcf6f5910427ab1d8ff6667cfe9aa3ca3ce2c0c42ccb",
+      "final_claim_status": "PARTIAL",
+      "reason": "Stage 1 non-goals have no implementation entry, but final scope review belongs after Stage 7.",
+      "source_record_status": "PASS",
+      "task_id": "T0102"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0106.json",
+      "evidence_sha256": "34260943954a9a2374841419adfb5f5a23ef681464d5fccfec138778c36be6d8",
+      "final_claim_status": "PARTIAL",
+      "reason": "Current implementation entries match Stage 1 scope; final non-goal audit remains later.",
+      "source_record_status": "PASS",
+      "task_id": "T0106"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0202.json",
+      "evidence_sha256": "8374a696dc1b386df9b62e4525661e5b9ff0264b552708284550f4002210511d",
+      "final_claim_status": "PARTIAL",
+      "reason": "The Gmail surface is narrow at Stage 2; complete final non-goal scanning awaits all stages.",
+      "source_record_status": "PASS",
+      "task_id": "T0202"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0404.json",
+      "evidence_sha256": "811d85b35f5a55dd88ab247e2392eb6242821e706d95dcd143397c6a83c0abde",
+      "final_claim_status": "PARTIAL",
+      "reason": "Stage 4 runtime contains no Moomoo Portal access or later-stage implementation; the final whole-system non-goal scan remains pending.",
+      "source_record_status": "PASS",
+      "task_id": "T0404"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0708.json",
+      "evidence_sha256": "55a075085836243be67c3e2a4509246d4a29ba2989325ab6906bf95d7f6ef610",
+      "final_claim_status": "PARTIAL",
+      "reason": "Repository-relative paths are deterministically classified, cross-project paths block, scope and frozen-baseline findings block, and the policy/workflow have zero deployment authority; protected repository and endpoint scope scans were not run.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0708"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-22T05:12:40Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "391a4a5afcd673bfb95bf9a7c9e38197479eb159",
+  "requirement_id": "RQ-034",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_034_pass_gate",
+    "path": "tests/acceptance/test_ac_034.py",
+    "sha256": "ad62342fc417e69fcfd101839bf38b078d9060282a957f57f41560ad4dc639f8"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0001",
+      "T0004",
+      "T0102",
+      "T0106",
+      "T0202",
+      "T0404",
+      "T0708"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "0abba389e88ae7c0f133a195c438dcd5eec45f8b5b5e8f916eb383e3dc5f55f0"
+  }
+}

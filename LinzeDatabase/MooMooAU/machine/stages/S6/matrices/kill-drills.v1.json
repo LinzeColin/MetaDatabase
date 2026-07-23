@@ -1,0 +1,15 @@
+{
+  "schema_version": "moomooau.kill-drills.v1",
+  "drills": [
+    {"id": "KILL-001", "trigger": "ZERO_COLLATERAL_BREACH", "resume_gates": ["AC-001", "AC-004", "AC-006"], "test_ref": "tests/tasks/test_t0608.py::test_t0608_all_kill_criteria_trigger_and_require_exact_recovery_gates", "status": "PASS"},
+    {"id": "KILL-002", "trigger": "PUBLIC_LEAK", "resume_gates": ["AC-011", "AC-012", "AC-016", "AC-022"], "test_ref": "tests/tasks/test_t0608.py::test_t0608_all_kill_criteria_trigger_and_require_exact_recovery_gates", "status": "PASS"},
+    {"id": "KILL-003", "trigger": "RAW_RECOVERY_MISMATCH", "resume_gates": ["AC-007", "AC-013", "AC-027"], "test_ref": "tests/tasks/test_t0608.py::test_t0608_all_kill_criteria_trigger_and_require_exact_recovery_gates", "status": "PASS"},
+    {"id": "KILL-004", "trigger": "FORBIDDEN_GMAIL_MUTATION", "resume_gates": ["AC-006", "AC-018", "SECURITY_REVIEW"], "test_ref": "tests/tasks/test_t0608.py::test_t0608_all_kill_criteria_trigger_and_require_exact_recovery_gates", "status": "PASS"},
+    {"id": "KILL-005", "trigger": "RECOVERY_KEY_FAILURE", "resume_gates": ["AC-012", "AC-032"], "test_ref": "tests/tasks/test_t0608.py::test_t0608_all_kill_criteria_trigger_and_require_exact_recovery_gates", "status": "PASS"},
+    {"id": "KILL-006", "trigger": "MODEL_DATA_BOUNDARY_BREACH", "resume_gates": ["AC-020", "AC-024", "AC-033"], "test_ref": "tests/tasks/test_t0608.py::test_t0608_all_kill_criteria_trigger_and_require_exact_recovery_gates", "status": "PASS"},
+    {"id": "KILL-007", "trigger": "CAPACITY_RED", "resume_gates": ["CAPACITY_PLAN_APPROVED", "SINGLE_REPOSITORY_PROVEN"], "test_ref": "tests/tasks/test_t0608.py::test_t0608_all_kill_criteria_trigger_and_require_exact_recovery_gates", "status": "PASS"},
+    {"id": "KILL-008", "trigger": "UNEXPLAINED_RECONCILE_GAP", "resume_gates": ["AC-003", "AC-025"], "test_ref": "tests/tasks/test_t0608.py::test_t0608_all_kill_criteria_trigger_and_require_exact_recovery_gates", "status": "PASS"},
+    {"id": "KILL-009", "trigger": "PARSER_SILENT_ERROR", "resume_gates": ["GOLDEN", "BLUE_GREEN", "ORACLE"], "test_ref": "tests/tasks/test_t0608.py::test_t0608_all_kill_criteria_trigger_and_require_exact_recovery_gates", "status": "PASS"},
+    {"id": "KILL-010", "trigger": "COST_EXCEEDS_BENEFIT", "resume_gates": ["BENEFIT_OVER_COST"], "test_ref": "tests/tasks/test_t0608.py::test_t0608_all_kill_criteria_trigger_and_require_exact_recovery_gates", "status": "PASS"}
+  ]
+}

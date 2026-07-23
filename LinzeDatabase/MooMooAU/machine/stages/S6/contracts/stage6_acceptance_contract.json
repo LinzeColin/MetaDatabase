@@ -1,0 +1,112 @@
+{
+  "schema_version": "moomooau.stage-local-acceptance.v1",
+  "stage_id": "S6",
+  "policy": "FAIL_CLOSED",
+  "final_acceptance_policy": "Stage-local PASS proves deterministic synthetic Stage 6 assurance only; remote CI, production credentials, real Gmail and private GitHub calls, protected load and quarterly recovery drills remain PARTIAL or NOT_RUN.",
+  "acceptance_contracts": [
+    {
+      "id": "S6AC-001",
+      "task_id": "T0601",
+      "linked_final_acceptance_ids": ["AC-013", "AC-014", "AC-016", "AC-018", "AC-026"],
+      "title": "单元属性 Fuzz 与 Contract 边界",
+      "environment": "pinned Hypothesis and deterministic synthetic MIME, endpoint, schema and public-evidence inputs",
+      "input": "canonical RAW round trips, arbitrary identifiers and paths, supported and hostile attachments, duplicate logical objects and strict schemas",
+      "oracle": "Properties exercise canonical bytes, magic-byte quarantine, public shape, endpoint rejection before transport and content-identity convergence without using pass markers.",
+      "threshold": "property failures 0; forbidden network calls 0; sensitive public matches 0; duplicate logical objects 0",
+      "evidence_required": "evidence/tasks/T0601.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0601.py",
+      "failure_action": "Block Stage 6 and reduce the failing generated case to a deterministic regression fixture."
+    },
+    {
+      "id": "S6AC-002",
+      "task_id": "T0602",
+      "linked_final_acceptance_ids": ["AC-007", "AC-027", "AC-028"],
+      "title": "私有优先跨仓与恢复故障",
+      "environment": "in-memory private/public adapters, official age synthetic recovery, M3 guard and live Timeline remote",
+      "input": "private failure, public failure, recovery mismatch, same and changed Timeline snapshots",
+      "oracle": "Private failure creates no public success or M3; public failure is pending and compensates idempotently; recovery and one-asset protocols retain their Stage 5 invariants.",
+      "threshold": "false public successes 0; unrecovered M3 calls 0; duplicate compensation writes 0; assets above one 0",
+      "evidence_required": "evidence/tasks/T0602.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0602.py",
+      "failure_action": "Keep the private commit when valid, deny M3 and public success, then repair through the recorded pending state."
+    },
+    {
+      "id": "S6AC-003",
+      "task_id": "T0603",
+      "linked_final_acceptance_ids": ["AC-020"],
+      "title": "不可信输入攻击红队",
+      "environment": "bounded in-memory parser and model-free runtime boundary with synthetic abuse fixtures",
+      "input": "prompt injection, path traversal, Unicode confusion, formulas, scripts, macros, archive expansion and PDF active content",
+      "oracle": "Every input is safely parsed or quarantined; decoded PDF object graphs expose active objects; parser modules expose no execution, network or model dispatch primitive.",
+      "threshold": "execution 0; egress 0; path escape 0; real-data model dispatch 0",
+      "evidence_required": "evidence/tasks/T0603.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0603.py",
+      "failure_action": "Disable the affected parser, retain encrypted Raw and open a security review using only redacted evidence."
+    },
+    {
+      "id": "S6AC-004",
+      "task_id": "T0604",
+      "linked_final_acceptance_ids": ["AC-018", "AC-019", "AC-021", "AC-022"],
+      "title": "权限供应链与明文生命周期红队",
+      "environment": "synthetic HTTP transports, immutable workflow definitions, hash lock, SBOM and in-memory plaintext arena",
+      "input": "forbidden Gmail and repository targets, broad token bodies, mutable Actions, vulnerable dependency controls and all exit paths",
+      "oracle": "Guards reject before transport, Actions and dependencies are immutable, high or critical findings block, cooperative normal/error/cancel/timeout/MemoryError exits clear arena-owned buffers, and the arena exposes no filesystem persistence API or Artifact/Cache channel. This does not claim operating-system hard-kill RAM erasure.",
+      "threshold": "forbidden network calls 0; unpinned Actions 0; unaccepted High/Critical 0; outstanding plaintext after exit 0",
+      "evidence_required": "evidence/tasks/T0604.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0604.py",
+      "failure_action": "Freeze release authority and remediate the narrow permission, dependency or cleanup boundary."
+    },
+    {
+      "id": "S6AC-005",
+      "task_id": "T0605",
+      "linked_final_acceptance_ids": ["AC-024", "AC-033"],
+      "title": "Codex System Card 与策略 Evals",
+      "environment": "machine-readable System Card, synthetic requests and strict public inventory documents; no external model call",
+      "input": "capability and red-team eval catalog plus healthy and abnormal public health evidence",
+      "oracle": "Development models receive only frozen/public/synthetic inputs; all data-plane and Secret capabilities are denied; Auto performs none or one Issue update and is not a data-plane dependency.",
+      "threshold": "policy eval pass rate 100%; real data dispatch 0; Secret request 0; production trigger 0; Issue updates at most 1",
+      "evidence_required": "evidence/tasks/T0605.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0605.py",
+      "failure_action": "Disable model automation while retaining the deterministic GitHub data plane."
+    },
+    {
+      "id": "S6AC-006",
+      "task_id": "T0606",
+      "linked_final_acceptance_ids": ["AC-033"],
+      "title": "不同模型独立互审",
+      "environment": "two read-only independent reviewers from different model families after implementation",
+      "input": "Stage 6 diff, frozen task graph, local evidence, failure claims, rollback and validator",
+      "oracle": "Both reviews independently cover scope, evidence quality, failure honesty and rollback; every blocking finding is remediated and re-reviewed.",
+      "threshold": "independent reviews 2; distinct model families 2; unresolved blocking findings 0; required dimensions covered 100%",
+      "evidence_required": "evidence/tasks/T0606.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0606.py",
+      "failure_action": "Keep Stage 6 incomplete, remediate locally and repeat only the affected independent review."
+    },
+    {
+      "id": "S6AC-007",
+      "task_id": "T0607",
+      "linked_final_acceptance_ids": ["AC-003", "AC-022", "AC-026", "AC-031"],
+      "title": "L3 压力分页并发与容量边界",
+      "environment": "streaming L3 synthetic generator, 500-page discovery client, eight-worker content-identity index and provisioned synthetic capacity budgets",
+      "input": "100000 messages, 200000 attachments, 500 pages, ten-year partitions, concurrent duplicate writes and Green/Yellow/Red/Unknown capacity",
+      "oracle": "Counts and roots converge in bounded batches, pagination has no gaps, concurrency creates one logical object and unknown or Red capacity cannot write.",
+      "threshold": "message and attachment count difference 0; maximum batch 500; duplicate objects 0; unknown/Red write authorization 0",
+      "evidence_required": "evidence/tasks/T0607.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0607.py",
+      "failure_action": "Stop backfill, lower the batch or concurrency and require a provisioned capacity plan before retry."
+    },
+    {
+      "id": "S6AC-008",
+      "task_id": "T0608",
+      "linked_final_acceptance_ids": ["AC-025", "AC-027", "AC-032"],
+      "title": "Mandatory Chaos 与 Kill Criterion 恢复",
+      "environment": "deterministic injected failures across real project state machines and synthetic adapters",
+      "input": "CH-01 through CH-18 and KILL-001 through KILL-010",
+      "oracle": "Each scenario exercises its claimed mechanism and proves Raw immutability, no error-path M3, truthful public state, idempotent recovery and the exact resume gate.",
+      "threshold": "mandatory chaos 18/18; Kill triggers 10/10; Kill recoveries 10/10; false public success 0; extra M3 0",
+      "evidence_required": "evidence/tasks/T0608.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0608.py",
+      "failure_action": "Do not enter Stage 7; preserve the prior stable feature state and fix the failed scenario."
+    }
+  ]
+}

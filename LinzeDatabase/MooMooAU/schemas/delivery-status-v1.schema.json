@@ -1,0 +1,290 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Deterministic Delivery Status v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status_model_version",
+    "package_version",
+    "status_as_of_utc",
+    "authority",
+    "overall_status",
+    "dimensions",
+    "stage_summary",
+    "prohibition_counters",
+    "blockers",
+    "resolved_review_findings",
+    "next_action",
+    "source_digests"
+  ],
+  "oneOf": [
+    {
+      "title": "RMD-05 pre-closure state",
+      "properties": {
+        "package_version": {"const": "1.0.4"},
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "PROTECTED_ORACLES_NOT_RUN",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-05_ASSURANCE_PROVENANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": ["REV-P0-002", "REV-P0-003", "REV-P1-004", "REV-P2-007"]
+        },
+        "next_action": {
+          "const": "Finalize RMD-05 assurance provenance; keep protected Oracles, production execution and publication blocked."
+        }
+      }
+    },
+    {
+      "title": "RMD-06 dependency authentication ready state",
+      "properties": {
+        "package_version": {"const": "1.0.6"},
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "PROTECTED_ORACLES_NOT_RUN",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Execute the RMD-06 protected cloud preflight with dependency authentication; keep production execution and final publication blocked."
+        }
+      }
+    }
+  ],
+  "properties": {
+    "schema_version": {"const": "moomooau.delivery-status.v1"},
+    "status_model_version": {"const": "moomooau.delivery-status-model.v3"},
+    "package_version": {
+      "enum": ["1.0.4", "1.0.6"],
+      "description": "Coupled by the root oneOf to the exact RMD-05 pre-closure or RMD-06 dependency-authentication-ready state."
+    },
+    "status_as_of_utc": {"type": "string", "format": "date-time"},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "precedence"],
+      "properties": {
+        "path": {"const": "machine/status/latest.json"},
+        "precedence": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "overall_status": {
+      "const": "LOCAL_MECHANISMS_EVIDENCED_FINAL_ACCEPTANCE_BLOCKED"
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_integrity",
+        "mechanism_implementation",
+        "formal_task_completion",
+        "protected_oracles",
+        "final_acceptance",
+        "production_readiness",
+        "publication"
+      ],
+      "properties": {
+        "evidence_integrity": {"$ref": "#/$defs/evidence_integrity"},
+        "mechanism_implementation": {"$ref": "#/$defs/mechanism_implementation"},
+        "formal_task_completion": {"$ref": "#/$defs/formal_task_completion"},
+        "protected_oracles": {"$ref": "#/$defs/protected_oracles"},
+        "final_acceptance": {"$ref": "#/$defs/final_acceptance"},
+        "production_readiness": {"$ref": "#/$defs/production_readiness"},
+        "publication": {"$ref": "#/$defs/publication"}
+      }
+    },
+    "stage_summary": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {"$ref": "#/$defs/stage_summary"}
+    },
+    "prohibition_counters": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"const": 0}
+    },
+    "blockers": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "resolved_review_findings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1},
+      "description": "The root oneOf couples this exact set to package version, blockers and next action."
+    },
+    "next_action": {"type": "string", "minLength": 1},
+    "source_digests": {
+      "type": "object",
+      "minProperties": 8,
+      "required": [
+        "assurance_provenance_root_sha256",
+        "stage6_aggregate_sha256"
+      ],
+      "properties": {
+        "assurance_provenance_root_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "stage6_aggregate_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    }
+  },
+  "$defs": {
+    "evidence_integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "verified_records", "total_records", "failures"],
+      "properties": {
+        "status": {"const": "PASS"},
+        "verified_records": {"const": 58},
+        "total_records": {"const": 58},
+        "failures": {"const": 0}
+      }
+    },
+    "mechanism_implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "evidenced_tasks", "total_tasks", "scope"],
+      "properties": {
+        "status": {"const": "LOCAL_MECHANISMS_EVIDENCED"},
+        "evidenced_tasks": {"const": 58},
+        "total_tasks": {"const": 58},
+        "scope": {"const": "LOCAL_OR_SYNTHETIC_ONLY"}
+      }
+    },
+    "formal_task_completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "completed", "planned", "total", "contract_version"],
+      "properties": {
+        "status": {"const": "INCOMPLETE"},
+        "completed": {"const": 7},
+        "planned": {"const": 51},
+        "total": {"const": 58},
+        "contract_version": {"const": "1.0.1"}
+      }
+    },
+    "protected_oracles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "declared", "executed", "passed", "not_run"],
+      "properties": {
+        "status": {"const": "NOT_RUN"},
+        "declared": {"type": "integer", "minimum": 1},
+        "executed": {"const": 0},
+        "passed": {"const": 0},
+        "not_run": {"type": "integer", "minimum": 1}
+      }
+    },
+    "final_acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "passed", "blocked", "total"],
+      "properties": {
+        "status": {"const": "BLOCKED"},
+        "passed": {"const": 0},
+        "blocked": {"const": 34},
+        "total": {"const": 34}
+      }
+    },
+    "production_readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "workflow_runs", "reason_codes"],
+      "properties": {
+        "status": {"const": "BLOCKED"},
+        "workflow_runs": {"const": 0},
+        "reason_codes": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "publication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "remote_publications"],
+      "properties": {
+        "status": {"const": "LOCAL_ONLY_NOT_PUBLISHED"},
+        "remote_publications": {"const": 0}
+      }
+    },
+    "stage_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage_id",
+        "evidence_validation_status",
+        "evidence_records",
+        "mechanism_status",
+        "formal_completed",
+        "formal_planned",
+        "record_status_counts",
+        "linked_final_claim_counts",
+        "protected_oracles_executed"
+      ],
+      "properties": {
+        "stage_id": {"pattern": "^S[0-7]$"},
+        "evidence_validation_status": {"const": "PASS"},
+        "evidence_records": {"type": "integer", "minimum": 7, "maximum": 8},
+        "mechanism_status": {
+          "enum": [
+            "BASELINE_COMPLETE",
+            "LOCAL_SYNTHETIC_MECHANISMS_EVIDENCED",
+            "LOCAL_PREFLIGHT_MECHANISMS_EVIDENCED"
+          ]
+        },
+        "formal_completed": {"type": "integer", "minimum": 0, "maximum": 7},
+        "formal_planned": {"type": "integer", "minimum": 0, "maximum": 8},
+        "record_status_counts": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        },
+        "linked_final_claim_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "PARTIAL": {"type": "integer", "minimum": 0},
+            "NOT_RUN": {"type": "integer", "minimum": 0}
+          }
+        },
+        "protected_oracles_executed": {"const": 0}
+      }
+    }
+  }
+}

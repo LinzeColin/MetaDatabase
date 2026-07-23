@@ -1,0 +1,28 @@
+{
+  "schema_version": "moomooau.stage4-evidence.v1",
+  "evidence_id": "S4-T0404-LOCAL-20260720",
+  "stage_id": "S4",
+  "task_id": "T0404",
+  "stage_acceptance_id": "S4AC-004",
+  "observed_at_utc": "2026-07-20T02:39:28Z",
+  "baseline_commit": "b15ccdbe0e4ed16e3a01e17431360f844621b852",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "fy_xlsx_read_only_parse", "status": "PASS", "evidence_ref": "tests/tasks/test_t0404.py"},
+    {"id": "generic_table_only_profile", "status": "PASS", "evidence_ref": "ParserProfile"},
+    {"id": "negative_numeric_value_preserved", "status": "PASS", "evidence_ref": "tests/tasks/test_t0404.py"},
+    {"id": "xlsx_formula_quarantined", "status": "PASS", "evidence_ref": "SafeArtifactExtractor"},
+    {"id": "portal_runtime_surface_zero", "status": "PASS", "evidence_ref": "machine/stages/S4/tools/validate_stage4.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-015", "status": "PARTIAL", "reason": "Synthetic FY and generic table outputs have parser and Raw lineage; real versioned private outputs and recovery remain unrun."},
+    {"id": "AC-034", "status": "PARTIAL", "reason": "Stage 4 runtime contains no Moomoo Portal access or later-stage implementation; the final whole-system non-goal scan remains pending."}
+  ],
+  "production_oracles": [
+    {"id": "PROTECTED_REAL_FY_AND_TABLE_FIXTURES", "status": "NOT_RUN", "reason": "No real attachment, Portal access or production parser profile was used."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "production_classification_rules": 0, "production_parser_profiles": 0, "protected_approvals_executed": 0},
+  "next_action": "Validate exact real FY and table profiles only from protected email attachments; do not add Portal automation."
+}

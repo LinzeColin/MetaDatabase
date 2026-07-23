@@ -1,0 +1,8 @@
+Create one ordinary Codex Automation named “MooMooAU passive health check”.
+Schedule: daily at 04:30 Australia/Sydney.
+It must read only the latest completed public MooMooAU health evidence in LinzeColin/MetaDatabase.
+It must not access Gmail, the private repository, secrets, encrypted data, workflow inputs, or source-message content.
+It must not trigger GitHub Actions, modify code, or return to/continue any existing conversation.
+If the public evidence is healthy and no older than 48 hours, do nothing.
+If it is unhealthy or stale, create or update the single GitHub issue labeled moomooau-ops with the public evidence path, failure code, and a short prompt telling the Codex development thread what to inspect.
+The production pipeline must remain fully functional when this Automation is disabled or broken.

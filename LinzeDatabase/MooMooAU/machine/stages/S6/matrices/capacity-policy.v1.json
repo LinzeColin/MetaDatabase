@@ -1,0 +1,28 @@
+{
+  "schema_version": "moomooau.capacity-policy.v1",
+  "observed_at_utc": "2026-07-20T00:00:00Z",
+  "official_limits": {
+    "repository_recommended_bytes": 10000000000,
+    "git_object_recommended_bytes": 1000000,
+    "git_object_enforced_bytes": 100000000,
+    "release_asset_maximum_bytes_exclusive": 2147483648,
+    "gmail_page_maximum": 500
+  },
+  "internal_safety_thresholds": {
+    "yellow_percent": 70,
+    "red_percent": 90
+  },
+  "lfs_policy": {
+    "storage_budget": "OWNER_PROVISIONED_REQUIRED",
+    "object_limit": "OWNER_PLAN_PROVISIONED_REQUIRED",
+    "missing_configuration_state": "UNKNOWN",
+    "unknown_write_allowed": false
+  },
+  "sources": [
+    "https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits",
+    "https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases",
+    "https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-git-large-file-storage",
+    "https://docs.github.com/en/billing/concepts/product-billing/git-lfs",
+    "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": "moomooau.stage0-evidence.v1",
+  "evidence_id": "S0-T0003-20260720",
+  "stage_id": "S0",
+  "task_id": "T0003",
+  "observed_at_utc": "2026-07-19T21:09:30Z",
+  "base_commit": "2f77723bf52f54e16f23958cc72e5bcfc3dcae71",
+  "source_package_version": "1.0.0",
+  "record_status": "VALID",
+  "delivery_status": "BLOCKED",
+  "checks": [
+    {
+      "id": "synthetic-public-evidence-fixture",
+      "status": "PASS",
+      "evidence_ref": "tests/fixtures/stage0/public_evidence_synthetic.json"
+    },
+    {
+      "id": "public-evidence-field-contract",
+      "status": "PASS",
+      "evidence_ref": "schemas/public-evidence-v1.schema.json"
+    },
+    {
+      "id": "linked-final-oracles",
+      "status": "NOT_RUN",
+      "evidence_ref": "machine/contracts/acceptance_contract.json"
+    }
+  ],
+  "blockers": ["S0G-001"],
+  "next_action": "Separate the Stage 0 synthetic baseline gate from later mailbox and attachment acceptance oracles."
+}

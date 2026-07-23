@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Protected Production Config v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "phase",
+    "key_epoch",
+    "age_recipient",
+    "parser_current_version",
+    "beta_message_budget",
+    "ga_mutation_budget_per_run",
+    "github",
+    "capacity",
+    "predecessor_observations"
+  ],
+  "properties": {
+    "schema_version": {"const": "moomooau.production-config.v1"},
+    "phase": {"const": "GA"},
+    "key_epoch": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"},
+    "age_recipient": {"type": "string", "pattern": "^age1[0-9a-z]{58}$"},
+    "parser_current_version": {"type": "string", "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"},
+    "beta_message_budget": {"type": "integer", "minimum": 1},
+    "ga_mutation_budget_per_run": {"type": "integer", "minimum": 1},
+    "github": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["app_id", "installation_id", "repository_id"],
+      "properties": {
+        "app_id": {"type": "integer", "minimum": 1},
+        "installation_id": {"type": "integer", "minimum": 1},
+        "repository_id": {"type": "integer", "minimum": 1}
+      }
+    },
+    "capacity": {"$ref": "#/$defs/capacity"},
+    "predecessor_observations": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        {"allOf": [{"$ref": "#/$defs/observation"}, {"properties": {"phase": {"const": "ALPHA"}}}]},
+        {"allOf": [{"$ref": "#/$defs/observation"}, {"properties": {"phase": {"const": "BETA_RAW_ONLY"}}}]},
+        {"allOf": [{"$ref": "#/$defs/observation"}, {"properties": {"phase": {"const": "M3_CANARY"}}}]},
+        {"allOf": [{"$ref": "#/$defs/observation"}, {"properties": {"phase": {"const": "BLUE_GREEN"}}}]}
+      ],
+      "items": false
+    }
+  },
+  "$defs": {
+    "capacity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observed_at_utc", "limits", "snapshot"],
+      "properties": {
+        "observed_at_utc": {"type": "string", "format": "date-time"},
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lfs_storage_budget_bytes", "lfs_object_maximum_bytes"],
+          "properties": {
+            "lfs_storage_budget_bytes": {"type": "integer", "minimum": 1},
+            "lfs_object_maximum_bytes": {"type": "integer", "minimum": 1}
+          }
+        },
+        "snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "git_repository_bytes",
+            "lfs_storage_bytes",
+            "largest_git_object_bytes",
+            "largest_lfs_object_bytes",
+            "live_release_asset_bytes"
+          ],
+          "properties": {
+            "git_repository_bytes": {"type": "integer", "minimum": 0},
+            "lfs_storage_bytes": {"type": "integer", "minimum": 0},
+            "largest_git_object_bytes": {"type": "integer", "minimum": 0},
+            "largest_lfs_object_bytes": {"type": "integer", "minimum": 0},
+            "live_release_asset_bytes": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase",
+        "provenance",
+        "started_at_utc",
+        "ended_at_utc",
+        "observed_runs",
+        "scheduled_0430_runs",
+        "verified_messages",
+        "source_mutations",
+        "mutation_budget_max",
+        "recovery_attempts",
+        "recovery_successes",
+        "processed_messages",
+        "parser_blue_green_comparisons",
+        "timeline_publish_attempts",
+        "full_reconcile_runs",
+        "collateral_mutations",
+        "public_sensitive_findings",
+        "logical_duplicates",
+        "full_reconcile_difference",
+        "minimum_live_timeline_assets",
+        "maximum_live_timeline_assets",
+        "unresolved_failures"
+      ],
+      "properties": {
+        "phase": {"enum": ["ALPHA", "BETA_RAW_ONLY", "M3_CANARY", "BLUE_GREEN"]},
+        "provenance": {"enum": ["LOCAL_SYNTHETIC", "PROTECTED_GITHUB_ACTIONS"]},
+        "started_at_utc": {"type": "string", "format": "date-time"},
+        "ended_at_utc": {"type": "string", "format": "date-time"},
+        "observed_runs": {"type": "integer", "minimum": 0},
+        "scheduled_0430_runs": {"type": "integer", "minimum": 0},
+        "verified_messages": {"type": "integer", "minimum": 0},
+        "source_mutations": {"type": "integer", "minimum": 0},
+        "mutation_budget_max": {"type": "integer", "minimum": 0},
+        "recovery_attempts": {"type": "integer", "minimum": 0},
+        "recovery_successes": {"type": "integer", "minimum": 0},
+        "processed_messages": {"type": "integer", "minimum": 0},
+        "parser_blue_green_comparisons": {"type": "integer", "minimum": 0},
+        "timeline_publish_attempts": {"type": "integer", "minimum": 0},
+        "full_reconcile_runs": {"type": "integer", "minimum": 0},
+        "collateral_mutations": {"type": "integer", "minimum": 0},
+        "public_sensitive_findings": {"type": "integer", "minimum": 0},
+        "logical_duplicates": {"type": "integer", "minimum": 0},
+        "full_reconcile_difference": {"type": "integer", "minimum": 0},
+        "minimum_live_timeline_assets": {"type": "integer", "minimum": 0},
+        "maximum_live_timeline_assets": {"type": "integer", "minimum": 0},
+        "unresolved_failures": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

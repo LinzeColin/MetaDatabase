@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://metadatabase.example/schemas/moomooau/public-inventory-v1",
+  "title": "MooMooAU Public Inventory v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "opaque_root",
+    "run",
+    "datasets"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "moomooau.public-inventory.v1"
+    },
+    "opaque_root": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "test_conclusion",
+        "recovery_conclusion",
+        "next_action"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "HEALTHY",
+            "DEGRADED_RAW_ONLY",
+            "WAITING_PASSWORD",
+            "M3_FAILED",
+            "TIMELINE_FAILED",
+            "FAILED",
+            "NOT_RUN"
+          ]
+        },
+        "test_conclusion": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "NOT_RUN"
+          ]
+        },
+        "recovery_conclusion": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "NOT_RUN"
+          ]
+        },
+        "next_action": {
+          "enum": [
+            "NONE",
+            "RETRY",
+            "REPROCESS_WITH_PROTECTED_SECRET",
+            "REPAIR_M3",
+            "REPAIR_TIMELINE",
+            "INVESTIGATE",
+            "RUN_PRODUCTION_ACCEPTANCE"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"state": {"const": "HEALTHY"}}},
+          "then": {"properties": {"next_action": {"const": "NONE"}}}
+        },
+        {
+          "if": {"properties": {"state": {"const": "DEGRADED_RAW_ONLY"}}},
+          "then": {"properties": {"next_action": {"const": "RETRY"}}}
+        },
+        {
+          "if": {"properties": {"state": {"const": "WAITING_PASSWORD"}}},
+          "then": {
+            "properties": {
+              "next_action": {"const": "REPROCESS_WITH_PROTECTED_SECRET"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"state": {"const": "M3_FAILED"}}},
+          "then": {"properties": {"next_action": {"const": "REPAIR_M3"}}}
+        },
+        {
+          "if": {"properties": {"state": {"const": "TIMELINE_FAILED"}}},
+          "then": {"properties": {"next_action": {"const": "REPAIR_TIMELINE"}}}
+        },
+        {
+          "if": {"properties": {"state": {"const": "FAILED"}}},
+          "then": {"properties": {"next_action": {"const": "INVESTIGATE"}}}
+        },
+        {
+          "if": {"properties": {"state": {"const": "NOT_RUN"}}},
+          "then": {
+            "properties": {
+              "next_action": {"const": "RUN_PRODUCTION_ACCEPTANCE"}
+            }
+          }
+        }
+      ]
+    },
+    "datasets": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dataset_name",
+          "schema_version",
+          "parser_versions",
+          "availability",
+          "count_bucket",
+          "freshness_bucket"
+        ],
+        "properties": {
+          "dataset_name": {
+            "enum": [
+              "analytics",
+              "cash_flows",
+              "corporate_actions",
+              "dividends",
+              "document_envelopes",
+              "fx",
+              "statements",
+              "timeline_events",
+              "transactions"
+            ]
+          },
+          "schema_version": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+          },
+          "parser_versions": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+            }
+          },
+          "availability": {
+            "enum": [
+              "available",
+              "degraded",
+              "unavailable"
+            ]
+          },
+          "count_bucket": {
+            "enum": [
+              "0",
+              "1-9",
+              "10-99",
+              "100+"
+            ]
+          },
+          "freshness_bucket": {
+            "enum": [
+              "<24h",
+              "1-7d",
+              ">7d",
+              "no-data"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

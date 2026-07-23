@@ -1,0 +1,35 @@
+{
+  "schema_version": "moomooau.stage0-evidence.v1",
+  "evidence_id": "S0-LATEST-20260720",
+  "stage_id": "S0",
+  "task_id": null,
+  "observed_at_utc": "2026-07-19T21:09:30Z",
+  "base_commit": "2f77723bf52f54e16f23958cc72e5bcfc3dcae71",
+  "source_package_version": "1.0.0",
+  "record_status": "VALID",
+  "delivery_status": "BLOCKED",
+  "checks": [
+    {
+      "id": "source-integrity",
+      "status": "PASS",
+      "evidence_ref": "taskpack/SOURCE_PROVENANCE.json"
+    },
+    {
+      "id": "contract-structure",
+      "status": "PASS",
+      "evidence_ref": "machine/contracts/task_graph.json"
+    },
+    {
+      "id": "frozen-invariants",
+      "status": "PASS",
+      "evidence_ref": "machine/facts/canonical_facts.json"
+    },
+    {
+      "id": "semantic-delivery-gate",
+      "status": "BLOCKED",
+      "evidence_ref": "machine/contracts/stage0_semantic_gate.json"
+    }
+  ],
+  "blockers": ["S0G-001", "S0G-002", "S0G-003", "S0G-004", "S0G-005"],
+  "next_action": "Obtain explicit authority for a baseline-preserving v1.0.1 repair; do not begin Stage 1 or publish the branch."
+}

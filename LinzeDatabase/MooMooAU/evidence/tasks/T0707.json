@@ -1,0 +1,97 @@
+{
+  "schema_version": "moomooau.stage7-evidence.v1",
+  "evidence_id": "S7-T0707-LOCAL_RECOVERY_DRILL_MECHANISM_20260722",
+  "stage_id": "S7",
+  "task_id": "T0707",
+  "stage_acceptance_id": "S7AC-007",
+  "observed_at_utc": "2026-07-22T04:01:16Z",
+  "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
+  "record_status": "BLOCKED",
+  "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {
+      "id": "one_read_only_sample_per_role_authority",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0707.py::test_t0707_contract_allows_only_one_read_only_sample_per_role"
+    },
+    {
+      "id": "three_role_streaming_digest_only_local_mechanism",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0707.py::test_t0707_local_three_role_streaming_recovery_is_digest_only_and_not_protected"
+    },
+    {
+      "id": "owner_key_and_exact_dev_shm_protected_guard",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0707.py::test_t0707_protected_run_requires_owner_key_origin_and_exact_dev_shm_contract"
+    },
+    {
+      "id": "blocked_predecessor_zero_sample_side_effect",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0707.py::test_t0707_predecessor_failure_has_zero_sample_or_kill_side_effects"
+    },
+    {
+      "id": "digest_mismatch_fail_fast_kill_005_m3_zero",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0707.py::test_t0707_digest_mismatch_fails_fast_and_arms_kill_005_with_m3_zero"
+    },
+    {
+      "id": "wrong_identity_redacted_failure",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0707.py::test_t0707_wrong_identity_fails_closed_without_exposing_age_diagnostics"
+    },
+    {
+      "id": "safety_audit_finding_blocks_success",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0707.py::test_t0707_safety_audit_finding_blocks_success_and_arms_kill_005"
+    }
+  ],
+  "linked_final_acceptance": [
+    {
+      "id": "AC-012",
+      "status": "NOT_RUN",
+      "reason": "The local mechanism uses only generated synthetic identities; no owner-held MooMooAU-Recovery-Key.agekey was provided, read or proven to match the protected Environment identity."
+    },
+    {
+      "id": "AC-032",
+      "status": "PARTIAL",
+      "reason": "A nonce-bound, one-per-role, official-age streaming mechanism recovers synthetic Raw, Processed and Timeline into digest-only sinks and arms KILL-005 on mismatch, wrong identity or safety findings; no private-repository sample or protected rollback was exercised."
+    }
+  ],
+  "production_oracles": [
+    {
+      "id": "PROTECTED_REAL_THREE_ROLE_RECOVERY_DRILL",
+      "status": "NOT_RUN",
+      "reason": "T0706 is not complete, protected random-sample adapters are not provisioned, the owner Recovery Key file is absent and no real identity, ciphertext, private digest, log scan or GitHub-hosted drill entered this run."
+    }
+  ],
+  "blockers": [
+    "CODEX_AUTOMATION_TASK_PREDECESSOR_NOT_COMPLETE",
+    "PROTECTED_RECOVERY_SAMPLE_ADAPTERS_NOT_PROVISIONED",
+    "OWNER_RECOVERY_KEY_FILE_NOT_PROVIDED",
+    "REAL_RECOVERY_KEY_DRILL_NOT_RUN"
+  ],
+  "prohibition_counters": {
+    "real_gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "real_secrets_read": 0,
+    "protected_key_deliveries": 0,
+    "external_writes": 0,
+    "remote_publication": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_mutations": 0,
+    "raw_before_verification": 0,
+    "untrusted_content_execution": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "thread_trash_calls": 0,
+    "permanent_delete_calls": 0,
+    "release_assets_above_one": 0,
+    "production_workflow_runs": 0
+  },
+  "next_action": "Keep the protected drill absent until T0706 and the delivery-order blocker are resolved; then provision read-only nonce-bound adapters, materialize only the owner Recovery Key under /dev/shm, recover one real Raw, Processed and Timeline sample, scan logs/artifacts and publish aggregate-only evidence."
+}

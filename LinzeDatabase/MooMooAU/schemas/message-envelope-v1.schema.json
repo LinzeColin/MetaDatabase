@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://metadatabase.example/schemas/moomooau/message-envelope-v1",
+  "title": "MooMooAU Message Envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_id",
+    "document_class",
+    "verification",
+    "gmail",
+    "processing_state",
+    "lineage"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "source_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{16,}$"
+    },
+    "document_class": {
+      "type": "string"
+    },
+    "verification": {
+      "type": "object",
+      "required": [
+        "decision",
+        "verifier_version"
+      ],
+      "properties": {
+        "decision": {
+          "enum": [
+            "VERIFIED",
+            "UNVERIFIED",
+            "REJECTED"
+          ]
+        },
+        "verifier_version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "gmail": {
+      "type": "object",
+      "required": [
+        "internal_date_utc",
+        "label_state"
+      ],
+      "properties": {
+        "internal_date_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "label_state": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "processing_state": {
+      "enum": [
+        "COMPLETE",
+        "WAITING_FOR_PDF_PASSWORD",
+        "UNSUPPORTED",
+        "QUARANTINED",
+        "RAW_ONLY"
+      ]
+    },
+    "lineage": {
+      "$ref": "lineage-v1.schema.json"
+    }
+  }
+}

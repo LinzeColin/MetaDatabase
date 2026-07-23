@@ -1,0 +1,120 @@
+{
+  "acceptance_id": "AC-011",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "dde2c9027397dd0fbe34843e8e100a47f751a7747536d48dfc01938c965c7553",
+    "evidence_required": "evidence/acceptance/AC-011-age-encryption.json",
+    "pass_gate_text": "AC-011 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_011.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-011-RMD01-20260722",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0104.json",
+      "evidence_sha256": "4cfa3c4c601e3e391eef5cc07ee127850e7ec24649cd5ed7d5b32eb8a9b847d7",
+      "final_claim_status": "PARTIAL",
+      "reason": "Official age round-trip is proven for synthetic EML only; remote trees and all object types remain unrun.",
+      "source_record_status": "PASS",
+      "task_id": "T0104"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0205.json",
+      "evidence_sha256": "17a7dae7055383d8c6ef7c145c4533e75f88dd2f1b7d230c3ec5cd821dec4baf",
+      "final_claim_status": "PARTIAL",
+      "reason": "Official age byte round-trip is proven for synthetic bytes; all production object classes and remote surfaces are not yet present.",
+      "source_record_status": "PASS",
+      "task_id": "T0205"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0307.json",
+      "evidence_sha256": "1397177b4d6bea978b60a7114ea152427b9fd68c0dd174e74400a2ce4663cb39",
+      "final_claim_status": "PARTIAL",
+      "reason": "Every synthetic Raw object persisted to the memory adapter is an age envelope; all later Processed, State and Timeline object classes are not present.",
+      "source_record_status": "PASS",
+      "task_id": "T0307"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0506.json",
+      "evidence_sha256": "5f934da0f5c8489454d8f4c9f5ce7b6ada4fb3948eb92f6eab64ee9c6fe8dbed",
+      "final_claim_status": "PARTIAL",
+      "reason": "Fixed one-asset protocol and encrypted state pass in memory; no real Release asset was mutated.",
+      "source_record_status": "PASS",
+      "task_id": "T0506"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-22T05:12:40Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "391a4a5afcd673bfb95bf9a7c9e38197479eb159",
+  "requirement_id": "RQ-011",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_011_pass_gate",
+    "path": "tests/acceptance/test_ac_011.py",
+    "sha256": "5deba9d89237f38d97fd24287212cf8ab5048afcb817f1f898002c03dae5dc02"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0104",
+      "T0205",
+      "T0307",
+      "T0506"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "4a17179101deaaee65ff4f7af54c7efd83846e02c9651c6a3b6781d9c7edf80b"
+  }
+}

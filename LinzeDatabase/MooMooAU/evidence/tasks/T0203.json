@@ -1,0 +1,22 @@
+{
+  "schema_version": "moomooau.stage2-evidence.v1",
+  "evidence_id": "S2-T0203-LOCAL-20260720",
+  "stage_id": "S2",
+  "task_id": "T0203",
+  "stage_acceptance_id": "S2AC-003",
+  "observed_at_utc": "2026-07-19T23:37:27Z",
+  "baseline_commit": "932e3970490f87fd46671bc6a461340a339887ef",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "immutable_id_resolution", "status": "PASS", "evidence_ref": "tests/tasks/test_t0203.py"},
+    {"id": "rename_rebinding", "status": "PASS", "evidence_ref": "tests/tasks/test_t0203.py::test_t0203_repository_rename_is_resolved_by_immutable_id"},
+    {"id": "namespace_escape_rejection", "status": "PASS", "evidence_ref": "src/moomooau_archive/github_guard.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-009", "status": "PARTIAL", "reason": "Repository-ID rename behavior and MooMooAU namespace are synthetically proven; the protected private repository is not inspected."},
+    {"id": "AC-019", "status": "PARTIAL", "reason": "Cross-repository synthetic requests are blocked before transport; the real App installation canary is not run."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Keep the private repository name out of configuration and resolve it only from the protected ID."
+}

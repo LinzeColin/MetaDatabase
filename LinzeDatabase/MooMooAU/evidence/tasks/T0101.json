@@ -1,0 +1,22 @@
+{
+  "schema_version": "moomooau.stage1-evidence.v1",
+  "evidence_id": "S1-T0101-LOCAL-20260719",
+  "stage_id": "S1",
+  "task_id": "T0101",
+  "stage_acceptance_id": "S1AC-001",
+  "observed_at_utc": "2026-07-19T23:04:46Z",
+  "baseline_commit": "31a51114f8749b93b1da53f7bb11a7e2f7f916de",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "required_public_structure", "status": "PASS", "evidence_ref": "tests/tasks/test_t0101.py"},
+    {"id": "frozen_manifest_identity", "status": "PASS", "evidence_ref": "baseline.manifest_identity"},
+    {"id": "package_selection_unchanged", "status": "PASS", "evidence_ref": "baseline.cumulative_stage0"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-008", "status": "PARTIAL", "reason": "Public path is verified; the private production repository has not been inspected."},
+    {"id": "AC-009", "status": "NOT_RUN", "reason": "Repository-ID resolution and the single private database require protected Stage 2 and later work."}
+  ],
+  "prohibition_counters": {"gmail_calls": 0, "gmail_mutations": 0, "secrets_read": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Begin Stage 2 in a later run without changing the frozen baseline."
+}

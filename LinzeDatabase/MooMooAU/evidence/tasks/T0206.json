@@ -1,0 +1,22 @@
+{
+  "schema_version": "moomooau.stage2-evidence.v1",
+  "evidence_id": "S2-T0206-LOCAL-20260720",
+  "stage_id": "S2",
+  "task_id": "T0206",
+  "stage_acceptance_id": "S2AC-006",
+  "observed_at_utc": "2026-07-19T23:37:27Z",
+  "baseline_commit": "932e3970490f87fd46671bc6a461340a339887ef",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "identity_generated_without_output_file", "status": "PASS", "evidence_ref": "recovery.AgeIdentityGenerator"},
+    {"id": "exactly_once_claim_gate", "status": "PASS", "evidence_ref": "tests/tasks/test_t0206.py"},
+    {"id": "m3_disabled_before_recovery", "status": "PASS", "evidence_ref": "recovery.RecoveryCeremony.complete"},
+    {"id": "owned_generation_buffer_destroyed", "status": "PASS", "evidence_ref": "src/moomooau_archive/recovery.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-012", "status": "NOT_RUN", "reason": "Only the port contract and synthetic in-memory handoff ran; no real Environment Secret or development-thread one-time file was created or delivered."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Execute the concrete protected ceremony only at deployment with an authorized one-time delivery connector and owner confirmation."
+}

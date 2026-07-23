@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Document Class v1",
+  "type": "string",
+  "enum": [
+    "DAILY_STATEMENT",
+    "MONTHLY_STATEMENT",
+    "FINANCIAL_YEAR_SUMMARY",
+    "CONTRACT_NOTE",
+    "TRADE_NOTICE",
+    "CASH_NOTICE",
+    "FX_NOTICE",
+    "DIVIDEND_NOTICE",
+    "TAX_NOTICE",
+    "CORPORATE_ACTION",
+    "TRANSFER_CUSTODY",
+    "SECURITY_ALERT",
+    "KYC_COMPLIANCE",
+    "SUPPORT",
+    "FEE_NOTICE",
+    "PROMOTION_REWARD",
+    "RESEARCH_MARKETING",
+    "VERIFIED_UNKNOWN"
+  ]
+}

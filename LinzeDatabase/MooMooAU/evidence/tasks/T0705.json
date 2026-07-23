@@ -1,0 +1,112 @@
+{
+  "schema_version": "moomooau.stage7-evidence.v1",
+  "evidence_id": "S7-T0705-LOCAL_GA_MECHANISM_20260722",
+  "stage_id": "S7",
+  "task_id": "T0705",
+  "stage_acceptance_id": "S7AC-005",
+  "observed_at_utc": "2026-07-22T02:59:15Z",
+  "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
+  "record_status": "BLOCKED",
+  "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {
+      "id": "ga_predecessor_and_explicit_budget_gate",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_needs_real_0430_observation_and_explicit_budget"
+    },
+    {
+      "id": "sydney_0430_schedule_plan",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_schedule_plan_is_sydney_0430_and_never_claims_platform_sla"
+    },
+    {
+      "id": "github_checkpoint_exact_encrypted_cas_path",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_github_checkpoint_store_uses_one_encrypted_strict_cas_path"
+    },
+    {
+      "id": "ga_full_pipeline_recovery_m3_timeline_and_checkpoint",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_full_pipeline_audits_reconcile_recovers_then_trashes_and_keeps_one_timeline"
+    },
+    {
+      "id": "ga_missing_gate_zero_remote_calls",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_fails_before_remote_calls_without_protected_predecessors_or_budget"
+    },
+    {
+      "id": "ga_nonzero_full_reconcile_difference_fail_closed",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_nonzero_full_reconcile_difference_stops_before_raw_or_mutation"
+    },
+    {
+      "id": "ga_initial_full_reconcile_not_comparable",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_initial_full_reconcile_is_truthfully_not_comparable"
+    },
+    {
+      "id": "ga_pending_verified_source_loss_fail_closed",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_pending_verified_source_cannot_disappear_from_checkpoint_truth"
+    }
+  ],
+  "linked_final_acceptance": [
+    {
+      "id": "AC-002",
+      "status": "PARTIAL",
+      "reason": "The dependency-injected local GA mechanism processes only deterministically verified synthetic candidates; real coverage of every protected document class is not run."
+    },
+    {
+      "id": "AC-023",
+      "status": "PARTIAL",
+      "reason": "The local mechanism binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up, but no GitHub-hosted schedule execution is observed."
+    },
+    {
+      "id": "AC-031",
+      "status": "NOT_RUN",
+      "reason": "Only an aggregate-safe local run result is produced; no real continuous public health evidence is published."
+    },
+    {
+      "id": "AC-032",
+      "status": "PARTIAL",
+      "reason": "Synthetic Raw, Processed, Timeline and Gmail checkpoint recovery plus idempotent backlog replay pass; no protected GA recovery or rollback is exercised."
+    }
+  ],
+  "production_oracles": [
+    {
+      "id": "PROTECTED_GA_0430_FULL_PIPELINE",
+      "status": "NOT_RUN",
+      "reason": "Blue-Green is incomplete, GA budget/capacity are not provisioned, the production workflow remains disabled and no real schedule is dispatched."
+    }
+  ],
+  "blockers": [
+    "BLUE_GREEN_NOT_COMPLETE",
+    "GA_MUTATION_BUDGET_NOT_PROVISIONED",
+    "GA_CAPACITY_AUTHORIZATION_MISSING",
+    "GA_0430_RUN_NOT_OBSERVED"
+  ],
+  "prohibition_counters": {
+    "real_gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "real_secrets_read": 0,
+    "protected_key_deliveries": 0,
+    "external_writes": 0,
+    "remote_publication": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_mutations": 0,
+    "raw_before_verification": 0,
+    "untrusted_content_execution": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "thread_trash_calls": 0,
+    "permanent_delete_calls": 0,
+    "release_assets_above_one": 0,
+    "production_workflow_runs": 0
+  },
+  "next_action": "Keep GA unreachable until protected Blue-Green passes and an owner provisions a capacity-backed positive mutation budget; then assemble the injected adapters in the protected single-writer workflow and observe one real 04:30 run."
+}

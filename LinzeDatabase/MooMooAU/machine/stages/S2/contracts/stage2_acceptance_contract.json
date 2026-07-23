@@ -1,0 +1,99 @@
+{
+  "schema_version": "moomooau.stage-local-acceptance.v1",
+  "stage_id": "S2",
+  "policy": "FAIL_CLOSED",
+  "final_acceptance_policy": "Stage-local PASS proves only synthetic/local boundaries; linked AC-* remain PARTIAL or NOT_RUN until protected canaries, deployment and final review execute.",
+  "acceptance_contracts": [
+    {
+      "id": "S2AC-001",
+      "task_id": "T0201",
+      "linked_final_acceptance_ids": ["AC-018", "AC-022"],
+      "title": "单一 Gmail OAuth Secret 边界",
+      "environment": "local synthetic Secret source; no Google call",
+      "input": "one exact authorized-user JSON object and invalid scope/name controls",
+      "oracle": "Exactly one fixed Secret name is read; scope is exactly gmail.modify; authority and fields are exact; values are redacted and destroyable.",
+      "threshold": "Secret reads 1 for valid input; extra scopes 0; credential values in repr/log 0; real Secrets 0",
+      "evidence_required": "evidence/tasks/T0201.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0201.py",
+      "failure_action": "Reject credential loading and keep all Gmail operations disabled."
+    },
+    {
+      "id": "S2AC-002",
+      "task_id": "T0202",
+      "linked_final_acceptance_ids": ["AC-006", "AC-018", "AC-034"],
+      "title": "Gmail Endpoint Guard",
+      "environment": "injected recording transport with synthetic IDs",
+      "input": "five legal operations plus send/delete/thread/batch/modify and authority-bypass controls",
+      "oracle": "Only messages.list/get, history.list, filters.list and exact message-level messages.trash pass; every forbidden request is rejected before transport.",
+      "threshold": "forbidden endpoint network calls 0; allowed operation families 5/5",
+      "evidence_required": "evidence/tasks/T0202.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0202.py",
+      "failure_action": "Disable OAuth use and repair the pre-network guard."
+    },
+    {
+      "id": "S2AC-003",
+      "task_id": "T0203",
+      "linked_final_acceptance_ids": ["AC-009", "AC-019"],
+      "title": "Repository ID 和改名守卫",
+      "environment": "synthetic GitHub response transport",
+      "input": "same positive Repository ID with two current names, public response and path traversal controls",
+      "oracle": "Current name is resolved from the immutable ID, private=true is required, rename rebinding invalidates the old locator, and only MooMooAU/ paths are authorized.",
+      "threshold": "second repository creations 0; cross-repository network calls 0; namespace escapes 0",
+      "evidence_required": "evidence/tasks/T0203.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0203.py",
+      "failure_action": "Block all private writes and require a fresh protected-ID resolution."
+    },
+    {
+      "id": "S2AC-004",
+      "task_id": "T0204",
+      "linked_final_acceptance_ids": ["AC-019", "AC-027"],
+      "title": "短时 GitHub App Installation Token",
+      "environment": "runtime-generated synthetic RSA key and injected response transport",
+      "input": "RS256 App JWT, exact repository_ids/permissions request, narrow and overbroad responses",
+      "oracle": "JWT lifetime is below ten minutes; Installation Token lifetime is at most one hour; response must name only the target Repository ID and Contents write plus Metadata read; only target Contents/fixed live Release endpoints pass.",
+      "threshold": "overbroad token acceptances 0; cross-repository network calls 0; token values in repr 0",
+      "evidence_required": "evidence/tasks/T0204.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0204.py",
+      "failure_action": "Reject the token, revoke the installation when protected execution exists, and stop private writes."
+    },
+    {
+      "id": "S2AC-005",
+      "task_id": "T0205",
+      "linked_final_acceptance_ids": ["AC-010", "AC-011", "AC-022"],
+      "title": "官方 age 流式边界",
+      "environment": "official age CLI; in-memory payload streams; temporary synthetic identity root",
+      "input": "multi-chunk synthetic plaintext and generated synthetic X25519 identity",
+      "oracle": "Plaintext moves only through pipes and memory, ciphertext is an age envelope, round-trip bytes match, and decrypt identities outside explicitly approved ephemeral roots are rejected.",
+      "threshold": "round-trip 100%; plaintext payload files 0; unapproved identity roots 0",
+      "evidence_required": "evidence/tasks/T0205.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0205.py",
+      "failure_action": "Block persistence and retain all mutation features disabled."
+    },
+    {
+      "id": "S2AC-006",
+      "task_id": "T0206",
+      "linked_final_acceptance_ids": ["AC-012"],
+      "title": "Recovery Key 一次性交付状态机",
+      "environment": "official age-keygen plus synthetic in-memory Secret installer and one-time handoff",
+      "input": "one generated identity, zero/one/repeated owner claim paths and recipient derivation proof",
+      "oracle": "Generation creates no key file, local owned buffer is destroyed after handoff, M3 remains ineligible before exactly one claim and a recovery proof, and the private identity never enters repr or committed evidence.",
+      "threshold": "M3 eligibility before proof 0; accepted claim count exactly 1; committed private keys 0",
+      "evidence_required": "evidence/tasks/T0206.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0206.py",
+      "failure_action": "Keep M3 disabled, revoke the partial ceremony through the adapter, and regenerate only in protected deployment."
+    },
+    {
+      "id": "S2AC-007",
+      "task_id": "T0207",
+      "linked_final_acceptance_ids": ["AC-021", "AC-033"],
+      "title": "不可变供应链与安全 CI",
+      "environment": "local dependency resolver/auditor plus no-Secret GitHub-hosted workflow definition",
+      "input": "exact direct pins, universal hash lock, CycloneDX SBOM, Action commits, age checksum and OCI digest",
+      "oracle": "Every transitive Python requirement has SHA-256 hashes, SBOM exactly matches the lock, every Action uses a full commit, age and container inputs use verified digests, and the workflow gates audit, secret scan, CodeQL and dependency review without Artifact/Cache or Secret references.",
+      "threshold": "unhashed requirements 0; unpinned Actions 0; observed known vulnerabilities 0 at recorded audit time; committed scan reports 0",
+      "evidence_required": "evidence/tasks/T0207.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0207.py && python machine/stages/S2/tools/validate_supply_chain.py",
+      "failure_action": "Freeze delivery and update the affected immutable input before any deployment."
+    }
+  ]
+}

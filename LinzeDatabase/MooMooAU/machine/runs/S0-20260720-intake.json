@@ -1,0 +1,30 @@
+{
+  "schema_version": "moomooau.stage0-run.v1",
+  "run_id": "S0-20260720-intake",
+  "stage_id": "S0",
+  "source_package_version": "1.0.0",
+  "base_commit": "2f77723bf52f54e16f23958cc72e5bcfc3dcae71",
+  "branch": "codex/moomooau-archive-v100-s0",
+  "scope": {
+    "stages_executed": ["S0"],
+    "stage1_or_later_implementation": false,
+    "remote_writes": 0,
+    "gmail_calls": 0,
+    "private_data_reads": 0,
+    "secret_reads": 0,
+    "deployment_actions": 0
+  },
+  "results": {
+    "source_archive_integrity": "PASS",
+    "imported_project_manifest_entries": 62,
+    "contract_structure": "PASS",
+    "frozen_invariant_scan": "PASS",
+    "task_tests": "PASS_7_OF_7",
+    "evidence_validation": "PASS_8_OF_8",
+    "verifier_status": "PASS",
+    "delivery_status": "BLOCKED"
+  },
+  "blocking_issue_ids": ["S0G-001", "S0G-002", "S0G-003", "S0G-004", "S0G-005"],
+  "stage1_authorized": false,
+  "next_action": "Await explicit authority for a baseline-preserving v1.0.1 repair; keep all remote operations disabled."
+}

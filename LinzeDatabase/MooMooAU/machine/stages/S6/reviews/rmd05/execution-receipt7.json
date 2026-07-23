@@ -1,0 +1,483 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "src",
+        "tests/stage6_support.py",
+        "tests/stage7_support.py",
+        "tests/tasks/test_t0601.py",
+        "tests/tasks/test_t0602.py",
+        "tests/tasks/test_t0603.py",
+        "tests/tasks/test_t0604.py",
+        "tests/tasks/test_t0605.py",
+        "tests/tasks/test_t0606.py",
+        "tests/tasks/test_t0607.py",
+        "tests/tasks/test_t0608.py",
+        "tests/tasks/test_t0702.py",
+        "tests/tasks/test_t0703.py",
+        "tests/tasks/test_t0704.py",
+        "tests/tasks/test_t0705.py",
+        "tests/remediation",
+        "machine/stages/S6/tools",
+        "machine/tools/validate_assurance_reviews.py",
+        "machine/tools/build_delivery_status.py",
+        "machine/tools/build_governance_facts.py",
+        "machine/tools/build_package_manifest.py",
+        "machine/tools/capture_candidate_gates.py",
+        "machine/tools/validate_delivery_status.py",
+        "machine/tools/validate_evidence.py",
+        "machine/tools/validate_package.py",
+        "machine/tools/validate_stage6_sbom_reproducibility.py",
+        "machine/tools/validate_stage6_secret_scan.py"
+      ],
+      "exit_code": 0,
+      "id": "ruff-format",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 27,
+      "raw_stdout_sha256": "4ff47a71933cda9dac7b68bef86276a56fbcd69c7a3ec166850d7042addad6ea",
+      "result_summary": "All RMD-05 scoped Python files are format-stable.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": "86 files already formatted\n",
+      "sanitized_stdout_sha256": "4ff47a71933cda9dac7b68bef86276a56fbcd69c7a3ec166850d7042addad6ea",
+      "tool_versions": {
+        "python": "3.12.13",
+        "ruff": "ruff 0.15.22"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "-m",
+        "ruff",
+        "check",
+        "--no-cache",
+        "src",
+        "tests/stage6_support.py",
+        "tests/stage7_support.py",
+        "tests/tasks/test_t0601.py",
+        "tests/tasks/test_t0602.py",
+        "tests/tasks/test_t0603.py",
+        "tests/tasks/test_t0604.py",
+        "tests/tasks/test_t0605.py",
+        "tests/tasks/test_t0606.py",
+        "tests/tasks/test_t0607.py",
+        "tests/tasks/test_t0608.py",
+        "tests/tasks/test_t0702.py",
+        "tests/tasks/test_t0703.py",
+        "tests/tasks/test_t0704.py",
+        "tests/tasks/test_t0705.py",
+        "tests/remediation",
+        "machine/stages/S6/tools",
+        "machine/tools/validate_assurance_reviews.py",
+        "machine/tools/build_delivery_status.py",
+        "machine/tools/build_governance_facts.py",
+        "machine/tools/build_package_manifest.py",
+        "machine/tools/capture_candidate_gates.py",
+        "machine/tools/validate_delivery_status.py",
+        "machine/tools/validate_evidence.py",
+        "machine/tools/validate_package.py",
+        "machine/tools/validate_stage6_sbom_reproducibility.py",
+        "machine/tools/validate_stage6_secret_scan.py"
+      ],
+      "exit_code": 0,
+      "id": "ruff-lint",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 19,
+      "raw_stdout_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "result_summary": "All RMD-05 scoped Python files pass lint.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": "All checks passed!\n",
+      "sanitized_stdout_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "tool_versions": {
+        "python": "3.12.13",
+        "ruff": "ruff 0.15.22"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "-m",
+        "mypy",
+        "--no-incremental",
+        "--cache-dir",
+        "${TMPDIR}/mypy-cache",
+        "src",
+        "tests/stage7_support.py",
+        "tests/tasks/test_t0606.py",
+        "tests/tasks/test_t0607.py",
+        "tests/remediation/test_rmd05.py",
+        "machine/stages/S6/tools",
+        "machine/tools/validate_assurance_reviews.py",
+        "machine/tools/build_delivery_status.py",
+        "machine/tools/build_governance_facts.py",
+        "machine/tools/build_package_manifest.py",
+        "machine/tools/capture_candidate_gates.py",
+        "machine/tools/validate_delivery_status.py",
+        "machine/tools/validate_evidence.py",
+        "machine/tools/validate_package.py",
+        "machine/tools/validate_stage6_sbom_reproducibility.py",
+        "machine/tools/validate_stage6_secret_scan.py"
+      ],
+      "exit_code": 0,
+      "id": "mypy-strict",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 44,
+      "raw_stdout_sha256": "047be720f71ff6f55001ba8201472e4dca22eaa7f8ee244cbd28450c7224622f",
+      "result_summary": "Strict typing passes for runtime and RMD-05 assurance code.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": "Success: no issues found in 72 source files\n",
+      "sanitized_stdout_sha256": "047be720f71ff6f55001ba8201472e4dca22eaa7f8ee244cbd28450c7224622f",
+      "tool_versions": {
+        "mypy": "mypy 2.3.0 (compiled: yes)",
+        "python": "3.12.13"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/tasks/test_t0601.py",
+        "tests/tasks/test_t0602.py",
+        "tests/tasks/test_t0603.py",
+        "tests/tasks/test_t0604.py",
+        "tests/tasks/test_t0605.py",
+        "tests/tasks/test_t0606.py",
+        "tests/tasks/test_t0607.py",
+        "tests/tasks/test_t0608.py"
+      ],
+      "exit_code": 0,
+      "id": "stage6-task-tests",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 100,
+      "raw_stdout_sha256": "8763f4403edc1cef564b0f46db743a047c1c6d71a9bf0a2fc3863ed902710ab8",
+      "result_summary": "All Stage 6 task tests pass on the candidate.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": "....................................................                     [100%]\n52 passed in 28.76s\n",
+      "sanitized_stdout_sha256": "8763f4403edc1cef564b0f46db743a047c1c6d71a9bf0a2fc3863ed902710ab8",
+      "tool_versions": {
+        "pytest": "pytest 9.1.1",
+        "python": "3.12.13"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/tasks/test_t0702.py",
+        "tests/tasks/test_t0703.py",
+        "tests/tasks/test_t0704.py",
+        "tests/tasks/test_t0705.py"
+      ],
+      "exit_code": 0,
+      "id": "stage7-runtime-regression-tests",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 99,
+      "raw_stdout_sha256": "501034f4e8c03c4da8b0dac8cf9caff07be62814357af8b07a7cd2f1e75624c1",
+      "result_summary": "Affected Stage 7 runtime composition tests pass on the candidate.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": ".....................................                                    [100%]\n37 passed in 9.06s\n",
+      "sanitized_stdout_sha256": "501034f4e8c03c4da8b0dac8cf9caff07be62814357af8b07a7cd2f1e75624c1",
+      "tool_versions": {
+        "pytest": "pytest 9.1.1",
+        "python": "3.12.13"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/remediation/test_rmd05.py"
+      ],
+      "exit_code": 0,
+      "id": "remediation-tests",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 100,
+      "raw_stdout_sha256": "ec5655dc99d4d53389bd156a4cd066c0c97e464277e2a75c6e0dd7e61e067d13",
+      "result_summary": "RMD-05 provenance and post-review transition regressions pass.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": "....................                                                     [100%]\n20 passed in 46.93s\n",
+      "sanitized_stdout_sha256": "ec5655dc99d4d53389bd156a4cd066c0c97e464277e2a75c6e0dd7e61e067d13",
+      "tool_versions": {
+        "pytest": "pytest 9.1.1",
+        "python": "3.12.13"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "-m",
+        "pip_audit",
+        "-r",
+        "requirements/stage6.lock",
+        "--require-hashes",
+        "--progress-spinner=off"
+      ],
+      "exit_code": 0,
+      "id": "dependency-audit",
+      "raw_stderr_bytes": 31,
+      "raw_stderr_sha256": "15950a68a7ed99c59779717acefdceb3f69cfd31bde67d2c954f2a3cea4d7955",
+      "raw_stdout_bytes": 0,
+      "raw_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result_summary": "The hash-locked Stage 6 dependency audit reports no known vulnerability.",
+      "sanitized_stderr": "No known vulnerabilities found\n",
+      "sanitized_stderr_sha256": "15950a68a7ed99c59779717acefdceb3f69cfd31bde67d2c954f2a3cea4d7955",
+      "sanitized_stdout": "",
+      "sanitized_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tool_versions": {
+        "pip-audit": "pip-audit 2.10.1",
+        "python": "3.12.13"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "machine/tools/validate_stage6_sbom_reproducibility.py"
+      ],
+      "exit_code": 0,
+      "id": "sbom-reproducibility",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 163,
+      "raw_stdout_sha256": "88951569442ce7da1be90e0d0e25e3328b1a81b6e09aed6ca05ab07fa962f223",
+      "result_summary": "The regenerated sanitized SBOM is byte-identical.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": "{\n  \"byte_equal\": true,\n  \"ephemeral_outputs_removed\": true,\n  \"failures\": [],\n  \"schema_version\": \"moomooau.stage6-sbom-reproducibility.v1\",\n  \"status\": \"PASS\"\n}\n",
+      "sanitized_stdout_sha256": "88951569442ce7da1be90e0d0e25e3328b1a81b6e09aed6ca05ab07fa962f223",
+      "tool_versions": {
+        "cyclonedx-py": "7.3.0",
+        "python": "3.12.13"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "machine/tools/validate_stage6_secret_scan.py"
+      ],
+      "exit_code": 0,
+      "id": "secret-scan",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 171,
+      "raw_stdout_sha256": "a53e2ecbb77928939c4d118343711652cc02274771e7596544a163b37cb385de",
+      "result_summary": "The scoped Stage 6 secret scan reports zero findings.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": "{\n  \"failures\": [],\n  \"finding_locations\": [],\n  \"findings\": 0,\n  \"raw_report_retained\": false,\n  \"schema_version\": \"moomooau.stage6-secret-scan.v1\",\n  \"status\": \"PASS\"\n}\n",
+      "sanitized_stdout_sha256": "a53e2ecbb77928939c4d118343711652cc02274771e7596544a163b37cb385de",
+      "tool_versions": {
+        "detect-secrets": "1.5.0",
+        "python": "3.12.13"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "machine/tools/validate_publication.py",
+        "--root",
+        "."
+      ],
+      "exit_code": 0,
+      "id": "publication-scan",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 288,
+      "raw_stdout_sha256": "a3411ea9a7de4ef7e484988efe220574cb802f3407a602381da2684012f6099c",
+      "result_summary": "The publishable project tree has zero forbidden-value findings.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": "{\n  \"files_scanned\": 535,\n  \"match_counts\": {\n    \"email\": 0,\n    \"forbidden_field\": 0,\n    \"live_secret\": 0,\n    \"local_absolute_path\": 0,\n    \"private_locator\": 0\n  },\n  \"matched_files\": [],\n  \"schema_version\": \"moomooau.publication-scan.v1\",\n  \"status\": \"PASS\",\n  \"total_matches\": 0\n}\n",
+      "sanitized_stdout_sha256": "a3411ea9a7de4ef7e484988efe220574cb802f3407a602381da2684012f6099c",
+      "tool_versions": {
+        "python": "3.12.13"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "machine/tools/validate_governance.py",
+        "--governance-root",
+        "${GOVERNANCE_ROOT}"
+      ],
+      "exit_code": 0,
+      "id": "governance-validation",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 239,
+      "raw_stdout_sha256": "11277e12ea2dfb600cbb65b4d8ec450a1672e84a9667e929d3bed6dc30ae2d18",
+      "result_summary": "Pinned Governance renders and validates without changing the candidate tree.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": "{\n  \"fact_mismatches\": [],\n  \"failures\": [],\n  \"governance_commit\": \"ebc6c2e4884edc959118cfc56d0e18a86c49460f\",\n  \"mode\": \"check\",\n  \"render_drift\": [],\n  \"shared_blocker_gate\": \"PASS\",\n  \"shared_budget_gate\": \"PASS\",\n  \"status\": \"PASS\"\n}\n",
+      "sanitized_stdout_sha256": "11277e12ea2dfb600cbb65b4d8ec450a1672e84a9667e929d3bed6dc30ae2d18",
+      "tool_versions": {
+        "git": "git version 2.39.5 (Apple Git-154)",
+        "python": "3.12.13"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "docker",
+        "build",
+        "--no-cache",
+        "--tag",
+        "moomooau-stage6-rmd05-65b91c809448",
+        "--file",
+        "container/Dockerfile.stage6-ci",
+        "."
+      ],
+      "exit_code": 0,
+      "id": "container-build",
+      "raw_stderr_bytes": 24191,
+      "raw_stderr_sha256": "c070cccdef8ad5a26549c6c44aecea0b846787f9c13c17e8aebc218910a5749d",
+      "raw_stdout_bytes": 0,
+      "raw_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result_summary": "The digest-pinned Stage 6 validation container builds locally.",
+      "sanitized_stderr": "#0 building with \"desktop-linux\" instance using docker driver\n\n#1 [internal] load build definition from Dockerfile.stage6-ci\n#1 transferring dockerfile: 757B done\n#1 DONE 0.0s\n\n#2 [internal] load metadata for docker.io/library/python:3.12.13-slim-bookworm@sha256:d50fb7611f86d04a3b0471b46d7557818d88983fc3136726336b2a4c657aa30b\n#2 ...\n\n#3 [auth] library/python:pull token for registry-1.docker.io\n#3 DONE 0.0s\n\n#2 [internal] load metadata for docker.io/library/python:3.12.13-slim-bookworm@sha256:d50fb7611f86d04a3b0471b46d7557818d88983fc3136726336b2a4c657aa30b\n#2 DONE 1.6s\n\n#4 [internal] load .dockerignore\n#4 transferring context: 2B done\n#4 DONE 0.0s\n\n#5 [1/7] FROM docker.io/library/python:3.12.13-slim-bookworm@sha256:d50fb7611f86d04a3b0471b46d7557818d88983fc3136726336b2a4c657aa30b\n#5 resolve docker.io/library/python:3.12.13-slim-bookworm@sha256:d50fb7611f86d04a3b0471b46d7557818d88983fc3136726336b2a4c657aa30b done\n#5 DONE 0.0s\n\n#6 [2/7] WORKDIR /opt/moomooau\n#6 CACHED\n\n#7 [internal] load build context\n#7 transferring context: 875.67kB 0.0s done\n#7 DONE 0.0s\n\n#8 [3/7] COPY requirements/stage6.lock requirements/stage6.lock\n#8 DONE 0.0s\n\n#9 [4/7] RUN python -m pip install --no-cache-dir --require-hashes -r requirements/stage6.lock\n#9 1.189 Ignoring colorama: markers 'os_name == \"nt\" or sys_platform == \"win32\"' don't match your environment\n#9 1.294 Collecting annotated-types==0.7.0 (from -r requirements/stage6.lock (line 3))\n#9 1.419   Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)\n#9 1.463 Collecting arrow==1.4.0 (from -r requirements/stage6.lock (line 7))\n#9 1.490   Downloading arrow-1.4.0-py3-none-any.whl (68 kB)\n#9 1.579 Collecting ast-serialize==0.6.0 (from -r requirements/stage6.lock (line 11))\n#9 1.610   Downloading ast_serialize-0.6.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (1.2 MB)\n#9 1.756      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 9.1 MB/s eta 0:00:00\n#9 1.799 Collecting attrs==26.1.0 (from -r requirements/stage6.lock (line 47))\n#9 1.832   Downloading attrs-26.1.0-py3-none-any.whl (67 kB)\n#9 1.875 Collecting boolean-py==5.0 (from -r requirements/stage6.lock (line 53))\n#9 1.904   Downloading boolean_py-5.0-py3-none-any.whl (26 kB)\n#9 1.949 Collecting build==1.5.0 (from -r requirements/stage6.lock (line 57))\n#9 1.974   Downloading build-1.5.0-py3-none-any.whl (26 kB)\n#9 2.016 Collecting cachecontrol==0.14.4 (from -r requirements/stage6.lock (line 63))\n#9 2.042   Downloading cachecontrol-0.14.4-py3-none-any.whl (22 kB)\n#9 2.094 Collecting certifi==2026.6.17 (from -r requirements/stage6.lock (line 67))\n#9 2.121   Downloading certifi-2026.6.17-py3-none-any.whl (133 kB)\n#9 2.258 Collecting cffi==2.1.0 (from -r requirements/stage6.lock (line 71))\n#9 2.285   Downloading cffi-2.1.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl (222 kB)\n#9 2.368 Collecting chardet==5.2.0 (from -r requirements/stage6.lock (line 173))\n#9 2.400   Downloading chardet-5.2.0-py3-none-any.whl (199 kB)\n#9 2.539 Collecting charset-normalizer==3.4.9 (from -r requirements/stage6.lock (line 177))\n#9 2.567   Downloading charset_normalizer-3.4.9-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (215 kB)\n#9 2.632 Collecting click==8.4.2 (from -r requirements/stage6.lock (line 272))\n#9 2.661   Downloading click-8.4.2-py3-none-any.whl (119 kB)\n#9 2.824 Collecting cryptography==49.0.0 (from -r requirements/stage6.lock (line 283))\n#9 2.851   Downloading cryptography-49.0.0-cp311-abi3-manylinux_2_34_aarch64.whl (4.7 MB)\n#9 3.295      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/4.7 MB 10.5 MB/s eta 0:00:00\n#9 3.345 Collecting cyclonedx-bom==7.3.0 (from -r requirements/stage6.lock (line 331))\n#9 3.371   Downloading cyclonedx_bom-7.3.0-py3-none-any.whl (60 kB)\n#9 3.420 Collecting cyclonedx-python-lib==11.11.0 (from -r requirements/stage6.lock (line 335))\n#9 3.485   Downloading cyclonedx_python_lib-11.11.0-py3-none-any.whl (528 kB)\n#9 3.519      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 528.7/528.7 kB 20.0 MB/s eta 0:00:00\n#9 3.553 Collecting defusedxml==0.7.1 (from -r requirements/stage6.lock (line 341))\n#9 3.582   Downloading defusedxml-0.7.1-py2.py3-none-any.whl (25 kB)\n#9 3.619 Collecting detect-secrets==1.5.0 (from -r requirements/stage6.lock (line 347))\n#9 3.648   Downloading detect_secrets-1.5.0-py3-none-any.whl (120 kB)\n#9 3.734 Collecting et-xmlfile==2.0.0 (from -r requirements/stage6.lock (line 351))\n#9 3.762   Downloading et_xmlfile-2.0.0-py3-none-any.whl (18 kB)\n#9 3.803 Collecting exchange-calendars==4.13.2 (from -r requirements/stage6.lock (line 355))\n#9 3.833   Downloading exchange_calendars-4.13.2-py3-none-any.whl (213 kB)\n#9 3.910 Collecting filelock==3.31.1 (from -r requirements/stage6.lock (line 359))\n#9 3.943   Downloading filelock-3.31.1-py3-none-any.whl (97 kB)\n#9 3.984 Collecting fqdn==1.5.1 (from -r requirements/stage6.lock (line 363))\n#9 4.010   Downloading fqdn-1.5.1-py3-none-any.whl (9.1 kB)\n#9 4.212 Collecting hypothesis==6.156.7 (from -r requirements/stage6.lock (line 367))\n#9 4.234   Downloading hypothesis-6.156.7-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (1.1 MB)\n#9 4.294      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 17.7 MB/s eta 0:00:00\n#9 4.331 Collecting idna==3.18 (from -r requirements/stage6.lock (line 427))\n#9 4.363   Downloading idna-3.18-py3-none-any.whl (65 kB)\n#9 4.400 Collecting iniconfig==2.3.0 (from -r requirements/stage6.lock (line 433))\n#9 4.429   Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)\n#9 4.455 Collecting isoduration==20.11.0 (from -r requirements/stage6.lock (line 437))\n#9 4.477   Downloading isoduration-20.11.0-py3-none-any.whl (11 kB)\n#9 4.519 Collecting jsonpointer==3.1.1 (from -r requirements/stage6.lock (line 441))\n#9 4.547   Downloading jsonpointer-3.1.1-py3-none-any.whl (7.7 kB)\n#9 4.590 Collecting jsonschema==4.26.0 (from -r requirements/stage6.lock (line 445))\n#9 4.628   Downloading jsonschema-4.26.0-py3-none-any.whl (90 kB)\n#9 4.677 Collecting jsonschema-specifications==2025.9.1 (from -r requirements/stage6.lock (line 451))\n#9 4.708   Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)\n#9 4.745 Collecting korean-lunar-calendar==0.4.0 (from -r requirements/stage6.lock (line 455))\n#9 4.771   Downloading korean_lunar_calendar-0.4.0-py3-none-any.whl (11 kB)\n#9 4.806 Collecting lark==1.3.1 (from -r requirements/stage6.lock (line 459))\n#9 4.869   Downloading lark-1.3.1-py3-none-any.whl (113 kB)\n#9 5.030 Collecting librt==0.13.0 (from -r requirements/stage6.lock (line 463))\n#9 5.054   Downloading librt-0.13.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (503 kB)\n#9 5.124 Collecting license-expression==30.4.4 (from -r requirements/stage6.lock (line 557))\n#9 5.194   Downloading license_expression-30.4.4-py3-none-any.whl (120 kB)\n#9 5.421 Collecting lxml==6.1.1 (from -r requirements/stage6.lock (line 561))\n#9 5.454   Downloading lxml-6.1.1-cp312-cp312-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl (5.0 MB)\n#9 5.784      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.0/5.0 MB 16.3 MB/s eta 0:00:00\n#9 5.829 Collecting markdown-it-py==4.2.0 (from -r requirements/stage6.lock (line 699))\n#9 5.858   Downloading markdown_it_py-4.2.0-py3-none-any.whl (91 kB)\n#9 5.916 Collecting mdurl==0.1.2 (from -r requirements/stage6.lock (line 703))\n#9 5.947   Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)\n#9 6.026 Collecting msgpack==1.2.1 (from -r requirements/stage6.lock (line 707))\n#9 6.050   Downloading msgpack-1.2.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (410 kB)\n#9 6.195 Collecting mypy==2.3.0 (from -r requirements/stage6.lock (line 775))\n#9 6.220   Downloading mypy-2.3.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (14.2 MB)\n#9 7.190      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 14.2/14.2 MB 15.0 MB/s eta 0:00:00\n#9 7.244 Collecting mypy-extensions==1.1.0 (from -r requirements/stage6.lock (line 822))\n#9 7.277   Downloading mypy_extensions-1.1.0-py3-none-any.whl (5.0 kB)\n#9 7.481 Collecting numpy==2.5.1 (from -r requirements/stage6.lock (line 828))\n#9 7.518   Downloading numpy-2.5.1-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl (15.2 MB)\n#9 8.614      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 15.2/15.2 MB 14.1 MB/s eta 0:00:00\n#9 8.676 Collecting openpyxl==3.1.5 (from -r requirements/stage6.lock (line 877))\n#9 8.698   Downloading openpyxl-3.1.5-py2.py3-none-any.whl (250 kB)\n#9 8.760 Collecting packageurl-python==0.17.6 (from -r requirements/stage6.lock (line 881))\n#9 8.786   Downloading packageurl_python-0.17.6-py3-none-any.whl (36 kB)\n#9 8.825 Collecting packaging==26.2 (from -r requirements/stage6.lock (line 887))\n#9 8.850   Downloading packaging-26.2-py3-none-any.whl (100 kB)\n#9 8.956 Collecting pandas==3.0.3 (from -r requirements/stage6.lock (line 899))\n#9 8.977   Downloading pandas-3.0.3-cp312-cp312-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl (10.4 MB)\n#9 9.470      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.4/10.4 MB 21.3 MB/s eta 0:00:00\n#9 9.544 Collecting pandera==0.32.1 (from -r requirements/stage6.lock (line 952))\n#9 9.578   Downloading pandera-0.32.1-py3-none-any.whl (447 kB)\n#9 9.653 Collecting pathspec==1.1.1 (from -r requirements/stage6.lock (line 956))\n#9 9.680   Downloading pathspec-1.1.1-py3-none-any.whl (57 kB)\n#9 10.10 Collecting pikepdf==10.10.0 (from -r requirements/stage6.lock (line 960))\n#9 10.13   Downloading pikepdf-10.10.0-cp312-cp312-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl (2.0 MB)\n#9 10.21      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 26.9 MB/s eta 0:00:00\n#9 10.36 Collecting pillow==12.3.0 (from -r requirements/stage6.lock (line 1005))\n#9 10.39   Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl (6.3 MB)\n#9 10.74      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 19.9 MB/s eta 0:00:00\n#9 10.79 Collecting pip==26.1.2 (from -r requirements/stage6.lock (line 1096))\n#9 10.82   Downloading pip-26.1.2-py3-none-any.whl (1.8 MB)\n#9 10.92      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 20.6 MB/s eta 0:00:00\n#9 10.96 Collecting pip-api==0.0.34 (from -r requirements/stage6.lock (line 1103))\n#9 10.99   Downloading pip_api-0.0.34-py3-none-any.whl (120 kB)\n#9 11.05 Collecting pip-audit==2.10.1 (from -r requirements/stage6.lock (line 1107))\n#9 11.08   Downloading pip_audit-2.10.1-py3-none-any.whl (62 kB)\n#9 11.12 Collecting pip-requirements-parser==32.0.1 (from -r requirements/stage6.lock (line 1111))\n#9 11.15   Downloading pip_requirements_parser-32.0.1-py3-none-any.whl (35 kB)\n#9 11.20 Collecting pip-tools==7.6.0 (from -r requirements/stage6.lock (line 1117))\n#9 11.22   Downloading pip_tools-7.6.0-py3-none-any.whl (74 kB)\n#9 11.28 Collecting platformdirs==4.10.1 (from -r requirements/stage6.lock (line 1121))\n#9 11.31   Downloading platformdirs-4.10.1-py3-none-any.whl (22 kB)\n#9 11.35 Collecting pluggy==1.6.0 (from -r requirements/stage6.lock (line 1125))\n#9 11.38   Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)\n#9 11.43 Collecting py-serializable==2.1.0 (from -r requirements/stage6.lock (line 1129))\n#9 11.47   Downloading py_serializable-2.1.0-py3-none-any.whl (23 kB)\n#9 11.57 Collecting pyarrow==25.0.0 (from -r requirements/stage6.lock (line 1133))\n#9 11.60   Downloading pyarrow-25.0.0-cp312-cp312-manylinux_2_28_aarch64.whl (46.8 MB)\n#9 14.01      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 46.8/46.8 MB 19.6 MB/s eta 0:00:00\n#9 14.08 Collecting pycparser==3.0 (from -r requirements/stage6.lock (line 1178))\n#9 14.11   Downloading pycparser-3.0-py3-none-any.whl (48 kB)\n#9 14.22 Collecting pydantic==2.13.4 (from -r requirements/stage6.lock (line 1182))\n#9 14.25   Downloading pydantic-2.13.4-py3-none-any.whl (472 kB)\n#9 14.74 Collecting pydantic-core==2.46.4 (from -r requirements/stage6.lock (line 1186))\n#9 14.76   Downloading pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (2.0 MB)\n#9 14.86      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 20.9 MB/s eta 0:00:00\n#9 14.90 Collecting pygments==2.20.0 (from -r requirements/stage6.lock (line 1308))\n#9 14.92   Downloading pygments-2.20.0-py3-none-any.whl (1.2 MB)\n#9 14.98      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 23.3 MB/s eta 0:00:00\n#9 15.01 Collecting pyluach==2.3.0 (from -r requirements/stage6.lock (line 1314))\n#9 15.04   Downloading pyluach-2.3.0-py3-none-any.whl (25 kB)\n#9 15.08 Collecting pyparsing==3.3.2 (from -r requirements/stage6.lock (line 1318))\n#9 15.11   Downloading pyparsing-3.3.2-py3-none-any.whl (122 kB)\n#9 15.15 Collecting pypdf==6.14.2 (from -r requirements/stage6.lock (line 1322))\n#9 15.17   Downloading pypdf-6.14.2-py3-none-any.whl (349 kB)\n#9 15.24 Collecting pyproject-hooks==1.2.0 (from -r requirements/stage6.lock (line 1326))\n#9 15.27   Downloading pyproject_hooks-1.2.0-py3-none-any.whl (10 kB)\n#9 15.32 Collecting pytest==9.1.1 (from -r requirements/stage6.lock (line 1332))\n#9 15.38   Downloading pytest-9.1.1-py3-none-any.whl (386 kB)\n#9 15.42 Collecting python-dateutil==2.9.0.post0 (from -r requirements/stage6.lock (line 1336))\n#9 15.45   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)\n#9 15.54 Collecting pyyaml==6.0.3 (from -r requirements/stage6.lock (line 1342))\n#9 15.56   Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (775 kB)\n#9 15.61      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 775.1/775.1 kB 119.0 MB/s eta 0:00:00\n#9 15.65 Collecting referencing==0.37.0 (from -r requirements/stage6.lock (line 1417))\n#9 15.68   Downloading referencing-0.37.0-py3-none-any.whl (26 kB)\n#9 15.73 Collecting requests==2.34.2 (from -r requirements/stage6.lock (line 1424))\n#9 15.75   Downloading requests-2.34.2-py3-none-any.whl (73 kB)\n#9 15.79 Collecting rfc3339-validator==0.1.4 (from -r requirements/stage6.lock (line 1431))\n#9 15.82   Downloading rfc3339_validator-0.1.4-py2.py3-none-any.whl (3.5 kB)\n#9 15.85 Collecting rfc3986-validator==0.1.1 (from -r requirements/stage6.lock (line 1435))\n#9 15.88   Downloading rfc3986_validator-0.1.1-py2.py3-none-any.whl (4.2 kB)\n#9 15.91 Collecting rfc3987-syntax==1.1.0 (from -r requirements/stage6.lock (line 1439))\n#9 15.94   Downloading rfc3987_syntax-1.1.0-py3-none-any.whl (8.0 kB)\n#9 16.00 Collecting rich==15.0.0 (from -r requirements/stage6.lock (line 1443))\n#9 16.03   Downloading rich-15.0.0-py3-none-any.whl (310 kB)\n#9 16.26 Collecting rpds-py==2026.6.3 (from -r requirements/stage6.lock (line 1447))\n#9 16.29   Downloading rpds_py-2026.6.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (368 kB)\n#9 16.54 Collecting ruff==0.15.22 (from -r requirements/stage6.lock (line 1567))\n#9 16.56   Downloading ruff-0.15.22-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (10.9 MB)\n#9 17.15      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.9/10.9 MB 18.4 MB/s eta 0:00:00\n#9 17.27 Collecting setuptools==83.0.0 (from -r requirements/stage6.lock (line 1587))\n#9 17.29   Downloading setuptools-83.0.0-py3-none-any.whl (1.0 MB)\n#9 17.33      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.0/1.0 MB 24.3 MB/s eta 0:00:00\n#9 17.44 Collecting six==1.17.0 (from -r requirements/stage6.lock (line 1593))\n#9 17.55   Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)\n#9 17.67 Collecting sortedcontainers==2.4.0 (from -r requirements/stage6.lock (line 1599))\n#9 17.80   Downloading sortedcontainers-2.4.0-py2.py3-none-any.whl (29 kB)\n#9 17.95 Collecting tomli==2.4.1 (from -r requirements/stage6.lock (line 1605))\n#9 17.99   Downloading tomli-2.4.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (244 kB)\n#9 18.03 Collecting tomli-w==1.2.0 (from -r requirements/stage6.lock (line 1654))\n#9 18.06   Downloading tomli_w-1.2.0-py3-none-any.whl (6.7 kB)\n#9 18.10 Collecting toolz==1.1.0 (from -r requirements/stage6.lock (line 1658))\n#9 18.12   Downloading toolz-1.1.0-py3-none-any.whl (58 kB)\n#9 18.19 Collecting typeguard==4.5.2 (from -r requirements/stage6.lock (line 1662))\n#9 18.22   Downloading typeguard-4.5.2-py3-none-any.whl (36 kB)\n#9 18.26 Collecting typing-extensions==4.16.0 (from -r requirements/stage6.lock (line 1666))\n#9 18.29   Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)\n#9 18.32 Collecting typing-inspect==0.9.0 (from -r requirements/stage6.lock (line 1679))\n#9 18.36   Downloading typing_inspect-0.9.0-py3-none-any.whl (8.8 kB)\n#9 18.40 Collecting typing-inspection==0.4.2 (from -r requirements/stage6.lock (line 1683))\n#9 18.43   Downloading typing_inspection-0.4.2-py3-none-any.whl (14 kB)\n#9 18.46 Collecting tzdata==2026.3 (from -r requirements/stage6.lock (line 1687))\n#9 18.49   Downloading tzdata-2026.3-py2.py3-none-any.whl (348 kB)\n#9 18.54 Collecting uri-template==1.3.0 (from -r requirements/stage6.lock (line 1694))\n#9 18.57   Downloading uri_template-1.3.0-py3-none-any.whl (11 kB)\n#9 18.61 Collecting urllib3==2.7.0 (from -r requirements/stage6.lock (line 1698))\n#9 18.64   Downloading urllib3-2.7.0-py3-none-any.whl (131 kB)\n#9 18.68 Collecting webcolors==25.10.0 (from -r requirements/stage6.lock (line 1702))\n#9 18.71   Downloading webcolors-25.10.0-py3-none-any.whl (14 kB)\n#9 18.75 Collecting wheel==0.47.0 (from -r requirements/stage6.lock (line 1706))\n#9 18.78   Downloading wheel-0.47.0-py3-none-any.whl (32 kB)\n#9 19.16 Installing collected packages: sortedcontainers, boolean-py, webcolors, urllib3, uri-template, tzdata, typing-extensions, toolz, tomli-w, tomli, six, setuptools, ruff, rpds-py, rfc3986-validator, pyyaml, pyproject-hooks, pypdf, pyparsing, pyluach, pygments, pycparser, pyarrow, pluggy, platformdirs, pip, pillow, pathspec, packaging, packageurl-python, numpy, mypy-extensions, msgpack, mdurl, lxml, license-expression, librt, lark, korean-lunar-calendar, jsonpointer, iniconfig, idna, hypothesis, fqdn, filelock, et-xmlfile, defusedxml, click, charset-normalizer, chardet, certifi, attrs, ast-serialize, annotated-types, wheel, typing-inspection, typing-inspect, typeguard, rfc3987-syntax, rfc3339-validator, requests, referencing, python-dateutil, pytest, pydantic-core, py-serializable, pip-requirements-parser, pip-api, pikepdf, openpyxl, mypy, markdown-it-py, cffi, build, rich, pydantic, pip-tools, pandas, jsonschema-specifications, detect-secrets, cyclonedx-python-lib, cryptography, cachecontrol, arrow, pandera, jsonschema, isoduration, exchange-calendars, pip-audit, cyclonedx-bom\n#9 21.96   Attempting uninstall: pip\n#9 21.96     Found existing installation: pip 25.0.1\n#9 21.98     Uninstalling pip-25.0.1:\n#9 22.06       Successfully uninstalled pip-25.0.1\n#9 32.77 Successfully installed annotated-types-0.7.0 arrow-1.4.0 ast-serialize-0.6.0 attrs-26.1.0 boolean-py-5.0 build-1.5.0 cachecontrol-0.14.4 certifi-2026.6.17 cffi-2.1.0 chardet-5.2.0 charset-normalizer-3.4.9 click-8.4.2 cryptography-49.0.0 cyclonedx-bom-7.3.0 cyclonedx-python-lib-11.11.0 defusedxml-0.7.1 detect-secrets-1.5.0 et-xmlfile-2.0.0 exchange-calendars-4.13.2 filelock-3.31.1 fqdn-1.5.1 hypothesis-6.156.7 idna-3.18 iniconfig-2.3.0 isoduration-20.11.0 jsonpointer-3.1.1 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 korean-lunar-calendar-0.4.0 lark-1.3.1 librt-0.13.0 license-expression-30.4.4 lxml-6.1.1 markdown-it-py-4.2.0 mdurl-0.1.2 msgpack-1.2.1 mypy-2.3.0 mypy-extensions-1.1.0 numpy-2.5.1 openpyxl-3.1.5 packageurl-python-0.17.6 packaging-26.2 pandas-3.0.3 pandera-0.32.1 pathspec-1.1.1 pikepdf-10.10.0 pillow-12.3.0 pip-26.1.2 pip-api-0.0.34 pip-audit-2.10.1 pip-requirements-parser-32.0.1 pip-tools-7.6.0 platformdirs-4.10.1 pluggy-1.6.0 py-serializable-2.1.0 pyarrow-25.0.0 pycparser-3.0 pydantic-2.13.4 pydantic-core-2.46.4 pygments-2.20.0 pyluach-2.3.0 pyparsing-3.3.2 pypdf-6.14.2 pyproject-hooks-1.2.0 pytest-9.1.1 python-dateutil-2.9.0.post0 pyyaml-6.0.3 referencing-0.37.0 requests-2.34.2 rfc3339-validator-0.1.4 rfc3986-validator-0.1.1 rfc3987-syntax-1.1.0 rich-15.0.0 rpds-py-2026.6.3 ruff-0.15.22 setuptools-83.0.0 six-1.17.0 sortedcontainers-2.4.0 tomli-2.4.1 tomli-w-1.2.0 toolz-1.1.0 typeguard-4.5.2 typing-extensions-4.16.0 typing-inspect-0.9.0 typing-inspection-0.4.2 tzdata-2026.3 uri-template-1.3.0 urllib3-2.7.0 webcolors-25.10.0 wheel-0.47.0\n#9 32.77 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.\n#9 DONE 33.1s\n\n#10 [5/7] COPY pyproject.toml ./\n#10 DONE 0.1s\n\n#11 [6/7] COPY src ./src\n#11 DONE 0.0s\n\n#12 [7/7] RUN python -m pip install --no-cache-dir --no-build-isolation --no-deps .\n#12 0.743 Processing ./.\n#12 0.744   Preparing metadata (pyproject.toml): started\n#12 1.224   Preparing metadata (pyproject.toml): finished with status 'done'\n#12 1.226 Building wheels for collected packages: moomooau-archive\n#12 1.226   Building wheel for moomooau-archive (pyproject.toml): started\n#12 1.755   Building wheel for moomooau-archive (pyproject.toml): finished with status 'done'\n#12 1.755   Created wheel for moomooau-archive: filename=moomooau_archive-0.1.0-py3-none-any.whl size=191557 sha256=07697bf18e44b31af792f14568e11b909ed455c778ad2283604aa00a7d41db42\n#12 1.755   Stored in directory: /tmp/pip-ephem-wheel-cache-o0garbas/wheels/ac/4c/30/3df7c8763a540a1d7ffeab4d1c4c90eb035bce882beab6824a\n#12 1.758 Successfully built moomooau-archive\n#12 1.763 Installing collected packages: moomooau-archive\n#12 1.888 Successfully installed moomooau-archive-0.1.0\n#12 1.888 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.\n#12 DONE 1.9s\n\n#13 exporting to image\n#13 exporting layers\n#13 exporting layers 15.0s done\n#13 exporting manifest sha256:df5af34df680dfd8591cd216d2e49186a69422bc2f16157c2381e4d237b61aac 0.0s done\n#13 exporting config sha256:3f28a7148c24ea38072a5d68c72075e1480856f56b96b4358bbdd0d77bf33c4d 0.0s done\n#13 exporting attestation manifest sha256:2b6401ddc53ccd4537d563772a7721698594cb30bb68c217d98dab9bae88a3f2 done\n#13 exporting manifest list sha256:39176076ac0b2d7efdd63c2f77a097f9477c0532cdc648a0193ab62abf4628c7 done\n#13 naming to docker.io/library/moomooau-stage6-rmd05-65b91c809448:latest done\n#13 unpacking to docker.io/library/moomooau-stage6-rmd05-65b91c809448:latest\n#13 unpacking to docker.io/library/moomooau-stage6-rmd05-65b91c809448:latest 3.3s done\n#13 DONE 18.4s\n",
+      "sanitized_stderr_sha256": "c070cccdef8ad5a26549c6c44aecea0b846787f9c13c17e8aebc218910a5749d",
+      "sanitized_stdout": "",
+      "sanitized_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tool_versions": {
+        "docker": "Docker version 29.6.1, build 8900f1d"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "--read-only",
+        "--tmpfs",
+        "/tmp",
+        "moomooau-stage6-rmd05-65b91c809448",
+        "--help"
+      ],
+      "exit_code": 0,
+      "id": "container-smoke",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 288,
+      "raw_stdout_sha256": "4a8f2eaa13890c18727cfc31b3652a9d37d1b1100a94d7a6224aae79c641fada",
+      "result_summary": "The validation container passes network-none read-only smoke.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": "usage: moomooau-archive [-h]\n                        {discover,classify,archive,process,timeline,m3,reconcile}\n                        ...\n\npositional arguments:\n  {discover,classify,archive,process,timeline,m3,reconcile}\n\noptions:\n  -h, --help            show this help message and exit\n",
+      "sanitized_stdout_sha256": "4a8f2eaa13890c18727cfc31b3652a9d37d1b1100a94d7a6224aae79c641fada",
+      "tool_versions": {
+        "docker": "Docker version 29.6.1, build 8900f1d"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "docker",
+        "image",
+        "rm",
+        "--force",
+        "moomooau-stage6-rmd05-65b91c809448"
+      ],
+      "exit_code": 0,
+      "id": "container-cleanup",
+      "raw_stderr_bytes": 0,
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_bytes": 133,
+      "raw_stdout_sha256": "9fb04e7cc6b892ef3456356270727150080478d556421dcb063a7a99e17ef06d",
+      "result_summary": "The ephemeral local validation image is removed.",
+      "sanitized_stderr": "",
+      "sanitized_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitized_stdout": "Untagged: moomooau-stage6-rmd05-65b91c809448:latest\nDeleted: sha256:39176076ac0b2d7efdd63c2f77a097f9477c0532cdc648a0193ab62abf4628c7\n",
+      "sanitized_stdout_sha256": "9fb04e7cc6b892ef3456356270727150080478d556421dcb063a7a99e17ef06d",
+      "tool_versions": {
+        "docker": "Docker version 29.6.1, build 8900f1d"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    },
+    {
+      "argv": [
+        "${LOCKED_PYTHON}",
+        "-m",
+        "build",
+        "--no-isolation",
+        "--outdir",
+        "${TMPDIR}/dist"
+      ],
+      "exit_code": 0,
+      "id": "package-build",
+      "raw_stderr_bytes": 271,
+      "raw_stderr_sha256": "b181eea8a45f807f5fa1607f003eb1ae5363271ec186d4780a7fd3630cdea57e",
+      "raw_stdout_bytes": 25313,
+      "raw_stdout_sha256": "4197badf0110b6f6618b1048652dd430c1f00b8f7da0ba4eb797a8832812a559",
+      "result_summary": "The Python package builds into an ephemeral directory without publication.",
+      "sanitized_stderr": "* Getting build dependencies for sdist...\n* Building sdist...\n* Building wheel from sdist\n* Getting build dependencies for wheel...\n* Building wheel...\nwarning: build_py: byte-compiling is disabled, skipping.\n\nwarning: install_lib: byte-compiling is disabled, skipping.\n\n",
+      "sanitized_stderr_sha256": "b181eea8a45f807f5fa1607f003eb1ae5363271ec186d4780a7fd3630cdea57e",
+      "sanitized_stdout": "running egg_info\ncreating src/moomooau_archive.egg-info\nwriting src/moomooau_archive.egg-info/PKG-INFO\nwriting dependency_links to src/moomooau_archive.egg-info/dependency_links.txt\nwriting entry points to src/moomooau_archive.egg-info/entry_points.txt\nwriting requirements to src/moomooau_archive.egg-info/requires.txt\nwriting top-level names to src/moomooau_archive.egg-info/top_level.txt\nwriting manifest file 'src/moomooau_archive.egg-info/SOURCES.txt'\nreading manifest file 'src/moomooau_archive.egg-info/SOURCES.txt'\nwriting manifest file 'src/moomooau_archive.egg-info/SOURCES.txt'\nrunning sdist\nrunning egg_info\nwriting src/moomooau_archive.egg-info/PKG-INFO\nwriting dependency_links to src/moomooau_archive.egg-info/dependency_links.txt\nwriting entry points to src/moomooau_archive.egg-info/entry_points.txt\nwriting requirements to src/moomooau_archive.egg-info/requires.txt\nwriting top-level names to src/moomooau_archive.egg-info/top_level.txt\nreading manifest file 'src/moomooau_archive.egg-info/SOURCES.txt'\nwriting manifest file 'src/moomooau_archive.egg-info/SOURCES.txt'\nrunning check\ncreating moomooau_archive-0.1.0\ncreating moomooau_archive-0.1.0/src/moomooau_archive\ncreating moomooau_archive-0.1.0/src/moomooau_archive.egg-info\ncreating moomooau_archive-0.1.0/src/moomooau_archive/contracts\ncopying files to moomooau_archive-0.1.0...\ncopying README.md -> moomooau_archive-0.1.0\ncopying pyproject.toml -> moomooau_archive-0.1.0\ncopying src/moomooau_archive/__init__.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/adapters.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/age_stream.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/attachment_inspector.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/auth.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/blue_green_runtime.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/canary_runtime.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/canonical_raw.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/capacity.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/cli.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/contracts.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/document_parser.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/ephemeral.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/evidence.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/fixtures.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/ga_runtime.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/github_guard.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/gmail_discovery.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/gmail_guard.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/gmail_sync_checkpoint.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/http_boundary.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/http_transport.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/kill_switch.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/load_probe.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/m3.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/market_calendar.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/model_boundary.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/models.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/oauth.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/operation_gate.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/patch_lifecycle.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/pipeline.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/ports.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/processed_commit.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/processed_models.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/processed_product.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/production.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/production_adapters.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/protected_beta.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/public_inventory.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/publication_saga.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/raw_commit.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/recovery.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/recovery_drill.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/release_control.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/remote_recovery_gate.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/retry.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/run_schedule.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/secret_values.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/security.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/sender_registry.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/stage7_ops.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/timeline_event.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/timeline_publish.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/timeline_render.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/timeline_snapshot.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive/verification.py -> moomooau_archive-0.1.0/src/moomooau_archive\ncopying src/moomooau_archive.egg-info/PKG-INFO -> moomooau_archive-0.1.0/src/moomooau_archive.egg-info\ncopying src/moomooau_archive.egg-info/SOURCES.txt -> moomooau_archive-0.1.0/src/moomooau_archive.egg-info\ncopying src/moomooau_archive.egg-info/dependency_links.txt -> moomooau_archive-0.1.0/src/moomooau_archive.egg-info\ncopying src/moomooau_archive.egg-info/entry_points.txt -> moomooau_archive-0.1.0/src/moomooau_archive.egg-info\ncopying src/moomooau_archive.egg-info/requires.txt -> moomooau_archive-0.1.0/src/moomooau_archive.egg-info\ncopying src/moomooau_archive.egg-info/top_level.txt -> moomooau_archive-0.1.0/src/moomooau_archive.egg-info\ncopying src/moomooau_archive/contracts/document-class-v1.schema.json -> moomooau_archive-0.1.0/src/moomooau_archive/contracts\ncopying src/moomooau_archive/contracts/lineage-v1.schema.json -> moomooau_archive-0.1.0/src/moomooau_archive/contracts\ncopying src/moomooau_archive/contracts/message-envelope-v1.schema.json -> moomooau_archive-0.1.0/src/moomooau_archive/contracts\ncopying src/moomooau_archive/contracts/public-evidence-v1.schema.json -> moomooau_archive-0.1.0/src/moomooau_archive/contracts\ncopying src/moomooau_archive/contracts/timeline-event-v1.schema.json -> moomooau_archive-0.1.0/src/moomooau_archive/contracts\ncopying src/moomooau_archive/contracts/transaction-v1.schema.json -> moomooau_archive-0.1.0/src/moomooau_archive/contracts\ncopying src/moomooau_archive.egg-info/SOURCES.txt -> moomooau_archive-0.1.0/src/moomooau_archive.egg-info\nWriting moomooau_archive-0.1.0/setup.cfg\nCreating tar archive\nremoving 'moomooau_archive-0.1.0' (and everything under it)\nrunning egg_info\nwriting src/moomooau_archive.egg-info/PKG-INFO\nwriting dependency_links to src/moomooau_archive.egg-info/dependency_links.txt\nwriting entry points to src/moomooau_archive.egg-info/entry_points.txt\nwriting requirements to src/moomooau_archive.egg-info/requires.txt\nwriting top-level names to src/moomooau_archive.egg-info/top_level.txt\nreading manifest file 'src/moomooau_archive.egg-info/SOURCES.txt'\nwriting manifest file 'src/moomooau_archive.egg-info/SOURCES.txt'\nrunning bdist_wheel\nrunning build\nrunning build_py\ncreating build/lib/moomooau_archive\ncopying src/moomooau_archive/remote_recovery_gate.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/auth.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/ga_runtime.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/public_inventory.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/processed_commit.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/canary_runtime.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/m3.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/capacity.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/verification.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/age_stream.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/load_probe.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/release_control.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/recovery.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/models.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/ephemeral.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/http_boundary.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/processed_models.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/timeline_event.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/github_guard.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/sender_registry.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/timeline_render.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/security.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/ports.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/recovery_drill.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/market_calendar.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/__init__.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/protected_beta.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/attachment_inspector.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/secret_values.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/kill_switch.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/patch_lifecycle.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/retry.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/cli.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/publication_saga.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/raw_commit.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/gmail_sync_checkpoint.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/pipeline.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/http_transport.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/contracts.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/model_boundary.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/stage7_ops.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/production_adapters.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/processed_product.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/operation_gate.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/evidence.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/timeline_snapshot.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/blue_green_runtime.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/production.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/run_schedule.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/oauth.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/document_parser.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/fixtures.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/canonical_raw.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/gmail_guard.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/adapters.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/timeline_publish.py -> build/lib/moomooau_archive\ncopying src/moomooau_archive/gmail_discovery.py -> build/lib/moomooau_archive\nrunning egg_info\nwriting src/moomooau_archive.egg-info/PKG-INFO\nwriting dependency_links to src/moomooau_archive.egg-info/dependency_links.txt\nwriting entry points to src/moomooau_archive.egg-info/entry_points.txt\nwriting requirements to src/moomooau_archive.egg-info/requires.txt\nwriting top-level names to src/moomooau_archive.egg-info/top_level.txt\nreading manifest file 'src/moomooau_archive.egg-info/SOURCES.txt'\nwriting manifest file 'src/moomooau_archive.egg-info/SOURCES.txt'\ncreating build/lib/moomooau_archive/contracts\ncopying src/moomooau_archive/contracts/lineage-v1.schema.json -> build/lib/moomooau_archive/contracts\ncopying src/moomooau_archive/contracts/timeline-event-v1.schema.json -> build/lib/moomooau_archive/contracts\ncopying src/moomooau_archive/contracts/document-class-v1.schema.json -> build/lib/moomooau_archive/contracts\ncopying src/moomooau_archive/contracts/transaction-v1.schema.json -> build/lib/moomooau_archive/contracts\ncopying src/moomooau_archive/contracts/public-evidence-v1.schema.json -> build/lib/moomooau_archive/contracts\ncopying src/moomooau_archive/contracts/message-envelope-v1.schema.json -> build/lib/moomooau_archive/contracts\ninstalling to build/bdist.macosx-11.0-arm64/wheel\nrunning install\nrunning install_lib\ncreating build/bdist.macosx-11.0-arm64/wheel\ncreating build/bdist.macosx-11.0-arm64/wheel/moomooau_archive\ncopying build/lib/moomooau_archive/remote_recovery_gate.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/auth.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/ga_runtime.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/public_inventory.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/processed_commit.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/canary_runtime.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/m3.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/capacity.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/verification.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/age_stream.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/load_probe.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/release_control.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/recovery.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/models.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/ephemeral.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/http_boundary.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/processed_models.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/timeline_event.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/github_guard.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/sender_registry.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncreating build/bdist.macosx-11.0-arm64/wheel/moomooau_archive/contracts\ncopying build/lib/moomooau_archive/contracts/lineage-v1.schema.json -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive/contracts\ncopying build/lib/moomooau_archive/contracts/timeline-event-v1.schema.json -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive/contracts\ncopying build/lib/moomooau_archive/contracts/document-class-v1.schema.json -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive/contracts\ncopying build/lib/moomooau_archive/contracts/transaction-v1.schema.json -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive/contracts\ncopying build/lib/moomooau_archive/contracts/public-evidence-v1.schema.json -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive/contracts\ncopying build/lib/moomooau_archive/contracts/message-envelope-v1.schema.json -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive/contracts\ncopying build/lib/moomooau_archive/timeline_render.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/security.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/ports.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/recovery_drill.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/market_calendar.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/__init__.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/protected_beta.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/attachment_inspector.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/secret_values.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/kill_switch.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/patch_lifecycle.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/retry.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/cli.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/publication_saga.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/raw_commit.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/gmail_sync_checkpoint.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/pipeline.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/http_transport.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/contracts.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/model_boundary.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/stage7_ops.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/production_adapters.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/processed_product.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/operation_gate.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/evidence.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/timeline_snapshot.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/blue_green_runtime.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/production.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/run_schedule.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/oauth.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/document_parser.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/fixtures.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/canonical_raw.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/gmail_guard.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/adapters.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/timeline_publish.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\ncopying build/lib/moomooau_archive/gmail_discovery.py -> build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive\nrunning install_egg_info\nCopying src/moomooau_archive.egg-info to build/bdist.macosx-11.0-arm64/wheel/./moomooau_archive-0.1.0-py3.12.egg-info\nrunning install_scripts\ncreating build/bdist.macosx-11.0-arm64/wheel/moomooau_archive-0.1.0.dist-info/WHEEL\ncreating '${TMPDIR}/dist/.tmp-qtyzihra/moomooau_archive-0.1.0-py3-none-any.whl' and adding 'build/bdist.macosx-11.0-arm64/wheel' to it\nadding 'moomooau_archive/__init__.py'\nadding 'moomooau_archive/adapters.py'\nadding 'moomooau_archive/age_stream.py'\nadding 'moomooau_archive/attachment_inspector.py'\nadding 'moomooau_archive/auth.py'\nadding 'moomooau_archive/blue_green_runtime.py'\nadding 'moomooau_archive/canary_runtime.py'\nadding 'moomooau_archive/canonical_raw.py'\nadding 'moomooau_archive/capacity.py'\nadding 'moomooau_archive/cli.py'\nadding 'moomooau_archive/contracts.py'\nadding 'moomooau_archive/document_parser.py'\nadding 'moomooau_archive/ephemeral.py'\nadding 'moomooau_archive/evidence.py'\nadding 'moomooau_archive/fixtures.py'\nadding 'moomooau_archive/ga_runtime.py'\nadding 'moomooau_archive/github_guard.py'\nadding 'moomooau_archive/gmail_discovery.py'\nadding 'moomooau_archive/gmail_guard.py'\nadding 'moomooau_archive/gmail_sync_checkpoint.py'\nadding 'moomooau_archive/http_boundary.py'\nadding 'moomooau_archive/http_transport.py'\nadding 'moomooau_archive/kill_switch.py'\nadding 'moomooau_archive/load_probe.py'\nadding 'moomooau_archive/m3.py'\nadding 'moomooau_archive/market_calendar.py'\nadding 'moomooau_archive/model_boundary.py'\nadding 'moomooau_archive/models.py'\nadding 'moomooau_archive/oauth.py'\nadding 'moomooau_archive/operation_gate.py'\nadding 'moomooau_archive/patch_lifecycle.py'\nadding 'moomooau_archive/pipeline.py'\nadding 'moomooau_archive/ports.py'\nadding 'moomooau_archive/processed_commit.py'\nadding 'moomooau_archive/processed_models.py'\nadding 'moomooau_archive/processed_product.py'\nadding 'moomooau_archive/production.py'\nadding 'moomooau_archive/production_adapters.py'\nadding 'moomooau_archive/protected_beta.py'\nadding 'moomooau_archive/public_inventory.py'\nadding 'moomooau_archive/publication_saga.py'\nadding 'moomooau_archive/raw_commit.py'\nadding 'moomooau_archive/recovery.py'\nadding 'moomooau_archive/recovery_drill.py'\nadding 'moomooau_archive/release_control.py'\nadding 'moomooau_archive/remote_recovery_gate.py'\nadding 'moomooau_archive/retry.py'\nadding 'moomooau_archive/run_schedule.py'\nadding 'moomooau_archive/secret_values.py'\nadding 'moomooau_archive/security.py'\nadding 'moomooau_archive/sender_registry.py'\nadding 'moomooau_archive/stage7_ops.py'\nadding 'moomooau_archive/timeline_event.py'\nadding 'moomooau_archive/timeline_publish.py'\nadding 'moomooau_archive/timeline_render.py'\nadding 'moomooau_archive/timeline_snapshot.py'\nadding 'moomooau_archive/verification.py'\nadding 'moomooau_archive/contracts/document-class-v1.schema.json'\nadding 'moomooau_archive/contracts/lineage-v1.schema.json'\nadding 'moomooau_archive/contracts/message-envelope-v1.schema.json'\nadding 'moomooau_archive/contracts/public-evidence-v1.schema.json'\nadding 'moomooau_archive/contracts/timeline-event-v1.schema.json'\nadding 'moomooau_archive/contracts/transaction-v1.schema.json'\nadding 'moomooau_archive-0.1.0.dist-info/METADATA'\nadding 'moomooau_archive-0.1.0.dist-info/WHEEL'\nadding 'moomooau_archive-0.1.0.dist-info/entry_points.txt'\nadding 'moomooau_archive-0.1.0.dist-info/top_level.txt'\nadding 'moomooau_archive-0.1.0.dist-info/RECORD'\nremoving build/bdist.macosx-11.0-arm64/wheel\nSuccessfully built moomooau_archive-0.1.0.tar.gz and moomooau_archive-0.1.0-py3-none-any.whl\n",
+      "sanitized_stdout_sha256": "da8d58434ea95b6b348588681c9183dc93626aab3abe515e5ec53531d25130c4",
+      "tool_versions": {
+        "build": "build 1.5.0 (${LOCKED_ENV}/lib/python3.12/site-packages/build)",
+        "python": "3.12.13"
+      },
+      "working_directory": "LinzeDatabase/MooMooAU"
+    }
+  ],
+  "environment": {
+    "dependency_lock_path": "requirements/stage6.lock",
+    "dependency_lock_sha256": "bed62218c229318cb95575b7880bc5ed78558d6014e299582f62d32ba0a05eb7",
+    "governance_commit": "ebc6c2e4884edc959118cfc56d0e18a86c49460f",
+    "platform": "macOS-15.1-arm64-arm-64bit",
+    "python": "3.12.13",
+    "python_executable_sha256": "7b05d803bbc1bbfc81644af4faf2b88f0a37b8de96b9f42c1e08033e2cd0848a"
+  },
+  "ephemeral_local_outputs_removed": true,
+  "production_or_protected_executed": false,
+  "raw_logs_retained": false,
+  "receipt_id": "S6-RMD05-CANDIDATE-GATES",
+  "remote_service_writes": 0,
+  "schema_version": "moomooau.candidate-execution-receipt.v1",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "sensitive_data_observed": false,
+  "subject": {
+    "baseline_commit": "2b8625a83e69093b9dce989f4eb964556e1b5fa2",
+    "candidate_commit": "65b91c8094481f18026a90b6b7778716df8f708e",
+    "candidate_tree": "3a3296c7e68b8c1ad811e6c8e2b6ca03046f848c",
+    "clean_detached_checkout": true,
+    "project_path": "LinzeDatabase/MooMooAU",
+    "repository": "MetaDatabase"
+  }
+}

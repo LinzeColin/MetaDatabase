@@ -1,0 +1,42 @@
+{
+  "schema_version": "moomooau.run-contract.v1",
+  "run_id": "S1-20260720-synthetic-skeleton",
+  "stage_id": "S1",
+  "goal": "Complete T0101-T0107 with synthetic data, official age, zero Secret and zero external write.",
+  "baseline_commit": "31a51114f8749b93b1da53f7bb11a7e2f7f916de",
+  "baseline_manifest_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
+  "scope": [
+    "public package skeleton",
+    "synthetic Gmail RAW fixtures",
+    "official age round-trip through an in-memory ciphertext store",
+    "versioned JSON Schema and Pandera contracts",
+    "read-only Stage 1 validator",
+    "no-Secret synthetic CI"
+  ],
+  "non_goals": [
+    "real Gmail access",
+    "OAuth or GitHub App setup",
+    "private production repository access",
+    "message Trash mutation",
+    "Processed parsers and deterministic Timeline rendering",
+    "production deployment",
+    "final AC-* verdicts"
+  ],
+  "prohibitions": {
+    "gmail_calls": 0,
+    "gmail_mutations": 0,
+    "secrets_read": 0,
+    "external_writes": 0,
+    "remote_publication": 0,
+    "local_runtime_dependency": 0,
+    "self_hosted_runtime_dependency": 0
+  },
+  "rollback": "Revert the single local Stage 1 commit; Stage 0 remains at the pinned baseline commit.",
+  "stop_conditions": [
+    "official age unavailable",
+    "frozen Stage 0 manifest drift",
+    "real or sensitive value enters the public tree",
+    "a required oracle cannot execute",
+    "an external credential or write becomes necessary"
+  ]
+}

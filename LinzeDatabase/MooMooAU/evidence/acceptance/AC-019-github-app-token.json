@@ -1,0 +1,120 @@
+{
+  "acceptance_id": "AC-019",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "45579e8206ed1c50ecccef98b88133ff8165ad14055293432a7665bc1f7301dc",
+    "evidence_required": "evidence/acceptance/AC-019-github-app-token.json",
+    "pass_gate_text": "AC-019 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_019.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-019-RMD01-20260722",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0007.json",
+      "evidence_sha256": "a7174f84b3d372dfc3eaa757aa3886431fc42f11288673b9915ea72a138cab99",
+      "final_claim_status": "NO_FINAL_CLAIM",
+      "reason": "The source task evidence has no final Acceptance claim.",
+      "source_record_status": "VALID",
+      "task_id": "T0007"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0203.json",
+      "evidence_sha256": "72946508dce9d7ab3821df84e2280e0e72e9500b685a21fcccf454843cfb59b9",
+      "final_claim_status": "PARTIAL",
+      "reason": "Cross-repository synthetic requests are blocked before transport; the real App installation canary is not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0203"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0204.json",
+      "evidence_sha256": "6c4e96cf81377f02b8e2b168de38fbc90a93a7d993632294115dc291b7c8583a",
+      "final_claim_status": "PARTIAL",
+      "reason": "Request and response scope are exact under synthetic transport; no real token or repository access occurred.",
+      "source_record_status": "PASS",
+      "task_id": "T0204"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0604.json",
+      "evidence_sha256": "85c0da18fcbc04fb3b891f38cfb6f32b0fe7ae728e8ce4cb874afb466cb21223",
+      "final_claim_status": "PARTIAL",
+      "reason": "Hash lock, SBOM and local advisory scan pass; remote dependency review and CodeQL were not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0604"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-22T05:12:40Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "391a4a5afcd673bfb95bf9a7c9e38197479eb159",
+  "requirement_id": "RQ-019",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_019_pass_gate",
+    "path": "tests/acceptance/test_ac_019.py",
+    "sha256": "88a7f640164057b8dc94c96eee97db14d1e9a0b2e8e85275e2d4e925ec765e36"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0007",
+      "T0203",
+      "T0204",
+      "T0604"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "18fd6ddef401d39ba9d7cf08edcecf87dc326d4e213c8abaa771f326751ff23b"
+  }
+}

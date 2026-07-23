@@ -1,0 +1,139 @@
+{
+  "acceptance_id": "AC-027",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_NOT_RUN",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "7d57acc0caa15eea89555508df44473c9f0e69d75ddfdcb3dd04a90d33e2fc42",
+    "evidence_required": "evidence/acceptance/AC-027-private-first.json",
+    "pass_gate_text": "AC-027 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_027.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-027-RMD01-20260722",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0104.json",
+      "evidence_sha256": "4cfa3c4c601e3e391eef5cc07ee127850e7ec24649cd5ed7d5b32eb8a9b847d7",
+      "final_claim_status": "NOT_RUN",
+      "reason": "No private or public remote write occurred in Stage 1.",
+      "source_record_status": "PASS",
+      "task_id": "T0104"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0204.json",
+      "evidence_sha256": "6c4e96cf81377f02b8e2b168de38fbc90a93a7d993632294115dc291b7c8583a",
+      "final_claim_status": "NOT_RUN",
+      "reason": "Private-first publication and compensation are Stage 5 concerns and were not implemented or exercised.",
+      "source_record_status": "PASS",
+      "task_id": "T0204"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0307.json",
+      "evidence_sha256": "1397177b4d6bea978b60a7114ea152427b9fd68c0dd174e74400a2ce4663cb39",
+      "final_claim_status": "NOT_RUN",
+      "reason": "The private repository adapter was not called and no public evidence lane exists in Stage 3.",
+      "source_record_status": "PASS",
+      "task_id": "T0307"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0501.json",
+      "evidence_sha256": "9dd4f9a38af907b712e13b58e6fa724252f396e9bee9bd7bb44578c04b625560",
+      "final_claim_status": "PARTIAL",
+      "reason": "Recovery proof is cryptographically bound in memory; production identity and remote object recovery are not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0501"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0602.json",
+      "evidence_sha256": "923882a6127fb41e6f228ba3286dfc440a529939af4ee9622c12f66eb9787c62",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic official-age recovery proof gates exact-source M3; no real Gmail message was moved to Trash.",
+      "source_record_status": "PASS",
+      "task_id": "T0602"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0608.json",
+      "evidence_sha256": "4a61ecea54e9abf938b11e3a9036e2c96b50bfc37d4c01ddedb3727f4c32a2bd",
+      "final_claim_status": "PARTIAL",
+      "reason": "All 10 Kill triggers and exact resume gates pass synthetically with no extra M3; real Gmail Trash recovery was not exercised.",
+      "source_record_status": "PASS",
+      "task_id": "T0608"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-22T05:12:40Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "391a4a5afcd673bfb95bf9a7c9e38197479eb159",
+  "requirement_id": "RQ-027",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_027_pass_gate",
+    "path": "tests/acceptance/test_ac_027.py",
+    "sha256": "32a137bfe4438f1b6742c778722bca883ccb5a24e52eb3f7e3990c2461c12ef9"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0104",
+      "T0204",
+      "T0307",
+      "T0501",
+      "T0602",
+      "T0608"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "e93947e5f7ab7bae009fc6d45f658cad17b61c3977024db08c81e1b3de247176"
+  }
+}

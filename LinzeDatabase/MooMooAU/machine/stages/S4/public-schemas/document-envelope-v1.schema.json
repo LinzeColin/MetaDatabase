@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://metadatabase.example/schemas/moomooau/document-envelope-v1",
+  "title": "MooMooAU Document Envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_id",
+    "document_class",
+    "classification",
+    "verification",
+    "gmail",
+    "attachments",
+    "processing_state",
+    "processing_reason",
+    "lineage"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "source_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "document_class": {
+      "enum": [
+        "DAILY_STATEMENT",
+        "MONTHLY_STATEMENT",
+        "FINANCIAL_YEAR_SUMMARY",
+        "CONTRACT_NOTE",
+        "TRADE_NOTICE",
+        "CASH_NOTICE",
+        "FX_NOTICE",
+        "DIVIDEND_NOTICE",
+        "TAX_NOTICE",
+        "CORPORATE_ACTION",
+        "TRANSFER_CUSTODY",
+        "SECURITY_ALERT",
+        "KYC_COMPLIANCE",
+        "SUPPORT",
+        "FEE_NOTICE",
+        "PROMOTION_REWARD",
+        "RESEARCH_MARKETING",
+        "VERIFIED_UNKNOWN"
+      ]
+    },
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason_code", "registry_version"],
+      "properties": {
+        "reason_code": {"type": "string", "minLength": 1},
+        "registry_version": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "verifier_version", "sender_registry_version"],
+      "properties": {
+        "decision": {"const": "VERIFIED"},
+        "verifier_version": {"type": "string", "minLength": 1},
+        "sender_registry_version": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+        }
+      }
+    },
+    "gmail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["internal_date_utc", "received_at_sydney", "label_state"],
+      "properties": {
+        "internal_date_utc": {"type": "string", "format": "date-time"},
+        "received_at_sydney": {"type": "string", "format": "date-time"},
+        "label_state": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,256}$"
+          }
+        }
+      }
+    },
+    "attachments": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ordinal", "object_id", "kind", "decision"],
+        "properties": {
+          "ordinal": {"type": "integer", "minimum": 1},
+          "object_id": {
+            "type": ["string", "null"],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "kind": {"enum": ["PDF", "XLSX", "CSV", "UNKNOWN"]},
+          "decision": {"enum": ["SAFE", "QUARANTINED", "UNSUPPORTED"]}
+        }
+      }
+    },
+    "processing_state": {
+      "enum": [
+        "COMPLETE",
+        "WAITING_FOR_PDF_PASSWORD",
+        "UNSUPPORTED",
+        "QUARANTINED",
+        "RAW_ONLY"
+      ]
+    },
+    "processing_reason": {"type": "string", "minLength": 1},
+    "lineage": {"$ref": "#/$defs/lineage"}
+  },
+  "$defs": {
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_message_id_hmac",
+        "raw_ciphertext_digest",
+        "raw_plaintext_digest_private",
+        "attachment_object_ids",
+        "parser_name",
+        "parser_version",
+        "schema_version",
+        "imported_at_utc",
+        "field_lineage",
+        "key_epoch"
+      ],
+      "properties": {
+        "source_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "source_message_id_hmac": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "raw_ciphertext_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "raw_plaintext_digest_private": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "attachment_object_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "parser_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}$"
+        },
+        "parser_version": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+        },
+        "schema_version": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+        },
+        "imported_at_utc": {"type": "string", "format": "date-time"},
+        "field_lineage": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {"pattern": "^/"},
+          "additionalProperties": {"type": "string", "minLength": 1}
+        },
+        "key_epoch": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": "moomooau.stage-semantic-gate.v1",
+  "stage_id": "S6",
+  "baseline_commit": "2b8625a83e69093b9dce989f4eb964556e1b5fa2",
+  "status": "PASS",
+  "resolutions": [
+    {"id": "S6-SEM-001", "status": "RESOLVED", "resolution": "Retry is bounded and deterministic for safe reads/idempotent writes; Gmail Trash is never blindly retried."},
+    {"id": "S6-SEM-002", "status": "RESOLVED", "resolution": "Git and Release limits use official current facts; plan-dependent LFS capacity is UNKNOWN until owner-provisioned."},
+    {"id": "S6-SEM-003", "status": "RESOLVED", "resolution": "Different-model review means two distinct model families reviewing read-only after implementation."},
+    {"id": "S6-SEM-004", "status": "RESOLVED", "resolution": "Policy Evals test deterministic enforcement; they do not claim live model behavior."},
+    {"id": "S6-SEM-005", "status": "CONTROLLED_NOT_RUN", "resolution": "Real Gmail, private repository, production Secrets, protected load and remote CI remain outside this run."},
+    {"id": "S6-SEM-006", "status": "RESOLVED", "resolution": "The stale temporary-upload risk wording is not implemented; the canonical serial delete-then-upload one-asset protocol remains authoritative."},
+    {"id": "S6-SEM-007", "status": "RESOLVED", "resolution": "PDF active-content inspection traverses the decoded object graph with bounded depth and node count; encrypted PDFs remain deferred until the bounded decrypt path."},
+    {"id": "S6-SEM-008", "status": "RESOLVED", "resolution": "L3 uses eight concurrent workers against the content-identity index, while CapacityAssessment and KillImpact gate callable operations before side effects."},
+    {"id": "S6-SEM-009", "status": "RESOLVED", "resolution": "Plaintext cleanup claims are limited to cooperative normal, error, cancel, timeout and MemoryError exits for arena-owned buffers; hard-kill RAM erasure is not claimed."}
+  ]
+}

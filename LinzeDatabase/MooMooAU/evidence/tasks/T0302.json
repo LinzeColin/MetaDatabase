@@ -1,0 +1,30 @@
+{
+  "schema_version": "moomooau.stage3-evidence.v1",
+  "evidence_id": "S3-T0302-LOCAL-20260720",
+  "stage_id": "S3",
+  "task_id": "T0302",
+  "stage_acceptance_id": "S3AC-002",
+  "observed_at_utc": "2026-07-20T01:07:05Z",
+  "baseline_commit": "19167f94ed82cc44ff92ee9c46d3e606612fbd27",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "history_pagination_and_deduplication", "status": "PASS", "evidence_ref": "tests/tasks/test_t0302.py"},
+    {"id": "watermark_advances_after_complete_sequence", "status": "PASS", "evidence_ref": "GmailReconciler._incremental"},
+    {"id": "changed_refs_metadata_refetched_and_outbound_excluded", "status": "PASS", "evidence_ref": "tests/tasks/test_t0302.py"},
+    {"id": "deterministic_full_fallback_modes", "status": "PASS", "evidence_ref": "initial, Sunday, expired, 404, difference and manual fixtures"},
+    {"id": "australia_sydney_timezone_required", "status": "PASS", "evidence_ref": "tests/tasks/test_t0302.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-023", "status": "NOT_RUN", "reason": "Only Sydney Sunday decision logic is present; the deployed 04:30 scheduler and compensation belong to Stage 5."},
+    {"id": "AC-025", "status": "PARTIAL", "reason": "Every synthetic History failure mode converges to full truth; real Gmail reconciliation is not run."},
+    {"id": "AC-026", "status": "PARTIAL", "reason": "Synthetic duplicate History records are idempotent; end-to-end private writes and Gmail mutation are not present."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_HISTORY_RECONCILIATION", "status": "NOT_RUN", "reason": "No protected Gmail request was authorized."},
+    {"id": "DEPLOYED_0430_SCHEDULE", "status": "NOT_RUN", "reason": "Production scheduling is explicitly outside Stage 3."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0},
+  "next_action": "Carry the immutable sync-state contract forward; do not claim schedule acceptance before Stage 5 deployment."
+}

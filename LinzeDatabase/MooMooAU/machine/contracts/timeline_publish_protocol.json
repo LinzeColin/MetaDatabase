@@ -1,0 +1,40 @@
+{
+  "schema_version": "moomooau.timeline-publish-protocol.v2",
+  "version": "1.0.1",
+  "release_tag": "moomooau-live",
+  "asset_name": "timeline-latest.png.age",
+  "healthy_asset_count": 1,
+  "maximum_asset_count": 1,
+  "repair_asset_count": 0,
+  "history_asset_count": 0,
+  "atomic_replace_required": false,
+  "ciphertext_deterministic": false,
+  "semantic_idempotency_key": [
+    "processed_snapshot_root",
+    "timeline_plaintext_sha256"
+  ],
+  "ciphertext_sha256_purpose": "transport and remote recovery integrity only",
+  "protocol": [
+    "Derive processed_snapshot_root deterministically from the committed Processed snapshot.",
+    "List the fixed Release assets and fail closed if the count is greater than one.",
+    "When encrypted private publish state names the same snapshot and one asset exists, download it, verify ciphertext_sha256, decrypt it and verify timeline_plaintext_sha256; if all checks pass, perform no render and no mutation.",
+    "Otherwise render deterministic PNG bytes in the ephemeral runner and compute timeline_plaintext_sha256 before encryption.",
+    "If the existing asset decrypts to the same timeline_plaintext_sha256, repair encrypted publish state if needed and perform no asset mutation.",
+    "For changed plaintext, age-encrypt the candidate with expected fresh randomness, decrypt it in the same job and verify its plaintext digest before any remote mutation.",
+    "If one current asset exists, download and verify it in ephemeral storage, then delete that fixed remote asset.",
+    "Upload the candidate under the same fixed name and verify remote size, ciphertext_sha256 and decryptable plaintext_sha256.",
+    "After remote verification, write encrypted private publish state for the new snapshot and asset identity in one repository commit.",
+    "On failure after deletion, publish TIMELINE_REPAIR_REQUIRED with asset count zero; never persist a second backup image.",
+    "The next run must rebuild from the same committed Processed snapshot before any later snapshot can publish."
+  ],
+  "forbidden": [
+    "temporary or historical Release image assets",
+    "Git image blobs",
+    "Actions image artifacts",
+    "Actions image cache",
+    "claiming platform atomicity",
+    "using age ciphertext equality as the no-change oracle"
+  ],
+  "platform_evidence_ref": "research/platform_capabilities.v1.0.1.json",
+  "acceptance_id": "AC-028"
+}

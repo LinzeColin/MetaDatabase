@@ -1,0 +1,65 @@
+# 任务包封套
+
+`v1.0.0` 是用户提供的原始输入；其 ZIP/Manifest/Roadmap 哈希与验证器复现实验保存在
+`SOURCE_PROVENANCE.json`。含公开定位冲突或低价值自生成报告的原始文件不留在可发布工作树中，
+只保留哈希和本地审计提交；该本地历史永久禁止 push。
+
+`v1.0.1` 是经 Owner 明确授权的基线保真修复。有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.1.md`
+- `ROADMAP.v1.0.1.md`
+- `PACKAGE_MANIFEST.v1.0.1.json`
+- `CHANGELOG.md`
+
+`v1.0.2` 是 Owner 选择方案 1 后建立的基线保真继任版本。它不改变 v1.0.1 的产品契约、
+RQ/AC、task DAG、追踪矩阵、Kill Criteria 或不变量，只解决分阶段 evidence 验证与跨维度状态真源冲突。
+它现在作为不可变控制前序保留。
+
+`v1.0.3` 按 v1.0.2 Roadmap 的既定顺序完成 RMD-03。它只为 S3–S6 增加显式
+`--cumulative-final` 最终树验证模式和离线只读 Workflow command matrix；无参数的历史阶段模式仍按
+later-stage scope gate fail closed。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.3.md`
+- `ROADMAP.v1.0.3.md`
+- `PACKAGE_MANIFEST.v1.0.3.json`
+- `SOURCE_PROVENANCE.v1.0.3.json`
+- `CHANGELOG.md`
+
+`v1.0.4` 按 v1.0.3 Roadmap 的既定顺序完成 RMD-04。它只增加唯一 fail-closed production
+composition、加密 Sydney 调度水位、正式 protected adapters、合成端到端证据及相应 Workflow/机器契约；
+不执行受保护 Oracle 或生产。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.4.md`
+- `ROADMAP.v1.0.4.md`
+- `PACKAGE_MANIFEST.v1.0.4.json`
+- `SOURCE_PROVENANCE.v1.0.4.json`
+- `CHANGELOG.md`
+
+`v1.0.5` 按 v1.0.4 Roadmap 的既定顺序完成 RMD-05。它只关闭候选绑定本地 gate receipt、immutable
+Git anchor、两个模型家族各 18 次不可变独立复审来源链及 Stage 6 v2 证据转换；不执行受保护 Oracle、
+真实 Gmail/私有仓、生产、部署或发布。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.5.md`
+- `ROADMAP.v1.0.5.md`
+- `PACKAGE_MANIFEST.v1.0.5.json`
+- `SOURCE_PROVENANCE.v1.0.5.json`
+- `CHANGELOG.md`
+
+`v1.0.6` 按 Owner 选择的方案 2 建立 RMD-06 云执行前置。Governance 继续私有，仅允许单仓只读
+Deploy Key 通过 pinned checkout 消费；fork PR fail closed，生产/Gmail/数据仓 Secret 仍为零。
+当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.6.md`
+- `ROADMAP.v1.0.6.md`
+- `PACKAGE_MANIFEST.v1.0.6.json`
+- `SOURCE_PROVENANCE.v1.0.6.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.5.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.4.json`、
+`PACKAGE_MANIFEST.v1.0.3.json` 与 `PACKAGE_MANIFEST.v1.0.2.json` 是不可变控制前序；
+`PACKAGE_MANIFEST.v1.0.1.json` 与
+`SOURCE_PROVENANCE.json` 是不可变历史基线。它们都不得用于解释当前跨维度交付状态；当前状态唯一真源
+是 `../machine/status/latest.json`。
+
+任务包自带的通用 Skill 未导入。本仓库只通过 pinned external checkout 消费共享 Governance，
+不复制、分叉、submodule 或重建通用治理框架。

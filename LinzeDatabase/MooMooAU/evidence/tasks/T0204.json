@@ -1,0 +1,23 @@
+{
+  "schema_version": "moomooau.stage2-evidence.v1",
+  "evidence_id": "S2-T0204-LOCAL-20260720",
+  "stage_id": "S2",
+  "task_id": "T0204",
+  "stage_acceptance_id": "S2AC-004",
+  "observed_at_utc": "2026-07-19T23:37:27Z",
+  "baseline_commit": "932e3970490f87fd46671bc6a461340a339887ef",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "rs256_jwt_verified", "status": "PASS", "evidence_ref": "tests/tasks/test_t0204.py"},
+    {"id": "single_repository_token_request", "status": "PASS", "evidence_ref": "github_guard.GitHubInstallationTokenClient"},
+    {"id": "overbroad_response_rejected", "status": "PASS", "evidence_ref": "tests/tasks/test_t0204.py::test_t0204_rejects_overbroad_installation_token_response"},
+    {"id": "fixed_contents_release_surface", "status": "PASS", "evidence_ref": "src/moomooau_archive/github_guard.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-019", "status": "PARTIAL", "reason": "Request and response scope are exact under synthetic transport; no real token or repository access occurred."},
+    {"id": "AC-027", "status": "NOT_RUN", "reason": "Private-first publication and compensation are Stage 5 concerns and were not implemented or exercised."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Connect a concrete transport only inside a later protected run after repository and App setup."
+}

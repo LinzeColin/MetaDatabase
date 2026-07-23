@@ -1,0 +1,111 @@
+{
+  "acceptance_id": "AC-020",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "1e186cbb6cb777f46a4a489e6ddac843364553ac9443a650fd611403600850c4",
+    "evidence_required": "evidence/acceptance/AC-020-untrusted-input.json",
+    "pass_gate_text": "AC-020 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_020.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-020-RMD01-20260722",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0103.json",
+      "evidence_sha256": "3d2d68289cd092afc0aa9c6a4f9a46678d37b86776a0c695b2b9a01ff134265e",
+      "final_claim_status": "PARTIAL",
+      "reason": "Abuse fixtures are non-executing and isolated; full fuzz and parser assurance belongs to Stage 6.",
+      "source_record_status": "PASS",
+      "task_id": "T0103"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0306.json",
+      "evidence_sha256": "7cb5d7e070d7fb1afb3b5b90fc33b9f35e878c384c1b97ba8d9119ff0a62da1f",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic abuse fixtures are quarantined without execution, model use, extraction or network; hosted-runner adversarial acceptance remains later work.",
+      "source_record_status": "PASS",
+      "task_id": "T0306"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0603.json",
+      "evidence_sha256": "2848f8c02d10d7b7eb3ca1213401d2808918767c931c5b568c3fcada8c7d9275",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic hostile attachments, including compressed PDF object streams, are safely quarantined with no execution or egress primitive; protected samples were not processed.",
+      "source_record_status": "PASS",
+      "task_id": "T0603"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-22T05:12:40Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "391a4a5afcd673bfb95bf9a7c9e38197479eb159",
+  "requirement_id": "RQ-020",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_020_pass_gate",
+    "path": "tests/acceptance/test_ac_020.py",
+    "sha256": "b4371db4aca136622fc5f3e98cdf9ccf24cab7736c582e8d0346a29279f36a6a"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0103",
+      "T0306",
+      "T0603"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "2499e6526f6997889aef7e525bf5e4e9ff504b18117337016c3fe5302477401d"
+  }
+}

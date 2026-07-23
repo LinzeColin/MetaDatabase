@@ -1,0 +1,63 @@
+{
+  "schema_version": "moomooau.stage5-semantic-gate.v1",
+  "stage_id": "S5",
+  "status": "PASS",
+  "baseline_commit": "9394585329a52c4d269da220bd66ce8ec9b820b3",
+  "policy": "Stage-local PASS requires deterministic synthetic recovery, exact-message M3, Timeline and schedule boundaries plus explicit CONTROLLED_NOT_RUN status for every protected production assertion.",
+  "resolutions": [
+    {
+      "id": "S5-SEM-001",
+      "status": "RESOLVED",
+      "finding": "A successful upload response alone cannot prove that Raw and Processed are remotely recoverable.",
+      "resolution": "The recovery gate refetches every required ciphertext, verifies its exact digest, decrypts with official age in memory and binds every plaintext digest before authorizing M3."
+    },
+    {
+      "id": "S5-SEM-002",
+      "status": "RESOLVED",
+      "finding": "Processed output may be legitimately unavailable or deferred and must not be guessed complete.",
+      "resolution": "COMPLETE requires the full Processed plan; WAITING, UNSUPPORTED and RAW_ONLY are explicit safe-deferred outcomes, while QUARANTINED always denies recovery authorization."
+    },
+    {
+      "id": "S5-SEM-003",
+      "status": "RESOLVED",
+      "finding": "Gmail mutation has destructive collateral risk if message identity or recovery state changes between discovery and Trash.",
+      "resolution": "M3 performs a deterministic second verification, binds the exact recovery proof and source ID, applies a phase budget, calls only users.messages.trash and confirms the TRASH label; uncertain responses are not retried blindly."
+    },
+    {
+      "id": "S5-SEM-004",
+      "status": "RESOLVED",
+      "finding": "Timeline time, label and market expectations can be misleading across Sydney and US exchange boundaries.",
+      "resolution": "internalDate remains UTC truth, Sydney is explicit display context, XNYS session lag is calendar-backed, and MISSING requires independent expectation evidence plus an elapsed SLA."
+    },
+    {
+      "id": "S5-SEM-005",
+      "status": "RESOLVED",
+      "finding": "PNG output can drift with input order, fonts, metadata, compression or runtime defaults.",
+      "resolution": "The renderer fixes dimensions, order, palette, default bundled font, compression and metadata and renders only to memory; semantic snapshot identity suppresses unchanged redraws."
+    },
+    {
+      "id": "S5-SEM-006",
+      "status": "RESOLVED",
+      "finding": "GitHub Release assets reject duplicate names and delete-then-upload can temporarily leave no live asset.",
+      "resolution": "The publisher targets one fixed tag/name, verifies existing ciphertext, serializes delete then upload, persists encrypted repair state after failure and replays older repair work before accepting newer snapshots."
+    },
+    {
+      "id": "S5-SEM-007",
+      "status": "RESOLVED",
+      "finding": "Scheduled workflow execution can be delayed and a UTC-only cron cannot preserve 04:30 Sydney through DST.",
+      "resolution": "The workflow uses timezone Australia/Sydney with cron 30 4 * * *, retains workflow_dispatch, makes Sunday/manual runs full reconcile and represents delayed/catch-up state without claiming punctual execution."
+    },
+    {
+      "id": "S5-SEM-008",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "Real recovery, Gmail Trash, live Release replacement and scheduled execution need protected credentials and remote authority.",
+      "resolution": "All production adapters and workflow execution remain uncalled, the protected workflow is feature-gated, every production oracle is NOT_RUN and all real-call counters remain zero."
+    },
+    {
+      "id": "S5-SEM-009",
+      "status": "CONTROLLED_NOT_RUN",
+      "finding": "Stage 6 canary observation, alerting, deployment acceptance and later-stage review are outside this run.",
+      "resolution": "No Stage 6 implementation or acceptance claim is introduced; Stage 5 hands off a local-only contract for the next run."
+    }
+  ]
+}

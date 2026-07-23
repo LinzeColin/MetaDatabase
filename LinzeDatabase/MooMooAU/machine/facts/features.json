@@ -1,0 +1,50 @@
+[
+  {
+    "id": "F-001",
+    "name": "确定性 Gmail 候选发现与双重验证",
+    "status": "reconstructed",
+    "evidence": "extracted"
+  },
+  {
+    "id": "F-002",
+    "name": "完整 Raw 邮件 age 加密归档",
+    "status": "reconstructed",
+    "evidence": "extracted"
+  },
+  {
+    "id": "F-003",
+    "name": "版本化 Processed 数据与血缘",
+    "status": "reconstructed",
+    "evidence": "extracted"
+  },
+  {
+    "id": "F-004",
+    "name": "远端恢复后精确 Message Trash",
+    "status": "reconstructed",
+    "evidence": "extracted"
+  },
+  {
+    "id": "F-005",
+    "name": "唯一最新 Timeline 串行发布与修复",
+    "status": "reconstructed",
+    "evidence": "extracted"
+  },
+  {
+    "id": "F-006",
+    "name": "悉尼四点半调度与周日全量对账",
+    "status": "reconstructed",
+    "evidence": "extracted"
+  },
+  {
+    "id": "F-007",
+    "name": "脱敏公开 Evidence 与恢复状态",
+    "status": "reconstructed",
+    "evidence": "extracted"
+  },
+  {
+    "id": "F-008",
+    "name": "Codex 开发线程维护入口",
+    "status": "reconstructed",
+    "evidence": "extracted"
+  }
+]

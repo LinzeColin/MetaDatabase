@@ -1,0 +1,22 @@
+{
+  "schema_version": "moomooau.stage2-evidence.v1",
+  "evidence_id": "S2-T0201-LOCAL-20260720",
+  "stage_id": "S2",
+  "task_id": "T0201",
+  "stage_acceptance_id": "S2AC-001",
+  "observed_at_utc": "2026-07-19T23:37:27Z",
+  "baseline_commit": "932e3970490f87fd46671bc6a461340a339887ef",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "single_secret_read", "status": "PASS", "evidence_ref": "tests/tasks/test_t0201.py"},
+    {"id": "exact_gmail_modify_scope", "status": "PASS", "evidence_ref": "src/moomooau_archive/auth.py"},
+    {"id": "redacted_destroyable_values", "status": "PASS", "evidence_ref": "src/moomooau_archive/secret_values.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-018", "status": "PARTIAL", "reason": "The credential scope and authority are locally constrained; real Google authorization is intentionally not run."},
+    {"id": "AC-022", "status": "PARTIAL", "reason": "Owned credential buffers are redacted and zeroed best-effort; protected runner failure-path audit is not yet run."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Begin Stage 3 in a later run without authorizing real Gmail mutation."
+}

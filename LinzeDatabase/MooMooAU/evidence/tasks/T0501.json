@@ -1,0 +1,28 @@
+{
+  "schema_version": "moomooau.stage5-evidence.v1",
+  "evidence_id": "S5-T0501-LOCAL-20260720",
+  "stage_id": "S5",
+  "task_id": "T0501",
+  "stage_acceptance_id": "S5AC-001",
+  "observed_at_utc": "2026-07-20T03:21:33Z",
+  "baseline_commit": "9394585329a52c4d269da220bd66ce8ec9b820b3",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "remote_ciphertext_refetch_and_sha", "status": "PASS", "evidence_ref": "tests/tasks/test_t0501.py"},
+    {"id": "official_age_plaintext_sha_recovery", "status": "PASS", "evidence_ref": "RemoteRecoveryGate"},
+    {"id": "processed_complete_or_explicit_safe_deferred", "status": "PASS", "evidence_ref": "tests/tasks/test_t0501.py"},
+    {"id": "missing_corrupt_wrong_identity_and_quarantine_fail_closed", "status": "PASS", "evidence_ref": "tests/tasks/test_t0501.py; RemoteRecoveryGate safe-state allowlist; validate_stage5.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-007", "status": "PARTIAL", "reason": "Synthetic remote refetch and official-age recovery pass; no real private-repository object was read."},
+    {"id": "AC-017", "status": "PARTIAL", "reason": "Explicit Processed complete and safe-deferred states pass synthetically; protected real password reprocessing is not run."},
+    {"id": "AC-027", "status": "PARTIAL", "reason": "Recovery proof is cryptographically bound in memory; production identity and remote object recovery are not run."}
+  ],
+  "production_oracles": [
+    {"id": "PRIVATE_REMOTE_RECOVERY", "status": "NOT_RUN", "reason": "No private repository, production age identity or real Raw/Processed ciphertext was accessed."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
+  "next_action": "Keep M3 denied until a later protected run proves the exact real remote Raw and required Processed objects recoverable."
+}

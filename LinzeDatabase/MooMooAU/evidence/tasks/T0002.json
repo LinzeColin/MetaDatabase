@@ -1,0 +1,31 @@
+{
+  "schema_version": "moomooau.stage0-evidence.v2",
+  "evidence_id": "S0-T0002-20260720",
+  "stage_id": "S0",
+  "task_id": "T0002",
+  "stage_acceptance_id": "S0AC-002",
+  "observed_at_utc": "2026-07-19T22:40:33Z",
+  "base_commit": "67a324a95cb66e7a4e8b6081625300ae68fa6327",
+  "source_package_version": "1.0.1",
+  "record_status": "VALID",
+  "delivery_status": "PASS",
+  "checks": [
+    {
+      "id": "S0AC-002",
+      "status": "PASS",
+      "evidence_ref": "machine/facts/canonical_facts.json"
+    },
+    {
+      "id": "timeline-protocol",
+      "status": "PASS",
+      "evidence_ref": "machine/contracts/timeline_publish_protocol.json"
+    },
+    {
+      "id": "platform-capability",
+      "status": "PASS",
+      "evidence_ref": "research/platform_capabilities.v1.0.1.json"
+    }
+  ],
+  "blockers": [],
+  "next_action": "仅可在后续独立运行开始 Stage 1；当前分支不得发布。"
+}

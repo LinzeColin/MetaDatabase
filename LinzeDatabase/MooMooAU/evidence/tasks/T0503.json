@@ -1,0 +1,27 @@
+{
+  "schema_version": "moomooau.stage5-evidence.v1",
+  "evidence_id": "S5-T0503-LOCAL-20260720",
+  "stage_id": "S5",
+  "task_id": "T0503",
+  "stage_acceptance_id": "S5AC-003",
+  "observed_at_utc": "2026-07-20T03:21:33Z",
+  "baseline_commit": "9394585329a52c4d269da220bd66ce8ec9b820b3",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "internaldate_utc_truth_and_sydney_display", "status": "PASS", "evidence_ref": "tests/tasks/test_t0503.py"},
+    {"id": "business_label_and_discovery_lifecycle", "status": "PASS", "evidence_ref": "TimelineEventFactory"},
+    {"id": "m3_and_parser_state_bound", "status": "PASS", "evidence_ref": "tests/tasks/test_t0503.py"},
+    {"id": "complete_stage5_schema_validation", "status": "PASS", "evidence_ref": "machine/stages/S5/public-schemas/timeline-event-complete-v1.schema.json"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-029", "status": "PARTIAL", "reason": "Synthetic Timeline events are complete and deterministic; real longitudinal archive coverage is not run."},
+    {"id": "AC-030", "status": "PARTIAL", "reason": "UTC, Sydney and label-date semantics pass synthetic controls; real business-date oracles are not run."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_TIMELINE_EVENT_COVERAGE", "status": "NOT_RUN", "reason": "No real Gmail message, Processed statement or M3 lifecycle was observed."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
+  "next_action": "Use the complete Stage 5 event schema as the protected canary oracle without weakening the frozen Stage 0 schema."
+}

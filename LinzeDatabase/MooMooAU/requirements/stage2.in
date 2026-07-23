@@ -1,0 +1,15 @@
+# Stage 2 direct inputs. requirements/stage2.lock is the installable hash-locked authority.
+build==1.5.0
+cryptography==49.0.0
+cyclonedx-bom==7.3.0
+detect-secrets==1.5.0
+jsonschema==4.26.0
+mypy==2.3.0
+pandas==3.0.3
+pandera[pandas]==0.32.1
+pip==26.1.2
+pip-audit==2.10.1
+pytest==9.1.1
+ruff==0.15.22
+setuptools==83.0.0
+wheel==0.47.0

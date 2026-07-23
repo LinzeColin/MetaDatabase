@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Final Acceptance Oracle Observation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "oracle_id", "acceptance_id", "environment", "observed_at_utc",
+    "source_commit", "contract_binding", "status", "threshold_checks", "evidence_refs", "attestation"
+  ],
+  "properties": {
+    "schema_version": {"const": "moomooau.oracle-observation.v1"},
+    "oracle_id": {"type": "string", "pattern": "^AC-[0-9]{3}-[A-Z0-9_-]+$"},
+    "acceptance_id": {"type": "string", "pattern": "^AC-[0-9]{3}$"},
+    "environment": {"enum": ["LOCAL_SYNTHETIC", "GITHUB_ACTIONS_PROTECTED", "CODEX_AUTOMATION"]},
+    "observed_at_utc": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "contract_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptance_contract_sha256", "environment_sha256", "input_sha256", "oracle_sha256",
+        "threshold_sha256", "pass_gate_sha256"
+      ],
+      "properties": {
+        "acceptance_contract_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "environment_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "oracle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "threshold_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "pass_gate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "status": {"enum": ["PASS", "FAIL"]},
+    "threshold_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "expected", "observed", "status"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "expected": {"type": "string", "minLength": 1},
+          "observed": {"type": "string", "minLength": 1},
+          "status": {"enum": ["PASS", "FAIL"]}
+        }
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {"type": "string", "pattern": "^(?!/)(?!.*\\.\\.).+$"},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "run_locator_sha256"],
+      "properties": {
+        "type": {"enum": ["LOCAL_COMMAND", "GITHUB_ACTIONS_PROTECTED", "CODEX_AUTOMATION"]},
+        "run_locator_sha256": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          ]
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "PASS"}}},
+      "then": {
+        "properties": {
+          "threshold_checks": {
+            "items": {
+              "properties": {"status": {"const": "PASS"}}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"environment": {"const": "GITHUB_ACTIONS_PROTECTED"}}},
+      "then": {
+        "properties": {
+          "attestation": {
+            "properties": {
+              "type": {"const": "GITHUB_ACTIONS_PROTECTED"},
+              "run_locator_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"environment": {"const": "LOCAL_SYNTHETIC"}}},
+      "then": {
+        "properties": {
+          "attestation": {
+            "properties": {
+              "type": {"const": "LOCAL_COMMAND"},
+              "run_locator_sha256": {"type": "null"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"environment": {"const": "CODEX_AUTOMATION"}}},
+      "then": {
+        "properties": {
+          "attestation": {
+            "properties": {
+              "type": {"const": "CODEX_AUTOMATION"},
+              "run_locator_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "moomooau.stage1-evidence.v1",
+  "evidence_id": "S1-T0106-LOCAL-20260719",
+  "stage_id": "S1",
+  "task_id": "T0106",
+  "stage_acceptance_id": "S1AC-006",
+  "observed_at_utc": "2026-07-19T23:04:46Z",
+  "baseline_commit": "31a51114f8749b93b1da53f7bb11a7e2f7f916de",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "frozen_taskpack_valid", "status": "PASS", "evidence_ref": "contracts.frozen_taskpack"},
+    {"id": "negative_graph_controls", "status": "PASS", "evidence_ref": "tests/tasks/test_t0106.py"},
+    {"id": "read_only_tree_digest", "status": "PASS", "evidence_ref": "validator.read_only"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-008", "status": "PARTIAL", "reason": "The public project tree is validated; the private production tree remains uninspected."},
+    {"id": "AC-034", "status": "PARTIAL", "reason": "Current implementation entries match Stage 1 scope; final non-goal audit remains later."}
+  ],
+  "prohibition_counters": {"gmail_calls": 0, "gmail_mutations": 0, "secrets_read": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Run this cumulative validator after every later-stage overlay."
+}

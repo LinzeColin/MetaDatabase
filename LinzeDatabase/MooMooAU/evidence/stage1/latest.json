@@ -1,0 +1,24 @@
+{
+  "schema_version": "moomooau.stage1-summary.v1",
+  "stage_id": "S1",
+  "observed_at_utc": "2026-07-19T23:04:46Z",
+  "baseline_commit": "31a51114f8749b93b1da53f7bb11a7e2f7f916de",
+  "status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "task_pass_count": 7,
+  "task_total": 7,
+  "stage_acceptance_pass_count": 7,
+  "test_pass_count": 13,
+  "aggregate_check_pass_count": 12,
+  "final_acceptance_policy": "NOT_FINAL",
+  "final_acceptance_pass_count": 0,
+  "official_age_version": "v1.3.1",
+  "prohibition_counters": {
+    "gmail_calls": 0,
+    "gmail_mutations": 0,
+    "secrets_read": 0,
+    "external_writes": 0,
+    "remote_publication": 0
+  },
+  "next_action": "Start Stage 2 only in a later run; do not upload this intermediate stage."
+}

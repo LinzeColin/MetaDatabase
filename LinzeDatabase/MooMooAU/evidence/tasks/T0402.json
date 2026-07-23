@@ -1,0 +1,29 @@
+{
+  "schema_version": "moomooau.stage4-evidence.v1",
+  "evidence_id": "S4-T0402-LOCAL-20260720",
+  "stage_id": "S4",
+  "task_id": "T0402",
+  "stage_acceptance_id": "S4AC-002",
+  "observed_at_utc": "2026-07-20T02:39:28Z",
+  "baseline_commit": "b15ccdbe0e4ed16e3a01e17431360f844621b852",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "verified_raw_and_opaque_source_binding", "status": "PASS", "evidence_ref": "DocumentEnvelopeFactory"},
+    {"id": "utc_and_australia_sydney_consistency", "status": "PASS", "evidence_ref": "tests/tasks/test_t0402.py"},
+    {"id": "attachment_and_field_lineage_complete", "status": "PASS", "evidence_ref": "PrivateLineage"},
+    {"id": "conflicting_lineage_rejected", "status": "PASS", "evidence_ref": "DocumentEnvelope.with_processing"},
+    {"id": "private_diagnostics_redacted", "status": "PASS", "evidence_ref": "tests/tasks/test_t0402.py"},
+    {"id": "document_envelope_public_schema_exact", "status": "PASS", "evidence_ref": "machine/stages/S4/public-schemas/document-envelope-v1.schema.json"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-015", "status": "PARTIAL", "reason": "Synthetic Envelope lineage binds one Raw and parser metadata; real versioned private-repository recovery and downstream current reads are not run."},
+    {"id": "AC-029", "status": "PARTIAL", "reason": "InternalDate UTC and Australia/Sydney conversion are exact for synthetic input; the full market-calendar and Timeline oracle belongs to later stages."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_MESSAGE_ENVELOPE_LINEAGE", "status": "NOT_RUN", "reason": "No real Gmail message, private Raw object or production registry was accessed."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "production_classification_rules": 0, "production_parser_profiles": 0, "protected_approvals_executed": 0},
+  "next_action": "Execute protected real Envelope and recovery canaries only after later-stage credentials and owner-approved profiles exist."
+}

@@ -1,0 +1,82 @@
+name: MooMooAU Stage 1 synthetic CI
+
+on:
+  push:
+    paths:
+      - ".github/workflows/moomooau-stage1-ci.yml"
+      - "LinzeDatabase/MooMooAU/**"
+  pull_request:
+    paths:
+      - ".github/workflows/moomooau-stage1-ci.yml"
+      - "LinzeDatabase/MooMooAU/**"
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-stage1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Reject fork pull requests before protected dependency checkout
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository
+        shell: bash
+        run: |
+          echo "::error::Fork pull requests cannot access the protected read-only Governance dependency."
+          exit 1
+
+      - name: Check out public project
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+
+      - name: Check out pinned shared Governance read-only
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          repository: LinzeColin/Governance
+          ref: ebc6c2e4884edc959118cfc56d0e18a86c49460f
+          path: .governance
+          persist-credentials: false
+          ssh-key: ${{ secrets.MOOMOOAU_GOVERNANCE_DEPLOY_KEY }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+
+      - name: Install official age on ephemeral runner
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes age
+          age --version
+
+      - name: Install pinned direct dependencies
+        working-directory: LinzeDatabase/MooMooAU
+        run: python -m pip install -r requirements/stage1-ci.txt
+
+      - name: Lint
+        working-directory: LinzeDatabase/MooMooAU
+        run: python -m ruff check --no-cache src tests/tasks/test_t010*.py machine/stages/S1/tools
+
+      - name: Type check
+        working-directory: LinzeDatabase/MooMooAU
+        run: python -m mypy --no-incremental --cache-dir "$RUNNER_TEMP/mypy-cache" src
+
+      - name: Unit and contract tests
+        working-directory: LinzeDatabase/MooMooAU
+        run: python -m pytest -q tests/tasks/test_t010*.py
+
+      - name: Schema package dual-plane and publication gates
+        working-directory: LinzeDatabase/MooMooAU
+        run: >-
+          python machine/stages/S1/tools/validate_stage1.py
+          --governance-root "$GITHUB_WORKSPACE/.governance"
+
+      - name: Build package without publishing
+        working-directory: LinzeDatabase/MooMooAU
+        run: python -m build --no-isolation --outdir "$RUNNER_TEMP/moomooau-dist"
