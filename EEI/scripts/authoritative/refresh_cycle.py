@@ -89,7 +89,7 @@ def run_step(argv: list[str], *, label: str) -> tuple[int, str]:
     return proc.returncode, tail.strip()
 
 
-def one_cycle(args) -> dict:
+def one_cycle(args, *, publish: bool = True) -> dict:
     started = datetime.now(UTC).isoformat()
     total = max(universe_size(), 1)
     state = load_state()
@@ -117,7 +117,7 @@ def one_cycle(args) -> dict:
         result["gleif_rc"] = rc
         state["gleif_offset"] = (gleif_off + args.gleif_batch) % total
 
-    if not args.skip_publish:
+    if not args.skip_publish and publish:
         report = ROOT / ".eei_refresh_publish_report.json"
         sqlout = ROOT / ".eei_refresh_publish.sql"
         rc, tail = run_step(
@@ -128,6 +128,12 @@ def one_cycle(args) -> dict:
         result["publish_rc"] = rc
         result["publish_drill_passed"] = '"drill_passed": true' in tail or \
                                          '"drill_passed":true' in tail
+    elif not args.skip_publish:
+        # Enrich/gleif ran (backfill into the local system-of-record) but the
+        # full DELETE+INSERT republish is deferred to keep D1 writes within the
+        # free tier; the minute-cadence watcher owns incremental freshness and
+        # the periodic full republish reconciles the backfill.
+        result["publish_skipped_this_cycle"] = True
 
     save_state(state)
     result["finished_at"] = datetime.now(UTC).isoformat()
@@ -144,6 +150,12 @@ def main() -> int:
     p.add_argument("--skip-enrich", action="store_true")
     p.add_argument("--skip-gleif", action="store_true")
     p.add_argument("--skip-publish", action="store_true")
+    p.add_argument(
+        "--publish-every", type=int, default=1,
+        help="full republish only every Nth cycle (enrich/gleif still run every"
+             " cycle). Keeps D1 writes in the free tier when the enrich sweep"
+             " runs frequently; the watcher owns minute-cadence freshness.",
+    )
     p.add_argument("--loop", action="store_true", help="run forever")
     p.add_argument("--interval-seconds", type=int, default=86400)
     args = p.parse_args()
@@ -152,12 +164,15 @@ def main() -> int:
         r = one_cycle(args)
         return 0 if r.get("publish_rc", 0) == 0 else 1
 
-    print(f"[refresh] loop mode, interval={args.interval_seconds}s")
+    print(f"[refresh] loop mode, interval={args.interval_seconds}s, "
+          f"publish_every={args.publish_every}")
+    n = 0
     while True:
         try:
-            one_cycle(args)
+            one_cycle(args, publish=(n % max(args.publish_every, 1) == 0))
         except Exception as exc:  # noqa: BLE001 - a scheduled loop must not die
             print(f"[refresh] cycle error (continuing): {exc}")
+        n += 1
         time.sleep(args.interval_seconds)
 
 

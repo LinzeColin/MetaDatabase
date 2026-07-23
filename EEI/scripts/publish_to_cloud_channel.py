@@ -137,13 +137,19 @@ def sql_quote(value: Any) -> str:
     return f"'{text}'"
 
 
-def insert_statement(table: str, columns: tuple[str, ...], rows: list[dict[str, Any]]) -> str:
-    """One bounded multi-row INSERT (a few hundred rows max, never the table)."""
+def insert_statement(
+    table: str, columns: tuple[str, ...], rows: list[dict[str, Any]], *, verb: str = "INSERT"
+) -> str:
+    """One bounded multi-row INSERT (a few hundred rows max, never the table).
+
+    verb='INSERT OR REPLACE' gives an idempotent upsert used by the incremental
+    real-time path (every D1 table has a PK, so REPLACE never duplicates).
+    """
     col_list = ", ".join(columns)
     values = ",\n".join(
         "(" + ", ".join(sql_quote(row[c]) for c in columns) + ")" for row in rows
     )
-    return f"INSERT INTO {table}({col_list}) VALUES\n{values};"
+    return f"{verb} INTO {table}({col_list}) VALUES\n{values};"
 
 
 def utc_now_iso() -> str:
@@ -660,6 +666,113 @@ class WorkerApiTransport:
             rows = result.get("rows") or []
             counts[table] = int(rows[0]["n"]) if rows else -1
         return counts
+
+
+# ---------------------------------------------------------------------------
+# Incremental real-time path (used by the recent-filings watcher).
+#
+# The full publisher DELETEs + re-INSERTs the entire surface (~29k rows) — safe
+# once/day but far over D1's 100k-writes/day free tier if run every minute. The
+# watcher instead upserts ONLY the rows touched by a just-filed company:
+# INSERT OR REPLACE (every D1 table has a PK) so it is idempotent and writes a
+# few rows per new filing. No DELETE, so it never disturbs the rest of D1.
+# ---------------------------------------------------------------------------
+
+INCR_ENTITIES_SQL = (
+    "SELECT id, canonical_name, entity_type, status FROM entities"
+    " WHERE id = ANY(%s::uuid[])"
+)
+INCR_EVENTS_SQL = """
+    SELECT DISTINCT ev.id, ev.event_type, ev.title, ev.status::text,
+           ev.announced_at, ev.effective_at, ev.period_start, ev.period_end,
+           ev.observed_at, ev.amount, ev.currency, ev.amount_kind,
+           ev.description, ev.qualifiers
+    FROM events ev
+    JOIN event_participants ep ON ep.event_id = ev.id
+    WHERE ep.entity_id = ANY(%s::uuid[])
+      AND ev.derivation_rule = ANY(%s)
+      AND ev.status NOT IN ('superseded', 'revoked')
+"""
+INCR_EVENT_PARTICIPANTS_SQL = """
+    SELECT ep.event_id, ep.entity_id, e.canonical_name, ep.role, ep.direction
+    FROM event_participants ep
+    JOIN entities e ON e.id = ep.entity_id
+    WHERE ep.event_id = ANY(%s::uuid[])
+"""
+INCR_EVENT_EVIDENCE_SQL = """
+    SELECT ee.event_id, ee.source_document_id, ee.role::text, ee.locator,
+           ee.support_excerpt, sd.url, sd.title, sd.publisher, sd.document_date
+    FROM event_evidence ee
+    JOIN source_documents sd ON sd.id = ee.source_document_id
+    WHERE ee.event_id = ANY(%s::uuid[])
+"""
+
+
+def push_incremental(
+    entity_ids: list[str], *, publish_url: str, publish_token: str
+) -> dict[str, Any]:
+    """Upsert only the event surface touched by the given entities to live D1.
+
+    Returns {upserted: {table: n}, requests, bytes_sent}. Small by construction.
+    """
+    if not entity_ids:
+        return {"upserted": {}, "requests": 0, "bytes_sent": 0}
+    rules = list(PUBLISHED_RULES)
+    with connect_database() as conn:
+        entities = [
+            map_entity(r)
+            for r in conn.execute(INCR_ENTITIES_SQL, (entity_ids,)).fetchall()
+        ]
+        events = [
+            map_event(r)
+            for r in conn.execute(INCR_EVENTS_SQL, (entity_ids, rules)).fetchall()
+        ]
+        event_ids = [e["id"] for e in events]
+        participants = (
+            [map_event_participant(r)
+             for r in conn.execute(INCR_EVENT_PARTICIPANTS_SQL, (event_ids,)).fetchall()]
+            if event_ids else []
+        )
+        evidence = (
+            [map_event_evidence(r)
+             for r in conn.execute(INCR_EVENT_EVIDENCE_SQL, (event_ids,)).fetchall()]
+            if event_ids else []
+        )
+
+    statements: list[str] = []
+    # Entities first (FK-ish ordering mirrors the full publisher); events before
+    # their participants/evidence. All INSERT OR REPLACE => idempotent upsert.
+    for table, columns, rows, chunk in (
+        ("entities", ENTITY_COLUMNS, entities, 200),
+        ("events", EVENT_COLUMNS, events, 100),
+        ("event_participants", EVENT_PARTICIPANT_COLUMNS, participants, 200),
+        ("event_evidence", EVENT_EVIDENCE_COLUMNS, evidence, 100),
+    ):
+        for start in range(0, len(rows), chunk):
+            statements.append(
+                insert_statement(table, columns, rows[start:start + chunk],
+                                 verb="INSERT OR REPLACE")
+            )
+    statements.append(
+        "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
+        f" ('published_at', {sql_quote(utc_now_iso())});"
+    )
+
+    channel = WorkerApiTransport(publish_url, publish_token)
+    try:
+        channel.apply_statements(statements)
+    finally:
+        channel.close()
+    return {
+        "upserted": {
+            "entities": len(entities),
+            "events": len(events),
+            "event_participants": len(participants),
+            "event_evidence": len(evidence),
+        },
+        "requests": channel.requests,
+        "bytes_sent": channel.bytes_sent,
+    }
 
 
 # ---------------------------------------------------------------------------

@@ -129,11 +129,15 @@ rm -f /tmp/eei_sor.dump      # don't leave the dump on the box
    # on this shared box. Must match the worker secret (wrangler secret put).
    EEI_PUBLISH_URL=https://eei.linzezhang.com/v1/internal/publish/exec
    EEI_PUBLISH_TOKEN=CHANGE-ME-64-hex
-   # --- Refresh loop (hourly keeps the public surface近实时; the streamed
-   #     publish is cheap enough that hourly full republish is safe) ---
+   # --- Refresh sweep: enrich+GLEIF backfill every hour; full DELETE+INSERT
+   #     republish only every 24th cycle (=daily) to stay in D1's free tier ---
    EEI_REFRESH_INTERVAL_SECONDS=3600
+   EEI_PUBLISH_EVERY=24
    EEI_ENRICH_BATCH=500
    EEI_GLEIF_BATCH=300
+   # --- Near-real-time watcher: poll SEC's latest-filings firehose this often;
+   #     incremental-upserts only new material filings to live D1 ---
+   EEI_WATCH_INTERVAL_SECONDS=60
    EEI_ABORT_IF_EMPTY_UNIVERSE=1     # keep at 1 (empty-DB publish guard)
    ```
 
@@ -151,8 +155,9 @@ rm -f /tmp/eei_sor.dump      # don't leave the dump on the box
 Manual compose equivalent (if not driving it through the Coolify UI):
 ```bash
 cd <repo>/EEI
-docker compose -f docker-compose.ovh.yml --env-file .env.ovh up -d eei-db      # then restore dump
-docker compose -f docker-compose.ovh.yml --env-file .env.ovh up -d eei-refresh # starts the loop
+docker compose -f docker-compose.ovh.yml --env-file .env.ovh up -d eei-db       # then restore dump
+docker compose -f docker-compose.ovh.yml --env-file .env.ovh up -d eei-refresh  # hourly sweep + daily republish
+docker compose -f docker-compose.ovh.yml --env-file .env.ovh up -d eei-watch    # 60s near-real-time freshness
 ```
 
 ---
