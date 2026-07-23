@@ -2,9 +2,9 @@
   "schema_version": "moomooau.delivery-status-model.v3",
   "transition": "RMD-06_PROTECTED_ACCEPTANCE_PREPARATION",
   "authorization": {
-    "decision": "Owner selected option 2: keep Governance private and provision a repository-scoped read-only Deploy Key",
+    "decision": "Owner retained the private Governance Deploy Key design and separately authorized one controlled main delivery plus one protected Raw-only T0702 Beta dispatch",
     "authorized_on": "2026-07-23",
-    "scope": "RMD-06 cloud preflight closure plus T0702 protected Raw-only entrypoint readiness only; protected execution, Gmail, private-data writes, M3 and production remain blocked"
+    "scope": "T0702 protected Raw-only Beta only: budget one, no manual Environment reviewer, exact six Secrets, one private data repository and least-privilege single-repository GitHub App; Gmail mutation, M3, Processed, Timeline, schedule, final publication and any second delivery remain blocked"
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -68,7 +68,7 @@
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
-      "next_action": "Resolve the no-intermediate-upload versus GitHub-hosted protected-observation order, then provision the exact T0702 Beta Environment and inputs before one Raw-only dispatch; keep M3, production execution and final publication blocked."
+      "next_action": "Use the one owner-authorized controlled main delivery to provision and execute exactly one T0702 Raw-only Beta dispatch; keep Gmail mutation, M3, Processed, Timeline, schedule, any second delivery and final publication blocked."
     }
   }
 }

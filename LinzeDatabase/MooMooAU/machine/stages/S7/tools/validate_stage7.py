@@ -145,15 +145,46 @@ def _validate_contracts(root: Path) -> list[str]:
 
     run = _load(root / "machine/stages/S7/contracts/run_contract.json")
     prohibitions = run.get("prohibitions", {})
+    authorization = run.get("authorization", {})
+    effect_budget = run.get("authorized_effect_budget", {})
     if (
         run.get("stage_id") != "S7"
         or run.get("baseline_commit") != BASELINE_COMMIT
         or run.get("baseline_manifest_sha256") != BASELINE_MANIFEST_SHA256
         or not isinstance(prohibitions, dict)
         or any(value != 0 for value in prohibitions.values())
+        or authorization.get("purpose") != "T0702_PROTECTED_BETA_ONLY"
+        or authorization.get("controlled_main_delivery_limit") != 1
+        or authorization.get("protected_beta_dispatch_limit") != 1
+        or authorization.get("manual_environment_reviewers_required") is not False
+        or authorization.get("final_publication_authorized") is not False
+        or authorization.get("m3_authorized") is not False
+        or effect_budget.get("beta_message_budget") != 1
+        or effect_budget.get("controlled_main_deliveries_maximum") != 1
+        or effect_budget.get("beta_environment_secret_values_exact") != 6
+        or effect_budget.get("private_data_repository_creations_maximum") != 1
+        or effect_budget.get("github_app_creations_maximum") != 1
+        or effect_budget.get("github_app_single_repository_installations_maximum") != 1
+        or effect_budget.get("verified_full_raw_message_reads_maximum") != 1
+        or effect_budget.get("protected_beta_dispatches_maximum") != 1
+        or any(
+            effect_budget.get(key) != 0
+            for key in (
+                "protected_beta_reruns_maximum",
+                "gmail_mutations_maximum",
+                "m3_runs_maximum",
+                "processed_writes_maximum",
+                "timeline_writes_maximum",
+                "scheduled_runs_maximum",
+            )
+        )
         or not run.get("protected_oracles")
-        or "intermediate GitHub upload" not in run.get("non_goals", [])
-        or "ordering_blocker" not in run
+        or (
+            "a second control-repository branch push, pull request, main delivery, "
+            "workflow dispatch or rerun"
+        )
+        not in run.get("non_goals", [])
+        or "ordering_resolution" not in run
     ):
         errors.append("Stage 7 run contract is incomplete or grants production authority")
 
@@ -169,6 +200,7 @@ def _validate_contracts(root: Path) -> list[str]:
         or status.get("protected_oracles_executed") != 0
         or status.get("final_acceptances_passed") != 0
         or status.get("delivery_status") != "LOCAL_ONLY_NOT_PUBLISHED"
+        or status.get("ordering_status") != "OWNER_AUTHORIZED_ONE_CONTROLLED_MAIN_DELIVERY"
     ):
         errors.append("Stage 7 task status is not truthfully blocked")
 
@@ -178,8 +210,8 @@ def _validate_contracts(root: Path) -> list[str]:
         semantic.get("status") != "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES"
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
-        or "CONTROLLED_NOT_RUN" not in semantic_statuses
-        or "BLOCKED_OWNER_ORDERING" not in semantic_statuses
+        or "AUTHORIZED_T0702_NOT_RUN" not in semantic_statuses
+        or "OWNER_ORDERING_RESOLVED" not in semantic_statuses
         or "BLOCKED_IMPLEMENTATION" not in semantic_statuses
     ):
         errors.append("Stage 7 semantic gate is incomplete or overstates production evidence")
@@ -734,13 +766,12 @@ def _validate_evidence(root: Path) -> list[str]:
     graph_tasks = {item["id"]: item for item in graph["tasks"] if item["stage_id"] == "S7"}
     required_blockers = {
         "T0702": {
-            "PROTECTED_BETA_ENVIRONMENT_NOT_PROVISIONED",
+            "PROTECTED_BETA_ENVIRONMENT_POLICY_NOT_VERIFIED",
             "PROTECTED_BETA_SECRETS_NOT_PROVISIONED",
             "PROTECTED_SENDER_REGISTRY_NOT_PROVISIONED",
-            "BETA_MESSAGE_BUDGET_NOT_PROVISIONED",
             "PRIVATE_DATA_REPOSITORY_NOT_PROVISIONED",
             "GITHUB_APP_INSTALLATION_NOT_VERIFIED",
-            "INTERMEDIATE_UPLOAD_FORBIDDEN_BUT_GITHUB_HOSTED_OBSERVATION_REQUIRED",
+            "OWNER_AUTHORIZED_CONTROLLED_MAIN_DELIVERY_NOT_YET_EXECUTED",
         },
         "T0704": {
             "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
@@ -821,9 +852,7 @@ def _validate_evidence(root: Path) -> list[str]:
 
     latest = _load(root / "evidence/stage7/latest.json")
     observation = latest.get("observation", {})
-    aggregate_required_blockers = set().union(*required_blockers.values()) | {
-        "INTERMEDIATE_UPLOAD_FORBIDDEN_BUT_GITHUB_HOSTED_OBSERVATION_REQUIRED"
-    }
+    aggregate_required_blockers = set().union(*required_blockers.values())
     aggregate_resolved_blockers = set().union(*resolved_local_blockers.values())
     not_run = (
         "alpha_remote_preflight",

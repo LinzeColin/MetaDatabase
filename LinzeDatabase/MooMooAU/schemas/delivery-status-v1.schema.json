@@ -65,7 +65,7 @@
           ]
         },
       "next_action": {
-        "const": "Resolve the no-intermediate-upload versus GitHub-hosted protected-observation order, then provision the exact T0702 Beta Environment and inputs before one Raw-only dispatch; keep M3, production execution and final publication blocked."
+        "const": "Use the one owner-authorized controlled main delivery to provision and execute exactly one T0702 Raw-only Beta dispatch; keep Gmail mutation, M3, Processed, Timeline, schedule, any second delivery and final publication blocked."
       }
       }
     }

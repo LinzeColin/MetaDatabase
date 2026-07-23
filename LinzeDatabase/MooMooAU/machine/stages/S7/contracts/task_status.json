@@ -5,7 +5,7 @@
   "stage_status": "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES",
   "tasks": [
     {"id": "T0701", "status": "implementation_ready_protected_not_run"},
-    {"id": "T0702", "status": "implementation_ready_blocked_protected_oracle_and_provisioning"},
+    {"id": "T0702", "status": "owner_authorized_provisioning_pending_protected_oracle"},
     {"id": "T0703", "status": "implementation_ready_blocked_beta_predecessor_and_observation_window"},
     {"id": "T0704", "status": "implementation_ready_blocked_registry_predecessor_and_observation_window"},
     {"id": "T0705", "status": "implementation_ready_blocked_blue_green_budget_and_protected_schedule"},
@@ -19,5 +19,5 @@
   "protected_oracles_executed": 0,
   "final_acceptances_passed": 0,
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
-  "ordering_blocker": "INTERMEDIATE_UPLOAD_FORBIDDEN_BUT_GITHUB_HOSTED_OBSERVATION_REQUIRED"
+  "ordering_status": "OWNER_AUTHORIZED_ONE_CONTROLLED_MAIN_DELIVERY"
 }

@@ -19,9 +19,9 @@
     {"id": "AC-033", "status": "PARTIAL", "reason": "Local taskpack and implementation checks pass; remote Alpha and later observations remain not run."}
   ],
   "production_oracles": [
-    {"id": "REMOTE_ALPHA_NO_SECRET_PREFLIGHT", "status": "NOT_RUN", "reason": "The Stage 7 workflow is local and the no-intermediate-upload rule prevents a GitHub-hosted run."}
+    {"id": "REMOTE_ALPHA_NO_SECRET_PREFLIGHT", "status": "NOT_RUN", "reason": "The Owner authorized one controlled T0702-enablement main delivery, but the exact commit has not yet been merged or observed by GitHub Actions."}
   ],
-  "blockers": ["INTERMEDIATE_UPLOAD_FORBIDDEN_BUT_GITHUB_HOSTED_OBSERVATION_REQUIRED"],
+  "blockers": ["OWNER_AUTHORIZED_CONTROLLED_MAIN_DELIVERY_NOT_YET_EXECUTED"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "Run the no-Secret Alpha preflight only after the owner resolves the delivery ordering constraint."
+  "next_action": "Observe the no-Secret same-tree Alpha gate within the single owner-authorized T0702 protected workflow; do not grant Alpha any production effect."
 }

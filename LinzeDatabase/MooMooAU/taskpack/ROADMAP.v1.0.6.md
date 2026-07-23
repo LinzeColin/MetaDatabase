@@ -59,16 +59,17 @@ GitHub-hosted 非生产 Workflow 全部 `completed/success`；候选远端分支
 - 代码就绪不等于真实 Beta。Environment、六个值、消息预算、verified registry、唯一私有数据仓和
   GitHub App installation 未配置或未证实时，Oracle 必须保持 `NOT_RUN`。
 
-任务包同时要求“中间 stage 不上传”和“在 GitHub Actions 执行 protected 观察”。由于本地 Workflow
-只有进入 `main` 后才能运行，当前存在真实顺序冲突；既有非生产候选例外不自动授权真实数据上传或
-Dispatch。Owner 解决顺序前，不创建 Environment、不读取 Gmail、不配置 Beta Secret、不进入 M3。
+Owner 已于 2026-07-23 仅为 T0702 解除一次上述顺序冲突：允许一次受控 PR/merge 到 `main` 和一次
+budget-one protected Raw-only dispatch，且 `moomooau-beta` 不设人工 reviewer。该例外不授权第二次
+交付、rerun、Gmail mutation、M3、Processed、Timeline、schedule 或最终发布；任一前置无法独立核验
+即停止。
 
 ## 后续顺序
 
 1. 只读 Governance Deploy Key 与 GitHub-hosted 非生产预检已完成并关闭临时远端候选；
 2. T0702 protected Raw-only 入口完成本地机制验证，但真实 Beta Oracle 保持 `NOT_RUN`；
-3. 先解决 no-intermediate-upload 与 GitHub-hosted protected observation 的顺序冲突，再单独配置
-   Environment、六项 Secret、正整数预算、verified registry、私有仓与 GitHub App；
+3. 按一次性 Owner 授权配置 no-reviewer/main-only Environment、六项 Secret、预算 1、verified
+   registry、唯一私有仓与单仓最小权限 GitHub App，再从精确 merged SHA dispatch 一次；
 4. Beta 真实 Oracle 全绿后，RMD-06 才可按 M3 → Timeline Blue-Green → GA → Recovery → 最终 AC
    的既定顺序继续；每个未知或失败结果立即停止；
 5. RMD-06 完成后进入 RMD-07 最终复审与干净一次性发布。

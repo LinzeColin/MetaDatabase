@@ -41,7 +41,7 @@
   },
   "blocking_conditions": [
     "PROTECTED_GITHUB_ACTIONS_NOT_RUN",
-    "PROTECTED_BETA_ENVIRONMENT_NOT_PROVISIONED",
+    "PROTECTED_BETA_ENVIRONMENT_POLICY_NOT_VERIFIED",
     "PROTECTED_BETA_SECRETS_NOT_PROVISIONED",
     "PROTECTED_SENDER_REGISTRY_NOT_PROVISIONED",
     "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
@@ -55,7 +55,6 @@
     "REAL_GMAIL_AND_PRIVATE_REPOSITORY_NOT_PROVISIONED",
     "PRIVATE_DATA_REPOSITORY_NOT_PROVISIONED",
     "GITHUB_APP_INSTALLATION_NOT_VERIFIED",
-    "BETA_MESSAGE_BUDGET_NOT_PROVISIONED",
     "M3_SEVEN_DAY_WINDOW_NOT_STARTED",
     "BLUE_GREEN_FOURTEEN_DAY_WINDOW_NOT_STARTED",
     "GA_MUTATION_BUDGET_NOT_PROVISIONED",
@@ -64,8 +63,8 @@
     "GA_NOT_COMPLETE",
     "CODEX_AUTOMATION_NOT_CREATED",
     "REAL_RECOVERY_KEY_DRILL_NOT_RUN",
-    "INTERMEDIATE_UPLOAD_FORBIDDEN_BUT_GITHUB_HOSTED_OBSERVATION_REQUIRED"
+    "OWNER_AUTHORIZED_CONTROLLED_MAIN_DELIVERY_NOT_YET_EXECUTED"
   ],
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
-  "next_action": "The T0702 manual main-only Raw-only entrypoint is locally verified, but every protected Oracle remains blocked. Resolve the no-intermediate-upload versus GitHub-hosted-observation order, then separately provision the protected Beta Environment, six exact Secret values, positive budget, verified registry, private data repository and GitHub App before any dispatch; do not enter M3."
+  "next_action": "The Owner authorized one controlled T0702-enablement main delivery and one budget-one protected dispatch. Provision and verify the no-reviewer main-only Environment, six exact Secret values, verified registry, private data repository and least-privilege single-repository GitHub App, then dispatch once; do not enter M3."
 }
