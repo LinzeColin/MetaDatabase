@@ -37,9 +37,15 @@ while True:
         time.sleep(2)
 PY
 
-# 2) Migrations (idempotent; applies only pending versions).
-echo "[entrypoint] applying migrations ..."
-python scripts/migrate.py upgrade
+# 2) Migrations (idempotent; applies only pending versions). Skippable so a
+#    second co-tenant container (the watcher) doesn't race the refresh
+#    container's migrate on first boot — the refresh service owns migrations.
+if [ "${EEI_SKIP_MIGRATE:-0}" = "1" ]; then
+  echo "[entrypoint] EEI_SKIP_MIGRATE=1 — skipping migrations (owned by the refresh service)"
+else
+  echo "[entrypoint] applying migrations ..."
+  python scripts/migrate.py upgrade
+fi
 
 # 3) Ensure the sec_edgar source row exists. collect_universe/enrich_sec call
 #    source_id_for('sec_edgar') and fail if it is missing; on a freshly migrated

@@ -91,13 +91,19 @@ services:
       EEI_PUBLISH_TOKEN: ${EEI_PUBLISH_TOKEN:?set EEI_PUBLISH_TOKEN}
       # Never let a first publish wipe live D1 (entrypoint guard).
       EEI_ABORT_IF_EMPTY_UNIVERSE: ${EEI_ABORT_IF_EMPTY_UNIVERSE:-1}
+    # Enrich+GLEIF sweep runs every interval (default hourly) to backfill/
+    # deepen the local system-of-record; the full DELETE+INSERT republish runs
+    # only every Nth cycle (default 24 => daily) to keep D1 writes in the free
+    # tier. Minute-cadence freshness is owned by eei-watch below.
     command:
       - python
       - -m
       - scripts.authoritative.refresh_cycle
       - --loop
       - --interval-seconds
-      - "${EEI_REFRESH_INTERVAL_SECONDS:-86400}"
+      - "${EEI_REFRESH_INTERVAL_SECONDS:-3600}"
+      - --publish-every
+      - "${EEI_PUBLISH_EVERY:-24}"
       - --enrich-batch
       - "${EEI_ENRICH_BATCH:-500}"
       - --gleif-batch
@@ -112,6 +118,55 @@ services:
     pids_limit: 256
     oom_score_adj: 500
 
+  # Near-real-time freshness: poll SEC's global "latest filings" firehose every
+  # minute, enrich only in-universe companies with a genuinely new material
+  # filing, and INCREMENTALLY upsert just those rows to live D1 (a few writes
+  # per filing — never a full republish). Fair-access safe (~1 cheap feed
+  # request/min + at most one submissions request per newly-filed company).
+  eei-watch:
+    image: eei-refresh:ovh
+    container_name: eei-watch
+    restart: unless-stopped
+    depends_on:
+      eei-db:
+        condition: service_healthy
+      eei-refresh:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://${EEI_DB_USER:-eei}:${EEI_DB_PASSWORD:?set EEI_DB_PASSWORD}@eei-db:5432/${EEI_DB_NAME:-eei}
+      SEC_USER_AGENT: ${SEC_USER_AGENT:?set SEC_USER_AGENT}
+      EEI_PUBLISH_URL: ${EEI_PUBLISH_URL:-https://eei.linzezhang.com/v1/internal/publish/exec}
+      EEI_PUBLISH_TOKEN: ${EEI_PUBLISH_TOKEN:?set EEI_PUBLISH_TOKEN}
+      EEI_ABORT_IF_EMPTY_UNIVERSE: ${EEI_ABORT_IF_EMPTY_UNIVERSE:-1}
+      # The refresh service owns migrations; the watcher must not race them.
+      EEI_SKIP_MIGRATE: "1"
+      EEI_WATCH_STATE: /state/.eei_watch_state.json
+      EEI_WATCH_RUN_LOG: /state/.eei_watch_runs.jsonl
+    command:
+      - python
+      - -m
+      - scripts.authoritative.watch_recent_filings
+      - --loop
+      - --interval-seconds
+      - "${EEI_WATCH_INTERVAL_SECONDS:-60}"
+    volumes:
+      - eei-watch-state:/state
+    # ---- HARD CAPS (tiny: one feed request + one company enrich + a small
+    #      incremental push per poll) ----
+    mem_limit: 256m
+    memswap_limit: 256m        # == mem_limit => container swap ceiling = 0
+    mem_reservation: 96m
+    cpus: 0.5
+    pids_limit: 128
+    oom_score_adj: 500
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /state/.eei_watch_runs.jsonl || exit 1"]
+      interval: 5m
+      timeout: 10s
+      start_period: 3m
+      retries: 3
+
 volumes:
   eei-db-data:
   eei-refresh-state:
+  eei-watch-state:
