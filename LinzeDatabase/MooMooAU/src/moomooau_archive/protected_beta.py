@@ -37,6 +37,7 @@ from .github_guard import (
     GitHubAppJwtSigner,
     GitHubEndpointGuard,
     GitHubInstallationTokenClient,
+    GitHubInstallationTokenError,
     InstallationToken,
     RepositoryResolver,
     TargetRepositoryConfig,
@@ -368,11 +369,17 @@ class ProtectedBetaBootstrap:
 
             self._diagnostics.enter(ProtectedBetaFailurePhase.GITHUB_APP_TOKEN)
             github_guard = GitHubEndpointGuard(self._github_transport, config.target_repository)
-            installation_token = GitHubInstallationTokenClient(
-                github_guard,
-                config.target_repository,
-                github_signer,
-            ).mint(now)
+            try:
+                installation_token = GitHubInstallationTokenClient(
+                    github_guard,
+                    config.target_repository,
+                    github_signer,
+                ).mint(now)
+            except GitHubInstallationTokenError as exc:
+                self._diagnostics.enter_installation_token_failure(exc.failure_class)
+                raise ProtectedBetaBootstrapError(
+                    "GitHub App installation token is unavailable"
+                ) from exc
             _register_cleanup(resources, installation_token.destroy, self._diagnostics)
             _destroy_now(github_private_key.destroy, self._diagnostics)
             self._diagnostics.enter(ProtectedBetaFailurePhase.REPOSITORY_RESOLUTION)

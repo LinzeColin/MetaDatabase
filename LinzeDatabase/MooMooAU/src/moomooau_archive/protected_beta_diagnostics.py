@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
+from .github_guard import InstallationTokenFailureClass
+
 FAILURE_TAXONOMY_VERSION = "moomooau.protected-beta-failure-taxonomy.v1"
 
 
@@ -46,15 +48,32 @@ class ProtectedBetaDiagnostics:
     """Retain only the latest closed-enum operation phase."""
 
     _phase: ProtectedBetaFailurePhase = ProtectedBetaFailurePhase.ENTRYPOINT
+    _installation_token_failure_class: InstallationTokenFailureClass = (
+        InstallationTokenFailureClass.UNCLASSIFIED
+    )
 
     @property
     def phase(self) -> ProtectedBetaFailurePhase:
         return self._phase
 
+    @property
+    def installation_token_failure_class(self) -> InstallationTokenFailureClass:
+        return self._installation_token_failure_class
+
     def enter(self, phase: ProtectedBetaFailurePhase) -> None:
         if not isinstance(phase, ProtectedBetaFailurePhase):
             raise TypeError("protected Beta diagnostic phase is invalid")
         self._phase = phase
+        self._installation_token_failure_class = InstallationTokenFailureClass.UNCLASSIFIED
+
+    def enter_installation_token_failure(
+        self,
+        failure_class: InstallationTokenFailureClass,
+    ) -> None:
+        if not isinstance(failure_class, InstallationTokenFailureClass):
+            raise TypeError("installation token failure class is invalid")
+        self._phase = ProtectedBetaFailurePhase.GITHUB_APP_TOKEN
+        self._installation_token_failure_class = failure_class
 
     def __repr__(self) -> str:
         return "ProtectedBetaDiagnostics(phase=<public-safe-enum>)"
@@ -77,6 +96,7 @@ def public_failure_payload(diagnostics: ProtectedBetaDiagnostics) -> dict[str, o
         "status": "BLOCKED",
         "reason_code": phase.reason_code,
         "failure_phase": phase.value,
+        "installation_token_failure_class": (diagnostics.installation_token_failure_class.value),
         "diagnostic_taxonomy": FAILURE_TAXONOMY_VERSION,
         "exact_root_cause_claimed": False,
         "production_health_claimed": False,
