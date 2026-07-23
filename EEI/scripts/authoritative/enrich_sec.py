@@ -172,13 +172,18 @@ def enrich_one(conn, sec: SecClient, sec_src: str, entity_id: str, name: str,
     accessions = recent.get("accessionNumber") or []
     primary_docs = recent.get("primaryDocument") or []
 
+    # Bound to the N most-recent MATERIAL filings (count filings considered,
+    # not events inserted) so a refresh is idempotent once they exist and does
+    # not backfill deeper history on every re-run.
     events = 0
+    considered = 0
     for i, form in enumerate(forms):
-        if events >= MAX_EVENTS_PER_COMPANY:
-            break
         mapped = FORM_EVENTS.get(form)
         if not mapped:
             continue
+        if considered >= MAX_EVENTS_PER_COMPANY:
+            break
+        considered += 1
         event_type, label = mapped
         filing_date = parse_date(dates[i] if i < len(dates) else None)
         accession = accessions[i] if i < len(accessions) else ""
