@@ -563,7 +563,7 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
         }
         assert status["dimensions"]["publication"] == {
             "status": "CONTROLLED_BETA_DELIVERY_NOT_FINAL",
-            "controlled_main_deliveries": 5,
+            "controlled_main_deliveries": 6,
             "remote_publications": 0,
         }
     else:

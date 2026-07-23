@@ -58,8 +58,8 @@ verified registry、私有仓和 GitHub App 完成独立核验前仍保持 `NOT_
 上述 pre-dispatch bootstrap 现已完成：no-reviewer/main-only Environment 仅含六项精确 Secret，
 预算 1、唯一私有仓、单仓最小权限 App、cloud-only age identity、fresh capacity、Gmail OAuth 与
 metadata-derived verified registry 均已核验。真实 metadata 观察所需的 exact partial-response
-fields 与 RFC 8601 `header.i` 对齐修复也已加入。此后五个互异 exact-main SHA 各执行一次
-workflow attempt 1；PR #92–#95 的公开安全诊断把最新失败收敛到
+fields 与 RFC 8601 `header.i` 对齐修复也已加入。此后六个互异 exact-main SHA 各执行一次
+workflow attempt 1；PR #92–#95 的公开安全诊断与 PR #96 的账本绑定复验把最新失败固定为
 `GITHUB_APP_TOKEN / INSTALLATION_ZERO`。Raw/Gmail mutation/M3/Processed/Timeline/schedule
 仍为 0，T0702/S7AC-002 继续 `BLOCKED`。
 当前有效入口为：

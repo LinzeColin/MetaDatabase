@@ -2,8 +2,8 @@
 
 ## 当前目标与状态
 
-- `RMD-06` 的 T0702/S7AC-002 protected Raw-only 入口与公开安全诊断已交付。共 5 个互异
-  exact-main SHA 通过 PR #88、#92、#93、#94、#95 受控合并并各执行一次 workflow attempt 1；
+- `RMD-06` 的 T0702/S7AC-002 protected Raw-only 入口与公开安全诊断已交付。共 6 个互异
+  exact-main SHA 通过 PR #88、#92、#93、#94、#95、#96 受控合并并各执行一次 workflow attempt 1；
   每次同树 Alpha 与 identity plaintext cleanup 均 PASS，Beta 均 FAILED，GitHub rerun 为 0。
   最新固定诊断已收敛为 `GITHUB_APP_TOKEN / INSTALLATION_ZERO`：现有最小权限 App 尚无任何
   installation。Raw commit、Gmail mutation、M3、Processed、Timeline 与 schedule 均为 0；
@@ -11,7 +11,7 @@
 - 当前控制包为 `MMAU-ARCHIVE-TP-2026-07-23-V1.0.6`。它原样继承 v1.0.1 的 34 RQ、34 AC、
   58-task DAG、Kill Criteria 与十条不变量，并将 v1.0.5 作为不可变直接前序。
 - 唯一当前状态权威是 `machine/status/latest.json`：本地机制证据完整，受保护 Oracle
-  2/43（PASS 1、FAILED 1），最终 Acceptance 0/34，protected Workflow 5、production Workflow 0，
+  2/43（PASS 1、FAILED 1），最终 Acceptance 0/34，protected Workflow 6、production Workflow 0，
   发布状态为 `CONTROLLED_BETA_DELIVERY_NOT_FINAL`。
 - Governance 固定为私有 `LinzeColin/Governance` 的提交
   `ebc6c2e4884edc959118cfc56d0e18a86c49460f`。
@@ -229,6 +229,15 @@
     Ruff 108 files、58 份任务证据、34 份 Acceptance、9/9 Stage 7 preflight、八入口 Workflow
     matrix、595 文件任务包、668 文件公开扫描、零已知漏洞 audit、字节级可复现 SBOM 与零 Secret
     findings；所有验证外部写入为 0，T0702、M3、生产和最终发布仍未被提升。
+38. PR #96 以 35 success、5 expected skip、0 failure 合并为精确 main SHA
+    `07f8cbf4aaa4a47f8306906e4504afc1b2e724b7`；run `30016055252` 是该 SHA 唯一
+    `workflow_dispatch` attempt 1。Alpha PASS、identity plaintext cleanup PASS，Beta 在
+    `GITHUB_APP_TOKEN / INSTALLATION_ZERO` fail closed；Raw commit、Gmail mutation、M3、
+    Processed、Timeline、schedule 与 GitHub rerun 均为 0。相同外部状态不再重复 dispatch。
+39. 2026-07-23T14:44:03Z 第六次 receipt 已同步权威账本、唯一状态、34 份 Acceptance、
+    Governance facts/七文档、来源链与包清单；复核通过 312 个累计测试、Ruff、strict mypy、
+    58/58 任务证据、9/9 Stage 7 preflight、八入口 Workflow matrix、595 文件任务包、668 文件
+    公开扫描和零 Secret findings，所有只读验证外部写入为 0。
 
 ## 关键边界
 

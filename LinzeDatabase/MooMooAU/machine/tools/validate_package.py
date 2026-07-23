@@ -57,10 +57,10 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     attempt_ledger = _load(root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH)
     attempt_summary = attempt_ledger.get("summary", {})
     if (
-        len(attempt_ledger.get("attempts", [])) != 5
-        or attempt_summary.get("controlled_main_deliveries") != 5
-        or attempt_summary.get("protected_beta_dispatches") != 5
-        or attempt_summary.get("protected_workflow_runs") != 5
+        len(attempt_ledger.get("attempts", [])) != 6
+        or attempt_summary.get("controlled_main_deliveries") != 6
+        or attempt_summary.get("protected_beta_dispatches") != 6
+        or attempt_summary.get("protected_workflow_runs") != 6
         or attempt_summary.get("workflow_reruns") != 0
         or attempt_summary.get("latest_failure_phase") != "GITHUB_APP_TOKEN"
         or attempt_summary.get("latest_installation_token_failure_class") != "INSTALLATION_ZERO"
@@ -274,10 +274,10 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         "protected_oracles_passed": 1,
         "protected_oracles_failed": 1,
         "production_workflow_runs": 0,
-        "protected_workflow_runs": 5,
-        "remote_workflow_runs": 5,
-        "controlled_main_deliveries": 5,
-        "protected_beta_dispatches": 5,
+        "protected_workflow_runs": 6,
+        "remote_workflow_runs": 6,
+        "controlled_main_deliveries": 6,
+        "protected_beta_dispatches": 6,
         "protected_beta_reruns": 0,
         "private_raw_commits": 0,
         "gmail_mutations": 0,

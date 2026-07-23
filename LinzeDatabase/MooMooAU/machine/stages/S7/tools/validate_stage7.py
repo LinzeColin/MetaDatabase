@@ -300,7 +300,7 @@ def _validate_contracts(root: Path) -> list[str]:
         or status.get("protected_oracles_executed") != 2
         or status.get("protected_oracles_passed") != 1
         or status.get("protected_oracles_failed") != 1
-        or status.get("protected_workflow_runs") != 5
+        or status.get("protected_workflow_runs") != 6
         or status.get("production_workflow_runs") != 0
         or status.get("final_acceptances_passed") != 0
         or status.get("delivery_status")
@@ -962,13 +962,14 @@ def _validate_evidence(root: Path) -> list[str]:
         else:
             attempts = ledger.get("attempts", [])
             summary = ledger.get("summary", {})
-            expected_prs = (88, 92, 93, 94, 95)
+            expected_prs = (88, 92, 93, 94, 95, 96)
             expected_shas = (
                 "3ad418123f840d2d1a8f49f763ffe3e51ae8094e",  # pragma: allowlist secret
                 "508939423ce20b35c2c82936acd8f32b9f7c35fc",  # pragma: allowlist secret
                 "e702f1ad3fc6b0f9cef0dec7aaf2f1845191b856",  # pragma: allowlist secret
                 "e158c9664579460236033bb9b2c8e2b37344c72d",  # pragma: allowlist secret
                 "3d0de0bbfcdf7491857df6b9bb15a0544df6574c",  # pragma: allowlist secret
+                "07f8cbf4aaa4a47f8306906e4504afc1b2e724b7",  # pragma: allowlist secret
             )
             expected_runs = (
                 29998793639,
@@ -976,6 +977,7 @@ def _validate_evidence(root: Path) -> list[str]:
                 30010198526,
                 30011285627,
                 30012211355,
+                30016055252,
             )
             expected_classes = (
                 "NOT_AVAILABLE_IN_HISTORICAL_AGGREGATE",
@@ -983,16 +985,17 @@ def _validate_evidence(root: Path) -> list[str]:
                 "INSTALLATION_NOT_FOUND",
                 "INSTALLATION_DISCOVERY_REJECTED",
                 "INSTALLATION_ZERO",
+                "INSTALLATION_ZERO",
             )
             expected_summary = {
-                "controlled_main_deliveries": 5,
-                "protected_beta_dispatches": 5,
-                "protected_workflow_runs": 5,
+                "controlled_main_deliveries": 6,
+                "protected_beta_dispatches": 6,
+                "protected_workflow_runs": 6,
                 "workflow_reruns": 0,
-                "alpha_gate_passes": 5,
+                "alpha_gate_passes": 6,
                 "beta_passes": 0,
-                "beta_failures": 5,
-                "identity_plaintext_cleanup_passes": 5,
+                "beta_failures": 6,
+                "identity_plaintext_cleanup_passes": 6,
                 "latest_failure_phase": "GITHUB_APP_TOKEN",
                 "latest_installation_token_failure_class": "INSTALLATION_ZERO",
                 "gmail_mutations": 0,
@@ -1006,9 +1009,9 @@ def _validate_evidence(root: Path) -> list[str]:
                 "final_acceptance_claimed": False,
             }
             if (
-                ledger.get("observed_through_utc") != "2026-07-23T13:41:54Z"
-                or len(attempts) != 5
-                or tuple(item.get("sequence") for item in attempts) != tuple(range(1, 6))
+                ledger.get("observed_through_utc") != "2026-07-23T14:31:21Z"
+                or len(attempts) != 6
+                or tuple(item.get("sequence") for item in attempts) != tuple(range(1, 7))
                 or tuple(item.get("pull_request_number") for item in attempts) != expected_prs
                 or tuple(item.get("merge_commit_sha") for item in attempts) != expected_shas
                 or tuple(item.get("workflow_head_sha") for item in attempts) != expected_shas
@@ -1172,7 +1175,7 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("protected_oracles_executed") != 2
         or latest.get("protected_oracles_passed") != 1
         or latest.get("protected_oracles_failed") != 1
-        or latest.get("protected_workflow_runs") != 5
+        or latest.get("protected_workflow_runs") != 6
         or latest.get("production_workflow_runs") != 0
         or observation.get("alpha_local_synthetic") != "PASS"
         or observation.get("beta_local_bootstrap_mechanism") != "PASS"
@@ -1194,7 +1197,7 @@ def _validate_evidence(root: Path) -> list[str]:
         != "LATEST_ATTEMPT_BLOCKED_BEFORE_REPOSITORY_RESOLUTION_NO_RAW_COMMIT"
         or observation.get("protected_secret_injection")
         != "SIX_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED"
-        or observation.get("controlled_main_deliveries") != 5
+        or observation.get("controlled_main_deliveries") != 6
         or any(
             observation.get(key) != 0
             for key in (
@@ -1317,13 +1320,13 @@ def evaluate_stage7(
             "protected_oracles_executed": 2,
             "protected_oracles_passed": 1,
             "protected_oracles_failed": 1,
-            "protected_workflow_runs": 5,
+            "protected_workflow_runs": 6,
             "production_workflow_runs": 0,
             "protected_gmail_read_path": "ATTEMPTED_EXACT_CALL_COUNT_NOT_DISCLOSED",
             "gmail_mutations": 0,
             "verified_full_raw_reads": "UNDETERMINED_WITHIN_BUDGET_ONE",
             "private_raw_commits": 0,
-            "controlled_main_deliveries": 5,
+            "controlled_main_deliveries": 6,
             "remote_publications": 0,
             "final_acceptances_passed": 0,
         },

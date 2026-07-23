@@ -100,7 +100,8 @@ encryption 或 first-commit 内部失败，verified full Raw read 只能记为
 该 repair 已通过 PR #92–#95 受控交付，并分别在互异 exact-main SHA 上执行新的 workflow
 attempt 1，未使用 GitHub rerun。四次公开安全结果依次收敛为 `GITHUB_APP_TOKEN`、
 `INSTALLATION_NOT_FOUND`、`INSTALLATION_DISCOVERY_REJECTED` 与 `INSTALLATION_ZERO`。
-加上历史首次运行，共 5 次 Alpha/identity cleanup PASS、Beta FAILED；最新事实是现有 App 的
+PR #96 随后绑定完整账本并以新 exact-main SHA 再次得到 `INSTALLATION_ZERO`。加上历史首次运行，
+共 6 次 Alpha/identity cleanup PASS、Beta FAILED；最新事实是现有 App 的
 installation 列表为空。精确公开安全序列由
 `machine/stages/S7/reviews/t0702/attempt-ledger.json` 绑定。在 App 仅安装到唯一私有数据仓且新的
 protected attempt 实际 PASS 前，T0702/S7AC-002 继续诚实保持 `BLOCKED`。

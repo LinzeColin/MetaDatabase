@@ -49,7 +49,8 @@
     Stage 7 completion Run Contract，授权受控交付与 serial new first-attempt dispatch；仍禁止
     GitHub rerun，且 Beta PASS 前不得进入 M3。
 18. repair 已通过 PR #92–#95 交付并在四个互异 exact-main SHA 各执行一次 workflow attempt 1；
-    加上历史首次运行，共 5 次 Alpha/identity cleanup PASS、Beta FAILED、rerun 0。最新固定结果为
+    PR #96 随后绑定完整账本并以新 exact-main SHA 复验。加上历史首次运行，共 6 次
+    Alpha/identity cleanup PASS、Beta FAILED、rerun 0。最新固定结果为
     `GITHUB_APP_TOKEN / INSTALLATION_ZERO`，证明现有 App 尚无 installation；T0702/S7AC-002 仍
     `BLOCKED`，Raw/Gmail mutation/M3/Processed/Timeline/schedule 均为 0。
 
