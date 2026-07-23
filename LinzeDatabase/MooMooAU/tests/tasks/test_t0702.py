@@ -31,7 +31,14 @@ from moomooau_archive.auth import (
 from moomooau_archive.canary_runtime import CanaryRuntimeError
 from moomooau_archive.capacity import CapacityAssessment, CapacityState
 from moomooau_archive.github_guard import InstallationTokenFailureClass
-from moomooau_archive.gmail_discovery import HeaderSnapshot, MessageRef, MinimalMessage
+from moomooau_archive.gmail_discovery import (
+    GmailDiscoveryError,
+    GmailReadClient,
+    HeaderSnapshot,
+    MessageMetadataUnverifiable,
+    MessageRef,
+    MinimalMessage,
+)
 from moomooau_archive.gmail_guard import (
     GmailEndpointGuard,
     get_message_request,
@@ -407,6 +414,118 @@ def test_t0702_beta_runner_fetches_only_verified_raw_and_recovers_remote() -> No
         assert verified.message_id not in json.dumps(public)
         assert public["processing_enabled"] is False
         assert public["timeline_enabled"] is False
+
+
+def test_t0702_beta_runner_quarantines_one_unverifiable_message_and_continues() -> None:
+    malformed = canary_message("msg-stage7-0-malformed", verified=False)
+    verified = canary_message("msg-stage7-1-verified")
+    with canary_context(
+        (malformed, verified),
+        malformed_metadata_ids=frozenset({malformed.message_id}),
+    ) as context:
+        result = context.runner.run(
+            ReleasePhase.BETA_RAW_ONLY,
+            maximum_verified_candidates=1,
+            key_epoch="synthetic-epoch-1",
+            predecessor_observations=(phase_observation(ReleasePhase.ALPHA),),
+            beta_message_budget=1,
+        )
+
+        assert context.transport.inner.metadata_fetches == [
+            malformed.message_id,
+            verified.message_id,
+        ]
+        assert context.transport.inner.raw_fetches == [verified.message_id]
+        assert result.metadata_reads == 2
+        assert result.quarantined_candidates == 1
+        assert result.verified_candidates == result.archived_and_recovered == 1
+        assert result.source_mutations == 0
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        HttpResponse(404, b"{}"),
+        HttpResponse(
+            200,
+            json.dumps(
+                {
+                    "id": "synthetic-unverifiable",
+                    "threadId": "thread-synthetic-unverifiable",
+                    "labelIds": ["INBOX"],
+                    "historyId": "1",
+                    "internalDate": "1767225600000",
+                },
+                separators=(",", ":"),
+            ).encode(),
+        ),
+        HttpResponse(
+            200,
+            json.dumps(
+                {
+                    "id": "synthetic-unverifiable",
+                    "threadId": "thread-synthetic-unverifiable",
+                    "labelIds": ["INBOX"],
+                    "historyId": "1",
+                    "internalDate": "1767225600000",
+                    "payload": {"headers": [{"name": "From", "value": None}]},
+                },
+                separators=(",", ":"),
+            ).encode(),
+        ),
+    ],
+)
+def test_t0702_content_safe_per_message_metadata_failures_are_quarantinable(
+    response: HttpResponse,
+) -> None:
+    client = GmailReadClient(GmailEndpointGuard(RecordingTransport((response,))))
+    with pytest.raises(MessageMetadataUnverifiable):
+        client.get_metadata("synthetic-unverifiable", header_names=("From",))
+
+
+@pytest.mark.parametrize("status", [400, 401, 403, 500])
+def test_t0702_non_404_metadata_http_failures_remain_hard(status: int) -> None:
+    client = GmailReadClient(GmailEndpointGuard(RecordingTransport((HttpResponse(status, b"{}"),))))
+    with pytest.raises(GmailDiscoveryError) as error:
+        client.get_metadata("synthetic-http-failure", header_names=("From",))
+    assert type(error.value) is GmailDiscoveryError
+
+
+@pytest.mark.parametrize(
+    "override",
+    [
+        {"snippet": "synthetic-content-must-not-cross"},
+        {"id": "synthetic-other-message"},
+        {"payload": {"headers": [{"name": "Cc", "value": "synthetic"}]}},
+    ],
+)
+def test_t0702_metadata_boundary_violations_remain_hard_failures(
+    override: dict[str, object],
+) -> None:
+    payload: dict[str, object] = {
+        "id": "synthetic-boundary",
+        "threadId": "thread-synthetic-boundary",
+        "labelIds": ["INBOX"],
+        "historyId": "1",
+        "internalDate": "1767225600000",
+        "payload": {"headers": []},
+    }
+    payload.update(override)
+    client = GmailReadClient(
+        GmailEndpointGuard(
+            RecordingTransport(
+                (
+                    HttpResponse(
+                        200,
+                        json.dumps(payload, separators=(",", ":")).encode(),
+                    ),
+                )
+            )
+        )
+    )
+    with pytest.raises(GmailDiscoveryError) as error:
+        client.get_metadata("synthetic-boundary", header_names=("From",))
+    assert type(error.value) is GmailDiscoveryError
 
 
 def test_t0702_beta_runner_blocks_unknown_capacity_before_raw_write() -> None:

@@ -1984,8 +1984,8 @@
     },
     {
       "path": "src/moomooau_archive/canary_runtime.py",
-      "bytes": 27532,
-      "sha256": "736fa7efadfa6340c57456c43e1d5f4a723e9f2f7d0532ba4d779e93190e0f01"
+      "bytes": 27717,
+      "sha256": "ea292e8beb7e211c1873d6a78507e1f9b1fa4f3d2bccd543cbc65c9115a49300"
     },
     {
       "path": "src/moomooau_archive/canonical_raw.py",
@@ -2069,8 +2069,8 @@
     },
     {
       "path": "src/moomooau_archive/gmail_discovery.py",
-      "bytes": 26484,
-      "sha256": "c0cae2dc9e2f8a2c90fca951fc0faa21f680993c4ed9bdec0936e7f41fcc4dac"
+      "bytes": 27189,
+      "sha256": "5468b801d866034b29b8cd41ed83ef91c57ca558a8a911e2402fa850288b03de"
     },
     {
       "path": "src/moomooau_archive/gmail_guard.py",
@@ -2689,8 +2689,8 @@
     },
     {
       "path": "tests/stage7_support.py",
-      "bytes": 41332,
-      "sha256": "e7184e8d604fc33ad984dcbded7f033ebc8d6d332e0bbf2162f37acd4d72f1cf"
+      "bytes": 41931,
+      "sha256": "52117c24e6196c80f1ef19da673f6f27ac95672ed874fbf13464eaa904d1312a"
     },
     {
       "path": "tests/tasks/test_t0001.py",
@@ -2949,8 +2949,8 @@
     },
     {
       "path": "tests/tasks/test_t0702.py",
-      "bytes": 44004,
-      "sha256": "7c60978943ac7028d0f52549d326005a160a8f4e7257d8756fd2b0582e555ca0"
+      "bytes": 48083,
+      "sha256": "f713a70f2949421a6e9466297f86b44a812eb5e38d06b9ec1187dda68947ff24"
     },
     {
       "path": "tests/tasks/test_t0703.py",

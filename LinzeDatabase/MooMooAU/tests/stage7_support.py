@@ -280,6 +280,7 @@ class Stage7GmailTransport:
         events: list[str] | None = None,
         history_pages: tuple[dict[str, object], ...] = (),
         history_status: int = 200,
+        malformed_metadata_ids: frozenset[str] = frozenset(),
     ) -> None:
         self.inner = SyntheticGmailTransport(
             messages,
@@ -289,6 +290,7 @@ class Stage7GmailTransport:
         self.message_ids = {item.message_id for item in messages}
         self.trashed_ids: list[str] = []
         self._events = events
+        self._malformed_metadata_ids = malformed_metadata_ids
 
     def send(self, request: HttpRequest) -> HttpResponse:
         parsed = urlsplit(request.url)
@@ -330,6 +332,13 @@ class Stage7GmailTransport:
             and query.get("format") == ["metadata"]
         ):
             response = self.inner.send(request)
+            if relative in self._malformed_metadata_ids:
+                payload = json.loads(response.body)
+                payload.pop("payload", None)
+                return HttpResponse(
+                    response.status,
+                    json.dumps(payload, sort_keys=True, separators=(",", ":")).encode(),
+                )
             if relative not in self.trashed_ids:
                 return response
             payload = json.loads(response.body)
@@ -357,6 +366,7 @@ def canary_context(
     *,
     capacity: CapacityAssessment | None = None,
     diagnostics: ProtectedBetaDiagnostics | None = None,
+    malformed_metadata_ids: frozenset[str] = frozenset(),
 ) -> Iterator[CanaryContext]:
     generated = AgeIdentityGenerator().generate()
     opaque_key = SecretBytes(b"synthetic-stage7-opaque-key-material-0001")
@@ -365,7 +375,10 @@ def canary_context(
     try:
         identity_path.write_bytes(generated.identity.reveal())
         identity_path.chmod(0o600)
-        transport = Stage7GmailTransport(messages)
+        transport = Stage7GmailTransport(
+            messages,
+            malformed_metadata_ids=malformed_metadata_ids,
+        )
         guard = GmailEndpointGuard(transport)
         gmail = GmailReadClient(guard)
         registry = synthetic_registry()
