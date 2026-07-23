@@ -65,6 +65,7 @@ _EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
         "说明:只有守护自己拍的闸会自动解;你手动拍的闸永远只有你能解。")),
     "INCIDENT_REPORT": ("事故报告与修复", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
     "UNIT_FAILED": ("定时任务运行失败", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "PRESIGN_SUSPENDED": ("预签授权已按你指令挂起", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
 }
 
 
