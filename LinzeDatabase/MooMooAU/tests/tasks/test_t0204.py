@@ -345,51 +345,64 @@ def test_t0204_classifies_target_absent_from_discovered_installation() -> None:
 
 
 @pytest.mark.parametrize(
-    "installations",
+    ("installations", "expected"),
     (
-        [],
-        [
-            {
-                "id": 8100101,
-                "permissions": {"contents": "write", "metadata": "read"},
-                "repository_selection": "selected",
-                "suspended_at": None,
-            },
-            {
-                "id": 8100102,
-                "permissions": {"contents": "write", "metadata": "read"},
-                "repository_selection": "selected",
-                "suspended_at": None,
-            },
-        ],
-        [
-            {
-                "id": 8100103,
-                "permissions": {"contents": "read", "metadata": "read"},
-                "repository_selection": "selected",
-                "suspended_at": None,
-            }
-        ],
-        [
-            {
-                "id": 8100104,
-                "permissions": {"contents": "write", "metadata": "read"},
-                "repository_selection": "all",
-                "suspended_at": None,
-            }
-        ],
-        [
-            {
-                "id": 8100105,
-                "permissions": {"contents": "write", "metadata": "read"},
-                "repository_selection": "selected",
-                "suspended_at": "2026-01-01T00:00:00Z",
-            }
-        ],
+        ([], InstallationTokenFailureClass.INSTALLATION_ZERO),
+        (
+            [
+                {
+                    "id": 8100101,
+                    "permissions": {"contents": "write", "metadata": "read"},
+                    "repository_selection": "selected",
+                    "suspended_at": None,
+                },
+                {
+                    "id": 8100102,
+                    "permissions": {"contents": "write", "metadata": "read"},
+                    "repository_selection": "selected",
+                    "suspended_at": None,
+                },
+            ],
+            InstallationTokenFailureClass.INSTALLATION_MULTIPLE,
+        ),
+        (
+            [
+                {
+                    "id": 8100103,
+                    "permissions": {"contents": "read", "metadata": "read"},
+                    "repository_selection": "selected",
+                    "suspended_at": None,
+                }
+            ],
+            InstallationTokenFailureClass.INSTALLATION_PERMISSIONS_REJECTED,
+        ),
+        (
+            [
+                {
+                    "id": 8100104,
+                    "permissions": {"contents": "write", "metadata": "read"},
+                    "repository_selection": "all",
+                    "suspended_at": None,
+                }
+            ],
+            InstallationTokenFailureClass.INSTALLATION_SELECTION_REJECTED,
+        ),
+        (
+            [
+                {
+                    "id": 8100105,
+                    "permissions": {"contents": "write", "metadata": "read"},
+                    "repository_selection": "selected",
+                    "suspended_at": "2026-01-01T00:00:00Z",
+                }
+            ],
+            InstallationTokenFailureClass.INSTALLATION_SUSPENDED,
+        ),
     ),
 )
 def test_t0204_rejects_nonunique_or_overbroad_installation_discovery(
     installations: list[dict[str, object]],
+    expected: InstallationTokenFailureClass,
 ) -> None:
     now = datetime(2026, 1, 1, tzinfo=UTC)
     config = TargetRepositoryConfig(repository_id=7100007, installation_id=8100007)
@@ -416,9 +429,7 @@ def test_t0204_rejects_nonunique_or_overbroad_installation_discovery(
     with pytest.raises(GitHubInstallationTokenError) as error:
         client.mint(now)
 
-    assert (
-        error.value.failure_class is InstallationTokenFailureClass.INSTALLATION_DISCOVERY_REJECTED
-    )
+    assert error.value.failure_class is expected
     assert len(transport.requests) == 2
     secret.destroy()
 
