@@ -1,10 +1,14 @@
 "use client";
 
-import { AlertTriangle, BadgeCheck, PackageSearch, RefreshCw } from "lucide-react";
+import { BadgeCheck, FileSearch, PackageSearch, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { AnalysisContextBadge } from "../analysis-context-badge";
+import { loadCloudEvidenceDetail } from "../cloud-data-client";
+import { EvidencePanel, type EvidencePanelState } from "../components/evidence-panel";
+import { ErrorState, Skeleton, TopLoadingBar } from "../components/feedback";
 import { zhLabel } from "../labels";
+import type { EvidenceDetailRecord } from "../production-data-client";
 import {
   loadSupplyChainOverview,
   type SupplyChainOverviewRecord,
@@ -90,45 +94,34 @@ export default function SupplyChainPage() {
 
         <AnalysisContextBadge analysisContext={analysisContext} serverState={serverState} />
 
+        {/* P1-6：刷新不清屏，仅顶部 1px 进度条（延迟 300ms）；首载走同构骨架。 */}
+        <TopLoadingBar active={loadState === "loading" && Boolean(overview)} />
+
+        {loadState === "loading" && !overview ? (
+          <Skeleton count={4} testId="supply-chain-skeleton" variant="card" />
+        ) : null}
+
         {loadState === "api_required" ? (
-          <section
-            className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100"
-            data-testid="supply-chain-api-required"
-          >
-            <p className="flex items-center gap-2 font-medium">
-              <AlertTriangle className="h-4 w-4" aria-hidden />
-              暂时连不上数据服务，请稍后重试。
-            </p>
-            <button
-              type="button"
-              onClick={() => void hydrate()}
-              className="mt-2 rounded-md border border-amber-400/50 px-3 py-1 text-xs hover:bg-amber-500/20"
-              data-testid="supply-chain-api-required-retry"
-            >
-              重试
-            </button>
-          </section>
+          <ErrorState
+            description="请稍后重试，或确认数据接口已配置。"
+            onRetry={() => void hydrate()}
+            retryTestId="supply-chain-api-required-retry"
+            testId="supply-chain-api-required"
+            title="暂时连不上数据服务"
+            tone="warn"
+          />
         ) : null}
 
         {loadState === "error" ? (
-          <section
-            className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-100"
-            data-testid="supply-chain-load-error"
-          >
-            <p className="font-medium">供应链数据加载没有成功，请稍后重试。</p>
-            <button
-              type="button"
-              onClick={() => void hydrate()}
-              className="mt-2 rounded-md border border-rose-400/50 px-3 py-1 text-xs hover:bg-rose-500/20"
-              data-testid="supply-chain-load-error-retry"
-            >
-              重试
-            </button>
-            <details className="diagDetails mt-2 text-xs text-rose-200/80">
-              <summary>诊断详情</summary>
-              <span>{result?.status === "error" ? result.reason : "unknown"}</span>
-            </details>
-          </section>
+          <ErrorState
+            description="供应链数据加载没有成功，请稍后重试。"
+            detail={result?.status === "error" ? result.reason : "unknown"}
+            onRetry={() => void hydrate()}
+            retryTestId="supply-chain-load-error-retry"
+            testId="supply-chain-load-error"
+            title="加载没有成功"
+            tone="error"
+          />
         ) : null}
 
         {overview ? (

@@ -1,15 +1,20 @@
 "use client";
 
-import { AlertTriangle, Building2, Boxes, RefreshCw, Search } from "lucide-react";
+import { Building2, Boxes, FileSearch, RefreshCw, Search } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { AnalysisContextBadge } from "../analysis-context-badge";
+import { loadCloudEvidenceDetail } from "../cloud-data-client";
+import { EvidencePanel, type EvidencePanelState } from "../components/evidence-panel";
+import { ErrorState, Skeleton, TopLoadingBar } from "../components/feedback";
 import { zhLabel } from "../labels";
+import type { EvidenceDetailRecord } from "../production-data-client";
 import {
   loadEntityEmpire,
   searchEntityIdByName,
   type EmpireRecord,
   type EmpireSyncResult,
+  type StructureItem,
   type StructureSection
 } from "../structure-client";
 import { useAnalysisContext } from "../use-analysis-context";
@@ -131,45 +136,34 @@ export default function GroupStructurePage() {
 
         <AnalysisContextBadge analysisContext={analysisContext} serverState={serverState} />
 
+        {/* P1-6：刷新不清屏，仅顶部 1px 进度条（延迟 300ms）；首载走同构骨架。 */}
+        <TopLoadingBar active={loadState === "loading" && Boolean(empire)} />
+
+        {loadState === "loading" && !empire ? (
+          <Skeleton count={3} testId="structure-skeleton" variant="card" />
+        ) : null}
+
         {loadState === "api_required" ? (
-          <section
-            className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100"
-            data-testid="structure-api-required"
-          >
-            <p className="flex items-center gap-2 font-medium">
-              <AlertTriangle className="h-4 w-4" aria-hidden />
-              暂时连不上数据服务，请稍后重试。
-            </p>
-            <button
-              type="button"
-              onClick={() => void hydrate(focusQuery.trim() || DEFAULT_FOCUS_NAME)}
-              className="mt-2 rounded-md border border-amber-400/50 px-3 py-1 text-xs hover:bg-amber-500/20"
-              data-testid="structure-api-required-retry"
-            >
-              重试
-            </button>
-          </section>
+          <ErrorState
+            description="请稍后重试，或确认数据接口已配置。"
+            onRetry={() => void hydrate(focusQuery.trim() || DEFAULT_FOCUS_NAME)}
+            retryTestId="structure-api-required-retry"
+            testId="structure-api-required"
+            title="暂时连不上数据服务"
+            tone="warn"
+          />
         ) : null}
 
         {loadState === "error" ? (
-          <section
-            className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-100"
-            data-testid="structure-load-error"
-          >
-            <p className="font-medium">结构数据加载没有成功，请稍后重试。</p>
-            <button
-              type="button"
-              onClick={() => void hydrate(focusQuery.trim() || DEFAULT_FOCUS_NAME)}
-              className="mt-2 rounded-md border border-rose-400/50 px-3 py-1 text-xs hover:bg-rose-500/20"
-              data-testid="structure-load-error-retry"
-            >
-              重试
-            </button>
-            <details className="diagDetails mt-2 text-xs text-rose-200/80">
-              <summary>诊断详情</summary>
-              <span>{loadReason}</span>
-            </details>
-          </section>
+          <ErrorState
+            description="结构数据加载没有成功，请稍后重试。"
+            detail={loadReason}
+            onRetry={() => void hydrate(focusQuery.trim() || DEFAULT_FOCUS_NAME)}
+            retryTestId="structure-load-error-retry"
+            testId="structure-load-error"
+            title="加载没有成功"
+            tone="error"
+          />
         ) : null}
 
         {empire ? (
