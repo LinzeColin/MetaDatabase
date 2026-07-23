@@ -2,9 +2,9 @@
 
 ## 当前目标与状态
 
-- `RMD-06` 的 GitHub-hosted 非生产预检 Run Contract 已完成；下一 Run Contract 尚未开始。不得把
-  本轮结果解释为真实 Gmail、私有数据仓、protected Oracle、生产运行、部署、最终 Acceptance 或
-  最终发布。
+- `RMD-06` 的 T0702/S7AC-002 protected Raw-only 入口已完成本地机制与证据闭环；正式任务仍为
+  `BLOCKED`，真实 Beta Oracle 仍为 `NOT_RUN`，不得进入 M3。不得把本轮结果解释为真实 Gmail、
+  私有数据仓操作、protected Oracle、生产运行、部署、最终 Acceptance 或最终发布。
 - 当前控制包为 `MMAU-ARCHIVE-TP-2026-07-23-V1.0.6`。它原样继承 v1.0.1 的 34 RQ、34 AC、
   58-task DAG、Kill Criteria 与十条不变量，并将 v1.0.5 作为不可变直接前序。
 - 唯一当前状态权威是 `machine/status/latest.json`：本地机制证据完整，受保护 Oracle 0/43，
@@ -124,11 +124,35 @@
     最小 Stage 2 T0101。远端候选分支已删除且没有 PR、merge 或发布；活跃 `/private/tmp` 中的
     MooMooAU 生成物和 worktree 缓存均已移入可恢复的系统 Trash。该结果只关闭云端非生产预检，
     不关闭任何 protected、真实数据或生产验收。
+21. T0702 本地入口闭环新增 `.github/workflows/moomooau-beta.yml` 与
+    `protected_beta_entrypoint.py`：只允许控制仓 owner 在 `main` 上手动首次 dispatch，精确绑定
+    repo/owner/actor/run/SHA/Workflow ref、GitHub-hosted runner、`moomooau-beta` Environment 和
+    同树 Alpha；两个 job 在 checkout 或 Secret 注入前拒绝非 GitHub-hosted runner，rerun 也 fail
+    closed。执行步只接受六项精确 Beta Secret 名称，控制仓权限仅 `contents: read`。
+22. 入口只装配 verified Raw age commit 与远端恢复；Gmail mutation、Parser、M3、Processed、
+    Timeline、schedule、artifact/cache、控制仓写入均不可达。成功要求至少一个且不超过 owner
+    配置预算的 Raw 完成 100% 远端恢复；公开输出不含精确预算或精确 verified/recovery 计数，失败
+    只输出固定 reason code。T0702 本地 oracle 为 `24 passed`。
+23. 只读 GitHub 核验确认控制仓仍为 public、main identity 已绑定、没有 GitHub Environment、没有
+    六项 Beta Secret、没有可见的匹配私有数据仓；GitHub App installation 因 token 403 无法证实。
+    verified sender registry 和正整数预算也未提供，因此未访问 Gmail、未读取真实 Secret、未调用
+    私有仓、未 Dispatch Workflow。另有“中间不上传”与“必须在 GitHub-hosted runner 观察真实
+    Beta”的顺序冲突，故七项 T0702 blocker 均保留。
+24. 最终本地闭环通过全量 `265 passed`、strict mypy `60 source files`、Stage 7 scoped Ruff
+    `107 files`、Stage 1/2、Stage 7 九项 preflight、4 个 cumulative PASS + 4 个预期 historical
+    BLOCKED 且 tree unchanged 的 Workflow matrix、package/status/facts/Manifest/Governance/
+    composition、34/34 结构有效且全部 BLOCKED 的 Acceptance、publication/Secret findings 0、
+    零已知漏洞 audit 与 SBOM byte-equal。所有 Gmail、私有仓、外部写入、protected Oracle、生产
+    Workflow、final Acceptance PASS 与远端发布计数均为 0。
 
 ## 关键边界
 
 - 依赖 Deploy Key 不等于生产 Secret；普通 CI 的 Gmail、数据仓和生产 Secret 读取仍为 0。
 - GitHub-hosted 非生产预检不等于 protected Oracle、生产健康、部署、发布或最终 Acceptance。
+- T0702 只允许 GitHub-hosted first attempt；rerun、自托管 runner、非 main、非 owner、错误 SHA/
+  Workflow ref/Environment 必须在读取 Beta Secret 前 fail closed。
+- public control logs 只能出现 bucket、零值计数和 gate 布尔值；不得输出精确 Beta 预算、精确邮箱/
+  recovery 计数、message/thread/sender/subject/attachment 或私有仓标识。
 - 旧开发分支与最新 `origin/main` 历史分叉，继续禁止直接 push；远端预检只允许使用已从最新主线
   建立的干净临时快照分支。
 - 预检任一 Workflow syntax、Governance checkout、Secret 边界、package、publication 或累计门失败，
@@ -136,9 +160,11 @@
 
 ## 下一步
 
-1. 下一次独立 Run Contract 只能进入 RMD-06 Beta；开始前重新验证 protected registries、最小
-   凭据面、消息预算、Kill Criteria 和零 collateral 停止条件，任何未知或缺失立即停止。
-2. Beta 关闭后仍按 M3 → Timeline Blue-Green → GA → Recovery → 最终 AC 顺序推进，每次 Run
-   最多解决一个阶段，不得把本轮 GitHub-hosted 预检当作后续阶段证据。
-3. 仅在整体任务包全部完成后执行整体复审；解决复审发现后再做最终 GitHub 上传、PR/merge 与上线
-   交付，中间阶段不得保留临时候选分支。
+1. 用户已选择继续遵守“中间阶段不上传”。因此当前停止在 T0702：不得上传本地入口、创建
+   `moomooau-beta` Environment、配置六项 Secret、Dispatch Beta 或进入 M3；真实 Beta 保持
+   `NOT_RUN`。
+2. 若未来 Owner 改变交付顺序，必须先单独授权受控 main delivery，再配置 Environment、六项值、
+   正整数预算、verified registry、唯一私有数据仓与 GitHub App，并重新核验 Kill Criteria 后只执行
+   一次 Raw-only Beta。任何未知或失败立即停止。
+3. Beta protected Oracle 关闭后才可按 M3 → Timeline Blue-Green → GA → Recovery → 最终 AC 顺序
+   推进；整体任务包完成后才做整体复审、修复、最终一次性 GitHub 上传、PR/merge 与上线交付。

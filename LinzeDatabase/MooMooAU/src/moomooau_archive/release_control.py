@@ -331,6 +331,32 @@ class Stage7ReleaseGate:
             reasons=deduplicated,
         )
 
+    def evaluate_completed_phase(
+        self,
+        observation: PhaseObservation,
+        *,
+        beta_message_budget: int | None = None,
+        ga_mutation_budget_per_run: int | None = None,
+    ) -> ReleaseGateReport:
+        """Validate one completed phase without inventing the next phase's configuration."""
+
+        if not isinstance(observation, PhaseObservation):
+            raise ReleaseControlError("completed phase observation is invalid")
+        reasons = tuple(
+            dict.fromkeys(
+                self._phase_reasons(
+                    observation,
+                    beta_message_budget=beta_message_budget,
+                    ga_mutation_budget_per_run=ga_mutation_budget_per_run,
+                )
+            )
+        )
+        return ReleaseGateReport(
+            target_phase=observation.phase,
+            status=GateStatus.READY if not reasons else GateStatus.BLOCKED,
+            reasons=reasons,
+        )
+
     def evaluate_stage_completion(
         self,
         observations: tuple[PhaseObservation, ...],

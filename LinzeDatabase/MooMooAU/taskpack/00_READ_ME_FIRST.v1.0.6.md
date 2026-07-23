@@ -32,6 +32,16 @@
     SHA-256 只允许精确值 allowlist，不得增加宽泛凭据值排除。
 12. 这些后续修复只消除第三轮 GitHub-hosted 非生产预检暴露的环境误耦合与确定性误报，不改变
     production composition、RMD-05 evidence、受保护 Oracle、最终 Acceptance 或发布语义。
+13. 第五轮精确生成的 9 个 GitHub-hosted 非生产 Workflow 已全部成功；远端候选分支已删除，未创建
+    PR、未 merge、未部署或发布。该结果关闭云执行前置，但不满足 protected Oracle。
+14. T0702 新增唯一手动、main-only、owner-bound、expected-SHA-bound、GitHub-hosted-first-attempt 的
+    `.github/workflows/moomooau-beta.yml` 与显式 protected entrypoint；执行步只引用六个精确 Beta
+    Secret 名称，并在读取前验证同树 Alpha 与 GitHub 上下文。
+15. 该入口只装配 Raw archive/recovery，Gmail mutation、Parser、M3、Processed、Timeline、schedule
+    与控制仓写权限全部为零；本地合成测试不能替代真实 Beta。
+16. `moomooau-beta` Environment、六项 Secret、正整数预算、verified registry、唯一私有数据仓和
+    GitHub App installation 尚未配置或证实；同时存在“中间不上传”与“GitHub-hosted protected
+    observation”的顺序冲突，因此 T0702/S7AC-002 继续 `BLOCKED/NOT_RUN`。
 
 ## 开发入口
 
@@ -43,7 +53,8 @@
 
 ## 当前准确边界
 
-v1.0.6 只证明 RMD-06 云执行前置代码与最小权限依赖认证契约已就绪。受保护 Oracle、真实 Gmail、
-唯一私有数据仓、生产 Workflow、部署、最终 Acceptance 与最终发布仍为 `0` 或 `NOT_RUN`。
+v1.0.6 只证明 RMD-06 云执行前置和 T0702 protected Raw-only 入口代码与最小权限契约已就绪。
+受保护 Oracle、真实 Gmail、唯一私有数据仓操作、Beta Dispatch、M3、生产 Workflow、部署、最终
+Acceptance 与最终发布仍为 `0` 或 `NOT_RUN`。
 受控候选分支若用于 GitHub-hosted RMD-06 预检，只是远端验证输入，不等于最终发布；任何失败或未知结果
 立即停止，不得读取生产 Secret 或扩大权限。

@@ -113,10 +113,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     dimensions = delivery["dimensions"]
     status = {
         "version": delivery["package_version"],
-        "stage": "整体复审修复",
-        "phase": "本地机制已取证，最终验收阻塞",
+        "stage": "RMD-06 受保护验收准备",
+        "phase": "T0702 入口本地就绪，真实 Beta 阻塞",
         "task": (
-            "RMD-06 只读依赖认证就绪；受保护验收待执行"
+            "T0702 Raw-only 入口本地就绪；顺序与 protected prerequisites 待解决"
             if dependency_auth_ready
             else (
                 "RMD-05 保证来源链已关闭；下一项 RMD-06"
@@ -304,6 +304,27 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             {"en": "Stage", "zh": "阶段", "note": "每次开发运行最多处理一个"},
             {"en": "Codex", "zh": "开发线程", "note": "用户唯一维护入口"},
             {"en": "age", "zh": "文件加密工具", "note": "所有敏感持久化数据的加密边界"},
+            {"en": "Beta", "zh": "小规模真实只存原始数据阶段", "note": "T0702 受保护发布阶段"},
+            {
+                "en": "Raw-only",
+                "zh": "仅原始数据",
+                "note": "禁止解析、消息变更和时间线操作的 Beta 边界",
+            },
+            {
+                "en": "main-only",
+                "zh": "仅主分支",
+                "note": "受保护入口只允许精确主分支提交",
+            },
+            {
+                "en": "protected",
+                "zh": "受保护",
+                "note": "需要受保护环境、来源和真实观察的执行范围",
+            },
+            {
+                "en": "prerequisites",
+                "zh": "前置条件",
+                "note": "执行前必须全部确定满足的受保护输入和配置",
+            },
             {"en": "exact", "zh": "精确", "note": "限定为单封消息的精确操作"},
             {
                 "en": "fail-closed",
@@ -436,10 +457,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         ]
     }
     plan = {
-        "stage": "整体复审修复",
+        "stage": "RMD-06 受保护验收准备",
         "phase": ("RMD-06 受保护验收准备" if dependency_auth_ready else "RMD-05 保证来源链闭包"),
         "task": (
-            "只读 Governance 依赖认证已就绪；下一步仅运行 RMD-06 受保护云预检"
+            "T0702 入口仅本地就绪；先解决顺序与 protected prerequisites，不进入 M3"
             if dependency_auth_ready
             else ("RMD-05 已关闭；下一轮仅进入 RMD-06" if closed else "仅完成 RMD-05")
         ),
@@ -553,8 +574,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "date": "2026-07-23",
                 "summary": (
                     "为私有 Governance 增加单仓只读 Deploy Key 依赖认证、"
-                    "fork PR fail-closed 与 workflow expression 修复；"
-                    "生产 Secret、受保护验证、生产与最终发布仍关闭。"
+                    "fork PR fail-closed 与 workflow expression 修复，完成 9/9 云端非生产预检，"
+                    "并在本地增加 T0702 main-only Raw-only 入口；"
+                    "真实 Beta、M3、生产与最终发布仍关闭。"
                 ),
             },
         )

@@ -61,10 +61,11 @@ def build_provenance() -> dict[str, Any]:
             ),
             "authorized_on": "2026-07-23",
             "authorized_scope": (
-                "RMD-06 dependency authentication and workflow execution repair only; "
-                "one read-only Governance repository credential may be consumed by "
-                "actions/checkout, while production, Gmail and data-repository Secrets "
-                "remain blocked"
+                "RMD-06 dependency authentication, cloud preflight closure and local T0702 "
+                "protected Raw-only entrypoint readiness only; one read-only Governance "
+                "repository credential may be consumed by actions/checkout, while protected "
+                "execution, production, Gmail and data-repository Secret consumption remain "
+                "blocked"
             ),
         },
         "predecessor": {

@@ -42,7 +42,7 @@
       }
     },
     {
-      "title": "RMD-06 dependency authentication ready state",
+      "title": "RMD-06 preflight closed and T0702 entrypoint ready state",
       "properties": {
         "package_version": {"const": "1.0.6"},
         "blockers": {
@@ -64,9 +64,9 @@
             "REV-P2-007"
           ]
         },
-        "next_action": {
-          "const": "Execute the RMD-06 protected cloud preflight with dependency authentication; keep production execution and final publication blocked."
-        }
+      "next_action": {
+        "const": "Resolve the no-intermediate-upload versus GitHub-hosted protected-observation order, then provision the exact T0702 Beta Environment and inputs before one Raw-only dispatch; keep M3, production execution and final publication blocked."
+      }
       }
     }
   ],

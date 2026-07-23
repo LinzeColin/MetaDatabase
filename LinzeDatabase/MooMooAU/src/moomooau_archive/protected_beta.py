@@ -227,6 +227,10 @@ class ProtectedBetaRuntime:
     def closed(self) -> bool:
         return self._closed
 
+    @property
+    def beta_message_budget(self) -> int:
+        return self._config.beta_message_budget
+
     def run(self) -> CanaryRunResult:
         if self._closed or self._run_started:
             raise ProtectedBetaBootstrapError("protected Beta runtime is closed or already used")

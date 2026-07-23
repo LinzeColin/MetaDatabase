@@ -4,7 +4,7 @@
   "stage_id": "S7",
   "task_id": "T0702",
   "stage_acceptance_id": "S7AC-002",
-  "observed_at_utc": "2026-07-22T01:14:44Z",
+  "observed_at_utc": "2026-07-23T08:24:58Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "record_status": "BLOCKED",
   "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
@@ -19,7 +19,12 @@
     {"id": "strict_protected_bootstrap_raw_only_integration", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_beta.py and tests/tasks/test_t0702.py::test_t0702_protected_bootstrap_runs_one_raw_only_beta_and_cleans_resources"},
     {"id": "inactive_registry_blocks_before_network", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_bootstrap_blocks_before_network_without_alpha_or_registry"},
     {"id": "stale_capacity_and_age_identity_drift_fail_closed", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_bootstrap_rejects_stale_capacity_and_identity_drift"},
-    {"id": "verified_linux_tmpfs_required_by_default", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_bootstrap_requires_verified_tmpfs_by_default"}
+    {"id": "verified_linux_tmpfs_required_by_default", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_bootstrap_requires_verified_tmpfs_by_default"},
+    {"id": "exact_protected_context_and_six_secret_allowlist", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_beta_entrypoint.py and tests/tasks/test_t0702.py::test_t0702_entrypoint_rejects_non_main_context_before_secret_reads"},
+    {"id": "github_hosted_first_attempt_gate_precedes_secret_reads", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_entrypoint_rejects_non_cloud_runner_before_secret_reads"},
+    {"id": "same_tree_alpha_binding_and_completed_beta_gate", "status": "PASS", "evidence_ref": "src/moomooau_archive/release_control.py and tests/tasks/test_t0702.py::test_t0702_entrypoint_executes_one_aggregate_only_protected_beta"},
+    {"id": "zero_recovered_raw_cannot_claim_beta", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_entrypoint_blocks_zero_recovered_raw_without_claiming_beta"},
+    {"id": "manual_main_only_raw_only_workflow", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_workflow_is_manual_main_only_and_exact_six_secret"}
   ],
   "linked_final_acceptance": [
     {"id": "AC-001", "status": "NOT_RUN", "reason": "No real mailbox discovery or candidate set was accessed."},
@@ -27,9 +32,9 @@
     {"id": "AC-007", "status": "NOT_RUN", "reason": "No real ciphertext was committed or remotely recovered."}
   ],
   "production_oracles": [
-    {"id": "PROTECTED_BETA_REAL_RAW_ONLY", "status": "NOT_RUN", "reason": "The local bootstrap mechanism exists, but protected sender evidence, credentials, private repository and explicit Beta message budget are not provisioned in this run."}
+    {"id": "PROTECTED_BETA_REAL_RAW_ONLY", "status": "NOT_RUN", "reason": "The protected Raw-only entrypoint and workflow exist only in the local tree. The protected Environment, six exact Beta Secret values, owner-approved positive budget, verified sender registry, private data repository and GitHub App installation are absent or unverified, and intermediate upload is forbidden."}
   ],
-  "blockers": ["ALPHA_REMOTE_NOT_RUN", "PROTECTED_SENDER_REGISTRY_NOT_PROVISIONED", "PROTECTED_BETA_PREREQUISITES_NOT_PROVISIONED"],
+  "blockers": ["PROTECTED_BETA_ENVIRONMENT_NOT_PROVISIONED", "PROTECTED_BETA_SECRETS_NOT_PROVISIONED", "PROTECTED_SENDER_REGISTRY_NOT_PROVISIONED", "BETA_MESSAGE_BUDGET_NOT_PROVISIONED", "PRIVATE_DATA_REPOSITORY_NOT_PROVISIONED", "GITHUB_APP_INSTALLATION_NOT_VERIFIED", "INTERMEDIATE_UPLOAD_FORBIDDEN_BUT_GITHUB_HOSTED_OBSERVATION_REQUIRED"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "After Alpha, provision the owner-approved positive Beta budget and protected prerequisites; keep Parser, M3 and Timeline off."
+  "next_action": "Resolve the no-intermediate-upload versus GitHub-hosted protected-observation order, then provision the exact owner-approved Beta Environment, six Secret values, positive message budget, verified sender registry, private data repository and GitHub App installation before one manual main-only Raw-only dispatch; keep Parser, M3, Timeline and Gmail mutation off."
 }

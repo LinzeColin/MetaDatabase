@@ -2,7 +2,7 @@
   {
     "version": "1.0.6",
     "date": "2026-07-23",
-    "summary": "为私有 Governance 增加单仓只读 Deploy Key 依赖认证、fork PR fail-closed 与 workflow expression 修复；生产 Secret、受保护验证、生产与最终发布仍关闭。"
+    "summary": "为私有 Governance 增加单仓只读 Deploy Key 依赖认证、fork PR fail-closed 与 workflow expression 修复，完成 9/9 云端非生产预检，并在本地增加 T0702 main-only Raw-only 入口；真实 Beta、M3、生产与最终发布仍关闭。"
   },
   {
     "version": "1.0.5",

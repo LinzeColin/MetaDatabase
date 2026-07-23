@@ -1,7 +1,7 @@
 {
   "schema_version": "moomooau.stage7-aggregate.v1",
   "stage_id": "S7",
-  "observed_at_utc": "2026-07-22T04:35:36Z",
+  "observed_at_utc": "2026-07-23T08:24:58Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "status": "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES",
   "scoped_preflight": "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY",
@@ -41,6 +41,8 @@
   },
   "blocking_conditions": [
     "PROTECTED_GITHUB_ACTIONS_NOT_RUN",
+    "PROTECTED_BETA_ENVIRONMENT_NOT_PROVISIONED",
+    "PROTECTED_BETA_SECRETS_NOT_PROVISIONED",
     "PROTECTED_SENDER_REGISTRY_NOT_PROVISIONED",
     "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
     "CODEX_AUTOMATION_TASK_PREDECESSOR_NOT_COMPLETE",
@@ -51,6 +53,8 @@
     "PROTECTED_PATCH_CANARY_ADAPTER_NOT_PROVISIONED",
     "PROTECTED_OPERATIONS_NOT_RUN",
     "REAL_GMAIL_AND_PRIVATE_REPOSITORY_NOT_PROVISIONED",
+    "PRIVATE_DATA_REPOSITORY_NOT_PROVISIONED",
+    "GITHUB_APP_INSTALLATION_NOT_VERIFIED",
     "BETA_MESSAGE_BUDGET_NOT_PROVISIONED",
     "M3_SEVEN_DAY_WINDOW_NOT_STARTED",
     "BLUE_GREEN_FOURTEEN_DAY_WINDOW_NOT_STARTED",
@@ -63,5 +67,5 @@
     "INTERMEDIATE_UPLOAD_FORBIDDEN_BUT_GITHUB_HOSTED_OBSERVATION_REQUIRED"
   ],
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
-  "next_action": "All eight local Stage 7 mechanisms now have fail-closed policy coverage, but every protected Oracle remains blocked. Keep patch effects at zero, perform the requested whole-package review and remediation locally, then resolve the no-intermediate-upload versus GitHub-hosted-observation order before any protected execution."
+  "next_action": "The T0702 manual main-only Raw-only entrypoint is locally verified, but every protected Oracle remains blocked. Resolve the no-intermediate-upload versus GitHub-hosted-observation order, then separately provision the protected Beta Environment, six exact Secret values, positive budget, verified registry, private data repository and GitHub App before any dispatch; do not enter M3."
 }

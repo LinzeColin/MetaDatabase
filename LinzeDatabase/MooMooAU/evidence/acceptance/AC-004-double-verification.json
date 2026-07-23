@@ -56,7 +56,7 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0702.json",
-      "evidence_sha256": "675a10191d525089a52a47d688f2a4567f580137a5d647233b4a28b2c21c0aff",
+      "evidence_sha256": "d796e3782a5489e201c67194b5ba2df4c60170c3342a1e8c2544aa94ecac228b",
       "final_claim_status": "NOT_RUN",
       "reason": "No real verified Gmail RAW was fetched or round-tripped.",
       "source_record_status": "BLOCKED",
@@ -64,7 +64,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-23T05:39:20Z",
+  "observed_at_utc": "2026-07-23T08:24:58Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

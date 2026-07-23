@@ -4,7 +4,7 @@
   "authorization": {
     "decision": "Owner selected option 2: keep Governance private and provision a repository-scoped read-only Deploy Key",
     "authorized_on": "2026-07-23",
-    "scope": "RMD-06 cloud execution prerequisite only: dependency authentication, workflow syntax repair and fail-closed fork handling; production remains blocked"
+    "scope": "RMD-06 cloud preflight closure plus T0702 protected Raw-only entrypoint readiness only; protected execution, Gmail, private-data writes, M3 and production remain blocked"
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -68,7 +68,7 @@
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
-      "next_action": "Execute the RMD-06 protected cloud preflight with dependency authentication; keep production execution and final publication blocked."
+      "next_action": "Resolve the no-intermediate-upload versus GitHub-hosted protected-observation order, then provision the exact T0702 Beta Environment and inputs before one Raw-only dispatch; keep M3, production execution and final publication blocked."
     }
   }
 }

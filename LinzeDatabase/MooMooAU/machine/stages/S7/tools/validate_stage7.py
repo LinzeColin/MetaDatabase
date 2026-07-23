@@ -11,6 +11,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 sys.dont_write_bytecode = True
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
@@ -19,6 +21,7 @@ STAGE6_TOOLS = PROJECT_ROOT / "machine/stages/S6/tools"
 TOOLS = PROJECT_ROOT / "machine/tools"
 SRC = PROJECT_ROOT / "src"
 STAGE7_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-stage7-ci.yml"
+BETA_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-beta.yml"
 PATCH_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-patch-lifecycle.yml"
 PRODUCTION_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-production.yml"
 BASELINE_COMMIT = "be8e196b03dcc475ed6261fbe20593b08bd26bcf"
@@ -46,7 +49,9 @@ from validate_production_composition import validate as validate_composition  # 
 from validate_publication import scan_tree  # noqa: E402
 from validate_stage6 import evaluate_stage6  # noqa: E402
 from validate_workflow_matrix import (  # noqa: E402
+    validate_governance_dependency_auth,
     validate_governance_dependency_workflow,
+    validate_workflow_expression_contexts,
 )
 
 
@@ -70,7 +75,9 @@ def _tree_digest(root: Path) -> str:
         if path.is_file() and not path.is_symlink() and not (set(path.parts) & IGNORED_PARTS)
     ]
     paths.extend(
-        path for path in (STAGE7_WORKFLOW, PATCH_WORKFLOW, PRODUCTION_WORKFLOW) if path.is_file()
+        path
+        for path in (STAGE7_WORKFLOW, BETA_WORKFLOW, PATCH_WORKFLOW, PRODUCTION_WORKFLOW)
+        if path.is_file()
     )
     for path in sorted(set(paths), key=str):
         relative = (
@@ -198,6 +205,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "BLUE_GREEN_FULL_RECONCILIATION_NOT_OBSERVED",
             "GA_NO_PROCESSED_MESSAGE_OBSERVED",
             "GA_NO_TIMELINE_PUBLISH_OBSERVED",
+            "evaluate_completed_phase",
         ),
         "http_transport.py": (
             "_NoRedirect",
@@ -228,6 +236,27 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "approved_tmpfs_root",
             "_is_linux_dev_shm_tmpfs",
             "allow_synthetic_ephemeral_root: bool = False",
+        ),
+        "protected_beta_entrypoint.py": (
+            "ExactBetaEnvironmentSecretSource",
+            "ProtectedGitHubContext",
+            "ProtectedBetaExecutionEvidence",
+            "CONTROL_REPOSITORY_ID = 1_300_525_906",
+            "CONTROL_OWNER_ID = 68_840_188",
+            'CONTROL_REF = "refs/heads/main"',
+            'PROTECTED_ENVIRONMENT = "moomooau-beta"',
+            'RAW_ONLY_CONFIRMATION = "BETA_RAW_ONLY"',
+            "runner_environment",
+            '"required_actor_id": CONTROL_OWNER_ID',
+            '"required_run_attempt": 1',
+            "BETA_SECRET_NAMES",
+            "alpha_gate_sha256",
+            "Stage7ReleaseGate().evaluate_completed_phase",
+            '"m3_executed": False',
+            '"production_health_claimed": False',
+            '"final_acceptance_claimed": False',
+            "--contract-only",
+            "--execute-protected",
         ),
         "stage7_ops.py": (
             'RAW = "RAW"',
@@ -424,8 +453,8 @@ def _action_uses(workflow: str) -> list[str]:
 
 
 def _validate_workflow(root: Path) -> list[str]:
-    if not STAGE7_WORKFLOW.is_file() or not PATCH_WORKFLOW.is_file():
-        return ["Stage 7 no-Secret preflight or Patch Lifecycle workflow is missing"]
+    if not STAGE7_WORKFLOW.is_file() or not BETA_WORKFLOW.is_file() or not PATCH_WORKFLOW.is_file():
+        return ["Stage 7 preflight, protected Beta or Patch Lifecycle workflow is missing"]
     errors: list[str] = []
     text = STAGE7_WORKFLOW.read_text(encoding="utf-8")
     uses = _action_uses(text)
@@ -482,6 +511,106 @@ def _validate_workflow(root: Path) -> list[str]:
         validate_governance_dependency_workflow(
             STAGE7_WORKFLOW,
             repository_root=REPOSITORY_ROOT,
+        )
+    )
+    beta = BETA_WORKFLOW.read_text(encoding="utf-8")
+    beta_uses = _action_uses(beta)
+    expected_beta_secret_names = {
+        "MOOMOOAU_BETA_CONFIG",
+        "MOOMOOAU_SENDER_REGISTRY",
+        "MOOMOOAU_GITHUB_APP_PRIVATE_KEY",
+        "MOOMOOAU_AGE_IDENTITY",
+        "MOOMOOAU_OPAQUE_ID_KEY",
+        "MOOMOOAU_GMAIL_OAUTH",
+    }
+    actual_beta_secret_names = set(re.findall(r"\$\{\{\s*secrets\.([A-Z0-9_]+)\s*\}\}", beta))
+    try:
+        beta_value = yaml.load(beta, Loader=yaml.BaseLoader)
+    except yaml.YAMLError:
+        beta_value = None
+    beta_required = (
+        "workflow_dispatch:",
+        "expected_head_sha:",
+        "confirm_raw_only:",
+        "permissions:\n  contents: read",
+        "group: moomooau-beta-raw-only-single-writer",
+        "cancel-in-progress: false",
+        "Fail closed on invalid protected dispatch context",
+        'test "$GITHUB_REPOSITORY_ID" = "1300525906"',
+        'test "$GITHUB_REPOSITORY_OWNER_ID" = "68840188"',
+        'test "$GITHUB_ACTOR_ID" = "68840188"',
+        'test "$GITHUB_RUN_ATTEMPT" = "1"',
+        'test "$RUNNER_ENVIRONMENT" = "github-hosted"',
+        'test "$GITHUB_REF" = "refs/heads/main"',
+        'test "$EXPECTED_HEAD_SHA" = "$GITHUB_SHA"',
+        'test "$RAW_ONLY_CONFIRMATION" = "BETA_RAW_ONLY"',
+        "needs: alpha-gate",
+        "environment: moomooau-beta",
+        "runs-on: ubuntu-24.04",
+        "requirements/stage6.lock",
+        "--require-hashes",
+        "--no-build-isolation --no-deps .",
+        "test_t0701.py tests/tasks/test_t0702.py",
+        "validate_package.py",
+        "validate_delivery_status.py",
+        "validate_publication.py",
+        "protected_beta_entrypoint",
+        "--contract-only",
+        "--execute-protected",
+        "alpha_gate_sha256",
+        "moomooau-protected-beta-*",
+        "persist-credentials: false",
+        pins["age"]["linux_amd64_archive_sha256"],
+    )
+    beta_forbidden = (
+        "schedule:",
+        "pull_request:",
+        "\n  push:",
+        "contents: write",
+        "actions/cache",
+        "upload-artifact",
+        "download-artifact",
+        "self-hosted",
+        "git push",
+        "moomooau_production_enabled",
+        "python -m moomooau_archive.production",
+        "moomooau_classification_registry",
+        "moomooau_parser_registry",
+        "moomooau_governance_deploy_key",
+    )
+    beta_workflow_triggers = (
+        set(beta_value.get("on", {}))
+        if isinstance(beta_value, dict) and isinstance(beta_value.get("on"), dict)
+        else set()
+    )
+    if (
+        beta_workflow_triggers != {"workflow_dispatch"}
+        or any(token not in beta for token in beta_required)
+        or any(token in beta.casefold() for token in beta_forbidden)
+        or actual_beta_secret_names != expected_beta_secret_names
+        or beta.count("${{ secrets.") != len(expected_beta_secret_names)
+        or beta.count('test "$RUNNER_ENVIRONMENT" = "github-hosted"') != 2
+        or beta.count(pins["age"]["linux_amd64_archive_sha256"]) != 2
+        or len(beta_uses) != 4
+        or any(PINNED_ACTION.fullmatch(item) is None for item in beta_uses)
+        or any(
+            item.rsplit("@", 1)[1]
+            != pins["actions"].get(item.rsplit("@", 1)[0], {}).get("commit_sha")
+            for item in beta_uses
+        )
+    ):
+        errors.append("protected Beta workflow drifts from the Raw-only execution contract")
+    errors.extend(
+        validate_workflow_expression_contexts(
+            beta_value,
+            label=".github/workflows/moomooau-beta.yml",
+        )
+    )
+    errors.extend(
+        validate_governance_dependency_auth(
+            beta_value,
+            label=".github/workflows/moomooau-beta.yml",
+            required=False,
         )
     )
     patch_text = PATCH_WORKFLOW.read_text(encoding="utf-8")
@@ -605,7 +734,13 @@ def _validate_evidence(root: Path) -> list[str]:
     graph_tasks = {item["id"]: item for item in graph["tasks"] if item["stage_id"] == "S7"}
     required_blockers = {
         "T0702": {
+            "PROTECTED_BETA_ENVIRONMENT_NOT_PROVISIONED",
+            "PROTECTED_BETA_SECRETS_NOT_PROVISIONED",
             "PROTECTED_SENDER_REGISTRY_NOT_PROVISIONED",
+            "BETA_MESSAGE_BUDGET_NOT_PROVISIONED",
+            "PRIVATE_DATA_REPOSITORY_NOT_PROVISIONED",
+            "GITHUB_APP_INSTALLATION_NOT_VERIFIED",
+            "INTERMEDIATE_UPLOAD_FORBIDDEN_BUT_GITHUB_HOSTED_OBSERVATION_REQUIRED",
         },
         "T0704": {
             "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",

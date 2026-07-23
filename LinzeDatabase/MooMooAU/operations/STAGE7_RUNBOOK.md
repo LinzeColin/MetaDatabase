@@ -12,7 +12,22 @@
 
 `MOOMOOAU_BETA_CONFIG` 必须声明 phase=`BETA_RAW_ONLY`、正整数消息预算、Key Epoch、age Recipient、GitHub App/Installation/Repository ID，以及不超过 24 小时的容量快照和 owner-provisioned LFS limits。Bootstrap 在任何 Gmail/GitHub 生产调用前验证 Alpha 前序、ACTIVE sender registry、RSA private key、容量写权限和 age Recipient/Identity 加解密绑定；生产默认只接受 `/dev/shm` 且必须由 Linux mountinfo 证明为 tmpfs，Runtime 单次执行后立即归零并删除 Identity、Token 和 opaque key。非 tmpfs override 只存在于合成测试装配中。
 
-此入口只能产生 Raw-only runner；不得装配 Parser、M3、Timeline 或 Release Asset 权限。真实 protected 值和 workflow 尚未配置，本地合成测试不能替代 Beta Oracle。
+此入口只能产生 Raw-only runner；不得装配 Parser、M3、Timeline 或 Release Asset 权限。
+`.github/workflows/moomooau-beta.yml` 是唯一受保护 Beta 入口，仅允许 owner 在 `main` 上手动
+`workflow_dispatch` 的首次尝试，并逐项绑定控制仓/owner/actor 数字 ID、expected commit、Workflow
+ref、GitHub-hosted runner、`moomooau-beta` Environment 与同树 Alpha gate。两个 job 均在 checkout
+或 Secret 注入前拒绝非 GitHub-hosted runner；Alpha job 不接触 Beta Secret，Beta 执行步只引用上述
+六个精确名称。控制仓权限为 `contents: read`，禁止 rerun、schedule、artifact/cache、`git push`
+和生产入口。
+成功结果只输出既有 bucket、零值计数和 gate 布尔值，不公开精确预算或精确邮箱/恢复计数，并明确 M3、
+生产健康与最终验收均未执行或宣称；失败输出固定 reason code，不回显异常或受保护值。postflight 必须
+确认 `/dev/shm/moomooau-protected-beta-*` 已清空。
+
+该 Workflow 当前只存在于本地树，尚未上传或 Dispatch；仓库也没有 `moomooau-beta` Environment，
+六个 Beta Secret、owner-approved 正整数预算、已验证 sender registry、唯一私有数据仓和 GitHub App
+installation 均未配置或未证实。因此真实 Beta Oracle 仍为 `NOT_RUN`，本地合成测试和 contract-only
+输出都不能替代它。由于任务包同时禁止中间上传，必须先由 Owner 解决上传与 GitHub-hosted protected
+观察的顺序冲突；解决前不得创建 Environment、读取 Gmail、配置 Secret 或进入 M3。
 
 ## Blue-Green 与单一 Timeline 本地机制
 

@@ -15,7 +15,7 @@
 | Canonical Facts | 十条不变量 | `27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2` |
 | v1.0.5 Manifest | 不可变直接前序 | `f99413b9c1fb67369ba3039a7acfeb437004d1aad8cb54dc3697f87f38e35cb3` |
 
-## RMD-06 当前 Run Contract
+## RMD-06 云执行前置闭包
 
 目标仅为建立可运行的 GitHub-hosted 验证前置：
 
@@ -39,11 +39,36 @@
 任何 Workflow syntax、Governance pin、Secret 边界、fork policy、package、publication 或 cumulative gate
 失败都停止 RMD-06。
 
+第五轮受控候选提交 `2e1dda85a9bc85fb656eb6b6abb8f775bfef9292` 已让精确生成的 9 个
+GitHub-hosted 非生产 Workflow 全部 `completed/success`；候选远端分支随后删除，没有 PR、merge、
+部署或发布。该结果只关闭云执行前置，不满足任何 protected Oracle。
+
+## T0702 Beta 当前 Run Contract
+
+本轮只允许把 T0702/S7AC-002 的受保护 Raw-only 入口做到本地可部署和可验证：
+
+- 唯一入口为 `.github/workflows/moomooau-beta.yml`，只接受 owner 在 `main` 上手动
+  `workflow_dispatch`；
+- 先绑定控制仓/owner/actor 数字 ID、expected commit、Workflow ref、GitHub-hosted runner、
+  首次 run attempt、受保护 `moomooau-beta` Environment 与同树 Alpha gate，再读取任何 Beta Secret；
+- 执行步只接受六个精确名称：Beta config、sender registry、GitHub App private key、age identity、
+  opaque ID key 与 Gmail OAuth；
+- 只允许 Raw archive 与远端恢复；Gmail mutation、Parser、M3、Processed 与 Timeline 均为零；
+- 成功必须观测 1..显式正整数预算个真实已验证消息且远端恢复 100%；公开输出仅为 bucket、零值计数
+  与 gate 布尔值，不公开精确预算或精确邮箱/恢复计数；
+- 代码就绪不等于真实 Beta。Environment、六个值、消息预算、verified registry、唯一私有数据仓和
+  GitHub App installation 未配置或未证实时，Oracle 必须保持 `NOT_RUN`。
+
+任务包同时要求“中间 stage 不上传”和“在 GitHub Actions 执行 protected 观察”。由于本地 Workflow
+只有进入 `main` 后才能运行，当前存在真实顺序冲突；既有非生产候选例外不自动授权真实数据上传或
+Dispatch。Owner 解决顺序前，不创建 Environment、不读取 Gmail、不配置 Beta Secret、不进入 M3。
+
 ## 后续顺序
 
-1. 配置并验证只读 Governance Deploy Key，立即删除本地临时私钥材料；
-2. 对 v1.0.6 候选运行本地累计门和 Secret/publication 扫描；
-3. 仅上传受控候选分支，观察 GitHub-hosted 非生产预检；
-4. 预检全绿后，RMD-06 才可按 Beta → M3 → Timeline Blue-Green → GA → Recovery → 最终 AC
+1. 只读 Governance Deploy Key 与 GitHub-hosted 非生产预检已完成并关闭临时远端候选；
+2. T0702 protected Raw-only 入口完成本地机制验证，但真实 Beta Oracle 保持 `NOT_RUN`；
+3. 先解决 no-intermediate-upload 与 GitHub-hosted protected observation 的顺序冲突，再单独配置
+   Environment、六项 Secret、正整数预算、verified registry、私有仓与 GitHub App；
+4. Beta 真实 Oracle 全绿后，RMD-06 才可按 M3 → Timeline Blue-Green → GA → Recovery → 最终 AC
    的既定顺序继续；每个未知或失败结果立即停止；
 5. RMD-06 完成后进入 RMD-07 最终复审与干净一次性发布。

@@ -22,6 +22,15 @@
   由 JSON 解析与显式高风险凭据模式验证，其余范围继续由 `detect-secrets` 扫描；Stage 7 只精确
   排除四个公开前序 Manifest SHA-256，不增加宽泛凭据值排除；
 - “no-Secret”修订为“零生产 Secret + 唯一只读依赖凭据”；
+- 第五轮精确生成的 9 个 GitHub-hosted 非生产 Workflow 全部成功，随后删除远端候选分支；没有 PR、
+  merge、部署或发布；
+- 新增 T0702 唯一手动 main-only protected Beta Workflow 与显式 entrypoint，绑定控制仓/owner/actor、
+  expected SHA、GitHub-hosted 首次 run attempt、同树 Alpha、protected Environment 和六项精确
+  Secret 名；
+- Beta 路径仅允许 verified Raw age commit/recovery；Gmail mutation、Parser、M3、Processed、Timeline
+  与 schedule 权限为零，并以本地 task oracle 固化；
+- protected Environment、真实输入、私有数据仓与 GitHub App 尚未配置或证实，且中间上传顺序冲突
+  未解决，因此真实 Beta/S7AC-002 继续 `BLOCKED/NOT_RUN`；
 - 真实 Gmail、私有数据仓、受保护 Oracle、生产、部署与最终发布仍为 0/NOT_RUN。
 
 ## 1.0.5 — 2026-07-22

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministically build the baseline-preserving v1.0.6 control manifest."""
+"""Build the baseline-preserving v1.0.6 preflight and Beta-readiness manifest."""
 
 from __future__ import annotations
 
@@ -183,17 +183,19 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "version": PACKAGE_VERSION,
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
-            "Owner option 2: baseline-preserving RMD-06 private Governance "
-            "dependency authentication"
+            "Owner-directed RMD-06 sequence: private Governance dependency authentication "
+            "and local T0702 protected Raw-only entrypoint readiness"
         ),
         "scope": (
             "Baseline-preserving v1.0.6 project snapshot: immutable v1.0.1 product contracts "
             "and v1.0.2-v1.0.5 predecessor manifests; one repository-scoped read-only "
             "Governance Deploy Key contract, checkout-only credential consumption, fail-closed "
             "fork pull requests, corrected pre-runner expression contexts, deterministic "
-            "workflow validation, the coupled sole delivery-status authority, and generated "
-            "human documentation. Credential material, protected observations, real production "
-            "runs, and final publication are not claimed by this manifest."
+            "workflow validation, the coupled sole delivery-status authority, a manual main-only "
+            "six-Secret T0702 protected Raw-only entrypoint with same-tree Alpha and aggregate "
+            "Beta gates, and generated human documentation. Credential material, protected "
+            "observations, real Gmail/private-data operations, M3, production runs, and final "
+            "publication are not claimed by this manifest."
         ),
         "status_authority": "machine/status/latest.json",
         "predecessor": {
