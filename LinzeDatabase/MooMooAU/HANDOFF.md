@@ -147,8 +147,8 @@
     composition、34/34 结构有效且全部 BLOCKED 的 Acceptance、publication/Secret findings 0、
     零已知漏洞 audit 与 SBOM byte-equal。所有 Gmail、私有仓、外部写入、protected Oracle、生产
     Workflow、final Acceptance PASS 与远端发布计数均为 0。
-25. Owner 授权后，候选 8 提交已无冲突重放到最新 `origin/main`
-    `28605b86fdaa364346a7a491e074cc84320cd34c`；T0702 Run Contract 已改为一次性 protected
+25. Owner 授权后，候选提交序列已无冲突重放到最新 `origin/main`
+    `9dce817b9d19d5515469df9c1ccccb16fed6a21b`；T0702 Run Contract 已改为一次性 protected
     执行合同，预算固定 1、Environment 无人工 reviewer、GitHub App 仅 `contents:write` +
     `metadata:read` 且只装一个私有仓。派生 34 Acceptance 仍为 0 PASS / 34 BLOCKED，
     protected Oracle 仍为 0/43；目标 `41 passed`、Package 587 files、Status、Governance pinned
