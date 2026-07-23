@@ -1,0 +1,19 @@
+# S1 五腿双动量·精调(生产主力)— owner 2026-07-24 书面选定换帅并裁定直接实盘
+# 来源:R7d 精细网格滚动前推,样本外 10.58 年 1.108%/月 @ 最大回撤 18.90%(盈亏比 2.25)
+# 证据:reports/backtest/research_GEMPLUSFINE30_2026-07-24/(逐窗参数与验证段全记录)
+# 部署参数 = 最后训练窗选中组合;结构在 22 窗中高度稳定(单腿集中/波调关/带宽5 恒定)
+strategy_id: "S1_GEM_PLUS_FINE"
+version: "1.0.0"
+status: "production"
+universe: ["SPY", "EFA", "QQQ", "GLD", "IEF"]
+cash_proxy: "BIL"
+schedule: {evaluate: "weekly_tuesday", window_after_open_minutes: [30, 90]}
+score:
+  formula: "0.2*r63 + 0.4*r126 + 0.4*r252"
+  lookbacks_trading_days: [63, 126, 252]
+  weights: [0.2, 0.4, 0.4]
+absolute_momentum_filter: {rule: "close > SMA200", sma_period: 200}
+selection: {top_n: 1, weight_each: 1.0}
+volatility_targeting: {enabled: false}
+rebalance_threshold_pct: 5
+execution: {order_type: "LIMIT", price: "mid", repost_after_minutes: 10, max_reposts: 3}

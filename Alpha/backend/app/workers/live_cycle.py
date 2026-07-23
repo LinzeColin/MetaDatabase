@@ -401,7 +401,8 @@ def build_live_cycle(*, factory, kill_switch) -> Callable[[], dict]:
     deps = LiveCycleDeps(
         read_client=read_client, trade_client=trade_client, store=store,
         gateway=gateway, shadow=ShadowRecorder(factory), lease=lease,
-        kill_switch=kill_switch, cfg=load_s1_config("configs/strategies/s1_gold_blend.yaml"),
+        kill_switch=kill_switch, cfg=load_s1_config(os.environ.get(
+            "ALPHA_STRATEGY_CONFIG", "configs/strategies/s1_gold_blend.yaml")),
         capital_usd=capital_aud * fx_aud_usd,
         fx_usd_aud=Decimal(str(round(1.0 / fx_aud_usd, 6))),
         marker_path=Path(os.environ.get("ALPHA_RUNTIME_DIR", "runtime")) / "last_s1_eval.txt",

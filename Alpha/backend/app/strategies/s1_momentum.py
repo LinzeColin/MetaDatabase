@@ -16,7 +16,7 @@ from backend.app.strategies.bars import Bar, assert_ascending, closes, slice_unt
 from backend.app.strategies.indicators import realized_vol_annual_pct, sma, trailing_return
 
 
-MOMENTUM_FAMILY_IDS = {"S1_MOMENTUM_ROTATION", "S1_GOLD_BLEND"}
+MOMENTUM_FAMILY_IDS = {"S1_MOMENTUM_ROTATION", "S1_GOLD_BLEND", "S1_GEM_PLUS_FINE"}
 
 
 def load_s1_config(path: str | Path = "configs/strategies/s1_momentum.yaml") -> dict:
