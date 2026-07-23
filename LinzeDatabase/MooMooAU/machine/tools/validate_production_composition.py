@@ -55,7 +55,13 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def validate(root: Path = PROJECT_ROOT) -> dict[str, object]:
+def validate(
+    root: Path = PROJECT_ROOT,
+    *,
+    verify_contract_cli: bool = True,
+) -> dict[str, object]:
+    """Validate the hash-bound composition and optionally execute its full-dependency CLI."""
+
     root = root.resolve()
     repository_root = root.parents[1]
     failures: list[str] = []
@@ -134,46 +140,47 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, object]:
     ):
         failures.append("production Workflow binding differs from the composition contract")
 
-    try:
-        process = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "moomooau_archive.production",
-                "--contract-only",
-            ],
-            cwd=root,
-            env={
-                "PYTHONPATH": str(root / "src"),
-                "PYTHONDONTWRITEBYTECODE": "1",
-            },
-            capture_output=True,
-            check=False,
-            timeout=30,
-        )
-        public = json.loads(process.stdout)
-    except (OSError, subprocess.TimeoutExpired, UnicodeError, json.JSONDecodeError):
-        process = None
-        public = None
-    if (
-        process is None
-        or process.returncode != 0
-        or process.stderr
-        or not isinstance(public, dict)
-        or public.get("status") != "CONTRACT_ONLY_NO_EXECUTION"
-        or public.get("secret_names") != EXPECTED_SECRET_NAMES
-        or public.get("production_health_claimed") is not False
-        or any(
-            public.get(key) != 0
-            for key in (
-                "real_gmail_calls",
-                "private_repository_calls",
-                "protected_oracles_executed",
-                "production_workflow_runs",
+    if verify_contract_cli:
+        try:
+            process = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "moomooau_archive.production",
+                    "--contract-only",
+                ],
+                cwd=root,
+                env={
+                    "PYTHONPATH": str(root / "src"),
+                    "PYTHONDONTWRITEBYTECODE": "1",
+                },
+                capture_output=True,
+                check=False,
+                timeout=30,
             )
-        )
-    ):
-        failures.append("production contract-only CLI is not a zero-effect offline descriptor")
+            public = json.loads(process.stdout)
+        except (OSError, subprocess.TimeoutExpired, UnicodeError, json.JSONDecodeError):
+            process = None
+            public = None
+        if (
+            process is None
+            or process.returncode != 0
+            or process.stderr
+            or not isinstance(public, dict)
+            or public.get("status") != "CONTRACT_ONLY_NO_EXECUTION"
+            or public.get("secret_names") != EXPECTED_SECRET_NAMES
+            or public.get("production_health_claimed") is not False
+            or any(
+                public.get(key) != 0
+                for key in (
+                    "real_gmail_calls",
+                    "private_repository_calls",
+                    "protected_oracles_executed",
+                    "production_workflow_runs",
+                )
+            )
+        ):
+            failures.append("production contract-only CLI is not a zero-effect offline descriptor")
 
     observation = contract.get("observation", {})
     zero_effect_keys = (

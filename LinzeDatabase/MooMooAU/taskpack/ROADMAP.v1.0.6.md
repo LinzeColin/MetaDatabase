@@ -25,6 +25,11 @@
 - fork PR 在凭据 checkout 前 fail closed；
 - clean checkout 对已关闭 RMD-05 前序只依赖不可变 Manifest，不依赖候选分支不可达的旧 Git object；
 - 普通 CI 的 parser 与 Stage 3 PDF runtime 依赖必须完整进入精确 pin、hash lock、SBOM 和审计面；
+- 历史累计 Job 对 v1.0.6 使用 hash-bound composition 静态验证，Stage 7 完整依赖 Job 继续执行
+  contract-only CLI，二者不得互相冒充；
+- Stage 6 先验证 v1.0.5 Manifest 与完整不可变 authority set，再验证当前 receipt bundle；depth-1
+  checkout 不得因缺少已关闭前序的旧 Git object 而改变证据结论；
+- 固定非 Secret SHA-256 只允许精确逐行 entropy allowlist，其他 Secret 检测器与扫描范围保持不变；
 - 普通 CI 的生产/Gmail/数据仓 Secret 读取保持零；
 - 不执行生产、Gmail mutation、私有数据仓写入、部署或最终发布。
 

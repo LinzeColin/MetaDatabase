@@ -12,6 +12,12 @@
   Manifest 与 assurance provenance 验证；
 - 为 Stage 1 parser 精确固定 `PyYAML==6.0.3`，并将 Stage 3 所需 `pikepdf==10.10.0` 纳入既有
   累计 hash lock、80-component SBOM、advisory 与容器验证面；
+- 第三轮 depth-1 预检后，将 v1.0.6 状态构建的 composition 检查分为历史累计 Job 的 hash-bound
+  静态层与 Stage 7 完整依赖 Job 的真实 CLI 层，不改 production execution path；
+- Stage 6 在精确 v1.0.5 Manifest 与 82 个不可变 authority 文件通过后，以 portable 方式验证当前
+  receipt bundle；旧 RMD-05 Git object 仍不成为 clean checkout 隐式依赖；
+- 对 Stage 5 校验器中的固定 production Workflow SHA-256 增加单行 entropy allowlist，扫描范围、
+  检测器与其他发现处理保持不变；
 - “no-Secret”修订为“零生产 Secret + 唯一只读依赖凭据”；
 - 真实 Gmail、私有数据仓、受保护 Oracle、生产、部署与最终发布仍为 0/NOT_RUN。
 

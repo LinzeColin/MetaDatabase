@@ -77,6 +77,28 @@
     + 4 个 historical expected-BLOCKED 且 tree unchanged；依赖审计零已知漏洞、SBOM byte-equal、
     Secret/publication findings 均为 0。v1.0.5 Manifest、34 RQ/AC、traceability、58-task DAG、
     Kill Criteria 与 canonical facts 的冻结 SHA-256 全部未变。
+16. commit `9d4b4f463d4fb9b42066f6409ddc455234fc31b7` 的第三轮 GitHub-hosted 预检已全部到终态：
+    Stage 6 Codex policy assurance 为唯一 `success`；Stage 1/2/3/4/5、Stage 6 software、
+    Stage 7 与 patch lifecycle 共 8 个 Workflow 为 `failure`；Stage 2–6 的 5 个 CodeQL job
+    独立 `success`。Run IDs：`29985127083`、`29985127086`、`29985127092`、`29985127104`、
+    `29985127105`、`29985127131`、`29985127142`、`29985127144`、`29985127168`。
+17. 第三轮失败已在同构环境精确复现为三个非生产根因：Stage 1–4 的历史累计依赖不足以 import
+    完整 production runtime，却被 v1.0.6 状态构建要求执行 contract-only CLI；Stage 5 Secret scan
+    把校验器中的固定 production Workflow SHA-256 判为单个 entropy finding；Stage 6 当前 evidence
+    再次读取 depth-1 checkout 不存在的旧 RMD-05 receipt anchor，产生 4 个 Git object 错误。
+    Patch package gate 与 Stage 6 model assurance 已通过，证明 v1.0.6 package 与不可变前序本身未漂移。
+18. 三项最窄修复已实现：v1.0.6 状态构建只做 hash-bound composition 静态层，完整 Stage 7 仍执行
+    真实 CLI；Stage 6 在 sibling review check 验证精确 v1.0.5 Manifest 与 82 个不可变 authority
+    后，只对当前 receipt bundle 做 portable 验证；Stage 5 固定 SHA 仅加单行 allowlist。初步验证为
+    最小 Stage 2 环境状态构建 PASS、RMD-06 `15 passed`、完整 composition PASS、Stage 6 evidence
+    errors 0、精确 Stage 5 scan findings 0。派生状态、13 份 facts、7 份文档与 v1.0.6 Manifest 已
+    确定性重建；全新最小 Stage 1 环境的 13 个 task tests 与 validator、最小 Stage 2
+    package/T0101、全量 `257 passed`、S1–S6 cumulative、S7 scoped preflight、Workflow matrix、
+    Governance、package/status/facts/manifest、production composition、34 份结构有效且全部 BLOCKED
+    的 Acceptance、publication/Secret 零 findings、Ruff、strict mypy 74 files、零已知漏洞 audit、
+    SBOM byte-equal 与本地 package build 均 PASS。fresh depth-1 clone 已确认
+    `is-shallow=true`、仅 1 个 commit；最小 Stage 1 package/13 tests、不可变前序 82 个文件、
+    status/package、RMD-06 `15 passed` 与 Stage 6 cumulative 全部 PASS。
 
 ## 关键边界
 
@@ -89,9 +111,9 @@
 
 ## 下一步
 
-1. 复核最终 diff 与冻结哈希后提交当前第三项修复。
-2. 仅向同一受控 RMD-06 候选分支 push 该修复 commit，并观察全部 GitHub-hosted 非生产 Workflow
+1. 重建派生状态、治理事实、文档与 v1.0.6 Manifest，复核全套本地门、最小依赖与 depth-1 clone。
+2. 仅向同一受控 RMD-06 候选分支 push 第四轮修复 commit，并观察全部 GitHub-hosted 非生产 Workflow
    到终态；任一失败或未知均停止。
-3. 第三轮全绿后记录 commit/run 证据并删除远端候选分支；RMD-06 后续仍按
+3. 第四轮全绿后记录 commit/run 证据并删除远端候选分支；RMD-06 后续仍按
    Beta → M3 → Timeline Blue-Green → GA → Recovery →
    最终 AC 顺序推进，任何未知或失败结果立即停止。

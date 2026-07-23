@@ -88,6 +88,21 @@ def _assurance_result(root: Path) -> dict[str, Any]:
         return {"status": "BLOCKED", "errors": ["assurance provenance evaluation failed"]}
 
 
+def _validate_composition_for_state(
+    root: Path,
+    state: dict[str, Any],
+) -> dict[str, object]:
+    # Historical cumulative jobs do not install later-stage runtime dependencies. The exact
+    # v1.0.6 source/workflow hashes remain mandatory here; Stage 7 still executes the CLI.
+    return cast(
+        dict[str, object],
+        validate_composition(
+            root,
+            verify_contract_cli=state.get("package_version") != "1.0.6",
+        ),
+    )
+
+
 def _assurance_paths(root: Path) -> list[Path]:
     review_root = root / ASSURANCE_REVIEW_ROOT
     paths = [path for path in review_root.glob("*.json") if path.is_file()]
@@ -247,7 +262,7 @@ def build_status(
         raise ValueError("RMD-03 Workflow command matrix is incomplete or overstated")
 
     composition = _load(root / PRODUCTION_COMPOSITION_PATH)
-    composition_result = validate_composition(root)
+    composition_result = _validate_composition_for_state(root, state)
     composition_observation = composition.get("observation", {})
     if (
         composition_result.get("status") != "PASS"

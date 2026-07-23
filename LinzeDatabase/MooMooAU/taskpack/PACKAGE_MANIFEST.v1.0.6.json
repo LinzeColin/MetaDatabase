@@ -1144,8 +1144,8 @@
     },
     {
       "path": "machine/stages/S5/tools/validate_stage5.py",
-      "bytes": 31169,
-      "sha256": "82489ae35d734554426bbb1958c976e8023858b275da765eb2adf5e0640c845b"
+      "bytes": 31211,
+      "sha256": "78843c2202609b199517002075c84ffdfce8bb023ec36bce5c25758622dbad42"
     },
     {
       "path": "machine/stages/S6/contracts/run_contract.json",
@@ -1599,8 +1599,8 @@
     },
     {
       "path": "machine/stages/S6/tools/validate_stage6.py",
-      "bytes": 34267,
-      "sha256": "ba304ba84e9d6f936f84a6e65a094ebfcd41254b9dc2d7df49d16e0a4f2af388"
+      "bytes": 34542,
+      "sha256": "460eaa0cde63c6a383d35637bcd827c1fdee7a7ffbf83a5755800a08e82f613f"
     },
     {
       "path": "machine/stages/S7/contracts/run_contract.json",
@@ -1644,8 +1644,8 @@
     },
     {
       "path": "machine/tools/build_delivery_status.py",
-      "bytes": 21033,
-      "sha256": "c3a06597e621a61d0d85406e7f22b235d062988c413b8d24dd27020d67dad486"
+      "bytes": 21522,
+      "sha256": "5013310ecf1b41d36d9638bca614d6f45cf3e1eb57c045b0a0161cc14030f6df"
     },
     {
       "path": "machine/tools/build_governance_facts.py",
@@ -1689,8 +1689,8 @@
     },
     {
       "path": "machine/tools/validate_production_composition.py",
-      "bytes": 7719,
-      "sha256": "e30d57d8ece0ac3c8ae43898eefeef90ff10c53305e89d0fee35862e2362dbdb"
+      "bytes": 8054,
+      "sha256": "17b46fd78ceca9ae649c523de8d749695b5fe4ed66090b1a30cb77e8b8739347"
     },
     {
       "path": "machine/tools/validate_publication.py",
@@ -2259,13 +2259,13 @@
     },
     {
       "path": "taskpack/00_READ_ME_FIRST.v1.0.6.md",
-      "bytes": 2743,
-      "sha256": "4aff422c3db246da6fd50647d474f166337a9758a5c1c18b9c0b117c988f7a27"
+      "bytes": 3434,
+      "sha256": "30dedbe4666d963fbe63a866ea2d8b273ac573737b389f9ee24d3e0435134912"
     },
     {
       "path": "taskpack/CHANGELOG.md",
-      "bytes": 5155,
-      "sha256": "cebf9328df4045802d2d049c2f33b7faebdfe9a83f26ccff40d8c3edb8d6f5bf"
+      "bytes": 5728,
+      "sha256": "bff9ff1ef859bacb11149800236638dfe0cf8ecf0bb5a2c3959ed76898e6bdf7"
     },
     {
       "path": "taskpack/PACKAGE_MANIFEST.v1.0.0.json",
@@ -2304,8 +2304,8 @@
     },
     {
       "path": "taskpack/README.md",
-      "bytes": 3061,
-      "sha256": "e32a0e37fcf40f05f179d9a908e0f7e59b38ea3e266c28b6583b0a17b25fcfcd"
+      "bytes": 3191,
+      "sha256": "bd1170534c6a90c46df99b4558a8df8e878bdc674113c6ef90998ebd1848462c"
     },
     {
       "path": "taskpack/ROADMAP.v1.0.0.md",
@@ -2339,8 +2339,8 @@
     },
     {
       "path": "taskpack/ROADMAP.v1.0.6.md",
-      "bytes": 2469,
-      "sha256": "999af8a8eaeefbba87cd00137efac51d77a8b8f4d5b688acef0e46768f6437ec"
+      "bytes": 2951,
+      "sha256": "5f3893f9df901c97a610becd2ad23850a8ce69acd419d432a0239c1847f035cf"
     },
     {
       "path": "taskpack/SOURCES.v1.0.0.json",
@@ -2619,8 +2619,8 @@
     },
     {
       "path": "tests/remediation/test_rmd06.py",
-      "bytes": 14410,
-      "sha256": "70e14f30d0d386558b12b32b59588b19d5bfb1e39e1b1cd4889357ce892801e3"
+      "bytes": 16443,
+      "sha256": "8fd35bf961eefbe29989079e4cca6e46a3eb9757440300878b34ee3dd3c7f694"
     },
     {
       "path": "tests/stage3_support.py",

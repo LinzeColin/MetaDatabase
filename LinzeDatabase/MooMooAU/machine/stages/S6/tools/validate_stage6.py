@@ -496,7 +496,10 @@ def _validate_public_surfaces(root: Path) -> list[str]:
 def _validate_evidence(root: Path) -> list[str]:
     from jsonschema import Draft202012Validator, FormatChecker
 
-    errors: list[str] = validate_stage6_candidate_bundle(root, REPOSITORY_ROOT)
+    # The sibling review check has already verified the exact v1.0.5 manifest and all immutable
+    # RMD-05 authorities. Current-package evidence therefore needs only its portable receipt
+    # structure here; a depth-1 cloud checkout cannot resolve the predecessor's old Git objects.
+    errors: list[str] = validate_stage6_candidate_bundle(root, None)
     if errors:
         return errors
     schema = _load(root / "machine/stages/S6/schemas/stage6-evidence-v2.schema.json")

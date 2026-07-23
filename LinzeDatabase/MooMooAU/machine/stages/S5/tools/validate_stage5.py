@@ -486,7 +486,7 @@ def _validate_workflows(root: Path) -> list[str]:
         "requirements/stage6.lock",
         "--require-hashes",
         "--no-build-isolation --no-deps .",
-        "bdc69c09cbdd6cf8b1f333d372a1f58247b3a33146406333e30c0f26e8f51377",
+        "bdc69c09cbdd6cf8b1f333d372a1f58247b3a33146406333e30c0f26e8f51377",  # pragma: allowlist secret  # noqa: E501
         "python -m moomooau_archive.production",
         "--execute-protected",
         '--event-name "$EVENT_NAME"',

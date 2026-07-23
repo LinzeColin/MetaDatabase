@@ -8,6 +8,7 @@ import build_delivery_status as delivery_status
 import pytest
 import validate_assurance_reviews as assurance_reviews
 import validate_package as package_validation
+import validate_production_composition as composition_validation
 from pytest import MonkeyPatch
 from validate_evidence import PROJECT_ROOT
 from validate_workflow_matrix import (
@@ -18,6 +19,7 @@ from validate_workflow_matrix import (
 )
 
 from machine.acceptance import evidence as acceptance_evidence
+from machine.stages.S6.tools import validate_stage6 as stage6_validation
 
 
 def test_rmd06_rejects_runner_context_before_a_job_has_a_runner() -> None:
@@ -243,6 +245,68 @@ def test_rmd06_delivery_status_uses_portable_stage6_binding_validation(
         repository_root=repository_root,
     )
     assert observed_roots == [None, repository_root]
+
+
+def test_rmd06_delivery_status_uses_static_composition_only_for_v106(
+    monkeypatch: MonkeyPatch,
+) -> None:
+    observed: list[bool] = []
+
+    def record_validation(
+        _root: Path,
+        *,
+        verify_contract_cli: bool = True,
+    ) -> dict[str, object]:
+        observed.append(verify_contract_cli)
+        return {"status": "PASS"}
+
+    monkeypatch.setattr(delivery_status, "validate_composition", record_validation)
+    assert delivery_status._validate_composition_for_state(
+        PROJECT_ROOT,
+        {"package_version": "1.0.6"},
+    ) == {"status": "PASS"}
+    assert delivery_status._validate_composition_for_state(
+        PROJECT_ROOT,
+        {"package_version": "1.0.5"},
+    ) == {"status": "PASS"}
+    assert observed == [False, True]
+
+
+def test_rmd06_static_composition_validation_does_not_import_later_runtime(
+    monkeypatch: MonkeyPatch,
+) -> None:
+    def reject_subprocess(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("static composition validation must not import the runtime")
+
+    monkeypatch.setattr(composition_validation.subprocess, "run", reject_subprocess)
+    assert (
+        composition_validation.validate(
+            PROJECT_ROOT,
+            verify_contract_cli=False,
+        )["status"]
+        == "PASS"
+    )
+
+
+def test_rmd06_stage6_closure_uses_portable_candidate_bundle(
+    monkeypatch: MonkeyPatch,
+) -> None:
+    observed_roots: list[Path | None] = []
+
+    def record_bundle_validation(
+        _root: Path,
+        candidate_repository_root: Path | None = None,
+    ) -> list[str]:
+        observed_roots.append(candidate_repository_root)
+        return []
+
+    monkeypatch.setattr(
+        stage6_validation,
+        "validate_stage6_candidate_bundle",
+        record_bundle_validation,
+    )
+    assert stage6_validation._validate_evidence(PROJECT_ROOT) == []
+    assert observed_roots == [None]
 
 
 def test_rmd06_shallow_acceptance_base_requires_the_exact_provenance_pin(

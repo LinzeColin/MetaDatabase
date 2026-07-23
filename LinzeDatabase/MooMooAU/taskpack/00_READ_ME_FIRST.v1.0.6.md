@@ -24,6 +24,12 @@
    `Pillow` 必须进入其既有累计 hash lock、SBOM、advisory 和容器验证面；
 10. 以上三项由首轮受控候选分支预检暴露，仅属于 RMD-06 Workflow 可执行性修复，不改变产品契约、
     protected Oracle、生产或发布口径。
+11. 后续 depth-1 预检继续要求：v1.0.6 状态构建在历史累计 Job 中只执行 hash-bound composition
+    静态验证，完整依赖的 Stage 7 仍必须执行真实 contract-only CLI；Stage 6 在独立验证精确 v1.0.5
+    Manifest 与 82 个不可变权威文件后，只对当前 candidate bundle 做无旧 Git object 的结构绑定；
+    固定 Workflow SHA-256 仅允许逐行 entropy allowlist，不得扩大 Secret 扫描排除范围。
+12. 这些后续修复只消除第三轮 GitHub-hosted 非生产预检暴露的环境误耦合与确定性误报，不改变
+    production composition、RMD-05 evidence、受保护 Oracle、最终 Acceptance 或发布语义。
 
 ## 开发入口
 
