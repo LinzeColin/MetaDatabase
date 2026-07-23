@@ -402,7 +402,7 @@ def test_t0708_stage7_aggregate_is_truthfully_blocked_until_protected_oracles() 
     aggregate = json.loads(
         (PROJECT_ROOT / "evidence/stage7/latest.json").read_text(encoding="utf-8")
     )
-    assert aggregate["status"] == "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES"
+    assert aggregate["status"] == "BLOCKED_PROTECTED_BETA_FAILED"
     assert (
         aggregate["scoped_preflight"]
         == "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
@@ -411,7 +411,19 @@ def test_t0708_stage7_aggregate_is_truthfully_blocked_until_protected_oracles() 
     assert aggregate["observation"]["patch_lifecycle_local_policy"] == "PASS"
     assert aggregate["observation"]["protected_patch_lifecycle"] == "NOT_RUN"
     assert aggregate["implementation_completion_status"] == "LOCAL_MECHANISMS_READY"
-    assert aggregate["protected_oracles_executed"] == 0
+    assert aggregate["observation"]["alpha_remote_preflight"] == "PASS"
+    assert aggregate["observation"]["beta_real_raw_only"] == "FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT"
+    assert (
+        aggregate["observation"]["beta_public_safe_failure_diagnostics"]
+        == "LOCAL_READY_AUTHORIZED_FOR_DELIVERY"
+    )
+    assert aggregate["protected_oracles_executed"] == 2
+    assert aggregate["protected_oracles_passed"] == 1
+    assert aggregate["protected_oracles_failed"] == 1
+    assert aggregate["protected_workflow_runs"] == 1
     assert aggregate["production_workflow_runs"] == 0
     assert aggregate["final_acceptances_passed"] == 0
-    assert aggregate["delivery_status"] == "LOCAL_ONLY_NOT_PUBLISHED"
+    assert (
+        aggregate["delivery_status"]
+        == "CONTROLLED_BETA_MAIN_DELIVERY_MERGED_LOCAL_RECEIPT_NOT_PUBLISHED"
+    )

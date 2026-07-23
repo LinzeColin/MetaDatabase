@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 受保护验收准备",
-  "phase": "RMD-06 受保护验收准备",
-  "task": "T0702 入口仅本地就绪；先解决顺序与 protected prerequisites，不进入 M3",
+  "stage": "RMD-06 T0702 已授权复验",
+  "phase": "历史 Beta 失败；本地修复与无日历等待门就绪",
+  "task": "复核本地公开安全诊断；新交付未授权，不进入 M3",
   "owner": "Codex 开发线程"
 }

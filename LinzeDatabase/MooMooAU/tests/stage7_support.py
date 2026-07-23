@@ -95,6 +95,7 @@ from moomooau_archive.protected_beta import (
     SENDER_REGISTRY_SECRET_NAME,
     ProtectedBetaBootstrap,
 )
+from moomooau_archive.protected_beta_diagnostics import ProtectedBetaDiagnostics
 from moomooau_archive.raw_commit import (
     MemoryAppendOnlyCiphertextStore,
     OpaqueIdFactory,
@@ -172,8 +173,8 @@ def phase_observation(
     defaults = {
         ReleasePhase.ALPHA: (0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
         ReleasePhase.BETA_RAW_ONLY: (1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0),
-        ReleasePhase.M3_CANARY: (7, 7, 7, 7, 7, 1, 7, 7, 0, 0, 7, 0, 0, 1),
-        ReleasePhase.BLUE_GREEN: (14, 14, 14, 14, 14, 1, 14, 14, 1, 1, 14, 14, 14, 2),
+        ReleasePhase.M3_CANARY: (0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1),
+        ReleasePhase.BLUE_GREEN: (0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
         ReleasePhase.GA: (1, 1, 1, 1, 1, 10, 1, 1, 1, 1, 1, 0, 1, 1),
     }[phase]
     (
@@ -355,6 +356,7 @@ def canary_context(
     messages: tuple[SyntheticGmailMessage, ...],
     *,
     capacity: CapacityAssessment | None = None,
+    diagnostics: ProtectedBetaDiagnostics | None = None,
 ) -> Iterator[CanaryContext]:
     generated = AgeIdentityGenerator().generate()
     opaque_key = SecretBytes(b"synthetic-stage7-opaque-key-material-0001")
@@ -387,6 +389,7 @@ def canary_context(
                 ),
             ),
             OperationalGate(capacity or synthetic_capacity()),
+            diagnostics=diagnostics,
         )
         yield CanaryContext(runner, transport, store)
     finally:
@@ -1025,6 +1028,7 @@ def protected_beta_context(
     capacity_age_hours: int = 0,
     identity_matches_recipient: bool = True,
     github_key_valid: bool = True,
+    diagnostics: ProtectedBetaDiagnostics | None = None,
 ) -> Iterator[ProtectedBetaContext]:
     now = datetime(2026, 7, 22, 1, tzinfo=UTC)
     repository_id = 7_100_101
@@ -1118,6 +1122,7 @@ def protected_beta_context(
             approved_tmpfs_root=Path(temporary.name),
             clock=lambda: now,
             allow_synthetic_ephemeral_root=True,
+            diagnostics=diagnostics,
         )
         yield ProtectedBetaContext(
             bootstrap,

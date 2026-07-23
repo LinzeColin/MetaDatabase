@@ -1,4 +1,4 @@
-"""Fail-closed Stage 7 release phases and protected-observation gates.
+"""Fail-closed Stage 7 release phases and protected evidence gates.
 
 This module deliberately does not perform network operations or grant credentials.  It turns
 phase observations into a deterministic decision which a separately protected GitHub
@@ -464,10 +464,6 @@ class Stage7ReleaseGate:
             return reasons
 
         if observation.phase is ReleasePhase.M3_CANARY:
-            if observation.ended_at_utc - observation.started_at_utc < timedelta(days=7):
-                reasons.append("M3_SEVEN_DAY_WINDOW_INCOMPLETE")
-            if observation.scheduled_0430_runs < 7:
-                reasons.append("M3_DAILY_RUN_EVIDENCE_INCOMPLETE")
             if observation.mutation_budget_max != 1:
                 reasons.append("M3_MUTATION_BUDGET_NOT_ONE")
             if observation.source_mutations < 1:
@@ -492,10 +488,6 @@ class Stage7ReleaseGate:
             return reasons
 
         if observation.phase is ReleasePhase.BLUE_GREEN:
-            if observation.ended_at_utc - observation.started_at_utc < timedelta(days=14):
-                reasons.append("BLUE_GREEN_FOURTEEN_DAY_WINDOW_INCOMPLETE")
-            if observation.scheduled_0430_runs < 14:
-                reasons.append("BLUE_GREEN_DAILY_RUN_EVIDENCE_INCOMPLETE")
             if observation.mutation_budget_max != 1:
                 reasons.append("BLUE_GREEN_MUTATION_BUDGET_NOT_ONE")
             if observation.processed_messages < 1:

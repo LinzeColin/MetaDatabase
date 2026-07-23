@@ -105,8 +105,8 @@ def test_t0406_blue_green_keeps_v1_appends_v2_and_promotes_only_after_fourteen_d
     stored_pointer = store.fetch_current(pointer_path)
     assert stored_pointer is not None
 
-    pending = comparator.compare(v2, incumbent, observed_days=13)
-    assert pending.action is PromotionAction.OBSERVATION_WINDOW_PENDING
+    pending = comparator.shadow(v2, incumbent)
+    assert pending.action is PromotionAction.CANDIDATE_SHADOW_ONLY
     pending_plan = planner.plan(
         v2,
         pending,
@@ -119,7 +119,7 @@ def test_t0406_blue_green_keeps_v1_appends_v2_and_promotes_only_after_fourteen_d
     assert not pending_result.current_pointer_updated
     assert store.fetch_current(pointer_path) == stored_pointer
 
-    promotion = comparator.compare(v2, incumbent, observed_days=14)
+    promotion = comparator.compare(v2, incumbent, observed_days=0)
     assert promotion.action is PromotionAction.SEMANTICALLY_EQUAL_PROMOTION
     promotion_plan = planner.plan(
         v2,
@@ -150,7 +150,7 @@ def test_t0406_changed_business_output_requires_bound_protected_approval() -> No
     changed = _bundle(parser_version="2.0.0", rename_summary=True)
     incumbent = current_pointer(v1)
     comparator = ParserBlueGreenComparator()
-    required = comparator.compare(changed, incumbent, observed_days=14)
+    required = comparator.compare(changed, incumbent, observed_days=0)
     assert required.action is PromotionAction.PROTECTED_APPROVAL_REQUIRED
     assert not required.promote_current
 
@@ -165,7 +165,7 @@ def test_t0406_changed_business_output_requires_bound_protected_approval() -> No
     approved = comparator.compare(
         changed,
         incumbent,
-        observed_days=14,
+        observed_days=0,
         approval=approval,
     )
     assert approved.action is PromotionAction.PROTECTED_APPROVED_PROMOTION
@@ -176,7 +176,7 @@ def test_t0406_changed_business_output_requires_bound_protected_approval() -> No
         stage4_context(message_suffix="blue-green").recipient,
     )
     reused_version = _bundle(parser_version="1.0.0", rename_summary=True)
-    reuse_conflict = comparator.compare(reused_version, incumbent, observed_days=14)
+    reuse_conflict = comparator.compare(reused_version, incumbent, observed_days=0)
     assert reuse_conflict.action is PromotionAction.VERSION_REUSE_CONFLICT
     with pytest.raises(ProcessedCommitError, match="cannot be committed"):
         planner.plan(
@@ -188,7 +188,7 @@ def test_t0406_changed_business_output_requires_bound_protected_approval() -> No
         )
 
     v2_incumbent = current_pointer(_bundle(parser_version="2.0.0"))
-    rollback = comparator.compare(v1, v2_incumbent, observed_days=14)
+    rollback = comparator.compare(v1, v2_incumbent, observed_days=0)
     assert rollback.action is PromotionAction.VERSION_ROLLBACK_BLOCKED
     with pytest.raises(ProcessedCommitError, match="cannot be committed"):
         planner.plan(

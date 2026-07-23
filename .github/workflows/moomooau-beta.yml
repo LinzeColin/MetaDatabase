@@ -86,22 +86,31 @@ jobs:
         run: |
           python -m ruff format --check \
             src/moomooau_archive/release_control.py \
+            src/moomooau_archive/canary_runtime.py \
             src/moomooau_archive/protected_beta.py \
+            src/moomooau_archive/protected_beta_diagnostics.py \
             src/moomooau_archive/protected_beta_entrypoint.py \
+            tests/stage7_support.py \
             tests/tasks/test_t0701.py \
             tests/tasks/test_t0702.py \
             machine/stages/S7/tools/validate_stage7.py
           python -m ruff check --no-cache \
             src/moomooau_archive/release_control.py \
+            src/moomooau_archive/canary_runtime.py \
             src/moomooau_archive/protected_beta.py \
+            src/moomooau_archive/protected_beta_diagnostics.py \
             src/moomooau_archive/protected_beta_entrypoint.py \
+            tests/stage7_support.py \
             tests/tasks/test_t0701.py \
             tests/tasks/test_t0702.py \
             machine/stages/S7/tools/validate_stage7.py
           python -m mypy --no-incremental --cache-dir "$RUNNER_TEMP/mypy-cache" \
             src/moomooau_archive/release_control.py \
+            src/moomooau_archive/canary_runtime.py \
             src/moomooau_archive/protected_beta.py \
+            src/moomooau_archive/protected_beta_diagnostics.py \
             src/moomooau_archive/protected_beta_entrypoint.py
+          test -f machine/stages/S7/schemas/protected-beta-public-failure-v1.schema.json
           python -m pytest -q tests/tasks/test_t0701.py tests/tasks/test_t0702.py
           python machine/tools/validate_package.py
           python machine/tools/validate_delivery_status.py

@@ -4,7 +4,7 @@
   "stage_id": "S7",
   "task_id": "T0701",
   "stage_acceptance_id": "S7AC-001",
-  "observed_at_utc": "2026-07-20T05:48:52Z",
+  "observed_at_utc": "2026-07-23T10:29:39Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "record_status": "READY",
   "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
@@ -19,9 +19,10 @@
     {"id": "AC-033", "status": "PARTIAL", "reason": "Local taskpack and implementation checks pass; remote Alpha and later observations remain not run."}
   ],
   "production_oracles": [
-    {"id": "REMOTE_ALPHA_NO_SECRET_PREFLIGHT", "status": "NOT_RUN", "reason": "The Owner authorized one controlled T0702-enablement main delivery, but the exact commit has not yet been merged or observed by GitHub Actions."}
+    {"id": "REMOTE_ALPHA_NO_SECRET_PREFLIGHT", "status": "PASS", "reason": "The same-tree no-Secret Alpha job completed successfully on the exact merged main commit before the protected Beta job began."}
   ],
-  "blockers": ["OWNER_AUTHORIZED_CONTROLLED_MAIN_DELIVERY_NOT_YET_EXECUTED"],
+  "protected_execution_receipt": "machine/stages/S7/reviews/t0702/execution-receipt.json",
+  "blockers": ["FINAL_ACCEPTANCE_STILL_BLOCKED_AFTER_ALPHA"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "Observe the no-Secret same-tree Alpha gate within the single owner-authorized T0702 protected workflow; do not grant Alpha any production effect."
+  "next_action": "Retain the remote Alpha PASS as a non-production predecessor observation; do not promote it to T0702, final Acceptance or production health because the protected Beta job failed."
 }

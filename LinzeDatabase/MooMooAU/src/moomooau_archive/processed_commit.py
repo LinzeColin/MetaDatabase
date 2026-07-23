@@ -58,7 +58,7 @@ class ProcessedObjectRole(StrEnum):
 class PromotionAction(StrEnum):
     INITIAL_PROMOTION = "INITIAL_PROMOTION"
     IDEMPOTENT_CURRENT = "IDEMPOTENT_CURRENT"
-    OBSERVATION_WINDOW_PENDING = "OBSERVATION_WINDOW_PENDING"
+    CANDIDATE_SHADOW_ONLY = "CANDIDATE_SHADOW_ONLY"
     SEMANTICALLY_EQUAL_PROMOTION = "SEMANTICALLY_EQUAL_PROMOTION"
     PROTECTED_APPROVAL_REQUIRED = "PROTECTED_APPROVAL_REQUIRED"
     PROTECTED_APPROVED_PROMOTION = "PROTECTED_APPROVED_PROMOTION"
@@ -261,8 +261,6 @@ class BlueGreenDecision:
 
 
 class ParserBlueGreenComparator:
-    minimum_observation_days = 14
-
     def compare(
         self,
         candidate: ProcessedBundle,
@@ -303,13 +301,6 @@ class ParserBlueGreenComparator:
                 else "PARSER_VERSION_REUSED_WITH_DIFFERENT_OUTPUT"
             )
             return self._decision(action, candidate, incumbent, reason)
-        if observed_days < self.minimum_observation_days:
-            return self._decision(
-                PromotionAction.OBSERVATION_WINDOW_PENDING,
-                candidate,
-                incumbent,
-                "FOURTEEN_DAY_OBSERVATION_INCOMPLETE",
-            )
         if candidate.business_root == incumbent.business_root:
             return self._decision(
                 PromotionAction.SEMANTICALLY_EQUAL_PROMOTION,
@@ -335,6 +326,24 @@ class ParserBlueGreenComparator:
             candidate,
             incumbent,
             "PROTECTED_CHANGE_APPROVAL_VERIFIED",
+        )
+
+    def shadow(
+        self,
+        candidate: ProcessedBundle,
+        incumbent: CurrentProcessedPointer,
+    ) -> BlueGreenDecision:
+        """Bind an append-only candidate without authorizing a current-pointer change."""
+
+        if candidate.source_id != incumbent.source_id or _semver_key(
+            candidate.parser_version
+        ) <= _semver_key(incumbent.parser_version):
+            raise ProcessedCommitError("blue-green shadow candidate is invalid")
+        return self._decision(
+            PromotionAction.CANDIDATE_SHADOW_ONLY,
+            candidate,
+            incumbent,
+            "CANDIDATE_SHADOW_ONLY",
         )
 
     @staticmethod

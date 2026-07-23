@@ -31,7 +31,7 @@ from moomooau_archive.release_control import (
 from moomooau_archive.remote_recovery_gate import RemoteRecoveryError, RemoteRecoveryGate
 
 
-def test_t0703_m3_canary_requires_budget_one_recovery_and_seven_days() -> None:
+def test_t0703_m3_canary_requires_budget_one_and_complete_deterministic_evidence() -> None:
     with pytest.raises(ReleaseControlError, match="current parser"):
         FeatureFlags.for_phase(ReleasePhase.M3_CANARY)
     flags = FeatureFlags.for_phase(
@@ -59,14 +59,21 @@ def test_t0703_m3_canary_requires_budget_one_recovery_and_seven_days() -> None:
     )
     assert report.status is GateStatus.READY
 
-    short = phase_observation(ReleasePhase.M3_CANARY, days=6, scheduled_runs=6)
+    same_day = phase_observation(ReleasePhase.M3_CANARY, days=0, scheduled_runs=0)
+    same_day_report = Stage7ReleaseGate().evaluate_promotion(
+        ReleasePhase.BLUE_GREEN,
+        (alpha, beta, same_day),
+        beta_message_budget=1,
+        parser_current_version="1.0.0",
+    )
+    assert same_day_report.status is GateStatus.READY
+
     wrong_budget = phase_observation(ReleasePhase.M3_CANARY, mutation_budget_max=2)
     no_recovery = phase_observation(
         ReleasePhase.M3_CANARY,
-        recovery_successes=6,
+        recovery_successes=0,
     )
     for observation, code in (
-        (short, "M3_SEVEN_DAY_WINDOW_INCOMPLETE"),
         (wrong_budget, "M3_MUTATION_BUDGET_NOT_ONE"),
         (no_recovery, "M3_RECOVERY_NOT_ONE_HUNDRED_PERCENT"),
     ):

@@ -512,10 +512,23 @@ def _validate_later_stage_record(
     if record.get("delivery_status") != "LOCAL_ONLY_NOT_PUBLISHED":
         errors.append("later-stage evidence must remain local and unpublished")
     production_oracles = record.get("production_oracles", [])
+    expected_protected_status = {
+        "T0701": "PASS",
+        "T0702": "FAILED",
+    }.get(task_id, "NOT_RUN")
     if isinstance(production_oracles, list) and any(
-        item.get("status") != "NOT_RUN" for item in production_oracles if isinstance(item, dict)
+        item.get("status") != expected_protected_status
+        for item in production_oracles
+        if isinstance(item, dict)
     ):
         errors.append("protected production Oracle claim is overstated")
+    expected_receipt = (
+        "machine/stages/S7/reviews/t0702/execution-receipt.json"
+        if task_id in {"T0701", "T0702"}
+        else None
+    )
+    if record.get("protected_execution_receipt") != expected_receipt:
+        errors.append("protected execution receipt binding differs")
 
     record_status = record.get("record_status")
     check_statuses = (

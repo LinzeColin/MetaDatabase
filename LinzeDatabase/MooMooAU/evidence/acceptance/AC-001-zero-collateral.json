@@ -48,15 +48,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0702.json",
-      "evidence_sha256": "d5509d1531e221208f9e9201a499d9fb9729ee5b92034856a0bce6da961d3569",
+      "evidence_sha256": "634f8afe9d6efc190e72311fdf1496aa4ee12bc5c088920a16c98ceb07effbab",
       "final_claim_status": "NOT_RUN",
-      "reason": "No real mailbox discovery or candidate set was accessed.",
+      "reason": "The failed protected attempt did not emit sufficient aggregate evidence to prove the full zero-collateral Oracle.",
       "source_record_status": "BLOCKED",
       "task_id": "T0702"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "observed_at_utc": "2026-07-23T10:29:39Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

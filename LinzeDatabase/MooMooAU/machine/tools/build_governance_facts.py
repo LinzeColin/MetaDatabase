@@ -36,6 +36,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         raise ValueError("delivery status authority identity mismatch")
     closed = delivery["package_version"] in {"1.0.5", "1.0.6"}
     dependency_auth_ready = delivery["package_version"] == "1.0.6"
+    protected_beta_failed = (
+        delivery.get("dimensions", {}).get("protected_oracles", {}).get("status") == "FAILED"
+    )
     findings = delivery.get("resolved_review_findings", [])
     blockers = delivery.get("blockers", [])
     if closed:
@@ -53,7 +56,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S4": "本地机制有证据；正式任务未完成",
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
-        "S7": "本地预检有证据；受保护门阻塞",
+        "S7": (
+            "本地预检与安全诊断修复有证据；历史 Beta 失败且新执行未授权"
+            if protected_beta_failed
+            else "本地预检有证据；受保护门阻塞"
+        ),
     }
     if set(stage_sources) != set(stage_status) or any(
         item["evidence_validation_status"] != "PASS" for item in stage_sources.values()
@@ -77,7 +84,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S4": "血缘完整、错误密码不产出错误数据、公开敏感值为零",
         "S5": "消息级变更零误伤、失败不变更、最新图稳态唯一且可修复",
         "S6": "强制混沌与恢复场景全部通过、真实数据不进入模型",
-        "S7": "分阶段观察满足零误伤、零泄漏、恢复完整后才能正式启用",
+        "S7": (
+            "按前序执行确定性受保护证据门；零误伤、零泄漏、恢复完整后才能正式启用；无固定日历等待"
+        ),
     }
     roadmap = {
         "stages": [
@@ -94,10 +103,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     blocker_content = {
         "FORMAL_TASKS_INCOMPLETE": "正式任务仅完成 7/58，51 项仍受最终验收门约束",
         "PROTECTED_ORACLES_NOT_RUN": "受保护验证尚未运行",
+        "PROTECTED_BETA_FAILED": "唯一授权的 T0702 Beta 已失败，未产生首个远端 Raw 提交",
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
-        "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "受保护验收与观察尚未执行",
+        "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "后续受保护验收与确定性运行尚未执行",
+        "SECOND_BETA_DELIVERY_AND_RERUN_WITHHELD": (
+            "历史暂缓已由 Owner 的 Stage 7 完工授权解除；仍禁止 GitHub rerun"
+        ),
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD": "按 Owner 顺序，最终干净快照与发布暂缓",
     }
     open_blockers = [
@@ -113,10 +126,16 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     dimensions = delivery["dimensions"]
     status = {
         "version": delivery["package_version"],
-        "stage": "RMD-06 受保护验收准备",
-        "phase": "T0702 入口本地就绪，真实 Beta 阻塞",
+        "stage": ("RMD-06 T0702 已授权复验" if protected_beta_failed else "RMD-06 受保护验收准备"),
+        "phase": (
+            "历史 T0702 Beta 已失败；安全诊断本地就绪；新交付未授权且禁止进入 M3"
+            if protected_beta_failed
+            else "T0702 入口本地就绪，真实 Beta 阻塞"
+        ),
         "task": (
-            "T0702 Raw-only 入口本地就绪；顺序与 protected prerequisites 待解决"
+            "复核本地有界安全诊断；等待新的单次交付与首次 Beta 授权"
+            if protected_beta_failed
+            else "T0702 Raw-only 入口本地就绪；顺序与 protected prerequisites 待解决"
             if dependency_auth_ready
             else (
                 "RMD-05 保证来源链已关闭；下一项 RMD-06"
@@ -126,7 +145,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         ),
         "real_progress": (
             "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；"
-            "受保护验证 0/43；最终验收 0/34；生产阻塞"
+            f"受保护验证 {dimensions['protected_oracles']['executed']}/"
+            f"{dimensions['protected_oracles']['declared']}（通过 "
+            f"{dimensions['protected_oracles']['passed']}、失败 "
+            f"{dimensions['protected_oracles']['failed']}）；最终验收 0/34；生产阻塞"
         ),
         "report_grade": "机器证据",
         "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",
@@ -318,7 +340,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             {
                 "en": "protected",
                 "zh": "受保护",
-                "note": "需要受保护环境、来源和真实观察的执行范围",
+                "note": "需要受保护环境、来源和确定性运行证据的执行范围",
             },
             {
                 "en": "prerequisites",
@@ -359,6 +381,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "zh": "工作流",
                 "note": "GitHub-hosted 验证或生产编排定义",
             },
+            {"en": "Run", "zh": "执行轮次", "note": "一次受契约约束的开发或受保护执行"},
+            {"en": "dispatch", "zh": "手动触发", "note": "显式触发一次受保护工作流"},
+            {"en": "rerun", "zh": "重新运行", "note": "对既有远端工作流再次执行"},
             {"en": "intake", "zh": "导入审计", "note": "早期只读接收记录标识"},
             {"en": "RMD-", "zh": "复审修复组", "note": "整体复审后的顺序修复单元"},
             {
@@ -370,6 +395,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "en": "PROTECTED_ORACLES_NOT_RUN",
                 "zh": "受保护验证未运行",
                 "note": "唯一状态模型的稳定阻塞编号",
+            },
+            {
+                "en": "PROTECTED_BETA_FAILED",
+                "zh": "受保护测试阶段失败",
+                "note": "唯一授权的 T0702 受保护执行未满足其验收门",
             },
             {
                 "en": "FINAL_ACCEPTANCE_BLOCKED",
@@ -398,8 +428,13 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             },
             {
                 "en": "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
-                "zh": "受保护验收与观察待执行",
+                "zh": "后续受保护验收与确定性运行待执行",
                 "note": "RMD-05 关闭后下一组的稳定阻塞编号",
+            },
+            {
+                "en": "SECOND_BETA_DELIVERY_AND_RERUN_WITHHELD",
+                "zh": "历史第二次测试交付暂缓（已解除）",
+                "note": "Owner 已授权 serial new first-attempt；GitHub rerun 仍禁止",
             },
             {
                 "en": "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD",
@@ -457,10 +492,18 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         ]
     }
     plan = {
-        "stage": "RMD-06 受保护验收准备",
-        "phase": ("RMD-06 受保护验收准备" if dependency_auth_ready else "RMD-05 保证来源链闭包"),
+        "stage": ("RMD-06 T0702 已授权复验" if protected_beta_failed else "RMD-06 受保护验收准备"),
+        "phase": (
+            "历史 Beta 失败；本地修复与无日历等待门就绪"
+            if protected_beta_failed
+            else "RMD-06 受保护验收准备"
+            if dependency_auth_ready
+            else "RMD-05 保证来源链闭包"
+        ),
         "task": (
-            "T0702 入口仅本地就绪；先解决顺序与 protected prerequisites，不进入 M3"
+            "复核本地公开安全诊断；新交付未授权，不进入 M3"
+            if protected_beta_failed
+            else "T0702 入口仅本地就绪；先解决顺序与 protected prerequisites，不进入 M3"
             if dependency_auth_ready
             else ("RMD-05 已关闭；下一轮仅进入 RMD-06" if closed else "仅完成 RMD-05")
         ),
@@ -485,8 +528,13 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             },
             {
                 "id": "`受保护验证`",
-                "criteria": "已声明 43、已执行 0、通过 0",
-                "status": "阻塞",
+                "criteria": (
+                    f"已声明 {dimensions['protected_oracles']['declared']}、"
+                    f"已执行 {dimensions['protected_oracles']['executed']}、"
+                    f"通过 {dimensions['protected_oracles']['passed']}、"
+                    f"失败 {dimensions['protected_oracles']['failed']}"
+                ),
+                "status": "阻塞（Beta 失败）" if protected_beta_failed else "阻塞",
             },
             {
                 "id": "`最终验收`",
@@ -575,8 +623,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "summary": (
                     "为私有 Governance 增加单仓只读 Deploy Key 依赖认证、"
                     "fork PR fail-closed 与 workflow expression 修复，完成 9/9 云端非生产预检，"
-                    "并在本地增加 T0702 main-only Raw-only 入口；"
-                    "真实 Beta、M3、生产与最终发布仍关闭。"
+                    "一次受控 T0702 运行中 Alpha 通过、Beta 在首个 Raw 提交前失败；"
+                    "本地增加公开安全诊断并移除固定日历等待，M3、生产与最终发布仍关闭。"
                 ),
             },
         )

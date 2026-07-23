@@ -37,9 +37,28 @@
 - 真实 metadata-only 发现确认 Gmail 默认 metadata 响应仍可能携带 `snippet`，因此 Beta 请求现强制
   exact partial-response fields 并继续拒绝任何内容派生字段；sender verifier 同时按 RFC 8601 接受
   `header.i`，且对同一 DKIM 结果中出现的全部 `header.d`/`header.i` identity fail closed；
-- 上述 pre-dispatch bootstrap 与兼容性修复不冒充受保护运行：PR/merge、Raw 读取、私有仓写入、
-  protected Oracle 与 Workflow dispatch 仍为 0，真实 Beta/S7AC-002 继续 `BLOCKED/NOT_RUN`；
-- 真实 RAW、私有数据仓内容写入、受保护 Oracle、生产、部署与最终发布仍为 0/NOT_RUN。
+- 经唯一授权的 PR #88 已合并到 `main`；该受控 Beta 交付不是最终发布，普通 main CI 全绿；
+- 唯一 first-attempt protected workflow 已执行：同树 Alpha PASS，Beta 返回
+  `PROTECTED_BETA_RUN_FAILED`，identity tmpfs cleanup PASS；未 rerun；
+- 运行后唯一私有数据仓仍为 64-byte 单文件、单 commit、零 release 的 bootstrap 基线，首个远端
+  Raw commit 未发生；verified full Raw read 因 aggregate-only 日志只能记为
+  `UNDETERMINED_WITHIN_BUDGET_ONE`，不得伪造为 0；
+- Gmail mutation、M3、Processed、Timeline、schedule、production Workflow 与最终发布仍为 0；
+  T0702/S7AC-002、生产健康与最终 Acceptance 均未通过；
+- 新增精确 schema-bound 失败 receipt，并把唯一状态、Stage 7 aggregate、Acceptance、Governance
+  facts/七文档、provenance 与 Manifest 收敛到 `BLOCKED_PROTECTED_BETA_FAILED`；本轮停止，不进行
+  第二次交付、dispatch、rerun 或 M3；
+- 后续纯本地 Stage 7 repair 新增 19 项固定 public-safe failure phase、唯一 reason-code mapping
+  与拒绝额外字段/错配的 exact JSON Schema；renderer 不接收异常对象或动态 protected 值；
+- 合成 phase probes 覆盖 context、bootstrap、Raw runtime、recovery、aggregate 与 cleanup，
+  repair Run Contract 的远端、Secret、Gmail、私有仓、M3 与发布预算全部为 0；该 repair 未上传，
+  历史失败根因仍未知，T0702/S7AC-002 仍为 `BLOCKED`；
+- 按 Owner 最新指令移除 M3 七天与 Blue-Green 十四天的固定日历等待；两阶段分别以一次有界受保护
+  运行中的确定性恢复、Mutation、Parser 比较、Full Reconcile 与单一 Timeline 证据判定，前序和
+  安全门保持 fail closed，GA 仍须真实观察一次 04:30 Australia/Sydney 调度。
+- Owner 在历史一次性 T0702 授权消费后进一步授权受控完成 Stage 7；新增 completion Run Contract，
+  允许已验证 repair 的 PR/merge 与 exact-main-SHA-bound serial new first-attempt dispatch，禁止
+  GitHub rerun，Beta 继续预算 1/零 Gmail mutation，M3 继续以真实 Beta PASS 为硬前序。
 
 ## 1.0.5 — 2026-07-22
 
