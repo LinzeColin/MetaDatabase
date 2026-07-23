@@ -554,16 +554,16 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
     assert status["dimensions"]["production_readiness"]["status"] == "BLOCKED"
     if status["package_version"] == "1.0.6":
         assert status["dimensions"]["protected_oracles"] == {
-            "status": "FAILED",
+            "status": "PARTIAL",
             "declared": 43,
             "executed": 2,
-            "passed": 1,
-            "failed": 1,
+            "passed": 2,
+            "failed": 0,
             "not_run": 41,
         }
         assert status["dimensions"]["publication"] == {
             "status": "CONTROLLED_BETA_DELIVERY_NOT_FINAL",
-            "controlled_main_deliveries": 6,
+            "controlled_main_deliveries": 8,
             "remote_publications": 0,
         }
     else:

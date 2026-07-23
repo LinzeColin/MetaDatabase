@@ -2,16 +2,17 @@
 
 ## 当前目标与状态
 
-- `RMD-06` 的 T0702/S7AC-002 protected Raw-only 入口与公开安全诊断已交付。共 6 个互异
-  exact-main SHA 通过 PR #88、#92、#93、#94、#95、#96 受控合并并各执行一次 workflow attempt 1；
-  每次同树 Alpha 与 identity plaintext cleanup 均 PASS，Beta 均 FAILED，GitHub rerun 为 0。
-  最新固定诊断已收敛为 `GITHUB_APP_TOKEN / INSTALLATION_ZERO`：现有最小权限 App 尚无任何
-  installation。Raw commit、Gmail mutation、M3、Processed、Timeline 与 schedule 均为 0；
-  T0702/S7AC-002 仍 `BLOCKED`，真实 PASS 前不得进入 M3。
+- `RMD-06` 的 T0702/S7AC-002 protected Raw-only 入口、修复与真实执行已关闭。v2 账本区分
+  1 次 Secret 前 context 拒绝与 11 次 protected first attempt；最终 exact-main attempt 的 Alpha、
+  Raw-only Beta 与 identity plaintext cleanup 均 PASS，GitHub rerun 为 0。公开安全结果为
+  verified within configured budget、Raw remote recovery 100%、private namespace 非零 age
+  ciphertext only，以及 Gmail mutation/M3/Processed/Timeline/schedule 为 0。
+- T0702/S7AC-002 已通过，M3 前序满足；当前 Owner 范围明确只收口 T0702 并停在 M3 前。生产、
+  最终 Acceptance、Stage 7 完成与最终发布仍为 false。
 - 当前控制包为 `MMAU-ARCHIVE-TP-2026-07-23-V1.0.6`。它原样继承 v1.0.1 的 34 RQ、34 AC、
   58-task DAG、Kill Criteria 与十条不变量，并将 v1.0.5 作为不可变直接前序。
 - 唯一当前状态权威是 `machine/status/latest.json`：本地机制证据完整，受保护 Oracle
-  2/43（PASS 1、FAILED 1），最终 Acceptance 0/34，protected Workflow 6、production Workflow 0，
+  2/43（PASS 2、FAILED 0），最终 Acceptance 0/34，protected Workflow 11、production Workflow 0，
   发布状态为 `CONTROLLED_BETA_DELIVERY_NOT_FINAL`。
 - Governance 固定为私有 `LinzeColin/Governance` 的提交
   `ebc6c2e4884edc959118cfc56d0e18a86c49460f`。
@@ -238,6 +239,12 @@
     Governance facts/七文档、来源链与包清单；复核通过 312 个累计测试、Ruff、strict mypy、
     58/58 任务证据、9/9 Stage 7 preflight、八入口 Workflow matrix、595 文件任务包、668 文件
     公开扫描和零 Secret findings，所有只读验证外部写入为 0。
+40. 2026-07-23T22:53:05Z 最终 exact-main protected attempt 在 typed per-message metadata
+    quarantine 修复后通过 Alpha、Raw-only Beta 与 identity cleanup。公开结果只包含
+    `TEN_PLUS` discovery/verification bucket、`ONE` recovery bucket、Raw recovery 100% 与零
+    Gmail mutation/M3/Processed/Timeline；private namespace 只声明非零 age ciphertext。独立
+    只读核验确认零 cross-namespace change、overwrite/delete、age envelope failure 与新 release。
+    T0702/S7AC-002 已通过；当前范围停在 M3 前。
 
 ## 关键边界
 
@@ -247,17 +254,14 @@
   Workflow ref/Environment 必须在读取 Beta Secret 前 fail closed。
 - public control logs 只能出现 bucket、零值计数和 gate 布尔值；不得输出精确 Beta 预算、精确邮箱/
   recovery 计数、message/thread/sender/subject/attachment 或私有仓标识。
-- 历史一次受控 PR/merge 与 dispatch 已消费；新的 Stage 7 completion authority 允许受控交付和
-  serial first-attempt dispatch。GitHub rerun 仍禁止，Beta PASS 前仍不得进入 M3。
+- 历史与修复 first-attempt authority 已完成 T0702；GitHub rerun 仍禁止。当前 Owner 范围不允许
+  新 protected dispatch、受控交付或进入 M3。
 - M3 与 Blue-Green 没有自然日等待；只有真实前序与确定性证据不满足时才阻塞。
 - 预检任一 Workflow syntax、Governance checkout、Secret 边界、package、publication 或累计门失败，
   必须停止，不得扩大权限或读取生产 Secret。
 
 ## 下一步
 
-1. 将现有最小权限 GitHub App 仅安装到唯一私有数据仓；不得改用 PAT、Deploy Key 或放宽权限。
-2. 刷新仅有时效字段的 protected config，并执行一个新的 exact-SHA first-attempt T0702；失败只按
-   固定 public-safe 类别修复并形成新提交，不使用 GitHub rerun。
-3. 只有后续 Beta 真实 Oracle PASS 后才按 M3 → Blue-Green/Timeline → GA → Recovery 的既定顺序
-   继续；M3 和 Blue-Green 各执行一次证据完整的受保护运行，不等待自然日；整体任务包完成后再做
-   整体复审、修复与最终发布。
+1. 只提交、验证并合并本次 T0702 evidence-only 收口；不得重新 dispatch。
+2. 停在 M3 前，不执行 M3、Blue-Green/Timeline、GA、Recovery、整体复审或最终发布。
+3. 后续如 Owner 明确启动新的单 Stage Run Contract，再从 M3 按确定性证据门继续；不增加自然日等待。

@@ -5,7 +5,7 @@
   "task_id": "T0702",
   "goal": "Add a fixed, public-safe protected Beta failure-phase taxonomy so a later separately authorized attempt can identify the bounded failing operation without exposing Secrets, Gmail data, private repository identifiers, exception text or exact mailbox counts.",
   "created_at_utc": "2026-07-23T11:06:41Z",
-  "failed_attempt_receipt": "machine/stages/S7/reviews/t0702/execution-receipt.json",
+  "failed_attempt_receipt": "machine/stages/S7/reviews/t0702/execution-receipt-failed-20260723.json",
   "failed_attempt_receipt_sha256": "1f78a94d3e4019d89dda7aae9ddfc949e280eece03a0ce28829beba7094922c0",
   "authority": {
     "basis": "OWNER_PERSISTENT_GOAL_LOCAL_STAGE7_REPAIR",

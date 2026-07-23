@@ -1075,11 +1075,11 @@ def test_t0702_protected_workflow_is_manual_main_only_and_exact_six_secret() -> 
         assert forbidden not in text.casefold()
 
 
-def test_t0702_failed_protected_attempt_is_bound_and_cannot_claim_completion() -> None:
+def test_t0702_historical_failed_attempt_remains_immutable_and_non_passing() -> None:
     receipt = json.loads(
-        (PROJECT_ROOT / "machine/stages/S7/reviews/t0702/execution-receipt.json").read_text(
-            encoding="utf-8"
-        )
+        (
+            PROJECT_ROOT / "machine/stages/S7/reviews/t0702/execution-receipt-failed-20260723.json"
+        ).read_text(encoding="utf-8")
     )
     assert receipt["control"]["workflow_attempt"] == 1
     assert receipt["control"]["dispatches_for_head"] == 1
@@ -1100,7 +1100,66 @@ def test_t0702_failed_protected_attempt_is_bound_and_cannot_claim_completion() -
     assert not any(receipt["claims"].values())
 
 
-def test_t0702_serial_attempt_ledger_is_exact_first_attempt_only_and_fail_closed() -> None:
+def test_t0702_protected_pass_receipt_is_exact_public_safe_and_scope_stopped() -> None:
+    receipt = json.loads(
+        (PROJECT_ROOT / "machine/stages/S7/reviews/t0702/execution-receipt.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    schema = json.loads(
+        (
+            PROJECT_ROOT
+            / "machine/stages/S7/schemas/protected-beta-execution-receipt-v2.schema.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert list(Draft202012Validator(schema).iter_errors(receipt)) == []
+    assert receipt["control"]["workflow_attempt"] == 1
+    assert receipt["control"]["dispatches_for_head"] == 1
+    assert receipt["control"]["reruns"] == 0
+    assert receipt["jobs"]["alpha_gate"]["status"] == "PASS"
+    assert receipt["jobs"]["beta_raw_only"]["status"] == "PASS"
+    assert receipt["jobs"]["identity_tmpfs_cleanup"]["status"] == "PASS"
+    assert receipt["public_result"] == {
+        "status": "PROTECTED_BETA_RAW_ONLY_COMPLETED_NOT_FINAL",
+        "beta_gate_status": "PASS",
+        "phase": "BETA_RAW_ONLY",
+        "provenance": "PROTECTED_GITHUB_ACTIONS",
+        "discovered_bucket": "TEN_PLUS",
+        "verified_bucket": "TEN_PLUS",
+        "recovered_bucket": "ONE",
+        "verified_within_configured_budget": True,
+        "raw_recovery_one_hundred_percent": True,
+        "exact_mailbox_counts_disclosed": False,
+        "source_mutations": 0,
+        "m3_executed": False,
+        "processed_writes": 0,
+        "timeline_mutations": 0,
+        "production_health_claimed": False,
+        "final_acceptance_claimed": False,
+    }
+    assert receipt["post_run_state"]["private_namespace_blob_state"] == (
+        "NONZERO_AGE_CIPHERTEXT_ONLY"
+    )
+    assert receipt["post_run_state"]["raw_remote_recovery"] == "ONE_HUNDRED_PERCENT"
+    assert receipt["post_run_state"]["gmail_mutations"] == 0
+    assert receipt["post_run_state"]["m3_runs"] == 0
+    assert receipt["scope_decision"] == {
+        "status": "T0702_COMPLETE_SCOPE_STOP",
+        "t0702_complete": True,
+        "m3_predecessor_satisfied": True,
+        "m3_authority_status": "WITHHELD_BY_CURRENT_OWNER_SCOPE",
+        "rerun_allowed": False,
+    }
+    assert receipt["claims"] == {
+        "t0702_complete": True,
+        "s7ac_002_passed": True,
+        "production_health": False,
+        "final_acceptance": False,
+        "stage7_complete": False,
+    }
+
+
+def test_t0702_serial_attempt_ledger_is_exact_first_attempt_only_and_pass_closed() -> None:
     ledger = json.loads(
         (PROJECT_ROOT / "machine/stages/S7/reviews/t0702/attempt-ledger.json").read_text(
             encoding="utf-8"
@@ -1108,15 +1167,30 @@ def test_t0702_serial_attempt_ledger_is_exact_first_attempt_only_and_fail_closed
     )
     schema = json.loads(
         (
-            PROJECT_ROOT / "machine/stages/S7/schemas/protected-beta-attempt-ledger-v1.schema.json"
+            PROJECT_ROOT / "machine/stages/S7/schemas/protected-beta-attempt-ledger-v2.schema.json"
         ).read_text(encoding="utf-8")
     )
     errors = list(Draft202012Validator(schema).iter_errors(ledger))
     assert errors == []
 
+    assert [item["workflow_run_id"] for item in ledger["rejected_dispatches"]] == [30046194781]
+    assert ledger["rejected_dispatches"][0]["pre_secret_rejection"] is True
+    assert ledger["rejected_dispatches"][0]["effects"]["protected_secret_reads"] == 0
     attempts = ledger["attempts"]
-    assert [item["sequence"] for item in attempts] == [1, 2, 3, 4, 5, 6]
-    assert [item["pull_request_number"] for item in attempts] == [88, 92, 93, 94, 95, 96]
+    assert [item["sequence"] for item in attempts] == list(range(1, 12))
+    assert [item["delivery"]["pull_request_number"] for item in attempts] == [
+        88,
+        92,
+        93,
+        94,
+        95,
+        96,
+        None,
+        None,
+        None,
+        98,
+        99,
+    ]
     assert [item["workflow_run_id"] for item in attempts] == [
         29998793639,
         30008562905,
@@ -1124,39 +1198,78 @@ def test_t0702_serial_attempt_ledger_is_exact_first_attempt_only_and_fail_closed
         30011285627,
         30012211355,
         30016055252,
+        30046255364,
+        30047441575,
+        30048206165,
+        30049384268,
+        30051063099,
     ]
     assert all(item["workflow_attempt"] == 1 for item in attempts)
-    assert all(item["workflow_head_sha"] == item["merge_commit_sha"] for item in attempts)
+    assert all(
+        item["workflow_head_sha"] == item["delivery"]["merge_commit_sha"]
+        for item in attempts
+        if item["delivery"]["kind"] == "CONTROLLED_MOOMOOAU_PR"
+    )
     assert all(item["alpha_gate"]["status"] == "PASS" for item in attempts)
-    assert all(item["beta_raw_only"]["status"] == "FAILED" for item in attempts)
+    assert all(item["beta_raw_only"]["status"] == "FAILED" for item in attempts[:-1])
+    assert attempts[-1]["beta_raw_only"]["status"] == "PASS"
     assert all(item["identity_plaintext_cleanup"]["status"] == "PASS" for item in attempts)
-    assert all(not any(item["effects"].values()) for item in attempts)
-    assert [item["public_failure"]["installation_token_failure_class"] for item in attempts] == [
+    assert all(item["effects"]["raw_ciphertext_commits"] == "ZERO" for item in attempts[:-1])
+    assert all(item["effects"]["raw_remote_recovery"] == "NOT_RUN" for item in attempts[:-1])
+    assert attempts[-1]["effects"]["raw_ciphertext_commits"] == ("NONZERO_WITHIN_CONFIGURED_BUDGET")
+    assert attempts[-1]["effects"]["raw_remote_recovery"] == "ONE_HUNDRED_PERCENT"
+    assert all(
+        item["effects"][key] == 0
+        for item in attempts
+        for key in (
+            "gmail_mutations",
+            "m3_runs",
+            "processed_writes",
+            "timeline_writes",
+            "scheduled_runs",
+        )
+    )
+    assert [
+        item["public_failure"]["installation_token_failure_class"]
+        if item["public_failure"] is not None
+        else None
+        for item in attempts
+    ] == [
         "NOT_AVAILABLE_IN_HISTORICAL_AGGREGATE",
         "NOT_CLASSIFIED",
         "INSTALLATION_NOT_FOUND",
         "INSTALLATION_DISCOVERY_REJECTED",
         "INSTALLATION_ZERO",
         "INSTALLATION_ZERO",
+        "INSTALLATION_SELECTION_REJECTED",
+        "REQUEST_REJECTED",
+        "RESPONSE_SCOPE_REJECTED",
+        "UNCLASSIFIED",
+        None,
     ]
     assert ledger["summary"] == {
-        "controlled_main_deliveries": 6,
-        "protected_beta_dispatches": 6,
-        "protected_workflow_runs": 6,
+        "controlled_main_deliveries": 8,
+        "protected_beta_dispatches": 12,
+        "context_rejected_dispatches": 1,
+        "protected_workflow_runs": 11,
         "workflow_reruns": 0,
-        "alpha_gate_passes": 6,
-        "beta_passes": 0,
-        "beta_failures": 6,
-        "identity_plaintext_cleanup_passes": 6,
-        "latest_failure_phase": "GITHUB_APP_TOKEN",
-        "latest_installation_token_failure_class": "INSTALLATION_ZERO",
+        "alpha_gate_passes": 11,
+        "beta_passes": 1,
+        "beta_failures": 10,
+        "identity_plaintext_cleanup_passes": 11,
+        "latest_outcome": "PASS",
+        "last_failure_phase": "METADATA_VERIFICATION",
+        "last_installation_token_failure_class": "UNCLASSIFIED",
+        "raw_archive_successful_runs": 1,
         "gmail_mutations": 0,
         "m3_runs": 0,
         "processed_writes": 0,
         "timeline_writes": 0,
         "scheduled_runs": 0,
-        "t0702_complete": False,
+        "t0702_complete": True,
+        "m3_predecessor_satisfied": True,
         "m3_allowed": False,
+        "m3_authority_status": "WITHHELD_BY_CURRENT_OWNER_SCOPE",
         "production_health_claimed": False,
         "final_acceptance_claimed": False,
     }

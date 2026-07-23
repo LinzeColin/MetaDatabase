@@ -2,7 +2,7 @@
   "schema_version": "moomooau.stage-local-acceptance.v1",
   "stage_id": "S7",
   "policy": "FAIL_CLOSED",
-  "overall_status": "BLOCKED_PROTECTED_BETA_FAILED",
+  "overall_status": "BLOCKED_T0702_PASS_SCOPE_STOP",
   "final_acceptances_passed": 0,
   "final_acceptance_policy": "Stage 7 cannot pass until protected GitHub Actions evidence covers real Beta, one evidence-complete M3 Canary run, one evidence-complete Blue-Green run, a GA 04:30 run and a real three-role recovery drill. No fixed calendar observation period applies; Local implementation preflight proves mechanisms only.",
   "acceptance_contracts": [

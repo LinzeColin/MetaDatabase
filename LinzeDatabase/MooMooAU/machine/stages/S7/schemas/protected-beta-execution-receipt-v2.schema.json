@@ -1,0 +1,340 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU T0702 protected Beta PASS execution receipt v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "stage_id",
+    "task_id",
+    "stage_acceptance_id",
+    "observed_at_utc",
+    "control",
+    "jobs",
+    "public_result",
+    "post_run_state",
+    "scope_decision",
+    "claims"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "moomooau.protected-beta-execution-receipt.v2"
+    },
+    "receipt_id": {
+      "const": "S7-T0702-PROTECTED-20260723-PASS-A1"
+    },
+    "stage_id": {
+      "const": "S7"
+    },
+    "task_id": {
+      "const": "T0702"
+    },
+    "stage_acceptance_id": {
+      "const": "S7AC-002"
+    },
+    "observed_at_utc": {
+      "const": "2026-07-23T22:53:05Z"
+    },
+    "control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pull_request_number",
+        "pull_request_status",
+        "merge_commit_sha",
+        "workflow_run_id",
+        "workflow_run_url",
+        "workflow_event",
+        "workflow_ref",
+        "workflow_head_sha",
+        "workflow_attempt",
+        "dispatches_for_head",
+        "reruns"
+      ],
+      "properties": {
+        "pull_request_number": {
+          "const": 99
+        },
+        "pull_request_status": {
+          "const": "MERGED_CONTROLLED_BETA_REPAIR_NOT_FINAL"
+        },
+        "merge_commit_sha": {
+          "const": "eaade5f7be7fca678885cc402b463cb0df54cf90"
+        },
+        "workflow_run_id": {
+          "const": 30051063099
+        },
+        "workflow_run_url": {
+          "const": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30051063099"
+        },
+        "workflow_event": {
+          "const": "workflow_dispatch"
+        },
+        "workflow_ref": {
+          "const": "refs/heads/main"
+        },
+        "workflow_head_sha": {
+          "const": "eaade5f7be7fca678885cc402b463cb0df54cf90"
+        },
+        "workflow_attempt": {
+          "const": 1
+        },
+        "dispatches_for_head": {
+          "const": 1
+        },
+        "reruns": {
+          "const": 0
+        }
+      }
+    },
+    "jobs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alpha_gate",
+        "beta_raw_only",
+        "identity_tmpfs_cleanup"
+      ],
+      "properties": {
+        "alpha_gate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "started_at_utc", "ended_at_utc"],
+          "properties": {
+            "status": {
+              "const": "PASS"
+            },
+            "started_at_utc": {
+              "const": "2026-07-23T22:47:03Z"
+            },
+            "ended_at_utc": {
+              "const": "2026-07-23T22:48:06Z"
+            }
+          }
+        },
+        "beta_raw_only": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "started_at_utc", "ended_at_utc"],
+          "properties": {
+            "status": {
+              "const": "PASS"
+            },
+            "started_at_utc": {
+              "const": "2026-07-23T22:48:10Z"
+            },
+            "ended_at_utc": {
+              "const": "2026-07-23T22:53:04Z"
+            }
+          }
+        },
+        "identity_tmpfs_cleanup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "ended_at_utc"],
+          "properties": {
+            "status": {
+              "const": "PASS"
+            },
+            "ended_at_utc": {
+              "const": "2026-07-23T22:53:01Z"
+            }
+          }
+        }
+      }
+    },
+    "public_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "beta_gate_status",
+        "phase",
+        "provenance",
+        "discovered_bucket",
+        "verified_bucket",
+        "recovered_bucket",
+        "verified_within_configured_budget",
+        "raw_recovery_one_hundred_percent",
+        "exact_mailbox_counts_disclosed",
+        "source_mutations",
+        "m3_executed",
+        "processed_writes",
+        "timeline_mutations",
+        "production_health_claimed",
+        "final_acceptance_claimed"
+      ],
+      "properties": {
+        "status": {
+          "const": "PROTECTED_BETA_RAW_ONLY_COMPLETED_NOT_FINAL"
+        },
+        "beta_gate_status": {
+          "const": "PASS"
+        },
+        "phase": {
+          "const": "BETA_RAW_ONLY"
+        },
+        "provenance": {
+          "const": "PROTECTED_GITHUB_ACTIONS"
+        },
+        "discovered_bucket": {
+          "const": "TEN_PLUS"
+        },
+        "verified_bucket": {
+          "const": "TEN_PLUS"
+        },
+        "recovered_bucket": {
+          "const": "ONE"
+        },
+        "verified_within_configured_budget": {
+          "const": true
+        },
+        "raw_recovery_one_hundred_percent": {
+          "const": true
+        },
+        "exact_mailbox_counts_disclosed": {
+          "const": false
+        },
+        "source_mutations": {
+          "const": 0
+        },
+        "m3_executed": {
+          "const": false
+        },
+        "processed_writes": {
+          "const": 0
+        },
+        "timeline_mutations": {
+          "const": 0
+        },
+        "production_health_claimed": {
+          "const": false
+        },
+        "final_acceptance_claimed": {
+          "const": false
+        }
+      }
+    },
+    "post_run_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "private_namespace_initialized",
+        "private_namespace_blob_state",
+        "age_envelope_failures",
+        "cross_namespace_changes",
+        "overwrites_or_deletions",
+        "raw_remote_recovery",
+        "gmail_mutations",
+        "m3_runs",
+        "processed_writes",
+        "timeline_writes",
+        "scheduled_runs",
+        "private_repository_actions_enabled",
+        "new_release_writes",
+        "final_publication"
+      ],
+      "properties": {
+        "private_namespace_initialized": {
+          "const": true
+        },
+        "private_namespace_blob_state": {
+          "const": "NONZERO_AGE_CIPHERTEXT_ONLY"
+        },
+        "age_envelope_failures": {
+          "const": 0
+        },
+        "cross_namespace_changes": {
+          "const": 0
+        },
+        "overwrites_or_deletions": {
+          "const": 0
+        },
+        "raw_remote_recovery": {
+          "const": "ONE_HUNDRED_PERCENT"
+        },
+        "gmail_mutations": {
+          "const": 0
+        },
+        "m3_runs": {
+          "const": 0
+        },
+        "processed_writes": {
+          "const": 0
+        },
+        "timeline_writes": {
+          "const": 0
+        },
+        "scheduled_runs": {
+          "const": 0
+        },
+        "private_repository_actions_enabled": {
+          "const": false
+        },
+        "new_release_writes": {
+          "const": 0
+        },
+        "final_publication": {
+          "const": false
+        }
+      }
+    },
+    "scope_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "t0702_complete",
+        "m3_predecessor_satisfied",
+        "m3_authority_status",
+        "rerun_allowed"
+      ],
+      "properties": {
+        "status": {
+          "const": "T0702_COMPLETE_SCOPE_STOP"
+        },
+        "t0702_complete": {
+          "const": true
+        },
+        "m3_predecessor_satisfied": {
+          "const": true
+        },
+        "m3_authority_status": {
+          "const": "WITHHELD_BY_CURRENT_OWNER_SCOPE"
+        },
+        "rerun_allowed": {
+          "const": false
+        }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "t0702_complete",
+        "s7ac_002_passed",
+        "production_health",
+        "final_acceptance",
+        "stage7_complete"
+      ],
+      "properties": {
+        "t0702_complete": {
+          "const": true
+        },
+        "s7ac_002_passed": {
+          "const": true
+        },
+        "production_health": {
+          "const": false
+        },
+        "final_acceptance": {
+          "const": false
+        },
+        "stage7_complete": {
+          "const": false
+        }
+      }
+    }
+  }
+}

@@ -3,7 +3,6 @@
   "acceptance_status": "BLOCKED",
   "blockers": [
     "FINAL_ORACLE_NOT_EXECUTED",
-    "LINKED_TASK_CLAIMS_NOT_RUN",
     "LINKED_TASK_CLAIMS_PARTIAL"
   ],
   "checks": [
@@ -56,15 +55,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0702.json",
-      "evidence_sha256": "6e25b77493cc4385cb60076af3c6b36da75586884625485e2fe3fadff98d86ca",
-      "final_claim_status": "NOT_RUN",
-      "reason": "A verified full Raw read is not proven by the aggregate-only failure receipt.",
-      "source_record_status": "BLOCKED",
+      "evidence_sha256": "20a9a01f2121654c6391e5607bbb3d923dcbc682c5aea23751a83de098f92059",
+      "final_claim_status": "PARTIAL",
+      "reason": "The protected Beta fully fetched only a verified candidate within the configured budget and disclosed no exact mailbox counts; full-system final evidence remains incomplete.",
+      "source_record_status": "READY",
       "task_id": "T0702"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-23T14:31:21Z",
+  "observed_at_utc": "2026-07-23T22:53:05Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

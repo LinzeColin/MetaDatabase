@@ -7,8 +7,8 @@
     "首次登记": "2026-07-22"
   },
   {
-    "id": "PROTECTED_BETA_FAILED",
-    "内容": "六次精确主分支 T0702 attempt 1 均未通过；最新固定诊断为 GitHub App 零安装",
+    "id": "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+    "内容": "T0702 已通过并满足 M3 前序，但当前 Owner 范围明确停在 M3 前",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"

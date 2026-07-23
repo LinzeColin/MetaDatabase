@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0702 已授权复验",
-  "phase": "诊断修复已交付；最新 Beta 因 GitHub App 零安装失败",
-  "task": "仅安装现有最小权限 GitHub App 到唯一私有数据仓；Beta 通过前不进入 M3",
+  "stage": "RMD-06 T0702 已通过，范围停在 M3 前",
+  "phase": "T0702 证据闭环；M3 前停止",
+  "task": "同步 T0702 通过证据并停止；当前范围不授权 M3",
   "owner": "Codex 开发线程"
 }

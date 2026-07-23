@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the baseline-preserving v1.0.6 preflight and Beta-attempt manifest."""
+"""Build the baseline-preserving v1.0.6 T0702 evidence-closure manifest."""
 
 from __future__ import annotations
 
@@ -183,11 +183,10 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "version": PACKAGE_VERSION,
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
-            "Owner-directed RMD-06 sequence: private Governance dependency authentication "
-            "plus one historical T0702 protected Raw-only delivery, then four controlled "
-            "diagnostic repair deliveries and distinct first-attempt dispatches, removal of "
-            "fixed Stage 7 calendar waits and explicit authorization for controlled Stage 7 "
-            "completion"
+            "Owner-directed RMD-06 T0702 sequence: private Governance dependency "
+            "authentication, controlled Raw-only repair deliveries and serial first-attempt "
+            "dispatches, with no fixed calendar wait or manual routine approval. Current scope "
+            "closes T0702 and stops before M3."
         ),
         "scope": (
             "Baseline-preserving v1.0.6 project snapshot: immutable v1.0.1 product contracts "
@@ -196,14 +195,13 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "fork pull requests, corrected pre-runner expression contexts, deterministic "
             "workflow validation, the coupled sole delivery-status authority, a manual main-only "
             "six-Secret T0702 protected Raw-only entrypoint with same-tree Alpha and aggregate "
-            "Beta gates, the immutable historical receipt, an exact six-run serial attempt "
-            "ledger, and generated human documentation. Every run used workflow attempt 1, "
-            "passed same-tree Alpha and identity cleanup, and produced zero Raw/Gmail mutation/"
-            "M3/Processed/Timeline effects. The delivered public-safe repair narrowed the latest "
-            "failure to GITHUB_APP_TOKEN / INSTALLATION_ZERO without claiming T0702 completion, "
-            "production health or final Acceptance. Fixed M3/Blue-Green day counts are replaced "
-            "by bounded deterministic evidence gates; the completion Run Contract preserves "
-            "Beta zero-mutation and every predecessor gate."
+            "Beta gates, immutable historical failure lineage, one pre-Secret rejected dispatch "
+            "and an exact eleven-run protected first-attempt ledger. The latest protected run "
+            "passed with verified candidates within budget, nonzero age-ciphertext-only Raw, "
+            "100% remote recovery and zero Gmail mutation/M3/Processed/Timeline effects. T0702/"
+            "S7AC-002 is complete without claiming production health, final Acceptance or Stage 7 "
+            "completion. Fixed M3/Blue-Green day counts remain replaced by bounded deterministic "
+            "evidence gates, while current owner scope withholds M3 and every later phase."
         ),
         "status_authority": "machine/status/latest.json",
         "predecessor": {

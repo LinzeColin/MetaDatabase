@@ -64,7 +64,7 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0703.json",
-      "evidence_sha256": "fb6679ff9eebdee187eff74163d0952ae352c739d8e01d384351026eb64b50db",
+      "evidence_sha256": "f6ac52670a9b60d9e037bf626630b65a4da5a488ae97a7565b6fbdb5aa4b184d",
       "final_claim_status": "NOT_RUN",
       "reason": "No real exact source message was moved to Trash.",
       "source_record_status": "BLOCKED",
@@ -72,7 +72,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-23T14:31:21Z",
+  "observed_at_utc": "2026-07-23T22:53:05Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

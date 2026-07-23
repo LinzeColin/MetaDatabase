@@ -41,11 +41,11 @@ PRODUCTION_COMPOSITION_PATH = Path("machine/contracts/production_composition.jso
 ASSURANCE_REVIEW_ROOT = Path("machine/stages/S6/reviews")
 PROTECTED_BETA_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0702/execution-receipt.json")
 PROTECTED_BETA_RECEIPT_SCHEMA_PATH = Path(
-    "machine/stages/S7/schemas/protected-beta-execution-receipt-v1.schema.json"
+    "machine/stages/S7/schemas/protected-beta-execution-receipt-v2.schema.json"
 )
 PROTECTED_BETA_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0702/attempt-ledger.json")
 PROTECTED_BETA_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
-    "machine/stages/S7/schemas/protected-beta-attempt-ledger-v1.schema.json"
+    "machine/stages/S7/schemas/protected-beta-attempt-ledger-v2.schema.json"
 )
 
 
@@ -80,12 +80,18 @@ def _select_transition_state(
         "PRE_CLOSURE",
         "DEPENDENCY_AUTH_READY",
         "PROTECTED_BETA_ATTEMPT_FAILED",
+        "PROTECTED_BETA_PASS_SCOPE_STOP",
     }:
         raise ValueError("delivery status transition states differ")
     if assurance_result.get("status") != "PASS":
         state_name = "PRE_CLOSURE"
     elif protected_beta_receipt is not None:
-        state_name = "PROTECTED_BETA_ATTEMPT_FAILED"
+        claims = protected_beta_receipt.get("claims", {})
+        state_name = (
+            "PROTECTED_BETA_PASS_SCOPE_STOP"
+            if claims.get("t0702_complete") is True and claims.get("s7ac_002_passed") is True
+            else "PROTECTED_BETA_ATTEMPT_FAILED"
+        )
     else:
         state_name = "DEPENDENCY_AUTH_READY"
     state = states.get(state_name)
@@ -134,15 +140,28 @@ def _protected_beta_attempt_ledger(root: Path) -> dict[str, Any]:
     summary = ledger.get("summary", {})
     attempts = ledger.get("attempts", [])
     if (
-        len(attempts) != 6
-        or summary.get("controlled_main_deliveries") != 6
-        or summary.get("protected_beta_dispatches") != 6
-        or summary.get("protected_workflow_runs") != 6
+        len(ledger.get("rejected_dispatches", [])) != 1
+        or len(attempts) != 11
+        or [attempt.get("sequence") for attempt in attempts] != list(range(1, 12))
+        or summary.get("controlled_main_deliveries") != 8
+        or summary.get("protected_beta_dispatches") != 12
+        or summary.get("context_rejected_dispatches") != 1
+        or summary.get("protected_workflow_runs") != 11
         or summary.get("workflow_reruns") != 0
-        or summary.get("latest_failure_phase") != "GITHUB_APP_TOKEN"
-        or summary.get("latest_installation_token_failure_class") != "INSTALLATION_ZERO"
-        or summary.get("t0702_complete") is not False
+        or summary.get("alpha_gate_passes") != 11
+        or summary.get("beta_passes") != 1
+        or summary.get("beta_failures") != 10
+        or summary.get("identity_plaintext_cleanup_passes") != 11
+        or summary.get("latest_outcome") != "PASS"
+        or summary.get("last_failure_phase") != "METADATA_VERIFICATION"
+        or summary.get("last_installation_token_failure_class") != "UNCLASSIFIED"
+        or summary.get("raw_archive_successful_runs") != 1
+        or summary.get("t0702_complete") is not True
+        or summary.get("m3_predecessor_satisfied") is not True
         or summary.get("m3_allowed") is not False
+        or summary.get("m3_authority_status") != "WITHHELD_BY_CURRENT_OWNER_SCOPE"
+        or attempts[-1].get("beta_raw_only", {}).get("status") != "PASS"
+        or attempts[-1].get("public_failure") is not None
     ):
         raise ValueError("protected Beta serial attempt ledger is not the exact observed state")
     return cast(dict[str, Any], ledger)
@@ -457,6 +476,7 @@ def build_status(
     protected_passed = sum(status == "PASS" for status in protected_statuses)
     protected_failed = sum(status == "FAILED" for status in protected_statuses)
     failed_beta_state = state_name == "PROTECTED_BETA_ATTEMPT_FAILED"
+    passed_beta_state = state_name == "PROTECTED_BETA_PASS_SCOPE_STOP"
     if failed_beta_state:
         if (
             protected_receipt is None
@@ -473,6 +493,27 @@ def build_status(
         ]
         overall_status = "PROTECTED_BETA_FAILED_FINAL_ACCEPTANCE_BLOCKED"
         protected_status = "FAILED"
+        production_workflow_runs = 0
+        publication_status = "CONTROLLED_BETA_DELIVERY_NOT_FINAL"
+        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPT"
+    elif passed_beta_state:
+        if (
+            protected_receipt is None
+            or protected_executed != 2
+            or protected_passed != 2
+            or protected_failed != 0
+            or protected_receipt.get("scope_decision", {}).get("m3_authority_status")
+            != "WITHHELD_BY_CURRENT_OWNER_SCOPE"
+        ):
+            raise ValueError("passed protected Beta state lacks its exact Oracle receipt")
+        production_reasons = [
+            "FORMAL_TASKS_INCOMPLETE",
+            "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+        ]
+        overall_status = "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE"
+        protected_status = "PARTIAL"
         production_workflow_runs = 0
         publication_status = "CONTROLLED_BETA_DELIVERY_NOT_FINAL"
         mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPT"
@@ -568,7 +609,7 @@ def build_status(
                 "status": publication_status,
                 "controlled_main_deliveries": (
                     protected_attempt_ledger["summary"]["controlled_main_deliveries"]
-                    if failed_beta_state
+                    if protected_receipt is not None
                     else 0
                 ),
                 "remote_publications": prohibition_totals["remote_publication"],
