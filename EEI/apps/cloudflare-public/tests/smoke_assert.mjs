@@ -91,6 +91,22 @@ assert.equal(evidence.status, 200);
 assert.equal(evidence.body.evidence_count, 2);
 assert.ok(evidence.body.evidence.every((item) => item.source_url.startsWith("https://")));
 
+// Event evidence drill-down (the capital 资金事件 panel). This route was
+// missing in production (404) while the frontend already called it; the smoke
+// now seeds one published event + its evidence and asserts the rich
+// evidence-detail-v1 contract the strict frontend validator requires.
+const SMOKE_EVENT = "00000000-0000-4000-b000-000000000001";
+const eventEvidence = await getJson(`/v1/evidence/event/${SMOKE_EVENT}?limit=20`);
+assert.equal(eventEvidence.status, 200);
+assert.equal(eventEvidence.body.schema_version, "evidence-detail-v1");
+assert.equal(eventEvidence.body.object_type, "event");
+assert.equal(eventEvidence.body.evidence_count, 1);
+assert.equal(eventEvidence.body.source_document_count, 1);
+assert.equal(eventEvidence.body.evidence[0].snippet.text, "NVIDIA filed 8-K on 2026-06-10.");
+assert.ok(eventEvidence.body.evidence[0].url.startsWith("https://www.sec.gov/"));
+const missingEvent = await getJson("/v1/evidence/event/00000000-0000-4000-b000-0000000000ff");
+assert.equal(missingEvent.status, 404, "unknown event id must 404, not 500");
+
 const search = await getJson("/v1/entities?q=nvidia");
 assert.equal(search.status, 200);
 assert.equal(search.body.entities.length, 1);
@@ -307,4 +323,4 @@ assert.equal(buildMeta.status, 200);
 assert.equal(buildMeta.body.repo, "LinzeColin/MetaDatabase");
 assert.ok("commit" in buildMeta.body);
 
-console.log("SMOKE_ASSERT_OK routes=27 (+module surfaces)");
+console.log("SMOKE_ASSERT_OK routes=28 (+module surfaces)");

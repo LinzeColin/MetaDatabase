@@ -624,6 +624,104 @@ async function evidenceIndex(env, relationshipId) {
   });
 }
 
+// Event evidence drill-down (/v1/evidence/event/:id). The capital "资金事件"
+// panel loads this via loadEvidenceDetail({objectType:"event"}), which strictly
+// validates the rich evidence-detail-v1 record shape (production-data-client
+// isEvidenceDetailRecord). The event_evidence + events rows are already on the
+// publication surface, so this route just shapes them into that contract — SEC
+// EDGAR excerpt + official source link, no dead link. Published rows only.
+async function eventEvidenceIndex(env, eventId, limit) {
+  const event = await env.EEI_PUB.prepare(
+    "SELECT id, event_type, title, status, announced_at, effective_at," +
+      " period_start, period_end, observed_at, amount, currency, amount_kind," +
+      " description FROM events WHERE id = ?"
+  )
+    .bind(eventId)
+    .first();
+  if (!event) {
+    return notFound(`Event not found: ${eventId}`);
+  }
+  const cap = Math.min(Math.max(Number.parseInt(limit ?? "20", 10) || 20, 1), 100);
+  const { results } = await env.EEI_PUB.prepare(
+    "SELECT source_document_id, role, locator, support_excerpt," +
+      " source_url, source_title, publisher, document_date" +
+      " FROM event_evidence WHERE event_id = ?" +
+      " ORDER BY role, publisher, source_url"
+  )
+    .bind(eventId)
+    .all();
+  const rows = results ?? [];
+  const returned = rows.slice(0, cap);
+  // De-duplicate the source-document set for the summary count/list.
+  const docs = new Map();
+  for (const row of rows) {
+    if (!docs.has(row.source_document_id)) {
+      docs.set(row.source_document_id, {
+        id: row.source_document_id,
+        url: row.source_url ?? null,
+        title: row.source_title ?? null,
+        publisher: row.publisher ?? null,
+        document_date: row.document_date ?? null
+      });
+    }
+  }
+  const evidence = returned.map((row) => ({
+    evidence_id: `${eventId}:${row.source_document_id}:${row.role}`,
+    source_document_id: row.source_document_id,
+    ingestion_evidence_chain_id: null,
+    role: row.role,
+    // First-hand SEC/GLEIF filings are tier-1 official sources.
+    source_tier: 1,
+    publisher: row.publisher ?? null,
+    title: row.source_title ?? null,
+    url: row.source_url ?? null,
+    locator: row.locator ?? null,
+    support_excerpt: row.support_excerpt ?? null,
+    snippet: {
+      text: row.support_excerpt ?? null,
+      locator: row.locator ?? null,
+      redaction_status: "public"
+    },
+    structured_fact: {},
+    counter_evidence: [],
+    parser_version: null,
+    confidence: null,
+    review_status: null,
+    source_document: {
+      id: row.source_document_id,
+      url: row.source_url ?? null,
+      title: row.source_title ?? null,
+      publisher: row.publisher ?? null,
+      document_date: row.document_date ?? null
+    }
+  }));
+  return json({
+    schema_version: "evidence-detail-v1",
+    object_type: "event",
+    object_id: eventId,
+    object_summary: {
+      event_type: event.event_type,
+      title: event.title,
+      status: event.status,
+      announced_at: event.announced_at ?? null,
+      effective_at: event.effective_at ?? null,
+      observed_at: event.observed_at ?? null,
+      amount: event.amount ?? null,
+      currency: event.currency ?? null,
+      amount_kind: event.amount_kind ?? null,
+      description: event.description ?? null
+    },
+    evidence_count: rows.length,
+    returned_evidence_count: evidence.length,
+    source_document_count: docs.size,
+    limit: cap,
+    truncated: rows.length > returned.length,
+    source_documents: Array.from(docs.values()),
+    evidence,
+    production_context: { surface: "cloud_publication" }
+  });
+}
+
 // R-002/S-003 fault-injection hardening. A fuzzed long search term made D1's
 // LIKE pattern-complexity limit throw ("LIKE or GLOB pattern too complex",
 // SQLITE_ERROR), which surfaced as an unhandled 500 leaking the internal error.
@@ -1528,6 +1626,13 @@ async function handleFetch(request, env) {
     );
     if (evidenceMatch && request.method === "GET") {
       return evidenceIndex(env, evidenceMatch[1]);
+    }
+
+    const eventEvidenceMatch = pathname.match(
+      /^\/v1\/evidence\/event\/([0-9a-fA-F-]{36})$/
+    );
+    if (eventEvidenceMatch && request.method === "GET") {
+      return eventEvidenceIndex(env, eventEvidenceMatch[1], url.searchParams.get("limit"));
     }
 
     if (pathname === "/v1/internal/publish/exec" && request.method === "POST") {
