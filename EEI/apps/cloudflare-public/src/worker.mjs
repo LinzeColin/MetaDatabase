@@ -91,6 +91,91 @@ function badRequest(detail) {
   return json({ detail }, 400);
 }
 
+// EEI-OVH publish channel: the refresh container on the shared governance box
+// pushes the publication surface as chunked SQL batches over HTTPS, so the box
+// holds only this narrow publish token - never an account-level Cloudflare
+// credential - and ships no Node/wrangler (hard 320 MiB container cap).
+const PUBLISH_MAX_STATEMENTS = 400;
+const PUBLISH_MAX_BYTES = 4_000_000;
+const PUBLISH_MAX_ROWS_ECHOED = 100;
+
+function timingSafeEqualStr(a, b) {
+  const enc = new TextEncoder();
+  const ab = enc.encode(a);
+  const bb = enc.encode(b);
+  // Compare over a fixed-length digest space: length differences must not
+  // short-circuit earlier than content differences.
+  let diff = ab.length ^ bb.length;
+  const n = Math.max(ab.length, bb.length);
+  for (let i = 0; i < n; i += 1) {
+    diff |= (ab[i % ab.length] ?? 0) ^ (bb[i % bb.length] ?? 0);
+  }
+  return diff === 0;
+}
+
+async function internalPublishExec(request, env) {
+  // Hidden unless the deployment explicitly binds the secret.
+  if (!env.EEI_PUBLISH_TOKEN) {
+    return notFound("No cloud route for POST /v1/internal/publish/exec");
+  }
+  const auth = request.headers.get("authorization") ?? "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  if (!token || !timingSafeEqualStr(token, env.EEI_PUBLISH_TOKEN)) {
+    return json({ detail: "unauthorized" }, 401);
+  }
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return badRequest("body must be JSON: {statements: [sql, ...]}");
+  }
+  const statements = Array.isArray(payload?.statements) ? payload.statements : null;
+  if (!statements || statements.length === 0) {
+    return badRequest("statements[] required");
+  }
+  if (statements.length > PUBLISH_MAX_STATEMENTS) {
+    return badRequest(`too many statements (max ${PUBLISH_MAX_STATEMENTS})`);
+  }
+  let bytes = 0;
+  for (const stmt of statements) {
+    if (typeof stmt !== "string" || !stmt.trim()) {
+      return badRequest("statements must be non-empty SQL strings");
+    }
+    bytes += stmt.length;
+  }
+  if (bytes > PUBLISH_MAX_BYTES) {
+    return badRequest(`batch too large (${bytes} bytes, max ${PUBLISH_MAX_BYTES})`);
+  }
+  const started = Date.now();
+  let results;
+  try {
+    // D1 batch = one atomic transaction per request; the publisher sequences
+    // requests so DELETE -> INSERT ordering holds across the whole stream.
+    results = await env.EEI_PUB.batch(statements.map((s) => env.EEI_PUB.prepare(s)));
+  } catch (err) {
+    // Surface the D1 error text so the publisher can log the failing batch;
+    // no stack, no internals beyond the SQL engine message.
+    return json({ ok: false, detail: String(err?.message ?? err).slice(0, 300) }, 400);
+  }
+  return json({
+    ok: true,
+    statements: statements.length,
+    duration_ms: Date.now() - started,
+    results: results.map((r) => ({
+      success: r.success,
+      changes: r.meta?.changes ?? null,
+      rows:
+        Array.isArray(r.results) && r.results.length <= PUBLISH_MAX_ROWS_ECHOED
+          ? r.results
+          : undefined,
+      rows_truncated:
+        Array.isArray(r.results) && r.results.length > PUBLISH_MAX_ROWS_ECHOED
+          ? r.results.length
+          : undefined
+    }))
+  });
+}
+
 function normalizeBudget(raw) {
   const budget = raw && typeof raw === "object" ? raw : {};
   return {
@@ -1443,6 +1528,10 @@ async function handleFetch(request, env) {
     );
     if (evidenceMatch && request.method === "GET") {
       return evidenceIndex(env, evidenceMatch[1]);
+    }
+
+    if (pathname === "/v1/internal/publish/exec" && request.method === "POST") {
+      return internalPublishExec(request, env);
     }
 
     if (pathname.startsWith("/v1/")) {
