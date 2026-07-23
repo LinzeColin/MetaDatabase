@@ -27,20 +27,24 @@
 6. 项目全量测试为 `257 passed`；Ruff 变更范围零问题；strict mypy 为 `70 source files` 零问题。
 7. Workflow matrix 为四个 cumulative PASS、四个 historical expected-BLOCKED，且外部写入、远端运行、
    生产运行、发布均为 0，验证前后树不变。
+8. 已从最新 `origin/main` 建立无旧开发谱系的 `codex/moomooau-rmd06-cloud-preflight` 快照分支；
+   项目目录与全部十个 MooMooAU Workflow 已按 Git tree/blob 逐字节核对。
+9. 34 个最终 Acceptance 记录已确定性重建到该干净主线父提交，仍保持 34/34 `BLOCKED`、0 `PASS`、
+   0 invalid；未把谱系迁移解释为 protected 或生产成功。
 
 ## 关键边界
 
 - 依赖 Deploy Key 不等于生产 Secret；普通 CI 的 Gmail、数据仓和生产 Secret 读取仍为 0。
 - GitHub-hosted 非生产预检不等于 protected Oracle、生产健康、部署、发布或最终 Acceptance。
-- 当前开发分支与最新 `origin/main` 历史分叉，禁止直接 push。远端预检必须从最新 `origin/main`
-  构造只含当前完整候选快照的干净临时分支。
+- 旧开发分支与最新 `origin/main` 历史分叉，继续禁止直接 push；远端预检只允许使用已从最新主线
+  建立的干净临时快照分支。
 - 预检任一 Workflow syntax、Governance checkout、Secret 边界、package、publication 或累计门失败，
   必须停止，不得扩大权限或读取生产 Secret。
 
 ## 下一步
 
-1. 重建 HANDOFF 变更后的状态、facts、文档与 v1.0.6 Manifest，并复跑精确门禁。
-2. 将当前候选以无旧开发谱系的 snapshot 落到最新 `origin/main` 的临时 worktree，验证树内容与包清单。
-3. 仅 push 受控 RMD-06 候选分支并观察全部 GitHub-hosted 非生产 Workflow。
-4. 全绿后删除远端候选分支；RMD-06 后续仍按 Beta → M3 → Timeline Blue-Green → GA → Recovery →
+1. 重建干净谱系变更后的 v1.0.6 Manifest，并复跑 package、acceptance、publication、Secret、累计矩阵
+   与全量测试。
+2. 仅 push 受控 RMD-06 候选分支并观察全部 GitHub-hosted 非生产 Workflow。
+3. 全绿后删除远端候选分支；RMD-06 后续仍按 Beta → M3 → Timeline Blue-Green → GA → Recovery →
    最终 AC 顺序推进，任何未知或失败结果立即停止。
