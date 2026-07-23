@@ -31,7 +31,15 @@
   与 schedule 权限为零，并以本地 task oracle 固化；
 - protected Environment、真实输入、私有数据仓与 GitHub App 尚未配置或证实，且中间上传顺序冲突
   未解决，因此真实 Beta/S7AC-002 继续 `BLOCKED/NOT_RUN`；
-- 真实 Gmail、私有数据仓、受保护 Oracle、生产、部署与最终发布仍为 0/NOT_RUN。
+- Owner 一次性授权后，`moomooau-beta` 已收敛为无 reviewer、`main`-only，六项精确 Environment
+  Secret 已配置；唯一私有数据仓、单仓最小权限 GitHub App、cloud-only age identity、预算 1、
+  fresh-capacity config、Gmail OAuth 与 protected sender registry 均已独立核验；
+- 真实 metadata-only 发现确认 Gmail 默认 metadata 响应仍可能携带 `snippet`，因此 Beta 请求现强制
+  exact partial-response fields 并继续拒绝任何内容派生字段；sender verifier 同时按 RFC 8601 接受
+  `header.i`，且对同一 DKIM 结果中出现的全部 `header.d`/`header.i` identity fail closed；
+- 上述 pre-dispatch bootstrap 与兼容性修复不冒充受保护运行：PR/merge、Raw 读取、私有仓写入、
+  protected Oracle 与 Workflow dispatch 仍为 0，真实 Beta/S7AC-002 继续 `BLOCKED/NOT_RUN`；
+- 真实 RAW、私有数据仓内容写入、受保护 Oracle、生产、部署与最终发布仍为 0/NOT_RUN。
 
 ## 1.0.5 — 2026-07-22
 

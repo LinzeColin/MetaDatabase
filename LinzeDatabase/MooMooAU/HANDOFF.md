@@ -4,8 +4,10 @@
 
 - `RMD-06` 的 T0702/S7AC-002 protected Raw-only 入口已完成本地机制与证据闭环；Owner 已于
   2026-07-23 单独授权一次受控 PR/merge 到 `main` 和一次 budget-one protected dispatch，仅用于
-  T0702。正式任务在真实 Oracle 完成前仍为 `BLOCKED`，Beta 仍为 `NOT_RUN`，不得进入 M3；该授权
-  不等于最终发布，也不授权第二次交付、rerun、Gmail mutation、Processed、Timeline 或 schedule。
+  T0702。Environment、六项精确 Secret、唯一私有数据仓与单仓最小权限 GitHub App 已完成
+  pre-dispatch 核验；正式任务在真实 Oracle 完成前仍为 `BLOCKED`，Beta 仍为 `NOT_RUN`，不得进入
+  M3；该授权不等于最终发布，也不授权第二次交付、rerun、Gmail mutation、Processed、Timeline
+  或 schedule。
 - 当前控制包为 `MMAU-ARCHIVE-TP-2026-07-23-V1.0.6`。它原样继承 v1.0.1 的 34 RQ、34 AC、
   58-task DAG、Kill Criteria 与十条不变量，并将 v1.0.5 作为不可变直接前序。
 - 唯一当前状态权威是 `machine/status/latest.json`：本地机制证据完整，受保护 Oracle 0/43，
@@ -152,6 +154,18 @@
     protected Oracle 仍为 0/43；目标 `41 passed`、Package 587 files、Status、Governance pinned
     `ebc6c2e4884edc959118cfc56d0e18a86c49460f`、facts、Manifest 与 Stage 7 九项 scoped
     preflight 均 PASS。真实 Gmail、Secret、私有仓、Workflow dispatch 与 main delivery 尚未执行。
+26. T0702 pre-dispatch bootstrap 已在不公开受保护标识或值的前提下完成：Environment 为
+    no-reviewer/main-only，六项精确 Environment Secret 齐备；唯一私有数据仓为空白 64-byte
+    bootstrap、Actions 关闭且无 LFS/release asset；GitHub App 仅有该仓的 contents write 与
+    mandatory metadata read；age identity 在一次性 cloud tmpfs 内生成、绑定验证并销毁；预算为 1
+    且容量证据为 fresh/GREEN。Gmail OAuth 仅授予 `gmail.modify`，sender registry 来自
+    metadata-only 观察并已通过正负验证；未读取 RAW、未改变邮箱。
+27. 真实 Gmail metadata 响应的只读核验暴露两个发布前兼容性事实：`format=metadata` 默认仍可能
+    返回 content-derived `snippet`，而 Authentication-Results 可按 RFC 8601 使用 `header.i`。
+    最窄修复要求 metadata get 使用 exact partial-response fields 排除 `snippet`，并让 DKIM 对
+    `header.d`/`header.i` 中所有出现的 identity 全部按白名单域 fail closed。目标
+    T0202/T0304/T0701/T0702 回归为 `39 passed`；受保护运行、PR/merge、Raw、数据仓写入与
+    protected Oracle 仍为 0/NOT_RUN。
 
 ## 关键边界
 
@@ -168,11 +182,8 @@
 
 ## 下一步
 
-1. 先独立核验 Owner 已创建的 `moomooau-beta` Environment，再配置 no-reviewer/main-only policy；
-   建立或复用唯一私有数据仓与最小权限单仓 GitHub App；生成 age/opaque key、verified sender
-   registry、Gmail OAuth 和 budget-one/fresh-capacity config，并只写入六项 Environment Secret。
-2. 所有本地累计门与云端 pre-dispatch gate 通过后，经一次 PR/merge 进入 `main`，确认精确 merged
+1. 所有本地累计门与云端 pre-dispatch gate 通过后，经一次 PR/merge 进入 `main`，确认精确 merged
    SHA，再 dispatch 一次。任何 sender、权限、容量、私有性、Secret、Gmail 或恢复结果未知即停止；
    不审批、不 rerun、不读取未验证 RAW、不进行 Gmail mutation。
-3. protected run 后只在本地更新 T0702 证据，不进行第二次 main 交付，不进入 M3。整体任务包完成后
+2. protected run 后只在本地更新 T0702 证据，不进行第二次 main 交付，不进入 M3。整体任务包完成后
    才做整体复审、修复与最终发布。

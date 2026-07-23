@@ -8,11 +8,12 @@ from email.message import Message
 from io import BytesIO
 from pathlib import Path
 from typing import cast
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlsplit
 from urllib.request import Request
 
 import pytest
 import yaml
+from stage3_support import metadata_headers, synthetic_address, synthetic_registry
 from stage7_support import (
     canary_context,
     canary_message,
@@ -28,7 +29,12 @@ from moomooau_archive.auth import (
 )
 from moomooau_archive.canary_runtime import CanaryRuntimeError
 from moomooau_archive.capacity import CapacityAssessment, CapacityState
-from moomooau_archive.gmail_guard import GmailEndpointGuard, list_messages_request
+from moomooau_archive.gmail_discovery import HeaderSnapshot, MessageRef, MinimalMessage
+from moomooau_archive.gmail_guard import (
+    GmailEndpointGuard,
+    get_message_request,
+    list_messages_request,
+)
 from moomooau_archive.http_boundary import HttpRequest, HttpResponse
 from moomooau_archive.http_transport import HttpTransportError, StdlibHttpsTransport, _NoRedirect
 from moomooau_archive.oauth import (
@@ -68,6 +74,7 @@ from moomooau_archive.release_control import (
     Stage7ReleaseGate,
 )
 from moomooau_archive.secret_values import SecretText
+from moomooau_archive.sender_registry import SenderDecision, SenderVerifier, VerificationPhase
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 REPOSITORY_ROOT = PROJECT_ROOT.parents[1]
@@ -217,6 +224,38 @@ def test_t0702_exact_oauth_refresh_and_gmail_only_bearer_injection() -> None:
     with pytest.raises(OAuthExchangeError):
         bearer.send(HttpRequest("GET", "https://example.invalid/"))
     token.destroy()
+
+
+def test_t0702_live_gmail_metadata_shape_excludes_content_and_accepts_rfc8601_dkim_i() -> None:
+    request = get_message_request(
+        "synthetic-live-shape",
+        message_format="metadata",
+        metadata_headers=("From", "Subject", "Authentication-Results"),
+    )
+    query = parse_qs(urlsplit(request.url).query, strict_parsing=True)
+    assert query["fields"] == ["id,threadId,labelIds,historyId,internalDate,payload/headers"]
+
+    sender = synthetic_address()
+    authentication = (
+        "mx.google.com; "
+        f"spf=pass smtp.mailfrom={sender}; "
+        "dkim=pass header.i=@synthetic.invalid; "
+        "dmarc=pass header.from=synthetic.invalid"
+    )
+    message = MinimalMessage(
+        ref=MessageRef("synthetic-live-shape", "thread-synthetic-live-shape"),
+        history_id="100",
+        internal_date_ms=1_767_225_600_000,
+        label_ids=("INBOX",),
+        headers=HeaderSnapshot(metadata_headers(auth_results=authentication)),
+    )
+    result = SenderVerifier().verify_message(
+        message,
+        synthetic_registry(),
+        phase=VerificationPhase.PRE_RAW,
+    )
+    assert result.decision is SenderDecision.VERIFIED
+    assert result.raw_fetch_permit is not None
 
 
 def test_t0702_https_transport_bounds_and_sanitizes_response() -> None:

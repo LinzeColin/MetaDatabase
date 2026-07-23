@@ -15,6 +15,7 @@ _MESSAGE_ID = re.compile(r"^[A-Za-z0-9_-]{1,256}$")
 _LABEL_ID = re.compile(r"^[A-Za-z0-9_-]{1,256}$")
 _HEADER_NAME = re.compile(r"^[!-9;-~]{1,64}$")
 _HISTORY_TYPES = {"messageAdded", "messageDeleted", "labelAdded", "labelRemoved"}
+_METADATA_RESPONSE_FIELDS = "id,threadId,labelIds,historyId,internalDate,payload/headers"
 
 
 class GmailEndpointRejected(RuntimeError):
@@ -131,7 +132,7 @@ class GmailEndpointGuard:
                 "pageToken",
                 "q",
             },
-            GmailOperation.MESSAGES_GET: {"format", "metadataHeaders"},
+            GmailOperation.MESSAGES_GET: {"fields", "format", "metadataHeaders"},
             GmailOperation.HISTORY_LIST: {
                 "historyTypes",
                 "labelId",
@@ -165,6 +166,16 @@ class GmailEndpointGuard:
                 raise GmailEndpointRejected("Gmail message format is required")
             if "metadataHeaders" in counts and message_format != "metadata":
                 raise GmailEndpointRejected("metadata headers require metadata format")
+            response_fields = values.get("fields")
+            if message_format == "metadata":
+                if response_fields != _METADATA_RESPONSE_FIELDS:
+                    raise GmailEndpointRejected(
+                        "Gmail metadata partial response fields are required"
+                    )
+            elif response_fields is not None:
+                raise GmailEndpointRejected(
+                    "Gmail partial response fields are not allowed for this format"
+                )
         if operation is GmailOperation.HISTORY_LIST and "startHistoryId" not in values:
             raise GmailEndpointRejected("Gmail startHistoryId is required")
         for key, value in query:
@@ -200,6 +211,8 @@ def get_message_request(
 ) -> HttpRequest:
     _require_message_id(message_id)
     parameters: list[tuple[str, str]] = [("format", message_format)]
+    if message_format == "metadata":
+        parameters.append(("fields", _METADATA_RESPONSE_FIELDS))
     parameters.extend(("metadataHeaders", header) for header in metadata_headers)
     query = urlencode(parameters)
     return HttpRequest(

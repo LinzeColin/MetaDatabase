@@ -64,12 +64,20 @@ budget-one protected Raw-only dispatch，且 `moomooau-beta` 不设人工 review
 交付、rerun、Gmail mutation、M3、Processed、Timeline、schedule 或最终发布；任一前置无法独立核验
 即停止。
 
+Pre-dispatch bootstrap 已完成独立核验：Environment 为 no-reviewer/main-only，只有六项允许的
+Secret；唯一私有数据仓、单仓最小权限 GitHub App、cloud-only age identity、opaque key、预算 1、
+fresh-capacity config、`gmail.modify` OAuth 与 metadata-derived verified sender registry 均已就绪。
+真实 metadata-only 观察还确认 Gmail 默认 metadata 响应可能携带 `snippet`，且 RFC 8601 DKIM
+identity 可能位于 `header.i`；运行时因此强制 exact partial-response fields，并要求出现的全部
+`header.d`/`header.i` identity 对齐 allowlist。该 bootstrap 尚未读取 RAW、写入数据仓、执行
+Workflow 或满足 protected Oracle，T0702/S7AC-002 在唯一 dispatch 前继续 `BLOCKED/NOT_RUN`。
+
 ## 后续顺序
 
 1. 只读 Governance Deploy Key 与 GitHub-hosted 非生产预检已完成并关闭临时远端候选；
-2. T0702 protected Raw-only 入口完成本地机制验证，但真实 Beta Oracle 保持 `NOT_RUN`；
-3. 按一次性 Owner 授权配置 no-reviewer/main-only Environment、六项 Secret、预算 1、verified
-   registry、唯一私有仓与单仓最小权限 GitHub App，再从精确 merged SHA dispatch 一次；
+2. T0702 protected Raw-only 入口与 pre-dispatch bootstrap 已完成本地/受保护配置核验，但真实
+   Beta Oracle 保持 `NOT_RUN`；
+3. 按一次性 Owner 授权从精确 merged SHA dispatch 一次；
 4. Beta 真实 Oracle 全绿后，RMD-06 才可按 M3 → Timeline Blue-Green → GA → Recovery → 最终 AC
    的既定顺序继续；每个未知或失败结果立即停止；
 5. RMD-06 完成后进入 RMD-07 最终复审与干净一次性发布。

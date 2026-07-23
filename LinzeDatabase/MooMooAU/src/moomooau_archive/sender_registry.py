@@ -653,11 +653,11 @@ def _authentication_aligned(
     if not relevant:
         return False
     expected_values = {
-        "dkim": ("header.d", set(expected.dkim_domains)),
-        "spf": ("smtp.mailfrom", set(expected.spf_mail_from_domains)),
-        "dmarc": ("header.from", set(expected.dmarc_from_domains)),
+        "dkim": (("header.d", "header.i"), set(expected.dkim_domains)),
+        "spf": (("smtp.mailfrom",), set(expected.spf_mail_from_domains)),
+        "dmarc": (("header.from",), set(expected.dmarc_from_domains)),
     }
-    for method, (property_name, domains) in expected_values.items():
+    for method, (property_names, domains) in expected_values.items():
         method_results = [item for item in relevant if item["method"] == method]
         if not method_results:
             return False
@@ -667,8 +667,14 @@ def _authentication_aligned(
             properties = item["properties"]
             if not isinstance(properties, dict):
                 return False
-            identity = properties.get(property_name)
-            if not isinstance(identity, str) or _identity_domain(identity) not in domains:
+            identities = [
+                value
+                for property_name in property_names
+                if isinstance((value := properties.get(property_name)), str)
+            ]
+            if not identities or any(
+                _identity_domain(identity) not in domains for identity in identities
+            ):
                 return False
     return True
 

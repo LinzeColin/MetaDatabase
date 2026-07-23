@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from urllib.parse import parse_qs, urlsplit
+
 import pytest
 
 from moomooau_archive.gmail_guard import (
@@ -65,6 +67,33 @@ def test_t0202_only_five_exact_gmail_operations_reach_network() -> None:
     assert guard.metrics.allowed_calls == 5
     assert guard.metrics.blocked_calls == len(forbidden)
     assert guard.metrics.forbidden_network_calls == 0
+
+
+def test_t0202_metadata_get_requires_content_excluding_partial_response() -> None:
+    transport = RecordingTransport()
+    guard = GmailEndpointGuard(transport)
+    request = get_message_request(
+        "synthetic_message_001",
+        message_format="metadata",
+        metadata_headers=("From", "Subject", "Authentication-Results"),
+    )
+    query = parse_qs(urlsplit(request.url).query)
+    assert query["fields"] == ["id,threadId,labelIds,historyId,internalDate,payload/headers"]
+    guard.send(request)
+
+    base = "https://gmail.googleapis.com/gmail/v1/users/me/messages/synthetic_message_001"
+    for fields in (
+        "",
+        "id,threadId,labelIds,historyId,internalDate,payload",
+        "id,threadId,labelIds,historyId,internalDate,payload/headers,snippet",
+    ):
+        suffix = "?format=metadata&metadataHeaders=From" + (f"&fields={fields}" if fields else "")
+        with pytest.raises(GmailEndpointRejected):
+            guard.send(HttpRequest("GET", base + suffix))
+
+    with pytest.raises(GmailEndpointRejected):
+        guard.send(HttpRequest("GET", base + "?format=raw&fields=id,raw"))
+    assert len(transport.requests) == 1
 
 
 def test_t0202_trash_is_message_level_empty_body_only() -> None:

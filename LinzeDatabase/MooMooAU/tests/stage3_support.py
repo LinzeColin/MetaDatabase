@@ -221,6 +221,9 @@ class SyntheticGmailTransport:
             "internalDate": str(message.internal_date_ms),
         }
         if message_format == "metadata":
+            assert query.get("fields") == [
+                "id,threadId,labelIds,historyId,internalDate,payload/headers"
+            ]
             self.metadata_fetches.append(message_id)
             requested = {name.casefold() for name in query.get("metadataHeaders", [])}
             payload["payload"] = {

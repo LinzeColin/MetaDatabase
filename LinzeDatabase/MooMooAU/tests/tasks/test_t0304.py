@@ -188,6 +188,35 @@ def test_t0304_conflicting_trusted_authentication_results_and_multiple_from_quar
     assert duplicate_result.raw_fetch_permit is None
 
 
+def test_t0304_rfc8601_dkim_header_i_is_verified_without_weakening_conflicts() -> None:
+    sender = synthetic_address()
+    gmail_style = (
+        "mx.google.com; "
+        f"spf=pass smtp.mailfrom={sender}; "
+        "dkim=pass header.i=@synthetic.invalid; "
+        "dmarc=pass header.from=synthetic.invalid"
+    )
+    verified = SenderVerifier().verify_message(
+        _minimal(auth=gmail_style),
+        synthetic_registry(),
+        phase=VerificationPhase.PRE_RAW,
+    )
+    assert verified.decision is SenderDecision.VERIFIED
+    assert verified.raw_fetch_permit is not None
+
+    conflicting = gmail_style.replace(
+        "header.i=@synthetic.invalid",
+        "header.i=@synthetic.invalid header.d=unrelated.invalid",
+    )
+    rejected = SenderVerifier().verify_message(
+        _minimal(auth=conflicting),
+        synthetic_registry(),
+        phase=VerificationPhase.PRE_RAW,
+    )
+    assert rejected.decision is SenderDecision.REJECTED
+    assert rejected.raw_fetch_permit is None
+
+
 def test_t0304_one_thousand_unrelated_metadata_records_yield_zero_raw_permits() -> None:
     verifier = SenderVerifier()
     registry = synthetic_registry()
