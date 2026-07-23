@@ -50,6 +50,11 @@ class InstallationTokenFailureClass(StrEnum):
     AUTHORIZATION_REJECTED = "AUTHORIZATION_REJECTED"
     INSTALLATION_NOT_FOUND = "INSTALLATION_NOT_FOUND"
     INSTALLATION_DISCOVERY_REJECTED = "INSTALLATION_DISCOVERY_REJECTED"
+    INSTALLATION_ZERO = "INSTALLATION_ZERO"
+    INSTALLATION_MULTIPLE = "INSTALLATION_MULTIPLE"
+    INSTALLATION_SUSPENDED = "INSTALLATION_SUSPENDED"
+    INSTALLATION_SELECTION_REJECTED = "INSTALLATION_SELECTION_REJECTED"
+    INSTALLATION_PERMISSIONS_REJECTED = "INSTALLATION_PERMISSIONS_REJECTED"
     REQUEST_REJECTED = "REQUEST_REJECTED"
     REMOTE_SERVICE_FAILED = "REMOTE_SERVICE_FAILED"
     RESPONSE_INVALID = "RESPONSE_INVALID"
@@ -613,21 +618,35 @@ class GitHubInstallationTokenClient:
             raise GitHubInstallationTokenError(
                 InstallationTokenFailureClass.RESPONSE_INVALID
             ) from exc
-        if not isinstance(payload, list) or len(payload) != 1:
+        if not isinstance(payload, list):
             raise GitHubInstallationTokenError(
                 InstallationTokenFailureClass.INSTALLATION_DISCOVERY_REJECTED
             )
+        if not payload:
+            raise GitHubInstallationTokenError(InstallationTokenFailureClass.INSTALLATION_ZERO)
+        if len(payload) != 1:
+            raise GitHubInstallationTokenError(InstallationTokenFailureClass.INSTALLATION_MULTIPLE)
         installation = payload[0]
         if (
             not isinstance(installation, dict)
             or type(installation.get("id")) is not int
             or cast(int, installation["id"]) <= 0
-            or installation.get("suspended_at") is not None
-            or installation.get("repository_selection") != "selected"
-            or installation.get("permissions") != {"contents": "write", "metadata": "read"}
         ):
             raise GitHubInstallationTokenError(
                 InstallationTokenFailureClass.INSTALLATION_DISCOVERY_REJECTED
+            )
+        if installation.get("suspended_at") is not None:
+            raise GitHubInstallationTokenError(InstallationTokenFailureClass.INSTALLATION_SUSPENDED)
+        if installation.get("repository_selection") != "selected":
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.INSTALLATION_SELECTION_REJECTED
+            )
+        if installation.get("permissions") != {
+            "contents": "write",
+            "metadata": "read",
+        }:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.INSTALLATION_PERMISSIONS_REJECTED
             )
         return cast(int, installation["id"])
 
