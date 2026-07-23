@@ -43,6 +43,10 @@ from .processed_models import (
     DocumentEnvelopeFactory,
 )
 from .processed_product import ProcessedBundle, ProcessedProductBuilder
+from .protected_beta_diagnostics import (
+    ProtectedBetaDiagnostics,
+    ProtectedBetaFailurePhase,
+)
 from .raw_commit import RawCommitPlanner, RawCommitSaga
 from .release_control import FeatureFlags, PhaseObservation, ReleasePhase, Stage7ReleaseGate
 from .remote_recovery_gate import CiphertextDecryptor, RemoteRecoveryGate
@@ -200,6 +204,7 @@ class RawOnlyCanaryRunner:
         raw_commit: RawCommitSaga,
         recovery: RemoteRecoveryGate,
         operational_gate: OperationalGate,
+        diagnostics: ProtectedBetaDiagnostics | None = None,
     ) -> None:
         if registry.activation is not RegistryActivation.ACTIVE:
             raise CanaryRuntimeError("protected sender registry is not active")
@@ -212,6 +217,7 @@ class RawOnlyCanaryRunner:
         self._raw_commit = raw_commit
         self._recovery = recovery
         self._operational_gate = operational_gate
+        self._diagnostics = diagnostics or ProtectedBetaDiagnostics()
 
     def run(
         self,
@@ -222,6 +228,7 @@ class RawOnlyCanaryRunner:
         predecessor_observations: tuple[PhaseObservation, ...],
         beta_message_budget: int,
     ) -> CanaryRunResult:
+        self._diagnostics.enter(ProtectedBetaFailurePhase.RUNTIME_PREFLIGHT)
         if (
             phase is not ReleasePhase.BETA_RAW_ONLY
             or type(maximum_verified_candidates) is not int
@@ -245,6 +252,7 @@ class RawOnlyCanaryRunner:
 
         self._operational_gate.preflight(SensitiveOperation.PRODUCTION_RUN)
         self._operational_gate.preflight(SensitiveOperation.RAW_WRITE)
+        self._diagnostics.enter(ProtectedBetaFailurePhase.MAILBOX_DISCOVERY)
         discovery = FullMailboxDiscoverer(self._gmail).scan()
         metadata_reads = 0
         verified = archived = deferred = 0
@@ -252,6 +260,7 @@ class RawOnlyCanaryRunner:
         source_mutations = already_trashed = 0
 
         for ref in discovery.refs:
+            self._diagnostics.enter(ProtectedBetaFailurePhase.METADATA_VERIFICATION)
             message = self._gmail.get_metadata(
                 ref.message_id,
                 header_names=self._registry.requested_header_names,
@@ -277,14 +286,18 @@ class RawOnlyCanaryRunner:
             permit = first.raw_fetch_permit
             if permit is None:
                 raise CanaryRuntimeError("verified PRE_RAW result did not issue a fetch permit")
+            self._diagnostics.enter(ProtectedBetaFailurePhase.RAW_FETCH)
             canonical = self._raw_fetcher.fetch(permit, self._registry)
+            self._diagnostics.enter(ProtectedBetaFailurePhase.RAW_ENCRYPTION_PLAN)
             attachments = self._inspector.inspect(canonical)
             raw_plan = self._raw_planner.plan(canonical, attachments, key_epoch=key_epoch)
+            self._diagnostics.enter(ProtectedBetaFailurePhase.RAW_COMMIT)
             self._operational_gate.execute(
                 SensitiveOperation.RAW_WRITE,
                 partial(self._raw_commit.commit, raw_plan),
                 demand=git_capacity_demand(item.ciphertext for item in raw_plan.objects),
             )
+            self._diagnostics.enter(ProtectedBetaFailurePhase.REMOTE_RECOVERY)
             proof = self._recovery.verify_raw_only(canonical, first, raw_plan)
             if proof.recovered_object_count != len(raw_plan.objects):
                 raise CanaryRuntimeError("Raw-only remote recovery count differs from the plan")

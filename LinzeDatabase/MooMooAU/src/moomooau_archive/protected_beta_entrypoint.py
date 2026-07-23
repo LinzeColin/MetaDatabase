@@ -29,6 +29,13 @@ from .protected_beta import (
     SENDER_REGISTRY_SECRET_NAME,
     ProtectedBetaBootstrap,
 )
+from .protected_beta_diagnostics import (
+    FAILURE_TAXONOMY_VERSION,
+    ProtectedBetaDiagnostics,
+    ProtectedBetaFailurePhase,
+    failure_reason_codes,
+    public_failure_payload,
+)
 from .release_control import (
     FeatureFlags,
     GateStatus,
@@ -219,6 +226,13 @@ def execution_contract(project_root: Path) -> dict[str, object]:
         "required_secret_names": list(BETA_SECRET_NAMES),
         "alpha_gate_paths": [path.as_posix() for path in _ALPHA_GATE_PATHS],
         "alpha_gate_sha256": alpha_gate_sha256(project_root),
+        "public_failure_schema": (
+            "machine/stages/S7/schemas/protected-beta-public-failure-v1.schema.json"
+        ),
+        "failure_taxonomy": FAILURE_TAXONOMY_VERSION,
+        "failure_phases": [phase.value for phase in ProtectedBetaFailurePhase],
+        "failure_reason_codes": list(failure_reason_codes()),
+        "failure_payload_accepts_exception_text": False,
         "feature_flags": flags.to_public_dict(),
         "maximum_source_mutations": 0,
         "maximum_processed_writes": 0,
@@ -236,10 +250,14 @@ def execute_protected(
     confirmation: str,
     bootstrap: ProtectedBetaBootstrap | None = None,
     clock: Callable[[], datetime] | None = None,
+    diagnostics: ProtectedBetaDiagnostics | None = None,
 ) -> ProtectedBetaExecutionEvidence:
     """Execute exactly one protected Beta run after all non-secret context gates pass."""
 
+    active_diagnostics = diagnostics or ProtectedBetaDiagnostics()
+    active_diagnostics.enter(ProtectedBetaFailurePhase.CONTEXT_GATE)
     context = ProtectedGitHubContext.from_environment(environment)
+    active_diagnostics.enter(ProtectedBetaFailurePhase.ALPHA_BINDING)
     if (
         confirmation != RAW_ONLY_CONFIRMATION
         or expected_head_sha != context.head_sha
@@ -262,11 +280,14 @@ def execute_protected(
             gmail_transport=transport,
             github_transport=transport,
             clock=now,
+            diagnostics=active_diagnostics,
         )
     with active_bootstrap.open(predecessor_observations=(alpha,)) as runtime:
         beta_message_budget = runtime.beta_message_budget
+        active_diagnostics.enter(ProtectedBetaFailurePhase.RUNTIME_PREFLIGHT)
         result = runtime.run()
     ended_at = _utc_now(now)
+    active_diagnostics.enter(ProtectedBetaFailurePhase.AGGREGATE_GATE)
     observation = _beta_observation(result, started_at, ended_at)
     gate = Stage7ReleaseGate().evaluate_completed_phase(
         observation,
@@ -438,6 +459,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if any(value is None for value in execution_values):
         parser.error("protected execution requires head SHA, Alpha gate and confirmation")
+    diagnostics = ProtectedBetaDiagnostics()
     try:
         evidence = execute_protected(
             os.environ,
@@ -445,19 +467,14 @@ def main(argv: list[str] | None = None) -> int:
             expected_head_sha=args.expected_head_sha,
             supplied_alpha_gate_sha256=args.alpha_gate_sha256,
             confirmation=args.confirm,
+            diagnostics=diagnostics,
         )
         print(json.dumps(evidence.to_dict(), sort_keys=True, separators=(",", ":")))
         return 0
     except Exception:
         print(
             json.dumps(
-                {
-                    "schema_version": "moomooau.protected-beta-execution.v1",
-                    "status": "BLOCKED",
-                    "reason_code": "PROTECTED_BETA_RUN_FAILED",
-                    "production_health_claimed": False,
-                    "final_acceptance_claimed": False,
-                },
+                public_failure_payload(diagnostics),
                 sort_keys=True,
                 separators=(",", ":"),
             )

@@ -80,15 +80,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0703.json",
-      "evidence_sha256": "72c66209f3fb2345b414f24ee19d0ac9109b01c593af42266f68a355a9a0ad86",
+      "evidence_sha256": "fb6679ff9eebdee187eff74163d0952ae352c739d8e01d384351026eb64b50db",
       "final_claim_status": "NOT_RUN",
-      "reason": "The protected seven-day Mutation Budget 1 observation has not started.",
+      "reason": "Protected Mutation Budget 1 execution has not run because the Beta predecessor failed.",
       "source_record_status": "BLOCKED",
       "task_id": "T0703"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "observed_at_utc": "2026-07-23T10:29:39Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

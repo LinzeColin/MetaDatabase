@@ -48,5 +48,21 @@ def test_t0701_stage7_contract_catalog_is_closed_and_not_final() -> None:
     assert [item["task_id"] for item in contract["acceptance_contracts"]] == [
         f"T070{index}" for index in range(1, 9)
     ]
-    assert contract["overall_status"] == "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES"
+    assert contract["overall_status"] == "BLOCKED_PROTECTED_BETA_FAILED"
     assert contract["final_acceptances_passed"] == 0
+
+
+def test_t0701_remote_alpha_receipt_is_passed_without_production_claim() -> None:
+    record = json.loads((PROJECT_ROOT / "evidence/tasks/T0701.json").read_text(encoding="utf-8"))
+    assert record["production_oracles"] == [
+        {
+            "id": "REMOTE_ALPHA_NO_SECRET_PREFLIGHT",
+            "status": "PASS",
+            "reason": (
+                "The same-tree no-Secret Alpha job completed successfully on the exact merged "
+                "main commit before the protected Beta job began."
+            ),
+        }
+    ]
+    assert record["record_status"] == "READY"
+    assert all(item["status"] != "PASS" for item in record["linked_final_acceptance"])

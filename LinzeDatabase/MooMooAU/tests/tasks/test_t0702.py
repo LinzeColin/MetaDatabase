@@ -7,12 +7,13 @@ from datetime import UTC, datetime, timedelta
 from email.message import Message
 from io import BytesIO
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 from urllib.parse import parse_qs, urlsplit
 from urllib.request import Request
 
 import pytest
 import yaml
+from jsonschema import Draft202012Validator
 from stage3_support import metadata_headers, synthetic_address, synthetic_registry
 from stage7_support import (
     canary_context,
@@ -51,6 +52,14 @@ from moomooau_archive.protected_beta import (
     SENDER_REGISTRY_SECRET_NAME,
     ProtectedBetaBootstrap,
     ProtectedBetaBootstrapError,
+    ProtectedBetaRuntime,
+)
+from moomooau_archive.protected_beta_diagnostics import (
+    FAILURE_TAXONOMY_VERSION,
+    ProtectedBetaDiagnostics,
+    ProtectedBetaFailurePhase,
+    failure_reason_codes,
+    public_failure_payload,
 )
 from moomooau_archive.protected_beta_entrypoint import (
     BETA_SECRET_NAMES,
@@ -66,6 +75,9 @@ from moomooau_archive.protected_beta_entrypoint import (
     execute_protected,
     execution_contract,
 )
+from moomooau_archive.protected_beta_entrypoint import (
+    main as protected_beta_main,
+)
 from moomooau_archive.release_control import (
     FeatureFlags,
     GateStatus,
@@ -78,6 +90,9 @@ from moomooau_archive.sender_registry import SenderDecision, SenderVerifier, Ver
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 REPOSITORY_ROOT = PROJECT_ROOT.parents[1]
+PUBLIC_FAILURE_SCHEMA = PROJECT_ROOT / (
+    "machine/stages/S7/schemas/protected-beta-public-failure-v1.schema.json"
+)
 
 
 class RecordingTransport:
@@ -118,6 +133,36 @@ class FakeOpener:
         assert timeout == 30.0
         self.requests.append(request)
         return self.response
+
+
+class SyntheticPhaseFailure(RuntimeError):
+    pass
+
+
+class FailOnPhaseDiagnostics(ProtectedBetaDiagnostics):
+    def __init__(self, target: ProtectedBetaFailurePhase) -> None:
+        ProtectedBetaDiagnostics.__init__(self)
+        self._target = target
+
+    def enter(self, phase: ProtectedBetaFailurePhase) -> None:
+        super().enter(phase)
+        if phase is self._target:
+            raise SyntheticPhaseFailure("synthetic-private-exception-marker")
+
+
+class CleanupProbe:
+    def __init__(self, name: str, events: list[str], *, fail: bool = False) -> None:
+        self._name = name
+        self._events = events
+        self._fail = fail
+
+    def destroy(self) -> None:
+        self._events.append(self._name)
+        if self._fail:
+            raise RuntimeError("synthetic-private-cleanup-marker")
+
+    def close(self) -> None:
+        self.destroy()
 
 
 def _credential() -> GmailOAuthCredential:
@@ -568,6 +613,13 @@ def test_t0702_entrypoint_contract_is_exact_raw_only_and_non_executing() -> None
     assert contract["required_secret_names"] == list(BETA_SECRET_NAMES)
     assert len(contract["required_secret_names"]) == 6
     assert contract["alpha_gate_sha256"] == alpha_gate_sha256(PROJECT_ROOT)
+    assert contract["public_failure_schema"] == (
+        "machine/stages/S7/schemas/protected-beta-public-failure-v1.schema.json"
+    )
+    assert contract["failure_taxonomy"] == FAILURE_TAXONOMY_VERSION
+    assert contract["failure_phases"] == [phase.value for phase in ProtectedBetaFailurePhase]
+    assert contract["failure_reason_codes"] == list(failure_reason_codes())
+    assert contract["failure_payload_accepts_exception_text"] is False
     assert (
         contract["feature_flags"]
         == FeatureFlags.for_phase(ReleasePhase.BETA_RAW_ONLY).to_public_dict()
@@ -576,6 +628,137 @@ def test_t0702_entrypoint_contract_is_exact_raw_only_and_non_executing() -> None
     assert contract["maximum_processed_writes"] == 0
     assert contract["maximum_timeline_mutations"] == 0
     assert contract["production_health_claimed"] is False
+
+
+def test_t0702_public_failure_taxonomy_is_closed_schema_valid_and_redacted() -> None:
+    schema = json.loads(PUBLIC_FAILURE_SCHEMA.read_text(encoding="utf-8"))
+    validator = Draft202012Validator(schema)
+    assert len(ProtectedBetaFailurePhase) == len(failure_reason_codes()) == 19
+    assert len(set(failure_reason_codes())) == 19
+
+    for phase in ProtectedBetaFailurePhase:
+        diagnostics = ProtectedBetaDiagnostics()
+        diagnostics.enter(phase)
+        payload = public_failure_payload(diagnostics)
+        assert not list(validator.iter_errors(payload))
+        assert payload["reason_code"] == f"PROTECTED_BETA_{phase.value}_FAILED"
+        assert payload["failure_phase"] == phase.value
+        assert payload["exact_root_cause_claimed"] is False
+        rendered = json.dumps(payload, sort_keys=True)
+        for forbidden in (
+            "synthetic-private-exception-marker",
+            '"message_id":',
+            '"thread_id":',
+            '"sender":',
+            '"subject":',
+            '"attachment":',
+            '"repository_id":',
+            '"workflow_run_id":',
+        ):
+            assert forbidden not in rendered.casefold()
+
+    mismatch = public_failure_payload(ProtectedBetaDiagnostics())
+    mismatch["failure_phase"] = ProtectedBetaFailurePhase.RAW_COMMIT.value
+    assert list(validator.iter_errors(mismatch))
+    unexpected = public_failure_payload(ProtectedBetaDiagnostics())
+    unexpected["exception"] = "synthetic-private-exception-marker"
+    assert list(validator.iter_errors(unexpected))
+
+
+@pytest.mark.parametrize(
+    "target",
+    [
+        ProtectedBetaFailurePhase.CONTEXT_GATE,
+        ProtectedBetaFailurePhase.ALPHA_BINDING,
+        ProtectedBetaFailurePhase.CONFIG_CAPACITY,
+        ProtectedBetaFailurePhase.SENDER_REGISTRY,
+        ProtectedBetaFailurePhase.GITHUB_APP_KEY,
+        ProtectedBetaFailurePhase.AGE_IDENTITY,
+        ProtectedBetaFailurePhase.GMAIL_OAUTH,
+        ProtectedBetaFailurePhase.GITHUB_APP_TOKEN,
+        ProtectedBetaFailurePhase.REPOSITORY_RESOLUTION,
+        ProtectedBetaFailurePhase.RUNTIME_PREFLIGHT,
+        ProtectedBetaFailurePhase.MAILBOX_DISCOVERY,
+        ProtectedBetaFailurePhase.METADATA_VERIFICATION,
+        ProtectedBetaFailurePhase.RAW_FETCH,
+        ProtectedBetaFailurePhase.RAW_ENCRYPTION_PLAN,
+        ProtectedBetaFailurePhase.RAW_COMMIT,
+        ProtectedBetaFailurePhase.REMOTE_RECOVERY,
+        ProtectedBetaFailurePhase.AGGREGATE_GATE,
+    ],
+)
+def test_t0702_every_reachable_failure_phase_is_wired_without_dynamic_output(
+    target: ProtectedBetaFailurePhase,
+) -> None:
+    diagnostics = FailOnPhaseDiagnostics(target)
+    environment = _protected_github_environment()
+    message = canary_message("msg-stage7-diagnostic-probe")
+    with protected_beta_context((message,), diagnostics=diagnostics) as context:
+        with pytest.raises(SyntheticPhaseFailure, match="synthetic-private-exception-marker"):
+            execute_protected(
+                environment,
+                project_root=PROJECT_ROOT,
+                expected_head_sha=environment["GITHUB_SHA"],
+                supplied_alpha_gate_sha256=alpha_gate_sha256(PROJECT_ROOT),
+                confirmation=RAW_ONLY_CONFIRMATION,
+                bootstrap=context.bootstrap,
+                clock=lambda: context.now,
+                diagnostics=diagnostics,
+            )
+        payload = public_failure_payload(diagnostics)
+        assert payload["failure_phase"] == target.value
+        assert payload["reason_code"] == target.reason_code
+        assert "synthetic-private-exception-marker" not in json.dumps(payload)
+        assert context.gmail_transport.trashed_ids == []
+
+
+def test_t0702_cleanup_failure_is_bounded_and_all_cleanup_actions_run() -> None:
+    events: list[str] = []
+    diagnostics = ProtectedBetaDiagnostics()
+    runtime = ProtectedBetaRuntime(
+        cast(Any, object()),
+        cast(Any, object()),
+        (),
+        cast(Any, CleanupProbe("gmail", events, fail=True)),
+        cast(Any, CleanupProbe("github", events)),
+        cast(Any, CleanupProbe("opaque", events)),
+        cast(Any, CleanupProbe("identity", events)),
+        diagnostics,
+    )
+    with pytest.raises(ProtectedBetaBootstrapError, match="resource cleanup failed") as error:
+        runtime.close()
+    assert error.value.__cause__ is not None
+    assert events == ["gmail", "github", "opaque", "identity"]
+    assert runtime.closed
+    assert diagnostics.phase is ProtectedBetaFailurePhase.RESOURCE_CLEANUP
+    payload = public_failure_payload(diagnostics)
+    assert payload["reason_code"] == "PROTECTED_BETA_RESOURCE_CLEANUP_FAILED"
+    assert "synthetic-private-cleanup-marker" not in json.dumps(payload)
+
+
+def test_t0702_cli_context_failure_is_fixed_and_reads_no_protected_values(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv("GITHUB_ACTIONS", "false")
+    exit_code = protected_beta_main(
+        [
+            "--execute-protected",
+            "--project-root",
+            str(PROJECT_ROOT),
+            "--expected-head-sha",
+            "a" * 40,
+            "--alpha-gate-sha256",
+            alpha_gate_sha256(PROJECT_ROOT),
+            "--confirm",
+            RAW_ONLY_CONFIRMATION,
+        ]
+    )
+    assert exit_code == 2
+    payload = json.loads(capsys.readouterr().out)
+    assert payload == public_failure_payload(
+        ProtectedBetaDiagnostics(ProtectedBetaFailurePhase.CONTEXT_GATE)
+    )
 
 
 def test_t0702_entrypoint_secret_source_has_an_exact_six_name_allowlist() -> None:
@@ -756,3 +939,28 @@ def test_t0702_protected_workflow_is_manual_main_only_and_exact_six_secret() -> 
         "moomooau_archive.production",
     ):
         assert forbidden not in text.casefold()
+
+
+def test_t0702_failed_protected_attempt_is_bound_and_cannot_claim_completion() -> None:
+    receipt = json.loads(
+        (PROJECT_ROOT / "machine/stages/S7/reviews/t0702/execution-receipt.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert receipt["control"]["workflow_attempt"] == 1
+    assert receipt["control"]["dispatches_for_head"] == 1
+    assert receipt["control"]["reruns"] == 0
+    assert receipt["jobs"]["alpha_gate"]["status"] == "PASS"
+    assert receipt["jobs"]["beta_raw_only"] == {
+        "status": "FAILED",
+        "started_at_utc": "2026-07-23T10:19:32Z",
+        "ended_at_utc": "2026-07-23T10:21:42Z",
+        "public_reason_code": "PROTECTED_BETA_RUN_FAILED",
+    }
+    assert receipt["jobs"]["identity_tmpfs_cleanup"]["status"] == "PASS"
+    assert receipt["post_run_state"]["raw_ciphertext_commits"] == 0
+    assert receipt["post_run_state"]["verified_full_raw_reads"] == "UNDETERMINED_WITHIN_BUDGET_ONE"
+    assert receipt["post_run_state"]["gmail_mutations"] == 0
+    assert receipt["diagnosis"]["exact_root_cause"] == "UNDETERMINED_BY_AGGREGATE_ONLY_LOGGING"
+    assert receipt["stop_decision"]["status"] == "STOP_CURRENT_RUN"
+    assert not any(receipt["claims"].values())

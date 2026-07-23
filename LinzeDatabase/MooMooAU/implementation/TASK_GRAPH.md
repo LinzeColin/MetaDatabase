@@ -584,6 +584,10 @@ Stage 0 使用 `machine/contracts/stage_acceptance_contract.json` 的 S0AC-* 作
 
 ## S7 — 安全发布、运维与交接
 
+执行覆盖：Owner 已取消 T0703/T0704 的固定自然日等待。为保持 v1.0.1 机器 Task Graph 的不可变
+谱系与哈希，`machine/contracts/task_graph.json` 不改；当前执行门以
+`machine/stages/S7/contracts/stage7_acceptance_contract.json` 与 `semantic_gate.json` 为准。
+
 ### P7.1 — Alpha/Beta
 
 #### T0701 — Alpha 合成发布
@@ -610,7 +614,7 @@ Stage 0 使用 `machine/contracts/stage_acceptance_contract.json` 的 S0AC-* 作
 
 #### T0703 — M3 Mutation Budget 1 Canary
 
-- 目标：逐封远端恢复后 Trash，观察 7 天，失败自动关闭。
+- 目标：逐封远端恢复后 Trash；一次有界受保护运行内确定性证据完整，失败自动关闭。
 - 依赖：T0702
 - Acceptance：AC-006, AC-007, AC-026
 - 测试：`python -m pytest -q tests/tasks/test_t0703.py && python machine/tools/validate_evidence.py evidence/tasks/T0703.json`
@@ -620,7 +624,7 @@ Stage 0 使用 `machine/contracts/stage_acceptance_contract.json` 的 S0AC-* 作
 
 #### T0704 — Parser/Timeline Blue-Green Canary
 
-- 目标：对比旧/新结构与单一最新图片，观察 14 天。
+- 目标：同次有界受保护运行对比旧/新结构与单一最新图片；不设自然日等待。
 - 依赖：T0703
 - Acceptance：AC-015, AC-028, AC-029, AC-030
 - 测试：`python -m pytest -q tests/tasks/test_t0704.py && python machine/tools/validate_evidence.py evidence/tasks/T0704.json`

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the baseline-preserving v1.0.6 preflight and Beta-readiness manifest."""
+"""Build the baseline-preserving v1.0.6 preflight and Beta-attempt manifest."""
 
 from __future__ import annotations
 
@@ -184,7 +184,9 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
             "Owner-directed RMD-06 sequence: private Governance dependency authentication "
-            "and local T0702 protected Raw-only entrypoint readiness"
+            "plus one historical T0702 protected Raw-only delivery and failed dispatch, followed "
+            "by a validated diagnostic repair, removal of fixed Stage 7 calendar waits and "
+            "explicit authorization for controlled Stage 7 completion"
         ),
         "scope": (
             "Baseline-preserving v1.0.6 project snapshot: immutable v1.0.1 product contracts "
@@ -193,9 +195,15 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "fork pull requests, corrected pre-runner expression contexts, deterministic "
             "workflow validation, the coupled sole delivery-status authority, a manual main-only "
             "six-Secret T0702 protected Raw-only entrypoint with same-tree Alpha and aggregate "
-            "Beta gates, and generated human documentation. Credential material, protected "
-            "observations, real Gmail/private-data operations, M3, production runs, and final "
-            "publication are not claimed by this manifest."
+            "Beta gates, one aggregate-only failed protected execution receipt, and generated "
+            "human documentation. The receipt proves the remote Alpha pass, protected Beta "
+            "failure before the first remote Raw commit, zero Gmail mutation/M3/Processed/"
+            "Timeline effects and no final publication; it does not claim an exact internal "
+            "failure cause, T0702 completion, production health or final Acceptance. The local "
+            "repair adds public-safe phase diagnostics and replaces fixed M3/Blue-Green day "
+            "counts with bounded deterministic evidence gates. A new completion Run Contract "
+            "authorizes controlled repair delivery and serial first-attempt protected execution "
+            "while preserving Beta zero-mutation and every predecessor gate."
         ),
         "status_authority": "machine/status/latest.json",
         "predecessor": {

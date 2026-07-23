@@ -6,7 +6,7 @@
 - 产品契约：原样继承 v1.0.1 的 34 RQ、34 AC、58-task DAG 与十条不变量
 - 直接前序：v1.0.5 Manifest 字节不可变；v1.0.4、v1.0.3、v1.0.2 与 v1.0.1 继续固定
 - 唯一当前状态：`machine/status/latest.json`
-- 发布状态：`LOCAL_ONLY_NOT_PUBLISHED`
+- 发布状态：`CONTROLLED_BETA_DELIVERY_NOT_FINAL`
 
 ## 本版本只解决的 RMD-06 前置阻塞
 
@@ -39,9 +39,15 @@
     Secret 名称，并在读取前验证同树 Alpha 与 GitHub 上下文。
 15. 该入口只装配 Raw archive/recovery，Gmail mutation、Parser、M3、Processed、Timeline、schedule
     与控制仓写权限全部为零；本地合成测试不能替代真实 Beta。
-16. `moomooau-beta` Environment、六项 Secret、正整数预算、verified registry、唯一私有数据仓和
-    GitHub App installation 尚未配置或证实；同时存在“中间不上传”与“GitHub-hosted protected
-    observation”的顺序冲突，因此 T0702/S7AC-002 继续 `BLOCKED/NOT_RUN`。
+16. Owner 授权后，`moomooau-beta`、六项 Secret、预算 1、verified registry、唯一私有数据仓和
+    单仓最小权限 GitHub App 已独立核验；一次受控 PR/merge 和一次 first-attempt dispatch 已用尽。
+    同树 Alpha PASS，但 protected Beta 在首个远端 Raw commit 前失败，精确内部根因因
+    aggregate-only logging 不可判定；T0702/S7AC-002 继续 `BLOCKED`，禁止本轮 rerun 或 M3。
+17. 后续 Stage 7 repair 仅在本地增加 19 项封闭 public-safe failure phase、唯一固定 reason code、
+    exact JSON Schema、全可达阶段 probe 与 cleanup 分类。renderer 不接收异常对象或动态 protected
+    值；原 repair Run Contract 的远端效果预算全部为 0，历史根因仍未知。Owner 随后新增
+    Stage 7 completion Run Contract，授权受控交付与 serial new first-attempt dispatch；仍禁止
+    GitHub rerun，且 Beta PASS 前不得进入 M3。
 
 ## 开发入口
 
@@ -53,8 +59,10 @@
 
 ## 当前准确边界
 
-v1.0.6 只证明 RMD-06 云执行前置和 T0702 protected Raw-only 入口代码与最小权限契约已就绪。
-受保护 Oracle、真实 Gmail、唯一私有数据仓操作、Beta Dispatch、M3、生产 Workflow、部署、最终
-Acceptance 与最终发布仍为 `0` 或 `NOT_RUN`。
-受控候选分支若用于 GitHub-hosted RMD-06 预检，只是远端验证输入，不等于最终发布；任何失败或未知结果
-立即停止，不得读取生产 Secret 或扩大权限。
+v1.0.6 证明 RMD-06 云执行前置、T0702 protected Raw-only 入口代码与最小权限契约，以及唯一受控
+attempt 的真实结果：Alpha PASS、Beta FAILED、首个远端 Raw commit 未发生、Gmail mutation/M3/
+Processed/Timeline/schedule 为 0。verified full Raw read 是否在失败前发生无法由现有 aggregate
+确定，不得猜测为 0。该受控 main 交付不是最终发布；T0702、最终 Acceptance 与生产健康均未通过。
+本地诊断 repair 只让新的 first-attempt 失败可按固定阶段分类，本身不构成 protected 证据。Owner
+已授权受控完成 Stage 7：交付后可执行 serial new first-attempt；只有真实 Beta PASS 才能进入
+M3，所有后续 protected claim 仍必须来自精确观察证据。

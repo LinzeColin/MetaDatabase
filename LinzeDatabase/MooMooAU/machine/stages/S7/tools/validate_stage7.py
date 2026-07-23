@@ -27,6 +27,7 @@ PRODUCTION_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-production.y
 BASELINE_COMMIT = "be8e196b03dcc475ed6261fbe20593b08bd26bcf"
 BASELINE_MANIFEST_SHA256 = "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f"
 GOVERNANCE_PIN = "ebc6c2e4884edc959118cfc56d0e18a86c49460f"  # pragma: allowlist secret
+FAILED_BETA_RECEIPT_SHA256 = "1f78a94d3e4019d89dda7aae9ddfc949e280eece03a0ce28829beba7094922c0"
 STAGE7_TASKS = [f"T070{index}" for index in range(1, 9)]
 STAGE7_ACCEPTANCES = [f"S7AC-00{index}" for index in range(1, 9)]
 PINNED_ACTION = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)?@[0-9a-f]{40}$")
@@ -116,11 +117,24 @@ def _validate_contracts(root: Path) -> list[str]:
     if [item.get("task_id") for item in items] != STAGE7_TASKS:
         errors.append("Stage 7 acceptance-to-task mapping must be one-to-one")
     if (
-        local.get("overall_status") != "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES"
+        local.get("overall_status") != "BLOCKED_PROTECTED_BETA_FAILED"
         or local.get("final_acceptances_passed") != 0
         or "Local implementation preflight" not in local.get("final_acceptance_policy", "")
+        or "No fixed calendar observation period applies"
+        not in local.get("final_acceptance_policy", "")
     ):
         errors.append("Stage 7 acceptance policy overstates current completion")
+    local_text = json.dumps(local, sort_keys=True)
+    if any(
+        token in local_text
+        for token in (
+            "seven M3 Canary days",
+            "fourteen Blue-Green days",
+            "observation >=7 days",
+            "observation >=14 days",
+        )
+    ):
+        errors.append("Stage 7 acceptance policy retains a calendar wait")
     required_fields = {
         "title",
         "environment",
@@ -188,31 +202,124 @@ def _validate_contracts(root: Path) -> list[str]:
     ):
         errors.append("Stage 7 run contract is incomplete or grants production authority")
 
+    repair = _load(root / "machine/stages/S7/contracts/t0702_repair_run_contract.json")
+    repair_authority = repair.get("authority", {})
+    repair_budget = repair.get("authorized_effect_budget", {})
+    failed_receipt = root / "machine/stages/S7/reviews/t0702/execution-receipt.json"
+    if (
+        repair.get("schema_version") != "moomooau.run-contract.v1"
+        or repair.get("stage_id") != "S7"
+        or repair.get("task_id") != "T0702"
+        or repair.get("failed_attempt_receipt")
+        != "machine/stages/S7/reviews/t0702/execution-receipt.json"
+        or repair.get("failed_attempt_receipt_sha256") != FAILED_BETA_RECEIPT_SHA256
+        or not failed_receipt.is_file()
+        or _sha256(failed_receipt) != FAILED_BETA_RECEIPT_SHA256
+        or repair_authority.get("basis") != "OWNER_PERSISTENT_GOAL_LOCAL_STAGE7_REPAIR"
+        or repair_authority.get("local_code_changes_allowed") is not True
+        or any(
+            repair_authority.get(key) is not False
+            for key in (
+                "main_delivery_allowed",
+                "workflow_dispatch_allowed",
+                "protected_secret_reads_allowed",
+                "gmail_calls_allowed",
+                "private_repository_calls_allowed",
+                "m3_allowed",
+                "final_publication_allowed",
+            )
+        )
+        or not isinstance(repair_budget, dict)
+        or not repair_budget
+        or any(value != 0 for value in repair_budget.values())
+        or not repair.get("acceptance")
+        or not repair.get("stop_conditions")
+        or (
+            "a second branch push, pull request, main delivery, workflow dispatch or rerun"
+            not in repair.get("non_goals", [])
+        )
+    ):
+        errors.append(
+            "T0702 diagnostic repair run contract is incomplete or grants remote authority"
+        )
+
+    completion = _load(root / "machine/stages/S7/contracts/stage7_completion_run_contract.json")
+    completion_authority = completion.get("authority", {})
+    completion_policy = completion.get("execution_policy", {})
+    if (
+        completion.get("schema_version") != "moomooau.run-contract.v1"
+        or completion.get("stage_id") != "S7"
+        or completion_authority.get("basis")
+        != "OWNER_EXPLICIT_STAGE7_COMPLETION_NO_ARTIFICIAL_BLOCKS"
+        or any(
+            completion_authority.get(key) is not True
+            for key in (
+                "controlled_main_delivery_allowed",
+                "serial_first_attempt_dispatch_allowed",
+                "protected_secret_reads_in_github_actions_allowed",
+                "gmail_calls_in_protected_runtime_allowed",
+                "private_repository_calls_in_protected_runtime_allowed",
+                "m3_allowed_after_t0702_pass",
+                "blue_green_allowed_after_m3_pass",
+                "ga_allowed_after_blue_green_pass",
+                "recovery_drill_allowed_after_ga_pass",
+                "final_publication_allowed_only_after_full_acceptance_and_review",
+            )
+        )
+        or completion_authority.get("manual_environment_approval_required") is not False
+        or completion_policy.get("stage_scope") != "S7_ONLY"
+        or completion_policy.get("dispatch_sequence") != "SERIAL_FIRST_ATTEMPT_PER_EXACT_MAIN_SHA"
+        or completion_policy.get("workflow_rerun_allowed") is not False
+        or completion_policy.get("fixed_calendar_wait_days") != 0
+        or completion_policy.get("beta_verified_message_budget_per_attempt") != 1
+        or completion_policy.get("beta_gmail_mutation_budget") != 0
+        or completion_policy.get("m3_source_mutation_budget_per_run") != 1
+        or completion_policy.get("maximum_concurrent_writers") != 1
+        or completion_policy.get("remote_recovery_required_before_source_mutation") is not True
+        or completion_policy.get("single_live_timeline_required") is not True
+        or not completion.get("scope")
+        or not completion.get("non_goals")
+        or not completion.get("validation")
+        or not completion.get("stop_conditions")
+    ):
+        errors.append("Stage 7 completion authority is missing or violates bounded safety")
+
     status = _load(root / "machine/stages/S7/contracts/task_status.json")
     task_items = status.get("tasks", [])
     if (
         [item.get("id") for item in task_items] != STAGE7_TASKS
         or any(item.get("status") == "completed" for item in task_items)
-        or status.get("stage_status") != "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES"
+        or status.get("stage_status") != "BLOCKED_PROTECTED_BETA_FAILED"
         or status.get("scoped_preflight_task_oracle_file_count") != 8
         or status.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or status.get("completed_task_count") != 0
-        or status.get("protected_oracles_executed") != 0
+        or status.get("protected_oracles_executed") != 2
+        or status.get("protected_oracles_passed") != 1
+        or status.get("protected_oracles_failed") != 1
+        or status.get("protected_workflow_runs") != 1
+        or status.get("production_workflow_runs") != 0
         or status.get("final_acceptances_passed") != 0
-        or status.get("delivery_status") != "LOCAL_ONLY_NOT_PUBLISHED"
-        or status.get("ordering_status") != "OWNER_AUTHORIZED_ONE_CONTROLLED_MAIN_DELIVERY"
+        or status.get("delivery_status")
+        != "CONTROLLED_BETA_MAIN_DELIVERY_MERGED_LOCAL_RECEIPT_NOT_PUBLISHED"
+        or status.get("ordering_status")
+        != "OWNER_AUTHORIZED_STAGE7_COMPLETION_SERIAL_FIRST_ATTEMPTS"
+        or status.get("diagnostic_repair_status") != "LOCAL_READY_AUTHORIZED_FOR_DELIVERY"
+        or status.get("new_controlled_delivery_authorized") is not True
+        or status.get("new_protected_dispatch_authorized") is not True
     ):
         errors.append("Stage 7 task status is not truthfully blocked")
 
     semantic = _load(root / "machine/stages/S7/contracts/semantic_gate.json")
     semantic_statuses = {item.get("status") for item in semantic.get("resolutions", [])}
     if (
-        semantic.get("status") != "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES"
+        semantic.get("status") != "BLOCKED_PROTECTED_BETA_FAILED"
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
-        or "AUTHORIZED_T0702_NOT_RUN" not in semantic_statuses
-        or "OWNER_ORDERING_RESOLVED" not in semantic_statuses
-        or "BLOCKED_IMPLEMENTATION" not in semantic_statuses
+        or "T0702_ATTEMPTED_FAILED_NO_RERUN" not in semantic_statuses
+        or "OWNER_STAGE7_COMPLETION_AUTHORIZED" not in semantic_statuses
+        or "BLOCKED_PROTECTED_BETA" not in semantic_statuses
+        or "RESOLVED_DIAGNOSTIC_REPAIR_AUTHORIZED" not in semantic_statuses
+        or "RESOLVED_NO_CALENDAR_WAIT" not in semantic_statuses
     ):
         errors.append("Stage 7 semantic gate is incomplete or overstates production evidence")
     return errors
@@ -224,10 +331,10 @@ def _validate_source_and_tests(root: Path) -> list[str]:
         "release_control.py": (
             'ALPHA = "ALPHA"',
             'BETA_RAW_ONLY = "BETA_RAW_ONLY"',
-            "M3_SEVEN_DAY_WINDOW_INCOMPLETE",
+            "M3_NO_CONFIRMED_SOURCE_MUTATION",
             "M3_NO_PROCESSED_OR_SAFE_DEFERRED_MESSAGE",
             "BETA_RAW_RECOVERY_NOT_ONE_HUNDRED_PERCENT",
-            "BLUE_GREEN_FOURTEEN_DAY_WINDOW_INCOMPLETE",
+            "BLUE_GREEN_NO_TIMELINE_PUBLISH_OBSERVED",
             "GA_0430_SCHEDULE_NOT_OBSERVED",
             "TARGET_FEATURE_CONFIGURATION_INCOMPLETE",
             "GA_CAPACITY_AUTHORIZATION_MISSING",
@@ -238,6 +345,11 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "GA_NO_PROCESSED_MESSAGE_OBSERVED",
             "GA_NO_TIMELINE_PUBLISH_OBSERVED",
             "evaluate_completed_phase",
+        ),
+        "processed_commit.py": (
+            'CANDIDATE_SHADOW_ONLY = "CANDIDATE_SHADOW_ONLY"',
+            "def shadow(",
+            '"CANDIDATE_SHADOW_ONLY"',
         ),
         "http_transport.py": (
             "_NoRedirect",
@@ -268,6 +380,17 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "approved_tmpfs_root",
             "_is_linux_dev_shm_tmpfs",
             "allow_synthetic_ephemeral_root: bool = False",
+            "ProtectedBetaFailurePhase.CONFIG_CAPACITY",
+            "ProtectedBetaFailurePhase.RESOURCE_CLEANUP",
+        ),
+        "protected_beta_diagnostics.py": (
+            "class ProtectedBetaFailurePhase",
+            "FAILURE_TAXONOMY_VERSION",
+            "def failure_reason_codes",
+            "def public_failure_payload",
+            '"exact_root_cause_claimed": False',
+            '"production_health_claimed": False',
+            '"final_acceptance_claimed": False',
         ),
         "protected_beta_entrypoint.py": (
             "ExactBetaEnvironmentSecretSource",
@@ -284,6 +407,10 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "BETA_SECRET_NAMES",
             "alpha_gate_sha256",
             "Stage7ReleaseGate().evaluate_completed_phase",
+            "ProtectedBetaFailurePhase.CONTEXT_GATE",
+            "ProtectedBetaFailurePhase.ALPHA_BINDING",
+            "ProtectedBetaFailurePhase.AGGREGATE_GATE",
+            "public_failure_payload(diagnostics)",
             '"m3_executed": False',
             '"production_health_claimed": False',
             '"final_acceptance_claimed": False',
@@ -313,6 +440,12 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "phase is not ReleasePhase.BETA_RAW_ONLY",
             "BETA_RAW_ONLY_COMPLETED_NOT_FINAL",
             "M3_CANARY_RUN_COMPLETED_NOT_FINAL",
+            "ProtectedBetaFailurePhase.MAILBOX_DISCOVERY",
+            "ProtectedBetaFailurePhase.METADATA_VERIFICATION",
+            "ProtectedBetaFailurePhase.RAW_FETCH",
+            "ProtectedBetaFailurePhase.RAW_ENCRYPTION_PLAN",
+            "ProtectedBetaFailurePhase.RAW_COMMIT",
+            "ProtectedBetaFailurePhase.REMOTE_RECOVERY",
         ),
         "remote_recovery_gate.py": (
             'RAW_ONLY = "RAW_ONLY"',
@@ -350,6 +483,8 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "recover_committed_snapshot_root",
             "SensitiveOperation.TIMELINE_WRITE",
             "self._timeline_publisher.publish",
+            '"calendar_wait_required": False',
+            '"deterministic_evidence_complete"',
         ),
         "gmail_sync_checkpoint.py": (
             "EncryptedGmailSyncCheckpoint",
@@ -443,9 +578,25 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             token not in path.read_text(encoding="utf-8") for token in tokens
         ):
             errors.append(f"Stage 7 source invariant is missing from {name}")
+    calendar_gate_tokens = (
+        "M3_SEVEN_DAY_WINDOW_INCOMPLETE",
+        "BLUE_GREEN_FOURTEEN_DAY_WINDOW_INCOMPLETE",
+        "FOURTEEN_DAY_OBSERVATION_INCOMPLETE",
+        "M3_DAILY_RUN_EVIDENCE_INCOMPLETE",
+        "BLUE_GREEN_DAILY_RUN_EVIDENCE_INCOMPLETE",
+    )
+    for name in ("release_control.py", "processed_commit.py", "blue_green_runtime.py"):
+        text = (source_root / name).read_text(encoding="utf-8")
+        if any(token in text for token in calendar_gate_tokens):
+            errors.append(f"Stage 7 calendar wait remains active in {name}")
     protected_beta = source_root / "protected_beta.py"
     if protected_beta.is_file() and "os.environ" in protected_beta.read_text(encoding="utf-8"):
         errors.append("protected Beta bootstrap performs implicit environment discovery")
+    public_failure_schema = (
+        root / "machine/stages/S7/schemas/protected-beta-public-failure-v1.schema.json"
+    )
+    if not public_failure_schema.is_file() or public_failure_schema.is_symlink():
+        errors.append("protected Beta public failure schema is missing or unsafe")
     tests = [root / "tests/tasks" / f"test_{task.casefold()}.py" for task in STAGE7_TASKS]
     if not all(path.is_file() for path in tests):
         errors.append("Stage 7 task tests are incomplete")
@@ -465,9 +616,9 @@ def _validate_source_and_tests(root: Path) -> list[str]:
     runbook = root / "operations/STAGE7_RUNBOOK.md"
     runbook_text = runbook.read_text(encoding="utf-8") if runbook.is_file() else ""
     for token in (
-        "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES",
-        "至少 7 天",
-        "至少 14 天",
+        "BLOCKED_PROTECTED_BETA_FAILED",
+        "不设自然日等待",
+        "一次有界受保护运行",
         "04:30 Australia/Sydney",
         "Mutation Budget",
         "Recovery Drill",
@@ -587,6 +738,10 @@ def _validate_workflow(root: Path) -> list[str]:
         "validate_delivery_status.py",
         "validate_publication.py",
         "protected_beta_entrypoint",
+        "protected_beta_diagnostics.py",
+        "canary_runtime.py",
+        "tests/stage7_support.py",
+        "protected-beta-public-failure-v1.schema.json",
         "--contract-only",
         "--execute-protected",
         "alpha_gate_sha256",
@@ -762,16 +917,33 @@ def _validate_evidence(root: Path) -> list[str]:
     errors: list[str] = []
     schema = _load(root / "machine/stages/S7/schemas/stage7-evidence-v1.schema.json")
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    receipt_path = root / "machine/stages/S7/reviews/t0702/execution-receipt.json"
+    receipt_schema_path = (
+        root / "machine/stages/S7/schemas/protected-beta-execution-receipt-v1.schema.json"
+    )
+    try:
+        receipt = _load(receipt_path)
+        receipt_schema = _load(receipt_schema_path)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        errors.append("protected Beta execution receipt is missing or unreadable")
+        receipt = {}
+        receipt_schema = {}
+    else:
+        receipt_errors = list(
+            Draft202012Validator(
+                receipt_schema,
+                format_checker=FormatChecker(),
+            ).iter_errors(receipt)
+        )
+        if receipt_errors:
+            errors.append("protected Beta execution receipt violates its exact schema")
     graph = _load(root / "machine/contracts/task_graph.json")
     graph_tasks = {item["id"]: item for item in graph["tasks"] if item["stage_id"] == "S7"}
     required_blockers = {
         "T0702": {
-            "PROTECTED_BETA_ENVIRONMENT_POLICY_NOT_VERIFIED",
-            "PROTECTED_BETA_SECRETS_NOT_PROVISIONED",
-            "PROTECTED_SENDER_REGISTRY_NOT_PROVISIONED",
-            "PRIVATE_DATA_REPOSITORY_NOT_PROVISIONED",
-            "GITHUB_APP_INSTALLATION_NOT_VERIFIED",
-            "OWNER_AUTHORIZED_CONTROLLED_MAIN_DELIVERY_NOT_YET_EXECUTED",
+            "PROTECTED_BETA_ATTEMPT_FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT",
+            "PROTECTED_BETA_EXACT_ROOT_CAUSE_UNDETERMINED",
+            "S7AC_002_NOT_SATISFIED",
         },
         "T0704": {
             "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
@@ -795,11 +967,21 @@ def _validate_evidence(root: Path) -> list[str]:
     }
     resolved_local_blockers = {
         "T0702": {"PROTECTED_RUNTIME_BOOTSTRAP_NOT_IMPLEMENTED"},
-        "T0703": {"M3_PROCESSED_CANARY_RUNTIME_NOT_IMPLEMENTED"},
-        "T0704": {"BLUE_GREEN_AND_TIMELINE_AGGREGATION_RUNTIME_NOT_IMPLEMENTED"},
+        "T0703": {
+            "M3_PROCESSED_CANARY_RUNTIME_NOT_IMPLEMENTED",
+            "M3_SEVEN_DAY_WINDOW_NOT_STARTED",
+        },
+        "T0704": {
+            "BLUE_GREEN_AND_TIMELINE_AGGREGATION_RUNTIME_NOT_IMPLEMENTED",
+            "BLUE_GREEN_FOURTEEN_DAY_WINDOW_NOT_STARTED",
+        },
         "T0705": {"GA_FULL_PIPELINE_ENTRY_NOT_IMPLEMENTED"},
         "T0707": {"PROTECTED_RECOVERY_DRILL_ENTRY_NOT_IMPLEMENTED"},
         "T0708": {"PROTECTED_PATCH_LIFECYCLE_WORKFLOW_NOT_IMPLEMENTED"},
+    }
+    expected_oracle_status = {
+        "T0701": "PASS",
+        "T0702": "FAILED",
     }
     for index, task_id in enumerate(STAGE7_TASKS, start=1):
         path = root / "evidence/tasks" / f"{task_id}.json"
@@ -840,8 +1022,18 @@ def _validate_evidence(root: Path) -> list[str]:
             for item in record["linked_final_acceptance"]
         ):
             errors.append(f"final acceptance status is overstated for {task_id}")
-        if any(item["status"] != "NOT_RUN" for item in record["production_oracles"]):
+        expected_protected_status = expected_oracle_status.get(task_id, "NOT_RUN")
+        if any(
+            item["status"] != expected_protected_status for item in record["production_oracles"]
+        ):
             errors.append(f"production oracle is overstated for {task_id}")
+        expected_receipt = (
+            "machine/stages/S7/reviews/t0702/execution-receipt.json"
+            if task_id in {"T0701", "T0702"}
+            else None
+        )
+        if record.get("protected_execution_receipt") != expected_receipt:
+            errors.append(f"protected execution receipt binding differs for {task_id}")
         if (
             not record["blockers"]
             or not required_blockers.get(task_id, set()).issubset(record["blockers"])
@@ -855,10 +1047,8 @@ def _validate_evidence(root: Path) -> list[str]:
     aggregate_required_blockers = set().union(*required_blockers.values())
     aggregate_resolved_blockers = set().union(*resolved_local_blockers.values())
     not_run = (
-        "alpha_remote_preflight",
-        "beta_real_raw_only",
-        "m3_seven_day_canary",
-        "blue_green_fourteen_day",
+        "m3_deterministic_evidence_run",
+        "blue_green_deterministic_evidence_run",
         "ga_0430_schedule",
         "codex_automation_created",
         "real_recovery_key_drill",
@@ -867,40 +1057,62 @@ def _validate_evidence(root: Path) -> list[str]:
     )
     if (
         latest.get("stage_id") != "S7"
-        or latest.get("status") != "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES"
+        or latest.get("status") != "BLOCKED_PROTECTED_BETA_FAILED"
         or latest.get("scoped_preflight")
         != "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
         or latest.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
-        or latest.get("scope") != "LOCAL_SYNTHETIC_PREFLIGHT"
+        or latest.get("scope") != "LOCAL_PREFLIGHT_WITH_PROTECTED_EXECUTION_RECEIPT"
         or latest.get("mechanism_task_oracle_files_passed") != 8
         or latest.get("task_total") != 8
         or latest.get("completed_task_count") != 0
         or latest.get("final_acceptances_passed") != 0
-        or latest.get("protected_oracles_executed") != 0
+        or latest.get("protected_oracles_executed") != 2
+        or latest.get("protected_oracles_passed") != 1
+        or latest.get("protected_oracles_failed") != 1
+        or latest.get("protected_workflow_runs") != 1
         or latest.get("production_workflow_runs") != 0
         or observation.get("alpha_local_synthetic") != "PASS"
         or observation.get("beta_local_bootstrap_mechanism") != "PASS"
+        or observation.get("beta_public_safe_failure_diagnostics")
+        != "LOCAL_READY_AUTHORIZED_FOR_DELIVERY"
         or observation.get("m3_local_synthetic_mechanism") != "PASS"
         or observation.get("blue_green_timeline_local_mechanism") != "PASS"
         or observation.get("ga_full_pipeline_local_mechanism") != "PASS"
         or observation.get("codex_auto_local_policy") != "PASS"
         or observation.get("recovery_drill_local_mechanism") != "PASS"
         or observation.get("patch_lifecycle_local_policy") != "PASS"
+        or observation.get("alpha_remote_preflight") != "PASS"
+        or observation.get("beta_real_raw_only") != "FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT"
         or any(observation.get(key) != "NOT_RUN" for key in not_run)
+        or observation.get("protected_gmail_read_path")
+        != "ATTEMPTED_EXACT_CALL_COUNT_NOT_DISCLOSED"
+        or observation.get("gmail_mutations") != 0
+        or observation.get("verified_full_raw_reads") != "UNDETERMINED_WITHIN_BUDGET_ONE"
+        or observation.get("protected_private_repository_path") != "ATTEMPTED_NO_RAW_COMMIT"
+        or observation.get("protected_secret_injection")
+        != "SIX_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED"
+        or observation.get("controlled_main_deliveries") != 1
         or any(
             observation.get(key) != 0
             for key in (
-                "real_gmail_calls",
-                "gmail_mutations",
-                "private_repository_calls",
-                "real_secrets_read",
-                "external_writes",
-                "remote_publication",
+                "private_raw_commits",
+                "remote_publications",
+                "m3_runs",
+                "processed_writes",
+                "timeline_writes",
+                "scheduled_runs",
             )
         )
         or not aggregate_required_blockers.issubset(latest.get("blocking_conditions", []))
         or aggregate_resolved_blockers.intersection(latest.get("blocking_conditions", []))
-        or latest.get("delivery_status") != "LOCAL_ONLY_NOT_PUBLISHED"
+        or latest.get("delivery_status")
+        != "CONTROLLED_BETA_MAIN_DELIVERY_MERGED_LOCAL_RECEIPT_NOT_PUBLISHED"
+        or latest.get("next_action")
+        != (
+            "Deliver the bounded public-safe diagnostic repair to main, dispatch one new "
+            "first-attempt protected Beta for the exact merged SHA, and keep M3 blocked "
+            "until that Beta passes."
+        )
     ):
         errors.append("Stage 7 aggregate evidence is not truthfully blocked")
     return errors
@@ -964,7 +1176,7 @@ def evaluate_stage7(
     evidence_errors = _validate_evidence(root)
     checks.append(
         _check(
-            "evidence.truthful_protected_not_run",
+            "evidence.truthful_protected_outcome",
             not evidence_errors,
             f"Stage 7 evidence errors {len(evidence_errors)}",
         )
@@ -984,7 +1196,7 @@ def evaluate_stage7(
     implementation_status = "LOCAL_MECHANISMS_READY" if not failed else "BLOCKED"
     latest = _load(root / "evidence/stage7/latest.json")
     protected_blockers = tuple(latest.get("blocking_conditions", []))
-    overall_status = "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES"
+    overall_status = "BLOCKED_PROTECTED_BETA_FAILED"
     return {
         "schema_version": "moomooau.stage7-verification.v1",
         "stage_id": "S7",
@@ -999,14 +1211,17 @@ def evaluate_stage7(
             "stage7_local_implementation_complete": not failed,
             "stage7_protected_integration_complete": False,
             "stage7_completed_tasks": 0,
-            "protected_oracles_executed": 0,
+            "protected_oracles_executed": 2,
+            "protected_oracles_passed": 1,
+            "protected_oracles_failed": 1,
+            "protected_workflow_runs": 1,
             "production_workflow_runs": 0,
-            "real_gmail_calls": 0,
+            "protected_gmail_read_path": "ATTEMPTED_EXACT_CALL_COUNT_NOT_DISCLOSED",
             "gmail_mutations": 0,
-            "private_repository_calls": 0,
-            "real_secrets_read": 0,
-            "external_writes": 0,
-            "remote_publication": 0,
+            "verified_full_raw_reads": "UNDETERMINED_WITHIN_BUDGET_ONE",
+            "private_raw_commits": 0,
+            "controlled_main_deliveries": 1,
+            "remote_publications": 0,
             "final_acceptances_passed": 0,
         },
     }

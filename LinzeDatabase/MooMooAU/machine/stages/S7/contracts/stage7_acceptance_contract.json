@@ -2,19 +2,19 @@
   "schema_version": "moomooau.stage-local-acceptance.v1",
   "stage_id": "S7",
   "policy": "FAIL_CLOSED",
-  "overall_status": "BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES",
+  "overall_status": "BLOCKED_PROTECTED_BETA_FAILED",
   "final_acceptances_passed": 0,
-  "final_acceptance_policy": "Stage 7 cannot pass until protected GitHub Actions evidence covers real Beta, at least seven M3 Canary days, at least fourteen Blue-Green days, a GA 04:30 run and a real three-role recovery drill. Local implementation preflight proves mechanisms only.",
+  "final_acceptance_policy": "Stage 7 cannot pass until protected GitHub Actions evidence covers real Beta, one evidence-complete M3 Canary run, one evidence-complete Blue-Green run, a GA 04:30 run and a real three-role recovery drill. No fixed calendar observation period applies; Local implementation preflight proves mechanisms only.",
   "acceptance_contracts": [
     {
       "id": "S7AC-001",
       "task_id": "T0701",
       "linked_final_acceptance_ids": ["AC-021", "AC-032", "AC-033"],
       "title": "Alpha 合成发布前置",
-      "environment": "local synthetic tests and no-Secret GitHub Actions preflight definition",
+      "environment": "local synthetic tests and the exact same-tree no-Secret GitHub Actions Alpha job",
       "input": "frozen Stage 6 baseline and all production feature flags disabled",
       "oracle": "The closed phase policy exercises synthetic release gates while every production flag, network call, Secret read and remote write remains off.",
-      "threshold": "mechanism tests pass; production flags on 0; external calls 0; protected Alpha workflow runs remain explicitly NOT_RUN until published",
+      "threshold": "mechanism tests pass; production flags on 0; the same-tree remote Alpha job passes without production Secret or data-plane effects",
       "evidence_required": "evidence/tasks/T0701.json",
       "verification": "python -m pytest -q tests/tasks/test_t0701.py",
       "failure_action": "Keep every production flag disabled and repair the local release policy."
@@ -30,7 +30,7 @@
       "threshold": "verified real messages 1..configured budget; non-Moomoo full reads 0; M3 0; Processed 0; Timeline mutations 0; recovery 100%",
       "evidence_required": "evidence/tasks/T0702.json",
       "verification": "python -m pytest -q tests/tasks/test_t0702.py plus protected Beta evidence",
-      "failure_action": "Close Raw writes, retain Gmail originals and investigate using aggregate protected evidence."
+      "failure_action": "Close Raw writes, retain Gmail originals, emit only the fixed public-safe phase reason, and investigate without dynamic exception text or protected identifiers."
     },
     {
       "id": "S7AC-003",
@@ -39,10 +39,10 @@
       "title": "M3 Mutation Budget 1 Canary",
       "environment": "protected GitHub Actions after Beta completion",
       "input": "remotely recovered verified Raw, a recovered Processed complete or explicit safe-deferred state, and the exact source-message ID",
-      "oracle": "Processing is enabled before M3; each Trash mutation follows remote recovery, uses only messages.trash for the verified source and is confirmed; the observation spans at least seven days.",
-      "threshold": "processed or safe-deferred messages >=1; mutation budget max 1; observation >=7 days and >=7 scheduled runs; recovery 100%; collateral mutation 0; Timeline off",
+      "oracle": "Processing is enabled before M3; each Trash mutation follows remote recovery, uses only messages.trash for the verified source and is confirmed in one bounded evidence-complete run.",
+      "threshold": "observed protected runs >=1; processed or safe-deferred messages >=1; mutation budget max 1; recovery 100%; collateral mutation 0; Timeline off; fixed calendar wait 0",
       "evidence_required": "evidence/tasks/T0703.json",
-      "verification": "python -m pytest -q tests/tasks/test_t0703.py plus protected seven-day evidence",
+      "verification": "python -m pytest -q tests/tasks/test_t0703.py plus one protected evidence-complete M3 run",
       "failure_action": "Set m3_enabled=false and mutation budget 0; preserve valid Raw and execute the exact recovery plan."
     },
     {
@@ -52,10 +52,10 @@
       "title": "Parser 与 Timeline Blue-Green",
       "environment": "protected GitHub Actions after M3 Canary completion",
       "input": "same recovered encrypted Raw through incumbent and candidate parser/timeline paths",
-      "oracle": "Candidate and incumbent outputs are compared for at least fourteen days and live Timeline asset cardinality remains exactly one.",
-      "threshold": "observation >=14 days and >=14 scheduled runs; unresolved comparison differences 0; live Timeline min=max=1",
+      "oracle": "Candidate and incumbent outputs are compared against the same recovered Raw in one bounded evidence-complete run and live Timeline asset cardinality remains exactly one.",
+      "threshold": "observed protected runs >=1; Processed recoveries >=1; parser comparisons >=1; Timeline publishes >=1; Full Reconcile runs >=1; unresolved differences 0; live Timeline min=max=1; fixed calendar wait 0",
       "evidence_required": "evidence/tasks/T0704.json",
-      "verification": "python -m pytest -q tests/tasks/test_t0704.py plus protected fourteen-day evidence",
+      "verification": "python -m pytest -q tests/tasks/test_t0704.py plus one protected evidence-complete Blue-Green run",
       "failure_action": "Retain incumbent pointers and live Timeline; quarantine candidate outputs without deleting Raw."
     },
     {

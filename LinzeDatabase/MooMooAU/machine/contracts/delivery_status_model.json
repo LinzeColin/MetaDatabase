@@ -2,9 +2,9 @@
   "schema_version": "moomooau.delivery-status-model.v3",
   "transition": "RMD-06_PROTECTED_ACCEPTANCE_PREPARATION",
   "authorization": {
-    "decision": "Owner retained the private Governance Deploy Key design and separately authorized one controlled main delivery plus one protected Raw-only T0702 Beta dispatch",
+    "decision": "Owner retained the private Governance Deploy Key design and explicitly authorized controlled Stage 7 completion with serial new first-attempt protected dispatches and no artificial calendar or manual-approval blocker",
     "authorized_on": "2026-07-23",
-    "scope": "T0702 protected Raw-only Beta only: budget one, no manual Environment reviewer, exact six Secrets, one private data repository and least-privilege single-repository GitHub App; Gmail mutation, M3, Processed, Timeline, schedule, final publication and any second delivery remain blocked"
+    "scope": "Stage 7 only: T0702 remains Raw-only with budget one and zero Gmail mutation; after a real protected T0702 PASS, M3, Blue-Green, GA and Recovery may proceed serially under their existing deterministic recovery, Budget 1, single-writer and single-Timeline gates; no manual Environment reviewer or fixed calendar wait"
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -69,6 +69,22 @@
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
       "next_action": "Use the one owner-authorized controlled main delivery to provision and execute exactly one T0702 Raw-only Beta dispatch; keep Gmail mutation, M3, Processed, Timeline, schedule, any second delivery and final publication blocked."
+    },
+    "PROTECTED_BETA_ATTEMPT_FAILED": {
+      "package_version": "1.0.6",
+      "resolved_review_findings": [
+        "REV-P0-002",
+        "REV-P0-003",
+        "REV-P1-004",
+        "REV-P1-006",
+        "REV-P2-007"
+      ],
+      "current_remediation_blockers": [
+        "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+        "PROTECTED_BETA_FAILED",
+        "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+      ],
+      "next_action": "Deliver the validated public-safe diagnostic repair, execute a serial new first-attempt T0702 Beta, and after a real PASS continue M3, Blue-Green, GA and Recovery without fixed calendar waits."
     }
   }
 }

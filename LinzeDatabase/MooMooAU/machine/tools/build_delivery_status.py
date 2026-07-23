@@ -11,6 +11,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, cast
 
+from jsonschema import Draft202012Validator, FormatChecker
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -37,6 +39,10 @@ STATUS_PATH = Path("machine/status/latest.json")
 ACCEPTANCE_SUMMARY_PATH = Path("evidence/acceptance/latest.json")
 PRODUCTION_COMPOSITION_PATH = Path("machine/contracts/production_composition.json")
 ASSURANCE_REVIEW_ROOT = Path("machine/stages/S6/reviews")
+PROTECTED_BETA_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0702/execution-receipt.json")
+PROTECTED_BETA_RECEIPT_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-beta-execution-receipt-v1.schema.json"
+)
 
 
 def _load(path: Path) -> Any:
@@ -61,21 +67,45 @@ def _tree_digest(root: Path, paths: list[Path]) -> str:
 
 
 def _select_transition_state(
-    model: dict[str, Any], assurance_result: dict[str, Any]
-) -> dict[str, Any]:
+    model: dict[str, Any],
+    assurance_result: dict[str, Any],
+    protected_beta_receipt: dict[str, Any] | None,
+) -> tuple[str, dict[str, Any]]:
     states = model.get("states")
     if not isinstance(states, dict) or set(states) != {
         "PRE_CLOSURE",
         "DEPENDENCY_AUTH_READY",
+        "PROTECTED_BETA_ATTEMPT_FAILED",
     }:
         raise ValueError("delivery status transition states differ")
-    state_name = (
-        "DEPENDENCY_AUTH_READY" if assurance_result.get("status") == "PASS" else "PRE_CLOSURE"
-    )
+    if assurance_result.get("status") != "PASS":
+        state_name = "PRE_CLOSURE"
+    elif protected_beta_receipt is not None:
+        state_name = "PROTECTED_BETA_ATTEMPT_FAILED"
+    else:
+        state_name = "DEPENDENCY_AUTH_READY"
     state = states.get(state_name)
     if not isinstance(state, dict):
         raise ValueError("delivery status transition state is invalid")
-    return cast(dict[str, Any], state)
+    return state_name, cast(dict[str, Any], state)
+
+
+def _protected_beta_receipt(root: Path) -> dict[str, Any] | None:
+    path = root / PROTECTED_BETA_RECEIPT_PATH
+    if not path.exists():
+        return None
+    if not path.is_file() or path.is_symlink():
+        raise ValueError("protected Beta receipt path is unsafe")
+    schema = _load(root / PROTECTED_BETA_RECEIPT_SCHEMA_PATH)
+    receipt = _load(path)
+    if list(
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(receipt)
+    ):
+        raise ValueError("protected Beta receipt violates its exact schema")
+    return cast(dict[str, Any], receipt)
 
 
 def _assurance_result(root: Path) -> dict[str, Any]:
@@ -237,9 +267,11 @@ def build_status(
     ):
         raise ValueError("delivery status model identity mismatch")
     _verify_inherited_contracts(root, model)
-    state = _select_transition_state(
+    protected_receipt = _protected_beta_receipt(root)
+    state_name, state = _select_transition_state(
         model,
         _assurance_result(root) if assurance_result is None else assurance_result,
+        protected_receipt,
     )
 
     workflow_matrix = _load(root / WORKFLOW_MATRIX_PATH)
@@ -324,6 +356,8 @@ def build_status(
     observed_at.append(str(summary["observed_at_utc"]))
     observed_at.append(str(observation["observed_at_utc"]))
     observed_at.append(str(composition["observed_at_utc"]))
+    if protected_receipt is not None:
+        observed_at.append(str(protected_receipt["observed_at_utc"]))
     formal_counts = Counter(task["status"] for task in tasks)
     if formal_counts != Counter({"completed": 7, "planned": 51}):
         raise ValueError("formal task status is not the inherited 7 completed / 51 planned state")
@@ -379,15 +413,41 @@ def build_status(
 
     protected_executed = sum(status != "NOT_RUN" for status in protected_statuses)
     protected_passed = sum(status == "PASS" for status in protected_statuses)
-    if protected_executed != 0 or protected_passed != 0:
-        raise ValueError("protected Oracle execution cannot be claimed by this local baseline")
-
-    production_reasons = [
-        "FORMAL_TASKS_INCOMPLETE",
-        "PROTECTED_ORACLES_NOT_RUN",
-        "FINAL_ACCEPTANCE_BLOCKED",
-        "PRODUCTION_WORKFLOW_NOT_RUN",
-    ]
+    protected_failed = sum(status == "FAILED" for status in protected_statuses)
+    failed_beta_state = state_name == "PROTECTED_BETA_ATTEMPT_FAILED"
+    if failed_beta_state:
+        if (
+            protected_receipt is None
+            or protected_executed != 2
+            or protected_passed != 1
+            or protected_failed != 1
+        ):
+            raise ValueError("failed protected Beta state lacks its exact Oracle receipt")
+        production_reasons = [
+            "FORMAL_TASKS_INCOMPLETE",
+            "PROTECTED_BETA_FAILED",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+        ]
+        overall_status = "PROTECTED_BETA_FAILED_FINAL_ACCEPTANCE_BLOCKED"
+        protected_status = "FAILED"
+        production_workflow_runs = 0
+        publication_status = "CONTROLLED_BETA_DELIVERY_NOT_FINAL"
+        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPT"
+    else:
+        if protected_executed != 0 or protected_passed != 0 or protected_failed != 0:
+            raise ValueError("pre-Beta state cannot contain protected Oracle execution")
+        production_reasons = [
+            "FORMAL_TASKS_INCOMPLETE",
+            "PROTECTED_ORACLES_NOT_RUN",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+        ]
+        overall_status = "LOCAL_MECHANISMS_EVIDENCED_FINAL_ACCEPTANCE_BLOCKED"
+        protected_status = "NOT_RUN"
+        production_workflow_runs = 0
+        publication_status = "LOCAL_ONLY_NOT_PUBLISHED"
+        mechanism_scope = "LOCAL_OR_SYNTHETIC_ONLY"
     blockers = list(dict.fromkeys(production_reasons + list(state["current_remediation_blockers"])))
     source_digests = {
         "acceptance_contract_sha256": _sha256(root / "machine/contracts/acceptance_contract.json"),
@@ -405,6 +465,10 @@ def build_status(
         "workflow_command_matrix_sha256": _sha256(root / WORKFLOW_MATRIX_PATH),
         "assurance_provenance_root_sha256": _tree_digest(root, _assurance_paths(root)),
     }
+    if protected_receipt is not None:
+        source_digests["protected_beta_execution_receipt_sha256"] = _sha256(
+            root / PROTECTED_BETA_RECEIPT_PATH
+        )
 
     return {
         "schema_version": "moomooau.delivery-status.v1",
@@ -415,7 +479,7 @@ def build_status(
             "path": model["authority"]["current_status"],
             "precedence": model["authority"]["precedence"],
         },
-        "overall_status": "LOCAL_MECHANISMS_EVIDENCED_FINAL_ACCEPTANCE_BLOCKED",
+        "overall_status": overall_status,
         "dimensions": {
             "evidence_integrity": {
                 "status": "PASS",
@@ -427,7 +491,7 @@ def build_status(
                 "status": "LOCAL_MECHANISMS_EVIDENCED",
                 "evidenced_tasks": mechanism_evidenced,
                 "total_tasks": 58,
-                "scope": "LOCAL_OR_SYNTHETIC_ONLY",
+                "scope": mechanism_scope,
             },
             "formal_task_completion": {
                 "status": "INCOMPLETE",
@@ -437,10 +501,11 @@ def build_status(
                 "contract_version": graph["version"],
             },
             "protected_oracles": {
-                "status": "NOT_RUN",
+                "status": protected_status,
                 "declared": len(protected_statuses),
                 "executed": protected_executed,
                 "passed": protected_passed,
+                "failed": protected_failed,
                 "not_run": protected_statuses.count("NOT_RUN"),
             },
             "final_acceptance": {
@@ -451,15 +516,19 @@ def build_status(
             },
             "production_readiness": {
                 "status": "BLOCKED",
-                "workflow_runs": summary["prohibition_counters"]["production_workflow_runs"],
+                "workflow_runs": production_workflow_runs,
                 "reason_codes": production_reasons,
             },
             "publication": {
-                "status": "LOCAL_ONLY_NOT_PUBLISHED",
+                "status": publication_status,
+                "controlled_main_deliveries": 1 if failed_beta_state else 0,
                 "remote_publications": prohibition_totals["remote_publication"],
             },
         },
         "stage_summary": stage_summary,
+        "prohibition_counter_scope": (
+            "LOCAL_EVIDENCE_GENERATION_ONLY_EXCLUDES_PROTECTED_EXECUTION_RECEIPT"
+        ),
         "prohibition_counters": dict(sorted(prohibition_totals.items())),
         "blockers": blockers,
         "resolved_review_findings": state["resolved_review_findings"],

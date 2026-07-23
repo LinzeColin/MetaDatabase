@@ -163,7 +163,6 @@ class BlueGreenTimelineRunResult:
 
     def __post_init__(self) -> None:
         allowed_actions = {
-            PromotionAction.OBSERVATION_WINDOW_PENDING,
             PromotionAction.SEMANTICALLY_EQUAL_PROMOTION,
             PromotionAction.PROTECTED_APPROVAL_REQUIRED,
         }
@@ -178,8 +177,7 @@ class BlueGreenTimelineRunResult:
             self.final_live_timeline_assets,
         )
         expected_ready = (
-            self.observed_days >= ParserBlueGreenComparator.minimum_observation_days
-            and self.candidate_action is PromotionAction.SEMANTICALLY_EQUAL_PROMOTION
+            self.candidate_action is PromotionAction.SEMANTICALLY_EQUAL_PROMOTION
             and self.unresolved_comparison_differences == 0
             and self.timeline_state is TimelinePublishStateName.HEALTHY
             and self.final_live_timeline_assets == 1
@@ -213,8 +211,14 @@ class BlueGreenTimelineRunResult:
             "schema_version": "moomooau.blue-green-timeline-run-public.v1",
             "phase": self.phase.value,
             "run_status": "BLUE_GREEN_MECHANISM_COMPLETED_NOT_FINAL",
-            "observation_window_complete": (
-                self.observed_days >= ParserBlueGreenComparator.minimum_observation_days
+            "calendar_wait_required": False,
+            "deterministic_evidence_complete": (
+                self.parser_comparisons == 1
+                and self.candidate_processed_recoveries == 1
+                and self.timeline_snapshot_recoveries == 1
+                and self.timeline_publish_attempts == 1
+                and self.timeline_state is TimelinePublishStateName.HEALTHY
+                and self.final_live_timeline_assets == 1
             ),
             "candidate_action": self.candidate_action.value,
             "parser_comparisons": self.parser_comparisons,
@@ -410,23 +414,18 @@ class BlueGreenTimelineRunner:
             observed_days=observed_days,
         )
         if decision.action not in {
-            PromotionAction.OBSERVATION_WINDOW_PENDING,
             PromotionAction.SEMANTICALLY_EQUAL_PROMOTION,
             PromotionAction.PROTECTED_APPROVAL_REQUIRED,
         }:
             raise BlueGreenRuntimeError("candidate is not eligible for Blue-Green shadowing")
 
-        # Persist under an explicitly pre-promotion decision even on day 14.  T0704 observes;
-        # it cannot mutate current.  A later protected promotion must be a separate authority.
-        shadow_decision = self._comparator.compare(
+        # T0704 always persists the candidate as an append-only shadow.  It cannot mutate
+        # current; a later protected promotion remains a separate authority.
+        shadow_decision = self._comparator.shadow(
             candidate_bundle,
             before.pointer,
-            observed_days=min(
-                observed_days,
-                self._comparator.minimum_observation_days - 1,
-            ),
         )
-        if shadow_decision.action is not PromotionAction.OBSERVATION_WINDOW_PENDING:
+        if shadow_decision.action is not PromotionAction.CANDIDATE_SHADOW_ONLY:
             raise BlueGreenRuntimeError("candidate shadow decision is not pointer-safe")
         candidate_plan = self._processed_planner.plan(
             candidate_bundle,
@@ -538,8 +537,7 @@ class BlueGreenTimelineRunner:
             ),
         )
         ready = (
-            observed_days >= self._comparator.minimum_observation_days
-            and decision.action is PromotionAction.SEMANTICALLY_EQUAL_PROMOTION
+            decision.action is PromotionAction.SEMANTICALLY_EQUAL_PROMOTION
             and difference_count == 0
             and publish_result.state is TimelinePublishStateName.HEALTHY
             and publish_result.asset_count == 1

@@ -50,22 +50,25 @@ def _load(path: Path) -> Any:
 
 
 def build_provenance() -> dict[str, Any]:
-    """Return the exact RMD-06 dependency-authentication provenance authority."""
+    """Return the exact RMD-06 dependency and protected-Beta provenance authority."""
 
     return {
         "schema_version": "moomooau.source-provenance.v7",
         "authorization": {
             "basis": (
-                "Owner selected option 2: keep Governance private and provision "
-                "a least-privilege Deploy Key"
+                "Owner selected option 2 for private Governance and separately authorized "
+                "one controlled main delivery plus one T0702 protected Beta dispatch; after "
+                "that failed attempt and local diagnostic repair, Owner explicitly authorized "
+                "controlled Stage 7 completion without artificial time or approval blockers"
             ),
             "authorized_on": "2026-07-23",
             "authorized_scope": (
-                "RMD-06 dependency authentication, cloud preflight closure and local T0702 "
-                "protected Raw-only entrypoint readiness only; one read-only Governance "
-                "repository credential may be consumed by actions/checkout, while protected "
-                "execution, production, Gmail and data-repository Secret consumption remain "
-                "blocked"
+                "RMD-06 dependency authentication, cloud preflight closure, one controlled "
+                "historical main delivery and budget-one T0702 attempt, followed by controlled "
+                "Stage 7 repair delivery and serial new first-attempt dispatches. Beta remains "
+                "Raw-only with zero Gmail mutation; M3 and later Stage 7 phases require their "
+                "real predecessor PASS; GitHub rerun, fixed calendar waits, manual routine "
+                "approval and pre-acceptance final publication remain forbidden"
             ),
         },
         "predecessor": {
@@ -111,7 +114,7 @@ def build_provenance() -> dict[str, Any]:
             "roadmap": "taskpack/ROADMAP.v1.0.6.md",
             "status_authority": "machine/status/latest.json",
             "workflow_validator": "machine/tools/validate_workflow_matrix.py",
-            "publication_status": "LOCAL_ONLY_NOT_PUBLISHED",
+            "publication_status": "CONTROLLED_BETA_DELIVERY_NOT_FINAL",
         },
         "candidate_snapshot": CANDIDATE_SNAPSHOT,
         "semantic_delta": {
@@ -126,9 +129,20 @@ def build_provenance() -> dict[str, Any]:
             "product_contract_changed": False,
             "task_graph_changed": False,
             "final_acceptance_thresholds_changed": False,
-            "protected_oracles_executed": 0,
+            "stage7_fixed_calendar_wait_removed": True,
+            "protected_oracles_executed": 2,
+            "protected_oracles_passed": 1,
+            "protected_oracles_failed": 1,
             "production_workflow_runs": 0,
-            "remote_workflow_runs": 0,
+            "protected_workflow_runs": 1,
+            "remote_workflow_runs": 1,
+            "controlled_main_deliveries": 1,
+            "protected_beta_dispatches": 1,
+            "protected_beta_reruns": 0,
+            "private_raw_commits": 0,
+            "gmail_mutations": 0,
+            "protected_beta_outcome": "FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT",
+            "protected_beta_exact_root_cause": "UNDETERMINED_BY_AGGREGATE_ONLY_LOGGING",
             "remote_publications": 0,
         },
     }
@@ -176,8 +190,10 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         provenance.get("schema_version") != "moomooau.source-provenance.v7"
         or authorization.get("basis")
         != (
-            "Owner selected option 2: keep Governance private and provision "
-            "a least-privilege Deploy Key"
+            "Owner selected option 2 for private Governance and separately authorized "
+            "one controlled main delivery plus one T0702 protected Beta dispatch; after "
+            "that failed attempt and local diagnostic repair, Owner explicitly authorized "
+            "controlled Stage 7 completion without artificial time or approval blockers"
         )
         or effective.get("package_id") != PACKAGE_ID
         or effective.get("version") != PACKAGE_VERSION
@@ -185,7 +201,7 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.6.md"
         or effective.get("status_authority") != "machine/status/latest.json"
         or effective.get("workflow_validator") != "machine/tools/validate_workflow_matrix.py"
-        or effective.get("publication_status") != "LOCAL_ONLY_NOT_PUBLISHED"
+        or effective.get("publication_status") != "CONTROLLED_BETA_DELIVERY_NOT_FINAL"
     ):
         failures.append("v1.0.6 provenance identity or authorization mismatch")
     if (
@@ -234,9 +250,20 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         "product_contract_changed": False,
         "task_graph_changed": False,
         "final_acceptance_thresholds_changed": False,
-        "protected_oracles_executed": 0,
+        "stage7_fixed_calendar_wait_removed": True,
+        "protected_oracles_executed": 2,
+        "protected_oracles_passed": 1,
+        "protected_oracles_failed": 1,
         "production_workflow_runs": 0,
-        "remote_workflow_runs": 0,
+        "protected_workflow_runs": 1,
+        "remote_workflow_runs": 1,
+        "controlled_main_deliveries": 1,
+        "protected_beta_dispatches": 1,
+        "protected_beta_reruns": 0,
+        "private_raw_commits": 0,
+        "gmail_mutations": 0,
+        "protected_beta_outcome": "FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT",
+        "protected_beta_exact_root_cause": "UNDETERMINED_BY_AGGREGATE_ONLY_LOGGING",
         "remote_publications": 0,
     }:
         failures.append("v1.0.6 semantic delta is incomplete or overstated")

@@ -63,7 +63,7 @@
       "sha256": "c3c9ba533e1e4b93c7efd89962d58e04501c670c46f8d17351bab0db56c98009"
     },
     "tests/remediation/test_rmd04.py": {
-      "sha256": "e786fb0cc74905e43f01e1c6016a82cc2aeda837f0ae6f379112742545c55a1e"
+      "sha256": "e31fb0aef70a07a8bc154160fd117d3e93867d5e95a641b0ba5cc773619f99f0"
     },
     "tests/remediation/test_rmd05.py": {
       "sha256": "c42b020dbc6398584ffadb0924dbf619cb8c55233af2fdf313c9a7022da74d5b"
@@ -72,7 +72,7 @@
       "sha256": "7297e91cdde668b65ddcbb789e9eb510541137277b87a96fc00c8e43504f6599"
     },
     "tests/tasks/test_t0704.py": {
-      "sha256": "8a1f2719ef82ca46b221f49ac578dc14ba5170f7f80f08c66aa22e789738b6a1"
+      "sha256": "c5a6439f58eb5bf99d037a742601aa2500a6144beeb2aac8d71c0149cb979bba"
     },
     "schemas/production-config-v1.schema.json": {
       "sha256": "78968068b6110aac7b01ad94f9be5ce5120a97243e1528183f274ffe772c2fc2"

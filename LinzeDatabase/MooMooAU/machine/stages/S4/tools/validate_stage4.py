@@ -268,7 +268,8 @@ def _validate_source_boundaries(root: Path) -> list[str]:
     )
     required_commit = (
         "OfficialAgeStream",
-        "minimum_observation_days = 14",
+        'CANDIDATE_SHADOW_ONLY = "CANDIDATE_SHADOW_ONLY"',
+        "def shadow(",
         "PROTECTED_APPROVAL_REQUIRED",
         "CONTENT_POINTER_MESSAGE",
         "compare_and_swap_current",

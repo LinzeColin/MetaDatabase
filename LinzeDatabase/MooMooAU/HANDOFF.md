@@ -4,14 +4,16 @@
 
 - `RMD-06` 的 T0702/S7AC-002 protected Raw-only 入口已完成本地机制与证据闭环；Owner 已于
   2026-07-23 单独授权一次受控 PR/merge 到 `main` 和一次 budget-one protected dispatch，仅用于
-  T0702。Environment、六项精确 Secret、唯一私有数据仓与单仓最小权限 GitHub App 已完成
-  pre-dispatch 核验；正式任务在真实 Oracle 完成前仍为 `BLOCKED`，Beta 仍为 `NOT_RUN`，不得进入
-  M3；该授权不等于最终发布，也不授权第二次交付、rerun、Gmail mutation、Processed、Timeline
-  或 schedule。
+  T0702。该交付与 dispatch 已用尽：同树 Alpha PASS，protected Beta 在首个远端 Raw commit 前
+  FAILED，identity tmpfs cleanup PASS；精确内部根因因 aggregate-only 日志不可判定。正式任务与
+  S7AC-002 仍 `BLOCKED`。Owner 随后明确授权受控完成 Stage 7：允许交付已验证 repair 与串行新的
+  first-attempt dispatch，不允许 GitHub rerun；Beta 继续零 Gmail mutation，真实 PASS 前仍不得
+  进入 M3。
 - 当前控制包为 `MMAU-ARCHIVE-TP-2026-07-23-V1.0.6`。它原样继承 v1.0.1 的 34 RQ、34 AC、
   58-task DAG、Kill Criteria 与十条不变量，并将 v1.0.5 作为不可变直接前序。
-- 唯一当前状态权威是 `machine/status/latest.json`：本地机制证据完整，受保护 Oracle 0/43，
-  最终 Acceptance 0/34，生产 Workflow 0，发布状态 `LOCAL_ONLY_NOT_PUBLISHED`。
+- 唯一当前状态权威是 `machine/status/latest.json`：本地机制证据完整，受保护 Oracle
+  2/43（PASS 1、FAILED 1），最终 Acceptance 0/34，protected Workflow 1、production Workflow 0，
+  发布状态为 `CONTROLLED_BETA_DELIVERY_NOT_FINAL`。
 - Governance 固定为私有 `LinzeColin/Governance` 的提交
   `ebc6c2e4884edc959118cfc56d0e18a86c49460f`。
 
@@ -166,6 +168,55 @@
     `header.d`/`header.i` 中所有出现的 identity 全部按白名单域 fail closed。目标
     T0202/T0304/T0701/T0702 回归为 `39 passed`；受保护运行、PR/merge、Raw、数据仓写入与
     protected Oracle 仍为 0/NOT_RUN。
+28. 已通过 PR #88 一次性合并精确候选到 `main`；merge tree 与本地全门候选 tree 一致。PR 合并前
+    35 个 required/ordinary check success、5 个预期 skip、0 failure/pending；依赖图已启用，四个
+    CodeQL clear-text logging 结果逐项核验为 false positive 后只关闭对应 alert。该受控 main 交付
+    仅用于 T0702 Beta，不是最终发布。
+29. 唯一 protected workflow run `29998793639` 在精确 merged SHA 上以 `workflow_dispatch`、
+    attempt 1 执行且没有 rerun：Alpha job `success`；Beta job 的 protected execution step 运行
+    88 秒后只输出固定 `PROTECTED_BETA_RUN_FAILED`；identity tmpfs cleanup `success`。运行后数据仓
+    仍为 64-byte 单文件、单 commit、零 release 的 bootstrap 基线，故可证失败发生在首个远端 Raw
+    commit 前；现有日志不足以判断 bootstrap、discovery、verification、Raw fetch、encryption 或
+    first-commit 何处失败，也不能把 full Raw read 猜成 0。
+30. Post-run Gmail 只使用 ID-only search 做聚合核验，未读取正文/附件、未输出 ID/发件人/主题且未
+    mutation；受保护候选域仍有非 Trash 邮件。Beta 路径无 Gmail mutation/M3/Processed/Timeline/
+    schedule authority，相关 effect 仍为 0。失败 receipt 已写入
+    `machine/stages/S7/reviews/t0702/execution-receipt.json` 并把 Stage 7、唯一状态、Acceptance、
+    Governance facts/七文档与 provenance 收敛为 fail-closed；所有这些 post-run 记录保持本地未推送。
+31. 新一轮仅处理 Stage 7/T0702 diagnostic repair：新增 19 项封闭 public-safe failure phase、
+    唯一固定 reason-code mapping 与拒绝额外字段/phase-reason 错配的 JSON Schema；entrypoint、
+    bootstrap、Raw-only runner、remote recovery、aggregate gate 和 cleanup 均接入同一 enum-only
+    tracker。renderer 不接收异常对象或动态 protected 值；合成 probe 已覆盖全部可达阶段，cleanup
+    失败会在尝试全部清理动作后固定为 `RESOURCE_CLEANUP`。新的 repair Run Contract 将 main
+    delivery、dispatch、Secret/Gmail/私有仓调用、M3 与发布预算全部固定为 0。该 repair 仍在本地、
+    未上传，不能反推历史失败根因，T0702/S7AC-002 继续 `BLOCKED`。
+32. Owner 最新指令取消 M3 七天与 Blue-Green 十四天固定等待。Stage 7 release gate 与共享 Parser
+    comparator 已改为同日可完成的确定性证据门：M3/Blue-Green 各需一次有界受保护运行及完整恢复、
+    Mutation/Parser、Reconcile、单 Timeline 证据；前序和安全门不变，GA 仍须真实观察一次 04:30
+    Australia/Sydney 调度。本轮未因此调用任何远端服务或进入 M3。
+33. 本轮收尾验证：全部 290 个 task tests PASS；RMD-04/RMD-06 remediation 24 tests PASS；strict
+    mypy 67 source files PASS；Ruff format/lint PASS；58 份 task evidence 全部 schema-valid；
+    34 份最终 Acceptance 全部结构有效并诚实保持 34 `BLOCKED`/0 `PASS`；Stage 7 cumulative
+    preflight、package、delivery status、Governance render/budget/blocker、workflow matrix、
+    production composition、publication scan 与 Secret scan 全部 PASS。未执行浏览器、远端调用、
+    上传、dispatch、Secret/Gmail/私有仓访问、M3 或发布。
+34. 2026-07-23T11:55:06Z 只读复核再次从 GitHub API 取得 run `29998793639` 的 attempt、job 与
+    完整日志：六项 Environment Secret 名称仍齐备，Environment 仍无人工 reviewer，Alpha PASS、
+    Beta execution FAILED、tmpfs cleanup PASS，日志仍只有 aggregate reason，不能新增历史根因
+    结论。Google 官方 Gmail Discovery 文档当前明确列出 `gmail.modify` 覆盖本路径使用的
+    messages.list、messages.get、filters.list 与 messages.trash；GitHub API 在固定
+    `2026-03-10` version header 下返回 200，因此 OAuth scope 不足和 API version header 不能
+    作为已证实根因。当前 `gh` user token 对 installation 枚举仍返回 403，不能独立核验受保护
+    GitHub App installation；未浏览网页、未读取 Secret 值、未调用 Gmail/私有仓、未写远端、
+    未 dispatch、未进入 M3。只读 fetch 还确认当前 `origin/main` 为
+    `20f4e0806e275269df48171b4d93c27855400bc4`，相对本分支基点仅增加无 MooMooAU 路径重叠的
+    EEI 提交；未来获准交付时仍须先把 repair 重放到该时点的最新 `main`。
+35. Owner 明确要求解除重复授权阻塞并尽快完工；新增
+    `machine/stages/S7/contracts/stage7_completion_run_contract.json`，授权受控 repair PR/merge、
+    exact-main-SHA-bound serial new first-attempt protected dispatch，以及在真实前序 PASS 后继续
+    M3、Blue-Green、GA 与 Recovery。当前工作树已无冲突 fast-forward 到
+    `027e60bd1f3c2f195c60981337c007782544fbb8`；后续主线提交只增加 EEI 文件，与 MooMooAU delta
+    无重叠。
 
 ## 关键边界
 
@@ -175,15 +226,17 @@
   Workflow ref/Environment 必须在读取 Beta Secret 前 fail closed。
 - public control logs 只能出现 bucket、零值计数和 gate 布尔值；不得输出精确 Beta 预算、精确邮箱/
   recovery 计数、message/thread/sender/subject/attachment 或私有仓标识。
-- 当前候选已重放到最新 `origin/main`；只允许按 Owner 本次授权经一次 PR/merge 进入 `main`，不得
-  直接向 `main` push，也不得进行第二次候选上传或 rerun。
+- 历史一次受控 PR/merge 与 dispatch 已消费；新的 Stage 7 completion authority 允许受控交付和
+  serial first-attempt dispatch。GitHub rerun 仍禁止，Beta PASS 前仍不得进入 M3。
+- M3 与 Blue-Green 没有自然日等待；只有真实前序与确定性证据不满足时才阻塞。
 - 预检任一 Workflow syntax、Governance checkout、Secret 边界、package、publication 或累计门失败，
   必须停止，不得扩大权限或读取生产 Secret。
 
 ## 下一步
 
-1. 所有本地累计门与云端 pre-dispatch gate 通过后，经一次 PR/merge 进入 `main`，确认精确 merged
-   SHA，再 dispatch 一次。任何 sender、权限、容量、私有性、Secret、Gmail 或恢复结果未知即停止；
-   不审批、不 rerun、不读取未验证 RAW、不进行 Gmail mutation。
-2. protected run 后只在本地更新 T0702 证据，不进行第二次 main 交付，不进入 M3。整体任务包完成后
-   才做整体复审、修复与最终发布。
+1. 将当前 Stage 7 repair 在最新 `main` 上完成全门验证、提交、受控 PR/merge。
+2. 刷新仅有时效字段的 protected config，并执行一个新的 exact-SHA first-attempt T0702；失败只按
+   固定 phase code 修复并形成新提交，不使用 GitHub rerun。
+3. 只有后续 Beta 真实 Oracle PASS 后才按 M3 → Blue-Green/Timeline → GA → Recovery 的既定顺序
+   继续；M3 和 Blue-Green 各执行一次证据完整的受保护运行，不等待自然日；整体任务包完成后再做
+   整体复审、修复与最终发布。

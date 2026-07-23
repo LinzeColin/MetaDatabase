@@ -179,7 +179,7 @@
     {
       "en": "protected",
       "zh": "受保护",
-      "note": "需要受保护环境、来源和真实观察的执行范围"
+      "note": "需要受保护环境、来源和确定性运行证据的执行范围"
     },
     {
       "en": "prerequisites",
@@ -237,6 +237,21 @@
       "note": "GitHub-hosted 验证或生产编排定义"
     },
     {
+      "en": "Run",
+      "zh": "执行轮次",
+      "note": "一次受契约约束的开发或受保护执行"
+    },
+    {
+      "en": "dispatch",
+      "zh": "手动触发",
+      "note": "显式触发一次受保护工作流"
+    },
+    {
+      "en": "rerun",
+      "zh": "重新运行",
+      "note": "对既有远端工作流再次执行"
+    },
+    {
       "en": "intake",
       "zh": "导入审计",
       "note": "早期只读接收记录标识"
@@ -255,6 +270,11 @@
       "en": "PROTECTED_ORACLES_NOT_RUN",
       "zh": "受保护验证未运行",
       "note": "唯一状态模型的稳定阻塞编号"
+    },
+    {
+      "en": "PROTECTED_BETA_FAILED",
+      "zh": "受保护测试阶段失败",
+      "note": "唯一授权的 T0702 受保护执行未满足其验收门"
     },
     {
       "en": "FINAL_ACCEPTANCE_BLOCKED",
@@ -283,8 +303,13 @@
     },
     {
       "en": "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
-      "zh": "受保护验收与观察待执行",
+      "zh": "后续受保护验收与确定性运行待执行",
       "note": "RMD-05 关闭后下一组的稳定阻塞编号"
+    },
+    {
+      "en": "SECOND_BETA_DELIVERY_AND_RERUN_WITHHELD",
+      "zh": "历史第二次测试交付暂缓（已解除）",
+      "note": "Owner 已授权 serial new first-attempt；GitHub rerun 仍禁止"
     },
     {
       "en": "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD",

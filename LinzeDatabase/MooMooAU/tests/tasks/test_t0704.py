@@ -94,19 +94,18 @@ def _clone_snapshot_fact(
     return TimelineSnapshotFact(pointer, event)
 
 
-def test_t0704_blue_green_requires_fourteen_days_and_exactly_one_live_asset() -> None:
+def test_t0704_blue_green_requires_complete_evidence_and_exactly_one_live_asset() -> None:
     through_m3 = observations_through(ReleasePhase.M3_CANARY)
-    short = phase_observation(ReleasePhase.BLUE_GREEN, days=13, scheduled_runs=13)
-    blocked = Stage7ReleaseGate().evaluate_promotion(
+    same_day = phase_observation(ReleasePhase.BLUE_GREEN, days=0, scheduled_runs=0)
+    same_day_report = Stage7ReleaseGate().evaluate_promotion(
         ReleasePhase.GA,
-        through_m3 + (short,),
+        through_m3 + (same_day,),
         beta_message_budget=1,
         parser_current_version="1.0.0",
         ga_mutation_budget_per_run=10,
         ga_capacity_authorized=True,
     )
-    assert blocked.status is GateStatus.BLOCKED
-    assert "BLUE_GREEN_FOURTEEN_DAY_WINDOW_INCOMPLETE" in blocked.reasons
+    assert same_day_report.status is GateStatus.READY
 
     two_assets = phase_observation(ReleasePhase.BLUE_GREEN, maximum_live_assets=2)
     blocked_assets = Stage7ReleaseGate().evaluate_promotion(
@@ -164,24 +163,27 @@ def test_t0704_same_recovered_raw_shadows_candidate_and_publishes_one_recovered_
         incumbent = context.processed_store.fetch_current(pointer_path)
         assert incumbent is not None
 
-        day_13, proof_13 = _run_blue_green(context, observed_days=13)
-        assert day_13.candidate_action is PromotionAction.OBSERVATION_WINDOW_PENDING
-        assert not day_13.ready_for_protected_promotion
-        assert day_13.current_pointer_mutations == 0
-        assert day_13.unresolved_comparison_differences == 0
-        assert day_13.timeline_action is TimelinePublishAction.ASSET_REPAIRED
-        assert day_13.timeline_state is TimelinePublishStateName.HEALTHY
-        assert day_13.final_live_timeline_assets == 1
+        same_day, first_proof = _run_blue_green(context, observed_days=0)
+        assert same_day.candidate_action is PromotionAction.SEMANTICALLY_EQUAL_PROMOTION
+        assert same_day.ready_for_protected_promotion
+        assert same_day.current_pointer_mutations == 0
+        assert same_day.unresolved_comparison_differences == 0
+        assert same_day.timeline_action is TimelinePublishAction.ASSET_REPAIRED
+        assert same_day.timeline_state is TimelinePublishStateName.HEALTHY
+        assert same_day.final_live_timeline_assets == 1
+        public = same_day.to_public_dict()
+        assert public["calendar_wait_required"] is False
+        assert public["deterministic_evidence_complete"] is True
         assert context.processed_store.fetch_current(pointer_path) == incumbent
-        assert proof_13.facts[0].current_pointer.parser_version == "1.0.0"
+        assert first_proof.facts[0].current_pointer.parser_version == "1.0.0"
 
-        day_14, proof_14 = _run_blue_green(context, observed_days=14)
-        assert day_14.candidate_action is PromotionAction.SEMANTICALLY_EQUAL_PROMOTION
-        assert day_14.ready_for_protected_promotion
-        assert day_14.current_pointer_mutations == 0
-        assert day_14.timeline_action is TimelinePublishAction.NO_CHANGE
-        assert day_14.final_live_timeline_assets == 1
-        assert proof_14 == proof_13
+        repeated, repeated_proof = _run_blue_green(context, observed_days=0)
+        assert repeated.candidate_action is PromotionAction.SEMANTICALLY_EQUAL_PROMOTION
+        assert repeated.ready_for_protected_promotion
+        assert repeated.current_pointer_mutations == 0
+        assert repeated.timeline_action is TimelinePublishAction.NO_CHANGE
+        assert repeated.final_live_timeline_assets == 1
+        assert repeated_proof == first_proof
         assert context.processed_store.fetch_current(pointer_path) == incumbent
         assert sum(action == "upload" for action in context.timeline_remote.actions) == 1
         assert context.timeline_remote.maximum_observed_asset_count == 1
@@ -191,7 +193,7 @@ def test_t0704_same_recovered_raw_shadows_candidate_and_publishes_one_recovered_
 
 def test_t0704_timeline_snapshot_root_is_order_independent_retryable_and_recoverable() -> None:
     with blue_green_context() as context:
-        _, one_fact_proof = _run_blue_green(context, observed_days=13)
+        _, one_fact_proof = _run_blue_green(context, observed_days=0)
         first = one_fact_proof.facts[0]
         second_source = "f" * 64 if first.event.source_id != "f" * 64 else "e" * 64
         second = _clone_snapshot_fact(first, source_id=second_source)
@@ -236,7 +238,7 @@ def test_t0704_business_change_requires_protected_approval_without_pointer_promo
         )
         incumbent = context.processed_store.fetch_current(pointer_path)
         assert incumbent is not None
-        result, proof = _run_blue_green(context, observed_days=14)
+        result, proof = _run_blue_green(context, observed_days=0)
         assert result.candidate_action is PromotionAction.PROTECTED_APPROVAL_REQUIRED
         assert result.unresolved_comparison_differences == 1
         assert not result.ready_for_protected_promotion
@@ -259,7 +261,7 @@ def test_t0704_live_asset_without_recoverable_snapshot_head_blocks_before_candid
             context.processed_store.ciphertexts()[0],
         )
         with pytest.raises(TimelinePublishError, match="without a recoverable private"):
-            _run_blue_green(context, observed_days=13)
+            _run_blue_green(context, observed_days=0)
         assert context.processed_store.fetch_current(pointer_path) == incumbent
         assert context.processed_store.immutable_names() == immutable_before
 
@@ -267,7 +269,7 @@ def test_t0704_live_asset_without_recoverable_snapshot_head_blocks_before_candid
 def test_t0704_current_pointer_drift_blocks_before_live_timeline_publish() -> None:
     with blue_green_context(drift_on_runner_resolve=3) as context:
         with pytest.raises(BlueGreenRuntimeError, match="before Timeline publish"):
-            _run_blue_green(context, observed_days=13)
+            _run_blue_green(context, observed_days=0)
         assert "upload" not in context.timeline_remote.actions
         assert context.timeline_remote.list_assets(context.timeline_remote.release_id) == ()
 
@@ -278,7 +280,7 @@ def test_t0704_predecessor_and_capacity_fail_before_remote_blue_green_effects() 
         with pytest.raises(BlueGreenRuntimeError, match="predecessor"):
             _run_blue_green(
                 context,
-                observed_days=13,
+                observed_days=0,
                 predecessors=observations_through(ReleasePhase.BETA_RAW_ONLY),
             )
         assert context.processed_store.fetch_calls == fetches
@@ -293,7 +295,7 @@ def test_t0704_predecessor_and_capacity_fail_before_remote_blue_green_effects() 
     with blue_green_context(capacity=red) as context:
         fetches = context.processed_store.fetch_calls
         with pytest.raises(OperationGateError, match="PRODUCTION_RUN"):
-            _run_blue_green(context, observed_days=13)
+            _run_blue_green(context, observed_days=0)
         assert context.processed_store.fetch_calls == fetches
         assert context.timeline_remote.actions == []
 

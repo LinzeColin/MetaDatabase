@@ -12,6 +12,7 @@
     "overall_status",
     "dimensions",
     "stage_summary",
+    "prohibition_counter_scope",
     "prohibition_counters",
     "blockers",
     "resolved_review_findings",
@@ -68,6 +69,37 @@
         "const": "Use the one owner-authorized controlled main delivery to provision and execute exactly one T0702 Raw-only Beta dispatch; keep Gmail mutation, M3, Processed, Timeline, schedule, any second delivery and final publication blocked."
       }
       }
+    },
+    {
+      "title": "RMD-06 unique protected Beta attempt failed state",
+      "properties": {
+        "package_version": {"const": "1.0.6"},
+        "overall_status": {
+          "const": "PROTECTED_BETA_FAILED_FINAL_ACCEPTANCE_BLOCKED"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "PROTECTED_BETA_FAILED",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Deliver the validated public-safe diagnostic repair, execute a serial new first-attempt T0702 Beta, and after a real PASS continue M3, Blue-Green, GA and Recovery without fixed calendar waits."
+        }
+      }
     }
   ],
   "properties": {
@@ -93,7 +125,10 @@
       }
     },
     "overall_status": {
-      "const": "LOCAL_MECHANISMS_EVIDENCED_FINAL_ACCEPTANCE_BLOCKED"
+      "enum": [
+        "LOCAL_MECHANISMS_EVIDENCED_FINAL_ACCEPTANCE_BLOCKED",
+        "PROTECTED_BETA_FAILED_FINAL_ACCEPTANCE_BLOCKED"
+      ]
     },
     "dimensions": {
       "type": "object",
@@ -127,6 +162,9 @@
       "type": "object",
       "minProperties": 1,
       "additionalProperties": {"const": 0}
+    },
+    "prohibition_counter_scope": {
+      "const": "LOCAL_EVIDENCE_GENERATION_ONLY_EXCLUDES_PROTECTED_EXECUTION_RECEIPT"
     },
     "blockers": {
       "type": "array",
@@ -181,7 +219,12 @@
         "status": {"const": "LOCAL_MECHANISMS_EVIDENCED"},
         "evidenced_tasks": {"const": 58},
         "total_tasks": {"const": 58},
-        "scope": {"const": "LOCAL_OR_SYNTHETIC_ONLY"}
+        "scope": {
+          "enum": [
+            "LOCAL_OR_SYNTHETIC_ONLY",
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPT"
+          ]
+        }
       }
     },
     "formal_task_completion": {
@@ -199,12 +242,13 @@
     "protected_oracles": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "declared", "executed", "passed", "not_run"],
+      "required": ["status", "declared", "executed", "passed", "failed", "not_run"],
       "properties": {
-        "status": {"const": "NOT_RUN"},
+        "status": {"enum": ["NOT_RUN", "FAILED"]},
         "declared": {"type": "integer", "minimum": 1},
-        "executed": {"const": 0},
-        "passed": {"const": 0},
+        "executed": {"type": "integer", "minimum": 0, "maximum": 2},
+        "passed": {"type": "integer", "minimum": 0, "maximum": 1},
+        "failed": {"type": "integer", "minimum": 0, "maximum": 1},
         "not_run": {"type": "integer", "minimum": 1}
       }
     },
@@ -225,7 +269,7 @@
       "required": ["status", "workflow_runs", "reason_codes"],
       "properties": {
         "status": {"const": "BLOCKED"},
-        "workflow_runs": {"const": 0},
+        "workflow_runs": {"type": "integer", "minimum": 0, "maximum": 1},
         "reason_codes": {
           "type": "array",
           "minItems": 4,
@@ -237,9 +281,19 @@
     "publication": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "remote_publications"],
+      "required": ["status", "controlled_main_deliveries", "remote_publications"],
       "properties": {
-        "status": {"const": "LOCAL_ONLY_NOT_PUBLISHED"},
+        "status": {
+          "enum": [
+            "LOCAL_ONLY_NOT_PUBLISHED",
+            "CONTROLLED_BETA_DELIVERY_NOT_FINAL"
+          ]
+        },
+        "controlled_main_deliveries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
         "remote_publications": {"const": 0}
       }
     },
@@ -283,7 +337,11 @@
             "NOT_RUN": {"type": "integer", "minimum": 0}
           }
         },
-        "protected_oracles_executed": {"const": 0}
+        "protected_oracles_executed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        }
       }
     }
   }

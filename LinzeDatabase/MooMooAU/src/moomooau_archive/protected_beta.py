@@ -46,6 +46,10 @@ from .gmail_guard import GmailEndpointGuard
 from .http_boundary import HttpTransport
 from .oauth import GmailAccessToken, GmailBearerTransport, GmailOAuthTokenClient
 from .operation_gate import OperationalGate
+from .protected_beta_diagnostics import (
+    ProtectedBetaDiagnostics,
+    ProtectedBetaFailurePhase,
+)
 from .raw_commit import (
     GitHubAppendOnlyCiphertextStore,
     OpaqueIdFactory,
@@ -214,6 +218,7 @@ class ProtectedBetaRuntime:
     _installation_token: InstallationToken
     _opaque_key: SecretBytes
     _identity: _ProtectedIdentityFile
+    _diagnostics: ProtectedBetaDiagnostics
     _closed: bool = False
     _run_started: bool = False
 
@@ -262,6 +267,7 @@ class ProtectedBetaRuntime:
                 cleanup_failure = cleanup_failure or exc
         self._closed = True
         if cleanup_failure is not None:
+            self._diagnostics.enter(ProtectedBetaFailurePhase.RESOURCE_CLEANUP)
             raise ProtectedBetaBootstrapError(
                 "protected Beta resource cleanup failed"
             ) from cleanup_failure
@@ -281,6 +287,7 @@ class ProtectedBetaBootstrap:
         age: OfficialAgeStream | None = None,
         clock: Callable[[], datetime] | None = None,
         allow_synthetic_ephemeral_root: bool = False,
+        diagnostics: ProtectedBetaDiagnostics | None = None,
     ) -> None:
         if type(allow_synthetic_ephemeral_root) is not bool:
             raise ProtectedBetaBootstrapError("synthetic ephemeral-root flag is invalid")
@@ -292,6 +299,7 @@ class ProtectedBetaBootstrap:
         self._age = age or OfficialAgeStream()
         self._clock = clock or (lambda: datetime.now(UTC))
         self._allow_synthetic_ephemeral_root = allow_synthetic_ephemeral_root
+        self._diagnostics = diagnostics or ProtectedBetaDiagnostics()
 
     @contextmanager
     def open(
@@ -301,6 +309,7 @@ class ProtectedBetaBootstrap:
     ) -> Iterator[ProtectedBetaRuntime]:
         now = _require_utc(self._clock())
         with ExitStack() as resources:
+            self._diagnostics.enter(ProtectedBetaFailurePhase.CONFIG_CAPACITY)
             config = _load_config(self._secret_source, now)
             promotion = Stage7ReleaseGate().evaluate_promotion(
                 ReleasePhase.BETA_RAW_ONLY,
@@ -310,56 +319,63 @@ class ProtectedBetaBootstrap:
             if not promotion.ready:
                 raise ProtectedBetaBootstrapError("protected Alpha predecessor gate is blocked")
 
+            self._diagnostics.enter(ProtectedBetaFailurePhase.SENDER_REGISTRY)
             sender_registry = _load_sender_registry(self._secret_source)
             if sender_registry.activation is not RegistryActivation.ACTIVE:
                 raise ProtectedBetaBootstrapError("protected sender registry is not active")
 
+            self._diagnostics.enter(ProtectedBetaFailurePhase.GITHUB_APP_KEY)
             github_private_key = _load_secret_bytes(
                 self._secret_source,
                 GITHUB_APP_PRIVATE_KEY_SECRET_NAME,
                 maximum_bytes=_MAX_PRIVATE_KEY_BYTES,
             )
-            resources.callback(github_private_key.destroy)
+            _register_cleanup(resources, github_private_key.destroy, self._diagnostics)
             github_signer = GitHubAppJwtSigner(config.app_id, github_private_key)
             try:
                 local_jwt_probe = github_signer.sign(now)
             except Exception as exc:
                 raise ProtectedBetaBootstrapError("GitHub App private key is invalid") from exc
-            local_jwt_probe.destroy()
+            _destroy_now(local_jwt_probe.destroy, self._diagnostics)
+
+            self._diagnostics.enter(ProtectedBetaFailurePhase.AGE_IDENTITY)
             opaque_key = _load_base64_key(self._secret_source)
-            resources.callback(opaque_key.destroy)
+            _register_cleanup(resources, opaque_key.destroy, self._diagnostics)
             identity_secret = _read_secret(
                 self._secret_source,
                 AGE_IDENTITY_SECRET_NAME,
                 maximum_bytes=_MAX_IDENTITY_BYTES,
             )
-            resources.callback(identity_secret.destroy)
+            _register_cleanup(resources, identity_secret.destroy, self._diagnostics)
             identity = _ProtectedIdentityFile(
                 self._approved_tmpfs_root,
                 identity_secret.reveal().encode("ascii"),
                 allow_synthetic_ephemeral_root=self._allow_synthetic_ephemeral_root,
             )
-            resources.callback(identity.close)
-            identity_secret.destroy()
+            _register_cleanup(resources, identity.close, self._diagnostics)
+            _destroy_now(identity_secret.destroy, self._diagnostics)
             _verify_identity_recipient(self._age, config.age_recipient, identity)
 
+            self._diagnostics.enter(ProtectedBetaFailurePhase.GMAIL_OAUTH)
             gmail_credential = load_gmail_oauth_credential(self._secret_source)
-            resources.callback(gmail_credential.destroy)
+            _register_cleanup(resources, gmail_credential.destroy, self._diagnostics)
             gmail_token = GmailOAuthTokenClient(self._oauth_transport).exchange(
                 gmail_credential,
                 now_utc=now,
             )
-            resources.callback(gmail_token.destroy)
-            gmail_credential.destroy()
+            _register_cleanup(resources, gmail_token.destroy, self._diagnostics)
+            _destroy_now(gmail_credential.destroy, self._diagnostics)
 
+            self._diagnostics.enter(ProtectedBetaFailurePhase.GITHUB_APP_TOKEN)
             github_guard = GitHubEndpointGuard(self._github_transport, config.target_repository)
             installation_token = GitHubInstallationTokenClient(
                 github_guard,
                 config.target_repository,
                 github_signer,
             ).mint(now)
-            resources.callback(installation_token.destroy)
-            github_private_key.destroy()
+            _register_cleanup(resources, installation_token.destroy, self._diagnostics)
+            _destroy_now(github_private_key.destroy, self._diagnostics)
+            self._diagnostics.enter(ProtectedBetaFailurePhase.REPOSITORY_RESOLUTION)
             locator = RepositoryResolver(github_guard, config.target_repository).resolve(
                 installation_token
             )
@@ -391,6 +407,7 @@ class ProtectedBetaBootstrap:
                     ),
                 ),
                 OperationalGate(config.capacity),
+                diagnostics=self._diagnostics,
             )
             runtime = ProtectedBetaRuntime(
                 runner,
@@ -400,9 +417,36 @@ class ProtectedBetaBootstrap:
                 installation_token,
                 opaque_key,
                 identity,
+                self._diagnostics,
             )
-            resources.callback(runtime.close)
+            _register_cleanup(resources, runtime.close, self._diagnostics)
             yield runtime
+
+
+def _register_cleanup(
+    resources: ExitStack,
+    action: Callable[[], None],
+    diagnostics: ProtectedBetaDiagnostics,
+) -> None:
+    def guarded_cleanup() -> None:
+        try:
+            action()
+        except BaseException:
+            diagnostics.enter(ProtectedBetaFailurePhase.RESOURCE_CLEANUP)
+            raise
+
+    resources.callback(guarded_cleanup)
+
+
+def _destroy_now(
+    action: Callable[[], None],
+    diagnostics: ProtectedBetaDiagnostics,
+) -> None:
+    try:
+        action()
+    except BaseException:
+        diagnostics.enter(ProtectedBetaFailurePhase.RESOURCE_CLEANUP)
+        raise
 
 
 def _load_config(source: SecretSource, now: datetime) -> ProtectedBetaConfig:

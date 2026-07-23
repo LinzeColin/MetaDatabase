@@ -4,7 +4,7 @@
   "stage_id": "S7",
   "task_id": "T0702",
   "stage_acceptance_id": "S7AC-002",
-  "observed_at_utc": "2026-07-23T08:24:58Z",
+  "observed_at_utc": "2026-07-23T11:06:41Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "record_status": "BLOCKED",
   "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
@@ -24,17 +24,23 @@
     {"id": "github_hosted_first_attempt_gate_precedes_secret_reads", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_entrypoint_rejects_non_cloud_runner_before_secret_reads"},
     {"id": "same_tree_alpha_binding_and_completed_beta_gate", "status": "PASS", "evidence_ref": "src/moomooau_archive/release_control.py and tests/tasks/test_t0702.py::test_t0702_entrypoint_executes_one_aggregate_only_protected_beta"},
     {"id": "zero_recovered_raw_cannot_claim_beta", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_entrypoint_blocks_zero_recovered_raw_without_claiming_beta"},
-    {"id": "manual_main_only_raw_only_workflow", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_workflow_is_manual_main_only_and_exact_six_secret"}
+    {"id": "manual_main_only_raw_only_workflow", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_workflow_is_manual_main_only_and_exact_six_secret"},
+    {"id": "protected_attempt_receipt_fail_closed", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0702/execution-receipt.json"},
+    {"id": "public_failure_taxonomy_closed_and_schema_bound", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_beta_diagnostics.py, machine/stages/S7/schemas/protected-beta-public-failure-v1.schema.json and tests/tasks/test_t0702.py::test_t0702_public_failure_taxonomy_is_closed_schema_valid_and_redacted"},
+    {"id": "every_reachable_failure_phase_wired_without_dynamic_output", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_every_reachable_failure_phase_is_wired_without_dynamic_output"},
+    {"id": "cleanup_failure_classified_after_all_cleanup_actions", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_cleanup_failure_is_bounded_and_all_cleanup_actions_run"},
+    {"id": "repair_run_contract_has_zero_remote_effect_budget", "status": "PASS", "evidence_ref": "machine/stages/S7/contracts/t0702_repair_run_contract.json"}
   ],
   "linked_final_acceptance": [
-    {"id": "AC-001", "status": "NOT_RUN", "reason": "No real mailbox discovery or candidate set was accessed."},
-    {"id": "AC-004", "status": "NOT_RUN", "reason": "No real verified Gmail RAW was fetched or round-tripped."},
-    {"id": "AC-007", "status": "NOT_RUN", "reason": "No real ciphertext was committed or remotely recovered."}
+    {"id": "AC-001", "status": "NOT_RUN", "reason": "The failed protected attempt did not emit sufficient aggregate evidence to prove the full zero-collateral Oracle."},
+    {"id": "AC-004", "status": "NOT_RUN", "reason": "A verified full Raw read is not proven by the aggregate-only failure receipt."},
+    {"id": "AC-007", "status": "NOT_RUN", "reason": "The private repository remained at its 64-byte one-file baseline, so no Raw ciphertext was committed or remotely recovered."}
   ],
   "production_oracles": [
-    {"id": "PROTECTED_BETA_REAL_RAW_ONLY", "status": "NOT_RUN", "reason": "The Owner authorized one controlled main delivery and one budget-one dispatch, but the exact workflow commit is not yet on main and the protected Environment policy, six Secret values, verified sender registry, private data repository and GitHub App installation remain unverified or unprovisioned."}
+    {"id": "PROTECTED_BETA_REAL_RAW_ONLY", "status": "FAILED", "reason": "The only authorized first-attempt workflow reached the protected Beta execution step but returned PROTECTED_BETA_RUN_FAILED before the first remote Raw commit; the exact internal cause is not observable from its aggregate-only log."}
   ],
-  "blockers": ["PROTECTED_BETA_ENVIRONMENT_POLICY_NOT_VERIFIED", "PROTECTED_BETA_SECRETS_NOT_PROVISIONED", "PROTECTED_SENDER_REGISTRY_NOT_PROVISIONED", "PRIVATE_DATA_REPOSITORY_NOT_PROVISIONED", "GITHUB_APP_INSTALLATION_NOT_VERIFIED", "OWNER_AUTHORIZED_CONTROLLED_MAIN_DELIVERY_NOT_YET_EXECUTED"],
+  "protected_execution_receipt": "machine/stages/S7/reviews/t0702/execution-receipt.json",
+  "blockers": ["PROTECTED_BETA_ATTEMPT_FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT", "PROTECTED_BETA_EXACT_ROOT_CAUSE_UNDETERMINED", "S7AC_002_NOT_SATISFIED"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "Provision and independently verify the main-only no-reviewer Beta Environment, exact six Secret values, budget-one config, verified sender registry, private data repository and least-privilege single-repository GitHub App; then use the one controlled main delivery and dispatch while keeping Gmail mutation, Parser, M3, Processed and Timeline off."
+  "next_action": "Deliver the local public-safe diagnostic repair to main and dispatch one new first-attempt protected Beta for the exact merged SHA; keep M3 blocked until Beta passes."
 }

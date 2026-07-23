@@ -88,7 +88,7 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0704.json",
-      "evidence_sha256": "09d889eb9ee39216697ab7584968075c3682ffad4248f99a52c36d7eb1507d20",
+      "evidence_sha256": "65eabe487554f4ed7c108329c4cfb3d6573ff0bc4d628237d862ba0405f84513",
       "final_claim_status": "NOT_RUN",
       "reason": "Timeline time semantics used synthetic Gmail internalDate facts; no protected Processed facts were rendered.",
       "source_record_status": "BLOCKED",
@@ -96,7 +96,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-23T08:55:58Z",
+  "observed_at_utc": "2026-07-23T10:29:39Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

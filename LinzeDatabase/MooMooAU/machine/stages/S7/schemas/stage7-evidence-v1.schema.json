@@ -69,10 +69,13 @@
         "required": ["id", "status", "reason"],
         "properties": {
           "id": {"type": "string", "minLength": 1},
-          "status": {"const": "NOT_RUN"},
+          "status": {"enum": ["PASS", "FAILED", "NOT_RUN"]},
           "reason": {"type": "string", "minLength": 1}
         }
       }
+    },
+    "protected_execution_receipt": {
+      "const": "machine/stages/S7/reviews/t0702/execution-receipt.json"
     },
     "blockers": {
       "type": "array",

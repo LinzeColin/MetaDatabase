@@ -4,14 +4,14 @@
   "stage_id": "S7",
   "task_id": "T0703",
   "stage_acceptance_id": "S7AC-003",
-  "observed_at_utc": "2026-07-22T00:18:52Z",
+  "observed_at_utc": "2026-07-23T11:26:41Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "record_status": "BLOCKED",
   "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
-    {"id": "m3_budget_one_gate", "status": "PASS", "evidence_ref": "tests/tasks/test_t0703.py::test_t0703_m3_canary_requires_budget_one_recovery_and_seven_days"},
-    {"id": "seven_day_processing_and_recovery_oracles", "status": "PASS", "evidence_ref": "src/moomooau_archive/release_control.py"},
+    {"id": "m3_budget_one_deterministic_evidence_gate", "status": "PASS", "evidence_ref": "tests/tasks/test_t0703.py::test_t0703_m3_canary_requires_budget_one_and_complete_deterministic_evidence"},
+    {"id": "same_day_processing_and_recovery_oracles", "status": "PASS", "evidence_ref": "src/moomooau_archive/release_control.py"},
     {"id": "beta_raw_only_runner_has_no_m3_reachability", "status": "PASS", "evidence_ref": "src/moomooau_archive/canary_runtime.py and tests/tasks/test_t0703.py::test_t0703_beta_raw_only_runner_cannot_reach_m3"},
     {"id": "raw_only_recovery_proof_cannot_authorize_m3", "status": "PASS", "evidence_ref": "src/moomooau_archive/remote_recovery_gate.py and tests/tasks/test_t0703.py::test_t0703_raw_only_recovery_proof_cannot_authorize_m3"},
     {"id": "processed_complete_or_safe_deferred_precedes_budget_one_m3", "status": "PASS", "evidence_ref": "src/moomooau_archive/canary_runtime.py::M3CanaryRunner and tests/tasks/test_t0703.py::test_t0703_m3_runner_recovers_processed_then_mutates_exactly_one_and_retries_idempotently"},
@@ -22,12 +22,12 @@
   "linked_final_acceptance": [
     {"id": "AC-006", "status": "NOT_RUN", "reason": "No real exact source message was moved to Trash."},
     {"id": "AC-007", "status": "NOT_RUN", "reason": "No real remote recovery preceded a Gmail mutation."},
-    {"id": "AC-026", "status": "NOT_RUN", "reason": "The protected seven-day Mutation Budget 1 observation has not started."}
+    {"id": "AC-026", "status": "NOT_RUN", "reason": "Protected Mutation Budget 1 execution has not run because the Beta predecessor failed."}
   ],
   "production_oracles": [
-    {"id": "PROTECTED_M3_CANARY_SEVEN_DAYS", "status": "NOT_RUN", "reason": "Beta is not complete and seven protected scheduled days cannot be simulated locally."}
+    {"id": "PROTECTED_M3_DETERMINISTIC_EVIDENCE", "status": "NOT_RUN", "reason": "Beta is not complete, so the one bounded protected M3 evidence run has not executed."}
   ],
-  "blockers": ["BETA_NOT_COMPLETE", "M3_SEVEN_DAY_WINDOW_NOT_STARTED"],
+  "blockers": ["BETA_NOT_COMPLETE"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "Begin M3 only after protected Beta passes; hold mutation budget at exactly one for at least seven scheduled days and fail closed on any recovery, verification or confirmation error."
+  "next_action": "After protected Beta passes, execute one bounded M3 evidence run immediately with mutation budget exactly one; fail closed on any recovery, verification or confirmation error."
 }
