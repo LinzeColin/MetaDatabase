@@ -451,6 +451,7 @@ scripts/authoritative/collect_gleif.py
 scripts/authoritative/collect_universe.py
 scripts/authoritative/common.py
 scripts/authoritative/enrich_sec.py
+scripts/authoritative/refresh_cycle.py
 scripts/backfill_sec_history.py
 scripts/backup_restore_drill.py
 scripts/build_cloud_frontend.sh
