@@ -1,0 +1,17 @@
+# R6 公开策略移植:双动量 GEM(Antonacci)——美股/国际股二选一,绝对动量守门
+strategy_id: "GEM_DUAL_MOMENTUM_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate_public_port"
+universe: ["SPY", "EFA", "QQQ"]
+cash_proxy: "BIL"
+score:
+  formula: "w1*r63 + w2*r126 + w3*r252"
+  lookbacks_trading_days: [63, 126, 252]
+absolute_momentum_filter: {rule: "close > SMA200", sma_period: 200}
+review_grid:
+  weights_allowed: [[0.0,0.0,1.0],[0.3,0.3,0.4],[0.7,0.2,0.1]]
+  top_n_allowed: [1]
+  target_vol_allowed: [999]
+  rebalance_threshold_allowed: [5]
+  eval_frequency_allowed: ["monthly", "weekly"]
+  dd_brake_allowed: [null, [10, 20]]

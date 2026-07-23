@@ -55,16 +55,21 @@ def build_grid(block: dict) -> list[S1Params]:
 def main() -> int:
     fee = FeeModel.from_yaml()
     gate = load_promo1_gate()
+    # 研究侧回撤容忍可由 owner 裁定放宽(2026-07-24:15% -> 30%);生产门槛文件不动
+    dd_cap = float(os.environ.get("ALPHA_RESEARCH_DD_CAP", gate["gate_dd_pct"]))
+    gate = {**gate, "gate_dd_pct": dd_cap}
     cfg_path = sys.argv[1] if len(sys.argv) > 1 else "configs/strategies/research/trend_multi_asset.yaml"
     cfg = yaml.safe_load(Path(cfg_path).read_text())
     universe, cash = list(cfg["universe"]), cfg["cash_proxy"]
+    proxy_map = cfg.get("signal_proxy", {}) or {}
 
     bars_map = {}
-    for sym in sorted(set(universe) | {cash}):
+    for sym in sorted(set(universe) | {cash} | set(proxy_map.values())):
         bars, ev = fetch_verified(sym, START, END)
         bars_map[sym] = bars
         print(f"数据 {sym}: {len(bars)} 根(双源核验)", flush=True)
     series = {s: precompute(s, b) for s, b in bars_map.items()}
+    signal_series = {sym: series[proxy] for sym, proxy in proxy_map.items()} or None
     cal = series[universe[0]].days
     windows = walk_forward_windows(cal)
     print(f"门槛: {gate} 窗口: {len(windows)}", flush=True)
@@ -79,11 +84,13 @@ def main() -> int:
             train = []
             for p in grid:
                 r = simulate_s1(series, universe, cash, p, start=t_start, end=t_end,
-                                sleeve_usd=CAPITAL_USD, fee=fee, calendar=cal)
+                                sleeve_usd=CAPITAL_USD, fee=fee, calendar=cal,
+                                signal_series=signal_series)
                 train.append((p, metrics(r.equity_days, r.equity)))
-            best_p, _bm, dd_ok = pick_best(train)
+            best_p, _bm, dd_ok = pick_best(train, dd_cap=dd_cap)
             v = simulate_s1(series, universe, cash, best_p, start=v_start, end=v_end,
-                            sleeve_usd=carry, fee=fee, calendar=cal)
+                            sleeve_usd=carry, fee=fee, calendar=cal,
+                            signal_series=signal_series)
             if v.equity:
                 oos_d.extend(v.equity_days); oos_e.extend(v.equity); carry = v.equity[-1]
             chosen.append({"validate": [v_start.isoformat(), v_end.isoformat()],
