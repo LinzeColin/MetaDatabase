@@ -12,6 +12,11 @@
 
 `MOOMOOAU_BETA_CONFIG` 必须声明 phase=`BETA_RAW_ONLY`、正整数消息预算、Key Epoch、age Recipient、GitHub App/Installation/Repository ID，以及不超过 24 小时的容量快照和 owner-provisioned LFS limits。Bootstrap 在任何 Gmail/GitHub 生产调用前验证 Alpha 前序、ACTIVE sender registry、RSA private key、容量写权限和 age Recipient/Identity 加解密绑定；生产默认只接受 `/dev/shm` 且必须由 Linux mountinfo 证明为 tmpfs，Runtime 单次执行后立即归零并删除 Identity、Token 和 opaque key。非 tmpfs override 只存在于合成测试装配中。
 
+若配置中的 GitHub App Installation ID 返回 404，Bootstrap 只允许一次
+`GET /app/installations?per_page=2` 有界校准；仅当 App 恰有一个未挂起、`selected` 且权限精确为
+`contents:write`/`metadata:read` 的 Installation 时才可继续。随后生成的 Token 仍必须只包含配置中的
+唯一 Repository ID 与同一最小权限，否则失败关闭；零个、多个、全仓选择、挂起或权限漂移均不得自愈。
+
 此入口只能产生 Raw-only runner；不得装配 Parser、M3、Timeline 或 Release Asset 权限。
 `.github/workflows/moomooau-beta.yml` 是唯一受保护 Beta 入口，仅允许 owner 在 `main` 上手动
 `workflow_dispatch` 的首次尝试，并逐项绑定控制仓/owner/actor 数字 ID、expected commit、Workflow

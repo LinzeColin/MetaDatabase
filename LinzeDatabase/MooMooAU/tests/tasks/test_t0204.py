@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 from datetime import UTC, datetime, timedelta
+from urllib.parse import urlsplit
 
 import pytest
 from cryptography.hazmat.primitives import hashes, serialization
@@ -33,6 +34,18 @@ class TokenTransport:
     def send(self, request: HttpRequest) -> HttpResponse:
         self.requests.append(request)
         return self.response
+
+
+class SequenceTransport:
+    def __init__(self, responses: list[HttpResponse]) -> None:
+        self.responses = responses
+        self.requests: list[HttpRequest] = []
+
+    def send(self, request: HttpRequest) -> HttpResponse:
+        self.requests.append(request)
+        if not self.responses:
+            raise AssertionError("unexpected synthetic GitHub request")
+        return self.responses.pop(0)
 
 
 def _decode_segment(value: str) -> bytes:
@@ -182,7 +195,6 @@ def test_t0204_rejects_overbroad_installation_token_response() -> None:
         (400, InstallationTokenFailureClass.REQUEST_REJECTED),
         (401, InstallationTokenFailureClass.AUTHENTICATION_REJECTED),
         (403, InstallationTokenFailureClass.AUTHORIZATION_REJECTED),
-        (404, InstallationTokenFailureClass.INSTALLATION_NOT_FOUND),
         (422, InstallationTokenFailureClass.REQUEST_REJECTED),
         (500, InstallationTokenFailureClass.REMOTE_SERVICE_FAILED),
     ),
@@ -234,3 +246,194 @@ def test_t0204_classifies_malformed_token_success_without_dynamic_output() -> No
     assert error.value.failure_class is InstallationTokenFailureClass.RESPONSE_INVALID
     assert "private-invalid-json" not in repr(error.value)
     secret.destroy()
+
+
+def test_t0204_recovers_stale_installation_id_only_from_one_exact_installation() -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    config = TargetRepositoryConfig(repository_id=7100006, installation_id=8100006)
+    discovered_installation_id = 8100099
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    secret = SecretBytes(
+        private_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        )
+    )
+    transport = SequenceTransport(
+        [
+            HttpResponse(404, b"private-not-found-response"),
+            HttpResponse(
+                200,
+                json.dumps(
+                    [
+                        {
+                            "id": discovered_installation_id,
+                            "permissions": {"contents": "write", "metadata": "read"},
+                            "repository_selection": "selected",
+                            "suspended_at": None,
+                        }
+                    ],
+                    sort_keys=True,
+                ).encode(),
+            ),
+            _token_response(config.repository_id, now),
+        ]
+    )
+    client = GitHubInstallationTokenClient(
+        GitHubEndpointGuard(transport, config),
+        config,
+        GitHubAppJwtSigner(9100006, secret),
+    )
+
+    token = client.mint(now)
+
+    assert [urlsplit(item.url).path for item in transport.requests] == [
+        f"/app/installations/{config.installation_id}/access_tokens",
+        "/app/installations",
+        f"/app/installations/{discovered_installation_id}/access_tokens",
+    ]
+    assert urlsplit(transport.requests[1].url).query == "per_page=2"
+    assert transport.requests[0].body == transport.requests[2].body
+    token.destroy()
+    secret.destroy()
+
+
+def test_t0204_classifies_target_absent_from_discovered_installation() -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    config = TargetRepositoryConfig(repository_id=7100009, installation_id=8100009)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    secret = SecretBytes(
+        private_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        )
+    )
+    transport = SequenceTransport(
+        [
+            HttpResponse(404, b"{}"),
+            HttpResponse(
+                200,
+                json.dumps(
+                    [
+                        {
+                            "id": 8100199,
+                            "permissions": {"contents": "write", "metadata": "read"},
+                            "repository_selection": "selected",
+                            "suspended_at": None,
+                        }
+                    ],
+                    sort_keys=True,
+                ).encode(),
+            ),
+            HttpResponse(404, b"private-target-absent-response"),
+        ]
+    )
+    client = GitHubInstallationTokenClient(
+        GitHubEndpointGuard(transport, config),
+        config,
+        GitHubAppJwtSigner(9100009, secret),
+    )
+
+    with pytest.raises(GitHubInstallationTokenError) as error:
+        client.mint(now)
+
+    assert error.value.failure_class is InstallationTokenFailureClass.INSTALLATION_NOT_FOUND
+    assert "private-target-absent-response" not in repr(error.value)
+    secret.destroy()
+
+
+@pytest.mark.parametrize(
+    "installations",
+    (
+        [],
+        [
+            {
+                "id": 8100101,
+                "permissions": {"contents": "write", "metadata": "read"},
+                "repository_selection": "selected",
+                "suspended_at": None,
+            },
+            {
+                "id": 8100102,
+                "permissions": {"contents": "write", "metadata": "read"},
+                "repository_selection": "selected",
+                "suspended_at": None,
+            },
+        ],
+        [
+            {
+                "id": 8100103,
+                "permissions": {"contents": "read", "metadata": "read"},
+                "repository_selection": "selected",
+                "suspended_at": None,
+            }
+        ],
+        [
+            {
+                "id": 8100104,
+                "permissions": {"contents": "write", "metadata": "read"},
+                "repository_selection": "all",
+                "suspended_at": None,
+            }
+        ],
+        [
+            {
+                "id": 8100105,
+                "permissions": {"contents": "write", "metadata": "read"},
+                "repository_selection": "selected",
+                "suspended_at": "2026-01-01T00:00:00Z",
+            }
+        ],
+    ),
+)
+def test_t0204_rejects_nonunique_or_overbroad_installation_discovery(
+    installations: list[dict[str, object]],
+) -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    config = TargetRepositoryConfig(repository_id=7100007, installation_id=8100007)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    secret = SecretBytes(
+        private_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        )
+    )
+    transport = SequenceTransport(
+        [
+            HttpResponse(404, b"{}"),
+            HttpResponse(200, json.dumps(installations, sort_keys=True).encode()),
+        ]
+    )
+    client = GitHubInstallationTokenClient(
+        GitHubEndpointGuard(transport, config),
+        config,
+        GitHubAppJwtSigner(9100007, secret),
+    )
+
+    with pytest.raises(GitHubInstallationTokenError) as error:
+        client.mint(now)
+
+    assert (
+        error.value.failure_class is InstallationTokenFailureClass.INSTALLATION_DISCOVERY_REJECTED
+    )
+    assert len(transport.requests) == 2
+    secret.destroy()
+
+
+def test_t0204_blocks_unbounded_installation_discovery_before_network() -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    config = TargetRepositoryConfig(repository_id=7100008, installation_id=8100008)
+    transport = TokenTransport(_token_response(config.repository_id, now))
+    guard = GitHubEndpointGuard(transport, config)
+
+    for url in (
+        "https://api.github.com/app/installations",
+        "https://api.github.com/app/installations?per_page=100",
+        "https://api.github.com/app/installations?per_page=2&since=1",
+    ):
+        with pytest.raises(GitHubBoundaryError, match="bounded"):
+            guard.send(HttpRequest("GET", url))
+    assert transport.requests == []
