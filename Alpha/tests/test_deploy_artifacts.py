@@ -11,11 +11,15 @@ def test_systemd_units_ledger():
         "alpha-opend.service", "alpha-trading-worker.service",
         "alpha-notify-worker.service", "alpha-supervisor.service",
         "alpha-control-page.service", "alpha-rejudge.service",
-        "alpha-activate.service",
+        "alpha-activate.service", "alpha-alert@.service",
     }
-    # oneshot 台账:复判必须声明无激活权限;切换器必须声明自己是激活唯一通道
+    # oneshot 台账:复判必须声明无激活权限;切换器=激活唯一通道;失败自告警=零权限
     oneshot_marks = {"alpha-rejudge.service": "无激活权限",
-                     "alpha-activate.service": "激活唯一通道"}
+                     "alpha-activate.service": "激活唯一通道",
+                     "alpha-alert@.service": "无任何激活权限"}
+    # 两个定时任务必须挂失败自告警钩子
+    for name in ("alpha-rejudge.service", "alpha-activate.service"):
+        assert "OnFailure=alpha-alert@%n.service" in (DEPLOY / "systemd" / name).read_text(), name
     for p in (DEPLOY / "systemd").glob("*.service"):
         text = p.read_text()
         assert "EnvironmentFile=/opt/alpha/env" in text, p.name

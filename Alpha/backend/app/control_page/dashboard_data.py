@@ -170,6 +170,142 @@ def _market_status(now_utc: datetime) -> dict:
             "next": f"{nxt_label} {nxt_syd:%m月%d日 %H:%M}(悉尼)"}
 
 
+#: 运维类事件(运维记录页只看这些;类型 -> (人话标题, 处置类别))
+OPS_EVENTS = {
+    "WORKER_HEARTBEAT_LOST": ("组件失联,已拉闸保护", "fault"),
+    "WORKER_RESTARTED": ("守护自动重启组件", "auto"),
+    "WORKER_RECOVERED": ("组件心跳恢复", "auto"),
+    "KILL_SWITCH_CLEARED": ("刹车自动解除,交易恢复", "auto"),
+    "INCIDENT_REPORT": ("事故报告与修复(人工介入)", "manual"),
+    "ACTIVATION_BLOCKED": ("实盘切换暂缓(失败关闭)", "fault"),
+    "LIVE_ACTIVATED": ("已自动切换微实盘", "auto"),
+    "UNIT_FAILED": ("定时任务运行失败", "fault"),
+}
+
+#: 自愈能力清单(与部署单元一一对应;运维记录页如实展示)
+SELF_HEAL_CAPS = [
+    ("进程崩溃自动拉起", "系统服务管理器 Restart=always,崩溃 10 秒内重启"),
+    ("卡死看门狗", "交易进程每拍喂狗;超过 5 分钟没喂 = 卡死,自动杀掉重启(07-23 事故补课)"),
+    ("守护受限重启权", "组件失联超 5 分钟,守护按序自动重启行情网关与交易进程,30 分钟冷却防抖"),
+    ("条件自动收闸", "守护自己拍的紧急刹车,连续健康确认后自动解除;人拍的闸永远只有人能解"),
+    ("每日收盘自动复判", "每个交易日收盘后自动核算四灯并按纪律邮件;全绿自动发起实盘切换"),
+    ("定时任务失败自告警", "复判/切换任务自身失败时,自动发邮件通知(谁看门人的门,失败也有人知道)"),
+]
+
+
+def build_ops_view(*, session_factory, heartbeats, kill_switch,
+                   ledger_path: str | Path = "machine/facts/downtime_ledger.json",
+                   now: Optional[datetime] = None) -> dict:
+    """运维记录页数据:事故台账 + 运维事件流(含邮件送达状态与处置类别)。只读。"""
+    now = now or datetime.now(timezone.utc)
+
+    ledger_rows = []
+    lp = Path(ledger_path)
+    if lp.exists():
+        try:
+            data = json.loads(lp.read_text())
+            for day in sorted(data, reverse=True):
+                e = data[day]
+                secs = int(e.get("seconds", 0))
+                ledger_rows.append({
+                    "date": day,
+                    "downtime_human": (f"{secs // 3600} 小时 {secs % 3600 // 60} 分"
+                                       if secs >= 3600 else f"{max(secs // 60, 1)} 分钟" if secs >= 60
+                                       else f"{secs} 秒"),
+                    "reason": e.get("原因", ""),
+                })
+        except Exception:
+            ledger_rows = []
+
+    events = []
+    if session_factory is not None:
+        from sqlalchemy import select
+
+        from backend.app.domain.models import OutboxEvent
+        with session_factory() as s:
+            rows = [x for x in s.scalars(select(OutboxEvent)).all()
+                    if x.event_type in OPS_EVENTS]
+        rows.sort(key=lambda x: x.created_at, reverse=True)
+        recovered_after: list[datetime] = [x.created_at for x in rows
+                                           if x.event_type in ("WORKER_RECOVERED",
+                                                               "KILL_SWITCH_CLEARED")]
+        for x in rows[:40]:
+            title, kind = OPS_EVENTS[x.event_type]
+            if x.delivery_status == "DELIVERED" and x.delivered_at:
+                at = x.delivered_at if x.delivered_at.tzinfo else x.delivered_at.replace(tzinfo=timezone.utc)
+                mail = f"已邮件({at.astimezone(SYD):%m-%d %H:%M} 送达)"
+            elif x.delivery_status == "PENDING":
+                mail = "邮件投递中"
+            elif x.delivery_status == "CANCELLED":
+                mail = "已作废(告警风暴清账)"
+            else:
+                mail = "邮件投递失败"
+            resolved = (kind != "fault"
+                        or any(r > x.created_at for r in recovered_after))
+            created = x.created_at if x.created_at.tzinfo else x.created_at.replace(tzinfo=timezone.utc)
+            events.append({
+                "at_syd": f"{created.astimezone(SYD):%m-%d %H:%M}",
+                "title": title, "kind": kind, "mail": mail,
+                "state_cn": ("已自愈/已处理" if resolved else "待处理(需人工/代理介入)"),
+                "resolved": resolved,
+            })
+
+    hb = heartbeats.snapshot() if heartbeats else {}
+    fresh = all((now - datetime.fromisoformat(h["beat_at"])).total_seconds() < 150
+                for h in hb.values()) if hb else False
+    return {
+        "caps": SELF_HEAL_CAPS,
+        "ledger": ledger_rows,
+        "events": events,
+        "open_faults": sum(1 for e in events if not e["resolved"]),
+        "healthy_now": bool(fresh and not kill_switch.active()),
+        "updated_at_syd": f"{now.astimezone(SYD):%m月%d日 %H:%M}",
+    }
+
+
+def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promotion.yaml",
+                        now: Optional[datetime] = None) -> dict:
+    """投资策略页数据:生产策略人话档案 + 晋级门禁(实时读契约配置)+ 研究史。只读。"""
+    now = now or datetime.now(timezone.utc)
+    gates = []
+    try:
+        import yaml
+        cfg = yaml.safe_load(Path(promotion_path).read_text())
+        gates = [{"id": c["id"], "name": c["name"], "rule": c["rule"]}
+                 for c in cfg.get("gate_conditions", [])]
+        honesty = cfg.get("honesty_note", "")
+    except Exception:
+        honesty = ""
+    return {
+        "champion": {
+            "name_cn": "黄金对冲动量(周频)",
+            "cadence": "每周二美股开盘后 30-90 分钟评估一次;其余时间只持有不动。上次评估被拦下时,下个交易日开盘后自动补评估",
+            "universe": "纳指100基金(QQQ)、黄金基金(GLD)、标普500基金(SPY)、短债现金类(BIL)",
+            "record": "滚动前推回测(14 年以上样本外、含真实费用、整股约束):月均 0.662%,最大回撤 13.07%",
+            "logic_cn": "动量选强 + 黄金叠加对冲:市场趋势强时持有股指基金,趋势走弱时切向黄金与现金类,靠每周一次的纪律性再平衡吃趋势、控回撤",
+        },
+        "hard_limits": [
+            "总敞口上限 3000 澳元(绝不自动加资)",
+            "单笔不超过总资金的 60%",
+            "每小时最多 5 笔订单",
+            "仅限美股/美股基金",
+            "任何组件失联即拉闸停新单(失败关闭)",
+            "语言模型与外部接口永远无权触发订单",
+        ],
+        "gates": gates,
+        "honesty_note": honesty,
+        "research": [
+            {"name": "52 周新高过滤动量(门A)", "result": "0.894%/月 @ 回撤 18.98%", "verdict": "候选:收益更高但回撤超 15% 上限,需 owner 书面放宽才可启用"},
+            {"name": "黄金对冲动量(生产)", "result": "0.662%/月 @ 回撤 13.07%", "verdict": "现役:唯一全项过门的结构"},
+            {"name": "杠杆基金轮动族", "result": "0.44-0.80%/月 @ 回撤 21-44%", "verdict": "否决:两轴均劣于门A(2026-07-17 证据轮)"},
+            {"name": "日历效应族(隔夜/月末/万圣节)", "result": "全部不敌保底线", "verdict": "否决(三线证据)"},
+            {"name": "五五混合(股指+黄金分仓)", "result": "回撤 11.02% 全场最低,但 3000 澳元下费用惩罚致收益不过门", "verdict": "搁置:资金 ≥6000 澳元时重启评估"},
+        ],
+        "research_note": "所有候选同一把尺子:滚动前推(每半年只准用当时已知数据选参数)+ 双源行情核验 + 真实费用 + 整股约束;文献数字永远不能冒充自建回测。全部证据在公开仓 reports/backtest/ 可复验。",
+        "updated_at_syd": f"{now.astimezone(SYD):%m月%d日 %H:%M}",
+    }
+
+
 def build_overview(*, session_factory, heartbeats, kill_switch,
                    quotes: Optional[QuoteSource] = None,
                    fx_aud_usd: float = 0.65, capital_aud: float = 3000.0,

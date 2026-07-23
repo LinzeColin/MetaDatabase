@@ -169,6 +169,60 @@ def test_dashboard_v2_full_page_and_api(tmp_path):
     assert "token" not in api.text.lower() and "Bearer" not in api.text
 
 
+def test_ops_and_strategy_pages(tmp_path):
+    """一级入口:运维记录(台账/事件/邮件状态/待处理)与投资策略(档案/风控/门禁/研究史)。"""
+    import json as _json
+    from datetime import datetime, timedelta, timezone
+
+    from backend.app.domain.models import OutboxEvent
+
+    factory = seed_trading_db(tmp_path)
+    # 台账 + 一条已送达的失联告警 + 一条其后的恢复(应判定"已自愈")
+    ledger = tmp_path / "downtime_ledger.json"
+    ledger.write_text(_json.dumps({
+        "2026-07-23": {"seconds": 23400, "原因": "网关闪断后卡死,全时段停机(事故)"}},
+        ensure_ascii=False))
+    t0 = datetime.now(timezone.utc) - timedelta(hours=2)
+    with factory() as s, s.begin():
+        s.add(OutboxEvent(event_type="WORKER_HEARTBEAT_LOST", payload="{}",
+                          delivery_status="DELIVERED", created_at=t0,
+                          delivered_at=t0 + timedelta(seconds=3)))
+        s.add(OutboxEvent(event_type="WORKER_RECOVERED", payload="{}",
+                          delivery_status="DELIVERED", created_at=t0 + timedelta(hours=1),
+                          delivered_at=t0 + timedelta(hours=1, seconds=3)))
+
+    hb = HeartbeatStore(factory)
+    hb.beat("trading-worker", status="RUNNING", detail="")
+    app = build_control_app(kill_switch=KillSwitch(tmp_path / "KSOPS"), heartbeats=hb,
+                            token_reader=lambda: TOKEN, ack_path=tmp_path / "AOPS.json",
+                            session_factory=factory, quotes=FakeQuotes({}),
+                            reports_dir=tmp_path / "norep", runtime_dir=tmp_path / "rt",
+                            fx_aud_usd=0.65)
+    client = TestClient(app)
+
+    from backend.app.control_page.dashboard_data import build_ops_view
+    ops = build_ops_view(session_factory=factory, heartbeats=hb,
+                         kill_switch=KillSwitch(tmp_path / "KSOPS"),
+                         ledger_path=ledger)
+    assert ops["ledger"][0]["date"] == "2026-07-23" and "6 小时" in ops["ledger"][0]["downtime_human"]
+    lost = next(e for e in ops["events"] if "失联" in e["title"])
+    assert "已邮件" in lost["mail"] and lost["resolved"] is True   # 之后有恢复记录 → 已自愈
+    assert ops["open_faults"] == 0
+
+    page = client.get("/ops")
+    assert page.status_code == 200
+    assert "运维记录" in page.text and "停机事故台账" in page.text and "<form" not in page.text
+
+    sp = client.get("/strategy")
+    assert sp.status_code == 200
+    body = sp.text
+    assert "黄金对冲动量" in body and "3000 澳元" in body
+    assert "晋级实盘的四道门" in body and "候选策略研究史" in body
+    assert "不向任何人承诺回报" in body and "<form" not in body
+    # 导航三入口出现在驾驶舱
+    assert "运维记录" in client.get("/").text
+
+
 def test_dashboard_v2_quote_outage_fails_soft(tmp_path):
     """行情源整体失效:页面照常打开,持仓按成本估值并如实标注,绝不编价。"""
     factory = seed_trading_db(tmp_path)

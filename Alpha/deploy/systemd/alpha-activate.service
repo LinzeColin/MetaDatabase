@@ -4,6 +4,7 @@
 [Unit]
 Description=Alpha 微实盘自动切换器(激活唯一通道,失败自动回滚)
 After=network-online.target postgresql.service
+OnFailure=alpha-alert@%n.service
 
 [Service]
 Type=oneshot

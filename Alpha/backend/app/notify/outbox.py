@@ -64,6 +64,7 @@ _EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
         "刚才由守护程序自己拍下的紧急刹车,已在连续健康确认后自动解除,系统恢复正常节拍。\n"
         "说明:只有守护自己拍的闸会自动解;你手动拍的闸永远只有你能解。")),
     "INCIDENT_REPORT": ("事故报告与修复", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "UNIT_FAILED": ("定时任务运行失败", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
 }
 
 

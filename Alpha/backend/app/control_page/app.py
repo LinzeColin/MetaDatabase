@@ -75,6 +75,28 @@ def build_control_app(
         """公开只读机器可读版(与页面同一份装配数据;零秘密零动作)。"""
         return _overview()
 
+    @app.get("/ops")
+    def ops_page():
+        """运维记录(公开只读):事故台账 + 修复事件 + 邮件送达状态 + 待处理标记。"""
+        from fastapi.responses import HTMLResponse
+
+        from backend.app.control_page.dashboard_data import build_ops_view
+        from backend.app.control_page.render import render_ops_html
+
+        return HTMLResponse(render_ops_html(build_ops_view(
+            session_factory=session_factory, heartbeats=heartbeats,
+            kill_switch=kill_switch)))
+
+    @app.get("/strategy")
+    def strategy_page():
+        """投资策略(公开只读):生产策略档案 + 硬风控 + 晋级门禁 + 研究史。"""
+        from fastapi.responses import HTMLResponse
+
+        from backend.app.control_page.dashboard_data import build_strategy_view
+        from backend.app.control_page.render import render_strategy_html
+
+        return HTMLResponse(render_strategy_html(build_strategy_view()))
+
     @app.get("/status")
     def status(_: None = Depends(require_token)) -> dict:
         return {

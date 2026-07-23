@@ -3,6 +3,7 @@
 [Unit]
 Description=Alpha 每日收盘复判(出四件套+四灯判定,无激活权限)
 After=network-online.target postgresql.service
+OnFailure=alpha-alert@%n.service
 
 [Service]
 Type=oneshot
