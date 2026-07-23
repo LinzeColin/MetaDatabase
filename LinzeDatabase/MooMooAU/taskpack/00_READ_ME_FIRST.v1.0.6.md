@@ -53,6 +53,14 @@
     Alpha/identity cleanup PASS、Beta FAILED、rerun 0。最新固定结果为
     `GITHUB_APP_TOKEN / INSTALLATION_ZERO`，证明现有 App 尚无 installation；T0702/S7AC-002 仍
     `BLOCKED`，Raw/Gmail mutation/M3/Processed/Timeline/schedule 均为 0。
+19. 后续受控 repair 修正 GitHub App token response scope，并将单封 404/结构不完整 metadata
+    收敛为 typed、bounded quarantine；任何内容泄漏、身份错配、额外 header 或权限/服务错误仍整次
+    fail closed。v2 账本区分 1 次 Secret 前 context 拒绝与 11 次 protected first attempt；最终
+    exact-main attempt 的 Alpha、Raw-only Beta 与 identity cleanup 全部 PASS，未使用 rerun。
+20. 最终公开安全结果只声明 verified within configured budget、Raw remote recovery 100%、
+    private namespace 为非零 age ciphertext only，以及 Gmail mutation/M3/Processed/Timeline/
+    schedule 为 0。T0702/S7AC-002 已通过，但最终 Acceptance 仍为 0/34、生产仍 BLOCKED、Stage 7
+    未完成；当前 Owner 范围明确停在 M3 前。
 
 ## 开发入口
 
@@ -64,10 +72,8 @@
 
 ## 当前准确边界
 
-v1.0.6 证明 RMD-06 云执行前置、T0702 protected Raw-only 入口代码与最小权限契约，以及唯一受控
-attempt 的真实结果：Alpha PASS、Beta FAILED、首个远端 Raw commit 未发生、Gmail mutation/M3/
-Processed/Timeline/schedule 为 0。verified full Raw read 是否在失败前发生无法由现有 aggregate
-确定，不得猜测为 0。该受控 main 交付不是最终发布；T0702、最终 Acceptance 与生产健康均未通过。
-本地诊断 repair 只让新的 first-attempt 失败可按固定阶段分类，本身不构成 protected 证据。Owner
-已授权受控完成 Stage 7：交付后可执行 serial new first-attempt；只有真实 Beta PASS 才能进入
-M3，所有后续 protected claim 仍必须来自精确观察证据。
+v1.0.6 证明 RMD-06 云执行前置、T0702 protected Raw-only 入口、最小权限契约和真实 PASS：
+Alpha/Raw-only Beta/identity cleanup PASS，verified candidate within budget，Raw remote recovery
+100%，Gmail mutation/M3/Processed/Timeline/schedule 为 0。公开面不披露精确邮箱计数、private
+对象数量或仓标识。该受控 main 交付不是最终发布；T0702/S7AC-002 已通过，但最终 Acceptance、
+生产健康与 Stage 7 均未通过。M3 前序已满足，当前 Owner 范围仍明确停在 M3 前。

@@ -4,7 +4,7 @@
   "authorization": {
     "decision": "Owner retained the private Governance Deploy Key design and explicitly authorized controlled Stage 7 completion with serial new first-attempt protected dispatches and no artificial calendar or manual-approval blocker",
     "authorized_on": "2026-07-23",
-    "scope": "Stage 7 only: T0702 remains Raw-only with budget one and zero Gmail mutation; after a real protected T0702 PASS, M3, Blue-Green, GA and Recovery may proceed serially under their existing deterministic recovery, Budget 1, single-writer and single-Timeline gates; no manual Environment reviewer or fixed calendar wait"
+    "scope": "Stage 7 T0702 only: Beta remains Raw-only with budget one and zero Gmail mutation. The protected T0702 PASS satisfies the M3 predecessor but does not authorize M3; current owner scope stops before every post-Beta phase, with no manual Environment reviewer or fixed calendar wait added."
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -85,6 +85,22 @@
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
       "next_action": "Install the existing least-privilege GitHub App on exactly the one private data repository, then execute a new exact-main first-attempt T0702 Beta; after a real PASS continue M3, Blue-Green, GA and Recovery without fixed calendar waits."
+    },
+    "PROTECTED_BETA_PASS_SCOPE_STOP": {
+      "package_version": "1.0.6",
+      "resolved_review_findings": [
+        "REV-P0-002",
+        "REV-P0-003",
+        "REV-P1-004",
+        "REV-P1-006",
+        "REV-P2-007"
+      ],
+      "current_remediation_blockers": [
+        "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+        "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+        "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+      ],
+      "next_action": "T0702 evidence is closed; the M3 predecessor is satisfied, but current owner scope withholds M3, so stop before any M3 or later Stage 7 execution."
     }
   }
 }

@@ -56,23 +56,23 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0702.json",
-      "evidence_sha256": "6e25b77493cc4385cb60076af3c6b36da75586884625485e2fe3fadff98d86ca",
-      "final_claim_status": "NOT_RUN",
-      "reason": "The private repository remained at its 64-byte one-file baseline, so no Raw ciphertext was committed or remotely recovered.",
-      "source_record_status": "BLOCKED",
+      "evidence_sha256": "20a9a01f2121654c6391e5607bbb3d923dcbc682c5aea23751a83de098f92059",
+      "final_claim_status": "PARTIAL",
+      "reason": "The private namespace contains nonzero age ciphertext only and independent read-only verification confirmed 100% Raw recovery with zero overwrite, deletion or cross-namespace change; Processed and Timeline recovery remain unexecuted.",
+      "source_record_status": "READY",
       "task_id": "T0702"
     },
     {
       "evidence_ref": "evidence/tasks/T0703.json",
-      "evidence_sha256": "fb6679ff9eebdee187eff74163d0952ae352c739d8e01d384351026eb64b50db",
+      "evidence_sha256": "f6ac52670a9b60d9e037bf626630b65a4da5a488ae97a7565b6fbdb5aa4b184d",
       "final_claim_status": "NOT_RUN",
-      "reason": "No real remote recovery preceded a Gmail mutation.",
+      "reason": "T0702 proved Raw remote recovery, but no Processed recovery or Gmail mutation has run.",
       "source_record_status": "BLOCKED",
       "task_id": "T0703"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-23T14:31:21Z",
+  "observed_at_utc": "2026-07-23T22:53:05Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

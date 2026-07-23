@@ -1,9 +1,9 @@
 {
   "schema_version": "moomooau.source-provenance.v7",
   "authorization": {
-    "basis": "Owner selected option 2 for private Governance and separately authorized one controlled main delivery plus one T0702 protected Beta dispatch; after that failed attempt and local diagnostic repair, Owner explicitly authorized controlled Stage 7 completion without artificial time or approval blockers",
+    "basis": "Owner selected option 2 for private Governance, authorized controlled main delivery and fully automatic protected first attempts for T0702, then explicitly limited the current evidence-closing scope to T0702 with no artificial time or manual-approval blocker",
     "authorized_on": "2026-07-23",
-    "authorized_scope": "RMD-06 dependency authentication, cloud preflight closure, one controlled historical main delivery and budget-one T0702 attempt, followed by controlled Stage 7 repair delivery and serial new first-attempt dispatches. Beta remains Raw-only with zero Gmail mutation; M3 and later Stage 7 phases require their real predecessor PASS; GitHub rerun, fixed calendar waits, manual routine approval and pre-acceptance final publication remain forbidden"
+    "authorized_scope": "RMD-06 dependency authentication, cloud preflight closure, controlled T0702 repair deliveries and serial new first-attempt dispatches. Beta remains Raw-only with zero Gmail mutation; the real protected T0702 PASS satisfies the M3 predecessor but current owner scope withholds M3 and every later Stage 7 phase. GitHub rerun, fixed calendar waits, manual routine approval and pre-acceptance final publication remain forbidden"
   },
   "predecessor": {
     "package_id": "MMAU-ARCHIVE-TP-2026-07-22-V1.0.5",
@@ -77,21 +77,29 @@
     "final_acceptance_thresholds_changed": false,
     "stage7_fixed_calendar_wait_removed": true,
     "protected_oracles_executed": 2,
-    "protected_oracles_passed": 1,
-    "protected_oracles_failed": 1,
+    "protected_oracles_passed": 2,
+    "protected_oracles_failed": 0,
     "production_workflow_runs": 0,
-    "protected_workflow_runs": 6,
-    "remote_workflow_runs": 6,
-    "controlled_main_deliveries": 6,
-    "protected_beta_dispatches": 6,
+    "protected_workflow_runs": 11,
+    "remote_workflow_runs": 11,
+    "controlled_main_deliveries": 8,
+    "protected_beta_dispatches": 12,
+    "context_rejected_dispatches": 1,
     "protected_beta_reruns": 0,
-    "private_raw_commits": 0,
+    "private_raw_commits": "NONZERO_WITHIN_CONFIGURED_BUDGET",
+    "private_raw_remote_recovery": "ONE_HUNDRED_PERCENT",
+    "private_namespace_blob_state": "NONZERO_AGE_CIPHERTEXT_ONLY",
     "gmail_mutations": 0,
-    "protected_beta_outcome": "FAILED_GITHUB_APP_INSTALLATION_ZERO",
-    "protected_beta_latest_failure_phase": "GITHUB_APP_TOKEN",
-    "protected_beta_latest_installation_failure_class": "INSTALLATION_ZERO",
+    "m3_runs": 0,
+    "processed_writes": 0,
+    "timeline_writes": 0,
+    "protected_beta_outcome": "PASS_RAW_RECOVERY_100_PERCENT_ZERO_SOURCE_MUTATION",
+    "protected_beta_last_failure_phase": "METADATA_VERIFICATION",
+    "protected_beta_last_installation_failure_class": "UNCLASSIFIED",
     "protected_beta_exact_root_cause_claimed": false,
-    "protected_beta_attempt_ledger_sha256": "d1c4bea995ef6ac4c76289e118d20ea93bec2437adabdbac2633f86416f72a0f",
+    "exact_mailbox_counts_disclosed": false,
+    "m3_authority_status": "WITHHELD_BY_CURRENT_OWNER_SCOPE",
+    "protected_beta_attempt_ledger_sha256": "3a85c5ea1d3e21f0ce0413968f83a867f2b5e3accfb63deb78b4e740ee86456a",
     "remote_publications": 0
   }
 }

@@ -2,11 +2,19 @@
 
 ## 当前状态
 
-`BLOCKED_PROTECTED_BETA_FAILED`，本地实现状态为 `LOCAL_MECHANISMS_READY`。T0701–T0708 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时 fail closed。六个互异 exact-main T0702 workflow attempt 1 均为 Alpha/identity cleanup PASS、Beta FAILED、rerun 0；最新固定诊断为 `GITHUB_APP_TOKEN / INSTALLATION_ZERO`。实际 M3、GA、Automation、Recovery Drill、Patch Canary、Patch apply 与 rollback 均未运行。禁止把本地测试或 `--preflight` 的退出码 0 解释为 Stage 7 PASS。
+`BLOCKED_T0702_PASS_SCOPE_STOP`，本地实现状态为 `LOCAL_MECHANISMS_READY`。T0701–T0708
+的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
+Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
+Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
+fail closed。账本区分 1 次 Secret 前 context 拒绝与 11 次 protected first attempt；最新
+exact-main attempt 的 Alpha、Raw-only Beta 与 identity cleanup 均 PASS，Raw 远端恢复 100%，
+Gmail mutation、M3、Processed 与 Timeline mutation 均为 0，GitHub rerun 为 0。T0702/S7AC-002
+已通过；实际 M3、GA、Automation、Recovery Drill、Patch Canary、Patch apply 与 rollback 均未运行。
+禁止把 T0702 PASS 或 `--preflight` 的退出码 0 解释为 Stage 7、最终 Acceptance 或生产 PASS。
 
-Owner 的 completion Run Contract 允许为 Stage 7 repair 串行交付新 SHA 并各执行一次 first attempt；
-GitHub rerun 仍禁止。当前下一前置是将现有最小权限 App 仅安装到唯一私有数据仓；Beta PASS 前不进入
-M3。
+历史 completion Run Contract 允许过 T0702 repair 的串行 first attempt，GitHub rerun 始终禁止。
+该权限已经完成 T0702；当前 Owner 范围只允许收口 T0702 证据并明确停在 M3 前，因此不得新增
+protected dispatch、受控交付或进入任何 post-Beta 阶段。
 
 ## Beta protected bootstrap 契约
 
@@ -30,12 +38,15 @@ ref、GitHub-hosted runner、`moomooau-beta` Environment 与同树 Alpha gate。
 生产健康与最终验收均未执行或宣称；失败输出固定 reason code，不回显异常或受保护值。postflight 必须
 确认 `/dev/shm/moomooau-protected-beta-*` 已清空。
 
-该 Workflow 已在六个互异 exact-main SHA 各运行一次 workflow attempt 1；所有 Alpha 与 identity
-cleanup PASS，所有 Beta FAILED，rerun 0。首次 aggregate-only 输出不可判定；PR #92–#95 交付的
-19-phase 固定诊断、exact schema 与有界 GitHub App token 分类依次得到
-`GITHUB_APP_TOKEN`、`INSTALLATION_NOT_FOUND`、`INSTALLATION_DISCOVERY_REJECTED`、
-`INSTALLATION_ZERO`；PR #96 的新 exact-main attempt 再次得到 `INSTALLATION_ZERO`。最新结果证明 App installation 列表为空；因此 T0702 继续 `BLOCKED`，不得
-进入 M3。
+完整账本保留首次 aggregate-only 失败、GitHub App 分类修复、response-scope 修复与 metadata
+verification 修复的全部公开安全历史。1 次 context 拒绝发生在 Secret 读取前；11 次 protected
+执行均为 workflow attempt 1，Alpha 与 identity cleanup 均 PASS，前 10 次 Beta fail closed，
+最后一次 Beta PASS，rerun 0。最终修复对单封无法取得可验证 metadata 的旧消息使用 typed、
+per-message、bounded quarantine；404/结构不完整可隔离继续，任何 raw/snippet 泄漏、ID mismatch、
+未请求 header 或权限/服务错误仍整次 fail closed。PASS 结果只公开 `TEN_PLUS` discovery/
+verification bucket、`ONE` recovery bucket、Raw recovery 100% 和零 Gmail mutation/M3/Processed/
+Timeline mutation；private namespace 只公开为非零 age ciphertext，不公开精确对象数量或仓标识。
+T0702/S7AC-002 已关闭，但当前范围不得进入 M3。
 
 ## Blue-Green 与单一 Timeline 本地机制
 
@@ -45,7 +56,10 @@ Timeline 聚合将每个 current Processed pointer 与同 source 的 canonical `
 
 当前这些保证只在本地合成内存 remote 上验证。未配置 protected classification/parser registries，M3 尚未完成，受保护 Blue-Green 确定性证据运行尚未执行；因此不得宣称 T0704、AC-015、AC-028、AC-029 或 AC-030 已通过，也不得在此机制中提升 current pointer。不设自然日等待。
 
-Owner 已授权 v1.0.2 successor baseline。`machine/tools/validate_evidence.py` 现在按任务的真实 Stage schema 路由，并同时核对 task graph、stage-local acceptance、final Acceptance 绑定和禁止项计数。验证 PASS 只证明证据完整；Stage 7 的 `BLOCKED`、protected Oracle `NOT_RUN`、final Acceptance 0/34 与生产 `BLOCKED` 不得因此提升。
+Owner 已授权 v1.0.2 successor baseline。`machine/tools/validate_evidence.py` 现在按任务的真实
+Stage schema 路由，并同时核对 task graph、stage-local acceptance、final Acceptance 绑定和禁止项
+计数。验证 PASS 只证明证据完整；T0701/T0702 protected Oracle PASS 不会提升其余 protected Oracle
+`NOT_RUN`、final Acceptance 0/34、Stage 7 或生产 `BLOCKED`。
 
 ## GA 全流程本地机制
 

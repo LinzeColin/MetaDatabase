@@ -277,6 +277,11 @@
       "note": "T0702 串行 attempt 1 尚未满足验收门；最新固定诊断为 App 零安装"
     },
     {
+      "en": "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+      "zh": "测试阶段后的第七阶段步骤未授权",
+      "note": "T0702 已通过；当前 Owner 范围停在 M3 前"
+    },
+    {
       "en": "FINAL_ACCEPTANCE_BLOCKED",
       "zh": "最终验收阻塞",
       "note": "唯一状态模型的稳定阻塞编号"

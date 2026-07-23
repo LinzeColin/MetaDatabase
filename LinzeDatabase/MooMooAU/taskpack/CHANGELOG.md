@@ -68,6 +68,16 @@
 - PR #96 以 35 success、5 expected skip、0 failure 合并账本与派生状态；精确 merge SHA 的新
   workflow attempt 1 再次得到 `GITHUB_APP_TOKEN / INSTALLATION_ZERO`，Alpha 与 identity
   cleanup PASS，Raw/Gmail mutation/M3/Processed/Timeline/schedule/rerun 继续为 0。
+- 后续 first-attempt 序列先后 fail closed 于 GitHub App installation selection、token request、
+  response scope 与 Gmail metadata verification；修正 response scope 后，单封 404/结构不完整
+  metadata 被收敛为 typed、bounded quarantine，其他内容/身份/权限/服务异常仍整次 fail closed。
+- v2 ledger 现精确区分 1 次 Secret 前 context 拒绝与 11 次 protected first attempt；最终
+  exact-main attempt 的 Alpha、Raw-only Beta 与 identity cleanup 均 PASS，GitHub rerun 为 0。
+- 最终公开安全证据为 verified within configured budget、Raw remote recovery 100%、private
+  namespace 非零 age ciphertext only，以及 Gmail mutation/M3/Processed/Timeline/schedule 为 0；
+  不披露精确邮箱计数、private 对象数量或仓标识。
+- T0702/S7AC-002 已通过；M3 前序满足但当前 Owner 范围停在 M3 前。生产、最终 Acceptance、
+  Stage 7 完成与最终发布仍为 false。
 
 ## 1.0.5 — 2026-07-22
 

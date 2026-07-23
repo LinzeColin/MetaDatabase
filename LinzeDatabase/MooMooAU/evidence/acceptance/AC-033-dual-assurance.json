@@ -72,7 +72,7 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0701.json",
-      "evidence_sha256": "3167f86c20a2196843d20d857a643de5094a020796ce5a96aa4cfa714dc459ba",
+      "evidence_sha256": "9a17e420d1e8185baa3bd4910790d0f4e04b5b3048cfa487ddf2d05d84834d9a",
       "final_claim_status": "PARTIAL",
       "reason": "Local taskpack and implementation checks pass; remote Alpha and later observations remain not run.",
       "source_record_status": "READY",
@@ -80,7 +80,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-23T14:31:21Z",
+  "observed_at_utc": "2026-07-23T22:53:05Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

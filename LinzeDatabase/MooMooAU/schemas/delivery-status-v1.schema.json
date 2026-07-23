@@ -100,6 +100,37 @@
           "const": "Install the existing least-privilege GitHub App on exactly the one private data repository, then execute a new exact-main first-attempt T0702 Beta; after a real PASS continue M3, Blue-Green, GA and Recovery without fixed calendar waits."
         }
       }
+    },
+    {
+      "title": "RMD-06 protected Beta passed and current scope stops before M3",
+      "properties": {
+        "package_version": {"const": "1.0.6"},
+        "overall_status": {
+          "const": "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "T0702 evidence is closed; the M3 predecessor is satisfied, but current owner scope withholds M3, so stop before any M3 or later Stage 7 execution."
+        }
+      }
     }
   ],
   "properties": {
@@ -127,7 +158,8 @@
     "overall_status": {
       "enum": [
         "LOCAL_MECHANISMS_EVIDENCED_FINAL_ACCEPTANCE_BLOCKED",
-        "PROTECTED_BETA_FAILED_FINAL_ACCEPTANCE_BLOCKED"
+        "PROTECTED_BETA_FAILED_FINAL_ACCEPTANCE_BLOCKED",
+        "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE"
       ]
     },
     "dimensions": {
@@ -244,10 +276,10 @@
       "additionalProperties": false,
       "required": ["status", "declared", "executed", "passed", "failed", "not_run"],
       "properties": {
-        "status": {"enum": ["NOT_RUN", "FAILED"]},
+        "status": {"enum": ["NOT_RUN", "FAILED", "PARTIAL"]},
         "declared": {"type": "integer", "minimum": 1},
         "executed": {"type": "integer", "minimum": 0, "maximum": 2},
-        "passed": {"type": "integer", "minimum": 0, "maximum": 1},
+        "passed": {"type": "integer", "minimum": 0, "maximum": 2},
         "failed": {"type": "integer", "minimum": 0, "maximum": 1},
         "not_run": {"type": "integer", "minimum": 1}
       }

@@ -2,7 +2,7 @@
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
   "package_version": "1.0.6",
-  "status_as_of_utc": "2026-07-23T14:31:21Z",
+  "status_as_of_utc": "2026-07-23T22:53:05Z",
   "authority": {
     "path": "machine/status/latest.json",
     "precedence": [
@@ -13,7 +13,7 @@
       "machine/facts and the seven human documents are deterministic derivatives"
     ]
   },
-  "overall_status": "PROTECTED_BETA_FAILED_FINAL_ACCEPTANCE_BLOCKED",
+  "overall_status": "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE",
   "dimensions": {
     "evidence_integrity": {
       "status": "PASS",
@@ -35,11 +35,11 @@
       "contract_version": "1.0.1"
     },
     "protected_oracles": {
-      "status": "FAILED",
+      "status": "PARTIAL",
       "declared": 43,
       "executed": 2,
-      "passed": 1,
-      "failed": 1,
+      "passed": 2,
+      "failed": 0,
       "not_run": 41
     },
     "final_acceptance": {
@@ -53,14 +53,14 @@
       "workflow_runs": 0,
       "reason_codes": [
         "FORMAL_TASKS_INCOMPLETE",
-        "PROTECTED_BETA_FAILED",
+        "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
         "FINAL_ACCEPTANCE_BLOCKED",
         "PRODUCTION_WORKFLOW_NOT_RUN"
       ]
     },
     "publication": {
       "status": "CONTROLLED_BETA_DELIVERY_NOT_FINAL",
-      "controlled_main_deliveries": 6,
+      "controlled_main_deliveries": 8,
       "remote_publications": 0
     }
   },
@@ -179,12 +179,12 @@
       "formal_completed": 0,
       "formal_planned": 8,
       "record_status_counts": {
-        "BLOCKED": 7,
-        "READY": 1
+        "BLOCKED": 6,
+        "READY": 2
       },
       "linked_final_claim_counts": {
-        "NOT_RUN": 12,
-        "PARTIAL": 12
+        "NOT_RUN": 9,
+        "PARTIAL": 15
       },
       "protected_oracles_executed": 2
     }
@@ -219,7 +219,7 @@
   },
   "blockers": [
     "FORMAL_TASKS_INCOMPLETE",
-    "PROTECTED_BETA_FAILED",
+    "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
     "FINAL_ACCEPTANCE_BLOCKED",
     "PRODUCTION_WORKFLOW_NOT_RUN",
     "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
@@ -232,23 +232,23 @@
     "REV-P1-006",
     "REV-P2-007"
   ],
-  "next_action": "Install the existing least-privilege GitHub App on exactly the one private data repository, then execute a new exact-main first-attempt T0702 Beta; after a real PASS continue M3, Blue-Green, GA and Recovery without fixed calendar waits.",
+  "next_action": "T0702 evidence is closed; the M3 predecessor is satisfied, but current owner scope withholds M3, so stop before any M3 or later Stage 7 execution.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "2d5a02205954e7abd3c70ff3b713795f4f88297ed59dd080b50025cede489a63",
+    "acceptance_summary_sha256": "ca913c6afd75306aa365ad2c38b064fb648c73cae2ce36cf26a3109850f64904",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
-    "delivery_status_model_sha256": "1220933a32d49806e91690b84915d6818388bb94d0a6b35dbb7e26dd0c68dab8",
+    "delivery_status_model_sha256": "8fc67998d71c28801c9dfdb3cae4c889cfa65047bebcbfe147eb17a5ebddbc25",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "e44fafe1c92e42263accfecde88834e326b98f424398ebed5d743298a23ff72a",
+    "production_composition_sha256": "977b368415fe7cc74095f642f0e94273a80af9557b1552c3d48994b2be614013",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "8cfdfe036d5f9d7f892763e899765e7f7cd5cb1471c98159c19825fa0ecbf80e",
+    "task_evidence_root_sha256": "556a9660ed984e12f2afa6ce0cfd54182768cadf84ad5a0397c3836b2f95b17e",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",
     "assurance_provenance_root_sha256": "65eaaa037e17b7011b78410c50e3534a7d4e6e8cf65f624d684b4f968275cbea",
-    "protected_beta_execution_receipt_sha256": "1f78a94d3e4019d89dda7aae9ddfc949e280eece03a0ce28829beba7094922c0",
-    "protected_beta_attempt_ledger_sha256": "d1c4bea995ef6ac4c76289e118d20ea93bec2437adabdbac2633f86416f72a0f"
+    "protected_beta_execution_receipt_sha256": "06c4c58e64f56f740c2f0143b064236dafc9dc56e7bae488f02c52dd6b750ce0",
+    "protected_beta_attempt_ledger_sha256": "3a85c5ea1d3e21f0ce0413968f83a867f2b5e3accfb63deb78b4e740ee86456a"
   }
 }

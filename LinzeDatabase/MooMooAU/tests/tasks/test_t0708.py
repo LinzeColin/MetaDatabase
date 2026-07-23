@@ -398,11 +398,11 @@ def test_t0708_no_secret_workflow_is_read_only_policy_preflight() -> None:
     )
 
 
-def test_t0708_stage7_aggregate_is_truthfully_blocked_until_protected_oracles() -> None:
+def test_t0708_stage7_aggregate_closes_t0702_and_stops_before_m3() -> None:
     aggregate = json.loads(
         (PROJECT_ROOT / "evidence/stage7/latest.json").read_text(encoding="utf-8")
     )
-    assert aggregate["status"] == "BLOCKED_PROTECTED_BETA_FAILED"
+    assert aggregate["status"] == "BLOCKED_T0702_PASS_SCOPE_STOP"
     assert (
         aggregate["scoped_preflight"]
         == "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
@@ -412,18 +412,18 @@ def test_t0708_stage7_aggregate_is_truthfully_blocked_until_protected_oracles() 
     assert aggregate["observation"]["protected_patch_lifecycle"] == "NOT_RUN"
     assert aggregate["implementation_completion_status"] == "LOCAL_MECHANISMS_READY"
     assert aggregate["observation"]["alpha_remote_preflight"] == "PASS"
-    assert aggregate["observation"]["beta_real_raw_only"] == "FAILED_GITHUB_APP_INSTALLATION_ZERO"
+    assert (
+        aggregate["observation"]["beta_real_raw_only"]
+        == "PASS_RAW_RECOVERY_100_PERCENT_ZERO_SOURCE_MUTATION"
+    )
     assert (
         aggregate["observation"]["beta_public_safe_failure_diagnostics"]
-        == "DELIVERED_MAIN_OBSERVED"
+        == "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE"
     )
     assert aggregate["protected_oracles_executed"] == 2
-    assert aggregate["protected_oracles_passed"] == 1
-    assert aggregate["protected_oracles_failed"] == 1
-    assert aggregate["protected_workflow_runs"] == 6
+    assert aggregate["protected_oracles_passed"] == 2
+    assert aggregate["protected_oracles_failed"] == 0
+    assert aggregate["protected_workflow_runs"] == 11
     assert aggregate["production_workflow_runs"] == 0
     assert aggregate["final_acceptances_passed"] == 0
-    assert (
-        aggregate["delivery_status"]
-        == "CONTROLLED_STAGE7_REPAIRS_MERGED_INSTALLATION_ZERO_NOT_FINAL"
-    )
+    assert aggregate["delivery_status"] == "CONTROLLED_T0702_BETA_PASS_NOT_FINAL"

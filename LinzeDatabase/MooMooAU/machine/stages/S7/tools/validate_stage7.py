@@ -30,7 +30,7 @@ GOVERNANCE_PIN = "ebc6c2e4884edc959118cfc56d0e18a86c49460f"  # pragma: allowlist
 FAILED_BETA_RECEIPT_SHA256 = "1f78a94d3e4019d89dda7aae9ddfc949e280eece03a0ce28829beba7094922c0"
 PROTECTED_BETA_ATTEMPT_LEDGER = Path("machine/stages/S7/reviews/t0702/attempt-ledger.json")
 PROTECTED_BETA_ATTEMPT_LEDGER_SCHEMA = Path(
-    "machine/stages/S7/schemas/protected-beta-attempt-ledger-v1.schema.json"
+    "machine/stages/S7/schemas/protected-beta-attempt-ledger-v2.schema.json"
 )
 STAGE7_TASKS = [f"T070{index}" for index in range(1, 9)]
 STAGE7_ACCEPTANCES = [f"S7AC-00{index}" for index in range(1, 9)]
@@ -121,7 +121,7 @@ def _validate_contracts(root: Path) -> list[str]:
     if [item.get("task_id") for item in items] != STAGE7_TASKS:
         errors.append("Stage 7 acceptance-to-task mapping must be one-to-one")
     if (
-        local.get("overall_status") != "BLOCKED_PROTECTED_BETA_FAILED"
+        local.get("overall_status") != "BLOCKED_T0702_PASS_SCOPE_STOP"
         or local.get("final_acceptances_passed") != 0
         or "Local implementation preflight" not in local.get("final_acceptance_policy", "")
         or "No fixed calendar observation period applies"
@@ -209,13 +209,13 @@ def _validate_contracts(root: Path) -> list[str]:
     repair = _load(root / "machine/stages/S7/contracts/t0702_repair_run_contract.json")
     repair_authority = repair.get("authority", {})
     repair_budget = repair.get("authorized_effect_budget", {})
-    failed_receipt = root / "machine/stages/S7/reviews/t0702/execution-receipt.json"
+    failed_receipt = root / "machine/stages/S7/reviews/t0702/execution-receipt-failed-20260723.json"
     if (
         repair.get("schema_version") != "moomooau.run-contract.v1"
         or repair.get("stage_id") != "S7"
         or repair.get("task_id") != "T0702"
         or repair.get("failed_attempt_receipt")
-        != "machine/stages/S7/reviews/t0702/execution-receipt.json"
+        != "machine/stages/S7/reviews/t0702/execution-receipt-failed-20260723.json"
         or repair.get("failed_attempt_receipt_sha256") != FAILED_BETA_RECEIPT_SHA256
         or not failed_receipt.is_file()
         or _sha256(failed_receipt) != FAILED_BETA_RECEIPT_SHA256
@@ -293,36 +293,35 @@ def _validate_contracts(root: Path) -> list[str]:
     if (
         [item.get("id") for item in task_items] != STAGE7_TASKS
         or any(item.get("status") == "completed" for item in task_items)
-        or status.get("stage_status") != "BLOCKED_PROTECTED_BETA_FAILED"
+        or status.get("stage_status") != "BLOCKED_T0702_PASS_SCOPE_STOP"
         or status.get("scoped_preflight_task_oracle_file_count") != 8
         or status.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or status.get("completed_task_count") != 0
         or status.get("protected_oracles_executed") != 2
-        or status.get("protected_oracles_passed") != 1
-        or status.get("protected_oracles_failed") != 1
-        or status.get("protected_workflow_runs") != 6
+        or status.get("protected_oracles_passed") != 2
+        or status.get("protected_oracles_failed") != 0
+        or status.get("protected_workflow_runs") != 11
         or status.get("production_workflow_runs") != 0
         or status.get("final_acceptances_passed") != 0
-        or status.get("delivery_status")
-        != "CONTROLLED_STAGE7_REPAIRS_MERGED_INSTALLATION_ZERO_NOT_FINAL"
-        or status.get("ordering_status")
-        != "OWNER_AUTHORIZED_STAGE7_COMPLETION_SERIAL_FIRST_ATTEMPTS"
-        or status.get("diagnostic_repair_status") != "DELIVERED_MAIN_OBSERVED_INSTALLATION_ZERO"
-        or status.get("new_controlled_delivery_authorized") is not True
-        or status.get("new_protected_dispatch_authorized") is not True
+        or status.get("delivery_status") != "CONTROLLED_T0702_BETA_PASS_NOT_FINAL"
+        or status.get("ordering_status") != "T0702_COMPLETE_CURRENT_OWNER_SCOPE_STOPS_BEFORE_M3"
+        or status.get("diagnostic_repair_status")
+        != "PASS_TYPED_METADATA_QUARANTINE_DELIVERED_AND_OBSERVED"
+        or status.get("new_controlled_delivery_authorized") is not False
+        or status.get("new_protected_dispatch_authorized") is not False
     ):
         errors.append("Stage 7 task status is not truthfully blocked")
 
     semantic = _load(root / "machine/stages/S7/contracts/semantic_gate.json")
     semantic_statuses = {item.get("status") for item in semantic.get("resolutions", [])}
     if (
-        semantic.get("status") != "BLOCKED_PROTECTED_BETA_FAILED"
+        semantic.get("status") != "BLOCKED_T0702_PASS_SCOPE_STOP"
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
-        or "T0702_SERIAL_ATTEMPTS_FAILED_NO_RERUN" not in semantic_statuses
-        or "OWNER_STAGE7_COMPLETION_AUTHORIZED" not in semantic_statuses
-        or "BLOCKED_PROTECTED_BETA" not in semantic_statuses
-        or "RESOLVED_DIAGNOSTIC_REPAIR_DELIVERED" not in semantic_statuses
+        or "T0702_PROTECTED_BETA_PASS_NO_RERUN" not in semantic_statuses
+        or "OWNER_T0702_SCOPE_CONSUMED_M3_WITHHELD" not in semantic_statuses
+        or "BLOCKED_POST_BETA_SCOPE" not in semantic_statuses
+        or "RESOLVED_DIAGNOSTIC_REPAIR_OBSERVED_PASS" not in semantic_statuses
         or "RESOLVED_NO_CALENDAR_WAIT" not in semantic_statuses
     ):
         errors.append("Stage 7 semantic gate is incomplete or overstates production evidence")
@@ -620,7 +619,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
     runbook = root / "operations/STAGE7_RUNBOOK.md"
     runbook_text = runbook.read_text(encoding="utf-8") if runbook.is_file() else ""
     for token in (
-        "BLOCKED_PROTECTED_BETA_FAILED",
+        "BLOCKED_T0702_PASS_SCOPE_STOP",
         "不设自然日等待",
         "一次有界受保护运行",
         "04:30 Australia/Sydney",
@@ -923,7 +922,7 @@ def _validate_evidence(root: Path) -> list[str]:
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
     receipt_path = root / "machine/stages/S7/reviews/t0702/execution-receipt.json"
     receipt_schema_path = (
-        root / "machine/stages/S7/schemas/protected-beta-execution-receipt-v1.schema.json"
+        root / "machine/stages/S7/schemas/protected-beta-execution-receipt-v2.schema.json"
     )
     try:
         receipt = _load(receipt_path)
@@ -962,14 +961,32 @@ def _validate_evidence(root: Path) -> list[str]:
         else:
             attempts = ledger.get("attempts", [])
             summary = ledger.get("summary", {})
-            expected_prs = (88, 92, 93, 94, 95, 96)
-            expected_shas = (
+            expected_prs = (88, 92, 93, 94, 95, 96, None, None, None, 98, 99)
+            expected_merge_shas = (
                 "3ad418123f840d2d1a8f49f763ffe3e51ae8094e",  # pragma: allowlist secret
                 "508939423ce20b35c2c82936acd8f32b9f7c35fc",  # pragma: allowlist secret
                 "e702f1ad3fc6b0f9cef0dec7aaf2f1845191b856",  # pragma: allowlist secret
                 "e158c9664579460236033bb9b2c8e2b37344c72d",  # pragma: allowlist secret
                 "3d0de0bbfcdf7491857df6b9bb15a0544df6574c",  # pragma: allowlist secret
                 "07f8cbf4aaa4a47f8306906e4504afc1b2e724b7",  # pragma: allowlist secret
+                None,
+                None,
+                None,
+                "12c68bd101b845c1039841392839e52b27db2b85",  # pragma: allowlist secret
+                "eaade5f7be7fca678885cc402b463cb0df54cf90",  # pragma: allowlist secret
+            )
+            expected_head_shas = (
+                "3ad418123f840d2d1a8f49f763ffe3e51ae8094e",  # pragma: allowlist secret
+                "508939423ce20b35c2c82936acd8f32b9f7c35fc",  # pragma: allowlist secret
+                "e702f1ad3fc6b0f9cef0dec7aaf2f1845191b856",  # pragma: allowlist secret
+                "e158c9664579460236033bb9b2c8e2b37344c72d",  # pragma: allowlist secret
+                "3d0de0bbfcdf7491857df6b9bb15a0544df6574c",  # pragma: allowlist secret
+                "07f8cbf4aaa4a47f8306906e4504afc1b2e724b7",  # pragma: allowlist secret
+                "5520b1642a74ff2063b3bec20af4f34bd8808532",  # pragma: allowlist secret
+                "0d78b9d14142a01f5c73a6a457b7c6f719576167",  # pragma: allowlist secret
+                "49e7ca5352380ed44e6f233b89ed5204bc8ce375",  # pragma: allowlist secret
+                "12c68bd101b845c1039841392839e52b27db2b85",  # pragma: allowlist secret
+                "eaade5f7be7fca678885cc402b463cb0df54cf90",  # pragma: allowlist secret
             )
             expected_runs = (
                 29998793639,
@@ -978,6 +995,11 @@ def _validate_evidence(root: Path) -> list[str]:
                 30011285627,
                 30012211355,
                 30016055252,
+                30046255364,
+                30047441575,
+                30048206165,
+                30049384268,
+                30051063099,
             )
             expected_classes = (
                 "NOT_AVAILABLE_IN_HISTORICAL_AGGREGATE",
@@ -986,70 +1008,131 @@ def _validate_evidence(root: Path) -> list[str]:
                 "INSTALLATION_DISCOVERY_REJECTED",
                 "INSTALLATION_ZERO",
                 "INSTALLATION_ZERO",
+                "INSTALLATION_SELECTION_REJECTED",
+                "REQUEST_REJECTED",
+                "RESPONSE_SCOPE_REJECTED",
+                "UNCLASSIFIED",
+                None,
+            )
+            expected_failure_phases = (
+                "UNDETERMINED_AGGREGATE_ONLY",
+                "GITHUB_APP_TOKEN",
+                "GITHUB_APP_TOKEN",
+                "GITHUB_APP_TOKEN",
+                "GITHUB_APP_TOKEN",
+                "GITHUB_APP_TOKEN",
+                "GITHUB_APP_TOKEN",
+                "GITHUB_APP_TOKEN",
+                "GITHUB_APP_TOKEN",
+                "METADATA_VERIFICATION",
+                None,
+            )
+            expected_reason_codes = (
+                "PROTECTED_BETA_RUN_FAILED",
+                "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+                "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+                "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+                "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+                "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+                "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+                "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+                "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+                "PROTECTED_BETA_METADATA_VERIFICATION_FAILED",
+                None,
             )
             expected_summary = {
-                "controlled_main_deliveries": 6,
-                "protected_beta_dispatches": 6,
-                "protected_workflow_runs": 6,
+                "controlled_main_deliveries": 8,
+                "protected_beta_dispatches": 12,
+                "context_rejected_dispatches": 1,
+                "protected_workflow_runs": 11,
                 "workflow_reruns": 0,
-                "alpha_gate_passes": 6,
-                "beta_passes": 0,
-                "beta_failures": 6,
-                "identity_plaintext_cleanup_passes": 6,
-                "latest_failure_phase": "GITHUB_APP_TOKEN",
-                "latest_installation_token_failure_class": "INSTALLATION_ZERO",
+                "alpha_gate_passes": 11,
+                "beta_passes": 1,
+                "beta_failures": 10,
+                "identity_plaintext_cleanup_passes": 11,
+                "latest_outcome": "PASS",
+                "last_failure_phase": "METADATA_VERIFICATION",
+                "last_installation_token_failure_class": "UNCLASSIFIED",
+                "raw_archive_successful_runs": 1,
                 "gmail_mutations": 0,
                 "m3_runs": 0,
                 "processed_writes": 0,
                 "timeline_writes": 0,
                 "scheduled_runs": 0,
-                "t0702_complete": False,
+                "t0702_complete": True,
+                "m3_predecessor_satisfied": True,
                 "m3_allowed": False,
+                "m3_authority_status": "WITHHELD_BY_CURRENT_OWNER_SCOPE",
                 "production_health_claimed": False,
                 "final_acceptance_claimed": False,
             }
+            failure_objects = [item.get("public_failure") for item in attempts]
+            failure_classes = tuple(
+                item.get("installation_token_failure_class") if isinstance(item, dict) else None
+                for item in failure_objects
+            )
+            failure_phases = tuple(
+                item.get("failure_phase") if isinstance(item, dict) else None
+                for item in failure_objects
+            )
+            reason_codes = tuple(
+                item.get("reason_code") if isinstance(item, dict) else None
+                for item in failure_objects
+            )
+            zero_effect_keys = (
+                "gmail_mutations",
+                "m3_runs",
+                "processed_writes",
+                "timeline_writes",
+                "scheduled_runs",
+            )
             if (
-                ledger.get("observed_through_utc") != "2026-07-23T14:31:21Z"
-                or len(attempts) != 6
-                or tuple(item.get("sequence") for item in attempts) != tuple(range(1, 7))
-                or tuple(item.get("pull_request_number") for item in attempts) != expected_prs
-                or tuple(item.get("merge_commit_sha") for item in attempts) != expected_shas
-                or tuple(item.get("workflow_head_sha") for item in attempts) != expected_shas
+                ledger.get("observed_through_utc") != "2026-07-23T22:53:05Z"
+                or len(ledger.get("rejected_dispatches", [])) != 1
+                or len(attempts) != 11
+                or tuple(item.get("sequence") for item in attempts) != tuple(range(1, 12))
+                or tuple(item.get("delivery", {}).get("pull_request_number") for item in attempts)
+                != expected_prs
+                or tuple(item.get("delivery", {}).get("merge_commit_sha") for item in attempts)
+                != expected_merge_shas
+                or tuple(item.get("workflow_head_sha") for item in attempts) != expected_head_shas
                 or tuple(item.get("workflow_run_id") for item in attempts) != expected_runs
-                or tuple(
-                    item.get("public_failure", {}).get("installation_token_failure_class")
-                    for item in attempts
-                )
-                != expected_classes
+                or failure_classes != expected_classes
+                or failure_phases != expected_failure_phases
+                or reason_codes != expected_reason_codes
                 or any(item.get("alpha_gate", {}).get("status") != "PASS" for item in attempts)
-                or any(item.get("beta_raw_only", {}).get("status") != "FAILED" for item in attempts)
+                or any(
+                    item.get("beta_raw_only", {}).get("status") != "FAILED"
+                    for item in attempts[:-1]
+                )
+                or attempts[-1].get("beta_raw_only", {}).get("status") != "PASS"
                 or any(
                     item.get("identity_plaintext_cleanup", {}).get("status") != "PASS"
                     for item in attempts
                 )
-                or attempts[0].get("public_failure", {}).get("failure_phase")
-                != "UNDETERMINED_AGGREGATE_ONLY"
-                or attempts[0].get("public_failure", {}).get("reason_code")
-                != "PROTECTED_BETA_RUN_FAILED"
                 or any(
-                    item.get("public_failure", {}).get("failure_phase") != "GITHUB_APP_TOKEN"
-                    for item in attempts[1:]
+                    item.get("effects", {}).get("raw_ciphertext_commits") != "ZERO"
+                    or item.get("effects", {}).get("raw_remote_recovery") != "NOT_RUN"
+                    or any(item.get("effects", {}).get(key) != 0 for key in zero_effect_keys)
+                    for item in attempts[:-1]
                 )
-                or any(
-                    item.get("public_failure", {}).get("reason_code")
-                    != "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED"
-                    for item in attempts[1:]
-                )
-                or any(any(item.get("effects", {}).values()) for item in attempts)
+                or attempts[-1].get("effects", {}).get("raw_ciphertext_commits")
+                != "NONZERO_WITHIN_CONFIGURED_BUDGET"
+                or attempts[-1].get("effects", {}).get("raw_remote_recovery")
+                != "ONE_HUNDRED_PERCENT"
+                or any(attempts[-1].get("effects", {}).get(key) != 0 for key in zero_effect_keys)
                 or summary != expected_summary
             ):
-                errors.append("protected Beta serial attempt ledger is not exact or fail closed")
+                errors.append("protected Beta serial attempt ledger is not exact or pass closed")
     graph = _load(root / "machine/contracts/task_graph.json")
     graph_tasks = {item["id"]: item for item in graph["tasks"] if item["stage_id"] == "S7"}
     required_blockers = {
         "T0702": {
-            "PROTECTED_BETA_GITHUB_APP_INSTALLATION_ZERO",
-            "S7AC_002_NOT_SATISFIED",
+            "M3_AUTHORITY_WITHHELD_BY_CURRENT_OWNER_SCOPE",
+            "FINAL_ACCEPTANCE_AND_POST_BETA_STAGE7_PHASES_NOT_RUN",
+        },
+        "T0703": {
+            "M3_AUTHORITY_WITHHELD_BY_CURRENT_OWNER_SCOPE",
         },
         "T0704": {
             "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
@@ -1087,7 +1170,7 @@ def _validate_evidence(root: Path) -> list[str]:
     }
     expected_oracle_status = {
         "T0701": "PASS",
-        "T0702": "FAILED",
+        "T0702": "PASS",
     }
     for index, task_id in enumerate(STAGE7_TASKS, start=1):
         path = root / "evidence/tasks" / f"{task_id}.json"
@@ -1114,7 +1197,7 @@ def _validate_evidence(root: Path) -> list[str]:
                     continue
                 if unresolved.is_symlink() or not resolved.is_file():
                     errors.append(f"missing or unsafe evidence reference for {task_id}")
-        expected_status = "READY" if task_id == "T0701" else "BLOCKED"
+        expected_status = "READY" if task_id in {"T0701", "T0702"} else "BLOCKED"
         if (
             record["stage_acceptance_id"] != f"S7AC-00{index}"
             or record["record_status"] != expected_status
@@ -1163,7 +1246,7 @@ def _validate_evidence(root: Path) -> list[str]:
     )
     if (
         latest.get("stage_id") != "S7"
-        or latest.get("status") != "BLOCKED_PROTECTED_BETA_FAILED"
+        or latest.get("status") != "BLOCKED_T0702_PASS_SCOPE_STOP"
         or latest.get("scoped_preflight")
         != "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
         or latest.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
@@ -1173,13 +1256,14 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("completed_task_count") != 0
         or latest.get("final_acceptances_passed") != 0
         or latest.get("protected_oracles_executed") != 2
-        or latest.get("protected_oracles_passed") != 1
-        or latest.get("protected_oracles_failed") != 1
-        or latest.get("protected_workflow_runs") != 6
+        or latest.get("protected_oracles_passed") != 2
+        or latest.get("protected_oracles_failed") != 0
+        or latest.get("protected_workflow_runs") != 11
         or latest.get("production_workflow_runs") != 0
         or observation.get("alpha_local_synthetic") != "PASS"
         or observation.get("beta_local_bootstrap_mechanism") != "PASS"
-        or observation.get("beta_public_safe_failure_diagnostics") != "DELIVERED_MAIN_OBSERVED"
+        or observation.get("beta_public_safe_failure_diagnostics")
+        != "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE"
         or observation.get("m3_local_synthetic_mechanism") != "PASS"
         or observation.get("blue_green_timeline_local_mechanism") != "PASS"
         or observation.get("ga_full_pipeline_local_mechanism") != "PASS"
@@ -1187,21 +1271,22 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("recovery_drill_local_mechanism") != "PASS"
         or observation.get("patch_lifecycle_local_policy") != "PASS"
         or observation.get("alpha_remote_preflight") != "PASS"
-        or observation.get("beta_real_raw_only") != "FAILED_GITHUB_APP_INSTALLATION_ZERO"
+        or observation.get("beta_real_raw_only")
+        != "PASS_RAW_RECOVERY_100_PERCENT_ZERO_SOURCE_MUTATION"
         or any(observation.get(key) != "NOT_RUN" for key in not_run)
         or observation.get("protected_gmail_read_path")
-        != "ATTEMPTED_EXACT_CALL_COUNT_NOT_DISCLOSED"
+        != "BOUNDED_VERIFIED_CANDIDATE_SCAN_EXACT_COUNTS_NOT_DISCLOSED"
         or observation.get("gmail_mutations") != 0
-        or observation.get("verified_full_raw_reads") != "UNDETERMINED_WITHIN_BUDGET_ONE"
+        or observation.get("verified_full_raw_reads") != "ONE_RECOVERED_WITHIN_CONFIGURED_BUDGET"
         or observation.get("protected_private_repository_path")
-        != "LATEST_ATTEMPT_BLOCKED_BEFORE_REPOSITORY_RESOLUTION_NO_RAW_COMMIT"
+        != "NONZERO_AGE_CIPHERTEXT_ONLY_REMOTE_RECOVERY_100_PERCENT"
         or observation.get("protected_secret_injection")
         != "SIX_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED"
-        or observation.get("controlled_main_deliveries") != 6
+        or observation.get("controlled_main_deliveries") != 8
+        or observation.get("private_raw_commits") != "NONZERO_WITHIN_CONFIGURED_BUDGET"
         or any(
             observation.get(key) != 0
             for key in (
-                "private_raw_commits",
                 "remote_publications",
                 "m3_runs",
                 "processed_writes",
@@ -1211,13 +1296,11 @@ def _validate_evidence(root: Path) -> list[str]:
         )
         or not aggregate_required_blockers.issubset(latest.get("blocking_conditions", []))
         or aggregate_resolved_blockers.intersection(latest.get("blocking_conditions", []))
-        or latest.get("delivery_status")
-        != "CONTROLLED_STAGE7_REPAIRS_MERGED_INSTALLATION_ZERO_NOT_FINAL"
+        or latest.get("delivery_status") != "CONTROLLED_T0702_BETA_PASS_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "Install the existing least-privilege GitHub App on exactly the one private "
-            "data repository, then dispatch a new exact-main attempt 1; keep M3 blocked "
-            "until protected Beta passes."
+            "T0702 evidence is closed with no rerun. Stop before M3 because current owner "
+            "scope withholds every post-Beta Stage 7 phase."
         )
     ):
         errors.append("Stage 7 aggregate evidence is not truthfully blocked")
@@ -1302,7 +1385,7 @@ def evaluate_stage7(
     implementation_status = "LOCAL_MECHANISMS_READY" if not failed else "BLOCKED"
     latest = _load(root / "evidence/stage7/latest.json")
     protected_blockers = tuple(latest.get("blocking_conditions", []))
-    overall_status = "BLOCKED_PROTECTED_BETA_FAILED"
+    overall_status = "BLOCKED_T0702_PASS_SCOPE_STOP"
     return {
         "schema_version": "moomooau.stage7-verification.v1",
         "stage_id": "S7",
@@ -1318,15 +1401,17 @@ def evaluate_stage7(
             "stage7_protected_integration_complete": False,
             "stage7_completed_tasks": 0,
             "protected_oracles_executed": 2,
-            "protected_oracles_passed": 1,
-            "protected_oracles_failed": 1,
-            "protected_workflow_runs": 6,
+            "protected_oracles_passed": 2,
+            "protected_oracles_failed": 0,
+            "protected_workflow_runs": 11,
             "production_workflow_runs": 0,
-            "protected_gmail_read_path": "ATTEMPTED_EXACT_CALL_COUNT_NOT_DISCLOSED",
+            "protected_gmail_read_path": (
+                "BOUNDED_VERIFIED_CANDIDATE_SCAN_EXACT_COUNTS_NOT_DISCLOSED"
+            ),
             "gmail_mutations": 0,
-            "verified_full_raw_reads": "UNDETERMINED_WITHIN_BUDGET_ONE",
-            "private_raw_commits": 0,
-            "controlled_main_deliveries": 6,
+            "verified_full_raw_reads": "ONE_RECOVERED_WITHIN_CONFIGURED_BUDGET",
+            "private_raw_commits": "NONZERO_WITHIN_CONFIGURED_BUDGET",
+            "controlled_main_deliveries": 8,
             "remote_publications": 0,
             "final_acceptances_passed": 0,
         },

@@ -39,6 +39,12 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     protected_beta_failed = (
         delivery.get("dimensions", {}).get("protected_oracles", {}).get("status") == "FAILED"
     )
+    protected_beta_passed = (
+        delivery.get("dimensions", {}).get("protected_oracles", {}).get("status") == "PARTIAL"
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 2
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 2
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 0
+    )
     findings = delivery.get("resolved_review_findings", [])
     blockers = delivery.get("blockers", [])
     if closed:
@@ -59,6 +65,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S7": (
             "本地预检与已交付安全诊断有证据；最新 Beta 因 GitHub App 零安装失败"
             if protected_beta_failed
+            else "T0702 受保护 Beta 已通过；当前范围停在 M3 前"
+            if protected_beta_passed
             else "本地预检有证据；受保护门阻塞"
         ),
     }
@@ -106,6 +114,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "PROTECTED_BETA_FAILED": (
             "六次精确主分支 T0702 attempt 1 均未通过；最新固定诊断为 GitHub App 零安装"
         ),
+        "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED": (
+            "T0702 已通过并满足 M3 前序，但当前 Owner 范围明确停在 M3 前"
+        ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
@@ -128,14 +139,24 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     dimensions = delivery["dimensions"]
     status = {
         "version": delivery["package_version"],
-        "stage": ("RMD-06 T0702 已授权复验" if protected_beta_failed else "RMD-06 受保护验收准备"),
+        "stage": (
+            "RMD-06 T0702 已通过，范围停在 M3 前"
+            if protected_beta_passed
+            else "RMD-06 T0702 已授权复验"
+            if protected_beta_failed
+            else "RMD-06 受保护验收准备"
+        ),
         "phase": (
-            "T0702 安全诊断已交付；最新 Beta 固定诊断为 GitHub App 零安装；禁止进入 M3"
+            "T0702/S7AC-002 已通过；Raw 远端恢复 100%，Gmail 变更为零；当前范围禁止进入 M3"
+            if protected_beta_passed
+            else "T0702 安全诊断已交付；最新 Beta 固定诊断为 GitHub App 零安装；禁止进入 M3"
             if protected_beta_failed
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "将现有最小权限 GitHub App 仅安装到唯一私有数据仓，再执行新 SHA attempt 1"
+            "关闭 T0702 证据与派生状态；不触发 M3 或后续受保护阶段"
+            if protected_beta_passed
+            else "将现有最小权限 GitHub App 仅安装到唯一私有数据仓，再执行新 SHA attempt 1"
             if protected_beta_failed
             else "T0702 Raw-only 入口本地就绪；顺序与 protected prerequisites 待解决"
             if dependency_auth_ready
@@ -404,6 +425,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "note": "T0702 串行 attempt 1 尚未满足验收门；最新固定诊断为 App 零安装",
             },
             {
+                "en": "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+                "zh": "测试阶段后的第七阶段步骤未授权",
+                "note": "T0702 已通过；当前 Owner 范围停在 M3 前",
+            },
+            {
                 "en": "FINAL_ACCEPTANCE_BLOCKED",
                 "zh": "最终验收阻塞",
                 "note": "唯一状态模型的稳定阻塞编号",
@@ -494,16 +520,26 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         ]
     }
     plan = {
-        "stage": ("RMD-06 T0702 已授权复验" if protected_beta_failed else "RMD-06 受保护验收准备"),
+        "stage": (
+            "RMD-06 T0702 已通过，范围停在 M3 前"
+            if protected_beta_passed
+            else "RMD-06 T0702 已授权复验"
+            if protected_beta_failed
+            else "RMD-06 受保护验收准备"
+        ),
         "phase": (
-            "诊断修复已交付；最新 Beta 因 GitHub App 零安装失败"
+            "T0702 证据闭环；M3 前停止"
+            if protected_beta_passed
+            else "诊断修复已交付；最新 Beta 因 GitHub App 零安装失败"
             if protected_beta_failed
             else "RMD-06 受保护验收准备"
             if dependency_auth_ready
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "仅安装现有最小权限 GitHub App 到唯一私有数据仓；Beta 通过前不进入 M3"
+            "同步 T0702 通过证据并停止；当前范围不授权 M3"
+            if protected_beta_passed
+            else "仅安装现有最小权限 GitHub App 到唯一私有数据仓；Beta 通过前不进入 M3"
             if protected_beta_failed
             else "T0702 入口仅本地就绪；先解决顺序与 protected prerequisites，不进入 M3"
             if dependency_auth_ready
@@ -536,7 +572,13 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"通过 {dimensions['protected_oracles']['passed']}、"
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
-                "status": "阻塞（Beta 失败）" if protected_beta_failed else "阻塞",
+                "status": (
+                    "部分通过（T0702；后续未运行）"
+                    if protected_beta_passed
+                    else "阻塞（Beta 失败）"
+                    if protected_beta_failed
+                    else "阻塞"
+                ),
             },
             {
                 "id": "`最终验收`",
@@ -625,9 +667,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "summary": (
                     "为私有 Governance 增加单仓只读 Deploy Key 依赖认证、"
                     "fork PR fail-closed 与 workflow expression 修复，完成 9/9 云端非生产预检，"
-                    "六次精确主分支 T0702 attempt 1 均通过 Alpha 与身份清理；"
-                    "已交付公开安全诊断把最新失败收敛到 GitHub App 零安装，"
-                    "并移除固定日历等待；M3、生产与最终发布仍关闭。"
+                    "T0702 串行 first-attempt 账本区分一次 secret 前拒绝与十一次 protected 执行；"
+                    "最新执行通过 Alpha、Raw-only Beta 与身份清理，Raw 远端恢复 100%，"
+                    "Gmail 变更为零；当前范围停在 M3 前，生产与最终发布仍关闭。"
                 ),
             },
         )
