@@ -28,7 +28,7 @@ from backend.app.backtest.pipeline import (
 
 START, END = date(2010, 3, 1), date(2026, 7, 16)
 CAPITAL_USD = 3000 * 0.66
-OUT = Path("reports/backtest/research_TREND_2026-07-24")
+OUT = Path(os.environ.get("ALPHA_RESEARCH_OUT", "reports/backtest/research_TREND_2026-07-24"))
 
 
 def build_grid(block: dict) -> list[S1Params]:
@@ -55,7 +55,8 @@ def build_grid(block: dict) -> list[S1Params]:
 def main() -> int:
     fee = FeeModel.from_yaml()
     gate = load_promo1_gate()
-    cfg = yaml.safe_load(Path("configs/strategies/research/trend_multi_asset.yaml").read_text())
+    cfg_path = sys.argv[1] if len(sys.argv) > 1 else "configs/strategies/research/trend_multi_asset.yaml"
+    cfg = yaml.safe_load(Path(cfg_path).read_text())
     universe, cash = list(cfg["universe"]), cfg["cash_proxy"]
 
     bars_map = {}
