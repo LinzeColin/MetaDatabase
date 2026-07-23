@@ -725,38 +725,346 @@ async function supplyChainOverview(env) {
   });
 }
 
-// EEI-F07/acceptance F-007: the empty amount-summary shape, matching the
-// local API's event_amount_summary contract (event-amount-semantics-v1) for
-// zero published events. filters echoes the request so the client validator's
-// isRecord(filters) check passes.
-function emptyAmountSummary(searchParams) {
+// filters echo carried on every amount-summary (the client only requires
+// isRecord(filters); limit is a page control, not a facet). aggregateEventAmounts
+// supplies the honest all-zero body when no published event matches.
+function summaryFilters(searchParams) {
   const filters = {};
   for (const [key, value] of searchParams.entries()) {
     if (key !== "limit") filters[key] = value;
   }
+  return filters;
+}
+
+// --- Capital River events (cloud twin of the local /v1/events surface) ------
+// The publication surface now carries first-hand published events (SEC filings
+// etc.). These helpers port the local app.amount_semantics contract 1:1 so the
+// cloud emits byte-compatible amount_semantics and amount-summary shapes.
+const EVENT_AMOUNT_SEMANTICS_VERSION = "event-amount-semantics-v1";
+const NON_AGGREGATABLE_AMOUNT_KINDS = new Set([
+  "unknown",
+  "unreported",
+  "undisclosed",
+  "not_disclosed"
+]);
+const NON_AGGREGATABLE_CURRENCIES = new Set(["XXX"]);
+
+function isoDate(value) {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  return text ? text.slice(0, 10) : null;
+}
+
+// Port of app.amount_semantics.event_amount_semantics. Never throws (the cloud
+// read path is fail-closed): a reported amount without a valid currency/kind -
+// which the local events_check1 CHECK constraint already forbids - degrades to
+// reported_unclassified instead of raising.
+function eventAmountSemantics({ amount, currency, amount_kind, period_start, period_end }) {
+  const normalizedCurrency = currency ? String(currency).trim().toUpperCase() : null;
+  const normalizedKind = amount_kind ? String(amount_kind).trim().toLowerCase() : null;
+  const periodStart = isoDate(period_start);
+  const periodEnd = isoDate(period_end);
+  if (amount === null || amount === undefined) {
+    return {
+      schema_version: EVENT_AMOUNT_SEMANTICS_VERSION,
+      state: "unreported",
+      amount: null,
+      display_amount: null,
+      currency: normalizedCurrency,
+      amount_kind: normalizedKind,
+      period_start: periodStart,
+      period_end: periodEnd,
+      visual_weight: null,
+      width_eligible: false,
+      aggregate_eligible: false,
+      aggregation_key: null,
+      non_aggregation_reason: "amount_unreported"
+    };
+  }
+  const numericAmount = Number(amount);
+  const classified =
+    Boolean(normalizedCurrency) &&
+    normalizedCurrency.length === 3 &&
+    Boolean(normalizedKind) &&
+    !NON_AGGREGATABLE_AMOUNT_KINDS.has(normalizedKind) &&
+    !NON_AGGREGATABLE_CURRENCIES.has(normalizedCurrency);
   return {
-    schema_version: "event-amount-semantics-v1",
-    event_count: 0,
-    reported_event_count: 0,
-    unreported_event_count: 0,
-    unclassified_event_count: 0,
-    bucket_count: 0,
-    buckets: [],
-    unreported_event_ids: [],
-    unclassified_event_ids: [],
-    incomparable_dimensions: [],
+    schema_version: EVENT_AMOUNT_SEMANTICS_VERSION,
+    state: classified ? "reported" : "reported_unclassified",
+    amount: numericAmount,
+    display_amount: numericAmount,
+    currency: normalizedCurrency,
+    amount_kind: normalizedKind,
+    period_start: periodStart,
+    period_end: periodEnd,
+    visual_weight: classified ? numericAmount : null,
+    width_eligible: classified,
+    aggregate_eligible: classified,
+    aggregation_key: classified
+      ? {
+          currency: normalizedCurrency,
+          amount_kind: normalizedKind,
+          period_start: periodStart,
+          period_end: periodEnd
+        }
+      : null,
+    non_aggregation_reason: classified ? null : "amount_semantics_unclassified"
+  };
+}
+
+function compareText(a, b) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+// Port of app.amount_semantics.aggregate_event_amounts. Buckets key on
+// (currency, amount_kind, period_start, period_end); cross-bucket sums are
+// never performed and unreported amounts never map to zero.
+function aggregateEventAmounts(rows) {
+  const buckets = new Map();
+  const unreported = [];
+  const unclassified = [];
+  let eventCount = 0;
+  let reportedCount = 0;
+  for (const row of rows) {
+    eventCount += 1;
+    const id = String(row.id);
+    const semantics = eventAmountSemantics(row);
+    if (semantics.state === "unreported") {
+      unreported.push(id);
+      continue;
+    }
+    reportedCount += 1;
+    if (!semantics.aggregate_eligible) {
+      unclassified.push(id);
+      continue;
+    }
+    const key = semantics.aggregation_key;
+    const bucketKey = [
+      key.currency,
+      key.amount_kind,
+      key.period_start ?? "",
+      key.period_end ?? ""
+    ].join(" ");
+    let bucket = buckets.get(bucketKey);
+    if (!bucket) {
+      bucket = {
+        currency: key.currency,
+        amount_kind: key.amount_kind,
+        period_start: key.period_start,
+        period_end: key.period_end,
+        total_amount: 0,
+        visual_weight_total: 0,
+        event_count: 0,
+        event_ids: []
+      };
+      buckets.set(bucketKey, bucket);
+    }
+    bucket.total_amount += semantics.amount;
+    bucket.visual_weight_total += semantics.visual_weight;
+    bucket.event_count += 1;
+    bucket.event_ids.push(id);
+  }
+  const orderedBuckets = [...buckets.values()].sort(
+    (a, b) =>
+      compareText(a.currency, b.currency) ||
+      compareText(a.amount_kind, b.amount_kind) ||
+      compareText(a.period_start ?? "", b.period_start ?? "") ||
+      compareText(a.period_end ?? "", b.period_end ?? "")
+  );
+  const dimensions = [];
+  if (new Set(orderedBuckets.map((b) => b.currency)).size > 1) dimensions.push("currency");
+  if (new Set(orderedBuckets.map((b) => b.amount_kind)).size > 1) dimensions.push("amount_kind");
+  if (new Set(orderedBuckets.map((b) => `${b.period_start}|${b.period_end}`)).size > 1) {
+    dimensions.push("period");
+  }
+  const oneComparableBucket = orderedBuckets.length === 1 && unclassified.length === 0;
+  const comparableTotal = oneComparableBucket ? orderedBuckets[0].total_amount : null;
+  return {
+    schema_version: EVENT_AMOUNT_SEMANTICS_VERSION,
+    event_count: eventCount,
+    reported_event_count: reportedCount,
+    unreported_event_count: unreported.length,
+    unclassified_event_count: unclassified.length,
+    bucket_count: orderedBuckets.length,
+    buckets: orderedBuckets,
+    unreported_event_ids: [...unreported].sort(),
+    unclassified_event_ids: [...unclassified].sort(),
+    incomparable_dimensions: dimensions,
     cross_bucket_summation_performed: false,
-    comparable_reported_total_available: false,
-    comparable_reported_total: null,
-    comparable_reported_total_complete: false,
+    comparable_reported_total_available: oneComparableBucket,
+    comparable_reported_total: comparableTotal,
+    comparable_reported_total_complete: Boolean(oneComparableBucket && unreported.length === 0),
     semantics: {
       unknown_amount_is_zero: false,
       unknown_amount_has_visual_weight: false,
       aggregation_key: ["currency", "amount_kind", "period_start", "period_end"],
       incomparable_buckets_are_summed: false
-    },
-    filters
+    }
   };
+}
+
+function cleanFilter(value) {
+  if (value === null || value === undefined) return null;
+  const trimmed = String(value).trim();
+  return trimmed ? trimmed : null;
+}
+
+// Matches the local /v1/events Query(default=100, ge=1, le=500). limit is
+// interpolated (not bound), so it MUST be coerced to a bounded integer.
+function clampEventLimit(raw) {
+  const parsed = Number.parseInt(raw ?? "", 10);
+  if (!Number.isFinite(parsed)) return 100;
+  return Math.max(1, Math.min(500, parsed));
+}
+
+// Builds the filtered events query shared by /v1/events and amount-summary.
+// Mirrors the local list_events filters (entity participant, from/to on
+// COALESCE(effective_at, announced_at, observed_at), event_type, currency,
+// amount_kind) and its superseded/revoked + evidence>0 exclusions.
+function buildEventQuery(searchParams, { summary }) {
+  const clauses = [
+    "ev.status NOT IN ('superseded', 'revoked')",
+    "(SELECT COUNT(*) FROM event_evidence ee WHERE ee.event_id = ev.id) > 0"
+  ];
+  const binds = [];
+  const entity = cleanFilter(searchParams.get("entity"));
+  if (entity) {
+    clauses.push(
+      "EXISTS (SELECT 1 FROM event_participants ep WHERE ep.event_id = ev.id AND ep.entity_id = ?)"
+    );
+    binds.push(entity);
+  }
+  const theme = cleanFilter(searchParams.get("theme"));
+  if (theme) {
+    clauses.push(
+      "EXISTS (SELECT 1 FROM event_participants ep WHERE ep.event_id = ev.id" +
+        " AND ep.entity_id = ? AND ep.role = 'theme')"
+    );
+    binds.push(theme);
+  }
+  const from = cleanFilter(searchParams.get("from"));
+  if (from) {
+    clauses.push("COALESCE(ev.effective_at, ev.announced_at, ev.observed_at) >= ?");
+    binds.push(from);
+  }
+  const to = cleanFilter(searchParams.get("to"));
+  if (to) {
+    clauses.push("COALESCE(ev.effective_at, ev.announced_at, ev.observed_at) <= ?");
+    binds.push(to);
+  }
+  const eventType = cleanFilter(searchParams.get("event_type"));
+  if (eventType) {
+    clauses.push("ev.event_type = ?");
+    binds.push(eventType);
+  }
+  const currency = cleanFilter(searchParams.get("currency"));
+  if (currency) {
+    clauses.push("upper(ev.currency) = upper(?)");
+    binds.push(currency);
+  }
+  const amountKind = cleanFilter(searchParams.get("amount_kind"));
+  if (amountKind) {
+    clauses.push("ev.amount_kind = ?");
+    binds.push(amountKind);
+  }
+  const columns = summary
+    ? "ev.id, ev.amount, ev.currency, ev.amount_kind, ev.period_start, ev.period_end"
+    : "ev.id, ev.event_type, ev.title, ev.status, ev.announced_at," +
+      " ev.effective_at, ev.period_start, ev.period_end, ev.observed_at," +
+      " ev.amount, ev.currency, ev.amount_kind, ev.description, ev.qualifiers_json," +
+      " (SELECT COUNT(*) FROM event_evidence ee WHERE ee.event_id = ev.id) AS evidence_count";
+  const sql =
+    `SELECT ${columns} FROM events ev WHERE ` +
+    clauses.join(" AND ") +
+    " ORDER BY COALESCE(ev.effective_at, ev.announced_at, ev.observed_at) DESC," +
+    " ev.observed_at DESC, ev.id" +
+    ` LIMIT ${clampEventLimit(searchParams.get("limit"))}`;
+  return { sql, binds };
+}
+
+async function d1All(env, sql, binds) {
+  const statement = env.EEI_PUB.prepare(sql);
+  const { results } = await (binds.length ? statement.bind(...binds) : statement).all();
+  return results ?? [];
+}
+
+function parseEventQualifiers(text) {
+  if (!text) return {};
+  try {
+    const value = JSON.parse(text);
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  } catch {
+    return {};
+  }
+}
+
+function shapeEvent(row, participants) {
+  const amount = row.amount === null || row.amount === undefined ? null : Number(row.amount);
+  return {
+    id: row.id,
+    event_type: row.event_type,
+    title: row.title,
+    status: row.status,
+    announced_at: row.announced_at ?? null,
+    effective_at: row.effective_at ?? null,
+    period_start: row.period_start ?? null,
+    period_end: row.period_end ?? null,
+    observed_at: row.observed_at,
+    amount,
+    currency: row.currency ?? null,
+    amount_kind: row.amount_kind ?? null,
+    description: row.description ?? null,
+    qualifiers: parseEventQualifiers(row.qualifiers_json),
+    evidence_count: Number(row.evidence_count ?? 0),
+    participants,
+    amount_semantics: eventAmountSemantics({
+      amount,
+      currency: row.currency,
+      amount_kind: row.amount_kind,
+      period_start: row.period_start,
+      period_end: row.period_end
+    })
+  };
+}
+
+// /v1/events: the Capital River event stream. Returns the same array shape the
+// local API serves (capital-events-client validates it field-by-field). Zero
+// published events -> honest empty array (never a 500).
+async function listEvents(env, url) {
+  const { sql, binds } = buildEventQuery(url.searchParams, { summary: false });
+  const eventRows = await d1All(env, sql, binds);
+  if (eventRows.length === 0) return json([]);
+  const ids = eventRows.map((row) => row.id);
+  const participantRows = await d1All(
+    env,
+    "SELECT event_id, entity_id, entity_name, role, direction FROM event_participants" +
+      ` WHERE event_id IN (${placeholders(ids.length)}) ORDER BY role, entity_id`,
+    ids
+  );
+  const byEvent = new Map();
+  for (const row of participantRows) {
+    const list = byEvent.get(row.event_id) ?? [];
+    list.push({
+      entity_id: row.entity_id,
+      entity_name: row.entity_name ?? null,
+      role: row.role,
+      direction: row.direction ?? null
+    });
+    byEvent.set(row.event_id, list);
+  }
+  return json(eventRows.map((row) => shapeEvent(row, byEvent.get(row.id) ?? [])));
+}
+
+// /v1/events/amount-summary: real event_amount_summary computed over the same
+// filtered/limited set, keeping the honest-empty contract when there are none.
+async function listEventAmountSummary(env, url) {
+  const { sql, binds } = buildEventQuery(url.searchParams, { summary: true });
+  const rows = await d1All(env, sql, binds);
+  const summary = aggregateEventAmounts(rows);
+  summary.filters = summaryFilters(url.searchParams);
+  return json(summary);
 }
 
 // EEI-F01: cloud twin of the local /v1/changes. The publication surface's
@@ -1100,20 +1408,18 @@ async function handleFetch(request, env) {
       return listChanges(env, url.searchParams.get("since"));
     }
 
-    // EEI-F07/acceptance F-007: the Capital River module (/capital) calls
-    // these two routes. The CF-L2 publication surface carries owner-signed
-    // published FACTS only; the local capital events are all synthetic demos
-    // (derivation_rule NULL, titles "Synthetic ...") and must never reach the
-    // public surface. So both routes serve an honest, well-formed EMPTY set -
-    // the page then renders its graceful no-published-events state instead of
-    // the raw http_404 error the acceptance flagged. When an owner-signed
-    // published capital event exists, publish_to_cloud_channel.py would carry
-    // it here exactly like relationships.
+    // EEI-F07/acceptance F-007: the Capital River module (/capital) calls these
+    // two routes. The publication surface now carries first-hand published
+    // events (derivation_rule = authoritative_first_hand_ingestion) alongside
+    // relationships, so these serve the real published event stream + amount
+    // summary from D1. Synthetic/candidate events (derivation_rule NULL) never
+    // publish, so with none published both routes still return the honest empty
+    // shape - the page keeps its graceful no-published-events state, never a 500.
     if (pathname === "/v1/events" && request.method === "GET") {
-      return json([]);
+      return listEvents(env, url);
     }
     if (pathname === "/v1/events/amount-summary" && request.method === "GET") {
-      return json(emptyAmountSummary(url.searchParams));
+      return listEventAmountSummary(env, url);
     }
 
     if (pathname === "/v1/meta/build" && request.method === "GET") {
