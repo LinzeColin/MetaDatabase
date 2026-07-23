@@ -42,7 +42,7 @@ def test_env_template_contains_no_real_secrets():
             # 允许:空、占位符、公开常量(主机名/端口/路径/公开收件地址)
             assert (
                 value == "" or "<REQUIRED" in value
-                or value.startswith(("smtp.", "imap.", "127.0.0.1", "/opt/alpha", "0", "11111", "587"))
+                or value.startswith(("smtp.", "imap.", "127.0.0.1", "/opt/alpha", "0", "11111", "587", "configs/"))
                 or value == "linzezhang35@gmail.com"
                 or value == "FUTUAU"   # 公开 SDK 枚举常量(开户主体),非秘密
             ), f"env.template 疑似真值: {line}"
