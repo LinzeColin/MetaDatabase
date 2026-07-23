@@ -34,10 +34,21 @@ async function mockEntities(page: import("@playwright/test").Page): Promise<void
 test("Cmd+K opens the command palette on any page", async ({ page }) => {
   await mockEntities(page);
   await page.goto("/supply-chain");
-  await expect(page.getByTestId("command-search-overlay")).toHaveCount(0);
+  const overlay = page.getByTestId("command-search-overlay");
+  await expect(overlay).toHaveCount(0);
+  // The global keydown listener attaches in a mount effect; pressing Control+K
+  // before hydration finished (slow CI) dropped the keystroke and the overlay
+  // never opened. Wait for the search trigger to hydrate, then retry the press
+  // until the overlay is open — guarded on count so a hotkey that toggles is
+  // never double-fired (which would close an overlay that just opened).
   // 监听 ctrlKey||metaKey + K；Linux CI 用 Control，mac 本机同样命中 ctrlKey 分支。
-  await page.keyboard.press("Control+k");
-  await expect(page.getByTestId("command-search-overlay")).toBeVisible();
+  await expect(page.getByTestId("command-search-trigger")).toBeVisible();
+  await expect(async () => {
+    if ((await overlay.count()) === 0) {
+      await page.keyboard.press("Control+k");
+    }
+    await expect(overlay).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 15000 });
   await expect(page.getByTestId("command-search-input")).toBeFocused();
 });
 

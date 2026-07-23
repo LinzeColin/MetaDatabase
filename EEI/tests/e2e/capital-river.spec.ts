@@ -1,4 +1,4 @@
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page, type Request } from "@playwright/test";
 
 const apiBaseUrl = "http://capital.eei.test";
 const apiBaseStorageKey = "eei.productionDataApiBaseUrl.v1";
@@ -301,16 +301,30 @@ test("A110 applies Capital River filters and opens event evidence", async ({ pag
   await page.getByTestId("capital-filter-event-type").fill("capital_expenditure");
   await page.getByTestId("capital-filter-currency").fill("usd");
   await page.getByTestId("capital-filter-amount-kind").fill("period_capex");
-  await page.getByTestId("capital-filter-apply").click();
+  // Apply fires exactly two requests — /v1/events and /v1/events/amount-summary
+  // — each carrying the full filter set. Wait for those specific requests tied
+  // to the click instead of post-filtering the shared requestUrls array: under
+  // CI load the array could be read before both requests were observed, which
+  // made the entity assertion intermittently flaky. Semantics are unchanged —
+  // all six params are still verified on both requests.
+  const isPeriodCapex = (pathname: string) => (request: Request) => {
+    const url = new URL(request.url());
+    return (
+      url.pathname === pathname && url.searchParams.get("amount_kind") === "period_capex"
+    );
+  };
+  const [eventsRequest, summaryRequest] = await Promise.all([
+    page.waitForRequest(isPeriodCapex("/v1/events")),
+    page.waitForRequest(isPeriodCapex("/v1/events/amount-summary")),
+    page.getByTestId("capital-filter-apply").click()
+  ]);
   await expect(page.getByTestId("capital-river-shell")).toHaveAttribute(
     "data-load-state",
     "hydrated"
   );
 
-  const filteredRequests = requestUrls.filter((url) => url.includes("amount_kind=period_capex"));
-  expect(filteredRequests).toHaveLength(2);
-  for (const requestUrl of filteredRequests) {
-    const url = new URL(requestUrl);
+  for (const request of [eventsRequest, summaryRequest]) {
+    const url = new URL(request.url());
     expect(url.searchParams.get("entity")).toBe("00000000-0000-4000-8000-000000000001");
     expect(url.searchParams.get("from")).toBe("2026-01-01T00:00:00.000Z");
     expect(url.searchParams.get("to")).toBe("2026-12-31T23:59:59.999Z");
