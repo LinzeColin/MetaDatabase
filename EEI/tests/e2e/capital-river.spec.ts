@@ -335,7 +335,7 @@ test("A110 applies Capital River filters and opens event evidence", async ({ pag
   );
   expect(requestUrls).toContain(`${apiBaseUrl}/v1/evidence/event/${capexEventId}?limit=20`);
 
-  await page.getByTestId("main-nav-evidence_center").click();
-  await expect(page).toHaveURL(/\/#evidence-center$/);
+  // P0-1：证据中心不再是导航项——它是首页常驻右栏（§A.3），直达可见。
+  await page.goto("/");
   await expect(page.getByTestId("evidence-center")).toBeVisible();
 });

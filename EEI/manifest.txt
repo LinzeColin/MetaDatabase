@@ -98,6 +98,7 @@ apps/web/src/app/family-module-client.ts
 apps/web/src/app/family-module-page.tsx
 apps/web/src/app/globals.css
 apps/web/src/app/industries/page.tsx
+apps/web/src/app/labels.ts
 apps/web/src/app/layout.tsx
 apps/web/src/app/ma/page.tsx
 apps/web/src/app/model-activation-client.ts
@@ -330,6 +331,7 @@ docs/34_GITHUB_DOCUMENTATION_AND_BACKUP.md
 docs/35_DATA_CATALOGS_AND_TAXONOMIES.md
 docs/36_RELEASE_GATES_AND_DEFINITION_OF_DONE.md
 docs/37_ISOLATED_RETEST_SUITE.md
+docs/38_UX_SPEC_EEI_v1.md
 docs/INDEX.md
 docs/STATUS.md
 docs/adr/ADR-006-runtime-and-repository-layout.md
@@ -557,6 +559,7 @@ specs/scoring_profile_schema.json
 tests/e2e/README.md
 tests/e2e/capital-river.spec.ts
 tests/e2e/development-status.spec.ts
+tests/e2e/graph-label-overlap.spec.ts
 tests/e2e/home.spec.ts
 tests/e2e/industry.spec.ts
 tests/e2e/motion-choreography.spec.ts

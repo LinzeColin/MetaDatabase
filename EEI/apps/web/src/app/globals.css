@@ -168,19 +168,7 @@ select:focus-visible {
   gap: 6px;
 }
 
-.systemNav {
-  display: grid;
-  gap: 6px;
-  border-top: 1px solid var(--line);
-  padding-top: 12px;
-}
-
-.navGroupLabel {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 720;
-  text-transform: uppercase;
-}
+/* P0-1：systemNav 重复导航区已删除（对象与范围/开发状态并入「数据与来源」）。 */
 
 .navItem,
 .watchItem,
@@ -203,18 +191,12 @@ select:focus-visible {
   justify-content: flex-start;
   padding: 0 10px;
   text-decoration: none;
+  /* P0-1 §A.4：当前页金色指示条的占位轨（非激活时透明）。 */
+  border-left: 2px solid transparent;
 }
 
-.navItem.route,
-.navItem.lens,
-.navItem.section {
+.navItem.route {
   cursor: pointer;
-}
-
-.navItem.planned,
-.navItem:disabled {
-  opacity: 0.46;
-  cursor: not-allowed;
 }
 
 .navItem span {
@@ -223,13 +205,64 @@ select:focus-visible {
   white-space: nowrap;
 }
 
-.navItem.active,
 .watchItem.current,
 .lens.active,
 .zoomControl.active {
   border-color: #b9c9f5;
   background: #eef4ff;
   color: #134aa1;
+}
+
+/* P0-1 §A.4：当前页高亮 = 左缘金色指示条 + 图标着色（视觉强于旧 active）。 */
+.navItem.active {
+  border-color: #b9c9f5;
+  border-left: 2px solid var(--orb-focus-mid, #e8b54a);
+  border-radius: 2px 7px 7px 2px;
+  background: #eef4ff;
+  color: #134aa1;
+}
+
+.navItem.active svg {
+  color: var(--orb-focus-mid, #e8b54a);
+}
+
+:root[data-theme="deep-space"] .navItem.active {
+  border-color: #2b3c63;
+  border-left-color: var(--orb-focus-mid, #e8b54a);
+  background: rgba(90, 162, 255, 0.12);
+  color: var(--ink);
+}
+
+/* P0-1：顶部「搜索 / 我的」占位（P1-5 / P2-9 上线真功能）。
+   明示禁用态——不是导航项，不参与「点击必有响应」契约。 */
+.railTools {
+  display: grid;
+  gap: 6px;
+}
+
+.railTool {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px dashed var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.railTool kbd {
+  margin-left: auto;
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--muted);
 }
 
 .focusPanel,
@@ -956,12 +989,10 @@ dd {
   stroke: #0d1322;
 }
 
-:root[data-theme="deep-space"] .nodeStage,
-:root[data-theme="deep-space"] .nodeRole {
-  fill: #8b98b3;
+:root[data-theme="deep-space"] .node text {
   paint-order: stroke;
   stroke: #080d1a;
-  stroke-width: 4px;
+  stroke-width: 2px;
 }
 
 :root[data-theme="deep-space"] .node .orbBody {
@@ -1087,6 +1118,7 @@ dd {
 .legendDot.capital { background: var(--amber); }
 .legendDot.policy { background: var(--red); }
 .legendDot.infrastructure { background: var(--muted); }
+.legendDot.governance { background: var(--orb-governance-mid, #7e93bd); }
 
 .legendLabel {
   flex: 1;
@@ -1255,29 +1287,17 @@ dd {
   stroke-width: 5;
 }
 
+/* P0-3 §F.4：一切图上文字带底色描边，禁裸文字叠星空
+   （Cytoscape text-outline 惯例；stage/role 常显文本已废除，
+   完整信息走节点 <title> tooltip 与右栏详情卡）。 */
 .node text {
   fill: #ffffff;
   font-size: 12px;
   font-weight: 720;
   pointer-events: none;
-}
-
-.nodeStage {
-  fill: var(--ink) !important;
-  font-size: 11px !important;
-  font-weight: 650 !important;
   paint-order: stroke;
-  stroke: #ffffff;
-  stroke-width: 4px;
-}
-
-.nodeRole {
-  fill: #39443f !important;
-  font-size: 10px !important;
-  font-weight: 650 !important;
-  paint-order: stroke;
-  stroke: #ffffff;
-  stroke-width: 4px;
+  stroke: rgba(24, 32, 29, 0.55);
+  stroke-width: 2px;
 }
 
 /* S12 光学：zone 玻璃球渐变（defs 里 stop 走下方 --orb-* token）。 */
@@ -1312,6 +1332,10 @@ dd {
 
 .node.policy .orbBody {
   fill: url(#orb-policy);
+}
+
+.node.governance .orbBody {
+  fill: url(#orb-governance);
 }
 
 .historyControls {
@@ -2731,7 +2755,7 @@ dd {
   }
 
   .navItem span,
-  .navGroupLabel,
+  .railTools,
   .brandMark span:not(.brandGlyph),
   .inspector {
     display: none;
@@ -2806,13 +2830,6 @@ dd {
   .navRail nav {
     display: flex;
     min-width: max-content;
-  }
-
-  .systemNav {
-    display: flex;
-    min-width: max-content;
-    border-top: 0;
-    padding-top: 0;
   }
 
   .navItem {
@@ -3067,6 +3084,10 @@ dd {
   --orb-policy-hi: #ffc8d2;
   --orb-policy-mid: #e85a74;
   --orb-policy-lo: #6e1a2a;
+  /* P0-3：治理扇区（董监高）玻璃球配色——冷银蓝，区别于既有六区。 */
+  --orb-governance-hi: #d3ddf2;
+  --orb-governance-mid: #7e93bd;
+  --orb-governance-lo: #2b3a58;
 }
 
 .orbHalo,
@@ -3543,7 +3564,7 @@ dd {
   }
 
   .navItem span,
-  .navGroupLabel,
+  .railTools,
   .brandMark span:not(.brandGlyph) {
     display: none;
   }

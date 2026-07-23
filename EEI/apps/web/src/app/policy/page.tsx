@@ -4,6 +4,7 @@ import { AlertTriangle, Download, Landmark, RefreshCw, ScrollText } from "lucide
 import { useEffect, useMemo, useState } from "react";
 
 import { AnalysisContextBadge } from "../analysis-context-badge";
+import { zhLabel } from "../labels";
 import {
   loadPolicyOverview,
   type PolicyOverviewRecord,
@@ -12,7 +13,6 @@ import {
 import { readProductionDataApiBaseUrl } from "../production-data-client";
 import { useAnalysisContext } from "../use-analysis-context";
 import { WorkspaceNavigationRail } from "../workspace-navigation";
-import type { WorkspaceModuleId } from "../workspace-context";
 
 type LoadState = "idle" | "loading" | "hydrated" | "error" | "api_required";
 
@@ -72,20 +72,9 @@ export default function PolicyEnvironmentPage() {
     [overview]
   );
 
-  function handleNavigation(_target: string, moduleId: WorkspaceModuleId) {
-    if (moduleId !== "policy_environment") {
-      window.location.href = "/";
-    }
-  }
-
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
-      <WorkspaceNavigationRail
-        activeLens="policy_risk"
-        activeModuleId="policy_environment"
-        onLensTarget={handleNavigation}
-        onSectionTarget={handleNavigation}
-      />
+      <WorkspaceNavigationRail activeModuleId="strategic_signals" />
       <main className="flex-1 space-y-6 px-8 py-6" data-testid="policy-environment-page">
         <header className="flex items-center justify-between">
           <div>
@@ -94,7 +83,7 @@ export default function PolicyEnvironmentPage() {
               政策环境
             </h1>
             <p className="mt-1 text-sm text-slate-400">
-              政府关系 · 监管申报 · 出口管制暴露 — 全部来自已断言图谱与官方申报流
+              政府关系 · 监管申报 · 出口管制暴露 — 全部来自官方申报与已核实关系
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -139,11 +128,16 @@ export default function PolicyEnvironmentPage() {
           >
             <p className="flex items-center gap-2 font-medium text-amber-200">
               <AlertTriangle className="h-4 w-4" aria-hidden />
-              需要连接 EEI API
+              暂时连不上数据服务，请稍后重试。
             </p>
-            <p className="mt-1 text-amber-100/80">
-              设置 NEXT_PUBLIC_EEI_API_BASE_URL 或本地 API 覆盖后重试；本模块不用合成数据充数。
-            </p>
+            <button
+              type="button"
+              onClick={() => void hydrate()}
+              className="mt-2 rounded-md border border-amber-400/50 px-3 py-1 text-xs hover:bg-amber-500/20"
+              data-testid="policy-api-required-retry"
+            >
+              重试
+            </button>
           </section>
         ) : null}
 
@@ -152,7 +146,19 @@ export default function PolicyEnvironmentPage() {
             className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-100"
             data-testid="policy-load-error"
           >
-            政策概览加载失败（{result?.status === "error" ? result.reason : "unknown"}）。
+            <p className="font-medium">政策数据加载没有成功，请稍后重试。</p>
+            <button
+              type="button"
+              onClick={() => void hydrate()}
+              className="mt-2 rounded-md border border-rose-400/50 px-3 py-1 text-xs hover:bg-rose-500/20"
+              data-testid="policy-load-error-retry"
+            >
+              重试
+            </button>
+            <details className="diagDetails mt-2 text-xs text-rose-200/80">
+              <summary>诊断详情</summary>
+              <span>{result?.status === "error" ? result.reason : "unknown"}</span>
+            </details>
           </section>
         ) : null}
 
@@ -164,13 +170,13 @@ export default function PolicyEnvironmentPage() {
             >
               <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">
-                  政府关系断言
+                  已核实政府关系
                 </p>
                 <p className="mt-2 text-3xl font-semibold">
                   {overview.policy_relationships.length}
                 </p>
                 <p className="mt-1 text-xs text-slate-400">
-                  government_policy 族（授予 / 游说 / 受监管 / 出口管制）
+                  政策族（授予 / 游说 / 受监管 / 出口管制）
                 </p>
               </div>
               <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
@@ -231,10 +237,21 @@ export default function PolicyEnvironmentPage() {
               >
                 <h2 className="text-sm font-medium text-slate-300">政府关系明细</h2>
                 {overview.policy_relationships.length === 0 ? (
-                  <p className="mt-3 text-sm text-slate-400" data-testid="policy-relationships-empty">
-                    图谱当前没有已断言的 government_policy 关系。缺席=无断言，而非无风险
-                    —— 候选需经双源核验与 Owner 签核后才会出现在这里。
-                  </p>
+                  <div className="mt-3 text-sm text-slate-400" data-testid="policy-relationships-empty">
+                    <p className="font-medium text-slate-200">政府关系数据采集中</p>
+                    <p className="mt-1">
+                      官方监管申报已覆盖（见上方时间轴）；政府关系数据来自官方披露，
+                      新数据核实后会自动出现在这里。
+                    </p>
+                    <p className="mt-2">
+                      <a
+                        className="rounded-md border border-slate-700 px-3 py-1 text-xs hover:bg-slate-800"
+                        href="/objects-scope"
+                      >
+                        查看数据覆盖范围
+                      </a>
+                    </p>
+                  </div>
                 ) : (
                   <ul className="mt-3 space-y-2">
                     {overview.policy_relationships.map((relationship) => (
@@ -245,16 +262,16 @@ export default function PolicyEnvironmentPage() {
                         <p>
                           <span className="font-medium">{relationship.subject_name}</span>
                           <span className="mx-2 text-amber-300">
-                            —[{relationship.relationship_type}]→
+                            —[{zhLabel("relationship_type", relationship.relationship_type)}]→
                           </span>
                           <span className="font-medium">{relationship.object_name}</span>
                         </p>
                         <p className="mt-1 text-xs text-slate-400">
-                          状态 {relationship.status}
+                          状态 {zhLabel("status", relationship.status)}
                           {relationship.confidence !== null
                             ? ` · 置信 ${relationship.confidence.toFixed(2)}`
                             : ""}
-                          {relationship.fixture_flag ? " · fixture 演示数据" : ""}
+                          {relationship.fixture_flag ? " · 示例数据" : ""}
                         </p>
                       </li>
                     ))}
@@ -290,17 +307,17 @@ export default function PolicyEnvironmentPage() {
               </div>
             </section>
 
-            <section
-              className="rounded-lg border border-slate-800/60 bg-slate-900/20 p-4 text-xs text-slate-400"
+            <details
+              className="diagDetails rounded-lg border border-slate-800/60 bg-slate-900/20 p-4 text-xs text-slate-400"
               data-testid="policy-abstentions"
             >
-              <p className="font-medium text-slate-300">诚实边界</p>
+              <summary className="font-medium text-slate-300">诊断详情 · 数据边界</summary>
               <ul className="mt-2 list-inside list-disc space-y-1">
                 {Object.entries(overview.abstentions).map(([key, note]) => (
                   <li key={key}>{note}</li>
                 ))}
               </ul>
-            </section>
+            </details>
           </>
         ) : null}
       </main>

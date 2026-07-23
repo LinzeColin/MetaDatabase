@@ -8,38 +8,32 @@ export const WORKSPACE_CONTEXT_VERSION = "workspace-context-v1";
 export const WORKSPACE_STATE_STORAGE_KEY = "eei.workspaceState.v1";
 export const SAVED_VIEW_STORAGE_KEY = "eei.savedView.current.v1";
 
+// P0-1 导航收敛（UX_SPEC_EEI v1.0 §A）：18 项 → 6 个一级入口。
+// 每个入口首屏回答一个用户问题；数据弱区（供应链/信号）正常可点，
+// 进去是「采集中」引导态。旧路由 /ma /control /policy 页面保留可直达
+// （P2 做重定向），只是不再占一级导航——它们的归属入口见各自页面的
+// activeModuleId（/ma→资本与事件、/control→集团与控制、/policy→外部信号）。
 export type WorkspaceModuleId =
   | "business_map"
   | "group_structure"
-  | "business_segments"
-  | "supply_chain"
   | "capital_network"
-  | "ma_transactions"
-  | "control_relationships"
-  | "policy_environment"
+  | "supply_chain"
   | "strategic_signals"
-  | "time_evolution"
-  | "evidence_center"
-  | "model_center"
-  | "data_center"
-  | "watchlist"
-  | "exploration_history"
-  | "system_status";
+  | "data_center";
 
-export type WorkspaceControlKind = "route" | "lens" | "section" | "planned";
+// §A.4 导航渲染规则：只允许 route（点击=URL 变化）与 drawer（点击=抽屉
+// 滑出，P2-9 上线）。section/planned/lens 死按钮形态全部废除。
+export type WorkspaceControlKind = "route" | "drawer";
 
 export type WorkspaceModuleDefinition = {
   id: WorkspaceModuleId;
   label: string;
   subtitle: string;
   controlKind: WorkspaceControlKind;
-  routeState: "active" | "available" | "partial" | "planned";
+  routeState: "active" | "available";
   acceptanceIds: string[];
-  href?: string;
+  href: string;
   apiEndpoints?: string[];
-  controlTargetLens?: string;
-  sectionTestId?: string;
-  disabledReason?: string;
 };
 
 export type WorkspaceRuntimeState = {
@@ -75,175 +69,72 @@ export const WORKSPACE_MODULES: readonly WorkspaceModuleDefinition[] = [
   {
     id: "business_map",
     label: "商业版图",
-    subtitle: "当前主体的完整企业生态关系图",
+    subtitle: "这家公司的生态长什么样？",
     controlKind: "route",
     routeState: "active",
     href: "/",
-    apiEndpoints: ["/v1/explore", "/v1/explore/reroot", "/v1/explore/expand"],
+    apiEndpoints: ["/v1/explore", "/v1/explore/reroot", "/v1/explore/expand", "/v1/entities"],
     acceptanceIds: ["A203", "A211"]
   },
   {
     id: "group_structure",
-    label: "集团结构",
-    subtitle: "母公司、子公司、控股公司、合资企业和业务集团",
+    label: "集团与控制",
+    subtitle: "谁控制谁？董监高是谁？",
     controlKind: "route",
-    href: "/structure",
     routeState: "available",
-    apiEndpoints: ["/v1/entities/{entityId}/empire", "/v1/entities"],
+    href: "/structure",
+    apiEndpoints: ["/v1/entities/{entityId}/empire", "/v1/entities", "/v1/control/overview"],
     acceptanceIds: ["A202", "A211"]
   },
   {
-    id: "business_segments",
-    label: "业务板块",
-    subtitle: "产品线、技术平台、收入板块和市场布局",
+    id: "capital_network",
+    label: "资本与事件",
+    subtitle: "最近发生了什么？涉及多少钱？",
     controlKind: "route",
-    href: "/structure#segments",
     routeState: "available",
-    apiEndpoints: ["/v1/entities/{entityId}/empire"],
-    acceptanceIds: ["A203", "A211"]
+    href: "/capital",
+    apiEndpoints: [
+      "/v1/events",
+      "/v1/events/amount-summary",
+      "/v1/evidence/event/{eventId}",
+      "/v1/ma/overview"
+    ],
+    acceptanceIds: ["A108", "A109", "A110", "A203", "A211"]
   },
   {
     id: "supply_chain",
     label: "供应链",
-    subtitle: "原材料、设备、制造、封装、系统、渠道和客户",
+    subtitle: "上下游依赖是什么？",
     controlKind: "route",
-    href: "/supply-chain",
     routeState: "available",
+    href: "/supply-chain",
     apiEndpoints: ["/v1/supply-chain/overview", "/v1/explore", "/v1/explore/expand"],
     acceptanceIds: ["S8PBT02", "A203", "A211"]
   },
   {
-    id: "capital_network",
-    label: "资本网络",
-    subtitle: "股权、投资、融资、基金、回购和资本支出",
-    controlKind: "route",
-    href: "/capital",
-    routeState: "available",
-    apiEndpoints: ["/v1/events", "/v1/events/amount-summary", "/v1/evidence/event/{eventId}"],
-    acceptanceIds: ["A108", "A109", "A110", "A203", "A211"]
-  },
-  {
-    id: "ma_transactions",
-    label: "并购交易",
-    subtitle: "收购、出售、拆分、合并和战略投资",
-    controlKind: "route",
-    href: "/ma",
-    routeState: "available",
-    apiEndpoints: ["/v1/ma/overview"],
-    acceptanceIds: ["S8PCT01", "A202", "A203", "A211"]
-  },
-  {
-    id: "control_relationships",
-    label: "控制关系",
-    subtitle: "投票权、经济权益、董事席位和实际控制路径",
-    controlKind: "route",
-    href: "/control",
-    routeState: "available",
-    apiEndpoints: ["/v1/control/overview"],
-    acceptanceIds: ["S8PCT01", "A202", "A203", "A211"]
-  },
-  {
-    id: "policy_environment",
-    label: "政策环境",
-    subtitle: "补贴、合同、监管、出口管制和游说关系",
-    controlKind: "route",
-    href: "/policy",
-    routeState: "available",
-    apiEndpoints: ["/v1/policy/overview", "/v1/explore"],
-    acceptanceIds: ["A111", "A203", "A211"]
-  },
-  {
     id: "strategic_signals",
-    label: "战略信号",
-    subtitle: "招聘、资本支出、专利、合作和管理层表态",
+    label: "外部信号",
+    subtitle: "政策与战略动向有什么？",
     controlKind: "route",
+    routeState: "available",
     href: "/signals",
-    routeState: "available",
-    apiEndpoints: ["/v1/signals/overview"],
-    acceptanceIds: ["S8PCT02", "A202", "A206", "A211"]
-  },
-  {
-    id: "time_evolution",
-    label: "时间演变",
-    subtitle: "历史关系、事件变化和商业版图演进",
-    controlKind: "section",
-    sectionTestId: "timeline-controls",
-    routeState: "available",
-    apiEndpoints: ["/v1/explore"],
-    acceptanceIds: ["A205", "A211"]
-  },
-  {
-    id: "evidence_center",
-    label: "证据中心",
-    subtitle: "来源、原始文件、证据片段和可信度",
-    controlKind: "section",
-    sectionTestId: "evidence-center",
-    // S8PDT01: server-hydrated evidence snippets with publisher + source
-    // linkage are live-spec asserted (A211); three-step traceability
-    // (conclusion -> excerpt -> official source) holds for published facts.
-    routeState: "available",
-    apiEndpoints: ["/v1/evidence", "/v1/audit-logs"],
-    acceptanceIds: ["S8PDT01", "A202", "A211"]
-  },
-  {
-    id: "model_center",
-    label: "模型中心",
-    subtitle: "公式、权重、阈值、时间衰减和模型版本",
-    controlKind: "section",
-    sectionTestId: "model-preview-panel",
-    // S8PDT01: activation / rollback / recompute UI is wired to /v1/scoring
-    // and produced the real refresh generations observed in production.
-    routeState: "available",
-    apiEndpoints: [
-      "/v1/scoring/active-context",
-      "/v1/scoring/profiles",
-      "/v1/scoring/recompute"
-    ],
-    acceptanceIds: ["S8PDT01", "A204", "A205", "A211"]
+    apiEndpoints: ["/v1/signals/overview", "/v1/policy/overview"],
+    acceptanceIds: ["S8PCT02", "A111", "A202", "A206", "A211"]
   },
   {
     id: "data_center",
-    label: "数据中心",
-    subtitle: "数据来源、更新时间、覆盖率和异常状态",
+    label: "数据与来源",
+    subtitle: "数据从哪来、多新、覆盖多少？",
     controlKind: "route",
-    // S8PDT01: /objects-scope serves the full catalog inventory with
-    // coverage states and per-catalog export, E2E-locked (10 catalogs).
     routeState: "available",
     href: "/objects-scope",
-    apiEndpoints: ["/v1/catalogs/relationship", "/v1/catalogs/domain-object"],
-    acceptanceIds: ["S8PDT01", "A172", "A211"]
-  },
-  {
-    id: "watchlist",
-    label: "我的关注",
-    subtitle: "Watchlist、保存视图和告警",
-    controlKind: "section",
-    sectionTestId: "home-watchlist",
-    // S8PDT02: unread now counts real /v1/changes rows since the stored
-    // last-seen mark (A037); fixture fallback stays explicitly labeled.
-    routeState: "available",
-    apiEndpoints: ["/v1/watchlists", "/v1/saved-views", "/v1/changes"],
-    acceptanceIds: ["S8PDT02", "A037", "A207", "A211"]
-  },
-  {
-    id: "exploration_history",
-    label: "探索记录",
-    subtitle: "用户递归探索路径及历史主体",
-    controlKind: "section",
-    sectionTestId: "home-recent-explorations",
-    routeState: "available",
-    apiEndpoints: ["/v1/explore/reroot"],
-    acceptanceIds: ["A203", "A211"]
-  },
-  {
-    id: "system_status",
-    label: "系统状态",
-    subtitle: "数据任务、模型刷新和数据库状态",
-    controlKind: "route",
-    routeState: "available",
-    href: "/development-status",
-    apiEndpoints: ["/health", "/v1/audit-logs"],
-    acceptanceIds: ["A174", "A211"]
+    apiEndpoints: [
+      "/v1/catalogs/relationship",
+      "/v1/catalogs/domain-object",
+      "/health",
+      "/v1/scoring/active-context"
+    ],
+    acceptanceIds: ["S8PDT01", "A172", "A174", "A211"]
   }
 ];
 
@@ -261,6 +152,9 @@ export function createWorkspaceContextValue(
     serverEndpoints: sortedUnique(
       WORKSPACE_MODULES.flatMap((module) => module.apiEndpoints ?? []).concat([
         "/v1/saved-views",
+        "/v1/watchlists",
+        "/v1/exploration-log",
+        "/v1/changes",
         "/v1/scoring/active-context",
         "/v1/scoring/recompute"
       ])
@@ -268,12 +162,10 @@ export function createWorkspaceContextValue(
     implementedRouteIds: WORKSPACE_MODULES.filter((module) => module.controlKind === "route").map(
       (module) => module.id
     ),
-    realControlIds: WORKSPACE_MODULES.filter((module) => module.controlKind !== "planned").map(
-      (module) => module.id
-    ),
-    disabledUnfinishedIds: WORKSPACE_MODULES.filter((module) => module.controlKind === "planned").map(
-      (module) => module.id
-    )
+    realControlIds: WORKSPACE_MODULES.map((module) => module.id),
+    // §A.4：导航不再存在 disabled/planned 项——数据弱区正常可点，
+    // 进去是诚实引导态。该字段保留为空数组以维持 data-* 契约形状。
+    disabledUnfinishedIds: []
   };
 }
 

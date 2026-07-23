@@ -92,6 +92,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       ├── family-module-client.ts
 │   │   │       ├── family-module-page.tsx
 │   │   │       ├── globals.css
+│   │   │       ├── labels.ts
 │   │   │       ├── layout.tsx
 │   │   │       ├── model-activation-client.ts
 │   │   │       ├── page.tsx
@@ -415,6 +416,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── 35_DATA_CATALOGS_AND_TAXONOMIES.md
 │   ├── 36_RELEASE_GATES_AND_DEFINITION_OF_DONE.md
 │   ├── 37_ISOLATED_RETEST_SUITE.md
+│   ├── 38_UX_SPEC_EEI_v1.md
 │   ├── INDEX.md
 │   └── STATUS.md
 ├── infra
@@ -648,6 +650,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   ├── README.md
 │   │   ├── capital-river.spec.ts
 │   │   ├── development-status.spec.ts
+│   │   ├── graph-label-overlap.spec.ts
 │   │   ├── home.spec.ts
 │   │   ├── industry.spec.ts
 │   │   ├── motion-choreography.spec.ts
