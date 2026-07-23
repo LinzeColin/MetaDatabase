@@ -551,7 +551,7 @@ class GitHubInstallationTokenClient:
             or repository_ids != [self._config.repository_id]
             or not isinstance(repositories, list)
             or len(repositories) != 1
-            or permissions != {"contents": "write", "metadata": "read"}
+            or not _token_response_permissions_are_exact(permissions)
             or not timedelta(0) < expires_at - current <= timedelta(hours=1)
         ):
             raise GitHubInstallationTokenError(
@@ -671,6 +671,16 @@ def _decode_object(body: bytes | None) -> dict[str, object]:
 
 def _canonical_json(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def _token_response_permissions_are_exact(value: object) -> bool:
+    # GitHub may omit its mandatory Metadata read permission from an installation-token
+    # response. The request remains narrowed to Metadata read + Contents write, and the
+    # subsequent repository-ID resolve proves the effective Metadata access.
+    return value in (
+        {"contents": "write"},
+        {"contents": "write", "metadata": "read"},
+    )
 
 
 def _b64(value: bytes) -> bytes:
