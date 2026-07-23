@@ -18,6 +18,9 @@
   receipt bundle；旧 RMD-05 Git object 仍不成为 clean checkout 隐式依赖；
 - 对 Stage 5 校验器中的固定 production Workflow SHA-256 增加单行 entropy allowlist，扫描范围、
   检测器与其他发现处理保持不变；
+- 第四轮预检后，Stage 6 Workflow 改为调用既有结构化 Secret gate：不可变 receipt/provenance JSON
+  由 JSON 解析与显式高风险凭据模式验证，其余范围继续由 `detect-secrets` 扫描；Stage 7 只精确
+  排除四个公开前序 Manifest SHA-256，不增加宽泛凭据值排除；
 - “no-Secret”修订为“零生产 Secret + 唯一只读依赖凭据”；
 - 真实 Gmail、私有数据仓、受保护 Oracle、生产、部署与最终发布仍为 0/NOT_RUN。
 

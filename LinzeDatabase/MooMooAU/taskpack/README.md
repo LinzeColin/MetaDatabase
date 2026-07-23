@@ -48,7 +48,8 @@ Git anchor、两个模型家族各 18 次不可变独立复审来源链及 Stage
 `v1.0.6` 按 Owner 选择的方案 2 建立 RMD-06 云执行前置。Governance 继续私有，仅允许单仓只读
 Deploy Key 通过 pinned checkout 消费；fork PR fail closed；clean depth-1 验证不依赖旧 RMD-05
 Git object；历史累计 Job 与完整 Stage 7 CLI 分层验证 production composition；生产/Gmail/数据仓
-Secret 仍为零。
+Secret 仍为零。Stage 6 的不可变结构化 JSON 使用显式敏感模式门，其他代码/契约继续
+`detect-secrets`；固定公开 SHA-256 仅做精确值排除。
 当前有效入口为：
 
 - `00_READ_ME_FIRST.v1.0.6.md`

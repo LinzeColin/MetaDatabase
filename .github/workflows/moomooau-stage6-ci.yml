@@ -108,18 +108,8 @@ jobs:
             machine/stages/S6/supply-chain/sbom.cdx.json
 
       - name: Secret scan without committed report
-        run: |
-          detect-secrets scan --all-files \
-            --exclude-lines 'baseline_commit|baseline_manifest_sha256|BASELINE_COMMIT|BASELINE_MANIFEST_SHA256|STAGE6_LOCK_SHA256|STAGE6_SBOM_SHA256' \
-            --exclude-files 'machine/stages/S6/supply-chain/sbom\.cdx\.json' \
-            LinzeDatabase/MooMooAU/src \
-            LinzeDatabase/MooMooAU/tests/stage6_support.py \
-            LinzeDatabase/MooMooAU/tests/tasks/test_t06*.py \
-            LinzeDatabase/MooMooAU/machine/stages/S6 \
-            .github/workflows/moomooau-stage6-ci.yml \
-            .github/workflows/moomooau-stage6-model-assurance.yml \
-            > "$RUNNER_TEMP/detect-secrets-stage6.json"
-          python -c 'import json,sys; value=json.load(open(sys.argv[1], encoding="utf-8")); raise SystemExit(any(value.get("results", {}).values()))' "$RUNNER_TEMP/detect-secrets-stage6.json"
+        working-directory: LinzeDatabase/MooMooAU
+        run: python machine/tools/validate_stage6_secret_scan.py
 
       - name: Build and smoke digest-pinned validation container
         working-directory: LinzeDatabase/MooMooAU

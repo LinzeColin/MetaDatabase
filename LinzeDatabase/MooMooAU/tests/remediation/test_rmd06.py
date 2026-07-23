@@ -309,6 +309,27 @@ def test_rmd06_stage6_closure_uses_portable_candidate_bundle(
     assert observed_roots == [None]
 
 
+def test_rmd06_stage6_workflow_uses_the_structured_secret_scanner() -> None:
+    workflow = (PROJECT_ROOT.parents[1] / ".github/workflows/moomooau-stage6-ci.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "python machine/tools/validate_stage6_secret_scan.py" in workflow
+    assert "detect-secrets scan --all-files" not in workflow
+
+
+def test_rmd06_stage7_secret_scan_excludes_exact_public_predecessor_digests() -> None:
+    workflow = (PROJECT_ROOT.parents[1] / ".github/workflows/moomooau-stage7-ci.yml").read_text(
+        encoding="utf-8"
+    )
+    for digest in (
+        "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15",
+        "301fa1c6f5c46760c4aa3a7092bf0be77ca1a2e974e7b65e8b53dcf90db9925e",
+        "6767cd11ac260b66df1dd2dec892b73e91a2a6928c4185b1c4ff6446daa6a9b3",
+        "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
+    ):
+        assert digest in workflow
+
+
 def test_rmd06_shallow_acceptance_base_requires_the_exact_provenance_pin(
     tmp_path: Path,
     monkeypatch: MonkeyPatch,

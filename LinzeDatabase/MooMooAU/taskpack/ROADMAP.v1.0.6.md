@@ -29,7 +29,9 @@
   contract-only CLI，二者不得互相冒充；
 - Stage 6 先验证 v1.0.5 Manifest 与完整不可变 authority set，再验证当前 receipt bundle；depth-1
   checkout 不得因缺少已关闭前序的旧 Git object 而改变证据结论；
-- 固定非 Secret SHA-256 只允许精确逐行 entropy allowlist，其他 Secret 检测器与扫描范围保持不变；
+- Stage 6 的不可变结构化 receipt/provenance JSON 使用 JSON 解析与显式高风险凭据模式验证，其余
+  代码/契约范围继续执行 `detect-secrets`；固定非 Secret SHA-256 只允许精确值 allowlist，不允许
+  宽泛凭据值排除；
 - 普通 CI 的生产/Gmail/数据仓 Secret 读取保持零；
 - 不执行生产、Gmail mutation、私有数据仓写入、部署或最终发布。
 

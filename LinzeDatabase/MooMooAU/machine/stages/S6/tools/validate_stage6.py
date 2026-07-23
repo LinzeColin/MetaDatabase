@@ -388,7 +388,7 @@ def _validate_workflows(root: Path) -> list[str]:
         "test_t06*.py",
         "validate_stage6.py",
         "pip_audit",
-        "detect-secrets",
+        "validate_stage6_secret_scan.py",
         "dependency-review-action",
         "codeql-action/init",
         "codeql-action/analyze",

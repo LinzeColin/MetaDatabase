@@ -27,7 +27,9 @@
 11. 后续 depth-1 预检继续要求：v1.0.6 状态构建在历史累计 Job 中只执行 hash-bound composition
     静态验证，完整依赖的 Stage 7 仍必须执行真实 contract-only CLI；Stage 6 在独立验证精确 v1.0.5
     Manifest 与 82 个不可变权威文件后，只对当前 candidate bundle 做无旧 Git object 的结构绑定；
-    固定 Workflow SHA-256 仅允许逐行 entropy allowlist，不得扩大 Secret 扫描排除范围。
+    Stage 6 的不可变结构化 receipt/provenance JSON 由 JSON 解析与显式高风险凭据模式验证，其余范围
+    继续执行 `detect-secrets`；Stage 5 固定 Workflow SHA-256 与 Stage 7 四个公开前序 Manifest
+    SHA-256 只允许精确值 allowlist，不得增加宽泛凭据值排除。
 12. 这些后续修复只消除第三轮 GitHub-hosted 非生产预检暴露的环境误耦合与确定性误报，不改变
     production composition、RMD-05 evidence、受保护 Oracle、最终 Acceptance 或发布语义。
 

@@ -58,7 +58,7 @@
     {
       "stage_id": "S6",
       "workflow": ".github/workflows/moomooau-stage6-ci.yml",
-      "workflow_sha256": "19397ad4bd1599933f658f99b3100abe1e2ab075db301d72b73cc9aa3ce6ce4a",
+      "workflow_sha256": "aae33738dac1d7191d4582b1793e73098d97c1c1b507d620bb5cbf97b3841b15",
       "working_directory": "LinzeDatabase/MooMooAU",
       "workflow_command": "python machine/stages/S6/tools/validate_stage6.py --governance-root \"$GITHUB_WORKSPACE/.governance\" --cumulative-final",
       "cumulative_expectation": {

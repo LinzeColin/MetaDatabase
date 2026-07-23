@@ -107,7 +107,7 @@ jobs:
       - name: Secret scan without committed report
         run: |
           detect-secrets scan --all-files \
-            --exclude-lines 'baseline_commit|baseline_manifest_sha256|BASELINE_COMMIT|BASELINE_MANIFEST_SHA256|GOVERNANCE_PIN|governance_pin|workflow_sha256|sha256' \
+            --exclude-lines 'baseline_commit|baseline_manifest_sha256|BASELINE_COMMIT|BASELINE_MANIFEST_SHA256|GOVERNANCE_PIN|governance_pin|workflow_sha256|sha256|24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15|301fa1c6f5c46760c4aa3a7092bf0be77ca1a2e974e7b65e8b53dcf90db9925e|6767cd11ac260b66df1dd2dec892b73e91a2a6928c4185b1c4ff6446daa6a9b3|c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f' \
             LinzeDatabase/MooMooAU/src/moomooau_archive/release_control.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/http_transport.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/oauth.py \

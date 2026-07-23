@@ -835,7 +835,7 @@
     {
       "path": "machine/contracts/workflow_command_matrix.json",
       "bytes": 3376,
-      "sha256": "59ce3365c590196cbc4a22acb8f32b641ef1471406fd35b9d6fb82a97a35297c"
+      "sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4"
     },
     {
       "path": "machine/facts/acceptance.json",
@@ -1599,8 +1599,8 @@
     },
     {
       "path": "machine/stages/S6/tools/validate_stage6.py",
-      "bytes": 34542,
-      "sha256": "460eaa0cde63c6a383d35637bcd827c1fdee7a7ffbf83a5755800a08e82f613f"
+      "bytes": 34558,
+      "sha256": "ea5de67c20e437015998b96368744ccc1a765195f567ea964da3f3375bd37f48"
     },
     {
       "path": "machine/stages/S7/contracts/run_contract.json",
@@ -1635,7 +1635,7 @@
     {
       "path": "machine/status/latest.json",
       "bytes": 8018,
-      "sha256": "7beea768a0894c2f7864fe304e2d89d5a96a707c55d58af56ec5ca926c47f4eb"
+      "sha256": "ab627737055b2d3a8a1c566090ada7ac35aba151b75279d4e3d5726d17c87351"
     },
     {
       "path": "machine/tools/README.md",
@@ -1714,8 +1714,8 @@
     },
     {
       "path": "machine/tools/validate_workflow_matrix.py",
-      "bytes": 24481,
-      "sha256": "28ac3ca743f6091e0c86eb6af399fefabf8606b6ede6f3889b43658005d40ad2"
+      "bytes": 24509,
+      "sha256": "c1b0621d53ce57e84b6354fcc517b856244e575b7e0e30c15ddc54cbd4abcec8"
     },
     {
       "path": "operations/STAGE7_RUNBOOK.md",
@@ -2259,13 +2259,13 @@
     },
     {
       "path": "taskpack/00_READ_ME_FIRST.v1.0.6.md",
-      "bytes": 3434,
-      "sha256": "30dedbe4666d963fbe63a866ea2d8b273ac573737b389f9ee24d3e0435134912"
+      "bytes": 3641,
+      "sha256": "d0ae406a2797e41c127803cbbf9095b1f076bf21c08fb028528e1b6c806ead16"
     },
     {
       "path": "taskpack/CHANGELOG.md",
-      "bytes": 5728,
-      "sha256": "bff9ff1ef859bacb11149800236638dfe0cf8ecf0bb5a2c3959ed76898e6bdf7"
+      "bytes": 6046,
+      "sha256": "143ad921f62c7c5349025bdfa0f1128b6ea8a46f31bccb6bbb042f8f674e9dc7"
     },
     {
       "path": "taskpack/PACKAGE_MANIFEST.v1.0.0.json",
@@ -2304,8 +2304,8 @@
     },
     {
       "path": "taskpack/README.md",
-      "bytes": 3191,
-      "sha256": "bd1170534c6a90c46df99b4558a8df8e878bdc674113c6ef90998ebd1848462c"
+      "bytes": 3346,
+      "sha256": "86195cc9c74533cdf52280d463c546a2b42cc8705afcdc1e54da61e727f9bc23"
     },
     {
       "path": "taskpack/ROADMAP.v1.0.0.md",
@@ -2339,8 +2339,8 @@
     },
     {
       "path": "taskpack/ROADMAP.v1.0.6.md",
-      "bytes": 2951,
-      "sha256": "5f3893f9df901c97a610becd2ad23850a8ce69acd419d432a0239c1847f035cf"
+      "bytes": 3094,
+      "sha256": "2b2173475bea1c0c067554d70d52fe6c9f242c6bedaf045b055ad14abc6e7191"
     },
     {
       "path": "taskpack/SOURCES.v1.0.0.json",
@@ -2619,8 +2619,8 @@
     },
     {
       "path": "tests/remediation/test_rmd06.py",
-      "bytes": 16443,
-      "sha256": "8fd35bf961eefbe29989079e4cca6e46a3eb9757440300878b34ee3dd3c7f694"
+      "bytes": 17370,
+      "sha256": "619eff9901c24303a6fec073a50936ec68cbf21f9d48d26bf0e9b9cf71d5a6ef"
     },
     {
       "path": "tests/stage3_support.py",

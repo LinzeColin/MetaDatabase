@@ -50,7 +50,7 @@ FORK_REJECTION_COMMAND = (
 EXPECTED_GOVERNANCE_AUTH_POLICY = {
     "policy": "DEPENDENCY_AUTH_ONLY_ZERO_PRODUCTION_SECRET",
     "credential_kind": "GITHUB_READ_ONLY_DEPLOY_KEY",
-    "actions_secret_name": "MOOMOOAU_GOVERNANCE_DEPLOY_KEY",
+    "actions_secret_name": "MOOMOOAU_GOVERNANCE_DEPLOY_KEY",  # pragma: allowlist secret
     "repository_scope": GOVERNANCE_REPOSITORY,
     "allowed_consumer": "actions/checkout with.ssh-key only",
     "write_access": False,

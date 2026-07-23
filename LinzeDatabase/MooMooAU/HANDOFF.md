@@ -99,6 +99,20 @@
     SBOM byte-equal 与本地 package build 均 PASS。fresh depth-1 clone 已确认
     `is-shallow=true`、仅 1 个 commit；最小 Stage 1 package/13 tests、不可变前序 82 个文件、
     status/package、RMD-06 `15 passed` 与 Stage 6 cumulative 全部 PASS。
+19. commit `5b05ff1a3e5f4b656427574dc9199e2c4366a4c4` 的第四轮 GitHub-hosted 预检已全部到终态：
+    patch lifecycle `29987263305`、Stage 5 `29987263306`、Stage 3 `29987263312`、Stage 6 model
+    assurance `29987263363`、Stage 1 `29987263366`、Stage 4 `29987263385` 与 Stage 2
+    `29987263507` 共 7 个 Workflow `success`；Stage 6 software `29987263378` 与 Stage 7
+    `29987263403` 为 `failure`。Stage 6 已通过功能、累计、依赖审计与 SBOM 门后，原始 entropy
+    扫描才对不可变 RMD-05 receipt/review JSON 产生误报；Stage 7 仅命中一个只读依赖凭据名称和
+    四个公开前序 Manifest SHA-256。未读取生产 Secret，未发生 Gmail、数据仓、protected Oracle、
+    部署、生产或发布写入。最窄修复已改为 Stage 6 调用既有结构化 Secret gate，Stage 7 仅精确排除
+    四个公开摘要，并为凭据名称加逐行 allowlist；目标 RMD-06 `17 passed`、Stage 6 structured gate
+    findings 0、Stage 7 对齐扫描空结果。最终本地复核还通过全量 `257 passed`、strict mypy
+    `60 source files`、S1–S6 cumulative、S7 scoped preflight、4 个 cumulative PASS + 4 个预期
+    historical BLOCKED 且 tree unchanged 的 Workflow matrix、package/status/facts/Manifest/
+    Governance/composition、34/34 结构有效且全部 BLOCKED 的 Acceptance、publication findings 0、
+    零已知漏洞 audit 与 SBOM byte-equal；生产、protected Oracle 与 final Acceptance 仍未执行。
 
 ## 关键边界
 
@@ -112,8 +126,8 @@
 ## 下一步
 
 1. 重建派生状态、治理事实、文档与 v1.0.6 Manifest，复核全套本地门、最小依赖与 depth-1 clone。
-2. 仅向同一受控 RMD-06 候选分支 push 第四轮修复 commit，并观察全部 GitHub-hosted 非生产 Workflow
+2. 仅向同一受控 RMD-06 候选分支 push 第五轮修复 commit，并观察全部 GitHub-hosted 非生产 Workflow
    到终态；任一失败或未知均停止。
-3. 第四轮全绿后记录 commit/run 证据并删除远端候选分支；RMD-06 后续仍按
+3. 第五轮全绿后记录 commit/run 证据并删除远端候选分支；RMD-06 后续仍按
    Beta → M3 → Timeline Blue-Green → GA → Recovery →
    最终 AC 顺序推进，任何未知或失败结果立即停止。

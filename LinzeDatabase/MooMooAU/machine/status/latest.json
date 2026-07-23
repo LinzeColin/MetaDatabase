@@ -243,7 +243,7 @@
     "task_evidence_root_sha256": "8f532d33a06015a801ac9be6df7e912c86c2a023d39c3a0dcfd6d215298bffa1",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
-    "workflow_command_matrix_sha256": "59ce3365c590196cbc4a22acb8f32b641ef1471406fd35b9d6fb82a97a35297c",
+    "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",
     "assurance_provenance_root_sha256": "65eaaa037e17b7011b78410c50e3534a7d4e6e8cf65f624d684b4f968275cbea"
   }
 }
