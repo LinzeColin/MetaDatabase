@@ -8,6 +8,11 @@ User=alpha
 WorkingDirectory=/opt/alpha/MetaDatabase/Alpha
 EnvironmentFile=/opt/alpha/env
 ExecStart=/opt/alpha/venv/bin/python -m backend.app.workers.main_trading
+# 看门狗:装配完成报 READY,每拍喂 WATCHDOG;5 分钟没喂=卡死=杀掉重启
+Type=notify
+NotifyAccess=main
+WatchdogSec=300
+TimeoutStartSec=300
 Restart=always
 RestartSec=10
 

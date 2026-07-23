@@ -56,6 +56,14 @@ _EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
     "LIVE_ACTIVATED": ("已自动切换微实盘", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
     "ACTIVATION_BLOCKED": ("实盘切换暂缓(失败关闭)", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
     "PRESIGN_RECORDED": ("预签授权已记录", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "WORKER_RESTARTED": ("组件失联超时,守护已自动重启", lambda p: (
+        f"失联组件:{'、'.join(p.get('lost', [])) or '未知'};已按序自动重启对应服务。\n"
+        "若重启后恢复健康,刹车会在连续健康确认后自动解除,无需你操作;"
+        "若持续失联,会按冷却间隔再试并继续提醒你。")),
+    "KILL_SWITCH_CLEARED": ("刹车已自动解除,交易恢复", lambda p: (
+        "刚才由守护程序自己拍下的紧急刹车,已在连续健康确认后自动解除,系统恢复正常节拍。\n"
+        "说明:只有守护自己拍的闸会自动解;你手动拍的闸永远只有你能解。")),
+    "INCIDENT_REPORT": ("事故报告与修复", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
 }
 
 

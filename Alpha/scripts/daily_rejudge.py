@@ -26,6 +26,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 FIRST_QUALIFIED_DAY = "2026-07-20"      # 模拟盘第 1 个合格交易日(契约窗口起点)
 WINDOW_SECONDS_PER_DAY = 23400          # 13:30~20:00 UTC
 RESTART_PENALTY_SECONDS = 60            # 每次盘中重启保守扣 60 秒(与人工核算口径一致)
+RELIABILITY_WINDOW_DAYS = 3             # 可用性滚动窗口(与契约三日窗同长;口径公开)
+GAP_TOLERANCE_SECONDS = 180             # 节拍日志静默超过此值,超出部分计为停机
+MIN_LINES_FOR_GAP_METHOD = 10           # 每拍日志行数不足时退回台账+重启计数口径
+DOWNTIME_LEDGER = "machine/facts/downtime_ledger.json"   # 人工核定的事故停机台账(审计入库)
 
 
 def weekdays_between(start_iso: str, end_iso: str) -> list[str]:
@@ -40,13 +44,49 @@ def weekdays_between(start_iso: str, end_iso: str) -> list[str]:
     return out
 
 
-def uptime_pct(days: list[str], restarts_by_day: dict[str, int]) -> float:
-    """保守可用性:每个盘中 Started 事件按 60 秒停机计。"""
+def uptime_pct(days: list[str], downtime_by_day: dict[str, float]) -> float:
+    """可用性 = 1 - 停机秒数/窗口秒数;停机按日封顶一个完整窗口。"""
     total = WINDOW_SECONDS_PER_DAY * len(days)
     if total <= 0:
         return 0.0
-    lost = sum(RESTART_PENALTY_SECONDS * restarts_by_day.get(d, 0) for d in days)
+    lost = sum(min(float(downtime_by_day.get(d, 0.0)), WINDOW_SECONDS_PER_DAY) for d in days)
     return round(max(0.0, (total - lost) / total * 100.0), 2)
+
+
+def downtime_from_gaps(ts: list[float], win_start: float, win_end: float,
+                       tol: float = GAP_TOLERANCE_SECONDS) -> float:
+    """节拍日志时间戳 → 窗口内停机秒数(静默超过容忍值的超出部分,含首尾边界)。
+
+    2026-07-23 事故补课:旧口径只数重启事件,看不见"进程活着但卡死"的静默。
+    """
+    pts = sorted(t for t in ts if win_start <= t <= win_end)
+    if not pts:
+        return float(win_end - win_start)
+    down = 0.0
+    prev = win_start
+    for t in pts:
+        gap = t - prev
+        if gap > tol:
+            down += gap - tol
+        prev = t
+    tail = win_end - prev
+    if tail > tol:
+        down += tail - tol
+    return down
+
+
+def day_downtime_seconds(day: str, *, journal_ts: list[float], restarts: int,
+                         ledger: dict) -> float:
+    """单日停机口径:台账、静默分析、重启计数三者取最大(宁可多扣不少扣)。"""
+    candidates = [RESTART_PENALTY_SECONDS * restarts]
+    entry = ledger.get(day)
+    if entry:
+        candidates.append(float(entry.get("seconds", 0)))
+    if len(journal_ts) >= MIN_LINES_FOR_GAP_METHOD:
+        start = datetime.fromisoformat(f"{day}T13:30:00+00:00").timestamp()
+        end = datetime.fromisoformat(f"{day}T20:00:00+00:00").timestamp()
+        candidates.append(downtime_from_gaps(journal_ts, start, end))
+    return max(candidates)
 
 
 def max_drawdown_pct(equities: list[float]) -> float:
@@ -115,6 +155,23 @@ def journal_restarts(day: str) -> int:
          "--until", f"{day} 20:00", "--no-pager"],
         capture_output=True, text=True, timeout=60)
     return sum(1 for line in r.stdout.splitlines() if "Started" in line)
+
+
+def journal_beat_timestamps(day: str) -> list[float]:
+    """窗口内 worker 节拍日志行的时间戳(秒);worker 每拍打一行「节拍 …」。"""
+    r = subprocess.run(
+        ["journalctl", "-u", "alpha-trading-worker", "--since", f"{day} 13:30",
+         "--until", f"{day} 20:00", "--no-pager", "-o", "short-unix"],
+        capture_output=True, text=True, timeout=60)
+    out = []
+    for line in r.stdout.splitlines():
+        if "节拍" not in line:
+            continue
+        try:
+            out.append(float(line.split(" ", 1)[0]))
+        except (ValueError, IndexError):
+            continue
+    return out
 
 
 def kline_closes(symbol: str, start: str, end: str) -> dict[str, float]:
@@ -204,8 +261,15 @@ def main() -> int:
             equities.append((cash + mv) / fx)
     dd = max_drawdown_pct(equities)
 
-    restarts = {d: journal_restarts(d) for d in days}
-    up = uptime_pct(days, restarts)
+    ledger = {}
+    ledger_path = Path(DOWNTIME_LEDGER)
+    if ledger_path.exists():
+        ledger = json.loads(ledger_path.read_text())
+    rel_days = days[-RELIABILITY_WINDOW_DAYS:]
+    downtime = {d: day_downtime_seconds(d, journal_ts=journal_beat_timestamps(d),
+                                        restarts=journal_restarts(d), ledger=ledger)
+                for d in rel_days}
+    up = uptime_pct(rel_days, downtime)
 
     out_dir = base / today
     mark_arg = ",".join(f"{sym}={px}" for sym, px in sorted(marks.items()))
@@ -263,12 +327,12 @@ def main() -> int:
         if all_green:
             text = (f"今天收盘复判:四项判定全绿!合格交易日 {len(days)} 天,"
                     f"折算月化 {p3['pace_month_pct']}%(容忍线 {p3['target_pct']}%),"
-                    f"可用性 {up}%,最大回撤 {dd}%。\n\n{activation_line}\n"
+                    f"可用性 {up}%(滚动近{len(rel_days)}个交易日口径),最大回撤 {dd}%。\n\n{activation_line}\n"
                     "本邮件由服务器每日复判定时任务自动发出。")
         else:
             text = (f"今天收盘复判:灯色有变化 → {light_txt}。"
                     f"合格交易日 {len(days)} 天,折算月化 {p3['pace_month_pct']}%"
-                    f"(容忍线 {p3['target_pct']}%),可用性 {up}%,最大回撤 {dd}%。\n"
+                    f"(容忍线 {p3['target_pct']}%),可用性 {up}%(滚动近{len(rel_days)}日),最大回撤 {dd}%。\n"
                     "规则不变,继续模拟盘;详情看 alpha.linzezhang.com。\n"
                     "本邮件由服务器每日复判定时任务自动发出。")
         Outbox(sf).enqueue(event_type="PAPER_3DAY_REPORT", payload={"text": text})
@@ -277,7 +341,7 @@ def main() -> int:
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state_path.write_text(json.dumps(
         {"date": today, "lights": list(lights), "all_green": all_green,
-         "uptime": up, "max_dd_pct": dd, "days": len(days)}, ensure_ascii=False))
+         "uptime": up, "reliability_days": rel_days, "max_dd_pct": dd, "days": len(days)}, ensure_ascii=False))
     print(json.dumps({"date": today, "lights": lights, "all_green": all_green,
                       "uptime": up, "dd": dd, "days": len(days)}, ensure_ascii=False))
     return 0

@@ -9,11 +9,35 @@ def test_weekdays_between_skips_weekend():
                     "2026-07-23", "2026-07-24", "2026-07-27"]
 
 
-def test_uptime_conservative_60s_per_restart():
+def test_uptime_from_downtime_seconds():
     days = ["2026-07-20", "2026-07-21", "2026-07-22"]
     assert dr.uptime_pct(days, {}) == 100.0
-    # 一次盘中重启扣 60 秒:与人工核算口径一致(70200-60)/70200
-    assert dr.uptime_pct(days, {"2026-07-22": 1}) == 99.91
+    # 一次盘中重启保守 60 秒:与人工核算口径一致(70200-60)/70200
+    assert dr.uptime_pct(days, {"2026-07-22": 60}) == 99.91
+    # 全天卡死按窗口封顶:三日窗一天全停 → 66.67%
+    assert dr.uptime_pct(days, {"2026-07-22": 999999}) == 66.67
+
+
+def test_downtime_from_gaps_sees_hangs_not_just_restarts():
+    start, end = 1000.0, 1000.0 + 23400.0
+    # 全程无节拍(2026-07-23 事故形态)= 全窗口停机
+    assert dr.downtime_from_gaps([], start, end) == 23400.0
+    # 每 30 秒一拍的健康日 = 0 停机
+    healthy = [start + i * 30 for i in range(781)]
+    assert dr.downtime_from_gaps(healthy, start, end) == 0.0
+    # 中段静默 2 小时:计入超出容忍(180s)的部分
+    ts = [start + i * 30 for i in range(100)] + [start + 100 * 30 + 7200 + i * 30 for i in range(50)]
+    down = dr.downtime_from_gaps(ts, start, ts[-1] + 10)
+    assert 7000 < down < 7200
+
+
+def test_day_downtime_takes_worst_of_ledger_gaps_restarts():
+    ledger = {"2026-07-23": {"seconds": 23400, "原因": "事故"}}
+    # 日志行不足(旧口径日)→ 台账与重启计数取大
+    assert dr.day_downtime_seconds("2026-07-23", journal_ts=[], restarts=0,
+                                   ledger=ledger) == 23400
+    assert dr.day_downtime_seconds("2026-07-22", journal_ts=[], restarts=1,
+                                   ledger={}) == 60
 
 
 def test_max_drawdown_from_daily_equities():
