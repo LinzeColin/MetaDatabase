@@ -16,6 +16,8 @@ from moomooau_archive.github_guard import (
     GitHubBoundaryError,
     GitHubEndpointGuard,
     GitHubInstallationTokenClient,
+    GitHubInstallationTokenError,
+    InstallationTokenFailureClass,
     RepositoryLocator,
     TargetRepositoryConfig,
 )
@@ -168,6 +170,67 @@ def test_t0204_rejects_overbroad_installation_token_response() -> None:
         config,
         GitHubAppJwtSigner(9100003, secret),
     )
-    with pytest.raises(GitHubBoundaryError, match="exceeds"):
+    with pytest.raises(GitHubInstallationTokenError) as error:
         client.mint(now)
+    assert error.value.failure_class is InstallationTokenFailureClass.RESPONSE_SCOPE_REJECTED
+    secret.destroy()
+
+
+@pytest.mark.parametrize(
+    ("status", "expected"),
+    (
+        (400, InstallationTokenFailureClass.REQUEST_REJECTED),
+        (401, InstallationTokenFailureClass.AUTHENTICATION_REJECTED),
+        (403, InstallationTokenFailureClass.AUTHORIZATION_REJECTED),
+        (404, InstallationTokenFailureClass.INSTALLATION_NOT_FOUND),
+        (422, InstallationTokenFailureClass.REQUEST_REJECTED),
+        (500, InstallationTokenFailureClass.REMOTE_SERVICE_FAILED),
+    ),
+)
+def test_t0204_classifies_token_rejection_without_response_body(
+    status: int,
+    expected: InstallationTokenFailureClass,
+) -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    config = TargetRepositoryConfig(repository_id=7100004, installation_id=8100004)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    secret = SecretBytes(
+        private_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        )
+    )
+    client = GitHubInstallationTokenClient(
+        GitHubEndpointGuard(TokenTransport(HttpResponse(status, b"private-response")), config),
+        config,
+        GitHubAppJwtSigner(9100004, secret),
+    )
+    with pytest.raises(GitHubInstallationTokenError) as error:
+        client.mint(now)
+    assert error.value.failure_class is expected
+    assert "private-response" not in repr(error.value)
+    secret.destroy()
+
+
+def test_t0204_classifies_malformed_token_success_without_dynamic_output() -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    config = TargetRepositoryConfig(repository_id=7100005, installation_id=8100005)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    secret = SecretBytes(
+        private_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        )
+    )
+    client = GitHubInstallationTokenClient(
+        GitHubEndpointGuard(TokenTransport(HttpResponse(201, b"private-invalid-json")), config),
+        config,
+        GitHubAppJwtSigner(9100005, secret),
+    )
+    with pytest.raises(GitHubInstallationTokenError) as error:
+        client.mint(now)
+    assert error.value.failure_class is InstallationTokenFailureClass.RESPONSE_INVALID
+    assert "private-invalid-json" not in repr(error.value)
     secret.destroy()

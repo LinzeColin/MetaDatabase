@@ -30,6 +30,7 @@ from moomooau_archive.auth import (
 )
 from moomooau_archive.canary_runtime import CanaryRuntimeError
 from moomooau_archive.capacity import CapacityAssessment, CapacityState
+from moomooau_archive.github_guard import InstallationTokenFailureClass
 from moomooau_archive.gmail_discovery import HeaderSnapshot, MessageRef, MinimalMessage
 from moomooau_archive.gmail_guard import (
     GmailEndpointGuard,
@@ -643,6 +644,7 @@ def test_t0702_public_failure_taxonomy_is_closed_schema_valid_and_redacted() -> 
         assert not list(validator.iter_errors(payload))
         assert payload["reason_code"] == f"PROTECTED_BETA_{phase.value}_FAILED"
         assert payload["failure_phase"] == phase.value
+        assert payload["installation_token_failure_class"] == "UNCLASSIFIED"
         assert payload["exact_root_cause_claimed"] is False
         rendered = json.dumps(payload, sort_keys=True)
         for forbidden in (
@@ -663,6 +665,19 @@ def test_t0702_public_failure_taxonomy_is_closed_schema_valid_and_redacted() -> 
     unexpected = public_failure_payload(ProtectedBetaDiagnostics())
     unexpected["exception"] = "synthetic-private-exception-marker"
     assert list(validator.iter_errors(unexpected))
+
+    token_diagnostics = ProtectedBetaDiagnostics()
+    token_diagnostics.enter_installation_token_failure(
+        InstallationTokenFailureClass.INSTALLATION_NOT_FOUND
+    )
+    token_failure = public_failure_payload(token_diagnostics)
+    assert not list(validator.iter_errors(token_failure))
+    assert token_failure["failure_phase"] == "GITHUB_APP_TOKEN"
+    assert token_failure["installation_token_failure_class"] == "INSTALLATION_NOT_FOUND"
+
+    invalid_cross_phase = public_failure_payload(ProtectedBetaDiagnostics())
+    invalid_cross_phase["installation_token_failure_class"] = "INSTALLATION_NOT_FOUND"
+    assert list(validator.iter_errors(invalid_cross_phase))
 
 
 @pytest.mark.parametrize(

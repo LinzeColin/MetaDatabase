@@ -40,6 +40,31 @@ class GitHubBoundaryError(RuntimeError):
     pass
 
 
+class InstallationTokenFailureClass(StrEnum):
+    """Closed, public-safe classes for the GitHub App token boundary."""
+
+    UNCLASSIFIED = "UNCLASSIFIED"
+    LOCAL_BOUNDARY_REJECTED = "LOCAL_BOUNDARY_REJECTED"
+    TRANSPORT_FAILED = "TRANSPORT_FAILED"
+    AUTHENTICATION_REJECTED = "AUTHENTICATION_REJECTED"
+    AUTHORIZATION_REJECTED = "AUTHORIZATION_REJECTED"
+    INSTALLATION_NOT_FOUND = "INSTALLATION_NOT_FOUND"
+    REQUEST_REJECTED = "REQUEST_REJECTED"
+    REMOTE_SERVICE_FAILED = "REMOTE_SERVICE_FAILED"
+    RESPONSE_INVALID = "RESPONSE_INVALID"
+    RESPONSE_SCOPE_REJECTED = "RESPONSE_SCOPE_REJECTED"
+
+
+class GitHubInstallationTokenError(GitHubBoundaryError):
+    """A fixed token failure class without response text, URL, or identifier."""
+
+    def __init__(self, failure_class: InstallationTokenFailureClass) -> None:
+        if not isinstance(failure_class, InstallationTokenFailureClass):
+            raise TypeError("installation token failure class is invalid")
+        super().__init__("installation token operation failed")
+        self.failure_class = failure_class
+
+
 class GitHubOperation(StrEnum):
     REPOSITORY_RESOLVE = "repository.resolve"
     INSTALLATION_TOKEN = "installation.token"
@@ -460,14 +485,35 @@ class GitHubInstallationTokenClient:
                 ),
                 body=body,
             )
-            response = self._guard.send(request)
+            try:
+                response = self._guard.send(request)
+            except GitHubBoundaryError as exc:
+                raise GitHubInstallationTokenError(
+                    InstallationTokenFailureClass.LOCAL_BOUNDARY_REJECTED
+                ) from exc
+            except Exception as exc:
+                raise GitHubInstallationTokenError(
+                    InstallationTokenFailureClass.TRANSPORT_FAILED
+                ) from exc
         finally:
             app_jwt.destroy()
         if response.status != 201:
-            raise GitHubBoundaryError("installation token request failed")
-        payload = _decode_object(response.body)
-        token = payload.get("token")
-        expires_at = _parse_utc(payload.get("expires_at"))
+            failure_class = {
+                400: InstallationTokenFailureClass.REQUEST_REJECTED,
+                401: InstallationTokenFailureClass.AUTHENTICATION_REJECTED,
+                403: InstallationTokenFailureClass.AUTHORIZATION_REJECTED,
+                404: InstallationTokenFailureClass.INSTALLATION_NOT_FOUND,
+                422: InstallationTokenFailureClass.REQUEST_REJECTED,
+            }.get(response.status, InstallationTokenFailureClass.REMOTE_SERVICE_FAILED)
+            raise GitHubInstallationTokenError(failure_class)
+        try:
+            payload = _decode_object(response.body)
+            token = payload.get("token")
+            expires_at = _parse_utc(payload.get("expires_at"))
+        except (GitHubBoundaryError, TypeError, ValueError) as exc:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.RESPONSE_INVALID
+            ) from exc
         repositories = payload.get("repositories")
         permissions = payload.get("permissions")
         repository_ids = (
@@ -484,7 +530,9 @@ class GitHubInstallationTokenClient:
             or permissions != {"contents": "write", "metadata": "read"}
             or not timedelta(0) < expires_at - current <= timedelta(hours=1)
         ):
-            raise GitHubBoundaryError("installation token response exceeds the allowed scope")
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.RESPONSE_SCOPE_REJECTED
+            )
         return InstallationToken(SecretText(token), expires_at)
 
 

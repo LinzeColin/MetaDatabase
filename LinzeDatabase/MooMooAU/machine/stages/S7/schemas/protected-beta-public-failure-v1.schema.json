@@ -9,6 +9,7 @@
     "status",
     "reason_code",
     "failure_phase",
+    "installation_token_failure_class",
     "diagnostic_taxonomy",
     "exact_root_cause_claimed",
     "production_health_claimed",
@@ -67,6 +68,20 @@
         "RESOURCE_CLEANUP"
       ]
     },
+    "installation_token_failure_class": {
+      "enum": [
+        "UNCLASSIFIED",
+        "LOCAL_BOUNDARY_REJECTED",
+        "TRANSPORT_FAILED",
+        "AUTHENTICATION_REJECTED",
+        "AUTHORIZATION_REJECTED",
+        "INSTALLATION_NOT_FOUND",
+        "REQUEST_REJECTED",
+        "REMOTE_SERVICE_FAILED",
+        "RESPONSE_INVALID",
+        "RESPONSE_SCOPE_REJECTED"
+      ]
+    },
     "diagnostic_taxonomy": {
       "const": "moomooau.protected-beta-failure-taxonomy.v1"
     },
@@ -81,6 +96,25 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "GITHUB_APP_TOKEN"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "else": {
+        "properties": {
+          "installation_token_failure_class": {
+            "const": "UNCLASSIFIED"
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {
