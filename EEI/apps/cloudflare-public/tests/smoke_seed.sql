@@ -1,6 +1,9 @@
 -- Local D1 smoke seed (S10PAT01): mirrors the shape of the two real
 -- owner-signed published facts so the Worker smoke exercises the same
 -- schema the production publication drill writes. Synthetic ids.
+DELETE FROM event_evidence;
+DELETE FROM event_participants;
+DELETE FROM events;
 DELETE FROM relationship_evidence;
 DELETE FROM relationships;
 DELETE FROM entities;
@@ -46,6 +49,29 @@ INSERT INTO relationship_evidence(relationship_id, source_document_id, role, loc
   ('00000000-0000-4000-9000-000000000002', 'doc-tsmc-pr', 'corroborating', 'para.2',
    'TSMC confirms EUV tooling procurement from ASML.',
    'https://pr.tsmc.com/example', 'TSMC Press Release', 'TSMC Newsroom', '2026-02-15');
+
+-- A published first-hand event (SEC 8-K) with its evidence, so the smoke
+-- exercises the /v1/evidence/event/:id drill-down the capital panel loads.
+INSERT INTO events(id, event_type, title, status, announced_at, effective_at,
+  period_start, period_end, observed_at, amount, currency, amount_kind,
+  description, qualifiers_json) VALUES
+  ('00000000-0000-4000-b000-000000000001', 'material_disclosure',
+   'NVIDIA Corporation — Material event (8-K)', 'reported',
+   '2026-06-10T00:00:00+00:00', '2026-06-10T00:00:00+00:00', NULL, NULL,
+   '2026-06-10T00:00:00+00:00', NULL, NULL, 'amount_unreported',
+   'Material event (8-K) filed with the SEC on 2026-06-10.', NULL);
+
+INSERT INTO event_participants(event_id, entity_id, entity_name, role, direction) VALUES
+  ('00000000-0000-4000-b000-000000000001', '00000000-0000-4000-8000-000000000002',
+   'NVIDIA Corporation', 'filer', NULL);
+
+INSERT INTO event_evidence(event_id, source_document_id, role, locator,
+  support_excerpt, source_url, source_title, publisher, document_date) VALUES
+  ('00000000-0000-4000-b000-000000000001', 'doc-nvda-8k', 'supports',
+   'EDGAR accession 0001045810-26-000123',
+   'NVIDIA filed 8-K on 2026-06-10.',
+   'https://www.sec.gov/example/nvda-8k', 'NVIDIA 8-K',
+   'U.S. Securities and Exchange Commission', '2026-06-10');
 
 INSERT INTO snapshot_meta(snapshot_key, scope, record_mode, status, as_of, activated_at) VALUES
   ('smoke-publication-snapshot', 'global', 'database', 'active',
