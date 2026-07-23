@@ -349,8 +349,8 @@ def render_dashboard_html(d: dict) -> str:
 </div>
 </div>
 <footer class=muted>
-· 这是<b>{_esc(d['mode_cn'])}</b>:用券商模拟账户和真实行情演练,不动真钱;moomoo 手机应用里看不到这个模拟账户,本页就是唯一窗口。<br>
-· 要动真钱必须:三日考核全绿 + 你的书面授权 + 实盘总开关打开,三道门缺一不可;本页永远只读,没有任何下单能力。<br>
+{'· 这是<b>微实盘</b>:真实资金、真实订单,每一笔买卖都会原生出现在你的 moomoo 应用里;总敞口上限 3000 澳元,单笔不超 60%,失败关闭。<br>' if '微实盘' in d['mode_cn'] else '· 这是<b>模拟盘</b>:用券商模拟账户和真实行情演练,不动真钱;moomoo 手机应用里看不到这个模拟账户,本页就是唯一窗口。<br>'}
+· 本页永远只读,没有任何下单能力;紧急停机用你手里的控制令牌。<br>
 · 页面约每 30 秒自动更新;数据更新于 {_esc(d['meta']['updated_at_syd'])}(悉尼)。机器可读版:<a href="/api/overview">/api/overview</a>
 </footer>
 <details><summary>技术细节(给维护者看的)</summary><div class=muted>

@@ -517,6 +517,9 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             trading_status = h["status"]
             mode_hint = h.get("detail", "") or ""
     all_fresh = bool(components) and all(c["ok"] for c in components)
+    import os as _os
+    env_live = (_os.environ.get("ALPHA_MODE", "").upper() == "MICRO_LIVE"
+                and _os.environ.get("LIVE_TRADING_ENABLED", "0") == "1")
     halted = kill_switch.active() or trading_status == "HALTED"
     if halted:
         banner = {"kind": "halted", "text": "⏸️ 系统已暂停(紧急刹车拉下,不会再下任何单)"}
@@ -525,7 +528,7 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     else:
         banner = {"kind": "warn",
                   "text": "⚠️ 系统部分组件没报平安,我会自动处理;持续异常会邮件通知你"}
-    mode_cn = "微实盘" if "MICRO_LIVE" in mode_hint else "模拟盘"
+    mode_cn = "微实盘(真实资金)" if (env_live or "MICRO_LIVE" in mode_hint) else "模拟盘"
     last_mail = next((ev for ev in events if ev["kind"] == "mail"), None)
 
     return {
