@@ -448,6 +448,7 @@ scripts/acceptance_retest/passive_security_audit.py
 scripts/apply_model_config.py
 scripts/authoritative/__init__.py
 scripts/authoritative/collect_gleif.py
+scripts/authoritative/collect_insiders.py
 scripts/authoritative/collect_universe.py
 scripts/authoritative/common.py
 scripts/authoritative/enrich_sec.py

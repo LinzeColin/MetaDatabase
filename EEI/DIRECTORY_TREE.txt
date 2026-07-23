@@ -528,6 +528,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── authoritative
 │   │   ├── __init__.py
 │   │   ├── collect_gleif.py
+│   │   ├── collect_insiders.py
 │   │   ├── collect_universe.py
 │   │   ├── common.py
 │   │   ├── enrich_sec.py
