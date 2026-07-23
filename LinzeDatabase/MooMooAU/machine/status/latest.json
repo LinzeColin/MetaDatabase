@@ -2,7 +2,7 @@
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
   "package_version": "1.0.6",
-  "status_as_of_utc": "2026-07-23T13:41:54Z",
+  "status_as_of_utc": "2026-07-23T14:31:21Z",
   "authority": {
     "path": "machine/status/latest.json",
     "precedence": [
@@ -60,7 +60,7 @@
     },
     "publication": {
       "status": "CONTROLLED_BETA_DELIVERY_NOT_FINAL",
-      "controlled_main_deliveries": 5,
+      "controlled_main_deliveries": 6,
       "remote_publications": 0
     }
   },
@@ -235,20 +235,20 @@
   "next_action": "Install the existing least-privilege GitHub App on exactly the one private data repository, then execute a new exact-main first-attempt T0702 Beta; after a real PASS continue M3, Blue-Green, GA and Recovery without fixed calendar waits.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "9bf2a1db54258545abb98c96fa29f8aef5f3c10221e63784626d6fef9d19e8d5",
+    "acceptance_summary_sha256": "2d5a02205954e7abd3c70ff3b713795f4f88297ed59dd080b50025cede489a63",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
     "delivery_status_model_sha256": "1220933a32d49806e91690b84915d6818388bb94d0a6b35dbb7e26dd0c68dab8",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "47e0b1921e77f96a4b158720fbd4e535de3801183083fde540ac011923649447",
+    "production_composition_sha256": "e44fafe1c92e42263accfecde88834e326b98f424398ebed5d743298a23ff72a",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "07892fa4bb16bb56a88baacc7cc0b0e85d8f3cca021a75d825572f7d49e78c99",
+    "task_evidence_root_sha256": "8cfdfe036d5f9d7f892763e899765e7f7cd5cb1471c98159c19825fa0ecbf80e",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",
     "assurance_provenance_root_sha256": "65eaaa037e17b7011b78410c50e3534a7d4e6e8cf65f624d684b4f968275cbea",
     "protected_beta_execution_receipt_sha256": "1f78a94d3e4019d89dda7aae9ddfc949e280eece03a0ce28829beba7094922c0",
-    "protected_beta_attempt_ledger_sha256": "c6d1ce9c694dac026c4cf9163bfcd4b4324575bba11558c2d4f906da53a38ac9"
+    "protected_beta_attempt_ledger_sha256": "d1c4bea995ef6ac4c76289e118d20ea93bec2437adabdbac2633f86416f72a0f"
   }
 }

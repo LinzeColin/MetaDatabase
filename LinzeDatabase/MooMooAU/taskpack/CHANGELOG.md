@@ -65,6 +65,9 @@
   Raw/Gmail mutation/M3/Processed/Timeline/schedule 均为 0，GitHub rerun 为 0。
 - 新增 schema-bound `attempt-ledger.json`，绑定历史首次运行与四次诊断运行；最新事实仅证明现有
   GitHub App 的 installation 列表为空，不声称 T0702、生产健康或最终 Acceptance 通过。
+- PR #96 以 35 success、5 expected skip、0 failure 合并账本与派生状态；精确 merge SHA 的新
+  workflow attempt 1 再次得到 `GITHUB_APP_TOKEN / INSTALLATION_ZERO`，Alpha 与 identity
+  cleanup PASS，Raw/Gmail mutation/M3/Processed/Timeline/schedule/rerun 继续为 0。
 
 ## 1.0.5 — 2026-07-22
 

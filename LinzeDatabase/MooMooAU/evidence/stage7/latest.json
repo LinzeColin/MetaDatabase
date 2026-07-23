@@ -1,7 +1,7 @@
 {
   "schema_version": "moomooau.stage7-aggregate.v1",
   "stage_id": "S7",
-  "observed_at_utc": "2026-07-23T13:41:54Z",
+  "observed_at_utc": "2026-07-23T14:31:21Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "status": "BLOCKED_PROTECTED_BETA_FAILED",
   "scoped_preflight": "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY",
@@ -15,7 +15,7 @@
   "protected_oracles_executed": 2,
   "protected_oracles_passed": 1,
   "protected_oracles_failed": 1,
-  "protected_workflow_runs": 5,
+  "protected_workflow_runs": 6,
   "production_workflow_runs": 0,
   "observation": {
     "alpha_local_synthetic": "PASS",
@@ -40,7 +40,7 @@
     "verified_full_raw_reads": "UNDETERMINED_WITHIN_BUDGET_ONE",
     "protected_private_repository_path": "LATEST_ATTEMPT_BLOCKED_BEFORE_REPOSITORY_RESOLUTION_NO_RAW_COMMIT",
     "protected_secret_injection": "SIX_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED",
-    "controlled_main_deliveries": 5,
+    "controlled_main_deliveries": 6,
     "private_raw_commits": 0,
     "remote_publications": 0,
     "m3_runs": 0,

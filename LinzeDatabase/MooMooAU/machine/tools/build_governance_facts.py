@@ -104,7 +104,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "FORMAL_TASKS_INCOMPLETE": "正式任务仅完成 7/58，51 项仍受最终验收门约束",
         "PROTECTED_ORACLES_NOT_RUN": "受保护验证尚未运行",
         "PROTECTED_BETA_FAILED": (
-            "五次精确主分支 T0702 attempt 1 均未通过；最新固定诊断为 GitHub App 零安装"
+            "六次精确主分支 T0702 attempt 1 均未通过；最新固定诊断为 GitHub App 零安装"
         ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
@@ -625,7 +625,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "summary": (
                     "为私有 Governance 增加单仓只读 Deploy Key 依赖认证、"
                     "fork PR fail-closed 与 workflow expression 修复，完成 9/9 云端非生产预检，"
-                    "五次精确主分支 T0702 attempt 1 均通过 Alpha 与身份清理；"
+                    "六次精确主分支 T0702 attempt 1 均通过 Alpha 与身份清理；"
                     "已交付公开安全诊断把最新失败收敛到 GitHub App 零安装，"
                     "并移除固定日历等待；M3、生产与最终发布仍关闭。"
                 ),

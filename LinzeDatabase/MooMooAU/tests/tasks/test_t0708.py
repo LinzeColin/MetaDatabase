@@ -420,7 +420,7 @@ def test_t0708_stage7_aggregate_is_truthfully_blocked_until_protected_oracles() 
     assert aggregate["protected_oracles_executed"] == 2
     assert aggregate["protected_oracles_passed"] == 1
     assert aggregate["protected_oracles_failed"] == 1
-    assert aggregate["protected_workflow_runs"] == 5
+    assert aggregate["protected_workflow_runs"] == 6
     assert aggregate["production_workflow_runs"] == 0
     assert aggregate["final_acceptances_passed"] == 0
     assert (

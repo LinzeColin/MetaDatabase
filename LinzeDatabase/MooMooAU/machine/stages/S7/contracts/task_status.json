@@ -19,7 +19,7 @@
   "protected_oracles_executed": 2,
   "protected_oracles_passed": 1,
   "protected_oracles_failed": 1,
-  "protected_workflow_runs": 5,
+  "protected_workflow_runs": 6,
   "production_workflow_runs": 0,
   "final_acceptances_passed": 0,
   "delivery_status": "CONTROLLED_STAGE7_REPAIRS_MERGED_INSTALLATION_ZERO_NOT_FINAL",

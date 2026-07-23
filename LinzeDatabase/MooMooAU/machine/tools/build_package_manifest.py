@@ -196,7 +196,7 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "fork pull requests, corrected pre-runner expression contexts, deterministic "
             "workflow validation, the coupled sole delivery-status authority, a manual main-only "
             "six-Secret T0702 protected Raw-only entrypoint with same-tree Alpha and aggregate "
-            "Beta gates, the immutable historical receipt, an exact five-run serial attempt "
+            "Beta gates, the immutable historical receipt, an exact six-run serial attempt "
             "ledger, and generated human documentation. Every run used workflow attempt 1, "
             "passed same-tree Alpha and identity cleanup, and produced zero Raw/Gmail mutation/"
             "M3/Processed/Timeline effects. The delivered public-safe repair narrowed the latest "

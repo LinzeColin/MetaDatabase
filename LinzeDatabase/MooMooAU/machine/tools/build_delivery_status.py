@@ -134,10 +134,10 @@ def _protected_beta_attempt_ledger(root: Path) -> dict[str, Any]:
     summary = ledger.get("summary", {})
     attempts = ledger.get("attempts", [])
     if (
-        len(attempts) != 5
-        or summary.get("controlled_main_deliveries") != 5
-        or summary.get("protected_beta_dispatches") != 5
-        or summary.get("protected_workflow_runs") != 5
+        len(attempts) != 6
+        or summary.get("controlled_main_deliveries") != 6
+        or summary.get("protected_beta_dispatches") != 6
+        or summary.get("protected_workflow_runs") != 6
         or summary.get("workflow_reruns") != 0
         or summary.get("latest_failure_phase") != "GITHUB_APP_TOKEN"
         or summary.get("latest_installation_token_failure_class") != "INSTALLATION_ZERO"

@@ -2,7 +2,7 @@
   "schema_version": "moomooau.protected-beta-attempt-ledger.v1",
   "stage_id": "S7",
   "task_id": "T0702",
-  "observed_through_utc": "2026-07-23T13:41:54Z",
+  "observed_through_utc": "2026-07-23T14:31:21Z",
   "attempts": [
     {
       "sequence": 1,
@@ -203,17 +203,57 @@
         "timeline_writes": 0,
         "scheduled_runs": 0
       }
+    },
+    {
+      "sequence": 6,
+      "pull_request_number": 96,
+      "merge_commit_sha": "07f8cbf4aaa4a47f8306906e4504afc1b2e724b7",
+      "workflow_run_id": 30016055252,
+      "workflow_run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30016055252",
+      "workflow_event": "workflow_dispatch",
+      "workflow_attempt": 1,
+      "workflow_head_sha": "07f8cbf4aaa4a47f8306906e4504afc1b2e724b7",
+      "alpha_gate": {
+        "status": "PASS",
+        "started_at_utc": "2026-07-23T14:29:31Z",
+        "completed_at_utc": "2026-07-23T14:30:37Z"
+      },
+      "beta_raw_only": {
+        "status": "FAILED",
+        "started_at_utc": "2026-07-23T14:30:42Z",
+        "completed_at_utc": "2026-07-23T14:31:21Z"
+      },
+      "identity_plaintext_cleanup": {
+        "status": "PASS",
+        "completed_at_utc": "2026-07-23T14:31:18Z"
+      },
+      "public_failure": {
+        "failure_phase": "GITHUB_APP_TOKEN",
+        "reason_code": "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+        "installation_token_failure_class": "INSTALLATION_ZERO",
+        "exact_root_cause_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "raw_ciphertext_commits": 0,
+        "gmail_mutations": 0,
+        "m3_runs": 0,
+        "processed_writes": 0,
+        "timeline_writes": 0,
+        "scheduled_runs": 0
+      }
     }
   ],
   "summary": {
-    "controlled_main_deliveries": 5,
-    "protected_beta_dispatches": 5,
-    "protected_workflow_runs": 5,
+    "controlled_main_deliveries": 6,
+    "protected_beta_dispatches": 6,
+    "protected_workflow_runs": 6,
     "workflow_reruns": 0,
-    "alpha_gate_passes": 5,
+    "alpha_gate_passes": 6,
     "beta_passes": 0,
-    "beta_failures": 5,
-    "identity_plaintext_cleanup_passes": 5,
+    "beta_failures": 6,
+    "identity_plaintext_cleanup_passes": 6,
     "latest_failure_phase": "GITHUB_APP_TOKEN",
     "latest_installation_token_failure_class": "INSTALLATION_ZERO",
     "gmail_mutations": 0,

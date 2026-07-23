@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-`BLOCKED_PROTECTED_BETA_FAILED`，本地实现状态为 `LOCAL_MECHANISMS_READY`。T0701–T0708 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时 fail closed。五个互异 exact-main T0702 workflow attempt 1 均为 Alpha/identity cleanup PASS、Beta FAILED、rerun 0；最新固定诊断为 `GITHUB_APP_TOKEN / INSTALLATION_ZERO`。实际 M3、GA、Automation、Recovery Drill、Patch Canary、Patch apply 与 rollback 均未运行。禁止把本地测试或 `--preflight` 的退出码 0 解释为 Stage 7 PASS。
+`BLOCKED_PROTECTED_BETA_FAILED`，本地实现状态为 `LOCAL_MECHANISMS_READY`。T0701–T0708 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时 fail closed。六个互异 exact-main T0702 workflow attempt 1 均为 Alpha/identity cleanup PASS、Beta FAILED、rerun 0；最新固定诊断为 `GITHUB_APP_TOKEN / INSTALLATION_ZERO`。实际 M3、GA、Automation、Recovery Drill、Patch Canary、Patch apply 与 rollback 均未运行。禁止把本地测试或 `--preflight` 的退出码 0 解释为 Stage 7 PASS。
 
 Owner 的 completion Run Contract 允许为 Stage 7 repair 串行交付新 SHA 并各执行一次 first attempt；
 GitHub rerun 仍禁止。当前下一前置是将现有最小权限 App 仅安装到唯一私有数据仓；Beta PASS 前不进入
@@ -30,11 +30,11 @@ ref、GitHub-hosted runner、`moomooau-beta` Environment 与同树 Alpha gate。
 生产健康与最终验收均未执行或宣称；失败输出固定 reason code，不回显异常或受保护值。postflight 必须
 确认 `/dev/shm/moomooau-protected-beta-*` 已清空。
 
-该 Workflow 已在五个互异 exact-main SHA 各运行一次 workflow attempt 1；所有 Alpha 与 identity
+该 Workflow 已在六个互异 exact-main SHA 各运行一次 workflow attempt 1；所有 Alpha 与 identity
 cleanup PASS，所有 Beta FAILED，rerun 0。首次 aggregate-only 输出不可判定；PR #92–#95 交付的
 19-phase 固定诊断、exact schema 与有界 GitHub App token 分类依次得到
 `GITHUB_APP_TOKEN`、`INSTALLATION_NOT_FOUND`、`INSTALLATION_DISCOVERY_REJECTED`、
-`INSTALLATION_ZERO`。最新结果证明 App installation 列表为空；因此 T0702 继续 `BLOCKED`，不得
+`INSTALLATION_ZERO`；PR #96 的新 exact-main attempt 再次得到 `INSTALLATION_ZERO`。最新结果证明 App installation 列表为空；因此 T0702 继续 `BLOCKED`，不得
 进入 M3。
 
 ## Blue-Green 与单一 Timeline 本地机制

@@ -48,7 +48,7 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0702.json",
-      "evidence_sha256": "b6e3c6e120eb947171aa28edbcc12143b94da92dfab6de015ae04f485c2b3060",
+      "evidence_sha256": "6e25b77493cc4385cb60076af3c6b36da75586884625485e2fe3fadff98d86ca",
       "final_claim_status": "NOT_RUN",
       "reason": "The failed protected attempt did not emit sufficient aggregate evidence to prove the full zero-collateral Oracle.",
       "source_record_status": "BLOCKED",
@@ -56,7 +56,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-23T13:41:54Z",
+  "observed_at_utc": "2026-07-23T14:31:21Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

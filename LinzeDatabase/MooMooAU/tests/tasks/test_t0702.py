@@ -996,14 +996,15 @@ def test_t0702_serial_attempt_ledger_is_exact_first_attempt_only_and_fail_closed
     assert errors == []
 
     attempts = ledger["attempts"]
-    assert [item["sequence"] for item in attempts] == [1, 2, 3, 4, 5]
-    assert [item["pull_request_number"] for item in attempts] == [88, 92, 93, 94, 95]
+    assert [item["sequence"] for item in attempts] == [1, 2, 3, 4, 5, 6]
+    assert [item["pull_request_number"] for item in attempts] == [88, 92, 93, 94, 95, 96]
     assert [item["workflow_run_id"] for item in attempts] == [
         29998793639,
         30008562905,
         30010198526,
         30011285627,
         30012211355,
+        30016055252,
     ]
     assert all(item["workflow_attempt"] == 1 for item in attempts)
     assert all(item["workflow_head_sha"] == item["merge_commit_sha"] for item in attempts)
@@ -1017,16 +1018,17 @@ def test_t0702_serial_attempt_ledger_is_exact_first_attempt_only_and_fail_closed
         "INSTALLATION_NOT_FOUND",
         "INSTALLATION_DISCOVERY_REJECTED",
         "INSTALLATION_ZERO",
+        "INSTALLATION_ZERO",
     ]
     assert ledger["summary"] == {
-        "controlled_main_deliveries": 5,
-        "protected_beta_dispatches": 5,
-        "protected_workflow_runs": 5,
+        "controlled_main_deliveries": 6,
+        "protected_beta_dispatches": 6,
+        "protected_workflow_runs": 6,
         "workflow_reruns": 0,
-        "alpha_gate_passes": 5,
+        "alpha_gate_passes": 6,
         "beta_passes": 0,
-        "beta_failures": 5,
-        "identity_plaintext_cleanup_passes": 5,
+        "beta_failures": 6,
+        "identity_plaintext_cleanup_passes": 6,
         "latest_failure_phase": "GITHUB_APP_TOKEN",
         "latest_installation_token_failure_class": "INSTALLATION_ZERO",
         "gmail_mutations": 0,
