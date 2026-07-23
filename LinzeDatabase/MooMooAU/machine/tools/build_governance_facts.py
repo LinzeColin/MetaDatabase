@@ -57,7 +57,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "本地预检与安全诊断修复有证据；历史 Beta 失败且新执行未授权"
+            "本地预检与已交付安全诊断有证据；最新 Beta 因 GitHub App 零安装失败"
             if protected_beta_failed
             else "本地预检有证据；受保护门阻塞"
         ),
@@ -103,7 +103,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     blocker_content = {
         "FORMAL_TASKS_INCOMPLETE": "正式任务仅完成 7/58，51 项仍受最终验收门约束",
         "PROTECTED_ORACLES_NOT_RUN": "受保护验证尚未运行",
-        "PROTECTED_BETA_FAILED": "唯一授权的 T0702 Beta 已失败，未产生首个远端 Raw 提交",
+        "PROTECTED_BETA_FAILED": (
+            "五次精确主分支 T0702 attempt 1 均未通过；最新固定诊断为 GitHub App 零安装"
+        ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
@@ -128,12 +130,12 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "version": delivery["package_version"],
         "stage": ("RMD-06 T0702 已授权复验" if protected_beta_failed else "RMD-06 受保护验收准备"),
         "phase": (
-            "历史 T0702 Beta 已失败；安全诊断本地就绪；新交付未授权且禁止进入 M3"
+            "T0702 安全诊断已交付；最新 Beta 固定诊断为 GitHub App 零安装；禁止进入 M3"
             if protected_beta_failed
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "复核本地有界安全诊断；等待新的单次交付与首次 Beta 授权"
+            "将现有最小权限 GitHub App 仅安装到唯一私有数据仓，再执行新 SHA attempt 1"
             if protected_beta_failed
             else "T0702 Raw-only 入口本地就绪；顺序与 protected prerequisites 待解决"
             if dependency_auth_ready
@@ -399,7 +401,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             {
                 "en": "PROTECTED_BETA_FAILED",
                 "zh": "受保护测试阶段失败",
-                "note": "唯一授权的 T0702 受保护执行未满足其验收门",
+                "note": "T0702 串行 attempt 1 尚未满足验收门；最新固定诊断为 App 零安装",
             },
             {
                 "en": "FINAL_ACCEPTANCE_BLOCKED",
@@ -494,14 +496,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     plan = {
         "stage": ("RMD-06 T0702 已授权复验" if protected_beta_failed else "RMD-06 受保护验收准备"),
         "phase": (
-            "历史 Beta 失败；本地修复与无日历等待门就绪"
+            "诊断修复已交付；最新 Beta 因 GitHub App 零安装失败"
             if protected_beta_failed
             else "RMD-06 受保护验收准备"
             if dependency_auth_ready
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "复核本地公开安全诊断；新交付未授权，不进入 M3"
+            "仅安装现有最小权限 GitHub App 到唯一私有数据仓；Beta 通过前不进入 M3"
             if protected_beta_failed
             else "T0702 入口仅本地就绪；先解决顺序与 protected prerequisites，不进入 M3"
             if dependency_auth_ready
@@ -623,8 +625,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "summary": (
                     "为私有 Governance 增加单仓只读 Deploy Key 依赖认证、"
                     "fork PR fail-closed 与 workflow expression 修复，完成 9/9 云端非生产预检，"
-                    "一次受控 T0702 运行中 Alpha 通过、Beta 在首个 Raw 提交前失败；"
-                    "本地增加公开安全诊断并移除固定日历等待，M3、生产与最终发布仍关闭。"
+                    "五次精确主分支 T0702 attempt 1 均通过 Alpha 与身份清理；"
+                    "已交付公开安全诊断把最新失败收敛到 GitHub App 零安装，"
+                    "并移除固定日历等待；M3、生产与最终发布仍关闭。"
                 ),
             },
         )

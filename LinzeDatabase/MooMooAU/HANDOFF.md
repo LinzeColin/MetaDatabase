@@ -2,17 +2,16 @@
 
 ## 当前目标与状态
 
-- `RMD-06` 的 T0702/S7AC-002 protected Raw-only 入口已完成本地机制与证据闭环；Owner 已于
-  2026-07-23 单独授权一次受控 PR/merge 到 `main` 和一次 budget-one protected dispatch，仅用于
-  T0702。该交付与 dispatch 已用尽：同树 Alpha PASS，protected Beta 在首个远端 Raw commit 前
-  FAILED，identity tmpfs cleanup PASS；精确内部根因因 aggregate-only 日志不可判定。正式任务与
-  S7AC-002 仍 `BLOCKED`。Owner 随后明确授权受控完成 Stage 7：允许交付已验证 repair 与串行新的
-  first-attempt dispatch，不允许 GitHub rerun；Beta 继续零 Gmail mutation，真实 PASS 前仍不得
-  进入 M3。
+- `RMD-06` 的 T0702/S7AC-002 protected Raw-only 入口与公开安全诊断已交付。共 5 个互异
+  exact-main SHA 通过 PR #88、#92、#93、#94、#95 受控合并并各执行一次 workflow attempt 1；
+  每次同树 Alpha 与 identity plaintext cleanup 均 PASS，Beta 均 FAILED，GitHub rerun 为 0。
+  最新固定诊断已收敛为 `GITHUB_APP_TOKEN / INSTALLATION_ZERO`：现有最小权限 App 尚无任何
+  installation。Raw commit、Gmail mutation、M3、Processed、Timeline 与 schedule 均为 0；
+  T0702/S7AC-002 仍 `BLOCKED`，真实 PASS 前不得进入 M3。
 - 当前控制包为 `MMAU-ARCHIVE-TP-2026-07-23-V1.0.6`。它原样继承 v1.0.1 的 34 RQ、34 AC、
   58-task DAG、Kill Criteria 与十条不变量，并将 v1.0.5 作为不可变直接前序。
 - 唯一当前状态权威是 `machine/status/latest.json`：本地机制证据完整，受保护 Oracle
-  2/43（PASS 1、FAILED 1），最终 Acceptance 0/34，protected Workflow 1、production Workflow 0，
+  2/43（PASS 1、FAILED 1），最终 Acceptance 0/34，protected Workflow 5、production Workflow 0，
   发布状态为 `CONTROLLED_BETA_DELIVERY_NOT_FINAL`。
 - Governance 固定为私有 `LinzeColin/Governance` 的提交
   `ebc6c2e4884edc959118cfc56d0e18a86c49460f`。
@@ -217,6 +216,19 @@
     M3、Blue-Green、GA 与 Recovery。当前工作树已无冲突 fast-forward 到
     `027e60bd1f3c2f195c60981337c007782544fbb8`；后续主线提交只增加 EEI 文件，与 MooMooAU delta
     无重叠。
+36. Stage 7 诊断修复已通过 PR #92–#95 串行交付；对应 run `30008562905`、`30010198526`、
+    `30011285627`、`30012211355` 均为新 exact-main SHA 的 attempt 1，Alpha/identity cleanup
+    PASS、Beta FAILED、rerun 0。固定分类依次为 `GITHUB_APP_TOKEN`、
+    `INSTALLATION_NOT_FOUND`、`INSTALLATION_DISCOVERY_REJECTED`、`INSTALLATION_ZERO`；
+    最后一个类别证明 App JWT 有效且 App 的 installation 列表为空。五次完整序列收录于
+    `machine/stages/S7/reviews/t0702/attempt-ledger.json`，不含 Secret、邮件字段、私有仓标识或
+    动态异常文本。
+37. 2026-07-23T14:15:57Z 已把五次 attempt 1 的 PR、精确 main SHA、run、固定分类、零副作用和
+    rerun 0 收敛为 schema 约束的公开安全权威账本，并同步唯一状态、Acceptance、Governance facts、
+    七份人类文档、来源链与包清单。最终本地复核通过 312 个累计测试、strict mypy 61 source files、
+    Ruff 108 files、58 份任务证据、34 份 Acceptance、9/9 Stage 7 preflight、八入口 Workflow
+    matrix、595 文件任务包、668 文件公开扫描、零已知漏洞 audit、字节级可复现 SBOM 与零 Secret
+    findings；所有验证外部写入为 0，T0702、M3、生产和最终发布仍未被提升。
 
 ## 关键边界
 
@@ -234,9 +246,9 @@
 
 ## 下一步
 
-1. 将当前 Stage 7 repair 在最新 `main` 上完成全门验证、提交、受控 PR/merge。
+1. 将现有最小权限 GitHub App 仅安装到唯一私有数据仓；不得改用 PAT、Deploy Key 或放宽权限。
 2. 刷新仅有时效字段的 protected config，并执行一个新的 exact-SHA first-attempt T0702；失败只按
-   固定 phase code 修复并形成新提交，不使用 GitHub rerun。
+   固定 public-safe 类别修复并形成新提交，不使用 GitHub rerun。
 3. 只有后续 Beta 真实 Oracle PASS 后才按 M3 → Blue-Green/Timeline → GA → Recovery 的既定顺序
    继续；M3 和 Blue-Green 各执行一次证据完整的受保护运行，不等待自然日；整体任务包完成后再做
    整体复审、修复与最终发布。

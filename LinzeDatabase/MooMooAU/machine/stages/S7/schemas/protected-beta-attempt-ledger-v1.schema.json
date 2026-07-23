@@ -1,0 +1,288 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU T0702 serial protected Beta attempt ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "stage_id",
+    "task_id",
+    "observed_through_utc",
+    "attempts",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "moomooau.protected-beta-attempt-ledger.v1"
+    },
+    "stage_id": {
+      "const": "S7"
+    },
+    "task_id": {
+      "const": "T0702"
+    },
+    "observed_through_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "attempts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sequence",
+          "pull_request_number",
+          "merge_commit_sha",
+          "workflow_run_id",
+          "workflow_run_url",
+          "workflow_event",
+          "workflow_attempt",
+          "workflow_head_sha",
+          "alpha_gate",
+          "beta_raw_only",
+          "identity_plaintext_cleanup",
+          "public_failure",
+          "effects"
+        ],
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pull_request_number": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "merge_commit_sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "workflow_run_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "workflow_run_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://github\\.com/LinzeColin/MetaDatabase/actions/runs/[0-9]+$"
+          },
+          "workflow_event": {
+            "const": "workflow_dispatch"
+          },
+          "workflow_attempt": {
+            "const": 1
+          },
+          "workflow_head_sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "alpha_gate": {
+            "$ref": "#/$defs/job"
+          },
+          "beta_raw_only": {
+            "$ref": "#/$defs/job"
+          },
+          "identity_plaintext_cleanup": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["status", "completed_at_utc"],
+            "properties": {
+              "status": {
+                "const": "PASS"
+              },
+              "completed_at_utc": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "public_failure": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "failure_phase",
+              "reason_code",
+              "installation_token_failure_class",
+              "exact_root_cause_claimed",
+              "production_health_claimed",
+              "final_acceptance_claimed"
+            ],
+            "properties": {
+              "failure_phase": {
+                "enum": ["UNDETERMINED_AGGREGATE_ONLY", "GITHUB_APP_TOKEN"]
+              },
+              "reason_code": {
+                "enum": [
+                  "PROTECTED_BETA_RUN_FAILED",
+                  "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED"
+                ]
+              },
+              "installation_token_failure_class": {
+                "enum": [
+                  "NOT_AVAILABLE_IN_HISTORICAL_AGGREGATE",
+                  "NOT_CLASSIFIED",
+                  "INSTALLATION_NOT_FOUND",
+                  "INSTALLATION_DISCOVERY_REJECTED",
+                  "INSTALLATION_ZERO"
+                ]
+              },
+              "exact_root_cause_claimed": {
+                "const": false
+              },
+              "production_health_claimed": {
+                "const": false
+              },
+              "final_acceptance_claimed": {
+                "const": false
+              }
+            }
+          },
+          "effects": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "raw_ciphertext_commits",
+              "gmail_mutations",
+              "m3_runs",
+              "processed_writes",
+              "timeline_writes",
+              "scheduled_runs"
+            ],
+            "properties": {
+              "raw_ciphertext_commits": {
+                "const": 0
+              },
+              "gmail_mutations": {
+                "const": 0
+              },
+              "m3_runs": {
+                "const": 0
+              },
+              "processed_writes": {
+                "const": 0
+              },
+              "timeline_writes": {
+                "const": 0
+              },
+              "scheduled_runs": {
+                "const": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "controlled_main_deliveries",
+        "protected_beta_dispatches",
+        "protected_workflow_runs",
+        "workflow_reruns",
+        "alpha_gate_passes",
+        "beta_passes",
+        "beta_failures",
+        "identity_plaintext_cleanup_passes",
+        "latest_failure_phase",
+        "latest_installation_token_failure_class",
+        "gmail_mutations",
+        "m3_runs",
+        "processed_writes",
+        "timeline_writes",
+        "scheduled_runs",
+        "t0702_complete",
+        "m3_allowed",
+        "production_health_claimed",
+        "final_acceptance_claimed"
+      ],
+      "properties": {
+        "controlled_main_deliveries": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "protected_beta_dispatches": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "protected_workflow_runs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "workflow_reruns": {
+          "const": 0
+        },
+        "alpha_gate_passes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "beta_passes": {
+          "const": 0
+        },
+        "beta_failures": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "identity_plaintext_cleanup_passes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "latest_failure_phase": {
+          "const": "GITHUB_APP_TOKEN"
+        },
+        "latest_installation_token_failure_class": {
+          "const": "INSTALLATION_ZERO"
+        },
+        "gmail_mutations": {
+          "const": 0
+        },
+        "m3_runs": {
+          "const": 0
+        },
+        "processed_writes": {
+          "const": 0
+        },
+        "timeline_writes": {
+          "const": 0
+        },
+        "scheduled_runs": {
+          "const": 0
+        },
+        "t0702_complete": {
+          "const": false
+        },
+        "m3_allowed": {
+          "const": false
+        },
+        "production_health_claimed": {
+          "const": false
+        },
+        "final_acceptance_claimed": {
+          "const": false
+        }
+      }
+    }
+  },
+  "$defs": {
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "started_at_utc", "completed_at_utc"],
+      "properties": {
+        "status": {
+          "enum": ["PASS", "FAILED"]
+        },
+        "started_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

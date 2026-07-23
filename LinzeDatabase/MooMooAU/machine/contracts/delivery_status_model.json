@@ -84,7 +84,7 @@
         "PROTECTED_BETA_FAILED",
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
-      "next_action": "Deliver the validated public-safe diagnostic repair, execute a serial new first-attempt T0702 Beta, and after a real PASS continue M3, Blue-Green, GA and Recovery without fixed calendar waits."
+      "next_action": "Install the existing least-privilege GitHub App on exactly the one private data repository, then execute a new exact-main first-attempt T0702 Beta; after a real PASS continue M3, Blue-Green, GA and Recovery without fixed calendar waits."
     }
   }
 }

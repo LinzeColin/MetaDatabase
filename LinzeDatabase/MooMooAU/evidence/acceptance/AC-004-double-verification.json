@@ -56,7 +56,7 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0702.json",
-      "evidence_sha256": "634f8afe9d6efc190e72311fdf1496aa4ee12bc5c088920a16c98ceb07effbab",
+      "evidence_sha256": "b6e3c6e120eb947171aa28edbcc12143b94da92dfab6de015ae04f485c2b3060",
       "final_claim_status": "NOT_RUN",
       "reason": "A verified full Raw read is not proven by the aggregate-only failure receipt.",
       "source_record_status": "BLOCKED",
@@ -64,7 +64,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-23T10:29:39Z",
+  "observed_at_utc": "2026-07-23T13:41:54Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

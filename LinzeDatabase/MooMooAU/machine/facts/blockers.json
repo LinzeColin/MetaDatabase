@@ -8,7 +8,7 @@
   },
   {
     "id": "PROTECTED_BETA_FAILED",
-    "内容": "唯一授权的 T0702 Beta 已失败，未产生首个远端 Raw 提交",
+    "内容": "五次精确主分支 T0702 attempt 1 均未通过；最新固定诊断为 GitHub App 零安装",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"

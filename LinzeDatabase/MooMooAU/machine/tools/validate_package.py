@@ -39,6 +39,7 @@ CANDIDATE_SNAPSHOT = {
     "acceptance_remediation_base_commit": RMD06_CLEAN_MAINLINE_BASE_COMMIT,
     "shallow_checkout_fallback": "EXACT_PIN_ONLY",
 }
+PROTECTED_BETA_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0702/attempt-ledger.json")
 
 
 def _sha256(path: Path) -> str:
@@ -49,9 +50,22 @@ def _load(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def build_provenance() -> dict[str, Any]:
+def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Return the exact RMD-06 dependency and protected-Beta provenance authority."""
 
+    root = root.resolve()
+    attempt_ledger = _load(root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH)
+    attempt_summary = attempt_ledger.get("summary", {})
+    if (
+        len(attempt_ledger.get("attempts", [])) != 5
+        or attempt_summary.get("controlled_main_deliveries") != 5
+        or attempt_summary.get("protected_beta_dispatches") != 5
+        or attempt_summary.get("protected_workflow_runs") != 5
+        or attempt_summary.get("workflow_reruns") != 0
+        or attempt_summary.get("latest_failure_phase") != "GITHUB_APP_TOKEN"
+        or attempt_summary.get("latest_installation_token_failure_class") != "INSTALLATION_ZERO"
+    ):
+        raise ValueError("protected Beta attempt ledger is not the exact observed state")
     return {
         "schema_version": "moomooau.source-provenance.v7",
         "authorization": {
@@ -134,15 +148,20 @@ def build_provenance() -> dict[str, Any]:
             "protected_oracles_passed": 1,
             "protected_oracles_failed": 1,
             "production_workflow_runs": 0,
-            "protected_workflow_runs": 1,
-            "remote_workflow_runs": 1,
-            "controlled_main_deliveries": 1,
-            "protected_beta_dispatches": 1,
-            "protected_beta_reruns": 0,
+            "protected_workflow_runs": attempt_summary["protected_workflow_runs"],
+            "remote_workflow_runs": attempt_summary["protected_workflow_runs"],
+            "controlled_main_deliveries": attempt_summary["controlled_main_deliveries"],
+            "protected_beta_dispatches": attempt_summary["protected_beta_dispatches"],
+            "protected_beta_reruns": attempt_summary["workflow_reruns"],
             "private_raw_commits": 0,
             "gmail_mutations": 0,
-            "protected_beta_outcome": "FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT",
-            "protected_beta_exact_root_cause": "UNDETERMINED_BY_AGGREGATE_ONLY_LOGGING",
+            "protected_beta_outcome": "FAILED_GITHUB_APP_INSTALLATION_ZERO",
+            "protected_beta_latest_failure_phase": "GITHUB_APP_TOKEN",
+            "protected_beta_latest_installation_failure_class": "INSTALLATION_ZERO",
+            "protected_beta_exact_root_cause_claimed": False,
+            "protected_beta_attempt_ledger_sha256": _sha256(
+                root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH
+            ),
             "remote_publications": 0,
         },
     }
@@ -157,7 +176,7 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
     if not isinstance(provenance, dict):
         failures.append("v1.0.6 provenance must be an object")
         return
-    if provenance != build_provenance():
+    if provenance != build_provenance(root):
         failures.append("v1.0.6 provenance differs from the exact deterministic authority")
     authorization = provenance.get("authorization", {})
     effective = provenance.get("effective_package", {})
@@ -255,15 +274,18 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         "protected_oracles_passed": 1,
         "protected_oracles_failed": 1,
         "production_workflow_runs": 0,
-        "protected_workflow_runs": 1,
-        "remote_workflow_runs": 1,
-        "controlled_main_deliveries": 1,
-        "protected_beta_dispatches": 1,
+        "protected_workflow_runs": 5,
+        "remote_workflow_runs": 5,
+        "controlled_main_deliveries": 5,
+        "protected_beta_dispatches": 5,
         "protected_beta_reruns": 0,
         "private_raw_commits": 0,
         "gmail_mutations": 0,
-        "protected_beta_outcome": "FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT",
-        "protected_beta_exact_root_cause": "UNDETERMINED_BY_AGGREGATE_ONLY_LOGGING",
+        "protected_beta_outcome": "FAILED_GITHUB_APP_INSTALLATION_ZERO",
+        "protected_beta_latest_failure_phase": "GITHUB_APP_TOKEN",
+        "protected_beta_latest_installation_failure_class": "INSTALLATION_ZERO",
+        "protected_beta_exact_root_cause_claimed": False,
+        "protected_beta_attempt_ledger_sha256": _sha256(root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH),
         "remote_publications": 0,
     }:
         failures.append("v1.0.6 semantic delta is incomplete or overstated")
