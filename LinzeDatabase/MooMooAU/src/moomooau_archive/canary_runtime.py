@@ -23,7 +23,11 @@ from .document_parser import (
     SafeArtifactExtractor,
     StatementParser,
 )
-from .gmail_discovery import FullMailboxDiscoverer, GmailReadClient
+from .gmail_discovery import (
+    FullMailboxDiscoverer,
+    GmailReadClient,
+    MessageMetadataUnverifiable,
+)
 from .m3 import ExactMessageTrashExecutor, M3State, MutationBudget, MutationPhase
 from .operation_gate import OperationalGate, SensitiveOperation
 from .processed_commit import (
@@ -261,11 +265,15 @@ class RawOnlyCanaryRunner:
 
         for ref in discovery.refs:
             self._diagnostics.enter(ProtectedBetaFailurePhase.METADATA_VERIFICATION)
-            message = self._gmail.get_metadata(
-                ref.message_id,
-                header_names=self._registry.requested_header_names,
-            )
             metadata_reads += 1
+            try:
+                message = self._gmail.get_metadata(
+                    ref.message_id,
+                    header_names=self._registry.requested_header_names,
+                )
+            except MessageMetadataUnverifiable:
+                quarantined += 1
+                continue
             first = self._verifier.verify_message(
                 message,
                 self._registry,

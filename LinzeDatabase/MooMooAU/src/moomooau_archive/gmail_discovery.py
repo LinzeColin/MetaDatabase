@@ -36,6 +36,10 @@ class GmailDiscoveryError(RuntimeError):
     """Public-safe Gmail discovery failure without response content."""
 
 
+class MessageMetadataUnverifiable(GmailDiscoveryError):
+    """One discovered message has content-safe metadata that cannot be verified."""
+
+
 class HistoryExpired(GmailDiscoveryError):
     """The stored Gmail History watermark is no longer valid."""
 
@@ -289,12 +293,17 @@ class GmailReadClient:
                 metadata_headers=header_names,
             )
         )
+        if response.status == 404:
+            raise MessageMetadataUnverifiable("discovered message metadata is unavailable")
         if response.status != 200:
             raise GmailDiscoveryError("messages.get metadata failed")
         payload = _decode_object(response.body, "messages.get metadata")
-        if payload.get("raw") not in {None, ""} or payload.get("snippet") not in {None, ""}:
+        if payload.get("raw") not in (None, "") or payload.get("snippet") not in (None, ""):
             raise GmailDiscoveryError("metadata response unexpectedly contains message content")
-        ref = _parse_ref(payload)
+        try:
+            ref = _parse_ref(payload)
+        except GmailDiscoveryError:
+            raise MessageMetadataUnverifiable("message metadata identity is unverifiable") from None
         if ref.message_id != message_id:
             raise GmailDiscoveryError("metadata response message ID mismatch")
         history_id = payload.get("historyId")
@@ -312,31 +321,32 @@ class GmailReadClient:
             or message_payload.get("body") not in (None, {})
             or message_payload.get("parts") not in (None, [])
         ):
-            raise GmailDiscoveryError("metadata response shape is invalid")
+            raise MessageMetadataUnverifiable("message metadata shape is unverifiable")
         raw_headers = message_payload.get("headers", [])
         if not isinstance(raw_headers, list):
-            raise GmailDiscoveryError("metadata headers are invalid")
+            raise MessageMetadataUnverifiable("message metadata headers are unverifiable")
         headers: list[tuple[str, str]] = []
         requested = {name.casefold() for name in header_names}
         for item in raw_headers:
             if not isinstance(item, dict):
-                raise GmailDiscoveryError("metadata header item is invalid")
+                raise MessageMetadataUnverifiable("message metadata header is unverifiable")
             name = item.get("name")
             value = item.get("value")
-            if (
-                not isinstance(name, str)
-                or not isinstance(value, str)
-                or name.casefold() not in requested
-            ):
+            if not isinstance(name, str) or not isinstance(value, str):
+                raise MessageMetadataUnverifiable("message metadata header is unverifiable")
+            if name.casefold() not in requested:
                 raise GmailDiscoveryError("metadata response contains an unrequested header")
             headers.append((name, value))
-        return MinimalMessage(
-            ref=ref,
-            history_id=history_id,
-            internal_date_ms=int(internal_date),
-            label_ids=tuple(sorted(cast(list[str], labels))),
-            headers=HeaderSnapshot(tuple(headers)),
-        )
+        try:
+            return MinimalMessage(
+                ref=ref,
+                history_id=history_id,
+                internal_date_ms=int(internal_date),
+                label_ids=tuple(sorted(cast(list[str], labels))),
+                headers=HeaderSnapshot(tuple(headers)),
+            )
+        except (GmailDiscoveryError, ValueError):
+            raise MessageMetadataUnverifiable("message metadata values are unverifiable") from None
 
     def list_filters(self) -> FilterAudit:
         response = self._guard.send(list_filters_request())
