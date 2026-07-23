@@ -562,14 +562,20 @@ def r2_status(cwd: Path) -> dict[str, Any]:
 
 
 def schema_statements() -> list[str]:
-    """Split the D1 schema (plain CREATE TABLE/INDEX statements, no triggers)."""
+    """Split the D1 schema (plain CREATE TABLE/INDEX DDL, no triggers).
+
+    Full-line comments are dropped BEFORE splitting on ';' — a semicolon
+    inside a comment must not cut the following statement in half (bit the
+    first live run: '-- (aggregate counts only; publication-surface ...)').
+    """
+    sql_lines = [
+        line
+        for line in SCHEMA_FILE.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.strip().startswith("--")
+    ]
     statements: list[str] = []
-    for fragment in SCHEMA_FILE.read_text(encoding="utf-8").split(";"):
-        has_sql = any(
-            line.strip() and not line.strip().startswith("--")
-            for line in fragment.splitlines()
-        )
-        if has_sql:
+    for fragment in "\n".join(sql_lines).split(";"):
+        if fragment.strip():
             statements.append(fragment.strip() + ";")
     return statements
 
