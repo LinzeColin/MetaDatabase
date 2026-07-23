@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from scripts.authoritative.common import (
     SecClient,
@@ -30,7 +30,6 @@ from scripts.authoritative.common import (
     sha256_hex,
     source_id_for,
     upsert_source_document,
-    utcnow,
 )
 
 SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
@@ -67,7 +66,7 @@ def parse_date(value: str | None) -> datetime | None:
     if not value:
         return None
     try:
-        return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=UTC)
     except ValueError:
         return None
 

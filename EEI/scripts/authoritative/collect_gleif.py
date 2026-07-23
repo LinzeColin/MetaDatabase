@@ -196,7 +196,9 @@ def _normalize_core(name: str) -> str:
 
 
 def _match_ratio(query_name: str, candidate_name: str) -> float:
-    return SequenceMatcher(None, _normalize_core(query_name), _normalize_core(candidate_name)).ratio()
+    return SequenceMatcher(
+        None, _normalize_core(query_name), _normalize_core(candidate_name)
+    ).ratio()
 
 
 def _legal_name(entity: dict[str, Any]) -> str:
@@ -290,7 +292,9 @@ def resolve_lei(client: GleifClient, company_name: str) -> tuple[dict[str, Any] 
     return view, "ok"
 
 
-def _fetch_related(client: GleifClient, lei: str, endpoint: str) -> tuple[list[dict[str, Any]], bool]:
+def _fetch_related(
+    client: GleifClient, lei: str, endpoint: str
+) -> tuple[list[dict[str, Any]], bool]:
     """Fetch direct-parent (single) or direct-children (paginated).
 
     Returns (list_of_record_views, fetched_ok). ``fetched_ok`` is False only on a
@@ -477,7 +481,7 @@ def _link_pair(
         qualifiers_json=qualifiers,
         evidence_source_document_id=doc_id,
         evidence_locator=locator,
-        evidence_excerpt=f"{child_name} is a direct subsidiary of {parent_name} per GLEIF ({endpoint}).",
+        evidence_excerpt=f"{child_name} is a direct subsidiary of {parent_name} per GLEIF.",
     )
     r2 = insert_relationship(
         conn,
@@ -489,7 +493,7 @@ def _link_pair(
         qualifiers_json=qualifiers,
         evidence_source_document_id=doc_id,
         evidence_locator=locator,
-        evidence_excerpt=f"{parent_name} exercises voting control over {child_name} per GLEIF ({endpoint}).",
+        evidence_excerpt=f"{parent_name} exercises voting control over {child_name} per GLEIF.",
     )
     created += 1 if r1 else 0
     created += 1 if r2 else 0

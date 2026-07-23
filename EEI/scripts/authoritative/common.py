@@ -18,7 +18,7 @@ import hashlib
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -28,9 +28,9 @@ ROOT = Path(__file__).resolve().parents[2]  # .../EEI
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.db_tools import connect_database, load_env_file  # noqa: E402
-
 import os  # noqa: E402
+
+from scripts.db_tools import connect_database, load_env_file  # noqa: E402
 
 # Deterministic namespace for EEI entity ids derived from first-hand keys.
 EEI_ENTITY_NS = uuid.uuid5(uuid.NAMESPACE_URL, "https://eei.linzezhang.com/entity")
@@ -49,13 +49,17 @@ def sec_user_agent() -> str:
     load_env_file()
     ua = os.getenv("SEC_USER_AGENT", "").strip()
     if not ua or "@" not in ua:
-        # A contact email is mandatory for SEC fair access.
-        ua = "EEI research (linzezhang35@gmail.com)"
+        # A contact email is mandatory for SEC fair access; never hardcode a
+        # personal address in this (public) repo - operators set it in .env.
+        raise RuntimeError(
+            "SEC_USER_AGENT must be set to a descriptive User-Agent that "
+            "includes a contact email (SEC fair-access policy)."
+        )
     return ua
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def normalize_cik(value: str | int) -> str:
@@ -173,7 +177,8 @@ def upsert_entity(
     if overwrite_name:
         conn.execute(
             """
-            INSERT INTO entities (id, canonical_name, entity_type, status, jurisdiction, description)
+            INSERT INTO entities
+              (id, canonical_name, entity_type, status, jurisdiction, description)
             VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (id) DO UPDATE
               SET canonical_name = EXCLUDED.canonical_name,
@@ -185,7 +190,8 @@ def upsert_entity(
     else:
         conn.execute(
             """
-            INSERT INTO entities (id, canonical_name, entity_type, status, jurisdiction, description)
+            INSERT INTO entities
+              (id, canonical_name, entity_type, status, jurisdiction, description)
             VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (id) DO UPDATE
               SET status = CASE WHEN entities.status = 'fixture'
