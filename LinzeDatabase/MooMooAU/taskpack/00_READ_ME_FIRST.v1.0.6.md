@@ -18,6 +18,12 @@
 6. “no-Secret”口径修订为“零生产 Secret + 唯一只读依赖凭据”，真实 Gmail、数据仓与生产 Secret
    仍不得用于本地或普通 CI；
 7. 私钥材料不得进入代码树、Manifest、日志、模型上下文或本地持久化。
+8. clean checkout 不得依赖本地共享 Git object database 中的旧 RMD-05 anchor；关闭的直接前序只通过
+   精确 v1.0.5 Manifest 和完整 assurance provenance 验证；
+9. Stage 1 Workflow parser 的 `PyYAML` 必须精确固定，Stage 3 PDF runtime 的 `pikepdf` 与
+   `Pillow` 必须进入其既有累计 hash lock、SBOM、advisory 和容器验证面；
+10. 以上三项由首轮受控候选分支预检暴露，仅属于 RMD-06 Workflow 可执行性修复，不改变产品契约、
+    protected Oracle、生产或发布口径。
 
 ## 开发入口
 

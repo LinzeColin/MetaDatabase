@@ -35,7 +35,7 @@
     "verification": "python -m pytest -q tests/acceptance/test_ac_021.py"
   },
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
-  "evidence_id": "AC-021-RMD01-20260722",
+  "evidence_id": "AC-021-RMD01-20260723",
   "linked_task_evidence": [
     {
       "evidence_ref": "evidence/tasks/T0107.json",
@@ -47,9 +47,9 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0207.json",
-      "evidence_sha256": "1e70681aaed274a761f0e6b7b6ec7f56a381d1ef86a35b291f0911e664556ce2",
+      "evidence_sha256": "0513146158c83f4c13c0c6dac172ad921ad133ad47add92ba4b96bff56518e94",
       "final_claim_status": "PARTIAL",
-      "reason": "Local lock, SBOM, pin, vulnerability and secret gates pass; the committed CodeQL/dependency-review workflow cannot run until final upload.",
+      "reason": "Local lock, SBOM, pin, vulnerability and secret gates pass; candidate-branch CI does not replace the final clean-snapshot CodeQL/dependency-review Oracle.",
       "source_record_status": "PASS",
       "task_id": "T0207"
     },
@@ -79,7 +79,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-22T05:12:40Z",
+  "observed_at_utc": "2026-07-23T05:39:20Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

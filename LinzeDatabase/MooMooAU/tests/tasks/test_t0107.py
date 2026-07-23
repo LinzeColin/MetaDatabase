@@ -41,7 +41,8 @@ def test_t0107_direct_ci_dependencies_are_exactly_pinned() -> None:
         .splitlines()
         if line.strip() and not line.startswith("#")
     ]
-    assert len(lines) == 9
+    assert len(lines) == 10
+    assert "PyYAML==6.0.3" in lines
     assert all(
         "==" in line and not any(token in line for token in (">=", "<=", "~=", "*"))
         for line in lines

@@ -18,6 +18,9 @@ _REQUIREMENT = re.compile(
     r"^([A-Za-z0-9_.-]+)(?:\[[A-Za-z0-9_,.-]+\])?==([A-Za-z0-9_.+-]+)(?:\s*;.*)?\s*\\$"
 )
 _DIGEST = re.compile(r"^sha256:[0-9a-f]{64}$")
+EXPECTED_LOCK_PACKAGE_COUNT = 80
+EXPECTED_DIRECT_PIN_COUNT = 15
+EXPECTED_DEPENDENCY_NODES_WITH_EDGES = 35
 
 if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
@@ -85,19 +88,22 @@ def validate_supply_chain(
     except ValueError as exc:
         errors.append(str(exc))
         versions = {}
-    if len(versions) != 78:
-        errors.append("hash lock must contain the observed 78-package transitive closure")
+    if len(versions) != EXPECTED_LOCK_PACKAGE_COUNT:
+        errors.append(
+            f"hash lock must contain the observed "
+            f"{EXPECTED_LOCK_PACKAGE_COUNT}-package transitive closure"
+        )
 
     direct_lines = [
         line.strip()
         for line in (root / "requirements/stage2.in").read_text(encoding="utf-8").splitlines()
         if line.strip() and not line.startswith("#")
     ]
-    if len(direct_lines) != 14 or any(
+    if len(direct_lines) != EXPECTED_DIRECT_PIN_COUNT or any(
         re.fullmatch(r"[A-Za-z0-9_.-]+(?:\[[A-Za-z0-9_,.-]+\])?==[A-Za-z0-9_.+-]+", line) is None
         for line in direct_lines
     ):
-        errors.append("Stage 2 direct inputs must contain 14 exact pins")
+        errors.append(f"Stage 2 direct inputs must contain {EXPECTED_DIRECT_PIN_COUNT} exact pins")
 
     pins = _load(root / "machine/stages/S2/supply-chain/pins.json")
     action_pins = pins.get("actions", {})
@@ -202,12 +208,13 @@ def validate_supply_chain(
     graph_valid = (
         set(dependency_by_ref) == all_refs
         and isinstance(root_ref, str)
-        and len(dependency_by_ref.get(root_ref, [])) == 14
+        and len(dependency_by_ref.get(root_ref, [])) == EXPECTED_DIRECT_PIN_COUNT
         and all(
             isinstance(children, list) and set(children).issubset(all_refs)
             for children in dependency_by_ref.values()
         )
-        and sum(bool(children) for children in dependency_by_ref.values()) >= 15
+        and sum(bool(children) for children in dependency_by_ref.values())
+        == EXPECTED_DEPENDENCY_NODES_WITH_EDGES
     )
     if (
         sbom.get("bomFormat") != "CycloneDX"

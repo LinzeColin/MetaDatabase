@@ -11,6 +11,7 @@ if str(STAGE2_TOOLS) not in sys.path:
     sys.path.insert(0, str(STAGE2_TOOLS))
 
 from validate_supply_chain import (  # noqa: E402
+    EXPECTED_LOCK_PACKAGE_COUNT,
     WORKFLOW_PATH,
     requirement_versions,
     validate_supply_chain,
@@ -21,8 +22,9 @@ def test_t0207_hash_lock_sbom_actions_age_and_container_are_immutable() -> None:
     assert validate_supply_chain(PROJECT_ROOT, WORKFLOW_PATH) == []
     lock = (PROJECT_ROOT / "requirements/stage2.lock").read_text(encoding="utf-8")
     versions = requirement_versions(lock)
-    assert len(versions) == 78
+    assert len(versions) == EXPECTED_LOCK_PACKAGE_COUNT
     assert versions["cryptography"] == "49.0.0"
+    assert versions["pikepdf"] == "10.10.0"
     assert versions["pip-audit"] == "2.10.1"
 
 

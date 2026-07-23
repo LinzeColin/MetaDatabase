@@ -46,7 +46,12 @@ from validate_publication import (  # noqa: E402
     scan_tree,
 )
 from validate_stage1 import evaluate_stage1  # noqa: E402
-from validate_supply_chain import validate_supply_chain  # noqa: E402
+from validate_supply_chain import (  # noqa: E402
+    EXPECTED_DEPENDENCY_NODES_WITH_EDGES,
+    EXPECTED_DIRECT_PIN_COUNT,
+    EXPECTED_LOCK_PACKAGE_COUNT,
+    validate_supply_chain,
+)
 
 from moomooau_archive.age_stream import OfficialAgeStream, is_age_envelope  # noqa: E402
 from moomooau_archive.auth import (  # noqa: E402
@@ -347,10 +352,10 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("final_acceptances_passed") != 0
         or latest.get("protected_oracles_executed") != 0
         or any(latest.get("prohibition_counters", {}).values())
-        or supply.get("hash_locked_packages") != 78
-        or supply.get("sbom_components") != 78
-        or supply.get("sbom_root_direct_edges") != 14
-        or supply.get("sbom_dependency_nodes_with_edges") != 34
+        or supply.get("hash_locked_packages") != EXPECTED_LOCK_PACKAGE_COUNT
+        or supply.get("sbom_components") != EXPECTED_LOCK_PACKAGE_COUNT
+        or supply.get("sbom_root_direct_edges") != EXPECTED_DIRECT_PIN_COUNT
+        or supply.get("sbom_dependency_nodes_with_edges") != EXPECTED_DEPENDENCY_NODES_WITH_EDGES
         or supply.get("native_pip_hash_install") != "PASS"
         or supply.get("digest_pinned_container_build") != "PASS"
         or supply.get("network_none_read_only_container_smoke") != "PASS"

@@ -15,7 +15,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from validate_assurance_reviews import evaluate_assurance_reviews  # noqa: E402
+from validate_assurance_reviews import evaluate_immutable_predecessor  # noqa: E402
 from validate_evidence import (  # noqa: E402
     validate_record,
     validate_stage6_candidate_bundle,
@@ -82,12 +82,7 @@ def _assurance_result(root: Path) -> dict[str, Any]:
     try:
         return cast(
             dict[str, Any],
-            evaluate_assurance_reviews(
-                root,
-                root.parents[1],
-                verify_git=False,
-                verify_anchor=True,
-            ),
+            evaluate_immutable_predecessor(root, root.parents[1]),
         )
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError, ValueError):
         return {"status": "BLOCKED", "errors": ["assurance provenance evaluation failed"]}

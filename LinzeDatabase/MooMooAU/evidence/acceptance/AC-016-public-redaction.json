@@ -35,7 +35,7 @@
     "verification": "python -m pytest -q tests/acceptance/test_ac_016.py"
   },
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
-  "evidence_id": "AC-016-RMD01-20260722",
+  "evidence_id": "AC-016-RMD01-20260723",
   "linked_task_evidence": [
     {
       "evidence_ref": "evidence/tasks/T0407.json",
@@ -55,7 +55,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-22T05:12:40Z",
+  "observed_at_utc": "2026-07-23T05:39:20Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

@@ -22,7 +22,6 @@ SOFTWARE_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-stage6-ci.yml"
 MODEL_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-stage6-model-assurance.yml"
 BASELINE_COMMIT = "2b8625a83e69093b9dce989f4eb964556e1b5fa2"
 BASELINE_MANIFEST_SHA256 = "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f"
-RMD05_MANIFEST_SHA256 = "f99413b9c1fb67369ba3039a7acfeb437004d1aad8cb54dc3697f87f38e35cb3"
 STAGE6_LOCK_SHA256 = "bed62218c229318cb95575b7880bc5ed78558d6014e299582f62d32ba0a05eb7"
 STAGE6_SBOM_SHA256 = "8e4e03817926857d1ffd8f131b108bcaac48238461749cbe9b0f4a78af00a197"
 STAGE6_TASKS = [f"T060{i}" for i in range(1, 9)]
@@ -42,7 +41,10 @@ for import_path in (STAGE5_TOOLS, TOOLS, SRC):
     if str(import_path) not in sys.path:
         sys.path.insert(0, str(import_path))
 
-from validate_assurance_reviews import evaluate_assurance_reviews  # noqa: E402
+from validate_assurance_reviews import (  # noqa: E402
+    evaluate_assurance_reviews,
+    evaluate_immutable_predecessor,
+)
 from validate_evidence import (  # noqa: E402
     STAGE6_CANDIDATE_RECEIPT_PATH,
     STAGE6_TASK_COMMAND_IDS,
@@ -427,19 +429,8 @@ def _validate_workflows(root: Path) -> list[str]:
 
 
 def _validate_reviews(root: Path) -> list[str]:
-    result = evaluate_assurance_reviews(
-        root,
-        REPOSITORY_ROOT,
-        verify_git=False,
-        verify_anchor=True,
-    )
-    predecessor = root / "taskpack/PACKAGE_MANIFEST.v1.0.5.json"
-    if (
-        result["status"] == "PASS"
-        and predecessor.is_file()
-        and not predecessor.is_symlink()
-        and _sha256(predecessor) == RMD05_MANIFEST_SHA256
-    ):
+    result = evaluate_immutable_predecessor(root, REPOSITORY_ROOT)
+    if result["status"] == "PASS":
         return []
     return ["immutable RMD-05 assurance predecessor or its provenance chain is invalid"]
 

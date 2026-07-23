@@ -129,7 +129,7 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, object]:
         "--exclude-lines",
         (
             "baseline_commit|baseline_manifest_sha256|BASELINE_COMMIT|"
-            "BASELINE_MANIFEST_SHA256|RMD05_MANIFEST_SHA256|"
+            "BASELINE_MANIFEST_SHA256|RMD05_PREDECESSOR_MANIFEST_SHA256|"
             "STAGE6_LOCK_SHA256|STAGE6_SBOM_SHA256|"
             "candidate_commit|candidate_tree|request_sha256|reply_sha256|"
             "dependency_lock_sha256|python_executable_sha256|governance_commit"

@@ -30,6 +30,8 @@ sys.dont_write_bytecode = True
 
 REPOSITORY_ROOT = PROJECT_ROOT.parents[1]
 BASELINE_COMMIT = "2b8625a83e69093b9dce989f4eb964556e1b5fa2"
+RMD05_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.5.json")
+RMD05_PREDECESSOR_MANIFEST_SHA256 = "f99413b9c1fb67369ba3039a7acfeb437004d1aad8cb54dc3697f87f38e35cb3"  # pragma: allowlist secret  # noqa: E501
 INITIAL_CANDIDATE_COMMIT = (
     "be8e196b03dcc475ed6261fbe20593b08bd26bcf"  # pragma: allowlist secret  # noqa: E501
 )
@@ -2435,22 +2437,69 @@ def evaluate_assurance_reviews(
     }
 
 
+def evaluate_immutable_predecessor(
+    root: Path = PROJECT_ROOT,
+    repository_root: Path = REPOSITORY_ROOT,
+) -> dict[str, Any]:
+    """Validate the closed RMD-05 package without requiring non-portable Git objects."""
+
+    root = root.resolve()
+    result = evaluate_assurance_reviews(
+        root,
+        repository_root,
+        verify_git=False,
+        verify_anchor=False,
+    )
+    errors = list(cast(list[str], result.get("errors", [])))
+    predecessor = root / RMD05_PREDECESSOR_MANIFEST_PATH
+    try:
+        predecessor_valid = (
+            predecessor.is_file()
+            and not predecessor.is_symlink()
+            and _sha256_bytes(predecessor.read_bytes()) == RMD05_PREDECESSOR_MANIFEST_SHA256
+        )
+    except OSError:
+        predecessor_valid = False
+    if not predecessor_valid:
+        errors.append("immutable RMD-05 predecessor manifest differs")
+
+    portable = dict(result)
+    portable["validation_mode"] = "IMMUTABLE_PACKAGE_PREDECESSOR"
+    portable["git_objects_required"] = False
+    portable["errors"] = errors
+    portable["history_integrity"] = "PASS" if not errors else "BLOCKED"
+    portable["status"] = "PASS" if result.get("status") == "PASS" and not errors else "BLOCKED"
+    return portable
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=PROJECT_ROOT)
     parser.add_argument("--repository-root", type=Path, default=REPOSITORY_ROOT)
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "--history-only",
         action="store_true",
         help="validate an honestly BLOCKED history while the eighteenth reply pair is pending",
     )
-    args = parser.parse_args()
-    result = evaluate_assurance_reviews(
-        args.root,
-        args.repository_root,
-        verify_git=not args.history_only,
-        verify_anchor=True,
+    mode.add_argument(
+        "--immutable-predecessor",
+        action="store_true",
+        help=(
+            "validate the hash-pinned closed RMD-05 package after a clean-history snapshot "
+            "without requiring its superseded Git objects"
+        ),
     )
+    args = parser.parse_args()
+    if args.immutable_predecessor:
+        result = evaluate_immutable_predecessor(args.root, args.repository_root)
+    else:
+        result = evaluate_assurance_reviews(
+            args.root,
+            args.repository_root,
+            verify_git=not args.history_only,
+            verify_anchor=True,
+        )
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     if args.history_only:
         return 0 if result.get("history_integrity") == "PASS" else 1

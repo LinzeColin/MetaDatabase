@@ -8,6 +8,10 @@
 - 凭据只允许进入 pinned `actions/checkout` 的 `ssh-key` 输入，不进入 env、shell 或项目 Python；
 - 8 个依赖 Governance 的 Workflow 在 checkout 前拒绝 fork PR，并继续禁止 `pull_request_target`；
 - 修复 `runner.temp` 在 job-level `env` 的无效 context，新增全 MooMooAU Workflow 解析门；
+- 首轮 clean-clone 预检暴露并修复 RMD-05 旧 Git object 隐式依赖，关闭前序改由不可变 v1.0.5
+  Manifest 与 assurance provenance 验证；
+- 为 Stage 1 parser 精确固定 `PyYAML==6.0.3`，并将 Stage 3 所需 `pikepdf==10.10.0` 纳入既有
+  累计 hash lock、80-component SBOM、advisory 与容器验证面；
 - “no-Secret”修订为“零生产 Secret + 唯一只读依赖凭据”；
 - 真实 Gmail、私有数据仓、受保护 Oracle、生产、部署与最终发布仍为 0/NOT_RUN。
 

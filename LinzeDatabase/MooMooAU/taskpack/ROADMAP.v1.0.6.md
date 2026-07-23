@@ -23,6 +23,8 @@
 - 为私有 Governance 使用单仓只读 Deploy Key；
 - 凭据仅供 pinned `actions/checkout` 使用；
 - fork PR 在凭据 checkout 前 fail closed；
+- clean checkout 对已关闭 RMD-05 前序只依赖不可变 Manifest，不依赖候选分支不可达的旧 Git object；
+- 普通 CI 的 parser 与 Stage 3 PDF runtime 依赖必须完整进入精确 pin、hash lock、SBOM 和审计面；
 - 普通 CI 的生产/Gmail/数据仓 Secret 读取保持零；
 - 不执行生产、Gmail mutation、私有数据仓写入、部署或最终发布。
 

@@ -355,7 +355,7 @@ def _validate_workflow(root: Path) -> list[str]:
         if line.strip() and not line.lstrip().startswith("#")
     ]
     pin_pattern = re.compile(r"^[A-Za-z0-9_.-]+(?:\[[A-Za-z0-9_,.-]+\])?==[A-Za-z0-9_.+-]+$")
-    if len(dependency_lines) != 9 or any(
+    if len(dependency_lines) != 10 or any(
         pin_pattern.fullmatch(line) is None for line in dependency_lines
     ):
         errors.append("Stage 1 direct dependency pins are incomplete")
