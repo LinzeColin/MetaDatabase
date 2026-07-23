@@ -42,6 +42,10 @@ ACCEPTANCE_IDS = ["ACC-S7PDT04"]
 D1_DATABASE = "eei-publication"
 SCHEMA_FILE = ROOT / "infra" / "cloudflare" / "d1_publication_schema.sql"
 PUBLISHED_RULE = "reviewed_relationship_fact_publication"
+# Automated, provenance-bound first-hand facts (SEC/GLEIF) publish alongside
+# the owner-signed golden vertical. Both carry full evidence rows.
+AUTHORITATIVE_RULE = "authoritative_first_hand_ingestion"
+PUBLISHED_RULES = (PUBLISHED_RULE, AUTHORITATIVE_RULE)
 
 # EEI-F05: the public surface never carries contact identifiers or internal
 # review/signature internals. Qualifiers are reduced to this allowlist at
@@ -82,6 +86,22 @@ def sql_quote(value: Any) -> str:
     return f"'{text}'"
 
 
+def batched_inserts(
+    table: str, columns: tuple[str, ...], rows: list[dict[str, Any]], *, chunk: int = 200
+) -> list[str]:
+    """Multi-row INSERTs so a full-universe republish stays a few hundred
+    statements instead of tens of thousands (D1 handles this far faster)."""
+    out: list[str] = []
+    col_list = ", ".join(columns)
+    for start in range(0, len(rows), chunk):
+        part = rows[start : start + chunk]
+        values = ",\n".join(
+            "(" + ", ".join(sql_quote(row[c]) for c in columns) + ")" for row in part
+        )
+        out.append(f"INSERT INTO {table}({col_list}) VALUES\n{values};")
+    return out
+
+
 def utc_now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat()
 
@@ -111,15 +131,18 @@ def export_publication_surface() -> dict[str, list[dict[str, Any]]]:
                        r.relationship_type, r.relationship_family, r.status,
                        r.confidence, r.observed_at, r.created_at, r.qualifiers
                 FROM relationships r
-                WHERE r.derivation_rule = %s
+                WHERE r.derivation_rule = ANY(%s)
                 """,
-                (PUBLISHED_RULE,),
+                (list(PUBLISHED_RULES),),
             ).fetchall()
         ]
-        entity_ids = sorted(
+        endpoint_ids = sorted(
             {r["subject_entity_id"] for r in relationships}
             | {r["object_entity_id"] for r in relationships}
         )
+        # Publish the full real-company universe (status='research_target')
+        # plus any relationship endpoints, so search and the graph reflect
+        # authoritative first-hand coverage - not just golden-vertical nodes.
         entities = [
             {
                 "id": str(r[0]),
@@ -129,8 +152,8 @@ def export_publication_surface() -> dict[str, list[dict[str, Any]]]:
             }
             for r in conn.execute(
                 "SELECT id, canonical_name, entity_type, status FROM entities"
-                " WHERE id = ANY(%s::uuid[])",
-                (entity_ids,),
+                " WHERE status = 'research_target' OR id = ANY(%s::uuid[])",
+                (endpoint_ids,),
             ).fetchall()
         ]
         evidence = [
@@ -155,6 +178,89 @@ def export_publication_surface() -> dict[str, list[dict[str, Any]]]:
                 WHERE re.relationship_id = ANY(%s::uuid[])
                 """,
                 ([r["id"] for r in relationships],),
+            ).fetchall()
+        ]
+        # S7PDT04+events: first-hand published EVENTS (SEC filings) feed the
+        # cloud Capital River + vertical timeline. Same publication boundary as
+        # relationships - published rows only, evidence index carried, raw
+        # filing texts never leave the machine. Superseded/revoked never ship.
+        events = [
+            {
+                "id": str(r[0]),
+                "event_type": r[1],
+                "title": r[2],
+                "status": r[3],
+                "announced_at": r[4].isoformat() if r[4] else None,
+                "effective_at": r[5].isoformat() if r[5] else None,
+                "period_start": r[6].isoformat() if r[6] else None,
+                "period_end": r[7].isoformat() if r[7] else None,
+                "observed_at": r[8].isoformat() if r[8] else None,
+                "amount": float(r[9]) if r[9] is not None else None,
+                "currency": r[10].strip() if r[10] else None,
+                "amount_kind": r[11],
+                "description": r[12],
+                "qualifiers_json": (
+                    json.dumps(sanitized, ensure_ascii=False)
+                    if (sanitized := sanitize_public_qualifiers(r[13]))
+                    else None
+                ),
+            }
+            for r in conn.execute(
+                """
+                SELECT ev.id, ev.event_type, ev.title, ev.status::text,
+                       ev.announced_at, ev.effective_at, ev.period_start,
+                       ev.period_end, ev.observed_at, ev.amount, ev.currency,
+                       ev.amount_kind, ev.description, ev.qualifiers
+                FROM events ev
+                WHERE ev.derivation_rule = ANY(%s)
+                  AND ev.status NOT IN ('superseded', 'revoked')
+                """,
+                (list(PUBLISHED_RULES),),
+            ).fetchall()
+        ]
+        event_ids = [e["id"] for e in events]
+        # Denormalize entity_name so the worker serves participants join-free.
+        event_participants = [
+            {
+                "event_id": str(r[0]),
+                "entity_id": str(r[1]),
+                "entity_name": r[2],
+                "role": r[3],
+                "direction": r[4],
+            }
+            for r in conn.execute(
+                """
+                SELECT ep.event_id, ep.entity_id, e.canonical_name,
+                       ep.role, ep.direction
+                FROM event_participants ep
+                JOIN entities e ON e.id = ep.entity_id
+                WHERE ep.event_id = ANY(%s::uuid[])
+                """,
+                (event_ids,),
+            ).fetchall()
+        ]
+        event_evidence = [
+            {
+                "event_id": str(r[0]),
+                "source_document_id": str(r[1]),
+                "role": r[2],
+                "locator": r[3],
+                "support_excerpt": r[4],
+                "source_url": r[5],
+                "source_title": r[6],
+                "publisher": r[7],
+                "document_date": r[8].isoformat() if r[8] else None,
+            }
+            for r in conn.execute(
+                """
+                SELECT ee.event_id, ee.source_document_id, ee.role::text,
+                       ee.locator, ee.support_excerpt, sd.url, sd.title,
+                       sd.publisher, sd.document_date
+                FROM event_evidence ee
+                JOIN source_documents sd ON sd.id = ee.source_document_id
+                WHERE ee.event_id = ANY(%s::uuid[])
+                """,
+                (event_ids,),
             ).fetchall()
         ]
         snapshots = [
@@ -254,6 +360,9 @@ def export_publication_surface() -> dict[str, list[dict[str, Any]]]:
         "relationships": relationships,
         "entities": entities,
         "relationship_evidence": evidence,
+        "events": events,
+        "event_participants": event_participants,
+        "event_evidence": event_evidence,
         "snapshot_meta": snapshots,
         "filing_year_counts": filing_year_counts,
         "supply_chain_stages": supply_chain_stages,
@@ -264,6 +373,11 @@ def export_publication_surface() -> dict[str, list[dict[str, Any]]]:
 def render_sql(surface: dict[str, Any]) -> str:
     statements: list[str] = []
     for table in (
+        # event children before events (FK); events before entities is fine
+        # (events carry no entity FK - participant entity_name is denormalized).
+        "event_evidence",
+        "event_participants",
+        "events",
         "relationship_evidence",
         "relationships",
         "entities",
@@ -272,44 +386,57 @@ def render_sql(surface: dict[str, Any]) -> str:
         "supply_chain_stages",
     ):
         statements.append(f"DELETE FROM {table};")
-    for row in surface["entities"]:
-        statements.append(
-            "INSERT INTO entities(id, canonical_name, entity_type, status) VALUES ("
-            + ", ".join(
-                sql_quote(row[k]) for k in ("id", "canonical_name", "entity_type", "status")
-            )
-            + ");"
-        )
-    for row in surface["relationships"]:
-        statements.append(
-            "INSERT INTO relationships(id, subject_entity_id, object_entity_id,"
-            " relationship_type, relationship_family, status, confidence,"
-            " observed_at, published_at, qualifiers_json) VALUES ("
-            + ", ".join(
-                sql_quote(row[k])
-                for k in (
-                    "id", "subject_entity_id", "object_entity_id",
-                    "relationship_type", "relationship_family", "status",
-                    "confidence", "observed_at", "published_at", "qualifiers_json",
-                )
-            )
-            + ");"
-        )
-    for row in surface["relationship_evidence"]:
-        statements.append(
-            "INSERT INTO relationship_evidence(relationship_id, source_document_id,"
-            " role, locator, support_excerpt, source_url, source_title, publisher,"
-            " document_date) VALUES ("
-            + ", ".join(
-                sql_quote(row[k])
-                for k in (
-                    "relationship_id", "source_document_id", "role", "locator",
-                    "support_excerpt", "source_url", "source_title", "publisher",
-                    "document_date",
-                )
-            )
-            + ");"
-        )
+    statements += batched_inserts(
+        "entities",
+        ("id", "canonical_name", "entity_type", "status"),
+        surface["entities"],
+    )
+    # Events after entities, participants/evidence after events (FK order).
+    # events/event_evidence carry free text (title/description, SEC excerpts);
+    # a smaller chunk keeps every INSERT well under D1's per-statement size cap
+    # even as the ingestion universe grows.
+    statements += batched_inserts(
+        "events",
+        (
+            "id", "event_type", "title", "status", "announced_at", "effective_at",
+            "period_start", "period_end", "observed_at", "amount", "currency",
+            "amount_kind", "description", "qualifiers_json",
+        ),
+        surface["events"],
+        chunk=100,
+    )
+    statements += batched_inserts(
+        "event_participants",
+        ("event_id", "entity_id", "entity_name", "role", "direction"),
+        surface["event_participants"],
+    )
+    statements += batched_inserts(
+        "event_evidence",
+        (
+            "event_id", "source_document_id", "role", "locator", "support_excerpt",
+            "source_url", "source_title", "publisher", "document_date",
+        ),
+        surface["event_evidence"],
+        chunk=100,
+    )
+    statements += batched_inserts(
+        "relationships",
+        (
+            "id", "subject_entity_id", "object_entity_id", "relationship_type",
+            "relationship_family", "status", "confidence", "observed_at",
+            "published_at", "qualifiers_json",
+        ),
+        surface["relationships"],
+    )
+    statements += batched_inserts(
+        "relationship_evidence",
+        (
+            "relationship_id", "source_document_id", "role", "locator",
+            "support_excerpt", "source_url", "source_title", "publisher",
+            "document_date",
+        ),
+        surface["relationship_evidence"],
+    )
     for row in surface["snapshot_meta"]:
         statements.append(
             "INSERT INTO snapshot_meta(snapshot_key, scope, record_mode, status,"
@@ -391,6 +518,9 @@ def remote_counts(cwd: Path) -> dict[str, int]:
         "entities",
         "relationships",
         "relationship_evidence",
+        "events",
+        "event_participants",
+        "event_evidence",
         "snapshot_meta",
         "filing_year_counts",
         "supply_chain_stages",
@@ -447,6 +577,8 @@ def main() -> int:
                 "owner-signed published relationships",
                 "endpoint entities",
                 "evidence index (locator + excerpt + official URL)",
+                "first-hand published events + participants + event evidence"
+                " (Capital River / vertical timeline)",
                 "active snapshot metadata",
                 "per-year official filing counts (aggregates only)",
                 "supply-chain stage reference rail (static, no facts)",
