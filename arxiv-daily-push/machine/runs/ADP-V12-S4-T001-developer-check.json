@@ -1,0 +1,184 @@
+{
+  "schema_version": "adp-v12-stage-developer-check-v1",
+  "run_id": "ADP-V12-S4-T001-20260723",
+  "task_id": "ADP-V12-S4-T001",
+  "action": "中文人话 fail-closed 候选、首轮问题修复与第二轮全新上下文独立复审",
+  "result": "ACC-V12-S4-001..002 为 2/2 PASS；三项首轮问题全部关闭；P0/P1/UNKNOWN/BLOCKED/豁免均为 0；S4.2 保持 NOT_RUN",
+  "ts": "2026-07-23T09:50:57+10:00",
+  "decision_scope": "developer_check",
+  "independent_verdict": "PASS",
+  "verified_subject": {
+    "identity_algorithm": "clean Git commit/tree plus SHA-256 of the deterministically materialized candidate Worker",
+    "git_head": "c50d7f7b6a1f01831c56d1a11b76f6ccd5248860",
+    "git_tree": "d40fb7b23ceae89c3df11449b1673d48422e1e9a",
+    "immediate_parent": "5691ee4b484dc1bd13c12c7b47e27143c0bdedf3",
+    "original_task_base": "531cbbbf6b2d1a7aab2eef37e90f4485d4560072",
+    "candidate_artifact_sha256": "9c7ff113ce8f4249988d02bf75601153db739cbe7075cf16d916fd689240797b",
+    "stability_before_after_tests": true,
+    "closeout_exclusions": [
+      "machine/runs/ADP-V12-S4-T001-developer-check.json",
+      "docs/phase_records/PHASE_ADP_V12_S4_HUMAN_LANGUAGE_FAIL_CLOSED.md",
+      "machine/facts/status.json",
+      "machine/facts/plan.json",
+      "machine/facts/acceptance.json",
+      "machine/facts/roadmap.json",
+      "machine/facts/features.json",
+      "machine/facts/changelog.json",
+      "文档/*.md deterministically rendered from machine facts",
+      "用户中心/*.md timestamp-only update mandated before commit",
+      "docs/HANDOFF.md closeout-only status wording",
+      "docs/pursuing_goal/v1_2/README.md closeout-only status wording",
+      "docs/pursuing_goal/v1_2/CHANGELOG.md closeout entry",
+      "docs/pursuing_goal/v1_2/TREE_SHA256.txt regenerated digest",
+      "CHANGELOG.md closeout entry"
+    ],
+    "exclusion_reason": "这些文件只记录已经完成的独立 verdict，或由机器事实和项目脚本确定性生成；把它们放入待验 Subject 会形成自引用。任何产品、测试、候选补丁、registry、Owner 内容或 live 边界字节变化均不在排除范围内，必须重新验收。"
+  },
+  "taskpack_lock": {
+    "full_pack_sha256": "b1cca7fdb87ed774f2416d425c6d42089e1bc80958ade3f1db7762e7c51ad3e2",
+    "seven_role_contract_sha256": "a01b41fb7c4153ac6ffef80e1e69de416d4a7bc4989e800bb6cd491b0843a7c6",
+    "source_snapshot_sha256": "61380cb0294ff5d70acb812996b5eeb3fef7393e81fc25e393dcec25a934643f",
+    "source_file_count": 18,
+    "declared_task_count": 10,
+    "declared_acceptance_count": 33,
+    "mapped_acceptance_count": 33
+  },
+  "run_contract": {
+    "path": "docs/pursuing_goal/v1_2/RUN_CONTRACT_04_HUMAN_LANGUAGE_FAIL_CLOSED.md",
+    "sha256": "e0265cb0001008bc51ae2eaad4a76cf828cc668f182fe9c04dfbd31b02fcf594"
+  },
+  "implementation": {
+    "candidate_patch": {
+      "path": "deploy/cloudflare/v1_2/patches/01_human_language_fail_closed.patch",
+      "sha256": "3f323220cad779d353e0b653d6edfdbd94292433aa8306f9045f9badcda8e9cf",
+      "old_blob": "3264b481809b1f311d301241c97fe1bc9a6961fe",
+      "new_blob": "9ff676970c20369ca562aa8a9639016fa08bb1c7"
+    },
+    "executable_verifier": {
+      "path": "tools/verify_human_language_fail_closed.mjs",
+      "sha256": "711865eb1122f4ba86cdff6f1efc1eb22bc7236e9c29f346128fdcb3eba2c1e0"
+    },
+    "governance_test": {
+      "path": "tests/governance/test_adp_human_language_fail_closed.py",
+      "sha256": "12d8573d392c3ae4e6f6eda377071dddab8b675401b561081f865c5cb3c4821f"
+    },
+    "candidate_build_id": "cc52e9dc2102",
+    "candidate_source_sha256": "cc52e9dc2102ed7a9994086a82485456d7bcd3c1f1f630b68629d98ecf5d392c",
+    "candidate_artifact_sha256": "9c7ff113ce8f4249988d02bf75601153db739cbe7075cf16d916fd689240797b",
+    "canonical_worker_build_id": "c2ccc1fd01ec",
+    "canonical_worker_changed": false
+  },
+  "acceptances": {
+    "ACC-V12-S4-001": "PASS",
+    "ACC-V12-S4-002": "PASS"
+  },
+  "counts": {
+    "pass": 2,
+    "p0": 0,
+    "p1": 0,
+    "l2_open": 0,
+    "unknown": 0,
+    "blocked": 0,
+    "waiver": 0
+  },
+  "stage_review": {
+    "initial": {
+      "verdict": "FAIL",
+      "action": "ACT",
+      "subject_git_head": "5691ee4b484dc1bd13c12c7b47e27143c0bdedf3",
+      "subject_git_tree": "cb9890fb7086dc2ac6eafdd557165d0cb246e962",
+      "evidence_root_sha256": "18dc480ca029bf40af630d06caac1d4fdbabd724bd3e3c112ef1aed3636d73da",
+      "review_zip_sha256": "5aa881682168631182fe7ee0dbd43318797b9ededb9faf3e0f18932a6c878d2b",
+      "findings": [
+        "ADP-S4-F001 / L1 P1 PRODUCT_DEFECT: 短英文标题与 review 队列绕过 fail-closed",
+        "ADP-S4-F002 / L1 P1 TEST_DEFECT: 官方 verifier 对必测边界误报 PASS",
+        "ADP-S4-F003 / L2 REQUIREMENT_GAP: taskpack README 与 canonical HANDOFF 状态陈旧"
+      ]
+    },
+    "finding_fix": "标题与摘要分别判定语言，纯拉丁短标题在至少 4 个拉丁字母和 1 个英文词时失败关闭；review 查询携带 summary；官方 verifier 实跑 5 条完整 Worker 路由、短标题/精确 today/混合队列和 9 个分离破坏负控；README/HANDOFF 同步唯一 RC04 与首轮失败状态。",
+    "fresh_r2": {
+      "verdict": "PASS",
+      "action": "NONE",
+      "finalized_at": "2026-07-22T23:48:02.053048+00:00",
+      "subject_git_head": "c50d7f7b6a1f01831c56d1a11b76f6ccd5248860",
+      "subject_git_tree": "d40fb7b23ceae89c3df11449b1673d48422e1e9a",
+      "candidate_artifact_sha256": "9c7ff113ce8f4249988d02bf75601153db739cbe7075cf16d916fd689240797b",
+      "evidence_root_sha256": "26afeb5ae5191618008580db9e6d892803954e9940953be459b6d20a91c84f52",
+      "review_zip": {
+        "storage": "OWNER_LOCAL_NOT_COMMITTED",
+        "filename": "ADP_V12_S4_T001_acceptance_c50d7f7b_fresh_r2_acceptance_review_taskpack.zip",
+        "sha256": "68d02b5e4ae87f17b4f49c15645a1cfaaa57f1a53fc5bc5a962afb001b882c43",
+        "size_bytes": 9979974,
+        "entry_count": 89,
+        "internal_checksum_count": 84,
+        "readme_first": true,
+        "finalizer_verified": true,
+        "unzip_test_passed": true,
+        "common_secret_pattern_scan_passed": true
+      },
+      "open_findings": [],
+      "closed_findings": [
+        "ADP-S4-F001",
+        "ADP-S4-F002",
+        "ADP-S4-F003"
+      ]
+    },
+    "verifier_owned_attempts": {
+      "status": "CLOSED_VERIFIER_HARNESS_ATTEMPTS_NOT_PRODUCT_WAIVERS",
+      "items": [
+        "NC-09 独立 Oracle 首版规则过宽；保留 a1 FAIL，修正后 a2 PASS",
+        "focused 命令首版只选中 7 项；纠正选择后 24/24 PASS",
+        "materialize clone 首次工作目录调用错误；纠正后身份与物化审计 PASS",
+        "本机 locale 导致首次 hash 命令失败；改用确定性 OpenSSL 后 PASS"
+      ],
+      "waiver_used": false
+    }
+  },
+  "closeout_validation": {
+    "official_worker_routes": {"ran": 5, "passed": 5},
+    "official_negative_controls": {"ran": 9, "passed": 9},
+    "independent_worker_routes": {"ran": 5, "passed": 5, "write_count": 0},
+    "independent_negative_controls": {"ran": 9, "passed": 9},
+    "system_chrome": {"cases": 5, "passed": 5, "short_title_cases": 3, "screenshots": 15, "console_errors": 0, "page_errors": 0},
+    "focused_governance_tests": {"ran": 24, "passed": 24},
+    "all_adp_governance_tests": {"ran": 72, "passed": 72},
+    "security_tests": {"ran": 14, "passed": 14},
+    "lesson_dedup_demath_fallback": "PASS",
+    "dual_plane": "PASS",
+    "taskpack_integrity_compatibility_drift": "PASS/PASS/PASS",
+    "v72_root_taskpack_validator": "PASS",
+    "user_center_timestamps": {"validated": 20},
+    "full_suite": {"ran": 962, "failures": 2, "errors": 11, "skipped": 49, "raw_status": "FAIL"},
+    "sealed_failure_error_name_set_exact_match": true,
+    "candidate_only": [],
+    "baseline_only": [],
+    "worker_path_changed": false,
+    "runtime_or_live_surface_changes": [],
+    "source_or_board_changes": [],
+    "secret_hits": []
+  },
+  "full_suite_evidence": {
+    "independent_runner_log": {
+      "storage": "INSIDE_OWNER_LOCAL_REVIEW_ZIP",
+      "sha256": "aafda5e69f08b339e9c48e125a233fec988aaea1b74f077bc8e8d05275473a30"
+    },
+    "closeout_runner_log": {
+      "storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "sha256": "de2ce56af8248bc22f1edb044256a7002a9bc9581333ed22f5a520136c84c27c"
+    },
+    "sealed_s3_baseline": {
+      "storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "sha256": "782254fdd58a56722a988f6473f560c0dc006f08972fc62e5be4c8a24ffe3624",
+      "internal_full_suite_log_sha256": "b8cf449df1e30f5ed3c940914a73bbafb1f3feae60aca2af027f7d841c1847a9"
+    },
+    "independent_exact_differential_status": "PASS",
+    "closeout_exact_differential_status": "PASS"
+  },
+  "runtime_or_live_change": false,
+  "deployment_authorized": false,
+  "deployment_performed": false,
+  "s4_1_status": "ACCEPTED_DEVELOPER_CHECK",
+  "s4_2_status": "NOT_RUN",
+  "s4_2_run_contract_status": "NOT_CREATED",
+  "public_receipt": "docs/phase_records/PHASE_ADP_V12_S4_HUMAN_LANGUAGE_FAIL_CLOSED.md"
+}

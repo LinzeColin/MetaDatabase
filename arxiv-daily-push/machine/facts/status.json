@@ -1,13 +1,13 @@
 {
   "version": "0.41.0（目标 1.2.0）",
-  "stage": "S4.1",
-  "phase": "中文人话版 fail-closed 首轮问题修复候选待复验",
-  "task": "ADP-V12-S4-T001",
-  "real_progress": "S0 6/6、S1 5/5、S2 3/3、S3 3/3 均由独立 verifier 裁定 PASS；10 个有界任务完成 4 个；S4.1 第四号运行合同已创建，首轮独立验收 1 项通过 / 1 项失败，修复候选待全新上下文复验",
-  "report_grade": "S4.1 首轮冻结版本独立复审为不通过并需修复，一级问题 2 项、二级问题 1 项、未知项/阻断项/豁免均为 0；当前修复未获独立通过",
-  "business_verdict": "当前线上仍为 0.41.0；v1.2 尚未部署；Science Advances PubMed 候选路径已完成开发验收但未接 live，Worker、现有订阅源、来源启停、定时配置与存储均未改",
-  "evidence_status": "S4_1_REPAIR_CANDIDATE_PENDING_FRESH_VERIFICATION",
+  "stage": "S4.2",
+  "phase": "六主题移动端统一四标签导航 Run Contract 待创建",
+  "task": "ADP-V12-S4-T002",
+  "real_progress": "S0 6/6、S1 5/5、S2 3/3、S3 3/3、S4.1 2/2 均由独立 verifier 裁定 PASS；10 个有界任务完成 5 个；S4.2 尚未创建 Run Contract，保持 NOT_RUN",
+  "report_grade": "S4.1 冻结版本经全新上下文独立复审 2/2 PASS，P0/P1/UNKNOWN/BLOCKED/豁免均为 0；S4.2 未运行",
+  "business_verdict": "当前线上仍为 0.41.0；v1.2 尚未部署；S4.1 中文人话候选已完成开发验收但未接 live，封存生产 Worker、来源、定时配置、数据结构与数据均未改",
+  "evidence_status": "S4_1_ACCEPTED_S4_2_NOT_RUN",
   "rendered_at": "2026-07-23",
   "canonical_taskpack": "docs/pursuing_goal/v1_2",
-  "previous_task_receipt": "machine/runs/ADP-V12-S3-T001-developer-check.json"
+  "previous_task_receipt": "machine/runs/ADP-V12-S4-T001-developer-check.json"
 }

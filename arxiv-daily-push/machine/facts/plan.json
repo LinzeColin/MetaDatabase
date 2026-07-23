@@ -1,11 +1,11 @@
 {
-  "stage": "S4.1",
-  "phase": "中文人话版 fail-closed 首轮问题修复候选待复验",
-  "task": "ADP-V12-S4-T001",
-  "owner": "全新上下文独立复核线程；复验三项已登记问题与两条验收项，不得预签",
+  "stage": "S4.2",
+  "phase": "六主题移动端统一四标签导航 Run Contract 待创建",
+  "task": "ADP-V12-S4-T002",
+  "owner": "下一独立开发线程；必须先锁定 S4.2 唯一 Run Contract，当前不得实现或预签",
   "taskpack": "docs/pursuing_goal/v1_2",
-  "run_contract": "docs/pursuing_goal/v1_2/RUN_CONTRACT_04_HUMAN_LANGUAGE_FAIL_CLOSED.md",
-  "run_contract_status": "已创建；首轮失败后的修复候选待全新上下文独立复验，S4.1 保持未验收",
-  "previous_task_receipt": "machine/runs/ADP-V12-S3-T001-developer-check.json",
-  "next_task_after_pass": "ADP-V12-S4-T002"
+  "run_contract": null,
+  "run_contract_status": "NOT_CREATED；S4.2 保持 NOT_RUN，需单独锁定合同后才能执行",
+  "previous_task_receipt": "machine/runs/ADP-V12-S4-T001-developer-check.json",
+  "next_task_after_pass": "ADP-V12-S4-T003"
 }

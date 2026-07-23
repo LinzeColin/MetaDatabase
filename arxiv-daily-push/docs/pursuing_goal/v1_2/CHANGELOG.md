@@ -1,5 +1,17 @@
 # ADP v1.2 Taskpack Changelog
 
+## 1.2.0 — S4.1 closeout — 2026-07-23
+
+- 短英文标题、review 队列和官方 verifier 边界修复后，fresh-context r2 对冻结 commit
+  `c50d7f7b` / tree `d40fb7b` / materialized artifact `9c7ff113…0797b` 裁定
+  `ACC-V12-S4-001..002 = 2/2 PASS`，首轮 `ADP-S4-F001..003` 全部关闭，开放
+  P0/P1/L2/UNKNOWN/BLOCKED/waiver 均为零。
+- 独立完整 Worker 路由 `5/5`、system Chrome `5/5`、分离破坏负控 `9/9`、24 个聚焦测试、
+  72 个 ADP 治理测试和 14 个安全测试通过；full suite 原始仍是历史 `2 failures + 11 errors`，
+  与 S3 封存基线精确同集，`candidate_only=[]`、`baseline_only=[]`。
+- S4.1 仅完成 `developer_check`；canonical Worker/live、D1/R2、cron、来源/板块和部署均未改。
+  下一任务 `ADP-V12-S4-T002` 保持 `NOT_RUN`，Run Contract 尚未创建，不上传或部署。
+
 ## 1.2.0 — S4.1 first-review repair candidate — 2026-07-23
 
 - fresh-context verifier 对冻结 Subject `5691ee4b` 裁定 `FAIL / ACT`：长英文条目路径满足

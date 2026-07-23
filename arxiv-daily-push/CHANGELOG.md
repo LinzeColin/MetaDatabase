@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-07-23 Australia/Sydney - ADP v1.2 S4.1 closeout (DEVELOPER CHECK PASS; NOT DEPLOYED)
+
+- candidate patch 物化 build `cc52e9dc2102` / artifact
+  `9c7ff113ce8f4249988d02bf75601153db739cbe7075cf16d916fd689240797b`；canonical Worker 与
+  live build `c2ccc1fd01ec` 保持不动。
+- 首轮 `ADP-S4-F001..003` 修复后，fresh-context r2 对 commit `c50d7f7b` / tree
+  `d40fb7b` 裁定 `ACC-V12-S4-001..002 = 2/2 PASS`，开放 P0/P1/L2/UNKNOWN/BLOCKED/waiver
+  均为零。
+- 完整 Worker 与 system Chrome 各 `5/5` 路由、`9/9` 分离破坏负控、24 focused、
+  72 governance、14 security 均通过；full suite 原始 `962 tests / 2 failures / 11 errors /
+  49 skips` 与 S3 sealed failure/error key 精确同集，`candidate_only=[]`、`baseline_only=[]`。
+- sealed review ZIP SHA-256 为 `68d02b5e4ae87f17b4f49c15645a1cfaaa57f1a53fc5bc5a962afb001b882c43`，
+  evidence root 为 `26afeb5ae5191618008580db9e6d892803954e9940953be459b6d20a91c84f52`。
+  本轮未上传或部署；S4.2/S4.3、版本、运维与 production 均未预签。
+
 ## 2026-07-23 Australia/Sydney - ADP v1.2 S4.1 first-review repair candidate (NOT ACCEPTED; NOT DEPLOYED)
 
 - 已锁定 `ADP-V12-S4-T001` / RC04，并以 candidate patch 保持 canonical Worker 与 live build
