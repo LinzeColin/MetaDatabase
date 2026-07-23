@@ -51,14 +51,20 @@
 - 后续纯本地 Stage 7 repair 新增 19 项固定 public-safe failure phase、唯一 reason-code mapping
   与拒绝额外字段/错配的 exact JSON Schema；renderer 不接收异常对象或动态 protected 值；
 - 合成 phase probes 覆盖 context、bootstrap、Raw runtime、recovery、aggregate 与 cleanup，
-  repair Run Contract 的远端、Secret、Gmail、私有仓、M3 与发布预算全部为 0；该 repair 未上传，
-  历史失败根因仍未知，T0702/S7AC-002 仍为 `BLOCKED`；
+  repair Run Contract 的远端、Secret、Gmail、私有仓、M3 与发布预算全部为 0；该 repair run
+  当时未上传，历史失败根因仍未知，T0702/S7AC-002 仍为 `BLOCKED`；
 - 按 Owner 最新指令移除 M3 七天与 Blue-Green 十四天的固定日历等待；两阶段分别以一次有界受保护
   运行中的确定性恢复、Mutation、Parser 比较、Full Reconcile 与单一 Timeline 证据判定，前序和
   安全门保持 fail closed，GA 仍须真实观察一次 04:30 Australia/Sydney 调度。
 - Owner 在历史一次性 T0702 授权消费后进一步授权受控完成 Stage 7；新增 completion Run Contract，
   允许已验证 repair 的 PR/merge 与 exact-main-SHA-bound serial new first-attempt dispatch，禁止
   GitHub rerun，Beta 继续预算 1/零 Gmail mutation，M3 继续以真实 Beta PASS 为硬前序。
+- 通过 PR #92–#95 交付公开安全诊断并在四个互异 exact-main SHA 各执行一次 workflow attempt 1；
+  固定结果依次收敛为 `GITHUB_APP_TOKEN`、`INSTALLATION_NOT_FOUND`、
+  `INSTALLATION_DISCOVERY_REJECTED`、`INSTALLATION_ZERO`，每次 Alpha 与 identity cleanup PASS，
+  Raw/Gmail mutation/M3/Processed/Timeline/schedule 均为 0，GitHub rerun 为 0。
+- 新增 schema-bound `attempt-ledger.json`，绑定历史首次运行与四次诊断运行；最新事实仅证明现有
+  GitHub App 的 installation 列表为空，不声称 T0702、生产健康或最终 Acceptance 通过。
 
 ## 1.0.5 — 2026-07-22
 

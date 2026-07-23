@@ -5,7 +5,7 @@
   "stage_status": "BLOCKED_PROTECTED_BETA_FAILED",
   "tasks": [
     {"id": "T0701", "status": "remote_alpha_passed_formal_completion_withheld"},
-    {"id": "T0702", "status": "diagnostic_repair_authorized_pending_controlled_delivery"},
+    {"id": "T0702", "status": "protected_beta_blocked_github_app_installation_zero"},
     {"id": "T0703", "status": "implementation_ready_blocked_beta_predecessor_no_calendar_wait"},
     {"id": "T0704", "status": "implementation_ready_blocked_registry_and_predecessor_no_calendar_wait"},
     {"id": "T0705", "status": "implementation_ready_blocked_blue_green_budget_and_protected_schedule"},
@@ -19,12 +19,12 @@
   "protected_oracles_executed": 2,
   "protected_oracles_passed": 1,
   "protected_oracles_failed": 1,
-  "protected_workflow_runs": 1,
+  "protected_workflow_runs": 5,
   "production_workflow_runs": 0,
   "final_acceptances_passed": 0,
-  "delivery_status": "CONTROLLED_BETA_MAIN_DELIVERY_MERGED_LOCAL_RECEIPT_NOT_PUBLISHED",
+  "delivery_status": "CONTROLLED_STAGE7_REPAIRS_MERGED_INSTALLATION_ZERO_NOT_FINAL",
   "ordering_status": "OWNER_AUTHORIZED_STAGE7_COMPLETION_SERIAL_FIRST_ATTEMPTS",
-  "diagnostic_repair_status": "LOCAL_READY_AUTHORIZED_FOR_DELIVERY",
+  "diagnostic_repair_status": "DELIVERED_MAIN_OBSERVED_INSTALLATION_ZERO",
   "new_controlled_delivery_authorized": true,
   "new_protected_dispatch_authorized": true
 }

@@ -274,7 +274,7 @@
     {
       "en": "PROTECTED_BETA_FAILED",
       "zh": "受保护测试阶段失败",
-      "note": "唯一授权的 T0702 受保护执行未满足其验收门"
+      "note": "T0702 串行 attempt 1 尚未满足验收门；最新固定诊断为 App 零安装"
     },
     {
       "en": "FINAL_ACCEPTANCE_BLOCKED",

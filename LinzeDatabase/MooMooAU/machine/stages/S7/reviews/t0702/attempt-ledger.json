@@ -1,0 +1,229 @@
+{
+  "schema_version": "moomooau.protected-beta-attempt-ledger.v1",
+  "stage_id": "S7",
+  "task_id": "T0702",
+  "observed_through_utc": "2026-07-23T13:41:54Z",
+  "attempts": [
+    {
+      "sequence": 1,
+      "pull_request_number": 88,
+      "merge_commit_sha": "3ad418123f840d2d1a8f49f763ffe3e51ae8094e",
+      "workflow_run_id": 29998793639,
+      "workflow_run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/29998793639",
+      "workflow_event": "workflow_dispatch",
+      "workflow_attempt": 1,
+      "workflow_head_sha": "3ad418123f840d2d1a8f49f763ffe3e51ae8094e",
+      "alpha_gate": {
+        "status": "PASS",
+        "started_at_utc": "2026-07-23T10:18:24Z",
+        "completed_at_utc": "2026-07-23T10:19:27Z"
+      },
+      "beta_raw_only": {
+        "status": "FAILED",
+        "started_at_utc": "2026-07-23T10:19:32Z",
+        "completed_at_utc": "2026-07-23T10:21:42Z"
+      },
+      "identity_plaintext_cleanup": {
+        "status": "PASS",
+        "completed_at_utc": "2026-07-23T10:21:40Z"
+      },
+      "public_failure": {
+        "failure_phase": "UNDETERMINED_AGGREGATE_ONLY",
+        "reason_code": "PROTECTED_BETA_RUN_FAILED",
+        "installation_token_failure_class": "NOT_AVAILABLE_IN_HISTORICAL_AGGREGATE",
+        "exact_root_cause_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "raw_ciphertext_commits": 0,
+        "gmail_mutations": 0,
+        "m3_runs": 0,
+        "processed_writes": 0,
+        "timeline_writes": 0,
+        "scheduled_runs": 0
+      }
+    },
+    {
+      "sequence": 2,
+      "pull_request_number": 92,
+      "merge_commit_sha": "508939423ce20b35c2c82936acd8f32b9f7c35fc",
+      "workflow_run_id": 30008562905,
+      "workflow_run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30008562905",
+      "workflow_event": "workflow_dispatch",
+      "workflow_attempt": 1,
+      "workflow_head_sha": "508939423ce20b35c2c82936acd8f32b9f7c35fc",
+      "alpha_gate": {
+        "status": "PASS",
+        "started_at_utc": "2026-07-23T12:49:34Z",
+        "completed_at_utc": "2026-07-23T12:50:43Z"
+      },
+      "beta_raw_only": {
+        "status": "FAILED",
+        "started_at_utc": "2026-07-23T12:50:48Z",
+        "completed_at_utc": "2026-07-23T12:51:31Z"
+      },
+      "identity_plaintext_cleanup": {
+        "status": "PASS",
+        "completed_at_utc": "2026-07-23T12:51:28Z"
+      },
+      "public_failure": {
+        "failure_phase": "GITHUB_APP_TOKEN",
+        "reason_code": "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+        "installation_token_failure_class": "NOT_CLASSIFIED",
+        "exact_root_cause_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "raw_ciphertext_commits": 0,
+        "gmail_mutations": 0,
+        "m3_runs": 0,
+        "processed_writes": 0,
+        "timeline_writes": 0,
+        "scheduled_runs": 0
+      }
+    },
+    {
+      "sequence": 3,
+      "pull_request_number": 93,
+      "merge_commit_sha": "e702f1ad3fc6b0f9cef0dec7aaf2f1845191b856",
+      "workflow_run_id": 30010198526,
+      "workflow_run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30010198526",
+      "workflow_event": "workflow_dispatch",
+      "workflow_attempt": 1,
+      "workflow_head_sha": "e702f1ad3fc6b0f9cef0dec7aaf2f1845191b856",
+      "alpha_gate": {
+        "status": "PASS",
+        "started_at_utc": "2026-07-23T13:12:32Z",
+        "completed_at_utc": "2026-07-23T13:13:36Z"
+      },
+      "beta_raw_only": {
+        "status": "FAILED",
+        "started_at_utc": "2026-07-23T13:13:41Z",
+        "completed_at_utc": "2026-07-23T13:14:30Z"
+      },
+      "identity_plaintext_cleanup": {
+        "status": "PASS",
+        "completed_at_utc": "2026-07-23T13:14:26Z"
+      },
+      "public_failure": {
+        "failure_phase": "GITHUB_APP_TOKEN",
+        "reason_code": "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+        "installation_token_failure_class": "INSTALLATION_NOT_FOUND",
+        "exact_root_cause_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "raw_ciphertext_commits": 0,
+        "gmail_mutations": 0,
+        "m3_runs": 0,
+        "processed_writes": 0,
+        "timeline_writes": 0,
+        "scheduled_runs": 0
+      }
+    },
+    {
+      "sequence": 4,
+      "pull_request_number": 94,
+      "merge_commit_sha": "e158c9664579460236033bb9b2c8e2b37344c72d",
+      "workflow_run_id": 30011285627,
+      "workflow_run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30011285627",
+      "workflow_event": "workflow_dispatch",
+      "workflow_attempt": 1,
+      "workflow_head_sha": "e158c9664579460236033bb9b2c8e2b37344c72d",
+      "alpha_gate": {
+        "status": "PASS",
+        "started_at_utc": "2026-07-23T13:27:38Z",
+        "completed_at_utc": "2026-07-23T13:28:44Z"
+      },
+      "beta_raw_only": {
+        "status": "FAILED",
+        "started_at_utc": "2026-07-23T13:28:49Z",
+        "completed_at_utc": "2026-07-23T13:29:27Z"
+      },
+      "identity_plaintext_cleanup": {
+        "status": "PASS",
+        "completed_at_utc": "2026-07-23T13:29:25Z"
+      },
+      "public_failure": {
+        "failure_phase": "GITHUB_APP_TOKEN",
+        "reason_code": "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+        "installation_token_failure_class": "INSTALLATION_DISCOVERY_REJECTED",
+        "exact_root_cause_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "raw_ciphertext_commits": 0,
+        "gmail_mutations": 0,
+        "m3_runs": 0,
+        "processed_writes": 0,
+        "timeline_writes": 0,
+        "scheduled_runs": 0
+      }
+    },
+    {
+      "sequence": 5,
+      "pull_request_number": 95,
+      "merge_commit_sha": "3d0de0bbfcdf7491857df6b9bb15a0544df6574c",
+      "workflow_run_id": 30012211355,
+      "workflow_run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30012211355",
+      "workflow_event": "workflow_dispatch",
+      "workflow_attempt": 1,
+      "workflow_head_sha": "3d0de0bbfcdf7491857df6b9bb15a0544df6574c",
+      "alpha_gate": {
+        "status": "PASS",
+        "started_at_utc": "2026-07-23T13:40:06Z",
+        "completed_at_utc": "2026-07-23T13:41:10Z"
+      },
+      "beta_raw_only": {
+        "status": "FAILED",
+        "started_at_utc": "2026-07-23T13:41:15Z",
+        "completed_at_utc": "2026-07-23T13:41:54Z"
+      },
+      "identity_plaintext_cleanup": {
+        "status": "PASS",
+        "completed_at_utc": "2026-07-23T13:41:52Z"
+      },
+      "public_failure": {
+        "failure_phase": "GITHUB_APP_TOKEN",
+        "reason_code": "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+        "installation_token_failure_class": "INSTALLATION_ZERO",
+        "exact_root_cause_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "raw_ciphertext_commits": 0,
+        "gmail_mutations": 0,
+        "m3_runs": 0,
+        "processed_writes": 0,
+        "timeline_writes": 0,
+        "scheduled_runs": 0
+      }
+    }
+  ],
+  "summary": {
+    "controlled_main_deliveries": 5,
+    "protected_beta_dispatches": 5,
+    "protected_workflow_runs": 5,
+    "workflow_reruns": 0,
+    "alpha_gate_passes": 5,
+    "beta_passes": 0,
+    "beta_failures": 5,
+    "identity_plaintext_cleanup_passes": 5,
+    "latest_failure_phase": "GITHUB_APP_TOKEN",
+    "latest_installation_token_failure_class": "INSTALLATION_ZERO",
+    "gmail_mutations": 0,
+    "m3_runs": 0,
+    "processed_writes": 0,
+    "timeline_writes": 0,
+    "scheduled_runs": 0,
+    "t0702_complete": false,
+    "m3_allowed": false,
+    "production_health_claimed": false,
+    "final_acceptance_claimed": false
+  }
+}

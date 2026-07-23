@@ -28,6 +28,10 @@ BASELINE_COMMIT = "be8e196b03dcc475ed6261fbe20593b08bd26bcf"
 BASELINE_MANIFEST_SHA256 = "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f"
 GOVERNANCE_PIN = "ebc6c2e4884edc959118cfc56d0e18a86c49460f"  # pragma: allowlist secret
 FAILED_BETA_RECEIPT_SHA256 = "1f78a94d3e4019d89dda7aae9ddfc949e280eece03a0ce28829beba7094922c0"
+PROTECTED_BETA_ATTEMPT_LEDGER = Path("machine/stages/S7/reviews/t0702/attempt-ledger.json")
+PROTECTED_BETA_ATTEMPT_LEDGER_SCHEMA = Path(
+    "machine/stages/S7/schemas/protected-beta-attempt-ledger-v1.schema.json"
+)
 STAGE7_TASKS = [f"T070{index}" for index in range(1, 9)]
 STAGE7_ACCEPTANCES = [f"S7AC-00{index}" for index in range(1, 9)]
 PINNED_ACTION = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)?@[0-9a-f]{40}$")
@@ -296,14 +300,14 @@ def _validate_contracts(root: Path) -> list[str]:
         or status.get("protected_oracles_executed") != 2
         or status.get("protected_oracles_passed") != 1
         or status.get("protected_oracles_failed") != 1
-        or status.get("protected_workflow_runs") != 1
+        or status.get("protected_workflow_runs") != 5
         or status.get("production_workflow_runs") != 0
         or status.get("final_acceptances_passed") != 0
         or status.get("delivery_status")
-        != "CONTROLLED_BETA_MAIN_DELIVERY_MERGED_LOCAL_RECEIPT_NOT_PUBLISHED"
+        != "CONTROLLED_STAGE7_REPAIRS_MERGED_INSTALLATION_ZERO_NOT_FINAL"
         or status.get("ordering_status")
         != "OWNER_AUTHORIZED_STAGE7_COMPLETION_SERIAL_FIRST_ATTEMPTS"
-        or status.get("diagnostic_repair_status") != "LOCAL_READY_AUTHORIZED_FOR_DELIVERY"
+        or status.get("diagnostic_repair_status") != "DELIVERED_MAIN_OBSERVED_INSTALLATION_ZERO"
         or status.get("new_controlled_delivery_authorized") is not True
         or status.get("new_protected_dispatch_authorized") is not True
     ):
@@ -315,10 +319,10 @@ def _validate_contracts(root: Path) -> list[str]:
         semantic.get("status") != "BLOCKED_PROTECTED_BETA_FAILED"
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
-        or "T0702_ATTEMPTED_FAILED_NO_RERUN" not in semantic_statuses
+        or "T0702_SERIAL_ATTEMPTS_FAILED_NO_RERUN" not in semantic_statuses
         or "OWNER_STAGE7_COMPLETION_AUTHORIZED" not in semantic_statuses
         or "BLOCKED_PROTECTED_BETA" not in semantic_statuses
-        or "RESOLVED_DIAGNOSTIC_REPAIR_AUTHORIZED" not in semantic_statuses
+        or "RESOLVED_DIAGNOSTIC_REPAIR_DELIVERED" not in semantic_statuses
         or "RESOLVED_NO_CALENDAR_WAIT" not in semantic_statuses
     ):
         errors.append("Stage 7 semantic gate is incomplete or overstates production evidence")
@@ -937,12 +941,111 @@ def _validate_evidence(root: Path) -> list[str]:
         )
         if receipt_errors:
             errors.append("protected Beta execution receipt violates its exact schema")
+    ledger_path = root / PROTECTED_BETA_ATTEMPT_LEDGER
+    ledger_schema_path = root / PROTECTED_BETA_ATTEMPT_LEDGER_SCHEMA
+    try:
+        ledger = _load(ledger_path)
+        ledger_schema = _load(ledger_schema_path)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        errors.append("protected Beta serial attempt ledger is missing or unreadable")
+        ledger = {}
+        ledger_schema = {}
+    else:
+        ledger_errors = list(
+            Draft202012Validator(
+                ledger_schema,
+                format_checker=FormatChecker(),
+            ).iter_errors(ledger)
+        )
+        if ledger_errors:
+            errors.append("protected Beta serial attempt ledger violates its schema")
+        else:
+            attempts = ledger.get("attempts", [])
+            summary = ledger.get("summary", {})
+            expected_prs = (88, 92, 93, 94, 95)
+            expected_shas = (
+                "3ad418123f840d2d1a8f49f763ffe3e51ae8094e",  # pragma: allowlist secret
+                "508939423ce20b35c2c82936acd8f32b9f7c35fc",  # pragma: allowlist secret
+                "e702f1ad3fc6b0f9cef0dec7aaf2f1845191b856",  # pragma: allowlist secret
+                "e158c9664579460236033bb9b2c8e2b37344c72d",  # pragma: allowlist secret
+                "3d0de0bbfcdf7491857df6b9bb15a0544df6574c",  # pragma: allowlist secret
+            )
+            expected_runs = (
+                29998793639,
+                30008562905,
+                30010198526,
+                30011285627,
+                30012211355,
+            )
+            expected_classes = (
+                "NOT_AVAILABLE_IN_HISTORICAL_AGGREGATE",
+                "NOT_CLASSIFIED",
+                "INSTALLATION_NOT_FOUND",
+                "INSTALLATION_DISCOVERY_REJECTED",
+                "INSTALLATION_ZERO",
+            )
+            expected_summary = {
+                "controlled_main_deliveries": 5,
+                "protected_beta_dispatches": 5,
+                "protected_workflow_runs": 5,
+                "workflow_reruns": 0,
+                "alpha_gate_passes": 5,
+                "beta_passes": 0,
+                "beta_failures": 5,
+                "identity_plaintext_cleanup_passes": 5,
+                "latest_failure_phase": "GITHUB_APP_TOKEN",
+                "latest_installation_token_failure_class": "INSTALLATION_ZERO",
+                "gmail_mutations": 0,
+                "m3_runs": 0,
+                "processed_writes": 0,
+                "timeline_writes": 0,
+                "scheduled_runs": 0,
+                "t0702_complete": False,
+                "m3_allowed": False,
+                "production_health_claimed": False,
+                "final_acceptance_claimed": False,
+            }
+            if (
+                ledger.get("observed_through_utc") != "2026-07-23T13:41:54Z"
+                or len(attempts) != 5
+                or tuple(item.get("sequence") for item in attempts) != tuple(range(1, 6))
+                or tuple(item.get("pull_request_number") for item in attempts) != expected_prs
+                or tuple(item.get("merge_commit_sha") for item in attempts) != expected_shas
+                or tuple(item.get("workflow_head_sha") for item in attempts) != expected_shas
+                or tuple(item.get("workflow_run_id") for item in attempts) != expected_runs
+                or tuple(
+                    item.get("public_failure", {}).get("installation_token_failure_class")
+                    for item in attempts
+                )
+                != expected_classes
+                or any(item.get("alpha_gate", {}).get("status") != "PASS" for item in attempts)
+                or any(item.get("beta_raw_only", {}).get("status") != "FAILED" for item in attempts)
+                or any(
+                    item.get("identity_plaintext_cleanup", {}).get("status") != "PASS"
+                    for item in attempts
+                )
+                or attempts[0].get("public_failure", {}).get("failure_phase")
+                != "UNDETERMINED_AGGREGATE_ONLY"
+                or attempts[0].get("public_failure", {}).get("reason_code")
+                != "PROTECTED_BETA_RUN_FAILED"
+                or any(
+                    item.get("public_failure", {}).get("failure_phase") != "GITHUB_APP_TOKEN"
+                    for item in attempts[1:]
+                )
+                or any(
+                    item.get("public_failure", {}).get("reason_code")
+                    != "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED"
+                    for item in attempts[1:]
+                )
+                or any(any(item.get("effects", {}).values()) for item in attempts)
+                or summary != expected_summary
+            ):
+                errors.append("protected Beta serial attempt ledger is not exact or fail closed")
     graph = _load(root / "machine/contracts/task_graph.json")
     graph_tasks = {item["id"]: item for item in graph["tasks"] if item["stage_id"] == "S7"}
     required_blockers = {
         "T0702": {
-            "PROTECTED_BETA_ATTEMPT_FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT",
-            "PROTECTED_BETA_EXACT_ROOT_CAUSE_UNDETERMINED",
+            "PROTECTED_BETA_GITHUB_APP_INSTALLATION_ZERO",
             "S7AC_002_NOT_SATISFIED",
         },
         "T0704": {
@@ -1061,7 +1164,7 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("scoped_preflight")
         != "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
         or latest.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
-        or latest.get("scope") != "LOCAL_PREFLIGHT_WITH_PROTECTED_EXECUTION_RECEIPT"
+        or latest.get("scope") != "LOCAL_PREFLIGHT_WITH_PROTECTED_ATTEMPT_LEDGER"
         or latest.get("mechanism_task_oracle_files_passed") != 8
         or latest.get("task_total") != 8
         or latest.get("completed_task_count") != 0
@@ -1069,12 +1172,11 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("protected_oracles_executed") != 2
         or latest.get("protected_oracles_passed") != 1
         or latest.get("protected_oracles_failed") != 1
-        or latest.get("protected_workflow_runs") != 1
+        or latest.get("protected_workflow_runs") != 5
         or latest.get("production_workflow_runs") != 0
         or observation.get("alpha_local_synthetic") != "PASS"
         or observation.get("beta_local_bootstrap_mechanism") != "PASS"
-        or observation.get("beta_public_safe_failure_diagnostics")
-        != "LOCAL_READY_AUTHORIZED_FOR_DELIVERY"
+        or observation.get("beta_public_safe_failure_diagnostics") != "DELIVERED_MAIN_OBSERVED"
         or observation.get("m3_local_synthetic_mechanism") != "PASS"
         or observation.get("blue_green_timeline_local_mechanism") != "PASS"
         or observation.get("ga_full_pipeline_local_mechanism") != "PASS"
@@ -1082,16 +1184,17 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("recovery_drill_local_mechanism") != "PASS"
         or observation.get("patch_lifecycle_local_policy") != "PASS"
         or observation.get("alpha_remote_preflight") != "PASS"
-        or observation.get("beta_real_raw_only") != "FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT"
+        or observation.get("beta_real_raw_only") != "FAILED_GITHUB_APP_INSTALLATION_ZERO"
         or any(observation.get(key) != "NOT_RUN" for key in not_run)
         or observation.get("protected_gmail_read_path")
         != "ATTEMPTED_EXACT_CALL_COUNT_NOT_DISCLOSED"
         or observation.get("gmail_mutations") != 0
         or observation.get("verified_full_raw_reads") != "UNDETERMINED_WITHIN_BUDGET_ONE"
-        or observation.get("protected_private_repository_path") != "ATTEMPTED_NO_RAW_COMMIT"
+        or observation.get("protected_private_repository_path")
+        != "LATEST_ATTEMPT_BLOCKED_BEFORE_REPOSITORY_RESOLUTION_NO_RAW_COMMIT"
         or observation.get("protected_secret_injection")
         != "SIX_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED"
-        or observation.get("controlled_main_deliveries") != 1
+        or observation.get("controlled_main_deliveries") != 5
         or any(
             observation.get(key) != 0
             for key in (
@@ -1106,12 +1209,12 @@ def _validate_evidence(root: Path) -> list[str]:
         or not aggregate_required_blockers.issubset(latest.get("blocking_conditions", []))
         or aggregate_resolved_blockers.intersection(latest.get("blocking_conditions", []))
         or latest.get("delivery_status")
-        != "CONTROLLED_BETA_MAIN_DELIVERY_MERGED_LOCAL_RECEIPT_NOT_PUBLISHED"
+        != "CONTROLLED_STAGE7_REPAIRS_MERGED_INSTALLATION_ZERO_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "Deliver the bounded public-safe diagnostic repair to main, dispatch one new "
-            "first-attempt protected Beta for the exact merged SHA, and keep M3 blocked "
-            "until that Beta passes."
+            "Install the existing least-privilege GitHub App on exactly the one private "
+            "data repository, then dispatch a new exact-main attempt 1; keep M3 blocked "
+            "until protected Beta passes."
         )
     ):
         errors.append("Stage 7 aggregate evidence is not truthfully blocked")
@@ -1214,13 +1317,13 @@ def evaluate_stage7(
             "protected_oracles_executed": 2,
             "protected_oracles_passed": 1,
             "protected_oracles_failed": 1,
-            "protected_workflow_runs": 1,
+            "protected_workflow_runs": 5,
             "production_workflow_runs": 0,
             "protected_gmail_read_path": "ATTEMPTED_EXACT_CALL_COUNT_NOT_DISCLOSED",
             "gmail_mutations": 0,
             "verified_full_raw_reads": "UNDETERMINED_WITHIN_BUDGET_ONE",
             "private_raw_commits": 0,
-            "controlled_main_deliveries": 1,
+            "controlled_main_deliveries": 5,
             "remote_publications": 0,
             "final_acceptances_passed": 0,
         },

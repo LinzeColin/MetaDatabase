@@ -979,3 +979,63 @@ def test_t0702_failed_protected_attempt_is_bound_and_cannot_claim_completion() -
     assert receipt["diagnosis"]["exact_root_cause"] == "UNDETERMINED_BY_AGGREGATE_ONLY_LOGGING"
     assert receipt["stop_decision"]["status"] == "STOP_CURRENT_RUN"
     assert not any(receipt["claims"].values())
+
+
+def test_t0702_serial_attempt_ledger_is_exact_first_attempt_only_and_fail_closed() -> None:
+    ledger = json.loads(
+        (PROJECT_ROOT / "machine/stages/S7/reviews/t0702/attempt-ledger.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    schema = json.loads(
+        (
+            PROJECT_ROOT / "machine/stages/S7/schemas/protected-beta-attempt-ledger-v1.schema.json"
+        ).read_text(encoding="utf-8")
+    )
+    errors = list(Draft202012Validator(schema).iter_errors(ledger))
+    assert errors == []
+
+    attempts = ledger["attempts"]
+    assert [item["sequence"] for item in attempts] == [1, 2, 3, 4, 5]
+    assert [item["pull_request_number"] for item in attempts] == [88, 92, 93, 94, 95]
+    assert [item["workflow_run_id"] for item in attempts] == [
+        29998793639,
+        30008562905,
+        30010198526,
+        30011285627,
+        30012211355,
+    ]
+    assert all(item["workflow_attempt"] == 1 for item in attempts)
+    assert all(item["workflow_head_sha"] == item["merge_commit_sha"] for item in attempts)
+    assert all(item["alpha_gate"]["status"] == "PASS" for item in attempts)
+    assert all(item["beta_raw_only"]["status"] == "FAILED" for item in attempts)
+    assert all(item["identity_plaintext_cleanup"]["status"] == "PASS" for item in attempts)
+    assert all(not any(item["effects"].values()) for item in attempts)
+    assert [item["public_failure"]["installation_token_failure_class"] for item in attempts] == [
+        "NOT_AVAILABLE_IN_HISTORICAL_AGGREGATE",
+        "NOT_CLASSIFIED",
+        "INSTALLATION_NOT_FOUND",
+        "INSTALLATION_DISCOVERY_REJECTED",
+        "INSTALLATION_ZERO",
+    ]
+    assert ledger["summary"] == {
+        "controlled_main_deliveries": 5,
+        "protected_beta_dispatches": 5,
+        "protected_workflow_runs": 5,
+        "workflow_reruns": 0,
+        "alpha_gate_passes": 5,
+        "beta_passes": 0,
+        "beta_failures": 5,
+        "identity_plaintext_cleanup_passes": 5,
+        "latest_failure_phase": "GITHUB_APP_TOKEN",
+        "latest_installation_token_failure_class": "INSTALLATION_ZERO",
+        "gmail_mutations": 0,
+        "m3_runs": 0,
+        "processed_writes": 0,
+        "timeline_writes": 0,
+        "scheduled_runs": 0,
+        "t0702_complete": False,
+        "m3_allowed": False,
+        "production_health_claimed": False,
+        "final_acceptance_claimed": False,
+    }

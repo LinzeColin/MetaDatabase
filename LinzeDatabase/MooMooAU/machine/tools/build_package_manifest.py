@@ -184,9 +184,10 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
             "Owner-directed RMD-06 sequence: private Governance dependency authentication "
-            "plus one historical T0702 protected Raw-only delivery and failed dispatch, followed "
-            "by a validated diagnostic repair, removal of fixed Stage 7 calendar waits and "
-            "explicit authorization for controlled Stage 7 completion"
+            "plus one historical T0702 protected Raw-only delivery, then four controlled "
+            "diagnostic repair deliveries and distinct first-attempt dispatches, removal of "
+            "fixed Stage 7 calendar waits and explicit authorization for controlled Stage 7 "
+            "completion"
         ),
         "scope": (
             "Baseline-preserving v1.0.6 project snapshot: immutable v1.0.1 product contracts "
@@ -195,15 +196,14 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "fork pull requests, corrected pre-runner expression contexts, deterministic "
             "workflow validation, the coupled sole delivery-status authority, a manual main-only "
             "six-Secret T0702 protected Raw-only entrypoint with same-tree Alpha and aggregate "
-            "Beta gates, one aggregate-only failed protected execution receipt, and generated "
-            "human documentation. The receipt proves the remote Alpha pass, protected Beta "
-            "failure before the first remote Raw commit, zero Gmail mutation/M3/Processed/"
-            "Timeline effects and no final publication; it does not claim an exact internal "
-            "failure cause, T0702 completion, production health or final Acceptance. The local "
-            "repair adds public-safe phase diagnostics and replaces fixed M3/Blue-Green day "
-            "counts with bounded deterministic evidence gates. A new completion Run Contract "
-            "authorizes controlled repair delivery and serial first-attempt protected execution "
-            "while preserving Beta zero-mutation and every predecessor gate."
+            "Beta gates, the immutable historical receipt, an exact five-run serial attempt "
+            "ledger, and generated human documentation. Every run used workflow attempt 1, "
+            "passed same-tree Alpha and identity cleanup, and produced zero Raw/Gmail mutation/"
+            "M3/Processed/Timeline effects. The delivered public-safe repair narrowed the latest "
+            "failure to GITHUB_APP_TOKEN / INSTALLATION_ZERO without claiming T0702 completion, "
+            "production health or final Acceptance. Fixed M3/Blue-Green day counts are replaced "
+            "by bounded deterministic evidence gates; the completion Run Contract preserves "
+            "Beta zero-mutation and every predecessor gate."
         ),
         "status_authority": "machine/status/latest.json",
         "predecessor": {

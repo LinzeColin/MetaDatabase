@@ -4,7 +4,7 @@
   "stage_id": "S7",
   "task_id": "T0702",
   "stage_acceptance_id": "S7AC-002",
-  "observed_at_utc": "2026-07-23T11:06:41Z",
+  "observed_at_utc": "2026-07-23T13:41:54Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "record_status": "BLOCKED",
   "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
@@ -26,6 +26,7 @@
     {"id": "zero_recovered_raw_cannot_claim_beta", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_entrypoint_blocks_zero_recovered_raw_without_claiming_beta"},
     {"id": "manual_main_only_raw_only_workflow", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_workflow_is_manual_main_only_and_exact_six_secret"},
     {"id": "protected_attempt_receipt_fail_closed", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0702/execution-receipt.json"},
+    {"id": "serial_first_attempt_ledger_exact_and_fail_closed", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0702/attempt-ledger.json and tests/tasks/test_t0702.py::test_t0702_serial_attempt_ledger_is_exact_first_attempt_only_and_fail_closed"},
     {"id": "public_failure_taxonomy_closed_and_schema_bound", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_beta_diagnostics.py, machine/stages/S7/schemas/protected-beta-public-failure-v1.schema.json and tests/tasks/test_t0702.py::test_t0702_public_failure_taxonomy_is_closed_schema_valid_and_redacted"},
     {"id": "every_reachable_failure_phase_wired_without_dynamic_output", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_every_reachable_failure_phase_is_wired_without_dynamic_output"},
     {"id": "cleanup_failure_classified_after_all_cleanup_actions", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_cleanup_failure_is_bounded_and_all_cleanup_actions_run"},
@@ -37,10 +38,10 @@
     {"id": "AC-007", "status": "NOT_RUN", "reason": "The private repository remained at its 64-byte one-file baseline, so no Raw ciphertext was committed or remotely recovered."}
   ],
   "production_oracles": [
-    {"id": "PROTECTED_BETA_REAL_RAW_ONLY", "status": "FAILED", "reason": "The only authorized first-attempt workflow reached the protected Beta execution step but returned PROTECTED_BETA_RUN_FAILED before the first remote Raw commit; the exact internal cause is not observable from its aggregate-only log."}
+    {"id": "PROTECTED_BETA_REAL_RAW_ONLY", "status": "FAILED", "reason": "Five distinct exact-main workflow_dispatch runs each used attempt 1, passed the same-tree Alpha gate and identity cleanup, and failed Beta without Raw or Gmail mutation; the latest fixed public-safe result is GITHUB_APP_TOKEN / INSTALLATION_ZERO."}
   ],
   "protected_execution_receipt": "machine/stages/S7/reviews/t0702/execution-receipt.json",
-  "blockers": ["PROTECTED_BETA_ATTEMPT_FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT", "PROTECTED_BETA_EXACT_ROOT_CAUSE_UNDETERMINED", "S7AC_002_NOT_SATISFIED"],
+  "blockers": ["PROTECTED_BETA_GITHUB_APP_INSTALLATION_ZERO", "S7AC_002_NOT_SATISFIED"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "Deliver the local public-safe diagnostic repair to main and dispatch one new first-attempt protected Beta for the exact merged SHA; keep M3 blocked until Beta passes."
+  "next_action": "Install the existing least-privilege GitHub App on exactly the one private data repository, then dispatch a new exact-main attempt 1; keep M3 blocked until protected Beta passes."
 }

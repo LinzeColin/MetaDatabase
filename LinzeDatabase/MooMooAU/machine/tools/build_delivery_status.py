@@ -43,6 +43,10 @@ PROTECTED_BETA_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0702/execution-re
 PROTECTED_BETA_RECEIPT_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-beta-execution-receipt-v1.schema.json"
 )
+PROTECTED_BETA_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0702/attempt-ledger.json")
+PROTECTED_BETA_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-beta-attempt-ledger-v1.schema.json"
+)
 
 
 def _load(path: Path) -> Any:
@@ -106,6 +110,42 @@ def _protected_beta_receipt(root: Path) -> dict[str, Any] | None:
     ):
         raise ValueError("protected Beta receipt violates its exact schema")
     return cast(dict[str, Any], receipt)
+
+
+def _protected_beta_attempt_ledger(root: Path) -> dict[str, Any]:
+    path = root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH
+    schema_path = root / PROTECTED_BETA_ATTEMPT_LEDGER_SCHEMA_PATH
+    if (
+        not path.is_file()
+        or path.is_symlink()
+        or not schema_path.is_file()
+        or schema_path.is_symlink()
+    ):
+        raise ValueError("protected Beta serial attempt ledger path is unsafe")
+    schema = _load(schema_path)
+    ledger = _load(path)
+    if list(
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(ledger)
+    ):
+        raise ValueError("protected Beta serial attempt ledger violates its schema")
+    summary = ledger.get("summary", {})
+    attempts = ledger.get("attempts", [])
+    if (
+        len(attempts) != 5
+        or summary.get("controlled_main_deliveries") != 5
+        or summary.get("protected_beta_dispatches") != 5
+        or summary.get("protected_workflow_runs") != 5
+        or summary.get("workflow_reruns") != 0
+        or summary.get("latest_failure_phase") != "GITHUB_APP_TOKEN"
+        or summary.get("latest_installation_token_failure_class") != "INSTALLATION_ZERO"
+        or summary.get("t0702_complete") is not False
+        or summary.get("m3_allowed") is not False
+    ):
+        raise ValueError("protected Beta serial attempt ledger is not the exact observed state")
+    return cast(dict[str, Any], ledger)
 
 
 def _assurance_result(root: Path) -> dict[str, Any]:
@@ -268,6 +308,7 @@ def build_status(
         raise ValueError("delivery status model identity mismatch")
     _verify_inherited_contracts(root, model)
     protected_receipt = _protected_beta_receipt(root)
+    protected_attempt_ledger = _protected_beta_attempt_ledger(root)
     state_name, state = _select_transition_state(
         model,
         _assurance_result(root) if assurance_result is None else assurance_result,
@@ -358,6 +399,7 @@ def build_status(
     observed_at.append(str(composition["observed_at_utc"]))
     if protected_receipt is not None:
         observed_at.append(str(protected_receipt["observed_at_utc"]))
+    observed_at.append(str(protected_attempt_ledger["observed_through_utc"]))
     formal_counts = Counter(task["status"] for task in tasks)
     if formal_counts != Counter({"completed": 7, "planned": 51}):
         raise ValueError("formal task status is not the inherited 7 completed / 51 planned state")
@@ -469,6 +511,9 @@ def build_status(
         source_digests["protected_beta_execution_receipt_sha256"] = _sha256(
             root / PROTECTED_BETA_RECEIPT_PATH
         )
+    source_digests["protected_beta_attempt_ledger_sha256"] = _sha256(
+        root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH
+    )
 
     return {
         "schema_version": "moomooau.delivery-status.v1",
@@ -521,7 +566,11 @@ def build_status(
             },
             "publication": {
                 "status": publication_status,
-                "controlled_main_deliveries": 1 if failed_beta_state else 0,
+                "controlled_main_deliveries": (
+                    protected_attempt_ledger["summary"]["controlled_main_deliveries"]
+                    if failed_beta_state
+                    else 0
+                ),
                 "remote_publications": prohibition_totals["remote_publication"],
             },
         },

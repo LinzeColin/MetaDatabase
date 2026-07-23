@@ -412,18 +412,18 @@ def test_t0708_stage7_aggregate_is_truthfully_blocked_until_protected_oracles() 
     assert aggregate["observation"]["protected_patch_lifecycle"] == "NOT_RUN"
     assert aggregate["implementation_completion_status"] == "LOCAL_MECHANISMS_READY"
     assert aggregate["observation"]["alpha_remote_preflight"] == "PASS"
-    assert aggregate["observation"]["beta_real_raw_only"] == "FAILED_BEFORE_FIRST_REMOTE_RAW_COMMIT"
+    assert aggregate["observation"]["beta_real_raw_only"] == "FAILED_GITHUB_APP_INSTALLATION_ZERO"
     assert (
         aggregate["observation"]["beta_public_safe_failure_diagnostics"]
-        == "LOCAL_READY_AUTHORIZED_FOR_DELIVERY"
+        == "DELIVERED_MAIN_OBSERVED"
     )
     assert aggregate["protected_oracles_executed"] == 2
     assert aggregate["protected_oracles_passed"] == 1
     assert aggregate["protected_oracles_failed"] == 1
-    assert aggregate["protected_workflow_runs"] == 1
+    assert aggregate["protected_workflow_runs"] == 5
     assert aggregate["production_workflow_runs"] == 0
     assert aggregate["final_acceptances_passed"] == 0
     assert (
         aggregate["delivery_status"]
-        == "CONTROLLED_BETA_MAIN_DELIVERY_MERGED_LOCAL_RECEIPT_NOT_PUBLISHED"
+        == "CONTROLLED_STAGE7_REPAIRS_MERGED_INSTALLATION_ZERO_NOT_FINAL"
     )
