@@ -2,8 +2,9 @@
 
 ## 当前目标与状态
 
-- 当前唯一 Run Contract 是 `RMD-06` 的 GitHub-hosted 非生产预检；不得进入真实 Gmail、私有数据仓、
-  protected Oracle、生产运行、部署、最终 Acceptance 或最终发布。
+- `RMD-06` 的 GitHub-hosted 非生产预检 Run Contract 已完成；下一 Run Contract 尚未开始。不得把
+  本轮结果解释为真实 Gmail、私有数据仓、protected Oracle、生产运行、部署、最终 Acceptance 或
+  最终发布。
 - 当前控制包为 `MMAU-ARCHIVE-TP-2026-07-23-V1.0.6`。它原样继承 v1.0.1 的 34 RQ、34 AC、
   58-task DAG、Kill Criteria 与十条不变量，并将 v1.0.5 作为不可变直接前序。
 - 唯一当前状态权威是 `machine/status/latest.json`：本地机制证据完整，受保护 Oracle 0/43，
@@ -113,6 +114,16 @@
     historical BLOCKED 且 tree unchanged 的 Workflow matrix、package/status/facts/Manifest/
     Governance/composition、34/34 结构有效且全部 BLOCKED 的 Acceptance、publication findings 0、
     零已知漏洞 audit 与 SBOM byte-equal；生产、protected Oracle 与 final Acceptance 仍未执行。
+20. commit `2e1dda85a9bc85fb656eb6b6abb8f775bfef9292` 的第五轮 GitHub-hosted 非生产预检已精确
+    生成 9 个 Workflow 且全部 `completed/success`：Stage 2 `29988365954`、patch lifecycle
+    `29988365982`、Stage 3 `29988365983`、Stage 5 `29988365985`、Stage 7 `29988365987`、
+    Stage 6 model assurance `29988365990`、Stage 6 software `29988365992`、Stage 1
+    `29988366012`、Stage 4 `29988366020`。提交前 fresh depth-1 clone 已证明
+    `is-shallow=true`、仅 1 个 commit、主线前序 Git object 不可达，并通过 package/status、
+    RMD-06 `17 passed`、Stage 6 structured/cumulative、最小 Stage 1 `13 passed` 与 build、
+    最小 Stage 2 T0101。远端候选分支已删除且没有 PR、merge 或发布；活跃 `/private/tmp` 中的
+    MooMooAU 生成物和 worktree 缓存均已移入可恢复的系统 Trash。该结果只关闭云端非生产预检，
+    不关闭任何 protected、真实数据或生产验收。
 
 ## 关键边界
 
@@ -125,9 +136,9 @@
 
 ## 下一步
 
-1. 重建派生状态、治理事实、文档与 v1.0.6 Manifest，复核全套本地门、最小依赖与 depth-1 clone。
-2. 仅向同一受控 RMD-06 候选分支 push 第五轮修复 commit，并观察全部 GitHub-hosted 非生产 Workflow
-   到终态；任一失败或未知均停止。
-3. 第五轮全绿后记录 commit/run 证据并删除远端候选分支；RMD-06 后续仍按
-   Beta → M3 → Timeline Blue-Green → GA → Recovery →
-   最终 AC 顺序推进，任何未知或失败结果立即停止。
+1. 下一次独立 Run Contract 只能进入 RMD-06 Beta；开始前重新验证 protected registries、最小
+   凭据面、消息预算、Kill Criteria 和零 collateral 停止条件，任何未知或缺失立即停止。
+2. Beta 关闭后仍按 M3 → Timeline Blue-Green → GA → Recovery → 最终 AC 顺序推进，每次 Run
+   最多解决一个阶段，不得把本轮 GitHub-hosted 预检当作后续阶段证据。
+3. 仅在整体任务包全部完成后执行整体复审；解决复审发现后再做最终 GitHub 上传、PR/merge 与上线
+   交付，中间阶段不得保留临时候选分支。
