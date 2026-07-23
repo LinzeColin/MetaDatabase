@@ -66,11 +66,18 @@ def _synthetic_age_envelope() -> bytes:
 
 
 def _token_response(
-    repository_id: int, now: datetime, *, extra_repository: bool = False
+    repository_id: int,
+    now: datetime,
+    *,
+    extra_repository: bool = False,
+    permissions: object = None,
 ) -> HttpResponse:
     repositories = [{"id": repository_id, "name": "synthetic-target"}]
     if extra_repository:
         repositories.append({"id": repository_id + 1})
+    response_permissions = (
+        {"contents": "write", "metadata": "read"} if permissions is None else permissions
+    )
     return HttpResponse(
         201,
         json.dumps(
@@ -78,7 +85,7 @@ def _token_response(
                 "token": "synthetic-installation-token",
                 "expires_at": (now + timedelta(hours=1)).isoformat().replace("+00:00", "Z"),
                 "repositories": repositories,
-                "permissions": {"contents": "write", "metadata": "read"},
+                "permissions": response_permissions,
             },
             sort_keys=True,
         ).encode(),
@@ -123,6 +130,71 @@ def test_t0204_mints_short_token_for_exactly_one_repository_and_verifies_rs256()
     )
     assert encoded_jwt not in repr(request)
     token.destroy()
+    secret.destroy()
+
+
+def test_t0204_accepts_token_response_without_mandatory_metadata_echo() -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    config = TargetRepositoryConfig(repository_id=7100010, installation_id=8100010)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    secret = SecretBytes(
+        private_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        )
+    )
+    transport = TokenTransport(
+        _token_response(config.repository_id, now, permissions={"contents": "write"})
+    )
+    client = GitHubInstallationTokenClient(
+        GitHubEndpointGuard(transport, config),
+        config,
+        GitHubAppJwtSigner(9100010, secret),
+    )
+
+    token = client.mint(now)
+
+    assert token.expires_at - now == timedelta(hours=1)
+    token.destroy()
+    secret.destroy()
+
+
+@pytest.mark.parametrize(
+    "permissions",
+    (
+        {"contents": "read"},
+        {"metadata": "read"},
+        {"contents": "write", "metadata": "write"},
+        {"contents": "write", "issues": "read"},
+    ),
+)
+def test_t0204_rejects_weak_or_additional_token_response_permissions(
+    permissions: dict[str, str],
+) -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    config = TargetRepositoryConfig(repository_id=7100011, installation_id=8100011)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    secret = SecretBytes(
+        private_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        )
+    )
+    client = GitHubInstallationTokenClient(
+        GitHubEndpointGuard(
+            TokenTransport(_token_response(config.repository_id, now, permissions=permissions)),
+            config,
+        ),
+        config,
+        GitHubAppJwtSigner(9100011, secret),
+    )
+
+    with pytest.raises(GitHubInstallationTokenError) as error:
+        client.mint(now)
+
+    assert error.value.failure_class is InstallationTokenFailureClass.RESPONSE_SCOPE_REJECTED
     secret.destroy()
 
 
