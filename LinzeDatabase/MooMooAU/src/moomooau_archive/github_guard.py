@@ -49,6 +49,7 @@ class InstallationTokenFailureClass(StrEnum):
     AUTHENTICATION_REJECTED = "AUTHENTICATION_REJECTED"
     AUTHORIZATION_REJECTED = "AUTHORIZATION_REJECTED"
     INSTALLATION_NOT_FOUND = "INSTALLATION_NOT_FOUND"
+    INSTALLATION_DISCOVERY_REJECTED = "INSTALLATION_DISCOVERY_REJECTED"
     REQUEST_REJECTED = "REQUEST_REJECTED"
     REMOTE_SERVICE_FAILED = "REMOTE_SERVICE_FAILED"
     RESPONSE_INVALID = "RESPONSE_INVALID"
@@ -67,6 +68,7 @@ class GitHubInstallationTokenError(GitHubBoundaryError):
 
 class GitHubOperation(StrEnum):
     REPOSITORY_RESOLVE = "repository.resolve"
+    INSTALLATION_DISCOVER = "installation.discover"
     INSTALLATION_TOKEN = "installation.token"
     CONTENT_READ = "contents.read"
     CONTENT_WRITE = "contents.write"
@@ -171,6 +173,7 @@ class GitHubEndpointGuard:
         self._transport = transport
         self._config = config
         self._locator: RepositoryLocator | None = None
+        self._discovered_installation_id: int | None = None
         self._allowed_calls = 0
         self._blocked_calls = 0
 
@@ -182,6 +185,15 @@ class GitHubEndpointGuard:
         if locator.repository_id != self._config.repository_id:
             raise GitHubBoundaryError("resolved repository ID does not match protected target")
         self._locator = locator
+
+    def bind_discovered_installation(self, installation_id: int) -> None:
+        if (
+            type(installation_id) is not int
+            or installation_id <= 0
+            or self._discovered_installation_id is not None
+        ):
+            raise GitHubBoundaryError("discovered installation binding is invalid")
+        self._discovered_installation_id = installation_id
 
     def send(self, request: HttpRequest) -> HttpResponse:
         try:
@@ -222,7 +234,21 @@ class GitHubEndpointGuard:
             self._require_empty(request, query)
             return GitHubOperation.REPOSITORY_RESOLVE
 
-        token_path = f"/app/installations/{self._config.installation_id}/access_tokens"
+        if (
+            parsed.hostname == "api.github.com"
+            and request.method == "GET"
+            and parsed.path == "/app/installations"
+        ):
+            if query != [("per_page", "2")] or request.body is not None:
+                raise GitHubBoundaryError("installation discovery request is not bounded")
+            return GitHubOperation.INSTALLATION_DISCOVER
+
+        active_installation_id = (
+            self._discovered_installation_id
+            if self._discovered_installation_id is not None
+            else self._config.installation_id
+        )
+        token_path = f"/app/installations/{active_installation_id}/access_tokens"
         if (
             parsed.hostname == "api.github.com"
             and request.method == "POST"
@@ -474,27 +500,20 @@ class GitHubInstallationTokenClient:
             }
         )
         try:
-            request = HttpRequest(
-                "POST",
-                GITHUB_API_ORIGIN
-                + f"/app/installations/{self._config.installation_id}/access_tokens",
-                headers=(
-                    ("Accept", "application/vnd.github+json"),
-                    ("Authorization", "Bearer " + app_jwt.reveal()),
-                    ("X-GitHub-Api-Version", GITHUB_API_VERSION),
-                ),
-                body=body,
+            response = self._send_token_request(
+                app_jwt,
+                self._config.installation_id,
+                body,
             )
-            try:
-                response = self._guard.send(request)
-            except GitHubBoundaryError as exc:
-                raise GitHubInstallationTokenError(
-                    InstallationTokenFailureClass.LOCAL_BOUNDARY_REJECTED
-                ) from exc
-            except Exception as exc:
-                raise GitHubInstallationTokenError(
-                    InstallationTokenFailureClass.TRANSPORT_FAILED
-                ) from exc
+            if response.status == 404:
+                installation_id = self._discover_unique_installation(app_jwt)
+                try:
+                    self._guard.bind_discovered_installation(installation_id)
+                except GitHubBoundaryError as exc:
+                    raise GitHubInstallationTokenError(
+                        InstallationTokenFailureClass.LOCAL_BOUNDARY_REJECTED
+                    ) from exc
+                response = self._send_token_request(app_jwt, installation_id, body)
         finally:
             app_jwt.destroy()
         if response.status != 201:
@@ -534,6 +553,83 @@ class GitHubInstallationTokenClient:
                 InstallationTokenFailureClass.RESPONSE_SCOPE_REJECTED
             )
         return InstallationToken(SecretText(token), expires_at)
+
+    def _send_token_request(
+        self,
+        app_jwt: SecretText,
+        installation_id: int,
+        body: bytes,
+    ) -> HttpResponse:
+        request = HttpRequest(
+            "POST",
+            GITHUB_API_ORIGIN + f"/app/installations/{installation_id}/access_tokens",
+            headers=(
+                ("Accept", "application/vnd.github+json"),
+                ("Authorization", "Bearer " + app_jwt.reveal()),
+                ("X-GitHub-Api-Version", GITHUB_API_VERSION),
+            ),
+            body=body,
+        )
+        try:
+            return self._guard.send(request)
+        except GitHubBoundaryError as exc:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.LOCAL_BOUNDARY_REJECTED
+            ) from exc
+        except Exception as exc:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.TRANSPORT_FAILED
+            ) from exc
+
+    def _discover_unique_installation(self, app_jwt: SecretText) -> int:
+        request = HttpRequest(
+            "GET",
+            GITHUB_API_ORIGIN + "/app/installations?per_page=2",
+            headers=(
+                ("Accept", "application/vnd.github+json"),
+                ("Authorization", "Bearer " + app_jwt.reveal()),
+                ("X-GitHub-Api-Version", GITHUB_API_VERSION),
+            ),
+        )
+        try:
+            response = self._guard.send(request)
+        except GitHubBoundaryError as exc:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.LOCAL_BOUNDARY_REJECTED
+            ) from exc
+        except Exception as exc:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.TRANSPORT_FAILED
+            ) from exc
+        if response.status != 200:
+            failure_class = {
+                401: InstallationTokenFailureClass.AUTHENTICATION_REJECTED,
+                403: InstallationTokenFailureClass.AUTHORIZATION_REJECTED,
+            }.get(response.status, InstallationTokenFailureClass.REMOTE_SERVICE_FAILED)
+            raise GitHubInstallationTokenError(failure_class)
+        try:
+            payload = json.loads(response.body)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.RESPONSE_INVALID
+            ) from exc
+        if not isinstance(payload, list) or len(payload) != 1:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.INSTALLATION_DISCOVERY_REJECTED
+            )
+        installation = payload[0]
+        if (
+            not isinstance(installation, dict)
+            or type(installation.get("id")) is not int
+            or cast(int, installation["id"]) <= 0
+            or installation.get("suspended_at") is not None
+            or installation.get("repository_selection") != "selected"
+            or installation.get("permissions") != {"contents": "write", "metadata": "read"}
+        ):
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.INSTALLATION_DISCOVERY_REJECTED
+            )
+        return cast(int, installation["id"])
 
 
 def content_url(locator: RepositoryLocator, relative_path: str) -> str:
