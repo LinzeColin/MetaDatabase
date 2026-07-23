@@ -50,6 +50,33 @@
     cumulative PASS + 4 个 historical expected-BLOCKED，tree unchanged；Stage 7 preflight
     命令成功且准确保持 `BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES`。所有外部写入、生产运行、
     protected Oracle、final Acceptance PASS 与发布计数仍为 0。
+12. commit `0855a745e6e85cd9a6579745c5cb517e917c984c` 的第二轮 GitHub-hosted 预检已全部到
+    终态：Stage 6 Codex policy assurance 为唯一 `success`；Stage 1/2/3/4/5、Stage 6
+    software、Stage 7 与 patch lifecycle 共 8 个 Workflow 为 `failure`；Stage 2–6 的
+    5 个 CodeQL job 独立 `success`，push 上的 dependency-review 按契约 `skipped`。Run IDs：
+    `29983372173`、`29983372175`、`29983372181`、`29983372188`、`29983372190`、
+    `29983372197`、`29983372198`、`29983372202`、`29983372225`。
+13. 第二轮证明首轮三个直接根因已解除：全部 Governance checkout 成功；Stage 1 lint/type
+    成功；Stage 3 累计锁安装成功。8 个失败均汇聚到 `tests/tasks/test_t0101.py` 的 package
+    gate；depth-1 clean clone 复现为 delivery-status transition 仍把 v1.0.6 的 Stage 6
+    bundle 绑定到不可用的旧 Git anchor，报
+    `closed delivery state lacks candidate-bound Stage 6 evidence`。未读取生产 Secret，
+    未发生 Gmail、数据仓、部署、生产或发布写入。
+14. 第三项闭环修复改为可移植双层验证：v1.0.6 的当前 Stage 6 bundle 只做候选结构绑定；
+    关闭的 v1.0.5 前序则从其精确 Manifest 校验 82 个 Stage 6 evidence/review 权威文件的
+    完整集合与 SHA-256，不依赖旧 Git object。Acceptance remediation base 在完整仓库仍要求
+    Git ancestry；仅当仓库为 shallow checkout 且 v1.0.6 provenance 与代码同时精确固定
+    `932dafae972ab00c3e2259ba3a06f6deaa8e108d` 时允许无对象验证，其他值全部 fail closed。
+    目标 Ruff、strict mypy 与 `12 passed` RMD-06 回归已通过；独立 depth-1 clone 已确认
+    `is-shallow=true`、仅 1 个 commit 且旧 base object 不存在，并通过 immutable predecessor、
+    delivery status、package gate 及 T0101/RMD-06 合计 `13 passed`。
+15. 最终本地静态树已通过：`316 passed`；strict mypy `80 source files`；scoped Ruff
+    `131 files`；package `586 files`；34 个 Acceptance 全部结构有效且准确 `BLOCKED`；
+    Stage 1/2/6 与 Stage 7 scoped preflight PASS，Stage 7 生产状态仍为
+    `BLOCKED_IMPLEMENTATION_AND_PROTECTED_ORACLES`；Workflow matrix 为 4 个 cumulative PASS
+    + 4 个 historical expected-BLOCKED 且 tree unchanged；依赖审计零已知漏洞、SBOM byte-equal、
+    Secret/publication findings 均为 0。v1.0.5 Manifest、34 RQ/AC、traceability、58-task DAG、
+    Kill Criteria 与 canonical facts 的冻结 SHA-256 全部未变。
 
 ## 关键边界
 
@@ -62,9 +89,9 @@
 
 ## 下一步
 
-1. 复核最终 diff 与 v1.0.5 不可变前序，然后提交修复。
-2. 仅向同一受控 RMD-06 候选分支 push 修复 commit，并观察全部 GitHub-hosted 非生产 Workflow
+1. 复核最终 diff 与冻结哈希后提交当前第三项修复。
+2. 仅向同一受控 RMD-06 候选分支 push 该修复 commit，并观察全部 GitHub-hosted 非生产 Workflow
    到终态；任一失败或未知均停止。
-3. 第二轮全绿后记录 commit/run 证据并删除远端候选分支；RMD-06 后续仍按
+3. 第三轮全绿后记录 commit/run 证据并删除远端候选分支；RMD-06 后续仍按
    Beta → M3 → Timeline Blue-Green → GA → Recovery →
    最终 AC 顺序推进，任何未知或失败结果立即停止。

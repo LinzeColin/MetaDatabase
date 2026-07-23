@@ -30,6 +30,15 @@ from validate_delivery_status import validate as validate_delivery_status
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.6.json")
+RMD06_CLEAN_MAINLINE_BASE_COMMIT = (
+    "932dafae972ab00c3e2259ba3a06f6deaa8e108d"  # pragma: allowlist secret
+)
+CANDIDATE_SNAPSHOT = {
+    "repository": "LinzeColin/MetaDatabase",
+    "mainline_base_commit": RMD06_CLEAN_MAINLINE_BASE_COMMIT,
+    "acceptance_remediation_base_commit": RMD06_CLEAN_MAINLINE_BASE_COMMIT,
+    "shallow_checkout_fallback": "EXACT_PIN_ONLY",
+}
 
 
 def _sha256(path: Path) -> str:
@@ -103,6 +112,7 @@ def build_provenance() -> dict[str, Any]:
             "workflow_validator": "machine/tools/validate_workflow_matrix.py",
             "publication_status": "LOCAL_ONLY_NOT_PUBLISHED",
         },
+        "candidate_snapshot": CANDIDATE_SNAPSHOT,
         "semantic_delta": {
             "governance_visibility_changed": False,
             "dependency_credential_kind": "GITHUB_READ_ONLY_DEPLOY_KEY",
@@ -141,6 +151,7 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
     foundation_predecessor = provenance.get("foundation_predecessor", {})
     baseline_predecessor = provenance.get("baseline_predecessor", {})
     historical = provenance.get("historical_baseline", {})
+    candidate_snapshot = provenance.get("candidate_snapshot", {})
     semantic_delta = provenance.get("semantic_delta", {})
     if not isinstance(authorization, dict):
         authorization = {}
@@ -156,6 +167,8 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         baseline_predecessor = {}
     if not isinstance(historical, dict):
         historical = {}
+    if not isinstance(candidate_snapshot, dict):
+        candidate_snapshot = {}
     if not isinstance(semantic_delta, dict):
         semantic_delta = {}
     if (
@@ -206,6 +219,8 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         failures.append("v1.0.1 historical provenance mismatch")
     if provenance.get("inherited_contract_hashes") != INHERITED_CONTRACT_HASHES:
         failures.append("inherited contract provenance mismatch")
+    if candidate_snapshot != CANDIDATE_SNAPSHOT:
+        failures.append("RMD-06 clean candidate snapshot provenance mismatch")
     if semantic_delta != {
         "governance_visibility_changed": False,
         "dependency_credential_kind": "GITHUB_READ_ONLY_DEPLOY_KEY",

@@ -744,8 +744,8 @@
     },
     {
       "path": "machine/acceptance/evidence.py",
-      "bytes": 29070,
-      "sha256": "dd20d0bf98f1e6f7961a209977f615b348471b2d54ae51768c7d5a964398722c"
+      "bytes": 30994,
+      "sha256": "048f0fb6c8b40de78893d98afdbff175ddff35d1cbd8fe4d6e20288a11e5de3f"
     },
     {
       "path": "machine/acceptance/schemas/acceptance-evidence-v1.schema.json",
@@ -1644,8 +1644,8 @@
     },
     {
       "path": "machine/tools/build_delivery_status.py",
-      "bytes": 20686,
-      "sha256": "e153971f9cc8c369ed3add790188c72c277ad5ae8fec4d96ebf0b7b4fa32a61f"
+      "bytes": 21033,
+      "sha256": "c3a06597e621a61d0d85406e7f22b235d062988c413b8d24dd27020d67dad486"
     },
     {
       "path": "machine/tools/build_governance_facts.py",
@@ -1664,8 +1664,8 @@
     },
     {
       "path": "machine/tools/validate_assurance_reviews.py",
-      "bytes": 124531,
-      "sha256": "3a8586898bbffae9bbfdcf56b74e85115641fa8534aab9b65df3ed318879938c"
+      "bytes": 126817,
+      "sha256": "259ab423990a14978e8c222e695f2e21ac382e2d2310eefe0791c97275f08b74"
     },
     {
       "path": "machine/tools/validate_delivery_status.py",
@@ -1684,8 +1684,8 @@
     },
     {
       "path": "machine/tools/validate_package.py",
-      "bytes": 16387,
-      "sha256": "bb07293c5a7e275724c46b20522704a69ee9ec876db02bedb3d3e3f8440bac2e"
+      "bytes": 17085,
+      "sha256": "5efe8a7a00f2b3741ba7373ade712d38541f25a9ffdb134ec85a0263c4f66481"
     },
     {
       "path": "machine/tools/validate_production_composition.py",
@@ -2374,8 +2374,8 @@
     },
     {
       "path": "taskpack/SOURCE_PROVENANCE.v1.0.6.json",
-      "bytes": 3822,
-      "sha256": "1c8b85bc16213e0e799291098e5dd6bfe816cb5209596173d1370b9d44811c7c"
+      "bytes": 4106,
+      "sha256": "f00d46e9653158798e7a8f514ec28ebc8d20b4cbcbb335cdd6916ed794e787fb"
     },
     {
       "path": "testing/CHAOS_AND_RECOVERY.md",
@@ -2619,8 +2619,8 @@
     },
     {
       "path": "tests/remediation/test_rmd06.py",
-      "bytes": 7875,
-      "sha256": "8a87a1463f8dac97ced4cdd755eb7f9e064ec936c9b274c9dedc920876a39718"
+      "bytes": 14410,
+      "sha256": "70e14f30d0d386558b12b32b59588b19d5bfb1e39e1b1cd4889357ce892801e3"
     },
     {
       "path": "tests/stage3_support.py",

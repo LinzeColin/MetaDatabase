@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
+from typing import Any
 
+import build_delivery_status as delivery_status
+import pytest
 import validate_assurance_reviews as assurance_reviews
+import validate_package as package_validation
 from pytest import MonkeyPatch
 from validate_evidence import PROJECT_ROOT
 from validate_workflow_matrix import (
@@ -11,6 +16,8 @@ from validate_workflow_matrix import (
     validate_repository_workflow_contexts,
     validate_workflow_expression_contexts,
 )
+
+from machine.acceptance import evidence as acceptance_evidence
 
 
 def test_rmd06_rejects_runner_context_before_a_job_has_a_runner() -> None:
@@ -95,6 +102,7 @@ def test_rmd06_cloud_assurance_uses_the_immutable_predecessor_mode(
     assert result["status"] == "PASS", result["errors"]
     assert result["validation_mode"] == "IMMUTABLE_PACKAGE_PREDECESSOR"
     assert result["git_objects_required"] is False
+    assert result["immutable_authority_files"] > 0
 
     workflow = (
         PROJECT_ROOT.parents[1] / ".github/workflows/moomooau-stage6-model-assurance.yml"
@@ -121,12 +129,188 @@ def test_rmd06_immutable_predecessor_mode_rejects_manifest_drift(
             "errors": [],
         },
     )
+    monkeypatch.setattr(assurance_reviews, "RMD05_IMMUTABLE_AUTHORITY_PATHS", set())
+    monkeypatch.setattr(
+        assurance_reviews,
+        "RMD05_IMMUTABLE_AUTHORITY_PREFIX",
+        Path("no-synthetic-authorities"),
+    )
 
     assert assurance_reviews.evaluate_immutable_predecessor(root, tmp_path)["status"] == "PASS"
     predecessor.write_text("{}\n", encoding="utf-8")
     result = assurance_reviews.evaluate_immutable_predecessor(root, tmp_path)
     assert result["status"] == "BLOCKED"
     assert result["errors"] == ["immutable RMD-05 predecessor manifest differs"]
+
+
+def test_rmd06_immutable_predecessor_mode_rejects_authority_drift(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    root = tmp_path / "project"
+    authority_relative = Path("evidence/stage6/latest.json")
+    authority = root / authority_relative
+    authority.parent.mkdir(parents=True)
+    authority.write_text('{"status":"PASS"}\n', encoding="utf-8")
+    authority_sha256 = assurance_reviews._sha256_bytes(authority.read_bytes())
+
+    manifest_relative = Path("taskpack/predecessor.json")
+    manifest = root / manifest_relative
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text(
+        (f'{{"files":[{{"path":"evidence/stage6/latest.json","sha256":"{authority_sha256}"}}]}}\n'),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        assurance_reviews,
+        "evaluate_assurance_reviews",
+        lambda *_args, **_kwargs: {
+            "status": "PASS",
+            "history_integrity": "PASS",
+            "errors": [],
+        },
+    )
+    monkeypatch.setattr(
+        assurance_reviews,
+        "RMD05_PREDECESSOR_MANIFEST_PATH",
+        manifest_relative,
+    )
+    monkeypatch.setattr(
+        assurance_reviews,
+        "RMD05_PREDECESSOR_MANIFEST_SHA256",
+        assurance_reviews._sha256_bytes(manifest.read_bytes()),
+    )
+    monkeypatch.setattr(
+        assurance_reviews,
+        "RMD05_IMMUTABLE_AUTHORITY_PATHS",
+        {authority_relative},
+    )
+    monkeypatch.setattr(
+        assurance_reviews,
+        "RMD05_IMMUTABLE_AUTHORITY_PREFIX",
+        Path("machine/synthetic-reviews"),
+    )
+
+    assert assurance_reviews.evaluate_immutable_predecessor(root, tmp_path)["status"] == "PASS"
+    review_root = root / "machine/synthetic-reviews"
+    review_root.mkdir(parents=True)
+    extra_symlink = review_root / "unexpected.json"
+    extra_symlink.symlink_to(authority)
+    result = assurance_reviews.evaluate_immutable_predecessor(root, tmp_path)
+    assert result["status"] == "BLOCKED"
+    assert result["errors"] == ["immutable RMD-05 assurance authorities differ"]
+    extra_symlink.unlink()
+
+    authority.write_text('{"status":"DRIFT"}\n', encoding="utf-8")
+    result = assurance_reviews.evaluate_immutable_predecessor(root, tmp_path)
+    assert result["status"] == "BLOCKED"
+    assert result["errors"] == ["immutable RMD-05 assurance authorities differ"]
+
+
+def test_rmd06_delivery_status_uses_portable_stage6_binding_validation(
+    monkeypatch: MonkeyPatch,
+) -> None:
+    records = {
+        f"T060{index}": delivery_status._load(PROJECT_ROOT / f"evidence/tasks/T060{index}.json")
+        for index in range(1, 9)
+    }
+    repository_root = PROJECT_ROOT.parents[1]
+    observed_roots: list[Path | None] = []
+
+    def record_bundle_validation(
+        _root: Path,
+        candidate_repository_root: Path | None = None,
+    ) -> list[str]:
+        observed_roots.append(candidate_repository_root)
+        return []
+
+    monkeypatch.setattr(
+        delivery_status,
+        "validate_stage6_candidate_bundle",
+        record_bundle_validation,
+    )
+
+    delivery_status._validate_stage6_evidence_transition(
+        PROJECT_ROOT,
+        {"package_version": "1.0.6"},
+        records,
+        repository_root=repository_root,
+    )
+    delivery_status._validate_stage6_evidence_transition(
+        PROJECT_ROOT,
+        {"package_version": "1.0.5"},
+        records,
+        repository_root=repository_root,
+    )
+    assert observed_roots == [None, repository_root]
+
+
+def test_rmd06_shallow_acceptance_base_requires_the_exact_provenance_pin(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    root = tmp_path / "project"
+    provenance_path = root / acceptance_evidence.RMD06_SOURCE_PROVENANCE
+    provenance_path.parent.mkdir(parents=True)
+    provenance: dict[str, Any] = {
+        "schema_version": "moomooau.source-provenance.v7",
+        "effective_package": {"version": "1.0.6"},
+        "candidate_snapshot": {
+            "repository": "LinzeColin/MetaDatabase",
+            "mainline_base_commit": acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT,
+            "acceptance_remediation_base_commit": (
+                acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT
+            ),
+            "shallow_checkout_fallback": "EXACT_PIN_ONLY",
+        },
+    }
+    provenance_path.write_text(
+        json.dumps(provenance, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    def reject_missing_ancestor(_root: Path, _value: str, _field: str) -> None:
+        raise acceptance_evidence.AcceptanceEvidenceError("missing shallow object")
+
+    monkeypatch.setattr(
+        acceptance_evidence,
+        "_validate_commit_ancestor",
+        reject_missing_ancestor,
+    )
+    monkeypatch.setattr(acceptance_evidence, "_is_shallow_repository", lambda _root: True)
+
+    acceptance_evidence._validate_remediation_base(
+        root,
+        acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT,
+    )
+    with pytest.raises(acceptance_evidence.AcceptanceEvidenceError):
+        acceptance_evidence._validate_remediation_base(root, "0" * 40)
+
+    provenance["candidate_snapshot"]["shallow_checkout_fallback"] = "UNPINNED"
+    provenance_path.write_text(
+        json.dumps(provenance, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(acceptance_evidence.AcceptanceEvidenceError):
+        acceptance_evidence._validate_remediation_base(
+            root,
+            acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT,
+        )
+
+
+def test_rmd06_package_and_acceptance_use_the_same_clean_mainline_pin() -> None:
+    assert package_validation.CANDIDATE_SNAPSHOT == {
+        "repository": "LinzeColin/MetaDatabase",
+        "mainline_base_commit": acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT,
+        "acceptance_remediation_base_commit": (
+            acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT
+        ),
+        "shallow_checkout_fallback": "EXACT_PIN_ONLY",
+    }
+    assert (
+        package_validation.build_provenance()["candidate_snapshot"]
+        == package_validation.CANDIDATE_SNAPSHOT
+    )
 
 
 def test_rmd06_governance_deploy_key_is_checkout_only() -> None:

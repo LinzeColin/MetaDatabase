@@ -57,6 +57,12 @@
     "workflow_validator": "machine/tools/validate_workflow_matrix.py",
     "publication_status": "LOCAL_ONLY_NOT_PUBLISHED"
   },
+  "candidate_snapshot": {
+    "repository": "LinzeColin/MetaDatabase",
+    "mainline_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+    "acceptance_remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+    "shallow_checkout_fallback": "EXACT_PIN_ONLY"
+  },
   "semantic_delta": {
     "governance_visibility_changed": false,
     "dependency_credential_kind": "GITHUB_READ_ONLY_DEPLOY_KEY",

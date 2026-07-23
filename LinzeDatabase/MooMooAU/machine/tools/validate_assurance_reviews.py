@@ -32,6 +32,11 @@ REPOSITORY_ROOT = PROJECT_ROOT.parents[1]
 BASELINE_COMMIT = "2b8625a83e69093b9dce989f4eb964556e1b5fa2"
 RMD05_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.5.json")
 RMD05_PREDECESSOR_MANIFEST_SHA256 = "f99413b9c1fb67369ba3039a7acfeb437004d1aad8cb54dc3697f87f38e35cb3"  # pragma: allowlist secret  # noqa: E501
+RMD05_IMMUTABLE_AUTHORITY_PATHS = {
+    Path("evidence/stage6/latest.json"),
+    *(Path(f"evidence/tasks/T060{index}.json") for index in range(1, 9)),
+}
+RMD05_IMMUTABLE_AUTHORITY_PREFIX = Path("machine/stages/S6/reviews")
 INITIAL_CANDIDATE_COMMIT = (
     "be8e196b03dcc475ed6261fbe20593b08bd26bcf"  # pragma: allowlist secret  # noqa: E501
 )
@@ -2452,20 +2457,70 @@ def evaluate_immutable_predecessor(
     )
     errors = list(cast(list[str], result.get("errors", [])))
     predecessor = root / RMD05_PREDECESSOR_MANIFEST_PATH
+    immutable_authority_files = 0
     try:
+        manifest = cast(dict[str, Any], json.loads(predecessor.read_text(encoding="utf-8")))
         predecessor_valid = (
             predecessor.is_file()
             and not predecessor.is_symlink()
             and _sha256_bytes(predecessor.read_bytes()) == RMD05_PREDECESSOR_MANIFEST_SHA256
         )
-    except OSError:
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        manifest = {}
         predecessor_valid = False
     if not predecessor_valid:
         errors.append("immutable RMD-05 predecessor manifest differs")
 
+    manifest_files = manifest.get("files")
+    manifest_hashes = (
+        {
+            Path(str(item["path"])): str(item["sha256"])
+            for item in manifest_files
+            if isinstance(item, dict)
+            and isinstance(item.get("path"), str)
+            and isinstance(item.get("sha256"), str)
+        }
+        if isinstance(manifest_files, list)
+        else {}
+    )
+    expected_authorities = {
+        path
+        for path in manifest_hashes
+        if path in RMD05_IMMUTABLE_AUTHORITY_PATHS
+        or path.is_relative_to(RMD05_IMMUTABLE_AUTHORITY_PREFIX)
+    }
+    current_authorities = set(RMD05_IMMUTABLE_AUTHORITY_PATHS)
+    review_root = root / RMD05_IMMUTABLE_AUTHORITY_PREFIX
+    unsafe_authority_entry = review_root.is_symlink()
+    if review_root.is_dir() and not review_root.is_symlink():
+        review_entries = list(review_root.rglob("*"))
+        unsafe_authority_entry = any(path.is_symlink() for path in review_entries)
+        current_authorities.update(
+            path.relative_to(root)
+            for path in review_entries
+            if path.is_file() and not path.is_symlink()
+        )
+    authorities_valid = not unsafe_authority_entry and expected_authorities == current_authorities
+    for relative in expected_authorities:
+        path = root / relative
+        try:
+            authorities_valid = (
+                authorities_valid
+                and path.is_file()
+                and not path.is_symlink()
+                and _sha256_bytes(path.read_bytes()) == manifest_hashes[relative]
+            )
+        except OSError:
+            authorities_valid = False
+    if not authorities_valid:
+        errors.append("immutable RMD-05 assurance authorities differ")
+    else:
+        immutable_authority_files = len(expected_authorities)
+
     portable = dict(result)
     portable["validation_mode"] = "IMMUTABLE_PACKAGE_PREDECESSOR"
     portable["git_objects_required"] = False
+    portable["immutable_authority_files"] = immutable_authority_files
     portable["errors"] = errors
     portable["history_integrity"] = "PASS" if not errors else "BLOCKED"
     portable["status"] = "PASS" if result.get("status") == "PASS" and not errors else "BLOCKED"

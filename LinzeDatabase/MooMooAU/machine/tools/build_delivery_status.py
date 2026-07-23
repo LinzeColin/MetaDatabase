@@ -199,7 +199,11 @@ def _validate_stage6_evidence_transition(
         return
     if package_version not in {"1.0.5", "1.0.6"} or versions != {"moomooau.stage6-evidence.v2"}:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
-    bundle_errors = validate_stage6_candidate_bundle(root, repository_root)
+    # v1.0.5 itself remains Git-anchored. Its v1.0.6 control successor is portable:
+    # evaluate_immutable_predecessor has already verified the exact frozen authority
+    # bytes against the immutable v1.0.5 Manifest, while this call verifies bindings.
+    bundle_repository_root = repository_root if package_version == "1.0.5" else None
+    bundle_errors = validate_stage6_candidate_bundle(root, bundle_repository_root)
     if bundle_errors:
         raise ValueError("closed delivery state lacks candidate-bound Stage 6 evidence")
 
