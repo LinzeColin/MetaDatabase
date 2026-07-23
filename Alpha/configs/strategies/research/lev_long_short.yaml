@@ -1,0 +1,20 @@
+# R7c 杠杆长短对切:3倍多/3倍空互换 + 黄金长债避险腿(最激进构造)
+strategy_id: "LEV_LONG_SHORT_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate_owner_ls30"
+universe: ["TQQQ", "UPRO", "SQQQ", "SPXU", "GLD", "TLT"]
+cash_proxy: "BIL"
+score:
+  formula: "w1*r63 + w2*r126 + w3*r252"
+  lookbacks_trading_days: [63, 126, 252]
+absolute_momentum_filter: {rule: "close > SMA200", sma_period: 200}
+review_grid:
+  weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1],[1.0,0.0,0.0]]
+  top_n_allowed: [1, 2]
+  target_vol_allowed: [15, 20, 999]
+  rebalance_threshold_allowed: [5]
+  eval_frequency_allowed: ["weekly"]
+  dd_brake_allowed: [null, [15, 25]]
+signal_proxy:
+  TQQQ: "QQQ"
+  UPRO: "SPY"
