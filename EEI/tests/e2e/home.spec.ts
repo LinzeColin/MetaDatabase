@@ -213,8 +213,10 @@ test("A211 exposes WorkspaceContext routes controls disabled entries and persist
   ]) {
     await expect(page.getByTestId(goneId)).toHaveCount(0);
   }
-  // 顶部「搜索 / 我的」只做占位（P1-5/P2-9 上线），明示禁用不冒充可点。
-  await expect(page.getByTestId("global-search-placeholder")).toBeDisabled();
+  // P1-5：顶部「搜索」位已上线（Cmd+K 全局搜索触发钮，可点、非占位）；
+  // 「我的」抽屉仍为占位（P2-9 上线），明示禁用不冒充可点。
+  await expect(page.getByTestId("command-search-trigger")).toBeEnabled();
+  await expect(page.getByTestId("global-search-placeholder")).toHaveCount(0);
   await expect(page.getByTestId("my-drawer-placeholder")).toBeDisabled();
 
   // P0-1 验收：遍历除当前页外的每个 nav 项，点击必有 URL 变化。

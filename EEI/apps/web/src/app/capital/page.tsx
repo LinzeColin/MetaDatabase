@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  AlertTriangle,
   ArrowRight,
   Database,
   FileSearch,
@@ -20,6 +19,7 @@ import {
   type CapitalRiverSyncResult,
   type EventAmountBucket
 } from "../capital-events-client";
+import { EmptyState, ErrorState, Skeleton, TopLoadingBar } from "../components/feedback";
 import {
   loadEvidenceDetail,
   type EvidenceDetailRecord
@@ -236,14 +236,32 @@ export default function CapitalRiverPage() {
           </div>
         </form>
 
+        {/* P1-6：刷新不清屏，仅顶部 1px 进度条（延迟 300ms）；首载走同构骨架。 */}
+        <TopLoadingBar active={loadState === "loading" && Boolean(summary)} />
+
+        {loadState === "loading" && !summary ? (
+          <Skeleton count={4} testId="capital-skeleton" variant="card" />
+        ) : null}
+
         {loadState === "api_required" ? (
-          <section className="capitalEmptyState" data-testid="capital-api-required">
-            <AlertTriangle size={20} aria-hidden="true" />
-            <div>
-              <strong>需要生产 API</strong>
-              <p>配置 `NEXT_PUBLIC_EEI_API_BASE_URL` 或本地 API base 后加载事件与证据。</p>
-            </div>
-          </section>
+          <ErrorState
+            description="配置数据接口（NEXT_PUBLIC_EEI_API_BASE_URL 或本地 API base）后即可加载事件与证据。"
+            testId="capital-api-required"
+            title="暂时连不上数据服务"
+            tone="warn"
+          />
+        ) : null}
+
+        {loadState === "error" ? (
+          <ErrorState
+            description="资金事件加载没有成功，请稍后重试。"
+            detail={loadReason}
+            onRetry={() => void hydrateCapitalRiver(appliedFilters)}
+            retryTestId="capital-load-error-retry"
+            testId="capital-load-error"
+            title="加载没有成功"
+            tone="error"
+          />
         ) : null}
 
         {summary ? (
@@ -325,9 +343,16 @@ export default function CapitalRiverPage() {
             ) : null}
 
             {loadState === "hydrated" && events.length === 0 ? (
-              <div className="capitalNoResults" data-testid="capital-no-results">
-                没有符合当前筛选的事件。可以清除筛选查看全部事件，或换一个时间范围。
-              </div>
+              <EmptyState
+                actions={
+                  <button className="primary" onClick={resetFilters} type="button">
+                    清除筛选
+                  </button>
+                }
+                description="没有符合当前筛选的事件。清除筛选查看全部事件，或换一个时间范围。"
+                testId="capital-no-results"
+                variant="no-results"
+              />
             ) : null}
           </section>
 

@@ -1,10 +1,14 @@
 "use client";
 
-import { AlertTriangle, BadgeCheck, PackageSearch, RefreshCw } from "lucide-react";
+import { BadgeCheck, FileSearch, PackageSearch, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { AnalysisContextBadge } from "../analysis-context-badge";
+import { loadCloudEvidenceDetail } from "../cloud-data-client";
+import { EvidencePanel, type EvidencePanelState } from "../components/evidence-panel";
+import { ErrorState, Skeleton, TopLoadingBar } from "../components/feedback";
 import { zhLabel } from "../labels";
+import type { EvidenceDetailRecord } from "../production-data-client";
 import {
   loadSupplyChainOverview,
   type SupplyChainOverviewRecord,
@@ -24,10 +28,32 @@ export default function SupplyChainPage() {
   const [result, setResult] = useState<SupplyChainSyncResult | null>(null);
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const { analysisContext, serverState } = useAnalysisContext();
+  // P1-8 证据下钻（§C.3）：选中某条关系 → 右上证据面板三段式。
+  const [selectedRelationship, setSelectedRelationship] =
+    useState<SupplyChainRelationship | null>(null);
+  const [evidence, setEvidence] = useState<EvidenceDetailRecord | null>(null);
+  const [evidenceState, setEvidenceState] = useState<EvidencePanelState>("loading");
+  const [evidenceReason, setEvidenceReason] = useState("");
 
   useEffect(() => {
     void hydrate();
   }, []);
+
+  async function openEvidence(relationship: SupplyChainRelationship) {
+    setSelectedRelationship(relationship);
+    setEvidence(null);
+    setEvidenceState("loading");
+    setEvidenceReason("requesting_relationship_evidence");
+    const next = await loadCloudEvidenceDetail(relationship.id);
+    if (next.mode === "server" && next.status === "hydrated") {
+      setEvidence(next.record);
+      setEvidenceState("hydrated");
+      setEvidenceReason("server_hydrated");
+      return;
+    }
+    setEvidenceState("error");
+    setEvidenceReason(next.mode === "server" ? next.reason : next.reason);
+  }
 
   async function hydrate() {
     setLoadState("loading");
@@ -90,45 +116,34 @@ export default function SupplyChainPage() {
 
         <AnalysisContextBadge analysisContext={analysisContext} serverState={serverState} />
 
+        {/* P1-6：刷新不清屏，仅顶部 1px 进度条（延迟 300ms）；首载走同构骨架。 */}
+        <TopLoadingBar active={loadState === "loading" && Boolean(overview)} />
+
+        {loadState === "loading" && !overview ? (
+          <Skeleton count={4} testId="supply-chain-skeleton" variant="card" />
+        ) : null}
+
         {loadState === "api_required" ? (
-          <section
-            className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100"
-            data-testid="supply-chain-api-required"
-          >
-            <p className="flex items-center gap-2 font-medium">
-              <AlertTriangle className="h-4 w-4" aria-hidden />
-              暂时连不上数据服务，请稍后重试。
-            </p>
-            <button
-              type="button"
-              onClick={() => void hydrate()}
-              className="mt-2 rounded-md border border-amber-400/50 px-3 py-1 text-xs hover:bg-amber-500/20"
-              data-testid="supply-chain-api-required-retry"
-            >
-              重试
-            </button>
-          </section>
+          <ErrorState
+            description="请稍后重试，或确认数据接口已配置。"
+            onRetry={() => void hydrate()}
+            retryTestId="supply-chain-api-required-retry"
+            testId="supply-chain-api-required"
+            title="暂时连不上数据服务"
+            tone="warn"
+          />
         ) : null}
 
         {loadState === "error" ? (
-          <section
-            className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-100"
-            data-testid="supply-chain-load-error"
-          >
-            <p className="font-medium">供应链数据加载没有成功，请稍后重试。</p>
-            <button
-              type="button"
-              onClick={() => void hydrate()}
-              className="mt-2 rounded-md border border-rose-400/50 px-3 py-1 text-xs hover:bg-rose-500/20"
-              data-testid="supply-chain-load-error-retry"
-            >
-              重试
-            </button>
-            <details className="diagDetails mt-2 text-xs text-rose-200/80">
-              <summary>诊断详情</summary>
-              <span>{result?.status === "error" ? result.reason : "unknown"}</span>
-            </details>
-          </section>
+          <ErrorState
+            description="供应链数据加载没有成功，请稍后重试。"
+            detail={result?.status === "error" ? result.reason : "unknown"}
+            onRetry={() => void hydrate()}
+            retryTestId="supply-chain-load-error-retry"
+            testId="supply-chain-load-error"
+            title="加载没有成功"
+            tone="error"
+          />
         ) : null}
 
         {overview ? (
@@ -163,6 +178,24 @@ export default function SupplyChainPage() {
                 </a>
               </p>
             </section>
+
+            {selectedRelationship ? (
+              <EvidencePanel
+                conclusion={
+                  <>
+                    {selectedRelationship.subject_name} —[
+                    {zhLabel("relationship_type", selectedRelationship.relationship_type)}]→{" "}
+                    {selectedRelationship.object_name}
+                  </>
+                }
+                onClose={() => setSelectedRelationship(null)}
+                onRetry={() => void openEvidence(selectedRelationship)}
+                reason={evidenceReason}
+                record={evidence}
+                state={evidenceState}
+                testId="supply-chain-evidence"
+              />
+            ) : null}
 
             <section
               className="grid grid-cols-1 gap-4 md:grid-cols-3"
@@ -248,6 +281,15 @@ export default function SupplyChainPage() {
                               置信 {relationship.confidence.toFixed(2)}
                             </span>
                           ) : null}
+                          <button
+                            className="ml-auto flex items-center gap-1 rounded-md border border-sky-500/40 px-2 py-0.5 text-xs text-sky-200 hover:bg-sky-500/15"
+                            data-testid={`supply-evidence-open-${relationship.id}`}
+                            onClick={() => void openEvidence(relationship)}
+                            type="button"
+                          >
+                            <FileSearch className="h-3 w-3" aria-hidden />
+                            查证
+                          </button>
                         </li>
                       ))}
                     </ul>

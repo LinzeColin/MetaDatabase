@@ -1,9 +1,10 @@
 "use client";
 
-import { AlertTriangle, Download, Landmark, RefreshCw, ScrollText } from "lucide-react";
+import { Download, Landmark, RefreshCw, ScrollText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { AnalysisContextBadge } from "../analysis-context-badge";
+import { EmptyState, ErrorState, Skeleton, TopLoadingBar } from "../components/feedback";
 import { zhLabel } from "../labels";
 import {
   loadPolicyOverview,
@@ -121,45 +122,34 @@ export default function PolicyEnvironmentPage() {
 
         <AnalysisContextBadge analysisContext={analysisContext} serverState={serverState} />
 
+        {/* P1-6：刷新不清屏，仅顶部 1px 进度条（延迟 300ms）；首载走同构骨架。 */}
+        <TopLoadingBar active={loadState === "loading" && Boolean(overview)} />
+
+        {loadState === "loading" && !overview ? (
+          <Skeleton count={3} testId="policy-skeleton" variant="card" />
+        ) : null}
+
         {loadState === "api_required" ? (
-          <section
-            className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm"
-            data-testid="policy-api-required"
-          >
-            <p className="flex items-center gap-2 font-medium text-amber-200">
-              <AlertTriangle className="h-4 w-4" aria-hidden />
-              暂时连不上数据服务，请稍后重试。
-            </p>
-            <button
-              type="button"
-              onClick={() => void hydrate()}
-              className="mt-2 rounded-md border border-amber-400/50 px-3 py-1 text-xs hover:bg-amber-500/20"
-              data-testid="policy-api-required-retry"
-            >
-              重试
-            </button>
-          </section>
+          <ErrorState
+            description="请稍后重试，或确认数据接口已配置。"
+            onRetry={() => void hydrate()}
+            retryTestId="policy-api-required-retry"
+            testId="policy-api-required"
+            title="暂时连不上数据服务"
+            tone="warn"
+          />
         ) : null}
 
         {loadState === "error" ? (
-          <section
-            className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-100"
-            data-testid="policy-load-error"
-          >
-            <p className="font-medium">政策数据加载没有成功，请稍后重试。</p>
-            <button
-              type="button"
-              onClick={() => void hydrate()}
-              className="mt-2 rounded-md border border-rose-400/50 px-3 py-1 text-xs hover:bg-rose-500/20"
-              data-testid="policy-load-error-retry"
-            >
-              重试
-            </button>
-            <details className="diagDetails mt-2 text-xs text-rose-200/80">
-              <summary>诊断详情</summary>
-              <span>{result?.status === "error" ? result.reason : "unknown"}</span>
-            </details>
-          </section>
+          <ErrorState
+            description="政策数据加载没有成功，请稍后重试。"
+            detail={result?.status === "error" ? result.reason : "unknown"}
+            onRetry={() => void hydrate()}
+            retryTestId="policy-load-error-retry"
+            testId="policy-load-error"
+            title="加载没有成功"
+            tone="error"
+          />
         ) : null}
 
         {overview ? (
@@ -237,20 +227,14 @@ export default function PolicyEnvironmentPage() {
               >
                 <h2 className="text-sm font-medium text-slate-300">政府关系明细</h2>
                 {overview.policy_relationships.length === 0 ? (
-                  <div className="mt-3 text-sm text-slate-400" data-testid="policy-relationships-empty">
-                    <p className="font-medium text-slate-200">政府关系数据采集中</p>
-                    <p className="mt-1">
-                      官方监管申报已覆盖（见上方时间轴）；政府关系数据来自官方披露，
-                      新数据核实后会自动出现在这里。
-                    </p>
-                    <p className="mt-2">
-                      <a
-                        className="rounded-md border border-slate-700 px-3 py-1 text-xs hover:bg-slate-800"
-                        href="/objects-scope"
-                      >
-                        查看数据覆盖范围
-                      </a>
-                    </p>
+                  <div className="mt-3">
+                    <EmptyState
+                      actions={<a href="/objects-scope">查看数据覆盖范围</a>}
+                      description="官方监管申报已覆盖（见上方时间轴）；政府关系数据来自官方披露，新数据核实后会自动出现在这里。"
+                      testId="policy-relationships-empty"
+                      title="政府关系数据采集中"
+                      variant="collecting"
+                    />
                   </div>
                 ) : (
                   <ul className="mt-3 space-y-2">

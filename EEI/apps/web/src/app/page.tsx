@@ -691,6 +691,14 @@ const homeIndustries: HomeIndustryEntry[] = [
   }
 ];
 
+// P1-5 §C.1：云模式首页行业入口卡（素材取自 industries/page.tsx 三行业）。
+// seed = 该行业旗舰实体名，点击后以它为种子进入全局搜索流（search-first）。
+const HOME_INDUSTRY_ENTRIES = [
+  { key: "semiconductors", label: "半导体", seed: "NVIDIA", tagline: "设计 · 设备 · 代工 · 封装" },
+  { key: "ai-cloud", label: "AI 云基础设施", seed: "Microsoft", tagline: "算力 · 数据中心 · 云客户" },
+  { key: "energy", label: "电力与数据中心能源", seed: "Constellation", tagline: "发电 · 电网 · 用电合约" }
+] as const;
+
 const homeWatchItems: HomeWatchItem[] = [
   {
     key: "nvidia",
@@ -3216,6 +3224,25 @@ export default function Home() {
       : undefined;
     return (touching ?? productionGraph.edges[0]).id;
   }, [productionGraph, selectedProductionNodeKey]);
+  // P1-8 §C.3 ① 结论：把当前证据目标边说成一句人话关系句（用于证据卡首行）。
+  const cloudEvidenceConclusion = useMemo(() => {
+    if (!CLOUD_MODE || !cloudEvidenceTargetId || !productionGraph?.edges.length) {
+      return null;
+    }
+    const edge = productionGraph.edges.find((item) => item.id === cloudEvidenceTargetId);
+    if (!edge) {
+      return null;
+    }
+    const subjectLabel =
+      graphViewNodeByKey.get(edge.subject_id)?.label ??
+      productionGraph.nodes.find((node) => node.id === edge.subject_id)?.canonical_name ??
+      "主体";
+    const objectLabel =
+      graphViewNodeByKey.get(edge.object_id)?.label ??
+      productionGraph.nodes.find((node) => node.id === edge.object_id)?.canonical_name ??
+      "关联实体";
+    return `${subjectLabel} —[${zhLabel("relationship_type", edge.relationship_type)}]→ ${objectLabel}`;
+  }, [cloudEvidenceTargetId, graphViewNodeByKey, productionGraph]);
   const hydratedCloudDataKey = useRef("");
   useEffect(() => {
     if (!CLOUD_MODE || !cloudEvidenceTargetId) return;
@@ -3982,17 +4009,28 @@ export default function Home() {
           </header>
           <div className="compactList">
             {CLOUD_MODE ? (
-              <div className="honestEmpty" data-testid="home-industries-empty">
-                <p>
-                  <strong>行业目录采集中</strong>
-                </p>
-                <p>当前版本先覆盖实体、关系与事件数据；行业分类核实后会出现在这里。</p>
-                <button
-                  onClick={() => document.getElementById("global-search-input")?.focus()}
-                  type="button"
-                >
-                  先用搜索找公司
-                </button>
+              // P1-5 §C.1：行业入口卡——点击以该行业旗舰实体为种子进入全局搜索
+              // （search-first）。卡片是探索入口，不是行业数据断言。
+              <div className="homeIndustryEntries" data-testid="home-industry-entries">
+                {HOME_INDUSTRY_ENTRIES.map((entry) => (
+                  <button
+                    className="homeIndustryEntry pressable"
+                    data-testid={`home-industry-entry-${entry.key}`}
+                    key={entry.key}
+                    onClick={() =>
+                      window.dispatchEvent(
+                        new CustomEvent("eei:command-search-seed", {
+                          detail: { query: entry.seed }
+                        })
+                      )
+                    }
+                    type="button"
+                  >
+                    <strong>{entry.label}</strong>
+                    <small>{entry.tagline}</small>
+                    <span className="homeIndustrySeed">从 {entry.seed} 开始 →</span>
+                  </button>
+                ))}
               </div>
             ) : (
               homeIndustries.map((industry) => (
@@ -5019,11 +5057,17 @@ export default function Home() {
           data-truncated={productionEvidenceDetail?.truncated ?? false}
         >
           <header>
-            <p className="eyebrow">证据</p>
-            <strong>
+            <p className="eyebrow">证据 · 官方来源</p>
+            {/* P1-8 §C.3 ①：人话结论句（当前证据目标关系）。 */}
+            {cloudEvidenceConclusion ? (
+              <strong className="evidenceConclusion" data-testid="production-evidence-conclusion">
+                {cloudEvidenceConclusion}
+              </strong>
+            ) : null}
+            <small className="evidenceSummaryLine">
               {productionEvidenceDetail?.evidence_count ?? 0} 条摘录 ·{" "}
               {productionEvidenceDetail?.source_document_count ?? 0} 份官方文件
-            </strong>
+            </small>
           </header>
           {/* P0-2 §E.1：契约字段（对象 id / 同步状态 / 接口）收进诊断详情。 */}
           <details className="diagDetails">

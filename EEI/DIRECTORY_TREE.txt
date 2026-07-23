@@ -66,6 +66,10 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   └── app
 │   │   │       ├── capital
 │   │   │       │   └── page.tsx
+│   │   │       ├── components
+│   │   │       │   ├── command-search.tsx
+│   │   │       │   ├── evidence-panel.tsx
+│   │   │       │   └── feedback.tsx
 │   │   │       ├── control
 │   │   │       │   └── page.tsx
 │   │   │       ├── development-status
@@ -649,7 +653,9 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   └── approved-loading-pending-chromium-linux.png
 │   │   ├── README.md
 │   │   ├── capital-river.spec.ts
+│   │   ├── command-search.spec.ts
 │   │   ├── development-status.spec.ts
+│   │   ├── feedback-motion-evidence.spec.ts
 │   │   ├── graph-label-overlap.spec.ts
 │   │   ├── home.spec.ts
 │   │   ├── industry.spec.ts

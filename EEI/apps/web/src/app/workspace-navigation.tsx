@@ -7,20 +7,19 @@ import {
   Network,
   PackageSearch,
   Radar,
-  Search,
   UserRound
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import { CommandSearch } from "./components/command-search";
 import { WORKSPACE_MODULES, type WorkspaceModuleId } from "./workspace-context";
 
 // P0-1 导航收敛（UX_SPEC_EEI v1.0 §A.4）：
 // - 只渲染 route 型导航项——点击必有 URL 变化，禁止任何点击后无可见
 //   变化的项（section 滚动按钮 / disabled 灰按钮形态已全部废除）。
 // - 当前页高亮 = 左缘金色指示条 + 图标着色（globals.css .navItem.active）。
-// - 顶部保留「搜索 / 我的」两个占位（aria-disabled，明示下一批上线）：
-//   P1-5 上线 Cmd+K 全局搜索，P2-9 上线「我的」抽屉。占位不是导航项，
-//   不参与「点击必有响应」契约，且视觉上明确标注为未启用。
+// P1-5 上线：顶部「搜索」位挂全局搜索 Cmd+K（<CommandSearch/> 自带触发钮 +
+//   Portal 弹层，任意页可唤起）。「我的」抽屉仍为占位（P2-9 上线）。
 type WorkspaceNavigationRailProps = {
   activeModuleId: WorkspaceModuleId;
 };
@@ -44,19 +43,8 @@ export function WorkspaceNavigationRail({ activeModuleId }: WorkspaceNavigationR
           <small>EEI</small>
         </span>
       </div>
-      <div className="railTools" aria-label="全局工具（即将上线）">
-        <button
-          aria-disabled="true"
-          className="railTool"
-          data-testid="global-search-placeholder"
-          disabled
-          title="全局搜索（Cmd+K）下一批上线；现在可用首页的全局搜索"
-          type="button"
-        >
-          <Search size={16} strokeWidth={1.8} aria-hidden="true" />
-          <span>搜索</span>
-          <kbd>⌘K</kbd>
-        </button>
+      <div className="railTools" aria-label="全局工具">
+        <CommandSearch />
         <button
           aria-disabled="true"
           className="railTool"
