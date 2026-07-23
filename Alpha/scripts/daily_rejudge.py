@@ -74,6 +74,41 @@ def should_email(prev: dict | None, lights: tuple, all_green: bool) -> bool:
     return tuple(prev.get("lights", ())) != lights
 
 
+def real_power_usd(acc_id: str) -> float | None:
+    """真实账户美元购买力(只读;失败返回 None,调用方按失败关闭处理)。"""
+    try:
+        from moomoo import RET_OK, Currency, OpenSecTradeContext, SecurityFirm, TrdEnv, TrdMarket
+        tc = OpenSecTradeContext(filter_trdmarket=TrdMarket.US, host="127.0.0.1",
+                                 port=11111, security_firm=SecurityFirm.FUTUAU)
+        try:
+            ret, df = tc.accinfo_query(trd_env=TrdEnv.REAL, acc_id=int(acc_id),
+                                       refresh_cache=True, currency=Currency.USD)
+            if ret != RET_OK or df is None or len(df) == 0:
+                return None
+            return float(df.iloc[0]["power"])
+        finally:
+            tc.close()
+    except Exception:
+        return None
+
+
+def activation_gate(*, auth_ok: bool, auth_reasons: list, live_flag_on: bool,
+                    real_acc: str, power: float | None, min_power: float) -> list[str]:
+    """全绿之外的三项切换前提;返回阻塞清单(空=可请求切换)。纯函数可测。"""
+    blockers = []
+    if live_flag_on:
+        blockers.append("已在实盘,无需切换")
+    if not auth_ok:
+        blockers.append(f"预签授权无效:{auth_reasons[:2]}")
+    if not real_acc:
+        blockers.append("缺真实账户配置(私密键未设)")
+    elif power is None:
+        blockers.append("真实账户资金核验暂不可用")
+    elif power < min_power:
+        blockers.append(f"真实账户购买力 {power:.0f} 美元低于门槛 {min_power:.0f} 美元(等入金到账)")
+    return blockers
+
+
 def journal_restarts(day: str) -> int:
     r = subprocess.run(
         ["journalctl", "-u", "alpha-trading-worker", "--since", f"{day} 13:30",
@@ -187,6 +222,39 @@ def main() -> int:
     all_green = bool(report.get("promotion", {}).get("auto_promote"))
     prev = json.loads(state_path.read_text()) if state_path.exists() else None
 
+    # 全绿时核查另外三项切换前提;齐备则写切换请求文件(由根权限切换器接手)
+    activation_line = ""
+    if all_green:
+        from backend.app.execution.gates import validate_authorization
+        auth_path = Path(os.environ.get("ALPHA_AUTHORIZATION_PATH",
+                                        "runtime/LIVE_AUTHORIZATION.json"))
+        auth_ok, auth_reasons = (False, ["授权文件不存在"])
+        if auth_path.exists():
+            auth_ok, auth_reasons = validate_authorization(
+                auth_path, policy_path="configs/trading_governor_policy.yaml",
+                promotion_config_path="configs/strategy_promotion.yaml",
+                now=datetime.now(timezone.utc))
+        real_acc = os.environ.get("ALPHA_REAL_ACC_ID", "").strip()
+        min_power = float(os.environ.get("ALPHA_MIN_LIVE_POWER_USD", "1890"))
+        power = real_power_usd(real_acc) if real_acc else None
+        blockers = activation_gate(
+            auth_ok=auth_ok, auth_reasons=list(auth_reasons),
+            live_flag_on=os.environ.get("LIVE_TRADING_ENABLED", "0") == "1",
+            real_acc=real_acc, power=power, min_power=min_power)
+        if not blockers:
+            req_path = Path("runtime/ACTIVATE_REQUEST.json")
+            req_path.write_text(json.dumps({
+                "requested_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "report_dir": str(out_dir), "days": len(days),
+                "power_usd": power, "uptime": up, "max_dd_pct": dd,
+            }, ensure_ascii=False, indent=2))
+            activation_line = ("三项切换前提(预签授权/资金/开关状态)全部齐备,"
+                               "已向切换器发出自动切换请求——切换完成会另发一封确认邮件,"
+                               "第一笔真实订单在下一个评估窗口。")
+        else:
+            activation_line = ("但暂不切换实盘:" + ";".join(blockers) +
+                               "。条件补齐后的下一次每日复判会自动再试,无需任何人操作。")
+
     if should_email(prev, lights, all_green):
         from backend.app.notify.outbox import Outbox
         p3 = report["promotion"]["PROMO-3"]
@@ -195,9 +263,7 @@ def main() -> int:
         if all_green:
             text = (f"今天收盘复判:四项判定全绿!合格交易日 {len(days)} 天,"
                     f"折算月化 {p3['pace_month_pct']}%(容忍线 {p3['target_pct']}%),"
-                    f"可用性 {up}%,最大回撤 {dd}%。\n\n"
-                    "下一步(按契约,缺一不可):你的预签授权 + 实盘总开关。"
-                    "已预签则代理会执行激活并邮件确认;未预签请回复授权短语。\n"
+                    f"可用性 {up}%,最大回撤 {dd}%。\n\n{activation_line}\n"
                     "本邮件由服务器每日复判定时任务自动发出。")
         else:
             text = (f"今天收盘复判:灯色有变化 → {light_txt}。"

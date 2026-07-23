@@ -53,6 +53,9 @@ _EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
     "DASHBOARD_UPGRADED": ("看盘页升级上线", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
     "FUNDING_NOTICE": ("实盘启动前需要你入金", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
     "STRATEGY_DECISION": ("策略证据与你的三个选项", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "LIVE_ACTIVATED": ("已自动切换微实盘", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "ACTIVATION_BLOCKED": ("实盘切换暂缓(失败关闭)", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "PRESIGN_RECORDED": ("预签授权已记录", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
 }
 
 

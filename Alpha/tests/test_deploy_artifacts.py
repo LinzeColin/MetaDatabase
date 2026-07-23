@@ -11,17 +11,22 @@ def test_systemd_units_ledger():
         "alpha-opend.service", "alpha-trading-worker.service",
         "alpha-notify-worker.service", "alpha-supervisor.service",
         "alpha-control-page.service", "alpha-rejudge.service",
+        "alpha-activate.service",
     }
+    # oneshot 台账:复判必须声明无激活权限;切换器必须声明自己是激活唯一通道
+    oneshot_marks = {"alpha-rejudge.service": "无激活权限",
+                     "alpha-activate.service": "激活唯一通道"}
     for p in (DEPLOY / "systemd").glob("*.service"):
         text = p.read_text()
         assert "EnvironmentFile=/opt/alpha/env" in text, p.name
         if "Type=oneshot" in text:
-            # oneshot(每日复判)由 timer 驱动,不设 Restart;且必须无激活权限声明
-            assert "rejudge" in p.name and "无激活权限" in text, p.name
+            assert p.name in oneshot_marks and oneshot_marks[p.name] in text, p.name
         else:
             assert "Restart=always" in text, p.name
     timers = {p.name for p in (DEPLOY / "systemd").glob("*.timer")}
     assert timers == {"alpha-rejudge.timer"}
+    paths = {p.name for p in (DEPLOY / "systemd").glob("*.path")}
+    assert paths == {"alpha-activate.path"}
 
 
 def test_env_template_contains_no_real_secrets():

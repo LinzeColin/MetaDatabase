@@ -1,0 +1,10 @@
+# 监视切换请求文件;出现即拉起切换器(事件驱动,零轮询、零 agent 依赖)
+[Unit]
+Description=Alpha 切换请求监视器
+
+[Path]
+PathExists=/opt/alpha/MetaDatabase/Alpha/runtime/ACTIVATE_REQUEST.json
+Unit=alpha-activate.service
+
+[Install]
+WantedBy=multi-user.target
