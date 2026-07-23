@@ -3224,6 +3224,25 @@ export default function Home() {
       : undefined;
     return (touching ?? productionGraph.edges[0]).id;
   }, [productionGraph, selectedProductionNodeKey]);
+  // P1-8 §C.3 ① 结论：把当前证据目标边说成一句人话关系句（用于证据卡首行）。
+  const cloudEvidenceConclusion = useMemo(() => {
+    if (!CLOUD_MODE || !cloudEvidenceTargetId || !productionGraph?.edges.length) {
+      return null;
+    }
+    const edge = productionGraph.edges.find((item) => item.id === cloudEvidenceTargetId);
+    if (!edge) {
+      return null;
+    }
+    const subjectLabel =
+      graphViewNodeByKey.get(edge.subject_id)?.label ??
+      productionGraph.nodes.find((node) => node.id === edge.subject_id)?.canonical_name ??
+      "主体";
+    const objectLabel =
+      graphViewNodeByKey.get(edge.object_id)?.label ??
+      productionGraph.nodes.find((node) => node.id === edge.object_id)?.canonical_name ??
+      "关联实体";
+    return `${subjectLabel} —[${zhLabel("relationship_type", edge.relationship_type)}]→ ${objectLabel}`;
+  }, [cloudEvidenceTargetId, graphViewNodeByKey, productionGraph]);
   const hydratedCloudDataKey = useRef("");
   useEffect(() => {
     if (!CLOUD_MODE || !cloudEvidenceTargetId) return;
@@ -5038,11 +5057,17 @@ export default function Home() {
           data-truncated={productionEvidenceDetail?.truncated ?? false}
         >
           <header>
-            <p className="eyebrow">证据</p>
-            <strong>
+            <p className="eyebrow">证据 · 官方来源</p>
+            {/* P1-8 §C.3 ①：人话结论句（当前证据目标关系）。 */}
+            {cloudEvidenceConclusion ? (
+              <strong className="evidenceConclusion" data-testid="production-evidence-conclusion">
+                {cloudEvidenceConclusion}
+              </strong>
+            ) : null}
+            <small className="evidenceSummaryLine">
               {productionEvidenceDetail?.evidence_count ?? 0} 条摘录 ·{" "}
               {productionEvidenceDetail?.source_document_count ?? 0} 份官方文件
-            </strong>
+            </small>
           </header>
           {/* P0-2 §E.1：契约字段（对象 id / 同步状态 / 接口）收进诊断详情。 */}
           <details className="diagDetails">

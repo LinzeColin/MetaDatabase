@@ -37,10 +37,35 @@ export default function GroupStructurePage() {
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [loadReason, setLoadReason] = useState("initializing");
   const { analysisContext, serverState } = useAnalysisContext();
+  // P1-8 证据下钻（§C.3）：结构行带出关系 UUID 时可「查证」→ 三段式证据面板。
+  const [selectedItem, setSelectedItem] = useState<StructureItem | null>(null);
+  const [evidence, setEvidence] = useState<EvidenceDetailRecord | null>(null);
+  const [evidenceState, setEvidenceState] = useState<EvidencePanelState>("loading");
+  const [evidenceReason, setEvidenceReason] = useState("");
 
   useEffect(() => {
     void hydrate(DEFAULT_FOCUS_NAME);
   }, []);
+
+  async function openEvidence(item: StructureItem) {
+    const relationshipId = item.relationship.id;
+    if (!relationshipId) {
+      return;
+    }
+    setSelectedItem(item);
+    setEvidence(null);
+    setEvidenceState("loading");
+    setEvidenceReason("requesting_relationship_evidence");
+    const next = await loadCloudEvidenceDetail(relationshipId);
+    if (next.mode === "server" && next.status === "hydrated") {
+      setEvidence(next.record);
+      setEvidenceState("hydrated");
+      setEvidenceReason("server_hydrated");
+      return;
+    }
+    setEvidenceState("error");
+    setEvidenceReason(next.reason);
+  }
 
   async function hydrate(name: string) {
     setLoadState("loading");
@@ -207,6 +232,24 @@ export default function GroupStructurePage() {
               </div>
             </section>
 
+            {selectedItem ? (
+              <EvidencePanel
+                conclusion={
+                  <>
+                    {empire.focus.canonical_name} ·{" "}
+                    {zhLabel("relationship_type", selectedItem.relationship.relationship_type)} ·{" "}
+                    {selectedItem.entity.canonical_name}
+                  </>
+                }
+                onClose={() => setSelectedItem(null)}
+                onRetry={() => void openEvidence(selectedItem)}
+                reason={evidenceReason}
+                record={evidence}
+                state={evidenceState}
+                testId="structure-evidence"
+              />
+            ) : null}
+
             <section className="space-y-4" data-testid="structure-sections">
               {orderedSections.map(([key, section]) => (
                 <div
@@ -249,6 +292,17 @@ export default function GroupStructurePage() {
                               <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-200">
                                 示例
                               </span>
+                            ) : null}
+                            {item.relationship.id ? (
+                              <button
+                                className="ml-auto flex items-center gap-1 rounded-md border border-sky-500/40 px-2 py-0.5 text-xs text-sky-200 hover:bg-sky-500/15"
+                                data-testid={`structure-evidence-open-${item.relationship.id}`}
+                                onClick={() => void openEvidence(item)}
+                                type="button"
+                              >
+                                <FileSearch className="h-3 w-3" aria-hidden />
+                                查证
+                              </button>
                             ) : null}
                           </p>
                           {item.control_semantics ? (

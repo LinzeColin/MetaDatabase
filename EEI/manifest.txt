@@ -91,6 +91,9 @@ apps/web/src/app/analysis-contract.ts
 apps/web/src/app/capital-events-client.ts
 apps/web/src/app/capital/page.tsx
 apps/web/src/app/cloud-data-client.ts
+apps/web/src/app/components/command-search.tsx
+apps/web/src/app/components/evidence-panel.tsx
+apps/web/src/app/components/feedback.tsx
 apps/web/src/app/control/page.tsx
 apps/web/src/app/development-status/page.tsx
 apps/web/src/app/explore-api-client.ts
@@ -558,7 +561,9 @@ specs/model_config_schema.json
 specs/scoring_profile_schema.json
 tests/e2e/README.md
 tests/e2e/capital-river.spec.ts
+tests/e2e/command-search.spec.ts
 tests/e2e/development-status.spec.ts
+tests/e2e/feedback-motion-evidence.spec.ts
 tests/e2e/graph-label-overlap.spec.ts
 tests/e2e/home.spec.ts
 tests/e2e/industry.spec.ts

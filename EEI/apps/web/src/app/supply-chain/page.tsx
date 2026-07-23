@@ -28,10 +28,32 @@ export default function SupplyChainPage() {
   const [result, setResult] = useState<SupplyChainSyncResult | null>(null);
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const { analysisContext, serverState } = useAnalysisContext();
+  // P1-8 证据下钻（§C.3）：选中某条关系 → 右上证据面板三段式。
+  const [selectedRelationship, setSelectedRelationship] =
+    useState<SupplyChainRelationship | null>(null);
+  const [evidence, setEvidence] = useState<EvidenceDetailRecord | null>(null);
+  const [evidenceState, setEvidenceState] = useState<EvidencePanelState>("loading");
+  const [evidenceReason, setEvidenceReason] = useState("");
 
   useEffect(() => {
     void hydrate();
   }, []);
+
+  async function openEvidence(relationship: SupplyChainRelationship) {
+    setSelectedRelationship(relationship);
+    setEvidence(null);
+    setEvidenceState("loading");
+    setEvidenceReason("requesting_relationship_evidence");
+    const next = await loadCloudEvidenceDetail(relationship.id);
+    if (next.mode === "server" && next.status === "hydrated") {
+      setEvidence(next.record);
+      setEvidenceState("hydrated");
+      setEvidenceReason("server_hydrated");
+      return;
+    }
+    setEvidenceState("error");
+    setEvidenceReason(next.mode === "server" ? next.reason : next.reason);
+  }
 
   async function hydrate() {
     setLoadState("loading");
@@ -157,6 +179,24 @@ export default function SupplyChainPage() {
               </p>
             </section>
 
+            {selectedRelationship ? (
+              <EvidencePanel
+                conclusion={
+                  <>
+                    {selectedRelationship.subject_name} —[
+                    {zhLabel("relationship_type", selectedRelationship.relationship_type)}]→{" "}
+                    {selectedRelationship.object_name}
+                  </>
+                }
+                onClose={() => setSelectedRelationship(null)}
+                onRetry={() => void openEvidence(selectedRelationship)}
+                reason={evidenceReason}
+                record={evidence}
+                state={evidenceState}
+                testId="supply-chain-evidence"
+              />
+            ) : null}
+
             <section
               className="grid grid-cols-1 gap-4 md:grid-cols-3"
               data-testid="supply-chain-first-screen-answer"
@@ -241,6 +281,15 @@ export default function SupplyChainPage() {
                               置信 {relationship.confidence.toFixed(2)}
                             </span>
                           ) : null}
+                          <button
+                            className="ml-auto flex items-center gap-1 rounded-md border border-sky-500/40 px-2 py-0.5 text-xs text-sky-200 hover:bg-sky-500/15"
+                            data-testid={`supply-evidence-open-${relationship.id}`}
+                            onClick={() => void openEvidence(relationship)}
+                            type="button"
+                          >
+                            <FileSearch className="h-3 w-3" aria-hidden />
+                            查证
+                          </button>
                         </li>
                       ))}
                     </ul>

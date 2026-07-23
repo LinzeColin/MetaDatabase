@@ -11,6 +11,10 @@ export type StructureEntityRef = {
 export type StructureItem = {
   entity: StructureEntityRef;
   relationship: {
+    // P1-8：关系 UUID（若发布面在结构项上带出则用于证据下钻 /v1/evidence/
+    // relationship/:id）。当前云 /empire 只返回焦点、结构层为空，故此字段常缺；
+    // 缺失时结构行不渲染「查证」——杜绝裸下钻死链（§C.3）。
+    id?: string;
     relationship_type: string;
     relationship_family: string;
     status: string;
