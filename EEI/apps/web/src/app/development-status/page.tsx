@@ -5,14 +5,13 @@ import {
   ArrowLeft,
   CheckCircle2,
   CircleDot,
-  Database,
   FileCheck2,
   GitBranch,
   ListChecks,
-  Network,
   ShieldAlert
 } from "lucide-react";
 import { ACTIVE_ANALYSIS_CONTEXT } from "../analysis-contract";
+import { WorkspaceNavigationRail } from "../workspace-navigation";
 
 type CsvRow = Record<string, string>;
 
@@ -157,38 +156,7 @@ export default function DevelopmentStatusPage() {
       data-analysis-contract={ACTIVE_ANALYSIS_CONTEXT.contractVersion}
       data-testid="development-status-screen"
     >
-      <aside className="navRail" aria-label="主导航">
-        <div className="brandMark" aria-label="商域图谱">
-          <span className="brandGlyph">E</span>
-          <span>
-            <strong>商域图谱</strong>
-            <small>EEI</small>
-          </span>
-        </div>
-        <nav aria-label="主导航">
-          <a className="navItem" href="/" title="商业版图">
-            <Network size={18} strokeWidth={1.8} aria-hidden="true" />
-            <span>商业版图</span>
-          </a>
-        </nav>
-        <div className="systemNav" aria-label="系统模块">
-          <span className="navGroupLabel">系统模块</span>
-          <a className="navItem" href="/objects-scope" title="对象与范围">
-            <Database size={18} strokeWidth={1.8} aria-hidden="true" />
-            <span>对象与范围</span>
-          </a>
-          <a
-            aria-current="page"
-            className="navItem active"
-            data-testid="development-status-nav-active"
-            href="/development-status"
-            title="开发状态"
-          >
-            <ListChecks size={18} strokeWidth={1.8} aria-hidden="true" />
-            <span>开发状态</span>
-          </a>
-        </div>
-      </aside>
+      <WorkspaceNavigationRail activeModuleId="data_center" />
 
       <section className="statusMain" aria-label="开发状态">
         <header className="statusHeader">

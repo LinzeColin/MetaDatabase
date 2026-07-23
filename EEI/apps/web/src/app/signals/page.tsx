@@ -9,10 +9,11 @@ export default function StrategicSignalsPage() {
     <FamilyModulePage
       moduleId="strategic_signals"
       endpoint="/v1/signals/overview"
-      title="战略信号"
-      subtitle="主题信号与反向信号 — 研究优先级辅助，非投资建议"
+      title="外部信号"
+      subtitle="政策与战略动向 — 研究优先级辅助，非投资建议"
       icon={<Activity className="h-6 w-6 text-orange-300" aria-hidden />}
       testId="strategic-signals-page"
+      emptyCoverageNote="数据库当前已覆盖实体、关系与事件数据；外部信号采集器扩展中。"
       renderExtra={(overview) =>
         overview.signal_models && overview.signal_models.length > 0 ? (
           <section

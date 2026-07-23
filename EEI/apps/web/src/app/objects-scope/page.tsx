@@ -10,7 +10,6 @@ import {
   Download,
   FileJson,
   GitBranch,
-  ListChecks,
   Network,
   PackageSearch,
   Rows3,
@@ -18,6 +17,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { ACTIVE_ANALYSIS_CONTEXT } from "../analysis-contract";
+import { WorkspaceNavigationRail } from "../workspace-navigation";
 
 type CsvRow = Record<string, string>;
 
@@ -220,50 +220,14 @@ export default function ObjectsScopePage() {
       data-catalog-version="v4.2.0"
       data-testid="objects-scope-screen"
     >
-      <aside className="navRail" aria-label="主导航">
-        <div className="brandMark" aria-label="商域图谱">
-          <span className="brandGlyph">E</span>
-          <span>
-            <strong>商域图谱</strong>
-            <small>EEI</small>
-          </span>
-        </div>
-        <nav aria-label="主导航">
-          <a className="navItem" href="/" title="商业版图">
-            <Network size={18} strokeWidth={1.8} aria-hidden="true" />
-            <span>商业版图</span>
-          </a>
-        </nav>
-        <div className="systemNav" aria-label="系统模块">
-          <span className="navGroupLabel">系统模块</span>
-          <a
-            aria-current="page"
-            className="navItem active"
-            data-testid="objects-scope-nav-active"
-            href="/objects-scope"
-            title="对象与范围"
-          >
-            <Database size={18} strokeWidth={1.8} aria-hidden="true" />
-            <span>对象与范围</span>
-          </a>
-          <a
-            className="navItem"
-            data-testid="development-status-nav-link"
-            href="/development-status"
-            title="开发状态"
-          >
-            <ListChecks size={18} strokeWidth={1.8} aria-hidden="true" />
-            <span>开发状态</span>
-          </a>
-        </div>
-      </aside>
+      <WorkspaceNavigationRail activeModuleId="data_center" />
 
       <section className="objectScopeMain" aria-label="对象与范围">
         <header className="objectScopeHeader">
           <div>
-            <p className="eyebrow">对象与范围</p>
-            <h1>对象与范围</h1>
-            <p className="subjectSubtitle">Canonical catalogs, coverage counts and export links.</p>
+            <p className="eyebrow">数据与来源</p>
+            <h1>数据与来源</h1>
+            <p className="subjectSubtitle">数据从哪来、多新、覆盖多少 — 目录、覆盖数与导出链接。</p>
           </div>
           <a className="returnLink" href="/">
             <ArrowLeft size={16} aria-hidden="true" />

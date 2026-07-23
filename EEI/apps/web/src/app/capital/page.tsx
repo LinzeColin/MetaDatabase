@@ -24,8 +24,8 @@ import {
   loadEvidenceDetail,
   type EvidenceDetailRecord
 } from "../production-data-client";
+import { zhLabel } from "../labels";
 import { WorkspaceNavigationRail } from "../workspace-navigation";
-import type { WorkspaceModuleId } from "../workspace-context";
 
 const EMPTY_FILTERS: CapitalEventFilters = {
   entity: "",
@@ -131,14 +131,6 @@ export default function CapitalRiverPage() {
     setEvidenceReason(evidenceResult.reason);
   }
 
-  function navigateToLens(lens: string, _moduleId: WorkspaceModuleId) {
-    window.location.assign(`/?lens=${encodeURIComponent(lens)}`);
-  }
-
-  function navigateToSection(sectionTestId: string, _moduleId: WorkspaceModuleId) {
-    window.location.assign(`/#${encodeURIComponent(sectionTestId)}`);
-  }
-
   return (
     <div
       className="capitalWorkspace"
@@ -148,26 +140,26 @@ export default function CapitalRiverPage() {
       data-load-state={loadState}
       data-testid="capital-river-shell"
     >
-      <WorkspaceNavigationRail
-        activeLens="capital_transactions"
-        activeModuleId="capital_network"
-        onLensTarget={navigateToLens}
-        onSectionTarget={navigateToSection}
-      />
+      <WorkspaceNavigationRail activeModuleId="capital_network" />
 
       <main className="capitalMain">
         <header className="capitalHeader">
           <div>
-            <p className="eyebrow">Capital, financing and M&amp;A</p>
-            <h1>资金河流</h1>
+            <p className="eyebrow">资本 · 融资 · 并购</p>
+            <h1>资本与事件</h1>
             <p>
-              事件金额按币种、金额类型与期间分 lane；跨 lane 不合计，未披露金额不映射为零。
+              最近发生了什么？涉及多少钱？— 金额按币种与类型分道呈现，未披露金额不记为零。
             </p>
           </div>
           <div className="capitalHeaderStatus" data-testid="capital-sync-status">
             <Database size={16} aria-hidden="true" />
-            <span>{loadState}</span>
-            <small>{loadReason}</small>
+            <span>{zhLabel("status", loadState)}</span>
+            <details className="diagDetails">
+              <summary>诊断详情</summary>
+              <small>
+                {loadState} / {loadReason}
+              </small>
+            </details>
           </div>
         </header>
 
@@ -334,7 +326,7 @@ export default function CapitalRiverPage() {
 
             {loadState === "hydrated" && events.length === 0 ? (
               <div className="capitalNoResults" data-testid="capital-no-results">
-                发布面暂无已发布资金事件——演示与候选事件逐条标注、永不出本地，缺席不等于真实为空。
+                没有符合当前筛选的事件。可以清除筛选查看全部事件，或换一个时间范围。
               </div>
             ) : null}
           </section>
@@ -347,7 +339,7 @@ export default function CapitalRiverPage() {
           >
             <header>
               <div>
-                <p className="eyebrow">Event evidence</p>
+                <p className="eyebrow">证据</p>
                 <h2>事件证据</h2>
               </div>
               <FileSearch size={19} aria-hidden="true" />
@@ -360,9 +352,13 @@ export default function CapitalRiverPage() {
                 <small>{selectedEvent.id}</small>
               </section>
             ) : null}
-            <div className="capitalEvidenceState" data-testid="capital-evidence-status">
-              {evidenceState} / {evidenceReason}
-            </div>
+            {/* P0-2：机器状态码收进诊断详情（testid 契约保留）。 */}
+            <details className="diagDetails">
+              <summary>诊断详情</summary>
+              <div className="capitalEvidenceState" data-testid="capital-evidence-status">
+                {evidenceState} / {evidenceReason}
+              </div>
+            </details>
             {evidence ? (
               <div className="capitalEvidenceContent">
                 <dl>

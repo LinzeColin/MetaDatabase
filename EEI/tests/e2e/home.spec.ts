@@ -23,7 +23,7 @@ test("renders the watchlist-first EEI workspace", async ({ page }) => {
     "recursive-enterprise-map"
   );
   await expect(page.getByRole("navigation", { name: "主导航" })).toContainText("商业版图");
-  await expect(page.getByLabel("系统模块")).toContainText("对象与范围");
+  await expect(page.getByRole("navigation", { name: "主导航" })).toContainText("数据与来源");
   await expect(page.getByRole("img", { name: /NVIDIA 供应链样例图/ })).toBeVisible();
   await expect(page.getByTestId("fixture-disclosure")).toContainText("样例数据（未连接生产）");
   await expect(page.getByText("Live facts: disabled")).toBeVisible();
@@ -56,9 +56,13 @@ test("shows user-oriented home contract entry points and model freshness", async
   await expect(page.getByTestId("home-freshness")).toContainText("失败 无");
   await expect(page.getByTestId("home-freshness")).toContainText("1 个来源");
   await expect(page.getByTestId("home-freshness")).toContainText("3 份文书");
-  await expect(page.getByTestId("home-model-status")).toContainText("Balanced v2");
-  await expect(page.getByTestId("home-model-status")).toContainText("scheduled / 14d");
+  // P0-2 治理术语清场：首屏只给人话（本图规模/数据版本/更新节奏），
+  // 快照 key / 评分模型档位收进模型面板〈诊断详情〉（textContent 仍可断言）。
+  await expect(page.getByTestId("home-model-status")).toContainText("家实体");
+  await expect(page.getByTestId("home-model-status")).toContainText("条关系");
   await expect(page.getByTestId("home-model-status")).toContainText("2026-07-03");
+  await expect(page.getByTestId("model-preview-status")).toContainText("Balanced v2");
+  await expect(page.getByTestId("model-data-snapshot")).toContainText("fixture-v1");
 });
 
 test("A104 hydrates connector and content freshness without conflating dates", async ({ page }) => {
@@ -163,7 +167,8 @@ test("A211 exposes WorkspaceContext routes controls disabled entries and persist
 
   const context = page.getByTestId("workspace-context-contract");
   await expect(context).toHaveAttribute("data-context-version", "workspace-context-v1");
-  await expect(context).toHaveAttribute("data-module-count", "16");
+  // P0-1 导航收敛（UX_SPEC_EEI §A）：18 项 → 6 个一级 route 入口。
+  await expect(context).toHaveAttribute("data-module-count", "6");
   await expect(context).toHaveAttribute(
     "data-query-keys",
     "subject,selected,lens,zoom,asOf,path"
@@ -171,67 +176,59 @@ test("A211 exposes WorkspaceContext routes controls disabled entries and persist
   await expect(context).toHaveAttribute("data-state-persistence", "url,sessionStorage,localStorage");
   await expect(context).toHaveAttribute("data-workspace-state-storage-key", "eei.workspaceState.v1");
   await expect(context).toHaveAttribute("data-saved-view-storage-key", "eei.savedView.current.v1");
-  // S8PC completed: every one of the sixteen modules is now enabled -
-  // no disabled/unfinished entries remain (导航目录无禁用).
+  // §A.4：导航里不存在 disabled/planned 项——数据弱区正常可点。
   await expect(context).toHaveAttribute("data-disabled-unfinished", "");
   const serverEndpoints = await context.getAttribute("data-server-endpoints");
   expect(serverEndpoints).toContain("/v1/saved-views");
   expect(serverEndpoints).toContain("/v1/scoring/active-context");
   expect(serverEndpoints).toContain("/v1/scoring/recompute");
 
-  await expect(page.getByTestId("main-nav-business_map")).toHaveAttribute("href", "/");
-  await expect(page.getByTestId("main-nav-business_map")).toHaveAttribute(
-    "data-control-kind",
-    "route"
-  );
-  // S8PB promoted supply_chain from a lens to a real route (/supply-chain):
-  // the nav entry now carries route semantics like business_map.
-  await expect(page.getByTestId("main-nav-supply_chain")).toHaveAttribute(
-    "href",
-    "/supply-chain"
-  );
-  await expect(page.getByTestId("main-nav-supply_chain")).toHaveAttribute(
-    "data-control-kind",
-    "route"
-  );
-  await expect(page.getByTestId("main-nav-policy_environment")).toHaveAttribute(
-    "href",
-    "/policy"
-  );
-  await expect(page.getByTestId("main-nav-group_structure")).toHaveAttribute(
-    "href",
-    "/structure"
-  );
+  // 六个入口全部是 route 型：href 就是响应契约。
+  const expectedNav: Array<[string, string]> = [
+    ["main-nav-business_map", "/"],
+    ["main-nav-group_structure", "/structure"],
+    ["main-nav-capital_network", "/capital"],
+    ["main-nav-supply_chain", "/supply-chain"],
+    ["main-nav-strategic_signals", "/signals"],
+    ["main-nav-data_center", "/objects-scope"]
+  ];
+  for (const [testId, href] of expectedNav) {
+    await expect(page.getByTestId(testId)).toHaveAttribute("href", href);
+    await expect(page.getByTestId(testId)).toHaveAttribute("data-control-kind", "route");
+  }
+  // 旧 section 死按钮与重复导航项彻底消失。
+  for (const goneId of [
+    "main-nav-time_evolution",
+    "main-nav-evidence_center",
+    "main-nav-model_center",
+    "main-nav-watchlist",
+    "main-nav-exploration_history",
+    "main-nav-system_status",
+    "main-nav-ma_transactions",
+    "main-nav-control_relationships",
+    "main-nav-policy_environment",
+    "main-nav-business_segments",
+    "objects-scope-nav-link",
+    "development-status-nav-link"
+  ]) {
+    await expect(page.getByTestId(goneId)).toHaveCount(0);
+  }
+  // 顶部「搜索 / 我的」只做占位（P1-5/P2-9 上线），明示禁用不冒充可点。
+  await expect(page.getByTestId("global-search-placeholder")).toBeDisabled();
+  await expect(page.getByTestId("my-drawer-placeholder")).toBeDisabled();
 
-  await page.getByTestId("main-nav-time_evolution").click();
-  await expect(page.getByTestId("workspace-shell")).toHaveAttribute(
-    "data-last-nav-action",
-    "section:time_evolution:timeline-controls"
-  );
-  await page.getByTestId("main-nav-evidence_center").click();
-  await expect(page.getByTestId("workspace-shell")).toHaveAttribute(
-    "data-last-nav-action",
-    "section:evidence_center:evidence-center"
-  );
+  // P0-1 验收：遍历除当前页外的每个 nav 项，点击必有 URL 变化。
+  for (const [testId, href] of expectedNav.slice(1)) {
+    await page.goto("/");
+    await page.getByTestId(testId).click();
+    await expect(page).toHaveURL(new RegExp(`${href.replaceAll("/", "\\/")}$`));
+  }
 
-  // S8PCT01 promoted both modules to real routes backed by /v1/ma/overview
-  // and /v1/control/overview; only strategic_signals stays disabled.
-  await expect(page.getByTestId("main-nav-ma_transactions")).toHaveAttribute("href", "/ma");
-  await expect(page.getByTestId("main-nav-ma_transactions")).toHaveAttribute(
-    "data-control-kind",
-    "route"
-  );
-  await expect(page.getByTestId("main-nav-control_relationships")).toHaveAttribute(
-    "href",
-    "/control"
-  );
-  await expect(page.getByTestId("main-nav-strategic_signals")).toHaveAttribute(
-    "href",
-    "/signals"
-  );
-
-  await page.getByTestId("main-nav-system_status").click();
-  await expect(page).toHaveURL(/\/development-status$/);
+  // 旧路由不在一级导航，但仍可直达（P2 才做重定向）。
+  for (const legacyPath of ["/ma", "/control", "/policy"]) {
+    await page.goto(legacyPath);
+    await expect(page.getByRole("navigation", { name: "主导航" })).toBeVisible();
+  }
 });
 
 test("exposes eight company layers and separates structure object types", async ({ page }) => {
@@ -363,11 +360,11 @@ test("exposes the Objects and Scope navigation screen with counts definitions an
   page
 }) => {
   await page.goto("/");
-  await page.getByTestId("objects-scope-nav-link").click();
+  await page.getByTestId("main-nav-data_center").click();
 
   await expect(page).toHaveURL(/\/objects-scope$/);
   await expect(page.getByTestId("objects-scope-screen")).toBeVisible();
-  await expect(page.getByTestId("objects-scope-nav-active")).toHaveAttribute("aria-current", "page");
+  await expect(page.getByTestId("main-nav-data_center")).toHaveAttribute("aria-current", "page");
   await expect(page.getByTestId("object-scope-catalog-count")).toHaveText("10");
   await expect(page.getByTestId("object-scope-total-rows")).toHaveText("363");
 
@@ -626,7 +623,7 @@ test("implements semantic zoom levels and grouped dense-node list view", async (
     await expect(page.getByTestId("workspace-shell")).toHaveAttribute("data-semantic-zoom", zoom);
   }
 
-  await expect(page.getByText("样例证据").first()).toBeVisible();
+  await expect(page.locator(".evidencePill").first()).toBeVisible();
   await expect(page.getByText("current focus").first()).toBeVisible();
 
   await page.getByTestId("zoom-L0").click();

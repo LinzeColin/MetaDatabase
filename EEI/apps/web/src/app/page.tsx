@@ -82,10 +82,10 @@ import {
   SAVED_VIEW_STORAGE_KEY,
   WORKSPACE_STATE_STORAGE_KEY,
   WorkspaceContextContractMarker,
-  WorkspaceContextProvider,
-  type WorkspaceModuleId
+  WorkspaceContextProvider
 } from "./workspace-context";
 import { WorkspaceNavigationRail } from "./workspace-navigation";
+import { ZONE_LABELS, zhLabel } from "./labels";
 
 type FocusKey =
   | "materials"
@@ -199,9 +199,12 @@ type Zone =
   | "infrastructure"
   | "business"
   | "capital"
-  | "policy";
+  | "policy"
+  | "governance";
 
 // S12 光学：defs 渐变按 zone 枚举生成（玻璃球体 + 光晕各一）。
+// P0-3（§F.1）：新增「治理」扇区——person / board_governance 专属，
+// 不再挤进 upstream。
 const EMPIRE_ZONES: readonly Zone[] = [
   "focus",
   "upstream",
@@ -209,7 +212,8 @@ const EMPIRE_ZONES: readonly Zone[] = [
   "infrastructure",
   "business",
   "capital",
-  "policy"
+  "policy",
+  "governance"
 ];
 
 // 焦点节点的环绕粒子（视频样例：轨道点环，reduced-motion 时静止）。
@@ -255,45 +259,11 @@ const FOCUS_ORBIT_DOTS = Array.from({ length: 12 }, (_, index) => {
   };
 });
 
-// S12 第二批：机器状态码 → 自然中文。仅作用于人话摘要层的展示；
-// 原始状态码全部保留在各面板〈诊断详情〉内（契约 testid 与断言不动）。
-const STATUS_ZH: Record<string, string> = {
-  "local-active": "本地模型运行中",
-  "server-active": "云端模型运行中",
-  idle: "待命",
-  activating: "激活中",
-  creating: "创建中",
-  enqueueing: "入队中",
-  enqueued: "已入队",
-  ready: "就绪",
-  "server-error": "云端接口不可用",
-  http_404: "云端未提供该接口",
-  http_409: "版本冲突",
-  http_500: "云端服务异常",
-  local_fallback: "已回退本地样例",
-  "local-fixture": "本地样例",
-  local: "本地",
-  server: "云端",
-  "server-hydrated": "云端数据已接入",
-  api_base_missing: "未配置数据接口",
-  candidate_id_missing: "缺少候选编号",
-  object_id_missing: "缺少对象编号",
-  "candidate-missing": "无候选评分",
-  "server-conflict": "云端版本冲突",
-  "local-saved": "已保存（本地）",
-  "server-saved": "已保存（云端）",
-  "local-restored": "已恢复（本地）",
-  "server-restored": "已恢复（云端）",
-  none: "无",
-  preview: "预览中",
-  active: "已激活"
-};
-
+// S12 第二批：机器状态码 → 自然中文（P0-2 起映射表统一收进 labels.ts）。
+// 仅作用于人话摘要层的展示；原始状态码全部保留在各面板〈诊断详情〉内
+// （契约 testid 与断言不动）。
 function zhStatus(raw: string | null | undefined): string {
-  if (!raw) {
-    return "无";
-  }
-  return STATUS_ZH[raw] ?? raw;
+  return zhLabel("status", raw);
 }
 
 type MapNode = {
@@ -346,6 +316,10 @@ type GraphRenderNode = {
   fixtureNotice?: string | null;
   aggregateCount?: number;
   groupMembers?: string[];
+  /** P0-3 聚合节点吸收的成员实体 id（边端点经此重映射为 meta-edge）。 */
+  aggregateMemberIds?: string[];
+  /** P0-3 分级显隐优先级 = 证据数（次选度数），focus 恒为最高。 */
+  priority?: number;
 };
 
 type GraphRenderEdge = {
@@ -452,6 +426,11 @@ const lensItems: { key: LensKey; label: string }[] = [
   { key: "policy_risk", label: "政策" }
 ];
 
+// P0-2 §E.3：透镜键上屏走中文标签（表格「类型」列等）。
+const lensLabelByKey: Record<string, string> = Object.fromEntries(
+  lensItems.map((lens) => [lens.key, lens.label])
+);
+
 const workspaceLayerItems: {
   key: WorkspaceLayerKey;
   label: string;
@@ -528,10 +507,10 @@ const structureRows: {
 ];
 
 const semanticZoomItems: { key: SemanticZoom; label: string; title: string }[] = [
-  { key: "L0", label: "L0", title: "Overview with grouped dense nodes" },
-  { key: "L1", label: "L1", title: "Relationship labels" },
-  { key: "L2", label: "L2", title: "Evidence and fixture state" },
-  { key: "L3", label: "L3", title: "Detailed node role labels" }
+  { key: "L0", label: "L0", title: "总览 · 密集节点自动成组" },
+  { key: "L1", label: "L1", title: "关系标签" },
+  { key: "L2", label: "L2", title: "证据与数据状态" },
+  { key: "L3", label: "L3", title: "全部标签与明细" }
 ];
 
 const timelineItems: {
@@ -1120,6 +1099,10 @@ function fixtureRenderEdge(edge: MapEdge, observedAt: string): GraphRenderEdge {
   };
 }
 
+// P0-3 §F.1 聚合优先：同 zone 同 entity_type 超过该阈值即折叠为一个
+// 聚合节点（如「董事/高管 ×14」），布局函数因此永远只摆少量个体节点。
+const ZONE_TYPE_AGGREGATION_THRESHOLD = 5;
+
 function serverGraphRenderNodes(
   graph: ExploreGraphRecord | null,
   focusEntityId: string
@@ -1130,38 +1113,88 @@ function serverGraphRenderNodes(
     if (!familyByNode.has(edge.subject_id)) familyByNode.set(edge.subject_id, edge.relationship_family);
     if (!familyByNode.has(edge.object_id)) familyByNode.set(edge.object_id, edge.relationship_family);
   }
-  const nodesByLane = new Map<Zone, ExploreGraphRecord["nodes"]>();
+  // 优先级 = 该实体作为端点的证据条数合计（§F.2 priority=evidenceCount）。
+  const priorityByNode = new Map<string, number>();
+  for (const edge of graph.edges) {
+    const weight = Math.max(1, edge.evidence_count ?? 0);
+    priorityByNode.set(edge.subject_id, (priorityByNode.get(edge.subject_id) ?? 0) + weight);
+    priorityByNode.set(edge.object_id, (priorityByNode.get(edge.object_id) ?? 0) + weight);
+  }
+  // 按 zone + entity_type 分组：超阈值的组折叠为聚合节点。
+  const groups = new Map<string, ExploreGraphRecord["nodes"]>();
   for (const item of graph.nodes) {
     const zone = serverNodeZone(item.id, focusEntityId, item.entity_type, familyByNode.get(item.id));
-    const next = nodesByLane.get(zone) ?? [];
-    next.push(item);
-    nodesByLane.set(zone, next);
+    const groupKey = `${zone}::${item.entity_type ?? "entity"}`;
+    groups.set(groupKey, [...(groups.get(groupKey) ?? []), item]);
   }
-  return graph.nodes.map((item) => {
-    const zone = serverNodeZone(item.id, focusEntityId, item.entity_type, familyByNode.get(item.id));
-    const lane = nodesByLane.get(zone) ?? [item];
-    const laneIndex = lane.findIndex((candidate) => candidate.id === item.id);
-    const laneCount = lane.length;
-    const position = serverNodePosition(zone, Math.max(laneIndex, 0), Math.max(laneCount, 1));
-    const localKey = serverLocalKeyForEntityId(item.id);
-    return {
-      key: item.id,
-      label: item.canonical_name,
-      shortLabel: shortServerLabel(item.canonical_name),
-      stage: serverNodeStage(item.entity_type, familyByNode.get(item.id)),
-      role: item.id === focusEntityId ? "server focus entity" : "server returned entity",
-      x: position.x,
-      y: position.y,
-      zone,
-      // 云模式：每个已发布实体都可显式换中心（EEI-F03 的「以被选实体
-      // 本身为中心」）；本地模式沿用样例键映射规则。
-      centerable: CLOUD_MODE ? true : Boolean(localKey),
-      source: "server",
-      localKey,
-      entityType: item.entity_type,
-      fixtureNotice: item.fixture_notice
-    };
-  });
+  const rendered: GraphRenderNode[] = [];
+  const laneIndexByZone = new Map<Zone, number>();
+  const nextLaneIndex = (zone: Zone) => {
+    const index = laneIndexByZone.get(zone) ?? 0;
+    laneIndexByZone.set(zone, index + 1);
+    return index;
+  };
+  for (const [groupKey, members] of groups) {
+    const zone = groupKey.split("::")[0] as Zone;
+    const entityType = groupKey.split("::")[1];
+    if (zone !== "focus" && members.length > ZONE_TYPE_AGGREGATION_THRESHOLD) {
+      // 聚合节点：点击后右栏给成员列表（group-list 机制复用）。
+      const sorted = [...members].sort(
+        (a, b) => (priorityByNode.get(b.id) ?? 0) - (priorityByNode.get(a.id) ?? 0)
+      );
+      const typeLabel = zhLabel("entity_type", entityType);
+      const position = serverNodePosition(zone, nextLaneIndex(zone), 1);
+      rendered.push({
+        key: `agg:${zone}:${entityType}`,
+        label: `${typeLabel} ×${members.length}`,
+        shortLabel: typeLabel,
+        stage: `${typeLabel} · ${zhLabel("zone", zone)}`,
+        role: "聚合节点 · 点击查看成员",
+        x: position.x,
+        y: position.y,
+        zone,
+        centerable: false,
+        source: "server",
+        entityType,
+        fixtureNotice: null,
+        aggregateCount: members.length,
+        groupMembers: sorted.map((member) => member.canonical_name),
+        aggregateMemberIds: sorted.map((member) => member.id),
+        priority: Math.max(...sorted.map((member) => priorityByNode.get(member.id) ?? 0))
+      });
+      continue;
+    }
+    for (const item of members) {
+      const localKey = serverLocalKeyForEntityId(item.id);
+      const position = serverNodePosition(
+        zone,
+        zone === "focus" ? 0 : nextLaneIndex(zone),
+        Math.max(members.length, 1)
+      );
+      rendered.push({
+        key: item.id,
+        label: item.canonical_name,
+        shortLabel: shortServerLabel(item.canonical_name),
+        stage: serverNodeStage(item.entity_type, familyByNode.get(item.id)),
+        role: item.id === focusEntityId ? "当前中心" : "关联实体",
+        x: position.x,
+        y: position.y,
+        zone,
+        // 云模式：每个已发布实体都可显式换中心（EEI-F03 的「以被选实体
+        // 本身为中心」）；本地模式沿用样例键映射规则。
+        centerable: CLOUD_MODE ? true : Boolean(localKey),
+        source: "server",
+        localKey,
+        entityType: item.entity_type,
+        fixtureNotice: item.fixture_notice,
+        priority:
+          item.id === focusEntityId
+            ? Number.MAX_SAFE_INTEGER
+            : priorityByNode.get(item.id) ?? 0
+      });
+    }
+  }
+  return rendered;
 }
 
 function serverGraphRenderEdges(
@@ -1170,21 +1203,44 @@ function serverGraphRenderEdges(
   observedAt: string
 ): GraphRenderEdge[] | null {
   if (!graph) return null;
-  const nodeKeys = new Set(renderedNodes.map((item) => item.key));
-  const edges = graph.edges
-    .filter((edge) => nodeKeys.has(edge.subject_id) && nodeKeys.has(edge.object_id))
-    .map((edge) => ({
+  // P0-3 §F.1 meta-edge：被聚合成员的边端点重映射到聚合节点；同起终点
+  // 同标签的平行边合并（证据数累加），聚合自环丢弃。
+  const renderKeyByEntityId = new Map<string, string>();
+  for (const node of renderedNodes) {
+    if (node.aggregateMemberIds) {
+      for (const memberId of node.aggregateMemberIds) {
+        renderKeyByEntityId.set(memberId, node.key);
+      }
+    } else {
+      renderKeyByEntityId.set(node.key, node.key);
+    }
+  }
+  const merged = new Map<string, GraphRenderEdge>();
+  for (const edge of graph.edges) {
+    const from = renderKeyByEntityId.get(edge.subject_id);
+    const to = renderKeyByEntityId.get(edge.object_id);
+    if (!from || !to || from === to) continue;
+    const label = relationshipLabel(edge.relationship_type);
+    const mergeKey = `${from}|${to}|${label}`;
+    const existing = merged.get(mergeKey);
+    if (existing) {
+      existing.evidenceCount += edge.evidence_count ?? 0;
+      continue;
+    }
+    merged.set(mergeKey, {
       id: edge.id,
-      from: edge.subject_id,
-      to: edge.object_id,
-      label: relationshipLabel(edge.relationship_type),
-      stage: edge.relationship_family.replaceAll("_", " "),
+      from,
+      to,
+      label,
+      stage: zhLabel("relationship_family", edge.relationship_family),
       lens: lensForRelationshipFamily(edge.relationship_family),
       fixtureNotice: edge.fixture_notice ?? `${edge.status ?? "relationship"}; evidence=${edge.evidence_count ?? 0}`,
       evidenceCount: edge.evidence_count ?? 0,
       observedAt,
       source: "server" as const
-    }));
+    });
+  }
+  const edges = [...merged.values()];
   return edges.length > 0 ? edges : null;
 }
 
@@ -1195,6 +1251,8 @@ function serverNodeZone(
   family: string | undefined
 ): Zone {
   if (id === focusEntityId) return "focus";
+  // P0-3 §F.1：董监高（person / board_governance）有专属治理扇区。
+  if (entityType === "person" || family === "board_governance") return "governance";
   if (entityType === "facility" || entityType === "asset") return "infrastructure";
   if (family === "capital_financing" || family === "ownership_control" || family === "mergers_acquisitions") {
     return "capital";
@@ -1208,16 +1266,19 @@ function serverNodeZone(
 // occupies an angular sector on one of the orbital belts. Multiple nodes in
 // a zone fan out around the sector center with a stable per-index spread.
 const EMPIRE_CENTER = { x: 380, y: 240 } as const;
+// 三条轨道半径 118 / 182 / 246（§F.1）；治理扇区落在最外环，与资本扇区
+// 同角不同环，径向分离。
 const EMPIRE_ORBITS: Record<Exclude<Zone, "focus">, { radius: number; centerDeg: number }> = {
   business: { radius: 118, centerDeg: 270 },
   capital: { radius: 118, centerDeg: 200 },
   upstream: { radius: 182, centerDeg: 160 },
   downstream: { radius: 182, centerDeg: 10 },
   policy: { radius: 182, centerDeg: 95 },
-  infrastructure: { radius: 182, centerDeg: 320 }
+  infrastructure: { radius: 182, centerDeg: 320 },
+  governance: { radius: 246, centerDeg: 205 }
 };
 
-function layoutEmpireOrbits<T extends { key: string; zone: Zone; x: number; y: number }>(
+function layoutEmpireOrbits<T extends { key: string; zone: Zone; x: number; y: number; priority?: number }>(
   nodes: T[]
 ): (T & { orbitRadius?: number })[] {
   const zoneGroups = new Map<Zone, T[]>();
@@ -1233,13 +1294,19 @@ function layoutEmpireOrbits<T extends { key: string; zone: Zone; x: number; y: n
       continue;
     }
     const orbit = EMPIRE_ORBITS[zone];
-    const spreadDeg = Math.min(30, Math.max(16, 110 / Math.max(members.length - 1, 1)));
-    members.forEach((member, index) => {
-      const offset = (index - (members.length - 1) / 2) * spreadDeg;
+    // P0-3 §F.1：删除 16°/个的下限环绕逻辑——扇区总张角封顶 110°，
+    // 节点再多也不外溢侵入相邻扇区（聚合已保证每组个体 ≤5）。
+    // 高优先级成员排在扇区中心附近（priority 降序、居中向外交错）。
+    const ordered = [...members].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+    const spreadDeg = Math.min(30, 110 / Math.max(members.length - 1, 1));
+    ordered.forEach((member, rank) => {
+      // rank 0 居中，随后 ±1、±2… 交错展开。
+      const offsetSteps = rank === 0 ? 0 : Math.ceil(rank / 2) * (rank % 2 === 1 ? 1 : -1);
+      const offset = offsetSteps * spreadDeg;
       const angle = ((orbit.centerDeg + offset) * Math.PI) / 180;
       // Dense sectors stagger alternate members onto a slightly wider ring so
       // labels stop stacking; the belt reading stays intact.
-      const radius = orbit.radius + (members.length > 3 && index % 2 === 1 ? 34 : 0);
+      const radius = orbit.radius + (members.length > 3 && rank % 2 === 1 ? 34 : 0);
       placed.set(member.key, {
         x: Math.round(EMPIRE_CENTER.x + radius * Math.cos(angle)),
         y: Math.round(EMPIRE_CENTER.y + radius * Math.sin(angle)),
@@ -1260,10 +1327,89 @@ function serverNodePosition(zone: Zone, index: number, count: number) {
     infrastructure: { x: 628 },
     business: { x: 380, y: 92 + index * 56 },
     capital: { x: 258, y: 78 + index * 54 },
-    policy: { x: 500, y: 382 - index * 52 }
+    policy: { x: 500, y: 382 - index * 52 },
+    governance: { x: 168, y: 360 - index * 48 }
   };
   const base = positions[zone];
   return { x: base.x, y: base.y ?? y };
+}
+
+// ============ P0-3 §F.2 分级显隐 + §F.3(最小版) 贪心占位 ============
+// 纯计算、确定性（坐标为整数）→ SSR/client 一致，不进渲染热路径。
+// L0 只显 focus+聚合；L1 +priority top10；L2 top50；L3 全量——全部经
+// 贪心占位检测，放不下就不放（IDL FastLabels 口径）。hover/选中/focus
+// 的标签在渲染层强制显示（§F.2），不受本计划限制。
+type LabelBox = { left: number; right: number; top: number; bottom: number };
+
+function estimateLabelBox(text: string, cx: number, cy: number, fontPx: number): LabelBox {
+  let width = 0;
+  for (const ch of text) {
+    width += ch.charCodeAt(0) > 0x2e80 ? fontPx : fontPx * 0.62;
+  }
+  const halfWidth = width / 2 + 2;
+  const halfHeight = fontPx / 2 + 4;
+  return { left: cx - halfWidth, right: cx + halfWidth, top: cy - halfHeight, bottom: cy + halfHeight };
+}
+
+function labelBoxesIntersect(a: LabelBox, b: LabelBox): boolean {
+  return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+}
+
+const NODE_LABEL_TIER_LIMIT: Record<string, number> = {
+  L0: 0,
+  L1: 10,
+  L2: 50,
+  L3: Number.MAX_SAFE_INTEGER
+};
+
+function computeLabelPlan(
+  nodes: (GraphRenderNode & { orbitRadius?: number })[],
+  edges: GraphRenderEdge[],
+  semanticZoom: string,
+  focusKey: string
+): { nodeLabelKeys: Set<string>; edgeLabelIds: Set<string> } {
+  const placedBoxes: LabelBox[] = [];
+  const nodeLabelKeys = new Set<string>();
+  const edgeLabelIds = new Set<string>();
+  const tierLimit = NODE_LABEL_TIER_LIMIT[semanticZoom] ?? 10;
+
+  const always = nodes.filter((node) => node.key === focusKey || node.zone === "focus" || node.aggregateCount);
+  const ranked = nodes
+    .filter((node) => !always.includes(node))
+    .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0) || a.key.localeCompare(b.key))
+    .slice(0, tierLimit);
+  for (const node of [...always, ...ranked]) {
+    const text = node.aggregateCount ? `${node.shortLabel} ×${node.aggregateCount}` : node.shortLabel;
+    const box = estimateLabelBox(text, node.x, node.y, 12);
+    if (placedBoxes.some((placed) => labelBoxesIntersect(placed, box))) {
+      continue;
+    }
+    placedBoxes.push(box);
+    nodeLabelKeys.add(node.key);
+  }
+
+  const nodeByKey = new Map(nodes.map((node) => [node.key, node]));
+  const detailZoom = semanticZoom === "L2" || semanticZoom === "L3";
+  for (const edge of edges) {
+    const source = nodeByKey.get(edge.from);
+    const target = nodeByKey.get(edge.to);
+    if (!source || !target) continue;
+    const isSunBeam = source.zone === "focus" || target.zone === "focus";
+    // §F.4：L0/L1 只考虑 focus 相邻边标签；L2/L3 全量参与占位竞争。
+    if (!detailZoom && !isSunBeam) continue;
+    const midX = (source.x + target.x) / 2;
+    const midY = (source.y + target.y) / 2 - 10;
+    const labelBox = estimateLabelBox(edge.label, midX, midY - 4, 11);
+    const box: LabelBox = detailZoom
+      ? { ...labelBox, bottom: labelBox.bottom + 18 }
+      : labelBox;
+    if (placedBoxes.some((placed) => labelBoxesIntersect(placed, box))) {
+      continue;
+    }
+    placedBoxes.push(box);
+    edgeLabelIds.add(edge.id);
+  }
+  return { nodeLabelKeys, edgeLabelIds };
 }
 
 // S14 视频复刻：连接器弯曲曲线。控制点=中点沿边法向偏移 curveK×边长，
@@ -1278,20 +1424,22 @@ function curvedEdgePath(sx: number, sy: number, tx: number, ty: number, sign: bo
   return `M${sx} ${sy} Q${cx} ${cy} ${tx} ${ty}`;
 }
 
+// P0-2 §E.1：枚举一律过 labels.ts 映射后上屏，废除 replaceAll 直出。
 function serverNodeStage(entityType: string | undefined, family: string | undefined) {
-  const entity = entityType ? entityType.replaceAll("_", " ") : "entity";
-  const relationship = family ? family.replaceAll("_", " ") : "relationship";
-  return `${entity} / ${relationship}`;
+  const entity = zhLabel("entity_type", entityType ?? "entity");
+  const relationship = zhLabel("relationship_family", family ?? "relationship");
+  return `${entity} · ${relationship}`;
 }
 
 function relationshipLabel(value: string) {
-  return value.replaceAll("_", " ");
+  return zhLabel("relationship_type", value);
 }
 
+// P0-3 §F.4：shortLabel 截断 22 → 14 字符 + 省略号（CJK 同宽计数从简）。
 function shortServerLabel(value: string) {
   const words = value.split(/\s+/).filter(Boolean);
   const compact = words.slice(0, 3).join(" ");
-  return compact.length > 22 ? `${compact.slice(0, 19)}...` : compact;
+  return compact.length > 14 ? `${compact.slice(0, 13)}…` : compact;
 }
 
 function lensForRelationshipFamily(family: string): RelationshipLens {
@@ -1316,8 +1464,8 @@ function serverEntityRenderNode(entity: ServerEntityRecord): GraphRenderNode {
     key: entity.id,
     label: entity.canonical_name,
     shortLabel: shortServerLabel(entity.canonical_name),
-    stage: (entity.entity_type || "entity").replaceAll("_", " "),
-    role: "已发布实体（不在当前图内）",
+    stage: zhLabel("entity_type", entity.entity_type || "entity"),
+    role: "已核实实体（不在当前图内）",
     x: 0,
     y: 0,
     zone: "upstream",
@@ -1821,7 +1969,6 @@ export default function Home() {
   const [watchlistNodeKeys, setWatchlistNodeKeys] = useState<NodeKey[]>([]);
   const [tableLensFilter, setTableLensFilter] = useState<LensKey>("all");
   const [nodeActionStatus, setNodeActionStatus] = useState("ready");
-  const [navActionStatus, setNavActionStatus] = useState("ready");
   const [stateReady, setStateReady] = useState(false);
   const restoringHistoryState = useRef(false);
   const hasWrittenHistoryState = useRef(false);
@@ -1946,18 +2093,27 @@ export default function Home() {
     : CLOUD_MODE
       ? "cloud-empty"
       : "fixture";
+  // P0-3 §F.2/§F.3：标签显隐计划（分级 + 贪心占位），随布局与缩放级重算。
+  const graphLabelPlan = useMemo(
+    () =>
+      computeLabelPlan(
+        graphViewNodes,
+        graphViewEdges,
+        semanticZoom,
+        isServerGraphRendered ? productionGraphRequest.focus.object_id : focusKey
+      ),
+    [
+      graphViewNodes,
+      graphViewEdges,
+      semanticZoom,
+      isServerGraphRendered,
+      productionGraphRequest.focus.object_id,
+      focusKey
+    ]
+  );
   // S9PBT01 V4: legend inventory (per-zone node counts from the live view)
-  // and the GAPS badge fed by the real 16-stage supply-chain assertion
-  // coverage - never a fabricated percentage.
-  const ZONE_LABELS: Record<string, string> = {
-    focus: "焦点",
-    upstream: "上游",
-    downstream: "下游",
-    business: "业务",
-    capital: "资本",
-    policy: "政策",
-    infrastructure: "设施"
-  };
+  // and the coverage badge fed by the real 16-stage supply-chain coverage -
+  // never a fabricated percentage. ZONE_LABELS 统一来自 labels.ts（P0-2）。
   const legendInventory = useMemo(() => {
     const counts = new Map<string, number>();
     for (const node of graphViewNodes) {
@@ -1968,8 +2124,11 @@ export default function Home() {
       .sort((a, b) => b.count - a.count);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graphViewNodes]);
-  const [supplyGapsPct, setSupplyGapsPct] = useState<number | null>(null);
-  const [supplyGapsDetail, setSupplyGapsDetail] = useState("");
+  // P0-2 §E.1：GAPS 黑话正着说——记录「已覆盖 X/共 Y」而非缺口百分比。
+  const [supplyCoverage, setSupplyCoverage] = useState<{
+    covered: number;
+    total: number;
+  } | null>(null);
   // S9PCT01 V3: the 2016->now history scrubber, backed by the REAL per-year
   // regulatory-filing depth from the S7PDT01 backfill. It coexists with the
   // three-point as-of contract (snapshots) without touching that state.
@@ -2059,8 +2218,7 @@ export default function Home() {
         const total = payload?.summary?.stages_total;
         const covered = payload?.summary?.stages_with_relationships;
         if (response.ok && typeof total === "number" && typeof covered === "number" && total > 0) {
-          setSupplyGapsPct(Math.round(((total - covered) / total) * 100));
-          setSupplyGapsDetail(`${total - covered}/${total} 阶段无断言`);
+          setSupplyCoverage({ covered, total });
         }
       })
       .catch(() => {
@@ -2898,18 +3056,8 @@ export default function Home() {
     setNodeActionStatus(`watchlist:${selectedNode.key}`);
   }
 
-  function applyWorkspaceNavigationLens(lens: string, moduleId: WorkspaceModuleId) {
-    if (!isLensKey(lens)) return;
-    setActiveLens(lens);
-    setNavActionStatus(`lens:${moduleId}:${lens}`);
-  }
-
-  function applyWorkspaceNavigationSection(sectionTestId: string, moduleId: WorkspaceModuleId) {
-    const section = document.querySelector<HTMLElement>(`[data-testid="${sectionTestId}"]`);
-    section?.scrollIntoView({ block: "nearest", inline: "nearest" });
-    section?.focus?.({ preventScroll: true });
-    setNavActionStatus(`section:${moduleId}:${sectionTestId}`);
-  }
+  // P0-1 §A.3：section 滚动式导航处理器已废除——「滚动到首页某段落」
+  // 不配做一级导航；证据/时间轴/关注等能力以画布控件与右栏面板形式常驻。
 
   function openSelectedPath() {
     setNodeActionStatus(`path:${selectedNode.key}`);
@@ -3149,7 +3297,6 @@ export default function Home() {
       data-focus-key={focusKey}
       data-information-workspace="business-empire-home"
       data-layout-grammar={WORKSPACE_LAYOUT_GRAMMAR}
-      data-last-nav-action={navActionStatus}
       data-path={path.join(".")}
       data-path-length={path.length}
       data-reroot-state={transitionState}
@@ -3161,12 +3308,7 @@ export default function Home() {
       data-workspace-model="recursive-enterprise-map"
     >
       <WorkspaceContextContractMarker />
-      <WorkspaceNavigationRail
-        activeLens={activeLens}
-        activeModuleId="business_map"
-        onLensTarget={applyWorkspaceNavigationLens}
-        onSectionTarget={applyWorkspaceNavigationSection}
-      />
+      <WorkspaceNavigationRail activeModuleId="business_map" />
 
       <section className="focusPanel" aria-label="当前主体">
         <div className="subjectHeader">
@@ -3195,36 +3337,37 @@ export default function Home() {
               : "样例数据"}
           </span>
         </div>
+        {/* P0-2 §E.1：Budget/快照 key/评分模型/刷新代全部退出首屏——
+            本图规模说人话，数据版本给日期；机器状态收进下方〈诊断详情〉。 */}
         <dl className="subjectStats" data-testid="home-model-status">
           <div>
-            <dt>数据快照</dt>
-            <dd>{analysisContext.dataSnapshot}</dd>
-          </div>
-          <div>
-            <dt>评分模型</dt>
-            <dd>{analysisContext.profileLabel}</dd>
-          </div>
-          <div>
-            <dt>Budget</dt>
+            <dt>本图</dt>
             <dd data-testid="graph-budget">
-              {graphViewNodes.length} / {graphViewEdges.length}
+              {graphViewNodes.length} 家实体 · {graphViewEdges.length} 条关系
+            </dd>
+          </div>
+          <div>
+            <dt>数据版本</dt>
+            <dd>
+              {CLOUD_MODE
+                ? (publishedContextMeta.as_of ?? "").slice(0, 10) || "载入中"
+                : asOf}
             </dd>
           </div>
           {CLOUD_MODE ? (
             <div>
-              <dt>上下文刷新代</dt>
+              <dt>更新于</dt>
               <dd>
-                {serverModelContext
-                  ? `第 ${serverModelContext.refresh_generation} 代`
+                {serverModelContext?.activated_at
+                  ? serverModelContext.activated_at.slice(5, 16).replace("T", " ")
                   : "载入中"}
               </dd>
             </div>
           ) : (
             <div>
-              <dt>模型校准</dt>
+              <dt>数据更新</dt>
               <dd>
-                {homeModelStatus.latestCalibration} / {homeModelStatus.cadenceDays}d /{" "}
-                {homeModelStatus.nextScheduledFor}
+                每 {homeModelStatus.cadenceDays} 天 · 下次 {homeModelStatus.nextScheduledFor}
               </dd>
             </div>
           )}
@@ -3268,6 +3411,22 @@ export default function Home() {
           </div>
           <details className="diagDetails">
             <summary>诊断详情</summary>
+          <div>
+            <strong>数据快照</strong>
+            <span data-testid="model-data-snapshot">{analysisContext.dataSnapshot}</span>
+          </div>
+          <div>
+            <strong>评分模型</strong>
+            <span data-testid="model-profile-version">{analysisContext.profileVersion}</span>
+          </div>
+          {CLOUD_MODE && serverModelContext ? (
+            <div>
+              <strong>上下文刷新代</strong>
+              <span data-testid="model-refresh-generation">
+                第 {serverModelContext.refresh_generation} 代
+              </span>
+            </div>
+          ) : null}
           <div>
             <strong>模型预览</strong>
             <span data-testid="model-preview-status">
@@ -3622,9 +3781,9 @@ export default function Home() {
             data-testid="publication-disclosure"
             data-publication-surface="owner-signed-published-facts"
           >
-            <strong>发布面数据边界</strong>
+            <strong>数据边界</strong>
             <span>
-              本站仅呈现经双源核验与 Owner 签核发布的事实；候选、评审队列与原始文本不出本地。
+              本站只展示有官方文件依据的事实，每条都可以点开查来源。
             </span>
           </div>
         ) : (
@@ -3702,13 +3861,13 @@ export default function Home() {
                     data-testid="structure-row-legal_group"
                   >
                     <td>{serverFocusLabel}</td>
-                    <td>legal_entity</td>
-                    <td>focus_entity</td>
+                    <td>{zhLabel("entity_type", "legal_entity")}</td>
+                    <td>{zhLabel("relationship_type", "focus_entity")}</td>
                     <td>当前主体；不是母子控制声明</td>
                   </tr>
                   <tr data-structure-kind="unpublished" data-testid="structure-row-unpublished">
                     <td colSpan={4}>
-                      其余结构层（业务板块 / 品牌 / 产品 / 设施）尚未发布——缺席表示无已签核断言，不补零。
+                      其余结构层（业务板块 / 品牌 / 产品 / 设施）暂无已核实数据——新数据核实后会自动出现，不用占位数据补零。
                     </td>
                   </tr>
                 </>
@@ -3772,7 +3931,8 @@ export default function Home() {
                     >
                       <span>{entity.canonical_name}</span>
                       <small>
-                        {entity.entity_type.replaceAll("_", " ")} · {entity.status}
+                        {zhLabel("entity_type", entity.entity_type)} ·{" "}
+                        {zhLabel("status", entity.status)}
                       </small>
                     </button>
                     <button
@@ -3822,9 +3982,18 @@ export default function Home() {
           </header>
           <div className="compactList">
             {CLOUD_MODE ? (
-              <p className="honestEmpty" data-testid="home-industries-empty">
-                行业目录尚未发布——发布面暂不含行业分类断言，不以样例充数。
-              </p>
+              <div className="honestEmpty" data-testid="home-industries-empty">
+                <p>
+                  <strong>行业目录采集中</strong>
+                </p>
+                <p>当前版本先覆盖实体、关系与事件数据；行业分类核实后会出现在这里。</p>
+                <button
+                  onClick={() => document.getElementById("global-search-input")?.focus()}
+                  type="button"
+                >
+                  先用搜索找公司
+                </button>
+              </div>
             ) : (
               homeIndustries.map((industry) => (
                 <button
@@ -3861,10 +4030,21 @@ export default function Home() {
           </header>
           <div className="watchlistStack">
             {CLOUD_MODE ? (
-              <p className="honestEmpty" data-testid="home-watchlist-empty">
-                云端关注列表为空——未读数来自真实变化流（
-                {serverUnreadChanges ?? 0} 条），不展示样例关注项。
-              </p>
+              <div className="honestEmpty" data-testid="home-watchlist-empty">
+                <p>
+                  <strong>还没有关注任何公司</strong>
+                </p>
+                <p>
+                  在图谱中选中实体后点「加入关注」，它的变化（当前 {serverUnreadChanges ?? 0}{" "}
+                  条未读）会在这里汇总。
+                </p>
+                <button
+                  onClick={() => document.getElementById("global-search-input")?.focus()}
+                  type="button"
+                >
+                  去找一家公司
+                </button>
+              </div>
             ) : (
               homeWatchItems.map((item) => (
                 <button
@@ -3911,9 +4091,12 @@ export default function Home() {
                   </button>
                 ))
               ) : (
-                <p className="honestEmpty" data-testid="home-recent-empty">
-                  本次会话暂无探索记录。
-                </p>
+                <div className="honestEmpty" data-testid="home-recent-empty">
+                  <p>
+                    <strong>本次会话还没有探索记录</strong>
+                  </p>
+                  <p>在图谱中点「以它为中心」换主体，走过的路径会记录在这里。</p>
+                </div>
               )
             ) : (
               homeRecentExplorations.map((entry) => (
@@ -3946,19 +4129,26 @@ export default function Home() {
                     key={change.id}
                   >
                     <span>
-                      已发布关系：{change.new_value?.subject_name ?? "?"} →{" "}
+                      新核实关系：{change.new_value?.subject_name ?? "?"} →{" "}
                       {change.new_value?.object_name ?? "?"}
                     </span>
                     <small>
-                      {(change.new_value?.relationship_type ?? "").replaceAll("_", " ")} ·{" "}
+                      {zhLabel("relationship_type", change.new_value?.relationship_type ?? "")} ·{" "}
                       {change.created_at ? change.created_at.slice(0, 10) : "无日期"}
                     </small>
                   </div>
                 ))
               ) : (
-                <p className="honestEmpty" data-testid="home-changes-empty">
-                  自上次查看以来暂无新发布。
-                </p>
+                <div className="honestEmpty" data-testid="home-changes-empty">
+                  <p>
+                    <strong>自上次查看以来没有新变化</strong>
+                  </p>
+                  <p>
+                    上次数据更新：
+                    {(publishedContextMeta.as_of ?? "").slice(0, 10) || "载入中"}
+                    。有新数据核实后会在这里提示。
+                  </p>
+                </div>
               )
             ) : null}
             {!CLOUD_MODE && homeChanges.map((change) => (
@@ -3987,8 +4177,18 @@ export default function Home() {
           data-sync-reason={productionFreshnessSyncReason}
           data-testid="home-freshness"
         >
-          <span data-testid="source-freshness-status">{freshnessDisplay.status}</span>
-          <span data-testid="source-freshness-code">{freshnessDisplay.sourceCode}</span>
+          {/* P0-2：云端预渲染占位码给中文；真实来源代码（如 sec_edgar_*）
+              是机器专名，按 §E.3 规则 2 保留原文（A104 契约不动）。 */}
+          <span data-testid="source-freshness-status">
+            {freshnessDisplay.status === "publication_unavailable"
+              ? "暂不可用"
+              : freshnessDisplay.status}
+          </span>
+          <span data-testid="source-freshness-code">
+            {freshnessDisplay.sourceCode === "cloud_publication_surface"
+              ? "云端发布面"
+              : freshnessDisplay.sourceCode}
+          </span>
           <span data-testid="source-freshness-attempt">
             抓取 {freshnessText(freshnessDisplay.lastAttemptAt)}
           </span>
@@ -4006,7 +4206,6 @@ export default function Home() {
           </span>
           <span>{freshnessDisplay.sourceCount} 个来源</span>
           <span>{freshnessDisplay.sourceDocumentCount} 份文书</span>
-          <span>{analysisContext.dataSnapshot}</span>
         </div>
       </section>
 
@@ -4065,7 +4264,7 @@ export default function Home() {
               value={askInput}
             />
             <button data-testid="ask-bar-submit" type="submit">
-              Ask
+              提问
             </button>
           </form>
           <div className="lensBar" aria-label="分析视角">
@@ -4144,40 +4343,34 @@ export default function Home() {
           data-testid="ecosystem-map-surface"
           data-visual-surface="empire-map"
         >
-          {/* S9PBT02 V5: context KPI bar - every number mirrors the score
-              explanation panel state (single source, consistency by
-              construction); clicking jumps to the explanation. */}
-          {productionScoreExplanation ? (
+          {/* S9PBT02 V5 → P0-2 §E.1：KPI 条改业务量（本图规模 + 全库已核实
+              关系 + 数据版本）；治理流水线 KPI（候选/评审/发布）保留在
+              生产数据面板的〈诊断详情〉里。点击滚动到数据来源详情。 */}
+          {isServerGraphRendered || productionScoreExplanation ? (
             <button
               className="contextKpiBar"
               data-testid="context-kpi-bar"
-              data-kpi-source="production-score-explanation"
+              data-kpi-source="production-graph-context"
               onClick={() =>
                 document
-                  .querySelector('[data-testid="production-score-candidate"]')
+                  .querySelector('[data-testid="production-graph-context"]')
                   ?.scrollIntoView({ block: "center" })
               }
               type="button"
             >
-              <span data-testid="kpi-candidate">
-                {productionScoreExplanation.candidate_key ??
-                  productionScoreExplanation.relationship_type.replaceAll("_", " ")}
+              <span data-testid="kpi-entities">本图 {graphViewNodes.length} 实体</span>
+              <span data-testid="kpi-relationships">{graphViewEdges.length} 条关系</span>
+              <span data-testid="kpi-published">
+                全库已核实关系{" "}
+                {productionPublishedRelationships?.total?.toLocaleString() ?? "载入中"}
               </span>
-              <span data-testid="kpi-sources">
-                独立源 {productionScoreExplanation.source_threshold.independent_source_count}/
-                {productionScoreExplanation.source_threshold.minimum_independent_sources}
-                {productionScoreExplanation.source_threshold.met ? " ✓" : " ✗"}
+              <span data-testid="kpi-asof">
+                数据版本 {(publishedContextMeta.as_of ?? "").slice(0, 10) || "载入中"}
               </span>
-              <span data-testid="kpi-review">
-                {productionScoreExplanation.review_status}
-              </span>
-              <span data-testid="kpi-publication">
-                {productionScoreExplanation.publication_status}
-              </span>
-              <span className="kpiHint">点击查看解释</span>
+              <span className="kpiHint">点击查看数据来源</span>
             </button>
           ) : null}
-          {/* S9PBT01 V4: legend inventory + GAPS badge (real unknown semantics). */}
+          {/* S9PBT01 V4: legend inventory + coverage badge（P0-2：正着说覆盖）。 */}
           <aside className="empireLegend" data-testid="empire-legend">
             <p className="empireLegendTitle">图例 · 库存</p>
             <ul>
@@ -4192,12 +4385,12 @@ export default function Home() {
             <p
               className="empireGaps"
               data-testid="empire-gaps-badge"
-              title="按十六阶段供应链断言覆盖计算：缺席=无断言≠真实为空"
+              title="按十六环节供应链数据覆盖计算；未覆盖环节仍在采集中"
             >
-              GAPS{" "}
-              {supplyGapsPct === null
-                ? "未知（未连接 API）"
-                : `${supplyGapsPct}% · ${supplyGapsDetail}`}
+              供应链覆盖{" "}
+              {supplyCoverage === null
+                ? "未知（未连接数据服务）"
+                : `${supplyCoverage.covered}/${supplyCoverage.total} 环节`}
             </p>
           </aside>
           {transitionState === "loading" ? (
@@ -4240,20 +4433,28 @@ export default function Home() {
                 </>
               ) : productionGraphStatus === "server-hydrated" ? (
                 <>
-                  <strong>该主体暂无已发布关系</strong>
-                  <span>缺席表示无已签核断言，不是真实为空。</span>
+                  {/* P0-4 §E.2 图谱空态：事实覆盖 + 原因 + 可点下一步。 */}
+                  <strong>{serverFocusLabel} 目前没有已核实的关系数据</strong>
+                  <span>
+                    数据库覆盖{" "}
+                    {productionPublishedRelationships?.total?.toLocaleString() ?? "数千"}{" "}
+                    条已核实关系，持续扩充中；这家公司的数据还在采集。
+                  </span>
                   <div className="cloudGraphActions">
                     <button
                       data-testid="cloud-graph-home"
                       onClick={resetToNvidia}
                       type="button"
                     >
-                      回到 NVIDIA
+                      换一家公司（回到 NVIDIA）
                     </button>
+                    <a data-testid="cloud-graph-coverage-link" href="/objects-scope">
+                      查看数据覆盖范围
+                    </a>
                   </div>
                 </>
               ) : (
-                <strong>正在载入已发布图谱…</strong>
+                <strong>正在载入图谱…</strong>
               )}
             </div>
           ) : null}
@@ -4264,14 +4465,13 @@ export default function Home() {
               data-testid="change-overlay"
               data-timeline-mode="published-snapshot"
             >
-              <strong>发布快照 · {analysisContext.dataSnapshot}</strong>
+              <strong>
+                数据版本 · {(publishedContextMeta.as_of ?? "").slice(0, 10) || "载入中"}
+              </strong>
               <span>
-                数据截至 {(publishedContextMeta.as_of ?? "").slice(0, 10) || "载入中"}
+                更新于 {(publishedContextMeta.published_at ?? "").slice(0, 10) || "载入中"}
               </span>
-              <small>
-                发布于 {(publishedContextMeta.published_at ?? "").slice(0, 10) || "载入中"}
-                ；一次发布一个原子快照。
-              </small>
+              <small>一次更新一个完整数据版本。</small>
             </div>
           ) : (
             <div
@@ -4299,7 +4499,7 @@ export default function Home() {
           >
             {historyYears === null ? (
               <p className="historyEmpty" data-testid="history-scrubber-empty">
-                历史纵深未连接 — 连接 EEI API 后显示 2016→今逐年官方申报深度。
+                历史纵深暂不可用 — 连上数据服务后显示 2016→今逐年官方申报深度。
               </p>
             ) : (
               <>
@@ -4510,9 +4710,17 @@ export default function Home() {
                       style={{ "--flow-i": edgeIndex } as CSSProperties}
                     />
                   ) : null}
+                  {/* P0-3 §F.2/F.4：边标签经显隐计划裁决——L0/L1 只显 focus
+                      相邻、且贪心占位放不下就不显示（display:none 保留
+                      textContent 契约）。 */}
                   <text
                     className="edgeLabel"
                     data-testid={`edge-label-${edge.from}-${edge.to}`}
+                    style={
+                      graphLabelPlan.edgeLabelIds.has(edge.id)
+                        ? undefined
+                        : { display: "none" }
+                    }
                     textAnchor="middle"
                     x={midX}
                     y={midY}
@@ -4520,7 +4728,17 @@ export default function Home() {
                     {edge.label}
                   </text>
                   {semanticZoom === "L2" || semanticZoom === "L3" ? (
-                    <text className="edgeEvidence" textAnchor="middle" x={midX} y={midY + 16}>
+                    <text
+                      className="edgeEvidence"
+                      style={
+                        graphLabelPlan.edgeLabelIds.has(edge.id)
+                          ? undefined
+                          : { display: "none" }
+                      }
+                      textAnchor="middle"
+                      x={midX}
+                      y={midY + 16}
+                    >
                       {edge.source === "server" ? `证据 ${edge.evidenceCount} 条` : "样例证据"}
                     </text>
                   ) : null}
@@ -4579,17 +4797,24 @@ export default function Home() {
                   </g>
                 ) : null}
                 <circle className="orbBody" r={isFocus ? 40 : 31} />
-                <text textAnchor="middle" dominantBaseline="middle">
-                  {mapNode.aggregateCount ? `${mapNode.shortLabel} ${mapNode.aggregateCount}` : mapNode.shortLabel}
+                {/* P0-3 §F.4：stage 常显文本改为原生 hover tooltip；role
+                    文本删除（内容在右栏详情卡）。主标签经 §F.2 分级 +
+                    贪心占位裁决，hover/选中/focus 恒显。 */}
+                <title>{`${mapNode.label} · ${mapNode.stage}`}</title>
+                <text
+                  dominantBaseline="middle"
+                  style={
+                    graphLabelPlan.nodeLabelKeys.has(mapNode.key) ||
+                    isSelected ||
+                    isFocus ||
+                    hoveredNodeKey === mapNode.key
+                      ? undefined
+                      : { display: "none" }
+                  }
+                  textAnchor="middle"
+                >
+                  {mapNode.aggregateCount ? `${mapNode.shortLabel} ×${mapNode.aggregateCount}` : mapNode.shortLabel}
                 </text>
-                <text className="nodeStage" textAnchor="middle" y={52}>
-                  {mapNode.stage}
-                </text>
-                {semanticZoom === "L3" ? (
-                  <text className="nodeRole" textAnchor="middle" y={68}>
-                    {mapNode.role}
-                  </text>
-                ) : null}
               </g>
               );
             })}
@@ -4664,7 +4889,11 @@ export default function Home() {
           data-selected-graph-node={selectedGraphNode.key}
           data-testid="selected-node-card"
         >
-          <span className={`nodeToken ${selectedGraphNode.zone}`}>{selectedGraphNode.zone}</span>
+          {/* P0-2 §E.1：zone/role 原始枚举不再直出——分区走 ZONE_LABELS，
+              角色在节点管线已是人话（当前中心/关联实体）。 */}
+          <span className={`nodeToken ${selectedGraphNode.zone}`}>
+            {ZONE_LABELS[selectedGraphNode.zone] ?? selectedGraphNode.zone}
+          </span>
           <h3 data-testid="selected-node-title">{selectedGraphNode.label}</h3>
           <dl>
             <div>
@@ -4790,33 +5019,41 @@ export default function Home() {
           data-truncated={productionEvidenceDetail?.truncated ?? false}
         >
           <header>
-            <p className="eyebrow">生产证据</p>
-            <strong data-testid="production-evidence-status">
-              {productionEvidenceSyncMode} / {productionEvidenceSyncReason}
+            <p className="eyebrow">证据</p>
+            <strong>
+              {productionEvidenceDetail?.evidence_count ?? 0} 条摘录 ·{" "}
+              {productionEvidenceDetail?.source_document_count ?? 0} 份官方文件
             </strong>
           </header>
-          <dl data-testid="production-evidence-contract">
-            <div>
-              <dt>候选</dt>
-              <dd>
-                {productionEvidenceDetail?.object_id ||
-                  productionScoreTargetId ||
-                  productionSampleCandidate?.id ||
-                  "candidate-missing"}
-              </dd>
-            </div>
-            <div>
-              <dt>Evidence</dt>
-              <dd data-testid="production-evidence-count">
-                {productionEvidenceDetail?.evidence_count ?? 0} sources /{" "}
-                {productionEvidenceDetail?.source_document_count ?? 0} documents
-              </dd>
-            </div>
-            <div>
-              <dt>接口</dt>
-              <dd>{productionEvidenceEndpoint || "local-fixture"}</dd>
-            </div>
-          </dl>
+          {/* P0-2 §E.1：契约字段（对象 id / 同步状态 / 接口）收进诊断详情。 */}
+          <details className="diagDetails">
+            <summary>诊断详情</summary>
+            <span data-testid="production-evidence-status">
+              {productionEvidenceSyncMode} / {productionEvidenceSyncReason}
+            </span>
+            <dl data-testid="production-evidence-contract">
+              <div>
+                <dt>对象</dt>
+                <dd>
+                  {productionEvidenceDetail?.object_id ||
+                    productionScoreTargetId ||
+                    productionSampleCandidate?.id ||
+                    "candidate-missing"}
+                </dd>
+              </div>
+              <div>
+                <dt>Evidence</dt>
+                <dd data-testid="production-evidence-count">
+                  {productionEvidenceDetail?.evidence_count ?? 0} sources /{" "}
+                  {productionEvidenceDetail?.source_document_count ?? 0} documents
+                </dd>
+              </div>
+              <div>
+                <dt>接口</dt>
+                <dd>{productionEvidenceEndpoint || "local-fixture"}</dd>
+              </div>
+            </dl>
+          </details>
           <ol className="pathList" data-testid="production-evidence-snippets">
             {(productionEvidenceDetail?.evidence ?? []).slice(0, 4).map((item, index) => (
               <li
@@ -4857,22 +5094,25 @@ export default function Home() {
         >
           <header>
             <p className="eyebrow">收录策略</p>
-            <strong>Bounded relationship set</strong>
+            <strong>优先收录带证据的关系，超出部分可继续展开</strong>
           </header>
-          <dl>
-            <div>
-              <dt>Included first</dt>
-              <dd>Active lens, evidence-bearing edges, confidence, observed time, stable id</dd>
-            </div>
-            <div>
-              <dt>Truncation</dt>
-              <dd>edge_budget and node_budget return reasons, counts and continuation metadata</dd>
-            </div>
-            <div>
-              <dt>Continuation</dt>
-              <dd>/v1/explore/expand preserves the current focus and loads a bounded increment</dd>
-            </div>
-          </dl>
+          <details className="diagDetails">
+            <summary>诊断详情</summary>
+            <dl>
+              <div>
+                <dt>Included first</dt>
+                <dd>Active lens, evidence-bearing edges, confidence, observed time, stable id</dd>
+              </div>
+              <div>
+                <dt>Truncation</dt>
+                <dd>edge_budget and node_budget return reasons, counts and continuation metadata</dd>
+              </div>
+              <div>
+                <dt>Continuation</dt>
+                <dd>/v1/explore/expand preserves the current focus and loads a bounded increment</dd>
+              </div>
+            </dl>
+          </details>
         </section>
 
         <section
@@ -4936,7 +5176,7 @@ export default function Home() {
                   <td>{`${graphViewNodeByKey.get(edge.from)?.shortLabel ?? edge.from} -> ${
                     graphViewNodeByKey.get(edge.to)?.shortLabel ?? edge.to
                   }`}</td>
-                  <td>{edge.lens.replaceAll("_", " ")}</td>
+                  <td>{lensLabelByKey[edge.lens] ?? edge.lens}</td>
                   <td>
                     <span>{edge.label}</span>
                     <small>{edge.fixtureNotice}</small>
@@ -5037,10 +5277,11 @@ export default function Home() {
             <FileSearch size={16} aria-hidden="true" />
             <span>打开证据</span>
           </button>
-          {selectedNode.groupMembers ? (
+          {/* P0-3 §F.1：聚合成员列表——server 聚合节点与本地样例组共用。 */}
+          {selectedGraphNode.groupMembers ? (
             <button data-testid="open-group-list" onClick={() => setGroupListOpen((open) => !open)} type="button">
               <Boxes size={16} aria-hidden="true" />
-              <span>查看组列表</span>
+              <span>查看成员列表（{selectedGraphNode.groupMembers.length}）</span>
             </button>
           ) : null}
           {CLOUD_MODE
@@ -5097,44 +5338,48 @@ export default function Home() {
           <small data-testid="node-action-status">{nodeActionStatus}</small>
         </section>
 
-        {selectedNode.groupMembers && groupListOpen ? (
+        {selectedGraphNode.groupMembers && groupListOpen ? (
           <ol className="groupList" data-testid="group-list">
-            {selectedNode.groupMembers.map((member) => (
+            {selectedGraphNode.groupMembers.map((member) => (
               <li key={member}>{member}</li>
             ))}
           </ol>
         ) : null}
 
+        {/* P0-2 §E.1：底部状态条只保留人话摘要；模型/快照/预算等机器
+            契约字符串整体收进〈诊断详情〉（testid 原样保留）。 */}
         <div className="statusStrip">
           {CLOUD_MODE ? (
             <>
-              <span>数据：已发布面</span>
-              <span>事实来源：官方申报与新闻稿（双源+签核）</span>
-              <span>构建：{BUILD_SHA.slice(0, 12)}</span>
+              <span>数据：已核实事实</span>
+              <span>来源：官方申报与新闻稿</span>
             </>
           ) : (
             <>
-              <span>数据：样例</span>
-              <span>真实事实声明：未启用</span>
-              <span>样例标注：可见</span>
+              <span>数据：示例</span>
+              <span>示例标注：可见</span>
             </>
           )}
-          <span data-testid="model-contract-state">
-            模型 {analysisContext.modelVersion} / 偏好 {analysisContext.profileVersion} / 公式{" "}
-            {analysisContext.formulaRegistryVersion} / 参数{" "}
-            {analysisContext.parameterCatalogVersion} / 阈值{" "}
-            {analysisContext.thresholdRegistryVersion}
-          </span>
-          <span data-testid="active-context-state">
-            数据 {analysisContext.dataSnapshot} / 评分 {analysisContext.scoreSnapshot} / 快照{" "}
-            {asOf}
-          </span>
-          <span data-testid="lens-state">透镜：{activeLens}</span>
-          <span data-testid="zoom-state">缩放：{semanticZoom}</span>
-          <span data-testid="reroot-state">画布：{transitionState}</span>
-          <span data-testid="budget-state">
-            预算：{graphViewNodes.length} 节点 / {graphViewEdges.length} 边 / 首屏边上限 40（max 40 first-screen edges）
-          </span>
+          <details className="diagDetails">
+            <summary>诊断详情</summary>
+            {CLOUD_MODE ? <span>构建：{BUILD_SHA.slice(0, 12)}</span> : null}
+            <span data-testid="model-contract-state">
+              模型 {analysisContext.modelVersion} / 偏好 {analysisContext.profileVersion} / 公式{" "}
+              {analysisContext.formulaRegistryVersion} / 参数{" "}
+              {analysisContext.parameterCatalogVersion} / 阈值{" "}
+              {analysisContext.thresholdRegistryVersion}
+            </span>
+            <span data-testid="active-context-state">
+              数据 {analysisContext.dataSnapshot} / 评分 {analysisContext.scoreSnapshot} / 快照{" "}
+              {asOf}
+            </span>
+            <span data-testid="lens-state">透镜：{activeLens}</span>
+            <span data-testid="zoom-state">缩放：{semanticZoom}</span>
+            <span data-testid="reroot-state">画布：{transitionState}</span>
+            <span data-testid="budget-state">
+              预算：{graphViewNodes.length} 节点 / {graphViewEdges.length} 边 / 首屏边上限 40
+            </span>
+          </details>
         </div>
       </aside>
     </main>

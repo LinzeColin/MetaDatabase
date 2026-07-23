@@ -41,8 +41,9 @@ test("reduced-motion collapses the motion scale token", async ({ browser }) => {
   await context.close();
 });
 
-// S9PBT01 V4: the legend inventory and the honest GAPS badge.
-test("empire legend shows zone inventory and an honest GAPS badge", async ({ page }) => {
+// S9PBT01 V4 → P0-2：the legend inventory and the honest coverage badge
+// （GAPS 黑话改为「供应链覆盖 X/16 环节」，无 API 时如实说未知）。
+test("empire legend shows zone inventory and an honest coverage badge", async ({ page }) => {
   await page.goto("/");
   const legend = page.getByTestId("empire-legend");
   await expect(legend).toBeVisible();
@@ -50,7 +51,7 @@ test("empire legend shows zone inventory and an honest GAPS badge", async ({ pag
   const zoneRows = await legend.locator("li").count();
   expect(zoneRows).toBeGreaterThanOrEqual(4);
   // Without an API base the badge must say unknown - never a fabricated %.
-  await expect(page.getByTestId("empire-gaps-badge")).toContainText("GAPS");
+  await expect(page.getByTestId("empire-gaps-badge")).toContainText("供应链覆盖");
   await expect(page.getByTestId("empire-gaps-badge")).toContainText("未知");
 });
 
@@ -58,7 +59,7 @@ test("empire legend shows zone inventory and an honest GAPS badge", async ({ pag
 test("history scrubber shows an honest empty state without an API", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("empire-history-scrubber")).toBeVisible();
-  await expect(page.getByTestId("history-scrubber-empty")).toContainText("历史纵深未连接");
+  await expect(page.getByTestId("history-scrubber-empty")).toContainText("历史纵深暂不可用");
 });
 
 // S9PCT02 V7: the Ask bar reroots on in-graph names and assembles a

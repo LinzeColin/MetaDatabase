@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 
 test("shows development status navigation with separated state classes", async ({ page }) => {
-  await page.goto("/");
-  await page.getByTestId("development-status-nav-link").click();
+  // P0-1 导航收敛：开发状态不再占一级导航（归属「数据与来源」），
+  // 路由保留可直达（P2 才做收编重定向）。
+  await page.goto("/development-status");
 
   await expect(page).toHaveURL(/\/development-status$/);
   await expect(page.getByTestId("development-status-screen")).toBeVisible();
-  await expect(page.getByTestId("development-status-nav-active")).toHaveAttribute(
+  await expect(page.getByTestId("main-nav-data_center")).toHaveAttribute(
     "aria-current",
     "page"
   );
