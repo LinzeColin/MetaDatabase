@@ -21,6 +21,10 @@ def init_engine(url: str | None = None, echo: bool = False) -> Engine:
     """创建引擎并建表。url 缺省时读 ALPHA_DATABASE_URL,再缺省用本地 SQLite。"""
     resolved = url or os.environ.get("ALPHA_DATABASE_URL")
     if not resolved:
+        # 07-23 事故教训:环境损坏时曾静默降级到空本地库——实盘模式下这会
+        # 丢失幂等键与持仓记忆,可能重复下单,必须失败关闭而不是降级。
+        if os.environ.get("ALPHA_MODE", "").upper() == "MICRO_LIVE":
+            raise RuntimeError("实盘模式必须显式配置数据库地址,拒绝降级到本地库(失败关闭)")
         Path(DEFAULT_SQLITE_PATH).parent.mkdir(parents=True, exist_ok=True)
         resolved = f"sqlite:///{DEFAULT_SQLITE_PATH}"
     engine = create_engine(resolved, echo=echo, future=True)

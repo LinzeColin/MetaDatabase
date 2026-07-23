@@ -85,3 +85,18 @@ def test_worker_entrypoints_importable_and_build():
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = val
+
+
+def test_live_mode_refuses_silent_sqlite_fallback(monkeypatch, tmp_path):
+    """07-23 事故教训:实盘模式下数据库地址缺失必须拒绝启动,绝不静默降级空库。"""
+    import pytest
+
+    from backend.app.store.db import init_engine
+
+    monkeypatch.delenv("ALPHA_DATABASE_URL", raising=False)
+    monkeypatch.setenv("ALPHA_MODE", "MICRO_LIVE")
+    with pytest.raises(RuntimeError, match="失败关闭"):
+        init_engine()
+    # 模拟盘模式仍允许本地库(开发/测试路径不受影响)
+    monkeypatch.setenv("ALPHA_MODE", "PAPER")
+    assert init_engine(f"sqlite:///{tmp_path}/ok.sqlite") is not None
