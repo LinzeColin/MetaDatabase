@@ -40,12 +40,20 @@ from .runtime import X2NRuntimeError
 TASK_ID = "TSK.x2n.adapters.002"
 ADAPTER_NAME = "xhs_favorites"
 ADAPTER_VERSION = "1.0.0"
-RESUME_COMPATIBILITY_VERSION = "xhs-favorites-1.0.0"
+RESUME_COMPATIBILITY_VERSION = "xhs-favorites-1.1.0"
 RUN_KIND = "xhs_favorites_scan_v1"
 MAX_BATCH_ITEMS = 20
+MAX_SCAN_RELATIONS = 10_000
 CANARY_ITEM_LIMIT = 20
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+SAFE_RELATION_KEY = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,767}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
+EXTENSION_ERROR_CODES = {
+    ErrorCode.ADAPTER_AUTH_EXPIRED.value,
+    ErrorCode.PLATFORM_CHANGED.value,
+    ErrorCode.POLICY_BLOCKED.value,
+    ErrorCode.PROVENANCE_INCOMPLETE.value,
+}
 BatchStatus = Literal[
     "ready",
     "partial",
@@ -262,14 +270,77 @@ class XhsFavoritesBatch:
             "visible_card_count",
         }:
             raise X2NRuntimeError(ErrorCode.UNKNOWN_FIELD, "Favorites extension batch shape is invalid")
+        visible_card_count = batch["visible_card_count"]
+        if (
+            not isinstance(visible_card_count, int)
+            or isinstance(visible_card_count, bool)
+            or not 0 <= visible_card_count <= MAX_BATCH_ITEMS
+        ):
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Favorites extension visible-card count is invalid")
+        collection = value.get("collection")
+        if not isinstance(collection, Mapping) or set(collection) != {"id", "name_private", "status"}:
+            raise X2NRuntimeError(ErrorCode.UNKNOWN_FIELD, "Favorites extension collection shape is invalid")
+        collection_id = collection["id"]
+        collection_name = collection["name_private"]
+        if (
+            collection["status"] not in {"observed", "unavailable"}
+            or (collection_id is None) != (collection_name is None)
+            or (collection["status"] == "unavailable") != (collection_id is None)
+            or collection_id is not None
+            and (not isinstance(collection_id, str) or SAFE_ID.fullmatch(collection_id) is None)
+        ):
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Favorites extension collection mapping is invalid")
+        _safe_optional_text(collection_name, label="collection name")
         errors = value.get("errors")
         if not isinstance(errors, Sequence) or isinstance(errors, (str, bytes)):
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Favorites extension errors are invalid")
         error_codes: list[str] = []
+        card_indices: list[int] = []
         for row in errors:
             if not isinstance(row, Mapping) or set(row) != {"card_index", "code"}:
                 raise X2NRuntimeError(ErrorCode.UNKNOWN_FIELD, "Favorites error evidence shape is invalid")
-            error_codes.append(row["code"])
+            code = row["code"]
+            card_index = row["card_index"]
+            if code not in EXTENSION_ERROR_CODES:
+                raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Favorites extension error code is invalid")
+            if card_index is not None:
+                if (
+                    not isinstance(card_index, int)
+                    or isinstance(card_index, bool)
+                    or not 0 <= card_index < visible_card_count
+                ):
+                    raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Favorites error card index is invalid")
+                card_indices.append(card_index)
+            error_codes.append(code)
+        if len(card_indices) != len(set(card_indices)):
+            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Favorites error card indices are not unique")
+        top_code = value.get("code")
+        if top_code is not None and top_code not in EXTENSION_ERROR_CODES:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Favorites extension top-level error code is invalid")
+        if value.get("status") == "ready":
+            if top_code is not None:
+                raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Favorites ready result has an error code")
+        else:
+            if top_code is None or top_code not in error_codes:
+                raise X2NRuntimeError(
+                    ErrorCode.PROVENANCE_INCOMPLETE,
+                    "Favorites non-ready result lacks matching top-level error evidence",
+                )
+            if value.get("status") == "partial":
+                if len(card_indices) != len(error_codes):
+                    raise X2NRuntimeError(
+                        ErrorCode.PROVENANCE_INCOMPLETE,
+                        "Favorites partial result lacks per-card error evidence",
+                    )
+            elif (
+                visible_card_count != 0
+                or len(error_codes) != 1
+                or card_indices
+            ):
+                raise X2NRuntimeError(
+                    ErrorCode.PROVENANCE_INCOMPLETE,
+                    "Favorites blocked result must contain one surface-level error",
+                )
         items = value.get("items")
         if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
             raise X2NRuntimeError(ErrorCode.INVALID_INPUT, "Favorites extension items are invalid")
@@ -277,7 +348,7 @@ class XhsFavoritesBatch:
             sequence=sequence,
             status=value["status"],
             completion_signal=batch["completion_signal"],
-            visible_card_count=batch["visible_card_count"],
+            visible_card_count=visible_card_count,
             items=tuple(XhsFavoriteItem.from_mapping(item) for item in items),
             error_codes=tuple(error_codes),
             observed_at=observed_at,
@@ -371,6 +442,7 @@ class XhsFavoritesAdapter:
             "last_outcome": "not_started",
             "last_sequence": None,
             "next_sequence": 0,
+            "owner_removed_observed_relation_keys": [],
             "scope_mode": scope_mode,
         }
 
@@ -387,8 +459,10 @@ class XhsFavoritesAdapter:
             "last_outcome",
             "last_sequence",
             "next_sequence",
+            "owner_removed_observed_relation_keys",
             "scope_mode",
         }
+        removed_keys = value.get("owner_removed_observed_relation_keys") if isinstance(value, dict) else None
         if (
             not isinstance(value, dict)
             or set(value) != expected
@@ -401,6 +475,10 @@ class XhsFavoritesAdapter:
             or any(code not in {item.value for item in ErrorCode} for code in value["last_error_codes"])
             or (value["last_sequence"] is not None and not isinstance(value["last_sequence"], int))
             or (value["last_batch_hash"] is not None and SHA256.fullmatch(value["last_batch_hash"]) is None)
+            or not isinstance(removed_keys, list)
+            or len(removed_keys) > MAX_SCAN_RELATIONS
+            or any(not isinstance(key, str) or SAFE_RELATION_KEY.fullmatch(key) is None for key in removed_keys)
+            or removed_keys != sorted(set(removed_keys))
         ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Favorites checkpoint cursor is invalid")
         return value
@@ -648,6 +726,7 @@ class XhsFavoritesAdapter:
 
             account_ref_hash = str(checkpoint["account_ref_hash"])
             content_writes = relation_writes = observation_writes = 0
+            owner_removed_observed = set(cursor["owner_removed_observed_relation_keys"])
             for index, item in enumerate(batch.items):
                 content = self._content(connection, item, observed_at)
                 if self.store._upsert_content(connection, content, timestamp) is not WriteDisposition.UNCHANGED:
@@ -664,6 +743,18 @@ class XhsFavoritesAdapter:
                     is not WriteDisposition.UNCHANGED
                 ):
                     relation_writes += 1
+                stored_relation = connection.execute(
+                    "SELECT status, confirmed_by FROM user_relation WHERE relation_key = ?",
+                    (relation.relation_key,),
+                ).fetchone()
+                if (
+                    stored_relation is not None
+                    and str(stored_relation["status"]) == RelationStatus.REMOVED.value
+                    and str(stored_relation["confirmed_by"]) == ConfirmationSource.OWNER.value
+                ):
+                    owner_removed_observed.add(relation.relation_key)
+                    if len(owner_removed_observed) > MAX_SCAN_RELATIONS:
+                        raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Favorites scan relation bound exceeded")
                 observation = self._observation(
                     item,
                     scan_id=scan_id,
@@ -710,6 +801,7 @@ class XhsFavoritesAdapter:
                     "last_outcome": batch.status,
                     "last_sequence": batch.sequence,
                     "next_sequence": next_sequence,
+                    "owner_removed_observed_relation_keys": sorted(owner_removed_observed),
                 }
             )
             if batch.status != "ready":

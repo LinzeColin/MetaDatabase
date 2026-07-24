@@ -1,9 +1,9 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "policy_id": "POLICY.X2N.RELATION-RECONCILIATION.001",
   "task_id": "TSK.x2n.adapters.005",
   "phase": "PH.X2N.3.9",
-  "reviewed_at": "2026-07-23",
+  "reviewed_at": "2026-07-24",
   "default": "deny",
   "feature_gate": {
     "name": "relation_reconciliation",
@@ -41,6 +41,7 @@
       "required_cursor_kind": "authoritative_visible_end",
       "required_completion_confidence": 1.0,
       "required_observation_method": "selected_collection",
+      "required_resume_compatibility_version": "xhs-favorites-1.1.0",
       "exact_relation_observation_graph": true
     },
     "xhs_likes": {
@@ -54,6 +55,7 @@
       "required_cursor_kind": "authoritative_visible_end",
       "required_completion_confidence": 1.0,
       "required_observation_method": "selected_collection",
+      "required_resume_compatibility_version": "xhs-likes-1.1.0",
       "exact_relation_observation_graph": true
     },
     "douyin_upstream": {
@@ -108,10 +110,12 @@
     "source_receipt_must_match_run": true,
     "source_observation_count_must_match": true,
     "source_observation_adapter_version_method_must_match": true,
-    "source_relation_set_must_match_manifest": true,
-    "source_content_set_must_match_observations": true,
-    "source_relations_must_be_active": true,
-    "source_relations_must_be_scan_confirmed": true,
+    "source_relation_set_must_match_manifest": "current_receipt_active_scan_union_private_checkpoint_owner_removed_observed",
+    "source_content_set_must_match_observations": "active_and_owner_removed_relation_content_union_exact",
+    "source_relations_must_be_active": "current_receipt_subset",
+    "source_relations_must_be_scan_confirmed": "current_receipt_subset",
+    "owner_removed_observed_relation_keys_private_checkpoint_required": true,
+    "owner_removed_relations_must_remain_owner_confirmed": true,
     "relation_columns_payload_and_hash_must_match": true,
     "source_platform_must_match_scope": true
   },
@@ -119,8 +123,10 @@
     "first_consecutive_complete_missing": "unknown",
     "second_consecutive_distinct_complete_missing": "tombstone_candidate",
     "third_or_later_complete_missing": "tombstone_candidate",
-    "observed_again": "active",
+    "observed_again": "active_unless_owner_removed_terminal",
     "removed_relation": "preserve_removed",
+    "generic_adapter_owner_removed_reactivation": false,
+    "dedicated_owner_reactivation_workflow_required": true,
     "automatic_removed_transition": false,
     "owner_confirmation_required_for_removed": true,
     "physical_delete_transition": false
@@ -139,7 +145,10 @@
     "exact_event_replay": "return_replayed_no_write",
     "succeeded_run_requires_existing_scope_checkpoint": true,
     "cursor_last_event_requires_succeeded_run": true,
-    "pending_relation_keys_must_be_unknown_or_currently_observed_active_in_scope": true,
+    "pending_relation_keys_must_be_unknown_currently_observed_active_or_owner_removed_in_scope": true,
+    "owner_removed_pending_relation_is_terminal_and_cleared": true,
+    "last_successful_source_run_preserved_across_non_authoritative_events": true,
+    "batch_comparison_report_persisted_in_private_cursor": true,
     "conflicting_event_identity": "fail_closed",
     "process_kill_before_commit": "rollback_all_relation_run_checkpoint_changes"
   },
@@ -151,7 +160,16 @@
     "local_paths": false,
     "credentials": false,
     "media_urls": false,
-    "hashed_scope_and_source_refs_only": true
+    "hashed_scope_and_source_refs_only": true,
+    "batch_comparison_counts_and_digest_only": true
+  },
+  "batch_comparison": {
+    "identity_grain": "content_key_to_sorted_raw_text_hash_set_digest",
+    "new_or_changed_are_processing_candidates": true,
+    "missing_is_not_a_processing_candidate": true,
+    "exact_replay_returns_same_report": true,
+    "public_relation_or_content_keys": false,
+    "maximum_items": 10000
   },
   "owner_alpha": {
     "execution": "NOT_RUN",

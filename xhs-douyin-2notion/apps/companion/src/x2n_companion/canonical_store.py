@@ -617,15 +617,32 @@ class CanonicalStore:
             "INSERT OR IGNORE INTO account_ref(account_ref_hash, platform, created_at) VALUES (?, ?, ?)",
             (relation.account_ref_hash, platform, now),
         )
+        if relation.status.value == "removed" and relation.confirmed_by.value != "owner":
+            raise X2NRuntimeError(
+                ErrorCode.DATA_INTEGRITY_FAILED,
+                "Removed relation requires Owner confirmation",
+            )
         existing = connection.execute(
-            "SELECT payload_sha256, last_seen_at FROM user_relation WHERE relation_key = ?",
+            "SELECT payload_sha256, last_seen_at, status, confirmed_by "
+            "FROM user_relation WHERE relation_key = ?",
             (relation.relation_key,),
         ).fetchone()
-        if existing is not None and str(existing["payload_sha256"]) == payload_sha:
-            return WriteDisposition.UNCHANGED
         last_seen = relation.last_seen_at.isoformat().replace("+00:00", "Z")
         if existing is not None and last_seen < str(existing["last_seen_at"]):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Relation observation would move backward")
+        if existing is not None and str(existing["status"]) == "removed":
+            if str(existing["confirmed_by"]) != "owner":
+                raise X2NRuntimeError(
+                    ErrorCode.DATA_INTEGRITY_FAILED,
+                    "Stored removed relation lacks Owner confirmation",
+                )
+            if relation.status.value != "removed":
+                # Generic adapters and reconciliation are not an Owner reactivation
+                # workflow.  A later observation may update Content and evidence, but
+                # it must not silently reverse an explicit Owner removal.
+                return WriteDisposition.UNCHANGED
+        if existing is not None and str(existing["payload_sha256"]) == payload_sha:
+            return WriteDisposition.UNCHANGED
         if existing is None:
             connection.execute(
                 """

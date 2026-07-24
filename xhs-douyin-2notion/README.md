@@ -4,7 +4,7 @@
 
 项目名是稳定品牌，不是平台范围上限。六平台均采用独立 Policy/Auth/Technical Gate；未知即禁用。这里的在线采集不是通用爬虫：无自动滚动、无账号状态改变、无代理/指纹规避、无凭据或平台媒体 URL/原始媒体持久化。
 
-当前状态：`v0.0.0.1 / Stage 3` 的九个 Adapter Task 已在各自 CI-SYNTH 范围完成；下一独立 Run 只能是 `STG.X2N.3.REVIEW`。A005 新增持久化关系对账：只有证据图完整、扫描 ID 不同且时间严格递增的小红书收藏/点赞完整扫描可进入 `active -> unknown -> tombstone_candidate`；抖音及 Bilibili/Kuaishou/Weibo/Taobao 的受限选择合同不得冒充 full scan。五类非权威结果关系写入 0，removed/物理删除/Content 自动删除均为 0。Owner Alpha 80 条仅有非执行工具，真实 Profile、私有 Manifest、平台、Notion、媒体与模型均未运行。`G3=NOT_RUN`，Stage 3 整体上传禁止；旧 Evidence 不改写，共享认证材料和其他长期开发继续零接触、零重叠。
+当前状态：`v0.0.0.1 / Stage 3 Review` 已完成九个 Adapter Task 的独立复核、六项范围内修复和公开合成重验。Owner removed 终态、XHS envelope、Douyin 真实子进程 Kill、增量 batch report 与 Adapter 驱动的 80 条 Canonical→Artifact→Markdown→Notion Mock/Outbox 幂等已经闭合。`G3` 仍为 `BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION`：8 个批量 scope 尚无 Chrome→Native Host→Adapter dispatch，failure→current-page fallback 只有文案，8 个真实 Canary 全部 `NOT_RUN`，并有两项契约边界需 Owner 版本化确认。下一独立 Run 只能是 `STG.X2N.3.REVIEW.RESUME`；Stage 3 上传和 Stage 4 均禁止。旧 Task Evidence 不改写，共享认证材料和其他长期开发继续零接触、零重叠。
 
 ## 固定边界
 
@@ -20,6 +20,33 @@
 ## v0.0.0.1 DAG
 
 唯一机器真源是 [`docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml`](docs/product_design/v0.0.0.1/05_TASK_DAG_CODEX_TASKPACK.yaml)，范围仅为 Stage 0–6。每个普通 Run 最多一个 DAG Task 及其 Acceptance；Stage Review 不执行新 Task。每个 Stage 只有在全阶段复核、修复和重验后才允许上传。
+
+## Stage 3 / Review 与 G3 判定
+
+```bash
+.venv/bin/python -B scripts/run_stage_3_review_acceptance.py
+.venv/bin/python -B scripts/verify_stage_3_review.py \
+  --verify-worktree --allow-external-main-dirty --run-acceptance
+.venv/bin/python -B scripts/ci/run_lane.py \
+  --lane full --repetitions 2 --reports-dir build/s03-review
+.venv/bin/python -B scripts/verify_stage_3_review.py \
+  --verify-worktree --allow-external-main-dirty \
+  --lane-report build/s03-review/software-lane.json --require-evidence
+```
+
+Review 机器真源是 `machine/facts/stage_3_gate_state.json`。它精确登记 9 个 Task Receipt、19 条
+Acceptance、8 个 Canary 和 5 个 Blocker，并通过负向测试保证 blocked 状态不能授权上传或 Stage 4。
+九个 Task 的合成验收全部通过；A005 的同一批 80 条 Adapter 输入实际生成 80 Artifact、80 Markdown、
+80 Notion Mock Page 与 160 Outbox/Receipt，第二轮重复和持久层 CDN/private-path finding 均为 0。
+最终本地回归为 263 个 root tests（260 PASS、3 个固定 Owner-private 可选 skip）、227 个
+Companion tests 和 12 个 Contract tests；full lane 两轮 24/24 Blocking Gate PASS，0
+failure/flaky/silent skip，coverage 79.66%，33 个依赖漏洞 0，78-member candidate 可确定重建且
+Runtime Data 0。软件验收通过不改变下述 G3 blocked 判定。
+
+`G3` 没有通过。技术上缺少批量 Native dispatch 和显式 fallback 状态机；证据上 8 个真实 Canary
+均未运行；合同上需要 Owner 定义每个 disabled/conditioned scope 的合法终态，并拆分 Stage 3
+CI-SYNTH contribution 与 Stage 6 完整 `ACC.x2n.rel.006` Owner Alpha。完整结论见
+`docs/governance/STAGE_3_REVIEW.md`；恢复只能走 `STG.X2N.3.REVIEW.RESUME`。
 
 ## Stage 3 / Adapters 005 验证
 

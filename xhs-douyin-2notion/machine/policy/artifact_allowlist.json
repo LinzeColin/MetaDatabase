@@ -62,6 +62,7 @@
     "scripts/verify_adapters_003.py",
     "scripts/douyin_sidecar_fixture_worker.py",
     "scripts/run_douyin_shadow_upgrade.py",
+    "scripts/douyin_adapter_chaos_worker.py",
     "scripts/run_adapters_004_acceptance.py",
     "scripts/verify_adapters_004.py",
     "scripts/bilibili_selected_chaos_worker.py",
@@ -79,6 +80,8 @@
     "scripts/relation_reconciliation_chaos_worker.py",
     "scripts/run_adapters_005_acceptance.py",
     "scripts/verify_adapters_005.py",
+    "scripts/run_stage_3_review_acceptance.py",
+    "scripts/verify_stage_3_review.py",
     ".github/workflows/x2n-ci.yml"
   ]
 }

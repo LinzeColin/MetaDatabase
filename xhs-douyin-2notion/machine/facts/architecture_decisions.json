@@ -1,24 +1,24 @@
 {
   "schema_version": "1.0",
-  "phase": "PH.X2N.3.9",
-  "status": "stage_3_adapters_005_pass_g3_not_run",
-  "review_id": "STG.X2N.2.REVIEW",
+  "phase": "STG.X2N.3.REVIEW",
+  "status": "stage_3_review_complete_g3_blocked_technical_and_owner_clarification",
+  "review_id": "STG.X2N.3.REVIEW",
   "source": "docs/architecture/ARCHITECTURE_DECISIONS_S00_P05.md",
   "decisions": [
     {"id": "ADR-001", "topic": "personal_knowledge_governance_boundary", "state": "accepted_design"},
-    {"id": "ADR-002", "topic": "sqlite_canonical_truth", "state": "accepted_design", "implementation_state": "sqlite_schema_v2_store_plus_current_page_orchestration_plus_six_platform_bounded_adapters_plus_durable_xhs_authoritative_relation_reconciliation_run_checkpoint_ledger_plus_rebuildable_markdown_notion_mock_sinks_ci_synth_pass"},
-    {"id": "ADR-003", "topic": "chrome_side_panel_native_messaging_companion", "state": "accepted_design", "implementation_state": "six_platform_current_page_plus_xhs_favorites_and_likes_visible_dom_extractors_plus_fixed_candidate_dedicated_profile_launcher_and_doctor_ci_synth_pass_owner_install_profile_and_canary_not_run"},
+    {"id": "ADR-002", "topic": "sqlite_canonical_truth", "state": "accepted_design", "implementation_state": "sqlite_schema_v2_store_plus_owner_removed_terminal_guard_exact_private_scan_proof_batch_comparison_and_adapter_driven_eighty_row_artifact_markdown_notion_mock_outbox_replay_ci_synth_pass"},
+    {"id": "ADR-003", "topic": "chrome_side_panel_native_messaging_companion", "state": "accepted_design", "implementation_state": "six_platform_current_page_ci_synth_pass_but_relation_list_native_dispatch_and_explicit_failure_fallback_missing_g3_blocked"},
     {"id": "ADR-004", "topic": "single_private_data_root_and_credentials", "state": "accepted_design", "implementation_state": "owner_empty_private_store_initialized_profile_roots_0700_session_rate_checkpoints_0600_cookie_credentials_not_read"},
     {"id": "ADR-005", "topic": "six_platform_policy_and_clean_room", "state": "accepted_design", "implementation_state": "xhs_visible_dom_only_plus_douyin_exact_pin_owner_managed_sidecar_protocol_plus_bilibili_arc_base_kuaishou_user_video_info_weibo_current_user_favorites_and_taobao_owner_explicit_item_get_minimum_field_sanitized_contracts_ci_synth_with_zero_budget_unknown_scope_retention_price_quota_raw_api_cookie_signing_and_all_production_batch_features_disabled"},
     {"id": "ADR-006", "topic": "capability_negotiation", "state": "accepted_design", "implementation_state": "eight_component_doctor_ok_degraded_blocked_and_short_ttl_session_health_ci_synth_pass"},
     {"id": "ADR-007", "topic": "user_gesture_and_bounded_batches", "state": "accepted_design", "implementation_state": "single_adapter_mutex_low_frequency_plus_xhs_visible_batches_douyin_single_exchange_and_bilibili_kuaishou_weibo_taobao_single_owner_selection_twenty_item_batches_no_auto_scroll_pagination_retry_strict_successor_exact_replay_plus_two_distinct_xhs_full_scan_missing_state_machine_ci_synth_pass"},
     {"id": "ADR-008", "topic": "safe_preview_download_media_lease", "state": "accepted_design", "implementation_state": "url_firewall_ip_pinned_transport_contract_bounded_download_temporary_lease_cleaner_and_fixed_scope_scanner_ci_synth_pass_real_network_and_media_processors_not_run"},
     {"id": "ADR-009", "topic": "owner_top_level_taxonomy", "state": "accepted_design", "implementation_state": "owner_only_top_level_taxonomy_plus_unclassified_projection_seed_and_xhs_likes_conservative_inbox_ci_synth_pass_ai_category_creation_not_run"},
-    {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design", "implementation_state": "stage_2_g2_pr78_and_dual_remote_ci_merged_plus_all_stage_3_adapter_tasks_local_ci_synth_pass_g3_not_run_owner_alpha_not_run"},
+    {"id": "ADR-010", "topic": "evidence_recovery_release_gates", "state": "accepted_design", "implementation_state": "stage_3_review_complete_six_findings_closed_five_blockers_open_g3_fail_closed_upload_and_stage4_forbidden_resume_only"},
     {"id": "ADR-011", "topic": "pinned_upstream_sidecar_containment", "state": "accepted_implementation", "implementation_state": "douyin_commit_tree_version_license_protocol_and_private_build_attestation_exact_match_subprocess_no_shell_loopback_rest_strict_schema_url_path_raw_storage_leakage_block_shadow_cannot_promote"}
   ],
   "implementation_started": true,
-  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_plus_TSK.x2n.adapters.001-009_profile_session_guard_six_platform_bounded_adapter_contracts_and_xhs_authoritative_relation_reconciliation_ci_synth",
+  "implementation_scope": "TSK.x2n.foundation.001-005_plus_TSK.x2n.skeleton.001-009_plus_TSK.x2n.adapters.001-009_and_stage3_review_fixes_ci_synth_only",
   "real_account_execution": false,
-  "stage_gate": "g3_not_run"
+  "stage_gate": "g3_blocked_technical_and_owner_clarification"
 }

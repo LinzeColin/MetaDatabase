@@ -6,7 +6,7 @@ project:
   token: x2n
   version: v0.0.0.1
   owner: LinzeColin
-  status: STAGE_3_ADAPTERS_005_PASS_G3_NOT_RUN
+  status: STAGE_3_REVIEW_COMPLETE_G3_BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION
   owner_change_event: CE-X2N-20260720-S00-REVIEW-RESUME
   repository: https://github.com/LinzeColin/MetaDatabase
   skill_path: xhs-douyin-2notion/
@@ -37,11 +37,14 @@ authorization:
   stage_2_review: true
   stage_2_remote_upload: true
   stage_3_task_start: true
+  stage_3_review: true
+  stage_3_remote_upload: false
+  stage_4_task_start: false
   product_code_changes: true
   real_account_execution: false
   public_release: false
   vps_data_plane: false
-  instruction: Stage 2 已通过 G2、PR 78 合并及 x2n/Dual-Plane 远端门禁；TSK.x2n.adapters.001–009 已在公共安全合成范围完成。Adapters005 仅允许具备完整 Run/Checkpoint/Receipt/Relation/Observation 证据且扫描 ID 不同、时间严格递增的小红书收藏/点赞全量扫描进入 active→unknown→tombstone_candidate；抖音及四个受限选择型适配器不得声明全量。80x2、100 并发重复、五类非权威 no-write、50 次进程 Kill 与公共聚合 Receipt 已通过 CI 合成验收；removed/物理删除/Content 自动删除/平台调用均为 0。Owner Alpha 80 条仅有非执行计划，Owner Profile、私有 Manifest、真实六平台批量、Notion/模型、媒体处理均未运行。下一独立 Run 只能执行 STG.X2N.3.REVIEW；G3 与 Stage 3 上传仍未运行/禁止。
+  instruction: Stage 3 九个 Task 的独立 Review、六项范围内修复和九任务 CI-SYNTH 重验已完成；Owner removed 终态、XHS envelope、Douyin 50 次真实子进程 Kill、batch comparison 和 Adapter→Canonical→Artifact→Markdown→Notion Mock 80 条跨层幂等已闭合。G3 仍 Fail Closed：八个 relation/list scope 尚无 Chrome→Native Host→Adapter dispatch，batch failure→current-page fallback 仅有文案，8 个真实 Canary 全部 NOT_RUN，且 disabled Canary 合法终态与 ACC.data.002/ACC.rel.006 的 Stage 3/Stage 6 边界需要 Owner 版本化澄清。Stage 3 上传和 Stage 4 禁止；下一独立 Run 只能是 STG.X2N.3.REVIEW.RESUME。共享认证材料继续零读取、零使用、零显示、零修改/删除/轮换，且不是本 Gate blocker。
 canonical_decisions:
 - id: DEC-X2N-001
   decision: Chrome MV3 Side Panel + Local Companion/WebUI

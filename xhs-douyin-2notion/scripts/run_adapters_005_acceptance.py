@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import io
 import json
 import os
@@ -24,14 +25,32 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "apps/companion/src"))
 sys.path.insert(0, str(PROJECT_ROOT / "packages/contracts/src"))
 
+from x2n_contracts import Artifact, build_artifact_key  # noqa: E402
 from x2n_contracts.models import Platform, RelationType  # noqa: E402
 from x2n_companion.canonical_store import CanonicalStore  # noqa: E402
+from x2n_companion.douyin_adapter import DouyinAdapter  # noqa: E402
+from x2n_companion.douyin_upstream import (  # noqa: E402
+    DouyinBatchRequest,
+    PinnedDouyinClient,
+    SubprocessDouyinTransport,
+    synthetic_attestation,
+)
+from x2n_companion.markdown_sink import MarkdownSink, parse_frontmatter  # noqa: E402
+from x2n_companion.media_safety import scan_persisted_scopes  # noqa: E402
+from x2n_companion.notion_sink import (  # noqa: E402
+    NotionMockServer,
+    NotionSinkWorker,
+    RateLimitedNotionClient,
+    RequestRateGate,
+)
 from x2n_companion.relation_reconciliation import (  # noqa: E402
     ReconciliationManifest,
     RelationReconciler,
     build_owner_alpha_80_manifest_plan,
+    compare_batch_snapshots,
 )
 from x2n_companion.runtime import RuntimePaths, X2NRuntimeError  # noqa: E402
+from x2n_companion.sink_projection import ProjectionText, build_sink_projection  # noqa: E402
 from x2n_companion.xiaohongshu_favorites import (  # noqa: E402
     XhsFavoriteItem,
     XhsFavoritesAdapter,
@@ -45,6 +64,7 @@ PHASE = "PH.X2N.3.9"
 NOW = datetime(2026, 7, 23, tzinfo=timezone.utc)
 ACCOUNT_HASH = "a" * 64
 WORKER = PROJECT_ROOT / "scripts/relation_reconciliation_chaos_worker.py"
+DOUYIN_WORKER = PROJECT_ROOT / "scripts/douyin_sidecar_fixture_worker.py"
 
 
 def _uuid(label: str) -> str:
@@ -227,6 +247,241 @@ def _run_unit_suite() -> dict[str, int]:
     }
 
 
+class _CrossLayerClock:
+    def __init__(self) -> None:
+        self.wall = datetime(2026, 7, 23, 20, 0, 0, tzinfo=timezone.utc)
+        self.monotonic_value = 0.0
+
+    def monotonic(self) -> float:
+        return self.monotonic_value
+
+    def sleep(self, seconds: float) -> None:
+        self.monotonic_value += seconds
+        self.wall = datetime.fromtimestamp(self.wall.timestamp() + seconds, tz=timezone.utc)
+
+    def iso(self) -> str:
+        return self.wall.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _artifact(content_key: str, index: int) -> Artifact:
+    input_hash = hashlib.sha256(f"x2n-s03-review-artifact:{index}".encode("utf-8")).hexdigest()
+    processor_version = "s03-review-1.0"
+    return Artifact.model_validate_json(
+        json.dumps(
+            {
+                "append_only": True,
+                "artifact_id": f"art_s03review{index:05d}",
+                "artifact_key": build_artifact_key(content_key, "ocr", input_hash, processor_version),
+                "artifact_sequence": 1,
+                "artifact_type": "ocr",
+                "content_key": content_key,
+                "created_at": "2026-07-23T20:00:00Z",
+                "input_hash": input_hash,
+                "language": "zh-CN",
+                "model_name": None,
+                "model_provider": None,
+                "model_snapshot": None,
+                "private_payload_hash": None,
+                "private_payload_present": False,
+                "private_payload_ref": None,
+                "processor": "s03-review-ocr",
+                "processor_version": processor_version,
+                "prompt_version": None,
+                "quality": {"grade": "high", "metric_name": "cer", "metric_value": 0.0},
+                "schema_version": "1.0",
+                "supersedes_artifact_id": None,
+            },
+            ensure_ascii=False,
+        )
+    )
+
+
+def _douyin_client() -> PinnedDouyinClient:
+    return PinnedDouyinClient(
+        SubprocessDouyinTransport((sys.executable, "-B", str(DOUYIN_WORKER), "--case", "normal")),
+        expected_build=synthetic_attestation(),
+        allow_synthetic=True,
+        timeout_seconds=2.0,
+    )
+
+
+def _cross_layer_acceptance() -> dict[str, Any]:
+    """Exercise the same adapter-produced 80 rows through every durable sink."""
+
+    with tempfile.TemporaryDirectory(prefix="x2n-a005-cross-layer-") as value:
+        destination = Path(value) / "MediaCrawler"
+        destination.mkdir(mode=0o700)
+        root = destination / "xhs-douyin-2notion"
+        paths = RuntimePaths.from_values(
+            str(root),
+            str(destination),
+            repository_root=PROJECT_ROOT,
+            create=True,
+        )
+        store = CanonicalStore(paths, busy_timeout_ms=30_000)
+        store.initialize()
+
+        _full_scan(
+            store,
+            source_adapter="xhs_favorites",
+            label="cross-layer",
+            indices=tuple(range(20)),
+            started_at=NOW,
+        )
+        _full_scan(
+            store,
+            source_adapter="xhs_likes",
+            label="cross-layer",
+            indices=tuple(range(20)),
+            started_at=NOW + timedelta(minutes=1),
+        )
+        douyin = DouyinAdapter(store)
+        douyin_receipts = []
+        for offset, mode in enumerate(("favorites", "likes")):
+            scan_id = _uuid(f"cross-layer:douyin:{mode}")
+            observed_at = NOW + timedelta(minutes=2 + offset)
+            douyin.begin_scan(
+                scan_id,
+                account_ref_hash="d" * 64,
+                mode=mode,
+                scope_mode="canary_20",
+                started_at=observed_at,
+            )
+            _health, batch = _douyin_client().fetch_owner_batch(DouyinBatchRequest(mode=mode, sequence=0))
+            receipt = douyin.commit_batch(scan_id, batch, observed_at=observed_at + timedelta(seconds=1))
+            replay = douyin.commit_batch(scan_id, batch, observed_at=observed_at + timedelta(seconds=1))
+            if receipt.observed_unique_items != 20 or replay.disposition != "replayed":
+                raise AssertionError("Adapters005 cross-layer Douyin replay differs")
+            douyin_receipts.append(receipt)
+
+        content_keys = tuple(
+            str(row["content_key"]) for row in _rows(store, "SELECT content_key FROM content ORDER BY content_key")
+        )
+        if len(content_keys) != 80 or len(set(content_keys)) != 80:
+            raise AssertionError("Adapters005 cross-layer adapter cardinality differs")
+
+        projections = []
+        artifact_replays = 0
+        for index, content_key in enumerate(content_keys):
+            content = store.projection_snapshot(content_key).content
+            artifact = _artifact(content_key, index)
+            first = store.ingest_bundle(content, artifacts=(artifact,))
+            second = store.ingest_bundle(content, artifacts=(artifact,))
+            if first["artifacts"] != ["inserted"] or second["artifacts"] != ["unchanged"]:
+                raise AssertionError("Adapters005 cross-layer Artifact replay differs")
+            artifact_replays += second["artifacts"].count("unchanged")
+            projections.append(
+                build_sink_projection(
+                    store.projection_snapshot(content_key),
+                    ProjectionText(
+                        original_text=f"Stage 3 synthetic original {index}",
+                        summary=f"Stage 3 synthetic summary {index}",
+                        transcript=f"Stage 3 synthetic transcript {index}",
+                        ocr=f"Stage 3 synthetic OCR {index}",
+                    ),
+                )
+            )
+
+        clock = _CrossLayerClock()
+        markdown = MarkdownSink(store)
+        notion_server = NotionMockServer(monotonic=clock.monotonic)
+        notion = NotionSinkWorker(
+            store,
+            RateLimitedNotionClient(
+                notion_server,
+                RequestRateGate(monotonic=clock.monotonic, sleeper=clock.sleep),
+            ),
+        )
+        first_markdown = [markdown.deliver(item, now=clock.iso()) for item in projections]
+        first_notion = [notion.process(item, now=clock.iso()) for item in projections]
+        markdown.seed_unclassified_index(projections)
+        checked_links = markdown.validate_unclassified_links()
+        first_notion_timeline = len(notion_server.timeline)
+        first_markdown_stats = {
+            path.relative_to(root).as_posix(): path.stat().st_mtime_ns
+            for path in sorted((root / "runtime/library/content").glob("*/*.md"))
+        }
+        second_markdown = [markdown.deliver(item, now=clock.iso()) for item in reversed(projections)]
+        second_notion = [notion.process(item, now=clock.iso()) for item in reversed(projections)]
+        second_markdown_stats = {
+            path.relative_to(root).as_posix(): path.stat().st_mtime_ns
+            for path in sorted((root / "runtime/library/content").glob("*/*.md"))
+        }
+
+        if checked_links != 80 or len(first_markdown_stats) != 80:
+            raise AssertionError("Adapters005 cross-layer Markdown cardinality differs")
+        if first_markdown_stats != second_markdown_stats:
+            raise AssertionError("Adapters005 cross-layer Markdown replay rewrote a file")
+        if any(item.state != "delivered" for item in first_markdown + second_markdown):
+            raise AssertionError("Adapters005 cross-layer Markdown delivery is not terminal")
+        if any(item.state != "delivered" for item in first_notion + second_notion):
+            raise AssertionError("Adapters005 cross-layer Notion Mock delivery is not terminal")
+        if any(item.remote_write != "none" for item in second_notion):
+            raise AssertionError("Adapters005 cross-layer Notion replay wrote remotely")
+        if len(notion_server.timeline) != first_notion_timeline:
+            raise AssertionError("Adapters005 cross-layer Notion replay issued duplicate requests")
+
+        invalid_frontmatter = 0
+        for relative in first_markdown_stats:
+            path = root / relative
+            frontmatter, body = parse_frontmatter(path.read_text(encoding="utf-8"))
+            if frontmatter.get("projection_hash") is None or "## Provenance" not in body:
+                invalid_frontmatter += 1
+        if invalid_frontmatter:
+            raise AssertionError("Adapters005 cross-layer Markdown projection is invalid")
+
+        counts = store.counts()
+        outbox_states = {
+            str(row["status"]): int(row["total"])
+            for row in _rows(store, "SELECT status, COUNT(*) AS total FROM outbox_event GROUP BY status")
+        }
+        expected = {
+            "artifact": 80,
+            "content": 80,
+            "notion_mapping": 80,
+            "outbox_event": 160,
+            "sink_receipt": 160,
+            "source_observation": 80,
+            "user_relation": 80,
+        }
+        if any(counts[name] != expected_count for name, expected_count in expected.items()):
+            raise AssertionError("Adapters005 cross-layer durable graph cardinality differs")
+        if outbox_states != {"delivered": 160}:
+            raise AssertionError("Adapters005 cross-layer Outbox is not terminal")
+        if (
+            len(notion_server.pages) != 80
+            or notion_server.page_create_count != 80
+            or notion_server.page_update_count != 0
+        ):
+            raise AssertionError("Adapters005 cross-layer Notion page idempotency differs")
+
+        scan = scan_persisted_scopes(paths, ["artifacts", "db", "logs", "markdown", "notion-export"])
+        if scan.total_findings:
+            raise AssertionError("Adapters005 cross-layer persistence safety differs")
+        return {
+            "adapter_scopes": {
+                "douyin_favorites": douyin_receipts[0].observed_unique_items,
+                "douyin_likes": douyin_receipts[1].observed_unique_items,
+                "xiaohongshu_favorites": 20,
+                "xiaohongshu_likes": 20,
+            },
+            "artifact_count": counts["artifact"],
+            "artifact_duplicate_count": counts["artifact"] - len(content_keys),
+            "artifact_replays": artifact_replays,
+            "cdn_or_private_path_findings": scan.total_findings,
+            "content_count": counts["content"],
+            "markdown_duplicate_count": len(first_markdown_stats) - len(content_keys),
+            "markdown_files": len(first_markdown_stats),
+            "markdown_frontmatter_invalid": invalid_frontmatter,
+            "notion_duplicate_page_count": notion_server.page_create_count - len(notion_server.pages),
+            "notion_mock_pages": len(notion_server.pages),
+            "notion_replay_requests": len(notion_server.timeline) - first_notion_timeline,
+            "outbox_states": outbox_states,
+            "replay_rounds": 2,
+            "sink_receipts": counts["sink_receipt"],
+        }
+
+
 def _acceptance() -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="x2n-a005-acceptance-") as value:
         destination = Path(value) / "MediaCrawler"
@@ -267,8 +522,8 @@ def _acceptance() -> dict[str, Any]:
             source=first_like,
             observed_count=40,
         )
-        RelationReconciler(store).process(first_favorite_manifest)
-        RelationReconciler(store).process(first_like_manifest)
+        first_favorite_receipt = RelationReconciler(store).process(first_favorite_manifest)
+        first_like_receipt = RelationReconciler(store).process(first_like_manifest)
         first_counts = store.counts()
 
         second_favorite = _full_scan(
@@ -297,8 +552,8 @@ def _acceptance() -> dict[str, Any]:
             source=second_like,
             observed_count=40,
         )
-        RelationReconciler(store).process(second_favorite_manifest)
-        RelationReconciler(store).process(second_like_manifest)
+        second_favorite_receipt = RelationReconciler(store).process(second_favorite_manifest)
+        second_like_receipt = RelationReconciler(store).process(second_like_manifest)
         second_counts = store.counts()
 
         def duplicate(_: int) -> str:
@@ -461,6 +716,32 @@ def _acceptance() -> dict[str, Any]:
             raise AssertionError("Adapters005 second 80-input Canonical cardinality differs")
         if after_duplicate_counts != second_counts or duplicate_dispositions != ["replayed"] * 100:
             raise AssertionError("Adapters005 concurrent duplicate replay differs")
+        first_processing_candidates = (
+            first_favorite_receipt.batch_comparison.processing_candidate_count
+            + first_like_receipt.batch_comparison.processing_candidate_count
+        )
+        second_processing_candidates = (
+            second_favorite_receipt.batch_comparison.processing_candidate_count
+            + second_like_receipt.batch_comparison.processing_candidate_count
+        )
+        second_unchanged = (
+            second_favorite_receipt.batch_comparison.unchanged_count
+            + second_like_receipt.batch_comparison.unchanged_count
+        )
+        add_one = compare_batch_snapshots(
+            {f"content_{index:03d}": f"{index + 1:064x}" for index in range(20)},
+            {f"content_{index:03d}": f"{index + 1:064x}" for index in range(21)},
+        )
+        if (
+            first_processing_candidates != 80
+            or second_processing_candidates != 0
+            or second_unchanged != 80
+            or add_one.new_count != 1
+            or add_one.changed_count != 0
+            or add_one.unchanged_count != 20
+            or add_one.processing_candidate_count != 1
+        ):
+            raise AssertionError("Adapters005 batch comparison or incremental candidate selection differs")
         if (
             missing_one_receipt.unknown_transition_count != 10
             or missing_one_receipt.tombstone_candidate_transition_count != 0
@@ -509,6 +790,12 @@ def _acceptance() -> dict[str, Any]:
                 "relation_duplicates": second_counts["user_relation"] - first_counts["user_relation"],
                 "sequential_runs": 2,
             },
+            "incremental_comparison": {
+                "add_one_report": add_one.safe_dict(),
+                "first_sync_processing_candidates": first_processing_candidates,
+                "second_sync_processing_candidates": second_processing_candidates,
+                "second_sync_unchanged": second_unchanged,
+            },
             "integrity": {
                 "foreign_key_violations": integrity["foreign_key_violations"],
                 "integrity_check": integrity["integrity_check"],
@@ -522,12 +809,22 @@ def _acceptance() -> dict[str, Any]:
 def main() -> int:
     unit = _run_unit_suite()
     report = _acceptance()
+    cross_layer = _cross_layer_acceptance()
+    report["idempotency"].update(
+        {
+            "artifact_duplicates": cross_layer["artifact_duplicate_count"],
+            "markdown_duplicates": cross_layer["markdown_duplicate_count"],
+            "notion_page_duplicates": cross_layer["notion_duplicate_page_count"],
+        }
+    )
     payload = {
         "acceptance_scope": "ADAPTERS_005_RELATION_RECONCILIATION_CI_SYNTH",
         "automatic_pagination": 0,
         "automatic_scroll": 0,
         "batch_protection": report["batch_protection"],
+        "cross_layer": cross_layer,
         "idempotency": report["idempotency"],
+        "incremental_comparison": report["incremental_comparison"],
         "integrity": report["integrity"],
         "model_calls": 0,
         "owner_alpha": "NOT_RUN",

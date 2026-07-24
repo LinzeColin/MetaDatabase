@@ -1,9 +1,9 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "policy_id": "POLICY.X2N.XHS-LIKES.001",
   "task_id": "TSK.x2n.adapters.003",
   "phase": "PH.X2N.3.3",
-  "reviewed_at": "2026-07-23",
+  "reviewed_at": "2026-07-24",
   "default": "deny",
   "official_research": {
     "personal_ui_self_access": "documented_for_my_notes_favorites_and_likes",
@@ -105,7 +105,7 @@
   },
   "checkpoint": {
     "canonical_store": "sqlite",
-    "resume_compatibility_version": "xhs-likes-1.0.0",
+    "resume_compatibility_version": "xhs-likes-1.1.0",
     "batch_sequence_strict_successor": true,
     "exact_last_batch_replay": "return_existing_without_side_effect",
     "unknown_or_partial_advances_cursor": false,
@@ -125,7 +125,11 @@
     "physical_delete_count": 0,
     "automatic_content_delete_count": 0,
     "unlike_automation_count": 0,
-    "relation_reconciliation_owner_task": "TSK.x2n.adapters.005"
+    "relation_reconciliation_owner_task": "TSK.x2n.adapters.005",
+    "owner_removed_is_terminal": true,
+    "owner_removed_observed_keys_private_checkpoint_only": true,
+    "owner_removed_observed_keys_maximum": 10000,
+    "generic_scan_reactivation_allowed": false
   },
   "canary": {
     "item_limit": 20,

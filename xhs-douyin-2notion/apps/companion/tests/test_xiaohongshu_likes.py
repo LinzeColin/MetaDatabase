@@ -371,6 +371,53 @@ class XiaohongshuLikesTests(unittest.TestCase):
             XhsLikesBatch.from_extension_result(result, sequence=0, observed_at=NOW)
         self.assertEqual(policy.exception.code, ErrorCode.POLICY_BLOCKED)
 
+    def test_extension_mapping_rejects_untrusted_error_envelopes(self) -> None:
+        base = {
+            "batch": {
+                "automatic_scroll": False,
+                "completion_signal": "unknown",
+                "explicit_owner_action": True,
+                "visible_card_count": 2,
+            },
+            "code": ErrorCode.PROVENANCE_INCOMPLETE.value,
+            "errors": [{"card_index": 1, "code": ErrorCode.PROVENANCE_INCOMPLETE.value}],
+            "inbox": {
+                "automatic_filing": False,
+                "disposition": "unclassified",
+                "taxonomy_mutation": False,
+            },
+            "items": [
+                {
+                    "content_id": "synth_xhs_like_000",
+                    "content_type": "image_gallery",
+                    "inbox_disposition": "unclassified",
+                    "page_url": "https://www.xiaohongshu.com/explore/synth_xhs_like_000",
+                    "title": "合成点赞条目",
+                }
+            ],
+            "platform": "xiaohongshu",
+            "schema_version": "1.0",
+            "status": "partial",
+        }
+        XhsLikesBatch.from_extension_result(base, sequence=0, observed_at=NOW)
+
+        cases = {
+            "invalid_top_code": lambda value: value.update({"code": "X2N_NOT_AN_ERROR"}),
+            "mismatched_top_code": lambda value: value.update({"code": ErrorCode.PLATFORM_CHANGED.value}),
+            "index_at_visible_bound": lambda value: value["errors"][0].update({"card_index": 2}),
+            "boolean_index": lambda value: value["errors"][0].update({"card_index": True}),
+            "null_partial_index": lambda value: value["errors"][0].update({"card_index": None}),
+            "duplicate_index": lambda value: value["errors"].append(
+                {"card_index": 1, "code": ErrorCode.PROVENANCE_INCOMPLETE.value}
+            ),
+        }
+        for label, mutate in cases.items():
+            with self.subTest(label=label):
+                candidate = json.loads(json.dumps(base, ensure_ascii=False))
+                mutate(candidate)
+                with self.assertRaises(X2NRuntimeError):
+                    XhsLikesBatch.from_extension_result(candidate, sequence=0, observed_at=NOW)
+
     def test_global_gate_wraps_one_explicit_batch_without_wait_or_scroll(self) -> None:
         scan_id = _scan_id("gate")
         adapter = XhsLikesAdapter(self.store)

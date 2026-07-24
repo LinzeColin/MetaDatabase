@@ -37,6 +37,7 @@ from x2n_companion.runtime import RuntimePaths, X2NRuntimeError  # noqa: E402
 TASK_ID = "TSK.x2n.adapters.004"
 PHASE = "PH.X2N.3.4"
 WORKER = PROJECT_ROOT / "scripts/douyin_sidecar_fixture_worker.py"
+CHAOS_WORKER = PROJECT_ROOT / "scripts/douyin_adapter_chaos_worker.py"
 SHADOW = PROJECT_ROOT / "scripts/run_douyin_shadow_upgrade.py"
 NOW = datetime(2026, 7, 23, 12, 0, 0, tzinfo=timezone.utc)
 ACCOUNT_HASH = "d" * 64
@@ -241,6 +242,137 @@ def _canonical_acceptance() -> dict[str, Any]:
         }
 
 
+def _chaos_acceptance() -> dict[str, Any]:
+    with tempfile.TemporaryDirectory(prefix="x2n-a004-chaos-") as value:
+        destination = Path(value) / "MediaCrawler"
+        destination.mkdir(mode=0o700)
+        root = destination / "xhs-douyin-2notion"
+        paths = RuntimePaths.from_values(
+            str(root),
+            str(destination),
+            repository_root=PROJECT_ROOT,
+            create=True,
+        )
+        store = CanonicalStore(paths, busy_timeout_ms=30_000)
+        store.initialize()
+        scan_ids = {
+            mode: str(uuid.uuid5(uuid.NAMESPACE_URL, f"x2n-a004-chaos:{mode}"))
+            for mode in ("favorites", "likes")
+        }
+        for offset, mode in enumerate(("favorites", "likes")):
+            DouyinAdapter(store).begin_scan(
+                scan_ids[mode],
+                account_ref_hash=ACCOUNT_HASH,
+                mode=mode,
+                scope_mode="canary_20",
+                started_at=NOW + timedelta(minutes=offset),
+            )
+
+        home = Path(value) / "home"
+        home.mkdir(mode=0o700)
+        env = {
+            "HOME": str(home),
+            "LANG": "C.UTF-8",
+            "LC_ALL": "C.UTF-8",
+            "PATH": os.environ.get("PATH", ""),
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONPATH": "apps/companion/src:packages/contracts/src",
+            "X2N_DATA_ROOT": str(root),
+            "X2N_DOWNLOAD_DESTINATION": str(destination),
+        }
+        labels = (
+            [f"after_item_{index}" for index in range(20)]
+            + ["before_checkpoint", "after_checkpoint", "before_commit"]
+        )
+        exercised: set[str] = set()
+        for index in range(50):
+            mode = ("favorites", "likes")[index % 2]
+            label = labels[index % len(labels)]
+            exercised.add(label)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-B",
+                    str(CHAOS_WORKER),
+                    "--scan-id",
+                    scan_ids[mode],
+                    "--mode",
+                    mode,
+                    "--kill-label",
+                    label,
+                ],
+                cwd=PROJECT_ROOT,
+                env=env,
+                check=False,
+                capture_output=True,
+                timeout=120,
+            )
+            if result.returncode != 79 or result.stdout or result.stderr:
+                raise AssertionError("Adapters004 chaos worker did not stop at the selected kill point")
+            recovered = DouyinAdapter(CanonicalStore(paths, busy_timeout_ms=30_000)).checkpoint(scan_ids[mode])
+            if recovered.next_sequence != 0 or recovered.observed_unique_items != 0:
+                raise AssertionError("Adapters004 checkpoint advanced across an uncommitted kill")
+            counts = CanonicalStore(paths).counts()
+            if counts["content"] or counts["user_relation"] or counts["source_observation"]:
+                raise AssertionError("Adapters004 Canonical rows survived an uncommitted kill")
+
+        final_receipts = []
+        for offset, mode in enumerate(("favorites", "likes")):
+            adapter = DouyinAdapter(CanonicalStore(paths, busy_timeout_ms=30_000))
+            _health, batch = _client().fetch_owner_batch(DouyinBatchRequest(mode=mode, sequence=0))
+            receipt = adapter.commit_batch(
+                scan_ids[mode],
+                batch,
+                observed_at=NOW + timedelta(minutes=offset, seconds=1),
+            )
+            replay = adapter.commit_batch(
+                scan_ids[mode],
+                batch,
+                observed_at=NOW + timedelta(minutes=offset, seconds=1),
+            )
+            if receipt.observed_unique_items != 20 or replay.disposition != "replayed":
+                raise AssertionError("Adapters004 recovery or exact replay failed")
+            final_receipts.append(receipt)
+
+        connection = CanonicalStore(paths)._open(writable=False)
+        try:
+            counts = {
+                "content": int(connection.execute("SELECT COUNT(*) FROM content").fetchone()[0]),
+                "observation": int(connection.execute("SELECT COUNT(*) FROM source_observation").fetchone()[0]),
+                "relation": int(connection.execute("SELECT COUNT(*) FROM user_relation").fetchone()[0]),
+                "succeeded_runs": int(
+                    connection.execute("SELECT COUNT(*) FROM run_record WHERE state = 'succeeded'").fetchone()[0]
+                ),
+            }
+            distinct_counts = {
+                "content": int(connection.execute("SELECT COUNT(DISTINCT content_key) FROM content").fetchone()[0]),
+                "observation": int(
+                    connection.execute("SELECT COUNT(DISTINCT observation_id) FROM source_observation").fetchone()[0]
+                ),
+                "relation": int(
+                    connection.execute("SELECT COUNT(DISTINCT relation_key) FROM user_relation").fetchone()[0]
+                ),
+            }
+        finally:
+            connection.close()
+        if counts != {"content": 40, "observation": 40, "relation": 40, "succeeded_runs": 2}:
+            raise AssertionError("Adapters004 recovered Canonical cardinality differs")
+        if any(distinct_counts[key] != counts[key] for key in distinct_counts):
+            raise AssertionError("Adapters004 recovered Canonical identity contains duplicates")
+        return {
+            "checkpoint_resume": True,
+            "duplicate_side_effects": 0,
+            "exercised_kill_labels": len(exercised),
+            "final_content_count": counts["content"],
+            "final_observation_count": counts["observation"],
+            "final_relation_count": counts["relation"],
+            "kill_runs": 50,
+            "lost_items": 0,
+            "modes": 2,
+            "process_exit_code": 79,
+        }
+
+
 def _deletion_acceptance() -> dict[str, int]:
     guard = BatchDeletionGuard()
     relation = "synthetic_relation"
@@ -303,6 +435,7 @@ def main() -> int:
     unit = _run_unit_suite()
     contract = _contract_acceptance()
     canonical = _canonical_acceptance()
+    chaos = _chaos_acceptance()
     deletion = _deletion_acceptance()
     shadow = _shadow_acceptance()
     favorites_plan = build_douyin_canary_plan("favorites")
@@ -311,6 +444,7 @@ def main() -> int:
         "acceptance_scope": "ADAPTERS_004_DOUYIN_PINNED_SIDECAR_CI_SYNTH",
         "automatic_pagination": 0,
         "canonical": canonical,
+        "chaos": chaos,
         "canary_item_limit": 20,
         "canary_tooling": "PASS_NONEXECUTING",
         "contract": contract,

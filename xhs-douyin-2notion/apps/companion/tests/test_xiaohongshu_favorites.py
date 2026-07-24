@@ -302,6 +302,55 @@ class XiaohongshuFavoritesTests(unittest.TestCase):
             XhsFavoritesBatch.from_extension_result(result, sequence=0, observed_at=NOW)
         self.assertEqual(unknown.exception.code, ErrorCode.UNKNOWN_FIELD)
 
+    def test_extension_mapping_rejects_untrusted_error_and_collection_envelopes(self) -> None:
+        base = {
+            "batch": {
+                "automatic_scroll": False,
+                "completion_signal": "unknown",
+                "explicit_owner_action": True,
+                "visible_card_count": 2,
+            },
+            "code": ErrorCode.PROVENANCE_INCOMPLETE.value,
+            "collection": {"id": "collection_0", "name_private": "合成收藏夹 0", "status": "observed"},
+            "errors": [{"card_index": 1, "code": ErrorCode.PROVENANCE_INCOMPLETE.value}],
+            "items": [
+                {
+                    "collection_id": "collection_0",
+                    "collection_name_private": "合成收藏夹 0",
+                    "content_id": "synth_xhs_favorite_000",
+                    "content_type": "image_gallery",
+                    "page_url": "https://www.xiaohongshu.com/explore/synth_xhs_favorite_000",
+                    "title": "合成收藏条目",
+                }
+            ],
+            "platform": "xiaohongshu",
+            "schema_version": "1.0",
+            "status": "partial",
+        }
+        XhsFavoritesBatch.from_extension_result(base, sequence=0, observed_at=NOW)
+
+        cases = {
+            "invalid_top_code": lambda value: value.update({"code": "X2N_NOT_AN_ERROR"}),
+            "mismatched_top_code": lambda value: value.update({"code": ErrorCode.PLATFORM_CHANGED.value}),
+            "invalid_collection_pair": lambda value: value.update(
+                {"collection": {"id": "collection_0", "name_private": None, "status": "observed"}}
+            ),
+            "invalid_collection_status": lambda value: value.update(
+                {"collection": {"id": None, "name_private": None, "status": "observed"}}
+            ),
+            "index_at_visible_bound": lambda value: value["errors"][0].update({"card_index": 2}),
+            "null_partial_index": lambda value: value["errors"][0].update({"card_index": None}),
+            "duplicate_index": lambda value: value["errors"].append(
+                {"card_index": 1, "code": ErrorCode.PROVENANCE_INCOMPLETE.value}
+            ),
+        }
+        for label, mutate in cases.items():
+            with self.subTest(label=label):
+                candidate = json.loads(json.dumps(base, ensure_ascii=False))
+                mutate(candidate)
+                with self.assertRaises(X2NRuntimeError):
+                    XhsFavoritesBatch.from_extension_result(candidate, sequence=0, observed_at=NOW)
+
     def test_global_gate_wraps_one_explicit_batch_without_wait_or_scroll(self) -> None:
         scan_id = _scan_id("gate")
         adapter = XhsFavoritesAdapter(self.store)

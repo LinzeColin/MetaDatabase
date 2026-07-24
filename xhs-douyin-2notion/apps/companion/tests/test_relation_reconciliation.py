@@ -19,6 +19,7 @@ from x2n_companion.relation_reconciliation import (
     ReconciliationManifest,
     RelationReconciler,
     build_owner_alpha_80_manifest_plan,
+    compare_batch_snapshots,
 )
 from x2n_companion.runtime import RuntimePaths, X2NRuntimeError
 from x2n_companion.xiaohongshu_favorites import XhsFavoriteItem, XhsFavoritesAdapter, XhsFavoritesBatch
@@ -122,13 +123,19 @@ class RelationReconciliationTests(unittest.TestCase):
                 ),
             )
         checkpoint_id, receipt_id = self._identity(scan_id, kind="favorites")
-        keys = tuple(
+        active_keys = {
             str(row["relation_key"])
             for row in self._rows(
                 "SELECT relation_key FROM user_relation WHERE scan_receipt_id = ? ORDER BY relation_key",
                 (receipt_id,),
             )
-        )
+        }
+        checkpoint = self._rows(
+            "SELECT cursor_value_private FROM checkpoint WHERE checkpoint_id = ?",
+            (checkpoint_id,),
+        )[0]
+        removed_keys = set(json.loads(checkpoint["cursor_value_private"])["owner_removed_observed_relation_keys"])
+        keys = tuple(sorted(active_keys | removed_keys))
         return checkpoint_id, receipt_id, keys, started_at + timedelta(seconds=len(chunks) - 1)
 
     def _full_likes(
@@ -163,13 +170,19 @@ class RelationReconciliationTests(unittest.TestCase):
                 ),
             )
         checkpoint_id, receipt_id = self._identity(scan_id, kind="likes")
-        keys = tuple(
+        active_keys = {
             str(row["relation_key"])
             for row in self._rows(
                 "SELECT relation_key FROM user_relation WHERE scan_receipt_id = ? ORDER BY relation_key",
                 (receipt_id,),
             )
-        )
+        }
+        checkpoint = self._rows(
+            "SELECT cursor_value_private FROM checkpoint WHERE checkpoint_id = ?",
+            (checkpoint_id,),
+        )[0]
+        removed_keys = set(json.loads(checkpoint["cursor_value_private"])["owner_removed_observed_relation_keys"])
+        keys = tuple(sorted(active_keys | removed_keys))
         return checkpoint_id, receipt_id, keys, started_at + timedelta(seconds=len(chunks) - 1)
 
     @staticmethod
@@ -252,6 +265,75 @@ class RelationReconciliationTests(unittest.TestCase):
         self.assertEqual(len(self._rows("SELECT * FROM user_relation WHERE status = 'removed'")), 0)
         self.assertEqual(len(self._rows("SELECT * FROM content WHERE status != 'active'")), 0)
         self.assertEqual(len(self._rows("SELECT * FROM content")), 40)
+
+    def test_batch_comparison_only_selects_new_or_changed_candidates(self) -> None:
+        reconciler = RelationReconciler(self.store)
+        baseline = self._full_favorites("comparison-base", tuple(range(20)), started_at=NOW)
+        baseline_manifest = self._complete_manifest(
+            "comparison-base",
+            source_adapter="xhs_favorites",
+            relation_type=RelationType.FAVORITED,
+            checkpoint_id=baseline[0],
+            receipt_id=baseline[1],
+            keys=baseline[2],
+            source_observed_content_count=20,
+            observed_at=baseline[3] + timedelta(seconds=1),
+        )
+        baseline_receipt = reconciler.process(baseline_manifest)
+        self.assertEqual(baseline_receipt.batch_comparison.status, "baseline_created")
+        self.assertEqual(baseline_receipt.batch_comparison.processing_candidate_count, 20)
+
+        same = self._full_favorites(
+            "comparison-same",
+            tuple(range(20)),
+            started_at=NOW + timedelta(minutes=1),
+        )
+        same_manifest = self._complete_manifest(
+            "comparison-same",
+            source_adapter="xhs_favorites",
+            relation_type=RelationType.FAVORITED,
+            checkpoint_id=same[0],
+            receipt_id=same[1],
+            keys=same[2],
+            source_observed_content_count=20,
+            observed_at=same[3] + timedelta(seconds=1),
+        )
+        same_receipt = reconciler.process(same_manifest)
+        self.assertEqual(same_receipt.batch_comparison.unchanged_count, 20)
+        self.assertEqual(same_receipt.batch_comparison.processing_candidate_count, 0)
+
+        added = self._full_favorites(
+            "comparison-added",
+            tuple(range(21)),
+            started_at=NOW + timedelta(minutes=2),
+        )
+        added_manifest = self._complete_manifest(
+            "comparison-added",
+            source_adapter="xhs_favorites",
+            relation_type=RelationType.FAVORITED,
+            checkpoint_id=added[0],
+            receipt_id=added[1],
+            keys=added[2],
+            source_observed_content_count=21,
+            observed_at=added[3] + timedelta(seconds=1),
+        )
+        added_receipt = reconciler.process(added_manifest)
+        self.assertEqual(added_receipt.batch_comparison.new_count, 1)
+        self.assertEqual(added_receipt.batch_comparison.changed_count, 0)
+        self.assertEqual(added_receipt.batch_comparison.unchanged_count, 20)
+        self.assertEqual(added_receipt.batch_comparison.processing_candidate_count, 1)
+        replay = reconciler.process(added_manifest)
+        self.assertEqual(replay.disposition, "replayed")
+        self.assertEqual(replay.batch_comparison.safe_dict(), added_receipt.batch_comparison.safe_dict())
+
+        changed = compare_batch_snapshots(
+            {"content_a": "1" * 64, "content_b": "2" * 64},
+            {"content_a": "3" * 64, "content_c": "4" * 64},
+        )
+        self.assertEqual(changed.changed_count, 1)
+        self.assertEqual(changed.new_count, 1)
+        self.assertEqual(changed.missing_count, 1)
+        self.assertEqual(changed.processing_candidate_count, 2)
 
     def test_same_source_full_scan_cannot_be_relabelled_as_a_second_scan(self) -> None:
         self._full_favorites("baseline-relabel", tuple(range(4)), started_at=NOW)
@@ -592,17 +674,131 @@ class RelationReconciliationTests(unittest.TestCase):
             unauthorized = UserRelation.model_validate_json(stored["payload_json"]).model_copy(
                 update={"confirmed_by": ConfirmationSource.SCAN}
             )
+            with self.assertRaises(X2NRuntimeError) as blocked:
+                self.store._upsert_relation(
+                    connection,
+                    unauthorized,
+                    Platform.XIAOHONGSHU.value,
+                    "2026-07-23T00:01:30Z",
+                )
+        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+
+    def test_later_source_scan_observes_but_cannot_reactivate_owner_removed_relation(self) -> None:
+        baseline = self._full_favorites("removed-visible-base", (0, 1), started_at=NOW)
+        removed_key = baseline[2][1]
+        with self.store._transaction() as connection:
+            row = connection.execute(
+                "SELECT payload_json FROM user_relation WHERE relation_key = ?", (removed_key,)
+            ).fetchone()
+            self.assertIsNotNone(row)
+            removed = UserRelation.model_validate_json(row["payload_json"]).model_copy(
+                update={
+                    "confirmed_by": ConfirmationSource.OWNER,
+                    "scan_receipt_id": "receipt_owner_removed_visible",
+                    "status": RelationStatus.REMOVED,
+                }
+            )
+            self.store._upsert_relation(connection, removed, Platform.XIAOHONGSHU.value, "2026-07-23T00:00:30Z")
+
+        source = self._full_favorites(
+            "removed-visible-source",
+            (0, 1),
+            started_at=NOW + timedelta(minutes=1),
+        )
+        self.assertEqual(len(source[2]), 2)
+        receipt = RelationReconciler(self.store).process(
+            self._complete_manifest(
+                "removed-visible",
+                source_adapter="xhs_favorites",
+                relation_type=RelationType.FAVORITED,
+                checkpoint_id=source[0],
+                receipt_id=source[1],
+                keys=source[2],
+                source_observed_content_count=2,
+                observed_at=source[3] + timedelta(seconds=1),
+            )
+        )
+        self.assertTrue(receipt.full_scan_verified)
+        self.assertEqual(receipt.removed_preserved_count, 1)
+        row = self._rows(
+            "SELECT status, confirmed_by, scan_receipt_id FROM user_relation WHERE relation_key = ?",
+            (removed_key,),
+        )[0]
+        self.assertEqual(
+            (row["status"], row["confirmed_by"], row["scan_receipt_id"]),
+            ("removed", "owner", "receipt_owner_removed_visible"),
+        )
+
+    def test_owner_removal_terminates_a_pending_missing_chain(self) -> None:
+        baseline = self._full_favorites("pending-removed-base", (0, 1), started_at=NOW)
+        pending_key = baseline[2][1]
+        first = self._full_favorites(
+            "pending-removed-first",
+            (0,),
+            started_at=NOW + timedelta(minutes=1),
+        )
+        first_receipt = RelationReconciler(self.store).process(
+            self._complete_manifest(
+                "pending-removed-first",
+                source_adapter="xhs_favorites",
+                relation_type=RelationType.FAVORITED,
+                checkpoint_id=first[0],
+                receipt_id=first[1],
+                keys=first[2],
+                source_observed_content_count=1,
+                observed_at=first[3] + timedelta(seconds=1),
+            )
+        )
+        self.assertEqual(first_receipt.pending_missing_count, 1)
+
+        with self.store._transaction() as connection:
+            row = connection.execute(
+                "SELECT payload_json FROM user_relation WHERE relation_key = ?",
+                (pending_key,),
+            ).fetchone()
+            self.assertIsNotNone(row)
+            removed = UserRelation.model_validate_json(row["payload_json"]).model_copy(
+                update={
+                    "confirmed_by": ConfirmationSource.OWNER,
+                    "scan_receipt_id": "receipt_owner_removed_pending",
+                    "status": RelationStatus.REMOVED,
+                }
+            )
             self.store._upsert_relation(
                 connection,
-                unauthorized,
+                removed,
                 Platform.XIAOHONGSHU.value,
                 "2026-07-23T00:01:30Z",
             )
-        with self.assertRaises(X2NRuntimeError) as blocked:
-            RelationReconciler(self.store).process(
-                self._non_authoritative("removed-without-owner", "http_error", NOW + timedelta(minutes=2))
+
+        second = self._full_favorites(
+            "pending-removed-second",
+            (0,),
+            started_at=NOW + timedelta(minutes=2),
+        )
+        second_receipt = RelationReconciler(self.store).process(
+            self._complete_manifest(
+                "pending-removed-second",
+                source_adapter="xhs_favorites",
+                relation_type=RelationType.FAVORITED,
+                checkpoint_id=second[0],
+                receipt_id=second[1],
+                keys=second[2],
+                source_observed_content_count=1,
+                observed_at=second[3] + timedelta(seconds=1),
             )
-        self.assertEqual(blocked.exception.code, ErrorCode.DATA_INTEGRITY_FAILED)
+        )
+        self.assertEqual(second_receipt.pending_missing_count, 0)
+        self.assertEqual(second_receipt.tombstone_candidate_transition_count, 0)
+        self.assertEqual(second_receipt.removed_preserved_count, 1)
+        row = self._rows(
+            "SELECT status, confirmed_by, scan_receipt_id FROM user_relation WHERE relation_key = ?",
+            (pending_key,),
+        )[0]
+        self.assertEqual(
+            (row["status"], row["confirmed_by"], row["scan_receipt_id"]),
+            ("removed", "owner", "receipt_owner_removed_pending"),
+        )
 
     def test_owner_alpha_plan_and_cli_are_fixed_nonexecuting_tooling(self) -> None:
         plan = build_owner_alpha_80_manifest_plan()

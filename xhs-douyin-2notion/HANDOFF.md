@@ -14,7 +14,9 @@
 - Stage 1 已通过 PR #73 合并到 `main`，远端 PR 与合并后 x2n CI 均通过；历史 G1 Evidence 不改写。
 - Stage 2 九个独立单 Task `TSK.x2n.skeleton.001–009`（Phase 2.1–2.9）与独立 `STG.X2N.2.REVIEW` 已完成项目原生本地验收；8 个 finding 全部关闭。当前 Review 分支为 `codex/xhs-douyin-2notion-v0001-s02-review`，Review base 为 `c133e1d4…`、origin cutoff 为 `6777c8fc…`。
 - Stage 2 已通过 PR #78 合并到 `main@ee5d251c…`；最终 x2n run `29922576589` 与 Dual-Plane run `29922576674` 均成功。新增 `stage_2_remote_merge_state.json` 只记录 Stage 3 授权前置事实，旧 G2 pre-upload Evidence 保持逐字节不变。
-- Stage 3 九个 Adapter Task `PH.X2N.3.1–3.9 / TSK.x2n.adapters.001–009` 已在各自 CI-SYNTH 范围完成。A005 以 SQLite `run_record + checkpoint` 对两个被证明的 XHS full-scan source 实现 `active -> unknown -> tombstone_candidate`，阻断重复/旧/空/bounded/证据不完整的 full-scan 声明；下一独立 Run 只能是 `STG.X2N.3.REVIEW`。
+- Stage 3 九个 Adapter Task `PH.X2N.3.1–3.9 / TSK.x2n.adapters.001–009` 与独立 `STG.X2N.3.REVIEW` 已完成公开合成复核；六项 finding 关闭，九个 Task runner 均 `PASS_CI_SYNTH_SCOPED`。当前 `G3=BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION`，不是 PASS；Stage 3 上传和 Stage 4 禁止，下一独立 Run 只能是 `STG.X2N.3.REVIEW.RESUME`。
+- Review 关闭：Owner removed 终态、XHS envelope、Douyin 50 次真实子进程 Kill、private batch comparison/增量候选、A005 fixed-commit pin、同一批 80 Adapter 输入的 Canonical→Artifact→Markdown→Notion Mock/Outbox 真正跨层幂等。80 Artifact/Markdown/Notion Mock 与 160 Receipt 第二轮重复为 0，持久层 finding 0。
+- Review 仍有五个 Blocker：缺 8 scope Native dispatch；缺 `FAILED→FALLBACK_AVAILABLE`＋第二次 Owner 当前页动作；disabled Canary 合法终态未定义；`ACC.data.002`/`ACC.rel.006` 的 Stage 3 contribution 与 Stage 6 full Alpha 未版本化拆分；8 个真实 Canary/private Manifest/平台授权均未运行。
 - 小红书收藏生产位保持关闭：Extension 只处理 Owner gesture 后最多 20 条可见净化 DOM，不滚动、不翻页、不联网；partial/auth/verification/platform-change/empty-unverified 不推进或完成。bounded Canary 不写 full scan，只有权威可见结束可完成 full scan；真实页面、Owner Profile/private gold/Canary 均 `NOT_RUN`。
 - 小红书点赞生产位同样关闭：同一可见批次/Checkpoint 边界，不调用私有端点、不读取 Cookie/Profile、不执行 like/unlike。100 个合成点赞与 20 个预置收藏最终保持 100 Content、100 `liked`、20 `favorited`；自动归档、Classification/Taxonomy/Owner 分类覆盖均为 0。
 - 小红书当前页代码、5 个 DOM Fixture、Action/临时 `activeTab`、Native Host/SQLite 闭环与 100 次 Worker restart 已通过；能力位仍为 `ci_synth_only`，真实页面禁用。
@@ -38,7 +40,7 @@
 - Skeleton005 最终全量回归：六平台 80×2 的 80 Markdown/80 Notion Mock Pages/160 Outbox+Receipt 通过；partial file、invalid Frontmatter、dead link、CDN finding、duplicate Page、hash-noop replay request 与真实 Notion call 均为 0；175 个根测试 PASS（3 skip）、76 个 Companion tests PASS；两轮 12×2=24/24 Blocking Gate PASS，0 failure/flaky/silent skip；overall combined coverage 76.93%，33 个依赖 OSV 漏洞 0，65-member source candidate 确定性一致且 Runtime Data 0。
 - Stage 2 Review 最终回归：186 个根测试 PASS（3 个固定可选 skip）、76 个 Companion tests PASS；两份独立 full lane 各 24/24 Blocking Gate PASS，coverage 均 76.93%，33 个依赖漏洞 0，65-member source candidate SHA 一致；实际 Python 3.12.13 与全部工具链版本匹配政策。
 - 回归捕获并修复 SQLite transient `-wal/-shm` 在并发连接关闭时消失的 chmod 竞态；只豁免已经消失的 sidecar，Canonical DB 或仍存在 sidecar 的加固失败继续 Fail Closed。
-- 当前 `G2=PASS/REMOTE_MERGED`；Stage 3 九个 Task 只证明各自 CI-SYNTH 合成范围，当前 Gate 为 `G3=NOT_RUN`，整阶段上传禁止。A005 Owner Alpha 80 条只完成非执行工具，Owner Profile/private Manifest/真实链路与正式 Release 均未运行。
+- 当前 `G2=PASS/REMOTE_MERGED`；Stage 3 九个 Task 与 Review 只证明 CI-SYNTH/Mock/Chaos 范围，当前 Gate 为 `G3=BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION`，整阶段上传与 Stage 4 禁止。A005 Owner Alpha 80 条只完成非执行工具，Owner Profile/private Manifest/真实链路与正式 Release 均未运行。
 - 真实账号、Owner Chrome/Profile、六平台调用、真实 Notion、模型、真实媒体处理与全部下游用户旅程 Acceptance：`NOT_RUN`；Markdown/Notion Mock 仅 CI-SYNTH scoped pass。
 - 六平台真实执行：全部 `UNKNOWN_DISABLED`、`BLOCKED_AUTH` 或 `BLOCKED_BUDGET`；六平台均仅 `current_page=CI_SYNTH_ONLY`；各平台真实启用时重新通过 Policy/Auth/Technical/Canary Gate。
 
@@ -99,7 +101,7 @@
 - 历史重放：Adapters001 固定到 `ea440535…`，Adapters002 固定到 `050ec0c9…`，Adapters003 固定到 `0939d783…`，Adapters004 固定到 `37ec58cb…`，Adapters006 固定到 `5b6564d2…`，Adapters007 固定到 `a088ea87…`，Adapters008 固定到 `a0f4a346…`；七者都从 final commit blob 验收，Skeleton009 从固定提交 `git ls-tree` 枚举 Extension 源文件。旧 Task/Evidence 不重写。
 - 当前 Extension 权限为 `activeTab`/`nativeMessaging`/`scripting`/`sidePanel`；历史 Foundation004 的 3 权限事实保持在固定提交与 Evidence 中。当前无 Host Permission、静态 Content Script、Storage/Cookie/Tabs/Downloads 或远程代码。
 - Chromium E2E 在默认 Action 前验证注入与采集 2/2 拒绝；用官方 CDP Action 驱动后才取得临时 `activeTab`，并通过真实 Side Panel 按钮把 XHS/Douyin/Bilibili/Kuaishou/Weibo/Taobao 合成当前页分别送入 Native Host/SQLite；每平台 100 次 Worker 重启仍 0 丢单/重单/错状态。平台形态网络请求由 catch-all route 拦截，实测平台调用 0；Owner Canary 与真实页面均 `NOT_RUN/DISABLED`。
-- 当前根回归：256 tests（253 PASS、3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对）；221 个 Companion tests、12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 79.61%，33 个依赖漏洞 0，78-member candidate 无 Runtime Data。Foundation001–005、Skeleton001–009、Stage 2 Review 与固定 Adapters001–009 predecessor 均 PASS；Foundation003 本轮只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。
+- 当前 Stage 3 Review 根回归：263 tests（260 PASS、3 个需要私有可选输入的测试按设计跳过且由机器 allowlist 核对）；227 个 Companion tests、12 个 Contract tests PASS；full lane 两轮 24/24 Blocking Gate PASS，0 failure/flaky/silent skip，coverage 79.66%，33 个依赖漏洞 0，78-member candidate 无 Runtime Data。九个 Task reacceptance、Foundation001–005、Skeleton001–009、Stage 2 Review 与固定 Adapters001–009 predecessor 均 PASS；Foundation003 只验证历史 Owner Runtime evidence，未重新读取 Owner 私有根。软件 PASS 不改变 `G3=BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION`。
 - Fresh copy：隔离 HOME 中 frozen locks、Extension 与 7 个 lifecycle rehearsal 加 1 个负向 Canary 均通过。
 
 ```bash
@@ -149,7 +151,8 @@ Run Contract 执行。
 
 ## 下一步
 
-1. 下一独立 Run 只能执行 `STG.X2N.3.REVIEW`；Review 不执行新 DAG Task，只复核、修复并重验 Stage 3 全部九个 Adapter Task。
-2. 当前 A005 只本地提交、不 push；独立 Review/Fix/Re-acceptance 通过 G3 后才允许 Stage 3 整体上传。
-3. Owner Profile 登录、真实账号、六平台批量调用和 Canary 继续 `NOT_RUN`；对应平台真实启用前必须重新通过一手 Policy/Auth/Technical/Canary Gate。
-4. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Profile/Runtime/越界写入命中立即 Fail Closed。
+1. 下一独立 Run 只能执行 `STG.X2N.3.REVIEW.RESUME`；不得上传 Stage 3 或进入 Stage 4。
+2. Owner 先版本化确认两项：逐 scope 的合法 Canary terminal；Stage 3 CI-SYNTH contribution 与 Stage 6 完整 `ACC.x2n.rel.006` 的边界。
+3. Owner 明确授权一个新的 relation/list orchestration Task 后，才实现 strict Native dispatch 与 `FAILED→FALLBACK_AVAILABLE`；当前页保存必须第二次明确 Owner 动作，绝不自动执行。
+4. 技术闭合后，Owner Profile、真实账号和 Canary 仍须按平台逐一独立授权；私有 Manifest 永不进 Git，不可获取真实样本时保持 `BLOCKED_EVIDENCE`。
+5. 继续保持共享认证材料零接触、其他长期开发零重叠；任一 Secret/CDN/Profile/Runtime/越界写入命中立即 Fail Closed。

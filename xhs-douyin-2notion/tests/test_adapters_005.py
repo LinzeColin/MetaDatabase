@@ -28,12 +28,12 @@ class Adapters005VerifierTests(unittest.TestCase):
         )
         self.assertEqual([item.status for item in checks], ["PASS"] * len(checks))
 
-    def test_run_is_exactly_one_unpinned_task(self) -> None:
+    def test_run_is_exactly_one_fixed_historical_task(self) -> None:
         self.assertEqual(VERIFY.TASK_ID, "TSK.x2n.adapters.005")
         self.assertEqual(VERIFY.RUN_ID, "RUN-X2N-S03-A005")
         self.assertEqual(VERIFY.PHASE, "PH.X2N.3.9")
         self.assertEqual(VERIFY.TASK_BASE_COMMIT, "8c6442a251f73e645e292a4e77dd03448d153b64")
-        self.assertFalse(hasattr(VERIFY, "FINAL_COMMIT"))
+        self.assertEqual(VERIFY.FINAL_COMMIT, "a67ba091239297b5c9c38a349e0a839680d1c411")
         rendered = "\n".join(sorted(VERIFY.ALLOWED_CHANGED_EXACT | set(VERIFY.ALLOWED_CHANGED_PREFIXES)))
         self.assertIn("relation_reconciliation", rendered)
         self.assertNotIn("migrations.py", rendered)
@@ -46,10 +46,13 @@ class Adapters005VerifierTests(unittest.TestCase):
             VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, VERIFY.PREVIOUS.EVIDENCE),
         )
         for path in VERIFY.UNCHANGED_SECURITY_SURFACES:
-            self.assertEqual(path.read_bytes(), VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path))
+            self.assertEqual(
+                VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, path),
+                VERIFY._read_blob_at(VERIFY.TASK_BASE_COMMIT, path),
+            )
 
     def test_policy_only_allows_proven_xhs_full_scans(self) -> None:
-        policy = VERIFY._load_json(VERIFY.POLICY)
+        policy = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.POLICY)
         sources = policy["authoritative_sources"]
         self.assertTrue(sources["xhs_favorites"]["full_scan_permitted"])
         self.assertTrue(sources["xhs_likes"]["full_scan_permitted"])
@@ -67,7 +70,7 @@ class Adapters005VerifierTests(unittest.TestCase):
         self.assertFalse(policy["scope"]["physical_delete"])
 
     def test_fixture_covers_state_idempotency_and_kill_without_private_data(self) -> None:
-        fixture = VERIFY._load_json(VERIFY.FIXTURE)
+        fixture = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.FIXTURE)
         self.assertTrue(fixture["synthetic"])
         self.assertEqual(len(fixture["cases"]), 40)
         self.assertEqual(len(set(fixture["cases"])), 40)
@@ -87,7 +90,7 @@ class Adapters005VerifierTests(unittest.TestCase):
             self.assertFalse(fixture[field])
 
     def test_implementation_has_no_delete_or_network_client(self) -> None:
-        source = VERIFY.COMPANION_SOURCE.read_text(encoding="utf-8")
+        source = VERIFY._read_blob_at(VERIFY.FINAL_COMMIT, VERIFY.COMPANION_SOURCE).decode("utf-8")
         self.assertIn("RelationStatus.TOMBSTONE_CANDIDATE", source)
         self.assertIn("last_source_checkpoint_at", source)
         self.assertNotIn("DELETE FROM user_relation", source)
@@ -152,7 +155,7 @@ class Adapters005VerifierTests(unittest.TestCase):
         if not VERIFY.EVIDENCE.is_file():
             self.assertFalse(VERIFY.EVIDENCE.exists())
             return
-        evidence = json.loads(VERIFY.EVIDENCE.read_text(encoding="utf-8"))
+        evidence = VERIFY._load_json_at(VERIFY.FINAL_COMMIT, VERIFY.EVIDENCE)
         self.assertEqual(evidence["owner_alpha"], "NOT_RUN")
         self.assertEqual(evidence["owner_profile_login"], "NOT_RUN")
         self.assertEqual(evidence["real_account_execution"], "NOT_RUN")

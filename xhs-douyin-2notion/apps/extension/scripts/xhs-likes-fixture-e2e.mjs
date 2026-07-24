@@ -39,6 +39,7 @@ try {
   let failures = 0;
   let totalItems = 0;
   let totalErrorEvidence = 0;
+  let readySample = null;
   for (const fixtureCase of manifest.cases) {
     currentCase = fixtureCase.id;
     const html = await readFile(join(FIXTURE_ROOT, fixtureCase.file), "utf8");
@@ -61,11 +62,44 @@ try {
     requireCondition(result.batch.automatic_scroll === false, "automatic_scroll");
     requireCondition(result.batch.explicit_owner_action === true, "owner_action");
     requireCondition(!/\b(?:cookie|download_url|html|media_url|raw_dom|src|token)\b/iu.test(JSON.stringify(result)), "unsafe_surface");
-    if (result.status === "ready") ready += 1;
+    if (result.status === "ready") {
+      ready += 1;
+      readySample ??= JSON.parse(JSON.stringify(result));
+    }
     else failures += 1;
     totalItems += result.items.length;
     totalErrorEvidence += result.errors.length;
     await page.unroute(routedUrl.href);
+  }
+  requireCondition(readySample !== null, "missing_ready_validator_sample");
+  const validPartial = JSON.parse(JSON.stringify(readySample));
+  validPartial.status = "partial";
+  validPartial.code = "X2N_PROVENANCE_INCOMPLETE";
+  validPartial.batch.completion_signal = "unknown";
+  validPartial.batch.visible_card_count = 2;
+  validPartial.items = validPartial.items.slice(0, 1);
+  validPartial.errors = [{ card_index: 1, code: "X2N_PROVENANCE_INCOMPLETE" }];
+  validateXhsLikesBatch(validPartial);
+  const invalidEnvelopes = [
+    { ...validPartial, code: "X2N_PLATFORM_CHANGED" },
+    { ...validPartial, errors: [{ card_index: 2, code: "X2N_PROVENANCE_INCOMPLETE" }] },
+    { ...validPartial, errors: [{ card_index: null, code: "X2N_PROVENANCE_INCOMPLETE" }] },
+    {
+      ...validPartial,
+      errors: [
+        { card_index: 1, code: "X2N_PROVENANCE_INCOMPLETE" },
+        { card_index: 1, code: "X2N_PROVENANCE_INCOMPLETE" },
+      ],
+    },
+  ];
+  for (const candidate of invalidEnvelopes) {
+    let rejected = false;
+    try {
+      validateXhsLikesBatch(candidate);
+    } catch {
+      rejected = true;
+    }
+    requireCondition(rejected, "validator_negative_case_accepted");
   }
   requireCondition(consoleErrors.length === 0, "console_errors");
   requireCondition(unexpectedRequests.length === 0, "unexpected_network_requests");
@@ -81,6 +115,7 @@ try {
     ready_cases: ready,
     rejected_or_partial_cases: failures,
     status: "PASS",
+    validator_negative_cases: invalidEnvelopes.length,
   })}\n`);
 } catch (error) {
   process.stderr.write(`${JSON.stringify({ code: `fixture_${currentCase}`, status: "FAIL_CLOSED" })}\n`);

@@ -33,7 +33,7 @@ from .runtime import X2NRuntimeError
 TASK_ID = "TSK.x2n.adapters.005"
 ADAPTER_NAME = "relation_reconciliation"
 ADAPTER_VERSION = "1.0.0"
-RESUME_COMPATIBILITY_VERSION = "relation-reconciliation-1.0.0"
+RESUME_COMPATIBILITY_VERSION = "relation-reconciliation-1.1.0"
 RUN_KIND = "relation_reconciliation_v1"
 POLICY_REVISION = "2026-07-23"
 OWNER_ALPHA_ITEM_LIMIT = 80
@@ -57,6 +57,7 @@ NON_AUTHORITATIVE_OUTCOMES = {
     "partial_scan",
 }
 FaultInjector = Callable[[str], None]
+ComparisonStatus = Literal["baseline_created", "compared", "not_evaluated"]
 
 
 @dataclass(frozen=True)
@@ -68,6 +69,7 @@ class SourceRule:
     run_prefix: str | None = None
     receipt_prefix: str | None = None
     source_observation_method: str | None = None
+    resume_compatibility_version: str | None = None
 
 
 SOURCE_RULES = {
@@ -79,6 +81,7 @@ SOURCE_RULES = {
         "run_xhsfav_",
         "receipt_xhsfav_",
         "selected_collection",
+        "xhs-favorites-1.1.0",
     ),
     "xhs_likes": SourceRule(
         Platform.XIAOHONGSHU,
@@ -88,6 +91,7 @@ SOURCE_RULES = {
         "run_xhslike_",
         "receipt_xhslike_",
         "selected_collection",
+        "xhs-likes-1.1.0",
     ),
     "douyin_upstream": SourceRule(
         Platform.DOUYIN,
@@ -161,6 +165,171 @@ def _validate_relation_key(value: Any, account_ref_hash: str) -> str:
     if not isinstance(value, str) or SAFE_REF.fullmatch(value) is None or not value.startswith(account_ref_hash + ":"):
         raise X2NRuntimeError(ErrorCode.RELATION_KEY_INVALID, "Reconciliation relation identity is invalid")
     return value
+
+
+@dataclass(frozen=True)
+class BatchComparisonReport:
+    status: ComparisonStatus
+    previous_item_count: int
+    current_item_count: int
+    new_count: int
+    changed_count: int
+    unchanged_count: int
+    missing_count: int
+    processing_candidate_count: int
+    comparison_ref_sha256: str
+
+    def __post_init__(self) -> None:
+        counts = (
+            self.previous_item_count,
+            self.current_item_count,
+            self.new_count,
+            self.changed_count,
+            self.unchanged_count,
+            self.missing_count,
+            self.processing_candidate_count,
+        )
+        if (
+            self.status not in {"baseline_created", "compared", "not_evaluated"}
+            or any(not isinstance(value, int) or isinstance(value, bool) or value < 0 for value in counts)
+            or SHA256.fullmatch(self.comparison_ref_sha256) is None
+            or self.processing_candidate_count != self.new_count + self.changed_count
+            or self.current_item_count != self.new_count + self.changed_count + self.unchanged_count
+            or self.previous_item_count != self.missing_count + self.changed_count + self.unchanged_count
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Batch comparison report is inconsistent")
+        if self.status == "not_evaluated" and any(counts):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Unevaluated batch comparison has counts")
+        if self.status == "baseline_created" and (
+            self.previous_item_count
+            or self.changed_count
+            or self.unchanged_count
+            or self.missing_count
+            or self.new_count != self.current_item_count
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Batch comparison baseline is inconsistent")
+
+    def safe_dict(self) -> dict[str, Any]:
+        return {
+            "changed_count": self.changed_count,
+            "comparison_ref_sha256": self.comparison_ref_sha256,
+            "current_item_count": self.current_item_count,
+            "missing_count": self.missing_count,
+            "new_count": self.new_count,
+            "previous_item_count": self.previous_item_count,
+            "processing_candidate_count": self.processing_candidate_count,
+            "status": self.status,
+            "unchanged_count": self.unchanged_count,
+        }
+
+    @classmethod
+    def from_mapping(cls, value: Mapping[str, Any]) -> "BatchComparisonReport":
+        expected = {
+            "changed_count",
+            "comparison_ref_sha256",
+            "current_item_count",
+            "missing_count",
+            "new_count",
+            "previous_item_count",
+            "processing_candidate_count",
+            "status",
+            "unchanged_count",
+        }
+        if not isinstance(value, Mapping) or set(value) != expected:
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Batch comparison report shape is invalid")
+        return cls(**dict(value))
+
+    @classmethod
+    def not_evaluated(cls) -> "BatchComparisonReport":
+        return cls(
+            status="not_evaluated",
+            previous_item_count=0,
+            current_item_count=0,
+            new_count=0,
+            changed_count=0,
+            unchanged_count=0,
+            missing_count=0,
+            processing_candidate_count=0,
+            comparison_ref_sha256=_sha256({"status": "not_evaluated"}),
+        )
+
+
+def compare_batch_snapshots(
+    previous: Mapping[str, str] | None,
+    current: Mapping[str, str],
+) -> BatchComparisonReport:
+    def validate(snapshot: Mapping[str, str], *, label: str) -> dict[str, str]:
+        if not isinstance(snapshot, Mapping) or len(snapshot) > MAX_SCOPE_RELATIONS:
+            raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} batch snapshot is invalid")
+        normalized: dict[str, str] = {}
+        for key, digest in snapshot.items():
+            if (
+                not isinstance(key, str)
+                or SAFE_REF.fullmatch(key) is None
+                or not isinstance(digest, str)
+                or SHA256.fullmatch(digest) is None
+            ):
+                raise X2NRuntimeError(ErrorCode.INVALID_INPUT, f"{label} batch snapshot item is invalid")
+            normalized[key] = digest
+        return normalized
+
+    current_snapshot = validate(current, label="Current")
+    previous_snapshot = None if previous is None else validate(previous, label="Previous")
+    current_digest = _sha256(sorted(current_snapshot.items()))
+    if previous_snapshot is None:
+        count = len(current_snapshot)
+        return BatchComparisonReport(
+            status="baseline_created",
+            previous_item_count=0,
+            current_item_count=count,
+            new_count=count,
+            changed_count=0,
+            unchanged_count=0,
+            missing_count=0,
+            processing_candidate_count=count,
+            comparison_ref_sha256=_sha256(
+                {
+                    "counts": {"current": count, "new": count},
+                    "current_snapshot_sha256": current_digest,
+                    "status": "baseline_created",
+                }
+            ),
+        )
+
+    previous_keys = set(previous_snapshot)
+    current_keys = set(current_snapshot)
+    new_keys = current_keys - previous_keys
+    missing_keys = previous_keys - current_keys
+    shared = previous_keys & current_keys
+    changed_keys = {key for key in shared if previous_snapshot[key] != current_snapshot[key]}
+    unchanged_keys = shared - changed_keys
+    counts = {
+        "changed": len(changed_keys),
+        "current": len(current_keys),
+        "missing": len(missing_keys),
+        "new": len(new_keys),
+        "previous": len(previous_keys),
+        "processing_candidates": len(new_keys) + len(changed_keys),
+        "unchanged": len(unchanged_keys),
+    }
+    return BatchComparisonReport(
+        status="compared",
+        previous_item_count=counts["previous"],
+        current_item_count=counts["current"],
+        new_count=counts["new"],
+        changed_count=counts["changed"],
+        unchanged_count=counts["unchanged"],
+        missing_count=counts["missing"],
+        processing_candidate_count=counts["processing_candidates"],
+        comparison_ref_sha256=_sha256(
+            {
+                "counts": counts,
+                "current_snapshot_sha256": current_digest,
+                "previous_snapshot_sha256": _sha256(sorted(previous_snapshot.items())),
+                "status": "compared",
+            }
+        ),
+    )
 
 
 @dataclass(frozen=True)
@@ -308,6 +477,7 @@ class ReconciliationManifest:
 class ReconciliationReceipt:
     disposition: Literal["applied", "replayed"]
     outcome: Outcome
+    batch_comparison: BatchComparisonReport
     scope_ref_sha256: str
     source_full_scan_ref_sha256: str | None
     source_scan_receipt_ref_sha256: str | None
@@ -328,6 +498,7 @@ class ReconciliationReceipt:
             "adapter": {"name": ADAPTER_NAME, "version": ADAPTER_VERSION},
             "automatic_pagination": 0,
             "automatic_scroll": 0,
+            "batch_comparison": self.batch_comparison.safe_dict(),
             "content_auto_deletes": 0,
             "disposition": self.disposition,
             "full_scan": {
@@ -408,6 +579,7 @@ class RelationReconciler:
     @staticmethod
     def _initial_cursor(manifest: ReconciliationManifest) -> dict[str, Any]:
         return {
+            "last_batch_comparison": BatchComparisonReport.not_evaluated().safe_dict(),
             "last_event_id": None,
             "last_input_sha256": None,
             "last_observed_at": None,
@@ -431,6 +603,7 @@ class RelationReconciler:
         except json.JSONDecodeError:
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Reconciliation checkpoint is invalid") from None
         expected = {
+            "last_batch_comparison",
             "last_event_id",
             "last_input_sha256",
             "last_observed_at",
@@ -448,6 +621,7 @@ class RelationReconciler:
         }
         if not isinstance(value, dict) or set(value) != expected:
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Reconciliation checkpoint is invalid")
+        comparison = BatchComparisonReport.from_mapping(value["last_batch_comparison"])
         if (
             value["schema_version"] != "1.0"
             or value["scope_ref_sha256"] != manifest.scope_hash()
@@ -479,6 +653,7 @@ class RelationReconciler:
                 or value["total_non_authoritative_events"] != 0
                 or value["last_source_checkpoint_at"] is not None
                 or value["pending_missing_relation_keys"]
+                or comparison.status != "not_evaluated"
             ):
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Reconciliation initial cursor diverged")
         elif (
@@ -651,7 +826,8 @@ class RelationReconciler:
         assert rule.run_prefix is not None and rule.receipt_prefix is not None
         checkpoint = connection.execute(
             "SELECT adapter_name, adapter_version, account_ref_hash, relation_type, cursor_kind, "
-            "completion_confidence, state, full_scan_id FROM checkpoint WHERE checkpoint_id = ?",
+            "completion_confidence, state, full_scan_id, resume_compatibility_version "
+            "FROM checkpoint WHERE checkpoint_id = ?",
             (manifest.source_checkpoint_id,),
         ).fetchone()
         if (
@@ -664,6 +840,7 @@ class RelationReconciler:
             or float(checkpoint["completion_confidence"]) != 1.0
             or str(checkpoint["state"]) != "complete"
             or checkpoint["full_scan_id"] is None
+            or str(checkpoint["resume_compatibility_version"]) != rule.resume_compatibility_version
         ):
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Replayed source checkpoint diverged")
         full_scan_id = str(checkpoint["full_scan_id"])
@@ -700,6 +877,7 @@ class RelationReconciler:
             or str(checkpoint["state"]) != "complete"
             or float(checkpoint["completion_confidence"]) != 1.0
             or checkpoint["full_scan_id"] is None
+            or str(checkpoint["resume_compatibility_version"]) != rule.resume_compatibility_version
         ):
             raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Source checkpoint is not authoritative")
         full_scan_id = str(checkpoint["full_scan_id"])
@@ -774,16 +952,105 @@ class RelationReconciler:
             ),
         ).fetchall()
         source_keys = {str(row["relation_key"]) for row in source_relations}
-        if source_keys != set(manifest.observed_relation_keys):
-            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Source relation manifest is not exact")
         if (
             any(str(row["status"]) != RelationStatus.ACTIVE.value for row in source_relations)
             or any(str(row["confirmed_by"]) != ConfirmationSource.SCAN.value for row in source_relations)
             or any(str(row["platform"]) != manifest.platform.value for row in source_relations)
-            or {str(row["content_key"]) for row in source_relations} != observation_keys
         ):
             raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Source relation observations are incomplete")
+
+        try:
+            source_cursor = json.loads(checkpoint["cursor_value_private"])
+        except (json.JSONDecodeError, TypeError):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Source checkpoint cursor is invalid") from None
+        removed_keys_raw = (
+            source_cursor.get("owner_removed_observed_relation_keys")
+            if isinstance(source_cursor, dict)
+            else None
+        )
+        if (
+            not isinstance(removed_keys_raw, list)
+            or len(removed_keys_raw) > MAX_SCOPE_RELATIONS
+            or any(
+                not isinstance(key, str)
+                or SAFE_REF.fullmatch(key) is None
+                or not key.startswith(manifest.account_ref_hash + ":")
+                for key in removed_keys_raw
+            )
+            or removed_keys_raw != sorted(set(removed_keys_raw))
+        ):
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Source removed-relation proof is invalid")
+        removed_keys = set(removed_keys_raw)
+        if source_keys & removed_keys or source_keys | removed_keys != set(manifest.observed_relation_keys):
+            raise X2NRuntimeError(ErrorCode.PROVENANCE_INCOMPLETE, "Source relation manifest is not exact")
+
+        scope_relations = connection.execute(
+            """
+            SELECT ur.relation_key, ur.content_key, ur.status, ur.confirmed_by, c.platform
+            FROM user_relation AS ur
+            JOIN content AS c ON c.content_key = ur.content_key
+            WHERE ur.account_ref_hash = ? AND ur.relation_type = ?
+            ORDER BY ur.relation_key
+            LIMIT ?
+            """,
+            (
+                manifest.account_ref_hash,
+                manifest.relation_type.value,
+                MAX_SCOPE_RELATIONS + 1,
+            ),
+        ).fetchall()
+        if len(scope_relations) > MAX_SCOPE_RELATIONS:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Source relation scope exceeds the bound")
+        scope_by_key = {str(row["relation_key"]): row for row in scope_relations}
+        removed_rows = [scope_by_key.get(key) for key in sorted(removed_keys)]
+        if any(
+            row is None
+            or str(row["status"]) != RelationStatus.REMOVED.value
+            or str(row["confirmed_by"]) != ConfirmationSource.OWNER.value
+            or str(row["platform"]) != manifest.platform.value
+            for row in removed_rows
+        ):
+            raise X2NRuntimeError(
+                ErrorCode.PROVENANCE_INCOMPLETE,
+                "Source Owner-removed relation proof is incomplete",
+            )
+        relation_content_keys = {str(row["content_key"]) for row in source_relations}
+        relation_content_keys.update(str(row["content_key"]) for row in removed_rows if row is not None)
+        if relation_content_keys != observation_keys:
+            raise X2NRuntimeError(
+                ErrorCode.PROVENANCE_INCOMPLETE,
+                "Source relation-observation graph is not exact",
+            )
         return full_scan_id, source_checkpoint_at
+
+    @staticmethod
+    def _source_snapshot(connection: Any, run_id: str) -> dict[str, str]:
+        run = connection.execute(
+            "SELECT state FROM run_record WHERE run_id = ?",
+            (run_id,),
+        ).fetchone()
+        if run is None or str(run["state"]) != "succeeded":
+            raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Batch comparison source Run is unavailable")
+        rows = connection.execute(
+            "SELECT content_key, raw_text_hash FROM source_observation "
+            "WHERE run_id = ? ORDER BY observation_id LIMIT ?",
+            (run_id, MAX_SCOPE_RELATIONS * 2 + 1),
+        ).fetchall()
+        if not rows or len(rows) > MAX_SCOPE_RELATIONS * 2:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Batch comparison source exceeds the bound")
+        grouped: dict[str, set[str]] = {}
+        for row in rows:
+            content_key = str(row["content_key"])
+            raw_hash = str(row["raw_text_hash"])
+            if SAFE_REF.fullmatch(content_key) is None or SHA256.fullmatch(raw_hash) is None:
+                raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Batch comparison source is invalid")
+            grouped.setdefault(content_key, set()).add(raw_hash)
+        if len(grouped) > MAX_SCOPE_RELATIONS:
+            raise X2NRuntimeError(ErrorCode.POLICY_BLOCKED, "Batch comparison content scope exceeds the bound")
+        return {
+            content_key: _sha256(sorted(raw_hashes))
+            for content_key, raw_hashes in sorted(grouped.items())
+        }
 
     def _update_relation(
         self,
@@ -812,7 +1079,13 @@ class RelationReconciler:
             for row in rows
             if str(row["status"]) == RelationStatus.ACTIVE.value and str(row["relation_key"]) in currently_observed
         }
-        if not set(cursor["pending_missing_relation_keys"]) <= unknown_keys | active_observed_keys:
+        removed_owner_keys = {
+            str(row["relation_key"])
+            for row in rows
+            if str(row["status"]) == RelationStatus.REMOVED.value
+            and str(row["confirmed_by"]) == ConfirmationSource.OWNER.value
+        }
+        if not set(cursor["pending_missing_relation_keys"]) <= unknown_keys | active_observed_keys | removed_owner_keys:
             raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Reconciliation pending set escaped unknown scope")
 
     @staticmethod
@@ -840,6 +1113,7 @@ class RelationReconciler:
         return ReconciliationReceipt(
             disposition="replayed",
             outcome=manifest.outcome,
+            batch_comparison=BatchComparisonReport.from_mapping(cursor["last_batch_comparison"]),
             scope_ref_sha256=manifest.scope_hash(),
             source_full_scan_ref_sha256=self._replayed_source_full_scan_ref(connection, manifest),
             source_scan_receipt_ref_sha256=(
@@ -913,6 +1187,7 @@ class RelationReconciler:
             previous_pending = set(cursor["pending_missing_relation_keys"])
             source_full_scan_id: str | None = None
             source_checkpoint_at: str | None = None
+            batch_comparison = BatchComparisonReport.not_evaluated()
             missing_count = unknown_changes = candidate_changes = reactivated = 0
 
             self._fault("before_reconciliation")
@@ -933,6 +1208,18 @@ class RelationReconciler:
                         ErrorCode.DATA_INTEGRITY_FAILED,
                         "Reconciliation requires a newer distinct authoritative full scan",
                     )
+                previous_source_full_scan_id = (
+                    str(checkpoint["full_scan_id"]) if checkpoint["full_scan_id"] is not None else None
+                )
+                previous_snapshot = (
+                    self._source_snapshot(connection, previous_source_full_scan_id)
+                    if previous_source_full_scan_id is not None
+                    else None
+                )
+                batch_comparison = compare_batch_snapshots(
+                    previous_snapshot,
+                    self._source_snapshot(connection, source_full_scan_id),
+                )
                 observed = set(manifest.observed_relation_keys)
                 scope_by_key = {str(row["relation_key"]): row for row in scope_rows}
                 if not observed <= set(scope_by_key):
@@ -943,7 +1230,8 @@ class RelationReconciler:
                 missing = sorted(set(mutable_rows) - observed)
                 missing_count = len(missing)
                 pending_after = []
-                for index, key in enumerate(sorted(observed)):
+                observed_mutable = sorted(observed & set(mutable_rows))
+                for index, key in enumerate(observed_mutable):
                     row = mutable_rows[key]
                     if str(row["status"]) != RelationStatus.ACTIVE.value:
                         if (
@@ -992,6 +1280,7 @@ class RelationReconciler:
                     "last_input_sha256": input_hash,
                     "last_observed_at": timestamp,
                     "last_outcome": manifest.outcome,
+                    "last_batch_comparison": batch_comparison.safe_dict(),
                     "pending_missing_relation_keys": sorted(pending_after),
                 }
             )
@@ -1009,7 +1298,7 @@ class RelationReconciler:
                 (
                     cursor_kind,
                     _canonical_json(cursor),
-                    source_full_scan_id,
+                    source_full_scan_id if source_full_scan_id is not None else checkpoint["full_scan_id"],
                     len(manifest.observed_relation_keys),
                     confidence,
                     timestamp,
@@ -1031,6 +1320,7 @@ class RelationReconciler:
             return ReconciliationReceipt(
                 disposition="applied",
                 outcome=manifest.outcome,
+                batch_comparison=batch_comparison,
                 scope_ref_sha256=identity["scope_hash"],
                 source_full_scan_ref_sha256=(_sha256(source_full_scan_id) if source_full_scan_id is not None else None),
                 source_scan_receipt_ref_sha256=(

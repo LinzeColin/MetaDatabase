@@ -6,6 +6,7 @@ import hashlib
 import json
 import re
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Literal
@@ -40,6 +41,7 @@ RUN_KIND = "douyin_owner_bounded_scan_v1"
 CANARY_ITEM_LIMIT = 20
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 ScopeMode = Literal["canary_20", "owner_bounded"]
+FaultInjector = Callable[[str], None]
 
 
 def _canonical_json(value: Any) -> str:
@@ -162,8 +164,13 @@ def build_douyin_canary_plan(mode: Mode, max_items: int = CANARY_ITEM_LIMIT) -> 
 class DouyinAdapter:
     """Atomic relation/checkpoint writer for one already-sanitized batch."""
 
-    def __init__(self, store: CanonicalStore) -> None:
+    def __init__(self, store: CanonicalStore, *, fault_injector: FaultInjector | None = None) -> None:
         self.store = store
+        self._fault_injector = fault_injector
+
+    def _fault(self, label: str) -> None:
+        if self._fault_injector is not None:
+            self._fault_injector(label)
 
     @staticmethod
     def _initial_cursor(mode: Mode, scope_mode: ScopeMode) -> dict[str, Any]:
@@ -510,7 +517,7 @@ class DouyinAdapter:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Douyin batch is not the checkpoint successor")
 
             account_ref_hash = str(checkpoint["account_ref_hash"])
-            for item in batch.items:
+            for index, item in enumerate(batch.items):
                 content = self._content(connection, item, normalized_time)
                 self.store._upsert_content(connection, content, timestamp)
                 relation = self._relation(
@@ -531,6 +538,7 @@ class DouyinAdapter:
                     warning_codes=batch.error_codes,
                 )
                 self.store._append_observation(connection, observation, timestamp)
+                self._fault(f"after_item_{index}")
 
             observed_count = int(
                 connection.execute(
@@ -561,6 +569,7 @@ class DouyinAdapter:
             cursor_kind = "bounded_scope_complete" if bounded_complete else "owner_bounded_batch"
             confidence = 1.0 if bounded_complete else 0.0
             last_stable = batch.items[-1].content_id if batch.items else checkpoint["last_stable_content_id"]
+            self._fault("before_checkpoint")
             updated = connection.execute(
                 """
                 UPDATE checkpoint SET
@@ -581,6 +590,7 @@ class DouyinAdapter:
             )
             if updated.rowcount != 1:
                 raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Douyin checkpoint transition conflicted")
+            self._fault("after_checkpoint")
             if state == "complete":
                 run_update = connection.execute(
                     "UPDATE run_record SET state = 'succeeded', finished_at = ? WHERE run_id = ? AND state = 'running'",
@@ -588,6 +598,7 @@ class DouyinAdapter:
                 )
                 if run_update.rowcount != 1:
                     raise X2NRuntimeError(ErrorCode.DATA_INTEGRITY_FAILED, "Douyin Run transition conflicted")
+            self._fault("before_commit")
             refreshed = connection.execute(
                 "SELECT * FROM checkpoint WHERE checkpoint_id = ?", (identity["checkpoint_id"],)
             ).fetchone()

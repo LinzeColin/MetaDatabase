@@ -42,6 +42,11 @@ WORKER = PROJECT_ROOT / "scripts/douyin_sidecar_fixture_worker.py"
 NOW = datetime(2026, 7, 23, tzinfo=timezone.utc)
 ACCOUNT_HASH = "d" * 64
 
+
+class InjectedKill(BaseException):
+    pass
+
+
 WORKER_SPEC = importlib.util.spec_from_file_location("douyin_sidecar_fixture_worker", WORKER)
 assert WORKER_SPEC and WORKER_SPEC.loader
 WORKER_MODULE = importlib.util.module_from_spec(WORKER_SPEC)
@@ -333,6 +338,42 @@ class DouyinAdapterTests(unittest.TestCase):
         self.assertEqual({row["status"] for row in relations}, {"active"})
         self.assertEqual(len(self._rows("SELECT * FROM classification")), 0)
         self.assertEqual(len(self._rows("SELECT * FROM taxonomy_category")), 0)
+
+    def test_injected_kill_rolls_back_batch_checkpoint_and_run_atomically(self) -> None:
+        scan_id = _scan_id("fault-rollback")
+        stable = DouyinAdapter(self.store)
+        stable.begin_scan(
+            scan_id,
+            account_ref_hash=ACCOUNT_HASH,
+            mode="likes",
+            scope_mode="canary_20",
+            started_at=NOW,
+        )
+
+        def kill(label: str) -> None:
+            if label == "before_checkpoint":
+                raise InjectedKill()
+
+        with self.assertRaises(InjectedKill):
+            DouyinAdapter(self.store, fault_injector=kill).commit_batch(
+                scan_id,
+                self._batch("likes"),
+                observed_at=NOW + timedelta(seconds=1),
+            )
+        checkpoint = stable.checkpoint(scan_id)
+        self.assertEqual(checkpoint.next_sequence, 0)
+        self.assertEqual(checkpoint.observed_unique_items, 0)
+        self.assertEqual(self.store.counts()["content"], 0)
+        self.assertEqual(self.store.counts()["user_relation"], 0)
+        self.assertEqual(self.store.counts()["source_observation"], 0)
+        self.assertEqual(self._rows("SELECT state FROM run_record")[0]["state"], "running")
+
+        batch = self._batch("likes")
+        recovered = stable.commit_batch(scan_id, batch, observed_at=NOW + timedelta(seconds=1))
+        replay = stable.commit_batch(scan_id, batch, observed_at=NOW + timedelta(seconds=1))
+        self.assertEqual(recovered.checkpoint_state, "complete")
+        self.assertEqual(replay.disposition, "replayed")
+        self.assertEqual(recovered.observed_unique_items, 20)
 
     def test_partial_and_empty_batches_never_advance_remove_or_full_scan(self) -> None:
         adapter = DouyinAdapter(self.store)

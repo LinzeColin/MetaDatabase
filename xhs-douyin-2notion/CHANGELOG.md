@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.0.1 — Stage 3 Review / G3 Blocked
+
+- 独立复核 Stage 3 九个 Task、19 条 Acceptance、8 个 Canary 和 G3 四项条件；不执行新 DAG Task、不接触共享认证材料、不吸收其他长期开发线。
+- 关闭六个 finding：Owner removed 终态保护、XHS envelope 严格绑定、Douyin 50 次真实子进程 Kill、private batch comparison/增量候选、80 条 Adapter→Canonical→Artifact→Markdown→Notion Mock/Outbox 真正跨层幂等、XHS resume policy `1.1.0` 对齐。
+- 同一批 80 条 Adapter 输入生成 80 Canonical、80 Artifact、80 Markdown、80 Notion Mock Page 和 160 终态 Outbox/Receipt；第二轮 Artifact/Markdown/Notion 重复与 Notion replay request 均为 0，五个持久逻辑 scope 的 CDN/private-path finding 为 0。
+- 九个 Task Acceptance 全部重新运行并保持 `PASS_CI_SYNTH_SCOPED`；8 个真实 Canary 全部 `NOT_RUN`，平台/真实 Notion/模型/媒体调用均为 0。
+- 最终 263 个 root tests（260 PASS、3 个固定 Owner-private 可选 skip）、227 个 Companion tests 与 12 个 Contract tests 通过；full lane 两轮 24/24，0 failure/flaky/silent skip，coverage 79.66%，33 个依赖漏洞 0，78-member candidate 无 Runtime Data。
+- 保持五个 Blocker：缺 relation/list Native dispatch、缺显式 fallback 状态机、8 Canary 合法 disabled terminal 未定义、`ACC.data.002`/`ACC.rel.006` 的 Stage 3/6 范围需版本化拆分、Owner 独立授权/私有 Manifest 未运行。
+- 结论为 `G3_BLOCKED_TECHNICAL_AND_OWNER_CLARIFICATION`；Stage 3 上传与 Stage 4 禁止，下一独立 Run 只能是 `STG.X2N.3.REVIEW.RESUME`。
+
 ## v0.0.0.1 — Stage 3 / Adapters 005
 
 - 基于固定 `Adapters009@8c6442a2…` 在独立 worktree 开发；A009 verifier 改为从 final commit blob 验收，旧 Task/Evidence 逐字节不改写，Stage 4/G3/上传均未进入。

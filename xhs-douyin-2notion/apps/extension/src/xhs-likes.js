@@ -256,12 +256,19 @@ export function validateXhsLikesBatch(value) {
     if (logicalKeys.has(item.content_id)) throw new TypeError("XHS likes batch contains a duplicate logical item");
     logicalKeys.add(item.content_id);
   }
+  const errorIndexes = new Set();
   for (const error of value.errors) {
     if (
       !exactKeys(error, ["card_index", "code"])
       || !ERROR_CODES.has(error.code)
-      || (error.card_index !== null && (!Number.isInteger(error.card_index) || error.card_index < 0 || error.card_index > 19))
+      || (error.card_index !== null && (
+        !Number.isInteger(error.card_index)
+        || error.card_index < 0
+        || error.card_index >= value.batch.visible_card_count
+        || errorIndexes.has(error.card_index)
+      ))
     ) throw new TypeError("XHS likes error evidence is invalid");
+    if (error.card_index !== null) errorIndexes.add(error.card_index);
   }
   if (value.code !== null && !ERROR_CODES.has(value.code)) throw new TypeError("XHS likes error code is invalid");
   if (value.status === "ready") {
@@ -271,8 +278,24 @@ export function validateXhsLikesBatch(value) {
       || value.items.length === 0
       || value.items.length !== value.batch.visible_card_count
     ) throw new TypeError("Ready XHS likes batch is incomplete");
-  } else if (value.code === null || value.errors.length === 0) {
+  } else if (
+    value.code === null
+    || value.errors.length === 0
+    || !value.errors.some((error) => error.code === value.code)
+  ) {
     throw new TypeError("Non-ready XHS likes batch lacks error evidence");
+  } else if (value.status === "partial") {
+    if (
+      value.errors.some((error) => error.card_index === null)
+      || value.items.length + value.errors.length !== value.batch.visible_card_count
+    ) throw new TypeError("Partial XHS likes batch lacks per-card evidence");
+  } else if (
+    value.batch.visible_card_count !== 0
+    || value.items.length !== 0
+    || value.errors.length !== 1
+    || value.errors[0].card_index !== null
+  ) {
+    throw new TypeError("Blocked XHS likes batch has invalid surface evidence");
   }
   if (
     new Set(["authoritative_end", "bounded_limit_reached"]).has(value.batch.completion_signal)
