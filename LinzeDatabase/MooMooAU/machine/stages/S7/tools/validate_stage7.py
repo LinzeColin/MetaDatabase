@@ -186,8 +186,8 @@ def _validate_contracts(root: Path) -> list[str]:
         or authorization.get("purpose") != "T0703_PROTECTED_M3_REPAIR_ONLY"
         or authorization.get("controlled_main_delivery_limit") != 1
         or authorization.get("protected_m3_dispatch_limit") != 1
-        or authorization.get("prior_failed_attempts_exact") != 4
-        or authorization.get("repair_candidate_dispatch_limit") != 1
+        or authorization.get("prior_failed_attempts_exact") != 5
+        or authorization.get("zero_mutation_reconciliation_dispatch_limit") != 1
         or authorization.get("manual_environment_reviewers_required") is not False
         or authorization.get("final_publication_authorized") is not False
         or authorization.get("m3_authorized") is not True
@@ -201,25 +201,26 @@ def _validate_contracts(root: Path) -> list[str]:
         or effect_budget.get("github_app_creations_maximum") != 0
         or effect_budget.get("github_app_single_repository_installations_maximum") != 0
         or effect_budget.get("verified_full_raw_message_reads_maximum") != 1
-        or effect_budget.get("raw_ciphertext_creations_maximum") != 1
-        or effect_budget.get("processed_writes_maximum") != 1
+        or effect_budget.get("raw_ciphertext_creations_maximum") != 0
+        or effect_budget.get("processed_writes_maximum") != 0
         or effect_budget.get("protected_m3_dispatches_maximum") != 1
         or effect_budget.get("protected_m3_reruns_maximum") != 0
-        or effect_budget.get("prior_protected_m3_dispatches_exact") != 4
-        or effect_budget.get("cumulative_protected_m3_dispatches_after_success_maximum") != 5
-        or effect_budget.get("gmail_mutations_maximum") != 1
+        or effect_budget.get("prior_protected_m3_dispatches_exact") != 5
+        or effect_budget.get("cumulative_protected_m3_dispatches_after_success_maximum") != 6
+        or effect_budget.get("gmail_mutations_maximum") != 0
         or effect_budget.get("m3_runs_maximum") != 1
-        or effect_budget.get("m3_source_mutation_budget_per_run") != 1
+        or effect_budget.get("m3_source_mutation_budget_per_run") != 0
         or effect_budget.get("timeline_writes_maximum") != 0
         or effect_budget.get("scheduled_runs_maximum") != 0
         or not run.get("protected_oracles")
         or not any(
-            "redispatch of failed f747ddcd, 9b15c4d5, bc0bfb3b or b922219f candidate" in item
+            "redispatch of failed f747ddcd, 9b15c4d5, bc0bfb3b, b922219f or c860f388 candidate"
+            in item
             for item in run.get("non_goals", [])
         )
         or "ordering_resolution" not in run
     ):
-        errors.append("Stage 7 T0703 Run Contract is incomplete or exceeds Budget 1")
+        errors.append("Stage 7 T0703 zero-write reconciliation Run Contract is incomplete")
 
     repair = _load(root / "machine/stages/S7/contracts/t0702_repair_run_contract.json")
     repair_authority = repair.get("authority", {})
@@ -316,17 +317,14 @@ def _validate_contracts(root: Path) -> list[str]:
         or status.get("protected_oracles_executed") != 3
         or status.get("protected_oracles_passed") != 2
         or status.get("protected_oracles_failed") != 1
-        or status.get("protected_workflow_runs") != 15
+        or status.get("protected_workflow_runs") != 16
         or status.get("production_workflow_runs") != 0
         or status.get("final_acceptances_passed") != 0
         or status.get("delivery_status") != "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL"
         or status.get("ordering_status")
-        != (
-            "T0703_SAFE_DEFERRED_AGGREGATE_RECOVERY_AUTHORIZED_AFTER_FOUR_"
-            "ZERO_EFFECT_FAILED_ATTEMPTS"
-        )
+        != "T0703_ZERO_NEW_WRITE_RECONCILIATION_AUTHORIZED_AFTER_FIFTH_UNKNOWN_MUTATION_OUTCOME"
         or status.get("diagnostic_repair_status")
-        != "LOCAL_PASS_EMPTY_REGISTRY_QUARANTINE_SAFE_DEFERRED_AND_CLOSED_AGGREGATE_CLASS"
+        != "LOCAL_PASS_UNIQUE_PROCESSED_CURRENT_TRASH_BINDING_AND_ZERO_WRITE_RECONCILIATION"
         or status.get("new_controlled_delivery_authorized") is not True
         or status.get("new_protected_dispatch_authorized") is not True
     ):
@@ -339,10 +337,10 @@ def _validate_contracts(root: Path) -> list[str]:
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
         or "T0702_PROTECTED_BETA_PASS_NO_RERUN" not in semantic_statuses
-        or "OWNER_T0703_REPAIR_BUDGET_ONE_AUTHORIZED" not in semantic_statuses
-        or "T0703_FOUR_PROTECTED_ATTEMPTS_FAILED_ZERO_EFFECT" not in semantic_statuses
-        or "T0703_SAFE_DEFERRED_AGGREGATE_RECOVERY_CANDIDATE_PENDING" not in semantic_statuses
-        or "LOCAL_SAFE_DEFERRED_AGGREGATE_RECOVERY_REPAIR_VALIDATED" not in semantic_statuses
+        or "OWNER_T0703_ZERO_MUTATION_RECONCILIATION_AUTHORIZED" not in semantic_statuses
+        or "T0703_FIFTH_PROTECTED_ATTEMPT_UNKNOWN_MUTATION_OUTCOME" not in semantic_statuses
+        or "T0703_ZERO_NEW_WRITE_RECONCILIATION_CANDIDATE_PENDING" not in semantic_statuses
+        or "LOCAL_ZERO_NEW_WRITE_RECONCILIATION_VALIDATED" not in semantic_statuses
         or "RESOLVED_NO_CALENDAR_WAIT" not in semantic_statuses
     ):
         errors.append("Stage 7 semantic gate is incomplete or overstates production evidence")
@@ -450,6 +448,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "M3CanaryRunner",
             "RepositoryCiphertextReader",
             "ExactMessageTrashExecutor",
+            "ExistingProcessedReconciliationMatcher",
             "RemoteFirstImportTimestampSource",
             "_MAXIMUM_VERIFIED_CANDIDATES = 1",
             'temporary_prefix="moomooau-protected-m3-"',
@@ -470,7 +469,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "CONTROL_OWNER_ID = 68_840_188",
             'CONTROL_REF = "refs/heads/main"',
             'PROTECTED_ENVIRONMENT = "moomooau-beta"',
-            'M3_CONFIRMATION = "M3_BUDGET_ONE"',
+            'M3_CONFIRMATION = "M3_RECONCILE_UNKNOWN_MUTATION_ZERO_NEW_WRITES"',
             "beta_receipt_sha256",
             "m3_gate_sha256",
             "_load_prior_attempt_count",
@@ -478,7 +477,8 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "_m3_authorized",
             "maximum_verified_candidates",
             "Stage7ReleaseGate().evaluate_completed_phase",
-            '"maximum_source_mutations": 1',
+            '"maximum_source_mutations": 0',
+            '"maximum_cumulative_source_mutations": 1',
             '"maximum_timeline_mutations": 0',
             '"fixed_calendar_wait_days": 0',
             '"same_head_rerun_allowed": False',
@@ -498,6 +498,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "RawOnlyCanaryRunner",
             "M3CanaryRunner",
             "CurrentProcessedPlanFactory",
+            "ExistingProcessedReconciliationMatcher",
             "FullMailboxDiscoverer",
             "VerificationPhase.PRE_RAW",
             "VerificationPhase.PRE_M3",
@@ -510,6 +511,8 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "phase is not ReleasePhase.BETA_RAW_ONLY",
             "BETA_RAW_ONLY_COMPLETED_NOT_FINAL",
             "M3_CANARY_RUN_COMPLETED_NOT_FINAL",
+            "reconcile_prior_unknown_mutation",
+            "reconcile_already_trashed",
             "ProtectedBetaFailurePhase.MAILBOX_DISCOVERY",
             "ProtectedBetaFailurePhase.METADATA_VERIFICATION",
             "ProtectedBetaFailurePhase.RAW_FETCH",
@@ -902,9 +905,9 @@ def _validate_workflow(root: Path) -> list[str]:
         "workflow_dispatch:",
         "expected_head_sha:",
         "confirm_m3:",
-        "M3_BUDGET_ONE",
+        "M3_RECONCILE_UNKNOWN_MUTATION_ZERO_NEW_WRITES",
         "permissions:\n  contents: read",
-        "group: moomooau-m3-budget-one-single-writer",
+        "group: moomooau-m3-zero-mutation-reconciliation",
         "cancel-in-progress: false",
         "Fail closed on invalid protected M3 dispatch context",
         'test "$GITHUB_REPOSITORY_ID" = "1300525906"',
@@ -914,7 +917,7 @@ def _validate_workflow(root: Path) -> list[str]:
         'test "$RUNNER_ENVIRONMENT" = "github-hosted"',
         'test "$GITHUB_REF" = "refs/heads/main"',
         'test "$EXPECTED_HEAD_SHA" = "$GITHUB_SHA"',
-        'test "$M3_CONFIRMATION" = "M3_BUDGET_ONE"',
+        'test "$M3_CONFIRMATION" = "M3_RECONCILE_UNKNOWN_MUTATION_ZERO_NEW_WRITES"',
         "needs: m3-authority-gate",
         "environment: moomooau-beta",
         "runs-on: ubuntu-24.04",
@@ -928,6 +931,7 @@ def _validate_workflow(root: Path) -> list[str]:
         "protected_m3_entrypoint",
         "protected_m3.py",
         "protected_m3_diagnostics.py",
+        "src/moomooau_archive/m3.py",
         "--contract-only",
         "--execute-protected",
         'assert value["m3_authorized"] is True',
@@ -1331,26 +1335,28 @@ def _validate_evidence(root: Path) -> list[str]:
             m3_attempts = m3_ledger.get("attempts", [])
             m3_policy = m3_ledger.get("completion_policy", {})
             m3_claims = m3_ledger.get("claims", {})
-            first = m3_attempts[0] if len(m3_attempts) == 4 else {}
-            second = m3_attempts[1] if len(m3_attempts) == 4 else {}
-            third = m3_attempts[2] if len(m3_attempts) == 4 else {}
-            fourth = m3_attempts[3] if len(m3_attempts) == 4 else {}
+            first = m3_attempts[0] if len(m3_attempts) == 5 else {}
+            second = m3_attempts[1] if len(m3_attempts) == 5 else {}
+            third = m3_attempts[2] if len(m3_attempts) == 5 else {}
+            fourth = m3_attempts[3] if len(m3_attempts) == 5 else {}
+            fifth = m3_attempts[4] if len(m3_attempts) == 5 else {}
             if (
-                m3_ledger.get("observed_through_utc") != "2026-07-24T05:18:46Z"
+                m3_ledger.get("observed_through_utc") != "2026-07-24T06:34:45Z"
                 or m3_ledger.get("task_id") != "T0703"
-                or len(m3_attempts) != 4
-                or [item.get("sequence") for item in m3_attempts] != [1, 2, 3, 4]
+                or len(m3_attempts) != 5
+                or [item.get("sequence") for item in m3_attempts] != [1, 2, 3, 4, 5]
                 or [item.get("delivery", {}).get("pull_request_number") for item in m3_attempts]
-                != [101, 102, 103, 104]
+                != [101, 102, 103, 104, 106]
                 or [item.get("delivery", {}).get("merge_commit_sha") for item in m3_attempts]
                 != [
                     "f747ddcd2e5eab589802a0c545293cd6f275ca71",  # pragma: allowlist secret
                     "9b15c4d5208429125c9ce2680cac4fbb408f65e0",  # pragma: allowlist secret
                     "bc0bfb3bc60a5ad769b286bb7b4bcdfc1ac195e6",  # pragma: allowlist secret
                     "b922219fa80fd0f55e8dd0d100a87ced2a77b2b8",  # pragma: allowlist secret
+                    "c860f3880b48b03c3f71ac79e61e278125fb1811",  # pragma: allowlist secret
                 ]
                 or [item.get("workflow", {}).get("run_id") for item in m3_attempts]
-                != [30060804854, 30063841144, 30066295809, 30068892160]
+                != [30060804854, 30063841144, 30066295809, 30068892160, 30072484529]
                 or any(
                     item.get("workflow", {}).get("workflow_head_sha")
                     != item.get("delivery", {}).get("merge_commit_sha")
@@ -1368,15 +1374,22 @@ def _validate_evidence(root: Path) -> list[str]:
                     != "PASS"
                     or item.get("public_failure", {}).get("status") != "BLOCKED"
                     or item.get("public_failure", {}).get("exact_root_cause_claimed") is not False
-                    or item.get("effects", {}).get("private_repository_new_commits") != 0
-                    or item.get("effects", {}).get("raw_ciphertext_creations") != "ZERO_OBSERVED"
-                    or item.get("effects", {}).get("processed_writes") != "ZERO_OBSERVED"
-                    or item.get("effects", {}).get("gmail_trash_messages_after_dispatch") != 0
                     or item.get("effects", {}).get("source_mutations") != 0
                     or item.get("effects", {}).get("timeline_writes") != 0
                     or item.get("effects", {}).get("scheduled_runs") != 0
                     or item.get("effects", {}).get("identity_plaintext_cleanup") != "PASS"
                     for item in m3_attempts
+                )
+                or any(
+                    item.get("effects", {}).get("private_repository_new_commits") != 0
+                    or item.get("effects", {}).get("private_repository_head_changed") is not False
+                    or item.get("effects", {}).get("raw_ciphertext_creations") != "ZERO_OBSERVED"
+                    or item.get("effects", {}).get("processed_writes") != "ZERO_OBSERVED"
+                    or item.get("effects", {}).get("processed_current_before_dispatch") != "ZERO"
+                    or item.get("effects", {}).get("processed_current_after_dispatch") != "ZERO"
+                    or item.get("effects", {}).get("gmail_trash_messages_after_dispatch") != 0
+                    or item.get("effects", {}).get("source_mutation_attribution") != "ZERO_OBSERVED"
+                    for item in m3_attempts[:4]
                 )
                 or first.get("public_failure", {}).get("reason_code")
                 != "PROTECTED_M3_ENTRYPOINT_FAILED"
@@ -1407,21 +1420,40 @@ def _validate_evidence(root: Path) -> list[str]:
                 != "NOT_CLAIMED_FROM_CLOSED_AGGREGATE_PHASE_ONLY_OUTPUT"
                 or fourth.get("diagnosis", {}).get("high_confidence_defect")
                 != "EMPTY_REGISTRY_QUARANTINE_SAFE_DEFERRED_ORDERING_GAP"
+                or fifth.get("public_failure", {}).get("aggregate_failure_class")
+                != "MUTATION_FAILED"
+                or fifth.get("effects", {}).get("private_repository_new_commits")
+                != "NONZERO_NOT_EXACTLY_COUNTED"
+                or fifth.get("effects", {}).get("private_repository_head_changed") is not True
+                or fifth.get("effects", {}).get("raw_ciphertext_creations") != "ZERO_OBSERVED"
+                or fifth.get("effects", {}).get("processed_writes") != "ONE_RECOVERED"
+                or fifth.get("effects", {}).get("processed_current_before_dispatch") != "ZERO"
+                or fifth.get("effects", {}).get("processed_current_after_dispatch") != "ONE"
+                or fifth.get("effects", {}).get("gmail_trash_messages_after_dispatch") != 1
+                or fifth.get("effects", {}).get("source_mutation_attribution")
+                != "UNCONFIRMED_EXACT_SOURCE"
+                or fifth.get("diagnosis", {}).get("exact_root_cause")
+                != "NOT_CLAIMED_FROM_CLOSED_MUTATION_FAILURE_CLASS_AND_AGGREGATE_EFFECTS"
+                or fifth.get("diagnosis", {}).get("high_confidence_defect")
+                != "UNKNOWN_MUTATION_OUTCOME_REQUIRES_ZERO_MUTATION_RECONCILIATION"
                 or m3_policy.get("same_head_rerun_allowed") is not False
                 or m3_policy.get("failed_head_redispatch_allowed") is not False
-                or m3_policy.get("repaired_exact_main_candidate_dispatch_allowed") is not True
+                or m3_policy.get("repaired_exact_main_candidate_dispatch_allowed") is not False
+                or m3_policy.get("zero_mutation_reconciliation_dispatch_allowed") is not True
                 or m3_policy.get("next_candidate_dispatch_limit") != 1
                 or m3_policy.get("t0704_authorized") is not False
                 or m3_policy.get("final_publication_authorized") is not False
                 or any(value is not False for value in m3_claims.values())
             ):
-                errors.append("protected M3 failed-attempt lineage is not exact or zero-effect")
+                errors.append(
+                    "protected M3 failed-attempt lineage is not exact or reconciliation-eligible"
+                )
     graph = _load(root / "machine/contracts/task_graph.json")
     graph_tasks = {item["id"]: item for item in graph["tasks"] if item["stage_id"] == "S7"}
     required_blockers = {
         "T0702": {"FINAL_ACCEPTANCE_AND_POST_BETA_STAGE7_PHASES_NOT_RUN"},
         "T0703": {
-            "PROTECTED_M3_SAFE_DEFERRED_AGGREGATE_RECOVERY_CANDIDATE_NOT_RUN",
+            "PROTECTED_M3_ZERO_MUTATION_RECONCILIATION_CANDIDATE_NOT_RUN",
         },
         "T0704": {
             "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
@@ -1547,7 +1579,7 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("protected_oracles_executed") != 3
         or latest.get("protected_oracles_passed") != 2
         or latest.get("protected_oracles_failed") != 1
-        or latest.get("protected_workflow_runs") != 15
+        or latest.get("protected_workflow_runs") != 16
         or latest.get("production_workflow_runs") != 0
         or observation.get("alpha_local_synthetic") != "PASS"
         or observation.get("beta_local_bootstrap_mechanism") != "PASS"
@@ -1555,7 +1587,7 @@ def _validate_evidence(root: Path) -> list[str]:
         != "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE"
         or observation.get("m3_local_synthetic_mechanism") != "PASS"
         or observation.get("m3_protected_entrypoint")
-        != "SAFE_DEFERRED_AGGREGATE_RECOVERY_CANDIDATE_AUTHORIZED_AFTER_FOUR_ZERO_EFFECT_ATTEMPTS"
+        != "ZERO_NEW_WRITE_RECONCILIATION_AUTHORIZED_AFTER_FIFTH_UNKNOWN_MUTATION_OUTCOME"
         or observation.get("blue_green_timeline_local_mechanism") != "PASS"
         or observation.get("ga_full_pipeline_local_mechanism") != "PASS"
         or observation.get("codex_auto_local_policy") != "PASS"
@@ -1565,7 +1597,7 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("beta_real_raw_only")
         != "PASS_RAW_RECOVERY_100_PERCENT_ZERO_SOURCE_MUTATION"
         or observation.get("m3_deterministic_evidence_run")
-        != "FOUR_FAILED_ZERO_EFFECT_ATTEMPTS_RECOVERY_AUTHORIZED"
+        != "FIFTH_MUTATION_FAILED_EXACT_SOURCE_ATTRIBUTION_PENDING_ZERO_WRITE_RECONCILIATION"
         or any(observation.get(key) != "NOT_RUN" for key in not_run)
         or observation.get("protected_gmail_read_path")
         != "BOUNDED_VERIFIED_CANDIDATE_SCAN_EXACT_COUNTS_NOT_DISCLOSED"
@@ -1575,7 +1607,7 @@ def _validate_evidence(root: Path) -> list[str]:
         != "NONZERO_AGE_CIPHERTEXT_ONLY_REMOTE_RECOVERY_100_PERCENT"
         or observation.get("protected_secret_injection")
         != "EIGHT_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED"
-        or observation.get("controlled_main_deliveries") != 12
+        or observation.get("controlled_main_deliveries") != 13
         or observation.get("private_raw_commits") != "NONZERO_WITHIN_CONFIGURED_BUDGET"
         or any(
             observation.get(key) != 0
@@ -1592,10 +1624,9 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("delivery_status") != "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "Deliver the exact safe-deferred aggregate recovery T0703 candidate to main "
-            "and execute "
-            "exactly one new-candidate attempt-1 Budget-1 M3 Canary; do not rerun or redispatch "
-            "any failed head, and do not enter T0704."
+            "Deliver the exact zero-new-write T0703 reconciliation candidate to main and execute "
+            "exactly one attempt-1 reconciliation dispatch; do not rerun or redispatch any failed "
+            "head, issue any new Gmail/private-repository write, or enter T0704."
         )
     ):
         errors.append("Stage 7 aggregate evidence is not truthfully blocked")

@@ -68,6 +68,37 @@ def test_t0502_already_in_trash_is_idempotent_and_consumes_no_budget() -> None:
         assert transport.requests == []
 
 
+def test_t0502_unknown_mutation_reconciliation_has_no_mutation_or_confirmation_request() -> None:
+    with recovery_context() as context:
+        trashed, second = pre_m3_message(context, trashed=True)
+        transport = SyntheticM3Transport(trashed.ref.message_id)
+        guard = GmailEndpointGuard(transport)
+        executor = ExactMessageTrashExecutor(
+            guard,
+            GmailLabelConfirmationClient(guard),
+        )
+        result = executor.reconcile_already_trashed(
+            trashed,
+            context.first_verification,
+            second,
+            _proof(context),
+        )
+        assert result.state is M3State.ALREADY_TRASHED
+        assert result.reason_code == "PRIOR_UNKNOWN_MUTATION_RECONCILED"
+        assert result.mutation_calls == 0
+        assert transport.requests == []
+
+        untrashed, untrashed_second = pre_m3_message(context)
+        with pytest.raises(M3Error, match="requires the source in Trash"):
+            executor.reconcile_already_trashed(
+                untrashed,
+                context.first_verification,
+                untrashed_second,
+                _proof(context),
+            )
+        assert transport.requests == []
+
+
 def test_t0502_alpha_beta_zero_budget_and_failed_second_verification_block_network() -> None:
     with recovery_context() as context:
         message, second = pre_m3_message(context)

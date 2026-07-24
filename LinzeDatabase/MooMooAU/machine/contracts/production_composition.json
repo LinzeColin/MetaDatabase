@@ -63,7 +63,7 @@
       "sha256": "c3c9ba533e1e4b93c7efd89962d58e04501c670c46f8d17351bab0db56c98009"
     },
     "tests/remediation/test_rmd04.py": {
-      "sha256": "2cba4fb7677ad2b9c6eb8492e4f0dc555f93416561e63d052d1e847a9946d4e9"
+      "sha256": "300eb0e22463b6352928a124161987d7556e3b5391450a15be09bdd90b915a61"
     },
     "tests/remediation/test_rmd05.py": {
       "sha256": "10cb61cdde6b76de201f4442fc4243d5c72792b12ab6e9ba602dd30491ddbfba"

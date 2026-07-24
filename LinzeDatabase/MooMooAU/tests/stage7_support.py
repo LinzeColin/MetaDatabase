@@ -41,6 +41,7 @@ from moomooau_archive.blue_green_runtime import (
 )
 from moomooau_archive.canary_runtime import (
     CurrentProcessedPlanFactory,
+    ExistingProcessedReconciliationMatcher,
     M3CanaryRunner,
     RawOnlyCanaryRunner,
 )
@@ -521,13 +522,14 @@ def m3_canary_context(
             events,
         )
         operational_gate = OperationalGate(capacity or synthetic_capacity())
+        opaque_ids = OpaqueIdFactory(opaque_key)
         runner = M3CanaryRunner(
             gmail,
             sender_registry,
             verifier,
             CanonicalRawFetcher(guard, verifier),
             AttachmentInspector(),
-            RawCommitPlanner(age, generated.recipient, OpaqueIdFactory(opaque_key)),
+            RawCommitPlanner(age, generated.recipient, opaque_ids),
             RawCommitSaga(raw_store),
             classification_registry(DocumentClass.DAILY_STATEMENT, AttachmentKind.CSV),
             ParserProfileRegistry.from_json(
@@ -543,6 +545,10 @@ def m3_canary_context(
             ExactMessageTrashExecutor(guard, GmailLabelConfirmationClient(guard)),
             StableFirstImportTimestamps(),
             operational_gate,
+            reconciliation_source_matcher=ExistingProcessedReconciliationMatcher(
+                opaque_ids,
+                processed_store,
+            ),
             diagnostics=diagnostics,
         )
         yield M3CanaryContext(

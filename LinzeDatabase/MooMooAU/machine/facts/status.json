@@ -1,8 +1,8 @@
 {
-  "version": "1.0.12",
-  "stage": "RMD-06 T0703 四次零观察副作用失败，SAFE_DEFERRED 聚合恢复候选已授权",
-  "phase": "T0702/S7AC-002 已通过；T0703 四次执行均在任何已观察远端效果前失败；第四次仅公开 AGGREGATE_GATE，不声称聚合输出未证明的精确线上根因；仅授权一个 SAFE_DEFERRED 聚合恢复候选",
-  "task": "交付精确 SAFE_DEFERRED 聚合恢复候选并执行一次新候选 Budget-1 M3；禁止任何失败头 rerun/redispatch",
+  "version": "1.0.13",
+  "stage": "RMD-06 T0703 第五次未知 mutation 结果，零新增写入 reconciliation 已授权",
+  "phase": "T0702/S7AC-002 已通过；T0703 第五次完成 Raw/Processed 恢复后返回 MUTATION_FAILED；独立聚合变化不单独证明精确来源，仅授权一个零新增写入 reconciliation 候选",
+  "task": "交付精确零新增写入 reconciliation 并执行一次 attempt 1；禁止五个失败头 rerun/redispatch，禁止 Gmail 与私有仓写入",
   "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 3/43（通过 2、失败 1）；最终验收 0/34；生产阻塞",
   "report_grade": "机器证据",
   "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",
