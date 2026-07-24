@@ -92,7 +92,23 @@ td{border-top:1px solid #eef0f3;padding:10px 8px;vertical-align:top}
 .big{font-size:22px;font-weight:800;color:#101828}
 details{margin-top:16px}summary{color:#98a1af;font-size:11px;cursor:pointer}
 footer{margin-top:18px}
-.chart{width:100%;height:auto;display:block;margin-top:10px}
+.chartwrap{position:relative;margin-top:14px}
+.chartbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.ranges{display:inline-flex;gap:3px;background:#f2f4f7;border-radius:10px;padding:3px}
+.ranges button{border:0;background:transparent;font:inherit;font-size:12px;color:#5a6472;
+  padding:6px 13px;border-radius:8px;cursor:pointer}
+.ranges button:hover{color:#101828}
+.ranges button.on{background:#fff;color:#101828;font-weight:700;box-shadow:0 1px 2px rgba(16,24,40,.10)}
+.customrange{display:flex;gap:6px;align-items:center;font-size:12px;color:#8a93a5}
+.customrange input{font:inherit;font-size:12px;padding:5px 8px;border:1px solid #d7dbe2;
+  border-radius:8px;color:#1a2130;background:#fff}
+.chart{width:100%}
+.chart svg{display:block;width:100%;height:auto}
+.charttip{position:absolute;pointer-events:none;background:#101828;color:#fff;font-size:12px;
+  line-height:1.55;padding:8px 11px;border-radius:9px;white-space:nowrap;z-index:6;
+  box-shadow:0 8px 22px rgba(16,24,40,.22);transform:translate(-50%,-118%)}
+.charttip b{color:#f6cf72;font-size:13.5px}
+.chartempty{padding:30px 0;text-align:center;color:#8a93a5;font-size:12.5px}
 """
 
 _JS = """
@@ -101,12 +117,103 @@ function tick(){var el=document.querySelector('[data-clock]');if(el){
   month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})
   .format(new Date())+' 悉尼';}}
 setInterval(tick,1000);tick();
+function ages(){var ns=document.querySelectorAll('.hb span[data-beat]');
+  for(var i=0;i<ns.length;i++){var t=ns[i].getAttribute('data-beat');if(!t)continue;
+    var b=new Date(t);if(isNaN(b))continue;
+    var a=Math.max(0,Math.round((Date.now()-b.getTime())/1000));
+    var el=ns[i].querySelector('[data-age]');if(el)el.textContent=a;
+    ns[i].className=(a<150)?'ok':'bad';}}
+function alphaChart(){
+  var host=document.getElementById('chart'),node=document.getElementById('curve-data');
+  if(!host||!node)return;
+  var all=[];try{all=JSON.parse(node.textContent||'[]');}catch(e){all=[];}
+  var base=parseFloat(host.getAttribute('data-baseline')||'0');
+  var tip=document.getElementById('chartTip'),wrap=host.parentNode;
+  var range=sessionStorage.getItem('alphaRange')||'all';
+  var cs=document.getElementById('cstart'),ce=document.getElementById('cend');
+  if(cs&&sessionStorage.getItem('alphaCS'))cs.value=sessionStorage.getItem('alphaCS');
+  if(ce&&sessionStorage.getItem('alphaCE'))ce.value=sessionStorage.getItem('alphaCE');
+  var pts=[],W=760,H=250,L=62,R=18,T=16,B=30;
+  function money(v){return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function sel(){var b=wrap.querySelectorAll('.ranges button');
+    for(var i=0;i<b.length;i++)b[i].className=(b[i].getAttribute('data-r')===range)?'on':'';
+    var cr=wrap.querySelector('.customrange');
+    if(cr){if(range==='custom')cr.removeAttribute('hidden');else cr.setAttribute('hidden','');}}
+  function pick(){
+    if(!all.length)return[];
+    if(range==='custom'){var a=cs&&cs.value,z=ce&&ce.value;
+      return all.filter(function(p){return(!a||p.date>=a)&&(!z||p.date<=z);});}
+    if(range==='7'||range==='30'){var n=parseInt(range,10);
+      var d=new Date(all[all.length-1].date+'T00:00:00Z');d.setUTCDate(d.getUTCDate()-(n-1));
+      var f=d.toISOString().slice(0,10);
+      return all.filter(function(p){return p.date>=f;});}
+    return all;}
+  function draw(){
+    var d=pick();pts=[];
+    if(!d.length){host.innerHTML='<div class=chartempty>该区间暂无净值数据</div>';return;}
+    var vs=d.map(function(p){return p.v;}).concat([base]);
+    var lo=Math.min.apply(null,vs),hi=Math.max.apply(null,vs);
+    var sp=(hi-lo)||Math.max(1,Math.abs(hi)*0.02);lo-=sp*0.2;hi+=sp*0.2;
+    function X(i){return d.length>1?L+(W-L-R)*(i/(d.length-1)):L+(W-L-R)/2;}
+    function Y(v){return T+(H-T-B)*(1-(v-lo)/(hi-lo));}
+    var g='';
+    for(var k=0;k<=3;k++){var v=lo+(hi-lo)*k/3,y=Y(v);
+      g+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+(W-R)+'" y2="'+y.toFixed(1)+'" stroke="#eef0f3"/>';
+      g+='<text x="'+(L-9)+'" y="'+(y+3.5).toFixed(1)+'" font-size="10" fill="#98a1af" text-anchor="end">'+Math.round(v).toLocaleString('en-US')+'</text>';}
+    var by=Y(base);
+    g+='<line x1="'+L+'" y1="'+by.toFixed(1)+'" x2="'+(W-R)+'" y2="'+by.toFixed(1)+'" stroke="#b6bdc8" stroke-dasharray="5 4"/>';
+    g+='<text x="'+(L+5)+'" y="'+(by-7).toFixed(1)+'" font-size="10" fill="#8a93a5">本金基准 '+money(base)+'</text>';
+    var line='';
+    for(var i=0;i<d.length;i++){var x=X(i),y=Y(d[i].v);pts.push({x:x,y:y,p:d[i]});line+=(i?' ':'')+x.toFixed(1)+','+y.toFixed(1);}
+    if(d.length===1){var y0=Y(d[0].v).toFixed(1);line=L+','+y0+' '+(W-R)+','+y0;}
+    var up=d[d.length-1].v>=base,col=up?'#12a150':'#d1293d';
+    g='<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+col+'" stop-opacity="0.18"/><stop offset="1" stop-color="'+col+'" stop-opacity="0"/></linearGradient></defs>'+g;
+    g+='<polygon points="'+L+','+(H-B)+' '+line+' '+(W-R)+','+(H-B)+'" fill="url(#cg)"/>';
+    g+='<polyline points="'+line+'" fill="none" stroke="'+col+'" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+    var st=Math.max(1,Math.ceil(d.length/6));
+    for(var i=0;i<d.length;i+=st)
+      g+='<text x="'+X(i).toFixed(0)+'" y="'+(H-8)+'" font-size="10" fill="#98a1af" text-anchor="middle">'+d[i].date.slice(5)+'</text>';
+    var lx=X(d.length-1),ly=Y(d[d.length-1].v);
+    g+='<circle cx="'+lx.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="4" fill="'+col+'"/>';
+    g+='<line id="cx" x1="0" y1="'+T+'" x2="0" y2="'+(H-B)+'" stroke="#98a1af" stroke-dasharray="3 3" opacity="0"/>';
+    g+='<circle id="cd" r="5" fill="#fff" stroke="'+col+'" stroke-width="2.5" opacity="0"/>';
+    g+='<rect id="chit" x="'+L+'" y="'+T+'" width="'+(W-L-R)+'" height="'+(H-T-B)+'" fill="transparent"/>';
+    host.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="净值曲线">'+g+'</svg>';
+    bind();}
+  function bind(){
+    var svg=host.querySelector('svg');if(!svg)return;
+    var hit=svg.querySelector('#chit'),cx=svg.querySelector('#cx'),cd=svg.querySelector('#cd');
+    function mv(ev){
+      var r=svg.getBoundingClientRect();
+      var clx=(ev.touches&&ev.touches[0])?ev.touches[0].clientX:ev.clientX;
+      var vx=(clx-r.left)/r.width*W,best=null,bd=1e9;
+      for(var i=0;i<pts.length;i++){var dd=Math.abs(pts[i].x-vx);if(dd<bd){bd=dd;best=pts[i];}}
+      if(!best)return;
+      cx.setAttribute('x1',best.x);cx.setAttribute('x2',best.x);cx.setAttribute('opacity','1');
+      cd.setAttribute('cx',best.x);cd.setAttribute('cy',best.y);cd.setAttribute('opacity','1');
+      var df=best.p.v-base,sg=df>=0?'+':'−';
+      tip.innerHTML=best.p.date+(best.p.live?' · 实时':'')+'<br><b>'+money(best.p.v)+'</b> 澳元<br>较本金 '+sg+money(Math.abs(df));
+      tip.removeAttribute('hidden');
+      tip.style.left=(host.offsetLeft+best.x/W*r.width)+'px';
+      tip.style.top=(host.offsetTop+best.y/H*r.height)+'px';}
+    function lv(){cx.setAttribute('opacity','0');cd.setAttribute('opacity','0');tip.setAttribute('hidden','');}
+    hit.addEventListener('mousemove',mv);hit.addEventListener('mouseleave',lv);
+    hit.addEventListener('touchmove',mv,{passive:true});hit.addEventListener('touchend',lv);}
+  var bs=wrap.querySelectorAll('.ranges button');
+  for(var i=0;i<bs.length;i++)bs[i].onclick=function(){
+    range=this.getAttribute('data-r');sessionStorage.setItem('alphaRange',range);sel();draw();};
+  if(cs)cs.onchange=function(){sessionStorage.setItem('alphaCS',cs.value);if(range==='custom')draw();};
+  if(ce)ce.onchange=function(){sessionStorage.setItem('alphaCE',ce.value);if(range==='custom')draw();};
+  sel();draw();}
+setInterval(ages,1000);
+
+alphaChart();ages();
 setInterval(async function(){try{
   var r=await fetch(location.pathname,{cache:'no-store'});
   if(!r.ok)return;var t=await r.text();
   var d=new DOMParser().parseFromString(t,'text/html');
   if(d.querySelector('.wrap'))document.body.replaceChild(d.querySelector('.wrap'),document.querySelector('.wrap'));
-  tick();
+  tick();alphaChart();ages();
 }catch(e){}},30000);
 """
 
@@ -124,44 +231,29 @@ def _pnl_txt(v: float, suffix: str = "") -> str:
     return f"{arrow}{v:+,.2f}{suffix}" if v else f"0.00{suffix}"
 
 
-def _svg_curve(curve: list[dict], capital: float) -> str:
-    """净值曲线:金色主线+渐变面积+本金虚线。点少也画(如实反映样本量)。浅色底。"""
-    if not curve:
-        return ""
-    w, h, pad = 640, 170, 14
-    ys = [p["equity_aud"] for p in curve] + [capital]
-    lo, hi = min(ys), max(ys)
-    span = (hi - lo) or 1.0
-    lo -= span * 0.25
-    hi += span * 0.25
-    n = len(curve)
-
-    def px(idx):
-        return pad + (w - 2 * pad) * (idx / (n - 1) if n > 1 else 0.5)
-
-    def py(v):
-        return pad + (h - 2 * pad) * (1 - (v - lo) / (hi - lo))
-
-    pts = [(px(i), py(p["equity_aud"])) for i, p in enumerate(curve)]
-    line = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
-    area = f"{pts[0][0]:.1f},{h - pad} " + line + f" {pts[-1][0]:.1f},{h - pad}"
-    ticks = "".join(
-        f'<text x="{px(i):.0f}" y="{h - 1}" font-size="9" fill="#98a1af" '
-        f'text-anchor="middle">{p["date"][5:]}{"·实时" if p.get("live") else ""}</text>'
-        for i, p in enumerate(curve) if n <= 10 or i % max(1, n // 8) == 0 or i == n - 1)
-    base_y = py(capital)
-    last = curve[-1]["equity_aud"]
-    return f"""<svg class="chart" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="净值曲线">
-<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0" stop-color="#b8860b" stop-opacity="0.20"/>
-<stop offset="1" stop-color="#b8860b" stop-opacity="0"/></linearGradient></defs>
-<line x1="{pad}" y1="{base_y:.1f}" x2="{w - pad}" y2="{base_y:.1f}" stroke="#cfd5de" stroke-dasharray="4 4"/>
-<text x="{w - pad}" y="{base_y - 4:.1f}" font-size="9" fill="#98a1af" text-anchor="end">本金 {capital:,.0f} 澳元</text>
-<polygon points="{area}" fill="url(#g)"/>
-<polyline points="{line}" fill="none" stroke="#b8860b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="{pts[-1][0]:.1f}" cy="{pts[-1][1]:.1f}" r="3.5" fill="#b8860b"/>
-<text x="{pts[-1][0] - 6:.1f}" y="{pts[-1][1] - 8:.1f}" font-size="10" fill="#101828" text-anchor="end">{last:,.2f}</text>
-{ticks}</svg>"""
+def _chart_block(curve: list[dict], baseline: float) -> str:
+    """净值图表容器:数据以 JSON 内嵌,由前端脚本绘制。
+    支持 7天/30天/全部/自定义区间、hover 十字准星与金额气泡;涨绿跌红(美股惯例)。
+    本金基准线标注左对齐,避免与末点数值重叠(owner 2026-07-24 反馈的重叠问题)。"""
+    import json as _json
+    data = _json.dumps(
+        [{"date": p["date"], "v": round(float(p["equity_aud"]), 2),
+          "live": bool(p.get("live"))} for p in (curve or [])],
+        ensure_ascii=False).replace("<", "\\u003c")
+    return f"""<div class=chartwrap>
+<div class=chartbar>
+  <div class=ranges>
+    <button type=button data-r="7">7天</button>
+    <button type=button data-r="30">30天</button>
+    <button type=button data-r="all">全部</button>
+    <button type=button data-r="custom">自定义</button>
+  </div>
+  <div class=customrange hidden><input type=date id=cstart><span>→</span><input type=date id=cend></div>
+</div>
+<div id=chart class=chart data-baseline="{baseline:.2f}"></div>
+<div id=chartTip class=charttip hidden></div>
+<script type="application/json" id="curve-data">{data}</script>
+</div>"""
 
 
 _KIND_ICON = {"fill": "✅", "order": "📝", "block": "🛡️", "mail": "✉️"}
@@ -389,8 +481,8 @@ def render_dashboard_html(d: dict) -> str:
         for ev in d["timeline"]) or "<li><span class=muted>还没有任何动作;第一次动作后这里会一条条记。</span></li>"
 
     hb_rows = "".join(
-        f"<span class='{'ok' if c['ok'] else 'bad'}'><i></i>{_esc(c['name'])}"
-        f" · {c['age_s']}秒前</span>"
+        f"<span class='{'ok' if c['ok'] else 'bad'}' data-beat=\"{_esc(c.get('beat_at', ''))}\">"
+        f"<i></i>{_esc(c['name'])} · <b data-age>{c['age_s']}</b> 秒前</span>"
         for c in health["components"]) or "<span class=muted>暂无心跳数据</span>"
     last_mail = health["last_mail"]
 
@@ -413,13 +505,13 @@ def render_dashboard_html(d: dict) -> str:
 <div class="banner {_esc(d['banner']['kind'])}">{_esc(d['banner']['text'])}</div>
 <div class=grid>
 <div class="card span2 {'gainbg' if total > 0 else ('lossbg' if total < 0 else '')}">
-  <h2>管理资金净值(澳元口径,实际到位本金 {hero['baseline_aud']:,.0f})</h2>
+  <h2>管理资金净值(澳元口径,本金 {hero['baseline_aud']:,.0f})</h2>
   <div class=hero-num>{hero['equity_aud']:,.2f}</div>
   <div class=hero-sub>
     <span class="{_pnl_cls(total)}">累计 {_pnl_txt(total)}({hero['total_pnl_pct']:+.2f}%)</span>
     <span class="{_pnl_cls(today)}">今日 {_pnl_txt(today)}</span>
   </div>
-  {_svg_curve(d['curve'], hero['baseline_aud'])}
+  {_chart_block(d['curve'], hero['baseline_aud'])}
   <div class=kpis>
     <span>账户可用现金 <b>{hero['cash_usd']:,.2f} 美元</b></span>
     <span>持仓市值 <b>{hero['invested_usd']:,.2f} 美元</b></span>
@@ -435,14 +527,14 @@ def render_dashboard_html(d: dict) -> str:
   {positions_block}
 </div>
 <div class=card>
-  <h2>三日模拟盘考核</h2>
-  {exam_block}
-</div>
-<div class=card>
   <h2>下一次决策</h2>
   <div class=big>{_esc(nd['at_syd'])}(周{_esc(nd['weekday_syd'])},悉尼)</div>
   <div class=muted style="margin-top:6px">{_esc(nd['kind'])}。其余时间只盯不动;到点有动作会出现在动作记录里,并邮件通知你。</div>
   <div class=muted style="margin-top:6px">{_esc(mkt['next'])}</div>
+</div>
+<div class=card>
+  <h2>三日模拟盘考核(历史存档,已进入实盘)</h2>
+  {exam_block}
 </div>
 <div class=card>
   <h2>系统健康</h2>

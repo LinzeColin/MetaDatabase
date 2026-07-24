@@ -177,28 +177,6 @@ class YahooFxSource:
         return rate, at
 
 
-def _frozen_baseline_usd(runtime_dir: Path, funded_usd: float, *, enabled: bool) -> float:
-    """盈亏基准 = 首次观测到的真实到位资金,落盘冻结。
-
-    不冻结的话:系统买入后购买力下降,基准跟着漂,盈亏永远显示 0,涨跌被抹平。
-    """
-    if not enabled:
-        return funded_usd
-    p = runtime_dir / "LIVE_START_CAPITAL.json"
-    try:
-        if p.exists():
-            return float(json.loads(p.read_text())["baseline_usd"])
-        runtime_dir.mkdir(parents=True, exist_ok=True)
-        p.write_text(json.dumps({
-            "baseline_usd": round(funded_usd, 2),
-            "frozen_at": datetime.now(timezone.utc).isoformat(),
-            "note": "实盘盈亏基准:首次观测到的真实到位资金(授权额度与账户购买力取小)",
-        }, ensure_ascii=False))
-    except Exception:
-        pass
-    return funded_usd
-
-
 def _email_title(event_type: str) -> str:
     from backend.app.notify.outbox import _EMAIL_TEMPLATES
     tpl = _EMAIL_TEMPLATES.get(event_type)
@@ -510,14 +488,13 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         funded_usd = min(authorized_usd, float(real_power_usd) + mark_value_usd)
     else:
         funded_usd = authorized_usd
-    # 盈亏基准冻结:首次进入实盘时把"真实到位资金"落盘,之后涨跌才算得出真盈亏
-    baseline_usd = _frozen_baseline_usd(Path(runtime_dir), funded_usd, enabled=funded_known)
-
     cash_usd = funded_usd - mark_value_usd + cash_flow_usd if funded_known else \
         capital_usd + cash_flow_usd
     equity_usd = cash_usd + mark_value_usd
     equity_aud = equity_usd / fx_aud_usd
-    baseline_aud = baseline_usd / fx_aud_usd
+    # owner 2026-07-24 裁定:按长期稳定运行的逻辑,本金恒为授权的 3000 澳元;
+    # 资金未全额到位的差额直接计入亏损,不把基准往下调来粉饰。
+    baseline_aud = capital_aud
     total_pnl_aud = equity_aud - baseline_aud
     invested_usd = sum(p["market_value_usd"] for p in positions)
     exposure_pct = round(100.0 * (invested_usd / fx_aud_usd) / capital_aud, 1) if capital_aud else 0.0
@@ -600,7 +577,7 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         flat = sorted({day for day in run_days
                        if curve and day < curve[0]["date"]})
         curve[:0] = [{"date": day, "equity_aud": round(baseline_aud, 2)} for day in flat]
-    prev_equity = curve[-2]["equity_aud"] if len(curve) >= 2 else baseline_aud
+    prev_equity = curve[-2]["equity_aud"] if len(curve) >= 2 else equity_aud
     today_pnl_aud = equity_aud - prev_equity
     exam = None
     if report:
@@ -671,7 +648,8 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         beat = datetime.fromisoformat(h["beat_at"])
         age = int((now - beat).total_seconds())
         components.append({"name": comp_cn.get(name, name), "raw": name,
-                           "status": h["status"], "age_s": age, "ok": age < 150})
+                           "status": h["status"], "age_s": age, "ok": age < 150,
+                           "beat_at": h["beat_at"]})   # 前端按此每秒实时算"多少秒前"
         if name == "trading-worker":
             trading_status = h["status"]
             mode_hint = h.get("detail", "") or ""
