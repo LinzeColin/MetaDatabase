@@ -202,16 +202,40 @@ def _protected_m3_attempt_ledger(root: Path) -> dict[str, Any] | None:
     claims = ledger.get("claims", {})
     if (
         ledger.get("task_id") != "T0703"
-        or len(attempts) != 1
-        or attempts[0].get("workflow", {}).get("run_id") != 30060804854
-        or attempts[0].get("workflow", {}).get("reruns") != 0
-        or attempts[0].get("jobs", {}).get("authority_gate", {}).get("status") != "PASS"
-        or attempts[0].get("jobs", {}).get("m3_budget_one", {}).get("status") != "FAILED"
-        or attempts[0].get("jobs", {}).get("identity_plaintext_cleanup", {}).get("status") != "PASS"
-        or attempts[0].get("effects", {}).get("private_repository_new_commits") != 0
-        or attempts[0].get("effects", {}).get("processed_writes") != "ZERO_OBSERVED"
-        or attempts[0].get("effects", {}).get("gmail_trash_messages_after_dispatch") != 0
-        or attempts[0].get("effects", {}).get("source_mutations") != 0
+        or len(attempts) != 3
+        or [item.get("sequence") for item in attempts] != [1, 2, 3]
+        or [item.get("workflow", {}).get("run_id") for item in attempts]
+        != [30060804854, 30063841144, 30066295809]
+        or [item.get("workflow", {}).get("workflow_head_sha") for item in attempts]
+        != [
+            "f747ddcd2e5eab589802a0c545293cd6f275ca71",  # pragma: allowlist secret
+            "9b15c4d5208429125c9ce2680cac4fbb408f65e0",  # pragma: allowlist secret
+            "bc0bfb3bc60a5ad769b286bb7b4bcdfc1ac195e6",  # pragma: allowlist secret
+        ]
+        or any(item.get("workflow", {}).get("reruns") != 0 for item in attempts)
+        or any(
+            item.get("jobs", {}).get("authority_gate", {}).get("status") != "PASS"
+            for item in attempts
+        )
+        or any(
+            item.get("jobs", {}).get("m3_budget_one", {}).get("status") != "FAILED"
+            for item in attempts
+        )
+        or any(
+            item.get("jobs", {}).get("identity_plaintext_cleanup", {}).get("status") != "PASS"
+            for item in attempts
+        )
+        or any(
+            item.get("effects", {}).get("private_repository_new_commits") != 0 for item in attempts
+        )
+        or any(
+            item.get("effects", {}).get("processed_writes") != "ZERO_OBSERVED" for item in attempts
+        )
+        or any(
+            item.get("effects", {}).get("gmail_trash_messages_after_dispatch") != 0
+            for item in attempts
+        )
+        or any(item.get("effects", {}).get("source_mutations") != 0 for item in attempts)
         or policy.get("same_head_rerun_allowed") is not False
         or policy.get("failed_head_redispatch_allowed") is not False
         or policy.get("repaired_exact_main_candidate_dispatch_allowed") is not True
@@ -243,7 +267,7 @@ def _validate_composition_for_state(
         validate_composition(
             root,
             verify_contract_cli=state.get("package_version")
-            not in {"1.0.6", "1.0.7", "1.0.8", "1.0.9"},
+            not in {"1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11"},
         ),
     )
 
@@ -357,9 +381,15 @@ def _validate_stage6_evidence_transition(
         if versions != {"moomooau.stage6-evidence.v1"}:
             raise ValueError("pre-closure delivery state requires Stage 6 v1 evidence")
         return
-    if package_version not in {"1.0.5", "1.0.6", "1.0.7", "1.0.8", "1.0.9"} or versions != {
-        "moomooau.stage6-evidence.v2"
-    }:
+    if package_version not in {
+        "1.0.5",
+        "1.0.6",
+        "1.0.7",
+        "1.0.8",
+        "1.0.9",
+        "1.0.10",
+        "1.0.11",
+    } or versions != {"moomooau.stage6-evidence.v2"}:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
     # v1.0.5 itself remains Git-anchored. Its v1.0.6+ control successors are portable:
     # evaluate_immutable_predecessor has already verified the exact frozen authority

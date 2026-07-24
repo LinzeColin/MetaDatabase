@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.0.11",
+    "date": "2026-07-24",
+    "summary": "固化 T0703 第三次 protected M3 的 RESPONSE_SCOPE_REJECTED 零副作用失败。按 GitHub 固定 OpenAPI 将 repositories/permissions 视为可选回显；缺少仓库回显时用 installation token 做最多两个结果的精确仓库范围探测，并按有界 GitHub Date 校验一小时 TTL。三个失败头均禁止 rerun/redispatch。"
+  },
+  {
+    "version": "1.0.10",
+    "date": "2026-07-24",
+    "summary": "固化 T0703 第二次 protected M3 的零观察副作用失败和 GITHUB_APP_TOKEN 边界；Owner 随后确认 GitHub App 已安装并链接唯一 private 数据仓。M3 现与 T0702 一样只公开封闭 InstallationTokenFailureClass；两个失败头均禁止 rerun/redispatch，仅授权一个新精确候选 attempt 1。"
+  },
+  {
     "version": "1.0.9",
     "date": "2026-07-24",
     "summary": "固化 T0703 首次 protected M3 的零副作用失败账本，禁止失败头 rerun；将内容安全的逐消息 metadata 不可验证与 T0702 对齐为 quarantine，并增加封闭 public-safe M3 phase diagnostics。仅授权一个新精确候选 attempt 1。"

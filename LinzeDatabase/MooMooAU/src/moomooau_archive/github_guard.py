@@ -8,6 +8,7 @@ import json
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from email.utils import parsedate_to_datetime
 from enum import StrEnum
 from typing import cast
 from urllib.parse import parse_qsl, quote, urlsplit
@@ -75,6 +76,7 @@ class GitHubOperation(StrEnum):
     REPOSITORY_RESOLVE = "repository.resolve"
     INSTALLATION_DISCOVER = "installation.discover"
     INSTALLATION_TOKEN = "installation.token"
+    INSTALLATION_REPOSITORY_SCOPE = "installation.repository_scope"
     CONTENT_READ = "contents.read"
     CONTENT_WRITE = "contents.write"
     RELEASE_READ = "release.read"
@@ -247,6 +249,15 @@ class GitHubEndpointGuard:
             if query != [("per_page", "2")] or request.body is not None:
                 raise GitHubBoundaryError("installation discovery request is not bounded")
             return GitHubOperation.INSTALLATION_DISCOVER
+
+        if (
+            parsed.hostname == "api.github.com"
+            and request.method == "GET"
+            and parsed.path == "/installation/repositories"
+        ):
+            if query != [("per_page", "2")] or request.body is not None:
+                raise GitHubBoundaryError("installation repository scope request is not bounded")
+            return GitHubOperation.INSTALLATION_REPOSITORY_SCOPE
 
         active_installation_id = (
             self._discovered_installation_id
@@ -538,26 +549,44 @@ class GitHubInstallationTokenClient:
             raise GitHubInstallationTokenError(
                 InstallationTokenFailureClass.RESPONSE_INVALID
             ) from exc
+        repositories_present = "repositories" in payload
         repositories = payload.get("repositories")
+        permissions_present = "permissions" in payload
         permissions = payload.get("permissions")
+        selection_present = "repository_selection" in payload
+        repository_selection = payload.get("repository_selection")
         repository_ids = (
             [item.get("id") for item in repositories if isinstance(item, dict)]
             if isinstance(repositories, list)
             else []
         )
+        reference_time = _token_response_reference_time(response, current)
         if (
             not isinstance(token, str)
             or not token
-            or repository_ids != [self._config.repository_id]
-            or not isinstance(repositories, list)
-            or len(repositories) != 1
-            or not _token_response_permissions_are_exact(permissions)
-            or not timedelta(0) < expires_at - current <= timedelta(hours=1)
+            or (
+                repositories_present
+                and (
+                    repository_ids != [self._config.repository_id]
+                    or not isinstance(repositories, list)
+                    or len(repositories) != 1
+                )
+            )
+            or (permissions_present and not _token_response_permissions_are_exact(permissions))
+            or (selection_present and repository_selection != "selected")
+            or not timedelta(0) < expires_at - reference_time <= timedelta(hours=1)
         ):
             raise GitHubInstallationTokenError(
                 InstallationTokenFailureClass.RESPONSE_SCOPE_REJECTED
             )
-        return InstallationToken(SecretText(token), expires_at)
+        token_value = SecretText(token)
+        if not repositories_present:
+            try:
+                self._verify_repository_scope(token_value)
+            except Exception:
+                token_value.destroy()
+                raise
+        return InstallationToken(token_value, expires_at)
 
     def _send_token_request(
         self,
@@ -650,6 +679,52 @@ class GitHubInstallationTokenClient:
             )
         return cast(int, installation["id"])
 
+    def _verify_repository_scope(self, token: SecretText) -> None:
+        request = HttpRequest(
+            "GET",
+            GITHUB_API_ORIGIN + "/installation/repositories?per_page=2",
+            headers=(
+                ("Accept", "application/vnd.github+json"),
+                ("Authorization", "Bearer " + token.reveal()),
+                ("X-GitHub-Api-Version", GITHUB_API_VERSION),
+            ),
+        )
+        try:
+            response = self._guard.send(request)
+        except GitHubBoundaryError as exc:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.LOCAL_BOUNDARY_REJECTED
+            ) from exc
+        except Exception as exc:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.TRANSPORT_FAILED
+            ) from exc
+        if response.status != 200:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.RESPONSE_SCOPE_REJECTED
+            )
+        try:
+            payload = _decode_object(response.body)
+        except GitHubBoundaryError as exc:
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.RESPONSE_INVALID
+            ) from exc
+        repositories = payload.get("repositories")
+        repository_ids = (
+            [item.get("id") for item in repositories if isinstance(item, dict)]
+            if isinstance(repositories, list)
+            else []
+        )
+        if (
+            payload.get("total_count") != 1
+            or not isinstance(repositories, list)
+            or len(repositories) != 1
+            or repository_ids != [self._config.repository_id]
+        ):
+            raise GitHubInstallationTokenError(
+                InstallationTokenFailureClass.RESPONSE_SCOPE_REJECTED
+            )
+
 
 def content_url(locator: RepositoryLocator, relative_path: str) -> str:
     GitHubEndpointGuard._validate_private_path(relative_path)
@@ -681,6 +756,24 @@ def _token_response_permissions_are_exact(value: object) -> bool:
         {"contents": "write"},
         {"contents": "write", "metadata": "read"},
     )
+
+
+def _token_response_reference_time(response: HttpResponse, fallback: datetime) -> datetime:
+    dates = [value for name, value in response.headers if name.casefold() == "date"]
+    if not dates:
+        return fallback
+    if len(dates) != 1:
+        raise GitHubInstallationTokenError(InstallationTokenFailureClass.RESPONSE_INVALID)
+    try:
+        parsed = parsedate_to_datetime(dates[0])
+    except (TypeError, ValueError) as exc:
+        raise GitHubInstallationTokenError(InstallationTokenFailureClass.RESPONSE_INVALID) from exc
+    if parsed.tzinfo is None or parsed.utcoffset() != timedelta(0):
+        raise GitHubInstallationTokenError(InstallationTokenFailureClass.RESPONSE_INVALID)
+    reference = parsed.astimezone(UTC)
+    if abs(reference - fallback) > timedelta(minutes=5):
+        raise GitHubInstallationTokenError(InstallationTokenFailureClass.RESPONSE_INVALID)
+    return reference
 
 
 def _b64(value: bytes) -> bytes:

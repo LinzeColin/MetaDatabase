@@ -26,6 +26,7 @@ from .github_guard import (
     GitHubAppJwtSigner,
     GitHubEndpointGuard,
     GitHubInstallationTokenClient,
+    GitHubInstallationTokenError,
     InstallationToken,
     RepositoryResolver,
     TargetRepositoryConfig,
@@ -325,11 +326,17 @@ class ProtectedM3Bootstrap:
 
             self._diagnostics.enter(ProtectedM3FailurePhase.GITHUB_APP_TOKEN)
             github_guard = GitHubEndpointGuard(self._github_transport, config.target_repository)
-            installation_token = GitHubInstallationTokenClient(
-                github_guard,
-                config.target_repository,
-                signer,
-            ).mint(now)
+            try:
+                installation_token = GitHubInstallationTokenClient(
+                    github_guard,
+                    config.target_repository,
+                    signer,
+                ).mint(now)
+            except GitHubInstallationTokenError as exc:
+                self._diagnostics.enter_installation_token_failure(exc.failure_class)
+                raise ProtectedM3BootstrapError(
+                    "GitHub App installation token is unavailable"
+                ) from exc
             resources.callback(installation_token.destroy)
             github_private_key.destroy()
             self._diagnostics.enter(ProtectedM3FailurePhase.REPOSITORY_RESOLUTION)

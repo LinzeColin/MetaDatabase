@@ -8,15 +8,19 @@
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
 fail closed。T0702 账本区分 1 次 Secret 前 context 拒绝与 11 次 protected first attempt；最终
-Raw-only Beta PASS。T0703 首次 exact-main protected attempt 的 authority 与 identity cleanup
-PASS、M3 job FAILED；后验只读核验观察到 private new commit、Processed write、Gmail Trash 和
-Timeline mutation 均为 0，GitHub rerun 为 0。禁止把零副作用失败、修复授权或 `--preflight`
+Raw-only Beta PASS。T0703 三个不同 exact-main protected attempt 1 的 authority 与 identity
+cleanup 均 PASS、M3 job 均 FAILED；后验只读核验观察到 private new commit、MooMooAU path write、
+Processed write、Gmail Trash 和 Timeline mutation 均为 0，GitHub rerun 为 0。第二次封闭失败
+边界为 `GITHUB_APP_TOKEN`，第三次进一步封闭为 `RESPONSE_SCOPE_REJECTED`。禁止把零副作用失败、
+恢复授权或 `--preflight`
 退出码 0 解释为 T0703、Stage 7、最终 Acceptance 或生产 PASS。
 
 当前精确 Run Contract 只授权 T0703：一份新受控 main 交付、一次新 candidate attempt 1、source
-mutation Budget 1、GitHub rerun 0。失败 head 不得 redispatch。它复用 `moomooau-beta`
-Environment、八项 exact Secret name 和已验证 private data path；只将内容安全的逐消息 metadata
-不可验证收敛为 quarantine，其他失败仍 hard fail。Raw 与 Processed recovery 后才允许 exact
+mutation Budget 1、GitHub rerun 0。三个失败 head 均不得 redispatch。它复用 `moomooau-beta`
+Environment、八项 exact Secret name 和 Owner 已确认的 App/private data path；可选 token scope
+回显存在时必须精确匹配，repository 回显缺失时必须通过有界 installation repository probe，
+TTL 必须按有界 GitHub `Date` 校验。App token 失败只输出封闭
+`InstallationTokenFailureClass`，其他失败仍 hard fail。Raw 与 Processed recovery 后才允许 exact
 message Trash；不得进入 T0704 或任何更晚阶段。
 
 ## Beta protected bootstrap 契约
@@ -27,8 +31,12 @@ message Trash；不得进入 T0704 或任何更晚阶段。
 
 若配置中的 GitHub App Installation ID 返回 404，Bootstrap 只允许一次
 `GET /app/installations?per_page=2` 有界校准；仅当 App 恰有一个未挂起、`selected` 且权限精确为
-`contents:write`/`metadata:read` 的 Installation 时才可继续。随后生成的 Token 仍必须只包含配置中的
-唯一 Repository ID 与同一最小权限，否则失败关闭；零个、多个、全仓选择、挂起或权限漂移均不得自愈。
+`contents:write`/`metadata:read` 的 Installation 时才可继续。随后生成的 Token 若回显
+repository/permission/selection，回显值必须精确匹配配置中的唯一 Repository ID 与同一最小权限。
+GitHub 合法省略 repository 回显时，Bootstrap 必须用该 token 执行
+`GET /installation/repositories?per_page=2`，并证明 `total_count=1` 且唯一 Repository ID 精确
+匹配；最多两个结果之外不枚举。token 最长一小时有效期以同一响应的有界 GitHub `Date` 为参考。
+任何 Date 漂移、零个/多个仓、全仓选择、挂起、权限漂移或探测失败均销毁 token 并失败关闭。
 
 此入口只能产生 Raw-only runner；不得装配 Parser、M3、Timeline 或 Release Asset 权限。
 `.github/workflows/moomooau-beta.yml` 是唯一受保护 Beta 入口，仅允许 owner 在 `main` 上手动

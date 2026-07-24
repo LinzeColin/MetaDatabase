@@ -22,7 +22,9 @@ from stage7_support import (
 
 from moomooau_archive.age_stream import is_age_envelope
 from moomooau_archive.canary_runtime import CanaryRuntimeError, M3CanaryRunResult
+from moomooau_archive.github_guard import InstallationTokenFailureClass
 from moomooau_archive.gmail_guard import GmailEndpointGuard
+from moomooau_archive.http_boundary import HttpResponse
 from moomooau_archive.m3 import (
     ExactMessageTrashExecutor,
     GmailLabelConfirmationClient,
@@ -30,7 +32,7 @@ from moomooau_archive.m3 import (
     MutationBudget,
     MutationPhase,
 )
-from moomooau_archive.protected_m3 import M3_SECRET_NAMES
+from moomooau_archive.protected_m3 import M3_SECRET_NAMES, ProtectedM3BootstrapError
 from moomooau_archive.protected_m3_diagnostics import (
     ProtectedM3Diagnostics,
     ProtectedM3FailurePhase,
@@ -411,7 +413,7 @@ def _authorized_project_root(tmp_path: Path) -> Path:
         "purpose": "T0703_PROTECTED_M3_REPAIR_ONLY",
         "m3_authorized": True,
         "final_publication_authorized": False,
-        "prior_failed_attempts_exact": 1,
+        "prior_failed_attempts_exact": 3,
         "repair_candidate_dispatch_limit": 1,
     }
     run_contract["authorized_effect_budget"] = {
@@ -423,8 +425,8 @@ def _authorized_project_root(tmp_path: Path) -> Path:
         "processed_writes_maximum": 1,
         "protected_m3_dispatches_maximum": 1,
         "protected_m3_reruns_maximum": 0,
-        "prior_protected_m3_dispatches_exact": 1,
-        "cumulative_protected_m3_dispatches_after_success_maximum": 2,
+        "prior_protected_m3_dispatches_exact": 3,
+        "cumulative_protected_m3_dispatches_after_success_maximum": 4,
         "timeline_writes_maximum": 0,
         "scheduled_runs_maximum": 0,
     }
@@ -487,7 +489,7 @@ def test_t0703_protected_entrypoint_contract_is_authorized_and_receipt_bound() -
     assert "required_secret_names" not in contract
     assert contract["beta_receipt_sha256"] == beta_receipt_sha256(PROJECT_ROOT)
     assert contract["prior_attempt_ledger_path"].endswith("t0703/attempt-ledger.json")
-    assert contract["prior_failed_attempts"] == 1
+    assert contract["prior_failed_attempts"] == 3
     assert contract["same_head_rerun_allowed"] is False
     assert contract["m3_gate_sha256"] == m3_gate_sha256(PROJECT_ROOT)
     assert contract["feature_invariants"] == {
@@ -526,6 +528,7 @@ def test_t0703_failure_diagnostics_are_closed_public_safe_phases() -> None:
             "status": "BLOCKED",
             "reason_code": f"PROTECTED_M3_{phase.value}_FAILED",
             "failure_phase": phase.value,
+            "installation_token_failure_class": "UNCLASSIFIED",
             "diagnostic_taxonomy": "moomooau.protected-m3-failure-taxonomy.v1",
             "exact_root_cause_claimed": False,
             "production_health_claimed": False,
@@ -535,6 +538,46 @@ def test_t0703_failure_diagnostics_are_closed_public_safe_phases() -> None:
             token in json.dumps(payload, sort_keys=True).casefold()
             for token in ("message_id", "thread_id", "sender", "subject", "repository_id")
         )
+
+    diagnostics.enter_installation_token_failure(InstallationTokenFailureClass.INSTALLATION_ZERO)
+    token_failure = public_failure_payload(diagnostics)
+    assert token_failure["failure_phase"] == "GITHUB_APP_TOKEN"
+    assert token_failure["installation_token_failure_class"] == "INSTALLATION_ZERO"
+
+
+def test_t0703_bootstrap_preserves_closed_installation_token_failure_class(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    diagnostics = ProtectedM3Diagnostics()
+    message = m3_canary_message("msg-stage7-protected-m3-app-not-installed")
+    predecessors = (
+        phase_observation(ReleasePhase.ALPHA),
+        phase_observation(ReleasePhase.BETA_RAW_ONLY),
+    )
+    with protected_m3_context((message,), diagnostics=diagnostics) as context:
+        original_send = context.github_transport.send
+
+        def installation_absent(request: object) -> HttpResponse:
+            url = getattr(request, "url", "")
+            method = getattr(request, "method", "")
+            if method == "POST" and "/app/installations/" in url:
+                return HttpResponse(404, b"{}")
+            if method == "GET" and url.endswith("/app/installations?per_page=2"):
+                return HttpResponse(200, b"[]")
+            return original_send(request)  # type: ignore[arg-type]
+
+        monkeypatch.setattr(context.github_transport, "send", installation_absent)
+        with pytest.raises(
+            ProtectedM3BootstrapError,
+            match="GitHub App installation token is unavailable",
+        ):
+            with context.bootstrap.open(predecessor_observations=predecessors):
+                pytest.fail("installation-token failure yielded a protected runtime")
+
+    payload = public_failure_payload(diagnostics)
+    assert payload["failure_phase"] == "GITHUB_APP_TOKEN"
+    assert payload["installation_token_failure_class"] == "INSTALLATION_ZERO"
+    assert "repository" not in json.dumps(payload, sort_keys=True).casefold()
 
 
 def test_t0703_authorized_entrypoint_emits_aggregate_only_evidence(tmp_path: Path) -> None:
