@@ -493,6 +493,28 @@ select:focus-visible {
   flex-shrink: 0;
 }
 
+/* P2-10 旧路由重定向兜底页（正常情况客户端已即刻 replace，仅无 JS 时可见）。 */
+.routeRedirect {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 60vh;
+  padding: 24px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.routeRedirect a {
+  color: var(--orb-focus-mid, #e8b54a);
+  text-decoration: none;
+}
+
+.routeRedirect a:hover {
+  text-decoration: underline;
+}
+
 .railTool kbd {
   margin-left: auto;
   padding: 1px 5px;

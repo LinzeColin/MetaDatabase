@@ -90,10 +90,14 @@ test.describe("A167 approved workspace states", () => {
     // canvas has its own context panel instead); with the API 500-routed —
     // or absent, as on CI — it must show the amber fallback label instead
     // of fabricating live context.
+    // P2-10: /ma now redirects to /capital; the surviving family-module surface
+    // is /signals ("战略信号" tab), which renders the same shared panel + badge.
+    // NOTE: this changes the captured page, so approved-error-api-*.png must be
+    // re-recorded on the Linux CI baseline job (A167) — the shell layout differs.
     await page.route("**/v1/**", (route) =>
       route.fulfill({ status: 500, contentType: "application/json", body: "{}" })
     );
-    await page.goto("/ma");
+    await page.goto("/signals");
     await expect(page.getByTestId("context-fallback")).toBeVisible();
     await page.evaluate(async () => {
       await document.fonts.ready;
