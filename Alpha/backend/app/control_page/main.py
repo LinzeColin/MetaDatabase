@@ -11,7 +11,8 @@ from backend.app.workers.killswitch import KillSwitch
 
 
 def build_app():
-    from backend.app.control_page.dashboard_data import OpenDQuoteSource, OpenDRealFunds
+    from backend.app.control_page.dashboard_data import (
+        OpenDQuoteSource, OpenDRealFunds, YahooFxSource)
 
     factory = create_session_factory(init_engine())
     app = build_control_app(
@@ -24,6 +25,8 @@ def build_app():
         ),
         # 资金真相:读券商真实购买力,页面不再拿授权额度冒充现金(owner 2026-07-24 抓到)
         real_funds=OpenDRealFunds(),
+        # 实时汇率:每 30 秒刷新一次,页面显示汇率与取得时间(owner 2026-07-24 要求)
+        fx_source=YahooFxSource(ttl=30.0),
     )
     assert_no_trading_routes(app)  # 启动自检:出现交易端点直接拒绝启动
     return app

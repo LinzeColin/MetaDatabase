@@ -34,7 +34,7 @@ def build(sign: str, days: int, signed_at: str) -> dict:
         "capital": {
             "currency": "AUD",
             "max_managed_gross_exposure": 3000,
-            "fat_finger_max_single_order_ratio": 0.6,
+            "fat_finger_max_single_order_ratio": 0.9,   # owner 2026-07-24 书面放宽
             "max_orders_per_hour": 5,
             "max_open_positions": None,
         },

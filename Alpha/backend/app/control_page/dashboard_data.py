@@ -144,6 +144,39 @@ class OpenDRealFunds:
         return val
 
 
+class YahooFxSource:
+    """实时汇率 AUD→USD 只读源(Yahoo v8 公开行情 AUDUSD=X,30 秒缓存)。
+
+    取不到就返回 (None, None) → 调用方回落契约固定口径 0.65 并在页面如实标注,绝不编汇率。
+    """
+
+    def __init__(self, ttl: float = 30.0) -> None:
+        self._ttl = ttl
+        self._cache: tuple[float, Optional[float], Optional[datetime]] | None = None
+
+    def rate(self) -> tuple[Optional[float], Optional[datetime]]:
+        if self._cache and time.monotonic() - self._cache[0] < self._ttl:
+            return self._cache[1], self._cache[2]
+        rate: Optional[float] = None
+        at: Optional[datetime] = None
+        try:
+            from backend.app.backtest.data_sources import _http_json
+            js = _http_json(
+                "https://query1.finance.yahoo.com/v8/finance/chart/AUDUSD=X"
+                "?range=1d&interval=1m", timeout=8, retries=1)
+            meta = js["chart"]["result"][0]["meta"]
+            rate = float(meta["regularMarketPrice"])
+            ts = meta.get("regularMarketTime")
+            at = (datetime.fromtimestamp(int(ts), tz=timezone.utc) if ts
+                  else datetime.now(timezone.utc))
+            if not (0.3 < rate < 1.5):      # 明显离谱的值宁可不用
+                rate, at = None, None
+        except Exception:
+            rate, at = None, None
+        self._cache = (time.monotonic(), rate, at)
+        return rate, at
+
+
 def _frozen_baseline_usd(runtime_dir: Path, funded_usd: float, *, enabled: bool) -> float:
     """盈亏基准 = 首次观测到的真实到位资金,落盘冻结。
 
@@ -395,9 +428,19 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
                    reports_dir: str | Path = "reports/paper_3day",
                    runtime_dir: str | Path = "runtime",
                    real_power_usd: Optional[float] = None,
+                   fx_source=None,
                    now: Optional[datetime] = None) -> dict:
     """聚合看盘页全部数据(纯只读)。所有金额人话口径:管理切片 = 3000 澳元。"""
     now = now or datetime.now(timezone.utc)
+    # 实时汇率(owner 2026-07-24 要求):取到就用真汇率,取不到回落契约固定口径并如实标注
+    fx_live, fx_at = (None, None)
+    if fx_source is not None:
+        try:
+            fx_live, fx_at = fx_source.rate()
+        except Exception:
+            fx_live, fx_at = None, None
+    if fx_live:
+        fx_aud_usd = float(fx_live)
     capital_usd = capital_aud * fx_aud_usd
 
     # ---------- 数据库事实 ----------
@@ -680,7 +723,12 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
                    "server": "新加坡节点"},
         "meta": {
             "updated_at_syd": f"{now.astimezone(SYD):%m月%d日 %H:%M:%S}",
-            "fx_aud_usd": fx_aud_usd,
-            "note_fx": "美元→澳元按固定口径 0.65 折算(与契约资金常量一致)",
+            "fx_aud_usd": round(fx_aud_usd, 6),
+            "fx_live": bool(fx_live),
+            "fx_at_syd": (f"{fx_at.astimezone(SYD):%H:%M:%S}" if fx_at else ""),
+            "note_fx": (f"实时汇率 1 澳元 = {fx_aud_usd:.4f} 美元 · 更新于 "
+                        f"{fx_at.astimezone(SYD):%H:%M:%S}(悉尼,每 30 秒刷新)"
+                        if fx_live and fx_at else
+                        "实时汇率暂不可用,按契约固定口径 0.65 折算(如实标注)"),
         },
     }

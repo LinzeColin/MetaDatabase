@@ -29,6 +29,7 @@ def build_control_app(
     session_factory=None,
     quotes=None,
     real_funds=None,
+    fx_source=None,
     reports_dir: str | Path = "reports/paper_3day",
     runtime_dir: str | Path = "runtime",
     fx_aud_usd: Optional[float] = None,
@@ -63,7 +64,7 @@ def build_control_app(
             session_factory=session_factory, heartbeats=heartbeats,
             kill_switch=kill_switch, quotes=quotes, fx_aud_usd=fx,
             reports_dir=reports_dir, runtime_dir=runtime_dir,
-            real_power_usd=power)
+            real_power_usd=power, fx_source=fx_source)
 
     @app.get("/")
     def dashboard():

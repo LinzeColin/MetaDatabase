@@ -38,7 +38,15 @@ def build_supervisor() -> Supervisor:
 def main() -> None:  # pragma: no cover - 长驻进程入口
     sup = build_supervisor()
     while True:
-        sup.check_once()
+        report = sup.check_once()
+        # 守护自身也要留痕:否则看门狗死了、页面照样"全绿",无人知晓(2026-07-24 owner 抓到)
+        try:
+            sup._hb.beat(
+                "supervisor", status="RUNNING",
+                detail=f"healthy={len(report.healthy)} stale={len(report.stale)} "
+                       f"missing={len(report.missing)}")
+        except Exception:
+            pass
         time.sleep(INTERVAL_SECONDS)
 
 

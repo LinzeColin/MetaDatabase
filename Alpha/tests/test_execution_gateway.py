@@ -231,7 +231,7 @@ def test_eleven_gates_all_green_allows_real(tmp_path, monkeypatch):
     auth = {
         "authorization_id": "AUTH-TEST-1", "owner": "Linze", "mode": "MICRO_LIVE",
         "capital": {"currency": "AUD", "max_managed_gross_exposure": 3000,
-                    "fat_finger_max_single_order_ratio": 0.6, "max_orders_per_hour": 5,
+                    "fat_finger_max_single_order_ratio": 0.9, "max_orders_per_hour": 5,
                     "max_open_positions": None},
         "markets": ["US_STOCK", "US_ETF"],
         "promotion_conditions": {"strategy_promotion_config_hash": sha256_of_file(promo),
@@ -270,7 +270,7 @@ def test_authorization_validator_rejects_tampering(tmp_path):
     good = {
         "authorization_id": "A", "owner": "Linze", "mode": "MICRO_LIVE",
         "capital": {"currency": "AUD", "max_managed_gross_exposure": 3000,
-                    "fat_finger_max_single_order_ratio": 0.6, "max_orders_per_hour": 5},
+                    "fat_finger_max_single_order_ratio": 0.9, "max_orders_per_hour": 5},
         "markets": ["US_STOCK"],
         "promotion_conditions": {"strategy_promotion_config_hash": sha256_of_file(promo),
                                  "auto_activate_on_all_green": True},

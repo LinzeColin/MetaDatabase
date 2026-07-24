@@ -71,8 +71,8 @@ def validate_authorization(
         reasons.append("capital.currency 必须为 AUD")
     if cap.get("max_managed_gross_exposure") != 3000:
         reasons.append("capital.max_managed_gross_exposure 必须为 3000")
-    if cap.get("fat_finger_max_single_order_ratio") != 0.6:
-        reasons.append("capital.fat_finger_max_single_order_ratio 必须为 0.6")
+    if cap.get("fat_finger_max_single_order_ratio") != 0.9:
+        reasons.append("capital.fat_finger_max_single_order_ratio 必须为 0.9")
     if cap.get("max_orders_per_hour") != 5:
         reasons.append("capital.max_orders_per_hour 必须为 5")
     if cap.get("max_open_positions", None) is not None:
