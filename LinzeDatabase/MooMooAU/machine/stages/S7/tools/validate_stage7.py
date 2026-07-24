@@ -215,8 +215,7 @@ def _validate_contracts(root: Path) -> list[str]:
         or not run.get("protected_oracles")
         or not any(
             "redispatch of failed f747ddcd, 9b15c4d5, bc0bfb3b, b922219f, "
-            "c860f388 or 9ca3b47e candidate"
-            in item
+            "c860f388 or 9ca3b47e candidate" in item
             for item in run.get("non_goals", [])
         )
         or "ordering_resolution" not in run
@@ -1456,8 +1455,7 @@ def _validate_evidence(root: Path) -> list[str]:
                 or sixth.get("public_failure", {}).get("failure_phase") != "PROCESSED_PLAN"
                 or sixth.get("public_failure", {}).get("installation_token_failure_class")
                 != "UNCLASSIFIED"
-                or sixth.get("public_failure", {}).get("aggregate_failure_class")
-                != "UNCLASSIFIED"
+                or sixth.get("public_failure", {}).get("aggregate_failure_class") != "UNCLASSIFIED"
                 or sixth.get("effects", {}).get("private_repository_new_commits") != 0
                 or sixth.get("effects", {}).get("private_repository_head_changed") is not False
                 or sixth.get("effects", {}).get("raw_ciphertext_creations") != "ZERO_OBSERVED"

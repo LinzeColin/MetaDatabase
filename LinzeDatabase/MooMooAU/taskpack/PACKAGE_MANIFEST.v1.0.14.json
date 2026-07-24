@@ -1689,8 +1689,8 @@
     },
     {
       "path": "machine/stages/S7/tools/validate_stage7.py",
-      "bytes": 81811,
-      "sha256": "50f5e1bd959506f940bb11e8701d948f9271b90f192a2c346ba284cdf8d902b5"
+      "bytes": 81783,
+      "sha256": "4b2220a1cbe42cd03a59dc261e188d68c7f275d4604b4fb3bd9e818f093aa174"
     },
     {
       "path": "machine/status/latest.json",
