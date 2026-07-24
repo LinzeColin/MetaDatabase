@@ -8,20 +8,20 @@
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
 fail closed。T0702 账本区分 1 次 Secret 前 context 拒绝与 11 次 protected first attempt；最终
-Raw-only Beta PASS。T0703 三个不同 exact-main protected attempt 1 的 authority 与 identity
+Raw-only Beta PASS。T0703 四个不同 exact-main protected attempt 1 的 authority 与 identity
 cleanup 均 PASS、M3 job 均 FAILED；后验只读核验观察到 private new commit、MooMooAU path write、
-Processed write、Gmail Trash 和 Timeline mutation 均为 0，GitHub rerun 为 0。第二次封闭失败
-边界为 `GITHUB_APP_TOKEN`，第三次进一步封闭为 `RESPONSE_SCOPE_REJECTED`。禁止把零副作用失败、
+Processed write、Gmail Trash 和 Timeline mutation 均为 0，GitHub rerun 为 0。第四次只公开
+`AGGREGATE_GATE`，不据 aggregate-only 输出声称精确线上根因。禁止把零副作用失败、
 恢复授权或 `--preflight`
 退出码 0 解释为 T0703、Stage 7、最终 Acceptance 或生产 PASS。
 
 当前精确 Run Contract 只授权 T0703：一份新受控 main 交付、一次新 candidate attempt 1、source
-mutation Budget 1、GitHub rerun 0。三个失败 head 均不得 redispatch。它复用 `moomooau-beta`
-Environment、八项 exact Secret name 和 Owner 已确认的 App/private data path；可选 token scope
-回显存在时必须精确匹配，repository 回显缺失时必须通过有界 installation repository probe，
-TTL 必须按有界 GitHub `Date` 校验。App token 失败只输出封闭
-`InstallationTokenFailureClass`，其他失败仍 hard fail。Raw 与 Processed recovery 后才允许 exact
-message Trash；不得进入 T0704 或任何更晚阶段。
+mutation Budget 1、GitHub rerun 0。四个失败 head 均不得 redispatch。它复用 `moomooau-beta`
+Environment、八项 exact Secret name 和 Owner 已确认的 App/private data path。空 protected
+classification/parser registry 时，无 parser profile 的决定优先生成显式可恢复 `SAFE_DEFERRED`；
+active parser profile 遇隔离 extraction 时仍 hard quarantine。aggregate failure 只输出封闭固定
+枚举，App-token 可选回显/probe/TTL 修复保持不变，其他失败仍 hard fail。Raw 与 Processed recovery
+后才允许 exact message Trash；不得进入 T0704 或任何更晚阶段。
 
 ## Beta protected bootstrap 契约
 

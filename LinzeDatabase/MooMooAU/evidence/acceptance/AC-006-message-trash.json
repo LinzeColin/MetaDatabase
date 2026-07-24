@@ -64,15 +64,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0703.json",
-      "evidence_sha256": "8c4568b8de528a3011e6a45f76ab75f7003841e243f54ccfdc8cc66d87b66351",
+      "evidence_sha256": "c6fa1fc1ee72a671e301bf287e9a3fd037e2541633334a23326ff8344e6dabd8",
       "final_claim_status": "NOT_RUN",
-      "reason": "All three protected M3 attempts failed with zero observed source mutation; no exact source message was moved to Trash.",
+      "reason": "All four protected M3 attempts failed with zero observed source mutation; no exact source message was moved to Trash.",
       "source_record_status": "BLOCKED",
       "task_id": "T0703"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-24T04:19:56Z",
+  "observed_at_utc": "2026-07-24T05:18:46Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

@@ -202,15 +202,16 @@ def _protected_m3_attempt_ledger(root: Path) -> dict[str, Any] | None:
     claims = ledger.get("claims", {})
     if (
         ledger.get("task_id") != "T0703"
-        or len(attempts) != 3
-        or [item.get("sequence") for item in attempts] != [1, 2, 3]
+        or len(attempts) != 4
+        or [item.get("sequence") for item in attempts] != [1, 2, 3, 4]
         or [item.get("workflow", {}).get("run_id") for item in attempts]
-        != [30060804854, 30063841144, 30066295809]
+        != [30060804854, 30063841144, 30066295809, 30068892160]
         or [item.get("workflow", {}).get("workflow_head_sha") for item in attempts]
         != [
             "f747ddcd2e5eab589802a0c545293cd6f275ca71",  # pragma: allowlist secret
             "9b15c4d5208429125c9ce2680cac4fbb408f65e0",  # pragma: allowlist secret
             "bc0bfb3bc60a5ad769b286bb7b4bcdfc1ac195e6",  # pragma: allowlist secret
+            "b922219fa80fd0f55e8dd0d100a87ced2a77b2b8",  # pragma: allowlist secret
         ]
         or any(item.get("workflow", {}).get("reruns") != 0 for item in attempts)
         or any(
@@ -267,7 +268,15 @@ def _validate_composition_for_state(
         validate_composition(
             root,
             verify_contract_cli=state.get("package_version")
-            not in {"1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11"},
+            not in {
+                "1.0.6",
+                "1.0.7",
+                "1.0.8",
+                "1.0.9",
+                "1.0.10",
+                "1.0.11",
+                "1.0.12",
+            },
         ),
     )
 
@@ -389,6 +398,7 @@ def _validate_stage6_evidence_transition(
         "1.0.9",
         "1.0.10",
         "1.0.11",
+        "1.0.12",
     } or versions != {"moomooau.stage6-evidence.v2"}:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
     # v1.0.5 itself remains Git-anchored. Its v1.0.6+ control successors are portable:

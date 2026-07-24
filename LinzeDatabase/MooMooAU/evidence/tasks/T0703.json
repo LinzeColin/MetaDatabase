@@ -1,10 +1,10 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0703-LOCAL-20260722",
+  "evidence_id": "S7-T0703-LOCAL-20260724",
   "stage_id": "S7",
   "task_id": "T0703",
   "stage_acceptance_id": "S7AC-003",
-  "observed_at_utc": "2026-07-24T04:19:56Z",
+  "observed_at_utc": "2026-07-24T05:18:46Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "record_status": "BLOCKED",
   "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
@@ -21,20 +21,22 @@
     {"id": "protected_m3_bootstrap_recovery_before_exact_trash_and_cleanup", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3.py and tests/tasks/test_t0703.py::test_t0703_protected_m3_bootstrap_recovers_processed_before_exact_trash_and_cleans"},
     {"id": "authorized_receipt_and_budget_one_run_contract_bound_entrypoint", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3_entrypoint.py, machine/stages/S7/contracts/run_contract.json, machine/stages/S7/tools/validate_stage7.py and tests/tasks/test_t0703.py"},
     {"id": "empty_protected_registries_force_recoverable_safe_deferred", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3.py, src/moomooau_archive/canary_runtime.py and tests/tasks/test_t0703.py::test_t0703_empty_protected_processing_registries_force_recoverable_safe_deferred"},
+    {"id": "empty_protected_registries_safe_defer_quarantined_attachment", "status": "PASS", "evidence_ref": "src/moomooau_archive/document_parser.py and tests/tasks/test_t0703.py::test_t0703_empty_protected_registries_safe_defer_quarantined_attachment"},
     {"id": "failed_protected_attempts_bound_as_zero_effect_lineage", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0703/attempt-ledger.json and machine/stages/S7/schemas/protected-m3-attempt-ledger-v1.schema.json"},
     {"id": "m3_metadata_quarantine_parity_and_closed_diagnostics", "status": "PASS", "evidence_ref": "src/moomooau_archive/canary_runtime.py, src/moomooau_archive/protected_m3_diagnostics.py and tests/tasks/test_t0703.py"},
     {"id": "m3_installation_token_failure_class_is_closed_and_public_safe", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3.py, src/moomooau_archive/protected_m3_diagnostics.py and tests/tasks/test_t0703.py::test_t0703_bootstrap_preserves_closed_installation_token_failure_class"},
+    {"id": "m3_aggregate_failure_class_is_closed_and_public_safe", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3_diagnostics.py, src/moomooau_archive/protected_m3_entrypoint.py and tests/tasks/test_t0703.py::test_t0703_failure_diagnostics_are_closed_public_safe_phases"},
     {"id": "optional_token_scope_echo_absence_requires_exact_repository_probe_and_server_date_ttl", "status": "PASS", "evidence_ref": "src/moomooau_archive/github_guard.py, src/moomooau_archive/http_transport.py and tests/tasks/test_t0204.py::test_t0204_accepts_optional_scope_echo_absence_after_exact_repository_probe"}
   ],
   "linked_final_acceptance": [
-    {"id": "AC-006", "status": "NOT_RUN", "reason": "All three protected M3 attempts failed with zero observed source mutation; no exact source message was moved to Trash."},
-    {"id": "AC-007", "status": "PARTIAL", "reason": "T0702 proved Raw remote recovery, while all three M3 attempts produced zero observed Processed write and zero Gmail Trash mutation."},
-    {"id": "AC-026", "status": "PARTIAL", "reason": "Three exact protected M3 attempts ran and failed closed with zero observed effects; the third exposed only RESPONSE_SCOPE_REJECTED, and one new exact-main optional-token-echo recovery candidate attempt is authorized."}
+    {"id": "AC-006", "status": "NOT_RUN", "reason": "All four protected M3 attempts failed with zero observed source mutation; no exact source message was moved to Trash."},
+    {"id": "AC-007", "status": "PARTIAL", "reason": "T0702 proved Raw remote recovery, while all four M3 attempts produced zero observed Processed write and zero Gmail Trash mutation."},
+    {"id": "AC-026", "status": "PARTIAL", "reason": "Four exact protected M3 attempts ran and failed closed with zero observed effects; the fourth reached only AGGREGATE_GATE, and one new exact-main safe-deferred aggregate recovery candidate attempt is authorized."}
   ],
   "production_oracles": [
-    {"id": "PROTECTED_M3_DETERMINISTIC_EVIDENCE", "status": "FAILED", "reason": "Three exact-main protected attempt-1 runs passed authority and cleanup but failed before any observed private commit or Gmail Trash mutation; no failed head can be rerun or redispatched."}
+    {"id": "PROTECTED_M3_DETERMINISTIC_EVIDENCE", "status": "FAILED", "reason": "Four exact-main protected attempt-1 runs passed authority and cleanup but failed with zero observed private commit or Gmail Trash mutation; the fourth reached AGGREGATE_GATE and no failed head can be rerun or redispatched."}
   ],
-  "blockers": ["PROTECTED_M3_OPTIONAL_TOKEN_ECHO_RECOVERY_CANDIDATE_NOT_RUN"],
+  "blockers": ["PROTECTED_M3_SAFE_DEFERRED_AGGREGATE_RECOVERY_CANDIDATE_NOT_RUN"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "Deliver the exact optional-token-echo recovery candidate to main and execute one new-candidate attempt-1 Budget-1 M3 Canary; never rerun or redispatch any failed head, and materialize evidence only from the aggregate protected receipt."
+  "next_action": "Deliver the exact safe-deferred aggregate recovery candidate to main and execute one new-candidate attempt-1 Budget-1 M3 Canary; never rerun or redispatch any failed head, and materialize evidence only from the aggregate protected receipt."
 }

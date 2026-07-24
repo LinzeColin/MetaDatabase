@@ -676,6 +676,15 @@ class StatementParser:
                 fallback_version,
                 None,
             )
+        if profile is None:
+            return ParserOutcome(
+                ProcessingState.UNSUPPORTED,
+                ProcessingDisposition.SAFE_DEFERRED,
+                "PROTECTED_PARSER_PROFILE_NOT_AVAILABLE",
+                fallback_name,
+                fallback_version,
+                None,
+            )
         if extraction.state is ExtractionState.QUARANTINED:
             return ParserOutcome(
                 ProcessingState.QUARANTINED,
@@ -685,7 +694,7 @@ class StatementParser:
                 fallback_version,
                 None,
             )
-        if extraction.state is ExtractionState.UNSUPPORTED or profile is None:
+        if extraction.state is ExtractionState.UNSUPPORTED:
             return ParserOutcome(
                 ProcessingState.UNSUPPORTED,
                 ProcessingDisposition.SAFE_DEFERRED,

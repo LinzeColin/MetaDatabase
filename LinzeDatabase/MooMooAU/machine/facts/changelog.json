@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.0.12",
+    "date": "2026-07-24",
+    "summary": "固化 T0703 第四次 protected M3 在 AGGREGATE_GATE 的零观察副作用失败；不据聚合输出声称精确线上根因。静态契约验证并修复空分类/解析注册表下隔离附件可能错误产生 BLOCKED 的顺序冲突，并增加封闭聚合失败分类。四个失败头均禁止 rerun/redispatch，仅授权一个新候选 attempt 1。"
+  },
+  {
     "version": "1.0.11",
     "date": "2026-07-24",
     "summary": "固化 T0703 第三次 protected M3 的 RESPONSE_SCOPE_REJECTED 零副作用失败。按 GitHub 固定 OpenAPI 将 repositories/permissions 视为可选回显；缺少仓库回显时用 installation token 做最多两个结果的精确仓库范围探测，并按有界 GitHub Date 校验一小时 TTL。三个失败头均禁止 rerun/redispatch。"

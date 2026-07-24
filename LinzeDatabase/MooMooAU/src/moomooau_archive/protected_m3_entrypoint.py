@@ -25,6 +25,7 @@ from .canary_runtime import M3CanaryRunResult
 from .http_transport import StdlibHttpsTransport
 from .protected_m3 import M3_SECRET_NAMES, ProtectedM3Bootstrap
 from .protected_m3_diagnostics import (
+    ProtectedM3AggregateFailureClass,
     ProtectedM3Diagnostics,
     ProtectedM3FailurePhase,
     public_failure_payload,
@@ -63,10 +64,13 @@ _GATE_PATHS = (
     Path("machine/stages/S7/contracts/stage7_acceptance_contract.json"),
     Path("src/moomooau_archive/release_control.py"),
     Path("src/moomooau_archive/canary_runtime.py"),
+    Path("src/moomooau_archive/document_parser.py"),
     Path("src/moomooau_archive/protected_m3.py"),
     Path("src/moomooau_archive/protected_m3_diagnostics.py"),
     Path("tests/tasks/test_t0703.py"),
 )
+_PRIOR_FAILED_ATTEMPTS = 4
+_CUMULATIVE_DISPATCHES_AFTER_SUCCESS = 5
 _COMMIT = re.compile(r"^[0-9a-f]{40}$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _POSITIVE_INTEGER = re.compile(r"^[1-9][0-9]*$")
@@ -308,7 +312,7 @@ def execute_protected(
     active_diagnostics.enter(ProtectedM3FailurePhase.BETA_BINDING)
     predecessors = _load_beta_predecessors(project_root)
     active_diagnostics.enter(ProtectedM3FailurePhase.PRIOR_ATTEMPT_BINDING)
-    if _load_prior_attempt_count(project_root) != 3:
+    if _load_prior_attempt_count(project_root) != _PRIOR_FAILED_ATTEMPTS:
         raise ProtectedM3EntrypointError("protected M3 prior-attempt lineage is invalid")
     active_diagnostics.enter(ProtectedM3FailurePhase.RUN_CONTRACT)
     if not _m3_authorized(project_root):
@@ -331,7 +335,11 @@ def execute_protected(
         result = runtime.run()
     ended_at = _utc_now(now)
     active_diagnostics.enter(ProtectedM3FailurePhase.AGGREGATE_GATE)
-    observation = _m3_observation(result, started_at, ended_at)
+    try:
+        observation = _m3_observation(result, started_at, ended_at)
+    except ProtectedM3EntrypointError:
+        active_diagnostics.enter_aggregate_failure(_aggregate_failure_class(result))
+        raise
     gate = Stage7ReleaseGate().evaluate_completed_phase(observation)
     if gate.status is not GateStatus.READY:
         raise ProtectedM3EntrypointError("protected M3 aggregate gate is blocked")
@@ -491,7 +499,7 @@ def _load_prior_attempt_count(project_root: Path) -> int:
     if (
         ledger.get("task_id") != "T0703"
         or not isinstance(attempts, list)
-        or len(attempts) != 3
+        or len(attempts) != _PRIOR_FAILED_ATTEMPTS
         or not isinstance(policy, dict)
         or not isinstance(claims, dict)
     ):
@@ -529,8 +537,8 @@ def _load_prior_attempt_count(project_root: Path) -> int:
             raise ProtectedM3EntrypointError("protected M3 prior attempt is not repair-eligible")
         workflows.append(workflow)
     if (
-        len({item.get("workflow_head_sha") for item in workflows}) != 3
-        or len({item.get("run_id") for item in workflows}) != 3
+        len({item.get("workflow_head_sha") for item in workflows}) != _PRIOR_FAILED_ATTEMPTS
+        or len({item.get("run_id") for item in workflows}) != _PRIOR_FAILED_ATTEMPTS
         or policy.get("same_head_rerun_allowed") is not False
         or policy.get("failed_head_redispatch_allowed") is not False
         or policy.get("repaired_exact_main_candidate_dispatch_allowed") is not True
@@ -541,7 +549,7 @@ def _load_prior_attempt_count(project_root: Path) -> int:
         or claims.get("s7ac_003_passed") is not False
     ):
         raise ProtectedM3EntrypointError("protected M3 prior attempt is not repair-eligible")
-    return 3
+    return _PRIOR_FAILED_ATTEMPTS
 
 
 def _m3_authorized(project_root: Path) -> bool:
@@ -559,7 +567,7 @@ def _m3_authorized(project_root: Path) -> bool:
         and authorization.get("purpose") == "T0703_PROTECTED_M3_REPAIR_ONLY"
         and authorization.get("m3_authorized") is True
         and authorization.get("final_publication_authorized") is False
-        and authorization.get("prior_failed_attempts_exact") == 3
+        and authorization.get("prior_failed_attempts_exact") == _PRIOR_FAILED_ATTEMPTS
         and authorization.get("repair_candidate_dispatch_limit") == 1
         and budget.get("beta_message_budget") == 1
         and budget.get("m3_runs_maximum") == 1
@@ -569,8 +577,9 @@ def _m3_authorized(project_root: Path) -> bool:
         and budget.get("processed_writes_maximum") == 1
         and budget.get("protected_m3_dispatches_maximum") == 1
         and budget.get("protected_m3_reruns_maximum") == 0
-        and budget.get("prior_protected_m3_dispatches_exact") == 3
-        and budget.get("cumulative_protected_m3_dispatches_after_success_maximum") == 4
+        and budget.get("prior_protected_m3_dispatches_exact") == _PRIOR_FAILED_ATTEMPTS
+        and budget.get("cumulative_protected_m3_dispatches_after_success_maximum")
+        == _CUMULATIVE_DISPATCHES_AFTER_SUCCESS
         and budget.get("timeline_writes_maximum") == 0
         and budget.get("scheduled_runs_maximum") == 0
     )
@@ -618,6 +627,29 @@ def _m3_observation(
         maximum_live_timeline_assets=0,
         unresolved_failures=0,
     )
+
+
+def _aggregate_failure_class(
+    result: M3CanaryRunResult,
+) -> ProtectedM3AggregateFailureClass:
+    processed = result.processed_complete + result.processed_safe_deferred
+    if result.verified_candidates == 0:
+        return ProtectedM3AggregateFailureClass.NO_VERIFIED_CANDIDATE
+    if result.raw_archived != 1:
+        return ProtectedM3AggregateFailureClass.RAW_NOT_ARCHIVED
+    if result.processing_blocked > 0:
+        return ProtectedM3AggregateFailureClass.PROCESSING_BLOCKED
+    if processed != 1 or result.full_recovery_successes != 1:
+        return ProtectedM3AggregateFailureClass.PROCESSED_NOT_RECOVERED
+    if result.already_trashed > 0:
+        return ProtectedM3AggregateFailureClass.SOURCE_ALREADY_TRASHED
+    if result.failed_mutation_outcomes > 0 or result.halted_fail_closed:
+        return ProtectedM3AggregateFailureClass.MUTATION_FAILED
+    if result.mutation_calls != 1 or result.confirmed_trashed != 1:
+        return ProtectedM3AggregateFailureClass.MUTATION_NOT_CONFIRMED
+    if result.maximum_live_timeline_assets != 0:
+        return ProtectedM3AggregateFailureClass.TIMELINE_BOUNDARY_VIOLATION
+    return ProtectedM3AggregateFailureClass.RESULT_INVARIANT_REJECTED
 
 
 def _validated_project_root(project_root: Path) -> Path:
