@@ -520,7 +520,7 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     d = start_d
     while d < today_et:
         if d.weekday() < 5:
-            cash_d = capital_usd
+            cash_d = funded_usd   # 历史点与今日同基数(真实到位资金),否则会画出假跳崖
             pos_d: dict[str, int] = {}
             for e in execs:
                 if _utc(e.executed_at).astimezone(ET).date() <= d:
@@ -556,8 +556,8 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         run_days = (report.get("run", {}) or {}).get("trading_days", []) or []
         flat = sorted({day for day in run_days
                        if curve and day < curve[0]["date"]})
-        curve[:0] = [{"date": day, "equity_aud": round(capital_aud, 2)} for day in flat]
-    prev_equity = curve[-2]["equity_aud"] if len(curve) >= 2 else capital_aud
+        curve[:0] = [{"date": day, "equity_aud": round(baseline_aud, 2)} for day in flat]
+    prev_equity = curve[-2]["equity_aud"] if len(curve) >= 2 else baseline_aud
     today_pnl_aud = equity_aud - prev_equity
     exam = None
     if report:
