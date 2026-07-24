@@ -157,22 +157,21 @@ class YahooFxSource:
     def rate(self) -> tuple[Optional[float], Optional[datetime]]:
         if self._cache and time.monotonic() - self._cache[0] < self._ttl:
             return self._cache[1], self._cache[2]
+        # at = 我方实际抓取时刻(而非 Yahoo 的 regularMarketTime——后者对 AUDUSD 常延迟
+        # 半小时到一小时,会显示成"07:30 但现在 8:37"的陈旧时间。owner 2026-07-24 指出)。
+        fetched_at = datetime.now(timezone.utc)
         rate: Optional[float] = None
-        at: Optional[datetime] = None
         try:
             from backend.app.backtest.data_sources import _http_json
             js = _http_json(
                 "https://query1.finance.yahoo.com/v8/finance/chart/AUDUSD=X"
                 "?range=1d&interval=1m", timeout=8, retries=1)
-            meta = js["chart"]["result"][0]["meta"]
-            rate = float(meta["regularMarketPrice"])
-            ts = meta.get("regularMarketTime")
-            at = (datetime.fromtimestamp(int(ts), tz=timezone.utc) if ts
-                  else datetime.now(timezone.utc))
+            rate = float(js["chart"]["result"][0]["meta"]["regularMarketPrice"])
             if not (0.3 < rate < 1.5):      # 明显离谱的值宁可不用
-                rate, at = None, None
+                rate = None
         except Exception:
-            rate, at = None, None
+            rate = None
+        at = fetched_at if rate is not None else None
         self._cache = (time.monotonic(), rate, at)
         return rate, at
 
@@ -193,6 +192,11 @@ def _read_equity_history(runtime_dir: Path, max_points: int = 2000) -> list[dict
         except Exception:
             continue
     return out
+
+
+def _floor_30s(dt: datetime) -> datetime:
+    """把时间地板对齐到 30 秒边界(00 或 30 秒),使"刷新于"显示 7:30:00 / 7:30:30 这种整点。"""
+    return dt.replace(second=(dt.second // 30) * 30, microsecond=0)
 
 
 def _email_title(event_type: str) -> str:
@@ -504,17 +508,22 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     authorized_usd = capital_usd
     funded_known = real_power_usd is not None
     if funded_known:
-        # power 不含系统已买入的持仓,故加回自有持仓市值,使该基数在系统自己买卖时保持稳定
-        funded_usd = min(authorized_usd, float(real_power_usd) + mark_value_usd)
+        # 账户可用现金 = 券商购买力(owner 自有 TQQQ/SPCG 持仓不在 power 内)。
+        # 净值 = 可用现金 + 系统自己持仓的市值。power 已反映买入支出,故**绝不再叠加
+        # cash_flow**——否则把已花的钱重复扣一次(2026-07-24 修正的口径错误:系统买入后
+        # 净值会凭空缩水一大截)。
+        cash_usd = float(real_power_usd)
+        equity_usd = float(real_power_usd) + mark_value_usd
+        funded_usd = min(authorized_usd, equity_usd)   # 仅供"资金是否到位"提示
     else:
+        cash_usd = capital_usd + cash_flow_usd
+        equity_usd = cash_usd + mark_value_usd
         funded_usd = authorized_usd
-    cash_usd = funded_usd - mark_value_usd + cash_flow_usd if funded_known else \
-        capital_usd + cash_flow_usd
-    equity_usd = cash_usd + mark_value_usd
     equity_aud = equity_usd / fx_display
-    # owner 2026-07-24 二次裁定:"本金是动态的,所有数据都是动态的,不是 100 年后还固定 3000"。
-    # 可动用本金 = min(授权上限, 真实购买力 + 自有持仓),随账户实况浮动;敞口硬顶仍为 3000。
-    baseline_aud = funded_usd / fx_display
+    # 期初本金(本金基准)= 固定 3000 澳元,永不随可用资金浮动。owner 2026-07-24 三次确认:
+    # "本金基准是期初本金 3000,不能搞错"。资金未全额到位的差额直接体现为亏损,不改基准。
+    # (动态的是净值与目标线,不是这条基准线。)
+    baseline_aud = capital_aud
     total_pnl_aud = equity_aud - baseline_aud
     invested_usd = sum(p["market_value_usd"] for p in positions)
     exposure_pct = round(100.0 * (invested_usd / fx_display) / capital_aud, 1) if capital_aud else 0.0
@@ -598,7 +607,11 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     report = _latest_report(Path(reports_dir))
     # 报告里的合格交易日早于首笔订单的,是纯现金日 → 以本金为锚补齐曲线起点
     # 纸面阶段账本已于换帅夜归档,不再回填进实盘曲线(否则历史点与今日不同基数=假跳崖)
-    prev_equity = curve[-2]["equity_aud"] if len(curve) >= 2 else equity_aud
+    # 今日盈亏 = 现净值 − 今日首个快照点(读不到则 0,不与期初本金混淆)
+    _today = today_et.isoformat()
+    _today_open = next((p["equity_aud"] for p in curve
+                        if p.get("date") == _today and not p.get("live")), None)
+    prev_equity = _today_open if _today_open is not None else equity_aud
     today_pnl_aud = equity_aud - prev_equity
     exam = None
     if report:
@@ -725,9 +738,9 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             "fx_aud_usd": round(fx_display, 6),
             "fx_contract": round(fx_contract, 6),
             "fx_live": bool(fx_live),
-            "fx_at_syd": (f"{fx_at.astimezone(SYD):%H:%M:%S}" if fx_at else ""),
-            "note_fx": (f"实时汇率 1 澳元 = {fx_display:.4f} 美元 · 更新于 "
-                        f"{fx_at.astimezone(SYD):%H:%M:%S}(悉尼,每 30 秒刷新)"
+            "fx_at_syd": (f"{_floor_30s(fx_at).astimezone(SYD):%H:%M:%S}" if fx_at else ""),
+            "note_fx": (f"实时汇率 1 澳元 = {fx_display:.4f} 美元 · 刷新于 "
+                        f"{_floor_30s(fx_at).astimezone(SYD):%H:%M:%S}(悉尼,每 30 秒对齐刷新)"
                         if fx_live and fx_at else
                         f"实时汇率暂不可用,按契约固定口径 {fx_contract:.4f} 折算(如实标注)"),
         },

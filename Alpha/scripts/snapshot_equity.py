@@ -1,10 +1,9 @@
 """净值快照(每 15 分钟一次,由 alpha-equity-snapshot.timer 驱动)。
 
-owner 2026-07-24:"本金是动态的,所有的数据都是动态的,不是说 100 年后也是固定的 3000"。
-故本脚本按真实世界状态逐点记账,让净值曲线真正随时间生长:
+让净值曲线随时间生长:每 15 分钟按真实世界状态记一个净值点。
 
-  可动用本金 = min(授权上限 3000 澳元, 账户真实购买力 + 系统自有持仓市值)
-  净值       = 账户真实购买力 + 系统自有持仓市值(同一口径,故起点盈亏为 0)
+  期初本金(基准)= 固定 3000 澳元,永不浮动(owner:"本金基准是期初本金 3000,不能搞错")
+  净值           = 账户真实购买力 + 系统自有持仓市值(动态的是净值与目标线,不是基准)
 
 只读券商、只写自己的历史文件;永不下单。取不到券商数据就跳过本次快照,绝不编造点位。
 """
@@ -106,15 +105,15 @@ def main() -> int:
     fx, fx_live = fx_aud_usd()
 
     authorized_usd = capital_aud * fx_contract          # 授权上限(风控同款保守汇率)
-    funded_usd = min(authorized_usd, power + pos_usd)   # 可动用本金 = 取小
-    equity_usd = power + pos_usd
+    funded_usd = min(authorized_usd, power + pos_usd)   # 仅供"资金到位"提示
+    equity_usd = power + pos_usd                        # 净值 = 真实可用现金 + 系统持仓市值
 
     now = datetime.now(timezone.utc)
     point = {
         "at": now.isoformat(),
         "date": now.astimezone().strftime("%Y-%m-%d"),
         "equity_aud": round(equity_usd / fx, 2),
-        "baseline_aud": round(funded_usd / fx, 2),
+        "baseline_aud": round(capital_aud, 2),   # 期初本金固定 3000,不随可用资金浮动
         "equity_usd": round(equity_usd, 2),
         "funded_usd": round(funded_usd, 2),
         "power_usd": round(power, 2),
