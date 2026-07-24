@@ -22,9 +22,11 @@ import {
   Network,
   Route,
   Search,
+  Redo2,
   RotateCcw,
   Save,
   Star,
+  Undo2,
   X
 } from "lucide-react";
 import {
@@ -1830,6 +1832,22 @@ export default function Home() {
   const [semanticZoom, setSemanticZoom] = useState<SemanticZoom>("L1");
   // P2-11 响应式：窄屏（<1280px）右栏证据/详情收成可滑出抽屉，由此开关驱动。
   const [inspectorDrawerOpen, setInspectorDrawerOpen] = useState(false);
+  // P2-12 图谱骨架：探索回退栈（Undo/Redo，§C.2）。与面包屑（path）正交——
+  // 面包屑是「到根的路径」，此处是「访问顺序的线性历史 + 游标」（浏览器式）。
+  // 焦点每次经 reroot 漏斗（requestCenter/serverReroot/applyPathSubject/reset）
+  // 变化即记录（recordNav）；Undo/Redo 置 suppress 后走同一漏斗而不重复记录。
+  const [navTrail, setNavTrail] = useState<{ trail: { key: string; label: string }[]; cursor: number }>(
+    () => {
+      const seed = CLOUD_MODE
+        ? { key: SERVER_DEFAULT_FOCUS.id, label: SERVER_DEFAULT_FOCUS.label }
+        : { key: "nvidia", label: "NVIDIA" };
+      return { trail: [seed], cursor: 0 };
+    }
+  );
+  const suppressTrailRef = useRef(false);
+  // P2-12 图谱骨架：「按关系类型/方向展开」子菜单聚焦态（Bloom 骨架）。
+  const [expandMenuOpen, setExpandMenuOpen] = useState(false);
+  const [expandTypeFocus, setExpandTypeFocus] = useState<string | null>(null);
   const [asOf, setAsOf] = useState<TimelineKey>(ACTIVE_ANALYSIS_CONTEXT.defaultAsOf);
   const [transitionState, setTransitionState] = useState<TransitionState>("ready");
   const [groupListOpen, setGroupListOpen] = useState(false);
@@ -2099,6 +2117,30 @@ export default function Home() {
     () => new Map(graphViewNodes.map((item) => [item.key, item])),
     [graphViewNodes]
   );
+  // P2-12 图谱骨架：焦点节点 + 「按关系类型/方向展开」分组（Bloom 骨架）。
+  // 从焦点相邻边按 关系类型 × 方向（出/入）归组计数，供右栏展开子菜单。
+  const focusNodeKey = useMemo(
+    () => graphViewNodes.find((node) => node.zone === "focus")?.key ?? "",
+    [graphViewNodes]
+  );
+  const expandGroups = useMemo(() => {
+    const groups = new Map<
+      string,
+      { id: string; type: string; direction: "out" | "in"; count: number }
+    >();
+    for (const edge of graphViewEdges) {
+      const direction: "out" | "in" | null =
+        edge.from === focusNodeKey ? "out" : edge.to === focusNodeKey ? "in" : null;
+      if (!direction) {
+        continue;
+      }
+      const id = `${edge.label}__${direction}`;
+      const entry = groups.get(id) ?? { id, type: edge.label, direction, count: 0 };
+      entry.count += 1;
+      groups.set(id, entry);
+    }
+    return [...groups.values()].sort((a, b) => b.count - a.count);
+  }, [graphViewEdges, focusNodeKey]);
   const graphViewMode = isServerGraphRendered
     ? "server"
     : CLOUD_MODE
@@ -2408,6 +2450,7 @@ export default function Home() {
   function applyPathSubject(pathIndex: number) {
     const nextFocus = path[pathIndex];
     if (!nextFocus) return;
+    recordNav(nextFocus, localFocusLabel(nextFocus));
     applyWorkspaceState({
       ...workspaceState,
       focusKey: nextFocus,
@@ -2975,7 +3018,69 @@ export default function Home() {
     }));
   }, [productionGraph, searchQuery, serverSearchResults]);
 
+  // —— P2-12 探索回退栈（Undo/Redo，§C.2）——————————————————————————————
+  function localFocusLabel(key: string): string {
+    return key === "nvidia" ? "NVIDIA" : entityLabels[key as FocusKey] ?? key;
+  }
+
+  function recordNav(key: string, label: string) {
+    if (suppressTrailRef.current || !key) {
+      return;
+    }
+    setNavTrail((prev) => {
+      const current = prev.trail[prev.cursor];
+      if (current && current.key === key) {
+        return prev; // 同一焦点不重复记录
+      }
+      // 截断 redo 段后追加，游标落到末尾。
+      const trail = [...prev.trail.slice(0, prev.cursor + 1), { key, label }];
+      return { trail, cursor: trail.length - 1 };
+    });
+  }
+
+  function applyTrailFocus(entry: { key: string; label: string }) {
+    // Undo/Redo 走同一 reroot 漏斗，但抑制其记录（否则会把回退动作再记一次）。
+    suppressTrailRef.current = true;
+    if (CLOUD_MODE) {
+      serverReroot(entry.key, entry.label);
+    } else {
+      setCenter(entry.key as FocusKey);
+    }
+    suppressTrailRef.current = false;
+  }
+
+  // P2-12：minimap 点节点即换中心（走与主图一致的 reroot 漏斗，进回退栈）。
+  function rerootFromMinimap(node: { key: string; label: string; centerable: boolean }) {
+    if (!node.centerable) {
+      return;
+    }
+    if (CLOUD_MODE) {
+      serverReroot(node.key, node.label);
+    } else {
+      setCenter(node.key as FocusKey);
+    }
+  }
+
+  function navUndo() {
+    if (navTrail.cursor <= 0) {
+      return;
+    }
+    const target = navTrail.trail[navTrail.cursor - 1];
+    setNavTrail((prev) => ({ ...prev, cursor: Math.max(0, prev.cursor - 1) }));
+    applyTrailFocus(target);
+  }
+
+  function navRedo() {
+    if (navTrail.cursor >= navTrail.trail.length - 1) {
+      return;
+    }
+    const target = navTrail.trail[navTrail.cursor + 1];
+    setNavTrail((prev) => ({ ...prev, cursor: Math.min(prev.trail.length - 1, prev.cursor + 1) }));
+    applyTrailFocus(target);
+  }
+
   function requestCenter(nextFocus: string) {
+    recordNav(nextFocus, localFocusLabel(nextFocus));
     setTransitionState("loading");
     window.setTimeout(() => {
       if (!(nextFocus in scenarios)) {
@@ -3031,6 +3136,7 @@ export default function Home() {
   // 云模式显式换中心：目标是被选中的那个真实已发布实体本身。
   function serverReroot(entityId: string, label: string) {
     if (!CLOUD_MODE || !entityId) return;
+    recordNav(entityId, label);
     setTransitionState("loading");
     window.setTimeout(() => {
       setServerFocusEntityId(entityId);
@@ -3113,6 +3219,7 @@ export default function Home() {
       serverReroot(SERVER_DEFAULT_FOCUS.id, SERVER_DEFAULT_FOCUS.label);
       return;
     }
+    recordNav("nvidia", "NVIDIA");
     setFocusKey("nvidia");
     setSelectedKey("nvidia");
     setSelectedProductionNodeKey("");
@@ -4723,11 +4830,19 @@ export default function Home() {
               // 控制点取中点沿边法向偏移；方向由 from<to 决定，稳定且 SSR 安全
               // （坐标取整避免 hydration 漂移）。d 供 .edge/.edgeBeamGlow/光流共用。
               const edgeCurveD = curvedEdgePath(source.x, source.y, target.x, target.y, edge.from < edge.to);
+              // P2-12：展开子菜单聚焦某关系类型/方向时，匹配边高亮标记。
+              const edgeExpandDir =
+                edge.from === focusNodeKey ? "out" : edge.to === focusNodeKey ? "in" : null;
+              const expandActive =
+                Boolean(expandTypeFocus) &&
+                edgeExpandDir !== null &&
+                `${edge.label}__${edgeExpandDir}` === expandTypeFocus;
               return (
                 <g
                   className={`edgeGroup ${lensState}${hoverNear ? " hoverNear" : ""}${
                     isSunBeam ? " sunBeam" : ""
-                  }`}
+                  }${expandActive ? " expandActive" : ""}`}
+                  data-expand-active={expandActive ? "true" : undefined}
                   data-lens-state={lensState}
                   data-render-source={edge.source}
                   data-testid={`edge-group-${edge.from}-${edge.to}`}
@@ -4872,10 +4987,56 @@ export default function Home() {
             })}
         </svg>
 
+        {/* P2-12：minimap 大图定位缩略图（Bloom 骨架）。同 viewBox 等比缩小，
+            节点按 zone 着色、焦点金边；点节点即换中心。窄屏 CSS 隐藏。 */}
+        <div aria-label="图谱缩略定位" className="graphMinimap" data-testid="graph-minimap">
+          <svg
+            aria-hidden="true"
+            preserveAspectRatio="xMidYMid meet"
+            role="presentation"
+            viewBox="0 0 760 480"
+          >
+            <rect className="minimapFrame" x="3" y="3" width="754" height="474" rx="10" />
+            {graphViewNodes.map((mapNode) => (
+              <circle
+                className={`minimapNode${mapNode.zone === "focus" ? " isFocus" : ""}`}
+                cx={mapNode.x}
+                cy={mapNode.y}
+                data-testid={`minimap-node-${mapNode.key}`}
+                key={mapNode.key}
+                onClick={() => rerootFromMinimap(mapNode)}
+                r={mapNode.zone === "focus" ? 24 : mapNode.aggregateCount ? 20 : 15}
+                style={{ fill: `var(--orb-${mapNode.zone}-mid, #7aa2ff)` }}
+              />
+            ))}
+          </svg>
+        </div>
+
         <div className="historyControls" aria-label="历史恢复">
           <button data-testid="app-back" onClick={browserBack} type="button">
             <ChevronLeft size={16} aria-hidden="true" />
             <span>返回</span>
+          </button>
+          {/* P2-12：探索回退栈 Undo/Redo（§C.2）——与浏览器 Back 并行的画布内回退。 */}
+          <button
+            aria-label="撤销（回到上一个焦点）"
+            data-testid="graph-undo"
+            disabled={navTrail.cursor <= 0}
+            onClick={navUndo}
+            title="撤销探索"
+            type="button"
+          >
+            <Undo2 size={16} aria-hidden="true" />
+          </button>
+          <button
+            aria-label="重做（前进到下一个焦点）"
+            data-testid="graph-redo"
+            disabled={navTrail.cursor >= navTrail.trail.length - 1}
+            onClick={navRedo}
+            title="重做探索"
+            type="button"
+          >
+            <Redo2 size={16} aria-hidden="true" />
           </button>
         </div>
 
@@ -5379,6 +5540,62 @@ export default function Home() {
             <span>回到 NVIDIA</span>
           </button>
         </div>
+
+        {/* P2-12：「按关系类型/方向展开」子菜单（Bloom 骨架）。从焦点相邻边按
+            关系类型 × 方向归组；选中即聚焦该类关系（图上高亮匹配边）。 */}
+        <section
+          className="expandMenu"
+          data-expand-focus={expandTypeFocus ?? ""}
+          data-testid="expand-menu"
+        >
+          <button
+            aria-expanded={expandMenuOpen}
+            className="expandMenuToggle pressable"
+            data-testid="expand-menu-toggle"
+            disabled={expandGroups.length === 0}
+            onClick={() => setExpandMenuOpen((open) => !open)}
+            type="button"
+          >
+            <GitBranch size={15} aria-hidden="true" />
+            <span>按关系展开{expandGroups.length ? `（${expandGroups.length} 类）` : ""}</span>
+          </button>
+          {expandMenuOpen ? (
+            <ul className="expandMenuList" data-testid="expand-menu-list">
+              {expandGroups.map((group) => {
+                const active = expandTypeFocus === group.id;
+                return (
+                  <li key={group.id}>
+                    <button
+                      className={`expandTypeRow pressable${active ? " active" : ""}`}
+                      data-active={active}
+                      data-testid={`expand-type-${group.id}`}
+                      onClick={() => setExpandTypeFocus(active ? null : group.id)}
+                      type="button"
+                    >
+                      <span className="expandDir">{group.direction === "out" ? "→ 出向" : "← 入向"}</span>
+                      <span className="expandType">{group.type}</span>
+                      <em>{group.count}</em>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+          {expandTypeFocus ? (
+            <p className="expandFocusNote" data-testid="expand-focus-note">
+              已聚焦 {expandGroups.find((group) => group.id === expandTypeFocus)?.count ?? 0} 条「
+              {expandGroups.find((group) => group.id === expandTypeFocus)?.type}」关系
+              <button
+                className="expandFocusClear"
+                data-testid="expand-focus-clear"
+                onClick={() => setExpandTypeFocus(null)}
+                type="button"
+              >
+                清除
+              </button>
+            </p>
+          ) : null}
+        </section>
 
         <section
           className="nodeActionState"
