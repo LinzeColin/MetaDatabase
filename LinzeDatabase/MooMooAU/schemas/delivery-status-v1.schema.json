@@ -193,13 +193,44 @@
           "const": "Deliver the exact metadata-remediation T0703 candidate to main and execute exactly one new-candidate attempt-1 Budget-1 M3 Canary; do not rerun the failed head or enter T0704."
         }
       }
+    },
+    {
+      "title": "v1.0.10 two zero-effect M3 failures and App-installation recovery candidate authorized",
+      "properties": {
+        "package_version": {"const": "1.0.10"},
+        "overall_status": {
+          "const": "PROTECTED_M3_ATTEMPT_FAILED_REPAIR_AUTHORIZED"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0703_REPAIR_CANDIDATE_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Deliver the exact App-installation recovery T0703 candidate to main and execute exactly one new-candidate attempt-1 Budget-1 M3 Canary; do not rerun or redispatch either failed head, and do not enter T0704."
+        }
+      }
     }
   ],
   "properties": {
     "schema_version": {"const": "moomooau.delivery-status.v1"},
     "status_model_version": {"const": "moomooau.delivery-status-model.v3"},
     "package_version": {
-      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9"],
+      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10"],
       "description": "Coupled by the root oneOf to the exact historical RMD state or current authorized T0703 pre-execution state."
     },
     "status_as_of_utc": {"type": "string", "format": "date-time"},

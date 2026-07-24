@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
+from .github_guard import InstallationTokenFailureClass
+
 FAILURE_TAXONOMY_VERSION = "moomooau.protected-m3-failure-taxonomy.v1"
 
 
@@ -49,18 +51,35 @@ class ProtectedM3FailurePhase(StrEnum):
 
 @dataclass(slots=True, repr=False)
 class ProtectedM3Diagnostics:
-    """Retain only the latest closed-enum operation phase."""
+    """Retain only the latest closed-enum phase and App-token failure class."""
 
     _phase: ProtectedM3FailurePhase = ProtectedM3FailurePhase.ENTRYPOINT
+    _installation_token_failure_class: InstallationTokenFailureClass = (
+        InstallationTokenFailureClass.UNCLASSIFIED
+    )
 
     @property
     def phase(self) -> ProtectedM3FailurePhase:
         return self._phase
 
+    @property
+    def installation_token_failure_class(self) -> InstallationTokenFailureClass:
+        return self._installation_token_failure_class
+
     def enter(self, phase: ProtectedM3FailurePhase) -> None:
         if not isinstance(phase, ProtectedM3FailurePhase):
             raise TypeError("protected M3 diagnostic phase is invalid")
         self._phase = phase
+        self._installation_token_failure_class = InstallationTokenFailureClass.UNCLASSIFIED
+
+    def enter_installation_token_failure(
+        self,
+        failure_class: InstallationTokenFailureClass,
+    ) -> None:
+        if not isinstance(failure_class, InstallationTokenFailureClass):
+            raise TypeError("installation token failure class is invalid")
+        self._phase = ProtectedM3FailurePhase.GITHUB_APP_TOKEN
+        self._installation_token_failure_class = failure_class
 
     def __repr__(self) -> str:
         return "ProtectedM3Diagnostics(phase=<public-safe-enum>)"
@@ -77,6 +96,7 @@ def public_failure_payload(diagnostics: ProtectedM3Diagnostics) -> dict[str, obj
         "status": "BLOCKED",
         "reason_code": phase.reason_code,
         "failure_phase": phase.value,
+        "installation_token_failure_class": (diagnostics.installation_token_failure_class.value),
         "diagnostic_taxonomy": FAILURE_TAXONOMY_VERSION,
         "exact_root_cause_claimed": False,
         "production_health_claimed": False,

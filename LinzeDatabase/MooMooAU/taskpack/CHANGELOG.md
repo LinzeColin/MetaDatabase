@@ -1,5 +1,22 @@
 # Taskpack Changelog
 
+## 1.0.10 — 2026-07-24
+
+固化 T0703 第二个 exact-main attempt 的零观察副作用失败，并在 Owner 确认 App 安装与 private 仓
+链接后只授权一个全新恢复候选。
+
+- 绑定 PR #102、main `9b15c4d5…`、workflow run `30063841144`、authority PASS、M3 FAILED、
+  identity cleanup PASS 与 rerun 0；
+- 公开失败边界为 `GITHUB_APP_TOKEN`；旧 M3 v1 未输出安全 installation-token failure class，
+  因此不声称更精确根因；
+- 后验只读核验观察到 private commit 0、MooMooAU 路径写入 0、Gmail Trash 新增消息 0、
+  source/Timeline/schedule mutation 0；
+- Owner 随后确认 MooMooAU GitHub App 已安装并链接唯一 private 数据仓；
+- M3 现与 T0702 一样只保留封闭 `InstallationTokenFailureClass`；公开 payload 不含 App、
+  installation、Secret、邮箱字段或 private 仓标识；
+- 两个失败 head 均禁止 rerun/redispatch；只允许一份新 exact candidate main 交付和一次
+  attempt-1 Budget-1 dispatch；T0704、Timeline、GA、schedule 与最终发布继续为 0/未授权。
+
 ## 1.0.9 — 2026-07-24
 
 固化 T0703 首次 protected M3 的零观察副作用失败，并只授权一个新修复候选。
