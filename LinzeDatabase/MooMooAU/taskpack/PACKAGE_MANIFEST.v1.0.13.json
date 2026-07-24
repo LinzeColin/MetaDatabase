@@ -744,8 +744,8 @@
     },
     {
       "path": "machine/acceptance/evidence.py",
-      "bytes": 30994,
-      "sha256": "048f0fb6c8b40de78893d98afdbff175ddff35d1cbd8fe4d6e20288a11e5de3f"
+      "bytes": 31229,
+      "sha256": "a1f201047cd83a4e43bc7d7aca14324c8e105ab94fb2839b35c71bc5881c6b6c"
     },
     {
       "path": "machine/acceptance/schemas/acceptance-evidence-v1.schema.json",
@@ -2844,8 +2844,8 @@
     },
     {
       "path": "tests/remediation/test_rmd06.py",
-      "bytes": 17370,
-      "sha256": "619eff9901c24303a6fec073a50936ec68cbf21f9d48d26bf0e9b9cf71d5a6ef"
+      "bytes": 17428,
+      "sha256": "e51900c1bfb90d3bf26b78b8137b6d4c6769000849856705eb28f2fd05e04e59"
     },
     {
       "path": "tests/stage3_support.py",

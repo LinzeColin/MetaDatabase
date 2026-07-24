@@ -47,12 +47,17 @@
 ## 已验证
 
 - reconciliation 单元与端到端 task oracle：26 passed；scoped Ruff 与 strict mypy：PASS。
+- clean/shallow checkout 已独立复现并修复：Acceptance remediation base 仅在
+  `SOURCE_PROVENANCE.v1.0.13.json` 的 exact 双 pin 与 `EXACT_PIN_ONLY` 约束完全匹配时允许
+  portable fallback；完整 Git 仓库仍强制 ordinary ancestor gate。
+- 当前 task/remediation 全集 340 passed；Acceptance portable-pin 定向测试、Delivery status
+  deterministic rebuild/schema 与 package manifest 631-file check 均 PASS。
 - Attempt ledger JSON Schema：PASS。
 - Acceptance 34 records 已按第五次失败 lineage 确定性重建；final PASS 0/34，external effects 0。
 - Delivery status deterministic rebuild/schema：PASS。
 - Governance facts deterministic rebuild/check：PASS。
-- Stage 0–7 cumulative preflight、完整测试、package manifest、publication、SBOM、Secret scan、
-  dependency audit 与云端 PR/main CI 尚待本候选最终执行。
+- publication、SBOM、Secret scan、dependency audit 已 PASS；新候选云端 PR/main CI 与
+  protected reconciliation 尚待执行。
 
 ## Git 与下一步
 
@@ -60,7 +65,9 @@
 - branch：`codex/moomooau-t0703-unknown-mutation-reconcile`
 - base：`589cebacce6aea0d6b0c34780fc4e8f23bbc4b9d`（仅新增 EEI PR #107；
   MooMooAU acceptance remediation lineage 仍绑定第五次 attempt 的 `c860f388…`）
-- 当前修复候选尚未 commit/push/PR/merge/dispatch。
-- 下一步：完成 v1.0.13 package 与全量门禁；受控 PR 合入 main；核验 exact-main CI 与
-  Environment；只 dispatch 新 main SHA attempt 1 一次。成功后独立证明 Gmail Trash aggregate
-  与 private head/tree 均无新增，并只固化 T0703 receipt，不进入 T0704；失败则禁止 rerun。
+- v1.0.13 首个候选 `e643d032…` 已 push 并建立 PR #108；其 cloud shallow checkout 暴露
+  Acceptance portable pin 仍停在旧 RMD-06 常量，当前最小修复正在同一 PR 上完成。
+- 下一步：以新 commit 触发 PR #108 全新 CI（不 rerun 旧 run）；全绿后受控合入 main并核验
+  exact-main CI 与 Environment；只 dispatch 新 main SHA attempt 1 一次。成功后独立证明 Gmail
+  Trash aggregate 与 private head/tree 均无新增，并只固化 T0703 receipt，不进入 T0704；
+  失败则禁止 rerun。
