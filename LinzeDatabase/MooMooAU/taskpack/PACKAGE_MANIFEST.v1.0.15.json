@@ -1754,8 +1754,8 @@
     },
     {
       "path": "machine/tools/validate_package.py",
-      "bytes": 30226,
-      "sha256": "9365e69d6e0d4f0993d41645ffdb51592e4fcfbdc114708177d1a6096084df1c"
+      "bytes": 30262,
+      "sha256": "7c1310f45ba846d49365ad6b487a84af5ea6b8355d1f878264986f90135a409c"
     },
     {
       "path": "machine/tools/validate_production_composition.py",

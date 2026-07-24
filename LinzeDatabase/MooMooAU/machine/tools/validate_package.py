@@ -185,7 +185,8 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or m3_receipt.get("task_id") != "T0703"
         or m3_receipt.get("observed_at_utc") != "2026-07-24T09:20:08Z"
         or receipt_control.get("pull_request_number") != 110
-        or receipt_control.get("merge_commit_sha") != "83fec6161d5cd80c62f3553d6332c0113ef5a514"
+        or receipt_control.get("merge_commit_sha")
+        != "83fec6161d5cd80c62f3553d6332c0113ef5a514"  # pragma: allowlist secret
         or receipt_control.get("workflow_run_id") != 30081901453
         or receipt_control.get("workflow_head_sha") != receipt_control.get("merge_commit_sha")
         or receipt_control.get("workflow_attempt") != 1
