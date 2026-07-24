@@ -2209,8 +2209,8 @@
     },
     {
       "path": "src/moomooau_archive/protected_m3_entrypoint.py",
-      "bytes": 25916,
-      "sha256": "1ffcd08bf4891fc8c811b6e5d24b1ecde5afe35129e27d1eb8238a69f45e5949"
+      "bytes": 25975,
+      "sha256": "811aecc45241874563e0f5af1430c13a598bbe32823745e11afe6fcec52d9898"
     },
     {
       "path": "src/moomooau_archive/public_inventory.py",
@@ -3019,8 +3019,8 @@
     },
     {
       "path": "tests/tasks/test_t0703.py",
-      "bytes": 22636,
-      "sha256": "042245fca1f81accca662294ef924004f98e8c88b0b7de8ce92b3933adbf96f0"
+      "bytes": 22710,
+      "sha256": "2b9b2dd0f4b7f4da4d12e1d486aa1bcb68766e21fc3f2e8e0212a4ad0e167876"
     },
     {
       "path": "tests/tasks/test_t0704.py",

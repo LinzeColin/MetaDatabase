@@ -429,8 +429,9 @@ def test_t0703_protected_entrypoint_contract_is_authorized_and_receipt_bound() -
     assert contract["required_runner_environment"] == "github-hosted"
     assert contract["required_run_attempt"] == 1
     assert contract["required_confirmation"] == M3_CONFIRMATION
-    assert contract["required_secret_names"] == list(M3_SECRET_NAMES)
-    assert len(contract["required_secret_names"]) == 8
+    assert contract["required_protected_input_count"] == len(M3_SECRET_NAMES) == 8
+    assert contract["protected_input_values_disclosed"] is False
+    assert "required_secret_names" not in contract
     assert contract["beta_receipt_sha256"] == beta_receipt_sha256(PROJECT_ROOT)
     assert contract["m3_gate_sha256"] == m3_gate_sha256(PROJECT_ROOT)
     assert contract["feature_invariants"] == {
