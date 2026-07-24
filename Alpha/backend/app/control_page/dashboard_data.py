@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -106,6 +107,63 @@ class OpenDQuoteSource:
                 qc.close()
         except Exception:
             return []
+
+
+class OpenDRealFunds:
+    """真实账户购买力只读源(短连即关;失败返回 None → 页面 fail-soft,绝不编造资金)。
+
+    只调 accinfo_query,拿不到就 None;永远不下单、不改单。owner 自有持仓不在此展示,
+    本类只回答"系统能动用多少钱"。
+    """
+
+    def __init__(self, acc_id: str = "", ttl: float = 60.0) -> None:
+        self._acc_id = acc_id or os.environ.get("ALPHA_REAL_ACC_ID", "")
+        self._ttl = ttl
+        self._cache: tuple[float, Optional[float]] | None = None
+
+    def power_usd(self) -> Optional[float]:
+        if self._cache and time.monotonic() - self._cache[0] < self._ttl:
+            return self._cache[1]
+        val: Optional[float] = None
+        if self._acc_id:
+            try:
+                from moomoo import (RET_OK, Currency, OpenSecTradeContext,
+                                    SecurityFirm, TrdEnv, TrdMarket)
+                tc = OpenSecTradeContext(filter_trdmarket=TrdMarket.US, host="127.0.0.1",
+                                         port=11111, security_firm=SecurityFirm.FUTUAU)
+                try:
+                    ret, df = tc.accinfo_query(trd_env=TrdEnv.REAL, acc_id=int(self._acc_id),
+                                               refresh_cache=True, currency=Currency.USD)
+                    if ret == RET_OK and df is not None and len(df):
+                        val = float(df.iloc[0]["power"])
+                finally:
+                    tc.close()
+            except Exception:
+                val = None
+        self._cache = (time.monotonic(), val)
+        return val
+
+
+def _frozen_baseline_usd(runtime_dir: Path, funded_usd: float, *, enabled: bool) -> float:
+    """盈亏基准 = 首次观测到的真实到位资金,落盘冻结。
+
+    不冻结的话:系统买入后购买力下降,基准跟着漂,盈亏永远显示 0,涨跌被抹平。
+    """
+    if not enabled:
+        return funded_usd
+    p = runtime_dir / "LIVE_START_CAPITAL.json"
+    try:
+        if p.exists():
+            return float(json.loads(p.read_text())["baseline_usd"])
+        runtime_dir.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps({
+            "baseline_usd": round(funded_usd, 2),
+            "frozen_at": datetime.now(timezone.utc).isoformat(),
+            "note": "实盘盈亏基准:首次观测到的真实到位资金(授权额度与账户购买力取小)",
+        }, ensure_ascii=False))
+    except Exception:
+        pass
+    return funded_usd
 
 
 def _email_title(event_type: str) -> str:
@@ -336,6 +394,7 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
                    fx_aud_usd: float = 0.65, capital_aud: float = 3000.0,
                    reports_dir: str | Path = "reports/paper_3day",
                    runtime_dir: str | Path = "runtime",
+                   real_power_usd: Optional[float] = None,
                    now: Optional[datetime] = None) -> dict:
     """聚合看盘页全部数据(纯只读)。所有金额人话口径:管理切片 = 3000 澳元。"""
     now = now or datetime.now(timezone.utc)
@@ -397,10 +456,26 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             "upl_pct": round(100.0 * upl / cost[sym], 2) if cost[sym] else 0.0,
         })
 
-    cash_usd = capital_usd + cash_flow_usd
+    # ---------- 资金真相(owner 2026-07-24 抓到:页面把"授权额度"当成"现金"显示) ----------
+    # 授权额度 = 契约上限 3000 澳元(≈1950 美元),那是"最多能用多少",不是账户里真有多少。
+    # 真实购买力从券商只读查得;二者取小才是系统真正能动的钱。取不到则 fail-soft 退回授权额度
+    # 并如实标注 funded_known=False,绝不假装知道。
+    authorized_usd = capital_usd
+    funded_known = real_power_usd is not None
+    if funded_known:
+        # power 不含系统已买入的持仓,故加回自有持仓市值,使该基数在系统自己买卖时保持稳定
+        funded_usd = min(authorized_usd, float(real_power_usd) + mark_value_usd)
+    else:
+        funded_usd = authorized_usd
+    # 盈亏基准冻结:首次进入实盘时把"真实到位资金"落盘,之后涨跌才算得出真盈亏
+    baseline_usd = _frozen_baseline_usd(Path(runtime_dir), funded_usd, enabled=funded_known)
+
+    cash_usd = funded_usd - mark_value_usd + cash_flow_usd if funded_known else \
+        capital_usd + cash_flow_usd
     equity_usd = cash_usd + mark_value_usd
     equity_aud = equity_usd / fx_aud_usd
-    total_pnl_aud = equity_aud - capital_aud
+    baseline_aud = baseline_usd / fx_aud_usd
+    total_pnl_aud = equity_aud - baseline_aud
     invested_usd = sum(p["market_value_usd"] for p in positions)
     exposure_pct = round(100.0 * (invested_usd / fx_aud_usd) / capital_aud, 1) if capital_aud else 0.0
 
@@ -556,11 +631,17 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             "equity_aud": round(equity_aud, 2),
             "capital_aud": capital_aud,
             "total_pnl_aud": round(total_pnl_aud, 2),
-            "total_pnl_pct": round(100.0 * total_pnl_aud / capital_aud, 2) if capital_aud else 0.0,
+            "total_pnl_pct": round(100.0 * total_pnl_aud / baseline_aud, 2) if baseline_aud else 0.0,
             "today_pnl_aud": round(today_pnl_aud, 2),
             "cash_usd": round(cash_usd, 2),
             "invested_usd": round(invested_usd, 2),
             "exposure_pct": exposure_pct,
+            # 资金真相三件套:授权上限 / 真实到位 / 缺口(未知则如实标 funded_known=False)
+            "authorized_usd": round(authorized_usd, 2),
+            "funded_usd": round(funded_usd, 2),
+            "funded_known": funded_known,
+            "funding_gap_usd": round(max(0.0, authorized_usd - funded_usd), 2),
+            "baseline_aud": round(baseline_aud, 2),
         },
         "curve": curve,
         "curve_skipped_days": skipped_days,

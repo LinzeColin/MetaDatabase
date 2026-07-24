@@ -175,6 +175,13 @@ table.wide{font-size:12.5px;min-width:1180px}
 table.wide th{background:#f7f8fa;padding:10px 10px;position:sticky;top:0;border-bottom:1px solid #e4e7ec}
 table.wide td{padding:11px 10px;border-top:1px solid #eef0f3}
 table.wide tr.live td{background:#fffdf3}
+/* 首列(策略名)横向滑动时钉住,否则滑到"年均收益率"就不知道在看哪条策略了 */
+table.wide th:first-child,table.wide td:first-child{position:sticky;left:0;z-index:2;
+  background:#fff;box-shadow:1px 0 0 #e4e7ec}
+table.wide th:first-child{background:#f7f8fa;z-index:3}
+table.wide tr.live td:first-child{background:#fffdf3}
+.scrollhint{font-size:11.5px;color:#8a93a5;margin:0 0 7px;display:flex;
+  align-items:center;gap:6px}
 table.wide .name{font-weight:700;color:#101828;min-width:150px}
 table.wide .wraptxt{min-width:180px;max-width:280px;white-space:normal;line-height:1.55;color:#3a4453}
 table.wide .verd{min-width:170px;max-width:260px;white-space:normal;line-height:1.55;color:#5a6472;font-size:12px}
@@ -272,7 +279,10 @@ def render_strategy_html(d: dict) -> str:
                 val = f"{val}<span class=livemark>● 现役</span>"
             tds += f"<td class={cls}>{val}</td>"
         trows += f"<tr class={'live' if live else ''}>{tds}</tr>"
-    table = (f"<div class=scroll><table class=wide><thead><tr>{thead}</tr></thead>"
+    hint = ("<div class=scrollhint>↔ 表格可左右滑动:共 "
+            f"{len(cols)} 列(月均收益率、<b>年均收益率</b>、最大回撤、回撤修复时间、"
+            "盈亏比、胜率等);策略名会固定在左侧不动。</div>")
+    table = (f"{hint}<div class=scroll><table class=wide><thead><tr>{thead}</tr></thead>"
              f"<tbody>{trows}</tbody></table></div>") if cols and trows else \
         "<div class=muted>研究史 CSV 暂不可读。</div>"
 
@@ -366,19 +376,21 @@ def render_dashboard_html(d: dict) -> str:
 <div class="banner {_esc(d['banner']['kind'])}">{_esc(d['banner']['text'])}</div>
 <div class=grid>
 <div class="card span2">
-  <h2>管理资金净值(澳元口径,本金 {hero['capital_aud']:,.0f})</h2>
+  <h2>管理资金净值(澳元口径,实际到位本金 {hero['baseline_aud']:,.0f})</h2>
   <div class=hero-num>{hero['equity_aud']:,.2f}</div>
   <div class=hero-sub>
     <span class="{_pnl_cls(total)}">累计 {_pnl_txt(total)}({hero['total_pnl_pct']:+.2f}%)</span>
     <span class="{_pnl_cls(today)}">今日 {_pnl_txt(today)}</span>
   </div>
-  {_svg_curve(d['curve'], hero['capital_aud'])}
+  {_svg_curve(d['curve'], hero['baseline_aud'])}
   <div class=kpis>
-    <span>现金 <b>{hero['cash_usd']:,.2f} 美元</b></span>
+    <span>账户可用现金 <b>{hero['cash_usd']:,.2f} 美元</b></span>
     <span>持仓市值 <b>{hero['invested_usd']:,.2f} 美元</b></span>
+    <span>授权上限 <b>{hero['authorized_usd']:,.2f} 美元</b></span>
     <span>敞口占上限 <b>{hero['exposure_pct']}%</b></span>
-    <span>{_esc(d['meta']['note_fx'])}</span>
   </div>
+  {f'<div class=verdict>💰 资金未全额到位:授权上限 {hero["authorized_usd"]:,.2f} 美元,账户实际可动用 {hero["funded_usd"]:,.2f} 美元,缺口 {hero["funding_gap_usd"]:,.2f} 美元。系统按<b>实际到位资金</b>下单与计算盈亏,绝不按授权额度虚报。</div>' if hero.get('funded_known') and hero['funding_gap_usd'] > 0.01 else ''}
+  {'' if hero.get('funded_known') else '<div class=verdict>⚠️ 暂时读不到券商真实购买力,以下金额按授权额度显示(如实标注,非账户实有)。</div>'}
   <div class=expo><i style="width:{min(100, hero['exposure_pct'])}%"></i></div>
 </div>
 <div class=card>

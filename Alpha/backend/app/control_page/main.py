@@ -11,7 +11,7 @@ from backend.app.workers.killswitch import KillSwitch
 
 
 def build_app():
-    from backend.app.control_page.dashboard_data import OpenDQuoteSource
+    from backend.app.control_page.dashboard_data import OpenDQuoteSource, OpenDRealFunds
 
     factory = create_session_factory(init_engine())
     app = build_control_app(
@@ -22,6 +22,8 @@ def build_app():
             host=os.environ.get("ALPHA_OPEND_HOST", "127.0.0.1"),
             port=int(os.environ.get("ALPHA_OPEND_PORT", "11111")),
         ),
+        # 资金真相:读券商真实购买力,页面不再拿授权额度冒充现金(owner 2026-07-24 抓到)
+        real_funds=OpenDRealFunds(),
     )
     assert_no_trading_routes(app)  # 启动自检:出现交易端点直接拒绝启动
     return app

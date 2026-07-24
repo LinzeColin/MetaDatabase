@@ -28,6 +28,7 @@ def build_control_app(
     ack_path: str | Path = "runtime/OWNER_AUTHORIZATION_ACK.json",
     session_factory=None,
     quotes=None,
+    real_funds=None,
     reports_dir: str | Path = "reports/paper_3day",
     runtime_dir: str | Path = "runtime",
     fx_aud_usd: Optional[float] = None,
@@ -52,10 +53,17 @@ def build_control_app(
     def _overview() -> dict:
         from backend.app.control_page.dashboard_data import build_overview
 
+        power = None
+        if real_funds is not None:
+            try:
+                power = real_funds.power_usd()
+            except Exception:
+                power = None          # fail-soft:读不到就如实标未知,绝不编造资金
         return build_overview(
             session_factory=session_factory, heartbeats=heartbeats,
             kill_switch=kill_switch, quotes=quotes, fx_aud_usd=fx,
-            reports_dir=reports_dir, runtime_dir=runtime_dir)
+            reports_dir=reports_dir, runtime_dir=runtime_dir,
+            real_power_usd=power)
 
     @app.get("/")
     def dashboard():
