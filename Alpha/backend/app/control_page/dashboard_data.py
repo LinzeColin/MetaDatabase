@@ -417,9 +417,11 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             fx_live, fx_at = fx_source.rate()
         except Exception:
             fx_live, fx_at = None, None
-    if fx_live:
-        fx_aud_usd = float(fx_live)
-    capital_usd = capital_aud * fx_aud_usd
+    # 口径分离:授权额度沿用风控的保守固定汇率(资金上限只紧不松,与 live_cycle 一致);
+    # 实时汇率只用于把美元资产折算成澳元净值显示。
+    fx_contract = fx_aud_usd
+    fx_display = float(fx_live) if fx_live else fx_aud_usd
+    capital_usd = capital_aud * fx_contract
 
     # ---------- 数据库事实 ----------
     intents, orders, execs, risks, outbox = {}, [], [], [], []
@@ -491,13 +493,13 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     cash_usd = funded_usd - mark_value_usd + cash_flow_usd if funded_known else \
         capital_usd + cash_flow_usd
     equity_usd = cash_usd + mark_value_usd
-    equity_aud = equity_usd / fx_aud_usd
+    equity_aud = equity_usd / fx_display
     # owner 2026-07-24 裁定:按长期稳定运行的逻辑,本金恒为授权的 3000 澳元;
     # 资金未全额到位的差额直接计入亏损,不把基准往下调来粉饰。
     baseline_aud = capital_aud
     total_pnl_aud = equity_aud - baseline_aud
     invested_usd = sum(p["market_value_usd"] for p in positions)
-    exposure_pct = round(100.0 * (invested_usd / fx_aud_usd) / capital_aud, 1) if capital_aud else 0.0
+    exposure_pct = round(100.0 * (invested_usd / fx_display) / capital_aud, 1) if capital_aud else 0.0
 
     # ---------- 目标进度条(owner 2026-07-24 指定口径) ----------
     # 本月应达本金 = 3000 × (1+当前策略月回报率)^(自 2026-07 起已过月数);
@@ -562,7 +564,7 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
                 mv_d += q * px
             if ok:
                 curve.append({"date": d.isoformat(),
-                              "equity_aud": round((cash_d + mv_d) / fx_aud_usd, 2)})
+                              "equity_aud": round((cash_d + mv_d) / fx_display, 2)})
             else:
                 skipped_days.append(d.isoformat())
         d += timedelta(days=1)
@@ -572,11 +574,7 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     # ---------- 考核卡 ----------
     report = _latest_report(Path(reports_dir))
     # 报告里的合格交易日早于首笔订单的,是纯现金日 → 以本金为锚补齐曲线起点
-    if report:
-        run_days = (report.get("run", {}) or {}).get("trading_days", []) or []
-        flat = sorted({day for day in run_days
-                       if curve and day < curve[0]["date"]})
-        curve[:0] = [{"date": day, "equity_aud": round(baseline_aud, 2)} for day in flat]
+    # 纸面阶段账本已于换帅夜归档,不再回填进实盘曲线(否则历史点与今日不同基数=假跳崖)
     prev_equity = curve[-2]["equity_aud"] if len(curve) >= 2 else equity_aud
     today_pnl_aud = equity_aud - prev_equity
     exam = None
@@ -701,7 +699,8 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
                    "server": "新加坡节点"},
         "meta": {
             "updated_at_syd": f"{now.astimezone(SYD):%m月%d日 %H:%M:%S}",
-            "fx_aud_usd": round(fx_aud_usd, 6),
+            "fx_aud_usd": round(fx_display, 6),
+            "fx_contract": round(fx_contract, 6),
             "fx_live": bool(fx_live),
             "fx_at_syd": (f"{fx_at.astimezone(SYD):%H:%M:%S}" if fx_at else ""),
             "note_fx": (f"实时汇率 1 澳元 = {fx_aud_usd:.4f} 美元 · 更新于 "
