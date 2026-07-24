@@ -24,7 +24,8 @@ import {
   Search,
   RotateCcw,
   Save,
-  Star
+  Star,
+  X
 } from "lucide-react";
 import {
   ACTIVE_ANALYSIS_CONTEXT,
@@ -1827,6 +1828,8 @@ export default function Home() {
   const [path, setPath] = useState<FocusKey[]>(["nvidia"]);
   const [activeLens, setActiveLens] = useState<LensKey>("all");
   const [semanticZoom, setSemanticZoom] = useState<SemanticZoom>("L1");
+  // P2-11 响应式：窄屏（<1280px）右栏证据/详情收成可滑出抽屉，由此开关驱动。
+  const [inspectorDrawerOpen, setInspectorDrawerOpen] = useState(false);
   const [asOf, setAsOf] = useState<TimelineKey>(ACTIVE_ANALYSIS_CONTEXT.defaultAsOf);
   const [transitionState, setTransitionState] = useState<TransitionState>("ready");
   const [groupListOpen, setGroupListOpen] = useState(false);
@@ -3322,6 +3325,7 @@ export default function Home() {
     <WorkspaceContextProvider value={workspaceContextValue}>
     <main
       className="workspace"
+      data-inspector-open={inspectorDrawerOpen}
       data-active-data-snapshot={analysisContext.dataSnapshot}
       data-active-lens={activeLens}
       data-active-model-version={analysisContext.modelVersion}
@@ -4926,8 +4930,20 @@ export default function Home() {
         id="evidence-center"
       >
         <div className="inspectorHeader">
-          <p className="eyebrow">证据中心</p>
-          <h2>关系路径</h2>
+          <div>
+            <p className="eyebrow">证据中心</p>
+            <h2>关系路径</h2>
+          </div>
+          {/* P2-11：窄屏抽屉态才出现的关闭钮（宽屏右栏常驻，此钮 CSS 隐藏）。 */}
+          <button
+            aria-label="收起证据栏"
+            className="inspectorDrawerClose pressable"
+            data-testid="inspector-drawer-close"
+            onClick={() => setInspectorDrawerOpen(false)}
+            type="button"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
         </div>
 
         <section
@@ -5436,6 +5452,27 @@ export default function Home() {
           </details>
         </div>
       </aside>
+
+      {/* P2-11：窄屏（<1280px）右栏收成抽屉时的浮动开关；宽屏 CSS 隐藏。
+          遮罩点击关闭；打开钮常驻右下（避开底部 dock）。 */}
+      <button
+        aria-expanded={inspectorDrawerOpen}
+        className="inspectorToggle pressable"
+        data-testid="inspector-drawer-toggle"
+        onClick={() => setInspectorDrawerOpen((open) => !open)}
+        type="button"
+      >
+        <FileSearch size={18} aria-hidden="true" />
+        <span>证据栏</span>
+      </button>
+      <button
+        aria-hidden={!inspectorDrawerOpen}
+        className="inspectorScrim"
+        data-testid="inspector-drawer-scrim"
+        onClick={() => setInspectorDrawerOpen(false)}
+        tabIndex={-1}
+        type="button"
+      />
     </main>
     </WorkspaceContextProvider>
   );
