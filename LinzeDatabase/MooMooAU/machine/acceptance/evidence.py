@@ -26,7 +26,7 @@ SUMMARY_SCHEMA: Final = Path("machine/acceptance/schemas/acceptance-summary-v1.s
 ORACLE_SCHEMA: Final = Path("machine/acceptance/schemas/oracle-observation-v1.schema.json")
 SUMMARY_PATH: Final = Path("evidence/acceptance/latest.json")
 PORTABLE_SOURCE_PROVENANCE: Final = Path("taskpack/SOURCE_PROVENANCE.v1.0.14.json")
-PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v13"
+PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v14"
 PORTABLE_PACKAGE_VERSION: Final = "1.0.14"
 CURRENT_MAINLINE_BASE_COMMIT: Final = (
     "9ca3b47eaaa75ef2f6e6650b41960d11545ed04e"  # pragma: allowlist secret

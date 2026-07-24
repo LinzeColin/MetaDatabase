@@ -384,6 +384,19 @@ def test_rmd06_shallow_acceptance_base_requires_the_exact_provenance_pin(
 
 
 def test_rmd06_package_and_acceptance_use_current_provenance_pins() -> None:
+    provenance = json.loads(
+        (PROJECT_ROOT / acceptance_evidence.PORTABLE_SOURCE_PROVENANCE).read_text(
+            encoding="utf-8"
+        )
+    )
+    assert (
+        provenance["schema_version"]
+        == acceptance_evidence.PORTABLE_SOURCE_PROVENANCE_SCHEMA
+    )
+    assert (
+        provenance["effective_package"]["version"]
+        == acceptance_evidence.PORTABLE_PACKAGE_VERSION
+    )
     assert package_validation.CANDIDATE_SNAPSHOT == {
         "repository": "LinzeColin/MetaDatabase",
         "mainline_base_commit": acceptance_evidence.CURRENT_MAINLINE_BASE_COMMIT,
