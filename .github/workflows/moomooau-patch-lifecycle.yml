@@ -118,7 +118,7 @@ jobs:
       - name: Scan policy closure without retaining a report
         run: |
           detect-secrets scan --all-files \
-            --exclude-lines 'baseline_commit|baseline_manifest_sha256|BASELINE_COMMIT|BASELINE_MANIFEST_SHA256|GOVERNANCE_PIN|failed_attempt_receipt_sha256|merge_commit_sha|workflow_head_sha|FAILED_BETA_RECEIPT_SHA256|"const": "[0-9a-f]{40}"' \
+            --exclude-lines 'baseline_commit|baseline_manifest_sha256|BASELINE_COMMIT|BASELINE_MANIFEST_SHA256|GOVERNANCE_PIN|failed_attempt_receipt_sha256|prior_failed_attempt_ledger_sha256|beta_receipt_sha256|m3_gate_sha256|merge_commit_sha|workflow_head_sha|FAILED_BETA_RECEIPT_SHA256|"const": "[0-9a-f]{40}"' \
             LinzeDatabase/MooMooAU/src/moomooau_archive/patch_lifecycle.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/stage7_ops.py \
             LinzeDatabase/MooMooAU/tests/tasks/test_t0708.py \

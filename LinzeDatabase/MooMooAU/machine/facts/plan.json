@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0703 第六次 PROCESSED_PLAN 零副作用失败，历史 label 重放候选已授权",
-  "phase": "T0703 历史 label state 零新增写入 reconciliation 执行准备",
-  "task": "交付从加密 Processed envelope 恢复历史 label state 的零写入 reconciliation；六个失败头不可 rerun/redispatch，新候选仅执行一次",
+  "stage": "RMD-06 T0703 受保护 PASS 已关闭，范围停止于 T0704 前",
+  "phase": "T0703/S7AC-003 成功回执闭合；全部 M3 权限已消耗",
+  "task": "完成 v1.0.15 证据交付并停止；T0704 需要新的显式 Run Contract",
   "owner": "Codex 开发线程"
 }

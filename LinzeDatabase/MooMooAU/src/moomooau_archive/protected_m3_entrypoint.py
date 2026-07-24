@@ -56,6 +56,7 @@ _M3_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0703/attempt-ledger.j
 _M3_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-m3-attempt-ledger-v1.schema.json"
 )
+_M3_SUCCESS_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0703/execution-receipt.json")
 _GATE_PATHS = (
     _BETA_RECEIPT_PATH,
     _BETA_RECEIPT_SCHEMA_PATH,
@@ -245,6 +246,7 @@ def execution_contract(project_root: Path) -> dict[str, object]:
     """Return the non-executing M3 contract and current explicit authority state."""
 
     root = _validated_project_root(project_root)
+    authorized = _m3_authorized(root)
     return {
         "schema_version": "moomooau.protected-m3-entrypoint-contract.v1",
         "mode": "CONTRACT_ONLY",
@@ -264,13 +266,15 @@ def execution_contract(project_root: Path) -> dict[str, object]:
         "beta_receipt_sha256": beta_receipt_sha256(root),
         "prior_attempt_ledger_path": _M3_ATTEMPT_LEDGER_PATH.as_posix(),
         "prior_failed_attempts": _load_prior_attempt_count(root),
+        "completion_receipt_path": _M3_SUCCESS_RECEIPT_PATH.as_posix(),
+        "completion_receipt_present": (root / _M3_SUCCESS_RECEIPT_PATH).is_file(),
         "same_head_rerun_allowed": False,
         "m3_gate_paths": [path.as_posix() for path in _GATE_PATHS],
         "m3_gate_sha256": m3_gate_sha256(root),
-        "m3_authorized": _m3_authorized(root),
+        "m3_authorized": authorized,
         "feature_invariants": {
             "processing_enabled": True,
-            "m3_enabled": True,
+            "m3_enabled": authorized,
             "timeline_enabled": False,
             "release_mutation_budget_ceiling": 1,
             "reconciliation_new_mutation_budget": 0,
@@ -607,6 +611,8 @@ def _load_prior_attempt_count(project_root: Path) -> int:
 
 def _m3_authorized(project_root: Path) -> bool:
     root = _validated_project_root(project_root)
+    if (root / _M3_SUCCESS_RECEIPT_PATH).exists():
+        return False
     try:
         contract = _load_object(root / _RUN_CONTRACT_PATH)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):

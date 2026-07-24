@@ -51,6 +51,10 @@ PROTECTED_M3_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0703/attempt
 PROTECTED_M3_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-m3-attempt-ledger-v1.schema.json"
 )
+PROTECTED_M3_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0703/execution-receipt.json")
+PROTECTED_M3_RECEIPT_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-m3-execution-receipt-v1.schema.json"
+)
 
 
 def _load(path: Path) -> Any:
@@ -79,6 +83,7 @@ def _select_transition_state(
     assurance_result: dict[str, Any],
     protected_beta_receipt: dict[str, Any] | None,
     protected_m3_attempt_ledger: dict[str, Any] | None,
+    protected_m3_receipt: dict[str, Any] | None,
 ) -> tuple[str, dict[str, Any]]:
     states = model.get("states")
     if not isinstance(states, dict) or set(states) != {
@@ -87,6 +92,7 @@ def _select_transition_state(
         "PROTECTED_BETA_ATTEMPT_FAILED",
         "PROTECTED_BETA_PASS_M3_AUTHORIZED",
         "PROTECTED_M3_REPAIR_AUTHORIZED",
+        "PROTECTED_M3_PASS_SCOPE_STOP",
     }:
         raise ValueError("delivery status transition states differ")
     if assurance_result.get("status") != "PASS":
@@ -95,9 +101,13 @@ def _select_transition_state(
         claims = protected_beta_receipt.get("claims", {})
         if claims.get("t0702_complete") is True and claims.get("s7ac_002_passed") is True:
             state_name = (
-                "PROTECTED_M3_REPAIR_AUTHORIZED"
-                if protected_m3_attempt_ledger is not None
-                else "PROTECTED_BETA_PASS_M3_AUTHORIZED"
+                "PROTECTED_M3_PASS_SCOPE_STOP"
+                if protected_m3_receipt is not None
+                else (
+                    "PROTECTED_M3_REPAIR_AUTHORIZED"
+                    if protected_m3_attempt_ledger is not None
+                    else "PROTECTED_BETA_PASS_M3_AUTHORIZED"
+                )
             )
         else:
             state_name = "PROTECTED_BETA_ATTEMPT_FAILED"
@@ -279,6 +289,59 @@ def _protected_m3_attempt_ledger(root: Path) -> dict[str, Any] | None:
     return cast(dict[str, Any], ledger)
 
 
+def _protected_m3_receipt(root: Path) -> dict[str, Any] | None:
+    path = root / PROTECTED_M3_RECEIPT_PATH
+    if not path.exists():
+        return None
+    schema_path = root / PROTECTED_M3_RECEIPT_SCHEMA_PATH
+    if (
+        not path.is_file()
+        or path.is_symlink()
+        or not schema_path.is_file()
+        or schema_path.is_symlink()
+    ):
+        raise ValueError("protected M3 receipt path is unsafe")
+    schema = _load(schema_path)
+    receipt = _load(path)
+    if list(
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(receipt)
+    ):
+        raise ValueError("protected M3 receipt violates its exact schema")
+    control = receipt.get("control", {})
+    public = receipt.get("public_result", {})
+    verification = receipt.get("independent_post_run_verification", {})
+    scope = receipt.get("scope_decision", {})
+    claims = receipt.get("claims", {})
+    if (
+        control.get("workflow_head_sha") != control.get("merge_commit_sha")
+        or control.get("prior_failed_attempt_ledger_sha256")
+        != _sha256(root / PROTECTED_M3_ATTEMPT_LEDGER_PATH)
+        or public.get("status") != "PROTECTED_M3_ZERO_MUTATION_RECONCILIATION_COMPLETED_NOT_FINAL"
+        or public.get("remote_recovery_one_hundred_percent") is not True
+        or public.get("current_run_source_mutation_budget") != 0
+        or public.get("prior_unknown_mutation_reconciled") is not True
+        or verification.get("private_repository_head_unchanged") is not True
+        or verification.get("private_repository_tree_unchanged") is not True
+        or verification.get("private_repository_path_counts_unchanged") is not True
+        or verification.get("gmail_trash_aggregate_delta") != 0
+        or verification.get("source_mutations") != 0
+        or scope.get("t0703_complete") is not True
+        or scope.get("t0704_authorized") is not False
+        or scope.get("further_m3_dispatch_allowed") is not False
+        or claims.get("t0703_complete") is not True
+        or claims.get("s7ac_003_passed") is not True
+        or claims.get("t0704_complete") is not False
+        or claims.get("production_health") is not False
+        or claims.get("final_acceptance") is not False
+        or claims.get("stage7_complete") is not False
+    ):
+        raise ValueError("protected M3 receipt does not prove the exact scope-stopped PASS")
+    return cast(dict[str, Any], receipt)
+
+
 def _assurance_result(root: Path) -> dict[str, Any]:
     try:
         return cast(
@@ -310,6 +373,7 @@ def _validate_composition_for_state(
                 "1.0.12",
                 "1.0.13",
                 "1.0.14",
+                "1.0.15",
             },
         ),
     )
@@ -435,6 +499,7 @@ def _validate_stage6_evidence_transition(
         "1.0.12",
         "1.0.13",
         "1.0.14",
+        "1.0.15",
     } or versions != {"moomooau.stage6-evidence.v2"}:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
     # v1.0.5 itself remains Git-anchored. Its v1.0.6+ control successors are portable:
@@ -463,11 +528,13 @@ def build_status(
     protected_receipt = _protected_beta_receipt(root)
     protected_attempt_ledger = _protected_beta_attempt_ledger(root)
     protected_m3_attempt_ledger = _protected_m3_attempt_ledger(root)
+    protected_m3_receipt = _protected_m3_receipt(root)
     state_name, state = _select_transition_state(
         model,
         _assurance_result(root) if assurance_result is None else assurance_result,
         protected_receipt,
         protected_m3_attempt_ledger,
+        protected_m3_receipt,
     )
 
     workflow_matrix = _load(root / WORKFLOW_MATRIX_PATH)
@@ -557,6 +624,8 @@ def build_status(
     observed_at.append(str(protected_attempt_ledger["observed_through_utc"]))
     if protected_m3_attempt_ledger is not None:
         observed_at.append(str(protected_m3_attempt_ledger["observed_through_utc"]))
+    if protected_m3_receipt is not None:
+        observed_at.append(str(protected_m3_receipt["observed_at_utc"]))
     formal_counts = Counter(task["status"] for task in tasks)
     if formal_counts != Counter({"completed": 7, "planned": 51}):
         raise ValueError("formal task status is not the inherited 7 completed / 51 planned state")
@@ -616,6 +685,7 @@ def build_status(
     failed_beta_state = state_name == "PROTECTED_BETA_ATTEMPT_FAILED"
     passed_beta_state = state_name == "PROTECTED_BETA_PASS_M3_AUTHORIZED"
     repair_m3_state = state_name == "PROTECTED_M3_REPAIR_AUTHORIZED"
+    passed_m3_state = state_name == "PROTECTED_M3_PASS_SCOPE_STOP"
     if failed_beta_state:
         if (
             protected_receipt is None
@@ -676,6 +746,27 @@ def build_status(
         production_workflow_runs = 0
         publication_status = "CONTROLLED_BETA_DELIVERY_NOT_FINAL"
         mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPT"
+    elif passed_m3_state:
+        if (
+            protected_receipt is None
+            or protected_m3_attempt_ledger is None
+            or protected_m3_receipt is None
+            or protected_executed != 3
+            or protected_passed != 3
+            or protected_failed != 0
+        ):
+            raise ValueError("protected M3 PASS state lacks its exact receipt and lineage")
+        production_reasons = [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0704_NOT_AUTHORIZED_IN_CURRENT_RUN",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+        ]
+        overall_status = "PROTECTED_M3_PASS_SCOPE_STOP_T0704_NOT_AUTHORIZED"
+        protected_status = "PARTIAL"
+        production_workflow_runs = 0
+        publication_status = "CONTROLLED_T0703_COMPLETED_NOT_FINAL"
+        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS"
     else:
         if protected_executed != 0 or protected_passed != 0 or protected_failed != 0:
             raise ValueError("pre-Beta state cannot contain protected Oracle execution")
@@ -717,6 +808,10 @@ def build_status(
     if protected_m3_attempt_ledger is not None:
         source_digests["protected_m3_attempt_ledger_sha256"] = _sha256(
             root / PROTECTED_M3_ATTEMPT_LEDGER_PATH
+        )
+    if protected_m3_receipt is not None:
+        source_digests["protected_m3_execution_receipt_sha256"] = _sha256(
+            root / PROTECTED_M3_RECEIPT_PATH
         )
 
     return {
@@ -777,6 +872,7 @@ def build_status(
                         if protected_m3_attempt_ledger is not None
                         else 0
                     )
+                    + (1 if protected_m3_receipt is not None else 0)
                     if protected_receipt is not None
                     else 0
                 ),

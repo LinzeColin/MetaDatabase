@@ -63,15 +63,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0703.json",
-      "evidence_sha256": "269592702a58cd61d087f5fbf9faeba8d1c9279ee12c962887dfac558114b8cc",
+      "evidence_sha256": "54a587430eb02b6b1ae617cfccc833f42af701f26312cf902f8536d18d4707f9",
       "final_claim_status": "PARTIAL",
-      "reason": "T0702 proved Raw recovery, the fifth M3 reached Raw-plus-Processed recovery, and the sixth failed closed at PROCESSED_PLAN with zero new effect; the historical-label replay candidate remains pending.",
-      "source_record_status": "BLOCKED",
+      "reason": "T0702 proved Raw recovery and the exact T0703 PASS proves one hundred percent Raw plus Processed recovery with unchanged private head, tree and path counts; Timeline and final recovery evidence remain unexecuted.",
+      "source_record_status": "READY",
       "task_id": "T0703"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-24T08:09:12Z",
+  "observed_at_utc": "2026-07-24T09:20:08Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,
@@ -98,7 +98,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "c860f3880b48b03c3f71ac79e61e278125fb1811",
+  "remediation_base_commit": "83fec6161d5cd80c62f3553d6332c0113ef5a514",
   "requirement_id": "RQ-007",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",

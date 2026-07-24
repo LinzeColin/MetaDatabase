@@ -1,12 +1,12 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0703-LOCAL-20260724",
+  "evidence_id": "S7-T0703-PROTECTED-20260724-PASS",
   "stage_id": "S7",
   "task_id": "T0703",
   "stage_acceptance_id": "S7AC-003",
-  "observed_at_utc": "2026-07-24T08:09:12Z",
+  "observed_at_utc": "2026-07-24T09:20:08Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
-  "record_status": "BLOCKED",
+  "record_status": "READY",
   "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
@@ -29,17 +29,20 @@
     {"id": "optional_token_scope_echo_absence_requires_exact_repository_probe_and_server_date_ttl", "status": "PASS", "evidence_ref": "src/moomooau_archive/github_guard.py, src/moomooau_archive/http_transport.py and tests/tasks/test_t0204.py::test_t0204_accepts_optional_scope_echo_absence_after_exact_repository_probe"},
     {"id": "unknown_mutation_reconciliation_selects_unique_existing_processed_trash_source", "status": "PASS", "evidence_ref": "src/moomooau_archive/canary_runtime.py::ExistingProcessedReconciliationMatcher and tests/tasks/test_t0703.py::test_t0703_reconciles_the_preexisting_trashed_source_with_zero_new_writes"},
     {"id": "reconciliation_has_no_gmail_or_private_repository_write_path", "status": "PASS", "evidence_ref": "src/moomooau_archive/m3.py::ExactMessageTrashExecutor.reconcile_already_trashed and tests/tasks/test_t0703.py::test_t0703_protected_bootstrap_reconciles_without_gmail_or_repository_write"},
-    {"id": "historical_encrypted_label_state_replays_existing_processed_snapshot", "status": "PASS", "evidence_ref": "src/moomooau_archive/production_adapters.py::RemoteFirstImportTimestampSource and tests/tasks/test_t0703.py::test_t0703_reconciles_the_preexisting_trashed_source_with_zero_new_writes and tests/remediation/test_rmd04.py"}
+    {"id": "historical_encrypted_label_state_replays_existing_processed_snapshot", "status": "PASS", "evidence_ref": "src/moomooau_archive/production_adapters.py::RemoteFirstImportTimestampSource and tests/tasks/test_t0703.py::test_t0703_reconciles_the_preexisting_trashed_source_with_zero_new_writes and tests/remediation/test_rmd04.py"},
+    {"id": "protected_attempt_one_reconciliation_receipt_is_exact_and_public_safe", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0703/execution-receipt.json and machine/stages/S7/schemas/protected-m3-execution-receipt-v1.schema.json"},
+    {"id": "independent_post_run_private_and_gmail_state_is_unchanged", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0703/execution-receipt.json"}
   ],
   "linked_final_acceptance": [
-    {"id": "AC-006", "status": "PARTIAL", "reason": "The fifth protected attempt made one mutation call and Gmail Trash aggregate increased by one, but exact-source attribution remains unconfirmed until the repaired zero-write reconciliation passes."},
-    {"id": "AC-007", "status": "PARTIAL", "reason": "T0702 proved Raw recovery, the fifth M3 reached Raw-plus-Processed recovery, and the sixth failed closed at PROCESSED_PLAN with zero new effect; the historical-label replay candidate remains pending."},
-    {"id": "AC-026", "status": "PARTIAL", "reason": "Six exact protected M3 attempts ran once each without rerun; the sixth zero-effect PROCESSED_PLAN boundary is bound to one historical-label zero-write reconciliation candidate."}
+    {"id": "AC-006", "status": "PARTIAL", "reason": "The exact protected reconciliation confirms the prior unknown mutation belongs to the sole verified already-Trashed source and proves zero current-run or collateral mutation; later full-pipeline collateral evidence remains unexecuted."},
+    {"id": "AC-007", "status": "PARTIAL", "reason": "T0702 proved Raw recovery and the exact T0703 PASS proves one hundred percent Raw plus Processed recovery with unchanged private head, tree and path counts; Timeline and final recovery evidence remain unexecuted."},
+    {"id": "AC-026", "status": "PARTIAL", "reason": "Seven distinct exact-main protected M3 heads ran once each with no rerun; the seventh reconciled the pre-existing encrypted lineage idempotently with zero current-run write, while later full-pipeline idempotency remains unexecuted."}
   ],
   "production_oracles": [
-    {"id": "PROTECTED_M3_DETERMINISTIC_EVIDENCE", "status": "FAILED", "reason": "The sixth exact-main attempt-1 recovered Raw and failed closed at PROCESSED_PLAN with independently verified zero new private-repository or Gmail effect; no failed head can be rerun or redispatched."}
+    {"id": "PROTECTED_M3_DETERMINISTIC_EVIDENCE", "status": "PASS", "reason": "The seventh distinct exact-main attempt-1 passed authority, zero-mutation reconciliation and identity cleanup. Aggregate evidence proves historical-label replay, Raw plus Processed recovery, second verification, one reconciled prior unknown mutation, zero current-run or collateral mutation and Timeline off; independent pre/post checks prove zero new Gmail or private-repository effect."}
   ],
-  "blockers": ["PROTECTED_M3_ZERO_MUTATION_RECONCILIATION_CANDIDATE_NOT_RUN"],
+  "protected_execution_receipt": "machine/stages/S7/reviews/t0703/execution-receipt.json",
+  "blockers": ["T0704_NOT_AUTHORIZED_IN_CURRENT_RUN", "FINAL_ACCEPTANCE_AND_POST_M3_STAGE7_PHASES_NOT_RUN"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "Deliver the exact historical-label zero-new-write reconciliation candidate to main and execute one attempt-1 dispatch; never rerun or redispatch any failed head, and materialize evidence only from the aggregate protected receipt."
+  "next_action": "Close T0703/S7AC-003 from the exact protected receipt and stop before T0704. Do not rerun or redispatch any T0703 head; T0704 requires a new explicit Run Contract."
 }

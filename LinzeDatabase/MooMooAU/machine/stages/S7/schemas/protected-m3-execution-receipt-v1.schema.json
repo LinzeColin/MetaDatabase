@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU T0703 protected M3 zero-mutation PASS execution receipt v1",
+  "type": "object",
+  "const": {
+    "schema_version": "moomooau.protected-m3-execution-receipt.v1",
+    "receipt_id": "S7-T0703-PROTECTED-20260724-PASS-A1",
+    "stage_id": "S7",
+    "task_id": "T0703",
+    "stage_acceptance_id": "S7AC-003",
+    "observed_at_utc": "2026-07-24T09:20:08Z",
+    "control": {
+      "pull_request_number": 110,
+      "pull_request_status": "MERGED_CONTROLLED_T0703_RECONCILIATION_NOT_FINAL",
+      "merge_commit_sha": "83fec6161d5cd80c62f3553d6332c0113ef5a514",
+      "main_ci_runs_passed": 10,
+      "main_ci_runs_failed": 0,
+      "workflow_run_id": 30081901453,
+      "workflow_run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30081901453",
+      "workflow_event": "workflow_dispatch",
+      "workflow_ref": "refs/heads/main",
+      "workflow_head_sha": "83fec6161d5cd80c62f3553d6332c0113ef5a514",
+      "workflow_attempt": 1,
+      "dispatches_for_head": 1,
+      "reruns": 0,
+      "prior_failed_attempts": 6,
+      "prior_failed_attempt_ledger_sha256": "3ac1e717aee5dfbb020f41bd846d545a36ff0b03028a252286b35d2658ce1144",
+      "beta_receipt_sha256": "06c4c58e64f56f740c2f0143b064236dafc9dc56e7bae488f02c52dd6b750ce0",
+      "m3_gate_sha256": "7385ddf720bb1cc8584757a4bb56dfb44354eae9cc430e8828c6c6a0ebb12d01"
+    },
+    "jobs": {
+      "authority_gate": {
+        "status": "PASS",
+        "started_at_utc": "2026-07-24T09:15:31Z",
+        "ended_at_utc": "2026-07-24T09:16:45Z"
+      },
+      "m3_zero_mutation_reconciliation": {
+        "status": "PASS",
+        "started_at_utc": "2026-07-24T09:16:50Z",
+        "ended_at_utc": "2026-07-24T09:20:08Z"
+      },
+      "identity_tmpfs_cleanup": {
+        "status": "PASS",
+        "ended_at_utc": "2026-07-24T09:20:05Z"
+      }
+    },
+    "public_result": {
+      "status": "PROTECTED_M3_ZERO_MUTATION_RECONCILIATION_COMPLETED_NOT_FINAL",
+      "m3_gate_status": "PASS",
+      "phase": "M3_CANARY",
+      "provenance": "PROTECTED_GITHUB_ACTIONS",
+      "observed_runs": 2,
+      "verified_bucket": "TEN_PLUS",
+      "processed_or_safe_deferred_bucket": "ONE",
+      "metadata_quarantine_bucket": "TWO_TO_NINE",
+      "reconciled_prior_unknown_mutation_bucket": "ONE",
+      "mutation_calls_bucket": "ZERO",
+      "confirmed_trashed_bucket": "ZERO",
+      "failed_mutation_outcomes_bucket": "ZERO",
+      "source_mutation_budget": 1,
+      "current_run_source_mutation_budget": 0,
+      "prior_unknown_mutation_reconciled": true,
+      "processed_or_safe_deferred_present": true,
+      "remote_recovery_one_hundred_percent": true,
+      "collateral_mutations": 0,
+      "timeline_publish_attempts": 0,
+      "maximum_live_timeline_assets": 0,
+      "unresolved_failures": 0,
+      "exact_mailbox_counts_disclosed": false,
+      "production_health_claimed": false,
+      "final_acceptance_claimed": false
+    },
+    "independent_post_run_verification": {
+      "private_repository_head_unchanged": true,
+      "private_repository_tree_unchanged": true,
+      "private_repository_path_counts_unchanged": true,
+      "private_repository_new_commits": 0,
+      "raw_ciphertext_creations": 0,
+      "processed_writes": 0,
+      "processed_current_before_dispatch": "ONE",
+      "processed_current_after_dispatch": "ONE",
+      "gmail_trash_aggregate_delta": 0,
+      "source_mutations": 0,
+      "timeline_writes": 0,
+      "scheduled_runs": 0,
+      "identity_plaintext_cleanup": "PASS",
+      "exact_private_locator_disclosed": false,
+      "exact_mailbox_counts_disclosed": false
+    },
+    "scope_decision": {
+      "status": "T0703_COMPLETE_SCOPE_STOP",
+      "t0703_complete": true,
+      "m3_predecessor_satisfied": true,
+      "t0704_authorized": false,
+      "further_m3_dispatch_allowed": false,
+      "rerun_allowed": false,
+      "failed_head_redispatch_allowed": false
+    },
+    "claims": {
+      "t0703_complete": true,
+      "s7ac_003_passed": true,
+      "t0704_complete": false,
+      "production_health": false,
+      "final_acceptance": false,
+      "stage7_complete": false
+    }
+  }
+}

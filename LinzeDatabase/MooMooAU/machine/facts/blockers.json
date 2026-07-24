@@ -7,8 +7,8 @@
     "首次登记": "2026-07-22"
   },
   {
-    "id": "T0703_REPAIR_CANDIDATE_PENDING",
-    "内容": "T0703 第六次零写入 reconciliation 在 Raw 恢复后停止于 PROCESSED_PLAN；私有仓与 Gmail 均无新效果。六个失败头均禁止 rerun/redispatch；仅允许一个从既有加密 Processed envelope 恢复历史 label state 的零写入 attempt 1",
+    "id": "T0704_NOT_AUTHORIZED_IN_CURRENT_RUN",
+    "内容": "T0703/S7AC-003 已由精确受保护回执关闭；当前 Run Contract 明确不授权 T0704",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"
@@ -28,8 +28,15 @@
     "首次登记": "2026-07-22"
   },
   {
-    "id": "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
-    "内容": "后续受保护验收与确定性运行尚未执行",
+    "id": "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
+    "内容": "T0703 已通过；T0704 及其后的受保护验收仍未执行",
+    "owner_only": false,
+    "owner": "Codex 开发线程",
+    "首次登记": "2026-07-22"
+  },
+  {
+    "id": "T0704_NEW_RUN_CONTRACT_REQUIRED",
+    "内容": "进入 T0704 前必须建立新的显式 Run Contract；T0703 的全部 dispatch 权限已消耗",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"

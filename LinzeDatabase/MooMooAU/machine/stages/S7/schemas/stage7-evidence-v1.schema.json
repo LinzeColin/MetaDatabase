@@ -75,7 +75,10 @@
       }
     },
     "protected_execution_receipt": {
-      "const": "machine/stages/S7/reviews/t0702/execution-receipt.json"
+      "enum": [
+        "machine/stages/S7/reviews/t0702/execution-receipt.json",
+        "machine/stages/S7/reviews/t0703/execution-receipt.json"
+      ]
     },
     "blockers": {
       "type": "array",
