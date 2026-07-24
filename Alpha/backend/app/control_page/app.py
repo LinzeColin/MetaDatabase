@@ -97,6 +97,20 @@ def build_control_app(
 
         return HTMLResponse(render_strategy_html(build_strategy_view()))
 
+    @app.get("/strategy/history.csv")
+    def strategy_history_csv():
+        """全部策略研究史 CSV(公开只读下载):与公开仓 configs/strategies 同一份真源。"""
+        from fastapi.responses import PlainTextResponse
+
+        from backend.app.control_page.dashboard_data import RESEARCH_CSV
+
+        try:
+            text = Path(RESEARCH_CSV).read_text(encoding="utf-8")
+        except Exception:
+            raise HTTPException(status_code=404, detail="研究史 CSV 暂不可读")
+        return PlainTextResponse(text, media_type="text/csv; charset=utf-8", headers={
+            "Content-Disposition": 'attachment; filename="alpha_strategy_research_history.csv"'})
+
     @app.get("/status")
     def status(_: None = Depends(require_token)) -> dict:
         return {

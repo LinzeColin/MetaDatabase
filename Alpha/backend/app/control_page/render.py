@@ -1,10 +1,11 @@
 """看盘页 HTML 渲染(纯函数:overview dict -> HTML 字符串)。
 
-设计基准来自公开竞品反向分析(2026-07-23 调研):
+设计基准来自公开竞品反向分析(2026-07-23 调研,2026-07-24 改版为浅色):
+- Koyfin / Stripe Dashboard:纯白底 + 极细边框 + 克制留白,机构级观感;
 - Ghostfolio:英雄数字(总净值+涨跌)压顶 + 一条主净值曲线;
 - FreqUI(freqtrade):机器人运维面板 = 状态徽章 + 持仓盈亏 + 动作流水;
 - moomoo/futu:持仓行(现价/成本/市值/浮动盈亏)+ 红涨绿跌(中国惯例);
-- TradingView:深海军蓝底 + 等宽数字排版。
+- TradingView:等宽数字排版。
 本页只读、公开(owner 裁定)、全中文人话、悉尼时间、无任何外链资源。
 涨跌色遵循 moomoo 中国惯例:红涨绿跌,并叠加 +/− 与 ▲▼ 双通道防歧义。
 """
@@ -16,58 +17,66 @@ import html as _html
 _CSS = """
 *{box-sizing:border-box}
 body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;margin:0;
-  background:#0a0e17;color:#e8edf4;font-variant-numeric:tabular-nums}
-a{color:#e3c06b;text-decoration:none}
-.wrap{max-width:980px;margin:0 auto;padding:14px 14px 40px}
-.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 2px 12px}
-.logo{font-weight:800;font-size:20px;letter-spacing:2px;color:#e3c06b}
-.badge{font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid #2a3348;color:#aeb7c7}
-.badge.on{border-color:#265c40;color:#3dd68c}
-.badge.off{border-color:#3a4258;color:#8a93a5}
+  background:#f4f5f7;color:#1a2130;font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased}
+a{color:#9a6b16;text-decoration:none}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 16px 48px}
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:4px 2px 14px}
+.logo{font-weight:800;font-size:21px;letter-spacing:3px;color:#1a2130}
+.logo b{color:#b8860b}
+.badge{font-size:12px;padding:3px 11px;border-radius:999px;border:1px solid #d7dbe2;
+  color:#5a6472;background:#fff}
+.badge.on{border-color:#bfe4cd;color:#0f7a37;background:#eefaf1}
+.badge.off{border-color:#dde1e8;color:#8a93a5;background:#fff}
 .clock{margin-left:auto;font-size:12px;color:#8a93a5}
-.banner{padding:12px 16px;border-radius:12px;font-size:15px;font-weight:600;margin-bottom:12px}
-.banner.ok{background:#0d2b1c;border:1px solid #1d5c3c}
-.banner.halted{background:#3a2a05;border:1px solid #7a5a10}
-.banner.warn{background:#3a1414;border:1px solid #7a2a2a}
-.grid{display:grid;gap:12px;grid-template-columns:1fr}
-@media(min-width:840px){.grid{grid-template-columns:1fr 1fr}.span2{grid-column:1/-1}}
-.card{background:#111726;border:1px solid #1e2637;border-radius:14px;padding:14px 16px}
-.card h2{font-size:13px;color:#8a93a5;margin:0 0 10px;font-weight:500;letter-spacing:1px}
-.hero-num{font-size:38px;font-weight:800;letter-spacing:0.5px;line-height:1.1}
-.hero-sub{display:flex;gap:18px;flex-wrap:wrap;margin-top:6px;font-size:14px}
-.up{color:#e5484d}.dn{color:#30a46c}.flat{color:#8a93a5}
-.kpis{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:#8a93a5}
-.kpis b{color:#cfd6e2;font-weight:600}
-.expo{height:8px;border-radius:99px;background:#1a2233;margin-top:10px;overflow:hidden}
-.expo>i{display:block;height:100%;background:linear-gradient(90deg,#e3c06b,#c99b3f)}
+.banner{padding:13px 17px;border-radius:12px;font-size:15px;font-weight:600;margin-bottom:14px;
+  border:1px solid transparent}
+.banner.ok{background:#eefaf1;border-color:#bfe4cd;color:#0f7a37}
+.banner.halted{background:#fff5e5;border-color:#f3d9a3;color:#8a5a06}
+.banner.warn{background:#fdecec;border-color:#f3c0c0;color:#b1283a}
+.grid{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:860px){.grid{grid-template-columns:1fr 1fr}.span2{grid-column:1/-1}}
+.card{background:#fff;border:1px solid #e4e7ec;border-radius:14px;padding:16px 18px;
+  box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.card h2{font-size:11.5px;color:#8a93a5;margin:0 0 12px;font-weight:600;
+  letter-spacing:.8px;text-transform:uppercase}
+.hero-num{font-size:40px;font-weight:800;letter-spacing:.5px;line-height:1.05;color:#101828}
+.hero-sub{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:14px}
+.up{color:#d1293d}.dn{color:#0f8a3c}.flat{color:#8a93a5}
+.kpis{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:#6b7480}
+.kpis b{color:#1a2130;font-weight:700}
+.expo{height:8px;border-radius:99px;background:#eef0f3;margin-top:11px;overflow:hidden}
+.expo>i{display:block;height:100%;background:linear-gradient(90deg,#d8ab45,#b8860b)}
 table{border-collapse:collapse;width:100%;font-size:13.5px}
-th{color:#67718a;font-weight:500;font-size:11.5px;text-align:left;padding:2px 6px 8px}
-td{border-top:1px solid #1a2233;padding:9px 6px;vertical-align:top}
+th{color:#8a93a5;font-weight:600;font-size:11px;text-align:left;padding:2px 8px 9px;
+  letter-spacing:.3px;white-space:nowrap}
+td{border-top:1px solid #eef0f3;padding:10px 8px;vertical-align:top}
 .num{text-align:right}th.num{text-align:right}
 .sym{font-weight:700}.symcn{color:#8a93a5;font-size:11.5px}
 .pnl{font-weight:700}
-.lights{display:grid;gap:8px}
+.lights{display:grid;gap:9px}
 .light{display:flex;gap:10px;align-items:flex-start;font-size:13.5px}
 .dot{width:10px;height:10px;border-radius:99px;margin-top:4px;flex:none}
-.dot.g{background:#3dd68c;box-shadow:0 0 8px #3dd68c66}
-.dot.r{background:#e5484d;box-shadow:0 0 8px #e5484d66}
+.dot.g{background:#12a150;box-shadow:0 0 0 3px #12a15022}
+.dot.r{background:#e5484d;box-shadow:0 0 0 3px #e5484d22}
 .light small{display:block;color:#8a93a5;font-size:11.5px;margin-top:1px}
-.verdict{margin-top:10px;padding:9px 12px;border-radius:10px;font-size:13px;
-  background:#1a2233;color:#cfd6e2}
+.verdict{margin-top:11px;padding:10px 13px;border-radius:10px;font-size:13px;
+  background:#f4f5f7;color:#3a4453;border:1px solid #e9ebef}
 .tl{list-style:none;margin:0;padding:0;font-size:13.5px}
-.tl li{display:flex;gap:10px;padding:8px 0;border-top:1px solid #1a2233}
+.tl li{display:flex;gap:10px;padding:9px 0;border-top:1px solid #eef0f3}
 .tl li:first-child{border-top:0}
-.tl time{color:#67718a;font-size:12px;white-space:nowrap;padding-top:1px}
+.tl time{color:#8a93a5;font-size:12px;white-space:nowrap;padding-top:1px}
 .tl .ic{flex:none}
 .hb{display:flex;gap:8px;flex-wrap:wrap}
-.hb span{font-size:12px;padding:4px 10px;border-radius:8px;background:#1a2233;color:#aeb7c7}
+.hb span{font-size:12px;padding:4px 11px;border-radius:8px;background:#f4f5f7;color:#5a6472;
+  border:1px solid #e9ebef}
 .hb i{display:inline-block;width:7px;height:7px;border-radius:99px;margin-right:6px}
-.hb .ok i{background:#3dd68c}.hb .bad i{background:#e5484d}
-.muted{color:#8a93a5;font-size:12px;line-height:1.7}
-.big{font-size:20px;font-weight:700}
-details{margin-top:16px}summary{color:#4a5568;font-size:11px;cursor:pointer}
-footer{margin-top:16px}
-.chart{width:100%;height:auto;display:block;margin-top:8px}
+.hb .ok i{background:#12a150}.hb .bad i{background:#e5484d}
+.muted{color:#6b7480;font-size:12px;line-height:1.7}
+.big{font-size:22px;font-weight:800;color:#101828}
+details{margin-top:16px}summary{color:#98a1af;font-size:11px;cursor:pointer}
+footer{margin-top:18px}
+.chart{width:100%;height:auto;display:block;margin-top:10px}
 """
 
 _JS = """
@@ -100,7 +109,7 @@ def _pnl_txt(v: float, suffix: str = "") -> str:
 
 
 def _svg_curve(curve: list[dict], capital: float) -> str:
-    """净值曲线:金色主线+渐变面积+本金虚线。点少也画(如实反映样本量)。"""
+    """净值曲线:金色主线+渐变面积+本金虚线。点少也画(如实反映样本量)。浅色底。"""
     if not curve:
         return ""
     w, h, pad = 640, 170, 14
@@ -121,36 +130,60 @@ def _svg_curve(curve: list[dict], capital: float) -> str:
     line = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
     area = f"{pts[0][0]:.1f},{h - pad} " + line + f" {pts[-1][0]:.1f},{h - pad}"
     ticks = "".join(
-        f'<text x="{px(i):.0f}" y="{h - 1}" font-size="9" fill="#67718a" '
+        f'<text x="{px(i):.0f}" y="{h - 1}" font-size="9" fill="#98a1af" '
         f'text-anchor="middle">{p["date"][5:]}{"·实时" if p.get("live") else ""}</text>'
         for i, p in enumerate(curve) if n <= 10 or i % max(1, n // 8) == 0 or i == n - 1)
     base_y = py(capital)
     last = curve[-1]["equity_aud"]
     return f"""<svg class="chart" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="净值曲线">
 <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0" stop-color="#e3c06b" stop-opacity="0.32"/>
-<stop offset="1" stop-color="#e3c06b" stop-opacity="0"/></linearGradient></defs>
-<line x1="{pad}" y1="{base_y:.1f}" x2="{w - pad}" y2="{base_y:.1f}" stroke="#2a3348" stroke-dasharray="4 4"/>
-<text x="{w - pad}" y="{base_y - 4:.1f}" font-size="9" fill="#67718a" text-anchor="end">本金 {capital:,.0f} 澳元</text>
+<stop offset="0" stop-color="#b8860b" stop-opacity="0.20"/>
+<stop offset="1" stop-color="#b8860b" stop-opacity="0"/></linearGradient></defs>
+<line x1="{pad}" y1="{base_y:.1f}" x2="{w - pad}" y2="{base_y:.1f}" stroke="#cfd5de" stroke-dasharray="4 4"/>
+<text x="{w - pad}" y="{base_y - 4:.1f}" font-size="9" fill="#98a1af" text-anchor="end">本金 {capital:,.0f} 澳元</text>
 <polygon points="{area}" fill="url(#g)"/>
-<polyline points="{line}" fill="none" stroke="#e3c06b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="{pts[-1][0]:.1f}" cy="{pts[-1][1]:.1f}" r="3.5" fill="#e3c06b"/>
-<text x="{pts[-1][0] - 6:.1f}" y="{pts[-1][1] - 8:.1f}" font-size="10" fill="#e8edf4" text-anchor="end">{last:,.2f}</text>
+<polyline points="{line}" fill="none" stroke="#b8860b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="{pts[-1][0]:.1f}" cy="{pts[-1][1]:.1f}" r="3.5" fill="#b8860b"/>
+<text x="{pts[-1][0] - 6:.1f}" y="{pts[-1][1] - 8:.1f}" font-size="10" fill="#101828" text-anchor="end">{last:,.2f}</text>
 {ticks}</svg>"""
 
 
 _KIND_ICON = {"fill": "✅", "order": "📝", "block": "🛡️", "mail": "✉️"}
 
 _NAV_CSS = """
-.nav{display:flex;gap:6px;margin:0 0 12px;flex-wrap:wrap}
-.nav a{font-size:13px;padding:7px 14px;border-radius:10px;color:#aeb7c7;
-  border:1px solid #1e2637;background:#111726}
-.nav a.on{color:#0a0e17;background:#e3c06b;border-color:#e3c06b;font-weight:700}
-.ok-badge{color:#3dd68c}.bad-badge{color:#e5484d}
-.pill{font-size:11.5px;padding:2px 9px;border-radius:99px;border:1px solid #2a3348;color:#aeb7c7;white-space:nowrap}
-.pill.auto{border-color:#265c40;color:#3dd68c}
-.pill.manual{border-color:#7a5a10;color:#e3c06b}
-.pill.fault{border-color:#7a2a2a;color:#e5484d}
+.nav{display:flex;gap:7px;margin:0 0 14px;flex-wrap:wrap}
+.nav a{font-size:13px;padding:8px 15px;border-radius:10px;color:#5a6472;
+  border:1px solid #e4e7ec;background:#fff;font-weight:500}
+.nav a.on{color:#fff;background:#1a2130;border-color:#1a2130;font-weight:700}
+.ok-badge{color:#0f8a3c}.bad-badge{color:#d1293d}
+.pill{font-size:11.5px;padding:2px 9px;border-radius:99px;border:1px solid #d7dbe2;
+  color:#5a6472;white-space:nowrap;background:#fff}
+.pill.auto{border-color:#bfe4cd;color:#0f7a37;background:#eefaf1}
+.pill.manual{border-color:#f3d9a3;color:#8a5a06;background:#fff7ea}
+.pill.fault{border-color:#f3c0c0;color:#b1283a;background:#fdecec}
+/* 投资策略页:现役英雄卡 + 宽研究表 */
+.live-hero{background:linear-gradient(180deg,#fffdf6,#fff);border:1px solid #ecd9a6}
+.live-hero .tag{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.5px;
+  color:#8a5a06;background:#fff2d4;border:1px solid #f0dca8;border-radius:999px;padding:3px 11px}
+.live-name{font-size:24px;font-weight:800;color:#101828;margin:10px 0 2px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:12px;font-size:13.5px}
+.kv b{color:#8a93a5;font-weight:600;white-space:nowrap}
+.kv span{color:#2a3345;line-height:1.6}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:2px -4px 0;
+  border:1px solid #eef0f3;border-radius:10px}
+table.wide{font-size:12.5px;min-width:1180px}
+table.wide th{background:#f7f8fa;padding:10px 10px;position:sticky;top:0;border-bottom:1px solid #e4e7ec}
+table.wide td{padding:11px 10px;border-top:1px solid #eef0f3}
+table.wide tr.live td{background:#fffdf3}
+table.wide .name{font-weight:700;color:#101828;min-width:150px}
+table.wide .wraptxt{min-width:180px;max-width:280px;white-space:normal;line-height:1.55;color:#3a4453}
+table.wide .verd{min-width:170px;max-width:260px;white-space:normal;line-height:1.55;color:#5a6472;font-size:12px}
+table.wide .metric{text-align:right;white-space:nowrap;font-weight:600;color:#1a2130}
+table.wide .freq{white-space:nowrap;color:#3a4453}
+.livemark{display:inline-block;font-size:10.5px;font-weight:700;color:#8a5a06;
+  background:#fff2d4;border:1px solid #f0dca8;border-radius:5px;padding:1px 6px;margin-left:6px}
+.dl{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
+  padding:8px 14px;border-radius:10px;border:1px solid #d7dbe2;background:#fff;color:#1a2130;margin-top:12px}
 """
 
 
@@ -209,6 +242,15 @@ def render_ops_html(d: dict) -> str:
     return _shell("Alpha 运维记录", "/ops", body)
 
 
+#: 研究表列 -> CSS 类(数值列右对齐不换行;长文本列换行)
+_STRAT_COL_CLS = {
+    "策略": "name", "结构": "wraptxt", "交易频率": "freq",
+    "月均收益率": "metric", "年均收益率": "metric", "最大回撤": "metric",
+    "回撤修复时间": "metric", "策略规则": "wraptxt", "判定状态": "verd",
+    "盈亏比": "metric", "胜率": "metric",
+}
+
+
 def render_strategy_html(d: dict) -> str:
     ch = d["champion"]
     limits = "".join(f"<li>{_esc(x)}</li>" for x in d["hard_limits"])
@@ -216,25 +258,44 @@ def render_strategy_html(d: dict) -> str:
         f"<div class=light><i class='dot g'></i><div><b>{_esc(g['name'])}</b>"
         f"<small>{_esc(g['rule'])}</small></div></div>"
         for g in d["gates"])
-    research = "".join(
-        f"<tr><td><b>{_esc(r['name'])}</b></td><td>{_esc(r['result'])}</td>"
-        f"<td class=symcn>{_esc(r['verdict'])}</td></tr>"
-        for r in d["research"])
+
+    cols = d.get("research_cols", [])
+    thead = "".join(f"<th class={_STRAT_COL_CLS.get(c, '')}>{_esc(c)}</th>" for c in cols)
+    trows = ""
+    for r in d.get("research", []):
+        live = r.get("现役") == "是"
+        tds = ""
+        for c in cols:
+            cls = _STRAT_COL_CLS.get(c, "")
+            val = _esc(r.get(c, ""))
+            if c == "策略" and live:
+                val = f"{val}<span class=livemark>● 现役</span>"
+            tds += f"<td class={cls}>{val}</td>"
+        trows += f"<tr class={'live' if live else ''}>{tds}</tr>"
+    table = (f"<div class=scroll><table class=wide><thead><tr>{thead}</tr></thead>"
+             f"<tbody>{trows}</tbody></table></div>") if cols and trows else \
+        "<div class=muted>研究史 CSV 暂不可读。</div>"
+
     body = f"""
+<div class="card span2 live-hero">
+  <span class=tag>● 当前实盘策略</span>
+  <div class=live-name>{_esc(ch['name_cn'])}</div>
+  <div class=kv>
+    <b>怎么赚钱</b><span>{_esc(ch['logic_cn'])}</span>
+    <b>节拍</b><span>{_esc(ch['cadence'])}</span>
+    <b>持仓范围</b><span>{_esc(ch['universe'])}</span>
+    <b>历史成绩</b><span>{_esc(ch['record'])}</span>
+  </div>
+</div>
 <div class=grid>
-<div class="card span2"><h2>当前生产策略</h2>
-<div class=big>{_esc(ch['name_cn'])}</div>
-<div class=muted style="margin-top:8px;line-height:1.8">
-<b>怎么赚钱:</b>{_esc(ch['logic_cn'])}<br>
-<b>节拍:</b>{_esc(ch['cadence'])}<br>
-<b>持仓范围:</b>{_esc(ch['universe'])}<br>
-<b>历史成绩:</b>{_esc(ch['record'])}</div></div>
 <div class=card><h2>硬风控约束(写死在代码与契约,页面无权改)</h2>
 <ul class=muted style="line-height:2;margin:0;padding-left:18px">{limits}</ul></div>
 <div class=card><h2>晋级实盘的四道门(实时读契约配置)</h2><div class=lights>{gates}</div></div>
 <div class="card span2"><h2>候选策略研究史(同一把尺子,全部证据公开可复验)</h2>
-<table><tr><th>结构</th><th>滚动前推成绩</th><th>裁定</th></tr>{research}</table>
-<div class=muted style="margin-top:10px">{_esc(d['research_note'])}</div></div>
+{table}
+<a class=dl href="{_esc(d.get('research_csv_url', '/strategy/history.csv'))}" download>⬇ 下载全部策略 CSV</a>
+<span class=muted style="margin-left:10px">同一份 CSV 也存于公开仓 configs/strategies/strategy_research_history.csv</span>
+<div class=muted style="margin-top:12px">{_esc(d['research_note'])}</div></div>
 </div>
 <footer class=muted>· {_esc(d['honesty_note'])}<br>
 · 回测不代表未来收益;本系统不向任何人承诺回报。更新于 {_esc(d['updated_at_syd'])}(悉尼)。</footer>"""
@@ -338,7 +399,7 @@ def render_dashboard_html(d: dict) -> str:
   <h2>系统健康</h2>
   <div class=hb>{hb_rows}</div>
   <div class=muted style="margin-top:10px">
-    紧急刹车:{'<b style="color:#f5a524">已拉下</b>' if health['kill_switch'] else '待命(未触发)'} ·
+    紧急刹车:{'<b style="color:#c0870f">已拉下</b>' if health['kill_switch'] else '待命(未触发)'} ·
     服务器:{_esc(health['server'])}<br>
     {f"最近邮件:{_esc(last_mail['at_syd'])} {_esc(last_mail['text'])}" if last_mail else '最近邮件:暂无'}
   </div>

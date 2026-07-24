@@ -258,3 +258,50 @@ def test_dashboard_readonly_html(tmp_path):
     # 动作端点仍然锁死:无令牌 401
     assert client.post("/halt").status_code == 401
     assert client.post("/resume").status_code == 401
+
+
+def test_strategy_csv_registry_single_source(tmp_path):
+    """研究史 CSV 唯一真源:恰一条现役、列齐全;/strategy 与下载路由同源一致(白色主题)。"""
+    import csv as _csv
+
+    from backend.app.control_page.dashboard_data import (RESEARCH_CSV, RESEARCH_COLS,
+                                                         build_strategy_view)
+
+    # 1) CSV 存在且可解析,恰有一条现役,列齐全
+    with open(RESEARCH_CSV, encoding="utf-8") as f:
+        rows = list(_csv.DictReader(f))
+    assert len(rows) >= 10, "策略登记应涵盖全部研究史"
+    live = [r for r in rows if r.get("现役") == "是"]
+    assert len(live) == 1, "有且仅有一条现役实盘策略"
+    for col in RESEARCH_COLS:
+        assert col in rows[0], f"缺列 {col}"
+
+    # 2) 装配层读到同一份,冠军名 == 现役策略
+    view = build_strategy_view()
+    assert view["champion"]["name_cn"] == live[0]["策略"]
+    assert view["research"][0]["现役"] == "是"          # 现役置顶
+    # 诚实:未把动态WFO成绩冒充成固定规则独立回测
+    assert "末窗选参" in view["champion"]["record"] or "未单独存档" in view["champion"]["record"]
+
+    # 3) 页面:白色主题 + 现役醒目 + 宽表 + CSV 下载入口
+    ks = KillSwitch(tmp_path / "KS_STRAT")
+    app = build_control_app(kill_switch=ks, token_reader=lambda: TOKEN,
+                            ack_path=tmp_path / "ACK_STRAT.json")
+    client = TestClient(app)
+    sp = client.get("/strategy")
+    assert sp.status_code == 200
+    body = sp.text
+    assert "background:#f4f5f7" in body and "#0a0e17" not in body   # 白色,无残留深色
+    assert "● 现役" in body and "当前实盘策略" in body
+    assert "table class=wide" in body and "/strategy/history.csv" in body
+    assert live[0]["策略"] in body
+
+    # 4) 下载路由:text/csv,内容与仓内 CSV 逐字节一致
+    dl = client.get("/strategy/history.csv")
+    assert dl.status_code == 200
+    assert dl.headers["content-type"].startswith("text/csv")
+    assert dl.text == open(RESEARCH_CSV, encoding="utf-8").read()
+    assert "attachment" in dl.headers.get("content-disposition", "")
+
+    # 5) 下载路由不带任何交易语义(仍受全站禁词自检约束)
+    assert_no_trading_routes(app)

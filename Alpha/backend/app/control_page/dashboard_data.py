@@ -263,9 +263,28 @@ def build_ops_view(*, session_factory, heartbeats, kill_switch,
     }
 
 
+#: 研究史 CSV 唯一真源(GitHub 与本页共用同一份;列顺序即展示顺序)
+RESEARCH_CSV = "configs/strategies/strategy_research_history.csv"
+RESEARCH_COLS = ["策略", "结构", "交易频率", "月均收益率", "年均收益率", "最大回撤",
+                 "回撤修复时间", "策略规则", "判定状态", "盈亏比", "胜率"]
+
+
+def _read_research_csv(path: str | Path) -> list[dict]:
+    """读研究史 CSV → 行字典列表(现役行置顶)。读不到返回空列表,页面如实显示。"""
+    import csv
+    try:
+        with open(path, encoding="utf-8") as f:
+            rows = list(csv.DictReader(f))
+    except Exception:
+        return []
+    rows.sort(key=lambda r: (r.get("现役", "") != "是"))  # 现役=是 排最前
+    return rows
+
+
 def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promotion.yaml",
+                        research_csv: str | Path = RESEARCH_CSV,
                         now: Optional[datetime] = None) -> dict:
-    """投资策略页数据:生产策略人话档案 + 晋级门禁(实时读契约配置)+ 研究史。只读。"""
+    """投资策略页数据:生产策略人话档案 + 晋级门禁(实时读契约配置)+ 研究史(读 CSV)。只读。"""
     now = now or datetime.now(timezone.utc)
     gates = []
     try:
@@ -276,12 +295,16 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
         honesty = cfg.get("honesty_note", "")
     except Exception:
         honesty = ""
+
+    research = _read_research_csv(research_csv)
+    live = next((r for r in research if r.get("现役") == "是"), None)
+
     return {
         "champion": {
-            "name_cn": "五腿双动量·精调(周频)",
+            "name_cn": (live or {}).get("策略", "五腿双动量·精调(S1_GEM_PLUS_FINE)"),
             "cadence": "每周二美股开盘后 30-90 分钟评估一次;其余时间只持有不动。上次评估被拦下时,下个交易日开盘后自动补评估",
             "universe": "标普500(SPY)、国际发达市场(EFA)、纳指100(QQQ)、黄金(GLD)、中期美债(IEF),外加短债现金类(BIL)兜底",
-            "record": "滚动前推回测(10.6 年样本外、含真实费用、整股约束):月均 1.108%(年化约 14.1%),最大回撤 18.90%,盈亏比 2.25",
+            "record": "滚动前推回测(10.58 年样本外、含真实费用、整股约束):月均 1.108%(年化约 14.1%),最大回撤 18.90%,盈亏比参考 PF 2.25。此成绩来自 WFO 精调流程(每 6 月在 648 组合中重选),部署的是其末窗选中的固定规则——固定规则本身的独立回测未单独存档,如实标注。",
             "logic_cn": "双动量:每周在五条腿里选动量最强的一条满仓持有;所有腿都跌破 200 日均线时空仓持现金。强者恒强吃趋势,趋势尽失就离场——owner 2026-07-24 书面选定换帅",
         },
         "hard_limits": [
@@ -294,22 +317,10 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
         ],
         "gates": gates,
         "honesty_note": honesty,
-        "research": [
-            {"name": "五腿双动量·周频·精调(美/国际/纳指/黄金/中债)", "result": "1.108%/月 @ 回撤 18.90%(10.6 年样本外 +305%,盈亏比 2.25)",
-             "verdict": "现役(2026-07-24 owner 书面选定换帅上任)"},
-            {"name": "五腿双动量·周频·基础", "result": "1.052%/月 @ 回撤 17.65%(胜率 66.9%,盈亏比 2.26)",
-             "verdict": "风险调整比最优;与精调版同结构,参数更保守"},
-            {"name": "长短结构(反向基金入池,三种构造)", "result": "0.11-0.56%/月 @ 回撤 31.6-58.6%",
-             "verdict": "定论否决(2026-07-24):空腿是周频轮动的毒药——买入空头时跌势已过半,V形反转绞杀+日内重置损耗;含杠杆族累计七轮证据盖棺"},
-            {"name": "三腿双动量·周频(美/国际/纳指)", "result": "1.075%/月 @ 回撤 25.39%(胜率 69.3%)", "verdict": "收益最高但回撤深;被五腿版以几乎同收益+浅得多的回撤替代"},
-            {"name": "跨资产趋势跟随·周频", "result": "0.947%/月 @ 回撤 19.04%", "verdict": "第一代新王,被双动量家族超越"},
-            {"name": "黄金对冲动量(前任)", "result": "0.662%/月 @ 回撤 13.07%", "verdict": "2026-07-24 换帅让位:回撤最浅,收益不敌新王"},
-            {"name": "52 周新高过滤动量(门A)", "result": "0.894%/月 @ 回撤 18.98%", "verdict": "被替代"},
-            {"name": "杠杆基金族(30% 容忍下重测两轮)", "result": "0.78-0.85%/月 @ 回撤 38-44%", "verdict": "定论否决:放宽容忍后仍两轴皆劣——日内重置损耗+周频躲不开急跌(四轮证据)"},
-            {"name": "日历效应族(隔夜/月末/万圣节)", "result": "全部不敌保底线", "verdict": "否决(三线证据)"},
-            {"name": "五五混合(股指+黄金分仓)", "result": "回撤 11.02% 全场最低,但 3000 澳元下费用惩罚致收益不过门", "verdict": "搁置:资金 ≥6000 澳元时重启评估"},
-        ],
-        "research_note": "所有候选同一把尺子:滚动前推(每半年只准用当时已知数据选参数)+ 双源行情核验 + 真实费用 + 整股约束;文献数字永远不能冒充自建回测。全部证据在公开仓 reports/backtest/ 可复验。",
+        "research_cols": RESEARCH_COLS,
+        "research": research,
+        "research_csv_url": "/strategy/history.csv",
+        "research_note": "同一把尺子:滚动前推(每半年只准用当时已知数据选参)+ 双源行情核验 + 真实费用 + 整股约束;文献数字永不冒充自建回测。全部证据在公开仓 reports/backtest/ 可复验。 * 标注说明:WFO 家族的『盈亏比』列填的是 Profit Factor(总盈利/总亏损),『胜率』列填的是盈利月份比例——二者不等于逐笔盈亏比/逐笔胜率,因为 WFO 报告未保存连续逐笔账本;只有 VOLBUCKET 为真逐笔口径。",
         "updated_at_syd": f"{now.astimezone(SYD):%m月%d日 %H:%M}",
     }
 
