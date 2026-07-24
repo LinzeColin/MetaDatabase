@@ -2111,23 +2111,25 @@ def test_rmd05_stage6_review_input_help_matches_the_rejected_history() -> None:
 )
 def test_rmd06_package_provenance_rejects_dependency_auth_scope_drift(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
     field: str,
     wrong_value: object,
 ) -> None:
     provenance = package_validation.build_provenance()
-    path = tmp_path / package_validation.PROVENANCE_PATH
+    path = tmp_path / "SOURCE_PROVENANCE.v1.0.7.json"
+    monkeypatch.setattr(package_validation, "PROVENANCE_PATH", path)
     _write_json(path, provenance)
     failures: list[str] = []
-    _validate_provenance(tmp_path, failures)
+    _validate_provenance(PROJECT_ROOT, failures)
     assert failures == []
 
     provenance["semantic_delta"][field] = wrong_value
     _write_json(path, provenance)
     failures = []
-    _validate_provenance(tmp_path, failures)
+    _validate_provenance(PROJECT_ROOT, failures)
     assert failures == [
-        "v1.0.6 provenance differs from the exact deterministic authority",
-        "v1.0.6 semantic delta is incomplete or overstated",
+        "v1.0.7 provenance differs from the exact deterministic authority",
+        "v1.0.7 semantic delta is incomplete or overstated",
     ]
 
 
@@ -2229,9 +2231,35 @@ def test_rmd05_delivery_status_builder_fails_closed_until_assurance_passes() -> 
         (PROJECT_ROOT / "machine/contracts/delivery_status_model.json").read_text(encoding="utf-8")
     )
 
-    assert _select_transition_state(model, {"status": "BLOCKED"}) == model["states"]["PRE_CLOSURE"]
-    assert _select_transition_state(model, {"status": "UNKNOWN"}) == model["states"]["PRE_CLOSURE"]
-    assert (
-        _select_transition_state(model, {"status": "PASS"})
-        == model["states"]["DEPENDENCY_AUTH_READY"]
+    assert _select_transition_state(model, {"status": "BLOCKED"}, None) == (
+        "PRE_CLOSURE",
+        model["states"]["PRE_CLOSURE"],
+    )
+    assert _select_transition_state(model, {"status": "UNKNOWN"}, None) == (
+        "PRE_CLOSURE",
+        model["states"]["PRE_CLOSURE"],
+    )
+    assert _select_transition_state(model, {"status": "PASS"}, None) == (
+        "DEPENDENCY_AUTH_READY",
+        model["states"]["DEPENDENCY_AUTH_READY"],
+    )
+    failed_receipt = {
+        "claims": {
+            "t0702_complete": False,
+            "s7ac_002_passed": False,
+        }
+    }
+    assert _select_transition_state(model, {"status": "PASS"}, failed_receipt) == (
+        "PROTECTED_BETA_ATTEMPT_FAILED",
+        model["states"]["PROTECTED_BETA_ATTEMPT_FAILED"],
+    )
+    passed_receipt = {
+        "claims": {
+            "t0702_complete": True,
+            "s7ac_002_passed": True,
+        }
+    }
+    assert _select_transition_state(model, {"status": "PASS"}, passed_receipt) == (
+        "PROTECTED_BETA_PASS_SCOPE_STOP",
+        model["states"]["PROTECTED_BETA_PASS_SCOPE_STOP"],
     )

@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0702 已通过，范围停在 M3 前",
-  "phase": "T0702 证据闭环；M3 前停止",
-  "task": "同步 T0702 通过证据并停止；当前范围不授权 M3",
+  "stage": "RMD-06 T0703 单件预算已授权，首次受保护执行待完成",
+  "phase": "T0703 Budget-1 受保护首次执行准备",
+  "task": "复用既有受保护 Environment；Raw 与 Processed 恢复后只 Trash 精确源消息",
   "owner": "Codex 开发线程"
 }

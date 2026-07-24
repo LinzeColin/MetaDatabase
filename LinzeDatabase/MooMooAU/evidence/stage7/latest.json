@@ -1,9 +1,9 @@
 {
   "schema_version": "moomooau.stage7-aggregate.v1",
   "stage_id": "S7",
-  "observed_at_utc": "2026-07-23T22:53:05Z",
+  "observed_at_utc": "2026-07-24T00:29:34Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
-  "status": "BLOCKED_T0702_PASS_SCOPE_STOP",
+  "status": "AUTHORIZED_T0703_PENDING_PROTECTED_EXECUTION",
   "scoped_preflight": "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY",
   "implementation_completion_status": "LOCAL_MECHANISMS_READY",
   "scope": "LOCAL_PREFLIGHT_WITH_PROTECTED_ATTEMPT_LEDGER",
@@ -24,6 +24,7 @@
     "beta_public_safe_failure_diagnostics": "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE",
     "beta_real_raw_only": "PASS_RAW_RECOVERY_100_PERCENT_ZERO_SOURCE_MUTATION",
     "m3_local_synthetic_mechanism": "PASS",
+    "m3_protected_entrypoint": "AUTHORIZED_PENDING_FIRST_ATTEMPT",
     "m3_deterministic_evidence_run": "NOT_RUN",
     "blue_green_timeline_local_mechanism": "PASS",
     "blue_green_deterministic_evidence_run": "NOT_RUN",
@@ -50,7 +51,7 @@
     "maximum_observed_live_timeline_assets": "NOT_RUN"
   },
   "blocking_conditions": [
-    "M3_AUTHORITY_WITHHELD_BY_CURRENT_OWNER_SCOPE",
+    "PROTECTED_M3_FIRST_ATTEMPT_NOT_RUN",
     "FINAL_ACCEPTANCE_AND_POST_BETA_STAGE7_PHASES_NOT_RUN",
     "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
     "CODEX_AUTOMATION_TASK_PREDECESSOR_NOT_COMPLETE",
@@ -67,6 +68,6 @@
     "CODEX_AUTOMATION_NOT_CREATED",
     "REAL_RECOVERY_KEY_DRILL_NOT_RUN"
   ],
-  "delivery_status": "CONTROLLED_T0702_BETA_PASS_NOT_FINAL",
-  "next_action": "T0702 evidence is closed with no rerun. Stop before M3 because current owner scope withholds every post-Beta Stage 7 phase."
+  "delivery_status": "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL",
+  "next_action": "Deliver the exact validated T0703 candidate to main, add only the two public-safe empty processing registry values to the existing protected Environment, and execute exactly one first-attempt Budget-1 M3 Canary; do not enter T0704."
 }

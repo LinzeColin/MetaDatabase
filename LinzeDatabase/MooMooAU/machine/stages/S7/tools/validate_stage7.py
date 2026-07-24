@@ -22,6 +22,7 @@ TOOLS = PROJECT_ROOT / "machine/tools"
 SRC = PROJECT_ROOT / "src"
 STAGE7_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-stage7-ci.yml"
 BETA_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-beta.yml"
+M3_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-m3.yml"
 PATCH_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-patch-lifecycle.yml"
 PRODUCTION_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-production.yml"
 BASELINE_COMMIT = "be8e196b03dcc475ed6261fbe20593b08bd26bcf"
@@ -81,7 +82,13 @@ def _tree_digest(root: Path) -> str:
     ]
     paths.extend(
         path
-        for path in (STAGE7_WORKFLOW, BETA_WORKFLOW, PATCH_WORKFLOW, PRODUCTION_WORKFLOW)
+        for path in (
+            STAGE7_WORKFLOW,
+            BETA_WORKFLOW,
+            M3_WORKFLOW,
+            PATCH_WORKFLOW,
+            PRODUCTION_WORKFLOW,
+        )
         if path.is_file()
     )
     for path in sorted(set(paths), key=str):
@@ -121,7 +128,7 @@ def _validate_contracts(root: Path) -> list[str]:
     if [item.get("task_id") for item in items] != STAGE7_TASKS:
         errors.append("Stage 7 acceptance-to-task mapping must be one-to-one")
     if (
-        local.get("overall_status") != "BLOCKED_T0702_PASS_SCOPE_STOP"
+        local.get("overall_status") != "AUTHORIZED_T0703_PENDING_PROTECTED_EXECUTION"
         or local.get("final_acceptances_passed") != 0
         or "Local implementation preflight" not in local.get("final_acceptance_policy", "")
         or "No fixed calendar observation period applies"
@@ -171,40 +178,35 @@ def _validate_contracts(root: Path) -> list[str]:
         or run.get("baseline_manifest_sha256") != BASELINE_MANIFEST_SHA256
         or not isinstance(prohibitions, dict)
         or any(value != 0 for value in prohibitions.values())
-        or authorization.get("purpose") != "T0702_PROTECTED_BETA_ONLY"
+        or authorization.get("purpose") != "T0703_PROTECTED_M3_ONLY"
         or authorization.get("controlled_main_delivery_limit") != 1
-        or authorization.get("protected_beta_dispatch_limit") != 1
+        or authorization.get("protected_m3_dispatch_limit") != 1
         or authorization.get("manual_environment_reviewers_required") is not False
         or authorization.get("final_publication_authorized") is not False
-        or authorization.get("m3_authorized") is not False
+        or authorization.get("m3_authorized") is not True
+        or authorization.get("t0704_authorized") is not False
         or effect_budget.get("beta_message_budget") != 1
         or effect_budget.get("controlled_main_deliveries_maximum") != 1
-        or effect_budget.get("beta_environment_secret_values_exact") != 6
-        or effect_budget.get("private_data_repository_creations_maximum") != 1
-        or effect_budget.get("github_app_creations_maximum") != 1
-        or effect_budget.get("github_app_single_repository_installations_maximum") != 1
+        or effect_budget.get("beta_environment_secret_values_exact") != 8
+        or effect_budget.get("beta_environment_new_secret_values_maximum") != 2
+        or effect_budget.get("private_data_repository_creations_maximum") != 0
+        or effect_budget.get("github_app_creations_maximum") != 0
+        or effect_budget.get("github_app_single_repository_installations_maximum") != 0
         or effect_budget.get("verified_full_raw_message_reads_maximum") != 1
-        or effect_budget.get("protected_beta_dispatches_maximum") != 1
-        or any(
-            effect_budget.get(key) != 0
-            for key in (
-                "protected_beta_reruns_maximum",
-                "gmail_mutations_maximum",
-                "m3_runs_maximum",
-                "processed_writes_maximum",
-                "timeline_writes_maximum",
-                "scheduled_runs_maximum",
-            )
-        )
+        or effect_budget.get("raw_ciphertext_creations_maximum") != 1
+        or effect_budget.get("processed_writes_maximum") != 1
+        or effect_budget.get("protected_m3_dispatches_maximum") != 1
+        or effect_budget.get("protected_m3_reruns_maximum") != 0
+        or effect_budget.get("gmail_mutations_maximum") != 1
+        or effect_budget.get("m3_runs_maximum") != 1
+        or effect_budget.get("m3_source_mutation_budget_per_run") != 1
+        or effect_budget.get("timeline_writes_maximum") != 0
+        or effect_budget.get("scheduled_runs_maximum") != 0
         or not run.get("protected_oracles")
-        or (
-            "a second control-repository branch push, pull request, main delivery, "
-            "workflow dispatch or rerun"
-        )
-        not in run.get("non_goals", [])
+        or "GitHub workflow rerun or a second T0703 dispatch" not in run.get("non_goals", [])
         or "ordering_resolution" not in run
     ):
-        errors.append("Stage 7 run contract is incomplete or grants production authority")
+        errors.append("Stage 7 T0703 Run Contract is incomplete or exceeds Budget 1")
 
     repair = _load(root / "machine/stages/S7/contracts/t0702_repair_run_contract.json")
     repair_authority = repair.get("authority", {})
@@ -293,7 +295,7 @@ def _validate_contracts(root: Path) -> list[str]:
     if (
         [item.get("id") for item in task_items] != STAGE7_TASKS
         or any(item.get("status") == "completed" for item in task_items)
-        or status.get("stage_status") != "BLOCKED_T0702_PASS_SCOPE_STOP"
+        or status.get("stage_status") != "AUTHORIZED_T0703_PENDING_PROTECTED_EXECUTION"
         or status.get("scoped_preflight_task_oracle_file_count") != 8
         or status.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or status.get("completed_task_count") != 0
@@ -303,24 +305,24 @@ def _validate_contracts(root: Path) -> list[str]:
         or status.get("protected_workflow_runs") != 11
         or status.get("production_workflow_runs") != 0
         or status.get("final_acceptances_passed") != 0
-        or status.get("delivery_status") != "CONTROLLED_T0702_BETA_PASS_NOT_FINAL"
-        or status.get("ordering_status") != "T0702_COMPLETE_CURRENT_OWNER_SCOPE_STOPS_BEFORE_M3"
+        or status.get("delivery_status") != "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL"
+        or status.get("ordering_status") != "T0703_AUTHORIZED_AFTER_T0702_PASS"
         or status.get("diagnostic_repair_status")
         != "PASS_TYPED_METADATA_QUARANTINE_DELIVERED_AND_OBSERVED"
-        or status.get("new_controlled_delivery_authorized") is not False
-        or status.get("new_protected_dispatch_authorized") is not False
+        or status.get("new_controlled_delivery_authorized") is not True
+        or status.get("new_protected_dispatch_authorized") is not True
     ):
         errors.append("Stage 7 task status is not truthfully blocked")
 
     semantic = _load(root / "machine/stages/S7/contracts/semantic_gate.json")
     semantic_statuses = {item.get("status") for item in semantic.get("resolutions", [])}
     if (
-        semantic.get("status") != "BLOCKED_T0702_PASS_SCOPE_STOP"
+        semantic.get("status") != "AUTHORIZED_T0703_PENDING_PROTECTED_EXECUTION"
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
         or "T0702_PROTECTED_BETA_PASS_NO_RERUN" not in semantic_statuses
-        or "OWNER_T0702_SCOPE_CONSUMED_M3_WITHHELD" not in semantic_statuses
-        or "BLOCKED_POST_BETA_SCOPE" not in semantic_statuses
+        or "OWNER_T0703_BUDGET_ONE_AUTHORIZED" not in semantic_statuses
+        or "T0703_PROTECTED_FIRST_ATTEMPT_PENDING" not in semantic_statuses
         or "RESOLVED_DIAGNOSTIC_REPAIR_OBSERVED_PASS" not in semantic_statuses
         or "RESOLVED_NO_CALENDAR_WAIT" not in semantic_statuses
     ):
@@ -415,6 +417,41 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "ProtectedBetaFailurePhase.AGGREGATE_GATE",
             "public_failure_payload(diagnostics)",
             '"m3_executed": False',
+            '"production_health_claimed": False',
+            '"final_acceptance_claimed": False',
+            "--contract-only",
+            "--execute-protected",
+        ),
+        "protected_m3.py": (
+            "ProtectedM3Bootstrap",
+            "ProtectedM3Runtime",
+            "M3_CONFIG_SECRET_NAME",
+            "M3_SECRET_NAMES",
+            "Stage7ReleaseGate().evaluate_promotion",
+            "M3CanaryRunner",
+            "RepositoryCiphertextReader",
+            "ExactMessageTrashExecutor",
+            "RemoteFirstImportTimestampSource",
+            "_MAXIMUM_VERIFIED_CANDIDATES = 1",
+            'temporary_prefix="moomooau-protected-m3-"',
+        ),
+        "protected_m3_entrypoint.py": (
+            "ExactM3EnvironmentSecretSource",
+            "ProtectedM3GitHubContext",
+            "ProtectedM3ExecutionEvidence",
+            "CONTROL_REPOSITORY_ID = 1_300_525_906",
+            "CONTROL_OWNER_ID = 68_840_188",
+            'CONTROL_REF = "refs/heads/main"',
+            'PROTECTED_ENVIRONMENT = "moomooau-beta"',
+            'M3_CONFIRMATION = "M3_BUDGET_ONE"',
+            "beta_receipt_sha256",
+            "m3_gate_sha256",
+            "_m3_authorized",
+            "maximum_verified_candidates",
+            "Stage7ReleaseGate().evaluate_completed_phase",
+            '"maximum_source_mutations": 1',
+            '"maximum_timeline_mutations": 0',
+            '"fixed_calendar_wait_days": 0',
             '"production_health_claimed": False',
             '"final_acceptance_claimed": False',
             "--contract-only",
@@ -619,7 +656,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
     runbook = root / "operations/STAGE7_RUNBOOK.md"
     runbook_text = runbook.read_text(encoding="utf-8") if runbook.is_file() else ""
     for token in (
-        "BLOCKED_T0702_PASS_SCOPE_STOP",
+        "AUTHORIZED_T0703_PENDING_PROTECTED_EXECUTION",
         "不设自然日等待",
         "一次有界受保护运行",
         "04:30 Australia/Sydney",
@@ -639,8 +676,15 @@ def _action_uses(workflow: str) -> list[str]:
 
 
 def _validate_workflow(root: Path) -> list[str]:
-    if not STAGE7_WORKFLOW.is_file() or not BETA_WORKFLOW.is_file() or not PATCH_WORKFLOW.is_file():
-        return ["Stage 7 preflight, protected Beta or Patch Lifecycle workflow is missing"]
+    if (
+        not STAGE7_WORKFLOW.is_file()
+        or not BETA_WORKFLOW.is_file()
+        or not M3_WORKFLOW.is_file()
+        or not PATCH_WORKFLOW.is_file()
+    ):
+        return [
+            "Stage 7 preflight, protected Beta, protected M3 or Patch Lifecycle workflow is missing"
+        ]
     errors: list[str] = []
     text = STAGE7_WORKFLOW.read_text(encoding="utf-8")
     uses = _action_uses(text)
@@ -674,6 +718,8 @@ def _validate_workflow(root: Path) -> list[str]:
         "ga_runtime.py",
         "production.py",
         "production_adapters.py",
+        "protected_m3.py",
+        "protected_m3_entrypoint.py",
         "gmail_sync_checkpoint.py",
         "model_boundary.py",
         "recovery_drill.py",
@@ -684,6 +730,7 @@ def _validate_workflow(root: Path) -> list[str]:
         "production-composition-v1.schema.json",
         "production-config-v1.schema.json",
         "moomooau-production.yml",
+        "moomooau-m3.yml",
         "moomooau-patch-lifecycle.yml",
         "--preflight",
         "persist-credentials: false",
@@ -800,6 +847,111 @@ def _validate_workflow(root: Path) -> list[str]:
         validate_governance_dependency_auth(
             beta_value,
             label=".github/workflows/moomooau-beta.yml",
+            required=False,
+        )
+    )
+    m3 = M3_WORKFLOW.read_text(encoding="utf-8")
+    m3_uses = _action_uses(m3)
+    expected_m3_secret_names = {
+        "MOOMOOAU_BETA_CONFIG",
+        "MOOMOOAU_SENDER_REGISTRY",
+        "MOOMOOAU_CLASSIFICATION_REGISTRY",
+        "MOOMOOAU_PARSER_REGISTRY",
+        "MOOMOOAU_GITHUB_APP_PRIVATE_KEY",
+        "MOOMOOAU_AGE_IDENTITY",
+        "MOOMOOAU_OPAQUE_ID_KEY",
+        "MOOMOOAU_GMAIL_OAUTH",
+    }
+    actual_m3_secret_names = set(re.findall(r"\$\{\{\s*secrets\.([A-Z0-9_]+)\s*\}\}", m3))
+    try:
+        m3_value = yaml.load(m3, Loader=yaml.BaseLoader)
+    except yaml.YAMLError:
+        m3_value = None
+    m3_required = (
+        "workflow_dispatch:",
+        "expected_head_sha:",
+        "confirm_m3:",
+        "M3_BUDGET_ONE",
+        "permissions:\n  contents: read",
+        "group: moomooau-m3-budget-one-single-writer",
+        "cancel-in-progress: false",
+        "Fail closed on invalid protected M3 dispatch context",
+        'test "$GITHUB_REPOSITORY_ID" = "1300525906"',
+        'test "$GITHUB_REPOSITORY_OWNER_ID" = "68840188"',
+        'test "$GITHUB_ACTOR_ID" = "68840188"',
+        'test "$GITHUB_RUN_ATTEMPT" = "1"',
+        'test "$RUNNER_ENVIRONMENT" = "github-hosted"',
+        'test "$GITHUB_REF" = "refs/heads/main"',
+        'test "$EXPECTED_HEAD_SHA" = "$GITHUB_SHA"',
+        'test "$M3_CONFIRMATION" = "M3_BUDGET_ONE"',
+        "needs: m3-authority-gate",
+        "environment: moomooau-beta",
+        "runs-on: ubuntu-24.04",
+        "requirements/stage6.lock",
+        "--require-hashes",
+        "--no-build-isolation --no-deps .",
+        "tests/tasks/test_t0702.py tests/tasks/test_t0703.py",
+        "validate_package.py",
+        "validate_delivery_status.py",
+        "validate_publication.py",
+        "protected_m3_entrypoint",
+        "protected_m3.py",
+        "--contract-only",
+        "--execute-protected",
+        'assert value["m3_authorized"] is True',
+        "beta_receipt_sha256",
+        "m3_gate_sha256",
+        "moomooau-protected-m3-*",
+        "persist-credentials: false",
+        pins["age"]["linux_amd64_archive_sha256"],
+    )
+    m3_forbidden = (
+        "schedule:",
+        "pull_request:",
+        "\n  push:",
+        "contents: write",
+        "actions/cache",
+        "upload-artifact",
+        "download-artifact",
+        "self-hosted",
+        "git push",
+        "moomooau_production_enabled",
+        "python -m moomooau_archive.production",
+        "python -m moomooau_archive.blue_green_runtime",
+        "moomooau_governance_deploy_key",
+    )
+    m3_workflow_triggers = (
+        set(m3_value.get("on", {}))
+        if isinstance(m3_value, dict) and isinstance(m3_value.get("on"), dict)
+        else set()
+    )
+    if (
+        m3_workflow_triggers != {"workflow_dispatch"}
+        or any(token not in m3 for token in m3_required)
+        or any(token in m3.casefold() for token in m3_forbidden)
+        or actual_m3_secret_names != expected_m3_secret_names
+        or m3.count("${{ secrets.") != len(expected_m3_secret_names)
+        or m3.count('test "$RUNNER_ENVIRONMENT" = "github-hosted"') != 2
+        or m3.count(pins["age"]["linux_amd64_archive_sha256"]) != 2
+        or len(m3_uses) != 4
+        or any(PINNED_ACTION.fullmatch(item) is None for item in m3_uses)
+        or any(
+            item.rsplit("@", 1)[1]
+            != pins["actions"].get(item.rsplit("@", 1)[0], {}).get("commit_sha")
+            for item in m3_uses
+        )
+    ):
+        errors.append("protected M3 workflow drifts from the Budget-1 execution contract")
+    errors.extend(
+        validate_workflow_expression_contexts(
+            m3_value,
+            label=".github/workflows/moomooau-m3.yml",
+        )
+    )
+    errors.extend(
+        validate_governance_dependency_auth(
+            m3_value,
+            label=".github/workflows/moomooau-m3.yml",
             required=False,
         )
     )
@@ -1127,12 +1279,9 @@ def _validate_evidence(root: Path) -> list[str]:
     graph = _load(root / "machine/contracts/task_graph.json")
     graph_tasks = {item["id"]: item for item in graph["tasks"] if item["stage_id"] == "S7"}
     required_blockers = {
-        "T0702": {
-            "M3_AUTHORITY_WITHHELD_BY_CURRENT_OWNER_SCOPE",
-            "FINAL_ACCEPTANCE_AND_POST_BETA_STAGE7_PHASES_NOT_RUN",
-        },
+        "T0702": {"FINAL_ACCEPTANCE_AND_POST_BETA_STAGE7_PHASES_NOT_RUN"},
         "T0703": {
-            "M3_AUTHORITY_WITHHELD_BY_CURRENT_OWNER_SCOPE",
+            "PROTECTED_M3_FIRST_ATTEMPT_NOT_RUN",
         },
         "T0704": {
             "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
@@ -1246,7 +1395,7 @@ def _validate_evidence(root: Path) -> list[str]:
     )
     if (
         latest.get("stage_id") != "S7"
-        or latest.get("status") != "BLOCKED_T0702_PASS_SCOPE_STOP"
+        or latest.get("status") != "AUTHORIZED_T0703_PENDING_PROTECTED_EXECUTION"
         or latest.get("scoped_preflight")
         != "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
         or latest.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
@@ -1265,6 +1414,7 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("beta_public_safe_failure_diagnostics")
         != "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE"
         or observation.get("m3_local_synthetic_mechanism") != "PASS"
+        or observation.get("m3_protected_entrypoint") != "AUTHORIZED_PENDING_FIRST_ATTEMPT"
         or observation.get("blue_green_timeline_local_mechanism") != "PASS"
         or observation.get("ga_full_pipeline_local_mechanism") != "PASS"
         or observation.get("codex_auto_local_policy") != "PASS"
@@ -1296,11 +1446,12 @@ def _validate_evidence(root: Path) -> list[str]:
         )
         or not aggregate_required_blockers.issubset(latest.get("blocking_conditions", []))
         or aggregate_resolved_blockers.intersection(latest.get("blocking_conditions", []))
-        or latest.get("delivery_status") != "CONTROLLED_T0702_BETA_PASS_NOT_FINAL"
+        or latest.get("delivery_status") != "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "T0702 evidence is closed with no rerun. Stop before M3 because current owner "
-            "scope withholds every post-Beta Stage 7 phase."
+            "Deliver the exact validated T0703 candidate to main, add only the two public-safe "
+            "empty processing registry values to the existing protected Environment, and execute "
+            "exactly one first-attempt Budget-1 M3 Canary; do not enter T0704."
         )
     ):
         errors.append("Stage 7 aggregate evidence is not truthfully blocked")
@@ -1385,7 +1536,7 @@ def evaluate_stage7(
     implementation_status = "LOCAL_MECHANISMS_READY" if not failed else "BLOCKED"
     latest = _load(root / "evidence/stage7/latest.json")
     protected_blockers = tuple(latest.get("blocking_conditions", []))
-    overall_status = "BLOCKED_T0702_PASS_SCOPE_STOP"
+    overall_status = "AUTHORIZED_T0703_PENDING_PROTECTED_EXECUTION"
     return {
         "schema_version": "moomooau.stage7-verification.v1",
         "stage_id": "S7",

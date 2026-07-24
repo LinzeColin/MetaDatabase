@@ -2,11 +2,11 @@
   "schema_version": "moomooau.stage-task-status.v1",
   "stage_id": "S7",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
-  "stage_status": "BLOCKED_T0702_PASS_SCOPE_STOP",
+  "stage_status": "AUTHORIZED_T0703_PENDING_PROTECTED_EXECUTION",
   "tasks": [
     {"id": "T0701", "status": "remote_alpha_passed_formal_completion_withheld"},
     {"id": "T0702", "status": "protected_beta_passed_formal_completion_withheld"},
-    {"id": "T0703", "status": "implementation_ready_beta_predecessor_passed_m3_authority_withheld"},
+    {"id": "T0703", "status": "authorized_budget_one_protected_first_attempt_pending"},
     {"id": "T0704", "status": "implementation_ready_blocked_registry_and_predecessor_no_calendar_wait"},
     {"id": "T0705", "status": "implementation_ready_blocked_blue_green_budget_and_protected_schedule"},
     {"id": "T0706", "status": "local_policy_ready_blocked_ga_and_owner_created_automation"},
@@ -22,9 +22,9 @@
   "protected_workflow_runs": 11,
   "production_workflow_runs": 0,
   "final_acceptances_passed": 0,
-  "delivery_status": "CONTROLLED_T0702_BETA_PASS_NOT_FINAL",
-  "ordering_status": "T0702_COMPLETE_CURRENT_OWNER_SCOPE_STOPS_BEFORE_M3",
+  "delivery_status": "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL",
+  "ordering_status": "T0703_AUTHORIZED_AFTER_T0702_PASS",
   "diagnostic_repair_status": "PASS_TYPED_METADATA_QUARANTINE_DELIVERED_AND_OBSERVED",
-  "new_controlled_delivery_authorized": false,
-  "new_protected_dispatch_authorized": false
+  "new_controlled_delivery_authorized": true,
+  "new_protected_dispatch_authorized": true
 }

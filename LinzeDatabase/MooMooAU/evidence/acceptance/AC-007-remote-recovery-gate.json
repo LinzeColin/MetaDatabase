@@ -36,7 +36,7 @@
     "verification": "python -m pytest -q tests/acceptance/test_ac_007.py"
   },
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
-  "evidence_id": "AC-007-RMD01-20260723",
+  "evidence_id": "AC-007-RMD01-20260724",
   "linked_task_evidence": [
     {
       "evidence_ref": "evidence/tasks/T0501.json",
@@ -64,7 +64,7 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0703.json",
-      "evidence_sha256": "f6ac52670a9b60d9e037bf626630b65a4da5a488ae97a7565b6fbdb5aa4b184d",
+      "evidence_sha256": "37b62ae84b3feacacfd1b7fa483e3aed84f81926780bb728893405d80f228290",
       "final_claim_status": "NOT_RUN",
       "reason": "T0702 proved Raw remote recovery, but no Processed recovery or Gmail mutation has run.",
       "source_record_status": "BLOCKED",
@@ -72,7 +72,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-23T22:53:05Z",
+  "observed_at_utc": "2026-07-24T01:10:00Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

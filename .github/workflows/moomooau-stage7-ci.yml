@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - ".github/workflows/moomooau-beta.yml"
+      - ".github/workflows/moomooau-m3.yml"
       - ".github/workflows/moomooau-stage7-ci.yml"
       - ".github/workflows/moomooau-patch-lifecycle.yml"
       - ".github/workflows/moomooau-production.yml"
@@ -11,6 +12,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/moomooau-beta.yml"
+      - ".github/workflows/moomooau-m3.yml"
       - ".github/workflows/moomooau-stage7-ci.yml"
       - ".github/workflows/moomooau-patch-lifecycle.yml"
       - ".github/workflows/moomooau-production.yml"
@@ -115,6 +117,8 @@ jobs:
             LinzeDatabase/MooMooAU/src/moomooau_archive/oauth.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/protected_beta.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/protected_beta_entrypoint.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/protected_m3.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/protected_m3_entrypoint.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/canary_runtime.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/blue_green_runtime.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/ga_runtime.py \
@@ -146,6 +150,7 @@ jobs:
             LinzeDatabase/MooMooAU/schemas/production-config-v1.schema.json \
             LinzeDatabase/MooMooAU/machine/stages/S7 \
             .github/workflows/moomooau-beta.yml \
+            .github/workflows/moomooau-m3.yml \
             .github/workflows/moomooau-patch-lifecycle.yml \
             .github/workflows/moomooau-production.yml \
             .github/workflows/moomooau-stage7-ci.yml \

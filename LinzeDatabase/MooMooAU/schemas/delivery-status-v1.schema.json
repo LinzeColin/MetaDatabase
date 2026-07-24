@@ -102,9 +102,9 @@
       }
     },
     {
-      "title": "RMD-06 protected Beta passed and current scope stops before M3",
+      "title": "v1.0.7 protected Beta passed with default-disabled M3 entrypoint",
       "properties": {
-        "package_version": {"const": "1.0.6"},
+        "package_version": {"const": "1.0.7"},
         "overall_status": {
           "const": "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE"
         },
@@ -131,14 +131,45 @@
           "const": "T0702 evidence is closed; the M3 predecessor is satisfied, but current owner scope withholds M3, so stop before any M3 or later Stage 7 execution."
         }
       }
+    },
+    {
+      "title": "v1.0.8 protected Beta passed and T0703 Budget-1 authorized",
+      "properties": {
+        "package_version": {"const": "1.0.8"},
+        "overall_status": {
+          "const": "PROTECTED_BETA_PASS_T0703_AUTHORIZED_PENDING"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0703_PROTECTED_FIRST_ATTEMPT_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Deliver the exact validated T0703 candidate to main, add only the two public-safe empty processing registry values to the existing protected Environment, and execute exactly one first-attempt Budget-1 M3 Canary; do not enter T0704."
+        }
+      }
     }
   ],
   "properties": {
     "schema_version": {"const": "moomooau.delivery-status.v1"},
     "status_model_version": {"const": "moomooau.delivery-status-model.v3"},
     "package_version": {
-      "enum": ["1.0.4", "1.0.6"],
-      "description": "Coupled by the root oneOf to the exact RMD-05 pre-closure or RMD-06 dependency-authentication-ready state."
+      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8"],
+      "description": "Coupled by the root oneOf to the exact historical RMD state or current authorized T0703 pre-execution state."
     },
     "status_as_of_utc": {"type": "string", "format": "date-time"},
     "authority": {
@@ -159,7 +190,8 @@
       "enum": [
         "LOCAL_MECHANISMS_EVIDENCED_FINAL_ACCEPTANCE_BLOCKED",
         "PROTECTED_BETA_FAILED_FINAL_ACCEPTANCE_BLOCKED",
-        "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE"
+        "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE",
+        "PROTECTED_BETA_PASS_T0703_AUTHORIZED_PENDING"
       ]
     },
     "dimensions": {

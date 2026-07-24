@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-`BLOCKED_T0702_PASS_SCOPE_STOP`，本地实现状态为 `LOCAL_MECHANISMS_READY`。T0701–T0708
+`AUTHORIZED_T0703_PENDING_PROTECTED_EXECUTION`，本地实现状态为 `LOCAL_MECHANISMS_READY`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
@@ -10,11 +10,13 @@ fail closed。账本区分 1 次 Secret 前 context 拒绝与 11 次 protected f
 exact-main attempt 的 Alpha、Raw-only Beta 与 identity cleanup 均 PASS，Raw 远端恢复 100%，
 Gmail mutation、M3、Processed 与 Timeline mutation 均为 0，GitHub rerun 为 0。T0702/S7AC-002
 已通过；实际 M3、GA、Automation、Recovery Drill、Patch Canary、Patch apply 与 rollback 均未运行。
-禁止把 T0702 PASS 或 `--preflight` 的退出码 0 解释为 Stage 7、最终 Acceptance 或生产 PASS。
+禁止把 T0702 PASS、T0703 授权或 `--preflight` 的退出码 0 解释为 T0703、Stage 7、最终
+Acceptance 或生产 PASS。
 
-历史 completion Run Contract 允许过 T0702 repair 的串行 first attempt，GitHub rerun 始终禁止。
-该权限已经完成 T0702；当前 Owner 范围只允许收口 T0702 证据并明确停在 M3 前，因此不得新增
-protected dispatch、受控交付或进入任何 post-Beta 阶段。
+当前精确 Run Contract 只授权 T0703：一份受控 main 交付、一次 protected first attempt、source
+mutation Budget 1、GitHub rerun 0。它复用 `moomooau-beta` Environment 和已验证 private data path；
+只新增两项公开安全空 processing registry，并要求 Raw 与 Processed recovery 后才允许 exact
+message Trash。不得进入 T0704 或任何更晚阶段。
 
 ## Beta protected bootstrap 契约
 

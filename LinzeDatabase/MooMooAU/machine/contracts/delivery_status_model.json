@@ -4,7 +4,7 @@
   "authorization": {
     "decision": "Owner retained the private Governance Deploy Key design and explicitly authorized controlled Stage 7 completion with serial new first-attempt protected dispatches and no artificial calendar or manual-approval blocker",
     "authorized_on": "2026-07-23",
-    "scope": "Stage 7 T0702 only: Beta remains Raw-only with budget one and zero Gmail mutation. The protected T0702 PASS satisfies the M3 predecessor but does not authorize M3; current owner scope stops before every post-Beta phase, with no manual Environment reviewer or fixed calendar wait added."
+    "scope": "Stage 7 T0703 only: the protected T0702 PASS satisfies the M3 predecessor. The current exact Run Contract authorizes one controlled main delivery and one first-attempt Budget-1 M3 Canary, reuses the verified protected Beta infrastructure, requires Raw and Processed remote recovery before exact source-message Trash, and does not authorize T0704 or final publication."
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -86,8 +86,8 @@
       ],
       "next_action": "Install the existing least-privilege GitHub App on exactly the one private data repository, then execute a new exact-main first-attempt T0702 Beta; after a real PASS continue M3, Blue-Green, GA and Recovery without fixed calendar waits."
     },
-    "PROTECTED_BETA_PASS_SCOPE_STOP": {
-      "package_version": "1.0.6",
+    "PROTECTED_BETA_PASS_M3_AUTHORIZED": {
+      "package_version": "1.0.8",
       "resolved_review_findings": [
         "REV-P0-002",
         "REV-P0-003",
@@ -97,10 +97,10 @@
       ],
       "current_remediation_blockers": [
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
-        "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+        "T0703_PROTECTED_FIRST_ATTEMPT_PENDING",
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
-      "next_action": "T0702 evidence is closed; the M3 predecessor is satisfied, but current owner scope withholds M3, so stop before any M3 or later Stage 7 execution."
+      "next_action": "Deliver the exact validated T0703 candidate to main, add only the two public-safe empty processing registry values to the existing protected Environment, and execute exactly one first-attempt Budget-1 M3 Canary; do not enter T0704."
     }
   }
 }

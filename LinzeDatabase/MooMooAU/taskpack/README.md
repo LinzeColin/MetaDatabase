@@ -68,7 +68,32 @@ namespace，以及 Gmail mutation/M3/Processed/Timeline/schedule 均为 0。T070
 - `SOURCE_PROVENANCE.v1.0.6.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.5.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.4.json`、
+`v1.0.7` 只补齐 T0703 的独立 protected M3 Budget-1 装配与 main-only Workflow，并将其绑定到
+既有 T0702 PASS receipt、同树 gate 和当前 Run Contract。当前
+`m3_authorized=false`，因此入口默认禁用且在读取八项 M3 Secret 前停止。真实 Gmail、私有数据仓、
+Processed、M3、Timeline、Workflow dispatch 与发布效果均为零；T0702 既有 PASS 不变，Stage 7
+仍未完成。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.7.md`
+- `ROADMAP.v1.0.7.md`
+- `PACKAGE_MANIFEST.v1.0.7.json`
+- `SOURCE_PROVENANCE.v1.0.7.json`
+- `CHANGELOG.md`
+
+`v1.0.8` 在真实 T0702 PASS 后建立唯一 T0703 Run Contract，复用已验证的
+`moomooau-beta` Environment/配置，并把缺少受保护分类或解析证据的路径固定为加密
+`SAFE_DEFERRED` Processed。它只授权一份受控 main 交付和一次 first-attempt Budget-1 M3，
+Raw 与 Processed 远端恢复后才允许精确 source-message Trash；不得进入 T0704。
+当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.8.md`
+- `ROADMAP.v1.0.8.md`
+- `PACKAGE_MANIFEST.v1.0.8.json`
+- `SOURCE_PROVENANCE.v1.0.8.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.7.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.6.json`、
+`PACKAGE_MANIFEST.v1.0.4.json`、
 `PACKAGE_MANIFEST.v1.0.3.json` 与 `PACKAGE_MANIFEST.v1.0.2.json` 是不可变控制前序；
 `PACKAGE_MANIFEST.v1.0.1.json` 与
 `SOURCE_PROVENANCE.json` 是不可变历史基线。它们都不得用于解释当前跨维度交付状态；当前状态唯一真源

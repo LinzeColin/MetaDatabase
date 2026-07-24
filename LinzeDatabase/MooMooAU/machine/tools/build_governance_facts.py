@@ -30,12 +30,15 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     delivery = _load(root / "machine/status/latest.json")
     if (
         delivery.get("schema_version") != "moomooau.delivery-status.v1"
-        or delivery.get("package_version") not in {"1.0.4", "1.0.5", "1.0.6"}
+        or delivery.get("package_version")
+        not in {"1.0.4", "1.0.5", "1.0.6", "1.0.7", "1.0.8"}
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
         raise ValueError("delivery status authority identity mismatch")
-    closed = delivery["package_version"] in {"1.0.5", "1.0.6"}
-    dependency_auth_ready = delivery["package_version"] == "1.0.6"
+    closed = delivery["package_version"] in {"1.0.5", "1.0.6", "1.0.7", "1.0.8"}
+    dependency_auth_ready = delivery["package_version"] in {"1.0.6", "1.0.7", "1.0.8"}
+    t0703_entrypoint_ready = delivery["package_version"] in {"1.0.7", "1.0.8"}
+    t0703_authorized = delivery["package_version"] == "1.0.8"
     protected_beta_failed = (
         delivery.get("dimensions", {}).get("protected_oracles", {}).get("status") == "FAILED"
     )
@@ -63,7 +66,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "本地预检与已交付安全诊断有证据；最新 Beta 因 GitHub App 零安装失败"
+            "T0702 受保护 Beta 已通过；T0703 单件预算已授权并待首次执行"
+            if t0703_authorized
+            else "本地预检与已交付安全诊断有证据；最新 Beta 因 GitHub App 零安装失败"
             if protected_beta_failed
             else "T0702 受保护 Beta 已通过；当前范围停在 M3 前"
             if protected_beta_passed
@@ -117,6 +122,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED": (
             "T0702 已通过并满足 M3 前序，但当前 Owner 范围明确停在 M3 前"
         ),
+        "T0703_PROTECTED_FIRST_ATTEMPT_PENDING": (
+            "T0703 单件预算已授权；精确 main 交付、两项安全延后注册表和首次受保护执行待完成"
+        ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
@@ -140,21 +148,27 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0702 已通过，范围停在 M3 前"
+            "RMD-06 T0703 单件预算已授权，首次受保护执行待完成"
+            if t0703_authorized
+            else "RMD-06 T0702 已通过，范围停在 M3 前"
             if protected_beta_passed
             else "RMD-06 T0702 已授权复验"
             if protected_beta_failed
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0702/S7AC-002 已通过；Raw 远端恢复 100%，Gmail 变更为零；当前范围禁止进入 M3"
+            "T0702/S7AC-002 已通过；T0703 仅授权一次 Raw+Processed 恢复后精确 Trash，尚未执行"
+            if t0703_authorized
+            else "T0702/S7AC-002 已通过；Raw 远端恢复 100%，Gmail 变更为零；当前范围禁止进入 M3"
             if protected_beta_passed
             else "T0702 安全诊断已交付；最新 Beta 固定诊断为 GitHub App 零安装；禁止进入 M3"
             if protected_beta_failed
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "关闭 T0702 证据与派生状态；不触发 M3 或后续受保护阶段"
+            "交付精确 T0703 候选、配置两项安全延后注册表并执行唯一一次 Budget-1 M3"
+            if t0703_authorized
+            else "关闭 T0702 证据与派生状态；不触发 M3 或后续受保护阶段"
             if protected_beta_passed
             else "将现有最小权限 GitHub App 仅安装到唯一私有数据仓，再执行新 SHA attempt 1"
             if protected_beta_failed
@@ -360,6 +374,23 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "zh": "仅主分支",
                 "note": "受保护入口只允许精确主分支提交",
             },
+            {"en": "main", "zh": "主分支", "note": "远端唯一受控交付分支"},
+            {
+                "en": "Environment",
+                "zh": "受保护环境",
+                "note": "GitHub Actions 的受保护配置与机密边界",
+            },
+            {"en": "Budget-", "zh": "单件预算", "note": "受保护执行效果上限为一"},
+            {
+                "en": "SAFE_DEFERRED",
+                "zh": "安全延后",
+                "note": "缺少受保护处理证据时的显式非猜测 Processed 状态",
+            },
+            {
+                "en": "moomooau-beta",
+                "zh": "受保护测试环境名称",
+                "note": "T0702 已验证且由 T0703 复用的 GitHub Environment",
+            },
             {
                 "en": "protected",
                 "zh": "受保护",
@@ -428,6 +459,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "en": "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
                 "zh": "测试阶段后的第七阶段步骤未授权",
                 "note": "T0702 已通过；当前 Owner 范围停在 M3 前",
+            },
+            {
+                "en": "PROTECTED_FIRST_ATTEMPT_PENDING",
+                "zh": "受保护首次执行待完成",
+                "note": "T0703 已授权但尚无真实受保护回执",
             },
             {
                 "en": "FINAL_ACCEPTANCE_BLOCKED",
@@ -521,14 +557,18 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     }
     plan = {
         "stage": (
-            "RMD-06 T0702 已通过，范围停在 M3 前"
+            "RMD-06 T0703 单件预算已授权，首次受保护执行待完成"
+            if t0703_authorized
+            else "RMD-06 T0702 已通过，范围停在 M3 前"
             if protected_beta_passed
             else "RMD-06 T0702 已授权复验"
             if protected_beta_failed
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0702 证据闭环；M3 前停止"
+            "T0703 Budget-1 受保护首次执行准备"
+            if t0703_authorized
+            else "T0702 证据闭环；M3 前停止"
             if protected_beta_passed
             else "诊断修复已交付；最新 Beta 因 GitHub App 零安装失败"
             if protected_beta_failed
@@ -537,7 +577,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "同步 T0702 通过证据并停止；当前范围不授权 M3"
+            "复用既有受保护 Environment；Raw 与 Processed 恢复后只 Trash 精确源消息"
+            if t0703_authorized
+            else "同步 T0702 通过证据并停止；当前范围不授权 M3"
             if protected_beta_passed
             else "仅安装现有最小权限 GitHub App 到唯一私有数据仓；Beta 通过前不进入 M3"
             if protected_beta_failed
@@ -573,7 +615,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "部分通过（T0702；后续未运行）"
+                    "部分通过（T0702；T0703 已授权待运行）"
+                    if t0703_authorized
+                    else "部分通过（T0702；后续未运行）"
                     if protected_beta_passed
                     else "阻塞（Beta 失败）"
                     if protected_beta_failed
@@ -670,6 +714,32 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "T0702 串行 first-attempt 账本区分一次 secret 前拒绝与十一次 protected 执行；"
                     "最新执行通过 Alpha、Raw-only Beta 与身份清理，Raw 远端恢复 100%，"
                     "Gmail 变更为零；当前范围停在 M3 前，生产与最终发布仍关闭。"
+                ),
+            },
+        )
+    if t0703_entrypoint_ready:
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.7",
+                "date": "2026-07-24",
+                "summary": (
+                    "新增独立受保护 M3 单件预算装配与仅主分支工作流，"
+                    "绑定 T0702 通过回执和当前运行契约；M3 授权标志为假，"
+                    "继续在读取密钥前关闭，真实 M3、处理后数据、Gmail 消息变更与发布均未运行。"
+                ),
+            },
+        )
+    if t0703_authorized:
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.8",
+                "date": "2026-07-24",
+                "summary": (
+                    "T0702 真实通过后建立唯一 T0703 Budget-1 Run Contract，复用已验证的 "
+                    "moomooau-beta 受保护基础设施；缺少受保护分类或解析证据时只生成加密 "
+                    "SAFE_DEFERRED Processed，远端恢复 Raw 与 Processed 后才允许精确消息 Trash。"
                 ),
             },
         )
