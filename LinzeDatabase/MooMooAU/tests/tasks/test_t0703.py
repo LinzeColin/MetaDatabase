@@ -664,10 +664,10 @@ class _SyntheticProtectedM3Bootstrap:
         yield _SyntheticProtectedM3Runtime(self._result)
 
 
-def test_t0703_protected_entrypoint_contract_is_authorized_and_receipt_bound() -> None:
+def test_t0703_protected_entrypoint_contract_is_closed_after_exact_pass_receipt() -> None:
     contract = execution_contract(PROJECT_ROOT)
     assert contract["mode"] == "CONTRACT_ONLY"
-    assert contract["m3_authorized"] is True
+    assert contract["m3_authorized"] is False
     assert contract["required_actor_id"] == CONTROL_OWNER_ID
     assert contract["required_ref"] == CONTROL_REF
     assert contract["required_workflow_ref"] == CONTROL_WORKFLOW_REF
@@ -681,11 +681,13 @@ def test_t0703_protected_entrypoint_contract_is_authorized_and_receipt_bound() -
     assert contract["beta_receipt_sha256"] == beta_receipt_sha256(PROJECT_ROOT)
     assert contract["prior_attempt_ledger_path"].endswith("t0703/attempt-ledger.json")
     assert contract["prior_failed_attempts"] == 6
+    assert contract["completion_receipt_path"].endswith("t0703/execution-receipt.json")
+    assert contract["completion_receipt_present"] is True
     assert contract["same_head_rerun_allowed"] is False
     assert contract["m3_gate_sha256"] == m3_gate_sha256(PROJECT_ROOT)
     assert contract["feature_invariants"] == {
         "processing_enabled": True,
-        "m3_enabled": True,
+        "m3_enabled": False,
         "timeline_enabled": False,
         "release_mutation_budget_ceiling": 1,
         "reconciliation_new_mutation_budget": 0,

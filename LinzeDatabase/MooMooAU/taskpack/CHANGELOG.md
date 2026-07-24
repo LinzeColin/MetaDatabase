@@ -1,5 +1,19 @@
 # Taskpack Changelog
 
+## 1.0.15 — 2026-07-24
+
+固化 T0703 第七个不同 exact-main attempt-1 的受保护 PASS，并在 T0704 前停止。
+
+- 绑定 PR #110、main `83fec616…`、workflow run `30081901453`、10/10 exact-main CI、
+  authority PASS、zero-mutation reconciliation PASS、identity cleanup PASS 与 rerun 0；
+- 聚合回执只声明 Raw+Processed recovery 100%、第二次验证、一个既有未知 mutation 已调和、
+  当前运行 source/collateral mutation 0 与 Timeline publish 0；
+- 独立运行前后核验确认 private head/tree/path counts 与 Gmail Trash aggregate 均不变，
+  不披露 private locator、Secret 或精确邮箱数量；
+- 六次失败账本保持不可变，成功回执单独绑定；任何失败或成功 head 均不得 rerun/redispatch；
+- T0703/S7AC-003 PASS；M3 authority 与全部数据面预算归零；
+- 只允许一份受控证据交付；T0704、生产健康、最终 Acceptance、Stage 7 完成与最终发布未授权。
+
 ## 1.0.14 — 2026-07-24
 
 固化 T0703 第六个 exact-main attempt 在 `PROCESSED_PLAN` 的零新增效果失败，并只授权一个历史

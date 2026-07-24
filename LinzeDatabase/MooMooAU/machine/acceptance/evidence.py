@@ -25,14 +25,14 @@ RECORD_SCHEMA: Final = Path("machine/acceptance/schemas/acceptance-evidence-v1.s
 SUMMARY_SCHEMA: Final = Path("machine/acceptance/schemas/acceptance-summary-v1.schema.json")
 ORACLE_SCHEMA: Final = Path("machine/acceptance/schemas/oracle-observation-v1.schema.json")
 SUMMARY_PATH: Final = Path("evidence/acceptance/latest.json")
-PORTABLE_SOURCE_PROVENANCE: Final = Path("taskpack/SOURCE_PROVENANCE.v1.0.14.json")
-PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v14"
-PORTABLE_PACKAGE_VERSION: Final = "1.0.14"
+PORTABLE_SOURCE_PROVENANCE: Final = Path("taskpack/SOURCE_PROVENANCE.v1.0.15.json")
+PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v15"
+PORTABLE_PACKAGE_VERSION: Final = "1.0.15"
 CURRENT_MAINLINE_BASE_COMMIT: Final = (
-    "9ca3b47eaaa75ef2f6e6650b41960d11545ed04e"  # pragma: allowlist secret
+    "caeae1879ffeb7f5f804dfe79a515b20ffc5ffe7"  # pragma: allowlist secret
 )
 ACCEPTANCE_REMEDIATION_BASE_COMMIT: Final = (
-    "c860f3880b48b03c3f71ac79e61e278125fb1811"  # pragma: allowlist secret
+    "83fec6161d5cd80c62f3553d6332c0113ef5a514"  # pragma: allowlist secret
 )
 EXPECTED_ACCEPTANCE_IDS: Final = tuple(f"AC-{index:03d}" for index in range(1, 35))
 EXPECTED_REQUIREMENT_IDS: Final = tuple(f"RQ-{index:03d}" for index in range(1, 35))

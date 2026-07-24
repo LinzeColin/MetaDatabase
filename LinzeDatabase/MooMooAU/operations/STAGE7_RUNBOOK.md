@@ -2,26 +2,24 @@
 
 ## 当前状态
 
-`AUTHORIZED_T0703_REPAIR_CANDIDATE_PENDING_PROTECTED_EXECUTION`，本地实现状态为
+`T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED`，本地实现状态为
 `LOCAL_MECHANISMS_READY`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
 fail closed。T0702 账本区分 1 次 Secret 前 context 拒绝与 11 次 protected first attempt；最终
-Raw-only Beta PASS。T0703 四个不同 exact-main protected attempt 1 的 authority 与 identity
-cleanup 均 PASS、M3 job 均 FAILED；后验只读核验观察到 private new commit、MooMooAU path write、
-Processed write、Gmail Trash 和 Timeline mutation 均为 0，GitHub rerun 为 0。第四次只公开
-`AGGREGATE_GATE`，不据 aggregate-only 输出声称精确线上根因。禁止把零副作用失败、
-恢复授权或 `--preflight`
-退出码 0 解释为 T0703、Stage 7、最终 Acceptance 或生产 PASS。
+Raw-only Beta PASS。T0703 的六个失败 exact-main head 保持不可变且从未 rerun：第五次留下一个
+可恢复 Processed lineage 与未精确归因的 Gmail Trash 聚合变化，第六次在 `PROCESSED_PLAN`
+零新增效果停止。第七个不同 exact-main head 的 attempt 1 已通过 authority、历史 label 零写入
+reconciliation 与 identity cleanup；Raw+Processed 远端恢复 100%，当前运行 Gmail mutation、
+private write、collateral mutation 与 Timeline write 均为 0。独立前后核验确认 private
+head/tree/path counts 与 Gmail Trash 聚合不变。T0703/S7AC-003 因此 PASS，但不等于 Stage 7、
+最终 Acceptance 或生产 PASS。
 
-当前精确 Run Contract 只授权 T0703：一份新受控 main 交付、一次新 candidate attempt 1、source
-mutation Budget 1、GitHub rerun 0。四个失败 head 均不得 redispatch。它复用 `moomooau-beta`
-Environment、八项 exact Secret name 和 Owner 已确认的 App/private data path。空 protected
-classification/parser registry 时，无 parser profile 的决定优先生成显式可恢复 `SAFE_DEFERRED`；
-active parser profile 遇隔离 extraction 时仍 hard quarantine。aggregate failure 只输出封闭固定
-枚举，App-token 可选回显/probe/TTL 修复保持不变，其他失败仍 hard fail。Raw 与 Processed recovery
-后才允许 exact message Trash；不得进入 T0704 或任何更晚阶段。
+当前精确 Run Contract 只允许固化 T0703 成功回执的一份受控证据交付；M3 dispatch、rerun、Secret
+读取、Gmail/私有仓/Timeline 写入与完整 Raw 读取预算均为 0。任何失败或成功 head 都不得再次运行。
+`moomooau-beta` 的 exact 八项 Secret name allowlist 保留但不读取值。T0704、Blue-Green、GA、
+04:30 调度、最终 Acceptance 与最终发布均未授权；进入 T0704 必须建立新的显式 Run Contract。
 
 ## Beta protected bootstrap 契约
 
@@ -57,7 +55,7 @@ per-message、bounded quarantine；404/结构不完整可隔离继续，任何 r
 未请求 header 或权限/服务错误仍整次 fail closed。PASS 结果只公开 `TEN_PLUS` discovery/
 verification bucket、`ONE` recovery bucket、Raw recovery 100% 和零 Gmail mutation/M3/Processed/
 Timeline mutation；private namespace 只公开为非零 age ciphertext，不公开精确对象数量或仓标识。
-T0702/S7AC-002 已关闭，但当前范围不得进入 M3。
+T0702/S7AC-002 已关闭；其历史回执与账本继续作为 T0703 的不可变前序。
 
 ## Blue-Green 与单一 Timeline 本地机制
 
@@ -65,7 +63,7 @@ T0702/S7AC-002 已关闭，但当前范围不得进入 M3。
 
 Timeline 聚合将每个 current Processed pointer 与同 source 的 canonical `TimelineEvent` 绑定。逻辑 `processed_snapshot_root` 只由排序后的 source ID、current pointer plaintext digest 和 Timeline Event plaintext digest 推导，不依赖 age 随机密文。Event 与 manifest 均以 append-only `.age` 对象写入同一个私有数据库命名空间，随后从 store 重新取回、解密、解析并重算 root。`SingleLatestTimelinePublisher` 只接收该恢复 proof 的 root 与 incumbent facts；健康状态必须始终恰好一个固定 live Asset，修复状态只能为零。
 
-当前这些保证只在本地合成内存 remote 上验证。未配置 protected classification/parser registries，M3 尚未完成，受保护 Blue-Green 确定性证据运行尚未执行；因此不得宣称 T0704、AC-015、AC-028、AC-029 或 AC-030 已通过，也不得在此机制中提升 current pointer。不设自然日等待。
+当前这些保证只在本地合成内存 remote 上验证。T0703 已完成，但未配置 protected classification/parser registries，且当前 Run Contract 不授权 T0704；受保护 Blue-Green 确定性证据运行尚未执行。因此不得宣称 T0704、AC-015、AC-028、AC-029 或 AC-030 已通过，也不得在此机制中提升 current pointer。不设自然日等待。
 
 Owner 已授权 v1.0.2 successor baseline。`machine/tools/validate_evidence.py` 现在按任务的真实
 Stage schema 路由，并同时核对 task graph、stage-local acceptance、final Acceptance 绑定和禁止项

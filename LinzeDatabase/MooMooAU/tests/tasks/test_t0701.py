@@ -48,10 +48,7 @@ def test_t0701_stage7_contract_catalog_is_closed_and_not_final() -> None:
     assert [item["task_id"] for item in contract["acceptance_contracts"]] == [
         f"T070{index}" for index in range(1, 9)
     ]
-    assert (
-        contract["overall_status"]
-        == "AUTHORIZED_T0703_REPAIR_CANDIDATE_PENDING_PROTECTED_EXECUTION"
-    )
+    assert contract["overall_status"] == "T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED"
     assert contract["final_acceptances_passed"] == 0
 
 

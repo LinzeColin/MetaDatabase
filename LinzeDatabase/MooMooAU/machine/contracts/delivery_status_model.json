@@ -2,9 +2,9 @@
   "schema_version": "moomooau.delivery-status-model.v3",
   "transition": "RMD-06_PROTECTED_ACCEPTANCE_PREPARATION",
   "authorization": {
-    "decision": "Owner retained the private Governance Deploy Key design and explicitly authorized controlled Stage 7 completion with serial new first-attempt protected dispatches and no artificial calendar or manual-approval blocker",
+    "decision": "Owner retained the private Governance Deploy Key design and authorized one fully automatic exact-main T0703 reconciliation attempt with no artificial calendar or manual-approval blocker; the resulting protected PASS consumes that authority",
     "authorized_on": "2026-07-23",
-    "scope": "Stage 7 T0703 only: the protected T0702 PASS satisfies the M3 predecessor. The first four exact-main M3 attempts had zero observed effects. The fifth reached the closed MUTATION_FAILED aggregate only after Raw plus Processed recovery; independent checks observed processed-current ZERO to ONE and Gmail Trash aggregate plus one, but exact-source attribution remains unclaimed. The sixth zero-write reconciliation recovered Raw then stopped at PROCESSED_PLAN with independently verified zero new effect. The current Run Contract authorizes one repaired exact-main delivery and one attempt-1 dispatch that recovers historical Gmail label state from the existing encrypted Processed envelope before replay. It selects exactly one verified Trash source backed by the sole pointer, performs Raw and Processed recovery plus second verification, makes Gmail and private-repository writes unreachable, forbids rerun or any failed-head redispatch, and does not authorize T0704 or final publication."
+    "scope": "Stage 7 T0703 only: the protected T0702 PASS and six failed T0703 heads remain immutable. PR 110 merged after 10/10 checks, its exact-main merge SHA passed 10/10 checks, and workflow run 30081901453 attempt 1 passed authority, encrypted historical-label zero-write reconciliation and identity cleanup. Aggregate evidence proves Raw plus Processed recovery, second verification, one reconciled prior unknown mutation, zero current-run or collateral mutation and Timeline off. Independent pre/post reads prove unchanged private head, tree and path counts plus zero Gmail Trash delta. T0703/S7AC-003 pass; every M3 dispatch authority is consumed and T0704, production and final publication remain unauthorized."
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -117,6 +117,22 @@
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
       "next_action": "Deliver the exact historical-label zero-new-write T0703 reconciliation candidate to main and execute exactly one attempt-1 reconciliation dispatch; do not rerun or redispatch any failed head, issue any new Gmail/private-repository write, or enter T0704."
+    },
+    "PROTECTED_M3_PASS_SCOPE_STOP": {
+      "package_version": "1.0.15",
+      "resolved_review_findings": [
+        "REV-P0-002",
+        "REV-P0-003",
+        "REV-P1-004",
+        "REV-P1-006",
+        "REV-P2-007"
+      ],
+      "current_remediation_blockers": [
+        "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
+        "T0704_NEW_RUN_CONTRACT_REQUIRED",
+        "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+      ],
+      "next_action": "Close T0703/S7AC-003 from the exact protected receipt and stop before T0704. No T0703 rerun or redispatch is allowed; a new explicit T0704 Run Contract is required."
     }
   }
 }

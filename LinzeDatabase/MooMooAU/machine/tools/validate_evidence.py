@@ -515,7 +515,7 @@ def _validate_later_stage_record(
     expected_protected_status = {
         "T0701": "PASS",
         "T0702": "PASS",
-        "T0703": "FAILED",
+        "T0703": "PASS",
     }.get(task_id, "NOT_RUN")
     if isinstance(production_oracles, list) and any(
         item.get("status") != expected_protected_status
@@ -526,7 +526,9 @@ def _validate_later_stage_record(
     expected_receipt = (
         "machine/stages/S7/reviews/t0702/execution-receipt.json"
         if task_id in {"T0701", "T0702"}
-        else None
+        else (
+            "machine/stages/S7/reviews/t0703/execution-receipt.json" if task_id == "T0703" else None
+        )
     )
     if record.get("protected_execution_receipt") != expected_receipt:
         errors.append("protected execution receipt binding differs")

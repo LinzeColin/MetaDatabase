@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the v1.0.14 T0703 historical-label zero-write reconciliation manifest."""
+"""Build the v1.0.15 T0703 protected PASS scope-stop manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.14.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-24-V1.0.14"
-PACKAGE_VERSION = "1.0.14"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.13.json")
-PREDECESSOR_MANIFEST_SHA256 = "63a9d3f90fd420c8b661e7617793df0c748eece68c9363a11115d4b0d264fa1e"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.15.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-24-V1.0.15"
+PACKAGE_VERSION = "1.0.15"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.14.json")
+PREDECESSOR_MANIFEST_SHA256 = "7a4d7ff326f0dc85ae46e94990918d4656a1b2a43fe86d1102665292d332e11f"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.13 manifest drift")
+        raise ValueError("predecessor v1.0.14 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -165,10 +165,11 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         not isinstance(status, dict)
         or status.get("package_version") != PACKAGE_VERSION
         or "REV-P1-006" not in status.get("resolved_review_findings", [])
-        or "RMD-06_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
-        or "T0703_REPAIR_CANDIDATE_PENDING" not in status.get("blockers", [])
+        or "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
+        or status.get("overall_status") != "PROTECTED_M3_PASS_SCOPE_STOP_T0704_NOT_AUTHORIZED"
+        or "T0704_NOT_AUTHORIZED_IN_CURRENT_RUN" not in status.get("blockers", [])
     ):
-        raise ValueError("T0703 repair candidate is not in the exact authorized pre-run state")
+        raise ValueError("T0703 protected PASS is not in the exact scope-stopped state")
     entries = [
         {
             "path": path.relative_to(root).as_posix(),
@@ -178,33 +179,28 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v13",
+        "schema_version": "moomooau.package-manifest.v14",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
-            "Stage 7 T0703 only: preserve the protected T0702 PASS and all six failed M3 "
-            "attempts. The fifth reached closed MUTATION_FAILED after Raw and Processed recovery; "
-            "the sixth stopped at PROCESSED_PLAN with independently verified zero new effect. "
-            "One controlled main delivery and one attempt-1 historical-label zero-new-write "
-            "reconciliation are authorized. Every failed-head rerun or redispatch, final "
-            "publication and T0704 remain forbidden."
+            "Stage 7 T0703 receipt closure only: preserve the protected T0702 PASS, the immutable "
+            "six-attempt failed M3 lineage and the sole seventh-head attempt-1 protected PASS. "
+            "One controlled evidence delivery is authorized; every M3 rerun or redispatch, "
+            "T0704, production and final publication remain forbidden."
         ),
         "scope": (
-            "Baseline-preserving v1.0.14 reconciliation snapshot: immutable v1.0.1 product "
-            "contracts and v1.0.2-v1.0.13 predecessor lineage; the exact T0702 protected PASS "
-            "receipt remains unchanged. The first four T0703 attempts retain zero observed "
-            "effects. The fifth is truthfully bound as MUTATION_FAILED with one recovered "
-            "Processed lineage, processed-current ZERO-to-ONE and Gmail Trash aggregate plus one, "
-            "while exact-source attribution and the mutation subreason remain unclaimed. The sixth "
-            "recovered Raw then stopped at PROCESSED_PLAN with no new remote or Gmail effect. The "
-            "candidate restores canonical historical Gmail label state only from the existing "
-            "encrypted Processed envelope, selects the sole verified Trash source backed by the "
-            "pointer, repeats Raw and Processed recovery and second verification, and has no Gmail "
-            "or private-repository write path. At package-build time reconciliation has not run; "
-            "Timeline, T0704, production health, final Acceptance, Stage 7 completion and final "
-            "publication are not claimed."
+            "Baseline-preserving v1.0.15 protected receipt snapshot: immutable v1.0.1 product "
+            "contracts and v1.0.2-v1.0.14 predecessor lineage remain unchanged. The exact T0702 "
+            "PASS and six failed T0703 heads remain frozen. The seventh distinct exact-main head "
+            "passed authority, encrypted historical-label zero-write reconciliation and identity "
+            "cleanup at attempt 1 with rerun zero. Aggregate evidence proves Raw plus Processed "
+            "recovery, second verification and one reconciled prior unknown mutation; independent "
+            "pre/post reads prove unchanged private head, tree and path counts plus zero Gmail "
+            "Trash delta for the successful run. M3 authority is consumed. Timeline, T0704, "
+            "production health, final Acceptance, Stage 7 completion and final publication are "
+            "not claimed."
         ),
         "status_authority": "machine/status/latest.json",
         "predecessor": {

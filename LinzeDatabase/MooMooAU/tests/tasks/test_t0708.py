@@ -398,11 +398,11 @@ def test_t0708_no_secret_workflow_is_read_only_policy_preflight() -> None:
     )
 
 
-def test_t0708_stage7_aggregate_closes_t0702_and_authorizes_only_t0703() -> None:
+def test_t0708_stage7_aggregate_closes_t0703_and_stops_before_t0704() -> None:
     aggregate = json.loads(
         (PROJECT_ROOT / "evidence/stage7/latest.json").read_text(encoding="utf-8")
     )
-    assert aggregate["status"] == "AUTHORIZED_T0703_REPAIR_CANDIDATE_PENDING_PROTECTED_EXECUTION"
+    assert aggregate["status"] == "T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED"
     assert (
         aggregate["scoped_preflight"]
         == "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
@@ -421,17 +421,14 @@ def test_t0708_stage7_aggregate_closes_t0702_and_authorizes_only_t0703() -> None
         == "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE"
     )
     assert aggregate["protected_oracles_executed"] == 3
-    assert aggregate["protected_oracles_passed"] == 2
-    assert aggregate["protected_oracles_failed"] == 1
-    assert aggregate["protected_workflow_runs"] == 17
+    assert aggregate["protected_oracles_passed"] == 3
+    assert aggregate["protected_oracles_failed"] == 0
+    assert aggregate["protected_workflow_runs"] == 18
     assert aggregate["production_workflow_runs"] == 0
     assert aggregate["final_acceptances_passed"] == 0
-    assert aggregate["delivery_status"] == "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL"
+    assert aggregate["delivery_status"] == "CONTROLLED_T0703_COMPLETED_NOT_FINAL"
     assert (
         aggregate["observation"]["m3_deterministic_evidence_run"]
-        == "SIXTH_PROCESSED_PLAN_FAILED_ZERO_NEW_EFFECT_HISTORICAL_LABEL_REPLAY_PENDING"
+        == "PASS_ZERO_MUTATION_RECONCILIATION_RECOVERY_100_PERCENT_ZERO_NEW_EFFECT"
     )
-    assert (
-        "PROTECTED_M3_ZERO_MUTATION_RECONCILIATION_CANDIDATE_NOT_RUN"
-        in aggregate["blocking_conditions"]
-    )
+    assert "T0704_NOT_AUTHORIZED_IN_CURRENT_RUN" in aggregate["blocking_conditions"]
