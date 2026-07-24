@@ -109,6 +109,7 @@ footer{margin-top:18px}
   box-shadow:0 8px 22px rgba(16,24,40,.22);transform:translate(-50%,-118%)}
 .charttip b{color:#f6cf72;font-size:13.5px}
 .chartempty{padding:30px 0;text-align:center;color:#8a93a5;font-size:12.5px}
+.fxline{font-size:11.5px;color:#8a93a5;margin-top:9px}
 """
 
 _JS = """
@@ -518,6 +519,7 @@ def render_dashboard_html(d: dict) -> str:
     <span>授权上限 <b>{hero['authorized_usd']:,.2f} 美元</b></span>
     <span>敞口占上限 <b>{hero['exposure_pct']}%</b></span>
   </div>
+  <div class=fxline>💱 {_esc(d['meta']['note_fx'])}</div>
   {f'<div class=verdict>💰 资金未全额到位:授权上限 {hero["authorized_usd"]:,.2f} 美元,账户实际可动用 {hero["funded_usd"]:,.2f} 美元,缺口 {hero["funding_gap_usd"]:,.2f} 美元。系统按<b>实际到位资金</b>下单与计算盈亏,绝不按授权额度虚报。</div>' if hero.get('funded_known') and hero['funding_gap_usd'] > 0.01 else ''}
   {'' if hero.get('funded_known') else '<div class=verdict>⚠️ 暂时读不到券商真实购买力,以下金额按授权额度显示(如实标注,非账户实有)。</div>'}
   {_progress_bar(d['progress'])}

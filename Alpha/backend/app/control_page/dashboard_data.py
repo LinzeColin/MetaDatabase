@@ -703,9 +703,9 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             "fx_contract": round(fx_contract, 6),
             "fx_live": bool(fx_live),
             "fx_at_syd": (f"{fx_at.astimezone(SYD):%H:%M:%S}" if fx_at else ""),
-            "note_fx": (f"实时汇率 1 澳元 = {fx_aud_usd:.4f} 美元 · 更新于 "
+            "note_fx": (f"实时汇率 1 澳元 = {fx_display:.4f} 美元 · 更新于 "
                         f"{fx_at.astimezone(SYD):%H:%M:%S}(悉尼,每 30 秒刷新)"
                         if fx_live and fx_at else
-                        "实时汇率暂不可用,按契约固定口径 0.65 折算(如实标注)"),
+                        f"实时汇率暂不可用,按契约固定口径 {fx_contract:.4f} 折算(如实标注)"),
         },
     }
