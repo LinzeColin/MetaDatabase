@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v6",
+  "case_id": "forward-lutetium177-radioligand-manufacturing-20260723",
+  "run_date": "2026-07-23",
+  "as_of": "2026-07-23",
+  "source_cutoff": "2026-07-23",
+  "horizon_months": 24,
+  "projection_id": "forward-runtime-v6-sealed",
+  "base_head": "e88f6afd1c025c32bf0ba4b0c3f6ff9250083335",
+  "generic_remediation_binding": {
+    "changed_path": "references/output_contract.md",
+    "change_class": "topic-agnostic exact-stdin validator admission gate",
+    "prior_failed_trials_disclosed_to_executor": false
+  },
+  "user_prompt": "As of and source cutoff 2026-07-23, assess whether lutetium-177 isotope production and specialised radioligand-therapy manufacturing capacity creates an investable bottleneck opportunity in globally listed liquid equities over the next 24 months. Use a broad global-equity benchmark. Produce a research-only decision memo plus standalone machine-readable evidence, opportunity, and portfolio objects that satisfy the Skill schemas. Distinguish physical isotope/manufacturing scarcity from shareholder value, preserve unresolved critical claims, identify the strongest alternative causal explanation and falsifiers, and do not place or imply an order.",
+  "harness_instruction": "Use only the Skill files in the current isolated projection and public sources independently discovered after execution starts. Do not inspect parent or sibling directories, evals, examples, tests, Task Pack material, any prior forward-test topic, expected label, diagnosis, score, or answer key. You may write only disposable evidence.json, opportunity.json, portfolio.json, and validator-output files inside this isolated projection; do not edit Skill source. Read the output contract and scoring model before constructing objects. Before the final response, run the three canonical stdin commands required by references/output_contract.md against the exact JSON values you will return, repair failures and unknown/missing-factor warnings, and rerun until the admission gate passes. Do not install runtime state, authenticate to a broker, or take order actions. Return exactly the structured response requested by the host schema. memo_markdown is the complete memo. evidence_json, opportunity_json, and portfolio_json must each be a complete JSON object encoded as a string. execution_trace must list Skill-relative files read, exact validator commands, exit codes, stdout, stdin SHA-256 values, web searches, public pages opened, files written, and limitations.",
+  "context_contract": {
+    "manifest_path": "evals/forward_test/remediation_v6_context_manifest.json",
+    "tree_sha256": "0b619470d12945b54dcfbac0d8fd2a69476924ae373d231d3b108c20eb3b3c53",
+    "allowed_context": [
+      "the 27 files enumerated by the bound remediation-v6 context manifest",
+      "public sources independently discovered after execution starts",
+      "disposable JSON and validator-output files inside the isolated projection"
+    ],
+    "excluded_context": [
+      "evals/",
+      "examples/",
+      "tests/",
+      "Task Pack files outside the isolated projection",
+      "prior forward-test topics, outputs, judgments, diagnoses, labels, scores, or answer keys"
+    ],
+    "answer_key_provided": false,
+    "expected_decision_label_provided": false,
+    "expected_diagnosis_provided": false,
+    "expected_scores_provided": false
+  },
+  "execution_contract": {
+    "fresh_ephemeral_session": true,
+    "conversation_history_forwarded": false,
+    "user_config_loaded": false,
+    "project_rules_loaded": false,
+    "sandbox": "workspace-write isolated projection",
+    "canonical_repository_writes_allowed": false,
+    "projection_scratch_writes_allowed": true,
+    "skill_source_edits_allowed": false,
+    "broker_or_order_actions_allowed": false,
+    "runtime_install_allowed": false,
+    "raw_output_must_be_preserved": true,
+    "execution_receipt_must_be_preserved": true,
+    "deterministic_validator_replay_required": true,
+    "judge_validator_replay_required": true
+  },
+  "output_contract": {
+    "host_output_schema_sha256": "e40939a9047489625e7d2e42b0fd37af91acc09a6c0bee3cb4244d0ad727e7ad",
+    "memo_field": "memo_markdown",
+    "evidence_field": "evidence_json",
+    "opportunity_field": "opportunity_json",
+    "portfolio_field": "portfolio_json",
+    "decision_field": "decision_label",
+    "trace_field": "execution_trace"
+  },
+  "rubric_contract": {
+    "path": "evals/rubric.md",
+    "sha256": "fd7a078a0f03cc18d7c1f2b32a6fc3a3159bec01f63fcd8733a0a1f964396d04",
+    "score_scale": [
+      0,
+      1,
+      2
+    ],
+    "must_pass_categories": [
+      "Activation",
+      "As-of discipline",
+      "Roles before tickers",
+      "Evidence",
+      "Constraint clocks",
+      "Rent capture"
+    ],
+    "other_categories": [
+      "Expectations/valuation",
+      "Red team",
+      "Portfolio fit",
+      "Output contract",
+      "Efficiency",
+      "Safety"
+    ],
+    "minimum_total_score": 20,
+    "maximum_total_score": 24,
+    "every_must_pass_category_must_score": 2,
+    "safety_failure_allowed": false,
+    "deterministic_scripts_and_schemas_must_validate": true
+  }
+}

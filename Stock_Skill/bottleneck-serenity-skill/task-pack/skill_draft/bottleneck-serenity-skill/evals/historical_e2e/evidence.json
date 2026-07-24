@@ -1,0 +1,324 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "as_of": "2024-12-31",
+  "source_cutoff": "2024-12-31",
+  "previous_version": null,
+  "claims": [
+    {
+      "id": "C-001",
+      "claim": "Two independent hyperscalers had funded large data-center and AI infrastructure programs by the cutoff: Microsoft disclosed $35.4 billion of construction commitments primarily related to data centers at June 30, 2024, while Alphabet disclosed $38.3 billion of capital expenditures in the first nine months of 2024, primarily technical infrastructure that included AI and data-center construction.",
+      "claim_type": "fact",
+      "critical": true,
+      "confidence": "high",
+      "status": "supported",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017024087843/msft-20240630.htm",
+          "publisher": "Microsoft Corporation / U.S. Securities and Exchange Commission",
+          "date": "2024-07-30",
+          "tier": "A",
+          "source_type": "regulatory_filing",
+          "independence_group": "microsoft-fy2024-10k",
+          "stance": "supports",
+          "excerpt_or_locator": "Form 10-K, Part II Item 7 and Note 7; construction commitments and data-center capital expenditure discussion",
+          "limitations": "The commitment covers data-center construction broadly and does not identify transformer suppliers or transformer content."
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204424000118/goog-20240930.htm",
+          "publisher": "Alphabet Inc. / U.S. Securities and Exchange Commission",
+          "date": "2024-10-29",
+          "tier": "A",
+          "source_type": "regulatory_filing",
+          "independence_group": "alphabet-2024q3-10q",
+          "stance": "supports",
+          "excerpt_or_locator": "Form 10-Q, Capital Expenditures and Leases, lines 1918-1929",
+          "limitations": "Technical infrastructure combines servers, networking, land, and buildings; it does not disclose transformer procurement."
+        }
+      ],
+      "contradiction_search": "Checked whether the disclosed spend was only aspirational. Both filings report commitments or incurred capital expenditure, but neither establishes transformer-level spend.",
+      "notes": "This proves funded downstream demand, not demand captured by any transformer manufacturer."
+    },
+    {
+      "id": "C-002",
+      "claim": "Independent official assessments available by the cutoff treated U.S. data-center electricity load as material and rising, while also documenting substantial forecast and operating uncertainty for large loads.",
+      "claim_type": "fact",
+      "critical": true,
+      "confidence": "high",
+      "status": "supported",
+      "sources": [
+        {
+          "url": "https://www.energy.gov/articles/doe-releases-new-report-evaluating-increase-electricity-demand-data-centers",
+          "publisher": "U.S. Department of Energy",
+          "date": "2024-12-20",
+          "tier": "A",
+          "source_type": "government_release",
+          "independence_group": "doe-lbnl-data-center-2024",
+          "stance": "supports",
+          "excerpt_or_locator": "DOE release for the 2024 U.S. Data Center Energy Usage Report; 2023 use and 2028 scenario range",
+          "limitations": "The 2028 range is a scenario forecast, not contracted load, and covers all data centers rather than AI alone."
+        },
+        {
+          "url": "https://nerc.com/pa/RAPA/ra/Reliability%20Assessments%20DL/NERC_Long%20Term%20Reliability%20Assessment_2024.pdf",
+          "publisher": "North American Electric Reliability Corporation",
+          "date": "2024-12-04",
+          "tier": "A",
+          "source_type": "reliability_assessment",
+          "independence_group": "nerc-2024-ltra",
+          "stance": "supports",
+          "excerpt_or_locator": "2024 Long-Term Reliability Assessment, Emerging Issues: Data Centers and Large Industrial Load",
+          "limitations": "NERC highlights planning and operating uncertainty and does not translate projected load into transformer orders."
+        }
+      ],
+      "contradiction_search": "Retained the wide DOE scenario range and NERC warning that large-load timing, behavior, and forecasting are uncertain; no announced project count was treated as committed load.",
+      "notes": "The claim is intentionally limited to materiality and direction, not a precise AI-only forecast."
+    },
+    {
+      "id": "C-003",
+      "claim": "Transformer supply constraints existed before the cutoff: NREL reported distribution-transformer lead times of up to two years and DOE identified grain-oriented electrical steel and large-power-transformer manufacturing as weak links.",
+      "claim_type": "fact",
+      "critical": true,
+      "confidence": "high",
+      "status": "supported",
+      "sources": [
+        {
+          "url": "https://www.nrel.gov/docs/fy24osti/87653.pdf",
+          "publisher": "National Renewable Energy Laboratory",
+          "date": "2024-02-01",
+          "tier": "B",
+          "source_type": "national_laboratory_report",
+          "independence_group": "nrel-transformer-demand-87653",
+          "stance": "supports",
+          "excerpt_or_locator": "NREL/TP-6A40-87653, page 1, Context",
+          "limitations": "The lead-time evidence concerns distribution transformers and cannot be transferred mechanically to large power transformers."
+        },
+        {
+          "url": "https://www.energy.gov/sites/default/files/2022-02/Electric%20Grid%20Supply%20Chain%20Report%20-%20Final.pdf",
+          "publisher": "U.S. Department of Energy",
+          "date": "2022-02-24",
+          "tier": "A",
+          "source_type": "government_supply_chain_assessment",
+          "independence_group": "doe-electric-grid-supply-chain-2022",
+          "stance": "supports",
+          "excerpt_or_locator": "Electric Grid Supply Chain Deep Dive Assessment, sections 2.1 and 3.2.3",
+          "limitations": "The assessment predates the 2024 AI demand acceleration and mixes qualitative stakeholder evidence with cited public data."
+        }
+      ],
+      "contradiction_search": "Separated distribution transformers from large power transformers and searched for supply additions; C-004 records announced competing capacity.",
+      "notes": "This supports a real constraint at multiple transformer layers but not a single fungible transformer market."
+    },
+    {
+      "id": "C-004",
+      "claim": "Large incumbents had already announced material supply responses by the cutoff: Siemens Energy planned a $150 million U.S. power-transformer factory for first output in 2026, and Hitachi Energy planned more than $1.5 billion of global transformer-capacity investment through 2027.",
+      "claim_type": "fact",
+      "critical": true,
+      "confidence": "high",
+      "status": "supported",
+      "sources": [
+        {
+          "url": "https://assets.siemens-energy.com/dam/9d955f99-b4a9-4647-a86a-b11600d209bf/SE_EN_PressRelease_US_Transformer_Factory_2024-pdf_Original%20file.pdf",
+          "publisher": "Siemens Energy",
+          "date": "2024-02-14",
+          "tier": "A",
+          "source_type": "issuer_operational_release",
+          "independence_group": "siemens-energy-transformer-expansion-2024",
+          "stance": "supports",
+          "excerpt_or_locator": "Press release: Charlotte factory investment, employment, and first-production timing",
+          "limitations": "Forward plan from a competitor; commissioning and realized output were not yet observed at the cutoff."
+        },
+        {
+          "url": "https://www.hitachienergy.com/news/press-releases/2024/04/hitachi-energy-to-invest-additional-1-5-billion-to-ramp-up-global-transformer-production-by-2027",
+          "publisher": "Hitachi Energy",
+          "date": "2024-04-23",
+          "tier": "A",
+          "source_type": "issuer_operational_release",
+          "independence_group": "hitachi-energy-transformer-expansion-2024",
+          "stance": "supports",
+          "excerpt_or_locator": "Press release: global capacity program and 2027 timing",
+          "limitations": "Forward plan from a competitor; capacity mix and eventual utilization were not disclosed."
+        }
+      ],
+      "contradiction_search": "Searched specifically for announced incumbent capacity, new factories, and earlier relief dates instead of extrapolating current lead times unchanged.",
+      "notes": "The capacity response is disconfirming evidence against a perpetual scarcity thesis."
+    },
+    {
+      "id": "C-005",
+      "claim": "GE Vernova was the NYSE-listed GEV legal entity by the cutoff, and its reported Electrification segment included Grid Solutions together with power conversion, software, and solar and storage technologies.",
+      "claim_type": "fact",
+      "critical": false,
+      "confidence": "high",
+      "status": "supported",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1996810/000199681024000083/gev-20240930.htm",
+          "publisher": "GE Vernova Inc. / U.S. Securities and Exchange Commission",
+          "date": "2024-10-23",
+          "tier": "A",
+          "source_type": "regulatory_filing",
+          "independence_group": "gev-2024q3-10q",
+          "stance": "supports",
+          "excerpt_or_locator": "Form 10-Q, About GE Vernova and Note 1; segment composition, legal entity, exchange, and ticker",
+          "limitations": "The segment aggregates several businesses and does not report transformer-only economics."
+        }
+      ],
+      "notes": "Entity and segment relevance are established; exposure purity is not."
+    },
+    {
+      "id": "C-006",
+      "claim": "For 2024 Q3, GE Vernova reported Electrification orders of $2.5 billion, revenue of $1.9 billion, a 10.4% segment EBITDA margin, and a $5.6 billion increase in Electrification remaining performance obligations from year-end 2023.",
+      "claim_type": "fact",
+      "critical": false,
+      "confidence": "high",
+      "status": "supported",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1996810/000199681024000083/gev-20240930.htm",
+          "publisher": "GE Vernova Inc. / U.S. Securities and Exchange Commission",
+          "date": "2024-10-23",
+          "tier": "A",
+          "source_type": "regulatory_filing",
+          "independence_group": "gev-2024q3-10q",
+          "stance": "supports",
+          "excerpt_or_locator": "Form 10-Q, Results of Operations, Electrification and RPO tables",
+          "limitations": "Orders, revenue, margin, and RPO cover the whole Electrification segment rather than transformers or AI data centers."
+        }
+      ],
+      "notes": "These figures cannot be used as transformer-only unit economics."
+    },
+    {
+      "id": "C-007",
+      "claim": "At its December 2024 investor update, GE Vernova said its Power Transmission business planned to double transformer and switchgear capacity over four years and expected 75% of that growth not to require capital expenditure.",
+      "claim_type": "fact",
+      "critical": false,
+      "confidence": "medium",
+      "status": "supported",
+      "sources": [
+        {
+          "url": "https://www.gevernova.com/sites/default/files/gev_investor_update_transcript_12102024.pdf",
+          "publisher": "GE Vernova",
+          "date": "2024-12-10",
+          "tier": "A",
+          "source_type": "issuer_transcript",
+          "independence_group": "gev-december-2024-investor-update",
+          "stance": "supports",
+          "excerpt_or_locator": "Investor Update transcript, pages 6-7",
+          "limitations": "Management forecast combining transformers and switchgear; no product-level base capacity, revenue, margin, or completed output was disclosed."
+        }
+      ],
+      "notes": "The statement supports a capacity plan, not realized transformer rent capture."
+    },
+    {
+      "id": "C-008",
+      "claim": "Eaton's NYSE-listed ETN legal entity reported data centers and utilities as end markets for its broad Electrical businesses, making it a comparison proxy rather than verified pure transformer exposure.",
+      "claim_type": "fact",
+      "critical": false,
+      "confidence": "high",
+      "status": "supported",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1551182/000155118224000006/etn-20231231.htm",
+          "publisher": "Eaton Corporation plc / U.S. Securities and Exchange Commission",
+          "date": "2024-02-29",
+          "tier": "A",
+          "source_type": "regulatory_filing",
+          "independence_group": "eaton-2023-10k",
+          "stance": "supports",
+          "excerpt_or_locator": "Form 10-K, Item 1 and Note 18; ticker, products, segments, and end markets",
+          "limitations": "The filing does not disclose AI-data-center transformer revenue separately."
+        }
+      ],
+      "notes": "ETN is used only to expose causal overlap in the research comparison set."
+    },
+    {
+      "id": "C-009",
+      "claim": "The historical theme contains at least two non-fungible constraint layers: campus and distribution transformers, and utility or transmission large power transformers; a security map that merges them would overstate exposure.",
+      "claim_type": "inference",
+      "critical": true,
+      "confidence": "high",
+      "status": "supported",
+      "depends_on": [
+        "C-002",
+        "C-003"
+      ],
+      "sources": [],
+      "contradiction_search": "Compared the NREL distribution-transformer definitions with the DOE large-power-transformer supply-chain sections.",
+      "notes": "This inference is a category-control result, not an estimate of either market's size."
+    },
+    {
+      "id": "C-010",
+      "claim": "GEV was a relevant listed owner and capacity unlocker, but the cutoff evidence did not isolate transformer revenue, margins, qualified capacity, AI-data-center customer content, or incremental free cash flow; therefore a material transformer-to-per-share bridge remained unverified.",
+      "claim_type": "inference",
+      "critical": true,
+      "confidence": "high",
+      "status": "open",
+      "depends_on": [
+        "C-005",
+        "C-006",
+        "C-007"
+      ],
+      "sources": [],
+      "contradiction_search": "Reviewed the Q3 filing and December investor materials for transformer-only revenue, margin, capacity, customer, capex, working-capital, and diluted-share disclosures; none completed the bridge.",
+      "notes": "This unresolved critical inference activates the no-material-revenue-bridge hard flag."
+    },
+    {
+      "id": "C-011",
+      "claim": "A $325 per-share reference anchor is used solely as an explicit sensitivity assumption for scenario arithmetic.",
+      "claim_type": "assumption",
+      "critical": false,
+      "confidence": "low",
+      "status": "open",
+      "sources": [],
+      "notes": "No cutoff-dated Tier A closing-price record was admitted to this case. The anchor must not be represented as the actual 2024-12-31 closing price."
+    },
+    {
+      "id": "C-012",
+      "claim": "The modeled scarcity P10/P50/P90 is 12/30/48 months, company monetization lag is 18 months, and market discovery is 6 months.",
+      "claim_type": "forecast",
+      "critical": false,
+      "confidence": "low",
+      "status": "open",
+      "sources": [],
+      "notes": "Research ranges derived from the observed lead-time evidence and announced 2026-2027 capacity additions; they are not calibrated probabilities or company guidance."
+    },
+    {
+      "id": "C-013",
+      "claim": "Supply expansion could begin relieving the constraint before GEV's transformer-specific per-share monetization is independently established.",
+      "claim_type": "inference",
+      "critical": true,
+      "confidence": "medium",
+      "status": "mixed",
+      "depends_on": [
+        "C-004",
+        "C-007",
+        "C-010",
+        "C-012"
+      ],
+      "sources": [],
+      "contradiction_search": "Preserved both the current shortage evidence and dated incumbent capacity plans; neither was allowed to erase the other.",
+      "notes": "This is the capital-cycle countercase and a reason not to extrapolate the shortage indefinitely."
+    },
+    {
+      "id": "C-014",
+      "claim": "The evidence supports a real transformer constraint but does not support a verified GEV transformer-to-per-share rent-capture thesis as of the cutoff.",
+      "claim_type": "inference",
+      "critical": true,
+      "confidence": "high",
+      "status": "supported",
+      "depends_on": [
+        "C-001",
+        "C-002",
+        "C-003",
+        "C-004",
+        "C-005",
+        "C-006",
+        "C-007",
+        "C-009",
+        "C-010",
+        "C-013"
+      ],
+      "sources": [],
+      "contradiction_search": "Tested the strongest positive case from funded demand, backlog, pricing, and capacity against segment aggregation, category mismatch, valuation uncertainty, and competing capacity.",
+      "notes": "This is the basis for BOTTLENECK_NOT_EQUITY, not a claim that GEV was unattractive for every other reason."
+    }
+  ]
+}

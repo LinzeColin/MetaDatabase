@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v17",
+  "executor_attempt_ordinal": 17,
+  "accepted_current_forward_result": false,
+  "executor_outcome": "HOST_EXACT_TRACE_FAIL",
+  "artifact_bindings": {
+    "remediation_v17_context_manifest.json": "2ec6e14e752fb658a7d094d45c95068a91d879897deefc809a7579a7db43c1c3",
+    "remediation_v17_preregistration.json": "051f3ad82aa165b87e76a3fb4db4ae634899645b14f662759f9b631ae6ea5836",
+    "remediation_v17_task_message.txt": "c2bf967ecae7f1fea4cd67aa4da3f060f4fba1e6aa82096d0233d88540a04f46",
+    "executor_output_v17.schema.json": "cfccdea3385d690ea26c3b0b52cd86d6bf63213bb211f67ef4caec3225fe442f",
+    "preexecution_seal_v17.json": "8ca631d96ec390590795507c669f9fa12e15e94058d0d31553285a495b8cab72",
+    "remediation_v17_execution.json": "9da4d6f2f0e575b10798a1b961cde08ac9d1b20739ab41c17a001dac9b56115c",
+    "remediation_v17_raw.json": "0da2e9d25aa1cb4afc348f8bf282872706226b8a2221d72d749a8281755d9c32"
+  },
+  "decision_label": "BOTTLENECK_NOT_EQUITY",
+  "judge_consensus": "NOT_RUN",
+  "judge_verdicts": [],
+  "judge_scores": [],
+  "failure_reason": "The host preserved the primary returned fields and declared replay hashes but reserialized validator_replay.result_json, so 3/3 exact stdout payload hashes no longer matched the returned trace.",
+  "prior_attempt_lineage": [
+    {
+      "ordinal": 1,
+      "id": "baseline",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 2,
+      "id": "trial-02",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 3,
+      "id": "remediation-v3",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 4,
+      "id": "remediation-v4",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 5,
+      "id": "remediation-v5",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 6,
+      "id": "remediation-v6",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 7,
+      "id": "remediation-v7",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 8,
+      "id": "remediation-v8",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 9,
+      "id": "remediation-v9",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 10,
+      "id": "remediation-v10",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 11,
+      "id": "remediation-v11",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 12,
+      "id": "remediation-v12",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 13,
+      "id": "remediation-v13",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 14,
+      "id": "remediation-v14",
+      "class": "host-schema-fail"
+    },
+    {
+      "ordinal": 15,
+      "id": "remediation-v15",
+      "class": "host-schema-preflight-fail"
+    },
+    {
+      "ordinal": 16,
+      "id": "remediation-v16",
+      "class": "host-schema-preflight-fail"
+    }
+  ],
+  "outcome": "FAIL",
+  "limitations": [
+    "v17 is immutable exact-trace failure evidence and is not promoted.",
+    "v18 removes reserializable nested stdout content while retaining exact returned-field stdin and validator stdout SHA-256 bindings."
+  ]
+}

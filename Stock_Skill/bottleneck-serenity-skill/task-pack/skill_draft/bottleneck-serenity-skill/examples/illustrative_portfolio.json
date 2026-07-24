@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "as_of": "2026-07-22",
+  "source_cutoff": "2026-07-22",
+  "previous_version": null,
+  "limits": {
+    "max_single_position": 0.15,
+    "max_root_driver": 0.35,
+    "max_constraint": 0.25,
+    "max_customer_ecosystem": 0.3,
+    "max_binary_risk": 0.1,
+    "max_illiquid_total": 0.15
+  },
+  "positions": [
+    {
+      "ticker": "OPT-A",
+      "weight": 0.12,
+      "drivers": ["hyperscaler-ai-capex"],
+      "constraints": ["optical-interconnect"],
+      "architectures": ["cpo"],
+      "customers": ["hyperscalers"],
+      "regions": ["US"],
+      "risk_factors": ["small-cap", "growth-duration"],
+      "binary_risk": false,
+      "illiquid": false
+    },
+    {
+      "ticker": "OPT-B",
+      "weight": 0.11,
+      "drivers": ["hyperscaler-ai-capex"],
+      "constraints": ["optical-interconnect"],
+      "architectures": ["cpo"],
+      "customers": ["hyperscalers"],
+      "regions": ["Europe"],
+      "risk_factors": ["small-cap", "growth-duration"],
+      "binary_risk": true,
+      "illiquid": true
+    },
+    {
+      "ticker": "PWR-A",
+      "weight": 0.15,
+      "drivers": ["hyperscaler-ai-capex", "grid-modernization"],
+      "constraints": ["electrical-equipment"],
+      "architectures": ["data-center-power"],
+      "customers": ["hyperscalers", "utilities"],
+      "regions": ["US"],
+      "risk_factors": ["industrial-cycle"],
+      "binary_risk": false,
+      "illiquid": false
+    },
+    {
+      "ticker": "OTHER",
+      "weight": 0.12,
+      "drivers": ["healthcare-automation"],
+      "constraints": ["clinical-workflow"],
+      "architectures": ["software"],
+      "customers": ["hospitals"],
+      "regions": ["US"],
+      "risk_factors": ["regulation"],
+      "binary_risk": false,
+      "illiquid": false
+    }
+  ]
+}

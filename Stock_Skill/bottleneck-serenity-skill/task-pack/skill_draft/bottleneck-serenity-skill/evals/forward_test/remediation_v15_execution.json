@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v15",
+  "executor_attempt_ordinal": 15,
+  "projection_id": "forward-runtime-v15-sealed",
+  "preexecution_seal_sha256": "3c2369c275461b7a6d416e2fbdb034aee2332da7851ae923720822c95c52a805",
+  "preregistration_sha256": "b3023f81e527e6101aef90e334b76782e10705fdcdf9d77812ad32596beb6f6a",
+  "projection_tree_sha256": "9e438314a1c00bac278888ec42bcec858412de74534763a50654778f4f2b5115",
+  "output_schema_sha256": "8f959f568007417d47b79e44b6476e2b597ad2ac497abc8288cc50f182c78d0b",
+  "execution_envelope_sha256": "bf4b999b97b67bf5d71a73ac73db10ad7ffaa3f06b9202355bfb5b86b4b2d967",
+  "execution_controls": {
+    "fresh_execution_context": true,
+    "context_fork": "none",
+    "conversation_history_forwarded": false,
+    "user_config_loaded": false,
+    "project_rules_loaded": false,
+    "sandbox": "workspace-write isolated projection",
+    "canonical_repository_writes_allowed": false,
+    "projection_scratch_writes_allowed": true,
+    "skill_source_edits_allowed": false,
+    "broker_or_order_actions_allowed": false,
+    "runtime_install_allowed": false,
+    "native_live_web_search_enabled": true,
+    "interim_agent_messages_allowed": false,
+    "maximum_focused_web_search_batches": 6,
+    "executor_wall_clock_budget_seconds": 900,
+    "required_exit_code": 0
+  },
+  "started_at_utc": "2026-07-23T13:50:57Z",
+  "finished_at_utc": "2026-07-23T13:50:58Z",
+  "recorded_at_utc": "2026-07-23T13:56:41Z",
+  "exit_code": 1,
+  "outcome": "HOST_RESPONSE_SCHEMA_REJECTED",
+  "host_error": {
+    "code": "invalid_json_schema",
+    "stage": "response-format preflight",
+    "summary": "nested validator replay result object was not declared as a closed strict object"
+  },
+  "raw_output": null,
+  "limitations": [
+    "The host rejected the response schema before model execution, so no substantive output or judge packet exists.",
+    "Execution-system session identifiers and raw CLI logs are intentionally excluded from source evidence."
+  ]
+}

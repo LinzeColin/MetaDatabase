@@ -1,0 +1,501 @@
+{
+  "schema_version": "1.0",
+  "negative_issuer_slots": [
+    "The key provider is nvidia",
+    "The constrained operator is nvidia",
+    "The leading producer is nvidia",
+    "The preferred fabricator is nvidia",
+    "The beneficiary is nvidia",
+    "Our pick is nvidia",
+    "We favor nvidia",
+    "nvidia dominates this node",
+    "nvidia has the only qualified line",
+    "Rent accrues to nvidia",
+    "Scarcity rent flows to nvidia",
+    "The economics favor nvidia",
+    "The role maps to nvidia",
+    "The node maps to nvidia",
+    "The contract goes to nvidia",
+    "The award went to nvidia",
+    "nvidia captures the rent",
+    "nvidia benefits from the constraint",
+    "The investable proxy is nvidia",
+    "The listed beneficiary is nvidia",
+    "The public beneficiary is nvidia",
+    "The shortlisted firm is nvidia",
+    "The chosen firm is nvidia",
+    "The named firm is nvidia",
+    "We identify nvidia",
+    "Focus on nvidia",
+    "Candidate: nvidia",
+    "Company selected: nvidia",
+    "Exposure: nvidia",
+    "Ownership: nvidia",
+    "nvidia, uniquely, captures rent",
+    "`nvidia` dominates this node",
+    "Nvidia dominates this node",
+    "The constraint enriches nvidia",
+    "Cash flow concentrates at nvidia",
+    "Returns hinge on nvidia",
+    "We underwrite nvidia",
+    "The thesis selects nvidia",
+    "nvidia emerges as beneficiary",
+    "The beneficiary remains nvidia",
+    "Procurement was awarded to Nvidia.",
+    "Nvidia serves as the preferred supplier.",
+    "The benchmark chosen was Morningstar Global Markets.",
+    "Exposure can be obtained through Nvidia.",
+    "nvidia won the tender.",
+    "Orders flow to acme.",
+    "preferred supplier will be nvidia",
+    "likely beneficiary appears to be nvidia",
+    "award recipient is nvidia",
+    "nvidia receives scarcity rent",
+    "value migrates to nvidia",
+    "cash profits land with nvidia",
+    "nvidia stands out as supplier",
+    "only investable name is nvidia",
+    "Award winner — nvidia",
+    "nvidia takes margin pool",
+    "nvidia secures contract",
+    "nvidia poised to win",
+    "choose nvidia",
+    "selection points toward nvidia",
+    "economics point to nvidia",
+    "margin pools settle at nvidia",
+    "nvidia extracts economic rent",
+    "investable expression would be nvidia",
+    "public-market vehicle is nvidia",
+    "scarce node equity expression is nvidia",
+    "the nominated manufacturer may be acme",
+    "rent migrates toward zenith",
+    "zenith is positioned as the qualified provider",
+    "contract value settles with acme",
+    "The selected issuer is Aster Vale.",
+    "Aster Vale is the selected issuer.",
+    "Aster Vale may become the listed beneficiary if the permit clears.",
+    "The bottleneck owner—Blueforge—has already qualified the line.",
+    "Candidate security: QVL.",
+    "We identify Quillon Works as the investable candidate.",
+    "Quillon Works was selected as the supplier.",
+    "The framework contract was awarded to Moraine Systems.",
+    "Firm orders now flow to Cinder Peak.",
+    "Scarcity rents should accrue to Harborline.",
+    "The payer routes milestone payments through Verdant Arc.",
+    "The backlog is controlled by Northstar Dynamics.",
+    "Capacity at Blueforge remains constrained.",
+    "One qualified vendor, Driftwood Components, supplies the critical module.",
+    "Public proxy - Silver Reach.",
+    "The preferred vehicle is Vela Infrastructure ETF.",
+    "Benchmark: Aurora 50 Index.",
+    "Returns will be evaluated against Helios Aggregate.",
+    "Source: Quillon annual report.",
+    "Quillon’s filing reports a three-year order book.",
+    "According to Aster Vale, qualification takes thirty months.",
+    "$QVL captures the service rent.",
+    "LSE:BRQ is the candidate security.",
+    "2417.T supplies the constrained component.",
+    "The listed exposure (Granite Yield Trust) owns the scarce assets.",
+    "Kestrel Notes would be the security vehicle.",
+    "The benchmark provider is Meridian Benchmarks.",
+    "The index brand—Solstice Composite—defines the hurdle.",
+    "The branded operator, PortLattice, controls the terminal.",
+    "The issuer called Dovetail Energy supplies the equipment.",
+    "Demand from Copper Hollow will absorb the spare capacity.",
+    "The contract recipient is Red Mica.",
+    "Equipment rent is paid to Seabright.",
+    "We favor Umber Grid for this role.",
+    "The award makes Alder Works the winner.",
+    "Narrow qualification leaves Pineglass as the sole vendor.",
+    "The vehicle could be Cedar Span Fund.",
+    "Named candidate: Löwe Infrastruktur AG.",
+    "受益公司是青岚能源。",
+    "Issuer evidence is available at https://aster-vale.invalid/report.",
+    "Publisher contact: research@quillon.example.",
+    "The company-labelled source is quillon.example/filings.",
+    "The security exposure is held by Fallow Trust.",
+    "Evermead receives the purchase-order economics.",
+    "The award winner (Juniper Axis) may secure the contract rent.",
+    "The constraint persists because Lumen Harbor’s annual report describes a two-year backlog.",
+    "The hurdle is role-neutral in theory, but returns are measured against Meridian 300 Index.",
+    "Scarcity rent may be remitted through Copper Finch once delivery begins.",
+    "No issuer has been chosen; relative performance, however, is benchmarked to Tidal 200 Index.",
+    "Once certified, scarcity fees could be collected by Juniper Forge.",
+    "Caldera North’s backlog may absorb the funded orders.",
+    "Silver Wren’s index methodology is used only for the downside case.",
+    "Procurement remains role-based, although the payer nominated Granite Coast as recipient.",
+    "The owner role is unresolved—except that Silver Arc is the preferred operator.",
+    "The vehicle is undecided—Stonebridge Grid Trust would nevertheless carry the exposure.",
+    "Rook Harbor’s order book is cited as evidence of the constraint.",
+    "The provisional contract recipient, Amber Current, would receive milestone payments.",
+    "Scarcity rent could eventually be captured by Moss Circuit.",
+    "No security is selected yet; Opal Ridge Income Notes would carry the exposure if approved.",
+    "One branded publisher, Kestrel Archive, supplies the utilization series.",
+    "The owner is not yet selected—Marble Signal would nevertheless receive the access fee.",
+    "The preferred contract source, Lattice River Works, supplies the qualified module.",
+    "The vehicle field is null; North Coast Revenue Trust would hold the security exposure.",
+    "One benchmark publisher, Índice Ámbar, defines the relative-return series.",
+    "Constraint duration remains uncertain (according to Quartz Meadow Research).",
+    "The payer has not disclosed a recipient, but it nominated Ember Arc as the payment conduit.",
+    "基准尚未确定，但回报将与星河300指数比较。",
+    "The comparison benchmark, Summit 880 Composite, anchors the downside return.",
+    "The payer has not named a recipient, yet Copper Bloom was appointed as the payment conduit.",
+    "当前基准为空，但收益会与辰光500指数进行比较。",
+    "One preferred publisher (Quartz River Institute) maintains the utilization series.",
+    "The recipient remains undecided, yet Cinder Vale will accrue the reservation payments.",
+    "Commissioning proceeds are expected to be channelled via Harbor Moon Technologies.",
+    "The nominated exposure vehicle, Amber Ridge Income Fund, holds the listed instrument.",
+    "Qualification evidence is incomplete (as reported by Meridian Quartz Institute).",
+    "The selected comparison index—Frontier 915 Aggregate—sets the relative hurdle.",
+    "The payer left ownership open but designated Willow Lattice as its settlement intermediary.",
+    "Access rents could be transferred to Opal Meadow following validation.",
+    "基准名称仍为空；相对收益却以云港700综合指数为参照。",
+    "The security remains provisional; North River Capacity Notes would embody the exposure.",
+    "Procurement selected Copper Ember Works as the framework vendor.",
+    "The toll will be received by Flint Valley Partners.",
+    "Reservation payments might flow via Granite Current.",
+    "Access rent can be transferred into Indigo River Trust.",
+    "The funded award should be paid through Juniper Signal.",
+    "The nominated contract recipient, Kestrel Moon, receives the mobilization fee.",
+    "The provisional vehicle (Mosaic Coast Income Notes) holds the exposure.",
+    "The designated payment conduit, Opal Forge, settles each invoice.",
+    "The primary index brand (Riverstone 260 Composite) anchors valuation.",
+    "The chosen security, Summit Harbor Fund, would absorb the rent.",
+    "Per Étoile Cuivre Research, substitution is uneconomic.",
+    "The benchmark is Énergie 360 Composite.",
+    "The benchmark is Índice Verde 940.",
+    "The benchmark is Fjord 120 Benchmark.",
+    "The benchmark is Glacier Coast 600 Index.",
+    "以云岭800综合指数进行比较。",
+    "与星港450指数进行对比。",
+    "Kyanite River was designated as recipient.",
+    "Meridian 330 World was used for comparison.",
+    "Quartz Valley Works was shortlisted.",
+    "We prefer nvidia.",
+    "青岚科技 receives the capacity rent.",
+    "According to Institut Rivière Bleue, capacity is tight.",
+    "The recipient is Fondo Sierra Norte.",
+    "Costa Ámbar Energía will benefit."
+  ],
+  "negative_entity_witnesses": [
+    {
+      "statement": "The recipient is nominally unknown, but Birch Meridian will be awarded the service contract.",
+      "entity": "Birch Meridian"
+    },
+    {
+      "statement": "The benchmark field is null for now, while Aurora Ledger supplies the comparison series.",
+      "entity": "Aurora Ledger"
+    },
+    {
+      "statement": "Benchmark: Aurora 50 Index.",
+      "entity": "Aurora 50 Index"
+    },
+    {
+      "statement": "Named candidate: Löwe Infrastruktur AG.",
+      "entity": "Löwe Infrastruktur AG"
+    },
+    {
+      "statement": "Although the owner role remains under review, Aster Vale would be the issuer if the permit clears.",
+      "entity": "Aster Vale"
+    },
+    {
+      "statement": "No issuer is chosen yet; nevertheless, the provisional vehicle (North Basin Trust) is shown here.",
+      "entity": "North Basin Trust"
+    },
+    {
+      "statement": "The benchmark is undecided for valuation; Helios World is already used for relative returns.",
+      "entity": "Helios World"
+    },
+    {
+      "statement": "The recipient remains unspecified in the model, whereas Maple Circuit will collect the availability fee.",
+      "entity": "Maple Circuit"
+    },
+    {
+      "statement": "No benchmark is selected for valuation; returns are nevertheless compared with Boreal 150 Index.",
+      "entity": "Boreal 150 Index"
+    },
+    {
+      "statement": "After commissioning, the capacity payment may be assigned to Iron Meadow.",
+      "entity": "Iron Meadow"
+    },
+    {
+      "statement": "The security field is blank—Harbor Quartz Notes would still carry the exposure.",
+      "entity": "Harbor Quartz Notes"
+    },
+    {
+      "statement": "The future provider is unknown, although Lake Ember was nominated as the contract source.",
+      "entity": "Lake Ember"
+    },
+    {
+      "statement": "Blue Lantern’s index series defines the comparison window.",
+      "entity": "Blue Lantern"
+    },
+    {
+      "statement": "The owner role is unresolved—except that Silver Arc is the preferred operator.",
+      "entity": "Silver Arc"
+    },
+    {
+      "statement": "The vehicle is undecided—Stonebridge Grid Trust would nevertheless carry the exposure.",
+      "entity": "Stonebridge Grid Trust"
+    },
+    {
+      "statement": "Rook Harbor’s order book is cited as evidence of the constraint.",
+      "entity": "Rook Harbor"
+    },
+    {
+      "statement": "The provisional contract recipient, Amber Current, would receive milestone payments.",
+      "entity": "Amber Current"
+    },
+    {
+      "statement": "Scarcity rent could eventually be captured by Moss Circuit.",
+      "entity": "Moss Circuit"
+    },
+    {
+      "statement": "No security is selected yet; Opal Ridge Income Notes would carry the exposure if approved.",
+      "entity": "Opal Ridge Income Notes"
+    },
+    {
+      "statement": "One branded publisher, Kestrel Archive, supplies the utilization series.",
+      "entity": "Kestrel Archive"
+    },
+    {
+      "statement": "The owner is not yet selected—Marble Signal would nevertheless receive the access fee.",
+      "entity": "Marble Signal"
+    },
+    {
+      "statement": "The preferred contract source, Lattice River Works, supplies the qualified module.",
+      "entity": "Lattice River Works"
+    },
+    {
+      "statement": "The vehicle field is null; North Coast Revenue Trust would hold the security exposure.",
+      "entity": "North Coast Revenue Trust"
+    },
+    {
+      "statement": "One benchmark publisher, Índice Ámbar, defines the relative-return series.",
+      "entity": "Índice Ámbar"
+    },
+    {
+      "statement": "Constraint duration remains uncertain (according to Quartz Meadow Research).",
+      "entity": "Quartz Meadow Research"
+    },
+    {
+      "statement": "The payer has not disclosed a recipient, but it nominated Ember Arc as the payment conduit.",
+      "entity": "Ember Arc"
+    },
+    {
+      "statement": "基准尚未确定，但回报将与星河300指数比较。",
+      "entity": "星河300指数"
+    },
+    {
+      "statement": "The comparison benchmark, Summit 880 Composite, anchors the downside return.",
+      "entity": "Summit 880 Composite"
+    },
+    {
+      "statement": "The payer has not named a recipient, yet Copper Bloom was appointed as the payment conduit.",
+      "entity": "Copper Bloom"
+    },
+    {
+      "statement": "当前基准为空，但收益会与辰光500指数进行比较。",
+      "entity": "辰光500指数"
+    },
+    {
+      "statement": "One preferred publisher (Quartz River Institute) maintains the utilization series.",
+      "entity": "Quartz River Institute"
+    },
+    {
+      "statement": "The recipient remains undecided, yet Cinder Vale will accrue the reservation payments.",
+      "entity": "Cinder Vale"
+    },
+    {
+      "statement": "Commissioning proceeds are expected to be channelled via Harbor Moon Technologies.",
+      "entity": "Harbor Moon Technologies"
+    },
+    {
+      "statement": "The nominated exposure vehicle, Amber Ridge Income Fund, holds the listed instrument.",
+      "entity": "Amber Ridge Income Fund"
+    },
+    {
+      "statement": "Qualification evidence is incomplete (as reported by Meridian Quartz Institute).",
+      "entity": "Meridian Quartz Institute"
+    },
+    {
+      "statement": "The selected comparison index—Frontier 915 Aggregate—sets the relative hurdle.",
+      "entity": "Frontier 915 Aggregate"
+    },
+    {
+      "statement": "The payer left ownership open but designated Willow Lattice as its settlement intermediary.",
+      "entity": "Willow Lattice"
+    },
+    {
+      "statement": "Access rents could be transferred to Opal Meadow following validation.",
+      "entity": "Opal Meadow"
+    },
+    {
+      "statement": "基准名称仍为空；相对收益却以云港700综合指数为参照。",
+      "entity": "云港700综合指数"
+    },
+    {
+      "statement": "The security remains provisional; North River Capacity Notes would embody the exposure.",
+      "entity": "North River Capacity Notes"
+    },
+    {
+      "statement": "Procurement selected Copper Ember Works as the framework vendor.",
+      "entity": "Copper Ember Works"
+    },
+    {
+      "statement": "The toll will be received by Flint Valley Partners.",
+      "entity": "Flint Valley Partners"
+    },
+    {
+      "statement": "Reservation payments might flow via Granite Current.",
+      "entity": "Granite Current"
+    },
+    {
+      "statement": "Access rent can be transferred into Indigo River Trust.",
+      "entity": "Indigo River Trust"
+    },
+    {
+      "statement": "The funded award should be paid through Juniper Signal.",
+      "entity": "Juniper Signal"
+    },
+    {
+      "statement": "The nominated contract recipient, Kestrel Moon, receives the mobilization fee.",
+      "entity": "Kestrel Moon"
+    },
+    {
+      "statement": "The provisional vehicle (Mosaic Coast Income Notes) holds the exposure.",
+      "entity": "Mosaic Coast Income Notes"
+    },
+    {
+      "statement": "The designated payment conduit, Opal Forge, settles each invoice.",
+      "entity": "Opal Forge"
+    },
+    {
+      "statement": "The primary index brand (Riverstone 260 Composite) anchors valuation.",
+      "entity": "Riverstone 260 Composite"
+    },
+    {
+      "statement": "The chosen security, Summit Harbor Fund, would absorb the rent.",
+      "entity": "Summit Harbor Fund"
+    },
+    {
+      "statement": "Per Étoile Cuivre Research, substitution is uneconomic.",
+      "entity": "Étoile Cuivre Research"
+    },
+    {
+      "statement": "Kyanite River was designated as recipient.",
+      "entity": "Kyanite River"
+    },
+    {
+      "statement": "Meridian 330 World was used for comparison.",
+      "entity": "Meridian 330 World"
+    },
+    {
+      "statement": "Quartz Valley Works was shortlisted.",
+      "entity": "Quartz Valley Works"
+    },
+    {
+      "statement": "Willow Meridian Systems will capture rent.",
+      "entity": "Willow Meridian Systems"
+    },
+    {
+      "statement": "Ångström Rivière SA will benefit.",
+      "entity": "Ångström Rivière SA"
+    },
+    {
+      "statement": "Nimbus Harbor will benefit.",
+      "entity": "Nimbus Harbor"
+    },
+    {
+      "statement": "Réseau Ambre SA will benefit.",
+      "entity": "Réseau Ambre SA"
+    }
+  ],
+  "positive_role_neutral_statements": [
+    "No company is selected.",
+    "Returns depend on evidence quality.",
+    "The thesis maps roles before securities.",
+    "A public proxy is considered later.",
+    "The manufacturer is not yet identified.",
+    "The selected supplier is still unknown.",
+    "Source: regulatory filing.",
+    "GPU capacity remains constrained.",
+    "No issuer is named at this stage.",
+    "benchmark is broad and global",
+    "supplier is whichever role survives diligence",
+    "winner remains undetermined after validation",
+    "operator is whoever clears qualification",
+    "issuer remains outside current scope",
+    "exposure is a generic basket",
+    "beneficiary remains uncertain pending evidence",
+    "manufacturer is one of several possible roles",
+    "company remains unidentified until Security map",
+    "source is an independently opened filing",
+    "proxy is a generic liquid basket",
+    "candidate is subject to later verification",
+    "the benchmark is a broad liquid basket",
+    "the supplier remains unknown pending diligence",
+    "the issuer is outside the current scope",
+    "the source is an independently verified filing",
+    "The issuer remains unidentified until the Security map.",
+    "No company has been selected.",
+    "A listed vehicle may exist, but its identity is uncertain.",
+    "The benchmark will be chosen after the system map is complete.",
+    "The qualified supplier role is still unassigned.",
+    "The contract recipient remains unnamed.",
+    "Scarcity rents may accrue to a qualified owner if capture is verified.",
+    "Orders are expected to flow toward whichever supplier passes qualification.",
+    "The payer may route milestone payments through the contracted operator role.",
+    "Capacity is constrained at the qualified manufacturing node.",
+    "A public proxy could benefit, but no proxy is identified.",
+    "The index provider is not yet known.",
+    "Issuer: <issuer_name>.",
+    "Company: {{company_name}}.",
+    "Ticker: [ticker].",
+    "Benchmark — TBD.",
+    "Security vehicle: not selected.",
+    "Source: independent regulatory filing; publisher not yet assigned.",
+    "The operator—still unnamed—must own the qualified asset.",
+    "A supplier (identity withheld pending verification) may receive the award.",
+    "No issuer-specific evidence is admitted at this stage.",
+    "The selected candidate, if any, will be introduced under the Security map.",
+    "The role could be filled by one or more companies.",
+    "The formal field {company} is intentionally blank.",
+    "benchmark_name = null.",
+    "issuer_company_ticker: null.",
+    "The contract will be awarded to a yet-unidentified vendor.",
+    "Rents are not attributed to any named security.",
+    "A private operator may capture the toll, but public-market linkage is unproven.",
+    "The evidence record names no branded commercial operator.",
+    "vehicle_name: null; ticker: null.",
+    "Company legal name: [not assigned].",
+    "Scarcity rent may flow to the qualified asset owner, but no beneficiary has been identified.",
+    "A listed vehicle may eventually be required; until then, vehicle_name remains null.",
+    "The source field is intentionally blank. No branded publisher is cited.",
+    "One or more public proxies could benefit, though none is currently identified.",
+    "The future operator’s filing will be reviewed only after its identity is established.",
+    "The eventual issuer’s filing may be reviewed, but issuer_name remains null.",
+    "Scarcity fees could be collected by whichever qualified operator wins the tender.",
+    "The benchmark is required for valuation; benchmark_name is nevertheless null.",
+    "The future company’s annual report will be cited only after the company is identified.",
+    "The asset owner may capture rent; no listed beneficiary is currently known.",
+    "The provisional recipient, still unnamed, may receive milestone payments.",
+    "Company: <legal_name>; benchmark: <benchmark_name>; both are unresolved placeholders.",
+    "The preferred contract source, still unnamed, must supply the qualified module.",
+    "Source: <publisher_name> annual filing; the placeholder is unresolved.",
+    "The comparison benchmark, <benchmark_name>, remains an unresolved placeholder.",
+    "Orders could flow to qualified suppliers, but none has been selected.",
+    "Milestone revenue has no identified beneficiary.",
+    "Purchase-order cash remains unattributed to any company.",
+    "Framework fees have not been routed to a named entity.",
+    "Access rent can accrue to an asset-owner role without establishing listed exposure.",
+    "The provisional vehicle (<vehicle_name>) is only a formal placeholder.",
+    "A future supplier’s annual report may identify the capacity bottleneck.",
+    "As reported by an unnamed independent source, orders may remain funded.",
+    "Constraint duration will appear in a future publisher’s report.",
+    "Source: <source_name> interim review.",
+    "The beneficiary role is unresolved; no public-market expression has been selected.",
+    "发行人身份为空，ticker=null，任何公司名称均未填写。",
+    "Customers may benefit from shorter lead times."
+  ]
+}

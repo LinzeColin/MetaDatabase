@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v18",
+  "remediation_task_id": "BSS-S3-P3-T014",
+  "relationship": "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION",
+  "execution_evidence_rewritten": false,
+  "current_output_revalidated": true,
+  "execution_context_tree_sha256": "797b6673bdc8e185eeac11694a81579e540fda5c3507b034df8308afb995c518",
+  "previous_remediation_sha256": "e5fdf281c1d6f5d77d9b23cb0f00ac34f20628967be2996bb0f349ccc250ad71",
+  "changes": [
+    {
+      "path": "scripts/presentation_contract.py",
+      "previous_current": {
+        "mode": "0644",
+        "byte_count": 17887,
+        "sha256": "0fc48b5c192ed4a2b68485736fe87c84da28e44bb4ec8286199c8a0a72ee3e94"
+      },
+      "current": {
+        "mode": "0644",
+        "byte_count": 29671,
+        "sha256": "208a6e131d4269b2eb03a2bf51acb04b91771762e7899c3a5f6c88d59e81b6d7"
+      },
+      "semantic_scope": "extend clause-aware role slots across modal and passive assignments, appositive, possessive, attribution, designation, benchmark, and payment or rent routing; preserve Unicode and numeric full-entity witnesses; accept explicit placeholder, uncertainty, and generic role-neutral complements"
+    }
+  ]
+}

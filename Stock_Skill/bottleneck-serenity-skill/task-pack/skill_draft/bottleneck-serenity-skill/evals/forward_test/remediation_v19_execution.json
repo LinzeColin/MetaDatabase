@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T008-forward-remediation-v19",
+  "executor_attempt_ordinal": 19,
+  "projection_id": "forward-runtime-v19-rfc3161-sealed",
+  "preexecution_seal_sha256": "e500537c09c9415e1a10dd5e4646d06646f6fb4f9d2686a87258517281facd8f",
+  "preexecution_timestamp_evidence_sha256": "4a587ed19881181ae541d6cfb54ae0f16b2e7f8fbc30b3d4946103d1befa45c8",
+  "control_packet_sha256": "22d11a541e52672e607d678f623d36330a64d47e92287998e74933b394303614",
+  "preregistration_sha256": "9ab9dcbbae29000ab2f7b11f32a7a4dc1f04f9abd059574333e1d5014d4a7a59",
+  "projection_tree_sha256": "130b9468a3517dbb6f35f8d06003e864ea58b46b6997b7d4731c09b9e5ee7ca9",
+  "output_schema_sha256": "6700ca3cae4a81aee93c9ab4da6e348cb21172285e7ef00c1d99630f4271ac3e",
+  "execution_envelope_sha256": "b194a34f95c02291e42659b00bf4fb776384110b6bb0186b2e49cf7ca3aab919",
+  "execution_controls": {
+    "fresh_execution_context": true,
+    "context_fork": "none",
+    "conversation_history_forwarded": false,
+    "user_config_loaded": false,
+    "project_rules_loaded": false,
+    "sandbox": "workspace-write isolated projection",
+    "canonical_repository_writes_allowed": false,
+    "projection_scratch_writes_allowed": true,
+    "skill_source_edits_allowed": false,
+    "broker_or_order_actions_allowed": false,
+    "runtime_install_allowed": false,
+    "native_live_web_search_enabled": true,
+    "interim_agent_messages_allowed": false,
+    "maximum_focused_web_search_batches": 6,
+    "executor_wall_clock_budget_seconds": 900,
+    "required_exit_code": 0,
+    "independent_rfc3161_timestamp_required_before_start": true
+  },
+  "started_at_utc": "2026-07-23T16:50:07Z",
+  "finished_at_utc": "2026-07-23T17:00:21Z",
+  "recorded_at_utc": "2026-07-23T17:01:34Z",
+  "independent_preexecution_ordering": {
+    "protocol": "RFC3161",
+    "authority": "DigiCert",
+    "gen_time_utc": "2026-07-23T16:49:31Z",
+    "verified_before_start": true,
+    "minimum_observed_lead_seconds": 36
+  },
+  "exit_code": 0,
+  "raw_output": {
+    "path": "evals/forward_test/remediation_v19_raw.json",
+    "sha256": "f6694a5142c20f9ddc1f3a2a9a8ec0702dd454773c1b68152c9539af7a39d6ad",
+    "byte_count": 30264,
+    "exact_host_return_bytes": true
+  },
+  "outcome": "HOST_REPLAY_PASS_PENDING_JUDGES",
+  "privacy_notes": [
+    "Execution-system session identifiers and raw CLI event logs are intentionally excluded from source evidence."
+  ]
+}

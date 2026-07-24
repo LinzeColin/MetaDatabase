@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v7",
+  "preexecution_seal_sha256": "8d55ac2dbc526e45309fc8ec8b47ee804027f10cb9d98e842627c55906840a4c",
+  "execution_envelope_sha256": "460bb45a776fc8f2a52268345cdb542064ca10572132a53e277b6e64d5ea3505",
+  "raw_output_present": false,
+  "tool_event_count": 0,
+  "projection_write_count": 0,
+  "outcome": "FAIL",
+  "failure_class": "infrastructure-silent-timeout",
+  "failure_summary": "The fresh executor remained live but emitted no tool or file event during the bounded window; it was terminated and no research result was admitted."
+}

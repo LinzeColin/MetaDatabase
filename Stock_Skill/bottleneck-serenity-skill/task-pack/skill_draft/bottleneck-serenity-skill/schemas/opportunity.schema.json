@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/bottleneck-serenity-skill/opportunity.schema.json",
+  "title": "bottleneck-serenity-skill Opportunity",
+  "type": "object",
+  "required": ["schema_version", "skill_version", "as_of", "source_cutoff", "previous_version", "candidate", "scores", "clocks", "scenarios", "equity_bridge"],
+  "properties": {
+    "schema_version": {"type": "string", "enum": ["1.0"]},
+    "skill_version": {"type": "string", "enum": ["0.0.0.1"]},
+    "as_of": {"type": "string", "format": "date"},
+    "source_cutoff": {"type": "string", "format": "date"},
+    "previous_version": {"type": ["string", "null"], "minLength": 1},
+    "thesis_id": {"type": "string"},
+    "candidate": {
+      "type": "object",
+      "required": ["ticker", "company", "market"],
+      "properties": {
+        "ticker": {"type": "string"},
+        "company": {"type": "string"},
+        "market": {"type": "string"},
+        "currency": {"type": "string"},
+        "role": {"type": "string"},
+        "lifecycle_stage": {
+          "enum": ["DISCOVERY", "QUALIFICATION", "CONTRACTED_RAMP", "MARGIN_REALIZATION", "CONSENSUS_ADOPTION", "CAPACITY_RESPONSE", "NORMALIZATION"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "scores": {
+      "type": "object",
+      "required": ["constraint", "capture", "mispricing", "evidence", "investability"],
+      "properties": {
+        "constraint": {"$ref": "#/$defs/scoreMap"},
+        "capture": {"$ref": "#/$defs/scoreMap"},
+        "mispricing": {"$ref": "#/$defs/scoreMap"},
+        "evidence": {"$ref": "#/$defs/scoreMap"},
+        "investability": {"$ref": "#/$defs/scoreMap"}
+      },
+      "additionalProperties": false
+    },
+    "clocks": {
+      "type": "object",
+      "required": ["scarcity_p10_months", "scarcity_p50_months", "scarcity_p90_months", "monetization_lag_months", "market_discovery_months"],
+      "properties": {
+        "scarcity_p10_months": {"type": "number", "minimum": 0},
+        "scarcity_p50_months": {"type": "number", "minimum": 0},
+        "scarcity_p90_months": {"type": "number", "minimum": 0},
+        "monetization_lag_months": {"type": "number", "minimum": 0},
+        "market_discovery_months": {"type": "number", "minimum": 0},
+        "contracted_forward_ramp": {"type": "boolean", "default": false}
+      },
+      "additionalProperties": true
+    },
+    "scenarios": {
+      "type": "object",
+      "required": ["bear", "base", "bull"],
+      "properties": {
+        "bear": {"$ref": "#/$defs/scenario"},
+        "base": {"$ref": "#/$defs/scenario"},
+        "bull": {"$ref": "#/$defs/scenario"}
+      },
+      "additionalProperties": false
+    },
+    "equity_bridge": {
+      "type": "object",
+      "required": ["complete", "revenue", "free_cash_flow", "fully_diluted_shares", "per_share_fcf", "cash_conversion_checks", "dilution_checks", "unverified_critical_multipliers"],
+      "properties": {
+        "complete": {"type": "boolean"},
+        "revenue": {"type": ["number", "null"]},
+        "free_cash_flow": {"type": ["number", "null"]},
+        "fully_diluted_shares": {"type": ["number", "null"]},
+        "per_share_fcf": {"type": ["number", "null"]},
+        "cash_conversion_checks": {
+          "type": "object",
+          "required": ["capex", "working_capital", "interest", "tax"],
+          "properties": {
+            "capex": {"type": "boolean"},
+            "working_capital": {"type": "boolean"},
+            "interest": {"type": "boolean"},
+            "tax": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "dilution_checks": {
+          "type": "object",
+          "required": ["stock_based_compensation", "convertibles", "warrants", "other_contingent_shares"],
+          "properties": {
+            "stock_based_compensation": {"type": "boolean"},
+            "convertibles": {"type": "boolean"},
+            "warrants": {"type": "boolean"},
+            "other_contingent_shares": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "unverified_critical_multipliers": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      },
+      "additionalProperties": false
+    },
+    "hard_flags": {
+      "type": "object",
+      "properties": {
+        "no_primary_evidence": {"type": "boolean"},
+        "wrong_entity_or_ticker": {"type": "boolean"},
+        "no_material_revenue_bridge": {"type": "boolean"},
+        "substitution_before_monetization": {"type": "boolean"},
+        "unfunded_financing_gap": {"type": "boolean"},
+        "kill_switch_triggered": {"type": "boolean"},
+        "bull_case_required_to_avoid_loss": {"type": "boolean"}
+      },
+      "additionalProperties": {"type": "boolean"}
+    },
+    "kill_switches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition", "metric", "source", "review_date"],
+        "properties": {
+          "condition": {"type": "string"},
+          "metric": {"type": "string"},
+          "source": {"type": "string"},
+          "review_date": {"type": "string"},
+          "triggered": {"type": "boolean"}
+        }
+      }
+    },
+    "notes": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "scoreMap": {
+      "type": "object",
+      "additionalProperties": {"type": "number", "minimum": 0, "maximum": 5}
+    },
+    "scenario": {
+      "type": "object",
+      "required": ["probability", "return_pct"],
+      "properties": {
+        "probability": {"type": "number", "minimum": 0, "maximum": 1},
+        "return_pct": {"type": "number"},
+        "summary": {"type": "string"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

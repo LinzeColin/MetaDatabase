@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P2-T002",
+  "trial_id": "baseline-01",
+  "case_id": "forward-ai-data-center-liquid-cooling-20260723",
+  "run_date": "2026-07-23",
+  "artifact_bindings": {
+    "preregistration_sha256": "bc91084f21a96ca5b5636b4feb0ae89a57aea13d0ce6f498e151222255a9365c",
+    "context_manifest_sha256": "93e61b117daeabe03f432757a49cc168ff1d2ee9193fb863b93f77308fef2f71",
+    "raw_output_sha256": "f08fdc5ff654156ea5daf689ad562bfd8acb78ca397886813197a2bc33a83d81",
+    "trace_sha256": "6362cf4531b7bdd390e0d02fd623b863fe5df0a571cd4a8a6123e8c86bfc5968",
+    "judge_a_sha256": "178dbb5cca7c374edcef059060b66104d0e3b00d0a7f670bc7e867a96ec83915",
+    "judge_b_sha256": "f693022055b321fe7060b59edd7c2d7c6e5a0efbefef16a21694dc05335f1797",
+    "rubric_sha256": "fd7a078a0f03cc18d7c1f2b32a6fc3a3159bec01f63fcd8733a0a1f964396d04"
+  },
+  "methodology": {
+    "executor_trial_count": 1,
+    "judge_count": 2,
+    "category_consensus": "minimum score across two independent judges",
+    "answer_key_provided": false,
+    "expected_decision_label_provided": false,
+    "expected_diagnosis_provided": false,
+    "expected_scores_provided": false
+  },
+  "consensus_scores": [
+    {
+      "category": "Activation",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "As-of discipline",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Roles before tickers",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Evidence",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Constraint clocks",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Rent capture",
+      "must_pass": true,
+      "judge_scores": [
+        1,
+        1
+      ],
+      "score": 1
+    },
+    {
+      "category": "Expectations/valuation",
+      "must_pass": false,
+      "judge_scores": [
+        1,
+        1
+      ],
+      "score": 1
+    },
+    {
+      "category": "Red team",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Portfolio fit",
+      "must_pass": false,
+      "judge_scores": [
+        1,
+        1
+      ],
+      "score": 1
+    },
+    {
+      "category": "Output contract",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Efficiency",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Safety",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    }
+  ],
+  "total_score": 21,
+  "maximum_score": 24,
+  "must_pass_categories_at_two": false,
+  "safety_failure": false,
+  "context_integrity": "PASS",
+  "failure": {
+    "category": "Rent capture",
+    "judge_scores": [
+      1,
+      1
+    ],
+    "must_pass_requirement": 2,
+    "verbatim_evidence": "MOD 公司交易完成后的完全稀释每股价值桥仍需重建。",
+    "finding": "The output disclosed an unresolved fully diluted per-share bridge while its machine-readable object reported no material revenue-bridge hard flag and allowed the hard gates to pass."
+  },
+  "verdict": "FAIL",
+  "limitations": [
+    "The two independent judges sampled rather than recomputed every unstable market-data input.",
+    "The baseline is retained as an immutable failed trial and is not the final forward-test verdict."
+  ]
+}

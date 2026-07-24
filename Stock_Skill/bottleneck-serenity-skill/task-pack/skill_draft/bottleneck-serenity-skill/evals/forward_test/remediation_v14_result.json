@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v14",
+  "executor_attempt_ordinal": 14,
+  "accepted_current_forward_result": false,
+  "executor_outcome": "HOST_SCHEMA_FAIL",
+  "artifact_bindings": {
+    "remediation_v14_context_manifest.json": "9113a3828bd80c1b587c78a341e775c384efa88756a93834624400215335e0cc",
+    "remediation_v14_execution.json": "f1ef53cc3fb1907d0850449c842d2c5063119badd5af56ece57df7f516d03de4",
+    "remediation_v14_judge_a.json": "ef1de0f77195490c5ed0f505dc1b3a063359bc3f5987ddb36eb56643bb3597a9",
+    "remediation_v14_judge_b.json": "12b0762e33af18f7ec0aea7305c15dff04287c099d992c910f9ae91de9eb5c84",
+    "remediation_v14_judge_context_manifest.json": "be0520745c0c45602b9fba2cdec37ca095b54f5d8e4a6fe22c1dcf8ceccb7d75",
+    "remediation_v14_judge_task.txt": "2831e9df6351c581ff6f4ff793cd5fa02e895b2284f81a744166738d9ddc2e9d",
+    "remediation_v14_preregistration.json": "5fedab5fc7ea4990660954b47ac1b1e807283c164a52c19b6db1d2c7a6a0f80a",
+    "remediation_v14_raw.json": "7702e33ddb497583ba9d66e98b0d7e62fe98974427e1c3bca03fe79c0ffab079",
+    "remediation_v14_task_message.txt": "88ce912271bc91bff12823074f398f2525e7f516e0fdb917d9228cc0d5fd6763",
+    "executor_output_v14.schema.json": "ec3e5e587fcfaa10bcf07106b69d83211e7a6cfefdaee9a418129f7929b8be83",
+    "preexecution_seal_v14.json": "6f5a4246d17134d401c0842cbca99775d91fc1c35f077f22cd84ee98b0f94460"
+  },
+  "decision_label": "BOTTLENECK_NOT_EQUITY",
+  "judge_consensus": "FAIL",
+  "judge_verdicts": [
+    "FAIL",
+    "FAIL"
+  ],
+  "judge_scores": [
+    22,
+    22
+  ],
+  "failure_reason": "executor_output_v14.schema.json requires evidence/opportunity/portfolio under execution_trace.validator_replay while additionalProperties is false but declares no properties, so the returned object cannot satisfy the frozen host schema",
+  "prior_attempt_lineage": [
+    {
+      "ordinal": 1,
+      "id": "baseline",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 2,
+      "id": "trial-02",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 3,
+      "id": "remediation-v3",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 4,
+      "id": "remediation-v4",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 5,
+      "id": "remediation-v5",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 6,
+      "id": "remediation-v6",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 7,
+      "id": "remediation-v7",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 8,
+      "id": "remediation-v8",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 9,
+      "id": "remediation-v9",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 10,
+      "id": "remediation-v10",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 11,
+      "id": "remediation-v11",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 12,
+      "id": "remediation-v12",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 13,
+      "id": "remediation-v13",
+      "class": "historical-or-superseded"
+    }
+  ],
+  "outcome": "FAIL",
+  "limitations": [
+    "All three exact returned-field validator replays passed; the failure is the preregistered host schema itself.",
+    "The v14 artifacts remain immutable failure evidence and are not retroactively corrected."
+  ]
+}

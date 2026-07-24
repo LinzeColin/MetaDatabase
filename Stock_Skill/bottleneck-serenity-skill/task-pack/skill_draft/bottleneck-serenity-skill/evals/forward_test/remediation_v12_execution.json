@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v12",
+  "executor_attempt_ordinal": 12,
+  "preexecution_seal_sha256": "5b20933ab6bca1ea37bc7ddad868f506e64fc8b6ded9decc3db9fb7440840d58",
+  "execution_envelope_sha256": "7d8565a57334eaf8806f05a65d527f940879cfc915dac7f99910dac3876dc1ae",
+  "raw_output_created": false,
+  "scratch_artifacts": {
+    "evidence_json_sha256": "8b658b0cd5661753bbe0f039a2a4d0d33c1436c7a040b9ff29afe3c50137a3ac",
+    "opportunity_json_sha256": "88b63a4b2517d4e6f58d6b35987f18be5012b6d593885745bf10e4b930002244",
+    "portfolio_json_sha256": "9e43c6cc4e548ee0d6311ab7a7d453b2f3572432bbd6a517a6a6ccd7e732f86a",
+    "evidence_validator_stdout_sha256": "0a39d0c536cd5d1873f5186f8b07a226a0fd04b058f8d80cb50cafb975f76329",
+    "opportunity_validator_stdout_sha256": "add4792d16a19555709dfbaabd6dff11de26cc5098f972c2d6365acd51c1a1fc",
+    "portfolio_validator_stdout_sha256": "ae7ebec80cdc71d4ed3dae005bee0f373591705942b0308cf2d68d79244abdf7",
+    "validator_exit_codes": {
+      "evidence": 0,
+      "opportunity": 0,
+      "portfolio": 0
+    }
+  },
+  "substantive_forward_result": false,
+  "independent_judges_started": false,
+  "outcome": "INFRASTRUCTURE_TIMEOUT",
+  "superseded_by": "BSS-S3-P3-T002-forward-remediation-v13"
+}

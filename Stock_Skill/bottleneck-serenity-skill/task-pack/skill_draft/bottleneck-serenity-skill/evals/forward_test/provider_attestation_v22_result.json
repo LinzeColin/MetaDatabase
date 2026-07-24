@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "attestation_id": "BSS-S3-P3-T010-provider-attestation-v22",
+  "accepted_current_provider_attestation": true,
+  "subject_eval_id": "BSS-S3-P3-T008-forward-remediation-v19",
+  "subject_result_sha256": "81bf9815e21ca291702bfb1bb85f68854ff66efa1f5d2a988157838a92fe92d1",
+  "subject_raw_sha256": "f6694a5142c20f9ddc1f3a2a9a8ec0702dd454773c1b68152c9539af7a39d6ad",
+  "artifact_bindings": {
+    "provider_attestation_v20.schema.json": "3fc1c1cd3d538ec2f1dd3193916fe9a932d0671fd8c5cc52c861df70c26a2422",
+    "provider_attestation_v20_task.template.txt": "e329857a6913405f41fee7aca0dc020f66f98b9fa0959c2ce81ab85e8ef078b5",
+    "provider_attestation_v20_pre_packet.json": "a6542393ce8cb62b5029df972c5578d7e587c972be23a02629e223907baf37e2",
+    "provider_attestation_v20_pre_timestamp.json": "93b1ae1440400e547c3ad1890463fa6acc48c57ae166f2a36381b6cb3a880fef",
+    "provider_attestation_v20_task.txt": "5efd44cb357a40b325bfbe6247ab4816623f9b2e3bcd058c073c453b2545f0f4",
+    "provider_attestation_v20_failure.json": "0b47eb461459a431c03f30b8423ec892b9cb0215f4e73255e30cb6a427a51bda",
+    "provider_attestation_v21.schema.json": "620b2ff979cebb83dfdf496dafed80828f682c879ce48bb04f50a11389894113",
+    "provider_attestation_v21_task.template.txt": "042aace0a99c52ac2d58228cde739c46bc761af56a86676406888cae1898c41d",
+    "provider_attestation_v21_pre_packet.json": "4773626d74ba211019c84c3abdd32bfd33e657e61fffa89fae86c34ec2fa622c",
+    "provider_attestation_v21_pre_timestamp.json": "5d0c20c14b6bb53467aa930853caf25505d5bdb516dc3004f661433d90b11eec",
+    "provider_attestation_v21_task.txt": "329bc04e7422ada9a9ef21f6191214fd81f866232df2bb1d4f6962fd5926f534",
+    "provider_attestation_v21_return.json": "34151b379e97cf72b3fead7b1de93c155188cdb06808152a287762cb85e32f93",
+    "provider_attestation_v21_failure.json": "3569bff9d8ab1b0d45ede6a8372906ad23bfda4226d8521369b4a8185a705b7f",
+    "provider_attestation_v22.schema.json": "c50d1dba7bb23a2c2d9556899bbac7e426302ce7f3ecd5b0fee210c4c1679a74",
+    "provider_attestation_v22_task.template.txt": "934d6ed93dc20b9f9cda564da15b7e96a041bf4cdcc5ae480615d7b54969a6ac",
+    "provider_attestation_v22_pre_packet.json": "e3ef66820827724bc9a284b7d4cfa2939510a12f261012fe3ad5475b1d98425e",
+    "provider_attestation_v22_pre_timestamp.json": "a6ac5d0ffb7a591e64b8b82218f4e86e7f7fdaa06c928d1f4f5fcc448493b776",
+    "provider_attestation_v22_task.txt": "fc73666b233465157e855fd9c4b3667a8ddad4ad9ad20b4e6ab73f715e5586b9",
+    "provider_attestation_v22_execution_validator.py": "8ff98210f00764ef7d2ca3b976878c8a1b4a1c0b5c2bc5ff38fb2cf86e8587bd",
+    "provider_attestation_v22_return.json": "d644fef7b9424e98ff6c363442d63dc6db49bf7478a58fa5ddb5be693f142e66",
+    "provider_attestation_v22_host_receipt.json": "d98076b5e127de03abb222e4d9462e814349bdb0c54ee3617e901e89455fb503",
+    "provider_attestation_v22_post_packet.json": "5af57b16c3ee73c4a949af0d636fcc8056185e4019b2ba57bd6524638d650700",
+    "provider_attestation_v22_post_timestamp.json": "3cad5039f26990dc422235f1bc7424b52488e62853040b88e9cc930ed0cd3d06"
+  },
+  "prior_attempt_lineage": [
+    {
+      "attestation_id": "BSS-S3-P3-T010-provider-attestation-v20",
+      "outcome": "PROVIDER_SCHEMA_PREFLIGHT_FAILURE",
+      "substantive_provider_attestation": false
+    },
+    {
+      "attestation_id": "BSS-S3-P3-T010-provider-attestation-v21",
+      "outcome": "HOST_OBSERVED_COMMAND_FAILURE_AND_FALSE_PROVIDER_PASS",
+      "substantive_provider_attestation": false
+    }
+  ],
+  "independent_provider_execution": {
+    "runtime": "codex-cli 0.145.0-alpha.30",
+    "ephemeral": true,
+    "expected_answer_or_diagnosis_received": false,
+    "host_observed_validator_exit_code": 0,
+    "execution_validator_snapshot_path": "evals/forward_test/provider_attestation_v22_execution_validator.py",
+    "host_observed_validator_stdout_sha256": "484844e2cad899cbca89bc1e38fb0d809e1638fa4890f198bc30bf2bf1a5f1ca",
+    "exact_provider_return_sha256": "d644fef7b9424e98ff6c363442d63dc6db49bf7478a58fa5ddb5be693f142e66",
+    "exact_provider_return_byte_count": 959,
+    "provider_return_matches_host_observation": true
+  },
+  "independent_time_binding": {
+    "authority_protocol": "RFC3161",
+    "authority": "DigiCert",
+    "preexecution_gen_time_utc": "2026-07-23T18:38:20Z",
+    "postexecution_gen_time_utc": "2026-07-23T18:41:45Z",
+    "cryptographic_interval_seconds": 205,
+    "start_challenge_is_preexecution_response_sha256": true,
+    "challenge_echoed_in_exact_provider_return": true,
+    "postexecution_packet_binds_exact_provider_return_and_host_receipt": true,
+    "self_declared_execution_times_required_for_acceptance": false,
+    "whole_timeline_shift_mutant": "REJECT"
+  },
+  "privacy": {
+    "provider_identifiers_persisted": false,
+    "raw_event_stream_persisted": false
+  },
+  "outcome": "PASS"
+}

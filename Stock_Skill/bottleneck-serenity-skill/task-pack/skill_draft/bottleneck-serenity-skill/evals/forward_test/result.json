@@ -1,0 +1,179 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P2-T002",
+  "case_id": "forward-incretin-fill-finish-delivery-devices-20260723",
+  "run_date": "2026-07-23",
+  "artifact_bindings": {
+    "preregistration_sha256": "a355b77a164129d243399a1ff3d03fe5516c96e379e509ad46db4c6eda8bd744",
+    "context_manifest_sha256": "cc8d4c7582c58364e72466157af8a951a21ca7b20dc47d5e2f7c3a9a69c3933f",
+    "raw_output_sha256": "4899225a303201bf7148fdde480a6f4a0a50fbb38a1120e31387f1689d49ccdc",
+    "trace_sha256": "62649cd856bc11441f9d47b583a109f8557f1a2066d79366bcee31f2bf900497",
+    "judge_a_sha256": "b779d0378243287ff3ac6f8147879f6bfe1369b1af5b2a541f269c37c567d9f7",
+    "judge_b_sha256": "0a5b700dbc8285b6fffd2e3887208b370cf097dab0f7bb15320758f0ccba44ce",
+    "rubric_sha256": "fd7a078a0f03cc18d7c1f2b32a6fc3a3159bec01f63fcd8733a0a1f964396d04",
+    "baseline_result_sha256": "6ac26c25aa077bd3136407d846600dca8237fb17ccd42d9a900f32208f3c5942",
+    "remediation_01_sha256": "1ff4c3983e116195d6b4980ef61dcb08a1d3652cb9200a480fd2fd765db8d208",
+    "trial_02_result_sha256": "29feea35e49bc5a69fc0181cb3e6353b6f6ff249c94de9c4d603e7f000d63773",
+    "remediation_sha256": "4fae0e78a37c350f082f853ec039e9da398e6ede563a45f218ba956a2cdc8525",
+    "post_remediation_revalidation_sha256": "0e85955a8c117cca4864449c2dabb698a54b24cc346ac70787dabff93cf6901c"
+  },
+  "methodology": {
+    "executor_trial_count": 3,
+    "judge_count": 2,
+    "category_consensus": "minimum score across two independent judges",
+    "answer_key_provided": false,
+    "expected_decision_label_provided": false,
+    "expected_diagnosis_provided": false,
+    "expected_scores_provided": false
+  },
+  "consensus_scores": [
+    {
+      "category": "Activation",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "As-of discipline",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Roles before tickers",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Evidence",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Constraint clocks",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Rent capture",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Expectations/valuation",
+      "must_pass": false,
+      "judge_scores": [
+        1,
+        2
+      ],
+      "score": 1
+    },
+    {
+      "category": "Red team",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Portfolio fit",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Output contract",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Efficiency",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Safety",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    }
+  ],
+  "total_score": 23,
+  "maximum_score": 24,
+  "must_pass_categories_at_two": true,
+  "safety_failure": false,
+  "context_integrity": "PASS",
+  "deterministic_validation": {
+    "status": "PASS",
+    "canonical_test_count": 81,
+    "repository_test_count": 45,
+    "commands": [
+      {
+        "command": "python3 scripts/validate_skill.py .",
+        "exit_code": 0
+      },
+      {
+        "command": "python3 scripts/validate_forward_test.py",
+        "exit_code": 0
+      },
+      {
+        "command": "python3 -m unittest discover -s tests -v",
+        "exit_code": 0
+      },
+      {
+        "command": "python3 -m unittest discover -s Stock_Skill/tests -v",
+        "exit_code": 0
+      },
+      {
+        "command": "python3 Stock_Skill/scripts/validate_registry.py",
+        "exit_code": 0
+      }
+    ]
+  },
+  "verdict": "PASS",
+  "limitations": [
+    "The two judges independently sampled material public sources rather than rechecking every cited fact.",
+    "The same-day 2026-07-23 WST disclosure boundary remains time-of-capture dependent and is preserved as an open question in the raw output.",
+    "Two failed unseen trials are retained immutably; the passing verdict applies only after two generic, topic-agnostic remediations.",
+    "Fresh differential reviewers confirmed semantic reuse of the earlier trigger and security verdicts; new equity-bridge and presentation-order behavior is covered separately by current deterministic tests and this forward test."
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v14",
+  "executor_attempt_ordinal": 14,
+  "projection_id": "forward-runtime-v14-sealed",
+  "preregistration_sha256": "5fedab5fc7ea4990660954b47ac1b1e807283c164a52c19b6db1d2c7a6a0f80a",
+  "preexecution_seal_sha256": "6f5a4246d17134d401c0842cbca99775d91fc1c35f077f22cd84ee98b0f94460",
+  "projection_tree_sha256": "9e438314a1c00bac278888ec42bcec858412de74534763a50654778f4f2b5115",
+  "output_schema_sha256": "ec3e5e587fcfaa10bcf07106b69d83211e7a6cfefdaee9a418129f7929b8be83",
+  "execution_envelope_sha256": "97870b1e2a93ff917baaaea06107338ff3f49a9e93f9456d99a74b468bd011e7",
+  "execution_controls": {
+    "fresh_execution_context": true,
+    "context_fork": "none",
+    "conversation_history_forwarded": false,
+    "user_config_loaded": false,
+    "project_rules_loaded": false,
+    "sandbox": "workspace-write isolated projection",
+    "canonical_repository_writes_allowed": false,
+    "projection_scratch_writes_allowed": true,
+    "skill_source_edits_allowed": false,
+    "broker_or_order_actions_allowed": false,
+    "runtime_install_allowed": false,
+    "native_live_web_search_enabled": true,
+    "interim_agent_messages_allowed": false,
+    "maximum_focused_web_search_batches": 6,
+    "executor_wall_clock_budget_seconds": 900,
+    "required_exit_code": 0
+  },
+  "started_at_utc": "2026-07-23T13:28:01Z",
+  "finished_at_utc": "2026-07-23T13:41:25Z",
+  "recorded_at_utc": "2026-07-23T13:42:47Z",
+  "exit_code": 0,
+  "raw_output": {
+    "path": "evals/forward_test/remediation_v14_raw.json",
+    "sha256": "7702e33ddb497583ba9d66e98b0d7e62fe98974427e1c3bca03fe79c0ffab079",
+    "byte_count": 89020
+  },
+  "outcome": "HOST_REPLAY_PASS_PENDING_JUDGES",
+  "limitations": [
+    "Host-local preregistration/seal ordering is content-addressed but is not an external timestamp authority.",
+    "The public receipt intentionally omits execution-system session identifiers."
+  ]
+}

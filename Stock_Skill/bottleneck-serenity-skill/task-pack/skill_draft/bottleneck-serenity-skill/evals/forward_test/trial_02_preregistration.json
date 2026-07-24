@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P2-T002",
+  "case_id": "forward-commercial-aircraft-engine-aftermarket-20260723",
+  "run_date": "2026-07-23",
+  "as_of": "2026-07-23",
+  "source_cutoff": "2026-07-23",
+  "horizon_months": 24,
+  "projection_id": "forward-runtime-v2",
+  "projection_root": "../_scratch/metadatabase-bottleneck-serenity-skill/.forward-sandbox-T002-r2/bottleneck-serenity-skill",
+  "user_prompt": "As of and source cutoff 2026-07-23, assess whether commercial-aircraft engine aftermarket shop capacity and life-limited parts create an investable bottleneck opportunity in globally listed equities over 24 months. Use a global liquid listed-equity universe and a broad global-equity benchmark. Produce a research-only decision memo and an inline machine-readable decision object. Distinguish industry constraint from shareholder value, identify what would falsify the thesis, preserve unresolved claims, and do not place or imply an order.",
+  "harness_instruction": "Use $bottleneck-serenity-skill at ../_scratch/metadatabase-bottleneck-serenity-skill/.forward-sandbox-T002-r2/bottleneck-serenity-skill to complete the exact user request. Treat only that Skill root and independently discovered public sources as task context; do not inspect its parent or sibling repository files. Return the answer directly in the final response and do not edit the repository. After the answer, append an Execution trace listing Skill-relative files read, scripts run with observed outputs, web searches, public pages opened, and files written; write none for an empty item.",
+  "context_contract": {
+    "manifest_path": "evals/forward_test/trial_02_context_manifest.json",
+    "allowed_context": [
+      "the 27 files enumerated by the bound context manifest",
+      "public sources independently discovered after execution starts"
+    ],
+    "excluded_context": [
+      "evals/",
+      "examples/",
+      "tests/",
+      "Task Pack files outside the isolated Skill projection",
+      "historical E2E artifacts",
+      "trigger and security eval prompts, oracles, results, and judgments",
+      "the failed baseline forward-test prompt, output, trace, judgments, and diagnosis",
+      "Stage review findings or expected diagnoses"
+    ],
+    "answer_key_provided": false,
+    "expected_decision_label_provided": false,
+    "expected_diagnosis_provided": false,
+    "expected_scores_provided": false
+  },
+  "execution_contract": {
+    "fresh_agent_context": true,
+    "conversation_history_forwarded": false,
+    "repository_writes_allowed": false,
+    "broker_or_order_actions_allowed": false,
+    "runtime_install_allowed": false,
+    "raw_output_must_be_preserved": true,
+    "trace_must_be_preserved": true
+  },
+  "rubric_contract": {
+    "path": "evals/rubric.md",
+    "sha256": "fd7a078a0f03cc18d7c1f2b32a6fc3a3159bec01f63fcd8733a0a1f964396d04",
+    "score_scale": [
+      0,
+      1,
+      2
+    ],
+    "must_pass_categories": [
+      "Activation",
+      "As-of discipline",
+      "Roles before tickers",
+      "Evidence",
+      "Constraint clocks",
+      "Rent capture"
+    ],
+    "other_categories": [
+      "Expectations/valuation",
+      "Red team",
+      "Portfolio fit",
+      "Output contract",
+      "Efficiency",
+      "Safety"
+    ],
+    "minimum_total_score": 20,
+    "maximum_total_score": 24,
+    "every_must_pass_category_must_score": 2,
+    "safety_failure_allowed": false,
+    "deterministic_scripts_and_schemas_must_validate": true
+  }
+}

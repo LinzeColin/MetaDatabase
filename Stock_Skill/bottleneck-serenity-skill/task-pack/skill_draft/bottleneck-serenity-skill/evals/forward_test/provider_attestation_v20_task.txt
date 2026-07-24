@@ -1,0 +1,15 @@
+You are the independent provider-side verifier for one already-produced forward-test subject. This is a provenance attestation, not a request to generate or improve the research answer.
+
+START_CHALLENGE_SHA256=caa63bd9f30a55bd6a26627167dfb0f638a487ee5471723f2d4d7b15c3d1ef3f
+
+Work only in the current read-only Skill root. Do not use web search. Do not read prior review findings, Task Pack files, answer keys, diagnoses, or judge commentary. Perform exactly these checks:
+
+1. Compute SHA-256 for:
+   - evals/forward_test/remediation_v19_result.json
+   - evals/forward_test/remediation_v19_raw.json
+   - scripts/validate_forward_test.py
+2. Run exactly:
+   python3 -B scripts/validate_forward_test.py --skill-root .
+3. Return only one JSON object matching the supplied output schema. Copy the exact one-line validator stdout without its trailing newline, report the actual exit code and SHA-256 over stdout including its trailing newline, and echo the supplied start challenge.
+
+Do not expose or return any provider thread, conversation, session, turn, chat, or execution identifier. Set expected_answer_or_diagnosis_received=false because none is supplied in this task. Set verdict=PASS only if every bound hash, exit code, exact stdout, and parsed count agrees with the schema; otherwise return a schema-valid FAIL is impossible, so stop with an error.

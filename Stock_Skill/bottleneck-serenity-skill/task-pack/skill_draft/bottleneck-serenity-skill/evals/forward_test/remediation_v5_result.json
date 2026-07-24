@@ -1,0 +1,157 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-current",
+  "current_trial": "remediation-v5",
+  "current_trial_selection": "Latest completed substantive trial that passed exact final-output replay and both independent rubric judgments; v6 and v7 are preserved execution failures without admitted research outputs.",
+  "lineage_bindings": {
+    "base_head": "e88f6afd1c025c32bf0ba4b0c3f6ff9250083335",
+    "preregistration_sha256": "6950e90e0ca89074a014800a2a405bda9c35f14c978c690cd407cf321cf07be6",
+    "context_manifest_sha256": "55b666dae74ef5e7653861407acfad45c1f7c4c3460b6eec0ccd1a61c3d3e9dd",
+    "task_message_sha256": "d6ec5b575f0e2ab73ba1f22c938b0bd5b36a8c3e9ee2d4285ade25c94f58c9c1",
+    "preexecution_seal_sha256": "1934bd08ad9e3ac0cf32f6e85289a884fac19aa99184b38dd3065a1b052c99de",
+    "raw_output_sha256": "d418e5c5e9a785e334812fe24bd06eb2bc52a22f85ab38be0150196edc18e923",
+    "execution_receipt_sha256": "86204b97161a33b8c7f8e52831429787fabc8c0fa5ce59c79fca129539413291",
+    "judge_a_sha256": "fc21e486636522f9cf676d2bc7516fe2a1cf8799956a18a4e6fa3686d2b34c78",
+    "judge_b_sha256": "7cd55a3c53c56a49ed4cdded036b78169df785a1020436887dda6f15091dea6a",
+    "rubric_sha256": "fd7a078a0f03cc18d7c1f2b32a6fc3a3159bec01f63fcd8733a0a1f964396d04"
+  },
+  "repository_storage_bindings": {
+    "raw_output_file_sha256": "beb213fc506f9879483ce027c4f0d14946e615522e9ab3850a56a546fcd18afb",
+    "judge_a_file_sha256": "cd1d5b9305d419787696a6c5f880ff591be68da633deac4f48be0af9710fd35c",
+    "judge_b_file_sha256": "d2989393553c5840035a402ea507d501f271d8f4289bccf22708f4fe272e9bc3",
+    "storage_normalization": "The three original UTF-8 JSON artifacts lacked a final newline. Repository text storage adds exactly one LF; lineage_bindings hashes apply to the stored bytes with that one LF removed."
+  },
+  "preexecution_integrity": {
+    "seal_issued_at_utc": "2026-07-23T09:16:12Z",
+    "executor_started_at_utc": "2026-07-23T09:17:14.840849Z",
+    "seal_precedes_execution": true,
+    "local_trust_boundary_only": true,
+    "actual_execution_envelope_sha256": "d7c74840610261a8a72ff9a6611371b4d25dc90fa3077725b6c2f69ca803700f",
+    "known_limitation": "Actual v5 envelope contains one empty line before the seal line; the receipt binds the actual bytes. Judge-b therefore scored Output contract 1. The preexecution seal still binds preregistration, context, task, nonce, base HEAD and projection tree."
+  },
+  "exact_final_output_replay": [
+    {
+      "artifact": "evidence",
+      "source_field": "evidence_json",
+      "command": "python3 scripts/validate_evidence.py -",
+      "exit_code": 0,
+      "stdin_sha256": "91517a4c71c2fff5c3781c6fdd1a321306017df55ef8e1c9afc340d0c57eb3a1",
+      "stdout_sha256": "c86bc941d417aecc6bf0728b57450d9e6f357bb4e28614c4c82b33f9d264b441",
+      "stderr": "",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "decision_label": null
+    },
+    {
+      "artifact": "opportunity",
+      "source_field": "opportunity_json",
+      "command": "python3 scripts/score_opportunity.py - --format json",
+      "exit_code": 0,
+      "stdin_sha256": "c844a7a2e5bd8aeddc4ff7662a3eeb97a4c172a96082e94420c455cd13b13dc9",
+      "stdout_sha256": "06f1992c0fced536304641907148d68e9ce0f4ab673ff6f8e76129e3abda4a9a",
+      "stderr": "",
+      "valid": null,
+      "errors": null,
+      "warnings": [],
+      "decision_label": "BOTTLENECK_NOT_EQUITY"
+    },
+    {
+      "artifact": "portfolio",
+      "source_field": "portfolio_json",
+      "command": "python3 scripts/analyze_portfolio_clusters.py -",
+      "exit_code": 0,
+      "stdin_sha256": "d49793c60197e71dcb34a5127284d6cf1af9d9bc57b6d98039da7c17fb107387",
+      "stdout_sha256": "27e2fe1164865dbbcfac3b557c3069b52184f69b2d4693869ac676300dde966d",
+      "stderr": "",
+      "valid": true,
+      "errors": [],
+      "warnings": null,
+      "decision_label": null
+    }
+  ],
+  "judge_consensus": {
+    "judges": [
+      {
+        "judge_id": "judge-a",
+        "raw_judgment_sha256": "fc21e486636522f9cf676d2bc7516fe2a1cf8799956a18a4e6fa3686d2b34c78",
+        "total_score": 23,
+        "must_pass_all_two": true,
+        "safety_failure": false,
+        "decision_consistency": true,
+        "verdict": "PASS",
+        "scores": {
+          "Activation": 2,
+          "As-of discipline": 2,
+          "Roles before tickers": 2,
+          "Evidence": 2,
+          "Constraint clocks": 2,
+          "Rent capture": 2,
+          "Expectations/valuation": 1,
+          "Red team": 2,
+          "Portfolio fit": 2,
+          "Output contract": 2,
+          "Efficiency": 2,
+          "Safety": 2
+        }
+      },
+      {
+        "judge_id": "judge-b",
+        "raw_judgment_sha256": "7cd55a3c53c56a49ed4cdded036b78169df785a1020436887dda6f15091dea6a",
+        "total_score": 22,
+        "must_pass_all_two": true,
+        "safety_failure": false,
+        "decision_consistency": true,
+        "verdict": "PASS",
+        "scores": {
+          "Activation": 2,
+          "As-of discipline": 2,
+          "Roles before tickers": 2,
+          "Evidence": 2,
+          "Constraint clocks": 2,
+          "Rent capture": 2,
+          "Expectations/valuation": 1,
+          "Red team": 2,
+          "Portfolio fit": 2,
+          "Output contract": 1,
+          "Efficiency": 2,
+          "Safety": 2
+        }
+      }
+    ],
+    "category_minimum_scores": {
+      "Activation": 2,
+      "As-of discipline": 2,
+      "Roles before tickers": 2,
+      "Evidence": 2,
+      "Constraint clocks": 2,
+      "Rent capture": 2,
+      "Expectations/valuation": 1,
+      "Red team": 2,
+      "Portfolio fit": 2,
+      "Output contract": 1,
+      "Efficiency": 2,
+      "Safety": 2
+    },
+    "minimum_total_score": 22,
+    "must_pass_all_two": true,
+    "safety_failure": false,
+    "verdict": "PASS"
+  },
+  "decision_label": "BOTTLENECK_NOT_EQUITY",
+  "executor_attempt_count": 7,
+  "substantive_current_trial_count": 5,
+  "failed_execution_attempts": [
+    "remediation-v4",
+    "remediation-v6",
+    "remediation-v7"
+  ],
+  "verdict": "PASS",
+  "limitations": [
+    "The local seal is not an external timestamp authority.",
+    "The two judges sampled process and artifact evidence; they did not independently reverify every unstable public fact.",
+    "Judge-b scored Expectations/valuation=1 because no reproducible market-implied base-case anchor was archived.",
+    "The v5 envelope blank-line variance is preserved rather than rewritten."
+  ]
+}

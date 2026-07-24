@@ -9,8 +9,24 @@
 3. 只有 validator 为 `PASS` 时，才能引用 registry 的 `latest_version`。
 4. 任一 registry、`VERSION`、Skill ID、release SHA 或路径不一致，都必须 fail closed 为 `UNKNOWN`。
 
-当前登记：`stock-commercial-opportunities`（股票商业机会拆解）的唯一最新版本为 `3.0.0`（v3）。
-`1.0.0` 与 `2.0.0` 只允许作为 `archives/` 中的不可变历史，不得称为最新、默认恢复版本或安装目标。
+Active registry 使用 schema `1.1`，版本字段合同如下：
+
+- 每个 entry 的 `version_scheme` 都是必需、大小写敏感的字符串；唯一允许值为 `semver` 和
+  `numeric-quad`，禁止隐式默认或未知 scheme。
+- `semver` 是 canonical 三段数字子集，例如 `3.0.0`；`numeric-quad` 是 canonical 四段数字，例如
+  `0.0.0.1`。每段必须是 `0` 或不以零开头的十进制整数（禁止前导零）；禁止 `v`、空白、符号、prerelease、build
+  metadata、补零或截断。
+- `latest_major` 必须是与版本首段相等的 JSON integer，boolean 不合法。版本解析和排序只允许在同一
+  scheme 内按整数 tuple 进行；跨 scheme 比较必须失败。
+- `superseded_archives` 必须存在且为数组，首版允许 `[]`。archive 继承父 entry 的 scheme、不得包含
+  自己的 `version_scheme`，每个版本必须唯一且严格早于 `latest_version`。
+- Validator current 输出对 `semver` 保留 major shorthand（`3.0.0` → `v3`）；`numeric-quad` 使用完整
+  展示（`0.0.0.1` → `v0.0.0.1`，不得写成 `v0`）。release 文件名一律使用完整 `v<version>`。
+
+当前登记：`stock-commercial-opportunities=3.0.0`（股票商业机会拆解，v3，`semver`）与
+`bottleneck-serenity-skill=0.0.0.1`（v0.0.0.1，`numeric-quad`）均为 active/current source entries。
+前者的 `1.0.0` 与 `2.0.0` 只允许作为不可变历史；后者首版 archive 数组为 `[]`。两者均 source-only，
+禁止把 registry current 解释为本机安装、默认回退或交易执行能力。
 
 ## 修改边界
 

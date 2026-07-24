@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v5",
+  "preexecution_seal_sha256": "1934bd08ad9e3ac0cf32f6e85289a884fac19aa99184b38dd3065a1b052c99de",
+  "execution_envelope_sha256": "d7c74840610261a8a72ff9a6611371b4d25dc90fa3077725b6c2f69ca803700f",
+  "raw_output_sha256": "d418e5c5e9a785e334812fe24bd06eb2bc52a22f85ab38be0150196edc18e923",
+  "raw_output_byte_count": 32670,
+  "decision_label": "BOTTLENECK_NOT_EQUITY",
+  "host_exact_final_output_replay": [
+    {
+      "artifact": "evidence",
+      "source_field": "evidence_json",
+      "command": "python3 scripts/validate_evidence.py -",
+      "exit_code": 0,
+      "stdin_sha256": "91517a4c71c2fff5c3781c6fdd1a321306017df55ef8e1c9afc340d0c57eb3a1",
+      "stdout_sha256": "c86bc941d417aecc6bf0728b57450d9e6f357bb4e28614c4c82b33f9d264b441",
+      "stderr": "",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "decision_label": null
+    },
+    {
+      "artifact": "opportunity",
+      "source_field": "opportunity_json",
+      "command": "python3 scripts/score_opportunity.py - --format json",
+      "exit_code": 0,
+      "stdin_sha256": "c844a7a2e5bd8aeddc4ff7662a3eeb97a4c172a96082e94420c455cd13b13dc9",
+      "stdout_sha256": "06f1992c0fced536304641907148d68e9ce0f4ab673ff6f8e76129e3abda4a9a",
+      "stderr": "",
+      "valid": null,
+      "errors": null,
+      "warnings": [],
+      "decision_label": "BOTTLENECK_NOT_EQUITY"
+    },
+    {
+      "artifact": "portfolio",
+      "source_field": "portfolio_json",
+      "command": "python3 scripts/analyze_portfolio_clusters.py -",
+      "exit_code": 0,
+      "stdin_sha256": "d49793c60197e71dcb34a5127284d6cf1af9d9bc57b6d98039da7c17fb107387",
+      "stdout_sha256": "27e2fe1164865dbbcfac3b557c3069b52184f69b2d4693869ac676300dde966d",
+      "stderr": "",
+      "valid": true,
+      "errors": [],
+      "warnings": null,
+      "decision_label": null
+    }
+  ],
+  "outcome": "PASS",
+  "projection_write_observation": {
+    "allowed_disposable_files": [
+      "evidence.json",
+      "opportunity.json",
+      "portfolio.json",
+      "validator-evidence-output.json",
+      "validator-opportunity-output.json",
+      "validator-portfolio-output.json"
+    ],
+    "skill_source_modified": false,
+    "canonical_repository_modified": false
+  },
+  "executor_validator_replay": {
+    "first_attempt_python_alias_missing_exit_code": 127,
+    "second_attempt_exit_codes": {
+      "evidence": 0,
+      "opportunity": 0,
+      "portfolio": 0
+    },
+    "second_attempt_stdin_file_sha256": {
+      "evidence": "3c7f2d19750ec8ec21870cbc3b2bf774cd71107edeec66b122bf8550ef78728d",
+      "opportunity": "de58e84bc990a0bda024a0f1f38a7552ce51540d7a77d3c5e471559dc044cb05",
+      "portfolio": "72489c65b4fe28a4be6dcc71cf2896726fa382635b70e636221d7a705cf177e8"
+    },
+    "second_attempt_stdout_sha256": {
+      "evidence": "c86bc941d417aecc6bf0728b57450d9e6f357bb4e28614c4c82b33f9d264b441",
+      "opportunity": "06f1992c0fced536304641907148d68e9ce0f4ab673ff6f8e76129e3abda4a9a",
+      "portfolio": "27e2fe1164865dbbcfac3b557c3069b52184f69b2d4693869ac676300dde966d"
+    }
+  }
+}

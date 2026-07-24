@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["files_read", "artifact_sha256", "cases"],
+  "properties": {
+    "files_read": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {"type": "string", "enum": ["SKILL.md", "prompts.txt"]}
+    },
+    "artifact_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "raw_response"],
+        "properties": {
+          "case_id": {"type": "string"},
+          "raw_response": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

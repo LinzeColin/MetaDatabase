@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v18",
+  "remediation_task_id": "BSS-S3-P3-T012",
+  "relationship": "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION",
+  "execution_evidence_rewritten": false,
+  "current_output_revalidated": true,
+  "execution_context_tree_sha256": "797b6673bdc8e185eeac11694a81579e540fda5c3507b034df8308afb995c518",
+  "previous_remediation_sha256": "acc605455013b7e90b8a1cd64da22979437a6a6a61c73448c1894c32983c0f06",
+  "changes": [
+    {
+      "path": "scripts/presentation_contract.py",
+      "previous_current": {
+        "mode": "0644",
+        "byte_count": 12683,
+        "sha256": "15cb8c749593504020fabbfba79a7c6bffae687ddde56be5370c4d330403f659"
+      },
+      "current": {
+        "mode": "0644",
+        "byte_count": 17887,
+        "sha256": "0fc48b5c192ed4a2b68485736fe87c84da28e44bb4ec8286199c8a0a72ee3e94"
+      },
+      "semantic_scope": "add tokenized selection, role-assignment, and rent-capture semantic slots; reject the complete T011 issuer matrix while preserving the complete reviewed role-neutral positive matrix"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v10",
+  "preexecution_seal_sha256": "c85ff7104bf62592fa75887dfbbbbf46e9c57c77f4362e75b4f93c9bb7533cbc",
+  "execution_envelope_sha256": "2eceb542c4fedfa235ebcc7bf635014681df61602179f473e549f6acbda6445c",
+  "projection_tree_sha256": "55b56b4fa52efb2b34a5701105bc0c9038d6722208b7b066d1a25af638277d94",
+  "host_output_schema_sha256": "e40939a9047489625e7d2e42b0fd37af91acc09a6c0bee3cb4244d0ad727e7ad",
+  "raw_output": {
+    "source_sha256": "155ce19d9034b4201f267dcc07ae13841ff70388af0014273d82ce992f4526c2",
+    "source_byte_count": 20385,
+    "source_final_lf": false,
+    "repository_path": "evals/forward_test/remediation_v10_raw.json",
+    "repository_storage_sha256": "2a9d0a1cf7da610d932dcea2ceb040c39955ac12d1b34bccec0355464c2188a1",
+    "repository_storage_byte_count": 20386,
+    "repository_storage_normalization": "one trailing LF appended by patch storage; semantic JSON and all returned field strings are unchanged"
+  },
+  "host_schema_replay": {
+    "valid": true,
+    "required_fields": [
+      "memo_markdown",
+      "evidence_json",
+      "opportunity_json",
+      "portfolio_json",
+      "decision_label",
+      "execution_trace"
+    ]
+  },
+  "host_exact_final_output_replay": [
+    {
+      "artifact": "evidence",
+      "source_field": "evidence_json",
+      "command": "python3 scripts/validate_evidence.py -",
+      "exit_code": 0,
+      "stdin_sha256": "34f11b802f8b8e8b157b201a1d6b2d28d742b586f3112bfa4e9fbace7cb05e28",
+      "stdout_sha256": "cbece035939300816addbbdfb35d8d34fec101818fcbb0fde47e6dad6af6b014",
+      "stderr": "",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "decision_label": null
+    },
+    {
+      "artifact": "opportunity",
+      "source_field": "opportunity_json",
+      "command": "python3 scripts/score_opportunity.py - --format json",
+      "exit_code": 0,
+      "stdin_sha256": "d840df5be3c10d8af926d0f2ab39ac84e50e66c9f5ebdbf0ab0706d76d14f996",
+      "stdout_sha256": "f3d449cb72fc66165d55ced567e4d4ed34500f0cfae1c431574224de799cb570",
+      "stderr": "",
+      "valid": null,
+      "errors": null,
+      "warnings": [],
+      "decision_label": "BOTTLENECK_NOT_EQUITY"
+    },
+    {
+      "artifact": "portfolio",
+      "source_field": "portfolio_json",
+      "command": "python3 scripts/analyze_portfolio_clusters.py -",
+      "exit_code": 0,
+      "stdin_sha256": "d84c579201518bb6731b3ed843269fe5b132d4696eca728d2a86f7450f8cdeaa",
+      "stdout_sha256": "27e2fe1164865dbbcfac3b557c3069b52184f69b2d4693869ac676300dde966d",
+      "stderr": "",
+      "valid": true,
+      "errors": [],
+      "warnings": null,
+      "decision_label": null
+    }
+  ],
+  "presentation_gate": {
+    "exact_heading_order": true,
+    "heading_count": 14,
+    "security_map_present": true,
+    "issuer_company_ticker_security_benchmark_index_brand_before_security_map": false,
+    "checked_security_map_tokens": [
+      "Siemens",
+      "Xetra",
+      "ENR",
+      "Grid Technologies",
+      "MSCI",
+      "ACWI"
+    ],
+    "pre_security_map_hits": []
+  },
+  "projection_integrity": {
+    "all_27_manifest_files_match": true,
+    "manifest_mismatches": []
+  },
+  "projection_write_observation": {
+    "allowed_disposable_files": [
+      "evidence.json",
+      "opportunity.json",
+      "portfolio.json",
+      "validator-output-evidence.json",
+      "validator-output-opportunity.json",
+      "validator-output-portfolio.json"
+    ],
+    "observed_files": [
+      "evidence.json",
+      "opportunity.json",
+      "portfolio.json",
+      "validator-output-evidence.json",
+      "validator-output-opportunity.json",
+      "validator-output-portfolio.json"
+    ],
+    "skill_source_modified": false,
+    "canonical_repository_modified_by_executor": false
+  },
+  "executor_validator_replay": {
+    "first_attempt_python_alias_missing_exit_code": 127,
+    "final_attempt_exit_codes": {
+      "evidence": 0,
+      "opportunity": 0,
+      "portfolio": 0
+    },
+    "final_attempt_saved_file_stdin_sha256": {
+      "evidence": "01f77aee9ffb52c0040022c80846c2eba410c5d7c236cc44cc94a5c2d75f944e",
+      "opportunity": "f0e1e4fcef4b831e6391b833406e6bd42e96ff0783f4f5ede7dc22dfd686db58",
+      "portfolio": "a6d7030fda6bc9118eab83d6f0fab6138934252d209654224efb8e44003e2955"
+    },
+    "final_attempt_stdout_sha256": {
+      "evidence": "cbece035939300816addbbdfb35d8d34fec101818fcbb0fde47e6dad6af6b014",
+      "opportunity": "f3d449cb72fc66165d55ced567e4d4ed34500f0cfae1c431574224de799cb570",
+      "portfolio": "27e2fe1164865dbbcfac3b557c3069b52184f69b2d4693869ac676300dde966d"
+    },
+    "final_return_strings_are_normalized_serializations": true,
+    "host_exact_final_output_replay_required": true
+  },
+  "decision_label": "BOTTLENECK_NOT_EQUITY",
+  "outcome": "HOST_REPLAY_PASS_PENDING_JUDGES"
+}

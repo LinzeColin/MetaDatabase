@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/bottleneck-serenity-skill/evidence.schema.json",
+  "title": "bottleneck-serenity-skill Evidence Ledger",
+  "type": "object",
+  "required": ["schema_version", "skill_version", "as_of", "source_cutoff", "previous_version", "claims"],
+  "properties": {
+    "schema_version": {"type": "string", "enum": ["1.0"]},
+    "skill_version": {"type": "string", "enum": ["0.0.0.1"]},
+    "as_of": {"type": "string", "format": "date"},
+    "source_cutoff": {"type": "string", "format": "date"},
+    "previous_version": {"type": ["string", "null"], "minLength": 1},
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "claim", "claim_type", "critical", "sources"],
+        "properties": {
+          "id": {"type": "string"},
+          "claim": {"type": "string", "minLength": 1},
+          "claim_type": {"enum": ["fact", "inference", "assumption", "forecast"]},
+          "critical": {"type": "boolean"},
+          "confidence": {"enum": ["low", "medium", "high"]},
+          "status": {"enum": ["open", "supported", "mixed", "contradicted"]},
+          "depends_on": {"type": "array", "items": {"type": "string"}},
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["url", "publisher", "date", "tier", "independence_group", "stance"],
+              "properties": {
+                "url": {"type": "string"},
+                "publisher": {"type": "string"},
+                "date": {"type": "string"},
+                "tier": {"enum": ["A", "B", "C", "D", "E"]},
+                "source_type": {"type": "string"},
+                "independence_group": {"type": "string"},
+                "stance": {"enum": ["supports", "contradicts", "mixed"]},
+                "excerpt_or_locator": {"type": "string"},
+                "limitations": {"type": "string"}
+              },
+              "additionalProperties": true
+            }
+          },
+          "contradiction_search": {"type": "string"},
+          "notes": {"type": "string"}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

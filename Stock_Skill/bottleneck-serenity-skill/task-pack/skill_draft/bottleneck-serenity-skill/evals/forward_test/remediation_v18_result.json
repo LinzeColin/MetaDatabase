@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v18",
+  "executor_attempt_ordinal": 18,
+  "accepted_current_forward_result": true,
+  "executor_outcome": "HOST_REPLAY_PASS",
+  "artifact_bindings": {
+    "remediation_v18_context_manifest.json": "07182b91d2de375d73485a2ab99d7a2ff027db5d4416f149116fe1a6fabdc1aa",
+    "remediation_v18_preregistration.json": "29c14ebab98ce9eecdcdfb5f30d43a75064e74470d1797ae0fdf9e6dcae7d778",
+    "remediation_v18_task_message.txt": "5837a4b37fa30dc67f6f32dd35da2dee11e4c5dddbcc1075a9ca7c3d3a53feb9",
+    "executor_output_v18.schema.json": "6700ca3cae4a81aee93c9ab4da6e348cb21172285e7ef00c1d99630f4271ac3e",
+    "preexecution_seal_v18.json": "40c4f41c690de145c4ba35687a07748ae22c0498065b2c31f13f267fd4cede7f",
+    "remediation_v18_execution.json": "f6693f1a13a014e10664024d5cd72a673c0254538d8bc7b96ddcd08567ea23d6",
+    "remediation_v18_judge_a.json": "1eac704a6298bdc4f9e8c9e683ca88b572dbdaca0ec19bec2aa26db24fe575b8",
+    "remediation_v18_judge_b.json": "9969ce9ab785afb0aaf5514d6d1cb2cedc60f4265e9c7cab26da3edad79585bd",
+    "remediation_v18_judge_context_manifest.json": "64dff2643cbdb6b1c3085761ea65994829dfb05f45797664026809aca434a906",
+    "remediation_v18_judge_task.txt": "ca4c6247e418404a27f680f80b41847ed1539c5599b020dc5a676cdda02848c3",
+    "remediation_v18_raw.json": "ac5a64570138ba077af59d51f9e1604d1cf0c0214156487d46f9852f7aa9d134"
+  },
+  "decision_label": "WATCH_PRICED",
+  "judge_consensus": "PASS",
+  "judge_verdicts": [
+    "PASS",
+    "PASS"
+  ],
+  "judge_scores": [
+    24,
+    24
+  ],
+  "prior_attempt_lineage": [
+    {
+      "ordinal": 1,
+      "id": "baseline",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 2,
+      "id": "trial-02",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 3,
+      "id": "remediation-v3",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 4,
+      "id": "remediation-v4",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 5,
+      "id": "remediation-v5",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 6,
+      "id": "remediation-v6",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 7,
+      "id": "remediation-v7",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 8,
+      "id": "remediation-v8",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 9,
+      "id": "remediation-v9",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 10,
+      "id": "remediation-v10",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 11,
+      "id": "remediation-v11",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 12,
+      "id": "remediation-v12",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 13,
+      "id": "remediation-v13",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 14,
+      "id": "remediation-v14",
+      "class": "host-schema-fail"
+    },
+    {
+      "ordinal": 15,
+      "id": "remediation-v15",
+      "class": "host-schema-preflight-fail"
+    },
+    {
+      "ordinal": 16,
+      "id": "remediation-v16",
+      "class": "host-schema-preflight-fail"
+    },
+    {
+      "ordinal": 17,
+      "id": "remediation-v17",
+      "class": "host-exact-trace-fail"
+    }
+  ],
+  "outcome": "PASS",
+  "limitations": [
+    "The v18 host return is semantically identical to the sealed preparation output and all three exact returned-field validator replays pass.",
+    "Two fresh, isolated, read-only judges independently returned 24/24 PASS without web access or visibility into prior attempts or each other.",
+    "The accepted research decision is WATCH_PRICED; it is research-only and is not an allocation or trade instruction."
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "seal_id": "BSS-S3-P3-T004-forward-remediation-v14-preexecution",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v14",
+  "projection_id": "forward-runtime-v14-sealed",
+  "issued_at_utc": "2026-07-23T13:27:13Z",
+  "issued_before_executor_start": true,
+  "ordering_scope": "host-local preregistration and artifact integrity; not an external timestamp authority",
+  "projection_tree_sha256": "9e438314a1c00bac278888ec42bcec858412de74534763a50654778f4f2b5115",
+  "artifact_bindings": {
+    "remediation_v14_preregistration_sha256": "5fedab5fc7ea4990660954b47ac1b1e807283c164a52c19b6db1d2c7a6a0f80a",
+    "remediation_v14_context_manifest_sha256": "9113a3828bd80c1b587c78a341e775c384efa88756a93834624400215335e0cc",
+    "remediation_v14_task_message_sha256": "88ce912271bc91bff12823074f398f2525e7f516e0fdb917d9228cc0d5fd6763",
+    "executor_output_v14_schema_sha256": "ec3e5e587fcfaa10bcf07106b69d83211e7a6cfefdaee9a418129f7929b8be83",
+    "prepare_forward_output_v14_sha256": "56e085f5df63185d19583d39bde6a4e2456fb1e37547e95a9fa3050590e118cd",
+    "rubric_v2_sha256": "899851f9cd421f7cae8b26966e9b17377f40c9596c0bd54c08affbec3447a154"
+  },
+  "execution_controls": {
+    "fresh_execution_context": true,
+    "context_fork": "none",
+    "conversation_history_forwarded": false,
+    "user_config_loaded": false,
+    "project_rules_loaded": false,
+    "sandbox": "workspace-write isolated projection",
+    "canonical_repository_writes_allowed": false,
+    "projection_scratch_writes_allowed": true,
+    "skill_source_edits_allowed": false,
+    "broker_or_order_actions_allowed": false,
+    "runtime_install_allowed": false,
+    "native_live_web_search_enabled": true,
+    "interim_agent_messages_allowed": false,
+    "maximum_focused_web_search_batches": 6,
+    "executor_wall_clock_budget_seconds": 900,
+    "required_exit_code": 0
+  },
+  "execution_envelope_contract": "exact UTF-8 task bytes followed by ASCII PREEXECUTION_SEAL_SHA256=<sha256 of this seal> and one LF",
+  "privacy_contract": "no execution-system session identifiers may be stored in source or release"
+}

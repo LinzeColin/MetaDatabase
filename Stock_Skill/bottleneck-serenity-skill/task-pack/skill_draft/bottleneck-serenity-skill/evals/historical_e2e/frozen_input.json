@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "as_of": "2024-12-31",
+  "source_cutoff": "2024-12-31",
+  "previous_version": null,
+  "case_id": "historical-ai-data-center-power-transformers-20241231",
+  "mode": "scan",
+  "query": "As of 2024-12-31, assess whether the power-transformer constraints associated with AI data-center electricity demand create an investable opportunity in globally listed equities. Map funded demand and mandatory functions before securities, screen every required functional role, apply all four non-compensating gates, and preserve unresolved claims.",
+  "decision_supported": "Choose among no position, watchlist, research position, core candidate, hedge/substitute pair, or a basket for further research; do not place or imply an order.",
+  "universe": {
+    "markets": [
+      "US",
+      "AU",
+      "HK",
+      "EU",
+      "JP"
+    ],
+    "asset_types": [
+      "equity",
+      "ETF"
+    ],
+    "min_daily_value_traded_usd": 5000000
+  },
+  "horizon_months": 24,
+  "benchmark": "MSCI World Industrials or the closest documented liquid public proxy available by the source cutoff",
+  "risk_constraints": {
+    "max_position_weight": 0.1,
+    "max_root_driver_weight": 0.3,
+    "leverage_allowed": false,
+    "derivatives_allowed": false,
+    "automatic_trading_allowed": false
+  },
+  "required_roles": [
+    "owner",
+    "unlocker",
+    "substitute",
+    "tollbooth",
+    "absorber",
+    "public_proxy"
+  ],
+  "required_artifacts": [
+    "evidence.json",
+    "opportunity.json",
+    "portfolio.json",
+    "decision.json",
+    "memo.md",
+    "rubric.json"
+  ],
+  "context_exclusions": [
+    "facts first published after 2024-12-31",
+    "prices or outcomes observed after 2024-12-31",
+    "an expected decision label or expected answer",
+    "diagnoses from a later forward-test or Stage review",
+    "brokerage credentials, account data, real positions, or MNPI"
+  ],
+  "execution_boundary": [
+    "research only",
+    "no leverage",
+    "no automatic trading"
+  ]
+}

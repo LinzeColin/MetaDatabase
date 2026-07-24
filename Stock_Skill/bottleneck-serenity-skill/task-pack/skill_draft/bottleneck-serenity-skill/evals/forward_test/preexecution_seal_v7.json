@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "seal_id": "BSS-S3-P3-T002-forward-remediation-v7-preexecution",
+  "issued_at_utc": "2026-07-23T09:32:22Z",
+  "nonce": "da2ad840-cd5e-4eff-851f-e4dcc931d2d0",
+  "issuer": "host-local-preexecution-sealer",
+  "trust_boundary": "Host-issued local SHA-256 seal; establishes local ordering and byte integrity only. It is not an external timestamp authority or proof against a compromised host.",
+  "base_head": "e88f6afd1c025c32bf0ba4b0c3f6ff9250083335",
+  "projection_tree_sha256": "0b619470d12945b54dcfbac0d8fd2a69476924ae373d231d3b108c20eb3b3c53",
+  "artifact_bindings": {
+    "remediation_v7_preregistration_sha256": "573142ac3d1f9ad8419c6cf3325d1d117484dfd2abf5268e8a521fcdf50fd94f",
+    "remediation_v7_context_manifest_sha256": "3bde9a9b795a295b3a04a348ca75470ad541e42d2ea2a7a9f3ff6859ebaf57a3",
+    "remediation_v7_task_message_sha256": "bf46c184599383cb2738e7939f561ecd4c8941c35841a942d6eeb75915b5a692",
+    "executor_output_schema_sha256": "e40939a9047489625e7d2e42b0fd37af91acc09a6c0bee3cb4244d0ad727e7ad"
+  },
+  "execution_envelope_contract": "remediation_v7_task_message is UTF-8 and ends with one LF; append ASCII PREEXECUTION_SEAL_SHA256=<sha256 of this seal> immediately after those bytes, then append one LF. No blank line intervenes.",
+  "issued_before_executor_start": true
+}

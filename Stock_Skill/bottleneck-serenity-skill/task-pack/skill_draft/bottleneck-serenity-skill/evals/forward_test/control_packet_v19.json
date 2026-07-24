@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "packet_id": "BSS-S3-P3-T008-forward-remediation-v19-control-packet",
+  "eval_id": "BSS-S3-P3-T008-forward-remediation-v19",
+  "projection_id": "forward-runtime-v19-rfc3161-sealed",
+  "projection_tree_sha256": "130b9468a3517dbb6f35f8d06003e864ea58b46b6997b7d4731c09b9e5ee7ca9",
+  "artifact_count": 8,
+  "digest_contract": "RFC3161 SHA-256 message imprint over the exact UTF-8 bytes of this JSON file",
+  "artifacts": [
+    {
+      "path": "evals/forward_test/remediation_v19_context_manifest.json",
+      "sha256": "c2d9886914654d32e3a83abc19ab830cd55e72875e6407ee0dd18d21b1f028a5",
+      "mode": "0644",
+      "byte_count": 6082
+    },
+    {
+      "path": "evals/forward_test/remediation_v19_preregistration.json",
+      "sha256": "9ab9dcbbae29000ab2f7b11f32a7a4dc1f04f9abd059574333e1d5014d4a7a59",
+      "mode": "0644",
+      "byte_count": 5346
+    },
+    {
+      "path": "evals/forward_test/remediation_v19_task_message.txt",
+      "sha256": "c134f75ce8341ea724c4ee5f4ae7e58baf58e057c8e2ad13085383211afc6d65",
+      "mode": "0644",
+      "byte_count": 2431
+    },
+    {
+      "path": "evals/forward_test/executor_output_v19.schema.json",
+      "sha256": "6700ca3cae4a81aee93c9ab4da6e348cb21172285e7ef00c1d99630f4271ac3e",
+      "mode": "0644",
+      "byte_count": 3627
+    },
+    {
+      "path": "evals/forward_test/preexecution_seal_v19.json",
+      "sha256": "e500537c09c9415e1a10dd5e4646d06646f6fb4f9d2686a87258517281facd8f",
+      "mode": "0644",
+      "byte_count": 2604
+    },
+    {
+      "path": "evals/rubric_v2.md",
+      "sha256": "899851f9cd421f7cae8b26966e9b17377f40c9596c0bd54c08affbec3447a154",
+      "mode": "0644",
+      "byte_count": 1926
+    },
+    {
+      "path": "scripts/prepare_forward_output_v18.py",
+      "sha256": "17cb810a7526053a1183892d99cd97fc91e1b2a9b68eb43541b70674fdc2a238",
+      "mode": "0644",
+      "byte_count": 7009
+    },
+    {
+      "path": "scripts/prepare_forward_output_v19.py",
+      "sha256": "e88e37920a87eb2e63e055b49119e71e6e3c08e6399957898049d822845511b9",
+      "mode": "0644",
+      "byte_count": 1006
+    }
+  ]
+}

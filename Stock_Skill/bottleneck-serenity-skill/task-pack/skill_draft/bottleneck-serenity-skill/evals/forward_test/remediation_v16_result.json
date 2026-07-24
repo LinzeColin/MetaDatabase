@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v16",
+  "executor_attempt_ordinal": 16,
+  "accepted_current_forward_result": false,
+  "executor_outcome": "HOST_SCHEMA_REJECTED",
+  "artifact_bindings": {
+    "remediation_v16_context_manifest.json": "138f5ccd37d9d652e6a8697e787f308d30ca2a3f0566a49c61301036d5f478d7",
+    "remediation_v16_preregistration.json": "beb69a5006699e127f456e1a87fd720abd78810950884a10f3ef7f363fe7aea9",
+    "remediation_v16_task_message.txt": "c5c9ba6716a5614ad50378ffa9f956ba9749ed0b7a6d3ced1e6163a7e89b83d0",
+    "executor_output_v16.schema.json": "947dee84bd379e26d810e0b6a202c23247ea05910469e83e6e8cced7d3b2c3b6",
+    "preexecution_seal_v16.json": "dff1689719b0982be89ea57530d60c460e5931ff9631a594f8c0bef5c22d04e8",
+    "remediation_v16_execution.json": "278bf79da2660d02148297e2bcd9e0f4c9dbab03ee52d2d213bd21209fb42f2e"
+  },
+  "decision_label": null,
+  "judge_consensus": "NOT_RUN",
+  "judge_verdicts": [],
+  "judge_scores": [],
+  "failure_reason": "The host response-format preflight rejected executor_output_v16.schema.json because execution_trace.trace_version used const without an explicit type; no model execution occurred.",
+  "prior_attempt_lineage": [
+    {
+      "ordinal": 1,
+      "id": "baseline",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 2,
+      "id": "trial-02",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 3,
+      "id": "remediation-v3",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 4,
+      "id": "remediation-v4",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 5,
+      "id": "remediation-v5",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 6,
+      "id": "remediation-v6",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 7,
+      "id": "remediation-v7",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 8,
+      "id": "remediation-v8",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 9,
+      "id": "remediation-v9",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 10,
+      "id": "remediation-v10",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 11,
+      "id": "remediation-v11",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 12,
+      "id": "remediation-v12",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 13,
+      "id": "remediation-v13",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 14,
+      "id": "remediation-v14",
+      "class": "host-schema-fail"
+    },
+    {
+      "ordinal": 15,
+      "id": "remediation-v15",
+      "class": "host-schema-preflight-fail"
+    }
+  ],
+  "outcome": "FAIL",
+  "limitations": [
+    "v16 is immutable host-schema failure evidence and is not promoted as a substantive forward result.",
+    "The correction is preregistered as a new v17 attempt rather than editing v16 controls retroactively."
+  ]
+}

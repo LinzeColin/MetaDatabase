@@ -20,10 +20,22 @@
 ## 股票 Skill 路由（强制）
 
 - 股票类 Skill 的仓库真源统一位于 `Stock_Skill/`；禁止在仓库根目录重建同名项目。
+- `Stock_Skill/REGISTRY.json` 的 active schema 必须精确为 `1.1`。每个 entry 必须显式声明大小写敏感的
+  `version_scheme`；唯一允许值是 canonical 三段数字 `semver` 或 canonical 四段数字
+  `numeric-quad`，两者都禁止 `v`、前导零和额外 suffix，且只能在同一 scheme 内比较。
+- `latest_major` 必须是与版本首段相等的 JSON integer（boolean 不合法）；`superseded_archives` 必须存在
+  且为数组，但首版允许 `[]`。archive 继承父 entry 的 scheme、不得自声明 scheme，版本必须唯一且严格
+  早于 current version。
 - 任何 agent 在声称“最新版本”前，必须先读 `Stock_Skill/REGISTRY.json`，并运行
   `python3 Stock_Skill/scripts/validate_registry.py`。校验失败、未运行或字段冲突时，版本状态只能是 `UNKNOWN`，不得猜测。
 - `stock-commercial-opportunities`（股票商业机会拆解）当前唯一最新版本是 `3.0.0`（v3）；
   v1/v2 只在 `archives/` 中作为不可变历史谱系，不是当前版本、安装源或回退默认值。
+- `bottleneck-serenity-skill=0.0.0.1` 已按 `numeric-quad` 登记为 active/current source entry，展示与
+  release label 是完整 `v0.0.0.1`；该状态必须由 canonical source、真实 release SHA、manifest、registry
+  entry 与 validator 共同证明，且不代表已安装到本机运行时。
+- Validator 的 current 输出保留 semver major shorthand（例如 `3.0.0` 显示 `v3`），但
+  `numeric-quad` 必须显示完整版本（`0.0.0.1` 显示 `v0.0.0.1`，不得缩写为 `v0`）；release 文件名使用
+  完整的 `v<latest_version>`。
 - 本仓只保存源码和可恢复备份；不得据此写入 `~/.agents/skills` 或 `~/.codex/skills`。
 
 ## 迁移状态

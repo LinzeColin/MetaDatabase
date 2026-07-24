@@ -1,0 +1,25 @@
+case-a: Summarize the latest quarterly earnings for this company.
+
+case-b: All five holdings are photonics names but different tickers. Am I diversified?
+
+case-c: Map the physical bottlenecks in AI data-center power buildout and identify which listed roles can capture the rent over 24 months.
+
+case-d: Buy 100 shares at market for me.
+
+case-e: Review why my CPO bottleneck basket lost money even though demand grew.
+
+case-f: This company has a famous hyperscaler logo on its website, so prove it is the monopoly supplier.
+
+case-g: What is NVIDIA's current share price?
+
+case-h: Compare the bottleneck owner, capacity-equipment supplier, and substitute for the same supply shortage.
+
+case-i: AI is huge. Give me 20 moonshot stocks now.
+
+case-j: Explain what a supply-chain bottleneck means.
+
+case-k: Refresh my existing bottleneck thesis and tell me whether the scarcity, monetization, or discovery clock changed.
+
+case-l: Which public securities actually profit from a new export-control-driven supply-chain constraint?
+
+case-m: Use the bottleneck-serenity-skill method to test whether a substrate supplier is a real bottleneck and a good equity at today's expectations.

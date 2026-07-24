@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["files_read", "artifact_sha256", "cases"],
+  "properties": {
+    "files_read": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {"type": "string", "enum": ["SKILL.md", "prompts.txt"]}
+    },
+    "artifact_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "blind_case_id",
+          "observed_route",
+          "observed_mode",
+          "raw_response"
+        ],
+        "properties": {
+          "blind_case_id": {"type": "string"},
+          "observed_route": {
+            "enum": [
+              "activate_full_workflow",
+              "respond_without_skill",
+              "refuse_no_execution"
+            ]
+          },
+          "observed_mode": {
+            "enum": [
+              "scan",
+              "deep_dive",
+              "compare",
+              "monitor",
+              "postmortem",
+              "none"
+            ]
+          },
+          "raw_response": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

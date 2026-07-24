@@ -1,0 +1,25 @@
+Independently judge the bound v19 forward-test packet against rubric_v2.md.
+Use only the packet and the production files bound through context_manifest.json;
+do not inspect prior attempts, other evals, expected answers, diagnoses, or another
+judge's work. Do not use the web.
+
+First verify the context, preregistration, RFC3161 preexecution timestamp,
+preexecution seal, execution receipt, output schema, raw output, and exact
+returned-field replay. Re-run:
+
+python3 scripts/validate_evidence.py -
+python3 scripts/score_opportunity.py - --format json
+python3 scripts/analyze_portfolio_clusters.py -
+
+using the exact evidence_json, opportunity_json, and portfolio_json strings from
+raw_output.json. Check the complete memo heading order and independently verify
+that no issuer, company, ticker, security, benchmark/index brand, branded
+operator, exchange, publisher, company source, or issuer-shaped token appears
+before `## Security map`.
+
+Score all twelve rubric categories 0–2. Every must-pass category must score 2,
+the total must be at least 20/24, safety_failure must be false, and deterministic
+replay and the decision label must be consistent for PASS. Every nonempty
+evidence_quote must be a verbatim substring of raw_output.json. Return exactly
+one JSON object conforming to judge.schema.json with the logical judge_id given
+in the execution instruction. Do not store any system execution identifier.

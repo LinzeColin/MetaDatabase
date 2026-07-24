@@ -10,8 +10,108 @@ import sys
 from pathlib import Path, PurePosixPath
 
 
-SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
+SEMVER = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+NUMERIC_QUAD = re.compile(
+    r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+)
+VERSION_SCHEMES: dict[str, re.Pattern[str]] = {
+    "semver": SEMVER,
+    "numeric-quad": NUMERIC_QUAD,
+}
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
+
+
+def parse_version(raw: object, scheme: object) -> tuple[int, ...] | None:
+    """Return a canonical numeric tuple for a known scheme, otherwise None."""
+    if not isinstance(raw, str) or not isinstance(scheme, str):
+        return None
+    pattern = VERSION_SCHEMES.get(scheme)
+    if pattern is None or not pattern.fullmatch(raw):
+        return None
+    try:
+        return tuple(int(part) for part in raw.split("."))
+    except ValueError:
+        return None
+
+
+def compare_versions(
+    left: object,
+    left_scheme: object,
+    right: object,
+    right_scheme: object,
+) -> int:
+    """Compare canonical versions only when both use the same known scheme."""
+    if (
+        not isinstance(left_scheme, str)
+        or not isinstance(right_scheme, str)
+        or left_scheme != right_scheme
+        or left_scheme not in VERSION_SCHEMES
+    ):
+        raise ValueError("versions must use the same known version scheme")
+    left_tuple = parse_version(left, left_scheme)
+    right_tuple = parse_version(right, right_scheme)
+    if left_tuple is None or right_tuple is None:
+        raise ValueError("version is not canonical for its scheme")
+    return (left_tuple > right_tuple) - (left_tuple < right_tuple)
+
+
+def display_version_label(version: str, scheme: str, major: int) -> str:
+    """Preserve the semver major alias and show numeric-quad versions in full."""
+    if scheme == "semver":
+        return f"v{major}"
+    if scheme == "numeric-quad":
+        return f"v{version}"
+    raise ValueError("unknown version scheme")
+
+
+def validate_version_model(
+    item: dict[str, object], label: str, errors: list[str]
+) -> tuple[str, str, tuple[int, ...]] | None:
+    """Validate one entry's scheme, latest version, major, and archive lineage."""
+    scheme = item.get("version_scheme")
+    if not isinstance(scheme, str) or scheme not in VERSION_SCHEMES:
+        errors.append(f"{label}: invalid version_scheme")
+        return None
+
+    version = item.get("latest_version")
+    if not isinstance(version, str):
+        errors.append(f"{label}: invalid latest_version for version_scheme {scheme}")
+        return None
+    latest_tuple = parse_version(version, scheme)
+    if latest_tuple is None:
+        errors.append(f"{label}: invalid latest_version for version_scheme {scheme}")
+        return None
+
+    major = item.get("latest_major")
+    if type(major) is not int or major != latest_tuple[0]:
+        errors.append(f"{label}: latest_major does not match latest_version")
+
+    archives = item.get("superseded_archives")
+    if not isinstance(archives, list):
+        errors.append(f"{label}: superseded_archives must be an array")
+        archives = []
+
+    archive_versions: set[str] = set()
+    for archive_index, archive in enumerate(archives):
+        archive_label = f"{label}.superseded_archives[{archive_index}]"
+        if not isinstance(archive, dict):
+            errors.append(f"{archive_label}: must be an object")
+            continue
+        if "version_scheme" in archive:
+            errors.append(f"{archive_label}: version_scheme must be inherited from its Skill entry")
+        archive_version = archive.get("version")
+        try:
+            comparison = compare_versions(archive_version, scheme, version, scheme)
+        except ValueError:
+            errors.append(f"{archive_label}: invalid version for version_scheme {scheme}")
+            continue
+        if comparison >= 0:
+            errors.append(f"{archive_label}: version must be older than latest")
+        if archive_version in archive_versions:
+            errors.append(f"{archive_label}: duplicate version")
+        archive_versions.add(archive_version)
+
+    return scheme, version, latest_tuple
 
 
 def digest(path: Path) -> str:
@@ -111,8 +211,12 @@ def main() -> int:
         print(f"FAIL: cannot read registry: {exc}", file=sys.stderr)
         return 1
 
-    if registry.get("schema_version") != "1.0":
-        errors.append("schema_version must be 1.0")
+    if not isinstance(registry, dict):
+        print("FAIL: stock Skill registry root must be an object", file=sys.stderr)
+        return 1
+
+    if registry.get("schema_version") != "1.1":
+        errors.append("schema_version must be 1.1")
     if registry.get("registry_id") != "stock-skill":
         errors.append("registry_id must be stock-skill")
 
@@ -127,27 +231,23 @@ def main() -> int:
         skills = []
 
     seen_ids: set[str] = set()
-    currents: list[tuple[str, str, int]] = []
+    currents: list[tuple[str, str, str, int]] = []
     for index, item in enumerate(skills):
         label = f"skills[{index}]"
         if not isinstance(item, dict):
             errors.append(f"{label}: must be an object")
             continue
         skill_id = item.get("id")
-        version = item.get("latest_version")
-        major = item.get("latest_major")
         if not isinstance(skill_id, str) or not re.fullmatch(r"[a-z0-9-]{1,63}", skill_id):
             errors.append(f"{label}: invalid id")
             continue
         if skill_id in seen_ids:
             errors.append(f"{label}: duplicate id {skill_id}")
         seen_ids.add(skill_id)
-        match = SEMVER.fullmatch(version) if isinstance(version, str) else None
-        if not match:
-            errors.append(f"{label}: invalid latest_version")
+        version_model = validate_version_model(item, label, errors)
+        if version_model is None:
             continue
-        if major != int(match.group(1)):
-            errors.append(f"{label}: latest_major does not match latest_version")
+        scheme, version, latest_tuple = version_model
         if item.get("current") is not True:
             errors.append(f"{label}: current must be true")
         if item.get("distribution_mode") != "SOURCE_ONLY":
@@ -238,26 +338,11 @@ def main() -> int:
                 errors.append(f"{label}: releases/SHA256SUMS does not match registry release")
 
         archives = item.get("superseded_archives")
-        if not isinstance(archives, list) or not archives:
-            errors.append(f"{label}: superseded_archives must be non-empty")
-        else:
-            latest_tuple = tuple(int(part) for part in version.split("."))
-            archive_versions: set[str] = set()
+        if isinstance(archives, list):
             for archive_index, archive in enumerate(archives):
                 archive_label = f"{label}.superseded_archives[{archive_index}]"
                 if not isinstance(archive, dict):
-                    errors.append(f"{archive_label}: must be an object")
                     continue
-                archive_version = archive.get("version")
-                archive_match = SEMVER.fullmatch(archive_version) if isinstance(archive_version, str) else None
-                if not archive_match:
-                    errors.append(f"{archive_label}: invalid version")
-                else:
-                    if tuple(int(part) for part in archive_version.split(".")) >= latest_tuple:
-                        errors.append(f"{archive_label}: version must be older than latest")
-                    if archive_version in archive_versions:
-                        errors.append(f"{archive_label}: duplicate version")
-                    archive_versions.add(archive_version)
                 if archive.get("status") != "ARCHIVE_ONLY":
                     errors.append(f"{archive_label}: status must be ARCHIVE_ONLY")
                 archive_path = safe_repo_path(repo_root, archive.get("path"), f"{archive_label}.path", errors)
@@ -271,7 +356,7 @@ def main() -> int:
         task_pack = project / "task-pack"
         task_manifest = task_pack / "MANIFEST.sha256"
         check_manifest(task_manifest, task_pack, {task_manifest}, errors)
-        currents.append((skill_id, version, int(match.group(1))))
+        currents.append((skill_id, version, scheme, latest_tuple[0]))
 
     if errors:
         print(f"FAIL: stock Skill registry invalid ({len(errors)} error(s))", file=sys.stderr)
@@ -280,8 +365,8 @@ def main() -> int:
         return 1
 
     print("PASS: stock Skill registry valid")
-    for skill_id, version, major in currents:
-        print(f"CURRENT: {skill_id}={version} (v{major})")
+    for skill_id, version, scheme, major in currents:
+        print(f"CURRENT: {skill_id}={version} ({display_version_label(version, scheme, major)})")
     return 0
 
 

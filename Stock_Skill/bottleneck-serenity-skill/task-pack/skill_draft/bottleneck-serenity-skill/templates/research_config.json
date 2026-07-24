@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "request_id": "uuid",
+  "as_of": "YYYY-MM-DD",
+  "source_cutoff": "YYYY-MM-DD",
+  "previous_version": null,
+  "mode": "scan",
+  "query": "",
+  "universe": {
+    "markets": ["US", "AU", "HK"],
+    "asset_types": ["equity", "ETF"],
+    "min_daily_value_traded_usd": 5000000
+  },
+  "horizon_months": 24,
+  "benchmark": "",
+  "risk_constraints": {
+    "max_position_weight": 0.1,
+    "max_root_driver_weight": 0.3,
+    "leverage_allowed": false,
+    "derivatives_allowed": false
+  },
+  "upstream_artifacts": [],
+  "output_language": "zh-CN"
+}
