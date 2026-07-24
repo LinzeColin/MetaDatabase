@@ -1,0 +1,72 @@
+{
+  "schema_version": "moomooau.run-contract.v1",
+  "run_id": "S5-20260720-recovery-m3-timeline",
+  "stage_id": "S5",
+  "goal": "Complete T0501-T0507 with remote ciphertext and plaintext recovery proof, exact source-message Trash control, deterministic Timeline Event and PNG construction, serial one-asset live replacement and an Australia/Sydney 04:30 schedule definition without exercising protected production authority.",
+  "baseline_commit": "9394585329a52c4d269da220bd66ce8ec9b820b3",
+  "baseline_manifest_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
+  "scope": [
+    "remote refetch, ciphertext digest and official-age plaintext recovery proof for Raw and Processed objects",
+    "explicit COMPLETE, WAITING, UNSUPPORTED, RAW_ONLY and QUARANTINED recovery decisions",
+    "exact users.messages.trash with second verification, mutation budget, label confirmation and Trash idempotency",
+    "Timeline Event UTC truth, Australia/Sydney display, business label date, lifecycle and M3 state",
+    "XNYS session lag and evidence-gated expectation states without false MISSING",
+    "deterministic fixed-size PNG rendering entirely in memory",
+    "fixed moomooau-live and timeline-latest.png.age serial replacement with encrypted repair state",
+    "04:30 Australia/Sydney daily schedule, Sunday full reconcile and workflow_dispatch planning",
+    "local synthetic Stage 5 evidence and no-Secret CI definitions"
+  ],
+  "non_goals": [
+    "real Gmail authorization, message access or mutation",
+    "real private repository lookup, write, release mutation, decrypt or recovery",
+    "reading or delivering production age identities, GitHub credentials, Gmail credentials or PDF passwords",
+    "enabling or deploying the protected production workflow",
+    "claiming schedule timeliness, successful remote execution or SLA",
+    "Moomoo Portal access, download, scraping or automation",
+    "thread-level Trash, permanent Gmail deletion or any non-source mutation",
+    "Stage 6 or later tasks",
+    "final AC-* verdicts",
+    "intermediate GitHub upload"
+  ],
+  "prohibitions": {
+    "real_gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "real_secrets_read": 0,
+    "protected_key_deliveries": 0,
+    "external_writes": 0,
+    "remote_publication": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_mutations": 0,
+    "raw_before_verification": 0,
+    "untrusted_content_execution": 0,
+    "moomoo_portal_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "thread_trash_calls": 0,
+    "permanent_delete_calls": 0,
+    "release_assets_above_one": 0,
+    "production_workflow_runs": 0
+  },
+  "protected_oracles": [
+    "real Gmail second verification, exact source-message Trash and Trash-label confirmation",
+    "real private repository Raw and Processed refetch, age decrypt and SHA recovery",
+    "real live Release asset replacement and repair after remote failure",
+    "real 04:30 Australia/Sydney scheduled execution including DST transition and delayed-run observation",
+    "real Sunday full reconcile and workflow_dispatch execution",
+    "production Secrets, environment approval and feature enablement",
+    "AC-002, AC-006, AC-007, AC-011, AC-017, AC-022, AC-023, AC-025 through AC-030 final oracles",
+    "remote Stage 5 CI and protected production workflow execution"
+  ],
+  "rollback": "Revert the single local Stage 5 commit; Stage 4 remains at its pinned verified commit and no remote state has changed.",
+  "stop_conditions": [
+    "frozen Stage 0 manifest or cumulative Stage 4 gate drifts",
+    "real or sensitive sender, message, account, amount, credential, key or repository data enters the publishable tree",
+    "any mutation can occur without deterministic second verification and complete remote recovery proof",
+    "a thread, permanent-delete or non-source Gmail endpoint becomes reachable",
+    "plaintext can reach a private repository or Release persistence adapter",
+    "the live Release protocol can intentionally retain more than one target asset",
+    "a protected oracle would require mailbox, private-repository, credential, environment or remote-write authority",
+    "Stage 6 behavior is required to make a Stage 5 local gate pass"
+  ]
+}

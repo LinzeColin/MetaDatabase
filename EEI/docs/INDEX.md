@@ -7,7 +7,7 @@
 | 主题 | 规范 | 机器源 |
 |---|---|---|
 | 产品需求与边界 | `01_PRODUCT_REQUIREMENTS.md`、`02_SCOPE_AND_BOUNDARIES.md` | `data/function_catalog.csv` |
-| UI/UX 与可视化 | `19_VISUAL_FIRST_WORKSPACE_SPEC.md`、`27_MOTION_HAPTIC_INTERACTION_SYSTEM.md`、`28_VISUAL_COVERAGE_UI_ACCEPTANCE.md` | `config/ui/` |
+| UI/UX 与可视化 | `19_VISUAL_FIRST_WORKSPACE_SPEC.md`、`27_MOTION_HAPTIC_INTERACTION_SYSTEM.md`、`28_VISUAL_COVERAGE_UI_ACCEPTANCE.md`、`38_UX_SPEC_EEI_v1.md` | `config/ui/` |
 | 功能与导航 | `29_FUNCTION_CATALOG_AND_SCOPE.md` | `data/function_catalog.csv`、`data/navigation_catalog.csv` |
 | 模型/公式/参数/阈值 | `30_MODEL_MANAGEMENT.md` | `data/model_registry.csv`、`data/formula_registry.csv`、`data/parameter_catalog.csv`、`data/threshold_registry.csv` |
 | 关系/上下游/业务/资本/公司 | `31_DOMAIN_OBJECT_SCOPE_CATALOG.md`、`35_DATA_CATALOGS_AND_TAXONOMIES.md` | `data/content_inventory.csv` 所列目录 |

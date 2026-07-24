@@ -1,0 +1,11 @@
+{
+  "cash_flow_usd": -1796.73,
+  "mark_value_usd": 1755.44,
+  "fees_usd": 0.0,
+  "net_pnl_usd": -41.29,
+  "open_positions": {
+    "QQQ": 2,
+    "GLD": 1
+  },
+  "unpriced_symbols": []
+}

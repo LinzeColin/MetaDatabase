@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Offline Workflow Command Matrix v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "finding_id",
+    "governance_pin",
+    "scope",
+    "entries",
+    "observation"
+  ],
+  "properties": {
+    "schema_version": {"const": "moomooau.workflow-command-matrix.v1"},
+    "finding_id": {"const": "REV-P1-004"},
+    "governance_pin": {"pattern": "^[0-9a-f]{40}$"},
+    "scope": {"const": "OFFLINE_READ_ONLY_FINAL_TREE_ENTRYPOINT_REPLAY"},
+    "entries": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {"$ref": "#/$defs/entry"}
+    },
+    "observation": {"$ref": "#/$defs/observation"}
+  },
+  "$defs": {
+    "expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exit_code", "status", "failed_check_ids"],
+      "properties": {
+        "exit_code": {"type": "integer", "minimum": 0, "maximum": 1},
+        "status": {"enum": ["PASS", "BLOCKED"]},
+        "failed_check_ids": {
+          "type": "array",
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage_id",
+        "workflow",
+        "workflow_sha256",
+        "working_directory",
+        "workflow_command",
+        "cumulative_expectation",
+        "historical_default_expectation"
+      ],
+      "properties": {
+        "stage_id": {"pattern": "^S[3-6]$"},
+        "workflow": {"pattern": "^\\.github/workflows/moomooau-stage[3-6]-ci\\.yml$"},
+        "workflow_sha256": {"pattern": "^[0-9a-f]{64}$"},
+        "working_directory": {"const": "LinzeDatabase/MooMooAU"},
+        "workflow_command": {"type": "string", "minLength": 1},
+        "cumulative_expectation": {"$ref": "#/$defs/expectation"},
+        "historical_default_expectation": {"$ref": "#/$defs/expectation"}
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observed_at_utc",
+        "status",
+        "executed_entries",
+        "cumulative_passed",
+        "historical_fail_closed",
+        "tree_mutations",
+        "protected_oracles_executed",
+        "production_workflow_runs",
+        "remote_workflow_runs",
+        "external_writes",
+        "remote_publications"
+      ],
+      "properties": {
+        "observed_at_utc": {"type": "string", "format": "date-time"},
+        "status": {"const": "PASS"},
+        "executed_entries": {"const": 4},
+        "cumulative_passed": {"const": 4},
+        "historical_fail_closed": {"const": 4},
+        "tree_mutations": {"const": 0},
+        "protected_oracles_executed": {"const": 0},
+        "production_workflow_runs": {"const": 0},
+        "remote_workflow_runs": {"const": 0},
+        "external_writes": {"const": 0},
+        "remote_publications": {"const": 0}
+      }
+    }
+  }
+}

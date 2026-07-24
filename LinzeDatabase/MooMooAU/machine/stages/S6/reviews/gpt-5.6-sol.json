@@ -1,0 +1,452 @@
+{
+  "schema_version": "moomooau.independent-review-provenance.v2",
+  "review_id": "S6-RMD05-GPT56SOL",
+  "stage_id": "S6",
+  "model_family": "gpt-5.6-sol",
+  "review_mode": "READ_ONLY_INDEPENDENT",
+  "subject": {
+    "baseline_commit": "2b8625a83e69093b9dce989f4eb964556e1b5fa2",
+    "candidate_commit": "2ba0d34cee89672297d7c575205c3d4bf854461b",
+    "candidate_tree": "673132302ed909d8c02e856fdb19887b20c3f447"
+  },
+  "execution_receipt": {
+    "path": "machine/stages/S6/reviews/rmd05/execution-receipt17.json",
+    "sha256": "6e8fd35c8d5d3dac2d1320713d3b17d32fa9c285e2bc77146565fef4e44beef0"
+  },
+  "attempts": [
+    {
+      "phase": "INITIAL",
+      "platform_task_id": "/root/rmd05_sol_review",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/request.md",
+        "sha256": "35247bddc79077b568509097cb9285e9a05299180a2833c8238b1cadac6c4e93"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/initial/gpt-5.6-sol.reply.json",
+        "sha256": "843e84445731e02c02f8e02bbcc8cd2091f428387356efeb0ae4dbe2120fc0bd",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_ADVERSE",
+      "platform_task_id": "/root/rmd05_sol_rereview",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview-request.md",
+        "sha256": "e3fa55cb020a66dd2f17915f4015f0e62942e0aef1c93bc6152f193933fb85f4"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview1/gpt-5.6-sol.reply.json",
+        "sha256": "5f1072d2e2e6525897fa5dca67bfb081e149bb35e5973abf9832c8d7bb417461",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt.json",
+        "sha256": "aed2a3dd2d5df19536e49d963755e229b0d4ac569365fb74f58df99fc72fd1fc"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_sol_rereview2",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview2-request.md",
+        "sha256": "f57ca7d53d2dee988b6067d6ce8f4ff4bc17eb849e134c3f5802c318bdbb1c79"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final/gpt-5.6-sol.reply.json",
+        "sha256": "9c4bf4f5c7c2018958f966edcc96898a2da5351fcb1a22900320b0da854a2796",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt2.json",
+        "sha256": "e6d076632bcc36b410a04765bd4d3ebc69af16849266b3da429b7f0eb4cc9380"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_TRANSITION_ADVERSE",
+      "platform_task_id": "/root/rmd05_sol_rereview3",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview3-request.md",
+        "sha256": "113b08b9262cee2c0e3900e32efe3d14f643d9d19c6afbed1b18ae46532d87d1"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview3/gpt-5.6-sol.reply.json",
+        "sha256": "7f301af5d14133095743bc0ab16c33ec673546e2873b1727992869b564ec5b88",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt3.json",
+        "sha256": "88d1db524f1d9421c806a73d532c9307b3b3a699b030964ce58dfd5650bd3a24"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_OUTPUT_INTEGRATION_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_sol_rereview4",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview4-request.md",
+        "sha256": "62c9291f5ea6ef39a1123a4c96adaf7e3a58a2a69a5b36369818e99e381e17be"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final2/gpt-5.6-sol.reply.json",
+        "sha256": "7e52b323b1a69d1d15c110b8781e3de66e06787ac21a82a8d51db340f4327268",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt4.json",
+        "sha256": "3359865176269e7eb1da39aa38d6fc9e8230e530f8d02a25f3d8b5f4a3057fc2"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_EVIDENCE_COUPLING_ADVERSE",
+      "platform_task_id": "/root/rmd05_sol_rereview5",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview5-request.md",
+        "sha256": "45e531415d8176d599f7573f22770b5110211a41c724f524fccd9dbc590dc2d7"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview5/gpt-5.6-sol.reply.json",
+        "sha256": "cc68de21447759a2fd19a4f73c2f135294833aace3d99c8022b21ba6cd515665",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt5.json",
+        "sha256": "407519737d85e754ad6b4b9fdc4cbb0f2a182b5c60d9f9b90bd8a71db8525465"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_RECEIPT_ANCHOR_ADVERSE",
+      "platform_task_id": "/root/rmd05_sol_rereview6",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview6-request.md",
+        "sha256": "4f3a7f841691095985649545f09ecbf531a7bb9908bfbc6d318d541cdd396d78"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final3/gpt-5.6-sol.reply.json",
+        "sha256": "93b8c0766935ac369cebbbd9e7a29db3dea32b4a35754ba3454dd7691263d385",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt6.json",
+        "sha256": "9c1b087a4d24f49069305b1892553f6ab7d579892cc71bfa77ff0e102d143650"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_GOVERNANCE_FACTS_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_sol_rereview7",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview7-request.md",
+        "sha256": "9831ab147d4fcfc06dee96f65c1c90e5de6dcacac523ef81b9f375c244bff394"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final4/gpt-5.6-sol.reply.json",
+        "sha256": "1ad4a93204a1f33a92d147025ef0262e2a1512a035ce0e7f76687cad0dbaee76",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt7.json",
+        "sha256": "820b18a3c45891db7ab05d2ed95fed2593f81546dcb7031ce5fc96d707386b1d"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_OUTPUT_MATERIALIZATION_ADVERSE",
+      "platform_task_id": "/root/rmd05_sol_rereview8",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview8-request.md",
+        "sha256": "b666a68b2e47cb2ea9886a8224c5b2aee93a1a6297c3e31726718e9e434dabf7"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final5/gpt-5.6-sol.reply.json",
+        "sha256": "df7ecfdd37d47b4ba3455768ea2e0b981a1d73263df3891e2ae50ed20bcda0a1",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt8.json",
+        "sha256": "e349452dae4ec5dd1ac613046d81f1fad0ad2fadaa08f5bb2568a496237795ef"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_CLOSURE_PATH_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_sol_rereview9",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview9-request.md",
+        "sha256": "47f32c2dadd542da4a69fd05508a4844ffca8952782dec201513db886541a74e"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final6/gpt-5.6-sol.reply.json",
+        "sha256": "9a7ce284b6ce71106b4b6ff3a5337c67887e8647b0db13d4b77f6a79e6da24a7",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt9.json",
+        "sha256": "2814dcca4c0d8a52e255760ed7b414a78e02a21f89745547f03986113ced7f68"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_FINAL_REJECTED",
+      "platform_task_id": "/root/rmd05_sol_rereview10",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview10-request.md",
+        "sha256": "fe0e48fb0042f63ab599b7f49935493d21a3766cda79cd1d986faf2f54f13a88"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final7/gpt-5.6-sol.reply.json",
+        "sha256": "b929f694b224fadc5f3391a766260a1dff49705ffe1c24ee7a0b6cb663231b73",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt10.json",
+        "sha256": "e712331a41d1755c6b8c7f6c29348252cabfc9d3ec4b563db588dd259cdfb978"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_AUTHORITY_DRIFT_ADVERSE",
+      "platform_task_id": "/root/rmd05_sol_rereview11",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview11-request.md",
+        "sha256": "83d5c3efddc95259a3d6f700a3c4fda3a1a9d2410f5d94fa2ad466980edef109"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final8/gpt-5.6-sol.reply.json",
+        "sha256": "bb53e04b892adb4105313493899d5a9b0c7b3d8e10535de7e92a9e5cb0715c03",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt11.json",
+        "sha256": "ba180e358e2b067fa6cedeb6dcefa11aff1c59eac9998f5f403eb1abe59295c8"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_AUTHORITY_MATERIALIZATION_ADVERSE",
+      "platform_task_id": "/root/rmd05_sol_rereview12",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview12-request.md",
+        "sha256": "1f3fd30f6b348d903293d4db736e1163b7d283dc0b9d6f0f116548a9c96d4385"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final9/gpt-5.6-sol.reply.json",
+        "sha256": "6fd80ffa03465013e18d48df85a979984918f912af6296f60bc39b6bd903a226",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt12.json",
+        "sha256": "1bfe12fcbf5f2ec0ffadf38ee67d8adf9b8dbfada8d23f914c4e3ac50fcb3b0b"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_PUBLIC_CLOSURE_ADVERSE",
+      "platform_task_id": "/root/rmd05_sol_rereview13",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview13-request.md",
+        "sha256": "a696eab139532fde20e1712e4058b8208463d9be82be095956ffc824780b2dcd"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final10/gpt-5.6-sol.reply.json",
+        "sha256": "8c45c439e15be5007aef16979dcf35bd5f62928dcfde531e16e3ab6d476449f6",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt13.json",
+        "sha256": "3d961beba530ddc416b70d6b3c1116f7d2016f99e630ce752b36ed75612a7f78"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_GOVERNANCE_MATERIALIZATION_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_sol_rereview14",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview14-request.md",
+        "sha256": "7f1ec39e6e27096620a9c15347f44c77e34365d8b0052a0bbf093b85f562b06c"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final11/gpt-5.6-sol.reply.json",
+        "sha256": "2d82f66fa0e64b28cb53a64b5a1e9fd880d325100ae3d56baece79d2c5d35f6e",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt14.json",
+        "sha256": "798811aa1304fa1aa9739b825009a6a1e273656093caf882c860e4b6b2a55a15"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_SECRET_SCAN_MATERIALIZATION_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_sol_rereview15",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview15-request.md",
+        "sha256": "691f815fd09f5f2c7df84e6142e13f5b8ab4c3324324aa209f9633e3bef93067"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final12/gpt-5.6-sol.reply.json",
+        "sha256": "4026dddd373d1387ba78d0560507704c85a058ef1f622e714bb6b75a69cfaa15",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt15.json",
+        "sha256": "5091a3bc3d6bd3fa976ed94524a479392f18ae2b71e22baed0f04742dbf0d1fe"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_ASSURANCE_CLI_IMPORT_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_sol_rereview16",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview16-request.md",
+        "sha256": "c9dbfe36571c73f6316e1e8ac2b5f86aa37b64528d4c6ed4b57e64e07b743fd1"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final13/gpt-5.6-sol.reply.json",
+        "sha256": "affcfd9e1c2977a19ad9a80f3f1024e9cf9a6b9626937153dc8d5e493e3adcc3",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt16.json",
+        "sha256": "a620d6b8f39fb78a88215714e0bf13b8c1415903c27489e700fa4ae4e28df937"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_FINAL",
+      "platform_task_id": "/root/rmd05_sol_rereview17",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-sol",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview17-request.md",
+        "sha256": "c6969cc36d18454ded24b6a69679d4b6b7a6b89acab13300a68a7393a260fecf"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final14/gpt-5.6-sol.reply.json",
+        "sha256": "8882c4b048baac0e4f86b083ad1a6f787d6511349abcf2e46824ef8a4d1b8512",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt17.json",
+        "sha256": "6e8fd35c8d5d3dac2d1320713d3b17d32fa9c285e2bc77146565fef4e44beef0"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    }
+  ],
+  "closure_status": "PASS",
+  "provenance_limitations": [
+    "Repository artifacts prove structure, hashes and platform task identifiers; the retained Codex thread audit log is required to audit platform execution identity.",
+    "Local synthetic execution and read-only reviews do not prove protected Oracles, real Gmail or private-repository behavior, production health, deployment or publication.",
+    "RMD-06, RMD-07 and final AC-033 remain outside this RMD-05 attempt history."
+  ]
+}

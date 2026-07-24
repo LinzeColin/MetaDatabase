@@ -1,0 +1,23 @@
+{
+  "schema_version": "moomooau.publication-safety.v1",
+  "version": "1.0.1",
+  "current_tree_policy": "No private repository locator, live secret, real message field or local absolute path may appear.",
+  "forbidden_locator_sha256_casefold": [
+    "2bd72437112ea658a3f0c8e6b0b482bb3297ef4dddbd2d6d4a26c650bf75859b",
+    "213dd7f3f9402a58d7e62e84f94295826b97c612e9395ab4aea99875173c18fd"
+  ],
+  "local_history": {
+    "contains_withheld_v1_0_0_source": true,
+    "remote_publication_allowed": false,
+    "rule": "Never push the Stage 0 development branch or any ancestor containing the withheld source."
+  },
+  "final_publication": {
+    "required_history_mode": "clean snapshot branch from then-current origin/main",
+    "required_checks": [
+      "current tree sensitive scan has zero matches",
+      "new commit history sensitive scan has zero matches",
+      "full final review and remediation is complete",
+      "all S0-S7 acceptance and release gates pass"
+    ]
+  }
+}

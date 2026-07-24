@@ -1,0 +1,88 @@
+{
+  "schema_version": "moomooau.protected-m3-attempt-ledger.v1",
+  "stage_id": "S7",
+  "task_id": "T0703",
+  "observed_through_utc": "2026-07-24T02:10:28Z",
+  "attempts": [
+    {
+      "sequence": 1,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 101,
+        "merge_commit_sha": "f747ddcd2e5eab589802a0c545293cd6f275ca71",
+        "main_ci_runs_passed": 10,
+        "main_ci_runs_failed": 0
+      },
+      "workflow": {
+        "run_id": 30060804854,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30060804854",
+        "event": "workflow_dispatch",
+        "workflow_head_sha": "f747ddcd2e5eab589802a0c545293cd6f275ca71",
+        "run_attempt": 1,
+        "reruns": 0
+      },
+      "jobs": {
+        "authority_gate": {
+          "status": "PASS",
+          "started_at_utc": "2026-07-24T02:07:33Z",
+          "completed_at_utc": "2026-07-24T02:08:49Z"
+        },
+        "m3_budget_one": {
+          "status": "FAILED",
+          "started_at_utc": "2026-07-24T02:08:53Z",
+          "completed_at_utc": "2026-07-24T02:10:27Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-24T02:10:27Z"
+        }
+      },
+      "public_failure": {
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_M3_ENTRYPOINT_FAILED",
+        "failure_phase": "UNDETERMINED_AGGREGATE_ONLY",
+        "exact_root_cause_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "private_repository_new_commits": 0,
+        "raw_ciphertext_creations": "ZERO_OBSERVED",
+        "processed_writes": "ZERO_OBSERVED",
+        "gmail_trash_messages_after_dispatch": 0,
+        "source_mutations": 0,
+        "timeline_writes": 0,
+        "scheduled_runs": 0,
+        "identity_plaintext_cleanup": "PASS"
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "BEFORE_FIRST_OBSERVED_REMOTE_COMMIT",
+        "exact_root_cause": "NOT_CLAIMED_FROM_AGGREGATE_ONLY_OUTPUT",
+        "high_confidence_defect": "M3_METADATA_QUARANTINE_PARITY_GAP",
+        "basis": [
+          "the failed protected output intentionally exposed only a generic closed reason code",
+          "the private data path recorded zero new commits during the attempt",
+          "the connected Gmail path recorded zero Trash messages after dispatch",
+          "T0702 attempt 10 failed at METADATA_VERIFICATION with the same zero-effect boundary",
+          "T0702 passed only after per-message MessageMetadataUnverifiable quarantine was added",
+          "the protected M3 runner did not contain that already-proven quarantine branch"
+        ]
+      }
+    }
+  ],
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "repaired_exact_main_candidate_dispatch_allowed": true,
+    "next_candidate_dispatch_limit": 1,
+    "t0704_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "t0703_complete": false,
+    "s7ac_003_passed": false,
+    "production_health": false,
+    "final_acceptance": false,
+    "stage7_complete": false
+  }
+}

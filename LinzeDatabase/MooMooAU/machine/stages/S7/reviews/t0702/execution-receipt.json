@@ -1,0 +1,85 @@
+{
+  "schema_version": "moomooau.protected-beta-execution-receipt.v2",
+  "receipt_id": "S7-T0702-PROTECTED-20260723-PASS-A1",
+  "stage_id": "S7",
+  "task_id": "T0702",
+  "stage_acceptance_id": "S7AC-002",
+  "observed_at_utc": "2026-07-23T22:53:05Z",
+  "control": {
+    "pull_request_number": 99,
+    "pull_request_status": "MERGED_CONTROLLED_BETA_REPAIR_NOT_FINAL",
+    "merge_commit_sha": "eaade5f7be7fca678885cc402b463cb0df54cf90",
+    "workflow_run_id": 30051063099,
+    "workflow_run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30051063099",
+    "workflow_event": "workflow_dispatch",
+    "workflow_ref": "refs/heads/main",
+    "workflow_head_sha": "eaade5f7be7fca678885cc402b463cb0df54cf90",
+    "workflow_attempt": 1,
+    "dispatches_for_head": 1,
+    "reruns": 0
+  },
+  "jobs": {
+    "alpha_gate": {
+      "status": "PASS",
+      "started_at_utc": "2026-07-23T22:47:03Z",
+      "ended_at_utc": "2026-07-23T22:48:06Z"
+    },
+    "beta_raw_only": {
+      "status": "PASS",
+      "started_at_utc": "2026-07-23T22:48:10Z",
+      "ended_at_utc": "2026-07-23T22:53:04Z"
+    },
+    "identity_tmpfs_cleanup": {
+      "status": "PASS",
+      "ended_at_utc": "2026-07-23T22:53:01Z"
+    }
+  },
+  "public_result": {
+    "status": "PROTECTED_BETA_RAW_ONLY_COMPLETED_NOT_FINAL",
+    "beta_gate_status": "PASS",
+    "phase": "BETA_RAW_ONLY",
+    "provenance": "PROTECTED_GITHUB_ACTIONS",
+    "discovered_bucket": "TEN_PLUS",
+    "verified_bucket": "TEN_PLUS",
+    "recovered_bucket": "ONE",
+    "verified_within_configured_budget": true,
+    "raw_recovery_one_hundred_percent": true,
+    "exact_mailbox_counts_disclosed": false,
+    "source_mutations": 0,
+    "m3_executed": false,
+    "processed_writes": 0,
+    "timeline_mutations": 0,
+    "production_health_claimed": false,
+    "final_acceptance_claimed": false
+  },
+  "post_run_state": {
+    "private_namespace_initialized": true,
+    "private_namespace_blob_state": "NONZERO_AGE_CIPHERTEXT_ONLY",
+    "age_envelope_failures": 0,
+    "cross_namespace_changes": 0,
+    "overwrites_or_deletions": 0,
+    "raw_remote_recovery": "ONE_HUNDRED_PERCENT",
+    "gmail_mutations": 0,
+    "m3_runs": 0,
+    "processed_writes": 0,
+    "timeline_writes": 0,
+    "scheduled_runs": 0,
+    "private_repository_actions_enabled": false,
+    "new_release_writes": 0,
+    "final_publication": false
+  },
+  "scope_decision": {
+    "status": "T0702_COMPLETE_SCOPE_STOP",
+    "t0702_complete": true,
+    "m3_predecessor_satisfied": true,
+    "m3_authority_status": "WITHHELD_BY_CURRENT_OWNER_SCOPE",
+    "rerun_allowed": false
+  },
+  "claims": {
+    "t0702_complete": true,
+    "s7ac_002_passed": true,
+    "production_health": false,
+    "final_acceptance": false,
+    "stage7_complete": false
+  }
+}

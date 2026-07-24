@@ -1,0 +1,159 @@
+name: MooMooAU Stage 7 zero-production-secret release preflight
+
+on:
+  push:
+    paths:
+      - ".github/workflows/moomooau-beta.yml"
+      - ".github/workflows/moomooau-m3.yml"
+      - ".github/workflows/moomooau-stage7-ci.yml"
+      - ".github/workflows/moomooau-patch-lifecycle.yml"
+      - ".github/workflows/moomooau-production.yml"
+      - "LinzeDatabase/MooMooAU/**"
+  pull_request:
+    paths:
+      - ".github/workflows/moomooau-beta.yml"
+      - ".github/workflows/moomooau-m3.yml"
+      - ".github/workflows/moomooau-stage7-ci.yml"
+      - ".github/workflows/moomooau-patch-lifecycle.yml"
+      - ".github/workflows/moomooau-production.yml"
+      - "LinzeDatabase/MooMooAU/**"
+
+permissions:
+  contents: read
+
+jobs:
+  stage7-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Reject fork pull requests before protected dependency checkout
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository
+        shell: bash
+        run: |
+          echo "::error::Fork pull requests cannot access the protected read-only Governance dependency."
+          exit 1
+
+      - name: Configure ephemeral test state
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'HYPOTHESIS_STORAGE_DIRECTORY=%s\n' \
+            "$RUNNER_TEMP/hypothesis" >> "$GITHUB_ENV"
+          printf 'RUFF_CACHE_DIR=%s\n' \
+            "$RUNNER_TEMP/ruff-cache" >> "$GITHUB_ENV"
+
+      - name: Check out project without retained credentials
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+
+      - name: Check out pinned shared Governance read-only
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: LinzeColin/Governance
+          ref: ebc6c2e4884edc959118cfc56d0e18a86c49460f # pragma: allowlist secret -- immutable commit, not a credential
+          path: .governance
+          persist-credentials: false
+          ssh-key: ${{ secrets.MOOMOOAU_GOVERNANCE_DEPLOY_KEY }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+
+      - name: Install hash-verified official age
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/age.tar.gz"
+          curl --fail --location --proto '=https' --tlsv1.2 \
+            --output "$archive" \
+            https://github.com/FiloSottile/age/releases/download/v1.3.1/age-v1.3.1-linux-amd64.tar.gz
+          echo "bdc69c09cbdd6cf8b1f333d372a1f58247b3a33146406333e30c0f26e8f51377  $archive" \
+            | sha256sum --check --strict
+          tar --extract --gzip --file "$archive" --directory "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/age" >> "$GITHUB_PATH"
+
+      - name: Install cumulative hash lock
+        working-directory: LinzeDatabase/MooMooAU
+        run: python -m pip install --require-hashes -r requirements/stage6.lock
+
+      - name: Lint type and cumulative Stage 0-7 tests
+        working-directory: LinzeDatabase/MooMooAU
+        run: |
+          python -m ruff format --check src tests/stage3_support.py tests/stage4_support.py tests/stage5_support.py tests/stage6_support.py tests/stage7_support.py tests/remediation/test_rmd04.py tests/tasks/test_t03*.py tests/tasks/test_t04*.py tests/tasks/test_t05*.py tests/tasks/test_t06*.py tests/tasks/test_t07*.py machine/tools/validate_production_composition.py machine/stages/S3/tools machine/stages/S4/tools machine/stages/S5/tools machine/stages/S6/tools machine/stages/S7/tools
+          python -m ruff check --no-cache src tests/stage3_support.py tests/stage4_support.py tests/stage5_support.py tests/stage6_support.py tests/stage7_support.py tests/remediation/test_rmd04.py tests/tasks/test_t01*.py tests/tasks/test_t02*.py tests/tasks/test_t03*.py tests/tasks/test_t04*.py tests/tasks/test_t05*.py tests/tasks/test_t06*.py tests/tasks/test_t07*.py machine/tools/validate_production_composition.py machine/stages/S1/tools machine/stages/S2/tools machine/stages/S3/tools machine/stages/S4/tools machine/stages/S5/tools machine/stages/S6/tools machine/stages/S7/tools
+          python -m mypy --no-incremental --cache-dir "$RUNNER_TEMP/mypy-cache" src machine/tools/validate_production_composition.py machine/stages/S7/tools
+          python -m pytest -q tests/tasks tests/remediation/test_rmd04.py
+
+      - name: Cumulative contracts and truthful blocked Stage 7 preflight
+        working-directory: LinzeDatabase/MooMooAU
+        run: >-
+          python machine/stages/S7/tools/validate_stage7.py
+          --governance-root "$GITHUB_WORKSPACE/.governance"
+          --preflight
+
+      - name: Replay final-tree historical Workflow entrypoints offline
+        working-directory: LinzeDatabase/MooMooAU
+        run: >-
+          python machine/tools/validate_workflow_matrix.py
+          --governance-root "$GITHUB_WORKSPACE/.governance"
+
+      - name: Dependency vulnerability gate
+        working-directory: LinzeDatabase/MooMooAU
+        run: python -m pip_audit -r requirements/stage6.lock --require-hashes --progress-spinner=off
+
+      - name: Secret scan without committed report
+        run: |
+          detect-secrets scan --all-files \
+            --exclude-lines 'baseline_commit|baseline_manifest_sha256|BASELINE_COMMIT|BASELINE_MANIFEST_SHA256|GOVERNANCE_PIN|governance_pin|workflow_sha256|sha256|merge_commit_sha|workflow_head_sha|FAILED_BETA_RECEIPT_SHA256|"const": "[0-9a-f]{40}"|24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15|301fa1c6f5c46760c4aa3a7092bf0be77ca1a2e974e7b65e8b53dcf90db9925e|6767cd11ac260b66df1dd2dec892b73e91a2a6928c4185b1c4ff6446daa6a9b3|c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f' \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/release_control.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/http_transport.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/oauth.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/protected_beta.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/protected_beta_entrypoint.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/protected_m3.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/protected_m3_diagnostics.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/protected_m3_entrypoint.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/canary_runtime.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/blue_green_runtime.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/ga_runtime.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/production.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/production_adapters.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/gmail_discovery.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/gmail_sync_checkpoint.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/github_guard.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/model_boundary.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/processed_models.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/m3.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/patch_lifecycle.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/recovery_drill.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/remote_recovery_gate.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/timeline_event.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/timeline_publish.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/timeline_snapshot.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/stage7_ops.py \
+            LinzeDatabase/MooMooAU/tests/stage7_support.py \
+            LinzeDatabase/MooMooAU/tests/remediation/test_rmd04.py \
+            LinzeDatabase/MooMooAU/tests/tasks/test_t07*.py \
+            LinzeDatabase/MooMooAU/machine/tools/validate_evidence.py \
+            LinzeDatabase/MooMooAU/machine/tools/validate_workflow_matrix.py \
+            LinzeDatabase/MooMooAU/machine/tools/validate_production_composition.py \
+            LinzeDatabase/MooMooAU/machine/contracts/workflow_command_matrix.json \
+            LinzeDatabase/MooMooAU/machine/contracts/production_composition.json \
+            LinzeDatabase/MooMooAU/schemas/workflow-command-matrix-v1.schema.json \
+            LinzeDatabase/MooMooAU/schemas/production-composition-v1.schema.json \
+            LinzeDatabase/MooMooAU/schemas/production-config-v1.schema.json \
+            LinzeDatabase/MooMooAU/machine/stages/S7 \
+            .github/workflows/moomooau-beta.yml \
+            .github/workflows/moomooau-m3.yml \
+            .github/workflows/moomooau-patch-lifecycle.yml \
+            .github/workflows/moomooau-production.yml \
+            .github/workflows/moomooau-stage7-ci.yml \
+            > "$RUNNER_TEMP/detect-secrets-stage7.json"
+          python -c 'import json,sys; value=json.load(open(sys.argv[1], encoding="utf-8")); raise SystemExit(any(value.get("results", {}).values()))' "$RUNNER_TEMP/detect-secrets-stage7.json"

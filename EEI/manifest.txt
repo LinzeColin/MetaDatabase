@@ -91,6 +91,9 @@ apps/web/src/app/analysis-contract.ts
 apps/web/src/app/capital-events-client.ts
 apps/web/src/app/capital/page.tsx
 apps/web/src/app/cloud-data-client.ts
+apps/web/src/app/components/command-search.tsx
+apps/web/src/app/components/evidence-panel.tsx
+apps/web/src/app/components/feedback.tsx
 apps/web/src/app/control/page.tsx
 apps/web/src/app/development-status/page.tsx
 apps/web/src/app/explore-api-client.ts
@@ -98,6 +101,7 @@ apps/web/src/app/family-module-client.ts
 apps/web/src/app/family-module-page.tsx
 apps/web/src/app/globals.css
 apps/web/src/app/industries/page.tsx
+apps/web/src/app/labels.ts
 apps/web/src/app/layout.tsx
 apps/web/src/app/ma/page.tsx
 apps/web/src/app/model-activation-client.ts
@@ -291,6 +295,7 @@ diagrams/module_architecture_v5_review.mmd
 diagrams/recursive_focus_flow.mmd
 diagrams/system_context.mmd
 diagrams/user_flow.mmd
+docker-compose.ovh.yml
 docker-compose.yml
 docs/01_PRODUCT_REQUIREMENTS.md
 docs/02_SCOPE_AND_BOUNDARIES.md
@@ -329,6 +334,7 @@ docs/34_GITHUB_DOCUMENTATION_AND_BACKUP.md
 docs/35_DATA_CATALOGS_AND_TAXONOMIES.md
 docs/36_RELEASE_GATES_AND_DEFINITION_OF_DONE.md
 docs/37_ISOLATED_RETEST_SUITE.md
+docs/38_UX_SPEC_EEI_v1.md
 docs/INDEX.md
 docs/STATUS.md
 docs/adr/ADR-006-runtime-and-repository-layout.md
@@ -391,7 +397,11 @@ infra/db/migrations/0011_operator_source_capture_constraints/up.sql
 infra/db/migrations/README.md
 infra/db/seeds/README.md
 infra/docker/README.md
+infra/docker/refresh-entrypoint.sh
+infra/docker/refresh.Dockerfile
 infra/docker/worker.Dockerfile
+infra/ovh/RESOURCE_SAFETY_ANALYSIS.md
+infra/ovh/RUNBOOK_OVH_EEI.md
 machine/facts/blockers.json
 machine/facts/features.json
 machine/facts/glossary.json
@@ -446,6 +456,14 @@ scripts/acceptance_retest/fault_injection.py
 scripts/acceptance_retest/load_capacity.py
 scripts/acceptance_retest/passive_security_audit.py
 scripts/apply_model_config.py
+scripts/authoritative/__init__.py
+scripts/authoritative/collect_gleif.py
+scripts/authoritative/collect_insiders.py
+scripts/authoritative/collect_universe.py
+scripts/authoritative/common.py
+scripts/authoritative/enrich_sec.py
+scripts/authoritative/refresh_cycle.py
+scripts/authoritative/watch_recent_filings.py
 scripts/backfill_sec_history.py
 scripts/backup_restore_drill.py
 scripts/build_cloud_frontend.sh
@@ -543,7 +561,10 @@ specs/model_config_schema.json
 specs/scoring_profile_schema.json
 tests/e2e/README.md
 tests/e2e/capital-river.spec.ts
+tests/e2e/command-search.spec.ts
 tests/e2e/development-status.spec.ts
+tests/e2e/feedback-motion-evidence.spec.ts
+tests/e2e/graph-label-overlap.spec.ts
 tests/e2e/home.spec.ts
 tests/e2e/industry.spec.ts
 tests/e2e/motion-choreography.spec.ts

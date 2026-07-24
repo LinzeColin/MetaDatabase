@@ -1,0 +1,18 @@
+{
+  "schema_version": "moomooau.stage-status-overlay.v1",
+  "stage_id": "S1",
+  "status": "completed",
+  "verified_at_utc": "2026-07-19T23:04:46Z",
+  "frozen_task_graph_mutated": false,
+  "final_acceptances_passed": 0,
+  "tasks": [
+    {"id": "T0101", "status": "completed", "evidence_ref": "evidence/tasks/T0101.json"},
+    {"id": "T0102", "status": "completed", "evidence_ref": "evidence/tasks/T0102.json"},
+    {"id": "T0103", "status": "completed", "evidence_ref": "evidence/tasks/T0103.json"},
+    {"id": "T0104", "status": "completed", "evidence_ref": "evidence/tasks/T0104.json"},
+    {"id": "T0105", "status": "completed", "evidence_ref": "evidence/tasks/T0105.json"},
+    {"id": "T0106", "status": "completed", "evidence_ref": "evidence/tasks/T0106.json"},
+    {"id": "T0107", "status": "completed", "evidence_ref": "evidence/tasks/T0107.json"}
+  ],
+  "later_stage_status": "planned_unchanged"
+}

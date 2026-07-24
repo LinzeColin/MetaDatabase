@@ -134,3 +134,69 @@ def test_supervisor_alarm_dedup_and_recovery(tmp_path):
         hb.beat("trading-worker", status="RUNNING", detail="稳")
         sup.check_once()
     assert ob.pending_count() == 3
+
+
+def test_supervisor_limited_restart_after_persistent_loss(tmp_path):
+    """受限自愈:失联持续超阈值才动手、按序先网关后进程、冷却期内绝不再动。"""
+    f = create_session_factory(init_engine(f"sqlite:///{tmp_path / 'sup2.sqlite'}"))
+    clock = {"t": NOW}
+    hb = HeartbeatStore(f, now_fn=lambda: clock["t"])
+    ob = Outbox(f, now_fn=lambda: clock["t"])
+    ks = KillSwitch(tmp_path / "KS_R")
+    restarted: list[str] = []
+    sup = Supervisor(heartbeats=hb, outbox=ob, kill_switch=ks,
+                     expected_workers=("trading-worker",),
+                     now_fn=lambda: clock["t"],
+                     restart_fn=lambda u: (restarted.append(u), True)[1],
+                     restart_after_seconds=300, restart_cooldown_seconds=1800)
+    hb.beat("trading-worker")
+    clock["t"] = NOW + timedelta(seconds=120)      # 失联,但未满 300 秒
+    sup.check_once()
+    assert restarted == []
+    clock["t"] = NOW + timedelta(seconds=500)      # 失联持续 380 秒 → 动用重启权
+    sup.check_once()
+    assert restarted == ["alpha-opend", "alpha-trading-worker"]
+    clock["t"] = NOW + timedelta(seconds=700)      # 冷却期内不再重启
+    sup.check_once()
+    assert len(restarted) == 2
+
+
+def test_supervisor_auto_clears_only_own_brake(tmp_path):
+    """自动收闸:只解守护自己拍的闸,且须连续健康;owner 拍的闸永不自动解。"""
+    f = create_session_factory(init_engine(f"sqlite:///{tmp_path / 'sup3.sqlite'}"))
+    clock = {"t": NOW}
+    hb = HeartbeatStore(f, now_fn=lambda: clock["t"])
+    ob = Outbox(f, now_fn=lambda: clock["t"])
+    ks = KillSwitch(tmp_path / "KS_C")
+    sup = Supervisor(heartbeats=hb, outbox=ob, kill_switch=ks,
+                     expected_workers=("trading-worker",),
+                     now_fn=lambda: clock["t"], auto_clear_after_checks=3)
+    ks.engage(reason="心跳丢失: 测试", source="supervisor")
+    for i in range(3):
+        hb.beat("trading-worker")
+        clock["t"] = clock["t"] + timedelta(seconds=30)
+        sup.check_once()
+    assert not ks.active()                          # 连续 3 拍健康 → 自动解闸
+    ks.engage(reason="owner 手动停机", source="control_page")
+    for i in range(4):
+        hb.beat("trading-worker")
+        clock["t"] = clock["t"] + timedelta(seconds=30)
+        sup.check_once()
+    assert ks.active()                              # owner 拍的闸永不自动解
+
+
+def test_worker_feeds_watchdog_and_beats_log(tmp_path, capsys):
+    """看门狗:装配完成报 READY,每拍喂 WATCHDOG 并打一行节拍日志。"""
+    f = create_session_factory(init_engine(f"sqlite:///{tmp_path / 'wd.sqlite'}"))
+    hb = HeartbeatStore(f)
+    ks = KillSwitch(tmp_path / "KS_W")
+    notes: list[str] = []
+    worker = TradingWorker(heartbeats=hb, kill_switch=ks,
+                           run_cycle=lambda: {"ok": 1},
+                           interval_seconds=0, sleep_fn=lambda s: None,
+                           max_cycles=3, notify_fn=lambda m: notes.append(m))
+    worker.run()
+    assert notes[0] == "READY=1"
+    assert notes.count("WATCHDOG=1") == 3
+    out = capsys.readouterr().out
+    assert out.count("节拍 RUNNING") == 3

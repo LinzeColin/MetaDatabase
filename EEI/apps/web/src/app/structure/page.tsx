@@ -1,19 +1,24 @@
 "use client";
 
-import { AlertTriangle, Building2, Boxes, RefreshCw, Search } from "lucide-react";
+import { Building2, Boxes, FileSearch, RefreshCw, Search } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { AnalysisContextBadge } from "../analysis-context-badge";
+import { loadCloudEvidenceDetail } from "../cloud-data-client";
+import { EvidencePanel, type EvidencePanelState } from "../components/evidence-panel";
+import { ErrorState, Skeleton, TopLoadingBar } from "../components/feedback";
+import { zhLabel } from "../labels";
+import type { EvidenceDetailRecord } from "../production-data-client";
 import {
   loadEntityEmpire,
   searchEntityIdByName,
   type EmpireRecord,
   type EmpireSyncResult,
+  type StructureItem,
   type StructureSection
 } from "../structure-client";
 import { useAnalysisContext } from "../use-analysis-context";
 import { WorkspaceNavigationRail } from "../workspace-navigation";
-import type { WorkspaceModuleId } from "../workspace-context";
 
 type LoadState = "idle" | "loading" | "hydrated" | "error" | "api_required";
 
@@ -32,10 +37,35 @@ export default function GroupStructurePage() {
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [loadReason, setLoadReason] = useState("initializing");
   const { analysisContext, serverState } = useAnalysisContext();
+  // P1-8 证据下钻（§C.3）：结构行带出关系 UUID 时可「查证」→ 三段式证据面板。
+  const [selectedItem, setSelectedItem] = useState<StructureItem | null>(null);
+  const [evidence, setEvidence] = useState<EvidenceDetailRecord | null>(null);
+  const [evidenceState, setEvidenceState] = useState<EvidencePanelState>("loading");
+  const [evidenceReason, setEvidenceReason] = useState("");
 
   useEffect(() => {
     void hydrate(DEFAULT_FOCUS_NAME);
   }, []);
+
+  async function openEvidence(item: StructureItem) {
+    const relationshipId = item.relationship.id;
+    if (!relationshipId) {
+      return;
+    }
+    setSelectedItem(item);
+    setEvidence(null);
+    setEvidenceState("loading");
+    setEvidenceReason("requesting_relationship_evidence");
+    const next = await loadCloudEvidenceDetail(relationshipId);
+    if (next.mode === "server" && next.status === "hydrated") {
+      setEvidence(next.record);
+      setEvidenceState("hydrated");
+      setEvidenceReason("server_hydrated");
+      return;
+    }
+    setEvidenceState("error");
+    setEvidenceReason(next.reason);
+  }
 
   async function hydrate(name: string) {
     setLoadState("loading");
@@ -83,29 +113,18 @@ export default function GroupStructurePage() {
   );
   const segmentSection = empire?.structure.business_segments ?? null;
 
-  function handleNavigation(_target: string, moduleId: WorkspaceModuleId) {
-    if (moduleId !== "group_structure" && moduleId !== "business_segments") {
-      window.location.href = "/";
-    }
-  }
-
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
-      <WorkspaceNavigationRail
-        activeLens="business_segments"
-        activeModuleId="group_structure"
-        onLensTarget={handleNavigation}
-        onSectionTarget={handleNavigation}
-      />
+      <WorkspaceNavigationRail activeModuleId="group_structure" />
       <main className="flex-1 space-y-6 px-8 py-6" data-testid="group-structure-page">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-semibold">
               <Building2 className="h-6 w-6 text-sky-300" aria-hidden />
-              集团结构 · 业务板块
+              集团与控制
             </h1>
             <p className="mt-1 text-sm text-slate-400">
-              法律集团 / 板块 / 品牌 / 产品 / 设施五层分离 — 控制语义逐条标注，绝不混同
+              谁控制谁？董监高是谁？— 法律集团 / 板块 / 品牌 / 产品 / 设施五层分开呈现
             </p>
           </div>
           <form onSubmit={handleSubmit} className="flex items-center gap-2">
@@ -142,25 +161,34 @@ export default function GroupStructurePage() {
 
         <AnalysisContextBadge analysisContext={analysisContext} serverState={serverState} />
 
+        {/* P1-6：刷新不清屏，仅顶部 1px 进度条（延迟 300ms）；首载走同构骨架。 */}
+        <TopLoadingBar active={loadState === "loading" && Boolean(empire)} />
+
+        {loadState === "loading" && !empire ? (
+          <Skeleton count={3} testId="structure-skeleton" variant="card" />
+        ) : null}
+
         {loadState === "api_required" ? (
-          <section
-            className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100"
-            data-testid="structure-api-required"
-          >
-            <p className="flex items-center gap-2 font-medium">
-              <AlertTriangle className="h-4 w-4" aria-hidden />
-              需要连接 EEI API — 本模块不用合成数据充数。
-            </p>
-          </section>
+          <ErrorState
+            description="请稍后重试，或确认数据接口已配置。"
+            onRetry={() => void hydrate(focusQuery.trim() || DEFAULT_FOCUS_NAME)}
+            retryTestId="structure-api-required-retry"
+            testId="structure-api-required"
+            title="暂时连不上数据服务"
+            tone="warn"
+          />
         ) : null}
 
         {loadState === "error" ? (
-          <section
-            className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-100"
-            data-testid="structure-load-error"
-          >
-            结构加载失败（{loadReason}）。
-          </section>
+          <ErrorState
+            description="结构数据加载没有成功，请稍后重试。"
+            detail={loadReason}
+            onRetry={() => void hydrate(focusQuery.trim() || DEFAULT_FOCUS_NAME)}
+            retryTestId="structure-load-error-retry"
+            testId="structure-load-error"
+            title="加载没有成功"
+            tone="error"
+          />
         ) : null}
 
         {empire ? (
@@ -194,13 +222,33 @@ export default function GroupStructurePage() {
               <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">数据模式</p>
                 <p className="mt-2 text-xl font-semibold">
-                  {empire.data_mode === "synthetic_fixture" ? "fixture 演示" : empire.data_mode}
+                  {empire.data_mode === "synthetic_fixture" ? "示例数据" : "已核实数据"}
                 </p>
                 <p className="mt-1 text-xs text-amber-300/90">
-                  {empire.fixture_notice ?? "已发布事实驱动"}
+                  {empire.data_mode === "synthetic_fixture"
+                    ? "示例数据仅作演示，不代表真实事实"
+                    : "来自官方文件，逐条可查来源"}
                 </p>
               </div>
             </section>
+
+            {selectedItem ? (
+              <EvidencePanel
+                conclusion={
+                  <>
+                    {empire.focus.canonical_name} ·{" "}
+                    {zhLabel("relationship_type", selectedItem.relationship.relationship_type)} ·{" "}
+                    {selectedItem.entity.canonical_name}
+                  </>
+                }
+                onClose={() => setSelectedItem(null)}
+                onRetry={() => void openEvidence(selectedItem)}
+                reason={evidenceReason}
+                record={evidence}
+                state={evidenceState}
+                testId="structure-evidence"
+              />
+            ) : null}
 
             <section className="space-y-4" data-testid="structure-sections">
               {orderedSections.map(([key, section]) => (
@@ -218,13 +266,12 @@ export default function GroupStructurePage() {
                     )}
                     {section.label}
                     <span className="text-xs font-normal text-slate-500">
-                      {section.item_count} 项 · {section.data_status}
+                      {section.item_count} 项 · {zhLabel("status", section.data_status)}
                     </span>
                   </h2>
                   {section.items.length === 0 ? (
                     <p className="mt-2 text-sm text-slate-400">
-                      {section.data_gap ??
-                        "该层暂无已断言事实 — 缺席=无断言，候选经核验签核后自动出现。"}
+                      该层暂无已核实数据 — 数据来自官方文件披露，新数据核实后会自动出现在这里。
                     </p>
                   ) : (
                     <ul className="mt-3 space-y-2">
@@ -236,15 +283,26 @@ export default function GroupStructurePage() {
                           <p className="flex flex-wrap items-center gap-2">
                             <span className="font-medium">{item.entity.canonical_name}</span>
                             <span className="rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300">
-                              {item.relationship.relationship_type}
+                              {zhLabel("relationship_type", item.relationship.relationship_type)}
                             </span>
                             <span className="text-xs text-slate-500">
-                              {item.relationship.status}
+                              {zhLabel("status", item.relationship.status)}
                             </span>
                             {item.fixture_notice ? (
                               <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-200">
-                                fixture
+                                示例
                               </span>
+                            ) : null}
+                            {item.relationship.id ? (
+                              <button
+                                className="ml-auto flex items-center gap-1 rounded-md border border-sky-500/40 px-2 py-0.5 text-xs text-sky-200 hover:bg-sky-500/15"
+                                data-testid={`structure-evidence-open-${item.relationship.id}`}
+                                onClick={() => void openEvidence(item)}
+                                type="button"
+                              >
+                                <FileSearch className="h-3 w-3" aria-hidden />
+                                查证
+                              </button>
                             ) : null}
                           </p>
                           {item.control_semantics ? (
@@ -259,17 +317,17 @@ export default function GroupStructurePage() {
             </section>
 
             {segmentSection ? (
-              <section
-                className="rounded-lg border border-slate-800/60 bg-slate-900/20 p-4 text-xs text-slate-400"
+              <details
+                className="diagDetails rounded-lg border border-slate-800/60 bg-slate-900/20 p-4 text-xs text-slate-400"
                 data-testid="structure-abstentions"
               >
-                <p className="font-medium text-slate-300">诚实边界</p>
+                <summary className="font-medium text-slate-300">诊断详情 · 数据边界</summary>
                 <ul className="mt-2 list-inside list-disc space-y-1">
-                  <li>五层结构分离呈现，法律控制与商业依赖绝不混同（coverage 契约随 /empire 返回）。</li>
-                  <li>fixture 项逐条标注；真实结构事实（如 10-K Exhibit 21 子公司清单）走候选→双源→Owner 签核链后替换。</li>
-                  <li>板块层当前为 {segmentSection.data_status}；缺席=无断言而非无板块。</li>
+                  <li>五层结构分开呈现，法律控制与商业依赖不混同（coverage 契约随 /empire 返回）。</li>
+                  <li>示例项逐条标注；真实结构事实（如 10-K Exhibit 21 子公司清单）经官方来源核实后替换。</li>
+                  <li>板块层当前为 {zhLabel("status", segmentSection.data_status)}；暂无数据不代表真实为空。</li>
                 </ul>
-              </section>
+              </details>
             ) : null}
           </>
         ) : null}

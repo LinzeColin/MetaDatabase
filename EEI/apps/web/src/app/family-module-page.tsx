@@ -1,14 +1,21 @@
 "use client";
 
-import { AlertTriangle, BadgeCheck, RefreshCw } from "lucide-react";
+import { BadgeCheck, RefreshCw } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { AnalysisContextBadge } from "./analysis-context-badge";
+import {
+  EmptyState,
+  ErrorState,
+  Skeleton,
+  TopLoadingBar
+} from "./components/feedback";
 import {
   loadFamilyOverview,
   type FamilyOverviewRecord,
   type FamilyOverviewSyncResult
 } from "./family-module-client";
+import { zhLabel } from "./labels";
 import { useAnalysisContext } from "./use-analysis-context";
 import { WorkspaceNavigationRail } from "./workspace-navigation";
 import type { WorkspaceModuleId } from "./workspace-context";
@@ -22,13 +29,15 @@ type FamilyModulePageProps = {
   subtitle: string;
   icon: ReactNode;
   testId: string;
+  /** P0-4 空态三段式（§E.2 a 型）：本模块的「事实覆盖」句。 */
+  emptyCoverageNote: string;
   renderExtra?: (overview: FamilyOverviewRecord) => ReactNode;
 };
 
 /**
- * Shared honest module shell for relationship-family views (S8PC). Every
- * relationship row carries its published / fixture labeling; abstentions are
- * rendered verbatim from the API so the honest boundary travels with data.
+ * Shared honest module shell for relationship-family views (S8PC)。
+ * P0-2/P0-4（UX_SPEC_EEI §E.1/§E.2）：状态文案人话化、治理黑话收进
+ * 〈诊断详情〉、空态改为「事实覆盖 + 原因 + 可点下一步」三段式。
  */
 export function FamilyModulePage({
   moduleId,
@@ -37,6 +46,7 @@ export function FamilyModulePage({
   subtitle,
   icon,
   testId,
+  emptyCoverageNote,
   renderExtra
 }: FamilyModulePageProps) {
   const [result, setResult] = useState<FamilyOverviewSyncResult | null>(null);
@@ -64,20 +74,9 @@ export function FamilyModulePage({
   const overview: FamilyOverviewRecord | null =
     result?.status === "hydrated" ? result.overview : null;
 
-  function handleNavigation(_target: string, nextModuleId: WorkspaceModuleId) {
-    if (nextModuleId !== moduleId) {
-      window.location.href = "/";
-    }
-  }
-
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
-      <WorkspaceNavigationRail
-        activeLens="all"
-        activeModuleId={moduleId}
-        onLensTarget={handleNavigation}
-        onSectionTarget={handleNavigation}
-      />
+      <WorkspaceNavigationRail activeModuleId={moduleId} />
       <main className="flex-1 space-y-6 px-8 py-6" data-testid={testId}>
         <header className="flex items-center justify-between">
           <div>
@@ -100,25 +99,34 @@ export function FamilyModulePage({
 
         <AnalysisContextBadge analysisContext={analysisContext} serverState={serverState} />
 
+        {/* P1-6：刷新不清屏——旧数据保留，仅顶部走 1px 进度条（延迟 300ms）。 */}
+        <TopLoadingBar active={loadState === "loading" && Boolean(overview)} />
+
+        {loadState === "loading" && !overview ? (
+          <Skeleton variant="card" count={3} testId={`${testId}-skeleton`} />
+        ) : null}
+
         {loadState === "api_required" ? (
-          <section
-            className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100"
-            data-testid={`${testId}-api-required`}
-          >
-            <p className="flex items-center gap-2 font-medium">
-              <AlertTriangle className="h-4 w-4" aria-hidden />
-              需要连接 EEI API — 本模块不用合成数据充数。
-            </p>
-          </section>
+          <ErrorState
+            description="请稍后重试，或确认数据接口已配置。"
+            onRetry={() => void hydrate()}
+            retryTestId={`${testId}-api-required-retry`}
+            testId={`${testId}-api-required`}
+            title="暂时连不上数据服务"
+            tone="warn"
+          />
         ) : null}
 
         {loadState === "error" ? (
-          <section
-            className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-100"
-            data-testid={`${testId}-load-error`}
-          >
-            加载失败（{result?.status === "error" ? result.reason : "unknown"}）。
-          </section>
+          <ErrorState
+            description="请稍后重试。若持续失败，说明数据服务暂时异常。"
+            detail={result?.status === "error" ? result.reason : "unknown"}
+            onRetry={() => void hydrate()}
+            retryTestId={`${testId}-load-error-retry`}
+            testId={`${testId}-load-error`}
+            title="加载没有成功"
+            tone="error"
+          />
         ) : null}
 
         {overview ? (
@@ -128,13 +136,28 @@ export function FamilyModulePage({
               data-testid={`${testId}-relationships`}
             >
               <h2 className="text-sm font-medium text-slate-300">
-                关系断言（{overview.relationships.length}）
+                已核实关系（{overview.relationships.length}）
               </h2>
               {overview.relationships.length === 0 ? (
-                <p className="mt-2 text-sm text-slate-400" data-testid={`${testId}-empty`}>
-                  图谱当前没有该族的已断言关系。缺席=无断言而非无关系 —— 候选经双源核验与
-                  Owner 签核后自动出现。
-                </p>
+                <div className="mt-2">
+                  <EmptyState
+                    actions={
+                      <>
+                        <a href="/">去商业版图看看</a>
+                        <a href="/objects-scope">查看数据覆盖范围</a>
+                      </>
+                    }
+                    description={
+                      <>
+                        {emptyCoverageNote}
+                        数据来自 SEC、GLEIF 等官方来源，新数据核实后会自动出现在这里。
+                      </>
+                    }
+                    testId={`${testId}-empty`}
+                    title={`${title}数据采集中`}
+                    variant="collecting"
+                  />
+                </div>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {overview.relationships.map((relationship) => (
@@ -148,17 +171,19 @@ export function FamilyModulePage({
                     >
                       <span className="font-medium">{relationship.subject_name}</span>
                       <span className="text-xs text-slate-400">
-                        —[{relationship.relationship_type}]→
+                        —[{zhLabel("relationship_type", relationship.relationship_type)}]→
                       </span>
                       <span className="font-medium">{relationship.object_name}</span>
                       {relationship.owner_signed_published ? (
                         <span className="flex items-center gap-1 rounded bg-emerald-500/20 px-1.5 py-0.5 text-xs text-emerald-200">
                           <BadgeCheck className="h-3 w-3" aria-hidden />
-                          已发布 · Owner 签核
+                          已核实 · 官方来源
                         </span>
                       ) : (
                         <span className="rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-400">
-                          {relationship.fixture_flag ? "fixture 演示" : relationship.status}
+                          {relationship.fixture_flag
+                            ? "示例数据"
+                            : zhLabel("status", relationship.status)}
                         </span>
                       )}
                     </li>
@@ -169,17 +194,17 @@ export function FamilyModulePage({
 
             {renderExtra ? renderExtra(overview) : null}
 
-            <section
-              className="rounded-lg border border-slate-800/60 bg-slate-900/20 p-4 text-xs text-slate-400"
+            <details
+              className="diagDetails rounded-lg border border-slate-800/60 bg-slate-900/20 p-4 text-xs text-slate-400"
               data-testid={`${testId}-abstentions`}
             >
-              <p className="font-medium text-slate-300">诚实边界</p>
+              <summary className="font-medium text-slate-300">诊断详情 · 数据边界</summary>
               <ul className="mt-2 list-inside list-disc space-y-1">
                 {Object.entries(overview.abstentions).map(([key, note]) => (
                   <li key={key}>{note}</li>
                 ))}
               </ul>
-            </section>
+            </details>
           </>
         ) : null}
       </main>

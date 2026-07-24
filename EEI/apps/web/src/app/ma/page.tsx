@@ -7,12 +7,13 @@ import { FamilyModulePage } from "../family-module-page";
 export default function MaTransactionsPage() {
   return (
     <FamilyModulePage
-      moduleId="ma_transactions"
+      moduleId="capital_network"
       endpoint="/v1/ma/overview"
       title="并购交易"
-      subtitle="收购、合并、分拆与要约 — 交易断言与事件时间线，S7 事实层驱动"
+      subtitle="收购、合并、分拆与要约 — 每条记录可点开查官方来源"
       icon={<GitBranch className="h-6 w-6 text-violet-300" aria-hidden />}
       testId="ma-transactions-page"
+      emptyCoverageNote="数据库当前已覆盖集团结构、控制关系与董监高数据；并购交易采集器扩展中。"
       renderExtra={(overview) =>
         overview.events && overview.events.length > 0 ? (
           <section
@@ -38,7 +39,11 @@ export default function MaTransactionsPage() {
             className="rounded-lg border border-slate-800/60 bg-slate-900/20 p-4 text-sm text-slate-400"
             data-testid="ma-events-empty"
           >
-            暂无 M&amp;A 类型事件 — 事件时间线随交易事实发布批次充实。
+            暂无并购类事件。全部事件可在
+            <a className="mx-1 underline" href="/capital">
+              资本与事件
+            </a>
+            查看。
           </section>
         )
       }

@@ -1,0 +1,443 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Deterministic Delivery Status v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status_model_version",
+    "package_version",
+    "status_as_of_utc",
+    "authority",
+    "overall_status",
+    "dimensions",
+    "stage_summary",
+    "prohibition_counter_scope",
+    "prohibition_counters",
+    "blockers",
+    "resolved_review_findings",
+    "next_action",
+    "source_digests"
+  ],
+  "oneOf": [
+    {
+      "title": "RMD-05 pre-closure state",
+      "properties": {
+        "package_version": {"const": "1.0.4"},
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "PROTECTED_ORACLES_NOT_RUN",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-05_ASSURANCE_PROVENANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": ["REV-P0-002", "REV-P0-003", "REV-P1-004", "REV-P2-007"]
+        },
+        "next_action": {
+          "const": "Finalize RMD-05 assurance provenance; keep protected Oracles, production execution and publication blocked."
+        }
+      }
+    },
+    {
+      "title": "RMD-06 preflight closed and T0702 entrypoint ready state",
+      "properties": {
+        "package_version": {"const": "1.0.6"},
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "PROTECTED_ORACLES_NOT_RUN",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+      "next_action": {
+        "const": "Use the one owner-authorized controlled main delivery to provision and execute exactly one T0702 Raw-only Beta dispatch; keep Gmail mutation, M3, Processed, Timeline, schedule, any second delivery and final publication blocked."
+      }
+      }
+    },
+    {
+      "title": "RMD-06 unique protected Beta attempt failed state",
+      "properties": {
+        "package_version": {"const": "1.0.6"},
+        "overall_status": {
+          "const": "PROTECTED_BETA_FAILED_FINAL_ACCEPTANCE_BLOCKED"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "PROTECTED_BETA_FAILED",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Install the existing least-privilege GitHub App on exactly the one private data repository, then execute a new exact-main first-attempt T0702 Beta; after a real PASS continue M3, Blue-Green, GA and Recovery without fixed calendar waits."
+        }
+      }
+    },
+    {
+      "title": "v1.0.7 protected Beta passed with default-disabled M3 entrypoint",
+      "properties": {
+        "package_version": {"const": "1.0.7"},
+        "overall_status": {
+          "const": "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "T0702 evidence is closed; the M3 predecessor is satisfied, but current owner scope withholds M3, so stop before any M3 or later Stage 7 execution."
+        }
+      }
+    },
+    {
+      "title": "v1.0.8 protected Beta passed and T0703 Budget-1 authorized",
+      "properties": {
+        "package_version": {"const": "1.0.8"},
+        "overall_status": {
+          "const": "PROTECTED_BETA_PASS_T0703_AUTHORIZED_PENDING"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0703_PROTECTED_FIRST_ATTEMPT_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Deliver the exact validated T0703 candidate to main, add only the two public-safe empty processing registry values to the existing protected Environment, and execute exactly one first-attempt Budget-1 M3 Canary; do not enter T0704."
+        }
+      }
+    },
+    {
+      "title": "v1.0.9 protected M3 zero-effect failure and repair candidate authorized",
+      "properties": {
+        "package_version": {"const": "1.0.9"},
+        "overall_status": {
+          "const": "PROTECTED_M3_ATTEMPT_FAILED_REPAIR_AUTHORIZED"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0703_REPAIR_CANDIDATE_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Deliver the exact metadata-remediation T0703 candidate to main and execute exactly one new-candidate attempt-1 Budget-1 M3 Canary; do not rerun the failed head or enter T0704."
+        }
+      }
+    }
+  ],
+  "properties": {
+    "schema_version": {"const": "moomooau.delivery-status.v1"},
+    "status_model_version": {"const": "moomooau.delivery-status-model.v3"},
+    "package_version": {
+      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9"],
+      "description": "Coupled by the root oneOf to the exact historical RMD state or current authorized T0703 pre-execution state."
+    },
+    "status_as_of_utc": {"type": "string", "format": "date-time"},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "precedence"],
+      "properties": {
+        "path": {"const": "machine/status/latest.json"},
+        "precedence": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "overall_status": {
+      "enum": [
+        "LOCAL_MECHANISMS_EVIDENCED_FINAL_ACCEPTANCE_BLOCKED",
+        "PROTECTED_BETA_FAILED_FINAL_ACCEPTANCE_BLOCKED",
+        "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE",
+        "PROTECTED_BETA_PASS_T0703_AUTHORIZED_PENDING",
+        "PROTECTED_M3_ATTEMPT_FAILED_REPAIR_AUTHORIZED"
+      ]
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_integrity",
+        "mechanism_implementation",
+        "formal_task_completion",
+        "protected_oracles",
+        "final_acceptance",
+        "production_readiness",
+        "publication"
+      ],
+      "properties": {
+        "evidence_integrity": {"$ref": "#/$defs/evidence_integrity"},
+        "mechanism_implementation": {"$ref": "#/$defs/mechanism_implementation"},
+        "formal_task_completion": {"$ref": "#/$defs/formal_task_completion"},
+        "protected_oracles": {"$ref": "#/$defs/protected_oracles"},
+        "final_acceptance": {"$ref": "#/$defs/final_acceptance"},
+        "production_readiness": {"$ref": "#/$defs/production_readiness"},
+        "publication": {"$ref": "#/$defs/publication"}
+      }
+    },
+    "stage_summary": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {"$ref": "#/$defs/stage_summary"}
+    },
+    "prohibition_counters": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"const": 0}
+    },
+    "prohibition_counter_scope": {
+      "const": "LOCAL_EVIDENCE_GENERATION_ONLY_EXCLUDES_PROTECTED_EXECUTION_RECEIPT"
+    },
+    "blockers": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "resolved_review_findings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1},
+      "description": "The root oneOf couples this exact set to package version, blockers and next action."
+    },
+    "next_action": {"type": "string", "minLength": 1},
+    "source_digests": {
+      "type": "object",
+      "minProperties": 8,
+      "required": [
+        "assurance_provenance_root_sha256",
+        "stage6_aggregate_sha256"
+      ],
+      "properties": {
+        "assurance_provenance_root_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "stage6_aggregate_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    }
+  },
+  "$defs": {
+    "evidence_integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "verified_records", "total_records", "failures"],
+      "properties": {
+        "status": {"const": "PASS"},
+        "verified_records": {"const": 58},
+        "total_records": {"const": 58},
+        "failures": {"const": 0}
+      }
+    },
+    "mechanism_implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "evidenced_tasks", "total_tasks", "scope"],
+      "properties": {
+        "status": {"const": "LOCAL_MECHANISMS_EVIDENCED"},
+        "evidenced_tasks": {"const": 58},
+        "total_tasks": {"const": 58},
+        "scope": {
+          "enum": [
+            "LOCAL_OR_SYNTHETIC_ONLY",
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPT"
+          ]
+        }
+      }
+    },
+    "formal_task_completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "completed", "planned", "total", "contract_version"],
+      "properties": {
+        "status": {"const": "INCOMPLETE"},
+        "completed": {"const": 7},
+        "planned": {"const": 51},
+        "total": {"const": 58},
+        "contract_version": {"const": "1.0.1"}
+      }
+    },
+    "protected_oracles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "declared", "executed", "passed", "failed", "not_run"],
+      "properties": {
+        "status": {"enum": ["NOT_RUN", "FAILED", "PARTIAL"]},
+        "declared": {"type": "integer", "minimum": 1},
+        "executed": {"type": "integer", "minimum": 0, "maximum": 3},
+        "passed": {"type": "integer", "minimum": 0, "maximum": 2},
+        "failed": {"type": "integer", "minimum": 0, "maximum": 1},
+        "not_run": {"type": "integer", "minimum": 1}
+      }
+    },
+    "final_acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "passed", "blocked", "total"],
+      "properties": {
+        "status": {"const": "BLOCKED"},
+        "passed": {"const": 0},
+        "blocked": {"const": 34},
+        "total": {"const": 34}
+      }
+    },
+    "production_readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "workflow_runs", "reason_codes"],
+      "properties": {
+        "status": {"const": "BLOCKED"},
+        "workflow_runs": {"type": "integer", "minimum": 0, "maximum": 1},
+        "reason_codes": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "publication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "controlled_main_deliveries", "remote_publications"],
+      "properties": {
+        "status": {
+          "enum": [
+            "LOCAL_ONLY_NOT_PUBLISHED",
+            "CONTROLLED_BETA_DELIVERY_NOT_FINAL"
+          ]
+        },
+        "controlled_main_deliveries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "remote_publications": {"const": 0}
+      }
+    },
+    "stage_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage_id",
+        "evidence_validation_status",
+        "evidence_records",
+        "mechanism_status",
+        "formal_completed",
+        "formal_planned",
+        "record_status_counts",
+        "linked_final_claim_counts",
+        "protected_oracles_executed"
+      ],
+      "properties": {
+        "stage_id": {"pattern": "^S[0-7]$"},
+        "evidence_validation_status": {"const": "PASS"},
+        "evidence_records": {"type": "integer", "minimum": 7, "maximum": 8},
+        "mechanism_status": {
+          "enum": [
+            "BASELINE_COMPLETE",
+            "LOCAL_SYNTHETIC_MECHANISMS_EVIDENCED",
+            "LOCAL_PREFLIGHT_MECHANISMS_EVIDENCED"
+          ]
+        },
+        "formal_completed": {"type": "integer", "minimum": 0, "maximum": 7},
+        "formal_planned": {"type": "integer", "minimum": 0, "maximum": 8},
+        "record_status_counts": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        },
+        "linked_final_claim_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "PARTIAL": {"type": "integer", "minimum": 0},
+            "NOT_RUN": {"type": "integer", "minimum": 0}
+          }
+        },
+        "protected_oracles_executed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        }
+      }
+    }
+  }
+}

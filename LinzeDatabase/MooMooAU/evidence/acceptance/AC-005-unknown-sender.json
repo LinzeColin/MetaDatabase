@@ -1,0 +1,102 @@
+{
+  "acceptance_id": "AC-005",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "4a5d51ce3e754e6b047cf2e293240d57542648d013b004f3066662b16b5b4bbf",
+    "evidence_required": "evidence/acceptance/AC-005-unknown-sender.json",
+    "pass_gate_text": "AC-005 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_005.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-005-RMD01-20260724",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0303.json",
+      "evidence_sha256": "a0d10ac8924d8edd49d784eb5a0f3843a55da05b60589d1906d68b94b60723fd",
+      "final_claim_status": "PARTIAL",
+      "reason": "Unknown senders fail closed before RAW locally; real unknown-candidate review and protected registry update are not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0303"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0304.json",
+      "evidence_sha256": "601b8781fc38bc57ae6d5e40e19c09c1dcb6d45a706c7316a543a87c5c715f76",
+      "final_claim_status": "PARTIAL",
+      "reason": "Unknown synthetic candidates remain metadata-only; real registry backfill is not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0304"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-24T02:10:28Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-005",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_005_pass_gate",
+    "path": "tests/acceptance/test_ac_005.py",
+    "sha256": "fb759375d2812b698d40b98770288fe1177ac4bdc101e4572f59f8676e60bea0"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0303",
+      "T0304"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "f013fdf90341bb4a287bd763371b7a461b2e5b4d89e617c7d9006216816b4e95"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": "moomooau.stage-task-status.v1",
+  "stage_id": "S3",
+  "baseline_stage": "S2",
+  "baseline_commit": "19167f94ed82cc44ff92ee9c46d3e606612fbd27",
+  "tasks": [
+    {"id": "T0301", "status": "completed", "evidence": "evidence/tasks/T0301.json"},
+    {"id": "T0302", "status": "completed", "evidence": "evidence/tasks/T0302.json"},
+    {"id": "T0303", "status": "completed", "evidence": "evidence/tasks/T0303.json"},
+    {"id": "T0304", "status": "completed", "evidence": "evidence/tasks/T0304.json"},
+    {"id": "T0305", "status": "completed", "evidence": "evidence/tasks/T0305.json"},
+    {"id": "T0306", "status": "completed", "evidence": "evidence/tasks/T0306.json"},
+    {"id": "T0307", "status": "completed", "evidence": "evidence/tasks/T0307.json"}
+  ],
+  "prior_stage_status": "verified_unchanged",
+  "later_stage_status": "planned_unchanged",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED"
+}

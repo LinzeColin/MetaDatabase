@@ -1,0 +1,91 @@
+{
+  "schema_version": "moomooau.stage6-evidence.v2",
+  "evidence_id": "S6-T0608-LOCAL-20260720",
+  "stage_id": "S6",
+  "task_id": "T0608",
+  "stage_acceptance_id": "S6AC-008",
+  "observed_at_utc": "2026-07-20T04:50:06Z",
+  "baseline_commit": "2b8625a83e69093b9dce989f4eb964556e1b5fa2",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {
+      "id": "mandatory_chaos_18_of_18",
+      "status": "PASS",
+      "evidence_ref": "machine/stages/S6/matrices/mandatory-chaos.v1.json and tests/tasks/test_t0608.py"
+    },
+    {
+      "id": "kill_triggers_10_of_10",
+      "status": "PASS",
+      "evidence_ref": "machine/stages/S6/matrices/kill-drills.v1.json and tests/tasks/test_t0608.py::test_t0608_all_kill_criteria_trigger_and_require_exact_recovery_gates"
+    },
+    {
+      "id": "kill_recoveries_require_exact_gates",
+      "status": "PASS",
+      "evidence_ref": "src/moomooau_archive/kill_switch.py"
+    },
+    {
+      "id": "error_paths_create_no_false_public_success_or_extra_m3",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0608.py"
+    }
+  ],
+  "linked_final_acceptance": [
+    {
+      "id": "AC-025",
+      "status": "PARTIAL",
+      "reason": "All 18 mandatory synthetic chaos scenarios pass against project state machines; scheduled production chaos was not run."
+    },
+    {
+      "id": "AC-027",
+      "status": "PARTIAL",
+      "reason": "All 10 Kill triggers and exact resume gates pass synthetically with no extra M3; real Gmail Trash recovery was not exercised."
+    },
+    {
+      "id": "AC-032",
+      "status": "PARTIAL",
+      "reason": "Synthetic error paths preserve truthful state and idempotent recovery; quarterly protected recovery drill remains not run."
+    }
+  ],
+  "production_oracles": [
+    {
+      "id": "PROTECTED_CHAOS_AND_QUARTERLY_RECOVERY",
+      "status": "NOT_RUN",
+      "reason": "Production fault injection, real Gmail faults, private repository faults and quarterly remote recovery require later owner-authorized execution."
+    }
+  ],
+  "prohibition_counters": {
+    "real_gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "real_secrets_read": 0,
+    "protected_key_deliveries": 0,
+    "external_writes": 0,
+    "remote_publication": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_mutations": 0,
+    "raw_before_verification": 0,
+    "untrusted_content_execution": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "thread_trash_calls": 0,
+    "permanent_delete_calls": 0,
+    "release_assets_above_one": 0,
+    "production_workflow_runs": 0
+  },
+  "next_action": "Do not start protected canary execution until Stage 7 verifies every exact resume gate and rollback prerequisite.",
+  "candidate_commit": "dc8f7be36f45d3368cb2a6931fdb6cdcdf1fefc1",
+  "candidate_tree": "673132302ed909d8c02e856fdb19887b20c3f447",
+  "execution_binding": {
+    "path": "machine/stages/S6/reviews/rmd05/execution-receipt17.json",
+    "sha256": "6e8fd35c8d5d3dac2d1320713d3b17d32fa9c285e2bc77146565fef4e44beef0",
+    "command_ids": [
+      "stage6-task-tests",
+      "stage7-runtime-regression-tests"
+    ]
+  }
+}

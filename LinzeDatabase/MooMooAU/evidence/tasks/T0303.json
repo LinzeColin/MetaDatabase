@@ -1,0 +1,27 @@
+{
+  "schema_version": "moomooau.stage3-evidence.v1",
+  "evidence_id": "S3-T0303-LOCAL-20260720",
+  "stage_id": "S3",
+  "task_id": "T0303",
+  "stage_acceptance_id": "S3AC-003",
+  "observed_at_utc": "2026-07-20T01:07:05Z",
+  "baseline_commit": "19167f94ed82cc44ff92ee9c46d3e606612fbd27",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "production_registry_empty", "status": "PASS", "evidence_ref": "machine/stages/S3/registry/verified-senders.v1.json"},
+    {"id": "protected_evidence_activation_required", "status": "PASS", "evidence_ref": "src/moomooau_archive/sender_registry.py"},
+    {"id": "exact_no_wildcard_rules", "status": "PASS", "evidence_ref": "tests/tasks/test_t0303.py"},
+    {"id": "unknown_raw_permits_zero", "status": "PASS", "evidence_ref": "tests/tasks/test_t0303.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-004", "status": "PARTIAL", "reason": "Strict evidence-backed synthetic registry parsing passes; known real templates and protected sender identities are not available."},
+    {"id": "AC-005", "status": "PARTIAL", "reason": "Unknown senders fail closed before RAW locally; real unknown-candidate review and protected registry update are not run."}
+  ],
+  "production_oracles": [
+    {"id": "OWNER_APPROVED_SENDER_REGISTRY", "status": "NOT_RUN", "reason": "No authoritative protected owner evidence was supplied, so production entries remain zero."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0},
+  "next_action": "Keep every production candidate UNKNOWN until exact first-party evidence is reviewed in a protected context."
+}

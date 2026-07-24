@@ -1123,7 +1123,8 @@ test("A203 and A211 hydrate production graph context through the explore API", a
   await expect(page.getByTestId(`graph-node-${serverPackagingEntityId}`)).toBeVisible();
   await expect(
     page.getByTestId(`edge-label-${serverPackagingEntityId}-${nvidiaEntityId}`)
-  ).toHaveText("packages tests for");
+    // P0-2 §E.3：服务端枚举经 labels.ts 映射上屏，不再下划线直出。
+  ).toHaveText("封装测试");
   await expect(
     page.getByTestId(`graph-table-row-${serverPackagingEntityId}-${nvidiaEntityId}`)
   ).toHaveAttribute("data-render-source", "server");

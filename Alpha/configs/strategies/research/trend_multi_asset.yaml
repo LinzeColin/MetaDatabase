@@ -1,0 +1,19 @@
+# R5 多资产趋势跟随(研究候选)——owner 2026-07-24 裁定现役收益不足以实盘后开启
+# 假设:跨资产(股指/黄金/长债/中债)动量轮动是文献证据最强且本项目唯一未测的家族;
+# 目标:找到样本外月均显著高于现役 0.662% 且回撤 <=15% 的结构;找不到就如实说没有。
+strategy_id: "TREND_MULTI_ASSET_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate"
+universe: ["QQQ", "SPY", "GLD", "TLT", "IEF"]   # 纳指/标普/黄金/20年长债/7-10年中债
+cash_proxy: "BIL"
+score:
+  formula: "w1*r63 + w2*r126 + w3*r252"
+  lookbacks_trading_days: [63, 126, 252]
+absolute_momentum_filter: {rule: "close > SMA200", sma_period: 200}
+review_grid:
+  weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1],[1.0,0.0,0.0]]
+  top_n_allowed: [1, 2, 3]
+  target_vol_allowed: [10, 15, 999]
+  rebalance_threshold_allowed: [5]
+  eval_frequency_allowed: ["weekly", "monthly"]
+  dd_brake_allowed: [null, [10, 20], [8, 15]]

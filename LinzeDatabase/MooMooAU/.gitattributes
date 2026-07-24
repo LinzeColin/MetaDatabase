@@ -1,0 +1,2 @@
+# Preserve deterministic taskpack and evidence bytes across checkout platforms.
+* -text

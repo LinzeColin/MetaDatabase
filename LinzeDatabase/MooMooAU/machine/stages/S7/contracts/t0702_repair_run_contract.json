@@ -1,0 +1,70 @@
+{
+  "schema_version": "moomooau.run-contract.v1",
+  "run_id": "S7-20260723-t0702-public-safe-diagnostics-repair",
+  "stage_id": "S7",
+  "task_id": "T0702",
+  "goal": "Add a fixed, public-safe protected Beta failure-phase taxonomy so a later separately authorized attempt can identify the bounded failing operation without exposing Secrets, Gmail data, private repository identifiers, exception text or exact mailbox counts.",
+  "created_at_utc": "2026-07-23T11:06:41Z",
+  "failed_attempt_receipt": "machine/stages/S7/reviews/t0702/execution-receipt-failed-20260723.json",
+  "failed_attempt_receipt_sha256": "1f78a94d3e4019d89dda7aae9ddfc949e280eece03a0ce28829beba7094922c0",
+  "authority": {
+    "basis": "OWNER_PERSISTENT_GOAL_LOCAL_STAGE7_REPAIR",
+    "local_code_changes_allowed": true,
+    "main_delivery_allowed": false,
+    "workflow_dispatch_allowed": false,
+    "protected_secret_reads_allowed": false,
+    "gmail_calls_allowed": false,
+    "private_repository_calls_allowed": false,
+    "m3_allowed": false,
+    "final_publication_allowed": false
+  },
+  "scope": [
+    "T0702 protected Beta diagnostics only",
+    "closed failure-phase enum and deterministic reason-code mapping",
+    "fixed-schema public failure payload with no exception input",
+    "phase instrumentation across context, bootstrap, Raw-only runtime, aggregate gate and cleanup",
+    "local synthetic regressions for every reachable phase and cleanup failure",
+    "Stage 7 validator, evidence, status, Governance facts and package-manifest regeneration"
+  ],
+  "non_goals": [
+    "a second branch push, pull request, main delivery, workflow dispatch or rerun",
+    "retrospectively guessing the exact root cause of the consumed failed attempt",
+    "reading any real Secret, Gmail message or private repository",
+    "changing sender verification, encryption, Raw commit or recovery semantics",
+    "running M3, Processed, Timeline, schedule, GA, Recovery Drill or Patch Lifecycle",
+    "claiming T0702, S7AC-002, production health, final Acceptance or Stage 7 complete"
+  ],
+  "authorized_effect_budget": {
+    "remote_writes": 0,
+    "workflow_dispatches": 0,
+    "protected_secret_reads": 0,
+    "gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "verified_full_raw_reads": 0,
+    "m3_runs": 0,
+    "processed_writes": 0,
+    "timeline_writes": 0,
+    "scheduled_runs": 0,
+    "final_publications": 0
+  },
+  "acceptance": [
+    "Every emitted failure phase and reason code belongs to one exact closed enum.",
+    "The public failure renderer receives no exception or dynamic protected value.",
+    "The JSON Schema rejects extra properties and mismatched phase/reason pairs.",
+    "Synthetic phase probes prove context, bootstrap, runtime, Raw, recovery and aggregate boundaries are wired.",
+    "A cleanup failure is classified as RESOURCE_CLEANUP after every cleanup action is attempted.",
+    "Existing Raw-only, no-mutation, first-attempt and six-Secret boundaries remain unchanged.",
+    "All local Stage 7, package, publication, type, lint and task gates pass while T0702 remains BLOCKED."
+  ],
+  "risk": "A phase label can reveal the coarse operation reached, but cannot reveal whether a message existed, any exact count, identifier, header, URL, repository locator, Secret value or exception text. The taxonomy therefore remains intentionally bounded and cannot establish the exact root cause by itself.",
+  "rollback": "Revert only this uncommitted repair delta. The consumed protected attempt receipt and controlled main delivery remain immutable historical evidence.",
+  "stop_conditions": [
+    "any diagnostic field can contain dynamic exception text or protected input",
+    "the taxonomy requires a new Secret, permission, artifact, cache or persistent log",
+    "the change alters Gmail, Raw commit, recovery, M3 or mutation behavior",
+    "a real service call, second delivery, workflow dispatch or rerun becomes necessary",
+    "the failed attempt is reclassified as PASS or its exact root cause is guessed",
+    "any final Acceptance, production health or Stage 7 completion claim becomes true"
+  ]
+}

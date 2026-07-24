@@ -1,0 +1,96 @@
+{
+  "package": {
+    "package_id": "MMAU-ARCHIVE-TP-2026-07-20-V1.0.1",
+    "product": "MooMooAU Archive",
+    "version": "1.0.1",
+    "status": "baseline-preserving-stage0-repair",
+    "decision_date": "2026-07-20",
+    "supersedes": "1.0.0"
+  },
+  "repositories": {
+    "public_code_repository": "LinzeColin/MetaDatabase",
+    "public_project_path": "LinzeDatabase/MooMooAU",
+    "private_repository_count": 1,
+    "private_repository_identity": "immutable Repository ID from protected configuration",
+    "private_repository_name_in_public_tree": false,
+    "private_namespace": "MooMooAU/"
+  },
+  "runtime": {
+    "data_plane": "deterministic GitHub Actions on GitHub-hosted runners",
+    "user_interface": "Codex development thread",
+    "codex_automation": "simple passive noncritical health check only",
+    "local_runtime": false,
+    "self_hosted_server": false,
+    "plaintext_persistence": false,
+    "actions_cache": false,
+    "sensitive_artifacts": false
+  },
+  "schedule": {
+    "cron": "30 4 * * *",
+    "timezone": "Australia/Sydney",
+    "local_time_target": "04:30",
+    "provider_delivery": "timezone-aware best effort; execution may be delayed or a scheduled event may be dropped",
+    "exact_start_guaranteed": false,
+    "missed_trigger_recovery": "next invocation idempotent catch-up plus Sunday full reconciliation",
+    "daily_mode": "incremental",
+    "sunday_mode": "incremental plus full reconciliation",
+    "manual_mode": "workflow_dispatch"
+  },
+  "gmail": {
+    "scope": "https://www.googleapis.com/auth/gmail.modify",
+    "inbound_only": true,
+    "include_spam_trash": true,
+    "filters_audit": "read-only",
+    "blocked_senders_direct_api": false,
+    "allowed_mutation": "users.messages.trash only",
+    "permanent_delete": false,
+    "thread_trash": false,
+    "sent_and_drafts": false,
+    "m3_applies_to": "all deterministically verified Moomoo-related inbound message types"
+  },
+  "data": {
+    "canonical_raw": "Gmail RAW RFC 2822 EML bytes",
+    "raw_policy": "append-only and age-encrypted",
+    "processed_policy": "versioned age-encrypted canonical JSON and partitioned Parquet",
+    "public_policy": "redacted Inventory, Schema and Evidence only",
+    "lineage_required": true,
+    "portal_h2": false
+  },
+  "timeline": {
+    "count": 1,
+    "count_semantics": "healthy steady state",
+    "maximum_asset_count": 1,
+    "failure_state_asset_count": 0,
+    "release_tag": "moomooau-live",
+    "asset_name": "timeline-latest.png.age",
+    "replacement_mode": "verified serial delete-upload with deterministic repair",
+    "atomic_replace": false,
+    "ciphertext_deterministic": false,
+    "semantic_idempotency_key": "Processed snapshot_root plus deterministic plaintext_sha256",
+    "history_images": false,
+    "git_images": false,
+    "artifact_images": false,
+    "canonical_arrival_time": "Gmail internalDate UTC",
+    "display_timezone": "Australia/Sydney"
+  },
+  "keys": {
+    "cipher": "age X25519",
+    "live_key_in_package": false,
+    "deployment_generation": "ephemeral cloud runner",
+    "operational_identity": "protected GitHub Environment secret",
+    "recovery_delivery": "one-time downloadable MooMooAU-Recovery-Key.agekey through development thread",
+    "pdf_password_unknown_behavior": "WAITING_FOR_PDF_PASSWORD; Raw and M3 continue"
+  },
+  "invariants": [
+    "仅处理经确定性双重验证的 Moomoo AU 相关入站消息；其他邮件零读取正文、零下载、零修改。",
+    "M3 适用于所有已验证 Moomoo 相关入站邮件类型；只调用 users.messages.trash，永久 delete 与 thread trash 永久禁用。",
+    "公开代码仓固定为 LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU；只有一个由受保护 Repository ID 定位的私有数据仓，私有仓名称不进入公开树。",
+    "用户电脑与自建服务器不运行、不持久化；生产仅使用 GitHub-hosted/Codex cloud 临时环境。",
+    "全部 Raw 和敏感 Processed 均 age 加密；公开面只允许脱敏 Inventory、Schema、Evidence。",
+    "每日以 Australia/Sydney 04:30 为时区感知调度目标；平台延迟或丢弃不伪报准点，下一次运行幂等补偿，周日执行 Full Reconciliation。",
+    "Timeline 健康稳态恰好一个、任何时刻最多一个加密最新资产：moomooau-live/timeline-latest.png.age；age 密文允许随机变化，逻辑幂等只由 Processed snapshot_root 与明文摘要裁定；串行替换失败可短暂为零并进入确定性修复。",
+    "Codex 开发线程是用户唯一交互入口；Codex Automation 只做普通被动健康检查，非控制平面关键路径。",
+    "真实邮件、附件、PDF 密码和 age 私钥永不传给模型。",
+    "H2 Moomoo Portal、券商交易 API、下单、Sent/Drafts 均不在范围内。"
+  ]
+}

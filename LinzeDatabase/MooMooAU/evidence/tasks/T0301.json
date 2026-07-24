@@ -1,0 +1,27 @@
+{
+  "schema_version": "moomooau.stage3-evidence.v1",
+  "evidence_id": "S3-T0301-LOCAL-20260720",
+  "stage_id": "S3",
+  "task_id": "T0301",
+  "stage_acceptance_id": "S3AC-001",
+  "observed_at_utc": "2026-07-20T01:07:05Z",
+  "baseline_commit": "19167f94ed82cc44ff92ee9c46d3e606612fbd27",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "fixed_four_scope_pagination", "status": "PASS", "evidence_ref": "tests/tasks/test_t0301.py"},
+    {"id": "message_id_deduplication", "status": "PASS", "evidence_ref": "src/moomooau_archive/gmail_discovery.py"},
+    {"id": "filter_audit_read_only", "status": "PASS", "evidence_ref": "GmailReadClient.list_filters"},
+    {"id": "raw_and_mutation_requests_zero", "status": "PASS", "evidence_ref": "SyntheticGmailTransport request log"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-003", "status": "PARTIAL", "reason": "All four scopes, pagination, deduplication and read-only Filter audit pass synthetically; real mailbox coverage is not run."},
+    {"id": "AC-025", "status": "PARTIAL", "reason": "The full-discovery side of reconciliation is deterministic for synthetic pages; real mailbox truth parity is not run."}
+  ],
+  "production_oracles": [
+    {"id": "REAL_GMAIL_SCOPE_PARITY", "status": "NOT_RUN", "reason": "Protected Gmail authority and private mailbox data are unavailable and intentionally unused."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0},
+  "next_action": "Keep discovery read-only until a later protected canary compares the real mailbox truth set."
+}

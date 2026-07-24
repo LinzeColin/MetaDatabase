@@ -7,12 +7,13 @@ import { FamilyModulePage } from "../family-module-page";
 export default function ControlRelationshipsPage() {
   return (
     <FamilyModulePage
-      moduleId="control_relationships"
+      moduleId="group_structure"
       endpoint="/v1/control/overview"
       title="控制关系"
-      subtitle="法律母子、董事会控制、投票权与受益所有 — 治理断言，绝不与商业依赖混同"
+      subtitle="法律母子、董事会控制、投票权与受益所有 — 与商业依赖分开呈现"
       icon={<ShieldCheck className="h-6 w-6 text-cyan-300" aria-hidden />}
       testId="control-relationships-page"
+      emptyCoverageNote="数据库当前已覆盖集团结构、控制关系与董监高数据；本视图按控制类关系筛选。"
       renderExtra={(overview) => {
         const byType = (overview.summary.by_type ?? {}) as Record<string, number>;
         const entries = Object.entries(byType);

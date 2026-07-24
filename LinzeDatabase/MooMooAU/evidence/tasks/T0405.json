@@ -1,0 +1,27 @@
+{
+  "schema_version": "moomooau.stage4-evidence.v1",
+  "evidence_id": "S4-T0405-LOCAL-20260720",
+  "stage_id": "S4",
+  "task_id": "T0405",
+  "stage_acceptance_id": "S4AC-005",
+  "observed_at_utc": "2026-07-20T02:39:28Z",
+  "baseline_commit": "b15ccdbe0e4ed16e3a01e17431360f844621b852",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "missing_password_waiting_no_artifact", "status": "PASS", "evidence_ref": "tests/tasks/test_t0405.py"},
+    {"id": "wrong_password_waiting_no_artifact", "status": "PASS", "evidence_ref": "SafeArtifactExtractor"},
+    {"id": "correct_secret_same_raw_reprocess_complete", "status": "PASS", "evidence_ref": "tests/tasks/test_t0405.py"},
+    {"id": "password_absent_from_repr", "status": "PASS", "evidence_ref": "SecretText"},
+    {"id": "brute_force_path_zero", "status": "PASS", "evidence_ref": "src/moomooau_archive/document_parser.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-017", "status": "PARTIAL", "reason": "Absent, wrong and correct synthetic PDF Secrets follow the required parser states with wrong structured outputs 0; production Secret delivery, remote recovery and later M3 behavior are not run."}
+  ],
+  "production_oracles": [
+    {"id": "PROTECTED_PRODUCTION_PDF_PASSWORD_REPROCESS", "status": "NOT_RUN", "reason": "No real PDF, production password Secret or protected reprocess workflow was used."}
+  ],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "production_classification_rules": 0, "production_parser_profiles": 0, "protected_approvals_executed": 0},
+  "next_action": "Keep production password reprocessing disabled until a later protected Secret workflow and real recovery gate exist."
+}

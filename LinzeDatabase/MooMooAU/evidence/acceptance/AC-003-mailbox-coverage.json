@@ -1,0 +1,111 @@
+{
+  "acceptance_id": "AC-003",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "70147442efbd05eb8d16f85b5c52441035f77ea3d4888caf12c40ddbd0337525",
+    "evidence_required": "evidence/acceptance/AC-003-mailbox-coverage.json",
+    "pass_gate_text": "AC-003 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_003.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-003-RMD01-20260724",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0003.json",
+      "evidence_sha256": "8c6de3bd1770c06b931ddba4e6c854f1a3e606f47306d595f40ced3ffa584947",
+      "final_claim_status": "NO_FINAL_CLAIM",
+      "reason": "The source task evidence has no final Acceptance claim.",
+      "source_record_status": "VALID",
+      "task_id": "T0003"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0301.json",
+      "evidence_sha256": "928908af175db35c855f8e34371c677ba27192840db14b01648c0e27fc6db68b",
+      "final_claim_status": "PARTIAL",
+      "reason": "All four scopes, pagination, deduplication and read-only Filter audit pass synthetically; real mailbox coverage is not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0301"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0607.json",
+      "evidence_sha256": "b6d8a15f645cf584e5c1dffa6f60593a337a7b6009b66dc596f08381f97e2329",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic discovery reads 500 pages without gaps under the documented page bound; a real mailbox was not listed.",
+      "source_record_status": "PASS",
+      "task_id": "T0607"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-24T02:10:28Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-003",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_003_pass_gate",
+    "path": "tests/acceptance/test_ac_003.py",
+    "sha256": "f7c09e3f8afc83badfb8710be1c7ad64140caa3f13c1e0084fedce1b7667ded3"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0003",
+      "T0301",
+      "T0607"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "9a5f82f6889e2c091658d23d23a8f9f183eda6fe1cc8c128b9acccf10ec37548"
+  }
+}

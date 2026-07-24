@@ -1,0 +1,69 @@
+{
+  "schema_version": "moomooau.run-contract.v1",
+  "run_id": "S7-20260723-owner-authorized-completion",
+  "stage_id": "S7",
+  "goal": "Complete Stage 7 from the already validated public-safe T0702 diagnostic repair through the protected Beta, M3, Blue-Green, GA and Recovery gates without fixed calendar waits, while preserving every frozen product contract and zero-collateral invariant.",
+  "authorized_at_utc": "2026-07-23T12:09:34Z",
+  "authority": {
+    "basis": "OWNER_EXPLICIT_STAGE7_COMPLETION_NO_ARTIFICIAL_BLOCKS",
+    "controlled_main_delivery_allowed": true,
+    "serial_first_attempt_dispatch_allowed": true,
+    "protected_secret_reads_in_github_actions_allowed": true,
+    "gmail_calls_in_protected_runtime_allowed": true,
+    "private_repository_calls_in_protected_runtime_allowed": true,
+    "m3_allowed_after_t0702_pass": true,
+    "blue_green_allowed_after_m3_pass": true,
+    "ga_allowed_after_blue_green_pass": true,
+    "recovery_drill_allowed_after_ga_pass": true,
+    "manual_environment_approval_required": false,
+    "final_publication_allowed_only_after_full_acceptance_and_review": true
+  },
+  "execution_policy": {
+    "stage_scope": "S7_ONLY",
+    "dispatch_sequence": "SERIAL_FIRST_ATTEMPT_PER_EXACT_MAIN_SHA",
+    "workflow_rerun_allowed": false,
+    "stop_dispatching_on_t0702_pass": true,
+    "fixed_calendar_wait_days": 0,
+    "beta_verified_message_budget_per_attempt": 1,
+    "beta_gmail_mutation_budget": 0,
+    "m3_source_mutation_budget_per_run": 1,
+    "maximum_concurrent_writers": 1,
+    "remote_recovery_required_before_source_mutation": true,
+    "single_live_timeline_required": true
+  },
+  "scope": [
+    "replay the complete validated Stage 7 repair on the latest main tree",
+    "run all local, clean-tree, package, publication, supply-chain and workflow gates",
+    "deliver through a controlled pull request and merge",
+    "refresh only stale protected configuration fields without reading Secret values into logs",
+    "execute a new first-attempt protected T0702 Beta and use only the fixed public-safe phase code on failure",
+    "repair evidence-backed failures and repeat with a new exact main SHA without using GitHub rerun",
+    "after T0702 PASS, execute M3, Blue-Green, GA and Recovery strictly in predecessor order",
+    "materialize protected receipts, final Acceptance evidence and the final review only from observed results"
+  ],
+  "non_goals": [
+    "changing any frozen requirement, final Acceptance threshold, task DAG, Kill Criterion or canonical invariant",
+    "weakening sender verification, age encryption, remote recovery, append-only Raw or single-Timeline semantics",
+    "revealing a Secret, Gmail field, private repository identifier, exact protected count or dynamic exception text in public output",
+    "using a self-hosted runner, Codex Automation special behavior, local persistent runtime state or manual routine work",
+    "entering M3 before a real T0702 protected PASS",
+    "claiming a protected Oracle, production health, final Acceptance or publication without its exact observed evidence"
+  ],
+  "validation": [
+    "all task and remediation tests",
+    "strict mypy and Ruff",
+    "Stage 7 cumulative preflight",
+    "package, delivery-status, Governance, workflow-matrix, production-composition, publication and Secret gates",
+    "GitHub pull-request checks on the exact candidate",
+    "protected execution receipts bound to exact run, attempt, main SHA and public-safe result",
+    "remote repository recovery and Gmail postcondition verification before each phase is promoted"
+  ],
+  "rollback": "Every phase fails closed. Beta never mutates Gmail; M3 mutates at most one verified source only after Raw and Processed remote recovery; append-only encrypted objects remain recoverable; Timeline promotion uses strict single-writer replacement; a failed candidate is superseded by a new reviewed commit and is never rerun.",
+  "stop_conditions": [
+    "a zero-collateral, encryption, recovery, private-repository identity, single-writer or single-Timeline invariant would be violated",
+    "a required protected credential or external service is unavailable after bounded retries",
+    "public output could expose a protected value",
+    "the exact latest main tree cannot be reproduced or validated",
+    "a phase attempts to bypass its predecessor protected PASS"
+  ]
+}

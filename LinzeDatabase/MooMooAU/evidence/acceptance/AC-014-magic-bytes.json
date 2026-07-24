@@ -1,0 +1,129 @@
+{
+  "acceptance_id": "AC-014",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "56740d48decaf928445d490c204b3bae0d6d30437c172643a8a2b81dc617cf84",
+    "evidence_required": "evidence/acceptance/AC-014-magic-bytes.json",
+    "pass_gate_text": "AC-014 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_014.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-014-RMD01-20260724",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0003.json",
+      "evidence_sha256": "8c6de3bd1770c06b931ddba4e6c854f1a3e606f47306d595f40ced3ffa584947",
+      "final_claim_status": "NO_FINAL_CLAIM",
+      "reason": "The source task evidence has no final Acceptance claim.",
+      "source_record_status": "VALID",
+      "task_id": "T0003"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0103.json",
+      "evidence_sha256": "3d2d68289cd092afc0aa9c6a4f9a46678d37b86776a0c695b2b9a01ff134265e",
+      "final_claim_status": "PARTIAL",
+      "reason": "Magic-byte triage covers Stage 1 fixtures; full parser recall and quarantine suites belong later.",
+      "source_record_status": "PASS",
+      "task_id": "T0103"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0306.json",
+      "evidence_sha256": "7cb5d7e070d7fb1afb3b5b90fc33b9f35e878c384c1b97ba8d9119ff0a62da1f",
+      "final_claim_status": "PARTIAL",
+      "reason": "Supported and malicious synthetic attachment fixtures classify deterministically; the full protected production corpus is not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0306"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0403.json",
+      "evidence_sha256": "7f8b297fa0c12e564e695cf2e20171852decc1e4dbc160b42160e46216420504",
+      "final_claim_status": "PARTIAL",
+      "reason": "Bounded synthetic CSV parsing and inherited Stage 3 malicious-container controls pass; protected real octet-stream PDF and complete format canaries are not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0403"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0601.json",
+      "evidence_sha256": "32b1ab1ded2897cc92bf9aab81abe90f5cb4342cd7f779eca1ca362b8002b682",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic content identity converges without duplicate logical objects; private repository convergence was not executed.",
+      "source_record_status": "PASS",
+      "task_id": "T0601"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-24T02:10:28Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-014",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_014_pass_gate",
+    "path": "tests/acceptance/test_ac_014.py",
+    "sha256": "93e8b0e09fc39d7c14620d96e7c1f1da84eb6f45f551487aa4fb3d03a5bc8b93"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0003",
+      "T0103",
+      "T0306",
+      "T0403",
+      "T0601"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "c8a04d9d9efe9ef540c2f17722a20192ec89efb8747076fe516c1beeef5dc447"
+  }
+}

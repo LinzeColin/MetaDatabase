@@ -1,0 +1,28 @@
+{
+  "schema_version": "moomooau.stage7-evidence.v1",
+  "evidence_id": "S7-T0701-LOCAL-20260720",
+  "stage_id": "S7",
+  "task_id": "T0701",
+  "stage_acceptance_id": "S7AC-001",
+  "observed_at_utc": "2026-07-23T22:53:05Z",
+  "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
+  "record_status": "READY",
+  "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "alpha_all_production_flags_off", "status": "PASS", "evidence_ref": "src/moomooau_archive/release_control.py and tests/tasks/test_t0701.py"},
+    {"id": "local_synthetic_release_gate", "status": "PASS", "evidence_ref": "tests/tasks/test_t0701.py::test_t0701_alpha_has_every_production_flag_off"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-021", "status": "PARTIAL", "reason": "Local immutable controls exist; protected environment and live credentials were not exercised."},
+    {"id": "AC-032", "status": "PARTIAL", "reason": "Synthetic release rollback is bounded; real cloud rollback and recovery remain not run."},
+    {"id": "AC-033", "status": "PARTIAL", "reason": "Local taskpack and implementation checks pass; remote Alpha and later observations remain not run."}
+  ],
+  "production_oracles": [
+    {"id": "REMOTE_ALPHA_NO_SECRET_PREFLIGHT", "status": "PASS", "reason": "The same-tree no-Secret Alpha job completed successfully on the exact merged main commit before the protected Beta job began."}
+  ],
+  "protected_execution_receipt": "machine/stages/S7/reviews/t0702/execution-receipt.json",
+  "blockers": ["FINAL_ACCEPTANCE_STILL_BLOCKED_AFTER_ALPHA"],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
+  "next_action": "Retain the remote Alpha PASS and the completed protected Beta receipt as stage-local predecessor evidence; do not promote either observation to final Acceptance, production health or permission to enter M3."
+}

@@ -1,0 +1,15 @@
+# 微实盘自动切换器(oneshot;由 alpha-activate.path 在切换请求文件出现时触发)
+# 全链唯一有权改交易模式的组件:独立复核全绿报告+预签授权+请求新鲜度后,
+# 原子改写环境三键并重启交易进程;任何不符即回滚,失败关闭。
+[Unit]
+Description=Alpha 微实盘自动切换器(激活唯一通道,失败自动回滚)
+After=network-online.target postgresql.service
+OnFailure=alpha-alert@%n.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/alpha/MetaDatabase/Alpha
+EnvironmentFile=/opt/alpha/env
+ExecStart=/opt/alpha/venv/bin/python scripts/activate_micro_live.py
+TimeoutStartSec=300

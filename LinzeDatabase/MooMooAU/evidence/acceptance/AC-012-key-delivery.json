@@ -1,0 +1,111 @@
+{
+  "acceptance_id": "AC-012",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_NOT_RUN"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "7df2731e973dfc1aa7c0b8e75e5a063bf4c0c62a2b2134097c6d587d8a972511",
+    "evidence_required": "evidence/acceptance/AC-012-key-delivery.json",
+    "pass_gate_text": "AC-012 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_012.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-012-RMD01-20260724",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0007.json",
+      "evidence_sha256": "a7174f84b3d372dfc3eaa757aa3886431fc42f11288673b9915ea72a138cab99",
+      "final_claim_status": "NO_FINAL_CLAIM",
+      "reason": "The source task evidence has no final Acceptance claim.",
+      "source_record_status": "VALID",
+      "task_id": "T0007"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0206.json",
+      "evidence_sha256": "c056746e4136b77133448d979f4ba58d5b0e2fae261420ebede51b58d1a40a50",
+      "final_claim_status": "NOT_RUN",
+      "reason": "Only the port contract and synthetic in-memory handoff ran; no real Environment Secret or development-thread one-time file was created or delivered.",
+      "source_record_status": "PASS",
+      "task_id": "T0206"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0707.json",
+      "evidence_sha256": "ba28ba42b6955d75e55af2951a098f1c28f026aab9e1d384d68acf43dbad0d9e",
+      "final_claim_status": "NOT_RUN",
+      "reason": "The local mechanism uses only generated synthetic identities; no owner-held MooMooAU-Recovery-Key.agekey was provided, read or proven to match the protected Environment identity.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0707"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-24T02:10:28Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-012",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_012_pass_gate",
+    "path": "tests/acceptance/test_ac_012.py",
+    "sha256": "d1eabefc5b042f632da6eff9bccf3c963700daa8b8052f8566be372f5c885dcf"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0007",
+      "T0206",
+      "T0707"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "429242dc6e42629eaee05d2e351a9769a888b8b446a895c589cd23ad2e900bac"
+  }
+}

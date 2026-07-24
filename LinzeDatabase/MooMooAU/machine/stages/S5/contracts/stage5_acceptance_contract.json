@@ -1,0 +1,99 @@
+{
+  "schema_version": "moomooau.stage-local-acceptance.v1",
+  "stage_id": "S5",
+  "policy": "FAIL_CLOSED",
+  "final_acceptance_policy": "Stage-local PASS proves deterministic synthetic Stage 5 boundaries only; production credentials, real Gmail and private GitHub calls, live Release mutation, scheduled runs, deployment and final review remain PARTIAL or NOT_RUN.",
+  "acceptance_contracts": [
+    {
+      "id": "S5AC-001",
+      "task_id": "T0501",
+      "linked_final_acceptance_ids": ["AC-007", "AC-017", "AC-027"],
+      "title": "远端 Raw 与 Processed 恢复证明 Gate",
+      "environment": "official age CLI and in-memory synthetic remote objects; no private repository call",
+      "input": "verified Canonical Raw, encrypted Raw and Processed plans, matching and corrupt remote controls",
+      "oracle": "Every required ciphertext is refetched, exact ciphertext and decrypted plaintext digests match, and Processed is complete or explicitly safe-deferred before recovery is authorized.",
+      "threshold": "synthetic valid recovery 100%; digest mismatch authorizations 0; quarantined authorizations 0; persistent plaintext objects 0",
+      "evidence_required": "evidence/tasks/T0501.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0501.py",
+      "failure_action": "Deny M3, preserve the source message and record the exact failed recovery state."
+    },
+    {
+      "id": "S5AC-002",
+      "task_id": "T0502",
+      "linked_final_acceptance_ids": ["AC-002", "AC-006", "AC-026"],
+      "title": "精确 source message Trash 与确认",
+      "environment": "in-memory Gmail boundary with synthetic verified messages and mutation budgets",
+      "input": "matching, changed, already-Trash, uncertain-response and over-budget synthetic controls",
+      "oracle": "Only the exact verified message ID can reach users.messages.trash after a second verification and complete recovery proof; minimal labels confirm Trash and uncertain mutation results are never blindly retried.",
+      "threshold": "thread Trash calls 0; permanent deletes 0; wrong-message mutations 0; stable default budget 0; synthetic canary mutations at most 1",
+      "evidence_required": "evidence/tasks/T0502.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0502.py",
+      "failure_action": "Stop mutation, retain the source message and require reconciliation of the uncertain or changed state."
+    },
+    {
+      "id": "S5AC-003",
+      "task_id": "T0503",
+      "linked_final_acceptance_ids": ["AC-029", "AC-030"],
+      "title": "Timeline Event 双时区与生命周期",
+      "environment": "synthetic verified envelopes, deterministic clock and complete Stage 5 Timeline schema",
+      "input": "Gmail internalDate, Australia/Sydney business label date, discovery labels, parser and M3 states",
+      "oracle": "The event uses internalDate as UTC truth, renders Sydney time explicitly, preserves label-date semantics and binds discovery, parser, expectation and M3 lifecycle without guessed values.",
+      "threshold": "schema validation 100%; UTC/Sydney conversion errors 0; unknown values without reasons 0",
+      "evidence_required": "evidence/tasks/T0503.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0503.py",
+      "failure_action": "Block Timeline publication and preserve the encrypted archive state."
+    },
+    {
+      "id": "S5AC-004",
+      "task_id": "T0504",
+      "linked_final_acceptance_ids": ["AC-029", "AC-030"],
+      "title": "XNYS 交易日延迟与安全预期",
+      "environment": "exchange_calendars XNYS adapter and synthetic session dates",
+      "input": "weekend, exchange closure, open sessions, password waiting and evidence/no-evidence controls",
+      "oracle": "XNYS lag counts sessions rather than calendar days; closed periods are NOT_EXPECTED and MISSING requires independent expectation evidence plus an elapsed SLA.",
+      "threshold": "weekend/closure false MISSING 0; no-evidence false MISSING 0; unknown calendar guesses 0",
+      "evidence_required": "evidence/tasks/T0504.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0504.py",
+      "failure_action": "Emit UNKNOWN or NOT_EXPECTED with reason and prohibit a MISSING conclusion."
+    },
+    {
+      "id": "S5AC-005",
+      "task_id": "T0505",
+      "linked_final_acceptance_ids": ["AC-028", "AC-029"],
+      "title": "确定性内存 Timeline PNG",
+      "environment": "pinned Pillow, bundled default font and fixed synthetic events",
+      "input": "same snapshot in multiple input orders plus changed M3 and closure states",
+      "oracle": "Fixed dimensions, pixels, font, sort order, colors, metadata and compression produce identical PNG bytes for the same canonical snapshot and changed bytes for semantic changes.",
+      "threshold": "same-root byte mismatches 0; PNG persistent plaintext objects 0; semantic-change collisions 0",
+      "evidence_required": "evidence/tasks/T0505.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0505.py",
+      "failure_action": "Do not encrypt or publish the candidate Timeline and retain the previous verified live asset."
+    },
+    {
+      "id": "S5AC-006",
+      "task_id": "T0506",
+      "linked_final_acceptance_ids": ["AC-011", "AC-022", "AC-028"],
+      "title": "单一加密 live Asset 串行替换与修复",
+      "environment": "in-memory Release and encrypted state adapters with official age",
+      "input": "zero, one, duplicate, same-snapshot, delete/upload failure, uncertain response, corrupt remote upload and older-repair controls",
+      "oracle": "Only moomooau-live/timeline-latest.png.age is targeted; healthy semantic retries do not redraw or mutate, replacement is serial, an uncertain response is remotely reconciled, and an unrecoverable candidate is removed before encrypted repair state is recorded and replayed ahead of newer data.",
+      "threshold": "healthy target assets exactly 1; plaintext uploads 0; Git writes 0; Artifact/Cache writes 0; unresolved repair bypasses 0",
+      "evidence_required": "evidence/tasks/T0506.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0506.py",
+      "failure_action": "Leave zero target assets with encrypted repair state, stop newer publication and replay the exact repair snapshot."
+    },
+    {
+      "id": "S5AC-007",
+      "task_id": "T0507",
+      "linked_final_acceptance_ids": ["AC-023", "AC-025"],
+      "title": "04:30 Sydney 日常周日与手动计划",
+      "environment": "GitHub-hosted workflow definition and deterministic timezone-aware planner; protected execution disabled",
+      "input": "scheduled Sunday/non-Sunday, workflow_dispatch, delayed and DST-transition synthetic controls",
+      "oracle": "The workflow declares cron 30 4 * * * with Australia/Sydney timezone and workflow_dispatch; Sunday and manual runs are full reconcile, and delayed execution never claims a punctual SLA.",
+      "threshold": "declared local schedule exactly 04:30; local scheduler 0; self-hosted runners 0; protected runs 0",
+      "evidence_required": "evidence/tasks/T0507.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0507.py",
+      "failure_action": "Keep production disabled and require an explicit catch-up or manual full reconcile plan."
+    }
+  ]
+}

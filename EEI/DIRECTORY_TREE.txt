@@ -66,6 +66,10 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   └── app
 │   │   │       ├── capital
 │   │   │       │   └── page.tsx
+│   │   │       ├── components
+│   │   │       │   ├── command-search.tsx
+│   │   │       │   ├── evidence-panel.tsx
+│   │   │       │   └── feedback.tsx
 │   │   │       ├── control
 │   │   │       │   └── page.tsx
 │   │   │       ├── development-status
@@ -92,6 +96,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       ├── family-module-client.ts
 │   │   │       ├── family-module-page.tsx
 │   │   │       ├── globals.css
+│   │   │       ├── labels.ts
 │   │   │       ├── layout.tsx
 │   │   │       ├── model-activation-client.ts
 │   │   │       ├── page.tsx
@@ -415,6 +420,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── 35_DATA_CATALOGS_AND_TAXONOMIES.md
 │   ├── 36_RELEASE_GATES_AND_DEFINITION_OF_DONE.md
 │   ├── 37_ISOLATED_RETEST_SUITE.md
+│   ├── 38_UX_SPEC_EEI_v1.md
 │   ├── INDEX.md
 │   └── STATUS.md
 ├── infra
@@ -459,9 +465,14 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   └── README.md
 │   │   └── seeds
 │   │       └── README.md
-│   └── docker
-│       ├── README.md
-│       └── worker.Dockerfile
+│   ├── docker
+│   │   ├── README.md
+│   │   ├── refresh-entrypoint.sh
+│   │   ├── refresh.Dockerfile
+│   │   └── worker.Dockerfile
+│   └── ovh
+│       ├── RESOURCE_SAFETY_ANALYSIS.md
+│       └── RUNBOOK_OVH_EEI.md
 ├── machine
 │   ├── facts
 │   │   ├── blockers.json
@@ -525,6 +536,15 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   ├── fault_injection.py
 │   │   ├── load_capacity.py
 │   │   └── passive_security_audit.py
+│   ├── authoritative
+│   │   ├── __init__.py
+│   │   ├── collect_gleif.py
+│   │   ├── collect_insiders.py
+│   │   ├── collect_universe.py
+│   │   ├── common.py
+│   │   ├── enrich_sec.py
+│   │   ├── refresh_cycle.py
+│   │   └── watch_recent_filings.py
 │   ├── apply_model_config.py
 │   ├── backfill_sec_history.py
 │   ├── backup_restore_drill.py
@@ -633,7 +653,10 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   └── approved-loading-pending-chromium-linux.png
 │   │   ├── README.md
 │   │   ├── capital-river.spec.ts
+│   │   ├── command-search.spec.ts
 │   │   ├── development-status.spec.ts
+│   │   ├── feedback-motion-evidence.spec.ts
+│   │   ├── graph-label-overlap.spec.ts
 │   │   ├── home.spec.ts
 │   │   ├── industry.spec.ts
 │   │   ├── motion-choreography.spec.ts
@@ -746,6 +769,7 @@ Enterprise_Ecosystem_Intelligence_release
 ├── US_Corporate_Power_Map_UIUX_Redesign_v4.2.md
 ├── VALIDATION_REPORT.md
 ├── VERSION
+├── docker-compose.ovh.yml
 ├── docker-compose.yml
 ├── manifest.txt
 ├── package.json

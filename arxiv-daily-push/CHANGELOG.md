@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-07-23 Australia/Sydney - ADP v1.2 S3: Science Advances PubMed candidate closeout (NOT DEPLOYED)
+
+- 新增 candidate-only PubMed ESearch→EFetch 路径，固定 Science Advances 的 NLM/ISSN/期刊身份，
+  最多 20 PMID、2 个 GET 请求、请求起始间隔至少 1000ms；保留 PMID/DOI provenance，零写入。
+- 首轮独立 verifier 发现 XML 1.0 非法 literal 字符未失败关闭，并把未声明命名实体边界标为
+  UNKNOWN；修复为严格 XML 1.0 code point 与五个预定义实体规则后，fresh-context r2 对冻结
+  commit `7e5ab5ae` / tree `dab91068` 裁定 S3 3/3 PASS，P0/P1/UNKNOWN/BLOCKED/waiver 全为 0。
+- 独立对抗检查 26/26、Node 63 scenarios、聚焦测试 12 OK；full suite 原始
+  `962 tests / 2 failures / 11 errors / 29 skips`，与 sealed baseline 失败/错误测试名集合精确一致，
+  `candidate_only=[]`、`baseline_only=[]`，没有把历史红项包装成绿色。
+- `science-advances-pubmed-candidate` 仍为 `candidate_not_live`；`worker_cloud.js`、现有
+  Science.org RSS、三个 cron、D1/R2、来源启停和 live `0.41.0` 均未变。S4.1 尚未创建
+  Run Contract，保持 `NOT_RUN`。
+
 ## 2026-07-20 Australia/Sydney - ADP V0.2 P20: 4 个不可达源换替代端点 (PRODUCTION DEPLOY c2ccc1fd01ec; product_version 0.41.0)
 - Owner 选「先试替代端点」(不花钱)。临时部署 adp-probe worker 从**Cloudflare 边缘 IP** 实测候选端点(探完已删)。
 - 切换 4 源:cell/cell-neuron/lancet → **ScienceDirect 官方 RSS**(同刊官方源,边缘 200/70·52·87 条);

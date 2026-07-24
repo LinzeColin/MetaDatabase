@@ -1,0 +1,54 @@
+{
+  "schema_version": "moomooau.platform-capabilities.v2",
+  "observed_at_utc": "2026-07-19T22:33:13Z",
+  "release_assets": {
+    "source": {
+      "repository": "github/rest-api-description",
+      "commit": "03ca9c1cac754ec9b8369dc75de8a8c753c6e087",
+      "path": "descriptions/api.github.com/api.github.com.json",
+      "url": "https://github.com/github/rest-api-description/blob/03ca9c1cac754ec9b8369dc75de8a8c753c6e087/descriptions/api.github.com/api.github.com.json"
+    },
+    "upload_responses": [
+      201,
+      422
+    ],
+    "same_filename_upload_response": 422,
+    "update_fields": [
+      "label",
+      "name",
+      "state"
+    ],
+    "delete_success_response": 204,
+    "atomic_replace_operation": false,
+    "decision": "Use a verified serial delete-upload protocol with an explicit zero-asset repair state; do not claim atomic replacement."
+  },
+  "workflow_schedule": {
+    "source": {
+      "publisher": "GitHub Docs",
+      "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule",
+      "observed_at_utc": "2026-07-19T22:33:13Z"
+    },
+    "timezone_aware_schedule_supported": true,
+    "iana_timezone": "Australia/Sydney",
+    "cron": "30 4 * * *",
+    "dst_aware": true,
+    "delay_possible": true,
+    "drop_possible": true,
+    "exact_execution_start_guaranteed": false,
+    "decision": "Treat 04:30 Australia/Sydney as the provider scheduling target, never as an exact start SLA; every later invocation performs idempotent catch-up and Sunday full reconciliation detects retained gaps."
+  },
+  "age_encryption": {
+    "source": {
+      "repository": "C2SP/C2SP",
+      "commit": "6f65019ab73fd5dafbfe6a27cf508ef5c134cbb9",
+      "path": "age.md",
+      "sha256": "9113a9c8c4744637494a8666095930984952ab1a430b127f6d74f14d95b6dffb",
+      "url": "https://github.com/C2SP/C2SP/blob/6f65019ab73fd5dafbfe6a27cf508ef5c134cbb9/age.md"
+    },
+    "file_key_from_csprng": true,
+    "payload_nonce_from_csprng": true,
+    "x25519_ephemeral_secret_per_file": true,
+    "deterministic_ciphertext": false,
+    "decision": "Use snapshot_root and verified plaintext_sha256 for semantic idempotency; use ciphertext_sha256 only for transport and remote recovery integrity."
+  }
+}

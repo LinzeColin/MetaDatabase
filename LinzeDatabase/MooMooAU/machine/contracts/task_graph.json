@@ -1,0 +1,2963 @@
+{
+  "version": "1.0.1",
+  "stages": [
+    {
+      "id": "S0",
+      "title": "产品契约与开发入口冻结",
+      "phases": [
+        {
+          "id": "P0.1",
+          "title": "导入与事实冻结",
+          "tasks": [
+            "T0001",
+            "T0002"
+          ]
+        },
+        {
+          "id": "P0.2",
+          "title": "Baseline 与证伪计划",
+          "tasks": [
+            "T0003",
+            "T0004"
+          ]
+        },
+        {
+          "id": "P0.3",
+          "title": "治理与双平面",
+          "tasks": [
+            "T0005",
+            "T0006"
+          ]
+        },
+        {
+          "id": "P0.4",
+          "title": "一次性人类动作前置",
+          "tasks": [
+            "T0007"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S1",
+      "title": "Walking Skeleton 与公共代码骨架",
+      "phases": [
+        {
+          "id": "P1.1",
+          "title": "项目骨架",
+          "tasks": [
+            "T0101",
+            "T0102"
+          ]
+        },
+        {
+          "id": "P1.2",
+          "title": "合成 Gmail Walking Skeleton",
+          "tasks": [
+            "T0103",
+            "T0104"
+          ]
+        },
+        {
+          "id": "P1.3",
+          "title": "Schema 与验证器",
+          "tasks": [
+            "T0105",
+            "T0106"
+          ]
+        },
+        {
+          "id": "P1.4",
+          "title": "基础 CI",
+          "tasks": [
+            "T0107"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "title": "身份、加密与供应链",
+      "phases": [
+        {
+          "id": "P2.1",
+          "title": "Gmail OAuth 和端点守卫",
+          "tasks": [
+            "T0201",
+            "T0202"
+          ]
+        },
+        {
+          "id": "P2.2",
+          "title": "GitHub App 私有仓访问",
+          "tasks": [
+            "T0203",
+            "T0204"
+          ]
+        },
+        {
+          "id": "P2.3",
+          "title": "age 与恢复钥匙",
+          "tasks": [
+            "T0205",
+            "T0206"
+          ]
+        },
+        {
+          "id": "P2.4",
+          "title": "供应链锁定",
+          "tasks": [
+            "T0207"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "title": "Gmail 发现、验证与 Canonical Raw",
+      "phases": [
+        {
+          "id": "P3.1",
+          "title": "候选发现",
+          "tasks": [
+            "T0301",
+            "T0302"
+          ]
+        },
+        {
+          "id": "P3.2",
+          "title": "发件人注册表与验证",
+          "tasks": [
+            "T0303",
+            "T0304"
+          ]
+        },
+        {
+          "id": "P3.3",
+          "title": "Canonical Raw 与附件",
+          "tasks": [
+            "T0305",
+            "T0306"
+          ]
+        },
+        {
+          "id": "P3.4",
+          "title": "Raw 私有提交",
+          "tasks": [
+            "T0307"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "title": "Processed 数据产品与公开契约",
+      "phases": [
+        {
+          "id": "P4.1",
+          "title": "文档分类和通用信封",
+          "tasks": [
+            "T0401",
+            "T0402"
+          ]
+        },
+        {
+          "id": "P4.2",
+          "title": "报表 Parser",
+          "tasks": [
+            "T0403",
+            "T0404"
+          ]
+        },
+        {
+          "id": "P4.3",
+          "title": "密码延迟与重处理",
+          "tasks": [
+            "T0405",
+            "T0406"
+          ]
+        },
+        {
+          "id": "P4.4",
+          "title": "公开 Inventory/Schema/Evidence",
+          "tasks": [
+            "T0407"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "title": "M3 与最新 Timeline",
+      "phases": [
+        {
+          "id": "P5.1",
+          "title": "M3 Gate 和消息级变更",
+          "tasks": [
+            "T0501",
+            "T0502"
+          ]
+        },
+        {
+          "id": "P5.2",
+          "title": "Timeline 事实模型",
+          "tasks": [
+            "T0503",
+            "T0504"
+          ]
+        },
+        {
+          "id": "P5.3",
+          "title": "单一 Timeline 渲染和替换",
+          "tasks": [
+            "T0505",
+            "T0506"
+          ]
+        },
+        {
+          "id": "P5.4",
+          "title": "04:30 生产工作流",
+          "tasks": [
+            "T0507"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "title": "安全、模型、压力与混沌保证",
+      "phases": [
+        {
+          "id": "P6.1",
+          "title": "软件正确性流水线",
+          "tasks": [
+            "T0601",
+            "T0602"
+          ]
+        },
+        {
+          "id": "P6.2",
+          "title": "Abuse 与安全红队",
+          "tasks": [
+            "T0603",
+            "T0604"
+          ]
+        },
+        {
+          "id": "P6.3",
+          "title": "模型能力与安全流水线",
+          "tasks": [
+            "T0605",
+            "T0606"
+          ]
+        },
+        {
+          "id": "P6.4",
+          "title": "负载、容量和混沌",
+          "tasks": [
+            "T0607",
+            "T0608"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "title": "安全发布、运维与交接",
+      "phases": [
+        {
+          "id": "P7.1",
+          "title": "Alpha/Beta",
+          "tasks": [
+            "T0701",
+            "T0702"
+          ]
+        },
+        {
+          "id": "P7.2",
+          "title": "M3 与 Timeline Canary",
+          "tasks": [
+            "T0703",
+            "T0704"
+          ]
+        },
+        {
+          "id": "P7.3",
+          "title": "GA 与 Codex 入口",
+          "tasks": [
+            "T0705",
+            "T0706"
+          ]
+        },
+        {
+          "id": "P7.4",
+          "title": "恢复、回滚和长期运维",
+          "tasks": [
+            "T0707",
+            "T0708"
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T0001",
+      "stage_id": "S0",
+      "phase_id": "P0.1",
+      "title": "读取任务包并建立实现分支",
+      "objective": "导入 PACKAGE_MANIFEST、Canonical Facts、非目标和追踪矩阵；不改真实数据。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0001",
+        "machine run record for T0001"
+      ],
+      "dependencies": [],
+      "tests": [
+        "pytest -q tests/tasks/test_t0001.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0001.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-008",
+        "AC-009",
+        "AC-034"
+      ],
+      "stage_acceptance_ids": [
+        "S0AC-001"
+      ],
+      "verification": "python3 -m pytest -q tests/tasks/test_t0001.py && python3 machine/tools/validate_evidence.py evidence/tasks/T0001.json",
+      "pass_gate": "S0AC-001 达标且证据可机读、可追溯、无敏感数据；AC-* 保留为最终追踪，不作为 S0 局部完成前置。",
+      "status": "completed"
+    },
+    {
+      "id": "T0002",
+      "stage_id": "S0",
+      "phase_id": "P0.1",
+      "title": "建立不变量漂移检查",
+      "objective": "将 04:30、单一私有仓、消息级 M3、单 Timeline 等写成机器检查。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0002",
+        "machine run record for T0002"
+      ],
+      "dependencies": [
+        "T0001"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0002.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0002.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-006",
+        "AC-009",
+        "AC-023",
+        "AC-028"
+      ],
+      "stage_acceptance_ids": [
+        "S0AC-002"
+      ],
+      "verification": "python3 -m pytest -q tests/tasks/test_t0002.py && python3 machine/tools/validate_evidence.py evidence/tasks/T0002.json",
+      "pass_gate": "S0AC-002 达标且证据可机读、可追溯、无敏感数据；AC-* 保留为最终追踪，不作为 S0 局部完成前置。",
+      "status": "completed"
+    },
+    {
+      "id": "T0003",
+      "stage_id": "S0",
+      "phase_id": "P0.2",
+      "title": "建立合成与脱敏基线",
+      "objective": "记录当前自动化为 0、真实样本形态和 octet-stream PDF 事实。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0003",
+        "machine run record for T0003"
+      ],
+      "dependencies": [
+        "T0002"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0003.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0003.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-003",
+        "AC-014",
+        "AC-031"
+      ],
+      "stage_acceptance_ids": [
+        "S0AC-003"
+      ],
+      "verification": "python3 -m pytest -q tests/tasks/test_t0003.py && python3 machine/tools/validate_evidence.py evidence/tasks/T0003.json",
+      "pass_gate": "S0AC-003 达标且证据可机读、可追溯、无敏感数据；AC-* 保留为最终追踪，不作为 S0 局部完成前置。",
+      "status": "completed"
+    },
+    {
+      "id": "T0004",
+      "stage_id": "S0",
+      "phase_id": "P0.2",
+      "title": "冻结收益成本与 Kill Criteria",
+      "objective": "把收益区间、维护成本、容量和停止条件写入 machine facts。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0004",
+        "machine run record for T0004"
+      ],
+      "dependencies": [
+        "T0003"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0004.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0004.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-031",
+        "AC-032",
+        "AC-034"
+      ],
+      "stage_acceptance_ids": [
+        "S0AC-004"
+      ],
+      "verification": "python3 -m pytest -q tests/tasks/test_t0004.py && python3 machine/tools/validate_evidence.py evidence/tasks/T0004.json",
+      "pass_gate": "S0AC-004 达标且证据可机读、可追溯、无敏感数据；AC-* 保留为最终追踪，不作为 S0 局部完成前置。",
+      "status": "completed"
+    },
+    {
+      "id": "T0005",
+      "stage_id": "S0",
+      "phase_id": "P0.3",
+      "title": "接入现有 MetaDatabase 双平面治理",
+      "objective": "遵循仓库现行 Governance，不复制或重建额外治理系统。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0005",
+        "machine run record for T0005"
+      ],
+      "dependencies": [
+        "T0004"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0005.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0005.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-008"
+      ],
+      "stage_acceptance_ids": [
+        "S0AC-005"
+      ],
+      "verification": "python3 -m pytest -q tests/tasks/test_t0005.py && python3 machine/tools/validate_evidence.py evidence/tasks/T0005.json",
+      "pass_gate": "S0AC-005 达标且证据可机读、可追溯、无敏感数据；AC-* 保留为最终追踪，不作为 S0 局部完成前置。",
+      "status": "completed"
+    },
+    {
+      "id": "T0006",
+      "stage_id": "S0",
+      "phase_id": "P0.3",
+      "title": "验证七文件和机器事实一致",
+      "objective": "生成并校验双平面七文件、预算、中文和事实一致性。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0006",
+        "machine run record for T0006"
+      ],
+      "dependencies": [
+        "T0005"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0006.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0006.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-008",
+        "AC-031"
+      ],
+      "stage_acceptance_ids": [
+        "S0AC-006"
+      ],
+      "verification": "python3 -m pytest -q tests/tasks/test_t0006.py && python3 machine/tools/validate_evidence.py evidence/tasks/T0006.json",
+      "pass_gate": "S0AC-006 达标且证据可机读、可追溯、无敏感数据；AC-* 保留为最终追踪，不作为 S0 局部完成前置。",
+      "status": "completed"
+    },
+    {
+      "id": "T0007",
+      "stage_id": "S0",
+      "phase_id": "P0.4",
+      "title": "生成一次性部署清单",
+      "objective": "将 Gmail OAuth、GitHub App、Environment Secret、Recovery Key 下载集中到部署前。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0007",
+        "machine run record for T0007"
+      ],
+      "dependencies": [
+        "T0006"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0007.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0007.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-012",
+        "AC-018",
+        "AC-019"
+      ],
+      "stage_acceptance_ids": [
+        "S0AC-007"
+      ],
+      "verification": "python3 -m pytest -q tests/tasks/test_t0007.py && python3 machine/tools/validate_evidence.py evidence/tasks/T0007.json",
+      "pass_gate": "S0AC-007 达标且证据可机读、可追溯、无敏感数据；AC-* 保留为最终追踪，不作为 S0 局部完成前置。",
+      "status": "completed"
+    },
+    {
+      "id": "T0101",
+      "stage_id": "S1",
+      "phase_id": "P1.1",
+      "title": "创建公开项目目录和包结构",
+      "objective": "创建 src/tests/schemas/inventory/evidence/machine/文档，私有仓不放代码。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0101",
+        "machine run record for T0101"
+      ],
+      "dependencies": [
+        "T0007"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0101.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0101.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-008",
+        "AC-009"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0101.py && python machine/tools/validate_evidence.py evidence/tasks/T0101.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0102",
+      "stage_id": "S1",
+      "phase_id": "P1.1",
+      "title": "创建 CLI 与纯函数边界",
+      "objective": "提供 discover、classify、archive、process、timeline、m3、reconcile 子命令，仅供 Actions。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0102",
+        "machine run record for T0102"
+      ],
+      "dependencies": [
+        "T0101"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0102.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0102.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-010",
+        "AC-034"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0102.py && python machine/tools/validate_evidence.py evidence/tasks/T0102.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0103",
+      "stage_id": "S1",
+      "phase_id": "P1.2",
+      "title": "建立 RFC EML 与附件 Fixture 工厂",
+      "objective": "生成 MIME、RAW、internalDate、标签、认证和恶意样本。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0103",
+        "machine run record for T0103"
+      ],
+      "dependencies": [
+        "T0102"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0103.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0103.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-013",
+        "AC-014",
+        "AC-020"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0103.py && python machine/tools/validate_evidence.py evidence/tasks/T0103.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0104",
+      "stage_id": "S1",
+      "phase_id": "P1.2",
+      "title": "完成内存端到端 Skeleton",
+      "objective": "合成 RAW → 验证 → age → 私有测试远端 → 恢复 → 公开 Evidence。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0104",
+        "machine run record for T0104"
+      ],
+      "dependencies": [
+        "T0103"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0104.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0104.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-011",
+        "AC-013",
+        "AC-027",
+        "AC-031"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0104.py && python machine/tools/validate_evidence.py evidence/tasks/T0104.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0105",
+      "stage_id": "S1",
+      "phase_id": "P1.3",
+      "title": "实现 JSON Schema 与 Pandera 契约",
+      "objective": "实现 Message、Document、Transaction、Timeline、Lineage、Evidence 契约。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0105",
+        "machine run record for T0105"
+      ],
+      "dependencies": [
+        "T0104"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0105.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0105.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-015",
+        "AC-029",
+        "AC-031"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0105.py && python machine/tools/validate_evidence.py evidence/tasks/T0105.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0106",
+      "stage_id": "S1",
+      "phase_id": "P1.3",
+      "title": "实现任务包和仓库验证器",
+      "objective": "检查需求唯一、AC 唯一、DAG 无环、追踪完整和禁止项。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0106",
+        "machine run record for T0106"
+      ],
+      "dependencies": [
+        "T0105"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0106.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0106.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-008",
+        "AC-034"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0106.py && python machine/tools/validate_evidence.py evidence/tasks/T0106.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0107",
+      "stage_id": "S1",
+      "phase_id": "P1.4",
+      "title": "建立无 Secret 公共 CI",
+      "objective": "Lint、type、unit、schema、package、dual-plane、secret scan。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0107",
+        "machine run record for T0107"
+      ],
+      "dependencies": [
+        "T0106"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0107.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0107.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-021",
+        "AC-033"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0107.py && python machine/tools/validate_evidence.py evidence/tasks/T0107.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0201",
+      "stage_id": "S2",
+      "phase_id": "P2.1",
+      "title": "实现单 OAuth 凭证加载",
+      "objective": "使用受保护 Secret 和 gmail.modify，日志永不输出 Token。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0201",
+        "machine run record for T0201"
+      ],
+      "dependencies": [
+        "T0107"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0201.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0201.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-018",
+        "AC-022"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0201.py && python machine/tools/validate_evidence.py evidence/tasks/T0201.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0202",
+      "stage_id": "S2",
+      "phase_id": "P2.1",
+      "title": "实现 Gmail Endpoint Guard",
+      "objective": "只允许 messages.list/get、history.list、filters.list、messages.trash。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0202",
+        "machine run record for T0202"
+      ],
+      "dependencies": [
+        "T0201"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0202.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0202.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-006",
+        "AC-018",
+        "AC-034"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0202.py && python machine/tools/validate_evidence.py evidence/tasks/T0202.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0203",
+      "stage_id": "S2",
+      "phase_id": "P2.2",
+      "title": "实现 Repository ID 解析与改名兼容",
+      "objective": "基于目标 Repository ID 解析当前名称并锁定 MooMooAU 命名空间。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0203",
+        "machine run record for T0203"
+      ],
+      "dependencies": [
+        "T0202"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0203.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0203.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-009",
+        "AC-019"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0203.py && python machine/tools/validate_evidence.py evidence/tasks/T0203.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0204",
+      "stage_id": "S2",
+      "phase_id": "P2.2",
+      "title": "实现短时 Installation Token 客户端",
+      "objective": "限制目标私有仓 Contents/Release 权限与网络目的地。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0204",
+        "machine run record for T0204"
+      ],
+      "dependencies": [
+        "T0203"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0204.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0204.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-019",
+        "AC-027"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0204.py && python machine/tools/validate_evidence.py evidence/tasks/T0204.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0205",
+      "stage_id": "S2",
+      "phase_id": "P2.3",
+      "title": "实现流式 age 加密接口",
+      "objective": "所有敏感对象在进入持久层前加密，临时明文仅内存/tmpfs。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0205",
+        "machine run record for T0205"
+      ],
+      "dependencies": [
+        "T0204"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0205.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0205.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-010",
+        "AC-011",
+        "AC-022"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0205.py && python machine/tools/validate_evidence.py evidence/tasks/T0205.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0206",
+      "stage_id": "S2",
+      "phase_id": "P2.3",
+      "title": "实现部署时 Recovery Key 交付流程",
+      "objective": "临时生成 identity、Secret 注入、公开 Recipient、一次性下载，不生成在任务包中。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0206",
+        "machine run record for T0206"
+      ],
+      "dependencies": [
+        "T0205"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0206.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0206.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-012"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0206.py && python machine/tools/validate_evidence.py evidence/tasks/T0206.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0207",
+      "stage_id": "S2",
+      "phase_id": "P2.4",
+      "title": "固定依赖、Action SHA 与容器 Digest",
+      "objective": "生成锁文件、SBOM、CodeQL、依赖和 Secret 扫描。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0207",
+        "machine run record for T0207"
+      ],
+      "dependencies": [
+        "T0206"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0207.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0207.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-021",
+        "AC-033"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0207.py && python machine/tools/validate_evidence.py evidence/tasks/T0207.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0301",
+      "stage_id": "S3",
+      "phase_id": "P3.1",
+      "title": "实现全标签消息级发现",
+      "objective": "includeSpamTrash=true，分页覆盖 All Mail/Inbox/Spam/Trash。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0301",
+        "machine run record for T0301"
+      ],
+      "dependencies": [
+        "T0207"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0301.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0301.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-003",
+        "AC-025"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0301.py && python machine/tools/validate_evidence.py evidence/tasks/T0301.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0302",
+      "stage_id": "S3",
+      "phase_id": "P3.1",
+      "title": "实现 History 增量与 Full Reconciliation",
+      "objective": "水位失效、404、周日和差异时回退全量。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0302",
+        "machine run record for T0302"
+      ],
+      "dependencies": [
+        "T0301"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0302.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0302.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-023",
+        "AC-025",
+        "AC-026"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0302.py && python machine/tools/validate_evidence.py evidence/tasks/T0302.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0303",
+      "stage_id": "S3",
+      "phase_id": "P3.2",
+      "title": "建立版本化 verified sender 注册表",
+      "objective": "注册表初始只允许经一手证据确认的 Moomoo AU 官方地址；未证实候选保持 UNKNOWN，不进入 verified set；第三方需精确规则。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0303",
+        "machine run record for T0303"
+      ],
+      "dependencies": [
+        "T0302"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0303.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0303.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-004",
+        "AC-005"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0303.py && python machine/tools/validate_evidence.py evidence/tasks/T0303.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0304",
+      "stage_id": "S3",
+      "phase_id": "P3.2",
+      "title": "实现双重分类验证器",
+      "objective": "完整 Raw 前和 M3 前分别验证 sender、认证对齐和业务指纹。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0304",
+        "machine run record for T0304"
+      ],
+      "dependencies": [
+        "T0303"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0304.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0304.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-001",
+        "AC-004",
+        "AC-005"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0304.py && python machine/tools/validate_evidence.py evidence/tasks/T0304.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0305",
+      "stage_id": "S3",
+      "phase_id": "P3.3",
+      "title": "获取并保存 Gmail RAW EML",
+      "objective": "Base64url 解码后字节哈希，完整 RFC 2822 为 Canonical。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0305",
+        "machine run record for T0305"
+      ],
+      "dependencies": [
+        "T0304"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0305.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0305.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-013"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0305.py && python machine/tools/validate_evidence.py evidence/tasks/T0305.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0306",
+      "stage_id": "S3",
+      "phase_id": "P3.3",
+      "title": "实现附件安全识别和隔离",
+      "objective": "Magic Bytes、大小、超时、嵌套和恶意格式限制。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0306",
+        "machine run record for T0306"
+      ],
+      "dependencies": [
+        "T0305"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0306.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0306.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-014",
+        "AC-020"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0306.py && python machine/tools/validate_evidence.py evidence/tasks/T0306.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0307",
+      "stage_id": "S3",
+      "phase_id": "P3.4",
+      "title": "实现内容寻址与幂等 Raw Commit",
+      "objective": "Raw append-only、附件对象去重、私有优先 Saga。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0307",
+        "machine run record for T0307"
+      ],
+      "dependencies": [
+        "T0306"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0307.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0307.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-011",
+        "AC-026",
+        "AC-027"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0307.py && python machine/tools/validate_evidence.py evidence/tasks/T0307.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0401",
+      "stage_id": "S4",
+      "phase_id": "P4.1",
+      "title": "实现所有 Moomoo 邮件类型分类",
+      "objective": "覆盖报表、交易、资金、税务、安全、KYC、客服、营销和 VERIFIED_UNKNOWN。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0401",
+        "machine run record for T0401"
+      ],
+      "dependencies": [
+        "T0307"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0401.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0401.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-002"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0401.py && python machine/tools/validate_evidence.py evidence/tasks/T0401.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0402",
+      "stage_id": "S4",
+      "phase_id": "P4.1",
+      "title": "实现统一 Document Envelope",
+      "objective": "保留来源、分类、标签、时间、附件、认证和处理状态。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0402",
+        "machine run record for T0402"
+      ],
+      "dependencies": [
+        "T0401"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0402.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0402.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-015",
+        "AC-029"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0402.py && python machine/tools/validate_evidence.py evidence/tasks/T0402.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0403",
+      "stage_id": "S4",
+      "phase_id": "P4.2",
+      "title": "实现 Daily/Monthly/Contract Note Parser",
+      "objective": "先 Golden Fixture，再受保护 Canary，字段冲突不猜测。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0403",
+        "machine run record for T0403"
+      ],
+      "dependencies": [
+        "T0402"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0403.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0403.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-014",
+        "AC-015",
+        "AC-029"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0403.py && python machine/tools/validate_evidence.py evidence/tasks/T0403.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0404",
+      "stage_id": "S4",
+      "phase_id": "P4.2",
+      "title": "实现 FY Summary 与通用表格 Parser",
+      "objective": "只处理邮件中实际附件，不访问 Moomoo Portal。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0404",
+        "machine run record for T0404"
+      ],
+      "dependencies": [
+        "T0403"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0404.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0404.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-015",
+        "AC-034"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0404.py && python machine/tools/validate_evidence.py evidence/tasks/T0404.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0405",
+      "stage_id": "S4",
+      "phase_id": "P4.3",
+      "title": "实现 WAITING_FOR_PDF_PASSWORD 状态",
+      "objective": "密码缺失不阻塞 Raw/M3，正确 Secret 后受保护重处理。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0405",
+        "machine run record for T0405"
+      ],
+      "dependencies": [
+        "T0404"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0405.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0405.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-017"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0405.py && python machine/tools/validate_evidence.py evidence/tasks/T0405.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0406",
+      "stage_id": "S4",
+      "phase_id": "P4.3",
+      "title": "实现 Parser Blue-Green 和 current 指针",
+      "objective": "新版本并行对比，旧 Processed 不覆盖。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0406",
+        "machine run record for T0406"
+      ],
+      "dependencies": [
+        "T0405"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0406.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0406.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-015",
+        "AC-032"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0406.py && python machine/tools/validate_evidence.py evidence/tasks/T0406.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0407",
+      "stage_id": "S4",
+      "phase_id": "P4.4",
+      "title": "实现严格公开脱敏发布器",
+      "objective": "只发布桶化状态、版本和 Opaque Root。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0407",
+        "machine run record for T0407"
+      ],
+      "dependencies": [
+        "T0406"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0407.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0407.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-016",
+        "AC-031"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0407.py && python machine/tools/validate_evidence.py evidence/tasks/T0407.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0501",
+      "stage_id": "S5",
+      "phase_id": "P5.1",
+      "title": "实现远端重取解密校验 Gate",
+      "objective": "密文远端存在、解密 Raw SHA 一致、Processed 完成或显式延迟。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0501",
+        "machine run record for T0501"
+      ],
+      "dependencies": [
+        "T0407"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0501.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0501.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-007",
+        "AC-017",
+        "AC-027"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0501.py && python machine/tools/validate_evidence.py evidence/tasks/T0501.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0502",
+      "stage_id": "S5",
+      "phase_id": "P5.1",
+      "title": "实现精确 messages.trash 与确认",
+      "objective": "二次验证、Mutation Budget、Trash 标签确认、已在 Trash 幂等。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0502",
+        "machine run record for T0502"
+      ],
+      "dependencies": [
+        "T0501"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0502.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0502.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-002",
+        "AC-006",
+        "AC-026"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0502.py && python machine/tools/validate_evidence.py evidence/tasks/T0502.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0503",
+      "stage_id": "S5",
+      "phase_id": "P5.2",
+      "title": "实现 Timeline Event 生成",
+      "objective": "internalDate UTC、Sydney 展示、报表日期、标签和 M3 生命周期。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0503",
+        "machine run record for T0503"
+      ],
+      "dependencies": [
+        "T0502"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0503.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0503.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-029",
+        "AC-030"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0503.py && python machine/tools/validate_evidence.py evidence/tasks/T0503.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0504",
+      "stage_id": "S5",
+      "phase_id": "P5.2",
+      "title": "实现美国市场交易日延迟",
+      "objective": "周末、休市和未知预期安全处理。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0504",
+        "machine run record for T0504"
+      ],
+      "dependencies": [
+        "T0503"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0504.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0504.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-029",
+        "AC-030"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0504.py && python machine/tools/validate_evidence.py evidence/tasks/T0504.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0505",
+      "stage_id": "S5",
+      "phase_id": "P5.3",
+      "title": "实现确定性 Timeline PNG",
+      "objective": "固定容器/字体/排序，输入 Root 不变时不重绘。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0505",
+        "machine run record for T0505"
+      ],
+      "dependencies": [
+        "T0504"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0505.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0505.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-028",
+        "AC-029"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0505.py && python machine/tools/validate_evidence.py evidence/tasks/T0505.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0506",
+      "stage_id": "S5",
+      "phase_id": "P5.3",
+      "title": "实现 live Release Asset 串行替换与确定性修复",
+      "objective": "只保留 timeline-latest.png.age，不写 Git、不留 Artifact/Cache。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0506",
+        "machine run record for T0506"
+      ],
+      "dependencies": [
+        "T0505"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0506.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0506.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-011",
+        "AC-022",
+        "AC-028"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0506.py && python machine/tools/validate_evidence.py evidence/tasks/T0506.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0507",
+      "stage_id": "S5",
+      "phase_id": "P5.4",
+      "title": "实现日常/周日/手动 Workflow",
+      "objective": "04:30 Australia/Sydney；周日 full reconcile；workflow_dispatch。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0507",
+        "machine run record for T0507"
+      ],
+      "dependencies": [
+        "T0506"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0507.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0507.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-023",
+        "AC-025"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0507.py && python machine/tools/validate_evidence.py evidence/tasks/T0507.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0601",
+      "stage_id": "S6",
+      "phase_id": "P6.1",
+      "title": "补齐单元/属性/Fuzz/Contract 测试",
+      "objective": "覆盖 MIME、时间、幂等、Schema、公开脱敏和端点守卫。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0601",
+        "machine run record for T0601"
+      ],
+      "dependencies": [
+        "T0507"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0601.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0601.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-013",
+        "AC-014",
+        "AC-016",
+        "AC-018",
+        "AC-026"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0601.py && python machine/tools/validate_evidence.py evidence/tasks/T0601.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0602",
+      "stage_id": "S6",
+      "phase_id": "P6.1",
+      "title": "执行端到端与跨仓故障测试",
+      "objective": "测试私有优先、恢复、M3 Gate 和 Release Asset。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0602",
+        "machine run record for T0602"
+      ],
+      "dependencies": [
+        "T0601"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0602.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0602.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-007",
+        "AC-027",
+        "AC-028"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0602.py && python machine/tools/validate_evidence.py evidence/tasks/T0602.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0603",
+      "stage_id": "S6",
+      "phase_id": "P6.2",
+      "title": "执行输入攻击红队",
+      "objective": "Prompt Injection、路径、CSV、PDF、宏、压缩炸弹和外联。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0603",
+        "machine run record for T0603"
+      ],
+      "dependencies": [
+        "T0602"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0603.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0603.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-020"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0603.py && python machine/tools/validate_evidence.py evidence/tasks/T0603.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0604",
+      "stage_id": "S6",
+      "phase_id": "P6.2",
+      "title": "执行权限与供应链红队",
+      "objective": "OAuth、GitHub App、Secret、Action SHA、依赖和日志。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0604",
+        "machine run record for T0604"
+      ],
+      "dependencies": [
+        "T0603"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0604.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0604.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-018",
+        "AC-019",
+        "AC-021",
+        "AC-022"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0604.py && python machine/tools/validate_evidence.py evidence/tasks/T0604.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0605",
+      "stage_id": "S6",
+      "phase_id": "P6.3",
+      "title": "建立 Codex System Card 与 Evals",
+      "objective": "证明开发线程和 Auto 不接触真实数据、不索取 Secret、不越权。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0605",
+        "machine run record for T0605"
+      ],
+      "dependencies": [
+        "T0604"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0605.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0605.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-024",
+        "AC-033"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0605.py && python machine/tools/validate_evidence.py evidence/tasks/T0605.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0606",
+      "stage_id": "S6",
+      "phase_id": "P6.3",
+      "title": "执行不同模型独立互审",
+      "objective": "实现者与审查者分别检查范围、证据、失败诚实性和回滚。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0606",
+        "machine run record for T0606"
+      ],
+      "dependencies": [
+        "T0605"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0606.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0606.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-033"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0606.py && python machine/tools/validate_evidence.py evidence/tasks/T0606.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0607",
+      "stage_id": "S6",
+      "phase_id": "P6.4",
+      "title": "执行全量压力与边界测试",
+      "objective": "大邮箱、500 页分页、超大附件、并发、Git/LFS 配额。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0607",
+        "machine run record for T0607"
+      ],
+      "dependencies": [
+        "T0606"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0607.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0607.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-003",
+        "AC-022",
+        "AC-026",
+        "AC-031"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0607.py && python machine/tools/validate_evidence.py evidence/tasks/T0607.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0608",
+      "stage_id": "S6",
+      "phase_id": "P6.4",
+      "title": "执行主动混沌与恢复演练",
+      "objective": "注入 429/5xx/中断/冲突/损坏/错误 Secret/取消。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0608",
+        "machine run record for T0608"
+      ],
+      "dependencies": [
+        "T0607"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0608.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0608.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-025",
+        "AC-027",
+        "AC-032"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0608.py && python machine/tools/validate_evidence.py evidence/tasks/T0608.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0701",
+      "stage_id": "S7",
+      "phase_id": "P7.1",
+      "title": "Alpha 合成发布",
+      "objective": "所有功能仅合成数据，Feature Flags 默认关闭写和 M3。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0701",
+        "machine run record for T0701"
+      ],
+      "dependencies": [
+        "T0608"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0701.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0701.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-021",
+        "AC-032",
+        "AC-033"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0701.py && python machine/tools/validate_evidence.py evidence/tasks/T0701.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0702",
+      "stage_id": "S7",
+      "phase_id": "P7.1",
+      "title": "Beta 真实 Raw-only Canary",
+      "objective": "少量真实已验证邮件，M3/Parser/Timeline 仍关闭。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0702",
+        "machine run record for T0702"
+      ],
+      "dependencies": [
+        "T0701"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0702.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0702.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-001",
+        "AC-004",
+        "AC-007"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0702.py && python machine/tools/validate_evidence.py evidence/tasks/T0702.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0703",
+      "stage_id": "S7",
+      "phase_id": "P7.2",
+      "title": "M3 Mutation Budget 1 Canary",
+      "objective": "逐封远端恢复后 Trash，观察 7 天，失败自动关闭。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0703",
+        "machine run record for T0703"
+      ],
+      "dependencies": [
+        "T0702"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0703.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0703.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-006",
+        "AC-007",
+        "AC-026"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0703.py && python machine/tools/validate_evidence.py evidence/tasks/T0703.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0704",
+      "stage_id": "S7",
+      "phase_id": "P7.2",
+      "title": "Parser/Timeline Blue-Green Canary",
+      "objective": "对比旧/新结构与单一最新图片，观察 14 天。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0704",
+        "machine run record for T0704"
+      ],
+      "dependencies": [
+        "T0703"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0704.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0704.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-015",
+        "AC-028",
+        "AC-029",
+        "AC-030"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0704.py && python machine/tools/validate_evidence.py evidence/tasks/T0704.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0705",
+      "stage_id": "S7",
+      "phase_id": "P7.3",
+      "title": "启用 GA 04:30 运行",
+      "objective": "全部 Pass Gate 后开启发现、Raw、Processed、M3、Timeline。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0705",
+        "machine run record for T0705"
+      ],
+      "dependencies": [
+        "T0704"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0705.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0705.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-002",
+        "AC-023",
+        "AC-031",
+        "AC-032"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0705.py && python machine/tools/validate_evidence.py evidence/tasks/T0705.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0706",
+      "stage_id": "S7",
+      "phase_id": "P7.3",
+      "title": "配置简单 Codex Automation",
+      "objective": "普通被动健康检查；用户仍只使用开发线程。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0706",
+        "machine run record for T0706"
+      ],
+      "dependencies": [
+        "T0705"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0706.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0706.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-024"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0706.py && python machine/tools/validate_evidence.py evidence/tasks/T0706.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0707",
+      "stage_id": "S7",
+      "phase_id": "P7.4",
+      "title": "执行 Recovery Key 真恢复演练",
+      "objective": "从私有密文恢复随机 EML/Processed/Timeline 并比对摘要。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0707",
+        "machine run record for T0707"
+      ],
+      "dependencies": [
+        "T0706"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0707.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0707.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-012",
+        "AC-032"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0707.py && python machine/tools/validate_evidence.py evidence/tasks/T0707.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    },
+    {
+      "id": "T0708",
+      "stage_id": "S7",
+      "phase_id": "P7.4",
+      "title": "交付运维与补丁生命周期",
+      "objective": "Runbook、自愈、Kill、容量、依赖补丁、停止和回滚。",
+      "inputs": [
+        "canonical facts",
+        "acceptance contracts",
+        "predecessor evidence"
+      ],
+      "outputs": [
+        "implementation/evidence for T0708",
+        "machine run record for T0708"
+      ],
+      "dependencies": [
+        "T0707"
+      ],
+      "tests": [
+        "pytest -q tests/tasks/test_t0708.py",
+        "package invariant validation"
+      ],
+      "evidence": [
+        "evidence/tasks/T0708.json"
+      ],
+      "risks": [
+        "范围漂移",
+        "敏感数据泄漏",
+        "不完整证据"
+      ],
+      "rollback": "关闭本任务相关 Feature Flag，恢复上一已验证 Commit/Digest；Raw 永不覆盖。",
+      "stop_conditions": [
+        "出现不可逆风险",
+        "需要超出冻结范围的权限",
+        "验收 Oracle 无法执行",
+        "公开面出现敏感数据"
+      ],
+      "acceptance_ids": [
+        "AC-021",
+        "AC-031",
+        "AC-032",
+        "AC-034"
+      ],
+      "verification": "python -m pytest -q tests/tasks/test_t0708.py && python machine/tools/validate_evidence.py evidence/tasks/T0708.json",
+      "pass_gate": "所有关联 Acceptance 达标且证据可机读、可追溯、无敏感数据。",
+      "status": "planned"
+    }
+  ]
+}

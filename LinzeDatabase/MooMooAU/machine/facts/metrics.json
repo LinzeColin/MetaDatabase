@@ -1,0 +1,100 @@
+{
+  "metrics": [
+    {
+      "id": "MET-001",
+      "name": "非 Moomoo 误伤次数",
+      "baseline": "未自动化",
+      "target": "0",
+      "measure": "Gmail API call log 与 non-target fixture oracle",
+      "window": "每次运行/持续"
+    },
+    {
+      "id": "MET-002",
+      "name": "已验证 Moomoo Raw 捕获率",
+      "baseline": "手工、不可审计",
+      "target": "100%",
+      "measure": "Full Reconciliation candidate set vs private inventory",
+      "window": "每周"
+    },
+    {
+      "id": "MET-003",
+      "name": "Raw 字节恢复正确率",
+      "baseline": "0",
+      "target": "100%",
+      "measure": "Gmail RAW SHA-256 vs remote decrypt SHA-256",
+      "window": "每封消息"
+    },
+    {
+      "id": "MET-004",
+      "name": "错误 M3 次数",
+      "baseline": "0 自动操作",
+      "target": "0",
+      "measure": "Gate state vs messages.trash calls",
+      "window": "每次运行"
+    },
+    {
+      "id": "MET-005",
+      "name": "公开敏感泄漏",
+      "baseline": "无项目",
+      "target": "0",
+      "measure": "PII/金融规则+熵扫描",
+      "window": "每个 PR/运行"
+    },
+    {
+      "id": "MET-006",
+      "name": "逻辑重复对象",
+      "baseline": "未知",
+      "target": "0",
+      "measure": "content ID、Message ID、Merkle Root 对账",
+      "window": "每次运行"
+    },
+    {
+      "id": "MET-007",
+      "name": "数据新鲜度",
+      "baseline": "手动",
+      "target": "P95 ≤ 24h",
+      "measure": "internalDate 到 private commit 完成",
+      "window": "滚动 30 天"
+    },
+    {
+      "id": "MET-008",
+      "name": "Timeline 历史图片",
+      "baseline": "1 张手工图",
+      "target": "0 历史、1 最新",
+      "measure": "Release Asset 与 Git/Artifact 扫描",
+      "window": "每次运行"
+    },
+    {
+      "id": "MET-009",
+      "name": "正常例行人工操作",
+      "baseline": "手工下载整理",
+      "target": "GA 后 90 天为 0",
+      "measure": "人工干预事件",
+      "window": "滚动 90 天"
+    },
+    {
+      "id": "MET-010",
+      "name": "主动恢复演练通过率",
+      "baseline": "0",
+      "target": "100%",
+      "measure": "Chaos/Recovery mandatory suite",
+      "window": "每次发布与季度"
+    },
+    {
+      "id": "MET-011",
+      "name": "本地设备资源使用",
+      "baseline": "潜在手工下载",
+      "target": "0",
+      "measure": "部署架构和用户设备依赖扫描",
+      "window": "持续"
+    },
+    {
+      "id": "MET-012",
+      "name": "重复首次解析",
+      "baseline": "跨项目潜在重复",
+      "target": "0",
+      "measure": "消费者调用 Processed 而非 Raw parser",
+      "window": "每个下游集成"
+    }
+  ]
+}

@@ -30,3 +30,6 @@ test-results/
 raw_snapshots/
 .DS_Store
 artifacts/private/
+
+# authoritative refresh runtime state
+.eei_refresh_*

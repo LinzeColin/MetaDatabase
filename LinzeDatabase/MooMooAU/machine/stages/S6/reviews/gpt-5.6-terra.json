@@ -1,0 +1,452 @@
+{
+  "schema_version": "moomooau.independent-review-provenance.v2",
+  "review_id": "S6-RMD05-GPT56TERRA",
+  "stage_id": "S6",
+  "model_family": "gpt-5.6-terra",
+  "review_mode": "READ_ONLY_INDEPENDENT",
+  "subject": {
+    "baseline_commit": "2b8625a83e69093b9dce989f4eb964556e1b5fa2",
+    "candidate_commit": "2ba0d34cee89672297d7c575205c3d4bf854461b",
+    "candidate_tree": "673132302ed909d8c02e856fdb19887b20c3f447"
+  },
+  "execution_receipt": {
+    "path": "machine/stages/S6/reviews/rmd05/execution-receipt17.json",
+    "sha256": "6e8fd35c8d5d3dac2d1320713d3b17d32fa9c285e2bc77146565fef4e44beef0"
+  },
+  "attempts": [
+    {
+      "phase": "INITIAL",
+      "platform_task_id": "/root/rmd05_terra_review",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/request.md",
+        "sha256": "35247bddc79077b568509097cb9285e9a05299180a2833c8238b1cadac6c4e93"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/initial/gpt-5.6-terra.reply.json",
+        "sha256": "646786d09804730e98c71652c1ad98fede5d697c17c0a1d1ee6a0c81283ee9a3",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_ADVERSE",
+      "platform_task_id": "/root/rmd05_terra_rereview",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview-request.md",
+        "sha256": "e3fa55cb020a66dd2f17915f4015f0e62942e0aef1c93bc6152f193933fb85f4"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview1/gpt-5.6-terra.reply.json",
+        "sha256": "bb2a72bf7c63425aca444eaf407a566de2d6f6e67f9a23dde295fc2f344fa718",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt.json",
+        "sha256": "aed2a3dd2d5df19536e49d963755e229b0d4ac569365fb74f58df99fc72fd1fc"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_terra_rereview2",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview2-request.md",
+        "sha256": "f57ca7d53d2dee988b6067d6ce8f4ff4bc17eb849e134c3f5802c318bdbb1c79"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final/gpt-5.6-terra.reply.json",
+        "sha256": "10cd7d8d407fbfdc39656c8eba589997c635fd856878e327dd4a7ce79e0ebfb2",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt2.json",
+        "sha256": "e6d076632bcc36b410a04765bd4d3ebc69af16849266b3da429b7f0eb4cc9380"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_TRANSITION_ADVERSE",
+      "platform_task_id": "/root/rmd05_terra_rereview3",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview3-request.md",
+        "sha256": "113b08b9262cee2c0e3900e32efe3d14f643d9d19c6afbed1b18ae46532d87d1"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview3/gpt-5.6-terra.reply.json",
+        "sha256": "36fe590612c5c8d786e28f001cfda6dc41886e95a4a40e579ebd7a14ca334d36",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt3.json",
+        "sha256": "88d1db524f1d9421c806a73d532c9307b3b3a699b030964ce58dfd5650bd3a24"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_OUTPUT_INTEGRATION_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_terra_rereview4",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview4-request.md",
+        "sha256": "62c9291f5ea6ef39a1123a4c96adaf7e3a58a2a69a5b36369818e99e381e17be"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final2/gpt-5.6-terra.reply.json",
+        "sha256": "7809fbf2909ff4080b9611c128cc36bc232e1b84f2d04d2564343524464fb58f",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt4.json",
+        "sha256": "3359865176269e7eb1da39aa38d6fc9e8230e530f8d02a25f3d8b5f4a3057fc2"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_EVIDENCE_COUPLING_ADVERSE",
+      "platform_task_id": "/root/rmd05_terra_rereview5",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview5-request.md",
+        "sha256": "45e531415d8176d599f7573f22770b5110211a41c724f524fccd9dbc590dc2d7"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview5/gpt-5.6-terra.reply.json",
+        "sha256": "a3a92441c86b145835bd6babca873f0dcb89cb0840f5541d5c0af31812ab0ed0",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt5.json",
+        "sha256": "407519737d85e754ad6b4b9fdc4cbb0f2a182b5c60d9f9b90bd8a71db8525465"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_RECEIPT_ANCHOR_ADVERSE",
+      "platform_task_id": "/root/rmd05_terra_rereview6",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview6-request.md",
+        "sha256": "4f3a7f841691095985649545f09ecbf531a7bb9908bfbc6d318d541cdd396d78"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final3/gpt-5.6-terra.reply.json",
+        "sha256": "375f087ee5b4779a16e0e0d31585d04fc5a4914af4756cf29078a6e6f13244b4",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt6.json",
+        "sha256": "9c1b087a4d24f49069305b1892553f6ab7d579892cc71bfa77ff0e102d143650"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_GOVERNANCE_FACTS_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_terra_rereview7",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview7-request.md",
+        "sha256": "9831ab147d4fcfc06dee96f65c1c90e5de6dcacac523ef81b9f375c244bff394"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final4/gpt-5.6-terra.reply.json",
+        "sha256": "e668c13369cd4ec4681804f1a4ffd5bcfa7c9ba69eca755375ada63ca6090a72",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt7.json",
+        "sha256": "820b18a3c45891db7ab05d2ed95fed2593f81546dcb7031ce5fc96d707386b1d"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_OUTPUT_MATERIALIZATION_ADVERSE",
+      "platform_task_id": "/root/rmd05_terra_rereview8",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview8-request.md",
+        "sha256": "b666a68b2e47cb2ea9886a8224c5b2aee93a1a6297c3e31726718e9e434dabf7"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final5/gpt-5.6-terra.reply.json",
+        "sha256": "0e3b9af0e69036ff518fe9ccad03b26e9b6fb9090d2cd8a0e1510fd6dca1509c",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt8.json",
+        "sha256": "e349452dae4ec5dd1ac613046d81f1fad0ad2fadaa08f5bb2568a496237795ef"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_CLOSURE_PATH_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_terra_rereview9",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview9-request.md",
+        "sha256": "47f32c2dadd542da4a69fd05508a4844ffca8952782dec201513db886541a74e"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final6/gpt-5.6-terra.reply.json",
+        "sha256": "d5cb77bd8292de829ba213c5daad079c8157e351d6840754006cac4f7b9e24d2",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt9.json",
+        "sha256": "2814dcca4c0d8a52e255760ed7b414a78e02a21f89745547f03986113ced7f68"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_FINAL_REJECTED",
+      "platform_task_id": "/root/rmd05_terra_rereview10",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview10-request.md",
+        "sha256": "fe0e48fb0042f63ab599b7f49935493d21a3766cda79cd1d986faf2f54f13a88"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final7/gpt-5.6-terra.reply.json",
+        "sha256": "f6acbffbffd146430423bd3e4c87814a084603fbac7b99b18e50d1cefac2d79d",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt10.json",
+        "sha256": "e712331a41d1755c6b8c7f6c29348252cabfc9d3ec4b563db588dd259cdfb978"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_AUTHORITY_DRIFT_ADVERSE",
+      "platform_task_id": "/root/rmd05_terra_rereview11",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview11-request.md",
+        "sha256": "83d5c3efddc95259a3d6f700a3c4fda3a1a9d2410f5d94fa2ad466980edef109"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final8/gpt-5.6-terra.reply.json",
+        "sha256": "9dd51f76944b2817afa7add5437481a2034211382d36d47bed16cd3cc6bc7011",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt11.json",
+        "sha256": "ba180e358e2b067fa6cedeb6dcefa11aff1c59eac9998f5f403eb1abe59295c8"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_AUTHORITY_MATERIALIZATION_ADVERSE",
+      "platform_task_id": "/root/rmd05_terra_rereview12",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview12-request.md",
+        "sha256": "1f3fd30f6b348d903293d4db736e1163b7d283dc0b9d6f0f116548a9c96d4385"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final9/gpt-5.6-terra.reply.json",
+        "sha256": "4f2d16dfb2b74233a120898c229a840b4bc3b9eb664b50d209f8fa4ed7e06636",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt12.json",
+        "sha256": "1bfe12fcbf5f2ec0ffadf38ee67d8adf9b8dbfada8d23f914c4e3ac50fcb3b0b"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_PUBLIC_CLOSURE_ADVERSE",
+      "platform_task_id": "/root/rmd05_terra_rereview13",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview13-request.md",
+        "sha256": "a696eab139532fde20e1712e4058b8208463d9be82be095956ffc824780b2dcd"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final10/gpt-5.6-terra.reply.json",
+        "sha256": "30c35c5f2ad73239250ed354def34dbfaf35b115635402eb885cec68734ecfbe",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt13.json",
+        "sha256": "3d961beba530ddc416b70d6b3c1116f7d2016f99e630ce752b36ed75612a7f78"
+      },
+      "verdict": "FAIL",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_GOVERNANCE_MATERIALIZATION_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_terra_rereview14",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview14-request.md",
+        "sha256": "7f1ec39e6e27096620a9c15347f44c77e34365d8b0052a0bbf093b85f562b06c"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final11/gpt-5.6-terra.reply.json",
+        "sha256": "6ff2e11ab21e4004edf86b59b99df6ba7e5851996e6dc4d9522a365ba4e0a732",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt14.json",
+        "sha256": "798811aa1304fa1aa9739b825009a6a1e273656093caf882c860e4b6b2a55a15"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_SECRET_SCAN_MATERIALIZATION_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_terra_rereview15",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview15-request.md",
+        "sha256": "691f815fd09f5f2c7df84e6142e13f5b8ab4c3324324aa209f9633e3bef93067"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final12/gpt-5.6-terra.reply.json",
+        "sha256": "1a466d65996259569d2544af389461da68ce9d7bfe1c49d021d8b9e33d3a4d61",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt15.json",
+        "sha256": "5091a3bc3d6bd3fa976ed94524a479392f18ae2b71e22baed0f04742dbf0d1fe"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_ASSURANCE_CLI_IMPORT_SUPERSEDED",
+      "platform_task_id": "/root/rmd05_terra_rereview16",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview16-request.md",
+        "sha256": "c9dbfe36571c73f6316e1e8ac2b5f86aa37b64528d4c6ed4b57e64e07b743fd1"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final13/gpt-5.6-terra.reply.json",
+        "sha256": "941b8564a33469668c61abb74c30d857f73415df736802fff22b32a84f06fb0d",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt16.json",
+        "sha256": "a620d6b8f39fb78a88215714e0bf13b8c1415903c27489e700fa4ae4e28df937"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    },
+    {
+      "phase": "REREVIEW_FINAL",
+      "platform_task_id": "/root/rmd05_terra_rereview17",
+      "invocation_tool": "collaboration.spawn_agent",
+      "requested_model": "gpt-5.6-terra",
+      "fork_turns": "none",
+      "inherited_thread_context": false,
+      "request": {
+        "path": "machine/stages/S6/reviews/rmd05/rereview17-request.md",
+        "sha256": "c6969cc36d18454ded24b6a69679d4b6b7a6b89acab13300a68a7393a260fecf"
+      },
+      "reply": {
+        "path": "machine/stages/S6/reviews/rmd05/final14/gpt-5.6-terra.reply.json",
+        "sha256": "d4308d29ccfc18905f9cc5c05188a247f4b83ea48313733f5a57402bc9928f30",
+        "normalization": "UTF8_JSON_SINGLE_TRAILING_LF"
+      },
+      "execution_receipt": {
+        "path": "machine/stages/S6/reviews/rmd05/execution-receipt17.json",
+        "sha256": "6e8fd35c8d5d3dac2d1320713d3b17d32fa9c285e2bc77146565fef4e44beef0"
+      },
+      "verdict": "PASS",
+      "receipt_scope": "CODEX_THREAD_AUDIT_LOG",
+      "repository_only_proves_platform_execution": false
+    }
+  ],
+  "closure_status": "PASS",
+  "provenance_limitations": [
+    "Repository artifacts prove structure, hashes and platform task identifiers; the retained Codex thread audit log is required to audit platform execution identity.",
+    "Local synthetic execution and read-only reviews do not prove protected Oracles, real Gmail or private-repository behavior, production health, deployment or publication.",
+    "RMD-06, RMD-07 and final AC-033 remain outside this RMD-05 attempt history."
+  ]
+}

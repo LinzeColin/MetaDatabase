@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import os
 import time
 
 from backend.app.workers.heartbeat import HeartbeatStore
 from backend.app.workers.main_common import build_runtime, build_smtp_sender
 
 WORKER_NAME = "notify-worker"
-INTERVAL_SECONDS = 5.0
+# 投递延迟 p95≈轮询间隔:5.0s 时实测 4.98s,贴着晋级判定的 5s 红线 → 降到 1.5s
+INTERVAL_SECONDS = float(os.environ.get("ALPHA_NOTIFY_INTERVAL_SECONDS", "1.5"))
 
 
 def run_loop(max_cycles: int | None = None) -> None:  # pragma: no cover - 长驻进程

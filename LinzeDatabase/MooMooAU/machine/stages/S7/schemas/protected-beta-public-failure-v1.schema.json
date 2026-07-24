@@ -1,0 +1,486 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.example.invalid/moomooau/protected-beta-public-failure-v1.schema.json",
+  "title": "MooMooAU protected Beta public-safe failure",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "reason_code",
+    "failure_phase",
+    "installation_token_failure_class",
+    "diagnostic_taxonomy",
+    "exact_root_cause_claimed",
+    "production_health_claimed",
+    "final_acceptance_claimed"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "moomooau.protected-beta-execution.v1"
+    },
+    "status": {
+      "const": "BLOCKED"
+    },
+    "reason_code": {
+      "enum": [
+        "PROTECTED_BETA_ENTRYPOINT_FAILED",
+        "PROTECTED_BETA_CONTEXT_GATE_FAILED",
+        "PROTECTED_BETA_ALPHA_BINDING_FAILED",
+        "PROTECTED_BETA_CONFIG_CAPACITY_FAILED",
+        "PROTECTED_BETA_SENDER_REGISTRY_FAILED",
+        "PROTECTED_BETA_GITHUB_APP_KEY_FAILED",
+        "PROTECTED_BETA_AGE_IDENTITY_FAILED",
+        "PROTECTED_BETA_GMAIL_OAUTH_FAILED",
+        "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED",
+        "PROTECTED_BETA_REPOSITORY_RESOLUTION_FAILED",
+        "PROTECTED_BETA_RUNTIME_PREFLIGHT_FAILED",
+        "PROTECTED_BETA_MAILBOX_DISCOVERY_FAILED",
+        "PROTECTED_BETA_METADATA_VERIFICATION_FAILED",
+        "PROTECTED_BETA_RAW_FETCH_FAILED",
+        "PROTECTED_BETA_RAW_ENCRYPTION_PLAN_FAILED",
+        "PROTECTED_BETA_RAW_COMMIT_FAILED",
+        "PROTECTED_BETA_REMOTE_RECOVERY_FAILED",
+        "PROTECTED_BETA_AGGREGATE_GATE_FAILED",
+        "PROTECTED_BETA_RESOURCE_CLEANUP_FAILED"
+      ]
+    },
+    "failure_phase": {
+      "enum": [
+        "ENTRYPOINT",
+        "CONTEXT_GATE",
+        "ALPHA_BINDING",
+        "CONFIG_CAPACITY",
+        "SENDER_REGISTRY",
+        "GITHUB_APP_KEY",
+        "AGE_IDENTITY",
+        "GMAIL_OAUTH",
+        "GITHUB_APP_TOKEN",
+        "REPOSITORY_RESOLUTION",
+        "RUNTIME_PREFLIGHT",
+        "MAILBOX_DISCOVERY",
+        "METADATA_VERIFICATION",
+        "RAW_FETCH",
+        "RAW_ENCRYPTION_PLAN",
+        "RAW_COMMIT",
+        "REMOTE_RECOVERY",
+        "AGGREGATE_GATE",
+        "RESOURCE_CLEANUP"
+      ]
+    },
+    "installation_token_failure_class": {
+      "enum": [
+        "UNCLASSIFIED",
+        "LOCAL_BOUNDARY_REJECTED",
+        "TRANSPORT_FAILED",
+        "AUTHENTICATION_REJECTED",
+        "AUTHORIZATION_REJECTED",
+        "INSTALLATION_NOT_FOUND",
+        "INSTALLATION_DISCOVERY_REJECTED",
+        "INSTALLATION_ZERO",
+        "INSTALLATION_MULTIPLE",
+        "INSTALLATION_SUSPENDED",
+        "INSTALLATION_SELECTION_REJECTED",
+        "INSTALLATION_PERMISSIONS_REJECTED",
+        "REQUEST_REJECTED",
+        "REMOTE_SERVICE_FAILED",
+        "RESPONSE_INVALID",
+        "RESPONSE_SCOPE_REJECTED"
+      ]
+    },
+    "diagnostic_taxonomy": {
+      "const": "moomooau.protected-beta-failure-taxonomy.v1"
+    },
+    "exact_root_cause_claimed": {
+      "const": false
+    },
+    "production_health_claimed": {
+      "const": false
+    },
+    "final_acceptance_claimed": {
+      "const": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "GITHUB_APP_TOKEN"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "else": {
+        "properties": {
+          "installation_token_failure_class": {
+            "const": "UNCLASSIFIED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "ENTRYPOINT"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_ENTRYPOINT_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "CONTEXT_GATE"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_CONTEXT_GATE_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "ALPHA_BINDING"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_ALPHA_BINDING_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "CONFIG_CAPACITY"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_CONFIG_CAPACITY_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "SENDER_REGISTRY"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_SENDER_REGISTRY_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "GITHUB_APP_KEY"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_GITHUB_APP_KEY_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "AGE_IDENTITY"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_AGE_IDENTITY_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "GMAIL_OAUTH"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_GMAIL_OAUTH_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "GITHUB_APP_TOKEN"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_GITHUB_APP_TOKEN_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "REPOSITORY_RESOLUTION"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_REPOSITORY_RESOLUTION_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "RUNTIME_PREFLIGHT"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_RUNTIME_PREFLIGHT_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "MAILBOX_DISCOVERY"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_MAILBOX_DISCOVERY_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "METADATA_VERIFICATION"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_METADATA_VERIFICATION_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "RAW_FETCH"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_RAW_FETCH_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "RAW_ENCRYPTION_PLAN"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_RAW_ENCRYPTION_PLAN_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "RAW_COMMIT"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_RAW_COMMIT_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "REMOTE_RECOVERY"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_REMOTE_RECOVERY_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "AGGREGATE_GATE"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_AGGREGATE_GATE_FAILED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "failure_phase": {
+            "const": "RESOURCE_CLEANUP"
+          }
+        },
+        "required": [
+          "failure_phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reason_code": {
+            "const": "PROTECTED_BETA_RESOURCE_CLEANUP_FAILED"
+          }
+        }
+      }
+    }
+  ]
+}

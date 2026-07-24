@@ -1,0 +1,30 @@
+{
+  "schema_version": "moomooau.stage0-evidence.v1",
+  "evidence_id": "S0-T0002-20260720",
+  "stage_id": "S0",
+  "task_id": "T0002",
+  "observed_at_utc": "2026-07-19T21:09:30Z",
+  "base_commit": "2f77723bf52f54e16f23958cc72e5bcfc3dcae71",
+  "source_package_version": "1.0.0",
+  "record_status": "VALID",
+  "delivery_status": "BLOCKED",
+  "checks": [
+    {
+      "id": "frozen-invariant-scan",
+      "status": "PASS",
+      "evidence_ref": "machine/facts/canonical_facts.json"
+    },
+    {
+      "id": "timeline-platform-compatibility",
+      "status": "BLOCKED",
+      "evidence_ref": "machine/contracts/stage0_semantic_gate.json"
+    },
+    {
+      "id": "linked-final-oracles",
+      "status": "NOT_RUN",
+      "evidence_ref": "machine/contracts/acceptance_contract.json"
+    }
+  ],
+  "blockers": ["S0G-001", "S0G-003"],
+  "next_action": "Repair the stage-local gate and contract a realizable one-asset replacement protocol."
+}

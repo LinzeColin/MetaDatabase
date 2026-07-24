@@ -1,0 +1,24 @@
+# R6 主攻:跨资产趋势 + 杠杆股指进池(owner 2026-07-24 裁定回撤容忍放宽至 30%)
+# 信号看原指数、下单买放大器(该族标准构造);黄金/长债/中债提供避险轮动腿
+strategy_id: "TREND_LEV_MULTI_ASSET_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate_owner_dd30"
+universe: ["TQQQ", "QLD", "UPRO", "SSO", "TMF", "GLD", "TLT", "IEF"]
+cash_proxy: "BIL"
+score:
+  formula: "w1*r63 + w2*r126 + w3*r252"
+  lookbacks_trading_days: [63, 126, 252]
+absolute_momentum_filter: {rule: "close > SMA200", sma_period: 200}
+review_grid:
+  weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1],[1.0,0.0,0.0]]
+  top_n_allowed: [1, 2]
+  target_vol_allowed: [15, 20, 999]
+  rebalance_threshold_allowed: [5]
+  eval_frequency_allowed: ["weekly", "monthly"]
+  dd_brake_allowed: [null, [15, 25], [10, 20]]
+signal_proxy:
+  TMF: "TLT"
+  TQQQ: "QQQ"
+  QLD: "QQQ"
+  UPRO: "SPY"
+  SSO: "SPY"

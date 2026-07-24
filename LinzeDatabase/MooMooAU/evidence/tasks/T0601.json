@@ -1,0 +1,107 @@
+{
+  "schema_version": "moomooau.stage6-evidence.v2",
+  "evidence_id": "S6-T0601-LOCAL-20260720",
+  "stage_id": "S6",
+  "task_id": "T0601",
+  "stage_acceptance_id": "S6AC-001",
+  "observed_at_utc": "2026-07-20T04:50:06Z",
+  "baseline_commit": "2b8625a83e69093b9dce989f4eb964556e1b5fa2",
+  "record_status": "PASS",
+  "scope": "LOCAL_SYNTHETIC_ONLY",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {
+      "id": "canonical_raw_round_trip_property",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0601.py::test_t0601_canonical_gmail_raw_round_trip_property"
+    },
+    {
+      "id": "forbidden_endpoint_rejected_before_transport",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0601.py::test_t0601_forbidden_gmail_endpoint_fuzz_rejects_before_transport"
+    },
+    {
+      "id": "path_and_magic_byte_contract",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0601.py::test_t0601_path_fuzz_and_magic_byte_contract"
+    },
+    {
+      "id": "logical_content_identity_convergence",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0601.py::test_t0601_logical_idempotency_property"
+    },
+    {
+      "id": "public_redaction_and_contract_schema",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0601.py"
+    }
+  ],
+  "linked_final_acceptance": [
+    {
+      "id": "AC-013",
+      "status": "PARTIAL",
+      "reason": "Canonical Raw and deterministic identifiers pass property tests with synthetic bytes; real Gmail source bytes were not read."
+    },
+    {
+      "id": "AC-014",
+      "status": "PARTIAL",
+      "reason": "Synthetic content identity converges without duplicate logical objects; private repository convergence was not executed."
+    },
+    {
+      "id": "AC-016",
+      "status": "PARTIAL",
+      "reason": "Public redaction and strict evidence shapes pass locally; no remote public write occurred."
+    },
+    {
+      "id": "AC-018",
+      "status": "PARTIAL",
+      "reason": "Forbidden endpoint and path inputs fail before transport under synthetic property tests; protected credentials were not exercised."
+    },
+    {
+      "id": "AC-026",
+      "status": "PARTIAL",
+      "reason": "Local contract schemas are closed and machine-readable; remote CI enforcement was not observed."
+    }
+  ],
+  "production_oracles": [
+    {
+      "id": "REAL_GMAIL_AND_PRIVATE_REPOSITORY_PROPERTY_ORACLES",
+      "status": "NOT_RUN",
+      "reason": "This Stage 6 run was intentionally local and synthetic with no production credentials or remote data plane."
+    }
+  ],
+  "prohibition_counters": {
+    "real_gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "real_secrets_read": 0,
+    "protected_key_deliveries": 0,
+    "external_writes": 0,
+    "remote_publication": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_mutations": 0,
+    "raw_before_verification": 0,
+    "untrusted_content_execution": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "thread_trash_calls": 0,
+    "permanent_delete_calls": 0,
+    "release_assets_above_one": 0,
+    "production_workflow_runs": 0
+  },
+  "next_action": "Keep protected property and recovery oracles closed until Stage 7 provisions owner-authorized credentials and remote observation.",
+  "candidate_commit": "dc8f7be36f45d3368cb2a6931fdb6cdcdf1fefc1",
+  "candidate_tree": "673132302ed909d8c02e856fdb19887b20c3f447",
+  "execution_binding": {
+    "path": "machine/stages/S6/reviews/rmd05/execution-receipt17.json",
+    "sha256": "6e8fd35c8d5d3dac2d1320713d3b17d32fa9c285e2bc77146565fef4e44beef0",
+    "command_ids": [
+      "mypy-strict",
+      "ruff-lint",
+      "stage6-task-tests"
+    ]
+  }
+}

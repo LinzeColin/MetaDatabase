@@ -1,0 +1,48 @@
+{
+  "schema_version": "moomooau.stage7-evidence.v1",
+  "evidence_id": "S7-T0702-LOCAL-20260722",
+  "stage_id": "S7",
+  "task_id": "T0702",
+  "stage_acceptance_id": "S7AC-002",
+  "observed_at_utc": "2026-07-23T22:53:05Z",
+  "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
+  "record_status": "READY",
+  "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "beta_flag_shape_raw_only", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_beta_is_real_raw_only_and_local_claims_are_rejected"},
+    {"id": "exact_oauth_and_bearer_boundary", "status": "PASS", "evidence_ref": "src/moomooau_archive/oauth.py and tests/tasks/test_t0702.py"},
+    {"id": "bounded_no_redirect_https_boundary", "status": "PASS", "evidence_ref": "src/moomooau_archive/http_transport.py"},
+    {"id": "verified_only_raw_commit_and_recovery_runner", "status": "PASS", "evidence_ref": "src/moomooau_archive/canary_runtime.py and tests/tasks/test_t0702.py::test_t0702_beta_runner_fetches_only_verified_raw_and_recovers_remote"},
+    {"id": "unknown_capacity_blocks_raw_write", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_beta_runner_blocks_unknown_capacity_before_raw_write"},
+    {"id": "alpha_and_explicit_budget_gate_precedes_network", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_beta_runner_requires_alpha_and_explicit_budget_before_network"},
+    {"id": "strict_protected_bootstrap_raw_only_integration", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_beta.py and tests/tasks/test_t0702.py::test_t0702_protected_bootstrap_runs_one_raw_only_beta_and_cleans_resources"},
+    {"id": "inactive_registry_blocks_before_network", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_bootstrap_blocks_before_network_without_alpha_or_registry"},
+    {"id": "stale_capacity_and_age_identity_drift_fail_closed", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_bootstrap_rejects_stale_capacity_and_identity_drift"},
+    {"id": "verified_linux_tmpfs_required_by_default", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_bootstrap_requires_verified_tmpfs_by_default"},
+    {"id": "exact_protected_context_and_six_secret_allowlist", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_beta_entrypoint.py and tests/tasks/test_t0702.py::test_t0702_entrypoint_rejects_non_main_context_before_secret_reads"},
+    {"id": "github_hosted_first_attempt_gate_precedes_secret_reads", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_entrypoint_rejects_non_cloud_runner_before_secret_reads"},
+    {"id": "same_tree_alpha_binding_and_completed_beta_gate", "status": "PASS", "evidence_ref": "src/moomooau_archive/release_control.py and tests/tasks/test_t0702.py::test_t0702_entrypoint_executes_one_aggregate_only_protected_beta"},
+    {"id": "zero_recovered_raw_cannot_claim_beta", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_entrypoint_blocks_zero_recovered_raw_without_claiming_beta"},
+    {"id": "manual_main_only_raw_only_workflow", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_protected_workflow_is_manual_main_only_and_exact_six_secret"},
+    {"id": "protected_attempt_pass_receipt_schema_bound", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0702/execution-receipt.json and machine/stages/S7/schemas/protected-beta-execution-receipt-v2.schema.json"},
+    {"id": "serial_first_attempt_ledger_exact_and_pass_closed", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0702/attempt-ledger.json, machine/stages/S7/schemas/protected-beta-attempt-ledger-v2.schema.json and tests/tasks/test_t0702.py::test_t0702_serial_attempt_ledger_is_exact_first_attempt_only_and_pass_closed"},
+    {"id": "per_message_metadata_quarantine_is_typed_and_bounded", "status": "PASS", "evidence_ref": "src/moomooau_archive/gmail_discovery.py, src/moomooau_archive/canary_runtime.py and tests/tasks/test_t0702.py"},
+    {"id": "public_failure_taxonomy_closed_and_schema_bound", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_beta_diagnostics.py, machine/stages/S7/schemas/protected-beta-public-failure-v1.schema.json and tests/tasks/test_t0702.py::test_t0702_public_failure_taxonomy_is_closed_schema_valid_and_redacted"},
+    {"id": "every_reachable_failure_phase_wired_without_dynamic_output", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_every_reachable_failure_phase_is_wired_without_dynamic_output"},
+    {"id": "cleanup_failure_classified_after_all_cleanup_actions", "status": "PASS", "evidence_ref": "tests/tasks/test_t0702.py::test_t0702_cleanup_failure_is_bounded_and_all_cleanup_actions_run"},
+    {"id": "repair_run_contract_has_zero_remote_effect_budget", "status": "PASS", "evidence_ref": "machine/stages/S7/contracts/t0702_repair_run_contract.json"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-001", "status": "PARTIAL", "reason": "The protected Beta emitted public-safe evidence for deterministic verification, bounded Raw-only execution and zero source mutation; later full-pipeline and final collateral checks remain unexecuted."},
+    {"id": "AC-004", "status": "PARTIAL", "reason": "The protected Beta fully fetched only a verified candidate within the configured budget and disclosed no exact mailbox counts; full-system final evidence remains incomplete."},
+    {"id": "AC-007", "status": "PARTIAL", "reason": "The private namespace contains nonzero age ciphertext only and independent read-only verification confirmed 100% Raw recovery with zero overwrite, deletion or cross-namespace change; Processed and Timeline recovery remain unexecuted."}
+  ],
+  "production_oracles": [
+    {"id": "PROTECTED_BETA_REAL_RAW_ONLY", "status": "PASS", "reason": "The exact-main GitHub-hosted attempt passed Alpha, protected Raw-only Beta and identity cleanup; public-safe evidence reports verified candidates within budget, one recovered Raw, 100% remote recovery, zero Gmail mutation, zero M3, zero Processed and zero Timeline mutation."}
+  ],
+  "protected_execution_receipt": "machine/stages/S7/reviews/t0702/execution-receipt.json",
+  "blockers": ["M3_AUTHORITY_WITHHELD_BY_CURRENT_OWNER_SCOPE", "FINAL_ACCEPTANCE_AND_POST_BETA_STAGE7_PHASES_NOT_RUN"],
+  "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
+  "next_action": "Close T0702/S7AC-002 evidence with no rerun. The M3 predecessor is satisfied, but current owner scope explicitly withholds M3, so stop before every post-Beta Stage 7 phase."
+}

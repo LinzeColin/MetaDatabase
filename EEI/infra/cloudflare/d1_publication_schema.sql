@@ -47,6 +47,60 @@ CREATE TABLE IF NOT EXISTS relationship_evidence (
   PRIMARY KEY (relationship_id, source_document_id, role)
 );
 
+-- Capital River / vertical timeline: first-hand published EVENTS (SEC filings
+-- etc., derivation_rule = authoritative_first_hand_ingestion). Same one-way
+-- publication surface: title/type/timing/amount + participant identity +
+-- evidence index only. Raw filing texts stay local / in R2.
+CREATE TABLE IF NOT EXISTS events (
+  id TEXT PRIMARY KEY,
+  event_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  status TEXT NOT NULL,
+  announced_at TEXT,
+  effective_at TEXT,
+  period_start TEXT,
+  period_end TEXT,
+  observed_at TEXT NOT NULL,
+  amount REAL,
+  currency TEXT,
+  amount_kind TEXT,
+  description TEXT,
+  qualifiers_json TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_observed ON events(observed_at);
+CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
+
+-- Participant entity_name is denormalized at publish time so the worker serves
+-- the capital river without a join (mirrors how evidence carries source_*).
+CREATE TABLE IF NOT EXISTS event_participants (
+  event_id TEXT NOT NULL REFERENCES events(id),
+  entity_id TEXT NOT NULL,
+  entity_name TEXT,
+  role TEXT NOT NULL,
+  direction TEXT,
+  PRIMARY KEY (event_id, entity_id, role)
+);
+
+CREATE INDEX IF NOT EXISTS idx_event_participants_entity
+  ON event_participants(entity_id);
+
+CREATE TABLE IF NOT EXISTS event_evidence (
+  event_id TEXT NOT NULL REFERENCES events(id),
+  source_document_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  locator TEXT,
+  support_excerpt TEXT,
+  source_url TEXT,
+  source_title TEXT,
+  publisher TEXT,
+  document_date TEXT,
+  PRIMARY KEY (event_id, source_document_id, role)
+);
+
+CREATE INDEX IF NOT EXISTS idx_event_evidence_event
+  ON event_evidence(event_id);
+
 CREATE TABLE IF NOT EXISTS snapshot_meta (
   snapshot_key TEXT PRIMARY KEY,
   scope TEXT NOT NULL,

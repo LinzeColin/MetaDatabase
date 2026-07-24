@@ -5,17 +5,32 @@ from pathlib import Path
 DEPLOY = Path("deploy")
 
 
-def test_five_systemd_units_exist():
+def test_systemd_units_ledger():
     units = {p.name for p in (DEPLOY / "systemd").glob("*.service")}
     assert units == {
         "alpha-opend.service", "alpha-trading-worker.service",
         "alpha-notify-worker.service", "alpha-supervisor.service",
-        "alpha-control-page.service",
+        "alpha-control-page.service", "alpha-rejudge.service",
+        "alpha-activate.service", "alpha-alert@.service",
     }
+    # oneshot 台账:复判必须声明无激活权限;切换器=激活唯一通道;失败自告警=零权限
+    oneshot_marks = {"alpha-rejudge.service": "无激活权限",
+                     "alpha-activate.service": "激活唯一通道",
+                     "alpha-alert@.service": "无任何激活权限"}
+    # 两个定时任务必须挂失败自告警钩子
+    for name in ("alpha-rejudge.service", "alpha-activate.service"):
+        assert "OnFailure=alpha-alert@%n.service" in (DEPLOY / "systemd" / name).read_text(), name
     for p in (DEPLOY / "systemd").glob("*.service"):
         text = p.read_text()
-        assert "Restart=always" in text, p.name
         assert "EnvironmentFile=/opt/alpha/env" in text, p.name
+        if "Type=oneshot" in text:
+            assert p.name in oneshot_marks and oneshot_marks[p.name] in text, p.name
+        else:
+            assert "Restart=always" in text, p.name
+    timers = {p.name for p in (DEPLOY / "systemd").glob("*.timer")}
+    assert timers == {"alpha-rejudge.timer"}
+    paths = {p.name for p in (DEPLOY / "systemd").glob("*.path")}
+    assert paths == {"alpha-activate.path"}
 
 
 def test_env_template_contains_no_real_secrets():
@@ -27,7 +42,7 @@ def test_env_template_contains_no_real_secrets():
             # 允许:空、占位符、公开常量(主机名/端口/路径/公开收件地址)
             assert (
                 value == "" or "<REQUIRED" in value
-                or value.startswith(("smtp.", "imap.", "127.0.0.1", "/opt/alpha", "0", "11111", "587"))
+                or value.startswith(("smtp.", "imap.", "127.0.0.1", "/opt/alpha", "0", "11111", "587", "configs/"))
                 or value == "linzezhang35@gmail.com"
                 or value == "FUTUAU"   # 公开 SDK 枚举常量(开户主体),非秘密
             ), f"env.template 疑似真值: {line}"
@@ -70,3 +85,18 @@ def test_worker_entrypoints_importable_and_build():
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = val
+
+
+def test_live_mode_refuses_silent_sqlite_fallback(monkeypatch, tmp_path):
+    """07-23 事故教训:实盘模式下数据库地址缺失必须拒绝启动,绝不静默降级空库。"""
+    import pytest
+
+    from backend.app.store.db import init_engine
+
+    monkeypatch.delenv("ALPHA_DATABASE_URL", raising=False)
+    monkeypatch.setenv("ALPHA_MODE", "MICRO_LIVE")
+    with pytest.raises(RuntimeError, match="失败关闭"):
+        init_engine()
+    # 模拟盘模式仍允许本地库(开发/测试路径不受影响)
+    monkeypatch.setenv("ALPHA_MODE", "PAPER")
+    assert init_engine(f"sqlite:///{tmp_path}/ok.sqlite") is not None

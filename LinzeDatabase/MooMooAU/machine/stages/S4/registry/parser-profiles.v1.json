@@ -1,0 +1,7 @@
+{
+  "activation_state": "EMPTY_PROTECTED_EVIDENCE_REQUIRED",
+  "issued_at_utc": "2026-07-20T00:00:00Z",
+  "profiles": [],
+  "registry_version": "1.0.0",
+  "schema_version": "moomooau.parser-profile-registry.v1"
+}

@@ -1,0 +1,18 @@
+# R7a 长短全域:跨资产 + 反向指数腿(owner 2026-07-24 明示解禁看空/杠杆入搜索域)
+# 反向腿用自身价格做信号(熊市里它们自己的动量为正,SMA200 守门天然适配)
+strategy_id: "LS_MULTI_ASSET_RESEARCH"
+version: "0.1.0-research"
+status: "research_candidate_owner_ls30"
+universe: ["QQQ", "SPY", "GLD", "TLT", "IEF", "SQQQ", "SDS"]
+cash_proxy: "BIL"
+score:
+  formula: "w1*r63 + w2*r126 + w3*r252"
+  lookbacks_trading_days: [63, 126, 252]
+absolute_momentum_filter: {rule: "close > SMA200", sma_period: 200}
+review_grid:
+  weights_allowed: [[0.4,0.3,0.3],[0.7,0.2,0.1],[1.0,0.0,0.0]]
+  top_n_allowed: [1, 2]
+  target_vol_allowed: [15, 999]
+  rebalance_threshold_allowed: [5]
+  eval_frequency_allowed: ["weekly"]
+  dd_brake_allowed: [null, [15, 25], [10, 20]]

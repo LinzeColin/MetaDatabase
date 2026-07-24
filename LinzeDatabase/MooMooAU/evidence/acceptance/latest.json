@@ -1,0 +1,220 @@
+{
+  "blocked_acceptance_ids": [
+    "AC-001",
+    "AC-002",
+    "AC-003",
+    "AC-004",
+    "AC-005",
+    "AC-006",
+    "AC-007",
+    "AC-008",
+    "AC-009",
+    "AC-010",
+    "AC-011",
+    "AC-012",
+    "AC-013",
+    "AC-014",
+    "AC-015",
+    "AC-016",
+    "AC-017",
+    "AC-018",
+    "AC-019",
+    "AC-020",
+    "AC-021",
+    "AC-022",
+    "AC-023",
+    "AC-024",
+    "AC-025",
+    "AC-026",
+    "AC-027",
+    "AC-028",
+    "AC-029",
+    "AC-030",
+    "AC-031",
+    "AC-032",
+    "AC-033",
+    "AC-034"
+  ],
+  "blockers_by_acceptance": {
+    "AC-001": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-002": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-003": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-004": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-005": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-006": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_NOT_RUN",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-007": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-008": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-009": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_NOT_RUN",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-010": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-011": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-012": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_NOT_RUN"
+    ],
+    "AC-013": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-014": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-015": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_NOT_RUN",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-016": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-017": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-018": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-019": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-020": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-021": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-022": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-023": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_NOT_RUN",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-024": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-025": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-026": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-027": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_NOT_RUN",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-028": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_NOT_RUN",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-029": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_NOT_RUN",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-030": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_NOT_RUN",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-031": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_NOT_RUN",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-032": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-033": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_NOT_RUN",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ],
+    "AC-034": [
+      "FINAL_ORACLE_NOT_EXECUTED",
+      "LINKED_TASK_CLAIMS_PARTIAL"
+    ]
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "final_acceptances_blocked": 34,
+  "final_acceptances_passed": 0,
+  "next_action": "Keep the final release blocked until every exact Acceptance Oracle and linked claim passes.",
+  "observed_at_utc": "2026-07-24T02:10:28Z",
+  "passed_acceptance_ids": [],
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_root_sha256": "6bbb4037e5faa357c2c71125744d96add11ce7719275de85710e483be820ae16",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "schema_version": "moomooau.acceptance-summary.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "status": "BLOCKED",
+  "total_acceptances": 34
+}

@@ -1,0 +1,106 @@
+{
+  "schema_version": "moomooau.production-composition.v1",
+  "finding_id": "REV-P0-002",
+  "observed_at_utc": "2026-07-22T12:16:04Z",
+  "status": "LOCAL_SYNTHETIC_COMPOSITION_VERIFIED",
+  "scope": "RMD_04_LOCAL_SYNTHETIC_ONLY",
+  "workflow": {
+    "path": ".github/workflows/moomooau-production.yml",
+    "sha256": "d83488e1be4606a83c77c0294378ad87d2c976c87e422041bdd41851e8e09f23",
+    "cron": "30 4 * * *",
+    "timezone": "Australia/Sydney",
+    "entrypoint": "python -m moomooau_archive.production --execute-protected --event-name \"$EVENT_NAME\"",
+    "enabled_default": false
+  },
+  "secret_names": [
+    "MOOMOOAU_PRODUCTION_CONFIG",
+    "MOOMOOAU_SENDER_REGISTRY",
+    "MOOMOOAU_CLASSIFICATION_REGISTRY",
+    "MOOMOOAU_PARSER_REGISTRY",
+    "MOOMOOAU_GITHUB_APP_PRIVATE_KEY",
+    "MOOMOOAU_AGE_IDENTITY",
+    "MOOMOOAU_OPAQUE_ID_KEY",
+    "MOOMOOAU_GMAIL_OAUTH"
+  ],
+  "component_bindings": [
+    "RunPlanner <- encrypted Gmail Sydney watermark",
+    "GmailOAuthTokenClient <- exact Gmail OAuth Secret",
+    "GmailReadClient <- guarded gmail.modify bearer transport",
+    "GmailReconciler <- incremental plus Sunday/manual full truth",
+    "GitHubEndpointGuard <- immutable private repository ID",
+    "OfficialAgeCrypto <- recipient plus protected tmpfs identity",
+    "EncryptedGmailSyncCheckpoint <- strict private Contents CAS",
+    "RawCommitSaga <- append-only private age ciphertext",
+    "ProcessedCommitSaga <- immutable datasets plus strict current CAS",
+    "RemoteFirstImportTimestampSource <- recovered current Processed lineage",
+    "RemoteRecoveryGate <- Raw and Processed remote decrypt-and-digest proof",
+    "ExactMessageTrashExecutor <- second verification plus exact messages.trash",
+    "TimelineSnapshotRecoveryGate <- private snapshot decrypt-and-digest proof",
+    "SingleLatestTimelinePublisher <- fixed private Release and one age Asset",
+    "GAFullPipelineRunner <- discovery through checkpoint-last orchestration",
+    "OperationalGate <- fail-closed prospective capacity demand, reservation and Kill authority"
+  ],
+  "source_digests": {
+    "src/moomooau_archive/capacity.py": {
+      "sha256": "afad4074bf961fdb72c2d208e8c56aab5fe8e019fcafae7d6b7fc87495a54f2e"
+    },
+    "src/moomooau_archive/kill_switch.py": {
+      "sha256": "d9a14adb138297c11368f8990058decd0fe2a2251b2dfc3769134e9510453adc"
+    },
+    "src/moomooau_archive/operation_gate.py": {
+      "sha256": "d21a1cf7de18877c124277d7c7d3a95fc5ceab71c3cf51a1c4ae8f2116e60d36"
+    },
+    "src/moomooau_archive/production.py": {
+      "sha256": "9b3d3159fada723697450995af92282ba1ee33e4622ad1044621cd29159dc08e"
+    },
+    "src/moomooau_archive/production_adapters.py": {
+      "sha256": "4a84a5dea675332da700faf1e4f3c9882f5363cf6dd9daae8a381b35cc7a3845"
+    },
+    "src/moomooau_archive/gmail_sync_checkpoint.py": {
+      "sha256": "9c0c364f3e2727bcd43a41825c4ffe9aac1406f99bba00948e5eab1eacbbcbe9"
+    },
+    "src/moomooau_archive/ga_runtime.py": {
+      "sha256": "c3c9ba533e1e4b93c7efd89962d58e04501c670c46f8d17351bab0db56c98009"
+    },
+    "tests/remediation/test_rmd04.py": {
+      "sha256": "97cc7c12b3afe835e8b66a213cb08b305fc8dccb481c9f1ebb0f15b244156fe0"
+    },
+    "tests/remediation/test_rmd05.py": {
+      "sha256": "10cb61cdde6b76de201f4442fc4243d5c72792b12ab6e9ba602dd30491ddbfba"
+    },
+    "tests/tasks/test_t0607.py": {
+      "sha256": "7297e91cdde668b65ddcbb789e9eb510541137277b87a96fc00c8e43504f6599"
+    },
+    "tests/tasks/test_t0704.py": {
+      "sha256": "c5a6439f58eb5bf99d037a742601aa2500a6144beeb2aac8d71c0149cb979bba"
+    },
+    "schemas/production-config-v1.schema.json": {
+      "sha256": "78968068b6110aac7b01ad94f9be5ce5120a97243e1528183f274ffe772c2fc2"
+    }
+  },
+  "observation": {
+    "synthetic_full_pipeline_runs": 1,
+    "synthetic_verified_messages": 1,
+    "synthetic_raw_archives": 1,
+    "synthetic_processed_archives": 1,
+    "remote_recovery_before_exact_trash": true,
+    "synthetic_exact_message_trash_calls": 1,
+    "maximum_live_timeline_assets": 1,
+    "encrypted_sydney_watermark_v2": true,
+    "remote_first_import_timestamp_recovered": true,
+    "protected_resources_destroyed": true,
+    "real_gmail_calls": 0,
+    "private_repository_calls": 0,
+    "protected_oracles_executed": 0,
+    "production_workflow_runs": 0,
+    "external_writes": 0,
+    "remote_publications": 0,
+    "production_health_claimed": false
+  },
+  "remaining_authority": {
+    "next_remediation": "RMD-06",
+    "production_status": "BLOCKED",
+    "protected_oracles": "NOT_RUN",
+    "publication": "LOCAL_ONLY_NOT_PUBLISHED"
+  }
+}

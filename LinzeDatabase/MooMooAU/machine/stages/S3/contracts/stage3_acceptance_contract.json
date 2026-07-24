@@ -1,0 +1,99 @@
+{
+  "schema_version": "moomooau.stage-local-acceptance.v1",
+  "stage_id": "S3",
+  "policy": "FAIL_CLOSED",
+  "final_acceptance_policy": "Stage-local PASS proves synthetic/local Stage 3 boundaries only; production sender evidence, real Gmail/private-repository canaries, deployment and final review remain PARTIAL or NOT_RUN.",
+  "acceptance_contracts": [
+    {
+      "id": "S3AC-001",
+      "task_id": "T0301",
+      "linked_final_acceptance_ids": ["AC-003", "AC-025"],
+      "title": "全标签消息级发现与只读 Filter Audit",
+      "environment": "injected synthetic Gmail transport; no Google call",
+      "input": "paginated synthetic messages distributed across All Mail, Inbox, Spam and Trash plus read-only Filter definitions",
+      "oracle": "Every page in each fixed scope is read as message ID metadata, logical IDs are deduplicated, filters are counted only, and no RAW request or mutation is made.",
+      "threshold": "synthetic scope difference 0; duplicate logical objects 0; Filter modifications 0; RAW requests 0",
+      "evidence_required": "evidence/tasks/T0301.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0301.py",
+      "failure_action": "Disable downstream RAW authorization and repair discovery pagination or scope logic."
+    },
+    {
+      "id": "S3AC-002",
+      "task_id": "T0302",
+      "linked_final_acceptance_ids": ["AC-023", "AC-025", "AC-026"],
+      "title": "History 增量与确定性 Full Reconciliation",
+      "environment": "injected synthetic Gmail history/full-sync transport and Australia/Sydney clock",
+      "input": "normal and duplicate History pages, expired watermark, 404, page interruption, Sunday, difference and manual triggers",
+      "oracle": "A watermark advances only after every page succeeds; expired, 404, Sunday, difference and manual paths perform full reconciliation and converge to the synthetic truth set.",
+      "threshold": "candidate difference 0; premature watermark advances 0; duplicate logical objects 0; production scheduler assertions 0",
+      "evidence_required": "evidence/tasks/T0302.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0302.py",
+      "failure_action": "Keep M3 disabled, discard the incomplete watermark and require full reconciliation."
+    },
+    {
+      "id": "S3AC-003",
+      "task_id": "T0303",
+      "linked_final_acceptance_ids": ["AC-004", "AC-005"],
+      "title": "一手证据驱动的版本化 Verified Sender Registry",
+      "environment": "committed empty production descriptor plus synthetic active registry fixtures",
+      "input": "exact evidence-backed synthetic sender, wildcard, weak third-party, unknown sender and malformed registry controls",
+      "oracle": "The committed production registry has zero entries and cannot activate without protected evidence; only an exact canonical evidence-backed synthetic entry can verify.",
+      "threshold": "unproven production entries 0; wildcard rules 0; unknown RAW permits 0",
+      "evidence_required": "evidence/tasks/T0303.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0303.py",
+      "failure_action": "Keep the production registry empty and all candidates UNKNOWN."
+    },
+    {
+      "id": "S3AC-004",
+      "task_id": "T0304",
+      "linked_final_acceptance_ids": ["AC-001", "AC-004", "AC-005"],
+      "title": "独立双重分类验证",
+      "environment": "synthetic headers, authentication results and business fingerprints",
+      "input": "valid synthetic messages, spoofed display names, alignment failures, registry drift, conflicting authentication, outbound messages and 1,000 unrelated metadata records",
+      "oracle": "Pre-RAW and pre-M3 independently require exact sender, trusted authentication alignment and business fingerprint under the same registry/verifier versions; mismatch is fail-closed.",
+      "threshold": "unrelated RAW permits 0/1000; spoof acceptances 0; double-verification mismatch M3 authorizations 0",
+      "evidence_required": "evidence/tasks/T0304.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0304.py",
+      "failure_action": "Leave the source untouched, revoke RAW/M3 authorization and record only redacted review data."
+    },
+    {
+      "id": "S3AC-005",
+      "task_id": "T0305",
+      "linked_final_acceptance_ids": ["AC-013"],
+      "title": "许可后 Gmail RAW 字节保真",
+      "environment": "injected synthetic Gmail RAW response transport",
+      "input": "byte-exact multipart RFC message and invalid or ambiguous base64url controls",
+      "oracle": "Only a verifier-issued permit under the unchanged registry can request format=RAW; strict base64url decode preserves the exact source bytes and hash without MIME reconstruction.",
+      "threshold": "synthetic byte parity 100%; RAW before verification 0; ambiguous decode acceptances 0",
+      "evidence_required": "evidence/tasks/T0305.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0305.py",
+      "failure_action": "Block persistence and M3, then repair permit binding or RAW decoding."
+    },
+    {
+      "id": "S3AC-006",
+      "task_id": "T0306",
+      "linked_final_acceptance_ids": ["AC-014", "AC-020"],
+      "title": "有界附件识别与隔离",
+      "environment": "in-memory synthetic MIME fixtures; no parser subprocess, model or network",
+      "input": "PDF, XLSX and CSV controls plus polyglot, corrupt ZIP, macro, formula, bomb, unsafe path, size and timeout abuse fixtures",
+      "oracle": "Magic bytes and bounded structural inspection classify supported objects while all suspicious or unsupported objects quarantine without execution, extraction or network access.",
+      "threshold": "supported synthetic recall 100%; malicious parse/execution/path escape/network calls 0",
+      "evidence_required": "evidence/tasks/T0306.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0306.py",
+      "failure_action": "Preserve encrypted Canonical Raw and disable processing for the affected attachment kind."
+    },
+    {
+      "id": "S3AC-007",
+      "task_id": "T0307",
+      "linked_final_acceptance_ids": ["AC-011", "AC-026", "AC-027"],
+      "title": "加密内容寻址与幂等 Append-only Raw Commit",
+      "environment": "official age CLI, in-memory append-only ciphertext store and pre-network GitHub guard",
+      "input": "same synthetic Canonical Raw repeated, duplicate attachment, partial write failure and plaintext GitHub PUT control",
+      "oracle": "Opaque IDs are keyed and stable, every persisted object is an age envelope, attachments deduplicate, existing objects are immutable, manifest commits last, partial failure resumes, and no success/recovery/M3 claim is emitted.",
+      "threshold": "persistent plaintext 0; overwrites 0; duplicate logical objects 0; private calls 0; false recovery or public success 0",
+      "evidence_required": "evidence/tasks/T0307.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0307.py",
+      "failure_action": "Stop the private write lane, retain any append-only ciphertext and resume only after object verification."
+    }
+  ]
+}

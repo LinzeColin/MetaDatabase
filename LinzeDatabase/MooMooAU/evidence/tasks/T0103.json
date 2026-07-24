@@ -1,0 +1,23 @@
+{
+  "schema_version": "moomooau.stage1-evidence.v1",
+  "evidence_id": "S1-T0103-LOCAL-20260719",
+  "stage_id": "S1",
+  "task_id": "T0103",
+  "stage_acceptance_id": "S1AC-003",
+  "observed_at_utc": "2026-07-19T23:04:46Z",
+  "baseline_commit": "31a51114f8749b93b1da53f7bb11a7e2f7f916de",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "raw_fixture_determinism", "status": "PASS", "evidence_ref": "tests/tasks/test_t0103.py"},
+    {"id": "gmail_base64url_roundtrip", "status": "PASS", "evidence_ref": "tests/tasks/test_t0103.py"},
+    {"id": "abuse_fixture_triage", "status": "PASS", "evidence_ref": "tests/tasks/test_t0103.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-013", "status": "PARTIAL", "reason": "Synthetic EML RAW is canonical; real Gmail RAW coverage belongs to Stage 3."},
+    {"id": "AC-014", "status": "PARTIAL", "reason": "Magic-byte triage covers Stage 1 fixtures; full parser recall and quarantine suites belong later."},
+    {"id": "AC-020", "status": "PARTIAL", "reason": "Abuse fixtures are non-executing and isolated; full fuzz and parser assurance belongs to Stage 6."}
+  ],
+  "prohibition_counters": {"gmail_calls": 0, "gmail_mutations": 0, "secrets_read": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Retain reserved synthetic fixtures as the no-Secret CI corpus."
+}

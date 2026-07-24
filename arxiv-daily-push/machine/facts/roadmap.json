@@ -3,8 +3,8 @@
     {"id": "S0", "name": "v1.2 任务包、归档与追溯", "gate": "七角色、142 行追溯、远端恢复门", "status": "已完成（独立验收 6/6 PASS）"},
     {"id": "S1", "name": "谷歌新闻有界重试", "gate": "正负控通过且不改线上来源", "status": "已完成（独立验收 5/5 PASS）"},
     {"id": "S2", "name": "国家统计来源诊断", "gate": "错误分类可复跑", "status": "已完成（独立验收 3/3 PASS）"},
-    {"id": "S3", "name": "Science Advances 公共文献接入", "gate": "解析、去重、限流和失败关闭", "status": "当前待执行（先锁定独立 Run Contract）"},
-    {"id": "S4", "name": "中文、移动端与视觉回归", "gate": "真实用户旅程与破坏负控通过", "status": "待 S3"},
+    {"id": "S3", "name": "Science Advances 公共文献接入", "gate": "解析、去重、限流和失败关闭", "status": "已完成（独立验收 3/3 PASS）"},
+    {"id": "S4", "name": "中文、移动端与视觉回归", "gate": "真实用户旅程与破坏负控通过", "status": "S4.1 当前；ADP-V12-S4-T001 Run Contract 未创建，NOT_RUN"},
     {"id": "S5", "name": "版本与长期运行门", "gate": "身份、探针、恢复和免费容量可证", "status": "待 S4"},
     {"id": "S6", "name": "受控部署与稳定期", "gate": "回滚可用并连续健康 14 日", "status": "待 S5"}
   ]

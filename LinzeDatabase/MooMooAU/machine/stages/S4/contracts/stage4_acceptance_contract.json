@@ -1,0 +1,99 @@
+{
+  "schema_version": "moomooau.stage-local-acceptance.v1",
+  "stage_id": "S4",
+  "policy": "FAIL_CLOSED",
+  "final_acceptance_policy": "Stage-local PASS proves synthetic/local Stage 4 boundaries only; protected real templates, production Secrets, real private-repository recovery, fourteen elapsed observation days, publication, deployment and final review remain PARTIAL or NOT_RUN.",
+  "acceptance_contracts": [
+    {
+      "id": "S4AC-001",
+      "task_id": "T0401",
+      "linked_final_acceptance_ids": ["AC-002"],
+      "title": "全类型唯一分类与 VERIFIED_UNKNOWN 保留",
+      "environment": "verified synthetic Canonical Raw and synthetic evidence-backed classification registry; no production message",
+      "input": "one synthetic verified fixture for every frozen document class plus one unmatched verified template",
+      "oracle": "Each evidence-backed fixture receives exactly its frozen class; an unmatched verified fixture receives VERIFIED_UNKNOWN and remains eligible for encrypted Raw retention.",
+      "threshold": "synthetic class coverage 18/18; dropped verified messages 0; production classification rules 0",
+      "evidence_required": "evidence/tasks/T0401.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0401.py",
+      "failure_action": "Keep the production registry empty and degrade verified unmatched messages to Raw-only VERIFIED_UNKNOWN."
+    },
+    {
+      "id": "S4AC-002",
+      "task_id": "T0402",
+      "linked_final_acceptance_ids": ["AC-015", "AC-029"],
+      "title": "统一私有 Document Envelope 与字段血缘",
+      "environment": "verified synthetic Canonical Raw, encrypted Raw plan and deterministic UTC clock",
+      "input": "synthetic verified message with labels and an inspected attachment plus conflicting lineage control",
+      "oracle": "One opaque source binds Raw digests, registry versions, UTC and Australia/Sydney time, labels, attachment object IDs, processing state and non-conflicting field origins; diagnostics redact private values.",
+      "threshold": "synthetic lineage completeness 100%; UTC/Sydney conversion errors 0; lineage conflicts accepted 0",
+      "evidence_required": "evidence/tasks/T0402.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0402.py",
+      "failure_action": "Block Processed creation for the source and retain only encrypted Raw."
+    },
+    {
+      "id": "S4AC-003",
+      "task_id": "T0403",
+      "linked_final_acceptance_ids": ["AC-014", "AC-015", "AC-029"],
+      "title": "Daily Monthly Contract Note 受保护 Profile 解析",
+      "environment": "bounded in-memory synthetic CSV fixtures and exact synthetic parser profiles",
+      "input": "Daily, Monthly and Contract Note rows plus conflicting protected-field control",
+      "oracle": "Exact labels produce canonical dates, currency, decimals, generic rows and field origins; repeated builds produce identical JSONL and Parquet; conflicts quarantine with no statement.",
+      "threshold": "synthetic valid parses 3/3; deterministic byte mismatches 0; conflicting-field guesses 0",
+      "evidence_required": "evidence/tasks/T0403.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0403.py",
+      "failure_action": "Disable the affected profile, retain encrypted Raw and record a blocked or safe-deferred state."
+    },
+    {
+      "id": "S4AC-004",
+      "task_id": "T0404",
+      "linked_final_acceptance_ids": ["AC-015", "AC-034"],
+      "title": "FY Summary 通用表格与无 Portal 边界",
+      "environment": "bounded read-only synthetic XLSX fixtures; no network or Portal adapter",
+      "input": "valid FY workbook, table-only profile and workbook formula control",
+      "oracle": "The valid workbook parses exact fields and negative numeric values in memory, table-only output is supported, formulas quarantine, and no Portal access path exists.",
+      "threshold": "synthetic valid table parses 2/2; formula interpretations 0; Moomoo Portal calls 0",
+      "evidence_required": "evidence/tasks/T0404.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0404.py",
+      "failure_action": "Disable XLSX processing, preserve encrypted Raw and remove any out-of-scope Portal surface."
+    },
+    {
+      "id": "S4AC-005",
+      "task_id": "T0405",
+      "linked_final_acceptance_ids": ["AC-017"],
+      "title": "PDF Password 显式等待与受保护重处理",
+      "environment": "synthetic AES-256 PDF and in-memory Secret controls",
+      "input": "same encrypted PDF with absent, incorrect and correct synthetic Secrets",
+      "oracle": "Absent and incorrect Secrets produce WAITING_FOR_PDF_PASSWORD with no artifact or structured statement; the correct explicit Secret reprocesses the same Raw to COMPLETE without password disclosure.",
+      "threshold": "incorrect structured parses 0; brute-force attempts 0; correct synthetic reprocess 1/1",
+      "evidence_required": "evidence/tasks/T0405.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0405.py",
+      "failure_action": "Keep WAITING state and prohibit parser output until a protected exact Secret is supplied."
+    },
+    {
+      "id": "S4AC-006",
+      "task_id": "T0406",
+      "linked_final_acceptance_ids": ["AC-015", "AC-032"],
+      "title": "Parser Blue-Green 版本不可变与 current CAS",
+      "environment": "official age CLI, in-memory append/CAS ciphertext store and pre-network GitHub guard",
+      "input": "same Raw under parser v1/v2, 13/14-day controls, semantic-change approval controls, retry and SHA path controls",
+      "oracle": "v1 remains immutable, v2 appends, current stays unchanged before day 14, equivalent output promotes by exact CAS, changed output needs a bound signed approval, retry converges, and SHA updates are allowed only for the encrypted current path.",
+      "threshold": "Processed overwrites 0; premature promotions 0; unapproved changed promotions 0; plaintext persistent objects 0",
+      "evidence_required": "evidence/tasks/T0406.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0406.py",
+      "failure_action": "Keep current on the incumbent parser and isolate the candidate version for investigation."
+    },
+    {
+      "id": "S4AC-007",
+      "task_id": "T0407",
+      "linked_final_acceptance_ids": ["AC-016", "AC-031"],
+      "title": "严格公开桶化 Inventory 与诊断状态",
+      "environment": "synthetic private observations and in-memory HMAC key; no public write",
+      "input": "exact private counts, timestamps and roots plus all fail-closed public run states",
+      "oracle": "Output contains only allowlisted datasets, schema/parser versions, availability, count/freshness buckets, conclusion and next-action enums and an opaque HMAC root; private details do not appear.",
+      "threshold": "forbidden public fields 0; exact private values disclosed 0; diagnostic state/action coverage 100%",
+      "evidence_required": "evidence/tasks/T0407.json",
+      "verification": "python -m pytest -q tests/tasks/test_t0407.py",
+      "failure_action": "Block public publication and preserve private encrypted data until the renderer and leak scan pass."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "moomooau.stage1-evidence.v1",
+  "evidence_id": "S1-T0107-LOCAL-20260719",
+  "stage_id": "S1",
+  "task_id": "T0107",
+  "stage_acceptance_id": "S1AC-007",
+  "observed_at_utc": "2026-07-19T23:04:46Z",
+  "baseline_commit": "31a51114f8749b93b1da53f7bb11a7e2f7f916de",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "immutable_action_shas", "status": "PASS", "evidence_ref": "tests/tasks/test_t0107.py"},
+    {"id": "no_secret_read_only_ci", "status": "PASS", "evidence_ref": "ci.no_secret_base"},
+    {"id": "seven_gate_families", "status": "PASS", "evidence_ref": ".github/workflows/moomooau-stage1-ci.yml"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-021", "status": "PARTIAL", "reason": "Direct pins and immutable Action SHAs exist; transitive hashes, SBOM and vulnerability acceptance belong to Stage 2."},
+    {"id": "AC-033", "status": "PARTIAL", "reason": "Base software gates run on synthetic inputs; load, chaos, security and model pipelines belong to Stage 6."}
+  ],
+  "prohibition_counters": {"gmail_calls": 0, "gmail_mutations": 0, "secrets_read": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Keep this workflow synthetic and read-only; add protected workflows only in their owning stages."
+}

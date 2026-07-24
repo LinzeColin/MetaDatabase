@@ -1,0 +1,47 @@
+{
+  "schema_version": "moomooau.stage1-semantic-gate.v1",
+  "stage_id": "S1",
+  "policy": "FAIL_CLOSED",
+  "status": "PASS",
+  "verified_at_utc": "2026-07-19T23:04:46Z",
+  "baseline_commit": "31a51114f8749b93b1da53f7bb11a7e2f7f916de",
+  "resolutions": [
+    {
+      "id": "S1G-001",
+      "status": "RESOLVED",
+      "finding": "Frozen tasks link final oracles that cannot all run in Stage 1.",
+      "resolution": "Added seven stage-local acceptance contracts; every linked AC remains PARTIAL or NOT_RUN and zero final AC is reported PASS."
+    },
+    {
+      "id": "S1G-002",
+      "status": "RESOLVED",
+      "finding": "Stage 0 included a gate that intentionally prohibited Stage 1 runtime files.",
+      "resolution": "Preserved the frozen Stage 0 package and all enduring checks; retired only scope.no_stage1_or_deployment in the cumulative Stage 1 validator."
+    },
+    {
+      "id": "S1G-003",
+      "status": "RESOLVED",
+      "finding": "A custom encryption stand-in would not prove the age boundary.",
+      "resolution": "Used the official age CLI with stdin plaintext, an auto-cleaned synthetic identity and exact recovered-byte comparison."
+    },
+    {
+      "id": "S1G-004",
+      "status": "RESOLVED",
+      "finding": "A synthetic remote could be misreported as production GitHub recovery.",
+      "resolution": "Named it an in-memory ciphertext store and kept AC-027 plus every production gate NOT_RUN or PARTIAL."
+    },
+    {
+      "id": "S1G-005",
+      "status": "RESOLVED",
+      "finding": "Direct dependency pins do not prove the final supply-chain oracle.",
+      "resolution": "Pinned direct dependencies and Action SHAs for base CI while keeping AC-021 PARTIAL; transitive hashes and vulnerability gates remain Stage 2."
+    }
+  ],
+  "controlled_unknowns": [
+    "real Gmail sender registry and OAuth behavior",
+    "single private GitHub database permissions and recovery",
+    "production tmpfs and secret delivery",
+    "Processed parsers, Timeline replacement and exact message Trash"
+  ],
+  "next_stage": "S2 may start only in a later run; no GitHub upload or production action is allowed in this run."
+}

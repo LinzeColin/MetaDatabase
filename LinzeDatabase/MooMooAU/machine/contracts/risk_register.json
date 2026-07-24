@@ -1,0 +1,124 @@
+{
+  "risks": [
+    {
+      "id": "RSK-001",
+      "risk": "发件人规则误判导致误伤其他邮件",
+      "likelihood": "low after gates",
+      "impact": "critical",
+      "mitigation": "exact sender + auth alignment + business fingerprint, double verification, mutation budget 1",
+      "owner": "security",
+      "trigger": "any non-target fetch or mutation",
+      "response": "kill M3 and revoke OAuth"
+    },
+    {
+      "id": "RSK-002",
+      "risk": "gmail.modify 权限过宽",
+      "likelihood": "medium",
+      "impact": "critical",
+      "mitigation": "single credential but hard endpoint guard, egress allowlist, no send/delete code path, security tests",
+      "owner": "identity",
+      "trigger": "forbidden endpoint attempted",
+      "response": "revoke credential and stop workflow"
+    },
+    {
+      "id": "RSK-003",
+      "risk": "私有仓远端写入后公开 Evidence 失败",
+      "likelihood": "medium",
+      "impact": "low",
+      "mitigation": "private-first Saga and reconciliation state",
+      "owner": "reliability",
+      "trigger": "public push failure",
+      "response": "retry public compensation"
+    },
+    {
+      "id": "RSK-004",
+      "risk": "公开仓或日志泄漏敏感内容",
+      "likelihood": "low",
+      "impact": "critical",
+      "mitigation": "redaction allowlist, secret/PII scan, no real fixtures, no model data path",
+      "owner": "privacy",
+      "trigger": "scanner finding",
+      "response": "security incident and history cleanup"
+    },
+    {
+      "id": "RSK-005",
+      "risk": "age Recovery Key 丢失或泄漏",
+      "likelihood": "medium",
+      "impact": "critical",
+      "mitigation": "one-time delivery, protected secret, recovery drill, recipient versioning",
+      "owner": "security",
+      "trigger": "recovery failure or exposure",
+      "response": "rotate for new data; assess historical exposure"
+    },
+    {
+      "id": "RSK-006",
+      "risk": "PDF 密码未知导致结构化延迟",
+      "likelihood": "high initially",
+      "impact": "medium",
+      "mitigation": "Raw/M3 independent, WAITING state, protected reprocess",
+      "owner": "processing",
+      "trigger": "password error",
+      "response": "defer only parser"
+    },
+    {
+      "id": "RSK-007",
+      "risk": "GitHub scheduled run delayed/disabled",
+      "likelihood": "medium",
+      "impact": "medium",
+      "mitigation": "weekly full reconcile, workflow_dispatch, stale public health evidence, simple Auto monitor",
+      "owner": "operations",
+      "trigger": "freshness >48h",
+      "response": "development thread re-enable/run workflow"
+    },
+    {
+      "id": "RSK-008",
+      "risk": "Git/LFS 容量增长",
+      "likelihood": "medium long-term",
+      "impact": "high",
+      "mitigation": "content addressing, no timeline history, no re-encrypt Raw, quota thresholds",
+      "owner": "data",
+      "trigger": "yellow/red capacity threshold",
+      "response": "stop backfill/nonessential derivatives"
+    },
+    {
+      "id": "RSK-009",
+      "risk": "Moomoo 邮件模板或发件人变化",
+      "likelihood": "medium",
+      "impact": "medium",
+      "mitigation": "verified unknown state, registry review, Raw-safe fallback, parser blue-green",
+      "owner": "classification",
+      "trigger": "new fingerprint or schema failure",
+      "response": "leave message untouched until deterministic update"
+    },
+    {
+      "id": "RSK-010",
+      "risk": "邮件内容 Prompt Injection 影响 Codex",
+      "likelihood": "medium",
+      "impact": "high",
+      "mitigation": "no real content in model context, synthetic red-team fixtures only",
+      "owner": "model-safety",
+      "trigger": "model receives real content",
+      "response": "disable model workflow and investigate"
+    },
+    {
+      "id": "RSK-011",
+      "risk": "Release Asset 替换失败导致无 Timeline",
+      "likelihood": "low",
+      "impact": "low",
+      "mitigation": "upload new verified temp asset before deleting old, final rename/replace semantics",
+      "owner": "timeline",
+      "trigger": "asset count !=1",
+      "response": "retain/recover last verified asset"
+    },
+    {
+      "id": "RSK-012",
+      "risk": "同一线程中的其他邮件被 Trash",
+      "likelihood": "low",
+      "impact": "critical",
+      "mitigation": "messages.trash only; thread endpoints prohibited",
+      "owner": "gmail-mutation",
+      "trigger": "non-target label change",
+      "response": "untrash if possible and kill M3"
+    }
+  ]
+}

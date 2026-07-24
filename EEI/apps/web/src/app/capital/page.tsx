@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  AlertTriangle,
   ArrowRight,
   Database,
   FileSearch,
@@ -20,12 +19,13 @@ import {
   type CapitalRiverSyncResult,
   type EventAmountBucket
 } from "../capital-events-client";
+import { EmptyState, ErrorState, Skeleton, TopLoadingBar } from "../components/feedback";
 import {
   loadEvidenceDetail,
   type EvidenceDetailRecord
 } from "../production-data-client";
+import { zhLabel } from "../labels";
 import { WorkspaceNavigationRail } from "../workspace-navigation";
-import type { WorkspaceModuleId } from "../workspace-context";
 
 const EMPTY_FILTERS: CapitalEventFilters = {
   entity: "",
@@ -131,14 +131,6 @@ export default function CapitalRiverPage() {
     setEvidenceReason(evidenceResult.reason);
   }
 
-  function navigateToLens(lens: string, _moduleId: WorkspaceModuleId) {
-    window.location.assign(`/?lens=${encodeURIComponent(lens)}`);
-  }
-
-  function navigateToSection(sectionTestId: string, _moduleId: WorkspaceModuleId) {
-    window.location.assign(`/#${encodeURIComponent(sectionTestId)}`);
-  }
-
   return (
     <div
       className="capitalWorkspace"
@@ -148,26 +140,26 @@ export default function CapitalRiverPage() {
       data-load-state={loadState}
       data-testid="capital-river-shell"
     >
-      <WorkspaceNavigationRail
-        activeLens="capital_transactions"
-        activeModuleId="capital_network"
-        onLensTarget={navigateToLens}
-        onSectionTarget={navigateToSection}
-      />
+      <WorkspaceNavigationRail activeModuleId="capital_network" />
 
       <main className="capitalMain">
         <header className="capitalHeader">
           <div>
-            <p className="eyebrow">Capital, financing and M&amp;A</p>
-            <h1>资金河流</h1>
+            <p className="eyebrow">资本 · 融资 · 并购</p>
+            <h1>资本与事件</h1>
             <p>
-              事件金额按币种、金额类型与期间分 lane；跨 lane 不合计，未披露金额不映射为零。
+              最近发生了什么？涉及多少钱？— 金额按币种与类型分道呈现，未披露金额不记为零。
             </p>
           </div>
           <div className="capitalHeaderStatus" data-testid="capital-sync-status">
             <Database size={16} aria-hidden="true" />
-            <span>{loadState}</span>
-            <small>{loadReason}</small>
+            <span>{zhLabel("status", loadState)}</span>
+            <details className="diagDetails">
+              <summary>诊断详情</summary>
+              <small>
+                {loadState} / {loadReason}
+              </small>
+            </details>
           </div>
         </header>
 
@@ -244,14 +236,32 @@ export default function CapitalRiverPage() {
           </div>
         </form>
 
+        {/* P1-6：刷新不清屏，仅顶部 1px 进度条（延迟 300ms）；首载走同构骨架。 */}
+        <TopLoadingBar active={loadState === "loading" && Boolean(summary)} />
+
+        {loadState === "loading" && !summary ? (
+          <Skeleton count={4} testId="capital-skeleton" variant="card" />
+        ) : null}
+
         {loadState === "api_required" ? (
-          <section className="capitalEmptyState" data-testid="capital-api-required">
-            <AlertTriangle size={20} aria-hidden="true" />
-            <div>
-              <strong>需要生产 API</strong>
-              <p>配置 `NEXT_PUBLIC_EEI_API_BASE_URL` 或本地 API base 后加载事件与证据。</p>
-            </div>
-          </section>
+          <ErrorState
+            description="配置数据接口（NEXT_PUBLIC_EEI_API_BASE_URL 或本地 API base）后即可加载事件与证据。"
+            testId="capital-api-required"
+            title="暂时连不上数据服务"
+            tone="warn"
+          />
+        ) : null}
+
+        {loadState === "error" ? (
+          <ErrorState
+            description="资金事件加载没有成功，请稍后重试。"
+            detail={loadReason}
+            onRetry={() => void hydrateCapitalRiver(appliedFilters)}
+            retryTestId="capital-load-error-retry"
+            testId="capital-load-error"
+            title="加载没有成功"
+            tone="error"
+          />
         ) : null}
 
         {summary ? (
@@ -333,9 +343,16 @@ export default function CapitalRiverPage() {
             ) : null}
 
             {loadState === "hydrated" && events.length === 0 ? (
-              <div className="capitalNoResults" data-testid="capital-no-results">
-                发布面暂无已发布资金事件——演示与候选事件逐条标注、永不出本地，缺席不等于真实为空。
-              </div>
+              <EmptyState
+                actions={
+                  <button className="primary" onClick={resetFilters} type="button">
+                    清除筛选
+                  </button>
+                }
+                description="没有符合当前筛选的事件。清除筛选查看全部事件，或换一个时间范围。"
+                testId="capital-no-results"
+                variant="no-results"
+              />
             ) : null}
           </section>
 
@@ -347,7 +364,7 @@ export default function CapitalRiverPage() {
           >
             <header>
               <div>
-                <p className="eyebrow">Event evidence</p>
+                <p className="eyebrow">证据</p>
                 <h2>事件证据</h2>
               </div>
               <FileSearch size={19} aria-hidden="true" />
@@ -360,9 +377,13 @@ export default function CapitalRiverPage() {
                 <small>{selectedEvent.id}</small>
               </section>
             ) : null}
-            <div className="capitalEvidenceState" data-testid="capital-evidence-status">
-              {evidenceState} / {evidenceReason}
-            </div>
+            {/* P0-2：机器状态码收进诊断详情（testid 契约保留）。 */}
+            <details className="diagDetails">
+              <summary>诊断详情</summary>
+              <div className="capitalEvidenceState" data-testid="capital-evidence-status">
+                {evidenceState} / {evidenceReason}
+              </div>
+            </details>
             {evidence ? (
               <div className="capitalEvidenceContent">
                 <dl>

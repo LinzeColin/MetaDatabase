@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "run_status": "DEGRADED",
+  "freshness_bucket": "UNKNOWN",
+  "count_bucket": "ZERO",
+  "code_version": "1.0.1-stage0",
+  "parser_versions": [],
+  "opaque_evidence_root": "synthetic_stage0_only",
+  "gates": {
+    "stage0": "PASS",
+    "production": "NOT_RUN"
+  },
+  "failure_code": "PRODUCTION_NOT_IMPLEMENTED"
+}

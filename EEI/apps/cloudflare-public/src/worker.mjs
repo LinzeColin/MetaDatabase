@@ -91,6 +91,91 @@ function badRequest(detail) {
   return json({ detail }, 400);
 }
 
+// EEI-OVH publish channel: the refresh container on the shared governance box
+// pushes the publication surface as chunked SQL batches over HTTPS, so the box
+// holds only this narrow publish token - never an account-level Cloudflare
+// credential - and ships no Node/wrangler (hard 320 MiB container cap).
+const PUBLISH_MAX_STATEMENTS = 400;
+const PUBLISH_MAX_BYTES = 4_000_000;
+const PUBLISH_MAX_ROWS_ECHOED = 100;
+
+function timingSafeEqualStr(a, b) {
+  const enc = new TextEncoder();
+  const ab = enc.encode(a);
+  const bb = enc.encode(b);
+  // Compare over a fixed-length digest space: length differences must not
+  // short-circuit earlier than content differences.
+  let diff = ab.length ^ bb.length;
+  const n = Math.max(ab.length, bb.length);
+  for (let i = 0; i < n; i += 1) {
+    diff |= (ab[i % ab.length] ?? 0) ^ (bb[i % bb.length] ?? 0);
+  }
+  return diff === 0;
+}
+
+async function internalPublishExec(request, env) {
+  // Hidden unless the deployment explicitly binds the secret.
+  if (!env.EEI_PUBLISH_TOKEN) {
+    return notFound("No cloud route for POST /v1/internal/publish/exec");
+  }
+  const auth = request.headers.get("authorization") ?? "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  if (!token || !timingSafeEqualStr(token, env.EEI_PUBLISH_TOKEN)) {
+    return json({ detail: "unauthorized" }, 401);
+  }
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return badRequest("body must be JSON: {statements: [sql, ...]}");
+  }
+  const statements = Array.isArray(payload?.statements) ? payload.statements : null;
+  if (!statements || statements.length === 0) {
+    return badRequest("statements[] required");
+  }
+  if (statements.length > PUBLISH_MAX_STATEMENTS) {
+    return badRequest(`too many statements (max ${PUBLISH_MAX_STATEMENTS})`);
+  }
+  let bytes = 0;
+  for (const stmt of statements) {
+    if (typeof stmt !== "string" || !stmt.trim()) {
+      return badRequest("statements must be non-empty SQL strings");
+    }
+    bytes += stmt.length;
+  }
+  if (bytes > PUBLISH_MAX_BYTES) {
+    return badRequest(`batch too large (${bytes} bytes, max ${PUBLISH_MAX_BYTES})`);
+  }
+  const started = Date.now();
+  let results;
+  try {
+    // D1 batch = one atomic transaction per request; the publisher sequences
+    // requests so DELETE -> INSERT ordering holds across the whole stream.
+    results = await env.EEI_PUB.batch(statements.map((s) => env.EEI_PUB.prepare(s)));
+  } catch (err) {
+    // Surface the D1 error text so the publisher can log the failing batch;
+    // no stack, no internals beyond the SQL engine message.
+    return json({ ok: false, detail: String(err?.message ?? err).slice(0, 300) }, 400);
+  }
+  return json({
+    ok: true,
+    statements: statements.length,
+    duration_ms: Date.now() - started,
+    results: results.map((r) => ({
+      success: r.success,
+      changes: r.meta?.changes ?? null,
+      rows:
+        Array.isArray(r.results) && r.results.length <= PUBLISH_MAX_ROWS_ECHOED
+          ? r.results
+          : undefined,
+      rows_truncated:
+        Array.isArray(r.results) && r.results.length > PUBLISH_MAX_ROWS_ECHOED
+          ? r.results.length
+          : undefined
+    }))
+  });
+}
+
 function normalizeBudget(raw) {
   const budget = raw && typeof raw === "object" ? raw : {};
   return {
@@ -539,6 +624,104 @@ async function evidenceIndex(env, relationshipId) {
   });
 }
 
+// Event evidence drill-down (/v1/evidence/event/:id). The capital "资金事件"
+// panel loads this via loadEvidenceDetail({objectType:"event"}), which strictly
+// validates the rich evidence-detail-v1 record shape (production-data-client
+// isEvidenceDetailRecord). The event_evidence + events rows are already on the
+// publication surface, so this route just shapes them into that contract — SEC
+// EDGAR excerpt + official source link, no dead link. Published rows only.
+async function eventEvidenceIndex(env, eventId, limit) {
+  const event = await env.EEI_PUB.prepare(
+    "SELECT id, event_type, title, status, announced_at, effective_at," +
+      " period_start, period_end, observed_at, amount, currency, amount_kind," +
+      " description FROM events WHERE id = ?"
+  )
+    .bind(eventId)
+    .first();
+  if (!event) {
+    return notFound(`Event not found: ${eventId}`);
+  }
+  const cap = Math.min(Math.max(Number.parseInt(limit ?? "20", 10) || 20, 1), 100);
+  const { results } = await env.EEI_PUB.prepare(
+    "SELECT source_document_id, role, locator, support_excerpt," +
+      " source_url, source_title, publisher, document_date" +
+      " FROM event_evidence WHERE event_id = ?" +
+      " ORDER BY role, publisher, source_url"
+  )
+    .bind(eventId)
+    .all();
+  const rows = results ?? [];
+  const returned = rows.slice(0, cap);
+  // De-duplicate the source-document set for the summary count/list.
+  const docs = new Map();
+  for (const row of rows) {
+    if (!docs.has(row.source_document_id)) {
+      docs.set(row.source_document_id, {
+        id: row.source_document_id,
+        url: row.source_url ?? null,
+        title: row.source_title ?? null,
+        publisher: row.publisher ?? null,
+        document_date: row.document_date ?? null
+      });
+    }
+  }
+  const evidence = returned.map((row) => ({
+    evidence_id: `${eventId}:${row.source_document_id}:${row.role}`,
+    source_document_id: row.source_document_id,
+    ingestion_evidence_chain_id: null,
+    role: row.role,
+    // First-hand SEC/GLEIF filings are tier-1 official sources.
+    source_tier: 1,
+    publisher: row.publisher ?? null,
+    title: row.source_title ?? null,
+    url: row.source_url ?? null,
+    locator: row.locator ?? null,
+    support_excerpt: row.support_excerpt ?? null,
+    snippet: {
+      text: row.support_excerpt ?? null,
+      locator: row.locator ?? null,
+      redaction_status: "public"
+    },
+    structured_fact: {},
+    counter_evidence: [],
+    parser_version: null,
+    confidence: null,
+    review_status: null,
+    source_document: {
+      id: row.source_document_id,
+      url: row.source_url ?? null,
+      title: row.source_title ?? null,
+      publisher: row.publisher ?? null,
+      document_date: row.document_date ?? null
+    }
+  }));
+  return json({
+    schema_version: "evidence-detail-v1",
+    object_type: "event",
+    object_id: eventId,
+    object_summary: {
+      event_type: event.event_type,
+      title: event.title,
+      status: event.status,
+      announced_at: event.announced_at ?? null,
+      effective_at: event.effective_at ?? null,
+      observed_at: event.observed_at ?? null,
+      amount: event.amount ?? null,
+      currency: event.currency ?? null,
+      amount_kind: event.amount_kind ?? null,
+      description: event.description ?? null
+    },
+    evidence_count: rows.length,
+    returned_evidence_count: evidence.length,
+    source_document_count: docs.size,
+    limit: cap,
+    truncated: rows.length > returned.length,
+    source_documents: Array.from(docs.values()),
+    evidence,
+    production_context: { surface: "cloud_publication" }
+  });
+}
+
 // R-002/S-003 fault-injection hardening. A fuzzed long search term made D1's
 // LIKE pattern-complexity limit throw ("LIKE or GLOB pattern too complex",
 // SQLITE_ERROR), which surfaced as an unhandled 500 leaking the internal error.
@@ -725,38 +908,346 @@ async function supplyChainOverview(env) {
   });
 }
 
-// EEI-F07/acceptance F-007: the empty amount-summary shape, matching the
-// local API's event_amount_summary contract (event-amount-semantics-v1) for
-// zero published events. filters echoes the request so the client validator's
-// isRecord(filters) check passes.
-function emptyAmountSummary(searchParams) {
+// filters echo carried on every amount-summary (the client only requires
+// isRecord(filters); limit is a page control, not a facet). aggregateEventAmounts
+// supplies the honest all-zero body when no published event matches.
+function summaryFilters(searchParams) {
   const filters = {};
   for (const [key, value] of searchParams.entries()) {
     if (key !== "limit") filters[key] = value;
   }
+  return filters;
+}
+
+// --- Capital River events (cloud twin of the local /v1/events surface) ------
+// The publication surface now carries first-hand published events (SEC filings
+// etc.). These helpers port the local app.amount_semantics contract 1:1 so the
+// cloud emits byte-compatible amount_semantics and amount-summary shapes.
+const EVENT_AMOUNT_SEMANTICS_VERSION = "event-amount-semantics-v1";
+const NON_AGGREGATABLE_AMOUNT_KINDS = new Set([
+  "unknown",
+  "unreported",
+  "undisclosed",
+  "not_disclosed"
+]);
+const NON_AGGREGATABLE_CURRENCIES = new Set(["XXX"]);
+
+function isoDate(value) {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  return text ? text.slice(0, 10) : null;
+}
+
+// Port of app.amount_semantics.event_amount_semantics. Never throws (the cloud
+// read path is fail-closed): a reported amount without a valid currency/kind -
+// which the local events_check1 CHECK constraint already forbids - degrades to
+// reported_unclassified instead of raising.
+function eventAmountSemantics({ amount, currency, amount_kind, period_start, period_end }) {
+  const normalizedCurrency = currency ? String(currency).trim().toUpperCase() : null;
+  const normalizedKind = amount_kind ? String(amount_kind).trim().toLowerCase() : null;
+  const periodStart = isoDate(period_start);
+  const periodEnd = isoDate(period_end);
+  if (amount === null || amount === undefined) {
+    return {
+      schema_version: EVENT_AMOUNT_SEMANTICS_VERSION,
+      state: "unreported",
+      amount: null,
+      display_amount: null,
+      currency: normalizedCurrency,
+      amount_kind: normalizedKind,
+      period_start: periodStart,
+      period_end: periodEnd,
+      visual_weight: null,
+      width_eligible: false,
+      aggregate_eligible: false,
+      aggregation_key: null,
+      non_aggregation_reason: "amount_unreported"
+    };
+  }
+  const numericAmount = Number(amount);
+  const classified =
+    Boolean(normalizedCurrency) &&
+    normalizedCurrency.length === 3 &&
+    Boolean(normalizedKind) &&
+    !NON_AGGREGATABLE_AMOUNT_KINDS.has(normalizedKind) &&
+    !NON_AGGREGATABLE_CURRENCIES.has(normalizedCurrency);
   return {
-    schema_version: "event-amount-semantics-v1",
-    event_count: 0,
-    reported_event_count: 0,
-    unreported_event_count: 0,
-    unclassified_event_count: 0,
-    bucket_count: 0,
-    buckets: [],
-    unreported_event_ids: [],
-    unclassified_event_ids: [],
-    incomparable_dimensions: [],
+    schema_version: EVENT_AMOUNT_SEMANTICS_VERSION,
+    state: classified ? "reported" : "reported_unclassified",
+    amount: numericAmount,
+    display_amount: numericAmount,
+    currency: normalizedCurrency,
+    amount_kind: normalizedKind,
+    period_start: periodStart,
+    period_end: periodEnd,
+    visual_weight: classified ? numericAmount : null,
+    width_eligible: classified,
+    aggregate_eligible: classified,
+    aggregation_key: classified
+      ? {
+          currency: normalizedCurrency,
+          amount_kind: normalizedKind,
+          period_start: periodStart,
+          period_end: periodEnd
+        }
+      : null,
+    non_aggregation_reason: classified ? null : "amount_semantics_unclassified"
+  };
+}
+
+function compareText(a, b) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+// Port of app.amount_semantics.aggregate_event_amounts. Buckets key on
+// (currency, amount_kind, period_start, period_end); cross-bucket sums are
+// never performed and unreported amounts never map to zero.
+function aggregateEventAmounts(rows) {
+  const buckets = new Map();
+  const unreported = [];
+  const unclassified = [];
+  let eventCount = 0;
+  let reportedCount = 0;
+  for (const row of rows) {
+    eventCount += 1;
+    const id = String(row.id);
+    const semantics = eventAmountSemantics(row);
+    if (semantics.state === "unreported") {
+      unreported.push(id);
+      continue;
+    }
+    reportedCount += 1;
+    if (!semantics.aggregate_eligible) {
+      unclassified.push(id);
+      continue;
+    }
+    const key = semantics.aggregation_key;
+    const bucketKey = [
+      key.currency,
+      key.amount_kind,
+      key.period_start ?? "",
+      key.period_end ?? ""
+    ].join(" ");
+    let bucket = buckets.get(bucketKey);
+    if (!bucket) {
+      bucket = {
+        currency: key.currency,
+        amount_kind: key.amount_kind,
+        period_start: key.period_start,
+        period_end: key.period_end,
+        total_amount: 0,
+        visual_weight_total: 0,
+        event_count: 0,
+        event_ids: []
+      };
+      buckets.set(bucketKey, bucket);
+    }
+    bucket.total_amount += semantics.amount;
+    bucket.visual_weight_total += semantics.visual_weight;
+    bucket.event_count += 1;
+    bucket.event_ids.push(id);
+  }
+  const orderedBuckets = [...buckets.values()].sort(
+    (a, b) =>
+      compareText(a.currency, b.currency) ||
+      compareText(a.amount_kind, b.amount_kind) ||
+      compareText(a.period_start ?? "", b.period_start ?? "") ||
+      compareText(a.period_end ?? "", b.period_end ?? "")
+  );
+  const dimensions = [];
+  if (new Set(orderedBuckets.map((b) => b.currency)).size > 1) dimensions.push("currency");
+  if (new Set(orderedBuckets.map((b) => b.amount_kind)).size > 1) dimensions.push("amount_kind");
+  if (new Set(orderedBuckets.map((b) => `${b.period_start}|${b.period_end}`)).size > 1) {
+    dimensions.push("period");
+  }
+  const oneComparableBucket = orderedBuckets.length === 1 && unclassified.length === 0;
+  const comparableTotal = oneComparableBucket ? orderedBuckets[0].total_amount : null;
+  return {
+    schema_version: EVENT_AMOUNT_SEMANTICS_VERSION,
+    event_count: eventCount,
+    reported_event_count: reportedCount,
+    unreported_event_count: unreported.length,
+    unclassified_event_count: unclassified.length,
+    bucket_count: orderedBuckets.length,
+    buckets: orderedBuckets,
+    unreported_event_ids: [...unreported].sort(),
+    unclassified_event_ids: [...unclassified].sort(),
+    incomparable_dimensions: dimensions,
     cross_bucket_summation_performed: false,
-    comparable_reported_total_available: false,
-    comparable_reported_total: null,
-    comparable_reported_total_complete: false,
+    comparable_reported_total_available: oneComparableBucket,
+    comparable_reported_total: comparableTotal,
+    comparable_reported_total_complete: Boolean(oneComparableBucket && unreported.length === 0),
     semantics: {
       unknown_amount_is_zero: false,
       unknown_amount_has_visual_weight: false,
       aggregation_key: ["currency", "amount_kind", "period_start", "period_end"],
       incomparable_buckets_are_summed: false
-    },
-    filters
+    }
   };
+}
+
+function cleanFilter(value) {
+  if (value === null || value === undefined) return null;
+  const trimmed = String(value).trim();
+  return trimmed ? trimmed : null;
+}
+
+// Matches the local /v1/events Query(default=100, ge=1, le=500). limit is
+// interpolated (not bound), so it MUST be coerced to a bounded integer.
+function clampEventLimit(raw) {
+  const parsed = Number.parseInt(raw ?? "", 10);
+  if (!Number.isFinite(parsed)) return 100;
+  return Math.max(1, Math.min(500, parsed));
+}
+
+// Builds the filtered events query shared by /v1/events and amount-summary.
+// Mirrors the local list_events filters (entity participant, from/to on
+// COALESCE(effective_at, announced_at, observed_at), event_type, currency,
+// amount_kind) and its superseded/revoked + evidence>0 exclusions.
+function buildEventQuery(searchParams, { summary }) {
+  const clauses = [
+    "ev.status NOT IN ('superseded', 'revoked')",
+    "(SELECT COUNT(*) FROM event_evidence ee WHERE ee.event_id = ev.id) > 0"
+  ];
+  const binds = [];
+  const entity = cleanFilter(searchParams.get("entity"));
+  if (entity) {
+    clauses.push(
+      "EXISTS (SELECT 1 FROM event_participants ep WHERE ep.event_id = ev.id AND ep.entity_id = ?)"
+    );
+    binds.push(entity);
+  }
+  const theme = cleanFilter(searchParams.get("theme"));
+  if (theme) {
+    clauses.push(
+      "EXISTS (SELECT 1 FROM event_participants ep WHERE ep.event_id = ev.id" +
+        " AND ep.entity_id = ? AND ep.role = 'theme')"
+    );
+    binds.push(theme);
+  }
+  const from = cleanFilter(searchParams.get("from"));
+  if (from) {
+    clauses.push("COALESCE(ev.effective_at, ev.announced_at, ev.observed_at) >= ?");
+    binds.push(from);
+  }
+  const to = cleanFilter(searchParams.get("to"));
+  if (to) {
+    clauses.push("COALESCE(ev.effective_at, ev.announced_at, ev.observed_at) <= ?");
+    binds.push(to);
+  }
+  const eventType = cleanFilter(searchParams.get("event_type"));
+  if (eventType) {
+    clauses.push("ev.event_type = ?");
+    binds.push(eventType);
+  }
+  const currency = cleanFilter(searchParams.get("currency"));
+  if (currency) {
+    clauses.push("upper(ev.currency) = upper(?)");
+    binds.push(currency);
+  }
+  const amountKind = cleanFilter(searchParams.get("amount_kind"));
+  if (amountKind) {
+    clauses.push("ev.amount_kind = ?");
+    binds.push(amountKind);
+  }
+  const columns = summary
+    ? "ev.id, ev.amount, ev.currency, ev.amount_kind, ev.period_start, ev.period_end"
+    : "ev.id, ev.event_type, ev.title, ev.status, ev.announced_at," +
+      " ev.effective_at, ev.period_start, ev.period_end, ev.observed_at," +
+      " ev.amount, ev.currency, ev.amount_kind, ev.description, ev.qualifiers_json," +
+      " (SELECT COUNT(*) FROM event_evidence ee WHERE ee.event_id = ev.id) AS evidence_count";
+  const sql =
+    `SELECT ${columns} FROM events ev WHERE ` +
+    clauses.join(" AND ") +
+    " ORDER BY COALESCE(ev.effective_at, ev.announced_at, ev.observed_at) DESC," +
+    " ev.observed_at DESC, ev.id" +
+    ` LIMIT ${clampEventLimit(searchParams.get("limit"))}`;
+  return { sql, binds };
+}
+
+async function d1All(env, sql, binds) {
+  const statement = env.EEI_PUB.prepare(sql);
+  const { results } = await (binds.length ? statement.bind(...binds) : statement).all();
+  return results ?? [];
+}
+
+function parseEventQualifiers(text) {
+  if (!text) return {};
+  try {
+    const value = JSON.parse(text);
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  } catch {
+    return {};
+  }
+}
+
+function shapeEvent(row, participants) {
+  const amount = row.amount === null || row.amount === undefined ? null : Number(row.amount);
+  return {
+    id: row.id,
+    event_type: row.event_type,
+    title: row.title,
+    status: row.status,
+    announced_at: row.announced_at ?? null,
+    effective_at: row.effective_at ?? null,
+    period_start: row.period_start ?? null,
+    period_end: row.period_end ?? null,
+    observed_at: row.observed_at,
+    amount,
+    currency: row.currency ?? null,
+    amount_kind: row.amount_kind ?? null,
+    description: row.description ?? null,
+    qualifiers: parseEventQualifiers(row.qualifiers_json),
+    evidence_count: Number(row.evidence_count ?? 0),
+    participants,
+    amount_semantics: eventAmountSemantics({
+      amount,
+      currency: row.currency,
+      amount_kind: row.amount_kind,
+      period_start: row.period_start,
+      period_end: row.period_end
+    })
+  };
+}
+
+// /v1/events: the Capital River event stream. Returns the same array shape the
+// local API serves (capital-events-client validates it field-by-field). Zero
+// published events -> honest empty array (never a 500).
+async function listEvents(env, url) {
+  const { sql, binds } = buildEventQuery(url.searchParams, { summary: false });
+  const eventRows = await d1All(env, sql, binds);
+  if (eventRows.length === 0) return json([]);
+  const ids = eventRows.map((row) => row.id);
+  const participantRows = await d1All(
+    env,
+    "SELECT event_id, entity_id, entity_name, role, direction FROM event_participants" +
+      ` WHERE event_id IN (${placeholders(ids.length)}) ORDER BY role, entity_id`,
+    ids
+  );
+  const byEvent = new Map();
+  for (const row of participantRows) {
+    const list = byEvent.get(row.event_id) ?? [];
+    list.push({
+      entity_id: row.entity_id,
+      entity_name: row.entity_name ?? null,
+      role: row.role,
+      direction: row.direction ?? null
+    });
+    byEvent.set(row.event_id, list);
+  }
+  return json(eventRows.map((row) => shapeEvent(row, byEvent.get(row.id) ?? [])));
+}
+
+// /v1/events/amount-summary: real event_amount_summary computed over the same
+// filtered/limited set, keeping the honest-empty contract when there are none.
+async function listEventAmountSummary(env, url) {
+  const { sql, binds } = buildEventQuery(url.searchParams, { summary: true });
+  const rows = await d1All(env, sql, binds);
+  const summary = aggregateEventAmounts(rows);
+  summary.filters = summaryFilters(url.searchParams);
+  return json(summary);
 }
 
 // EEI-F01: cloud twin of the local /v1/changes. The publication surface's
@@ -1100,20 +1591,18 @@ async function handleFetch(request, env) {
       return listChanges(env, url.searchParams.get("since"));
     }
 
-    // EEI-F07/acceptance F-007: the Capital River module (/capital) calls
-    // these two routes. The CF-L2 publication surface carries owner-signed
-    // published FACTS only; the local capital events are all synthetic demos
-    // (derivation_rule NULL, titles "Synthetic ...") and must never reach the
-    // public surface. So both routes serve an honest, well-formed EMPTY set -
-    // the page then renders its graceful no-published-events state instead of
-    // the raw http_404 error the acceptance flagged. When an owner-signed
-    // published capital event exists, publish_to_cloud_channel.py would carry
-    // it here exactly like relationships.
+    // EEI-F07/acceptance F-007: the Capital River module (/capital) calls these
+    // two routes. The publication surface now carries first-hand published
+    // events (derivation_rule = authoritative_first_hand_ingestion) alongside
+    // relationships, so these serve the real published event stream + amount
+    // summary from D1. Synthetic/candidate events (derivation_rule NULL) never
+    // publish, so with none published both routes still return the honest empty
+    // shape - the page keeps its graceful no-published-events state, never a 500.
     if (pathname === "/v1/events" && request.method === "GET") {
-      return json([]);
+      return listEvents(env, url);
     }
     if (pathname === "/v1/events/amount-summary" && request.method === "GET") {
-      return json(emptyAmountSummary(url.searchParams));
+      return listEventAmountSummary(env, url);
     }
 
     if (pathname === "/v1/meta/build" && request.method === "GET") {
@@ -1137,6 +1626,17 @@ async function handleFetch(request, env) {
     );
     if (evidenceMatch && request.method === "GET") {
       return evidenceIndex(env, evidenceMatch[1]);
+    }
+
+    const eventEvidenceMatch = pathname.match(
+      /^\/v1\/evidence\/event\/([0-9a-fA-F-]{36})$/
+    );
+    if (eventEvidenceMatch && request.method === "GET") {
+      return eventEvidenceIndex(env, eventEvidenceMatch[1], url.searchParams.get("limit"));
+    }
+
+    if (pathname === "/v1/internal/publish/exec" && request.method === "POST") {
+      return internalPublishExec(request, env);
     }
 
     if (pathname.startsWith("/v1/")) {

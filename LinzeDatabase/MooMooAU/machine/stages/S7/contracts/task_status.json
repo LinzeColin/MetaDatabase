@@ -1,0 +1,30 @@
+{
+  "schema_version": "moomooau.stage-task-status.v1",
+  "stage_id": "S7",
+  "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
+  "stage_status": "AUTHORIZED_T0703_REPAIR_CANDIDATE_PENDING_PROTECTED_EXECUTION",
+  "tasks": [
+    {"id": "T0701", "status": "remote_alpha_passed_formal_completion_withheld"},
+    {"id": "T0702", "status": "protected_beta_passed_formal_completion_withheld"},
+    {"id": "T0703", "status": "protected_attempt_one_failed_zero_effect_repair_candidate_authorized"},
+    {"id": "T0704", "status": "implementation_ready_blocked_registry_and_predecessor_no_calendar_wait"},
+    {"id": "T0705", "status": "implementation_ready_blocked_blue_green_budget_and_protected_schedule"},
+    {"id": "T0706", "status": "local_policy_ready_blocked_ga_and_owner_created_automation"},
+    {"id": "T0707", "status": "local_mechanism_ready_blocked_predecessor_owner_key_adapters_and_protected_drill"},
+    {"id": "T0708", "status": "local_policy_ready_blocked_recovery_predecessor_candidate_canary_and_protected_operations"}
+  ],
+  "scoped_preflight_task_oracle_file_count": 8,
+  "implementation_completion_status": "LOCAL_MECHANISMS_READY",
+  "completed_task_count": 0,
+  "protected_oracles_executed": 3,
+  "protected_oracles_passed": 2,
+  "protected_oracles_failed": 1,
+  "protected_workflow_runs": 12,
+  "production_workflow_runs": 0,
+  "final_acceptances_passed": 0,
+  "delivery_status": "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL",
+  "ordering_status": "T0703_REPAIR_AUTHORIZED_AFTER_ZERO_EFFECT_FAILED_ATTEMPT",
+  "diagnostic_repair_status": "LOCAL_PASS_METADATA_QUARANTINE_PARITY_AND_CLOSED_M3_DIAGNOSTICS",
+  "new_controlled_delivery_authorized": true,
+  "new_protected_dispatch_authorized": true
+}

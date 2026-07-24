@@ -224,15 +224,15 @@ test("A211 live production routes and data controls hydrate from FastAPI Postgre
   await expect(dataPanel).toHaveAttribute("data-evidence-detail-count", /^[1-9]\d*$/);
   await expect(page.getByTestId("production-score-candidate")).toContainText("GV-FACT-001");
   await expect(page.getByTestId("production-score-candidate")).toContainText("ready_for_review");
-  // S9PBT02 V5: the context KPI bar mirrors the score explanation state -
-  // consistency is by construction (single source) and asserted here.
+  // S9PBT02 V5 → P0-2 §E.1：KPI 条改业务量（本图规模/全库关系/数据版本）；
+  // 治理流水线状态仍以 production-score-* 契约（上两行）断言。
   await expect(page.getByTestId("context-kpi-bar")).toBeVisible();
-  await expect(page.getByTestId("kpi-candidate")).toHaveText("GV-FACT-001");
-  await expect(page.getByTestId("kpi-review")).toContainText("machine_verified");
-  await expect(page.getByTestId("kpi-publication")).toContainText("ready_for_review");
+  await expect(page.getByTestId("kpi-entities")).toContainText("实体");
+  await expect(page.getByTestId("kpi-relationships")).toContainText("条关系");
+  await expect(page.getByTestId("kpi-published")).toContainText("全库已核实关系");
   await expect(page.getByTestId("context-kpi-bar")).toHaveAttribute(
     "data-kpi-source",
-    "production-score-explanation"
+    "production-graph-context"
   );
   await expect(page.getByTestId("production-evidence-snippets")).toContainText("SEC EDGAR");
   await expect(freshnessPanel).toHaveAttribute("data-sync-mode", "server");
@@ -244,8 +244,8 @@ test("A211 live production routes and data controls hydrate from FastAPI Postgre
   await expect(freshnessPanel).toHaveAttribute("data-report-period-end", "2024-12-31");
   await expect(freshnessPanel).toContainText("sec_edgar_synthetic_fixture");
 
-  // S8PB promoted supply_chain to a real route; the nav entry now carries
-  // route semantics instead of switching the in-page lens.
+  // P0-1 导航收敛：supply_chain 是六个一级 route 入口之一；
+  // 证据中心不再是导航项（右栏常驻）。
   await expect(page.getByTestId("main-nav-supply_chain")).toHaveAttribute(
     "href",
     "/supply-chain"
@@ -254,25 +254,20 @@ test("A211 live production routes and data controls hydrate from FastAPI Postgre
     "data-control-kind",
     "route"
   );
-  await page.getByTestId("main-nav-evidence_center").click();
-  await expect(page.getByTestId("workspace-shell")).toHaveAttribute(
-    "data-last-nav-action",
-    "section:evidence_center:evidence-center"
-  );
+  await expect(page.getByTestId("evidence-center")).toBeVisible();
   await page.getByTestId("hydrate-production-data").click();
   await expect(dataPanel).toHaveAttribute("data-score-sync-reason", "manual_refresh");
   await expect(dataPanel).toHaveAttribute("data-evidence-sync-reason", "manual_refresh");
 
-  await page.getByTestId("objects-scope-nav-link").click();
+  await page.getByTestId("main-nav-data_center").click();
   await expect(page).toHaveURL(/\/objects-scope$/);
   await expect(page.getByTestId("objects-scope-screen")).toBeVisible();
 
   await page.goto("/industries");
   await expect(page.getByTestId("industry-landscape-page")).toBeVisible();
 
-  await page.goto("/");
-  await page.getByTestId("main-nav-system_status").click();
-  await expect(page).toHaveURL(/\/development-status$/);
+  // P0-1：系统状态并入「数据与来源」，路由直达仍可用。
+  await page.goto("/development-status");
   await expect(page.getByTestId("development-status-screen")).toBeVisible();
 
   await context.close();

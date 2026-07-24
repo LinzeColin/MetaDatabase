@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Production Composition Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "finding_id",
+    "observed_at_utc",
+    "status",
+    "scope",
+    "workflow",
+    "secret_names",
+    "component_bindings",
+    "source_digests",
+    "observation",
+    "remaining_authority"
+  ],
+  "properties": {
+    "schema_version": {"const": "moomooau.production-composition.v1"},
+    "finding_id": {"const": "REV-P0-002"},
+    "observed_at_utc": {"type": "string", "format": "date-time"},
+    "status": {"const": "LOCAL_SYNTHETIC_COMPOSITION_VERIFIED"},
+    "scope": {"const": "RMD_04_LOCAL_SYNTHETIC_ONLY"},
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "cron", "timezone", "entrypoint", "enabled_default"],
+      "properties": {
+        "path": {"const": ".github/workflows/moomooau-production.yml"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "cron": {"const": "30 4 * * *"},
+        "timezone": {"const": "Australia/Sydney"},
+        "entrypoint": {
+          "const": "python -m moomooau_archive.production --execute-protected --event-name \"$EVENT_NAME\""
+        },
+        "enabled_default": {"const": false}
+      }
+    },
+    "secret_names": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^MOOMOOAU_[A-Z0-9_]+$"}
+    },
+    "component_bindings": {
+      "type": "array",
+      "minItems": 12,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "source_digests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "src/moomooau_archive/capacity.py",
+        "src/moomooau_archive/kill_switch.py",
+        "src/moomooau_archive/operation_gate.py",
+        "src/moomooau_archive/production.py",
+        "src/moomooau_archive/production_adapters.py",
+        "src/moomooau_archive/gmail_sync_checkpoint.py",
+        "src/moomooau_archive/ga_runtime.py",
+        "tests/remediation/test_rmd04.py",
+        "tests/remediation/test_rmd05.py",
+        "tests/tasks/test_t0607.py",
+        "tests/tasks/test_t0704.py",
+        "schemas/production-config-v1.schema.json"
+      ],
+      "properties": {
+        "src/moomooau_archive/capacity.py": {"$ref": "#/$defs/source_digest"},
+        "src/moomooau_archive/kill_switch.py": {"$ref": "#/$defs/source_digest"},
+        "src/moomooau_archive/operation_gate.py": {"$ref": "#/$defs/source_digest"},
+        "src/moomooau_archive/production.py": {"$ref": "#/$defs/source_digest"},
+        "src/moomooau_archive/production_adapters.py": {"$ref": "#/$defs/source_digest"},
+        "src/moomooau_archive/gmail_sync_checkpoint.py": {"$ref": "#/$defs/source_digest"},
+        "src/moomooau_archive/ga_runtime.py": {"$ref": "#/$defs/source_digest"},
+        "tests/remediation/test_rmd04.py": {"$ref": "#/$defs/source_digest"},
+        "tests/remediation/test_rmd05.py": {"$ref": "#/$defs/source_digest"},
+        "tests/tasks/test_t0607.py": {"$ref": "#/$defs/source_digest"},
+        "tests/tasks/test_t0704.py": {"$ref": "#/$defs/source_digest"},
+        "schemas/production-config-v1.schema.json": {"$ref": "#/$defs/source_digest"}
+      }
+    },
+    "observation": {"$ref": "#/$defs/observation"},
+    "remaining_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["next_remediation", "production_status", "protected_oracles", "publication"],
+      "properties": {
+        "next_remediation": {"const": "RMD-06"},
+        "production_status": {"const": "BLOCKED"},
+        "protected_oracles": {"const": "NOT_RUN"},
+        "publication": {"const": "LOCAL_ONLY_NOT_PUBLISHED"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256"],
+      "properties": {"sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "synthetic_full_pipeline_runs",
+        "synthetic_verified_messages",
+        "synthetic_raw_archives",
+        "synthetic_processed_archives",
+        "remote_recovery_before_exact_trash",
+        "synthetic_exact_message_trash_calls",
+        "maximum_live_timeline_assets",
+        "encrypted_sydney_watermark_v2",
+        "remote_first_import_timestamp_recovered",
+        "protected_resources_destroyed",
+        "real_gmail_calls",
+        "private_repository_calls",
+        "protected_oracles_executed",
+        "production_workflow_runs",
+        "external_writes",
+        "remote_publications",
+        "production_health_claimed"
+      ],
+      "properties": {
+        "synthetic_full_pipeline_runs": {"const": 1},
+        "synthetic_verified_messages": {"const": 1},
+        "synthetic_raw_archives": {"const": 1},
+        "synthetic_processed_archives": {"const": 1},
+        "remote_recovery_before_exact_trash": {"const": true},
+        "synthetic_exact_message_trash_calls": {"const": 1},
+        "maximum_live_timeline_assets": {"const": 1},
+        "encrypted_sydney_watermark_v2": {"const": true},
+        "remote_first_import_timestamp_recovered": {"const": true},
+        "protected_resources_destroyed": {"const": true},
+        "real_gmail_calls": {"const": 0},
+        "private_repository_calls": {"const": 0},
+        "protected_oracles_executed": {"const": 0},
+        "production_workflow_runs": {"const": 0},
+        "external_writes": {"const": 0},
+        "remote_publications": {"const": 0},
+        "production_health_claimed": {"const": false}
+      }
+    }
+  }
+}

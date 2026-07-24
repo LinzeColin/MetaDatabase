@@ -1,0 +1,25 @@
+{
+  "schema_version": "moomooau.stage1-evidence.v1",
+  "evidence_id": "S1-T0104-LOCAL-20260719",
+  "stage_id": "S1",
+  "task_id": "T0104",
+  "stage_acceptance_id": "S1AC-004",
+  "observed_at_utc": "2026-07-19T23:04:46Z",
+  "baseline_commit": "31a51114f8749b93b1da53f7bb11a7e2f7f916de",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "verified_only_raw_fetch", "status": "PASS", "evidence_ref": "tests/tasks/test_t0104.py"},
+    {"id": "official_age_byte_roundtrip", "status": "PASS", "evidence_ref": "skeleton.official_age_roundtrip"},
+    {"id": "ciphertext_only_memory_remote", "status": "PASS", "evidence_ref": "tests/tasks/test_t0104.py"},
+    {"id": "redacted_public_evidence", "status": "PASS", "evidence_ref": "security.publication"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-011", "status": "PARTIAL", "reason": "Official age round-trip is proven for synthetic EML only; remote trees and all object types remain unrun."},
+    {"id": "AC-013", "status": "PARTIAL", "reason": "Recovered synthetic RAW is byte-exact; the protected Gmail oracle remains unrun."},
+    {"id": "AC-027", "status": "NOT_RUN", "reason": "No private or public remote write occurred in Stage 1."},
+    {"id": "AC-031", "status": "PARTIAL", "reason": "Synthetic public evidence is schema-valid and redacted; production diagnosis remains unrun."}
+  ],
+  "prohibition_counters": {"gmail_calls": 0, "gmail_mutations": 0, "secrets_read": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Replace only the in-memory ports in their owning later stages; preserve the pure gate order."
+}

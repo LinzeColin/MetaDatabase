@@ -1,0 +1,117 @@
+{
+  "schema_version": "moomooau.stage7-evidence.v1",
+  "evidence_id": "S7-T0708-LOCAL_PATCH_LIFECYCLE_POLICY_20260722",
+  "stage_id": "S7",
+  "task_id": "T0708",
+  "stage_acceptance_id": "S7AC-008",
+  "observed_at_utc": "2026-07-22T04:35:36Z",
+  "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
+  "record_status": "BLOCKED",
+  "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {
+      "id": "aggregate_only_zero_effect_patch_decision",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0708.py::test_t0708_protected_policy_ready_is_not_an_execution_or_health_claim"
+    },
+    {
+      "id": "local_policy_cannot_claim_protected_predecessor_or_canary",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0708.py::test_t0708_local_policy_cannot_claim_predecessor_canary_or_protected_run"
+    },
+    {
+      "id": "complete_patch_assurance_fail_closed_matrix",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0708.py::test_t0708_every_patch_assurance_gate_fails_closed"
+    },
+    {
+      "id": "operations_stop_and_remediation_policy",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0708.py::test_t0708_operations_stop_and_remediation_policy_is_deterministic"
+    },
+    {
+      "id": "capacity_yellow_and_red_distinction",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0708.py::test_t0708_yellow_capacity_limits_derived_data_without_faking_a_red_stop"
+    },
+    {
+      "id": "path_surface_impact_and_exact_rollback_binding",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0708.py::test_t0708_paths_surfaces_impacts_and_exact_rollback_are_fail_closed"
+    },
+    {
+      "id": "no_secret_read_only_patch_policy_workflow",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0708.py::test_t0708_no_secret_workflow_is_read_only_policy_preflight"
+    },
+    {
+      "id": "truthful_stage7_aggregate",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0708.py::test_t0708_stage7_aggregate_is_truthfully_blocked_until_protected_oracles"
+    },
+    {
+      "id": "operations_runbook_present",
+      "status": "PASS",
+      "evidence_ref": "operations/STAGE7_RUNBOOK.md"
+    }
+  ],
+  "linked_final_acceptance": [
+    {
+      "id": "AC-021",
+      "status": "PARTIAL",
+      "reason": "The local policy requires verified candidate and rollback commits, immutable pins, hash lock, reproducible SBOM/build, provenance, full tests, dependency audit, zero High/Critical and Secret findings, frozen baseline and synthetic recovery; no protected candidate or external check provenance was observed."
+    },
+    {
+      "id": "AC-031",
+      "status": "PARTIAL",
+      "reason": "The decision is aggregate-only, redacts changed paths behind an opaque root and fixes every external effect to zero; no production patch evidence or fresh public operations inventory exists."
+    },
+    {
+      "id": "AC-032",
+      "status": "PARTIAL",
+      "reason": "Recovery readiness, active Kill state, capacity, Full Reconciliation, Timeline repair and exact rollback are deterministic gates and remediation instructions; no protected canary, rollback or recovery operation ran."
+    },
+    {
+      "id": "AC-034",
+      "status": "PARTIAL",
+      "reason": "Repository-relative paths are deterministically classified, cross-project paths block, scope and frozen-baseline findings block, and the policy/workflow have zero deployment authority; protected repository and endpoint scope scans were not run."
+    }
+  ],
+  "production_oracles": [
+    {
+      "id": "PROTECTED_OPERATIONS_AND_PATCH_LIFECYCLE",
+      "status": "NOT_RUN",
+      "reason": "T0707 protected recovery is incomplete; no protected patch candidate, canary adapter, production environment, external check provenance, deployment, incident or rollback entered this local run."
+    }
+  ],
+  "blockers": [
+    "RECOVERY_DRILL_TASK_PREDECESSOR_NOT_COMPLETE",
+    "PROTECTED_PATCH_CANDIDATE_NOT_PROVISIONED",
+    "PROTECTED_PATCH_CANARY_ADAPTER_NOT_PROVISIONED",
+    "PROTECTED_OPERATIONS_NOT_RUN"
+  ],
+  "prohibition_counters": {
+    "real_gmail_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_calls": 0,
+    "real_secrets_read": 0,
+    "protected_key_deliveries": 0,
+    "external_writes": 0,
+    "remote_publication": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_mutations": 0,
+    "raw_before_verification": 0,
+    "untrusted_content_execution": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "thread_trash_calls": 0,
+    "permanent_delete_calls": 0,
+    "release_assets_above_one": 0,
+    "production_workflow_runs": 0
+  },
+  "next_action": "Keep every patch effect frozen until T0707 protected recovery and the delivery-order blocker are resolved; then provision an exact candidate/last-verified pair and protected canary adapter, run the read-only evidence gate, and require owner approval before any separate deployment or rollback workflow."
+}

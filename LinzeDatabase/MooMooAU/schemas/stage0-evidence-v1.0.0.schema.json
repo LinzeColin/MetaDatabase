@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MooMooAU Stage 0 Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_id",
+    "stage_id",
+    "task_id",
+    "observed_at_utc",
+    "base_commit",
+    "source_package_version",
+    "record_status",
+    "delivery_status",
+    "checks",
+    "blockers",
+    "next_action"
+  ],
+  "properties": {
+    "schema_version": {"const": "moomooau.stage0-evidence.v1"},
+    "evidence_id": {"type": "string", "pattern": "^S0-(T[0-9]{4}|LATEST)-[0-9]{8}$"},
+    "stage_id": {"const": "S0"},
+    "task_id": {"type": ["string", "null"], "pattern": "^T[0-9]{4}$"},
+    "observed_at_utc": {"type": "string", "format": "date-time"},
+    "base_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "source_package_version": {"const": "1.0.0"},
+    "record_status": {"const": "VALID"},
+    "delivery_status": {"enum": ["PASS", "BLOCKED"]},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "evidence_ref"],
+        "properties": {
+          "id": {"type": "string"},
+          "status": {"enum": ["PASS", "FAIL", "BLOCKED", "NOT_RUN"]},
+          "evidence_ref": {"type": "string"}
+        }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^S0G-[0-9]{3}$"}
+    },
+    "next_action": {"type": "string", "minLength": 1}
+  }
+}

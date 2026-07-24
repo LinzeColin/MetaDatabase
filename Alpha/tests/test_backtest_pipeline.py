@@ -134,11 +134,11 @@ def test_promo1_verdict_boundaries():
     from backend.app.backtest.pipeline import load_promo1_gate
 
     gate = load_promo1_gate()
-    assert gate == {"gate_monthly_pct": 0.6, "gate_dd_pct": 15.0, "min_years": 3.0}  # owner 2026-07-17 选乙保底线
+    assert gate == {"gate_monthly_pct": 0.6, "gate_dd_pct": 30.0, "min_years": 3.0}  # owner 2026-07-24 回撤容忍 30%
     ok = {"years": 3.0, "monthly_mean_net_pct": 0.6, "max_drawdown_pct": 15.0}
     assert promo1_verdict(ok, **gate)["passed"] is True
     assert promo1_verdict({**ok, "monthly_mean_net_pct": 0.599}, **gate)["passed"] is False
-    assert promo1_verdict({**ok, "max_drawdown_pct": 15.01}, **gate)["passed"] is False
+    assert promo1_verdict({**ok, "max_drawdown_pct": 30.01}, **gate)["passed"] is False
     assert promo1_verdict({**ok, "years": 2.99}, **gate)["passed"] is False
     # 黄金叠加保底线证据必须过本门(0.662 > 0.6, 13.07 < 15, 10.58 > 3)
     assert promo1_verdict({"years": 10.58, "monthly_mean_net_pct": 0.662,

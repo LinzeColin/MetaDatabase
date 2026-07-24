@@ -36,9 +36,9 @@ class DeliveryReport:
 #: 邮件人话模板:owner 只看中文与关键值;URL 独占一行让邮件客户端自动成链。
 _EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
     "DASHBOARD_URL_CHANGED": ("看盘地址更新", lambda p: (
-        "你的模拟盘仪表盘地址更新了(服务器重启后地址会更换,以最新一封为准):\n\n"
+        "你的看盘地址:\n\n"
         f"{p.get('url', '')}\n\n"
-        "打开后在输入框粘贴你的控制令牌进入;令牌不变,别转发给任何人。")),
+        "打开即看,无需任何密码;此页只读,任何人拿到链接也动不了系统。")),
     "DEPLOY_ACCEPTANCE_TEST": ("部署验收测试", lambda p: (
         f"{p.get('msg', '')}\n\n这封邮件本身就是通知链路打通的证据。")),
     "WORKER_HEARTBEAT_LOST": ("系统组件失联,已自动停车保护", lambda p: (
@@ -49,6 +49,23 @@ _EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
         "刚才失联的组件已全部恢复心跳。\n"
         "若紧急刹车仍处于拉下状态,恢复交易前会先完成对账核验,无需你操作。")),
     "DAILY_SUMMARY": ("每日小结", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "PAPER_3DAY_REPORT": ("三日模拟盘考核报告", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "DASHBOARD_UPGRADED": ("看盘页升级上线", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "FUNDING_NOTICE": ("实盘启动前需要你入金", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "STRATEGY_DECISION": ("策略证据与你的三个选项", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "LIVE_ACTIVATED": ("已自动切换微实盘", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "ACTIVATION_BLOCKED": ("实盘切换暂缓(失败关闭)", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "PRESIGN_RECORDED": ("预签授权已记录", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "WORKER_RESTARTED": ("组件失联超时,守护已自动重启", lambda p: (
+        f"失联组件:{'、'.join(p.get('lost', [])) or '未知'};已按序自动重启对应服务。\n"
+        "若重启后恢复健康,刹车会在连续健康确认后自动解除,无需你操作;"
+        "若持续失联,会按冷却间隔再试并继续提醒你。")),
+    "KILL_SWITCH_CLEARED": ("刹车已自动解除,交易恢复", lambda p: (
+        "刚才由守护程序自己拍下的紧急刹车,已在连续健康确认后自动解除,系统恢复正常节拍。\n"
+        "说明:只有守护自己拍的闸会自动解;你手动拍的闸永远只有你能解。")),
+    "INCIDENT_REPORT": ("事故报告与修复", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "UNIT_FAILED": ("定时任务运行失败", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "PRESIGN_SUSPENDED": ("预签授权已按你指令挂起", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
 }
 
 

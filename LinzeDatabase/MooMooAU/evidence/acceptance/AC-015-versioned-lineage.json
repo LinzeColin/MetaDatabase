@@ -1,0 +1,139 @@
+{
+  "acceptance_id": "AC-015",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_NOT_RUN",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "c44f8ae303694662922472590ecd4e29dbaaab5efb2f81e8ca64df8eca17d7c0",
+    "evidence_required": "evidence/acceptance/AC-015-versioned-lineage.json",
+    "pass_gate_text": "AC-015 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_015.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-015-RMD01-20260724",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0105.json",
+      "evidence_sha256": "cb8fb079b9015688610e7ff27a375d5d1edfc120e30de25710bfd43452656f03",
+      "final_claim_status": "PARTIAL",
+      "reason": "Versioned lineage contracts exist; parser reprocessing and current pointers remain later-stage work.",
+      "source_record_status": "PASS",
+      "task_id": "T0105"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0402.json",
+      "evidence_sha256": "635139cadc7e5c83e6418b90d79f46949b7f4321eb38fe02c87fe7ed6dcd5323",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic Envelope lineage binds one Raw and parser metadata; real versioned private-repository recovery and downstream current reads are not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0402"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0403.json",
+      "evidence_sha256": "7f8b297fa0c12e564e695cf2e20171852decc1e4dbc160b42160e46216420504",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic statement fields carry unique Raw and parser lineage with deterministic JSONL and Parquet; real versioned remote recovery is not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0403"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0404.json",
+      "evidence_sha256": "811d85b35f5a55dd88ab247e2392eb6242821e706d95dcd143397c6a83c0abde",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic FY and generic table outputs have parser and Raw lineage; real versioned private outputs and recovery remain unrun.",
+      "source_record_status": "PASS",
+      "task_id": "T0404"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0406.json",
+      "evidence_sha256": "ffe31bf0e0294b14fb8866bcb0de82249f7cec2ddd6b16a0fe19067caa0b9114",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic v1 remains immutable, v2 appends with complete lineage, and current changes by CAS; real private-repository recovery and downstream reads are not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0406"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0704.json",
+      "evidence_sha256": "65eabe487554f4ed7c108329c4cfb3d6573ff0bc4d628237d862ba0405f84513",
+      "final_claim_status": "NOT_RUN",
+      "reason": "Only synthetic versioned incumbent and candidate lineage was exercised; no protected Parser comparison has run.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0704"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-24T02:10:28Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-015",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_015_pass_gate",
+    "path": "tests/acceptance/test_ac_015.py",
+    "sha256": "8ed3c2e74293e78744ebe249d11cfd98d72d3b30671f1fa1be5c92ee05b4cb80"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0105",
+      "T0402",
+      "T0403",
+      "T0404",
+      "T0406",
+      "T0704"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "fd3614d23857edbc47e1aec22b7454323013836606af689aa86e68850f694181"
+  }
+}

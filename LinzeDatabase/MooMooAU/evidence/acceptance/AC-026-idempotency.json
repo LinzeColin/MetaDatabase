@@ -1,0 +1,138 @@
+{
+  "acceptance_id": "AC-026",
+  "acceptance_status": "BLOCKED",
+  "blockers": [
+    "FINAL_ORACLE_NOT_EXECUTED",
+    "LINKED_TASK_CLAIMS_PARTIAL"
+  ],
+  "checks": [
+    {
+      "id": "FROZEN_ACCEPTANCE_CONTRACT_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "TRACEABILITY_ROW_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FAIL_CLOSED_TEST_ENTRY_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "LINKED_TASK_EVIDENCE_HASH_BOUND",
+      "status": "PASS"
+    },
+    {
+      "id": "FINAL_ORACLE_AND_THRESHOLD",
+      "status": "BLOCKED"
+    }
+  ],
+  "contract_binding": {
+    "contract_ref": "machine/contracts/acceptance_contract.json",
+    "contract_sha256": "1fa604ccd2764cf3b5c2834ef4b66ed2846932bbd061d77c983f017bf3bb488a",
+    "evidence_required": "evidence/acceptance/AC-026-idempotency.json",
+    "pass_gate_text": "AC-026 evidence schema valid and threshold satisfied",
+    "verification": "python -m pytest -q tests/acceptance/test_ac_026.py"
+  },
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "evidence_id": "AC-026-RMD01-20260724",
+  "linked_task_evidence": [
+    {
+      "evidence_ref": "evidence/tasks/T0302.json",
+      "evidence_sha256": "8375652e740b4657a09b281782fa2c536b3739ab47d969a17dd0d2caf95f6a08",
+      "final_claim_status": "PARTIAL",
+      "reason": "Synthetic duplicate History records are idempotent; end-to-end private writes and Gmail mutation are not present.",
+      "source_record_status": "PASS",
+      "task_id": "T0302"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0307.json",
+      "evidence_sha256": "1397177b4d6bea978b60a7114ea152427b9fd68c0dd174e74400a2ce4663cb39",
+      "final_claim_status": "PARTIAL",
+      "reason": "Repeated and resumed synthetic Raw commits create no duplicate logical object; end-to-end concurrency, Timeline and Trash are not present.",
+      "source_record_status": "PASS",
+      "task_id": "T0307"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0502.json",
+      "evidence_sha256": "97662bac1bc0791af7b0e514e16cf2202868a7667bcdb647220dc9b710554429",
+      "final_claim_status": "PARTIAL",
+      "reason": "Mutation budget and uncertain-result stop behavior pass synthetically; protected canary observation is not run.",
+      "source_record_status": "PASS",
+      "task_id": "T0502"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0601.json",
+      "evidence_sha256": "32b1ab1ded2897cc92bf9aab81abe90f5cb4342cd7f779eca1ca362b8002b682",
+      "final_claim_status": "PARTIAL",
+      "reason": "Local contract schemas are closed and machine-readable; remote CI enforcement was not observed.",
+      "source_record_status": "PASS",
+      "task_id": "T0601"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0607.json",
+      "evidence_sha256": "b6d8a15f645cf584e5c1dffa6f60593a337a7b6009b66dc596f08381f97e2329",
+      "final_claim_status": "PARTIAL",
+      "reason": "Concurrent duplicate submissions converge to 300000 logical objects and one deterministic root locally; remote concurrency was not observed.",
+      "source_record_status": "PASS",
+      "task_id": "T0607"
+    },
+    {
+      "evidence_ref": "evidence/tasks/T0703.json",
+      "evidence_sha256": "1c3a676f9f15fe14a00cad2b7d5bfa717ae1aeb02fd3d33a6f670235e6333f65",
+      "final_claim_status": "PARTIAL",
+      "reason": "One exact protected M3 attempt ran and failed closed with zero observed effects; one new repaired exact-main candidate attempt is authorized.",
+      "source_record_status": "BLOCKED",
+      "task_id": "T0703"
+    }
+  ],
+  "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
+  "observed_at_utc": "2026-07-24T02:10:28Z",
+  "oracle_observations": [],
+  "oracle_status": "NOT_RUN",
+  "pass_gate": false,
+  "prohibition_counters": {
+    "external_writes": 0,
+    "gmail_mutations": 0,
+    "model_real_data_calls": 0,
+    "model_secret_requests": 0,
+    "moomoo_portal_calls": 0,
+    "non_moomoo_downloads": 0,
+    "non_moomoo_full_reads": 0,
+    "non_moomoo_mutations": 0,
+    "permanent_delete_calls": 0,
+    "persistent_plaintext_objects": 0,
+    "private_repository_calls": 0,
+    "production_workflow_runs": 0,
+    "protected_key_deliveries": 0,
+    "raw_before_verification": 0,
+    "real_gmail_calls": 0,
+    "real_secrets_read": 0,
+    "release_assets_above_one": 0,
+    "remote_publication": 0,
+    "thread_trash_calls": 0,
+    "untrusted_content_execution": 0
+  },
+  "record_status": "VALID",
+  "remediation_base_commit": "932dafae972ab00c3e2259ba3a06f6deaa8e108d",
+  "requirement_id": "RQ-026",
+  "schema_version": "moomooau.acceptance-evidence.v1",
+  "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
+  "test_entry": {
+    "entrypoint": "test_ac_026_pass_gate",
+    "path": "tests/acceptance/test_ac_026.py",
+    "sha256": "09feabc1ed58cfaf953d94402eb28b1f00de42d446fc0a19f1aa0bd252a20b88"
+  },
+  "traceability_binding": {
+    "task_ids": [
+      "T0302",
+      "T0307",
+      "T0502",
+      "T0601",
+      "T0607",
+      "T0703"
+    ],
+    "traceability_ref": "machine/contracts/traceability_matrix.csv",
+    "traceability_row_sha256": "013e67c991228da9a8cd08637a877046fafaf84739d88899c03308c25049a430"
+  }
+}

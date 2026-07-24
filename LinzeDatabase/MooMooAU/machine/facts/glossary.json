@@ -1,0 +1,380 @@
+{
+  "numbers": [
+    {
+      "item": "生产运行时间",
+      "rule": "Australia/Sydney 每日 04:30 调度目标；不承诺精确启动，后续运行自动补偿",
+      "status": "frozen"
+    },
+    {
+      "item": "私有仓数量",
+      "rule": "恰好 1",
+      "status": "frozen"
+    },
+    {
+      "item": "Timeline 资产数量",
+      "rule": "健康稳态恰好 1，任何时刻最多 1，修复态为 0",
+      "status": "frozen"
+    },
+    {
+      "item": "非目标邮件误伤",
+      "rule": "0",
+      "status": "frozen"
+    }
+  ],
+  "data_shapes": [
+    {
+      "source": "Gmail",
+      "shape": "入站消息元数据与通过验证后的 RFC EML",
+      "status": "本地机制已取证；生产未验收"
+    },
+    {
+      "source": "GitHub",
+      "shape": "age 密文、固定 Release Asset 与脱敏 Evidence",
+      "status": "本地机制已取证；生产未验收"
+    }
+  ],
+  "invariants": [
+    {
+      "rule": "仅处理经确定性双重验证的 Moomoo AU 相关入站消息；其他邮件零读取正文、零下载、零修改。",
+      "note": "v1.0.1 产品契约，由 v1.0.9 原样继承"
+    },
+    {
+      "rule": "M3 适用于所有已验证 Moomoo 相关入站邮件类型；只调用 users.messages.trash，永久 delete 与 thread trash 永久禁用。",
+      "note": "v1.0.1 产品契约，由 v1.0.9 原样继承"
+    },
+    {
+      "rule": "公开代码仓固定为 LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU；只有一个由受保护 Repository ID 定位的私有数据仓，私有仓名称不进入公开树。",
+      "note": "v1.0.1 产品契约，由 v1.0.9 原样继承"
+    },
+    {
+      "rule": "用户电脑与自建服务器不运行、不持久化；生产仅使用 GitHub-hosted/Codex cloud 临时环境。",
+      "note": "v1.0.1 产品契约，由 v1.0.9 原样继承"
+    },
+    {
+      "rule": "全部 Raw 和敏感 Processed 均 age 加密；公开面只允许脱敏 Inventory、Schema、Evidence。",
+      "note": "v1.0.1 产品契约，由 v1.0.9 原样继承"
+    },
+    {
+      "rule": "每日以 Australia/Sydney 04:30 为时区感知调度目标；平台延迟或丢弃不伪报准点，下一次运行幂等补偿，周日执行 Full Reconciliation。",
+      "note": "v1.0.1 产品契约，由 v1.0.9 原样继承"
+    },
+    {
+      "rule": "Timeline 健康稳态恰好一个、任何时刻最多一个加密最新资产：moomooau-live/timeline-latest.png.age；age 密文允许随机变化，逻辑幂等只由 Processed snapshot_root 与明文摘要裁定；串行替换失败可短暂为零并进入确定性修复。",
+      "note": "v1.0.1 产品契约，由 v1.0.9 原样继承"
+    },
+    {
+      "rule": "Codex 开发线程是用户唯一交互入口；Codex Automation 只做普通被动健康检查，非控制平面关键路径。",
+      "note": "v1.0.1 产品契约，由 v1.0.9 原样继承"
+    },
+    {
+      "rule": "真实邮件、附件、PDF 密码和 age 私钥永不传给模型。",
+      "note": "v1.0.1 产品契约，由 v1.0.9 原样继承"
+    },
+    {
+      "rule": "H2 Moomoo Portal、券商交易 API、下单、Sent/Drafts 均不在范围内。",
+      "note": "v1.0.1 产品契约，由 v1.0.9 原样继承"
+    }
+  ],
+  "terms": [
+    {
+      "en": "MooMooAU",
+      "zh": "澳洲券商邮件归档产品",
+      "note": "本项目名称"
+    },
+    {
+      "en": "MooMoo",
+      "zh": "券商品牌",
+      "note": "本项目只处理澳洲相关入站消息"
+    },
+    {
+      "en": "Gmail",
+      "zh": "谷歌邮箱",
+      "note": "受端点守卫限制的来源"
+    },
+    {
+      "en": "Raw",
+      "zh": "原始数据",
+      "note": "完整 RFC EML 与附件"
+    },
+    {
+      "en": "RFC",
+      "zh": "邮件格式标准",
+      "note": "原始邮件字节格式"
+    },
+    {
+      "en": "EML",
+      "zh": "邮件文件",
+      "note": "原始邮件封装"
+    },
+    {
+      "en": "Processed",
+      "zh": "处理后数据",
+      "note": "版本化结构化数据"
+    },
+    {
+      "en": "Timeline",
+      "zh": "时间线",
+      "note": "唯一最新加密图"
+    },
+    {
+      "en": "Evidence",
+      "zh": "证据",
+      "note": "公开面只允许脱敏字段"
+    },
+    {
+      "en": "Message",
+      "zh": "单封消息",
+      "note": "变更粒度"
+    },
+    {
+      "en": "Trash",
+      "zh": "垃圾箱",
+      "note": "唯一允许的 Gmail 变更"
+    },
+    {
+      "en": "Snapshot",
+      "zh": "事实快照",
+      "note": "Timeline 确定性输入"
+    },
+    {
+      "en": "Asset",
+      "zh": "发布资产",
+      "note": "固定名称加密文件"
+    },
+    {
+      "en": "Repository",
+      "zh": "代码仓库",
+      "note": "私有身份只由受保护编号定位"
+    },
+    {
+      "en": "Stage",
+      "zh": "阶段",
+      "note": "每次开发运行最多处理一个"
+    },
+    {
+      "en": "Codex",
+      "zh": "开发线程",
+      "note": "用户唯一维护入口"
+    },
+    {
+      "en": "age",
+      "zh": "文件加密工具",
+      "note": "所有敏感持久化数据的加密边界"
+    },
+    {
+      "en": "Beta",
+      "zh": "小规模真实只存原始数据阶段",
+      "note": "T0702 受保护发布阶段"
+    },
+    {
+      "en": "Raw-only",
+      "zh": "仅原始数据",
+      "note": "禁止解析、消息变更和时间线操作的 Beta 边界"
+    },
+    {
+      "en": "main-only",
+      "zh": "仅主分支",
+      "note": "受保护入口只允许精确主分支提交"
+    },
+    {
+      "en": "main",
+      "zh": "主分支",
+      "note": "远端唯一受控交付分支"
+    },
+    {
+      "en": "Environment",
+      "zh": "受保护环境",
+      "note": "GitHub Actions 的受保护配置与机密边界"
+    },
+    {
+      "en": "Budget-",
+      "zh": "单件预算",
+      "note": "受保护执行效果上限为一"
+    },
+    {
+      "en": "SAFE_DEFERRED",
+      "zh": "安全延后",
+      "note": "缺少受保护处理证据时的显式非猜测 Processed 状态"
+    },
+    {
+      "en": "moomooau-beta",
+      "zh": "受保护测试环境名称",
+      "note": "T0702 已验证且由 T0703 复用的 GitHub Environment"
+    },
+    {
+      "en": "protected",
+      "zh": "受保护",
+      "note": "需要受保护环境、来源和确定性运行证据的执行范围"
+    },
+    {
+      "en": "quarantine",
+      "zh": "隔离",
+      "note": "逐消息内容安全 metadata 不可验证时跳过该消息且不扩大读取或变更"
+    },
+    {
+      "en": "parity",
+      "zh": "行为对齐",
+      "note": "M3 与已验证 T0702 metadata 隔离语义保持一致"
+    },
+    {
+      "en": "diagnostics",
+      "zh": "诊断信息",
+      "note": "只允许固定枚举阶段，不包含异常文本或受保护值"
+    },
+    {
+      "en": "public-safe",
+      "zh": "公开安全",
+      "note": "可进入公开日志且不含邮箱、机密或 private 仓标识"
+    },
+    {
+      "en": "prerequisites",
+      "zh": "前置条件",
+      "note": "执行前必须全部确定满足的受保护输入和配置"
+    },
+    {
+      "en": "exact",
+      "zh": "精确",
+      "note": "限定为单封消息的精确操作"
+    },
+    {
+      "en": "fail-closed",
+      "zh": "失败时保持关闭或阻塞",
+      "note": "任何未知、漂移或未通过都不得授予后续权限"
+    },
+    {
+      "en": "cumulative-final",
+      "zh": "累计最终树验证模式",
+      "note": "只允许后续阶段路径存在，不放宽生产与外部效果门"
+    },
+    {
+      "en": "Deploy",
+      "zh": "部署",
+      "note": "把受控版本交给远端执行环境"
+    },
+    {
+      "en": "Key",
+      "zh": "密钥",
+      "note": "本版本仅涉及单仓只读依赖认证密钥"
+    },
+    {
+      "en": "PR",
+      "zh": "拉取请求",
+      "note": "代码变更审查入口"
+    },
+    {
+      "en": "Secret",
+      "zh": "受保护机密",
+      "note": "依赖凭据与生产机密必须按契约分离"
+    },
+    {
+      "en": "expression",
+      "zh": "工作流表达式",
+      "note": "GitHub Actions 在不同阶段解析的条件或变量表达式"
+    },
+    {
+      "en": "fork",
+      "zh": "派生仓库",
+      "note": "外部派生仓库的拉取请求不得取得受保护依赖凭据"
+    },
+    {
+      "en": "workflow",
+      "zh": "工作流",
+      "note": "GitHub-hosted 验证或生产编排定义"
+    },
+    {
+      "en": "Run",
+      "zh": "执行轮次",
+      "note": "一次受契约约束的开发或受保护执行"
+    },
+    {
+      "en": "dispatch",
+      "zh": "手动触发",
+      "note": "显式触发一次受保护工作流"
+    },
+    {
+      "en": "rerun",
+      "zh": "重新运行",
+      "note": "对既有远端工作流再次执行"
+    },
+    {
+      "en": "intake",
+      "zh": "导入审计",
+      "note": "早期只读接收记录标识"
+    },
+    {
+      "en": "RMD-",
+      "zh": "复审修复组",
+      "note": "整体复审后的顺序修复单元"
+    },
+    {
+      "en": "FORMAL_TASKS_INCOMPLETE",
+      "zh": "正式任务未完成",
+      "note": "唯一状态模型的稳定阻塞编号"
+    },
+    {
+      "en": "PROTECTED_ORACLES_NOT_RUN",
+      "zh": "受保护验证未运行",
+      "note": "唯一状态模型的稳定阻塞编号"
+    },
+    {
+      "en": "PROTECTED_BETA_FAILED",
+      "zh": "受保护测试阶段失败",
+      "note": "T0702 串行 attempt 1 尚未满足验收门；最新固定诊断为 App 零安装"
+    },
+    {
+      "en": "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+      "zh": "测试阶段后的第七阶段步骤未授权",
+      "note": "T0702 已通过；当前 Owner 范围停在 M3 前"
+    },
+    {
+      "en": "PROTECTED_FIRST_ATTEMPT_PENDING",
+      "zh": "受保护首次执行待完成",
+      "note": "T0703 已授权但尚无真实受保护回执"
+    },
+    {
+      "en": "T0703_REPAIR_CANDIDATE_PENDING",
+      "zh": "T0703 修复候选待执行",
+      "note": "首次 M3 零副作用失败；失败头不可 rerun，仅允许一个新候选 attempt 1"
+    },
+    {
+      "en": "FINAL_ACCEPTANCE_BLOCKED",
+      "zh": "最终验收阻塞",
+      "note": "唯一状态模型的稳定阻塞编号"
+    },
+    {
+      "en": "PRODUCTION_WORKFLOW_NOT_RUN",
+      "zh": "生产工作流未运行",
+      "note": "唯一状态模型的稳定阻塞编号"
+    },
+    {
+      "en": "CUMULATIVE_FINAL",
+      "zh": "累计最终树入口",
+      "note": "允许后续阶段路径存在但不放宽生产权限的显式验证模式"
+    },
+    {
+      "en": "RMD-04_PRODUCTION_COMPOSITION_PENDING",
+      "zh": "生产组合入口待实现（已关闭）",
+      "note": "由 RMD-04 本地合成闭环关闭的历史阻塞编号"
+    },
+    {
+      "en": "RMD-05_ASSURANCE_PROVENANCE_PENDING",
+      "zh": "保证来源链待补齐",
+      "note": "复审修复队列的稳定阻塞编号"
+    },
+    {
+      "en": "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+      "zh": "后续受保护验收与确定性运行待执行",
+      "note": "RMD-05 关闭后下一组的稳定阻塞编号"
+    },
+    {
+      "en": "SECOND_BETA_DELIVERY_AND_RERUN_WITHHELD",
+      "zh": "历史第二次测试交付暂缓（已解除）",
+      "note": "Owner 已授权 serial new first-attempt；GitHub rerun 仍禁止"
+    },
+    {
+      "en": "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD",
+      "zh": "最终干净快照与发布暂缓",
+      "note": "发布顺序的稳定阻塞编号"
+    }
+  ]
+}

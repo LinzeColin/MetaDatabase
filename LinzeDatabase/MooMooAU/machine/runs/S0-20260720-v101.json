@@ -1,0 +1,34 @@
+{
+  "schema_version": "moomooau.stage0-run.v2",
+  "run_id": "S0-20260720-v101",
+  "stage_id": "S0",
+  "source_package_version": "1.0.1",
+  "base_commit": "67a324a95cb66e7a4e8b6081625300ae68fa6327",
+  "observed_at_utc": "2026-07-19T22:40:33Z",
+  "action": "执行经所有者授权的第一版零点零点一第零阶段基线保真修复与只读复验",
+  "result": "七个任务测试、八份证据、二十二项聚合检查、共享治理门与公开扫描全部通过；下一阶段未开始",
+  "scope": {
+    "stages_executed": [
+      "S0"
+    ],
+    "stage1_or_later_implementation": false,
+    "remote_writes": 0,
+    "gmail_calls": 0,
+    "private_data_reads": 0,
+    "secret_reads": 0,
+    "deployment_actions": 0
+  },
+  "validation": {
+    "task_tests": "PASS_7_OF_7",
+    "evidence_records": "PASS_8_OF_8",
+    "aggregate_checks": "PASS_22_OF_22",
+    "package_files": "PASS_95_OF_95",
+    "governance_render_drift": 0,
+    "governance_shared_gate_failures": 0,
+    "publication_matches": 0
+  },
+  "delivery_status": "PASS",
+  "blocking_issue_ids": [],
+  "next_stage_eligible_in_later_run": true,
+  "remote_publication_allowed": false
+}

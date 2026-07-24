@@ -1,0 +1,56 @@
+{
+  "schema_version": "moomooau.source-provenance.v5",
+  "authorization": {
+    "basis": "Owner task-pack sequence authorizes RMD-04 after completed RMD-03",
+    "authorized_on": "2026-07-22",
+    "authorized_scope": "Unique fail-closed production composition, encrypted Sydney watermark, protected adapter binding and local synthetic full-pipeline proof only"
+  },
+  "predecessor": {
+    "package_id": "MMAU-ARCHIVE-TP-2026-07-22-V1.0.3",
+    "version": "1.0.3",
+    "manifest": "taskpack/PACKAGE_MANIFEST.v1.0.3.json",
+    "manifest_sha256": "301fa1c6f5c46760c4aa3a7092bf0be77ca1a2e974e7b65e8b53dcf90db9925e",
+    "status": "IMMUTABLE_CONTROL_PREDECESSOR"
+  },
+  "control_predecessor": {
+    "package_id": "MMAU-ARCHIVE-TP-2026-07-22-V1.0.2",
+    "version": "1.0.2",
+    "manifest": "taskpack/PACKAGE_MANIFEST.v1.0.2.json",
+    "manifest_sha256": "6767cd11ac260b66df1dd2dec892b73e91a2a6928c4185b1c4ff6446daa6a9b3",
+    "status": "IMMUTABLE_CONTROL_PREDECESSOR"
+  },
+  "historical_baseline": {
+    "package_id": "MMAU-ARCHIVE-TP-2026-07-20-V1.0.1",
+    "version": "1.0.1",
+    "manifest": "taskpack/PACKAGE_MANIFEST.v1.0.1.json",
+    "manifest_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
+    "status": "IMMUTABLE_HISTORICAL_BASELINE"
+  },
+  "inherited_contract_hashes": {
+    "machine/contracts/requirements.json": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
+    "machine/contracts/acceptance_contract.json": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
+    "machine/contracts/traceability_matrix.csv": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
+    "machine/contracts/kill_criteria.json": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
+    "machine/facts/canonical_facts.json": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
+    "machine/contracts/task_graph.json": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9"
+  },
+  "effective_package": {
+    "package_id": "MMAU-ARCHIVE-TP-2026-07-22-V1.0.4",
+    "version": "1.0.4",
+    "manifest": "taskpack/PACKAGE_MANIFEST.v1.0.4.json",
+    "roadmap": "taskpack/ROADMAP.v1.0.4.md",
+    "status_authority": "machine/status/latest.json",
+    "production_composition": "machine/contracts/production_composition.json",
+    "publication_status": "LOCAL_ONLY_NOT_PUBLISHED"
+  },
+  "semantic_delta": {
+    "resolved_review_findings": ["REV-P0-002"],
+    "product_contract_changed": false,
+    "task_graph_changed": false,
+    "final_acceptance_thresholds_changed": false,
+    "protected_oracles_executed": 0,
+    "production_workflow_runs": 0,
+    "remote_workflow_runs": 0,
+    "remote_publications": 0
+  }
+}

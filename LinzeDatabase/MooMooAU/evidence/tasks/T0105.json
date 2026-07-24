@@ -1,0 +1,23 @@
+{
+  "schema_version": "moomooau.stage1-evidence.v1",
+  "evidence_id": "S1-T0105-LOCAL-20260719",
+  "stage_id": "S1",
+  "task_id": "T0105",
+  "stage_acceptance_id": "S1AC-005",
+  "observed_at_utc": "2026-07-19T23:04:46Z",
+  "baseline_commit": "31a51114f8749b93b1da53f7bb11a7e2f7f916de",
+  "record_status": "PASS",
+  "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
+  "checks": [
+    {"id": "six_json_contracts", "status": "PASS", "evidence_ref": "tests/tasks/test_t0105.py"},
+    {"id": "baseline_schema_alignment", "status": "PASS", "evidence_ref": "contracts.schema_plane"},
+    {"id": "pandera_positive_negative", "status": "PASS", "evidence_ref": "tests/tasks/test_t0105.py"}
+  ],
+  "linked_final_acceptance": [
+    {"id": "AC-015", "status": "PARTIAL", "reason": "Versioned lineage contracts exist; parser reprocessing and current pointers remain later-stage work."},
+    {"id": "AC-029", "status": "PARTIAL", "reason": "UTC and nullable unknown fields are contracted; market-calendar behavior remains unrun."},
+    {"id": "AC-031", "status": "PARTIAL", "reason": "Evidence fields are constrained; production diagnostic coverage remains unrun."}
+  ],
+  "prohibition_counters": {"gmail_calls": 0, "gmail_mutations": 0, "secrets_read": 0, "external_writes": 0, "remote_publication": 0},
+  "next_action": "Use these versioned contracts as boundaries for later parsers without overwriting Raw."
+}

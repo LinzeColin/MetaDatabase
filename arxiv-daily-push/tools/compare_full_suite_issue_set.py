@@ -11,7 +11,10 @@ import zipfile
 from pathlib import Path
 
 
-ISSUE = re.compile(r"^(ERROR|FAIL): ([^( ]+) \(([^)]+)\)$", re.MULTILINE)
+ISSUE = re.compile(
+    r"^(ERROR|FAIL): ([^( ]+) \(([^)]+)\)(?: (.+))?$",
+    re.MULTILINE,
+)
 RAN = re.compile(r"Ran (\d+) tests")
 SUMMARY = re.compile(r"FAILED \(failures=(\d+), errors=(\d+), skipped=(\d+)\)")
 
@@ -19,14 +22,19 @@ SUMMARY = re.compile(r"FAILED \(failures=(\d+), errors=(\d+), skipped=(\d+)\)")
 def parse_unittest_log(path: Path) -> dict[str, object]:
     log = path.read_text(encoding="utf-8", errors="replace")
     issues = []
-    for raw_kind, test_name, context in ISSUE.findall(log):
+    for raw_kind, test_name, context, subtest in ISSUE.findall(log):
         kind = "ERROR" if raw_kind == "ERROR" else "FAILURE"
+        key = f"{kind}|{context}|{test_name}"
+        subtest = subtest.strip()
+        if subtest:
+            key = f"{key}|{subtest}"
         issues.append(
             {
-                "key": f"{kind}|{context}|{test_name}",
+                "key": key,
                 "kind": kind,
                 "test_name": test_name,
                 "context": context,
+                "subtest": subtest or None,
             }
         )
     ran = RAN.findall(log)
@@ -34,12 +42,17 @@ def parse_unittest_log(path: Path) -> dict[str, object]:
     if len(ran) != 1 or len(summary) != 1:
         raise ValueError(f"ambiguous unittest summary: ran={ran!r}, summary={summary!r}")
     failures, errors, skipped = map(int, summary[0])
+    parsed_failures = len([item for item in issues if item["kind"] == "FAILURE"])
+    parsed_errors = len([item for item in issues if item["kind"] == "ERROR"])
     return {
         "summary": {
             "total": int(ran[0]),
             "failures": failures,
             "errors": errors,
             "skipped": skipped,
+            "parsed_failures": parsed_failures,
+            "parsed_errors": parsed_errors,
+            "issue_count_match": failures == parsed_failures and errors == parsed_errors,
         },
         "issues": issues,
     }
@@ -80,12 +93,7 @@ def main() -> int:
     issue_set_ok = not candidate_only and (args.allow_baseline_resolution or not baseline_only)
     count_ok = (
         current["summary"]["total"] == args.expected_total
-        and current["summary"]["failures"] == len(
-            [item for item in current["issues"] if item["kind"] == "FAILURE"]
-        )
-        and current["summary"]["errors"] == len(
-            [item for item in current["issues"] if item["kind"] == "ERROR"]
-        )
+        and current["summary"]["issue_count_match"]
     )
     result = {
         "schema_version": "adp-full-suite-exact-issue-set-v2",
@@ -102,6 +110,7 @@ def main() -> int:
             "total_match": current["summary"]["total"] == args.expected_total,
             "test_count_delta": current["summary"]["total"] - baseline["summary"]["total"],
             "skip_delta": current["summary"]["skipped"] - baseline["summary"]["skipped"],
+            "issue_count_match": current["summary"]["issue_count_match"],
         },
         "status": "PASS" if issue_set_ok and count_ok else "FAIL",
     }
