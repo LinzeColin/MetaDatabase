@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the baseline-preserving v1.0.8 authorized T0703 pre-execution manifest."""
+"""Build the baseline-preserving v1.0.9 T0703 remediation-candidate manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.8.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-24-V1.0.8"
-PACKAGE_VERSION = "1.0.8"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.7.json")
-PREDECESSOR_MANIFEST_SHA256 = "1723c0d6fae48aa83b0680601819635274fd9bcd568f601c28a8fb9d3ae2e147"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.9.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-24-V1.0.9"
+PACKAGE_VERSION = "1.0.9"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.8.json")
+PREDECESSOR_MANIFEST_SHA256 = "b2f0f21001b10202ca476ef8f8a23acb55aa3c479a85aa31fbc962f020b2d0c7"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.7 manifest drift")
+        raise ValueError("predecessor v1.0.8 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -166,9 +166,9 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or status.get("package_version") != PACKAGE_VERSION
         or "REV-P1-006" not in status.get("resolved_review_findings", [])
         or "RMD-06_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
-        or "T0703_PROTECTED_FIRST_ATTEMPT_PENDING" not in status.get("blockers", [])
+        or "T0703_REPAIR_CANDIDATE_PENDING" not in status.get("blockers", [])
     ):
-        raise ValueError("T0703 protected entrypoint is not in the exact authorized pre-run state")
+        raise ValueError("T0703 repair candidate is not in the exact authorized pre-run state")
     entries = [
         {
             "path": path.relative_to(root).as_posix(),
@@ -178,28 +178,29 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v7",
+        "schema_version": "moomooau.package-manifest.v8",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
-            "Stage 7 T0703 only: preserve the protected T0702 PASS and authorize one controlled "
-            "main delivery plus one first-attempt protected M3 Budget-1 dispatch. Reuse the "
-            "verified moomooau-beta infrastructure; final publication and T0704 remain forbidden."
+            "Stage 7 T0703 only: preserve the protected T0702 PASS and the exact zero-effect "
+            "failed M3 attempt, then authorize one new controlled main delivery plus one "
+            "new-candidate attempt-1 protected M3 Budget-1 dispatch. Failed-head rerun, final "
+            "publication and T0704 remain forbidden."
         ),
         "scope": (
-            "Baseline-preserving v1.0.8 pre-execution snapshot: immutable v1.0.1 product contracts "
-            "and v1.0.2-v1.0.7 predecessor lineage; the exact T0702 protected PASS receipt remains "
-            "unchanged. The protected M3 bootstrap reuses the verified Beta config and Environment, "
-            "allows only paired empty protected classification/parser registries to force explicit "
-            "SAFE_DEFERRED Processed data, requires Raw plus Processed remote recovery, repeats "
-            "sender verification and calls exact messages.trash with Budget 1. The main-only, "
-            "owner/GitHub-hosted/attempt-1 workflow references exactly eight Secret names and is "
-            "authorized by the same-tree T0703 Run Contract. At package-build time the protected "
-            "T0703 run, Processed write and Gmail mutation remain not run; Timeline, T0704, "
-            "production health, final Acceptance, Stage 7 completion and final publication are "
-            "not claimed."
+            "Baseline-preserving v1.0.9 remediation snapshot: immutable v1.0.1 product contracts "
+            "and v1.0.2-v1.0.8 predecessor lineage; the exact T0702 protected PASS receipt remains "
+            "unchanged. The first T0703 attempt is bound by a schema-valid ledger and had zero "
+            "observed private commits, Processed writes, Gmail Trash mutations or Timeline "
+            "effects. "
+            "The repair quarantines only MessageMetadataUnverifiable per-message outcomes, keeps "
+            "all broader errors hard, and exposes only a closed public-safe phase. The new exact "
+            "candidate still requires age-encrypted Raw plus Processed remote recovery, second "
+            "sender verification and exact messages.trash within Budget 1. At package-build time "
+            "the repaired protected attempt has not run; Timeline, T0704, production health, final "
+            "Acceptance, Stage 7 completion and final publication are not claimed."
         ),
         "status_authority": "machine/status/latest.json",
         "predecessor": {

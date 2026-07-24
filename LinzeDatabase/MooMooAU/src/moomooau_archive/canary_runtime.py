@@ -51,6 +51,7 @@ from .protected_beta_diagnostics import (
     ProtectedBetaDiagnostics,
     ProtectedBetaFailurePhase,
 )
+from .protected_m3_diagnostics import ProtectedM3Diagnostics, ProtectedM3FailurePhase
 from .raw_commit import RawCommitPlanner, RawCommitSaga
 from .release_control import FeatureFlags, PhaseObservation, ReleasePhase, Stage7ReleaseGate
 from .remote_recovery_gate import CiphertextDecryptor, RemoteRecoveryGate
@@ -333,6 +334,7 @@ class M3CanaryRunResult:
     phase: ReleasePhase
     discovered_refs: int
     metadata_reads: int
+    metadata_quarantined: int
     verified_candidates: int
     raw_archived: int
     processed_complete: int
@@ -351,6 +353,7 @@ class M3CanaryRunResult:
         counters = (
             self.discovered_refs,
             self.metadata_reads,
+            self.metadata_quarantined,
             self.verified_candidates,
             self.raw_archived,
             self.processed_complete,
@@ -405,6 +408,7 @@ class M3CanaryRunResult:
                 else "M3_CANARY_RUN_COMPLETED_NOT_FINAL"
             ),
             "verified_bucket": _bucket(self.verified_candidates),
+            "metadata_quarantine_bucket": _bucket(self.metadata_quarantined),
             "processed_or_safe_deferred_bucket": _bucket(self.full_recovery_successes),
             "mutation_budget_max": 1,
             "mutation_calls_bucket": _bucket(self.mutation_calls),
@@ -440,6 +444,7 @@ class M3CanaryRunner:
         trash_executor: ExactMessageTrashExecutor,
         first_import_timestamps: FirstImportTimestampSource,
         operational_gate: OperationalGate,
+        diagnostics: ProtectedM3Diagnostics | None = None,
     ) -> None:
         active_processing = (
             classification_registry.activation is ClassificationActivation.ACTIVE
@@ -472,6 +477,7 @@ class M3CanaryRunner:
         self._trash_executor = trash_executor
         self._first_import_timestamps = first_import_timestamps
         self._operational_gate = operational_gate
+        self._diagnostics = diagnostics or ProtectedM3Diagnostics()
         self._classifier = DocumentClassifier()
         self._envelope_factory = DocumentEnvelopeFactory()
         self._extractor = SafeArtifactExtractor()
@@ -489,6 +495,7 @@ class M3CanaryRunner:
         predecessor_observations: tuple[PhaseObservation, ...],
         beta_message_budget: int,
     ) -> M3CanaryRunResult:
+        self._diagnostics.enter(ProtectedM3FailurePhase.RUNTIME_PREFLIGHT)
         if (
             phase is not ReleasePhase.M3_CANARY
             or type(maximum_verified_candidates) is not int
@@ -525,19 +532,25 @@ class M3CanaryRunner:
             raise CanaryRuntimeError("M3 Canary feature or parser configuration is invalid")
 
         self._operational_gate.preflight(SensitiveOperation.PRODUCTION_RUN)
+        self._diagnostics.enter(ProtectedM3FailurePhase.MAILBOX_DISCOVERY)
         discovery = FullMailboxDiscoverer(self._gmail).scan()
         budget = MutationBudget.for_phase(MutationPhase.CANARY)
-        metadata_reads = verified = raw_archived = 0
+        metadata_reads = metadata_quarantined = verified = raw_archived = 0
         complete = safe_deferred = processing_blocked = recovered = 0
         mutation_calls = confirmed = already = mutation_failures = deferred = 0
         halted = False
 
         for ref in discovery.refs:
-            message = self._gmail.get_metadata(
-                ref.message_id,
-                header_names=self._sender_registry.requested_header_names,
-            )
+            self._diagnostics.enter(ProtectedM3FailurePhase.METADATA_VERIFICATION)
             metadata_reads += 1
+            try:
+                message = self._gmail.get_metadata(
+                    ref.message_id,
+                    header_names=self._sender_registry.requested_header_names,
+                )
+            except MessageMetadataUnverifiable:
+                metadata_quarantined += 1
+                continue
             first = self._verifier.verify_message(
                 message,
                 self._sender_registry,
@@ -551,17 +564,22 @@ class M3CanaryRunner:
             permit = first.raw_fetch_permit
             if permit is None:
                 raise CanaryRuntimeError("verified PRE_RAW result did not issue a fetch permit")
+            self._diagnostics.enter(ProtectedM3FailurePhase.RAW_FETCH)
             canonical = self._raw_fetcher.fetch(permit, self._sender_registry)
+            self._diagnostics.enter(ProtectedM3FailurePhase.RAW_ENCRYPTION_PLAN)
             attachments = self._inspector.inspect(canonical)
             raw_plan = self._raw_planner.plan(canonical, attachments, key_epoch=key_epoch)
+            self._diagnostics.enter(ProtectedM3FailurePhase.RAW_COMMIT)
             self._operational_gate.execute(
                 SensitiveOperation.RAW_WRITE,
                 partial(self._raw_commit.commit, raw_plan),
                 demand=git_capacity_demand(item.ciphertext for item in raw_plan.objects),
             )
+            self._diagnostics.enter(ProtectedM3FailurePhase.RAW_RECOVERY)
             raw_proof = self._recovery.verify_raw_only(canonical, first, raw_plan)
             raw_archived += 1
 
+            self._diagnostics.enter(ProtectedM3FailurePhase.PROCESSED_PLAN)
             classification = self._classifier.classify(
                 canonical,
                 first,
@@ -594,6 +612,7 @@ class M3CanaryRunner:
                 continue
             bundle = self._product_builder.build(envelope, outcome)
             processed_plan = self._processed_plan_factory.plan(bundle, key_epoch=key_epoch)
+            self._diagnostics.enter(ProtectedM3FailurePhase.PROCESSED_COMMIT)
             self._operational_gate.execute(
                 SensitiveOperation.PROCESSED_WRITE,
                 partial(self._processed_commit.commit, processed_plan),
@@ -606,6 +625,7 @@ class M3CanaryRunner:
                     )
                 ),
             )
+            self._diagnostics.enter(ProtectedM3FailurePhase.FULL_RECOVERY)
             proof = self._recovery.verify(
                 canonical,
                 first,
@@ -629,6 +649,7 @@ class M3CanaryRunner:
             if budget.consumed_calls >= budget.maximum_calls:
                 deferred += 1
                 continue
+            self._diagnostics.enter(ProtectedM3FailurePhase.SECOND_VERIFICATION)
             second_message = self._gmail.get_metadata(
                 ref.message_id,
                 header_names=self._sender_registry.requested_header_names,
@@ -639,6 +660,7 @@ class M3CanaryRunner:
                 self._sender_registry,
                 phase=VerificationPhase.PRE_M3,
             )
+            self._diagnostics.enter(ProtectedM3FailurePhase.TRASH_MUTATION)
             result = self._operational_gate.execute(
                 SensitiveOperation.M3,
                 partial(
@@ -667,6 +689,7 @@ class M3CanaryRunner:
             phase=phase,
             discovered_refs=len(discovery.refs),
             metadata_reads=metadata_reads,
+            metadata_quarantined=metadata_quarantined,
             verified_candidates=verified,
             raw_archived=raw_archived,
             processed_complete=complete,

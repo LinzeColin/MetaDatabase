@@ -118,6 +118,7 @@ jobs:
             LinzeDatabase/MooMooAU/src/moomooau_archive/protected_beta.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/protected_beta_entrypoint.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/protected_m3.py \
+            LinzeDatabase/MooMooAU/src/moomooau_archive/protected_m3_diagnostics.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/protected_m3_entrypoint.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/canary_runtime.py \
             LinzeDatabase/MooMooAU/src/moomooau_archive/blue_green_runtime.py \

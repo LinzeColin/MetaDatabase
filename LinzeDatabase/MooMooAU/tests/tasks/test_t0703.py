@@ -31,6 +31,11 @@ from moomooau_archive.m3 import (
     MutationPhase,
 )
 from moomooau_archive.protected_m3 import M3_SECRET_NAMES
+from moomooau_archive.protected_m3_diagnostics import (
+    ProtectedM3Diagnostics,
+    ProtectedM3FailurePhase,
+    public_failure_payload,
+)
 from moomooau_archive.protected_m3_entrypoint import (
     CONTROL_OWNER_ID,
     CONTROL_REF,
@@ -231,6 +236,44 @@ def test_t0703_m3_runner_recovers_processed_then_mutates_exactly_one_and_retries
         assert first.maximum_live_timeline_assets == second.maximum_live_timeline_assets == 0
 
 
+def test_t0703_m3_runner_quarantines_unverifiable_metadata_then_completes_budget_one() -> None:
+    malformed = m3_canary_message("msg-stage7-m3-0-malformed")
+    verified = m3_canary_message("msg-stage7-m3-1-verified")
+    observed = datetime(2026, 7, 22, tzinfo=UTC)
+    predecessors = (
+        phase_observation(ReleasePhase.ALPHA),
+        phase_observation(ReleasePhase.BETA_RAW_ONLY),
+    )
+    diagnostics = ProtectedM3Diagnostics()
+    with m3_canary_context(
+        (malformed, verified),
+        diagnostics=diagnostics,
+        malformed_metadata_ids=frozenset({malformed.message_id}),
+    ) as context:
+        result = context.runner.run(
+            ReleasePhase.M3_CANARY,
+            maximum_verified_candidates=1,
+            key_epoch="synthetic-epoch-1",
+            parser_current_version="1.0.0",
+            observed_at_utc=observed,
+            predecessor_observations=predecessors,
+            beta_message_budget=1,
+        )
+
+        assert context.transport.inner.metadata_fetches == [
+            malformed.message_id,
+            verified.message_id,
+            verified.message_id,
+        ]
+        assert context.transport.inner.raw_fetches == [verified.message_id]
+        assert result.metadata_quarantined == 1
+        assert result.raw_archived == result.full_recovery_successes == 1
+        assert result.processed_complete == result.confirmed_trashed == 1
+        assert result.mutation_calls == 1
+        assert context.transport.trashed_ids == [verified.message_id]
+        assert diagnostics.phase is ProtectedM3FailurePhase.TRASH_MUTATION
+
+
 def test_t0703_m3_runner_allows_explicit_safe_deferred_but_not_corrupt_recovery() -> None:
     deferred_message = m3_canary_message(
         "msg-stage7-m3-safe-deferred",
@@ -255,7 +298,11 @@ def test_t0703_m3_runner_allows_explicit_safe_deferred_but_not_corrupt_recovery(
         assert result.processed_safe_deferred == result.full_recovery_successes == 1
         assert result.confirmed_trashed == 1
 
-    with m3_canary_context((m3_canary_message("msg-stage7-m3-corrupt"),)) as context:
+    diagnostics = ProtectedM3Diagnostics()
+    with m3_canary_context(
+        (m3_canary_message("msg-stage7-m3-corrupt"),),
+        diagnostics=diagnostics,
+    ) as context:
         context.reader.corrupt_next = True
         with pytest.raises(RemoteRecoveryError, match="missing or differs"):
             context.runner.run(
@@ -268,6 +315,7 @@ def test_t0703_m3_runner_allows_explicit_safe_deferred_but_not_corrupt_recovery(
                 beta_message_budget=1,
             )
         assert context.transport.trashed_ids == []
+        assert diagnostics.phase is ProtectedM3FailurePhase.RAW_RECOVERY
 
 
 def test_t0703_m3_runner_requires_protected_beta_predecessor_before_any_network() -> None:
@@ -360,9 +408,11 @@ def _authorized_project_root(tmp_path: Path) -> Path:
     run_contract_path = tmp_path / "machine/stages/S7/contracts/run_contract.json"
     run_contract = json.loads(run_contract_path.read_text(encoding="utf-8"))
     run_contract["authorization"] = {
-        "purpose": "T0703_PROTECTED_M3_ONLY",
+        "purpose": "T0703_PROTECTED_M3_REPAIR_ONLY",
         "m3_authorized": True,
         "final_publication_authorized": False,
+        "prior_failed_attempts_exact": 1,
+        "repair_candidate_dispatch_limit": 1,
     }
     run_contract["authorized_effect_budget"] = {
         "beta_message_budget": 1,
@@ -373,6 +423,8 @@ def _authorized_project_root(tmp_path: Path) -> Path:
         "processed_writes_maximum": 1,
         "protected_m3_dispatches_maximum": 1,
         "protected_m3_reruns_maximum": 0,
+        "prior_protected_m3_dispatches_exact": 1,
+        "cumulative_protected_m3_dispatches_after_success_maximum": 2,
         "timeline_writes_maximum": 0,
         "scheduled_runs_maximum": 0,
     }
@@ -389,6 +441,7 @@ class _SyntheticProtectedM3Runtime:
             phase=ReleasePhase.M3_CANARY,
             discovered_refs=17,
             metadata_reads=18,
+            metadata_quarantined=1,
             verified_candidates=12,
             raw_archived=1,
             processed_complete=1,
@@ -433,6 +486,9 @@ def test_t0703_protected_entrypoint_contract_is_authorized_and_receipt_bound() -
     assert contract["protected_input_values_disclosed"] is False
     assert "required_secret_names" not in contract
     assert contract["beta_receipt_sha256"] == beta_receipt_sha256(PROJECT_ROOT)
+    assert contract["prior_attempt_ledger_path"].endswith("t0703/attempt-ledger.json")
+    assert contract["prior_failed_attempts"] == 1
+    assert contract["same_head_rerun_allowed"] is False
     assert contract["m3_gate_sha256"] == m3_gate_sha256(PROJECT_ROOT)
     assert contract["feature_invariants"] == {
         "processing_enabled": True,
@@ -458,6 +514,27 @@ def test_t0703_secret_source_remains_exact_allowlist() -> None:
         source.read(M3_SECRET_NAMES[0])
     with pytest.raises(ProtectedM3EntrypointError, match="not allowlisted"):
         source.read("MOOMOOAU_NOT_ALLOWLISTED")
+
+
+def test_t0703_failure_diagnostics_are_closed_public_safe_phases() -> None:
+    diagnostics = ProtectedM3Diagnostics()
+    for phase in ProtectedM3FailurePhase:
+        diagnostics.enter(phase)
+        payload = public_failure_payload(diagnostics)
+        assert payload == {
+            "schema_version": "moomooau.protected-m3-execution.v1",
+            "status": "BLOCKED",
+            "reason_code": f"PROTECTED_M3_{phase.value}_FAILED",
+            "failure_phase": phase.value,
+            "diagnostic_taxonomy": "moomooau.protected-m3-failure-taxonomy.v1",
+            "exact_root_cause_claimed": False,
+            "production_health_claimed": False,
+            "final_acceptance_claimed": False,
+        }
+        assert not any(
+            token in json.dumps(payload, sort_keys=True).casefold()
+            for token in ("message_id", "thread_id", "sender", "subject", "repository_id")
+        )
 
 
 def test_t0703_authorized_entrypoint_emits_aggregate_only_evidence(tmp_path: Path) -> None:

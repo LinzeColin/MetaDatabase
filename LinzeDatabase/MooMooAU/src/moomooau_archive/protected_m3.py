@@ -59,6 +59,7 @@ from .protected_beta import (
 from .protected_beta import (
     _load_config as _load_beta_config,
 )
+from .protected_m3_diagnostics import ProtectedM3Diagnostics, ProtectedM3FailurePhase
 from .raw_commit import (
     GitHubAppendOnlyCiphertextStore,
     OpaqueIdFactory,
@@ -155,6 +156,7 @@ class ProtectedM3Runtime:
     _installation_token: InstallationToken
     _opaque_key: SecretBytes
     _identity: _ProtectedIdentityFile
+    _diagnostics: ProtectedM3Diagnostics
     _closed: bool = False
     _run_started: bool = False
 
@@ -198,6 +200,7 @@ class ProtectedM3Runtime:
             try:
                 action()
             except BaseException as exc:
+                self._diagnostics.enter(ProtectedM3FailurePhase.RESOURCE_CLEANUP)
                 cleanup_failure = cleanup_failure or exc
         self._closed = True
         if cleanup_failure is not None:
@@ -220,6 +223,7 @@ class ProtectedM3Bootstrap:
         age: OfficialAgeStream | None = None,
         clock: Callable[[], datetime] | None = None,
         allow_synthetic_ephemeral_root: bool = False,
+        diagnostics: ProtectedM3Diagnostics | None = None,
     ) -> None:
         if type(allow_synthetic_ephemeral_root) is not bool:
             raise ProtectedM3BootstrapError("synthetic ephemeral-root flag is invalid")
@@ -231,6 +235,7 @@ class ProtectedM3Bootstrap:
         self._age = age or OfficialAgeStream()
         self._clock = clock or (lambda: datetime.now(UTC))
         self._allow_synthetic_ephemeral_root = allow_synthetic_ephemeral_root
+        self._diagnostics = diagnostics or ProtectedM3Diagnostics()
 
     @contextmanager
     def open(
@@ -240,6 +245,7 @@ class ProtectedM3Bootstrap:
     ) -> Iterator[ProtectedM3Runtime]:
         now = _require_utc(self._clock())
         with ExitStack() as resources:
+            self._diagnostics.enter(ProtectedM3FailurePhase.CONFIG_CAPACITY)
             config = _load_config(self._secret_source, now)
             promotion = Stage7ReleaseGate().evaluate_promotion(
                 ReleasePhase.M3_CANARY,
@@ -250,6 +256,7 @@ class ProtectedM3Bootstrap:
             if not promotion.ready:
                 raise ProtectedM3BootstrapError("protected M3 predecessor gate is blocked")
 
+            self._diagnostics.enter(ProtectedM3FailurePhase.PROCESSING_REGISTRIES)
             sender_registry = _load_sender_registry(self._secret_source)
             classification_registry = _load_classification_registry(self._secret_source)
             parser_registry = _load_parser_registry(self._secret_source)
@@ -273,6 +280,7 @@ class ProtectedM3Bootstrap:
             ):
                 raise ProtectedM3BootstrapError("protected M3 registries are incompatible")
 
+            self._diagnostics.enter(ProtectedM3FailurePhase.GITHUB_APP_KEY)
             github_private_key = _load_secret_bytes(
                 self._secret_source,
                 GITHUB_APP_PRIVATE_KEY_SECRET_NAME,
@@ -286,6 +294,7 @@ class ProtectedM3Bootstrap:
                 raise ProtectedM3BootstrapError("GitHub App private key is invalid") from exc
             jwt_probe.destroy()
 
+            self._diagnostics.enter(ProtectedM3FailurePhase.AGE_IDENTITY)
             opaque_key = _load_base64_key(self._secret_source)
             resources.callback(opaque_key.destroy)
             identity_secret = _read_secret(
@@ -304,6 +313,7 @@ class ProtectedM3Bootstrap:
             identity_secret.destroy()
             _verify_identity_recipient(self._age, config.age_recipient, identity)
 
+            self._diagnostics.enter(ProtectedM3FailurePhase.GMAIL_OAUTH)
             gmail_credential = load_gmail_oauth_credential(self._secret_source)
             resources.callback(gmail_credential.destroy)
             gmail_token = GmailOAuthTokenClient(self._oauth_transport).exchange(
@@ -313,6 +323,7 @@ class ProtectedM3Bootstrap:
             resources.callback(gmail_token.destroy)
             gmail_credential.destroy()
 
+            self._diagnostics.enter(ProtectedM3FailurePhase.GITHUB_APP_TOKEN)
             github_guard = GitHubEndpointGuard(self._github_transport, config.target_repository)
             installation_token = GitHubInstallationTokenClient(
                 github_guard,
@@ -321,6 +332,7 @@ class ProtectedM3Bootstrap:
             ).mint(now)
             resources.callback(installation_token.destroy)
             github_private_key.destroy()
+            self._diagnostics.enter(ProtectedM3FailurePhase.REPOSITORY_RESOLUTION)
             locator = RepositoryResolver(github_guard, config.target_repository).resolve(
                 installation_token
             )
@@ -376,6 +388,7 @@ class ProtectedM3Bootstrap:
                 ),
                 RemoteFirstImportTimestampSource(processed_store, decryptor),
                 OperationalGate(config.capacity),
+                diagnostics=self._diagnostics,
             )
             runtime = ProtectedM3Runtime(
                 runner,
@@ -386,6 +399,7 @@ class ProtectedM3Bootstrap:
                 installation_token,
                 opaque_key,
                 identity,
+                self._diagnostics,
             )
             resources.callback(runtime.close)
             yield runtime

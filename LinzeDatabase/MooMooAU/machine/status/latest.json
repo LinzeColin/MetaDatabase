@@ -1,8 +1,8 @@
 {
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
-  "package_version": "1.0.8",
-  "status_as_of_utc": "2026-07-24T01:10:00Z",
+  "package_version": "1.0.9",
+  "status_as_of_utc": "2026-07-24T02:10:28Z",
   "authority": {
     "path": "machine/status/latest.json",
     "precedence": [
@@ -13,7 +13,7 @@
       "machine/facts and the seven human documents are deterministic derivatives"
     ]
   },
-  "overall_status": "PROTECTED_BETA_PASS_T0703_AUTHORIZED_PENDING",
+  "overall_status": "PROTECTED_M3_ATTEMPT_FAILED_REPAIR_AUTHORIZED",
   "dimensions": {
     "evidence_integrity": {
       "status": "PASS",
@@ -35,12 +35,12 @@
       "contract_version": "1.0.1"
     },
     "protected_oracles": {
-      "status": "PARTIAL",
+      "status": "FAILED",
       "declared": 43,
-      "executed": 2,
+      "executed": 3,
       "passed": 2,
-      "failed": 0,
-      "not_run": 41
+      "failed": 1,
+      "not_run": 40
     },
     "final_acceptance": {
       "status": "BLOCKED",
@@ -53,14 +53,14 @@
       "workflow_runs": 0,
       "reason_codes": [
         "FORMAL_TASKS_INCOMPLETE",
-        "T0703_PROTECTED_FIRST_ATTEMPT_PENDING",
+        "T0703_REPAIR_CANDIDATE_PENDING",
         "FINAL_ACCEPTANCE_BLOCKED",
         "PRODUCTION_WORKFLOW_NOT_RUN"
       ]
     },
     "publication": {
       "status": "CONTROLLED_BETA_DELIVERY_NOT_FINAL",
-      "controlled_main_deliveries": 8,
+      "controlled_main_deliveries": 9,
       "remote_publications": 0
     }
   },
@@ -183,10 +183,10 @@
         "READY": 2
       },
       "linked_final_claim_counts": {
-        "NOT_RUN": 9,
-        "PARTIAL": 15
+        "NOT_RUN": 7,
+        "PARTIAL": 17
       },
-      "protected_oracles_executed": 2
+      "protected_oracles_executed": 3
     }
   ],
   "prohibition_counter_scope": "LOCAL_EVIDENCE_GENERATION_ONLY_EXCLUDES_PROTECTED_EXECUTION_RECEIPT",
@@ -219,7 +219,7 @@
   },
   "blockers": [
     "FORMAL_TASKS_INCOMPLETE",
-    "T0703_PROTECTED_FIRST_ATTEMPT_PENDING",
+    "T0703_REPAIR_CANDIDATE_PENDING",
     "FINAL_ACCEPTANCE_BLOCKED",
     "PRODUCTION_WORKFLOW_NOT_RUN",
     "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
@@ -232,23 +232,24 @@
     "REV-P1-006",
     "REV-P2-007"
   ],
-  "next_action": "Deliver the exact validated T0703 candidate to main, add only the two public-safe empty processing registry values to the existing protected Environment, and execute exactly one first-attempt Budget-1 M3 Canary; do not enter T0704.",
+  "next_action": "Deliver the exact metadata-remediation T0703 candidate to main and execute exactly one new-candidate attempt-1 Budget-1 M3 Canary; do not rerun the failed head or enter T0704.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "4ac9f7da6e28405f12a7489a8372330f4db4a473253542e64f5ae04388db5d5c",
+    "acceptance_summary_sha256": "edf7c80e8301d2dea196adde321a275fdd1eb40bf78cc02c93d9c7c11bf78f88",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
-    "delivery_status_model_sha256": "733755eb994171d3e129be7c7f481c5088f1aeb8506b824a3e10e17c6eba1e5d",
+    "delivery_status_model_sha256": "5c81f5bc669cd5ad69b436f08da1d4e29bd5b5c80a91b1c9a8bc6a9fafeb45d2",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "a0f1913ee925c18874e7effdef458663d6940d5fb7dce3419de72470cac08da2",
+    "production_composition_sha256": "9a6f5d027b71b02639f3af18edbf15f16918b838c130284bd55cc965a37b716b",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "d5622d15c18d9d69e479b0fd14b0b9c2e63de4d8e9c5b03136f017764faedec1",
+    "task_evidence_root_sha256": "2ea8e836dbf6bf11f2b2237237cf8eee82f006a30d68c1c51e9b139f46b5a1cf",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",
     "assurance_provenance_root_sha256": "65eaaa037e17b7011b78410c50e3534a7d4e6e8cf65f624d684b4f968275cbea",
     "protected_beta_execution_receipt_sha256": "06c4c58e64f56f740c2f0143b064236dafc9dc56e7bae488f02c52dd6b750ce0",
-    "protected_beta_attempt_ledger_sha256": "3a85c5ea1d3e21f0ce0413968f83a867f2b5e3accfb63deb78b4e740ee86456a"
+    "protected_beta_attempt_ledger_sha256": "3a85c5ea1d3e21f0ce0413968f83a867f2b5e3accfb63deb78b4e740ee86456a",
+    "protected_m3_attempt_ledger_sha256": "b4ea55aced53e9894f96f76da7694c84727750a51053285f4f7c484b0e58b653"
   }
 }

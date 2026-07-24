@@ -162,13 +162,44 @@
           "const": "Deliver the exact validated T0703 candidate to main, add only the two public-safe empty processing registry values to the existing protected Environment, and execute exactly one first-attempt Budget-1 M3 Canary; do not enter T0704."
         }
       }
+    },
+    {
+      "title": "v1.0.9 protected M3 zero-effect failure and repair candidate authorized",
+      "properties": {
+        "package_version": {"const": "1.0.9"},
+        "overall_status": {
+          "const": "PROTECTED_M3_ATTEMPT_FAILED_REPAIR_AUTHORIZED"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0703_REPAIR_CANDIDATE_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Deliver the exact metadata-remediation T0703 candidate to main and execute exactly one new-candidate attempt-1 Budget-1 M3 Canary; do not rerun the failed head or enter T0704."
+        }
+      }
     }
   ],
   "properties": {
     "schema_version": {"const": "moomooau.delivery-status.v1"},
     "status_model_version": {"const": "moomooau.delivery-status-model.v3"},
     "package_version": {
-      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8"],
+      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9"],
       "description": "Coupled by the root oneOf to the exact historical RMD state or current authorized T0703 pre-execution state."
     },
     "status_as_of_utc": {"type": "string", "format": "date-time"},
@@ -191,7 +222,8 @@
         "LOCAL_MECHANISMS_EVIDENCED_FINAL_ACCEPTANCE_BLOCKED",
         "PROTECTED_BETA_FAILED_FINAL_ACCEPTANCE_BLOCKED",
         "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE",
-        "PROTECTED_BETA_PASS_T0703_AUTHORIZED_PENDING"
+        "PROTECTED_BETA_PASS_T0703_AUTHORIZED_PENDING",
+        "PROTECTED_M3_ATTEMPT_FAILED_REPAIR_AUTHORIZED"
       ]
     },
     "dimensions": {
@@ -310,7 +342,7 @@
       "properties": {
         "status": {"enum": ["NOT_RUN", "FAILED", "PARTIAL"]},
         "declared": {"type": "integer", "minimum": 1},
-        "executed": {"type": "integer", "minimum": 0, "maximum": 2},
+        "executed": {"type": "integer", "minimum": 0, "maximum": 3},
         "passed": {"type": "integer", "minimum": 0, "maximum": 2},
         "failed": {"type": "integer", "minimum": 0, "maximum": 1},
         "not_run": {"type": "integer", "minimum": 1}
@@ -403,7 +435,7 @@
         "protected_oracles_executed": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 2
+          "maximum": 3
         }
       }
     }

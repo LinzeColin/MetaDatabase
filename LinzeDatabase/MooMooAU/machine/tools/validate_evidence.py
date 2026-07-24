@@ -515,6 +515,7 @@ def _validate_later_stage_record(
     expected_protected_status = {
         "T0701": "PASS",
         "T0702": "PASS",
+        "T0703": "FAILED",
     }.get(task_id, "NOT_RUN")
     if isinstance(production_oracles, list) and any(
         item.get("status") != expected_protected_status
