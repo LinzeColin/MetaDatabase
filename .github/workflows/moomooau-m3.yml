@@ -89,6 +89,7 @@ jobs:
             src/moomooau_archive/release_control.py \
             src/moomooau_archive/canary_runtime.py \
             src/moomooau_archive/protected_m3.py \
+            src/moomooau_archive/protected_m3_diagnostics.py \
             src/moomooau_archive/protected_m3_entrypoint.py \
             tests/tasks/test_t0702.py \
             tests/tasks/test_t0703.py \
@@ -97,6 +98,7 @@ jobs:
             src/moomooau_archive/release_control.py \
             src/moomooau_archive/canary_runtime.py \
             src/moomooau_archive/protected_m3.py \
+            src/moomooau_archive/protected_m3_diagnostics.py \
             src/moomooau_archive/protected_m3_entrypoint.py \
             tests/tasks/test_t0702.py \
             tests/tasks/test_t0703.py \
@@ -105,6 +107,7 @@ jobs:
             src/moomooau_archive/release_control.py \
             src/moomooau_archive/canary_runtime.py \
             src/moomooau_archive/protected_m3.py \
+            src/moomooau_archive/protected_m3_diagnostics.py \
             src/moomooau_archive/protected_m3_entrypoint.py
           python -m pytest -q tests/tasks/test_t0702.py tests/tasks/test_t0703.py
           python machine/tools/validate_package.py

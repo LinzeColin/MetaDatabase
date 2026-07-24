@@ -31,16 +31,23 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     if (
         delivery.get("schema_version") != "moomooau.delivery-status.v1"
         or delivery.get("package_version")
-        not in {"1.0.4", "1.0.5", "1.0.6", "1.0.7", "1.0.8"}
+        not in {"1.0.4", "1.0.5", "1.0.6", "1.0.7", "1.0.8", "1.0.9"}
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
         raise ValueError("delivery status authority identity mismatch")
-    closed = delivery["package_version"] in {"1.0.5", "1.0.6", "1.0.7", "1.0.8"}
-    dependency_auth_ready = delivery["package_version"] in {"1.0.6", "1.0.7", "1.0.8"}
-    t0703_entrypoint_ready = delivery["package_version"] in {"1.0.7", "1.0.8"}
-    t0703_authorized = delivery["package_version"] == "1.0.8"
+    closed = delivery["package_version"] in {"1.0.5", "1.0.6", "1.0.7", "1.0.8", "1.0.9"}
+    dependency_auth_ready = delivery["package_version"] in {
+        "1.0.6",
+        "1.0.7",
+        "1.0.8",
+        "1.0.9",
+    }
+    t0703_entrypoint_ready = delivery["package_version"] in {"1.0.7", "1.0.8", "1.0.9"}
+    t0703_authorized = delivery["package_version"] in {"1.0.8", "1.0.9"}
+    t0703_repair_authorized = delivery["package_version"] == "1.0.9"
     protected_beta_failed = (
-        delivery.get("dimensions", {}).get("protected_oracles", {}).get("status") == "FAILED"
+        not t0703_repair_authorized
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("status") == "FAILED"
     )
     protected_beta_passed = (
         delivery.get("dimensions", {}).get("protected_oracles", {}).get("status") == "PARTIAL"
@@ -66,7 +73,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "T0702 受保护 Beta 已通过；T0703 单件预算已授权并待首次执行"
+            "T0702 已通过；T0703 首次执行零副作用失败，修复候选已授权"
+            if t0703_repair_authorized
+            else "T0702 受保护 Beta 已通过；T0703 单件预算已授权并待首次执行"
             if t0703_authorized
             else "本地预检与已交付安全诊断有证据；最新 Beta 因 GitHub App 零安装失败"
             if protected_beta_failed
@@ -125,6 +134,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "T0703_PROTECTED_FIRST_ATTEMPT_PENDING": (
             "T0703 单件预算已授权；精确 main 交付、两项安全延后注册表和首次受保护执行待完成"
         ),
+        "T0703_REPAIR_CANDIDATE_PENDING": (
+            "T0703 首次受保护执行零副作用失败；禁止 rerun，精确 metadata 修复候选待交付并仅执行一次"
+        ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
@@ -148,7 +160,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0703 单件预算已授权，首次受保护执行待完成"
+            "RMD-06 T0703 首次执行零副作用失败，修复候选已授权"
+            if t0703_repair_authorized
+            else "RMD-06 T0703 单件预算已授权，首次受保护执行待完成"
             if t0703_authorized
             else "RMD-06 T0702 已通过，范围停在 M3 前"
             if protected_beta_passed
@@ -157,7 +171,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0702/S7AC-002 已通过；T0703 仅授权一次 Raw+Processed 恢复后精确 Trash，尚未执行"
+            "T0702/S7AC-002 已通过；T0703 首次执行在任何已观察远端效果前失败；仅授权一个新修复候选"
+            if t0703_repair_authorized
+            else "T0702/S7AC-002 已通过；T0703 仅授权一次 Raw+Processed 恢复后精确 Trash，尚未执行"
             if t0703_authorized
             else "T0702/S7AC-002 已通过；Raw 远端恢复 100%，Gmail 变更为零；当前范围禁止进入 M3"
             if protected_beta_passed
@@ -166,7 +182,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付精确 T0703 候选、配置两项安全延后注册表并执行唯一一次 Budget-1 M3"
+            "交付精确 metadata 修复候选并执行一次新候选 Budget-1 M3；禁止失败头 rerun"
+            if t0703_repair_authorized
+            else "交付精确 T0703 候选、配置两项安全延后注册表并执行唯一一次 Budget-1 M3"
             if t0703_authorized
             else "关闭 T0702 证据与派生状态；不触发 M3 或后续受保护阶段"
             if protected_beta_passed
@@ -397,6 +415,26 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "note": "需要受保护环境、来源和确定性运行证据的执行范围",
             },
             {
+                "en": "quarantine",
+                "zh": "隔离",
+                "note": "逐消息内容安全 metadata 不可验证时跳过该消息且不扩大读取或变更",
+            },
+            {
+                "en": "parity",
+                "zh": "行为对齐",
+                "note": "M3 与已验证 T0702 metadata 隔离语义保持一致",
+            },
+            {
+                "en": "diagnostics",
+                "zh": "诊断信息",
+                "note": "只允许固定枚举阶段，不包含异常文本或受保护值",
+            },
+            {
+                "en": "public-safe",
+                "zh": "公开安全",
+                "note": "可进入公开日志且不含邮箱、机密或 private 仓标识",
+            },
+            {
                 "en": "prerequisites",
                 "zh": "前置条件",
                 "note": "执行前必须全部确定满足的受保护输入和配置",
@@ -464,6 +502,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "en": "PROTECTED_FIRST_ATTEMPT_PENDING",
                 "zh": "受保护首次执行待完成",
                 "note": "T0703 已授权但尚无真实受保护回执",
+            },
+            {
+                "en": "T0703_REPAIR_CANDIDATE_PENDING",
+                "zh": "T0703 修复候选待执行",
+                "note": "首次 M3 零副作用失败；失败头不可 rerun，仅允许一个新候选 attempt 1",
             },
             {
                 "en": "FINAL_ACCEPTANCE_BLOCKED",
@@ -557,7 +600,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     }
     plan = {
         "stage": (
-            "RMD-06 T0703 单件预算已授权，首次受保护执行待完成"
+            "RMD-06 T0703 首次执行零副作用失败，修复候选已授权"
+            if t0703_repair_authorized
+            else "RMD-06 T0703 单件预算已授权，首次受保护执行待完成"
             if t0703_authorized
             else "RMD-06 T0702 已通过，范围停在 M3 前"
             if protected_beta_passed
@@ -566,7 +611,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0703 Budget-1 受保护首次执行准备"
+            "T0703 metadata 修复候选 Budget-1 新候选执行准备"
+            if t0703_repair_authorized
+            else "T0703 Budget-1 受保护首次执行准备"
             if t0703_authorized
             else "T0702 证据闭环；M3 前停止"
             if protected_beta_passed
@@ -577,7 +624,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "复用既有受保护 Environment；Raw 与 Processed 恢复后只 Trash 精确源消息"
+            "交付 metadata quarantine parity 修复；失败头不可 rerun，新候选仅执行一次"
+            if t0703_repair_authorized
+            else "复用既有受保护 Environment；Raw 与 Processed 恢复后只 Trash 精确源消息"
             if t0703_authorized
             else "同步 T0702 通过证据并停止；当前范围不授权 M3"
             if protected_beta_passed
@@ -615,7 +664,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "部分通过（T0702；T0703 已授权待运行）"
+                    "阻塞（T0702 通过；T0703 首次零副作用失败，修复候选待运行）"
+                    if t0703_repair_authorized
+                    else "部分通过（T0702；T0703 已授权待运行）"
                     if t0703_authorized
                     else "部分通过（T0702；后续未运行）"
                     if protected_beta_passed
@@ -740,6 +791,19 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "T0702 真实通过后建立唯一 T0703 Budget-1 Run Contract，复用已验证的 "
                     "moomooau-beta 受保护基础设施；缺少受保护分类或解析证据时只生成加密 "
                     "SAFE_DEFERRED Processed，远端恢复 Raw 与 Processed 后才允许精确消息 Trash。"
+                ),
+            },
+        )
+    if t0703_repair_authorized:
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.9",
+                "date": "2026-07-24",
+                "summary": (
+                    "固化 T0703 首次 protected M3 的零副作用失败账本，禁止失败头 rerun；"
+                    "将内容安全的逐消息 metadata 不可验证与 T0702 对齐为 quarantine，并增加"
+                    "封闭 public-safe M3 phase diagnostics。仅授权一个新精确候选 attempt 1。"
                 ),
             },
         )

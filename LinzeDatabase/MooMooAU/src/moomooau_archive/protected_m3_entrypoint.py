@@ -24,6 +24,11 @@ from jsonschema import Draft202012Validator, FormatChecker
 from .canary_runtime import M3CanaryRunResult
 from .http_transport import StdlibHttpsTransport
 from .protected_m3 import M3_SECRET_NAMES, ProtectedM3Bootstrap
+from .protected_m3_diagnostics import (
+    ProtectedM3Diagnostics,
+    ProtectedM3FailurePhase,
+    public_failure_payload,
+)
 from .release_control import (
     GateStatus,
     ObservationProvenance,
@@ -45,14 +50,21 @@ _BETA_RECEIPT_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-beta-execution-receipt-v2.schema.json"
 )
 _RUN_CONTRACT_PATH = Path("machine/stages/S7/contracts/run_contract.json")
+_M3_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0703/attempt-ledger.json")
+_M3_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-m3-attempt-ledger-v1.schema.json"
+)
 _GATE_PATHS = (
     _BETA_RECEIPT_PATH,
     _BETA_RECEIPT_SCHEMA_PATH,
     _RUN_CONTRACT_PATH,
+    _M3_ATTEMPT_LEDGER_PATH,
+    _M3_ATTEMPT_LEDGER_SCHEMA_PATH,
     Path("machine/stages/S7/contracts/stage7_acceptance_contract.json"),
     Path("src/moomooau_archive/release_control.py"),
     Path("src/moomooau_archive/canary_runtime.py"),
     Path("src/moomooau_archive/protected_m3.py"),
+    Path("src/moomooau_archive/protected_m3_diagnostics.py"),
     Path("tests/tasks/test_t0703.py"),
 )
 _COMMIT = re.compile(r"^[0-9a-f]{40}$")
@@ -238,6 +250,9 @@ def execution_contract(project_root: Path) -> dict[str, object]:
         "protected_input_values_disclosed": False,
         "beta_receipt_path": _BETA_RECEIPT_PATH.as_posix(),
         "beta_receipt_sha256": beta_receipt_sha256(root),
+        "prior_attempt_ledger_path": _M3_ATTEMPT_LEDGER_PATH.as_posix(),
+        "prior_failed_attempts": _load_prior_attempt_count(root),
+        "same_head_rerun_allowed": False,
         "m3_gate_paths": [path.as_posix() for path in _GATE_PATHS],
         "m3_gate_sha256": m3_gate_sha256(root),
         "m3_authorized": _m3_authorized(root),
@@ -270,9 +285,12 @@ def execute_protected(
     confirmation: str,
     bootstrap: ProtectedM3Bootstrap | None = None,
     clock: Callable[[], datetime] | None = None,
+    diagnostics: ProtectedM3Diagnostics | None = None,
 ) -> ProtectedM3ExecutionEvidence:
     """Execute one M3 Canary only after every local non-secret gate passes."""
 
+    active_diagnostics = diagnostics or ProtectedM3Diagnostics()
+    active_diagnostics.enter(ProtectedM3FailurePhase.CONTEXT_GATE)
     context = ProtectedM3GitHubContext.from_environment(environment)
     if (
         confirmation != M3_CONFIRMATION
@@ -287,7 +305,12 @@ def execute_protected(
     if supplied_beta_receipt_sha256 != expected_receipt or supplied_m3_gate_sha256 != expected_gate:
         raise ProtectedM3EntrypointError("protected M3 same-tree binding differs")
 
+    active_diagnostics.enter(ProtectedM3FailurePhase.BETA_BINDING)
     predecessors = _load_beta_predecessors(project_root)
+    active_diagnostics.enter(ProtectedM3FailurePhase.PRIOR_ATTEMPT_BINDING)
+    if _load_prior_attempt_count(project_root) != 1:
+        raise ProtectedM3EntrypointError("protected M3 prior-attempt lineage is invalid")
+    active_diagnostics.enter(ProtectedM3FailurePhase.RUN_CONTRACT)
     if not _m3_authorized(project_root):
         raise ProtectedM3EntrypointError("current Run Contract does not authorize M3")
 
@@ -302,10 +325,12 @@ def execute_protected(
             gmail_transport=transport,
             github_transport=transport,
             clock=now,
+            diagnostics=active_diagnostics,
         )
     with active_bootstrap.open(predecessor_observations=predecessors) as runtime:
         result = runtime.run()
     ended_at = _utc_now(now)
+    active_diagnostics.enter(ProtectedM3FailurePhase.AGGREGATE_GATE)
     observation = _m3_observation(result, started_at, ended_at)
     gate = Stage7ReleaseGate().evaluate_completed_phase(observation)
     if gate.status is not GateStatus.READY:
@@ -446,6 +471,71 @@ def _load_beta_predecessors(project_root: Path) -> tuple[PhaseObservation, ...]:
     return alpha, beta
 
 
+def _load_prior_attempt_count(project_root: Path) -> int:
+    root = _validated_project_root(project_root)
+    try:
+        ledger = _load_object(root / _M3_ATTEMPT_LEDGER_PATH)
+        schema = _load_object(root / _M3_ATTEMPT_LEDGER_SCHEMA_PATH)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ProtectedM3EntrypointError("protected M3 attempt lineage is unreadable") from exc
+    if list(
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(ledger)
+    ):
+        raise ProtectedM3EntrypointError("protected M3 attempt lineage schema is invalid")
+    attempts = ledger.get("attempts")
+    policy = ledger.get("completion_policy")
+    claims = ledger.get("claims")
+    if (
+        ledger.get("task_id") != "T0703"
+        or not isinstance(attempts, list)
+        or len(attempts) != 1
+        or not isinstance(policy, dict)
+        or not isinstance(claims, dict)
+    ):
+        raise ProtectedM3EntrypointError("protected M3 attempt lineage is invalid")
+    attempt = attempts[0]
+    if not isinstance(attempt, dict):
+        raise ProtectedM3EntrypointError("protected M3 prior attempt is invalid")
+    attempt_object = cast(dict[str, Any], attempt)
+    delivery = _object_field(attempt_object, "delivery")
+    workflow = _object_field(attempt_object, "workflow")
+    jobs = _object_field(attempt_object, "jobs")
+    failure = _object_field(attempt_object, "public_failure")
+    effects = _object_field(attempt_object, "effects")
+    if (
+        attempt_object.get("sequence") != 1
+        or delivery.get("merge_commit_sha") != workflow.get("workflow_head_sha")
+        or delivery.get("main_ci_runs_failed") != 0
+        or workflow.get("event") != "workflow_dispatch"
+        or workflow.get("run_attempt") != 1
+        or workflow.get("reruns") != 0
+        or _object_field(jobs, "authority_gate").get("status") != "PASS"
+        or _object_field(jobs, "m3_budget_one").get("status") != "FAILED"
+        or _object_field(jobs, "identity_plaintext_cleanup").get("status") != "PASS"
+        or failure.get("status") != "BLOCKED"
+        or failure.get("exact_root_cause_claimed") is not False
+        or effects.get("private_repository_new_commits") != 0
+        or effects.get("processed_writes") != "ZERO_OBSERVED"
+        or effects.get("gmail_trash_messages_after_dispatch") != 0
+        or effects.get("source_mutations") != 0
+        or effects.get("timeline_writes") != 0
+        or effects.get("scheduled_runs") != 0
+        or policy.get("same_head_rerun_allowed") is not False
+        or policy.get("failed_head_redispatch_allowed") is not False
+        or policy.get("repaired_exact_main_candidate_dispatch_allowed") is not True
+        or policy.get("next_candidate_dispatch_limit") != 1
+        or policy.get("t0704_authorized") is not False
+        or policy.get("final_publication_authorized") is not False
+        or claims.get("t0703_complete") is not False
+        or claims.get("s7ac_003_passed") is not False
+    ):
+        raise ProtectedM3EntrypointError("protected M3 prior attempt is not repair-eligible")
+    return 1
+
+
 def _m3_authorized(project_root: Path) -> bool:
     root = _validated_project_root(project_root)
     try:
@@ -458,9 +548,11 @@ def _m3_authorized(project_root: Path) -> bool:
         contract.get("stage_id") == "S7"
         and isinstance(authorization, dict)
         and isinstance(budget, dict)
-        and authorization.get("purpose") == "T0703_PROTECTED_M3_ONLY"
+        and authorization.get("purpose") == "T0703_PROTECTED_M3_REPAIR_ONLY"
         and authorization.get("m3_authorized") is True
         and authorization.get("final_publication_authorized") is False
+        and authorization.get("prior_failed_attempts_exact") == 1
+        and authorization.get("repair_candidate_dispatch_limit") == 1
         and budget.get("beta_message_budget") == 1
         and budget.get("m3_runs_maximum") == 1
         and budget.get("gmail_mutations_maximum") == 1
@@ -469,6 +561,8 @@ def _m3_authorized(project_root: Path) -> bool:
         and budget.get("processed_writes_maximum") == 1
         and budget.get("protected_m3_dispatches_maximum") == 1
         and budget.get("protected_m3_reruns_maximum") == 0
+        and budget.get("prior_protected_m3_dispatches_exact") == 1
+        and budget.get("cumulative_protected_m3_dispatches_after_success_maximum") == 2
         and budget.get("timeline_writes_maximum") == 0
         and budget.get("scheduled_runs_maximum") == 0
     )
@@ -579,17 +673,6 @@ def _format_utc(value: datetime) -> str:
     return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
 
 
-def _public_failure_payload() -> dict[str, object]:
-    return {
-        "schema_version": "moomooau.protected-m3-execution.v1",
-        "status": "BLOCKED",
-        "reason_code": "PROTECTED_M3_ENTRYPOINT_FAILED",
-        "exact_root_cause_claimed": False,
-        "production_health_claimed": False,
-        "final_acceptance_claimed": False,
-    }
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     mode = parser.add_mutually_exclusive_group(required=True)
@@ -616,6 +699,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if any(value is None for value in execution_values):
         parser.error("protected M3 execution requires exact gate inputs and confirmation")
+    diagnostics = ProtectedM3Diagnostics()
     try:
         evidence = execute_protected(
             os.environ,
@@ -624,11 +708,18 @@ def main(argv: list[str] | None = None) -> int:
             supplied_beta_receipt_sha256=args.beta_receipt_sha256,
             supplied_m3_gate_sha256=args.m3_gate_sha256,
             confirmation=args.confirm,
+            diagnostics=diagnostics,
         )
         print(json.dumps(evidence.to_dict(), sort_keys=True, separators=(",", ":")))
         return 0
     except Exception:
-        print(json.dumps(_public_failure_payload(), sort_keys=True, separators=(",", ":")))
+        print(
+            json.dumps(
+                public_failure_payload(diagnostics),
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+        )
         return 2
 
 

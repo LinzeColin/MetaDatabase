@@ -1,5 +1,22 @@
 # Taskpack Changelog
 
+## 1.0.9 — 2026-07-24
+
+固化 T0703 首次 protected M3 的零观察副作用失败，并只授权一个新修复候选。
+
+- 绑定 PR #101、main `f747ddcd…`、workflow run `30060804854`、authority PASS、M3 FAILED、
+  identity cleanup PASS 与 rerun 0；
+- 后验只读核验观察到 private 仓新增 commit 0、Processed write 0、Gmail Trash 新增消息 0、
+  source/Timeline/schedule mutation 0；公开输出未声称精确根因；
+- 将 T0702 已证明安全的逐消息 `MessageMetadataUnverifiable` quarantine 对齐到 M3，下一合法
+  candidate 不再被单条内容安全 metadata 不可用阻断；
+- authentication、authorization、transport、content boundary、global discovery、Raw/Processed
+  recovery 与 Trash 失败仍整次 fail closed；
+- 新增封闭 M3 phase taxonomy；公开失败 payload 不接收异常对象、动态值、邮箱字段、Secret 或
+  private 仓标识；
+- Run Contract 禁止失败 head rerun/redispatch，只允许一份新 exact candidate main 交付和一次
+  attempt-1 Budget-1 dispatch；T0704、Timeline、GA、schedule 与最终发布继续为 0/未授权。
+
 ## 1.0.8 — 2026-07-24
 
 在 T0702 protected PASS 后仅授权 T0703 Budget-1 first attempt，不改变产品契约。

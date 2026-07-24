@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.0.9",
+    "date": "2026-07-24",
+    "summary": "固化 T0703 首次 protected M3 的零副作用失败账本，禁止失败头 rerun；将内容安全的逐消息 metadata 不可验证与 T0702 对齐为 quarantine，并增加封闭 public-safe M3 phase diagnostics。仅授权一个新精确候选 attempt 1。"
+  },
+  {
     "version": "1.0.8",
     "date": "2026-07-24",
     "summary": "T0702 真实通过后建立唯一 T0703 Budget-1 Run Contract，复用已验证的 moomooau-beta 受保护基础设施；缺少受保护分类或解析证据时只生成加密 SAFE_DEFERRED Processed，远端恢复 Raw 与 Processed 后才允许精确消息 Trash。"

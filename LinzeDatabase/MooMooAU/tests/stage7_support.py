@@ -104,6 +104,7 @@ from moomooau_archive.protected_m3 import (
     PARSER_REGISTRY_SECRET_NAME,
     ProtectedM3Bootstrap,
 )
+from moomooau_archive.protected_m3_diagnostics import ProtectedM3Diagnostics
 from moomooau_archive.raw_commit import (
     MemoryAppendOnlyCiphertextStore,
     OpaqueIdFactory,
@@ -487,6 +488,8 @@ def m3_canary_context(
     messages: tuple[SyntheticGmailMessage, ...],
     *,
     capacity: CapacityAssessment | None = None,
+    diagnostics: ProtectedM3Diagnostics | None = None,
+    malformed_metadata_ids: frozenset[str] = frozenset(),
 ) -> Iterator[M3CanaryContext]:
     generated = AgeIdentityGenerator().generate()
     opaque_key = SecretBytes(b"synthetic-stage7-m3-opaque-key-material-001")
@@ -496,7 +499,11 @@ def m3_canary_context(
         identity_path.write_bytes(generated.identity.reveal())
         identity_path.chmod(0o600)
         events: list[str] = []
-        transport = Stage7GmailTransport(messages, events=events)
+        transport = Stage7GmailTransport(
+            messages,
+            events=events,
+            malformed_metadata_ids=malformed_metadata_ids,
+        )
         guard = GmailEndpointGuard(transport)
         gmail = GmailReadClient(guard)
         sender_registry = synthetic_registry()
@@ -536,6 +543,7 @@ def m3_canary_context(
             ExactMessageTrashExecutor(guard, GmailLabelConfirmationClient(guard)),
             StableFirstImportTimestamps(),
             operational_gate,
+            diagnostics=diagnostics,
         )
         yield M3CanaryContext(
             runner,
@@ -1203,6 +1211,8 @@ def protected_m3_context(
     *,
     capacity_age_hours: int = 0,
     empty_processing_registries: bool = False,
+    diagnostics: ProtectedM3Diagnostics | None = None,
+    malformed_metadata_ids: frozenset[str] = frozenset(),
 ) -> Iterator[ProtectedM3Context]:
     now = datetime(2026, 7, 24, 1, tzinfo=UTC)
     repository_id = 7_100_103
@@ -1298,7 +1308,10 @@ def protected_m3_context(
         }
         source = TrackingProtectedSecretSource(values)
         oauth_transport = SyntheticOAuthTransport()
-        gmail_transport = Stage7GmailTransport(messages)
+        gmail_transport = Stage7GmailTransport(
+            messages,
+            malformed_metadata_ids=malformed_metadata_ids,
+        )
         github_transport = SyntheticProtectedGitHubTransport(
             repository_id=repository_id,
             installation_id=installation_id,
@@ -1312,6 +1325,7 @@ def protected_m3_context(
             approved_tmpfs_root=Path(temporary.name),
             clock=lambda: now,
             allow_synthetic_ephemeral_root=True,
+            diagnostics=diagnostics,
         )
         yield ProtectedM3Context(
             bootstrap,

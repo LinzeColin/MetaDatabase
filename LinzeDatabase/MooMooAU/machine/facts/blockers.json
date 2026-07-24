@@ -7,8 +7,8 @@
     "首次登记": "2026-07-22"
   },
   {
-    "id": "T0703_PROTECTED_FIRST_ATTEMPT_PENDING",
-    "内容": "T0703 单件预算已授权；精确 main 交付、两项安全延后注册表和首次受保护执行待完成",
+    "id": "T0703_REPAIR_CANDIDATE_PENDING",
+    "内容": "T0703 首次受保护执行零副作用失败；禁止 rerun，精确 metadata 修复候选待交付并仅执行一次",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"

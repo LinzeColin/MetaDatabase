@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0703 单件预算已授权，首次受保护执行待完成",
-  "phase": "T0703 Budget-1 受保护首次执行准备",
-  "task": "复用既有受保护 Environment；Raw 与 Processed 恢复后只 Trash 精确源消息",
+  "stage": "RMD-06 T0703 首次执行零副作用失败，修复候选已授权",
+  "phase": "T0703 metadata 修复候选 Budget-1 新候选执行准备",
+  "task": "交付 metadata quarantine parity 修复；失败头不可 rerun，新候选仅执行一次",
   "owner": "Codex 开发线程"
 }

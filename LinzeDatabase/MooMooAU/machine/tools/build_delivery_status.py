@@ -47,6 +47,10 @@ PROTECTED_BETA_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0702/attem
 PROTECTED_BETA_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-beta-attempt-ledger-v2.schema.json"
 )
+PROTECTED_M3_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0703/attempt-ledger.json")
+PROTECTED_M3_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-m3-attempt-ledger-v1.schema.json"
+)
 
 
 def _load(path: Path) -> Any:
@@ -74,6 +78,7 @@ def _select_transition_state(
     model: dict[str, Any],
     assurance_result: dict[str, Any],
     protected_beta_receipt: dict[str, Any] | None,
+    protected_m3_attempt_ledger: dict[str, Any] | None,
 ) -> tuple[str, dict[str, Any]]:
     states = model.get("states")
     if not isinstance(states, dict) or set(states) != {
@@ -81,17 +86,21 @@ def _select_transition_state(
         "DEPENDENCY_AUTH_READY",
         "PROTECTED_BETA_ATTEMPT_FAILED",
         "PROTECTED_BETA_PASS_M3_AUTHORIZED",
+        "PROTECTED_M3_REPAIR_AUTHORIZED",
     }:
         raise ValueError("delivery status transition states differ")
     if assurance_result.get("status") != "PASS":
         state_name = "PRE_CLOSURE"
     elif protected_beta_receipt is not None:
         claims = protected_beta_receipt.get("claims", {})
-        state_name = (
-            "PROTECTED_BETA_PASS_M3_AUTHORIZED"
-            if claims.get("t0702_complete") is True and claims.get("s7ac_002_passed") is True
-            else "PROTECTED_BETA_ATTEMPT_FAILED"
-        )
+        if claims.get("t0702_complete") is True and claims.get("s7ac_002_passed") is True:
+            state_name = (
+                "PROTECTED_M3_REPAIR_AUTHORIZED"
+                if protected_m3_attempt_ledger is not None
+                else "PROTECTED_BETA_PASS_M3_AUTHORIZED"
+            )
+        else:
+            state_name = "PROTECTED_BETA_ATTEMPT_FAILED"
     else:
         state_name = "DEPENDENCY_AUTH_READY"
     state = states.get(state_name)
@@ -167,6 +176,52 @@ def _protected_beta_attempt_ledger(root: Path) -> dict[str, Any]:
     return cast(dict[str, Any], ledger)
 
 
+def _protected_m3_attempt_ledger(root: Path) -> dict[str, Any] | None:
+    path = root / PROTECTED_M3_ATTEMPT_LEDGER_PATH
+    if not path.exists():
+        return None
+    schema_path = root / PROTECTED_M3_ATTEMPT_LEDGER_SCHEMA_PATH
+    if (
+        not path.is_file()
+        or path.is_symlink()
+        or not schema_path.is_file()
+        or schema_path.is_symlink()
+    ):
+        raise ValueError("protected M3 attempt ledger path is unsafe")
+    schema = _load(schema_path)
+    ledger = _load(path)
+    if list(
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(ledger)
+    ):
+        raise ValueError("protected M3 attempt ledger violates its exact schema")
+    attempts = ledger.get("attempts", [])
+    policy = ledger.get("completion_policy", {})
+    claims = ledger.get("claims", {})
+    if (
+        ledger.get("task_id") != "T0703"
+        or len(attempts) != 1
+        or attempts[0].get("workflow", {}).get("run_id") != 30060804854
+        or attempts[0].get("workflow", {}).get("reruns") != 0
+        or attempts[0].get("jobs", {}).get("authority_gate", {}).get("status") != "PASS"
+        or attempts[0].get("jobs", {}).get("m3_budget_one", {}).get("status") != "FAILED"
+        or attempts[0].get("jobs", {}).get("identity_plaintext_cleanup", {}).get("status") != "PASS"
+        or attempts[0].get("effects", {}).get("private_repository_new_commits") != 0
+        or attempts[0].get("effects", {}).get("processed_writes") != "ZERO_OBSERVED"
+        or attempts[0].get("effects", {}).get("gmail_trash_messages_after_dispatch") != 0
+        or attempts[0].get("effects", {}).get("source_mutations") != 0
+        or policy.get("same_head_rerun_allowed") is not False
+        or policy.get("failed_head_redispatch_allowed") is not False
+        or policy.get("repaired_exact_main_candidate_dispatch_allowed") is not True
+        or policy.get("next_candidate_dispatch_limit") != 1
+        or any(value is not False for value in claims.values())
+    ):
+        raise ValueError("protected M3 attempt ledger is not exact or zero-effect")
+    return cast(dict[str, Any], ledger)
+
+
 def _assurance_result(root: Path) -> dict[str, Any]:
     try:
         return cast(
@@ -188,7 +243,7 @@ def _validate_composition_for_state(
         validate_composition(
             root,
             verify_contract_cli=state.get("package_version")
-            not in {"1.0.6", "1.0.7", "1.0.8"},
+            not in {"1.0.6", "1.0.7", "1.0.8", "1.0.9"},
         ),
     )
 
@@ -302,7 +357,7 @@ def _validate_stage6_evidence_transition(
         if versions != {"moomooau.stage6-evidence.v1"}:
             raise ValueError("pre-closure delivery state requires Stage 6 v1 evidence")
         return
-    if package_version not in {"1.0.5", "1.0.6", "1.0.7", "1.0.8"} or versions != {
+    if package_version not in {"1.0.5", "1.0.6", "1.0.7", "1.0.8", "1.0.9"} or versions != {
         "moomooau.stage6-evidence.v2"
     }:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
@@ -331,10 +386,12 @@ def build_status(
     _verify_inherited_contracts(root, model)
     protected_receipt = _protected_beta_receipt(root)
     protected_attempt_ledger = _protected_beta_attempt_ledger(root)
+    protected_m3_attempt_ledger = _protected_m3_attempt_ledger(root)
     state_name, state = _select_transition_state(
         model,
         _assurance_result(root) if assurance_result is None else assurance_result,
         protected_receipt,
+        protected_m3_attempt_ledger,
     )
 
     workflow_matrix = _load(root / WORKFLOW_MATRIX_PATH)
@@ -422,6 +479,8 @@ def build_status(
     if protected_receipt is not None:
         observed_at.append(str(protected_receipt["observed_at_utc"]))
     observed_at.append(str(protected_attempt_ledger["observed_through_utc"]))
+    if protected_m3_attempt_ledger is not None:
+        observed_at.append(str(protected_m3_attempt_ledger["observed_through_utc"]))
     formal_counts = Counter(task["status"] for task in tasks)
     if formal_counts != Counter({"completed": 7, "planned": 51}):
         raise ValueError("formal task status is not the inherited 7 completed / 51 planned state")
@@ -480,6 +539,7 @@ def build_status(
     protected_failed = sum(status == "FAILED" for status in protected_statuses)
     failed_beta_state = state_name == "PROTECTED_BETA_ATTEMPT_FAILED"
     passed_beta_state = state_name == "PROTECTED_BETA_PASS_M3_AUTHORIZED"
+    repair_m3_state = state_name == "PROTECTED_M3_REPAIR_AUTHORIZED"
     if failed_beta_state:
         if (
             protected_receipt is None
@@ -517,6 +577,26 @@ def build_status(
         ]
         overall_status = "PROTECTED_BETA_PASS_T0703_AUTHORIZED_PENDING"
         protected_status = "PARTIAL"
+        production_workflow_runs = 0
+        publication_status = "CONTROLLED_BETA_DELIVERY_NOT_FINAL"
+        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPT"
+    elif repair_m3_state:
+        if (
+            protected_receipt is None
+            or protected_m3_attempt_ledger is None
+            or protected_executed != 3
+            or protected_passed != 2
+            or protected_failed != 1
+        ):
+            raise ValueError("protected M3 repair state lacks its exact failed-attempt lineage")
+        production_reasons = [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0703_REPAIR_CANDIDATE_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+        ]
+        overall_status = "PROTECTED_M3_ATTEMPT_FAILED_REPAIR_AUTHORIZED"
+        protected_status = "FAILED"
         production_workflow_runs = 0
         publication_status = "CONTROLLED_BETA_DELIVERY_NOT_FINAL"
         mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPT"
@@ -558,6 +638,10 @@ def build_status(
     source_digests["protected_beta_attempt_ledger_sha256"] = _sha256(
         root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH
     )
+    if protected_m3_attempt_ledger is not None:
+        source_digests["protected_m3_attempt_ledger_sha256"] = _sha256(
+            root / PROTECTED_M3_ATTEMPT_LEDGER_PATH
+        )
 
     return {
         "schema_version": "moomooau.delivery-status.v1",
@@ -612,6 +696,11 @@ def build_status(
                 "status": publication_status,
                 "controlled_main_deliveries": (
                     protected_attempt_ledger["summary"]["controlled_main_deliveries"]
+                    + (
+                        len(protected_m3_attempt_ledger["attempts"])
+                        if protected_m3_attempt_ledger is not None
+                        else 0
+                    )
                     if protected_receipt is not None
                     else 0
                 ),
