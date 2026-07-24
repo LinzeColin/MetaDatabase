@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 from datetime import UTC, datetime, timedelta
+from email.utils import format_datetime
 from urllib.parse import urlsplit
 
 import pytest
@@ -157,6 +158,151 @@ def test_t0204_accepts_token_response_without_mandatory_metadata_echo() -> None:
 
     assert token.expires_at - now == timedelta(hours=1)
     token.destroy()
+    secret.destroy()
+
+
+def test_t0204_accepts_optional_scope_echo_absence_after_exact_repository_probe() -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    server_now = now + timedelta(seconds=2)
+    config = TargetRepositoryConfig(repository_id=7100012, installation_id=8100012)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    secret = SecretBytes(
+        private_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        )
+    )
+    transport = SequenceTransport(
+        [
+            HttpResponse(
+                201,
+                json.dumps(
+                    {
+                        "token": "synthetic-installation-token",
+                        "expires_at": (server_now + timedelta(hours=1))
+                        .isoformat()
+                        .replace("+00:00", "Z"),
+                    }
+                ).encode(),
+                (("Date", format_datetime(server_now, usegmt=True)),),
+            ),
+            HttpResponse(
+                200,
+                json.dumps(
+                    {
+                        "total_count": 1,
+                        "repositories": [{"id": config.repository_id}],
+                    }
+                ).encode(),
+            ),
+        ]
+    )
+    client = GitHubInstallationTokenClient(
+        GitHubEndpointGuard(transport, config),
+        config,
+        GitHubAppJwtSigner(9100012, secret),
+    )
+
+    token = client.mint(now)
+
+    assert token.expires_at - server_now == timedelta(hours=1)
+    assert [urlsplit(request.url).path for request in transport.requests] == [
+        f"/app/installations/{config.installation_id}/access_tokens",
+        "/installation/repositories",
+    ]
+    token.destroy()
+    secret.destroy()
+
+
+def test_t0204_rejects_optional_scope_echo_absence_when_repository_probe_is_not_exact() -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    config = TargetRepositoryConfig(repository_id=7100013, installation_id=8100013)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    secret = SecretBytes(
+        private_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        )
+    )
+    transport = SequenceTransport(
+        [
+            HttpResponse(
+                201,
+                json.dumps(
+                    {
+                        "token": "synthetic-installation-token",
+                        "expires_at": (now + timedelta(hours=1)).isoformat().replace("+00:00", "Z"),
+                    }
+                ).encode(),
+                (("Date", format_datetime(now, usegmt=True)),),
+            ),
+            HttpResponse(
+                200,
+                json.dumps(
+                    {
+                        "total_count": 2,
+                        "repositories": [
+                            {"id": config.repository_id},
+                            {"id": config.repository_id + 1},
+                        ],
+                    }
+                ).encode(),
+            ),
+        ]
+    )
+    client = GitHubInstallationTokenClient(
+        GitHubEndpointGuard(transport, config),
+        config,
+        GitHubAppJwtSigner(9100013, secret),
+    )
+
+    with pytest.raises(GitHubInstallationTokenError) as error:
+        client.mint(now)
+
+    assert error.value.failure_class is InstallationTokenFailureClass.RESPONSE_SCOPE_REJECTED
+    assert len(transport.requests) == 2
+    secret.destroy()
+
+
+def test_t0204_rejects_token_response_with_unbounded_server_date() -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    server_now = now + timedelta(minutes=6)
+    config = TargetRepositoryConfig(repository_id=7100014, installation_id=8100014)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    secret = SecretBytes(
+        private_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        )
+    )
+    transport = TokenTransport(
+        HttpResponse(
+            201,
+            json.dumps(
+                {
+                    "token": "synthetic-installation-token",
+                    "expires_at": (server_now + timedelta(hours=1))
+                    .isoformat()
+                    .replace("+00:00", "Z"),
+                }
+            ).encode(),
+            (("Date", format_datetime(server_now, usegmt=True)),),
+        )
+    )
+    client = GitHubInstallationTokenClient(
+        GitHubEndpointGuard(transport, config),
+        config,
+        GitHubAppJwtSigner(9100014, secret),
+    )
+
+    with pytest.raises(GitHubInstallationTokenError) as error:
+        client.mint(now)
+
+    assert error.value.failure_class is InstallationTokenFailureClass.RESPONSE_INVALID
+    assert len(transport.requests) == 1
     secret.destroy()
 
 

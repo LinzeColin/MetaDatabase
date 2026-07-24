@@ -186,7 +186,7 @@ def _validate_contracts(root: Path) -> list[str]:
         or authorization.get("purpose") != "T0703_PROTECTED_M3_REPAIR_ONLY"
         or authorization.get("controlled_main_delivery_limit") != 1
         or authorization.get("protected_m3_dispatch_limit") != 1
-        or authorization.get("prior_failed_attempts_exact") != 2
+        or authorization.get("prior_failed_attempts_exact") != 3
         or authorization.get("repair_candidate_dispatch_limit") != 1
         or authorization.get("manual_environment_reviewers_required") is not False
         or authorization.get("final_publication_authorized") is not False
@@ -205,8 +205,8 @@ def _validate_contracts(root: Path) -> list[str]:
         or effect_budget.get("processed_writes_maximum") != 1
         or effect_budget.get("protected_m3_dispatches_maximum") != 1
         or effect_budget.get("protected_m3_reruns_maximum") != 0
-        or effect_budget.get("prior_protected_m3_dispatches_exact") != 2
-        or effect_budget.get("cumulative_protected_m3_dispatches_after_success_maximum") != 3
+        or effect_budget.get("prior_protected_m3_dispatches_exact") != 3
+        or effect_budget.get("cumulative_protected_m3_dispatches_after_success_maximum") != 4
         or effect_budget.get("gmail_mutations_maximum") != 1
         or effect_budget.get("m3_runs_maximum") != 1
         or effect_budget.get("m3_source_mutation_budget_per_run") != 1
@@ -214,7 +214,7 @@ def _validate_contracts(root: Path) -> list[str]:
         or effect_budget.get("scheduled_runs_maximum") != 0
         or not run.get("protected_oracles")
         or not any(
-            "redispatch of either failed f747ddcd or 9b15c4d5 candidate" in item
+            "redispatch of failed f747ddcd, 9b15c4d5 or bc0bfb3b candidate" in item
             for item in run.get("non_goals", [])
         )
         or "ordering_resolution" not in run
@@ -316,14 +316,14 @@ def _validate_contracts(root: Path) -> list[str]:
         or status.get("protected_oracles_executed") != 3
         or status.get("protected_oracles_passed") != 2
         or status.get("protected_oracles_failed") != 1
-        or status.get("protected_workflow_runs") != 13
+        or status.get("protected_workflow_runs") != 14
         or status.get("production_workflow_runs") != 0
         or status.get("final_acceptances_passed") != 0
         or status.get("delivery_status") != "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL"
         or status.get("ordering_status")
-        != "T0703_APP_INSTALLATION_RECOVERY_AUTHORIZED_AFTER_TWO_ZERO_EFFECT_FAILED_ATTEMPTS"
+        != "T0703_OPTIONAL_TOKEN_ECHO_RECOVERY_AUTHORIZED_AFTER_THREE_ZERO_EFFECT_FAILED_ATTEMPTS"
         or status.get("diagnostic_repair_status")
-        != "LOCAL_PASS_METADATA_QUARANTINE_AND_CLOSED_M3_INSTALLATION_TOKEN_DIAGNOSTICS"
+        != "LOCAL_PASS_OPTIONAL_TOKEN_ECHO_SCOPE_PROBE_AND_SERVER_DATE_TTL"
         or status.get("new_controlled_delivery_authorized") is not True
         or status.get("new_protected_dispatch_authorized") is not True
     ):
@@ -337,9 +337,9 @@ def _validate_contracts(root: Path) -> list[str]:
         or not semantic.get("resolutions")
         or "T0702_PROTECTED_BETA_PASS_NO_RERUN" not in semantic_statuses
         or "OWNER_T0703_REPAIR_BUDGET_ONE_AUTHORIZED" not in semantic_statuses
-        or "T0703_TWO_PROTECTED_ATTEMPTS_FAILED_ZERO_EFFECT" not in semantic_statuses
-        or "T0703_REPAIR_CANDIDATE_PENDING" not in semantic_statuses
-        or "RESOLVED_DIAGNOSTIC_REPAIR_OBSERVED_PASS" not in semantic_statuses
+        or "T0703_THREE_PROTECTED_ATTEMPTS_FAILED_ZERO_EFFECT" not in semantic_statuses
+        or "T0703_OPTIONAL_TOKEN_ECHO_RECOVERY_CANDIDATE_PENDING" not in semantic_statuses
+        or "LOCAL_OPTIONAL_TOKEN_ECHO_RECOVERY_REPAIR_VALIDATED" not in semantic_statuses
         or "RESOLVED_NO_CALENDAR_WAIT" not in semantic_statuses
     ):
         errors.append("Stage 7 semantic gate is incomplete or overstates production evidence")
@@ -1328,22 +1328,24 @@ def _validate_evidence(root: Path) -> list[str]:
             m3_attempts = m3_ledger.get("attempts", [])
             m3_policy = m3_ledger.get("completion_policy", {})
             m3_claims = m3_ledger.get("claims", {})
-            first = m3_attempts[0] if len(m3_attempts) == 2 else {}
-            second = m3_attempts[1] if len(m3_attempts) == 2 else {}
+            first = m3_attempts[0] if len(m3_attempts) == 3 else {}
+            second = m3_attempts[1] if len(m3_attempts) == 3 else {}
+            third = m3_attempts[2] if len(m3_attempts) == 3 else {}
             if (
-                m3_ledger.get("observed_through_utc") != "2026-07-24T03:28:37Z"
+                m3_ledger.get("observed_through_utc") != "2026-07-24T04:19:56Z"
                 or m3_ledger.get("task_id") != "T0703"
-                or len(m3_attempts) != 2
-                or [item.get("sequence") for item in m3_attempts] != [1, 2]
+                or len(m3_attempts) != 3
+                or [item.get("sequence") for item in m3_attempts] != [1, 2, 3]
                 or [item.get("delivery", {}).get("pull_request_number") for item in m3_attempts]
-                != [101, 102]
+                != [101, 102, 103]
                 or [item.get("delivery", {}).get("merge_commit_sha") for item in m3_attempts]
                 != [
                     "f747ddcd2e5eab589802a0c545293cd6f275ca71",  # pragma: allowlist secret
                     "9b15c4d5208429125c9ce2680cac4fbb408f65e0",  # pragma: allowlist secret
+                    "bc0bfb3bc60a5ad769b286bb7b4bcdfc1ac195e6",  # pragma: allowlist secret
                 ]
                 or [item.get("workflow", {}).get("run_id") for item in m3_attempts]
-                != [30060804854, 30063841144]
+                != [30060804854, 30063841144, 30066295809]
                 or any(
                     item.get("workflow", {}).get("workflow_head_sha")
                     != item.get("delivery", {}).get("merge_commit_sha")
@@ -1382,6 +1384,15 @@ def _validate_evidence(root: Path) -> list[str]:
                 != "NOT_CLAIMED_FROM_CLOSED_PHASE_ONLY_OUTPUT"
                 or second.get("diagnosis", {}).get("high_confidence_defect")
                 != "M3_INSTALLATION_TOKEN_FAILURE_CLASS_VISIBILITY_GAP"
+                or third.get("public_failure", {}).get("reason_code")
+                != "PROTECTED_M3_GITHUB_APP_TOKEN_FAILED"
+                or third.get("public_failure", {}).get("failure_phase") != "GITHUB_APP_TOKEN"
+                or third.get("public_failure", {}).get("installation_token_failure_class")
+                != "RESPONSE_SCOPE_REJECTED"
+                or third.get("diagnosis", {}).get("exact_root_cause")
+                != "NOT_CLAIMED_FROM_CLOSED_RESPONSE_SCOPE_CLASS"
+                or third.get("diagnosis", {}).get("high_confidence_defect")
+                != "OPTIONAL_TOKEN_SCOPE_ECHO_AND_SERVER_TIME_VALIDATION_MISMATCH"
                 or m3_policy.get("same_head_rerun_allowed") is not False
                 or m3_policy.get("failed_head_redispatch_allowed") is not False
                 or m3_policy.get("repaired_exact_main_candidate_dispatch_allowed") is not True
@@ -1396,7 +1407,7 @@ def _validate_evidence(root: Path) -> list[str]:
     required_blockers = {
         "T0702": {"FINAL_ACCEPTANCE_AND_POST_BETA_STAGE7_PHASES_NOT_RUN"},
         "T0703": {
-            "PROTECTED_M3_APP_INSTALLATION_RECOVERY_CANDIDATE_NOT_RUN",
+            "PROTECTED_M3_OPTIONAL_TOKEN_ECHO_RECOVERY_CANDIDATE_NOT_RUN",
         },
         "T0704": {
             "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
@@ -1522,7 +1533,7 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("protected_oracles_executed") != 3
         or latest.get("protected_oracles_passed") != 2
         or latest.get("protected_oracles_failed") != 1
-        or latest.get("protected_workflow_runs") != 13
+        or latest.get("protected_workflow_runs") != 14
         or latest.get("production_workflow_runs") != 0
         or observation.get("alpha_local_synthetic") != "PASS"
         or observation.get("beta_local_bootstrap_mechanism") != "PASS"
@@ -1530,7 +1541,7 @@ def _validate_evidence(root: Path) -> list[str]:
         != "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE"
         or observation.get("m3_local_synthetic_mechanism") != "PASS"
         or observation.get("m3_protected_entrypoint")
-        != "APP_INSTALLATION_RECOVERY_CANDIDATE_AUTHORIZED_AFTER_TWO_ZERO_EFFECT_ATTEMPTS"
+        != "OPTIONAL_TOKEN_ECHO_RECOVERY_CANDIDATE_AUTHORIZED_AFTER_THREE_ZERO_EFFECT_ATTEMPTS"
         or observation.get("blue_green_timeline_local_mechanism") != "PASS"
         or observation.get("ga_full_pipeline_local_mechanism") != "PASS"
         or observation.get("codex_auto_local_policy") != "PASS"
@@ -1540,7 +1551,7 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("beta_real_raw_only")
         != "PASS_RAW_RECOVERY_100_PERCENT_ZERO_SOURCE_MUTATION"
         or observation.get("m3_deterministic_evidence_run")
-        != "TWO_FAILED_ZERO_EFFECT_ATTEMPTS_RECOVERY_AUTHORIZED"
+        != "THREE_FAILED_ZERO_EFFECT_ATTEMPTS_RECOVERY_AUTHORIZED"
         or any(observation.get(key) != "NOT_RUN" for key in not_run)
         or observation.get("protected_gmail_read_path")
         != "BOUNDED_VERIFIED_CANDIDATE_SCAN_EXACT_COUNTS_NOT_DISCLOSED"
@@ -1550,7 +1561,7 @@ def _validate_evidence(root: Path) -> list[str]:
         != "NONZERO_AGE_CIPHERTEXT_ONLY_REMOTE_RECOVERY_100_PERCENT"
         or observation.get("protected_secret_injection")
         != "EIGHT_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED"
-        or observation.get("controlled_main_deliveries") != 10
+        or observation.get("controlled_main_deliveries") != 11
         or observation.get("private_raw_commits") != "NONZERO_WITHIN_CONFIGURED_BUDGET"
         or any(
             observation.get(key) != 0
@@ -1567,9 +1578,9 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("delivery_status") != "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "Deliver the exact App-installation recovery T0703 candidate to main and execute "
+            "Deliver the exact optional-token-echo recovery T0703 candidate to main and execute "
             "exactly one new-candidate attempt-1 Budget-1 M3 Canary; do not rerun or redispatch "
-            "either failed head, and do not enter T0704."
+            "any failed head, and do not enter T0704."
         )
     ):
         errors.append("Stage 7 aggregate evidence is not truthfully blocked")

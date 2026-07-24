@@ -6,7 +6,7 @@
   "tasks": [
     {"id": "T0701", "status": "remote_alpha_passed_formal_completion_withheld"},
     {"id": "T0702", "status": "protected_beta_passed_formal_completion_withheld"},
-    {"id": "T0703", "status": "two_protected_attempts_failed_zero_effect_app_installation_recovery_authorized"},
+    {"id": "T0703", "status": "three_protected_attempts_failed_zero_effect_optional_token_echo_recovery_authorized"},
     {"id": "T0704", "status": "implementation_ready_blocked_registry_and_predecessor_no_calendar_wait"},
     {"id": "T0705", "status": "implementation_ready_blocked_blue_green_budget_and_protected_schedule"},
     {"id": "T0706", "status": "local_policy_ready_blocked_ga_and_owner_created_automation"},
@@ -19,12 +19,12 @@
   "protected_oracles_executed": 3,
   "protected_oracles_passed": 2,
   "protected_oracles_failed": 1,
-  "protected_workflow_runs": 13,
+  "protected_workflow_runs": 14,
   "production_workflow_runs": 0,
   "final_acceptances_passed": 0,
   "delivery_status": "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL",
-  "ordering_status": "T0703_APP_INSTALLATION_RECOVERY_AUTHORIZED_AFTER_TWO_ZERO_EFFECT_FAILED_ATTEMPTS",
-  "diagnostic_repair_status": "LOCAL_PASS_METADATA_QUARANTINE_AND_CLOSED_M3_INSTALLATION_TOKEN_DIAGNOSTICS",
+  "ordering_status": "T0703_OPTIONAL_TOKEN_ECHO_RECOVERY_AUTHORIZED_AFTER_THREE_ZERO_EFFECT_FAILED_ATTEMPTS",
+  "diagnostic_repair_status": "LOCAL_PASS_OPTIONAL_TOKEN_ECHO_SCOPE_PROBE_AND_SERVER_DATE_TTL",
   "new_controlled_delivery_authorized": true,
   "new_protected_dispatch_authorized": true
 }

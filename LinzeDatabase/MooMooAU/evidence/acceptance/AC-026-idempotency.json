@@ -79,15 +79,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0703.json",
-      "evidence_sha256": "3ef354dd4d2be45208195ca49dba04622a23b073fba6ae823868cb0bd2f5c1de",
+      "evidence_sha256": "8c4568b8de528a3011e6a45f76ab75f7003841e243f54ccfdc8cc66d87b66351",
       "final_claim_status": "PARTIAL",
-      "reason": "Two exact protected M3 attempts ran and failed closed with zero observed effects; after the Owner confirmed the App installation and private-repository link, one new exact-main recovery candidate attempt is authorized.",
+      "reason": "Three exact protected M3 attempts ran and failed closed with zero observed effects; the third exposed only RESPONSE_SCOPE_REJECTED, and one new exact-main optional-token-echo recovery candidate attempt is authorized.",
       "source_record_status": "BLOCKED",
       "task_id": "T0703"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-24T03:28:37Z",
+  "observed_at_utc": "2026-07-24T04:19:56Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

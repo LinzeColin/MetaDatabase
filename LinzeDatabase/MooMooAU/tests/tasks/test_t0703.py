@@ -413,7 +413,7 @@ def _authorized_project_root(tmp_path: Path) -> Path:
         "purpose": "T0703_PROTECTED_M3_REPAIR_ONLY",
         "m3_authorized": True,
         "final_publication_authorized": False,
-        "prior_failed_attempts_exact": 2,
+        "prior_failed_attempts_exact": 3,
         "repair_candidate_dispatch_limit": 1,
     }
     run_contract["authorized_effect_budget"] = {
@@ -425,8 +425,8 @@ def _authorized_project_root(tmp_path: Path) -> Path:
         "processed_writes_maximum": 1,
         "protected_m3_dispatches_maximum": 1,
         "protected_m3_reruns_maximum": 0,
-        "prior_protected_m3_dispatches_exact": 2,
-        "cumulative_protected_m3_dispatches_after_success_maximum": 3,
+        "prior_protected_m3_dispatches_exact": 3,
+        "cumulative_protected_m3_dispatches_after_success_maximum": 4,
         "timeline_writes_maximum": 0,
         "scheduled_runs_maximum": 0,
     }
@@ -489,7 +489,7 @@ def test_t0703_protected_entrypoint_contract_is_authorized_and_receipt_bound() -
     assert "required_secret_names" not in contract
     assert contract["beta_receipt_sha256"] == beta_receipt_sha256(PROJECT_ROOT)
     assert contract["prior_attempt_ledger_path"].endswith("t0703/attempt-ledger.json")
-    assert contract["prior_failed_attempts"] == 2
+    assert contract["prior_failed_attempts"] == 3
     assert contract["same_head_rerun_allowed"] is False
     assert contract["m3_gate_sha256"] == m3_gate_sha256(PROJECT_ROOT)
     assert contract["feature_invariants"] == {
