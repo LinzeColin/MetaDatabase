@@ -479,6 +479,30 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     invested_usd = sum(p["market_value_usd"] for p in positions)
     exposure_pct = round(100.0 * (invested_usd / fx_aud_usd) / capital_aud, 1) if capital_aud else 0.0
 
+    # ---------- 目标进度条(owner 2026-07-24 指定口径) ----------
+    # 本月应达本金 = 3000 × (1+当前策略月回报率)^(自 2026-07 起已过月数);
+    # 横框满额 = 本日历年年末应达本金。二者皆为「按回测月均推算的目标线」,不是收益承诺。
+    rate = float(os.environ.get("ALPHA_TARGET_MONTHLY_PCT", "1.245")) / 100.0
+    syd_now = now.astimezone(SYD)
+    elapsed = max(0, (syd_now.year - 2026) * 12 + (syd_now.month - 7))
+    to_year_end = max(elapsed, (syd_now.year - 2026) * 12 + (12 - 7))
+    month_target_aud = capital_aud * ((1.0 + rate) ** elapsed)
+    year_target_aud = capital_aud * ((1.0 + rate) ** to_year_end)
+    ahead = equity_aud >= month_target_aud
+    progress = {
+        "monthly_rate_pct": round(rate * 100, 3),
+        "months_elapsed": elapsed,
+        "equity_aud": round(equity_aud, 2),
+        "month_target_aud": round(month_target_aud, 2),
+        "year_target_aud": round(year_target_aud, 2),
+        "year_label": str(syd_now.year),
+        "fill_pct": round(min(100.0, 100.0 * equity_aud / year_target_aud), 2) if year_target_aud else 0.0,
+        "mark_pct": round(min(100.0, 100.0 * month_target_aud / year_target_aud), 2) if year_target_aud else 0.0,
+        "ahead": ahead,
+        "gap_aud": round(equity_aud - month_target_aud, 2),
+        "to_year_gap_aud": round(year_target_aud - equity_aud, 2),
+    }
+
     # ---------- 净值曲线(日终点 + 实时点;缺收盘价的历史日如实跳过) ----------
     curve: list[dict] = []
     skipped_days: list[str] = []
@@ -643,6 +667,7 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             "funding_gap_usd": round(max(0.0, authorized_usd - funded_usd), 2),
             "baseline_aud": round(baseline_aud, 2),
         },
+        "progress": progress,
         "curve": curve,
         "curve_skipped_days": skipped_days,
         "positions": positions,

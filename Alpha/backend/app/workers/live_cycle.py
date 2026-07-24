@@ -271,8 +271,8 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     gross_usd = sum(q * prices.get(s, 0.0) for s, q in positions.items())
     gross_aud = Decimal(str(gross_usd)) * d.fx_usd_aud
 
-    # 单笔上限 = 风控单笔红线(3000 AUD × 60%)换算成 USD,再留 3% 价格滑动余量
-    cap_usd = 3000.0 * 0.60 * 0.97 / float(d.fx_usd_aud)
+    # 单笔上限 = 风控单笔红线(3000 AUD × 90%,owner 2026-07-24 放宽)换算成 USD,再留 3% 滑动余量
+    cap_usd = 3000.0 * 0.90 * 0.97 / float(d.fx_usd_aud)
     plan = plan_rebalance(dict(result.target_weights), positions, prices,
                           capital_usd=d.capital_usd,
                           threshold_pct=float(d.cfg.get("rebalance_threshold_pct", 5)),

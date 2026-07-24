@@ -23,7 +23,7 @@ live_trading:
 capital_authorization:
   currency: "AUD"
   max_managed_gross_exposure: 3000         # 持仓市值+买单预留+费用+FX 缓冲
-  fat_finger_max_single_order_ratio: 0.60  # 单笔 ≤ 总授权 60%（1800 AUD）；owner 可否决
+  fat_finger_max_single_order_ratio: 0.90  # 单笔 ≤ 总授权 90%（2700 AUD）；owner 2026-07-24 书面放宽（原 60%/1800）
   max_open_positions: null                 # 无上限
   fx_conversion: "timestamped_rate_conservative_rounding"
 

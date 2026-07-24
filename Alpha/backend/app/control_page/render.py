@@ -42,7 +42,23 @@ a{color:#9a6b16;text-decoration:none}
   letter-spacing:.8px;text-transform:uppercase}
 .hero-num{font-size:40px;font-weight:800;letter-spacing:.5px;line-height:1.05;color:#101828}
 .hero-sub{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:14px}
-.up{color:#d1293d}.dn{color:#0f8a3c}.flat{color:#8a93a5}
+/* 涨跌色:owner 2026-07-24 指定改用美股惯例——绿涨红跌(原为 moomoo 中国惯例红涨绿跌) */
+.up{color:#0f8a3c}.dn{color:#d1293d}.flat{color:#8a93a5}
+/* 总盈亏染卡片背景 */
+.card.gainbg{background:linear-gradient(180deg,#f1fbf5,#fff);border-color:#bfe4cd}
+.card.lossbg{background:linear-gradient(180deg,#fdf3f3,#fff);border-color:#f3c0c0}
+/* 目标进度横框:满额=本日历年应达本金;蓝竖线=本月应达本金;左侧气泡=当前净值 */
+.prog{position:relative;height:26px;border-radius:9px;background:#eef0f3;
+  border:1px solid #e4e7ec;margin-top:14px}
+.prog>i{display:block;height:100%;border-radius:8px 0 0 8px;transition:width .4s}
+.prog.gain>i{background:linear-gradient(90deg,#8fdcae,#12a150)}
+.prog.loss>i{background:linear-gradient(90deg,#f5b5b5,#d1293d)}
+.prog>b{position:absolute;top:-5px;bottom:-5px;width:3px;background:#1d6fe0;
+  border-radius:2px;box-shadow:0 0 0 3px rgba(29,111,224,.16)}
+.proglegend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:#6b7480;margin-top:9px}
+.proglegend em{font-style:normal;color:#1a2130;font-weight:600}
+.proglegend s{text-decoration:none;display:inline-block;width:10px;height:10px;
+  border-radius:3px;margin-right:5px;vertical-align:-1px}
 .kpis{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:#6b7480}
 .kpis b{color:#1a2130;font-weight:700}
 .expo{height:8px;border-radius:99px;background:#eef0f3;margin-top:11px;overflow:hidden}
@@ -312,6 +328,27 @@ def render_strategy_html(d: dict) -> str:
     return _shell("Alpha 投资策略", "/strategy", body)
 
 
+def _progress_bar(p: dict) -> str:
+    """目标进度横框(owner 2026-07-24 指定):
+    满额 = 本日历年年末应达本金;蓝竖线 = 本月应达本金;左侧气泡 = 当前净值。
+    气泡低于蓝线显红、达到或超过显绿;各段 hover 可看具体金额。
+    目标线按回测月均复利推算,是尺子不是承诺。"""
+    cls = "gain" if p["ahead"] else "loss"
+    gap = p["gap_aud"]
+    gap_txt = (f"已超出本月目标 {gap:,.2f} 澳元" if gap >= 0
+               else f"距本月目标还差 {abs(gap):,.2f} 澳元")
+    dot = "#12a150" if p["ahead"] else "#d1293d"
+    return f"""<div class="prog {cls}">
+<i style="width:{p['fill_pct']}%" title="当前净值 {p['equity_aud']:,.2f} 澳元 · {gap_txt}"></i>
+<b style="left:{p['mark_pct']}%" title="本月应达本金 {p['month_target_aud']:,.2f} 澳元 = 3000 × (1+{p['monthly_rate_pct']}%) 的 {p['months_elapsed']} 次方"></b>
+</div>
+<div class=proglegend>
+<span title="当前净值 = 账户实际到位资金 + 持仓市值"><s style="background:{dot}"></s>当前净值 <em>{p['equity_aud']:,.2f}</em> 澳元</span>
+<span title="按当前策略月回报率 {p['monthly_rate_pct']}%,自 2026 年 7 月起复利推算的应达线"><s style="background:#1d6fe0"></s>本月应达 <em>{p['month_target_aud']:,.2f}</em> 澳元</span>
+<span title="横框满额 = {p['year_label']} 年年末应达本金;距该目标还差 {p['to_year_gap_aud']:,.2f} 澳元"><s style="background:#cfd5de"></s>{p['year_label']} 年末目标 <em>{p['year_target_aud']:,.2f}</em> 澳元</span>
+</div>"""
+
+
 def render_dashboard_html(d: dict) -> str:
     hero, mkt, nd, health = d["hero"], d["market"], d["next_decision"], d["health"]
 
@@ -375,7 +412,7 @@ def render_dashboard_html(d: dict) -> str:
 {_nav('/')}
 <div class="banner {_esc(d['banner']['kind'])}">{_esc(d['banner']['text'])}</div>
 <div class=grid>
-<div class="card span2">
+<div class="card span2 {'gainbg' if total > 0 else ('lossbg' if total < 0 else '')}">
   <h2>管理资金净值(澳元口径,实际到位本金 {hero['baseline_aud']:,.0f})</h2>
   <div class=hero-num>{hero['equity_aud']:,.2f}</div>
   <div class=hero-sub>
@@ -391,7 +428,7 @@ def render_dashboard_html(d: dict) -> str:
   </div>
   {f'<div class=verdict>💰 资金未全额到位:授权上限 {hero["authorized_usd"]:,.2f} 美元,账户实际可动用 {hero["funded_usd"]:,.2f} 美元,缺口 {hero["funding_gap_usd"]:,.2f} 美元。系统按<b>实际到位资金</b>下单与计算盈亏,绝不按授权额度虚报。</div>' if hero.get('funded_known') and hero['funding_gap_usd'] > 0.01 else ''}
   {'' if hero.get('funded_known') else '<div class=verdict>⚠️ 暂时读不到券商真实购买力,以下金额按授权额度显示(如实标注,非账户实有)。</div>'}
-  <div class=expo><i style="width:{min(100, hero['exposure_pct'])}%"></i></div>
+  {_progress_bar(d['progress'])}
 </div>
 <div class=card>
   <h2>现在持有</h2>

@@ -61,14 +61,14 @@ def test_gross_exposure_counts_existing_and_pending():
     assert v.snapshot["exposure_after_aud"] == "3001.00"
 
 
-# ---- 胖手指边界:1800 放行,1800.01 拒;买卖都防 ----
+# ---- 胖手指边界:2700 放行,2700.01 拒;买卖都防(owner 2026-07-24 放宽至 90%) ----
 
 @pytest.mark.parametrize(
     "notional,allowed",
-    [(Decimal("1799"), True), (Decimal("1800"), True), (Decimal("1800.01"), False)],
+    [(Decimal("2699"), True), (Decimal("2700"), True), (Decimal("2700.01"), False)],
 )
 def test_fat_finger_boundary(notional, allowed):
-    # 缺省授权 3000:保险丝 = 3000×0.60 = 1800;这些名义额都不触总敞口线
+    # 缺省授权 3000:保险丝 = 3000×0.90 = 2700;这些名义额都不触总敞口线
     c = ctx(quantity=1, price_usd=notional)
     v = evaluate(c)
     assert v.allowed is allowed, v.triggered_rules

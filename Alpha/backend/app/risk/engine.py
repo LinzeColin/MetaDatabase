@@ -73,7 +73,7 @@ class RiskContext:
     current_gross_exposure_aud: Decimal = Decimal("0")
     pending_buy_reserved_aud: Decimal = Decimal("0")
     max_gross_exposure_aud: Decimal = Decimal("3000")
-    fat_finger_ratio: Decimal = Decimal("0.60")
+    fat_finger_ratio: Decimal = Decimal("0.90")   # owner 2026-07-24 书面放宽(原 0.60);权威值见 configs/trading_governor_policy.yaml
     recent_order_times: Sequence[datetime] = field(default_factory=tuple)
     rate_limit_max_orders: int = 5
     rate_limit_window_minutes: int = 60
