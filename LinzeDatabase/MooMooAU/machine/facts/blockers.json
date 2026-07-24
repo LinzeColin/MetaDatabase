@@ -8,7 +8,7 @@
   },
   {
     "id": "T0703_REPAIR_CANDIDATE_PENDING",
-    "内容": "T0703 第五次在 Raw 与 Processed 恢复后公开 MUTATION_FAILED；Processed 当前指针从零变一且 Gmail Trash 聚合增加一，但精确来源归因仍未声称。五个失败头均禁止 rerun/redispatch；仅允许一个零 Gmail/私有仓写入 reconciliation attempt 1",
+    "内容": "T0703 第六次零写入 reconciliation 在 Raw 恢复后停止于 PROCESSED_PLAN；私有仓与 Gmail 均无新效果。六个失败头均禁止 rerun/redispatch；仅允许一个从既有加密 Processed envelope 恢复历史 label state 的零写入 attempt 1",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"

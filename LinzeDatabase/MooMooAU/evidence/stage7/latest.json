@@ -1,7 +1,7 @@
 {
   "schema_version": "moomooau.stage7-aggregate.v1",
   "stage_id": "S7",
-  "observed_at_utc": "2026-07-24T06:34:45Z",
+  "observed_at_utc": "2026-07-24T08:09:12Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "status": "AUTHORIZED_T0703_REPAIR_CANDIDATE_PENDING_PROTECTED_EXECUTION",
   "scoped_preflight": "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY",
@@ -15,7 +15,7 @@
   "protected_oracles_executed": 3,
   "protected_oracles_passed": 2,
   "protected_oracles_failed": 1,
-  "protected_workflow_runs": 16,
+  "protected_workflow_runs": 17,
   "production_workflow_runs": 0,
   "observation": {
     "alpha_local_synthetic": "PASS",
@@ -24,8 +24,8 @@
     "beta_public_safe_failure_diagnostics": "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE",
     "beta_real_raw_only": "PASS_RAW_RECOVERY_100_PERCENT_ZERO_SOURCE_MUTATION",
     "m3_local_synthetic_mechanism": "PASS",
-    "m3_protected_entrypoint": "ZERO_NEW_WRITE_RECONCILIATION_AUTHORIZED_AFTER_FIFTH_UNKNOWN_MUTATION_OUTCOME",
-    "m3_deterministic_evidence_run": "FIFTH_MUTATION_FAILED_EXACT_SOURCE_ATTRIBUTION_PENDING_ZERO_WRITE_RECONCILIATION",
+    "m3_protected_entrypoint": "HISTORICAL_LABEL_ZERO_WRITE_RECONCILIATION_AUTHORIZED_AFTER_SIXTH_PROCESSED_PLAN_ZERO_EFFECT_FAILURE",
+    "m3_deterministic_evidence_run": "SIXTH_PROCESSED_PLAN_FAILED_ZERO_NEW_EFFECT_HISTORICAL_LABEL_REPLAY_PENDING",
     "blue_green_timeline_local_mechanism": "PASS",
     "blue_green_deterministic_evidence_run": "NOT_RUN",
     "ga_full_pipeline_local_mechanism": "PASS",
@@ -41,7 +41,7 @@
     "verified_full_raw_reads": "ONE_RECOVERED_WITHIN_CONFIGURED_BUDGET",
     "protected_private_repository_path": "NONZERO_AGE_CIPHERTEXT_ONLY_REMOTE_RECOVERY_100_PERCENT",
     "protected_secret_injection": "EIGHT_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED",
-    "controlled_main_deliveries": 13,
+    "controlled_main_deliveries": 14,
     "private_raw_commits": "NONZERO_WITHIN_CONFIGURED_BUDGET",
     "remote_publications": 0,
     "m3_runs": 0,
@@ -69,5 +69,5 @@
     "REAL_RECOVERY_KEY_DRILL_NOT_RUN"
   ],
   "delivery_status": "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL",
-  "next_action": "Deliver the exact zero-new-write T0703 reconciliation candidate to main and execute exactly one attempt-1 reconciliation dispatch; do not rerun or redispatch any failed head, issue any new Gmail/private-repository write, or enter T0704."
+  "next_action": "Deliver the exact historical-label zero-new-write T0703 reconciliation candidate to main and execute exactly one attempt-1 reconciliation dispatch; do not rerun or redispatch any failed head, issue any new Gmail/private-repository write, or enter T0704."
 }

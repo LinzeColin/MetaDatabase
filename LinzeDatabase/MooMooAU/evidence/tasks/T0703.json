@@ -4,7 +4,7 @@
   "stage_id": "S7",
   "task_id": "T0703",
   "stage_acceptance_id": "S7AC-003",
-  "observed_at_utc": "2026-07-24T06:34:45Z",
+  "observed_at_utc": "2026-07-24T08:09:12Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "record_status": "BLOCKED",
   "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
@@ -22,23 +22,24 @@
     {"id": "authorized_receipt_and_budget_one_run_contract_bound_entrypoint", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3_entrypoint.py, machine/stages/S7/contracts/run_contract.json, machine/stages/S7/tools/validate_stage7.py and tests/tasks/test_t0703.py"},
     {"id": "empty_protected_registries_force_recoverable_safe_deferred", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3.py, src/moomooau_archive/canary_runtime.py and tests/tasks/test_t0703.py::test_t0703_empty_protected_processing_registries_force_recoverable_safe_deferred"},
     {"id": "empty_protected_registries_safe_defer_quarantined_attachment", "status": "PASS", "evidence_ref": "src/moomooau_archive/document_parser.py and tests/tasks/test_t0703.py::test_t0703_empty_protected_registries_safe_defer_quarantined_attachment"},
-    {"id": "five_failed_protected_attempts_bound_without_overclaim", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0703/attempt-ledger.json and machine/stages/S7/schemas/protected-m3-attempt-ledger-v1.schema.json"},
+    {"id": "six_failed_protected_attempts_bound_without_overclaim", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0703/attempt-ledger.json and machine/stages/S7/schemas/protected-m3-attempt-ledger-v1.schema.json"},
     {"id": "m3_metadata_quarantine_parity_and_closed_diagnostics", "status": "PASS", "evidence_ref": "src/moomooau_archive/canary_runtime.py, src/moomooau_archive/protected_m3_diagnostics.py and tests/tasks/test_t0703.py"},
     {"id": "m3_installation_token_failure_class_is_closed_and_public_safe", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3.py, src/moomooau_archive/protected_m3_diagnostics.py and tests/tasks/test_t0703.py::test_t0703_bootstrap_preserves_closed_installation_token_failure_class"},
     {"id": "m3_aggregate_failure_class_is_closed_and_public_safe", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3_diagnostics.py, src/moomooau_archive/protected_m3_entrypoint.py and tests/tasks/test_t0703.py::test_t0703_failure_diagnostics_are_closed_public_safe_phases"},
     {"id": "optional_token_scope_echo_absence_requires_exact_repository_probe_and_server_date_ttl", "status": "PASS", "evidence_ref": "src/moomooau_archive/github_guard.py, src/moomooau_archive/http_transport.py and tests/tasks/test_t0204.py::test_t0204_accepts_optional_scope_echo_absence_after_exact_repository_probe"},
     {"id": "unknown_mutation_reconciliation_selects_unique_existing_processed_trash_source", "status": "PASS", "evidence_ref": "src/moomooau_archive/canary_runtime.py::ExistingProcessedReconciliationMatcher and tests/tasks/test_t0703.py::test_t0703_reconciles_the_preexisting_trashed_source_with_zero_new_writes"},
-    {"id": "reconciliation_has_no_gmail_or_private_repository_write_path", "status": "PASS", "evidence_ref": "src/moomooau_archive/m3.py::ExactMessageTrashExecutor.reconcile_already_trashed and tests/tasks/test_t0703.py::test_t0703_protected_bootstrap_reconciles_without_gmail_or_repository_write"}
+    {"id": "reconciliation_has_no_gmail_or_private_repository_write_path", "status": "PASS", "evidence_ref": "src/moomooau_archive/m3.py::ExactMessageTrashExecutor.reconcile_already_trashed and tests/tasks/test_t0703.py::test_t0703_protected_bootstrap_reconciles_without_gmail_or_repository_write"},
+    {"id": "historical_encrypted_label_state_replays_existing_processed_snapshot", "status": "PASS", "evidence_ref": "src/moomooau_archive/production_adapters.py::RemoteFirstImportTimestampSource and tests/tasks/test_t0703.py::test_t0703_reconciles_the_preexisting_trashed_source_with_zero_new_writes and tests/remediation/test_rmd04.py"}
   ],
   "linked_final_acceptance": [
-    {"id": "AC-006", "status": "PARTIAL", "reason": "The fifth protected attempt made one mutation call and Gmail Trash aggregate increased by one, but exact-source attribution remains unconfirmed until the zero-write reconciliation runs."},
-    {"id": "AC-007", "status": "PARTIAL", "reason": "T0702 proved Raw recovery and the fifth M3 closed class proves one Raw-plus-Processed recovery; exact source mutation attribution remains pending."},
-    {"id": "AC-026", "status": "PARTIAL", "reason": "Five exact protected M3 attempts ran once each without rerun; the fifth unknown mutation outcome is bound to one zero-new-write reconciliation candidate."}
+    {"id": "AC-006", "status": "PARTIAL", "reason": "The fifth protected attempt made one mutation call and Gmail Trash aggregate increased by one, but exact-source attribution remains unconfirmed until the repaired zero-write reconciliation passes."},
+    {"id": "AC-007", "status": "PARTIAL", "reason": "T0702 proved Raw recovery, the fifth M3 reached Raw-plus-Processed recovery, and the sixth failed closed at PROCESSED_PLAN with zero new effect; the historical-label replay candidate remains pending."},
+    {"id": "AC-026", "status": "PARTIAL", "reason": "Six exact protected M3 attempts ran once each without rerun; the sixth zero-effect PROCESSED_PLAN boundary is bound to one historical-label zero-write reconciliation candidate."}
   ],
   "production_oracles": [
-    {"id": "PROTECTED_M3_DETERMINISTIC_EVIDENCE", "status": "FAILED", "reason": "The fifth exact-main attempt-1 completed Raw-plus-Processed recovery and returned MUTATION_FAILED; independent aggregate changes do not prove exact-source attribution, and no failed head can be rerun or redispatched."}
+    {"id": "PROTECTED_M3_DETERMINISTIC_EVIDENCE", "status": "FAILED", "reason": "The sixth exact-main attempt-1 recovered Raw and failed closed at PROCESSED_PLAN with independently verified zero new private-repository or Gmail effect; no failed head can be rerun or redispatched."}
   ],
   "blockers": ["PROTECTED_M3_ZERO_MUTATION_RECONCILIATION_CANDIDATE_NOT_RUN"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "Deliver the exact zero-new-write reconciliation candidate to main and execute one attempt-1 dispatch; never rerun or redispatch any failed head, and materialize evidence only from the aggregate protected receipt."
+  "next_action": "Deliver the exact historical-label zero-new-write reconciliation candidate to main and execute one attempt-1 dispatch; never rerun or redispatch any failed head, and materialize evidence only from the aggregate protected receipt."
 }

@@ -492,11 +492,16 @@ def test_rmd04_production_composition_recovers_before_exact_trash_and_keeps_one_
         ]
         assert len(current_paths) == 1
         source_id = current_paths[0].removesuffix(".json.age").rsplit("/", 1)[1]
-        imported = RemoteFirstImportTimestampSource(
+        first_import_source = RemoteFirstImportTimestampSource(
             _StoredProcessedView(context.github),  # type: ignore[arg-type]
             decryptor,
-        ).resolve(source_id, context.now + timedelta(days=1))
+        )
+        imported = first_import_source.resolve(source_id, context.now + timedelta(days=1))
         assert imported == context.now
+        assert first_import_source.resolve_label_state(
+            source_id,
+            context.now + timedelta(days=1),
+        ) == ("CATEGORY_UPDATES", "INBOX")
         verification_identity.unlink()
         assert list(context.tmpfs_root.iterdir()) == []
         assert context.source.all_issued_destroyed is True
@@ -552,7 +557,14 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
     assert status["dimensions"]["formal_task_completion"]["completed"] == 7
     assert status["dimensions"]["final_acceptance"]["passed"] == 0
     assert status["dimensions"]["production_readiness"]["status"] == "BLOCKED"
-    if status["package_version"] in {"1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13"}:
+    if status["package_version"] in {
+        "1.0.9",
+        "1.0.10",
+        "1.0.11",
+        "1.0.12",
+        "1.0.13",
+        "1.0.14",
+    }:
         assert status["dimensions"]["protected_oracles"] == {
             "status": "FAILED",
             "declared": 43,
@@ -569,6 +581,7 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
                 "1.0.11": 11,
                 "1.0.12": 12,
                 "1.0.13": 13,
+                "1.0.14": 14,
             }[status["package_version"]],
             "remote_publications": 0,
         }

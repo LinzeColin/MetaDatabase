@@ -63,15 +63,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0703.json",
-      "evidence_sha256": "0818d5ac8c8bde55ad41f171c914a3c7b3e75587376228394e60928ba9167d83",
+      "evidence_sha256": "269592702a58cd61d087f5fbf9faeba8d1c9279ee12c962887dfac558114b8cc",
       "final_claim_status": "PARTIAL",
-      "reason": "T0702 proved Raw recovery and the fifth M3 closed class proves one Raw-plus-Processed recovery; exact source mutation attribution remains pending.",
+      "reason": "T0702 proved Raw recovery, the fifth M3 reached Raw-plus-Processed recovery, and the sixth failed closed at PROCESSED_PLAN with zero new effect; the historical-label replay candidate remains pending.",
       "source_record_status": "BLOCKED",
       "task_id": "T0703"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-24T06:34:45Z",
+  "observed_at_utc": "2026-07-24T08:09:12Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

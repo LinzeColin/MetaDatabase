@@ -6,7 +6,7 @@
   "tasks": [
     {"id": "T0701", "status": "remote_alpha_passed_formal_completion_withheld"},
     {"id": "T0702", "status": "protected_beta_passed_formal_completion_withheld"},
-    {"id": "T0703", "status": "fifth_unknown_mutation_outcome_zero_new_write_reconciliation_authorized"},
+    {"id": "T0703", "status": "sixth_processed_plan_zero_effect_historical_label_reconciliation_authorized"},
     {"id": "T0704", "status": "implementation_ready_blocked_registry_and_predecessor_no_calendar_wait"},
     {"id": "T0705", "status": "implementation_ready_blocked_blue_green_budget_and_protected_schedule"},
     {"id": "T0706", "status": "local_policy_ready_blocked_ga_and_owner_created_automation"},
@@ -19,12 +19,12 @@
   "protected_oracles_executed": 3,
   "protected_oracles_passed": 2,
   "protected_oracles_failed": 1,
-  "protected_workflow_runs": 16,
+  "protected_workflow_runs": 17,
   "production_workflow_runs": 0,
   "final_acceptances_passed": 0,
   "delivery_status": "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL",
-  "ordering_status": "T0703_ZERO_NEW_WRITE_RECONCILIATION_AUTHORIZED_AFTER_FIFTH_UNKNOWN_MUTATION_OUTCOME",
-  "diagnostic_repair_status": "LOCAL_PASS_UNIQUE_PROCESSED_CURRENT_TRASH_BINDING_AND_ZERO_WRITE_RECONCILIATION",
+  "ordering_status": "T0703_HISTORICAL_LABEL_ZERO_WRITE_RECONCILIATION_AUTHORIZED_AFTER_SIXTH_PROCESSED_PLAN_ZERO_EFFECT_FAILURE",
+  "diagnostic_repair_status": "LOCAL_PASS_ENCRYPTED_HISTORICAL_LABEL_REPLAY_AND_ZERO_WRITE_RECONCILIATION",
   "new_controlled_delivery_authorized": true,
   "new_protected_dispatch_authorized": true
 }

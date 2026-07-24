@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the baseline-preserving v1.0.13 T0703 zero-write reconciliation manifest."""
+"""Build the v1.0.14 T0703 historical-label zero-write reconciliation manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.13.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-24-V1.0.13"
-PACKAGE_VERSION = "1.0.13"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.12.json")
-PREDECESSOR_MANIFEST_SHA256 = "7231b1453f64899b8b481c024c3ae437c4412a82a652c9457bccd08e5f8fc48d"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.14.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-24-V1.0.14"
+PACKAGE_VERSION = "1.0.14"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.13.json")
+PREDECESSOR_MANIFEST_SHA256 = "63a9d3f90fd420c8b661e7617793df0c748eece68c9363a11115d4b0d264fa1e"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.12 manifest drift")
+        raise ValueError("predecessor v1.0.13 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -178,31 +178,33 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v12",
+        "schema_version": "moomooau.package-manifest.v13",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
-            "Stage 7 T0703 only: preserve the protected T0702 PASS and all five failed M3 "
+            "Stage 7 T0703 only: preserve the protected T0702 PASS and all six failed M3 "
             "attempts. The fifth reached closed MUTATION_FAILED after Raw and Processed recovery; "
-            "independent Processed-current and Gmail Trash aggregate deltas do not alone prove "
-            "exact-source attribution. One controlled main delivery and one attempt-1 "
-            "zero-new-write reconciliation are authorized. Every failed-head rerun or redispatch, "
-            "final publication and T0704 remain forbidden."
+            "the sixth stopped at PROCESSED_PLAN with independently verified zero new effect. "
+            "One controlled main delivery and one attempt-1 historical-label zero-new-write "
+            "reconciliation are authorized. Every failed-head rerun or redispatch, final "
+            "publication and T0704 remain forbidden."
         ),
         "scope": (
-            "Baseline-preserving v1.0.13 reconciliation snapshot: immutable v1.0.1 product "
-            "contracts and v1.0.2-v1.0.12 predecessor lineage; the exact T0702 protected PASS "
+            "Baseline-preserving v1.0.14 reconciliation snapshot: immutable v1.0.1 product "
+            "contracts and v1.0.2-v1.0.13 predecessor lineage; the exact T0702 protected PASS "
             "receipt remains unchanged. The first four T0703 attempts retain zero observed "
             "effects. The fifth is truthfully bound as MUTATION_FAILED with one recovered "
             "Processed lineage, processed-current ZERO-to-ONE and Gmail Trash aggregate plus one, "
-            "while exact-source attribution and the mutation subreason remain unclaimed. The "
-            "candidate selects exactly one verified Trash source backed by the sole pre-existing "
-            "encrypted processed-current pointer, repeats Raw and Processed recovery and second "
-            "verification, and has no Gmail or private-repository write path. At package-build "
-            "time reconciliation has not run; Timeline, T0704, production health, final "
-            "Acceptance, Stage 7 completion and final publication are not claimed."
+            "while exact-source attribution and the mutation subreason remain unclaimed. The sixth "
+            "recovered Raw then stopped at PROCESSED_PLAN with no new remote or Gmail effect. The "
+            "candidate restores canonical historical Gmail label state only from the existing "
+            "encrypted Processed envelope, selects the sole verified Trash source backed by the "
+            "pointer, repeats Raw and Processed recovery and second verification, and has no Gmail "
+            "or private-repository write path. At package-build time reconciliation has not run; "
+            "Timeline, T0704, production health, final Acceptance, Stage 7 completion and final "
+            "publication are not claimed."
         ),
         "status_authority": "machine/status/latest.json",
         "predecessor": {

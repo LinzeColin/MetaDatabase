@@ -2,7 +2,7 @@
   "schema_version": "moomooau.protected-m3-attempt-ledger.v1",
   "stage_id": "S7",
   "task_id": "T0703",
-  "observed_through_utc": "2026-07-24T06:34:45Z",
+  "observed_through_utc": "2026-07-24T08:09:12Z",
   "attempts": [
     {
       "sequence": 1,
@@ -352,12 +352,84 @@
           "only a unique deterministically verified Trash source bound to the sole pre-existing encrypted processed-current pointer can close attribution without another Gmail mutation"
         ]
       }
+    },
+    {
+      "sequence": 6,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 108,
+        "merge_commit_sha": "9ca3b47eaaa75ef2f6e6650b41960d11545ed04e",
+        "main_ci_runs_passed": 10,
+        "main_ci_runs_failed": 0
+      },
+      "workflow": {
+        "run_id": 30077550182,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30077550182",
+        "event": "workflow_dispatch",
+        "workflow_head_sha": "9ca3b47eaaa75ef2f6e6650b41960d11545ed04e",
+        "run_attempt": 1,
+        "reruns": 0
+      },
+      "jobs": {
+        "authority_gate": {
+          "status": "PASS",
+          "started_at_utc": "2026-07-24T08:03:11Z",
+          "completed_at_utc": "2026-07-24T08:04:33Z"
+        },
+        "m3_budget_one": {
+          "status": "FAILED",
+          "started_at_utc": "2026-07-24T08:04:38Z",
+          "completed_at_utc": "2026-07-24T08:09:11Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-24T08:09:11Z"
+        }
+      },
+      "public_failure": {
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_M3_PROCESSED_PLAN_FAILED",
+        "failure_phase": "PROCESSED_PLAN",
+        "installation_token_failure_class": "UNCLASSIFIED",
+        "aggregate_failure_class": "UNCLASSIFIED",
+        "exact_root_cause_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "private_repository_new_commits": 0,
+        "private_repository_head_changed": false,
+        "raw_ciphertext_creations": "ZERO_OBSERVED",
+        "processed_writes": "ZERO_OBSERVED",
+        "processed_current_before_dispatch": "ONE",
+        "processed_current_after_dispatch": "ONE",
+        "gmail_trash_messages_after_dispatch": 0,
+        "source_mutations": 0,
+        "source_mutation_attribution": "ZERO_OBSERVED",
+        "timeline_writes": 0,
+        "scheduled_runs": 0,
+        "identity_plaintext_cleanup": "PASS"
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "AFTER_RAW_RECOVERY_BEFORE_PROCESSED_RECOVERY_AND_ANY_NEW_WRITE",
+        "exact_root_cause": "NOT_CLAIMED_FROM_CLOSED_PROCESSED_PLAN_PHASE_ONLY_OUTPUT",
+        "high_confidence_defect": "M3_HISTORICAL_GMAIL_LABEL_STATE_REPLAY_GAP",
+        "basis": [
+          "the protected output fixed the failure phase at PROCESSED_PLAN without exposing protected identifiers or plaintext",
+          "the exact private repository head, tree fingerprint and MooMooAU path counts remained unchanged through independent post-run verification",
+          "the connected Gmail Trash aggregate remained at its exact pre-dispatch value and no source mutation was observed",
+          "the encrypted Processed document envelope deterministically binds Gmail label state into the snapshot root",
+          "the reconciliation Raw fetch observes the post-mutation TRASH label state while the pre-mutation encrypted Processed lineage retains the historical label state",
+          "the Stage 7 synthetic Raw transport did not previously model Gmail label changes after Trash",
+          "the repair must recover the encrypted historical label state and remain zero-mutation when reconciling the existing source"
+        ]
+      }
     }
   ],
   "completion_policy": {
     "same_head_rerun_allowed": false,
     "failed_head_redispatch_allowed": false,
-    "repaired_exact_main_candidate_dispatch_allowed": false,
+    "repaired_exact_main_candidate_dispatch_allowed": true,
     "zero_mutation_reconciliation_dispatch_allowed": true,
     "next_candidate_dispatch_limit": 1,
     "t0704_authorized": false,

@@ -26,7 +26,7 @@ from moomooau_archive.age_stream import is_age_envelope
 from moomooau_archive.canary_runtime import CanaryRuntimeError, M3CanaryRunResult
 from moomooau_archive.github_guard import InstallationTokenFailureClass
 from moomooau_archive.gmail_guard import GmailEndpointGuard
-from moomooau_archive.http_boundary import HttpResponse
+from moomooau_archive.http_boundary import HttpRequest, HttpResponse
 from moomooau_archive.m3 import (
     ExactMessageTrashExecutor,
     GmailLabelConfirmationClient,
@@ -283,6 +283,18 @@ def test_t0703_reconciles_the_preexisting_trashed_source_with_zero_new_writes() 
         assert len(context.transport.trashed_ids) == trash_calls
         assert reconciled.to_public_dict()["new_mutation_budget_max"] == 0
         assert reconciled.to_public_dict()["reconciled_prior_unknown_mutation_bucket"] == "ONE"
+        raw_after_trash = context.transport.send(
+            HttpRequest(
+                "GET",
+                "https://gmail.googleapis.com/gmail/v1/users/me/messages/"
+                f"{message.message_id}?format=raw",
+            )
+        )
+        assert raw_after_trash.status == 200
+        assert json.loads(raw_after_trash.body)["labelIds"] == [
+            "CATEGORY_UPDATES",
+            "TRASH",
+        ]
 
 
 def test_t0703_zero_mutation_reconciliation_rejects_no_or_multiple_exact_matches() -> None:
@@ -584,7 +596,7 @@ def _authorized_project_root(tmp_path: Path) -> Path:
         "purpose": "T0703_PROTECTED_M3_REPAIR_ONLY",
         "m3_authorized": True,
         "final_publication_authorized": False,
-        "prior_failed_attempts_exact": 5,
+        "prior_failed_attempts_exact": 6,
         "zero_mutation_reconciliation_dispatch_limit": 1,
     }
     run_contract["authorized_effect_budget"] = {
@@ -597,8 +609,8 @@ def _authorized_project_root(tmp_path: Path) -> Path:
         "processed_writes_maximum": 0,
         "protected_m3_dispatches_maximum": 1,
         "protected_m3_reruns_maximum": 0,
-        "prior_protected_m3_dispatches_exact": 5,
-        "cumulative_protected_m3_dispatches_after_success_maximum": 6,
+        "prior_protected_m3_dispatches_exact": 6,
+        "cumulative_protected_m3_dispatches_after_success_maximum": 7,
         "timeline_writes_maximum": 0,
         "scheduled_runs_maximum": 0,
     }
@@ -668,7 +680,7 @@ def test_t0703_protected_entrypoint_contract_is_authorized_and_receipt_bound() -
     assert "required_secret_names" not in contract
     assert contract["beta_receipt_sha256"] == beta_receipt_sha256(PROJECT_ROOT)
     assert contract["prior_attempt_ledger_path"].endswith("t0703/attempt-ledger.json")
-    assert contract["prior_failed_attempts"] == 5
+    assert contract["prior_failed_attempts"] == 6
     assert contract["same_head_rerun_allowed"] is False
     assert contract["m3_gate_sha256"] == m3_gate_sha256(PROJECT_ROOT)
     assert contract["feature_invariants"] == {

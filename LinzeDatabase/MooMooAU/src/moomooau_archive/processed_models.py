@@ -497,6 +497,7 @@ class DocumentEnvelopeFactory:
         *,
         imported_at_utc: datetime,
         recovered_raw_ciphertext_sha256: str | None = None,
+        label_state_override: tuple[str, ...] | None = None,
     ) -> DocumentEnvelope:
         _require_verified_canonical(canonical, verification, attachments)
         if (
@@ -584,7 +585,11 @@ class DocumentEnvelopeFactory:
             classification_registry_version=classification.registry_version,
             internal_date_utc=internal,
             received_at_sydney=internal.astimezone(ZoneInfo("Australia/Sydney")),
-            label_state=tuple(sorted(canonical.label_ids)),
+            label_state=(
+                tuple(sorted(canonical.label_ids))
+                if label_state_override is None
+                else label_state_override
+            ),
             attachments=tuple(references),
             processing_state=initial_state,
             processing_reason=initial_reason,

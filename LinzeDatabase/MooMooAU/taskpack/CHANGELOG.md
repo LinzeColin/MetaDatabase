@@ -1,5 +1,23 @@
 # Taskpack Changelog
 
+## 1.0.14 — 2026-07-24
+
+固化 T0703 第六个 exact-main attempt 在 `PROCESSED_PLAN` 的零新增效果失败，并只授权一个历史
+Gmail label state 零写入 reconciliation 候选。
+
+- 绑定 PR #108、main `9ca3b47e…`、workflow run `30077550182`、authority PASS、M3 FAILED、
+  identity cleanup PASS 与 rerun 0；
+- 独立只读核验确认 private repository head/tree、Raw、Processed、processed-current 与 Gmail
+  Trash 在第六次运行前后完全不变；
+- 不从封闭 phase-only 输出声称未公开的精确线上根因；静态确定性链定位为 live post-Trash
+  labels 与 encrypted pre-Trash Processed snapshot 的重放差异；
+- 只从 current pointer → manifest → age-encrypted document envelope 恢复规范历史 labels；
+  缺失、损坏、非排序、重复、非法、`SENT` 或 `DRAFT` 均 fail closed；
+- Stage 7 Gmail fixture 现在真实模拟 Trash 后 Raw response 移除 `INBOX`、加入 `TRASH`，防止测试
+  继续隐藏生产差异；
+- 六个失败 head 均禁止 rerun/redispatch；只允许一份新 exact candidate main 交付和一次
+  attempt-1 zero-write dispatch；T0704、Timeline、GA、schedule 与最终发布继续未授权。
+
 ## 1.0.13 — 2026-07-24
 
 固化 T0703 第五个 exact-main attempt 的 `MUTATION_FAILED` 结果，并只授权一个零新增写入

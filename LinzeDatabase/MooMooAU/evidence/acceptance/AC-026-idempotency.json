@@ -79,15 +79,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0703.json",
-      "evidence_sha256": "0818d5ac8c8bde55ad41f171c914a3c7b3e75587376228394e60928ba9167d83",
+      "evidence_sha256": "269592702a58cd61d087f5fbf9faeba8d1c9279ee12c962887dfac558114b8cc",
       "final_claim_status": "PARTIAL",
-      "reason": "Five exact protected M3 attempts ran once each without rerun; the fifth unknown mutation outcome is bound to one zero-new-write reconciliation candidate.",
+      "reason": "Six exact protected M3 attempts ran once each without rerun; the sixth zero-effect PROCESSED_PLAN boundary is bound to one historical-label zero-write reconciliation candidate.",
       "source_record_status": "BLOCKED",
       "task_id": "T0703"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-24T06:34:45Z",
+  "observed_at_utc": "2026-07-24T08:09:12Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,

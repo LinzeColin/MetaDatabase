@@ -1,13 +1,13 @@
 [
   {
+    "version": "1.0.14",
+    "date": "2026-07-24",
+    "summary": "固化 T0703 第六次 protected M3 在 Raw 恢复后于 PROCESSED_PLAN 零副作用失败；独立确认私有仓 head/tree、Raw、Processed、current pointer 与 Gmail Trash 均未变化。修复 Gmail Trash 后 live label state 与既有 Processed snapshot 的历史 label state 重放冲突；仅从加密 Processed envelope 恢复规范 label，六个失败头均禁止 rerun/redispatch。"
+  },
+  {
     "version": "1.0.13",
     "date": "2026-07-24",
     "summary": "固化 T0703 第五次 protected M3 在完整 Raw/Processed 恢复后的 MUTATION_FAILED；独立聚合观察到 processed-current 从零变一与 Gmail Trash 加一，但不据此声称精确来源归因或 mutation 子原因。新增唯一 processed-current/Trash 来源选择、二次验证和零 Gmail/私有仓写入 reconciliation；五个失败头均禁止 rerun/redispatch。"
-  },
-  {
-    "version": "1.0.11",
-    "date": "2026-07-24",
-    "summary": "固化 T0703 第三次 protected M3 的 RESPONSE_SCOPE_REJECTED 零副作用失败。按 GitHub 固定 OpenAPI 将 repositories/permissions 视为可选回显；缺少仓库回显时用 installation token 做最多两个结果的精确仓库范围探测，并按有界 GitHub Date 校验一小时 TTL。三个失败头均禁止 rerun/redispatch。"
   },
   {
     "version": "1.0.10",
