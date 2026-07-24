@@ -21,6 +21,7 @@ from .processed_commit import CurrentProcessedPointer, ProcessedCiphertextStore
 from .remote_recovery_gate import CiphertextDecryptor
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
+_SAFE_GMAIL_LABEL = re.compile(r"^[A-Za-z0-9_-]{1,256}$")
 _MAX_MANIFEST_BYTES = 4 * 1024 * 1024
 _MAX_ENVELOPE_BYTES = 16 * 1024 * 1024
 
@@ -68,7 +69,7 @@ class OfficialAgeCrypto:
 
 
 class RemoteFirstImportTimestampSource:
-    """Recover the immutable first-import timestamp from current Processed lineage."""
+    """Recover immutable replay inputs from current encrypted Processed lineage."""
 
     def __init__(
         self,
@@ -81,10 +82,58 @@ class RemoteFirstImportTimestampSource:
     def resolve(self, source_id: str, observed_at_utc: datetime) -> datetime:
         if _SHA256.fullmatch(source_id) is None or not _is_utc(observed_at_utc):
             raise ProductionAdapterError("first-import lookup input is invalid")
+        envelope = self._resolve_envelope(source_id)
+        if envelope is None:
+            return observed_at_utc.astimezone(UTC)
+        lineage = envelope.get("lineage")
+        if not isinstance(lineage, dict):
+            raise ProductionAdapterError("current document envelope lineage is invalid")
+        imported = _parse_utc(lineage.get("imported_at_utc"))
+        if imported > observed_at_utc:
+            raise ProductionAdapterError("first-import timestamp is after the observation")
+        return imported
+
+    def resolve_label_state(
+        self,
+        source_id: str,
+        observed_at_utc: datetime,
+    ) -> tuple[str, ...] | None:
+        if _SHA256.fullmatch(source_id) is None or not _is_utc(observed_at_utc):
+            raise ProductionAdapterError("historical label-state lookup input is invalid")
+        envelope = self._resolve_envelope(source_id)
+        if envelope is None:
+            return None
+        lineage = envelope.get("lineage")
+        if not isinstance(lineage, dict):
+            raise ProductionAdapterError("current document envelope lineage is invalid")
+        imported = _parse_utc(lineage.get("imported_at_utc"))
+        if imported > observed_at_utc:
+            raise ProductionAdapterError("historical label state is after the observation")
+        gmail = envelope.get("gmail")
+        if not isinstance(gmail, dict) or set(gmail) != {
+            "internal_date_utc",
+            "received_at_sydney",
+            "label_state",
+        }:
+            raise ProductionAdapterError("current document envelope Gmail state is invalid")
+        labels = gmail.get("label_state")
+        if not isinstance(labels, list) or not all(isinstance(label, str) for label in labels):
+            raise ProductionAdapterError("current document envelope label state is invalid")
+        label_state = tuple(cast(list[str], labels))
+        if (
+            tuple(sorted(label_state)) != label_state
+            or len(set(label_state)) != len(label_state)
+            or any(_SAFE_GMAIL_LABEL.fullmatch(label) is None for label in label_state)
+            or any(label in {"SENT", "DRAFT"} for label in label_state)
+        ):
+            raise ProductionAdapterError("current document envelope label state is invalid")
+        return label_state
+
+    def _resolve_envelope(self, source_id: str) -> dict[str, object] | None:
         pointer_path = f"MooMooAU/State/processed-current/{source_id}.json.age"
         revisioned = self._store.fetch_current(pointer_path)
         if revisioned is None:
-            return observed_at_utc.astimezone(UTC)
+            return None
         try:
             pointer_plaintext = self._decryptor.decrypt(revisioned.ciphertext)
             pointer = CurrentProcessedPointer.from_bytes(pointer_plaintext)
@@ -142,10 +191,7 @@ class RemoteFirstImportTimestampSource:
             or lineage.get("source_id") != source_id
         ):
             raise ProductionAdapterError("current document envelope binding differs")
-        imported = _parse_utc(lineage.get("imported_at_utc"))
-        if imported > observed_at_utc:
-            raise ProductionAdapterError("first-import timestamp is after the observation")
-        return imported
+        return envelope
 
 
 def _validate_manifest(

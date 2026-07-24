@@ -71,9 +71,11 @@ _GATE_PATHS = (
     Path("src/moomooau_archive/protected_m3_diagnostics.py"),
     Path("tests/tasks/test_t0703.py"),
 )
-_PRIOR_FAILED_ATTEMPTS = 5
-_ZERO_EFFECT_ATTEMPTS = 4
-_CUMULATIVE_DISPATCHES_AFTER_SUCCESS = 6
+_PRIOR_FAILED_ATTEMPTS = 6
+_INITIAL_ZERO_EFFECT_ATTEMPTS = 4
+_UNKNOWN_MUTATION_ATTEMPT = 5
+_RECONCILIATION_PLAN_FAILURE_ATTEMPT = 6
+_CUMULATIVE_DISPATCHES_AFTER_SUCCESS = 7
 _COMMIT = re.compile(r"^[0-9a-f]{40}$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _POSITIVE_INTEGER = re.compile(r"^[1-9][0-9]*$")
@@ -541,7 +543,7 @@ def _load_prior_attempt_count(project_root: Path) -> int:
             or effects.get("timeline_writes") != 0
             or effects.get("scheduled_runs") != 0
         )
-        zero_effect_invalid = sequence <= _ZERO_EFFECT_ATTEMPTS and (
+        initial_zero_effect_invalid = sequence <= _INITIAL_ZERO_EFFECT_ATTEMPTS and (
             effects.get("private_repository_new_commits") != 0
             or effects.get("private_repository_head_changed") is not False
             or effects.get("raw_ciphertext_creations") != "ZERO_OBSERVED"
@@ -551,7 +553,7 @@ def _load_prior_attempt_count(project_root: Path) -> int:
             or effects.get("gmail_trash_messages_after_dispatch") != 0
             or effects.get("source_mutation_attribution") != "ZERO_OBSERVED"
         )
-        prior_unknown_invalid = sequence == _PRIOR_FAILED_ATTEMPTS and (
+        prior_unknown_invalid = sequence == _UNKNOWN_MUTATION_ATTEMPT and (
             failure.get("reason_code") != "PROTECTED_M3_AGGREGATE_GATE_FAILED"
             or failure.get("failure_phase") != "AGGREGATE_GATE"
             or failure.get("aggregate_failure_class") != "MUTATION_FAILED"
@@ -564,7 +566,26 @@ def _load_prior_attempt_count(project_root: Path) -> int:
             or effects.get("gmail_trash_messages_after_dispatch") != 1
             or effects.get("source_mutation_attribution") != "UNCONFIRMED_EXACT_SOURCE"
         )
-        if common_invalid or zero_effect_invalid or prior_unknown_invalid:
+        reconciliation_plan_failure_invalid = sequence == _RECONCILIATION_PLAN_FAILURE_ATTEMPT and (
+            failure.get("reason_code") != "PROTECTED_M3_PROCESSED_PLAN_FAILED"
+            or failure.get("failure_phase") != "PROCESSED_PLAN"
+            or failure.get("installation_token_failure_class") != "UNCLASSIFIED"
+            or failure.get("aggregate_failure_class") != "UNCLASSIFIED"
+            or effects.get("private_repository_new_commits") != 0
+            or effects.get("private_repository_head_changed") is not False
+            or effects.get("raw_ciphertext_creations") != "ZERO_OBSERVED"
+            or effects.get("processed_writes") != "ZERO_OBSERVED"
+            or effects.get("processed_current_before_dispatch") != "ONE"
+            or effects.get("processed_current_after_dispatch") != "ONE"
+            or effects.get("gmail_trash_messages_after_dispatch") != 0
+            or effects.get("source_mutation_attribution") != "ZERO_OBSERVED"
+        )
+        if (
+            common_invalid
+            or initial_zero_effect_invalid
+            or prior_unknown_invalid
+            or reconciliation_plan_failure_invalid
+        ):
             raise ProtectedM3EntrypointError("protected M3 prior attempt is not repair-eligible")
         workflows.append(workflow)
     if (
@@ -572,7 +593,7 @@ def _load_prior_attempt_count(project_root: Path) -> int:
         or len({item.get("run_id") for item in workflows}) != _PRIOR_FAILED_ATTEMPTS
         or policy.get("same_head_rerun_allowed") is not False
         or policy.get("failed_head_redispatch_allowed") is not False
-        or policy.get("repaired_exact_main_candidate_dispatch_allowed") is not False
+        or policy.get("repaired_exact_main_candidate_dispatch_allowed") is not True
         or policy.get("zero_mutation_reconciliation_dispatch_allowed") is not True
         or policy.get("next_candidate_dispatch_limit") != 1
         or policy.get("t0704_authorized") is not False

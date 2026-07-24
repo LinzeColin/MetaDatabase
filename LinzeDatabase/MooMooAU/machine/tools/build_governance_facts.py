@@ -42,6 +42,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.11",
             "1.0.12",
             "1.0.13",
+            "1.0.14",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -56,6 +57,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.11",
         "1.0.12",
         "1.0.13",
+        "1.0.14",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -66,6 +68,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.11",
         "1.0.12",
         "1.0.13",
+        "1.0.14",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -75,6 +78,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.11",
         "1.0.12",
         "1.0.13",
+        "1.0.14",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
@@ -83,6 +87,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.11",
         "1.0.12",
         "1.0.13",
+        "1.0.14",
     }
     t0703_repair_authorized = delivery["package_version"] in {
         "1.0.9",
@@ -90,12 +95,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.11",
         "1.0.12",
         "1.0.13",
+        "1.0.14",
     }
     t0703_app_recovery_authorized = delivery["package_version"] in {
         "1.0.10",
         "1.0.11",
         "1.0.12",
         "1.0.13",
+        "1.0.14",
     }
     t0703_response_scope_recovery_authorized = delivery["package_version"] in {
         "1.0.11",
@@ -103,7 +110,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.13",
     }
     t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] == "1.0.12"
-    t0703_zero_mutation_reconciliation_authorized = delivery["package_version"] == "1.0.13"
+    t0703_zero_mutation_reconciliation_authorized = delivery["package_version"] in {
+        "1.0.13",
+        "1.0.14",
+    }
+    t0703_historical_label_reconciliation_authorized = delivery["package_version"] == "1.0.14"
     protected_beta_failed = (
         not t0703_repair_authorized
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("status") == "FAILED"
@@ -132,7 +143,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "T0702 已通过；T0703 第五次出现未知 mutation 结果，零新增写入 reconciliation 已授权"
+            "T0702 已通过；T0703 第六次在 PROCESSED_PLAN 零副作用失败，"
+            "历史 label 重放修复候选已授权"
+            if t0703_historical_label_reconciliation_authorized
+            else "T0702 已通过；T0703 第五次出现未知 mutation 结果，"
+            "零新增写入 reconciliation 已授权"
             if t0703_zero_mutation_reconciliation_authorized
             else "T0702 已通过；T0703 四次执行均零观察副作用失败，SAFE_DEFERRED 聚合恢复候选已授权"
             if t0703_safe_deferred_aggregate_recovery_authorized
@@ -200,7 +215,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "T0703 单件预算已授权；精确 main 交付、两项安全延后注册表和首次受保护执行待完成"
         ),
         "T0703_REPAIR_CANDIDATE_PENDING": (
-            "T0703 第五次在 Raw 与 Processed 恢复后公开 MUTATION_FAILED；Processed 当前指针"
+            "T0703 第六次零写入 reconciliation 在 Raw 恢复后停止于 PROCESSED_PLAN；"
+            "私有仓与 Gmail 均无新效果。六个失败头均禁止 rerun/redispatch；仅允许一个"
+            "从既有加密 Processed envelope 恢复历史 label state 的零写入 attempt 1"
+            if t0703_historical_label_reconciliation_authorized
+            else "T0703 第五次在 Raw 与 Processed 恢复后公开 MUTATION_FAILED；Processed 当前指针"
             "从零变一且 Gmail Trash 聚合增加一，但精确来源归因仍未声称。五个失败头均禁止 "
             "rerun/redispatch；仅允许一个零 Gmail/私有仓写入 reconciliation attempt 1"
             if t0703_zero_mutation_reconciliation_authorized
@@ -240,7 +259,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0703 第五次未知 mutation 结果，零新增写入 reconciliation 已授权"
+            "RMD-06 T0703 第六次 PROCESSED_PLAN 零副作用失败，历史 label 重放候选已授权"
+            if t0703_historical_label_reconciliation_authorized
+            else "RMD-06 T0703 第五次未知 mutation 结果，零新增写入 reconciliation 已授权"
             if t0703_zero_mutation_reconciliation_authorized
             else "RMD-06 T0703 四次零观察副作用失败，SAFE_DEFERRED 聚合恢复候选已授权"
             if t0703_safe_deferred_aggregate_recovery_authorized
@@ -257,7 +278,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0702/S7AC-002 已通过；T0703 第五次完成 Raw/Processed 恢复后返回 "
+            "T0702/S7AC-002 已通过；T0703 第六次完成 Raw 恢复后停止于 PROCESSED_PLAN，"
+            "远端与 Gmail 零新效果；仅授权一个从加密 Processed lineage 恢复历史 label "
+            "state 的零新增写入 reconciliation 候选"
+            if t0703_historical_label_reconciliation_authorized
+            else "T0702/S7AC-002 已通过；T0703 第五次完成 Raw/Processed 恢复后返回 "
             "MUTATION_FAILED；独立聚合变化不单独证明精确来源，仅授权一个零新增写入 "
             "reconciliation 候选"
             if t0703_zero_mutation_reconciliation_authorized
@@ -280,7 +305,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付精确零新增写入 reconciliation 并执行一次 attempt 1；"
+            "交付历史 label state 零新增写入 reconciliation 并执行一次 attempt 1；"
+            "禁止六个失败头 rerun/redispatch，禁止 Gmail 与私有仓写入"
+            if t0703_historical_label_reconciliation_authorized
+            else "交付精确零新增写入 reconciliation 并执行一次 attempt 1；"
             "禁止五个失败头 rerun/redispatch，禁止 Gmail 与私有仓写入"
             if t0703_zero_mutation_reconciliation_authorized
             else "交付精确 SAFE_DEFERRED 聚合恢复候选并执行一次新候选 Budget-1 M3；"
@@ -652,7 +680,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "en": "T0703_REPAIR_CANDIDATE_PENDING",
                 "zh": "T0703 修复候选待执行",
                 "note": (
-                    "第五次 M3 在完整恢复后返回 MUTATION_FAILED；聚合效果未单独证明精确"
+                    "第六次 M3 reconciliation 在 Raw 恢复后停止于 PROCESSED_PLAN；"
+                    "远端与 Gmail 零新效果；六个失败头不可 rerun/redispatch，仅允许一个"
+                    "从加密 Processed envelope 恢复历史 label state 的零写入 attempt 1"
+                    if t0703_historical_label_reconciliation_authorized
+                    else "第五次 M3 在完整恢复后返回 MUTATION_FAILED；聚合效果未单独证明精确"
                     "来源；五个失败头不可 rerun/redispatch，仅允许一个零新增写入 "
                     "reconciliation attempt 1"
                     if t0703_zero_mutation_reconciliation_authorized
@@ -761,7 +793,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     }
     plan = {
         "stage": (
-            "RMD-06 T0703 第五次未知 mutation 结果，零新增写入 reconciliation 已授权"
+            "RMD-06 T0703 第六次 PROCESSED_PLAN 零副作用失败，历史 label 重放候选已授权"
+            if t0703_historical_label_reconciliation_authorized
+            else "RMD-06 T0703 第五次未知 mutation 结果，零新增写入 reconciliation 已授权"
             if t0703_zero_mutation_reconciliation_authorized
             else "RMD-06 T0703 四次零观察副作用失败，SAFE_DEFERRED 聚合恢复候选已授权"
             if t0703_safe_deferred_aggregate_recovery_authorized
@@ -778,7 +812,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0703 零新增写入未知 mutation reconciliation 执行准备"
+            "T0703 历史 label state 零新增写入 reconciliation 执行准备"
+            if t0703_historical_label_reconciliation_authorized
+            else "T0703 零新增写入未知 mutation reconciliation 执行准备"
             if t0703_zero_mutation_reconciliation_authorized
             else "T0703 SAFE_DEFERRED 聚合恢复候选 Budget-1 新候选执行准备"
             if t0703_safe_deferred_aggregate_recovery_authorized
@@ -797,7 +833,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付唯一 processed-current 与 Trash 来源绑定的零写入 reconciliation；"
+            "交付从加密 Processed envelope 恢复历史 label state 的零写入 reconciliation；"
+            "六个失败头不可 rerun/redispatch，新候选仅执行一次"
+            if t0703_historical_label_reconciliation_authorized
+            else "交付唯一 processed-current 与 Trash 来源绑定的零写入 reconciliation；"
             "五个失败头不可 rerun/redispatch，新候选仅执行一次"
             if t0703_zero_mutation_reconciliation_authorized
             else "交付空注册表 SAFE_DEFERRED 顺序修复与封闭聚合失败分类；"
@@ -847,7 +886,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "阻塞（T0702 通过；T0703 第五次未知 mutation 结果，"
+                    "阻塞（T0702 通过；T0703 第六次 PROCESSED_PLAN 零副作用失败，"
+                    "历史 label 重放 reconciliation 待运行）"
+                    if t0703_historical_label_reconciliation_authorized
+                    else "阻塞（T0702 通过；T0703 第五次未知 mutation 结果，"
                     "零新增写入 reconciliation 待运行）"
                     if t0703_zero_mutation_reconciliation_authorized
                     else "阻塞（T0702 通过；T0703 四次零观察副作用失败，"
@@ -1053,6 +1095,21 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "Trash 加一，但不据此声称精确来源归因或 mutation 子原因。新增唯一 "
                     "processed-current/Trash 来源选择、二次验证和零 Gmail/私有仓写入 "
                     "reconciliation；五个失败头均禁止 rerun/redispatch。"
+                ),
+            },
+        )
+    if t0703_historical_label_reconciliation_authorized:
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.14",
+                "date": "2026-07-24",
+                "summary": (
+                    "固化 T0703 第六次 protected M3 在 Raw 恢复后于 PROCESSED_PLAN "
+                    "零副作用失败；独立确认私有仓 head/tree、Raw、Processed、current pointer "
+                    "与 Gmail Trash 均未变化。修复 Gmail Trash 后 live label state 与既有 "
+                    "Processed snapshot 的历史 label state 重放冲突；仅从加密 Processed "
+                    "envelope 恢复规范 label，六个失败头均禁止 rerun/redispatch。"
                 ),
             },
         )

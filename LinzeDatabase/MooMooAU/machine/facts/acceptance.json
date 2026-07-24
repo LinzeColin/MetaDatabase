@@ -18,7 +18,7 @@
     {
       "id": "`受保护验证`",
       "criteria": "已声明 43、已执行 3、通过 2、失败 1",
-      "status": "阻塞（T0702 通过；T0703 第五次未知 mutation 结果，零新增写入 reconciliation 待运行）"
+      "status": "阻塞（T0702 通过；T0703 第六次 PROCESSED_PLAN 零副作用失败，历史 label 重放 reconciliation 待运行）"
     },
     {
       "id": "`最终验收`",

@@ -4,7 +4,7 @@
   "authorization": {
     "decision": "Owner retained the private Governance Deploy Key design and explicitly authorized controlled Stage 7 completion with serial new first-attempt protected dispatches and no artificial calendar or manual-approval blocker",
     "authorized_on": "2026-07-23",
-    "scope": "Stage 7 T0703 only: the protected T0702 PASS satisfies the M3 predecessor. The first four exact-main M3 attempts had zero observed effects. The fifth reached the closed MUTATION_FAILED aggregate only after Raw plus Processed recovery; independent checks observed processed-current ZERO to ONE and Gmail Trash aggregate plus one, but exact-source attribution remains unclaimed. The current Run Contract authorizes one exact zero-new-write reconciliation delivery and one attempt-1 dispatch. It selects exactly one verified Trash source backed by the sole pre-existing encrypted processed-current pointer, performs Raw and Processed recovery plus second verification, makes Gmail and private-repository writes unreachable, forbids rerun or any failed-head redispatch, and does not authorize T0704 or final publication."
+    "scope": "Stage 7 T0703 only: the protected T0702 PASS satisfies the M3 predecessor. The first four exact-main M3 attempts had zero observed effects. The fifth reached the closed MUTATION_FAILED aggregate only after Raw plus Processed recovery; independent checks observed processed-current ZERO to ONE and Gmail Trash aggregate plus one, but exact-source attribution remains unclaimed. The sixth zero-write reconciliation recovered Raw then stopped at PROCESSED_PLAN with independently verified zero new effect. The current Run Contract authorizes one repaired exact-main delivery and one attempt-1 dispatch that recovers historical Gmail label state from the existing encrypted Processed envelope before replay. It selects exactly one verified Trash source backed by the sole pointer, performs Raw and Processed recovery plus second verification, makes Gmail and private-repository writes unreachable, forbids rerun or any failed-head redispatch, and does not authorize T0704 or final publication."
   },
   "authority": {
     "current_status": "machine/status/latest.json",
@@ -103,7 +103,7 @@
       "next_action": "Deliver the exact validated T0703 candidate to main, add only the two public-safe empty processing registry values to the existing protected Environment, and execute exactly one first-attempt Budget-1 M3 Canary; do not enter T0704."
     },
     "PROTECTED_M3_REPAIR_AUTHORIZED": {
-      "package_version": "1.0.13",
+      "package_version": "1.0.14",
       "resolved_review_findings": [
         "REV-P0-002",
         "REV-P0-003",
@@ -116,7 +116,7 @@
         "T0703_REPAIR_CANDIDATE_PENDING",
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
-      "next_action": "Deliver the exact zero-new-write T0703 reconciliation candidate to main and execute exactly one attempt-1 reconciliation dispatch; do not rerun or redispatch any failed head, issue any new Gmail/private-repository write, or enter T0704."
+      "next_action": "Deliver the exact historical-label zero-new-write T0703 reconciliation candidate to main and execute exactly one attempt-1 reconciliation dispatch; do not rerun or redispatch any failed head, issue any new Gmail/private-repository write, or enter T0704."
     }
   }
 }

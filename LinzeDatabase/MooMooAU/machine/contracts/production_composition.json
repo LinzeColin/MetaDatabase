@@ -1,7 +1,7 @@
 {
   "schema_version": "moomooau.production-composition.v1",
   "finding_id": "REV-P0-002",
-  "observed_at_utc": "2026-07-22T12:16:04Z",
+  "observed_at_utc": "2026-07-24T08:09:12Z",
   "status": "LOCAL_SYNTHETIC_COMPOSITION_VERIFIED",
   "scope": "RMD_04_LOCAL_SYNTHETIC_ONLY",
   "workflow": {
@@ -32,7 +32,7 @@
     "EncryptedGmailSyncCheckpoint <- strict private Contents CAS",
     "RawCommitSaga <- append-only private age ciphertext",
     "ProcessedCommitSaga <- immutable datasets plus strict current CAS",
-    "RemoteFirstImportTimestampSource <- recovered current Processed lineage",
+    "RemoteFirstImportTimestampSource <- recovered first-import timestamp and historical Gmail label state from current encrypted Processed lineage",
     "RemoteRecoveryGate <- Raw and Processed remote decrypt-and-digest proof",
     "ExactMessageTrashExecutor <- second verification plus exact messages.trash",
     "TimelineSnapshotRecoveryGate <- private snapshot decrypt-and-digest proof",
@@ -54,7 +54,7 @@
       "sha256": "9b3d3159fada723697450995af92282ba1ee33e4622ad1044621cd29159dc08e"
     },
     "src/moomooau_archive/production_adapters.py": {
-      "sha256": "4a84a5dea675332da700faf1e4f3c9882f5363cf6dd9daae8a381b35cc7a3845"
+      "sha256": "07282e7f8f4855a520c3f0d7bd3456cca07183709c0847e97984b55142768b6f"
     },
     "src/moomooau_archive/gmail_sync_checkpoint.py": {
       "sha256": "9c0c364f3e2727bcd43a41825c4ffe9aac1406f99bba00948e5eab1eacbbcbe9"
@@ -63,7 +63,7 @@
       "sha256": "c3c9ba533e1e4b93c7efd89962d58e04501c670c46f8d17351bab0db56c98009"
     },
     "tests/remediation/test_rmd04.py": {
-      "sha256": "300eb0e22463b6352928a124161987d7556e3b5391450a15be09bdd90b915a61"
+      "sha256": "762769b30651af575712e8ac65b136caf7afb7ce5e2c3b22168923d9c94c61f6"
     },
     "tests/remediation/test_rmd05.py": {
       "sha256": "10cb61cdde6b76de201f4442fc4243d5c72792b12ab6e9ba602dd30491ddbfba"

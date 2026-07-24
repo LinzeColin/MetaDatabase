@@ -71,9 +71,15 @@ class CanaryRuntimeError(RuntimeError):
 
 
 class FirstImportTimestampSource(Protocol):
-    """Return the immutable first-import timestamp for one opaque source ID."""
+    """Return immutable Processed lineage needed to replay one opaque source ID."""
 
     def resolve(self, source_id: str, observed_at_utc: datetime) -> datetime: ...
+
+    def resolve_label_state(
+        self,
+        source_id: str,
+        observed_at_utc: datetime,
+    ) -> tuple[str, ...] | None: ...
 
 
 class ProcessedPlanFactory(Protocol):
@@ -680,6 +686,10 @@ class M3CanaryRunner:
             )
             if not _is_utc(imported_at_utc) or imported_at_utc > observed_at_utc:
                 raise CanaryRuntimeError("first-import timestamp is invalid")
+            label_state_override = self._first_import_timestamps.resolve_label_state(
+                raw_plan.opaque_message_id,
+                observed_at_utc,
+            )
             envelope = self._envelope_factory.issue(
                 canonical,
                 first,
@@ -688,6 +698,7 @@ class M3CanaryRunner:
                 classification,
                 imported_at_utc=imported_at_utc,
                 recovered_raw_ciphertext_sha256=raw_proof.raw_ciphertext_sha256,
+                label_state_override=label_state_override,
             )
             extraction = self._extractor.extract(attachments)
             profile = self._profile_for(

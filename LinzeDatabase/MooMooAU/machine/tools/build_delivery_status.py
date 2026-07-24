@@ -202,10 +202,17 @@ def _protected_m3_attempt_ledger(root: Path) -> dict[str, Any] | None:
     claims = ledger.get("claims", {})
     if (
         ledger.get("task_id") != "T0703"
-        or len(attempts) != 5
-        or [item.get("sequence") for item in attempts] != [1, 2, 3, 4, 5]
+        or len(attempts) != 6
+        or [item.get("sequence") for item in attempts] != [1, 2, 3, 4, 5, 6]
         or [item.get("workflow", {}).get("run_id") for item in attempts]
-        != [30060804854, 30063841144, 30066295809, 30068892160, 30072484529]
+        != [
+            30060804854,
+            30063841144,
+            30066295809,
+            30068892160,
+            30072484529,
+            30077550182,
+        ]
         or [item.get("workflow", {}).get("workflow_head_sha") for item in attempts]
         != [
             "f747ddcd2e5eab589802a0c545293cd6f275ca71",  # pragma: allowlist secret
@@ -213,6 +220,7 @@ def _protected_m3_attempt_ledger(root: Path) -> dict[str, Any] | None:
             "bc0bfb3bc60a5ad769b286bb7b4bcdfc1ac195e6",  # pragma: allowlist secret
             "b922219fa80fd0f55e8dd0d100a87ced2a77b2b8",  # pragma: allowlist secret
             "c860f3880b48b03c3f71ac79e61e278125fb1811",  # pragma: allowlist secret
+            "9ca3b47eaaa75ef2f6e6650b41960d11545ed04e",  # pragma: allowlist secret
         ]
         or any(item.get("workflow", {}).get("reruns") != 0 for item in attempts)
         or any(
@@ -237,22 +245,32 @@ def _protected_m3_attempt_ledger(root: Path) -> dict[str, Any] | None:
             or item.get("effects", {}).get("source_mutation_attribution") != "ZERO_OBSERVED"
             for item in attempts[:4]
         )
-        or attempts[-1].get("public_failure", {}).get("aggregate_failure_class")
-        != "MUTATION_FAILED"
-        or attempts[-1].get("effects", {}).get("private_repository_new_commits")
+        or attempts[4].get("public_failure", {}).get("aggregate_failure_class") != "MUTATION_FAILED"
+        or attempts[4].get("effects", {}).get("private_repository_new_commits")
         != "NONZERO_NOT_EXACTLY_COUNTED"
-        or attempts[-1].get("effects", {}).get("private_repository_head_changed") is not True
-        or attempts[-1].get("effects", {}).get("raw_ciphertext_creations") != "ZERO_OBSERVED"
-        or attempts[-1].get("effects", {}).get("processed_writes") != "ONE_RECOVERED"
-        or attempts[-1].get("effects", {}).get("processed_current_before_dispatch") != "ZERO"
-        or attempts[-1].get("effects", {}).get("processed_current_after_dispatch") != "ONE"
-        or attempts[-1].get("effects", {}).get("gmail_trash_messages_after_dispatch") != 1
-        or attempts[-1].get("effects", {}).get("source_mutation_attribution")
+        or attempts[4].get("effects", {}).get("private_repository_head_changed") is not True
+        or attempts[4].get("effects", {}).get("raw_ciphertext_creations") != "ZERO_OBSERVED"
+        or attempts[4].get("effects", {}).get("processed_writes") != "ONE_RECOVERED"
+        or attempts[4].get("effects", {}).get("processed_current_before_dispatch") != "ZERO"
+        or attempts[4].get("effects", {}).get("processed_current_after_dispatch") != "ONE"
+        or attempts[4].get("effects", {}).get("gmail_trash_messages_after_dispatch") != 1
+        or attempts[4].get("effects", {}).get("source_mutation_attribution")
         != "UNCONFIRMED_EXACT_SOURCE"
+        or attempts[5].get("public_failure", {}).get("reason_code")
+        != "PROTECTED_M3_PROCESSED_PLAN_FAILED"
+        or attempts[5].get("public_failure", {}).get("failure_phase") != "PROCESSED_PLAN"
+        or attempts[5].get("effects", {}).get("private_repository_new_commits") != 0
+        or attempts[5].get("effects", {}).get("private_repository_head_changed") is not False
+        or attempts[5].get("effects", {}).get("raw_ciphertext_creations") != "ZERO_OBSERVED"
+        or attempts[5].get("effects", {}).get("processed_writes") != "ZERO_OBSERVED"
+        or attempts[5].get("effects", {}).get("processed_current_before_dispatch") != "ONE"
+        or attempts[5].get("effects", {}).get("processed_current_after_dispatch") != "ONE"
+        or attempts[5].get("effects", {}).get("gmail_trash_messages_after_dispatch") != 0
+        or attempts[5].get("effects", {}).get("source_mutation_attribution") != "ZERO_OBSERVED"
         or any(item.get("effects", {}).get("source_mutations") != 0 for item in attempts)
         or policy.get("same_head_rerun_allowed") is not False
         or policy.get("failed_head_redispatch_allowed") is not False
-        or policy.get("repaired_exact_main_candidate_dispatch_allowed") is not False
+        or policy.get("repaired_exact_main_candidate_dispatch_allowed") is not True
         or policy.get("zero_mutation_reconciliation_dispatch_allowed") is not True
         or policy.get("next_candidate_dispatch_limit") != 1
         or any(value is not False for value in claims.values())
@@ -291,6 +309,7 @@ def _validate_composition_for_state(
                 "1.0.11",
                 "1.0.12",
                 "1.0.13",
+                "1.0.14",
             },
         ),
     )
@@ -415,6 +434,7 @@ def _validate_stage6_evidence_transition(
         "1.0.11",
         "1.0.12",
         "1.0.13",
+        "1.0.14",
     } or versions != {"moomooau.stage6-evidence.v2"}:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
     # v1.0.5 itself remains Git-anchored. Its v1.0.6+ control successors are portable:

@@ -89,7 +89,10 @@ from moomooau_archive.processed_models import (
     DocumentEnvelopeFactory,
 )
 from moomooau_archive.processed_product import ProcessedProductBuilder
-from moomooau_archive.production_adapters import OfficialAgeCrypto
+from moomooau_archive.production_adapters import (
+    OfficialAgeCrypto,
+    RemoteFirstImportTimestampSource,
+)
 from moomooau_archive.protected_beta import (
     AGE_IDENTITY_SECRET_NAME,
     BETA_CONFIG_SECRET_NAME,
@@ -298,6 +301,7 @@ class Stage7GmailTransport:
             history_status=history_status,
         )
         self.message_ids = {item.message_id for item in messages}
+        self._initial_labels = {item.message_id: item.labels for item in messages}
         self.trashed_ids: list[str] = []
         self._events = events
         self._malformed_metadata_ids = malformed_metadata_ids
@@ -317,7 +321,7 @@ class Stage7GmailTransport:
             return HttpResponse(
                 200,
                 json.dumps(
-                    {"id": message_id, "labelIds": ["INBOX", "TRASH"]},
+                    {"id": message_id, "labelIds": self._current_labels(message_id)},
                     separators=(",", ":"),
                 ).encode(),
             )
@@ -326,13 +330,10 @@ class Stage7GmailTransport:
             and relative in self.message_ids
             and query == {"format": ["minimal"]}
         ):
-            labels = ["INBOX"]
-            if relative in self.trashed_ids:
-                labels.append("TRASH")
             return HttpResponse(
                 200,
                 json.dumps(
-                    {"id": relative, "labelIds": labels},
+                    {"id": relative, "labelIds": self._current_labels(relative)},
                     separators=(",", ":"),
                 ).encode(),
             )
@@ -352,15 +353,32 @@ class Stage7GmailTransport:
             if relative not in self.trashed_ids:
                 return response
             payload = json.loads(response.body)
-            labels = payload.get("labelIds", [])
-            if "TRASH" not in labels:
-                labels.append("TRASH")
-            payload["labelIds"] = sorted(labels)
+            payload["labelIds"] = self._current_labels(relative)
+            return HttpResponse(
+                response.status,
+                json.dumps(payload, sort_keys=True, separators=(",", ":")).encode(),
+            )
+        if (
+            request.method == "GET"
+            and relative in self.message_ids
+            and query == {"format": ["raw"]}
+            and relative in self.trashed_ids
+        ):
+            response = self.inner.send(request)
+            payload = json.loads(response.body)
+            payload["labelIds"] = self._current_labels(relative)
             return HttpResponse(
                 response.status,
                 json.dumps(payload, sort_keys=True, separators=(",", ":")).encode(),
             )
         return self.inner.send(request)
+
+    def _current_labels(self, message_id: str) -> list[str]:
+        labels = set(self._initial_labels[message_id])
+        if message_id in self.trashed_ids:
+            labels.discard("INBOX")
+            labels.add("TRASH")
+        return sorted(labels)
 
 
 @dataclass(frozen=True, slots=True)
@@ -451,6 +469,14 @@ class StableFirstImportTimestamps:
 
     def resolve(self, source_id: str, observed_at_utc: datetime) -> datetime:
         return self._values.setdefault(source_id, observed_at_utc)
+
+    def resolve_label_state(
+        self,
+        source_id: str,
+        observed_at_utc: datetime,
+    ) -> tuple[str, ...] | None:
+        del source_id, observed_at_utc
+        return None
 
 
 class RecordingRepositoryReader:
@@ -543,7 +569,7 @@ def m3_canary_context(
             ProcessedCommitSaga(processed_store),
             RemoteRecoveryGate(reader, decryptor),
             ExactMessageTrashExecutor(guard, GmailLabelConfirmationClient(guard)),
-            StableFirstImportTimestamps(),
+            RemoteFirstImportTimestampSource(processed_store, decryptor),
             operational_gate,
             reconciliation_source_matcher=ExistingProcessedReconciliationMatcher(
                 opaque_ids,

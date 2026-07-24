@@ -154,7 +154,21 @@ source，重复 Raw/Processed remote recovery 与第二次验证，并以本次 
 - `SOURCE_PROVENANCE.v1.0.13.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.12.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.11.json`、
+`v1.0.14` 固化第六个不同 exact-main T0703 attempt 的 `PROCESSED_PLAN` 零新增效果边界。
+reconciliation 的 live Raw 正确观察 post-Trash label state，而既有 Processed snapshot 绑定首次
+归档时的 pre-Trash label state。新候选只从 age-encrypted Processed document envelope 恢复规范
+历史 label，重建同一 snapshot 并执行 Raw/Processed remote recovery 与第二次验证；没有 Gmail
+或 private-repository 写入路径。六个失败 head 均禁止 rerun/redispatch；只授权一份新 exact
+candidate main 交付和一次 attempt-1 zero-write dispatch，不进入 T0704。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.14.md`
+- `ROADMAP.v1.0.14.md`
+- `PACKAGE_MANIFEST.v1.0.14.json`
+- `SOURCE_PROVENANCE.v1.0.14.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.13.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.12.json`、
+`PACKAGE_MANIFEST.v1.0.11.json`、
 `PACKAGE_MANIFEST.v1.0.10.json`、
 `PACKAGE_MANIFEST.v1.0.9.json`、
 `PACKAGE_MANIFEST.v1.0.8.json`、

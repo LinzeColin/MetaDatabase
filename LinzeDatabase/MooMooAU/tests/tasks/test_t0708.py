@@ -423,13 +423,13 @@ def test_t0708_stage7_aggregate_closes_t0702_and_authorizes_only_t0703() -> None
     assert aggregate["protected_oracles_executed"] == 3
     assert aggregate["protected_oracles_passed"] == 2
     assert aggregate["protected_oracles_failed"] == 1
-    assert aggregate["protected_workflow_runs"] == 16
+    assert aggregate["protected_workflow_runs"] == 17
     assert aggregate["production_workflow_runs"] == 0
     assert aggregate["final_acceptances_passed"] == 0
     assert aggregate["delivery_status"] == "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL"
     assert (
         aggregate["observation"]["m3_deterministic_evidence_run"]
-        == "FIFTH_MUTATION_FAILED_EXACT_SOURCE_ATTRIBUTION_PENDING_ZERO_WRITE_RECONCILIATION"
+        == "SIXTH_PROCESSED_PLAN_FAILED_ZERO_NEW_EFFECT_HISTORICAL_LABEL_REPLAY_PENDING"
     )
     assert (
         "PROTECTED_M3_ZERO_MUTATION_RECONCILIATION_CANDIDATE_NOT_RUN"

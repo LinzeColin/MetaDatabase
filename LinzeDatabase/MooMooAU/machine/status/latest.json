@@ -1,8 +1,8 @@
 {
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
-  "package_version": "1.0.13",
-  "status_as_of_utc": "2026-07-24T06:34:45Z",
+  "package_version": "1.0.14",
+  "status_as_of_utc": "2026-07-24T08:09:12Z",
   "authority": {
     "path": "machine/status/latest.json",
     "precedence": [
@@ -60,7 +60,7 @@
     },
     "publication": {
       "status": "CONTROLLED_BETA_DELIVERY_NOT_FINAL",
-      "controlled_main_deliveries": 13,
+      "controlled_main_deliveries": 14,
       "remote_publications": 0
     }
   },
@@ -232,24 +232,24 @@
     "REV-P1-006",
     "REV-P2-007"
   ],
-  "next_action": "Deliver the exact zero-new-write T0703 reconciliation candidate to main and execute exactly one attempt-1 reconciliation dispatch; do not rerun or redispatch any failed head, issue any new Gmail/private-repository write, or enter T0704.",
+  "next_action": "Deliver the exact historical-label zero-new-write T0703 reconciliation candidate to main and execute exactly one attempt-1 reconciliation dispatch; do not rerun or redispatch any failed head, issue any new Gmail/private-repository write, or enter T0704.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "c015779909868ba38184093f2ee532ee71b3fdffb0cc0999c643485f1985695a",
+    "acceptance_summary_sha256": "450cf3af46fb06397a0894796f237afc97f432f20fa80543612ce2e25de421de",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
-    "delivery_status_model_sha256": "0cbbadfbcbd934f89c01a773b99af208544c81a8aa7023c17d62ac4e1b7fb199",
+    "delivery_status_model_sha256": "c4ee7df7cd1988c650357993214edba2d2941a4802a5d4aa37beaee5553400bc",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "d559acac547dcc93ef4839b7cf96e255249bd893d1799967198ece263de2e943",
+    "production_composition_sha256": "0e98eaf11d9b22ae54b824102df5b9fd9195481be44774ea4304325983cb7e6f",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "b34af4f3a5224492b9d80c1e2a0415e76c169cebb9b502e09ac6e1aa4860e12d",
+    "task_evidence_root_sha256": "ae75badf227aaf3c238e4e0bb584cbf6d0209bb43afe186ffb331202ee8ff289",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",
     "assurance_provenance_root_sha256": "65eaaa037e17b7011b78410c50e3534a7d4e6e8cf65f624d684b4f968275cbea",
     "protected_beta_execution_receipt_sha256": "06c4c58e64f56f740c2f0143b064236dafc9dc56e7bae488f02c52dd6b750ce0",
     "protected_beta_attempt_ledger_sha256": "3a85c5ea1d3e21f0ce0413968f83a867f2b5e3accfb63deb78b4e740ee86456a",
-    "protected_m3_attempt_ledger_sha256": "0742719950603894e1cf7d426bf5f0e194c03006367024e201635fb68278cc7d"
+    "protected_m3_attempt_ledger_sha256": "3ac1e717aee5dfbb020f41bd846d545a36ff0b03028a252286b35d2658ce1144"
   }
 }

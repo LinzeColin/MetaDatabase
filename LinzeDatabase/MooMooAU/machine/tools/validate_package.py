@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only validator for the baseline-preserving v1.0.13 T0703 reconciliation package."""
+"""Read-only validator for the v1.0.14 historical-label reconciliation package."""
 
 from __future__ import annotations
 
@@ -29,9 +29,9 @@ from build_package_manifest import (
 from validate_delivery_status import validate as validate_delivery_status
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.13.json")
+PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.14.json")
 CURRENT_MAINLINE_BASE_COMMIT = (
-    "589cebacce6aea0d6b0c34780fc4e8f23bbc4b9d"  # pragma: allowlist secret
+    "9ca3b47eaaa75ef2f6e6650b41960d11545ed04e"  # pragma: allowlist secret
 )
 ACCEPTANCE_REMEDIATION_BASE_COMMIT = (
     "c860f3880b48b03c3f71ac79e61e278125fb1811"  # pragma: allowlist secret
@@ -45,16 +45,17 @@ CANDIDATE_SNAPSHOT = {
 PROTECTED_BETA_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0702/attempt-ledger.json")
 PROTECTED_M3_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0703/attempt-ledger.json")
 AUTHORIZATION_BASIS = (
-    "The real T0702 protected PASS, five exact failed T0703 attempts, the fifth closed "
-    "MUTATION_FAILED aggregate, independently observed Processed-current and Gmail Trash "
-    "aggregate deltas, and the fully automatic Stage 7 authority establish one exact-main "
-    "zero-new-write reconciliation attempt without entering T0704"
+    "The real T0702 protected PASS, six exact failed T0703 attempts, the fifth closed "
+    "MUTATION_FAILED aggregate, the sixth PROCESSED_PLAN zero-effect boundary, independently "
+    "observed private-repository and Gmail state, and fully automatic Stage 7 authority establish "
+    "one exact-main historical-label zero-new-write reconciliation attempt without entering T0704"
 )
 AUTHORIZED_SCOPE = (
-    "One T0703 reconciliation package: bind the exact T0702 PASS and five failed M3 attempts, "
+    "One T0703 reconciliation package: bind the exact T0702 PASS and six failed M3 attempts, "
     "forbid every failed-head rerun or redispatch, preserve all earlier repairs, select exactly "
     "one verified Trash source whose opaque ID has the sole pre-existing encrypted "
-    "processed-current pointer, repeat Raw plus Processed recovery and second sender "
+    "processed-current pointer, recover its canonical historical Gmail label state from the "
+    "encrypted Processed envelope, repeat Raw plus Processed recovery and second sender "
     "verification, and authorize zero Gmail or private-repository writes. T0704, Timeline, "
     "production and final publication remain unauthorized"
 )
@@ -95,10 +96,17 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     ):
         raise ValueError("protected Beta attempt ledger is not the exact observed state")
     if (
-        len(m3_attempts) != 5
-        or [item.get("sequence") for item in m3_attempts] != [1, 2, 3, 4, 5]
+        len(m3_attempts) != 6
+        or [item.get("sequence") for item in m3_attempts] != [1, 2, 3, 4, 5, 6]
         or [item.get("workflow", {}).get("run_id") for item in m3_attempts]
-        != [30060804854, 30063841144, 30066295809, 30068892160, 30072484529]
+        != [
+            30060804854,
+            30063841144,
+            30066295809,
+            30068892160,
+            30072484529,
+            30077550182,
+        ]
         or [item.get("workflow", {}).get("workflow_head_sha") for item in m3_attempts]
         != [
             "f747ddcd2e5eab589802a0c545293cd6f275ca71",  # pragma: allowlist secret
@@ -106,6 +114,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "bc0bfb3bc60a5ad769b286bb7b4bcdfc1ac195e6",  # pragma: allowlist secret
             "b922219fa80fd0f55e8dd0d100a87ced2a77b2b8",  # pragma: allowlist secret
             "c860f3880b48b03c3f71ac79e61e278125fb1811",  # pragma: allowlist secret
+            "9ca3b47eaaa75ef2f6e6650b41960d11545ed04e",  # pragma: allowlist secret
         ]
         or any(item.get("workflow", {}).get("reruns") != 0 for item in m3_attempts)
         or any(
@@ -126,33 +135,46 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             or item.get("effects", {}).get("source_mutation_attribution") != "ZERO_OBSERVED"
             for item in m3_attempts[:4]
         )
-        or m3_attempts[-1].get("public_failure", {}).get("aggregate_failure_class")
+        or m3_attempts[4].get("public_failure", {}).get("aggregate_failure_class")
         != "MUTATION_FAILED"
-        or m3_attempts[-1].get("effects", {}).get("private_repository_new_commits")
+        or m3_attempts[4].get("effects", {}).get("private_repository_new_commits")
         != "NONZERO_NOT_EXACTLY_COUNTED"
-        or m3_attempts[-1].get("effects", {}).get("private_repository_head_changed") is not True
-        or m3_attempts[-1].get("effects", {}).get("processed_writes") != "ONE_RECOVERED"
-        or m3_attempts[-1].get("effects", {}).get("processed_current_before_dispatch") != "ZERO"
-        or m3_attempts[-1].get("effects", {}).get("processed_current_after_dispatch") != "ONE"
-        or m3_attempts[-1].get("effects", {}).get("gmail_trash_messages_after_dispatch") != 1
-        or m3_attempts[-1].get("effects", {}).get("source_mutation_attribution")
+        or m3_attempts[4].get("effects", {}).get("private_repository_head_changed") is not True
+        or m3_attempts[4].get("effects", {}).get("processed_writes") != "ONE_RECOVERED"
+        or m3_attempts[4].get("effects", {}).get("processed_current_before_dispatch") != "ZERO"
+        or m3_attempts[4].get("effects", {}).get("processed_current_after_dispatch") != "ONE"
+        or m3_attempts[4].get("effects", {}).get("gmail_trash_messages_after_dispatch") != 1
+        or m3_attempts[4].get("effects", {}).get("source_mutation_attribution")
         != "UNCONFIRMED_EXACT_SOURCE"
+        or m3_attempts[5].get("public_failure", {}).get("reason_code")
+        != "PROTECTED_M3_PROCESSED_PLAN_FAILED"
+        or m3_attempts[5].get("public_failure", {}).get("failure_phase") != "PROCESSED_PLAN"
+        or m3_attempts[5].get("effects", {}).get("private_repository_new_commits") != 0
+        or m3_attempts[5].get("effects", {}).get("private_repository_head_changed") is not False
+        or m3_attempts[5].get("effects", {}).get("raw_ciphertext_creations") != "ZERO_OBSERVED"
+        or m3_attempts[5].get("effects", {}).get("processed_writes") != "ZERO_OBSERVED"
+        or m3_attempts[5].get("effects", {}).get("processed_current_before_dispatch") != "ONE"
+        or m3_attempts[5].get("effects", {}).get("processed_current_after_dispatch") != "ONE"
+        or m3_attempts[5].get("effects", {}).get("gmail_trash_messages_after_dispatch") != 0
+        or m3_attempts[5].get("effects", {}).get("source_mutation_attribution") != "ZERO_OBSERVED"
         or any(item.get("effects", {}).get("source_mutations") != 0 for item in m3_attempts)
         or m3_policy.get("same_head_rerun_allowed") is not False
         or m3_policy.get("failed_head_redispatch_allowed") is not False
+        or m3_policy.get("repaired_exact_main_candidate_dispatch_allowed") is not True
+        or m3_policy.get("zero_mutation_reconciliation_dispatch_allowed") is not True
         or m3_policy.get("next_candidate_dispatch_limit") != 1
     ):
         raise ValueError("protected M3 attempt ledger is not the exact reconciliation lineage")
     return {
-        "schema_version": "moomooau.source-provenance.v13",
+        "schema_version": "moomooau.source-provenance.v14",
         "authorization": {
             "basis": AUTHORIZATION_BASIS,
             "authorized_on": "2026-07-24",
             "authorized_scope": AUTHORIZED_SCOPE,
         },
         "predecessor": {
-            "package_id": "MMAU-ARCHIVE-TP-2026-07-24-V1.0.12",
-            "version": "1.0.12",
+            "package_id": "MMAU-ARCHIVE-TP-2026-07-24-V1.0.13",
+            "version": "1.0.13",
             "manifest": PREDECESSOR_MANIFEST_PATH.as_posix(),
             "manifest_sha256": PREDECESSOR_MANIFEST_SHA256,
             "status": "IMMUTABLE_CONTROL_PREDECESSOR",
@@ -190,7 +212,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "package_id": PACKAGE_ID,
             "version": PACKAGE_VERSION,
             "manifest": MANIFEST_PATH.as_posix(),
-            "roadmap": "taskpack/ROADMAP.v1.0.13.md",
+            "roadmap": "taskpack/ROADMAP.v1.0.14.md",
             "status_authority": "machine/status/latest.json",
             "workflow_validator": "machine/tools/validate_workflow_matrix.py",
             "publication_status": "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL",
@@ -241,14 +263,14 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_m3_contract_authorized": True,
             "protected_m3_environment_reused": "moomooau-beta",
             "protected_m3_empty_processing_registries_force_safe_deferred": True,
-            "protected_m3_dispatches": 5,
+            "protected_m3_dispatches": 6,
             "protected_m3_reruns": 0,
-            "protected_m3_failed_attempts": 5,
-            "protected_m3_zero_effect_failures": 4,
-            "protected_m3_last_failure_phase": "AGGREGATE_GATE",
+            "protected_m3_failed_attempts": 6,
+            "protected_m3_zero_effect_failures": 5,
+            "protected_m3_last_failure_phase": "PROCESSED_PLAN",
             "protected_m3_last_installation_failure_class": "UNCLASSIFIED",
-            "protected_m3_last_aggregate_failure_class": "MUTATION_FAILED",
-            "protected_m3_processed_current_before_last_attempt": "ZERO",
+            "protected_m3_last_aggregate_failure_class": "UNCLASSIFIED",
+            "protected_m3_processed_current_before_last_attempt": "ONE",
             "protected_m3_processed_current_after_last_attempt": "ONE",
             "protected_m3_metadata_quarantine_parity_repaired": True,
             "protected_m3_closed_failure_diagnostics": True,
@@ -258,6 +280,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_m3_empty_registry_quarantine_safe_deferred_repaired": True,
             "protected_m3_aggregate_failure_class_diagnostics": True,
             "protected_m3_zero_write_reconciliation_implemented": True,
+            "protected_m3_historical_label_replay_repaired": True,
             "github_openapi_commit": (
                 "5c88ff6bc3c36a12ccd69b8e0fee479b7202188a"  # pragma: allowlist secret
             ),
@@ -265,7 +288,9 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_m3_workflow_sha256": _sha256(
                 root.parents[1] / ".github/workflows/moomooau-m3.yml"
             ),
-            "m3_authority_status": "AUTHORIZED_ZERO_NEW_WRITE_RECONCILIATION_ATTEMPT_ONE_PENDING",
+            "m3_authority_status": (
+                "AUTHORIZED_HISTORICAL_LABEL_ZERO_NEW_WRITE_RECONCILIATION_ATTEMPT_ONE_PENDING"
+            ),
             "protected_beta_attempt_ledger_sha256": _sha256(
                 root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH
             ),
@@ -279,13 +304,13 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
     try:
         provenance = _load(root / PROVENANCE_PATH)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        failures.append("v1.0.13 provenance is missing or invalid")
+        failures.append("v1.0.14 provenance is missing or invalid")
         return
     if not isinstance(provenance, dict):
-        failures.append("v1.0.13 provenance must be an object")
+        failures.append("v1.0.14 provenance must be an object")
         return
     if provenance != build_provenance(root):
-        failures.append("v1.0.13 provenance differs from the exact deterministic authority")
+        failures.append("v1.0.14 provenance differs from the exact deterministic authority")
     authorization = provenance.get("authorization", {})
     effective = provenance.get("effective_package", {})
     predecessor = provenance.get("predecessor", {})
@@ -314,24 +339,24 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
     if not isinstance(semantic_delta, dict):
         semantic_delta = {}
     if (
-        provenance.get("schema_version") != "moomooau.source-provenance.v13"
+        provenance.get("schema_version") != "moomooau.source-provenance.v14"
         or authorization.get("basis") != AUTHORIZATION_BASIS
         or authorization.get("authorized_scope") != AUTHORIZED_SCOPE
         or effective.get("package_id") != PACKAGE_ID
         or effective.get("version") != PACKAGE_VERSION
         or effective.get("manifest") != MANIFEST_PATH.as_posix()
-        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.13.md"
+        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.14.md"
         or effective.get("status_authority") != "machine/status/latest.json"
         or effective.get("workflow_validator") != "machine/tools/validate_workflow_matrix.py"
         or effective.get("publication_status") != "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL"
     ):
-        failures.append("v1.0.13 provenance identity or authorization mismatch")
+        failures.append("v1.0.14 provenance identity or authorization mismatch")
     if (
         predecessor.get("manifest") != PREDECESSOR_MANIFEST_PATH.as_posix()
         or predecessor.get("manifest_sha256") != PREDECESSOR_MANIFEST_SHA256
         or predecessor.get("status") != "IMMUTABLE_CONTROL_PREDECESSOR"
     ):
-        failures.append("v1.0.12 predecessor provenance mismatch")
+        failures.append("v1.0.13 predecessor provenance mismatch")
     if (
         control_predecessor.get("manifest") != CONTROL_PREDECESSOR_MANIFEST_PATH.as_posix()
         or control_predecessor.get("manifest_sha256") != CONTROL_PREDECESSOR_MANIFEST_SHA256
@@ -377,9 +402,9 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         "protected_oracles_passed": 2,
         "protected_oracles_failed": 1,
         "production_workflow_runs": 0,
-        "protected_workflow_runs": 16,
-        "remote_workflow_runs": 16,
-        "controlled_main_deliveries": 13,
+        "protected_workflow_runs": 17,
+        "remote_workflow_runs": 17,
+        "controlled_main_deliveries": 14,
         "protected_beta_dispatches": 12,
         "context_rejected_dispatches": 1,
         "protected_beta_reruns": 0,
@@ -401,14 +426,14 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         "protected_m3_contract_authorized": True,
         "protected_m3_environment_reused": "moomooau-beta",
         "protected_m3_empty_processing_registries_force_safe_deferred": True,
-        "protected_m3_dispatches": 5,
+        "protected_m3_dispatches": 6,
         "protected_m3_reruns": 0,
-        "protected_m3_failed_attempts": 5,
-        "protected_m3_zero_effect_failures": 4,
-        "protected_m3_last_failure_phase": "AGGREGATE_GATE",
+        "protected_m3_failed_attempts": 6,
+        "protected_m3_zero_effect_failures": 5,
+        "protected_m3_last_failure_phase": "PROCESSED_PLAN",
         "protected_m3_last_installation_failure_class": "UNCLASSIFIED",
-        "protected_m3_last_aggregate_failure_class": "MUTATION_FAILED",
-        "protected_m3_processed_current_before_last_attempt": "ZERO",
+        "protected_m3_last_aggregate_failure_class": "UNCLASSIFIED",
+        "protected_m3_processed_current_before_last_attempt": "ONE",
         "protected_m3_processed_current_after_last_attempt": "ONE",
         "protected_m3_metadata_quarantine_parity_repaired": True,
         "protected_m3_closed_failure_diagnostics": True,
@@ -418,6 +443,7 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         "protected_m3_empty_registry_quarantine_safe_deferred_repaired": True,
         "protected_m3_aggregate_failure_class_diagnostics": True,
         "protected_m3_zero_write_reconciliation_implemented": True,
+        "protected_m3_historical_label_replay_repaired": True,
         "github_openapi_commit": (
             "5c88ff6bc3c36a12ccd69b8e0fee479b7202188a"  # pragma: allowlist secret
         ),
@@ -425,12 +451,14 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         "protected_m3_workflow_sha256": _sha256(
             root.parents[1] / ".github/workflows/moomooau-m3.yml"
         ),
-        "m3_authority_status": "AUTHORIZED_ZERO_NEW_WRITE_RECONCILIATION_ATTEMPT_ONE_PENDING",
+        "m3_authority_status": (
+            "AUTHORIZED_HISTORICAL_LABEL_ZERO_NEW_WRITE_RECONCILIATION_ATTEMPT_ONE_PENDING"
+        ),
         "protected_beta_attempt_ledger_sha256": _sha256(root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH),
         "protected_m3_attempt_ledger_sha256": _sha256(root / PROTECTED_M3_ATTEMPT_LEDGER_PATH),
         "remote_publications": 0,
     }:
-        failures.append("v1.0.13 semantic delta is incomplete or overstated")
+        failures.append("v1.0.14 semantic delta is incomplete or overstated")
 
 
 def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
@@ -566,7 +594,7 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         failures.append(f"canonical manifest selection failed: {type(exc).__name__}")
     else:
         if manifest != expected:
-            failures.append("manifest differs from the canonical v1.0.13 package selection")
+            failures.append("manifest differs from the canonical v1.0.14 package selection")
 
     _validate_provenance(root, failures)
     status_result = validate_delivery_status(root)
