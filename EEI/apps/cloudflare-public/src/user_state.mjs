@@ -126,6 +126,20 @@ export async function getSavedView(env, id, json, notFound) {
   return json(record);
 }
 
+// List all saved views (newest first). The web drawer's saved-views tab calls
+// GET /v1/saved-views (P2-9); the Worker previously only had create/get/update.
+export async function listSavedViews(env, json) {
+  const { results } = await env.EEI_PUB.prepare(
+    "SELECT id FROM saved_views ORDER BY updated_at DESC"
+  ).all();
+  const records = [];
+  for (const row of results ?? []) {
+    const record = await savedViewRecord(env, row.id);
+    if (record) records.push(record);
+  }
+  return json(records);
+}
+
 export async function listWatchlists(env, json) {
   const { results: lists } = await env.EEI_PUB.prepare(
     "SELECT id, name, created_at FROM watchlists ORDER BY created_at"
@@ -179,6 +193,26 @@ export async function addWatchlistItem(env, watchlistId, body, json, badRequest,
     .bind(watchlistId, body.entity_id, nowIso())
     .run();
   return json({ watchlist_id: watchlistId, entity_id: body.entity_id }, 201);
+}
+
+// Unfollow: remove one entity from a watchlist. The web drawer's optimistic
+// unfollow calls DELETE /v1/watchlists/:id/items?entity_id=... (P2-9). Idempotent.
+export async function removeWatchlistItem(env, watchlistId, entityId, json, badRequest, notFound) {
+  if (!entityId) {
+    return badRequest("entity_id is required");
+  }
+  const list = await env.EEI_PUB.prepare("SELECT id FROM watchlists WHERE id = ?")
+    .bind(watchlistId)
+    .first();
+  if (!list) {
+    return notFound(`Watchlist not found: ${watchlistId}`);
+  }
+  await env.EEI_PUB.prepare(
+    "DELETE FROM watchlist_items WHERE watchlist_id = ? AND entity_id = ?"
+  )
+    .bind(watchlistId, entityId)
+    .run();
+  return json({ watchlist_id: watchlistId, entity_id: entityId, removed: true });
 }
 
 export async function appendExplorationLog(env, body, json, badRequest) {

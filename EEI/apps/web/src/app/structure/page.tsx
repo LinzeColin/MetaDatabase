@@ -254,7 +254,14 @@ export default function GroupStructurePage() {
               {orderedSections.map(([key, section]) => (
                 <div
                   key={key}
-                  id={key === "business_segments" ? "segments" : undefined}
+                  // P2-10：/control 重定向落点锚——法律集团层承载控制/所有权关系。
+                  id={
+                    key === "legal_group"
+                      ? "control"
+                      : key === "business_segments"
+                        ? "segments"
+                        : undefined
+                  }
                   className="rounded-lg border border-slate-800 bg-slate-900/40 p-4"
                   data-testid={`structure-section-${key}`}
                 >

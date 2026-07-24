@@ -69,7 +69,11 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       ├── components
 │   │   │       │   ├── command-search.tsx
 │   │   │       │   ├── evidence-panel.tsx
-│   │   │       │   └── feedback.tsx
+│   │   │       │   ├── family-overview-panel.tsx
+│   │   │       │   ├── feedback.tsx
+│   │   │       │   ├── my-drawer.tsx
+│   │   │       │   ├── policy-overview-panel.tsx
+│   │   │       │   └── route-redirect.tsx
 │   │   │       ├── control
 │   │   │       │   └── page.tsx
 │   │   │       ├── development-status
@@ -99,6 +103,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       ├── labels.ts
 │   │   │       ├── layout.tsx
 │   │   │       ├── model-activation-client.ts
+│   │   │       ├── my-drawer-client.ts
 │   │   │       ├── page.tsx
 │   │   │       ├── policy-client.ts
 │   │   │       ├── production-data-client.ts
@@ -657,10 +662,14 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   ├── development-status.spec.ts
 │   │   ├── feedback-motion-evidence.spec.ts
 │   │   ├── graph-label-overlap.spec.ts
+│   │   ├── graph-skeleton.spec.ts
 │   │   ├── home.spec.ts
 │   │   ├── industry.spec.ts
 │   │   ├── motion-choreography.spec.ts
+│   │   ├── my-drawer.spec.ts
 │   │   ├── perf-first-interactive.spec.ts
+│   │   ├── responsive.spec.ts
+│   │   ├── route-redirect.spec.ts
 │   │   ├── saved-view-live.spec.ts
 │   │   ├── state-contract.spec.ts
 │   │   ├── theme-system.spec.ts

@@ -248,26 +248,271 @@ select:focus-visible {
   color: var(--ink);
 }
 
-/* P0-1：顶部「搜索 / 我的」占位（P1-5 / P2-9 上线真功能）。
-   明示禁用态——不是导航项，不参与「点击必有响应」契约。 */
+/* P1-5 / P2-9：顶部「搜索 / 我的」为真功能工具（全局搜索弹层 / 我的抽屉）。
+   点击必有响应，故为实心可点样式（占位态的 dashed/not-allowed 已退场）。 */
 .railTools {
   display: grid;
   gap: 6px;
 }
 
 .railTool {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 32px;
+  min-height: 36px;
   padding: 0 10px;
-  border: 1px dashed var(--line);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.railTool:not(:disabled):hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.railTool:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+/* ============================================================
+   P2-9 「我的」抽屉（UX_SPEC_EEI v1.0 §A.2 / §G-P2-9；动效 §D.2）
+   触发钮铃铛未读角标 + 右侧滑出抽屉（关注 / 保存视图 / 探索记录）。
+   入场走 --motion-slow / --ease-emphatic；--motion-scale 归零后近乎瞬时。
+   ============================================================ */
+.myDrawerBellBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding: 0 5px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--orb-focus-mid, #e8b54a);
+  color: #201400;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.myDrawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: flex-end;
+  background: color-mix(in srgb, #050912 52%, transparent);
+  animation: myDrawerFade var(--motion-base) var(--ease-out) backwards;
+}
+
+.myDrawerPanel {
+  display: flex;
+  flex-direction: column;
+  width: min(420px, 92vw);
+  height: 100%;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  box-shadow: -18px 0 48px color-mix(in srgb, #050912 40%, transparent);
+  animation: myDrawerSlideIn var(--motion-slow) var(--ease-emphatic) backwards;
+}
+
+@keyframes myDrawerFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes myDrawerSlideIn {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.myDrawerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.myDrawerHead h2 {
+  margin: 2px 0 0;
+  font-size: 16px;
+}
+
+.myDrawerClose {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.myDrawerTabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px 0;
+}
+
+.myDrawerTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-radius: 7px 7px 0 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.myDrawerTab.active {
+  color: var(--ink);
+  border-bottom-color: var(--orb-focus-mid, #e8b54a);
+}
+
+.myDrawerTab em {
+  font-style: normal;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  font-size: 10px;
+}
+
+.myDrawerBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.myDrawerList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.myDrawerWatchItem,
+.myDrawerSavedItem,
+.myDrawerHistItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+  font-size: 13px;
+}
+
+.myDrawerWatchLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.myDrawerWatchLink span,
+.myDrawerSavedName,
+.myDrawerHistTarget {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.myDrawerUnfollow {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border: 1px solid transparent;
   border-radius: 7px;
   background: transparent;
   color: var(--muted);
-  font-size: 12px;
-  cursor: not-allowed;
-  opacity: 0.72;
+  cursor: pointer;
+}
+
+.myDrawerUnfollow:hover {
+  color: #e0555b;
+  border-color: color-mix(in srgb, #e0555b 45%, transparent);
+}
+
+.myDrawerHistItem {
+  gap: 10px;
+}
+
+.myDrawerHistAction {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--orb-focus-mid, #e8b54a) 22%, transparent);
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.myDrawerHistTarget,
+.myDrawerSavedName {
+  flex: 1;
+  min-width: 0;
+}
+
+.myDrawerHistItem .feedbackStale,
+.myDrawerSavedItem .feedbackStale {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* P2-10 旧路由重定向兜底页（正常情况客户端已即刻 replace，仅无 JS 时可见）。 */
+.routeRedirect {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 60vh;
+  padding: 24px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.routeRedirect a {
+  color: var(--orb-focus-mid, #e8b54a);
+  text-decoration: none;
+}
+
+.routeRedirect a:hover {
+  text-decoration: underline;
 }
 
 .railTool kbd {
@@ -300,6 +545,49 @@ select:focus-visible {
 
 .subjectHeader {
   display: grid;
+}
+
+/* P2-11 响应式右栏抽屉控件：桌面（≥1280px）默认隐藏，≤1279px media 显形。 */
+.inspectorToggle {
+  display: none;
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 47;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 13px;
+  box-shadow: 0 6px 20px color-mix(in srgb, #050912 30%, transparent);
+  cursor: pointer;
+}
+
+.inspectorDrawerClose {
+  display: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.inspectorScrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  border: none;
+  padding: 0;
+  background: color-mix(in srgb, #050912 45%, transparent);
+  cursor: pointer;
 }
 
 .eyebrow {
@@ -2765,36 +3053,73 @@ dd {
   color: var(--muted);
 }
 
-@media (max-width: 1240px) {
+@media (max-width: 1279px) {
+  /* P2-11：右栏出栅格（收成抽屉），主区三列可收缩，768px 也不横向溢出。 */
   .workspace {
-    grid-template-columns: 78px minmax(210px, 250px) minmax(500px, 1fr);
+    grid-template-columns: 78px minmax(0, 240px) minmax(0, 1fr);
   }
 
   .navItem span,
-  .railTools,
-  .brandMark span:not(.brandGlyph),
-  .inspector {
+  .brandMark span:not(.brandGlyph) {
     display: none;
   }
 
+  /* railTools 收成图标：搜索 / 我的在窄屏仍可达（§A.2 顶栏不该消失）。 */
+  .railTool span,
+  .railTool kbd,
+  .myDrawerBellBadge {
+    display: none;
+  }
+  .railTool {
+    justify-content: center;
+    padding: 0;
+  }
+
+  /* P2-11：右栏证据/详情收成右侧可滑出抽屉（§G-P2-11，动效 §D.2）。 */
+  .inspector {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 46;
+    width: min(380px, 88vw);
+    border-left: 1px solid var(--line);
+    box-shadow: -18px 0 48px color-mix(in srgb, #050912 42%, transparent);
+    overflow-y: auto;
+    transform: translateX(101%);
+    transition: transform var(--motion-slow) var(--ease-emphatic);
+  }
+  .workspace[data-inspector-open="true"] .inspector {
+    transform: translateX(0);
+  }
+  .inspectorToggle {
+    display: inline-flex;
+  }
+  .inspectorDrawerClose {
+    display: inline-grid;
+  }
+  .workspace[data-inspector-open="true"] .inspectorScrim {
+    display: block;
+  }
+
   .catalogWorkspace {
-    grid-template-columns: 78px minmax(520px, 1fr);
+    grid-template-columns: 78px minmax(0, 1fr);
   }
 
   .statusWorkspace {
-    grid-template-columns: 78px minmax(560px, 1fr);
+    grid-template-columns: 78px minmax(0, 1fr);
   }
 
   .industryWorkspace {
-    grid-template-columns: 78px minmax(620px, 1fr);
+    grid-template-columns: 78px minmax(0, 1fr);
   }
 
   .capitalWorkspace {
-    grid-template-columns: 78px minmax(680px, 1fr);
+    grid-template-columns: 78px minmax(0, 1fr);
   }
 
   .capitalFilters {
-    grid-template-columns: repeat(3, minmax(150px, 1fr)) auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
   }
 
   .industryRail span {
@@ -2817,7 +3142,7 @@ dd {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
   .workspace,
   .catalogWorkspace,
   .statusWorkspace,
@@ -2826,31 +3151,60 @@ dd {
     grid-template-columns: 1fr;
   }
 
+  /* P2-11：左栏导航 → 底部 dock（ADP 三导航之 dock，§G-P2-11）。
+     固定视口底缘、横向排列、可横向滚动；触控目标 ≥44px。 */
+  .navRail,
   .capitalWorkspace > .navRail {
-    position: sticky;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    z-index: 40;
     height: auto;
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-
-  .navRail {
-    position: sticky;
-    top: 0;
-    z-index: 1;
     flex-direction: row;
     align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
     overflow-x: auto;
-    border-bottom: 1px solid var(--line);
+    overflow-y: hidden;
+    border-top: 1px solid var(--line);
+    border-bottom: none;
+    background: var(--panel);
+  }
+
+  /* dock 省空间：品牌标退场；工具（搜索 / 我的）横排进 dock。 */
+  .brandMark {
+    display: none;
+  }
+
+  .railTools {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
   }
 
   .navRail nav {
     display: flex;
+    flex-direction: row;
+    gap: 4px;
     min-width: max-content;
   }
 
-  .navItem {
+  .navItem,
+  .railTool {
     width: 44px;
+    min-height: 44px;
     justify-content: center;
+    flex: 0 0 auto;
+  }
+
+  /* dock 是 fixed，主内容留出底部空间避免被遮挡；抽屉开关上移避开 dock。 */
+  main {
+    padding-bottom: 70px;
+  }
+  .inspectorToggle {
+    bottom: 78px;
   }
 
   .focusPanel,
@@ -3199,7 +3553,7 @@ dd {
   animation: empireNodeFanOut calc(var(--motion-scale) * 0.9s + 0.001s) ease-out backwards;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
   .historyScrubber {
     width: 84px;
     right: 8px;
@@ -3573,15 +3927,19 @@ dd {
 }
 
 /* F06：1241–1360 紧凑四列（证据面板保持可见），三档视口零横向溢出。 */
-@media (max-width: 1360px) and (min-width: 1241px) {
+@media (max-width: 1360px) and (min-width: 1280px) {
   .workspace {
     grid-template-columns: 78px minmax(198px, 228px) minmax(460px, 1fr)
       minmax(228px, 248px);
   }
 
   .navItem span,
-  .railTools,
   .brandMark span:not(.brandGlyph) {
+    display: none;
+  }
+  /* railTools 收成图标（搜索/我的仍可达） */
+  .railTool span,
+  .railTool kbd {
     display: none;
   }
 
@@ -3591,14 +3949,14 @@ dd {
   }
 }
 
-@media (max-width: 1240px) {
+@media (max-width: 1279px) {
   :root {
     --map-inset-left: 344px;
     --map-inset-right: 18px;
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
   :root {
     --map-inset-left: 14px;
     --map-inset-right: 14px;
@@ -4212,4 +4570,207 @@ dd {
 }
 .evidenceSourceLink:hover {
   text-decoration: underline;
+}
+
+/* ==========================================================================
+   P2-11 响应式收尾覆盖（必须置于全文件最后）
+   S13「全屏地图基座」在 L3600+ 把 .inspector / .navRail 设为 position:relative，
+   源码顺序晚于前面的响应式 @media，会盖掉抽屉/dock 的 position。此处在文件末尾
+   重申，靠源码顺序取胜（同特指度）。仅覆盖 position 关键项，其余布局仍走前面的块。
+   ========================================================================== */
+@media (max-width: 1279px) {
+  /* 右栏证据/详情 → 右侧滑出抽屉：脱离文档流（position:fixed），窄屏不再横向溢出。 */
+  .inspector {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    z-index: 46;
+    width: min(380px, 88vw);
+    transform: translateX(101%);
+    transition: transform var(--motion-slow) var(--ease-emphatic);
+  }
+  .workspace[data-inspector-open="true"] .inspector {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 767px) {
+  /* 左栏导航 → 底部 dock：固定视口底缘（覆盖 S13 的 position:relative）。 */
+  .navRail,
+  .capitalWorkspace > .navRail {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    z-index: 40;
+  }
+}
+
+/* ==========================================================================
+   P2-12 图谱骨架补全（UX_SPEC_EEI v1.0 §G-P2-12）
+   minimap 大图定位缩略图 + Undo/Redo 回退栈按钮 + 「按关系类型/方向展开」子菜单。
+   动效走 --motion-* token（reduced-motion 经 --motion-scale 自动归零）。
+   ========================================================================== */
+
+/* —— Undo/Redo（画布左上历史控件条内，与「返回」并排）—— */
+.historyControls button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+/* —— minimap 缩略定位（走廊左下角悬浮；窄屏隐藏）—— */
+.graphMinimap {
+  position: fixed;
+  left: calc(var(--map-inset-left) + 12px);
+  bottom: 66px;
+  z-index: 4;
+  width: 152px;
+  height: 96px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, #050912 28%, transparent);
+  overflow: hidden;
+}
+
+.graphMinimap svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.minimapFrame {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 3;
+}
+
+.minimapNode {
+  cursor: pointer;
+  opacity: 0.7;
+  stroke: rgba(6, 12, 26, 0.35);
+  stroke-width: 2;
+  transition: opacity var(--motion-fast) var(--ease-standard);
+}
+
+.minimapNode:hover {
+  opacity: 1;
+}
+
+.minimapNode.isFocus {
+  opacity: 1;
+  stroke: var(--orb-focus-mid, #e8b54a);
+  stroke-width: 7;
+}
+
+/* —— 按关系类型/方向展开子菜单（右栏）—— */
+.expandMenu {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.expandMenuToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.expandMenuToggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.expandMenuList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.expandTypeRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.expandTypeRow.active {
+  border-color: var(--orb-focus-mid, #e8b54a);
+  background: color-mix(in srgb, var(--orb-focus-mid, #e8b54a) 14%, transparent);
+}
+
+.expandDir {
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.expandType {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expandTypeRow em {
+  font-style: normal;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.expandFocusNote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.expandFocusClear {
+  border: none;
+  background: transparent;
+  color: var(--orb-focus-mid, #e8b54a);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* —— 展开聚焦：匹配边高亮（用户触发，非 ambient；A168 只焦点束用滤镜，此处不加滤镜）—— */
+.ecosystemMap .edgeGroup.expandActive {
+  opacity: 1;
+}
+
+.ecosystemMap .edgeGroup.expandActive .edge {
+  stroke: var(--orb-focus-mid, #e8b54a);
+  stroke-width: 2.4;
+}
+
+@media (max-width: 767px) {
+  /* 窄屏 minimap 隐藏（点击目标过小；核心流程以主图 + dock 为主）。 */
+  .graphMinimap {
+    display: none;
+  }
 }
