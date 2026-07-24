@@ -509,7 +509,7 @@ def render_dashboard_html(d: dict) -> str:
   <h2>管理资金净值(澳元口径,本金 {hero['baseline_aud']:,.0f})</h2>
   <div class=hero-num>{hero['equity_aud']:,.2f}</div>
   <div class=hero-sub>
-    <span class="{_pnl_cls(total)}">累计 {_pnl_txt(total)}({hero['total_pnl_pct']:+.2f}%)</span>
+    <span class="{_pnl_cls(total)}" title="累计盈亏 = 净值 − 本月应达({hero.get('month_target_aud', 0):,.2f} 澳元);相对无期限滚动复利要求线,不是相对期初本金">累计 {_pnl_txt(total)}({hero['total_pnl_pct']:+.2f}%)<span style="color:#8a93a5;font-weight:400"> 较本月应达</span></span>
     <span class="{_pnl_cls(today)}">今日 {_pnl_txt(today)}</span>
   </div>
   {_chart_block(d['curve'], hero['baseline_aud'])}

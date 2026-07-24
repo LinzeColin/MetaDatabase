@@ -520,23 +520,23 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         equity_usd = cash_usd + mark_value_usd
         funded_usd = authorized_usd
     equity_aud = equity_usd / fx_display
-    # 期初本金(本金基准)= 固定 3000 澳元,永不随可用资金浮动。owner 2026-07-24 三次确认:
-    # "本金基准是期初本金 3000,不能搞错"。资金未全额到位的差额直接体现为亏损,不改基准。
-    # (动态的是净值与目标线,不是这条基准线。)
+    # 期初本金(本金基准)= 固定 3000 澳元,只作图上那条基准虚线,永不随可用资金浮动。
     baseline_aud = capital_aud
-    total_pnl_aud = equity_aud - baseline_aud
-    invested_usd = sum(p["market_value_usd"] for p in positions)
-    exposure_pct = round(100.0 * (invested_usd / fx_display) / capital_aud, 1) if capital_aud else 0.0
 
-    # ---------- 目标进度条(owner 2026-07-24 指定口径) ----------
-    # 本月应达本金 = 3000 × (1+当前策略月回报率)^(自 2026-07 起已过月数);
-    # 横框满额 = 本日历年年末应达本金。二者皆为「按回测月均推算的目标线」,不是收益承诺。
+    # ---------- 滚动复利要求线 + 目标进度条(owner 2026-07-24 指定口径) ----------
+    # 无期限滚动复利要求:本月应达 = 期初本金 × (1+月回报率)^(自 2026-07 起已过月数),逐月复利;
+    # 横框满额 = 本日历年年末应达。二者皆为「按回测月均推算的要求线」,不是收益承诺。
     rate = float(os.environ.get("ALPHA_TARGET_MONTHLY_PCT", "1.245")) / 100.0
     syd_now = now.astimezone(SYD)
     elapsed = max(0, (syd_now.year - 2026) * 12 + (syd_now.month - 7))
     to_year_end = max(elapsed, (syd_now.year - 2026) * 12 + (12 - 7))
     month_target_aud = capital_aud * ((1.0 + rate) ** elapsed)
     year_target_aud = capital_aud * ((1.0 + rate) ** to_year_end)
+    # 累计盈亏 = 净值 − 本月应达(相对滚动复利要求线,不是相对期初本金)。owner 2026-07-24 三次纠正:
+    # "这是无期限滚动复利要求";7 月为第 0 月、要求线恰为 3000,故本月数值与旧口径相同,但下月起分离。
+    total_pnl_aud = equity_aud - month_target_aud
+    invested_usd = sum(p["market_value_usd"] for p in positions)
+    exposure_pct = round(100.0 * (invested_usd / fx_display) / capital_aud, 1) if capital_aud else 0.0
     ahead = equity_aud >= month_target_aud
     progress = {
         "monthly_rate_pct": round(rate * 100, 3),
@@ -710,7 +710,8 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             "equity_aud": round(equity_aud, 2),
             "capital_aud": capital_aud,
             "total_pnl_aud": round(total_pnl_aud, 2),
-            "total_pnl_pct": round(100.0 * total_pnl_aud / baseline_aud, 2) if baseline_aud else 0.0,
+            "total_pnl_pct": round(100.0 * total_pnl_aud / month_target_aud, 2) if month_target_aud else 0.0,
+            "month_target_aud": round(month_target_aud, 2),
             "today_pnl_aud": round(today_pnl_aud, 2),
             "cash_usd": round(cash_usd, 2),
             "invested_usd": round(invested_usd, 2),
