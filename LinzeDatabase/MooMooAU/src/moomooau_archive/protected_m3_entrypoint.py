@@ -308,7 +308,7 @@ def execute_protected(
     active_diagnostics.enter(ProtectedM3FailurePhase.BETA_BINDING)
     predecessors = _load_beta_predecessors(project_root)
     active_diagnostics.enter(ProtectedM3FailurePhase.PRIOR_ATTEMPT_BINDING)
-    if _load_prior_attempt_count(project_root) != 2:
+    if _load_prior_attempt_count(project_root) != 3:
         raise ProtectedM3EntrypointError("protected M3 prior-attempt lineage is invalid")
     active_diagnostics.enter(ProtectedM3FailurePhase.RUN_CONTRACT)
     if not _m3_authorized(project_root):
@@ -491,7 +491,7 @@ def _load_prior_attempt_count(project_root: Path) -> int:
     if (
         ledger.get("task_id") != "T0703"
         or not isinstance(attempts, list)
-        or len(attempts) != 2
+        or len(attempts) != 3
         or not isinstance(policy, dict)
         or not isinstance(claims, dict)
     ):
@@ -529,8 +529,8 @@ def _load_prior_attempt_count(project_root: Path) -> int:
             raise ProtectedM3EntrypointError("protected M3 prior attempt is not repair-eligible")
         workflows.append(workflow)
     if (
-        len({item.get("workflow_head_sha") for item in workflows}) != 2
-        or len({item.get("run_id") for item in workflows}) != 2
+        len({item.get("workflow_head_sha") for item in workflows}) != 3
+        or len({item.get("run_id") for item in workflows}) != 3
         or policy.get("same_head_rerun_allowed") is not False
         or policy.get("failed_head_redispatch_allowed") is not False
         or policy.get("repaired_exact_main_candidate_dispatch_allowed") is not True
@@ -541,7 +541,7 @@ def _load_prior_attempt_count(project_root: Path) -> int:
         or claims.get("s7ac_003_passed") is not False
     ):
         raise ProtectedM3EntrypointError("protected M3 prior attempt is not repair-eligible")
-    return 2
+    return 3
 
 
 def _m3_authorized(project_root: Path) -> bool:
@@ -559,7 +559,7 @@ def _m3_authorized(project_root: Path) -> bool:
         and authorization.get("purpose") == "T0703_PROTECTED_M3_REPAIR_ONLY"
         and authorization.get("m3_authorized") is True
         and authorization.get("final_publication_authorized") is False
-        and authorization.get("prior_failed_attempts_exact") == 2
+        and authorization.get("prior_failed_attempts_exact") == 3
         and authorization.get("repair_candidate_dispatch_limit") == 1
         and budget.get("beta_message_budget") == 1
         and budget.get("m3_runs_maximum") == 1
@@ -569,8 +569,8 @@ def _m3_authorized(project_root: Path) -> bool:
         and budget.get("processed_writes_maximum") == 1
         and budget.get("protected_m3_dispatches_maximum") == 1
         and budget.get("protected_m3_reruns_maximum") == 0
-        and budget.get("prior_protected_m3_dispatches_exact") == 2
-        and budget.get("cumulative_protected_m3_dispatches_after_success_maximum") == 3
+        and budget.get("prior_protected_m3_dispatches_exact") == 3
+        and budget.get("cumulative_protected_m3_dispatches_after_success_maximum") == 4
         and budget.get("timeline_writes_maximum") == 0
         and budget.get("scheduled_runs_maximum") == 0
     )

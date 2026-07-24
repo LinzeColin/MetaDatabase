@@ -1,5 +1,22 @@
 # Taskpack Changelog
 
+## 1.0.11 — 2026-07-24
+
+固化 T0703 第三个 exact-main attempt 的 `RESPONSE_SCOPE_REJECTED` 零观察副作用失败，并只授权
+一个遵循官方 GitHub token 响应契约的新恢复候选。
+
+- 绑定 PR #103、main `bc0bfb3b…`、workflow run `30066295809`、authority PASS、M3 FAILED、
+  identity cleanup PASS 与 rerun 0；
+- 后验只读核验观察到 private commit 0、MooMooAU 路径写入 0、Gmail Trash 新增消息 0、
+  source/Timeline/schedule mutation 0；
+- 固定官方 GitHub OpenAPI commit `5c88ff6b…`：installation-token 响应只强制 `token` 与
+  `expires_at`，scope 回显均为可选；
+- 可选 repository 回显缺失时，使用 installation token 做有界精确仓库范围探测；回显存在时仍须
+  精确匹配目标 Repository ID 与最小权限；
+- token 一小时 TTL 改以有界 GitHub `Date` 响应头为参考；Date 漂移或 TTL 超限均 fail closed；
+- 三个失败 head 均禁止 rerun/redispatch；只允许一份新 exact candidate main 交付和一次
+  attempt-1 Budget-1 dispatch；T0704、Timeline、GA、schedule 与最终发布继续为 0/未授权。
+
 ## 1.0.10 — 2026-07-24
 
 固化 T0703 第二个 exact-main attempt 的零观察副作用失败，并在 Owner 确认 App 安装与 private 仓

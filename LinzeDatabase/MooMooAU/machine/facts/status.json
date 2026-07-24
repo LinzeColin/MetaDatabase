@@ -1,8 +1,8 @@
 {
-  "version": "1.0.10",
-  "stage": "RMD-06 T0703 两次零观察副作用失败，App 安装恢复候选已授权",
-  "phase": "T0702/S7AC-002 已通过；T0703 两次执行均在任何已观察远端效果前失败；App 安装与私有仓链接已由 Owner 确认，仅授权一个新恢复候选",
-  "task": "交付精确 App 安装恢复候选并执行一次新候选 Budget-1 M3；禁止两个失败头 rerun/redispatch",
+  "version": "1.0.11",
+  "stage": "RMD-06 T0703 三次零观察副作用失败，可选 token 回显恢复候选已授权",
+  "phase": "T0702/S7AC-002 已通过；T0703 三次执行均在任何已观察远端效果前失败；第三次仅公开 RESPONSE_SCOPE_REJECTED，仅授权一个可选 token 回显恢复候选",
+  "task": "交付精确可选 token 回显恢复候选并执行一次新候选 Budget-1 M3；禁止任何失败头 rerun/redispatch",
   "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 3/43（通过 2、失败 1）；最终验收 0/34；生产阻塞",
   "report_grade": "机器证据",
   "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",

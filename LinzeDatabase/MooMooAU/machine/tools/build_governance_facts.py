@@ -31,7 +31,16 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     if (
         delivery.get("schema_version") != "moomooau.delivery-status.v1"
         or delivery.get("package_version")
-        not in {"1.0.4", "1.0.5", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10"}
+        not in {
+            "1.0.4",
+            "1.0.5",
+            "1.0.6",
+            "1.0.7",
+            "1.0.8",
+            "1.0.9",
+            "1.0.10",
+            "1.0.11",
+        }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
         raise ValueError("delivery status authority identity mismatch")
@@ -42,6 +51,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.8",
         "1.0.9",
         "1.0.10",
+        "1.0.11",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -49,16 +59,24 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.8",
         "1.0.9",
         "1.0.10",
+        "1.0.11",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
         "1.0.8",
         "1.0.9",
         "1.0.10",
+        "1.0.11",
     }
-    t0703_authorized = delivery["package_version"] in {"1.0.8", "1.0.9", "1.0.10"}
-    t0703_repair_authorized = delivery["package_version"] in {"1.0.9", "1.0.10"}
-    t0703_app_recovery_authorized = delivery["package_version"] == "1.0.10"
+    t0703_authorized = delivery["package_version"] in {
+        "1.0.8",
+        "1.0.9",
+        "1.0.10",
+        "1.0.11",
+    }
+    t0703_repair_authorized = delivery["package_version"] in {"1.0.9", "1.0.10", "1.0.11"}
+    t0703_app_recovery_authorized = delivery["package_version"] in {"1.0.10", "1.0.11"}
+    t0703_response_scope_recovery_authorized = delivery["package_version"] == "1.0.11"
     protected_beta_failed = (
         not t0703_repair_authorized
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("status") == "FAILED"
@@ -87,7 +105,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "T0702 已通过；T0703 两次执行均零观察副作用失败，App 安装恢复候选已授权"
+            "T0702 已通过；T0703 三次执行均零观察副作用失败，可选 token 回显恢复候选已授权"
+            if t0703_response_scope_recovery_authorized
+            else "T0702 已通过；T0703 两次执行均零观察副作用失败，App 安装恢复候选已授权"
             if t0703_repair_authorized
             else "T0702 受保护 Beta 已通过；T0703 单件预算已授权并待首次执行"
             if t0703_authorized
@@ -149,8 +169,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "T0703 单件预算已授权；精确 main 交付、两项安全延后注册表和首次受保护执行待完成"
         ),
         "T0703_REPAIR_CANDIDATE_PENDING": (
-            "T0703 两次受保护执行均零观察副作用失败；禁止 rerun/redispatch，"
-            "Owner 已确认 App 安装与私有仓链接，精确恢复候选待交付并仅执行一次"
+            "T0703 三次受保护执行均零观察副作用失败；第三次仅公开 "
+            "RESPONSE_SCOPE_REJECTED；禁止任何失败头 rerun/redispatch，"
+            "可选 token 回显恢复候选待交付并仅执行一次"
+            if t0703_response_scope_recovery_authorized
+            else (
+                "T0703 两次受保护执行均零观察副作用失败；禁止 rerun/redispatch，"
+                "Owner 已确认 App 安装与私有仓链接，精确恢复候选待交付并仅执行一次"
+            )
         ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
@@ -175,7 +201,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0703 两次零观察副作用失败，App 安装恢复候选已授权"
+            "RMD-06 T0703 三次零观察副作用失败，可选 token 回显恢复候选已授权"
+            if t0703_response_scope_recovery_authorized
+            else "RMD-06 T0703 两次零观察副作用失败，App 安装恢复候选已授权"
             if t0703_repair_authorized
             else "RMD-06 T0703 单件预算已授权，首次受保护执行待完成"
             if t0703_authorized
@@ -186,7 +214,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0702/S7AC-002 已通过；T0703 两次执行均在任何已观察远端效果前失败；"
+            "T0702/S7AC-002 已通过；T0703 三次执行均在任何已观察远端效果前失败；"
+            "第三次仅公开 RESPONSE_SCOPE_REJECTED，仅授权一个可选 token 回显恢复候选"
+            if t0703_response_scope_recovery_authorized
+            else "T0702/S7AC-002 已通过；T0703 两次执行均在任何已观察远端效果前失败；"
             "App 安装与私有仓链接已由 Owner 确认，仅授权一个新恢复候选"
             if t0703_repair_authorized
             else "T0702/S7AC-002 已通过；T0703 仅授权一次 Raw+Processed 恢复后精确 Trash，尚未执行"
@@ -198,7 +229,13 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付精确 App 安装恢复候选并执行一次新候选 Budget-1 M3；禁止两个失败头 rerun/redispatch"
+            "交付精确可选 token 回显恢复候选并执行一次新候选 Budget-1 M3；"
+            "禁止任何失败头 rerun/redispatch"
+            if t0703_response_scope_recovery_authorized
+            else (
+                "交付精确 App 安装恢复候选并执行一次新候选 Budget-1 M3；"
+                "禁止两个失败头 rerun/redispatch"
+            )
             if t0703_repair_authorized
             else "交付精确 T0703 候选、配置两项安全延后注册表并执行唯一一次 Budget-1 M3"
             if t0703_authorized
@@ -461,6 +498,21 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "note": "封闭公开安全枚举，不包含动态异常文本或受保护标识",
             },
             {
+                "en": "RESPONSE_SCOPE_REJECTED",
+                "zh": "令牌响应范围拒绝",
+                "note": "仅表示响应或精确仓库探测未证明目标范围，不公开受保护标识",
+            },
+            {
+                "en": "Date",
+                "zh": "服务端日期响应头",
+                "note": "用于有界校验安装令牌有效期的 GitHub HTTPS 响应时间",
+            },
+            {
+                "en": "TTL",
+                "zh": "有效期",
+                "note": "安装令牌从可信参考时间起最长一小时",
+            },
+            {
                 "en": "prerequisites",
                 "zh": "前置条件",
                 "note": "执行前必须全部确定满足的受保护输入和配置",
@@ -533,8 +585,13 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "en": "T0703_REPAIR_CANDIDATE_PENDING",
                 "zh": "T0703 修复候选待执行",
                 "note": (
-                    "两次 M3 均零观察副作用失败；两个失败头不可 rerun/redispatch，"
-                    "仅允许一个 App 安装恢复候选 attempt 1"
+                    "三次 M3 均零观察副作用失败；任何失败头不可 rerun/redispatch，"
+                    "仅允许一个可选 token 回显恢复候选 attempt 1"
+                    if t0703_response_scope_recovery_authorized
+                    else (
+                        "两次 M3 均零观察副作用失败；两个失败头不可 rerun/redispatch，"
+                        "仅允许一个 App 安装恢复候选 attempt 1"
+                    )
                 ),
             },
             {
@@ -629,7 +686,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     }
     plan = {
         "stage": (
-            "RMD-06 T0703 两次零观察副作用失败，App 安装恢复候选已授权"
+            "RMD-06 T0703 三次零观察副作用失败，可选 token 回显恢复候选已授权"
+            if t0703_response_scope_recovery_authorized
+            else "RMD-06 T0703 两次零观察副作用失败，App 安装恢复候选已授权"
             if t0703_repair_authorized
             else "RMD-06 T0703 单件预算已授权，首次受保护执行待完成"
             if t0703_authorized
@@ -640,7 +699,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0703 App 安装恢复候选 Budget-1 新候选执行准备"
+            "T0703 可选 token 回显恢复候选 Budget-1 新候选执行准备"
+            if t0703_response_scope_recovery_authorized
+            else "T0703 App 安装恢复候选 Budget-1 新候选执行准备"
             if t0703_repair_authorized
             else "T0703 Budget-1 受保护首次执行准备"
             if t0703_authorized
@@ -653,7 +714,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付 App 安装恢复与封闭 token 失败分类；两个失败头不可 rerun/redispatch，"
+            "交付可选 token 回显、精确仓库范围探测与 GitHub Date TTL 修复；"
+            "三个失败头不可 rerun/redispatch，新候选仅执行一次"
+            if t0703_response_scope_recovery_authorized
+            else "交付 App 安装恢复与封闭 token 失败分类；两个失败头不可 rerun/redispatch，"
             "新候选仅执行一次"
             if t0703_repair_authorized
             else "复用既有受保护 Environment；Raw 与 Processed 恢复后只 Trash 精确源消息"
@@ -694,7 +758,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "阻塞（T0702 通过；T0703 两次零观察副作用失败，App 安装恢复候选待运行）"
+                    "阻塞（T0702 通过；T0703 三次零观察副作用失败，可选 token 回显恢复候选待运行）"
+                    if t0703_response_scope_recovery_authorized
+                    else "阻塞（T0702 通过；T0703 两次零观察副作用失败，App 安装恢复候选待运行）"
                     if t0703_repair_authorized
                     else "部分通过（T0702；T0703 已授权待运行）"
                     if t0703_authorized
@@ -848,6 +914,20 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "边界；Owner 随后确认 GitHub App 已安装并链接唯一 private 数据仓。"
                     "M3 现与 T0702 一样只公开封闭 InstallationTokenFailureClass；两个失败头"
                     "均禁止 rerun/redispatch，仅授权一个新精确候选 attempt 1。"
+                ),
+            },
+        )
+    if t0703_response_scope_recovery_authorized:
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.11",
+                "date": "2026-07-24",
+                "summary": (
+                    "固化 T0703 第三次 protected M3 的 RESPONSE_SCOPE_REJECTED 零副作用失败。"
+                    "按 GitHub 固定 OpenAPI 将 repositories/permissions 视为可选回显；缺少"
+                    "仓库回显时用 installation token 做最多两个结果的精确仓库范围探测，"
+                    "并按有界 GitHub Date 校验一小时 TTL。三个失败头均禁止 rerun/redispatch。"
                 ),
             },
         )
