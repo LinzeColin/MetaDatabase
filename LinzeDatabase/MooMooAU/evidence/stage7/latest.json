@@ -1,7 +1,7 @@
 {
   "schema_version": "moomooau.stage7-aggregate.v1",
   "stage_id": "S7",
-  "observed_at_utc": "2026-07-23T22:53:05Z",
+  "observed_at_utc": "2026-07-24T00:29:34Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "status": "BLOCKED_T0702_PASS_SCOPE_STOP",
   "scoped_preflight": "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY",
@@ -24,6 +24,7 @@
     "beta_public_safe_failure_diagnostics": "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE",
     "beta_real_raw_only": "PASS_RAW_RECOVERY_100_PERCENT_ZERO_SOURCE_MUTATION",
     "m3_local_synthetic_mechanism": "PASS",
+    "m3_protected_entrypoint": "READY_DEFAULT_DISABLED_BEFORE_SECRET_READ",
     "m3_deterministic_evidence_run": "NOT_RUN",
     "blue_green_timeline_local_mechanism": "PASS",
     "blue_green_deterministic_evidence_run": "NOT_RUN",
@@ -68,5 +69,5 @@
     "REAL_RECOVERY_KEY_DRILL_NOT_RUN"
   ],
   "delivery_status": "CONTROLLED_T0702_BETA_PASS_NOT_FINAL",
-  "next_action": "T0702 evidence is closed with no rerun. Stop before M3 because current owner scope withholds every post-Beta Stage 7 phase."
+  "next_action": "T0702 evidence is closed with no rerun. The protected M3 Budget-1 entrypoint is locally ready but default-disabled before Secret reads; stop before M3 because current owner scope withholds every post-Beta Stage 7 phase."
 }

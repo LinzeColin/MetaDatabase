@@ -30,12 +30,13 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     delivery = _load(root / "machine/status/latest.json")
     if (
         delivery.get("schema_version") != "moomooau.delivery-status.v1"
-        or delivery.get("package_version") not in {"1.0.4", "1.0.5", "1.0.6"}
+        or delivery.get("package_version") not in {"1.0.4", "1.0.5", "1.0.6", "1.0.7"}
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
         raise ValueError("delivery status authority identity mismatch")
-    closed = delivery["package_version"] in {"1.0.5", "1.0.6"}
-    dependency_auth_ready = delivery["package_version"] == "1.0.6"
+    closed = delivery["package_version"] in {"1.0.5", "1.0.6", "1.0.7"}
+    dependency_auth_ready = delivery["package_version"] in {"1.0.6", "1.0.7"}
+    t0703_entrypoint_ready = delivery["package_version"] == "1.0.7"
     protected_beta_failed = (
         delivery.get("dimensions", {}).get("protected_oracles", {}).get("status") == "FAILED"
     )
@@ -670,6 +671,19 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "T0702 串行 first-attempt 账本区分一次 secret 前拒绝与十一次 protected 执行；"
                     "最新执行通过 Alpha、Raw-only Beta 与身份清理，Raw 远端恢复 100%，"
                     "Gmail 变更为零；当前范围停在 M3 前，生产与最终发布仍关闭。"
+                ),
+            },
+        )
+    if t0703_entrypoint_ready:
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.7",
+                "date": "2026-07-24",
+                "summary": (
+                    "新增独立受保护 M3 单件预算装配与仅主分支工作流，"
+                    "绑定 T0702 通过回执和当前运行契约；M3 授权标志为假，"
+                    "继续在读取密钥前关闭，真实 M3、处理后数据、Gmail 消息变更与发布均未运行。"
                 ),
             },
         )

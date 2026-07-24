@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import tempfile
 from collections.abc import Iterator
@@ -23,6 +24,7 @@ from stage3_support import (
 )
 from stage4_support import (
     classification_registry,
+    classification_registry_payload,
     csv_statement,
     parser_registry_payload,
     verified_inputs,
@@ -96,6 +98,12 @@ from moomooau_archive.protected_beta import (
     ProtectedBetaBootstrap,
 )
 from moomooau_archive.protected_beta_diagnostics import ProtectedBetaDiagnostics
+from moomooau_archive.protected_m3 import (
+    CLASSIFICATION_REGISTRY_SECRET_NAME,
+    M3_CONFIG_SECRET_NAME,
+    PARSER_REGISTRY_SECRET_NAME,
+    ProtectedM3Bootstrap,
+)
 from moomooau_archive.raw_commit import (
     MemoryAppendOnlyCiphertextStore,
     OpaqueIdFactory,
@@ -970,6 +978,7 @@ class SyntheticProtectedGitHubTransport:
         self.name = "synthetic-private-database"
         self.requests: list[HttpRequest] = []
         self.objects: dict[str, bytes] = {}
+        self.revisions: dict[str, str] = {}
         self.write_calls = 0
 
     def send(self, request: HttpRequest) -> HttpResponse:
@@ -1004,14 +1013,38 @@ class SyntheticProtectedGitHubTransport:
             relative_path = unquote(parsed.path.removeprefix(content_prefix))
             if request.method == "GET":
                 value = self.objects.get(relative_path)
-                return HttpResponse(404, b"{}") if value is None else HttpResponse(200, value)
+                if value is None:
+                    return HttpResponse(404, b"{}")
+                if dict(request.headers).get("Accept") == "application/vnd.github.raw+json":
+                    return HttpResponse(200, value)
+                return self._json(
+                    200,
+                    {
+                        "content": base64.b64encode(value).decode("ascii"),
+                        "encoding": "base64",
+                        "sha": self.revisions[relative_path],
+                    },
+                )
             if request.method == "PUT" and request.body is not None:
-                if relative_path in self.objects:
-                    return HttpResponse(422, b"{}")
                 payload = json.loads(request.body)
-                self.objects[relative_path] = base64.b64decode(payload["content"], validate=True)
+                expected = payload.get("sha")
+                current = self.revisions.get(relative_path)
+                if current is not None and expected is None:
+                    return HttpResponse(422, b"{}")
+                if expected is not None and expected != current:
+                    return HttpResponse(409, b"{}")
+                ciphertext = base64.b64decode(payload["content"], validate=True)
                 self.write_calls += 1
-                return self._json(201, {"content": {"sha": "a" * 40}})
+                revision = hashlib.sha1(
+                    str(self.write_calls).encode("ascii") + b"\0" + ciphertext,
+                    usedforsecurity=False,
+                ).hexdigest()
+                self.objects[relative_path] = ciphertext
+                self.revisions[relative_path] = revision
+                return self._json(
+                    200 if current is not None else 201,
+                    {"content": {"sha": revision}},
+                )
         raise AssertionError("synthetic protected GitHub transport received an unexpected request")
 
     @staticmethod
@@ -1149,5 +1182,129 @@ def protected_beta_context(
     finally:
         if other_identity is not None:
             other_identity.destroy()
+        generated.destroy()
+        temporary.cleanup()
+
+
+@dataclass(frozen=True, slots=True)
+class ProtectedM3Context:
+    bootstrap: ProtectedM3Bootstrap
+    source: TrackingProtectedSecretSource
+    oauth_transport: SyntheticOAuthTransport
+    gmail_transport: Stage7GmailTransport
+    github_transport: SyntheticProtectedGitHubTransport
+    tmpfs_root: Path
+    now: datetime
+
+
+@contextmanager
+def protected_m3_context(
+    messages: tuple[SyntheticGmailMessage, ...],
+    *,
+    capacity_age_hours: int = 0,
+) -> Iterator[ProtectedM3Context]:
+    now = datetime(2026, 7, 24, 1, tzinfo=UTC)
+    repository_id = 7_100_103
+    installation_id = 8_100_103
+    app_id = 9_100_103
+    generated = AgeIdentityGenerator().generate()
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    private_key_pem = private_key.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    )
+    temporary = tempfile.TemporaryDirectory(prefix="moomooau-stage7-protected-m3-")
+    try:
+        config = {
+            "schema_version": "moomooau.protected-m3-config.v1",
+            "phase": "M3_CANARY",
+            "key_epoch": "synthetic-epoch-1",
+            "age_recipient": generated.recipient,
+            "parser_current_version": "1.0.0",
+            "beta_message_budget": 1,
+            "github": {
+                "app_id": app_id,
+                "installation_id": installation_id,
+                "repository_id": repository_id,
+            },
+            "capacity": {
+                "observed_at_utc": (now - timedelta(hours=capacity_age_hours))
+                .isoformat()
+                .replace("+00:00", "Z"),
+                "limits": {
+                    "lfs_storage_budget_bytes": 10_000_000,
+                    "lfs_object_maximum_bytes": 1_000_000,
+                },
+                "snapshot": {
+                    "git_repository_bytes": 1_000,
+                    "lfs_storage_bytes": 1_000,
+                    "largest_git_object_bytes": 1_000,
+                    "largest_lfs_object_bytes": 1_000,
+                    "live_release_asset_bytes": 0,
+                },
+            },
+        }
+        values = {
+            M3_CONFIG_SECRET_NAME: json.dumps(
+                config,
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
+            SENDER_REGISTRY_SECRET_NAME: registry_payload().decode("utf-8"),
+            CLASSIFICATION_REGISTRY_SECRET_NAME: classification_registry_payload(
+                ((DocumentClass.DAILY_STATEMENT, AttachmentKind.CSV),)
+            ).decode("utf-8"),
+            PARSER_REGISTRY_SECRET_NAME: parser_registry_payload(
+                DocumentClass.DAILY_STATEMENT,
+                AttachmentKind.CSV,
+            ).decode("utf-8"),
+            GITHUB_APP_PRIVATE_KEY_SECRET_NAME: private_key_pem.decode("ascii"),
+            OPAQUE_ID_KEY_SECRET_NAME: base64.b64encode(b"synthetic-protected-opaque-key-1").decode(
+                "ascii"
+            ),
+            AGE_IDENTITY_SECRET_NAME: generated.identity.reveal().decode("ascii"),
+            GMAIL_OAUTH_SECRET_NAME: json.dumps(
+                {
+                    "type": "authorized_user",
+                    "client_id": "synthetic-protected-m3-client",
+                    "client_secret": (  # pragma: allowlist secret
+                        "synthetic-protected-m3-client-secret"
+                    ),
+                    "refresh_token": "synthetic-protected-m3-refresh-token",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "scopes": [GMAIL_MODIFY_SCOPE],
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
+        }
+        source = TrackingProtectedSecretSource(values)
+        oauth_transport = SyntheticOAuthTransport()
+        gmail_transport = Stage7GmailTransport(messages)
+        github_transport = SyntheticProtectedGitHubTransport(
+            repository_id=repository_id,
+            installation_id=installation_id,
+            now=now,
+        )
+        bootstrap = ProtectedM3Bootstrap(
+            source,
+            oauth_transport=oauth_transport,
+            gmail_transport=gmail_transport,
+            github_transport=github_transport,
+            approved_tmpfs_root=Path(temporary.name),
+            clock=lambda: now,
+            allow_synthetic_ephemeral_root=True,
+        )
+        yield ProtectedM3Context(
+            bootstrap,
+            source,
+            oauth_transport,
+            gmail_transport,
+            github_transport,
+            Path(temporary.name),
+            now,
+        )
+    finally:
         generated.destroy()
         temporary.cleanup()

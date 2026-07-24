@@ -1,8 +1,8 @@
 {
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
-  "package_version": "1.0.6",
-  "status_as_of_utc": "2026-07-23T22:53:05Z",
+  "package_version": "1.0.7",
+  "status_as_of_utc": "2026-07-24T00:29:34Z",
   "authority": {
     "path": "machine/status/latest.json",
     "precedence": [
@@ -235,15 +235,15 @@
   "next_action": "T0702 evidence is closed; the M3 predecessor is satisfied, but current owner scope withholds M3, so stop before any M3 or later Stage 7 execution.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "ca913c6afd75306aa365ad2c38b064fb648c73cae2ce36cf26a3109850f64904",
+    "acceptance_summary_sha256": "268a5209565825b404fd602d92c2c6b382520b92bd08c9b9f5e732899161fda3",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
-    "delivery_status_model_sha256": "8fc67998d71c28801c9dfdb3cae4c889cfa65047bebcbfe147eb17a5ebddbc25",
+    "delivery_status_model_sha256": "802fb236a9ecc4261dc8c304a6f85d375b78f615d9a7d2e2fe5b326889c15777",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "977b368415fe7cc74095f642f0e94273a80af9557b1552c3d48994b2be614013",
+    "production_composition_sha256": "8ceec1d822df608e82dc321a84c51a4b8168beea1b5f48c2b970cc439989ae07",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "556a9660ed984e12f2afa6ce0cfd54182768cadf84ad5a0397c3836b2f95b17e",
+    "task_evidence_root_sha256": "165e9a86533673524a68181b5fd43b137dc4e956a0823355b749ee781fe9431a",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",

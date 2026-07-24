@@ -1,5 +1,20 @@
 # Taskpack Changelog
 
+## 1.0.7 — 2026-07-24
+
+只补齐 T0703 受保护入口，不执行或授权 M3，不改变产品契约。
+
+- 新增独立 `ProtectedM3Bootstrap`，将 verified Raw、Processed complete/safe-deferred、Raw 与
+  Processed 远端恢复、第二次发件人验证及唯一 exact-message Trash 收敛为 Budget 1；
+- 新增 manual、main-only、owner/actor-bound、GitHub-hosted、attempt-1 的 M3 Workflow，权限仅为
+  `contents: read`，Secret 引用精确限制为八个名称；
+- 无 Secret job 绑定 exact main SHA、T0702 PASS receipt、同树 M3 gate 与当前 Run Contract；
+- 当前 `m3_authorized=false`，所以 Workflow 默认禁用并在 Secret 读取前停止；
+- 合成端到端验证 Processed 恢复先于 exact Trash、age ciphertext-only 写入、零附带 Gmail
+  mutation 与临时身份清理；
+- 真实 Gmail、私有数据仓、Processed、M3、Timeline、dispatch 与发布效果均为零；T0702/S7AC-002
+  既有 PASS 不变，T0703、最终 Acceptance、生产健康、Stage 7 完成与最终发布仍未通过。
+
 ## 1.0.6 — 2026-07-23
 
 按 Owner 选择的方案 2 只解决 RMD-06 云执行前置，不改变产品契约或授予生产权限。

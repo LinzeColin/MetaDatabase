@@ -102,9 +102,9 @@
       }
     },
     {
-      "title": "RMD-06 protected Beta passed and current scope stops before M3",
+      "title": "v1.0.7 protected Beta passed with default-disabled M3 entrypoint",
       "properties": {
-        "package_version": {"const": "1.0.6"},
+        "package_version": {"const": "1.0.7"},
         "overall_status": {
           "const": "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE"
         },
@@ -137,8 +137,8 @@
     "schema_version": {"const": "moomooau.delivery-status.v1"},
     "status_model_version": {"const": "moomooau.delivery-status-model.v3"},
     "package_version": {
-      "enum": ["1.0.4", "1.0.6"],
-      "description": "Coupled by the root oneOf to the exact RMD-05 pre-closure or RMD-06 dependency-authentication-ready state."
+      "enum": ["1.0.4", "1.0.6", "1.0.7"],
+      "description": "Coupled by the root oneOf to the exact historical RMD state or current default-disabled T0703 entrypoint state."
     },
     "status_as_of_utc": {"type": "string", "format": "date-time"},
     "authority": {

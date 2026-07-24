@@ -552,7 +552,7 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
     assert status["dimensions"]["formal_task_completion"]["completed"] == 7
     assert status["dimensions"]["final_acceptance"]["passed"] == 0
     assert status["dimensions"]["production_readiness"]["status"] == "BLOCKED"
-    if status["package_version"] == "1.0.6":
+    if status["package_version"] in {"1.0.6", "1.0.7"}:
         assert status["dimensions"]["protected_oracles"] == {
             "status": "PARTIAL",
             "declared": 43,

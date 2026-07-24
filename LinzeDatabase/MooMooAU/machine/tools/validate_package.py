@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only validator for the baseline-preserving v1.0.6 control package."""
+"""Read-only validator for the baseline-preserving v1.0.7 local control package."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ from build_package_manifest import (
 from validate_delivery_status import validate as validate_delivery_status
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.6.json")
+PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.7.json")
 RMD06_CLEAN_MAINLINE_BASE_COMMIT = (
     "932dafae972ab00c3e2259ba3a06f6deaa8e108d"  # pragma: allowlist secret
 )
@@ -41,16 +41,16 @@ CANDIDATE_SNAPSHOT = {
 }
 PROTECTED_BETA_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0702/attempt-ledger.json")
 AUTHORIZATION_BASIS = (
-    "Owner selected option 2 for private Governance, authorized controlled main delivery "
-    "and fully automatic protected first attempts for T0702, then explicitly limited the "
-    "current evidence-closing scope to T0702 with no artificial time or manual-approval blocker"
+    "Stage 7 local engineering preserves the T0702 protected PASS and adds the missing "
+    "default-disabled T0703 Budget-1 entrypoint without executing M3 or changing current "
+    "Owner authority"
 )
 AUTHORIZED_SCOPE = (
-    "RMD-06 dependency authentication, cloud preflight closure, controlled T0702 repair "
-    "deliveries and serial new first-attempt dispatches. Beta remains Raw-only with zero Gmail "
-    "mutation; the real protected T0702 PASS satisfies the M3 predecessor but current owner "
-    "scope withholds M3 and every later Stage 7 phase. GitHub rerun, fixed calendar waits, "
-    "manual routine approval and pre-acceptance final publication remain forbidden"
+    "One local T0703 implementation package: exact T0702 receipt binding, protected M3 "
+    "bootstrap, main-only GitHub-hosted first-attempt workflow, eight-name Secret allowlist, "
+    "Budget-1 exact-message mutation path and aggregate-only evidence. The committed "
+    "m3_authorized=false Run Contract must stop before Secret reads; real Gmail, private "
+    "repository, Processed, M3, Timeline, workflow dispatch and publication effects remain zero"
 )
 
 
@@ -93,8 +93,8 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "authorized_scope": AUTHORIZED_SCOPE,
         },
         "predecessor": {
-            "package_id": "MMAU-ARCHIVE-TP-2026-07-22-V1.0.5",
-            "version": "1.0.5",
+            "package_id": "MMAU-ARCHIVE-TP-2026-07-23-V1.0.6",
+            "version": "1.0.6",
             "manifest": PREDECESSOR_MANIFEST_PATH.as_posix(),
             "manifest_sha256": PREDECESSOR_MANIFEST_SHA256,
             "status": "IMMUTABLE_CONTROL_PREDECESSOR",
@@ -132,7 +132,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "package_id": PACKAGE_ID,
             "version": PACKAGE_VERSION,
             "manifest": MANIFEST_PATH.as_posix(),
-            "roadmap": "taskpack/ROADMAP.v1.0.6.md",
+            "roadmap": "taskpack/ROADMAP.v1.0.7.md",
             "status_authority": "machine/status/latest.json",
             "workflow_validator": "machine/tools/validate_workflow_matrix.py",
             "publication_status": "CONTROLLED_BETA_DELIVERY_NOT_FINAL",
@@ -173,6 +173,12 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_beta_last_installation_failure_class": "UNCLASSIFIED",
             "protected_beta_exact_root_cause_claimed": False,
             "exact_mailbox_counts_disclosed": False,
+            "protected_m3_entrypoint_implemented": True,
+            "protected_m3_workflow_enabled_default": False,
+            "protected_m3_contract_authorized": False,
+            "protected_m3_workflow_sha256": _sha256(
+                root.parents[1] / ".github/workflows/moomooau-m3.yml"
+            ),
             "m3_authority_status": "WITHHELD_BY_CURRENT_OWNER_SCOPE",
             "protected_beta_attempt_ledger_sha256": _sha256(
                 root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH
@@ -186,13 +192,13 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
     try:
         provenance = _load(root / PROVENANCE_PATH)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        failures.append("v1.0.6 provenance is missing or invalid")
+        failures.append("v1.0.7 provenance is missing or invalid")
         return
     if not isinstance(provenance, dict):
-        failures.append("v1.0.6 provenance must be an object")
+        failures.append("v1.0.7 provenance must be an object")
         return
     if provenance != build_provenance(root):
-        failures.append("v1.0.6 provenance differs from the exact deterministic authority")
+        failures.append("v1.0.7 provenance differs from the exact deterministic authority")
     authorization = provenance.get("authorization", {})
     effective = provenance.get("effective_package", {})
     predecessor = provenance.get("predecessor", {})
@@ -227,18 +233,18 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         or effective.get("package_id") != PACKAGE_ID
         or effective.get("version") != PACKAGE_VERSION
         or effective.get("manifest") != MANIFEST_PATH.as_posix()
-        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.6.md"
+        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.7.md"
         or effective.get("status_authority") != "machine/status/latest.json"
         or effective.get("workflow_validator") != "machine/tools/validate_workflow_matrix.py"
         or effective.get("publication_status") != "CONTROLLED_BETA_DELIVERY_NOT_FINAL"
     ):
-        failures.append("v1.0.6 provenance identity or authorization mismatch")
+        failures.append("v1.0.7 provenance identity or authorization mismatch")
     if (
         predecessor.get("manifest") != PREDECESSOR_MANIFEST_PATH.as_posix()
         or predecessor.get("manifest_sha256") != PREDECESSOR_MANIFEST_SHA256
         or predecessor.get("status") != "IMMUTABLE_CONTROL_PREDECESSOR"
     ):
-        failures.append("v1.0.5 predecessor provenance mismatch")
+        failures.append("v1.0.6 predecessor provenance mismatch")
     if (
         control_predecessor.get("manifest") != CONTROL_PREDECESSOR_MANIFEST_PATH.as_posix()
         or control_predecessor.get("manifest_sha256") != CONTROL_PREDECESSOR_MANIFEST_SHA256
@@ -302,11 +308,17 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         "protected_beta_last_installation_failure_class": "UNCLASSIFIED",
         "protected_beta_exact_root_cause_claimed": False,
         "exact_mailbox_counts_disclosed": False,
+        "protected_m3_entrypoint_implemented": True,
+        "protected_m3_workflow_enabled_default": False,
+        "protected_m3_contract_authorized": False,
+        "protected_m3_workflow_sha256": _sha256(
+            root.parents[1] / ".github/workflows/moomooau-m3.yml"
+        ),
         "m3_authority_status": "WITHHELD_BY_CURRENT_OWNER_SCOPE",
         "protected_beta_attempt_ledger_sha256": _sha256(root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH),
         "remote_publications": 0,
     }:
-        failures.append("v1.0.6 semantic delta is incomplete or overstated")
+        failures.append("v1.0.7 semantic delta is incomplete or overstated")
 
 
 def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
@@ -385,7 +397,7 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         None,
     )
     if predecessor_entry is None or predecessor_entry.get("sha256") != PREDECESSOR_MANIFEST_SHA256:
-        failures.append("predecessor v1.0.5 manifest artifact is not preserved")
+        failures.append("predecessor v1.0.6 manifest artifact is not preserved")
     control_predecessor_entry = next(
         (
             entry
@@ -442,7 +454,7 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         failures.append(f"canonical manifest selection failed: {type(exc).__name__}")
     else:
         if manifest != expected:
-            failures.append("manifest differs from the canonical v1.0.6 package selection")
+            failures.append("manifest differs from the canonical v1.0.7 package selection")
 
     _validate_provenance(root, failures)
     status_result = validate_delivery_status(root)

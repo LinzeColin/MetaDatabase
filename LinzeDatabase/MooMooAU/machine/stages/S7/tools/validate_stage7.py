@@ -22,6 +22,7 @@ TOOLS = PROJECT_ROOT / "machine/tools"
 SRC = PROJECT_ROOT / "src"
 STAGE7_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-stage7-ci.yml"
 BETA_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-beta.yml"
+M3_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-m3.yml"
 PATCH_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-patch-lifecycle.yml"
 PRODUCTION_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-production.yml"
 BASELINE_COMMIT = "be8e196b03dcc475ed6261fbe20593b08bd26bcf"
@@ -81,7 +82,13 @@ def _tree_digest(root: Path) -> str:
     ]
     paths.extend(
         path
-        for path in (STAGE7_WORKFLOW, BETA_WORKFLOW, PATCH_WORKFLOW, PRODUCTION_WORKFLOW)
+        for path in (
+            STAGE7_WORKFLOW,
+            BETA_WORKFLOW,
+            M3_WORKFLOW,
+            PATCH_WORKFLOW,
+            PRODUCTION_WORKFLOW,
+        )
         if path.is_file()
     )
     for path in sorted(set(paths), key=str):
@@ -420,6 +427,41 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             "--contract-only",
             "--execute-protected",
         ),
+        "protected_m3.py": (
+            "ProtectedM3Bootstrap",
+            "ProtectedM3Runtime",
+            "M3_CONFIG_SECRET_NAME",
+            "M3_SECRET_NAMES",
+            "Stage7ReleaseGate().evaluate_promotion",
+            "M3CanaryRunner",
+            "RepositoryCiphertextReader",
+            "ExactMessageTrashExecutor",
+            "RemoteFirstImportTimestampSource",
+            "_MAXIMUM_VERIFIED_CANDIDATES = 1",
+            'temporary_prefix="moomooau-protected-m3-"',
+        ),
+        "protected_m3_entrypoint.py": (
+            "ExactM3EnvironmentSecretSource",
+            "ProtectedM3GitHubContext",
+            "ProtectedM3ExecutionEvidence",
+            "CONTROL_REPOSITORY_ID = 1_300_525_906",
+            "CONTROL_OWNER_ID = 68_840_188",
+            'CONTROL_REF = "refs/heads/main"',
+            'PROTECTED_ENVIRONMENT = "moomooau-m3"',
+            'M3_CONFIRMATION = "M3_BUDGET_ONE"',
+            "beta_receipt_sha256",
+            "m3_gate_sha256",
+            "_m3_authorized",
+            "maximum_verified_candidates",
+            "Stage7ReleaseGate().evaluate_completed_phase",
+            '"maximum_source_mutations": 1',
+            '"maximum_timeline_mutations": 0',
+            '"fixed_calendar_wait_days": 0',
+            '"production_health_claimed": False',
+            '"final_acceptance_claimed": False',
+            "--contract-only",
+            "--execute-protected",
+        ),
         "stage7_ops.py": (
             'RAW = "RAW"',
             'PROCESSED = "PROCESSED"',
@@ -639,8 +681,15 @@ def _action_uses(workflow: str) -> list[str]:
 
 
 def _validate_workflow(root: Path) -> list[str]:
-    if not STAGE7_WORKFLOW.is_file() or not BETA_WORKFLOW.is_file() or not PATCH_WORKFLOW.is_file():
-        return ["Stage 7 preflight, protected Beta or Patch Lifecycle workflow is missing"]
+    if (
+        not STAGE7_WORKFLOW.is_file()
+        or not BETA_WORKFLOW.is_file()
+        or not M3_WORKFLOW.is_file()
+        or not PATCH_WORKFLOW.is_file()
+    ):
+        return [
+            "Stage 7 preflight, protected Beta, protected M3 or Patch Lifecycle workflow is missing"
+        ]
     errors: list[str] = []
     text = STAGE7_WORKFLOW.read_text(encoding="utf-8")
     uses = _action_uses(text)
@@ -674,6 +723,8 @@ def _validate_workflow(root: Path) -> list[str]:
         "ga_runtime.py",
         "production.py",
         "production_adapters.py",
+        "protected_m3.py",
+        "protected_m3_entrypoint.py",
         "gmail_sync_checkpoint.py",
         "model_boundary.py",
         "recovery_drill.py",
@@ -684,6 +735,7 @@ def _validate_workflow(root: Path) -> list[str]:
         "production-composition-v1.schema.json",
         "production-config-v1.schema.json",
         "moomooau-production.yml",
+        "moomooau-m3.yml",
         "moomooau-patch-lifecycle.yml",
         "--preflight",
         "persist-credentials: false",
@@ -800,6 +852,111 @@ def _validate_workflow(root: Path) -> list[str]:
         validate_governance_dependency_auth(
             beta_value,
             label=".github/workflows/moomooau-beta.yml",
+            required=False,
+        )
+    )
+    m3 = M3_WORKFLOW.read_text(encoding="utf-8")
+    m3_uses = _action_uses(m3)
+    expected_m3_secret_names = {
+        "MOOMOOAU_M3_CONFIG",
+        "MOOMOOAU_SENDER_REGISTRY",
+        "MOOMOOAU_CLASSIFICATION_REGISTRY",
+        "MOOMOOAU_PARSER_REGISTRY",
+        "MOOMOOAU_GITHUB_APP_PRIVATE_KEY",
+        "MOOMOOAU_AGE_IDENTITY",
+        "MOOMOOAU_OPAQUE_ID_KEY",
+        "MOOMOOAU_GMAIL_OAUTH",
+    }
+    actual_m3_secret_names = set(re.findall(r"\$\{\{\s*secrets\.([A-Z0-9_]+)\s*\}\}", m3))
+    try:
+        m3_value = yaml.load(m3, Loader=yaml.BaseLoader)
+    except yaml.YAMLError:
+        m3_value = None
+    m3_required = (
+        "workflow_dispatch:",
+        "expected_head_sha:",
+        "confirm_m3:",
+        "M3_BUDGET_ONE",
+        "permissions:\n  contents: read",
+        "group: moomooau-m3-budget-one-single-writer",
+        "cancel-in-progress: false",
+        "Fail closed on invalid protected M3 dispatch context",
+        'test "$GITHUB_REPOSITORY_ID" = "1300525906"',
+        'test "$GITHUB_REPOSITORY_OWNER_ID" = "68840188"',
+        'test "$GITHUB_ACTOR_ID" = "68840188"',
+        'test "$GITHUB_RUN_ATTEMPT" = "1"',
+        'test "$RUNNER_ENVIRONMENT" = "github-hosted"',
+        'test "$GITHUB_REF" = "refs/heads/main"',
+        'test "$EXPECTED_HEAD_SHA" = "$GITHUB_SHA"',
+        'test "$M3_CONFIRMATION" = "M3_BUDGET_ONE"',
+        "needs: m3-authority-gate",
+        "environment: moomooau-m3",
+        "runs-on: ubuntu-24.04",
+        "requirements/stage6.lock",
+        "--require-hashes",
+        "--no-build-isolation --no-deps .",
+        "tests/tasks/test_t0702.py tests/tasks/test_t0703.py",
+        "validate_package.py",
+        "validate_delivery_status.py",
+        "validate_publication.py",
+        "protected_m3_entrypoint",
+        "protected_m3.py",
+        "--contract-only",
+        "--execute-protected",
+        'assert value["m3_authorized"] is True',
+        "beta_receipt_sha256",
+        "m3_gate_sha256",
+        "moomooau-protected-m3-*",
+        "persist-credentials: false",
+        pins["age"]["linux_amd64_archive_sha256"],
+    )
+    m3_forbidden = (
+        "schedule:",
+        "pull_request:",
+        "\n  push:",
+        "contents: write",
+        "actions/cache",
+        "upload-artifact",
+        "download-artifact",
+        "self-hosted",
+        "git push",
+        "moomooau_production_enabled",
+        "python -m moomooau_archive.production",
+        "python -m moomooau_archive.blue_green_runtime",
+        "moomooau_governance_deploy_key",
+    )
+    m3_workflow_triggers = (
+        set(m3_value.get("on", {}))
+        if isinstance(m3_value, dict) and isinstance(m3_value.get("on"), dict)
+        else set()
+    )
+    if (
+        m3_workflow_triggers != {"workflow_dispatch"}
+        or any(token not in m3 for token in m3_required)
+        or any(token in m3.casefold() for token in m3_forbidden)
+        or actual_m3_secret_names != expected_m3_secret_names
+        or m3.count("${{ secrets.") != len(expected_m3_secret_names)
+        or m3.count('test "$RUNNER_ENVIRONMENT" = "github-hosted"') != 2
+        or m3.count(pins["age"]["linux_amd64_archive_sha256"]) != 2
+        or len(m3_uses) != 4
+        or any(PINNED_ACTION.fullmatch(item) is None for item in m3_uses)
+        or any(
+            item.rsplit("@", 1)[1]
+            != pins["actions"].get(item.rsplit("@", 1)[0], {}).get("commit_sha")
+            for item in m3_uses
+        )
+    ):
+        errors.append("protected M3 workflow drifts from the Budget-1 execution contract")
+    errors.extend(
+        validate_workflow_expression_contexts(
+            m3_value,
+            label=".github/workflows/moomooau-m3.yml",
+        )
+    )
+    errors.extend(
+        validate_governance_dependency_auth(
+            m3_value,
+            label=".github/workflows/moomooau-m3.yml",
             required=False,
         )
     )
@@ -1265,6 +1422,7 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("beta_public_safe_failure_diagnostics")
         != "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE"
         or observation.get("m3_local_synthetic_mechanism") != "PASS"
+        or observation.get("m3_protected_entrypoint") != "READY_DEFAULT_DISABLED_BEFORE_SECRET_READ"
         or observation.get("blue_green_timeline_local_mechanism") != "PASS"
         or observation.get("ga_full_pipeline_local_mechanism") != "PASS"
         or observation.get("codex_auto_local_policy") != "PASS"
@@ -1299,8 +1457,9 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("delivery_status") != "CONTROLLED_T0702_BETA_PASS_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "T0702 evidence is closed with no rerun. Stop before M3 because current owner "
-            "scope withholds every post-Beta Stage 7 phase."
+            "T0702 evidence is closed with no rerun. The protected M3 Budget-1 entrypoint is "
+            "locally ready but default-disabled before Secret reads; stop before M3 because "
+            "current owner scope withholds every post-Beta Stage 7 phase."
         )
     ):
         errors.append("Stage 7 aggregate evidence is not truthfully blocked")
