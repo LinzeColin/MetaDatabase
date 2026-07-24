@@ -301,21 +301,34 @@ test("A110 applies Capital River filters and opens event evidence", async ({ pag
   await page.getByTestId("capital-filter-event-type").fill("capital_expenditure");
   await page.getByTestId("capital-filter-currency").fill("usd");
   await page.getByTestId("capital-filter-amount-kind").fill("period_capex");
-  // Apply fires exactly two requests — /v1/events and /v1/events/amount-summary
-  // — each carrying the full filter set. Wait for those specific requests tied
-  // to the click instead of post-filtering the shared requestUrls array: under
-  // CI load the array could be read before both requests were observed, which
-  // made the entity assertion intermittently flaky. Semantics are unchanged —
-  // all six params are still verified on both requests.
-  const isPeriodCapex = (pathname: string) => (request: Request) => {
+  // Apply must send /v1/events and /v1/events/amount-summary carrying the full
+  // filter set. Wait for the FULLY-APPLIED request (matched on entity +
+  // amount_kind) tied to the click, not merely one with amount_kind: under CI
+  // load the capital page can emit a transient period_capex fetch before the
+  // entity filter is committed, and matching only on amount_kind captured that
+  // partial request → intermittent entity-assertion flake. Matching on the
+  // applied entity ignores the transient one; if the fully-applied request
+  // never fires, waitForRequest times out (a real dropped-filter bug still
+  // fails). All six params are then verified on the captured requests.
+  const APPLIED: Record<string, string> = {
+    entity: "00000000-0000-4000-8000-000000000001",
+    from: "2026-01-01T00:00:00.000Z",
+    to: "2026-12-31T23:59:59.999Z",
+    event_type: "capital_expenditure",
+    currency: "USD",
+    amount_kind: "period_capex"
+  };
+  const appliedRequest = (pathname: string) => (request: Request) => {
     const url = new URL(request.url());
     return (
-      url.pathname === pathname && url.searchParams.get("amount_kind") === "period_capex"
+      url.pathname === pathname &&
+      url.searchParams.get("amount_kind") === APPLIED.amount_kind &&
+      url.searchParams.get("entity") === APPLIED.entity
     );
   };
   const [eventsRequest, summaryRequest] = await Promise.all([
-    page.waitForRequest(isPeriodCapex("/v1/events")),
-    page.waitForRequest(isPeriodCapex("/v1/events/amount-summary")),
+    page.waitForRequest(appliedRequest("/v1/events")),
+    page.waitForRequest(appliedRequest("/v1/events/amount-summary")),
     page.getByTestId("capital-filter-apply").click()
   ]);
   await expect(page.getByTestId("capital-river-shell")).toHaveAttribute(
@@ -325,12 +338,9 @@ test("A110 applies Capital River filters and opens event evidence", async ({ pag
 
   for (const request of [eventsRequest, summaryRequest]) {
     const url = new URL(request.url());
-    expect(url.searchParams.get("entity")).toBe("00000000-0000-4000-8000-000000000001");
-    expect(url.searchParams.get("from")).toBe("2026-01-01T00:00:00.000Z");
-    expect(url.searchParams.get("to")).toBe("2026-12-31T23:59:59.999Z");
-    expect(url.searchParams.get("event_type")).toBe("capital_expenditure");
-    expect(url.searchParams.get("currency")).toBe("USD");
-    expect(url.searchParams.get("amount_kind")).toBe("period_capex");
+    for (const [key, value] of Object.entries(APPLIED)) {
+      expect(url.searchParams.get(key)).toBe(value);
+    }
   }
 
   await page.getByTestId(`capital-open-evidence-${capexEventId}`).click();
