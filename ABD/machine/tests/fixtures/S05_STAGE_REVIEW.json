@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S05-STAGE-REVIEW",
+  "contract_id": "STAGE-REVIEW-S05",
+  "review_id": "ABD-S05-WHOLE-STAGE-REVIEW",
+  "fixed_clock": "2026-07-24T12:00:00+10:00",
+  "expected_phase_ids": ["P01", "P02", "P03", "P04"],
+  "expected_finding_ids": [
+    "F-S05-REVIEW-001",
+    "F-S05-REVIEW-002",
+    "F-S05-REVIEW-003",
+    "F-S05-REVIEW-004",
+    "F-S05-REVIEW-005",
+    "F-S05-REVIEW-006"
+  ],
+  "expected_phase_evidence_sha256": {
+    "P01": "a5f2014009c92b50e49be7ad6260979ad8bb546d25b1d2f606ba745006fb8239",
+    "P02": "c7594b54822a0292911c696533e199b97f3af3bba4e363149ab35f154388988b",
+    "P03": "0ad9ae6a259f811c2587cd305b2996b42665c94f8ebc389b3e0ea3a24112e599",
+    "P04": "986d52d8ca695b99f5dbbbea7e273cc5dafdfc7e81892ebd0b272be848ea9249"
+  },
+  "expected_phase_rollback_sha256": {
+    "P01": "9b88961d0fec3cb9409706cc879c80506c909894eba28e61ed98714b12b702f9",
+    "P02": "e86db1976846b8c6dd59f0fe83e20158feeb969fb4a324dc2d3e4651a3a40856",
+    "P03": "45560fa18fdef1783de8ef9af1b902b1c247eee18a7f57ed455ecb8ba71f32a8",
+    "P04": "3a8825f0c7b8b9daf2c7d95646db79ad5e224c637eed31f5736e683a67a41c28"
+  },
+  "expected_provider_ids": ["TAB", "SPORTSBET", "OTHER_OBSERVABLE_PROVIDER"],
+  "expected_modes": [
+    "PUBLIC_BROWSER",
+    "FILE_OR_STATIC_DATA",
+    "FREE_ENDPOINT",
+    "AUTHENTICATED_OBSERVER",
+    "OWNER_DEVICE_OVERLAY"
+  ],
+  "expected_real_capability_count": 15,
+  "expected_coverage_status_counts": {
+    "COVERED": 0,
+    "PENDING_PARSE": 2,
+    "NON_ADVISABLE": 4,
+    "DEGRADED": 2,
+    "UNKNOWN": 7
+  },
+  "expected_claim_boundary": {
+    "declared_scope_is_design_intent_not_observed_market_universe": true,
+    "actual_market_universe_enumerated_or_verified": false,
+    "all_observable_markets_verified": false,
+    "provider_permission_or_runtime_access_verified": false,
+    "production_collection_enabled": false,
+    "runtime_freshness_verified": false,
+    "production_coverage_verified": false,
+    "production_advice_enabled": false,
+    "ovh_7x24_runtime_verified": false,
+    "cloudflare_global_chinese_access_verified": false,
+    "gmail_evidence_archival_verified": false,
+    "financial_target_verified_or_guaranteed": false
+  },
+  "expected_fixed_clock_maximum_dispatch_deviation_seconds": 2,
+  "expected_synthetic_capability_id": "CAP-FROZEN-SYNTHETIC-SCHEDULER",
+  "allowed_numeric_boundary_deltas": ["-0.0001", "0", "0.0001"],
+  "expected_oracle_check_minimum": 70,
+  "minimum_targeted_pytest_cases": 35,
+  "minimum_full_pytest_cases": 4495,
+  "minimum_signed_state_pytest_cases": 1652,
+  "expected_rollback_artifact_count": 18,
+  "expected_release_status": "NOT_READY_S06_TO_S19_AND_REAL_SOURCE_RUNTIME_ACTIVATION_REQUIRED",
+  "expected_next": "S05/GITHUB_STAGE_UPLOAD_READY"
+}

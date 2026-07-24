@@ -1,0 +1,93 @@
+{
+  "artifacts": {
+    "README.md": {
+      "corrupted_sha256": "9d48534488a8cfc5ca93e7be7f6cc56b1985b26f5603022c944e55de723d4e80",
+      "restored_sha256": "31cb0d0054f346742f878773e6980ae9b08c67a0fb42f666db320043618d3c88",
+      "signed_sha256": "31cb0d0054f346742f878773e6980ae9b08c67a0fb42f666db320043618d3c88",
+      "status": "PASS"
+    },
+    "abd_acceptance/__init__.py": {
+      "corrupted_sha256": "ab00022d7de7275fe2c271876f1bb98cdf39c155d2c32c84aab1aca7c47f125f",
+      "restored_sha256": "0706ddb7dd259dc4bd209be3306c01ee62d8d71c0d535a8b0b8a1148a78d1f55",
+      "signed_sha256": "0706ddb7dd259dc4bd209be3306c01ee62d8d71c0d535a8b0b8a1148a78d1f55",
+      "status": "PASS"
+    },
+    "abd_acceptance/__main__.py": {
+      "corrupted_sha256": "eaa3d566ff90de8098b0fb79b78ee3f982fa7092d10618acd97f579c4e09dc23",
+      "restored_sha256": "11fbcd6680878e0ae2e2befaff9bf3f2b3335905775781e28a72b43d26646e43",
+      "signed_sha256": "11fbcd6680878e0ae2e2befaff9bf3f2b3335905775781e28a72b43d26646e43",
+      "status": "PASS"
+    },
+    "abd_acceptance/market_ontology.py": {
+      "corrupted_sha256": "89819d3838d00e1a7a4068701a3988fd7f36cf4c8505359caed7d8240aebdd40",
+      "restored_sha256": "4efd03b76109b9d36866df9398106a373a34fba7ecc93341f9e2256f1947cdf9",
+      "signed_sha256": "4efd03b76109b9d36866df9398106a373a34fba7ecc93341f9e2256f1947cdf9",
+      "status": "PASS"
+    },
+    "abd_acceptance/stage4_delivery.py": {
+      "corrupted_sha256": "a079a5b953547318e3079bf4732d21ce1d3271b1c03f5141cdc02e8fe691899d",
+      "restored_sha256": "1688b6042cb0d4e21c305fef05dfc0dee720abda57106bb9f0a4d5e2b3fca732",
+      "signed_sha256": "1688b6042cb0d4e21c305fef05dfc0dee720abda57106bb9f0a4d5e2b3fca732",
+      "status": "PASS"
+    },
+    "abd_acceptance/stage4_review.py": {
+      "corrupted_sha256": "56a74abdfc2baddc1cc8196d74c5eb41af442579043af2b1efb4b58e09ed556e",
+      "restored_sha256": "33b5975fb5b4aff8525c2b45c6073c9e37cb6448340d1f286ab0d31e5ad04d87",
+      "signed_sha256": "33b5975fb5b4aff8525c2b45c6073c9e37cb6448340d1f286ab0d31e5ad04d87",
+      "status": "PASS"
+    },
+    "coverage_manifest.schema.json": {
+      "corrupted_sha256": "7978f497775cc16f91800e78e329ae0a20cae2a3360cae9457660f94ba596d2a",
+      "restored_sha256": "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2",
+      "signed_sha256": "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2",
+      "status": "PASS"
+    },
+    "machine/evidence/S04/STAGE_REVIEW/github_delivery_receipt.json": {
+      "corrupted_sha256": "0d1c2dbbbdecc79f398d888c287d2dabd9076501f02bc6f2d3514feaf9c5cd32",
+      "restored_sha256": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+      "signed_sha256": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+      "status": "PASS"
+    },
+    "machine/tests/fixtures/S05_P01.json": {
+      "corrupted_sha256": "2df7985c0344f3d1f448adf37f273e613a72f65a2f5b84c22c3c4bfe64d220ce",
+      "restored_sha256": "bd8dc5ae5616fa4815ecae5dc23a8b86eb2940a817b63cdd54078e5e10f46557",
+      "signed_sha256": "bd8dc5ae5616fa4815ecae5dc23a8b86eb2940a817b63cdd54078e5e10f46557",
+      "status": "PASS"
+    },
+    "market_ontology.json": {
+      "corrupted_sha256": "946aa74d5c2e1c7b6c483a35cf366006b0fca190f07dc05f9d157561cc0d422e",
+      "restored_sha256": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe",
+      "signed_sha256": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe",
+      "status": "PASS"
+    },
+    "tests/S04/stage_review_test.py": {
+      "corrupted_sha256": "be953d89f8868a7a3cad65d6fc9204047a97d8ba54ef7cf1f3f87e5221478a08",
+      "restored_sha256": "76b1b501f09c1c3b87ba7c771e1c7ccf84a51200e85eb6deada63cfaf4e4aa75",
+      "signed_sha256": "76b1b501f09c1c3b87ba7c771e1c7ccf84a51200e85eb6deada63cfaf4e4aa75",
+      "status": "PASS"
+    },
+    "tests/S05/P01_test.py": {
+      "corrupted_sha256": "c69566337e46c25e2b4ad8dd617d99636790b8f11cfe85db078c5bd973390191",
+      "restored_sha256": "b42a0af4c57b70684911403c68df8df5d76ad90f36e041be076ab7660d9a5d6b",
+      "signed_sha256": "b42a0af4c57b70684911403c68df8df5d76ad90f36e041be076ab7660d9a5d6b",
+      "status": "PASS"
+    },
+    "tests/S05/__init__.py": {
+      "corrupted_sha256": "bb469e0b14384e13b4c4d78a440134585e10e9080e25ca9ff6a31c7a2de1d903",
+      "restored_sha256": "cb22dd1304ff6d441c1f73bb519978ceb76e5954936365bca01618cd95c9118b",
+      "signed_sha256": "cb22dd1304ff6d441c1f73bb519978ceb76e5954936365bca01618cd95c9118b",
+      "status": "PASS"
+    }
+  },
+  "contract_id": "AC-S05-P01",
+  "evidence_id": "EVD-S05-P01-ROLLBACK",
+  "external_state_changed": false,
+  "fixed_clock": "2026-07-23T01:02:53+10:00",
+  "incremental_cash_spent_aud": "0.00",
+  "mode": "EPHEMERAL_SIGNED_PHASE_ARTIFACT_RESTORE",
+  "production_state_changed": false,
+  "provider_or_market_accessed": false,
+  "recommendation_or_order_generated": false,
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

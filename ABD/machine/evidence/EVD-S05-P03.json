@@ -1,0 +1,2305 @@
+{
+  "artifacts": {
+    "ART-S05-P03-01": "scheduler.py",
+    "ART-S05-P03-02": "cadence_tests.json",
+    "ART-S05-P03-03": "rate_budget.json"
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S05/P03_test.py --junitxml=machine/evidence/S05/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P03/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S03/P02_test.py tests/S03/P03_test.py tests/S03/P04_test.py tests/S03/stage_review_test.py tests/S04/stage_review_test.py tests/S05/P01_test.py tests/S05/P02_test.py tests/S05/P03_test.py --junitxml=machine/evidence/S05/P03/signed_state_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P03/signed_state_regression.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/P03/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P03/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S05-P03 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S05-P03",
+  "decision": "ADAPTIVE_REFRESH_SCHEDULE_FROZEN_FAIL_CLOSED",
+  "decision_sha256": "cf9eb4b9bbf68b1aecdd6003d1ef97d177ed66bea8eef2d42c9b9c2b88e8b1a6",
+  "evidence_id": "EVD-S05-P03",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "provider_account_api_or_page_accessed": false,
+    "real_market_data_collected": false,
+    "real_provider_dispatch_performed": false,
+    "recommendation_generated_or_enabled": false,
+    "scheduler_daemon_started": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-23T18:00:00+10:00",
+  "hashes": {
+    "code": "0ee10fd13b29f901f4ba9e2cd64291aeef7ecdb0b8ec659bcfeb66fc3ddbcdac",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "README.md": "cdeb85233247f078f9b8d7380e182a6eb905bde133ac05246231a559c2cbe8ef",
+      "abd_acceptance/__init__.py": "dd43b55546ecbb245bc4b97a201563454f20766666bbaf37a3741f89375e594b",
+      "abd_acceptance/__main__.py": "6f1d82c21751c665a8b33b93178fc98db8a7545a095141c9c63811be1871d2f9",
+      "abd_acceptance/advice_card.py": "c1961b3a6f4abc623aa6f4c2bfa83588b6d44c5e5adf5d276982c93460df1ff4",
+      "abd_acceptance/market_ontology.py": "19993c503b05f3424ddfd3237b8ac8baa5799d133e545ee838d5c3b43743070c",
+      "abd_acceptance/reason_next_action.py": "41e24f5487db85648fe19d2893fd29a3283db101f04b66a1ea8afd5321c717cd",
+      "abd_acceptance/source_capabilities.py": "9adf908bfe7222fff136481eb0ccdccf19a856c637b6469878d718a0cec5222e",
+      "abd_acceptance/source_scheduler.py": "adbee145c5fb0f8b0067ff6c57ef174b8c8aae93e30a4c73aad4731c6a71b783",
+      "abd_acceptance/stage3_review.py": "5002d1027ebbd603aab6ae49d5ad3d190b7534065191d5feb8c21eab7096109d",
+      "abd_acceptance/stage4_review.py": "9c7307f3437600f034520070ba085d66ac2f6c9335338e07d9282729af315646",
+      "abd_acceptance/usability_accessibility.py": "91909f739040669de90cda1975bc4678c10909e8a838f85ae6637fdd42a41394",
+      "cadence_tests.json": "f9afb627048ea10219545a04082ee2402a16deb549ea792aeced85d78c1aadbc",
+      "machine/evidence/EVD-S05-P02.json": "c7594b54822a0292911c696533e199b97f3af3bba4e363149ab35f154388988b",
+      "machine/evidence/EVD-S05-P02_rollback.json": "e86db1976846b8c6dd59f0fe83e20158feeb969fb4a324dc2d3e4651a3a40856",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S05_P03.json": "a8e33c573f5aaf1236ec7069d2090a72fe0852707c25dd0cab94f6f782767ca2",
+      "machine/tests/fixtures/schedule_boundary_vectors.json": "4b23ecbdaa11e4bd5df20c06d717ea8d60cf705f2ed86f3329912b4e848fd35b",
+      "provider_contracts.json": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+      "rate_budget.json": "7dc8db47146f38ab3e3b888d9e2757ac38ff53a3785fb2bd66580a4b0a970323",
+      "scheduler.py": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91",
+      "source_capabilities.json": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+      "tests/S04/stage_review_test.py": "eeb679801de3c73049cd64859bc3e46a31aae0954e6bde02674bffded1731206",
+      "tests/S05/P02_test.py": "da9cacf2f864cb60bf0866c072da34685c4d57ff2180acced4b79f1567819cd2",
+      "tests/S05/P03_test.py": "89b196e9da57bb96a5743c4267806c1749aad770f166a19cb4303b19cabe2e34"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S05/P03 validates offline integer-time planning, zero real-source budgets and stale-input exclusion only; it accesses no provider, market, account, Gmail, host, model, recommendation, order or return.",
+    "output_cadence_tests": "f9afb627048ea10219545a04082ee2402a16deb549ea792aeced85d78c1aadbc",
+    "output_rate_budget": "7dc8db47146f38ab3e3b888d9e2757ac38ff53a3785fb2bd66580a4b0a970323",
+    "output_scheduler": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "positive_result": "b6ec11f5815f26d1cce7305d78271120c388a4e74f7db8d740075b69dadcc485",
+    "rollback_evidence": "45560fa18fdef1783de8ef9af1b902b1c247eee18a7f57ed455ecb8ba71f32a8",
+    "structured_failure_log": "55fd6868531088663036551bd1013e5f7e1b3ed1984cd5814aa1ecc07c1a7608"
+  },
+  "next": "S05/P04_READY_NOT_STARTED",
+  "pass_gate_interpretation": "FIXED_CLOCK_DISPATCH_DEVIATION_IS_AT_MOST_TWO_SECONDS_AND_STALE_OR_UNTRUSTED_DATA_NEVER_ENTERS_ADVICE_EVALUATION",
+  "phase_id": "P03",
+  "phase_status": "S05_P03_PASS",
+  "product_version": "0.0.0.1",
+  "production_collection_status": "ALL_15_REAL_PROVIDER_MODE_BUDGETS_REMAIN_ZERO_AND_DISABLED",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "NOT_READY_S05_P04_AND_WHOLE_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S05-P03",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S05-P03_rollback.json",
+    "status": "PASS"
+  },
+  "schedule_proof": {
+    "cadence_band_count": 5,
+    "distance_recalculation_seconds": 60,
+    "maximum_dispatch_deviation_microseconds": 2000000,
+    "positive_fixture_external_action_performed": false,
+    "positive_fixture_result": {
+      "advice_enabled": false,
+      "advice_usable_seconds": 45,
+      "backoff_seconds": 0,
+      "band": "15m_to_2h",
+      "capability_id": "CAP-FROZEN-SYNTHETIC-SCHEDULER",
+      "collection_performed": false,
+      "decision": "PLAN_FROZEN_TEST_REFRESH",
+      "dispatch_deviation_microseconds": 2000000,
+      "distance_recalculation_seconds": 60,
+      "external_action_performed": false,
+      "next_due_at": "2026-07-23T18:01:00+10:00",
+      "order_enabled": false,
+      "quote_usable_seconds": 90,
+      "reason_code": "SOURCE_RATE_AND_CADENCE_GATES_PASS",
+      "refresh_seconds": 60,
+      "remaining_dispatches_in_window": 119
+    },
+    "real_capability_budget_count": 15,
+    "real_enabled_budget_count": 0
+  },
+  "schema_version": "1.0.0",
+  "scope_boundary": {
+    "advice_order_and_deployment_not_performed": true,
+    "all_real_provider_budgets_remain_zero": true,
+    "no_scheduler_daemon_or_network_dispatch_started": true,
+    "p03_plans_refresh_and_freshness_only": true,
+    "p04_coverage_gap_oracle_not_started": true,
+    "synthetic_fixture_is_not_provider_permission_or_runtime_evidence": true
+  },
+  "stage_id": "S05",
+  "status": "PASS",
+  "structured_failure_log": [
+    {
+      "case_id": "SOURCE-GATE-DENIED",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "SOURCE_CAPABILITY_GATE_NOT_PASSED",
+      "matched": true,
+      "reason_code": "SOURCE_CAPABILITY_GATE_NOT_PASSED"
+    },
+    {
+      "case_id": "FIXTURE-IN-PRODUCTION",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "TEST_BUDGET_PROHIBITED_IN_PRODUCTION",
+      "matched": true,
+      "reason_code": "TEST_BUDGET_PROHIBITED_IN_PRODUCTION"
+    },
+    {
+      "case_id": "POSITIVE-CASH",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "INCREMENTAL_CASH_NOT_ZERO",
+      "matched": true,
+      "reason_code": "INCREMENTAL_CASH_NOT_ZERO"
+    },
+    {
+      "case_id": "UNKNOWN-CASH",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "INCREMENTAL_CASH_NOT_ZERO",
+      "matched": true,
+      "reason_code": "INCREMENTAL_CASH_NOT_ZERO"
+    },
+    {
+      "case_id": "UNKNOWN-CAPABILITY",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "UNKNOWN_OR_DUPLICATE_CAPABILITY_BUDGET",
+      "matched": true,
+      "reason_code": "UNKNOWN_OR_DUPLICATE_CAPABILITY_BUDGET"
+    },
+    {
+      "case_id": "BUDGET-EXHAUSTED",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "RATE_BUDGET_EXHAUSTED",
+      "matched": true,
+      "reason_code": "RATE_BUDGET_EXHAUSTED"
+    },
+    {
+      "case_id": "BOOLEAN-DISPATCH-COUNT",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "INVALID_WINDOW_DISPATCH_COUNT",
+      "matched": true,
+      "reason_code": "INVALID_WINDOW_DISPATCH_COUNT"
+    },
+    {
+      "case_id": "UNKNOWN-STATUS",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "UNKNOWN_EVENT_STATUS",
+      "matched": true,
+      "reason_code": "UNKNOWN_EVENT_STATUS"
+    },
+    {
+      "case_id": "BOOLEAN-TIME",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "INVALID_TIME_TO_START",
+      "matched": true,
+      "reason_code": "INVALID_TIME_TO_START"
+    },
+    {
+      "case_id": "STARTED-WITHOUT-LIVE",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "EVENT_STARTED_WITHOUT_VERIFIED_LIVE_STATE",
+      "matched": true,
+      "reason_code": "EVENT_STARTED_WITHOUT_VERIFIED_LIVE_STATE"
+    },
+    {
+      "case_id": "LIVE-UNSUPPORTED",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "LIVE_REFRESH_UNSUPPORTED",
+      "matched": true,
+      "reason_code": "LIVE_REFRESH_UNSUPPORTED"
+    },
+    {
+      "case_id": "DISPATCH-LATE",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "DISPATCH_DEVIATION_EXCEEDED",
+      "matched": true,
+      "reason_code": "DISPATCH_DEVIATION_EXCEEDED"
+    },
+    {
+      "case_id": "NAIVE-DISPATCH-TIME",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "INVALID_DISPATCH_TIMESTAMP",
+      "matched": true,
+      "reason_code": "INVALID_DISPATCH_TIMESTAMP"
+    },
+    {
+      "case_id": "NEGATIVE-FAILURE-COUNT",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "INVALID_NEXT_DUE_INPUT",
+      "matched": true,
+      "reason_code": "INVALID_NEXT_DUE_INPUT"
+    },
+    {
+      "case_id": "MISSING-CAPABILITY",
+      "decision": "NO_DISPATCH_NO_ADVICE",
+      "expected_reason": "MALFORMED_SCHEDULE_REQUEST",
+      "matched": true,
+      "reason_code": "MALFORMED_SCHEDULE_REQUEST"
+    }
+  ],
+  "validation": {
+    "checks": [
+      {
+        "detail": "cadence_tests.json",
+        "id": "S05P03-CADENCE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "rate_budget.json",
+        "id": "S05P03-RATE-BUDGET-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "S05_P03.json",
+        "id": "S05P03-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f9afb627048ea10219545a04082ee2402a16deb549ea792aeced85d78c1aadbc",
+          "expected": "f9afb627048ea10219545a04082ee2402a16deb549ea792aeced85d78c1aadbc"
+        },
+        "id": "S05P03-PHASE-PIN-cadence_tests_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a8e33c573f5aaf1236ec7069d2090a72fe0852707c25dd0cab94f6f782767ca2",
+          "expected": "a8e33c573f5aaf1236ec7069d2090a72fe0852707c25dd0cab94f6f782767ca2"
+        },
+        "id": "S05P03-PHASE-PIN-machine-tests-fixtures-S05_P03_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "7dc8db47146f38ab3e3b888d9e2757ac38ff53a3785fb2bd66580a4b0a970323",
+          "expected": "7dc8db47146f38ab3e3b888d9e2757ac38ff53a3785fb2bd66580a4b0a970323"
+        },
+        "id": "S05P03-PHASE-PIN-rate_budget_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91",
+          "expected": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91"
+        },
+        "id": "S05P03-PHASE-PIN-scheduler_py",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "89b196e9da57bb96a5743c4267806c1749aad770f166a19cb4303b19cabe2e34",
+          "expected": "89b196e9da57bb96a5743c4267806c1749aad770f166a19cb4303b19cabe2e34"
+        },
+        "id": "S05P03-PHASE-PIN-tests-S05-P03_test_py",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "af5c002e1d52db6ae269074bfb16efe1432e93b078f375dbe9924b70df7585ea",
+          "expected": "af5c002e1d52db6ae269074bfb16efe1432e93b078f375dbe9924b70df7585ea"
+        },
+        "id": "S05P03-ORACLE-STRUCTURAL-HASH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "c7594b54822a0292911c696533e199b97f3af3bba4e363149ab35f154388988b",
+          "expected": "c7594b54822a0292911c696533e199b97f3af3bba4e363149ab35f154388988b"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-evidence-EVD-S05-P02_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e86db1976846b8c6dd59f0fe83e20158feeb969fb4a324dc2d3e4651a3a40856",
+          "expected": "e86db1976846b8c6dd59f0fe83e20158feeb969fb4a324dc2d3e4651a3a40856"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-evidence-EVD-S05-P02_rollback_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-facts-acceptance_contracts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-facts-canonical_facts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-facts-costs_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-facts-model_system_card_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-facts-parameters_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-facts-requirements_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-facts-roadmap_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-facts-task_graph_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-facts-traceability_matrix_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4b23ecbdaa11e4bd5df20c06d717ea8d60cf705f2ed86f3329912b4e848fd35b",
+          "expected": "4b23ecbdaa11e4bd5df20c06d717ea8d60cf705f2ed86f3329912b4e848fd35b"
+        },
+        "id": "S05P03-BASELINE-PIN-machine-tests-fixtures-schedule_boundary_vectors_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+          "expected": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6"
+        },
+        "id": "S05P03-BASELINE-PIN-provider_contracts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+          "expected": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539"
+        },
+        "id": "S05P03-BASELINE-PIN-source_capabilities_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S05P03-REPO-PIN-_github-workflows-abd-stage0-validation_yml",
+        "passed": true
+      },
+      {
+        "detail": {
+          "baseline": "未实现或旧包存在冲突/缺口",
+          "id": "REQ-S05-P03",
+          "measurement": "由 AC-S05-P03 的机器验收判定器执行固定输入、阈值和证据检查。",
+          "non_goals": [
+            "不自动提交、确认或重试真实订单",
+            "不以降低证据或风险门追赶30%月目标",
+            "不引入付费数据或付费程序接口依赖"
+          ],
+          "observation_period": "开发期每次提交；上线后持续",
+          "owner_input_required_during_development": false,
+          "phase_id": "P03",
+          "primary_acceptance_criteria_id": "AC-S05-P03",
+          "priority": "P1",
+          "problem": "若未完成“自适应采集调度”，覆盖所有可观察市场，按来源事实决定访问方式，任何未知或失效都可见。将缺少可执行、可验收或可恢复的基础。",
+          "scope": [
+            "scheduler.py",
+            "cadence_tests.json",
+            "rate_budget.json"
+          ],
+          "stage_id": "S05",
+          "target": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。",
+          "title": "自适应采集调度",
+          "user": "单一账户持有人及自动开发/运维代理",
+          "value": "实现>24小时每30分钟及临近事件逐级提频、退避和来源预算。"
+        },
+        "id": "S05P03-TASKPACK-REQUIREMENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "environment": [
+            "Ubuntu Linux 持续集成环境",
+            "固定时钟",
+            "冻结测试夹具",
+            "无外部网络的确定性测试模式",
+            "生产等价配置Schema"
+          ],
+          "evidence_requirements": [
+            "machine/evidence/EVD-S05-P03.json",
+            "测试报告及命令退出码",
+            "输入、参数、代码、模型和输出SHA-256",
+            "失败路径截图或结构化日志",
+            "回滚演练记录"
+          ],
+          "id": "AC-S05-P03",
+          "inputs": [
+            "REQ-S05-P03 对应机器事实",
+            "S05/P03 冻结正向、边界、负向和故障输入",
+            "参数版本和来源版本哈希"
+          ],
+          "oracle": {
+            "command": "python -m abd_acceptance --contract AC-S05-P03 --evidence machine/evidence",
+            "rule": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。",
+            "type": "EXECUTABLE"
+          },
+          "pass_gate": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。",
+          "requirement_id": "REQ-S05-P03",
+          "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_condition": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "tests": [
+            {
+              "id": "TEST-S05-P03",
+              "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+            },
+            {
+              "id": "TEST-S05-P03-BOUNDARY",
+              "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+            },
+            {
+              "id": "TEST-S05-P03-REPLAY",
+              "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+            }
+          ],
+          "threshold": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。",
+          "title": "自适应采集调度唯一主验收"
+        },
+        "id": "S05P03-TASKPACK-ACCEPTANCE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S05-P03-01",
+          "T-S05-P03-02",
+          "T-S05-P03-03"
+        ],
+        "id": "S05P03-TASKPACK-TASKS",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_criteria_id": "AC-S05-P03",
+            "artifact_ids": [
+              "ART-S05-P03-01",
+              "ART-S05-P03-02",
+              "ART-S05-P03-03"
+            ],
+            "evidence_id": "EVD-S05-P03",
+            "phase_id": "P03",
+            "requirement_id": "REQ-S05-P03",
+            "stage_id": "S05",
+            "task_ids": [
+              "T-S05-P03-01",
+              "T-S05-P03-02",
+              "T-S05-P03-03"
+            ],
+            "test_ids": [
+              "TEST-S05-P03",
+              "TEST-S05-P03-BOUNDARY",
+              "TEST-S05-P03-REPLAY"
+            ]
+          }
+        ],
+        "id": "S05P03-TASKPACK-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "hours": {
+            "high": 6,
+            "likely": 4,
+            "low": 3
+          },
+          "id": "P03",
+          "objective": "实现>24小时每30分钟及临近事件逐级提频、退避和来源预算。",
+          "outputs": [
+            "scheduler.py",
+            "cadence_tests.json",
+            "rate_budget.json"
+          ],
+          "pass_gate": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。",
+          "title": "自适应采集调度"
+        },
+        "id": "S05P03-TASKPACK-ROADMAP",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ART-S05-P03-01": "scheduler.py",
+          "ART-S05-P03-02": "cadence_tests.json",
+          "ART-S05-P03-03": "rate_budget.json"
+        },
+        "id": "S05P03-FIXTURE-BINDING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "machine/evidence/EVD-S05-P02.json": "c7594b54822a0292911c696533e199b97f3af3bba4e363149ab35f154388988b",
+          "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "machine/tests/fixtures/schedule_boundary_vectors.json": "4b23ecbdaa11e4bd5df20c06d717ea8d60cf705f2ed86f3329912b4e848fd35b",
+          "scheduler.py": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91"
+        },
+        "id": "S05P03-CADENCE-AUTHORITY-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "machine/evidence/EVD-S05-P02.json": "c7594b54822a0292911c696533e199b97f3af3bba4e363149ab35f154388988b",
+          "provider_contracts.json": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+          "source_capabilities.json": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539"
+        },
+        "id": "S05P03-RATE-AUTHORITY-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cadence": "ART-S05-P03-02",
+          "rate": "ART-S05-P03-03"
+        },
+        "id": "S05P03-ARTIFACT-IDENTITY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "more_than_24h",
+          "2h_to_24h",
+          "15m_to_2h",
+          "0_to_15m",
+          "live"
+        ],
+        "id": "S05P03-CADENCE-BAND-ORDER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_usable_seconds": 1500,
+          "band": "more_than_24h",
+          "quote_usable_seconds": 2100,
+          "refresh_seconds": 1800
+        },
+        "id": "S05P03-CADENCE-BAND-MORE_THAN_24H",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_usable_seconds": 240,
+          "band": "2h_to_24h",
+          "quote_usable_seconds": 420,
+          "refresh_seconds": 300
+        },
+        "id": "S05P03-CADENCE-BAND-2H_TO_24H",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_usable_seconds": 45,
+          "band": "15m_to_2h",
+          "quote_usable_seconds": 90,
+          "refresh_seconds": 60
+        },
+        "id": "S05P03-CADENCE-BAND-15M_TO_2H",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_usable_seconds": 15,
+          "band": "0_to_15m",
+          "quote_usable_seconds": 30,
+          "refresh_seconds": 20
+        },
+        "id": "S05P03-CADENCE-BAND-0_TO_15M",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_usable_seconds": 8,
+          "band": "live",
+          "quote_usable_seconds": 12,
+          "refresh_seconds": 10
+        },
+        "id": "S05P03-CADENCE-BAND-LIVE",
+        "passed": true
+      },
+      {
+        "detail": [
+          1800,
+          300,
+          60,
+          20,
+          10
+        ],
+        "id": "S05P03-CANONICAL-REFRESH-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "above_exact_limit": "NO_DISPATCH_NO_ADVICE",
+          "at_exact_limit": "PASS",
+          "comparison_unit": "INTEGER_MICROSECONDS",
+          "distance_recalculation_seconds": 60,
+          "maximum_dispatch_deviation_seconds": 2
+        },
+        "id": "S05P03-FIXED-CLOCK-GATE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "classification": "ADVERSE_MORE_URGENT_BAND",
+          "exact_15m_band": "0_to_15m",
+          "exact_24h_band": "2h_to_24h",
+          "exact_2h_band": "15m_to_2h",
+          "nonpositive_prematch_time_action": "NO_DISPATCH_NO_ADVICE",
+          "unknown_time_or_status_action": "NO_DISPATCH_NO_ADVICE"
+        },
+        "id": "S05P03-ADVERSE-BOUNDARY-POLICY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "result": {
+            "advice_enabled": false,
+            "advice_usable_seconds": 1500,
+            "band": "more_than_24h",
+            "collection_performed": false,
+            "decision": "CADENCE_CLASSIFIED",
+            "distance_recalculation_seconds": 60,
+            "external_action_performed": false,
+            "order_enabled": false,
+            "quote_usable_seconds": 2100,
+            "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+            "refresh_seconds": 1800
+          },
+          "vector": {
+            "expected_refresh_seconds": 1800,
+            "time_to_start_seconds": 86401
+          }
+        },
+        "id": "S05P03-TASKPACK-SCHEDULE-VECTOR-00",
+        "passed": true
+      },
+      {
+        "detail": {
+          "result": {
+            "advice_enabled": false,
+            "advice_usable_seconds": 240,
+            "band": "2h_to_24h",
+            "collection_performed": false,
+            "decision": "CADENCE_CLASSIFIED",
+            "distance_recalculation_seconds": 60,
+            "external_action_performed": false,
+            "order_enabled": false,
+            "quote_usable_seconds": 420,
+            "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+            "refresh_seconds": 300
+          },
+          "vector": {
+            "expected_refresh_seconds": 300,
+            "time_to_start_seconds": 86400
+          }
+        },
+        "id": "S05P03-TASKPACK-SCHEDULE-VECTOR-01",
+        "passed": true
+      },
+      {
+        "detail": {
+          "result": {
+            "advice_enabled": false,
+            "advice_usable_seconds": 240,
+            "band": "2h_to_24h",
+            "collection_performed": false,
+            "decision": "CADENCE_CLASSIFIED",
+            "distance_recalculation_seconds": 60,
+            "external_action_performed": false,
+            "order_enabled": false,
+            "quote_usable_seconds": 420,
+            "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+            "refresh_seconds": 300
+          },
+          "vector": {
+            "expected_refresh_seconds": 300,
+            "time_to_start_seconds": 7201
+          }
+        },
+        "id": "S05P03-TASKPACK-SCHEDULE-VECTOR-02",
+        "passed": true
+      },
+      {
+        "detail": {
+          "result": {
+            "advice_enabled": false,
+            "advice_usable_seconds": 45,
+            "band": "15m_to_2h",
+            "collection_performed": false,
+            "decision": "CADENCE_CLASSIFIED",
+            "distance_recalculation_seconds": 60,
+            "external_action_performed": false,
+            "order_enabled": false,
+            "quote_usable_seconds": 90,
+            "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+            "refresh_seconds": 60
+          },
+          "vector": {
+            "expected_refresh_seconds": 60,
+            "time_to_start_seconds": 7200
+          }
+        },
+        "id": "S05P03-TASKPACK-SCHEDULE-VECTOR-03",
+        "passed": true
+      },
+      {
+        "detail": {
+          "result": {
+            "advice_enabled": false,
+            "advice_usable_seconds": 45,
+            "band": "15m_to_2h",
+            "collection_performed": false,
+            "decision": "CADENCE_CLASSIFIED",
+            "distance_recalculation_seconds": 60,
+            "external_action_performed": false,
+            "order_enabled": false,
+            "quote_usable_seconds": 90,
+            "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+            "refresh_seconds": 60
+          },
+          "vector": {
+            "expected_refresh_seconds": 60,
+            "time_to_start_seconds": 901
+          }
+        },
+        "id": "S05P03-TASKPACK-SCHEDULE-VECTOR-04",
+        "passed": true
+      },
+      {
+        "detail": {
+          "result": {
+            "advice_enabled": false,
+            "advice_usable_seconds": 15,
+            "band": "0_to_15m",
+            "collection_performed": false,
+            "decision": "CADENCE_CLASSIFIED",
+            "distance_recalculation_seconds": 60,
+            "external_action_performed": false,
+            "order_enabled": false,
+            "quote_usable_seconds": 30,
+            "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+            "refresh_seconds": 20
+          },
+          "vector": {
+            "expected_refresh_seconds": 20,
+            "time_to_start_seconds": 900
+          }
+        },
+        "id": "S05P03-TASKPACK-SCHEDULE-VECTOR-05",
+        "passed": true
+      },
+      {
+        "detail": {
+          "result": {
+            "advice_enabled": false,
+            "advice_usable_seconds": 8,
+            "band": "live",
+            "collection_performed": false,
+            "decision": "CADENCE_CLASSIFIED",
+            "distance_recalculation_seconds": 60,
+            "external_action_performed": false,
+            "order_enabled": false,
+            "quote_usable_seconds": 12,
+            "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+            "refresh_seconds": 10
+          },
+          "vector": {
+            "expected_refresh_seconds": 10,
+            "source_supported": true,
+            "status": "LIVE"
+          }
+        },
+        "id": "S05P03-TASKPACK-SCHEDULE-VECTOR-06",
+        "passed": true
+      },
+      {
+        "detail": {
+          "result": {
+            "advice_enabled": false,
+            "collection_performed": false,
+            "decision": "NO_DISPATCH_NO_ADVICE",
+            "detail": "OBSERVE_OR_NO_RECOMMENDATION",
+            "external_action_performed": false,
+            "order_enabled": false,
+            "reason_code": "LIVE_REFRESH_UNSUPPORTED"
+          },
+          "vector": {
+            "expected_action": "OBSERVE_OR_NO_RECOMMENDATION",
+            "source_supported": false,
+            "status": "LIVE"
+          }
+        },
+        "id": "S05P03-TASKPACK-SCHEDULE-VECTOR-07",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "advice_usable_seconds": 1500,
+          "band": "more_than_24h",
+          "collection_performed": false,
+          "decision": "CADENCE_CLASSIFIED",
+          "distance_recalculation_seconds": 60,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "quote_usable_seconds": 2100,
+          "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+          "refresh_seconds": 1800
+        },
+        "id": "S05P03-CADENCE-VECTOR-MORE-THAN-24H",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "advice_usable_seconds": 240,
+          "band": "2h_to_24h",
+          "collection_performed": false,
+          "decision": "CADENCE_CLASSIFIED",
+          "distance_recalculation_seconds": 60,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "quote_usable_seconds": 420,
+          "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+          "refresh_seconds": 300
+        },
+        "id": "S05P03-CADENCE-VECTOR-EXACT-24H-ADVERSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "advice_usable_seconds": 240,
+          "band": "2h_to_24h",
+          "collection_performed": false,
+          "decision": "CADENCE_CLASSIFIED",
+          "distance_recalculation_seconds": 60,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "quote_usable_seconds": 420,
+          "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+          "refresh_seconds": 300
+        },
+        "id": "S05P03-CADENCE-VECTOR-ABOVE-2H",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "advice_usable_seconds": 45,
+          "band": "15m_to_2h",
+          "collection_performed": false,
+          "decision": "CADENCE_CLASSIFIED",
+          "distance_recalculation_seconds": 60,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "quote_usable_seconds": 90,
+          "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+          "refresh_seconds": 60
+        },
+        "id": "S05P03-CADENCE-VECTOR-EXACT-2H-ADVERSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "advice_usable_seconds": 45,
+          "band": "15m_to_2h",
+          "collection_performed": false,
+          "decision": "CADENCE_CLASSIFIED",
+          "distance_recalculation_seconds": 60,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "quote_usable_seconds": 90,
+          "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+          "refresh_seconds": 60
+        },
+        "id": "S05P03-CADENCE-VECTOR-ABOVE-15M",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "advice_usable_seconds": 15,
+          "band": "0_to_15m",
+          "collection_performed": false,
+          "decision": "CADENCE_CLASSIFIED",
+          "distance_recalculation_seconds": 60,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "quote_usable_seconds": 30,
+          "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+          "refresh_seconds": 20
+        },
+        "id": "S05P03-CADENCE-VECTOR-EXACT-15M-ADVERSE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "advice_usable_seconds": 8,
+          "band": "live",
+          "collection_performed": false,
+          "decision": "CADENCE_CLASSIFIED",
+          "distance_recalculation_seconds": 60,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "quote_usable_seconds": 12,
+          "reason_code": "ADVERSE_BOUNDARY_CLASSIFICATION",
+          "refresh_seconds": 10
+        },
+        "id": "S05P03-CADENCE-VECTOR-LIVE-SUPPORTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": "OBSERVE_OR_NO_RECOMMENDATION",
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "LIVE_REFRESH_UNSUPPORTED"
+        },
+        "id": "S05P03-CADENCE-VECTOR-LIVE-UNSUPPORTED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_dispatch_at": "2026-07-23T17:59:58+10:00",
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "DISPATCH_TIMING_PASS",
+          "deviation_microseconds": 2000000,
+          "deviation_seconds": "2.000000",
+          "external_action_performed": false,
+          "max_deviation_microseconds": 2000000,
+          "order_enabled": false,
+          "reason_code": "WITHIN_TWO_SECOND_GATE",
+          "scheduled_at": "2026-07-23T18:00:00+10:00"
+        },
+        "id": "S05P03-DISPATCH-VECTOR-EARLY-EXACT-TWO-SECONDS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_dispatch_at": "2026-07-23T18:00:00+10:00",
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "DISPATCH_TIMING_PASS",
+          "deviation_microseconds": 0,
+          "deviation_seconds": "0.000000",
+          "external_action_performed": false,
+          "max_deviation_microseconds": 2000000,
+          "order_enabled": false,
+          "reason_code": "WITHIN_TWO_SECOND_GATE",
+          "scheduled_at": "2026-07-23T18:00:00+10:00"
+        },
+        "id": "S05P03-DISPATCH-VECTOR-ON-CLOCK",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_dispatch_at": "2026-07-23T18:00:02+10:00",
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "DISPATCH_TIMING_PASS",
+          "deviation_microseconds": 2000000,
+          "deviation_seconds": "2.000000",
+          "external_action_performed": false,
+          "max_deviation_microseconds": 2000000,
+          "order_enabled": false,
+          "reason_code": "WITHIN_TWO_SECOND_GATE",
+          "scheduled_at": "2026-07-23T18:00:00+10:00"
+        },
+        "id": "S05P03-DISPATCH-VECTOR-LATE-EXACT-TWO-SECONDS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_dispatch_at": "2026-07-23T18:00:03+10:00",
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "deviation_microseconds": 3000000,
+          "deviation_seconds": "3.000000",
+          "external_action_performed": false,
+          "max_deviation_microseconds": 2000000,
+          "order_enabled": false,
+          "reason_code": "DISPATCH_DEVIATION_EXCEEDED",
+          "scheduled_at": "2026-07-23T18:00:00+10:00"
+        },
+        "id": "S05P03-DISPATCH-VECTOR-LATE-THREE-SECONDS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_age_microseconds": 0,
+          "advice_enabled": false,
+          "advice_input_eligible": true,
+          "advice_usable_seconds": 45,
+          "band": "15m_to_2h",
+          "collection_performed": false,
+          "decision": "ALLOW_ADVICE_INPUT_EVALUATION",
+          "effective_quote_age_microseconds": 45000000,
+          "effective_quote_age_seconds": "45.000000",
+          "external_action_performed": false,
+          "order_enabled": false,
+          "quote_usable": true,
+          "quote_usable_seconds": 90,
+          "reason_code": "FRESH_INPUT_MAY_ENTER_ADVICE_EVALUATION",
+          "recommendation_generated": false
+        },
+        "id": "S05P03-FRESHNESS-VECTOR-ADVICE-EXACT-LIMIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_age_microseconds": 0,
+          "advice_enabled": false,
+          "advice_input_eligible": false,
+          "advice_usable_seconds": 45,
+          "band": "15m_to_2h",
+          "collection_performed": false,
+          "decision": "NO_ADVICE",
+          "effective_quote_age_microseconds": 46000000,
+          "effective_quote_age_seconds": "46.000000",
+          "external_action_performed": false,
+          "order_enabled": false,
+          "quote_usable": true,
+          "quote_usable_seconds": 90,
+          "reason_code": "STALE_FOR_ADVICE_BLOCKED",
+          "recommendation_generated": false
+        },
+        "id": "S05P03-FRESHNESS-VECTOR-ADVICE-ONE-SECOND-STALE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_age_microseconds": 0,
+          "advice_enabled": false,
+          "advice_input_eligible": false,
+          "advice_usable_seconds": 45,
+          "band": "15m_to_2h",
+          "collection_performed": false,
+          "decision": "NO_ADVICE",
+          "effective_quote_age_microseconds": 91000000,
+          "effective_quote_age_seconds": "91.000000",
+          "external_action_performed": false,
+          "order_enabled": false,
+          "quote_usable": false,
+          "quote_usable_seconds": 90,
+          "reason_code": "STALE_QUOTE_BLOCKED",
+          "recommendation_generated": false
+        },
+        "id": "S05P03-FRESHNESS-VECTOR-QUOTE-ONE-SECOND-STALE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "CAP-TAB-PUBLIC_BROWSER",
+          "CAP-TAB-FILE_OR_STATIC_DATA",
+          "CAP-TAB-FREE_ENDPOINT",
+          "CAP-TAB-AUTHENTICATED_OBSERVER",
+          "CAP-TAB-OWNER_DEVICE_OVERLAY",
+          "CAP-SPORTSBET-PUBLIC_BROWSER",
+          "CAP-SPORTSBET-FILE_OR_STATIC_DATA",
+          "CAP-SPORTSBET-FREE_ENDPOINT",
+          "CAP-SPORTSBET-AUTHENTICATED_OBSERVER",
+          "CAP-SPORTSBET-OWNER_DEVICE_OVERLAY",
+          "CAP-OTHER_OBSERVABLE_PROVIDER-PUBLIC_BROWSER",
+          "CAP-OTHER_OBSERVABLE_PROVIDER-FILE_OR_STATIC_DATA",
+          "CAP-OTHER_OBSERVABLE_PROVIDER-FREE_ENDPOINT",
+          "CAP-OTHER_OBSERVABLE_PROVIDER-AUTHENTICATED_OBSERVER",
+          "CAP-OTHER_OBSERVABLE_PROVIDER-OWNER_DEVICE_OVERLAY"
+        ],
+        "id": "S05P03-REAL-BUDGET-MATRIX-COMPLETE",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "capability_id": "CAP-TAB-PUBLIC_BROWSER",
+            "max_dispatches_per_window": 0,
+            "mode": "PUBLIC_BROWSER",
+            "production_collection_enabled": false,
+            "provider_contract_version": "TAB-2026-07-20-S05P02",
+            "provider_id": "TAB",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-TAB-FILE_OR_STATIC_DATA",
+            "max_dispatches_per_window": 0,
+            "mode": "FILE_OR_STATIC_DATA",
+            "production_collection_enabled": false,
+            "provider_contract_version": "TAB-2026-07-20-S05P02",
+            "provider_id": "TAB",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-TAB-FREE_ENDPOINT",
+            "max_dispatches_per_window": 0,
+            "mode": "FREE_ENDPOINT",
+            "production_collection_enabled": false,
+            "provider_contract_version": "TAB-2026-07-20-S05P02",
+            "provider_id": "TAB",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-TAB-AUTHENTICATED_OBSERVER",
+            "max_dispatches_per_window": 0,
+            "mode": "AUTHENTICATED_OBSERVER",
+            "production_collection_enabled": false,
+            "provider_contract_version": "TAB-2026-07-20-S05P02",
+            "provider_id": "TAB",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-TAB-OWNER_DEVICE_OVERLAY",
+            "max_dispatches_per_window": 0,
+            "mode": "OWNER_DEVICE_OVERLAY",
+            "production_collection_enabled": false,
+            "provider_contract_version": "TAB-2026-07-20-S05P02",
+            "provider_id": "TAB",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-SPORTSBET-PUBLIC_BROWSER",
+            "max_dispatches_per_window": 0,
+            "mode": "PUBLIC_BROWSER",
+            "production_collection_enabled": false,
+            "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+            "provider_id": "SPORTSBET",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-SPORTSBET-FILE_OR_STATIC_DATA",
+            "max_dispatches_per_window": 0,
+            "mode": "FILE_OR_STATIC_DATA",
+            "production_collection_enabled": false,
+            "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+            "provider_id": "SPORTSBET",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-SPORTSBET-FREE_ENDPOINT",
+            "max_dispatches_per_window": 0,
+            "mode": "FREE_ENDPOINT",
+            "production_collection_enabled": false,
+            "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+            "provider_id": "SPORTSBET",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-SPORTSBET-AUTHENTICATED_OBSERVER",
+            "max_dispatches_per_window": 0,
+            "mode": "AUTHENTICATED_OBSERVER",
+            "production_collection_enabled": false,
+            "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+            "provider_id": "SPORTSBET",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-SPORTSBET-OWNER_DEVICE_OVERLAY",
+            "max_dispatches_per_window": 0,
+            "mode": "OWNER_DEVICE_OVERLAY",
+            "production_collection_enabled": false,
+            "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+            "provider_id": "SPORTSBET",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-PUBLIC_BROWSER",
+            "max_dispatches_per_window": 0,
+            "mode": "PUBLIC_BROWSER",
+            "production_collection_enabled": false,
+            "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FILE_OR_STATIC_DATA",
+            "max_dispatches_per_window": 0,
+            "mode": "FILE_OR_STATIC_DATA",
+            "production_collection_enabled": false,
+            "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FREE_ENDPOINT",
+            "max_dispatches_per_window": 0,
+            "mode": "FREE_ENDPOINT",
+            "production_collection_enabled": false,
+            "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-AUTHENTICATED_OBSERVER",
+            "max_dispatches_per_window": 0,
+            "mode": "AUTHENTICATED_OBSERVER",
+            "production_collection_enabled": false,
+            "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          },
+          {
+            "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-OWNER_DEVICE_OVERLAY",
+            "max_dispatches_per_window": 0,
+            "mode": "OWNER_DEVICE_OVERLAY",
+            "production_collection_enabled": false,
+            "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+            "reason": "P02_CAPABILITY_DISABLED",
+            "window_seconds": 0
+          }
+        ],
+        "id": "S05P03-ALL-REAL-BUDGETS-ZERO",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-TAB-PUBLIC_BROWSER",
+          "max_dispatches_per_window": 0,
+          "mode": "PUBLIC_BROWSER",
+          "production_collection_enabled": false,
+          "provider_contract_version": "TAB-2026-07-20-S05P02",
+          "provider_id": "TAB",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-TAB-PUBLIC_BROWSER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-TAB-FILE_OR_STATIC_DATA",
+          "max_dispatches_per_window": 0,
+          "mode": "FILE_OR_STATIC_DATA",
+          "production_collection_enabled": false,
+          "provider_contract_version": "TAB-2026-07-20-S05P02",
+          "provider_id": "TAB",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-TAB-FILE_OR_STATIC_DATA",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-TAB-FREE_ENDPOINT",
+          "max_dispatches_per_window": 0,
+          "mode": "FREE_ENDPOINT",
+          "production_collection_enabled": false,
+          "provider_contract_version": "TAB-2026-07-20-S05P02",
+          "provider_id": "TAB",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-TAB-FREE_ENDPOINT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-TAB-AUTHENTICATED_OBSERVER",
+          "max_dispatches_per_window": 0,
+          "mode": "AUTHENTICATED_OBSERVER",
+          "production_collection_enabled": false,
+          "provider_contract_version": "TAB-2026-07-20-S05P02",
+          "provider_id": "TAB",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-TAB-AUTHENTICATED_OBSERVER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-TAB-OWNER_DEVICE_OVERLAY",
+          "max_dispatches_per_window": 0,
+          "mode": "OWNER_DEVICE_OVERLAY",
+          "production_collection_enabled": false,
+          "provider_contract_version": "TAB-2026-07-20-S05P02",
+          "provider_id": "TAB",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-TAB-OWNER_DEVICE_OVERLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-SPORTSBET-PUBLIC_BROWSER",
+          "max_dispatches_per_window": 0,
+          "mode": "PUBLIC_BROWSER",
+          "production_collection_enabled": false,
+          "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+          "provider_id": "SPORTSBET",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-SPORTSBET-PUBLIC_BROWSER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-SPORTSBET-FILE_OR_STATIC_DATA",
+          "max_dispatches_per_window": 0,
+          "mode": "FILE_OR_STATIC_DATA",
+          "production_collection_enabled": false,
+          "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+          "provider_id": "SPORTSBET",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-SPORTSBET-FILE_OR_STATIC_DATA",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-SPORTSBET-FREE_ENDPOINT",
+          "max_dispatches_per_window": 0,
+          "mode": "FREE_ENDPOINT",
+          "production_collection_enabled": false,
+          "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+          "provider_id": "SPORTSBET",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-SPORTSBET-FREE_ENDPOINT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-SPORTSBET-AUTHENTICATED_OBSERVER",
+          "max_dispatches_per_window": 0,
+          "mode": "AUTHENTICATED_OBSERVER",
+          "production_collection_enabled": false,
+          "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+          "provider_id": "SPORTSBET",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-SPORTSBET-AUTHENTICATED_OBSERVER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-SPORTSBET-OWNER_DEVICE_OVERLAY",
+          "max_dispatches_per_window": 0,
+          "mode": "OWNER_DEVICE_OVERLAY",
+          "production_collection_enabled": false,
+          "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+          "provider_id": "SPORTSBET",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-SPORTSBET-OWNER_DEVICE_OVERLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-PUBLIC_BROWSER",
+          "max_dispatches_per_window": 0,
+          "mode": "PUBLIC_BROWSER",
+          "production_collection_enabled": false,
+          "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+          "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-OTHER_OBSERVABLE_PROVIDER-PUBLIC_BROWSER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FILE_OR_STATIC_DATA",
+          "max_dispatches_per_window": 0,
+          "mode": "FILE_OR_STATIC_DATA",
+          "production_collection_enabled": false,
+          "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+          "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-OTHER_OBSERVABLE_PROVIDER-FILE_OR_STATIC_DATA",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FREE_ENDPOINT",
+          "max_dispatches_per_window": 0,
+          "mode": "FREE_ENDPOINT",
+          "production_collection_enabled": false,
+          "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+          "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-OTHER_OBSERVABLE_PROVIDER-FREE_ENDPOINT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-AUTHENTICATED_OBSERVER",
+          "max_dispatches_per_window": 0,
+          "mode": "AUTHENTICATED_OBSERVER",
+          "production_collection_enabled": false,
+          "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+          "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-OTHER_OBSERVABLE_PROVIDER-AUTHENTICATED_OBSERVER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-OWNER_DEVICE_OVERLAY",
+          "max_dispatches_per_window": 0,
+          "mode": "OWNER_DEVICE_OVERLAY",
+          "production_collection_enabled": false,
+          "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+          "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+          "reason": "P02_CAPABILITY_DISABLED",
+          "window_seconds": 0
+        },
+        "id": "S05P03-BUDGET-BINDING-CAP-OTHER_OBSERVABLE_PROVIDER-OWNER_DEVICE_OVERLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-FROZEN-SYNTHETIC-SCHEDULER",
+          "external_action_permitted": false,
+          "max_dispatches_per_window": 120,
+          "mode": "FILE_OR_STATIC_DATA",
+          "production_collection_enabled": true,
+          "provider_contract_version": "FIXTURE-ONLY-1",
+          "provider_id": "FROZEN_SYNTHETIC_PROVIDER",
+          "reason": "DETERMINISTIC_OFFLINE_TEST_ONLY",
+          "test_fixture_only": true,
+          "window_seconds": 60
+        },
+        "id": "S05P03-SYNTHETIC-BUDGET-ISOLATED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "algorithm": "DETERMINISTIC_EXPONENTIAL_NO_JITTER",
+          "challenge_action": "STOP_RETRY_AND_SURFACE_GAP",
+          "initial_seconds": 30,
+          "jitter_seconds": 0,
+          "maximum_seconds": 1800,
+          "multiplier": 2,
+          "unknown_failure_action": "STOP_RETRY_AND_SURFACE_GAP"
+        },
+        "id": "S05P03-DETERMINISTIC-BACKOFF-POLICY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": 0,
+          "expected": 0
+        },
+        "id": "S05P03-BACKOFF-0",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": 30,
+          "expected": 30
+        },
+        "id": "S05P03-BACKOFF-1",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": 60,
+          "expected": 60
+        },
+        "id": "S05P03-BACKOFF-2",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": 120,
+          "expected": 120
+        },
+        "id": "S05P03-BACKOFF-3",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": 240,
+          "expected": 240
+        },
+        "id": "S05P03-BACKOFF-4",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": 480,
+          "expected": 480
+        },
+        "id": "S05P03-BACKOFF-5",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": 960,
+          "expected": 960
+        },
+        "id": "S05P03-BACKOFF-6",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": 1800,
+          "expected": 1800
+        },
+        "id": "S05P03-BACKOFF-7",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": 1800,
+          "expected": 1800
+        },
+        "id": "S05P03-BACKOFF-12",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "advice_usable_seconds": 45,
+          "backoff_seconds": 0,
+          "band": "15m_to_2h",
+          "capability_id": "CAP-FROZEN-SYNTHETIC-SCHEDULER",
+          "collection_performed": false,
+          "decision": "PLAN_FROZEN_TEST_REFRESH",
+          "dispatch_deviation_microseconds": 2000000,
+          "distance_recalculation_seconds": 60,
+          "external_action_performed": false,
+          "next_due_at": "2026-07-23T18:01:00+10:00",
+          "order_enabled": false,
+          "quote_usable_seconds": 90,
+          "reason_code": "SOURCE_RATE_AND_CADENCE_GATES_PASS",
+          "refresh_seconds": 60,
+          "remaining_dispatches_in_window": 119
+        },
+        "id": "S05P03-SYNTHETIC-PLAN-PASS",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "actual": "SOURCE_CAPABILITY_GATE_NOT_PASSED",
+            "expected": "SOURCE_CAPABILITY_GATE_NOT_PASSED",
+            "id": "SOURCE-GATE-DENIED",
+            "passed": true
+          },
+          {
+            "actual": "TEST_BUDGET_PROHIBITED_IN_PRODUCTION",
+            "expected": "TEST_BUDGET_PROHIBITED_IN_PRODUCTION",
+            "id": "FIXTURE-IN-PRODUCTION",
+            "passed": true
+          },
+          {
+            "actual": "INCREMENTAL_CASH_NOT_ZERO",
+            "expected": "INCREMENTAL_CASH_NOT_ZERO",
+            "id": "POSITIVE-CASH",
+            "passed": true
+          },
+          {
+            "actual": "INCREMENTAL_CASH_NOT_ZERO",
+            "expected": "INCREMENTAL_CASH_NOT_ZERO",
+            "id": "UNKNOWN-CASH",
+            "passed": true
+          },
+          {
+            "actual": "UNKNOWN_OR_DUPLICATE_CAPABILITY_BUDGET",
+            "expected": "UNKNOWN_OR_DUPLICATE_CAPABILITY_BUDGET",
+            "id": "UNKNOWN-CAPABILITY",
+            "passed": true
+          },
+          {
+            "actual": "RATE_BUDGET_EXHAUSTED",
+            "expected": "RATE_BUDGET_EXHAUSTED",
+            "id": "BUDGET-EXHAUSTED",
+            "passed": true
+          },
+          {
+            "actual": "INVALID_WINDOW_DISPATCH_COUNT",
+            "expected": "INVALID_WINDOW_DISPATCH_COUNT",
+            "id": "BOOLEAN-DISPATCH-COUNT",
+            "passed": true
+          },
+          {
+            "actual": "UNKNOWN_EVENT_STATUS",
+            "expected": "UNKNOWN_EVENT_STATUS",
+            "id": "UNKNOWN-STATUS",
+            "passed": true
+          },
+          {
+            "actual": "INVALID_TIME_TO_START",
+            "expected": "INVALID_TIME_TO_START",
+            "id": "BOOLEAN-TIME",
+            "passed": true
+          },
+          {
+            "actual": "EVENT_STARTED_WITHOUT_VERIFIED_LIVE_STATE",
+            "expected": "EVENT_STARTED_WITHOUT_VERIFIED_LIVE_STATE",
+            "id": "STARTED-WITHOUT-LIVE",
+            "passed": true
+          },
+          {
+            "actual": "LIVE_REFRESH_UNSUPPORTED",
+            "expected": "LIVE_REFRESH_UNSUPPORTED",
+            "id": "LIVE-UNSUPPORTED",
+            "passed": true
+          },
+          {
+            "actual": "DISPATCH_DEVIATION_EXCEEDED",
+            "expected": "DISPATCH_DEVIATION_EXCEEDED",
+            "id": "DISPATCH-LATE",
+            "passed": true
+          },
+          {
+            "actual": "INVALID_DISPATCH_TIMESTAMP",
+            "expected": "INVALID_DISPATCH_TIMESTAMP",
+            "id": "NAIVE-DISPATCH-TIME",
+            "passed": true
+          },
+          {
+            "actual": "INVALID_NEXT_DUE_INPUT",
+            "expected": "INVALID_NEXT_DUE_INPUT",
+            "id": "NEGATIVE-FAILURE-COUNT",
+            "passed": true
+          },
+          {
+            "actual": "MALFORMED_SCHEDULE_REQUEST",
+            "expected": "MALFORMED_SCHEDULE_REQUEST",
+            "id": "MISSING-CAPABILITY",
+            "passed": true
+          }
+        ],
+        "id": "S05P03-NEGATIVE-SCHEDULE-CATALOG",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "actual": "SOURCE_CLOCK_UNTRUSTED",
+            "expected": "SOURCE_CLOCK_UNTRUSTED",
+            "id": "UNTRUSTED-CLOCK",
+            "passed": true
+          },
+          {
+            "actual": "CONTENT_HASH_MISSING_OR_INVALID",
+            "expected": "CONTENT_HASH_MISSING_OR_INVALID",
+            "id": "MISSING-HASH",
+            "passed": true
+          },
+          {
+            "actual": "CONTENT_HASH_MISSING_OR_INVALID",
+            "expected": "CONTENT_HASH_MISSING_OR_INVALID",
+            "id": "MALFORMED-HASH",
+            "passed": true
+          },
+          {
+            "actual": "FUTURE_QUOTE_TIMESTAMP",
+            "expected": "FUTURE_QUOTE_TIMESTAMP",
+            "id": "FUTURE-SOURCE-TIME",
+            "passed": true
+          },
+          {
+            "actual": "FUTURE_QUOTE_TIMESTAMP",
+            "expected": "FUTURE_QUOTE_TIMESTAMP",
+            "id": "FUTURE-OBSERVED-TIME",
+            "passed": true
+          },
+          {
+            "actual": "INVALID_FRESHNESS_TIMESTAMP",
+            "expected": "INVALID_FRESHNESS_TIMESTAMP",
+            "id": "NAIVE-SOURCE-TIME",
+            "passed": true
+          },
+          {
+            "actual": "UNKNOWN_CADENCE_BAND",
+            "expected": "UNKNOWN_CADENCE_BAND",
+            "id": "UNKNOWN-BAND",
+            "passed": true
+          }
+        ],
+        "id": "S05P03-FRESHNESS-FAULT-CATALOG",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-TAB-PUBLIC_BROWSER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-TAB-FILE_OR_STATIC_DATA",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-TAB-FREE_ENDPOINT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-TAB-AUTHENTICATED_OBSERVER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-TAB-OWNER_DEVICE_OVERLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-SPORTSBET-PUBLIC_BROWSER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-SPORTSBET-FILE_OR_STATIC_DATA",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-SPORTSBET-FREE_ENDPOINT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-SPORTSBET-AUTHENTICATED_OBSERVER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-SPORTSBET-OWNER_DEVICE_OVERLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-OTHER_OBSERVABLE_PROVIDER-PUBLIC_BROWSER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-OTHER_OBSERVABLE_PROVIDER-FILE_OR_STATIC_DATA",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-OTHER_OBSERVABLE_PROVIDER-FREE_ENDPOINT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-OTHER_OBSERVABLE_PROVIDER-AUTHENTICATED_OBSERVER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "collection_performed": false,
+          "decision": "NO_DISPATCH_NO_ADVICE",
+          "detail": null,
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "CAPABILITY_BUDGET_DISABLED"
+        },
+        "id": "S05P03-REAL-CAPABILITY-DENIED-CAP-OTHER_OBSERVABLE_PROVIDER-OWNER_DEVICE_OVERLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": "NOT_APPLICABLE_TO_INTEGER_TIME_CLASSIFICATION",
+          "delta": "-0.0001"
+        },
+        "id": "S05P03-NUMERIC-STABILITY-NEG0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": "NOT_APPLICABLE_TO_INTEGER_TIME_CLASSIFICATION",
+          "delta": "0"
+        },
+        "id": "S05P03-NUMERIC-STABILITY-0",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": "NOT_APPLICABLE_TO_INTEGER_TIME_CLASSIFICATION",
+          "delta": "0.0001"
+        },
+        "id": "S05P03-NUMERIC-STABILITY-0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "advice_usable_seconds": 45,
+          "backoff_seconds": 0,
+          "band": "15m_to_2h",
+          "capability_id": "CAP-FROZEN-SYNTHETIC-SCHEDULER",
+          "collection_performed": false,
+          "decision": "PLAN_FROZEN_TEST_REFRESH",
+          "dispatch_deviation_microseconds": 2000000,
+          "distance_recalculation_seconds": 60,
+          "external_action_performed": false,
+          "next_due_at": "2026-07-23T18:01:00+10:00",
+          "order_enabled": false,
+          "quote_usable_seconds": 90,
+          "reason_code": "SOURCE_RATE_AND_CADENCE_GATES_PASS",
+          "refresh_seconds": 60,
+          "remaining_dispatches_in_window": 119
+        },
+        "id": "S05P03-DETERMINISTIC-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": "all authoritative numeric values are integers or decimal strings",
+        "id": "S05P03-NO-BINARY-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "import requests",
+          "import httpx",
+          "import urllib",
+          "import socket",
+          "import subprocess",
+          "from selenium",
+          "from playwright"
+        ],
+        "id": "S05P03-SCHEDULER-NO-NETWORK-OR-PROCESS-IO",
+        "passed": true
+      },
+      {
+        "detail": {
+          "cadence": {
+            "advice_generated_or_enabled": false,
+            "external_network_accessed": false,
+            "financial_return_verified_or_guaranteed": false,
+            "fixed_clock_contract_implemented": true,
+            "order_submitted_confirmed_or_retried": false,
+            "production_deployed": false,
+            "real_market_data_collected": false,
+            "real_provider_dispatch_enabled": false,
+            "runtime_freshness_verified": false,
+            "scheduler_daemon_started": false
+          },
+          "rate": {
+            "advice_generated_or_enabled": false,
+            "external_network_accessed": false,
+            "financial_return_verified_or_guaranteed": false,
+            "market_data_collected": false,
+            "order_submitted_confirmed_or_retried": false,
+            "production_deployed": false,
+            "provider_permission_inferred": false,
+            "real_provider_budget_enabled": false,
+            "real_provider_dispatch_performed": false,
+            "real_provider_rate_verified": false
+          }
+        },
+        "id": "S05P03-CLAIM-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index": [
+            {
+              "acceptance_contract_id": "AC-S05-P04",
+              "expected_artifact": "machine/evidence/EVD-S05-P04.json",
+              "id": "INDEX-AC-S05-P04",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "静默缺口=0；每个缺口都有原因和恢复动作。",
+              "requirement_id": "REQ-S05-P04",
+              "status": "PLANNED"
+            }
+          ],
+          "present": []
+        },
+        "id": "S05P03-P04-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S05P03-NO-SECRET-OR-LOCAL-PATH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 2,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 2
+        },
+        "id": "S05P03-P02-SIGNED-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "product": {
+            "id": "ABD",
+            "incremental_cash_budget_aud": "0.00",
+            "initial_bankroll_aud": "300.00",
+            "language": "zh-CN",
+            "monthly_target_return": "0.30",
+            "name_zh": "全天候投注决策辅助系统",
+            "owner": "单一账户持有人",
+            "primary_goal": "在不降低证据、风险、安全与合规门槛的前提下，分析全部可观察市场并追求 A$300×1.3^n 的月度滚动复利目标。",
+            "status": "FINAL_ACCEPTANCE_DELIVERY",
+            "target_curve": "B_n = 300 * (1.3 ** n)",
+            "version": "0.0.0.1"
+          },
+          "target": {
+            "falsification_gate": [
+              "至少6个完整自然月",
+              "至少1000个独立等效信号",
+              "月收益率的95%上界仍低于30%"
+            ],
+            "formula": "B_n = 300 * 1.3^n",
+            "guaranteed": false,
+            "monthly_log_growth": "0.26236426446749106",
+            "monthly_return": "0.30",
+            "plausible_gate": [
+              "保守月度对数增长中位数 >= ln(1.3)",
+              "月度对数增长第5百分位 > 0",
+              "按来源、平台限额、机会数量和相关性校正后的容量通过"
+            ],
+            "shadow_min_days": 90,
+            "shadow_min_independent_equivalent_signals": 1000,
+            "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+            "verification_gate": [
+              "至少12个完整自然月",
+              "按现金流调整后的月度几何收益 >= 30%",
+              "证据完整",
+              "未解决对账差异为0"
+            ]
+          }
+        },
+        "id": "S05P03-A300-A0-NO-ORDER-NO-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 171
+        },
+        "id": "S05P03-TARGETED-PYTEST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 1508
+        },
+        "id": "S05P03-AFFECTED-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 4351
+        },
+        "id": "S05P03-FULL-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S05P03-TASKPACK-49-PASS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ABD S00/P03 PAID DEPENDENCY SCAN",
+          "STATUS: PASS",
+          "FIXED_CLOCK: 2026-07-19T00:00:00+10:00",
+          "MAX_INCREMENTAL_CASH_AUD: 0.00",
+          "DEPENDENCY_MANIFESTS: 2",
+          "RUNTIME_DIRECT_DEPENDENCIES: 0",
+          "LOCKED_REGISTRY_PACKAGES: 12",
+          "PAID_OR_UNKNOWN_DEPENDENCIES: 0",
+          "EXTERNAL_NETWORK_ACCESS_PERFORMED: false",
+          "EXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false"
+        ],
+        "id": "S05P03-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S05-P03",
+    "decision": "ADAPTIVE_REFRESH_SCHEDULE_FROZEN_FAIL_CLOSED",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "model_or_strategy_executed": false,
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "provider_account_api_or_page_accessed": false,
+      "real_market_data_collected": false,
+      "real_provider_dispatch_performed": false,
+      "recommendation_generated_or_enabled": false,
+      "scheduler_daemon_started": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-23T18:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "cadence_tests.json": "f9afb627048ea10219545a04082ee2402a16deb549ea792aeced85d78c1aadbc",
+      "machine/evidence/EVD-S05-P02.json": "c7594b54822a0292911c696533e199b97f3af3bba4e363149ab35f154388988b",
+      "machine/evidence/EVD-S05-P02_rollback.json": "e86db1976846b8c6dd59f0fe83e20158feeb969fb4a324dc2d3e4651a3a40856",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S05/P03/full_regression.xml": "927b9a49203b6b45e6e383c43343d1f7251941ad239c65914ba0bd4f6f200ea7",
+      "machine/evidence/S05/P03/pytest.xml": "cb9b6d40228e2b4146b745d1bf8a93bf3b6fd698e212fe117911cc1b3a551265",
+      "machine/evidence/S05/P03/signed_state_regression.xml": "539d749f0e772d1a8292bf6f50cc22b154a1d693be855fb7355aeec20c10d342",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S05_P03.json": "a8e33c573f5aaf1236ec7069d2090a72fe0852707c25dd0cab94f6f782767ca2",
+      "machine/tests/fixtures/schedule_boundary_vectors.json": "4b23ecbdaa11e4bd5df20c06d717ea8d60cf705f2ed86f3329912b4e848fd35b",
+      "provider_contracts.json": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+      "rate_budget.json": "7dc8db47146f38ab3e3b888d9e2757ac38ff53a3785fb2bd66580a4b0a970323",
+      "scheduler.py": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91",
+      "source_capabilities.json": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+      "tests/S05/P03_test.py": "89b196e9da57bb96a5743c4267806c1749aad770f166a19cb4303b19cabe2e34"
+    },
+    "next": "S05/P04_READY_NOT_STARTED",
+    "pass_gate_interpretation": "FIXED_CLOCK_DISPATCH_DEVIATION_IS_AT_MOST_TWO_SECONDS_AND_STALE_OR_UNTRUSTED_DATA_NEVER_ENTERS_ADVICE_EVALUATION",
+    "phase_id": "P03",
+    "phase_status": "S05_P03_PASS",
+    "product_version": "0.0.0.1",
+    "production_collection_status": "ALL_15_REAL_PROVIDER_MODE_BUDGETS_REMAIN_ZERO_AND_DISABLED",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "release_status": "NOT_READY_S05_P04_AND_WHOLE_STAGE_REVIEW_REQUIRED",
+    "requirement_id": "REQ-S05-P03",
+    "schema_version": "1.0.0",
+    "stage_id": "S05",
+    "status": "PASS",
+    "summary": {
+      "checks": 127,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 127
+    }
+  }
+}

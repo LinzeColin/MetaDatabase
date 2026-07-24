@@ -1,0 +1,1990 @@
+{
+  "artifacts": {
+    "ART-S05-P02-01": "provider_contracts.json",
+    "ART-S05-P02-02": "source_capabilities.json"
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S05/P02_test.py --junitxml=machine/evidence/S05/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P02/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S03/P02_test.py tests/S03/P03_test.py tests/S03/P04_test.py tests/S03/stage_review_test.py tests/S04/stage_review_test.py tests/S05/P01_test.py tests/S05/P02_test.py --junitxml=machine/evidence/S05/P02/signed_state_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P02/signed_state_regression.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/P02/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/P02/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract AC-S05-P02 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "AC-S05-P02",
+  "contract_matrix_proof": {
+    "all_real_capabilities_fail_closed": true,
+    "capability_record_count": 15,
+    "mode_count": 5,
+    "production_collection_enabled_count": 0,
+    "provider_count": 3,
+    "runtime_verified_count": 0,
+    "synthetic_positive_case_external_action_performed": false
+  },
+  "decision": "SOURCE_CAPABILITY_CONTRACTS_FROZEN_FAIL_CLOSED",
+  "decision_sha256": "3cd56363337bfe0ca7ce0f9bc48dc5039e2dff58b2fde00e7ee186b6dfffe17f",
+  "evidence_id": "EVD-S05-P02",
+  "external_effect_boundary": {
+    "external_network_accessed": false,
+    "financial_return_verified_or_guaranteed": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "production_deployed_or_activated": false,
+    "provider_account_api_or_page_accessed": false,
+    "provider_permission_or_api_grant_obtained": false,
+    "real_market_data_collected": false,
+    "recommendation_generated": false,
+    "source_terms_or_external_state_changed": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-23T12:00:00+10:00",
+  "hashes": {
+    "code": "a5942113d4018639dbaa718c97dd0a8b1d76635057da12177df9d56bebbf8b6a",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "README.md": "ff1c4f4d9146496772a66c527bc7c5aba36cb3bc7ce2bd99700f33b115853d47",
+      "abd_acceptance/__init__.py": "a99a38901124e8e9cab0e4b3402ff6d809989e438d9226b6bc30f793336d1af5",
+      "abd_acceptance/__main__.py": "cd49b1652dc98a812d03fbbf7cfaaa345e676fbab28132d8263134a6f6ea027e",
+      "abd_acceptance/advice_card.py": "3be8e309504b4bd9e74aca8b46c128be7ce8b10a75f570a3c2ba2a94b211128e",
+      "abd_acceptance/market_ontology.py": "04233ad46c1693fa22ac778ca0f7943038eeec8f45bcc39245c9b50563ed43f9",
+      "abd_acceptance/reason_next_action.py": "c28816b1413d85158264245c2b5b13ec41057011a0afc940a4a9a9614f96cf34",
+      "abd_acceptance/source_capabilities.py": "f2400fc8dd4f1ac8a12ec0adc0983a26db5b23564682a11fa34acde1612e3e79",
+      "abd_acceptance/stage3_review.py": "0694b6a13bff0c9a383be57798266e8a14feb5ada0b66f5237e124dd954821ef",
+      "abd_acceptance/stage4_review.py": "d011f699cd792f4fffd00d81e967e17f35741cc7bcbbb2d241838f40ae6cff35",
+      "abd_acceptance/usability_accessibility.py": "e1cc98969d55e6b1c860c2f89a906147e589acba0c2ed07ed3fbd4c775104004",
+      "machine/evidence/EVD-S05-P01.json": "a5f2014009c92b50e49be7ad6260979ad8bb546d25b1d2f606ba745006fb8239",
+      "machine/evidence/EVD-S05-P01_rollback.json": "9b88961d0fec3cb9409706cc879c80506c909894eba28e61ed98714b12b702f9",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/provider_contracts.json": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S05_P02.json": "26b5f58830ff9add93bf8466383122eb5945ea2fd827ad1d2f11c7bb9ff256b2",
+      "provider_contracts.json": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+      "provider_facts_snapshot.json": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+      "regulatory_matrix.json": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+      "source_capabilities.json": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+      "sources.json": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
+      "tests/S04/stage_review_test.py": "5bbdbd6ddfb0bc65358fb14c29eeac6f42d41f7804a8746bb2489b912d7809d5",
+      "tests/S05/P01_test.py": "44f2132acd1a9f04ef1b3297300f22e2cbcb86e0db10ec8cf5ca90fa48cab8f7",
+      "tests/S05/P02_test.py": "4e41ce1aedde1b8cb39fc9326041468224c4b0ca5e4aea23a5fbf0e21801c115"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S05/P02 validates offline source contracts and frozen synthetic decisions only; it accesses no provider, account, page, endpoint, market, Gmail, host, model, recommendation, order or return.",
+    "output_provider_contracts": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+    "output_source_capabilities": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "e86db1976846b8c6dd59f0fe83e20158feeb969fb4a324dc2d3e4651a3a40856",
+    "structured_failure_log": "1ed9f44f98b07e0ff18127caf9b41a9d520dd893b88743a36ae6cf0b859ad9a9"
+  },
+  "next": "S05/P03_READY_NOT_STARTED",
+  "pass_gate_interpretation": "EVERY_COLLECTION_CAPABILITY_REQUIRES_A_VERSIONED_SOURCE_CONTRACT; CURRENT_REAL_PROVIDER_COLLECTION_REMAINS_DISABLED",
+  "phase_id": "P02",
+  "phase_status": "S05_P02_PASS",
+  "product_version": "0.0.0.1",
+  "production_collection_status": "ALL_15_PROVIDER_MODE_CAPABILITIES_DISABLED_PENDING_SOURCE_SPECIFIC_RUNTIME_PROOF",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "NOT_READY_S05_P03_TO_P04_AND_WHOLE_STAGE_REVIEW_REQUIRED",
+  "requirement_id": "REQ-S05-P02",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S05-P02_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "scope_boundary": {
+    "advice_order_and_deployment_not_performed": true,
+    "gmail_is_adjacent_s06_scope_and_not_realtime_market_truth": true,
+    "p02_versions_source_capabilities_only": true,
+    "p03_scheduler_and_rate_budget_not_started": true,
+    "p04_silent_gap_oracle_not_started": true,
+    "real_provider_collection_not_enabled": true,
+    "source_snapshot_is_not_current_runtime_proof": true,
+    "synthetic_fixture_is_not_provider_permission_or_market_evidence": true
+  },
+  "stage_id": "S05",
+  "status": "PASS",
+  "structured_failure_log": [
+    {
+      "case_id": "UNKNOWN-PROVIDER",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "CAPABILITY_IDENTITY_MISMATCH",
+      "matched": true,
+      "reason_code": "CAPABILITY_IDENTITY_MISMATCH"
+    },
+    {
+      "case_id": "UNKNOWN-MODE",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "CAPABILITY_IDENTITY_MISMATCH",
+      "matched": true,
+      "reason_code": "CAPABILITY_IDENTITY_MISMATCH"
+    },
+    {
+      "case_id": "CONTRACT-VERSION-DRIFT",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "CONTRACT_VERSION_MISMATCH",
+      "matched": true,
+      "reason_code": "CONTRACT_VERSION_MISMATCH"
+    },
+    {
+      "case_id": "SOURCE-HASH-DRIFT",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "SOURCE_VERSION_MISMATCH",
+      "matched": true,
+      "reason_code": "SOURCE_VERSION_MISMATCH"
+    },
+    {
+      "case_id": "MALFORMED-SOURCE-HASH",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "SOURCE_VERSION_MISMATCH",
+      "matched": true,
+      "reason_code": "SOURCE_VERSION_MISMATCH"
+    },
+    {
+      "case_id": "STALE-REVIEW",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "SOURCE_REVIEW_EXPIRED",
+      "matched": true,
+      "reason_code": "SOURCE_REVIEW_EXPIRED"
+    },
+    {
+      "case_id": "POSITIVE-COST",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "INCREMENTAL_CASH_NOT_ZERO",
+      "matched": true,
+      "reason_code": "INCREMENTAL_CASH_NOT_ZERO"
+    },
+    {
+      "case_id": "UNKNOWN-COST",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "INCREMENTAL_CASH_NOT_ZERO",
+      "matched": true,
+      "reason_code": "INCREMENTAL_CASH_NOT_ZERO"
+    },
+    {
+      "case_id": "MISSING-GATE",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "REQUIRED_GATES_MISSING",
+      "matched": true,
+      "reason_code": "REQUIRED_GATES_MISSING"
+    },
+    {
+      "case_id": "ORDER-ACTION",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "ORDER_ACTION_PROHIBITED",
+      "matched": true,
+      "reason_code": "ORDER_ACTION_PROHIBITED"
+    },
+    {
+      "case_id": "PRODUCTION-FIXTURE",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "TEST_FIXTURE_PROHIBITED_IN_PRODUCTION",
+      "matched": true,
+      "reason_code": "TEST_FIXTURE_PROHIBITED_IN_PRODUCTION"
+    },
+    {
+      "case_id": "MISSING-EVALUATION-DATE",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "MALFORMED_REQUEST",
+      "matched": true,
+      "reason_code": "MALFORMED_REQUEST"
+    },
+    {
+      "case_id": "BOOLEAN-COST",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "INCREMENTAL_CASH_NOT_ZERO",
+      "matched": true,
+      "reason_code": "INCREMENTAL_CASH_NOT_ZERO"
+    },
+    {
+      "case_id": "UNDECLARED-GATE",
+      "decision": "DENY_COLLECTION",
+      "expected_reason": "UNDECLARED_GATE_PRESENT",
+      "matched": true,
+      "reason_code": "UNDECLARED_GATE_PRESENT"
+    }
+  ],
+  "validation": {
+    "checks": [
+      {
+        "detail": "provider_contracts.json",
+        "id": "S05P02-PROVIDER-CONTRACTS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "source_capabilities.json",
+        "id": "S05P02-SOURCE-CAPABILITIES-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "S05_P02.json",
+        "id": "S05P02-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "26b5f58830ff9add93bf8466383122eb5945ea2fd827ad1d2f11c7bb9ff256b2",
+          "expected": "26b5f58830ff9add93bf8466383122eb5945ea2fd827ad1d2f11c7bb9ff256b2",
+          "path": "machine/tests/fixtures/S05_P02.json"
+        },
+        "id": "S05P02-PHASE-PIN-machine-tests-fixtures-S05_P02_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+          "expected": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+          "path": "provider_contracts.json"
+        },
+        "id": "S05P02-PHASE-PIN-provider_contracts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+          "expected": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+          "path": "source_capabilities.json"
+        },
+        "id": "S05P02-PHASE-PIN-source_capabilities_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4e41ce1aedde1b8cb39fc9326041468224c4b0ca5e4aea23a5fbf0e21801c115",
+          "expected": "4e41ce1aedde1b8cb39fc9326041468224c4b0ca5e4aea23a5fbf0e21801c115",
+          "path": "tests/S05/P02_test.py"
+        },
+        "id": "S05P02-PHASE-PIN-tests-S05-P02_test_py",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a5f2014009c92b50e49be7ad6260979ad8bb546d25b1d2f606ba745006fb8239",
+          "expected": "a5f2014009c92b50e49be7ad6260979ad8bb546d25b1d2f606ba745006fb8239",
+          "path": "machine/evidence/EVD-S05-P01.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-evidence-EVD-S05-P01_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "9b88961d0fec3cb9409706cc879c80506c909894eba28e61ed98714b12b702f9",
+          "expected": "9b88961d0fec3cb9409706cc879c80506c909894eba28e61ed98714b12b702f9",
+          "path": "machine/evidence/EVD-S05-P01_rollback.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-evidence-EVD-S05-P01_rollback_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "path": "machine/facts/acceptance_contracts.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-facts-acceptance_contracts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+          "expected": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+          "path": "machine/facts/authorization_matrix.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-facts-authorization_matrix_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "path": "machine/facts/canonical_facts.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-facts-canonical_facts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "path": "machine/facts/costs.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-facts-costs_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "path": "machine/facts/model_system_card.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-facts-model_system_card_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "path": "machine/facts/parameters.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-facts-parameters_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+          "expected": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+          "path": "machine/facts/provider_contracts.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-facts-provider_contracts_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "path": "machine/facts/requirements.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-facts-requirements_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "path": "machine/facts/task_graph.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-facts-task_graph_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "path": "machine/facts/traceability_matrix.json"
+        },
+        "id": "S05P02-BASELINE-PIN-machine-facts-traceability_matrix_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+          "expected": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+          "path": "provider_facts_snapshot.json"
+        },
+        "id": "S05P02-BASELINE-PIN-provider_facts_snapshot_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+          "expected": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+          "path": "regulatory_matrix.json"
+        },
+        "id": "S05P02-BASELINE-PIN-regulatory_matrix_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
+          "expected": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
+          "path": "sources.json"
+        },
+        "id": "S05P02-BASELINE-PIN-sources_json",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "path": ".github/workflows/abd-stage0-validation.yml"
+        },
+        "id": "S05P02-REPO-PIN-_github-workflows-abd-stage0-validation_yml",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "755eb021328f5793dfd4eba33ae9eb380691ab56a3bdad63c97be097370c8415",
+          "expected": "755eb021328f5793dfd4eba33ae9eb380691ab56a3bdad63c97be097370c8415"
+        },
+        "id": "S05P02-ORACLE-STRUCTURAL-HASH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "baseline": "未实现或旧包存在冲突/缺口",
+          "id": "REQ-S05-P02",
+          "measurement": "由 AC-S05-P02 的机器验收判定器执行固定输入、阈值和证据检查。",
+          "non_goals": [
+            "不自动提交、确认或重试真实订单",
+            "不以降低证据或风险门追赶30%月目标",
+            "不引入付费数据或付费程序接口依赖"
+          ],
+          "observation_period": "开发期每次提交；上线后持续",
+          "owner_input_required_during_development": false,
+          "phase_id": "P02",
+          "primary_acceptance_criteria_id": "AC-S05-P02",
+          "priority": "P1",
+          "problem": "若未完成“来源能力合同”，覆盖所有可观察市场，按来源事实决定访问方式，任何未知或失效都可见。将缺少可执行、可验收或可恢复的基础。",
+          "scope": [
+            "provider_contracts.json",
+            "source_capabilities.json"
+          ],
+          "stage_id": "S05",
+          "target": "任何采集能力必须先通过来源合同。",
+          "title": "来源能力合同",
+          "user": "单一账户持有人及自动开发/运维代理",
+          "value": "为公开页面、静态文件、免费端点、只读会话和用户页面观察逐项版本化。"
+        },
+        "id": "S05P02-TASKPACK-REQUIREMENT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "environment": [
+            "Ubuntu Linux 持续集成环境",
+            "固定时钟",
+            "冻结测试夹具",
+            "无外部网络的确定性测试模式",
+            "生产等价配置Schema"
+          ],
+          "evidence_requirements": [
+            "machine/evidence/EVD-S05-P02.json",
+            "测试报告及命令退出码",
+            "输入、参数、代码、模型和输出SHA-256",
+            "失败路径截图或结构化日志",
+            "回滚演练记录"
+          ],
+          "id": "AC-S05-P02",
+          "inputs": [
+            "REQ-S05-P02 对应机器事实",
+            "S05/P02 冻结正向、边界、负向和故障输入",
+            "参数版本和来源版本哈希"
+          ],
+          "oracle": {
+            "command": "python -m abd_acceptance --contract AC-S05-P02 --evidence machine/evidence",
+            "rule": "任何采集能力必须先通过来源合同。",
+            "type": "EXECUTABLE"
+          },
+          "pass_gate": "任何采集能力必须先通过来源合同。",
+          "requirement_id": "REQ-S05-P02",
+          "retention": "永久保留验收摘要；原始大体积证据按运维手册分层保留",
+          "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+          "stop_condition": [
+            "发现法律、监管或来源合同实质冲突且无安全默认",
+            "需要不可逆操作",
+            "新增现金支出将超过A$0",
+            "严重安全事故或证据完整性失败",
+            "阶段终止条件被触发"
+          ],
+          "tests": [
+            {
+              "id": "TEST-S05-P02",
+              "method": "固定输入重放 + 属性测试 + 负向测试 + 故障注入"
+            },
+            {
+              "id": "TEST-S05-P02-BOUNDARY",
+              "method": "全部硬阈值在边界、±0.0001及不利赔率跳动下验证"
+            },
+            {
+              "id": "TEST-S05-P02-REPLAY",
+              "method": "相同输入、配置和制品哈希必须得到相同动作和证据哈希"
+            }
+          ],
+          "threshold": "任何采集能力必须先通过来源合同。",
+          "title": "来源能力合同唯一主验收"
+        },
+        "id": "S05P02-TASKPACK-ACCEPTANCE",
+        "passed": true
+      },
+      {
+        "detail": [
+          "T-S05-P02-01",
+          "T-S05-P02-02",
+          "T-S05-P02-03"
+        ],
+        "id": "S05P02-TASKPACK-TASKS",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "acceptance_criteria_id": "AC-S05-P02",
+            "artifact_ids": [
+              "ART-S05-P02-01",
+              "ART-S05-P02-02"
+            ],
+            "evidence_id": "EVD-S05-P02",
+            "phase_id": "P02",
+            "requirement_id": "REQ-S05-P02",
+            "stage_id": "S05",
+            "task_ids": [
+              "T-S05-P02-01",
+              "T-S05-P02-02",
+              "T-S05-P02-03"
+            ],
+            "test_ids": [
+              "TEST-S05-P02",
+              "TEST-S05-P02-BOUNDARY",
+              "TEST-S05-P02-REPLAY"
+            ]
+          }
+        ],
+        "id": "S05P02-TASKPACK-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "ART-S05-P02-01": "provider_contracts.json",
+          "ART-S05-P02-02": "source_capabilities.json"
+        },
+        "id": "S05P02-FIXTURE-TASKPACK-BINDING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capabilities": "ART-S05-P02-02",
+          "provider": "ART-S05-P02-01"
+        },
+        "id": "S05P02-ARTIFACT-IDENTITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "machine/evidence/EVD-S05-P01.json": "a5f2014009c92b50e49be7ad6260979ad8bb546d25b1d2f606ba745006fb8239",
+          "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+          "machine/facts/provider_contracts.json": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+          "provider_facts_snapshot.json": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+          "regulatory_matrix.json": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+          "sources.json": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966"
+        },
+        "id": "S05P02-AUTHORITY-HASH-BINDING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "all_observable_markets_claimed_complete": false,
+          "authorization_is_not_capability": true,
+          "contract_pass_does_not_enable_advice_or_order": true,
+          "contract_pass_is_required_before_collection": true,
+          "scoped_absence_is_not_universal_prohibition": true,
+          "source_document_is_not_runtime_proof": true,
+          "source_failure_scope": "DISABLE_ONLY_AFFECTED_PROVIDER_MODE",
+          "unknown_or_stale_default": "DENY_COLLECTION_AND_SURFACE_GAP"
+        },
+        "id": "S05P02-UNKNOWN-FAILS-CLOSED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "latest_review_by": "2026-08-20",
+          "live_revalidation_required_before_enablement": true,
+          "review_clock_source": "SIGNED_UTC_OFFSET_TIMESTAMP",
+          "source_snapshot_retrieved_on": "2026-07-20",
+          "terms_or_price_drift_action": "DISABLE_AFFECTED_CAPABILITY_AND_REVIEW",
+          "unreachable_or_missing_source_action": "UNKNOWN_FAIL_CLOSED"
+        },
+        "id": "S05P02-REVIEW-POLICY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "PUBLIC_BROWSER",
+          "FILE_OR_STATIC_DATA",
+          "FREE_ENDPOINT",
+          "AUTHENTICATED_OBSERVER",
+          "OWNER_DEVICE_OVERLAY"
+        ],
+        "id": "S05P02-MODE-ORDER-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "default_state": "CONDITIONAL",
+          "failure_action": "DEGRADE_AND_SWITCH_SOURCE",
+          "frequency_budget": "SOURCE_SPECIFIC_ZERO_UNTIL_VERIFIED",
+          "minimum_fields": [
+            "source_id",
+            "source_version",
+            "retrieved_at",
+            "review_by",
+            "content_sha256",
+            "observed_at"
+          ],
+          "mode": "PUBLIC_BROWSER",
+          "name_zh": "公开页面观察",
+          "required_gate_ids": [
+            "PUBLIC_ACCESS_VERIFIED",
+            "SOURCE_PERMISSION_VERIFIED",
+            "RATE_BUDGET_VERIFIED",
+            "PARSER_FIXTURE_PASS",
+            "SOURCE_VERSION_HASHED",
+            "CHALLENGE_BACKOFF_ENABLED"
+          ]
+        },
+        "id": "S05P02-MODE-CONTRACT-PUBLIC_BROWSER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "default_state": "CONDITIONAL_UNTIL_SOURCE_SPECIFIC_PROOF",
+          "failure_action": "QUARANTINE_SOURCE_VERSION",
+          "frequency_budget": "SOURCE_SPECIFIC_ZERO_UNTIL_VERIFIED",
+          "minimum_fields": [
+            "source_id",
+            "source_version",
+            "retrieved_at",
+            "review_by",
+            "content_sha256",
+            "updated_at",
+            "field_lineage"
+          ],
+          "mode": "FILE_OR_STATIC_DATA",
+          "name_zh": "公开文件或静态数据",
+          "required_gate_ids": [
+            "LICENSE_AND_USE_VERIFIED",
+            "SOURCE_VERSION_HASHED",
+            "UPDATE_DATE_PRESENT",
+            "FIELD_LINEAGE_PRESENT",
+            "PARSER_FIXTURE_PASS"
+          ]
+        },
+        "id": "S05P02-MODE-CONTRACT-FILE_OR_STATIC_DATA",
+        "passed": true
+      },
+      {
+        "detail": {
+          "default_state": "OPTIONAL_NON_CRITICAL",
+          "failure_action": "FALLBACK_TO_OTHER_SOURCES",
+          "frequency_budget": "SOURCE_SPECIFIC_ZERO_UNTIL_VERIFIED",
+          "minimum_fields": [
+            "source_id",
+            "source_version",
+            "retrieved_at",
+            "review_by",
+            "quota_state",
+            "observed_at"
+          ],
+          "mode": "FREE_ENDPOINT",
+          "name_zh": "免费程序端点",
+          "required_gate_ids": [
+            "EXPLICIT_ACCESS_GRANT_VERIFIED",
+            "ZERO_INCREMENTAL_CASH_VERIFIED",
+            "QUOTA_OBSERVABLE",
+            "REPLACEABLE_SOURCE_PRESENT",
+            "NOT_SINGLE_TRUTH_SOURCE",
+            "RATE_BUDGET_VERIFIED",
+            "SOURCE_VERSION_HASHED"
+          ]
+        },
+        "id": "S05P02-MODE-CONTRACT-FREE_ENDPOINT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "default_state": "OFF",
+          "failure_action": "DISABLE_SESSION_AND_ALERT",
+          "frequency_budget": "ZERO_UNTIL_ALL_AUTHENTICATED_GATES_PASS",
+          "minimum_fields": [
+            "source_id",
+            "source_version",
+            "retrieved_at",
+            "review_by",
+            "session_scope",
+            "observed_at"
+          ],
+          "mode": "AUTHENTICATED_OBSERVER",
+          "name_zh": "只读登录观察",
+          "required_gate_ids": [
+            "OWNER_EXPLICIT_CONFIGURATION",
+            "SECRET_ENCRYPTION_VERIFIED",
+            "LEAST_PRIVILEGE_VERIFIED",
+            "SOURCE_PERMISSION_VERIFIED",
+            "READ_ONLY_METHOD_ALLOWLIST_VERIFIED",
+            "NO_ORDER_CAPABILITY_VERIFIED",
+            "SESSION_KILL_SWITCH_VERIFIED"
+          ]
+        },
+        "id": "S05P02-MODE-CONTRACT-AUTHENTICATED_OBSERVER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "default_state": "OFF_UNTIL_INSTALLED_AND_VERIFIED",
+          "failure_action": "SHOW_MANUAL_CHECK_OR_CANCEL_TICKET",
+          "frequency_budget": "OWNER_INITIATED_CURRENT_PAGE_ONLY",
+          "minimum_fields": [
+            "provider_id",
+            "event",
+            "market",
+            "selection",
+            "visible_odds",
+            "observed_at"
+          ],
+          "mode": "OWNER_DEVICE_OVERLAY",
+          "name_zh": "用户页面即时校验",
+          "required_gate_ids": [
+            "OWNER_INSTALLATION_VERIFIED",
+            "VISIBLE_FIELDS_ONLY",
+            "PAGE_TEXT_TREATED_AS_UNTRUSTED_DATA",
+            "NO_CLICK_OR_SUBMIT_CAPABILITY_VERIFIED",
+            "CURRENT_PAGE_IDENTITY_MATCHED"
+          ]
+        },
+        "id": "S05P02-MODE-CONTRACT-OWNER_DEVICE_OVERLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "TAB",
+          "SPORTSBET",
+          "OTHER_OBSERVABLE_PROVIDER"
+        ],
+        "id": "S05P02-PROVIDER-ORDER-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed_access_methods": [
+            "OWNER_VISIBLE_MANUAL_OBSERVATION_AFTER_IDENTITY_MATCH"
+          ],
+          "applicable_licensed_entity": "UNKNOWN_REQUIRES_CURRENT_OWNER_JURISDICTION_MATCH",
+          "backoff": "NO_BACKGROUND_COLLECTION; ON_FAILURE_DISABLE_AFFECTED_MODE_AND_PRESERVE_GAP",
+          "conditional_access_methods": [
+            "MONTHLY_ACTIVITY_STATEMENT_AFTER_OWNER_AUTHORIZATION",
+            "DETAILED_TRANSACTION_CSV_FOR_RECONCILIATION_ONLY",
+            "WEB_SERVICES_AFTER_EXPLICIT_GRANT_AND_METHOD_CONTRACT",
+            "STUDIO_AFTER_EXPLICIT_GRANT_AND_ZERO_COST_PROOF"
+          ],
+          "contract_version": "TAB-2026-07-20-S05P02",
+          "field_precision": "UNKNOWN_UNTIL_METHOD_SPECIFIC_SCHEMA_IS_VERIFIED",
+          "identity_mapping": "REQUIRES_S05_P01_ONTOLOGY_AND_SOURCE_SPECIFIC_FIXTURE",
+          "official_source_ids": [
+            "SRC-TAB-001",
+            "SRC-TAB-002",
+            "SRC-TAB-003",
+            "SRC-TAB-004",
+            "SRC-TAB-005",
+            "SRC-ACMA-001"
+          ],
+          "production_collection_enabled": false,
+          "prohibited_access_methods": [
+            "SCREEN_SCRAPING",
+            "THIRD_PARTY_CREDENTIAL_ACCESS",
+            "ACCOUNT_CONTROL",
+            "ORDER_SUBMISSION_CONFIRMATION_OR_RETRY"
+          ],
+          "provider_id": "TAB",
+          "rate_budget": {
+            "enabled_requests_per_period": 0,
+            "period": "DISABLED_UNTIL_SOURCE_SPECIFIC_CONTRACT_PASS"
+          },
+          "realtime_truth": "NOT_FROM_EMAIL_OR_ACTIVITY_STATEMENT",
+          "review_by": "2026-08-20",
+          "settlement_rules": "REQUIRE_VERSIONED_PROVIDER_RULE_SOURCE_BEFORE_ADVICE_ELIGIBILITY",
+          "source_fact_ids": [
+            "PF-TAB-001",
+            "PF-TAB-002",
+            "PF-TAB-003",
+            "PF-TAB-004",
+            "PF-TAB-005",
+            "PF-TAB-006"
+          ],
+          "source_facts_retrieved_on": "2026-07-20",
+          "stop_conditions": [
+            "TERMS_OR_PERMISSION_DRIFT",
+            "ENTITY_OR_JURISDICTION_UNKNOWN",
+            "CHALLENGE_OR_RATE_LIMIT",
+            "CREDENTIAL_OR_ACCOUNT_CONTROL_RISK",
+            "NONZERO_INCREMENTAL_COST"
+          ],
+          "time_semantics": "UNKNOWN_UNTIL_SOURCE_TIMESTAMP_AND_OBSERVATION_TIMESTAMP_ARE_VERIFIED"
+        },
+        "id": "S05P02-PROVIDER-CONTRACT-TAB",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed_access_methods": [
+            "OWNER_VISIBLE_MANUAL_OBSERVATION_AFTER_IDENTITY_MATCH"
+          ],
+          "applicable_licensed_entity": "UNKNOWN_REQUIRES_CURRENT_ELIGIBILITY_KYC_AND_LICENSE_CHECK",
+          "backoff": "NO_BACKGROUND_COLLECTION; ON_FAILURE_DISABLE_AFFECTED_MODE_AND_PRESERVE_GAP",
+          "conditional_access_methods": [
+            "MONTHLY_ACTIVITY_STATEMENT_AFTER_OWNER_AUTHORIZATION",
+            "ANY_AUTOMATION_ONLY_AFTER_SEPARATE_OFFICIAL_PERMISSION_EVIDENCE"
+          ],
+          "contract_version": "SPORTSBET-2026-07-20-S05P02",
+          "field_precision": "UNKNOWN_UNTIL_METHOD_SPECIFIC_SCHEMA_IS_VERIFIED",
+          "identity_mapping": "REQUIRES_S05_P01_ONTOLOGY_AND_SOURCE_SPECIFIC_FIXTURE",
+          "official_source_ids": [
+            "SRC-SPORTSBET-001",
+            "SRC-SPORTSBET-002"
+          ],
+          "production_collection_enabled": false,
+          "prohibited_access_methods": [
+            "UNPROVEN_SCRAPING_AUTOMATION_OR_API",
+            "ORDER_SUBMISSION_CONFIRMATION_OR_RETRY"
+          ],
+          "provider_id": "SPORTSBET",
+          "rate_budget": {
+            "enabled_requests_per_period": 0,
+            "period": "DISABLED_UNTIL_SOURCE_SPECIFIC_CONTRACT_PASS"
+          },
+          "realtime_truth": "OWNER_VISIBLE_PRICE_OR_SEPARATELY_VERIFIED_FRESH_SOURCE",
+          "review_by": "2026-08-20",
+          "settlement_rules": "REQUIRE_VERSIONED_PROVIDER_RULE_SOURCE_BEFORE_ADVICE_ELIGIBILITY",
+          "source_fact_ids": [
+            "PF-SPORTSBET-001",
+            "PF-SPORTSBET-002",
+            "PF-SPORTSBET-003"
+          ],
+          "source_facts_retrieved_on": "2026-07-20",
+          "stop_conditions": [
+            "PERMISSION_UNKNOWN_OR_DRIFT",
+            "ELIGIBILITY_KYC_OR_LICENSE_UNKNOWN",
+            "CHALLENGE_OR_RATE_LIMIT",
+            "NONZERO_INCREMENTAL_COST"
+          ],
+          "time_semantics": "UNKNOWN_UNTIL_SOURCE_TIMESTAMP_AND_OBSERVATION_TIMESTAMP_ARE_VERIFIED"
+        },
+        "id": "S05P02-PROVIDER-CONTRACT-SPORTSBET",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed_access_methods": [],
+          "applicable_licensed_entity": "UNBOUND_UNKNOWN",
+          "backoff": "DO_NOT_COLLECT; SURFACE EXPLICIT COVERAGE GAP",
+          "conditional_access_methods": [
+            "ANY_MODE_AFTER_SOURCE_IDENTITY_L1_PERMISSION_LICENSE_RATE_SCHEMA_TIME_AND_SETTLEMENT_PROOF"
+          ],
+          "contract_version": "UNBOUND-SOURCE-S05P02",
+          "field_precision": "UNKNOWN",
+          "identity_mapping": "UNKNOWN_UNTIL_SOURCE_BOUND",
+          "official_source_ids": [],
+          "production_collection_enabled": false,
+          "prohibited_access_methods": [
+            "UNCONTRACTED_COLLECTION",
+            "ORDER_SUBMISSION_CONFIRMATION_OR_RETRY"
+          ],
+          "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+          "rate_budget": {
+            "enabled_requests_per_period": 0,
+            "period": "DISABLED_UNTIL_SOURCE_SPECIFIC_CONTRACT_PASS"
+          },
+          "realtime_truth": "SEPARATELY_VERIFIED_FRESH_SOURCE_ONLY",
+          "review_by": "SOURCE_BINDING_REQUIRED_BEFORE_REVIEW_DATE_EXISTS",
+          "settlement_rules": "UNKNOWN_UNTIL_SOURCE_SPECIFIC_RULE_SOURCE_IS_VERSIONED",
+          "source_fact_ids": [],
+          "source_facts_retrieved_on": "NOT_APPLICABLE_UNBOUND",
+          "stop_conditions": [
+            "SOURCE_IDENTITY_UNKNOWN",
+            "PERMISSION_LICENSE_OR_USE_UNKNOWN",
+            "RATE_OR_SCHEMA_UNKNOWN",
+            "NONZERO_INCREMENTAL_COST"
+          ],
+          "time_semantics": "UNKNOWN"
+        },
+        "id": "S05P02-PROVIDER-CONTRACT-OTHER_OBSERVABLE_PROVIDER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed_access_methods": [
+            "OWNER_VISIBLE_MANUAL_OBSERVATION_AFTER_IDENTITY_MATCH"
+          ],
+          "applicable_licensed_entity": "UNKNOWN_REQUIRES_CURRENT_OWNER_JURISDICTION_MATCH",
+          "backoff": "NO_BACKGROUND_COLLECTION; ON_FAILURE_DISABLE_AFFECTED_MODE_AND_PRESERVE_GAP",
+          "conditional_access_methods": [
+            "MONTHLY_ACTIVITY_STATEMENT_AFTER_OWNER_AUTHORIZATION",
+            "DETAILED_TRANSACTION_CSV_FOR_RECONCILIATION_ONLY",
+            "WEB_SERVICES_AFTER_EXPLICIT_GRANT_AND_METHOD_CONTRACT",
+            "STUDIO_AFTER_EXPLICIT_GRANT_AND_ZERO_COST_PROOF"
+          ],
+          "contract_version": "TAB-2026-07-20-S05P02",
+          "field_precision": "UNKNOWN_UNTIL_METHOD_SPECIFIC_SCHEMA_IS_VERIFIED",
+          "identity_mapping": "REQUIRES_S05_P01_ONTOLOGY_AND_SOURCE_SPECIFIC_FIXTURE",
+          "official_source_ids": [
+            "SRC-TAB-001",
+            "SRC-TAB-002",
+            "SRC-TAB-003",
+            "SRC-TAB-004",
+            "SRC-TAB-005",
+            "SRC-ACMA-001"
+          ],
+          "production_collection_enabled": false,
+          "prohibited_access_methods": [
+            "SCREEN_SCRAPING",
+            "THIRD_PARTY_CREDENTIAL_ACCESS",
+            "ACCOUNT_CONTROL",
+            "ORDER_SUBMISSION_CONFIRMATION_OR_RETRY"
+          ],
+          "provider_id": "TAB",
+          "rate_budget": {
+            "enabled_requests_per_period": 0,
+            "period": "DISABLED_UNTIL_SOURCE_SPECIFIC_CONTRACT_PASS"
+          },
+          "realtime_truth": "NOT_FROM_EMAIL_OR_ACTIVITY_STATEMENT",
+          "review_by": "2026-08-20",
+          "settlement_rules": "REQUIRE_VERSIONED_PROVIDER_RULE_SOURCE_BEFORE_ADVICE_ELIGIBILITY",
+          "source_fact_ids": [
+            "PF-TAB-001",
+            "PF-TAB-002",
+            "PF-TAB-003",
+            "PF-TAB-004",
+            "PF-TAB-005",
+            "PF-TAB-006"
+          ],
+          "source_facts_retrieved_on": "2026-07-20",
+          "stop_conditions": [
+            "TERMS_OR_PERMISSION_DRIFT",
+            "ENTITY_OR_JURISDICTION_UNKNOWN",
+            "CHALLENGE_OR_RATE_LIMIT",
+            "CREDENTIAL_OR_ACCOUNT_CONTROL_RISK",
+            "NONZERO_INCREMENTAL_COST"
+          ],
+          "time_semantics": "UNKNOWN_UNTIL_SOURCE_TIMESTAMP_AND_OBSERVATION_TIMESTAMP_ARE_VERIFIED"
+        },
+        "id": "S05P02-TAB-HARD-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed_access_methods": [
+            "OWNER_VISIBLE_MANUAL_OBSERVATION_AFTER_IDENTITY_MATCH"
+          ],
+          "applicable_licensed_entity": "UNKNOWN_REQUIRES_CURRENT_ELIGIBILITY_KYC_AND_LICENSE_CHECK",
+          "backoff": "NO_BACKGROUND_COLLECTION; ON_FAILURE_DISABLE_AFFECTED_MODE_AND_PRESERVE_GAP",
+          "conditional_access_methods": [
+            "MONTHLY_ACTIVITY_STATEMENT_AFTER_OWNER_AUTHORIZATION",
+            "ANY_AUTOMATION_ONLY_AFTER_SEPARATE_OFFICIAL_PERMISSION_EVIDENCE"
+          ],
+          "contract_version": "SPORTSBET-2026-07-20-S05P02",
+          "field_precision": "UNKNOWN_UNTIL_METHOD_SPECIFIC_SCHEMA_IS_VERIFIED",
+          "identity_mapping": "REQUIRES_S05_P01_ONTOLOGY_AND_SOURCE_SPECIFIC_FIXTURE",
+          "official_source_ids": [
+            "SRC-SPORTSBET-001",
+            "SRC-SPORTSBET-002"
+          ],
+          "production_collection_enabled": false,
+          "prohibited_access_methods": [
+            "UNPROVEN_SCRAPING_AUTOMATION_OR_API",
+            "ORDER_SUBMISSION_CONFIRMATION_OR_RETRY"
+          ],
+          "provider_id": "SPORTSBET",
+          "rate_budget": {
+            "enabled_requests_per_period": 0,
+            "period": "DISABLED_UNTIL_SOURCE_SPECIFIC_CONTRACT_PASS"
+          },
+          "realtime_truth": "OWNER_VISIBLE_PRICE_OR_SEPARATELY_VERIFIED_FRESH_SOURCE",
+          "review_by": "2026-08-20",
+          "settlement_rules": "REQUIRE_VERSIONED_PROVIDER_RULE_SOURCE_BEFORE_ADVICE_ELIGIBILITY",
+          "source_fact_ids": [
+            "PF-SPORTSBET-001",
+            "PF-SPORTSBET-002",
+            "PF-SPORTSBET-003"
+          ],
+          "source_facts_retrieved_on": "2026-07-20",
+          "stop_conditions": [
+            "PERMISSION_UNKNOWN_OR_DRIFT",
+            "ELIGIBILITY_KYC_OR_LICENSE_UNKNOWN",
+            "CHALLENGE_OR_RATE_LIMIT",
+            "NONZERO_INCREMENTAL_COST"
+          ],
+          "time_semantics": "UNKNOWN_UNTIL_SOURCE_TIMESTAMP_AND_OBSERVATION_TIMESTAMP_ARE_VERIFIED"
+        },
+        "id": "S05P02-SPORTSBET-HARD-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "allowed_access_methods": [],
+          "applicable_licensed_entity": "UNBOUND_UNKNOWN",
+          "backoff": "DO_NOT_COLLECT; SURFACE EXPLICIT COVERAGE GAP",
+          "conditional_access_methods": [
+            "ANY_MODE_AFTER_SOURCE_IDENTITY_L1_PERMISSION_LICENSE_RATE_SCHEMA_TIME_AND_SETTLEMENT_PROOF"
+          ],
+          "contract_version": "UNBOUND-SOURCE-S05P02",
+          "field_precision": "UNKNOWN",
+          "identity_mapping": "UNKNOWN_UNTIL_SOURCE_BOUND",
+          "official_source_ids": [],
+          "production_collection_enabled": false,
+          "prohibited_access_methods": [
+            "UNCONTRACTED_COLLECTION",
+            "ORDER_SUBMISSION_CONFIRMATION_OR_RETRY"
+          ],
+          "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+          "rate_budget": {
+            "enabled_requests_per_period": 0,
+            "period": "DISABLED_UNTIL_SOURCE_SPECIFIC_CONTRACT_PASS"
+          },
+          "realtime_truth": "SEPARATELY_VERIFIED_FRESH_SOURCE_ONLY",
+          "review_by": "SOURCE_BINDING_REQUIRED_BEFORE_REVIEW_DATE_EXISTS",
+          "settlement_rules": "UNKNOWN_UNTIL_SOURCE_SPECIFIC_RULE_SOURCE_IS_VERSIONED",
+          "source_fact_ids": [],
+          "source_facts_retrieved_on": "NOT_APPLICABLE_UNBOUND",
+          "stop_conditions": [
+            "SOURCE_IDENTITY_UNKNOWN",
+            "PERMISSION_LICENSE_OR_USE_UNKNOWN",
+            "RATE_OR_SCHEMA_UNKNOWN",
+            "NONZERO_INCREMENTAL_COST"
+          ],
+          "time_semantics": "UNKNOWN"
+        },
+        "id": "S05P02-UNBOUND-SOURCE-HARD-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "reason": "S06 evidence ingestion scope; not a real-time market source and remains not connected",
+            "system_id": "GMAIL"
+          },
+          {
+            "reason": "S04 edge/runtime scope; not a market source and production access remains unverified",
+            "system_id": "CLOUDFLARE"
+          },
+          {
+            "reason": "S04 host/runtime scope; not a market source and 7x24 remains unverified",
+            "system_id": "OVH"
+          }
+        ],
+        "id": "S05P02-ADJACENT-SYSTEMS-EXCLUDED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "incremental_cash_budget_aud": "0.00",
+          "initial_bankroll_aud": "300.00",
+          "page_or_email_text_is_instruction": false,
+          "paid_data_or_api_dependency_allowed": false,
+          "real_order_submission_confirmation_or_retry_present": false,
+          "target_30pct_guaranteed": false,
+          "target_shortfall_may_relax_source_gate": false
+        },
+        "id": "S05P02-A300-A0-NO-ORDER-NO-GUARANTEE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_or_order_enabled": false,
+          "all_observable_markets_enumerated": false,
+          "cloudflare_global_or_mainland_reach_verified": false,
+          "financial_return_verified_or_guaranteed": false,
+          "ovh_7x24_verified": false,
+          "production_collection_enabled": false,
+          "production_deployed": false,
+          "provider_account_or_page_accessed": false,
+          "provider_permission_or_api_grant_obtained": false,
+          "real_market_coverage_verified": false,
+          "source_freshness_runtime_verified": false,
+          "source_schedule_implemented": false
+        },
+        "id": "S05P02-PROVIDER-CLAIM-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+        "id": "S05P02-CAPABILITY-PARENT-HASH",
+        "passed": true
+      },
+      {
+        "detail": [
+          [
+            "TAB",
+            "PUBLIC_BROWSER"
+          ],
+          [
+            "TAB",
+            "FILE_OR_STATIC_DATA"
+          ],
+          [
+            "TAB",
+            "FREE_ENDPOINT"
+          ],
+          [
+            "TAB",
+            "AUTHENTICATED_OBSERVER"
+          ],
+          [
+            "TAB",
+            "OWNER_DEVICE_OVERLAY"
+          ],
+          [
+            "SPORTSBET",
+            "PUBLIC_BROWSER"
+          ],
+          [
+            "SPORTSBET",
+            "FILE_OR_STATIC_DATA"
+          ],
+          [
+            "SPORTSBET",
+            "FREE_ENDPOINT"
+          ],
+          [
+            "SPORTSBET",
+            "AUTHENTICATED_OBSERVER"
+          ],
+          [
+            "SPORTSBET",
+            "OWNER_DEVICE_OVERLAY"
+          ],
+          [
+            "OTHER_OBSERVABLE_PROVIDER",
+            "PUBLIC_BROWSER"
+          ],
+          [
+            "OTHER_OBSERVABLE_PROVIDER",
+            "FILE_OR_STATIC_DATA"
+          ],
+          [
+            "OTHER_OBSERVABLE_PROVIDER",
+            "FREE_ENDPOINT"
+          ],
+          [
+            "OTHER_OBSERVABLE_PROVIDER",
+            "AUTHENTICATED_OBSERVER"
+          ],
+          [
+            "OTHER_OBSERVABLE_PROVIDER",
+            "OWNER_DEVICE_OVERLAY"
+          ]
+        ],
+        "id": "S05P02-CAPABILITY-MATRIX-COMPLETE",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "capability_id": "CAP-TAB-PUBLIC_BROWSER",
+            "failure_action": "DISABLE_AFFECTED_MODE_AND_SURFACE_GAP",
+            "max_requests_per_period": 0,
+            "mode": "PUBLIC_BROWSER",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "TAB-2026-07-20-S05P02",
+            "provider_id": "TAB",
+            "reason_codes": [
+              "PF-TAB-003",
+              "CURRENT_PAGE_PERMISSION_NOT_SEPARATELY_VERIFIED"
+            ],
+            "required_gate_ids": [
+              "PUBLIC_ACCESS_VERIFIED",
+              "SOURCE_PERMISSION_VERIFIED",
+              "RATE_BUDGET_VERIFIED",
+              "PARSER_FIXTURE_PASS",
+              "SOURCE_VERSION_HASHED",
+              "CHALLENGE_BACKOFF_ENABLED"
+            ],
+            "runtime_verified": false,
+            "state": "PROHIBITED_SCREEN_SCRAPING"
+          },
+          {
+            "capability_id": "CAP-TAB-FILE_OR_STATIC_DATA",
+            "failure_action": "QUARANTINE_SOURCE_VERSION_AND_SURFACE_GAP",
+            "max_requests_per_period": 0,
+            "mode": "FILE_OR_STATIC_DATA",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "TAB-2026-07-20-S05P02",
+            "provider_id": "TAB",
+            "reason_codes": [
+              "PF-TAB-001",
+              "PF-TAB-002",
+              "OWNER_AUTHORIZATION_AND_SCHEMA_NOT_VERIFIED"
+            ],
+            "required_gate_ids": [
+              "LICENSE_AND_USE_VERIFIED",
+              "SOURCE_VERSION_HASHED",
+              "UPDATE_DATE_PRESENT",
+              "FIELD_LINEAGE_PRESENT",
+              "PARSER_FIXTURE_PASS"
+            ],
+            "runtime_verified": false,
+            "state": "CONDITIONAL_ACCOUNT_EVIDENCE_ONLY_NOT_REALTIME"
+          },
+          {
+            "capability_id": "CAP-TAB-FREE_ENDPOINT",
+            "failure_action": "DO_NOT_CALL_ENDPOINT_AND_SURFACE_GAP",
+            "max_requests_per_period": 0,
+            "mode": "FREE_ENDPOINT",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "TAB-2026-07-20-S05P02",
+            "provider_id": "TAB",
+            "reason_codes": [
+              "PF-TAB-004",
+              "PF-TAB-005"
+            ],
+            "required_gate_ids": [
+              "EXPLICIT_ACCESS_GRANT_VERIFIED",
+              "ZERO_INCREMENTAL_CASH_VERIFIED",
+              "QUOTA_OBSERVABLE",
+              "REPLACEABLE_SOURCE_PRESENT",
+              "NOT_SINGLE_TRUTH_SOURCE",
+              "RATE_BUDGET_VERIFIED",
+              "SOURCE_VERSION_HASHED"
+            ],
+            "runtime_verified": false,
+            "state": "BLOCKED_MISSING_EXPLICIT_GRANT_AND_ZERO_COST_TERMS"
+          },
+          {
+            "capability_id": "CAP-TAB-AUTHENTICATED_OBSERVER",
+            "failure_action": "DISABLE_SESSION_AND_ALERT",
+            "max_requests_per_period": 0,
+            "mode": "AUTHENTICATED_OBSERVER",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "TAB-2026-07-20-S05P02",
+            "provider_id": "TAB",
+            "reason_codes": [
+              "PF-TAB-003",
+              "NO_OWNER_CONFIGURATION_OR_READ_ONLY_ALLOWLIST"
+            ],
+            "required_gate_ids": [
+              "OWNER_EXPLICIT_CONFIGURATION",
+              "SECRET_ENCRYPTION_VERIFIED",
+              "LEAST_PRIVILEGE_VERIFIED",
+              "SOURCE_PERMISSION_VERIFIED",
+              "READ_ONLY_METHOD_ALLOWLIST_VERIFIED",
+              "NO_ORDER_CAPABILITY_VERIFIED",
+              "SESSION_KILL_SWITCH_VERIFIED"
+            ],
+            "runtime_verified": false,
+            "state": "PROHIBITED_THIRD_PARTY_CREDENTIAL_ACCESS"
+          },
+          {
+            "capability_id": "CAP-TAB-OWNER_DEVICE_OVERLAY",
+            "failure_action": "SHOW_MANUAL_CHECK_OR_CANCEL_TICKET",
+            "max_requests_per_period": 0,
+            "mode": "OWNER_DEVICE_OVERLAY",
+            "passed_gate_ids": [],
+            "period": "OWNER_INITIATED_ONLY_AFTER_INSTALLATION",
+            "production_collection_enabled": false,
+            "provider_contract_version": "TAB-2026-07-20-S05P02",
+            "provider_id": "TAB",
+            "reason_codes": [
+              "OWNER_INSTALLATION_NOT_VERIFIED",
+              "CURRENT_PAGE_IDENTITY_NOT_RUNTIME_VERIFIED"
+            ],
+            "required_gate_ids": [
+              "OWNER_INSTALLATION_VERIFIED",
+              "VISIBLE_FIELDS_ONLY",
+              "PAGE_TEXT_TREATED_AS_UNTRUSTED_DATA",
+              "NO_CLICK_OR_SUBMIT_CAPABILITY_VERIFIED",
+              "CURRENT_PAGE_IDENTITY_MATCHED"
+            ],
+            "runtime_verified": false,
+            "state": "CONDITIONAL_OWNER_VISIBLE_ONLY_NOT_INSTALLED"
+          }
+        ],
+        "id": "S05P02-CAPABILITY-DISABLED-TAB",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "capability_id": "CAP-SPORTSBET-PUBLIC_BROWSER",
+            "failure_action": "DISABLE_AFFECTED_MODE_AND_SURFACE_GAP",
+            "max_requests_per_period": 0,
+            "mode": "PUBLIC_BROWSER",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+            "provider_id": "SPORTSBET",
+            "reason_codes": [
+              "PF-SPORTSBET-003"
+            ],
+            "required_gate_ids": [
+              "PUBLIC_ACCESS_VERIFIED",
+              "SOURCE_PERMISSION_VERIFIED",
+              "RATE_BUDGET_VERIFIED",
+              "PARSER_FIXTURE_PASS",
+              "SOURCE_VERSION_HASHED",
+              "CHALLENGE_BACKOFF_ENABLED"
+            ],
+            "runtime_verified": false,
+            "state": "UNKNOWN_AUTOMATION_PERMISSION_FAIL_CLOSED"
+          },
+          {
+            "capability_id": "CAP-SPORTSBET-FILE_OR_STATIC_DATA",
+            "failure_action": "QUARANTINE_SOURCE_VERSION_AND_SURFACE_GAP",
+            "max_requests_per_period": 0,
+            "mode": "FILE_OR_STATIC_DATA",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+            "provider_id": "SPORTSBET",
+            "reason_codes": [
+              "PF-SPORTSBET-002",
+              "OWNER_AUTHORIZATION_AND_SCHEMA_NOT_VERIFIED"
+            ],
+            "required_gate_ids": [
+              "LICENSE_AND_USE_VERIFIED",
+              "SOURCE_VERSION_HASHED",
+              "UPDATE_DATE_PRESENT",
+              "FIELD_LINEAGE_PRESENT",
+              "PARSER_FIXTURE_PASS"
+            ],
+            "runtime_verified": false,
+            "state": "CONDITIONAL_ACCOUNT_EVIDENCE_ONLY_NOT_REALTIME"
+          },
+          {
+            "capability_id": "CAP-SPORTSBET-FREE_ENDPOINT",
+            "failure_action": "DO_NOT_CALL_ENDPOINT_AND_SURFACE_GAP",
+            "max_requests_per_period": 0,
+            "mode": "FREE_ENDPOINT",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+            "provider_id": "SPORTSBET",
+            "reason_codes": [
+              "PF-SPORTSBET-003"
+            ],
+            "required_gate_ids": [
+              "EXPLICIT_ACCESS_GRANT_VERIFIED",
+              "ZERO_INCREMENTAL_CASH_VERIFIED",
+              "QUOTA_OBSERVABLE",
+              "REPLACEABLE_SOURCE_PRESENT",
+              "NOT_SINGLE_TRUTH_SOURCE",
+              "RATE_BUDGET_VERIFIED",
+              "SOURCE_VERSION_HASHED"
+            ],
+            "runtime_verified": false,
+            "state": "BLOCKED_NO_OFFICIAL_API_PERMISSION_EVIDENCE"
+          },
+          {
+            "capability_id": "CAP-SPORTSBET-AUTHENTICATED_OBSERVER",
+            "failure_action": "DISABLE_SESSION_AND_ALERT",
+            "max_requests_per_period": 0,
+            "mode": "AUTHENTICATED_OBSERVER",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+            "provider_id": "SPORTSBET",
+            "reason_codes": [
+              "PF-SPORTSBET-003",
+              "NO_OWNER_CONFIGURATION_OR_READ_ONLY_ALLOWLIST"
+            ],
+            "required_gate_ids": [
+              "OWNER_EXPLICIT_CONFIGURATION",
+              "SECRET_ENCRYPTION_VERIFIED",
+              "LEAST_PRIVILEGE_VERIFIED",
+              "SOURCE_PERMISSION_VERIFIED",
+              "READ_ONLY_METHOD_ALLOWLIST_VERIFIED",
+              "NO_ORDER_CAPABILITY_VERIFIED",
+              "SESSION_KILL_SWITCH_VERIFIED"
+            ],
+            "runtime_verified": false,
+            "state": "UNKNOWN_ACCOUNT_AUTOMATION_PERMISSION_FAIL_CLOSED"
+          },
+          {
+            "capability_id": "CAP-SPORTSBET-OWNER_DEVICE_OVERLAY",
+            "failure_action": "SHOW_MANUAL_CHECK_OR_CANCEL_TICKET",
+            "max_requests_per_period": 0,
+            "mode": "OWNER_DEVICE_OVERLAY",
+            "passed_gate_ids": [],
+            "period": "OWNER_INITIATED_ONLY_AFTER_INSTALLATION",
+            "production_collection_enabled": false,
+            "provider_contract_version": "SPORTSBET-2026-07-20-S05P02",
+            "provider_id": "SPORTSBET",
+            "reason_codes": [
+              "OWNER_INSTALLATION_NOT_VERIFIED",
+              "CURRENT_PAGE_IDENTITY_NOT_RUNTIME_VERIFIED"
+            ],
+            "required_gate_ids": [
+              "OWNER_INSTALLATION_VERIFIED",
+              "VISIBLE_FIELDS_ONLY",
+              "PAGE_TEXT_TREATED_AS_UNTRUSTED_DATA",
+              "NO_CLICK_OR_SUBMIT_CAPABILITY_VERIFIED",
+              "CURRENT_PAGE_IDENTITY_MATCHED"
+            ],
+            "runtime_verified": false,
+            "state": "CONDITIONAL_OWNER_VISIBLE_ONLY_NOT_INSTALLED"
+          }
+        ],
+        "id": "S05P02-CAPABILITY-DISABLED-SPORTSBET",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-PUBLIC_BROWSER",
+            "failure_action": "SURFACE_EXPLICIT_COVERAGE_GAP",
+            "max_requests_per_period": 0,
+            "mode": "PUBLIC_BROWSER",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+            "reason_codes": [
+              "SOURCE_IDENTITY_AND_PERMISSION_NOT_BOUND"
+            ],
+            "required_gate_ids": [
+              "PUBLIC_ACCESS_VERIFIED",
+              "SOURCE_PERMISSION_VERIFIED",
+              "RATE_BUDGET_VERIFIED",
+              "PARSER_FIXTURE_PASS",
+              "SOURCE_VERSION_HASHED",
+              "CHALLENGE_BACKOFF_ENABLED"
+            ],
+            "runtime_verified": false,
+            "state": "UNBOUND_SOURCE_UNKNOWN_FAIL_CLOSED"
+          },
+          {
+            "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FILE_OR_STATIC_DATA",
+            "failure_action": "SURFACE_EXPLICIT_COVERAGE_GAP",
+            "max_requests_per_period": 0,
+            "mode": "FILE_OR_STATIC_DATA",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+            "reason_codes": [
+              "SOURCE_IDENTITY_LICENSE_SCHEMA_AND_LINEAGE_NOT_BOUND"
+            ],
+            "required_gate_ids": [
+              "LICENSE_AND_USE_VERIFIED",
+              "SOURCE_VERSION_HASHED",
+              "UPDATE_DATE_PRESENT",
+              "FIELD_LINEAGE_PRESENT",
+              "PARSER_FIXTURE_PASS"
+            ],
+            "runtime_verified": false,
+            "state": "UNBOUND_SOURCE_UNKNOWN_FAIL_CLOSED"
+          },
+          {
+            "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-FREE_ENDPOINT",
+            "failure_action": "SURFACE_EXPLICIT_COVERAGE_GAP",
+            "max_requests_per_period": 0,
+            "mode": "FREE_ENDPOINT",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+            "reason_codes": [
+              "SOURCE_IDENTITY_GRANT_COST_QUOTA_AND_REPLACEMENT_NOT_BOUND"
+            ],
+            "required_gate_ids": [
+              "EXPLICIT_ACCESS_GRANT_VERIFIED",
+              "ZERO_INCREMENTAL_CASH_VERIFIED",
+              "QUOTA_OBSERVABLE",
+              "REPLACEABLE_SOURCE_PRESENT",
+              "NOT_SINGLE_TRUTH_SOURCE",
+              "RATE_BUDGET_VERIFIED",
+              "SOURCE_VERSION_HASHED"
+            ],
+            "runtime_verified": false,
+            "state": "UNBOUND_SOURCE_UNKNOWN_FAIL_CLOSED"
+          },
+          {
+            "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-AUTHENTICATED_OBSERVER",
+            "failure_action": "SURFACE_EXPLICIT_COVERAGE_GAP",
+            "max_requests_per_period": 0,
+            "mode": "AUTHENTICATED_OBSERVER",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+            "reason_codes": [
+              "SOURCE_IDENTITY_ACCOUNT_PERMISSION_AND_OWNER_CONFIGURATION_NOT_BOUND"
+            ],
+            "required_gate_ids": [
+              "OWNER_EXPLICIT_CONFIGURATION",
+              "SECRET_ENCRYPTION_VERIFIED",
+              "LEAST_PRIVILEGE_VERIFIED",
+              "SOURCE_PERMISSION_VERIFIED",
+              "READ_ONLY_METHOD_ALLOWLIST_VERIFIED",
+              "NO_ORDER_CAPABILITY_VERIFIED",
+              "SESSION_KILL_SWITCH_VERIFIED"
+            ],
+            "runtime_verified": false,
+            "state": "UNBOUND_SOURCE_UNKNOWN_FAIL_CLOSED"
+          },
+          {
+            "capability_id": "CAP-OTHER_OBSERVABLE_PROVIDER-OWNER_DEVICE_OVERLAY",
+            "failure_action": "SHOW_MANUAL_CHECK_OR_CANCEL_TICKET",
+            "max_requests_per_period": 0,
+            "mode": "OWNER_DEVICE_OVERLAY",
+            "passed_gate_ids": [],
+            "period": "DISABLED",
+            "production_collection_enabled": false,
+            "provider_contract_version": "UNBOUND-SOURCE-S05P02",
+            "provider_id": "OTHER_OBSERVABLE_PROVIDER",
+            "reason_codes": [
+              "SOURCE_IDENTITY_AND_OWNER_INSTALLATION_NOT_BOUND"
+            ],
+            "required_gate_ids": [
+              "OWNER_INSTALLATION_VERIFIED",
+              "VISIBLE_FIELDS_ONLY",
+              "PAGE_TEXT_TREATED_AS_UNTRUSTED_DATA",
+              "NO_CLICK_OR_SUBMIT_CAPABILITY_VERIFIED",
+              "CURRENT_PAGE_IDENTITY_MATCHED"
+            ],
+            "runtime_verified": false,
+            "state": "UNBOUND_SOURCE_UNKNOWN_FAIL_CLOSED"
+          }
+        ],
+        "id": "S05P02-CAPABILITY-DISABLED-OTHER_OBSERVABLE_PROVIDER",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_record_count": 15,
+          "mode_count": 5,
+          "production_collection_enabled_count": 0,
+          "provider_count": 3,
+          "real_market_coverage_count": 0,
+          "runtime_verified_count": 0
+        },
+        "id": "S05P02-CAPABILITY-SUMMARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract_version_mismatch": "DENY_COLLECTION_AND_REQUIRE_REVIEW",
+          "duplicate_capability_record": "DENY_COLLECTION_AND_SURFACE_GAP",
+          "missing_capability_record": "DENY_COLLECTION_AND_SURFACE_GAP",
+          "missing_required_gate": "DENY_COLLECTION_AND_LOG_MISSING_GATES",
+          "page_challenge_or_rate_limit": "STOP_RETRY_BACKOFF_AND_SURFACE_GAP",
+          "positive_or_unknown_incremental_cost": "DENY_COLLECTION",
+          "review_date_expired": "DENY_COLLECTION_AND_REQUIRE_LIVE_REVALIDATION",
+          "source_version_or_hash_mismatch": "DENY_COLLECTION_AND_QUARANTINE_VERSION",
+          "unknown_provider_or_mode": "DENY_COLLECTION_AND_SURFACE_GAP"
+        },
+        "id": "S05P02-FAIL-CLOSED-DEFAULTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "all_observable_markets_verified": false,
+          "any_production_collection_enabled": false,
+          "any_provider_account_or_page_accessed": false,
+          "any_real_market_observed": false,
+          "any_runtime_capability_verified": false,
+          "production_deployed": false,
+          "recommendation_or_order_enabled": false,
+          "return_verified_or_guaranteed": false,
+          "scheduler_or_cadence_implemented": false
+        },
+        "id": "S05P02-CAPABILITY-CLAIM-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "decision": "ALLOW_FROZEN_TEST_READ_ONLY",
+          "detail": {
+            "mode": "FILE_OR_STATIC_DATA",
+            "provider_id": "FROZEN_SYNTHETIC_PROVIDER"
+          },
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "SOURCE_CONTRACT_PASS_TEST_ONLY"
+        },
+        "id": "S05P02-SYNTHETIC-POSITIVE-PASS",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "actual_reason": "CAPABILITY_IDENTITY_MISMATCH",
+            "expected_reason": "CAPABILITY_IDENTITY_MISMATCH",
+            "id": "UNKNOWN-PROVIDER",
+            "passed": true
+          },
+          {
+            "actual_reason": "CAPABILITY_IDENTITY_MISMATCH",
+            "expected_reason": "CAPABILITY_IDENTITY_MISMATCH",
+            "id": "UNKNOWN-MODE",
+            "passed": true
+          },
+          {
+            "actual_reason": "CONTRACT_VERSION_MISMATCH",
+            "expected_reason": "CONTRACT_VERSION_MISMATCH",
+            "id": "CONTRACT-VERSION-DRIFT",
+            "passed": true
+          },
+          {
+            "actual_reason": "SOURCE_VERSION_MISMATCH",
+            "expected_reason": "SOURCE_VERSION_MISMATCH",
+            "id": "SOURCE-HASH-DRIFT",
+            "passed": true
+          },
+          {
+            "actual_reason": "SOURCE_VERSION_MISMATCH",
+            "expected_reason": "SOURCE_VERSION_MISMATCH",
+            "id": "MALFORMED-SOURCE-HASH",
+            "passed": true
+          },
+          {
+            "actual_reason": "SOURCE_REVIEW_EXPIRED",
+            "expected_reason": "SOURCE_REVIEW_EXPIRED",
+            "id": "STALE-REVIEW",
+            "passed": true
+          },
+          {
+            "actual_reason": "INCREMENTAL_CASH_NOT_ZERO",
+            "expected_reason": "INCREMENTAL_CASH_NOT_ZERO",
+            "id": "POSITIVE-COST",
+            "passed": true
+          },
+          {
+            "actual_reason": "INCREMENTAL_CASH_NOT_ZERO",
+            "expected_reason": "INCREMENTAL_CASH_NOT_ZERO",
+            "id": "UNKNOWN-COST",
+            "passed": true
+          },
+          {
+            "actual_reason": "REQUIRED_GATES_MISSING",
+            "expected_reason": "REQUIRED_GATES_MISSING",
+            "id": "MISSING-GATE",
+            "passed": true
+          },
+          {
+            "actual_reason": "ORDER_ACTION_PROHIBITED",
+            "expected_reason": "ORDER_ACTION_PROHIBITED",
+            "id": "ORDER-ACTION",
+            "passed": true
+          },
+          {
+            "actual_reason": "TEST_FIXTURE_PROHIBITED_IN_PRODUCTION",
+            "expected_reason": "TEST_FIXTURE_PROHIBITED_IN_PRODUCTION",
+            "id": "PRODUCTION-FIXTURE",
+            "passed": true
+          },
+          {
+            "actual_reason": "MALFORMED_REQUEST",
+            "expected_reason": "MALFORMED_REQUEST",
+            "id": "MISSING-EVALUATION-DATE",
+            "passed": true
+          },
+          {
+            "actual_reason": "INCREMENTAL_CASH_NOT_ZERO",
+            "expected_reason": "INCREMENTAL_CASH_NOT_ZERO",
+            "id": "BOOLEAN-COST",
+            "passed": true
+          },
+          {
+            "actual_reason": "UNDECLARED_GATE_PRESENT",
+            "expected_reason": "UNDECLARED_GATE_PRESENT",
+            "id": "UNDECLARED-GATE",
+            "passed": true
+          }
+        ],
+        "id": "S05P02-NEGATIVE-FAULT-CATALOG",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": "NOT_APPLICABLE_TO_SOURCE_CONTRACT",
+          "decision": {
+            "advice_enabled": false,
+            "decision": "ALLOW_FROZEN_TEST_READ_ONLY",
+            "detail": {
+              "mode": "FILE_OR_STATIC_DATA",
+              "provider_id": "FROZEN_SYNTHETIC_PROVIDER"
+            },
+            "external_action_performed": false,
+            "order_enabled": false,
+            "reason_code": "SOURCE_CONTRACT_PASS_TEST_ONLY"
+          },
+          "delta": "-0.0001"
+        },
+        "id": "S05P02-STABILITY-NEG0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": "NOT_APPLICABLE_TO_SOURCE_CONTRACT",
+          "decision": {
+            "advice_enabled": false,
+            "decision": "ALLOW_FROZEN_TEST_READ_ONLY",
+            "detail": {
+              "mode": "FILE_OR_STATIC_DATA",
+              "provider_id": "FROZEN_SYNTHETIC_PROVIDER"
+            },
+            "external_action_performed": false,
+            "order_enabled": false,
+            "reason_code": "SOURCE_CONTRACT_PASS_TEST_ONLY"
+          },
+          "delta": "0"
+        },
+        "id": "S05P02-STABILITY-0",
+        "passed": true
+      },
+      {
+        "detail": {
+          "adverse_odds_tick": "NOT_APPLICABLE_TO_SOURCE_CONTRACT",
+          "decision": {
+            "advice_enabled": false,
+            "decision": "ALLOW_FROZEN_TEST_READ_ONLY",
+            "detail": {
+              "mode": "FILE_OR_STATIC_DATA",
+              "provider_id": "FROZEN_SYNTHETIC_PROVIDER"
+            },
+            "external_action_performed": false,
+            "order_enabled": false,
+            "reason_code": "SOURCE_CONTRACT_PASS_TEST_ONLY"
+          },
+          "delta": "0.0001"
+        },
+        "id": "S05P02-STABILITY-0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "decision": "ALLOW_FROZEN_TEST_READ_ONLY",
+          "detail": {
+            "mode": "FILE_OR_STATIC_DATA",
+            "provider_id": "FROZEN_SYNTHETIC_PROVIDER"
+          },
+          "external_action_performed": false,
+          "order_enabled": false,
+          "reason_code": "SOURCE_CONTRACT_PASS_TEST_ONLY"
+        },
+        "id": "S05P02-DETERMINISTIC-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": "all values are integers, booleans or decimal strings",
+        "id": "S05P02-NO-BINARY-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "index": [
+            {
+              "acceptance_contract_id": "AC-S05-P03",
+              "expected_artifact": "machine/evidence/EVD-S05-P03.json",
+              "id": "INDEX-AC-S05-P03",
+              "kind": "ACCEPTANCE_EVIDENCE",
+              "pass_gate": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。",
+              "requirement_id": "REQ-S05-P03",
+              "status": "PLANNED"
+            }
+          ],
+          "present": []
+        },
+        "id": "S05P02-P03-NOT-STARTED",
+        "passed": true
+      },
+      {
+        "detail": "none",
+        "id": "S05P02-NO-SECRET-OR-LOCAL-PATH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 3,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 3
+        },
+        "id": "S05P02-P01-SIGNED-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "product": {
+            "id": "ABD",
+            "incremental_cash_budget_aud": "0.00",
+            "initial_bankroll_aud": "300.00",
+            "language": "zh-CN",
+            "monthly_target_return": "0.30",
+            "name_zh": "全天候投注决策辅助系统",
+            "owner": "单一账户持有人",
+            "primary_goal": "在不降低证据、风险、安全与合规门槛的前提下，分析全部可观察市场并追求 A$300×1.3^n 的月度滚动复利目标。",
+            "status": "FINAL_ACCEPTANCE_DELIVERY",
+            "target_curve": "B_n = 300 * (1.3 ** n)",
+            "version": "0.0.0.1"
+          },
+          "target": {
+            "falsification_gate": [
+              "至少6个完整自然月",
+              "至少1000个独立等效信号",
+              "月收益率的95%上界仍低于30%"
+            ],
+            "formula": "B_n = 300 * 1.3^n",
+            "guaranteed": false,
+            "monthly_log_growth": "0.26236426446749106",
+            "monthly_return": "0.30",
+            "plausible_gate": [
+              "保守月度对数增长中位数 >= ln(1.3)",
+              "月度对数增长第5百分位 > 0",
+              "按来源、平台限额、机会数量和相关性校正后的容量通过"
+            ],
+            "shadow_min_days": 90,
+            "shadow_min_independent_equivalent_signals": 1000,
+            "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+            "verification_gate": [
+              "至少12个完整自然月",
+              "按现金流调整后的月度几何收益 >= 30%",
+              "证据完整",
+              "未解决对账差异为0"
+            ]
+          }
+        },
+        "id": "S05P02-CANONICAL-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 105
+        },
+        "id": "S05P02-TARGETED-PYTEST",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 1337
+        },
+        "id": "S05P02-AFFECTED-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "skipped": 0,
+          "tests": 4180
+        },
+        "id": "S05P02-FULL-REGRESSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S05P02-TASKPACK-49-PASS",
+        "passed": true
+      },
+      {
+        "detail": [
+          "ABD S00/P03 PAID DEPENDENCY SCAN",
+          "STATUS: PASS",
+          "FIXED_CLOCK: 2026-07-19T00:00:00+10:00",
+          "MAX_INCREMENTAL_CASH_AUD: 0.00",
+          "DEPENDENCY_MANIFESTS: 2",
+          "RUNTIME_DIRECT_DEPENDENCIES: 0",
+          "LOCKED_REGISTRY_PACKAGES: 12",
+          "PAID_OR_UNKNOWN_DEPENDENCIES: 0",
+          "EXTERNAL_NETWORK_ACCESS_PERFORMED: false",
+          "EXTERNAL_ACCOUNT_OR_BILLING_ACCESS_PERFORMED: false"
+        ],
+        "id": "S05P02-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "contract_id": "AC-S05-P02",
+    "decision": "SOURCE_CAPABILITY_CONTRACTS_FROZEN_FAIL_CLOSED",
+    "external_effect_boundary": {
+      "external_network_accessed": false,
+      "financial_return_verified_or_guaranteed": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "model_or_strategy_executed": false,
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "production_deployed_or_activated": false,
+      "provider_account_api_or_page_accessed": false,
+      "provider_permission_or_api_grant_obtained": false,
+      "real_market_data_collected": false,
+      "recommendation_generated": false,
+      "source_terms_or_external_state_changed": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-23T12:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "machine/evidence/EVD-S05-P01.json": "a5f2014009c92b50e49be7ad6260979ad8bb546d25b1d2f606ba745006fb8239",
+      "machine/evidence/EVD-S05-P01_rollback.json": "9b88961d0fec3cb9409706cc879c80506c909894eba28e61ed98714b12b702f9",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S05/P02/full_regression.xml": "000e1f021eada518b7d92c4ddb1509c4163ea00c8ac202d92d3d5c03223f500e",
+      "machine/evidence/S05/P02/pytest.xml": "5671ed070f15e4f35c1ea0452262bd9934cff8f5b12887a3201e9bf8ae5f4988",
+      "machine/evidence/S05/P02/signed_state_regression.xml": "0debfe1c44363bcc1a4039407a56a1ef5ae139c45d329b2783b8e924c6d7df05",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/authorization_matrix.json": "f7cf34a3d60e37365c3090fac75f40e0b390ec211976393e7148d597a2f4affe",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/provider_contracts.json": "a9d0fd864fad7ac4c14ec6a324d447abbc8497b256a232f9ca04b3115b15364a",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S05_P02.json": "26b5f58830ff9add93bf8466383122eb5945ea2fd827ad1d2f11c7bb9ff256b2",
+      "provider_contracts.json": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+      "provider_facts_snapshot.json": "a76b514469243d7b0a5c7c4ed3e2b388452d5fd5ded7fdc42aad48d5ebb17b06",
+      "regulatory_matrix.json": "5022031f18d910d040221d4e526b87c1b05b118bed4c1da9e655bc7b9d08227f",
+      "source_capabilities.json": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+      "sources.json": "a00d0bf733c2fb6c14ef0f5d56012a4d632bab982f9d5744fbea5b3eef487966",
+      "tests/S05/P02_test.py": "4e41ce1aedde1b8cb39fc9326041468224c4b0ca5e4aea23a5fbf0e21801c115"
+    },
+    "next": "S05/P03_READY_NOT_STARTED",
+    "pass_gate_interpretation": "EVERY_COLLECTION_CAPABILITY_REQUIRES_A_VERSIONED_SOURCE_CONTRACT; CURRENT_REAL_PROVIDER_COLLECTION_REMAINS_DISABLED",
+    "phase_id": "P02",
+    "phase_status": "S05_P02_PASS",
+    "product_version": "0.0.0.1",
+    "production_collection_status": "ALL_15_PROVIDER_MODE_CAPABILITIES_DISABLED_PENDING_SOURCE_SPECIFIC_RUNTIME_PROOF",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "release_status": "NOT_READY_S05_P03_TO_P04_AND_WHOLE_STAGE_REVIEW_REQUIRED",
+    "requirement_id": "REQ-S05-P02",
+    "schema_version": "1.0.0",
+    "stage_id": "S05",
+    "status": "PASS",
+    "summary": {
+      "checks": 73,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 73
+    }
+  }
+}

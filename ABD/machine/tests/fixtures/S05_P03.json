@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "ABD-S05-P03-ADAPTIVE-SOURCE-SCHEDULER",
+  "fixed_clock": "2026-07-23T18:00:00+10:00",
+  "expected_requirement_id": "REQ-S05-P03",
+  "expected_contract_id": "AC-S05-P03",
+  "expected_task_ids": [
+    "T-S05-P03-01",
+    "T-S05-P03-02",
+    "T-S05-P03-03"
+  ],
+  "expected_test_ids": [
+    "TEST-S05-P03",
+    "TEST-S05-P03-BOUNDARY",
+    "TEST-S05-P03-REPLAY"
+  ],
+  "expected_artifacts": {
+    "ART-S05-P03-01": "scheduler.py",
+    "ART-S05-P03-02": "cadence_tests.json",
+    "ART-S05-P03-03": "rate_budget.json"
+  },
+  "expected_cadence_bands": [
+    "more_than_24h",
+    "2h_to_24h",
+    "15m_to_2h",
+    "0_to_15m",
+    "live"
+  ],
+  "frozen_test_only_positive_request": {
+    "capability_id": "CAP-FROZEN-SYNTHETIC-SCHEDULER",
+    "capability_decision": "ALLOW_FROZEN_TEST_READ_ONLY",
+    "execution_environment": "FROZEN_TEST",
+    "incremental_cash_aud": "0.00",
+    "event_status": "PREMATCH",
+    "time_to_start_seconds": 7200,
+    "source_live_supported": false,
+    "last_scheduled_at": "2026-07-23T18:00:00+10:00",
+    "actual_dispatch_at": "2026-07-23T18:00:02+10:00",
+    "window_dispatch_count": 0,
+    "failure_count": 0
+  },
+  "expected_positive_result": {
+    "decision": "PLAN_FROZEN_TEST_REFRESH",
+    "reason_code": "SOURCE_RATE_AND_CADENCE_GATES_PASS",
+    "band": "15m_to_2h",
+    "refresh_seconds": 60,
+    "quote_usable_seconds": 90,
+    "advice_usable_seconds": 45,
+    "dispatch_deviation_microseconds": 2000000,
+    "next_due_at": "2026-07-23T18:01:00+10:00",
+    "backoff_seconds": 0,
+    "remaining_dispatches_in_window": 119
+  },
+  "negative_schedule_mutations": [
+    {"id": "SOURCE-GATE-DENIED", "path": ["capability_decision"], "value": "DENY_COLLECTION", "expected_reason": "SOURCE_CAPABILITY_GATE_NOT_PASSED"},
+    {"id": "FIXTURE-IN-PRODUCTION", "path": ["execution_environment"], "value": "PRODUCTION", "expected_reason": "TEST_BUDGET_PROHIBITED_IN_PRODUCTION"},
+    {"id": "POSITIVE-CASH", "path": ["incremental_cash_aud"], "value": "0.01", "expected_reason": "INCREMENTAL_CASH_NOT_ZERO"},
+    {"id": "UNKNOWN-CASH", "path": ["incremental_cash_aud"], "value": "UNKNOWN", "expected_reason": "INCREMENTAL_CASH_NOT_ZERO"},
+    {"id": "UNKNOWN-CAPABILITY", "path": ["capability_id"], "value": "CAP-UNKNOWN", "expected_reason": "UNKNOWN_OR_DUPLICATE_CAPABILITY_BUDGET"},
+    {"id": "BUDGET-EXHAUSTED", "path": ["window_dispatch_count"], "value": 120, "expected_reason": "RATE_BUDGET_EXHAUSTED"},
+    {"id": "BOOLEAN-DISPATCH-COUNT", "path": ["window_dispatch_count"], "value": true, "expected_reason": "INVALID_WINDOW_DISPATCH_COUNT"},
+    {"id": "UNKNOWN-STATUS", "path": ["event_status"], "value": "UNKNOWN", "expected_reason": "UNKNOWN_EVENT_STATUS"},
+    {"id": "BOOLEAN-TIME", "path": ["time_to_start_seconds"], "value": true, "expected_reason": "INVALID_TIME_TO_START"},
+    {"id": "STARTED-WITHOUT-LIVE", "path": ["time_to_start_seconds"], "value": 0, "expected_reason": "EVENT_STARTED_WITHOUT_VERIFIED_LIVE_STATE"},
+    {"id": "LIVE-UNSUPPORTED", "path": ["event_status"], "value": "LIVE", "expected_reason": "LIVE_REFRESH_UNSUPPORTED"},
+    {"id": "DISPATCH-LATE", "path": ["actual_dispatch_at"], "value": "2026-07-23T18:00:03+10:00", "expected_reason": "DISPATCH_DEVIATION_EXCEEDED"},
+    {"id": "NAIVE-DISPATCH-TIME", "path": ["actual_dispatch_at"], "value": "2026-07-23T18:00:00", "expected_reason": "INVALID_DISPATCH_TIMESTAMP"},
+    {"id": "NEGATIVE-FAILURE-COUNT", "path": ["failure_count"], "value": -1, "expected_reason": "INVALID_NEXT_DUE_INPUT"},
+    {"id": "MISSING-CAPABILITY", "path": ["capability_id"], "delete": true, "expected_reason": "MALFORMED_SCHEDULE_REQUEST"}
+  ],
+  "backoff_vectors": [
+    {"failure_count": 0, "expected_seconds": 0},
+    {"failure_count": 1, "expected_seconds": 30},
+    {"failure_count": 2, "expected_seconds": 60},
+    {"failure_count": 3, "expected_seconds": 120},
+    {"failure_count": 4, "expected_seconds": 240},
+    {"failure_count": 5, "expected_seconds": 480},
+    {"failure_count": 6, "expected_seconds": 960},
+    {"failure_count": 7, "expected_seconds": 1800},
+    {"failure_count": 12, "expected_seconds": 1800}
+  ],
+  "freshness_fault_vectors": [
+    {"id": "UNTRUSTED-CLOCK", "mutation": "source_clock_trusted", "value": false, "expected_reason": "SOURCE_CLOCK_UNTRUSTED"},
+    {"id": "MISSING-HASH", "mutation": "content_sha256", "value": "", "expected_reason": "CONTENT_HASH_MISSING_OR_INVALID"},
+    {"id": "MALFORMED-HASH", "mutation": "content_sha256", "value": "not-a-hash", "expected_reason": "CONTENT_HASH_MISSING_OR_INVALID"},
+    {"id": "FUTURE-SOURCE-TIME", "mutation": "source_timestamp", "value": "2026-07-23T18:00:01+10:00", "expected_reason": "FUTURE_QUOTE_TIMESTAMP"},
+    {"id": "FUTURE-OBSERVED-TIME", "mutation": "observed_timestamp", "value": "2026-07-23T18:00:01+10:00", "expected_reason": "FUTURE_QUOTE_TIMESTAMP"},
+    {"id": "NAIVE-SOURCE-TIME", "mutation": "source_timestamp", "value": "2026-07-23T18:00:00", "expected_reason": "INVALID_FRESHNESS_TIMESTAMP"},
+    {"id": "UNKNOWN-BAND", "mutation": "band", "value": "UNKNOWN", "expected_reason": "UNKNOWN_CADENCE_BAND"}
+  ],
+  "freshness_base": {
+    "now": "2026-07-23T18:00:00+10:00",
+    "band": "15m_to_2h",
+    "source_timestamp": "2026-07-23T17:59:30+10:00",
+    "observed_timestamp": "2026-07-23T17:59:40+10:00",
+    "content_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "source_clock_trusted": true,
+    "advice_created_at": "2026-07-23T17:59:50+10:00"
+  },
+  "real_capability_expected_count": 15,
+  "allowed_numeric_boundary_deltas": [
+    "-0.0001",
+    "0",
+    "0.0001"
+  ],
+  "expected_external_effect_boundary": {
+    "external_network_accessed": false,
+    "provider_account_api_or_page_accessed": false,
+    "real_market_data_collected": false,
+    "real_provider_dispatch_performed": false,
+    "scheduler_daemon_started": false,
+    "gmail_account_or_api_accessed": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "model_or_strategy_executed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_confirmed_or_retried": false,
+    "production_deployed_or_activated": false,
+    "financial_return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00"
+  },
+  "expected_next": "S05/P04_READY_NOT_STARTED",
+  "minimum_oracle_checks": 55,
+  "minimum_targeted_pytest_cases": 90,
+  "minimum_affected_pytest_cases": 1000,
+  "minimum_full_pytest_cases": 4200
+}

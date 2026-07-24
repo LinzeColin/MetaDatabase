@@ -1,0 +1,382 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:abd:schema:coverage-manifest:0.0.0.1-s05p01",
+  "title": "ABD S05/P01 Coverage Manifest",
+  "description": "对一个已观察输入集合逐对象给出唯一已知类型或显式 UNKNOWN；本 Schema 不证明真实市场覆盖。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "ontology_id",
+    "ontology_version",
+    "generated_at",
+    "input_mode",
+    "declared_discovery_scope",
+    "input_set",
+    "records",
+    "summary",
+    "manifest_status",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "manifest_id": {
+      "type": "string",
+      "pattern": "^COV-[A-Z0-9][A-Z0-9._-]{2,63}$"
+    },
+    "ontology_id": {
+      "const": "ABD-MARKET-ONTOLOGY"
+    },
+    "ontology_version": {
+      "const": "0.0.0.1-S05P01"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "input_mode": {
+      "enum": [
+        "FROZEN_SYNTHETIC_FIXTURE",
+        "OFFLINE_REPLAY",
+        "RUNTIME_DISCOVERY"
+      ]
+    },
+    "declared_discovery_scope": {
+      "const": "ALL_OBSERVABLE_MARKETS"
+    },
+    "input_set": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observed_object_count",
+        "source_object_refs_sha256"
+      ],
+      "properties": {
+        "observed_object_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "source_object_refs_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/discoveryRecord"
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_records",
+        "known_count",
+        "unknown_count",
+        "counts_by_kind"
+      ],
+      "properties": {
+        "total_records": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "known_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unknown_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "counts_by_kind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "SPORT",
+            "COMPETITION",
+            "EVENT",
+            "PERIOD",
+            "MARKET",
+            "SELECTION",
+            "LINE",
+            "SETTLEMENT_RULE",
+            "UNKNOWN"
+          ],
+          "properties": {
+            "SPORT": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "COMPETITION": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "EVENT": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "PERIOD": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "MARKET": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "SELECTION": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "LINE": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "SETTLEMENT_RULE": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "UNKNOWN": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "manifest_status": {
+      "enum": [
+        "COMPLETE_FOR_OBSERVED_INPUT",
+        "BLOCKED_INVALID_INPUT"
+      ]
+    },
+    "claim_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "all_observable_markets_verified",
+        "cross_source_identity_resolved",
+        "source_capabilities_verified",
+        "market_data_freshness_verified",
+        "recommendation_or_order_enabled"
+      ],
+      "properties": {
+        "all_observable_markets_verified": {
+          "const": false
+        },
+        "cross_source_identity_resolved": {
+          "const": false
+        },
+        "source_capabilities_verified": {
+          "const": false
+        },
+        "market_data_freshness_verified": {
+          "const": false
+        },
+        "recommendation_or_order_enabled": {
+          "const": false
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "sourceId": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9._-]{2,63}$"
+    },
+    "sourceObjectRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\r\\n]+$"
+    },
+    "objectId": {
+      "type": "string",
+      "pattern": "^(SPORT|COMPETITION|EVENT|PERIOD|MARKET|SELECTION|LINE|SETTLEMENT_RULE|UNKNOWN):[a-z0-9][a-z0-9._~-]{0,127}$"
+    },
+    "commonRecord": {
+      "type": "object",
+      "required": [
+        "record_id",
+        "classification_status",
+        "object_kind",
+        "object_id",
+        "source_id",
+        "source_object_ref",
+        "source_payload_sha256",
+        "observed_at",
+        "parent_refs",
+        "advice_eligible"
+      ],
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "pattern": "^REC-[0-9a-f]{24}$"
+        },
+        "classification_status": {
+          "enum": [
+            "KNOWN",
+            "UNKNOWN"
+          ]
+        },
+        "object_kind": {
+          "enum": [
+            "SPORT",
+            "COMPETITION",
+            "EVENT",
+            "PERIOD",
+            "MARKET",
+            "SELECTION",
+            "LINE",
+            "SETTLEMENT_RULE",
+            "UNKNOWN"
+          ]
+        },
+        "object_id": {
+          "$ref": "#/$defs/objectId"
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "source_object_ref": {
+          "$ref": "#/$defs/sourceObjectRef"
+        },
+        "source_payload_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "parent_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/objectId"
+          }
+        },
+        "advice_eligible": {
+          "const": false
+        },
+        "unknown_reason_code": {
+          "enum": [
+            "AMBIGUOUS_TYPE",
+            "DUPLICATE_SOURCE_REFERENCE",
+            "INVALID_PARENT_RELATION",
+            "MALFORMED_IDENTIFIER",
+            "MALFORMED_INPUT",
+            "MISSING_REQUIRED_RELATION",
+            "UNRECOGNIZED_TYPE",
+            "UNSUPPORTED_SEMANTICS"
+          ]
+        },
+        "raw_type_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "routing_action": {
+          "const": "QUARANTINE_AND_SURFACE_COVERAGE_GAP"
+        }
+      }
+    },
+    "knownRecord": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/commonRecord"
+        },
+        {
+          "type": "object",
+          "required": [
+            "classification_status",
+            "object_kind"
+          ],
+          "properties": {
+            "classification_status": {
+              "const": "KNOWN"
+            },
+            "object_kind": {
+              "enum": [
+                "SPORT",
+                "COMPETITION",
+                "EVENT",
+                "PERIOD",
+                "MARKET",
+                "SELECTION",
+                "LINE",
+                "SETTLEMENT_RULE"
+              ]
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "unknown_reason_code"
+                ]
+              },
+              {
+                "required": [
+                  "raw_type_label"
+                ]
+              },
+              {
+                "required": [
+                  "routing_action"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "unknownRecord": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/commonRecord"
+        },
+        {
+          "type": "object",
+          "required": [
+            "classification_status",
+            "object_kind",
+            "unknown_reason_code",
+            "raw_type_label",
+            "routing_action"
+          ],
+          "properties": {
+            "classification_status": {
+              "const": "UNKNOWN"
+            },
+            "object_kind": {
+              "const": "UNKNOWN"
+            },
+            "parent_refs": {
+              "maxItems": 0
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "discoveryRecord": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/knownRecord"
+        },
+        {
+          "$ref": "#/$defs/unknownRecord"
+        }
+      ]
+    }
+  }
+}

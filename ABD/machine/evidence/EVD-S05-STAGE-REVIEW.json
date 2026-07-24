@@ -1,0 +1,1196 @@
+{
+  "claim_boundary": {
+    "actual_market_universe_enumerated_or_verified": false,
+    "all_observable_markets_verified": false,
+    "cloudflare_global_chinese_access_verified": false,
+    "declared_scope_is_design_intent_not_observed_market_universe": true,
+    "financial_target_verified_or_guaranteed": false,
+    "gmail_evidence_archival_verified": false,
+    "ovh_7x24_runtime_verified": false,
+    "production_advice_enabled": false,
+    "production_collection_enabled": false,
+    "production_coverage_verified": false,
+    "provider_permission_or_runtime_access_verified": false,
+    "runtime_freshness_verified": false
+  },
+  "commands": [
+    "uv run --frozen --python 3.12 python machine/tools/scan_paid_dependencies.py",
+    "uv run --frozen --python 3.12 python machine/tools/validate_pack.py",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S05/stage_review_test.py --junitxml=machine/evidence/S05/STAGE_REVIEW/pytest.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q tests/S03/P02_test.py tests/S03/P03_test.py tests/S03/P04_test.py tests/S03/stage_review_test.py tests/S04/stage_review_test.py tests/S05/P01_test.py tests/S05/P02_test.py tests/S05/P03_test.py tests/S05/P04_test.py tests/S05/stage_review_test.py --junitxml=machine/evidence/S05/STAGE_REVIEW/signed_state_regression.xml",
+    "uv run --frozen --python 3.12 python -m pytest -q --junitxml=machine/evidence/S05/STAGE_REVIEW/full_regression.xml",
+    "uv run --frozen --python 3.12 python machine/tools/normalize_junit.py machine/evidence/S05/STAGE_REVIEW/pytest.xml machine/evidence/S05/STAGE_REVIEW/signed_state_regression.xml machine/evidence/S05/STAGE_REVIEW/full_regression.xml",
+    "uv run --frozen --python 3.12 python -m abd_acceptance --contract STAGE-REVIEW-S05 --evidence machine/evidence",
+    "uv run --frozen --python 3.12 python machine/tools/update_artifact_manifest.py"
+  ],
+  "contract_id": "STAGE-REVIEW-S05",
+  "decision": "S05_WHOLE_STAGE_REVIEW_PASS",
+  "decision_sha256": "60b1e6c248262180ff477b8ebd53d59cc818f6a82567875270821480bfdb31ee",
+  "evidence_id": "EVD-S05-STAGE-REVIEW",
+  "explicit_unknowns": [
+    "ALL_OBSERVABLE_MARKETS is the declared discovery design scope, not evidence that a real market universe was enumerated.",
+    "The pinned 3-provider by 5-mode matrix has 15 explicit non-production gaps and zero covered production units.",
+    "No provider account, page, API, permission grant, market data or runtime freshness was accessed or verified.",
+    "The 120-per-60-second synthetic budget is offline test input only and cannot dispatch to a real source.",
+    "No scheduler daemon, OVH host, Cloudflare runtime, Gmail account, deployment or production traffic was used.",
+    "No model, recommendation, stake, account selection or order was generated, submitted, confirmed or retried.",
+    "The 30% monthly compounding target remains falsifiable, unverified and not guaranteed; shortfall cannot relax any gate.",
+    "Remote GitHub CI is not claimed by local review evidence and must be observed after whole-stage upload."
+  ],
+  "external_effect_boundary": {
+    "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+    "external_network_accessed_for_product_runtime": false,
+    "github_upload_performed_by_local_review": false,
+    "gmail_account_or_api_accessed": false,
+    "incremental_cash_spent_aud": "0.00",
+    "model_or_strategy_executed": false,
+    "order_submitted_confirmed_or_retried": false,
+    "ovh_or_cloudflare_runtime_accessed": false,
+    "owner_final_order_only": true,
+    "production_deployed_or_activated": false,
+    "provider_account_api_or_page_accessed": false,
+    "real_market_data_collected": false,
+    "real_provider_dispatch_performed": false,
+    "recommendation_generated_or_enabled": false,
+    "remote_ci_result_claimed_by_local_review": false,
+    "scheduler_daemon_started": false,
+    "secret_provisioned_or_read": false
+  },
+  "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+  "fixed_clock": "2026-07-24T12:00:00+10:00",
+  "hashes": {
+    "code": "d77280ff0316537249f16b8d373336af1abb80dd0107d03bbaf9aa8eddaf93a6",
+    "inputs": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "abd_acceptance/__init__.py": "b211116e0eca203b261c8ea73afb905c0bdc028c15693172f6dd7ff53cbc99fb",
+      "abd_acceptance/__main__.py": "f1203c182f2da4121d809b613b0b5ade3143c63654d096de6502c05ebf6fe02c",
+      "abd_acceptance/coverage_observability.py": "656fd4677baaf94a2803c4c9fc3deaa54e45beb407947933861aba5f3b13f9cb",
+      "abd_acceptance/market_ontology.py": "c0048d0dbf8720d9dff19d2da71d2a9338ef7db64557f0a6222d5466986eba96",
+      "abd_acceptance/source_capabilities.py": "dc6b4559bb99ba208f2dfdd3cebb3471e7330bb54159196ee9a7bb4bec14e9a2",
+      "abd_acceptance/source_scheduler.py": "1a301c29d3c9ef0a7db1a703bd5592c8dc307814c90fdef83614140c6ae3b410",
+      "abd_acceptance/stage5_review.py": "d5831a8bcc424b5750dcd831773dead15e7490231fd92888c281f8a93c7a5450",
+      "cadence_tests.json": "f9afb627048ea10219545a04082ee2402a16deb549ea792aeced85d78c1aadbc",
+      "coverage_dashboard.json": "6cafc06b9979c37d774f126c84608b841bf3ea4d7d132643d294718d516d5744",
+      "coverage_manifest.schema.json": "b87e741b552704f969260cbf31bd2c076d1dce092a208b81cd1b46a94928c3f2",
+      "machine/evidence/EVD-S05-P01.json": "a5f2014009c92b50e49be7ad6260979ad8bb546d25b1d2f606ba745006fb8239",
+      "machine/evidence/EVD-S05-P01_rollback.json": "9b88961d0fec3cb9409706cc879c80506c909894eba28e61ed98714b12b702f9",
+      "machine/evidence/EVD-S05-P02.json": "c7594b54822a0292911c696533e199b97f3af3bba4e363149ab35f154388988b",
+      "machine/evidence/EVD-S05-P02_rollback.json": "e86db1976846b8c6dd59f0fe83e20158feeb969fb4a324dc2d3e4651a3a40856",
+      "machine/evidence/EVD-S05-P03.json": "0ad9ae6a259f811c2587cd305b2996b42665c94f8ebc389b3e0ea3a24112e599",
+      "machine/evidence/EVD-S05-P03_rollback.json": "45560fa18fdef1783de8ef9af1b902b1c247eee18a7f57ed455ecb8ba71f32a8",
+      "machine/evidence/EVD-S05-P04.json": "986d52d8ca695b99f5dbbbea7e273cc5dafdfc7e81892ebd0b272be848ea9249",
+      "machine/evidence/EVD-S05-P04_rollback.json": "3a8825f0c7b8b9daf2c7d95646db79ad5e224c637eed31f5736e683a67a41c28",
+      "machine/evidence/S04/STAGE_REVIEW/github_delivery_receipt.json": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+      "machine/evidence/S05/STAGE_REVIEW/findings.json": "811314bfcf2f63d9d944b920500aab42454db78e462d6842982826c6c32f7914",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/stage5_review_contract.json": "4181ce43657ad11152acb2a544a0e58dbe402530dee9cef063b3b76577ba9213",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S05_STAGE_REVIEW.json": "bee1022c90fa0a7537853179b9c771573fceeba863093a5f15964a69773aa70d",
+      "market_ontology.json": "f87d5433a69d7605a63d76200eb0813ded681a23af5eaafc5d7c613d10187efe",
+      "provider_contracts.json": "1b45c2991e7c91b497a01003237ad883ba6a2831f25d83caa4cb4a1dac9fd8b6",
+      "rate_budget.json": "7dc8db47146f38ab3e3b888d9e2757ac38ff53a3785fb2bd66580a4b0a970323",
+      "scheduler.py": "c290df6ef3a6228108c916d456c08e4ff3781289831fe5fb5ed0d19833f95b91",
+      "silent_gap_oracle.py": "e83fc758c42a1061259bcf9b556eb0f184fc27322d5b5f329b7187e1a0c2653d",
+      "source_capabilities.json": "fe248aeb82cfd10410287114fb822c327d1463b3ea68359c31c82549a90b9539",
+      "tests/S05/stage_review_test.py": "cb16462f46ec6b1376ce1ca5b31e7f514f521c6e5fc6d8eceb31200d27c2c269"
+    },
+    "model": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+    "model_not_executed_reason": "S05 whole-stage review validates ontology, source, scheduler and coverage contracts offline; it executes no provider, account, network, daemon, market collection, model, recommendation, order, deployment or return evaluation.",
+    "parameters": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+    "rollback_evidence": "0dcdded23e13c4f7c9eac0184d14024666bfdd7baf3e0bc847993557ee3f367d"
+  },
+  "next": "S05/GITHUB_STAGE_UPLOAD_READY",
+  "phase_completion": {
+    "explicit_gap_count": 15,
+    "mode_count": 5,
+    "phase_count": 4,
+    "phase_evidence_status": "PASS",
+    "phase_ids": [
+      "P01",
+      "P02",
+      "P03",
+      "P04"
+    ],
+    "pinned_provider_mode_unit_count": 15,
+    "production_covered_count": 0,
+    "provider_count": 3,
+    "real_market_universe_enumerated_or_verified": false,
+    "silent_gap_count": 0,
+    "task_count": 12
+  },
+  "production_coverage_status": "ZERO_OF_15_REAL_PROVIDER_MODE_UNITS_COVERED_ALL_15_EXPLICIT_GAPS",
+  "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+  "release_status": "NOT_READY_S06_TO_S19_AND_REAL_SOURCE_RUNTIME_ACTIVATION_REQUIRED",
+  "review_findings": {
+    "open": 0,
+    "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true,
+    "resolved_in_review_candidate": 6,
+    "total": 6
+  },
+  "review_id": "ABD-S05-WHOLE-STAGE-REVIEW",
+  "rollback": {
+    "artifact": "machine/evidence/EVD-S05-STAGE-REVIEW_rollback.json",
+    "status": "PASS"
+  },
+  "schema_version": "1.0.0",
+  "stage_id": "S05",
+  "stage_status": "S05_WHOLE_STAGE_REVIEW_PASS",
+  "status": "PASS",
+  "validation": {
+    "checks": [
+      {
+        "detail": "stage5_review_contract.json",
+        "id": "S05REVIEW-PREFLIGHT-CONTRACT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "findings.json",
+        "id": "S05REVIEW-PREFLIGHT-FINDINGS-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": "S05_STAGE_REVIEW.json",
+        "id": "S05REVIEW-PREFLIGHT-FIXTURE-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "811314bfcf2f63d9d944b920500aab42454db78e462d6842982826c6c32f7914",
+          "expected": "811314bfcf2f63d9d944b920500aab42454db78e462d6842982826c6c32f7914"
+        },
+        "id": "S05REVIEW-PIN-MACHINE-EVIDENCE-S05-STAGE_REVIEW-FINDINGS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4181ce43657ad11152acb2a544a0e58dbe402530dee9cef063b3b76577ba9213",
+          "expected": "4181ce43657ad11152acb2a544a0e58dbe402530dee9cef063b3b76577ba9213"
+        },
+        "id": "S05REVIEW-PIN-MACHINE-FACTS-STAGE5_REVIEW_CONTRACT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bee1022c90fa0a7537853179b9c771573fceeba863093a5f15964a69773aa70d",
+          "expected": "bee1022c90fa0a7537853179b9c771573fceeba863093a5f15964a69773aa70d"
+        },
+        "id": "S05REVIEW-PIN-MACHINE-TESTS-FIXTURES-S05_STAGE_REVIEW-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "cb16462f46ec6b1376ce1ca5b31e7f514f521c6e5fc6d8eceb31200d27c2c269",
+          "expected": "cb16462f46ec6b1376ce1ca5b31e7f514f521c6e5fc6d8eceb31200d27c2c269"
+        },
+        "id": "S05REVIEW-PIN-TESTS-S05-STAGE_REVIEW_TEST-PY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "2751bdb203f29e481a2c1b2e9533b9965ba0d567a728d68ae48fe076b310ff83",
+          "expected": "2751bdb203f29e481a2c1b2e9533b9965ba0d567a728d68ae48fe076b310ff83"
+        },
+        "id": "S05REVIEW-ORACLE-STRUCTURAL-HASH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+          "expected": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d"
+        },
+        "id": "S05REVIEW-WORKFLOW-PIN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "ABD-S05-WHOLE-STAGE-REVIEW",
+          "fixture": "FIX-S05-STAGE-REVIEW"
+        },
+        "id": "S05REVIEW-CONTRACT-IDENTITY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contract_ids": [
+            "AC-S05-P01",
+            "AC-S05-P02",
+            "AC-S05-P03",
+            "AC-S05-P04"
+          ],
+          "phase_ids": [
+            "P01",
+            "P02",
+            "P03",
+            "P04"
+          ],
+          "requirement_ids": [
+            "REQ-S05-P01",
+            "REQ-S05-P02",
+            "REQ-S05-P03",
+            "REQ-S05-P04"
+          ],
+          "task_ids": [
+            "T-S05-P01-01",
+            "T-S05-P01-02",
+            "T-S05-P01-03",
+            "T-S05-P02-01",
+            "T-S05-P02-02",
+            "T-S05-P02-03",
+            "T-S05-P03-01",
+            "T-S05-P03-02",
+            "T-S05-P03-03",
+            "T-S05-P04-01",
+            "T-S05-P04-02",
+            "T-S05-P04-03"
+          ]
+        },
+        "id": "S05REVIEW-SCOPE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          "P01",
+          "P02",
+          "P03",
+          "P04"
+        ],
+        "id": "S05REVIEW-PHASE-RECORDS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "artifact_label": "ABD_Roadmap_Stage_Phase_v0.0.0.1.md",
+            "repository_equivalent": "machine/evidence/roadmap_stage_phase.md",
+            "repository_equivalent_required": true,
+            "sha256": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+          },
+          {
+            "artifact_label": "ABD_ProductDesign_TaskPack_v0.0.0.1_FINAL.zip",
+            "original_file_count": 53,
+            "repository_equivalent": null,
+            "repository_equivalent_required": false,
+            "sha256": "fd2b86044accbe08cf30e6834e1ebe4523ba310f59170fe2e4cc302d0634ad7f",
+            "verification_boundary": "LOCAL_OWNER_SUPPLIED_ARCHIVE_RECEIPT; CI verifies pinned critical repository files, not the absent ZIP"
+          }
+        ],
+        "id": "S05REVIEW-SOURCE-RECEIPTS-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "open": 0,
+          "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true,
+          "resolved_in_review_candidate": 6,
+          "total": 6
+        },
+        "id": "S05REVIEW-ALL-FINDINGS-RESOLVED",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_market_universe_enumerated_or_verified": false,
+          "all_observable_markets_verified": false,
+          "cloudflare_global_chinese_access_verified": false,
+          "declared_scope_is_design_intent_not_observed_market_universe": true,
+          "financial_target_verified_or_guaranteed": false,
+          "gmail_evidence_archival_verified": false,
+          "ovh_7x24_runtime_verified": false,
+          "production_advice_enabled": false,
+          "production_collection_enabled": false,
+          "production_coverage_verified": false,
+          "provider_permission_or_runtime_access_verified": false,
+          "runtime_freshness_verified": false
+        },
+        "id": "S05REVIEW-CLAIM-AND-TERMINAL-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+          "external_network_accessed_for_product_runtime": false,
+          "github_upload_performed_by_local_review": false,
+          "gmail_account_or_api_accessed": false,
+          "incremental_cash_spent_aud": "0.00",
+          "model_or_strategy_executed": false,
+          "order_submitted_confirmed_or_retried": false,
+          "ovh_or_cloudflare_runtime_accessed": false,
+          "owner_final_order_only": true,
+          "production_deployed_or_activated": false,
+          "provider_account_api_or_page_accessed": false,
+          "real_market_data_collected": false,
+          "real_provider_dispatch_performed": false,
+          "recommendation_generated_or_enabled": false,
+          "remote_ci_result_claimed_by_local_review": false,
+          "scheduler_daemon_started": false,
+          "secret_provisioned_or_read": false
+        },
+        "id": "S05REVIEW-EXTERNAL-EFFECT-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": "all financial and risk values remain integers or decimal strings",
+        "id": "S05REVIEW-NO-BINARY-FLOAT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual_provider_or_market_observed": false,
+          "all_observable_markets_enumerated_or_verified": false,
+          "cross_source_identity_resolved": false,
+          "financial_return_verified_or_guaranteed": false,
+          "freshness_or_scheduler_verified": false,
+          "recommendation_or_order_enabled": false,
+          "silent_gap_detection_verified": false,
+          "source_capability_or_terms_verified_in_p01": false
+        },
+        "id": "S05REVIEW-ONTOLOGY-SCOPE-AND-UNKNOWN",
+        "passed": true
+      },
+      {
+        "detail": {
+          "modes": [
+            "PUBLIC_BROWSER",
+            "FILE_OR_STATIC_DATA",
+            "FREE_ENDPOINT",
+            "AUTHENTICATED_OBSERVER",
+            "OWNER_DEVICE_OVERLAY"
+          ],
+          "providers": [
+            "TAB",
+            "SPORTSBET",
+            "OTHER_OBSERVABLE_PROVIDER"
+          ]
+        },
+        "id": "S05REVIEW-PROVIDER-MODE-MATRIX",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_record_count": 15,
+          "mode_count": 5,
+          "production_collection_enabled_count": 0,
+          "provider_count": 3,
+          "real_market_coverage_count": 0,
+          "runtime_verified_count": 0
+        },
+        "id": "S05REVIEW-CAPABILITY-MATRIX",
+        "passed": true
+      },
+      {
+        "detail": {
+          "count": 15,
+          "status": "FROZEN_ZERO_REAL_SOURCE_RATE_BUDGET"
+        },
+        "id": "S05REVIEW-RATE-BUDGET-MATRIX",
+        "passed": true
+      },
+      {
+        "detail": {
+          "advice_enabled": false,
+          "all_explicit_gaps_have_action_owner": true,
+          "all_explicit_gaps_have_reason": true,
+          "all_explicit_gaps_have_recovery_action": true,
+          "covered_count": 0,
+          "expected_unit_count": 15,
+          "explicit_gap_count": 15,
+          "production_collection_enabled_count": 0,
+          "represented_unit_count": 15,
+          "runtime_verified_count": 0,
+          "silent_gap_count": 0,
+          "status_counts": {
+            "COVERED": 0,
+            "DEGRADED": 2,
+            "NON_ADVISABLE": 4,
+            "PENDING_PARSE": 2,
+            "UNKNOWN": 7
+          }
+        },
+        "id": "S05REVIEW-COVERAGE-MATRIX",
+        "passed": true
+      },
+      {
+        "detail": {
+          "budgets": 15,
+          "capabilities": 15,
+          "coverage": 15
+        },
+        "id": "S05REVIEW-CROSS-PHASE-CAPABILITY-COUPLING",
+        "passed": true
+      },
+      {
+        "detail": {
+          "capability_id": "CAP-FROZEN-SYNTHETIC-SCHEDULER",
+          "external_action_permitted": false,
+          "max_dispatches_per_window": 120,
+          "mode": "FILE_OR_STATIC_DATA",
+          "production_collection_enabled": true,
+          "provider_contract_version": "FIXTURE-ONLY-1",
+          "provider_id": "FROZEN_SYNTHETIC_PROVIDER",
+          "reason": "DETERMINISTIC_OFFLINE_TEST_ONLY",
+          "test_fixture_only": true,
+          "window_seconds": 60
+        },
+        "id": "S05REVIEW-SYNTHETIC-REAL-SOURCE-SEPARATION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "fixed_clock_gate": {
+            "above_exact_limit": "NO_DISPATCH_NO_ADVICE",
+            "at_exact_limit": "PASS",
+            "comparison_unit": "INTEGER_MICROSECONDS",
+            "distance_recalculation_seconds": 60,
+            "maximum_dispatch_deviation_seconds": 2
+          },
+          "freshness_gate": {
+            "effective_age": "MAX_AGE_OF_SOURCE_AND_OBSERVATION_TIMESTAMPS",
+            "future_timestamp_action": "NO_ADVICE",
+            "pass_does_not_generate_recommendation": true,
+            "quote_older_than_advice_limit_action": "DO_NOT_ENTER_ADVICE_EVALUATION",
+            "quote_older_than_quote_limit_action": "STALE_QUOTE_BLOCKED",
+            "required_quote_fields": [
+              "source_timestamp",
+              "observed_timestamp",
+              "content_sha256",
+              "source_clock_trusted"
+            ],
+            "unknown_or_untrusted_clock_action": "NO_ADVICE"
+          }
+        },
+        "id": "S05REVIEW-FIXED-CLOCK-AND-FRESHNESS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "claim": {
+            "actual_market_universe_enumerated_or_verified": false,
+            "all_observable_markets_verified": false,
+            "cloudflare_global_chinese_access_verified": false,
+            "declared_scope_is_design_intent_not_observed_market_universe": true,
+            "financial_target_verified_or_guaranteed": false,
+            "gmail_evidence_archival_verified": false,
+            "ovh_7x24_runtime_verified": false,
+            "production_advice_enabled": false,
+            "production_collection_enabled": false,
+            "production_coverage_verified": false,
+            "provider_permission_or_runtime_access_verified": false,
+            "runtime_freshness_verified": false
+          },
+          "scope": {
+            "actual_market_universe_enumerated_or_verified": false,
+            "coverage_dimension": "SIGNED_PROVIDER_BY_ACCESS_MODE_CONTRACT_MATRIX",
+            "declared_discovery_scope": "ALL_OBSERVABLE_MARKETS",
+            "expected_coverage_unit_count": 15,
+            "interpretation": "P04 proves every unit in the frozen provider-mode contract matrix is explicit; it does not prove real market enumeration, provider access, runtime collection, advice eligibility or production availability.",
+            "mode_count": 5,
+            "production_covered_count": 0,
+            "provider_count": 3,
+            "runtime_provider_coverage_verified": false
+          }
+        },
+        "id": "S05REVIEW-REAL-MARKET-OVERCLAIM-BOUNDARY",
+        "passed": true
+      },
+      {
+        "detail": "P04 accepts only absent, complete candidate or complete signed review",
+        "id": "S05REVIEW-P04-MONOTONIC-PROGRESSION",
+        "passed": true
+      },
+      {
+        "detail": [
+          "abd_acceptance/__init__.py",
+          "abd_acceptance/__main__.py",
+          "abd_acceptance/advice_card.py",
+          "abd_acceptance/coverage_observability.py",
+          "abd_acceptance/market_ontology.py",
+          "abd_acceptance/reason_next_action.py",
+          "abd_acceptance/source_capabilities.py",
+          "abd_acceptance/source_scheduler.py",
+          "abd_acceptance/stage3_review.py",
+          "abd_acceptance/stage4_review.py",
+          "abd_acceptance/usability_accessibility.py",
+          "tests/S05/P04_test.py"
+        ],
+        "id": "S05REVIEW-P04-HISTORICAL-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": {
+          "product": {
+            "id": "ABD",
+            "incremental_cash_budget_aud": "0.00",
+            "initial_bankroll_aud": "300.00",
+            "language": "zh-CN",
+            "monthly_target_return": "0.30",
+            "name_zh": "全天候投注决策辅助系统",
+            "owner": "单一账户持有人",
+            "primary_goal": "在不降低证据、风险、安全与合规门槛的前提下，分析全部可观察市场并追求 A$300×1.3^n 的月度滚动复利目标。",
+            "status": "FINAL_ACCEPTANCE_DELIVERY",
+            "target_curve": "B_n = 300 * (1.3 ** n)",
+            "version": "0.0.0.1"
+          },
+          "target": {
+            "falsification_gate": [
+              "至少6个完整自然月",
+              "至少1000个独立等效信号",
+              "月收益率的95%上界仍低于30%"
+            ],
+            "formula": "B_n = 300 * 1.3^n",
+            "guaranteed": false,
+            "monthly_log_growth": "0.26236426446749106",
+            "monthly_return": "0.30",
+            "plausible_gate": [
+              "保守月度对数增长中位数 >= ln(1.3)",
+              "月度对数增长第5百分位 > 0",
+              "按来源、平台限额、机会数量和相关性校正后的容量通过"
+            ],
+            "shadow_min_days": 90,
+            "shadow_min_independent_equivalent_signals": 1000,
+            "shortfall_behavior": "REPORT_ONLY_NO_GATE_RELAXATION",
+            "verification_gate": [
+              "至少12个完整自然月",
+              "按现金流调整后的月度几何收益 >= 30%",
+              "证据完整",
+              "未解决对账差异为0"
+            ]
+          }
+        },
+        "id": "S05REVIEW-A300-A0-NO-ORDER-NO-RUNTIME-NO-RETURN",
+        "passed": true
+      },
+      {
+        "detail": "clean",
+        "id": "S05REVIEW-NO-SECRET-OR-MACHINE-PATH",
+        "passed": true
+      },
+      {
+        "detail": {
+          "missing": []
+        },
+        "id": "S05REVIEW-FINDING-GATES-EXECUTABLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+          "expected": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5"
+        },
+        "id": "S05REVIEW-BASELINE-PURSUE_GOAL_PROMPT-TXT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+          "expected": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3"
+        },
+        "id": "S05REVIEW-BASELINE-VERSION",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+          "expected": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de"
+        },
+        "id": "S05REVIEW-BASELINE-MACHINE-EVIDENCE-ROADMAP_STAGE_PHASE-MD",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+          "expected": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385"
+        },
+        "id": "S05REVIEW-BASELINE-MACHINE-FACTS-CANONICAL_FACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+          "expected": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d"
+        },
+        "id": "S05REVIEW-BASELINE-MACHINE-FACTS-PARAMETERS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+          "expected": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65"
+        },
+        "id": "S05REVIEW-BASELINE-MACHINE-FACTS-COSTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+          "expected": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4"
+        },
+        "id": "S05REVIEW-BASELINE-MACHINE-FACTS-MODEL_SYSTEM_CARD-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+          "expected": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb"
+        },
+        "id": "S05REVIEW-BASELINE-MACHINE-FACTS-ROADMAP-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+          "expected": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12"
+        },
+        "id": "S05REVIEW-BASELINE-MACHINE-FACTS-REQUIREMENTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+          "expected": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342"
+        },
+        "id": "S05REVIEW-BASELINE-MACHINE-FACTS-ACCEPTANCE_CONTRACTS-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+          "expected": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778"
+        },
+        "id": "S05REVIEW-BASELINE-MACHINE-FACTS-TASK_GRAPH-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+          "expected": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a"
+        },
+        "id": "S05REVIEW-BASELINE-MACHINE-FACTS-TRACEABILITY_MATRIX-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+          "expected": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36"
+        },
+        "id": "S05REVIEW-BASELINE-MACHINE-EVIDENCE-S04-STAGE_REVIEW-GITHUB_DELIVERY_RECEIPT-JSON",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "depends_on": [
+              "S02",
+              "S04"
+            ],
+            "goal": "覆盖所有可观察市场，按来源事实决定访问方式，任何未知或失效都可见。",
+            "id": "S05",
+            "phases": [
+              {
+                "hours": {
+                  "high": 6,
+                  "likely": 4,
+                  "low": 3
+                },
+                "id": "P01",
+                "objective": "建立运动、联赛、赛事、盘口、选择、周期、线和结算规则本体。",
+                "outputs": [
+                  "market_ontology.json",
+                  "coverage_manifest.schema.json"
+                ],
+                "pass_gate": "所有发现对象都有唯一类型或明确未知状态。",
+                "title": "市场本体与范围清单"
+              },
+              {
+                "hours": {
+                  "high": 6,
+                  "likely": 4,
+                  "low": 3
+                },
+                "id": "P02",
+                "objective": "为公开页面、静态文件、免费端点、只读会话和用户页面观察逐项版本化。",
+                "outputs": [
+                  "provider_contracts.json",
+                  "source_capabilities.json"
+                ],
+                "pass_gate": "任何采集能力必须先通过来源合同。",
+                "title": "来源能力合同"
+              },
+              {
+                "hours": {
+                  "high": 6,
+                  "likely": 4,
+                  "low": 3
+                },
+                "id": "P03",
+                "objective": "实现>24小时每30分钟及临近事件逐级提频、退避和来源预算。",
+                "outputs": [
+                  "scheduler.py",
+                  "cadence_tests.json",
+                  "rate_budget.json"
+                ],
+                "pass_gate": "固定时钟测试中刷新偏差≤2秒，过期数据不进入建议。",
+                "title": "自适应采集调度"
+              },
+              {
+                "hours": {
+                  "high": 6,
+                  "likely": 4,
+                  "low": 3
+                },
+                "id": "P04",
+                "objective": "建立已覆盖、待解析、不可建议、降级、未知和静默缺口检测。",
+                "outputs": [
+                  "coverage_dashboard.json",
+                  "silent_gap_oracle.py"
+                ],
+                "pass_gate": "静默缺口=0；每个缺口都有原因和恢复动作。",
+                "title": "覆盖缺口可观测"
+              }
+            ],
+            "rollback": "关闭对应功能开关，恢复上一已签名制品，保留不可变证据并重放派生状态。",
+            "stop_conditions": [
+              "发现法律、监管或来源合同实质冲突且无安全默认",
+              "需要不可逆操作",
+              "新增现金支出将超过A$0",
+              "严重安全事故或证据完整性失败",
+              "阶段终止条件被触发"
+            ],
+            "title": "全范围发现与来源能力合同"
+          }
+        ],
+        "id": "S05REVIEW-ROADMAP-TRACE-EXACT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S05-P01",
+          "requirement": "REQ-S05-P01",
+          "tasks": [
+            "T-S05-P01-01",
+            "T-S05-P01-02",
+            "T-S05-P01-03"
+          ]
+        },
+        "id": "S05REVIEW-TASKPACK-P01-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S05-P02",
+          "requirement": "REQ-S05-P02",
+          "tasks": [
+            "T-S05-P02-01",
+            "T-S05-P02-02",
+            "T-S05-P02-03"
+          ]
+        },
+        "id": "S05REVIEW-TASKPACK-P02-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S05-P03",
+          "requirement": "REQ-S05-P03",
+          "tasks": [
+            "T-S05-P03-01",
+            "T-S05-P03-02",
+            "T-S05-P03-03"
+          ]
+        },
+        "id": "S05REVIEW-TASKPACK-P03-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "contract": "AC-S05-P04",
+          "requirement": "REQ-S05-P04",
+          "tasks": [
+            "T-S05-P04-01",
+            "T-S05-P04-02",
+            "T-S05-P04-03"
+          ]
+        },
+        "id": "S05REVIEW-TASKPACK-P04-TRACE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "a5f2014009c92b50e49be7ad6260979ad8bb546d25b1d2f606ba745006fb8239",
+          "rollback": "9b88961d0fec3cb9409706cc879c80506c909894eba28e61ed98714b12b702f9"
+        },
+        "id": "S05REVIEW-P01-SIGNED-ARTIFACT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 3,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 3
+        },
+        "id": "S05REVIEW-P01-SIGNED-RECEIPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 52,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 52
+        },
+        "id": "S05REVIEW-P01-CURRENT-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "e5ebba41d7a5943b5302cf0d5813a165aae77cb99fc84d8de72c5f358cf9bc1e",
+          "expected": "e5ebba41d7a5943b5302cf0d5813a165aae77cb99fc84d8de72c5f358cf9bc1e"
+        },
+        "id": "S05REVIEW-P01-HISTORICAL-CODE-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "market_ontology.json",
+          "coverage_manifest.schema.json"
+        ],
+        "id": "S05REVIEW-P01-REQUIRED-OUTPUTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "c7594b54822a0292911c696533e199b97f3af3bba4e363149ab35f154388988b",
+          "rollback": "e86db1976846b8c6dd59f0fe83e20158feeb969fb4a324dc2d3e4651a3a40856"
+        },
+        "id": "S05REVIEW-P02-SIGNED-ARTIFACT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 2,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 2
+        },
+        "id": "S05REVIEW-P02-SIGNED-RECEIPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 68,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 68
+        },
+        "id": "S05REVIEW-P02-CURRENT-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "a5942113d4018639dbaa718c97dd0a8b1d76635057da12177df9d56bebbf8b6a",
+          "expected": "a5942113d4018639dbaa718c97dd0a8b1d76635057da12177df9d56bebbf8b6a"
+        },
+        "id": "S05REVIEW-P02-HISTORICAL-CODE-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "provider_contracts.json",
+          "source_capabilities.json"
+        ],
+        "id": "S05REVIEW-P02-REQUIRED-OUTPUTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "0ad9ae6a259f811c2587cd305b2996b42665c94f8ebc389b3e0ea3a24112e599",
+          "rollback": "45560fa18fdef1783de8ef9af1b902b1c247eee18a7f57ed455ecb8ba71f32a8"
+        },
+        "id": "S05REVIEW-P03-SIGNED-ARTIFACT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 2,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 2
+        },
+        "id": "S05REVIEW-P03-SIGNED-RECEIPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 122,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 122
+        },
+        "id": "S05REVIEW-P03-CURRENT-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "0ee10fd13b29f901f4ba9e2cd64291aeef7ecdb0b8ec659bcfeb66fc3ddbcdac",
+          "expected": "0ee10fd13b29f901f4ba9e2cd64291aeef7ecdb0b8ec659bcfeb66fc3ddbcdac"
+        },
+        "id": "S05REVIEW-P03-HISTORICAL-CODE-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "scheduler.py",
+          "cadence_tests.json",
+          "rate_budget.json"
+        ],
+        "id": "S05REVIEW-P03-REQUIRED-OUTPUTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "evidence": "986d52d8ca695b99f5dbbbea7e273cc5dafdfc7e81892ebd0b272be848ea9249",
+          "rollback": "3a8825f0c7b8b9daf2c7d95646db79ad5e224c637eed31f5736e683a67a41c28"
+        },
+        "id": "S05REVIEW-P04-SIGNED-ARTIFACT-HASHES",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 2,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 2
+        },
+        "id": "S05REVIEW-P04-SIGNED-RECEIPT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 90,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 90
+        },
+        "id": "S05REVIEW-P04-CURRENT-ORACLE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "actual": "ce412627d902eb65e517c5281277062d7429f3dc86321c4b8e2b8335388a6747",
+          "expected": "ce412627d902eb65e517c5281277062d7429f3dc86321c4b8e2b8335388a6747"
+        },
+        "id": "S05REVIEW-P04-HISTORICAL-CODE-REPLAY",
+        "passed": true
+      },
+      {
+        "detail": [
+          "coverage_dashboard.json",
+          "silent_gap_oracle.py"
+        ],
+        "id": "S05REVIEW-P04-REQUIRED-OUTPUTS",
+        "passed": true
+      },
+      {
+        "detail": {
+          "checks": 18,
+          "failed": 0,
+          "failed_check_ids": [],
+          "passed": 18
+        },
+        "id": "S05REVIEW-S04-DELIVERY-PREREQUISITE",
+        "passed": true
+      },
+      {
+        "detail": {
+          "artifacts": 18,
+          "status": "PASS"
+        },
+        "id": "S05REVIEW-ROLLBACK-DRILL",
+        "passed": true
+      },
+      {
+        "detail": "-0.0001",
+        "id": "S05REVIEW-NUMERIC-BOUNDARY-NEG0_0001",
+        "passed": true
+      },
+      {
+        "detail": "0",
+        "id": "S05REVIEW-NUMERIC-BOUNDARY-0",
+        "passed": true
+      },
+      {
+        "detail": "0.0001",
+        "id": "S05REVIEW-NUMERIC-BOUNDARY-0_0001",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "hostnames": [],
+          "skipped": 0,
+          "tests": 90,
+          "times": [
+            "0.000"
+          ],
+          "timestamps": [
+            "2026-07-19T00:00:00+10:00"
+          ]
+        },
+        "id": "S05REVIEW-TARGETED-JUNIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "hostnames": [],
+          "skipped": 0,
+          "tests": 4585,
+          "times": [
+            "0.000"
+          ],
+          "timestamps": [
+            "2026-07-19T00:00:00+10:00"
+          ]
+        },
+        "id": "S05REVIEW-FULL-JUNIT",
+        "passed": true
+      },
+      {
+        "detail": {
+          "errors": 0,
+          "failures": 0,
+          "hostnames": [],
+          "skipped": 0,
+          "tests": 1742,
+          "times": [
+            "0.000"
+          ],
+          "timestamps": [
+            "2026-07-19T00:00:00+10:00"
+          ]
+        },
+        "id": "S05REVIEW-SIGNED-STATE-JUNIT",
+        "passed": true
+      },
+      {
+        "detail": "validation_report.json",
+        "id": "S05REVIEW-PACK-REPORT-STRICT-JSON",
+        "passed": true
+      },
+      {
+        "detail": {
+          "acceptance_contracts": 80,
+          "checks": 49,
+          "critical_path_hours": 224.0,
+          "critical_path_ratio": 0.7,
+          "failed": 0,
+          "human_docs": 7,
+          "passed": 49,
+          "phases": 80,
+          "requirements": 80,
+          "stages": 20,
+          "task_hours": {
+            "high": 480.0,
+            "likely": 320.0,
+            "low": 240.0
+          },
+          "tasks": 240
+        },
+        "id": "S05REVIEW-PACK-REPORT",
+        "passed": true
+      },
+      {
+        "detail": "machine/evidence/S00/P03/paid_dependency_scan.txt",
+        "id": "S05REVIEW-PAID-DEPENDENCY-SCAN",
+        "passed": true
+      }
+    ],
+    "claim_boundary": {
+      "actual_market_universe_enumerated_or_verified": false,
+      "all_observable_markets_verified": false,
+      "cloudflare_global_chinese_access_verified": false,
+      "declared_scope_is_design_intent_not_observed_market_universe": true,
+      "financial_target_verified_or_guaranteed": false,
+      "gmail_evidence_archival_verified": false,
+      "ovh_7x24_runtime_verified": false,
+      "production_advice_enabled": false,
+      "production_collection_enabled": false,
+      "production_coverage_verified": false,
+      "provider_permission_or_runtime_access_verified": false,
+      "runtime_freshness_verified": false
+    },
+    "contract_id": "STAGE-REVIEW-S05",
+    "decision": "S05_WHOLE_STAGE_REVIEW_PASS",
+    "external_effect_boundary": {
+      "evidence_numeric_risk_safety_or_source_gate_relaxed": false,
+      "external_network_accessed_for_product_runtime": false,
+      "github_upload_performed_by_local_review": false,
+      "gmail_account_or_api_accessed": false,
+      "incremental_cash_spent_aud": "0.00",
+      "model_or_strategy_executed": false,
+      "order_submitted_confirmed_or_retried": false,
+      "ovh_or_cloudflare_runtime_accessed": false,
+      "owner_final_order_only": true,
+      "production_deployed_or_activated": false,
+      "provider_account_api_or_page_accessed": false,
+      "real_market_data_collected": false,
+      "real_provider_dispatch_performed": false,
+      "recommendation_generated_or_enabled": false,
+      "remote_ci_result_claimed_by_local_review": false,
+      "scheduler_daemon_started": false,
+      "secret_provisioned_or_read": false
+    },
+    "financial_target_status": "UNVERIFIED_NOT_GUARANTEED",
+    "fixed_clock": "2026-07-24T12:00:00+10:00",
+    "hashes": {
+      ".github/workflows/abd-stage0-validation.yml": "e1ed7245f525cea1489932337e18fe8abbe13d3a8d45cfcf11aa2235b444a25d",
+      "PURSUE_GOAL_PROMPT.txt": "e7625de0ec648567ea604fb1edf66f654b270cf29c06194a9313c8b186e0e8e5",
+      "VERSION": "4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3",
+      "machine/evidence/S00/P03/paid_dependency_scan.txt": "1f58c7397bbe51413df3c34b8ee01595ce2dcec7b0313e17f10e78558cbddab1",
+      "machine/evidence/S04/STAGE_REVIEW/github_delivery_receipt.json": "d9b83cc0ebc1464c9f52c87e49bed32887323297118c595be1f97a475b78ed36",
+      "machine/evidence/S05/STAGE_REVIEW/findings.json": "811314bfcf2f63d9d944b920500aab42454db78e462d6842982826c6c32f7914",
+      "machine/evidence/S05/STAGE_REVIEW/full_regression.xml": "87eda470bc3b0f8026c0598a1ace9c4e8a70fde87791d8509b7922679c369855",
+      "machine/evidence/S05/STAGE_REVIEW/pytest.xml": "cb83a93ad9d4c01fa0551cab5831ff65ffa29fed952f4d10e5a70efc4201f131",
+      "machine/evidence/S05/STAGE_REVIEW/signed_state_regression.xml": "181b51dd6311925e0ddc8dfc5a2f60a4da3763d975d0270005a36c613169f780",
+      "machine/evidence/roadmap_stage_phase.md": "d861c97541de373e55672e7ce7db86def4c46ef8adc5005366705839291423de",
+      "machine/evidence/validation_report.json": "7280460aa35e1a8079138e2404e70d786bd3c564b7fea3f01ea28994c9a67875",
+      "machine/facts/acceptance_contracts.json": "b91a48288cc3fec26233a5a0c8170d164cfec0e66e9b0f28f2012c96128d1342",
+      "machine/facts/canonical_facts.json": "f7008c057f317c704daca041e1f85c81c1f77b23dcdd70d38ce828aca8000385",
+      "machine/facts/costs.json": "bf753ab094133102b31496f8f05150883b8fce94aaf6927ff85bfbf5a37d0e65",
+      "machine/facts/model_system_card.json": "73ec49595eeb93a50a85ffd92d52b79da8262563c1e4bae2f959f8900052a8f4",
+      "machine/facts/parameters.json": "ac8dc796247fe4b0074e5ccb722af9661c0228f13cbd44c9ffda2d8d3804d63d",
+      "machine/facts/requirements.json": "54d4a849ebb1266e8a01c99259f0a54728e901007657ec44e04178dcbc8bea12",
+      "machine/facts/roadmap.json": "75e2d62e734488c7c4128642dc28872edcb0160e2705dc2ccb363f69845aefeb",
+      "machine/facts/stage5_review_contract.json": "4181ce43657ad11152acb2a544a0e58dbe402530dee9cef063b3b76577ba9213",
+      "machine/facts/task_graph.json": "78ae36747193003a24a0d15a620664b1cb406609356242a003bf821b775cd778",
+      "machine/facts/traceability_matrix.json": "e2e703bb8bd6db6bc44d0597b496d7fd5dac4a6f3c633e464c40348175a1ad1a",
+      "machine/tests/fixtures/S05_STAGE_REVIEW.json": "bee1022c90fa0a7537853179b9c771573fceeba863093a5f15964a69773aa70d",
+      "tests/S05/stage_review_test.py": "cb16462f46ec6b1376ce1ca5b31e7f514f521c6e5fc6d8eceb31200d27c2c269"
+    },
+    "next": "S05/GITHUB_STAGE_UPLOAD_READY",
+    "product_version": "0.0.0.1",
+    "production_coverage_status": "ZERO_OF_15_REAL_PROVIDER_MODE_UNITS_COVERED_ALL_15_EXPLICIT_GAPS",
+    "production_status": "NOT_DEPLOYED_OR_ACTIVATED",
+    "release_status": "NOT_READY_S06_TO_S19_AND_REAL_SOURCE_RUNTIME_ACTIVATION_REQUIRED",
+    "review_id": "ABD-S05-WHOLE-STAGE-REVIEW",
+    "schema_version": "1.0.0",
+    "stage_id": "S05",
+    "stage_status": "S05_WHOLE_STAGE_REVIEW_PASS",
+    "status": "PASS",
+    "summary": {
+      "checks": 80,
+      "failed": 0,
+      "failed_check_ids": [],
+      "passed": 80
+    }
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "schema_version": "1.0.0",
+  "ontology_id": "ABD-MARKET-ONTOLOGY",
+  "ontology_version": "0.0.0.1-S05P01",
+  "language": "zh-CN",
+  "declared_discovery_scope": "ALL_OBSERVABLE_MARKETS",
+  "identity_scope": "SOURCE_SCOPED_DISCOVERY_ID_NOT_CROSS_SOURCE_CANONICAL_ID",
+  "classification_contract": {
+    "known_status": "KNOWN",
+    "unknown_status": "UNKNOWN",
+    "exactly_one_type_rule": "EACH_OBSERVED_INPUT_PRODUCES_EXACTLY_ONE_RECORD_WITH_ONE_OBJECT_KIND",
+    "ambiguous_type_action": "EMIT_EXPLICIT_UNKNOWN_AND_BLOCK_ADVICE",
+    "unrecognized_type_action": "EMIT_EXPLICIT_UNKNOWN_AND_BLOCK_ADVICE",
+    "missing_relation_action": "EMIT_EXPLICIT_UNKNOWN_AND_BLOCK_ADVICE",
+    "drop_unclassified_input_allowed": false,
+    "implicit_default_kind_allowed": false,
+    "unknown_advice_eligible": false
+  },
+  "known_object_kinds": [
+    {
+      "id": "SPORT",
+      "name_zh": "运动",
+      "description": "赛事与市场所属的最高层运动语义。",
+      "allowed_parent_kinds": [],
+      "required_parent_counts": {}
+    },
+    {
+      "id": "COMPETITION",
+      "name_zh": "联赛或竞赛",
+      "description": "在一项运动下组织赛事的联赛、杯赛、锦标赛或同类竞赛。",
+      "allowed_parent_kinds": [
+        "SPORT"
+      ],
+      "required_parent_counts": {
+        "SPORT": 1
+      }
+    },
+    {
+      "id": "EVENT",
+      "name_zh": "赛事",
+      "description": "具有明确时间和参与对象、可承载市场的单一赛事。",
+      "allowed_parent_kinds": [
+        "SPORT",
+        "COMPETITION"
+      ],
+      "required_parent_counts": {
+        "SPORT": 1
+      },
+      "maximum_parent_counts": {
+        "COMPETITION": 1
+      }
+    },
+    {
+      "id": "PERIOD",
+      "name_zh": "周期",
+      "description": "赛事内被来源明确声明的全场或分段结算周期；不从名称猜测。",
+      "allowed_parent_kinds": [
+        "EVENT"
+      ],
+      "required_parent_counts": {
+        "EVENT": 1
+      }
+    },
+    {
+      "id": "MARKET",
+      "name_zh": "盘口",
+      "description": "绑定单一赛事和单一明确周期、包含一个或多个互斥或相关选择的报价集合。",
+      "allowed_parent_kinds": [
+        "EVENT",
+        "PERIOD"
+      ],
+      "required_parent_counts": {
+        "EVENT": 1,
+        "PERIOD": 1
+      }
+    },
+    {
+      "id": "SELECTION",
+      "name_zh": "选择",
+      "description": "某一盘口中可被报价或结算的单一结果选项。",
+      "allowed_parent_kinds": [
+        "MARKET"
+      ],
+      "required_parent_counts": {
+        "MARKET": 1
+      }
+    },
+    {
+      "id": "LINE",
+      "name_zh": "线",
+      "description": "来源显式给出的让分、总分、阈值或无适用线状态；数值保留十进制字符串。",
+      "allowed_parent_kinds": [
+        "MARKET"
+      ],
+      "required_parent_counts": {
+        "MARKET": 1
+      }
+    },
+    {
+      "id": "SETTLEMENT_RULE",
+      "name_zh": "结算规则",
+      "description": "来源版本化、可追溯且不得从名称推断的盘口结算规则。",
+      "allowed_parent_kinds": [
+        "MARKET"
+      ],
+      "required_parent_counts": {
+        "MARKET": 1
+      }
+    }
+  ],
+  "unknown_contract": {
+    "object_kind": "UNKNOWN",
+    "required_reason_codes": [
+      "AMBIGUOUS_TYPE",
+      "DUPLICATE_SOURCE_REFERENCE",
+      "INVALID_PARENT_RELATION",
+      "MALFORMED_IDENTIFIER",
+      "MALFORMED_INPUT",
+      "MISSING_REQUIRED_RELATION",
+      "UNRECOGNIZED_TYPE",
+      "UNSUPPORTED_SEMANTICS"
+    ],
+    "required_fields": [
+      "unknown_reason_code",
+      "raw_type_label",
+      "source_payload_sha256",
+      "routing_action"
+    ],
+    "routing_action": "QUARANTINE_AND_SURFACE_COVERAGE_GAP",
+    "advice_eligible": false
+  },
+  "line_contract": {
+    "representations": [
+      "NO_LINE_APPLICABLE",
+      "SCALAR_DECIMAL",
+      "RANGE_DECIMAL",
+      "CATEGORICAL",
+      "UNKNOWN"
+    ],
+    "authoritative_numeric_encoding": "BASE10_STRING",
+    "binary_float_allowed": false,
+    "implicit_zero_allowed": false,
+    "unknown_action": "NO_RECOMMENDATION"
+  },
+  "period_contract": {
+    "semantic_classes": [
+      "FULL_EVENT",
+      "DECLARED_SEGMENT",
+      "DECLARED_EXTENSION",
+      "OTHER_DECLARED",
+      "UNKNOWN"
+    ],
+    "infer_from_display_name_allowed": false,
+    "unknown_action": "NO_RECOMMENDATION"
+  },
+  "settlement_contract": {
+    "result_states": [
+      "PENDING",
+      "WIN",
+      "LOSS",
+      "PUSH",
+      "VOID",
+      "PARTIAL_WIN",
+      "PARTIAL_LOSS",
+      "UNKNOWN"
+    ],
+    "source_rule_version_required": true,
+    "source_rule_hash_required": true,
+    "implicit_rule_allowed": false,
+    "rule_conflict_action": "NO_RECOMMENDATION_AND_QUARANTINE"
+  },
+  "graph_invariants": [
+    "OBJECT_IDS_ARE_UNIQUE_WITHIN_ONE_MANIFEST",
+    "SOURCE_OBJECT_REFERENCES_ARE_UNIQUE_WITHIN_ONE_SOURCE_AND_MANIFEST",
+    "ALL_PARENT_REFERENCES_RESOLVE_TO_KNOWN_RECORDS",
+    "PARENT_GRAPH_IS_ACYCLIC",
+    "EACH_MARKET_HAS_AT_LEAST_ONE_SELECTION",
+    "EACH_MARKET_HAS_EXACTLY_ONE_SETTLEMENT_RULE",
+    "UNKNOWN_RECORDS_HAVE_NO_PARENT_REFERENCES",
+    "EVERY_INPUT_OBJECT_IS_REPRESENTED_EXACTLY_ONCE"
+  ],
+  "claim_boundary": {
+    "actual_provider_or_market_observed": false,
+    "all_observable_markets_enumerated_or_verified": false,
+    "cross_source_identity_resolved": false,
+    "source_capability_or_terms_verified_in_p01": false,
+    "freshness_or_scheduler_verified": false,
+    "silent_gap_detection_verified": false,
+    "recommendation_or_order_enabled": false,
+    "financial_return_verified_or_guaranteed": false
+  }
+}

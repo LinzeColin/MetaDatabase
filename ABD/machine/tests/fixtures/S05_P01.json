@@ -1,0 +1,187 @@
+{
+  "schema_version": "1.0.0",
+  "fixture_id": "FIX-S05-P01",
+  "contract_id": "AC-S05-P01",
+  "requirement_id": "REQ-S05-P01",
+  "fixed_clock": "2026-07-23T01:02:53+10:00",
+  "input_mode": "FROZEN_SYNTHETIC_FIXTURE",
+  "expected_known_kinds": [
+    "SPORT",
+    "COMPETITION",
+    "EVENT",
+    "PERIOD",
+    "MARKET",
+    "SELECTION",
+    "LINE",
+    "SETTLEMENT_RULE"
+  ],
+  "expected_summary": {
+    "total_records": 9,
+    "known_count": 8,
+    "unknown_count": 1,
+    "counts_by_kind": {
+      "SPORT": 1,
+      "COMPETITION": 1,
+      "EVENT": 1,
+      "PERIOD": 1,
+      "MARKET": 1,
+      "SELECTION": 1,
+      "LINE": 1,
+      "SETTLEMENT_RULE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  "expected_unknown_reason_code": "UNRECOGNIZED_TYPE",
+  "expected_claim_boundary": {
+    "all_observable_markets_verified": false,
+    "cross_source_identity_resolved": false,
+    "source_capabilities_verified": false,
+    "market_data_freshness_verified": false,
+    "recommendation_or_order_enabled": false
+  },
+  "allowed_numeric_boundary_deltas": [
+    "-0.0001",
+    "0",
+    "0.0001"
+  ],
+  "adverse_odds_tick_action": "NOT_APPLICABLE_NO_ODDS_OR_ACTION_DECISION_IN_S05_P01",
+  "raw_discovery_objects": [
+    {
+      "source_id": "FIXTURE-S05-P01",
+      "source_object_ref": "sport/1",
+      "raw_type_label": "synthetic sport",
+      "candidate_kinds": [
+        "SPORT"
+      ],
+      "proposed_object_id": "SPORT:synthetic-ball",
+      "parent_source_refs": [],
+      "source_payload_sha256": "ef5398194197c1b7ded1bfba09b82a0cbca6d82e0a2526b77d6c66d4e4d12d50",
+      "observed_at": "2026-07-23T01:02:53+10:00",
+      "numeric_probe": "0"
+    },
+    {
+      "source_id": "FIXTURE-S05-P01",
+      "source_object_ref": "competition/1",
+      "raw_type_label": "synthetic competition",
+      "candidate_kinds": [
+        "COMPETITION"
+      ],
+      "proposed_object_id": "COMPETITION:synthetic-league",
+      "parent_source_refs": [
+        "sport/1"
+      ],
+      "source_payload_sha256": "2796f85f1bd0dc06fb0ce96a61963667c74480525ba7694c736a1183112491d6",
+      "observed_at": "2026-07-23T01:02:53+10:00",
+      "numeric_probe": "0"
+    },
+    {
+      "source_id": "FIXTURE-S05-P01",
+      "source_object_ref": "event/1",
+      "raw_type_label": "synthetic event",
+      "candidate_kinds": [
+        "EVENT"
+      ],
+      "proposed_object_id": "EVENT:synthetic-event-001",
+      "parent_source_refs": [
+        "sport/1",
+        "competition/1"
+      ],
+      "source_payload_sha256": "8bdc0ab3ed49aeda6821e1b9b7be0a5c754e6d67131ccad909e2e2d0ae756866",
+      "observed_at": "2026-07-23T01:02:53+10:00",
+      "numeric_probe": "0"
+    },
+    {
+      "source_id": "FIXTURE-S05-P01",
+      "source_object_ref": "period/1",
+      "raw_type_label": "synthetic full period",
+      "candidate_kinds": [
+        "PERIOD"
+      ],
+      "proposed_object_id": "PERIOD:synthetic-full",
+      "parent_source_refs": [
+        "event/1"
+      ],
+      "source_payload_sha256": "e34705c9a84f3b4688a454156a35a6548263f5194b3fc5b1c3f50cc83178007b",
+      "observed_at": "2026-07-23T01:02:53+10:00",
+      "numeric_probe": "0"
+    },
+    {
+      "source_id": "FIXTURE-S05-P01",
+      "source_object_ref": "market/1",
+      "raw_type_label": "synthetic result market",
+      "candidate_kinds": [
+        "MARKET"
+      ],
+      "proposed_object_id": "MARKET:synthetic-result",
+      "parent_source_refs": [
+        "event/1",
+        "period/1"
+      ],
+      "source_payload_sha256": "105eb3c574ba655cffb4b43771226fc7ff1629064d0cd16f6edbbb43d57b4806",
+      "observed_at": "2026-07-23T01:02:53+10:00",
+      "numeric_probe": "0"
+    },
+    {
+      "source_id": "FIXTURE-S05-P01",
+      "source_object_ref": "selection/1",
+      "raw_type_label": "synthetic option a",
+      "candidate_kinds": [
+        "SELECTION"
+      ],
+      "proposed_object_id": "SELECTION:synthetic-option-a",
+      "parent_source_refs": [
+        "market/1"
+      ],
+      "source_payload_sha256": "11cbae53a6c95fbc8888de5cfbff6637475309c19d013601514f7b8862dee270",
+      "observed_at": "2026-07-23T01:02:53+10:00",
+      "numeric_probe": "0"
+    },
+    {
+      "source_id": "FIXTURE-S05-P01",
+      "source_object_ref": "line/1",
+      "raw_type_label": "synthetic explicit no-line state",
+      "candidate_kinds": [
+        "LINE"
+      ],
+      "proposed_object_id": "LINE:synthetic-no-line",
+      "parent_source_refs": [
+        "market/1"
+      ],
+      "source_payload_sha256": "7537e2c7aca5ef73a21bd1a5e7c4cdc179cf2be264f9550f75a0150a06184488",
+      "observed_at": "2026-07-23T01:02:53+10:00",
+      "numeric_probe": "0"
+    },
+    {
+      "source_id": "FIXTURE-S05-P01",
+      "source_object_ref": "settlement/1",
+      "raw_type_label": "synthetic settlement rule v1",
+      "candidate_kinds": [
+        "SETTLEMENT_RULE"
+      ],
+      "proposed_object_id": "SETTLEMENT_RULE:synthetic-rule-v1",
+      "parent_source_refs": [
+        "market/1"
+      ],
+      "source_payload_sha256": "444add16e288e976a0c682843df396699e5fad934d282a10ed5c59959f05e420",
+      "observed_at": "2026-07-23T01:02:53+10:00",
+      "numeric_probe": "0"
+    },
+    {
+      "source_id": "FIXTURE-S05-P01",
+      "source_object_ref": "mystery/1",
+      "raw_type_label": "synthetic source-specific oddity",
+      "candidate_kinds": [
+        "SOURCE_SPECIFIC_ODDITY"
+      ],
+      "parent_source_refs": [],
+      "source_payload_sha256": "248e48065c3029d3a994ec58a3c47e9e4ed882918d275827ab2820939e3b75d2",
+      "observed_at": "2026-07-23T01:02:53+10:00",
+      "numeric_probe": "0"
+    }
+  ],
+  "expected_oracle_check_minimum": 45,
+  "minimum_targeted_pytest_cases": 70,
+  "minimum_full_pytest_cases": 3958,
+  "expected_next": "S05/P02_READY_NOT_STARTED",
+  "expected_release_status": "NOT_READY_S05_P02_TO_S19_AND_RUNTIME_VALIDATION_REQUIRED"
+}
