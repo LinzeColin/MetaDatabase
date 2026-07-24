@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "protocol_id": "BSS-S3-P3-T016-provider-generation-v23",
+  "status": "READY_FOR_T017_REREVIEW",
+  "subject": "fresh generation of the actual forward research answer",
+  "review_task": "BSS-S3-P3-T017",
+  "closure_rule": "A stored local receipt is insufficient. T017 must directly run the witness command and observe the externally sandboxed provider process, explicit denied-source probe, exact returned bytes, and validator exit.",
+  "command": "python3 -B evals/forward_test/provider_generation_witness_v23.py --skill-root . --live",
+  "provider_command_contract": {
+    "runtime": "codex exec",
+    "ephemeral": true,
+    "user_config_loaded": false,
+    "project_rules_loaded": false,
+    "model": "gpt-5.6-sol",
+    "external_boundary": "macOS sandbox-exec explicit deny of repository, TaskPack, Codex history, and runtime Skill roots",
+    "native_provider_sandbox_bypassed_only_inside_external_boundary": true,
+    "network_allowed": true,
+    "canonical_repository_writes_allowed": false,
+    "projection_writes_allowed": true
+  },
+  "context_contract": {
+    "production_file_count": 30,
+    "production_tree_sha256": "66e2ec0117c8c0464965333f7130d1209206285a81ceebb2e0a88f8bd58b63c6",
+    "prior_answers_present": false,
+    "prior_diagnoses_present": false,
+    "judge_commentary_present": false,
+    "examples_present": false,
+    "tests_present": false,
+    "task_pack_present": false
+  },
+  "artifact_bindings": {
+    "provider_generation_v23_task.txt": "fb5abc961b3a9ab20e0fab8bd596389ed016f583fe5cfc687dbbd90cb10e0cca",
+    "provider_generation_v23.schema.json": "e3b1edf32a88568c2cbffe8f714c1972a28f6ca718f2ff76fa32211724f6cf7f",
+    "provider_generation_witness_v23.py": "46676fe985cbc9983bf18fff73ecf43bd81c03694c1c096e6de784f9769fba91"
+  },
+  "admission": {
+    "provider_process_must_generate_answer": true,
+    "host_prepared_prior_answer_forbidden": true,
+    "denied_source_probe_must_fail": true,
+    "allowed_projection_probe_must_pass": true,
+    "provider_exit_code_must_be_zero": true,
+    "exact_last_message_must_match_schema": true,
+    "current_pre_security_presentation_gate_must_pass": true,
+    "evidence_opportunity_portfolio_replays_must_pass": true,
+    "live_reviewer_observation_required": true
+  }
+}

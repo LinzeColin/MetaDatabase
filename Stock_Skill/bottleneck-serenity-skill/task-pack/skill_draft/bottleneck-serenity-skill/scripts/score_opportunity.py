@@ -77,6 +77,13 @@ HARD_FLAG_MESSAGES = {
 
 ARTIFACT_SCHEMA_VERSION = "1.0"
 SKILL_VERSION = "0.0.0.1"
+BRIDGE_CASH_CHECKS = ("capex", "working_capital", "interest", "tax")
+BRIDGE_DILUTION_CHECKS = (
+    "stock_based_compensation",
+    "convertibles",
+    "warrants",
+    "other_contingent_shares",
+)
 
 TEMPLATE: Dict[str, Any] = {
     "schema_version": ARTIFACT_SCHEMA_VERSION,
@@ -109,6 +116,18 @@ TEMPLATE: Dict[str, Any] = {
         "bear": {"probability": 0.25, "return_pct": -40, "summary": ""},
         "base": {"probability": 0.50, "return_pct": 30, "summary": ""},
         "bull": {"probability": 0.25, "return_pct": 100, "summary": ""},
+    },
+    "equity_bridge": {
+        "complete": False,
+        "revenue": None,
+        "free_cash_flow": None,
+        "fully_diluted_shares": None,
+        "per_share_fcf": None,
+        "cash_conversion_checks": {key: False for key in BRIDGE_CASH_CHECKS},
+        "dilution_checks": {key: False for key in BRIDGE_DILUTION_CHECKS},
+        "unverified_critical_multipliers": [
+            "Replace with every unresolved revenue-to-per-share multiplier."
+        ],
     },
     "hard_flags": {key: False for key in HARD_FLAG_MESSAGES},
     "kill_switches": [],
@@ -250,6 +269,97 @@ def _scenario_metrics(scenarios: Mapping[str, Any]) -> Dict[str, float]:
     }
 
 
+def _equity_bridge(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    bridge = payload.get("equity_bridge")
+    if not isinstance(bridge, Mapping):
+        raise ValueError("equity_bridge is required")
+    required = {
+        "complete",
+        "revenue",
+        "free_cash_flow",
+        "fully_diluted_shares",
+        "per_share_fcf",
+        "cash_conversion_checks",
+        "dilution_checks",
+        "unverified_critical_multipliers",
+    }
+    if set(bridge) != required:
+        missing = sorted(required - set(bridge))
+        extra = sorted(set(bridge) - required)
+        raise ValueError(
+            f"equity_bridge keys mismatch: missing={missing}, extra={extra}"
+        )
+    complete = bridge["complete"]
+    if not isinstance(complete, bool):
+        raise ValueError("equity_bridge.complete must be boolean")
+
+    def checks(name: str, expected: tuple[str, ...]) -> Dict[str, bool]:
+        raw = bridge[name]
+        if not isinstance(raw, Mapping) or set(raw) != set(expected):
+            raise ValueError(f"equity_bridge.{name} must contain exactly {list(expected)}")
+        if any(not isinstance(raw[key], bool) for key in expected):
+            raise ValueError(f"equity_bridge.{name} values must be boolean")
+        return {key: raw[key] for key in expected}
+
+    cash_checks = checks("cash_conversion_checks", BRIDGE_CASH_CHECKS)
+    dilution_checks = checks("dilution_checks", BRIDGE_DILUTION_CHECKS)
+    unresolved = bridge["unverified_critical_multipliers"]
+    if (
+        not isinstance(unresolved, list)
+        or any(not isinstance(item, str) or not item.strip() for item in unresolved)
+        or len(unresolved) != len(set(unresolved))
+    ):
+        raise ValueError(
+            "equity_bridge.unverified_critical_multipliers must be unique strings"
+        )
+
+    numeric: Dict[str, float | None] = {}
+    for field in (
+        "revenue",
+        "free_cash_flow",
+        "fully_diluted_shares",
+        "per_share_fcf",
+    ):
+        raw = bridge[field]
+        numeric[field] = None if raw is None else _number(raw, f"equity_bridge.{field}")
+    if numeric["revenue"] is not None and numeric["revenue"] < 0:
+        raise ValueError("equity_bridge.revenue cannot be negative")
+    if (
+        numeric["fully_diluted_shares"] is not None
+        and numeric["fully_diluted_shares"] <= 0
+    ):
+        raise ValueError("equity_bridge.fully_diluted_shares must be positive")
+
+    if complete:
+        if any(value is None for value in numeric.values()):
+            raise ValueError("complete equity_bridge requires all four numeric values")
+        if not all(cash_checks.values()) or not all(dilution_checks.values()):
+            raise ValueError("complete equity_bridge requires every cash/dilution check")
+        if unresolved:
+            raise ValueError(
+                "complete equity_bridge cannot retain unverified critical multipliers"
+            )
+        calculated = numeric["free_cash_flow"] / numeric["fully_diluted_shares"]
+        tolerance = max(1e-6, abs(calculated) * 1e-6)
+        if abs(numeric["per_share_fcf"] - calculated) > tolerance:
+            raise ValueError(
+                "equity_bridge.per_share_fcf must equal free_cash_flow / "
+                "fully_diluted_shares"
+            )
+    elif not unresolved:
+        raise ValueError(
+            "incomplete equity_bridge must list unverified critical multipliers"
+        )
+
+    return {
+        "complete": complete,
+        **numeric,
+        "cash_conversion_checks": cash_checks,
+        "dilution_checks": dilution_checks,
+        "unverified_critical_multipliers": list(unresolved),
+    }
+
+
 def _decision_label(
     dimensions: Mapping[str, float],
     final_score: float,
@@ -362,6 +472,7 @@ def score_payload(payload: Mapping[str, Any]) -> Dict[str, Any]:
     if not isinstance(scenarios, Mapping):
         raise ValueError("scenarios must be an object")
     scenario_metrics = _scenario_metrics(scenarios)
+    equity_bridge = _equity_bridge(payload)
 
     core = _geometric_mean(dimension_scores.values())
     final_score = _clamp(
@@ -373,6 +484,13 @@ def score_payload(payload: Mapping[str, Any]) -> Dict[str, Any]:
         hard_flags = {}
     if not isinstance(hard_flags, Mapping):
         raise ValueError("hard_flags must be an object")
+    if (
+        not equity_bridge["complete"]
+        and not bool(hard_flags.get("no_material_revenue_bridge"))
+    ):
+        raise ValueError(
+            "incomplete equity_bridge requires hard_flags.no_material_revenue_bridge=true"
+        )
     active_flags = sorted(str(key) for key, value in hard_flags.items() if bool(value))
     for flag in active_flags:
         if flag not in HARD_FLAG_MESSAGES:
@@ -413,6 +531,7 @@ def score_payload(payload: Mapping[str, Any]) -> Dict[str, Any]:
             "contracted_forward_ramp": contracted_forward_ramp,
         },
         "scenario_metrics": scenario_metrics,
+        "equity_bridge": equity_bridge,
         "core_geometric_score": round(core, 3),
         "final_score": round(final_score, 3),
         "active_hard_flags": active_flags,
@@ -434,6 +553,7 @@ def to_markdown(result: Mapping[str, Any]) -> str:
     decision = result["decision"]
     clocks = result["clocks"]
     scenario = result["scenario_metrics"]
+    bridge = result["equity_bridge"]
 
     lines = [
         f"# bottleneck-serenity-skill score — {title}",
@@ -445,6 +565,8 @@ def to_markdown(result: Mapping[str, Any]) -> str:
         f"- Final score: **{result['final_score']:.1f} / 100**",
         f"- Core geometric score: {result['core_geometric_score']:.1f}",
         f"- Hard gates passed: `{str(decision['hard_gates_passed']).lower()}`",
+        f"- Equity bridge complete: `{str(bridge['complete']).lower()}`",
+        f"- Per-share FCF: `{bridge['per_share_fcf']}`",
         "",
         "## Decision reasons",
     ]

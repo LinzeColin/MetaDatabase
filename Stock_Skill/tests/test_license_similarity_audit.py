@@ -6,6 +6,7 @@ import copy
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -18,6 +19,16 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 PROJECT_ROOT = REPO_ROOT / "Stock_Skill/bottleneck-serenity-skill"
 SCRIPT = PROJECT_ROOT / "scripts/audit_license_similarity.py"
 REPORT = PROJECT_ROOT / "LICENSE_SIMILARITY_AUDIT.json"
+ACCEPTANCE = PROJECT_ROOT / "task-pack/04_ACCEPTANCE_VALIDATION_STOP.md"
+OWNER_COUNT_DOCS = (
+    PROJECT_ROOT / "README.md",
+    PROJECT_ROOT / "LICENSE_AND_ATTRIBUTION.md",
+    PROJECT_ROOT / "SOURCE_INVENTORY.md",
+    PROJECT_ROOT / "RESTORE_AND_VERIFY.md",
+)
+OWNER_COUNT_MARKER = re.compile(
+    r"<!-- CURRENT_LICENSE_TARGET_COUNT=([0-9]+) -->"
+)
 CANONICAL = (
     PROJECT_ROOT / "task-pack/skill_draft/bottleneck-serenity-skill"
 )
@@ -148,16 +159,23 @@ class LicenseSimilarityAuditTests(unittest.TestCase):
             CANONICAL,
             target_label=MODULE.CANONICAL_RELATIVE.as_posix(),
         )
-        self.assertEqual(report["target"]["file_count"], 39)
-        self.assertEqual(report["summary"]["target_file_count"], 39)
+        current_target_count = len(MODULE.collect_targets(CANONICAL))
+        self.assertEqual(report["target"]["file_count"], current_target_count)
+        self.assertEqual(
+            report["summary"]["target_file_count"],
+            current_target_count,
+        )
         self.assertEqual(report["summary"]["upstream_repository_count"], 4)
         self.assertEqual(
             report["summary"]["upstream_eligible_text_blob_instances"], 2485
         )
         self.assertEqual(report["summary"]["exact_pair_count"], 0)
-        self.assertEqual(report["summary"]["normalized_four_line_pair_count"], 3)
+        self.assertEqual(report["summary"]["normalized_four_line_pair_count"], 5)
         self.assertEqual(report["summary"]["token20_pair_count"], 1)
         self.assertEqual(report["summary"]["unlicensed_exact_pair_count"], 0)
+        self.assertEqual(
+            report["summary"]["unlicensed_normalized_four_line_pair_count"], 3
+        )
         self.assertEqual(report["summary"]["unlicensed_token20_pair_count"], 0)
 
         metadata_mutant = copy.deepcopy(report)
@@ -197,6 +215,33 @@ class LicenseSimilarityAuditTests(unittest.TestCase):
         self.assertNotIn("/tmp/", serialized)
         self.assertNotIn("/Users/", serialized)
         self.assertNotIn("\\Users\\", serialized)
+
+    def test_acceptance_oracle_derives_current_target_count_from_report(self) -> None:
+        report = MODULE.load_report(REPORT)
+        acceptance = ACCEPTANCE.read_text(encoding="utf-8")
+        self.assertIn(
+            "current exact target 集（计数必须等于 "
+            "`LICENSE_SIMILARITY_AUDIT.summary.target_file_count`）",
+            acceptance,
+        )
+        self.assertNotIn("current 39-file exact target", acceptance)
+        self.assertEqual(
+            report["target"]["file_count"],
+            report["summary"]["target_file_count"],
+        )
+
+    def test_owner_facing_target_counts_match_committed_report(self) -> None:
+        report = MODULE.load_report(REPORT)
+        expected = report["summary"]["target_file_count"]
+        for path in OWNER_COUNT_DOCS:
+            with self.subTest(path=path.name):
+                text = path.read_text(encoding="utf-8")
+                matches = OWNER_COUNT_MARKER.findall(text)
+                self.assertEqual(matches, [str(expected)])
+                self.assertIsNone(
+                    re.search(r"(?<![0-9])229(?![0-9])", text),
+                    f"{path.name} retains the stale target count",
+                )
 
 
 if __name__ == "__main__":

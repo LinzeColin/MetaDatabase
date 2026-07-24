@@ -4,17 +4,27 @@
 
 **Label:**  
 **As of:**  
-**One sentence:**
+**One theme-level sentence (no issuer, company, ticker, security, benchmark/index brand, branded operator, or company-labeled source):**
 
-## Why now
+## Funded demand
 
-## System map and verified constraint
+## System map
 
-## Why this security captures the rent
+## Constraint proof
+
+Remain role-neutral through this section. Introduce all company, ticker, security,
+benchmark/index-brand, branded-operator, and company-source names only below.
+The validator rejects unregistered issuer-shaped text as well as names already
+present in evidence/machine artifacts; generic uppercase ticker-like tokens,
+exchange:ticker forms, listed suffixes, and corporate legal suffixes fail closed.
+
+## Security map
+
+## Equity capture
 
 ## Three clocks
 
-## Valuation and asymmetry
+## Valuation
 
 | Scenario | Probability | Return | Key assumptions |
 |---|---:|---:|---|
@@ -22,14 +32,14 @@
 | Base | | | |
 | Bull | | | |
 
-## Strongest disconfirming case
-
 ## Catalysts
+
+## Red team
 
 ## Kill switches
 
-## Portfolio overlap
+## Portfolio fit
 
 ## Open questions
 
-## Evidence
+## Sources

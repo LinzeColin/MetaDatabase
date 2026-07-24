@@ -1,0 +1,457 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "as_of": "2024-12-31",
+  "source_cutoff": "2024-12-31",
+  "previous_version": null,
+  "case_id": "historical-ai-data-center-power-transformers-20241231",
+  "thesis_id": "ai-data-center-power-transformers-gev-20241231",
+  "mode": "scan",
+  "decision": {
+    "label": "BOTTLENECK_NOT_EQUITY",
+    "one_sentence": "Transformer scarcity was real, but the cutoff evidence did not establish a material GEV transformer-to-fully-diluted-per-share free-cash-flow bridge.",
+    "confidence": "high",
+    "final_score": 55.215,
+    "hard_gates_passed": false,
+    "blocking_gate": "equity_rent_capture"
+  },
+  "execution_boundary": [
+    "research only",
+    "no leverage",
+    "no automatic trading"
+  ],
+  "funded_demand": {
+    "payer_groups": [
+      "hyperscale data-center operators",
+      "utilities serving large-load interconnections"
+    ],
+    "committed_or_incurred_evidence": [
+      "C-001"
+    ],
+    "demand_outlook_evidence": [
+      "C-002"
+    ],
+    "qualification": "Funded downstream infrastructure was verified, but no transformer supplier allocation was inferred from total data-center capital expenditure."
+  },
+  "system_map": {
+    "nodes": [
+      {
+        "id": "N-01",
+        "function": "fund and develop AI-capable data centers",
+        "mandatory": true,
+        "evidence": [
+          "C-001"
+        ]
+      },
+      {
+        "id": "N-02",
+        "function": "secure utility interconnection, generation, transmission, and substation capacity",
+        "mandatory": true,
+        "evidence": [
+          "C-002",
+          "C-003"
+        ]
+      },
+      {
+        "id": "N-03",
+        "function": "transform voltage at utility and transmission layers with large power transformers",
+        "mandatory": true,
+        "evidence": [
+          "C-003"
+        ]
+      },
+      {
+        "id": "N-04",
+        "function": "transform and distribute power inside the campus with three-phase distribution equipment",
+        "mandatory": true,
+        "evidence": [
+          "C-003",
+          "C-009"
+        ]
+      },
+      {
+        "id": "N-05",
+        "function": "supply qualified grain-oriented electrical steel, copper, components, labor, assembly, and testing",
+        "mandatory": true,
+        "evidence": [
+          "C-003"
+        ]
+      },
+      {
+        "id": "N-06",
+        "function": "manufacture, qualify, deliver, commission, and service transformer and switchgear systems",
+        "mandatory": true,
+        "evidence": [
+          "C-004",
+          "C-005",
+          "C-007"
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "from": "N-01",
+        "to": "N-02",
+        "dependency": "contractual and financial",
+        "workaround": "alternate site, phased energization, onsite generation, storage, or load flexibility"
+      },
+      {
+        "from": "N-02",
+        "to": "N-03",
+        "dependency": "physical and regulatory",
+        "workaround": "network reconfiguration or delayed interconnection"
+      },
+      {
+        "from": "N-03",
+        "to": "N-04",
+        "dependency": "physical and technical",
+        "workaround": "redesign changes equipment mix but does not eliminate voltage transformation"
+      },
+      {
+        "from": "N-05",
+        "to": "N-06",
+        "dependency": "material, qualification, and manufacturing",
+        "workaround": "qualified second source or redesigned specification"
+      },
+      {
+        "from": "N-06",
+        "to": "N-02",
+        "dependency": "delivery, testing, and commissioning",
+        "workaround": "refurbishment, inventory, or alternate qualified supplier"
+      }
+    ],
+    "category_control": "C-009 prohibits merging campus distribution equipment with large power transformers."
+  },
+  "role_screening": [
+    {
+      "role": "owner",
+      "hypothesis": "GEV can own relevant transformer and grid-equipment capacity.",
+      "status": "partially_verified",
+      "evidence": [
+        "C-005",
+        "C-006",
+        "C-007"
+      ]
+    },
+    {
+      "role": "unlocker",
+      "hypothesis": "Qualified material, labor, testing, and new manufacturing capacity can unlock supply.",
+      "status": "verified_function_unmapped_security",
+      "evidence": [
+        "C-003",
+        "C-004"
+      ]
+    },
+    {
+      "role": "substitute",
+      "hypothesis": "Efficiency, onsite generation, storage, alternate siting, and network redesign may reduce or defer grid equipment needs.",
+      "status": "open_hypothesis",
+      "evidence": [
+        "C-002",
+        "C-013"
+      ]
+    },
+    {
+      "role": "tollbooth",
+      "hypothesis": "Qualification, testing, engineering, and interconnection services can capture value without owning transformer capacity.",
+      "status": "open_hypothesis",
+      "evidence": [
+        "C-003"
+      ]
+    },
+    {
+      "role": "absorber",
+      "hypothesis": "Utilities and data-center developers may absorb higher equipment cost or project delay.",
+      "status": "partially_verified",
+      "evidence": [
+        "C-001",
+        "C-002"
+      ]
+    },
+    {
+      "role": "public_proxy",
+      "hypothesis": "ETN supplies broad electrical systems into data-center and utility end markets but is not verified pure transformer exposure.",
+      "status": "verified_broad_proxy",
+      "evidence": [
+        "C-008"
+      ]
+    }
+  ],
+  "non_compensating_gates": [
+    {
+      "gate": "constraint_reality",
+      "verdict": "PASS",
+      "evidence": [
+        "C-001",
+        "C-002",
+        "C-003"
+      ],
+      "reason": "Funded demand, electrical necessity, and observed supply tightness were independently supported."
+    },
+    {
+      "gate": "scarcity_duration",
+      "verdict": "PASS_WITH_RANGE",
+      "evidence": [
+        "C-003",
+        "C-004",
+        "C-012",
+        "C-013"
+      ],
+      "reason": "Lead times supported near-term persistence, but dated 2026-2027 capacity additions prevent perpetual extrapolation."
+    },
+    {
+      "gate": "equity_rent_capture",
+      "verdict": "FAIL",
+      "evidence": [
+        "C-005",
+        "C-006",
+        "C-007",
+        "C-010"
+      ],
+      "reason": "The disclosed segment was too broad to verify transformer-specific revenue, unit economics, capital needs, and per-share FCF."
+    },
+    {
+      "gate": "expectation_gap",
+      "verdict": "UNKNOWN",
+      "evidence": [
+        "C-011"
+      ],
+      "reason": "No cutoff-dated Tier A closing price was admitted, so the valuation anchor remained an explicit assumption."
+    }
+  ],
+  "constraint": {
+    "verified_function": "qualified voltage transformation and grid connection at several non-fungible power-system layers",
+    "resolution_paths": [
+      {
+        "path": "incumbent capacity expansion",
+        "earliest_date": "2026-01-01",
+        "base_date": "2027-12-31",
+        "probability_label": "credible",
+        "evidence": [
+          "C-004",
+          "C-007"
+        ]
+      },
+      {
+        "path": "qualified second source or redesigned specification",
+        "earliest_date": "2025-06-30",
+        "base_date": "2026-12-31",
+        "probability_label": "unverified",
+        "evidence": [
+          "C-003"
+        ]
+      },
+      {
+        "path": "alternate siting, phased energization, onsite generation, storage, or load flexibility",
+        "earliest_date": "2025-01-01",
+        "base_date": "2026-06-30",
+        "probability_label": "unverified",
+        "evidence": [
+          "C-002",
+          "C-013"
+        ]
+      },
+      {
+        "path": "demand deferral or cancellation",
+        "earliest_date": "2025-01-01",
+        "base_date": "2026-12-31",
+        "probability_label": "nonzero",
+        "evidence": [
+          "C-001",
+          "C-002"
+        ]
+      }
+    ]
+  },
+  "clocks": {
+    "scarcity_p10_months": 12,
+    "scarcity_p50_months": 30,
+    "scarcity_p90_months": 48,
+    "monetization_lag_months": 18,
+    "market_discovery_months": 6,
+    "monetizable_runway_months": 12,
+    "basis": [
+      "C-003",
+      "C-004",
+      "C-007",
+      "C-012"
+    ]
+  },
+  "rent_capture": {
+    "bridge": [
+      "funded data-center infrastructure",
+      "required grid and campus transformer units",
+      "GEV-addressable qualified content",
+      "attainable share and shipped capacity",
+      "realized transformer price",
+      "transformer-specific revenue",
+      "incremental gross profit",
+      "operating cash flow",
+      "capex, working capital, interest, and tax",
+      "incremental free cash flow",
+      "fully diluted per-share free cash flow"
+    ],
+    "verified_through": "broad Electrification orders, revenue, margin, backlog, and company balance-sheet capacity",
+    "unverified_multipliers": [
+      "AI-data-center-attributable transformer units",
+      "GEV content per system",
+      "qualified share",
+      "transformer-only realized price and gross margin",
+      "transformer-only capex and working capital",
+      "transformer-only fully diluted per-share FCF"
+    ],
+    "sensitivity_only": {
+      "currency": "USD",
+      "diluted_shares_millions_assumption": 280,
+      "bear": {
+        "incremental_revenue_millions": 750,
+        "gross_margin_pct": 18,
+        "incremental_opex_millions": 120,
+        "tax_rate_pct": 21,
+        "capex_and_working_capital_millions": 100,
+        "incremental_fcf_millions": -88.15,
+        "incremental_fcf_per_share": -0.31
+      },
+      "base": {
+        "incremental_revenue_millions": 2000,
+        "gross_margin_pct": 25,
+        "incremental_opex_millions": 150,
+        "tax_rate_pct": 21,
+        "capex_and_working_capital_millions": 150,
+        "incremental_fcf_millions": 126.5,
+        "incremental_fcf_per_share": 0.45
+      },
+      "bull": {
+        "incremental_revenue_millions": 3500,
+        "gross_margin_pct": 30,
+        "incremental_opex_millions": 200,
+        "tax_rate_pct": 21,
+        "capex_and_working_capital_millions": 250,
+        "incremental_fcf_millions": 421.5,
+        "incremental_fcf_per_share": 1.51
+      }
+    },
+    "hard_flag": "no_material_revenue_bridge"
+  },
+  "valuation": {
+    "reference_anchor_usd": 325,
+    "reference_anchor_type": "assumption_not_fact",
+    "assumed_diluted_shares_millions": 280,
+    "assumed_equity_value_usd_billions": 91,
+    "scenarios": {
+      "bear": {
+        "probability": 0.3,
+        "return_pct": -35,
+        "endpoint_usd_rounded": 210
+      },
+      "base": {
+        "probability": 0.5,
+        "return_pct": 10,
+        "endpoint_usd_rounded": 360
+      },
+      "bull": {
+        "probability": 0.2,
+        "return_pct": 50,
+        "endpoint_usd_rounded": 490
+      }
+    },
+    "expected_return_pct": 4.5,
+    "interpretation": "The scenarios are sensitivity arithmetic, not a verified market-price or company valuation. The transformer-only base FCF sensitivity is too small and too unverified to establish an expectation gap for the whole company."
+  },
+  "catalysts": [
+    {
+      "window": "2025 first-half reporting",
+      "type": "evidence",
+      "event": "transformer-specific backlog, capacity, price, or mix disclosure",
+      "thesis_effect": "could complete or refute the rent-capture bridge"
+    },
+    {
+      "window": "2025-2027",
+      "type": "capital_cycle",
+      "event": "announced GEV, Siemens Energy, and Hitachi Energy capacity milestones",
+      "thesis_effect": "tests both monetization and scarcity-resolution timing"
+    },
+    {
+      "window": "each utility large-load update",
+      "type": "demand",
+      "event": "conversion of data-center requests into financed interconnection and procurement",
+      "thesis_effect": "separates funded load from speculative queue volume"
+    }
+  ],
+  "strongest_countercase": {
+    "case": "The theme merges different transformer classes, extrapolates hyperscaler capital expenditure into supplier orders, and ignores capacity response; broad Electrification growth may be real without producing material AI-transformer FCF per GEV share.",
+    "evidence": [
+      "C-004",
+      "C-006",
+      "C-009",
+      "C-010",
+      "C-013"
+    ]
+  },
+  "kill_switches": [
+    {
+      "condition": "Two independent official sources show standard transformer delivery times at or below 12 months.",
+      "review_date": "2025-06-30",
+      "effect": "reclassify the industry constraint as resolving"
+    },
+    {
+      "condition": "Transformer-specific revenue and incremental FCF still cannot be bridged after the next two reporting cycles.",
+      "review_date": "2025-07-31",
+      "effect": "reject the GEV rent-capture path"
+    },
+    {
+      "condition": "Verified data-center projects are not a material driver of qualified transformer orders.",
+      "review_date": "2025-12-31",
+      "effect": "reject the AI-specific causal claim"
+    }
+  ],
+  "portfolio_fit": {
+    "comparison_set": [
+      "GEV",
+      "ETN"
+    ],
+    "hypothetical_research_weight": 0.1,
+    "pairwise_overlap": {
+      "GEV|ETN": 0.857
+    },
+    "shared_roots": [
+      "AI data-center capex",
+      "grid electrification",
+      "qualified electrical equipment",
+      "utilities and large-load developers",
+      "capital-cycle response",
+      "project timing",
+      "theme valuation"
+    ],
+    "conclusion": "The two-name comparison behaves as one causal cluster, not two independent bets."
+  },
+  "documented_negative_search": [
+    "competing capacity and factory start dates",
+    "distribution-versus-large-power-transformer category mismatch",
+    "alternate siting, onsite generation, storage, load flexibility, and redesign",
+    "segment aggregation and missing transformer unit economics",
+    "capex, working capital, dilution, and per-share conversion",
+    "valuation anchor provenance and expectation-gap uncertainty"
+  ],
+  "open_questions": [
+    "What portion of GEV Electrification orders and RPO was transformer-specific at the cutoff?",
+    "What portion was attributable to verified AI data-center projects rather than broader grid investment?",
+    "What qualified transformer capacity, realized price, gross margin, capex, and working-capital path belonged to GEV?",
+    "Which transformer class and legal entity owned each data-center opportunity?",
+    "What cutoff-dated Tier A market price and matched benchmark should anchor a true expectation-gap test?"
+  ],
+  "artifacts": {
+    "input_file": "frozen_input.json",
+    "evidence_file": "evidence.json",
+    "opportunity_file": "opportunity.json",
+    "portfolio_file": "portfolio.json",
+    "memo_file": "memo.md",
+    "rubric_file": "rubric.json"
+  },
+  "historical_integrity": {
+    "fact_source_dates_lte_cutoff": true,
+    "post_cutoff_outcomes_used": false,
+    "expected_answer_in_frozen_input": false,
+    "immutable_first_snapshot": true
+  }
+}

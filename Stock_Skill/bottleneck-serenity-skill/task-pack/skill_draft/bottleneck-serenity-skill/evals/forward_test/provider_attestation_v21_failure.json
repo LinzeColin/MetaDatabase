@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "attestation_id": "BSS-S3-P3-T010-provider-attestation-v21",
+  "outcome": "HOST_OBSERVED_COMMAND_FAILURE_AND_FALSE_PROVIDER_PASS",
+  "substantive_provider_attestation": false,
+  "preexecution_packet_sha256": "4773626d74ba211019c84c3abdd32bfd33e657e61fffa89fae86c34ec2fa622c",
+  "preexecution_timestamp_response_sha256": "9fb5987b32420cf9e3080f050cbce1c01bcb10a0944bf9e45c7e63d9ad1875fa",
+  "provider_return": {
+    "path": "evals/forward_test/provider_attestation_v21_return.json",
+    "sha256": "34151b379e97cf72b3fead7b1de93c155188cdb06808152a287762cb85e32f93",
+    "byte_count": 959,
+    "schema_valid": true,
+    "claimed_verdict": "PASS"
+  },
+  "host_observation": {
+    "started_at_utc": "2026-07-23T18:35:41Z",
+    "finished_at_utc": "2026-07-23T18:36:21Z",
+    "cli_exit_code": 0,
+    "validator_command_exit_code": 1,
+    "validator_failure_class": "NO_WRITABLE_TEMPORARY_DIRECTORY_IN_READ_ONLY_SANDBOX",
+    "provider_claim_matches_host_observation": false
+  },
+  "privacy": {
+    "raw_event_stream_persisted": false,
+    "provider_identifiers_persisted": false,
+    "sanitized_command_observation_only": true
+  },
+  "superseded_by": "BSS-S3-P3-T010-provider-attestation-v22"
+}

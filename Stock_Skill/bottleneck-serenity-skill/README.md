@@ -8,13 +8,56 @@
 - Canonical Skill：`task-pack/skill_draft/bottleneck-serenity-skill/`
 - Distribution：`SOURCE_ONLY`；local install：`PROHIBITED`
 - Registry claim：`bottleneck-serenity-skill=0.0.0.1`
-- 当前交付状态：`REGISTRY_ACTIVE / RELEASE_CANDIDATE_BUILT / STAGE_2_REVIEW_PASS / SOURCE_ONLY / NOT_INSTALLED`
+- 当前交付状态：`REGISTRY_ACTIVE / STAGE_2_PUBLISHED / STAGE_3_REREVIEW_8_FAILED_REMEDIATION_9_REQUIRED / SOURCE_ONLY / NOT_INSTALLED`
 
-当前工作树已用真实确定性 release SHA 激活 registry；这表示 source/release 可发现且可恢复，不表示已安装
-Codex/Agents runtime。T005 已在新双 digest subject 上独立关闭机器接口 finding `S2-R001`；许可 finding
-`S2-R002` 与 review ledger 25/25 均为 `CLOSED`，Stage 2 Review verdict=`PASS`。唯一下一 Task 是
-`BSS-S2-P5-T001 — Publish`，它才会执行 staged/proposed-tree 封印、commit/push；当前候选尚未完成该
-Publish。版本或状态判断必须先从仓根运行
+Stage 2 sealed commit `e88f6afd1c025c32bf0ba4b0c3f6ff9250083335` 已 push 到 draft PR #76；无凭据
+clean sparse clone、release/hash DAG、远端 head 与两项 CI 均通过。Stage 3 已在本地完成 deterministic、
+Trigger、Security、Historical E2E、独立 Forward test 与整体 Review。T002 完成首轮整改后，T003 在
+172-path/184-file 冻结双 digest subject 上独立重审。`S3-R004`–`S3-R007` 已关闭；T004 随后用共用
+presentation hard gate、current v18 前置 provenance 与 actual-return exact replay、以及 public
+session-metadata plain/ZIP safety gate 完成第二轮整改。T005 随后在 227-path/237-file 新双 digest subject
+上独立重审：`S3-R003/S3-R008` 已关闭，但 `S3-R001` 的 company/URL 变体与 `S3-R002` 的
+allow/exclude-context 语义 mutation 仍 fail open，两项回到 `OPEN`，Re-review 2 verdict=`FAIL`。
+T006 已使 Historical/Forward 两个面各 15 类 company/URL 变体 fail closed，并逐字有序绑定四条 allowed
+与六条 excluded context。T007 在 228-path/238-file 新双 digest subject 上判定 Re-review 3=`FAIL`：
+embedded/lowercase unknown issuer 仍可穿透，合法 role-neutral prose 与正式 template 被误杀，v18
+provenance 仅为 host-local，canonical/ZIP 各仍有 10 个 top-level `session` 对象，且许可发现面存在
+target-count 冲突。T008 已用显式 entity grammar、DigiCert RFC3161 前置时间戳、fresh v19 executor/双 judge、
+session-object/UUIDv4 public safety gate 与动态 license-count Oracle 完成整改。T009 在
+244-path/254-file 冻结双 digest subject 上独立重审后仍判 `FAIL`：`S3-R001/R002/R008/R009` 未关闭，
+并新增追溯表漏列 T009 verifier 的 `S3-R011`；`S3-R010` 已关闭、`ACC-S2-010` 恢复 PASS。T010 已用
+声明式 issuer/entity 句式与 role-neutral allowlist 修复 presentation 双向误判；用前后两枚 DigiCert
+RFC3161 时间戳、host receipt、exact provider-return bytes 与失败谱系绑定 provider 验证候选；
+public-safety 同义 metadata plain/ZIP 矩阵和由 Task Graph 推导的 ACC-S3 verifier Oracle 也已补齐。
+T011 在 269-path/279-file 冻结双 digest subject 上独立重审后仍判 `FAIL`：presentation gate 对 40 个新
+issuer 负例全部漏放且误杀 4 个合法正例，public scanner 漏放 16 个私有 metadata 同义键，未签名/
+未认证来源的 provider-return 与 host-receipt 即使被 RFC3161 post seal 封存也不能证明真实 provider
+execution；owner-facing 许可计数曾与动态报告失配。`S3-R011` 已关闭；
+T012 已用共用 semantic role-slot scanner 与 46-negative/9-positive Oracle 修复 presentation 双向误判；
+把 v22 明确降级为非 provider-generation proof，并新增要求 T013 现场运行的 sandboxed v23
+provider-generation protocol；public-safety 已覆盖私有 metadata 语义同义键，README 也纳入动态许可
+计数 Oracle，四份 owner-facing 文档与 committed report 在 T012 时统一为 278 targets。
+T013 已在 276-path/286-file 冻结双 digest subject 上完成 Re-review 6。现场 v23 provider-generation
+protocol 与四仓 fresh full-history 许可重算通过，`S3-R002/R010` 已关闭；但独立新鲜探针复现
+20/20 命名 issuer/rent 负例漏放、12/12 role-neutral 正例误杀，以及 12 类新私有 metadata key 的
+plain/ZIP 24/24 漏检，故 `S3-R001/R008/R009` 保持 `OPEN`，整体 verdict=`FAIL`。不得上传或进入
+Publish。T014 已用 clause-aware presentation entity slots、151-negative/73-positive/41-exact-entity
+durable Oracle 和独立冻结 `223/223 PASS` 修复 presentation 双向泛化；public-safety 也经独立
+29-case/58-surface plain/ZIP 盲测通过。三项 finding 仅推进为 `FIXED_PENDING_REREVIEW`，不得由 Builder
+关闭。T015 随后在 277-path/287-file 新双 digest subject 上独立重审并判定 `FAIL`：第八组
+presentation blind set 在 source/release 两面仅 `66/100` binary、`62/100` strict；public-safety
+新 48-case/96-surface set 仅 `78/96`，另有独立 Historical/Forward 与深层 ancestry 真 CLI 复现。
+`S3-R001/R008/R009` 回到 `OPEN`，未新增独立 P1/P2。T016 已改用 bounded semantic slots，
+把 durable presentation matrix 扩为 175 REJECT / 85 ACCEPT / 58 exact-entity witness；public-safety
+现可拒绝 `locator/cursor/alias`、neutral-container 深层 ancestry 与 private-context 任意 UUID，
+同时允许稳定的描述性 public research request reference。三项 finding 仅为
+`FIXED_PENDING_REREVIEW`。T017 随后在 278-path/288-file 新双 digest subject 上独立重审并判定
+`FAIL`：第九组 presentation blind set 仅 `67/100` binary、`62/100` strict；public-safety
+72-case/144-surface set 仅 `67/72` / `134/144`，另一组结构层 probe 也有 12/24 surfaces 失败。
+current-tree v23 live witness 又因 provider usage limit 未取得 exact return/host replay，故
+`S3-R001/R002/R008/R009` 为 `OPEN`，`ACC-S3-002/006` FAIL、`ACC-S3-009=FAIL_EVIDENCE`。
+唯一下一 Task 是 `BSS-S3-P3-T018 — Remediation 9`。当前未安装
+Codex/Agents runtime，也未 merge PR。版本或状态判断必须先从仓根运行
 `python3 -B Stock_Skill/scripts/validate_registry.py`；任何冲突都降级为 `UNKNOWN`。
 
 ## 适用用户与决策
@@ -115,7 +158,8 @@ Stock_Skill/bottleneck-serenity-skill/
 ├── BACKUP_MANIFEST.sha256
 ├── scripts/
 │   ├── audit_license_similarity.py
-│   └── build_release.py
+│   ├── build_release.py
+│   └── refresh_task_manifest.py
 ├── releases/
 │   ├── SHA256SUMS
 │   └── bottleneck-serenity-skill_codex-skill-task-pack_v0.0.0.1.zip
@@ -135,15 +179,22 @@ python3 -B Stock_Skill/bottleneck-serenity-skill/scripts/audit_license_similarit
 
 SKILL=Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill
 python3 -B "$SKILL/scripts/validate_skill.py" "$SKILL"
+python3 -B "$SKILL/scripts/validate_trigger_evals.py"
+python3 -B "$SKILL/scripts/validate_security_evals.py"
+python3 -B "$SKILL/scripts/validate_historical_e2e.py"
+python3 -B "$SKILL/scripts/validate_forward_test.py"
 python3 -B -m unittest discover -s "$SKILL/tests" -p 'test_*.py' -v
 
 cd Stock_Skill/bottleneck-serenity-skill
+python3 -B scripts/refresh_task_manifest.py --check
 python3 -B scripts/build_release.py
 python3 -B scripts/build_release.py --verify
 ```
 
-第一条必须同时确认两个 active Skill；第二条把审计报告绑定到 current canonical 的全部 39 个文件及冻结算法/
-上游 metadata；builder 默认重建相同 release，`--verify` 校验 ZIP、两个 manifest、三方 SHA 与 registry。
+第一条必须同时确认两个 active Skill；第二条从 canonical tree 动态推导 target 集合，并把当前
+<!-- CURRENT_LICENSE_TARGET_COUNT=280 -->
+`280`-file 审计报告绑定到该集合及冻结算法/上游 metadata；manifest `--check` 只读验证 task-pack file set，
+builder 默认重建相同 release，`--verify` 校验 ZIP、两个 manifest、三方 SHA 与 registry。
 完整来源、许可和恢复证据分别见 `SOURCE_INVENTORY.md`、
 `LICENSE_AND_ATTRIBUTION.md` 与 `RESTORE_AND_VERIFY.md`。
 

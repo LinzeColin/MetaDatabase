@@ -1,0 +1,37 @@
+Use the isolated bottleneck-serenity-skill projection to independently assess, as
+of and source cutoff 2026-07-23, whether large power-transformer and high-voltage
+direct-current converter-equipment manufacturing capacity creates an investable
+bottleneck opportunity in globally listed liquid equities over the next 24
+months. Use a broad global-equity benchmark.
+
+Read only files enumerated by the bound v15 context manifest and public pages you
+independently discover after execution begins. Do not inspect evals, examples,
+tests, Task Pack material, parent/sibling repositories, prior attempts, prior
+outputs, expected labels, diagnoses, scores, or answer keys. Native live web
+research is required. For unstable claims, open current primary sources rather
+than relying on snippets and preserve publisher, publication date, URL, claim
+limitations, and contradictory evidence.
+
+Produce a complete research-only memo plus standalone evidence, opportunity, and
+portfolio JSON objects. Keep Decision through Constraint proof role-neutral:
+before the exact heading `## Security map`, do not name an issuer, company,
+ticker, security, benchmark/index brand, branded operator, exchange, publisher,
+or company-labeled source. Distinguish physical scarcity from shareholder value;
+preserve unresolved critical claims; include the strongest alternative causal
+explanation, falsifiers, three clocks, valuation scenarios, and causal portfolio
+overlap. Do not authenticate to a broker, install runtime state, or take an order
+action.
+
+Write a disposable `draft_v15.json` containing exactly memo_markdown,
+evidence_json, opportunity_json, portfolio_json, decision_label, and
+research_trace. research_trace contains exactly files_read, web_searches,
+pages_opened, files_written, and limitations arrays. Then run:
+
+python3 scripts/prepare_forward_output_v14.py draft_v15.json remediation_v15_raw.json --preexecution-seal-sha <the exact SHA from the appended PREEXECUTION_SEAL_SHA256 line>
+
+Repair any failure and rerun until the harness passes. Validate the resulting
+object against the bound executor_output_v15.schema.json before returning it.
+The harness creates the structured execution_trace and binds all three validator
+replays to the exact returned field bytes. Return only the resulting
+remediation_v15_raw.json object. Writes are limited to disposable files inside
+the isolated projection; canonical repository writes are prohibited.

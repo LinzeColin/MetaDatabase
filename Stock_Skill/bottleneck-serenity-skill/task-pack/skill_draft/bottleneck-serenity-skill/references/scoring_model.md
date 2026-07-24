@@ -162,7 +162,7 @@ The final score is subordinate to hard gates.
 | mispricing < 45 | structurally valid but priced |
 | no primary evidence | block |
 | wrong entity/ticker | block |
-| no material revenue bridge | block |
+| no material revenue bridge | block; required whenever `equity_bridge.complete=false` |
 | substitution before monetization | block |
 | material unfunded financing gap | block |
 | probabilities do not sum to 1 | invalid input |
@@ -175,7 +175,8 @@ Hard flags first, then gates, then score:
 2. `AVOID` for wrong entity, unfunded survival risk, or fatal substitution.
 3. `BOTTLENECK_NOT_EQUITY` for weak rent capture.
 4. `WATCH_EVIDENCE` for insufficient evidence or structural verification.
-5. `WATCH_PRICED` for low mispricing despite strong business quality.
+5. `WATCH_PRICED` for low mispricing despite strong business quality, but only after the complete equity bridge and
+   every prior hard gate pass.
 6. `RESEARCH_PRIORITY` for final score ≥75, all gates passed, and positive scenario asymmetry.
 7. `CANDIDATE` for final score ≥62 with all gates passed.
 8. Otherwise `WATCH_EVIDENCE` or `AVOID` according to the failed dimension.

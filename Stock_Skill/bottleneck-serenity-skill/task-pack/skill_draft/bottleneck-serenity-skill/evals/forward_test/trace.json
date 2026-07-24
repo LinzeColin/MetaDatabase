@@ -1,0 +1,196 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P2-T002",
+  "case_id": "forward-incretin-fill-finish-delivery-devices-20260723",
+  "run_date": "2026-07-23",
+  "executor": {
+    "executor_id": "forward-executor-t002-r3",
+    "fresh_agent_context": true,
+    "fork_turns": "none",
+    "conversation_history_forwarded": false,
+    "followup_message_count": 0
+  },
+  "artifact_bindings": {
+    "preregistration_sha256": "a355b77a164129d243399a1ff3d03fe5516c96e379e509ad46db4c6eda8bd744",
+    "context_manifest_sha256": "cc8d4c7582c58364e72466157af8a951a21ca7b20dc47d5e2f7c3a9a69c3933f",
+    "rubric_sha256": "fd7a078a0f03cc18d7c1f2b32a6fc3a3159bec01f63fcd8733a0a1f964396d04",
+    "task_message_sha256": "d59cd541f318f4da82f3fcea81211c985f03d14da3671752e4ad5d97b4d35e0e",
+    "raw_output_sha256": "4899225a303201bf7148fdde480a6f4a0a50fbb38a1120e31387f1689d49ccdc"
+  },
+  "observations": {
+    "skill_files_read": [
+      "SKILL.md",
+      "references/methodology.md",
+      "references/research_workflow.md",
+      "references/source_policy.md",
+      "references/scoring_model.md",
+      "references/portfolio_risk.md",
+      "references/output_contract.md",
+      "references/failure_modes.md",
+      "schemas/evidence.schema.json",
+      "schemas/opportunity.schema.json",
+      "schemas/portfolio.schema.json",
+      "scripts/score_opportunity.py",
+      "scripts/validate_evidence.py",
+      "scripts/analyze_portfolio_clusters.py"
+    ],
+    "scripts_run": [
+      {
+        "command": "find ... / wc -l ... / sed ... / tail ...",
+        "exit_code": 0,
+        "observed_output": "Skill inventory and full relevant instruction/schema inspection completed."
+      },
+      {
+        "command": "python3 scripts/score_opportunity.py - --format json",
+        "exit_code": 0,
+        "observed_output": "decision.label=BOTTLENECK_NOT_EQUITY; final_score=42.29; hard_gates_passed=false; warnings=[]"
+      },
+      {
+        "command": "python3 scripts/validate_evidence.py - --strict-warnings",
+        "exit_code": 0,
+        "observed_output": "valid=true; claim_count=8; errors=[]; warnings=[]"
+      },
+      {
+        "command": "inline decision JSON syntax check",
+        "exit_code": 0,
+        "observed_output": "decision_json_valid BOTTLENECK_NOT_EQUITY 42.29 8"
+      }
+    ],
+    "web_searches": [
+      "FDA and EMA semaglutide, tirzepatide, and GLP-1 shortage resolution and status",
+      "CMS Medicare GLP-1 Bridge and BALANCE payer mechanics",
+      "FDA aseptic-processing, combination-product, and device qualification rules",
+      "oral GLP-1 approvals, launches, and prescription uptake",
+      "incretin-owner volume, price, capex, fill-finish, and device expansion",
+      "Catalent ownership, fill-finish asset transfer, and delisting",
+      "WST, ATR, STVN, YPSN, SCHOTT Pharma, and Gerresheimer exposure and financials",
+      "TMO, Lonza, Siegfried, BDX, Terumo, and Nipro public-proxy exposure",
+      "WST, ATR, STVN, and SCHOTT Q2-Q3 2026 reporting schedules",
+      "WST, ATR, STVN, TMO, BDX, and ACWI market-data snapshots",
+      "MSCI ACWI benchmark composition and valuation"
+    ],
+    "public_sources_opened": [
+      {
+        "title": "CMS Medicare GLP-1 Bridge",
+        "url": "https://www.cms.gov/medicare/coverage/prescription-drug-coverage/medicare-glp-1-bridge"
+      },
+      {
+        "title": "FDA aseptic-processing guidance",
+        "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/sterile-drug-products-produced-aseptic-processing-current-good-manufacturing-practice"
+      },
+      {
+        "title": "FDA combination products",
+        "url": "https://www.fda.gov/combination-products"
+      },
+      {
+        "title": "FDA semaglutide shortage decision",
+        "url": "https://www.fda.gov/media/185526/download"
+      },
+      {
+        "title": "FDA tirzepatide shortage decision",
+        "url": "https://www.fda.gov/media/185577/download"
+      },
+      {
+        "title": "EMA Ozempic shortage register",
+        "url": "https://www.ema.europa.eu/en/medicines/human/shortages/ozempic"
+      },
+      {
+        "title": "FDA oral GLP-1 approval",
+        "url": "https://www.fda.gov/news-events/press-announcements/fda-approves-first-new-molecular-entity-under-national-priority-voucher-program"
+      },
+      {
+        "title": "EMA oral Wegovy opinion",
+        "url": "https://www.ema.europa.eu/en/news/meeting-highlights-committee-medicinal-products-human-use-chmp-18-21-may-2026"
+      },
+      {
+        "title": "Aptar quarterly results",
+        "url": "https://investors.aptar.com/financials/quarterly-results/default.aspx"
+      },
+      {
+        "title": "West Pharmaceutical Q2 2025 presentation",
+        "url": "https://www.sec.gov/Archives/edgar/data/105770/000010577025000062/westq22025presentation-f.htm"
+      },
+      {
+        "title": "West Pharmaceutical Q1 2026 results",
+        "url": "https://investor.westpharma.com/news-releases/news-release-details/west-reports-first-quarter-2026-results"
+      },
+      {
+        "title": "Stevanato Q1 2026 results",
+        "url": "https://ir.stevanatogroup.com/news-events/press-releases/detail/178/stevanato-group-delivers-7-revenue-growth-10-at-constant"
+      },
+      {
+        "title": "Ypsomed long-term supply agreement",
+        "url": "https://www.ypsomed.com/en/investors/ad-hoc-announcements/ad-hoc-detail-page/ypsomed-concludes-a-long-term-supply-agreement-for-large-quantities-of-autoinjectors"
+      },
+      {
+        "title": "Ypsomed FY2025/26 results",
+        "url": "https://www.ypsomed.com/en/investors/ad-hoc-announcements/ad-hoc-detail-page/ypsomed-grows-20-in-core-business-and-wins-record-number-of-customer-projects"
+      },
+      {
+        "title": "SCHOTT Pharma H1 2026 results",
+        "url": "https://ir.schott-pharma.com/investor-relations/news/schott-pharma-with-robust-first-half-of-the-year-and-strong-cash-flow/9602030d-565b-41c2-b4f1-2613e694b0e8"
+      },
+      {
+        "title": "Catalent acquisition completion",
+        "url": "https://www.catalent.com/catalent-news/novo-holdings-completes-acquisition-of-catalent/"
+      },
+      {
+        "title": "West Pharmaceutical 2025 Form 10-K",
+        "url": "https://www.sec.gov/Archives/edgar/data/105770/000010577026000010/wst-20251231.htm"
+      },
+      {
+        "title": "MSCI ACWI index",
+        "url": "https://www.msci.com/indexes/index/892400/msci-acwi-index"
+      },
+      {
+        "title": "Aptar FY2025 results",
+        "url": "https://investors.aptar.com/news/news-details/2026/Aptar-Reports-Fourth-Quarter-and-Annual-2025-Results/default.aspx"
+      },
+      {
+        "title": "West Pharmaceutical Q2 2026 reporting notice",
+        "url": "https://investor.westpharma.com/news-releases/news-release-details/west-host-second-quarter-2026-conference-call"
+      },
+      {
+        "title": "Stevanato Q2 2026 reporting notice",
+        "url": "https://ir.stevanatogroup.com/news-events/press-releases/detail/181/stevanato-group-to-report-second-quarter-2026-financial"
+      },
+      {
+        "title": "Novo Nordisk 2025 commercial execution",
+        "url": "https://annualreport.novonordisk.com/2025/strategic-aspirations/commercial-execution.html"
+      },
+      {
+        "title": "Novo Nordisk 2025 financial performance",
+        "url": "https://annualreport.novonordisk.com/2025/strategic-aspirations/financial-performance.html"
+      },
+      {
+        "title": "Lilly 2025 Form 10-K",
+        "url": "https://www.sec.gov/Archives/edgar/data/59478/000005947826000013/lly-20251231.htm"
+      },
+      {
+        "title": "Lilly Pennsylvania injectable facility",
+        "url": "https://investor.lilly.com/news-releases/news-release-details/lilly-selects-pennsylvania-home-its-newest-injectable-medicine"
+      },
+      {
+        "title": "Novo Nordisk oral prescription update",
+        "url": "https://www.novonordisk.com/news-and-media/news-and-ir-materials/news-details.html?id=916566"
+      },
+      {
+        "title": "Gerresheimer 2026 financial-statement update",
+        "url": "https://www.gerresheimer.com/en/customer/company/news/detail/gerresheimer-publishes-2025-annual-and-consolidated-financial-statements-stable-revenue-in-a-challenging-financial-year"
+      }
+    ],
+    "files_written": [],
+    "parent_or_sibling_repository_reads": [],
+    "repository_writes": [],
+    "runtime_installs": [],
+    "broker_or_order_actions": [],
+    "raw_execution_trace_sha256": "7897a2c7c4a0bbb4dff747210cdf0fdefac549829fb5ad316c3ad4fd0adebc56"
+  },
+  "integrity": {
+    "raw_output_preserved": true,
+    "context_boundary_pass": true,
+    "no_expected_answer_received": true,
+    "no_diagnosis_received": true
+  }
+}

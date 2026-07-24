@@ -95,7 +95,7 @@ Receives catalysts, indicators, sources, thresholds, and cadence; emits versione
 - The valuation adapter may change expected return but not structural evidence.
 - The portfolio adapter may veto sizing but not rewrite the thesis.
 - Monitoring creates a new version and links to the previous version.
-- No adapter may execute a trade without a separate explicit execution system and user authorization.
+- No adapter in or connected through this Skill may authenticate to a broker, execute a trade, submit, cancel, replace, retry, or otherwise modify an order. A separate execution system or explicit user authorization does not change this boundary.
 
 ## Versioning
 

@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v4",
+  "preexecution_seal_sha256": "45207b598e22e0674dcdf9b1e2d91c61a83fd5a0f37a010d185691295507a12a",
+  "execution_envelope_sha256": "1d78ea2b3cd04d082c42cd86cdfedfc45bae44d0d28b11ebd74ab7fb18a270d1",
+  "raw_output_sha256": "1445ad0bbc7609d2f8e97efe083b8cc28b4b70a5e3ebaefa423c02a185552a93",
+  "raw_output_byte_count": 41829,
+  "decision_label": "BOTTLENECK_NOT_EQUITY",
+  "host_exact_final_output_replay": [
+    {
+      "artifact": "evidence",
+      "source_field": "evidence_json",
+      "command": "python3 scripts/validate_evidence.py -",
+      "exit_code": 1,
+      "stdin_sha256": "2e64ee1f87e65cad84f24578b285e0598a95b9f3a82ba4f1c014ce178998f772",
+      "stdout_sha256": "edf0adde07e6e55a76b04851eb29aa8b4511ce46d5059d31b6221c476e012904",
+      "stderr": "",
+      "valid": false,
+      "errors": [
+        "claims[5]: critical fact needs at least two independent supporting source origins",
+        "claims[5]: critical fact needs at least one Tier A supporting source"
+      ],
+      "warnings": [
+        "claims[5]: claim marked supported despite contradictory/mixed sources",
+        "claims[9]: inference should reference supporting claim IDs in depends_on"
+      ],
+      "decision_label": null
+    },
+    {
+      "artifact": "opportunity",
+      "source_field": "opportunity_json",
+      "command": "python3 scripts/score_opportunity.py - --format json",
+      "exit_code": 0,
+      "stdin_sha256": "4424f992a5efc61345c8cc6e5af7d1d5cfac900e3771790139cb7a55346cc295",
+      "stdout_sha256": "932c0956569fef0b21604f71e36bfe93ca13492066977895fe6180cbd7065fd1",
+      "stderr": "",
+      "valid": null,
+      "errors": null,
+      "warnings": [
+        "Missing constraint.policy_resilience; scored as 0.",
+        "Unknown constraint factors ignored: policy_geographic_resilience",
+        "Missing capture.contract_counterparty; scored as 0.",
+        "Missing capture.balance_sheet; scored as 0.",
+        "Unknown capture factors ignored: balance_sheet_funding, contract_counterparty_quality",
+        "Missing mispricing.expectations_gap; scored as 0.",
+        "Missing mispricing.coverage_gap; scored as 0.",
+        "Unknown mispricing factors ignored: coverage_information_gap, market_expectation_gap",
+        "Missing investability.geopolitical_regulatory; scored as 0.",
+        "Unknown investability factors ignored: geopolitical_regulatory_resilience"
+      ],
+      "decision_label": "BOTTLENECK_NOT_EQUITY"
+    },
+    {
+      "artifact": "portfolio",
+      "source_field": "portfolio_json",
+      "command": "python3 scripts/analyze_portfolio_clusters.py -",
+      "exit_code": 0,
+      "stdin_sha256": "159c0f1be334d1a3e962bdcc32e89c520dfc9972990b7a1104ad4a7c17645e4b",
+      "stdout_sha256": "27e2fe1164865dbbcfac3b557c3069b52184f69b2d4693869ac676300dde966d",
+      "stderr": "",
+      "valid": true,
+      "errors": [],
+      "warnings": null,
+      "decision_label": null
+    }
+  ],
+  "outcome": "FAIL",
+  "failure_summary": [
+    "evidence validator exit 1 on a critical fact without supporting sources",
+    "opportunity scorer emitted unknown/missing-factor warnings"
+  ],
+  "generic_remediation": "references/output_contract.md exact-stdin admission gate"
+}

@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v9",
+  "preexecution_seal_sha256": "d05e7afb08fc42cad0be24eaee5714293888b5bb1c9a7b4ae5ec20a53edd570c",
+  "execution_envelope_sha256": "a9b1e76ed97102c1f92652f1421873052e6ba6e351355e8e41bb39a861a1b1b0",
+  "raw_output_sha256": "429f0f7a32b5b34d656fe630b89b04393d97b659a6275437d9b81b4e85a4ff45",
+  "raw_output_byte_count": 24328,
+  "decision_label": "BOTTLENECK_NOT_EQUITY",
+  "host_exact_final_output_replay": [
+    {
+      "artifact": "evidence",
+      "source_field": "evidence_json",
+      "command": "python3 scripts/validate_evidence.py -",
+      "exit_code": 0,
+      "stdin_sha256": "3bd69b9932014f375df4f86c755954e5be61232213891d5a425c5d8c6c031881",
+      "stdout_sha256": "a9032a54b7cd78497b4e02da30572408bb28956b7e9e2ed9f179978f9055041c",
+      "stderr": "",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "decision_label": null
+    },
+    {
+      "artifact": "opportunity",
+      "source_field": "opportunity_json",
+      "command": "python3 scripts/score_opportunity.py - --format json",
+      "exit_code": 0,
+      "stdin_sha256": "1ecc4ee7474f837e8885f3b6928f784a1cd3cab910ba10d7522ce7a32a854513",
+      "stdout_sha256": "140aed031068fc74028f048776cfeb0296ffbeac5486df310f715f0b5b540d14",
+      "stderr": "",
+      "valid": null,
+      "errors": null,
+      "warnings": [],
+      "decision_label": "BOTTLENECK_NOT_EQUITY"
+    },
+    {
+      "artifact": "portfolio",
+      "source_field": "portfolio_json",
+      "command": "python3 scripts/analyze_portfolio_clusters.py -",
+      "exit_code": 0,
+      "stdin_sha256": "16497b2b78bebf1438cd25d39300e1fdafe72d572ee852409f6bda047f5917bc",
+      "stdout_sha256": "f74a5157f3aa1ed1af57d43de032d83e8ee95c7795a781cbbc9882332e8b684b",
+      "stderr": "",
+      "valid": true,
+      "errors": [],
+      "warnings": null,
+      "decision_label": null
+    }
+  ],
+  "outcome": "PASS",
+  "projection_write_observation": {
+    "allowed_disposable_files": [
+      "evidence.json",
+      "opportunity.json",
+      "portfolio.json",
+      "validator-output-evidence.json",
+      "validator-output-opportunity.json",
+      "validator-output-portfolio.json"
+    ],
+    "observed_files": [
+      "evidence.json",
+      "opportunity.json",
+      "portfolio.json",
+      "validator-output-evidence.json",
+      "validator-output-opportunity.json",
+      "validator-output-portfolio.json"
+    ],
+    "skill_source_modified": false,
+    "canonical_repository_modified": false
+  },
+  "executor_validator_replay": {
+    "first_attempt_python_alias_missing_exit_code": 127,
+    "second_attempt_exit_codes": {
+      "evidence": 0,
+      "opportunity": 0,
+      "portfolio": 0
+    },
+    "second_attempt_stdin_file_sha256": {
+      "evidence": "5373f346dd6c46dcb3a5f2962310fd982a7e2b545c9bffe26db4286b7e892466",
+      "opportunity": "203e9ca8be0592bfb45ec547ec55da68e5bef8602916af254fe23bdb0db0849a",
+      "portfolio": "fecc665ad997d46485a670af19a7eee10de34ea1f644e3ba47ea34be91741697"
+    },
+    "second_attempt_stdout_sha256": {
+      "evidence": "a9032a54b7cd78497b4e02da30572408bb28956b7e9e2ed9f179978f9055041c",
+      "opportunity": "140aed031068fc74028f048776cfeb0296ffbeac5486df310f715f0b5b540d14",
+      "portfolio": "f74a5157f3aa1ed1af57d43de032d83e8ee95c7795a781cbbc9882332e8b684b"
+    },
+    "final_return_strings_minified_after_file_replay": true,
+    "host_exact_final_output_replay_required": true
+  }
+}

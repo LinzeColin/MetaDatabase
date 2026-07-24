@@ -3,7 +3,7 @@
   "$id": "https://example.local/bottleneck-serenity-skill/opportunity.schema.json",
   "title": "bottleneck-serenity-skill Opportunity",
   "type": "object",
-  "required": ["schema_version", "skill_version", "as_of", "source_cutoff", "previous_version", "candidate", "scores", "clocks", "scenarios"],
+  "required": ["schema_version", "skill_version", "as_of", "source_cutoff", "previous_version", "candidate", "scores", "clocks", "scenarios", "equity_bridge"],
   "properties": {
     "schema_version": {"type": "string", "enum": ["1.0"]},
     "skill_version": {"type": "string", "enum": ["0.0.0.1"]},
@@ -58,6 +58,44 @@
         "bear": {"$ref": "#/$defs/scenario"},
         "base": {"$ref": "#/$defs/scenario"},
         "bull": {"$ref": "#/$defs/scenario"}
+      },
+      "additionalProperties": false
+    },
+    "equity_bridge": {
+      "type": "object",
+      "required": ["complete", "revenue", "free_cash_flow", "fully_diluted_shares", "per_share_fcf", "cash_conversion_checks", "dilution_checks", "unverified_critical_multipliers"],
+      "properties": {
+        "complete": {"type": "boolean"},
+        "revenue": {"type": ["number", "null"]},
+        "free_cash_flow": {"type": ["number", "null"]},
+        "fully_diluted_shares": {"type": ["number", "null"]},
+        "per_share_fcf": {"type": ["number", "null"]},
+        "cash_conversion_checks": {
+          "type": "object",
+          "required": ["capex", "working_capital", "interest", "tax"],
+          "properties": {
+            "capex": {"type": "boolean"},
+            "working_capital": {"type": "boolean"},
+            "interest": {"type": "boolean"},
+            "tax": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "dilution_checks": {
+          "type": "object",
+          "required": ["stock_based_compensation", "convertibles", "warrants", "other_contingent_shares"],
+          "properties": {
+            "stock_based_compensation": {"type": "boolean"},
+            "convertibles": {"type": "boolean"},
+            "warrants": {"type": "boolean"},
+            "other_contingent_shares": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "unverified_critical_multipliers": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
       },
       "additionalProperties": false
     },

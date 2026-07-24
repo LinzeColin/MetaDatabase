@@ -1,10 +1,10 @@
 {
-  "valid": true,
   "schema_version": "1.0",
   "skill_version": "0.0.0.1",
   "as_of": "2026-07-22",
   "source_cutoff": "2026-07-22",
   "previous_version": null,
+  "valid": true,
   "total_weight": 0.5,
   "limits": {
     "max_single_position": 0.15,

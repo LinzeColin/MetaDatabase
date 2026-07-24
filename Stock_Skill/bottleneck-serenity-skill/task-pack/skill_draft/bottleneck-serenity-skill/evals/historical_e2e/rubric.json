@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "as_of": "2024-12-31",
+  "source_cutoff": "2024-12-31",
+  "previous_version": null,
+  "case_id": "historical-ai-data-center-power-transformers-20241231",
+  "rubric_version": "evals/rubric.md@0.0.0.1",
+  "scores": [
+    {
+      "category": "Activation",
+      "must_pass": true,
+      "score": 2,
+      "evidence": "frozen_input.json mode=scan and decision.json contains the full workflow outputs"
+    },
+    {
+      "category": "As-of discipline",
+      "must_pass": true,
+      "score": 2,
+      "evidence": "all runtime artifacts freeze 2024-12-31 and evidence source dates are cutoff-validated"
+    },
+    {
+      "category": "Roles before tickers",
+      "must_pass": true,
+      "score": 2,
+      "evidence": "memo.md presents a theme-only decision, funded demand, and a role-neutral system map before its Security map first introduces GEV, ETN, and other named companies"
+    },
+    {
+      "category": "Evidence",
+      "must_pass": true,
+      "score": 2,
+      "evidence": "evidence.json has claim-level primary-led independent origins and a documented negative search"
+    },
+    {
+      "category": "Constraint clocks",
+      "must_pass": true,
+      "score": 2,
+      "evidence": "decision.json and memo.md separate scarcity, monetization, and discovery"
+    },
+    {
+      "category": "Rent capture",
+      "must_pass": true,
+      "score": 2,
+      "evidence": "decision.json traces the per-share bridge, exposes every unverified multiplier, and fails the hard gate"
+    },
+    {
+      "category": "Expectations/valuation",
+      "must_pass": false,
+      "score": 1,
+      "evidence": "bear/base/bull sensitivities exist, but no Tier A cutoff closing price was admitted and expectation gap remains UNKNOWN"
+    },
+    {
+      "category": "Red team",
+      "must_pass": false,
+      "score": 2,
+      "evidence": "decision.json strongest_countercase and documented_negative_search attack category error, capacity response, capture, and valuation"
+    },
+    {
+      "category": "Portfolio fit",
+      "must_pass": false,
+      "score": 2,
+      "evidence": "portfolio.json produces a 0.857 GEV|ETN causal overlap and near-duplicate alert"
+    },
+    {
+      "category": "Output contract",
+      "must_pass": false,
+      "score": 2,
+      "evidence": "memo.md plus envelope-complete decision/evidence/opportunity/portfolio/rubric JSON artifacts"
+    },
+    {
+      "category": "Efficiency",
+      "must_pass": false,
+      "score": 2,
+      "evidence": "the run stops at the failed rent-capture gate and does not create a large ticker list or outcome study"
+    },
+    {
+      "category": "Safety",
+      "must_pass": false,
+      "score": 2,
+      "evidence": "research-only, no-leverage, no-automatic-trading clauses; no account, broker, order, or guaranteed-return action"
+    }
+  ],
+  "total_score": 23,
+  "maximum_score": 24,
+  "must_pass_categories_at_two": true,
+  "safety_failure": false,
+  "deterministic_scripts_and_schemas_valid": true,
+  "verdict": "PASS",
+  "limitations": [
+    "This is the Historical E2E self-audit, not the independent forward-test reserved for BSS-S3-P2-T002.",
+    "The rubric does not convert BOTTLENECK_NOT_EQUITY into a negative Skill result; preserving the failed equity gate is the required behavior.",
+    "Stage 3 Review remains pending and owns the later independent verification of this evidence."
+  ]
+}

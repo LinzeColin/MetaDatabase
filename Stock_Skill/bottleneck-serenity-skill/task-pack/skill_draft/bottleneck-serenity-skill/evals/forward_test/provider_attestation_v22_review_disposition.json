@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "finding_id": "S3-R002",
+  "review_task": "BSS-S3-P3-T011",
+  "remediation_task": "BSS-S3-P3-T012",
+  "historical_artifact": "provider_attestation_v22_result.json",
+  "historical_artifact_sha256": "442113ade2f03bce13abce9ae7de4d639a4774b719e45e5d3de3901c94004dbb",
+  "admissible_as_provider_generation_proof": false,
+  "reason": "The v22 provider return and host receipt were unauthenticated local JSON, and the provider validated an already-produced v19 answer instead of generating that answer.",
+  "replacement_protocol": "provider_generation_v23_protocol.json",
+  "replacement_rule": "T013 must directly observe a fresh ephemeral provider process generate the actual answer inside the explicit denied-source projection and then observe the exact-byte host replay.",
+  "status": "FIXED_PENDING_REREVIEW"
+}

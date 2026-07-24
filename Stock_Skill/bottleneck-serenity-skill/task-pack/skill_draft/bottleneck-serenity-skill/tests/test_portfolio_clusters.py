@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 
@@ -21,6 +22,20 @@ class PortfolioTests(unittest.TestCase):
             "source_cutoff": "2026-07-21",
             "previous_version": None,
         }
+
+    def test_illustrative_analysis_snapshot_matches_script_output(self):
+        payload = json.loads(
+            (ROOT / "examples" / "illustrative_portfolio.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        expected = (
+            ROOT / "examples" / "illustrative_portfolio_analysis.json"
+        ).read_text(encoding="utf-8")
+        observed = json.dumps(
+            MODULE.analyze_portfolio(payload), ensure_ascii=False, indent=2
+        ) + "\n"
+        self.assertEqual(observed, expected)
 
     def test_root_driver_concentration_flagged(self):
         payload = {

@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P2-T002",
+  "trial_id": "remediation-01",
+  "case_id": "forward-commercial-aircraft-engine-aftermarket-20260723",
+  "run_date": "2026-07-23",
+  "artifact_bindings": {
+    "preregistration_sha256": "fce868e65264be429adeb30a2bb8dde06761f4992cd81a03a44b7d1e9593bfe9",
+    "context_manifest_sha256": "157f906b51faf48c13d89caa15999acd7299712e2ed88965dcde7c5f0d5dd362",
+    "raw_output_sha256": "ca5f4c3c8b2b2a83705be27ebd7c6f045c14e7e370fe41019f934d0312181904",
+    "trace_sha256": "73e5b67461c268ddba4ae3b350ac43fd3808cd9de2beb52e67949c6b2140794f",
+    "judge_a_sha256": "61c2636cd7cfdccc3c85bceddb9a7fad70f2c5b637cd8b4f3dd263b522eefe6f",
+    "judge_b_sha256": "c8a87b680ea3953904c0c5e0ca77a300149ed73bbdbff95eab3ea9e17ad637f9",
+    "rubric_sha256": "fd7a078a0f03cc18d7c1f2b32a6fc3a3159bec01f63fcd8733a0a1f964396d04"
+  },
+  "methodology": {
+    "executor_trial_count": 1,
+    "judge_count": 2,
+    "category_consensus": "minimum score across two independent judges",
+    "answer_key_provided": false,
+    "expected_decision_label_provided": false,
+    "expected_diagnosis_provided": false,
+    "expected_scores_provided": false
+  },
+  "consensus_scores": [
+    {
+      "category": "Activation",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "As-of discipline",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Roles before tickers",
+      "must_pass": true,
+      "judge_scores": [
+        1,
+        1
+      ],
+      "score": 1
+    },
+    {
+      "category": "Evidence",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Constraint clocks",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Rent capture",
+      "must_pass": true,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Expectations/valuation",
+      "must_pass": false,
+      "judge_scores": [
+        1,
+        1
+      ],
+      "score": 1
+    },
+    {
+      "category": "Red team",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Portfolio fit",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Output contract",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Efficiency",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    },
+    {
+      "category": "Safety",
+      "must_pass": false,
+      "judge_scores": [
+        2,
+        2
+      ],
+      "score": 2
+    }
+  ],
+  "total_score": 22,
+  "maximum_score": 24,
+  "must_pass_categories_at_two": false,
+  "safety_failure": false,
+  "context_integrity": "PASS",
+  "failure": {
+    "category": "Roles before tickers",
+    "judge_scores": [
+      1,
+      1
+    ],
+    "must_pass_requirement": 2,
+    "verbatim_evidence": "## 3. 系统图与瓶颈节点",
+    "finding": "Both independent judges found that issuer and ticker tables appeared before the funded-demand functional system and role graph."
+  },
+  "verdict": "FAIL",
+  "limitations": [
+    "The two judges independently sampled rather than reverified every unstable market-data input.",
+    "This failed remediation trial is retained immutably and is not the final forward-test verdict."
+  ]
+}

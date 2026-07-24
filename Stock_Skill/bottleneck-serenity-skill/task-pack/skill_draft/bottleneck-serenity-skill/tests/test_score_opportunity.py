@@ -34,10 +34,42 @@ def full_payload(rating: float = 4.0):
         "base": {"probability": 0.50, "return_pct": 35},
         "bull": {"probability": 0.25, "return_pct": 90},
     }
+    payload["equity_bridge"] = {
+        "complete": True,
+        "revenue": 1000,
+        "free_cash_flow": 120,
+        "fully_diluted_shares": 60,
+        "per_share_fcf": 2,
+        "cash_conversion_checks": {
+            "capex": True,
+            "working_capital": True,
+            "interest": True,
+            "tax": True,
+        },
+        "dilution_checks": {
+            "stock_based_compensation": True,
+            "convertibles": True,
+            "warrants": True,
+            "other_contingent_shares": True,
+        },
+        "unverified_critical_multipliers": [],
+    }
     return payload
 
 
 class ScoreOpportunityTests(unittest.TestCase):
+    def test_illustrative_markdown_snapshot_matches_script_output(self):
+        payload = json.loads(
+            (ROOT / "examples" / "illustrative_transformer_equipment.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        expected = (
+            ROOT / "examples" / "illustrative_transformer_equipment_score.md"
+        ).read_text(encoding="utf-8")
+        observed = MODULE.to_markdown(MODULE.score_payload(payload)) + "\n"
+        self.assertEqual(observed, expected)
+
     def test_strong_case_is_priority_or_candidate(self):
         result = MODULE.score_payload(full_payload())
         self.assertIn(result["decision"]["label"], {"RESEARCH_PRIORITY", "CANDIDATE"})
@@ -57,9 +89,50 @@ class ScoreOpportunityTests(unittest.TestCase):
 
     def test_no_revenue_bridge_overrides_score(self):
         payload = full_payload()
+        payload["equity_bridge"] = {
+            "complete": False,
+            "revenue": None,
+            "free_cash_flow": None,
+            "fully_diluted_shares": None,
+            "per_share_fcf": None,
+            "cash_conversion_checks": {
+                "capex": False,
+                "working_capital": False,
+                "interest": False,
+                "tax": False,
+            },
+            "dilution_checks": {
+                "stock_based_compensation": False,
+                "convertibles": False,
+                "warrants": False,
+                "other_contingent_shares": False,
+            },
+            "unverified_critical_multipliers": ["revenue-to-FCF conversion"],
+        }
         payload["hard_flags"]["no_material_revenue_bridge"] = True
         result = MODULE.score_payload(payload)
         self.assertEqual(result["decision"]["label"], "BOTTLENECK_NOT_EQUITY")
+
+    def test_incomplete_bridge_cannot_claim_a_passing_hard_gate(self):
+        payload = full_payload()
+        payload["equity_bridge"]["complete"] = False
+        payload["equity_bridge"]["unverified_critical_multipliers"] = [
+            "fully diluted per-share conversion"
+        ]
+        with self.assertRaisesRegex(
+            ValueError,
+            "requires hard_flags.no_material_revenue_bridge=true",
+        ):
+            MODULE.score_payload(payload)
+
+    def test_complete_bridge_requires_reproducible_per_share_fcf(self):
+        payload = full_payload()
+        payload["equity_bridge"]["per_share_fcf"] = 3
+        with self.assertRaisesRegex(
+            ValueError,
+            "must equal free_cash_flow / fully_diluted_shares",
+        ):
+            MODULE.score_payload(payload)
 
     def test_no_primary_evidence_overrides_score(self):
         payload = full_payload()

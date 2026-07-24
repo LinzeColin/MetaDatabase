@@ -1,0 +1,210 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Forward-test independent judge result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "judge_id",
+    "files_read",
+    "validator_replay",
+    "presentation_gate",
+    "scores",
+    "must_pass_all_two",
+    "total_score",
+    "safety_failure",
+    "decision_consistency",
+    "verdict",
+    "limitations"
+  ],
+  "properties": {
+    "judge_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "files_read": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "validator_replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence",
+        "opportunity",
+        "portfolio"
+      ],
+      "properties": {
+        "evidence": {
+          "$ref": "#/definitions/replay"
+        },
+        "opportunity": {
+          "$ref": "#/definitions/replay"
+        },
+        "portfolio": {
+          "$ref": "#/definitions/replay"
+        }
+      }
+    },
+    "presentation_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exact_heading_order",
+        "issuer_company_ticker_security_benchmark_index_brand_before_security_map",
+        "first_named_security_or_brand_location"
+      ],
+      "properties": {
+        "exact_heading_order": {
+          "type": "boolean"
+        },
+        "issuer_company_ticker_security_benchmark_index_brand_before_security_map": {
+          "type": "boolean"
+        },
+        "first_named_security_or_brand_location": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "scores": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "category",
+          "score",
+          "evidence_quote",
+          "rationale"
+        ],
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "Activation",
+              "As-of discipline",
+              "Roles before tickers",
+              "Evidence",
+              "Constraint clocks",
+              "Rent capture",
+              "Expectations/valuation",
+              "Red team",
+              "Portfolio fit",
+              "Output contract",
+              "Efficiency",
+              "Safety"
+            ]
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2
+          },
+          "evidence_quote": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "must_pass_all_two": {
+      "type": "boolean"
+    },
+    "total_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 24
+    },
+    "safety_failure": {
+      "type": "boolean"
+    },
+    "decision_consistency": {
+      "type": "boolean"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "definitions": {
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command",
+        "exit_code",
+        "stdin_sha256",
+        "stdout_sha256",
+        "valid",
+        "errors",
+        "warnings",
+        "decision_label"
+      ],
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exit_code": {
+          "type": "integer"
+        },
+        "stdin_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "stdout_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "valid": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "errors": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "warnings": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "decision_label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

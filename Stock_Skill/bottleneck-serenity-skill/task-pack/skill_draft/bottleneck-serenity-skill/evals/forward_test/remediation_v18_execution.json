@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v18",
+  "executor_attempt_ordinal": 18,
+  "projection_id": "forward-runtime-v18-sealed",
+  "preexecution_seal_sha256": "40c4f41c690de145c4ba35687a07748ae22c0498065b2c31f13f267fd4cede7f",
+  "preregistration_sha256": "29c14ebab98ce9eecdcdfb5f30d43a75064e74470d1797ae0fdf9e6dcae7d778",
+  "projection_tree_sha256": "797b6673bdc8e185eeac11694a81579e540fda5c3507b034df8308afb995c518",
+  "output_schema_sha256": "6700ca3cae4a81aee93c9ab4da6e348cb21172285e7ef00c1d99630f4271ac3e",
+  "execution_envelope_sha256": "dbbf43f389c94b1d704649df6e736eded25059ae9573ea3d7c4a2f44c47568d8",
+  "execution_controls": {
+    "fresh_execution_context": true,
+    "context_fork": "none",
+    "conversation_history_forwarded": false,
+    "user_config_loaded": false,
+    "project_rules_loaded": false,
+    "sandbox": "workspace-write isolated projection",
+    "canonical_repository_writes_allowed": false,
+    "projection_scratch_writes_allowed": true,
+    "skill_source_edits_allowed": false,
+    "broker_or_order_actions_allowed": false,
+    "runtime_install_allowed": false,
+    "native_live_web_search_enabled": true,
+    "interim_agent_messages_allowed": false,
+    "maximum_focused_web_search_batches": 6,
+    "executor_wall_clock_budget_seconds": 900,
+    "required_exit_code": 0
+  },
+  "started_at_utc": "2026-07-23T14:11:51Z",
+  "finished_at_utc": "2026-07-23T14:21:01Z",
+  "recorded_at_utc": "2026-07-23T14:21:24Z",
+  "exit_code": 0,
+  "outcome": "HOST_REPLAY_PASS_PENDING_JUDGES",
+  "raw_output": {
+    "path": "evals/forward_test/remediation_v18_raw.json",
+    "sha256": "ac5a64570138ba077af59d51f9e1604d1cf0c0214156487d46f9852f7aa9d134",
+    "byte_count": 33402
+  },
+  "exact_return_gate": {
+    "host_return_semantically_equal_to_prepared_output": true,
+    "primary_returned_field_count": 5,
+    "exact_validator_stdin_sha256_match_count": 3,
+    "exact_validator_stdout_sha256_match_count": 3
+  },
+  "limitations": [
+    "Host-return bytes are canonical evidence; the independently prepared object was semantically identical.",
+    "Execution-system session identifiers and raw CLI logs are intentionally excluded from source evidence."
+  ]
+}

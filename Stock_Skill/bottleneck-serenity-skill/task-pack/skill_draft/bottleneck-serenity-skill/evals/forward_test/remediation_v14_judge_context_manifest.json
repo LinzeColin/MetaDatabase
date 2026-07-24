@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v14",
+  "file_count": 10,
+  "tree_sha256": "0d94c22fd8ac8dbaf6c1fad3d070ea8a36abf8d46e1db4c4527f7db70004ea50",
+  "tree_digest_contract": "SHA-256 over UTF-8 lines '<path> <byte_count> <sha256>\\n' in path byte order",
+  "files": [
+    {
+      "path": "context_manifest.json",
+      "sha256": "9113a3828bd80c1b587c78a341e775c384efa88756a93834624400215335e0cc",
+      "byte_count": 5874
+    },
+    {
+      "path": "execution_receipt.json",
+      "sha256": "f1ef53cc3fb1907d0850449c842d2c5063119badd5af56ece57df7f516d03de4",
+      "byte_count": 1953
+    },
+    {
+      "path": "executor_output.schema.json",
+      "sha256": "ec3e5e587fcfaa10bcf07106b69d83211e7a6cfefdaee9a418129f7929b8be83",
+      "byte_count": 2495
+    },
+    {
+      "path": "judge.schema.json",
+      "sha256": "5505401c848c089558112d2559fc2ce202ea83dab10f3023e4706a08163475ef",
+      "byte_count": 4521
+    },
+    {
+      "path": "judge_task.txt",
+      "sha256": "2831e9df6351c581ff6f4ff793cd5fa02e895b2284f81a744166738d9ddc2e9d",
+      "byte_count": 1380
+    },
+    {
+      "path": "preexecution_seal.json",
+      "sha256": "6f5a4246d17134d401c0842cbca99775d91fc1c35f077f22cd84ee98b0f94460",
+      "byte_count": 2099
+    },
+    {
+      "path": "preregistration.json",
+      "sha256": "5fedab5fc7ea4990660954b47ac1b1e807283c164a52c19b6db1d2c7a6a0f80a",
+      "byte_count": 5132
+    },
+    {
+      "path": "raw_output.json",
+      "sha256": "7702e33ddb497583ba9d66e98b0d7e62fe98974427e1c3bca03fe79c0ffab079",
+      "byte_count": 89020
+    },
+    {
+      "path": "rubric_v2.md",
+      "sha256": "899851f9cd421f7cae8b26966e9b17377f40c9596c0bd54c08affbec3447a154",
+      "byte_count": 1926
+    },
+    {
+      "path": "task_message.txt",
+      "sha256": "88ce912271bc91bff12823074f398f2525e7f516e0fdb917d9228cc0d5fd6763",
+      "byte_count": 2352
+    }
+  ]
+}

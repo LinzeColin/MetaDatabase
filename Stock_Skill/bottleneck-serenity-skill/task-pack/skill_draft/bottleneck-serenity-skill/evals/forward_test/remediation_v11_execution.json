@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v11",
+  "executor_attempt_ordinal": 11,
+  "preexecution_seal_sha256": "4363b0c62929c513084e009891465c9dd55f97873c0d2bbf9a1c704feea568ca",
+  "execution_envelope_sha256": "5c70858aa75de22b8acf3a6812522d8bdedf51bb3033406dba589f9f440f2e4a",
+  "raw_output": {
+    "source_sha256": "f17d82e28c97fa0214e493030c22ff67169d15af4ce6fe4671d1324598143f32",
+    "source_byte_count": 5840,
+    "source_final_lf": false,
+    "repository_path": "evals/forward_test/remediation_v11_raw.json",
+    "repository_storage_sha256": "ecf924841b076e6b50160c82f172ff23e30442c6dbb51f234337a028865c4ba4",
+    "repository_storage_byte_count": 5841
+  },
+  "observed_failure": {
+    "class": "tool-dispatch-rendering-failure",
+    "decision_label": "BROKEN",
+    "skill_files_read": [],
+    "web_searches_completed": [],
+    "validator_replays_completed": [],
+    "executor_trace": "Tool invocation failed in transcript rendering; no files read or written; no web searches performed."
+  },
+  "outcome": "BROKEN",
+  "substantive_forward_result": false,
+  "independent_judges_started": false,
+  "superseded_by": "BSS-S3-P3-T002-forward-remediation-v12"
+}

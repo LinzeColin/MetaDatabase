@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v18",
+  "remediation_task_id": "BSS-S3-P3-T010",
+  "relationship": "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION",
+  "execution_evidence_rewritten": false,
+  "current_output_revalidated": true,
+  "execution_context_tree_sha256": "797b6673bdc8e185eeac11694a81579e540fda5c3507b034df8308afb995c518",
+  "previous_remediation_sha256": "badc419bdf841771787d47c4eb44456c2c143b4a74a40c7fbc53fde7bdf23bcf",
+  "changes": [
+    {
+      "path": "scripts/presentation_contract.py",
+      "previous_current": {
+        "mode": "0644",
+        "byte_count": 10097,
+        "sha256": "9730052f483ea109dd76d922b76ebbc441f8ccd50ab7d0b24813ec219a2e81f1"
+      },
+      "current": {
+        "mode": "0644",
+        "byte_count": 12683,
+        "sha256": "15cb8c749593504020fabbfba79a7c6bffae687ddde56be5370c4d330403f659"
+      },
+      "semantic_scope": "complete declarative entity-slot coverage for reverse-role, modal-supply, selection, attribution, routing, ownership, and capacity relations while preserving role nouns and state adjectives as valid role-neutral prose"
+    }
+  ]
+}

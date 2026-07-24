@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T008-forward-remediation-v19",
+  "file_count": 12,
+  "tree_sha256": "0c1b9c526d41151654c6f4d1d7b33fe8ef3368e7a8c63906e95ff4474416a62b",
+  "tree_digest_contract": "SHA-256 over UTF-8 lines '<mode> <path> <byte_count> <sha256>\\n' in path byte order",
+  "files": [
+    {
+      "path": "context_manifest.json",
+      "sha256": "c2d9886914654d32e3a83abc19ab830cd55e72875e6407ee0dd18d21b1f028a5",
+      "mode": "0644",
+      "byte_count": 6082
+    },
+    {
+      "path": "control_packet.json",
+      "sha256": "22d11a541e52672e607d678f623d36330a64d47e92287998e74933b394303614",
+      "mode": "0644",
+      "byte_count": 2100
+    },
+    {
+      "path": "execution_receipt.json",
+      "sha256": "8312ed7f37f911824846e10e4d3394e7386452560f6e4f28976b1a5a1c55c766",
+      "mode": "0644",
+      "byte_count": 2412
+    },
+    {
+      "path": "executor_output.schema.json",
+      "sha256": "6700ca3cae4a81aee93c9ab4da6e348cb21172285e7ef00c1d99630f4271ac3e",
+      "mode": "0644",
+      "byte_count": 3627
+    },
+    {
+      "path": "judge.schema.json",
+      "sha256": "5505401c848c089558112d2559fc2ce202ea83dab10f3023e4706a08163475ef",
+      "mode": "0644",
+      "byte_count": 4521
+    },
+    {
+      "path": "judge_task.txt",
+      "sha256": "26e8e89fe91b10a3b2041356c14517a37463e6f861ae1d2123a3ff4f49538a33",
+      "mode": "0644",
+      "byte_count": 1412
+    },
+    {
+      "path": "preexecution_seal.json",
+      "sha256": "e500537c09c9415e1a10dd5e4646d06646f6fb4f9d2686a87258517281facd8f",
+      "mode": "0644",
+      "byte_count": 2604
+    },
+    {
+      "path": "preexecution_timestamp.json",
+      "sha256": "4a587ed19881181ae541d6cfb54ae0f16b2e7f8fbc30b3d4946103d1befa45c8",
+      "mode": "0644",
+      "byte_count": 11538
+    },
+    {
+      "path": "preregistration.json",
+      "sha256": "9ab9dcbbae29000ab2f7b11f32a7a4dc1f04f9abd059574333e1d5014d4a7a59",
+      "mode": "0644",
+      "byte_count": 5346
+    },
+    {
+      "path": "raw_output.json",
+      "sha256": "f6694a5142c20f9ddc1f3a2a9a8ec0702dd454773c1b68152c9539af7a39d6ad",
+      "mode": "0644",
+      "byte_count": 30264
+    },
+    {
+      "path": "rubric_v2.md",
+      "sha256": "899851f9cd421f7cae8b26966e9b17377f40c9596c0bd54c08affbec3447a154",
+      "mode": "0644",
+      "byte_count": 1926
+    },
+    {
+      "path": "task_message.txt",
+      "sha256": "c134f75ce8341ea724c4ee5f4ae7e58baf58e057c8e2ad13085383211afc6d65",
+      "mode": "0644",
+      "byte_count": 2431
+    }
+  ]
+}

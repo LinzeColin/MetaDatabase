@@ -396,6 +396,468 @@
 - P5 首轮 clean-checkout pre-seal 在真实 `git clone --sparse` 默认 cone-mode 下复现 file operand 被当作目录的
   失败；隔离 clone 已证明加入 `--skip-checks` 后精确恢复五个声明 surface。按同一 Publish Task 重封印规则，
   修正文档、manifest 与 release/hash DAG 后重新 replay；本记录不预写最终 commit/push/CI 或 P5 `DONE`。
+- `BSS-S2-P5-T001` 从修正后的 frozen subject 重新封印并发布 commit
+  `e88f6afd1c025c32bf0ba4b0c3f6ff9250083335`（tree
+  `7a143de184d0709c2f924f40d85005ff350f8ca5`）；current/staged/latest-main merge 与无凭据 clean sparse clone
+  均恢复 release SHA `c0420e474104f5d06793f9eccf3787f288173226f81aabc4c9eb9d5b99299a67` 并通过 registry/hash 门。
+- T001 回查确认 local/remote/PR head 相等、PR #76 `OPEN`/`DRAFT`/`CLEAN`/`MERGEABLE`、PR diff 与
+  `origin/main...HEAD` 相同，`dual-plane`/`validate` 均 `SUCCESS`，故按无环外部叶子规则回填 P5 `DONE`。
+
+### Stage 3
+
+- `BSS-S3-P1-T001` 发现并修复两个确定性 snapshot drift：Markdown score 补齐 live CLI 已输出的
+  `source_cutoff/skill_version`，portfolio analysis metadata key order 对齐 analyzer；两项均为派生表示同步，
+  未改变评分、证据、组合聚类或研究工作流。
+- 两个 exact-output durable test 将 canonical suite 从 22 增至 24 cases。两类 validator、8 个 JSON、
+  file/stdin、template、JSON/Markdown/both snapshot、两次固定输入的 7-file scaffold 与 9 个 fail-closed
+  边界全部 PASS；仓级 suite 总计 98 cases。
+- 四个冻结 full-history upstream 上重算许可报告，差异严格限于 4 个变更 target row 的 byte count/SHA；
+  summary、pair identities、algorithm 与 upstream metadata 不变，`--verify-report` byte-identical，仍为
+  39/2,489/2,485 targets/reachable/eligible 与 exact/four-line/token20=`0/3/1`。
+- Task Pack manifest 与 candidate release/hash DAG 按单向顺序刷新，registry、4 manifests + 2 SHA256SUMS、
+  四个 workflow 原始 run blocks及公开安全门 PASS。T001 不上传、不进入 trigger/forward eval；唯一下一 Task
+  是 `BSS-S3-P1-T002`。
+- `BSS-S3-P1-T002` 以隐藏 expected label 的 blind executor 运行 6 trigger、4 negative、3 robust cases；经保留的
+  r1–r5 失败/整改基线后，冻结 r6 route=`13/13`，两名独立 judge 均得 case=`13/13`、CAP Oracle=`18/18`，
+  guaranteed Alpha claim=`0`。raw response、criterion verdict 与逐字 evidence quote 均进入确定性 eval JSON。
+- 新增 18-row capability Oracle、严格 trigger eval validator 和 7 个 fail-closed unittest；canonical suite 增至
+  31 cases。负控制证明 price/earnings/concept/unsupported-tip 不触发及交易请求 research-only 拒绝，但 T002
+  不声称完成 T003 的网络/券商/订单副作用 instrumentation。
+- 封装回归捕获新增 validator 未进入 builder executable allowlist，以及 validator 内禁用路径 regex 字面量被
+  public-safety 拒绝；前者扩展为 6-entry allowlist，后者改为运行时拼接 marker，许可仓级 Oracle 同步 current
+  `43/4` 计数。修复不改变 trigger verdict、raw response 或能力契约。
+- current canonical 由 39 增至 43 files；四个冻结 full-history upstream 重算为 2,489/2,485、
+  exact/four-line/token20=`0/4/1`。新增无许可 pair 只是一个零 token JSON 标点 window，无许可 exact/token20
+  仍为 `0/0`。Task Graph 为 46 DONE / 10 PENDING / 4 CONDITIONAL；T002 不上传，唯一下一 Task 是 T003 Security。
+- 最终矩阵为 31 canonical / 105 repository tests、registry 双 current、确定性双构建、4 manifests +
+  2 SHA256SUMS、四个 workflow 原始 run blocks、133 files / 309 blobs / 176 ZIP entries 公开安全门及
+  full-history `--verify-report` 全部 PASS。
+- `BSS-S3-P1-T003` 预注册 9 个 adversarial prompt 与 27 个安全 Oracle；三名 `fork=none` executor 只读
+  Skill/prompts 且看不到 Oracle，两名独立 judge 只读 Skill/prompts/oracles/raw results，均得 case=`9/9`、
+  Oracle=`27/27`，逐项 evidence quote 均是 raw response 的连续逐字子串。
+- executor 前后 156-file worktree snapshot 精确同 SHA，两个 runtime target 始终不存在。静态 AST/YAML
+  scan 得 network/broker/runtime-process/tool binding=`0/0/0/0`；deny-network sandbox 与 Python audit-hook
+  canary 均被拦截，六条 canonical CLI 全 PASS，47-file runtime surface digest 不变，只有声明的临时
+  7-file scaffold 写入。模型 control plane 明确排除，Skill runtime broker/order/network side effect=`0`。
+- 新增严格 Security validator 与 13 个 durable tests，覆盖 frozen pass、OS probe、缺 case/Oracle、非逐字
+  quote、越权 action、unsafe execution claim、side effect/runtime target、network import、本机路径、secret
+  与 CSV 删除 mutant。release executable allowlist、JSON discovery 与 source-only 验证面同步扩展。
+- current canonical 为 48 files；四个冻结 full-history upstream 重算为 2,489/2,485、
+  exact/four-line/token20=`0/5/1`。新增无许可 pair 只有两个零 token JSON 标点 window；无许可 exact/token20
+  仍为 `0/0`。Task Graph 为 47 DONE / 9 PENDING / 4 CONDITIONAL；T003 不上传，唯一下一 Task 是
+  `BSS-S3-P2-T001 — Historical E2E`。
+- 最终矩阵为 44 canonical / 118 repository tests、registry 双 current、确定性双构建、4 manifests +
+  2 SHA256SUMS、四个 workflow 原始 run blocks、138 files / 319 blobs / 181 ZIP entries 公开安全门及
+  full-history `--verify-report` 全部 PASS。
+- `BSS-S3-P2-T001` 在生成答案前冻结无 expected label 的历史输入：主题为 AI 数据中心电力变压器，
+  `as_of=source_cutoff=2024-12-31`，固定 `scan`、全球上市权益范围、六角色、24 个月 horizon 与
+  research-only/no-leverage/no-automatic-trading 边界。
+- 七件 Historical 制品保存 14 条 claims、12 个 cutoff 前来源、系统图、六角色、四道非补偿门、rent bridge、
+  三个 clocks、估值敏感性、countercase、kill switches、memo 13 节与组合相关性。评分确定性得
+  `BOTTLENECK_NOT_EQUITY`/`55.215`，严格保留未完成的 transformer-to-per-share bridge。
+- 新增 Historical validator 与 17 个 durable tests；16 类 mutation 覆盖未来来源、来源/制品缺失、答案泄漏、
+  envelope、角色/闸门、hard flag、相关性、rubric、事后 outcome key、memo、claim dependency 与 FCF 算术。
+  schema contract 同时绑定 evidence/opportunity/portfolio 和全部历史 JSON envelope。
+- 完整回归发现 URL parser 的 `urllib` import 与 Security 的 zero-network import gate 冲突；未放宽安全门，
+  改用纯正则并同步静态 Python/runtime 文件计数为 `8/7`。Security 仍为 `9/9` cases、`27/27` oracles、
+  broker/order/network side effects=`0`。public-safety 又识别出 Siemens 网页 URL 自带 `/home/` 路径段，
+  因而改绑同一公告的官方 PDF，不新增例外。
+- current canonical 为 57 files；四个冻结 full-history upstream 重算为 2,489/2,485、
+  exact/four-line/token20=`0/5/1`，无许可 exact/token20=`0/0`。Task Graph 为 48 DONE / 8 PENDING /
+  4 CONDITIONAL；T001 不上传，唯一下一 Task 是 `BSS-S3-P2-T002 — Forward test`。
+- 最终矩阵为 62 canonical / 136 repository tests、registry 双 current、确定性双构建、4 manifests +
+  2 SHA256SUMS、四个 workflow 原始 run blocks、147 files / 337 blobs / 190 ZIP entries 公开安全门及
+  full-history `--verify-report` 全部 PASS。
+- `BSS-S3-P2-T002` 连续保存三个隔离 Forward trial。AI liquid cooling baseline 双 judge
+  `21/24 FAIL` 暴露 rent capture must-pass；第一次通用整改把不完整 per-share FCF bridge 改为 fail closed。
+  commercial-aircraft engine aftermarket trial 双 judge `22/24 FAIL` 暴露 reader-facing system map 顺序；
+  第二次通用整改增加呈现顺序硬门。两组失败 prompt/context/raw/trace/judges/result 与 remediation lineage
+  全部不可变保留。
+- 最终 unseen sterile injectable fill-finish + incretin delivery-device trial 只读 27-file 最小上下文，
+  未接收 rubric、expected answer、诊断或父工作树；两名 fresh judge 独立得 `23/24 PASS` 与
+  `24/24 PASS`，共识 `23/24 PASS`、六个 must-pass category 全为 `2`、零 safety failure。
+- 新增严格 Forward validator 与 14 个 durable fail-closed tests，绑定三 trial、两 remediation、
+  context/raw/trace、双 judge 逐字证据、最终 result 与 post-remediation revalidation。两名 fresh
+  differential reviewer 均确认六个 production change 只收紧 equity bridge/呈现顺序，Trigger/Security
+  五个 surface 全 PASS、无需重跑 executor；trigger/security validators 与 mutants 绑定该结论及 current hash。
+- current canonical 为 83 files；四个冻结 full-history upstream 重算仍为 2,489/2,485、
+  exact/four-line/token20=`0/5/1`，pair identity 无增删，无许可 exact/token20=`0/0`。Task Graph 为
+  49 DONE / 7 PENDING / 4 CONDITIONAL；T002 不上传，唯一下一 Task 是 `BSS-S3-P3-T001 — Review`。
+- 最终矩阵为 81 canonical / 155 aggregate repository tests、registry 双 current、确定性双构建、
+  4 manifests + 2 SHA256SUMS、四个 workflow 原始 run blocks、公开安全门及 full-history
+  `--verify-report` 全部 PASS。
+- `BSS-S3-P3-T001` 在任何评审后改动前冻结 branch/base/76-path Stage subject 与 91-file Task Pack；
+  `stage-worktree-source-sha256-v1=ab180cea03486591d12bd581baac41b33213644b8a57f805f9e31c2597c9f05b`，
+  `taskpack-tree-sha256-v1=2804e343907498d77e8fa7bebff2d0c2f5421e13ed048e01c7018425fc963820`，
+  两个 digest 均由两种独立实现复算一致，真实 Git index 保持为空。
+- 三名 fresh reviewer 分别审查行为/泛化、证据/追溯与安全/副作用，均判 `FAIL`；主评审者复现七项
+  finding：模板/历史 E2E 未同步现行呈现硬门、forward 时序/隔离 provenance 不足、forward machine/evidence
+  层不可重放且非 schema-valid、current 模型行为仍绑定旧 SKILL hash、adapter 交易边界歧义、stored security
+  observation 漂移、ACC-S2-010 的 current 39-vs-83 Oracle 漂移。
+- Stage 3 Review verdict=`FAIL`：`S3-R001`–`S3-R005` 为 P1，`S3-R006/R007` 为 P2，全部保持 `OPEN`。
+  `ACC-S3-001/006/007` Review portion PASS；其余 Stage 3 ACC FAIL 或 FAIL_EVIDENCE。启用
+  `BSS-S3-P3-T002/T003` 为 `PENDING`；Task Graph 为 50 DONE / 8 PENDING / 2 CONDITIONAL，唯一下一 Task
+  是 T002 Remediation。本 Task 未整改、Publish、stage/commit/push、安装 runtime、操作 PR、merge 或 cleanup。
+- `BSS-S3-P3-T002` 把正式 memo template 与 Historical E2E 同步到可机器验证的 roles-before-tickers
+  reader-facing 硬门；历史 case 在新门下仍为 `23/24 PASS`，旧的先 ticker 后 role 表达不再可获 must-pass。
+- Forward current v13 在执行前分别封印 preregistration、最小 context、task、schema 与 preexecution seal；
+  fresh ephemeral executor receipt 绑定真实 session/task/result，validator 逐字节重放实际 stdin，并要求
+  machine/evidence payload 通过 canonical schema。两名 fresh judge 独立得 `23/24` 与 `24/24`，
+  consensus=`23/24 PASS`；v5–v12 失败/超时谱系及旧 revalidation 均只作为不可变 historical evidence 保留。
+- Trigger/Security/CAP 用 current `SKILL.md` SHA
+  `d86a7452d92bf123b0d3bce3f6b6d18da2299e30df0617ec47e17d93a432e0e0` 重新执行：六个 fresh、只读、
+  no-fork session 的 task/result/hash/usage 与最小读取面进入 `current_binding/`，双 judge 得
+  Trigger=`13/13`、CAP=`18/18`、Security=`9/9`、security Oracle=`27/27`。
+- adapter 合同改为不受独立执行系统或用户授权影响的绝对 no-auth/no-order 边界；Security validator 默认
+  绑定 current canonical tree、静态 capability scan、macOS deny-network/Python audit-hook 动态 CLI probe
+  与 current public-safety observation，network/broker/order/unauthorized write/runtime install 均为零。
+- ACC-S2-010 的 current license Oracle 改为从 canonical tree 动态推导 target，仓级 mutation test 明确拒绝
+  旧 39-file 常量。四个 fresh full-history clone 的 current `176`-target 报告仍为 2,489 reachable /
+  2,485 eligible、exact/four-line/token20=`0/5/1`，无许可仓 exact/token20=`0/0`。
+- 最终回归为 95 canonical / 170 aggregate repository tests、107 个 canonical JSON、current binding +
+  Trigger/Security/Historical/Forward validators、registry 双 current、4 manifests + 2 SHA256SUMS、
+  确定性双构建/release verify、267 files / 576 blobs / 309 ZIP entries 公开安全门及 full-history
+  `--verify-report` 全部 PASS；真实 Git index 保持为空。
+- 七项 finding 只推进为 `FIXED_PENDING_REREVIEW`；T002=`DONE`，Task Graph 为
+  51 DONE / 7 PENDING / 2 CONDITIONAL。历史 Stage 3 Review verdict 仍为 `FAIL`，唯一下一 Task 是
+  `BSS-S3-P3-T003 — Re-review`；本 Task 未执行 T003、Publish、stage/commit/push、runtime 安装、
+  PR 操作、merge 或 cleanup。
+- `BSS-S3-P3-T003` 在任何评审记录改动前冻结 base HEAD
+  `e88f6afd1c025c32bf0ba4b0c3f6ff9250083335`、172-path Stage subject 与 184-file Task Pack；
+  `stage-worktree-source-sha256-v1=5615ff30df1d0c806f53654a4826a413507d0c783a6a45234c9c287235b72447`，
+  `taskpack-tree-sha256-v1=86acf0644fbe821e47bc260d13bf387048cba65e29542d94d80c62e5943dbc3a`，
+  两个 digest 均由独立实现复算一致，三路 reviewer 结束前无漂移且 Git index 为空。
+- `S3-R004`–`S3-R007` `CLOSED`：current binding、Trigger/CAP/Security、绝对 no-auth/no-order adapter、
+  current-bound security observations 与动态 176-target license Oracle 均在冻结 subject 上复验通过。
+- `S3-R001`–`S3-R003` 未关闭：未知 issuer 可穿透 roles-before-tickers presentation gate；v13
+  preregistration 仍错指 v10 context manifest，provenance/session 语义 mutation fail open；executor trace
+  的三项 exact-stdin SHA 与实际返回字段 `3/3` 不同，host 事后 replay 不能替代返回前 admission evidence。
+- 新增 `S3-R008` (`P1`)：canonical source/candidate release 保存 execution session identifiers，违反项目
+  no-session 边界；现有 public-safety helper 未覆盖并错误 PASS。评审只记录文件/key 计数，不在文档复制
+  实际 identifier。
+- Re-review verdict=`FAIL`：`ACC-S3-001/003/004/005/007/008/010` PASS，
+  `ACC-S3-002/006/009` FAIL。95 canonical / 170 aggregate tests、107 JSON、267/576/309 public scan、
+  registry/release verify 与四个 full-history upstream 的 176/2,489/2,485 byte-identical 重算仍机械 PASS，
+  但这些绿灯不覆盖上述四项 required 缺口。
+- 按确定性复审循环追加 `BSS-S3-P3-T004/T005`；Task Graph 为
+  62 total / 52 DONE / 8 PENDING / 2 CONDITIONAL，唯一下一 Task 是 T004 Remediation 2。T003 未整改、
+  Publish、stage/commit/push、安装 runtime、操作 PR、merge 或 cleanup。
+- `BSS-S3-P3-T004` 增加 Historical/Forward 共用的 role-neutral presentation contract；unknown
+  ticker、exchange-qualified symbol、corporate-suffix/CamelCase/CJK issuer 与 URL 在 `Security map`
+  前全部 fail closed，正式 template 与 Historical memo 同步。
+- Forward remediation 保存完整失败谱系：v14 被两名 blind judge 判定 preregistered schema
+  内部不可满足；v15/v16 在 host strict-schema preflight 失败；v17 的三个嵌套 stdout payload 被宿主
+  重序列化并按 exact-trace failure 拒绝。v18 改为 immutable scalar hash trace 后，host return 与
+  prepared object 语义相同，三路 exact stdin/stdout replay PASS，两名 fresh read-only judge
+  独立得到 `24/24 PASS`，decision=`WATCH_PRICED`。
+- current prereg/context/seal/receipt validator 现校验 29-file identity、allow/exclude context、
+  config/rules 隔离、required exit 与全部时间顺序；对应 semantic mutations 均 fail closed。
+- canonical JSON evidence 已移除 execution-system session metadata；public-safety 同时扫描 plain/ZIP
+  JSON 的 normalized session key 与 UUIDv7 value，plain/ZIP negatives PASS，公开 URL `/home/`
+  segment 正例与本机 user-home 负例同时保持。
+- 四项 finding 只推进为 `FIXED_PENDING_REREVIEW`；T004=`DONE`，Task Graph 为
+  62 total / 53 DONE / 7 PENDING / 2 CONDITIONAL。唯一下一 Task 是
+  `BSS-S3-P3-T005 — Re-review 2`；本 Task 未执行 T005、Publish、stage/commit/push、runtime 安装、
+  PR 操作、merge 或 cleanup。
+- `BSS-S3-P3-T005` 在任何评审记录修改前冻结 227-path Stage source 与 237-file Task Pack；Python
+  规范实现和独立 Ruby 实现同得
+  `stage=4032b8985ab8f7262860982ddc39e2c2576c7aa10f8c7d49b96f8fe2418c3b7f` /
+  `taskpack=1042c1d6901c230bd3a91aa346d95758a873688f19bce691e2002cd6cdd2224e`，base=
+  `e88f6afd1c025c32bf0ba4b0c3f6ff9250083335`；三名 fresh 只读 reviewer 与主评审结束前无漂移且 index 为空。
+- T005 独立关闭 `S3-R003/S3-R008`：v18 三路 actual-return command/exit/stdin/stdout hash exact replay，
+  strict schema 与双 judge `24/24 PASS`；公开 source/ZIP session key/UUIDv7 为零，plain/ZIP negatives
+  与合法 public URL 正例复验 PASS。`S3-R004`–`S3-R007` 回归仍 PASS。
+- `S3-R001` 未关闭：`Acme`、`nvidia`、`www.acme.com/research`、`ftp://acme.com/file` 与裸域名在
+  `Security map` 前仍被 Historical/Forward 共用 gate 接受；现有六类 Oracle 未覆盖这些变体。
+  `S3-R002` 未关闭：v18 `allowed_context/excluded_context` 只校验 list 类型与 `4/6` 长度，替换成
+  expected-answer/answer-key 允许语义仍错误 ACCEPT。两项均回到 `OPEN`，没有重复新建 finding。
+- T005 全量矩阵为 179/179 repository tests、147 JSON、Trigger/CAP=`13/13`/`18/18`、
+  Security=`9/9`/`27/27`、Historical=`23/24 PASS`、Forward=`24/24 PASS`、320/682/362 public scan、
+  registry/release/hash DAG 与 229/2,489/2,485 full-history license 重算全部机械 PASS；这些绿灯未覆盖
+  两个语义缺口。Re-review 2 verdict=`FAIL`，`ACC-S3-002/009` FAIL，其余 Stage 3 ACC PASS。
+- 按确定性循环追加 `BSS-S3-P3-T006/T007`；Task Graph 为
+  64 total / 54 DONE / 8 PENDING / 2 CONDITIONAL。唯一下一 Task 是 T006 Remediation 3；T005 未整改、
+  Publish、stage/commit/push、runtime 安装、PR 操作、merge 或 cleanup。
+- `BSS-S3-P3-T006` 扩展 Historical/Forward 共用 presentation helper：URI scheme、email、裸域名、
+  standalone name、multi-token proper name 与歧义单词主体均在 `Security map` 前 fail closed；两个
+  durable test 面各 15 类变体全拒绝，合法 role-neutral 制造商描述保持 PASS。T005 五项原探针由
+  `5/5 ACCEPT` 变为 `5/5 REJECT`。
+- v18 的 preregistration、seal、execution、raw、judge 与 result 保持不可改写；hash-bound post-execution
+  amendment 只允许 presentation helper 从 execution SHA `9d87600a...30cd0` 迁移到 current SHA
+  `48f73069...b498`，amendment/current-target drift durable tests 均非零。
+- current preregistration Oracle 现逐字且有序绑定四条 allowed 与六条 excluded context，并绑定精确 key
+  set/全部 execution controls；10 个逐槽替换与 2 个 reorder mutation 全部拒绝，T005 两项原探针由
+  `2/2 ACCEPT` 变为 `2/2 REJECT`。`S3-R001/R002` 只推进为 `FIXED_PENDING_REREVIEW`。
+- T006 最终矩阵为 183/183 repository tests、147 JSON、Trigger/CAP=`13/13`/`18/18`、
+  Security=`9/9`/`27/27`、Historical=`23/24 PASS`、Forward=`24/24 PASS`、321/684/363 public scan、
+  230/2,489/2,485 full-history license 重算、registry/237-entry manifest/release/hash DAG 全 PASS。
+- T006=`DONE`；Task Graph 为 64 total / 55 DONE / 7 PENDING / 2 CONDITIONAL。唯一下一 Task 是
+  `BSS-S3-P3-T007 — Re-review 3`；本 Task 未执行 T007、Publish、stage/commit/push、runtime 安装、
+  PR 操作、merge 或 cleanup。
+- `BSS-S3-P3-T007` 在任何 review 记录修改前冻结 228-path Stage source 与 238-file Task Pack；
+  Python/Ruby 独立实现同得
+  `stage=3cee04d8c3ee548f26bd11f6fb9f50a7ad5264627a1449b503fb01029121b6a6` /
+  `taskpack=5dbc64d8a973e514d98b99ec2197648fefaebc3d47733124a91bfbe40890e0f4`，base=
+  `e88f6afd1c025c32bf0ba4b0c3f6ff9250083335`；结束前 subject 无漂移且 index 为空。
+- 三路独立 review 均判 `FAIL`；其中只有行为 reviewer 是 fresh fork，另外两路为既有 reviewer 的全新只读
+  turn，不冒充 fresh。主评审独立复现 unknown embedded/lowercase issuer fail-open、合法 role-neutral
+  prose/template false positive、host-local-only provenance、公开 session metadata 及 229/230 license
+  文档漂移。
+- `S3-R001/R002` 未关闭：Historical/Forward 对 `The issuer is nvidia.` 等嵌入未知主体仍错误 ACCEPT；
+  v18 prereg context 语义门虽成立，但 seal 明示不是 external timestamp authority，同批制品不能独立证明
+  原 finding 要求的前置时序。`S3-R008` 重开：canonical/ZIP 各 10 个 top-level `session` 对象，合成
+  `session` object 与 UUIDv4 均被 public scanner 错误放行。
+- 新增 `S3-R009` (`P1`)：合法 role-neutral prose 与正式 memo template 被共用 presentation helper
+  误拒绝；新增 `S3-R010` (`P2`)：current license report/validator 为 230 targets，而许可/来源发现面仍有
+  四处 229 声明。`S3-R003`–`S3-R007` 回归保持 `CLOSED`。
+- T007 全量机械矩阵仍为 183/183 tests、147 JSON、Trigger/CAP=`13/13`/`18/18`、
+  Security=`9/9`/`27/27`、Historical=`23/24 PASS`、Forward=`24/24 PASS`、321/684/363 public scan、
+  230/2,489/2,485 full-history license 重算与 registry/release/hash DAG PASS；这些绿灯不覆盖五项 finding。
+- Re-review 3 verdict=`FAIL`：`ACC-S3-002/006/009` FAIL、`ACC-S2-010` `FAIL_EVIDENCE`。按确定性循环
+  追加 `BSS-S3-P3-T008/T009`；Task Graph 为 66 total / 56 DONE / 8 PENDING / 2 CONDITIONAL，
+  唯一下一 Task 是 T008 Remediation 4。T007 未整改、Publish、stage/commit/push、runtime 安装、
+  PR 操作、merge 或 cleanup。
+- `BSS-S3-P3-T009` 在任何 review 记录修改前冻结 244-path Stage source 与 254-file Task Pack；
+  规范 Python 与独立 Ruby 同得
+  `stage=dbf12f666a4684ae8eeeb3392c14457ef2c15638f7173f41fc4fb31caa49cbb1` /
+  `taskpack=9c76050bca01aa2a6f2eac649e62adb8a321420112f1f36bac164dc1c4776b74`，base=
+  `e88f6afd1c025c32bf0ba4b0c3f6ff9250083335`；两名 fresh 盲审员与主评审结束前 subject 无漂移、
+  index 为空。
+- `S3-R001/R009` 未关闭：Historical/Forward 共用 helper 对 `nvidia is the supplier.`、
+  `The manufacturer is nvidia.` 等明确 unknown issuer 引入仍 fail open，同时对
+  `Owner controls the constrained node.`、`Public proxy offers liquid exposure.`、`Fragile.` 等合法
+  role-neutral 内容仍 false positive；现有 21/21、39/39 durable tests 未覆盖这些自然语言变体。
+- `S3-R002` 未关闭：DigiCert RFC3161 response 的 trust chain、message imprint 与 control-packet SHA
+  均独立 PASS，但 TSA 只证明 packet 已存在；start/finish/record 为同批 execution JSON 自声明，平移完整
+  时间线后 ordering validator 仍 ACCEPT，未建立独立 host/provider 对真实 executor start 的绑定。
+- `S3-R008` 未关闭：当前 canonical/ZIP 样本与 scanner 机械 PASS，但 plain/ZIP
+  `session_info`、`execution_session_metadata`、`model_session`、`run_session`、`conversation_id`、
+  `thread_id`、`execution_context` 等同义 session metadata 仍被错误放行。
+- `S3-R010` 已关闭：三份 owner-facing marker、collector、committed report 与 `--verify-targets` 均为
+  `246`；四仓 frozen full-history report byte-identical，`ACC-S2-010` 恢复 PASS。
+- 新增 `S3-R011` (`P1`)：`04_ACCEPTANCE_VALIDATION_STOP.md` 中十条 ACC-S3 traceability 的 Verifier
+  Task 均止于 T007，漏列当时唯一最终 verifier T009，与文件前文的 T009 独占重判权冲突；
+  `ACC-S0-005` FAIL。
+- T009 完整机械矩阵为 196/196 tests、161 项目 JSON、Trigger/CAP=`13/13`/`18/18`、
+  Security=`9/9`/`27/27`、Historical=`23/24 PASS`、Forward judges=`23/24` 与 `24/24 PASS`、
+  337/716/379 public scan、246/2,489/2,485 license evidence 及 registry/release/hash DAG PASS；
+  这些绿灯未覆盖四个语义缺口和一个追溯缺口。
+- Re-review 4 verdict=`FAIL`：`ACC-S3-002/006` FAIL、`ACC-S3-009` `FAIL_EVIDENCE`、
+  `ACC-S0-005` FAIL；`ACC-S2-010` PASS。按确定性循环追加 `BSS-S3-P3-T010/T011`；
+  Task Graph 为 68 total / 58 DONE / 8 PENDING / 2 CONDITIONAL。唯一下一 Task 是 T010
+  Remediation 5；T009 未整改、Publish、stage/commit/push、runtime 安装、PR 操作、merge 或 cleanup。
+- `BSS-S3-P3-T010` 只整改五项 finding：presentation helper 新增显式 entity-slot grammar 与窄
+  role-neutral allowlist，T009 已知 unknown-issuer negative 与合法 prose positive 在 Historical/Forward
+  两个面均按预期判定。
+- provider provenance 保留 v20 schema-preflight failure 与 v21 read-only tempfile failure，v22 成功谱系
+  以 DigiCert pre-challenge、host-observed validator exit/stdout/subject hashes、959-byte exact provider
+  return 及 DigiCert post-seal 建立双边绑定；完整时间线平移并重绑本地 hash 的 mutant 仍因 RFC3161
+  MessageImprint 不匹配失败。
+- public-safety 新增 14-key session/conversation/thread/execution 同义 metadata 的 plain/ZIP matrix、
+  plaintext UUID fallback、两个安全布尔控制正例与 malformed negative；ACC-S3 十行 verifier 由
+  Stage 3 Review/Re-review Task Graph 机械派生为 `T001/T003/T005/T007/T009/T011`，遗漏 mutant 失败。
+- current eval binding、sandboxed security probe、public scan 与 canonical license report 已刷新：
+  271/2,489/2,485，exact/four-line/token20=`0/5/1`；许可结论不变。
+- 五项 finding 只推进为 `FIXED_PENDING_REREVIEW`；T010=`DONE`，Task Graph 为
+  68 total / 59 DONE / 7 PENDING / 2 CONDITIONAL。唯一下一 Task 是 T011 Re-review 5；未执行 T011、
+  Publish、stage/commit/push、runtime 安装、PR 操作、merge 或 cleanup。
+- `BSS-S3-P3-T011` 在任何 review 记录修改前冻结 base
+  `e88f6afd1c025c32bf0ba4b0c3f6ff9250083335`、269-path Stage source 与 279-file Task Pack；规范 Python
+  与独立 Ruby 同得
+  `stage=b4ab9b5653ae2cc5fc83c2d8f4ebbae33365977d153e88b5815e616989beb264` /
+  `taskpack=f1805e46525fee5f657938f054c00ce98a15e8f2589b3a8c20beb42274de33a3`。主评审与 fresh 独立 reviewer
+  结束复算一致，index/unmerged 为空。
+- `S3-R001/R009` 未关闭：40 个显式 issuer/beneficiary/selection/rent-capture 负例全部被共用
+  presentation gate 错误接受，10 个合法 role-neutral 正例中 4 个被误拒；独立 reviewer 的
+  awarded/preferred-supplier/benchmark/exposure 负例与 unknown/regulatory-filing/GPU-capacity 正例
+  在 Historical/Forward 两面得到同一结论。
+- `S3-R002` 未关闭：pre/post RFC3161 trust chain、message imprint、challenge echo 与 exact return
+  bytes 均机械成立，但 provider return 与 sanitized host receipt 都是未签名、未认证来源的本地 JSON。
+  post timestamp 证明 bytes 在该时刻前存在且此后未改，不能证明它们来自真实 provider execution；
+  `ACC-S3-009` 仍为 `FAIL_EVIDENCE`。
+- `S3-R008` 未关闭：当前 362/766/404 public scan PASS，但 16 个
+  provider/agent/chat/dialog/interaction/conversation/thread/execution 同义 metadata key 全部被错误
+  接受，plain/ZIP 代表探针同样 fail open。
+- `S3-R010` 重开：marker/report/collector 与三份带 marker 的 owner-facing 文件均为 271，但项目
+  `README.md` 验证说明仍写 `229`-file；当前 durable marker Oracle 未发现该 prose 回归，
+  `ACC-S2-010` 降为 `FAIL_EVIDENCE`。
+- `S3-R011` 已关闭：独立 parser 得 44 个唯一 ACC、39/39 Source ID 覆盖、68 个 Task 引用存在、
+  唯一 Producer 与非空 Oracle/Evidence；冻结 subject 的十条 ACC-S3 verifier 精确派生为
+  `T001/T003/T005/T007/T009/T011`。失败路由追加 T012/T013 后，表与 snapshot guard 同步扩展到 T013。
+- T011 完整机械矩阵为 205/205 tests、179/179 JSON、Trigger/CAP=`13/13`/`18/18`、
+  Security=`9/9`/`27/27`、Historical=`23/24 PASS`、Forward=`23/24 PASS`、362/766/404 public scan、
+  271/2,489/2,485 byte-identical license report 及 registry/manifest/release/hash DAG PASS；这些绿灯不
+  覆盖上述双向语义、metadata 泛化和 provenance 真实性缺口。
+- Re-review 5 verdict=`FAIL`：`ACC-S3-002/006` FAIL、`ACC-S3-009` 与 `ACC-S2-010`
+  `FAIL_EVIDENCE`，其余 Stage 3 ACC PASS，`ACC-S0-005` PASS。
+  `S3-R001/R002/R008/R009/R010` 回到 `OPEN`，无新 finding。按确定性循环
+  追加 `BSS-S3-P3-T012/T013`；Task Graph 为 70 total / 60 DONE / 8 PENDING / 2 CONDITIONAL。
+  唯一下一 Task 是 T012 Remediation 6；T011 未整改、Publish、stage/commit/push、runtime 安装、
+  PR 操作、merge 或 cleanup。
+- `BSS-S3-P3-T012` 只整改 T011 的五项 finding。共用 presentation helper 改为 tokenized semantic
+  role-slot scanner，T011 的 40 个负例、6 个 reviewer 变体与 9 个合法正例统一进入
+  Historical/Forward durable Oracle；current helper SHA-256 为
+  `0fc48b5c192ed4a2b68485736fe87c84da28e44bb4ec8286199c8a0a72ee3e94`。
+- v22 disposition 明确为 `NOT_PROVIDER_GENERATION_PROOF`；v23 live-observation protocol 用 30-file
+  read-only projection、外层 macOS sandbox、fresh ephemeral provider 与 provider/host 双端
+  exact-return replay。首次 rehearsal 因缺 provider self-check 而 fail closed；修订后第二次 rehearsal
+  的 allowed/denied probes、provider exit 与 host replay 均 PASS，但不持久化 provider/session IDs，
+  也不替代 T013 在 frozen subject 上的现场重跑。
+- public-safety 对 snake/camel/kebab metadata key 做 semantic tokenization；T011 同义键及扩展
+  plain/DEFLATED-ZIP 矩阵 fail closed，安全布尔、digest/path binding 与短 logical executor ID 正例
+  保持。README 加入 owner-facing count Oracle，四份 owner 文档、collector 与 committed report 统一为
+  278 targets；四仓 full-history 2,489/2,485 与 exact/four-line/token20=`0/5/1` 不变。
+- T012 最终机械矩阵为 208/208 tests、184/184 JSON、Trigger/CAP=`13/13`/`18/18`、
+  Security=`9/9`/`27/27`、Historical/Forward=`23/24 PASS`、v23 current-protocol self-check、
+  369/780/411 public scan、285-entry Task manifest、4 manifests/2 SHA256SUMS、registry/release/hash DAG、
+  278-target quick gate与四仓 full-history byte-identical verify 全 PASS。
+- 五项 finding 只推进为 `FIXED_PENDING_REREVIEW`；T012=`DONE`，Task Graph 为
+  70 total / 61 DONE / 7 PENDING / 2 CONDITIONAL。唯一下一 Task 是 T013 Re-review 6；未执行独立关闭、
+  Publish、stage/commit/push、runtime 安装、PR 操作、merge 或 cleanup。
+- `BSS-S3-P3-T013` 在任何 review 记录修改前冻结 base
+  `e88f6afd1c025c32bf0ba4b0c3f6ff9250083335`、276-path Stage source 与 286-file Task Pack；规范 Python
+  与独立 Ruby 同得
+  `stage=41c56ceb2c270848d655935d155aefce876b6c19af2a005af0f000698806dd21` /
+  `taskpack=0767fe0b4b349352f592ff1c0442b62d6f83cee8c2d368f6a4a314bae95725b7`，index/unmerged 为空。
+- v23 live observation 的 allowed projection probe=0、denied source probe=1、provider=0、
+  host replay=0，现场观察标志为 true。30-file production tree SHA 为
+  `e6ce7db88b64af6163e7fa7ccd02bb6e9e8961903202ae4eb3a1fdd4ba0994b2`，29,862-byte exact return SHA 为
+  `c232d96158118b8bde2aa7e23a7c2968973b0ac29140c99c6717e89c853d87b1`，prepared output SHA 为
+  `1630b730167a27653a46cff1635d86da45ab58d36d61ae69011aa37c26315c8c`；provider/host strict replay
+  均 PASS，projection 不含 prior answer/diagnosis，未持久化 provider/session IDs。
+- `S3-R002` 因现场 provider-generation proof `CLOSED`，`ACC-S3-009` PASS。`S3-R010` 也在四个 fresh
+  full non-shallow clones 上以 278 targets、2,489/2,485 blobs 与 `0/5/1` byte-identical report
+  `CLOSED`，`ACC-S2-010` PASS。
+- `S3-R001/R009` 未关闭：20/20 新 issuer/beneficiary/selection/rent-capture 负例被错误 ACCEPT，
+  12/12 role-neutral 正例被错误 REJECT，代表样本在 Historical/Forward 两面同向复现。
+  `S3-R008` 未关闭：12 类新私有 metadata key 的 plain/DEFLATED-ZIP UUIDv4 探针 24/24 被错误 ACCEPT。
+  因此 `ACC-S3-002/006` FAIL。
+- T013 完整机械矩阵为 208/208 tests、184/184 JSON、Trigger/CAP=`13/13`/`18/18`、
+  Security=`9/9`/`27/27`、Historical/Forward=`23/24 PASS`、369/780/411 public scan、
+  registry/manifest/release/hash DAG、278-target quick gate与 fresh full-history verify PASS；这些绿灯不
+  覆盖独立探针揭示的泛化缺口。
+- Re-review 6 verdict=`FAIL`：其余 Stage 3 ACC、`ACC-S0-005`、`ACC-S2-010` PASS；
+  `S3-R001/R008/R009` 保持 `OPEN`，无新 finding。按确定性循环追加 `BSS-S3-P3-T014/T015`；
+  Task Graph 为 72 total / 62 DONE / 8 PENDING / 2 CONDITIONAL。唯一下一 Task 是
+  T014 Remediation 7；T013 未整改、Publish、stage/commit/push、runtime 安装、PR 操作、merge 或 cleanup。
+
+## BSS-S3-P3-T014 — Remediation 7
+
+- 只整改 `S3-R001/S3-R008/S3-R009`；三项均从 `OPEN` 推进为
+  `FIXED_PENDING_REREVIEW`，Builder 未自行关闭 finding。
+- presentation helper 冻结为 29,671 bytes /
+  `208a6e131d4269b2eb03a2bf51acb04b91771762e7899c3a5f6c88d59e81b6d7`。共享 Oracle 扩展到
+  151 negative / 73 positive / 41 exact-entity witnesses；Historical 22/22 tests PASS。独立 reviewer
+  在未读实现/tests/Oracle 的前提下冻结七组 131 REJECT / 92 ACCEPT，二元分类和完整 Unicode/数字实体
+  witness 均为 `223/223 PASS`。
+- public-safety 对 flat 与 ancestry-composed runtime-private metadata 统一 fail closed；稳定公开
+  `requestPublicReference` 的窄例外仍拒绝 UUID、private marker、object/list。独立 reviewer 的
+  29 cases / 58 plain-or-ZIP surfaces 全 PASS；candidate release 重建前 source scan 为
+  370 files / 781 blobs / 411 ZIP entries。
+- current binding、T014 chained-remediation record、v19 current target 和 v23 protocol 已同步；
+  v23 30-file production tree SHA 为
+  `3dd29267c327aa3aafdc3147229526ce729f98df4fd3d5022766d560765fe133`，review owner 保持 T015。
+- T014=`DONE`；Task Graph 为 72 total / 63 DONE / 7 PENDING / 2 CONDITIONAL。唯一下一 Task 是
+  `BSS-S3-P3-T015 — Re-review 7`；本 Task 未执行独立关闭、Publish、stage/commit/push、runtime 安装、
+  PR 操作、merge 或 cleanup。
+
+## BSS-S3-P3-T015 — Re-review 7
+
+- Frozen subject 在 review 前后均由规范 Python 与独立 Ruby 精确复算：
+  `taskpack-tree-sha256-v1=af8ef162926ce5592359e6fb5297fb5f537af40cfeb4b583e5e952d9dff12f25`
+  （287 files）；
+  `stage-worktree-source-sha256-v1=68bcfaca55939b5f89021545367def56e5bb65041683091a66d90904fb732994`
+  （base `e88f6afd1c025c32bf0ba4b0c3f6ff9250083335`；277 paths）；index/unmerged 均为零。
+- `S3-R001/R009` 未关闭：独立 reviewer 在读取实现/tests/Oracle 前冻结第八组 60 REJECT /
+  40 ACCEPT，case-set SHA 为
+  `e72a11d06242118f30839160f25bade29ae766153b0031faf32550c91d94a6eb`。source/release helper
+  bytes 与逐例行为完全相同，但二元仅 `66/100`、完整实体严格判据仅 `62/100`；23 个命名实体漏拒、
+  4 个完整 witness 缺失、11 个合法 role-neutral 正例误拒。另一 reviewer 用 Historical 真 CLI
+  独立复现 10/10 新 issuer 漏拒和 7/7 role-neutral 误拒，Forward 共用 gate 同向失败。
+- `S3-R008` 未关闭：独立 reviewer 在读取 scanner/tests 前冻结 24 negative / 24 control、
+  96 个 plain/DEFLATED-ZIP surfaces，case-set SHA 为
+  `825fb3f237a08b67de0cd1f7f663d4e74f6806a08b78756578cd6d81dfeff4cf`；仅 `78/96` 正确。
+  `providerExecutionLocator`、`job_trace_cursor`、`modelRunLocator`、Unicode key 与四类深层 ancestry
+  共 8 case/16 surfaces 漏拒，明确 public research request reference 1 case/2 surfaces 误拒。
+  另一 reviewer 复现五类 `provider -> neutral envelope -> private detail` plain/ZIP `10/10`
+  错误 ACCEPT。
+- 完整机械矩阵仍为 214/214 tests、188/188 Stock_Skill JSON、Trigger/CAP=`13/13`/`18/18`、
+  Security=`9/9`/`27/27`、Historical/Forward=`23/24 PASS`、370/782/412 public scan、
+  registry、286-entry task manifest、release/hash DAG
+  `72ed8ee5a1f052b1151480a4d726e293d0017a76bda50b3bb307a1d17be4df6f`、279-target quick
+  gate 与四个 full non-shallow clones 的 2,489/2,485 byte-identical license report 全 PASS；这些绿灯
+  未覆盖新鲜泛化探针。
+- Re-review 7 verdict=`FAIL`：`ACC-S3-002/006` FAIL；其余 Stage 3 ACC、`ACC-S0-005` 与
+  `ACC-S2-010` PASS。`S3-R001/R008/R009` 回到 `OPEN`，其余 finding 保持 `CLOSED`，未新增独立
+  P1/P2。按确定性循环追加 `BSS-S3-P3-T016/T017`；T015=`DONE`，Task Graph 为
+  74 total / 64 DONE / 8 PENDING / 2 CONDITIONAL。唯一下一 Task 是 T016 Remediation 8；本 Task
+  未整改、Publish、stage/commit/push、runtime 安装、PR 操作、merge 或 cleanup。
+
+## BSS-S3-P3-T016 — Remediation 8
+
+- 仅整改 `S3-R001/S3-R008/S3-R009`；未执行 T017 独立关闭、Stage 3 Publish、
+  stage/commit/push、runtime 安装、PR 操作、merge 或 cleanup。
+- presentation helper 删除任意 modal-subject 兜底，改为 bounded role/outcome/selection/
+  attribution/benchmark/payment/routing/transfer slots；补齐 passive designation、
+  appositive/parenthetical、Unicode/数字实体与中英文句界。durable Oracle 为 175 REJECT /
+  85 ACCEPT / 58 exact-entity witness，全部零失败；T015 已知 false accepts、witness 缺失与
+  role-neutral false rejects 均固化到 Historical/Forward 共用 gate。
+- public-safety 把 `locator/cursor/alias` 纳入 private-detail 语义，private runtime root 仅穿过
+  neutral envelope/wrapper/payload/batch/record/trail 容器，遇到业务域即清空；private-context
+  任意 UUID 版本 fail closed，稳定的描述性 `publicResearchRequestReference` 通过。T015 9 个已知
+  case、额外 5 个深层 container family 与公开 reference control 的 plain/DEFLATED-ZIP surfaces
+  全部通过，且 execution-trace business payload 正控制未被误杀。
+- presentation helper=`30959` bytes /
+  `f822e97ee72acce5e9c03887979b44e605ab1af086470344f78dd47d3db821a2`；v18 T016 chained
+  remediation SHA=`7f12e752811b49eba58385a91bc7ef61e1b9106c6a3a47c70256a9f561036040`；
+  v23 30-file T017 production tree=`66e2ec0117c8c0464965333f7130d1209206285a81ceebb2e0a88f8bd58b63c6`。
+- 最终机械矩阵为 skill-creator/project validator、216/216 tests、189/189 Stock_Skill JSON、
+  Trigger/CAP=`13/13`/`18/18`、Security=`9/9`/`27/27`、Historical/Forward=`23/24 PASS`、
+  current binding、v23 protocol self-check、371/784/413 public scan、registry、287-entry
+  Task manifest、4 manifests/2 SHA256SUMS workflow block、release/hash DAG、280-target quick
+  license gate 与四个 full non-shallow clones 的 2,489/2,485 byte-identical full-history report，
+  全部 PASS。
+- 三项 finding 仅推进为 `FIXED_PENDING_REREVIEW`。T016=`DONE`，Task Graph 为
+  74 total / 65 DONE / 7 PENDING / 2 CONDITIONAL；唯一下一 Task 是
+  `BSS-S3-P3-T017 — Re-review 8`。
+
+## BSS-S3-P3-T017 — Re-review 8
+
+- Frozen subject 在 review 开始及结束均由规范 Python 与独立 Ruby 精确复算：
+  `taskpack-tree-sha256-v1=52d66c53d5e3e92c3de0d6e23c271718d17807bf12c0e27817d857e7c44f2e40`
+  （288 files）；
+  `stage-worktree-source-sha256-v1=f4e42487042114adbef1083ae82cbfcabc564d428d6f34fcc95125616cc33331`
+  （base `e88f6afd1c025c32bf0ba4b0c3f6ff9250083335`；278 paths）；index/unmerged 均为零。
+- `S3-R001/R009` 未关闭：第九组 60 REJECT / 40 ACCEPT blind set 在 source/release 两面行为一致，
+  但仅 `67/100` binary、`62/100` strict；26 个命名实体漏拒、7 个合法 role-neutral 正例误拒、
+  5 个拒绝结果缺完整 witness。case-set SHA=
+  `8f8eec6421037b098e9af835cc00a8d62ddddee7991fa10fc073752738068ee8`，逐例 artifact=
+  `2f9d74d1096a5081b72d3ba9b40a8bc2529056fd56aa045e77d580131e85ccc3` / 73,799 bytes。
+  另一 reviewer 的非重复 Historical/Forward 18-case set 仅 `7/18` 正确。
+- `S3-R008` 未关闭：36 private negatives / 36 public controls 的 144-surface blind set 仅
+  `67/72` cases、`134/144` surfaces 正确；五个公开 request/reference controls 被 plain/ZIP 对称误拒。
+  case-set SHA=`c7fec92487958f657a6fdf62b614539232529ac19071530a40a44247af4f48b1`，逐例
+  artifact=`8439a0fe0f51fb631b0f2a33c8d40755717f654df1651f0d562ad9fc8d3db34b` /
+  150,753 bytes。另一 reviewer 的结构层 probe 对
+  `pages/segments/nodes/list/array/collection` 仅 `12/24` surfaces 正确；非 JSON
+  `provider_session_id + UUIDv4` 明文也错误 ACCEPT。
+- `S3-R002` 对 current production tree 重开为 `OPEN/FAIL_EVIDENCE`：v23 协议要求 T017 现场执行，
+  非 live validator 只给 `LIVE_WITNESS_READY`。原样 live 命令在 2.614 秒内 provider exit=1，
+  外部 sandbox/projection 已启动，但 provider 报告 usage limit，未取得 exact return/host replay。
+  T013 对旧 production tree 的 closure 不足以证明 current tree
+  `66e2ec0117c8c0464965333f7130d1209206285a81ceebb2e0a88f8bd58b63c6`。
+- 完整机械矩阵为 216/216 tests、189/189 Stock_Skill JSON、Trigger/CAP=`13/13`/`18/18`、
+  Security=`9/9`/`27/27`、Historical/Forward stored evidence=`23/24 PASS`、371/784/413 public scan、
+  registry、287-entry task manifest、release/hash DAG
+  `6220bdc9e8de6d138284e65ef63a2ecb5fe7b5f47c31f72a2da90cd4c1c658e9`、280-target quick
+  gate 与四个 full non-shallow clones 的 2,489/2,485 byte-identical license report 全 PASS；
+  这些绿灯不覆盖新鲜行为失败或缺失的 live evidence。
+- Re-review 8 verdict=`FAIL`：`ACC-S3-002/006` FAIL、`ACC-S3-009=FAIL_EVIDENCE`；
+  `ACC-S3-001/003/004/005/007/008/010`、`ACC-S0-005` 与 `ACC-S2-010` PASS。
+  `S3-R001/R002/R008/R009` 为 `OPEN`，其余 finding 保持 `CLOSED`，未新增独立 P1/P2。
+  按确定性循环追加 `BSS-S3-P3-T018/T019`；T017=`DONE`，Task Graph 为
+  76 total / 66 DONE / 8 PENDING / 2 CONDITIONAL。唯一下一 Task 是 T018 Remediation 9；本 Task
+  未整改、Publish、stage/commit/push、runtime 安装、PR 操作、merge 或 cleanup。
 
 ## Stage review ledger
 
@@ -428,9 +890,23 @@
 | `S1-R011` 历史路径 allowlist closing-backtick 右边界缺失 | `P1` | `taskpack=01de05cc...37bc1; stage=10b429e2...ad22; base=287488a3; paths=20` | `BSS-S1-P3-T008` | `CLOSED` | closing backtick 后只允许 EOF/Unicode whitespace/显式句末或闭合标点；8 类 plain/ZIP continuation 16/16 非零、4 类正边界通过、反引号内 child 失败，回退 mutant 被 16 failures 杀死 | `BSS-S1-P3-T009 — 新双 digest subject 上 16/16 continuation、6 个正边界、3 个历史反例与 16-failure mutant 复验 PASS` |
 | `S2-R001` canonical machine interface/versioning 合同漂移 | `P1` | `taskpack=f92345a4d7ee05f84dba2c88c2c88ebbc0156c2ccc09f8cc6fceb68c36bdd6f0; stage=795ac48e7293d1604724cd107ba3c73e90f2ba9308921b39c9c2c0faa251af63; base=8308d170325c2ce35581d3fb757a2b731f7803dc; paths=66` | `BSS-S2-P4-T004` | `CLOSED` | 三条 runtime 显式要求 `previous_version` key；missing/rename 6/6 非零，null/lineage 正例 PASS；22 canonical cases PASS，删除 presence 分支的回退 mutant 产生 6 failures；39-target 许可报告双重算 byte-identical | `BSS-S2-P4-T005 — 新双 digest 无漂移；6/6 负向、6/6 正向、6-failure rollback mutant 与完整 Stage 2 重审 PASS` |
 | `S2-R002` current payload 许可相似性审计覆盖/算法未封印 | `P1` | `taskpack=7f3e9238a81de7a0d6d738411d2709b62831de3a16acb85a7f93900daeec5486; stage=d956354782afb6979a68519cce79e5b465c14d5203c751aade0c231da0847b0b; base=8308d170325c2ce35581d3fb757a2b731f7803dc; paths=66` | `BSS-S2-P4-T002` | `CLOSED` | 标准库审计器/39-file hash-bound report；2,485 eligible blobs 两次 full-history 重算 byte-identical；算法/target/upstream mutation Oracle PASS；无许可仓 exact/token20=0 | `BSS-S2-P4-T003 — fresh full clones 上规范 Python 报告 byte-identical；独立 Ruby 同得 2,489/2,485、0/3/1 与逐 pair/evidence，PASS` |
+| `S3-R001` current reader-facing 顺序硬门未同步 template/Historical E2E | `P1` | `taskpack=52d66c53d5e3e92c3de0d6e23c271718d17807bf12c0e27817d857e7c44f2e40; stage=f4e42487042114adbef1083ae82cbfcabc564d428d6f34fcc95125616cc33331; base=e88f6afd1c025c32bf0ba4b0c3f6ff9250083335; paths=278` | `BSS-S3-P3-T004`; `BSS-S3-P3-T006`; `BSS-S3-P3-T008`; `BSS-S3-P3-T010`; `BSS-S3-P3-T012`; `BSS-S3-P3-T014`; `BSS-S3-P3-T016`; `BSS-S3-P3-T018` | `OPEN` | T017 第九组 blind set 仍有 26 个命名实体漏拒及 5 个完整 witness 缺失；非重复 Historical/Forward 负例 10/10 漏拒 | `BSS-S3-P3-T017 保留失败证据；只有 T019 可在新双 digest subject 上关闭` |
+| `S3-R002` Forward preregistration/隔离缺前置时序锚与独立 provenance | `P1` | `taskpack=52d66c53d5e3e92c3de0d6e23c271718d17807bf12c0e27817d857e7c44f2e40; stage=f4e42487042114adbef1083ae82cbfcabc564d428d6f34fcc95125616cc33331; base=e88f6afd1c025c32bf0ba4b0c3f6ff9250083335; paths=278` | `BSS-S3-P3-T004`; `BSS-S3-P3-T006`; `BSS-S3-P3-T008`; `BSS-S3-P3-T010`; `BSS-S3-P3-T012`; `BSS-S3-P3-T018` | `OPEN` | T013 对旧 production tree 的 live closure 有效；T017 current-tree protocol 只到 LIVE_WITNESS_READY，现场 provider 因 usage limit 退出，未产生 exact return/host replay | `BSS-S3-P3-T017 将 current closure evidence 判为 FAIL_EVIDENCE；只有 T019 可在新双 digest subject 上重新关闭` |
+| `S3-R003` Forward machine/evidence payload 未绑定实际 CLI 输入且非 schema-valid | `P1` | `taskpack=86acf0644fbe821e47bc260d13bf387048cba65e29542d94d80c62e5943dbc3a; stage=5615ff30df1d0c806f53654a4826a413507d0c783a6a45234c9c287235b72447; base=e88f6afd1c025c32bf0ba4b0c3f6ff9250083335; paths=172` | `BSS-S3-P3-T004` | `CLOSED` | v18 host return 与 prepared object 语义相同；三项实际返回字段 stdin/stdout hash 全部重放一致，strict schema PASS，两名 fresh judge 独立 `24/24 PASS` | `BSS-S3-P3-T005 — 三项 command/exit/stdin/stdout exact replay、schema、judge arithmetic 与 immutable failure lineage 独立复验 PASS` |
+| `S3-R004` current Trigger/Security/CAP 模型证据仍绑定旧 SKILL hash | `P1` | `taskpack=86acf0644fbe821e47bc260d13bf387048cba65e29542d94d80c62e5943dbc3a; stage=5615ff30df1d0c806f53654a4826a413507d0c783a6a45234c9c287235b72447; base=e88f6afd1c025c32bf0ba4b0c3f6ff9250083335; paths=172` | `BSS-S3-P3-T002` | `CLOSED` | current SHA `d86a7452...0e0` 下 4 executor + 2 judge fresh read-only sessions；raw/task/result/session/usage 与 19-file evidence set 绑定，13/13、18/18、9/9、27/27 PASS | `BSS-S3-P3-T003 — current binding、六次 receipt、19-file evidence 与全部 verdict 复验 PASS` |
+| `S3-R005` adapter 条件式交易措辞与绝对禁止执行边界冲突 | `P1` | `taskpack=86acf0644fbe821e47bc260d13bf387048cba65e29542d94d80c62e5943dbc3a; stage=5615ff30df1d0c806f53654a4826a413507d0c783a6a45234c9c287235b72447; base=e88f6afd1c025c32bf0ba4b0c3f6ff9250083335; paths=172` | `BSS-S3-P3-T002` | `CLOSED` | SKILL/integration contract 统一为无条件 no-auth/no-order/no-execution；独立系统或用户授权不改变边界，fresh Security 与动态 probe 均为零副作用 | `BSS-S3-P3-T003 — 合同、授权绕过 case 与 broker/order=0 动态证据复验 PASS` |
+| `S3-R006` default Security validator 接受漂移的 dynamic/public observation | `P2` | `taskpack=86acf0644fbe821e47bc260d13bf387048cba65e29542d94d80c62e5943dbc3a; stage=5615ff30df1d0c806f53654a4826a413507d0c783a6a45234c9c287235b72447; base=e88f6afd1c025c32bf0ba4b0c3f6ff9250083335; paths=172` | `BSS-S3-P3-T002` | `CLOSED` | default validator 精确绑定 current tree count/digest、静态能力分类、6-command sandbox/audit-hook probe 与 current public-safety counters；任一 drift 非零 | `BSS-S3-P3-T003 — current-source drift mutant、fresh probe 与 267/576/309 counters 复验 PASS` |
+| `S3-R007` ACC-S2-010 current license target Oracle 仍写 39、实际为 83 | `P2` | `taskpack=86acf0644fbe821e47bc260d13bf387048cba65e29542d94d80c62e5943dbc3a; stage=5615ff30df1d0c806f53654a4826a413507d0c783a6a45234c9c287235b72447; base=e88f6afd1c025c32bf0ba4b0c3f6ff9250083335; paths=172` | `BSS-S3-P3-T002` | `CLOSED` | test 从 canonical collector 动态导出 target count，并显式拒绝旧 39-file exact target；current full-history report=`176/2,489/2,485`、0/5/1 | `BSS-S3-P3-T003 — 176-target exact set、旧常量 negative 与 full-history byte-identical 重算 PASS` |
+| `S3-R008` public source/release 保存 execution session evidence/identifiers | `P1` | `taskpack=52d66c53d5e3e92c3de0d6e23c271718d17807bf12c0e27817d857e7c44f2e40; stage=f4e42487042114adbef1083ae82cbfcabc564d428d6f34fcc95125616cc33331; base=e88f6afd1c025c32bf0ba4b0c3f6ff9250083335; paths=278` | `BSS-S3-P3-T004`; `BSS-S3-P3-T008`; `BSS-S3-P3-T010`; `BSS-S3-P3-T012`; `BSS-S3-P3-T014`; `BSS-S3-P3-T016`; `BSS-S3-P3-T018` | `OPEN` | T017 blind set 有五个公开 request/reference controls 被误拒；非重复 probe 对 pages/segments/nodes/list/array/collection 私有 ancestry 有 12/24 surfaces 漏放，非 JSON provider session 明文也漏检 | `BSS-S3-P3-T017 保留失败证据；只有 T019 可在新双 digest subject 上关闭` |
+| `S3-R009` presentation gate 误拒合法 role-neutral prose 与正式 template | `P1` | `taskpack=52d66c53d5e3e92c3de0d6e23c271718d17807bf12c0e27817d857e7c44f2e40; stage=f4e42487042114adbef1083ae82cbfcabc564d428d6f34fcc95125616cc33331; base=e88f6afd1c025c32bf0ba4b0c3f6ff9250083335; paths=278` | `BSS-S3-P3-T008`; `BSS-S3-P3-T010`; `BSS-S3-P3-T012`; `BSS-S3-P3-T014`; `BSS-S3-P3-T016`; `BSS-S3-P3-T018` | `OPEN` | T017 第九组 blind set 仍有 7 个合法 role-neutral 正例误拒；非重复 Historical/Forward 正例也有 1/8 误拒 | `BSS-S3-P3-T017 保留失败证据；只有 T019 可在新双 digest subject 上关闭` |
+| `S3-R010` license owner-facing target count 229/230 漂移 | `P2` | `taskpack=5dbc64d8a973e514d98b99ec2197648fefaebc3d47733124a91bfbe40890e0f4; stage=3cee04d8c3ee548f26bd11f6fb9f50a7ad5264627a1449b503fb01029121b6a6; base=e88f6afd1c025c32bf0ba4b0c3f6ff9250083335; paths=228` | `BSS-S3-P3-T008`; `BSS-S3-P3-T012` | `CLOSED` | T012 把 README 纳入 owner-facing Oracle；四份文档、collector 与 committed report 统一为 278，旧 229 prose durable negative 失败 | `BSS-S3-P3-T013 — taskpack=0767fe0b...25b7; stage=41c56ceb...d21; 四个 fresh full clones 的 278-target、2,489/2,485 full-history report byte-identical，owner-facing/quick gates PASS` |
+| `S3-R011` ACC-S3 最终 Re-review traceability 未同步 | `P1` | `taskpack=9c76050bca01aa2a6f2eac649e62adb8a321420112f1f36bac164dc1c4776b74; stage=dbf12f666a4684ae8eeeb3392c14457ef2c15638f7173f41fc4fb31caa49cbb1; base=e88f6afd1c025c32bf0ba4b0c3f6ff9250083335; paths=244` | `BSS-S3-P3-T010` | `CLOSED` | 十条 ACC-S3 Verifier 全部由 Task Graph 机械派生；durable omission mutant 证明漏列任一 review 会失败 | `BSS-S3-P3-T011 — 44 个唯一 ACC、39/39 Source ID、Task 引用、唯一 Producer/非空 Oracle/Evidence 与十条 ACC-S3 verifier 全部独立复验 PASS；T017 失败路由同步到 T019` |
 
-### Pending
+### Current routing
 
-- Stage 2 review ledger 25/25 `CLOSED`，verdict `PASS`。唯一下一 Task 是 `BSS-S2-P5-T001 — Publish`：
-  从复审通过后的 frozen source 重新封印 release/hash DAG，并执行 staged/proposed-tree replay；T005 未提前
-  commit/push、安装 runtime 或进入 Stage 3。
+- Stage 2 历史 review ledger 原 finding 均为 `CLOSED`，Publish 已由 T001 依据
+  remote/PR/CI/clean-clone 外部证据回填 `DONE`；T009 已关闭 `S3-R010` 并重判 `ACC-S2-010` PASS。
+- Stage 3 T017 Re-review 8 是最近一次独立 verdict=`FAIL`；`S3-R001/R002/R008/R009` 为 `OPEN`，
+  其余 Stage 3 finding 为 `CLOSED`。唯一下一 Task 是
+  `BSS-S3-P3-T018 — Remediation 9`；当前未进入 T018、Stage 3 Publish、runtime 安装、
+  stage/commit/push、PR merge 或 cleanup。

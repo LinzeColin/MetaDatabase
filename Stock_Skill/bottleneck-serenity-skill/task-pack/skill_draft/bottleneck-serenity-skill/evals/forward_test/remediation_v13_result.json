@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v13",
+  "executor_attempt_ordinal": 13,
+  "accepted_current_forward_result": true,
+  "executor_outcome": "HOST_REPLAY_PASS",
+  "preexecution_integrity": {
+    "preregistration_sha256": "a4b302b94df12fd32c9a0fe65c0fbf73c62de3920a209e9a3333b9c393d473bd",
+    "context_manifest_sha256": "5a10c07a679670132ca7320166cac762bfb693d57d778b4a16fa2340a81b024d",
+    "projection_tree_sha256": "55b56b4fa52efb2b34a5701105bc0c9038d6722208b7b066d1a25af638277d94",
+    "task_message_sha256": "a8a844364c2589e0825ae1e8a735ca54cf9e590e941ed668b39199bd53f9593c",
+    "preexecution_seal_sha256": "a37c524b3cf932392c74b08f7ac379129f60e1ad0189a0af47979fbd3916ec03",
+    "execution_envelope_sha256": "60ca114340c8b3f0d102f524a3c33406f55efeba0f57842e1325a8ac17810e29",
+    "executor_output_schema_sha256": "e40939a9047489625e7d2e42b0fd37af91acc09a6c0bee3cb4244d0ad727e7ad"
+  },
+  "raw_output": {
+    "source_sha256": "a3aeb1e85f73ac67954b0902bbf27e129dfcdb57ec797becf3c77406cd27c492",
+    "source_byte_count": 27534,
+    "repository_storage_sha256": "04ecf9d4909c06512903e6dc215d969d74ec30a410314a8956b5b9db0589ceaa",
+    "repository_storage_byte_count": 27535
+  },
+  "host_exact_final_output_replay": {
+    "evidence": {
+      "exit_code": 0,
+      "stdin_sha256": "4133f0b3825d763e586f9821b9874b1f75706777ada82073ca6035b10e1dabc3",
+      "stdout_sha256": "13a72e3ddf2f0a95cb6c6c3e134dc453645a7f7be206c5a39c3d7396b56d4295",
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "opportunity": {
+      "exit_code": 0,
+      "stdin_sha256": "305d4eb1840b000adbcbde78091e35252750b994b845a80cb1eb83a30be35f83",
+      "stdout_sha256": "5406c7e1a57d10a422edf606feda536564846269822c962ed2aa330c28ff26f2",
+      "decision_label": "BOTTLENECK_NOT_EQUITY",
+      "warnings": []
+    },
+    "portfolio": {
+      "exit_code": 0,
+      "stdin_sha256": "7dbfd49aa6f44d3821ce4cd0ab106b716e1023448c22a72b3365ba0a0c8111d7",
+      "stdout_sha256": "9be71a6cab333680edf86d0506a5b7f439f5b744ff0c79b0b5737a31ab1d44e0",
+      "valid": true,
+      "errors": []
+    }
+  },
+  "presentation_gate": {
+    "exact_heading_order": true,
+    "heading_count": 14,
+    "issuer_company_ticker_security_benchmark_index_brand_before_security_map": false
+  },
+  "independent_judgment": {
+    "judge_context_manifest_sha256": "d870334cdbe3cb50cd4a10e5c7db0fb2dda802ed9aacd9d9541e3e65645db99b",
+    "judge_context_tree_sha256": "ead4dd0e4f4dfb74efa4c409b278894c2ed0952f04daf097391a8e9d16ad398c",
+    "judge_schema_sha256": "5505401c848c089558112d2559fc2ce202ea83dab10f3023e4706a08163475ef",
+    "rubric_v2_sha256": "899851f9cd421f7cae8b26966e9b17377f40c9596c0bd54c08affbec3447a154",
+    "judges": [
+      {
+        "judge_id": "judge-a",
+        "execution_envelope_sha256": "6a54e6bbc719febeb319cdc4235cc99e85576e9058c9873fa8c95caaa80b8cb6",
+        "started_at_utc": "2026-07-23T11:45:20Z",
+        "finished_at_utc": "2026-07-23T11:47:29Z",
+        "source_sha256": "4362b1018e838815e904f2e337dc3b0f89faea4319b3e7fe3cf926171afb6f2b",
+        "source_byte_count": 5504,
+        "repository_storage_sha256": "92970480d839c87a5cbd5b9b7d85fe4a999a0a28cc585150e3dee582392a8b13",
+        "repository_storage_byte_count": 5505,
+        "total_score": 23,
+        "must_pass_all_two": true,
+        "verdict": "PASS"
+      },
+      {
+        "judge_id": "judge-b",
+        "execution_envelope_sha256": "93925440d93bc423ef1bb20393575be7dcd025cd282f2fda118109871084dbfd",
+        "started_at_utc": "2026-07-23T11:45:33Z",
+        "finished_at_utc": "2026-07-23T11:47:51Z",
+        "source_sha256": "dc12389a0f0040db13dd8321734498a0a2e2d0e9fa22c75827a3dc12c5e65ce7",
+        "source_byte_count": 5931,
+        "repository_storage_sha256": "1eadfd33ab83f70cef245733964dd0736c3ae7597b8842ee3a6d34b72d6e5e7b",
+        "repository_storage_byte_count": 5932,
+        "total_score": 23,
+        "must_pass_all_two": true,
+        "verdict": "PASS"
+      }
+    ],
+    "consensus": "PASS"
+  },
+  "decision_label": "BOTTLENECK_NOT_EQUITY",
+  "prior_attempt_lineage": [
+    {
+      "ordinal": 1,
+      "id": "baseline",
+      "class": "historical"
+    },
+    {
+      "ordinal": 2,
+      "id": "trial_02",
+      "class": "historical"
+    },
+    {
+      "ordinal": 3,
+      "id": "initial-remediation",
+      "class": "historical"
+    },
+    {
+      "ordinal": 4,
+      "id": "remediation-v4",
+      "class": "substantive-fail",
+      "reason": "exact final-field replay and opportunity warning gate failed"
+    },
+    {
+      "ordinal": 5,
+      "id": "remediation-v5",
+      "class": "substantive-fail",
+      "reason": "issuer/company names appeared before Security map"
+    },
+    {
+      "ordinal": 6,
+      "id": "remediation-v6",
+      "class": "infrastructure-broken"
+    },
+    {
+      "ordinal": 7,
+      "id": "remediation-v7",
+      "class": "infrastructure-timeout"
+    },
+    {
+      "ordinal": 8,
+      "id": "remediation-v8",
+      "class": "infrastructure-silent-timeout"
+    },
+    {
+      "ordinal": 9,
+      "id": "remediation-v9",
+      "class": "substantive-fail",
+      "reason": "benchmark/index brand appeared before Security map"
+    },
+    {
+      "ordinal": 10,
+      "id": "remediation-v10",
+      "class": "substantive-fail",
+      "reason": "independent judges found current-fact refresh insufficient"
+    },
+    {
+      "ordinal": 11,
+      "id": "remediation-v11",
+      "class": "infrastructure-broken",
+      "reason": "tool calls rendered rather than dispatched"
+    },
+    {
+      "ordinal": 12,
+      "id": "remediation-v12",
+      "class": "infrastructure-timeout",
+      "reason": "research and validators completed but final structured encoding exceeded the sealed wall-clock ceiling"
+    }
+  ],
+  "outcome": "PASS"
+}

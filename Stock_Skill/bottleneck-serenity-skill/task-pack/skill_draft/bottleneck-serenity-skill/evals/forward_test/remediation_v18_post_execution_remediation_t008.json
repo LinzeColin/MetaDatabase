@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v18",
+  "remediation_task_id": "BSS-S3-P3-T008",
+  "relationship": "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION",
+  "execution_evidence_rewritten": false,
+  "current_output_revalidated": true,
+  "execution_context_tree_sha256": "797b6673bdc8e185eeac11694a81579e540fda5c3507b034df8308afb995c518",
+  "previous_remediation_sha256": "b315cc1ac8fa819f23c7d1472c73de85c1b423db67cf9d5f4993798c9f371fe2",
+  "changes": [
+    {
+      "path": "scripts/presentation_contract.py",
+      "previous_current": {
+        "mode": "0644",
+        "byte_count": 6323,
+        "sha256": "48f730694dfad3655da8456b396bae27e3220adc924dd05a42a667d79d3bb498"
+      },
+      "current": {
+        "mode": "0644",
+        "byte_count": 10097,
+        "sha256": "9730052f483ea109dd76d922b76ebbc441f8ccd50ab7d0b24813ec219a2e81f1"
+      },
+      "semantic_scope": "replace broad proper-name heuristics with explicit entity-introduction grammar; reject embedded/lowercase issuer cues while allowing formal template and ordinary role-neutral prose"
+    }
+  ]
+}

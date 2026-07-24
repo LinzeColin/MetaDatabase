@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "memo_markdown",
+    "evidence_json",
+    "opportunity_json",
+    "portfolio_json",
+    "decision_label",
+    "execution_trace"
+  ],
+  "properties": {
+    "memo_markdown": {
+      "type": "string",
+      "minLength": 1000
+    },
+    "evidence_json": {
+      "type": "string",
+      "minLength": 500
+    },
+    "opportunity_json": {
+      "type": "string",
+      "minLength": 500
+    },
+    "portfolio_json": {
+      "type": "string",
+      "minLength": 300
+    },
+    "decision_label": {
+      "type": "string",
+      "enum": [
+        "RESEARCH_PRIORITY",
+        "CANDIDATE",
+        "WATCH_PRICED",
+        "WATCH_EVIDENCE",
+        "BOTTLENECK_NOT_EQUITY",
+        "AVOID",
+        "BROKEN"
+      ]
+    },
+    "execution_trace": {
+      "type": "string",
+      "minLength": 100
+    }
+  }
+}

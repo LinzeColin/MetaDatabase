@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "attestation_id": "BSS-S3-P3-T010-provider-attestation-v20",
+  "purpose": "independent provider challenge before execution and exact returned-byte notarization after execution",
+  "subject": {
+    "v19_result": {
+      "path": "evals/forward_test/remediation_v19_result.json",
+      "sha256": "81bf9815e21ca291702bfb1bb85f68854ff66efa1f5d2a988157838a92fe92d1",
+      "byte_count": 4377
+    },
+    "v19_raw": {
+      "path": "evals/forward_test/remediation_v19_raw.json",
+      "sha256": "f6694a5142c20f9ddc1f3a2a9a8ec0702dd454773c1b68152c9539af7a39d6ad",
+      "byte_count": 30264
+    },
+    "validator": {
+      "path": "scripts/validate_forward_test.py",
+      "sha256": "8ff98210f00764ef7d2ca3b976878c8a1b4a1c0b5c2bc5ff38fb2cf86e8587bd",
+      "byte_count": 189121
+    },
+    "output_schema": {
+      "path": "evals/forward_test/provider_attestation_v20.schema.json",
+      "sha256": "3fc1c1cd3d538ec2f1dd3193916fe9a932d0671fd8c5cc52c861df70c26a2422",
+      "byte_count": 2525
+    },
+    "task_template": {
+      "path": "evals/forward_test/provider_attestation_v20_task.template.txt",
+      "sha256": "e329857a6913405f41fee7aca0dc020f66f98b9fa0959c2ce81ab85e8ef078b5",
+      "byte_count": 1314
+    }
+  },
+  "provider_execution_contract": {
+    "runtime": "codex-cli 0.145.0-alpha.30",
+    "ephemeral": true,
+    "user_config_loaded": false,
+    "project_rules_loaded": false,
+    "sandbox": "read-only",
+    "web_search_enabled": false,
+    "output_schema_enforced": true,
+    "provider_identifiers_persisted": false,
+    "expected_answer_or_diagnosis_supplied": false
+  },
+  "timestamp_contract": {
+    "authority_protocol": "RFC3161",
+    "authority_url": "http://timestamp.digicert.com",
+    "digest_algorithm": "SHA-256",
+    "pre_message_imprint_target": "exact UTF-8 bytes of this packet",
+    "start_challenge": "SHA-256 of the granted RFC3161 preexecution response DER",
+    "post_message_imprint_target": "exact UTF-8 bytes of the postexecution packet that binds exact provider-return and host-receipt bytes",
+    "acceptance_order": "pre RFC3161 genTime < provider return < post RFC3161 genTime"
+  }
+}

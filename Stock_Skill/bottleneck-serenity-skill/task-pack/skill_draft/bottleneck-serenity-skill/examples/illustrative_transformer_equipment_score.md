@@ -1,10 +1,14 @@
 # bottleneck-serenity-skill score — EXMPL — Synthetic Grid Equipment Co
 
 - As of: `2026-07-22`
+- Source cutoff: `2026-07-22`
+- Skill version: `0.0.0.1`
 - Decision: **RESEARCH_PRIORITY**
 - Final score: **82.8 / 100**
 - Core geometric score: 74.2
 - Hard gates passed: `true`
+- Equity bridge complete: `true`
+- Per-share FCF: `2.0`
 
 ## Decision reasons
 - All gates pass with high composite quality and positive scenario asymmetry.

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v18",
+  "remediation_task_id": "BSS-S3-P3-T006",
+  "relationship": "POST_EXECUTION_VALIDATOR_REMEDIATION",
+  "execution_evidence_rewritten": false,
+  "current_output_revalidated": true,
+  "execution_context_tree_sha256": "797b6673bdc8e185eeac11694a81579e540fda5c3507b034df8308afb995c518",
+  "changes": [
+    {
+      "path": "scripts/presentation_contract.py",
+      "execution": {
+        "mode": "0644",
+        "byte_count": 3885,
+        "sha256": "9d87600a3c761d53e22eace44b8d39814c9a70021fdf6da212d03b500f030cd0"
+      },
+      "current": {
+        "mode": "0644",
+        "byte_count": 6323,
+        "sha256": "48f730694dfad3655da8456b396bae27e3220adc924dd05a42a667d79d3bb498"
+      },
+      "semantic_scope": "reject URI, email, bare-domain, standalone-name, proper-name-phrase, and ambiguous-name-subject variants before Security map"
+    }
+  ]
+}

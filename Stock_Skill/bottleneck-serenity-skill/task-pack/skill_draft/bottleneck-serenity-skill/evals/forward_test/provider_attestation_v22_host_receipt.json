@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "attestation_id": "BSS-S3-P3-T010-provider-attestation-v22",
+  "host_observation_contract": "sanitized Codex CLI JSONL events captured outside the provider turn; provider identifiers and raw event stream are discarded",
+  "execution": {
+    "runtime": "codex-cli 0.145.0-alpha.30",
+    "ephemeral": true,
+    "user_config_loaded": false,
+    "project_rules_loaded": false,
+    "sandbox": "workspace-write isolated projection",
+    "canonical_repository_writes_allowed": false,
+    "projection_scratch_writes_allowed": true,
+    "web_search_enabled": false,
+    "started_at_utc": "2026-07-23T18:38:46Z",
+    "finished_at_utc": "2026-07-23T18:39:32Z",
+    "cli_exit_code": 0
+  },
+  "preexecution_binding": {
+    "packet_path": "evals/forward_test/provider_attestation_v22_pre_packet.json",
+    "packet_sha256": "e3ef66820827724bc9a284b7d4cfa2939510a12f261012fe3ad5475b1d98425e",
+    "timestamp_response_sha256": "f3ddf5fa1ca170ad8a36f421858444a08fb43205728f7b0545c86604df9bd071",
+    "task_path": "evals/forward_test/provider_attestation_v22_task.txt",
+    "task_sha256": "fc73666b233465157e855fd9c4b3667a8ddad4ad9ad20b4e6ab73f715e5586b9",
+    "challenge_echoed_by_provider": true
+  },
+  "provider_return": {
+    "path": "evals/forward_test/provider_attestation_v22_return.json",
+    "sha256": "d644fef7b9424e98ff6c363442d63dc6db49bf7478a58fa5ddb5be693f142e66",
+    "byte_count": 959,
+    "output_schema_sha256": "c50d1dba7bb23a2c2d9556899bbac7e426302ce7f3ecd5b0fee210c4c1679a74",
+    "schema_valid": true
+  },
+  "host_observed_commands": [
+    {
+      "ordinal": 1,
+      "command": "python3 -B scripts/validate_forward_test.py --skill-root .",
+      "exit_code": 0,
+      "stdout_sha256": "484844e2cad899cbca89bc1e38fb0d809e1638fa4890f198bc30bf2bf1a5f1ca",
+      "stdout_byte_count": 77,
+      "stdout": "PASS: independent forward test; context=30; trials=19; judges=2; score=23/24\n"
+    },
+    {
+      "ordinal": 2,
+      "command_contract": "openssl dgst -sha256 over v19 result, v19 raw, and execution validator; then exact validator stdout bytes",
+      "exit_code": 0,
+      "observed_sha256": {
+        "v19_result": "81bf9815e21ca291702bfb1bb85f68854ff66efa1f5d2a988157838a92fe92d1",
+        "v19_raw": "f6694a5142c20f9ddc1f3a2a9a8ec0702dd454773c1b68152c9539af7a39d6ad",
+        "validator": "8ff98210f00764ef7d2ca3b976878c8a1b4a1c0b5c2bc5ff38fb2cf86e8587bd",
+        "validator_stdout": "484844e2cad899cbca89bc1e38fb0d809e1638fa4890f198bc30bf2bf1a5f1ca"
+      }
+    }
+  ],
+  "admission": {
+    "provisional_provider_message_before_command_ignored": true,
+    "successful_validator_event_observed_before_accepted_final_return": true,
+    "provider_return_matches_host_observation": true,
+    "verdict": "PASS"
+  },
+  "privacy": {
+    "raw_event_stream_persisted": false,
+    "provider_identifiers_persisted": false,
+    "sanitized_command_observation_only": true
+  }
+}

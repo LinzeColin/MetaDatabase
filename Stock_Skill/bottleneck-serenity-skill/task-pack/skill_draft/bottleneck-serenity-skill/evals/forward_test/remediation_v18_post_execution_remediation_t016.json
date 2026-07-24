@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v18",
+  "remediation_task_id": "BSS-S3-P3-T016",
+  "relationship": "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION",
+  "execution_evidence_rewritten": false,
+  "current_output_revalidated": true,
+  "execution_context_tree_sha256": "797b6673bdc8e185eeac11694a81579e540fda5c3507b034df8308afb995c518",
+  "previous_remediation_sha256": "0318d9c9ce5c53e78317f02428eeae8e00ab289e2e56eedd9690b3695cbb4e2e",
+  "changes": [
+    {
+      "path": "scripts/presentation_contract.py",
+      "previous_current": {
+        "mode": "0644",
+        "byte_count": 29671,
+        "sha256": "208a6e131d4269b2eb03a2bf51acb04b91771762e7899c3a5f6c88d59e81b6d7"
+      },
+      "current": {
+        "mode": "0644",
+        "byte_count": 30959,
+        "sha256": "f822e97ee72acce5e9c03887979b44e605ab1af086470344f78dd47d3db821a2"
+      },
+      "semantic_scope": "replace the overbroad arbitrary modal-subject fallback with bounded role, outcome, selection, attribution, benchmark, payment, routing, and transfer slots; preserve complete Unicode entity witnesses; accept generic, negated, unresolved, and placeholder role prose"
+    }
+  ]
+}

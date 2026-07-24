@@ -1,0 +1,116 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v13",
+  "executor_attempt_ordinal": 13,
+  "preexecution_seal_sha256": "a37c524b3cf932392c74b08f7ac379129f60e1ad0189a0af47979fbd3916ec03",
+  "execution_envelope_sha256": "60ca114340c8b3f0d102f524a3c33406f55efeba0f57842e1325a8ac17810e29",
+  "projection_tree_sha256": "55b56b4fa52efb2b34a5701105bc0c9038d6722208b7b066d1a25af638277d94",
+  "host_output_schema_sha256": "e40939a9047489625e7d2e42b0fd37af91acc09a6c0bee3cb4244d0ad727e7ad",
+  "raw_output": {
+    "source_sha256": "a3aeb1e85f73ac67954b0902bbf27e129dfcdb57ec797becf3c77406cd27c492",
+    "source_byte_count": 27534,
+    "source_final_lf": false,
+    "repository_path": "evals/forward_test/remediation_v13_raw.json",
+    "repository_storage_sha256": "04ecf9d4909c06512903e6dc215d969d74ec30a410314a8956b5b9db0589ceaa",
+    "repository_storage_byte_count": 27535,
+    "repository_storage_normalization": "one trailing LF appended by patch storage; semantic JSON and all returned field strings are unchanged"
+  },
+  "host_schema_replay": {
+    "valid": true,
+    "required_fields": [
+      "memo_markdown",
+      "evidence_json",
+      "opportunity_json",
+      "portfolio_json",
+      "decision_label",
+      "execution_trace"
+    ]
+  },
+  "host_exact_final_output_replay": [
+    {
+      "artifact": "evidence",
+      "source_field": "evidence_json",
+      "command": "python3 scripts/validate_evidence.py -",
+      "exit_code": 0,
+      "stdin_sha256": "4133f0b3825d763e586f9821b9874b1f75706777ada82073ca6035b10e1dabc3",
+      "stdout_sha256": "13a72e3ddf2f0a95cb6c6c3e134dc453645a7f7be206c5a39c3d7396b56d4295",
+      "stderr": "",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "decision_label": null
+    },
+    {
+      "artifact": "opportunity",
+      "source_field": "opportunity_json",
+      "command": "python3 scripts/score_opportunity.py - --format json",
+      "exit_code": 0,
+      "stdin_sha256": "305d4eb1840b000adbcbde78091e35252750b994b845a80cb1eb83a30be35f83",
+      "stdout_sha256": "5406c7e1a57d10a422edf606feda536564846269822c962ed2aa330c28ff26f2",
+      "stderr": "",
+      "valid": null,
+      "errors": null,
+      "warnings": [],
+      "decision_label": "BOTTLENECK_NOT_EQUITY"
+    },
+    {
+      "artifact": "portfolio",
+      "source_field": "portfolio_json",
+      "command": "python3 scripts/analyze_portfolio_clusters.py -",
+      "exit_code": 0,
+      "stdin_sha256": "7dbfd49aa6f44d3821ce4cd0ab106b716e1023448c22a72b3365ba0a0c8111d7",
+      "stdout_sha256": "9be71a6cab333680edf86d0506a5b7f439f5b744ff0c79b0b5737a31ab1d44e0",
+      "stderr": "",
+      "valid": true,
+      "errors": [],
+      "warnings": null,
+      "decision_label": null
+    }
+  ],
+  "presentation_gate": {
+    "exact_heading_order": true,
+    "heading_count": 14,
+    "security_map_present": true,
+    "issuer_company_ticker_security_benchmark_index_brand_before_security_map": false,
+    "pre_security_map_token_hits": []
+  },
+  "projection_integrity": {
+    "all_27_manifest_files_match": true,
+    "manifest_mismatches": []
+  },
+  "projection_write_observation": {
+    "allowed_disposable_files": [
+      "evidence.json",
+      "opportunity.json",
+      "portfolio.json",
+      "validator-evidence-output.json",
+      "validator-opportunity-output.json",
+      "validator-portfolio-output.json"
+    ],
+    "observed_files": [
+      "evidence.json",
+      "opportunity.json",
+      "portfolio.json",
+      "validator-evidence-output.json",
+      "validator-opportunity-output.json",
+      "validator-portfolio-output.json"
+    ],
+    "skill_source_modified": false,
+    "canonical_repository_modified_by_executor": false
+  },
+  "current_source_refresh": {
+    "native_web_search_batches": 2,
+    "primary_pages_opened": [
+      "National Laboratory of the Rockies 2026-07-15",
+      "Johns Hopkins/POINTS 2026-06-15",
+      "U.S. Department of Energy Speed to Power",
+      "SEC-filed GE Vernova Q1 2026 release",
+      "Siemens Energy Q1 FY2026 presentation",
+      "Siemens Energy Q2 FY2026 release and PDF",
+      "MSCI ACWI official index page"
+    ],
+    "search_snippets_admitted_as_evidence": false
+  },
+  "decision_label": "BOTTLENECK_NOT_EQUITY",
+  "outcome": "HOST_REPLAY_PASS_PENDING_JUDGES"
+}

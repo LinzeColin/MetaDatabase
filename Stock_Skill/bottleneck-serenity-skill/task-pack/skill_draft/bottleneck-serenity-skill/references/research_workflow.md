@@ -12,6 +12,16 @@ Record:
 - current date and information cutoff;
 - whether the task is scan, deep dive, compare, monitor, or postmortem.
 
+### Presentation-order gate
+
+The memo may open with one theme-level decision sentence and label, but that sentence
+must not name an issuer or security. Present the payer and funded-demand proof, then a
+role-neutral functional system map, before the first issuer, company, ticker, candidate
+table, or issuer-specific claim/citation. Only Phase 6 unlocks named securities in the
+reader-facing memo. A company universe or issuer evidence followed later by the system
+map fails this gate, even if the internal research sequence was correct. When the user
+supplies tickers, acknowledge them only as scope until the map is complete.
+
 ## Phase 2 — Demand and payer map
 
 Build a table:
@@ -138,6 +148,13 @@ system units
 ```
 
 List every unverified multiplier.
+
+Record the bridge in `equity_bridge`. `complete=true` requires numeric revenue, FCF, fully diluted shares and per-share
+FCF; explicit consideration of capex, working capital, interest, tax, SBC, convertibles, warrants and other contingent
+shares; no unverified critical multiplier; and a reproducible `per_share_fcf = free_cash_flow / fully_diluted_shares`.
+If any of those conditions fails, set `complete=false`, list the unresolved multipliers, activate
+`hard_flags.no_material_revenue_bridge`, and fail the rent-capture hard gate. Scenario prices, EPS multiples or
+aggregate-company FCF cannot fill this gap.
 
 ## Phase 8 — Expectations and valuation
 

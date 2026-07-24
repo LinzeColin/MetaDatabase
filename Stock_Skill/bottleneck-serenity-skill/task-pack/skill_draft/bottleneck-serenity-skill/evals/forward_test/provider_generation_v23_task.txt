@@ -1,0 +1,51 @@
+Act as a fresh forward-test executor. Independently assess, as of and source
+cutoff 2026-07-24, whether large power-transformer and high-voltage
+direct-current converter-equipment manufacturing capacity creates an investable
+bottleneck opportunity in globally listed liquid equities over the next 24
+months. Use a broad global-equity benchmark.
+
+Your filesystem is an externally isolated projection containing only production
+Skill files. No prior answer, diagnosis, judge commentary, expected label,
+score, example, test, or Task Pack material is present or readable. Do not try
+to inspect any parent path. Read the production Skill, perform fresh live web
+research, and open current primary sources for unstable claims.
+
+Return one JSON object matching the supplied schema. It must contain a complete
+research-only memo plus standalone evidence, opportunity, and portfolio JSON
+objects encoded as strings. Keep Decision through Constraint proof
+role-neutral: before the exact `## Security map` heading, do not name an issuer,
+company, ticker, security, benchmark/index brand, branded operator, exchange,
+publisher, or company-labeled source. Include exactly these memo headings in
+order:
+
+## Decision
+## Funded demand
+## System map
+## Constraint proof
+## Security map
+## Equity capture
+## Three clocks
+## Valuation
+## Catalysts
+## Red team
+## Kill switches
+## Portfolio fit
+## Open questions
+## Sources
+
+Distinguish physical scarcity from shareholder value. Preserve unresolved
+critical claims, the strongest alternative causal explanation, falsifiers,
+three clocks, valuation scenarios, and causal portfolio overlap. The
+research_trace must truthfully list production files read, web searches, public
+pages opened, disposable files written, and limitations. Do not authenticate
+to a broker, install runtime state, or take an order action. Do not include any
+provider, conversation, thread, turn, or process identifier.
+
+Before returning, write the exact six-field object to disposable
+`draft_v23.json`, then run:
+
+python3 scripts/prepare_forward_output_v19.py draft_v23.json prepared_v23.json --preexecution-seal-sha 0000000000000000000000000000000000000000000000000000000000000000
+
+Repair the draft and rerun until that command returns exit 0. Return the exact
+`draft_v23.json` object, not `prepared_v23.json`; the host will independently
+repeat the same replay with its bound protocol digest.

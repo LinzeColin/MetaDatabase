@@ -1,0 +1,154 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "as_of": "2024-12-31",
+  "source_cutoff": "2024-12-31",
+  "previous_version": null,
+  "thesis_id": "ai-data-center-power-transformers-gev-20241231",
+  "candidate": {
+    "ticker": "GEV",
+    "company": "GE Vernova Inc.",
+    "market": "NYSE",
+    "currency": "USD",
+    "role": "owner",
+    "lifecycle_stage": "CAPACITY_RESPONSE"
+  },
+  "scores": {
+    "constraint": {
+      "funded_demand": 5,
+      "architectural_necessity": 4,
+      "current_tightness": 5,
+      "supplier_concentration": 3,
+      "qualification_barrier": 4,
+      "substitution_difficulty": 3,
+      "expansion_lead_time": 4,
+      "policy_resilience": 3
+    },
+    "capture": {
+      "exposure_materiality": 2,
+      "pricing_power": 3,
+      "capacity_to_ship": 3,
+      "unit_economics": 1,
+      "contract_counterparty": 3,
+      "appropriability": 2,
+      "balance_sheet": 5,
+      "dilution_discipline": 4,
+      "capital_allocation": 4
+    },
+    "mispricing": {
+      "expectations_gap": 1,
+      "valuation_asymmetry": 1,
+      "coverage_gap": 2,
+      "catalyst_clarity": 3,
+      "estimate_revision_potential": 3,
+      "crowding_headroom": 1,
+      "entry_setup": 1
+    },
+    "evidence": {
+      "primary_source_coverage": 4,
+      "independent_corroboration": 4,
+      "numerical_traceability": 3,
+      "freshness": 5,
+      "contradiction_search": 5,
+      "source_independence": 4
+    },
+    "investability": {
+      "liquidity": 4,
+      "governance_accounting": 4,
+      "geopolitical_regulatory": 3,
+      "customer_diversification": 3,
+      "technology_resilience": 3,
+      "balance_sheet_survival": 5,
+      "float_gap_risk": 3,
+      "portfolio_fit": 2
+    }
+  },
+  "clocks": {
+    "scarcity_p10_months": 12,
+    "scarcity_p50_months": 30,
+    "scarcity_p90_months": 48,
+    "monetization_lag_months": 18,
+    "market_discovery_months": 6,
+    "contracted_forward_ramp": false
+  },
+  "scenarios": {
+    "bear": {
+      "probability": 0.3,
+      "return_pct": -35,
+      "summary": "Supply additions and project timing compress the assumed thematic premium before transformer-specific free cash flow is visible."
+    },
+    "base": {
+      "probability": 0.5,
+      "return_pct": 10,
+      "summary": "Broad Electrification execution improves, but the AI-transformer contribution remains too aggregated to validate."
+    },
+    "bull": {
+      "probability": 0.2,
+      "return_pct": 50,
+      "summary": "Pricing, throughput, and mix exceed the sensitivity assumptions while capacity additions arrive without large capital intensity."
+    }
+  },
+  "equity_bridge": {
+    "complete": false,
+    "revenue": null,
+    "free_cash_flow": null,
+    "fully_diluted_shares": 275.5,
+    "per_share_fcf": null,
+    "cash_conversion_checks": {
+      "capex": true,
+      "working_capital": false,
+      "interest": false,
+      "tax": false
+    },
+    "dilution_checks": {
+      "stock_based_compensation": true,
+      "convertibles": true,
+      "warrants": true,
+      "other_contingent_shares": true
+    },
+    "unverified_critical_multipliers": [
+      "AI transformer units attributable to GEV",
+      "transformer content and qualified attainable share",
+      "incremental gross margin and working-capital conversion",
+      "incremental interest and tax",
+      "incremental free cash flow"
+    ]
+  },
+  "hard_flags": {
+    "no_primary_evidence": false,
+    "wrong_entity_or_ticker": false,
+    "no_material_revenue_bridge": true,
+    "substitution_before_monetization": false,
+    "unfunded_financing_gap": false,
+    "kill_switch_triggered": false,
+    "bull_case_required_to_avoid_loss": false
+  },
+  "kill_switches": [
+    {
+      "condition": "Reclassify the industry constraint as resolving if two independent official sources show standard transformer delivery times at or below 12 months.",
+      "metric": "standard quoted delivery time in months",
+      "source": "utility procurement disclosure plus manufacturer delivery disclosure",
+      "review_date": "2025-06-30",
+      "triggered": false
+    },
+    {
+      "condition": "Reject the GEV rent-capture path if transformer-specific revenue and incremental FCF cannot be bridged after the next two reporting cycles.",
+      "metric": "transformer-specific revenue-to-fully-diluted-per-share FCF bridge",
+      "source": "GEV regulatory filings and independently sourced customer or capacity evidence",
+      "review_date": "2025-07-31",
+      "triggered": false
+    },
+    {
+      "condition": "Reject the AI-specific causal claim if verified data-center projects are not a material driver of qualified transformer orders.",
+      "metric": "share of qualified transformer order growth attributable to verified data-center projects",
+      "source": "customer procurement plus supplier order disclosure",
+      "review_date": "2025-12-31",
+      "triggered": false
+    }
+  ],
+  "notes": [
+    "The decision is subordinate to the no_material_revenue_bridge hard flag.",
+    "Scenario returns use the explicit $325 reference-anchor assumption in C-011; it is not asserted to be the actual cutoff closing price.",
+    "No score or scenario implies an order, leverage, guaranteed return, or a claim of alpha."
+  ]
+}

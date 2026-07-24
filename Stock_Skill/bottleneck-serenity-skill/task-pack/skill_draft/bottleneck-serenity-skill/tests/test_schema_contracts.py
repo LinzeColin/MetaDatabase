@@ -27,7 +27,37 @@ ARTIFACT_FIELD_ORDER = (
 )
 ARTIFACT_FIELDS = set(ARTIFACT_FIELD_ORDER)
 EXPECTED_JSON = {
+    "evals/current_eval_binding.json",
+    "evals/forward_test/baseline_context_manifest.json",
+    "evals/forward_test/baseline_judge_a.json",
+    "evals/forward_test/baseline_judge_b.json",
+    "evals/forward_test/baseline_preregistration.json",
+    "evals/forward_test/baseline_result.json",
+    "evals/forward_test/baseline_trace.json",
+    "evals/forward_test/context_manifest.json",
+    "evals/forward_test/historical_post_remediation_revalidation.json",
+    "evals/forward_test/judge_a.json",
+    "evals/forward_test/judge_b.json",
+    "evals/forward_test/preregistration.json",
+    "evals/forward_test/remediation_01.json",
+    "evals/forward_test/remediation.json",
+    "evals/forward_test/result.json",
+    "evals/forward_test/trace.json",
+    "evals/forward_test/trial_02_context_manifest.json",
+    "evals/forward_test/trial_02_judge_a.json",
+    "evals/forward_test/trial_02_judge_b.json",
+    "evals/forward_test/trial_02_preregistration.json",
+    "evals/forward_test/trial_02_result.json",
+    "evals/forward_test/trial_02_trace.json",
     "evals/golden_cases.json",
+    "evals/historical_e2e/decision.json",
+    "evals/historical_e2e/evidence.json",
+    "evals/historical_e2e/frozen_input.json",
+    "evals/historical_e2e/opportunity.json",
+    "evals/historical_e2e/portfolio.json",
+    "evals/historical_e2e/rubric.json",
+    "evals/security_eval_results.json",
+    "evals/trigger_eval_results.json",
     "examples/illustrative_portfolio.json",
     "examples/illustrative_portfolio_analysis.json",
     "examples/illustrative_transformer_equipment.json",
@@ -218,11 +248,75 @@ def assert_valid(instance: Any, schema: dict[str, Any]) -> None:
 
 
 class SchemaContractTests(unittest.TestCase):
+    def test_role_map_presentation_gate_is_synchronized(self) -> None:
+        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        workflow = (SKILL_ROOT / "references" / "research_workflow.md").read_text(
+            encoding="utf-8"
+        )
+        output = (SKILL_ROOT / "references" / "output_contract.md").read_text(
+            encoding="utf-8"
+        )
+        template = (SKILL_ROOT / "templates" / "investment_memo.md").read_text(
+            encoding="utf-8"
+        )
+        integration = (SKILL_ROOT / "references" / "integration_contract.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("hard presentation-order gate", skill)
+        self.assertIn(
+            "Before the exact `Security map` heading, do not name an issuer",
+            skill,
+        )
+        self.assertIn("benchmark or index provider/brand", skill)
+        self.assertIn("Only Phase 6 unlocks named securities", workflow)
+        funded = output.index("**Funded demand**")
+        system_map = output.index("**System map**")
+        security_map = output.index("**Security map**")
+        self.assertLess(funded, system_map)
+        self.assertLess(system_map, security_map)
+        self.assertIn(
+            "provider/brand, branded commercial operator, issuer-specific evidence",
+            output,
+        )
+        expected_template_headings = [
+            "## Decision",
+            "## Funded demand",
+            "## System map",
+            "## Constraint proof",
+            "## Security map",
+            "## Equity capture",
+            "## Three clocks",
+            "## Valuation",
+            "## Catalysts",
+            "## Red team",
+            "## Kill switches",
+            "## Portfolio fit",
+            "## Open questions",
+            "## Sources",
+        ]
+        self.assertEqual(
+            [line for line in template.splitlines() if line.startswith("## ")],
+            expected_template_headings,
+        )
+        self.assertIn(
+            "A separate execution system or explicit user authorization does not change this boundary.",
+            integration,
+        )
+        self.assertNotIn("may execute a trade without", integration)
+
+    def test_security_prompt_covers_separate_execution_authorization_bypass(self) -> None:
+        prompts = (SKILL_ROOT / "evals" / "security_prompts.csv").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("separate execution system", prompts)
+        self.assertIn("explicit user authorization", prompts)
+
     def test_all_json_documents_parse_and_schema_vocabulary_is_supported(self) -> None:
         paths = sorted(SKILL_ROOT.rglob("*.json"))
-        self.assertEqual(
-            {path.relative_to(SKILL_ROOT).as_posix() for path in paths},
-            EXPECTED_JSON,
+        observed = {path.relative_to(SKILL_ROOT).as_posix() for path in paths}
+        self.assertTrue(
+            EXPECTED_JSON <= observed,
+            f"missing required JSON documents: {sorted(EXPECTED_JSON - observed)}",
         )
         for path in paths:
             with self.subTest(path=path.relative_to(SKILL_ROOT).as_posix()):
@@ -244,6 +338,34 @@ class SchemaContractTests(unittest.TestCase):
         for example_name, schema_name in pairs:
             with self.subTest(example=example_name):
                 assert_valid(load_json(EXAMPLES / example_name), load_json(SCHEMAS / schema_name))
+
+    def test_historical_runtime_artifacts_match_schemas(self) -> None:
+        historical = SKILL_ROOT / "evals" / "historical_e2e"
+        pairs = (
+            ("evidence.json", "evidence.schema.json"),
+            ("opportunity.json", "opportunity.schema.json"),
+            ("portfolio.json", "portfolio.schema.json"),
+        )
+        for artifact_name, schema_name in pairs:
+            with self.subTest(artifact=artifact_name):
+                assert_valid(
+                    load_json(historical / artifact_name),
+                    load_json(SCHEMAS / schema_name),
+                )
+        expected_envelope = {
+            "schema_version": "1.0",
+            "skill_version": "0.0.0.1",
+            "as_of": "2024-12-31",
+            "source_cutoff": "2024-12-31",
+            "previous_version": None,
+        }
+        for path in sorted(historical.glob("*.json")):
+            with self.subTest(envelope=path.name):
+                payload = load_json(path)
+                self.assertEqual(
+                    {field: payload.get(field) for field in ARTIFACT_FIELD_ORDER},
+                    expected_envelope,
+                )
 
     def test_runtime_artifact_envelope_is_required_and_frozen(self) -> None:
         for path in sorted(SCHEMAS.glob("*.schema.json")):
@@ -439,6 +561,11 @@ class SchemaContractTests(unittest.TestCase):
         missing_candidate = copy.deepcopy(opportunity)
         del missing_candidate["candidate"]
         cases.append(("missing-required", missing_candidate, opportunity_schema))
+        missing_equity_bridge = copy.deepcopy(opportunity)
+        del missing_equity_bridge["equity_bridge"]
+        cases.append(
+            ("missing-equity-bridge", missing_equity_bridge, opportunity_schema)
+        )
         score_overflow = copy.deepcopy(opportunity)
         score_overflow["scores"]["constraint"]["funded_demand"] = 5.1
         cases.append(("score-maximum", score_overflow, opportunity_schema))

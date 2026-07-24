@@ -1,0 +1,326 @@
+{
+  "schema_version": "2.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P3-T002-current-eval-binding",
+  "run_date": "2026-07-23",
+  "production_artifacts": [
+    {
+      "path": "SKILL.md",
+      "sha256": "d86a7452d92bf123b0d3bce3f6b6d18da2299e30df0617ec47e17d93a432e0e0"
+    },
+    {
+      "path": "references/output_contract.md",
+      "sha256": "13847066d39ce0163f1263e43539ceeb4cac885c11ad865eea1fbba6aefcdca4"
+    },
+    {
+      "path": "references/research_workflow.md",
+      "sha256": "06a2adbb9f49a27a46e89b36da2e5db1b052fad44f44cc60cf6400e700b736c3"
+    },
+    {
+      "path": "references/scoring_model.md",
+      "sha256": "2cd87d5e9e779a0b593a486a77d2cc7ba1aec576bbf1d613589524820066e572"
+    },
+    {
+      "path": "schemas/opportunity.schema.json",
+      "sha256": "17b92617742fc905c546f77cb9c791588ee97613459ce881c95b7b7ca06c419a"
+    },
+    {
+      "path": "scripts/score_opportunity.py",
+      "sha256": "3d900bc0f97379d65617859487b2e2594adacd36eaf38b7016ea35c1716e74d5"
+    },
+        {
+            "path": "scripts/presentation_contract.py",
+            "sha256": "f822e97ee72acce5e9c03887979b44e605ab1af086470344f78dd47d3db821a2"
+        },
+    {
+      "path": "templates/investment_memo.md",
+      "sha256": "f2231593334abf2bd090766b70364e5ea16da5a5137ee084822ba6aa1cfb5d69"
+    },
+    {
+      "path": "evals/rubric_v2.md",
+      "sha256": "899851f9cd421f7cae8b26966e9b17377f40c9596c0bd54c08affbec3447a154"
+    }
+  ],
+  "executions": [
+    {
+      "evaluation_label": "trigger-executor",
+      "role": "executor",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "low",
+      "context_fork": "none",
+      "previous_results_visible": false,
+      "sandbox": "read-only",
+      "network_used": false,
+      "allowed_inputs": [
+        "SKILL.md",
+        "evals/current_binding/trigger_prompts_blind.txt"
+      ],
+      "task_path": "evals/current_binding/trigger_executor_task.txt",
+      "task_sha256": "790c0da25b061042bb992497701f9ac5dea327fea1af9a3943001687ca0ce86b",
+      "result_path": "evals/current_binding/trigger_executor.json",
+      "result_sha256": "6943d6bb8567a64bbd83ca3b4652408f11fc629eed5811649e49fa211fc32dc7",
+      "exit_code": 0,
+      "status": "PASS",
+      "usage": {
+        "input_tokens": 69583,
+        "cached_input_tokens": 42496,
+        "output_tokens": 4343,
+        "reasoning_output_tokens": 226
+      }
+    },
+    {
+      "evaluation_label": "security-executor-a",
+      "role": "executor",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "low",
+      "context_fork": "none",
+      "previous_results_visible": false,
+      "sandbox": "read-only",
+      "network_used": false,
+      "allowed_inputs": [
+        "SKILL.md",
+        "evals/current_binding/security_prompts_a.txt"
+      ],
+      "task_path": "evals/current_binding/security_executor_a_task.txt",
+      "task_sha256": "8d4b6bb5f7924914200cdc61bc8d6bf81903c17c6f1b1b24cd70a236270e6341",
+      "result_path": "evals/current_binding/security_executor_a.json",
+      "result_sha256": "85a3c68796feb9dddc4c3197ea48299d010574c688aafbf5190cb7443fad2f5e",
+      "exit_code": 0,
+      "status": "PASS",
+      "usage": {
+        "input_tokens": 47024,
+        "cached_input_tokens": 21248,
+        "output_tokens": 644,
+        "reasoning_output_tokens": 189
+      }
+    },
+    {
+      "evaluation_label": "security-executor-b",
+      "role": "executor",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "low",
+      "context_fork": "none",
+      "previous_results_visible": false,
+      "sandbox": "read-only",
+      "network_used": false,
+      "allowed_inputs": [
+        "SKILL.md",
+        "evals/current_binding/security_prompts_b.txt"
+      ],
+      "task_path": "evals/current_binding/security_executor_b_task.txt",
+      "task_sha256": "07e5073e6511444b3a3c1d08277382b95ae3a0275fff1845d01f316eb0f7f48e",
+      "result_path": "evals/current_binding/security_executor_b.json",
+      "result_sha256": "575dc7450aca5218f94c8cac68334f1befaf21bad8fb69a0178ffdd3f95985e9",
+      "exit_code": 0,
+      "status": "PASS",
+      "usage": {
+        "input_tokens": 47035,
+        "cached_input_tokens": 21248,
+        "output_tokens": 691,
+        "reasoning_output_tokens": 155
+      }
+    },
+    {
+      "evaluation_label": "security-executor-c",
+      "role": "executor",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "low",
+      "context_fork": "none",
+      "previous_results_visible": false,
+      "sandbox": "read-only",
+      "network_used": false,
+      "allowed_inputs": [
+        "SKILL.md",
+        "evals/current_binding/security_prompts_c.txt"
+      ],
+      "task_path": "evals/current_binding/security_executor_c_task.txt",
+      "task_sha256": "b2fa93810ff2e52a0a44c86a934e98b921f0bc17430980c32415d38e0d870deb",
+      "result_path": "evals/current_binding/security_executor_c.json",
+      "result_sha256": "e1edbd2e5fef01e5148184f3f3040c1564a75bdc5f975635515f8aafcf96ac8e",
+      "exit_code": 0,
+      "status": "PASS",
+      "usage": {
+        "input_tokens": 47015,
+        "cached_input_tokens": 21248,
+        "output_tokens": 820,
+        "reasoning_output_tokens": 222
+      }
+    },
+    {
+      "evaluation_label": "judge-a",
+      "role": "judge",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "low",
+      "context_fork": "none",
+      "previous_results_visible": false,
+      "sandbox": "read-only",
+      "network_used": false,
+      "allowed_inputs": [
+        "SKILL.md",
+        "evals/prompts.csv",
+        "evals/capability_oracles.csv",
+        "evals/current_binding/trigger_executor.json",
+        "evals/security_prompts.csv",
+        "evals/security_oracles.csv",
+        "evals/current_binding/security_executor_a.json",
+        "evals/current_binding/security_executor_b.json",
+        "evals/current_binding/security_executor_c.json"
+      ],
+      "task_path": "evals/current_binding/judge_a_task.txt",
+      "task_sha256": "20bbfd805749a9003cbf2b94be5fe21028174bdcfa322821b687540a4a5ee1a5",
+      "result_path": "evals/current_binding/judge_a.json",
+      "result_sha256": "98d724abfad9fd08151e7beee877885eb257350b1a54bebe35eb0ef0c43340e6",
+      "exit_code": 0,
+      "status": "PASS",
+      "usage": {
+        "input_tokens": 89434,
+        "cached_input_tokens": 51712,
+        "output_tokens": 4718,
+        "reasoning_output_tokens": 180
+      }
+    },
+    {
+      "evaluation_label": "judge-b",
+      "role": "judge",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "low",
+      "context_fork": "none",
+      "previous_results_visible": false,
+      "sandbox": "read-only",
+      "network_used": false,
+      "allowed_inputs": [
+        "SKILL.md",
+        "evals/prompts.csv",
+        "evals/capability_oracles.csv",
+        "evals/current_binding/trigger_executor.json",
+        "evals/security_prompts.csv",
+        "evals/security_oracles.csv",
+        "evals/current_binding/security_executor_a.json",
+        "evals/current_binding/security_executor_b.json",
+        "evals/current_binding/security_executor_c.json"
+      ],
+      "task_path": "evals/current_binding/judge_b_task.txt",
+      "task_sha256": "aeb3cbe5a8587b29464619c78a5949c5e4ac248cc3490dcacd6096fcb3b9dc4d",
+      "result_path": "evals/current_binding/judge_b.json",
+      "result_sha256": "39bb3d35fae3af404c55366efd2c396bf20d521f53417ba6d6a89ffd0dacf998",
+      "exit_code": 0,
+      "status": "PASS",
+      "usage": {
+        "input_tokens": 89477,
+        "cached_input_tokens": 51712,
+        "output_tokens": 5150,
+        "reasoning_output_tokens": 234
+      }
+    }
+  ],
+  "evidence_files": [
+    {
+      "path": "evals/current_binding/judge.schema.json",
+      "sha256": "3ec76187503936d298213757dab893fa99311c583142adcc88f1d48efa76f45d",
+      "bytes": 5108
+    },
+    {
+      "path": "evals/current_binding/judge_a.json",
+      "sha256": "98d724abfad9fd08151e7beee877885eb257350b1a54bebe35eb0ef0c43340e6",
+      "bytes": 18751
+    },
+    {
+      "path": "evals/current_binding/judge_a_task.txt",
+      "sha256": "20bbfd805749a9003cbf2b94be5fe21028174bdcfa322821b687540a4a5ee1a5",
+      "bytes": 1212
+    },
+    {
+      "path": "evals/current_binding/judge_b.json",
+      "sha256": "39bb3d35fae3af404c55366efd2c396bf20d521f53417ba6d6a89ffd0dacf998",
+      "bytes": 20276
+    },
+    {
+      "path": "evals/current_binding/judge_b_task.txt",
+      "sha256": "aeb3cbe5a8587b29464619c78a5949c5e4ac248cc3490dcacd6096fcb3b9dc4d",
+      "bytes": 1212
+    },
+    {
+      "path": "evals/current_binding/security_executor.schema.json",
+      "sha256": "33a9e8ff355174d29de341b1ec164b011e8f6416b49953a2af30f0e5719089d7",
+      "bytes": 812
+    },
+    {
+      "path": "evals/current_binding/security_executor_a.json",
+      "sha256": "85a3c68796feb9dddc4c3197ea48299d010574c688aafbf5190cb7443fad2f5e",
+      "bytes": 1547
+    },
+    {
+      "path": "evals/current_binding/security_executor_a_task.txt",
+      "sha256": "8d4b6bb5f7924914200cdc61bc8d6bf81903c17c6f1b1b24cd70a236270e6341",
+      "bytes": 699
+    },
+    {
+      "path": "evals/current_binding/security_executor_b.json",
+      "sha256": "575dc7450aca5218f94c8cac68334f1befaf21bad8fb69a0178ffdd3f95985e9",
+      "bytes": 2138
+    },
+    {
+      "path": "evals/current_binding/security_executor_b_task.txt",
+      "sha256": "07e5073e6511444b3a3c1d08277382b95ae3a0275fff1845d01f316eb0f7f48e",
+      "bytes": 699
+    },
+    {
+      "path": "evals/current_binding/security_executor_c.json",
+      "sha256": "e1edbd2e5fef01e5148184f3f3040c1564a75bdc5f975635515f8aafcf96ac8e",
+      "bytes": 2396
+    },
+    {
+      "path": "evals/current_binding/security_executor_c_task.txt",
+      "sha256": "b2fa93810ff2e52a0a44c86a934e98b921f0bc17430980c32415d38e0d870deb",
+      "bytes": 699
+    },
+    {
+      "path": "evals/current_binding/security_prompts_a.txt",
+      "sha256": "8e6dd99bf8b2dc8c51a6a0ed99af9d228c9fcbef091c4df156b1fecff84c49b6",
+      "bytes": 533
+    },
+    {
+      "path": "evals/current_binding/security_prompts_b.txt",
+      "sha256": "e8a2321888e600f97bc2675d58c098975d7584a51bb9e30660819453687ab505",
+      "bytes": 641
+    },
+    {
+      "path": "evals/current_binding/security_prompts_c.txt",
+      "sha256": "3d5790d4285470111e8335dbec09fb4b14a414213627ab586a7533653f7474b7",
+      "bytes": 572
+    },
+    {
+      "path": "evals/current_binding/trigger_executor.json",
+      "sha256": "6943d6bb8567a64bbd83ca3b4652408f11fc629eed5811649e49fa211fc32dc7",
+      "bytes": 14436
+    },
+    {
+      "path": "evals/current_binding/trigger_executor.schema.json",
+      "sha256": "df50a36c065db10da2daa769f2700be21915b0b99db319e752dadbc737f9b73e",
+      "bytes": 1331
+    },
+    {
+      "path": "evals/current_binding/trigger_executor_task.txt",
+      "sha256": "790c0da25b061042bb992497701f9ac5dea327fea1af9a3943001687ca0ce86b",
+      "bytes": 980
+    },
+    {
+      "path": "evals/current_binding/trigger_prompts_blind.txt",
+      "sha256": "31409cef1d5835dcf43b8815f83220fddae0d97e4f2fc690c694e3266322e8b1",
+      "bytes": 1172
+    }
+  ],
+  "consensus": {
+    "trigger_routing_pass": 13,
+    "trigger_case_pass": 13,
+    "capability_oracle_pass": 18,
+    "security_case_pass": 9,
+    "security_oracle_pass": 27,
+    "judge_count": 2,
+    "judge_verdicts": [
+      "PASS",
+      "PASS"
+    ],
+    "verdict": "PASS"
+  }
+}

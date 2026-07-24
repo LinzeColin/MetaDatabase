@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v6",
+  "preexecution_seal_sha256": "b7e3a6ffd31f2959f7d385f311121655805177aa584ea46e784c5b584f5d2f67",
+  "execution_envelope_sha256": "cf99bdfab5cb4615964b778acecf64f8e70e7889a7f29f55eac1d062bd71f3b3",
+  "raw_output_sha256": "4c08a9020a14cfd01b60d3d979387a96cfc7dcceba22e46fa6f61bd1b6ed3580",
+  "raw_output_byte_count": 5294,
+  "decision_label": "BROKEN",
+  "tool_event_count": 0,
+  "projection_write_count": 0,
+  "outcome": "FAIL",
+  "failure_class": "executor-tool-dispatch",
+  "failure_summary": "The fresh executor could not dispatch its first tool call, performed no research or validation, and truthfully returned BROKEN."
+}

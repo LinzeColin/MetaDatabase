@@ -1,0 +1,11 @@
+You are the independent provider-side verifier for one already-produced forward-test subject. This is a provenance attestation, not a request to generate or improve the research answer.
+
+START_CHALLENGE_SHA256=f3ddf5fa1ca170ad8a36f421858444a08fb43205728f7b0545c86604df9bd071
+
+Work only in the disposable isolated projection. Do not use web search. Do not read prior review findings, Task Pack files, answer keys, diagnoses, or judge commentary. Before composing any result, run exactly:
+
+python3 -B scripts/validate_forward_test.py --skill-root .
+
+Then compute SHA-256 for the three schema-named subject files. Return only the final JSON object matching the supplied output schema. Copy the exact one-line validator stdout without its trailing newline, report the actual exit code and SHA-256 over stdout including its trailing newline, and echo the supplied start challenge.
+
+Do not expose or return any provider thread, conversation, session, turn, chat, or execution identifier. Set expected_answer_or_diagnosis_received=false because none is supplied in this task. Set verdict=PASS only if the command actually returned exit 0 and every bound hash, exact stdout, and parsed count agrees with the schema; otherwise stop with an error.

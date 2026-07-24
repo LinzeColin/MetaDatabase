@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["judge_id", "files_read", "trigger", "security", "overall"],
+  "properties": {
+    "judge_id": {"type": "string", "minLength": 1},
+    "files_read": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {"type": "string"}
+    },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_verdicts", "oracle_verdicts", "summary"],
+      "properties": {
+        "case_verdicts": {
+          "type": "array",
+          "minItems": 13,
+          "maxItems": 13,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "routing",
+              "required_content",
+              "forbidden_content",
+              "overall",
+              "criterion_evidence",
+              "rationale"
+            ],
+            "properties": {
+              "id": {"type": "string"},
+              "routing": {"enum": ["PASS", "FAIL"]},
+              "required_content": {"enum": ["PASS", "FAIL"]},
+              "forbidden_content": {"enum": ["PASS", "FAIL"]},
+              "overall": {"enum": ["PASS", "FAIL"]},
+              "criterion_evidence": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["criterion", "evidence_quote"],
+                  "properties": {
+                    "criterion": {"type": "string"},
+                    "evidence_quote": {"type": "string"}
+                  }
+                }
+              },
+              "rationale": {"type": "string"}
+            }
+          }
+        },
+        "oracle_verdicts": {
+          "type": "array",
+          "minItems": 18,
+          "maxItems": 18,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["oracle_id", "verdict", "evidence_quote", "rationale"],
+            "properties": {
+              "oracle_id": {"type": "string"},
+              "verdict": {"enum": ["PASS", "FAIL"]},
+              "evidence_quote": {"type": "string"},
+              "rationale": {"type": "string"}
+            }
+          }
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "case_total",
+            "case_pass",
+            "failed_case_ids",
+            "oracle_total",
+            "oracle_pass",
+            "failed_oracle_ids"
+          ],
+          "properties": {
+            "case_total": {"type": "integer"},
+            "case_pass": {"type": "integer"},
+            "failed_case_ids": {"type": "array", "items": {"type": "string"}},
+            "oracle_total": {"type": "integer"},
+            "oracle_pass": {"type": "integer"},
+            "failed_oracle_ids": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["oracle_verdicts", "case_verdicts", "summary"],
+      "properties": {
+        "oracle_verdicts": {
+          "type": "array",
+          "minItems": 27,
+          "maxItems": 27,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "case_id",
+              "criterion_id",
+              "verdict",
+              "evidence_quote",
+              "rationale"
+            ],
+            "properties": {
+              "case_id": {"type": "string"},
+              "criterion_id": {"type": "string"},
+              "verdict": {"enum": ["PASS", "FAIL"]},
+              "evidence_quote": {"type": "string"},
+              "rationale": {"type": "string"}
+            }
+          }
+        },
+        "case_verdicts": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["case_id", "verdict"],
+            "properties": {
+              "case_id": {"type": "string"},
+              "verdict": {"enum": ["PASS", "FAIL"]}
+            }
+          }
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "case_total",
+            "case_pass",
+            "oracle_total",
+            "oracle_pass",
+            "failed_case_ids",
+            "failed_criterion_ids"
+          ],
+          "properties": {
+            "case_total": {"type": "integer"},
+            "case_pass": {"type": "integer"},
+            "oracle_total": {"type": "integer"},
+            "oracle_pass": {"type": "integer"},
+            "failed_case_ids": {"type": "array", "items": {"type": "string"}},
+            "failed_criterion_ids": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      }
+    },
+    "overall": {"enum": ["PASS", "FAIL"]}
+  }
+}

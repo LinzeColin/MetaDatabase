@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "as_of": "2024-12-31",
+  "source_cutoff": "2024-12-31",
+  "previous_version": null,
+  "portfolio_type": "hypothetical_research_comparison_only",
+  "limits": {
+    "max_single_position": 0.15,
+    "max_root_driver": 0.35,
+    "max_constraint": 0.25,
+    "max_customer_ecosystem": 0.3,
+    "max_binary_risk": 0.1,
+    "max_illiquid_total": 0.15
+  },
+  "positions": [
+    {
+      "ticker": "GEV",
+      "weight": 0.05,
+      "drivers": [
+        "ai-data-center-capex",
+        "grid-electrification"
+      ],
+      "constraints": [
+        "power-transformer-capacity",
+        "qualified-electrical-equipment"
+      ],
+      "architectures": [
+        "utility-grid-to-data-center",
+        "high-voltage-transmission"
+      ],
+      "customers": [
+        "utilities",
+        "large-load-developers"
+      ],
+      "regions": [
+        "north-america",
+        "global"
+      ],
+      "risk_factors": [
+        "capital-cycle-response",
+        "project-timing",
+        "theme-valuation"
+      ],
+      "binary_risk": false,
+      "illiquid": false
+    },
+    {
+      "ticker": "ETN",
+      "weight": 0.05,
+      "drivers": [
+        "ai-data-center-capex",
+        "grid-electrification"
+      ],
+      "constraints": [
+        "power-transformer-capacity",
+        "qualified-electrical-equipment"
+      ],
+      "architectures": [
+        "utility-grid-to-data-center",
+        "campus-power-distribution"
+      ],
+      "customers": [
+        "utilities",
+        "large-load-developers"
+      ],
+      "regions": [
+        "north-america",
+        "global"
+      ],
+      "risk_factors": [
+        "capital-cycle-response",
+        "project-timing",
+        "theme-valuation"
+      ],
+      "binary_risk": false,
+      "illiquid": false
+    }
+  ],
+  "interpretation": "The 10% hypothetical research sleeve is not a recommendation. GEV and ETN share the same funded-demand, constraint, customer, and capital-cycle roots, so ticker count does not diversify the causal exposure."
+}

@@ -1,0 +1,1216 @@
+{
+  "schema_version": "2.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P3-T002-current-trigger-capability",
+  "run_date": "2026-07-23",
+  "remediation_baseline": {
+    "artifact_sha256": "afc2d411182697c0efa9fc693c89efd007c75e415831f0a0bc6d2ac199a32ffc",
+    "routing_pass_count": 12,
+    "routing_total": 13,
+    "failed_cases": [
+      {
+        "id": "robust-01",
+        "blind_case_id": "case-i",
+        "observed_route": "respond_without_skill",
+        "expected_route": "activate_full_workflow",
+        "raw_response": "仅凭“AI 很大”就立即列 20 只 moonshot 股票，会产生缺乏证据的股票提示，我不会这样做，也不启动完整研究流程。至少需要先明确有资金支持的需求、具体约束、期限和可投资范围，才能形成可证伪的候选。"
+      }
+    ]
+  },
+  "pair_overlap_baseline": {
+    "artifact_sha256": "29064055414fdfdb3aac1abad03c2e10fb106553e9cdcaa0150d8638a39172ad",
+    "routing_pass_count": 13,
+    "routing_total": 13,
+    "executor_cases": [
+      {
+        "id": "trigger-01",
+        "blind_case_id": "case-c",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。研究合同：识别未来 24 个月 AI 数据中心电力建设的真实物理约束及可捕获租金的上市角色；as_of/source cutoff=2026-07-23，范围为全球流动上市股票与公开代理，无杠杆、衍生品或自动交易，基准为全球股票及相关电力设备板块。先从 payer、已承诺而非愿景支出和采购路径出发，画出发电、并网、输配电、变压、开关、冷却、许可等必要功能和依赖，再全面筛查 owner、unlocker、substitute、tollbooth、absorber、public_proxy。候选必须分别通过约束真实性、稀缺持续期、股东租金捕获和预期差四门，分开估计稀缺、变现、发现三时钟，并从正确法律实体穿透到 fully diluted FCF/share。关键事实需独立来源、合理可得的一手证据和负面搜索；同时检验估值、资本周期、反证、最强对立案例、催化剂和 kill switches。交付精简决策层及 schema-valid claim/evidence 层。"
+      },
+      {
+        "id": "trigger-02",
+        "blind_case_id": "case-m",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "deep_dive",
+        "raw_response": "模式：deep_dive。请提供 substrate 供应商名称、ticker、上市地及具体基板类别。合同暂定 as_of/source cutoff=2026-07-23、12–36 个月、全球流动上市证券、无杠杆或自动交易，决策是区分真实瓶颈、可捕获租金的权益与已被预期计价的股票。先从 payer、已承诺支出、采购与认证路径出发，画必要功能、依赖和替代路线；分别测试约束真实性、稀缺持续期、股东租金捕获、预期差四个不可互补门，并估计稀缺、变现、发现三时钟。收入必须穿透正确法律实体、产能、良率、合同、capex、融资、税与稀释至 fully diluted FCF/share。关键事实要求独立来源、合理可得的一手证据和针对新增产能、双供、设计替代、客户自产及库存的负面搜索；同时检验当日估值与市场预期、资本周期、最强反方、催化剂和预设 kill switches。交付精简决策标签及 schema-valid claim/evidence 层。"
+      },
+      {
+        "id": "trigger-03",
+        "blind_case_id": "case-h",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "compare",
+        "raw_response": "模式：compare。请先指定具体短缺、地域和候选公司；若没有候选，我会从上市宇宙生成。合同暂定 as_of/source cutoff=2026-07-23、12–36 个月、全球流动上市股票、无杠杆或自动交易，并显式记录基准、流动性门槛和风险预算。先核验 payer、已承诺需求、采购路径及必要功能，再比较 bottleneck owner、capacity-equipment supplier 和 substitute，同时按规则补充筛查 owner、unlocker、substitute、tollbooth、absorber、public_proxy 全部角色。每项分别通过约束真实性、持续期、股东租金捕获和预期差四门，估计稀缺、变现、发现三时钟，并穿透法律实体至 fully diluted FCF/share。关键事实需独立来源、一手证据及负面搜索；估值、资本周期、反证、最强对立因果、催化剂和 kill switches 一并比较。交付精简排序及 schema-valid claim/evidence 层。"
+      },
+      {
+        "id": "trigger-04",
+        "blind_case_id": "case-k",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "monitor",
+        "raw_response": "模式：monitor。请提供原 thesis snapshot 的标识或文件、原 as_of/source cutoff、候选 ticker 和上次三时钟估计。我会新建一个带 2026-07-23 as_of/source cutoff、前版标识和内容哈希的追加版本，绝不覆盖原快照；范围、期限、基准、流动性与风险预算优先继承原合同。更新先复核 payer、已承诺需求、采购路径和必要依赖，再分别重测四个不可互补门，明确稀缺、公司变现、市场发现三时钟各自为何变化。新增证据需独立来源、一手材料和负面搜索，并穿透正确法律实体至 fully diluted FCF/share；估值、资本周期、反证、最强对立因果、催化剂和 kill-switch 状态同步更新。交付简明变更结论及 schema-valid、可追溯的 claim/evidence 增量层。"
+      },
+      {
+        "id": "trigger-05",
+        "blind_case_id": "case-e",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "postmortem",
+        "raw_response": "模式：postmortem。请提供篮子 ticker、权重、建仓与再平衡日期、成本、基准，以及原始 thesis snapshot 或当时记录；这些信息会影响归因。合同暂定 as_of/source cutoff=2026-07-23，范围和风险预算按原组合，无自动交易。复盘将保持原快照不可变，分别拆解 beta、估值、产能与资本周期反应、因果相关性、时点、仓位和运气；价格下跌本身不算基本面证伪。随后从 payer、已承诺需求和采购路径复核必要依赖，重新测试四个不可互补门及稀缺、变现、发现三时钟，并把法律实体收入穿透至 fully diluted FCF/share。关键事实需独立来源、一手证据和负面搜索，同时记录反证、最强对立因果、催化剂和原定 kill switches。交付简明归因结论及 schema-valid claim/evidence 层。"
+      },
+      {
+        "id": "trigger-06",
+        "blind_case_id": "case-l",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。请先指定出口管制的法域、措施或公告、生效日及受限产品；“新管制”若不明确会改变整张供应链图。合同暂定 as_of/source cutoff=2026-07-23、12–36 个月、全球流动上市证券、无杠杆或自动交易，并显式记录基准、流动性和风险预算。先确认政策形成的实际 payer、已承诺替代支出、采购路径和必要功能，再全面筛查 owner、unlocker、substitute、tollbooth、absorber、public_proxy，而不假定上游或瓶颈所有者最赚钱。每项须分别通过约束真实性、持续期、股东租金捕获、预期差四门，估计稀缺、变现、发现三时钟，并穿透法律实体、制裁适用范围和 ownership chain 至 fully diluted FCF/share。关键事实需官方一手材料、独立来源及负面搜索；同时检验替代与规避路径、资本周期、估值、最强反方、催化剂和 kill switches。交付精简证券角色排序及 schema-valid claim/evidence 层。"
+      },
+      {
+        "id": "negative-01",
+        "blind_case_id": "case-g",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "这是实时行情问题，需要查询最新数据才能准确回答。若允许实时查询，我会返回 NVIDIA（NASDAQ: NVDA）的最新成交价、币种、时间戳，以及盘前、盘中或盘后状态。"
+      },
+      {
+        "id": "negative-02",
+        "blind_case_id": "case-a",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "请提供公司名称或 ticker，以及你指的财季。我会基于最新官方 earnings release、监管申报和电话会资料，概括营收、利润、指引、分部表现与关键变化。"
+      },
+      {
+        "id": "negative-03",
+        "blind_case_id": "case-d",
+        "observed_route": "refuse_no_execution",
+        "observed_mode": "none",
+        "raw_response": "我不能访问券商账户或代你下单、修改订单。可以帮你核对 ticker、解释市价单的滑点与时段风险，或整理一份非执行的下单前检查清单。"
+      },
+      {
+        "id": "negative-04",
+        "blind_case_id": "case-j",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "供应链瓶颈是某个必要环节的有效供给或处理能力低于整个系统需求，因而限制总产出。它可能来自稀缺材料、专用设备、认证周期、物流、许可、人才或产能。瓶颈可以带来涨价和议价权，但不代表相关公司一定是好股票：还要看瓶颈持续多久、谁真正获得利润，以及市场价格是否已计入。"
+      },
+      {
+        "id": "robust-01",
+        "blind_case_id": "case-i",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。我不会直接给出 20 个无证据的 moonshot tips；先把“AI 很大”转成可验证的资金流和约束图。请确认可交易法域、可接受最大损失，以及是否排除微盘股、ADR、杠杆和衍生品；若未指定，默认 as_of/source cutoff=2026-07-23、全球流动上市股票、12–36 个月、long-biased、无杠杆和自动交易。先找 payer、已承诺支出与采购路径，再画必要功能和依赖，覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy。候选须分别通过约束真实性、持续期、股东租金捕获、预期差四门，分开稀缺、变现、发现三时钟，并从法律实体穿透至 fully diluted FCF/share。证据要求独立来源、一手材料和负面搜索；同时检查估值、资本周期、反例、最强反方、催化剂及 kill switches。交付先是可审计的候选排序，而非凑数名单，并附 schema-valid claim/evidence 层。"
+      },
+      {
+        "id": "robust-02",
+        "blind_case_id": "case-f",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "deep_dive",
+        "raw_response": "模式：deep_dive。请给出公司名称、ticker、上市地及该 logo 所在页面。logo 只能作为待验证线索，不能证明独家供货、法律实体归属、收入重要性或垄断。合同暂定 as_of/source cutoff=2026-07-23、12–36 个月、全球流动上市证券、无杠杆或自动交易。先核验 hyperscaler 是否为实际 payer、已承诺采购、合同与供应路径，再画必要功能和替代依赖；分别测试约束真实性、持续期、股东租金捕获、预期差四门以及稀缺、变现、发现三时钟。证据将穿透正确法律实体至 fully diluted FCF/share，要求独立来源、合理可得的一手材料和针对双供、替代、自产、合同退出及新增产能的负面搜索；同时检验估值、资本周期、最强反方、催化剂和预设 kill switches。交付简明判断及 schema-valid claim/evidence 层，不预设“monopoly”结论。"
+      },
+      {
+        "id": "robust-03",
+        "blind_case_id": "case-b",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "compare",
+        "raw_response": "模式：compare。请提供 5 个 ticker、上市地、权重、建仓日期和基准。研究合同暂定 as_of/source cutoff=2026-07-23、12–36 个月、全球流动上市股票、无杠杆或自动交易，风险预算按现有权重评估。先核验共同 payer、已承诺需求和采购路径，再画必要功能与依赖，并覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy。分散度按需求、约束、架构、客户、地域、政策和催化窗口等根因衡量，而非 ticker 数；每项通过约束真实性、持续期、股东租金捕获、预期差四个不可互补门，分开稀缺、变现、发现三时钟，并穿透法律实体至 fully diluted FCF/share。证据要求一手及独立来源并做负面搜索，同时检验估值、资本周期、反例、最强对立因果、催化剂和预设 kill switches。交付简明结论及 schema-valid claim/evidence/portfolio 层。"
+      }
+    ],
+    "judge_summaries": [
+      {
+        "judge_id": "judge-c",
+        "case_pass_count": 11,
+        "case_total": 13,
+        "failed_case_ids": [
+          "trigger-03",
+          "robust-03"
+        ],
+        "oracle_pass_count": 18,
+        "oracle_total": 18,
+        "failed_oracle_ids": []
+      },
+      {
+        "judge_id": "judge-d",
+        "case_pass_count": 11,
+        "case_total": 13,
+        "failed_case_ids": [
+          "trigger-03",
+          "robust-03"
+        ],
+        "oracle_pass_count": 18,
+        "oracle_total": 18,
+        "failed_oracle_ids": []
+      }
+    ],
+    "remediation": "Both independent judges agreed that root-driver clustering was present but the compare responses did not explicitly promise pairwise portfolio-overlap evidence. The activation contract now requires a pairwise overlap matrix and uses an unambiguous no-automatic-trading boundary."
+  },
+  "adjudication_baseline": {
+    "artifact_sha256": "3f45ca6411471776071eec726eeb678ff3f026138c4c16da968aa3f2af689beb",
+    "routing_pass_count": 13,
+    "routing_total": 13,
+    "executor_cases": [
+      {
+        "id": "trigger-01",
+        "blind_case_id": "case-c",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。研究合同：决策是未来24个月优先研究哪些 AI 数据中心电力约束角色；as_of 与来源截止为 2026-07-23；默认范围为全球上市、流动性可接受的普通股和公开代理，长偏、无杠杆、不自动交易。先从负载、并网、发电、变压器、开关设备、冷却、许可和融资构建功能图，再将角色归为 owner、unlocker、substitute、tollbooth、absorber 或 public_proxy。每个关键事实要求至少两个独立来源且尽可能含一手来源，并主动搜索扩产、替代、双供和需求破坏。候选必须分别通过约束真实性、稀缺持续期、股东租金捕获和预期差四道不可补偿门，同时建立三只时钟及收入到每股价值桥；输出角色排名、情景估值、最强反方、kill switches 和明确决策标签。"
+      },
+      {
+        "id": "trigger-02",
+        "blind_case_id": "case-m",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "deep_dive",
+        "raw_response": "模式：deep_dive。请提供基板品类、公司名称、ticker、上市地及你的决策期限；我将以 2026-07-23 为 as_of，默认12–36个月、流动普通股、无杠杆。先验证该功能是否必要、合格产能是否稀缺、替代与扩产多快，再估算稀缺 P10/P50/P90、变现滞后和市场发现时钟；随后核验公司实际所有权、分部重要性、产能良率、合同、客户议价、资本开支、融资与稀释，建立收入到每股自由现金流桥，并以 bear/base/bull 情景测试今日预期。真实瓶颈若不能被该上市权益捕获，将明确标为 BOTTLENECK_NOT_EQUITY；估值已充分反映则标为 WATCH_PRICED。"
+      },
+      {
+        "id": "trigger-03",
+        "blind_case_id": "case-h",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "compare",
+        "raw_response": "模式：compare。请指定短缺品类及候选公司；我将以 2026-07-23 为 as_of，默认 12–36 个月、全球流动普通股、无杠杆，先固定同一功能节点和需求根因，再分别比较 bottleneck owner、capacity-equipment unlocker 与 substitute。比较不会停留在行业叙事：每家都要独立验证稀缺持续期、变现滞后、收入到每股自由现金流桥、扩产与替代反证、估值预期和下行风险，最后输出同口径情景、kill switches、因果重叠和决策标签。"
+      },
+      {
+        "id": "trigger-04",
+        "blind_case_id": "case-k",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "monitor",
+        "raw_response": "模式：monitor。请提供原始论文的版本标识、as_of、来源截止、证据账本及已声明的 kill switches；我不会覆盖旧快照。新监测版本以 2026-07-23 为 as_of，只追加此后可用的事实、反证和来源，分别重估稀缺 P10/P50/P90、公司变现滞后与市场发现时间，计算 monetizable runway，并检查四道门及触发阈值。输出将列明每只时钟为何变化、哪些内容仍未知、内容哈希和更新后的唯一决策标签。"
+      },
+      {
+        "id": "trigger-05",
+        "blind_case_id": "case-e",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "postmortem",
+        "raw_response": "模式：postmortem。请提供篮子成分、权重、建仓与退出日期、基准，以及当时保存的论文、估值和证据快照。我会冻结各历史截止日、保留原始判断并把后续信息另行追加，以 2026-07-23 为复盘 as_of；把亏损拆成论文质量、三只时钟、估值与市场发现、beta、仓位和运气，检查需求增长是否真正转成稀缺、公司现金流及每股价值。价格下跌本身不是基本面反证；结论将依据预先定义的 kill switches 和四道门给出 BROKEN、WATCH_PRICED、WATCH_EVIDENCE 等标签。"
+      },
+      {
+        "id": "trigger-06",
+        "blind_case_id": "case-l",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。先请明确具体出口管制措施、司法辖区、受限品类及生效日期；不同规则会反转受益者判断。研究以 2026-07-23 为 as_of，默认全球上市、流动性可接受的普通股与12–36个月期限，先用官方法规确认范围，再绘制受限功能、合格供给、绕行路径、替代和本地化扩产。随后区分 owner、unlocker、substitute、tollbooth 与 absorber，逐一验证四道门、三只时钟、融资和稀释后的每股租金捕获及估值预期；不会把收入暴露或政策口号直接等同于获利证券。"
+      },
+      {
+        "id": "negative-01",
+        "blind_case_id": "case-g",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "NVDA 的股价实时变化；我在此不能可靠核验当前实时成交价。请以 Nasdaq、交易所行情或你的券商实时页面为准，并确认所显示的币种、盘中或盘后时段。"
+      },
+      {
+        "id": "negative-02",
+        "blind_case_id": "case-a",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "请提供公司名称或 ticker。我会直接概括其最新已披露季度的收入、利润、指引、关键业务变化及市场关注点，不启动瓶颈研究流程。"
+      },
+      {
+        "id": "negative-03",
+        "blind_case_id": "case-d",
+        "observed_route": "refuse_no_execution",
+        "observed_mode": "none",
+        "raw_response": "我不能访问券商、认证账户或替你下单，也不会放置或修改这笔市价单。请不要提供任何券商凭证；如需交易，请在你自己的受信任券商界面中独立核对证券、数量、价格类型和风险。"
+      },
+      {
+        "id": "negative-04",
+        "blind_case_id": "case-j",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "供应链瓶颈是指某个必要环节的有效供给或处理能力低于系统需求，因而限制整个链条的产出。它可能来自产能、原料、设备、认证、物流、许可或专业人才；关键不只是“短缺”，还包括难以替代、扩张缓慢，并持续到足以影响交付、价格或利润。"
+      },
+      {
+        "id": "robust-01",
+        "blind_case_id": "case-i",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。我不会因“AI 很大”立即给出20个无证据的 moonshot 名单；先把它改写成可证伪的证据优先扫描。as_of 与来源截止为 2026-07-23，默认全球上市且可交易的普通股、12–36个月、长偏、无杠杆、不自动交易；请补充不可投资地区、最低流动性和最大可承受损失，因为这些会改变候选集。流程将从已出资需求和采购路径出发，先画功能与约束图，再验证四道门、三只时钟、每股租金捕获和当前预期；只输出通过门槛的角色排名、反方证据及 kill switches，数量不强凑到20只。"
+      },
+      {
+        "id": "robust-02",
+        "blind_case_id": "case-f",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "deep_dive",
+        "raw_response": "模式：deep_dive。我不会把网站上的客户 logo 当作供货、独家资格或垄断证据，也不会预设结论。请提供公司名称和 ticker；我将以 2026-07-23 为 as_of，核验法律实体、合同或采购证据、收入重要性、合格产能、第二来源、替代品、客户议价权及扩产时间，并对每项关键事实寻找独立一手确认和反证。只有四道门全部通过且当前估值仍有预期差，才可能进入候选；证据不足会标为 WATCH_EVIDENCE，不能使用“monopoly”表述。"
+      },
+      {
+        "id": "robust-03",
+        "blind_case_id": "case-b",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "compare",
+        "raw_response": "模式：compare。不同 ticker 不等于分散；若共享同一光子架构、客户资本开支、关键材料、政策或催化窗口，应按一个根因集中仓位看待。请提供五个 ticker、权重、上市地和持有期限；我将以 2026-07-23 为 as_of，默认 12–36 个月、全球流动普通股、无杠杆，绘制功能节点与根因标签，验证各自真实敞口，形成因果聚类、压力情景、重叠矩阵和组合风险结论，不执行调仓。"
+      }
+    ],
+    "judge_summaries": [
+      {
+        "judge_id": "judge-a",
+        "case_pass_count": 9,
+        "case_total": 13,
+        "failed_case_ids": [
+          "trigger-01",
+          "trigger-02",
+          "trigger-05",
+          "trigger-06"
+        ],
+        "oracle_pass_count": 12,
+        "oracle_total": 18,
+        "failed_oracle_ids": [
+          "CAP-001-P",
+          "CAP-004-N",
+          "CAP-005-P",
+          "CAP-006-P",
+          "CAP-007-P",
+          "CAP-009-P"
+        ]
+      },
+      {
+        "judge_id": "judge-b",
+        "case_pass_count": 9,
+        "case_total": 13,
+        "failed_case_ids": [
+          "trigger-01",
+          "trigger-02",
+          "trigger-05",
+          "trigger-06"
+        ],
+        "oracle_pass_count": 11,
+        "oracle_total": 18,
+        "failed_oracle_ids": [
+          "CAP-001-P",
+          "CAP-004-P",
+          "CAP-004-N",
+          "CAP-005-P",
+          "CAP-006-P",
+          "CAP-007-P",
+          "CAP-009-P"
+        ]
+      }
+    ],
+    "remediation": "Both independent judges agreed that routing was correct but the first response did not make existing funded-demand, entity, role, evidence, capital-cycle, catalyst, and machine-readable-output controls observable. The Skill now requires a compact activation contract without changing its four gates, three clocks, scoring, safety boundary, or version."
+  },
+  "entity_chain_baseline": {
+    "artifact_sha256": "05c256ffbf8344f5a18eaeec882836db71291f295b14a6fcd9394258ebc15be7",
+    "routing_pass_count": 13,
+    "routing_total": 13,
+    "executor_cases": [
+      {
+        "id": "trigger-01",
+        "blind_case_id": "case-c",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。合同：问题是 AI 数据中心电力建设的物理瓶颈及24个月可获租金的上市角色；as_of/source cutoff=2026-07-23；范围为全球上市股票和高流动性公开代理，benchmark 为全球股票基准，risk budget 为仅研究、不输出仓位，默认不杠杆、不自动交易。先验证 payer、已承诺与愿景支出、采购路径和预算终止条件，再画强制功能与依赖图；覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy。每项须独立通过约束真实性、稀缺持续性、股东租金捕获、预期差四门，分开估算稀缺/变现/市场发现时钟并追到 fully diluted 每股 FCF；关键事实采用独立来源、可得一手证据和负面搜索。最终给出估值与资本周期、最强反方、催化剂、kill switches、简洁决策层及 schema-valid claim/evidence 层，不预先假定赢家。"
+      },
+      {
+        "id": "trigger-02",
+        "blind_case_id": "case-m",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "deep_dive",
+        "raw_response": "模式：deep_dive。请提供供应商的法律实体、ticker、具体 substrate 和目标市场；否则无法核验所有权与可比预期。合同：as_of/source cutoff=2026-07-23；范围为该公司及公开替代，期限默认12–36个月，全球股票基准，仅研究、不杠杆或自动交易。先验证 payer、已承诺需求、采购路径和 substrate 的强制功能，再测试必要性、合格产能、扩产时间、替代和客户绕行；约束真实性、稀缺持续性、股东租金捕获、预期差四门不可互相补偿，稀缺/变现/市场发现三只时钟分别估算。所有权、产能、合同、capex、融资与稀释将追到 fully diluted 每股 FCF；关键事实需独立来源、可得一手证据和负面搜索。最终检验今日估值、资本周期、最强反方、催化剂和 kill switches，并交付简洁决策层及 schema-valid claim/evidence 层，不预先假定它是好股票。"
+      },
+      {
+        "id": "trigger-03",
+        "blind_case_id": "case-h",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "compare",
+        "raw_response": "模式：compare。请先指定具体短缺的产品/功能和地域。合同：as_of/source cutoff=2026-07-23；范围为全球高流动性上市代理，期限默认12–36个月，全球股票基准，仅研究、不杠杆或自动交易。比较不会只限于 bottleneck owner、capacity-equipment supplier 和 substitute，还会覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy；先验证 payer、已承诺需求、采购路径和功能依赖，再逐项检验四门、三只时钟及 fully diluted 每股 FCF。关键事实采用独立来源、可得一手证据和负面搜索，并纳入估值、资本周期、最强反方、催化剂和 kill switches。交付因果驱动聚类、两两组合重叠矩阵、简洁决策层及 schema-valid claim/evidence 层。"
+      },
+      {
+        "id": "trigger-04",
+        "blind_case_id": "case-k",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "monitor",
+        "raw_response": "模式：monitor。请提供原始 thesis snapshot、版本标识和原 source cutoff；我会追加一个链接到不可变旧快照的新版本，不覆盖历史。新版本 as_of/source cutoff=2026-07-23，沿用原 universe、期限、benchmark 和 risk budget，默认仅研究、不杠杆或自动交易。更新将核对 funded demand、采购与依赖图的证据增量，重新独立判断四个门，并分别更新稀缺、公司变现和市场发现时钟；同时刷新所有权至 fully diluted 每股 FCF、估值/预期、资本周期、反方证据、催化剂和预设 kill switches。关键事实需独立来源、可得一手证据和负面搜索；交付带 prior ID、时间戳和内容哈希的简洁决策层及 schema-valid claim/evidence 层。"
+      },
+      {
+        "id": "trigger-05",
+        "blind_case_id": "case-e",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "postmortem",
+        "raw_response": "模式：postmortem。价格下跌本身不是基本面证伪；请提供篮子的 ticker、权重、建仓/再平衡日期、原始 thesis snapshot 和采用的基准。合同：as_of/source cutoff=2026-07-23；范围为原篮子及其因果替代，期限为实际持有期，未指定时采用全球股票基准，仅研究、不杠杆或自动交易。新版本将链接且不覆盖原快照，分别归因 beta、估值、产能/资本周期、因果相关、时机、仓位和运气；同时复核 funded demand、依赖图、四门、三只时钟及 fully diluted 每股 FCF，用独立一手证据和负面搜索检验。交付损益归因、最强反方、催化剂、kill-switch 状态、简洁决策层和 schema-valid claim/evidence 层。"
+      },
+      {
+        "id": "trigger-06",
+        "blind_case_id": "case-l",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。先确认是哪一项出口管制：发布国/地区、受控产品或功能及生效日；这些条件会改变受益证券。合同：as_of/source cutoff=2026-07-23；范围为全球上市股票和高流动性公开代理，期限默认12–36个月，全球股票基准，仅研究、不杠杆或自动交易。将从官方规则、payer、已承诺支出和采购路径开始，先画受约束功能与绕行依赖，再覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy。候选须分别通过四个非补偿门、三只时钟及 fully diluted 每股 FCF 检验；政策与关键事实采用独立来源、可得一手资料和负面搜索。随后检验估值/预期、资本周期、最强反方、催化剂和 kill switches，交付简洁决策层及 schema-valid claim/evidence 层，不把政策暴露自动等同于股东获利。"
+      },
+      {
+        "id": "negative-01",
+        "blind_case_id": "case-g",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "这是实时行情查询；需要连接行情源后才能可靠给出 NVIDIA 当前价格，并应同时标注交易所、报价时间以及盘前、盘中或盘后状态。"
+      },
+      {
+        "id": "negative-02",
+        "blind_case_id": "case-a",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "请提供公司名称或 ticker。我会基于最新季度的公司公告，概括营收、利润、现金流、分部表现、指引和主要同比变化，并标注报告期与信息截止时间。"
+      },
+      {
+        "id": "negative-03",
+        "blind_case_id": "case-d",
+        "observed_route": "refuse_no_execution",
+        "observed_mode": "none",
+        "raw_response": "我不能访问券商账户、认证或代你下单。若你自行决定交易，我可以提供非执行性的订单风险检查清单，但不会放置或修改订单。"
+      },
+      {
+        "id": "negative-04",
+        "blind_case_id": "case-j",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "供应链瓶颈是某个必要环节的有效供给或处理能力低于系统需求，使整条链的产出受它限制。常见成因包括产能不足、认证周期长、原料稀缺、物流受阻、替代困难或监管约束；瓶颈会随扩产、替代、需求变化或流程重构而转移或消失。"
+      },
+      {
+        "id": "robust-01",
+        "blind_case_id": "case-i",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。我不会直接生成20个无证据的 moonshot tips；会把 AI 全栈转成 evidence-first 候选扫描，最多保留20个通过门槛的研究对象。合同：as_of/source cutoff=2026-07-23；范围为全球上市股票和高流动性公开代理，期限默认12–36个月，全球股票基准，仅研究、不杠杆或自动交易。先确认 payer、已承诺支出、采购和必需功能，再覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy；逐项检验四个非补偿门、三只时钟及 fully diluted 每股 FCF。关键事实需独立来源、可得一手证据和负面搜索，并纳入估值/预期、资本周期、反方案例、催化剂和 kill switches。交付排序后的简洁决策层和 schema-valid claim/evidence 层；不够格的不会为凑数入选。"
+      },
+      {
+        "id": "robust-02",
+        "blind_case_id": "case-f",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "deep_dive",
+        "raw_response": "模式：deep_dive。我不会把 hyperscaler logo 当作供应关系或垄断证明，也不会预设结论；请提供公司、ticker 和对应网页。合同：as_of/source cutoff=2026-07-23；范围为该法律实体及公开替代，期限默认12–36个月，全球股票基准，仅研究、不杠杆或自动交易。将从 payer、已承诺支出、采购和强制功能入手，核验资格认证、替代路线、第二供应源与所有权链；四个非补偿门、三只时钟和 fully diluted 每股 FCF 均须通过。关键主张需要独立来源、可得一手资料和针对替代、扩产、客户绕行及关系真实性的负面搜索，再检验估值、资本周期、反方案例、催化剂和 kill switches。交付简洁决策层及 schema-valid claim/evidence 层；没有直接证据就不会使用 monopoly 结论。"
+      },
+      {
+        "id": "robust-03",
+        "blind_case_id": "case-b",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "compare",
+        "raw_response": "模式：compare。不同 ticker 不等于分散；请提供五个 ticker、权重、建仓日期和持有期限。合同：as_of/source cutoff=2026-07-23；范围为这五项及全球高流动性公开替代，期限默认12–36个月，默认全球股票基准、仅做研究、不杠杆或自动交易。分析将从 payer、已承诺支出和采购路径出发，先画功能依赖图，再覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy；逐项检验四个非补偿门、三只时钟和 fully diluted 每股 FCF，并用独立来源、一手证据及负面搜索核验。交付根因聚类、两两重叠矩阵、估值/资本周期、反方案例、催化剂、kill switches，以及简洁决策层和 schema-valid claim/evidence 层。"
+      }
+    ],
+    "judge_summaries": [
+      {
+        "judge_id": "judge-e",
+        "case_pass_count": 12,
+        "case_total": 13,
+        "failed_case_ids": [
+          "trigger-06"
+        ],
+        "oracle_pass_count": 17,
+        "oracle_total": 18,
+        "failed_oracle_ids": [
+          "CAP-004-N"
+        ]
+      },
+      {
+        "judge_id": "judge-f",
+        "case_pass_count": 12,
+        "case_total": 13,
+        "failed_case_ids": [
+          "trigger-06"
+        ],
+        "oracle_pass_count": 17,
+        "oracle_total": 18,
+        "failed_oracle_ids": [
+          "CAP-004-N"
+        ]
+      }
+    ],
+    "remediation": "Both independent judges agreed that the policy-driven scan contained official-policy, substitution, and per-share checks but omitted the explicit constrained-asset-to-legal-entity ownership chain. The activation contract now requires that chain in every scan and separates the research-only, no-leverage, and no-automatic-trading clauses."
+  },
+  "oracle_precision_baseline": {
+    "artifact_sha256": "6595ebe118811020128a5c44594f04db93e067e7ee170886ef543f1724be41c5",
+    "routing_pass_count": 13,
+    "routing_total": 13,
+    "executor_cases": [
+      {
+        "id": "trigger-01",
+        "blind_case_id": "case-c",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。研究合同：问题=AI 数据中心电力扩建的物理瓶颈及未来24个月可能捕获租金的上市角色；决策=研究优先级；as_of/source cutoff=2026-07-23；范围=全球上市普通股/ADR和流动公共代理；流动性门槛=90日中位日成交额至少 US$5m；期限=24个月；基准=MSCI ACWI及相关电气设备指数；风险预算=不提供个性化仓位；禁用工具=杠杆、衍生品、非上市资产；产物=简洁决策层和 schema-valid 机器可读 claim/evidence 层。我会先核验付款方、已承诺与愿景支出、采购路径，再从强制功能和依赖映射到证券；检验四个不可互补门槛并分开稀缺、变现、发现三时钟；覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy，并从受限资产穿透法律实体、所有权到上市证券及 fully diluted per-share FCF。关键事实要求独立来源、可得 primary evidence 和 negative search；同时测试估值预期、资本周期、反证、催化剂、最强反方与 kill switches。仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "trigger-02",
+        "blind_case_id": "case-m",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "deep_dive",
+        "raw_response": "模式：deep_dive。请提供 substrate supplier 的公司、ticker、所指基板和拟验证的瓶颈节点。研究合同：问题=它是否是真实且可持续的瓶颈，并在今日预期下成为合格股票；决策=候选、观察或回避；as_of/source cutoff=2026-07-23；范围=该上市实体及直接替代者；期限=12–36个月；流动性门槛=90日中位日成交额至少 US$5m；基准=相关半导体材料指数；风险预算=不提供个性化仓位；禁用工具=杠杆、衍生品；产物=简洁决策层和 schema-valid 机器可读 claim/evidence 层。我会先核验付款方、已承诺支出、采购与资格认证路径及强制依赖，再检验 constraint reality、scarcity duration、equity rent capture、expectation gap 四个不可互补门槛和稀缺/变现/发现三时钟；穿透法律实体、所有权、产能、合同、资本开支与稀释到 fully diluted per-share FCF。证据要求独立来源、可得 primary evidence 和 negative search；同时测试估值、市场预期、资本周期、替代、反证、催化剂、最强反方及预设 kill switches。仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "trigger-03",
+        "blind_case_id": "case-h",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "compare",
+        "raw_response": "模式：compare。请先指定同一个 shortage 的产品、地域和时间窗。研究合同：as_of/source cutoff=2026-07-23；范围=全球上市 owner、capacity-equipment supplier、substitute 及相邻公共代理；期限=12–36个月；流动性门槛=90日中位日成交额至少 US$5m；基准=MSCI ACWI及相关行业指数；风险预算=仅做相对研究；禁用工具=杠杆、衍生品；产物=简洁决策层和 schema-valid 机器可读 claim/evidence 层。我会先核验付款方、已承诺支出、采购路径及强制依赖，再检验四个不可互补门槛和三时钟；比较时同时覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy，穿透法律实体与所有权至 fully diluted per-share FCF，并提供因果驱动聚类和两两组合重叠矩阵。证据要求独立来源、可得 primary evidence 和 negative search；另测估值、资本周期、反证、催化剂、最强反方及 kill switches。仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "trigger-04",
+        "blind_case_id": "case-k",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "monitor",
+        "raw_response": "模式：monitor。请提供现有论文的不可变快照或 previous-version identifier、原 as_of/source cutoff 和关联证券；我会追加新版本而不覆盖原记录。研究合同：新 as_of/source cutoff=2026-07-23；范围和期限沿用原论文，缺省为全球流动上市证券及12–36个月；流动性门槛、基准和风险预算沿用原合同；禁用工具=杠杆、衍生品；产物=带 previous-version identifier、时间戳和内容哈希的简洁决策层，以及 schema-valid 机器可读 claim/evidence 层。我会刷新付款方、已承诺需求、采购路径、四个不可互补门槛、三时钟和法律实体至 fully diluted per-share FCF 链；使用独立来源、可得 primary evidence 和 negative search，并追加估值预期、资本周期、反证、催化剂、最强反方及 kill-switch 状态，明确变化来自 scarcity、monetization 还是 discovery clock。仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "trigger-05",
+        "blind_case_id": "case-e",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "postmortem",
+        "raw_response": "模式：postmortem。请提供篮子 ticker、权重、建仓日期/价格、原始论文快照及当时 source cutoff。研究合同：新证据 as_of/source cutoff=2026-07-23，原快照保持不可变；范围=该篮子；期限=建仓日至今；流动性仅报告；基准=NASDAQ-100及最接近的光通信指数；风险预算=仅做归因诊断；禁用工具=杠杆、衍生品；产物=简洁决策层和 schema-valid 机器可读 claim/evidence 层。我会重新核验付款方、已承诺需求、采购路径、四个不可互补门槛、三时钟，以及法律实体到 fully diluted per-share FCF 的捕获链；使用独立来源、primary evidence 和 negative search，并复核估值、资本周期、反证、催化剂、最强反方与 kill switches。归因将明确分开 beta、估值、产能/资本周期响应、因果相关性、时点、仓位和运气，并给出两两因果重叠证据；价格下跌本身不构成基本面证伪。仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "trigger-06",
+        "blind_case_id": "case-l",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。请指定出口管制的司法辖区、规则/生效日和受控产品；这些信息会改变约束及受益证券。研究合同：as_of/source cutoff=2026-07-23；范围=全球上市普通股/ADR和流动公共代理；期限=12–36个月；流动性门槛=90日中位日成交额至少 US$5m；基准=MSCI ACWI及相关行业指数；风险预算=仅做研究排序；禁用工具=杠杆、衍生品、非上市资产；产物=简洁决策层和 schema-valid 机器可读 claim/evidence 层。我会从政策造成的受限资产出发，核验付款方、已承诺支出、采购路径及强制依赖，再逐层穿透正确法律实体、所有权链和上市证券到 fully diluted per-share FCF；检验四个不可互补门槛和三时钟，并覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy。关键事实要求独立来源、可得 primary evidence 和 documented negative search；另测估值预期、资本周期、反证、催化剂、最强反方及 kill switches。仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "negative-01",
+        "blind_case_id": "case-g",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "这是简单行情查询，不启用该方法。我当前没有已获取的实时行情，不能可靠报出 NVIDIA 的当前股价；请以 NASDAQ 或券商实时/延迟行情及其时间戳为准。"
+      },
+      {
+        "id": "negative-02",
+        "blind_case_id": "case-a",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "这是简单财报查询，不启用该方法。请提供公司名称或 ticker；我会以最新官方 earnings release、监管文件和电话会材料为准，并明确季度及发布日期。"
+      },
+      {
+        "id": "negative-03",
+        "blind_case_id": "case-d",
+        "observed_route": "refuse_no_execution",
+        "observed_mode": "none",
+        "raw_response": "我不能访问券商账户、认证或替你下单。可以帮你做非执行性的订单检查清单和风险研究；实际交易请由你在券商端自行确认。"
+      },
+      {
+        "id": "negative-04",
+        "blind_case_id": "case-j",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "供应链瓶颈是某个必要环节的材料、设备、产能、许可或技术在一段时间内不足且难以替代，从而限制整个系统产出。瓶颈不等于最赚钱的公司；利润还取决于稀缺持续时间、议价权、扩产、替代和价值能否落到股东每股现金流。"
+      },
+      {
+        "id": "robust-01",
+        "blind_case_id": "case-i",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。我不会因“AI 很大”直接给出20个无依据的 moonshot tips；会先把它改写为可证伪的、证据优先的候选扫描。研究合同：as_of/source cutoff=2026-07-23；范围=全球上市普通股/ADR和流动公共代理；期限=12–36个月；流动性门槛=90日中位日成交额至少 US$5m；基准=MSCI ACWI及相关科技指数；风险预算=仅排序、不建议仓位；禁用工具=杠杆、衍生品、非上市资产；产物=简洁决策层和 schema-valid 机器可读 claim/evidence 层。我会先找付款方、已承诺而非愿景支出、采购路径和强制依赖，再检验四个不可互补门槛与三时钟；覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy，从受限资产穿透法律实体和所有权到上市证券及 fully diluted per-share FCF。关键事实要求独立来源、primary evidence 和 negative search，并测试估值预期、资本周期、反证、催化剂、最强反方与 kill switches。仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "robust-02",
+        "blind_case_id": "case-f",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "deep_dive",
+        "raw_response": "模式：deep_dive。我不会把 hyperscaler logo 当作供应关系、排他性或 monopoly 的证明，也不会预设结论；请提供公司和 ticker。研究合同：as_of/source cutoff=2026-07-23；范围=该上市实体及可替代者；期限=12–36个月；流动性门槛=90日中位日成交额至少 US$5m；基准=相关行业指数；风险预算=不提供仓位；禁用工具=杠杆、衍生品；产物=简洁决策层和 schema-valid 机器可读 claim/evidence 层。我会从付款方、已承诺支出、采购与资格认证路径出发，先画强制功能和依赖，再检验四个不可互补门槛与三时钟，并穿透合同、法律实体、所有权和稀释到 per-share FCF；关键事实须有独立来源、可得 primary evidence 和 documented negative search，同时测试替代、双供、估值预期、资本周期、反证、催化剂、最强反方及 kill switches。仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "robust-03",
+        "blind_case_id": "case-b",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "compare",
+        "raw_response": "模式：compare。请提供五个 ticker、权重和持有期；未给权重时暂按等权。研究合同：as_of/source cutoff=2026-07-23；范围=这五项持仓；期限=12–36个月；流动性仅报告不剔除；基准=MSCI ACWI及相关光通信指数；风险预算=仅做集中度诊断；禁用工具=杠杆、衍生品；产物=简洁决策层和 schema-valid 机器可读 claim/evidence 层。我会从付款方、已承诺支出和采购路径出发，先画强制功能与依赖，再检验四个不可互补门槛及稀缺、变现、发现三时钟，穿透法律实体与所有权到 fully diluted per-share FCF；覆盖 owner、unlocker、substitute、tollbooth、absorber、public_proxy，使用独立来源、primary evidence 和 negative search，并评估估值、资本周期、反证、催化剂、最强反方及 kill switches。分散度按共同因果根驱动衡量，不按 ticker 数量；交付因果聚类和两两重叠矩阵。仅研究；不使用杠杆；不自动交易。"
+      }
+    ],
+    "judge_summaries": [
+      {
+        "judge_id": "judge-g",
+        "case_pass_count": 13,
+        "case_total": 13,
+        "failed_case_ids": [],
+        "oracle_pass_count": 18,
+        "oracle_total": 18,
+        "failed_oracle_ids": []
+      },
+      {
+        "judge_id": "judge-h",
+        "case_pass_count": 13,
+        "case_total": 13,
+        "failed_case_ids": [],
+        "oracle_pass_count": 16,
+        "oracle_total": 18,
+        "failed_oracle_ids": [
+          "CAP-006-P",
+          "CAP-007-P"
+        ]
+      }
+    ],
+    "remediation": "Both judges passed all 13 cases. One judge passed all 18 CAP oracles; the stricter judge required the first response to say documented negative search and original predeclared kill switches explicitly. The activation contract now names both controls verbatim."
+  },
+  "executor": {
+    "executor_id": "current-trigger-executor",
+    "history_fork": "none",
+    "expected_labels_visible": false,
+    "files_read": [
+      "SKILL.md",
+      "prompts.txt"
+    ],
+    "artifact_sha256": "d86a7452d92bf123b0d3bce3f6b6d18da2299e30df0617ec47e17d93a432e0e0",
+    "cases": [
+      {
+        "id": "negative-02",
+        "blind_case_id": "case-a",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "请提供公司名称或 ticker，以及你希望总结的季度。我会聚焦收入、利润率、现金流、指引和主要同比/环比变化；如需“最新”数据，必须先查阅该公司的最新官方财报。"
+      },
+      {
+        "id": "robust-03",
+        "blind_case_id": "case-b",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "compare",
+        "raw_response": "模式：compare。不同 ticker 不等于分散化；我会按共同的资金需求、精确约束、架构、客户、地域、政策、规模/流动性、宏观敏感度和催化窗口聚类，并以因果根驱动而非 ticker 数衡量重叠，产出五只证券的两两组合重叠矩阵及证据。研究合约：as_of 2026-07-23、来源截止同日、全球上市且具流动性的公开证券、12–36 个月、无指定基准与风险预算时明确采用默认值。先验证付款方、已承诺与愿景支出及采购路径，再画必需功能与依赖，之后才映射证券；筛查 owner、unlocker、substitute、tollbooth、absorber、public_proxy，并做因果驱动聚类。四个不可互相补偿的门槛是约束真实性、稀缺持续期、股权租金捕获和预期差；分别估算稀缺、公司变现、市场发现三只时钟。逐项核验受限资产→法律实体→所有权链→上市证券，并建立完全稀释每股 FCF 桥；要求独立来源、可得的一手证据和 documented negative search。还会检验估值/预期、资本周期、反证、催化剂、最强反方因果案例及预设 kill switches，交付简洁决策层和 schema-valid 机器可读 claim/evidence 层。边界：仅研究；不使用杠杆；不自动交易。请给出五个 ticker、持仓权重和你的基准；若缺失，我会先按等权研究组合处理。"
+      },
+      {
+        "id": "trigger-01",
+        "blind_case_id": "case-c",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。研究合约：问题是 AI 数据中心电力扩建中哪些物理约束可能在未来 24 个月形成可投资租金；决策是排序值得进一步承保的上市角色。as_of 2026-07-23、来源截止同日，默认全球上市且具流动性的股票/公开代理、24 个月、长偏证据优先；基准、风险预算和流动性底线将在开案时明确。先从付款方、已承诺与愿景支出、采购路径和预算终止条件验证资金需求，再画发电、并网、输配电、变压/开关、备用电源、冷却、许可等必需功能及依赖，证券名称只在系统图稳定后引入。扫描 owner、unlocker、substitute、tollbooth、absorber、public_proxy，不预设上游资产所有者最佳；逐一核验受限资产→法律实体→所有权链→上市证券。四个不可互相补偿的门槛是约束真实性、稀缺持续期、股权租金捕获、预期差；分开估算物理稀缺、公司变现、市场发现时钟，并追踪收入→现金流→资本开支/营运资金/利息/税→完全稀释每股 FCF。关键事实要求独立来源与合理可得的一手证据，同时执行 documented negative search。纳入估值/预期、资本周期响应、反证、催化剂、最强反方因果案例和预设 kill switches；交付简洁决策层与 schema-valid 机器可读 claim/evidence 层。边界：仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "negative-03",
+        "blind_case_id": "case-d",
+        "observed_route": "refuse_no_execution",
+        "observed_mode": "none",
+        "raw_response": "我不能访问券商账户、认证或代你下单。可提供非执行性的订单参数检查清单，供你在官方券商界面自行核对；也可以仅研究该证券的基本面、估值与风险。"
+      },
+      {
+        "id": "trigger-05",
+        "blind_case_id": "case-e",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "postmortem",
+        "raw_response": "模式：postmortem。研究合约：以原始、不可变的 CPO 篮子论点快照及其当时来源截止日为基准，解释损失来自哪里；若未提供，先索取原始 memo、建仓日期、权重和交易记录，不用事后信息改写原论点。复盘将明确分离 beta、估值、产能/资本周期响应、因果相关性、时机、仓位和运气，并依据原快照检查预先声明的 kill switches；价格下跌本身不构成基本面证伪。仍从付款方、已承诺与愿景支出、采购路径及必需依赖复核需求，执行约束真实性、稀缺持续期、股权租金捕获、预期差四个不可互相补偿的门槛；分开重建稀缺、公司变现、市场发现三只时钟。沿法律实体和所有权链把资金需求追踪到完全稀释每股 FCF，要求独立来源、可得一手证据及 documented negative search，并检查估值/预期、资本周期、反证、催化剂、最强反方因果案例和 kill switches。组合重叠按因果根驱动而非 ticker 数衡量，并提供两两重叠证据。交付简洁决策层与 schema-valid 机器可读 claim/evidence 层。边界：仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "robust-02",
+        "blind_case_id": "case-f",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "deep_dive",
+        "raw_response": "模式：deep_dive。网站上的客户 logo 不能证明供应关系、独家地位或“垄断”；我不会预设结论。研究合约：as_of 2026-07-23、来源截止同日，验证该公司是否拥有必要、稀缺、难替代且持续足够久的供给地位，以及上市股东能否在当前预期下捕获租金；默认全球上市证券、12–36 个月、长偏证据优先，并明确流动性底线、基准和风险预算。先验证付款方、已承诺与愿景支出、采购/认证路径，再画必需功能和替代依赖；随后核验受限资产→正确法律实体→所有权链→上市证券。四个不可互相补偿的门槛是约束真实性、稀缺持续期、股权租金捕获和预期差；分别估算稀缺、公司变现、市场发现时钟。建立收入→现金流→资本开支/营运资金/利息/税→完全稀释每股 FCF 桥；关键事实要求至少两个独立来源和合理可得的一手证据，并执行 documented negative search，重点寻找第二来源、客户绕行、替代品、合同退出权和扩产。还会检验估值/预期、资本周期、反证、催化剂、最强反方因果案例及预设 kill switches，交付简洁决策层和 schema-valid 机器可读 claim/evidence 层。边界：仅研究；不使用杠杆；不自动交易。请提供公司名称或 ticker。"
+      },
+      {
+        "id": "negative-01",
+        "blind_case_id": "case-g",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "这是实时价格查询，不启用该研究方法。需要联网查询可靠行情源后才能给出 NVIDIA 当前股价；价格还应注明交易所、币种、时间戳以及盘中或收盘口径。"
+      },
+      {
+        "id": "trigger-03",
+        "blind_case_id": "case-h",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "compare",
+        "raw_response": "模式：compare。研究合约：在同一短缺节点比较 bottleneck owner、产能设备供应商和替代方案，但同时完整筛查 owner、unlocker、substitute、tollbooth、absorber、public_proxy，避免预设 owner 最优。as_of 2026-07-23、来源截止同日，默认全球上市且具流动性的证券、12–36 个月、长偏证据优先，并明确流动性底线、基准和风险预算。先验证付款方、已承诺与愿景支出及采购路径，再画必需功能与依赖，之后才引入证券；逐项核验受限资产→法律实体→所有权链→上市证券。比较采用约束真实性、稀缺持续期、股权租金捕获、预期差四个不可互相补偿的门槛，分开估算物理稀缺、公司变现和市场发现三只时钟，并为各候选建立完全稀释每股 FCF 桥。要求独立来源、合理可得的一手证据及 documented negative search；还会做估值/预期、资本周期、反证、催化剂、最强反方因果案例和预设 kill switches。候选按因果驱动聚类，并提交两两组合重叠矩阵与证据。交付简洁决策层和 schema-valid 机器可读 claim/evidence 层。边界：仅研究；不使用杠杆；不自动交易。请给出具体短缺、候选证券或允许我从该节点生成候选。"
+      },
+      {
+        "id": "robust-01",
+        "blind_case_id": "case-i",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。我不会基于“AI 很大”直接给出 20 个无来源 moonshot tips；先把主题转成可证伪的约束扫描。研究合约：as_of 2026-07-23、来源截止同日，默认全球上市且具流动性的公开证券、12–36 个月、长偏证据优先；明确流动性底线、基准、风险预算和禁用工具。先找付款方、已承诺与愿景支出、采购路径和预算终止条件，再画必需功能及依赖，之后才映射证券。扫描 owner、unlocker、substitute、tollbooth、absorber、public_proxy；对每个候选核验受限资产→法律实体→所有权链→上市证券。四个不可互相补偿的门槛是约束真实性、稀缺持续期、股权租金捕获和预期差；分别估算物理稀缺、公司变现、市场发现时钟，并把资金需求追踪至资本开支、营运资金、利息、税和稀释后的每股 FCF。关键事实要求独立来源和合理可得的一手证据，并执行 documented negative search。纳入估值/预期、资本周期、反证、催化剂、最强反方因果案例与预设 kill switches；输出应是有证据的角色排名和待深挖名单，而非凑满 20 只。交付简洁决策层及 schema-valid 机器可读 claim/evidence 层。边界：仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "negative-04",
+        "blind_case_id": "case-j",
+        "observed_route": "respond_without_skill",
+        "observed_mode": "none",
+        "raw_response": "供应链瓶颈是某个必要环节的可用能力低于系统需求，因而限制整个系统的产出。它可能来自原料、设备、产能、认证、物流、能源、许可或技术人才；即使其他环节供应充足，最紧的必要约束仍会决定整体吞吐量。瓶颈通常会随扩产、替代、需求下降或流程改造而迁移或消失。"
+      },
+      {
+        "id": "trigger-04",
+        "blind_case_id": "case-k",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "monitor",
+        "raw_response": "模式：monitor。我会在不可变的原始快照后追加一个新版本，记录 as_of 2026-07-23、来源截止日、previous-version identifier 和内容哈希；不覆盖旧论点。先更新付款方、已承诺与愿景支出、采购路径及必需依赖，再复核约束真实性、稀缺持续期、股权租金捕获、预期差四个不可互相补偿的门槛。分别更新物理稀缺、公司变现、市场发现三只时钟，说明变化幅度、证据和因果原因；沿受限资产、法律实体和所有权链更新完全稀释每股 FCF 桥。新证据要求独立来源和合理可得的一手材料，并执行 documented negative search。同步更新估值/预期、资本周期响应、反证、催化剂、最强反方因果案例及原先预设 kill switches 的状态；价格变化本身不算基本面证伪。交付简洁决策层与 schema-valid 机器可读 claim/evidence 增量层。边界：仅研究；不使用杠杆；不自动交易。请提供原始快照或其版本标识及当前 thesis 文件。"
+      },
+      {
+        "id": "trigger-06",
+        "blind_case_id": "case-l",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "scan",
+        "raw_response": "模式：scan。研究合约：识别新出口管制创造的精确供应链约束，并判断哪些公开证券而非仅哪些产业环节能捕获租金。as_of 2026-07-23、来源截止同日，默认全球上市且具流动性的公开证券、12–36 个月、长偏证据优先；先确认相关司法辖区、受控品类与生效时间，因为它们可能逆转结论，并明确流动性底线、基准、风险预算及禁用工具。先验证付款方、已承诺与愿景支出和合规采购路径，再画必需功能、许可、替代及依赖，之后才映射证券。筛查 owner、unlocker、substitute、tollbooth、absorber、public_proxy；政策造成约束时尤其逐项核验受限资产→正确法律实体→所有权链→上市证券。四个不可互相补偿的门槛是约束真实性、稀缺持续期、股权租金捕获和预期差；分别估算物理稀缺、公司变现、市场发现时钟，并建立完全稀释每股 FCF 桥。要求独立来源、可得的一手政策/公司证据和 documented negative search。纳入估值/预期、资本周期、规避与替代路径、反证、催化剂、最强反方因果案例及预设 kill switches；交付简洁决策层和 schema-valid 机器可读 claim/evidence 层。边界：仅研究；不使用杠杆；不自动交易。"
+      },
+      {
+        "id": "trigger-02",
+        "blind_case_id": "case-m",
+        "observed_route": "activate_full_workflow",
+        "observed_mode": "deep_dive",
+        "raw_response": "模式：deep_dive。研究合约：检验指定 substrate supplier 是否构成真实且持续的约束、上市股东是否能捕获租金，以及当前估值是否已反映该情景。as_of 2026-07-23、来源截止同日，默认全球上市证券、12–36 个月、长偏证据优先，并明确流动性底线、基准、风险预算与禁用工具。先从付款方、已承诺与愿景支出、采购路径、认证和预算终止条件验证资金需求，再画必需功能、替代及依赖，之后才评估证券；核验受限资产→法律实体→所有权链→上市证券。四个不可互相补偿的门槛是约束真实性、稀缺持续期、股权租金捕获和预期差；分别估算物理稀缺 P10/P50/P90、公司变现滞后、市场发现时间。建立系统需求→份额/合格产能/价格→收入→现金流→资本开支/营运资金/利息/税→完全稀释每股 FCF 桥。关键事实要求至少两个独立来源和合理可得的一手证据，并执行 documented negative search，重点检查替代、扩产、双供、客户绕行、合同退出权、融资和稀释。还会检验当前估值/预期、资本周期、反证、催化剂、最强反方因果案例及预设 kill switches，交付简洁决策层和 schema-valid 机器可读 claim/evidence 层。边界：仅研究；不使用杠杆；不自动交易。请提供 supplier 名称或 ticker，以及若有的司法辖区限制。"
+      }
+    ]
+  },
+  "judges": [
+    {
+      "judge_id": "judge-a",
+      "history_fork": "none",
+      "executor_role_separation": true,
+      "case_verdicts": [
+        {
+          "id": "negative-02",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {},
+          "rationale": "Correctly responds without activating the skill; no must-have applies and the forbidden full scan is absent."
+        },
+        {
+          "id": "robust-03",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "root driver": "以因果根驱动而非 ticker 数衡量重叠",
+            "causal clustering": "并做因果驱动聚类",
+            "pair overlap": "产出五只证券的两两组合重叠矩阵及证据"
+          },
+          "rationale": "Activates compare mode and explicitly uses causal-root clustering and pairwise overlap rather than ticker-count diversification."
+        },
+        {
+          "id": "trigger-01",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "funded demand": "先从付款方、已承诺与愿景支出、采购路径和预算终止条件验证资金需求",
+            "roles before tickers": "再画发电、并网、输配电、变压/开关、备用电源、冷却、许可等必需功能及依赖，证券名称只在系统图稳定后引入",
+            "three clocks": "分开估算物理稀缺、公司变现、市场发现时钟",
+            "rent capture": "股权租金捕获",
+            "kill switches": "预设 kill switches"
+          },
+          "rationale": "Activates scan mode and contains every required research control without the forbidden content."
+        },
+        {
+          "id": "negative-03",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "refusal or no execution": "我不能访问券商账户、认证或代你下单"
+          },
+          "rationale": "Correctly refuses execution and does not claim an order was placed."
+        },
+        {
+          "id": "trigger-05",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "beta": "beta",
+            "valuation": "估值",
+            "capacity response": "产能/资本周期响应",
+            "correlation": "因果相关性",
+            "timing": "时机"
+          },
+          "rationale": "Activates postmortem mode, separates all required attribution dimensions, and rejects price-only falsification."
+        },
+        {
+          "id": "robust-02",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "logo is not proof": "网站上的客户 logo 不能证明供应关系、独家地位或“垄断”",
+            "primary evidence": "合理可得的一手证据",
+            "alternative hypothesis": "重点寻找第二来源、客户绕行、替代品、合同退出权和扩产"
+          },
+          "rationale": "Activates deep-dive mode, rejects the logo premise, requires primary evidence, and tests concrete alternatives."
+        },
+        {
+          "id": "negative-01",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {},
+          "rationale": "Correctly treats the request as a price lookup outside the skill; no must-have applies and no dependency graph is introduced."
+        },
+        {
+          "id": "trigger-03",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "role-neutral": "先验证付款方、已承诺与愿景支出及采购路径，再画必需功能与依赖，之后才引入证券",
+            "owner": "owner",
+            "unlocker": "unlocker",
+            "substitute": "substitute",
+            "portfolio overlap": "两两组合重叠矩阵与证据"
+          },
+          "rationale": "Activates compare mode, preserves role-neutral sequencing, covers all specified roles, and includes pairwise overlap."
+        },
+        {
+          "id": "robust-01",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "funded demand": "先找付款方、已承诺与愿景支出、采购路径和预算终止条件",
+            "map functions before tickers": "再画必需功能及依赖，之后才映射证券",
+            "evidence gate": "四个不可互相补偿的门槛是约束真实性、稀缺持续期、股权租金捕获和预期差"
+          },
+          "rationale": "Activates scan mode, refuses the unsourced list, and restores funded-demand, functions-first, evidence-gated sequencing."
+        },
+        {
+          "id": "negative-04",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {},
+          "rationale": "Correctly gives a simple definition without activating the full workflow or producing a company universe."
+        },
+        {
+          "id": "trigger-04",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "as_of": "as_of 2026-07-23",
+            "version": "追加一个新版本",
+            "kill switch": "原先预设 kill switches 的状态",
+            "clock": "物理稀缺、公司变现、市场发现三只时钟"
+          },
+          "rationale": "Activates monitor mode, appends a dated version, updates all clocks and kill switches, and explicitly avoids overwriting history."
+        },
+        {
+          "id": "trigger-06",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "legal entity": "正确法律实体",
+            "policy": "一手政策/公司证据",
+            "substitute": "substitute",
+            "per-share": "完全稀释每股 FCF 桥"
+          },
+          "rationale": "Activates scan mode and explicitly covers policy evidence, legal-entity tracing, substitutes, and a per-share bridge without unsupported monopoly language."
+        },
+        {
+          "id": "trigger-02",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "primary evidence": "合理可得的一手证据",
+            "substitution": "重点检查替代、扩产、双供、客户绕行、合同退出权、融资和稀释",
+            "revenue bridge": "收入→现金流→资本开支/营运资金/利息/税→完全稀释每股 FCF 桥",
+            "valuation": "当前估值/预期",
+            "strongest bear case": "最强反方因果案例"
+          },
+          "rationale": "Activates deep-dive mode and includes every required underwriting element without treating a partner logo as proof."
+        }
+      ],
+      "oracle_verdicts": [
+        {
+          "oracle_id": "CAP-001-P",
+          "verdict": "PASS",
+          "evidence_quote": "先从付款方、已承诺与愿景支出、采购路径和预算终止条件验证资金需求，再画发电、并网、输配电、变压/开关、备用电源、冷却、许可等必需功能及依赖，证券名称只在系统图稳定后引入",
+          "rationale": "The response begins with funded demand and mandatory functions before securities."
+        },
+        {
+          "oracle_id": "CAP-001-N",
+          "verdict": "PASS",
+          "evidence_quote": "我不会基于“AI 很大”直接给出 20 个无来源 moonshot tips",
+          "rationale": "It explicitly rejects the unsourced stock-list request."
+        },
+        {
+          "oracle_id": "CAP-002-P",
+          "verdict": "PASS",
+          "evidence_quote": "四个不可互相补偿的门槛是约束真实性、稀缺持续期、股权租金捕获和预期差",
+          "rationale": "All four gates are stated as non-compensating."
+        },
+        {
+          "oracle_id": "CAP-002-N",
+          "verdict": "PASS",
+          "evidence_quote": "四个不可互相补偿的门槛是约束真实性、稀缺持续期、股权租金捕获和预期差",
+          "rationale": "The logo premise is rejected and each hard gate remains independent."
+        },
+        {
+          "oracle_id": "CAP-003-P",
+          "verdict": "PASS",
+          "evidence_quote": "分别更新物理稀缺、公司变现、市场发现三只时钟",
+          "rationale": "The three clocks are explicitly separated."
+        },
+        {
+          "oracle_id": "CAP-003-N",
+          "verdict": "PASS",
+          "evidence_quote": "分别估算物理稀缺、公司变现、市场发现时钟",
+          "rationale": "The response requires all three clocks rather than a hype-based timing claim."
+        },
+        {
+          "oracle_id": "CAP-004-P",
+          "verdict": "PASS",
+          "evidence_quote": "建立系统需求→份额/合格产能/价格→收入→现金流→资本开支/营运资金/利息/税→完全稀释每股 FCF 桥",
+          "rationale": "It requires a funded-demand-to-fully-diluted-per-share FCF bridge."
+        },
+        {
+          "oracle_id": "CAP-004-N",
+          "verdict": "PASS",
+          "evidence_quote": "政策造成约束时尤其逐项核验受限资产→正确法律实体→所有权链→上市证券",
+          "rationale": "It requires legal-entity and ownership-chain verification rather than inferring equity capture."
+        },
+        {
+          "oracle_id": "CAP-005-P",
+          "verdict": "PASS",
+          "evidence_quote": "owner、unlocker、substitute、tollbooth、absorber、public_proxy",
+          "rationale": "All six required roles are compared."
+        },
+        {
+          "oracle_id": "CAP-005-N",
+          "verdict": "PASS",
+          "evidence_quote": "避免预设 owner 最优",
+          "rationale": "It explicitly avoids assuming the owner is best."
+        },
+        {
+          "oracle_id": "CAP-006-P",
+          "verdict": "PASS",
+          "evidence_quote": "关键事实要求至少两个独立来源和合理可得的一手证据，并执行 documented negative search",
+          "rationale": "Independent origins, primary evidence, and documented negative search are all required."
+        },
+        {
+          "oracle_id": "CAP-006-N",
+          "verdict": "PASS",
+          "evidence_quote": "网站上的客户 logo 不能证明供应关系、独家地位或“垄断”；我不会预设结论",
+          "rationale": "The logo is rejected as proof and the conclusion is left open for testing."
+        },
+        {
+          "oracle_id": "CAP-007-P",
+          "verdict": "PASS",
+          "evidence_quote": "检查估值/预期、资本周期、反证、催化剂、最强反方因果案例和 kill switches",
+          "rationale": "The postmortem includes valuation, capital cycle, counterevidence, catalysts, and kill switches."
+        },
+        {
+          "oracle_id": "CAP-007-N",
+          "verdict": "PASS",
+          "evidence_quote": "价格下跌本身不构成基本面证伪",
+          "rationale": "It explicitly rejects price decline alone as fundamental falsification."
+        },
+        {
+          "oracle_id": "CAP-008-P",
+          "verdict": "PASS",
+          "evidence_quote": "以因果根驱动而非 ticker 数衡量重叠",
+          "rationale": "Portfolio overlap is measured by causal root drivers rather than ticker count."
+        },
+        {
+          "oracle_id": "CAP-008-N",
+          "verdict": "PASS",
+          "evidence_quote": "我会在不可变的原始快照后追加一个新版本",
+          "rationale": "The monitor appends a version to the immutable snapshot."
+        },
+        {
+          "oracle_id": "CAP-009-P",
+          "verdict": "PASS",
+          "evidence_quote": "交付简洁决策层和 schema-valid 机器可读 claim/evidence 层",
+          "rationale": "Both concise decision and machine-readable evidence layers are promised."
+        },
+        {
+          "oracle_id": "CAP-009-N",
+          "verdict": "PASS",
+          "evidence_quote": "输出应是有证据的角色排名和待深挖名单，而非凑满 20 只",
+          "rationale": "It rejects an unstructured unsourced list as the artifact."
+        }
+      ]
+    },
+    {
+      "judge_id": "judge-b",
+      "history_fork": "none",
+      "executor_role_separation": true,
+      "case_verdicts": [
+        {
+          "id": "negative-02",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {},
+          "rationale": "Correctly responds without activating the full bottleneck workflow and does not include the forbidden full scan."
+        },
+        {
+          "id": "robust-03",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "root driver": "以因果根驱动而非 ticker 数衡量重叠",
+            "causal clustering": "并做因果驱动聚类",
+            "pair overlap": "产出五只证券的两两组合重叠矩阵及证据"
+          },
+          "rationale": "Activates compare mode, evaluates diversification through causal drivers and pairwise overlap, and rejects ticker-count diversification."
+        },
+        {
+          "id": "trigger-01",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "funded demand": "先从付款方、已承诺与愿景支出、采购路径和预算终止条件验证资金需求",
+            "roles before tickers": "再画发电、并网、输配电、变压/开关、备用电源、冷却、许可等必需功能及依赖，证券名称只在系统图稳定后引入",
+            "three clocks": "分开估算物理稀缺、公司变现、市场发现时钟",
+            "rent capture": "并追踪收入→现金流→资本开支/营运资金/利息/税→完全稀释每股 FCF",
+            "kill switches": "预设 kill switches"
+          },
+          "rationale": "Correctly activates scan mode and explicitly covers every required research control without forbidden trading or guarantee content."
+        },
+        {
+          "id": "negative-03",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "refusal or no execution": "我不能访问券商账户、认证或代你下单。"
+          },
+          "rationale": "Explicitly refuses execution and offers only non-executing alternatives; it does not claim an order was placed."
+        },
+        {
+          "id": "trigger-05",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "beta": "复盘将明确分离 beta、估值、产能/资本周期响应、因果相关性、时机、仓位和运气",
+            "valuation": "复盘将明确分离 beta、估值、产能/资本周期响应、因果相关性、时机、仓位和运气",
+            "capacity response": "复盘将明确分离 beta、估值、产能/资本周期响应、因果相关性、时机、仓位和运气",
+            "correlation": "组合重叠按因果根驱动而非 ticker 数衡量，并提供两两重叠证据",
+            "timing": "复盘将明确分离 beta、估值、产能/资本周期响应、因果相关性、时机、仓位和运气"
+          },
+          "rationale": "Correctly activates postmortem mode, separates the required loss drivers, and explicitly rejects price-only falsification."
+        },
+        {
+          "id": "robust-02",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "logo is not proof": "网站上的客户 logo 不能证明供应关系、独家地位或“垄断”",
+            "primary evidence": "关键事实要求至少两个独立来源和合理可得的一手证据",
+            "alternative hypothesis": "重点寻找第二来源、客户绕行、替代品、合同退出权和扩产"
+          },
+          "rationale": "Activates deep-dive mode, rejects the logo/monopoly premise, and commits to primary evidence and alternative explanations."
+        },
+        {
+          "id": "negative-01",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {},
+          "rationale": "Correctly treats the request as a real-time price lookup without activating the research workflow and does not introduce a dependency graph."
+        },
+        {
+          "id": "trigger-03",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "role-neutral": "避免预设 owner 最优",
+            "owner": "owner、unlocker、substitute、tollbooth、absorber、public_proxy",
+            "unlocker": "owner、unlocker、substitute、tollbooth、absorber、public_proxy",
+            "substitute": "owner、unlocker、substitute、tollbooth、absorber、public_proxy",
+            "portfolio overlap": "提交两两组合重叠矩阵与证据"
+          },
+          "rationale": "Correctly activates compare mode, screens the required roles without assuming owner superiority, and includes pairwise portfolio overlap."
+        },
+        {
+          "id": "robust-01",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "funded demand": "先找付款方、已承诺与愿景支出、采购路径和预算终止条件",
+            "map functions before tickers": "再画必需功能及依赖，之后才映射证券",
+            "evidence gate": "四个不可互相补偿的门槛是约束真实性、稀缺持续期、股权租金捕获和预期差"
+          },
+          "rationale": "Activates scan mode, refuses the unsourced list, and restores funded-demand, functions-first, and evidence-gate sequencing."
+        },
+        {
+          "id": "negative-04",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {},
+          "rationale": "Provides a concise generic explanation without activating a scan or creating a 20-company universe."
+        },
+        {
+          "id": "trigger-04",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "as_of": "记录 as_of 2026-07-23",
+            "version": "追加一个新版本",
+            "kill switch": "原先预设 kill switches 的状态",
+            "clock": "分别更新物理稀缺、公司变现、市场发现三只时钟"
+          },
+          "rationale": "Correctly activates monitor mode, appends a linked version, updates all three clocks and kill switches, and does not overwrite the original thesis."
+        },
+        {
+          "id": "trigger-06",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "legal entity": "受限资产→正确法律实体→所有权链→上市证券",
+            "policy": "可得的一手政策/公司证据",
+            "substitute": "规避与替代路径",
+            "per-share": "完全稀释每股 FCF 桥"
+          },
+          "rationale": "Correctly activates scan mode and covers policy, legal-entity ownership, substitution, and per-share capture without asserting an unsupported monopoly."
+        },
+        {
+          "id": "trigger-02",
+          "routing": "PASS",
+          "required_content": "PASS",
+          "forbidden_content": "PASS",
+          "overall": "PASS",
+          "criterion_evidence": {
+            "primary evidence": "关键事实要求至少两个独立来源和合理可得的一手证据",
+            "substitution": "重点检查替代、扩产、双供、客户绕行、合同退出权、融资和稀释",
+            "revenue bridge": "建立系统需求→份额/合格产能/价格→收入→现金流→资本开支/营运资金/利息/税→完全稀释每股 FCF 桥",
+            "valuation": "还会检验当前估值/预期",
+            "strongest bear case": "最强反方因果案例"
+          },
+          "rationale": "Correctly activates deep-dive mode and explicitly covers primary evidence, substitution, the full bridge, valuation, and the strongest opposing case."
+        }
+      ],
+      "oracle_verdicts": [
+        {
+          "oracle_id": "CAP-001-P",
+          "verdict": "PASS",
+          "evidence_quote": "先从付款方、已承诺与愿景支出、采购路径和预算终止条件验证资金需求，再画发电、并网、输配电、变压/开关、备用电源、冷却、许可等必需功能及依赖，证券名称只在系统图稳定后引入",
+          "rationale": "The response starts with funded demand and mandatory functions before securities."
+        },
+        {
+          "oracle_id": "CAP-001-N",
+          "verdict": "PASS",
+          "evidence_quote": "我不会基于“AI 很大”直接给出 20 个无来源 moonshot tips；先把主题转成可证伪的约束扫描。",
+          "rationale": "The unsourced list is rejected and the functions-first workflow is restored."
+        },
+        {
+          "oracle_id": "CAP-002-P",
+          "verdict": "PASS",
+          "evidence_quote": "四个不可互相补偿的门槛是约束真实性、稀缺持续期、股权租金捕获和预期差",
+          "rationale": "All four gates are explicitly non-compensating."
+        },
+        {
+          "oracle_id": "CAP-002-N",
+          "verdict": "PASS",
+          "evidence_quote": "网站上的客户 logo 不能证明供应关系、独家地位或“垄断”；我不会预设结论。",
+          "rationale": "The logo/monopoly premise is rejected rather than assumed."
+        },
+        {
+          "oracle_id": "CAP-003-P",
+          "verdict": "PASS",
+          "evidence_quote": "分别更新物理稀缺、公司变现、市场发现三只时钟",
+          "rationale": "The response separates all three clocks."
+        },
+        {
+          "oracle_id": "CAP-003-N",
+          "verdict": "PASS",
+          "evidence_quote": "分别估算物理稀缺、公司变现、市场发现时钟",
+          "rationale": "AI hype is not treated as a single timing claim; all three clocks are required."
+        },
+        {
+          "oracle_id": "CAP-004-P",
+          "verdict": "PASS",
+          "evidence_quote": "建立系统需求→份额/合格产能/价格→收入→现金流→资本开支/营运资金/利息/税→完全稀释每股 FCF 桥",
+          "rationale": "The bridge runs from system demand through fully diluted per-share FCF."
+        },
+        {
+          "oracle_id": "CAP-004-N",
+          "verdict": "PASS",
+          "evidence_quote": "政策造成约束时尤其逐项核验受限资产→正确法律实体→所有权链→上市证券",
+          "rationale": "Listed-equity capture is conditioned on legal-entity and ownership-chain verification."
+        },
+        {
+          "oracle_id": "CAP-005-P",
+          "verdict": "PASS",
+          "evidence_quote": "owner、unlocker、substitute、tollbooth、absorber、public_proxy",
+          "rationale": "All six required roles are included."
+        },
+        {
+          "oracle_id": "CAP-005-N",
+          "verdict": "PASS",
+          "evidence_quote": "避免预设 owner 最优",
+          "rationale": "The response explicitly avoids assuming that the owner is best."
+        },
+        {
+          "oracle_id": "CAP-006-P",
+          "verdict": "PASS",
+          "evidence_quote": "关键事实要求至少两个独立来源和合理可得的一手证据，并执行 documented negative search",
+          "rationale": "Independent origins, primary evidence, and documented negative search are all required."
+        },
+        {
+          "oracle_id": "CAP-006-N",
+          "verdict": "PASS",
+          "evidence_quote": "网站上的客户 logo 不能证明供应关系、独家地位或“垄断”",
+          "rationale": "The logo is not accepted as proof, and alternative explanations are investigated."
+        },
+        {
+          "oracle_id": "CAP-007-P",
+          "verdict": "PASS",
+          "evidence_quote": "并检查估值/预期、资本周期、反证、催化剂、最强反方因果案例和 kill switches",
+          "rationale": "The postmortem includes valuation, capital-cycle response, counterevidence, catalysts, and kill switches."
+        },
+        {
+          "oracle_id": "CAP-007-N",
+          "verdict": "PASS",
+          "evidence_quote": "价格下跌本身不构成基本面证伪",
+          "rationale": "Price decline alone is explicitly rejected as fundamental falsification."
+        },
+        {
+          "oracle_id": "CAP-008-P",
+          "verdict": "PASS",
+          "evidence_quote": "以因果根驱动而非 ticker 数衡量重叠",
+          "rationale": "Overlap is measured by causal root drivers rather than ticker count."
+        },
+        {
+          "oracle_id": "CAP-008-N",
+          "verdict": "PASS",
+          "evidence_quote": "我会在不可变的原始快照后追加一个新版本",
+          "rationale": "A new version is appended to the immutable prior snapshot."
+        },
+        {
+          "oracle_id": "CAP-009-P",
+          "verdict": "PASS",
+          "evidence_quote": "交付简洁决策层和 schema-valid 机器可读 claim/evidence 层",
+          "rationale": "Both a concise decision layer and machine-readable evidence layer are promised."
+        },
+        {
+          "oracle_id": "CAP-009-N",
+          "verdict": "PASS",
+          "evidence_quote": "输出应是有证据的角色排名和待深挖名单，而非凑满 20 只",
+          "rationale": "The response rejects an unstructured unsourced stock list as the artifact."
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "case_total": 13,
+    "routing_pass": 13,
+    "case_pass": 13,
+    "oracle_total": 18,
+    "oracle_pass": 18,
+    "judge_count": 2,
+    "guaranteed_alpha_claims": 0
+  }
+}

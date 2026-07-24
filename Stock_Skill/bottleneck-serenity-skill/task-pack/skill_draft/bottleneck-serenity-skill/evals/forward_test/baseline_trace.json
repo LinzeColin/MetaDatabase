@@ -1,0 +1,268 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P2-T002",
+  "case_id": "forward-ai-data-center-liquid-cooling-20260723",
+  "run_date": "2026-07-23",
+  "executor": {
+    "executor_id": "forward-executor-t002",
+    "fresh_agent_context": true,
+    "fork_turns": "none",
+    "conversation_history_forwarded": false,
+    "followup_message_count": 0
+  },
+  "artifact_bindings": {
+    "preregistration_sha256": "bc91084f21a96ca5b5636b4feb0ae89a57aea13d0ce6f498e151222255a9365c",
+    "context_manifest_sha256": "93e61b117daeabe03f432757a49cc168ff1d2ee9193fb863b93f77308fef2f71",
+    "rubric_sha256": "fd7a078a0f03cc18d7c1f2b32a6fc3a3159bec01f63fcd8733a0a1f964396d04",
+    "task_message_sha256": "622721844c8878924f1439acfe4f21887c657e5ecf035370203a7820c1a6a659",
+    "raw_output_sha256": "f08fdc5ff654156ea5daf689ad562bfd8acb78ca397886813197a2bc33a83d81"
+  },
+  "observations": {
+    "skill_files_read": [
+      "SKILL.md",
+      "references/methodology.md",
+      "references/research_workflow.md",
+      "references/source_policy.md",
+      "references/scoring_model.md",
+      "references/portfolio_risk.md",
+      "references/output_contract.md",
+      "references/failure_modes.md",
+      "schemas/evidence.schema.json",
+      "schemas/opportunity.schema.json",
+      "schemas/portfolio.schema.json"
+    ],
+    "scripts_run": [
+      {
+        "command": "python3 scripts/score_opportunity.py --help",
+        "exit_code": 0,
+        "observed_output": "Displayed input, template, and json/md/both arguments."
+      },
+      {
+        "command": "python3 scripts/validate_evidence.py --help",
+        "exit_code": 0,
+        "observed_output": "Displayed stdin and strict-warnings arguments."
+      },
+      {
+        "command": "python3 scripts/score_opportunity.py --template",
+        "exit_code": 0,
+        "observed_output": "Returned the Skill 1.0 input template."
+      },
+      {
+        "command": "python3 scripts/score_opportunity.py - --format both",
+        "exit_code": 0,
+        "observed_output": "Returned WATCH_PRICED, final score 55.291, mispricing 42.0, expected return 2.2%, and no active hard flags."
+      },
+      {
+        "command": "python3 scripts/validate_evidence.py -",
+        "exit_code": 1,
+        "observed_output": "Found a critical MOD fact with only one independent source and two inferences missing depends_on."
+      },
+      {
+        "command": "python3 scripts/validate_evidence.py -",
+        "exit_code": 0,
+        "observed_output": "Validated 7 claims with valid=true, 0 errors, and 0 warnings after revision."
+      }
+    ],
+    "web_searches": [
+      "Microsoft, Alphabet, Amazon, and Meta 2026 AI/data-center capex, capacity constraints, and committed spend",
+      "NVIDIA GB200, GB300, and Vera Rubin liquid cooling, rack density, 45C inlet, and dry-cooler architecture",
+      "OCP and ASHRAE liquid-cooling standards, CDU, TCS/FWS, direct-to-chip, and immersion",
+      "Modine FY2026 10-K, data-center revenue, USD4bn capacity agreement, USD165m deposit, component shortages, and price history",
+      "Vertiv FY2025/FY2026 earnings, backlog, FCF, liquid-cooling revenue, and Ohio capacity expansion",
+      "nVent Q1 2026, backlog, infrastructure vertical, liquid-cooling deployments, and Blaine expansion",
+      "Eaton/Boyd and Ecolab/CoolIT transaction price, sales, leverage, and accretion",
+      "Schneider/Motivair transaction terms, product portfolio, and manufacturing expansion",
+      "Delta, Asia Vital Components, and Auras liquid-cooling products, financial disclosure, listed entities, prices, and liquidity",
+      "Accelsius, Innventure, Johnson Controls, Legrand, and other private/public proxies",
+      "MSCI ACWI and iShares ACWI constituents, valuation, and benchmark definitions",
+      "Exact current-price queries for MOD, VRT, NVT, and ETN on 2026-07-22"
+    ],
+    "public_sources_opened": [
+      {
+        "title": "Microsoft FY2026 Q3",
+        "url": "https://www.microsoft.com/en-us/investor/events/fy-2026/earnings-fy-2026-q3"
+      },
+      {
+        "title": "Alphabet 2025 Q4",
+        "url": "https://abc.xyz/investor/events/event-details/2026/2025-Q4-Earnings-Call-2026-Dr_C033hS6/default.aspx"
+      },
+      {
+        "title": "Amazon Q1 2026",
+        "url": "https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-First-Quarter-Results/default.aspx"
+      },
+      {
+        "title": "Alphabet-Intersect",
+        "url": "https://abc.xyz/investor/news/news-details/2025/Alphabet-Announces-Agreement-to-Acquire-Intersect-to-Advance-U-S--Energy-Innovation-2025-DVIuVDM9wW/default.aspx"
+      },
+      {
+        "title": "NVIDIA GB200 NVL72",
+        "url": "https://www.nvidia.com/en-us/data-center/gb200-nvl72/"
+      },
+      {
+        "title": "NVIDIA GB200 cooling technical blog",
+        "url": "https://developer.nvidia.com/blog/?p=90182"
+      },
+      {
+        "title": "NVIDIA Vera Rubin",
+        "url": "https://blogs.nvidia.com/blog/vera-rubin/"
+      },
+      {
+        "title": "NVIDIA Computex 2026",
+        "url": "https://blogs.nvidia.com/blog/nvidia-gtc-taipei-computex-2026-news/"
+      },
+      {
+        "title": "NVIDIA and nVent GTC session",
+        "url": "https://www.nvidia.com/en-us/on-demand/session/gtc26-ex82328/"
+      },
+      {
+        "title": "OCP and ASHRAE alliance",
+        "url": "https://www.opencompute.org/blog/open-compute-project-foundation-and-ashrae-form-new-alliance"
+      },
+      {
+        "title": "Modine FY2026 10-K",
+        "url": "https://www.sec.gov/Archives/edgar/data/67347/000110465926066795/mod-20260331x10k.htm"
+      },
+      {
+        "title": "Modine FY2026 results",
+        "url": "https://investors.modine.com/news/news-details/2026/Modine-Reports-Fourth-Quarter-Fiscal-2026-Results/default.aspx"
+      },
+      {
+        "title": "Modine annual report PDF",
+        "url": "https://www.sec.gov/Archives/edgar/data/67347/000110465926075698/mod-20260331xars.pdf"
+      },
+      {
+        "title": "Vertiv Q1 2026",
+        "url": "https://investors.vertiv.com/news/news-details/2026/Vertiv-Reports-Strong-First-Quarter-with-Diluted-EPS-Growth-of-136-Adjusted-Diluted-EPS-Growth-of-83-Raises-Full-Year-Guidance/default.aspx"
+      },
+      {
+        "title": "Vertiv FY2025 results",
+        "url": "https://investors.vertiv.com/news/news-details/2026/Vertiv-Reports-Strong-Fourth-Quarter-with-Organic-Orders-Growth-of-252-and-Diluted-EPS-Growth-of-200-Adjusted-Diluted-EPS-37/"
+      },
+      {
+        "title": "Vertiv Q1 10-Q",
+        "url": "https://www.sec.gov/Archives/edgar/data/1674101/000162828026026556/vrt-20260331.htm"
+      },
+      {
+        "title": "Vertiv Ohio expansion",
+        "url": "https://investors.vertiv.com/news/news-details/2026/Vertiv-to-Expand-Ohio-Manufacturing-to-Boost-U-S--Production-of-Critical-Thermal-Management-Technologies-for-AI-Data-Centers/"
+      },
+      {
+        "title": "nVent Q1 exhibit",
+        "url": "https://www.sec.gov/Archives/edgar/data/1720635/000162828026029098/q12026nvtpressrelease.htm"
+      },
+      {
+        "title": "nVent Q1 10-Q",
+        "url": "https://www.sec.gov/Archives/edgar/data/1720635/000162828026029370/nvt-20260331.htm"
+      },
+      {
+        "title": "nVent Blaine facility",
+        "url": "https://investors.nvent.com/press-releases/press-release-details/2025/nVent-Expands-Data-Center-Solutions-Manufacturing-with-New-U-S--Production-Facility/default.aspx"
+      },
+      {
+        "title": "nVent and Siemens reference architecture",
+        "url": "https://investors.nvent.com/press-releases/press-release-details/2026/Siemens-and-partners-develop-reference--architecture-purpose-built-for-NVIDIA-AI-data-centers-/default.aspx"
+      },
+      {
+        "title": "nVent cooling portfolio",
+        "url": "https://www.nvent.com/en-mk/data-solutions/next-generation-liquid-cooling-and-power-portfolios-coming-2026"
+      },
+      {
+        "title": "Eaton completes Boyd acquisition",
+        "url": "https://www.eaton.com/us/en-us/company/news-insights/news-releases/2026/eaton-completes-acquisition-of-leading-liquid-cooling-solutions-provider-boyd-thermal.html"
+      },
+      {
+        "title": "Eaton Q1 financials",
+        "url": "https://www.eaton.com/content/dam/eaton/company/investor-relations/quarterly-earnings/filings/2026/q1/q1-2026-financials-only.pdf"
+      },
+      {
+        "title": "Eaton Q1 analyst presentation",
+        "url": "https://www.eaton.com/content/dam/eaton/company/investor-relations/quarterly-earnings/filings/2026/q1/q1-2026-analyst-presentation.pdf"
+      },
+      {
+        "title": "Ecolab and CoolIT transaction exhibit",
+        "url": "https://www.sec.gov/Archives/edgar/data/31462/000110465926032446/tm269446d1_ex99-1.htm"
+      },
+      {
+        "title": "Ecolab closes CoolIT",
+        "url": "https://investor.ecolab.com/news/news-details/2026/Ecolab-Closes-CoolIT-Acquisition-and-Expands-AI-Cooling-Platform-as-Global-High-Tech-Business-Targets-4-Billion-by-2030/default.aspx"
+      },
+      {
+        "title": "Ecolab Q1 10-Q",
+        "url": "https://www.sec.gov/Archives/edgar/data/31462/000110465926056737/ecl-20260331x10q.htm"
+      },
+      {
+        "title": "Schneider and Motivair transaction PDF",
+        "url": "https://www.se.com/ww/en/assets/564/document/492190/Schneider-Electric-acquires-Motivair-Corporation.pdf"
+      },
+      {
+        "title": "Schneider liquid-cooling portfolio",
+        "url": "https://www.se.com/ww/en/about-us/newsroom/news/press-releases/Schneider-Electric-Unveils-Liquid-Cooling-Portfolio-with-Motivair-Featuring-Dedicated-Solutions-and-Services-for-HPC-and-AI-Workloads-68d69e595c9dbb622505caf3/"
+      },
+      {
+        "title": "Schneider and Motivair 2.5MW CDU",
+        "url": "https://www.se.com/ww/fr/about-us/newsroom/news/press-releases/motivair-by-schneider-electric-annonce-un-nouveau-cdu-avec-une-capacit%C3%A9-d%E2%80%99extension-%C3%A0-10-mw-et-plus-697204a671fa0adfeb07812b/"
+      },
+      {
+        "title": "Delta chairman statement",
+        "url": "https://www.deltaww.com/en-US/investors/chairman-statement"
+      },
+      {
+        "title": "Delta liquid-cooling product release",
+        "url": "https://landing.deltaww.com/en-US/news/39632"
+      },
+      {
+        "title": "Delta press release",
+        "url": "https://www.deltaww.com/en-US/press/40334"
+      },
+      {
+        "title": "Auras product disclosure",
+        "url": "https://www.auras.com.tw/News/NewsContent/14-10"
+      },
+      {
+        "title": "Accelsius Series B",
+        "url": "https://accelsius.com/series-b-announcement/"
+      },
+      {
+        "title": "MSCI ACWI",
+        "url": "https://www.msci.com/indexes/index/892400/msci-acwi-index"
+      },
+      {
+        "title": "iShares ACWI",
+        "url": "https://www.ishares.com/us/products/239600/ishares-msci-acwi-etf"
+      },
+      {
+        "title": "MOD market data",
+        "url": "https://www.financialcontent.com/quote/NY%3AMOD/historical"
+      },
+      {
+        "title": "VRT market data",
+        "url": "https://www.ktiv.marketminute.com/quote/NY%3AVRT/historical"
+      },
+      {
+        "title": "NVT market data",
+        "url": "https://www.macrotrends.net/stocks/charts/NVT/nvent-electric/stock-price-history"
+      },
+      {
+        "title": "Delta historical data",
+        "url": "https://ms.investing.com/equities/delta-electron-historical-data"
+      },
+      {
+        "title": "Delta market capitalization",
+        "url": "https://companiesmarketcap.com/delta-electronics/marketcap/"
+      }
+    ],
+    "files_written": [],
+    "parent_or_sibling_repository_reads": [],
+    "repository_writes": [],
+    "runtime_installs": [],
+    "broker_or_order_actions": [],
+    "raw_execution_trace_sha256": "f84cdbe286fccfc4a574ead1ffcf7c90315bec1833ef85edfa053958558fcab7"
+  },
+  "integrity": {
+    "raw_output_preserved": true,
+    "context_boundary_pass": true,
+    "no_expected_answer_received": true,
+    "no_diagnosis_received": true
+  }
+}

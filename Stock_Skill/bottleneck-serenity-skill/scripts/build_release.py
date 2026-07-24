@@ -54,7 +54,19 @@ EXPECTED_EXECUTABLES = {
         "skill_draft/bottleneck-serenity-skill/scripts/validate_evidence.py"
     ),
     PurePosixPath(
+        "skill_draft/bottleneck-serenity-skill/scripts/validate_forward_test.py"
+    ),
+    PurePosixPath(
+        "skill_draft/bottleneck-serenity-skill/scripts/validate_historical_e2e.py"
+    ),
+    PurePosixPath(
         "skill_draft/bottleneck-serenity-skill/scripts/validate_skill.py"
+    ),
+    PurePosixPath(
+        "skill_draft/bottleneck-serenity-skill/scripts/validate_security_evals.py"
+    ),
+    PurePosixPath(
+        "skill_draft/bottleneck-serenity-skill/scripts/validate_trigger_evals.py"
     ),
 }
 CLAIM_PATHS = [

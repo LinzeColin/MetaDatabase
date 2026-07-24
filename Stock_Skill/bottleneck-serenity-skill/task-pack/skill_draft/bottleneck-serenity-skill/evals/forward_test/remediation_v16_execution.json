@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v16",
+  "executor_attempt_ordinal": 16,
+  "projection_id": "forward-runtime-v16-sealed",
+  "preexecution_seal_sha256": "dff1689719b0982be89ea57530d60c460e5931ff9631a594f8c0bef5c22d04e8",
+  "preregistration_sha256": "beb69a5006699e127f456e1a87fd720abd78810950884a10f3ef7f363fe7aea9",
+  "projection_tree_sha256": "c98a1405ac86f6b3b20333125139f86bddf81696a94bc3fa22d050702170a7b5",
+  "output_schema_sha256": "947dee84bd379e26d810e0b6a202c23247ea05910469e83e6e8cced7d3b2c3b6",
+  "execution_envelope_sha256": "b1f942bd3a0a6e7609a14dee223b4b5017ee35919b557e8a21a36f92a617b8be",
+  "execution_controls": {
+    "fresh_execution_context": true,
+    "context_fork": "none",
+    "conversation_history_forwarded": false,
+    "user_config_loaded": false,
+    "project_rules_loaded": false,
+    "sandbox": "workspace-write isolated projection",
+    "canonical_repository_writes_allowed": false,
+    "projection_scratch_writes_allowed": true,
+    "skill_source_edits_allowed": false,
+    "broker_or_order_actions_allowed": false,
+    "runtime_install_allowed": false,
+    "native_live_web_search_enabled": true,
+    "interim_agent_messages_allowed": false,
+    "maximum_focused_web_search_batches": 6,
+    "executor_wall_clock_budget_seconds": 900,
+    "required_exit_code": 0
+  },
+  "started_at_utc": "2026-07-23T13:57:06Z",
+  "finished_at_utc": "2026-07-23T13:57:10Z",
+  "recorded_at_utc": "2026-07-23T14:01:20Z",
+  "exit_code": 1,
+  "outcome": "HOST_RESPONSE_SCHEMA_REJECTED",
+  "host_error": {
+    "code": "invalid_json_schema",
+    "stage": "response-format preflight",
+    "summary": "trace_version used const without an explicit string type"
+  },
+  "raw_output": null,
+  "limitations": [
+    "The host rejected the response schema before model execution, so no substantive output or judge packet exists.",
+    "Execution-system session identifiers and raw CLI logs are intentionally excluded from source evidence."
+  ]
+}

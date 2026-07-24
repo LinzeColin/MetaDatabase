@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T008-forward-remediation-v19",
+  "executor_attempt_ordinal": 19,
+  "accepted_current_forward_result": true,
+  "executor_outcome": "HOST_REPLAY_PASS",
+  "independent_preexecution_timestamp": "PASS",
+  "artifact_bindings": {
+    "remediation_v19_context_manifest.json": "c2d9886914654d32e3a83abc19ab830cd55e72875e6407ee0dd18d21b1f028a5",
+    "remediation_v19_preregistration.json": "9ab9dcbbae29000ab2f7b11f32a7a4dc1f04f9abd059574333e1d5014d4a7a59",
+    "remediation_v19_task_message.txt": "c134f75ce8341ea724c4ee5f4ae7e58baf58e057c8e2ad13085383211afc6d65",
+    "executor_output_v19.schema.json": "6700ca3cae4a81aee93c9ab4da6e348cb21172285e7ef00c1d99630f4271ac3e",
+    "preexecution_seal_v19.json": "e500537c09c9415e1a10dd5e4646d06646f6fb4f9d2686a87258517281facd8f",
+    "control_packet_v19.json": "22d11a541e52672e607d678f623d36330a64d47e92287998e74933b394303614",
+    "preexecution_timestamp_v19.json": "4a587ed19881181ae541d6cfb54ae0f16b2e7f8fbc30b3d4946103d1befa45c8",
+    "remediation_v19_execution.json": "8312ed7f37f911824846e10e4d3394e7386452560f6e4f28976b1a5a1c55c766",
+    "remediation_v19_raw.json": "f6694a5142c20f9ddc1f3a2a9a8ec0702dd454773c1b68152c9539af7a39d6ad",
+    "remediation_v19_judge_context_manifest.json": "ae37c87fddb4a1c3b73f707268220c30c11306d3e5e84e710d9b56701c8e93d7",
+    "remediation_v19_judge_task.txt": "26e8e89fe91b10a3b2041356c14517a37463e6f861ae1d2123a3ff4f49538a33",
+    "remediation_v19_judge_a.json": "b3a0c65294d5c7e0e43fcb58c65c3ea592e78731238bba2d14185aa43bb2d879",
+    "remediation_v19_judge_b.json": "1ec4bc0076d4323b59771ef533d5f869ce7c85d3adf25c4abf84692deab46c84"
+  },
+  "decision_label": "BOTTLENECK_NOT_EQUITY",
+  "judge_consensus": "PASS",
+  "judge_verdicts": [
+    "PASS",
+    "PASS"
+  ],
+  "judge_scores": [
+    23,
+    24
+  ],
+  "prior_attempt_lineage": [
+    {
+      "ordinal": 1,
+      "id": "baseline",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 2,
+      "id": "trial-02",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 3,
+      "id": "remediation-v3",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 4,
+      "id": "remediation-v4",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 5,
+      "id": "remediation-v5",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 6,
+      "id": "remediation-v6",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 7,
+      "id": "remediation-v7",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 8,
+      "id": "remediation-v8",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 9,
+      "id": "remediation-v9",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 10,
+      "id": "remediation-v10",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 11,
+      "id": "remediation-v11",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 12,
+      "id": "remediation-v12",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 13,
+      "id": "remediation-v13",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 14,
+      "id": "remediation-v14",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 15,
+      "id": "remediation-v15",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 16,
+      "id": "remediation-v16",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 17,
+      "id": "remediation-v17",
+      "class": "historical-or-superseded"
+    },
+    {
+      "ordinal": 18,
+      "id": "remediation-v18",
+      "class": "historical-or-superseded"
+    }
+  ],
+  "outcome": "PASS",
+  "limitations": [
+    "The v19 control packet has a DigiCert RFC3161 timestamp that verifies offline against the pinned public trust anchor and predates executor start.",
+    "The fresh host return is semantically identical to the sealed preparation output and all three exact returned-field validator replays pass.",
+    "Two fresh, isolated, read-only judges independently returned PASS without web access or visibility into prior attempts or each other.",
+    "The accepted research decision is BOTTLENECK_NOT_EQUITY; it is research-only and is not an allocation or trade instruction."
+  ]
+}

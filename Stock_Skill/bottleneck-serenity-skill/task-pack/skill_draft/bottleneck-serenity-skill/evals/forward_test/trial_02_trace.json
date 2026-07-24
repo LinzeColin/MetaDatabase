@@ -1,0 +1,249 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P2-T002",
+  "case_id": "forward-commercial-aircraft-engine-aftermarket-20260723",
+  "run_date": "2026-07-23",
+  "executor": {
+    "executor_id": "forward-executor-t002-r2",
+    "fresh_agent_context": true,
+    "fork_turns": "none",
+    "conversation_history_forwarded": false,
+    "followup_message_count": 0
+  },
+  "artifact_bindings": {
+    "preregistration_sha256": "fce868e65264be429adeb30a2bb8dde06761f4992cd81a03a44b7d1e9593bfe9",
+    "context_manifest_sha256": "157f906b51faf48c13d89caa15999acd7299712e2ed88965dcde7c5f0d5dd362",
+    "rubric_sha256": "fd7a078a0f03cc18d7c1f2b32a6fc3a3159bec01f63fcd8733a0a1f964396d04",
+    "task_message_sha256": "f5ed7ac4d0e68d868c3252a88c33d45892d88c7c22ecdc869bed2591de825b89",
+    "raw_output_sha256": "ca5f4c3c8b2b2a83705be27ebd7c6f045c14e7e370fe41019f934d0312181904"
+  },
+  "observations": {
+    "skill_files_read": [
+      "SKILL.md",
+      "references/methodology.md",
+      "references/research_workflow.md",
+      "references/source_policy.md",
+      "references/scoring_model.md",
+      "references/portfolio_risk.md",
+      "references/output_contract.md",
+      "references/failure_modes.md",
+      "schemas/evidence.schema.json",
+      "schemas/opportunity.schema.json",
+      "schemas/portfolio.schema.json",
+      "scripts/validate_evidence.py",
+      "scripts/score_opportunity.py",
+      "scripts/analyze_portfolio_clusters.py",
+      "templates/research_config.json",
+      "templates/theme_map.md",
+      "templates/candidate_card.md",
+      "templates/investment_memo.md"
+    ],
+    "scripts_run": [
+      {
+        "command": "python3 scripts/score_opportunity.py - --format both",
+        "exit_code": 0,
+        "observed_output": "decision.label=BOTTLENECK_NOT_EQUITY; final_score=64.045; hard_gates_passed=false; equity_bridge.complete=false; warnings=[]"
+      },
+      {
+        "command": "python3 scripts/validate_evidence.py - --strict-warnings",
+        "exit_code": 0,
+        "observed_output": "valid=true; claim_count=9; errors=[]; warnings=[]"
+      }
+    ],
+    "web_searches": [
+      "IATA 2026 engine-MRO bottlenecks, grounded aircraft and airline cost",
+      "FAA/EASA engine life-limited-part rules",
+      "Lufthansa 2025 annual-report engine and MRO risks",
+      "GE Aerospace Q1/Q2 2026 services, spares, turnaround and groundings",
+      "Safran Q1 2026 aftermarket growth, LEAP durability and MRO investment",
+      "RTX/Pratt & Whitney GTF results, remediation and capacity expansion",
+      "MTU Q1 2026 commercial-MRO margin and network expansion",
+      "StandardAero Q1 2026, 10-K, LEAP capability and diluted shares",
+      "FTAI CFM56, USM/PMA, Q1 2026 and related-party disclosures",
+      "Rolls-Royce 2025 results, shop visits and supply constraints",
+      "CFM open-MRO ecosystem and competition agreement",
+      "MSCI ACWI benchmark composition and valuation",
+      "GE, Safran, RTX, StandardAero, FTAI and ACWI market snapshots",
+      "AAR, AerCap, HEICO, Lufthansa, ST Engineering and IHI proxy screening"
+    ],
+    "public_sources_opened": [
+      {
+        "title": "IATA engine-MRO bottleneck release",
+        "url": "https://www.iata.org/en/pressroom/2026-releases/06-24-urgent-action-needed-to-ease-engine-mro-bottlenecks/"
+      },
+      {
+        "title": "IATA World Maintenance and Engineering Symposium speech",
+        "url": "https://www.iata.org/en/pressroom/2026-speeches/06-24-wmes-2026-speech-stuart-fox-iata-director-flight-operations/"
+      },
+      {
+        "title": "IATA aviation supply-chain page",
+        "url": "https://www.iata.org/en/programs/ops-infra/techops/aviation-supply-chain/"
+      },
+      {
+        "title": "IATA CFM competition agreement release",
+        "url": "https://www.iata.org/en/pressroom/2026-releases/2026-01-20-01/"
+      },
+      {
+        "title": "FAA 14 CFR 33.70 rule PDF",
+        "url": "https://www.faa.gov/sites/faa.gov/files/2022-11/33.70.pdf"
+      },
+      {
+        "title": "FAA Advisory Circular 33.70-1",
+        "url": "https://www.faa.gov/airports/resources/advisory_circulars/index.cfm/go/document.information/documentNumber/33.70-1"
+      },
+      {
+        "title": "EUR-Lex Implementing Regulation 2019/1383",
+        "url": "https://eur-lex.europa.eu/eli/reg_impl/2019/1383/2019-09-04/eng"
+      },
+      {
+        "title": "EASA continuing-airworthiness rules",
+        "url": "https://www.easa.europa.eu/en/document-library/easy-access-rules/online-publications/easy-access-rules-continuing-airworthiness?erules-id=ERULES-1963177438-1031"
+      },
+      {
+        "title": "Lufthansa Group 2025 risk report",
+        "url": "https://report.lufthansagroup.com/2025/annual-report/en/combined-management-report/opportunities-and-risk-report/risks-at-an-individual-level/"
+      },
+      {
+        "title": "Lufthansa Group 2025 fleet disclosure",
+        "url": "https://report.lufthansagroup.com/2025/annual-report/en/combined-management-report/principles-of-the-group/fleet-and-route-network/fleet/"
+      },
+      {
+        "title": "Lufthansa Group 2025 MRO segment",
+        "url": "https://report.lufthansagroup.com/2025/annual-report/en/combined-management-report/business-segments/mro-business-segment/"
+      },
+      {
+        "title": "GE Aerospace Q2 2026 results",
+        "url": "https://www.geaerospace.com/news/press-releases/ge-aerospace-announces-second-quarter-2026-results"
+      },
+      {
+        "title": "GE Aerospace Q2 2026 presentation",
+        "url": "https://www.geaerospace.com/sites/default/files/geaerospace_webcast_presentation_07162026_2.pdf"
+      },
+      {
+        "title": "GE Aerospace Q1 2026 presentation",
+        "url": "https://www.geaerospace.com/sites/default/files/geaerospace_webcast_presentation_04212026.pdf"
+      },
+      {
+        "title": "GE Aerospace annual report",
+        "url": "https://www.geaerospace.com/investor-relations/annual-report"
+      },
+      {
+        "title": "CFM open-MRO ecosystem expansion",
+        "url": "https://www.geaerospace.com/news/press-releases/cfm-expands-strengthens-open-mro-ecosystem"
+      },
+      {
+        "title": "GE Aerospace stock page",
+        "url": "https://www.geaerospace.com/investor-relations/stock"
+      },
+      {
+        "title": "Safran Q1 2026 results",
+        "url": "https://www.safran-group.com/pressroom/safran-reports-first-quarter-2026-revenue-outstanding-performance-civil-engine-activities-2026-04-23"
+      },
+      {
+        "title": "Safran FY2025 results",
+        "url": "https://www.safran-group.com/pressroom/safran-reports-excellent-financial-performance-2025-and-raises-its-2028-ambitions-2026-02-13"
+      },
+      {
+        "title": "CFM LEAP-1B durability-kit certification",
+        "url": "https://www.safran-group.com/pressroom/cfm-secures-certification-leap-1b-durability-kit-2026-07-18"
+      },
+      {
+        "title": "Safran share-price page",
+        "url": "https://www.safran-group.com/finance/safran-share-price"
+      },
+      {
+        "title": "Safran Queretaro MRO facility",
+        "url": "https://www.safran-group.com/pressroom/safran-opens-new-maintenance-shop-queretaro-mexico-strengthening-its-mro-hub-americas-2026-06-30/pdf-download"
+      },
+      {
+        "title": "RTX Q1 2026 results",
+        "url": "https://www.rtx.com/news/news-center/2026/04/21/rtx-reports-q1-2026-results-"
+      },
+      {
+        "title": "RTX 2025 Form 10-K",
+        "url": "https://www.sec.gov/Archives/edgar/data/101829/000010182926000006/rtx-20251231.htm"
+      },
+      {
+        "title": "Pratt & Whitney U.S. MRO expansion",
+        "url": "https://www.rtx.com/news/news-center/2026/04/21/rtxs-pratt-whitney-invests-more-than-100m-to-expand-mro-footprint-in-the-u-s"
+      },
+      {
+        "title": "Pratt & Whitney 2026 GTF orders",
+        "url": "https://www.rtx.com/news/news-center/2026/07/22/rtxs-pratt-whitney-gtf-engines-surpass-800-orders-and-commitments-in-2026-ye"
+      },
+      {
+        "title": "MTU Q1 2026 results",
+        "url": "https://www.mtu.de/newsroom/press/latest-press-releases/press-release-detail/mtu-aero-engines-starts-2026-with-increase-in-revenue-and-earnings-adjusted-revenue-up-7-to-eur22-billion/"
+      },
+      {
+        "title": "MTU 2025 MRO network expansion",
+        "url": "https://www.mtu.de/newsroom/press/latest-press-releases/press-release-detail/mtu-maintenances-2025-growth-readies-mro-network-for-future-success/"
+      },
+      {
+        "title": "Pratt & Whitney and MTU GTF MRO collaboration",
+        "url": "https://www.rtx.com/news/news-center/2025/04/08/rtxs-pratt-whitney-and-mtu-aero-engines-strengthen-gtf-mro-network-collaborati"
+      },
+      {
+        "title": "StandardAero Q1 2026 results",
+        "url": "https://ir.standardaero.com/news-events/press-releases/detail/155/standardaero-announces-first-quarter-2026-results"
+      },
+      {
+        "title": "StandardAero 2025 Form 10-K",
+        "url": "https://ir.standardaero.com/sec-filings/content/0001193125-26-072618/0001193125-26-072618.pdf"
+      },
+      {
+        "title": "StandardAero LEAP capability",
+        "url": "https://standardaero.com/engines/cfminternational/leap-1a1b/"
+      },
+      {
+        "title": "StandardAero first LEAP-1A PRSV",
+        "url": "https://standardaero.com/standardaero-completes-first-cfm-leap-1a-prsv/"
+      },
+      {
+        "title": "FTAI Aviation 2025 Form 10-K",
+        "url": "https://www.sec.gov/Archives/edgar/data/1590364/000162828026012940/ftai-20251231.htm"
+      },
+      {
+        "title": "FTAI Aviation Q1 2026 results",
+        "url": "https://ir.ftaiaviation.com/news-releases/news-release-details/ftai-aviation-ltd-reports-first-quarter-2026-results-increases"
+      },
+      {
+        "title": "Rolls-Royce FY2025 results",
+        "url": "https://www.rolls-royce.com/media/press-releases/2026/26-02-2026-rr-holdings-plc-2025-full-year-results?pubdate=20260227"
+      },
+      {
+        "title": "Rolls-Royce 2025 annual report",
+        "url": "https://www.rolls-royce.com/~/media/Files/R/Rolls-Royce/documents/annual-report/2026/2025-annual-report-interactive.pdf"
+      },
+      {
+        "title": "AerCap 2025 Form 20-F",
+        "url": "https://www.sec.gov/Archives/edgar/data/1378789/000162828026007513/aer-20251231.htm"
+      },
+      {
+        "title": "MSCI ACWI factsheet",
+        "url": "https://www.msci.com/documents/10199/255599/msci-acwi.pdf"
+      },
+      {
+        "title": "iShares MSCI ACWI ETF",
+        "url": "https://www.ishares.com/us/products/239600/ishares-msci-acwi-etf"
+      },
+      {
+        "title": "GE Aerospace price-history cross-check",
+        "url": "https://www.macrotrends.net/stocks/charts/GE/ge-aerospace/stock-price-history"
+      }
+    ],
+    "files_written": [],
+    "parent_or_sibling_repository_reads": [],
+    "repository_writes": [],
+    "runtime_installs": [],
+    "broker_or_order_actions": [],
+    "raw_execution_trace_sha256": "198f35ec0aebc7161bad541823e2d6089f5a04336b09b8931818fcbb0c4a9271"
+  },
+  "integrity": {
+    "raw_output_preserved": true,
+    "context_boundary_pass": true,
+    "no_expected_answer_received": true,
+    "no_diagnosis_received": true
+  }
+}

@@ -76,6 +76,26 @@
     "base": {"probability": 0.5, "return_pct": 25, "summary": "Backlog converts with moderate price and volume upside."},
     "bull": {"probability": 0.2, "return_pct": 65, "summary": "Grid demand persists and estimate revisions continue."}
   },
+  "equity_bridge": {
+    "complete": true,
+    "revenue": 1000,
+    "free_cash_flow": 120,
+    "fully_diluted_shares": 60,
+    "per_share_fcf": 2,
+    "cash_conversion_checks": {
+      "capex": true,
+      "working_capital": true,
+      "interest": true,
+      "tax": true
+    },
+    "dilution_checks": {
+      "stock_based_compensation": true,
+      "convertibles": true,
+      "warrants": true,
+      "other_contingent_shares": true
+    },
+    "unverified_critical_multipliers": []
+  },
   "hard_flags": {
     "no_primary_evidence": false,
     "wrong_entity_or_ticker": false,

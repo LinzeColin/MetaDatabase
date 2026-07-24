@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v17",
+  "executor_attempt_ordinal": 17,
+  "projection_id": "forward-runtime-v17-sealed",
+  "preexecution_seal_sha256": "8ca631d96ec390590795507c669f9fa12e15e94058d0d31553285a495b8cab72",
+  "preregistration_sha256": "051f3ad82aa165b87e76a3fb4db4ae634899645b14f662759f9b631ae6ea5836",
+  "projection_tree_sha256": "c98a1405ac86f6b3b20333125139f86bddf81696a94bc3fa22d050702170a7b5",
+  "output_schema_sha256": "cfccdea3385d690ea26c3b0b52cd86d6bf63213bb211f67ef4caec3225fe442f",
+  "execution_envelope_sha256": "16b737122d26bd07e04035217d008a78366aee4016d1611bd665f620290db4cf",
+  "execution_controls": {
+    "fresh_execution_context": true,
+    "context_fork": "none",
+    "conversation_history_forwarded": false,
+    "user_config_loaded": false,
+    "project_rules_loaded": false,
+    "sandbox": "workspace-write isolated projection",
+    "canonical_repository_writes_allowed": false,
+    "projection_scratch_writes_allowed": true,
+    "skill_source_edits_allowed": false,
+    "broker_or_order_actions_allowed": false,
+    "runtime_install_allowed": false,
+    "native_live_web_search_enabled": true,
+    "interim_agent_messages_allowed": false,
+    "maximum_focused_web_search_batches": 6,
+    "executor_wall_clock_budget_seconds": 900,
+    "required_exit_code": 0
+  },
+  "started_at_utc": "2026-07-23T14:02:30Z",
+  "finished_at_utc": "2026-07-23T14:08:53Z",
+  "recorded_at_utc": "2026-07-23T14:10:20Z",
+  "exit_code": 0,
+  "outcome": "HOST_EXACT_TRACE_FAIL",
+  "raw_output": {
+    "path": "evals/forward_test/remediation_v17_raw.json",
+    "sha256": "0da2e9d25aa1cb4afc348f8bf282872706226b8a2221d72d749a8281755d9c32",
+    "byte_count": 33981
+  },
+  "trace_mismatch": {
+    "validator_replay_result_json_sha_mismatch": [
+      "evidence",
+      "opportunity",
+      "portfolio"
+    ],
+    "exact_primary_returned_fields_match_prepared": [
+      "memo_markdown",
+      "evidence_json",
+      "opportunity_json",
+      "portfolio_json",
+      "decision_label"
+    ]
+  },
+  "limitations": [
+    "The host preserved all five substantive returned fields and scalar replay hashes, but reserialized all three nested result_json strings.",
+    "v17 is retained as immutable failure evidence and is not sent to judges."
+  ]
+}

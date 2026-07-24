@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0",
+  "skill_version": "0.0.0.1",
+  "eval_id": "BSS-S3-P2-T002",
+  "run_date": "2026-07-23",
+  "trigger_binding": {
+    "baseline_result_sha256": "6ac26c25aa077bd3136407d846600dca8237fb17ccd42d9a900f32208f3c5942",
+    "baseline_verdict": "FAIL",
+    "failed_must_pass_category": "Rent capture",
+    "baseline_consensus_score": 21,
+    "baseline_maximum_score": 24
+  },
+  "finding": {
+    "verbatim_baseline_evidence": "MOD 公司交易完成后的完全稀释每股价值桥仍需重建。",
+    "root_cause": "The deterministic opportunity contract did not require a reproducible revenue-to-free-cash-flow-to-fully-diluted-per-share bridge before permitting hard gates and an investable watch label to pass.",
+    "remediation_class": "generic fail-closed contract hardening",
+    "topic_specific_rule_added": false
+  },
+  "production_changes": [
+    {
+      "path": "SKILL.md",
+      "before_sha256": "c7b2a984dafbd71fdc11faaf8bb032e14eab75b68c96a6d9638011a1824261aa",
+      "after_sha256": "cdb595ef7a110c2a8d7ed256b1a20d457ecc63fdf287d423105e91c3d60d6a85",
+      "effect": "Makes a complete cash-conversion and fully diluted per-share bridge a prerequisite for passing hard gates."
+    },
+    {
+      "path": "references/output_contract.md",
+      "before_sha256": "602417c7a88c91acb33830a3a0fa052c5ec606f38fb128c8d150329c269391e0",
+      "after_sha256": "682ee08d823bd1ba5e4ec209e62ba19f2fcf98bc08c2a31e6ab12dba5512a751",
+      "effect": "Defines the required machine-readable equity bridge and incomplete-bridge fail-closed behavior."
+    },
+    {
+      "path": "references/research_workflow.md",
+      "before_sha256": "bf6ce75626dd5757eac8dd6595f946828b2d89b147433824b37c22ed7645952d",
+      "after_sha256": "b3b0aeb8235ca60924d3cb710009b200de8d2d4f6d1a7de9609eae4a208e6cd6",
+      "effect": "Requires capex, working-capital, interest, tax, dilution, and per-share arithmetic checks during research."
+    },
+    {
+      "path": "references/scoring_model.md",
+      "before_sha256": "5d3ae07b9e1ef61405e005a79c17dd38773190acd1b40e7fbf9b494ff59147c9",
+      "after_sha256": "2cd87d5e9e779a0b593a486a77d2cc7ba1aec576bbf1d613589524820066e572",
+      "effect": "Synchronizes scoring and label gates with the complete equity-bridge requirement."
+    },
+    {
+      "path": "schemas/opportunity.schema.json",
+      "before_sha256": "21430a2373e7087e76f41c55c2d58ab4f4adb4aa2d77a74caa52e814dc0ca19f",
+      "after_sha256": "17b92617742fc905c546f77cb9c791588ee97613459ce881c95b7b7ca06c419a",
+      "effect": "Requires a typed equity_bridge object in opportunity artifacts."
+    },
+    {
+      "path": "scripts/score_opportunity.py",
+      "before_sha256": "45dd76746e3446b1785979e90a092a6dc7e5c9acd309ac1315469aae1c09e408",
+      "after_sha256": "3d900bc0f97379d65617859487b2e2594adacd36eaf38b7016ea35c1716e74d5",
+      "effect": "Validates bridge completeness and arithmetic, and forces unresolved critical multipliers into the revenue-bridge hard flag."
+    }
+  ],
+  "unseen_rerun": {
+    "case_id": "forward-commercial-aircraft-engine-aftermarket-20260723",
+    "projection_id": "forward-runtime-v2",
+    "projection_tree_sha256": "d015aff9e4a7103c8012d8211f7ac65a232d00bd00c643702d19803ba775e7d1",
+    "preregistration_sha256": "fce868e65264be429adeb30a2bb8dde06761f4992cd81a03a44b7d1e9593bfe9",
+    "context_manifest_sha256": "157f906b51faf48c13d89caa15999acd7299712e2ed88965dcde7c5f0d5dd362",
+    "user_prompt_sha256": "3a636f6861b85444e5f490051b9a25299dc028153941ff03d58032fd60f55f6b",
+    "harness_instruction_sha256": "8f2c7ec01b73fd6dd3b4ae5dd42c65def04db174b132393144613eee741e8754",
+    "task_message_sha256": "f5ed7ac4d0e68d868c3252a88c33d45892d88c7c22ecdc869bed2591de825b89",
+    "different_topic_from_baseline": true,
+    "baseline_diagnosis_in_executor_context": false,
+    "answer_key_in_executor_context": false,
+    "expected_decision_label_in_executor_context": false,
+    "expected_scores_in_executor_context": false
+  }
+}

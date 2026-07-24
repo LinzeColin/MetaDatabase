@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T002-forward-remediation-v10",
+  "executor_attempt_ordinal": 10,
+  "executor_outcome": "HOST_REPLAY_PASS",
+  "independent_judgment": {
+    "judge_context_manifest_sha256": "d76a838678913eafe05ba08c8336f0c55ef70d89f71b0a83540241b4b54401b9",
+    "judge_context_tree_sha256": "5915a14ab834e4cfe3c286ce123ed84bf381701a9e0569af900ab481af54292f",
+    "judge_schema_sha256": "5505401c848c089558112d2559fc2ce202ea83dab10f3023e4706a08163475ef",
+    "rubric_v2_sha256": "899851f9cd421f7cae8b26966e9b17377f40c9596c0bd54c08affbec3447a154",
+    "judges": [
+      {
+        "judge_id": "judge-a",
+        "execution_envelope_sha256": "20c94c4eb19e613eb6c6b31192ed8c48ffed06c045bf01f70716a62f79d9c036",
+        "started_at_utc": "2026-07-23T11:15:58Z",
+        "finished_at_utc": "2026-07-23T11:18:05Z",
+        "source_sha256": "a4b41cb09c3993326e4370d0dd346b78c19e75b569fc7075824efa9071a8ff16",
+        "source_byte_count": 5028,
+        "repository_storage_sha256": "703fc5bacbcdb01376b302206bb5ef588b6df11af421cc61e121bf66c6f1bace",
+        "repository_storage_byte_count": 5029,
+        "total_score": 20,
+        "must_pass_all_two": false,
+        "verdict": "FAIL",
+        "must_pass_failures": [
+          "As-of discipline",
+          "Evidence"
+        ]
+      },
+      {
+        "judge_id": "judge-b",
+        "execution_envelope_sha256": "5b549669c2868062377ea898f289ef5362cd158237af30dbd7b0829ebade56bb",
+        "started_at_utc": "2026-07-23T11:16:12Z",
+        "finished_at_utc": "2026-07-23T11:18:32Z",
+        "source_sha256": "0aea42a8f596f772523473792eb3fa38053e69c3dd9e16ee7d900a31ae3ca8cc",
+        "source_byte_count": 4859,
+        "repository_storage_sha256": "1884087b34252bd830ea88412f43edd66ea4df935749d88ddee95445f6da879e",
+        "repository_storage_byte_count": 4860,
+        "total_score": 22,
+        "must_pass_all_two": false,
+        "verdict": "FAIL",
+        "must_pass_failures": [
+          "As-of discipline"
+        ]
+      }
+    ],
+    "consensus": "FAIL"
+  },
+  "passed_gates": [
+    "executor output schema",
+    "host exact-field evidence replay",
+    "host exact-field opportunity replay",
+    "host exact-field portfolio replay",
+    "exact 14-section presentation order",
+    "no issuer/security/benchmark/index brand before Security map",
+    "Rent capture fail-closed behavior",
+    "Safety"
+  ],
+  "failed_gate": "Both independent judges found current-fact refresh insufficient; the executor lacked native live web search and direct DNS retrieval failed.",
+  "outcome": "FAIL",
+  "superseded_by": "BSS-S3-P3-T002-forward-remediation-v11",
+  "retry_change_class": "harness-only: enable native Codex live web search and require current primary-source refresh; production Skill bytes remain unchanged"
+}

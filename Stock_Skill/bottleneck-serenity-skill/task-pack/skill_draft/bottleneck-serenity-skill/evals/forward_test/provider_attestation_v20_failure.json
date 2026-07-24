@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "attestation_id": "BSS-S3-P3-T010-provider-attestation-v20",
+  "outcome": "PROVIDER_SCHEMA_PREFLIGHT_FAILURE",
+  "substantive_provider_attestation": false,
+  "preexecution_packet_sha256": "a6542393ce8cb62b5029df972c5578d7e587c972be23a02629e223907baf37e2",
+  "preexecution_timestamp_response_sha256": "caa63bd9f30a55bd6a26627167dfb0f638a487ee5471723f2d4d7b15c3d1ef3f",
+  "provider_started_after_preexecution_timestamp": true,
+  "host_started_at_utc": "2026-07-23T18:33:30Z",
+  "host_finished_at_utc": "2026-07-23T18:33:33Z",
+  "exit_code": 1,
+  "sanitized_event_types": [
+    "thread.started",
+    "turn.started",
+    "item.completed:error",
+    "error",
+    "turn.failed"
+  ],
+  "error": {
+    "type": "invalid_request_error",
+    "code": "invalid_json_schema",
+    "message": "output schema const property attestation_version lacked an explicit type"
+  },
+  "privacy": {
+    "raw_event_stream_persisted": false,
+    "provider_identifiers_persisted": false
+  },
+  "superseded_by": "BSS-S3-P3-T010-provider-attestation-v21"
+}

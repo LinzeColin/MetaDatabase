@@ -1,0 +1,776 @@
+{
+  "memo_markdown": "# Large-transformer and converter-equipment bottleneck memo\n\n## Decision\n\nMode: scan. Decision label: bottleneck-not-equity.\n\nAs of and source cutoff 2026-07-23, the 24-month conclusion is that large-power-transformer manufacturing is a verified physical bottleneck, while HVDC converter-equipment capacity is plausible but not independently quantified; neither finding yet supports an admissible listed-equity claim because the constraint-specific per-share cash-flow bridge and expectation gap remain unresolved. The decision is research only; no leverage; no automatic trading.\n\n## Funded demand\n\nThe payer is mainly the regulated transmission owner or a dedicated interconnector vehicle, ultimately funded through approved network allowances, milestone payments, customer advances and tariff recovery. Evidence of commitment is stronger than a thematic forecast: one five-year regulated programme has £8.9 billion of initial electricity-transmission funding, immediate access to another £1.3 billion on a use-it-or-lose-it basis, and an accelerated procurement mechanism; a separate 700-megawatt interconnector has an estimated £353 million converter-station equipment lot with a capacity-reservation stage [C-001].\n\nCommitted demand is not the same as the whole announced pipeline. Preliminary project lists, early construction funding and in-principle tariff arrangements remain conditional on planning, final investment decisions and cost control. The unit drivers are transformer megavolt-amperes, converter-station gigawatts, replacement of aging assets, new interconnections, data-centre loads and renewable integration. The demand case fails if regulated projects are cancelled or shifted beyond the horizon, non-build measures absorb enough queue pressure, or customer affordability prevents equipment orders from becoming executable contracts.\n\n## System map\n\nThe role-neutral chain is:\n\nregulated or industrial payer → transmission project → alternating-current substation or HVDC link → large transformer and converter station → valves, controls, bushings, tap changers, insulation, grain-oriented electrical steel, transposed copper conductor, testing → heavy transport, civil works, commissioning and service.\n\nThe transformer is mandatory wherever voltage must be stepped between generation, transmission and load. An HVDC link additionally requires converters at both ends, controls and protection, converter transformers, cooling, switchgear and cable interfaces. The binding node is qualified throughput: design engineering, winding and core assembly, insulation, high-voltage test bays, skilled labor and transport slots. Nominal factory floor space is not qualified output.\n\nAll six roles were screened. The owner controls qualified manufacturing capacity. The absorber has compatible spare capacity. The unlocker supplies factory equipment, automation or test capability. The substitute deploys dynamic ratings, topology optimization, power-flow controls, reconductoring, storage or demand flexibility. The tollbooth owns required engineering, controls, certification or service workflow. The public proxy is only a diluted listed claim through a broader parent. No role is presumed superior before the security and cash-flow checks.\n\n## Constraint proof\n\nCurrent large-transformer reality is strong. A government resilience study records custom specifications, manufacturer prequalification, testing and difficult transport, with lead times up to and above 36 months; it estimates new factories at one to three years and specialized winding/core equipment at one to two years [C-002, C-003]. A separate institutional survey reports component prices and procurement times rising sharply since 2021. The evidence supports necessity, present tightness, slow expansion and hard-to-substitute qualified output.\n\nDuration is less certain. Three independent incumbents are funding substantial brownfield and greenfield expansion for 2027-2028, and one already opened capacity advertised as triple its previous wind-transformer output [C-005]. A 2026 system study estimates that dynamic transformer rating can add roughly 5%-15% capacity at applicable sites within one to two years, while a broader set of grid-enhancing technologies could connect 450-700 gigawatts of advanced projects [C-011]. These measures do not replace every high-voltage transformer or HVDC link, but they are credible marginal relief.\n\nThe HVDC-specific proof is weaker. Capacity reservation in a live converter-station tender, rising HVDC revenue/backlog at a supplier and delayed regulated projects are consistent with tight qualified capacity. They do not disclose global converter-factory utilization, supplier count or lead times. That critical claim remains open [C-010]. The combined theme must therefore preserve a split verdict: transformer scarcity verified; converter-equipment scarcity plausible, not yet independently proven.\n\n## Security map\n\nThe broad benchmark is the iShares MSCI ACWI ETF (NASDAQ: ACWI), which tracks the MSCI All Country World Index (Net). Its official page showed 2,237 holdings, a 25.04 portfolio price/earnings ratio on 2026-07-21 and a $156.19 close on 2026-07-22 [C-016]. It is the global-equity comparison, not a thematic peer.\n\n| Security | Legal path to exposure | Screened roles | Evidence and limitation |\n|---|---|---|---|\n| GE Vernova Inc. (NYSE: GEV) | The listed registrant acquired and consolidates the remaining half of Prolec GE; Power Transmission contains transformers and Grid Systems Integration contains HVDC | owner, absorber, public proxy | Electrification RPO was $42.44bn at 2026-03-31 and price/volume/productivity improved; disclosure bundles several product lines [C-004, C-006, C-007] |\n| Siemens Energy AG (Xetra: ENR) | Grid Technologies is held inside the listed group | owner, absorber, public proxy | Q2 FY2026 grid performance drove an outlook raise; new Austrian and Croatian facilities add transformer/tank throughput, but group backlog and cash include other businesses [C-004, C-005] |\n| Hitachi, Ltd. (Tokyo: 6501) | Hitachi Energy is a wholly owned subsidiary of the listed parent | owner, absorber, tollbooth, public proxy | FY2025 subsidiary revenue was $19.8bn, adjusted EBITA margin 13.4% and backlog $57.9bn; the parent remains a conglomerate [C-008] |\n| Factory-equipment unlockers | No verified liquid pure-play security admitted | unlocker | Winding machines and core tables can themselves take one to two years, but searched disclosures did not establish a material listed exposure |\n| Grid-enhancing alternatives | No security admitted without a revenue bridge | substitute, tollbooth | Dynamic ratings and power-flow tools can defer part of conventional build, but adoption and issuer materiality were not underwritten [C-011] |\n\nGEV is used as the representative scoring candidate because the transformer asset is now consolidated and the filing separates an Electrification segment. This is not a recommendation. Independent registry corroboration beyond the filed legal report was not obtained, so the legal-entity check is recorded as an explicit assumption [C-015].\n\n## Equity capture\n\nThe required bridge is system demand → relevant units → content and qualified share → realized price → product revenue → incremental gross profit → operating cash flow → capex, working capital, interest and tax → free cash flow → fully diluted per-share value.\n\nFor GEV, the midpoint of 2026 Electrification revenue guidance is $14.25bn and the guided segment EBITDA margin is 18%-20%. Group free-cash-flow guidance is $6.5-$7.5bn. Those numbers are not a valid bridge. Electrification includes transformers, HVDC, switchgear, synchronous condensers, conversion, storage, automation and software. The filing does not provide the transformer/HVDC revenue share, contract repricing and cancellation terms, product-level capex, normalized working capital, acquisition-debt interest, tax or contingent-share allocation. Q1 free cash flow was unusually helped by working capital, and acquisition gains distort GAAP earnings [C-007].\n\nThe machine object therefore records revenue of 14,250 and approximately 272.3 million diluted shares only as incomplete anchors. Free cash flow and per-share free cash flow are null. Every cash and dilution category was considered, but five decision-critical multipliers remain unverified. The same defect applies to ENR and 6501: strong subsidiary or segment economics do not reproduce constraint-specific free cash flow per listed share [C-014].\n\nPhysical scarcity can create customer value while shareholder rent leaks through fixed-price contracts, factory capex, working capital, labor, acquisition debt, tax, project losses or valuation. Under the non-compensating gates, a strong constraint score cannot repair this missing bridge. That is why the deterministic classification is BOTTLENECK_NOT_EQUITY rather than candidate.\n\n## Three clocks\n\n| Clock | P10 | P50 | P90 | Interpretation |\n|---|---:|---:|---:|---|\n| Physical transformer scarcity | 12 months | 30 months | 48 months | Existing 36-48-month procurement evidence is offset by staged capacity arriving in 2027-2028 |\n| Representative incumbent monetization | 3 months | 6 months | 18 months | Existing backlog can convert quickly, but large systems may convert over one to six years |\n| Market discovery | 0 months | 2 months | 6 months | Record backlogs, capacity plans and margin improvement are already public |\n\nThe central monetizable runway is 30 minus 6, or 24 months [C-012]. That is operationally attractive but not sufficient: the market-discovery clock is much shorter than the physical clock, so the observable shortage may already be priced before incremental per-share cash arrives.\n\n## Valuation\n\nThe scenario anchor is the live cutoff quote for GEV, but the direct market-data lookup did not provide a stable publisher URL and is not admitted as critical evidence. This limitation itself blocks a high-confidence expectation-gap conclusion. Relative benchmark context is available from the official ACWI page, but a benchmark multiple is not a substitute for candidate reverse valuation.\n\n| Scenario | Probability | 24-month total return | Operating and valuation assumptions |\n|---|---:|---:|---|\n| Bear | 35% | -45% | Capacity ramps, working-capital benefits reverse, wind losses persist, project timing slips and the grid-growth multiple compresses |\n| Base | 45% | 0% | Backlog and margins execute broadly as guided, but those outcomes are already embedded |\n| Bull | 20% | +35% | Scarcity lasts beyond 2028, integration succeeds and high-margin backlog conversion exceeds expectations |\n\nThe scenario-weighted return is -8.75%. These probabilities are subjective research assumptions rather than calibrated forecasts [C-013]. Because no product-level free-cash-flow bridge or primary market-implied base case exists, this table is a falsifiable valuation frame, not a price target.\n\n## Catalysts\n\n- Through calendar 2026: quarterly Electrification revenue, organic growth, margin, backlog, working-capital and capex disclosures from GEV; the key test is whether price/volume improvement becomes recurring cash rather than advances.\n- Through fiscal 2026: Grid Technologies segment disclosure from Siemens Energy; compare book-to-bill, customer advances and factory ramp against backlog conversion.\n- Through fiscal 2027: Hitachi Energy's announced transformer expansions and margin plan; verify commissioning, qualified output and whether backlog/revenue stays near the disclosed 2.5-3.0 times range.\n- By 2027-12-31: evidence that funded capacity is operational, qualified and shipping; this dates the capital-cycle response.\n- During 2027: final investment and award milestones for named HVDC procurements; distinguish capacity reservation from executable equipment revenue.\n- During 2028: phased operation of GEV's new Vietnam large-transformer facility, subject to approval; full operation is expected only in 2028.\n\n## Red team\n\nThe strongest alternative causal explanation is not that electrification disappears. It is that utilities synchronized procurement after years of underinvestment, suppliers collected advances and reported record backlogs, and investors capitalized those signals just as high returns induced a global factory cycle. Delayed projects inflate queues, acquisitions mechanically add backlog, and working-capital inflows temporarily make cash conversion look stronger. By 2027-2028, new factories, standardization, dynamic ratings, topology optimization and other non-build measures may shorten queues before the marginal equity earns durable rent [C-005, C-011, C-013].\n\nThis alternative explains all observed facts without requiring a lasting expectation gap: physical scarcity is real; incumbents grow; margins improve; yet excess shareholder return is absent because the market sees the same backlog and the capital response arrives inside the holding period. It would be weakened by persistent lead times above 30 months after new capacity is qualified, repeat price increases on new contracts, stable working-capital conversion and a product-level per-share bridge at a non-bull valuation.\n\n## Kill switches\n\n1. Reclassify the structural transformer thesis if published large-transformer lead times fall below 18 months for two consecutive observations by 2027-07-23.\n2. Reclassify scarcity duration if funded factories commission faster than demand and grid-equipment book-to-bill falls below 1.0 by 2027-12-31.\n3. Reclassify funded HVDC demand if approved projects representing at least 20% of the monitored pipeline are cancelled, materially descoped or pushed beyond 2035.\n4. Keep or strengthen the bottleneck-not-equity label if no constraint-specific per-share bridge exists by the 2027 reporting cycle; move toward candidate status only if revenue, capex, working capital, interest, tax and dilution become reproducible.\n5. Treat price decline alone as valuation information, not fundamental falsification. A predeclared operational condition must trigger.\n\nNone was observed as triggered at the cutoff.\n\n## Portfolio fit\n\nThe standalone portfolio object is a 5% research-watch weight for each of GEV, ENR and 6501, with 85% unallocated; it is not an allocation recommendation. Each maps to the same funded-demand, transformer/HVDC, transmission-operator, geography and capital-cycle roots. The pairwise Jaccard overlap is expected to be 0.875 for every pair because only one idiosyncratic risk tag differs. Three tickers therefore behave as one concentrated causal trade, not three independent ideas.\n\n| Pair | Shared root causes | Expected overlap | Implication |\n|---|---|---:|---|\n| GEV / ENR | global grid capex, transformer and HVDC capacity, regulated customers, common regions, execution and valuation | 0.875 | near duplicate |\n| GEV / 6501 | same, with acquisition risk versus conglomerate dilution as the main difference | 0.875 | near duplicate |\n| ENR / 6501 | same, with wind cross-subsidy versus conglomerate dilution | 0.875 | near duplicate |\n\nThe portfolio validator should flag near-duplicate pairs and high root-driver concentration if weights rise. Exact sizing requires user loss tolerance and mandate; none is inferred.\n\n## Open questions\n\n1. What are current qualified global unit capacity, utilization and quoted lead times for HVDC converter valves, controls and converter transformers by vendor?\n2. What share of each listed segment's revenue and backlog is specifically large power transformers versus HVDC systems, and what are cancellation or price-reset terms?\n3. How much of current free cash flow is customer advances that will reverse as backlog ships?\n4. What maintenance and growth capex, working capital, interest and tax belong to the constrained products?\n5. What fully diluted share count includes stock compensation, converts, warrants and other contingent shares at the scenario date?\n6. What current price-implied margin and growth path does each security require versus ACWI after normalizing acquisition gains?\n7. Which 2027-2028 capacity projects are fully equipped, staffed, qualified and contracted rather than announced?\n\nUntil questions 1-6 are answered with independent primary evidence, the equity claim remains blocked.\n\n## Sources\n\n1. U.S. Department of Energy, *Large Power Transformer Resilience*, 2024-07-10, https://www.energy.gov/sites/default/files/2024-10/EXEC-2022-001242%20-%20Large%20Power%20Transformer%20Resilience%20Report%207-10-24.pdf — U.S.-focused; some lead-time evidence comes from manufacturer interviews.\n2. International Energy Agency, *Building the Future Transmission Grid*, 2025-02-25, https://www.iea.org/reports/building-the-future-transmission-grid — 2024 stakeholder survey, not audited vendor capacity.\n3. International Energy Agency, *Electricity 2026: Grids*, 2026-02-06, https://www.iea.org/reports/electricity-2026/grids — global modeled need and grid-enhancing potential; project applicability varies.\n4. Ofgem, RIIO-3 initial funding decision, 2026-01-08, https://www.ofgem.gov.uk/cy/press-release/ofgem-approves-initial-ps24-billion-operate-and-maintain-critical-gas-networks-and-upgrade-britains-electricity-supergrid — regulated UK spending only.\n5. UK Find a Tender Service / TI LirIC Limited, converter-station procurement, 2025-05-23, https://www.find-tender.service.gov.uk/Notice/025796-2025 — final award and financial close remain conditional.\n6. U.S. Securities and Exchange Commission / GE Vernova Inc., Form 10-Q for 2026 Q1, 2026-04-22, https://www.sec.gov/Archives/edgar/data/1996810/000199681026000064/gev-20260331.htm — issuer-origin filing; bundled segment.\n7. U.S. Securities and Exchange Commission / GE Vernova Inc., filed Q1 release, 2026-04-22, https://www.sec.gov/Archives/edgar/data/1996810/000199681026000063/gevpressrelease1q26.htm — non-GAAP guidance and working-capital sensitivity.\n8. Siemens Energy AG, Q2 FY2026 earnings release, 2026-05-12, https://www.siemens-energy.com/global/en/home/press-releases/earnings-release-q2-fy-2026.html — group metrics include other segments.\n9. Siemens Energy AG, Q1 FY2026 analyst presentation, 2026-02-11, https://assets.siemens-energy.com/dam/d5e24758-5d19-44f7-b57d-b3ee0057e335/2026-02-11_Q1_Analyst_presentation-pdf_Original%20file.pdf — facility units are not directly comparable.\n10. Hitachi, Ltd., FY2025 financial-results presentation, 2026-04-27, https://www.hitachi.com/content/dam/hitachi/global/en/press/files/2026/04/260427/2025_Anpre.pdf — subsidiary data do not yield parent per-share cash flow.\n11. Hitachi Energy / Hitachi, Ltd., transformer investment release, 2024-04-23, https://www.hitachi.com/en/press/articles/2024/04/0424/ — issuer schedule without common capacity baseline.\n12. GE Vernova Inc., Vietnam transformer-capacity announcement, 2026-03-10, https://www.gevernova.com/news/taxonomy/term/2092?page=0 — full operation expected in 2028 and subject to approvals.\n13. Ofgem, early investment and updated HVDC dates, 2025-12-09, https://www.ofgem.gov.uk/cy/press-release/ofgem-agrees-early-investment-and-updated-dates-proposed-electricity-superhighways — early funding is not final project approval.\n14. iShares by BlackRock, ACWI official fund page, data through 2026-07-22, https://www.ishares.com/us/products/239600/ishares-msci-acwi-etf — ETF characteristics can differ slightly from the index.\n",
+  "evidence_json": "{\n  \"schema_version\": \"1.0\",\n  \"skill_version\": \"0.0.0.1\",\n  \"as_of\": \"2026-07-23\",\n  \"source_cutoff\": \"2026-07-23\",\n  \"previous_version\": null,\n  \"claims\": [\n    {\n      \"id\": \"C-001\",\n      \"claim\": \"Regulated transmission spending and named HVDC procurements provide funded, not merely aspirational, demand for high-voltage grid equipment.\",\n      \"claim_type\": \"fact\",\n      \"critical\": true,\n      \"confidence\": \"high\",\n      \"status\": \"supported\",\n      \"sources\": [\n        {\n          \"url\": \"https://www.ofgem.gov.uk/cy/press-release/ofgem-approves-initial-ps24-billion-operate-and-maintain-critical-gas-networks-and-upgrade-britains-electricity-supergrid\",\n          \"publisher\": \"Ofgem\",\n          \"date\": \"2026-01-08\",\n          \"tier\": \"A\",\n          \"source_type\": \"regulatory_funding_decision\",\n          \"independence_group\": \"ofgem-riio3-2026\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Notes to editors: £8.9bn initial electricity-transmission funding, £1.3bn use-it-or-lose-it, and wider £80bn programme\",\n          \"limitations\": \"UK programme only; not a global total and some later project spending remains conditional.\"\n        },\n        {\n          \"url\": \"https://www.find-tender.service.gov.uk/Notice/025796-2025\",\n          \"publisher\": \"UK Find a Tender Service / TI LirIC Limited\",\n          \"date\": \"2025-05-23\",\n          \"tier\": \"A\",\n          \"source_type\": \"procurement_notice\",\n          \"independence_group\": \"liric-procurement-2025\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Scope and Lot A1: two HVDC converter stations; £353m estimated converter-station lot; staged capacity reservation and engineering\",\n          \"limitations\": \"The project targets financial close in Q3 2027 and the notice says final award remains conditional.\"\n        },\n        {\n          \"url\": \"https://www.iea.org/reports/electricity-2026/grids\",\n          \"publisher\": \"International Energy Agency\",\n          \"date\": \"2026-02-06\",\n          \"tier\": \"B\",\n          \"source_type\": \"institutional_system_report\",\n          \"independence_group\": \"iea-electricity-2026\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Grids chapter lines 240-243: annual grid investment must rise about 50% from roughly USD 400bn by 2030\",\n          \"limitations\": \"Modelled global need, not a schedule of legally committed purchase orders.\"\n        }\n      ],\n      \"contradiction_search\": \"Checked project conditionality, regulator cost controls, delayed delivery dates, demand flexibility and non-build alternatives; the evidence proves funded pockets rather than every announced project.\",\n      \"notes\": \"Committed procurement and approved baseline spending are separated from preliminary project lists.\"\n    },\n    {\n      \"id\": \"C-002\",\n      \"claim\": \"Large power transformers are presently a physical procurement bottleneck, with current lead times materially longer than before 2020.\",\n      \"claim_type\": \"fact\",\n      \"critical\": true,\n      \"confidence\": \"high\",\n      \"status\": \"supported\",\n      \"sources\": [\n        {\n          \"url\": \"https://www.energy.gov/sites/default/files/2024-10/EXEC-2022-001242%20-%20Large%20Power%20Transformer%20Resilience%20Report%207-10-24.pdf\",\n          \"publisher\": \"U.S. Department of Energy\",\n          \"date\": \"2024-07-10\",\n          \"tier\": \"A\",\n          \"source_type\": \"government_resilience_report\",\n          \"independence_group\": \"doe-lpt-resilience-2024\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"PDF pages 12-15: manufacturer conversations indicated lead times up to and exceeding 36 months; limited manufacturing capacity is a weak link\",\n          \"limitations\": \"The numerical evidence is U.S.-focused and partly based on confidential manufacturer interviews.\"\n        },\n        {\n          \"url\": \"https://www.iea.org/reports/building-the-future-transmission-grid\",\n          \"publisher\": \"International Energy Agency\",\n          \"date\": \"2025-02-25\",\n          \"tier\": \"B\",\n          \"source_type\": \"institutional_supply_chain_survey\",\n          \"independence_group\": \"iea-transmission-survey-2024\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Overview: 2024 industry survey found growing supply-chain constraints, higher component prices and longer lead times above 66 kilovolts\",\n          \"limitations\": \"The open page summarizes the report; detailed component observations are survey-based.\"\n        },\n        {\n          \"url\": \"https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1747103808044&uri=CELEX%3A52025IP0136\",\n          \"publisher\": \"European Parliament\",\n          \"date\": \"2025-06-19\",\n          \"tier\": \"A\",\n          \"source_type\": \"parliamentary_resolution\",\n          \"independence_group\": \"eu-grid-resolution-2025\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Paragraph 60 records two-to-three-year cable procurement and up to four years for large power transformers, citing the 2025 institutional report\",\n          \"limitations\": \"This source partly derives from the IEA report and therefore is not counted as an additional independent technical origin.\"\n        }\n      ],\n      \"contradiction_search\": \"Searched for capacity additions, factory openings, standardization, dynamic ratings, reconductoring, voltage uprating and demand-flexibility relief; these weaken duration but do not negate current transformer queues.\",\n      \"notes\": \"The strongest independent origins are the U.S. government report and the IEA survey.\"\n    },\n    {\n      \"id\": \"C-003\",\n      \"claim\": \"Customization, prequalification, testing, transport and specialized factory equipment make large-transformer supply slower to expand than ordinary assembly capacity.\",\n      \"claim_type\": \"fact\",\n      \"critical\": true,\n      \"confidence\": \"high\",\n      \"status\": \"supported\",\n      \"sources\": [\n        {\n          \"url\": \"https://www.energy.gov/sites/default/files/2024-10/EXEC-2022-001242%20-%20Large%20Power%20Transformer%20Resilience%20Report%207-10-24.pdf\",\n          \"publisher\": \"U.S. Department of Energy\",\n          \"date\": \"2024-07-10\",\n          \"tier\": \"A\",\n          \"source_type\": \"government_resilience_report\",\n          \"independence_group\": \"doe-lpt-resilience-2024\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"PDF pages 12-15: custom specifications, prequalification, testing and transport; new factories take 1-3 years and winding/core equipment 1-2 years\",\n          \"limitations\": \"U.S. focus; not every transformer class has the same process.\"\n        },\n        {\n          \"url\": \"https://www.find-tender.service.gov.uk/Notice/025796-2025\",\n          \"publisher\": \"UK Find a Tender Service / TI LirIC Limited\",\n          \"date\": \"2025-05-23\",\n          \"tier\": \"A\",\n          \"source_type\": \"procurement_notice\",\n          \"independence_group\": \"liric-procurement-2025\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Lot A1 requires design, supply, installation, testing and commissioning and contemplates a preferred-supplier capacity-reservation stage\",\n          \"limitations\": \"One HVDC project; it demonstrates process complexity rather than an industry utilization rate.\"\n        }\n      ],\n      \"contradiction_search\": \"Reviewed modular designs, specification harmonization and grid-enhancing technologies; those may shorten some projects but do not remove transformer design/testing requirements for high-voltage applications.\",\n      \"notes\": \"The constraint is qualified manufacturing throughput, not nameplate floor space alone.\"\n    },\n    {\n      \"id\": \"C-004\",\n      \"claim\": \"At least two separately listed global suppliers report unusually strong grid-equipment order books and improving price-volume economics.\",\n      \"claim_type\": \"fact\",\n      \"critical\": true,\n      \"confidence\": \"high\",\n      \"status\": \"supported\",\n      \"sources\": [\n        {\n          \"url\": \"https://www.sec.gov/Archives/edgar/data/1996810/000199681026000064/gev-20260331.htm\",\n          \"publisher\": \"U.S. Securities and Exchange Commission / GE Vernova Inc.\",\n          \"date\": \"2026-04-22\",\n          \"tier\": \"A\",\n          \"source_type\": \"regulatory_filing\",\n          \"independence_group\": \"gev-10q-2026q1\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Form 10-Q Electrification: RPO $42.44bn; revenue $2.959bn; EBITDA $528m; price, volume and productivity supported results\",\n          \"limitations\": \"RPO includes multiple grid products and the acquired transformer business, not only large transformers or HVDC.\"\n        },\n        {\n          \"url\": \"https://www.siemens-energy.com/global/en/home/press-releases/earnings-release-q2-fy-2026.html\",\n          \"publisher\": \"Siemens Energy AG\",\n          \"date\": \"2026-05-12\",\n          \"tier\": \"A\",\n          \"source_type\": \"official_earnings_release\",\n          \"independence_group\": \"siemens-energy-q2fy26\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Q2 FY2026: record group orders, €154bn backlog and outlook raised mainly because Grid Technologies performed better than expected\",\n          \"limitations\": \"Group figures include non-grid segments and do not isolate transformer/HVDC economics.\"\n        }\n      ],\n      \"contradiction_search\": \"Checked acquisition effects, working-capital advances, wind losses and bundled segment disclosure; backlog growth is real but cannot by itself prove sustainable per-share rent.\",\n      \"notes\": \"Separate issuer origins satisfy corroboration of industry order strength, not candidate valuation.\"\n    },\n    {\n      \"id\": \"C-005\",\n      \"claim\": \"A large capital-cycle response is already funded and scheduled across incumbent transformer suppliers, with meaningful additions arriving during 2027-2028.\",\n      \"claim_type\": \"fact\",\n      \"critical\": true,\n      \"confidence\": \"high\",\n      \"status\": \"supported\",\n      \"sources\": [\n        {\n          \"url\": \"https://www.hitachi.com/en/press/articles/2024/04/0424/\",\n          \"publisher\": \"Hitachi Energy / Hitachi, Ltd.\",\n          \"date\": \"2024-04-23\",\n          \"tier\": \"A\",\n          \"source_type\": \"official_capacity_announcement\",\n          \"independence_group\": \"hitachi-transformer-capex-2024\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"$1.5bn transformer-capacity programme through 2027 across Europe, the Americas and Asia; more than 4,000 jobs\",\n          \"limitations\": \"Issuer forecast; no common unit-capacity baseline or utilization disclosure.\"\n        },\n        {\n          \"url\": \"https://www.gevernova.com/news/taxonomy/term/2092?page=0\",\n          \"publisher\": \"GE Vernova Inc.\",\n          \"date\": \"2026-03-10\",\n          \"tier\": \"A\",\n          \"source_type\": \"official_capacity_announcement\",\n          \"independence_group\": \"gev-vietnam-transformer-2026\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"$200m Vietnam large-power-transformer factory, primarily for HVDC, with full operations expected in 2028; wider Prolec and U.S./UK investments\",\n          \"limitations\": \"Full operation is outside part of the 24-month window and remains subject to approvals.\"\n        },\n        {\n          \"url\": \"https://assets.siemens-energy.com/dam/d5e24758-5d19-44f7-b57d-b3ee0057e335/2026-02-11_Q1_Analyst_presentation-pdf_Original%20file.pdf\",\n          \"publisher\": \"Siemens Energy AG\",\n          \"date\": \"2026-02-11\",\n          \"tier\": \"A\",\n          \"source_type\": \"official_investor_presentation\",\n          \"independence_group\": \"siemens-energy-q1fy26-capacity\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"PDF page 8: Austrian wind-transformer capacity tripled to up to 2,000 units/year; Croatian tank facility about 160 custom tanks/year including HVDC applications\",\n          \"limitations\": \"Wind-transformer units and custom tanks are not equivalent to completed large power transformers.\"\n        }\n      ],\n      \"contradiction_search\": \"Searched brownfield, greenfield, equipment and labor additions at multiple incumbents; the breadth of funded expansion is the principal threat to scarcity duration and pricing.\",\n      \"notes\": \"Capacity additions are not summed because unit definitions differ.\"\n    },\n    {\n      \"id\": \"C-006\",\n      \"claim\": \"The representative listed candidate directly consolidates transformer manufacturing and reports HVDC systems inside its Electrification segment.\",\n      \"claim_type\": \"fact\",\n      \"critical\": false,\n      \"confidence\": \"high\",\n      \"status\": \"supported\",\n      \"sources\": [\n        {\n          \"url\": \"https://www.sec.gov/Archives/edgar/data/1996810/000199681026000064/gev-20260331.htm\",\n          \"publisher\": \"U.S. Securities and Exchange Commission / GE Vernova Inc.\",\n          \"date\": \"2026-04-22\",\n          \"tier\": \"A\",\n          \"source_type\": \"regulatory_filing\",\n          \"independence_group\": \"gev-10q-2026q1\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Form 10-Q Note 8 and Electrification discussion: Prolec GE consolidated from February 2, 2026; Power Transmission and Grid Systems Integration include transformers and HVDC\",\n          \"limitations\": \"Issuer-origin evidence; no product-level free-cash-flow disclosure.\"\n        }\n      ],\n      \"contradiction_search\": \"Checked whether the asset remained a joint venture; the filing records purchase and consolidation of the remaining 50% stake.\",\n      \"notes\": \"Legal-entity mapping is clear from the filing but independent registry corroboration was not obtained in the search budget.\"\n    },\n    {\n      \"id\": \"C-007\",\n      \"claim\": \"The representative candidate guided to 2026 Electrification revenue of $14.0-$14.5bn and an 18%-20% segment EBITDA margin, but this is not a transformer/HVDC free-cash-flow bridge.\",\n      \"claim_type\": \"fact\",\n      \"critical\": false,\n      \"confidence\": \"high\",\n      \"status\": \"supported\",\n      \"sources\": [\n        {\n          \"url\": \"https://www.sec.gov/Archives/edgar/data/1996810/000199681026000063/gevpressrelease1q26.htm\",\n          \"publisher\": \"U.S. Securities and Exchange Commission / GE Vernova Inc.\",\n          \"date\": \"2026-04-22\",\n          \"tier\": \"A\",\n          \"source_type\": \"filed_earnings_release\",\n          \"independence_group\": \"gev-2026q1-results-origin\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"2026 guidance section: Electrification revenue $14.0-$14.5bn and segment EBITDA margin 18%-20%; group FCF $6.5-$7.5bn\",\n          \"limitations\": \"Segment guidance bundles transformers, HVDC, switchgear, power conversion and software; group FCF is not segment FCF.\"\n        }\n      ],\n      \"contradiction_search\": \"Reviewed 10-Q cash flow, acquisition accounting and working-capital comments; Q1 FCF was unusually supported by working capital and M&A gains distort GAAP earnings.\",\n      \"notes\": \"These values anchor the incomplete bridge only.\"\n    },\n    {\n      \"id\": \"C-008\",\n      \"claim\": \"A second listed parent reports a wholly owned grid subsidiary with FY2025 revenue of $19.8bn, 13.4% adjusted EBITA margin and $57.9bn backlog.\",\n      \"claim_type\": \"fact\",\n      \"critical\": false,\n      \"confidence\": \"high\",\n      \"status\": \"supported\",\n      \"sources\": [\n        {\n          \"url\": \"https://www.hitachi.com/content/dam/hitachi/global/en/press/files/2026/04/260427/2025_Anpre.pdf\",\n          \"publisher\": \"Hitachi, Ltd.\",\n          \"date\": \"2026-04-27\",\n          \"tier\": \"A\",\n          \"source_type\": \"official_financial_results\",\n          \"independence_group\": \"hitachi-fy2025-results\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"PDF page 8: Hitachi Energy revenue $19.8bn, adjusted EBITA margin 13.4%, order backlog $57.9bn and one-to-six-year conversion profile\",\n          \"limitations\": \"Subsidiary figures do not provide product-level transformer/HVDC FCF or a parent per-share bridge.\"\n        }\n      ],\n      \"contradiction_search\": \"Checked parent share count and conglomerate exposure; energy is material but not a pure listed security.\",\n      \"notes\": \"Useful corroboration of demand and execution, not a complete candidate underwriting.\"\n    },\n    {\n      \"id\": \"C-009\",\n      \"claim\": \"The listed parents and direct grid supplier are highly liquid relative to a global-equity research universe, but the search did not establish an expectation gap.\",\n      \"claim_type\": \"inference\",\n      \"critical\": true,\n      \"confidence\": \"medium\",\n      \"status\": \"open\",\n      \"depends_on\": [\n        \"C-004\",\n        \"C-006\",\n        \"C-007\",\n        \"C-008\",\n        \"C-016\"\n      ],\n      \"sources\": [\n        {\n          \"url\": \"https://www.ishares.com/us/products/239600/ishares-msci-acwi-etf\",\n          \"publisher\": \"iShares by BlackRock\",\n          \"date\": \"2026-07-22\",\n          \"tier\": \"A\",\n          \"source_type\": \"official_fund_page\",\n          \"independence_group\": \"ishares-acwi-20260722\",\n          \"stance\": \"mixed\",\n          \"excerpt_or_locator\": \"Global benchmark page: 2,237 holdings, $32.8bn net assets, 25.04 P/E and $156.19 close\",\n          \"limitations\": \"Benchmark characteristics do not establish individual-security liquidity or valuation.\"\n        }\n      ],\n      \"contradiction_search\": \"Looked for current consensus, ownership, crowding, price-implied margin and pure-product forecasts; primary evidence was insufficient.\",\n      \"notes\": \"Liquidity is observable; mispricing is not. The direct live quote lookup lacked a stable URL and was excluded from critical evidence.\"\n    },\n    {\n      \"id\": \"C-010\",\n      \"claim\": \"HVDC converter-equipment manufacturing is plausibly tight, but current independent utilization, supplier-count and lead-time evidence is insufficient to call it a separately verified bottleneck.\",\n      \"claim_type\": \"inference\",\n      \"critical\": true,\n      \"confidence\": \"medium\",\n      \"status\": \"open\",\n      \"depends_on\": [\n        \"C-001\",\n        \"C-003\",\n        \"C-004\",\n        \"C-005\"\n      ],\n      \"sources\": [\n        {\n          \"url\": \"https://www.find-tender.service.gov.uk/Notice/025796-2025\",\n          \"publisher\": \"UK Find a Tender Service / TI LirIC Limited\",\n          \"date\": \"2025-05-23\",\n          \"tier\": \"A\",\n          \"source_type\": \"procurement_notice\",\n          \"independence_group\": \"liric-procurement-2025\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Staged preferred-supplier capacity reservation for two converter stations\",\n          \"limitations\": \"One tender and conditional final investment decision.\"\n        },\n        {\n          \"url\": \"https://www.sec.gov/Archives/edgar/data/1996810/000199681026000064/gev-20260331.htm\",\n          \"publisher\": \"U.S. Securities and Exchange Commission / GE Vernova Inc.\",\n          \"date\": \"2026-04-22\",\n          \"tier\": \"A\",\n          \"source_type\": \"regulatory_filing\",\n          \"independence_group\": \"gev-10q-2026q1\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Electrification RPO and revenue increased partly from HVDC solutions\",\n          \"limitations\": \"Orders do not disclose converter-factory utilization or lead time.\"\n        },\n        {\n          \"url\": \"https://www.ofgem.gov.uk/cy/press-release/ofgem-agrees-early-investment-and-updated-dates-proposed-electricity-superhighways\",\n          \"publisher\": \"Ofgem\",\n          \"date\": \"2025-12-09\",\n          \"tier\": \"A\",\n          \"source_type\": \"regulatory_project_decision\",\n          \"independence_group\": \"ofgem-asti-hvdc-2025\",\n          \"stance\": \"mixed\",\n          \"excerpt_or_locator\": \"Early funding supports procurement of sought-after components, while major HVDC delivery dates moved to 2034\",\n          \"limitations\": \"The page names HVDC cables specifically; it does not quantify converter-equipment capacity.\"\n        }\n      ],\n      \"contradiction_search\": \"Searched current converter-station utilization, vendor-qualified capacity, order lead time, multi-vendor qualification and cancellations; no independent global dataset was found.\",\n      \"notes\": \"This unresolved critical claim prevents treating transformer and converter scarcity as one fully proven bottleneck.\"\n    },\n    {\n      \"id\": \"C-011\",\n      \"claim\": \"Grid-enhancing technologies and regulatory reforms can defer a portion of conventional grid build and therefore reduce equipment demand at the margin.\",\n      \"claim_type\": \"fact\",\n      \"critical\": false,\n      \"confidence\": \"medium\",\n      \"status\": \"supported\",\n      \"sources\": [\n        {\n          \"url\": \"https://www.iea.org/reports/electricity-2026/grids\",\n          \"publisher\": \"International Energy Agency\",\n          \"date\": \"2026-02-06\",\n          \"tier\": \"B\",\n          \"source_type\": \"institutional_system_report\",\n          \"independence_group\": \"iea-electricity-2026\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Lines 258-345: grid-enhancing technologies could connect 450-700 GW; dynamic transformer rating adds 5%-15% capacity with 1-2-year lead time\",\n          \"limitations\": \"High-level global potential; not additive and not a substitute for every voltage, stability or new-route requirement.\"\n        }\n      ],\n      \"contradiction_search\": \"Considered whether these measures fully substitute for new large transformers or HVDC links; the report explicitly notes project-specific constraints and limited coverage.\",\n      \"notes\": \"This is the strongest near-term demand-side alternative, not a complete substitute.\"\n    },\n    {\n      \"id\": \"C-012\",\n      \"claim\": \"Physical transformer scarcity likely persists for roughly 12-48 months, with a 30-month central estimate, while incumbent monetization is faster and market discovery is largely complete.\",\n      \"claim_type\": \"forecast\",\n      \"critical\": true,\n      \"confidence\": \"medium\",\n      \"status\": \"open\",\n      \"depends_on\": [\n        \"C-002\",\n        \"C-003\",\n        \"C-004\",\n        \"C-005\",\n        \"C-011\"\n      ],\n      \"sources\": [],\n      \"contradiction_search\": \"Explicitly incorporated 2027-2028 factory ramps, existing 36-48-month quoted lead times, grid-enhancing alternatives and already public record backlogs.\",\n      \"notes\": \"Research estimate: scarcity P10/P50/P90 12/30/48 months; representative incumbent monetization lag 6 months; discovery 2 months. Not a calibrated statistical forecast.\"\n    },\n    {\n      \"id\": \"C-013\",\n      \"claim\": \"The strongest alternative explanation is a synchronized procurement and working-capital cycle that looks like durable scarcity but is already inducing enough capacity and substitution to normalize rents before investors earn excess returns.\",\n      \"claim_type\": \"inference\",\n      \"critical\": true,\n      \"confidence\": \"medium\",\n      \"status\": \"mixed\",\n      \"depends_on\": [\n        \"C-004\",\n        \"C-005\",\n        \"C-007\",\n        \"C-011\",\n        \"C-012\"\n      ],\n      \"sources\": [],\n      \"contradiction_search\": \"Compared current lead-time evidence with supplier capex, 2027-2028 commissioning, dynamic-rating potential, customer advances and bundled backlog.\",\n      \"notes\": \"This causal case is stronger than a simple demand-collapse bear case because it uses observed supply response.\"\n    },\n    {\n      \"id\": \"C-014\",\n      \"claim\": \"No screened security has a reproducible constraint-specific revenue-to-free-cash-flow-to-fully-diluted-share bridge from public primary evidence.\",\n      \"claim_type\": \"inference\",\n      \"critical\": true,\n      \"confidence\": \"high\",\n      \"status\": \"supported\",\n      \"depends_on\": [\n        \"C-006\",\n        \"C-007\",\n        \"C-008\",\n        \"C-009\",\n        \"C-010\"\n      ],\n      \"sources\": [],\n      \"contradiction_search\": \"Reviewed segment revenue, EBITDA, group free cash flow, capex plans, acquisition debt, working-capital comments, share counts and subsidiary disclosures; product-level cash conversion remains unavailable.\",\n      \"notes\": \"Unresolved multipliers include transformer/HVDC revenue split, backlog conversion, price resets/cancellations, capex and working-capital allocation, interest, tax and fully diluted contingent shares.\"\n    },\n    {\n      \"id\": \"C-015\",\n      \"claim\": \"The representative candidate is treated as the direct legal-entity mapping for scoring, pending independent registry corroboration beyond its filed report.\",\n      \"claim_type\": \"assumption\",\n      \"critical\": true,\n      \"confidence\": \"medium\",\n      \"status\": \"open\",\n      \"sources\": [\n        {\n          \"url\": \"https://www.sec.gov/Archives/edgar/data/1996810/000199681026000064/gev-20260331.htm\",\n          \"publisher\": \"U.S. Securities and Exchange Commission / GE Vernova Inc.\",\n          \"date\": \"2026-04-22\",\n          \"tier\": \"A\",\n          \"source_type\": \"regulatory_filing\",\n          \"independence_group\": \"gev-10q-2026q1\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Registrant identity, NYSE ticker, segment structure and acquisition consolidation\",\n          \"limitations\": \"The legal facts originate with the issuer filing; no separate corporate-registry record was opened.\"\n        }\n      ],\n      \"contradiction_search\": \"Checked whether the acquired transformer asset remained outside the registrant; the filing says it is consolidated, but independent registry confirmation was not obtained.\",\n      \"notes\": \"This is explicitly an underwriting assumption, not a second independent legal-origin claim.\"\n    },\n    {\n      \"id\": \"C-016\",\n      \"claim\": \"The selected broad global-equity benchmark vehicle tracks large- and mid-cap equities across developed and emerging markets.\",\n      \"claim_type\": \"fact\",\n      \"critical\": false,\n      \"confidence\": \"high\",\n      \"status\": \"supported\",\n      \"sources\": [\n        {\n          \"url\": \"https://www.ishares.com/us/products/239600/ishares-msci-acwi-etf\",\n          \"publisher\": \"iShares by BlackRock\",\n          \"date\": \"2026-07-22\",\n          \"tier\": \"A\",\n          \"source_type\": \"official_fund_page\",\n          \"independence_group\": \"ishares-acwi-20260722\",\n          \"stance\": \"supports\",\n          \"excerpt_or_locator\": \"Fund objective and Key Facts: benchmark is MSCI All Country World Index (Net), 2,237 holdings\",\n          \"limitations\": \"ETF tracking costs and U.S. trading hours create small differences from the underlying index.\"\n        }\n      ],\n      \"contradiction_search\": \"Checked scope, holdings count, benchmark name and trading venue on the official fund page.\",\n      \"notes\": \"Used as the broad global-equity comparison, not as a thematic peer.\"\n    }\n  ]\n}",
+  "opportunity_json": "{\n  \"schema_version\": \"1.0\",\n  \"skill_version\": \"0.0.0.1\",\n  \"as_of\": \"2026-07-23\",\n  \"source_cutoff\": \"2026-07-23\",\n  \"previous_version\": null,\n  \"thesis_id\": \"large-transformer-hvdc-gev-20260723\",\n  \"candidate\": {\n    \"ticker\": \"GEV\",\n    \"company\": \"GE Vernova Inc.\",\n    \"market\": \"NYSE\",\n    \"currency\": \"USD\",\n    \"role\": \"owner|absorber|public_proxy\",\n    \"lifecycle_stage\": \"MARGIN_REALIZATION\"\n  },\n  \"scores\": {\n    \"constraint\": {\n      \"funded_demand\": 4.5,\n      \"architectural_necessity\": 5,\n      \"current_tightness\": 4,\n      \"supplier_concentration\": 2.5,\n      \"qualification_barrier\": 4.5,\n      \"substitution_difficulty\": 4,\n      \"expansion_lead_time\": 4,\n      \"policy_resilience\": 3\n    },\n    \"capture\": {\n      \"exposure_materiality\": 4,\n      \"pricing_power\": 3.5,\n      \"capacity_to_ship\": 3.5,\n      \"unit_economics\": 3,\n      \"contract_counterparty\": 3,\n      \"appropriability\": 3.5,\n      \"balance_sheet\": 4,\n      \"dilution_discipline\": 4,\n      \"capital_allocation\": 3\n    },\n    \"mispricing\": {\n      \"expectations_gap\": 1,\n      \"valuation_asymmetry\": 1,\n      \"coverage_gap\": 1,\n      \"catalyst_clarity\": 3,\n      \"estimate_revision_potential\": 2,\n      \"crowding_headroom\": 1,\n      \"entry_setup\": 1\n    },\n    \"evidence\": {\n      \"primary_source_coverage\": 4.5,\n      \"independent_corroboration\": 4,\n      \"numerical_traceability\": 3,\n      \"freshness\": 4.5,\n      \"contradiction_search\": 4.5,\n      \"source_independence\": 4\n    },\n    \"investability\": {\n      \"liquidity\": 5,\n      \"governance_accounting\": 4,\n      \"geopolitical_regulatory\": 4,\n      \"customer_diversification\": 4,\n      \"technology_resilience\": 4,\n      \"balance_sheet_survival\": 4.5,\n      \"float_gap_risk\": 4.5,\n      \"portfolio_fit\": 2\n    }\n  },\n  \"clocks\": {\n    \"scarcity_p10_months\": 12,\n    \"scarcity_p50_months\": 30,\n    \"scarcity_p90_months\": 48,\n    \"monetization_lag_months\": 6,\n    \"market_discovery_months\": 2,\n    \"contracted_forward_ramp\": true\n  },\n  \"scenarios\": {\n    \"bear\": {\n      \"probability\": 0.35,\n      \"return_pct\": -45,\n      \"summary\": \"Capacity ramps, working-capital benefits reverse, wind losses persist and the market de-rates already-discovered grid growth.\"\n    },\n    \"base\": {\n      \"probability\": 0.45,\n      \"return_pct\": 0,\n      \"summary\": \"Backlog and margins execute broadly as guided, but the operating result is already embedded and merely matches the starting valuation.\"\n    },\n    \"bull\": {\n      \"probability\": 0.2,\n      \"return_pct\": 35,\n      \"summary\": \"Transformer and HVDC scarcity lasts beyond 2028, Prolec integration succeeds and high-margin backlog conversion exceeds expectations.\"\n    }\n  },\n  \"equity_bridge\": {\n    \"complete\": false,\n    \"revenue\": 14250,\n    \"free_cash_flow\": null,\n    \"fully_diluted_shares\": 272.3,\n    \"per_share_fcf\": null,\n    \"cash_conversion_checks\": {\n      \"capex\": true,\n      \"working_capital\": true,\n      \"interest\": true,\n      \"tax\": true\n    },\n    \"dilution_checks\": {\n      \"stock_based_compensation\": true,\n      \"convertibles\": true,\n      \"warrants\": true,\n      \"other_contingent_shares\": true\n    },\n    \"unverified_critical_multipliers\": [\n      \"Share of 2026 Electrification revenue attributable specifically to large power transformers and HVDC converter equipment\",\n      \"Backlog conversion, cancellation and price-reset economics for the relevant products\",\n      \"Product-level EBITDA-to-FCF conversion after expansion capex and normalized working capital\",\n      \"Interest and tax allocation after the Prolec GE acquisition financing\",\n      \"Constraint-specific fully diluted per-share FCF including contingent share effects\"\n    ]\n  },\n  \"hard_flags\": {\n    \"no_primary_evidence\": false,\n    \"wrong_entity_or_ticker\": false,\n    \"no_material_revenue_bridge\": true,\n    \"substitution_before_monetization\": false,\n    \"unfunded_financing_gap\": false,\n    \"kill_switch_triggered\": false,\n    \"bull_case_required_to_avoid_loss\": false\n  },\n  \"kill_switches\": [\n    {\n      \"condition\": \"Large-transformer procurement lead times normalize below 18 months for two consecutive observations.\",\n      \"metric\": \"Published large-power-transformer lead-time range\",\n      \"source\": \"U.S. Department of Energy and International Energy Agency updates\",\n      \"review_date\": \"2027-07-23\",\n      \"triggered\": false\n    },\n    {\n      \"condition\": \"Funded incumbent capacity becomes operational faster than demand growth and grid-equipment book-to-bill falls below 1.0.\",\n      \"metric\": \"Factory commissioning plus supplier book-to-bill/backlog\",\n      \"source\": \"Issuer filings and official factory commissioning releases\",\n      \"review_date\": \"2027-12-31\",\n      \"triggered\": false\n    },\n    {\n      \"condition\": \"Approved HVDC projects representing at least 20% of the monitored pipeline are cancelled, materially descoped or deferred beyond 2035.\",\n      \"metric\": \"Regulatory project decisions and procurement notices\",\n      \"source\": \"Ofgem, ENTSO-E and national procurement portals\",\n      \"review_date\": \"2027-07-23\",\n      \"triggered\": false\n    },\n    {\n      \"condition\": \"A product-level per-share bridge remains unavailable or shows no incremental FCF after capex, working capital, interest and tax.\",\n      \"metric\": \"Constraint-specific FCF per fully diluted share\",\n      \"source\": \"Candidate filings and investor disclosures\",\n      \"review_date\": \"2027-04-30\",\n      \"triggered\": false\n    }\n  ],\n  \"notes\": [\n    \"Revenue and fully diluted shares are USD millions and millions of shares, respectively; revenue is the midpoint of 2026 Electrification guidance, not constraint-specific revenue.\",\n    \"The scorer must classify the case as BOTTLENECK_NOT_EQUITY because the equity bridge is incomplete and the corresponding hard flag is active.\",\n    \"Scenario returns are research assumptions from the cutoff quote, not price targets or personalized advice.\",\n    \"Research only; no leverage; no automatic trading.\"\n  ]\n}",
+  "portfolio_json": "{\n  \"schema_version\": \"1.0\",\n  \"skill_version\": \"0.0.0.1\",\n  \"as_of\": \"2026-07-23\",\n  \"source_cutoff\": \"2026-07-23\",\n  \"previous_version\": null,\n  \"limits\": {\n    \"max_single_position\": 0.15,\n    \"max_root_driver\": 0.35,\n    \"max_constraint\": 0.25,\n    \"max_customer_ecosystem\": 0.3,\n    \"max_binary_risk\": 0.1,\n    \"max_illiquid_total\": 0.15\n  },\n  \"positions\": [\n    {\n      \"ticker\": \"GEV\",\n      \"weight\": 0.05,\n      \"drivers\": [\n        \"global-grid-capex\",\n        \"electrification\"\n      ],\n      \"constraints\": [\n        \"large-power-transformer-capacity\",\n        \"hvdc-converter-capacity\"\n      ],\n      \"architectures\": [\n        \"high-voltage-ac-grid\",\n        \"hvdc-vsc\"\n      ],\n      \"customers\": [\n        \"regulated-transmission-operators\",\n        \"data-center-power-builders\"\n      ],\n      \"regions\": [\n        \"north-america\",\n        \"europe\",\n        \"asia\"\n      ],\n      \"risk_factors\": [\n        \"capital-cycle\",\n        \"execution\",\n        \"valuation\",\n        \"acquisition-integration\"\n      ],\n      \"binary_risk\": false,\n      \"illiquid\": false,\n      \"status\": \"research-watch-only\"\n    },\n    {\n      \"ticker\": \"ENR\",\n      \"weight\": 0.05,\n      \"drivers\": [\n        \"global-grid-capex\",\n        \"electrification\"\n      ],\n      \"constraints\": [\n        \"large-power-transformer-capacity\",\n        \"hvdc-converter-capacity\"\n      ],\n      \"architectures\": [\n        \"high-voltage-ac-grid\",\n        \"hvdc-vsc\"\n      ],\n      \"customers\": [\n        \"regulated-transmission-operators\",\n        \"data-center-power-builders\"\n      ],\n      \"regions\": [\n        \"north-america\",\n        \"europe\",\n        \"asia\"\n      ],\n      \"risk_factors\": [\n        \"capital-cycle\",\n        \"execution\",\n        \"valuation\",\n        \"wind-cross-subsidy\"\n      ],\n      \"binary_risk\": false,\n      \"illiquid\": false,\n      \"status\": \"research-watch-only\"\n    },\n    {\n      \"ticker\": \"6501\",\n      \"weight\": 0.05,\n      \"drivers\": [\n        \"global-grid-capex\",\n        \"electrification\"\n      ],\n      \"constraints\": [\n        \"large-power-transformer-capacity\",\n        \"hvdc-converter-capacity\"\n      ],\n      \"architectures\": [\n        \"high-voltage-ac-grid\",\n        \"hvdc-vsc\"\n      ],\n      \"customers\": [\n        \"regulated-transmission-operators\",\n        \"data-center-power-builders\"\n      ],\n      \"regions\": [\n        \"north-america\",\n        \"europe\",\n        \"asia\"\n      ],\n      \"risk_factors\": [\n        \"capital-cycle\",\n        \"execution\",\n        \"valuation\",\n        \"conglomerate-dilution\"\n      ],\n      \"binary_risk\": false,\n      \"illiquid\": false,\n      \"status\": \"research-watch-only\"\n    }\n  ]\n}",
+  "decision_label": "BOTTLENECK_NOT_EQUITY",
+  "execution_trace": {
+    "trace_version": "1.0",
+    "preexecution_seal_sha256": "6f5a4246d17134d401c0842cbca99775d91fc1c35f077f22cd84ee98b0f94460",
+    "files_read": [
+      "control/remediation_v14_task_message.txt",
+      "control/remediation_v14_preregistration.json",
+      "control/remediation_v14_context_manifest.json",
+      "control/preexecution_seal_v14.json",
+      "control/executor_output_v14.schema.json",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/backtest_and_evals.md",
+      "references/failure_modes.md",
+      "references/integration_contract.md",
+      "references/methodology.md",
+      "references/output_contract.md",
+      "references/portfolio_risk.md",
+      "references/research_workflow.md",
+      "references/scoring_model.md",
+      "references/serenity_audit.md",
+      "references/source_catalog.md",
+      "references/source_policy.md",
+      "schemas/evidence.schema.json",
+      "schemas/opportunity.schema.json",
+      "schemas/portfolio.schema.json",
+      "scripts/analyze_portfolio_clusters.py",
+      "scripts/new_research_case.py",
+      "scripts/prepare_forward_output_v14.py",
+      "scripts/presentation_contract.py",
+      "scripts/score_opportunity.py",
+      "scripts/validate_evidence.py",
+      "templates/candidate_card.md",
+      "templates/evidence_ledger.csv",
+      "templates/investment_memo.md",
+      "templates/monitor_plan.csv",
+      "templates/research_config.json",
+      "templates/theme_map.md",
+      "templates/thesis_ledger.csv"
+    ],
+    "web_searches": [
+      "site:energy.gov large power transformer lead times supply chain shortage 2024 2025",
+      "site:iea.org transformers supply chain lead times grids 2025",
+      "site:europa.eu transformer supply chain grid investment lead times 2025",
+      "site:ferc.gov transformer lead times supply chain 2025",
+      "site:siemens-energy.com investor relations 2026 Grid Technologies orders backlog transformers capacity expansion HVDC",
+      "site:gevernova.com investors 2026 Grid Solutions backlog transformers HVDC capacity expansion",
+      "site:hitachi.com IR 2026 Hitachi Energy orders backlog transformers HVDC expansion",
+      "site:hyundai-electric.com investor relations 2026 transformer capacity expansion backlog",
+      "site:investors.gevernova.com 2026 first quarter results free cash flow diluted shares Electrification backlog Prolec GE",
+      "site:sec.gov/Archives/edgar/data GE Vernova 10-Q 2026 Grid Electrification Prolec GE",
+      "site:siemens-energy.com investor relations Q2 FY2026 Grid Technologies revenue profit backlog shares outstanding",
+      "site:hitachi.com/content/dam/hitachi/global/en/ir FY2025 Hitachi Energy revenue EBITA backlog 2026",
+      "site:ofgem.gov.uk HVDC converter station investment decision 2025 2026 transmission project",
+      "site:gov.uk HVDC converter stations contract funded 2025 grid project",
+      "site:tennet.eu HVDC framework agreements 2025 converter systems investment",
+      "site:entsoe.eu 2026 HVDC transmission investment projects TYNDP",
+      "site:siemens-energy.com/global/en/investor-relations share information 2026 shares outstanding ENR",
+      "site:hitachi.com/en/ir stock information 6501 shares outstanding 2026",
+      "site:sec.gov/Archives/edgar/data/1996810 2026 GE Vernova weighted average diluted shares Q1 2026",
+      "site:ishares.com/us/products/239600 iShares MSCI ACWI ETF 2026 price earnings",
+      "site:gevernova.com 2026 Prolec GE transformer manufacturing capacity expansion $1 billion 2028",
+      "site:siemens-energy.com 2026 transformer factory capacity expansion 2000 transformers year",
+      "site:hitachi.com 2026 transformer manufacturing capacity expansion factory investment 2027",
+      "site:iea.org/reports/electricity-2026 grid-enhancing technologies dynamic transformer rating alternatives"
+    ],
+    "pages_opened": [
+      "https://www.energy.gov/sites/default/files/2024-10/EXEC-2022-001242%20-%20Large%20Power%20Transformer%20Resilience%20Report%207-10-24.pdf",
+      "https://www.iea.org/reports/building-the-future-transmission-grid",
+      "https://www.iea.org/reports/electricity-2026/grids",
+      "https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1747103808044&uri=CELEX%3A52025IP0136",
+      "https://www.energy.gov/sites/default/files/2024-12/20212024-Four%20Year%20Review%20of%20Supply%20Chains%20for%20the%20Energy%20Sector%20Industrial%20Base.pdf",
+      "https://www.siemens-energy.com/global/en/home/press-releases/earnings-release-q2-fy-2026.html",
+      "https://assets.siemens-energy.com/dam/d5e24758-5d19-44f7-b57d-b3ee0057e335/2026-02-11_Q1_Analyst_presentation-pdf_Original%20file.pdf",
+      "https://www.gevernova.com/sites/default/files/gev_webcast_presentation_04222026.pdf",
+      "https://www.hitachi.com/en/ir/library/irday/",
+      "https://www.hitachi.com/en/press/articles/2025/03/0311a/",
+      "https://www.hitachi.com/en-us/press/hitachi-announces-historic-1-billion-usd-manufacturing-investment-to-power-americas-energy-future/",
+      "https://www.hitachi.com/content/dam/hitachi/global/en/press/files/2026/06/260610/20260610_01_energy_en.pdf",
+      "https://www.hitachi.com/New/cnews/month/2025/10/251030a/Leading_in_the_Electricity_Era_Our_Strategic_Outlook_en.pdf",
+      "https://www.hitachi.com/New/cnews/month/2025/10/251030a/Financial_Performance_and_Growth_Outlook_en.pdf",
+      "https://www.sec.gov/Archives/edgar/data/1996810/000199681026000063/gevpressrelease1q26.htm",
+      "https://www.sec.gov/Archives/edgar/data/1996810/000199681026000064/gev-20260331.htm",
+      "https://www.hitachi.com/content/dam/hitachi/global/en/press/files/2026/04/260427/2025_Anpre.pdf",
+      "https://www.sec.gov/Archives/edgar/data/1996810/000199681026000012/gevpressrelease4q25.htm",
+      "https://www.find-tender.service.gov.uk/Notice/025796-2025",
+      "https://www.ofgem.gov.uk/cy/press-release/ofgem-approves-initial-ps24-billion-operate-and-maintain-critical-gas-networks-and-upgrade-britains-electricity-supergrid",
+      "https://www.ofgem.gov.uk/sites/default/files/2026-05/Denny-to-Wishaw-400kV-Reinforcement-Project-decision.pdf",
+      "https://www.entsoe.eu/news/2025/06/23/the-tyndp-2026-received-applications-from-179-pan-european-electricity-transmission-projects-and-50-storage-projects-during-the-first-collection-window/",
+      "https://www.ofgem.gov.uk/cy/press-release/ofgem-agrees-early-investment-and-updated-dates-proposed-electricity-superhighways",
+      "https://www.gevernova.com/news/taxonomy/term/2092?page=0",
+      "https://www.hitachi.com/en/press/articles/2024/04/0424/",
+      "https://www.siemens-energy.com/global/en/home/stories/clean-energy-manufacturing-wollsdorf.html",
+      "https://www.ishares.com/us/products/239600/ishares-msci-acwi-etf",
+      "https://www.hitachi.com/en/ir/stock/information/",
+      "https://www.siemens-energy.com/global/en/home/investor-relations/share/share-buyback.html"
+    ],
+    "files_written": [
+      "machine_build_draft_v14.mjs",
+      "draft_v14.json",
+      "remediation_v14_raw.json"
+    ],
+    "validator_replay": {
+      "evidence": {
+        "field": "evidence_json",
+        "command": "python3 scripts/validate_evidence.py -",
+        "exit_code": 0,
+        "stdin_sha256": "6924195b370c5e4b1ae11e66ec8e0b67502b9d93c2f4145f6c2ff362e9793a88",
+        "stdout_sha256": "0ecf14c964694529a98015d82443386444f6ca507afe2df72c17fc5722f0d073",
+        "result": {
+          "schema_version": "1.0",
+          "skill_version": "0.0.0.1",
+          "as_of": "2026-07-23",
+          "source_cutoff": "2026-07-23",
+          "previous_version": null,
+          "valid": true,
+          "claim_count": 16,
+          "errors": [],
+          "warnings": [],
+          "claims": [
+            {
+              "id": "C-001",
+              "critical": true,
+              "claim_type": "fact",
+              "independent_support_groups": 3,
+              "tier_a_support_count": 2,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-002",
+              "critical": true,
+              "claim_type": "fact",
+              "independent_support_groups": 3,
+              "tier_a_support_count": 2,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-003",
+              "critical": true,
+              "claim_type": "fact",
+              "independent_support_groups": 2,
+              "tier_a_support_count": 2,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-004",
+              "critical": true,
+              "claim_type": "fact",
+              "independent_support_groups": 2,
+              "tier_a_support_count": 2,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-005",
+              "critical": true,
+              "claim_type": "fact",
+              "independent_support_groups": 3,
+              "tier_a_support_count": 3,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-006",
+              "critical": false,
+              "claim_type": "fact",
+              "independent_support_groups": 1,
+              "tier_a_support_count": 1,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-007",
+              "critical": false,
+              "claim_type": "fact",
+              "independent_support_groups": 1,
+              "tier_a_support_count": 1,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-008",
+              "critical": false,
+              "claim_type": "fact",
+              "independent_support_groups": 1,
+              "tier_a_support_count": 1,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-009",
+              "critical": true,
+              "claim_type": "inference",
+              "independent_support_groups": 0,
+              "tier_a_support_count": 0,
+              "contradictory_or_mixed_sources": 1,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-010",
+              "critical": true,
+              "claim_type": "inference",
+              "independent_support_groups": 2,
+              "tier_a_support_count": 2,
+              "contradictory_or_mixed_sources": 1,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-011",
+              "critical": false,
+              "claim_type": "fact",
+              "independent_support_groups": 1,
+              "tier_a_support_count": 0,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-012",
+              "critical": true,
+              "claim_type": "forecast",
+              "independent_support_groups": 0,
+              "tier_a_support_count": 0,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-013",
+              "critical": true,
+              "claim_type": "inference",
+              "independent_support_groups": 0,
+              "tier_a_support_count": 0,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-014",
+              "critical": true,
+              "claim_type": "inference",
+              "independent_support_groups": 0,
+              "tier_a_support_count": 0,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-015",
+              "critical": true,
+              "claim_type": "assumption",
+              "independent_support_groups": 1,
+              "tier_a_support_count": 1,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            },
+            {
+              "id": "C-016",
+              "critical": false,
+              "claim_type": "fact",
+              "independent_support_groups": 1,
+              "tier_a_support_count": 1,
+              "contradictory_or_mixed_sources": 0,
+              "valid": true,
+              "errors": [],
+              "warnings": []
+            }
+          ]
+        }
+      },
+      "opportunity": {
+        "field": "opportunity_json",
+        "command": "python3 scripts/score_opportunity.py - --format json",
+        "exit_code": 0,
+        "stdin_sha256": "edeb0b9afc7a9248537ef981492313cb8902104358f890219ddb39be19368564",
+        "stdout_sha256": "b6e754f3eb30db6dbcf1bb184b2fb0810f7b312ebb13e85e346fc31fa838f2f1",
+        "result": {
+          "schema_version": "1.0",
+          "skill_version": "0.0.0.1",
+          "as_of": "2026-07-23",
+          "source_cutoff": "2026-07-23",
+          "previous_version": null,
+          "thesis_id": "large-transformer-hvdc-gev-20260723",
+          "candidate": {
+            "ticker": "GEV",
+            "company": "GE Vernova Inc.",
+            "market": "NYSE",
+            "currency": "USD",
+            "role": "owner|absorber|public_proxy",
+            "lifecycle_stage": "MARGIN_REALIZATION"
+          },
+          "decision": {
+            "label": "BOTTLENECK_NOT_EQUITY",
+            "hard_gates_passed": false,
+            "reasons": [
+              "No material bridge from the constraint to company revenue/per-share value."
+            ]
+          },
+          "dimension_scores": {
+            "constraint": 81.0,
+            "capture": 71.0,
+            "mispricing": 29.0,
+            "evidence": 82.5,
+            "investability": 81.5
+          },
+          "dimension_details": {
+            "constraint": {
+              "funded_demand": {
+                "rating": 4.5,
+                "weight": 15,
+                "points": 13.5
+              },
+              "architectural_necessity": {
+                "rating": 5.0,
+                "weight": 15,
+                "points": 15.0
+              },
+              "current_tightness": {
+                "rating": 4.0,
+                "weight": 10,
+                "points": 8.0
+              },
+              "supplier_concentration": {
+                "rating": 2.5,
+                "weight": 10,
+                "points": 5.0
+              },
+              "qualification_barrier": {
+                "rating": 4.5,
+                "weight": 15,
+                "points": 13.5
+              },
+              "substitution_difficulty": {
+                "rating": 4.0,
+                "weight": 15,
+                "points": 12.0
+              },
+              "expansion_lead_time": {
+                "rating": 4.0,
+                "weight": 10,
+                "points": 8.0
+              },
+              "policy_resilience": {
+                "rating": 3.0,
+                "weight": 10,
+                "points": 6.0
+              }
+            },
+            "capture": {
+              "exposure_materiality": {
+                "rating": 4.0,
+                "weight": 15,
+                "points": 12.0
+              },
+              "pricing_power": {
+                "rating": 3.5,
+                "weight": 15,
+                "points": 10.5
+              },
+              "capacity_to_ship": {
+                "rating": 3.5,
+                "weight": 15,
+                "points": 10.5
+              },
+              "unit_economics": {
+                "rating": 3.0,
+                "weight": 10,
+                "points": 6.0
+              },
+              "contract_counterparty": {
+                "rating": 3.0,
+                "weight": 10,
+                "points": 6.0
+              },
+              "appropriability": {
+                "rating": 3.5,
+                "weight": 10,
+                "points": 7.0
+              },
+              "balance_sheet": {
+                "rating": 4.0,
+                "weight": 10,
+                "points": 8.0
+              },
+              "dilution_discipline": {
+                "rating": 4.0,
+                "weight": 10,
+                "points": 8.0
+              },
+              "capital_allocation": {
+                "rating": 3.0,
+                "weight": 5,
+                "points": 3.0
+              }
+            },
+            "mispricing": {
+              "expectations_gap": {
+                "rating": 1.0,
+                "weight": 20,
+                "points": 4.0
+              },
+              "valuation_asymmetry": {
+                "rating": 1.0,
+                "weight": 20,
+                "points": 4.0
+              },
+              "coverage_gap": {
+                "rating": 1.0,
+                "weight": 10,
+                "points": 2.0
+              },
+              "catalyst_clarity": {
+                "rating": 3.0,
+                "weight": 15,
+                "points": 9.0
+              },
+              "estimate_revision_potential": {
+                "rating": 2.0,
+                "weight": 15,
+                "points": 6.0
+              },
+              "crowding_headroom": {
+                "rating": 1.0,
+                "weight": 10,
+                "points": 2.0
+              },
+              "entry_setup": {
+                "rating": 1.0,
+                "weight": 10,
+                "points": 2.0
+              }
+            },
+            "evidence": {
+              "primary_source_coverage": {
+                "rating": 4.5,
+                "weight": 25,
+                "points": 22.5
+              },
+              "independent_corroboration": {
+                "rating": 4.0,
+                "weight": 20,
+                "points": 16.0
+              },
+              "numerical_traceability": {
+                "rating": 3.0,
+                "weight": 15,
+                "points": 9.0
+              },
+              "freshness": {
+                "rating": 4.5,
+                "weight": 15,
+                "points": 13.5
+              },
+              "contradiction_search": {
+                "rating": 4.5,
+                "weight": 15,
+                "points": 13.5
+              },
+              "source_independence": {
+                "rating": 4.0,
+                "weight": 10,
+                "points": 8.0
+              }
+            },
+            "investability": {
+              "liquidity": {
+                "rating": 5.0,
+                "weight": 15,
+                "points": 15.0
+              },
+              "governance_accounting": {
+                "rating": 4.0,
+                "weight": 15,
+                "points": 12.0
+              },
+              "geopolitical_regulatory": {
+                "rating": 4.0,
+                "weight": 15,
+                "points": 12.0
+              },
+              "customer_diversification": {
+                "rating": 4.0,
+                "weight": 10,
+                "points": 8.0
+              },
+              "technology_resilience": {
+                "rating": 4.0,
+                "weight": 10,
+                "points": 8.0
+              },
+              "balance_sheet_survival": {
+                "rating": 4.5,
+                "weight": 15,
+                "points": 13.5
+              },
+              "float_gap_risk": {
+                "rating": 4.5,
+                "weight": 10,
+                "points": 9.0
+              },
+              "portfolio_fit": {
+                "rating": 2.0,
+                "weight": 10,
+                "points": 4.0
+              }
+            }
+          },
+          "clocks": {
+            "scarcity_p10_months": 12.0,
+            "scarcity_p50_months": 30.0,
+            "scarcity_p90_months": 48.0,
+            "monetization_lag_months": 6.0,
+            "market_discovery_months": 2.0,
+            "monetizable_runway_months": 24.0,
+            "duration_multiplier": 1.07,
+            "contracted_forward_ramp": true
+          },
+          "scenario_metrics": {
+            "expected_return_pct": -8.75,
+            "bear_downside_reference_pct": 45.0,
+            "asymmetry_ratio": -0.1944,
+            "asymmetry_multiplier": 0.75
+          },
+          "equity_bridge": {
+            "complete": false,
+            "revenue": 14250.0,
+            "free_cash_flow": null,
+            "fully_diluted_shares": 272.3,
+            "per_share_fcf": null,
+            "cash_conversion_checks": {
+              "capex": true,
+              "working_capital": true,
+              "interest": true,
+              "tax": true
+            },
+            "dilution_checks": {
+              "stock_based_compensation": true,
+              "convertibles": true,
+              "warrants": true,
+              "other_contingent_shares": true
+            },
+            "unverified_critical_multipliers": [
+              "Share of 2026 Electrification revenue attributable specifically to large power transformers and HVDC converter equipment",
+              "Backlog conversion, cancellation and price-reset economics for the relevant products",
+              "Product-level EBITDA-to-FCF conversion after expansion capex and normalized working capital",
+              "Interest and tax allocation after the Prolec GE acquisition financing",
+              "Constraint-specific fully diluted per-share FCF including contingent share effects"
+            ]
+          },
+          "core_geometric_score": 64.558,
+          "final_score": 51.808,
+          "active_hard_flags": [
+            "no_material_revenue_bridge"
+          ],
+          "hard_flag_messages": [
+            "No material bridge from the constraint to company revenue/per-share value."
+          ],
+          "kill_switches": [
+            {
+              "condition": "Large-transformer procurement lead times normalize below 18 months for two consecutive observations.",
+              "metric": "Published large-power-transformer lead-time range",
+              "source": "U.S. Department of Energy and International Energy Agency updates",
+              "review_date": "2027-07-23",
+              "triggered": false
+            },
+            {
+              "condition": "Funded incumbent capacity becomes operational faster than demand growth and grid-equipment book-to-bill falls below 1.0.",
+              "metric": "Factory commissioning plus supplier book-to-bill/backlog",
+              "source": "Issuer filings and official factory commissioning releases",
+              "review_date": "2027-12-31",
+              "triggered": false
+            },
+            {
+              "condition": "Approved HVDC projects representing at least 20% of the monitored pipeline are cancelled, materially descoped or deferred beyond 2035.",
+              "metric": "Regulatory project decisions and procurement notices",
+              "source": "Ofgem, ENTSO-E and national procurement portals",
+              "review_date": "2027-07-23",
+              "triggered": false
+            },
+            {
+              "condition": "A product-level per-share bridge remains unavailable or shows no incremental FCF after capex, working capital, interest and tax.",
+              "metric": "Constraint-specific FCF per fully diluted share",
+              "source": "Candidate filings and investor disclosures",
+              "review_date": "2027-04-30",
+              "triggered": false
+            }
+          ],
+          "warnings": [],
+          "notes": [
+            "Revenue and fully diluted shares are USD millions and millions of shares, respectively; revenue is the midpoint of 2026 Electrification guidance, not constraint-specific revenue.",
+            "The scorer must classify the case as BOTTLENECK_NOT_EQUITY because the equity bridge is incomplete and the corresponding hard flag is active.",
+            "Scenario returns are research assumptions from the cutoff quote, not price targets or personalized advice.",
+            "Research only; no leverage; no automatic trading."
+          ]
+        }
+      },
+      "portfolio": {
+        "field": "portfolio_json",
+        "command": "python3 scripts/analyze_portfolio_clusters.py -",
+        "exit_code": 0,
+        "stdin_sha256": "30620998627181445218616a6e5cfd7f134b162c01e360d4d20982015d2c9692",
+        "stdout_sha256": "0c38b73c25d451833154c769c06c066f2efdfd996e981e4e84aa937073f8c09e",
+        "result": {
+          "schema_version": "1.0",
+          "skill_version": "0.0.0.1",
+          "as_of": "2026-07-23",
+          "source_cutoff": "2026-07-23",
+          "previous_version": null,
+          "valid": true,
+          "total_weight": 0.15,
+          "limits": {
+            "max_single_position": 0.15,
+            "max_root_driver": 0.35,
+            "max_constraint": 0.25,
+            "max_customer_ecosystem": 0.3,
+            "max_binary_risk": 0.1,
+            "max_illiquid_total": 0.15
+          },
+          "aggregates": {
+            "drivers": {
+              "electrification": 0.15000000000000002,
+              "global-grid-capex": 0.15000000000000002
+            },
+            "constraints": {
+              "hvdc-converter-capacity": 0.15000000000000002,
+              "large-power-transformer-capacity": 0.15000000000000002
+            },
+            "customers": {
+              "data-center-power-builders": 0.15000000000000002,
+              "regulated-transmission-operators": 0.15000000000000002
+            },
+            "regions": {
+              "asia": 0.15000000000000002,
+              "europe": 0.15000000000000002,
+              "north-america": 0.15000000000000002
+            },
+            "risk_factors": {
+              "capital-cycle": 0.15000000000000002,
+              "execution": 0.15000000000000002,
+              "valuation": 0.15000000000000002,
+              "acquisition-integration": 0.05,
+              "conglomerate-dilution": 0.05,
+              "wind-cross-subsidy": 0.05
+            }
+          },
+          "binary_risk_weight": 0,
+          "illiquid_weight": 0,
+          "pair_overlaps": [
+            {
+              "left": "GEV",
+              "right": "ENR",
+              "jaccard": 0.875,
+              "shared": [
+                "architectures:high-voltage-ac-grid",
+                "architectures:hvdc-vsc",
+                "constraints:hvdc-converter-capacity",
+                "constraints:large-power-transformer-capacity",
+                "customers:data-center-power-builders",
+                "customers:regulated-transmission-operators",
+                "drivers:electrification",
+                "drivers:global-grid-capex",
+                "regions:asia",
+                "regions:europe",
+                "regions:north-america",
+                "risk_factors:capital-cycle",
+                "risk_factors:execution",
+                "risk_factors:valuation"
+              ]
+            },
+            {
+              "left": "GEV",
+              "right": "6501",
+              "jaccard": 0.875,
+              "shared": [
+                "architectures:high-voltage-ac-grid",
+                "architectures:hvdc-vsc",
+                "constraints:hvdc-converter-capacity",
+                "constraints:large-power-transformer-capacity",
+                "customers:data-center-power-builders",
+                "customers:regulated-transmission-operators",
+                "drivers:electrification",
+                "drivers:global-grid-capex",
+                "regions:asia",
+                "regions:europe",
+                "regions:north-america",
+                "risk_factors:capital-cycle",
+                "risk_factors:execution",
+                "risk_factors:valuation"
+              ]
+            },
+            {
+              "left": "ENR",
+              "right": "6501",
+              "jaccard": 0.875,
+              "shared": [
+                "architectures:high-voltage-ac-grid",
+                "architectures:hvdc-vsc",
+                "constraints:hvdc-converter-capacity",
+                "constraints:large-power-transformer-capacity",
+                "customers:data-center-power-builders",
+                "customers:regulated-transmission-operators",
+                "drivers:electrification",
+                "drivers:global-grid-capex",
+                "regions:asia",
+                "regions:europe",
+                "regions:north-america",
+                "risk_factors:capital-cycle",
+                "risk_factors:execution",
+                "risk_factors:valuation"
+              ]
+            }
+          ],
+          "alerts": [
+            {
+              "severity": "info",
+              "type": "unallocated_weight",
+              "value": 0.85
+            },
+            {
+              "severity": "medium",
+              "type": "near_duplicate_pairs",
+              "count": 3
+            }
+          ],
+          "errors": []
+        }
+      }
+    },
+    "limitations": [
+      "Research used exactly six focused web-search batches, the preregistered maximum; discovery breadth was therefore intentionally bounded.",
+      "No authenticated, paywalled, broker, runtime-install or background-task access was used.",
+      "Current HVDC converter-factory utilization, qualified supplier count and global lead-time data were not found from two independent primary origins; that critical claim remains open.",
+      "No screened issuer discloses a pure large-transformer/HVDC revenue-to-FCF-to-fully-diluted-share bridge; the equity bridge is intentionally incomplete and the hard flag is active.",
+      "A direct live market-data lookup returned the representative candidate quote and benchmark quote, but the candidate lookup had no stable source URL; it was excluded from critical evidence and the expectation gate remains unresolved.",
+      "Some search-engine publication-age metadata conflicted with dates inside official PDFs; document-internal dates and filing dates were used.",
+      "The EUR-Lex page required JavaScript and one operator domain was blocked by robots.txt; accessible government, regulator, filing and issuer primary pages were used instead.",
+      "Issuer backlog, capacity and margin disclosures are issuer-origin claims and do not independently prove global scarcity or future shareholder returns.",
+      "Scenario probabilities and clock ranges are explicit research assumptions, not calibrated forecasts, price targets or personalized recommendations.",
+      "Research only; no leverage; no automatic trading."
+    ]
+  }
+}

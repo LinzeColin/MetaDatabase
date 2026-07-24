@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "memo_markdown",
+    "evidence_json",
+    "opportunity_json",
+    "portfolio_json",
+    "decision_label",
+    "execution_trace"
+  ],
+  "properties": {
+    "memo_markdown": {
+      "type": "string",
+      "minLength": 1000
+    },
+    "evidence_json": {
+      "type": "string",
+      "minLength": 500
+    },
+    "opportunity_json": {
+      "type": "string",
+      "minLength": 500
+    },
+    "portfolio_json": {
+      "type": "string",
+      "minLength": 300
+    },
+    "decision_label": {
+      "type": "string",
+      "enum": [
+        "RESEARCH_PRIORITY",
+        "CANDIDATE",
+        "WATCH_PRICED",
+        "WATCH_EVIDENCE",
+        "BOTTLENECK_NOT_EQUITY",
+        "AVOID",
+        "BROKEN"
+      ]
+    },
+    "execution_trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_version",
+        "preexecution_seal_sha256",
+        "files_read",
+        "web_searches",
+        "pages_opened",
+        "files_written",
+        "validator_replay",
+        "limitations"
+      ],
+      "properties": {
+        "trace_version": {
+          "const": "1.0"
+        },
+        "preexecution_seal_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "files_read": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "web_searches": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "pages_opened": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "files_written": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "validator_replay": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "evidence",
+            "opportunity",
+            "portfolio"
+          ],
+          "properties": {
+            "evidence": {
+              "$ref": "#/definitions/replay"
+            },
+            "opportunity": {
+              "$ref": "#/definitions/replay"
+            },
+            "portfolio": {
+              "$ref": "#/definitions/replay"
+            }
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "command",
+        "exit_code",
+        "stdin_sha256",
+        "stdout_sha256",
+        "result"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "enum": [
+            "evidence_json",
+            "opportunity_json",
+            "portfolio_json"
+          ]
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exit_code": {
+          "type": "integer"
+        },
+        "stdin_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "stdout_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "result": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}
