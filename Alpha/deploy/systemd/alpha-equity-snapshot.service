@@ -1,0 +1,15 @@
+# 净值快照(oneshot,由 alpha-equity-snapshot.timer 每 15 分钟驱动)
+# 只读券商 + 只写自己的历史文件;永不下单。取不到数据即跳过,绝不编造点位。
+[Unit]
+Description=Alpha 净值快照(让净值曲线随时间生长;只读券商)
+After=network-online.target postgresql.service alpha-opend.service
+OnFailure=alpha-alert@%n.service
+
+[Service]
+Type=oneshot
+User=alpha
+Group=alpha
+WorkingDirectory=/opt/alpha/MetaDatabase/Alpha
+EnvironmentFile=/opt/alpha/env
+ExecStart=/opt/alpha/venv/bin/python scripts/snapshot_equity.py
+TimeoutStartSec=180

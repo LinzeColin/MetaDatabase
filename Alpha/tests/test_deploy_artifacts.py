@@ -12,13 +12,16 @@ def test_systemd_units_ledger():
         "alpha-notify-worker.service", "alpha-supervisor.service",
         "alpha-control-page.service", "alpha-rejudge.service",
         "alpha-activate.service", "alpha-alert@.service",
+        "alpha-equity-snapshot.service",
     }
     # oneshot 台账:复判必须声明无激活权限;切换器=激活唯一通道;失败自告警=零权限
     oneshot_marks = {"alpha-rejudge.service": "无激活权限",
                      "alpha-activate.service": "激活唯一通道",
-                     "alpha-alert@.service": "无任何激活权限"}
+                     "alpha-alert@.service": "无任何激活权限",
+                     "alpha-equity-snapshot.service": "永不下单"}
     # 两个定时任务必须挂失败自告警钩子
-    for name in ("alpha-rejudge.service", "alpha-activate.service"):
+    for name in ("alpha-rejudge.service", "alpha-activate.service",
+                 "alpha-equity-snapshot.service"):
         assert "OnFailure=alpha-alert@%n.service" in (DEPLOY / "systemd" / name).read_text(), name
     for p in (DEPLOY / "systemd").glob("*.service"):
         text = p.read_text()
@@ -28,7 +31,7 @@ def test_systemd_units_ledger():
         else:
             assert "Restart=always" in text, p.name
     timers = {p.name for p in (DEPLOY / "systemd").glob("*.timer")}
-    assert timers == {"alpha-rejudge.timer"}
+    assert timers == {"alpha-rejudge.timer", "alpha-equity-snapshot.timer"}
     paths = {p.name for p in (DEPLOY / "systemd").glob("*.path")}
     assert paths == {"alpha-activate.path"}
 

@@ -1,0 +1,12 @@
+# 每 15 分钟记一次净值,使曲线与 hover 有真实可探索的数据
+[Unit]
+Description=Alpha 净值快照定时器(每 15 分钟)
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=15min
+Persistent=true
+RandomizedDelaySec=45
+
+[Install]
+WantedBy=timers.target

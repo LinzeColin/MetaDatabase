@@ -177,6 +177,24 @@ class YahooFxSource:
         return rate, at
 
 
+def _read_equity_history(runtime_dir: Path, max_points: int = 2000) -> list[dict]:
+    """读净值快照历史 → 曲线点(每点含 at/date/equity_aud);读不到返回空,调用方退回旧口径。"""
+    try:
+        raw = json.loads((runtime_dir / "equity_history.json").read_text())
+        if not isinstance(raw, list):
+            return []
+    except Exception:
+        return []
+    out = []
+    for p in raw[-max_points:]:
+        try:
+            out.append({"date": str(p["date"]), "at": str(p.get("at", "")),
+                        "equity_aud": float(p["equity_aud"])})
+        except Exception:
+            continue
+    return out
+
+
 def _email_title(event_type: str) -> str:
     from backend.app.notify.outbox import _EMAIL_TEMPLATES
     tpl = _EMAIL_TEMPLATES.get(event_type)
@@ -494,9 +512,9 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         capital_usd + cash_flow_usd
     equity_usd = cash_usd + mark_value_usd
     equity_aud = equity_usd / fx_display
-    # owner 2026-07-24 裁定:按长期稳定运行的逻辑,本金恒为授权的 3000 澳元;
-    # 资金未全额到位的差额直接计入亏损,不把基准往下调来粉饰。
-    baseline_aud = capital_aud
+    # owner 2026-07-24 二次裁定:"本金是动态的,所有数据都是动态的,不是 100 年后还固定 3000"。
+    # 可动用本金 = min(授权上限, 真实购买力 + 自有持仓),随账户实况浮动;敞口硬顶仍为 3000。
+    baseline_aud = funded_usd / fx_display
     total_pnl_aud = equity_aud - baseline_aud
     invested_usd = sum(p["market_value_usd"] for p in positions)
     exposure_pct = round(100.0 * (invested_usd / fx_display) / capital_aud, 1) if capital_aud else 0.0
@@ -525,8 +543,13 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         "to_year_gap_aud": round(year_target_aud - equity_aud, 2),
     }
 
-    # ---------- 净值曲线(日终点 + 实时点;缺收盘价的历史日如实跳过) ----------
+    # ---------- 净值曲线 ----------
+    # 优先用净值快照历史(每 15 分钟一点,让曲线真正随时间生长、hover 有东西可看);
+    # 读不到历史时退回按成交流水重建的日终点。
     curve: list[dict] = []
+    hist_pts = _read_equity_history(Path(runtime_dir))
+    if hist_pts:
+        curve = hist_pts
     skipped_days: list[str] = []
     if execs or orders:
         first_dt = min([_utc(o.created_at) for o in orders] + [_utc(e.executed_at) for e in execs])
@@ -539,7 +562,7 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         for sym in held:
             closes_by_sym[sym] = dict(quotes.daily_closes(
                 sym, start_d.isoformat(), (today_et - timedelta(days=1)).isoformat()))
-    d = start_d
+    d = today_et if hist_pts else start_d
     while d < today_et:
         if d.weekday() < 5:
             cash_d = funded_usd   # 历史点与今日同基数(真实到位资金),否则会画出假跳崖
@@ -568,8 +591,8 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             else:
                 skipped_days.append(d.isoformat())
         d += timedelta(days=1)
-    curve.append({"date": today_et.isoformat(), "equity_aud": round(equity_aud, 2),
-                  "live": True})
+    curve.append({"date": today_et.isoformat(), "at": now.isoformat(),
+                  "equity_aud": round(equity_aud, 2), "live": True})
 
     # ---------- 考核卡 ----------
     report = _latest_report(Path(reports_dir))

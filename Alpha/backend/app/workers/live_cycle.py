@@ -274,8 +274,18 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
 
     # 单笔上限 = 风控单笔红线(3000 AUD × 90%,owner 2026-07-24 放宽)换算成 USD,再留 3% 滑动余量
     cap_usd = 3000.0 * 0.90 * 0.97 / float(d.fx_usd_aud)
+    # 可动用本金 = min(授权上限, 账户真实购买力 + 已持有市值)。owner 2026-07-24 裁定按百分比
+    # 理解敞口:授权额度只是天花板,真正能动的钱以账户实况为准——否则资金不足时会超买被券商拒。
+    effective_capital_usd = d.capital_usd
+    try:
+        funds = d.read_client.get_funds(acc_id)
+        power = float(funds.get("power", funds.get("cash", 0.0)))
+        effective_capital_usd = min(d.capital_usd, power + gross_usd)
+    except Exception:
+        pass          # 读不到就退回授权额度(保守方向由风控与券商余额兜底)
+    summary["capital_usd"] = round(effective_capital_usd, 2)
     plan = plan_rebalance(dict(result.target_weights), positions, prices,
-                          capital_usd=d.capital_usd,
+                          capital_usd=effective_capital_usd,
                           threshold_pct=float(d.cfg.get("rebalance_threshold_pct", 5)),
                           single_order_cap_usd=cap_usd)
     summary["plan"] = [f"{s} {sym}x{q}" for s, sym, q in plan]
