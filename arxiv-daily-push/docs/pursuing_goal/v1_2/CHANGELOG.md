@@ -1,5 +1,27 @@
 # ADP v1.2 Taskpack Changelog
 
+## 1.2.0 — S4.2 构建者候选 — 2026-07-24
+
+- RC05 patch chain 已物化为 build `a98b4c957f30` / artifact
+  `39f8a8d82aec8f97e83d595f95ba52ae062191b801632661922077c9632b356b` /
+  Git blob `461fb1a225c0a8826cf0647181a9969a53618c3a`。
+- 构建者的真实系统 Chrome 验证覆盖六主题移动端、六主题桌面端、`779/780px` 临界宽度、
+  四条 active route、十二张截图与十项分离破坏负控，浏览器错误为零。
+- S4.2 聚焦 `6/6`、S4.1 回归 `24/24`、治理 `78/78`、安全 `14/14`、双平面和 V7.2
+  兼容入口通过；受控 Python 3.12 full suite 为 `962 tests / 2 failures / 11 errors /
+  29 skips`，与 S3 sealed ZIP failure/error 键精确同集，`candidate_only=[]`、
+  `baseline_only=[]`。
+- fresh-context 独立验收尚未运行，`ACC-V12-S4-003` 保持 `NOT_ACCEPTED`；canonical Worker、
+  live、D1/R2、来源/板块、cron、上传与部署均未改，S4.3 未开始。
+
+## 1.2.0 — S4.2 Run Contract — 2026-07-24
+
+- 为 `ADP-V12-S4-T002` 增加唯一 `RUN_CONTRACT_05_MOBILE_FOUR_TAB_NAV.md`，锁定
+  `<780px` 六主题统一“今天／队列／雷达／系统”、`375×812` 无横向溢出、`779/780px`
+  边界、点击目标与桌面 sidebar/topbar/dock 不回归。
+- candidate 必须先物化已验收 S4.1 patch，再叠加独立 S4.2 patch；canonical Worker、
+  production bundle、live `0.41.0`、D1/R2、cron 和部署保持不动。S4.3 视觉门不得混入本轮。
+
 ## 1.2.0 — S4.1 closeout — 2026-07-23
 
 - 短英文标题、review 队列和官方 verifier 边界修复后，fresh-context r2 对冻结 commit

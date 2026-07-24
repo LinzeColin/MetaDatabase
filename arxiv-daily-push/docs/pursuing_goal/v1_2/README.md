@@ -23,9 +23,12 @@
 - S4.1 经首轮问题修复与第二轮全新上下文独立 verifier 裁定
   `ACC-V12-S4-001..002 = 2/2 PASS`，`ADP-S4-F001..003` 全部关闭，且未修改 canonical
   Worker、live、schema/data 或部署。
-- 下一任务是 `ADP-V12-S4-T002`，当前 `NOT_RUN` 且 Run Contract 尚未创建；必须另行锁定
-  S4.2 唯一合同后才能处理六主题移动端四标签，不得从 S4.1 receipt 预签 S4.2/S4.3、整 S4、
-  版本、运维或部署。
+- 当前任务是 `ADP-V12-S4-T002`；唯一
+  `RUN_CONTRACT_05_MOBILE_FOUR_TAB_NAV.md` 已锁定，candidate 实现、系统 Chrome 证据和
+  十项分离破坏负控已由构建者验证，聚焦、治理、安全、双平面、V7.2 兼容入口与完整测试
+  精确基线差分均已通过；fresh-context 独立验收仍未运行，因此
+  `ACC-V12-S4-003` 保持 `NOT_ACCEPTED`。本轮只允许冻结 S4.2 Subject 并交独立复验，
+  不得预签或启动 S4.3、整 S4、版本、运维或部署。
 - v0.1 和 V7.2 保留为历史/兼容面，不恢复 CodexProject 旧源。
 
 ## 本地验证

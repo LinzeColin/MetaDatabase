@@ -1,0 +1,30 @@
+diff --git a/arxiv-daily-push/deploy/cloudflare/worker_cloud.js b/arxiv-daily-push/deploy/cloudflare/worker_cloud.js
+index 9ff6769..461fb1a 100644
+--- a/arxiv-daily-push/deploy/cloudflare/worker_cloud.js
++++ b/arxiv-daily-push/deploy/cloudflare/worker_cloud.js
+@@ -12 +12 @@
+-const BUILD = { build_id: 'cc52e9dc2102', source_sha256: 'cc52e9dc2102ed7a9994086a82485456d7bcd3c1f1f630b68629d98ecf5d392c', schema_version: 'cn_v0_3', built_at: '2026-07-23' };
++const BUILD = { build_id: 'a98b4c957f30', source_sha256: 'a98b4c957f304600da1c95263c4232719ffaebf52cc3ff4bc9e3fd1910ac79c4', schema_version: 'cn_v0_3', built_at: '2026-07-24' };
+@@ -1014,0 +1015,2 @@ const NAV = [['/', '今天'], ['/review', '复习'], ['/radar', '前沿雷达'],
++// 前端 v1.1 移动信息架构：<780px 时六主题共用同一四标签底栏；desktop NAV 保持六项不变。
++const MOBILE_NAV = [['/', '今天'], ['/review', '队列'], ['/radar', '雷达'], ['/system', '系统']];
+@@ -1112 +1114 @@ header.top b{color:var(--ink);font-size:17px;font-family:var(--font-display);fon
+-nav.nav-top,nav.nav-side,nav.nav-dock{display:none}
++nav.nav-top,nav.nav-side,nav.nav-dock,nav.nav-mobile{display:none}
+@@ -1129 +1131,10 @@ nav.nav-dock a.active{background:var(--ac);color:var(--bg)}
+-@media(max-width:640px){nav.nav-side{display:none!important}:root[data-nav] main,:root[data-nav] header.top{margin-left:0!important}:root[data-nav="sidebar"] nav.nav-top{display:flex;flex:1}}
++/* <780px 六主题统一四标签底栏。固定结构/几何，主题只通过既有变量改变配色。 */
++@media(max-width:779px){
++  html,body{max-width:100%;overflow-x:hidden}
++  nav.nav-top,nav.nav-side,nav.nav-dock{display:none!important}
++  :root[data-nav] main,:root[data-nav] header.top{margin-left:0!important}
++  nav.nav-mobile{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;padding:6px max(8px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));border-top:1px solid var(--hairline);border-radius:0;background:var(--glass-bg);backdrop-filter:blur(18px);box-shadow:0 -8px 24px rgba(0,0,0,.12)}
++  nav.nav-mobile a{display:flex;align-items:center;justify-content:center;min-width:0;min-height:48px;padding:7px 4px;border-radius:10px;color:var(--tx);font-size:13.5px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
++  nav.nav-mobile a.active{background:var(--ac);color:var(--bg)}
++  footer.receipt{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important}
++}
+@@ -1191 +1202 @@ const navActive = (h, page) => h === '/' ? page === '/' : page.startsWith(h);
+-const navLinks = (cls, page) => `<nav class="${cls}" aria-label="主导航">${NAV.map(([h, t]) => `<a href="${h}"${navActive(h, page) ? ' class="active" aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
++const navLinks = (cls, page, items = NAV, label = '主导航') => `<nav class="${cls}" aria-label="${label}">${items.map(([h, t]) => `<a href="${h}"${navActive(h, page) ? ' class="active" aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
+@@ -1253,0 +1265 @@ ${navLinks('nav-dock', page)}
++${navLinks('nav-mobile', page, MOBILE_NAV, '移动端主导航')}

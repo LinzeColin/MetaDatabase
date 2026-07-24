@@ -1,4 +1,4 @@
-# ADP canonical HANDOFF — 2026-07-23
+# ADP canonical HANDOFF — 2026-07-24
 
 本文件是 ADP 迁入 MetaDatabase 后的**唯一当前交接入口**。先读本文件，再按任务路由到
 被点名的最小文件集；不要把 V0.1、V0.3、V7.2 或旧 CodexProject 根级文档各自解释成
@@ -35,8 +35,10 @@
   `ACC-V12-S4-001..002 = 2/2 PASS`，`ADP-S4-F001..003` 全部关闭且
   `P0/P1/UNKNOWN/BLOCKED/waiver = 0`；公开 receipt 位于
   [`PHASE_ADP_V12_S4_HUMAN_LANGUAGE_FAIL_CLOSED.md`](phase_records/PHASE_ADP_V12_S4_HUMAN_LANGUAGE_FAIL_CLOSED.md)。
-- 当前唯一下一任务是 `ADP-V12-S4-T002`（六主题移动端统一四标签导航）；它仍为 `NOT_RUN`，
-  Run Contract 尚未创建。必须先锁定独立合同，不得把 S4.1 验收外推为 S4.2/S4.3、部署或 live 授权。
+- 当前唯一任务是 `ADP-V12-S4-T002`（六主题移动端统一四标签导航）；
+  [`RUN_CONTRACT_05_MOBILE_FOUR_TAB_NAV.md`](pursuing_goal/v1_2/RUN_CONTRACT_05_MOBILE_FOUR_TAB_NAV.md)
+  已锁定，candidate 已完成构建者浏览器与负控验证，但 fresh-context 独立验收尚未运行，
+  `ACC-V12-S4-003` 仍为 `NOT_ACCEPTED`。不得把构建者结果外推为 S4.2/S4.3、部署或 live 授权。
 - S1 候选实现位于 [`google_news_candidate.mjs`](../deploy/cloudflare/google_news_candidate.mjs)：
   `gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`，live
   `gnews-us-tech` 仍是 Bing News RSS；机器登记见
@@ -48,9 +50,9 @@
   后续仍不得用状态文字替代真实 diff 或 live 复查。
 - Owner 的晚到决策已定案：3 个 dormant Cloudflare 资源均删除；继续救援剩余来源；
   不迁 OVH/Coolify；不修 V0.1 `TASK_INDEX.csv` 的死状态列。
-- S1–S4.1 已按独立 Run Contract 完成各自 candidate-only 验收；下一开发线是 S4.2 六主题
-  移动端四标签，当前只允许先锁定唯一合同。前九个任务仍只做到对应合同边界；最终部署
-  仅在 v1.2 全部门禁 PASS 后自动执行。
+- S1–S4.1 已按独立 Run Contract 完成各自 candidate-only 验收；S4.2 已锁定唯一合同并形成
+  构建者验证候选，下一动作只允许冻结 Subject 后交 fresh verifier，不得启动 S4.3。
+  前九个任务仍只做到对应合同边界；最终部署仅在 v1.2 全部门禁 PASS 后自动执行。
 
 ## 1. 合同路由与优先级
 
@@ -244,7 +246,7 @@ P0/P1/UNKNOWN/BLOCKED/waiver 均为零，evidence root 为
 与 sealed baseline 的失败/错误测试名集合精确一致，`candidate_only=[]`、
 `baseline_only=[]`。这只关闭 S3 candidate 开发验收，不签署接入、部署、S4–S6 或生产验收。
 
-## 9. v1.2 S4.1 收尾与下一任务（S4.2 NOT_RUN）
+## 9. v1.2 S4.1 收尾与 S4.2 候选（独立验收待运行）
 
 **已完成**：`ADP-V12-S4-T001` 关闭真实英文论文的中文人话结构与无可靠翻译时的诚实
 fail-closed 回退。第二轮全新上下文独立复核对 commit `c50d7f7b` / tree `d40fb7b` 裁定
@@ -255,9 +257,20 @@ fail-closed 回退。第二轮全新上下文独立复核对 commit `c50d7f7b` /
 S3 sealed ZIP 与内部日志 hash，再重解析 failure/error key 后精确同集，`candidate_only=[]`、
 `baseline_only=[]`。canonical Worker/live、来源/板块、cron、D1/R2 与部署均未改。
 
-**下一任务**：`ADP-V12-S4-T002`，六主题在 375×812 下统一为“今天／队列／雷达／系统”
-四标签并保证桌面导航不回归，对应 `ACC-V12-S4-003`。当前 `NOT_RUN`，Run Contract 尚未创建；
-必须另行锁定唯一 S4.2 合同，不得从本记录预签 S4.2/S4.3、整 S4、模型、版本、运维或部署。
+**当前 S4.2 candidate**：`ADP-V12-S4-T002` / RC05 在 S4.1 materialization 上叠加唯一
+`02_mobile_four_tab_nav.patch`，六主题在 `375×812` 下统一为“今天／队列／雷达／系统”
+四标签并保持桌面 sidebar/topbar/dock。候选 build `a98b4c957f30` / artifact
+`39f8a8d82aec8f97e83d595f95ba52ae062191b801632661922077c9632b356b` /
+Git blob `461fb1a225c0a8826cf0647181a9969a53618c3a`。构建者已以系统 Chrome 实跑六主题移动端、
+六主题桌面端、`779/780px` 边界、四条 active route、十二张截图和十项分离破坏负控，均通过。
+6 项 S4.2 聚焦、24 项 S4.1 回归、78 项治理、14 项安全、双平面和 V7.2 兼容入口均通过；
+受控 Python 3.12 环境的 full suite 为 `962 tests / 2 failures / 11 errors / 29 skips`，
+与 SHA-256 `782254fdd58a56722a988f6473f560c0dc006f08972fc62e5be4c8a24ffe3624`
+的 S3 sealed ZIP failure/error 键精确同集，`candidate_only=[]`、`baseline_only=[]`。
+
+**下一动作**：冻结不可变 Git Subject 后交 fresh-context verifier 独立复跑。当前没有独立裁定，
+`ACC-V12-S4-003` 仍为
+`NOT_ACCEPTED`；不得从构建者结果预签 S4.2/S4.3、整 S4、模型、版本、运维或部署。
 
 ## 10. 永久提醒
 

@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-24 Australia/Sydney - ADP v1.2 S4.2 构建者候选 (NOT ACCEPTED; NOT DEPLOYED)
+
+- 已锁定 `ADP-V12-S4-T002` / RC05，并在已验收 S4.1 materialization 上叠加唯一
+  `02_mobile_four_tab_nav.patch`；候选 build `a98b4c957f30` / artifact
+  `39f8a8d82aec8f97e83d595f95ba52ae062191b801632661922077c9632b356b` /
+  Git blob `461fb1a225c0a8826cf0647181a9969a53618c3a`。
+- 构建者已用系统 Chrome 实跑六主题 `375×812` 移动端、六主题 `1440×900` 桌面、
+  `779/780px` 临界宽度与四条 active route；十二张截图、十项分离破坏负控和浏览器零错误均通过。
+- 6 项 S4.2 聚焦测试、24 项 S4.1 回归、78 项治理、14 项安全、双平面、V7.2 兼容入口均通过；
+  受控 Python 3.12 环境的 full suite 原始结果为 `962 tests / 2 failures / 11 errors / 29 skips`，
+  与 SHA-256 `782254fd…ffe3624` 的 S3 sealed ZIP failure/error 键精确同集，
+  `candidate_only=[]`、`baseline_only=[]`。
+- 这是构建者验证，不是独立验收；fresh-context verifier 尚未对冻结 Git Subject 裁定，
+  `ACC-V12-S4-003` 保持 `NOT_ACCEPTED`。canonical Worker、live build `c2ccc1fd01ec`、
+  D1/R2、来源/板块、cron、上传和部署均未改；S4.3 不在本轮范围。
+
 ## 2026-07-23 Australia/Sydney - ADP v1.2 S4.1 closeout (DEVELOPER CHECK PASS; NOT DEPLOYED)
 
 - candidate patch 物化 build `cc52e9dc2102` / artifact
