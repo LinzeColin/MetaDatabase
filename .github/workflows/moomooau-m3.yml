@@ -88,6 +88,7 @@ jobs:
           python -m ruff format --check \
             src/moomooau_archive/release_control.py \
             src/moomooau_archive/canary_runtime.py \
+            src/moomooau_archive/document_parser.py \
             src/moomooau_archive/protected_m3.py \
             src/moomooau_archive/protected_m3_diagnostics.py \
             src/moomooau_archive/protected_m3_entrypoint.py \
@@ -97,6 +98,7 @@ jobs:
           python -m ruff check --no-cache \
             src/moomooau_archive/release_control.py \
             src/moomooau_archive/canary_runtime.py \
+            src/moomooau_archive/document_parser.py \
             src/moomooau_archive/protected_m3.py \
             src/moomooau_archive/protected_m3_diagnostics.py \
             src/moomooau_archive/protected_m3_entrypoint.py \
@@ -106,6 +108,7 @@ jobs:
           python -m mypy --no-incremental --cache-dir "$RUNNER_TEMP/mypy-cache" \
             src/moomooau_archive/release_control.py \
             src/moomooau_archive/canary_runtime.py \
+            src/moomooau_archive/document_parser.py \
             src/moomooau_archive/protected_m3.py \
             src/moomooau_archive/protected_m3_diagnostics.py \
             src/moomooau_archive/protected_m3_entrypoint.py

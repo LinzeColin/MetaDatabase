@@ -126,7 +126,21 @@ attempt-1 Budget-1 dispatch，不进入 T0704。当前有效入口为：
 - `SOURCE_PROVENANCE.v1.0.11.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.10.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.9.json`、
+`v1.0.12` 固化第四个不同 exact-main T0703 attempt 在 `AGGREGATE_GATE` 的零观察副作用失败。
+aggregate-only 输出没有证明更细线上根因；静态契约验证并修复了空 classification/parser registry
+下隔离附件可能错误产生 `BLOCKED`、而不是显式 `SAFE_DEFERRED` 的顺序冲突。active parser
+profile 的 hard quarantine 不变，并新增封闭 aggregate failure class。四个失败 head 均禁止
+rerun/redispatch；只授权一份全新 exact candidate main 交付和一次 attempt-1 Budget-1 dispatch，
+不进入 T0704。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.12.md`
+- `ROADMAP.v1.0.12.md`
+- `PACKAGE_MANIFEST.v1.0.12.json`
+- `SOURCE_PROVENANCE.v1.0.12.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.11.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.10.json`、
+`PACKAGE_MANIFEST.v1.0.9.json`、
 `PACKAGE_MANIFEST.v1.0.8.json`、
 `PACKAGE_MANIFEST.v1.0.7.json`、
 `PACKAGE_MANIFEST.v1.0.6.json`、

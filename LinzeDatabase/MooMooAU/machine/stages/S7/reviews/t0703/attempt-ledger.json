@@ -2,7 +2,7 @@
   "schema_version": "moomooau.protected-m3-attempt-ledger.v1",
   "stage_id": "S7",
   "task_id": "T0703",
-  "observed_through_utc": "2026-07-24T04:19:56Z",
+  "observed_through_utc": "2026-07-24T05:18:46Z",
   "attempts": [
     {
       "sequence": 1,
@@ -196,6 +196,73 @@
           "the prior implementation incorrectly required optional repositories and permissions echoes and compared expiry against the pre-request client timestamp",
           "the repaired implementation probes the installation-token repository scope when the optional repository echo is absent and uses the bounded GitHub Date response for the one-hour TTL check",
           "the private data path recorded zero commits and the connected Gmail path recorded zero Trash messages after the attempt began"
+        ]
+      }
+    },
+    {
+      "sequence": 4,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 104,
+        "merge_commit_sha": "b922219fa80fd0f55e8dd0d100a87ced2a77b2b8",
+        "main_ci_runs_passed": 10,
+        "main_ci_runs_failed": 0
+      },
+      "workflow": {
+        "run_id": 30068892160,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30068892160",
+        "event": "workflow_dispatch",
+        "workflow_head_sha": "b922219fa80fd0f55e8dd0d100a87ced2a77b2b8",
+        "run_attempt": 1,
+        "reruns": 0
+      },
+      "jobs": {
+        "authority_gate": {
+          "status": "PASS",
+          "started_at_utc": "2026-07-24T05:14:18Z",
+          "completed_at_utc": "2026-07-24T05:15:32Z"
+        },
+        "m3_budget_one": {
+          "status": "FAILED",
+          "started_at_utc": "2026-07-24T05:15:36Z",
+          "completed_at_utc": "2026-07-24T05:18:45Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-24T05:18:43Z"
+        }
+      },
+      "public_failure": {
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_M3_AGGREGATE_GATE_FAILED",
+        "failure_phase": "AGGREGATE_GATE",
+        "installation_token_failure_class": "UNCLASSIFIED",
+        "exact_root_cause_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "private_repository_new_commits": 0,
+        "raw_ciphertext_creations": "ZERO_OBSERVED",
+        "processed_writes": "ZERO_OBSERVED",
+        "gmail_trash_messages_after_dispatch": 0,
+        "source_mutations": 0,
+        "timeline_writes": 0,
+        "scheduled_runs": 0,
+        "identity_plaintext_cleanup": "PASS"
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "AFTER_RUNTIME_RETURN_AT_AGGREGATE_GATE_WITH_ZERO_OBSERVED_REMOTE_EFFECT",
+        "exact_root_cause": "NOT_CLAIMED_FROM_CLOSED_AGGREGATE_PHASE_ONLY_OUTPUT",
+        "high_confidence_defect": "EMPTY_REGISTRY_QUARANTINE_SAFE_DEFERRED_ORDERING_GAP",
+        "basis": [
+          "the exact protected output fixed the failure at AGGREGATE_GATE without disclosing an exact mailbox count or protected identifier",
+          "the authority gate and identity plaintext cleanup both passed on exact main attempt 1",
+          "the private data path retained its exact pre-dispatch head and commit count with zero Processed object creation",
+          "the connected Gmail Trash aggregate retained its exact pre-dispatch count",
+          "the current protected oracle requires empty classification and parser registries to produce only explicit SAFE_DEFERRED Processed output",
+          "the parser evaluated quarantined extraction before the absence of an approved parser profile, allowing BLOCKED instead of the required SAFE_DEFERRED outcome",
+          "the repair preserves BLOCKED quarantine when an active parser profile exists and adds a closed aggregate failure class without exposing dynamic values"
         ]
       }
     }

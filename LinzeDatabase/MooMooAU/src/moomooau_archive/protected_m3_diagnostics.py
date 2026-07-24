@@ -1,6 +1,6 @@
 """Closed, public-safe diagnostics for a protected M3 Budget-1 attempt.
 
-The tracker stores only a fixed enum.  It never receives an exception, URL, identifier,
+The tracker stores only fixed enums.  It never receives an exception, URL, identifier,
 counter, Secret, mailbox field, repository locator, or message-derived value.
 """
 
@@ -49,13 +49,31 @@ class ProtectedM3FailurePhase(StrEnum):
         return f"PROTECTED_M3_{self.value}_FAILED"
 
 
+class ProtectedM3AggregateFailureClass(StrEnum):
+    """Closed aggregate outcomes that disclose no exact mailbox or repository value."""
+
+    UNCLASSIFIED = "UNCLASSIFIED"
+    NO_VERIFIED_CANDIDATE = "NO_VERIFIED_CANDIDATE"
+    RAW_NOT_ARCHIVED = "RAW_NOT_ARCHIVED"
+    PROCESSING_BLOCKED = "PROCESSING_BLOCKED"
+    PROCESSED_NOT_RECOVERED = "PROCESSED_NOT_RECOVERED"
+    SOURCE_ALREADY_TRASHED = "SOURCE_ALREADY_TRASHED"
+    MUTATION_FAILED = "MUTATION_FAILED"
+    MUTATION_NOT_CONFIRMED = "MUTATION_NOT_CONFIRMED"
+    TIMELINE_BOUNDARY_VIOLATION = "TIMELINE_BOUNDARY_VIOLATION"
+    RESULT_INVARIANT_REJECTED = "RESULT_INVARIANT_REJECTED"
+
+
 @dataclass(slots=True, repr=False)
 class ProtectedM3Diagnostics:
-    """Retain only the latest closed-enum phase and App-token failure class."""
+    """Retain only the latest closed-enum phase and public-safe failure classes."""
 
     _phase: ProtectedM3FailurePhase = ProtectedM3FailurePhase.ENTRYPOINT
     _installation_token_failure_class: InstallationTokenFailureClass = (
         InstallationTokenFailureClass.UNCLASSIFIED
+    )
+    _aggregate_failure_class: ProtectedM3AggregateFailureClass = (
+        ProtectedM3AggregateFailureClass.UNCLASSIFIED
     )
 
     @property
@@ -66,11 +84,16 @@ class ProtectedM3Diagnostics:
     def installation_token_failure_class(self) -> InstallationTokenFailureClass:
         return self._installation_token_failure_class
 
+    @property
+    def aggregate_failure_class(self) -> ProtectedM3AggregateFailureClass:
+        return self._aggregate_failure_class
+
     def enter(self, phase: ProtectedM3FailurePhase) -> None:
         if not isinstance(phase, ProtectedM3FailurePhase):
             raise TypeError("protected M3 diagnostic phase is invalid")
         self._phase = phase
         self._installation_token_failure_class = InstallationTokenFailureClass.UNCLASSIFIED
+        self._aggregate_failure_class = ProtectedM3AggregateFailureClass.UNCLASSIFIED
 
     def enter_installation_token_failure(
         self,
@@ -80,6 +103,17 @@ class ProtectedM3Diagnostics:
             raise TypeError("installation token failure class is invalid")
         self._phase = ProtectedM3FailurePhase.GITHUB_APP_TOKEN
         self._installation_token_failure_class = failure_class
+        self._aggregate_failure_class = ProtectedM3AggregateFailureClass.UNCLASSIFIED
+
+    def enter_aggregate_failure(
+        self,
+        failure_class: ProtectedM3AggregateFailureClass,
+    ) -> None:
+        if not isinstance(failure_class, ProtectedM3AggregateFailureClass):
+            raise TypeError("aggregate failure class is invalid")
+        self._phase = ProtectedM3FailurePhase.AGGREGATE_GATE
+        self._installation_token_failure_class = InstallationTokenFailureClass.UNCLASSIFIED
+        self._aggregate_failure_class = failure_class
 
     def __repr__(self) -> str:
         return "ProtectedM3Diagnostics(phase=<public-safe-enum>)"
@@ -97,6 +131,7 @@ def public_failure_payload(diagnostics: ProtectedM3Diagnostics) -> dict[str, obj
         "reason_code": phase.reason_code,
         "failure_phase": phase.value,
         "installation_token_failure_class": (diagnostics.installation_token_failure_class.value),
+        "aggregate_failure_class": diagnostics.aggregate_failure_class.value,
         "diagnostic_taxonomy": FAILURE_TAXONOMY_VERSION,
         "exact_root_cause_claimed": False,
         "production_health_claimed": False,

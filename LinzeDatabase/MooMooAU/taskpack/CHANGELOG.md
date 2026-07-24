@@ -1,5 +1,22 @@
 # Taskpack Changelog
 
+## 1.0.12 — 2026-07-24
+
+固化 T0703 第四个 exact-main attempt 在 `AGGREGATE_GATE` 的零观察副作用失败，并只授权一个
+SAFE_DEFERRED 聚合恢复候选。
+
+- 绑定 PR #104、main `b922219f…`、workflow run `30068892160`、authority PASS、M3 FAILED、
+  identity cleanup PASS 与 rerun 0；
+- 后验只读核验观察到 private commit 0、Processed write 0、Gmail Trash 新增消息 0、
+  source/Timeline/schedule mutation 0；
+- 公开输出只证明 `AGGREGATE_GATE`，未提供 aggregate failure class；不声称聚合日志未证明的
+  精确线上根因；
+- 静态契约验证并修复空 classification/parser registry 下隔离附件可能错误产生 `BLOCKED` 的顺序
+  冲突，使其显式生成可恢复的 `SAFE_DEFERRED` Processed；active parser profile 仍 hard quarantine；
+- 新增封闭 `ProtectedM3AggregateFailureClass`，后续 aggregate failure 只输出固定枚举；
+- 四个失败 head 均禁止 rerun/redispatch；只允许一份新 exact candidate main 交付和一次
+  attempt-1 Budget-1 dispatch；T0704、Timeline、GA、schedule 与最终发布继续为 0/未授权。
+
 ## 1.0.11 — 2026-07-24
 
 固化 T0703 第三个 exact-main attempt 的 `RESPONSE_SCOPE_REJECTED` 零观察副作用失败，并只授权

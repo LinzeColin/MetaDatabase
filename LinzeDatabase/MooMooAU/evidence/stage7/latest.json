@@ -1,7 +1,7 @@
 {
   "schema_version": "moomooau.stage7-aggregate.v1",
   "stage_id": "S7",
-  "observed_at_utc": "2026-07-24T04:19:56Z",
+  "observed_at_utc": "2026-07-24T05:18:46Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "status": "AUTHORIZED_T0703_REPAIR_CANDIDATE_PENDING_PROTECTED_EXECUTION",
   "scoped_preflight": "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY",
@@ -15,7 +15,7 @@
   "protected_oracles_executed": 3,
   "protected_oracles_passed": 2,
   "protected_oracles_failed": 1,
-  "protected_workflow_runs": 14,
+  "protected_workflow_runs": 15,
   "production_workflow_runs": 0,
   "observation": {
     "alpha_local_synthetic": "PASS",
@@ -24,8 +24,8 @@
     "beta_public_safe_failure_diagnostics": "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE",
     "beta_real_raw_only": "PASS_RAW_RECOVERY_100_PERCENT_ZERO_SOURCE_MUTATION",
     "m3_local_synthetic_mechanism": "PASS",
-    "m3_protected_entrypoint": "OPTIONAL_TOKEN_ECHO_RECOVERY_CANDIDATE_AUTHORIZED_AFTER_THREE_ZERO_EFFECT_ATTEMPTS",
-    "m3_deterministic_evidence_run": "THREE_FAILED_ZERO_EFFECT_ATTEMPTS_RECOVERY_AUTHORIZED",
+    "m3_protected_entrypoint": "SAFE_DEFERRED_AGGREGATE_RECOVERY_CANDIDATE_AUTHORIZED_AFTER_FOUR_ZERO_EFFECT_ATTEMPTS",
+    "m3_deterministic_evidence_run": "FOUR_FAILED_ZERO_EFFECT_ATTEMPTS_RECOVERY_AUTHORIZED",
     "blue_green_timeline_local_mechanism": "PASS",
     "blue_green_deterministic_evidence_run": "NOT_RUN",
     "ga_full_pipeline_local_mechanism": "PASS",
@@ -41,7 +41,7 @@
     "verified_full_raw_reads": "ONE_RECOVERED_WITHIN_CONFIGURED_BUDGET",
     "protected_private_repository_path": "NONZERO_AGE_CIPHERTEXT_ONLY_REMOTE_RECOVERY_100_PERCENT",
     "protected_secret_injection": "EIGHT_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED",
-    "controlled_main_deliveries": 11,
+    "controlled_main_deliveries": 12,
     "private_raw_commits": "NONZERO_WITHIN_CONFIGURED_BUDGET",
     "remote_publications": 0,
     "m3_runs": 0,
@@ -51,7 +51,7 @@
     "maximum_observed_live_timeline_assets": "NOT_RUN"
   },
   "blocking_conditions": [
-    "PROTECTED_M3_OPTIONAL_TOKEN_ECHO_RECOVERY_CANDIDATE_NOT_RUN",
+    "PROTECTED_M3_SAFE_DEFERRED_AGGREGATE_RECOVERY_CANDIDATE_NOT_RUN",
     "FINAL_ACCEPTANCE_AND_POST_BETA_STAGE7_PHASES_NOT_RUN",
     "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
     "CODEX_AUTOMATION_TASK_PREDECESSOR_NOT_COMPLETE",
@@ -69,5 +69,5 @@
     "REAL_RECOVERY_KEY_DRILL_NOT_RUN"
   ],
   "delivery_status": "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL",
-  "next_action": "Deliver the exact optional-token-echo recovery T0703 candidate to main and execute exactly one new-candidate attempt-1 Budget-1 M3 Canary; do not rerun or redispatch any failed head, and do not enter T0704."
+  "next_action": "Deliver the exact safe-deferred aggregate recovery T0703 candidate to main and execute exactly one new-candidate attempt-1 Budget-1 M3 Canary; do not rerun or redispatch any failed head, and do not enter T0704."
 }

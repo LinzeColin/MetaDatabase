@@ -5,11 +5,13 @@ import re
 import shutil
 from collections.abc import Iterator
 from contextlib import contextmanager
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 import yaml
+from stage3_support import make_raw_message
 from stage5_support import SyntheticM3Transport, pre_m3_message, recovery_context
 from stage7_support import (
     canary_context,
@@ -34,6 +36,7 @@ from moomooau_archive.m3 import (
 )
 from moomooau_archive.protected_m3 import M3_SECRET_NAMES, ProtectedM3BootstrapError
 from moomooau_archive.protected_m3_diagnostics import (
+    ProtectedM3AggregateFailureClass,
     ProtectedM3Diagnostics,
     ProtectedM3FailurePhase,
     public_failure_payload,
@@ -380,6 +383,46 @@ def test_t0703_empty_protected_processing_registries_force_recoverable_safe_defe
     assert context.source.all_issued_destroyed
 
 
+def test_t0703_empty_protected_registries_safe_defer_quarantined_attachment() -> None:
+    message = m3_canary_message(
+        "msg-stage7-protected-m3-empty-registry-quarantined",
+        with_supported_attachment=False,
+    )
+    message = replace(
+        message,
+        raw=make_raw_message(
+            message_id=message.message_id,
+            subject="Synthetic Moomoo AU Daily DAILY_STATEMENT",
+            attachments=(
+                (
+                    "active.pdf",
+                    "application",
+                    "pdf",
+                    b"%PDF-1.7\n/OpenAction /JavaScript /Launch\n%%EOF\n",
+                ),
+            ),
+        ),
+    )
+    predecessors = (
+        phase_observation(ReleasePhase.ALPHA),
+        phase_observation(ReleasePhase.BETA_RAW_ONLY),
+    )
+    with protected_m3_context(
+        (message,),
+        empty_processing_registries=True,
+    ) as context:
+        with context.bootstrap.open(predecessor_observations=predecessors) as runtime:
+            result = runtime.run()
+        assert result.raw_archived == result.full_recovery_successes == 1
+        assert result.processing_blocked == result.processed_complete == 0
+        assert result.processed_safe_deferred == result.confirmed_trashed == 1
+        assert result.mutation_calls == 1
+        assert context.gmail_transport.trashed_ids == [message.message_id]
+        assert all(is_age_envelope(value) for value in context.github_transport.objects.values())
+        assert list(context.tmpfs_root.iterdir()) == []
+    assert context.source.all_issued_destroyed
+
+
 def _protected_m3_environment(*, head_sha: str = "b" * 40) -> dict[str, str]:
     return {
         "GITHUB_ACTIONS": "true",
@@ -413,7 +456,7 @@ def _authorized_project_root(tmp_path: Path) -> Path:
         "purpose": "T0703_PROTECTED_M3_REPAIR_ONLY",
         "m3_authorized": True,
         "final_publication_authorized": False,
-        "prior_failed_attempts_exact": 3,
+        "prior_failed_attempts_exact": 4,
         "repair_candidate_dispatch_limit": 1,
     }
     run_contract["authorized_effect_budget"] = {
@@ -425,8 +468,8 @@ def _authorized_project_root(tmp_path: Path) -> Path:
         "processed_writes_maximum": 1,
         "protected_m3_dispatches_maximum": 1,
         "protected_m3_reruns_maximum": 0,
-        "prior_protected_m3_dispatches_exact": 3,
-        "cumulative_protected_m3_dispatches_after_success_maximum": 4,
+        "prior_protected_m3_dispatches_exact": 4,
+        "cumulative_protected_m3_dispatches_after_success_maximum": 5,
         "timeline_writes_maximum": 0,
         "scheduled_runs_maximum": 0,
     }
@@ -438,8 +481,11 @@ def _authorized_project_root(tmp_path: Path) -> Path:
 
 
 class _SyntheticProtectedM3Runtime:
+    def __init__(self, result: M3CanaryRunResult | None = None) -> None:
+        self._result = result
+
     def run(self) -> M3CanaryRunResult:
-        return M3CanaryRunResult(
+        return self._result or M3CanaryRunResult(
             phase=ReleasePhase.M3_CANARY,
             discovered_refs=17,
             metadata_reads=18,
@@ -460,8 +506,9 @@ class _SyntheticProtectedM3Runtime:
 
 
 class _SyntheticProtectedM3Bootstrap:
-    def __init__(self) -> None:
+    def __init__(self, result: M3CanaryRunResult | None = None) -> None:
         self.predecessors: tuple[object, ...] = ()
+        self._result = result
 
     @contextmanager
     def open(
@@ -470,7 +517,7 @@ class _SyntheticProtectedM3Bootstrap:
         predecessor_observations: tuple[object, ...],
     ) -> Iterator[_SyntheticProtectedM3Runtime]:
         self.predecessors = predecessor_observations
-        yield _SyntheticProtectedM3Runtime()
+        yield _SyntheticProtectedM3Runtime(self._result)
 
 
 def test_t0703_protected_entrypoint_contract_is_authorized_and_receipt_bound() -> None:
@@ -489,7 +536,7 @@ def test_t0703_protected_entrypoint_contract_is_authorized_and_receipt_bound() -
     assert "required_secret_names" not in contract
     assert contract["beta_receipt_sha256"] == beta_receipt_sha256(PROJECT_ROOT)
     assert contract["prior_attempt_ledger_path"].endswith("t0703/attempt-ledger.json")
-    assert contract["prior_failed_attempts"] == 3
+    assert contract["prior_failed_attempts"] == 4
     assert contract["same_head_rerun_allowed"] is False
     assert contract["m3_gate_sha256"] == m3_gate_sha256(PROJECT_ROOT)
     assert contract["feature_invariants"] == {
@@ -529,6 +576,7 @@ def test_t0703_failure_diagnostics_are_closed_public_safe_phases() -> None:
             "reason_code": f"PROTECTED_M3_{phase.value}_FAILED",
             "failure_phase": phase.value,
             "installation_token_failure_class": "UNCLASSIFIED",
+            "aggregate_failure_class": "UNCLASSIFIED",
             "diagnostic_taxonomy": "moomooau.protected-m3-failure-taxonomy.v1",
             "exact_root_cause_claimed": False,
             "production_health_claimed": False,
@@ -543,6 +591,13 @@ def test_t0703_failure_diagnostics_are_closed_public_safe_phases() -> None:
     token_failure = public_failure_payload(diagnostics)
     assert token_failure["failure_phase"] == "GITHUB_APP_TOKEN"
     assert token_failure["installation_token_failure_class"] == "INSTALLATION_ZERO"
+    assert token_failure["aggregate_failure_class"] == "UNCLASSIFIED"
+
+    diagnostics.enter_aggregate_failure(ProtectedM3AggregateFailureClass.PROCESSING_BLOCKED)
+    aggregate_failure = public_failure_payload(diagnostics)
+    assert aggregate_failure["failure_phase"] == "AGGREGATE_GATE"
+    assert aggregate_failure["installation_token_failure_class"] == "UNCLASSIFIED"
+    assert aggregate_failure["aggregate_failure_class"] == "PROCESSING_BLOCKED"
 
 
 def test_t0703_bootstrap_preserves_closed_installation_token_failure_class(
@@ -636,6 +691,53 @@ def test_t0703_authorized_entrypoint_emits_aggregate_only_evidence(tmp_path: Pat
         '"private_repository_id":',
     ):
         assert forbidden not in public_text.casefold()
+
+
+def test_t0703_authorized_entrypoint_classifies_processing_blocked_aggregate(
+    tmp_path: Path,
+) -> None:
+    project_root = _authorized_project_root(tmp_path)
+    environment = _protected_m3_environment()
+    diagnostics = ProtectedM3Diagnostics()
+    result = M3CanaryRunResult(
+        phase=ReleasePhase.M3_CANARY,
+        discovered_refs=1,
+        metadata_reads=1,
+        metadata_quarantined=0,
+        verified_candidates=1,
+        raw_archived=1,
+        processed_complete=0,
+        processed_safe_deferred=0,
+        processing_blocked=1,
+        full_recovery_successes=0,
+        mutation_calls=0,
+        confirmed_trashed=0,
+        already_trashed=0,
+        failed_mutation_outcomes=0,
+        deferred_mutations=0,
+        halted_fail_closed=False,
+    )
+    with pytest.raises(ProtectedM3EntrypointError, match="not evidence-complete"):
+        execute_protected(
+            environment,
+            project_root=project_root,
+            expected_head_sha=environment["GITHUB_SHA"],
+            supplied_beta_receipt_sha256=beta_receipt_sha256(project_root),
+            supplied_m3_gate_sha256=m3_gate_sha256(project_root),
+            confirmation=M3_CONFIRMATION,
+            bootstrap=_SyntheticProtectedM3Bootstrap(result),  # type: ignore[arg-type]
+            clock=lambda: datetime(2026, 7, 24, 1, tzinfo=UTC),
+            diagnostics=diagnostics,
+        )
+
+    payload = public_failure_payload(diagnostics)
+    assert payload["failure_phase"] == "AGGREGATE_GATE"
+    assert payload["aggregate_failure_class"] == "PROCESSING_BLOCKED"
+    assert payload["exact_root_cause_claimed"] is False
+    assert not any(
+        token in json.dumps(payload, sort_keys=True).casefold()
+        for token in ("message_id", "thread_id", "sender", "subject", "repository_id")
+    )
 
 
 def test_t0703_protected_workflow_is_manual_main_only_authorized_and_exact_eight_secret() -> None:

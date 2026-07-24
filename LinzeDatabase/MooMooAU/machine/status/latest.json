@@ -1,8 +1,8 @@
 {
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
-  "package_version": "1.0.11",
-  "status_as_of_utc": "2026-07-24T04:19:56Z",
+  "package_version": "1.0.12",
+  "status_as_of_utc": "2026-07-24T05:18:46Z",
   "authority": {
     "path": "machine/status/latest.json",
     "precedence": [
@@ -60,7 +60,7 @@
     },
     "publication": {
       "status": "CONTROLLED_BETA_DELIVERY_NOT_FINAL",
-      "controlled_main_deliveries": 11,
+      "controlled_main_deliveries": 12,
       "remote_publications": 0
     }
   },
@@ -232,24 +232,24 @@
     "REV-P1-006",
     "REV-P2-007"
   ],
-  "next_action": "Deliver the exact optional-token-echo recovery T0703 candidate to main and execute exactly one new-candidate attempt-1 Budget-1 M3 Canary; do not rerun or redispatch any failed head, and do not enter T0704.",
+  "next_action": "Deliver the exact SAFE_DEFERRED aggregate-recovery T0703 candidate to main and execute exactly one new-candidate attempt-1 Budget-1 M3 Canary; do not rerun or redispatch any failed head, and do not enter T0704.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "c7769ccec456c3d36740ee567dde3e9decc4244e6f700ce83818c60eb7f8aa0e",
+    "acceptance_summary_sha256": "104cfee7caf7a7d3c6e826f6cfb699a212e16230943fd87e5c1f221fce43ac0f",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
-    "delivery_status_model_sha256": "ef66d6fc515108cd3052aee3882c0ca372b134dbe6cc1510411080c79709915c",
+    "delivery_status_model_sha256": "de76904fd102247c93e86f71967ed11a615842d03146748514727bbfed2f1880",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "66e4d5a075be0e6d16572313391708f7708f8b188ded0450cca3490bf43b290d",
+    "production_composition_sha256": "38287e8a4ba2571e3e77b6623b823cc8a1fccb197d1690d73386c33c0ff53464",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "8d37270eacd0941afae46f529c5f13bd58b5f4e70e56a1a9277d001db48b8005",
+    "task_evidence_root_sha256": "a5ba1409339cb72c6eec10418cac6152df90f67513ffd0a99f16aac6e954e2d1",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",
     "assurance_provenance_root_sha256": "65eaaa037e17b7011b78410c50e3534a7d4e6e8cf65f624d684b4f968275cbea",
     "protected_beta_execution_receipt_sha256": "06c4c58e64f56f740c2f0143b064236dafc9dc56e7bae488f02c52dd6b750ce0",
     "protected_beta_attempt_ledger_sha256": "3a85c5ea1d3e21f0ce0413968f83a867f2b5e3accfb63deb78b4e740ee86456a",
-    "protected_m3_attempt_ledger_sha256": "51646a5ce5cc40e7b3a339938bf7d24f247655bd57a55ee7dde3481bc1b11345"
+    "protected_m3_attempt_ledger_sha256": "00e9fddb7e38f89a76fb26cd4541e1e9e1c3827de6a317579300255195830dc1"
   }
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the baseline-preserving v1.0.11 T0703 token-response recovery manifest."""
+"""Build the baseline-preserving v1.0.12 T0703 safe-deferred recovery manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.11.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-24-V1.0.11"
-PACKAGE_VERSION = "1.0.11"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.10.json")
-PREDECESSOR_MANIFEST_SHA256 = "d61c805507bbd891e875ae20c1e80804564db3767997c4441a19a0e3eb6593bf"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.12.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-24-V1.0.12"
+PACKAGE_VERSION = "1.0.12"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.11.json")
+PREDECESSOR_MANIFEST_SHA256 = "897cda5d6c6d77edd552abe9b2200a179b0b4aa0d11fa4733f45accd8c24aa34"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.10 manifest drift")
+        raise ValueError("predecessor v1.0.11 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -178,32 +178,32 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v10",
+        "schema_version": "moomooau.package-manifest.v11",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
-            "Stage 7 T0703 only: preserve the protected T0702 PASS and all three exact zero-effect "
-            "failed M3 attempts. The third attempt's closed RESPONSE_SCOPE_REJECTED class and "
-            "GitHub's pinned official OpenAPI authorize one minimal token-response compatibility "
-            "repair, one new controlled main delivery and one new-candidate attempt-1 protected "
-            "M3 Budget-1 dispatch. Every failed-head rerun or redispatch, final publication and "
-            "T0704 remain forbidden."
+            "Stage 7 T0703 only: preserve the protected T0702 PASS and all four exact zero-effect "
+            "failed M3 attempts. The fourth reached only AGGREGATE_GATE after the App-token "
+            "repair; "
+            "the proven empty-registry quarantine ordering gap authorizes one minimal "
+            "SAFE_DEFERRED repair, one closed aggregate failure class, one new controlled main "
+            "delivery and one new-candidate attempt-1 protected M3 Budget-1 dispatch. Every "
+            "failed-head rerun or redispatch, final publication and T0704 remain forbidden."
         ),
         "scope": (
-            "Baseline-preserving v1.0.11 recovery snapshot: immutable v1.0.1 product contracts "
-            "and v1.0.2-v1.0.10 predecessor lineage; the exact T0702 protected PASS receipt "
-            "remains unchanged. All three T0703 failed attempts are bound by a schema-valid "
-            "ledger and had "
-            "zero observed private commits, Processed writes, Gmail Trash mutations or Timeline "
-            "effects. The metadata quarantine remains narrow and all broader errors remain hard. "
-            "When GitHub omits optional repositories or permissions echoes from a successful token "
-            "response, the repair performs an exact bounded installation-token repository probe; "
-            "the one-hour TTL is checked against the bounded GitHub Date header. The new exact "
-            "candidate still requires age-encrypted Raw plus Processed remote recovery, second "
-            "sender verification and exact messages.trash within Budget 1. At package-build time "
-            "the recovery attempt has not run; Timeline, T0704, production health, final "
+            "Baseline-preserving v1.0.12 recovery snapshot: immutable v1.0.1 product contracts "
+            "and v1.0.2-v1.0.11 predecessor lineage; the exact T0702 protected PASS receipt "
+            "remains unchanged. All four T0703 failed attempts are bound by a schema-valid ledger "
+            "and had zero observed private commits, Processed writes, Gmail Trash mutations or "
+            "Timeline effects. The metadata and App-token repairs remain intact. With empty "
+            "protected processing registries, a safely quarantined attachment now yields explicit "
+            "SAFE_DEFERRED instead of contradicting the protected oracle; active parser profiles "
+            "retain hard quarantine. Aggregate-gate failures expose only a closed enum. The new "
+            "exact candidate still requires age-encrypted Raw plus Processed remote recovery, "
+            "second sender verification and exact messages.trash within Budget 1. At package-build "
+            "time the recovery attempt has not run; Timeline, T0704, production health, final "
             "Acceptance, Stage 7 completion and final publication are not claimed."
         ),
         "status_authority": "machine/status/latest.json",

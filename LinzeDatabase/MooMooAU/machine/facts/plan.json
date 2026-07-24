@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0703 三次零观察副作用失败，可选 token 回显恢复候选已授权",
-  "phase": "T0703 可选 token 回显恢复候选 Budget-1 新候选执行准备",
-  "task": "交付可选 token 回显、精确仓库范围探测与 GitHub Date TTL 修复；三个失败头不可 rerun/redispatch，新候选仅执行一次",
+  "stage": "RMD-06 T0703 四次零观察副作用失败，SAFE_DEFERRED 聚合恢复候选已授权",
+  "phase": "T0703 SAFE_DEFERRED 聚合恢复候选 Budget-1 新候选执行准备",
+  "task": "交付空注册表 SAFE_DEFERRED 顺序修复与封闭聚合失败分类；四个失败头不可 rerun/redispatch，新候选仅执行一次",
   "owner": "Codex 开发线程"
 }

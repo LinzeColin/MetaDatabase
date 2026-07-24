@@ -40,6 +40,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.9",
             "1.0.10",
             "1.0.11",
+            "1.0.12",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -52,6 +53,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.9",
         "1.0.10",
         "1.0.11",
+        "1.0.12",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -60,6 +62,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.9",
         "1.0.10",
         "1.0.11",
+        "1.0.12",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -67,16 +70,31 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.9",
         "1.0.10",
         "1.0.11",
+        "1.0.12",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
         "1.0.9",
         "1.0.10",
         "1.0.11",
+        "1.0.12",
     }
-    t0703_repair_authorized = delivery["package_version"] in {"1.0.9", "1.0.10", "1.0.11"}
-    t0703_app_recovery_authorized = delivery["package_version"] in {"1.0.10", "1.0.11"}
-    t0703_response_scope_recovery_authorized = delivery["package_version"] == "1.0.11"
+    t0703_repair_authorized = delivery["package_version"] in {
+        "1.0.9",
+        "1.0.10",
+        "1.0.11",
+        "1.0.12",
+    }
+    t0703_app_recovery_authorized = delivery["package_version"] in {
+        "1.0.10",
+        "1.0.11",
+        "1.0.12",
+    }
+    t0703_response_scope_recovery_authorized = delivery["package_version"] in {
+        "1.0.11",
+        "1.0.12",
+    }
+    t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] == "1.0.12"
     protected_beta_failed = (
         not t0703_repair_authorized
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("status") == "FAILED"
@@ -105,7 +123,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "T0702 已通过；T0703 三次执行均零观察副作用失败，可选 token 回显恢复候选已授权"
+            "T0702 已通过；T0703 四次执行均零观察副作用失败，SAFE_DEFERRED 聚合恢复候选已授权"
+            if t0703_safe_deferred_aggregate_recovery_authorized
+            else "T0702 已通过；T0703 三次执行均零观察副作用失败，可选 token 回显恢复候选已授权"
             if t0703_response_scope_recovery_authorized
             else "T0702 已通过；T0703 两次执行均零观察副作用失败，App 安装恢复候选已授权"
             if t0703_repair_authorized
@@ -169,7 +189,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "T0703 单件预算已授权；精确 main 交付、两项安全延后注册表和首次受保护执行待完成"
         ),
         "T0703_REPAIR_CANDIDATE_PENDING": (
-            "T0703 三次受保护执行均零观察副作用失败；第三次仅公开 "
+            "T0703 四次受保护执行均零观察副作用失败；第四次仅公开 AGGREGATE_GATE，"
+            "不据聚合输出声称精确线上根因；禁止任何失败头 rerun/redispatch，"
+            "SAFE_DEFERRED 顺序与封闭聚合诊断恢复候选待交付并仅执行一次"
+            if t0703_safe_deferred_aggregate_recovery_authorized
+            else "T0703 三次受保护执行均零观察副作用失败；第三次仅公开 "
             "RESPONSE_SCOPE_REJECTED；禁止任何失败头 rerun/redispatch，"
             "可选 token 回显恢复候选待交付并仅执行一次"
             if t0703_response_scope_recovery_authorized
@@ -201,7 +225,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0703 三次零观察副作用失败，可选 token 回显恢复候选已授权"
+            "RMD-06 T0703 四次零观察副作用失败，SAFE_DEFERRED 聚合恢复候选已授权"
+            if t0703_safe_deferred_aggregate_recovery_authorized
+            else "RMD-06 T0703 三次零观察副作用失败，可选 token 回显恢复候选已授权"
             if t0703_response_scope_recovery_authorized
             else "RMD-06 T0703 两次零观察副作用失败，App 安装恢复候选已授权"
             if t0703_repair_authorized
@@ -214,7 +240,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0702/S7AC-002 已通过；T0703 三次执行均在任何已观察远端效果前失败；"
+            "T0702/S7AC-002 已通过；T0703 四次执行均在任何已观察远端效果前失败；"
+            "第四次仅公开 AGGREGATE_GATE，不声称聚合输出未证明的精确线上根因；"
+            "仅授权一个 SAFE_DEFERRED 聚合恢复候选"
+            if t0703_safe_deferred_aggregate_recovery_authorized
+            else "T0702/S7AC-002 已通过；T0703 三次执行均在任何已观察远端效果前失败；"
             "第三次仅公开 RESPONSE_SCOPE_REJECTED，仅授权一个可选 token 回显恢复候选"
             if t0703_response_scope_recovery_authorized
             else "T0702/S7AC-002 已通过；T0703 两次执行均在任何已观察远端效果前失败；"
@@ -229,7 +259,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付精确可选 token 回显恢复候选并执行一次新候选 Budget-1 M3；"
+            "交付精确 SAFE_DEFERRED 聚合恢复候选并执行一次新候选 Budget-1 M3；"
+            "禁止任何失败头 rerun/redispatch"
+            if t0703_safe_deferred_aggregate_recovery_authorized
+            else "交付精确可选 token 回显恢复候选并执行一次新候选 Budget-1 M3；"
             "禁止任何失败头 rerun/redispatch"
             if t0703_response_scope_recovery_authorized
             else (
@@ -585,7 +618,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "en": "T0703_REPAIR_CANDIDATE_PENDING",
                 "zh": "T0703 修复候选待执行",
                 "note": (
-                    "三次 M3 均零观察副作用失败；任何失败头不可 rerun/redispatch，"
+                    "四次 M3 均零观察副作用失败；第四次只公开 AGGREGATE_GATE；"
+                    "任何失败头不可 rerun/redispatch，仅允许一个 SAFE_DEFERRED "
+                    "聚合恢复候选 attempt 1"
+                    if t0703_safe_deferred_aggregate_recovery_authorized
+                    else "三次 M3 均零观察副作用失败；任何失败头不可 rerun/redispatch，"
                     "仅允许一个可选 token 回显恢复候选 attempt 1"
                     if t0703_response_scope_recovery_authorized
                     else (
@@ -686,7 +723,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     }
     plan = {
         "stage": (
-            "RMD-06 T0703 三次零观察副作用失败，可选 token 回显恢复候选已授权"
+            "RMD-06 T0703 四次零观察副作用失败，SAFE_DEFERRED 聚合恢复候选已授权"
+            if t0703_safe_deferred_aggregate_recovery_authorized
+            else "RMD-06 T0703 三次零观察副作用失败，可选 token 回显恢复候选已授权"
             if t0703_response_scope_recovery_authorized
             else "RMD-06 T0703 两次零观察副作用失败，App 安装恢复候选已授权"
             if t0703_repair_authorized
@@ -699,7 +738,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0703 可选 token 回显恢复候选 Budget-1 新候选执行准备"
+            "T0703 SAFE_DEFERRED 聚合恢复候选 Budget-1 新候选执行准备"
+            if t0703_safe_deferred_aggregate_recovery_authorized
+            else "T0703 可选 token 回显恢复候选 Budget-1 新候选执行准备"
             if t0703_response_scope_recovery_authorized
             else "T0703 App 安装恢复候选 Budget-1 新候选执行准备"
             if t0703_repair_authorized
@@ -714,7 +755,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付可选 token 回显、精确仓库范围探测与 GitHub Date TTL 修复；"
+            "交付空注册表 SAFE_DEFERRED 顺序修复与封闭聚合失败分类；"
+            "四个失败头不可 rerun/redispatch，新候选仅执行一次"
+            if t0703_safe_deferred_aggregate_recovery_authorized
+            else "交付可选 token 回显、精确仓库范围探测与 GitHub Date TTL 修复；"
             "三个失败头不可 rerun/redispatch，新候选仅执行一次"
             if t0703_response_scope_recovery_authorized
             else "交付 App 安装恢复与封闭 token 失败分类；两个失败头不可 rerun/redispatch，"
@@ -758,7 +802,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "阻塞（T0702 通过；T0703 三次零观察副作用失败，可选 token 回显恢复候选待运行）"
+                    "阻塞（T0702 通过；T0703 四次零观察副作用失败，"
+                    "SAFE_DEFERRED 聚合恢复候选待运行）"
+                    if t0703_safe_deferred_aggregate_recovery_authorized
+                    else "阻塞（T0702 通过；T0703 三次零观察副作用失败，"
+                    "可选 token 回显恢复候选待运行）"
                     if t0703_response_scope_recovery_authorized
                     else "阻塞（T0702 通过；T0703 两次零观察副作用失败，App 安装恢复候选待运行）"
                     if t0703_repair_authorized
@@ -928,6 +976,20 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "按 GitHub 固定 OpenAPI 将 repositories/permissions 视为可选回显；缺少"
                     "仓库回显时用 installation token 做最多两个结果的精确仓库范围探测，"
                     "并按有界 GitHub Date 校验一小时 TTL。三个失败头均禁止 rerun/redispatch。"
+                ),
+            },
+        )
+    if t0703_safe_deferred_aggregate_recovery_authorized:
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.12",
+                "date": "2026-07-24",
+                "summary": (
+                    "固化 T0703 第四次 protected M3 在 AGGREGATE_GATE 的零观察副作用失败；"
+                    "不据聚合输出声称精确线上根因。静态契约验证并修复空分类/解析注册表下"
+                    "隔离附件可能错误产生 BLOCKED 的顺序冲突，并增加封闭聚合失败分类。"
+                    "四个失败头均禁止 rerun/redispatch，仅授权一个新候选 attempt 1。"
                 ),
             },
         )

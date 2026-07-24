@@ -2,18 +2,17 @@
 
 Implementation target: `LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU`.
 
-当前本地控制包版本为 `1.0.11`。它直接继承不可变 v1.0.10，固化 T0703 三个不同 exact-main
-attempt 的零观察副作用失败，并按固定官方 GitHub OpenAPI 建立唯一可选 token 回显恢复
-Run Contract。v1.0.1 的产品目标、34 条需求、34 个
-最终验收、58-task DAG、追踪矩阵、Kill Criteria 与十条不变量均按固定哈希原样继承；v1.0.10 及更早
+当前本地控制包版本为 `1.0.12`。它直接继承不可变 v1.0.11，固化 T0703 四个不同 exact-main
+attempt 的零观察副作用失败，并建立唯一 SAFE_DEFERRED 聚合恢复 Run Contract。v1.0.1 的产品目标、34 条需求、34 个
+最终验收、58-task DAG、追踪矩阵、Kill Criteria 与十条不变量均按固定哈希原样继承；v1.0.11 及更早
 Manifest 本体保持不可变。
 
 唯一当前跨维度状态入口是 `machine/status/latest.json`，由
 `machine/tools/build_delivery_status.py` 确定性生成、由
 `machine/tools/validate_delivery_status.py` 只读校验。当前状态为：58/58 任务 evidence 结构与绑定有效，
 58/58 本地或合成机制有证据；冻结任务图正式完成 7/58；受保护 Oracle 已执行 3/43，其中 Alpha 与
-T0702 Raw-only Beta 通过、T0703 protected Oracle 失败；最终验收 0/34；protected Workflow runs 14、
-production Workflow 0；生产就绪 `BLOCKED`。十一次既有受控 main 交付均不是最终发布。本地机制、
+T0702 Raw-only Beta 通过、T0703 protected Oracle 失败；最终验收 0/34；protected Workflow runs 15、
+production Workflow 0；生产就绪 `BLOCKED`。十二次既有受控 main 交付均不是最终发布。本地机制、
 修复授权或 Alpha/Beta PASS 均不等于 T0703 PASS。
 
 RMD-05 已以 immutable same-tree Git anchor 固定 19-command 本地 gate receipt，并保留两个模型家族各
@@ -28,13 +27,14 @@ Raw-only Beta 与 identity cleanup；公开安全结果只声明 verified-within
 100%、非零 age-ciphertext-only private namespace，以及 Gmail mutation/M3/Processed/Timeline/
 schedule 为 0。T0702/S7AC-002 已通过。
 
-T0703 三个不同 exact-main attempt 的 authority 与 identity cleanup 均通过，但 M3 job 均失败。
+T0703 四个不同 exact-main attempt 的 authority 与 identity cleanup 均通过，但 M3 job 均失败。
 只读后验核验观察到 private 新 commit、MooMooAU 路径写入、Gmail Trash mutation 与 Timeline effect
-均为 0，三个失败 head 禁止 rerun/redispatch。第三次公开边界为
-`GITHUB_APP_TOKEN/RESPONSE_SCOPE_REJECTED`，不声称日志未证明的精确根因。v1.0.11 保留逐消息
-metadata quarantine 与封闭 `InstallationTokenFailureClass`，并按官方契约将 scope 字段视为可选
-回显：缺少 repository 回显时必须用 installation token 做有界精确仓库范围探测；TTL 按有界
-GitHub `Date` 校验。其他错误继续整次 fail closed。新候选仍只允许一个 verified
+均为 0，四个失败 head 禁止 rerun/redispatch。第四次只公开
+`AGGREGATE_GATE`，不据 aggregate-only 输出声称精确线上根因。静态契约验证发现：空 protected
+classification/parser registry 下，安全隔离的附件仍可能先被判为 `BLOCKED`，与显式
+`SAFE_DEFERRED` Oracle 冲突。v1.0.12 将“无 parser profile”的 SAFE_DEFERRED 决策置于
+quarantined extraction 阻断之前；active parser profile 仍保持 hard quarantine，并新增不接收动态
+值的封闭 aggregate failure class。此前逐消息 metadata 与 App-token 修复保持不变。新候选仍只允许一个 verified
 candidate 和一个 exact source-message Trash；Raw 与 Processed 必须先经同一 private remote 恢复，
 并再次验证 sender。
 
@@ -50,8 +50,9 @@ Authoritative artifacts:
 - `machine/status/latest.json`（唯一当前跨维度状态）
 - `machine/contracts/workflow_command_matrix.json`
 - `machine/contracts/production_composition.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.11.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.10.json`（不可变直接前序）
+- `taskpack/PACKAGE_MANIFEST.v1.0.12.json`
+- `taskpack/PACKAGE_MANIFEST.v1.0.11.json`（不可变直接前序）
+- `taskpack/PACKAGE_MANIFEST.v1.0.10.json`
 - `taskpack/PACKAGE_MANIFEST.v1.0.9.json`
 - `taskpack/PACKAGE_MANIFEST.v1.0.8.json`
 - `taskpack/PACKAGE_MANIFEST.v1.0.7.json`
