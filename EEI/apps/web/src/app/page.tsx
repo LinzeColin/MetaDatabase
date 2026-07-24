@@ -3062,6 +3062,16 @@ export default function Home() {
   function addSelectedNodeToWatchlist() {
     setWatchlistNodeKeys((current) => addUniqueNode(current, selectedNode.key));
     setNodeActionStatus(`watchlist:${selectedNode.key}`);
+    // P2-9：云模式下选中的是真实已发布实体——派发关注事件，交「我的」抽屉
+    // 做乐观关注（POST /v1/watchlists/:id/items，失败回滚）。本地样例态不派发
+    // （样例 key 非真实 UUID，不往服务端关注列表写）。
+    if (CLOUD_MODE && selectedGraphNode.key) {
+      window.dispatchEvent(
+        new CustomEvent("eei:watchlist-follow", {
+          detail: { entity_id: selectedGraphNode.key, label: selectedGraphNode.label }
+        })
+      );
+    }
   }
 
   // P0-1 §A.3：section 滚动式导航处理器已废除——「滚动到首页某段落」
@@ -5306,7 +5316,7 @@ export default function Home() {
           </button>
           <button
             data-testid="node-action-watchlist"
-            disabled={!selectedGraphNode.localKey}
+            disabled={CLOUD_MODE ? !selectedGraphNode.key : !selectedGraphNode.localKey}
             onClick={addSelectedNodeToWatchlist}
             type="button"
           >

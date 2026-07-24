@@ -248,26 +248,249 @@ select:focus-visible {
   color: var(--ink);
 }
 
-/* P0-1：顶部「搜索 / 我的」占位（P1-5 / P2-9 上线真功能）。
-   明示禁用态——不是导航项，不参与「点击必有响应」契约。 */
+/* P1-5 / P2-9：顶部「搜索 / 我的」为真功能工具（全局搜索弹层 / 我的抽屉）。
+   点击必有响应，故为实心可点样式（占位态的 dashed/not-allowed 已退场）。 */
 .railTools {
   display: grid;
   gap: 6px;
 }
 
 .railTool {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 32px;
+  min-height: 36px;
   padding: 0 10px;
-  border: 1px dashed var(--line);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.railTool:not(:disabled):hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.railTool:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+/* ============================================================
+   P2-9 「我的」抽屉（UX_SPEC_EEI v1.0 §A.2 / §G-P2-9；动效 §D.2）
+   触发钮铃铛未读角标 + 右侧滑出抽屉（关注 / 保存视图 / 探索记录）。
+   入场走 --motion-slow / --ease-emphatic；--motion-scale 归零后近乎瞬时。
+   ============================================================ */
+.myDrawerBellBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding: 0 5px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--orb-focus-mid, #e8b54a);
+  color: #201400;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.myDrawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: flex-end;
+  background: color-mix(in srgb, #050912 52%, transparent);
+  animation: myDrawerFade var(--motion-base) var(--ease-out) backwards;
+}
+
+.myDrawerPanel {
+  display: flex;
+  flex-direction: column;
+  width: min(420px, 92vw);
+  height: 100%;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  box-shadow: -18px 0 48px color-mix(in srgb, #050912 40%, transparent);
+  animation: myDrawerSlideIn var(--motion-slow) var(--ease-emphatic) backwards;
+}
+
+@keyframes myDrawerFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes myDrawerSlideIn {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.myDrawerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.myDrawerHead h2 {
+  margin: 2px 0 0;
+  font-size: 16px;
+}
+
+.myDrawerClose {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.myDrawerTabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px 0;
+}
+
+.myDrawerTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-radius: 7px 7px 0 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.myDrawerTab.active {
+  color: var(--ink);
+  border-bottom-color: var(--orb-focus-mid, #e8b54a);
+}
+
+.myDrawerTab em {
+  font-style: normal;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  font-size: 10px;
+}
+
+.myDrawerBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.myDrawerList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.myDrawerWatchItem,
+.myDrawerSavedItem,
+.myDrawerHistItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+  font-size: 13px;
+}
+
+.myDrawerWatchLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.myDrawerWatchLink span,
+.myDrawerSavedName,
+.myDrawerHistTarget {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.myDrawerUnfollow {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border: 1px solid transparent;
   border-radius: 7px;
   background: transparent;
   color: var(--muted);
-  font-size: 12px;
-  cursor: not-allowed;
-  opacity: 0.72;
+  cursor: pointer;
+}
+
+.myDrawerUnfollow:hover {
+  color: #e0555b;
+  border-color: color-mix(in srgb, #e0555b 45%, transparent);
+}
+
+.myDrawerHistItem {
+  gap: 10px;
+}
+
+.myDrawerHistAction {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--orb-focus-mid, #e8b54a) 22%, transparent);
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.myDrawerHistTarget,
+.myDrawerSavedName {
+  flex: 1;
+  min-width: 0;
+}
+
+.myDrawerHistItem .feedbackStale,
+.myDrawerSavedItem .feedbackStale {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .railTool kbd {

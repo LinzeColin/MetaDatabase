@@ -6,12 +6,12 @@ import {
   Database,
   Network,
   PackageSearch,
-  Radar,
-  UserRound
+  Radar
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { CommandSearch } from "./components/command-search";
+import { MyDrawer } from "./components/my-drawer";
 import { WORKSPACE_MODULES, type WorkspaceModuleId } from "./workspace-context";
 
 // P0-1 导航收敛（UX_SPEC_EEI v1.0 §A.4）：
@@ -19,7 +19,9 @@ import { WORKSPACE_MODULES, type WorkspaceModuleId } from "./workspace-context";
 //   变化的项（section 滚动按钮 / disabled 灰按钮形态已全部废除）。
 // - 当前页高亮 = 左缘金色指示条 + 图标着色（globals.css .navItem.active）。
 // P1-5 上线：顶部「搜索」位挂全局搜索 Cmd+K（<CommandSearch/> 自带触发钮 +
-//   Portal 弹层，任意页可唤起）。「我的」抽屉仍为占位（P2-9 上线）。
+//   Portal 弹层，任意页可唤起）。
+// P2-9 上线：「我的」抽屉（<MyDrawer/> 自带触发钮 + 铃铛未读角标 + Portal 抽屉，
+//   合并关注 / 保存视图 / 探索记录三 tab）。
 type WorkspaceNavigationRailProps = {
   activeModuleId: WorkspaceModuleId;
 };
@@ -45,17 +47,7 @@ export function WorkspaceNavigationRail({ activeModuleId }: WorkspaceNavigationR
       </div>
       <div className="railTools" aria-label="全局工具">
         <CommandSearch />
-        <button
-          aria-disabled="true"
-          className="railTool"
-          data-testid="my-drawer-placeholder"
-          disabled
-          title="「我的」（关注 · 保存视图 · 探索记录）下一批上线"
-          type="button"
-        >
-          <UserRound size={16} strokeWidth={1.8} aria-hidden="true" />
-          <span>我的</span>
-        </button>
+        <MyDrawer />
       </div>
       <nav aria-label="主导航" data-testid="primary-workspace-navigation">
         {WORKSPACE_MODULES.map((module) => {
