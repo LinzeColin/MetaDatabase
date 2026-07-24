@@ -298,6 +298,12 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
 
     research = _read_research_csv(research_csv)
     live = next((r for r in research if r.get("现役") == "是"), None)
+    # 内容哈希做下载链接版本号:CSV 一变 URL 就变,绕开 CDN 对 .csv 的按扩展名缓存。
+    try:
+        import hashlib
+        csv_ver = hashlib.sha256(Path(research_csv).read_bytes()).hexdigest()[:8]
+    except Exception:
+        csv_ver = "0"
 
     return {
         "champion": {
@@ -319,7 +325,7 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
         "honesty_note": honesty,
         "research_cols": RESEARCH_COLS,
         "research": research,
-        "research_csv_url": "/strategy/history.csv",
+        "research_csv_url": f"/strategy/history.csv?v={csv_ver}",
         "research_note": "2026-07-24 新增『固定规则连续复盘』(补上逐笔账本):对现役固定规则、基础版、SPY 买入持有,用同一引擎 / 同一真实资金 1950 美元 / 同一费用做 2015-2026 连续单次模拟,产出真逐笔盈亏比、逐笔胜率与回撤修复时间(证据 reports/backtest/replay_fixedrule_2026-07-24/)。同尺结论:精调 vs 基础几乎打平(月均 1.245% vs 1.220%、回撤 19.5% vs 19.0%),二者均以浅得多的回撤跑赢 SPY 买入持有(回撤 32.9%);但两者最深回撤都要 1.8 年甚至至今未修复,动量策略会长期水下。 其余候选仍为『滚动前推』口径(每半年只准用当时已知数据选参 + 双源行情核验 + 真实费用 + 整股约束);文献数字永不冒充自建回测。 * 标注:WFO 家族的『盈亏比』列填的是 Profit Factor、『胜率』列填的是盈利月份比例,非逐笔口径(该族未存连续逐笔账本);现役/基础/VOLBUCKET/SPY 为真逐笔口径。",
         "updated_at_syd": f"{now.astimezone(SYD):%m月%d日 %H:%M}",
     }

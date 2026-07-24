@@ -109,7 +109,10 @@ def build_control_app(
         except Exception:
             raise HTTPException(status_code=404, detail="研究史 CSV 暂不可读")
         return PlainTextResponse(text, media_type="text/csv; charset=utf-8", headers={
-            "Content-Disposition": 'attachment; filename="alpha_strategy_research_history.csv"'})
+            "Content-Disposition": 'attachment; filename="alpha_strategy_research_history.csv"',
+            # CSV 按扩展名会被 CDN 缓存,导致策略更新后旧表滞留数小时;禁缓存 + 页面侧
+            # 用内容哈希做版本号,双保险确保下载永远是最新一份。
+            "Cache-Control": "no-store, max-age=0"})
 
     @app.get("/status")
     def status(_: None = Depends(require_token)) -> dict:
