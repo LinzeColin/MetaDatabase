@@ -248,6 +248,16 @@ from .coverage_observability import (
     verify_existing_phase_evidence as verify_coverage_observability_evidence,
     write_phase_evidence as write_coverage_observability_phase_evidence,
 )
+from .stage5_review import (
+    Stage5ReviewContractError,
+    build_evidence as build_stage5_review_evidence,
+    evaluate_contract as evaluate_stage5_review_contract,
+    perform_rollback_drill as perform_stage5_review_rollback_drill,
+    validate_candidate_preflight as validate_stage5_review_candidate,
+    validate_signed_receipt_preflight as validate_stage5_review_signed_receipt,
+    verify_existing_stage_review_evidence as verify_stage5_review_evidence,
+    write_stage5_review_evidence,
+)
 
 __all__ = [
     "DuplicateKeyError",
@@ -443,4 +453,12 @@ __all__ = [
     "validate_coverage_observability_signed_receipt",
     "verify_coverage_observability_evidence",
     "write_coverage_observability_phase_evidence",
+    "Stage5ReviewContractError",
+    "build_stage5_review_evidence",
+    "evaluate_stage5_review_contract",
+    "perform_stage5_review_rollback_drill",
+    "validate_stage5_review_candidate",
+    "validate_stage5_review_signed_receipt",
+    "verify_stage5_review_evidence",
+    "write_stage5_review_evidence",
 ]

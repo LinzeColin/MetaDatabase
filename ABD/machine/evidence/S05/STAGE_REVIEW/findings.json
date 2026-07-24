@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "ABD-S05-WHOLE-STAGE-REVIEW",
+  "stage_id": "S05",
+  "fixed_at": "2026-07-24T12:00:00+10:00",
+  "findings": [
+    {
+      "id": "F-S05-REVIEW-001",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "缺少市场本体、来源能力、速率预算与覆盖缺口的整Stage耦合Oracle",
+      "observation": "P01至P04各自证明局部合同，但此前没有单一Oracle证明15个能力ID在来源、预算和覆盖仪表盘中完全一致。",
+      "risk": "局部测试继续PASS时仍可能出现遗漏、重复、跨来源错配或能力被意外启用。",
+      "remediation": "整Stage Oracle精确连接provider×mode笛卡尔积、能力ID、零速率预算、覆盖状态、原因和恢复动作；任何漂移失败关闭。",
+      "verification_gate": "S05REVIEW-CROSS-PHASE-CAPABILITY-COUPLING"
+    },
+    {
+      "id": "F-S05-REVIEW-002",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "P04会拒绝合法Stage Review后继状态",
+      "observation": "P04原门要求所有S05 Stage Review候选、签名证据和索引完全不存在。",
+      "risk": "创建完整复审后会使P04回执失效，导致无法形成自洽的Stage交付证据。",
+      "remediation": "P04只接受未开始、完整候选或完整签名三种单调状态；部分文件、重复索引或无效后继全部失败关闭。",
+      "verification_gate": "S05REVIEW-P04-MONOTONIC-PROGRESSION"
+    },
+    {
+      "id": "F-S05-REVIEW-003",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "ALL_OBSERVABLE_MARKETS设计范围可能被误报为真实全市场覆盖",
+      "observation": "P01声明发现范围为ALL_OBSERVABLE_MARKETS，而P02至P04只冻结3个provider类别×5种访问模式的合同矩阵，真实覆盖为0/15。",
+      "risk": "把本体和可观测性设计合同误称为已枚举全部真实市场、已访问来源或已具备生产建议能力。",
+      "remediation": "冻结强claim boundary：真实市场宇宙、来源许可、运行时访问、时效和生产覆盖均未验证；15个单元全部是显式非生产缺口。",
+      "verification_gate": "S05REVIEW-REAL-MARKET-OVERCLAIM-BOUNDARY"
+    },
+    {
+      "id": "F-S05-REVIEW-004",
+      "severity": "MEDIUM",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "合法复审演进会使P04全代码树签名看似漂移",
+      "observation": "P04证据绑定整个abd_acceptance代码树，新增Stage Review模块和P04单调状态机必然改变当前代码哈希。",
+      "risk": "只比较当前树会错误否定已签名P04，放宽成任意后继又会破坏不可变证据。",
+      "remediation": "仅对白名单演进文件允许从固定P04 implementation commit精确重放历史blob和代码树；其他输入仍要求当前哈希匹配。",
+      "verification_gate": "S05REVIEW-P04-HISTORICAL-REPLAY"
+    },
+    {
+      "id": "F-S05-REVIEW-005",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "离线调度夹具可能被误当成真实来源采集能力",
+      "observation": "P03包含一个120次/60秒的纯离线synthetic预算用于验证±2秒调度边界，而全部15个真实能力预算均为0。",
+      "risk": "测试专用预算若与真实能力混淆，可能绕过来源许可、零成本和建议时效门。",
+      "remediation": "整Stage Oracle要求synthetic能力不出现在真实覆盖矩阵、禁止外部动作，并要求全部真实能力生产采集、运行时验证、速率和建议资格保持关闭。",
+      "verification_gate": "S05REVIEW-SYNTHETIC-REAL-SOURCE-SEPARATION"
+    },
+    {
+      "id": "F-S05-REVIEW-006",
+      "severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEW_CANDIDATE",
+      "title": "Stage完成结论需要保持资金、下单、收益与外部运行边界",
+      "observation": "本轮未访问provider、Gmail、OVH或Cloudflare运行时，未部署、未产生建议、未下单且新增现金支出为A$0。",
+      "risk": "把代码与离线证据通过升级为7×24、全球访问、证据归档、30%收益或可下单产品已经上线。",
+      "remediation": "Stage证据显式阻断所有生产、账户、建议、订单和收益声明；30%仍是可证伪目标且不足不得放宽任何门。",
+      "verification_gate": "S05REVIEW-A300-A0-NO-ORDER-NO-RUNTIME-NO-RETURN"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "resolved_in_review_candidate": 6,
+    "open": 0,
+    "remote_ci_pending_is_upload_evidence_not_an_open_code_finding": true
+  },
+  "scope_boundaries": {
+    "actual_market_universe_enumerated_or_verified": false,
+    "provider_account_api_or_page_accessed": false,
+    "real_market_data_collected": false,
+    "real_provider_dispatch_performed": false,
+    "scheduler_daemon_started": false,
+    "production_coverage_verified": false,
+    "ovh_cloudflare_or_gmail_runtime_accessed": false,
+    "model_or_strategy_executed": false,
+    "recommendation_generated_or_enabled": false,
+    "order_submitted_or_retried": false,
+    "gate_relaxed": false,
+    "return_verified_or_guaranteed": false,
+    "incremental_cash_spent_aud": "0.00"
+  }
+}

@@ -63,7 +63,7 @@ ROLLBACK_EVIDENCE_PATH = Path("machine/evidence/EVD-S03-STAGE-REVIEW_rollback.js
 EVIDENCE_INDEX_PATH = Path("machine/evidence/evidence_index.jsonl")
 WORKFLOW_PATH = Path(".github/workflows/abd-stage0-validation.yml")
 
-STRUCTURAL_SELF_NORMALIZED_SHA256 = "72849001b1165eb96e6f9ad0798d3ef1299849db710181d4a1924624cb62dbdf"
+STRUCTURAL_SELF_NORMALIZED_SHA256 = "0bbb57ada0bd2b9de1e78ed31ad0e219e95540d79f5a1c171599a2baef1cb4ff"
 STAGE_REVIEW_COMMIT = "4168321dee17540bdba5763271694f78b33e3c42"
 PINNED_STAGE_REVIEW_CODE_HASH = "18431889da80b66a6f6c35375859793bee2d811ce14228cec80f69f880902b93"
 SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
@@ -79,11 +79,11 @@ SUCCESSOR_EVOLVABLE_SIGNED_INPUTS = {
 SUCCESSOR_UNIT_PROFILE_HASHES: Dict[str, str] = {
     "README.md": "d687fc424a8ca00602acaa5627c337db020dd58f114acfa5cfe81b6393b6f881",
     "tests/S03/stage_review_test.py": "4a140a8848b2990873c1e568588336d05d24311ce966ed3ed627ac9d7c3e4b5d",
-    "abd_acceptance/usability_accessibility.py": "3a140e2062c1a4bdda7492f0b8240ac6c44840aaf3774695bebe25201101f9aa",
-    "abd_acceptance/reason_next_action.py": "8dbcc6640745e75723c24eaea40c0fc6ae83742f5520e17c59884be0fdb419c6",
-    "abd_acceptance/advice_card.py": "d8ad7722996915fd4743bcf3039492ff102705e001c5926b14cb009a379f1ff5",
-    "abd_acceptance/__main__.py": "e29a648fcb0582c2139593cf0d42670893580d30879412664a5605c3772f93cc",
-    "abd_acceptance/__init__.py": "969cc5d7d8c8e187b9bfd6679b7b51a47607ceeee703ddcc71be747957636f8e",
+    "abd_acceptance/usability_accessibility.py": "e80420ca90a2d1cb9278f728dedc77cd00524597d262a47495acb7946225b829",
+    "abd_acceptance/reason_next_action.py": "eaf72f13b895c590283230ca4e029385be68593262aa2571932135dc61004176",
+    "abd_acceptance/advice_card.py": "e97ff5ae3d4b748bd13a99fc846cc5e4be4cc68f7c04d975daf99e7131ccbffd",
+    "abd_acceptance/__main__.py": "f1203c182f2da4121d809b613b0b5ade3143c63654d096de6502c05ebf6fe02c",
+    "abd_acceptance/__init__.py": "b211116e0eca203b261c8ea73afb905c0bdc028c15693172f6dd7ff53cbc99fb",
 }
 PINNED_REVIEW_ARTIFACT_HASHES: Dict[str, str] = {
     CONTRACT_PATH.as_posix(): "9466f63e3f8029cba8b518e828b4d22113bf59ae7fa13b44470509ee8732d241",

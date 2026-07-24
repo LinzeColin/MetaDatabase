@@ -38,6 +38,7 @@ from .market_ontology import write_phase_evidence as write_market_ontology_phase
 from .source_capabilities import write_phase_evidence as write_source_capability_phase_evidence
 from .source_scheduler import write_phase_evidence as write_source_scheduler_phase_evidence
 from .coverage_observability import write_phase_evidence as write_coverage_observability_phase_evidence
+from .stage5_review import write_stage5_review_evidence
 
 
 def main() -> int:
@@ -114,6 +115,7 @@ def main() -> int:
         "AC-S05-P02": write_source_capability_phase_evidence,
         "AC-S05-P03": write_source_scheduler_phase_evidence,
         "AC-S05-P04": write_coverage_observability_phase_evidence,
+        "STAGE-REVIEW-S05": write_stage5_review_evidence,
     }
     if args.contract not in writers:
         parser.error("contract is not implemented: %s" % args.contract)

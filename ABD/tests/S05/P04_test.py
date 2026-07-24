@@ -29,6 +29,7 @@ from abd_acceptance.coverage_observability import (
     ROLLBACK_ARTIFACTS,
     ROLLBACK_EVIDENCE_PATH,
     STRUCTURAL_SELF_NORMALIZED_SHA256,
+    SUCCESSOR_UNIT_PROFILE_HASHES,
     CoverageObservabilityContractError,
     SilentGapOracleError,
     _apply_dashboard_mutation,
@@ -106,7 +107,10 @@ def test_signed_p03_is_exact_phase_prerequisite() -> None:
 
 @pytest.mark.parametrize("relative", sorted(PINNED_PHASE_HASHES))
 def test_phase_artifact_hash_matches_pin(relative: str) -> None:
-    assert sha256_file(ROOT / relative) == PINNED_PHASE_HASHES[relative]
+    assert sha256_file(ROOT / relative) in {
+        PINNED_PHASE_HASHES[relative],
+        SUCCESSOR_UNIT_PROFILE_HASHES.get(relative),
+    }
 
 
 @pytest.mark.parametrize("relative", sorted(PINNED_BASELINE_HASHES))
@@ -345,17 +349,25 @@ def test_oracle_source_mutation_fails_hash_pin(tmp_path: Path) -> None:
     _failed(evaluate_contract(root), "S05P04-PHASE-PIN-silent_gap_oracle_py")
 
 
-def test_stage_review_remains_unstarted() -> None:
+def test_stage_review_progression_accepts_only_complete_verified_successor() -> None:
     result = evaluate_contract(ROOT)
-    check = next(row for row in result["checks"] if row["id"] == "S05P04-STAGE-REVIEW-NOT-STARTED")
+    check = next(
+        row
+        for row in result["checks"]
+        if row["id"] == "S05P04-STAGE-REVIEW-PROGRESSION"
+    )
     assert check["passed"] is True, check
-    assert check["detail"] == "no S05 whole-stage review artifacts"
+    assert check["detail"]["mode"] in {
+        "S05_STAGE_REVIEW_NOT_STARTED",
+        "VERIFIED_S05_STAGE_REVIEW_CANDIDATE",
+        "VERIFIED_S05_STAGE_REVIEW_SIGNED",
+    }
 
 
 def test_partial_stage_review_candidate_fails_closed(tmp_path: Path) -> None:
     root = _clone_project(tmp_path)
     (root / "machine/facts/stage5_review_contract.json").write_text("{}\n", encoding="utf-8")
-    _failed(evaluate_contract(root), "S05P04-STAGE-REVIEW-NOT-STARTED")
+    _failed(evaluate_contract(root), "S05P04-STAGE-REVIEW-PROGRESSION")
 
 
 def test_evidence_build_is_deterministic_without_external_reports() -> None:
