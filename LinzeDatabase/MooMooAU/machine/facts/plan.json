@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0703 首次执行零副作用失败，修复候选已授权",
-  "phase": "T0703 metadata 修复候选 Budget-1 新候选执行准备",
-  "task": "交付 metadata quarantine parity 修复；失败头不可 rerun，新候选仅执行一次",
+  "stage": "RMD-06 T0703 两次零观察副作用失败，App 安装恢复候选已授权",
+  "phase": "T0703 App 安装恢复候选 Budget-1 新候选执行准备",
+  "task": "交付 App 安装恢复与封闭 token 失败分类；两个失败头不可 rerun/redispatch，新候选仅执行一次",
   "owner": "Codex 开发线程"
 }

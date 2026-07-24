@@ -2,7 +2,7 @@
   "schema_version": "moomooau.protected-m3-attempt-ledger.v1",
   "stage_id": "S7",
   "task_id": "T0703",
-  "observed_through_utc": "2026-07-24T02:10:28Z",
+  "observed_through_utc": "2026-07-24T03:28:37Z",
   "attempts": [
     {
       "sequence": 1,
@@ -66,6 +66,70 @@
           "T0702 attempt 10 failed at METADATA_VERIFICATION with the same zero-effect boundary",
           "T0702 passed only after per-message MessageMetadataUnverifiable quarantine was added",
           "the protected M3 runner did not contain that already-proven quarantine branch"
+        ]
+      }
+    },
+    {
+      "sequence": 2,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 102,
+        "merge_commit_sha": "9b15c4d5208429125c9ce2680cac4fbb408f65e0",
+        "main_ci_runs_passed": 10,
+        "main_ci_runs_failed": 0
+      },
+      "workflow": {
+        "run_id": 30063841144,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30063841144",
+        "event": "workflow_dispatch",
+        "workflow_head_sha": "9b15c4d5208429125c9ce2680cac4fbb408f65e0",
+        "run_attempt": 1,
+        "reruns": 0
+      },
+      "jobs": {
+        "authority_gate": {
+          "status": "PASS",
+          "started_at_utc": "2026-07-24T03:17:18Z",
+          "completed_at_utc": "2026-07-24T03:18:31Z"
+        },
+        "m3_budget_one": {
+          "status": "FAILED",
+          "started_at_utc": "2026-07-24T03:18:35Z",
+          "completed_at_utc": "2026-07-24T03:19:19Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-24T03:19:19Z"
+        }
+      },
+      "public_failure": {
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_M3_GITHUB_APP_TOKEN_FAILED",
+        "failure_phase": "GITHUB_APP_TOKEN",
+        "exact_root_cause_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "private_repository_new_commits": 0,
+        "raw_ciphertext_creations": "ZERO_OBSERVED",
+        "processed_writes": "ZERO_OBSERVED",
+        "gmail_trash_messages_after_dispatch": 0,
+        "source_mutations": 0,
+        "timeline_writes": 0,
+        "scheduled_runs": 0,
+        "identity_plaintext_cleanup": "PASS"
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "BEFORE_REPOSITORY_RESOLUTION_AND_FIRST_OBSERVED_REMOTE_COMMIT",
+        "exact_root_cause": "NOT_CLAIMED_FROM_CLOSED_PHASE_ONLY_OUTPUT",
+        "high_confidence_defect": "M3_INSTALLATION_TOKEN_FAILURE_CLASS_VISIBILITY_GAP",
+        "basis": [
+          "the exact protected output fixed the failure phase at GITHUB_APP_TOKEN without exposing a safe installation-token failure class",
+          "the private data path recorded zero commits through the post-attempt read-only verification",
+          "the connected Gmail path recorded zero Trash messages after the attempt began",
+          "the Owner confirmed after this attempt that the GitHub App is installed and linked to the private data repository",
+          "the protected Beta diagnostic path already preserves the closed InstallationTokenFailureClass enum but the protected M3 path did not"
         ]
       }
     }
