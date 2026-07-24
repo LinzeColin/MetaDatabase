@@ -1,0 +1,62 @@
+{
+  "window": [
+    "2015-01-02",
+    "2026-07-16"
+  ],
+  "capital_usd": 1950.0,
+  "warmup_days": 252,
+  "note": "固定规则连续复盘(非动态WFO);数据2014起,晚于报告2010;整股@1950USD真实颗粒度",
+  "results": {
+    "精调版[0.2,0.4,0.4]·实盘现役": {
+      "months": 139,
+      "years": 11.58,
+      "total_return_pct": 458.36,
+      "monthly_mean_net_pct": 1.245,
+      "max_drawdown_pct": 19.53,
+      "monthly_win_rate_pct": 66.9,
+      "profit_factor": 2.24,
+      "round_trips": 67,
+      "per_trade_win_rate_pct": 59.7,
+      "per_trade_pl_ratio": 3.63,
+      "max_dd_depth_pct": 19.53,
+      "max_dd_recovery_days": 658,
+      "max_dd_recovered": true,
+      "orders": 127,
+      "fees_usd": 134.19,
+      "skipped_infeasible": 27
+    },
+    "基础版[0.3,0.3,0.4]·复核偏好": {
+      "months": 139,
+      "years": 11.58,
+      "total_return_pct": 439.35,
+      "monthly_mean_net_pct": 1.22,
+      "max_drawdown_pct": 19.0,
+      "monthly_win_rate_pct": 66.2,
+      "profit_factor": 2.23,
+      "round_trips": 63,
+      "per_trade_win_rate_pct": 60.3,
+      "per_trade_pl_ratio": 3.19,
+      "max_dd_depth_pct": 19.0,
+      "max_dd_recovery_days": null,
+      "max_dd_recovered": false,
+      "orders": 120,
+      "fees_usd": 127.07,
+      "skipped_infeasible": 29
+    },
+    "SPY买入持有·基准": {
+      "months": 139,
+      "years": 11.58,
+      "total_return_pct": 327.93,
+      "monthly_mean_net_pct": 1.051,
+      "max_drawdown_pct": 32.92,
+      "monthly_win_rate_pct": 69.1,
+      "profit_factor": 1.99,
+      "round_trips": 1,
+      "per_trade_win_rate_pct": 100.0,
+      "per_trade_pl_ratio": Infinity,
+      "max_dd_depth_pct": 32.92,
+      "max_dd_recovery_days": 173,
+      "max_dd_recovered": true
+    }
+  }
+}

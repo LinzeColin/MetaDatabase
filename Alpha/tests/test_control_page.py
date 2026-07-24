@@ -280,8 +280,9 @@ def test_strategy_csv_registry_single_source(tmp_path):
     view = build_strategy_view()
     assert view["champion"]["name_cn"] == live[0]["策略"]
     assert view["research"][0]["现役"] == "是"          # 现役置顶
-    # 诚实:未把动态WFO成绩冒充成固定规则独立回测
-    assert "末窗选参" in view["champion"]["record"] or "未单独存档" in view["champion"]["record"]
+    # 诚实:固定规则连续复盘真数字 + 保留WFO动态流程口径出处,明示不混用
+    rec = view["champion"]["record"]
+    assert "连续复盘" in rec and "1.108" in rec and ("不混用" in rec or "口径不同" in rec)
 
     # 3) 页面:白色主题 + 现役醒目 + 宽表 + CSV 下载入口
     ks = KillSwitch(tmp_path / "KS_STRAT")

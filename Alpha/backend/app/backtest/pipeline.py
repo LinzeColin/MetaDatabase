@@ -113,6 +113,9 @@ class SleeveResult:
     skipped_infeasible: int = 0
     trades: int = 0
     wins: int = 0
+    #: 逐笔成交流水(每笔含当笔费用),供事后做 closed round-trip 账本与逐笔盈亏比/胜率。
+    #: 元素:{"day","sym","side"("BUY"/"SELL"),"qty","price","fee"}
+    fills: list[dict] = field(default_factory=list)
     extra: dict = field(default_factory=dict)
 
 
@@ -257,27 +260,34 @@ def simulate_s1(
                 if abs(delta) * p < threshold_usd:
                     continue
                 if delta > 0:
-                    cost = delta * p + fee.order_cost_usd(side="BUY", quantity=delta, price=p)
+                    buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
+                    cost = delta * p + buy_fee
                     if cost > cash:
                         afford = int((cash - fee.commission_usd_per_order) // p) if cash > fee.commission_usd_per_order else 0
                         if afford <= 0:
                             result.skipped_infeasible += 1
                             continue
                         delta = afford
-                        cost = delta * p + fee.order_cost_usd(side="BUY", quantity=delta, price=p)
+                        buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
+                        cost = delta * p + buy_fee
                     cash -= cost
-                    result.fees_usd += fee.order_cost_usd(side="BUY", quantity=delta, price=p)
+                    result.fees_usd += buy_fee
                     shares[sym] = cur + delta
                     result.orders += 1
+                    result.fills.append({"day": day, "sym": sym, "side": "BUY",
+                                         "qty": delta, "price": p, "fee": buy_fee})
                 else:
                     sell_q = -delta
-                    proceeds = sell_q * p - fee.order_cost_usd(side="SELL", quantity=sell_q, price=p)
+                    sell_fee = fee.order_cost_usd(side="SELL", quantity=sell_q, price=p)
+                    proceeds = sell_q * p - sell_fee
                     cash += proceeds
-                    result.fees_usd += fee.order_cost_usd(side="SELL", quantity=sell_q, price=p)
+                    result.fees_usd += sell_fee
                     shares[sym] = cur + delta
                     if shares[sym] == 0:
                         del shares[sym]
                     result.orders += 1
+                    result.fills.append({"day": day, "sym": sym, "side": "SELL",
+                                         "qty": sell_q, "price": p, "fee": sell_fee})
 
         equity = cash
         for sym, q in shares.items():
@@ -456,6 +466,92 @@ def metrics(days: Sequence[date], equity: Sequence[float]) -> dict:
         "monthly_win_rate_pct": round(100.0 * len(wins) / len(rets), 1),
         "profit_factor": round(sum(wins) / sum(losses), 2) if losses else math.inf,
     }
+
+
+def closed_round_trips(fills: Sequence[dict]) -> list[dict]:
+    """把逐笔成交流水按标的做 FIFO 配对 → closed round-trip 列表(净额,已摊分买卖费用)。
+
+    每笔卖出把当笔费用按股均摊,依次冲抵最早的未平买入手数;每平掉一段即记一笔
+    round-trip:净盈亏 = 平仓股数×(卖价−买价) − 该段应摊的买入费 − 卖出费。
+    未平尾仓不计(只统计已闭合往返,符合逐笔盈亏比/胜率口径)。
+    """
+    from collections import defaultdict, deque
+
+    open_lots: dict[str, deque] = defaultdict(deque)  # sym -> [(qty, price, fee_per_share)]
+    trips: list[dict] = []
+    for f in fills:
+        sym, qty, price = f["sym"], int(f["qty"]), float(f["price"])
+        fee_ps = float(f["fee"]) / qty if qty else 0.0
+        if f["side"] == "BUY":
+            open_lots[sym].append([qty, price, fee_ps])
+        else:  # SELL:按股均摊卖出费,FIFO 冲抵买入手数
+            remaining = qty
+            while remaining > 0 and open_lots[sym]:
+                lot = open_lots[sym][0]
+                take = min(remaining, lot[0])
+                pnl = take * (price - lot[1]) - take * (lot[2] + fee_ps)
+                trips.append({"sym": sym, "qty": take, "entry": lot[1], "exit": price,
+                              "entry_day": f.get("entry_day"), "exit_day": f["day"],
+                              "pnl": pnl})
+                lot[0] -= take
+                remaining -= take
+                if lot[0] == 0:
+                    open_lots[sym].popleft()
+    return trips
+
+
+def drawdown_episodes(days: Sequence[date], equity: Sequence[float]) -> list[dict]:
+    """连续每日净值 → 回撤 episodes(峰→谷→恢复)。未恢复者 recovery_day=None(OPEN)。"""
+    episodes: list[dict] = []
+    if not equity:
+        return episodes
+    peak, peak_day = equity[0], days[0]
+    trough, trough_day = equity[0], days[0]
+    in_dd = False
+    for d, v in zip(days, equity):
+        if v >= peak:
+            if in_dd:  # 刚恢复到前高 → 收一个 episode
+                episodes.append({
+                    "peak_day": peak_day, "peak": peak, "trough_day": trough_day,
+                    "trough": trough, "depth_pct": round((1 - trough / peak) * 100, 2),
+                    "recovery_day": d,
+                    "recovery_days": (d - peak_day).days,
+                    "recovered": True})
+                in_dd = False
+            peak, peak_day = v, d
+            trough, trough_day = v, d
+        else:
+            in_dd = True
+            if v < trough:
+                trough, trough_day = v, d
+    if in_dd:  # 收尾仍在水下 = 未修复
+        episodes.append({
+            "peak_day": peak_day, "peak": peak, "trough_day": trough_day, "trough": trough,
+            "depth_pct": round((1 - trough / peak) * 100, 2),
+            "recovery_day": None, "recovery_days": None, "recovered": False})
+    return episodes
+
+
+def ledger_metrics(days: Sequence[date], equity: Sequence[float],
+                   fills: Sequence[dict]) -> dict:
+    """月度指标 + 逐笔账本指标(真逐笔盈亏比/胜率)+ 最深回撤的修复时间。全部来自连续净值。"""
+    m = dict(metrics(days, equity))
+    trips = closed_round_trips(fills)
+    wins = [t["pnl"] for t in trips if t["pnl"] > 0]
+    losses = [-t["pnl"] for t in trips if t["pnl"] < 0]
+    avg_win = sum(wins) / len(wins) if wins else 0.0
+    avg_loss = sum(losses) / len(losses) if losses else 0.0
+    m["round_trips"] = len(trips)
+    m["per_trade_win_rate_pct"] = round(100.0 * len(wins) / len(trips), 1) if trips else None
+    m["per_trade_pl_ratio"] = round(avg_win / avg_loss, 2) if avg_loss > 0 else (
+        math.inf if avg_win > 0 else None)
+    eps = drawdown_episodes(days, equity)
+    if eps:
+        deepest = max(eps, key=lambda e: e["depth_pct"])
+        m["max_dd_depth_pct"] = deepest["depth_pct"]
+        m["max_dd_recovery_days"] = deepest["recovery_days"]  # None = 未修复(OPEN)
+        m["max_dd_recovered"] = deepest["recovered"]
+    return m
 
 
 def load_promo1_gate(path: str = "configs/strategy_promotion.yaml") -> dict:
