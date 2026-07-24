@@ -3,7 +3,7 @@
 from datetime import date, timedelta
 
 from backend.app.backtest.pipeline import (
-    closed_round_trips, drawdown_episodes, ledger_metrics,
+    _consensus_target, closed_round_trips, drawdown_episodes, ledger_metrics,
 )
 
 
@@ -70,3 +70,13 @@ def test_ledger_metrics_combines_monthly_and_per_trade():
     assert m["round_trips"] == 1
     assert m["per_trade_win_rate_pct"] == 100.0       # 唯一往返盈利
     assert "max_dd_depth_pct" in m and m["max_dd_recovered"] in (True, False)
+
+
+def test_consensus_target_vote_mapping():
+    """PD1 共识投票 → 仓位:三同=满仓,两同=半仓+半现金,无多数/全空=全现金。"""
+    assert _consensus_target(["SPY", "SPY", "SPY"], "BIL") == {"SPY": 1.0}
+    assert _consensus_target(["SPY", "SPY", "QQQ"], "BIL") == {"SPY": 0.5, "BIL": 0.5}
+    assert _consensus_target(["SPY", "SPY", None], "BIL") == {"SPY": 0.5, "BIL": 0.5}
+    assert _consensus_target(["SPY", "QQQ", "GLD"], "BIL") == {"BIL": 1.0}   # 无多数
+    assert _consensus_target(["SPY", None, None], "BIL") == {"BIL": 1.0}     # 仅1票非多数
+    assert _consensus_target([None, None, None], "BIL") == {"BIL": 1.0}      # 全不合格

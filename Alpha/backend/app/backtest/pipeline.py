@@ -299,6 +299,140 @@ def simulate_s1(
     return result
 
 
+# ---------- PD1 共识动量 Governor(外部包 persona 候选) ----------
+
+@dataclass(frozen=True)
+class ConsensusModel:
+    name: str
+    weights: tuple[float, float, float]
+
+
+def _consensus_target(picks: Sequence[Optional[str]], cash_proxy: str) -> dict[str, float]:
+    """三模型 top-1 选择 → 目标权重:同选1标的众数=3→100%;=2→50%+50%BIL;否则100%BIL。"""
+    from collections import Counter
+    votes = Counter(p for p in picks if p is not None)
+    if not votes:
+        return {cash_proxy: 1.0}
+    top_sym, top_n = votes.most_common(1)[0]
+    if top_n >= 3:
+        return {top_sym: 1.0}
+    if top_n == 2:
+        return {top_sym: 0.5, cash_proxy: 0.5}
+    return {cash_proxy: 1.0}
+
+
+def simulate_consensus(
+    series: dict[str, SymbolSeries],
+    universe: list[str],
+    cash_proxy: str,
+    models: Sequence[ConsensusModel],
+    *,
+    start: date,
+    end: date,
+    sleeve_usd: float,
+    fee: FeeModel,
+    calendar: list[date],
+    rebalance_threshold_pct: float = 5.0,
+) -> SleeveResult:
+    """PD1 共识动量 Governor:三个固定动量模型各选 top-1 合格资产(close>SMA200 且 score>0,
+    信息截 T-1),把一致度映射为仓位——三者同标的满仓、两者同半仓+半现金、无多数则全现金。
+    执行口径与 simulate_s1 对齐(周二评估、整股、真实费用、5% 调仓带、先卖后买、逐笔流水)。"""
+    cash = sleeve_usd
+    shares: dict[str, int] = {}
+    result = SleeveResult(equity_days=[], equity=[])
+
+    def price(sym: str, idx: int) -> float:
+        return series[sym].closes[idx]
+
+    def model_pick(m: ConsensusModel, day: date) -> Optional[str]:
+        best_sym, best_score = None, None
+        for sym in universe:
+            if sym == cash_proxy:
+                continue
+            ss = series[sym]
+            j = ss.index_by_day.get(day)
+            j_eval = (j - 1) if j is not None and j >= 1 else None
+            if j_eval is None:
+                continue
+            r1, r2, r3 = ss.r63[j_eval], ss.r126[j_eval], ss.r252[j_eval]
+            s200 = ss.sma200[j_eval]
+            if None in (r1, r2, r3) or s200 is None or ss.closes[j_eval] <= s200:
+                continue
+            w1, w2, w3 = m.weights
+            sc = w1 * r1 + w2 * r2 + w3 * r3
+            if sc <= 0:
+                continue
+            if best_score is None or sc > best_score:
+                best_sym, best_score = sym, sc
+        return best_sym
+
+    for day in calendar:
+        if day < start or day > end:
+            continue
+        ref = series[universe[0]]
+        idx = ref.index_by_day.get(day)
+        if idx is None:
+            continue
+        if day.weekday() == 1 and idx >= 1:  # 周二评估
+            targets_w = _consensus_target([model_pick(m, day) for m in models], cash_proxy)
+            equity_now = cash + sum(
+                q * price(sym, series[sym].index_by_day[day])
+                for sym, q in shares.items() if day in series[sym].index_by_day)
+            targets: dict[str, int] = {}
+            for sym, w in targets_w.items():
+                j = series[sym].index_by_day.get(day)
+                if j is not None:
+                    targets[sym] = int((equity_now * w) // price(sym, j))
+            threshold_usd = equity_now * rebalance_threshold_pct / 100.0
+            # 先卖后买(两趟:释放现金再买入,避免 ticker 排序造成的假不可行)
+            for phase in ("SELL", "BUY"):
+                for sym in sorted(set(shares) | set(targets)):
+                    j = series[sym].index_by_day.get(day)
+                    if j is None:
+                        continue
+                    cur, tgt = shares.get(sym, 0), targets.get(sym, 0)
+                    delta = tgt - cur
+                    p = price(sym, j)
+                    if delta == 0 or abs(delta) * p < threshold_usd:
+                        continue
+                    if phase == "SELL" and delta < 0:
+                        sell_q = -delta
+                        sell_fee = fee.order_cost_usd(side="SELL", quantity=sell_q, price=p)
+                        cash += sell_q * p - sell_fee
+                        result.fees_usd += sell_fee
+                        result.orders += 1
+                        shares[sym] = cur + delta
+                        if shares[sym] == 0:
+                            del shares[sym]
+                        result.fills.append({"day": day, "sym": sym, "side": "SELL",
+                                             "qty": sell_q, "price": p, "fee": sell_fee})
+                    elif phase == "BUY" and delta > 0:
+                        buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
+                        cost = delta * p + buy_fee
+                        if cost > cash:
+                            afford = int((cash - fee.commission_usd_per_order) // p) if cash > fee.commission_usd_per_order else 0
+                            if afford <= 0:
+                                result.skipped_infeasible += 1
+                                continue
+                            delta = afford
+                            buy_fee = fee.order_cost_usd(side="BUY", quantity=delta, price=p)
+                            cost = delta * p + buy_fee
+                        cash -= cost
+                        result.fees_usd += buy_fee
+                        shares[sym] = cur + delta
+                        result.orders += 1
+                        result.fills.append({"day": day, "sym": sym, "side": "BUY",
+                                             "qty": delta, "price": p, "fee": buy_fee})
+        equity = cash
+        for sym, q in shares.items():
+            j = series[sym].index_by_day.get(day)
+            if j is not None:
+                equity += q * series[sym].closes[j]
+        result.equity_days.append(day)
+        result.equity.append(equity)
+    return result
+
+
 # ---------- S2 参数与模拟 ----------
 
 @dataclass(frozen=True)

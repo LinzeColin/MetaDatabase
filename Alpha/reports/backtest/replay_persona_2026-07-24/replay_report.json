@@ -1,0 +1,83 @@
+{
+  "window": [
+    "2015-01-02",
+    "2026-07-16"
+  ],
+  "capital_usd": 1950.0,
+  "warmup_days": 252,
+  "note": "persona候选 vs 现役,固定规则连续复盘同尺;PD2残余仓在现金(≈BIL零息近似)",
+  "results": {
+    "现役·五腿精调[0.2,0.4,0.4]": {
+      "months": 139,
+      "years": 11.58,
+      "total_return_pct": 458.36,
+      "monthly_mean_net_pct": 1.245,
+      "max_drawdown_pct": 19.53,
+      "monthly_win_rate_pct": 66.9,
+      "profit_factor": 2.24,
+      "round_trips": 67,
+      "per_trade_win_rate_pct": 59.7,
+      "per_trade_pl_ratio": 3.63,
+      "max_dd_depth_pct": 19.53,
+      "max_dd_recovery_days": 658,
+      "max_dd_recovered": true,
+      "orders": 127,
+      "fees_usd": 134.19,
+      "skipped_infeasible": 27
+    },
+    "PD1·共识动量Governor": {
+      "months": 139,
+      "years": 11.58,
+      "total_return_pct": 438.02,
+      "monthly_mean_net_pct": 1.218,
+      "max_drawdown_pct": 20.66,
+      "monthly_win_rate_pct": 67.6,
+      "profit_factor": 2.23,
+      "round_trips": 138,
+      "per_trade_win_rate_pct": 52.9,
+      "per_trade_pl_ratio": 4.1,
+      "max_dd_depth_pct": 20.66,
+      "max_dd_recovery_days": 184,
+      "max_dd_recovered": true,
+      "orders": 249,
+      "fees_usd": 258.54,
+      "skipped_infeasible": 0
+    },
+    "PD2·固定alpha+波动预算10%": {
+      "months": 139,
+      "years": 11.58,
+      "total_return_pct": 182.55,
+      "monthly_mean_net_pct": 0.75,
+      "max_drawdown_pct": 13.98,
+      "monthly_win_rate_pct": 65.5,
+      "profit_factor": 2.07,
+      "round_trips": 284,
+      "per_trade_win_rate_pct": 64.8,
+      "per_trade_pl_ratio": 1.56,
+      "max_dd_depth_pct": 13.98,
+      "max_dd_recovery_days": 650,
+      "max_dd_recovered": true,
+      "orders": 397,
+      "fees_usd": 400.08,
+      "skipped_infeasible": 8
+    },
+    "PD3·五腿七三防守混合": {
+      "months": 139,
+      "years": 11.58,
+      "total_return_pct": 190.51,
+      "monthly_mean_net_pct": 0.77,
+      "max_drawdown_pct": 12.87,
+      "monthly_win_rate_pct": 66.2,
+      "profit_factor": 2.0,
+      "round_trips": 210,
+      "per_trade_win_rate_pct": 51.0,
+      "per_trade_pl_ratio": 2.66,
+      "max_dd_depth_pct": 12.87,
+      "max_dd_recovery_days": 140,
+      "max_dd_recovered": true,
+      "orders": 346,
+      "fees_usd": 349.34,
+      "skipped_infeasible": 20
+    }
+  }
+}
