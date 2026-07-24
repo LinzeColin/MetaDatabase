@@ -137,6 +137,7 @@ class LiveCycleDeps:
     fx_usd_aud: Decimal
     marker_path: Path
     fee_estimate: Callable[[str, int, float], float]
+    mode: str = "PAPER"          # 真实运行模式,供心跳/看盘如实上报(勿再写死字面量)
     now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc)
 
 
@@ -157,7 +158,7 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     _ensure_lease(d.lease)
     now_utc = d.now_fn()
     now_et = now_utc.astimezone(ET)
-    summary: dict = {"mode": "PAPER", "et": now_et.strftime("%a %H:%M"),
+    summary: dict = {"mode": d.mode, "et": now_et.strftime("%a %H:%M"),
                      "backfilled": 0, "fills": 0, "evaluated": False,
                      "submitted": 0, "rejected": 0, "skipped": 0}
 
@@ -408,6 +409,7 @@ def build_live_cycle(*, factory, kill_switch) -> Callable[[], dict]:
         marker_path=Path(os.environ.get("ALPHA_RUNTIME_DIR", "runtime")) / "last_s1_eval.txt",
         fee_estimate=lambda side, qty, px: fee_model.order_cost_usd(
             side=side, quantity=qty, price=px),
+        mode=getattr(mode, "value", str(mode)),
     )
     if recover.get("adopted") or recover.get("submit_failed"):
         pass  # recover 结果已由网关落审计;此处不加工
