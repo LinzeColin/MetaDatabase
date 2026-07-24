@@ -1,5 +1,19 @@
 # ADP v1.2 Taskpack Changelog
 
+## 1.2.0 — S4.2 closeout — 2026-07-24
+
+- fresh-context verifier 对冻结 commit `e5460ef2` / tree `6b3cfce2` / materialized artifact
+  `39f8a8d…b356b` 裁定 `ACC-V12-S4-003 = PASS / ACTION NONE`，findings、
+  P0/P1/UNKNOWN/BLOCKED/waiver 均为零。
+- 六主题移动/桌面、`779/780px` 边界、四条 active route、十二张截图与十项负控全部通过；
+  S4.2 focused `6/6`、S4.1 回归 `24/24`、治理 `78/78`、安全 `14/14` 通过。
+- full suite 原始 `962 tests / 2 failures / 11 errors / 29 skips` 与 S3 sealed baseline 的
+  failure/error key 精确同集；只裁定 changed-scope differential PASS，不声称全绿。
+- review ZIP SHA-256 `cf884d8a…95e4cb`、evidence root `ac80b4f…ddbb45`；原位与解包
+  finalizer verify、`58` 项内部 checksum 及安全扫描均通过。
+- S4.2 仅完成 `developer_check`；canonical Worker/live、D1/R2、cron、来源/板块与部署均未改。
+  下一任务 `ADP-V12-S4-T003` 保持 `NOT_RUN`，Run Contract 尚未创建，不上传或部署。
+
 ## 1.2.0 — S4.2 构建者候选 — 2026-07-24
 
 - RC05 patch chain 已物化为 build `a98b4c957f30` / artifact

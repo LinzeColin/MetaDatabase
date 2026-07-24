@@ -1,11 +1,11 @@
 {
-  "stage": "S4.2",
-  "phase": "六主题移动端统一四标签导航候选待独立验收",
-  "task": "ADP-V12-S4-T002",
-  "owner": "全新上下文独立复核者；必须从冻结 Subject 复跑浏览器、负控与完整回归",
+  "stage": "S4.3",
+  "phase": "可承重视觉、动效与像素回归门 Run Contract 待创建",
+  "task": "ADP-V12-S4-T003",
+  "owner": "下一独立开发线程；必须先锁定 S4.3 唯一 Run Contract，当前不得实现或预签",
   "taskpack": "docs/pursuing_goal/v1_2",
-  "run_contract": "docs/pursuing_goal/v1_2/RUN_CONTRACT_05_MOBILE_FOUR_TAB_NAV.md",
-  "run_contract_status": "LOCKED；构建者候选已验证但独立验收 NOT_RUN，不能视为 PASS",
-  "previous_task_receipt": "machine/runs/ADP-V12-S4-T001-developer-check.json",
-  "next_task_after_pass": "ADP-V12-S4-T003"
+  "run_contract": null,
+  "run_contract_status": "NOT_CREATED；S4.3 保持 NOT_RUN，需单独锁定合同后才能执行",
+  "previous_task_receipt": "machine/runs/ADP-V12-S4-T002-developer-check.json",
+  "next_task_after_pass": "ADP-V12-S5-T001"
 }

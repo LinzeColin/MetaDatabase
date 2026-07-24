@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-07-24 Australia/Sydney - ADP v1.2 S4.2 closeout (DEVELOPER CHECK PASS; NOT DEPLOYED)
+
+- fresh-context verifier 对 commit `e5460ef2` / tree `6b3cfce2` / materialized artifact
+  `39f8a8d82aec8f97e83d595f95ba52ae062191b801632661922077c9632b356b` 裁定
+  `ACC-V12-S4-003 = PASS / ACTION NONE`，findings、P0/P1/UNKNOWN/BLOCKED/waiver 均为零。
+- 独立系统 Chrome 覆盖六主题移动端与桌面端、`779/780px` 边界、四条 active route；
+  十二张截图、十项分离破坏负控与浏览器零错误均通过。S4.2 focused `6/6`、S4.1 回归
+  `24/24`、治理 `78/78`、安全 `14/14` 通过。
+- full suite 原始仍为 `962 tests / 2 failures / 11 errors / 29 skips`，只因与 SHA-256
+  `782254fd…ffe3624` 的 S3 sealed ZIP failure/error key 精确同集而通过差分门；
+  `candidate_only=[]`、`baseline_only=[]`，没有包装为全绿。
+- sealed review ZIP SHA-256 为 `cf884d8a4ab6b2efbd2f6e85a761f97dcf467ab27ffac36827aff6866a95e4cb`，
+  evidence root 为 `ac80b4f62bb235eaa4d21301c042672eef5e7f9fdf49a0c4658818c603ddbb45`；
+  原位与解包 finalizer verify、`58` 项内部 checksum 和安全扫描均通过。
+- canonical Worker、live build `c2ccc1fd01ec`、D1/R2、来源/板块、cron、上传和部署均未改；
+  S4.3 为 `NOT_RUN`，Run Contract 未创建，不从本收尾预签。
+
 ## 2026-07-24 Australia/Sydney - ADP v1.2 S4.2 构建者候选 (NOT ACCEPTED; NOT DEPLOYED)
 
 - 已锁定 `ADP-V12-S4-T002` / RC05，并在已验收 S4.1 materialization 上叠加唯一
