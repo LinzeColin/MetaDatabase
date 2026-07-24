@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.0.8",
+    "date": "2026-07-24",
+    "summary": "T0702 真实通过后建立唯一 T0703 Budget-1 Run Contract，复用已验证的 moomooau-beta 受保护基础设施；缺少受保护分类或解析证据时只生成加密 SAFE_DEFERRED Processed，远端恢复 Raw 与 Processed 后才允许精确消息 Trash。"
+  },
+  {
     "version": "1.0.7",
     "date": "2026-07-24",
     "summary": "新增独立受保护 M3 单件预算装配与仅主分支工作流，绑定 T0702 通过回执和当前运行契约；M3 授权标志为假，继续在读取密钥前关闭，真实 M3、处理后数据、Gmail 消息变更与发布均未运行。"

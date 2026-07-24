@@ -4,7 +4,7 @@
   "stage_id": "S7",
   "task_id": "T0703",
   "stage_acceptance_id": "S7AC-003",
-  "observed_at_utc": "2026-07-24T00:29:34Z",
+  "observed_at_utc": "2026-07-24T01:10:00Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "record_status": "BLOCKED",
   "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
@@ -19,17 +19,18 @@
     {"id": "randomized_age_retry_rebinds_persisted_raw_and_processed", "status": "PASS", "evidence_ref": "src/moomooau_archive/remote_recovery_gate.py::RepositoryCiphertextReader and RemoteRecoveryGate"},
     {"id": "corrupt_recovery_blocks_exact_message_trash", "status": "PASS", "evidence_ref": "tests/tasks/test_t0703.py::test_t0703_m3_runner_allows_explicit_safe_deferred_but_not_corrupt_recovery"},
     {"id": "protected_m3_bootstrap_recovery_before_exact_trash_and_cleanup", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3.py and tests/tasks/test_t0703.py::test_t0703_protected_m3_bootstrap_recovers_processed_before_exact_trash_and_cleans"},
-    {"id": "default_disabled_receipt_and_run_contract_bound_entrypoint", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3_entrypoint.py, machine/stages/S7/tools/validate_stage7.py and tests/tasks/test_t0703.py"}
+    {"id": "authorized_receipt_and_budget_one_run_contract_bound_entrypoint", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3_entrypoint.py, machine/stages/S7/contracts/run_contract.json, machine/stages/S7/tools/validate_stage7.py and tests/tasks/test_t0703.py"},
+    {"id": "empty_protected_registries_force_recoverable_safe_deferred", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_m3.py, src/moomooau_archive/canary_runtime.py and tests/tasks/test_t0703.py::test_t0703_empty_protected_processing_registries_force_recoverable_safe_deferred"}
   ],
   "linked_final_acceptance": [
     {"id": "AC-006", "status": "NOT_RUN", "reason": "No real exact source message was moved to Trash."},
     {"id": "AC-007", "status": "NOT_RUN", "reason": "T0702 proved Raw remote recovery, but no Processed recovery or Gmail mutation has run."},
-    {"id": "AC-026", "status": "NOT_RUN", "reason": "Protected Mutation Budget 1 execution has not run because current owner scope stops at T0702."}
+    {"id": "AC-026", "status": "NOT_RUN", "reason": "The exact first-attempt protected Mutation Budget 1 execution is authorized but has not run."}
   ],
   "production_oracles": [
-    {"id": "PROTECTED_M3_DETERMINISTIC_EVIDENCE", "status": "NOT_RUN", "reason": "The protected Beta predecessor passed, but current owner scope withholds M3 and the one bounded protected M3 evidence run has not executed."}
+    {"id": "PROTECTED_M3_DETERMINISTIC_EVIDENCE", "status": "NOT_RUN", "reason": "The protected Beta predecessor passed and the bounded M3 run is authorized, but no protected T0703 execution receipt exists yet."}
   ],
-  "blockers": ["M3_AUTHORITY_WITHHELD_BY_CURRENT_OWNER_SCOPE"],
+  "blockers": ["PROTECTED_M3_FIRST_ATTEMPT_NOT_RUN"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "The independent protected M3 Budget-1 bootstrap and workflow are locally verified and default-disabled. Stop before M3 under the current owner scope; a future explicit T0703 Run Contract must change m3_authorized to true before the no-Secret authority job can permit one bounded protected run."
+  "next_action": "Deliver the exact validated candidate to main, provision only the two public-safe empty processing registry values in the existing protected Environment, then execute one first-attempt Budget-1 M3 Canary and materialize evidence only from its aggregate protected receipt."
 }

@@ -1,8 +1,8 @@
 {
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
-  "package_version": "1.0.7",
-  "status_as_of_utc": "2026-07-24T00:29:34Z",
+  "package_version": "1.0.8",
+  "status_as_of_utc": "2026-07-24T01:10:00Z",
   "authority": {
     "path": "machine/status/latest.json",
     "precedence": [
@@ -13,7 +13,7 @@
       "machine/facts and the seven human documents are deterministic derivatives"
     ]
   },
-  "overall_status": "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE",
+  "overall_status": "PROTECTED_BETA_PASS_T0703_AUTHORIZED_PENDING",
   "dimensions": {
     "evidence_integrity": {
       "status": "PASS",
@@ -53,7 +53,7 @@
       "workflow_runs": 0,
       "reason_codes": [
         "FORMAL_TASKS_INCOMPLETE",
-        "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+        "T0703_PROTECTED_FIRST_ATTEMPT_PENDING",
         "FINAL_ACCEPTANCE_BLOCKED",
         "PRODUCTION_WORKFLOW_NOT_RUN"
       ]
@@ -219,7 +219,7 @@
   },
   "blockers": [
     "FORMAL_TASKS_INCOMPLETE",
-    "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+    "T0703_PROTECTED_FIRST_ATTEMPT_PENDING",
     "FINAL_ACCEPTANCE_BLOCKED",
     "PRODUCTION_WORKFLOW_NOT_RUN",
     "RMD-06_PROTECTED_ACCEPTANCE_PENDING",
@@ -232,18 +232,18 @@
     "REV-P1-006",
     "REV-P2-007"
   ],
-  "next_action": "T0702 evidence is closed; the M3 predecessor is satisfied, but current owner scope withholds M3, so stop before any M3 or later Stage 7 execution.",
+  "next_action": "Deliver the exact validated T0703 candidate to main, add only the two public-safe empty processing registry values to the existing protected Environment, and execute exactly one first-attempt Budget-1 M3 Canary; do not enter T0704.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "268a5209565825b404fd602d92c2c6b382520b92bd08c9b9f5e732899161fda3",
+    "acceptance_summary_sha256": "4ac9f7da6e28405f12a7489a8372330f4db4a473253542e64f5ae04388db5d5c",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
-    "delivery_status_model_sha256": "802fb236a9ecc4261dc8c304a6f85d375b78f615d9a7d2e2fe5b326889c15777",
+    "delivery_status_model_sha256": "733755eb994171d3e129be7c7f481c5088f1aeb8506b824a3e10e17c6eba1e5d",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "8ceec1d822df608e82dc321a84c51a4b8168beea1b5f48c2b970cc439989ae07",
+    "production_composition_sha256": "a0f1913ee925c18874e7effdef458663d6940d5fb7dce3419de72470cac08da2",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "165e9a86533673524a68181b5fd43b137dc4e956a0823355b749ee781fe9431a",
+    "task_evidence_root_sha256": "d5622d15c18d9d69e479b0fd14b0b9c2e63de4d8e9c5b03136f017764faedec1",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",

@@ -1,5 +1,19 @@
 # Taskpack Changelog
 
+## 1.0.8 — 2026-07-24
+
+在 T0702 protected PASS 后仅授权 T0703 Budget-1 first attempt，不改变产品契约。
+
+- 当前 Run Contract 固定一份受控 main 交付、一次 protected dispatch、rerun 0、full Raw read 1、
+  Processed write 1、精确 source-message Trash 1，T0704/Timeline/schedule/final publication 0；
+- 复用已验证的 `moomooau-beta` Environment 与六项 protected value，新增两项公开安全空 processing
+  registry；
+- classification/parser registry 必须同时 ACTIVE 且匹配，或同时为空；空注册表只能生成加密
+  `SAFE_DEFERRED`，不得猜测分类或 parser profile；
+- Raw 与 Processed age ciphertext 均须从唯一 private remote 恢复后，再次验证同一来源并仅调用
+  `users.messages.trash`；
+- protected T0703 receipt 尚未产生，因此 T0703/S7AC-003 与最终 Acceptance 保持 NOT_RUN/BLOCKED。
+
 ## 1.0.7 — 2026-07-24
 
 只补齐 T0703 受保护入口，不执行或授权 M3，不改变产品契约。

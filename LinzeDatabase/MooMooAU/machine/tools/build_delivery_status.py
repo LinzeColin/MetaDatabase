@@ -80,7 +80,7 @@ def _select_transition_state(
         "PRE_CLOSURE",
         "DEPENDENCY_AUTH_READY",
         "PROTECTED_BETA_ATTEMPT_FAILED",
-        "PROTECTED_BETA_PASS_SCOPE_STOP",
+        "PROTECTED_BETA_PASS_M3_AUTHORIZED",
     }:
         raise ValueError("delivery status transition states differ")
     if assurance_result.get("status") != "PASS":
@@ -88,7 +88,7 @@ def _select_transition_state(
     elif protected_beta_receipt is not None:
         claims = protected_beta_receipt.get("claims", {})
         state_name = (
-            "PROTECTED_BETA_PASS_SCOPE_STOP"
+            "PROTECTED_BETA_PASS_M3_AUTHORIZED"
             if claims.get("t0702_complete") is True and claims.get("s7ac_002_passed") is True
             else "PROTECTED_BETA_ATTEMPT_FAILED"
         )
@@ -182,12 +182,13 @@ def _validate_composition_for_state(
     state: dict[str, Any],
 ) -> dict[str, object]:
     # Historical cumulative jobs do not install later-stage runtime dependencies. The exact
-    # v1.0.6/v1.0.7 source/workflow hashes remain mandatory here; Stage 7 executes the CLI.
+    # v1.0.6+ source/workflow hashes remain mandatory here; Stage 7 executes the CLI.
     return cast(
         dict[str, object],
         validate_composition(
             root,
-            verify_contract_cli=state.get("package_version") not in {"1.0.6", "1.0.7"},
+            verify_contract_cli=state.get("package_version")
+            not in {"1.0.6", "1.0.7", "1.0.8"},
         ),
     )
 
@@ -301,7 +302,7 @@ def _validate_stage6_evidence_transition(
         if versions != {"moomooau.stage6-evidence.v1"}:
             raise ValueError("pre-closure delivery state requires Stage 6 v1 evidence")
         return
-    if package_version not in {"1.0.5", "1.0.6", "1.0.7"} or versions != {
+    if package_version not in {"1.0.5", "1.0.6", "1.0.7", "1.0.8"} or versions != {
         "moomooau.stage6-evidence.v2"
     }:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
@@ -478,7 +479,7 @@ def build_status(
     protected_passed = sum(status == "PASS" for status in protected_statuses)
     protected_failed = sum(status == "FAILED" for status in protected_statuses)
     failed_beta_state = state_name == "PROTECTED_BETA_ATTEMPT_FAILED"
-    passed_beta_state = state_name == "PROTECTED_BETA_PASS_SCOPE_STOP"
+    passed_beta_state = state_name == "PROTECTED_BETA_PASS_M3_AUTHORIZED"
     if failed_beta_state:
         if (
             protected_receipt is None
@@ -510,11 +511,11 @@ def build_status(
             raise ValueError("passed protected Beta state lacks its exact Oracle receipt")
         production_reasons = [
             "FORMAL_TASKS_INCOMPLETE",
-            "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED",
+            "T0703_PROTECTED_FIRST_ATTEMPT_PENDING",
             "FINAL_ACCEPTANCE_BLOCKED",
             "PRODUCTION_WORKFLOW_NOT_RUN",
         ]
-        overall_status = "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE"
+        overall_status = "PROTECTED_BETA_PASS_T0703_AUTHORIZED_PENDING"
         protected_status = "PARTIAL"
         production_workflow_runs = 0
         publication_status = "CONTROLLED_BETA_DELIVERY_NOT_FINAL"

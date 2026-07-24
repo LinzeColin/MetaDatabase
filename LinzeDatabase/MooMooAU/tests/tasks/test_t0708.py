@@ -398,11 +398,11 @@ def test_t0708_no_secret_workflow_is_read_only_policy_preflight() -> None:
     )
 
 
-def test_t0708_stage7_aggregate_closes_t0702_and_stops_before_m3() -> None:
+def test_t0708_stage7_aggregate_closes_t0702_and_authorizes_only_t0703() -> None:
     aggregate = json.loads(
         (PROJECT_ROOT / "evidence/stage7/latest.json").read_text(encoding="utf-8")
     )
-    assert aggregate["status"] == "BLOCKED_T0702_PASS_SCOPE_STOP"
+    assert aggregate["status"] == "AUTHORIZED_T0703_PENDING_PROTECTED_EXECUTION"
     assert (
         aggregate["scoped_preflight"]
         == "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
@@ -426,4 +426,6 @@ def test_t0708_stage7_aggregate_closes_t0702_and_stops_before_m3() -> None:
     assert aggregate["protected_workflow_runs"] == 11
     assert aggregate["production_workflow_runs"] == 0
     assert aggregate["final_acceptances_passed"] == 0
-    assert aggregate["delivery_status"] == "CONTROLLED_T0702_BETA_PASS_NOT_FINAL"
+    assert aggregate["delivery_status"] == "CONTROLLED_T0703_DELIVERY_AUTHORIZED_NOT_FINAL"
+    assert aggregate["observation"]["m3_deterministic_evidence_run"] == "NOT_RUN"
+    assert "PROTECTED_M3_FIRST_ATTEMPT_NOT_RUN" in aggregate["blocking_conditions"]

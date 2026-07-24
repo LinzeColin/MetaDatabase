@@ -308,6 +308,28 @@ def test_t0703_protected_m3_bootstrap_recovers_processed_before_exact_trash_and_
     assert context.source.all_issued_destroyed
 
 
+def test_t0703_empty_protected_processing_registries_force_recoverable_safe_deferred() -> None:
+    message = m3_canary_message("msg-stage7-protected-m3-empty-registry")
+    predecessors = (
+        phase_observation(ReleasePhase.ALPHA),
+        phase_observation(ReleasePhase.BETA_RAW_ONLY),
+    )
+    with protected_m3_context(
+        (message,),
+        empty_processing_registries=True,
+    ) as context:
+        with context.bootstrap.open(predecessor_observations=predecessors) as runtime:
+            result = runtime.run()
+        assert result.raw_archived == result.full_recovery_successes == 1
+        assert result.processed_complete == 0
+        assert result.processed_safe_deferred == result.confirmed_trashed == 1
+        assert result.mutation_calls == 1
+        assert context.gmail_transport.trashed_ids == [message.message_id]
+        assert all(is_age_envelope(value) for value in context.github_transport.objects.values())
+        assert list(context.tmpfs_root.iterdir()) == []
+    assert context.source.all_issued_destroyed
+
+
 def _protected_m3_environment(*, head_sha: str = "b" * 40) -> dict[str, str]:
     return {
         "GITHUB_ACTIONS": "true",
@@ -348,6 +370,9 @@ def _authorized_project_root(tmp_path: Path) -> Path:
         "gmail_mutations_maximum": 1,
         "m3_source_mutation_budget_per_run": 1,
         "verified_full_raw_message_reads_maximum": 1,
+        "processed_writes_maximum": 1,
+        "protected_m3_dispatches_maximum": 1,
+        "protected_m3_reruns_maximum": 0,
         "timeline_writes_maximum": 0,
         "scheduled_runs_maximum": 0,
     }
@@ -393,14 +418,14 @@ class _SyntheticProtectedM3Bootstrap:
         yield _SyntheticProtectedM3Runtime()
 
 
-def test_t0703_protected_entrypoint_contract_is_default_disabled_and_receipt_bound() -> None:
+def test_t0703_protected_entrypoint_contract_is_authorized_and_receipt_bound() -> None:
     contract = execution_contract(PROJECT_ROOT)
     assert contract["mode"] == "CONTRACT_ONLY"
-    assert contract["m3_authorized"] is False
+    assert contract["m3_authorized"] is True
     assert contract["required_actor_id"] == CONTROL_OWNER_ID
     assert contract["required_ref"] == CONTROL_REF
     assert contract["required_workflow_ref"] == CONTROL_WORKFLOW_REF
-    assert contract["protected_environment"] == "moomooau-m3"
+    assert contract["protected_environment"] == "moomooau-beta"
     assert contract["required_runner_environment"] == "github-hosted"
     assert contract["required_run_attempt"] == 1
     assert contract["required_confirmation"] == M3_CONFIRMATION
@@ -414,6 +439,7 @@ def test_t0703_protected_entrypoint_contract_is_default_disabled_and_receipt_bou
         "timeline_enabled": False,
         "mutation_budget_per_run": 1,
         "parser_current_version_required": True,
+        "empty_protected_registries_force_safe_deferred": True,
     }
     assert contract["maximum_verified_candidates"] == 1
     assert contract["maximum_source_mutations"] == 1
@@ -425,22 +451,7 @@ def test_t0703_protected_entrypoint_contract_is_default_disabled_and_receipt_bou
     assert contract["production_health_claimed"] is False
 
 
-def test_t0703_current_run_contract_blocks_before_bootstrap_or_secret_reads() -> None:
-    environment = _protected_m3_environment()
-    bootstrap = _SyntheticProtectedM3Bootstrap()
-    with pytest.raises(ProtectedM3EntrypointError, match="does not authorize M3"):
-        execute_protected(
-            environment,
-            project_root=PROJECT_ROOT,
-            expected_head_sha=environment["GITHUB_SHA"],
-            supplied_beta_receipt_sha256=beta_receipt_sha256(PROJECT_ROOT),
-            supplied_m3_gate_sha256=m3_gate_sha256(PROJECT_ROOT),
-            confirmation=M3_CONFIRMATION,
-            bootstrap=bootstrap,  # type: ignore[arg-type]
-            clock=lambda: datetime(2026, 7, 24, tzinfo=UTC),
-        )
-    assert bootstrap.predecessors == ()
-
+def test_t0703_secret_source_remains_exact_allowlist() -> None:
     source = ExactM3EnvironmentSecretSource({})
     with pytest.raises(ProtectedM3EntrypointError, match="unavailable"):
         source.read(M3_SECRET_NAMES[0])
@@ -506,9 +517,7 @@ def test_t0703_authorized_entrypoint_emits_aggregate_only_evidence(tmp_path: Pat
         assert forbidden not in public_text.casefold()
 
 
-def test_t0703_protected_workflow_is_manual_main_only_default_disabled_and_exact_eight_secret() -> (
-    None
-):
+def test_t0703_protected_workflow_is_manual_main_only_authorized_and_exact_eight_secret() -> None:
     path = REPOSITORY_ROOT / ".github/workflows/moomooau-m3.yml"
     text = path.read_text(encoding="utf-8")
     workflow = yaml.load(text, Loader=yaml.BaseLoader)
@@ -521,7 +530,7 @@ def test_t0703_protected_workflow_is_manual_main_only_default_disabled_and_exact
     gate = workflow["jobs"]["m3-authority-gate"]
     execution = workflow["jobs"]["m3-budget-one"]
     assert execution["needs"] == "m3-authority-gate"
-    assert execution["environment"] == "moomooau-m3"
+    assert execution["environment"] == "moomooau-beta"
     assert gate["steps"][0]["name"] == "Fail closed on invalid protected M3 dispatch context"
     assert 'test "$GITHUB_ACTOR_ID" = "68840188"' in gate["steps"][0]["run"]
     assert 'test "$GITHUB_RUN_ATTEMPT" = "1"' in gate["steps"][0]["run"]

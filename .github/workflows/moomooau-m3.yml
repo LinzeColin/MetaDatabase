@@ -126,7 +126,7 @@ jobs:
 
   m3-budget-one:
     needs: m3-authority-gate
-    environment: moomooau-m3
+    environment: moomooau-beta
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -171,8 +171,8 @@ jobs:
       - name: Execute exactly one protected M3 Budget-1 Canary
         working-directory: LinzeDatabase/MooMooAU
         env:
-          MOOMOOAU_PROTECTED_ENVIRONMENT: moomooau-m3
-          MOOMOOAU_M3_CONFIG: ${{ secrets.MOOMOOAU_M3_CONFIG }}
+          MOOMOOAU_PROTECTED_ENVIRONMENT: moomooau-beta
+          MOOMOOAU_BETA_CONFIG: ${{ secrets.MOOMOOAU_BETA_CONFIG }}
           MOOMOOAU_SENDER_REGISTRY: ${{ secrets.MOOMOOAU_SENDER_REGISTRY }}
           MOOMOOAU_CLASSIFICATION_REGISTRY: ${{ secrets.MOOMOOAU_CLASSIFICATION_REGISTRY }}
           MOOMOOAU_PARSER_REGISTRY: ${{ secrets.MOOMOOAU_PARSER_REGISTRY }}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the baseline-preserving v1.0.7 default-disabled T0703 entrypoint manifest."""
+"""Build the baseline-preserving v1.0.8 authorized T0703 pre-execution manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.7.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-24-V1.0.7"
-PACKAGE_VERSION = "1.0.7"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.6.json")
-PREDECESSOR_MANIFEST_SHA256 = "4c86b8c1d3dfa86b111f51ebd925eff75047bcad6c7a2d108ff7059ec424a30b"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.8.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-24-V1.0.8"
+PACKAGE_VERSION = "1.0.8"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.7.json")
+PREDECESSOR_MANIFEST_SHA256 = "1723c0d6fae48aa83b0680601819635274fd9bcd568f601c28a8fb9d3ae2e147"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.6 manifest drift")
+        raise ValueError("predecessor v1.0.7 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -166,9 +166,9 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or status.get("package_version") != PACKAGE_VERSION
         or "REV-P1-006" not in status.get("resolved_review_findings", [])
         or "RMD-06_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
-        or "STAGE7_POST_BETA_PHASES_NOT_AUTHORIZED" not in status.get("blockers", [])
+        or "T0703_PROTECTED_FIRST_ATTEMPT_PENDING" not in status.get("blockers", [])
     ):
-        raise ValueError("T0703 protected entrypoint is not in the exact default-disabled state")
+        raise ValueError("T0703 protected entrypoint is not in the exact authorized pre-run state")
     entries = [
         {
             "path": path.relative_to(root).as_posix(),
@@ -184,23 +184,22 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "version": PACKAGE_VERSION,
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
-            "Stage 7 local engineering only: preserve the protected T0702 PASS, add the missing "
-            "main-only T0703 Budget-1 composition and workflow, and keep execution disabled by "
-            "the current m3_authorized=false Run Contract. No M3, Secret, Gmail, private-data "
-            "repository or publication effect is authorized in this package build."
+            "Stage 7 T0703 only: preserve the protected T0702 PASS and authorize one controlled "
+            "main delivery plus one first-attempt protected M3 Budget-1 dispatch. Reuse the "
+            "verified moomooau-beta infrastructure; final publication and T0704 remain forbidden."
         ),
         "scope": (
-            "Baseline-preserving v1.0.7 local snapshot: immutable v1.0.1 product contracts and "
-            "v1.0.2-v1.0.6 predecessor lineage; the exact T0702 protected PASS receipt remains "
-            "unchanged. Adds a narrow protected M3 bootstrap with Raw plus Processed recovery, "
-            "second sender verification and exact messages.trash Budget 1; an eight-Secret, "
-            "owner/main/GitHub-hosted/attempt-1 workflow; same-tree receipt and Run Contract "
-            "binding; fixed aggregate-only output; and synthetic end-to-end cleanup coverage. "
-            "The workflow is default-disabled and fails before Secret reads because the current "
-            "Run Contract retains m3_authorized=false. Real Gmail calls, private repository "
-            "calls, Processed writes, source mutations, Timeline writes, protected runs and "
-            "publication remain zero in this package. No production, final Acceptance, Stage 7 "
-            "completion or final publication is claimed."
+            "Baseline-preserving v1.0.8 pre-execution snapshot: immutable v1.0.1 product contracts "
+            "and v1.0.2-v1.0.7 predecessor lineage; the exact T0702 protected PASS receipt remains "
+            "unchanged. The protected M3 bootstrap reuses the verified Beta config and Environment, "
+            "allows only paired empty protected classification/parser registries to force explicit "
+            "SAFE_DEFERRED Processed data, requires Raw plus Processed remote recovery, repeats "
+            "sender verification and calls exact messages.trash with Budget 1. The main-only, "
+            "owner/GitHub-hosted/attempt-1 workflow references exactly eight Secret names and is "
+            "authorized by the same-tree T0703 Run Contract. At package-build time the protected "
+            "T0703 run, Processed write and Gmail mutation remain not run; Timeline, T0704, "
+            "production health, final Acceptance, Stage 7 completion and final publication are "
+            "not claimed."
         ),
         "status_authority": "machine/status/latest.json",
         "predecessor": {

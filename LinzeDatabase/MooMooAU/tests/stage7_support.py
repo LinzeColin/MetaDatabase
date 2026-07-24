@@ -1202,6 +1202,7 @@ def protected_m3_context(
     messages: tuple[SyntheticGmailMessage, ...],
     *,
     capacity_age_hours: int = 0,
+    empty_processing_registries: bool = False,
 ) -> Iterator[ProtectedM3Context]:
     now = datetime(2026, 7, 24, 1, tzinfo=UTC)
     repository_id = 7_100_103
@@ -1217,11 +1218,10 @@ def protected_m3_context(
     temporary = tempfile.TemporaryDirectory(prefix="moomooau-stage7-protected-m3-")
     try:
         config = {
-            "schema_version": "moomooau.protected-m3-config.v1",
-            "phase": "M3_CANARY",
+            "schema_version": "moomooau.protected-beta-config.v1",
+            "phase": "BETA_RAW_ONLY",
             "key_epoch": "synthetic-epoch-1",
             "age_recipient": generated.recipient,
-            "parser_current_version": "1.0.0",
             "beta_message_budget": 1,
             "github": {
                 "app_id": app_id,
@@ -1245,6 +1245,24 @@ def protected_m3_context(
                 },
             },
         }
+        parser_payload = (
+            json.dumps(
+                {
+                    "schema_version": "moomooau.parser-profile-registry.v1",
+                    "registry_version": "1.0.0",
+                    "issued_at_utc": "2026-01-01T00:00:00Z",
+                    "activation_state": "EMPTY_PROTECTED_EVIDENCE_REQUIRED",
+                    "profiles": [],
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            if empty_processing_registries
+            else parser_registry_payload(
+                DocumentClass.DAILY_STATEMENT,
+                AttachmentKind.CSV,
+            ).decode("utf-8")
+        )
         values = {
             M3_CONFIG_SECRET_NAME: json.dumps(
                 config,
@@ -1253,12 +1271,11 @@ def protected_m3_context(
             ),
             SENDER_REGISTRY_SECRET_NAME: registry_payload().decode("utf-8"),
             CLASSIFICATION_REGISTRY_SECRET_NAME: classification_registry_payload(
-                ((DocumentClass.DAILY_STATEMENT, AttachmentKind.CSV),)
+                ()
+                if empty_processing_registries
+                else ((DocumentClass.DAILY_STATEMENT, AttachmentKind.CSV),)
             ).decode("utf-8"),
-            PARSER_REGISTRY_SECRET_NAME: parser_registry_payload(
-                DocumentClass.DAILY_STATEMENT,
-                AttachmentKind.CSV,
-            ).decode("utf-8"),
+            PARSER_REGISTRY_SECRET_NAME: parser_payload,
             GITHUB_APP_PRIVATE_KEY_SECRET_NAME: private_key_pem.decode("ascii"),
             OPAQUE_ID_KEY_SECRET_NAME: base64.b64encode(b"synthetic-protected-opaque-key-1").decode(
                 "ascii"

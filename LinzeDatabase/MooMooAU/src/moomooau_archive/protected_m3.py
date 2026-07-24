@@ -8,21 +8,19 @@ the protected Beta predecessor.
 
 from __future__ import annotations
 
-import json
 import re
 from collections.abc import Callable, Iterator
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import cast
 
 from .age_stream import OfficialAgeStream
 from .attachment_inspector import AttachmentInspector
 from .auth import GMAIL_OAUTH_SECRET_NAME, SecretSource, load_gmail_oauth_credential
 from .canary_runtime import CurrentProcessedPlanFactory, M3CanaryRunner, M3CanaryRunResult
 from .canonical_raw import CanonicalRawFetcher
-from .capacity import CapacityAssessment, CapacityLimits, CapacityPolicy, CapacitySnapshot
+from .capacity import CapacityAssessment
 from .document_parser import ParserActivation, ParserProfileRegistry
 from .github_guard import (
     GitHubAppJwtSigner,
@@ -47,14 +45,19 @@ from .processed_models import ClassificationActivation, ClassificationRegistry
 from .production_adapters import RemoteFirstImportTimestampSource
 from .protected_beta import (
     AGE_IDENTITY_SECRET_NAME,
+    BETA_CONFIG_SECRET_NAME,
     GITHUB_APP_PRIVATE_KEY_SECRET_NAME,
     OPAQUE_ID_KEY_SECRET_NAME,
     SENDER_REGISTRY_SECRET_NAME,
+    ProtectedBetaBootstrapError,
     _load_base64_key,
     _load_secret_bytes,
     _ProtectedIdentityFile,
     _read_secret,
     _verify_identity_recipient,
+)
+from .protected_beta import (
+    _load_config as _load_beta_config,
 )
 from .raw_commit import (
     GitHubAppendOnlyCiphertextStore,
@@ -71,7 +74,10 @@ from .remote_recovery_gate import (
 from .secret_values import SecretBytes
 from .sender_registry import RegistryActivation, SenderRegistry, SenderVerifier
 
-M3_CONFIG_SECRET_NAME = "MOOMOOAU_M3_CONFIG"  # pragma: allowlist secret
+# T0703 deliberately reuses the exact protected Beta infrastructure and its already-verified
+# private-repository binding.  GitHub Environment Secret values are write-only, so requiring a
+# copied M3 config would add a credential-migration path without improving isolation.
+M3_CONFIG_SECRET_NAME = BETA_CONFIG_SECRET_NAME
 CLASSIFICATION_REGISTRY_SECRET_NAME = (  # pragma: allowlist secret
     "MOOMOOAU_CLASSIFICATION_REGISTRY"
 )
@@ -88,16 +94,14 @@ M3_SECRET_NAMES = (
     GMAIL_OAUTH_SECRET_NAME,
 )
 
-_CONFIG_SCHEMA = "moomooau.protected-m3-config.v1"
 _AGE_RECIPIENT = re.compile(r"^age1[0-9a-z]{58}$")
 _KEY_EPOCH = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 _SEMVER = re.compile(r"^[1-9][0-9]*\.[0-9]+\.[0-9]+$")
-_MAX_CONFIG_BYTES = 64 * 1024
 _MAX_REGISTRY_BYTES = 4 * 1024 * 1024
 _MAX_PRIVATE_KEY_BYTES = 32 * 1024
 _MAX_IDENTITY_BYTES = 4096
-_CAPACITY_MAX_AGE = timedelta(hours=24)
 _MAXIMUM_VERIFIED_CANDIDATES = 1
+_PARSER_CURRENT_VERSION = "1.0.0"
 
 
 class ProtectedM3BootstrapError(RuntimeError):
@@ -249,16 +253,25 @@ class ProtectedM3Bootstrap:
             sender_registry = _load_sender_registry(self._secret_source)
             classification_registry = _load_classification_registry(self._secret_source)
             parser_registry = _load_parser_registry(self._secret_source)
-            if (
-                sender_registry.activation is not RegistryActivation.ACTIVE
-                or classification_registry.activation is not ClassificationActivation.ACTIVE
-                or parser_registry.activation is not ParserActivation.ACTIVE
-                or not any(
+            active_processing = (
+                classification_registry.activation is ClassificationActivation.ACTIVE
+                and parser_registry.activation is ParserActivation.ACTIVE
+                and any(
                     profile.parser_version == config.parser_current_version
                     for profile in parser_registry.profiles
                 )
+            )
+            safe_deferred_processing = (
+                classification_registry.activation
+                is ClassificationActivation.EMPTY_PROTECTED_EVIDENCE_REQUIRED
+                and parser_registry.activation is ParserActivation.EMPTY_PROTECTED_EVIDENCE_REQUIRED
+                and not classification_registry.rules
+                and not parser_registry.profiles
+            )
+            if sender_registry.activation is not RegistryActivation.ACTIVE or not (
+                active_processing or safe_deferred_processing
             ):
-                raise ProtectedM3BootstrapError("protected M3 registries are not active")
+                raise ProtectedM3BootstrapError("protected M3 registries are incompatible")
 
             github_private_key = _load_secret_bytes(
                 self._secret_source,
@@ -379,104 +392,22 @@ class ProtectedM3Bootstrap:
 
 
 def _load_config(source: SecretSource, now: datetime) -> ProtectedM3Config:
-    encoded = _read_secret(source, M3_CONFIG_SECRET_NAME, maximum_bytes=_MAX_CONFIG_BYTES)
     try:
-        try:
-            parsed = json.loads(encoded.reveal())
-        except (UnicodeError, json.JSONDecodeError) as exc:
-            raise ProtectedM3BootstrapError("protected M3 config is not valid JSON") from exc
-    finally:
-        encoded.destroy()
-    required = {
-        "schema_version",
-        "phase",
-        "key_epoch",
-        "age_recipient",
-        "parser_current_version",
-        "beta_message_budget",
-        "github",
-        "capacity",
-    }
-    if (
-        not isinstance(parsed, dict)
-        or set(parsed) != required
-        or parsed.get("schema_version") != _CONFIG_SCHEMA
-        or parsed.get("phase") != ReleasePhase.M3_CANARY.value
-        or parsed.get("beta_message_budget") != 1
-    ):
-        raise ProtectedM3BootstrapError("protected M3 config schema is invalid")
-    value = cast(dict[str, object], parsed)
-    github = _required_object(value, "github")
-    if set(github) != {"app_id", "installation_id", "repository_id"}:
-        raise ProtectedM3BootstrapError("protected M3 GitHub config schema is invalid")
-    capacity = _required_object(value, "capacity")
-    assessment, observed_at = _parse_capacity(capacity, now)
+        beta = _load_beta_config(source, now)
+    except ProtectedBetaBootstrapError as exc:
+        raise ProtectedM3BootstrapError("protected Beta infrastructure config is invalid") from exc
+    if beta.beta_message_budget != 1:
+        raise ProtectedM3BootstrapError("protected M3 config budget is not one")
     return ProtectedM3Config(
-        app_id=_required_positive_int(github, "app_id"),
-        target_repository=TargetRepositoryConfig(
-            repository_id=_required_positive_int(github, "repository_id"),
-            installation_id=_required_positive_int(github, "installation_id"),
-        ),
-        age_recipient=_required_string(value, "age_recipient"),
-        key_epoch=_required_string(value, "key_epoch"),
-        parser_current_version=_required_string(value, "parser_current_version"),
+        app_id=beta.app_id,
+        target_repository=beta.target_repository,
+        age_recipient=beta.age_recipient,
+        key_epoch=beta.key_epoch,
+        parser_current_version=_PARSER_CURRENT_VERSION,
         beta_message_budget=1,
-        capacity=assessment,
-        capacity_observed_at_utc=observed_at,
+        capacity=beta.capacity,
+        capacity_observed_at_utc=beta.capacity_observed_at_utc,
     )
-
-
-def _parse_capacity(
-    value: dict[str, object],
-    now: datetime,
-) -> tuple[CapacityAssessment, datetime]:
-    if set(value) != {"observed_at_utc", "limits", "snapshot"}:
-        raise ProtectedM3BootstrapError("protected M3 capacity config schema is invalid")
-    limits_value = _required_object(value, "limits")
-    snapshot_value = _required_object(value, "snapshot")
-    if set(limits_value) != {"lfs_storage_budget_bytes", "lfs_object_maximum_bytes"}:
-        raise ProtectedM3BootstrapError("protected M3 capacity limits schema is invalid")
-    if set(snapshot_value) != {
-        "git_repository_bytes",
-        "lfs_storage_bytes",
-        "largest_git_object_bytes",
-        "largest_lfs_object_bytes",
-        "live_release_asset_bytes",
-    }:
-        raise ProtectedM3BootstrapError("protected M3 capacity snapshot schema is invalid")
-    observed_at = _parse_utc(value.get("observed_at_utc"))
-    if observed_at > now or now - observed_at > _CAPACITY_MAX_AGE:
-        raise ProtectedM3BootstrapError("protected M3 capacity observation is absent or stale")
-    limits = CapacityLimits(
-        lfs_storage_budget_bytes=_required_positive_int(
-            limits_value,
-            "lfs_storage_budget_bytes",
-        ),
-        lfs_object_maximum_bytes=_required_positive_int(
-            limits_value,
-            "lfs_object_maximum_bytes",
-        ),
-    )
-    snapshot = CapacitySnapshot(
-        git_repository_bytes=_required_non_negative_int(
-            snapshot_value,
-            "git_repository_bytes",
-        ),
-        lfs_storage_bytes=_required_non_negative_int(snapshot_value, "lfs_storage_bytes"),
-        largest_git_object_bytes=_required_non_negative_int(
-            snapshot_value,
-            "largest_git_object_bytes",
-        ),
-        largest_lfs_object_bytes=_required_non_negative_int(
-            snapshot_value,
-            "largest_lfs_object_bytes",
-        ),
-        live_release_asset_bytes=_required_non_negative_int(
-            snapshot_value,
-            "live_release_asset_bytes",
-        ),
-    )
-    return CapacityPolicy().evaluate(snapshot, limits), observed_at
 
 
 def _load_sender_registry(source: SecretSource) -> SenderRegistry:
@@ -509,44 +440,6 @@ def _load_parser_registry(source: SecretSource) -> ParserProfileRegistry:
         return ParserProfileRegistry.from_json(encoded.reveal().encode("utf-8"))
     finally:
         encoded.destroy()
-
-
-def _required_object(value: dict[str, object], key: str) -> dict[str, object]:
-    item = value.get(key)
-    if not isinstance(item, dict):
-        raise ProtectedM3BootstrapError("protected M3 object field is invalid")
-    return cast(dict[str, object], item)
-
-
-def _required_string(value: dict[str, object], key: str) -> str:
-    item = value.get(key)
-    if not isinstance(item, str) or not item:
-        raise ProtectedM3BootstrapError("protected M3 string field is invalid")
-    return item
-
-
-def _required_positive_int(value: dict[str, object], key: str) -> int:
-    item = value.get(key)
-    if type(item) is not int or item <= 0:
-        raise ProtectedM3BootstrapError("protected M3 positive integer field is invalid")
-    return item
-
-
-def _required_non_negative_int(value: dict[str, object], key: str) -> int:
-    item = value.get(key)
-    if type(item) is not int or item < 0:
-        raise ProtectedM3BootstrapError("protected M3 counter field is invalid")
-    return item
-
-
-def _parse_utc(value: object) -> datetime:
-    if not isinstance(value, str) or not value.endswith("Z"):
-        raise ProtectedM3BootstrapError("protected M3 timestamp is invalid")
-    try:
-        parsed = datetime.fromisoformat(value.removesuffix("Z") + "+00:00")
-    except ValueError as exc:
-        raise ProtectedM3BootstrapError("protected M3 timestamp is invalid") from exc
-    return _require_utc(parsed)
 
 
 def _require_utc(value: datetime) -> datetime:

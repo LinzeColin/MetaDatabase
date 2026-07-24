@@ -1,10 +1,9 @@
 """Explicit protected entrypoint for one Stage 7 M3 Budget-1 Canary.
 
-The entrypoint is default-disabled by the committed Run Contract.  Before reading any protected
-Secret it binds a first-attempt owner dispatch to exact ``main``, validates the protected Beta
-PASS receipt, verifies the current Run Contract explicitly authorizes T0703, and checks a
-same-tree gate digest.  A successful execution emits aggregate-only evidence and never enables
-Timeline, Blue-Green, GA or scheduling.
+Before reading any protected Secret the entrypoint binds a first-attempt owner dispatch to exact
+``main``, validates the protected Beta PASS receipt, verifies the current Run Contract explicitly
+authorizes T0703, and checks a same-tree gate digest.  A successful execution emits aggregate-only
+evidence and never enables Timeline, Blue-Green, GA or scheduling.
 """
 
 from __future__ import annotations
@@ -38,7 +37,7 @@ CONTROL_REPOSITORY_ID = 1_300_525_906
 CONTROL_OWNER_ID = 68_840_188
 CONTROL_REF = "refs/heads/main"
 CONTROL_WORKFLOW_REF = "LinzeColin/MetaDatabase/.github/workflows/moomooau-m3.yml@refs/heads/main"
-PROTECTED_ENVIRONMENT = "moomooau-m3"
+PROTECTED_ENVIRONMENT = "moomooau-beta"
 M3_CONFIRMATION = "M3_BUDGET_ONE"
 
 _BETA_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0702/execution-receipt.json")
@@ -219,7 +218,7 @@ def m3_gate_sha256(project_root: Path) -> str:
 
 
 def execution_contract(project_root: Path) -> dict[str, object]:
-    """Return the non-executing M3 contract and current default-disabled authority state."""
+    """Return the non-executing M3 contract and current explicit authority state."""
 
     root = _validated_project_root(project_root)
     return {
@@ -247,6 +246,7 @@ def execution_contract(project_root: Path) -> dict[str, object]:
             "timeline_enabled": False,
             "mutation_budget_per_run": 1,
             "parser_current_version_required": True,
+            "empty_protected_registries_force_safe_deferred": True,
         },
         "maximum_verified_candidates": 1,
         "maximum_source_mutations": 1,
@@ -465,6 +465,9 @@ def _m3_authorized(project_root: Path) -> bool:
         and budget.get("gmail_mutations_maximum") == 1
         and budget.get("m3_source_mutation_budget_per_run") == 1
         and budget.get("verified_full_raw_message_reads_maximum") == 1
+        and budget.get("processed_writes_maximum") == 1
+        and budget.get("protected_m3_dispatches_maximum") == 1
+        and budget.get("protected_m3_reruns_maximum") == 0
         and budget.get("timeline_writes_maximum") == 0
         and budget.get("scheduled_runs_maximum") == 0
     )

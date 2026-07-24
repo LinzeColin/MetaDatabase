@@ -441,12 +441,21 @@ class M3CanaryRunner:
         first_import_timestamps: FirstImportTimestampSource,
         operational_gate: OperationalGate,
     ) -> None:
-        if (
-            sender_registry.activation is not RegistryActivation.ACTIVE
-            or classification_registry.activation is not ClassificationActivation.ACTIVE
-            or parser_registry.activation is not ParserActivation.ACTIVE
+        active_processing = (
+            classification_registry.activation is ClassificationActivation.ACTIVE
+            and parser_registry.activation is ParserActivation.ACTIVE
+        )
+        safe_deferred_processing = (
+            classification_registry.activation
+            is ClassificationActivation.EMPTY_PROTECTED_EVIDENCE_REQUIRED
+            and parser_registry.activation is ParserActivation.EMPTY_PROTECTED_EVIDENCE_REQUIRED
+            and not classification_registry.rules
+            and not parser_registry.profiles
+        )
+        if sender_registry.activation is not RegistryActivation.ACTIVE or not (
+            active_processing or safe_deferred_processing
         ):
-            raise CanaryRuntimeError("protected M3 registries are not active")
+            raise CanaryRuntimeError("protected M3 registries are incompatible")
         self._gmail = gmail
         self._sender_registry = sender_registry
         self._verifier = verifier
@@ -456,6 +465,7 @@ class M3CanaryRunner:
         self._raw_commit = raw_commit
         self._classification_registry = classification_registry
         self._parser_registry = parser_registry
+        self._safe_deferred_only = safe_deferred_processing
         self._processed_plan_factory = processed_plan_factory
         self._processed_commit = processed_commit
         self._recovery = recovery
@@ -504,9 +514,12 @@ class M3CanaryRunner:
             or not flags.m3_enabled
             or flags.timeline_enabled
             or flags.mutation_budget_per_run != 1
-            or not any(
-                profile.parser_version == parser_current_version
-                for profile in self._parser_registry.profiles
+            or (
+                not self._safe_deferred_only
+                and not any(
+                    profile.parser_version == parser_current_version
+                    for profile in self._parser_registry.profiles
+                )
             )
         ):
             raise CanaryRuntimeError("M3 Canary feature or parser configuration is invalid")
