@@ -185,6 +185,24 @@ const smokeList = lists.body.find((entry) => entry.id === watchlist.body.id);
 assert.equal(smokeList.items.length, 1);
 assert.equal(smokeList.items[0].entity_id, NVIDIA);
 
+// P2-9 drawer: list saved views + unfollow (DELETE watchlist item). Both were
+// missing from the Worker (the drawer degraded); assert them now.
+const savedList = await getJson("/v1/saved-views");
+assert.equal(savedList.status, 200);
+assert.ok(
+  savedList.body.some((v) => v.id === created.body.id),
+  "GET /v1/saved-views must list the created view"
+);
+const unfollow = await getJson(
+  `/v1/watchlists/${watchlist.body.id}/items?entity_id=${NVIDIA}`,
+  { method: "DELETE" }
+);
+assert.equal(unfollow.status, 200);
+assert.equal(unfollow.body.removed, true);
+const afterUnfollow = await getJson("/v1/watchlists");
+const clearedList = afterUnfollow.body.find((entry) => entry.id === watchlist.body.id);
+assert.equal(clearedList.items.length, 0, "unfollow must remove the watchlist item");
+
 const logged = await getJson("/v1/exploration-log", {
   method: "POST",
   headers: { "content-type": "application/json" },
@@ -323,4 +341,4 @@ assert.equal(buildMeta.status, 200);
 assert.equal(buildMeta.body.repo, "LinzeColin/MetaDatabase");
 assert.ok("commit" in buildMeta.body);
 
-console.log("SMOKE_ASSERT_OK routes=28 (+module surfaces)");
+console.log("SMOKE_ASSERT_OK routes=30 (+module surfaces)");

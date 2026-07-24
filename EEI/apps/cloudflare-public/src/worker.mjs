@@ -16,7 +16,9 @@ import {
   createWatchlist,
   getSavedView,
   listExplorationLog,
+  listSavedViews,
   listWatchlists,
+  removeWatchlistItem,
   updateSavedView
 } from "./user_state.mjs";
 import { listCloudRuns, runCloudSync, runHealthHeartbeat } from "./cloud_sync.mjs";
@@ -27,7 +29,7 @@ const GRAPH_HARD_LIMITS = { max_hops: 2, max_nodes: 500, max_edges: 2000, max_pa
 
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, POST, PUT, OPTIONS",
+  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
   "access-control-allow-headers": "content-type"
 };
 
@@ -1506,6 +1508,9 @@ async function handleFetch(request, env) {
     }
 
     // --- user-state routes (S10PBT01): cloud is the source of truth ---
+    if (pathname === "/v1/saved-views" && request.method === "GET") {
+      return listSavedViews(env, json);
+    }
     if (pathname === "/v1/saved-views" && request.method === "POST") {
       return createSavedView(env, await readJsonBody(request), json, badRequest);
     }
@@ -1537,6 +1542,16 @@ async function handleFetch(request, env) {
         env,
         watchlistItemsMatch[1],
         await readJsonBody(request),
+        json,
+        badRequest,
+        notFound
+      );
+    }
+    if (watchlistItemsMatch && request.method === "DELETE") {
+      return removeWatchlistItem(
+        env,
+        watchlistItemsMatch[1],
+        url.searchParams.get("entity_id"),
         json,
         badRequest,
         notFound
