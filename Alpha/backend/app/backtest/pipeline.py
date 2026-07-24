@@ -154,10 +154,18 @@ def simulate_s1(
         idx = ref.index_by_day.get(day)
         if idx is None:
             continue
-        # 评估日:weekly=每周二;monthly=每月第一个周二。数据一律截至前一交易日。
-        is_eval = day.weekday() == 1 and idx >= 1
-        if is_eval and params.eval_frequency == "monthly":
-            is_eval = (day.year, day.month) != last_eval_month
+        # 评估日:daily=每交易日;Nday=每 N 个交易日;weekly=每周二;monthly=每月第一个周二。
+        # 数据一律截至前一交易日(信息不越界)。日频/多日频为 owner 2026-07-24 放宽频率后新增。
+        _freq = params.eval_frequency
+        if _freq == "daily":
+            is_eval = idx >= 1
+        elif _freq.endswith("day") and _freq[:-3].isdigit():
+            is_eval = idx >= 1 and idx % int(_freq[:-3]) == 0
+        elif _freq == "monthly":
+            is_eval = (day.weekday() == 1 and idx >= 1
+                       and (day.year, day.month) != last_eval_month)
+        else:  # weekly(缺省)
+            is_eval = day.weekday() == 1 and idx >= 1
         if is_eval:
             last_eval_month = (day.year, day.month)
             scores: dict[str, float] = {}
@@ -483,8 +491,11 @@ def simulate_s2(
                     result.skipped_infeasible += 1
                     continue
                 cash -= cost
-                result.fees_usd += fee.order_cost_usd(side="BUY", quantity=qty, price=limit)
+                entry_fee = fee.order_cost_usd(side="BUY", quantity=qty, price=limit)
+                result.fees_usd += entry_fee
                 result.orders += 1
+                result.fills.append({"day": day, "sym": order["symbol"], "side": "BUY",
+                                     "qty": qty, "price": limit, "fee": entry_fee})
                 open_trades.append({"symbol": order["symbol"], "qty": qty, "entry": limit,
                                     "entry_day": day, "held": 0})
         # 2) 处理待执行离场(昨日判定,今日收盘成交)
@@ -495,11 +506,13 @@ def simulate_s2(
                 continue
             pending_exits.remove(ex)
             p = ss.closes[j]
-            proceeds = ex["qty"] * p - fee.order_cost_usd(side="SELL", quantity=ex["qty"], price=p)
-            cash += proceeds
-            result.fees_usd += fee.order_cost_usd(side="SELL", quantity=ex["qty"], price=p)
+            exit_fee = fee.order_cost_usd(side="SELL", quantity=ex["qty"], price=p)
+            cash += ex["qty"] * p - exit_fee
+            result.fees_usd += exit_fee
             result.orders += 1
             result.trades += 1
+            result.fills.append({"day": day, "sym": ex["symbol"], "side": "SELL",
+                                 "qty": ex["qty"], "price": p, "fee": exit_fee})
             if p > ex["entry"]:
                 result.wins += 1
         # 3) 持仓天数与当日离场判定
@@ -513,11 +526,13 @@ def simulate_s2(
             stop_price = trade["entry"] * (1 - params.stop_loss_pct / 100.0)
             if close <= stop_price:
                 # 止损:触发日收盘市价成交
-                proceeds = trade["qty"] * close - fee.order_cost_usd(side="SELL", quantity=trade["qty"], price=close)
-                cash += proceeds
-                result.fees_usd += fee.order_cost_usd(side="SELL", quantity=trade["qty"], price=close)
+                stop_fee = fee.order_cost_usd(side="SELL", quantity=trade["qty"], price=close)
+                cash += trade["qty"] * close - stop_fee
+                result.fees_usd += stop_fee
                 result.orders += 1
                 result.trades += 1
+                result.fills.append({"day": day, "sym": trade["symbol"], "side": "SELL",
+                                     "qty": trade["qty"], "price": close, "fee": stop_fee})
                 open_trades.remove(trade)
                 continue
             s5 = ss.sma5[j]
