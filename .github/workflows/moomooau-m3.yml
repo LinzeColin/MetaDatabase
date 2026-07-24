@@ -1,4 +1,4 @@
-name: MooMooAU protected M3 Budget-1 Canary
+name: MooMooAU protected M3 zero-mutation reconciliation
 
 on:
   workflow_dispatch:
@@ -8,17 +8,17 @@ on:
         required: true
         type: string
       confirm_m3:
-        description: Confirm one M3 source mutation after full remote recovery
+        description: Confirm one prior unknown outcome with zero new writes
         required: true
         type: choice
         options:
-          - M3_BUDGET_ONE
+          - M3_RECONCILE_UNKNOWN_MUTATION_ZERO_NEW_WRITES
 
 permissions:
   contents: read
 
 concurrency:
-  group: moomooau-m3-budget-one-single-writer
+  group: moomooau-m3-zero-mutation-reconciliation
   cancel-in-progress: false
 
 jobs:
@@ -50,7 +50,7 @@ jobs:
           test "$GITHUB_WORKFLOW_REF" = \
             "LinzeColin/MetaDatabase/.github/workflows/moomooau-m3.yml@refs/heads/main"
           test "$EXPECTED_HEAD_SHA" = "$GITHUB_SHA"
-          test "$M3_CONFIRMATION" = "M3_BUDGET_ONE"
+          test "$M3_CONFIRMATION" = "M3_RECONCILE_UNKNOWN_MUTATION_ZERO_NEW_WRITES"
           [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
 
       - name: Check out exact main tree without retained credentials
@@ -89,6 +89,7 @@ jobs:
             src/moomooau_archive/release_control.py \
             src/moomooau_archive/canary_runtime.py \
             src/moomooau_archive/document_parser.py \
+            src/moomooau_archive/m3.py \
             src/moomooau_archive/protected_m3.py \
             src/moomooau_archive/protected_m3_diagnostics.py \
             src/moomooau_archive/protected_m3_entrypoint.py \
@@ -99,6 +100,7 @@ jobs:
             src/moomooau_archive/release_control.py \
             src/moomooau_archive/canary_runtime.py \
             src/moomooau_archive/document_parser.py \
+            src/moomooau_archive/m3.py \
             src/moomooau_archive/protected_m3.py \
             src/moomooau_archive/protected_m3_diagnostics.py \
             src/moomooau_archive/protected_m3_entrypoint.py \
@@ -109,6 +111,7 @@ jobs:
             src/moomooau_archive/release_control.py \
             src/moomooau_archive/canary_runtime.py \
             src/moomooau_archive/document_parser.py \
+            src/moomooau_archive/m3.py \
             src/moomooau_archive/protected_m3.py \
             src/moomooau_archive/protected_m3_diagnostics.py \
             src/moomooau_archive/protected_m3_entrypoint.py
@@ -130,7 +133,7 @@ jobs:
             'import json,sys; value=json.load(open(sys.argv[1], encoding="utf-8")); assert value["m3_authorized"] is True; output=open(sys.argv[2], "a", encoding="utf-8"); print("beta_receipt_sha256="+value["beta_receipt_sha256"], file=output); print("m3_gate_sha256="+value["m3_gate_sha256"], file=output)' \
             "$contract" "$GITHUB_OUTPUT"
 
-  m3-budget-one:
+  m3-reconcile-zero-mutation:
     needs: m3-authority-gate
     environment: moomooau-beta
     runs-on: ubuntu-24.04
@@ -174,7 +177,7 @@ jobs:
           python -m pip install --require-hashes -r requirements/stage6.lock
           python -m pip install --no-build-isolation --no-deps .
 
-      - name: Execute exactly one protected M3 Budget-1 Canary
+      - name: Execute exactly one protected M3 zero-new-write reconciliation
         working-directory: LinzeDatabase/MooMooAU
         env:
           MOOMOOAU_PROTECTED_ENVIRONMENT: moomooau-beta

@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0703 四次零观察副作用失败，SAFE_DEFERRED 聚合恢复候选已授权",
-  "phase": "T0703 SAFE_DEFERRED 聚合恢复候选 Budget-1 新候选执行准备",
-  "task": "交付空注册表 SAFE_DEFERRED 顺序修复与封闭聚合失败分类；四个失败头不可 rerun/redispatch，新候选仅执行一次",
+  "stage": "RMD-06 T0703 第五次未知 mutation 结果，零新增写入 reconciliation 已授权",
+  "phase": "T0703 零新增写入未知 mutation reconciliation 执行准备",
+  "task": "交付唯一 processed-current 与 Trash 来源绑定的零写入 reconciliation；五个失败头不可 rerun/redispatch，新候选仅执行一次",
   "owner": "Codex 开发线程"
 }

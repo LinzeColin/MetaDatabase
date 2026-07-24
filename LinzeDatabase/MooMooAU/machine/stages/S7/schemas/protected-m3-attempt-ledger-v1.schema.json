@@ -30,7 +30,7 @@
     "attempts": {
       "type": "array",
       "minItems": 1,
-      "maxItems": 4,
+      "maxItems": 5,
       "items": {
         "$ref": "#/$defs/attempt"
       }
@@ -42,6 +42,7 @@
         "same_head_rerun_allowed",
         "failed_head_redispatch_allowed",
         "repaired_exact_main_candidate_dispatch_allowed",
+        "zero_mutation_reconciliation_dispatch_allowed",
         "next_candidate_dispatch_limit",
         "t0704_authorized",
         "final_publication_authorized"
@@ -54,6 +55,9 @@
           "const": false
         },
         "repaired_exact_main_candidate_dispatch_allowed": {
+          "type": "boolean"
+        },
+        "zero_mutation_reconciliation_dispatch_allowed": {
           "type": "boolean"
         },
         "next_candidate_dispatch_limit": {
@@ -143,7 +147,7 @@
         "sequence": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 4
+          "maximum": 5
         },
         "delivery": {
           "type": "object",
@@ -276,6 +280,12 @@
                 "RESPONSE_SCOPE_REJECTED"
               ]
             },
+            "aggregate_failure_class": {
+              "enum": [
+                "UNCLASSIFIED",
+                "MUTATION_FAILED"
+              ]
+            },
             "exact_root_cause_claimed": {
               "const": false
             },
@@ -292,18 +302,32 @@
           "additionalProperties": false,
           "required": [
             "private_repository_new_commits",
+            "private_repository_head_changed",
             "raw_ciphertext_creations",
             "processed_writes",
+            "processed_current_before_dispatch",
+            "processed_current_after_dispatch",
             "gmail_trash_messages_after_dispatch",
             "source_mutations",
+            "source_mutation_attribution",
             "timeline_writes",
             "scheduled_runs",
             "identity_plaintext_cleanup"
           ],
           "properties": {
             "private_repository_new_commits": {
-              "type": "integer",
-              "minimum": 0
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "const": "NONZERO_NOT_EXACTLY_COUNTED"
+                }
+              ]
+            },
+            "private_repository_head_changed": {
+              "type": "boolean"
             },
             "raw_ciphertext_creations": {
               "enum": [
@@ -319,6 +343,18 @@
                 "NOT_VERIFIED"
               ]
             },
+            "processed_current_before_dispatch": {
+              "enum": [
+                "ZERO",
+                "ONE"
+              ]
+            },
+            "processed_current_after_dispatch": {
+              "enum": [
+                "ZERO",
+                "ONE"
+              ]
+            },
             "gmail_trash_messages_after_dispatch": {
               "type": "integer",
               "minimum": 0
@@ -327,6 +363,13 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 1
+            },
+            "source_mutation_attribution": {
+              "enum": [
+                "ZERO_OBSERVED",
+                "UNCONFIRMED_EXACT_SOURCE",
+                "CONFIRMED_EXACT_SOURCE"
+              ]
             },
             "timeline_writes": {
               "const": 0

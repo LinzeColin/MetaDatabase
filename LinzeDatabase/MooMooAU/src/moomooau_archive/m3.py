@@ -166,18 +166,12 @@ class ExactMessageTrashExecutor:
         recovery_proof: MessageRecoveryProof,
         budget: MutationBudget,
     ) -> M3Result:
-        if (
-            not double_verification_matches(first_verification, second_verification)
-            or message.ref.message_id != second_verification.message_id
-            or message.internal_date_ms != second_verification.internal_date_ms
-            or recovery_proof.message_id != second_verification.message_id
-            or recovery_proof.internal_date_ms != second_verification.internal_date_ms
-            or recovery_proof.verification_digest != second_verification.verification_digest
-            or recovery_proof.recovery_scope is not RecoveryScope.RAW_AND_PROCESSED
-        ):
-            raise M3Error("M3 proof and double verification are not bound")
-        if "SENT" in message.label_ids or "DRAFT" in message.label_ids:
-            raise M3Error("outbound message cannot enter M3")
+        self._validate_binding(
+            message,
+            first_verification,
+            second_verification,
+            recovery_proof,
+        )
         if "TRASH" in message.label_ids:
             return M3Result(M3State.ALREADY_TRASHED, 0, True, "PRECHECK_ALREADY_TRASHED")
 
@@ -195,3 +189,47 @@ class ExactMessageTrashExecutor:
         if "TRASH" not in confirmation.label_ids:
             return M3Result(M3State.FAILED, 1, False, "TRASH_LABEL_NOT_CONFIRMED")
         return M3Result(M3State.TRASHED, 1, True, "EXACT_MESSAGE_TRASH_CONFIRMED")
+
+    def reconcile_already_trashed(
+        self,
+        message: MinimalMessage,
+        first_verification: MessageVerification,
+        second_verification: MessageVerification,
+        recovery_proof: MessageRecoveryProof,
+    ) -> M3Result:
+        """Confirm a prior unknown outcome without issuing any Gmail mutation request."""
+
+        self._validate_binding(
+            message,
+            first_verification,
+            second_verification,
+            recovery_proof,
+        )
+        if "TRASH" not in message.label_ids:
+            raise M3Error("zero-mutation reconciliation requires the source in Trash")
+        return M3Result(
+            M3State.ALREADY_TRASHED,
+            0,
+            True,
+            "PRIOR_UNKNOWN_MUTATION_RECONCILED",
+        )
+
+    @staticmethod
+    def _validate_binding(
+        message: MinimalMessage,
+        first_verification: MessageVerification,
+        second_verification: MessageVerification,
+        recovery_proof: MessageRecoveryProof,
+    ) -> None:
+        if (
+            not double_verification_matches(first_verification, second_verification)
+            or message.ref.message_id != second_verification.message_id
+            or message.internal_date_ms != second_verification.internal_date_ms
+            or recovery_proof.message_id != second_verification.message_id
+            or recovery_proof.internal_date_ms != second_verification.internal_date_ms
+            or recovery_proof.verification_digest != second_verification.verification_digest
+            or recovery_proof.recovery_scope is not RecoveryScope.RAW_AND_PROCESSED
+        ):
+            raise M3Error("M3 proof and double verification are not bound")
+        if "SENT" in message.label_ids or "DRAFT" in message.label_ids:
+            raise M3Error("outbound message cannot enter M3")

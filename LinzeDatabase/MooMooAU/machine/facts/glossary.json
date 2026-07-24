@@ -36,43 +36,43 @@
   "invariants": [
     {
       "rule": "仅处理经确定性双重验证的 Moomoo AU 相关入站消息；其他邮件零读取正文、零下载、零修改。",
-      "note": "v1.0.1 产品契约，由 v1.0.12 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.13 原样继承"
     },
     {
       "rule": "M3 适用于所有已验证 Moomoo 相关入站邮件类型；只调用 users.messages.trash，永久 delete 与 thread trash 永久禁用。",
-      "note": "v1.0.1 产品契约，由 v1.0.12 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.13 原样继承"
     },
     {
       "rule": "公开代码仓固定为 LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU；只有一个由受保护 Repository ID 定位的私有数据仓，私有仓名称不进入公开树。",
-      "note": "v1.0.1 产品契约，由 v1.0.12 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.13 原样继承"
     },
     {
       "rule": "用户电脑与自建服务器不运行、不持久化；生产仅使用 GitHub-hosted/Codex cloud 临时环境。",
-      "note": "v1.0.1 产品契约，由 v1.0.12 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.13 原样继承"
     },
     {
       "rule": "全部 Raw 和敏感 Processed 均 age 加密；公开面只允许脱敏 Inventory、Schema、Evidence。",
-      "note": "v1.0.1 产品契约，由 v1.0.12 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.13 原样继承"
     },
     {
       "rule": "每日以 Australia/Sydney 04:30 为时区感知调度目标；平台延迟或丢弃不伪报准点，下一次运行幂等补偿，周日执行 Full Reconciliation。",
-      "note": "v1.0.1 产品契约，由 v1.0.12 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.13 原样继承"
     },
     {
       "rule": "Timeline 健康稳态恰好一个、任何时刻最多一个加密最新资产：moomooau-live/timeline-latest.png.age；age 密文允许随机变化，逻辑幂等只由 Processed snapshot_root 与明文摘要裁定；串行替换失败可短暂为零并进入确定性修复。",
-      "note": "v1.0.1 产品契约，由 v1.0.12 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.13 原样继承"
     },
     {
       "rule": "Codex 开发线程是用户唯一交互入口；Codex Automation 只做普通被动健康检查，非控制平面关键路径。",
-      "note": "v1.0.1 产品契约，由 v1.0.12 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.13 原样继承"
     },
     {
       "rule": "真实邮件、附件、PDF 密码和 age 私钥永不传给模型。",
-      "note": "v1.0.1 产品契约，由 v1.0.12 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.13 原样继承"
     },
     {
       "rule": "H2 Moomoo Portal、券商交易 API、下单、Sent/Drafts 均不在范围内。",
-      "note": "v1.0.1 产品契约，由 v1.0.12 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.13 原样继承"
     }
   ],
   "terms": [
@@ -222,6 +222,16 @@
       "note": "只允许固定枚举阶段，不包含异常文本或受保护值"
     },
     {
+      "en": "mutation",
+      "zh": "变更操作",
+      "note": "可能改变 Gmail 来源消息状态的受预算操作"
+    },
+    {
+      "en": "processed-current",
+      "zh": "当前处理后数据指针",
+      "note": "绑定不透明来源标识与最新加密 Processed lineage 的私有指针"
+    },
+    {
       "en": "public-safe",
       "zh": "公开安全",
       "note": "可进入公开日志且不含邮箱、机密或 private 仓标识"
@@ -359,7 +369,7 @@
     {
       "en": "T0703_REPAIR_CANDIDATE_PENDING",
       "zh": "T0703 修复候选待执行",
-      "note": "四次 M3 均零观察副作用失败；第四次只公开 AGGREGATE_GATE；任何失败头不可 rerun/redispatch，仅允许一个 SAFE_DEFERRED 聚合恢复候选 attempt 1"
+      "note": "第五次 M3 在完整恢复后返回 MUTATION_FAILED；聚合效果未单独证明精确来源；五个失败头不可 rerun/redispatch，仅允许一个零新增写入 reconciliation attempt 1"
     },
     {
       "en": "FINAL_ACCEPTANCE_BLOCKED",

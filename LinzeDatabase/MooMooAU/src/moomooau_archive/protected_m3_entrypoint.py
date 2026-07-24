@@ -1,9 +1,10 @@
-"""Explicit protected entrypoint for one Stage 7 M3 Budget-1 Canary.
+"""Explicit protected entrypoint for one Stage 7 M3 zero-write reconciliation.
 
 Before reading any protected Secret the entrypoint binds a first-attempt owner dispatch to exact
 ``main``, validates the protected Beta PASS receipt, verifies the current Run Contract explicitly
-authorizes T0703, and checks a same-tree gate digest.  A successful execution emits aggregate-only
-evidence and never enables Timeline, Blue-Green, GA or scheduling.
+authorizes T0703, and checks a same-tree gate digest. A successful execution re-verifies the prior
+unknown mutation outcome without a new Gmail or private-repository write, emits aggregate-only
+evidence, and never enables Timeline, Blue-Green, GA or scheduling.
 """
 
 from __future__ import annotations
@@ -44,7 +45,7 @@ CONTROL_OWNER_ID = 68_840_188
 CONTROL_REF = "refs/heads/main"
 CONTROL_WORKFLOW_REF = "LinzeColin/MetaDatabase/.github/workflows/moomooau-m3.yml@refs/heads/main"
 PROTECTED_ENVIRONMENT = "moomooau-beta"
-M3_CONFIRMATION = "M3_BUDGET_ONE"
+M3_CONFIRMATION = "M3_RECONCILE_UNKNOWN_MUTATION_ZERO_NEW_WRITES"
 
 _BETA_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0702/execution-receipt.json")
 _BETA_RECEIPT_SCHEMA_PATH = Path(
@@ -65,12 +66,14 @@ _GATE_PATHS = (
     Path("src/moomooau_archive/release_control.py"),
     Path("src/moomooau_archive/canary_runtime.py"),
     Path("src/moomooau_archive/document_parser.py"),
+    Path("src/moomooau_archive/m3.py"),
     Path("src/moomooau_archive/protected_m3.py"),
     Path("src/moomooau_archive/protected_m3_diagnostics.py"),
     Path("tests/tasks/test_t0703.py"),
 )
-_PRIOR_FAILED_ATTEMPTS = 4
-_CUMULATIVE_DISPATCHES_AFTER_SUCCESS = 5
+_PRIOR_FAILED_ATTEMPTS = 5
+_ZERO_EFFECT_ATTEMPTS = 4
+_CUMULATIVE_DISPATCHES_AFTER_SUCCESS = 6
 _COMMIT = re.compile(r"^[0-9a-f]{40}$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _POSITIVE_INTEGER = re.compile(r"^[1-9][0-9]*$")
@@ -161,7 +164,7 @@ class ProtectedM3ExecutionEvidence:
         observation = self.observation
         return {
             "schema_version": "moomooau.protected-m3-execution.v1",
-            "status": "PROTECTED_M3_CANARY_COMPLETED_NOT_FINAL",
+            "status": "PROTECTED_M3_ZERO_MUTATION_RECONCILIATION_COMPLETED_NOT_FINAL",
             "control": {
                 "repository_id": self.context.repository_id,
                 "run_id": self.context.run_id,
@@ -183,6 +186,8 @@ class ProtectedM3ExecutionEvidence:
                 "processed_or_safe_deferred_present": observation.processed_messages >= 1,
                 "source_mutation_budget": observation.mutation_budget_max,
                 "source_mutation_confirmed": observation.source_mutations == 1,
+                "current_run_source_mutation_budget": 0,
+                "prior_unknown_mutation_reconciled": True,
                 "remote_recovery_one_hundred_percent": (
                     observation.recovery_attempts >= 1
                     and observation.recovery_successes == observation.recovery_attempts
@@ -196,7 +201,8 @@ class ProtectedM3ExecutionEvidence:
             "public_result": self.public_result,
             "boundaries": {
                 "maximum_verified_candidates": 1,
-                "maximum_source_mutations": 1,
+                "maximum_current_run_source_mutations": 0,
+                "maximum_cumulative_source_mutations": 1,
                 "timeline_enabled": False,
                 "blue_green_enabled": False,
                 "schedule_enabled": False,
@@ -264,12 +270,14 @@ def execution_contract(project_root: Path) -> dict[str, object]:
             "processing_enabled": True,
             "m3_enabled": True,
             "timeline_enabled": False,
-            "mutation_budget_per_run": 1,
+            "release_mutation_budget_ceiling": 1,
+            "reconciliation_new_mutation_budget": 0,
             "parser_current_version_required": True,
             "empty_protected_registries_force_safe_deferred": True,
         },
         "maximum_verified_candidates": 1,
-        "maximum_source_mutations": 1,
+        "maximum_source_mutations": 0,
+        "maximum_cumulative_source_mutations": 1,
         "maximum_timeline_mutations": 0,
         "fixed_calendar_wait_days": 0,
         "real_gmail_calls": 0,
@@ -291,7 +299,7 @@ def execute_protected(
     clock: Callable[[], datetime] | None = None,
     diagnostics: ProtectedM3Diagnostics | None = None,
 ) -> ProtectedM3ExecutionEvidence:
-    """Execute one M3 Canary only after every local non-secret gate passes."""
+    """Execute one M3 reconciliation only after every local non-secret gate passes."""
 
     active_diagnostics = diagnostics or ProtectedM3Diagnostics()
     active_diagnostics.enter(ProtectedM3FailurePhase.CONTEXT_GATE)
@@ -331,7 +339,10 @@ def execute_protected(
             clock=now,
             diagnostics=active_diagnostics,
         )
-    with active_bootstrap.open(predecessor_observations=predecessors) as runtime:
+    with active_bootstrap.open(
+        predecessor_observations=predecessors,
+        reconcile_prior_unknown_mutation=True,
+    ) as runtime:
         result = runtime.run()
     ended_at = _utc_now(now)
     active_diagnostics.enter(ProtectedM3FailurePhase.AGGREGATE_GATE)
@@ -514,7 +525,7 @@ def _load_prior_attempt_count(project_root: Path) -> int:
         jobs = _object_field(attempt_object, "jobs")
         failure = _object_field(attempt_object, "public_failure")
         effects = _object_field(attempt_object, "effects")
-        if (
+        common_invalid = (
             attempt_object.get("sequence") != sequence
             or delivery.get("merge_commit_sha") != workflow.get("workflow_head_sha")
             or delivery.get("main_ci_runs_failed") != 0
@@ -526,14 +537,34 @@ def _load_prior_attempt_count(project_root: Path) -> int:
             or _object_field(jobs, "identity_plaintext_cleanup").get("status") != "PASS"
             or failure.get("status") != "BLOCKED"
             or failure.get("exact_root_cause_claimed") is not False
-            or effects.get("private_repository_new_commits") != 0
-            or effects.get("raw_ciphertext_creations") != "ZERO_OBSERVED"
-            or effects.get("processed_writes") != "ZERO_OBSERVED"
-            or effects.get("gmail_trash_messages_after_dispatch") != 0
             or effects.get("source_mutations") != 0
             or effects.get("timeline_writes") != 0
             or effects.get("scheduled_runs") != 0
-        ):
+        )
+        zero_effect_invalid = sequence <= _ZERO_EFFECT_ATTEMPTS and (
+            effects.get("private_repository_new_commits") != 0
+            or effects.get("private_repository_head_changed") is not False
+            or effects.get("raw_ciphertext_creations") != "ZERO_OBSERVED"
+            or effects.get("processed_writes") != "ZERO_OBSERVED"
+            or effects.get("processed_current_before_dispatch") != "ZERO"
+            or effects.get("processed_current_after_dispatch") != "ZERO"
+            or effects.get("gmail_trash_messages_after_dispatch") != 0
+            or effects.get("source_mutation_attribution") != "ZERO_OBSERVED"
+        )
+        prior_unknown_invalid = sequence == _PRIOR_FAILED_ATTEMPTS and (
+            failure.get("reason_code") != "PROTECTED_M3_AGGREGATE_GATE_FAILED"
+            or failure.get("failure_phase") != "AGGREGATE_GATE"
+            or failure.get("aggregate_failure_class") != "MUTATION_FAILED"
+            or effects.get("private_repository_new_commits") != "NONZERO_NOT_EXACTLY_COUNTED"
+            or effects.get("private_repository_head_changed") is not True
+            or effects.get("raw_ciphertext_creations") != "ZERO_OBSERVED"
+            or effects.get("processed_writes") != "ONE_RECOVERED"
+            or effects.get("processed_current_before_dispatch") != "ZERO"
+            or effects.get("processed_current_after_dispatch") != "ONE"
+            or effects.get("gmail_trash_messages_after_dispatch") != 1
+            or effects.get("source_mutation_attribution") != "UNCONFIRMED_EXACT_SOURCE"
+        )
+        if common_invalid or zero_effect_invalid or prior_unknown_invalid:
             raise ProtectedM3EntrypointError("protected M3 prior attempt is not repair-eligible")
         workflows.append(workflow)
     if (
@@ -541,7 +572,8 @@ def _load_prior_attempt_count(project_root: Path) -> int:
         or len({item.get("run_id") for item in workflows}) != _PRIOR_FAILED_ATTEMPTS
         or policy.get("same_head_rerun_allowed") is not False
         or policy.get("failed_head_redispatch_allowed") is not False
-        or policy.get("repaired_exact_main_candidate_dispatch_allowed") is not True
+        or policy.get("repaired_exact_main_candidate_dispatch_allowed") is not False
+        or policy.get("zero_mutation_reconciliation_dispatch_allowed") is not True
         or policy.get("next_candidate_dispatch_limit") != 1
         or policy.get("t0704_authorized") is not False
         or policy.get("final_publication_authorized") is not False
@@ -568,13 +600,14 @@ def _m3_authorized(project_root: Path) -> bool:
         and authorization.get("m3_authorized") is True
         and authorization.get("final_publication_authorized") is False
         and authorization.get("prior_failed_attempts_exact") == _PRIOR_FAILED_ATTEMPTS
-        and authorization.get("repair_candidate_dispatch_limit") == 1
+        and authorization.get("zero_mutation_reconciliation_dispatch_limit") == 1
         and budget.get("beta_message_budget") == 1
         and budget.get("m3_runs_maximum") == 1
-        and budget.get("gmail_mutations_maximum") == 1
-        and budget.get("m3_source_mutation_budget_per_run") == 1
+        and budget.get("gmail_mutations_maximum") == 0
+        and budget.get("m3_source_mutation_budget_per_run") == 0
         and budget.get("verified_full_raw_message_reads_maximum") == 1
-        and budget.get("processed_writes_maximum") == 1
+        and budget.get("raw_ciphertext_creations_maximum") == 0
+        and budget.get("processed_writes_maximum") == 0
         and budget.get("protected_m3_dispatches_maximum") == 1
         and budget.get("protected_m3_reruns_maximum") == 0
         and budget.get("prior_protected_m3_dispatches_exact") == _PRIOR_FAILED_ATTEMPTS
@@ -595,11 +628,12 @@ def _m3_observation(
         result.raw_archived != 1
         or processed != 1
         or result.full_recovery_successes != 1
-        or result.mutation_calls != 1
-        or result.confirmed_trashed != 1
-        or result.already_trashed != 0
+        or result.mutation_calls != 0
+        or result.confirmed_trashed != 0
+        or result.already_trashed != 1
         or result.failed_mutation_outcomes != 0
         or result.halted_fail_closed
+        or not result.reconciliation_mode
         or result.maximum_live_timeline_assets != 0
     ):
         raise ProtectedM3EntrypointError("protected M3 result is not evidence-complete")
@@ -608,14 +642,14 @@ def _m3_observation(
         provenance=ObservationProvenance.PROTECTED_GITHUB_ACTIONS,
         started_at_utc=started_at,
         ended_at_utc=ended_at,
-        observed_runs=1,
+        observed_runs=2,
         scheduled_0430_runs=0,
-        verified_messages=result.raw_archived,
-        source_mutations=result.confirmed_trashed,
+        verified_messages=2,
+        source_mutations=1,
         mutation_budget_max=1,
-        recovery_attempts=result.full_recovery_successes,
-        recovery_successes=result.full_recovery_successes,
-        processed_messages=processed,
+        recovery_attempts=2,
+        recovery_successes=2,
+        processed_messages=2,
         parser_blue_green_comparisons=0,
         timeline_publish_attempts=0,
         full_reconcile_runs=0,

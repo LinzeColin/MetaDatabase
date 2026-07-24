@@ -335,16 +335,16 @@ def test_rmd06_shallow_acceptance_base_requires_the_exact_provenance_pin(
     monkeypatch: MonkeyPatch,
 ) -> None:
     root = tmp_path / "project"
-    provenance_path = root / acceptance_evidence.RMD06_SOURCE_PROVENANCE
+    provenance_path = root / acceptance_evidence.PORTABLE_SOURCE_PROVENANCE
     provenance_path.parent.mkdir(parents=True)
     provenance: dict[str, Any] = {
-        "schema_version": "moomooau.source-provenance.v7",
-        "effective_package": {"version": "1.0.6"},
+        "schema_version": acceptance_evidence.PORTABLE_SOURCE_PROVENANCE_SCHEMA,
+        "effective_package": {"version": acceptance_evidence.PORTABLE_PACKAGE_VERSION},
         "candidate_snapshot": {
             "repository": "LinzeColin/MetaDatabase",
-            "mainline_base_commit": acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT,
+            "mainline_base_commit": acceptance_evidence.CURRENT_MAINLINE_BASE_COMMIT,
             "acceptance_remediation_base_commit": (
-                acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT
+                acceptance_evidence.ACCEPTANCE_REMEDIATION_BASE_COMMIT
             ),
             "shallow_checkout_fallback": "EXACT_PIN_ONLY",
         },
@@ -366,7 +366,7 @@ def test_rmd06_shallow_acceptance_base_requires_the_exact_provenance_pin(
 
     acceptance_evidence._validate_remediation_base(
         root,
-        acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT,
+        acceptance_evidence.ACCEPTANCE_REMEDIATION_BASE_COMMIT,
     )
     with pytest.raises(acceptance_evidence.AcceptanceEvidenceError):
         acceptance_evidence._validate_remediation_base(root, "0" * 40)
@@ -379,16 +379,16 @@ def test_rmd06_shallow_acceptance_base_requires_the_exact_provenance_pin(
     with pytest.raises(acceptance_evidence.AcceptanceEvidenceError):
         acceptance_evidence._validate_remediation_base(
             root,
-            acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT,
+            acceptance_evidence.ACCEPTANCE_REMEDIATION_BASE_COMMIT,
         )
 
 
-def test_rmd06_package_and_acceptance_use_the_same_clean_mainline_pin() -> None:
+def test_rmd06_package_and_acceptance_use_current_provenance_pins() -> None:
     assert package_validation.CANDIDATE_SNAPSHOT == {
         "repository": "LinzeColin/MetaDatabase",
-        "mainline_base_commit": acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT,
+        "mainline_base_commit": acceptance_evidence.CURRENT_MAINLINE_BASE_COMMIT,
         "acceptance_remediation_base_commit": (
-            acceptance_evidence.RMD06_CLEAN_MAINLINE_BASE_COMMIT
+            acceptance_evidence.ACCEPTANCE_REMEDIATION_BASE_COMMIT
         ),
         "shallow_checkout_fallback": "EXACT_PIN_ONLY",
     }

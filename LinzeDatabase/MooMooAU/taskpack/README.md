@@ -139,7 +139,23 @@ rerun/redispatch；只授权一份全新 exact candidate main 交付和一次 at
 - `SOURCE_PROVENANCE.v1.0.12.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.11.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.10.json`、
+`v1.0.13` 固化第五个不同 exact-main T0703 attempt 的封闭 `MUTATION_FAILED` 结果。后验聚合
+只读证据证明一个可恢复 Processed lineage、processed-current 从 ZERO 到 ONE、private head
+改变及 Gmail Trash aggregate 增加 1，但不证明 exact-source attribution 或更细 mutation
+subreason。新 reconciliation 只选择唯一 verified、已在 Trash、且有该预先加密 pointer 的
+source，重复 Raw/Processed remote recovery 与第二次验证，并以本次 Gmail mutation、Raw creation
+和 Processed write 均为 0 的方式闭合未知结果。五个失败 head 均禁止 rerun/redispatch；只授权
+一份新 exact candidate main 交付和一次 attempt-1 zero-write dispatch，不进入 T0704。当前有效
+入口为：
+
+- `00_READ_ME_FIRST.v1.0.13.md`
+- `ROADMAP.v1.0.13.md`
+- `PACKAGE_MANIFEST.v1.0.13.json`
+- `SOURCE_PROVENANCE.v1.0.13.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.12.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.11.json`、
+`PACKAGE_MANIFEST.v1.0.10.json`、
 `PACKAGE_MANIFEST.v1.0.9.json`、
 `PACKAGE_MANIFEST.v1.0.8.json`、
 `PACKAGE_MANIFEST.v1.0.7.json`、

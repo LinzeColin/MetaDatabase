@@ -18,7 +18,12 @@ from pathlib import Path
 from .age_stream import OfficialAgeStream
 from .attachment_inspector import AttachmentInspector
 from .auth import GMAIL_OAUTH_SECRET_NAME, SecretSource, load_gmail_oauth_credential
-from .canary_runtime import CurrentProcessedPlanFactory, M3CanaryRunner, M3CanaryRunResult
+from .canary_runtime import (
+    CurrentProcessedPlanFactory,
+    ExistingProcessedReconciliationMatcher,
+    M3CanaryRunner,
+    M3CanaryRunResult,
+)
 from .canonical_raw import CanonicalRawFetcher
 from .capacity import CapacityAssessment
 from .document_parser import ParserActivation, ParserProfileRegistry
@@ -157,6 +162,7 @@ class ProtectedM3Runtime:
     _installation_token: InstallationToken
     _opaque_key: SecretBytes
     _identity: _ProtectedIdentityFile
+    _reconcile_prior_unknown_mutation: bool
     _diagnostics: ProtectedM3Diagnostics
     _closed: bool = False
     _run_started: bool = False
@@ -184,6 +190,7 @@ class ProtectedM3Runtime:
                 observed_at_utc=_require_utc(self._clock()),
                 predecessor_observations=self._predecessor_observations,
                 beta_message_budget=self._config.beta_message_budget,
+                reconcile_prior_unknown_mutation=self._reconcile_prior_unknown_mutation,
             )
         finally:
             self.close()
@@ -243,7 +250,10 @@ class ProtectedM3Bootstrap:
         self,
         *,
         predecessor_observations: tuple[PhaseObservation, ...],
+        reconcile_prior_unknown_mutation: bool = False,
     ) -> Iterator[ProtectedM3Runtime]:
+        if type(reconcile_prior_unknown_mutation) is not bool:
+            raise ProtectedM3BootstrapError("protected M3 reconciliation mode is invalid")
         now = _require_utc(self._clock())
         with ExitStack() as resources:
             self._diagnostics.enter(ProtectedM3FailurePhase.CONFIG_CAPACITY)
@@ -365,6 +375,7 @@ class ProtectedM3Bootstrap:
                 allowed_tmpfs_roots=identity.allowed_roots,
             )
             processed_planner = ProcessedCommitPlanner(self._age, config.age_recipient)
+            opaque_ids = OpaqueIdFactory(opaque_key)
             runner = M3CanaryRunner(
                 gmail,
                 sender_registry,
@@ -374,7 +385,7 @@ class ProtectedM3Bootstrap:
                 RawCommitPlanner(
                     self._age,
                     config.age_recipient,
-                    OpaqueIdFactory(opaque_key),
+                    opaque_ids,
                 ),
                 RawCommitSaga(raw_store),
                 classification_registry,
@@ -395,6 +406,10 @@ class ProtectedM3Bootstrap:
                 ),
                 RemoteFirstImportTimestampSource(processed_store, decryptor),
                 OperationalGate(config.capacity),
+                reconciliation_source_matcher=ExistingProcessedReconciliationMatcher(
+                    opaque_ids,
+                    processed_store,
+                ),
                 diagnostics=self._diagnostics,
             )
             runtime = ProtectedM3Runtime(
@@ -406,6 +421,7 @@ class ProtectedM3Bootstrap:
                 installation_token,
                 opaque_key,
                 identity,
+                reconcile_prior_unknown_mutation,
                 self._diagnostics,
             )
             resources.callback(runtime.close)

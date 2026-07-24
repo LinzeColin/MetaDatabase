@@ -25,9 +25,14 @@ RECORD_SCHEMA: Final = Path("machine/acceptance/schemas/acceptance-evidence-v1.s
 SUMMARY_SCHEMA: Final = Path("machine/acceptance/schemas/acceptance-summary-v1.schema.json")
 ORACLE_SCHEMA: Final = Path("machine/acceptance/schemas/oracle-observation-v1.schema.json")
 SUMMARY_PATH: Final = Path("evidence/acceptance/latest.json")
-RMD06_SOURCE_PROVENANCE: Final = Path("taskpack/SOURCE_PROVENANCE.v1.0.6.json")
-RMD06_CLEAN_MAINLINE_BASE_COMMIT: Final = (
-    "932dafae972ab00c3e2259ba3a06f6deaa8e108d"  # pragma: allowlist secret
+PORTABLE_SOURCE_PROVENANCE: Final = Path("taskpack/SOURCE_PROVENANCE.v1.0.13.json")
+PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v13"
+PORTABLE_PACKAGE_VERSION: Final = "1.0.13"
+CURRENT_MAINLINE_BASE_COMMIT: Final = (
+    "589cebacce6aea0d6b0c34780fc4e8f23bbc4b9d"  # pragma: allowlist secret
+)
+ACCEPTANCE_REMEDIATION_BASE_COMMIT: Final = (
+    "c860f3880b48b03c3f71ac79e61e278125fb1811"  # pragma: allowlist secret
 )
 EXPECTED_ACCEPTANCE_IDS: Final = tuple(f"AC-{index:03d}" for index in range(1, 35))
 EXPECTED_REQUIREMENT_IDS: Final = tuple(f"RQ-{index:03d}" for index in range(1, 35))
@@ -156,8 +161,8 @@ def _is_shallow_repository(root: Path) -> bool:
     return completed.returncode == 0 and completed.stdout.strip() == "true"
 
 
-def _rmd06_portable_remediation_base_is_bound(root: Path, value: str) -> bool:
-    provenance_path = root / RMD06_SOURCE_PROVENANCE
+def _portable_remediation_base_is_bound(root: Path, value: str) -> bool:
+    provenance_path = root / PORTABLE_SOURCE_PROVENANCE
     if not provenance_path.is_file() or provenance_path.is_symlink():
         return False
     try:
@@ -165,16 +170,16 @@ def _rmd06_portable_remediation_base_is_bound(root: Path, value: str) -> bool:
     except (AcceptanceEvidenceError, OSError, UnicodeDecodeError, json.JSONDecodeError):
         return False
     return (
-        provenance.get("schema_version") == "moomooau.source-provenance.v7"
-        and provenance.get("effective_package", {}).get("version") == "1.0.6"
+        provenance.get("schema_version") == PORTABLE_SOURCE_PROVENANCE_SCHEMA
+        and provenance.get("effective_package", {}).get("version") == PORTABLE_PACKAGE_VERSION
         and provenance.get("candidate_snapshot")
         == {
             "repository": "LinzeColin/MetaDatabase",
-            "mainline_base_commit": RMD06_CLEAN_MAINLINE_BASE_COMMIT,
-            "acceptance_remediation_base_commit": RMD06_CLEAN_MAINLINE_BASE_COMMIT,
+            "mainline_base_commit": CURRENT_MAINLINE_BASE_COMMIT,
+            "acceptance_remediation_base_commit": ACCEPTANCE_REMEDIATION_BASE_COMMIT,
             "shallow_checkout_fallback": "EXACT_PIN_ONLY",
         }
-        and value == RMD06_CLEAN_MAINLINE_BASE_COMMIT
+        and value == ACCEPTANCE_REMEDIATION_BASE_COMMIT
     )
 
 
@@ -183,9 +188,9 @@ def _validate_remediation_base(root: Path, value: str) -> None:
         _validate_commit_ancestor(root, value, "remediation_base_commit")
     except AcceptanceEvidenceError:
         # actions/checkout intentionally fetches only the candidate tip. In that
-        # environment, accept only the exact clean-mainline pin recorded twice in
-        # this package; a full repository still requires the ordinary ancestry gate.
-        if _is_shallow_repository(root) and _rmd06_portable_remediation_base_is_bound(root, value):
+        # environment, accept only the exact current-package provenance tuple; a
+        # full repository still requires the ordinary ancestry gate.
+        if _is_shallow_repository(root) and _portable_remediation_base_is_bound(root, value):
             return
         raise
 

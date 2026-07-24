@@ -2,7 +2,7 @@
   "schema_version": "moomooau.protected-m3-attempt-ledger.v1",
   "stage_id": "S7",
   "task_id": "T0703",
-  "observed_through_utc": "2026-07-24T05:18:46Z",
+  "observed_through_utc": "2026-07-24T06:34:45Z",
   "attempts": [
     {
       "sequence": 1,
@@ -47,10 +47,14 @@
       },
       "effects": {
         "private_repository_new_commits": 0,
+        "private_repository_head_changed": false,
         "raw_ciphertext_creations": "ZERO_OBSERVED",
         "processed_writes": "ZERO_OBSERVED",
+        "processed_current_before_dispatch": "ZERO",
+        "processed_current_after_dispatch": "ZERO",
         "gmail_trash_messages_after_dispatch": 0,
         "source_mutations": 0,
+        "source_mutation_attribution": "ZERO_OBSERVED",
         "timeline_writes": 0,
         "scheduled_runs": 0,
         "identity_plaintext_cleanup": "PASS"
@@ -112,10 +116,14 @@
       },
       "effects": {
         "private_repository_new_commits": 0,
+        "private_repository_head_changed": false,
         "raw_ciphertext_creations": "ZERO_OBSERVED",
         "processed_writes": "ZERO_OBSERVED",
+        "processed_current_before_dispatch": "ZERO",
+        "processed_current_after_dispatch": "ZERO",
         "gmail_trash_messages_after_dispatch": 0,
         "source_mutations": 0,
+        "source_mutation_attribution": "ZERO_OBSERVED",
         "timeline_writes": 0,
         "scheduled_runs": 0,
         "identity_plaintext_cleanup": "PASS"
@@ -177,10 +185,14 @@
       },
       "effects": {
         "private_repository_new_commits": 0,
+        "private_repository_head_changed": false,
         "raw_ciphertext_creations": "ZERO_OBSERVED",
         "processed_writes": "ZERO_OBSERVED",
+        "processed_current_before_dispatch": "ZERO",
+        "processed_current_after_dispatch": "ZERO",
         "gmail_trash_messages_after_dispatch": 0,
         "source_mutations": 0,
+        "source_mutation_attribution": "ZERO_OBSERVED",
         "timeline_writes": 0,
         "scheduled_runs": 0,
         "identity_plaintext_cleanup": "PASS"
@@ -243,10 +255,14 @@
       },
       "effects": {
         "private_repository_new_commits": 0,
+        "private_repository_head_changed": false,
         "raw_ciphertext_creations": "ZERO_OBSERVED",
         "processed_writes": "ZERO_OBSERVED",
+        "processed_current_before_dispatch": "ZERO",
+        "processed_current_after_dispatch": "ZERO",
         "gmail_trash_messages_after_dispatch": 0,
         "source_mutations": 0,
+        "source_mutation_attribution": "ZERO_OBSERVED",
         "timeline_writes": 0,
         "scheduled_runs": 0,
         "identity_plaintext_cleanup": "PASS"
@@ -265,12 +281,84 @@
           "the repair preserves BLOCKED quarantine when an active parser profile exists and adds a closed aggregate failure class without exposing dynamic values"
         ]
       }
+    },
+    {
+      "sequence": 5,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 106,
+        "merge_commit_sha": "c860f3880b48b03c3f71ac79e61e278125fb1811",
+        "main_ci_runs_passed": 10,
+        "main_ci_runs_failed": 0
+      },
+      "workflow": {
+        "run_id": 30072484529,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30072484529",
+        "event": "workflow_dispatch",
+        "workflow_head_sha": "c860f3880b48b03c3f71ac79e61e278125fb1811",
+        "run_attempt": 1,
+        "reruns": 0
+      },
+      "jobs": {
+        "authority_gate": {
+          "status": "PASS",
+          "started_at_utc": "2026-07-24T06:30:51Z",
+          "completed_at_utc": "2026-07-24T06:31:57Z"
+        },
+        "m3_budget_one": {
+          "status": "FAILED",
+          "started_at_utc": "2026-07-24T06:32:01Z",
+          "completed_at_utc": "2026-07-24T06:34:44Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-24T06:34:41Z"
+        }
+      },
+      "public_failure": {
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_M3_AGGREGATE_GATE_FAILED",
+        "failure_phase": "AGGREGATE_GATE",
+        "installation_token_failure_class": "UNCLASSIFIED",
+        "aggregate_failure_class": "MUTATION_FAILED",
+        "exact_root_cause_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "private_repository_new_commits": "NONZERO_NOT_EXACTLY_COUNTED",
+        "private_repository_head_changed": true,
+        "raw_ciphertext_creations": "ZERO_OBSERVED",
+        "processed_writes": "ONE_RECOVERED",
+        "processed_current_before_dispatch": "ZERO",
+        "processed_current_after_dispatch": "ONE",
+        "gmail_trash_messages_after_dispatch": 1,
+        "source_mutations": 0,
+        "source_mutation_attribution": "UNCONFIRMED_EXACT_SOURCE",
+        "timeline_writes": 0,
+        "scheduled_runs": 0,
+        "identity_plaintext_cleanup": "PASS"
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "AFTER_RAW_AND_PROCESSED_RECOVERY_AT_UNKNOWN_TRASH_MUTATION_OUTCOME",
+        "exact_root_cause": "NOT_CLAIMED_FROM_CLOSED_MUTATION_FAILURE_CLASS_AND_AGGREGATE_EFFECTS",
+        "high_confidence_defect": "UNKNOWN_MUTATION_OUTCOME_REQUIRES_ZERO_MUTATION_RECONCILIATION",
+        "basis": [
+          "the public closed aggregate class MUTATION_FAILED is reachable only after one Raw archive, one Processed or SAFE_DEFERRED result, full remote recovery and one failed mutation outcome",
+          "the exact private repository head and tree changed while Raw path counts were unchanged and one Processed object, one Processed manifest and one processed-current pointer appeared",
+          "the connected Gmail Trash aggregate increased by one and remained stable on an independent second read",
+          "aggregate effects do not by themselves prove that the new Trash label and new encrypted Processed state belong to the same exact source",
+          "the failed c860f388 head remains attempt 1 and is permanently ineligible for rerun or redispatch",
+          "only a unique deterministically verified Trash source bound to the sole pre-existing encrypted processed-current pointer can close attribution without another Gmail mutation"
+        ]
+      }
     }
   ],
   "completion_policy": {
     "same_head_rerun_allowed": false,
     "failed_head_redispatch_allowed": false,
-    "repaired_exact_main_candidate_dispatch_allowed": true,
+    "repaired_exact_main_candidate_dispatch_allowed": false,
+    "zero_mutation_reconciliation_dispatch_allowed": true,
     "next_candidate_dispatch_limit": 1,
     "t0704_authorized": false,
     "final_publication_authorized": false

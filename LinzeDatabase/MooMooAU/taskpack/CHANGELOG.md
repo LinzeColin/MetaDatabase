@@ -1,5 +1,23 @@
 # Taskpack Changelog
 
+## 1.0.13 — 2026-07-24
+
+固化 T0703 第五个 exact-main attempt 的 `MUTATION_FAILED` 结果，并只授权一个零新增写入
+reconciliation 候选。
+
+- 绑定 PR #106、main `c860f388…`、workflow run `30072484529`、authority PASS、M3 FAILED、
+  identity cleanup PASS 与 rerun 0；
+- 后验聚合只读核验观察到 private head 改变、一个可恢复 Processed lineage、
+  processed-current `ZERO → ONE` 与 Gmail Trash aggregate 增加 1；这些聚合不证明 exact-source
+  attribution，也不证明更细 mutation subreason；
+- 全邮箱 metadata 筛选必须得到唯一 verified、已在 Trash、且 opaque source ID 存在该预先加密
+  processed-current pointer 的候选；零或多个匹配均 fail closed；
+- 对唯一候选重复 Canonical Raw/Processed 规划、Raw 与 Processed remote recovery 和第二次身份
+  验证，完全跳过 Raw/Processed commit saga，且不调用 Gmail mutation transport；
+- 本次 Run Contract 的 Gmail mutation、Raw ciphertext creation 与 Processed write budget均为 0；
+- 五个失败 head 均禁止 rerun/redispatch；只允许一份新 exact candidate main 交付和一次
+  attempt-1 zero-write dispatch；T0704、Timeline、GA、schedule 与最终发布继续为 0/未授权。
+
 ## 1.0.12 — 2026-07-24
 
 固化 T0703 第四个 exact-main attempt 在 `AGGREGATE_GATE` 的零观察副作用失败，并只授权一个

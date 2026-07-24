@@ -1,8 +1,8 @@
 [
   {
-    "version": "1.0.12",
+    "version": "1.0.13",
     "date": "2026-07-24",
-    "summary": "固化 T0703 第四次 protected M3 在 AGGREGATE_GATE 的零观察副作用失败；不据聚合输出声称精确线上根因。静态契约验证并修复空分类/解析注册表下隔离附件可能错误产生 BLOCKED 的顺序冲突，并增加封闭聚合失败分类。四个失败头均禁止 rerun/redispatch，仅授权一个新候选 attempt 1。"
+    "summary": "固化 T0703 第五次 protected M3 在完整 Raw/Processed 恢复后的 MUTATION_FAILED；独立聚合观察到 processed-current 从零变一与 Gmail Trash 加一，但不据此声称精确来源归因或 mutation 子原因。新增唯一 processed-current/Trash 来源选择、二次验证和零 Gmail/私有仓写入 reconciliation；五个失败头均禁止 rerun/redispatch。"
   },
   {
     "version": "1.0.11",

@@ -241,6 +241,106 @@ def test_t0703_m3_runner_recovers_processed_then_mutates_exactly_one_and_retries
         assert first.maximum_live_timeline_assets == second.maximum_live_timeline_assets == 0
 
 
+def test_t0703_reconciles_the_preexisting_trashed_source_with_zero_new_writes() -> None:
+    message = m3_canary_message("msg-stage7-m3-unknown-outcome-reconciliation")
+    observed = datetime(2026, 7, 24, tzinfo=UTC)
+    predecessors = (
+        phase_observation(ReleasePhase.ALPHA),
+        phase_observation(ReleasePhase.BETA_RAW_ONLY),
+    )
+    with m3_canary_context((message,)) as context:
+        initial = context.runner.run(
+            ReleasePhase.M3_CANARY,
+            maximum_verified_candidates=1,
+            key_epoch="synthetic-epoch-1",
+            parser_current_version="1.0.0",
+            observed_at_utc=observed,
+            predecessor_observations=predecessors,
+            beta_message_budget=1,
+        )
+        assert initial.confirmed_trashed == initial.mutation_calls == 1
+        raw_writes = context.raw_store.create_calls
+        processed_writes = context.processed_store.write_calls
+        trash_calls = len(context.transport.trashed_ids)
+
+        reconciled = context.runner.run(
+            ReleasePhase.M3_CANARY,
+            maximum_verified_candidates=1,
+            key_epoch="synthetic-epoch-1",
+            parser_current_version="1.0.0",
+            observed_at_utc=observed,
+            predecessor_observations=predecessors,
+            beta_message_budget=1,
+            reconcile_prior_unknown_mutation=True,
+        )
+
+        assert reconciled.reconciliation_mode is True
+        assert reconciled.raw_archived == reconciled.full_recovery_successes == 1
+        assert reconciled.processed_complete == reconciled.already_trashed == 1
+        assert reconciled.mutation_calls == reconciled.confirmed_trashed == 0
+        assert context.raw_store.create_calls == raw_writes
+        assert context.processed_store.write_calls == processed_writes
+        assert len(context.transport.trashed_ids) == trash_calls
+        assert reconciled.to_public_dict()["new_mutation_budget_max"] == 0
+        assert reconciled.to_public_dict()["reconciled_prior_unknown_mutation_bucket"] == "ONE"
+
+
+def test_t0703_zero_mutation_reconciliation_rejects_no_or_multiple_exact_matches() -> None:
+    messages = (
+        m3_canary_message("msg-stage7-m3-reconcile-first"),
+        m3_canary_message("msg-stage7-m3-reconcile-second"),
+    )
+    observed = datetime(2026, 7, 24, tzinfo=UTC)
+    predecessors = (
+        phase_observation(ReleasePhase.ALPHA),
+        phase_observation(ReleasePhase.BETA_RAW_ONLY),
+    )
+    with m3_canary_context(messages) as context:
+        with pytest.raises(CanaryRuntimeError, match="not exactly one"):
+            context.runner.run(
+                ReleasePhase.M3_CANARY,
+                maximum_verified_candidates=1,
+                key_epoch="synthetic-epoch-1",
+                parser_current_version="1.0.0",
+                observed_at_utc=observed,
+                predecessor_observations=predecessors,
+                beta_message_budget=1,
+                reconcile_prior_unknown_mutation=True,
+            )
+        assert context.raw_store.create_calls == 0
+        assert context.processed_store.write_calls == 0
+        assert context.transport.trashed_ids == []
+
+        for _ in range(2):
+            context.runner.run(
+                ReleasePhase.M3_CANARY,
+                maximum_verified_candidates=2,
+                key_epoch="synthetic-epoch-1",
+                parser_current_version="1.0.0",
+                observed_at_utc=observed,
+                predecessor_observations=predecessors,
+                beta_message_budget=1,
+            )
+        assert set(context.transport.trashed_ids) == {item.message_id for item in messages}
+        raw_writes = context.raw_store.create_calls
+        processed_writes = context.processed_store.write_calls
+        trash_calls = len(context.transport.trashed_ids)
+        with pytest.raises(CanaryRuntimeError, match="not exactly one"):
+            context.runner.run(
+                ReleasePhase.M3_CANARY,
+                maximum_verified_candidates=1,
+                key_epoch="synthetic-epoch-1",
+                parser_current_version="1.0.0",
+                observed_at_utc=observed,
+                predecessor_observations=predecessors,
+                beta_message_budget=1,
+                reconcile_prior_unknown_mutation=True,
+            )
+        assert context.raw_store.create_calls == raw_writes
+        assert context.processed_store.write_calls == processed_writes
+        assert len(context.transport.trashed_ids) == trash_calls
+
+
 def test_t0703_m3_runner_quarantines_unverifiable_metadata_then_completes_budget_one() -> None:
     malformed = m3_canary_message("msg-stage7-m3-0-malformed")
     verified = m3_canary_message("msg-stage7-m3-1-verified")
@@ -361,6 +461,34 @@ def test_t0703_protected_m3_bootstrap_recovers_processed_before_exact_trash_and_
     assert context.source.all_issued_destroyed
 
 
+def test_t0703_protected_bootstrap_reconciles_without_gmail_or_repository_write() -> None:
+    message = m3_canary_message("msg-stage7-protected-m3-zero-write-reconciliation")
+    predecessors = (
+        phase_observation(ReleasePhase.ALPHA),
+        phase_observation(ReleasePhase.BETA_RAW_ONLY),
+    )
+    with protected_m3_context((message,)) as context:
+        with context.bootstrap.open(predecessor_observations=predecessors) as runtime:
+            initial = runtime.run()
+        assert initial.confirmed_trashed == initial.mutation_calls == 1
+        repository_writes = context.github_transport.write_calls
+        trash_calls = len(context.gmail_transport.trashed_ids)
+
+        with context.bootstrap.open(
+            predecessor_observations=predecessors,
+            reconcile_prior_unknown_mutation=True,
+        ) as runtime:
+            reconciled = runtime.run()
+
+        assert reconciled.reconciliation_mode is True
+        assert reconciled.already_trashed == 1
+        assert reconciled.mutation_calls == reconciled.confirmed_trashed == 0
+        assert context.github_transport.write_calls == repository_writes
+        assert len(context.gmail_transport.trashed_ids) == trash_calls
+        assert list(context.tmpfs_root.iterdir()) == []
+    assert context.source.all_issued_destroyed
+
+
 def test_t0703_empty_protected_processing_registries_force_recoverable_safe_deferred() -> None:
     message = m3_canary_message("msg-stage7-protected-m3-empty-registry")
     predecessors = (
@@ -456,20 +584,21 @@ def _authorized_project_root(tmp_path: Path) -> Path:
         "purpose": "T0703_PROTECTED_M3_REPAIR_ONLY",
         "m3_authorized": True,
         "final_publication_authorized": False,
-        "prior_failed_attempts_exact": 4,
-        "repair_candidate_dispatch_limit": 1,
+        "prior_failed_attempts_exact": 5,
+        "zero_mutation_reconciliation_dispatch_limit": 1,
     }
     run_contract["authorized_effect_budget"] = {
         "beta_message_budget": 1,
         "m3_runs_maximum": 1,
-        "gmail_mutations_maximum": 1,
-        "m3_source_mutation_budget_per_run": 1,
+        "gmail_mutations_maximum": 0,
+        "m3_source_mutation_budget_per_run": 0,
         "verified_full_raw_message_reads_maximum": 1,
-        "processed_writes_maximum": 1,
+        "raw_ciphertext_creations_maximum": 0,
+        "processed_writes_maximum": 0,
         "protected_m3_dispatches_maximum": 1,
         "protected_m3_reruns_maximum": 0,
-        "prior_protected_m3_dispatches_exact": 4,
-        "cumulative_protected_m3_dispatches_after_success_maximum": 5,
+        "prior_protected_m3_dispatches_exact": 5,
+        "cumulative_protected_m3_dispatches_after_success_maximum": 6,
         "timeline_writes_maximum": 0,
         "scheduled_runs_maximum": 0,
     }
@@ -496,12 +625,13 @@ class _SyntheticProtectedM3Runtime:
             processed_safe_deferred=0,
             processing_blocked=0,
             full_recovery_successes=1,
-            mutation_calls=1,
-            confirmed_trashed=1,
-            already_trashed=0,
+            mutation_calls=0,
+            confirmed_trashed=0,
+            already_trashed=1,
             failed_mutation_outcomes=0,
             deferred_mutations=0,
             halted_fail_closed=False,
+            reconciliation_mode=True,
         )
 
 
@@ -515,7 +645,9 @@ class _SyntheticProtectedM3Bootstrap:
         self,
         *,
         predecessor_observations: tuple[object, ...],
+        reconcile_prior_unknown_mutation: bool = False,
     ) -> Iterator[_SyntheticProtectedM3Runtime]:
+        assert reconcile_prior_unknown_mutation is True
         self.predecessors = predecessor_observations
         yield _SyntheticProtectedM3Runtime(self._result)
 
@@ -536,19 +668,21 @@ def test_t0703_protected_entrypoint_contract_is_authorized_and_receipt_bound() -
     assert "required_secret_names" not in contract
     assert contract["beta_receipt_sha256"] == beta_receipt_sha256(PROJECT_ROOT)
     assert contract["prior_attempt_ledger_path"].endswith("t0703/attempt-ledger.json")
-    assert contract["prior_failed_attempts"] == 4
+    assert contract["prior_failed_attempts"] == 5
     assert contract["same_head_rerun_allowed"] is False
     assert contract["m3_gate_sha256"] == m3_gate_sha256(PROJECT_ROOT)
     assert contract["feature_invariants"] == {
         "processing_enabled": True,
         "m3_enabled": True,
         "timeline_enabled": False,
-        "mutation_budget_per_run": 1,
+        "release_mutation_budget_ceiling": 1,
+        "reconciliation_new_mutation_budget": 0,
         "parser_current_version_required": True,
         "empty_protected_registries_force_safe_deferred": True,
     }
     assert contract["maximum_verified_candidates"] == 1
-    assert contract["maximum_source_mutations"] == 1
+    assert contract["maximum_source_mutations"] == 0
+    assert contract["maximum_cumulative_source_mutations"] == 1
     assert contract["maximum_timeline_mutations"] == 0
     assert contract["fixed_calendar_wait_days"] == 0
     assert contract["real_gmail_calls"] == 0
@@ -652,17 +786,19 @@ def test_t0703_authorized_entrypoint_emits_aggregate_only_evidence(tmp_path: Pat
     )
     rendered = evidence.to_dict()
     assert len(bootstrap.predecessors) == 2
-    assert rendered["status"] == "PROTECTED_M3_CANARY_COMPLETED_NOT_FINAL"
+    assert rendered["status"] == "PROTECTED_M3_ZERO_MUTATION_RECONCILIATION_COMPLETED_NOT_FINAL"
     assert rendered["m3_gate_status"] == "PASS"
     assert rendered["phase_observation"] == {
         "phase": "M3_CANARY",
         "provenance": "PROTECTED_GITHUB_ACTIONS",
         "started_at_utc": "2026-07-24T01:00:00Z",
         "ended_at_utc": "2026-07-24T01:00:00Z",
-        "observed_runs": 1,
+        "observed_runs": 2,
         "processed_or_safe_deferred_present": True,
         "source_mutation_budget": 1,
         "source_mutation_confirmed": True,
+        "current_run_source_mutation_budget": 0,
+        "prior_unknown_mutation_reconciled": True,
         "remote_recovery_one_hundred_percent": True,
         "collateral_mutations": 0,
         "timeline_publish_attempts": 0,
@@ -671,10 +807,13 @@ def test_t0703_authorized_entrypoint_emits_aggregate_only_evidence(tmp_path: Pat
         "exact_mailbox_counts_disclosed": False,
     }
     assert rendered["public_result"]["verified_bucket"] == "TEN_PLUS"
-    assert rendered["public_result"]["confirmed_trashed_bucket"] == "ONE"
+    assert rendered["public_result"]["confirmed_trashed_bucket"] == "ZERO"
+    assert rendered["public_result"]["reconciled_prior_unknown_mutation_bucket"] == "ONE"
+    assert rendered["public_result"]["new_mutation_budget_max"] == 0
     assert rendered["boundaries"] == {
         "maximum_verified_candidates": 1,
-        "maximum_source_mutations": 1,
+        "maximum_current_run_source_mutations": 0,
+        "maximum_cumulative_source_mutations": 1,
         "timeline_enabled": False,
         "blue_green_enabled": False,
         "schedule_enabled": False,
@@ -747,11 +886,11 @@ def test_t0703_protected_workflow_is_manual_main_only_authorized_and_exact_eight
     assert workflow["on"].keys() == {"workflow_dispatch"}
     assert workflow["permissions"] == {"contents": "read"}
     assert workflow["concurrency"] == {
-        "group": "moomooau-m3-budget-one-single-writer",
+        "group": "moomooau-m3-zero-mutation-reconciliation",
         "cancel-in-progress": "false",
     }
     gate = workflow["jobs"]["m3-authority-gate"]
-    execution = workflow["jobs"]["m3-budget-one"]
+    execution = workflow["jobs"]["m3-reconcile-zero-mutation"]
     assert execution["needs"] == "m3-authority-gate"
     assert execution["environment"] == "moomooau-beta"
     assert gate["steps"][0]["name"] == "Fail closed on invalid protected M3 dispatch context"
@@ -759,6 +898,7 @@ def test_t0703_protected_workflow_is_manual_main_only_authorized_and_exact_eight
     assert 'test "$GITHUB_RUN_ATTEMPT" = "1"' in gate["steps"][0]["run"]
     assert 'test "$RUNNER_ENVIRONMENT" = "github-hosted"' in gate["steps"][0]["run"]
     assert 'test "$EXPECTED_HEAD_SHA" = "$GITHUB_SHA"' in gate["steps"][0]["run"]
+    assert M3_CONFIRMATION in gate["steps"][0]["run"]
     assert 'assert value["m3_authorized"] is True' in text
     assert "if" not in gate
     assert "if" not in execution
@@ -769,6 +909,7 @@ def test_t0703_protected_workflow_is_manual_main_only_authorized_and_exact_eight
     assert "--contract-only" in text
     assert "--execute-protected" in text
     assert "tests/tasks/test_t0702.py tests/tasks/test_t0703.py" in text
+    assert "src/moomooau_archive/m3.py" in text
     age_archive_sha256 = "bdc69c09cbdd6cf8b1f333d372a1f58247b3a33146406333e30c0f26e8f51377"
     assert text.count(age_archive_sha256) == 2
     assert "refs/heads/main" in text

@@ -27,6 +27,7 @@ from .gmail_discovery import (
     FullMailboxDiscoverer,
     GmailReadClient,
     MessageMetadataUnverifiable,
+    MinimalMessage,
 )
 from .m3 import ExactMessageTrashExecutor, M3State, MutationBudget, MutationPhase
 from .operation_gate import OperationalGate, SensitiveOperation
@@ -52,10 +53,11 @@ from .protected_beta_diagnostics import (
     ProtectedBetaFailurePhase,
 )
 from .protected_m3_diagnostics import ProtectedM3Diagnostics, ProtectedM3FailurePhase
-from .raw_commit import RawCommitPlanner, RawCommitSaga
+from .raw_commit import OpaqueIdFactory, RawCommitPlanner, RawCommitSaga
 from .release_control import FeatureFlags, PhaseObservation, ReleasePhase, Stage7ReleaseGate
 from .remote_recovery_gate import CiphertextDecryptor, RemoteRecoveryGate
 from .sender_registry import (
+    MessageVerification,
     RegistryActivation,
     SenderDecision,
     SenderRegistry,
@@ -78,6 +80,29 @@ class ProcessedPlanFactory(Protocol):
     """Bind a Processed bundle to the currently encrypted remote pointer."""
 
     def plan(self, bundle: ProcessedBundle, *, key_epoch: str) -> ProcessedCommitPlan: ...
+
+
+class ReconciliationSourceMatcher(Protocol):
+    """Identify a source backed by a pre-existing encrypted Processed pointer."""
+
+    def has_preexisting_current(self, gmail_message_id: str) -> bool: ...
+
+
+class ExistingProcessedReconciliationMatcher:
+    """Match only an opaque source whose current pointer existed before this run writes."""
+
+    def __init__(
+        self,
+        opaque_ids: OpaqueIdFactory,
+        store: ProcessedCiphertextStore,
+    ) -> None:
+        self._opaque_ids = opaque_ids
+        self._store = store
+
+    def has_preexisting_current(self, gmail_message_id: str) -> bool:
+        source_id = self._opaque_ids.message_id(gmail_message_id)
+        pointer_path = f"MooMooAU/State/processed-current/{source_id}.json.age"
+        return self._store.fetch_current(pointer_path) is not None
 
 
 class CurrentProcessedPlanFactory:
@@ -329,7 +354,7 @@ class RawOnlyCanaryRunner:
 
 @dataclass(frozen=True, slots=True, repr=False)
 class M3CanaryRunResult:
-    """Aggregate-only result for one protected M3 Canary attempt."""
+    """Aggregate-only result for one protected M3 attempt or zero-write reconciliation."""
 
     phase: ReleasePhase
     discovered_refs: int
@@ -347,6 +372,7 @@ class M3CanaryRunResult:
     failed_mutation_outcomes: int
     deferred_mutations: int
     halted_fail_closed: bool
+    reconciliation_mode: bool = False
     maximum_live_timeline_assets: int = 0
 
     def __post_init__(self) -> None:
@@ -378,6 +404,7 @@ class M3CanaryRunResult:
             self.phase is not ReleasePhase.M3_CANARY
             or any(type(value) is not int or value < 0 for value in counters)
             or type(self.halted_fail_closed) is not bool
+            or type(self.reconciliation_mode) is not bool
             or self.raw_archived > self.verified_candidates
             or recovered_processed + self.processing_blocked != self.raw_archived
             or self.full_recovery_successes != recovered_processed
@@ -387,6 +414,14 @@ class M3CanaryRunResult:
             or self.confirmed_trashed > 1
             or self.failed_mutation_outcomes > 1
             or self.halted_fail_closed != (self.failed_mutation_outcomes > 0)
+            or (
+                self.reconciliation_mode
+                and (
+                    self.mutation_calls != 0
+                    or self.confirmed_trashed != 0
+                    or self.already_trashed > 1
+                )
+            )
             or self.maximum_live_timeline_assets != 0
         ):
             raise CanaryRuntimeError("M3 Canary result is internally inconsistent")
@@ -411,8 +446,13 @@ class M3CanaryRunResult:
             "metadata_quarantine_bucket": _bucket(self.metadata_quarantined),
             "processed_or_safe_deferred_bucket": _bucket(self.full_recovery_successes),
             "mutation_budget_max": 1,
+            "new_mutation_budget_max": 0 if self.reconciliation_mode else 1,
+            "reconciliation_mode": self.reconciliation_mode,
             "mutation_calls_bucket": _bucket(self.mutation_calls),
             "confirmed_trashed_bucket": _bucket(self.confirmed_trashed),
+            "reconciled_prior_unknown_mutation_bucket": _bucket(
+                self.already_trashed if self.reconciliation_mode else 0
+            ),
             "failed_mutation_outcomes_bucket": _bucket(self.failed_mutation_outcomes),
             "maximum_live_timeline_assets": 0,
             "timeline_enabled": False,
@@ -421,10 +461,11 @@ class M3CanaryRunResult:
 
 
 class M3CanaryRunner:
-    """Archive, process, recover and then mutate at most one exact verified message.
+    """Archive, process and recover one exact verified message before its bounded M3 action.
 
     All adapters and protected registries are injected.  The runner never loads a credential,
     repository locator, sender or parser profile by itself, and it has no Timeline dependency.
+    Reconciliation mode skips both persistence sagas and permits only an already-Trashed proof.
     """
 
     def __init__(
@@ -444,6 +485,7 @@ class M3CanaryRunner:
         trash_executor: ExactMessageTrashExecutor,
         first_import_timestamps: FirstImportTimestampSource,
         operational_gate: OperationalGate,
+        reconciliation_source_matcher: ReconciliationSourceMatcher | None = None,
         diagnostics: ProtectedM3Diagnostics | None = None,
     ) -> None:
         active_processing = (
@@ -477,6 +519,7 @@ class M3CanaryRunner:
         self._trash_executor = trash_executor
         self._first_import_timestamps = first_import_timestamps
         self._operational_gate = operational_gate
+        self._reconciliation_source_matcher = reconciliation_source_matcher
         self._diagnostics = diagnostics or ProtectedM3Diagnostics()
         self._classifier = DocumentClassifier()
         self._envelope_factory = DocumentEnvelopeFactory()
@@ -494,6 +537,7 @@ class M3CanaryRunner:
         observed_at_utc: datetime,
         predecessor_observations: tuple[PhaseObservation, ...],
         beta_message_budget: int,
+        reconcile_prior_unknown_mutation: bool = False,
     ) -> M3CanaryRunResult:
         self._diagnostics.enter(ProtectedM3FailurePhase.RUNTIME_PREFLIGHT)
         if (
@@ -502,6 +546,8 @@ class M3CanaryRunner:
             or maximum_verified_candidates <= 0
             or not key_epoch
             or not _is_utc(observed_at_utc)
+            or type(reconcile_prior_unknown_mutation) is not bool
+            or (reconcile_prior_unknown_mutation and self._reconciliation_source_matcher is None)
         ):
             raise CanaryRuntimeError("M3 Canary run configuration is invalid")
         promotion = Stage7ReleaseGate().evaluate_promotion(
@@ -540,25 +586,66 @@ class M3CanaryRunner:
         mutation_calls = confirmed = already = mutation_failures = deferred = 0
         halted = False
 
-        for ref in discovery.refs:
-            self._diagnostics.enter(ProtectedM3FailurePhase.METADATA_VERIFICATION)
-            metadata_reads += 1
-            try:
-                message = self._gmail.get_metadata(
-                    ref.message_id,
-                    header_names=self._sender_registry.requested_header_names,
+        reconciliation_candidate: tuple[MinimalMessage, MessageVerification] | None = None
+        if reconcile_prior_unknown_mutation:
+            matches: list[tuple[MinimalMessage, MessageVerification]] = []
+            matcher = self._reconciliation_source_matcher
+            if matcher is None:
+                raise CanaryRuntimeError("M3 reconciliation matcher is unavailable")
+            for ref in discovery.refs:
+                self._diagnostics.enter(ProtectedM3FailurePhase.METADATA_VERIFICATION)
+                metadata_reads += 1
+                try:
+                    message = self._gmail.get_metadata(
+                        ref.message_id,
+                        header_names=self._sender_registry.requested_header_names,
+                    )
+                except MessageMetadataUnverifiable:
+                    metadata_quarantined += 1
+                    continue
+                first = self._verifier.verify_message(
+                    message,
+                    self._sender_registry,
+                    phase=VerificationPhase.PRE_RAW,
                 )
-            except MessageMetadataUnverifiable:
-                metadata_quarantined += 1
-                continue
-            first = self._verifier.verify_message(
-                message,
-                self._sender_registry,
-                phase=VerificationPhase.PRE_RAW,
-            )
-            if first.decision is not SenderDecision.VERIFIED:
-                continue
-            verified += 1
+                if first.decision is not SenderDecision.VERIFIED:
+                    continue
+                verified += 1
+                if "TRASH" in message.label_ids and matcher.has_preexisting_current(ref.message_id):
+                    matches.append((message, first))
+            if len(matches) != 1:
+                raise CanaryRuntimeError(
+                    "M3 reconciliation source is not exactly one pre-existing Trash match"
+                )
+            reconciliation_candidate = matches[0]
+
+        refs_to_process = (
+            (reconciliation_candidate[0].ref,)
+            if reconciliation_candidate is not None
+            else discovery.refs
+        )
+        for ref in refs_to_process:
+            self._diagnostics.enter(ProtectedM3FailurePhase.METADATA_VERIFICATION)
+            if reconciliation_candidate is not None:
+                message, first = reconciliation_candidate
+            else:
+                metadata_reads += 1
+                try:
+                    message = self._gmail.get_metadata(
+                        ref.message_id,
+                        header_names=self._sender_registry.requested_header_names,
+                    )
+                except MessageMetadataUnverifiable:
+                    metadata_quarantined += 1
+                    continue
+                first = self._verifier.verify_message(
+                    message,
+                    self._sender_registry,
+                    phase=VerificationPhase.PRE_RAW,
+                )
+                if first.decision is not SenderDecision.VERIFIED:
+                    continue
+                verified += 1
             if raw_archived >= maximum_verified_candidates:
                 continue
             permit = first.raw_fetch_permit
@@ -569,12 +656,13 @@ class M3CanaryRunner:
             self._diagnostics.enter(ProtectedM3FailurePhase.RAW_ENCRYPTION_PLAN)
             attachments = self._inspector.inspect(canonical)
             raw_plan = self._raw_planner.plan(canonical, attachments, key_epoch=key_epoch)
-            self._diagnostics.enter(ProtectedM3FailurePhase.RAW_COMMIT)
-            self._operational_gate.execute(
-                SensitiveOperation.RAW_WRITE,
-                partial(self._raw_commit.commit, raw_plan),
-                demand=git_capacity_demand(item.ciphertext for item in raw_plan.objects),
-            )
+            if not reconcile_prior_unknown_mutation:
+                self._diagnostics.enter(ProtectedM3FailurePhase.RAW_COMMIT)
+                self._operational_gate.execute(
+                    SensitiveOperation.RAW_WRITE,
+                    partial(self._raw_commit.commit, raw_plan),
+                    demand=git_capacity_demand(item.ciphertext for item in raw_plan.objects),
+                )
             self._diagnostics.enter(ProtectedM3FailurePhase.RAW_RECOVERY)
             raw_proof = self._recovery.verify_raw_only(canonical, first, raw_plan)
             raw_archived += 1
@@ -612,19 +700,20 @@ class M3CanaryRunner:
                 continue
             bundle = self._product_builder.build(envelope, outcome)
             processed_plan = self._processed_plan_factory.plan(bundle, key_epoch=key_epoch)
-            self._diagnostics.enter(ProtectedM3FailurePhase.PROCESSED_COMMIT)
-            self._operational_gate.execute(
-                SensitiveOperation.PROCESSED_WRITE,
-                partial(self._processed_commit.commit, processed_plan),
-                demand=git_capacity_demand(
-                    tuple(item.ciphertext for item in processed_plan.immutable_objects)
-                    + (
-                        (processed_plan.current_pointer.ciphertext,)
-                        if processed_plan.current_pointer is not None
-                        else ()
-                    )
-                ),
-            )
+            if not reconcile_prior_unknown_mutation:
+                self._diagnostics.enter(ProtectedM3FailurePhase.PROCESSED_COMMIT)
+                self._operational_gate.execute(
+                    SensitiveOperation.PROCESSED_WRITE,
+                    partial(self._processed_commit.commit, processed_plan),
+                    demand=git_capacity_demand(
+                        tuple(item.ciphertext for item in processed_plan.immutable_objects)
+                        + (
+                            (processed_plan.current_pointer.ciphertext,)
+                            if processed_plan.current_pointer is not None
+                            else ()
+                        )
+                    ),
+                )
             self._diagnostics.enter(ProtectedM3FailurePhase.FULL_RECOVERY)
             proof = self._recovery.verify(
                 canonical,
@@ -646,7 +735,10 @@ class M3CanaryRunner:
             else:
                 safe_deferred += 1
 
-            if budget.consumed_calls >= budget.maximum_calls:
+            if (
+                not reconcile_prior_unknown_mutation
+                and budget.consumed_calls >= budget.maximum_calls
+            ):
                 deferred += 1
                 continue
             self._diagnostics.enter(ProtectedM3FailurePhase.SECOND_VERIFICATION)
@@ -661,17 +753,29 @@ class M3CanaryRunner:
                 phase=VerificationPhase.PRE_M3,
             )
             self._diagnostics.enter(ProtectedM3FailurePhase.TRASH_MUTATION)
-            result = self._operational_gate.execute(
-                SensitiveOperation.M3,
-                partial(
-                    self._trash_executor.execute,
-                    second_message,
-                    first,
-                    second,
-                    proof,
-                    budget,
-                ),
-            )
+            if reconcile_prior_unknown_mutation:
+                result = self._operational_gate.execute(
+                    SensitiveOperation.M3,
+                    partial(
+                        self._trash_executor.reconcile_already_trashed,
+                        second_message,
+                        first,
+                        second,
+                        proof,
+                    ),
+                )
+            else:
+                result = self._operational_gate.execute(
+                    SensitiveOperation.M3,
+                    partial(
+                        self._trash_executor.execute,
+                        second_message,
+                        first,
+                        second,
+                        proof,
+                        budget,
+                    ),
+                )
             mutation_calls += result.mutation_calls
             if result.state is M3State.TRASHED:
                 confirmed += 1
@@ -702,6 +806,7 @@ class M3CanaryRunner:
             failed_mutation_outcomes=mutation_failures,
             deferred_mutations=deferred,
             halted_fail_closed=halted,
+            reconciliation_mode=reconcile_prior_unknown_mutation,
         )
 
     def _profile_for(
