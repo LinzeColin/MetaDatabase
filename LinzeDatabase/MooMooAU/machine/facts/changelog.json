@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.0.17",
+    "date": "2026-07-26",
+    "summary": "固化 T0704 首次 exact-main attempt-1 失败：私库新增两个 candidate Processed 对象、两个 Timeline snapshot 对象与一个加密零 Asset 状态，processed-current 路径和 blob 身份保持不变，固定 Release 最终零 Asset。依据 GitHub 200/302 下载契约修复有界单跳 CDN 恢复且不转发 Authorization；失败头禁止重跑，仅授权一个新修复 head、一次 attempt 1，T0705 仍禁止。"
+  },
+  {
     "version": "1.0.16",
     "date": "2026-07-26",
     "summary": "在精确 T0703 protected PASS 后只授权 T0704：同一已恢复 Raw 的 1.0.0/2.0.0 SAFE_DEFERRED 对比、一个可恢复 candidate Processed shadow、processed-current 不变、一个可恢复 Timeline snapshot 与恰好一个加密 latest Timeline。只允许一次 exact-main attempt 1，rerun、Gmail 变更、schedule、T0705 与最终发布保持禁止。"
@@ -8,11 +13,6 @@
     "version": "1.0.15",
     "date": "2026-07-24",
     "summary": "固化第七个不同 exact-main T0703 attempt-1 的受保护 PASS：authority、历史 label 零写入 reconciliation 与身份清理均通过；Raw+Processed 恢复 100%，独立核验确认当前运行 private head/tree/path counts 与 Gmail Trash 均零变化。T0703/S7AC-003 关闭，M3 权限全部消耗，范围停止于 T0704 前。"
-  },
-  {
-    "version": "1.0.14",
-    "date": "2026-07-24",
-    "summary": "固化 T0703 第六次 protected M3 在 Raw 恢复后于 PROCESSED_PLAN 零副作用失败；独立确认私有仓 head/tree、Raw、Processed、current pointer 与 Gmail Trash 均未变化。修复 Gmail Trash 后 live label state 与既有 Processed snapshot 的历史 label state 重放冲突；仅从加密 Processed envelope 恢复规范 label，六个失败头均禁止 rerun/redispatch。"
   },
   {
     "version": "1.0.13",

@@ -1,0 +1,388 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/moomooau/protected-blue-green-attempt-ledger-v1.schema.json",
+  "title": "MooMooAU protected Blue-Green attempt ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "stage_id",
+    "task_id",
+    "observed_through_utc",
+    "attempts",
+    "completion_policy",
+    "claims"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "moomooau.protected-blue-green-attempt-ledger.v1"
+    },
+    "stage_id": {
+      "const": "S7"
+    },
+    "task_id": {
+      "const": "T0704"
+    },
+    "observed_through_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "attempts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "$ref": "#/$defs/attempt"
+      }
+    },
+    "completion_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "same_head_rerun_allowed",
+        "failed_head_redispatch_allowed",
+        "new_reviewed_repair_candidate_allowed",
+        "next_candidate_dispatch_limit",
+        "t0704_complete",
+        "t0705_authorized",
+        "final_publication_authorized"
+      ],
+      "properties": {
+        "same_head_rerun_allowed": {
+          "const": false
+        },
+        "failed_head_redispatch_allowed": {
+          "const": false
+        },
+        "new_reviewed_repair_candidate_allowed": {
+          "const": true
+        },
+        "next_candidate_dispatch_limit": {
+          "const": 1
+        },
+        "t0704_complete": {
+          "const": false
+        },
+        "t0705_authorized": {
+          "const": false
+        },
+        "final_publication_authorized": {
+          "const": false
+        }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "s7ac_004_passed",
+        "production_health",
+        "final_acceptance",
+        "stage7_complete"
+      ],
+      "properties": {
+        "s7ac_004_passed": {
+          "const": false
+        },
+        "production_health": {
+          "const": false
+        },
+        "final_acceptance": {
+          "const": false
+        },
+        "stage7_complete": {
+          "const": false
+        }
+      }
+    }
+  },
+  "$defs": {
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "started_at_utc",
+        "completed_at_utc"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "PASS",
+            "FAILED"
+          ]
+        },
+        "started_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "delivery",
+        "workflow",
+        "jobs",
+        "public_failure",
+        "effects",
+        "diagnosis"
+      ],
+      "properties": {
+        "sequence": {
+          "const": 1
+        },
+        "delivery": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "pull_request_number",
+            "merge_commit_sha",
+            "terminal_checks",
+            "successful_checks",
+            "failed_checks"
+          ],
+          "properties": {
+            "kind": {
+              "const": "CONTROLLED_MOOMOOAU_PR"
+            },
+            "pull_request_number": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "merge_commit_sha": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            "terminal_checks": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "successful_checks": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "failed_checks": {
+              "const": 0
+            }
+          }
+        },
+        "workflow": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "run_id",
+            "run_url",
+            "event",
+            "workflow_head_sha",
+            "run_attempt",
+            "reruns"
+          ],
+          "properties": {
+            "run_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "run_url": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https://github\\.com/LinzeColin/MetaDatabase/actions/runs/[1-9][0-9]*$"
+            },
+            "event": {
+              "const": "workflow_dispatch"
+            },
+            "workflow_head_sha": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            "run_attempt": {
+              "const": 1
+            },
+            "reruns": {
+              "const": 0
+            }
+          }
+        },
+        "jobs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "authority_gate",
+            "blue_green_shadow_and_timeline",
+            "identity_plaintext_cleanup"
+          ],
+          "properties": {
+            "authority_gate": {
+              "$ref": "#/$defs/job"
+            },
+            "blue_green_shadow_and_timeline": {
+              "$ref": "#/$defs/job"
+            },
+            "identity_plaintext_cleanup": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "completed_at_utc"
+              ],
+              "properties": {
+                "status": {
+                  "const": "PASS"
+                },
+                "completed_at_utc": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        },
+        "public_failure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "reason_code",
+            "current_pointer_mutation_claimed",
+            "gmail_mutation_claimed",
+            "exact_root_cause_claimed",
+            "protected_values_disclosed",
+            "production_health_claimed",
+            "final_acceptance_claimed"
+          ],
+          "properties": {
+            "status": {
+              "const": "BLOCKED"
+            },
+            "reason_code": {
+              "const": "PROTECTED_BLUE_GREEN_FAILED"
+            },
+            "current_pointer_mutation_claimed": {
+              "const": false
+            },
+            "gmail_mutation_claimed": {
+              "const": false
+            },
+            "exact_root_cause_claimed": {
+              "const": false
+            },
+            "protected_values_disclosed": {
+              "const": false
+            },
+            "production_health_claimed": {
+              "const": false
+            },
+            "final_acceptance_claimed": {
+              "const": false
+            }
+          }
+        },
+        "effects": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "private_repository_new_commits",
+            "raw_ciphertext_creations",
+            "candidate_processed_shadow_objects",
+            "timeline_snapshot_objects",
+            "encrypted_timeline_state_objects",
+            "processed_current_before_dispatch",
+            "processed_current_after_dispatch",
+            "processed_current_path_and_blob_identity",
+            "fixed_live_release_exists",
+            "live_timeline_assets_after_dispatch",
+            "gmail_mutation_api_reachable",
+            "gmail_mutation_independent_remeasurement",
+            "scheduled_runs",
+            "ga_runs",
+            "identity_plaintext_cleanup"
+          ],
+          "properties": {
+            "private_repository_new_commits": {
+              "const": 5
+            },
+            "raw_ciphertext_creations": {
+              "const": 0
+            },
+            "candidate_processed_shadow_objects": {
+              "const": 2
+            },
+            "timeline_snapshot_objects": {
+              "const": 2
+            },
+            "encrypted_timeline_state_objects": {
+              "const": 1
+            },
+            "processed_current_before_dispatch": {
+              "const": "ONE"
+            },
+            "processed_current_after_dispatch": {
+              "const": "ONE"
+            },
+            "processed_current_path_and_blob_identity": {
+              "const": true
+            },
+            "fixed_live_release_exists": {
+              "const": true
+            },
+            "live_timeline_assets_after_dispatch": {
+              "const": 0
+            },
+            "gmail_mutation_api_reachable": {
+              "const": false
+            },
+            "gmail_mutation_independent_remeasurement": {
+              "const": "NOT_CLAIMED_WITHOUT_PRE_DISPATCH_ABSOLUTE_BASELINE"
+            },
+            "scheduled_runs": {
+              "const": 0
+            },
+            "ga_runs": {
+              "const": 0
+            },
+            "identity_plaintext_cleanup": {
+              "const": "PASS"
+            }
+          }
+        },
+        "diagnosis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "observable_failure_boundary",
+            "exact_runtime_exception",
+            "high_confidence_defect",
+            "basis"
+          ],
+          "properties": {
+            "observable_failure_boundary": {
+              "const": "AFTER_CANDIDATE_AND_SNAPSHOT_RECOVERY_DURING_LIVE_ASSET_RECOVERY"
+            },
+            "exact_runtime_exception": {
+              "const": "NOT_DISCLOSED_BY_PROTECTED_OUTPUT"
+            },
+            "high_confidence_defect": {
+              "const": "GITHUB_RELEASE_ASSET_302_RECOVERY_NOT_SUPPORTED"
+            },
+            "basis": {
+              "type": "array",
+              "minItems": 5,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

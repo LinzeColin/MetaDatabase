@@ -1,5 +1,20 @@
 # Taskpack Changelog
 
+## 1.0.17 — 2026-07-26
+
+固化 T0704 首次 exact-main protected 失败并只授权 Release Asset 302 恢复修复。
+
+- 绑定 PR #112、main `b3ff184b…`、run `30175241669`、authority PASS、protected job FAILED、
+  identity cleanup PASS、attempt 1 与 rerun 0；
+- 独立后验确认 5 个 private commits：2 个 candidate shadow、2 个 Timeline snapshot、
+  1 个 encrypted repair state；processed-current path/blob 完全不变，fixed Release 最终 asset 0；
+- GitHub 官方契约允许 Release Asset 下载返回 `200` 或 `302`，失败实现只接受 `200` 且关闭跳转；
+- 新实现只允许一次 exact GitHub release-asset CDN 跳转，不向 CDN 转发 Authorization；
+- deterministic zero-asset replay 证明不重复写 candidate/snapshot，只更新一个 encrypted state，
+  并恢复 exactly one live Asset；
+- 失败 head 禁止 rerun/redispatch；只允许一个新 exact-main repair 交付和一次 attempt-1 dispatch；
+- Gmail、processed-current、Raw、schedule、T0705 与最终发布继续为 0/未授权。
+
 ## 1.0.16 — 2026-07-26
 
 在精确 T0703 protected PASS 后只授权 T0704：

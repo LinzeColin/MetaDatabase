@@ -95,7 +95,6 @@
     ],
     "AC-015": [
       "FINAL_ORACLE_NOT_EXECUTED",
-      "LINKED_TASK_CLAIMS_NOT_RUN",
       "LINKED_TASK_CLAIMS_PARTIAL"
     ],
     "AC-016": [
@@ -150,17 +149,14 @@
     ],
     "AC-028": [
       "FINAL_ORACLE_NOT_EXECUTED",
-      "LINKED_TASK_CLAIMS_NOT_RUN",
       "LINKED_TASK_CLAIMS_PARTIAL"
     ],
     "AC-029": [
       "FINAL_ORACLE_NOT_EXECUTED",
-      "LINKED_TASK_CLAIMS_NOT_RUN",
       "LINKED_TASK_CLAIMS_PARTIAL"
     ],
     "AC-030": [
       "FINAL_ORACLE_NOT_EXECUTED",
-      "LINKED_TASK_CLAIMS_NOT_RUN",
       "LINKED_TASK_CLAIMS_PARTIAL"
     ],
     "AC-031": [
@@ -210,8 +206,8 @@
     "thread_trash_calls": 0,
     "untrusted_content_execution": 0
   },
-  "record_root_sha256": "e657ce4b3ceb9d2c792ffa70a71f3b80f31dd778b1a5c288da724a8ab4c848fc",
-  "remediation_base_commit": "4924fad17fc4666761df9ec7088608db18cc6605",
+  "record_root_sha256": "f6df4b6e002a7c897f92ca98c8e69e138a7f407a74f8733f0f5a7b4d4732491e",
+  "remediation_base_commit": "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177",
   "schema_version": "moomooau.acceptance-summary.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",
   "status": "BLOCKED",

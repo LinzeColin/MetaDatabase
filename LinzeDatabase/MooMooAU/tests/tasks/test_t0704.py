@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from typing import cast
 
 import pytest
@@ -15,12 +16,21 @@ from stage7_support import (
 )
 from validate_evidence import PROJECT_ROOT, validate_record
 
+from moomooau_archive.adapters import AGE_HEADER
 from moomooau_archive.blue_green_runtime import (
     BlueGreenRuntimeError,
     BlueGreenTimelineRunResult,
 )
 from moomooau_archive.capacity import CapacityAssessment, CapacityState
-from moomooau_archive.github_guard import LIVE_ASSET_NAME
+from moomooau_archive.github_guard import (
+    LIVE_ASSET_NAME,
+    GitHubBoundaryError,
+    GitHubEndpointGuard,
+    InstallationToken,
+    RepositoryLocator,
+    TargetRepositoryConfig,
+)
+from moomooau_archive.http_boundary import HttpRequest, HttpResponse
 from moomooau_archive.m3 import M3State
 from moomooau_archive.operation_gate import OperationGateError
 from moomooau_archive.processed_commit import CurrentProcessedPointer, PromotionAction
@@ -46,8 +56,10 @@ from moomooau_archive.release_control import (
     ReleasePhase,
     Stage7ReleaseGate,
 )
+from moomooau_archive.secret_values import SecretText
 from moomooau_archive.timeline_event import TimelineEvent, TimelineEventError
 from moomooau_archive.timeline_publish import (
+    GitHubTimelineReleaseRemote,
     TimelinePublishAction,
     TimelinePublishError,
     TimelinePublishStateName,
@@ -57,6 +69,31 @@ from moomooau_archive.timeline_snapshot import (
     TimelineSnapshotFact,
     TimelineSnapshotRecoveryProof,
 )
+
+
+class _RedirectTransport:
+    def __init__(self, responses: tuple[HttpResponse, ...]) -> None:
+        self._responses = list(responses)
+        self.requests: list[HttpRequest] = []
+
+    def send(self, request: HttpRequest) -> HttpResponse:
+        self.requests.append(request)
+        if not self._responses:
+            raise AssertionError("unexpected synthetic GitHub request")
+        return self._responses.pop(0)
+
+
+def _synthetic_age_envelope() -> bytes:
+    encoded_32_bytes = b"A" * 43
+    return b"\n".join(
+        (
+            AGE_HEADER,
+            b"-> X25519 " + encoded_32_bytes,
+            encoded_32_bytes,
+            b"--- " + encoded_32_bytes,
+            b"\x00" * 32,
+        )
+    )
 
 
 def _run_blue_green(
@@ -174,6 +211,101 @@ def test_t0704_blue_green_requires_complete_evidence_and_exactly_one_live_asset(
     assert ready.status is GateStatus.READY
 
 
+def test_t0704_private_release_asset_302_is_recovered_without_forwarding_auth() -> None:
+    ciphertext = _synthetic_age_envelope()
+    redirect_url = (
+        "https://release-assets.githubusercontent.com/"
+        "github-production-release-asset/1/2/synthetic.age?signed=synthetic"
+    )
+    transport = _RedirectTransport(
+        (
+            HttpResponse(302, b"", (("Location", redirect_url),)),
+            HttpResponse(200, ciphertext),
+        )
+    )
+    config = TargetRepositoryConfig(repository_id=7_700_004, installation_id=8_700_004)
+    locator = RepositoryLocator(config.repository_id, "synthetic-owner", "synthetic-private")
+    guard = GitHubEndpointGuard(transport, config)
+    guard.bind_repository(locator)
+    token = InstallationToken(
+        SecretText("synthetic-" + "timeline-token"),
+        datetime(2026, 7, 26, 1, tzinfo=UTC),
+    )
+    try:
+        remote = GitHubTimelineReleaseRemote(guard, locator, token)
+        assert remote.download(501) == ciphertext
+        assert len(transport.requests) == 2
+        assert any(name.casefold() == "authorization" for name, _ in transport.requests[0].headers)
+        assert transport.requests[1].url == redirect_url
+        assert transport.requests[1].headers == (("Accept", "application/octet-stream"),)
+        assert all(name.casefold() != "authorization" for name, _ in transport.requests[1].headers)
+        assert guard.metrics.allowed_calls == 2
+        assert guard.metrics.blocked_calls == 0
+    finally:
+        token.destroy()
+
+
+def test_t0704_private_release_asset_redirect_rejects_non_github_authority() -> None:
+    redirect_url = (
+        "https://release-assets.githubusercontent.com.example/"
+        "github-production-release-asset/1/2/synthetic.age?signed=synthetic"
+    )
+    transport = _RedirectTransport((HttpResponse(302, b"", (("Location", redirect_url),)),))
+    config = TargetRepositoryConfig(repository_id=7_700_004, installation_id=8_700_004)
+    locator = RepositoryLocator(config.repository_id, "synthetic-owner", "synthetic-private")
+    guard = GitHubEndpointGuard(transport, config)
+    guard.bind_repository(locator)
+    token = InstallationToken(
+        SecretText("synthetic-" + "timeline-token"),
+        datetime(2026, 7, 26, 1, tzinfo=UTC),
+    )
+    try:
+        remote = GitHubTimelineReleaseRemote(guard, locator, token)
+        with pytest.raises(GitHubBoundaryError, match="authority is not allowed"):
+            remote.download(501)
+        assert len(transport.requests) == 1
+        assert guard.metrics.allowed_calls == 1
+        assert guard.metrics.blocked_calls == 1
+    finally:
+        token.destroy()
+
+
+def test_t0704_private_release_asset_redirect_never_follows_a_second_hop() -> None:
+    first_redirect = (
+        "https://release-assets.githubusercontent.com/"
+        "github-production-release-asset/1/2/synthetic.age?signed=first"
+    )
+    second_redirect = (
+        "https://release-assets.githubusercontent.com/"
+        "github-production-release-asset/1/2/synthetic.age?signed=second"
+    )
+    transport = _RedirectTransport(
+        (
+            HttpResponse(302, b"", (("Location", first_redirect),)),
+            HttpResponse(302, b"", (("Location", second_redirect),)),
+            HttpResponse(200, _synthetic_age_envelope()),
+        )
+    )
+    config = TargetRepositoryConfig(repository_id=7_700_004, installation_id=8_700_004)
+    locator = RepositoryLocator(config.repository_id, "synthetic-owner", "synthetic-private")
+    guard = GitHubEndpointGuard(transport, config)
+    guard.bind_repository(locator)
+    token = InstallationToken(
+        SecretText("synthetic-" + "timeline-token"),
+        datetime(2026, 7, 26, 1, tzinfo=UTC),
+    )
+    try:
+        remote = GitHubTimelineReleaseRemote(guard, locator, token)
+        with pytest.raises(TimelinePublishError, match="Asset download failed"):
+            remote.download(501)
+        assert len(transport.requests) == 2
+        assert transport.requests[1].url == first_redirect
+        assert guard.metrics.allowed_calls == 2
+        assert guard.metrics.blocked_calls == 0
+    finally:
+        token.destroy()
+
+
 def test_t0704_same_recovered_raw_shadows_candidate_and_publishes_one_recovered_timeline() -> None:
     with blue_green_context() as context:
         pointer_path = (
@@ -265,6 +397,67 @@ def test_t0704_protected_cloud_composition_reuses_t0703_source_without_gmail_mut
         assert len(context.gmail_transport.trashed_ids) == trash_calls_before == 1
         assert len(context.github_transport.release_assets) == 1
         assert context.source.all_issued_destroyed
+
+
+def test_t0704_protected_cloud_composition_recovers_private_asset_redirect() -> None:
+    message = m3_canary_message("msg-stage7-protected-blue-green-redirect")
+    with protected_blue_green_context(message, release_download_redirect=True) as context:
+        with context.bootstrap.open(
+            predecessor_observations=observations_through(ReleasePhase.M3_CANARY),
+        ) as runtime:
+            result = runtime.run()
+
+        assert result.mechanism.final_live_timeline_assets == 1
+        redirected = [
+            request
+            for request in context.github_transport.requests
+            if request.url.startswith("https://release-assets.githubusercontent.com/")
+        ]
+        assert len(redirected) == 1
+        assert redirected[0].headers == (("Accept", "application/octet-stream"),)
+        assert all(name.casefold() != "authorization" for name, _ in redirected[0].headers)
+
+
+def test_t0704_failed_zero_asset_state_replays_without_duplicate_objects() -> None:
+    message = m3_canary_message("msg-stage7-protected-blue-green-repair")
+    with protected_blue_green_context(message, release_download_redirect=True) as context:
+        pointer_path = next(
+            path
+            for path in context.github_transport.objects
+            if path.startswith("MooMooAU/State/processed-current/")
+        )
+        pointer_before = context.github_transport.objects[pointer_path]
+        pointer_revision_before = context.github_transport.revisions[pointer_path]
+        writes_before = context.github_transport.write_calls
+        context.github_transport.release_download_redirect_host = (
+            "release-assets.githubusercontent.com.example"
+        )
+
+        with pytest.raises(ProtectedBlueGreenBootstrapError, match="evidence-complete"):
+            with context.bootstrap.open(
+                predecessor_observations=observations_through(ReleasePhase.M3_CANARY),
+            ) as failed_runtime:
+                failed_runtime.run()
+
+        assert context.github_transport.write_calls - writes_before == 5
+        assert context.github_transport.release_assets == {}
+        failed_paths = set(context.github_transport.objects)
+        context.github_transport.release_download_redirect_host = (
+            "release-assets.githubusercontent.com"
+        )
+
+        with context.bootstrap.open(
+            predecessor_observations=observations_through(ReleasePhase.M3_CANARY),
+        ) as repair_runtime:
+            repaired = repair_runtime.run()
+
+        assert repaired.mechanism.timeline_action is TimelinePublishAction.ASSET_REPAIRED
+        assert repaired.mechanism.final_live_timeline_assets == 1
+        assert context.github_transport.write_calls - writes_before == 6
+        assert set(context.github_transport.objects) == failed_paths
+        assert context.github_transport.objects[pointer_path] == pointer_before
+        assert context.github_transport.revisions[pointer_path] == pointer_revision_before
+        assert len(context.github_transport.release_assets) == 1
 
 
 def test_t0704_stale_config_capacity_is_replaced_by_a_live_private_repo_observation() -> None:
@@ -507,15 +700,15 @@ def test_t0704_stage_aware_evidence_validator_preserves_blocked_truth() -> None:
     assert validate_record(path) == []
     record = json.loads(path.read_text(encoding="utf-8"))
     assert record["record_status"] == "BLOCKED"
-    assert all(item["status"] == "NOT_RUN" for item in record["production_oracles"])
+    assert all(item["status"] == "FAILED" for item in record["production_oracles"])
     assert all(
         item["status"] in {"PARTIAL", "NOT_RUN"} for item in record["linked_final_acceptance"]
     )
     provenance = json.loads(
-        (PROJECT_ROOT / "taskpack/SOURCE_PROVENANCE.v1.0.16.json").read_text(encoding="utf-8")
+        (PROJECT_ROOT / "taskpack/SOURCE_PROVENANCE.v1.0.17.json").read_text(encoding="utf-8")
     )
-    expected_base = "4924fad17fc4666761df9ec7088608db18cc6605"  # pragma: allowlist secret
-    assert provenance["schema_version"] == "moomooau.source-provenance.v16"
+    expected_base = "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"  # pragma: allowlist secret
+    assert provenance["schema_version"] == "moomooau.source-provenance.v17"
     assert provenance["candidate_snapshot"] == {
         "repository": "LinzeColin/MetaDatabase",
         "mainline_base_commit": expected_base,
@@ -526,7 +719,7 @@ def test_t0704_stage_aware_evidence_validator_preserves_blocked_truth() -> None:
         encoding="utf-8"
     )
     assert (
-        'PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v16"'
+        'PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v17"'
         in acceptance_source
     )
     assert acceptance_source.count(f'"{expected_base}"') == 2

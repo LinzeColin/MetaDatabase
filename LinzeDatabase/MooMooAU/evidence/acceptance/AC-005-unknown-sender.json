@@ -82,7 +82,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "4924fad17fc4666761df9ec7088608db18cc6605",
+  "remediation_base_commit": "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177",
   "requirement_id": "RQ-005",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",

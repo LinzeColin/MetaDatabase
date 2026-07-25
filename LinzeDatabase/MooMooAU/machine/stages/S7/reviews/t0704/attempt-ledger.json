@@ -1,0 +1,99 @@
+{
+  "schema_version": "moomooau.protected-blue-green-attempt-ledger.v1",
+  "stage_id": "S7",
+  "task_id": "T0704",
+  "observed_through_utc": "2026-07-25T21:35:07Z",
+  "attempts": [
+    {
+      "sequence": 1,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 112,
+        "merge_commit_sha": "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177",
+        "terminal_checks": 39,
+        "successful_checks": 34,
+        "failed_checks": 0
+      },
+      "workflow": {
+        "run_id": 30175241669,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30175241669",
+        "event": "workflow_dispatch",
+        "workflow_head_sha": "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177",
+        "run_attempt": 1,
+        "reruns": 0
+      },
+      "jobs": {
+        "authority_gate": {
+          "status": "PASS",
+          "started_at_utc": "2026-07-25T21:14:29Z",
+          "completed_at_utc": "2026-07-25T21:15:43Z"
+        },
+        "blue_green_shadow_and_timeline": {
+          "status": "FAILED",
+          "started_at_utc": "2026-07-25T21:15:47Z",
+          "completed_at_utc": "2026-07-25T21:18:58Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-25T21:18:57Z"
+        }
+      },
+      "public_failure": {
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_BLUE_GREEN_FAILED",
+        "current_pointer_mutation_claimed": false,
+        "gmail_mutation_claimed": false,
+        "exact_root_cause_claimed": false,
+        "protected_values_disclosed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "private_repository_new_commits": 5,
+        "raw_ciphertext_creations": 0,
+        "candidate_processed_shadow_objects": 2,
+        "timeline_snapshot_objects": 2,
+        "encrypted_timeline_state_objects": 1,
+        "processed_current_before_dispatch": "ONE",
+        "processed_current_after_dispatch": "ONE",
+        "processed_current_path_and_blob_identity": true,
+        "fixed_live_release_exists": true,
+        "live_timeline_assets_after_dispatch": 0,
+        "gmail_mutation_api_reachable": false,
+        "gmail_mutation_independent_remeasurement": "NOT_CLAIMED_WITHOUT_PRE_DISPATCH_ABSOLUTE_BASELINE",
+        "scheduled_runs": 0,
+        "ga_runs": 0,
+        "identity_plaintext_cleanup": "PASS"
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "AFTER_CANDIDATE_AND_SNAPSHOT_RECOVERY_DURING_LIVE_ASSET_RECOVERY",
+        "exact_runtime_exception": "NOT_DISCLOSED_BY_PROTECTED_OUTPUT",
+        "high_confidence_defect": "GITHUB_RELEASE_ASSET_302_RECOVERY_NOT_SUPPORTED",
+        "basis": [
+          "the protected runner could write encrypted candidate objects only after recovering the exact incumbent Raw and selecting the one current-backed source",
+          "the encrypted Timeline event and manifest commits occur only after candidate Processed recovery and semantic comparison complete",
+          "the encrypted Timeline repair state commit occurs only after the publisher has attempted live Asset upload and remote recovery",
+          "independent post-run reads observed the fixed Release with zero live Assets and byte-identical processed-current path and blob sets",
+          "GitHub documents that authenticated release Asset download can return either 200 or 302",
+          "the failed implementation rejected every status except 200 while its HTTPS transport deliberately prevented automatic redirects",
+          "a current read-only GitHub release Asset probe independently observed the documented 302 to release-assets.githubusercontent.com"
+        ]
+      }
+    }
+  ],
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "new_reviewed_repair_candidate_allowed": true,
+    "next_candidate_dispatch_limit": 1,
+    "t0704_complete": false,
+    "t0705_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "s7ac_004_passed": false,
+    "production_health": false,
+    "final_acceptance": false,
+    "stage7_complete": false
+  }
+}

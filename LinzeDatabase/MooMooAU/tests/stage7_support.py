@@ -1049,10 +1049,23 @@ class SyntheticProtectedGitHubTransport:
         self.next_asset_id = 6_100_104
         self.capacity_tree_truncated = False
         self.capacity_tree_has_gitattributes = False
+        self.release_download_redirect = False
+        self.release_download_redirect_host = "release-assets.githubusercontent.com"
 
     def send(self, request: HttpRequest) -> HttpResponse:
         self.requests.append(request)
         parsed = urlsplit(request.url)
+        if (
+            parsed.hostname == "release-assets.githubusercontent.com"
+            and request.method == "GET"
+            and parsed.path.startswith("/github-production-release-asset/")
+        ):
+            try:
+                asset_id = int(parsed.path.rsplit("/", 2)[-2])
+            except ValueError:
+                return HttpResponse(404, b"{}")
+            value = self.release_assets.get(asset_id)
+            return HttpResponse(404, b"{}") if value is None else HttpResponse(200, value)
         if (
             request.method == "POST"
             and parsed.path == f"/app/installations/{self.installation_id}/access_tokens"
@@ -1157,6 +1170,19 @@ class SyntheticProtectedGitHubTransport:
         if parsed.path.startswith(asset_prefix):
             asset_id = int(parsed.path.removeprefix(asset_prefix))
             if request.method == "GET" and asset_id in self.release_assets:
+                if self.release_download_redirect:
+                    return HttpResponse(
+                        302,
+                        b"",
+                        (
+                            (
+                                "Location",
+                                f"https://{self.release_download_redirect_host}/"
+                                "github-production-release-asset/"
+                                f"{self.repository_id}/{asset_id}/synthetic.age?signed=synthetic",
+                            ),
+                        ),
+                    )
                 return HttpResponse(200, self.release_assets[asset_id])
             if request.method == "DELETE" and asset_id in self.release_assets:
                 del self.release_assets[asset_id]
@@ -1522,6 +1548,7 @@ def protected_blue_green_context(
     message: SyntheticGmailMessage,
     *,
     capacity_age_hours: int = 10,
+    release_download_redirect: bool = False,
 ) -> Iterator[ProtectedBlueGreenContext]:
     """Seed the exact protected SAFE_DEFERRED T0703 state, then expose T0704."""
 
@@ -1543,6 +1570,7 @@ def protected_blue_green_context(
             raise AssertionError("synthetic protected M3 seed did not complete")
         blue_green_now = m3.now + timedelta(hours=10)
         m3.github_transport.now = blue_green_now
+        m3.github_transport.release_download_redirect = release_download_redirect
         config = json.loads(m3.source._values[M3_CONFIG_SECRET_NAME])
         config["capacity"]["observed_at_utc"] = (
             (blue_green_now - timedelta(hours=capacity_age_hours))

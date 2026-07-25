@@ -3,7 +3,6 @@
   "acceptance_status": "BLOCKED",
   "blockers": [
     "FINAL_ORACLE_NOT_EXECUTED",
-    "LINKED_TASK_CLAIMS_NOT_RUN",
     "LINKED_TASK_CLAIMS_PARTIAL"
   ],
   "checks": [
@@ -56,9 +55,9 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0704.json",
-      "evidence_sha256": "4283bbe51e4739a29851326a9b8dde6bf990c62fea6b38a24b907b300c540844",
-      "final_claim_status": "NOT_RUN",
-      "reason": "Expectation and missing-report semantics were exercised synthetically only; no protected observation exists.",
+      "evidence_sha256": "56c7959b2fed4fd55cf859013260082d8b0b4cb86a9e4fe874808ce069c6ebe3",
+      "final_claim_status": "PARTIAL",
+      "reason": "Protected Timeline facts were rendered without fabricated completeness, but the failed live Asset recovery prevents final protected evidence.",
       "source_record_status": "BLOCKED",
       "task_id": "T0704"
     }
@@ -91,7 +90,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "4924fad17fc4666761df9ec7088608db18cc6605",
+  "remediation_base_commit": "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177",
   "requirement_id": "RQ-030",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",

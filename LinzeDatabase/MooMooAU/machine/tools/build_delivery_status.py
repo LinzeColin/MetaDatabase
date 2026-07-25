@@ -55,6 +55,12 @@ PROTECTED_M3_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0703/execution-rece
 PROTECTED_M3_RECEIPT_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-m3-execution-receipt-v1.schema.json"
 )
+PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_PATH = Path(
+    "machine/stages/S7/reviews/t0704/attempt-ledger.json"
+)
+PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-blue-green-attempt-ledger-v1.schema.json"
+)
 STAGE7_RUN_CONTRACT_PATH = Path("machine/stages/S7/contracts/run_contract.json")
 
 
@@ -87,6 +93,7 @@ def _select_transition_state(
     protected_m3_receipt: dict[str, Any] | None,
     *,
     t0704_authorized: bool,
+    t0704_repair_authorized: bool,
 ) -> tuple[str, dict[str, Any]]:
     states = model.get("states")
     if not isinstance(states, dict) or set(states) != {
@@ -97,6 +104,7 @@ def _select_transition_state(
         "PROTECTED_M3_REPAIR_AUTHORIZED",
         "PROTECTED_M3_PASS_SCOPE_STOP",
         "PROTECTED_M3_PASS_T0704_AUTHORIZED",
+        "PROTECTED_BLUE_GREEN_REPAIR_AUTHORIZED",
     }:
         raise ValueError("delivery status transition states differ")
     if assurance_result.get("status") != "PASS":
@@ -106,7 +114,11 @@ def _select_transition_state(
         if claims.get("t0702_complete") is True and claims.get("s7ac_002_passed") is True:
             state_name = (
                 (
-                    "PROTECTED_M3_PASS_T0704_AUTHORIZED"
+                    (
+                        "PROTECTED_BLUE_GREEN_REPAIR_AUTHORIZED"
+                        if t0704_repair_authorized
+                        else "PROTECTED_M3_PASS_T0704_AUTHORIZED"
+                    )
                     if t0704_authorized
                     else "PROTECTED_M3_PASS_SCOPE_STOP"
                 )
@@ -134,12 +146,17 @@ def _t0704_authorized(root: Path) -> bool:
     contract = _load(path)
     authorization = contract.get("authorization", {})
     budget = contract.get("authorized_effect_budget", {})
+    purpose = authorization.get("purpose")
+    repair = purpose == "T0704_PROTECTED_BLUE_GREEN_REDIRECT_RECOVERY_ONLY"
     return bool(
         contract.get("schema_version") == "moomooau.run-contract.v1"
         and contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0704"
-        and contract.get("baseline_commit") == "4924fad17fc4666761df9ec7088608db18cc6605"
-        and authorization.get("purpose") == "T0704_PROTECTED_BLUE_GREEN_ONLY"
+        and purpose
+        in {
+            "T0704_PROTECTED_BLUE_GREEN_ONLY",
+            "T0704_PROTECTED_BLUE_GREEN_REDIRECT_RECOVERY_ONLY",
+        }
         and authorization.get("t0703_receipt_required") is True
         and authorization.get("blue_green_authorized") is True
         and authorization.get("t0705_authorized") is False
@@ -152,9 +169,71 @@ def _t0704_authorized(root: Path) -> bool:
         and budget.get("protected_blue_green_reruns_maximum") == 0
         and budget.get("gmail_mutations_maximum") == 0
         and budget.get("current_pointer_mutations_maximum") == 0
+        and budget.get("candidate_processed_shadow_commits_maximum") == (0 if repair else 1)
+        and budget.get("timeline_snapshot_commits_maximum") == (0 if repair else 1)
         and budget.get("maximum_live_timeline_assets") == 1
         and budget.get("scheduled_runs_maximum") == 0
         and budget.get("ga_runs_maximum") == 0
+    )
+
+
+def _t0704_repair_authorized(root: Path) -> bool:
+    if not _t0704_authorized(root):
+        return False
+    contract = _load(root / STAGE7_RUN_CONTRACT_PATH)
+    authorization = contract.get("authorization", {})
+    budget = contract.get("authorized_effect_budget", {})
+    ledger_path = root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_PATH
+    schema_path = root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_SCHEMA_PATH
+    if (
+        not ledger_path.is_file()
+        or ledger_path.is_symlink()
+        or not schema_path.is_file()
+        or schema_path.is_symlink()
+    ):
+        return False
+    ledger = _load(ledger_path)
+    schema = _load(schema_path)
+    attempts = ledger.get("attempts", [])
+    attempt = attempts[0] if isinstance(attempts, list) and len(attempts) == 1 else {}
+    workflow = attempt.get("workflow", {}) if isinstance(attempt, dict) else {}
+    delivery = attempt.get("delivery", {}) if isinstance(attempt, dict) else {}
+    effects = attempt.get("effects", {}) if isinstance(attempt, dict) else {}
+    diagnosis = attempt.get("diagnosis", {}) if isinstance(attempt, dict) else {}
+    completion = ledger.get("completion_policy", {})
+    claims = ledger.get("claims", {})
+    return bool(
+        not list(
+            Draft202012Validator(
+                schema,
+                format_checker=FormatChecker(),
+            ).iter_errors(ledger)
+        )
+        and contract.get("baseline_commit") == "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"
+        and authorization.get("purpose")
+        == "T0704_PROTECTED_BLUE_GREEN_REDIRECT_RECOVERY_ONLY"
+        and authorization.get("failed_attempt_ledger_required") is True
+        and authorization.get("failed_attempt_ledger_sha256") == _sha256(ledger_path)
+        and authorization.get("failed_attempt_ledger_schema_sha256") == _sha256(schema_path)
+        and authorization.get("prior_failed_attempts_exact") == 1
+        and budget.get("timeline_state_commits_maximum") == 1
+        and budget.get("release_asset_uploads_maximum") == 1
+        and budget.get("private_repository_new_commits_maximum") == 1
+        and delivery.get("merge_commit_sha") == workflow.get("workflow_head_sha")
+        and workflow.get("run_attempt") == 1
+        and workflow.get("reruns") == 0
+        and effects.get("processed_current_path_and_blob_identity") is True
+        and effects.get("live_timeline_assets_after_dispatch") == 0
+        and diagnosis.get("high_confidence_defect")
+        == "GITHUB_RELEASE_ASSET_302_RECOVERY_NOT_SUPPORTED"
+        and completion.get("same_head_rerun_allowed") is False
+        and completion.get("failed_head_redispatch_allowed") is False
+        and completion.get("next_candidate_dispatch_limit") == 1
+        and completion.get("t0704_complete") is False
+        and completion.get("t0705_authorized") is False
+        and claims.get("s7ac_004_passed") is False
+        and claims.get("production_health") is False
+        and claims.get("final_acceptance") is False
     )
 
 
@@ -381,6 +460,58 @@ def _protected_m3_receipt(root: Path) -> dict[str, Any] | None:
     return cast(dict[str, Any], receipt)
 
 
+def _protected_blue_green_attempt_ledger(root: Path) -> dict[str, Any] | None:
+    path = root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_PATH
+    if not path.exists():
+        return None
+    schema_path = root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_SCHEMA_PATH
+    if (
+        not path.is_file()
+        or path.is_symlink()
+        or not schema_path.is_file()
+        or schema_path.is_symlink()
+    ):
+        raise ValueError("protected Blue-Green attempt ledger path is unsafe")
+    schema = _load(schema_path)
+    ledger = _load(path)
+    if list(
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(ledger)
+    ):
+        raise ValueError("protected Blue-Green attempt ledger violates its exact schema")
+    attempts = ledger.get("attempts", [])
+    attempt = attempts[0] if isinstance(attempts, list) and len(attempts) == 1 else {}
+    workflow = attempt.get("workflow", {}) if isinstance(attempt, dict) else {}
+    delivery = attempt.get("delivery", {}) if isinstance(attempt, dict) else {}
+    effects = attempt.get("effects", {}) if isinstance(attempt, dict) else {}
+    diagnosis = attempt.get("diagnosis", {}) if isinstance(attempt, dict) else {}
+    policy = ledger.get("completion_policy", {})
+    claims = ledger.get("claims", {})
+    if (
+        delivery.get("merge_commit_sha") != workflow.get("workflow_head_sha")
+        or workflow.get("run_attempt") != 1
+        or workflow.get("reruns") != 0
+        or effects.get("private_repository_new_commits") != 5
+        or effects.get("candidate_processed_shadow_objects") != 2
+        or effects.get("timeline_snapshot_objects") != 2
+        or effects.get("processed_current_path_and_blob_identity") is not True
+        or effects.get("live_timeline_assets_after_dispatch") != 0
+        or diagnosis.get("high_confidence_defect")
+        != "GITHUB_RELEASE_ASSET_302_RECOVERY_NOT_SUPPORTED"
+        or policy.get("same_head_rerun_allowed") is not False
+        or policy.get("failed_head_redispatch_allowed") is not False
+        or policy.get("new_reviewed_repair_candidate_allowed") is not True
+        or policy.get("next_candidate_dispatch_limit") != 1
+        or policy.get("t0704_complete") is not False
+        or policy.get("t0705_authorized") is not False
+        or any(value is not False for value in claims.values())
+    ):
+        raise ValueError("protected Blue-Green failed attempt ledger is not exact")
+    return cast(dict[str, Any], ledger)
+
+
 def _assurance_result(root: Path) -> dict[str, Any]:
     try:
         return cast(
@@ -414,6 +545,7 @@ def _validate_composition_for_state(
                 "1.0.14",
                 "1.0.15",
                 "1.0.16",
+                "1.0.17",
             },
         ),
     )
@@ -541,6 +673,7 @@ def _validate_stage6_evidence_transition(
         "1.0.14",
         "1.0.15",
         "1.0.16",
+        "1.0.17",
     } or versions != {"moomooau.stage6-evidence.v2"}:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
     # v1.0.5 itself remains Git-anchored. Its v1.0.6+ control successors are portable:
@@ -570,6 +703,7 @@ def build_status(
     protected_attempt_ledger = _protected_beta_attempt_ledger(root)
     protected_m3_attempt_ledger = _protected_m3_attempt_ledger(root)
     protected_m3_receipt = _protected_m3_receipt(root)
+    protected_blue_green_attempt_ledger = _protected_blue_green_attempt_ledger(root)
     state_name, state = _select_transition_state(
         model,
         _assurance_result(root) if assurance_result is None else assurance_result,
@@ -577,6 +711,7 @@ def build_status(
         protected_m3_attempt_ledger,
         protected_m3_receipt,
         t0704_authorized=_t0704_authorized(root),
+        t0704_repair_authorized=_t0704_repair_authorized(root),
     )
 
     workflow_matrix = _load(root / WORKFLOW_MATRIX_PATH)
@@ -729,6 +864,7 @@ def build_status(
     repair_m3_state = state_name == "PROTECTED_M3_REPAIR_AUTHORIZED"
     passed_m3_state = state_name == "PROTECTED_M3_PASS_SCOPE_STOP"
     authorized_t0704_state = state_name == "PROTECTED_M3_PASS_T0704_AUTHORIZED"
+    repair_t0704_state = state_name == "PROTECTED_BLUE_GREEN_REPAIR_AUTHORIZED"
     if failed_beta_state:
         if (
             protected_receipt is None
@@ -831,6 +967,30 @@ def build_status(
         production_workflow_runs = 0
         publication_status = "CONTROLLED_T0704_CANDIDATE_NOT_FINAL"
         mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_PREFLIGHT"
+    elif repair_t0704_state:
+        if (
+            protected_receipt is None
+            or protected_m3_attempt_ledger is None
+            or protected_m3_receipt is None
+            or protected_blue_green_attempt_ledger is None
+            or protected_executed != 4
+            or protected_passed != 3
+            or protected_failed != 1
+        ):
+            raise ValueError("T0704 repair authority lacks its exact failed-attempt lineage")
+        production_reasons = [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0704_RELEASE_ASSET_REDIRECT_REPAIR_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+        ]
+        overall_status = "PROTECTED_BLUE_GREEN_ATTEMPT_FAILED_REPAIR_AUTHORIZED"
+        protected_status = "FAILED"
+        production_workflow_runs = 0
+        publication_status = "CONTROLLED_T0704_REPAIR_CANDIDATE_NOT_FINAL"
+        mechanism_scope = (
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_FAILED_ATTEMPT"
+        )
     else:
         if protected_executed != 0 or protected_passed != 0 or protected_failed != 0:
             raise ValueError("pre-Beta state cannot contain protected Oracle execution")
@@ -876,6 +1036,10 @@ def build_status(
     if protected_m3_receipt is not None:
         source_digests["protected_m3_execution_receipt_sha256"] = _sha256(
             root / PROTECTED_M3_RECEIPT_PATH
+        )
+    if protected_blue_green_attempt_ledger is not None:
+        source_digests["protected_blue_green_attempt_ledger_sha256"] = _sha256(
+            root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_PATH
         )
 
     return {
@@ -937,6 +1101,11 @@ def build_status(
                         else 0
                     )
                     + (1 if protected_m3_receipt is not None else 0)
+                    + (
+                        len(protected_blue_green_attempt_ledger["attempts"])
+                        if protected_blue_green_attempt_ledger is not None
+                        else 0
+                    )
                     if protected_receipt is not None
                     else 0
                 ),

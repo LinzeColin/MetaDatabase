@@ -149,6 +149,22 @@
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
       "next_action": "Deliver the exact validated T0704 candidate to main and execute exactly one protected Blue-Green attempt 1 with rerun zero. Stop before T0705; do not promote processed-current, mutate Gmail, enable a schedule or claim final publication."
+    },
+    "PROTECTED_BLUE_GREEN_REPAIR_AUTHORIZED": {
+      "package_version": "1.0.17",
+      "resolved_review_findings": [
+        "REV-P0-002",
+        "REV-P0-003",
+        "REV-P1-004",
+        "REV-P1-006",
+        "REV-P2-007"
+      ],
+      "current_remediation_blockers": [
+        "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
+        "T0704_RELEASE_ASSET_REDIRECT_REPAIR_PENDING",
+        "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+      ],
+      "next_action": "Deliver one new exact-main T0704 release-asset redirect repair candidate and execute one attempt-1 dispatch. Never rerun the failed head; reuse the recovered candidate and Timeline snapshot, keep processed-current and Gmail unchanged, and stop before T0705."
     }
   }
 }
