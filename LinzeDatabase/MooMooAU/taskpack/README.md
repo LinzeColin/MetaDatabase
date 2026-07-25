@@ -192,7 +192,21 @@ candidate Processed shadow，保持 processed-current 不变，并提交/恢复 
 - `SOURCE_PROVENANCE.v1.0.16.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.15.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.14.json`、
+`v1.0.17` 固化 T0704 首次 exact-main attempt 的 protected 失败：candidate Processed 与
+Timeline snapshot 已远端恢复，processed-current 保持 byte-identical，但 fixed Release 最终
+live asset 为 0 并留下 encrypted repair state。GitHub 官方 Asset API 允许 `200` 或 `302`，
+原 adapter 只接受 `200`；修复只允许一次 GitHub release-asset CDN 跳转且不转发 Authorization。
+失败 head 禁止 rerun/redispatch；只授权一个新 exact-main repair candidate 与一次 attempt-1
+dispatch，candidate/snapshot 新写入 0，继续停止在 T0705 前。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.17.md`
+- `ROADMAP.v1.0.17.md`
+- `PACKAGE_MANIFEST.v1.0.17.json`
+- `SOURCE_PROVENANCE.v1.0.17.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.16.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.15.json`、
+`PACKAGE_MANIFEST.v1.0.14.json`、
 `PACKAGE_MANIFEST.v1.0.13.json`、
 `PACKAGE_MANIFEST.v1.0.12.json`、
 `PACKAGE_MANIFEST.v1.0.11.json`、

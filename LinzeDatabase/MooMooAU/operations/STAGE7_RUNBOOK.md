@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-`T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING`，本地实现状态为
+`T0704_RELEASE_ASSET_REDIRECT_REPAIR_AUTHORIZED`，本地实现状态为
 `LOCAL_MECHANISMS_READY`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
@@ -16,11 +16,13 @@ private write、collateral mutation 与 Timeline write 均为 0。独立前后�
 head/tree/path counts 与 Gmail Trash 聚合不变。T0703/S7AC-003 因此 PASS，但不等于 Stage 7、
 最终 Acceptance 或生产 PASS。
 
-当前精确 Run Contract 只允许固化 T0703 成功回执的一份受控证据交付；M3 dispatch、rerun、Secret
-读取、Gmail/私有仓/Timeline 写入与完整 Raw 读取预算均为 0。任何失败或成功 head 都不得再次运行。
-`moomooau-beta` 的 exact 八项 Secret name allowlist 保留，只有受保护 job 可读取值。T0704
-Blue-Green 已由显式 Run Contract 授权一次 exact-main attempt 1；GA、04:30 调度、最终
-Acceptance 与最终发布仍未授权。
+T0704 首次 exact-main attempt 1 已通过 authority 与 identity cleanup，并远端恢复 candidate
+Processed shadow 和 Timeline snapshot；`processed-current` 路径及 blob 身份保持不变。随后固定
+Release Asset 恢复失败，清理后 live Asset 为 0，并留下一个加密修复状态。该失败 head 已冻结，
+rerun 与 redispatch 均为 0。当前精确 Run Contract 只允许一个新 exact-main 修复 head、一次
+attempt 1：复用既有 candidate/snapshot，跟随一个限定在 GitHub release-assets CDN 的 302 且
+不转发 Authorization，最终恢复恰好一个 age 加密 Timeline。重复 candidate/snapshot 写入、
+Gmail/current 变更、T0705、GA、04:30 调度、最终 Acceptance 与最终发布仍未授权。
 
 ## Beta protected bootstrap 契约
 
@@ -71,8 +73,12 @@ Repository-ID 绑定的 metadata、完整 default-branch tree 和固定 live Rel
 repository/largest-object/LFS-continuity/live-asset capacity 后才交换 Gmail credential。
 tree truncated、出现无法证明零新增 LFS 的 `.gitattributes`、Release 非单资产或容量非可写，
 均在 Gmail 读取和仓库写入前 fail closed。
-当前 Run Contract 只授权一次 T0704 exact-main attempt 1，受保护执行尚未发生。因此不得宣称
-T0704、AC-015、AC-028、AC-029 或 AC-030 已通过，也不得提升 current pointer。不设自然日等待。
+首次 T0704 Run 已发生且失败；其 head 不得再次运行。当前 Run Contract 仅授权一个新 exact-main
+redirect-recovery attempt 1，candidate 与 snapshot 新写入预算均为 0，Timeline state 新写入预算
+最多为 1。Release Asset 下载只接受 200，或一个 HTTPS
+`release-assets.githubusercontent.com/github-production-release-asset` 跳转；第二跳不得携带
+Authorization，也不得继续跳转。因此不得宣称 T0704、AC-015、AC-028、AC-029 或 AC-030 已通过，
+也不得提升 current pointer。不设自然日等待。
 
 Owner 已授权 v1.0.2 successor baseline。`machine/tools/validate_evidence.py` 现在按任务的真实
 Stage schema 路由，并同时核对 task graph、stage-local acceptance、final Acceptance 绑定和禁止项

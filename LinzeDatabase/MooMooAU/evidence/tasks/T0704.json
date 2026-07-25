@@ -1,13 +1,13 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0704-PREFLIGHT-20260726",
+  "evidence_id": "S7-T0704-REDIRECT-REPAIR-PREFLIGHT-20260726",
   "stage_id": "S7",
   "task_id": "T0704",
   "stage_acceptance_id": "S7AC-004",
-  "observed_at_utc": "2026-07-26T00:00:00Z",
+  "observed_at_utc": "2026-07-25T21:35:07Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "record_status": "BLOCKED",
-  "scope": "LOCAL_SYNTHETIC_AND_PROTECTED_ENTRYPOINT_PREFLIGHT",
+  "scope": "PROTECTED_FAILED_ATTEMPT_AND_LOCAL_REDIRECT_REPAIR_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
     {"id": "blue_green_deterministic_evidence_gate", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_blue_green_requires_complete_evidence_and_exactly_one_live_asset"},
@@ -23,18 +23,23 @@
     {"id": "stale_capacity_replaced_by_live_private_repo_observation", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_blue_green.py and tests/tasks/test_t0704.py::test_t0704_stale_config_capacity_is_replaced_by_a_live_private_repo_observation"},
     {"id": "incomplete_live_capacity_blocks_before_gmail_or_write", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_incomplete_live_capacity_tree_blocks_before_gmail_or_repository_write"},
     {"id": "protected_entrypoint_exact_binding_aggregate_only", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_blue_green_entrypoint.py and tests/tasks/test_t0704.py::test_t0704_entrypoint_binds_exact_main_t0703_receipt_and_aggregate_only_result"},
-    {"id": "protected_workflow_exact_context_and_secret_allowlist", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_protected_workflow_is_manual_exact_main_attempt_one_and_eight_secret"}
+    {"id": "protected_workflow_exact_context_and_secret_allowlist", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_protected_workflow_is_manual_exact_main_attempt_one_and_eight_secret"},
+    {"id": "failed_attempt_schema_and_effects_frozen", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0704/attempt-ledger.json and machine/stages/S7/schemas/protected-blue-green-attempt-ledger-v1.schema.json"},
+    {"id": "private_release_asset_302_recovered_without_auth_forwarding", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_private_release_asset_302_is_recovered_without_forwarding_auth"},
+    {"id": "non_github_release_asset_redirect_rejected", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_private_release_asset_redirect_rejects_non_github_authority"},
+    {"id": "protected_composition_302_recovery", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_protected_cloud_composition_recovers_private_asset_redirect"},
+    {"id": "zero_asset_repair_reuses_existing_objects", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_failed_zero_asset_state_replays_without_duplicate_objects"}
   ],
   "linked_final_acceptance": [
-    {"id": "AC-015", "status": "NOT_RUN", "reason": "Only synthetic versioned incumbent and candidate lineage was exercised; no protected Parser comparison has run."},
-    {"id": "AC-028", "status": "NOT_RUN", "reason": "Exactly-one live Timeline behavior was exercised only against an in-memory remote, not the protected private Release."},
-    {"id": "AC-029", "status": "NOT_RUN", "reason": "Timeline time semantics used synthetic Gmail internalDate facts; no protected Processed facts were rendered."},
-    {"id": "AC-030", "status": "NOT_RUN", "reason": "Expectation and missing-report semantics were exercised synthetically only; no protected observation exists."}
+    {"id": "AC-015", "status": "PARTIAL", "reason": "The failed protected attempt recovered and compared the incumbent and candidate shadow, but T0704 has no complete protected PASS receipt."},
+    {"id": "AC-028", "status": "PARTIAL", "reason": "The protected fixed Release was created and the zero-asset repair state was verified, but exactly one remotely recoverable live Asset was not reached."},
+    {"id": "AC-029", "status": "PARTIAL", "reason": "Protected Processed facts reached the recovered Timeline snapshot and renderer, but the resulting live Asset failed remote recovery."},
+    {"id": "AC-030", "status": "PARTIAL", "reason": "Protected Timeline facts were rendered without fabricated completeness, but the failed live Asset recovery prevents final protected evidence."}
   ],
   "production_oracles": [
-    {"id": "PROTECTED_BLUE_GREEN_DETERMINISTIC_EVIDENCE", "status": "NOT_RUN", "reason": "The exact T0703 predecessor is complete and one bounded T0704 attempt is authorized, but the exact-main protected Blue-Green workflow has not executed."}
+    {"id": "PROTECTED_BLUE_GREEN_DETERMINISTIC_EVIDENCE", "status": "FAILED", "reason": "The exact-main attempt passed authority and cleanup, recovered the candidate and Timeline snapshot, then failed live Asset recovery; the head is frozen with rerun zero and a new redirect-repair candidate is pending."}
   ],
-  "blockers": ["PROTECTED_BLUE_GREEN_FIRST_ATTEMPT_PENDING"],
+  "blockers": ["PROTECTED_BLUE_GREEN_RELEASE_ASSET_REDIRECT_REPAIR_PENDING"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "Deliver the exact validated T0704 candidate to main and execute one protected attempt 1 with rerun zero against the same recovered Raw while processed-current remains unchanged and live Timeline min=max=1; stop before T0705."
+  "next_action": "Deliver one new exact-main T0704 redirect-recovery candidate, execute one attempt-1 dispatch with rerun zero, reuse the existing candidate and Timeline snapshot, prove processed-current unchanged and live Timeline min=max=1, then stop before T0705."
 }

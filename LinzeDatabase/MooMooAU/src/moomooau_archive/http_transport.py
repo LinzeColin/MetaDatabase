@@ -58,7 +58,14 @@ class StdlibHttpsTransport:
     """Send one HTTPS request with no redirect following and bounded bodies."""
 
     _SAFE_RESPONSE_HEADERS = frozenset(
-        {"content-type", "date", "etag", "retry-after", "x-ratelimit-reset"}
+        {
+            "content-type",
+            "date",
+            "etag",
+            "location",
+            "retry-after",
+            "x-ratelimit-reset",
+        }
     )
 
     def __init__(

@@ -51,19 +51,27 @@ _M3_RECEIPT_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-m3-execution-receipt-v1.schema.json"
 )
 _RUN_CONTRACT_PATH = Path("machine/stages/S7/contracts/run_contract.json")
+_FAILED_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0704/attempt-ledger.json")
+_FAILED_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-blue-green-attempt-ledger-v1.schema.json"
+)
 _SUCCESS_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0704/execution-receipt.json")
 _GATE_PATHS = (
     _M3_RECEIPT_PATH,
     _M3_RECEIPT_SCHEMA_PATH,
+    _FAILED_ATTEMPT_LEDGER_PATH,
+    _FAILED_ATTEMPT_LEDGER_SCHEMA_PATH,
     _RUN_CONTRACT_PATH,
     Path("machine/stages/S7/contracts/stage7_acceptance_contract.json"),
     Path("src/moomooau_archive/document_parser.py"),
     Path("src/moomooau_archive/blue_green_runtime.py"),
     Path("src/moomooau_archive/github_guard.py"),
+    Path("src/moomooau_archive/http_transport.py"),
     Path("src/moomooau_archive/protected_beta.py"),
     Path("src/moomooau_archive/protected_m3.py"),
     Path("src/moomooau_archive/protected_blue_green.py"),
     Path("src/moomooau_archive/protected_blue_green_entrypoint.py"),
+    Path("src/moomooau_archive/timeline_publish.py"),
     Path("tests/stage7_support.py"),
     Path("tests/tasks/test_t0704.py"),
 )
@@ -486,31 +494,83 @@ def _t0704_authorized(project_root: Path) -> bool:
         return False
     try:
         contract = _load_object(root / _RUN_CONTRACT_PATH)
+        ledger_path = root / _FAILED_ATTEMPT_LEDGER_PATH
+        ledger_schema_path = root / _FAILED_ATTEMPT_LEDGER_SCHEMA_PATH
+        if (
+            not ledger_path.is_file()
+            or ledger_path.is_symlink()
+            or not ledger_schema_path.is_file()
+            or ledger_schema_path.is_symlink()
+        ):
+            return False
+        ledger = _load_object(ledger_path)
+        ledger_schema = _load_object(ledger_schema_path)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return False
     authorization = contract.get("authorization")
     budget = contract.get("authorized_effect_budget")
+    attempts = ledger.get("attempts")
+    attempt = attempts[0] if isinstance(attempts, list) and len(attempts) == 1 else {}
+    delivery = attempt.get("delivery", {}) if isinstance(attempt, dict) else {}
+    workflow = attempt.get("workflow", {}) if isinstance(attempt, dict) else {}
+    effects = attempt.get("effects", {}) if isinstance(attempt, dict) else {}
+    diagnosis = attempt.get("diagnosis", {}) if isinstance(attempt, dict) else {}
+    completion = ledger.get("completion_policy", {})
+    claims = ledger.get("claims", {})
     return bool(
         contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0704"
         and isinstance(authorization, dict)
         and isinstance(budget, dict)
-        and authorization.get("purpose") == "T0704_PROTECTED_BLUE_GREEN_ONLY"
+        and not list(
+            Draft202012Validator(
+                ledger_schema,
+                format_checker=FormatChecker(),
+            ).iter_errors(ledger)
+        )
+        and authorization.get("purpose") == "T0704_PROTECTED_BLUE_GREEN_REDIRECT_RECOVERY_ONLY"
         and authorization.get("t0703_receipt_required") is True
+        and authorization.get("failed_attempt_ledger_required") is True
+        and authorization.get("failed_attempt_ledger_sha256")
+        == hashlib.sha256(ledger_path.read_bytes()).hexdigest()
+        and authorization.get("failed_attempt_ledger_schema_sha256")
+        == hashlib.sha256(ledger_schema_path.read_bytes()).hexdigest()
+        and authorization.get("prior_failed_attempts_exact") == 1
         and authorization.get("blue_green_authorized") is True
         and authorization.get("t0705_authorized") is False
         and authorization.get("final_publication_authorized") is False
         and authorization.get("dispatch_limit") == 1
+        and authorization.get("controlled_main_delivery_limit") == 1
         and budget.get("protected_blue_green_dispatches_maximum") == 1
         and budget.get("protected_blue_green_reruns_maximum") == 0
         and budget.get("verified_full_raw_message_reads_maximum") == 1
         and budget.get("gmail_mutations_maximum") == 0
         and budget.get("current_pointer_mutations_maximum") == 0
-        and budget.get("candidate_processed_shadow_commits_maximum") == 1
+        and budget.get("candidate_processed_shadow_commits_maximum") == 0
+        and budget.get("timeline_snapshot_commits_maximum") == 0
+        and budget.get("timeline_state_commits_maximum") == 1
         and budget.get("timeline_publish_attempts_maximum") == 1
+        and budget.get("release_asset_uploads_maximum") == 1
         and budget.get("maximum_live_timeline_assets") == 1
         and budget.get("scheduled_runs_maximum") == 0
         and budget.get("ga_runs_maximum") == 0
+        and delivery.get("merge_commit_sha") == workflow.get("workflow_head_sha")
+        and workflow.get("run_attempt") == 1
+        and workflow.get("reruns") == 0
+        and effects.get("candidate_processed_shadow_objects") == 2
+        and effects.get("timeline_snapshot_objects") == 2
+        and effects.get("processed_current_path_and_blob_identity") is True
+        and effects.get("live_timeline_assets_after_dispatch") == 0
+        and diagnosis.get("high_confidence_defect")
+        == "GITHUB_RELEASE_ASSET_302_RECOVERY_NOT_SUPPORTED"
+        and completion.get("same_head_rerun_allowed") is False
+        and completion.get("failed_head_redispatch_allowed") is False
+        and completion.get("next_candidate_dispatch_limit") == 1
+        and completion.get("t0704_complete") is False
+        and completion.get("t0705_authorized") is False
+        and claims.get("s7ac_004_passed") is False
+        and claims.get("production_health") is False
+        and claims.get("final_acceptance") is False
     )
 
 

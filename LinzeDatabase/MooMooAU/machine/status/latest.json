@@ -1,7 +1,7 @@
 {
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
-  "package_version": "1.0.16",
+  "package_version": "1.0.17",
   "status_as_of_utc": "2026-07-26T00:00:00Z",
   "authority": {
     "path": "machine/status/latest.json",
@@ -13,7 +13,7 @@
       "machine/facts and the seven human documents are deterministic derivatives"
     ]
   },
-  "overall_status": "PROTECTED_M3_PASS_T0704_AUTHORIZED_PENDING",
+  "overall_status": "PROTECTED_BLUE_GREEN_ATTEMPT_FAILED_REPAIR_AUTHORIZED",
   "dimensions": {
     "evidence_integrity": {
       "status": "PASS",
@@ -25,7 +25,7 @@
       "status": "LOCAL_MECHANISMS_EVIDENCED",
       "evidenced_tasks": 58,
       "total_tasks": 58,
-      "scope": "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_PREFLIGHT"
+      "scope": "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_FAILED_ATTEMPT"
     },
     "formal_task_completion": {
       "status": "INCOMPLETE",
@@ -35,12 +35,12 @@
       "contract_version": "1.0.1"
     },
     "protected_oracles": {
-      "status": "PARTIAL",
+      "status": "FAILED",
       "declared": 43,
-      "executed": 3,
+      "executed": 4,
       "passed": 3,
-      "failed": 0,
-      "not_run": 40
+      "failed": 1,
+      "not_run": 39
     },
     "final_acceptance": {
       "status": "BLOCKED",
@@ -53,14 +53,14 @@
       "workflow_runs": 0,
       "reason_codes": [
         "FORMAL_TASKS_INCOMPLETE",
-        "T0704_PROTECTED_FIRST_ATTEMPT_PENDING",
+        "T0704_RELEASE_ASSET_REDIRECT_REPAIR_PENDING",
         "FINAL_ACCEPTANCE_BLOCKED",
         "PRODUCTION_WORKFLOW_NOT_RUN"
       ]
     },
     "publication": {
-      "status": "CONTROLLED_T0704_CANDIDATE_NOT_FINAL",
-      "controlled_main_deliveries": 15,
+      "status": "CONTROLLED_T0704_REPAIR_CANDIDATE_NOT_FINAL",
+      "controlled_main_deliveries": 16,
       "remote_publications": 0
     }
   },
@@ -183,10 +183,10 @@
         "READY": 3
       },
       "linked_final_claim_counts": {
-        "NOT_RUN": 6,
-        "PARTIAL": 18
+        "NOT_RUN": 2,
+        "PARTIAL": 22
       },
-      "protected_oracles_executed": 3
+      "protected_oracles_executed": 4
     }
   ],
   "prohibition_counter_scope": "LOCAL_EVIDENCE_GENERATION_ONLY_EXCLUDES_PROTECTED_EXECUTION_RECEIPT",
@@ -219,7 +219,7 @@
   },
   "blockers": [
     "FORMAL_TASKS_INCOMPLETE",
-    "T0704_PROTECTED_FIRST_ATTEMPT_PENDING",
+    "T0704_RELEASE_ASSET_REDIRECT_REPAIR_PENDING",
     "FINAL_ACCEPTANCE_BLOCKED",
     "PRODUCTION_WORKFLOW_NOT_RUN",
     "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
@@ -232,18 +232,18 @@
     "REV-P1-006",
     "REV-P2-007"
   ],
-  "next_action": "Deliver the exact validated T0704 candidate to main and execute exactly one protected Blue-Green attempt 1 with rerun zero. Stop before T0705; do not promote processed-current, mutate Gmail, enable a schedule or claim final publication.",
+  "next_action": "Deliver one new exact-main T0704 release-asset redirect repair candidate and execute one attempt-1 dispatch. Never rerun the failed head; reuse the recovered candidate and Timeline snapshot, keep processed-current and Gmail unchanged, and stop before T0705.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "ebdeac1fee6cce54c7cd7edaf447553a3bca32009c97b65fb0e124eb517027cc",
+    "acceptance_summary_sha256": "93e1bec895b7cfbcf7f1f04f7062df3d7f80b6584533415a93d7201d9eb2ac86",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
-    "delivery_status_model_sha256": "f7e7ffe1a5c5070b4dbfca8cd15c0c711e0c1bedb9bfd2feb3c0362bbc2645be",
+    "delivery_status_model_sha256": "f5ff01285c2d4d18000ed7650aa2e894f08ba63fcefe801284a5e1a878f45fd3",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "40dabb1ff1461dd8dfbc6a71606d727aa6a5397f95f9d5b155291d6f67b3fc27",
+    "production_composition_sha256": "a2c305a6fb72d7e1da107f805e990e196137490be6ede46de882c168d762f502",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "2b61954bda245cd81680cac3953decf01c2ad0dd32aa6fcdc71619baa51b84e4",
+    "task_evidence_root_sha256": "efa339378de812473a110fadce04d9477660d8482b46db00328d75b0948c1ab7",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",
@@ -251,6 +251,7 @@
     "protected_beta_execution_receipt_sha256": "06c4c58e64f56f740c2f0143b064236dafc9dc56e7bae488f02c52dd6b750ce0",
     "protected_beta_attempt_ledger_sha256": "3a85c5ea1d3e21f0ce0413968f83a867f2b5e3accfb63deb78b4e740ee86456a",
     "protected_m3_attempt_ledger_sha256": "3ac1e717aee5dfbb020f41bd846d545a36ff0b03028a252286b35d2658ce1144",
-    "protected_m3_execution_receipt_sha256": "c1835ec0fb74b2ce6e793ba9483eda03efcddd2030c8b51affcf5efa5443749c"
+    "protected_m3_execution_receipt_sha256": "c1835ec0fb74b2ce6e793ba9483eda03efcddd2030c8b51affcf5efa5443749c",
+    "protected_blue_green_attempt_ledger_sha256": "8f541dc5d5aba89c20539c6f28aeab508a93b8e5c800f5b2a3bb01345cea6ee5"
   }
 }

@@ -7,8 +7,8 @@
     "首次登记": "2026-07-22"
   },
   {
-    "id": "T0704_PROTECTED_FIRST_ATTEMPT_PENDING",
-    "内容": "T0704 候选已通过本地与受保护入口预检；精确 main 交付和唯一一次 attempt-1 Blue-Green 执行待完成，rerun、Gmail 变更、current pointer promotion 与 T0705 均禁止",
+    "id": "T0704_RELEASE_ASSET_REDIRECT_REPAIR_PENDING",
+    "内容": "T0704 首次 exact-main attempt 1 已冻结为失败；候选 Processed 与 Timeline snapshot 已远端恢复、processed-current 保持不变、固定 Release 当前零 Asset。仅授权一个新 exact-main 修复候选和一次 attempt 1，以有界单跳 302 恢复恰好一个加密 Timeline",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"

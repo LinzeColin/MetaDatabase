@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from jsonschema import Draft202012Validator, FormatChecker
 
 sys.dont_write_bytecode = True
 
@@ -41,6 +42,10 @@ PROTECTED_M3_ATTEMPT_LEDGER_SCHEMA = Path(
 PROTECTED_M3_RECEIPT = Path("machine/stages/S7/reviews/t0703/execution-receipt.json")
 PROTECTED_M3_RECEIPT_SCHEMA = Path(
     "machine/stages/S7/schemas/protected-m3-execution-receipt-v1.schema.json"
+)
+PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER = Path("machine/stages/S7/reviews/t0704/attempt-ledger.json")
+PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_SCHEMA = Path(
+    "machine/stages/S7/schemas/protected-blue-green-attempt-ledger-v1.schema.json"
 )
 STAGE7_TASKS = [f"T070{index}" for index in range(1, 9)]
 STAGE7_ACCEPTANCES = [f"S7AC-00{index}" for index in range(1, 9)]
@@ -138,7 +143,7 @@ def _validate_contracts(root: Path) -> list[str]:
     if [item.get("task_id") for item in items] != STAGE7_TASKS:
         errors.append("Stage 7 acceptance-to-task mapping must be one-to-one")
     if (
-        local.get("overall_status") != "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING"
+        local.get("overall_status") != "T0704_RELEASE_ASSET_REDIRECT_REPAIR_AUTHORIZED"
         or local.get("final_acceptances_passed") != 0
         or "Local implementation preflight" not in local.get("final_acceptance_policy", "")
         or "No fixed calendar observation period applies"
@@ -186,13 +191,19 @@ def _validate_contracts(root: Path) -> list[str]:
         run.get("schema_version") != "moomooau.run-contract.v1"
         or run.get("stage_id") != "S7"
         or run.get("task_id") != "T0704"
-        or run.get("baseline_commit") != "4924fad17fc4666761df9ec7088608db18cc6605"
+        or run.get("baseline_commit") != "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"
         or run.get("baseline_manifest_sha256")
-        != "35b8ff4f39197910e1145d1f1c535569c9b282722f6e2ae0a4e1d62e8fc4243c"  # pragma: allowlist secret  # noqa: E501
+        != "976aa0a5b38a23104670c5fea32e3d7ff6bafee20c3e0fd4ed5e1b7513a09ca3"  # pragma: allowlist secret  # noqa: E501
         or not isinstance(prohibitions, dict)
         or any(value != 0 for value in prohibitions.values())
-        or authorization.get("purpose") != "T0704_PROTECTED_BLUE_GREEN_ONLY"
+        or authorization.get("purpose") != "T0704_PROTECTED_BLUE_GREEN_REDIRECT_RECOVERY_ONLY"
         or authorization.get("t0703_receipt_required") is not True
+        or authorization.get("failed_attempt_ledger_required") is not True
+        or authorization.get("failed_attempt_ledger_sha256")
+        != "8f541dc5d5aba89c20539c6f28aeab508a93b8e5c800f5b2a3bb01345cea6ee5"
+        or authorization.get("failed_attempt_ledger_schema_sha256")
+        != "bf3e2ee4cb6f8d0e1ccb67423dfa615d33b3089f9bfc730f34cd944ee14f8e0c"
+        or authorization.get("prior_failed_attempts_exact") != 1
         or authorization.get("blue_green_authorized") is not True
         or authorization.get("t0705_authorized") is not False
         or authorization.get("dispatch_limit") != 1
@@ -206,11 +217,14 @@ def _validate_contracts(root: Path) -> list[str]:
         or effect_budget.get("github_app_creations_maximum") != 0
         or effect_budget.get("verified_full_raw_message_reads_maximum") != 1
         or effect_budget.get("raw_ciphertext_creations_maximum") != 0
-        or effect_budget.get("candidate_processed_shadow_commits_maximum") != 1
+        or effect_budget.get("candidate_processed_shadow_commits_maximum") != 0
         or effect_budget.get("current_pointer_mutations_maximum") != 0
-        or effect_budget.get("timeline_snapshot_commits_maximum") != 1
+        or effect_budget.get("timeline_snapshot_commits_maximum") != 0
+        or effect_budget.get("timeline_state_commits_maximum") != 1
         or effect_budget.get("timeline_publish_attempts_maximum") != 1
+        or effect_budget.get("release_asset_uploads_maximum") != 1
         or effect_budget.get("maximum_live_timeline_assets") != 1
+        or effect_budget.get("private_repository_new_commits_maximum") != 1
         or effect_budget.get("protected_blue_green_dispatches_maximum") != 1
         or effect_budget.get("protected_blue_green_reruns_maximum") != 0
         or effect_budget.get("gmail_mutations_maximum") != 0
@@ -218,13 +232,51 @@ def _validate_contracts(root: Path) -> list[str]:
         or effect_budget.get("ga_runs_maximum") != 0
         or not run.get("protected_oracles")
         or not any(
-            "workflow rerun or a second dispatch for the same exact-main head" in item
+            "workflow rerun or a second dispatch for either the failed head or the new repair head"
+            in item
             for item in run.get("non_goals", [])
         )
         or not run.get("rollback")
         or not run.get("stop_conditions")
     ):
         errors.append("Stage 7 T0704 protected Blue-Green Run Contract is incomplete")
+    blue_green_ledger_path = root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER
+    blue_green_schema_path = root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_SCHEMA
+    blue_green_ledger = _load(blue_green_ledger_path)
+    blue_green_schema = _load(blue_green_schema_path)
+    blue_green_attempts = blue_green_ledger.get("attempts", [])
+    blue_green_attempt = (
+        blue_green_attempts[0]
+        if isinstance(blue_green_attempts, list) and len(blue_green_attempts) == 1
+        else {}
+    )
+    if (
+        list(
+            Draft202012Validator(
+                blue_green_schema,
+                format_checker=FormatChecker(),
+            ).iter_errors(blue_green_ledger)
+        )
+        or _sha256(blue_green_ledger_path) != authorization.get("failed_attempt_ledger_sha256")
+        or _sha256(blue_green_schema_path)
+        != authorization.get("failed_attempt_ledger_schema_sha256")
+        or blue_green_attempt.get("delivery", {}).get("merge_commit_sha")
+        != run.get("baseline_commit")
+        or blue_green_attempt.get("workflow", {}).get("run_attempt") != 1
+        or blue_green_attempt.get("workflow", {}).get("reruns") != 0
+        or blue_green_attempt.get("effects", {}).get("private_repository_new_commits") != 5
+        or blue_green_attempt.get("effects", {}).get("processed_current_path_and_blob_identity")
+        is not True
+        or blue_green_attempt.get("effects", {}).get("live_timeline_assets_after_dispatch") != 0
+        or blue_green_attempt.get("diagnosis", {}).get("high_confidence_defect")
+        != "GITHUB_RELEASE_ASSET_302_RECOVERY_NOT_SUPPORTED"
+        or blue_green_ledger.get("completion_policy", {}).get("same_head_rerun_allowed")
+        is not False
+        or blue_green_ledger.get("completion_policy", {}).get("failed_head_redispatch_allowed")
+        is not False
+        or blue_green_ledger.get("completion_policy", {}).get("t0705_authorized") is not False
+    ):
+        errors.append("T0704 failed attempt ledger is not exact or repair-eligible")
 
     repair = _load(root / "machine/stages/S7/contracts/t0702_repair_run_contract.json")
     repair_authority = repair.get("authority", {})
@@ -313,20 +365,20 @@ def _validate_contracts(root: Path) -> list[str]:
     if (
         [item.get("id") for item in task_items] != STAGE7_TASKS
         or any(item.get("status") == "completed" for item in task_items)
-        or status.get("stage_status") != "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING"
+        or status.get("stage_status") != "T0704_RELEASE_ASSET_REDIRECT_REPAIR_AUTHORIZED"
         or status.get("scoped_preflight_task_oracle_file_count") != 8
         or status.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or status.get("completed_task_count") != 0
-        or status.get("protected_oracles_executed") != 3
+        or status.get("protected_oracles_executed") != 4
         or status.get("protected_oracles_passed") != 3
-        or status.get("protected_oracles_failed") != 0
-        or status.get("protected_workflow_runs") != 18
+        or status.get("protected_oracles_failed") != 1
+        or status.get("protected_workflow_runs") != 19
         or status.get("production_workflow_runs") != 0
         or status.get("final_acceptances_passed") != 0
-        or status.get("delivery_status") != "CONTROLLED_T0704_CANDIDATE_NOT_FINAL"
-        or status.get("ordering_status") != "T0704_PROTECTED_BLUE_GREEN_ATTEMPT_ONE_AUTHORIZED"
+        or status.get("delivery_status") != "CONTROLLED_T0704_REPAIR_CANDIDATE_NOT_FINAL"
+        or status.get("ordering_status") != "T0704_FAILED_HEAD_FROZEN_NEW_REPAIR_HEAD_AUTHORIZED"
         or status.get("diagnostic_repair_status")
-        != "PROTECTED_PASS_ENCRYPTED_HISTORICAL_LABEL_REPLAY_ZERO_EFFECT_VERIFIED"
+        != "GITHUB_RELEASE_ASSET_302_RECOVERY_GAP_REPAIRED_LOCALLY"
         or status.get("new_controlled_delivery_authorized") is not True
         or status.get("new_protected_dispatch_authorized") is not True
     ):
@@ -335,11 +387,12 @@ def _validate_contracts(root: Path) -> list[str]:
     semantic = _load(root / "machine/stages/S7/contracts/semantic_gate.json")
     semantic_statuses = {item.get("status") for item in semantic.get("resolutions", [])}
     if (
-        semantic.get("status") != "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING"
+        semantic.get("status") != "T0704_RELEASE_ASSET_REDIRECT_REPAIR_AUTHORIZED"
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
         or "T0702_PROTECTED_BETA_PASS_NO_RERUN" not in semantic_statuses
-        or "T0704_EXACT_MAIN_ATTEMPT_ONE_AUTHORIZED" not in semantic_statuses
+        or "T0704_FIRST_ATTEMPT_FAILED_HEAD_FROZEN" not in semantic_statuses
+        or "T0704_RELEASE_ASSET_302_RECOVERY_REPAIR_AUTHORIZED" not in semantic_statuses
         or "T0703_FAILED_LINEAGE_FROZEN" not in semantic_statuses
         or "PROTECTED_ZERO_NEW_WRITE_RECONCILIATION_VALIDATED" not in semantic_statuses
         or "T0703_PROTECTED_ZERO_MUTATION_RECONCILIATION_PASS" not in semantic_statuses
@@ -588,7 +641,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             'CONTROL_REF = "refs/heads/main"',
             'PROTECTED_ENVIRONMENT = "moomooau-beta"',
             'BLUE_GREEN_CONFIRMATION = "BLUE_GREEN_SAME_RECOVERED_RAW_SHADOW_ONLY"',
-            "T0704_PROTECTED_BLUE_GREEN_ONLY",
+            "T0704_PROTECTED_BLUE_GREEN_REDIRECT_RECOVERY_ONLY",
             '"candidate_pointer_promotion": False',
             '"current_pointer_mutations": 0',
             '"single_live_timeline_required": True',
@@ -727,7 +780,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
     runbook = root / "operations/STAGE7_RUNBOOK.md"
     runbook_text = runbook.read_text(encoding="utf-8") if runbook.is_file() else ""
     for token in (
-        "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING",
+        "T0704_RELEASE_ASSET_REDIRECT_REPAIR_AUTHORIZED",
         "不设自然日等待",
         "一次有界受保护运行",
         "04:30 Australia/Sydney",
@@ -1682,7 +1735,7 @@ def _validate_evidence(root: Path) -> list[str]:
             "FINAL_ACCEPTANCE_AND_POST_M3_STAGE7_PHASES_NOT_RUN",
         },
         "T0704": {
-            "PROTECTED_BLUE_GREEN_FIRST_ATTEMPT_PENDING",
+            "PROTECTED_BLUE_GREEN_RELEASE_ASSET_REDIRECT_REPAIR_PENDING",
         },
         "T0706": {
             "GA_NOT_COMPLETE",
@@ -1719,6 +1772,7 @@ def _validate_evidence(root: Path) -> list[str]:
         "T0701": "PASS",
         "T0702": "PASS",
         "T0703": "PASS",
+        "T0704": "FAILED",
     }
     for index, task_id in enumerate(STAGE7_TASKS, start=1):
         path = root / "evidence/tasks" / f"{task_id}.json"
@@ -1788,7 +1842,6 @@ def _validate_evidence(root: Path) -> list[str]:
     aggregate_required_blockers = set().union(*required_blockers.values())
     aggregate_resolved_blockers = set().union(*resolved_local_blockers.values())
     not_run = (
-        "blue_green_deterministic_evidence_run",
         "ga_0430_schedule",
         "codex_automation_created",
         "real_recovery_key_drill",
@@ -1796,20 +1849,23 @@ def _validate_evidence(root: Path) -> list[str]:
     )
     if (
         latest.get("stage_id") != "S7"
-        or latest.get("status") != "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING"
+        or latest.get("status") != "T0704_RELEASE_ASSET_REDIRECT_REPAIR_AUTHORIZED"
         or latest.get("scoped_preflight")
         != "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
         or latest.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or latest.get("scope")
-        != "LOCAL_PREFLIGHT_WITH_PROTECTED_T0702_T0703_PASS_AND_T0704_ENTRYPOINT_AUTHORITY"
+        != (
+            "LOCAL_PREFLIGHT_WITH_PROTECTED_T0702_T0703_PASS_AND_"
+            "T0704_FAILED_ATTEMPT_REPAIR_AUTHORITY"
+        )
         or latest.get("mechanism_task_oracle_files_passed") != 8
         or latest.get("task_total") != 8
         or latest.get("completed_task_count") != 0
         or latest.get("final_acceptances_passed") != 0
-        or latest.get("protected_oracles_executed") != 3
+        or latest.get("protected_oracles_executed") != 4
         or latest.get("protected_oracles_passed") != 3
-        or latest.get("protected_oracles_failed") != 0
-        or latest.get("protected_workflow_runs") != 18
+        or latest.get("protected_oracles_failed") != 1
+        or latest.get("protected_workflow_runs") != 19
         or latest.get("production_workflow_runs") != 0
         or observation.get("alpha_local_synthetic") != "PASS"
         or observation.get("beta_local_bootstrap_mechanism") != "PASS"
@@ -1819,7 +1875,9 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("m3_protected_entrypoint") != "PASS_RECEIPT_BOUND_AUTHORITY_CONSUMED"
         or observation.get("blue_green_timeline_local_mechanism") != "PASS"
         or observation.get("blue_green_protected_entrypoint")
-        != "PASS_AUTHORIZED_ATTEMPT_ONE_PENDING"
+        != "PASS_FAILED_HEAD_FROZEN_REPAIR_HEAD_AUTHORIZED"
+        or observation.get("blue_green_deterministic_evidence_run")
+        != "FAILED_LIVE_ASSET_RECOVERY_ZERO_ASSET_REPAIR_STATE"
         or observation.get("ga_full_pipeline_local_mechanism") != "PASS"
         or observation.get("codex_auto_local_policy") != "PASS"
         or observation.get("recovery_drill_local_mechanism") != "PASS"
@@ -1838,21 +1896,22 @@ def _validate_evidence(root: Path) -> list[str]:
         != "NONZERO_AGE_CIPHERTEXT_ONLY_REMOTE_RECOVERY_100_PERCENT"
         or observation.get("protected_secret_injection")
         != "EIGHT_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED"
-        or observation.get("controlled_main_deliveries") != 15
+        or observation.get("controlled_main_deliveries") != 16
         or observation.get("private_raw_commits") != "NONZERO_WITHIN_CONFIGURED_BUDGET"
         or observation.get("remote_publications") != 0
         or observation.get("m3_runs") != 1
-        or observation.get("processed_writes") != 1
-        or observation.get("timeline_writes") != 0
+        or observation.get("processed_writes") != 3
+        or observation.get("timeline_writes") != 3
         or observation.get("scheduled_runs") != 0
         or observation.get("maximum_observed_live_timeline_assets") != 0
         or not aggregate_required_blockers.issubset(latest.get("blocking_conditions", []))
         or aggregate_resolved_blockers.intersection(latest.get("blocking_conditions", []))
-        or latest.get("delivery_status") != "CONTROLLED_T0704_CANDIDATE_NOT_FINAL"
+        or latest.get("delivery_status") != "CONTROLLED_T0704_REPAIR_CANDIDATE_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "Deliver the exact validated T0704 candidate to main and execute exactly one protected "
-            "Blue-Green attempt 1 with rerun zero; stop before T0705."
+            "Deliver one new exact-main T0704 redirect-recovery candidate and execute one "
+            "attempt-1 dispatch with rerun zero; reuse existing candidate and snapshot, prove "
+            "exactly one recoverable live Timeline, and stop before T0705."
         )
     ):
         errors.append("Stage 7 aggregate evidence is not truthfully T0704-authorized")

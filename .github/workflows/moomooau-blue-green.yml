@@ -83,17 +83,19 @@ jobs:
           python -m pip install --require-hashes -r requirements/stage6.lock
           python -m pip install --no-build-isolation --no-deps .
 
-      - name: Revalidate T0703 receipt and T0704 boundaries without protected inputs
+      - name: Revalidate T0703 receipt, failed T0704 attempt and repair boundaries
         working-directory: LinzeDatabase/MooMooAU
         run: |
           python -m ruff format --check \
             src/moomooau_archive/document_parser.py \
             src/moomooau_archive/blue_green_runtime.py \
             src/moomooau_archive/github_guard.py \
+            src/moomooau_archive/http_transport.py \
             src/moomooau_archive/protected_beta.py \
             src/moomooau_archive/protected_m3.py \
             src/moomooau_archive/protected_blue_green.py \
             src/moomooau_archive/protected_blue_green_entrypoint.py \
+            src/moomooau_archive/timeline_publish.py \
             tests/stage7_support.py \
             tests/tasks/test_t0703.py \
             tests/tasks/test_t0704.py
@@ -101,10 +103,12 @@ jobs:
             src/moomooau_archive/document_parser.py \
             src/moomooau_archive/blue_green_runtime.py \
             src/moomooau_archive/github_guard.py \
+            src/moomooau_archive/http_transport.py \
             src/moomooau_archive/protected_beta.py \
             src/moomooau_archive/protected_m3.py \
             src/moomooau_archive/protected_blue_green.py \
             src/moomooau_archive/protected_blue_green_entrypoint.py \
+            src/moomooau_archive/timeline_publish.py \
             tests/stage7_support.py \
             tests/tasks/test_t0703.py \
             tests/tasks/test_t0704.py
@@ -112,10 +116,12 @@ jobs:
             src/moomooau_archive/document_parser.py \
             src/moomooau_archive/blue_green_runtime.py \
             src/moomooau_archive/github_guard.py \
+            src/moomooau_archive/http_transport.py \
             src/moomooau_archive/protected_beta.py \
             src/moomooau_archive/protected_m3.py \
             src/moomooau_archive/protected_blue_green.py \
-            src/moomooau_archive/protected_blue_green_entrypoint.py
+            src/moomooau_archive/protected_blue_green_entrypoint.py \
+            src/moomooau_archive/timeline_publish.py
           python -m pytest -q tests/tasks/test_t0703.py tests/tasks/test_t0704.py
           python machine/tools/validate_package.py
           python machine/tools/validate_delivery_status.py

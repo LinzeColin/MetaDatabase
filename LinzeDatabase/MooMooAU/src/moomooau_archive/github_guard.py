@@ -205,12 +205,62 @@ class GitHubEndpointGuard:
 
     def send(self, request: HttpRequest) -> HttpResponse:
         try:
-            self._validate(request)
+            operation = self._validate(request)
         except GitHubBoundaryError:
             self._blocked_calls += 1
             raise
         self._allowed_calls += 1
-        return self._transport.send(request)
+        response = self._transport.send(request)
+        if operation is not GitHubOperation.RELEASE_ASSET_READ or response.status != 302:
+            return response
+        try:
+            redirect = self._release_asset_redirect_request(response)
+        except GitHubBoundaryError:
+            self._blocked_calls += 1
+            raise
+        self._allowed_calls += 1
+        return self._transport.send(redirect)
+
+    @staticmethod
+    def _release_asset_redirect_request(response: HttpResponse) -> HttpRequest:
+        """Follow exactly one GitHub-issued binary Asset redirect without forwarding auth."""
+
+        locations = [value for name, value in response.headers if name.casefold() == "location"]
+        if len(locations) != 1:
+            raise GitHubBoundaryError("Release Asset redirect location is invalid")
+        location = locations[0]
+        if (
+            not location.isascii()
+            or not 1 <= len(location) <= 32_768
+            or any(character in location for character in ("\r", "\n", " "))
+        ):
+            raise GitHubBoundaryError("Release Asset redirect location is invalid")
+        try:
+            parsed = urlsplit(location)
+            port = parsed.port
+        except ValueError as exc:
+            raise GitHubBoundaryError("Release Asset redirect authority is invalid") from exc
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname != "release-assets.githubusercontent.com"
+            or port is not None
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.fragment
+            or re.fullmatch(
+                r"/github-production-release-asset/"
+                r"[A-Za-z0-9._~!$&'()*+,;=:@%/\-]{1,8192}",
+                parsed.path,
+            )
+            is None
+            or not 1 <= len(parsed.query) <= 16_384
+        ):
+            raise GitHubBoundaryError("Release Asset redirect authority is not allowed")
+        return HttpRequest(
+            "GET",
+            location,
+            headers=(("Accept", "application/octet-stream"),),
+        )
 
     def _validate(self, request: HttpRequest) -> GitHubOperation:
         try:
