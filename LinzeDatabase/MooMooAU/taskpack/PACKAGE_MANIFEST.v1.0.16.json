@@ -790,7 +790,7 @@
     {
       "path": "machine/contracts/production_composition.json",
       "bytes": 4625,
-      "sha256": "e975e030e7144a296874b343004ac74bfd3bbda725b8750d1aae135d33919b97"
+      "sha256": "40dabb1ff1461dd8dfbc6a71606d727aa6a5397f95f9d5b155291d6f67b3fc27"
     },
     {
       "path": "machine/contracts/publication_safety.json",
@@ -1705,7 +1705,7 @@
     {
       "path": "machine/status/latest.json",
       "bytes": 8804,
-      "sha256": "36fabb47eef7ae0f528f2962f907249e650416d1ca074afc329b033c1adcf259"
+      "sha256": "5f561c3ed5847164658ae531813eb50c5acee1c8e95f6889d09e64dc5ba49aa3"
     },
     {
       "path": "machine/tools/README.md",
@@ -3219,8 +3219,8 @@
     },
     {
       "path": "tests/tasks/test_t0704.py",
-      "bytes": 23490,
-      "sha256": "ede1328645d9e5d088b3320a6f432a9ca2b9b587405f4bf0e6811a3d6a35778f"
+      "bytes": 23518,
+      "sha256": "3ab2a83f2f2da4c173e8b16fe6709e7fde3e180469cd097986736b7308bb616e"
     },
     {
       "path": "tests/tasks/test_t0705.py",

@@ -514,7 +514,7 @@ def test_t0704_stage_aware_evidence_validator_preserves_blocked_truth() -> None:
     provenance = json.loads(
         (PROJECT_ROOT / "taskpack/SOURCE_PROVENANCE.v1.0.16.json").read_text(encoding="utf-8")
     )
-    expected_base = "4924fad17fc4666761df9ec7088608db18cc6605"
+    expected_base = "4924fad17fc4666761df9ec7088608db18cc6605"  # pragma: allowlist secret
     assert provenance["schema_version"] == "moomooau.source-provenance.v16"
     assert provenance["candidate_snapshot"] == {
         "repository": "LinzeColin/MetaDatabase",
