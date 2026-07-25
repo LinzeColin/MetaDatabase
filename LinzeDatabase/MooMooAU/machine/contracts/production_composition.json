@@ -1,7 +1,7 @@
 {
   "schema_version": "moomooau.production-composition.v1",
   "finding_id": "REV-P0-002",
-  "observed_at_utc": "2026-07-24T09:20:08Z",
+  "observed_at_utc": "2026-07-25T22:36:47Z",
   "status": "LOCAL_SYNTHETIC_COMPOSITION_VERIFIED",
   "scope": "RMD_04_LOCAL_SYNTHETIC_ONLY",
   "workflow": {
@@ -72,7 +72,7 @@
       "sha256": "7297e91cdde668b65ddcbb789e9eb510541137277b87a96fc00c8e43504f6599"
     },
     "tests/tasks/test_t0704.py": {
-      "sha256": "8f45a2fc57e674cff426e91a77cb047c7a10965f6d038717193f220109719489"
+      "sha256": "acc725d9fe6e633b6e043dd56351b4d6f55deab21eb57398a8111d3f44f19ac0"
     },
     "schemas/production-config-v1.schema.json": {
       "sha256": "78968068b6110aac7b01ad94f9be5ce5120a97243e1528183f274ffe772c2fc2"

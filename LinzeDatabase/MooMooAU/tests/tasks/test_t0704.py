@@ -270,6 +270,42 @@ def test_t0704_private_release_asset_redirect_rejects_non_github_authority() -> 
         token.destroy()
 
 
+def test_t0704_private_release_asset_redirect_never_follows_a_second_hop() -> None:
+    first_redirect = (
+        "https://release-assets.githubusercontent.com/"
+        "github-production-release-asset/1/2/synthetic.age?signed=first"
+    )
+    second_redirect = (
+        "https://release-assets.githubusercontent.com/"
+        "github-production-release-asset/1/2/synthetic.age?signed=second"
+    )
+    transport = _RedirectTransport(
+        (
+            HttpResponse(302, b"", (("Location", first_redirect),)),
+            HttpResponse(302, b"", (("Location", second_redirect),)),
+            HttpResponse(200, _synthetic_age_envelope()),
+        )
+    )
+    config = TargetRepositoryConfig(repository_id=7_700_004, installation_id=8_700_004)
+    locator = RepositoryLocator(config.repository_id, "synthetic-owner", "synthetic-private")
+    guard = GitHubEndpointGuard(transport, config)
+    guard.bind_repository(locator)
+    token = InstallationToken(
+        SecretText("synthetic-" + "timeline-token"),
+        datetime(2026, 7, 26, 1, tzinfo=UTC),
+    )
+    try:
+        remote = GitHubTimelineReleaseRemote(guard, locator, token)
+        with pytest.raises(TimelinePublishError, match="Asset download failed"):
+            remote.download(501)
+        assert len(transport.requests) == 2
+        assert transport.requests[1].url == first_redirect
+        assert guard.metrics.allowed_calls == 2
+        assert guard.metrics.blocked_calls == 0
+    finally:
+        token.destroy()
+
+
 def test_t0704_same_recovered_raw_shadows_candidate_and_publishes_one_recovered_timeline() -> None:
     with blue_green_context() as context:
         pointer_path = (

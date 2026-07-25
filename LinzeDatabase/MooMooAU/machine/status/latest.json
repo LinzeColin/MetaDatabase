@@ -240,7 +240,7 @@
     "delivery_status_model_sha256": "f5ff01285c2d4d18000ed7650aa2e894f08ba63fcefe801284a5e1a878f45fd3",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "a2c305a6fb72d7e1da107f805e990e196137490be6ede46de882c168d762f502",
+    "production_composition_sha256": "afd8c17f6a3b6855a1ed2b5be5afd9d1dcbdb31982c837ab176f41ae6a96ca88",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
     "task_evidence_root_sha256": "efa339378de812473a110fadce04d9477660d8482b46db00328d75b0948c1ab7",
