@@ -1,8 +1,8 @@
 {
   "schema_version": "moomooau.delivery-status.v1",
   "status_model_version": "moomooau.delivery-status-model.v3",
-  "package_version": "1.0.15",
-  "status_as_of_utc": "2026-07-24T09:20:08Z",
+  "package_version": "1.0.16",
+  "status_as_of_utc": "2026-07-26T00:00:00Z",
   "authority": {
     "path": "machine/status/latest.json",
     "precedence": [
@@ -13,7 +13,7 @@
       "machine/facts and the seven human documents are deterministic derivatives"
     ]
   },
-  "overall_status": "PROTECTED_M3_PASS_SCOPE_STOP_T0704_NOT_AUTHORIZED",
+  "overall_status": "PROTECTED_M3_PASS_T0704_AUTHORIZED_PENDING",
   "dimensions": {
     "evidence_integrity": {
       "status": "PASS",
@@ -25,7 +25,7 @@
       "status": "LOCAL_MECHANISMS_EVIDENCED",
       "evidenced_tasks": 58,
       "total_tasks": 58,
-      "scope": "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS"
+      "scope": "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_PREFLIGHT"
     },
     "formal_task_completion": {
       "status": "INCOMPLETE",
@@ -53,13 +53,13 @@
       "workflow_runs": 0,
       "reason_codes": [
         "FORMAL_TASKS_INCOMPLETE",
-        "T0704_NOT_AUTHORIZED_IN_CURRENT_RUN",
+        "T0704_PROTECTED_FIRST_ATTEMPT_PENDING",
         "FINAL_ACCEPTANCE_BLOCKED",
         "PRODUCTION_WORKFLOW_NOT_RUN"
       ]
     },
     "publication": {
-      "status": "CONTROLLED_T0703_COMPLETED_NOT_FINAL",
+      "status": "CONTROLLED_T0704_CANDIDATE_NOT_FINAL",
       "controlled_main_deliveries": 15,
       "remote_publications": 0
     }
@@ -219,11 +219,10 @@
   },
   "blockers": [
     "FORMAL_TASKS_INCOMPLETE",
-    "T0704_NOT_AUTHORIZED_IN_CURRENT_RUN",
+    "T0704_PROTECTED_FIRST_ATTEMPT_PENDING",
     "FINAL_ACCEPTANCE_BLOCKED",
     "PRODUCTION_WORKFLOW_NOT_RUN",
     "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-    "T0704_NEW_RUN_CONTRACT_REQUIRED",
     "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
   ],
   "resolved_review_findings": [
@@ -233,18 +232,18 @@
     "REV-P1-006",
     "REV-P2-007"
   ],
-  "next_action": "Close T0703/S7AC-003 from the exact protected receipt and stop before T0704. No T0703 rerun or redispatch is allowed; a new explicit T0704 Run Contract is required.",
+  "next_action": "Deliver the exact validated T0704 candidate to main and execute exactly one protected Blue-Green attempt 1 with rerun zero. Stop before T0705; do not promote processed-current, mutate Gmail, enable a schedule or claim final publication.",
   "source_digests": {
     "acceptance_contract_sha256": "3115ea47f01549218c817845554dc32b019a894708c4ac311e99249bcabf95bb",
-    "acceptance_summary_sha256": "dce1dc0354395ce3762ee0130aac2572f0ca4578263c7f7fe26fa23f22098813",
+    "acceptance_summary_sha256": "ebdeac1fee6cce54c7cd7edaf447553a3bca32009c97b65fb0e124eb517027cc",
     "canonical_facts_sha256": "27110e8e6d8d337474eefa29f51d5bf294061c90dfebac2e0d898268dce96bf2",
-    "delivery_status_model_sha256": "c12356be6858889004d532b8ecf0948b5dbcf513edc70fa10e337764d2156982",
+    "delivery_status_model_sha256": "f7e7ffe1a5c5070b4dbfca8cd15c0c711e0c1bedb9bfd2feb3c0362bbc2645be",
     "kill_criteria_sha256": "2a0494577382d1529721b05c6b03f874787f8c8deb5dbd4a56895624573f25dc",
     "legacy_manifest_v1_0_1_sha256": "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f",
-    "production_composition_sha256": "620c111f4b8ee055a9e60eb88bed87953216d1a7b21419c2237658c4116a09d2",
+    "production_composition_sha256": "40dabb1ff1461dd8dfbc6a71606d727aa6a5397f95f9d5b155291d6f67b3fc27",
     "requirements_sha256": "ea1c5ec0371576b1852cc23d5836eaf21b044a577ee6c6c1a92dddc3923bea27",
     "stage6_aggregate_sha256": "05814f7ed48e352bcf94b5ca7453c7c9e4ecaab63ede61c4962a615201599e73",
-    "task_evidence_root_sha256": "c85462b3db23b79ea35428f517e5bf3cd102ee4c9d6fd8b9495dbedb972826f0",
+    "task_evidence_root_sha256": "2b61954bda245cd81680cac3953decf01c2ad0dd32aa6fcdc71619baa51b84e4",
     "task_graph_sha256": "72785605390a31c8dbb0a5d349cf81418b158f7714e46fe8e7f8e4b113f318d9",
     "traceability_sha256": "263250bceb42d623c4491b99665dff3d1ba08e78f4e43a4fde74380a5e28abf2",
     "workflow_command_matrix_sha256": "e948bb9a55bb4ae611dab307209e0a64cf137b80d9ad1fa79f0a605a49ed48b4",

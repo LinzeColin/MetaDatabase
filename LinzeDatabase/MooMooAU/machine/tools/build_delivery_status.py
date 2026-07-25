@@ -55,6 +55,7 @@ PROTECTED_M3_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0703/execution-rece
 PROTECTED_M3_RECEIPT_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-m3-execution-receipt-v1.schema.json"
 )
+STAGE7_RUN_CONTRACT_PATH = Path("machine/stages/S7/contracts/run_contract.json")
 
 
 def _load(path: Path) -> Any:
@@ -84,6 +85,8 @@ def _select_transition_state(
     protected_beta_receipt: dict[str, Any] | None,
     protected_m3_attempt_ledger: dict[str, Any] | None,
     protected_m3_receipt: dict[str, Any] | None,
+    *,
+    t0704_authorized: bool,
 ) -> tuple[str, dict[str, Any]]:
     states = model.get("states")
     if not isinstance(states, dict) or set(states) != {
@@ -93,6 +96,7 @@ def _select_transition_state(
         "PROTECTED_BETA_PASS_M3_AUTHORIZED",
         "PROTECTED_M3_REPAIR_AUTHORIZED",
         "PROTECTED_M3_PASS_SCOPE_STOP",
+        "PROTECTED_M3_PASS_T0704_AUTHORIZED",
     }:
         raise ValueError("delivery status transition states differ")
     if assurance_result.get("status") != "PASS":
@@ -101,7 +105,11 @@ def _select_transition_state(
         claims = protected_beta_receipt.get("claims", {})
         if claims.get("t0702_complete") is True and claims.get("s7ac_002_passed") is True:
             state_name = (
-                "PROTECTED_M3_PASS_SCOPE_STOP"
+                (
+                    "PROTECTED_M3_PASS_T0704_AUTHORIZED"
+                    if t0704_authorized
+                    else "PROTECTED_M3_PASS_SCOPE_STOP"
+                )
                 if protected_m3_receipt is not None
                 else (
                     "PROTECTED_M3_REPAIR_AUTHORIZED"
@@ -117,6 +125,37 @@ def _select_transition_state(
     if not isinstance(state, dict):
         raise ValueError("delivery status transition state is invalid")
     return state_name, cast(dict[str, Any], state)
+
+
+def _t0704_authorized(root: Path) -> bool:
+    path = root / STAGE7_RUN_CONTRACT_PATH
+    if not path.is_file() or path.is_symlink():
+        return False
+    contract = _load(path)
+    authorization = contract.get("authorization", {})
+    budget = contract.get("authorized_effect_budget", {})
+    return bool(
+        contract.get("schema_version") == "moomooau.run-contract.v1"
+        and contract.get("stage_id") == "S7"
+        and contract.get("task_id") == "T0704"
+        and contract.get("baseline_commit") == "4924fad17fc4666761df9ec7088608db18cc6605"
+        and authorization.get("purpose") == "T0704_PROTECTED_BLUE_GREEN_ONLY"
+        and authorization.get("t0703_receipt_required") is True
+        and authorization.get("blue_green_authorized") is True
+        and authorization.get("t0705_authorized") is False
+        and authorization.get("dispatch_limit") == 1
+        and authorization.get("controlled_main_delivery_limit") == 1
+        and authorization.get("manual_environment_reviewers_required") is False
+        and authorization.get("final_publication_authorized") is False
+        and budget.get("controlled_main_deliveries_maximum") == 1
+        and budget.get("protected_blue_green_dispatches_maximum") == 1
+        and budget.get("protected_blue_green_reruns_maximum") == 0
+        and budget.get("gmail_mutations_maximum") == 0
+        and budget.get("current_pointer_mutations_maximum") == 0
+        and budget.get("maximum_live_timeline_assets") == 1
+        and budget.get("scheduled_runs_maximum") == 0
+        and budget.get("ga_runs_maximum") == 0
+    )
 
 
 def _protected_beta_receipt(root: Path) -> dict[str, Any] | None:
@@ -374,6 +413,7 @@ def _validate_composition_for_state(
                 "1.0.13",
                 "1.0.14",
                 "1.0.15",
+                "1.0.16",
             },
         ),
     )
@@ -500,6 +540,7 @@ def _validate_stage6_evidence_transition(
         "1.0.13",
         "1.0.14",
         "1.0.15",
+        "1.0.16",
     } or versions != {"moomooau.stage6-evidence.v2"}:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
     # v1.0.5 itself remains Git-anchored. Its v1.0.6+ control successors are portable:
@@ -535,6 +576,7 @@ def build_status(
         protected_receipt,
         protected_m3_attempt_ledger,
         protected_m3_receipt,
+        t0704_authorized=_t0704_authorized(root),
     )
 
     workflow_matrix = _load(root / WORKFLOW_MATRIX_PATH)
@@ -686,6 +728,7 @@ def build_status(
     passed_beta_state = state_name == "PROTECTED_BETA_PASS_M3_AUTHORIZED"
     repair_m3_state = state_name == "PROTECTED_M3_REPAIR_AUTHORIZED"
     passed_m3_state = state_name == "PROTECTED_M3_PASS_SCOPE_STOP"
+    authorized_t0704_state = state_name == "PROTECTED_M3_PASS_T0704_AUTHORIZED"
     if failed_beta_state:
         if (
             protected_receipt is None
@@ -767,6 +810,27 @@ def build_status(
         production_workflow_runs = 0
         publication_status = "CONTROLLED_T0703_COMPLETED_NOT_FINAL"
         mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS"
+    elif authorized_t0704_state:
+        if (
+            protected_receipt is None
+            or protected_m3_attempt_ledger is None
+            or protected_m3_receipt is None
+            or protected_executed != 3
+            or protected_passed != 3
+            or protected_failed != 0
+        ):
+            raise ValueError("T0704 authority lacks the exact protected M3 PASS lineage")
+        production_reasons = [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0704_PROTECTED_FIRST_ATTEMPT_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+        ]
+        overall_status = "PROTECTED_M3_PASS_T0704_AUTHORIZED_PENDING"
+        protected_status = "PARTIAL"
+        production_workflow_runs = 0
+        publication_status = "CONTROLLED_T0704_CANDIDATE_NOT_FINAL"
+        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_PREFLIGHT"
     else:
         if protected_executed != 0 or protected_passed != 0 or protected_failed != 0:
             raise ValueError("pre-Beta state cannot contain protected Oracle execution")

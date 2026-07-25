@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0703 受保护 PASS 已关闭，范围停止于 T0704 前",
-  "phase": "T0703/S7AC-003 成功回执闭合；全部 M3 权限已消耗",
-  "task": "完成 v1.0.15 证据交付并停止；T0704 需要新的显式 Run Contract",
+  "stage": "RMD-06 T0704 受保护 Blue-Green attempt 1 已授权待运行",
+  "phase": "T0703/S7AC-003 已闭合；T0704 exact-main attempt 1 待执行",
+  "task": "交付 v1.0.16 精确候选并执行一次受保护 Blue-Green；成功回执前不进入 T0705",
   "owner": "Codex 开发线程"
 }

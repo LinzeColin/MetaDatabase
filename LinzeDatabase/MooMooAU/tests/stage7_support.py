@@ -84,6 +84,7 @@ from moomooau_archive.processed_commit import (
     ProcessedCommitSaga,
 )
 from moomooau_archive.processed_models import (
+    ClassificationRegistry,
     DocumentClass,
     DocumentClassifier,
     DocumentEnvelopeFactory,
@@ -102,6 +103,7 @@ from moomooau_archive.protected_beta import (
     ProtectedBetaBootstrap,
 )
 from moomooau_archive.protected_beta_diagnostics import ProtectedBetaDiagnostics
+from moomooau_archive.protected_blue_green import ProtectedBlueGreenBootstrap
 from moomooau_archive.protected_m3 import (
     CLASSIFICATION_REGISTRY_SECRET_NAME,
     M3_CONFIG_SECRET_NAME,
@@ -682,6 +684,7 @@ def _blue_green_parser_registry(*, candidate_business_change: bool) -> ParserPro
 def blue_green_context(
     *,
     candidate_business_change: bool = False,
+    safe_deferred_pair: bool = False,
     capacity: CapacityAssessment | None = None,
     drift_on_runner_resolve: int | None = None,
 ) -> Iterator[BlueGreenContext]:
@@ -733,12 +736,30 @@ def blue_green_context(
             verified.verification,
             raw_plan,
         )
-        class_registry = classification_registry(
-            DocumentClass.DAILY_STATEMENT,
-            AttachmentKind.CSV,
+        class_registry = (
+            ClassificationRegistry.from_json(classification_registry_payload(()))
+            if safe_deferred_pair
+            else classification_registry(
+                DocumentClass.DAILY_STATEMENT,
+                AttachmentKind.CSV,
+            )
         )
-        parser_registry = _blue_green_parser_registry(
-            candidate_business_change=candidate_business_change
+        parser_registry = (
+            ParserProfileRegistry.from_json(
+                json.dumps(
+                    {
+                        "schema_version": "moomooau.parser-profile-registry.v1",
+                        "registry_version": "1.0.0",
+                        "issued_at_utc": "2026-01-01T00:00:00Z",
+                        "activation_state": "EMPTY_PROTECTED_EVIDENCE_REQUIRED",
+                        "profiles": [],
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode()
+            )
+            if safe_deferred_pair
+            else _blue_green_parser_registry(candidate_business_change=candidate_business_change)
         )
         classification = DocumentClassifier().classify(
             verified.canonical,
@@ -756,13 +777,15 @@ def blue_green_context(
             recovered_raw_ciphertext_sha256=raw_proof.raw_ciphertext_sha256,
         )
         incumbent_profile = next(
-            item for item in parser_registry.profiles if item.parser_version == "1.0.0"
+            (item for item in parser_registry.profiles if item.parser_version == "1.0.0"),
+            None,
         )
         incumbent_outcome = StatementParser().parse(
             envelope,
             classification,
             SafeArtifactExtractor().extract(verified.attachments),
             incumbent_profile,
+            protected_fallback_version="1.0.0" if safe_deferred_pair else None,
         )
         incumbent_bundle = ProcessedProductBuilder().build(envelope, incumbent_outcome)
         comparator = ParserBlueGreenComparator()
@@ -1020,6 +1043,12 @@ class SyntheticProtectedGitHubTransport:
         self.objects: dict[str, bytes] = {}
         self.revisions: dict[str, str] = {}
         self.write_calls = 0
+        self.release_id = 5_100_104
+        self.release_exists = False
+        self.release_assets: dict[int, bytes] = {}
+        self.next_asset_id = 6_100_104
+        self.capacity_tree_truncated = False
+        self.capacity_tree_has_gitattributes = False
 
     def send(self, request: HttpRequest) -> HttpResponse:
         self.requests.append(request)
@@ -1046,6 +1075,110 @@ class SyntheticProtectedGitHubTransport:
                     "id": self.repository_id,
                     "private": True,
                     "full_name": f"{self.owner}/{self.name}",
+                    "default_branch": "main",
+                    "size": max(
+                        1,
+                        (sum(len(value) for value in self.objects.values()) + 1023) // 1024,
+                    ),
+                },
+            )
+        tree_path = f"/repos/{self.owner}/{self.name}/git/trees/main"
+        if (
+            request.method == "GET"
+            and parsed.path == tree_path
+            and parse_qs(parsed.query) == {"recursive": ["1"]}
+        ):
+            entries = [
+                {
+                    "path": path,
+                    "type": "blob",
+                    "size": len(value),
+                    "sha": self.revisions[path],
+                }
+                for path, value in sorted(self.objects.items())
+            ]
+            if self.capacity_tree_has_gitattributes:
+                entries.append(
+                    {
+                        "path": ".gitattributes",
+                        "type": "blob",
+                        "size": 15,
+                        "sha": "f" * 40,
+                    }
+                )
+            return self._json(
+                200,
+                {
+                    "sha": "e" * 40,
+                    "truncated": self.capacity_tree_truncated,
+                    "tree": entries,
+                },
+            )
+        release_prefix = f"/repos/{self.owner}/{self.name}/releases"
+        if request.method == "GET" and parsed.path == f"{release_prefix}/tags/moomooau-live":
+            if not self.release_exists:
+                return HttpResponse(404, b"{}")
+            return self._json(
+                200,
+                {
+                    "id": self.release_id,
+                    "tag_name": "moomooau-live",
+                    "draft": False,
+                    "prerelease": False,
+                },
+            )
+        if request.method == "POST" and parsed.path == release_prefix:
+            if self.release_exists:
+                return HttpResponse(422, b"{}")
+            self.release_exists = True
+            return self._json(
+                201,
+                {
+                    "id": self.release_id,
+                    "tag_name": "moomooau-live",
+                    "draft": False,
+                    "prerelease": False,
+                },
+            )
+        if request.method == "GET" and parsed.path == f"{release_prefix}/{self.release_id}/assets":
+            return self._json(
+                200,
+                [
+                    {
+                        "id": asset_id,
+                        "name": "timeline-latest.png.age",
+                        "state": "uploaded",
+                        "size": len(ciphertext),
+                    }
+                    for asset_id, ciphertext in sorted(self.release_assets.items())
+                ],
+            )
+        asset_prefix = f"{release_prefix}/assets/"
+        if parsed.path.startswith(asset_prefix):
+            asset_id = int(parsed.path.removeprefix(asset_prefix))
+            if request.method == "GET" and asset_id in self.release_assets:
+                return HttpResponse(200, self.release_assets[asset_id])
+            if request.method == "DELETE" and asset_id in self.release_assets:
+                del self.release_assets[asset_id]
+                return HttpResponse(204, b"")
+            return HttpResponse(404, b"{}")
+        if (
+            request.method == "POST"
+            and parsed.path == f"{release_prefix}/{self.release_id}/assets"
+            and parse_qs(parsed.query) == {"name": ["timeline-latest.png.age"]}
+            and request.body is not None
+            and not self.release_assets
+        ):
+            asset_id = self.next_asset_id
+            self.next_asset_id += 1
+            self.release_assets[asset_id] = request.body
+            return self._json(
+                201,
+                {
+                    "id": asset_id,
+                    "name": "timeline-latest.png.age",
+                    "state": "uploaded",
+                    "size": len(request.body),
                 },
             )
         content_prefix = f"/repos/{self.owner}/{self.name}/contents/"
@@ -1237,6 +1370,17 @@ class ProtectedM3Context:
     now: datetime
 
 
+@dataclass(frozen=True, slots=True)
+class ProtectedBlueGreenContext:
+    bootstrap: ProtectedBlueGreenBootstrap
+    source: TrackingProtectedSecretSource
+    oauth_transport: SyntheticOAuthTransport
+    gmail_transport: Stage7GmailTransport
+    github_transport: SyntheticProtectedGitHubTransport
+    tmpfs_root: Path
+    now: datetime
+
+
 @contextmanager
 def protected_m3_context(
     messages: tuple[SyntheticGmailMessage, ...],
@@ -1371,3 +1515,60 @@ def protected_m3_context(
     finally:
         generated.destroy()
         temporary.cleanup()
+
+
+@contextmanager
+def protected_blue_green_context(
+    message: SyntheticGmailMessage,
+    *,
+    capacity_age_hours: int = 10,
+) -> Iterator[ProtectedBlueGreenContext]:
+    """Seed the exact protected SAFE_DEFERRED T0703 state, then expose T0704."""
+
+    if type(capacity_age_hours) is not int or capacity_age_hours < 0:
+        raise ValueError("synthetic Blue-Green capacity age is invalid")
+    with protected_m3_context(
+        (message,),
+        empty_processing_registries=True,
+    ) as m3:
+        with m3.bootstrap.open(
+            predecessor_observations=observations_through(ReleasePhase.BETA_RAW_ONLY),
+        ) as runtime:
+            m3_result = runtime.run()
+        if (
+            m3_result.processed_safe_deferred != 1
+            or m3_result.confirmed_trashed != 1
+            or m3_result.mutation_calls != 1
+        ):
+            raise AssertionError("synthetic protected M3 seed did not complete")
+        blue_green_now = m3.now + timedelta(hours=10)
+        m3.github_transport.now = blue_green_now
+        config = json.loads(m3.source._values[M3_CONFIG_SECRET_NAME])
+        config["capacity"]["observed_at_utc"] = (
+            (blue_green_now - timedelta(hours=capacity_age_hours))
+            .isoformat()
+            .replace("+00:00", "Z")
+        )
+        m3.source._values[M3_CONFIG_SECRET_NAME] = json.dumps(
+            config,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        bootstrap = ProtectedBlueGreenBootstrap(
+            m3.source,
+            oauth_transport=m3.oauth_transport,
+            gmail_transport=m3.gmail_transport,
+            github_transport=m3.github_transport,
+            approved_tmpfs_root=m3.tmpfs_root,
+            clock=lambda: blue_green_now,
+            allow_synthetic_ephemeral_root=True,
+        )
+        yield ProtectedBlueGreenContext(
+            bootstrap,
+            m3.source,
+            m3.oauth_transport,
+            m3.gmail_transport,
+            m3.github_transport,
+            m3.tmpfs_root,
+            blue_green_now,
+        )

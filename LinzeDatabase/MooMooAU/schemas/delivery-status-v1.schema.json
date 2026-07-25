@@ -380,14 +380,45 @@
           "const": "Close T0703/S7AC-003 from the exact protected receipt and stop before T0704. No T0703 rerun or redispatch is allowed; a new explicit T0704 Run Contract is required."
         }
       }
+    },
+    {
+      "title": "v1.0.16 protected M3 PASS and T0704 Blue-Green authorized",
+      "properties": {
+        "package_version": {"const": "1.0.16"},
+        "overall_status": {
+          "const": "PROTECTED_M3_PASS_T0704_AUTHORIZED_PENDING"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0704_PROTECTED_FIRST_ATTEMPT_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Deliver the exact validated T0704 candidate to main and execute exactly one protected Blue-Green attempt 1 with rerun zero. Stop before T0705; do not promote processed-current, mutate Gmail, enable a schedule or claim final publication."
+        }
+      }
     }
   ],
   "properties": {
     "schema_version": {"const": "moomooau.delivery-status.v1"},
     "status_model_version": {"const": "moomooau.delivery-status-model.v3"},
     "package_version": {
-      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15"],
-      "description": "Coupled by the root oneOf to the exact historical RMD state or current authorized T0703 pre-execution state."
+      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15", "1.0.16"],
+      "description": "Coupled by the root oneOf to the exact historical RMD state or current authorized T0704 pre-execution state."
     },
     "status_as_of_utc": {"type": "string", "format": "date-time"},
     "authority": {
@@ -411,7 +442,8 @@
         "PROTECTED_BETA_PASS_STAGE7_INCOMPLETE",
         "PROTECTED_BETA_PASS_T0703_AUTHORIZED_PENDING",
         "PROTECTED_M3_ATTEMPT_FAILED_REPAIR_AUTHORIZED",
-        "PROTECTED_M3_PASS_SCOPE_STOP_T0704_NOT_AUTHORIZED"
+        "PROTECTED_M3_PASS_SCOPE_STOP_T0704_NOT_AUTHORIZED",
+        "PROTECTED_M3_PASS_T0704_AUTHORIZED_PENDING"
       ]
     },
     "dimensions": {
@@ -507,7 +539,8 @@
           "enum": [
             "LOCAL_OR_SYNTHETIC_ONLY",
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPT",
-            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS"
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS",
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_PREFLIGHT"
           ]
         }
       }
@@ -572,7 +605,8 @@
           "enum": [
             "LOCAL_ONLY_NOT_PUBLISHED",
             "CONTROLLED_BETA_DELIVERY_NOT_FINAL",
-            "CONTROLLED_T0703_COMPLETED_NOT_FINAL"
+            "CONTROLLED_T0703_COMPLETED_NOT_FINAL",
+            "CONTROLLED_T0704_CANDIDATE_NOT_FINAL"
           ]
         },
         "controlled_main_deliveries": {

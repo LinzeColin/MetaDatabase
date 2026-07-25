@@ -1,11 +1,11 @@
 {
-  "version": "1.0.15",
-  "stage": "RMD-06 T0703 受保护零写入 reconciliation 通过，范围停止于 T0704 前",
-  "phase": "T0702/S7AC-002 与 T0703/S7AC-003 已通过；第七个不同 exact-main attempt 1 完成 Raw+Processed 恢复、二次验证与历史 label reconciliation；当前运行 Gmail 与私有仓零新增效果，M3 权限已消耗",
-  "task": "固化 T0703 精确成功回执与独立零效果核验；禁止任何 T0703 rerun/redispatch，不进入 T0704",
+  "version": "1.0.16",
+  "stage": "RMD-06 T0704 受保护 Blue-Green 首次执行已授权待运行",
+  "phase": "T0702/S7AC-002 与 T0703/S7AC-003 已通过；T0704 候选将对同一已恢复 Raw 执行 1.0.0/2.0.0 SAFE_DEFERRED 对比，只追加可恢复 candidate shadow，保留 processed-current，并发布恰好一个可恢复加密最新 Timeline",
+  "task": "交付精确 T0704 候选并执行唯一一次 protected attempt 1；禁止 rerun、Gmail 变更、processed-current promotion、schedule 与 T0705",
   "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 3/43（通过 3、失败 0）；最终验收 0/34；生产阻塞",
   "report_grade": "机器证据",
   "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",
   "evidence_status": "PASS",
-  "rendered_at": "2026-07-24"
+  "rendered_at": "2026-07-26"
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only validator for the v1.0.15 protected T0703 PASS package."""
+"""Read-only validator for the v1.0.16 protected T0704 authorization package."""
 
 from __future__ import annotations
 
@@ -30,12 +30,12 @@ from jsonschema import Draft202012Validator, FormatChecker
 from validate_delivery_status import validate as validate_delivery_status
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.15.json")
+PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.16.json")
 CURRENT_MAINLINE_BASE_COMMIT = (
-    "caeae1879ffeb7f5f804dfe79a515b20ffc5ffe7"  # pragma: allowlist secret
+    "4924fad17fc4666761df9ec7088608db18cc6605"  # pragma: allowlist secret
 )
 ACCEPTANCE_REMEDIATION_BASE_COMMIT = (
-    "83fec6161d5cd80c62f3553d6332c0113ef5a514"  # pragma: allowlist secret
+    "4924fad17fc4666761df9ec7088608db18cc6605"  # pragma: allowlist secret
 )
 CANDIDATE_SNAPSHOT = {
     "repository": "LinzeColin/MetaDatabase",
@@ -50,16 +50,17 @@ PROTECTED_M3_RECEIPT_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-m3-execution-receipt-v1.schema.json"
 )
 AUTHORIZATION_BASIS = (
-    "The exact T0702 protected PASS, immutable six-attempt failed T0703 lineage, PR 110 and its "
-    "exact-main 83fec616 protected attempt-1 PASS, plus independent zero-effect verification "
-    "close T0703 and consume every M3 dispatch authority without entering T0704"
+    "The exact protected T0702 and T0703 PASS receipts, immutable failed T0703 lineage and "
+    "independent zero-effect verification satisfy the predecessor for one owner-authorized "
+    "exact-main T0704 Blue-Green attempt 1 with rerun zero"
 )
 AUTHORIZED_SCOPE = (
-    "One T0703 receipt-closure package: bind the exact protected PASS and independent unchanged "
-    "Gmail/private-repository observations, preserve the six failed heads as immutable history, "
-    "set M3 authority and every data-plane budget to zero, and allow only one controlled evidence "
-    "delivery. T0704, Timeline, production, final Acceptance and final publication remain "
-    "unauthorized"
+    "One T0704 package: bind the exact T0703 receipt, refresh capacity from the Repository-ID "
+    "bound complete default-branch tree and live Release, reuse the sole recovered Raw and "
+    "historical label state, compare incumbent 1.0.0 with candidate 2.0.0, append and recover one "
+    "candidate Processed shadow without current-pointer promotion, commit and recover one Timeline "
+    "snapshot and replace exactly one encrypted latest Timeline. Gmail mutation, rerun, T0705, "
+    "schedule, final Acceptance and final publication remain unauthorized"
 )
 
 
@@ -72,7 +73,7 @@ def _load(path: Path) -> Any:
 
 
 def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
-    """Return the exact RMD-06 and protected T0703 PASS provenance authority."""
+    """Return the exact RMD-06 and protected T0704 authorization authority."""
 
     root = root.resolve()
     attempt_ledger = _load(root / PROTECTED_BETA_ATTEMPT_LEDGER_PATH)
@@ -217,15 +218,15 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     ):
         raise ValueError("protected M3 PASS receipt is not exact or scope-stopped")
     return {
-        "schema_version": "moomooau.source-provenance.v15",
+        "schema_version": "moomooau.source-provenance.v16",
         "authorization": {
             "basis": AUTHORIZATION_BASIS,
-            "authorized_on": "2026-07-24",
+            "authorized_on": "2026-07-26",
             "authorized_scope": AUTHORIZED_SCOPE,
         },
         "predecessor": {
-            "package_id": "MMAU-ARCHIVE-TP-2026-07-24-V1.0.14",
-            "version": "1.0.14",
+            "package_id": "MMAU-ARCHIVE-TP-2026-07-24-V1.0.15",
+            "version": "1.0.15",
             "manifest": PREDECESSOR_MANIFEST_PATH.as_posix(),
             "manifest_sha256": PREDECESSOR_MANIFEST_SHA256,
             "status": "IMMUTABLE_CONTROL_PREDECESSOR",
@@ -263,10 +264,10 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "package_id": PACKAGE_ID,
             "version": PACKAGE_VERSION,
             "manifest": MANIFEST_PATH.as_posix(),
-            "roadmap": "taskpack/ROADMAP.v1.0.15.md",
+            "roadmap": "taskpack/ROADMAP.v1.0.16.md",
             "status_authority": "machine/status/latest.json",
             "workflow_validator": "machine/tools/validate_workflow_matrix.py",
-            "publication_status": "CONTROLLED_T0703_COMPLETED_NOT_FINAL",
+            "publication_status": "CONTROLLED_T0704_CANDIDATE_NOT_FINAL",
         },
         "candidate_snapshot": CANDIDATE_SNAPSHOT,
         "semantic_delta": {
@@ -356,6 +357,23 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "protected_m3_execution_receipt_schema_sha256": _sha256(
                 root / PROTECTED_M3_RECEIPT_SCHEMA_PATH
             ),
+            "protected_blue_green_entrypoint_implemented": True,
+            "protected_blue_green_workflow_enabled_default": True,
+            "protected_blue_green_workflow_sha256": _sha256(
+                root.parents[1] / ".github/workflows/moomooau-blue-green.yml"
+            ),
+            "protected_blue_green_contract_authorized": True,
+            "protected_blue_green_environment_reused": "moomooau-beta",
+            "protected_blue_green_secret_values_exact": 8,
+            "protected_blue_green_dispatches": 0,
+            "protected_blue_green_reruns": 0,
+            "protected_blue_green_fixed_calendar_wait_days": 0,
+            "protected_blue_green_gmail_mutations": 0,
+            "protected_blue_green_current_pointer_mutations": 0,
+            "protected_blue_green_candidate_shadow_commits": 0,
+            "protected_blue_green_timeline_writes": 0,
+            "protected_blue_green_live_timeline_assets": 0,
+            "t0705_authorized": False,
             "remote_publications": 0,
         },
     }
@@ -365,13 +383,13 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
     try:
         provenance = _load(root / PROVENANCE_PATH)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        failures.append("v1.0.15 provenance is missing or invalid")
+        failures.append("v1.0.16 provenance is missing or invalid")
         return
     if not isinstance(provenance, dict):
-        failures.append("v1.0.15 provenance must be an object")
+        failures.append("v1.0.16 provenance must be an object")
         return
     if provenance != build_provenance(root):
-        failures.append("v1.0.15 provenance differs from the exact deterministic authority")
+        failures.append("v1.0.16 provenance differs from the exact deterministic authority")
     authorization = provenance.get("authorization", {})
     effective = provenance.get("effective_package", {})
     predecessor = provenance.get("predecessor", {})
@@ -400,24 +418,24 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
     if not isinstance(semantic_delta, dict):
         semantic_delta = {}
     if (
-        provenance.get("schema_version") != "moomooau.source-provenance.v15"
+        provenance.get("schema_version") != "moomooau.source-provenance.v16"
         or authorization.get("basis") != AUTHORIZATION_BASIS
         or authorization.get("authorized_scope") != AUTHORIZED_SCOPE
         or effective.get("package_id") != PACKAGE_ID
         or effective.get("version") != PACKAGE_VERSION
         or effective.get("manifest") != MANIFEST_PATH.as_posix()
-        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.15.md"
+        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.16.md"
         or effective.get("status_authority") != "machine/status/latest.json"
         or effective.get("workflow_validator") != "machine/tools/validate_workflow_matrix.py"
-        or effective.get("publication_status") != "CONTROLLED_T0703_COMPLETED_NOT_FINAL"
+        or effective.get("publication_status") != "CONTROLLED_T0704_CANDIDATE_NOT_FINAL"
     ):
-        failures.append("v1.0.15 provenance identity or authorization mismatch")
+        failures.append("v1.0.16 provenance identity or authorization mismatch")
     if (
         predecessor.get("manifest") != PREDECESSOR_MANIFEST_PATH.as_posix()
         or predecessor.get("manifest_sha256") != PREDECESSOR_MANIFEST_SHA256
         or predecessor.get("status") != "IMMUTABLE_CONTROL_PREDECESSOR"
     ):
-        failures.append("v1.0.14 predecessor provenance mismatch")
+        failures.append("v1.0.15 predecessor provenance mismatch")
     if (
         control_predecessor.get("manifest") != CONTROL_PREDECESSOR_MANIFEST_PATH.as_posix()
         or control_predecessor.get("manifest_sha256") != CONTROL_PREDECESSOR_MANIFEST_SHA256
@@ -448,7 +466,7 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         failures.append("RMD-06 clean candidate snapshot provenance mismatch")
     expected_semantic_delta = build_provenance(root)["semantic_delta"]
     if semantic_delta != expected_semantic_delta:
-        failures.append("v1.0.15 semantic delta is incomplete or overstated")
+        failures.append("v1.0.16 semantic delta is incomplete or overstated")
 
 
 def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
@@ -527,7 +545,7 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         None,
     )
     if predecessor_entry is None or predecessor_entry.get("sha256") != PREDECESSOR_MANIFEST_SHA256:
-        failures.append("predecessor v1.0.14 manifest artifact is not preserved")
+        failures.append("predecessor v1.0.15 manifest artifact is not preserved")
     control_predecessor_entry = next(
         (
             entry
@@ -584,7 +602,7 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         failures.append(f"canonical manifest selection failed: {type(exc).__name__}")
     else:
         if manifest != expected:
-            failures.append("manifest differs from the canonical v1.0.15 package selection")
+            failures.append("manifest differs from the canonical v1.0.16 package selection")
 
     _validate_provenance(root, failures)
     status_result = validate_delivery_status(root)
@@ -605,7 +623,31 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=PROJECT_ROOT)
+    parser.add_argument(
+        "--write-provenance",
+        action="store_true",
+        help="write the deterministic versioned source-provenance artifact before validation",
+    )
     args = parser.parse_args()
+    if args.write_provenance:
+        root = args.root.resolve()
+        path = root / PROVENANCE_PATH
+        path.write_text(
+            json.dumps(build_provenance(root), ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(
+            json.dumps(
+                {
+                    "status": "PASS",
+                    "written": PROVENANCE_PATH.as_posix(),
+                    "sha256": _sha256(path),
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
+        return 0
     result = validate(args.root)
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     return 0 if result["status"] == "PASS" else 1

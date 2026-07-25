@@ -36,7 +36,7 @@ def test_t0701_alpha_has_every_production_flag_off() -> None:
     assert report.status is GateStatus.READY
 
 
-def test_t0701_stage7_contract_catalog_is_closed_and_not_final() -> None:
+def test_t0701_stage7_contract_catalog_authorizes_t0704_without_final_claim() -> None:
     contract = json.loads(
         (PROJECT_ROOT / "machine/stages/S7/contracts/stage7_acceptance_contract.json").read_text(
             encoding="utf-8"
@@ -48,7 +48,7 @@ def test_t0701_stage7_contract_catalog_is_closed_and_not_final() -> None:
     assert [item["task_id"] for item in contract["acceptance_contracts"]] == [
         f"T070{index}" for index in range(1, 9)
     ]
-    assert contract["overall_status"] == "T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED"
+    assert contract["overall_status"] == "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING"
     assert contract["final_acceptances_passed"] == 0
 
 

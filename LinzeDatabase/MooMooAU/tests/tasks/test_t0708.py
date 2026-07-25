@@ -398,11 +398,11 @@ def test_t0708_no_secret_workflow_is_read_only_policy_preflight() -> None:
     )
 
 
-def test_t0708_stage7_aggregate_closes_t0703_and_stops_before_t0704() -> None:
+def test_t0708_stage7_aggregate_authorizes_t0704_and_stops_before_t0705() -> None:
     aggregate = json.loads(
         (PROJECT_ROOT / "evidence/stage7/latest.json").read_text(encoding="utf-8")
     )
-    assert aggregate["status"] == "T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED"
+    assert aggregate["status"] == "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING"
     assert (
         aggregate["scoped_preflight"]
         == "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
@@ -426,9 +426,13 @@ def test_t0708_stage7_aggregate_closes_t0703_and_stops_before_t0704() -> None:
     assert aggregate["protected_workflow_runs"] == 18
     assert aggregate["production_workflow_runs"] == 0
     assert aggregate["final_acceptances_passed"] == 0
-    assert aggregate["delivery_status"] == "CONTROLLED_T0703_COMPLETED_NOT_FINAL"
+    assert aggregate["delivery_status"] == "CONTROLLED_T0704_CANDIDATE_NOT_FINAL"
     assert (
         aggregate["observation"]["m3_deterministic_evidence_run"]
         == "PASS_ZERO_MUTATION_RECONCILIATION_RECOVERY_100_PERCENT_ZERO_NEW_EFFECT"
     )
-    assert "T0704_NOT_AUTHORIZED_IN_CURRENT_RUN" in aggregate["blocking_conditions"]
+    assert (
+        aggregate["observation"]["blue_green_protected_entrypoint"]
+        == "PASS_AUTHORIZED_ATTEMPT_ONE_PENDING"
+    )
+    assert "PROTECTED_BLUE_GREEN_FIRST_ATTEMPT_PENDING" in aggregate["blocking_conditions"]

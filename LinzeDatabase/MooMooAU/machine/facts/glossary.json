@@ -36,43 +36,43 @@
   "invariants": [
     {
       "rule": "仅处理经确定性双重验证的 Moomoo AU 相关入站消息；其他邮件零读取正文、零下载、零修改。",
-      "note": "v1.0.1 产品契约，由 v1.0.15 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.16 原样继承"
     },
     {
       "rule": "M3 适用于所有已验证 Moomoo 相关入站邮件类型；只调用 users.messages.trash，永久 delete 与 thread trash 永久禁用。",
-      "note": "v1.0.1 产品契约，由 v1.0.15 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.16 原样继承"
     },
     {
       "rule": "公开代码仓固定为 LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU；只有一个由受保护 Repository ID 定位的私有数据仓，私有仓名称不进入公开树。",
-      "note": "v1.0.1 产品契约，由 v1.0.15 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.16 原样继承"
     },
     {
       "rule": "用户电脑与自建服务器不运行、不持久化；生产仅使用 GitHub-hosted/Codex cloud 临时环境。",
-      "note": "v1.0.1 产品契约，由 v1.0.15 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.16 原样继承"
     },
     {
       "rule": "全部 Raw 和敏感 Processed 均 age 加密；公开面只允许脱敏 Inventory、Schema、Evidence。",
-      "note": "v1.0.1 产品契约，由 v1.0.15 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.16 原样继承"
     },
     {
       "rule": "每日以 Australia/Sydney 04:30 为时区感知调度目标；平台延迟或丢弃不伪报准点，下一次运行幂等补偿，周日执行 Full Reconciliation。",
-      "note": "v1.0.1 产品契约，由 v1.0.15 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.16 原样继承"
     },
     {
       "rule": "Timeline 健康稳态恰好一个、任何时刻最多一个加密最新资产：moomooau-live/timeline-latest.png.age；age 密文允许随机变化，逻辑幂等只由 Processed snapshot_root 与明文摘要裁定；串行替换失败可短暂为零并进入确定性修复。",
-      "note": "v1.0.1 产品契约，由 v1.0.15 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.16 原样继承"
     },
     {
       "rule": "Codex 开发线程是用户唯一交互入口；Codex Automation 只做普通被动健康检查，非控制平面关键路径。",
-      "note": "v1.0.1 产品契约，由 v1.0.15 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.16 原样继承"
     },
     {
       "rule": "真实邮件、附件、PDF 密码和 age 私钥永不传给模型。",
-      "note": "v1.0.1 产品契约，由 v1.0.15 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.16 原样继承"
     },
     {
       "rule": "H2 Moomoo Portal、券商交易 API、下单、Sent/Drafts 均不在范围内。",
-      "note": "v1.0.1 产品契约，由 v1.0.15 原样继承"
+      "note": "v1.0.1 产品契约，由 v1.0.16 原样继承"
     }
   ],
   "terms": [
@@ -332,6 +332,61 @@
       "note": "对既有远端工作流再次执行"
     },
     {
+      "en": "Blue-Green",
+      "zh": "蓝绿对比",
+      "note": "同一已恢复 Raw 的 incumbent 与 candidate 确定性比较"
+    },
+    {
+      "en": "exact-main",
+      "zh": "精确主分支提交",
+      "note": "运行 SHA 必须等于触发时的 main HEAD"
+    },
+    {
+      "en": "attempt-",
+      "zh": "执行尝试编号前缀",
+      "note": "受保护工作流首次执行为 attempt-1"
+    },
+    {
+      "en": "current",
+      "zh": "当前",
+      "note": "指现行已验证版本或状态"
+    },
+    {
+      "en": "pointer",
+      "zh": "指针",
+      "note": "私有仓中指向当前加密 Processed 的严格 CAS 状态"
+    },
+    {
+      "en": "promotion",
+      "zh": "提升",
+      "note": "把候选切换为当前版本；T0704 明确禁止"
+    },
+    {
+      "en": "AGGREGATE_GATE",
+      "zh": "聚合证据门",
+      "note": "仅处理公开安全计数和固定枚举"
+    },
+    {
+      "en": "OpenAPI",
+      "zh": "开放接口规范",
+      "note": "GitHub REST 接口的一手机器规范"
+    },
+    {
+      "en": "installation",
+      "zh": "安装实例",
+      "note": "既有 GitHub App 在唯一私有仓的安装范围"
+    },
+    {
+      "en": "permissions",
+      "zh": "权限",
+      "note": "GitHub App 令牌的最小权限集合"
+    },
+    {
+      "en": "repositories",
+      "zh": "仓库集合",
+      "note": "令牌响应中的仓库范围；只允许唯一目标"
+    },
+    {
       "en": "intake",
       "zh": "导入审计",
       "note": "早期只读接收记录标识"
@@ -385,6 +440,11 @@
       "en": "T0704_NEW_RUN_CONTRACT_REQUIRED",
       "zh": "T0704 需要新运行契约",
       "note": "进入下一任务前必须建立新的显式单阶段 Run Contract"
+    },
+    {
+      "en": "T0704_PROTECTED_FIRST_ATTEMPT_PENDING",
+      "zh": "T0704 受保护首次执行待完成",
+      "note": "只允许一个 exact-main attempt-1；rerun 与 T0705 为零权限"
     },
     {
       "en": "LATER_PROTECTED_ACCEPTANCE_PENDING",

@@ -4,11 +4,14 @@ import json
 from typing import cast
 
 import pytest
+import yaml
 from stage7_support import (
     BlueGreenContext,
     blue_green_context,
+    m3_canary_message,
     observations_through,
     phase_observation,
+    protected_blue_green_context,
 )
 from validate_evidence import PROJECT_ROOT, validate_record
 
@@ -21,6 +24,22 @@ from moomooau_archive.github_guard import LIVE_ASSET_NAME
 from moomooau_archive.m3 import M3State
 from moomooau_archive.operation_gate import OperationGateError
 from moomooau_archive.processed_commit import CurrentProcessedPointer, PromotionAction
+from moomooau_archive.protected_blue_green import (
+    BLUE_GREEN_SECRET_NAMES,
+    ProtectedBlueGreenBootstrapError,
+)
+from moomooau_archive.protected_blue_green_entrypoint import (
+    BLUE_GREEN_CONFIRMATION,
+    CONTROL_OWNER_ID,
+    CONTROL_REF,
+    CONTROL_REPOSITORY_ID,
+    CONTROL_WORKFLOW_REF,
+    PROTECTED_ENVIRONMENT,
+    blue_green_gate_sha256,
+    execute_protected,
+    execution_contract,
+    m3_receipt_sha256,
+)
 from moomooau_archive.release_control import (
     GateStatus,
     PhaseObservation,
@@ -191,6 +210,189 @@ def test_t0704_same_recovered_raw_shadows_candidate_and_publishes_one_recovered_
         assert any("/2.0.0/" in path for path in context.processed_store.immutable_names())
 
 
+def test_t0704_t0703_safe_deferred_current_supports_versioned_shadow_without_promotion() -> None:
+    with blue_green_context(safe_deferred_pair=True) as context:
+        pointer_path = (
+            f"MooMooAU/State/processed-current/{context.raw_plan.opaque_message_id}.json.age"
+        )
+        incumbent = context.processed_store.fetch_current(pointer_path)
+        assert incumbent is not None
+
+        result, proof = _run_blue_green(context, observed_days=0)
+
+        assert result.candidate_action is PromotionAction.SEMANTICALLY_EQUAL_PROMOTION
+        assert result.unresolved_comparison_differences == 0
+        assert result.current_pointer_mutations == 0
+        assert result.final_live_timeline_assets == 1
+        assert result.ready_for_protected_promotion
+        assert proof.facts[0].current_pointer.parser_name == "protected-profile-parser"
+        assert proof.facts[0].current_pointer.parser_version == "1.0.0"
+        assert context.processed_store.fetch_current(pointer_path) == incumbent
+        assert any("/2.0.0/" in path for path in context.processed_store.immutable_names())
+
+
+def test_t0704_protected_cloud_composition_reuses_t0703_source_without_gmail_mutation() -> None:
+    message = m3_canary_message("msg-stage7-protected-blue-green")
+    with protected_blue_green_context(message) as context:
+        pointer_paths = [
+            path
+            for path in context.github_transport.objects
+            if path.startswith("MooMooAU/State/processed-current/")
+        ]
+        assert len(pointer_paths) == 1
+        pointer_path = pointer_paths[0]
+        pointer_before = context.github_transport.objects[pointer_path]
+        pointer_revision_before = context.github_transport.revisions[pointer_path]
+        trash_calls_before = len(context.gmail_transport.trashed_ids)
+
+        with context.bootstrap.open(
+            predecessor_observations=observations_through(ReleasePhase.M3_CANARY),
+        ) as runtime:
+            result = runtime.run()
+
+        public = result.to_public_dict()
+        assert public["status"] == "PROTECTED_BLUE_GREEN_COMPLETED_NOT_FINAL"
+        assert public["processed_recoveries"] == 1
+        assert public["parser_comparisons"] == 1
+        assert public["timeline_publish_attempts"] == 1
+        assert public["full_reconcile_runs"] == 1
+        assert public["full_reconcile_difference"] == 0
+        assert public["minimum_live_timeline_assets"] == 1
+        assert public["maximum_live_timeline_assets"] == 1
+        assert public["gmail_mutations"] == 0
+        assert context.github_transport.objects[pointer_path] == pointer_before
+        assert context.github_transport.revisions[pointer_path] == pointer_revision_before
+        assert len(context.gmail_transport.trashed_ids) == trash_calls_before == 1
+        assert len(context.github_transport.release_assets) == 1
+        assert context.source.all_issued_destroyed
+
+
+def test_t0704_stale_config_capacity_is_replaced_by_a_live_private_repo_observation() -> None:
+    message = m3_canary_message("msg-stage7-protected-blue-green-live-capacity")
+    with protected_blue_green_context(message, capacity_age_hours=72) as context:
+        oauth_calls_before = len(context.oauth_transport.requests)
+        with context.bootstrap.open(
+            predecessor_observations=observations_through(ReleasePhase.M3_CANARY),
+        ) as runtime:
+            assert runtime._config.capacity_observed_at_utc == context.now
+            snapshot = runtime._config.capacity.observed_snapshot
+            assert snapshot is not None
+            assert snapshot.git_repository_bytes > 0
+            result = runtime.run()
+
+        assert result.mechanism.ready_for_protected_promotion
+        assert len(context.oauth_transport.requests) == oauth_calls_before + 1
+        assert any(
+            "/git/trees/main?recursive=1" in item.url for item in context.github_transport.requests
+        )
+
+
+def test_t0704_incomplete_live_capacity_tree_blocks_before_gmail_or_repository_write() -> None:
+    message = m3_canary_message("msg-stage7-protected-blue-green-capacity-block")
+    with protected_blue_green_context(message, capacity_age_hours=72) as context:
+        context.github_transport.capacity_tree_truncated = True
+        oauth_calls_before = len(context.oauth_transport.requests)
+        gmail_calls_before = len(context.gmail_transport.inner.requests)
+        writes_before = context.github_transport.write_calls
+        objects_before = dict(context.github_transport.objects)
+
+        with pytest.raises(ProtectedBlueGreenBootstrapError, match="incomplete or unbounded"):
+            with context.bootstrap.open(
+                predecessor_observations=observations_through(ReleasePhase.M3_CANARY),
+            ):
+                pass
+
+        assert len(context.oauth_transport.requests) == oauth_calls_before
+        assert len(context.gmail_transport.inner.requests) == gmail_calls_before
+        assert context.github_transport.write_calls == writes_before
+        assert context.github_transport.objects == objects_before
+        assert context.github_transport.release_assets == {}
+        assert context.source.all_issued_destroyed
+
+
+def test_t0704_entrypoint_binds_exact_main_t0703_receipt_and_aggregate_only_result() -> None:
+    message = m3_canary_message("msg-stage7-protected-blue-green-entrypoint")
+    head_sha = "a" * 40
+    environment = {
+        "GITHUB_ACTIONS": "true",
+        "GITHUB_EVENT_NAME": "workflow_dispatch",
+        "GITHUB_REPOSITORY_ID": str(CONTROL_REPOSITORY_ID),
+        "GITHUB_REPOSITORY_OWNER_ID": str(CONTROL_OWNER_ID),
+        "GITHUB_ACTOR_ID": str(CONTROL_OWNER_ID),
+        "GITHUB_RUN_ID": "7004001",
+        "GITHUB_RUN_ATTEMPT": "1",
+        "GITHUB_SHA": head_sha,
+        "GITHUB_REF": CONTROL_REF,
+        "GITHUB_WORKFLOW_REF": CONTROL_WORKFLOW_REF,
+        "RUNNER_ENVIRONMENT": "github-hosted",
+        "MOOMOOAU_PROTECTED_ENVIRONMENT": PROTECTED_ENVIRONMENT,
+    }
+    contract = execution_contract(PROJECT_ROOT)
+    assert contract["blue_green_authorized"] is True
+    assert contract["required_protected_input_count"] == len(BLUE_GREEN_SECRET_NAMES) == 8
+    assert contract["same_head_rerun_allowed"] is False
+    assert contract["fixed_calendar_wait_days"] == 0
+    with protected_blue_green_context(message) as context:
+        evidence = execute_protected(
+            environment,
+            project_root=PROJECT_ROOT,
+            expected_head_sha=head_sha,
+            supplied_m3_receipt_sha256=m3_receipt_sha256(PROJECT_ROOT),
+            supplied_blue_green_gate_sha256=blue_green_gate_sha256(PROJECT_ROOT),
+            confirmation=BLUE_GREEN_CONFIRMATION,
+            bootstrap=context.bootstrap,
+            clock=lambda: context.now,
+        ).to_dict()
+    assert evidence["status"] == "PROTECTED_BLUE_GREEN_COMPLETED_NOT_FINAL"
+    assert evidence["blue_green_gate_status"] == "PASS"
+    assert evidence["production_health_claimed"] is False
+    assert evidence["final_acceptance_claimed"] is False
+    assert evidence["boundaries"] == {
+        "maximum_verified_full_raw_reads": 1,
+        "gmail_mutations": 0,
+        "current_pointer_mutations": 0,
+        "candidate_pointer_promotion": False,
+        "maximum_live_timeline_assets": 1,
+        "schedule_enabled": False,
+        "ga_enabled": False,
+    }
+    serialized = json.dumps(evidence, sort_keys=True)
+    assert "msg-stage7" not in serialized
+    assert "synthetic-private-database" not in serialized
+
+
+def test_t0704_protected_workflow_is_manual_exact_main_attempt_one_and_eight_secret() -> None:
+    path = PROJECT_ROOT.parents[1] / ".github/workflows/moomooau-blue-green.yml"
+    text = path.read_text(encoding="utf-8")
+    workflow = yaml.load(text, Loader=yaml.BaseLoader)
+    assert workflow["on"].keys() == {"workflow_dispatch"}
+    assert workflow["permissions"] == {"contents": "read"}
+    assert workflow["concurrency"] == {
+        "group": "moomooau-blue-green-single-writer",
+        "cancel-in-progress": "false",
+    }
+    authority = workflow["jobs"]["blue-green-authority-gate"]
+    execution = workflow["jobs"]["blue-green-shadow-and-timeline"]
+    assert "if" not in authority
+    assert "if" not in execution
+    assert execution["needs"] == "blue-green-authority-gate"
+    assert execution["environment"] == PROTECTED_ENVIRONMENT
+    execution_env = execution["steps"][-2]["env"]
+    assert set(execution_env) == {
+        *BLUE_GREEN_SECRET_NAMES,
+        "EXPECTED_HEAD_SHA",
+        "M3_RECEIPT_SHA256",
+        "BLUE_GREEN_GATE_SHA256",
+        "BLUE_GREEN_CONFIRMATION",
+        "MOOMOOAU_PROTECTED_ENVIRONMENT",
+    }
+    assert "schedule:" not in text
+    assert "messages.trash" not in text
+    assert "moomooau-production" not in text
+    assert text.count("actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5") == 2
+    assert text.count("actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065") == 2
+
+
 def test_t0704_timeline_snapshot_root_is_order_independent_retryable_and_recoverable() -> None:
     with blue_green_context() as context:
         _, one_fact_proof = _run_blue_green(context, observed_days=0)
@@ -309,3 +511,22 @@ def test_t0704_stage_aware_evidence_validator_preserves_blocked_truth() -> None:
     assert all(
         item["status"] in {"PARTIAL", "NOT_RUN"} for item in record["linked_final_acceptance"]
     )
+    provenance = json.loads(
+        (PROJECT_ROOT / "taskpack/SOURCE_PROVENANCE.v1.0.16.json").read_text(encoding="utf-8")
+    )
+    expected_base = "4924fad17fc4666761df9ec7088608db18cc6605"  # pragma: allowlist secret
+    assert provenance["schema_version"] == "moomooau.source-provenance.v16"
+    assert provenance["candidate_snapshot"] == {
+        "repository": "LinzeColin/MetaDatabase",
+        "mainline_base_commit": expected_base,
+        "acceptance_remediation_base_commit": expected_base,
+        "shallow_checkout_fallback": "EXACT_PIN_ONLY",
+    }
+    acceptance_source = (PROJECT_ROOT / "machine/acceptance/evidence.py").read_text(
+        encoding="utf-8"
+    )
+    assert (
+        'PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v16"'
+        in acceptance_source
+    )
+    assert acceptance_source.count(f'"{expected_base}"') == 2

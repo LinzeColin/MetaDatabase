@@ -1,13 +1,13 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0704-LOCAL-20260722",
+  "evidence_id": "S7-T0704-PREFLIGHT-20260726",
   "stage_id": "S7",
   "task_id": "T0704",
   "stage_acceptance_id": "S7AC-004",
-  "observed_at_utc": "2026-07-23T11:26:41Z",
+  "observed_at_utc": "2026-07-26T00:00:00Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
   "record_status": "BLOCKED",
-  "scope": "LOCAL_SYNTHETIC_PREFLIGHT",
+  "scope": "LOCAL_SYNTHETIC_AND_PROTECTED_ENTRYPOINT_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
     {"id": "blue_green_deterministic_evidence_gate", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_blue_green_requires_complete_evidence_and_exactly_one_live_asset"},
@@ -17,7 +17,13 @@
     {"id": "cross_run_snapshot_head_recovery", "status": "PASS", "evidence_ref": "src/moomooau_archive/timeline_publish.py and tests/tasks/test_t0704.py::test_t0704_live_asset_without_recoverable_snapshot_head_blocks_before_candidate_write"},
     {"id": "current_pointer_rechecked_before_timeline_publish", "status": "PASS", "evidence_ref": "src/moomooau_archive/blue_green_runtime.py and tests/tasks/test_t0704.py::test_t0704_current_pointer_drift_blocks_before_live_timeline_publish"},
     {"id": "predecessor_and_capacity_fail_closed", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_predecessor_and_capacity_fail_before_remote_blue_green_effects"},
-    {"id": "stage_aware_validator_preserves_blocked_truth", "status": "PASS", "evidence_ref": "machine/tools/validate_evidence.py and tests/tasks/test_t0704.py::test_t0704_stage_aware_evidence_validator_preserves_blocked_truth"}
+    {"id": "stage_aware_validator_preserves_blocked_truth", "status": "PASS", "evidence_ref": "machine/tools/validate_evidence.py and tests/tasks/test_t0704.py::test_t0704_stage_aware_evidence_validator_preserves_blocked_truth"},
+    {"id": "safe_deferred_versioned_shadow", "status": "PASS", "evidence_ref": "src/moomooau_archive/document_parser.py and tests/tasks/test_t0704.py::test_t0704_t0703_safe_deferred_current_supports_versioned_shadow_without_promotion"},
+    {"id": "protected_adapter_sequence_no_gmail_or_current_mutation", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_blue_green.py and tests/tasks/test_t0704.py::test_t0704_protected_cloud_composition_reuses_t0703_source_without_gmail_mutation"},
+    {"id": "stale_capacity_replaced_by_live_private_repo_observation", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_blue_green.py and tests/tasks/test_t0704.py::test_t0704_stale_config_capacity_is_replaced_by_a_live_private_repo_observation"},
+    {"id": "incomplete_live_capacity_blocks_before_gmail_or_write", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_incomplete_live_capacity_tree_blocks_before_gmail_or_repository_write"},
+    {"id": "protected_entrypoint_exact_binding_aggregate_only", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_blue_green_entrypoint.py and tests/tasks/test_t0704.py::test_t0704_entrypoint_binds_exact_main_t0703_receipt_and_aggregate_only_result"},
+    {"id": "protected_workflow_exact_context_and_secret_allowlist", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_protected_workflow_is_manual_exact_main_attempt_one_and_eight_secret"}
   ],
   "linked_final_acceptance": [
     {"id": "AC-015", "status": "NOT_RUN", "reason": "Only synthetic versioned incumbent and candidate lineage was exercised; no protected Parser comparison has run."},
@@ -26,9 +32,9 @@
     {"id": "AC-030", "status": "NOT_RUN", "reason": "Expectation and missing-report semantics were exercised synthetically only; no protected observation exists."}
   ],
   "production_oracles": [
-    {"id": "PROTECTED_BLUE_GREEN_DETERMINISTIC_EVIDENCE", "status": "NOT_RUN", "reason": "M3 Canary is not complete, so the one bounded protected Blue-Green evidence run has not executed."}
+    {"id": "PROTECTED_BLUE_GREEN_DETERMINISTIC_EVIDENCE", "status": "NOT_RUN", "reason": "The exact T0703 predecessor is complete and one bounded T0704 attempt is authorized, but the exact-main protected Blue-Green workflow has not executed."}
   ],
-  "blockers": ["M3_CANARY_NOT_COMPLETE", "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED"],
+  "blockers": ["PROTECTED_BLUE_GREEN_FIRST_ATTEMPT_PENDING"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "After M3 completes and protected registries are provisioned, execute one bounded Blue-Green evidence run against the same recovered Raw while live Timeline min=max=1."
+  "next_action": "Deliver the exact validated T0704 candidate to main and execute one protected attempt 1 with rerun zero against the same recovered Raw while processed-current remains unchanged and live Timeline min=max=1; stop before T0705."
 }

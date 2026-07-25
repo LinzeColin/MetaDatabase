@@ -179,7 +179,21 @@ label 零写入 reconciliation 与 identity cleanup 均通过；Raw+Processed re
 - `SOURCE_PROVENANCE.v1.0.15.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.14.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.13.json`、
+`v1.0.16` 在精确 T0703 PASS 后仅授权 T0704 protected Blue-Green attempt 1。候选复用同一
+已恢复 Raw，对比 incumbent 1.0.0 与 candidate 2.0.0 的 SAFE_DEFERRED 输出，只追加并恢复一个
+candidate Processed shadow，保持 processed-current 不变，并提交/恢复 Timeline snapshot 后替换
+恰好一个可恢复 age-encrypted latest Timeline。旧 capacity snapshot 不能直接授权写入；job 先
+只读实测 Repository-ID 绑定的完整 private tree 与 live Release，再保守重算容量。固定等待与
+人工审批均为 0；rerun、Gmail mutation、schedule、T0705 和最终发布继续禁止。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.16.md`
+- `ROADMAP.v1.0.16.md`
+- `PACKAGE_MANIFEST.v1.0.16.json`
+- `SOURCE_PROVENANCE.v1.0.16.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.15.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.14.json`、
+`PACKAGE_MANIFEST.v1.0.13.json`、
 `PACKAGE_MANIFEST.v1.0.12.json`、
 `PACKAGE_MANIFEST.v1.0.11.json`、
 `PACKAGE_MANIFEST.v1.0.10.json`、

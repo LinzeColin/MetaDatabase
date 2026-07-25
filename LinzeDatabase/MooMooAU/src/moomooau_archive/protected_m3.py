@@ -428,9 +428,18 @@ class ProtectedM3Bootstrap:
             yield runtime
 
 
-def _load_config(source: SecretSource, now: datetime) -> ProtectedM3Config:
+def _load_config(
+    source: SecretSource,
+    now: datetime,
+    *,
+    allow_stale_capacity_for_live_refresh: bool = False,
+) -> ProtectedM3Config:
     try:
-        beta = _load_beta_config(source, now)
+        beta = _load_beta_config(
+            source,
+            now,
+            allow_stale_capacity_for_live_refresh=allow_stale_capacity_for_live_refresh,
+        )
     except ProtectedBetaBootstrapError as exc:
         raise ProtectedM3BootstrapError("protected Beta infrastructure config is invalid") from exc
     if beta.beta_message_budget != 1:

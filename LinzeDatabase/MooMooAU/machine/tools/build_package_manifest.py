@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the v1.0.15 T0703 protected PASS scope-stop manifest."""
+"""Build the v1.0.16 T0704 protected Blue-Green authorization manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.15.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-24-V1.0.15"
-PACKAGE_VERSION = "1.0.15"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.14.json")
-PREDECESSOR_MANIFEST_SHA256 = "7a4d7ff326f0dc85ae46e94990918d4656a1b2a43fe86d1102665292d332e11f"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.16.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.16"
+PACKAGE_VERSION = "1.0.16"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.15.json")
+PREDECESSOR_MANIFEST_SHA256 = "35b8ff4f39197910e1145d1f1c535569c9b282722f6e2ae0a4e1d62e8fc4243c"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -166,10 +166,10 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or status.get("package_version") != PACKAGE_VERSION
         or "REV-P1-006" not in status.get("resolved_review_findings", [])
         or "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
-        or status.get("overall_status") != "PROTECTED_M3_PASS_SCOPE_STOP_T0704_NOT_AUTHORIZED"
-        or "T0704_NOT_AUTHORIZED_IN_CURRENT_RUN" not in status.get("blockers", [])
+        or status.get("overall_status") != "PROTECTED_M3_PASS_T0704_AUTHORIZED_PENDING"
+        or "T0704_PROTECTED_FIRST_ATTEMPT_PENDING" not in status.get("blockers", [])
     ):
-        raise ValueError("T0703 protected PASS is not in the exact scope-stopped state")
+        raise ValueError("T0704 protected Blue-Green authority is not in the exact pending state")
     entries = [
         {
             "path": path.relative_to(root).as_posix(),
@@ -179,28 +179,28 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v14",
+        "schema_version": "moomooau.package-manifest.v15",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
         "generated_at_utc": status["status_as_of_utc"],
         "authorization": (
-            "Stage 7 T0703 receipt closure only: preserve the protected T0702 PASS, the immutable "
-            "six-attempt failed M3 lineage and the sole seventh-head attempt-1 protected PASS. "
-            "One controlled evidence delivery is authorized; every M3 rerun or redispatch, "
-            "T0704, production and final publication remain forbidden."
+            "Stage 7 T0704 only: preserve the exact T0702 and T0703 protected PASS receipts and "
+            "immutable failed M3 lineage. One controlled main delivery and one exact-main "
+            "Blue-Green attempt 1 are authorized with rerun zero. Gmail mutation, candidate "
+            "promotion, T0705, scheduling and final publication remain forbidden."
         ),
         "scope": (
-            "Baseline-preserving v1.0.15 protected receipt snapshot: immutable v1.0.1 product "
-            "contracts and v1.0.2-v1.0.14 predecessor lineage remain unchanged. The exact T0702 "
-            "PASS and six failed T0703 heads remain frozen. The seventh distinct exact-main head "
-            "passed authority, encrypted historical-label zero-write reconciliation and identity "
-            "cleanup at attempt 1 with rerun zero. Aggregate evidence proves Raw plus Processed "
-            "recovery, second verification and one reconciled prior unknown mutation; independent "
-            "pre/post reads prove unchanged private head, tree and path counts plus zero Gmail "
-            "Trash delta for the successful run. M3 authority is consumed. Timeline, T0704, "
-            "production health, final Acceptance, Stage 7 completion and final publication are "
-            "not claimed."
+            "Baseline-preserving v1.0.16 T0704 authorization snapshot: immutable v1.0.1 product "
+            "contracts and v1.0.2-v1.0.15 predecessor lineage remain unchanged. T0704 reuses the "
+            "sole T0703 current-backed Raw and historical label state only after a Repository-ID "
+            "bound live capacity refresh over the complete default-branch tree and live Release. "
+            "It compares incumbent 1.0.0 with candidate 2.0.0 without inventing a COMPLETE parse, "
+            "appends and recovers only one candidate Processed shadow, proves processed-current "
+            "unchanged, commits and recovers one deterministic Timeline snapshot, and replaces "
+            "exactly one recoverable age-encrypted latest Timeline. The protected run has not "
+            "executed; S7AC-004, production health, final Acceptance, Stage 7 completion and final "
+            "publication are not claimed."
         ),
         "status_authority": "machine/status/latest.json",
         "predecessor": {

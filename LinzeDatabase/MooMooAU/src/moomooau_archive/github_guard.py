@@ -74,6 +74,7 @@ class GitHubInstallationTokenError(GitHubBoundaryError):
 
 class GitHubOperation(StrEnum):
     REPOSITORY_RESOLVE = "repository.resolve"
+    GIT_TREE_READ = "git.tree.read"
     INSTALLATION_DISCOVER = "installation.discover"
     INSTALLATION_TOKEN = "installation.token"
     INSTALLATION_REPOSITORY_SCOPE = "installation.repository_scope"
@@ -282,6 +283,16 @@ class GitHubEndpointGuard:
         owner = self._locator.owner
         name = self._locator.name
         repository_prefix = f"/repos/{owner}/{name}"
+
+        tree_read = re.fullmatch(
+            re.escape(repository_prefix)
+            + r"/git/trees/(?:(?:[A-Za-z0-9._~-])|(?:%[0-9A-F]{2})){1,768}",
+            parsed.path,
+        )
+        if parsed.hostname == "api.github.com" and request.method == "GET" and tree_read:
+            if query != [("recursive", "1")] or request.body is not None:
+                raise GitHubBoundaryError("Git tree observation request is not bounded")
+            return GitHubOperation.GIT_TREE_READ
 
         content_prefix = repository_prefix + "/contents/"
         if parsed.hostname == "api.github.com" and parsed.path.startswith(content_prefix):

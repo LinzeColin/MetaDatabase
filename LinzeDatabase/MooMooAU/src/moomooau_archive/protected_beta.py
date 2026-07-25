@@ -456,7 +456,14 @@ def _destroy_now(
         raise
 
 
-def _load_config(source: SecretSource, now: datetime) -> ProtectedBetaConfig:
+def _load_config(
+    source: SecretSource,
+    now: datetime,
+    *,
+    allow_stale_capacity_for_live_refresh: bool = False,
+) -> ProtectedBetaConfig:
+    if type(allow_stale_capacity_for_live_refresh) is not bool:
+        raise ProtectedBetaBootstrapError("protected capacity refresh mode is invalid")
     encoded = _read_secret(source, BETA_CONFIG_SECRET_NAME, maximum_bytes=_MAX_CONFIG_BYTES)
     try:
         try:
@@ -503,7 +510,9 @@ def _load_config(source: SecretSource, now: datetime) -> ProtectedBetaConfig:
     if set(snapshot_value) != snapshot_fields:
         raise ProtectedBetaBootstrapError("protected capacity snapshot schema is invalid")
     observed_at = _parse_utc(capacity.get("observed_at_utc"))
-    if observed_at > now or now - observed_at > _CAPACITY_MAX_AGE:
+    if observed_at > now or (
+        not allow_stale_capacity_for_live_refresh and now - observed_at > _CAPACITY_MAX_AGE
+    ):
         raise ProtectedBetaBootstrapError("protected capacity observation is absent or stale")
     limits = CapacityLimits(
         lfs_storage_budget_bytes=_required_positive_int(

@@ -658,15 +658,23 @@ class StatementParser:
         classification: DocumentClassification,
         extraction: ExtractionBatch,
         profile: ParserProfile | None,
+        *,
+        protected_fallback_version: str | None = None,
     ) -> ParserOutcome:
         if (
             envelope.source_id == ""
             or classification.canonical_plaintext_sha256 != extraction.canonical_plaintext_sha256
             or envelope.document_class is not classification.document_class
+            or (
+                protected_fallback_version is not None
+                and (profile is not None or _SEMVER.fullmatch(protected_fallback_version) is None)
+            )
         ):
             raise ProcessingBoundaryError("parser inputs are not bound to one source")
         fallback_name = profile.parser_name if profile is not None else "protected-profile-parser"
-        fallback_version = profile.parser_version if profile is not None else "1.0.0"
+        fallback_version = (
+            profile.parser_version if profile is not None else protected_fallback_version or "1.0.0"
+        )
         if extraction.state is ExtractionState.WAITING_FOR_PDF_PASSWORD:
             return ParserOutcome(
                 ProcessingState.WAITING_FOR_PDF_PASSWORD,

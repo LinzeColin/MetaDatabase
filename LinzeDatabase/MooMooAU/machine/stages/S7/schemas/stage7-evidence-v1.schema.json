@@ -30,8 +30,18 @@
     "observed_at_utc": {"type": "string", "format": "date-time"},
     "baseline_commit": {"const": "be8e196b03dcc475ed6261fbe20593b08bd26bcf"},
     "record_status": {"enum": ["READY", "BLOCKED"]},
-    "scope": {"const": "LOCAL_SYNTHETIC_PREFLIGHT"},
-    "delivery_status": {"const": "LOCAL_ONLY_NOT_PUBLISHED"},
+    "scope": {
+      "enum": [
+        "LOCAL_SYNTHETIC_PREFLIGHT",
+        "LOCAL_SYNTHETIC_AND_PROTECTED_ENTRYPOINT_PREFLIGHT"
+      ]
+    },
+    "delivery_status": {
+      "enum": [
+        "LOCAL_ONLY_NOT_PUBLISHED",
+        "CONTROLLED_MAIN_DELIVERY_PENDING"
+      ]
+    },
     "checks": {
       "type": "array",
       "minItems": 1,
