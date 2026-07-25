@@ -8,7 +8,16 @@
 
 ## 现状
 
-2026-07-19 核查：MetaDatabase 各项目**尚无独立的内容寻址数据层**（大目录多为 `node_modules`/工作区，属代码依赖，不属数据），故 `Private-MetaDatabase/` 当前为**占位区**，未实迁任何文件。
+**2026-07-25 核查更正**：上一版（2026-07-19）误判"无数据可迁"——它只盘点了顶层项目工作区，漏看了藏在项目里的真实数据。本次已把真实个人财务/业务数据迁入 `Private-MetaDatabase/` 并从本公开仓删除：
+
+| 来源（本公开仓） | 迁入 domain | 内容 |
+|---|---|---|
+| `LinzeDatabase/PFI/alipay_daily/` | `LinzeDatabase-alipay` | 支付宝 4 年 8,815 条个人流水（raw+processed，6 件） |
+| `FIFA/artifacts/backups/`（含 sqlite 的备份） | `FIFA` | 博彩报表/分析 SQLite 库、运行时快照、资金台账（4 件） |
+| `Serenity-Alipay/data/{notifications,reports}` | `Serenity` | 含本人邮箱的邮件草稿与生成的投顾报告（打包 2 件） |
+
+各来源目录已留 `WHERE_IS_THE_DATA.md` 路牌。**保留在公开仓的是**：各项目代码/治理、FIFA public-safe 件、Serenity 公开基金参考 CSV 与样例。
+仅删当前版本；git 历史里的旧提交仍含这些数据，历史清除由 Owner 另行决策。
 
 ## 将来怎么用（免 clone）
 

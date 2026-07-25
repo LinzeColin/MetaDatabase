@@ -1,21 +1,23 @@
 # MetaDatabase
 
-母仓库。从 LinzeColin/CodexProject 拆分而来，各项目保留完整提交历史。
+多项目母仓库。从 LinzeColin/CodexProject 拆分而来，各项目保留完整提交历史。
+**本仓只放代码与治理；真实个人财务/业务数据存私有仓 `Private-Database/Private-MetaDatabase`**，见 [`WHERE_IS_PROJECT_DATA.md`](WHERE_IS_PROJECT_DATA.md)。
 
 ## 项目
 
 | 项目 | 状态 | 说明 |
 |---|---|---|
 | Alpha | ✅ 已迁入 | |
-| FIFA | ✅ 已迁入 | |
+| ABD | ✅ 已迁入 | 验收/发布治理组件（abd_acceptance） |
+| FIFA | ✅ 已迁入 | TAB 世界杯研究流水线；含 sqlite 的私有备份已移入 `Private-MetaDatabase`，仓内仅留 public-safe 件 |
 | QBVS | ✅ 已迁入 | |
-| LinzeDatabase | ✅ 已迁入 | 原 CodexProject 中的 MetaDatabase/ 目录（含其内嵌 PFI） |
-| SerenityAlipay | ✅ 已迁入 | 目录名 `Serenity-Alipay` |
+| LinzeDatabase | ✅ 已迁入 | 原 CodexProject 中的 MetaDatabase/ 目录（含其内嵌 PFI 数据与 MooMooAU）；支付宝流水已移入 `Private-MetaDatabase` |
+| SerenityAlipay | ✅ 已迁入 | 目录名 `Serenity-Alipay`；运行时派生数据与含邮箱的通知/报告已移入 `Private-MetaDatabase`，保留公开基金参考 CSV |
 | EEI | ✅ 已迁入 | 商域帝国（Enterprise Ecosystem Intelligence）；自带 CI：`eei-validation` |
 | Stock_Skill/stock-commercial-opportunities-skill | ✅ 3.0.0（v3）当前 | “股票商业机会拆解”Codex Skill 源码、任务包、版本谱系与恢复证据；以 `Stock_Skill/REGISTRY.json` 为机器可读索引，未安装运行时 |
 | Stock_Skill/bottleneck-serenity-skill | ✅ 0.0.0.1（v0.0.0.1）当前 | source-only、`numeric-quad`；canonical source、确定性 release、manifest 与 registry entry 已在 Stage 2 用真实 SHA 激活，未安装本机运行时 |
 | xhs-douyin-2notion | 🚧 Stage 0 | 个人小红书/抖音内容知识治理；Public Code / Private Runtime |
-| PFI | ⏳ 待迁入 | codex 正在开发 |
+| PFI | ✅ 已在仓 | 个人财务智能 Streamlit 应用（顶层 `PFI/`，运行时读本机 `~/.pfi/runtime/`）；与 `LinzeDatabase/PFI` 数据目录不是同一个东西 |
 | ADP | ✅ 已迁入 | canonical 路径 `arxiv-daily-push/`；2026-07-20 从 CodexProject 迁入并纳入 `dual-plane.yml` |
 
 ## 股票 Skill Registry 版本模型

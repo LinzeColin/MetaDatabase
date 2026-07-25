@@ -1,0 +1,8 @@
+# 运行时派生产物，不入库（2026-07-25 起）
+# serenity_daily.sqlite 由 app 的 CREATE TABLE IF NOT EXISTS 自动再生；日志/通知/报告为运行输出。
+data/serenity_daily.sqlite
+data/serenity_daily.sqlite-wal
+data/serenity_daily.sqlite-shm
+data/*.log
+data/notifications/
+data/reports/
