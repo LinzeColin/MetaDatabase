@@ -2,8 +2,8 @@
 
 ## 当前状态
 
-`T0704_RELEASE_ASSET_REDIRECT_REPAIR_AUTHORIZED`，本地实现状态为
-`LOCAL_MECHANISMS_READY`。T0701–T0708
+交付状态为 `PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP_T0705_NOT_AUTHORIZED`，Stage 7 验收覆盖状态为
+`T0704_COMPLETE_SCOPE_STOP_T0705_NOT_AUTHORIZED`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
@@ -13,16 +13,20 @@ Raw-only Beta PASS。T0703 的六个失败 exact-main head 保持不可变且从
 零新增效果停止。第七个不同 exact-main head 的 attempt 1 已通过 authority、历史 label 零写入
 reconciliation 与 identity cleanup；Raw+Processed 远端恢复 100%，当前运行 Gmail mutation、
 private write、collateral mutation 与 Timeline write 均为 0。独立前后核验确认 private
-head/tree/path counts 与 Gmail Trash 聚合不变。T0703/S7AC-003 因此 PASS，但不等于 Stage 7、
-最终 Acceptance 或生产 PASS。
+head/tree/path counts 与 Gmail Trash 聚合不变。T0703/S7AC-003 因此 PASS。
 
 T0704 首次 exact-main attempt 1 已通过 authority 与 identity cleanup，并远端恢复 candidate
 Processed shadow 和 Timeline snapshot；`processed-current` 路径及 blob 身份保持不变。随后固定
 Release Asset 恢复失败，清理后 live Asset 为 0，并留下一个加密修复状态。该失败 head 已冻结，
-rerun 与 redispatch 均为 0。当前精确 Run Contract 只允许一个新 exact-main 修复 head、一次
-attempt 1：复用既有 candidate/snapshot，跟随一个限定在 GitHub release-assets CDN 的 302 且
-不转发 Authorization，最终恢复恰好一个 age 加密 Timeline。重复 candidate/snapshot 写入、
-Gmail/current 变更、T0705、GA、04:30 调度、最终 Acceptance 与最终发布仍未授权。
+rerun 与 redispatch 均为 0。唯一新 exact-main 修复 head 的 attempt 1 已通过 authority、
+Blue-Green 与 identity cleanup：复用并恢复既有 candidate/snapshot，跟随一个限定在 GitHub
+release-assets CDN 的 302 且不转发 Authorization，最终恢复并验证恰好一个非空 age 加密
+Timeline。受保护 repair 的 Gmail mutation、processed-current、candidate/snapshot 新写入均为 0；
+独立聚合核验只确认一个 encrypted Timeline state commit，未解密或公开私有定位。
+T0704/S7AC-004 因此 PASS，但不等于 Stage 7、最终 Acceptance 或生产 PASS。
+
+当前精确 Run Contract 已消耗全部 T0704 权限，只允许一次零数据面的证据交付。
+T0704 rerun/redispatch、T0705、GA、04:30 调度、最终 Acceptance 与最终发布均未授权。
 
 ## Beta protected bootstrap 契约
 
@@ -66,24 +70,24 @@ T0702/S7AC-002 已关闭；其历史回执与账本继续作为 T0703 的不可�
 
 Timeline 聚合将每个 current Processed pointer 与同 source 的 canonical `TimelineEvent` 绑定。逻辑 `processed_snapshot_root` 只由排序后的 source ID、current pointer plaintext digest 和 Timeline Event plaintext digest 推导，不依赖 age 随机密文。Event 与 manifest 均以 append-only `.age` 对象写入同一个私有数据库命名空间，随后从 store 重新取回、解密、解析并重算 root。`SingleLatestTimelinePublisher` 只接收该恢复 proof 的 root 与 incumbent facts；健康状态必须始终恰好一个固定 live Asset，修复状态只能为零。
 
-当前机制已在本地合成 remote 和受保护入口预检中验证。T0703 已完成；paired empty protected
-classification/parser registries 明确产生 SAFE_DEFERRED incumbent/candidate，不会虚构解析事实。
+当前机制已由 T0704 exact-main protected PASS 验证。paired empty protected
+classification/parser registries 明确产生 SAFE_DEFERRED incumbent/candidate，未虚构解析事实。
 T0704 不把超过 24 小时的 config snapshot 当作写授权：GitHub App token 只先用于读取
 Repository-ID 绑定的 metadata、完整 default-branch tree 和固定 live Release；保守重算
 repository/largest-object/LFS-continuity/live-asset capacity 后才交换 Gmail credential。
 tree truncated、出现无法证明零新增 LFS 的 `.gitattributes`、Release 非单资产或容量非可写，
 均在 Gmail 读取和仓库写入前 fail closed。
-首次 T0704 Run 已发生且失败；其 head 不得再次运行。当前 Run Contract 仅授权一个新 exact-main
-redirect-recovery attempt 1，candidate 与 snapshot 新写入预算均为 0，Timeline state 新写入预算
-最多为 1。Release Asset 下载只接受 200，或一个 HTTPS
+首次 T0704 run 已失败并冻结；唯一 redirect-recovery attempt 1 随后 PASS，两个 head 均不得再次
+运行。成功修复的 candidate 与 snapshot 新写入均为 0，Timeline state 新写入为 1。Release Asset
+下载只接受 200，或一个 HTTPS
 `release-assets.githubusercontent.com/github-production-release-asset` 跳转；第二跳不得携带
-Authorization，也不得继续跳转。因此不得宣称 T0704、AC-015、AC-028、AC-029 或 AC-030 已通过，
-也不得提升 current pointer。不设自然日等待。
+Authorization，也不得继续跳转。T0704/S7AC-004 的 PASS 只来自精确受保护回执；未提升
+current pointer，未单独提升仍受最终 Acceptance 约束的 AC，也未进入 T0705。不设自然日等待。
 
 Owner 已授权 v1.0.2 successor baseline。`machine/tools/validate_evidence.py` 现在按任务的真实
 Stage schema 路由，并同时核对 task graph、stage-local acceptance、final Acceptance 绑定和禁止项
-计数。验证 PASS 只证明证据完整；T0701/T0702 protected Oracle PASS 不会提升其余 protected Oracle
-`NOT_RUN`、final Acceptance 0/34、Stage 7 或生产 `BLOCKED`。
+计数。验证 PASS 只证明证据完整；T0701–T0704 protected Oracle PASS 不会提升其余 protected
+Oracle `NOT_RUN`、final Acceptance 0/34、Stage 7 或生产 `BLOCKED`。
 
 ## GA 全流程本地机制
 

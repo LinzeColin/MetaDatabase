@@ -46,6 +46,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.15",
             "1.0.16",
             "1.0.17",
+            "1.0.18",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -64,6 +65,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.15",
         "1.0.16",
         "1.0.17",
+        "1.0.18",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -78,6 +80,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.15",
         "1.0.16",
         "1.0.17",
+        "1.0.18",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -91,6 +94,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.15",
         "1.0.16",
         "1.0.17",
+        "1.0.18",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
@@ -103,6 +107,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.15",
         "1.0.16",
         "1.0.17",
+        "1.0.18",
     }
     t0703_repair_authorized = delivery["package_version"] in {
         "1.0.9",
@@ -128,12 +133,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.15",
         "1.0.16",
         "1.0.17",
+        "1.0.18",
     }
     t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] in {
         "1.0.12",
         "1.0.15",
         "1.0.16",
         "1.0.17",
+        "1.0.18",
     }
     t0703_zero_mutation_reconciliation_authorized = delivery["package_version"] in {
         "1.0.13",
@@ -141,6 +148,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.15",
         "1.0.16",
         "1.0.17",
+        "1.0.18",
     }
     t0703_historical_label_reconciliation_authorized = delivery["package_version"] in {
         "1.0.14",
@@ -148,12 +156,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.16",
     }
     t0703_protected_passed = (
-        delivery["package_version"] in {"1.0.15", "1.0.16", "1.0.17"}
-        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed")
-        in {3, 4}
-        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 3
-        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed")
-        in {0, 1}
+        delivery["package_version"] in {"1.0.15", "1.0.16", "1.0.17", "1.0.18"}
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") in {3, 4}
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") in {3, 4}
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") in {0, 1}
     )
     t0704_authorized = (
         delivery["package_version"] in {"1.0.16", "1.0.17"}
@@ -175,6 +181,16 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 4
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 3
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
+    )
+    t0704_protected_passed = (
+        delivery["package_version"] == "1.0.18"
+        and delivery.get("overall_status")
+        == "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP_T0705_NOT_AUTHORIZED"
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 4
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 4
+        and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 0
+        and delivery.get("dimensions", {}).get("publication", {}).get("status")
+        == "CONTROLLED_T0704_COMPLETED_NOT_FINAL"
     )
     protected_beta_failed = (
         not t0703_repair_authorized
@@ -209,7 +225,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "T0702 与 T0703 通过；T0704 首次执行失败，Release Asset 302 有界修复已授权"
+            "T0702、T0703 与 T0704 受保护验证均通过；T0704 权限已消耗，范围停止于 T0705 前"
+            if t0704_protected_passed
+            else "T0702 与 T0703 通过；T0704 首次执行失败，Release Asset 302 有界修复已授权"
             if t0704_repair_authorized
             else "T0702 与 T0703 受保护验证均通过；T0704 精确 main 首次受保护执行已授权待运行"
             if t0704_authorized
@@ -323,12 +341,20 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "已远端恢复、processed-current 保持不变、固定 Release 当前零 Asset。仅授权一个新 "
             "exact-main 修复候选和一次 attempt 1，以有界单跳 302 恢复恰好一个加密 Timeline"
         ),
+        "T0705_NOT_AUTHORIZED_IN_CURRENT_RUN": (
+            "T0704/S7AC-004 已由精确受保护回执关闭；当前证据闭包 Run Contract 明确不授权 T0705"
+        ),
+        "T0705_NEW_RUN_CONTRACT_REQUIRED": (
+            "进入 T0705 前必须建立新的显式 Run Contract；T0704 的全部 dispatch 权限已消耗"
+        ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "后续受保护验收与确定性运行尚未执行",
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING": (
-            "T0703 已通过；T0704 及其后的受保护验收仍未执行"
+            "T0704 已通过；T0705 及其后的受保护验收仍未执行"
+            if t0704_protected_passed
+            else "T0703 已通过；T0704 及其后的受保护验收仍未执行"
         ),
         "SECOND_BETA_DELIVERY_AND_RERUN_WITHHELD": (
             "历史暂缓已由 Owner 的 Stage 7 完工授权解除；仍禁止 GitHub rerun"
@@ -349,7 +375,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0704 Release Asset 302 恢复修复已授权待运行"
+            "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前"
+            if t0704_protected_passed
+            else "RMD-06 T0704 Release Asset 302 恢复修复已授权待运行"
             if t0704_repair_authorized
             else "RMD-06 T0704 受保护 Blue-Green 首次执行已授权待运行"
             if t0704_authorized
@@ -374,7 +402,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0704 首次执行已恢复候选与 Timeline snapshot 并保持 processed-current 不变；"
+            "T0702/S7AC-002、T0703/S7AC-003 与 T0704/S7AC-004 均已通过；修复 attempt "
+            "复用既有 candidate/snapshot，恢复并验证唯一加密 Timeline，Gmail 与 "
+            "processed-current 保持不变"
+            if t0704_protected_passed
+            else "T0704 首次执行已恢复候选与 Timeline snapshot 并保持 processed-current 不变；"
             "仅修复 GitHub Release Asset 合法单跳 302，复用既有对象并收敛恰好一个加密 Asset"
             if t0704_repair_authorized
             else "T0702/S7AC-002 与 T0703/S7AC-003 已通过；T0704 候选将对同一已恢复 Raw "
@@ -412,7 +444,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付精确 T0704 302 修复候选并执行唯一一次新 head protected attempt 1；"
+            "固化 T0704 精确成功回执与独立聚合核验；禁止任何 T0704 rerun/redispatch，不进入 T0705"
+            if t0704_protected_passed
+            else "交付精确 T0704 302 修复候选并执行唯一一次新 head protected attempt 1；"
             "禁止失败头 rerun/redispatch、重复 candidate/snapshot 写入、Gmail/current 变更与 T0705"
             if t0704_repair_authorized
             else "交付精确 T0704 候选并执行唯一一次 protected attempt 1；禁止 rerun、Gmail "
@@ -970,7 +1004,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     }
     plan = {
         "stage": (
-            "RMD-06 T0704 Release Asset 302 恢复修复已授权待运行"
+            "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前"
+            if t0704_protected_passed
+            else "RMD-06 T0704 Release Asset 302 恢复修复已授权待运行"
             if t0704_repair_authorized
             else "RMD-06 T0704 受保护 Blue-Green attempt 1 已授权待运行"
             if t0704_authorized
@@ -995,7 +1031,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0704 首次失败已冻结；仅允许新 exact-main 302 修复 attempt 1"
+            "T0704/S7AC-004 精确成功回执闭合；全部 T0704 权限已消耗"
+            if t0704_protected_passed
+            else "T0704 首次失败已冻结；仅允许新 exact-main 302 修复 attempt 1"
             if t0704_repair_authorized
             else "T0703/S7AC-003 已闭合；T0704 exact-main attempt 1 待执行"
             if t0704_authorized
@@ -1022,7 +1060,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付 v1.0.17 有界 302 修复，复用既有 candidate/snapshot 并恢复恰好一个加密 Timeline；"
+            "完成 v1.0.18 精确成功证据交付并停止；T0705 需要新的显式 Run Contract"
+            if t0704_protected_passed
+            else "交付 v1.0.17 有界 302 修复，复用既有 candidate/snapshot "
+            "并恢复恰好一个加密 Timeline；"
             "失败头不可重跑，T0705 仍禁止"
             if t0704_repair_authorized
             else "交付 v1.0.16 精确候选并执行一次受保护 Blue-Green；成功回执前不进入 T0705"
@@ -1082,7 +1123,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "阻塞（T0702 与 T0703 PASS；T0704 首次 attempt 失败且有界 302 修复待运行）"
+                    "部分通过（T0702、T0703 与 T0704 均 PASS；T0705 及后续受保护验证未运行）"
+                    if t0704_protected_passed
+                    else "阻塞（T0702 与 T0703 PASS；T0704 首次 attempt 失败且有界 302 修复待运行）"
                     if t0704_repair_authorized
                     else "部分通过（T0702 与 T0703 均 PASS；T0704 已授权但受保护 "
                     "attempt 1 尚未运行）"
@@ -1125,7 +1168,11 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             {
                 "id": "`发布`",
                 "criteria": "最终复审修复后才创建干净快照并一次性上传",
-                "status": "本地，未发布",
+                "status": (
+                    "T0704 受控证据已交付；最终发布未授权"
+                    if t0704_protected_passed
+                    else "本地，未发布"
+                ),
             },
         ]
     }
@@ -1330,7 +1377,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 ),
             },
         )
-    if t0704_authorized:
+    if t0704_authorized or t0704_repair_authorized or t0704_protected_passed:
         changelog.insert(
             0,
             {
@@ -1345,7 +1392,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 ),
             },
         )
-    if t0704_repair_authorized:
+    if t0704_repair_authorized or t0704_protected_passed:
         changelog.insert(
             0,
             {
@@ -1357,6 +1404,21 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "processed-current 路径和 blob 身份保持不变，固定 Release 最终零 Asset。"
                     "依据 GitHub 200/302 下载契约修复有界单跳 CDN 恢复且不转发 Authorization；"
                     "失败头禁止重跑，仅授权一个新修复 head、一次 attempt 1，T0705 仍禁止。"
+                ),
+            },
+        )
+    if t0704_protected_passed:
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.18",
+                "date": "2026-07-26",
+                "summary": (
+                    "固化唯一新 exact-main T0704 修复 attempt-1 的受保护 PASS：authority、"
+                    "Blue-Green 与身份清理均通过；复用既有 candidate/snapshot，远端恢复并"
+                    "验证恰好一个 age 加密最新 Timeline，processed-current、Raw、Processed "
+                    "与 Gmail 均无新增效果。失败头保持冻结，T0704/S7AC-004 关闭，全部 T0704 "
+                    "权限已消耗，范围停止于 T0705 前。"
                 ),
             },
         )

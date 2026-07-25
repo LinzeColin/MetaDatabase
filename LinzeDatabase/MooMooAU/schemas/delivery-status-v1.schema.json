@@ -442,14 +442,51 @@
           "const": "Deliver one new exact-main T0704 release-asset redirect repair candidate and execute one attempt-1 dispatch. Never rerun the failed head; reuse the recovered candidate and Timeline snapshot, keep processed-current and Gmail unchanged, and stop before T0705."
         }
       }
+    },
+    {
+      "title": "v1.0.18 protected T0704 Blue-Green PASS with T0705 scope stop",
+      "properties": {
+        "package_version": {"const": "1.0.18"},
+        "overall_status": {
+          "const": "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP_T0705_NOT_AUTHORIZED"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0705_NOT_AUTHORIZED_IN_CURRENT_RUN",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_WORKFLOW_NOT_RUN",
+            "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
+            "T0705_NEW_RUN_CONTRACT_REQUIRED",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Close T0704/S7AC-004 from the exact protected receipt and stop before T0705. No T0704 rerun or redispatch is allowed; a new explicit T0705 Run Contract is required."
+        },
+        "source_digests": {
+          "required": [
+            "protected_blue_green_execution_receipt_sha256"
+          ]
+        }
+      }
     }
   ],
   "properties": {
     "schema_version": {"const": "moomooau.delivery-status.v1"},
     "status_model_version": {"const": "moomooau.delivery-status-model.v3"},
     "package_version": {
-      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15", "1.0.16", "1.0.17"],
-      "description": "Coupled by the root oneOf to the exact historical RMD state or current authorized T0704 pre-execution state."
+      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15", "1.0.16", "1.0.17", "1.0.18"],
+      "description": "Coupled by the root oneOf to the exact historical RMD state or current protected scope-stopped state."
     },
     "status_as_of_utc": {"type": "string", "format": "date-time"},
     "authority": {
@@ -475,7 +512,8 @@
         "PROTECTED_M3_ATTEMPT_FAILED_REPAIR_AUTHORIZED",
         "PROTECTED_M3_PASS_SCOPE_STOP_T0704_NOT_AUTHORIZED",
         "PROTECTED_M3_PASS_T0704_AUTHORIZED_PENDING",
-        "PROTECTED_BLUE_GREEN_ATTEMPT_FAILED_REPAIR_AUTHORIZED"
+        "PROTECTED_BLUE_GREEN_ATTEMPT_FAILED_REPAIR_AUTHORIZED",
+        "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP_T0705_NOT_AUTHORIZED"
       ]
     },
     "dimensions": {
@@ -573,7 +611,8 @@
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPT",
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS",
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_PREFLIGHT",
-            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_FAILED_ATTEMPT"
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_FAILED_ATTEMPT",
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0704_PASS_RECEIPT"
           ]
         }
       }
@@ -640,7 +679,8 @@
             "CONTROLLED_BETA_DELIVERY_NOT_FINAL",
             "CONTROLLED_T0703_COMPLETED_NOT_FINAL",
             "CONTROLLED_T0704_CANDIDATE_NOT_FINAL",
-            "CONTROLLED_T0704_REPAIR_CANDIDATE_NOT_FINAL"
+            "CONTROLLED_T0704_REPAIR_CANDIDATE_NOT_FINAL",
+            "CONTROLLED_T0704_COMPLETED_NOT_FINAL"
           ]
         },
         "controlled_main_deliveries": {

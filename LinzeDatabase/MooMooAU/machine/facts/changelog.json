@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.0.18",
+    "date": "2026-07-26",
+    "summary": "固化唯一新 exact-main T0704 修复 attempt-1 的受保护 PASS：authority、Blue-Green 与身份清理均通过；复用既有 candidate/snapshot，远端恢复并验证恰好一个 age 加密最新 Timeline，processed-current、Raw、Processed 与 Gmail 均无新增效果。失败头保持冻结，T0704/S7AC-004 关闭，全部 T0704 权限已消耗，范围停止于 T0705 前。"
+  },
+  {
     "version": "1.0.17",
     "date": "2026-07-26",
     "summary": "固化 T0704 首次 exact-main attempt-1 失败：私库新增两个 candidate Processed 对象、两个 Timeline snapshot 对象与一个加密零 Asset 状态，processed-current 路径和 blob 身份保持不变，固定 Release 最终零 Asset。依据 GitHub 200/302 下载契约修复有界单跳 CDN 恢复且不转发 Authorization；失败头禁止重跑，仅授权一个新修复 head、一次 attempt 1，T0705 仍禁止。"

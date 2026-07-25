@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only validator for the v1.0.17 protected T0704 repair package."""
+"""Read-only validator for the v1.0.18 protected T0704 PASS closure package."""
 
 from __future__ import annotations
 
@@ -30,12 +30,12 @@ from jsonschema import Draft202012Validator, FormatChecker
 from validate_delivery_status import validate as validate_delivery_status
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.17.json")
+PROVENANCE_PATH = Path("taskpack/SOURCE_PROVENANCE.v1.0.18.json")
 CURRENT_MAINLINE_BASE_COMMIT = (
-    "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"  # pragma: allowlist secret
+    "65cef09935475ab578d28a61817cc92700d6da04"  # pragma: allowlist secret
 )
 ACCEPTANCE_REMEDIATION_BASE_COMMIT = (
-    "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"  # pragma: allowlist secret
+    "65cef09935475ab578d28a61817cc92700d6da04"  # pragma: allowlist secret
 )
 CANDIDATE_SNAPSHOT = {
     "repository": "LinzeColin/MetaDatabase",
@@ -55,18 +55,21 @@ PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_PATH = Path(
 PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-blue-green-attempt-ledger-v1.schema.json"
 )
+PROTECTED_BLUE_GREEN_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0704/execution-receipt.json")
+PROTECTED_BLUE_GREEN_RECEIPT_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-blue-green-execution-receipt-v1.schema.json"
+)
 AUTHORIZATION_BASIS = (
-    "The exact protected T0702 and T0703 PASS receipts, immutable failed T0703 lineage and "
-    "the schema-valid failed T0704 attempt prove a bounded GitHub Release Asset 302 recovery "
-    "defect and authorize one new exact-main T0704 repair attempt 1 with rerun zero"
+    "The exact protected T0702, T0703 and T0704 PASS receipts, immutable failed-attempt "
+    "lineage and independent namespace-scoped verification prove T0704 and S7AC-004 complete "
+    "while every Blue-Green dispatch authority is consumed"
 )
 AUTHORIZED_SCOPE = (
-    "One T0704 repair package: bind the exact T0703 receipt and failed T0704 ledger, freeze the "
-    "failed head, reuse the recovered candidate Processed shadow and Timeline snapshot, follow "
-    "exactly one allowlisted GitHub release-asset 302 without Authorization forwarding, replace "
-    "exactly one encrypted latest Timeline and write at most one encrypted state. Duplicate "
-    "candidate or snapshot writes, current-pointer or Gmail mutation, rerun, T0705, schedule, "
-    "final Acceptance and final publication remain unauthorized"
+    "One T0704 evidence-closure package: bind the failed T0704 ledger and exact protected PASS "
+    "receipt; freeze both T0704 heads; record reuse of the recovered candidate Processed shadow "
+    "and Timeline snapshot, unchanged processed-current, zero Gmail mutation and exactly one "
+    "remotely recovered age-encrypted latest Timeline. Protected dispatches, Secret reads, "
+    "data-plane writes, T0705, schedule, final Acceptance and final publication remain unauthorized"
 )
 
 
@@ -91,6 +94,8 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     m3_receipt_schema = _load(root / PROTECTED_M3_RECEIPT_SCHEMA_PATH)
     blue_green_ledger = _load(root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_PATH)
     blue_green_schema = _load(root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_SCHEMA_PATH)
+    blue_green_receipt = _load(root / PROTECTED_BLUE_GREEN_RECEIPT_PATH)
+    blue_green_receipt_schema = _load(root / PROTECTED_BLUE_GREEN_RECEIPT_SCHEMA_PATH)
     if (
         len(attempt_ledger.get("rejected_dispatches", [])) != 1
         or len(attempt_ledger.get("attempts", [])) != 11
@@ -248,9 +253,11 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         blue_green_errors
         or blue_green_ledger.get("task_id") != "T0704"
         or blue_green_delivery.get("pull_request_number") != 112
-        or blue_green_delivery.get("merge_commit_sha") != CURRENT_MAINLINE_BASE_COMMIT
+        or blue_green_delivery.get("merge_commit_sha")
+        != "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"  # pragma: allowlist secret
         or blue_green_workflow.get("run_id") != 30175241669
-        or blue_green_workflow.get("workflow_head_sha") != CURRENT_MAINLINE_BASE_COMMIT
+        or blue_green_workflow.get("workflow_head_sha")
+        != "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"  # pragma: allowlist secret
         or blue_green_workflow.get("run_attempt") != 1
         or blue_green_workflow.get("reruns") != 0
         or blue_green_jobs.get("authority_gate", {}).get("status") != "PASS"
@@ -275,17 +282,91 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or blue_green_policy.get("t0705_authorized") is not False
         or any(value is not False for value in blue_green_claims.values())
     ):
-        raise ValueError("protected T0704 failed attempt ledger is not exact or repair-eligible")
+        raise ValueError("protected T0704 failed attempt ledger is not exact or frozen")
+    blue_green_receipt_errors = list(
+        Draft202012Validator(
+            blue_green_receipt_schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(blue_green_receipt)
+    )
+    blue_green_receipt_control = blue_green_receipt.get("control", {})
+    blue_green_receipt_jobs = blue_green_receipt.get("jobs", {})
+    blue_green_receipt_public = blue_green_receipt.get("public_result", {})
+    blue_green_receipt_verification = blue_green_receipt.get(
+        "independent_post_run_verification", {}
+    )
+    blue_green_receipt_scope = blue_green_receipt.get("scope_decision", {})
+    blue_green_receipt_claims = blue_green_receipt.get("claims", {})
+    if (
+        blue_green_receipt_errors
+        or blue_green_receipt.get("task_id") != "T0704"
+        or blue_green_receipt.get("observed_at_utc") != "2026-07-25T22:52:22Z"
+        or blue_green_receipt_control.get("pull_request_number") != 113
+        or blue_green_receipt_control.get("merge_commit_sha") != CURRENT_MAINLINE_BASE_COMMIT
+        or blue_green_receipt_control.get("workflow_run_id") != 30178201201
+        or blue_green_receipt_control.get("workflow_head_sha")
+        != blue_green_receipt_control.get("merge_commit_sha")
+        or blue_green_receipt_control.get("workflow_attempt") != 1
+        or blue_green_receipt_control.get("dispatches_for_head") != 1
+        or blue_green_receipt_control.get("reruns") != 0
+        or blue_green_receipt_control.get("prior_failed_attempt_ledger_sha256")
+        != _sha256(root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_PATH)
+        or blue_green_receipt_control.get("prior_failed_attempt_ledger_schema_sha256")
+        != _sha256(root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_SCHEMA_PATH)
+        or blue_green_receipt_control.get("m3_receipt_sha256")
+        != _sha256(root / PROTECTED_M3_RECEIPT_PATH)
+        or any(job.get("status") != "PASS" for job in blue_green_receipt_jobs.values())
+        or blue_green_receipt_public.get("status") != "PROTECTED_BLUE_GREEN_COMPLETED_NOT_FINAL"
+        or blue_green_receipt_public.get("blue_green_gate_status") != "PASS"
+        or blue_green_receipt_public.get("processed_recoveries") != 1
+        or blue_green_receipt_public.get("parser_comparisons") != 1
+        or blue_green_receipt_public.get("current_pointer_mutations") != 0
+        or blue_green_receipt_public.get("timeline_snapshot_recoveries") != 1
+        or blue_green_receipt_public.get("timeline_publish_attempts") != 1
+        or blue_green_receipt_public.get("minimum_live_timeline_assets") != 1
+        or blue_green_receipt_public.get("maximum_live_timeline_assets") != 1
+        or blue_green_receipt_public.get("full_reconcile_difference") != 0
+        or blue_green_receipt_public.get("gmail_mutations") != 0
+        or blue_green_receipt_public.get("unresolved_comparison_differences") != 0
+        or blue_green_receipt_public.get("remote_timeline_recovery_one_hundred_percent") is not True
+        or blue_green_receipt_public.get("exact_mailbox_counts_disclosed") is not False
+        or blue_green_receipt_verification.get("private_repository_tree_complete") is not True
+        or blue_green_receipt_verification.get("private_repository_tree_truncated") is not False
+        or blue_green_receipt_verification.get("moomooau_namespace_new_commits") != 1
+        or blue_green_receipt_verification.get("other_namespace_activity_excluded") is not True
+        or blue_green_receipt_verification.get("changed_files_in_repair_commit") != 1
+        or blue_green_receipt_verification.get("encrypted_timeline_state_writes") != 1
+        or blue_green_receipt_verification.get("raw_tree_unchanged") is not True
+        or blue_green_receipt_verification.get("processed_tree_unchanged") is not True
+        or blue_green_receipt_verification.get("candidate_processed_shadow_writes") != 0
+        or blue_green_receipt_verification.get("timeline_snapshot_writes") != 0
+        or blue_green_receipt_verification.get("processed_current_path_and_blob_identity")
+        is not True
+        or blue_green_receipt_verification.get("live_timeline_assets") != 1
+        or blue_green_receipt_verification.get("live_asset_age_envelope") is not True
+        or blue_green_receipt_verification.get("live_asset_download_recovered") is not True
+        or blue_green_receipt_verification.get("independent_asset_decryption_claimed") is not False
+        or blue_green_receipt_verification.get("source_mutations") != 0
+        or blue_green_receipt_verification.get("exact_private_locator_disclosed") is not False
+        or blue_green_receipt_scope.get("t0704_complete") is not True
+        or blue_green_receipt_scope.get("t0705_authorized") is not False
+        or blue_green_receipt_scope.get("further_blue_green_dispatch_allowed") is not False
+        or blue_green_receipt_claims.get("s7ac_004_passed") is not True
+        or blue_green_receipt_claims.get("t0705_complete") is not False
+        or blue_green_receipt_claims.get("stage7_complete") is not False
+        or blue_green_receipt_claims.get("final_acceptance") is not False
+    ):
+        raise ValueError("protected T0704 PASS receipt is not exact or scope-stopped")
     return {
-        "schema_version": "moomooau.source-provenance.v17",
+        "schema_version": "moomooau.source-provenance.v18",
         "authorization": {
             "basis": AUTHORIZATION_BASIS,
             "authorized_on": "2026-07-26",
             "authorized_scope": AUTHORIZED_SCOPE,
         },
         "predecessor": {
-            "package_id": "MMAU-ARCHIVE-TP-2026-07-25-V1.0.16",
-            "version": "1.0.16",
+            "package_id": "MMAU-ARCHIVE-TP-2026-07-26-V1.0.17",
+            "version": "1.0.17",
             "manifest": PREDECESSOR_MANIFEST_PATH.as_posix(),
             "manifest_sha256": PREDECESSOR_MANIFEST_SHA256,
             "status": "IMMUTABLE_CONTROL_PREDECESSOR",
@@ -323,10 +404,10 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "package_id": PACKAGE_ID,
             "version": PACKAGE_VERSION,
             "manifest": MANIFEST_PATH.as_posix(),
-            "roadmap": "taskpack/ROADMAP.v1.0.17.md",
+            "roadmap": "taskpack/ROADMAP.v1.0.18.md",
             "status_authority": "machine/status/latest.json",
             "workflow_validator": "machine/tools/validate_workflow_matrix.py",
-            "publication_status": "CONTROLLED_T0704_REPAIR_CANDIDATE_NOT_FINAL",
+            "publication_status": "CONTROLLED_T0704_COMPLETED_NOT_FINAL",
         },
         "candidate_snapshot": CANDIDATE_SNAPSHOT,
         "semantic_delta": {
@@ -335,7 +416,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "dependency_credential_repository_scope": "LinzeColin/Governance",
             "credential_material_in_package": False,
             "production_secret_reads_authorized": 0,
-            "project_runtime_secret_reads_authorized": 8,
+            "project_runtime_secret_reads_authorized": 0,
             "fork_pull_request_policy": ("FAIL_CLOSED_BEFORE_PROTECTED_DEPENDENCY_CHECKOUT"),
             "pull_request_target_allowed": False,
             "product_contract_changed": False,
@@ -343,17 +424,17 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "final_acceptance_thresholds_changed": False,
             "stage7_fixed_calendar_wait_removed": True,
             "protected_oracles_executed": 4,
-            "protected_oracles_passed": 3,
-            "protected_oracles_failed": 1,
+            "protected_oracles_passed": 4,
+            "protected_oracles_failed": 0,
             "production_workflow_runs": 0,
             "protected_workflow_runs": (
-                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 2
+                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 3
             ),
             "remote_workflow_runs": (
-                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 2
+                attempt_summary["protected_workflow_runs"] + len(m3_attempts) + 3
             ),
             "controlled_main_deliveries": (
-                attempt_summary["controlled_main_deliveries"] + len(m3_attempts) + 2
+                attempt_summary["controlled_main_deliveries"] + len(m3_attempts) + 3
             ),
             "protected_beta_dispatches": attempt_summary["protected_beta_dispatches"],
             "context_rejected_dispatches": attempt_summary["context_rejected_dispatches"],
@@ -367,7 +448,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             ),
             "m3_runs": 1,
             "processed_writes": "ONE_RECOVERED",
-            "timeline_writes": 0,
+            "timeline_writes": 4,
             "protected_beta_outcome": "PASS_RAW_RECOVERY_100_PERCENT_ZERO_SOURCE_MUTATION",
             "protected_beta_last_failure_phase": "METADATA_VERIFICATION",
             "protected_beta_last_installation_failure_class": "UNCLASSIFIED",
@@ -422,28 +503,44 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 root.parents[1] / ".github/workflows/moomooau-blue-green.yml"
             ),
             "protected_blue_green_contract_authorized": False,
-            "protected_blue_green_repair_contract_authorized": True,
+            "protected_blue_green_repair_contract_authorized": False,
             "protected_blue_green_environment_reused": "moomooau-beta",
             "protected_blue_green_secret_values_exact": 8,
-            "protected_blue_green_dispatches": 1,
+            "protected_blue_green_dispatches": 2,
             "protected_blue_green_reruns": 0,
             "protected_blue_green_failed_attempts": 1,
+            "protected_blue_green_successful_receipts": 1,
             "protected_blue_green_fixed_calendar_wait_days": 0,
             "protected_blue_green_gmail_mutations": 0,
             "protected_blue_green_current_pointer_mutations": 0,
             "protected_blue_green_candidate_shadow_commits": 2,
             "protected_blue_green_timeline_snapshot_commits": 2,
-            "protected_blue_green_timeline_state_commits": 1,
-            "protected_blue_green_timeline_writes": 3,
-            "protected_blue_green_live_timeline_assets": 0,
+            "protected_blue_green_timeline_state_commits": 2,
+            "protected_blue_green_timeline_writes": 4,
+            "protected_blue_green_live_timeline_assets": 1,
             "protected_blue_green_processed_current_unchanged": True,
             "protected_blue_green_release_asset_redirect_defect_proven": True,
+            "protected_blue_green_release_asset_redirect_repair_verified": True,
             "protected_blue_green_failed_head_frozen": True,
+            "protected_blue_green_successful_head_frozen": True,
+            "protected_blue_green_raw_tree_unchanged_after_repair": True,
+            "protected_blue_green_processed_tree_unchanged_after_repair": True,
+            "protected_blue_green_duplicate_candidate_commits": 0,
+            "protected_blue_green_duplicate_timeline_snapshot_commits": 0,
+            "protected_blue_green_current_run_source_mutations": 0,
+            "protected_blue_green_independent_namespace_verification": True,
+            "protected_blue_green_other_namespace_activity_excluded": True,
             "protected_blue_green_attempt_ledger_sha256": _sha256(
                 root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_PATH
             ),
             "protected_blue_green_attempt_ledger_schema_sha256": _sha256(
                 root / PROTECTED_BLUE_GREEN_ATTEMPT_LEDGER_SCHEMA_PATH
+            ),
+            "protected_blue_green_execution_receipt_sha256": _sha256(
+                root / PROTECTED_BLUE_GREEN_RECEIPT_PATH
+            ),
+            "protected_blue_green_execution_receipt_schema_sha256": _sha256(
+                root / PROTECTED_BLUE_GREEN_RECEIPT_SCHEMA_PATH
             ),
             "t0705_authorized": False,
             "remote_publications": 0,
@@ -452,16 +549,23 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
 
 
 def _validate_provenance(root: Path, failures: list[str]) -> None:
+    provenance_version = PROVENANCE_PATH.name.removeprefix("SOURCE_PROVENANCE.v").removesuffix(
+        ".json"
+    )
+    if provenance_version == PROVENANCE_PATH.name:
+        provenance_version = PACKAGE_VERSION
     try:
         provenance = _load(root / PROVENANCE_PATH)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        failures.append("v1.0.17 provenance is missing or invalid")
+        failures.append(f"v{provenance_version} provenance is missing or invalid")
         return
     if not isinstance(provenance, dict):
-        failures.append("v1.0.17 provenance must be an object")
+        failures.append(f"v{provenance_version} provenance must be an object")
         return
     if provenance != build_provenance(root):
-        failures.append("v1.0.17 provenance differs from the exact deterministic authority")
+        failures.append(
+            f"v{provenance_version} provenance differs from the exact deterministic authority"
+        )
     authorization = provenance.get("authorization", {})
     effective = provenance.get("effective_package", {})
     predecessor = provenance.get("predecessor", {})
@@ -490,25 +594,24 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
     if not isinstance(semantic_delta, dict):
         semantic_delta = {}
     if (
-        provenance.get("schema_version") != "moomooau.source-provenance.v17"
+        provenance.get("schema_version") != "moomooau.source-provenance.v18"
         or authorization.get("basis") != AUTHORIZATION_BASIS
         or authorization.get("authorized_scope") != AUTHORIZED_SCOPE
         or effective.get("package_id") != PACKAGE_ID
         or effective.get("version") != PACKAGE_VERSION
         or effective.get("manifest") != MANIFEST_PATH.as_posix()
-        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.17.md"
+        or effective.get("roadmap") != "taskpack/ROADMAP.v1.0.18.md"
         or effective.get("status_authority") != "machine/status/latest.json"
         or effective.get("workflow_validator") != "machine/tools/validate_workflow_matrix.py"
-        or effective.get("publication_status")
-        != "CONTROLLED_T0704_REPAIR_CANDIDATE_NOT_FINAL"
+        or effective.get("publication_status") != "CONTROLLED_T0704_COMPLETED_NOT_FINAL"
     ):
-        failures.append("v1.0.17 provenance identity or authorization mismatch")
+        failures.append(f"v{provenance_version} provenance identity or authorization mismatch")
     if (
         predecessor.get("manifest") != PREDECESSOR_MANIFEST_PATH.as_posix()
         or predecessor.get("manifest_sha256") != PREDECESSOR_MANIFEST_SHA256
         or predecessor.get("status") != "IMMUTABLE_CONTROL_PREDECESSOR"
     ):
-        failures.append("v1.0.16 predecessor provenance mismatch")
+        failures.append("v1.0.17 predecessor provenance mismatch")
     if (
         control_predecessor.get("manifest") != CONTROL_PREDECESSOR_MANIFEST_PATH.as_posix()
         or control_predecessor.get("manifest_sha256") != CONTROL_PREDECESSOR_MANIFEST_SHA256
@@ -539,7 +642,7 @@ def _validate_provenance(root: Path, failures: list[str]) -> None:
         failures.append("RMD-06 clean candidate snapshot provenance mismatch")
     expected_semantic_delta = build_provenance(root)["semantic_delta"]
     if semantic_delta != expected_semantic_delta:
-        failures.append("v1.0.17 semantic delta is incomplete or overstated")
+        failures.append(f"v{provenance_version} semantic delta is incomplete or overstated")
 
 
 def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
@@ -618,7 +721,7 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         None,
     )
     if predecessor_entry is None or predecessor_entry.get("sha256") != PREDECESSOR_MANIFEST_SHA256:
-        failures.append("predecessor v1.0.16 manifest artifact is not preserved")
+        failures.append("predecessor v1.0.17 manifest artifact is not preserved")
     control_predecessor_entry = next(
         (
             entry
@@ -675,7 +778,7 @@ def validate(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         failures.append(f"canonical manifest selection failed: {type(exc).__name__}")
     else:
         if manifest != expected:
-            failures.append("manifest differs from the canonical v1.0.17 package selection")
+            failures.append("manifest differs from the canonical v1.0.18 package selection")
 
     _validate_provenance(root, failures)
     status_result = validate_delivery_status(root)

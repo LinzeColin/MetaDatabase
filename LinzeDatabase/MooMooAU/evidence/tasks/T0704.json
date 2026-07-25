@@ -1,13 +1,13 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0704-REDIRECT-REPAIR-PREFLIGHT-20260726",
+  "evidence_id": "S7-T0704-PROTECTED-20260726-PASS",
   "stage_id": "S7",
   "task_id": "T0704",
   "stage_acceptance_id": "S7AC-004",
-  "observed_at_utc": "2026-07-25T21:35:07Z",
+  "observed_at_utc": "2026-07-25T22:52:22Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
-  "record_status": "BLOCKED",
-  "scope": "PROTECTED_FAILED_ATTEMPT_AND_LOCAL_REDIRECT_REPAIR_PREFLIGHT",
+  "record_status": "READY",
+  "scope": "PROTECTED_PASS_RECEIPT_BOUND",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
     {"id": "blue_green_deterministic_evidence_gate", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_blue_green_requires_complete_evidence_and_exactly_one_live_asset"},
@@ -17,29 +17,32 @@
     {"id": "cross_run_snapshot_head_recovery", "status": "PASS", "evidence_ref": "src/moomooau_archive/timeline_publish.py and tests/tasks/test_t0704.py::test_t0704_live_asset_without_recoverable_snapshot_head_blocks_before_candidate_write"},
     {"id": "current_pointer_rechecked_before_timeline_publish", "status": "PASS", "evidence_ref": "src/moomooau_archive/blue_green_runtime.py and tests/tasks/test_t0704.py::test_t0704_current_pointer_drift_blocks_before_live_timeline_publish"},
     {"id": "predecessor_and_capacity_fail_closed", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_predecessor_and_capacity_fail_before_remote_blue_green_effects"},
-    {"id": "stage_aware_validator_preserves_blocked_truth", "status": "PASS", "evidence_ref": "machine/tools/validate_evidence.py and tests/tasks/test_t0704.py::test_t0704_stage_aware_evidence_validator_preserves_blocked_truth"},
+    {"id": "stage_aware_validator_preserves_scope_stopped_truth", "status": "PASS", "evidence_ref": "machine/tools/validate_evidence.py and tests/tasks/test_t0704.py::test_t0704_stage_aware_evidence_validator_preserves_scope_stopped_truth"},
     {"id": "safe_deferred_versioned_shadow", "status": "PASS", "evidence_ref": "src/moomooau_archive/document_parser.py and tests/tasks/test_t0704.py::test_t0704_t0703_safe_deferred_current_supports_versioned_shadow_without_promotion"},
     {"id": "protected_adapter_sequence_no_gmail_or_current_mutation", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_blue_green.py and tests/tasks/test_t0704.py::test_t0704_protected_cloud_composition_reuses_t0703_source_without_gmail_mutation"},
     {"id": "stale_capacity_replaced_by_live_private_repo_observation", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_blue_green.py and tests/tasks/test_t0704.py::test_t0704_stale_config_capacity_is_replaced_by_a_live_private_repo_observation"},
     {"id": "incomplete_live_capacity_blocks_before_gmail_or_write", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_incomplete_live_capacity_tree_blocks_before_gmail_or_repository_write"},
-    {"id": "protected_entrypoint_exact_binding_aggregate_only", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_blue_green_entrypoint.py and tests/tasks/test_t0704.py::test_t0704_entrypoint_binds_exact_main_t0703_receipt_and_aggregate_only_result"},
+    {"id": "protected_entrypoint_authority_consumed_after_receipt", "status": "PASS", "evidence_ref": "src/moomooau_archive/protected_blue_green_entrypoint.py and tests/tasks/test_t0704.py::test_t0704_entrypoint_authority_is_consumed_after_pass_receipt"},
     {"id": "protected_workflow_exact_context_and_secret_allowlist", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_protected_workflow_is_manual_exact_main_attempt_one_and_eight_secret"},
     {"id": "failed_attempt_schema_and_effects_frozen", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0704/attempt-ledger.json and machine/stages/S7/schemas/protected-blue-green-attempt-ledger-v1.schema.json"},
     {"id": "private_release_asset_302_recovered_without_auth_forwarding", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_private_release_asset_302_is_recovered_without_forwarding_auth"},
     {"id": "non_github_release_asset_redirect_rejected", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_private_release_asset_redirect_rejects_non_github_authority"},
     {"id": "protected_composition_302_recovery", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_protected_cloud_composition_recovers_private_asset_redirect"},
-    {"id": "zero_asset_repair_reuses_existing_objects", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_failed_zero_asset_state_replays_without_duplicate_objects"}
+    {"id": "zero_asset_repair_reuses_existing_objects", "status": "PASS", "evidence_ref": "tests/tasks/test_t0704.py::test_t0704_failed_zero_asset_state_replays_without_duplicate_objects"},
+    {"id": "protected_attempt_one_pass_receipt_exact_and_public_safe", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0704/execution-receipt.json and machine/stages/S7/schemas/protected-blue-green-execution-receipt-v1.schema.json"},
+    {"id": "independent_namespace_scoped_state_and_asset_verification", "status": "PASS", "evidence_ref": "machine/stages/S7/reviews/t0704/execution-receipt.json"}
   ],
   "linked_final_acceptance": [
-    {"id": "AC-015", "status": "PARTIAL", "reason": "The failed protected attempt recovered and compared the incumbent and candidate shadow, but T0704 has no complete protected PASS receipt."},
-    {"id": "AC-028", "status": "PARTIAL", "reason": "The protected fixed Release was created and the zero-asset repair state was verified, but exactly one remotely recoverable live Asset was not reached."},
-    {"id": "AC-029", "status": "PARTIAL", "reason": "Protected Processed facts reached the recovered Timeline snapshot and renderer, but the resulting live Asset failed remote recovery."},
-    {"id": "AC-030", "status": "PARTIAL", "reason": "Protected Timeline facts were rendered without fabricated completeness, but the failed live Asset recovery prevents final protected evidence."}
+    {"id": "AC-015", "status": "PARTIAL", "reason": "The exact protected T0704 PASS recovered and compared the incumbent and candidate lineages from the same Raw while retaining processed-current; later GA and final Acceptance lineage evidence remain unexecuted."},
+    {"id": "AC-028", "status": "PARTIAL", "reason": "The exact protected T0704 PASS and independent post-run read prove the fixed Release contains exactly one nonempty age-encrypted live Asset; later scheduled and final Acceptance observations remain unexecuted."},
+    {"id": "AC-029", "status": "PARTIAL", "reason": "The exact protected T0704 PASS recovered the Timeline snapshot, published and remotely recovered the one encrypted latest Timeline with zero reconciliation difference; later GA semantics evidence remains unexecuted."},
+    {"id": "AC-030", "status": "PARTIAL", "reason": "Protected Timeline facts were rendered and recovered without fabricated completeness, and unchanged Raw, Processed and processed-current state was independently verified; final Acceptance remains unexecuted."}
   ],
   "production_oracles": [
-    {"id": "PROTECTED_BLUE_GREEN_DETERMINISTIC_EVIDENCE", "status": "FAILED", "reason": "The exact-main attempt passed authority and cleanup, recovered the candidate and Timeline snapshot, then failed live Asset recovery; the head is frozen with rerun zero and a new redirect-repair candidate is pending."}
+    {"id": "PROTECTED_BLUE_GREEN_DETERMINISTIC_EVIDENCE", "status": "PASS", "reason": "The distinct repair exact-main attempt passed authority, Blue-Green shadow-and-Timeline execution and identity cleanup. It recovered the existing candidate and Timeline snapshot, retained processed-current, performed one comparison and full reconciliation with zero difference, issued no Gmail mutation, and remotely recovered exactly one encrypted latest Timeline."}
   ],
-  "blockers": ["PROTECTED_BLUE_GREEN_RELEASE_ASSET_REDIRECT_REPAIR_PENDING"],
+  "protected_execution_receipt": "machine/stages/S7/reviews/t0704/execution-receipt.json",
+  "blockers": ["T0705_NOT_AUTHORIZED_IN_CURRENT_RUN", "FINAL_ACCEPTANCE_AND_POST_BLUE_GREEN_STAGE7_PHASES_NOT_RUN"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "Deliver one new exact-main T0704 redirect-recovery candidate, execute one attempt-1 dispatch with rerun zero, reuse the existing candidate and Timeline snapshot, prove processed-current unchanged and live Timeline min=max=1, then stop before T0705."
+  "next_action": "Close T0704/S7AC-004 from the exact protected receipt and stop before T0705. Do not rerun or redispatch either T0704 head; T0705 requires a new explicit Run Contract."
 }

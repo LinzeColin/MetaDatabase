@@ -7,8 +7,8 @@
     "首次登记": "2026-07-22"
   },
   {
-    "id": "T0704_RELEASE_ASSET_REDIRECT_REPAIR_PENDING",
-    "内容": "T0704 首次 exact-main attempt 1 已冻结为失败；候选 Processed 与 Timeline snapshot 已远端恢复、processed-current 保持不变、固定 Release 当前零 Asset。仅授权一个新 exact-main 修复候选和一次 attempt 1，以有界单跳 302 恢复恰好一个加密 Timeline",
+    "id": "T0705_NOT_AUTHORIZED_IN_CURRENT_RUN",
+    "内容": "T0704/S7AC-004 已由精确受保护回执关闭；当前证据闭包 Run Contract 明确不授权 T0705",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"
@@ -29,7 +29,14 @@
   },
   {
     "id": "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-    "内容": "T0703 已通过；T0704 及其后的受保护验收仍未执行",
+    "内容": "T0704 已通过；T0705 及其后的受保护验收仍未执行",
+    "owner_only": false,
+    "owner": "Codex 开发线程",
+    "首次登记": "2026-07-22"
+  },
+  {
+    "id": "T0705_NEW_RUN_CONTRACT_REQUIRED",
+    "内容": "进入 T0705 前必须建立新的显式 Run Contract；T0704 的全部 dispatch 权限已消耗",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"

@@ -1,11 +1,11 @@
 {
-  "version": "1.0.17",
-  "stage": "RMD-06 T0704 Release Asset 302 恢复修复已授权待运行",
-  "phase": "T0704 首次执行已恢复候选与 Timeline snapshot 并保持 processed-current 不变；仅修复 GitHub Release Asset 合法单跳 302，复用既有对象并收敛恰好一个加密 Asset",
-  "task": "交付精确 T0704 302 修复候选并执行唯一一次新 head protected attempt 1；禁止失败头 rerun/redispatch、重复 candidate/snapshot 写入、Gmail/current 变更与 T0705",
-  "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 4/43（通过 3、失败 1）；最终验收 0/34；生产阻塞",
+  "version": "1.0.18",
+  "stage": "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前",
+  "phase": "T0702/S7AC-002、T0703/S7AC-003 与 T0704/S7AC-004 均已通过；修复 attempt 复用既有 candidate/snapshot，恢复并验证唯一加密 Timeline，Gmail 与 processed-current 保持不变",
+  "task": "固化 T0704 精确成功回执与独立聚合核验；禁止任何 T0704 rerun/redispatch，不进入 T0705",
+  "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 4/43（通过 4、失败 0）；最终验收 0/34；生产阻塞",
   "report_grade": "机器证据",
   "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",
   "evidence_status": "PASS",
-  "rendered_at": "2026-07-26"
+  "rendered_at": "2026-07-25"
 }

@@ -34,7 +34,8 @@
       "enum": [
         "LOCAL_SYNTHETIC_PREFLIGHT",
         "LOCAL_SYNTHETIC_AND_PROTECTED_ENTRYPOINT_PREFLIGHT",
-        "PROTECTED_FAILED_ATTEMPT_AND_LOCAL_REDIRECT_REPAIR_PREFLIGHT"
+        "PROTECTED_FAILED_ATTEMPT_AND_LOCAL_REDIRECT_REPAIR_PREFLIGHT",
+        "PROTECTED_PASS_RECEIPT_BOUND"
       ]
     },
     "delivery_status": {
@@ -88,7 +89,8 @@
     "protected_execution_receipt": {
       "enum": [
         "machine/stages/S7/reviews/t0702/execution-receipt.json",
-        "machine/stages/S7/reviews/t0703/execution-receipt.json"
+        "machine/stages/S7/reviews/t0703/execution-receipt.json",
+        "machine/stages/S7/reviews/t0704/execution-receipt.json"
       ]
     },
     "blockers": {

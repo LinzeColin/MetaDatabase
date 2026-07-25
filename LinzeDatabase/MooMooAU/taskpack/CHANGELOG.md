@@ -1,5 +1,19 @@
 # Taskpack Changelog
 
+## 1.0.18 — 2026-07-26
+
+固化 T0704 Release Asset 302 修复的唯一新 exact-main protected PASS，并在 T0705 前停止。
+
+- 绑定 PR #113、main `65cef099…`、run `30178201201`、attempt 1、rerun 0；
+- authority、Blue-Green 与 identity cleanup 三个 job 均 PASS；
+- 复用并恢复既有 candidate Processed 与 Timeline snapshot，不重复写 Raw、Processed、
+  current、candidate 或 snapshot；
+- fixed Release 全程且最终恰好一个非空 age-encrypted Timeline Asset，round-trip recovery 通过；
+- 独立聚合核验只确认一个加密 Timeline state commit，未解密数据，也不公开私有仓定位；
+- repair 的 Gmail mutation 为 0；失败 head 保持冻结且未 rerun/redispatch；
+- T0704/S7AC-004 关闭；T0705、GA、schedule、最终 Acceptance 与最终发布仍未授权；
+- v1.0.18 只允许一次零数据面、零 protected dispatch 的受控证据交付。
+
 ## 1.0.17 — 2026-07-26
 
 固化 T0704 首次 exact-main protected 失败并只授权 Release Asset 302 恢复修复。
