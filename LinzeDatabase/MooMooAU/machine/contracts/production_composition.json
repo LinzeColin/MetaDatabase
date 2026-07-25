@@ -72,7 +72,7 @@
       "sha256": "7297e91cdde668b65ddcbb789e9eb510541137277b87a96fc00c8e43504f6599"
     },
     "tests/tasks/test_t0704.py": {
-      "sha256": "2fad256ada11ed5aa8de0b16b6531ba82686b710b2711843f5ea35bafa9748fe"
+      "sha256": "ede1328645d9e5d088b3320a6f432a9ca2b9b587405f4bf0e6811a3d6a35778f"
     },
     "schemas/production-config-v1.schema.json": {
       "sha256": "78968068b6110aac7b01ad94f9be5ce5120a97243e1528183f274ffe772c2fc2"

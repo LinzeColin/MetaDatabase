@@ -745,7 +745,7 @@
     {
       "path": "machine/acceptance/evidence.py",
       "bytes": 31229,
-      "sha256": "09e80a5b445dcc4408cedf802ca8a4db01570c49fdeae6d3856527c4b1d4b922"
+      "sha256": "104c6e5e86b03b85b5b2a84792fe721c6705f979accce42bcf74213573e70fa2"
     },
     {
       "path": "machine/acceptance/schemas/acceptance-evidence-v1.schema.json",
@@ -790,7 +790,7 @@
     {
       "path": "machine/contracts/production_composition.json",
       "bytes": 4625,
-      "sha256": "d395f376623d0b8f760a43f2dca69564dcca84c38f7d3bcf5675d5660ec91815"
+      "sha256": "d505ba8d3daa277248e9b371f460a5ea2367af3afa62f1bfab62c6e5d006a59f"
     },
     {
       "path": "machine/contracts/publication_safety.json",
@@ -1705,7 +1705,7 @@
     {
       "path": "machine/status/latest.json",
       "bytes": 8804,
-      "sha256": "c92305408a6134a86a0a67167f6f20c2774164ad722b76a2d32b780dcbf06ded"
+      "sha256": "29912e30e4ec77c5b62e4ec146a57bff99f99cc435faab0f2a1a51e23fe88f76"
     },
     {
       "path": "machine/tools/README.md",
@@ -3219,8 +3219,8 @@
     },
     {
       "path": "tests/tasks/test_t0704.py",
-      "bytes": 22642,
-      "sha256": "2fad256ada11ed5aa8de0b16b6531ba82686b710b2711843f5ea35bafa9748fe"
+      "bytes": 23490,
+      "sha256": "ede1328645d9e5d088b3320a6f432a9ca2b9b587405f4bf0e6811a3d6a35778f"
     },
     {
       "path": "tests/tasks/test_t0705.py",

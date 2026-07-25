@@ -511,3 +511,22 @@ def test_t0704_stage_aware_evidence_validator_preserves_blocked_truth() -> None:
     assert all(
         item["status"] in {"PARTIAL", "NOT_RUN"} for item in record["linked_final_acceptance"]
     )
+    provenance = json.loads(
+        (PROJECT_ROOT / "taskpack/SOURCE_PROVENANCE.v1.0.16.json").read_text(encoding="utf-8")
+    )
+    expected_base = "4924fad17fc4666761df9ec7088608db18cc6605"
+    assert provenance["schema_version"] == "moomooau.source-provenance.v16"
+    assert provenance["candidate_snapshot"] == {
+        "repository": "LinzeColin/MetaDatabase",
+        "mainline_base_commit": expected_base,
+        "acceptance_remediation_base_commit": expected_base,
+        "shallow_checkout_fallback": "EXACT_PIN_ONLY",
+    }
+    acceptance_source = (PROJECT_ROOT / "machine/acceptance/evidence.py").read_text(
+        encoding="utf-8"
+    )
+    assert (
+        'PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v16"'
+        in acceptance_source
+    )
+    assert acceptance_source.count(f'"{expected_base}"') == 2
