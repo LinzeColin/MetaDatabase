@@ -250,7 +250,7 @@ def _validate_contracts(root: Path) -> list[str]:
         or _sha256(blue_green_ledger_path) != FAILED_T0704_ATTEMPT_LEDGER_SHA256
         or _sha256(blue_green_schema_path) != FAILED_T0704_ATTEMPT_LEDGER_SCHEMA_SHA256
         or blue_green_attempt.get("delivery", {}).get("merge_commit_sha")
-        != "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"
+        != "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"  # pragma: allowlist secret
         or blue_green_attempt.get("workflow", {}).get("run_attempt") != 1
         or blue_green_attempt.get("workflow", {}).get("reruns") != 0
         or blue_green_attempt.get("effects", {}).get("private_repository_new_commits") != 5
@@ -1744,7 +1744,8 @@ def _validate_evidence(root: Path) -> list[str]:
             or blue_green_receipt.get("observed_at_utc") != "2026-07-25T22:52:22Z"
             or control.get("pull_request_number") != 113
             or control.get("pull_request_head_sha") != "10849a91e4386e9b98575f15bce554c65e890d62"
-            or control.get("merge_commit_parent_sha") != "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"
+            or control.get("merge_commit_parent_sha")
+            != "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"  # pragma: allowlist secret
             or control.get("merge_commit_sha") != "65cef09935475ab578d28a61817cc92700d6da04"
             or control.get("workflow_run_id") != 30178201201
             or control.get("workflow_head_sha") != control.get("merge_commit_sha")
