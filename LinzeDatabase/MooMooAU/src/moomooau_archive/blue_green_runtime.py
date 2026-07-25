@@ -1,8 +1,9 @@
 """Fail-closed Parser/Timeline Blue-Green mechanism for Stage 7 T0704.
 
 The runner accepts one Raw object that has already passed remote recovery, parses that exact
-plaintext through incumbent and candidate profiles, appends/re-recovers only the candidate
-Processed partition, proves the encrypted current pointer did not change, commits/re-recovers a
+plaintext through incumbent and candidate profiles (or the paired protected SAFE_DEFERRED
+fallback versions established by T0703), appends/re-recovers only the candidate Processed
+partition, proves the encrypted current pointer did not change, commits/re-recovers a
 deterministic Timeline fact snapshot, and only then invokes the single-latest publisher.  It has
 no Gmail transport or pointer-promotion capability.
 """
@@ -250,13 +251,27 @@ class BlueGreenTimelineRunner:
         timeline_publisher: SingleLatestTimelinePublisher,
         operational_gate: OperationalGate,
     ) -> None:
+        active_processing = (
+            classification_registry.activation is ClassificationActivation.ACTIVE
+            and parser_registry.activation is ParserActivation.ACTIVE
+        )
+        safe_deferred_processing = (
+            classification_registry.activation
+            is ClassificationActivation.EMPTY_PROTECTED_EVIDENCE_REQUIRED
+            and parser_registry.activation is ParserActivation.EMPTY_PROTECTED_EVIDENCE_REQUIRED
+            and not classification_registry.rules
+            and not parser_registry.profiles
+        )
+        if not (active_processing or safe_deferred_processing):
+            raise BlueGreenRuntimeError("protected Blue-Green registries are incompatible")
         if (
             classification_registry.activation is not ClassificationActivation.ACTIVE
-            or parser_registry.activation is not ParserActivation.ACTIVE
+            and not safe_deferred_processing
         ):
-            raise BlueGreenRuntimeError("protected Blue-Green registries are not active")
+            raise BlueGreenRuntimeError("protected Blue-Green registry state is invalid")
         self._classification_registry = classification_registry
         self._parser_registry = parser_registry
+        self._safe_deferred_only = safe_deferred_processing
         self._current_pointer_source = current_pointer_source
         self._processed_planner = processed_planner
         self._processed_commit = processed_commit
@@ -289,6 +304,7 @@ class BlueGreenTimelineRunner:
         imported_at_utc: datetime,
         observed_at_utc: datetime,
         observed_days: int,
+        label_state_override: tuple[str, ...] | None = None,
         m3_state: M3State,
         independent_activity_evidence: bool | None,
         market_session_expected: bool | None,
@@ -305,6 +321,21 @@ class BlueGreenTimelineRunner:
             or not _is_utc(imported_at_utc)
             or not _is_utc(observed_at_utc)
             or imported_at_utc > observed_at_utc
+            or (
+                label_state_override is not None
+                and (
+                    tuple(sorted(label_state_override)) != label_state_override
+                    or len(set(label_state_override)) != len(label_state_override)
+                    or any(
+                        not label
+                        or len(label) > 256
+                        or "\r" in label
+                        or "\n" in label
+                        or label in {"SENT", "DRAFT"}
+                        for label in label_state_override
+                    )
+                )
+            )
             or m3_state not in {M3State.TRASHED, M3State.ALREADY_TRASHED}
             or any(
                 value is not None and type(value) is not bool
@@ -367,12 +398,17 @@ class BlueGreenTimelineRunner:
             classification.document_class,
             candidate_parser_version,
         )
-        if (
-            incumbent_profile is None
-            or candidate_profile is None
-            or incumbent_profile.parser_name != candidate_profile.parser_name
-            or _semver_key(candidate_parser_version) <= _semver_key(incumbent_parser_version)
-        ):
+        active_pair = (
+            incumbent_profile is not None
+            and candidate_profile is not None
+            and incumbent_profile.parser_name == candidate_profile.parser_name
+        )
+        deferred_pair = (
+            self._safe_deferred_only and incumbent_profile is None and candidate_profile is None
+        )
+        if not (active_pair or deferred_pair) or _semver_key(
+            candidate_parser_version
+        ) <= _semver_key(incumbent_parser_version):
             raise BlueGreenRuntimeError("Blue-Green parser pair is invalid")
 
         envelope = self._envelope_factory.issue(
@@ -383,6 +419,7 @@ class BlueGreenTimelineRunner:
             classification,
             imported_at_utc=imported_at_utc,
             recovered_raw_ciphertext_sha256=raw_recovery.raw_ciphertext_sha256,
+            label_state_override=label_state_override,
         )
         extraction = self._extractor.extract(attachments)
         incumbent_outcome = self._parser.parse(
@@ -390,12 +427,18 @@ class BlueGreenTimelineRunner:
             classification,
             extraction,
             incumbent_profile,
+            protected_fallback_version=(
+                incumbent_parser_version if self._safe_deferred_only else None
+            ),
         )
         candidate_outcome = self._parser.parse(
             envelope,
             classification,
             extraction,
             candidate_profile,
+            protected_fallback_version=(
+                candidate_parser_version if self._safe_deferred_only else None
+            ),
         )
         if any(
             outcome.disposition is ProcessingDisposition.BLOCKED

@@ -1,5 +1,17 @@
 # Taskpack Changelog
 
+## 1.0.16 — 2026-07-26
+
+在精确 T0703 protected PASS 后只授权 T0704：
+
+- 同一已恢复 Raw 的 incumbent 1.0.0 / candidate 2.0.0 SAFE_DEFERRED 对比；
+- 旧 capacity snapshot 仅作连续性基线；写入前只读实测完整 private tree 与 live Release，
+  截断、未知 LFS 或超限均在 Gmail 交换前停止；
+- append-only candidate Processed shadow 远端恢复，processed-current 保持不变；
+- Timeline snapshot 远端恢复并替换恰好一个 age-encrypted latest Timeline；
+- exact-main attempt 1、rerun 0、固定等待 0、无人工审批；
+- Gmail mutation、Raw creation、candidate promotion、schedule、T0705 与最终发布保持 0/未授权。
+
 ## 1.0.15 — 2026-07-24
 
 固化 T0703 第七个不同 exact-main attempt-1 的受保护 PASS，并在 T0704 前停止。

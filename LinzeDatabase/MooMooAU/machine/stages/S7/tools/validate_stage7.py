@@ -23,6 +23,7 @@ SRC = PROJECT_ROOT / "src"
 STAGE7_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-stage7-ci.yml"
 BETA_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-beta.yml"
 M3_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-m3.yml"
+BLUE_GREEN_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-blue-green.yml"
 PATCH_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-patch-lifecycle.yml"
 PRODUCTION_WORKFLOW = REPOSITORY_ROOT / ".github/workflows/moomooau-production.yml"
 BASELINE_COMMIT = "be8e196b03dcc475ed6261fbe20593b08bd26bcf"
@@ -94,6 +95,7 @@ def _tree_digest(root: Path) -> str:
             STAGE7_WORKFLOW,
             BETA_WORKFLOW,
             M3_WORKFLOW,
+            BLUE_GREEN_WORKFLOW,
             PATCH_WORKFLOW,
             PRODUCTION_WORKFLOW,
         )
@@ -136,7 +138,7 @@ def _validate_contracts(root: Path) -> list[str]:
     if [item.get("task_id") for item in items] != STAGE7_TASKS:
         errors.append("Stage 7 acceptance-to-task mapping must be one-to-one")
     if (
-        local.get("overall_status") != "T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED"
+        local.get("overall_status") != "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING"
         or local.get("final_acceptances_passed") != 0
         or "Local implementation preflight" not in local.get("final_acceptance_policy", "")
         or "No fixed calendar observation period applies"
@@ -181,49 +183,48 @@ def _validate_contracts(root: Path) -> list[str]:
     authorization = run.get("authorization", {})
     effect_budget = run.get("authorized_effect_budget", {})
     if (
-        run.get("stage_id") != "S7"
-        or run.get("baseline_commit") != BASELINE_COMMIT
-        or run.get("baseline_manifest_sha256") != BASELINE_MANIFEST_SHA256
+        run.get("schema_version") != "moomooau.run-contract.v1"
+        or run.get("stage_id") != "S7"
+        or run.get("task_id") != "T0704"
+        or run.get("baseline_commit") != "4924fad17fc4666761df9ec7088608db18cc6605"
+        or run.get("baseline_manifest_sha256")
+        != "35b8ff4f39197910e1145d1f1c535569c9b282722f6e2ae0a4e1d62e8fc4243c"
         or not isinstance(prohibitions, dict)
         or any(value != 0 for value in prohibitions.values())
-        or authorization.get("purpose") != "T0703_PROTECTED_M3_RECEIPT_CLOSURE_ONLY"
+        or authorization.get("purpose") != "T0704_PROTECTED_BLUE_GREEN_ONLY"
+        or authorization.get("t0703_receipt_required") is not True
+        or authorization.get("blue_green_authorized") is not True
+        or authorization.get("t0705_authorized") is not False
+        or authorization.get("dispatch_limit") != 1
         or authorization.get("controlled_main_delivery_limit") != 1
-        or authorization.get("protected_m3_dispatch_limit") != 0
-        or authorization.get("prior_failed_attempts_exact") != 6
-        or authorization.get("successful_reconciliation_receipts_exact") != 1
-        or authorization.get("zero_mutation_reconciliation_dispatch_limit") != 0
         or authorization.get("manual_environment_reviewers_required") is not False
         or authorization.get("final_publication_authorized") is not False
-        or authorization.get("m3_authorized") is not False
-        or authorization.get("t0704_authorized") is not False
-        or effect_budget.get("beta_message_budget") != 0
         or effect_budget.get("controlled_main_deliveries_maximum") != 1
-        or effect_budget.get("beta_environment_policy_configurations_maximum") != 0
-        or effect_budget.get("beta_environment_secret_values_exact") != 8
-        or effect_budget.get("beta_environment_new_secret_values_maximum") != 0
+        or effect_budget.get("protected_environment_secret_values_exact") != 8
+        or effect_budget.get("protected_environment_new_secret_values_maximum") != 0
         or effect_budget.get("private_data_repository_creations_maximum") != 0
         or effect_budget.get("github_app_creations_maximum") != 0
-        or effect_budget.get("github_app_single_repository_installations_maximum") != 0
-        or effect_budget.get("verified_full_raw_message_reads_maximum") != 0
+        or effect_budget.get("verified_full_raw_message_reads_maximum") != 1
         or effect_budget.get("raw_ciphertext_creations_maximum") != 0
-        or effect_budget.get("processed_writes_maximum") != 0
-        or effect_budget.get("protected_m3_dispatches_maximum") != 0
-        or effect_budget.get("protected_m3_reruns_maximum") != 0
-        or effect_budget.get("prior_protected_m3_dispatches_exact") != 7
-        or effect_budget.get("cumulative_protected_m3_dispatches_maximum") != 7
+        or effect_budget.get("candidate_processed_shadow_commits_maximum") != 1
+        or effect_budget.get("current_pointer_mutations_maximum") != 0
+        or effect_budget.get("timeline_snapshot_commits_maximum") != 1
+        or effect_budget.get("timeline_publish_attempts_maximum") != 1
+        or effect_budget.get("maximum_live_timeline_assets") != 1
+        or effect_budget.get("protected_blue_green_dispatches_maximum") != 1
+        or effect_budget.get("protected_blue_green_reruns_maximum") != 0
         or effect_budget.get("gmail_mutations_maximum") != 0
-        or effect_budget.get("m3_runs_maximum") != 0
-        or effect_budget.get("m3_source_mutation_budget_per_run") != 0
-        or effect_budget.get("timeline_writes_maximum") != 0
         or effect_budget.get("scheduled_runs_maximum") != 0
+        or effect_budget.get("ga_runs_maximum") != 0
         or not run.get("protected_oracles")
         or not any(
-            "any GitHub workflow rerun or redispatch of a failed or successful T0703 head" in item
+            "workflow rerun or a second dispatch for the same exact-main head" in item
             for item in run.get("non_goals", [])
         )
-        or "ordering_resolution" not in run
+        or not run.get("rollback")
+        or not run.get("stop_conditions")
     ):
-        errors.append("Stage 7 T0703 receipt-closure Run Contract is incomplete")
+        errors.append("Stage 7 T0704 protected Blue-Green Run Contract is incomplete")
 
     repair = _load(root / "machine/stages/S7/contracts/t0702_repair_run_contract.json")
     repair_authority = repair.get("authority", {})
@@ -312,7 +313,7 @@ def _validate_contracts(root: Path) -> list[str]:
     if (
         [item.get("id") for item in task_items] != STAGE7_TASKS
         or any(item.get("status") == "completed" for item in task_items)
-        or status.get("stage_status") != "T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED"
+        or status.get("stage_status") != "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING"
         or status.get("scoped_preflight_task_oracle_file_count") != 8
         or status.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or status.get("completed_task_count") != 0
@@ -322,24 +323,23 @@ def _validate_contracts(root: Path) -> list[str]:
         or status.get("protected_workflow_runs") != 18
         or status.get("production_workflow_runs") != 0
         or status.get("final_acceptances_passed") != 0
-        or status.get("delivery_status") != "CONTROLLED_T0703_COMPLETED_NOT_FINAL"
-        or status.get("ordering_status")
-        != "T0703_PROTECTED_ZERO_MUTATION_RECONCILIATION_PASS_SCOPE_STOP"
+        or status.get("delivery_status") != "CONTROLLED_T0704_CANDIDATE_NOT_FINAL"
+        or status.get("ordering_status") != "T0704_PROTECTED_BLUE_GREEN_ATTEMPT_ONE_AUTHORIZED"
         or status.get("diagnostic_repair_status")
         != "PROTECTED_PASS_ENCRYPTED_HISTORICAL_LABEL_REPLAY_ZERO_EFFECT_VERIFIED"
-        or status.get("new_controlled_delivery_authorized") is not False
-        or status.get("new_protected_dispatch_authorized") is not False
+        or status.get("new_controlled_delivery_authorized") is not True
+        or status.get("new_protected_dispatch_authorized") is not True
     ):
-        errors.append("Stage 7 task status is not truthfully scope-stopped")
+        errors.append("Stage 7 task status is not truthfully T0704-authorized")
 
     semantic = _load(root / "machine/stages/S7/contracts/semantic_gate.json")
     semantic_statuses = {item.get("status") for item in semantic.get("resolutions", [])}
     if (
-        semantic.get("status") != "T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED"
+        semantic.get("status") != "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING"
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
         or "T0702_PROTECTED_BETA_PASS_NO_RERUN" not in semantic_statuses
-        or "T0703_PROTECTED_PASS_AUTHORITY_CONSUMED" not in semantic_statuses
+        or "T0704_EXACT_MAIN_ATTEMPT_ONE_AUTHORIZED" not in semantic_statuses
         or "T0703_FAILED_LINEAGE_FROZEN" not in semantic_statuses
         or "PROTECTED_ZERO_NEW_WRITE_RECONCILIATION_VALIDATED" not in semantic_statuses
         or "T0703_PROTECTED_ZERO_MUTATION_RECONCILIATION_PASS" not in semantic_statuses
@@ -564,6 +564,37 @@ def _validate_source_and_tests(root: Path) -> list[str]:
             '"calendar_wait_required": False',
             '"deterministic_evidence_complete"',
         ),
+        "protected_blue_green.py": (
+            "ProtectedBlueGreenBootstrap",
+            "ProtectedBlueGreenRuntime",
+            "_LiveRepositoryCapacityProbe",
+            "allow_stale_capacity_for_live_refresh=True",
+            "protected capacity tree is incomplete or unbounded",
+            "BLUE_GREEN_SECRET_NAMES = M3_SECRET_NAMES",
+            "MAXIMUM_VERIFIED_SOURCE_READS = 1",
+            "RemoteCurrentProcessedPointerSource",
+            "ProtectedBlueGreenRunResult",
+            '"candidate_shadow_only": True',
+            '"incumbent_current_retained": True',
+            '"current_pointer_mutations": 0',
+            '"maximum_live_timeline_assets": 1',
+            "PROTECTED_BLUE_GREEN_COMPLETED_NOT_FINAL",
+        ),
+        "protected_blue_green_entrypoint.py": (
+            "ProtectedBlueGreenGitHubContext",
+            "ProtectedBlueGreenExecutionEvidence",
+            "CONTROL_REPOSITORY_ID = 1_300_525_906",
+            "CONTROL_OWNER_ID = 68_840_188",
+            'CONTROL_REF = "refs/heads/main"',
+            'PROTECTED_ENVIRONMENT = "moomooau-beta"',
+            'BLUE_GREEN_CONFIRMATION = "BLUE_GREEN_SAME_RECOVERED_RAW_SHADOW_ONLY"',
+            "T0704_PROTECTED_BLUE_GREEN_ONLY",
+            '"candidate_pointer_promotion": False',
+            '"current_pointer_mutations": 0',
+            '"single_live_timeline_required": True',
+            "--contract-only",
+            "--execute-protected",
+        ),
         "gmail_sync_checkpoint.py": (
             "EncryptedGmailSyncCheckpoint",
             "GitHubGmailSyncStateStore",
@@ -609,6 +640,8 @@ def _validate_source_and_tests(root: Path) -> list[str]:
         "github_guard.py": (
             "GMAIL_SYNC_STATE_PATH",
             "CONTENT_GMAIL_SYNC_STATE_MESSAGE",
+            'GIT_TREE_READ = "git.tree.read"',
+            "Git tree observation request is not bounded",
             "Gmail sync state write is not strict CAS",
         ),
         "model_boundary.py": (
@@ -694,7 +727,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
     runbook = root / "operations/STAGE7_RUNBOOK.md"
     runbook_text = runbook.read_text(encoding="utf-8") if runbook.is_file() else ""
     for token in (
-        "T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED",
+        "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING",
         "不设自然日等待",
         "一次有界受保护运行",
         "04:30 Australia/Sydney",
@@ -718,11 +751,10 @@ def _validate_workflow(root: Path) -> list[str]:
         not STAGE7_WORKFLOW.is_file()
         or not BETA_WORKFLOW.is_file()
         or not M3_WORKFLOW.is_file()
+        or not BLUE_GREEN_WORKFLOW.is_file()
         or not PATCH_WORKFLOW.is_file()
     ):
-        return [
-            "Stage 7 preflight, protected Beta, protected M3 or Patch Lifecycle workflow is missing"
-        ]
+        return ["Stage 7 preflight, protected Beta/M3/Blue-Green or Patch workflow is missing"]
     errors: list[str] = []
     text = STAGE7_WORKFLOW.read_text(encoding="utf-8")
     uses = _action_uses(text)
@@ -759,6 +791,8 @@ def _validate_workflow(root: Path) -> list[str]:
         "protected_m3.py",
         "protected_m3_diagnostics.py",
         "protected_m3_entrypoint.py",
+        "protected_blue_green.py",
+        "protected_blue_green_entrypoint.py",
         "gmail_sync_checkpoint.py",
         "model_boundary.py",
         "recovery_drill.py",
@@ -770,6 +804,7 @@ def _validate_workflow(root: Path) -> list[str]:
         "production-config-v1.schema.json",
         "moomooau-production.yml",
         "moomooau-m3.yml",
+        "moomooau-blue-green.yml",
         "moomooau-patch-lifecycle.yml",
         "--preflight",
         "persist-credentials: false",
@@ -993,6 +1028,110 @@ def _validate_workflow(root: Path) -> list[str]:
         validate_governance_dependency_auth(
             m3_value,
             label=".github/workflows/moomooau-m3.yml",
+            required=False,
+        )
+    )
+    blue_green = BLUE_GREEN_WORKFLOW.read_text(encoding="utf-8")
+    blue_green_uses = _action_uses(blue_green)
+    expected_blue_green_secret_names = {
+        "MOOMOOAU_BETA_CONFIG",
+        "MOOMOOAU_SENDER_REGISTRY",
+        "MOOMOOAU_CLASSIFICATION_REGISTRY",
+        "MOOMOOAU_PARSER_REGISTRY",
+        "MOOMOOAU_GITHUB_APP_PRIVATE_KEY",
+        "MOOMOOAU_AGE_IDENTITY",
+        "MOOMOOAU_OPAQUE_ID_KEY",
+        "MOOMOOAU_GMAIL_OAUTH",
+    }
+    actual_blue_green_secret_names = set(
+        re.findall(r"\$\{\{\s*secrets\.([A-Z0-9_]+)\s*\}\}", blue_green)
+    )
+    try:
+        blue_green_value = yaml.load(blue_green, Loader=yaml.BaseLoader)
+    except yaml.YAMLError:
+        blue_green_value = None
+    blue_green_required = (
+        "workflow_dispatch:",
+        "expected_head_sha:",
+        "confirm_blue_green:",
+        "BLUE_GREEN_SAME_RECOVERED_RAW_SHADOW_ONLY",
+        "permissions:\n  contents: read",
+        "group: moomooau-blue-green-single-writer",
+        "cancel-in-progress: false",
+        "Fail closed on invalid protected Blue-Green dispatch context",
+        'test "$GITHUB_REPOSITORY_ID" = "1300525906"',
+        'test "$GITHUB_REPOSITORY_OWNER_ID" = "68840188"',
+        'test "$GITHUB_ACTOR_ID" = "68840188"',
+        'test "$GITHUB_RUN_ATTEMPT" = "1"',
+        'test "$RUNNER_ENVIRONMENT" = "github-hosted"',
+        'test "$GITHUB_REF" = "refs/heads/main"',
+        'test "$EXPECTED_HEAD_SHA" = "$GITHUB_SHA"',
+        "needs: blue-green-authority-gate",
+        "environment: moomooau-beta",
+        "runs-on: ubuntu-24.04",
+        "requirements/stage6.lock",
+        "--require-hashes",
+        "--no-build-isolation --no-deps .",
+        "tests/tasks/test_t0703.py tests/tasks/test_t0704.py",
+        "validate_package.py",
+        "validate_delivery_status.py",
+        "validate_publication.py",
+        "protected_blue_green_entrypoint",
+        "protected_blue_green.py",
+        "--contract-only",
+        "--execute-protected",
+        'assert value["blue_green_authorized"] is True',
+        "m3_receipt_sha256",
+        "blue_green_gate_sha256",
+        "moomooau-protected-blue-green-*",
+        "persist-credentials: false",
+        pins["age"]["linux_amd64_archive_sha256"],
+    )
+    blue_green_forbidden = (
+        "schedule:",
+        "pull_request:",
+        "\n  push:",
+        "contents: write",
+        "actions/cache",
+        "upload-artifact",
+        "download-artifact",
+        "self-hosted",
+        "git push",
+        "python -m moomooau_archive.production",
+        "moomooau_governance_deploy_key",
+    )
+    blue_green_workflow_triggers = (
+        set(blue_green_value.get("on", {}))
+        if isinstance(blue_green_value, dict) and isinstance(blue_green_value.get("on"), dict)
+        else set()
+    )
+    if (
+        blue_green_workflow_triggers != {"workflow_dispatch"}
+        or any(token not in blue_green for token in blue_green_required)
+        or any(token in blue_green.casefold() for token in blue_green_forbidden)
+        or actual_blue_green_secret_names != expected_blue_green_secret_names
+        or blue_green.count("${{ secrets.") != len(expected_blue_green_secret_names)
+        or blue_green.count('test "$RUNNER_ENVIRONMENT" = "github-hosted"') != 2
+        or blue_green.count(pins["age"]["linux_amd64_archive_sha256"]) != 2
+        or len(blue_green_uses) != 4
+        or any(PINNED_ACTION.fullmatch(item) is None for item in blue_green_uses)
+        or any(
+            item.rsplit("@", 1)[1]
+            != pins["actions"].get(item.rsplit("@", 1)[0], {}).get("commit_sha")
+            for item in blue_green_uses
+        )
+    ):
+        errors.append("protected Blue-Green workflow drifts from the T0704 execution contract")
+    errors.extend(
+        validate_workflow_expression_contexts(
+            blue_green_value,
+            label=".github/workflows/moomooau-blue-green.yml",
+        )
+    )
+    errors.extend(
+        validate_governance_dependency_auth(
+            blue_green_value,
+            label=".github/workflows/moomooau-blue-green.yml",
             required=False,
         )
     )
@@ -1540,10 +1679,10 @@ def _validate_evidence(root: Path) -> list[str]:
     required_blockers = {
         "T0702": {"FINAL_ACCEPTANCE_AND_POST_BETA_STAGE7_PHASES_NOT_RUN"},
         "T0703": {
-            "T0704_NOT_AUTHORIZED_IN_CURRENT_RUN",
+            "FINAL_ACCEPTANCE_AND_POST_M3_STAGE7_PHASES_NOT_RUN",
         },
         "T0704": {
-            "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
+            "PROTECTED_BLUE_GREEN_FIRST_ATTEMPT_PENDING",
         },
         "T0706": {
             "GA_NOT_COMPLETE",
@@ -1657,11 +1796,12 @@ def _validate_evidence(root: Path) -> list[str]:
     )
     if (
         latest.get("stage_id") != "S7"
-        or latest.get("status") != "T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED"
+        or latest.get("status") != "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING"
         or latest.get("scoped_preflight")
         != "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
         or latest.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
-        or latest.get("scope") != "LOCAL_PREFLIGHT_WITH_PROTECTED_T0702_AND_T0703_PASS_RECEIPTS"
+        or latest.get("scope")
+        != "LOCAL_PREFLIGHT_WITH_PROTECTED_T0702_T0703_PASS_AND_T0704_ENTRYPOINT_AUTHORITY"
         or latest.get("mechanism_task_oracle_files_passed") != 8
         or latest.get("task_total") != 8
         or latest.get("completed_task_count") != 0
@@ -1678,6 +1818,8 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("m3_local_synthetic_mechanism") != "PASS"
         or observation.get("m3_protected_entrypoint") != "PASS_RECEIPT_BOUND_AUTHORITY_CONSUMED"
         or observation.get("blue_green_timeline_local_mechanism") != "PASS"
+        or observation.get("blue_green_protected_entrypoint")
+        != "PASS_AUTHORIZED_ATTEMPT_ONE_PENDING"
         or observation.get("ga_full_pipeline_local_mechanism") != "PASS"
         or observation.get("codex_auto_local_policy") != "PASS"
         or observation.get("recovery_drill_local_mechanism") != "PASS"
@@ -1706,14 +1848,14 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("maximum_observed_live_timeline_assets") != 0
         or not aggregate_required_blockers.issubset(latest.get("blocking_conditions", []))
         or aggregate_resolved_blockers.intersection(latest.get("blocking_conditions", []))
-        or latest.get("delivery_status") != "CONTROLLED_T0703_COMPLETED_NOT_FINAL"
+        or latest.get("delivery_status") != "CONTROLLED_T0704_CANDIDATE_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "Close T0703/S7AC-003 from the exact protected receipt and stop before T0704. No "
-            "T0703 rerun or redispatch is allowed; T0704 requires a new explicit Run Contract."
+            "Deliver the exact validated T0704 candidate to main and execute exactly one protected "
+            "Blue-Green attempt 1 with rerun zero; stop before T0705."
         )
     ):
-        errors.append("Stage 7 aggregate evidence is not truthfully scope-stopped")
+        errors.append("Stage 7 aggregate evidence is not truthfully T0704-authorized")
     return errors
 
 

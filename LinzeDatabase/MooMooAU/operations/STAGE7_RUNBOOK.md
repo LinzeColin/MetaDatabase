@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-`T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED`，本地实现状态为
+`T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING`，本地实现状态为
 `LOCAL_MECHANISMS_READY`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
@@ -18,8 +18,9 @@ head/tree/path counts 与 Gmail Trash 聚合不变。T0703/S7AC-003 因此 PASS�
 
 当前精确 Run Contract 只允许固化 T0703 成功回执的一份受控证据交付；M3 dispatch、rerun、Secret
 读取、Gmail/私有仓/Timeline 写入与完整 Raw 读取预算均为 0。任何失败或成功 head 都不得再次运行。
-`moomooau-beta` 的 exact 八项 Secret name allowlist 保留但不读取值。T0704、Blue-Green、GA、
-04:30 调度、最终 Acceptance 与最终发布均未授权；进入 T0704 必须建立新的显式 Run Contract。
+`moomooau-beta` 的 exact 八项 Secret name allowlist 保留，只有受保护 job 可读取值。T0704
+Blue-Green 已由显式 Run Contract 授权一次 exact-main attempt 1；GA、04:30 调度、最终
+Acceptance 与最终发布仍未授权。
 
 ## Beta protected bootstrap 契约
 
@@ -63,7 +64,15 @@ T0702/S7AC-002 已关闭；其历史回执与账本继续作为 T0703 的不可�
 
 Timeline 聚合将每个 current Processed pointer 与同 source 的 canonical `TimelineEvent` 绑定。逻辑 `processed_snapshot_root` 只由排序后的 source ID、current pointer plaintext digest 和 Timeline Event plaintext digest 推导，不依赖 age 随机密文。Event 与 manifest 均以 append-only `.age` 对象写入同一个私有数据库命名空间，随后从 store 重新取回、解密、解析并重算 root。`SingleLatestTimelinePublisher` 只接收该恢复 proof 的 root 与 incumbent facts；健康状态必须始终恰好一个固定 live Asset，修复状态只能为零。
 
-当前这些保证只在本地合成内存 remote 上验证。T0703 已完成，但未配置 protected classification/parser registries，且当前 Run Contract 不授权 T0704；受保护 Blue-Green 确定性证据运行尚未执行。因此不得宣称 T0704、AC-015、AC-028、AC-029 或 AC-030 已通过，也不得在此机制中提升 current pointer。不设自然日等待。
+当前机制已在本地合成 remote 和受保护入口预检中验证。T0703 已完成；paired empty protected
+classification/parser registries 明确产生 SAFE_DEFERRED incumbent/candidate，不会虚构解析事实。
+T0704 不把超过 24 小时的 config snapshot 当作写授权：GitHub App token 只先用于读取
+Repository-ID 绑定的 metadata、完整 default-branch tree 和固定 live Release；保守重算
+repository/largest-object/LFS-continuity/live-asset capacity 后才交换 Gmail credential。
+tree truncated、出现无法证明零新增 LFS 的 `.gitattributes`、Release 非单资产或容量非可写，
+均在 Gmail 读取和仓库写入前 fail closed。
+当前 Run Contract 只授权一次 T0704 exact-main attempt 1，受保护执行尚未发生。因此不得宣称
+T0704、AC-015、AC-028、AC-029 或 AC-030 已通过，也不得提升 current pointer。不设自然日等待。
 
 Owner 已授权 v1.0.2 successor baseline。`machine/tools/validate_evidence.py` 现在按任务的真实
 Stage schema 路由，并同时核对 task graph、stage-local acceptance、final Acceptance 绑定和禁止项

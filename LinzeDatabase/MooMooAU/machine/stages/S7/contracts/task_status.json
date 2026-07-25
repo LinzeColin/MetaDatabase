@@ -2,12 +2,12 @@
   "schema_version": "moomooau.stage-task-status.v1",
   "stage_id": "S7",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
-  "stage_status": "T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED",
+  "stage_status": "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING",
   "tasks": [
     {"id": "T0701", "status": "remote_alpha_passed_formal_completion_withheld"},
     {"id": "T0702", "status": "protected_beta_passed_formal_completion_withheld"},
     {"id": "T0703", "status": "protected_m3_passed_formal_completion_withheld_scope_stop"},
-    {"id": "T0704", "status": "implementation_ready_blocked_registry_and_new_owner_authority_no_calendar_wait"},
+    {"id": "T0704", "status": "protected_first_attempt_authorized_exact_main_pending"},
     {"id": "T0705", "status": "implementation_ready_blocked_blue_green_budget_and_protected_schedule"},
     {"id": "T0706", "status": "local_policy_ready_blocked_ga_and_owner_created_automation"},
     {"id": "T0707", "status": "local_mechanism_ready_blocked_predecessor_owner_key_adapters_and_protected_drill"},
@@ -22,9 +22,9 @@
   "protected_workflow_runs": 18,
   "production_workflow_runs": 0,
   "final_acceptances_passed": 0,
-  "delivery_status": "CONTROLLED_T0703_COMPLETED_NOT_FINAL",
-  "ordering_status": "T0703_PROTECTED_ZERO_MUTATION_RECONCILIATION_PASS_SCOPE_STOP",
+  "delivery_status": "CONTROLLED_T0704_CANDIDATE_NOT_FINAL",
+  "ordering_status": "T0704_PROTECTED_BLUE_GREEN_ATTEMPT_ONE_AUTHORIZED",
   "diagnostic_repair_status": "PROTECTED_PASS_ENCRYPTED_HISTORICAL_LABEL_REPLAY_ZERO_EFFECT_VERIFIED",
-  "new_controlled_delivery_authorized": false,
-  "new_protected_dispatch_authorized": false
+  "new_controlled_delivery_authorized": true,
+  "new_protected_dispatch_authorized": true
 }

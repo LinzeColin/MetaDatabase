@@ -35,7 +35,7 @@
     "verification": "python -m pytest -q tests/acceptance/test_ac_034.py"
   },
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
-  "evidence_id": "AC-034-RMD01-20260724",
+  "evidence_id": "AC-034-RMD01-20260726",
   "linked_task_evidence": [
     {
       "evidence_ref": "evidence/tasks/T0001.json",
@@ -95,7 +95,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-24T09:20:08Z",
+  "observed_at_utc": "2026-07-26T00:00:00Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,
@@ -122,7 +122,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "83fec6161d5cd80c62f3553d6332c0113ef5a514",
+  "remediation_base_commit": "4924fad17fc4666761df9ec7088608db18cc6605",
   "requirement_id": "RQ-034",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",

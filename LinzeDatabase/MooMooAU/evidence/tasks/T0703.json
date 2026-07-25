@@ -42,7 +42,7 @@
     {"id": "PROTECTED_M3_DETERMINISTIC_EVIDENCE", "status": "PASS", "reason": "The seventh distinct exact-main attempt-1 passed authority, zero-mutation reconciliation and identity cleanup. Aggregate evidence proves historical-label replay, Raw plus Processed recovery, second verification, one reconciled prior unknown mutation, zero current-run or collateral mutation and Timeline off; independent pre/post checks prove zero new Gmail or private-repository effect."}
   ],
   "protected_execution_receipt": "machine/stages/S7/reviews/t0703/execution-receipt.json",
-  "blockers": ["T0704_NOT_AUTHORIZED_IN_CURRENT_RUN", "FINAL_ACCEPTANCE_AND_POST_M3_STAGE7_PHASES_NOT_RUN"],
+  "blockers": ["FINAL_ACCEPTANCE_AND_POST_M3_STAGE7_PHASES_NOT_RUN"],
   "prohibition_counters": {"real_gmail_calls": 0, "gmail_mutations": 0, "private_repository_calls": 0, "real_secrets_read": 0, "protected_key_deliveries": 0, "external_writes": 0, "remote_publication": 0, "non_moomoo_full_reads": 0, "non_moomoo_downloads": 0, "non_moomoo_mutations": 0, "raw_before_verification": 0, "untrusted_content_execution": 0, "model_real_data_calls": 0, "model_secret_requests": 0, "moomoo_portal_calls": 0, "persistent_plaintext_objects": 0, "thread_trash_calls": 0, "permanent_delete_calls": 0, "release_assets_above_one": 0, "production_workflow_runs": 0},
-  "next_action": "Close T0703/S7AC-003 from the exact protected receipt and stop before T0704. Do not rerun or redispatch any T0703 head; T0704 requires a new explicit Run Contract."
+  "next_action": "Preserve the exact T0703 PASS and immutable failed-head lineage. Execute only the separately authorized T0704 exact-main attempt 1; do not rerun or redispatch any T0703 head."
 }

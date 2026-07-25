@@ -1,12 +1,12 @@
 {
   "schema_version": "moomooau.stage7-aggregate.v1",
   "stage_id": "S7",
-  "observed_at_utc": "2026-07-24T09:20:08Z",
+  "observed_at_utc": "2026-07-26T00:00:00Z",
   "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
-  "status": "T0703_COMPLETE_SCOPE_STOP_T0704_NOT_AUTHORIZED",
+  "status": "T0704_AUTHORIZED_PROTECTED_FIRST_ATTEMPT_PENDING",
   "scoped_preflight": "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY",
   "implementation_completion_status": "LOCAL_MECHANISMS_READY",
-  "scope": "LOCAL_PREFLIGHT_WITH_PROTECTED_T0702_AND_T0703_PASS_RECEIPTS",
+  "scope": "LOCAL_PREFLIGHT_WITH_PROTECTED_T0702_T0703_PASS_AND_T0704_ENTRYPOINT_AUTHORITY",
   "mechanism_task_oracle_files_passed": 8,
   "task_total": 8,
   "completed_task_count": 0,
@@ -27,6 +27,7 @@
     "m3_protected_entrypoint": "PASS_RECEIPT_BOUND_AUTHORITY_CONSUMED",
     "m3_deterministic_evidence_run": "PASS_ZERO_MUTATION_RECONCILIATION_RECOVERY_100_PERCENT_ZERO_NEW_EFFECT",
     "blue_green_timeline_local_mechanism": "PASS",
+    "blue_green_protected_entrypoint": "PASS_AUTHORIZED_ATTEMPT_ONE_PENDING",
     "blue_green_deterministic_evidence_run": "NOT_RUN",
     "ga_full_pipeline_local_mechanism": "PASS",
     "ga_0430_schedule": "NOT_RUN",
@@ -51,9 +52,9 @@
     "maximum_observed_live_timeline_assets": 0
   },
   "blocking_conditions": [
-    "T0704_NOT_AUTHORIZED_IN_CURRENT_RUN",
     "FINAL_ACCEPTANCE_AND_POST_BETA_STAGE7_PHASES_NOT_RUN",
-    "PROTECTED_CLASSIFICATION_AND_PARSER_REGISTRIES_NOT_PROVISIONED",
+    "FINAL_ACCEPTANCE_AND_POST_M3_STAGE7_PHASES_NOT_RUN",
+    "PROTECTED_BLUE_GREEN_FIRST_ATTEMPT_PENDING",
     "CODEX_AUTOMATION_TASK_PREDECESSOR_NOT_COMPLETE",
     "PROTECTED_RECOVERY_SAMPLE_ADAPTERS_NOT_PROVISIONED",
     "OWNER_RECOVERY_KEY_FILE_NOT_PROVIDED",
@@ -68,6 +69,6 @@
     "CODEX_AUTOMATION_NOT_CREATED",
     "REAL_RECOVERY_KEY_DRILL_NOT_RUN"
   ],
-  "delivery_status": "CONTROLLED_T0703_COMPLETED_NOT_FINAL",
-  "next_action": "Close T0703/S7AC-003 from the exact protected receipt and stop before T0704. No T0703 rerun or redispatch is allowed; T0704 requires a new explicit Run Contract."
+  "delivery_status": "CONTROLLED_T0704_CANDIDATE_NOT_FINAL",
+  "next_action": "Deliver the exact validated T0704 candidate to main and execute exactly one protected Blue-Green attempt 1 with rerun zero; stop before T0705."
 }
