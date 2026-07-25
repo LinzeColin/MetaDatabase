@@ -367,6 +367,23 @@ class OrderStore:
             order = session.get(BrokerOrder, order_id)
             return int(order.filled_quantity) if order else 0
 
+    def net_positions(self) -> dict[str, int]:
+        """系统自己的净持仓(仅由本系统成交推导,绝不含 owner 自有持仓)。
+
+        隔离铁律(owner 2026-07-24:"不要把我的交易和你的策略搞混了"):调仓/敞口只认这份,
+        永不读整个券商账户的持仓——否则 owner 自己买卖策略池内标的会被误当成系统仓去动。
+        """
+        net: dict[str, int] = {}
+        with self._sessions() as session:
+            rows = session.execute(
+                select(OrderIntent.symbol, OrderIntent.side, Execution.quantity)
+                .join(BrokerOrder, BrokerOrder.intent_id == OrderIntent.intent_id)
+                .join(Execution, Execution.order_id == BrokerOrder.order_id)
+            ).all()
+        for symbol, side, qty in rows:
+            net[symbol] = net.get(symbol, 0) + (qty if side == "BUY" else -qty)
+        return {s: q for s, q in net.items() if q != 0}
+
     def execution_exists(self, broker_execution_id: str) -> bool:
         """成交是否已入账(070 轮询回灌的幂等闸:同一券商成交号只入账一次)。"""
         if not broker_execution_id:

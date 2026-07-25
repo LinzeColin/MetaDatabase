@@ -41,24 +41,35 @@ def _real_funds_and_positions(acc_id: str) -> tuple[float | None, dict[str, int]
         return None, {}
 
 
+def system_ledger(session_factory) -> tuple[dict[str, int], float]:
+    """系统自己的(净持仓, 现金流)——仅由本系统成交推导,绝不含 owner 持仓。
+
+    现金流:买入为负、卖出为正(不含费用,费用已在净值里由 power 反映;此处仅供未成交前对账)。
+    """
+    from sqlalchemy import select
+
+    from backend.app.domain.models import BrokerOrder, Execution, OrderIntent
+    with session_factory() as s:
+        intents = {i.intent_id: i for i in s.scalars(select(OrderIntent)).all()}
+        orders = {o.order_id: o for o in s.scalars(select(BrokerOrder)).all()}
+        execs = list(s.scalars(select(Execution)).all())
+    net: dict[str, int] = {}
+    cash_flow = 0.0
+    for e in execs:
+        o = orders.get(e.order_id)
+        i = intents.get(o.intent_id) if o else None
+        if i is None:
+            continue
+        sign = 1 if i.side == "BUY" else -1
+        net[i.symbol] = net.get(i.symbol, 0) + sign * e.quantity
+        cash_flow += (-sign) * e.quantity * float(e.price)
+    return {k: v for k, v in net.items() if v}, cash_flow
+
+
 def system_position_value_usd(session_factory) -> float:
     """系统自有持仓市值(按成交流水净额 × 最新价);无持仓返回 0。"""
     try:
-        from sqlalchemy import select
-
-        from backend.app.domain.models import BrokerOrder, Execution, OrderIntent
-        with session_factory() as s:
-            intents = {i.intent_id: i for i in s.scalars(select(OrderIntent)).all()}
-            orders = {o.order_id: o for o in s.scalars(select(BrokerOrder)).all()}
-            execs = list(s.scalars(select(Execution)).all())
-        net: dict[str, int] = {}
-        for e in execs:
-            o = orders.get(e.order_id)
-            i = intents.get(o.intent_id) if o else None
-            if i is None:
-                continue
-            net[i.symbol] = net.get(i.symbol, 0) + (1 if i.side == "BUY" else -1) * e.quantity
-        held = {k: v for k, v in net.items() if v}
+        held, _ = system_ledger(session_factory)
         if not held:
             return 0.0
         from moomoo import RET_OK, OpenQuoteContext
@@ -98,6 +109,7 @@ def main() -> int:
 
     from backend.app.store.db import create_session_factory, init_engine
     factory = create_session_factory(init_engine())
+    _held, cash_flow = system_ledger(factory)
     pos_usd = system_position_value_usd(factory)
 
     capital_aud = float(os.environ.get("ALPHA_CAPITAL_AUD", "3000"))
@@ -105,8 +117,19 @@ def main() -> int:
     fx, fx_live = fx_aud_usd()
 
     authorized_usd = capital_aud * fx_contract          # 授权上限(风控同款保守汇率)
-    funded_usd = min(authorized_usd, power + pos_usd)   # 仅供"资金到位"提示
-    equity_usd = power + pos_usd                        # 净值 = 真实可用现金 + 系统持仓市值
+    # 隔离铁律:已冻结初始本金则净值 = 冻结本金 + 系统现金流 + 系统持仓,与 owner 账户彻底隔离;
+    # 未冻结(尚未首笔成交)则跟随真实可用,反映入金进度。
+    start_cap = None
+    try:
+        start_cap = float(json.loads((RUNTIME / "LIVE_START_CAPITAL.json").read_text())["start_capital_usd"])
+    except Exception:
+        start_cap = None
+    if start_cap is not None:
+        equity_usd = start_cap + cash_flow + pos_usd
+        funded_usd = min(authorized_usd, start_cap)
+    else:
+        equity_usd = power + pos_usd
+        funded_usd = min(authorized_usd, power + pos_usd)
 
     now = datetime.now(timezone.utc)
     point = {

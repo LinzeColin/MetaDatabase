@@ -194,6 +194,14 @@ def _read_equity_history(runtime_dir: Path, max_points: int = 2000) -> list[dict
     return out
 
 
+def _read_start_capital(runtime_dir: Path) -> Optional[float]:
+    """读策略冻结初始本金(runtime/LIVE_START_CAPITAL.json);未冻结(尚未首笔成交)返回 None。"""
+    try:
+        return float(json.loads((runtime_dir / "LIVE_START_CAPITAL.json").read_text())["start_capital_usd"])
+    except Exception:
+        return None
+
+
 def _floor_30s(dt: datetime) -> datetime:
     """把时间地板对齐到 30 秒边界(00 或 30 秒),使"刷新于"显示 7:30:00 / 7:30:30 这种整点。"""
     return dt.replace(second=(dt.second // 30) * 30, microsecond=0)
@@ -507,15 +515,19 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     # 并如实标注 funded_known=False,绝不假装知道。
     authorized_usd = capital_usd
     funded_known = real_power_usd is not None
-    if funded_known:
-        # 账户可用现金 = 券商购买力(owner 自有 TQQQ/SPCG 持仓不在 power 内)。
-        # 净值 = 可用现金 + 系统自己持仓的市值。power 已反映买入支出,故**绝不再叠加
-        # cash_flow**——否则把已花的钱重复扣一次(2026-07-24 修正的口径错误:系统买入后
-        # 净值会凭空缩水一大截)。
+    # 隔离铁律(owner 2026-07-24:"不要把我的交易和你的策略搞混,不要把我的收益当成你的收益"):
+    # 一旦系统首笔成交,策略初始本金被冻结落盘;此后净值 = 冻结本金 + 系统自己的现金流 + 系统
+    # 自己持仓市值,**完全不看券商实时购买力**——owner 在同一账户里的买卖/出入金永不进策略净值。
+    start_capital_usd = _read_start_capital(Path(runtime_dir))
+    if start_capital_usd is not None:                     # 已冻结(系统已开始交易)
+        cash_usd = start_capital_usd + cash_flow_usd
+        equity_usd = start_capital_usd + cash_flow_usd + mark_value_usd
+        funded_usd = min(authorized_usd, start_capital_usd)
+    elif funded_known:                                    # 未交易:跟随真实可用(反映入金进度)
         cash_usd = float(real_power_usd)
         equity_usd = float(real_power_usd) + mark_value_usd
-        funded_usd = min(authorized_usd, equity_usd)   # 仅供"资金是否到位"提示
-    else:
+        funded_usd = min(authorized_usd, equity_usd)
+    else:                                                 # 读不到券商:退回授权额度
         cash_usd = capital_usd + cash_flow_usd
         equity_usd = cash_usd + mark_value_usd
         funded_usd = authorized_usd

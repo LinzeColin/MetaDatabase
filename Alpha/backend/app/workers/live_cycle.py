@@ -112,6 +112,23 @@ def plan_rebalance(
     return orders
 
 
+def _freeze_start_capital(start_capital_usd: float) -> None:
+    """首笔交易时把策略初始本金落盘冻结(已存在则不覆盖)。看盘据此把策略净值与 owner 隔离。"""
+    import json as _json
+    p = Path(os.environ.get("ALPHA_RUNTIME_DIR", "runtime")) / "LIVE_START_CAPITAL.json"
+    if p.exists():
+        return
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(_json.dumps({
+            "start_capital_usd": round(float(start_capital_usd), 2),
+            "frozen_at": datetime.now(timezone.utc).isoformat(),
+            "note": "策略首笔成交时的可动用本金;净值基线,与 owner 自有交易/出入金隔离",
+        }, ensure_ascii=False))
+    except Exception:
+        pass
+
+
 def quote_age_seconds(update_time: str, now_utc: datetime) -> Optional[float]:
     """快照 update_time(交易所东部时区)-> 距今秒数;解析失败如实 None(风控按缺失拒)。"""
     try:
@@ -267,8 +284,10 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     result = evaluate_s1(bars_by_symbol, d.cfg, now_et.date())
 
     acc_id = os.environ.get("ALPHA_EXPECTED_ACC_ID", "")
-    positions = {p["symbol"]: int(p["quantity"])
-                 for p in d.read_client.get_positions(acc_id)}
+    # 隔离铁律(owner 2026-07-24):调仓与敞口只认系统自己成交推导的净持仓,**绝不读整个
+    # 券商账户**——否则 owner 自有的 TQQQ/SPCG、或 owner 自己买的策略池标的会被误当成系统仓
+    # 去卖去调。此前靠"owner 标的不在行情表里被跳过"侥幸安全,现在改为设计安全。
+    positions = d.store.net_positions()
     gross_usd = sum(q * prices.get(s, 0.0) for s, q in positions.items())
     gross_aud = Decimal(str(gross_usd)) * d.fx_usd_aud
 
@@ -289,6 +308,10 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
                           threshold_pct=float(d.cfg.get("rebalance_threshold_pct", 5)),
                           single_order_cap_usd=cap_usd)
     summary["plan"] = [f"{s} {sym}x{q}" for s, sym, q in plan]
+
+    # 首笔交易时冻结策略初始本金:此后看盘净值只随策略自己的买卖变动,与 owner 账户活动隔离。
+    if plan:
+        _freeze_start_capital(effective_capital_usd)
 
     part_seen: dict[tuple, int] = {}
     reserved_aud = Decimal("0")   # 本轮已发买单占用的敞口(逐笔累加给风控看)
