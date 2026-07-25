@@ -31,6 +31,12 @@ BASELINE_COMMIT = "be8e196b03dcc475ed6261fbe20593b08bd26bcf"
 BASELINE_MANIFEST_SHA256 = "c2783bd232062ca123a725a3db2cf26a36c4a99a9476c432c36c850f86675c7f"
 GOVERNANCE_PIN = "ebc6c2e4884edc959118cfc56d0e18a86c49460f"  # pragma: allowlist secret
 FAILED_BETA_RECEIPT_SHA256 = "1f78a94d3e4019d89dda7aae9ddfc949e280eece03a0ce28829beba7094922c0"
+FAILED_T0704_ATTEMPT_LEDGER_SHA256 = (
+    "8f541dc5d5aba89c20539c6f28aeab508a93b8e5c800f5b2a3bb01345cea6ee5"  # pragma: allowlist secret
+)
+FAILED_T0704_ATTEMPT_LEDGER_SCHEMA_SHA256 = (
+    "bf3e2ee4cb6f8d0e1ccb67423dfa615d33b3089f9bfc730f34cd944ee14f8e0c"  # pragma: allowlist secret
+)
 PROTECTED_BETA_ATTEMPT_LEDGER = Path("machine/stages/S7/reviews/t0702/attempt-ledger.json")
 PROTECTED_BETA_ATTEMPT_LEDGER_SCHEMA = Path(
     "machine/stages/S7/schemas/protected-beta-attempt-ledger-v2.schema.json"
@@ -199,10 +205,9 @@ def _validate_contracts(root: Path) -> list[str]:
         or authorization.get("purpose") != "T0704_PROTECTED_BLUE_GREEN_REDIRECT_RECOVERY_ONLY"
         or authorization.get("t0703_receipt_required") is not True
         or authorization.get("failed_attempt_ledger_required") is not True
-        or authorization.get("failed_attempt_ledger_sha256")
-        != "8f541dc5d5aba89c20539c6f28aeab508a93b8e5c800f5b2a3bb01345cea6ee5"
+        or authorization.get("failed_attempt_ledger_sha256") != FAILED_T0704_ATTEMPT_LEDGER_SHA256
         or authorization.get("failed_attempt_ledger_schema_sha256")
-        != "bf3e2ee4cb6f8d0e1ccb67423dfa615d33b3089f9bfc730f34cd944ee14f8e0c"
+        != FAILED_T0704_ATTEMPT_LEDGER_SCHEMA_SHA256
         or authorization.get("prior_failed_attempts_exact") != 1
         or authorization.get("blue_green_authorized") is not True
         or authorization.get("t0705_authorized") is not False
