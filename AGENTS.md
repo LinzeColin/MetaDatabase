@@ -7,6 +7,12 @@
 - 治理框架来自共享仓库 LinzeColin/Governance。
   禁止在本仓库内复制、分叉或重建治理框架。
   禁止用 git submodule 引入它 —— 通过 CI checkout 或 pip 安装消费。
+- **数据落地铁律（长期有效 · 自运行分仓治理）**：长期/业务/运行时数据（原始数据、导出件、
+  数据库、内容寻址对象、运行时快照、含 PII 记录等）一律写私有仓 `LinzeColin/Private-Database` 的
+  `Private-MetaDatabase/`，用 `KMOS/KMDatabase/machine/tools/private_db_client.py` 免 clone 读写
+  （`ingest/get/list/verify`）；**禁止把数据提交进本代码仓**，派生/临时物走 `.gitignore`。
+  Private-Database 禁止 `git clone`。各项目数据现状见根目录 `WHERE_IS_PROJECT_DATA.md`。
+  目的：分仓治理长期自运行，不需 Owner 反复人工迁移。
 
 ## 命名陷阱（务必记住）
 
