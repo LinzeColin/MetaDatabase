@@ -45,6 +45,7 @@ from moomooau_archive.protected_blue_green_entrypoint import (
     CONTROL_REPOSITORY_ID,
     CONTROL_WORKFLOW_REF,
     PROTECTED_ENVIRONMENT,
+    ProtectedBlueGreenEntrypointError,
     blue_green_gate_sha256,
     execute_protected,
     execution_contract,
@@ -503,7 +504,7 @@ def test_t0704_incomplete_live_capacity_tree_blocks_before_gmail_or_repository_w
         assert context.source.all_issued_destroyed
 
 
-def test_t0704_entrypoint_binds_exact_main_t0703_receipt_and_aggregate_only_result() -> None:
+def test_t0704_entrypoint_authority_is_consumed_after_pass_receipt() -> None:
     message = m3_canary_message("msg-stage7-protected-blue-green-entrypoint")
     head_sha = "a" * 40
     environment = {
@@ -521,37 +522,30 @@ def test_t0704_entrypoint_binds_exact_main_t0703_receipt_and_aggregate_only_resu
         "MOOMOOAU_PROTECTED_ENVIRONMENT": PROTECTED_ENVIRONMENT,
     }
     contract = execution_contract(PROJECT_ROOT)
-    assert contract["blue_green_authorized"] is True
+    assert contract["blue_green_authorized"] is False
+    assert contract["completion_receipt_present"] is True
     assert contract["required_protected_input_count"] == len(BLUE_GREEN_SECRET_NAMES) == 8
     assert contract["same_head_rerun_allowed"] is False
     assert contract["fixed_calendar_wait_days"] == 0
     with protected_blue_green_context(message) as context:
-        evidence = execute_protected(
-            environment,
-            project_root=PROJECT_ROOT,
-            expected_head_sha=head_sha,
-            supplied_m3_receipt_sha256=m3_receipt_sha256(PROJECT_ROOT),
-            supplied_blue_green_gate_sha256=blue_green_gate_sha256(PROJECT_ROOT),
-            confirmation=BLUE_GREEN_CONFIRMATION,
-            bootstrap=context.bootstrap,
-            clock=lambda: context.now,
-        ).to_dict()
-    assert evidence["status"] == "PROTECTED_BLUE_GREEN_COMPLETED_NOT_FINAL"
-    assert evidence["blue_green_gate_status"] == "PASS"
-    assert evidence["production_health_claimed"] is False
-    assert evidence["final_acceptance_claimed"] is False
-    assert evidence["boundaries"] == {
-        "maximum_verified_full_raw_reads": 1,
-        "gmail_mutations": 0,
-        "current_pointer_mutations": 0,
-        "candidate_pointer_promotion": False,
-        "maximum_live_timeline_assets": 1,
-        "schedule_enabled": False,
-        "ga_enabled": False,
-    }
-    serialized = json.dumps(evidence, sort_keys=True)
-    assert "msg-stage7" not in serialized
-    assert "synthetic-private-database" not in serialized
+        gmail_calls_before = len(context.gmail_transport.inner.requests)
+        writes_before = context.github_transport.write_calls
+        with pytest.raises(
+            ProtectedBlueGreenEntrypointError,
+            match="current Run Contract does not authorize T0704",
+        ):
+            execute_protected(
+                environment,
+                project_root=PROJECT_ROOT,
+                expected_head_sha=head_sha,
+                supplied_m3_receipt_sha256=m3_receipt_sha256(PROJECT_ROOT),
+                supplied_blue_green_gate_sha256=blue_green_gate_sha256(PROJECT_ROOT),
+                confirmation=BLUE_GREEN_CONFIRMATION,
+                bootstrap=context.bootstrap,
+                clock=lambda: context.now,
+            )
+        assert len(context.gmail_transport.inner.requests) == gmail_calls_before
+        assert context.github_transport.write_calls == writes_before
 
 
 def test_t0704_protected_workflow_is_manual_exact_main_attempt_one_and_eight_secret() -> None:
@@ -695,20 +689,20 @@ def test_t0704_predecessor_and_capacity_fail_before_remote_blue_green_effects() 
         assert context.timeline_remote.actions == []
 
 
-def test_t0704_stage_aware_evidence_validator_preserves_blocked_truth() -> None:
+def test_t0704_stage_aware_evidence_validator_preserves_scope_stopped_truth() -> None:
     path = PROJECT_ROOT / "evidence/tasks/T0704.json"
     assert validate_record(path) == []
     record = json.loads(path.read_text(encoding="utf-8"))
-    assert record["record_status"] == "BLOCKED"
-    assert all(item["status"] == "FAILED" for item in record["production_oracles"])
+    assert record["record_status"] == "READY"
+    assert all(item["status"] == "PASS" for item in record["production_oracles"])
     assert all(
         item["status"] in {"PARTIAL", "NOT_RUN"} for item in record["linked_final_acceptance"]
     )
     provenance = json.loads(
-        (PROJECT_ROOT / "taskpack/SOURCE_PROVENANCE.v1.0.17.json").read_text(encoding="utf-8")
+        (PROJECT_ROOT / "taskpack/SOURCE_PROVENANCE.v1.0.18.json").read_text(encoding="utf-8")
     )
-    expected_base = "b3ff184bd9a7f0e66a7fde6cd6656f11dd982177"  # pragma: allowlist secret
-    assert provenance["schema_version"] == "moomooau.source-provenance.v17"
+    expected_base = "65cef09935475ab578d28a61817cc92700d6da04"  # pragma: allowlist secret
+    assert provenance["schema_version"] == "moomooau.source-provenance.v18"
     assert provenance["candidate_snapshot"] == {
         "repository": "LinzeColin/MetaDatabase",
         "mainline_base_commit": expected_base,
@@ -719,7 +713,7 @@ def test_t0704_stage_aware_evidence_validator_preserves_blocked_truth() -> None:
         encoding="utf-8"
     )
     assert (
-        'PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v17"'
+        'PORTABLE_SOURCE_PROVENANCE_SCHEMA: Final = "moomooau.source-provenance.v18"'
         in acceptance_source
     )
     assert acceptance_source.count(f'"{expected_base}"') == 2

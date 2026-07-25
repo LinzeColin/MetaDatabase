@@ -165,6 +165,22 @@
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
       "next_action": "Deliver one new exact-main T0704 release-asset redirect repair candidate and execute one attempt-1 dispatch. Never rerun the failed head; reuse the recovered candidate and Timeline snapshot, keep processed-current and Gmail unchanged, and stop before T0705."
+    },
+    "PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP": {
+      "package_version": "1.0.18",
+      "resolved_review_findings": [
+        "REV-P0-002",
+        "REV-P0-003",
+        "REV-P1-004",
+        "REV-P1-006",
+        "REV-P2-007"
+      ],
+      "current_remediation_blockers": [
+        "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
+        "T0705_NEW_RUN_CONTRACT_REQUIRED",
+        "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+      ],
+      "next_action": "Close T0704/S7AC-004 from the exact protected receipt and stop before T0705. No T0704 rerun or redispatch is allowed; a new explicit T0705 Run Contract is required."
     }
   }
 }

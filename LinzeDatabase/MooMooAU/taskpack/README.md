@@ -205,7 +205,21 @@ dispatch，candidate/snapshot 新写入 0，继续停止在 T0705 前。当前�
 - `SOURCE_PROVENANCE.v1.0.17.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.16.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.15.json`、
+`v1.0.18` 固化唯一新 exact-main T0704 redirect-recovery attempt-1 的受保护 PASS。
+authority、Blue-Green 与 identity cleanup 均通过；既有 candidate/snapshot 被复用并远端恢复，
+processed-current、Raw、Processed 与 Gmail 均无 repair 新效果，fixed Release 全程且最终恰好
+一个非空 age-encrypted Timeline Asset。失败 head 保持冻结，成功/失败 head 均不得重跑。
+T0704/S7AC-004 已关闭；本包只允许一次零 protected dispatch 的受控证据交付，并停止在
+T0705 前。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.18.md`
+- `ROADMAP.v1.0.18.md`
+- `PACKAGE_MANIFEST.v1.0.18.json`
+- `SOURCE_PROVENANCE.v1.0.18.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.17.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.16.json`、
+`PACKAGE_MANIFEST.v1.0.15.json`、
 `PACKAGE_MANIFEST.v1.0.14.json`、
 `PACKAGE_MANIFEST.v1.0.13.json`、
 `PACKAGE_MANIFEST.v1.0.12.json`、

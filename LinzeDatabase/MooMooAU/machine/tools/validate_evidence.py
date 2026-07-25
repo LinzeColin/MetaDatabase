@@ -516,7 +516,7 @@ def _validate_later_stage_record(
         "T0701": "PASS",
         "T0702": "PASS",
         "T0703": "PASS",
-        "T0704": "FAILED",
+        "T0704": "PASS",
     }.get(task_id, "NOT_RUN")
     if isinstance(production_oracles, list) and any(
         item.get("status") != expected_protected_status
@@ -528,7 +528,13 @@ def _validate_later_stage_record(
         "machine/stages/S7/reviews/t0702/execution-receipt.json"
         if task_id in {"T0701", "T0702"}
         else (
-            "machine/stages/S7/reviews/t0703/execution-receipt.json" if task_id == "T0703" else None
+            "machine/stages/S7/reviews/t0703/execution-receipt.json"
+            if task_id == "T0703"
+            else (
+                "machine/stages/S7/reviews/t0704/execution-receipt.json"
+                if task_id == "T0704"
+                else None
+            )
         )
     )
     if record.get("protected_execution_receipt") != expected_receipt:

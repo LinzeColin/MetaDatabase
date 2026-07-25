@@ -398,11 +398,11 @@ def test_t0708_no_secret_workflow_is_read_only_policy_preflight() -> None:
     )
 
 
-def test_t0708_stage7_aggregate_authorizes_t0704_repair_and_stops_before_t0705() -> None:
+def test_t0708_stage7_aggregate_closes_t0704_and_stops_before_t0705() -> None:
     aggregate = json.loads(
         (PROJECT_ROOT / "evidence/stage7/latest.json").read_text(encoding="utf-8")
     )
-    assert aggregate["status"] == "T0704_RELEASE_ASSET_REDIRECT_REPAIR_AUTHORIZED"
+    assert aggregate["status"] == "T0704_COMPLETE_SCOPE_STOP_T0705_NOT_AUTHORIZED"
     assert (
         aggregate["scoped_preflight"]
         == "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
@@ -421,21 +421,18 @@ def test_t0708_stage7_aggregate_authorizes_t0704_repair_and_stops_before_t0705()
         == "CLOSED_PASS_AFTER_TYPED_METADATA_QUARANTINE"
     )
     assert aggregate["protected_oracles_executed"] == 4
-    assert aggregate["protected_oracles_passed"] == 3
-    assert aggregate["protected_oracles_failed"] == 1
-    assert aggregate["protected_workflow_runs"] == 19
+    assert aggregate["protected_oracles_passed"] == 4
+    assert aggregate["protected_oracles_failed"] == 0
+    assert aggregate["protected_workflow_runs"] == 20
     assert aggregate["production_workflow_runs"] == 0
     assert aggregate["final_acceptances_passed"] == 0
-    assert aggregate["delivery_status"] == "CONTROLLED_T0704_REPAIR_CANDIDATE_NOT_FINAL"
+    assert aggregate["delivery_status"] == "CONTROLLED_T0704_COMPLETED_NOT_FINAL"
     assert (
         aggregate["observation"]["m3_deterministic_evidence_run"]
         == "PASS_ZERO_MUTATION_RECONCILIATION_RECOVERY_100_PERCENT_ZERO_NEW_EFFECT"
     )
     assert (
         aggregate["observation"]["blue_green_protected_entrypoint"]
-        == "PASS_FAILED_HEAD_FROZEN_REPAIR_HEAD_AUTHORIZED"
+        == "PASS_RECEIPT_BOUND_AUTHORITY_CONSUMED"
     )
-    assert (
-        "PROTECTED_BLUE_GREEN_RELEASE_ASSET_REDIRECT_REPAIR_PENDING"
-        in aggregate["blocking_conditions"]
-    )
+    assert "T0705_NOT_AUTHORIZED_IN_CURRENT_RUN" in aggregate["blocking_conditions"]

@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0704 Release Asset 302 恢复修复已授权待运行",
-  "phase": "T0704 首次失败已冻结；仅允许新 exact-main 302 修复 attempt 1",
-  "task": "交付 v1.0.17 有界 302 修复，复用既有 candidate/snapshot 并恢复恰好一个加密 Timeline；失败头不可重跑，T0705 仍禁止",
+  "stage": "RMD-06 T0704 受保护 Blue-Green PASS，范围停止于 T0705 前",
+  "phase": "T0704/S7AC-004 精确成功回执闭合；全部 T0704 权限已消耗",
+  "task": "完成 v1.0.18 精确成功证据交付并停止；T0705 需要新的显式 Run Contract",
   "owner": "Codex 开发线程"
 }
