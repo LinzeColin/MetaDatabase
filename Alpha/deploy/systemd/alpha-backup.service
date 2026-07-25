@@ -1,0 +1,14 @@
+# 交易账本每日备份(oneshot,alpha-backup.timer 驱动)。只读库、只写备份文件,永不下单。
+[Unit]
+Description=Alpha 交易账本备份(pg_dump 轮转,防库损坏/误清)
+After=network-online.target postgresql.service
+OnFailure=alpha-alert@%n.service
+
+[Service]
+Type=oneshot
+User=alpha
+Group=alpha
+WorkingDirectory=/opt/alpha/MetaDatabase/Alpha
+EnvironmentFile=/opt/alpha/env
+ExecStart=/opt/alpha/venv/bin/python scripts/backup_ledger.py
+TimeoutStartSec=300

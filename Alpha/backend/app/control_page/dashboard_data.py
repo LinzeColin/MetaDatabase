@@ -358,8 +358,48 @@ def build_ops_view(*, session_factory, heartbeats, kill_switch,
         "events": events,
         "open_faults": sum(1 for e in events if not e["resolved"]),
         "healthy_now": bool(fresh and not kill_switch.active()),
+        "readiness": _readiness_rows(now),
         "updated_at_syd": f"{now.astimezone(SYD):%m月%d日 %H:%M}",
     }
+
+
+def _readiness_rows(now: datetime) -> list[dict]:
+    """盘前自检 + 备份状态(读定时任务落盘的事实文件),供运维页展示,让运维就绪一目了然。"""
+    rows: list[dict] = []
+
+    def _age(ts: str) -> str:
+        try:
+            return f"{datetime.fromisoformat(ts).astimezone(SYD):%m-%d %H:%M}"
+        except Exception:
+            return "—"
+
+    try:
+        pf = json.loads(Path("machine/facts/preflight_status.json").read_text())
+        reds = [c["name"] for c in pf.get("checks", []) if not c["ok"]]
+        rows.append({
+            "name": "盘前自检(交易日开盘前)",
+            "ok": bool(pf.get("all_ok")),
+            "note": (f"全绿 · {_age(pf.get('at',''))}" if pf.get("all_ok")
+                     else f"{len(reds)} 项待处理:{'、'.join(reds)[:60]}"),
+        })
+        dl = pf.get("auth_days_left")
+        if dl is not None:
+            rows.append({"name": "预签授权有效期", "ok": dl >= 3,
+                         "note": f"还剩 {dl} 天" + ("(临期,记得续签)" if dl < 3 else "")})
+    except Exception:
+        rows.append({"name": "盘前自检", "ok": False, "note": "尚无自检记录(定时任务未跑过或读不到)"})
+
+    try:
+        bk = json.loads(Path("machine/facts/backup_status.json").read_text())
+        rows.append({
+            "name": "交易账本备份(每日)",
+            "ok": bool(bk.get("ok")),
+            "note": (f"{bk.get('size',0)} 字节 · {_age(bk.get('at',''))}(保留 {bk.get('keep')} 份)"
+                     if bk.get("ok") else f"失败:{str(bk.get('detail',''))[:50]}"),
+        })
+    except Exception:
+        rows.append({"name": "交易账本备份", "ok": False, "note": "尚无备份记录"})
+    return rows
 
 
 #: 研究史 CSV 唯一真源(GitHub 与本页共用同一份;列顺序即展示顺序)

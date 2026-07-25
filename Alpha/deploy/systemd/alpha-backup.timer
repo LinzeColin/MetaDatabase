@@ -1,0 +1,11 @@
+# 每日备份一次(美股收盘后,21:30 UTC)
+[Unit]
+Description=Alpha 交易账本备份定时器(每日)
+
+[Timer]
+OnCalendar=*-*-* 21:30:00 UTC
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

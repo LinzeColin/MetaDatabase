@@ -330,6 +330,11 @@ def render_ops_html(d: dict) -> str:
     caps = "".join(
         f"<div class=light><i class='dot g'></i><div><b>{_esc(n)}</b><small>{_esc(desc)}</small></div></div>"
         for n, desc in d["caps"])
+    readiness = "".join(
+        f"<div class=light><i class='dot {'g' if r['ok'] else 'r'}'></i>"
+        f"<div><b>{_esc(r['name'])}</b> {'正常' if r['ok'] else '需处理'}"
+        f"<small>{_esc(r['note'])}</small></div></div>"
+        for r in d.get("readiness", [])) or "<div class=muted>暂无就绪数据</div>"
     ledger = "".join(
         f"<tr><td>{_esc(r['date'])}</td><td class=num>{_esc(r['downtime_human'])}</td>"
         f"<td>{_esc(r['reason'])}</td></tr>"
@@ -347,6 +352,7 @@ def render_ops_html(d: dict) -> str:
     body = f"""
 <div class="banner {'ok' if d['healthy_now'] and d['open_faults'] == 0 else 'warn'}">{_esc(head)}</div>
 <div class=grid>
+<div class="card span2"><h2>运维就绪(定时自检 + 备份,坏了会主动邮件吼你)</h2><div class=lights>{readiness}</div></div>
 <div class=card><h2>自愈能力(长在服务器上,不依赖任何人在场)</h2><div class=lights>{caps}</div></div>
 <div class=card><h2>停机事故台账(诚实口径,公开仓可审计)</h2>
 <table><tr><th>日期</th><th class=num>停机时长</th><th>原因</th></tr>{ledger}</table></div>

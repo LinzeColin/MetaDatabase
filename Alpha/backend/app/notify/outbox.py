@@ -66,7 +66,37 @@ _EMAIL_TEMPLATES: dict[str, tuple[str, Callable[[dict], str]]] = {
     "INCIDENT_REPORT": ("事故报告与修复", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
     "UNIT_FAILED": ("定时任务运行失败", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
     "PRESIGN_SUSPENDED": ("预签授权已按你指令挂起", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "PREFLIGHT_OK": ("盘前自检通过(系统在岗)", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "PREFLIGHT_ALERT": ("⚠️ 盘前自检发现问题,需要处理", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "AUTH_EXPIRING": ("预签授权即将到期,不续签实盘会停", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
+    "LEDGER_BACKUP": ("交易账本备份", lambda p: p.get("text", json.dumps(p, ensure_ascii=False))),
 }
+
+#: 关键事件:除邮件外,若配置了 ALPHA_ALERT_WEBHOOK 也推一份到第二通道(防 Gmail 单点失效)。
+CRITICAL_EVENTS = frozenset({
+    "WORKER_HEARTBEAT_LOST", "ACTIVATION_BLOCKED", "UNIT_FAILED", "INCIDENT_REPORT",
+    "PREFLIGHT_ALERT", "AUTH_EXPIRING",
+})
+
+
+def post_alert_webhook(subject: str, body: str) -> bool:
+    """把关键告警推到第二通道(owner 自配的 webhook URL,如 Telegram/Discord/Slack)。
+
+    默认休眠:未设 ALPHA_ALERT_WEBHOOK 时直接返回 False,不做任何事。best-effort,失败不抛。
+    """
+    import os
+    url = os.environ.get("ALPHA_ALERT_WEBHOOK", "").strip()
+    if not url:
+        return False
+    try:
+        import urllib.request
+        data = json.dumps({"text": f"{subject}\n\n{body}"[:3500]}).encode()
+        req = urllib.request.Request(url, data=data,
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=8):
+            return True
+    except Exception:
+        return False
 
 
 def render_email(event_type: str, payload: dict) -> tuple[str, str]:
@@ -131,6 +161,9 @@ class Outbox:
                         continue
                 payload = json.loads(row.payload)
                 subject, body = render_email(row.event_type, payload)
+                if row.event_type in CRITICAL_EVENTS:
+                    # 第二通道:与邮件并行、互不依赖——即便 Gmail 挂了这条也能送出去
+                    post_alert_webhook(subject, body)
                 try:
                     sender.send(subject=subject, body=body)
                 except Exception as exc:  # 任何发送失败都进入退避,不吞事件
