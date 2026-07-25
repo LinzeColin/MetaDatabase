@@ -188,7 +188,7 @@ def _validate_contracts(root: Path) -> list[str]:
         or run.get("task_id") != "T0704"
         or run.get("baseline_commit") != "4924fad17fc4666761df9ec7088608db18cc6605"
         or run.get("baseline_manifest_sha256")
-        != "35b8ff4f39197910e1145d1f1c535569c9b282722f6e2ae0a4e1d62e8fc4243c"
+        != "35b8ff4f39197910e1145d1f1c535569c9b282722f6e2ae0a4e1d62e8fc4243c"  # pragma: allowlist secret  # noqa: E501
         or not isinstance(prohibitions, dict)
         or any(value != 0 for value in prohibitions.values())
         or authorization.get("purpose") != "T0704_PROTECTED_BLUE_GREEN_ONLY"

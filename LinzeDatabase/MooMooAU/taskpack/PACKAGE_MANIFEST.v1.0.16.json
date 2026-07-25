@@ -790,7 +790,7 @@
     {
       "path": "machine/contracts/production_composition.json",
       "bytes": 4625,
-      "sha256": "d505ba8d3daa277248e9b371f460a5ea2367af3afa62f1bfab62c6e5d006a59f"
+      "sha256": "e975e030e7144a296874b343004ac74bfd3bbda725b8750d1aae135d33919b97"
     },
     {
       "path": "machine/contracts/publication_safety.json",
@@ -1699,13 +1699,13 @@
     },
     {
       "path": "machine/stages/S7/tools/validate_stage7.py",
-      "bytes": 90682,
-      "sha256": "2e551a1cd2e482949f96edc82b0182d01d07f9f00e80d87b26a549948a38cf9c"
+      "bytes": 90724,
+      "sha256": "a02352ffbc7511b75c49d2268722f2ccba91a38b5153e5c0907e97efeaded78a"
     },
     {
       "path": "machine/status/latest.json",
       "bytes": 8804,
-      "sha256": "29912e30e4ec77c5b62e4ec146a57bff99f99cc435faab0f2a1a51e23fe88f76"
+      "sha256": "36fabb47eef7ae0f528f2962f907249e650416d1ca074afc329b033c1adcf259"
     },
     {
       "path": "machine/tools/README.md",
@@ -2914,8 +2914,8 @@
     },
     {
       "path": "tests/remediation/test_rmd04.py",
-      "bytes": 26376,
-      "sha256": "3abff4f1c3a00be2de388abb6669a3d7760f52008591a55fc043912fe341c252"
+      "bytes": 26873,
+      "sha256": "f33c01ba9e9901375da5a54a5464abcde83983060dbbb8f34ac70706ff9beb4b"
     },
     {
       "path": "tests/remediation/test_rmd05.py",
