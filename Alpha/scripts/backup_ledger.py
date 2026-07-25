@@ -13,6 +13,7 @@ from __future__ import annotations
 import gzip
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -28,14 +29,17 @@ FACTS = Path("machine/facts/backup_status.json")
 def main() -> int:
     now = datetime.now(timezone.utc)
     url = os.environ.get("ALPHA_DATABASE_URL", "")
+    # SQLAlchemy 用 postgresql+psycopg://,pg_dump 只认 libpq 的 postgresql://——去掉 +驱动。
+    libpq_url = re.sub(r"^postgresql\+\w+://", "postgresql://",
+                       re.sub(r"^postgres\+\w+://", "postgresql://", url))
     ok, detail, path, size = False, "", "", 0
     try:
-        if not url or not url.startswith(("postgres://", "postgresql://")):
+        if not libpq_url.startswith(("postgres://", "postgresql://")):
             raise RuntimeError("非 PostgreSQL 或未配置 ALPHA_DATABASE_URL,跳过备份")
         BACKUP_DIR.mkdir(parents=True, exist_ok=True)
         out = BACKUP_DIR / f"alpha_ledger_{now:%Y%m%dT%H%M%SZ}.sql.gz"
         # pg_dump 从 URL 连接;stdout 压缩落盘
-        proc = subprocess.run(["pg_dump", "--no-owner", "--no-privileges", url],
+        proc = subprocess.run(["pg_dump", "--no-owner", "--no-privileges", libpq_url],
                               capture_output=True, timeout=180)
         if proc.returncode != 0:
             raise RuntimeError(f"pg_dump 失败:{proc.stderr.decode('utf-8', 'ignore')[:200]}")
