@@ -14,6 +14,14 @@ for var in CYBERBOSS_RUNTIME CYBERBOSS_CODEX_ENDPOINT CB_RUNTIME_DB; do
   [[ -n "$value" ]] || { echo "STOP: missing env $var" >&2; exit 2; }
 done
 
+if [[ "$CYBERBOSS_RUNTIME" == "claudecode" ]]; then
+  if [[ "${CB_CLAUDE_RUNTIME:-false}" != "true" ||
+        "${CB_CLAUDE_EVAL_PASSED:-false}" != "true" ]]; then
+    echo 'STOP: Claude adapter disabled; both CB_CLAUDE_RUNTIME=true and CB_CLAUDE_EVAL_PASSED=true are required' >&2
+    exit 2
+  fi
+fi
+
 if env | grep -Eq '(^|=)REPLACE_WITH|REPLACE_'; then
   echo 'STOP: unresolved REPLACE_ placeholder in environment' >&2
   exit 2

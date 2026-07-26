@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-110",
+  "platform": "linux-x64",
+  "node": {
+    "version": "24.18.0",
+    "version_output": "v24.18.0",
+    "license": "MIT",
+    "archive_url": "https://nodejs.org/dist/v24.18.0/node-v24.18.0-linux-x64.tar.xz",
+    "archive_sha256": "55aa7153f9d88f28d765fcdad5ae6945b5c0f98a36881703817e4c450fa76742"
+  },
+  "codex": {
+    "version": "0.146.0-alpha.3.1",
+    "version_output": "codex-cli 0.146.0-alpha.3.1",
+    "license": "Apache-2.0",
+    "main_archive_url": "https://registry.npmjs.org/@openai/codex/-/codex-0.146.0-alpha.3.1.tgz",
+    "main_archive_sha256": "3473d6d6416979b43118d203fa4e584c4e5af939206eee854d9db60c7555df17",
+    "platform_archive_url": "https://registry.npmjs.org/@openai/codex/-/codex-0.146.0-alpha.3.1-linux-x64.tgz",
+    "platform_archive_sha256": "d495bfa843ed9198327cc087b69b99aff09a66d4f5e7139137bc72d02ccf3e53"
+  },
+  "claude_code": {
+    "install_policy": "optional_not_installed",
+    "credential_policy": "absent",
+    "feature_flag_default": false,
+    "evaluation_gate_default": false
+  },
+  "runtime": {
+    "codex_home": "/var/lib/cyberboss/.codex",
+    "loopback_endpoint": "ws://127.0.0.1:8765",
+    "toolchain_root": "/opt/cyberboss-cloud/shared/toolchains"
+  }
+}

@@ -27,6 +27,16 @@ account 内容。真实 Codex/WeChat 未在目标 OVH 激活时继续
 `activation_pending`。`secret_scan.py` 的七类模式均有独立 hostile fixture；
 词边界使用真实 regex boundary，避免 token/JWT/Bearer/WeChat ID 漏报。
 
+P1.2 增加项目级 runtime toolchain：`runtime-versions.json` 固定 Node.js
+`24.18.0` 与 Codex CLI `0.146.0-alpha.3.1` 的官方 HTTPS archive 和
+SHA-256；`install-runtime-toolchain.sh` 不写 `/usr/local`、不执行 package
+lifecycle script，并把精确版本及 `node:sqlite`/App Server 命令绑定到
+`releases/<commit>/version-manifest.json`。`probe-codex-app-server.mjs`
+只允许 `ws://127.0.0.1:8765`，执行 `/readyz` 与
+`initialize`/`initialized`，不启动 authenticated turn。Claude Code 不安装，
+受控入口默认要求 `CB_CLAUDE_RUNTIME=true` 与
+`CB_CLAUDE_EVAL_PASSED=true` 双门；部署默认均为 `false`。
+
 ## Immediate validation
 
 ```bash
@@ -58,6 +68,9 @@ node --check implementation-kit/simulators/codex-app-server-simulator.mjs
 bash implementation-kit/scripts/preflight.sh --check
 python3 implementation-kit/tests/test_resource_profile.py
 python3 implementation-kit/scripts/resource-pressure-fixture.py
+bash implementation-kit/scripts/install-runtime-toolchain.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+node --check implementation-kit/scripts/probe-codex-app-server.mjs
 
 db="$(mktemp)"
 sqlite3 "$db" < implementation-kit/sql/runtime-spool.sql
@@ -75,12 +88,21 @@ implementation-kit/scripts/preflight.sh
 sudo implementation-kit/scripts/select-resource-profile.sh \
   --write /etc/cyberboss/resource-profile.env \
   --systemd-dropin /etc/systemd/system/cyberboss-cloud.service.d/20-resource-profile.conf
+sudo implementation-kit/scripts/install-runtime-toolchain.sh \
+  --apply --release-id <full-local-implementation-commit>
+sudo implementation-kit/scripts/install-runtime-toolchain.sh \
+  --verify --release-id <full-local-implementation-commit>
 ```
 
 `preflight.sh` 只读并输出三次即时脱敏 snapshot；有限 cgroup v2 memory/swap
 ceiling 会覆盖更大的 host `/proc` 数值，profile writer 在安全预算不足时拒绝写入。
 任何本地或容器 pressure 结果都不能替代同一获授权 OVH 主机的基线与有界
 induced-load/cgroup 证据。
+
+Runtime installer 的 `--apply` 与 `--verify` 都必须使用同一个完整 40 位
+implementation commit。Codex device auth 只准备命令，不在该安装序列执行；
+真实认证留到最终一次性激活。App Server 验收结束后必须确认进程和 8765
+listener 都为零，`cyberboss-cloud.service` 继续 disabled/inactive。
 
 `resource-pressure-fixture.py` 默认 `--evidence-scope=local_container`，不得
 改称实机证据。只有目标授权链和只读 baseline 已在外层证据中验证、且 fixture
