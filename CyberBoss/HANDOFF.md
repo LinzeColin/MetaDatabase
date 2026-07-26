@@ -5,9 +5,9 @@
 - Worktree:
   `/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-cyberboss`
 - Local branch: `codex/cyberboss-prestage0`
-- Run base: `e5995d0967e789c99ce06b5b76fa794e5d455f68`
+- Run base: `916651854a6402254724c885398060b2e267e496`
 - Latest implementation:
-  `ac51cd2511a45def88068aef6d23fd10d7f507e4`
+  `1b3e338847d8819869a5e12091f25b5463a8d3be`
 - Remote publication: none
 
 ## Current state
@@ -15,16 +15,16 @@
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
 exit gate `PG-0`, `P1.1 / CB-100` through `P1.5 / CB-140`, and independent
 Stage 1 exit gate `PG-1`, plus `P2.1 / CB-200`、`P2.2 / CB-210` and
-`P2.3 / CB-220` passed. Stage 0 and Stage 1 are each 5/5 tasks plus their gate
-complete; Stage 2 is 3/5 before `PG-2`. The 17 tasks from
-CB-230 onward and PG-2–PG-5 remain
+`P2.3 / CB-220`、`P2.4 / CB-230` passed. Stage 0 and Stage 1 are each
+5/5 tasks plus their gate complete; Stage 2 is 4/5 before `PG-2`. The 16 tasks
+from CB-240 onward and PG-2–PG-5 remain
 `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
 dependency, automatic sync, periodic rebase or runtime source fetch. The
 whereabouts package metadata/license conflict remains unresolved and is treated
-as `GPL-3.0-only AND AGPL-3.0-only`; original source/license/conflict records
+as `AGPL-3.0-only AND GPL-3.0-only`; original source/license/conflict records
 are preserved and no upstream clarification is claimed.
 
 CB-010 resolved the authorized OVH asset from protected local deployment
@@ -331,7 +331,7 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 - Task state: `machine/facts/task_state.json`
 - Fixed-source lock: `machine/source-lock.json`
 - Current Run Contract:
-  `docs/governance/RUN_CONTRACT_PG_1.md`
+  `docs/governance/RUN_CONTRACT_P2_4_CB_230.md`
 - CB-000 source/license evidence: `docs/evidence/CB-000/`
 - CB-010 OVH/resource evidence: `docs/evidence/CB-010/`
 - CB-020 identity/provider/security evidence: `docs/evidence/CB-020/`
@@ -346,9 +346,13 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 - CB-140 all-cloud Walking Skeleton evidence:
   `docs/evidence/CB-140/`
 - PG-1 independent gate evidence: `docs/evidence/PG-1/`
+- CB-200 SQLite spool/state evidence: `docs/evidence/CB-200/`
+- CB-210 durable-inbox/cursor evidence: `docs/evidence/CB-210/`
+- CB-220 scheduler/resource evidence: `docs/evidence/CB-220/`
+- CB-230 durable-outbox/delivery-truth evidence: `docs/evidence/CB-230/`
 - Consolidated activation sheet: `docs/evidence/CB-030/auth-gates.md`
 - Current validation report:
-  `docs/evidence/PG-1/VALIDATION_REPORT.md`
+  `docs/evidence/CB-230/VALIDATION_REPORT.md`
 - Machine-readable scope:
   `docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json`
 - Credential slots:
@@ -558,6 +562,36 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 - CB-220 decision: `PASS`; CB-230 and all 16 later tasks plus PG-2–PG-5 remain
   `not_started`. Durable outbox/retry/receipt, real adapter activation,
   provider/data write and GitHub publication were not started.
+- CB-230 implementation commit
+  `1b3e338847d8819869a5e12091f25b5463a8d3be` has the frozen CB-220 closure
+  `916651854a6402254724c885398060b2e267e496` as its only parent.
+- Schema v4 and the encrypted durable outbox stage accepted/final/error/
+  cancelled messages before provider dispatch. Stable Unicode chunks, dedupe,
+  logical hashes and provider client IDs remain deterministic across restart;
+  legacy active outbox rows are backfilled before claim.
+- Virtual 503→503→200 used attempts=3, delays=1000/2000 ms and real waits=0.
+  Replaying one key 1,000 times produced one durable row and confirmed delivery
+  count=1. A 13,300-code-point result reconstructed from four chunks with an
+  identical SHA-256.
+- Four recovery cuts passed. A pre-dispatch claim safely retries; an unknown
+  post-dispatch outcome becomes ambiguous/manual and auto-replays zero times;
+  confirmation-commit crash reconciles the job to `replied` without another
+  provider call. Void receipt confirmation is impossible.
+- Local and immutable-candidate App regressions passed 227/227; target
+  executable acceptance passed 37/37. DB/WAL/SHM plaintext hits, key hits,
+  real credentials, real provider operations and Private-Database operations
+  are zero.
+- Exact four-file artifact, write-free checks, two applies and independent
+  verify passed. Exact staging/env/incoming/synthetic runtime were removed;
+  candidate remains immutable/inactive, service disabled/inactive,
+  process/listener/incoming/canonical runtime DB absent and frozen
+  current/workspace unchanged.
+- The legacy-upgrade audit, unsupported local checksum locale, protected-record
+  parser/known-host comment, root-only incoming traversal and root-only cleanup
+  corrections are retained with their fail-closed/no-service-start outcomes.
+- CB-230 decision: `PASS`; CB-240 and all 15 later tasks plus PG-2–PG-5 remain
+  `not_started`. Canonical sync, real adapter/provider/data activation and
+  GitHub publication were not started.
 
 ## Known unknowns
 
@@ -566,7 +600,7 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
   fixture screenshot is deliberately marked non-real.
 - No real Private-MetaDatabase object, Cloudflare Access/DNS/R2 resource, OCI
   object or authenticated CyberBoss business Runtime was created or modified
-  through CB-220.
+  through CB-230.
 - Exact provider write-scope attestations remain external activation inputs;
   successful GETs are not treated as proof of safe writes.
 - The online Status surface still has no CyberBoss row.
@@ -579,18 +613,15 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 
 ## Next Run
 
-The next eligible Run is exactly `P2.4 / CB-230`. It remains `not_started`.
-CB-220 does not authorize switching `current`, Codex/WeChat authentication,
-real provider/data activation, Private-MetaDatabase work, or PG-2 inside the
-same Run.
+The next eligible Run is exactly `P2.5 / CB-240`. It remains `not_started`.
+CB-230 does not authorize switching `current`, Codex/WeChat authentication,
+real provider activation or PG-2 inside the same Run.
 
-Start `P2.4 / CB-230` only under a new single-phase Run Contract. Keep
-source/license, CB-000–CB-220 and PG-0/PG-1 evidence immutable, preserve the
+Start `P2.5 / CB-240` only under a new single-phase Run Contract. Keep
+source/license, CB-000–CB-230 and PG-0/PG-1 evidence immutable, preserve the
 strict dual-license conflict record, and continue the final-only GitHub
-publication rule. Scope CB-230 to durable accepted/final/error outbox rows,
-bounded retry taxonomy/backoff with injectable clock, stable chunk/dedupe keys,
-send confirmation truth and restart recovery required by AC-020/021/022/024/
-025/062. Do not combine it with CB-240 or PG-2, mark replied without confirmed
-send, allow duplicate visible results, expose Runtime publicly, or perform a
-real provider/data write unless the exact Acceptance and new Run Contract
-authorize it.
+publication rule. Scope CB-240 to canonical sync/reconcile, the no-clone
+Private-MetaDatabase client and Timeline source required by its frozen
+Acceptance. Do not combine it with PG-2, start real provider delivery, expose
+Runtime publicly, weaken outbox ambiguity handling or claim a real canonical
+write without the exact Acceptance and new Run Contract authorizing it.

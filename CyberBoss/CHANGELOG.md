@@ -1,5 +1,35 @@
 # Changelog
 
+## P2.4 / CB-230 — 2026-07-27
+
+- Bound durable outbox and complete Corresponding Source to local
+  implementation commit
+  `1b3e338847d8819869a5e12091f25b5463a8d3be`.
+- Added additive schema v4, encrypted payload/target storage, stable
+  logical-message/dedupe/provider-client identity, append-only attempt events
+  and provider-confirmation truth guards. Legacy active outbox identity is
+  deterministically backfilled before claim.
+- Routed accepted and final result/error/cancelled delivery through durable
+  staging before provider dispatch. Jobs reach `replied` only after every
+  required final chunk is confirmed.
+- Passed virtual 503→503→200 in three attempts with 1000/2000 ms delays and no
+  real wait; 1,000 same-key stages produced one durable row and one confirmed
+  delivery.
+- Passed deterministic 13,300-code-point four-chunk reconstruction, terminal
+  401 fixed-advice handling, void-receipt rejection and four restart cuts.
+  Unknown post-dispatch outcome auto-replay remained zero.
+- Passed local and immutable-candidate App regressions at 227/227 and target
+  synthetic acceptance at 37/37, with DB/WAL/SHM plaintext and key hits zero.
+- Passed target write-free checks, two applies and an independent verify.
+  Removed exact staging, env, incoming and synthetic runtime; retained only the
+  immutable inactive candidate. `current`/workspace stayed frozen and service,
+  process, listener and canonical runtime DB stayed inactive/absent.
+- Preserved all fail-closed correction records, original source/licenses and
+  the unresolved strict `AGPL-3.0-only AND GPL-3.0-only` conflict with
+  `upstream_clarification_received=false`.
+- Marked only CB-230 passed. CB-240 and all later tasks plus PG-2–PG-5 remain
+  `not_started`; GitHub branch/PR/tag/release/publication remains empty.
+
 ## P2.3 / CB-220 — 2026-07-27
 
 - Bound the single-lease Runtime scheduler and complete Corresponding Source

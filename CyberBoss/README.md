@@ -5,24 +5,25 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 ## 当前状态
 
 - 生命周期：Stage 0、Stage 1 及各自独立退出门 `PG-0`、`PG-1` 已通过；
-  Stage 2 的 `P2.1 / CB-200`、`P2.2 / CB-210`、`P2.3 / CB-220`
-  已通过，`PG-2` 尚未开始
+  Stage 2 的 `P2.1 / CB-200` 至 `P2.4 / CB-230` 已通过，`P2.5 /
+  CB-240` 与 `PG-2` 尚未开始
 - 当前产品设计：`v0.0.0.4`
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
   `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`；
   `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`；`P2.1 / CB-200`；
-  `P2.2 / CB-210`；`P2.3 / CB-220`
-- 当前基线：八个精确 implementation/release commit 的本地 source bundle、
+  `P2.2 / CB-210`；`P2.3 / CB-220`；`P2.4 / CB-230`
+- 当前基线：九个精确 implementation/release commit 的本地 source bundle、
   完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`P2.3 / CB-220` 已完成 `created_at,id` FIFO、全局单 Runtime
-  lease、heartbeat/expiry/fencing、独立 command control plane、workspace
-  dispatch 复验、resource/readiness gate 与 truthful `/stop`。本地及候选
-  App 213/213、目标 38 项 acceptance 和有限 cgroup pressure 均通过，
-  OOM-kill delta=0；候选未激活，真实 Codex/WeChat/canonical sync 仍为
-  `activation_pending`，`current`/workspace/service 未变
-- Stage 0–5 任务状态：`CB-000`–`CB-220` 共十三项任务已通过；其余 17 项与
+- 最新 Run：`P2.4 / CB-230` 已完成 accepted/final/error/cancelled
+  staged-before-provider、稳定 chunk/dedupe/provider client ID、最多 5 次
+  bounded jittered retry、provider confirmation truth 和 crash recovery。
+  本地及候选 App 227/227、目标 synthetic acceptance 37/37 均通过；
+  unknown dispatch 自动重发为 0，confirmed delivery count 为 1。候选未
+  激活，真实 Codex/WeChat/canonical sync 仍为 `activation_pending`，
+  `current`/workspace/service 未变
+- Stage 0–5 任务状态：`CB-000`–`CB-230` 共十四项任务已通过；其余 16 项与
   PG-2–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
@@ -262,6 +263,31 @@ bootstrap/synthetic runtime 已删除。精确 candidate 保持 immutable/inacti
 service disabled/inactive，process/listener/incoming/canonical runtime DB
 为 0 或不存在，`current` 与 workspace 保持冻结值。CB-230、PG-2 与全部
 后续节点仍未开始，outbox worker/receipt 和 GitHub publication 均为空。
+
+P2.4 / CB-230 以本地 implementation commit
+`1b3e338847d8819869a5e12091f25b5463a8d3be` 增加 additive schema v4、
+encrypted durable outbox、append-only attempt ledger 和 provider receipt
+truth。accepted ack 在 cursor commit 前 staged；final result、terminal
+error/cancelled 在 provider 调用前 staged。Unicode chunk、dedupe key、
+logical-message hash 与 provider client ID 均稳定派生，旧 v1 pending
+outbox 行升级时也会在 claim 前确定性补齐身份。
+
+503→503→200 fixture 在 virtual clock 下仅尝试 3 次，retry delay 为
+1000/2000 ms，真实等待为 0。相同 key staged 1,000 次只产生一个 durable
+row 和一次 confirmed delivery。13,300 code points 被稳定分为 4 段并可
+按 SHA-256 完整重建；401 进入 terminal，并只在 refreshed context 上发送
+固定脱敏建议。pending、pre-dispatch claim、post-dispatch unknown 和
+confirmation-commit 四个重启切点均由状态 predicate 恢复；unknown outcome
+自动重发为 0，void receipt 不能确认，job 只在所有 final chunks confirmed
+后进入 `replied`。
+
+本地及 immutable candidate App 227/227、目标 synthetic acceptance 37/37
+通过。exact artifact、write-free checks、两次 apply、独立 verify 和最终
+cleanup 均通过；candidate 保持 immutable/inactive，service
+disabled/inactive，process/listener/incoming/staging/runtime/canonical
+runtime DB 为 0 或不存在，`current` 与 workspace 保持冻结值。真实
+Codex/WeChat/Private-MetaDatabase/canonical sync 未调用，CB-240、PG-2
+与 GitHub publication 均未开始。
 
 ## 许可证
 
