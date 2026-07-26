@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU/machine/stages/S7/schemas/protected-ga-candidate-preflight-attempt-ledger-v1.schema.json",
+  "title": "MooMooAU protected GA candidate preflight attempt ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "observed_through_utc",
+    "task_id",
+    "scope",
+    "delivery",
+    "workflow",
+    "jobs",
+    "failure",
+    "effects",
+    "completion_policy",
+    "claims"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "moomooau.protected-ga-candidate-preflight-attempt-ledger.v1"
+    },
+    "observed_through_utc": {
+      "const": "2026-07-26T13:04:45Z"
+    },
+    "task_id": {
+      "const": "T0705"
+    },
+    "scope": {
+      "const": "PRE_SECRET_EXACT_MAIN_CANDIDATE_VALIDATION_ONLY"
+    },
+    "delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pull_request_number",
+        "pull_request_head_sha",
+        "merge_commit_parent_sha",
+        "merge_commit_sha"
+      ],
+      "properties": {
+        "pull_request_number": {
+          "const": 129
+        },
+        "pull_request_head_sha": {
+          "const": "68999cf08a6108346e08dde3e21a45b026c25da1"
+        },
+        "merge_commit_parent_sha": {
+          "const": "04f71e7653cc1fe3d2cda493fe5de22a08e38758"
+        },
+        "merge_commit_sha": {
+          "const": "26949ab5031a21b0c515c282c9ef06ff9417e058"
+        }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "workflow_head_sha",
+        "event",
+        "run_attempt",
+        "reruns",
+        "conclusion"
+      ],
+      "properties": {
+        "run_id": {
+          "const": 30203291213
+        },
+        "workflow_head_sha": {
+          "const": "26949ab5031a21b0c515c282c9ef06ff9417e058"
+        },
+        "event": {
+          "const": "workflow_dispatch"
+        },
+        "run_attempt": {
+          "const": 1
+        },
+        "reruns": {
+          "const": 0
+        },
+        "conclusion": {
+          "const": "FAILURE_PRE_SECRET_CANDIDATE_VALIDATION"
+        }
+      }
+    },
+    "jobs": {
+      "const": {
+        "authority_context": "PASS",
+        "candidate_validation": "FAILED",
+        "protected_environment": "SKIPPED",
+        "live_schedule_hold": "SKIPPED"
+      }
+    },
+    "failure": {
+      "const": {
+        "phase": "PRE_SECRET_CANDIDATE_VALIDATION",
+        "reason_code": "RUFF_FORMAT_CHECK_REJECTED",
+        "finding": "PROCESSED_COMMIT_WOULD_BE_REFORMATTED",
+        "exact_root_cause_claimed": true,
+        "root_cause_basis": "SANITIZED_FAILED_STEP_OUTPUT"
+      }
+    },
+    "effects": {
+      "const": {
+        "protected_environment_entered": false,
+        "protected_secret_names_injected": 0,
+        "gmail_api_calls": 0,
+        "private_repository_calls": 0,
+        "gmail_mutations": 0,
+        "private_repository_mutations": 0,
+        "timeline_mutations": 0,
+        "checkpoint_mutations": 0,
+        "platform_schedule_events": 0,
+        "one_shot_authority_variable_after_failure": "ABSENT",
+        "production_enablement_variable_after_failure": "ABSENT"
+      }
+    },
+    "completion_policy": {
+      "const": {
+        "same_head_rerun_allowed": false,
+        "failed_head_redispatch_allowed": false,
+        "frozen_candidate_preflight_head_shas": [
+          "26949ab5031a21b0c515c282c9ef06ff9417e058"
+        ],
+        "next_candidate_scope": "FORMAT_ONLY_PLUS_DERIVED_HASH_STATUS_AND_PACKAGE_BINDINGS",
+        "next_candidate_dispatch_limit": 1,
+        "protected_ga_rehearsal_dispatches_consumed": 9,
+        "protected_ga_rehearsal_reruns": 0,
+        "t0705_complete": false,
+        "t0706_authorized": false,
+        "final_publication_authorized": false
+      }
+    },
+    "claims": {
+      "const": {
+        "protected_ga_executed": false,
+        "production_health_claimed": false,
+        "t0705_pass_claimed": false,
+        "stage7_complete_claimed": false,
+        "final_acceptance_claimed": false,
+        "final_publication_claimed": false
+      }
+    }
+  }
+}

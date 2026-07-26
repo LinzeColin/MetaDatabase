@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the v1.0.28 protected T0705 canonical Git Blob recovery manifest."""
+"""Build the v1.0.29 protected T0705 format-preflight recovery manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.28.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.28"
-PACKAGE_VERSION = "1.0.28"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.27.json")
-PREDECESSOR_MANIFEST_SHA256 = "de1ed6df0ba804506a04a30e0f3f943a4e968bf85d7c13b5616cc1b6763ac70a"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.29.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.29"
+PACKAGE_VERSION = "1.0.29"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.28.json")
+PREDECESSOR_MANIFEST_SHA256 = "7acef8a16a000f0371c88cd5ac8fe12aa1d0409cecc250934f136395005d7f8d"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.27 manifest drift")
+        raise ValueError("predecessor v1.0.28 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -168,8 +168,7 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
         or status.get("overall_status")
         != "PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED"
-        or "T0705_CANONICAL_GIT_BLOB_RECOVERY_PENDING"
-        not in status.get("blockers", [])
+        or "T0705_CANONICAL_GIT_BLOB_RECOVERY_PENDING" not in status.get("blockers", [])
     ):
         raise ValueError(
             "T0705 protected GA canonical Git Blob recovery is not exactly authorized-pending"
@@ -183,7 +182,7 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v28",
+        "schema_version": "moomooau.package-manifest.v29",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
@@ -199,10 +198,10 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "2133673b335a384657c8668b62a1c13055c212cd and "
             "8b6faaf9059661edc3153352b8787ddbc4f733f3 and "
             "6f82e738611e0d2eeeadd2507f738c9e269c91e0, and preserve the exact T0702, "
-            "T0703 and T0704 protected PASS receipts plus all nine immutable T0705 failed-attempt "
-            "ledgers. One reviewed canonical Git Blob recovery delivery, one new "
-            "exact-main "
-            "attempt-1 protected "
+            "T0703 and T0704 protected PASS receipts plus all nine immutable T0705 protected "
+            "failed-attempt ledgers and the distinct pre-Secret candidate-validation ledger. "
+            "The formatter-rejected head is frozen. One format-only canonical Git Blob recovery "
+            "delivery, one new exact-main attempt-1 protected "
             "SCHEDULE_REHEARSAL with rerun zero and one later receipt/schedule-closure delivery "
             "remain authorized. "
             "Reuse only the existing eight-name moomooau-beta protected input "
@@ -210,9 +209,11 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "unauthorized."
         ),
         "scope": (
-            "Baseline-preserving v1.0.28 T0705 recovery candidate: immutable v1.0.1 product "
-            "contracts and v1.0.2-v1.0.27 predecessor lineage remain unchanged. All nine failed "
-            "GA heads are digest-bound and cannot be rerun or redispatched. The pointer recovery "
+            "Baseline-preserving v1.0.29 T0705 recovery candidate: immutable v1.0.1 product "
+            "contracts and v1.0.2-v1.0.28 predecessor lineage remain unchanged. All nine failed "
+            "GA heads and the pre-Secret formatter-rejected head are digest-bound and cannot be "
+            "rerun or redispatched. Runtime source changes only by deterministic Ruff formatting; "
+            "the pointer recovery "
             "uses bounded Contents metadata only to bind exact path, size and SHA, then requires "
             "the metadata-addressed Git Blobs API base64 body, response SHA, decoded size, age "
             "envelope and canonical Git blob SHA before decrypt; Contents inline and raw-media "

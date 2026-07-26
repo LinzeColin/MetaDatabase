@@ -276,6 +276,20 @@ delivery，继续停止在 T0706 前。当前有效入口为：
 - `SOURCE_PROVENANCE.v1.0.22.json`
 - `CHANGELOG.md`
 
+`v1.0.29` 直接继承不可变 v1.0.28，固化首次 canonical Git Blob recovery 候选的 pre-Secret
+确定性预检失败。exact-main authority context PASS，但 Ruff format check 在进入 protected
+Environment 前拒绝 `processed_commit.py`；Secret 注入、Gmail/私库调用与所有 mutation 均为
+0。该 head 永不 rerun/redispatch。v1.0.29 唯一运行时代码差异是 Ruff formatter 输出，其余只
+更新 ledger/schema、status、hash、composition 与 package binding。Fake Clock、fixture、历史
+回放与故障注入继续取代 Soak/观察期/等待窗口；只授权一个新 exact-main attempt-1
+format-only canonical Git Blob recovery rehearsal。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.29.md`
+- `ROADMAP.v1.0.29.md`
+- `PACKAGE_MANIFEST.v1.0.29.json`
+- `SOURCE_PROVENANCE.v1.0.29.json`
+- `CHANGELOG.md`
+
 `v1.0.28` 直接继承不可变 v1.0.27，固化 T0705 第九个不同 exact-main protected GA
 失败并冻结 head `6f82e738…`。第九次已在 Gmail credential exchange 前证明精确 GitHub App
 repository scope，随后公开输出仍固定在 `FIRST_IMPORT_POINTER_FETCH`；运行窗口 private

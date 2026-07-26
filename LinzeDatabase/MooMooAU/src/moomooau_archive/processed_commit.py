@@ -802,8 +802,7 @@ class GitHubProcessedCiphertextStore:
         ).hexdigest()
         if not hmac.compare_digest(git_blob_revision, revision):
             raise ProcessedCommitError(
-                "private Processed current blob revision differs: "
-                "canonical Git blob SHA mismatch"
+                "private Processed current blob revision differs: canonical Git blob SHA mismatch"
             )
         return RevisionedCiphertext(ciphertext, revision)
 
