@@ -1,0 +1,10 @@
+[Unit]
+Description=Run CyberBoss daily R2 snapshot
+
+[Timer]
+OnCalendar=*-*-* 03:20:00 UTC
+Persistent=true
+RandomizedDelaySec=20min
+
+[Install]
+WantedBy=timers.target

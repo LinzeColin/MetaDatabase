@@ -19,6 +19,7 @@
 | xhs-douyin-2notion | 🚧 Stage 0 | 个人小红书/抖音内容知识治理；Public Code / Private Runtime |
 | PFI | ✅ 已在仓 | 个人财务智能 Streamlit 应用（顶层 `PFI/`，运行时读本机 `~/.pfi/runtime/`）；与 `LinzeDatabase/PFI` 数据目录不是同一个东西 |
 | ADP | ✅ 已迁入 | canonical 路径 `arxiv-daily-push/`；2026-07-20 从 CodexProject 迁入并纳入 `dual-plane.yml` |
+| CyberBoss | 🚧 Prestage 0 | 全云微信驱动 Codex MVP；唯一代码身份为本仓 `CyberBoss/`，按 AGPL-3.0-only 子树许可推进 |
 
 ## 股票 Skill Registry 版本模型
 
@@ -61,4 +62,5 @@ python3 Stock_Skill/scripts/validate_registry.py
 
 ## 许可
 
-专有，保留所有权利。见 LICENSE。
+除带有独立 `LICENSE` 的子目录外，本仓为专有、保留所有权利。`CyberBoss/`
+适用其目录内的 GNU AGPL-3.0-only 许可。见根目录及各子目录 `LICENSE`。

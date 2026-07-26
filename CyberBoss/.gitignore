@@ -1,0 +1,31 @@
+# Secrets and local activation state
+.env
+.env.*
+!.env.example
+auth.json
+credentials/
+wechat/
+
+# Runtime and private data
+runtime/
+work/
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.db-wal
+*.db-shm
+
+# Generated or deploy-local artifacts
+node_modules/
+dist/
+coverage/
+.cache/
+tmp/
+artifacts/private/
+artifacts/runtime/
+*.log
+
+# OS/editor
+.DS_Store

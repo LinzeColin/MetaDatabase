@@ -1,5 +1,9 @@
 Copyright (c) 2026 LinzeZhang. All Rights Reserved.
 
+This root license does not apply where a subdirectory contains its own
+LICENSE file. In particular, the `CyberBoss/` subtree is licensed under
+GNU AGPL-3.0-only as stated in `CyberBoss/LICENSE`.
+
 This software and its associated documentation are proprietary and
 confidential. No license, express or implied, is granted to any person to
 use, copy, modify, merge, publish, distribute, sublicense, or sell copies

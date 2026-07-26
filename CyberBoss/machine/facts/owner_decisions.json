@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "project": {
+    "repository": "LinzeColin/MetaDatabase",
+    "subpath": "CyberBoss/",
+    "independent_repository_allowed": false
+  },
+  "license": {
+    "decision": "A1",
+    "subtree_license": "AGPL-3.0-only",
+    "root_license_overrides_subtree": false,
+    "corresponding_source_offer_required": true
+  },
+  "upstream_separation": {
+    "historical_provenance_required": true,
+    "fixed_source_import_allowed": true,
+    "upstream_remote_allowed": false,
+    "git_submodule_allowed": false,
+    "git_url_runtime_dependency_allowed": false,
+    "automatic_sync_allowed": false,
+    "runtime_source_fetch_allowed": false,
+    "periodic_rebase_allowed": false,
+    "future_update_requires_owner_change_event": true
+  },
+  "workspace": {
+    "decision": "B1",
+    "default_alias": "cyberboss",
+    "repository": "LinzeColin/MetaDatabase",
+    "default_write_globs": [
+      "CyberBoss/**"
+    ],
+    "root_integration_files_require_run_contract": true
+  },
+  "data": {
+    "repository": "LinzeColin/Private-Database",
+    "area": "Private-MetaDatabase",
+    "domain": "CyberBoss",
+    "clone_allowed": false,
+    "client": "KMOS/KMDatabase/machine/tools/private_db_client.py"
+  },
+  "execution": {
+    "taskpack_version": "v0.0.0.4",
+    "stages": [
+      "S0",
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S5"
+    ],
+    "max_phases_per_run": 1,
+    "dependency_gate": "all_dependencies_must_be_passed",
+    "intermediate_local_commits_allowed": true,
+    "intermediate_push_allowed": false,
+    "intermediate_pull_request_allowed": false,
+    "final_push_requires_all_pass_gates": true
+  },
+  "final_cleanup": {
+    "merge_required": true,
+    "pull_request_closed_required": true,
+    "remote_branch_deleted_required": true,
+    "worktree_removed_required": true,
+    "local_branch_deleted_required": true,
+    "worktree_prune_required": true,
+    "git_gc_required": true,
+    "git_gc_prune_now_forbidden": true
+  },
+  "decided_on": "2026-07-26"
+}

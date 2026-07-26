@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "project": "CyberBoss Cloud",
+  "url": "https://cyberboss.linzezhang.com",
+  "composition": "WeChat bridge + Codex Runtime + Timeline + canonical sync",
+  "runtime_host": "OVH Singapore VPS-1",
+  "database": "Private-MetaDatabase canonical objects + SQLite runtime spool",
+  "file_storage": "Cloudflare R2 cold + OCI backup",
+  "deployment": "GitHub Actions + systemd immutable releases",
+  "backup": "SQLite online snapshot -> R2 -> OCI selected copy",
+  "agent_dependency": "Product jobs use Codex; status/self-heal/backup do not use Agent tokens",
+  "state": "not_verified",
+  "generated_at": "2026-07-26T00:00:00Z",
+  "source_generated_at": null,
+  "source_age_seconds": null,
+  "summary": {
+    "version": "0.0.0.4",
+    "resource_profile": "tiny",
+    "wechat": "unknown",
+    "runtime": "unknown",
+    "queue": 0,
+    "canonical": "unknown",
+    "timeline": "unknown",
+    "r2": "unknown",
+    "oci": "activation_pending",
+    "memory_used_percent": null,
+    "disk_used_percent": null,
+    "degraded_reasons": ["not_verified"]
+  }
+}

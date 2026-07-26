@@ -1,0 +1,2011 @@
+taskpack:
+  name: CyberBoss Full-Cloud MVP
+  version: v0.0.0.4
+  delivery: FINAL
+  date: '2026-07-26'
+  timezone: Australia/Sydney
+  target_domain: cyberboss.linzezhang.com
+  global_status: status.linzezhang.com
+  target_host: OVH Singapore; capacity selected from live preflight (constrained/tiny/standard), no hardcoded host facts
+  pursuing_goal: Deploy a true all-cloud, single-user, text-first CyberBoss MVP within the 24-hour implementation window,
+    with durable WeChat messaging, OVH Codex execution, Private-MetaDatabase canonical facts, Timeline/status, immediate deterministic reliability
+    verification, no Mac dependency, no public Runtime transport, and no real-time soak gate.
+  file_model: 7 core control files are a minimum skeleton, not a file-count limit; supplemental engineering assets are authoritative
+    by declared precedence.
+  verification_model: deterministic accelerated verification; no real-time soak, observation-period gate, or fixed-sleep canary
+canonical_facts:
+  mac_dependency: false
+  primary_runtime: codex
+  secondary_runtime: claude-code-disabled-by-default
+  runtime_transport: ws://127.0.0.1:8765 only
+  active_job_concurrency: 1
+  channel: weixin-ilink-text-only
+  code_repository: LinzeColin/MetaDatabase
+  project_subpath: CyberBoss/
+  workspace_alias: cyberboss
+  workspace_default_write_scope: CyberBoss/**
+  canonical_hot_store: LinzeColin/Private-Database@main/Private-MetaDatabase (domain=CyberBoss)
+  canonical_access: KMOS/KMDatabase/machine/tools/private_db_client.py ingest/get/list/verify; clone forbidden
+  runtime_spool: SQLite WAL, reconstructable and non-canonical
+  cold_object_store: Cloudflare R2
+  cold_backup: OCI Object Storage
+  timeline: fixed local timeline-for-agent source bundle; no upstream remote or moving Git dependency
+  service_manager: systemd
+  human_ui_auth: Cloudflare Access Google/GitHub IdP
+  self_heal_uses_llm: false
+  core_control_files_are_minimum_not_limit: true
+  real_time_soak_gate: false
+  credential_wait_blocks_development: false
+  max_phases_per_run: 1
+  intermediate_push_allowed: false
+  intermediate_pull_request_allowed: false
+  final_publication_requires_all_pass_gates: true
+  activation_status_values:
+  - verified
+  - activation_pending
+  - failed
+  clock_testing: injectable fake clock required for retries, TTL, reminders, check-in and lifecycle
+authority_order:
+- 00_README_FIRST.md
+- 02_PRD_ACCEPTANCE_CONTRACT.md
+- 04_TASK_DAG_EXECUTION_PACK.yaml
+- 03_ARCHITECTURE_DATA_SECURITY.md
+- 05_ACCELERATED_VERIFICATION_MODEL_SECURITY_RELEASE.md
+- 06_OPERATIONS_STATUS_HANDOVER.md
+- 09_PREAUTHORIZED_DECISIONS_ACTIVATION_INPUTS.md
+- 10_TRACEABILITY_RELEASE_CHECKLIST.md
+- 11_AGENT_EXECUTION_PROMPTS.md
+- 08_UPSTREAM_CODE_CHANGE_MAP.md
+- 01_PRFAQ_STRATEGY_OKR.md
+- 07_RESEARCH_COMPETITOR_UPSTREAM_FINDINGS.md
+- implementation-kit/
+preauthorized_reversible_decisions:
+- Create task branches and bounded Git worktrees.
+- Install Node.js 22, Codex CLI, pinned application dependencies and required OS packages.
+- Create the dedicated cyberboss Linux user, directories, systemd units and additive SQLite migrations.
+- Use loopback WebSocket, SQLite WAL, Private-MetaDatabase content-addressed batches, R2 snapshots and Cloudflare Access.
+- Run unit, integration, E2E, chaos, security, model evaluation and restore tests.
+- Roll back the current symlink to the prior immutable release.
+- Clean verified temporary files, old logs and old releases within the documented retention policy.
+- Use provider simulators and fake credentials to complete all non-activation work when external credentials are absent.
+- Use injectable clocks and immediate fault injection instead of waiting for real retry, TTL, reminder, lifecycle or observation
+  intervals.
+- Continue every dependency-independent DAG node when one activation or hazardous action is unavailable.
+- Choose constrained, tiny or standard resource profile from live measurements and clean only verified reconstructable caches.
+pass_gates:
+  PG-0: Pinned sources, current architecture, simulators, live-measurement script, activation sheet and no-wait policy validate;
+    no credential is required to pass repository preparation.
+  PG-1: All-cloud Walking Skeleton passes with channel/runtime simulators and loopback transport; real adapters are additionally
+    verified when activated.
+  PG-2: Durable inbox/outbox, cursor ordering, idempotency, singleton and crash-cut recovery pass count-based deterministic
+    tests.
+  PG-3: Private-MetaDatabase no-clone canonical adapter, Timeline, status, adaptive resource guard and R2/OCI adapters pass real or simulator-backed
+    contract tests with explicit activation state.
+  PG-4: Software, model, security, privacy, license, fault-injection and restore pipelines have no unaccepted P0/P1 and no
+    real-time soak.
+  PG-5: Immutable candidate/current/previous release promotion, request-count canary, real activated E2E where credentials exist, rollback, restore and handover
+    are verified without observation waits.
+stage_plan:
+- id: S0
+  name: Preparation, Baseline, Simulators and Activation Sheet
+  tasks:
+  - CB-000
+  - CB-010
+  - CB-020
+  - CB-030
+  - CB-040
+  exit_gate: PG-0
+- id: S1
+  name: All-cloud Walking Skeleton
+  tasks:
+  - CB-100
+  - CB-110
+  - CB-120
+  - CB-130
+  - CB-140
+  exit_gate: PG-1
+- id: S2
+  name: Durable Messaging and Canonical Facts
+  tasks:
+  - CB-200
+  - CB-210
+  - CB-220
+  - CB-230
+  - CB-240
+  exit_gate: PG-2
+- id: S3
+  name: Timeline, Status, Backup and Resource Operations
+  tasks:
+  - CB-300
+  - CB-310
+  - CB-320
+  - CB-330
+  - CB-340
+  exit_gate: PG-3
+- id: S4
+  name: Dual Assurance and Safe Release
+  tasks:
+  - CB-400
+  - CB-410
+  - CB-420
+  - CB-430
+  - CB-440
+  exit_gate: PG-4
+- id: S5
+  name: Production Activation, Request-count Canary and Handover
+  tasks:
+  - CB-500
+  - CB-510
+  - CB-520
+  - CB-530
+  - CB-540
+  exit_gate: PG-5
+tasks:
+- id: CB-000
+  title: Pin, audit and prepare fixed local source bundles with a baseline diff map
+  stage: S0
+  phase: P0.1
+  dependencies: []
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - WenXiaoWendy/cyberboss
+  - timeline-for-agent and transitive Git dependencies
+  - OpenAI Codex App Server docs
+  - current taskpack and declared multi-file authority
+  outputs:
+  - exact historical source SHAs/tags
+  - fixed local source bundles
+  - dependency/license inventory
+  - reuse-vs-change map
+  actions:
+  - Fetch/read each historical source once at the locked SHA and record version, SHA, Node engine, lockfile, copyright and license.
+  - Locate WeChat poll/cursor/send, Runtime adapter, shared-start, state directories and Timeline tool integration.
+  - Map every intended patch to a precise module; reject full rewrites unless a baseline failure proves necessity.
+  - Prepare local fixed source bundles and replace every moving Git dependency with a local fixed package plan.
+  - Prove the project has no upstream remote, submodule, `#main` dependency, automatic sync or runtime source-fetch path.
+  - Record official Codex transport/auth constraints and pin the minimum compatible CLI version after protocol compatibility
+    verification.
+  verification:
+  - Run fixed source-bundle syntax/install checks without secrets.
+  - Verify the fixed local timeline-for-agent bundle is callable.
+  - Verify taskpack assumptions against exact source.
+  required_evidence:
+  - baseline-source.md
+  - fixed SHA and source-bundle hash outputs
+  - dependency/license output
+  risks:
+  - Historical source no longer matches the recorded SHA
+  - Incomplete provenance or moving dependency remains
+  rollback:
+  - Delete the uncommitted local source bundle and re-fetch the exact SHA into an isolated temporary directory.
+  stop_conditions:
+  - License is not AGPL-compatible with intended use
+  - Core capabilities no longer exist in pinned source
+  acceptance_criteria:
+  - AC-034
+  - AC-069
+  pass_gate: PG-0
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 1
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-010
+  title: Measure OVH and existing status baseline
+  stage: S0
+  phase: P0.2
+  dependencies:
+  - CB-000
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - OVH host access
+  - status.linzezhang.com public/read-only view
+  - existing services/processes/filesystems
+  outputs:
+  - resource-baseline.md
+  - port/process/storage inventory
+  - safe capacity budget
+  - status integration contract confirmation
+  actions:
+  - Run the live preflight collector once to capture memory, swap, load, disk, inode, ports and existing service consumption.
+  - Inventory existing reverse proxy, systemd, containers and status ingestion without modifying unrelated services.
+  - Select constrained, tiny or standard profile from measured headroom; calculate MemoryHigh/MemoryMax, disk caps and protect/recover
+    predicates.
+  - Inspect the existing status contract and build an adapter fixture rather than replacing the platform.
+  - Identify conflicts and propose reversible port/path assignments.
+  verification:
+  - Compare three immediate snapshots and one induced-load snapshot; no real-time observation window.
+  - Validate chosen ports and paths against current inventory.
+  - Run profile calculator and resource pressure fixture.
+  required_evidence:
+  - resource-baseline.md
+  - df/free/ss/systemctl redacted outputs
+  - status contract note
+  risks:
+  - Underestimated existing load
+  - Accidental impact on other services
+  rollback:
+  - No mutation except explicitly safe cleanup; restore any changed service config from backup.
+  stop_conditions:
+  - Single Codex Runtime cannot run even in tiny profile without OOM or harming existing critical services
+  - Safe cleanup/partial clone cannot create enough space for the bounded active release and workspace
+  - Port/reverse proxy conflict has no safe resolution
+  acceptance_criteria:
+  - AC-064
+  - AC-067
+  pass_gate: PG-0
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 1
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-020
+  title: Lock monorepo identity, data-client scopes, DNS/Access/R2/OCI adapters and secret slots
+  stage: S0
+  phase: P0.3
+  dependencies:
+  - CB-010
+  suggested_owner: Human once + Codex
+  inputs:
+  - GitHub organization/account
+  - Cloudflare zone/Access
+  - R2
+  - OVH root
+  - taskpack naming defaults
+  outputs:
+  - verified MetaDatabase/CyberBoss identity and B1 write scope
+  - Private-MetaDatabase no-clone client contract
+  - least-privilege identities
+  - DNS/Access staging routes
+  - secret inventory
+  actions:
+  - Verify the existing code repository is exactly `LinzeColin/MetaDatabase`, project path `CyberBoss/`; never create or fork another repository.
+  - Lock the MVP workspace to alias `cyberboss`, repository `LinzeColin/MetaDatabase`, default write scope `CyberBoss/**`, with root integration files allowed only by Run Contract.
+  - Use `LinzeColin/Private-Database@main/Private-MetaDatabase (domain=CyberBoss)` as the only canonical hot-data target through `private_db_client.py`; never clone it.
+  - Create credential file slots and negative-scope tests without storing any real value in the repository.
+  - Prepare Cloudflare DNS, Access, Analytics and R2 scripts as idempotent activation commands.
+  - Prepare OCI prefix/credential adapter and mock endpoint.
+  - Run secret scanner and policy tests. If credentials exist, activate immediately; otherwise mark each adapter activation_pending
+    and continue.
+  verification:
+  - Mock client and workspace registry reject out-of-scope area/domain/repository/path/bucket operations.
+  - Access policy fixture denies anonymous/unauthorised identity.
+  - Repository contains no real secret and all activation slots are documented.
+  required_evidence:
+  - identity-scope.md
+  - Access denial/allow screenshots
+  - secret scan output
+  risks:
+  - Overprivileged deploy key
+  - Independent repository or Private-Database clone is reintroduced
+  - Secret leakage during setup
+  - Cloudflare route exposed before Access
+  rollback:
+  - Revoke credentials, delete staging route, rotate secrets, remove leaked commit using incident procedure.
+  stop_conditions:
+  - Only broad account-level write credentials are available
+  - Anonymous management exposure is required
+  acceptance_criteria:
+  - AC-043
+  - AC-065
+  - AC-069
+  - AC-056
+  pass_gate: PG-0
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-030
+  title: Validate and extend supplied channel/runtime simulators; prepare consolidated real-auth activation
+  stage: S0
+  phase: P0.4
+  dependencies:
+  - CB-020
+  suggested_owner: Human once + Codex
+  inputs:
+  - OVH staging environment
+  - Codex device-auth
+  - WeChat QR login
+  - pinned CyberBoss source
+  outputs:
+  - valid Codex auth state
+  - valid WeChat account/session state
+  - external-gate report
+  actions:
+  - Run the supplied WeChat iLink simulator for getupdates/sendmessage, duplicate updates, cursor replay and failures; extend only when the pinned source contract proves a gap.
+  - Run the supplied Codex App Server simulator for initialize/thread/turn/progress/approval/completion/error/overload; extend only for pinned-protocol gaps.
+  - Prepare codex device-auth and WeChat QR commands as one consolidated activation sheet.
+  - If the user performs activation, verify harmless real adapter calls immediately; otherwise keep real adapters activation_pending.
+  - Protect auth state as password material and record re-login procedure without token values.
+  verification:
+  - Channel simulator receives/sends and exercises duplicate/cursor/failure fixtures.
+  - Runtime simulator exercises success, crash, overload, approval and false-success fixtures.
+  - Real adapter state is exactly verified, activation_pending or failed; never inferred.
+  required_evidence:
+  - auth-gates.md
+  - redacted command output
+  - WeChat test screenshot
+  risks:
+  - Overseas account unsupported
+  - Device auth expires immediately
+  - Credentials printed in logs
+  rollback:
+  - Stop services, revoke/re-auth credentials, purge unsafe logs.
+  stop_conditions:
+  - Real adapter reports ban/risk-control or a credential is exposed; block that activation only.
+  acceptance_criteria:
+  - AC-001
+  - AC-010
+  - AC-065
+  - AC-056
+  pass_gate: PG-0
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-040
+  title: Freeze implementation baseline and release plan
+  stage: S0
+  phase: P0.5
+  dependencies:
+  - CB-000
+  - CB-010
+  - CB-020
+  - CB-030
+  suggested_owner: Main developer
+  inputs:
+  - all Stage 0 evidence
+  - taskpack
+  - actual repository/host names
+  outputs:
+  - implementation-baseline.md
+  - actual environment substitutions
+  - local implementation branch
+  - go/no-go decision
+  actions:
+  - Validate every locked non-secret repository, path, domain, service and prefix; keep only secret-value slots outside Git.
+  - Confirm no Mac/local connector task remains and no real-time soak/wait node exists.
+  - Confirm MVP flags, out-of-scope list and multi-file authority.
+  - Create a local baseline commit on `codex/cyberboss`; do not push or create a PR.
+  - Publish a concise execution decision listing passed preparation and activation_pending items; do not wait for inputs.
+  verification:
+  - Task DAG dependency validation.
+  - Search all deliverables for conflicting architectures/paths/domains.
+  - Review scope against locked MVP scope and no-wait rule.
+  required_evidence:
+  - implementation-baseline.md
+  - DAG validator output
+  - local baseline commit SHA
+  risks:
+  - Unresolved substitution or conflicting repository/path identity
+  - Scope expansion
+  rollback:
+  - Revert the local baseline commit and update substitutions without touching main or any remote.
+  stop_conditions:
+  - An unresolved architecture contradiction affects Canonical Facts; fix it before dependent implementation while unrelated
+    work continues.
+  acceptance_criteria:
+  - AC-068
+  - AC-056
+  - AC-070
+  pass_gate: PG-0
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 1
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-100
+  title: Apply supplied lightweight host layout and systemd walking skeleton
+  stage: S1
+  phase: P1.1
+  dependencies:
+  - CB-040
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - resource baseline
+  - implementation-kit systemd/env/path templates
+  outputs:
+  - cyberboss user
+  - approved directories and permissions
+  - systemd unit in disabled staging state
+  - release symlink layout
+  actions:
+  - Apply and verify the supplied bootstrap/install scripts to create the dedicated cyberboss user and documented directories.
+  - Install systemd unit with KillMode=control-group, restart limits, env file, working directory and writable path allowlist.
+  - Create immutable releases/<sha> and current symlink.
+  - Configure journald/app log limits and singleton lock directory.
+  - Do not expose any network route yet.
+  verification:
+  - systemd-analyze verify
+  - permission negative tests
+  - second process cannot acquire singleton lock
+  required_evidence:
+  - unit verification output
+  - filesystem permission listing
+  - singleton test
+  risks:
+  - Service can read secrets beyond need
+  - ProtectSystem blocks worktree
+  - duplicate process
+  rollback:
+  - Disable unit, restore previous symlink/config, remove only newly created empty directories.
+  stop_conditions:
+  - Unit requires root runtime
+  - Cannot enforce a single owner
+  - Changes affect unrelated services
+  acceptance_criteria:
+  - AC-044
+  - AC-067
+  pass_gate: PG-1
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-110
+  title: Install and pin Node/Codex plus disabled Claude adapter
+  stage: S1
+  phase: P1.2
+  dependencies:
+  - CB-100
+  - CB-030
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - pinned versions
+  - auth-gate result
+  - host layout
+  outputs:
+  - Node 22+
+  - Codex CLI/App Server ready
+  - Claude Code optional binary with no credentials/disabled flag
+  - version manifest
+  actions:
+  - Install a reproducible Node version meeting the fixed source bundle and SQLite adapter requirements.
+  - Install/pin the Codex CLI version verified against App Server protocol.
+  - Prepare the dedicated protected Codex home and device-auth command; activate when available, otherwise use the simulator.
+  - Install Claude Code only if lightweight; leave credential absent and feature flag false.
+  - Capture version manifest and loopback startup command.
+  verification:
+  - node --version and database adapter self-test
+  - codex --version and app-server simulator/real ready test
+  - Claude dispatch negative test
+  - No public callback or Runtime exposure
+  required_evidence:
+  - versions.md
+  - readyz output
+  - feature-flag test
+  risks:
+  - CLI protocol drift
+  - Auth file permissions
+  - Unneeded Claude resource use
+  rollback:
+  - Remove new binary/version, restore pinned package/source, preserve protected auth backup if safe.
+  stop_conditions:
+  - Codex App Server cannot become ready
+  - Auth requires public callback/exposure
+  acceptance_criteria:
+  - AC-011
+  - AC-017
+  - AC-065
+  pass_gate: PG-1
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-120
+  title: Install fixed source bundle, no-clone canonical client and bounded workspace
+  stage: S1
+  phase: P1.3
+  dependencies:
+  - CB-100
+  - CB-020
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - MetaDatabase code workspace and Private-Database client contract
+  - workspace registry contract
+  outputs:
+  - sparse MetaDatabase workspace
+  - allowlisted workspace registry
+  - separate code/data client identities
+  - disk budget proof
+  actions:
+  - Install the immutable application release from the fixed local source bundle and current MetaDatabase commit.
+  - Create one sparse MetaDatabase workspace using --filter=blob:none with `CyberBoss` and declared root integration paths.
+  - Install/configure the pinned `private_db_client.py` interface without cloning Private-Database.
+  - Create workspace alias config; verify realpath is under /srv/cyberboss-workspaces.
+  - Configure code changes through local branches/worktrees until PG-5; canonical ingests use a separate data identity.
+  - Set repository/cache/worktree quotas and cleanup commands.
+  verification:
+  - Unknown alias and /etc path rejected.
+  - Symlink escape rejected.
+  - Total disk within budget.
+  - Code identity cannot ingest Private-MetaDatabase and data identity cannot modify code where configured.
+  required_evidence:
+  - workspace-registry test
+  - du output
+  - credential negative test
+  risks:
+  - Full MetaDatabase clone fills disk
+  - Credential cross-scope
+  - Path escape
+  rollback:
+  - Delete bounded workspace/worktree and recreate sparse workspace; revoke mis-scoped credential.
+  stop_conditions:
+  - Workspace remains >8 GB
+  - Cannot isolate credentials or paths
+  acceptance_criteria:
+  - AC-013
+  - AC-014
+  - AC-064
+  pass_gate: PG-1
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-130
+  title: Run the fixed local cloud bridge and Codex on loopback under one supervised process family
+  stage: S1
+  phase: P1.4
+  dependencies:
+  - CB-100
+  - CB-110
+  - CB-120
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - pinned source
+  - valid auth
+  - systemd layout
+  - workspace registry
+  outputs:
+  - staging CyberBoss service
+  - loopback Runtime
+  - single bridge owner
+  - baseline cloud logs
+  actions:
+  - Install dependencies from lockfile.
+  - Configure state root under /var/lib/cyberboss and endpoint ws://127.0.0.1:8765.
+  - Start via systemd in staging; keep the whole process tree in one cgroup.
+  - Use channel/runtime simulators when real auth is pending; switch adapters by configuration only.
+  - Patch only minimal cloud path/state assumptions and verify no public listener or duplicate owner.
+  verification:
+  - health/ready probes
+  - ss/port scan
+  - 100 concurrent/restart attempts
+  - systemd restart test
+  required_evidence:
+  - journal excerpt
+  - process tree
+  - port scan
+  - singleton count
+  risks:
+  - Detached child survives restart
+  - Duplicate bridge
+  - Public App Server
+  rollback:
+  - Stop/kill cgroup, revert unit/current symlink, restore prior state directory snapshot.
+  stop_conditions:
+  - Runtime must listen non-loopback
+  - Duplicate owner cannot be prevented
+  acceptance_criteria:
+  - AC-011
+  - AC-040
+  - AC-044
+  - AC-062
+  pass_gate: PG-1
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 3
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-140
+  title: Prove all-cloud Walking Skeleton with deterministic simulators and optional real adapters
+  stage: S1
+  phase: P1.5
+  dependencies:
+  - CB-130
+  suggested_owner: Human sends test + Codex
+  inputs:
+  - staging service
+  - authorized WeChat user
+  - safe read-only workspace prompt
+  outputs:
+  - ten successful E2E traces
+  - Mac-offline proof
+  - baseline latency
+  - PG-1 decision
+  actions:
+  - Ensure the architecture contains no Mac IP, process, path or connector.
+  - Run ten deterministic read-only tasks through channel simulator → durable bridge → runtime simulator → outbox.
+  - Correlate inbound message, Runtime turn, outbox and canonical event with one trace ID.
+  - When real WeChat and Codex are activated, run the same ten tasks immediately through real adapters.
+  - Fix only Walking Skeleton defects; never wait for activation or observation.
+  verification:
+  - Simulator E2E succeeds 10/10 and expected values match.
+  - Mac dependency/config search hits=0.
+  - Real adapter E2E is verified or explicitly activation_pending.
+  required_evidence:
+  - WeChat screenshots
+  - redacted correlated logs
+  - latency-baseline.md
+  risks:
+  - False positive adapter-only reply
+  - Mac still used indirectly
+  - Intermittent WeChat account failure
+  rollback:
+  - Stop staging service and revert to last known baseline without claiming MVP.
+  stop_conditions:
+  - A narrow adapter defect cannot be isolated; block that adapter and continue reliable core implementation.
+  acceptance_criteria:
+  - AC-001
+  - AC-010
+  - AC-061
+  - AC-002
+  - AC-006
+  pass_gate: PG-1
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-200
+  title: Implement SQLite WAL spool and strict job state machine
+  stage: S2
+  phase: P2.1
+  dependencies:
+  - CB-140
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - starter SQL
+  - Acceptance state machine
+  - imported baseline state paths
+  outputs:
+  - additive schema/migration
+  - repository/state services
+  - strict transitions
+  - encrypted active payload handling
+  actions:
+  - Implement tables for inbox, jobs, events, outbox, sync spool and service state.
+  - Enable WAL, foreign keys, busy timeout and integrity checks.
+  - Create unique indexes for source message and outbox dedupe keys.
+  - Implement explicit transition function rejecting illegal transitions.
+  - Add TTL/redaction hooks and never log active plaintext payloads.
+  verification:
+  - Migration on clean and existing fixture.
+  - State transition property tests.
+  - Concurrent duplicate insert test.
+  - SQLite integrity_check.
+  required_evidence:
+  - migration/test output
+  - schema dump
+  - property-test report
+  risks:
+  - Schema locks
+  - Sensitive payload leakage
+  - Destructive migration
+  rollback:
+  - Restore prior snapshot and previous release; additive tables may remain unused.
+  stop_conditions:
+  - Migration requires destructive rewrite
+  - Integrity check fails
+  - Plaintext secret appears
+  acceptance_criteria:
+  - AC-003
+  - AC-016
+  - AC-055
+  - AC-063
+  pass_gate: PG-2
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 3
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-210
+  title: Make durable inbox precede WeChat cursor commit and enforce idempotency
+  stage: S2
+  phase: P2.2
+  dependencies:
+  - CB-200
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - WeChat adapter
+  - runtime spool
+  - cursor state
+  outputs:
+  - candidate-cursor flow
+  - transactional inbox ingestion
+  - dedupe behavior
+  - kill-point hooks
+  actions:
+  - Refactor getUpdates so it returns messages plus a candidate cursor without committing it.
+  - Persist normalized messages/jobs transactionally.
+  - Commit the candidate cursor only after the highest continuous batch is durable.
+  - On replay, return the existing job/ack rather than dispatch again.
+  - Add controlled kill points around fetch, durable commit and cursor commit.
+  verification:
+  - Crash after fetch/before durable
+  - Crash after durable/before cursor
+  - Crash after cursor
+  - Replay same source ID 1,000 times
+  - Ordering/property test for multi-message batches
+  required_evidence:
+  - kill-point matrix
+  - DB/query results
+  - runtime execution counter
+  risks:
+  - Cursor regression
+  - Provider lacks stable message ID
+  - Batch partial ordering
+  rollback:
+  - Feature flag back to the imported baseline flow only in staging; production remains blocked until fixed.
+  stop_conditions:
+  - Any kill point silently loses a message
+  - Replay executes twice
+  acceptance_criteria:
+  - AC-004
+  - AC-023
+  - AC-063
+  pass_gate: PG-2
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 3
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-220
+  title: Implement scheduler, resource gate, workspace alias and Runtime control
+  stage: S2
+  phase: P2.3
+  dependencies:
+  - CB-200
+  - CB-120
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - job state machine
+  - workspace registry
+  - resource thresholds
+  - Codex adapter
+  outputs:
+  - single-lease scheduler
+  - resource/readiness gate
+  - safe bind/stop/new/status commands
+  - Runtime error classification
+  actions:
+  - Select FIFO eligible job only when global lease is free.
+  - Check Runtime readiness, memory/disk/load, workspace alias and operation class before dispatch.
+  - Implement lease heartbeat/expiry and classify recovery safety.
+  - Replace arbitrary path binding with alias lookup and realpath guard.
+  - Implement stop/cancel acknowledgement and truthful final state.
+  verification:
+  - Five queued jobs never exceed active=1.
+  - Unknown/absolute/symlink workspace tests.
+  - Resource threshold fixtures.
+  - Stop during active job.
+  required_evidence:
+  - scheduler timeline
+  - workspace tests
+  - resource/stop logs
+  risks:
+  - Unsafe automatic replay of mutation
+  - Lease orphan
+  - Workspace escape
+  rollback:
+  - Disable scheduler flag and revert to manual staging dispatch; release blocked.
+  stop_conditions:
+  - Active concurrency exceeds one
+  - Mutation is auto-replayed without proof
+  - Workspace escape succeeds
+  acceptance_criteria:
+  - AC-012
+  - AC-013
+  - AC-014
+  - AC-015
+  - AC-045
+  - AC-064
+  pass_gate: PG-2
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 3
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-230
+  title: Implement durable outbox, retries, reply dedupe and process recovery
+  stage: S2
+  phase: P2.4
+  dependencies:
+  - CB-210
+  - CB-220
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - sendmessage adapter
+  - outbox schema
+  - job terminal events
+  outputs:
+  - outbox worker
+  - retry taxonomy/backoff
+  - stable chunk/dedupe keys
+  - restart recovery
+  actions:
+  - Persist accepted/final/error replies before send.
+  - Implement bounded jittered exponential retry using an injectable clock for transient network/provider errors.
+  - Confirm send before marking replied; terminal failures remain visible.
+  - Use stable chunk sequence and dedupe keys for long replies.
+  - Recover pending/sending rows after restart without duplicate visible results.
+  verification:
+  - Crash before send/after provider call/before confirmation commit
+  - 'Virtual-clock fixture: two 503 then success'
+  - Replay same outbox key 1,000 times
+  - Permanent 401 classification
+  - Long-result chunk reconstruction hash
+  required_evidence:
+  - outbox fault report
+  - provider mock receipts
+  - restart logs
+  risks:
+  - Provider has no idempotency key
+  - Ambiguous send confirmation
+  - Duplicate chunks
+  rollback:
+  - Disable final sending and preserve outbox for manual recovery; do not discard rows.
+  stop_conditions:
+  - Test produces duplicate visible replies
+  - Generated result can be marked replied without confirmation
+  acceptance_criteria:
+  - AC-020
+  - AC-021
+  - AC-022
+  - AC-024
+  - AC-025
+  - AC-062
+  pass_gate: PG-2
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 3
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-240
+  title: Implement redacted append-only Private-MetaDatabase canonical sync
+  stage: S2
+  phase: P2.5
+  dependencies:
+  - CB-120
+  - CB-200
+  - CB-230
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - Private-MetaDatabase no-clone client
+  - sync identity
+  - canonical event contract
+  - terminal job/outbox state
+  outputs:
+  - canonical event mapper
+  - batch sync worker
+  - conflict-safe content-addressed ingest
+  - sync lag status
+  - rebuild index
+  actions:
+  - Map terminal jobs and material events to redacted canonical records.
+  - Batch up to 50 events or 60 seconds into deterministic compressed objects.
+  - Ingest with `domain=CyberBoss`; on manifest 409/429/transient failure refetch and retry idempotently.
+  - Resolve concurrent appends by event-ID set verification.
+  - Detect same ID/different hash as integrity incident.
+  - Expose pending/oldest/last object/last verification and stop mutation after backlog threshold.
+  - Provide a rebuild command using client get/list/verify.
+  verification:
+  - 50 terminal jobs sync P95<=60s.
+  - Private-Database API unavailable for a fake-clock 10-minute interval, then catch-up.
+  - Concurrent manifest 409 and rate-limit 429 fixtures.
+  - Privacy/secret scan.
+  - Delete SQLite in isolation and rebuild terminal index.
+  required_evidence:
+  - object/manifest hashes
+  - sync-latency report
+  - conflict set-diff
+  - rebuild report
+  risks:
+  - API/manifest conflict overwrites events
+  - Sensitive content enters repo
+  - Commit storm
+  rollback:
+  - Disable sync worker, preserve local sync spool, quarantine a bad object/manifest record without deleting source events.
+  stop_conditions:
+  - Event loss/overwrite
+  - Real secret/full private prompt enters Git
+  - Normal sync lag persistently >15min
+  acceptance_criteria:
+  - AC-030
+  - AC-031
+  - AC-032
+  - AC-033
+  pass_gate: PG-2
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 3
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-300
+  title: Adapt existing Timeline to canonical cloud read-only service
+  stage: S3
+  phase: P3.1
+  dependencies:
+  - CB-240
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - timeline-for-agent integration
+  - canonical timeline source
+  - Access route
+  outputs:
+  - canonical Timeline writer
+  - debounced static build
+  - read-only static output
+  - lightweight search index
+  actions:
+  - Route job/diary/check-in events through existing timeline write/build tools.
+  - Build from canonical source/cache; no second Timeline implementation.
+  - Serve static output on loopback and expose only through Access.
+  - Add date/category/workspace/job filters without a search server.
+  - Retain prior good build if a new build fails.
+  verification:
+  - Clean checkout rebuild.
+  - Build-failure fallback.
+  - Search fixture tests.
+  - Anonymous access denied.
+  required_evidence:
+  - build log/hash
+  - Access screenshots
+  - search test
+  risks:
+  - Continuous watcher consumes resources
+  - Timeline leaks private content
+  - Second data source diverges
+  rollback:
+  - Disable web flag and serve last good static build; canonical source remains intact.
+  stop_conditions:
+  - Timeline implementation bypasses canonical source
+  - Private content is publicly reachable
+  acceptance_criteria:
+  - AC-034
+  - AC-035
+  - AC-036
+  pass_gate: PG-3
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-310
+  title: Build redacted status exporter and global status adapter
+  stage: S3
+  phase: P3.2
+  dependencies:
+  - CB-230
+  - CB-240
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - status contract
+  - existing status page ingestion behavior
+  - local service/DB/system metrics
+  outputs:
+  - healthz/readyz
+  - snapshot.json
+  - global status adapter/ingest
+  - degraded reason rules
+  actions:
+  - Implement distinct process, poll, send, Runtime and E2E health states.
+  - Export queue, canonical, Timeline, backup and resource freshness.
+  - Deny forbidden fields by construction and contract test.
+  - Integrate with existing status refresh without deploying a second status platform.
+  - Mark unknown/activation_pending/not_verified explicitly rather than green.
+  verification:
+  - Inject each component failure independently
+  - Direct-trigger snapshot + monotonic generation ID
+  - DLP forbidden-pattern test
+  - Invoke existing global status adapter and match generation ID
+  required_evidence:
+  - snapshot samples
+  - fault matrix
+  - status screenshot/fetch log
+  risks:
+  - Status exposes secrets
+  - All-green aggregation hides a broken channel
+  - Integration disturbs existing status
+  rollback:
+  - Disable adapter route and revert status config; local snapshot remains available.
+  stop_conditions:
+  - Forbidden data appears
+  - Existing status platform is destabilized
+  acceptance_criteria:
+  - AC-040
+  - AC-041
+  - AC-042
+  - AC-043
+  - AC-046
+  pass_gate: PG-3
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-320
+  title: Publish cyberboss domain through Cloudflare Access and privacy-first analytics
+  stage: S3
+  phase: P3.3
+  dependencies:
+  - CB-300
+  - CB-310
+  - CB-020
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - DNS/Access app
+  - reverse proxy
+  - Timeline/status routes
+  - Web Analytics
+  outputs:
+  - cyberboss.linzezhang.com route
+  - Access policies
+  - TLS
+  - Web Analytics visibility
+  actions:
+  - Route only UI/status paths through the existing origin proxy; never proxy Runtime port.
+  - Require Access for Timeline/admin/detailed status.
+  - Keep minimal health probe free of sensitive data or protect it according to existing collector.
+  - Enable Web Analytics for page views and unique visitors.
+  - Test origin firewall and direct-IP behavior.
+  verification:
+  - Allowed identity succeeds; anonymous/other identity denied.
+  - TLS valid.
+  - External port scan shows no Runtime.
+  - Analytics records test sessions without private app data.
+  required_evidence:
+  - Access/TLS screenshots
+  - port scan
+  - Analytics screenshot
+  risks:
+  - Origin bypass
+  - Access misconfiguration
+  - Analytics injects private content
+  rollback:
+  - Disable DNS/proxy route and return to loopback/staging access.
+  stop_conditions:
+  - Runtime becomes public
+  - Anonymous access to Timeline/admin
+  acceptance_criteria:
+  - AC-011
+  - AC-047
+  - AC-065
+  - AC-066
+  pass_gate: PG-3
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-330
+  title: Implement online snapshot, R2 cold storage and isolated restore
+  stage: S3
+  phase: P3.4
+  dependencies:
+  - CB-240
+  - CB-020
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - runtime DB
+  - R2 bucket token
+  - canonical commit
+  - backup manifest contract
+  outputs:
+  - consistent compressed snapshot
+  - SHA-256 manifest
+  - R2 lifecycle/prefix
+  - restore command/report
+  actions:
+  - Create a live SQLite snapshot using backup API or VACUUM INTO.
+  - Package only authorised state; exclude plaintext Codex auth and caches.
+  - Hash, upload to real R2 or object-store simulator, and verify remote metadata before local deletion.
+  - Apply tagged lifecycle rules and test them with provider fixtures/virtual dates.
+  - Run 20 isolated restore/reconcile cycles and compare integrity/event/timeline hashes.
+  - Verify OCI through real adapter when credential exists, otherwise simulator; status must be activation_pending, never
+    fake green.
+  verification:
+  - Live writes during backup.
+  - Local/remote SHA equality.
+  - SQLite integrity_check.
+  - Isolated restore.
+  - R2 failure preserves bounded local snapshot.
+  required_evidence:
+  - manifest
+  - R2 object metadata
+  - restore-drill.md
+  risks:
+  - Raw live DB copied inconsistently
+  - Snapshot contains secrets
+  - Disk fills while R2 unavailable
+  rollback:
+  - Stop timer, retain last verified local/remote snapshot, delete only failed temporary archive.
+  stop_conditions:
+  - Integrity check fails
+  - Secret scan hits archive
+  - No bounded fallback under R2 outage
+  acceptance_criteria:
+  - AC-050
+  - AC-051
+  - AC-052
+  - AC-053
+  pass_gate: PG-3
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 3
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-340
+  title: Add resource guards, deterministic self-heal and retention
+  stage: S3
+  phase: P3.5
+  dependencies:
+  - CB-230
+  - CB-310
+  - CB-330
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - host baseline
+  - resource thresholds
+  - systemd service
+  - retention policy
+  outputs:
+  - readiness/resource gate
+  - self-heal timer
+  - bounded logs/cache/releases/tmp
+  - hysteresis recovery
+  actions:
+  - Measure host/service resources and generate constrained/tiny/standard cgroup profile from evidence.
+  - Gate new mutation jobs at warning/protect/recover predicates.
+  - Implement deterministic self-heal with injectable clock, max actions and no LLM.
+  - Rotate logs and remove only verified reconstructable data; retain current and previous release.
+  - Expose last self-heal action/result; validate direct invocation and timer unit without waiting for a timer tick.
+  verification:
+  - Inject disk/memory/load thresholds.
+  - Kill bridge/runtime.
+  - Verify self-heal makes no network call to LLM.
+  - Retention dry-run and actual safe cleanup.
+  required_evidence:
+  - resource-pressure report
+  - journal/timer logs
+  - cleanup before/after du
+  risks:
+  - Self-heal loop
+  - Deletes unsynced data
+  - MemoryMax too low
+  rollback:
+  - Disable timers, restore prior cgroup limits, restore deleted data only from verified backup if test environment.
+  stop_conditions:
+  - Self-heal repeats indefinitely
+  - Unsynced/user data would be deleted
+  - Service cannot run with 512MB host headroom
+  acceptance_criteria:
+  - AC-044
+  - AC-045
+  - AC-064
+  pass_gate: PG-3
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-400
+  title: Complete software correctness pipeline
+  stage: S4
+  phase: P4.1
+  dependencies:
+  - CB-210
+  - CB-220
+  - CB-230
+  - CB-240
+  - CB-300
+  - CB-310
+  - CB-330
+  - CB-340
+  suggested_owner: Codex/Claude Code
+  inputs:
+  - all implemented components
+  - Acceptance Contract
+  - CI template
+  outputs:
+  - lint/unit/integration/E2E suites
+  - coverage of invariants
+  - CI artifacts
+  - traceability links
+  actions:
+  - Run syntax/lint/type checks consistent with the imported source language.
+  - Test state machine, idempotency, cursor ordering, outbox, aliases, sync, status, backup and restore.
+  - Run simulator E2E for repeatability and real WeChat/Codex E2E immediately when activated.
+  - Run no-wait lint that rejects real-time soak gates, fixed long sleeps and credential-wait DAG nodes.
+  - Map every P0 requirement to a named test/evidence location and serialize release jobs.
+  verification:
+  - All P0 suites pass
+  - No skipped P0 test except clearly activation_pending real adapter
+  - No-wait lint hits=0
+  - Random sample of ten requirements has complete traceability
+  required_evidence:
+  - CI run URL/log bundle
+  - test summary
+  - traceability audit
+  risks:
+  - Flaky external E2E
+  - Tests assert mocks only
+  - Skipped test hidden
+  rollback:
+  - No release; revert failing component or feature flag.
+  stop_conditions:
+  - Any P0 deterministic test fails; fix that implementation. Real adapter activation may remain activation_pending without
+    stopping other tests.
+  acceptance_criteria:
+  - AC-068
+  - AC-056
+  - AC-070
+  pass_gate: PG-4
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 3
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-410
+  title: Run model capability and safety evaluation for Codex
+  stage: S4
+  phase: P4.2
+  dependencies:
+  - CB-400
+  suggested_owner: Codex evaluator + independent reviewer role
+  inputs:
+  - Codex runtime
+  - golden prompts
+  - safe test workspace
+  - security policy
+  outputs:
+  - capability scorecard
+  - false-success report
+  - prompt-injection/exfiltration results
+  - release recommendation
+  actions:
+  - Run read-only, bounded code-change, test, stop/cancel and recovery golden tasks.
+  - Verify claimed file changes against git diff/tests, not model text.
+  - Attempt prompt injection to read secrets/outside workspace or falsify success.
+  - Test approval/refusal behavior on irreversible actions.
+  - Record model/version and repeatable inputs without storing private user content.
+  verification:
+  - All critical golden tasks meet expected artifact/test oracle.
+  - Secret exfiltration=0.
+  - False-success=0 for release set.
+  - Irreversible action without approval=0.
+  required_evidence:
+  - model-scorecard.md
+  - red-team transcript redacted
+  - git/test evidence
+  risks:
+  - Model non-determinism
+  - Prompt injection succeeds
+  - Text claims success without artifact
+  rollback:
+  - Keep release disabled; adjust policy/prompt/sandbox and rerun entire critical set.
+  stop_conditions:
+  - Any secret exfiltration
+  - Any unauthorized irreversible action
+  - False-success on critical task
+  acceptance_criteria:
+  - AC-065
+  - AC-066
+  pass_gate: PG-4
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-420
+  title: Complete security, supply-chain, privacy and AGPL assurance
+  stage: S4
+  phase: P4.3
+  dependencies:
+  - CB-400
+  suggested_owner: Security reviewer role
+  inputs:
+  - code/dependencies/config/release
+  - threat model
+  - license requirements
+  outputs:
+  - SAST/dependency/secret results
+  - SBOM
+  - port/access/workspace report
+  - AGPL corresponding-source package
+  actions:
+  - Run dependency audit, CodeQL or equivalent, secret scan and configuration review.
+  - Generate an SBOM and pin lockfile/historical source commit.
+  - Verify Access, origin firewall, loopback Runtime and least-privilege credentials.
+  - Scan Private-MetaDatabase candidate objects, Timeline, status and backup archive for forbidden private content.
+  - Prepare LICENSE, modification notice and corresponding-source instructions for network users.
+  verification:
+  - Unaccepted P0/P1 findings=0.
+  - Real-secret hits=0.
+  - Public Runtime ports=0.
+  - Workspace escape tests=0.
+  - Compliance package complete.
+  required_evidence:
+  - security-report.md
+  - SBOM
+  - scan outputs
+  - license-source-offer.md
+  risks:
+  - False-negative secret scanning
+  - Dependency vulnerability
+  - AGPL omission
+  rollback:
+  - Rotate any exposed secret, block release, revert insecure config/dependency.
+  stop_conditions:
+  - P0/P1 security issue
+  - Real credential exposure
+  - AGPL package incomplete
+  acceptance_criteria:
+  - AC-043
+  - AC-065
+  - AC-066
+  - AC-069
+  pass_gate: PG-4
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-430
+  title: Run accelerated fault, crash-cut, recovery and backup-restore matrix
+  stage: S4
+  phase: P4.4
+  dependencies:
+  - CB-400
+  - CB-330
+  - CB-340
+  suggested_owner: SRE reviewer role
+  inputs:
+  - staging environment
+  - kill points
+  - fault injection
+  - R2 snapshot
+  outputs:
+  - chaos matrix
+  - RTO/RPO measurements
+  - restore report
+  - unresolved failure list
+  actions:
+  - Inject crashes at every durable inbox/cursor/job/outbox/canonical transaction cut-point.
+  - Run 100 process restarts, 100 runtime crashes, 1,000 duplicate messages and 100 send fault sequences.
+  - Simulate poll stale, Private-Database API conflict/rate-limit/outage, R2 outage and queue backlog with fake providers/clocks.
+  - Inject bounded disk/load/memory pressure without affecting unrelated services.
+  - Run 20 isolated restore/reconcile cycles and verify self-heal action budgets.
+  verification:
+  - No silent loss or duplicate mutation
+  - Probe-driven recovery reaches truthful ready/degraded state with no fixed sleep
+  - Committed inbox RPO=0 across cut-points
+  - All restore hashes/sets match
+  - Fault-to-status mapping exact
+  required_evidence:
+  - chaos-report.md
+  - RTO/RPO table
+  - restore diff/hash
+  risks:
+  - Fault injection harms other services
+  - Ambiguous provider send
+  - Restore untested
+  rollback:
+  - Use staging limits/snapshots; stop injection immediately on host-wide pressure.
+  stop_conditions:
+  - Silent loss/duplicate
+  - Restore cannot reproduce history
+  - Fault impacts unrelated production service
+  acceptance_criteria:
+  - AC-004
+  - AC-020
+  - AC-021
+  - AC-023
+  - AC-041
+  - AC-053
+  - AC-062
+  - AC-063
+  - AC-070
+  pass_gate: PG-4
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 3
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-440
+  title: Build feature-flagged immutable release candidate with current/previous rollback slots
+  stage: S4
+  phase: P4.5
+  dependencies:
+  - CB-410
+  - CB-420
+  - CB-430
+  suggested_owner: Release engineer role
+  inputs:
+  - passed assurance
+  - immutable release layout
+  - feature flags
+  - previous release
+  outputs:
+  - local release candidate directory/immutable label
+  - migration/rollback plan
+  - canary checklist
+  - release evidence summary
+  actions:
+  - Build release from exact commit and lockfile.
+  - Build from a local commit/archive; do not push, create a PR or create a Git tag.
+  - Set only MVP flags true; Claude/attachments/full-content/autonomous mutation false.
+  - Apply additive migration in staging and prove prior release can still read required state.
+  - Prepare current symlink switch and one-command rollback.
+  - Record known limitations and external not_verified items.
+  verification:
+  - Deploy vA→vB→rollback vA using predicate checks and no fixed sleep
+  - Feature flag negative tests
+  - Migration backward-read test
+  - Release artifact hash
+  required_evidence:
+  - release-summary.md
+  - rollback log
+  - artifact SHA
+  risks:
+  - Feature accidentally enabled
+  - Rollback broken
+  - Mutable release directory
+  rollback:
+  - Point current to previous release; preserve DB and sync spool.
+  stop_conditions:
+  - Rollback fails its ready predicate or requires a fixed wait
+  - Out-of-scope flag enabled
+  - Destructive migration
+  acceptance_criteria:
+  - AC-017
+  - AC-054
+  - AC-055
+  - AC-070
+  pass_gate: PG-4
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-500
+  title: Run full dress rehearsal from clean staging state
+  stage: S5
+  phase: P5.1
+  dependencies:
+  - CB-440
+  suggested_owner: Main developer + operator reviewer
+  inputs:
+  - release candidate
+  - runbook
+  - clean isolated staging directories
+  outputs:
+  - rehearsal report
+  - operator corrections
+  - go/no-go checklist
+  actions:
+  - Follow install/runbook from a clean staging slot without hidden shell history.
+  - Use simulators for absent external adapters and real adapters for activated ones.
+  - Run status, E2E, fault matrix, backup, restore and rollback in documented order.
+  - Have the operator role follow commands without source-code knowledge.
+  - Fix documentation ambiguity immediately; do not create an observation wait.
+  verification:
+  - All commands are copy-safe and produce expected output.
+  - No undocumented prerequisite.
+  - No taskpack contradiction.
+  required_evidence:
+  - dress-rehearsal.md
+  - runbook corrections
+  - go/no-go checklist
+  risks:
+  - Hidden developer knowledge
+  - Production-only assumption
+  rollback:
+  - Discard staging instance and adjust runbook/release candidate.
+  stop_conditions:
+  - Operator cannot complete without undocumented intervention
+  acceptance_criteria:
+  - AC-067
+  - AC-068
+  - AC-056
+  - AC-070
+  pass_gate: PG-5
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-510
+  title: Promote immutable production candidate and integrate DNS/status
+  stage: S5
+  phase: P5.2
+  dependencies:
+  - CB-500
+  suggested_owner: Codex/Claude Code under release authority
+  inputs:
+  - release candidate
+  - production env/secrets
+  - Cloudflare route
+  - global status adapter
+  outputs:
+  - active production release
+  - TLS/Access route
+  - status project entry
+  - rollback pointer
+  actions:
+  - Snapshot current state and record previous release.
+  - Install immutable release and additive migration.
+  - Switch current symlink and restart one process family; readiness uses predicate checks, not sleep.
+  - Activate available Cloudflare route/Access/status credentials; leave missing external adapter explicitly activation_pending.
+  - Immediately run health/ready/port/access and real adapter checks before enabling corresponding mutation path.
+  verification:
+  - health/ready correct.
+  - Runtime not public.
+  - Anonymous UI denied.
+  - Global status generation ID matches the manually triggered source snapshot.
+  - Previous release remains rollback-ready.
+  required_evidence:
+  - deployment log
+  - Access/TLS/port evidence
+  - status screenshot
+  - release SHA
+  risks:
+  - Downtime
+  - Access bypass
+  - Migration issue
+  rollback:
+  - Run rollback command to previous symlink and service state; keep new release disabled.
+  stop_conditions:
+  - Any P0 production check fails
+  - Rollback unavailable
+  acceptance_criteria:
+  - AC-011
+  - AC-040
+  - AC-046
+  - AC-054
+  pass_gate: PG-5
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-520
+  title: Run request-count production canary and accelerated reliability certification
+  stage: S5
+  phase: P5.3
+  dependencies:
+  - CB-510
+  suggested_owner: Codex/Claude Code plus one user message only for real WeChat activation
+  inputs:
+  - production service
+  - authorized user
+  - safe canary workspace
+  - status probes
+  outputs:
+  - production E2E evidence
+  - canary resource report
+  - incident/rollback decision
+  actions:
+  - Run five read-only deterministic canary requests and one bounded reversible mutation request.
+  - Verify accepted/job ID, artifact/test, outbox, canonical event, Timeline and status propagation.
+  - Run 1,000 duplicate replays, 100 restart races, 100 send faults and the crash-cut matrix against the release.
+  - Run burst resource/protect/recover tests and one on-demand backup/restore/reconcile.
+  - Promote immediately when all request-count and fault Oracles pass; rollback immediately on P0/P1. Do not observe or wait
+    for elapsed time.
+  verification:
+  - Read-only canary 5/5
+  - Bounded mutation artifact+test verified
+  - Duplicate execution count=1
+  - Fault/restart/restore suites pass
+  - Resource protect/recover passes
+  - No real-time soak or fixed sleep
+  required_evidence:
+  - production-canary.md
+  - WeChat evidence when activated or explicit activation_pending state
+  - Private-MetaDatabase/Timeline/status evidence
+  - accelerated reliability report
+  risks:
+  - Real user data mutation
+  - External WeChat instability
+  - Late resource leak
+  rollback:
+  - Stop new jobs, rollback release, preserve spool/evidence.
+  stop_conditions:
+  - P0/P1
+  - Silent loss/duplicate
+  - Memory/disk stop threshold
+  acceptance_criteria:
+  - AC-005
+  - AC-010
+  - AC-023
+  - AC-031
+  - AC-035
+  - AC-046
+  - AC-064
+  - AC-070
+  pass_gate: PG-5
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 4
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-530
+  title: Finalize operations, backup and handover evidence
+  stage: S5
+  phase: P5.4
+  dependencies:
+  - CB-520
+  suggested_owner: Main developer
+  inputs:
+  - production canary
+  - runbook
+  - canonical data
+  - R2 snapshot
+  outputs:
+  - operator handover
+  - latest backup/restore point
+  - known limitations
+  - exact deployed commit
+  - next-phase backlog
+  actions:
+  - Run final on-demand backup/hash and verify real R2 or simulator object/manifest.
+  - Record OCI state as verified, activation_pending or failed.
+  - Execute start/stop/diagnose/self-heal/backup/restore/rollback commands.
+  - List verified, activation_pending, failed and out-of-scope items without future observation gates.
+  - Record source commits, feature flags, resource profile and rollback target.
+  - Move excluded work only to the separate future roadmap.
+  verification:
+  - Operator command dry-run.
+  - Latest manifest can be fetched.
+  - No hidden secrets in handover.
+  - Known limitations match status.
+  required_evidence:
+  - handover.md
+  - backup manifest
+  - command transcript
+  - feature-flag snapshot redacted
+  risks:
+  - Handover claims unverified features
+  - Backup manifest stale
+  rollback:
+  - Correct documents/status; do not change running code unless a defect is found.
+  stop_conditions:
+  - No valid backup/rollback pointer
+  - Handover exposes secret
+  acceptance_criteria:
+  - AC-051
+  - AC-052
+  - AC-053
+  - AC-067
+  - AC-069
+  pass_gate: PG-5
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 2
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+- id: CB-540
+  title: Issue final MVP_LIVE / MVP_DEGRADED / ACTIVATION_PENDING / STOPPED decision
+  stage: S5
+  phase: P5.5
+  dependencies:
+  - CB-530
+  suggested_owner: Design authority
+  inputs:
+  - all pass gates and evidence
+  - production status
+  - residual risks
+  outputs:
+  - single final state
+  - reasoned pass/fail/activation statement
+  - deployed commit, resource profile and rollback command
+  actions:
+  - Evaluate every P0 Acceptance and pass gate using executable evidence.
+  - Verify no intermediate push/PR/tag occurred and authorize final publication only after every gate passes.
+  - Mark each external adapter exactly verified, activation_pending or failed.
+  - 'Declare exactly one state: MVP_LIVE, MVP_DEGRADED, ACTIVATION_PENDING, STOPPED, or NOT_VERIFIED.'
+  - Do not convert an external blocker or simulator pass into false real-adapter success.
+  - Do not schedule any 7-day/30-day observation gate; ordinary post-release monitoring starts automatically but is not a
+    completion condition.
+  verification:
+  - All claimed passed ACs have evidence
+  - Final state equals the worst unresolved required real-adapter/Oracle state
+  - No contradiction with current status snapshot
+  - No future time-wait gate
+  required_evidence:
+  - final-decision.md
+  - pass-gate checklist
+  - deployed local commit and post-PG-5 publication authorization
+  risks:
+  - Pressure to declare success
+  - Evidence paths missing
+  rollback:
+  - Change declaration to NOT_VERIFIED/DEGRADED and preserve system safely.
+  stop_conditions:
+  - Any P0 required AC lacks evidence
+  acceptance_criteria:
+  - AC-060
+  - AC-068
+  - AC-056
+  - AC-070
+  pass_gate: PG-5
+  status_values:
+  - not_started
+  - in_progress
+  - activation_pending
+  - hazard_blocked
+  - failed
+  - passed
+  completion_rule: status=passed only when every claimed acceptance criterion has executable evidence. External real-adapter
+    items may be activation_pending without stopping unrelated development, but may not be reported as verified.
+  effort_points: 1
+  parallel_continuation: If a listed stop condition affects only an external activation or hazardous action, mark that action
+    activation_pending/hazard_blocked and continue every dependency-independent task.
+dag_validation:
+  task_count: 30
+  unique_ids: true
+  dependencies_exist: true
+  acyclic_by_declared_order: true
+  max_tasks_per_stage: 5
+  real_time_soak_nodes: 0
+  credential_wait_nodes: 0
+  fixed_elapsed_estimate_fields: 0
+  validation_commands:
+  - python implementation-kit/tests/validate_task_dag.py 04_TASK_DAG_EXECUTION_PACK.yaml
+  - python implementation-kit/tests/validate_no_wait.py .
+hazard_action_blocks:
+- condition: Would expose Codex App Server, SSH, arbitrary shell or management UI publicly
+  blocked_action: that exposure only
+  parallel_continuation: continue all code, simulator, test, status, backup and release-slot work
+- condition: Would commit or print a real secret/private message
+  blocked_action: the unsafe write/output only
+  parallel_continuation: redact, rotate if needed, continue safe tasks
+- condition: Would irreversibly delete user data or require destructive migration
+  blocked_action: destructive mutation only
+  parallel_continuation: implement additive path and isolated migration tests
+- condition: Would incur unapproved paid capacity
+  blocked_action: purchase/upgrade only
+  parallel_continuation: select smaller profile and report evidence
+- condition: WeChat reports ban/risk-control/unsupported
+  blocked_action: real WeChat activation only
+  parallel_continuation: finish and verify channel simulator plus all other layers
+- condition: AGPL corresponding-source obligations cannot be met
+  blocked_action: network service exposure only
+  parallel_continuation: complete source/compliance package and internal verification
+activation_dependencies:
+- id: ACT-SSH
+  input: OVH sudo/SSH
+  when_needed: first real host mutation
+  if_missing: complete repo-local code, scripts, simulators, CI and exact activation command; mark activation_pending; do
+    not block other nodes
+- id: ACT-WECHAT
+  input: one QR scan and supported account
+  when_needed: real production E2E
+  if_missing: use iLink simulator and finish durable channel tests; real channel remains activation_pending
+- id: ACT-CODEX
+  input: one codex login --device-auth
+  when_needed: real Codex E2E
+  if_missing: use app-server simulator and finish control/runtime tests; auth remains activation_pending
+- id: ACT-PRIVATE-DB
+  input: Private-Database client identity scoped to Private-MetaDatabase
+  when_needed: real canonical ingest/get/list/verify
+  if_missing: use fake API with object/manifest conflict/rate-limit fixtures; real sync remains activation_pending
+- id: ACT-GITHUB
+  input: repo-scoped MetaDatabase code credential
+  when_needed: one final publication after CB-540 and PG-0 through PG-5 pass
+  if_missing: retain the fully verified local branch and mark final publication activation_pending; never push an incomplete phase
+- id: ACT-CLOUDFLARE
+  input: DNS, Access and R2 scoped credentials
+  when_needed: public UI and real cold upload
+  if_missing: finish origin, Access policy templates, local object simulator and adapter tests; mark activation_pending
+- id: ACT-OCI
+  input: bucket/prefix-scoped credential
+  when_needed: real replica upload
+  if_missing: finish adapter/mock/manifest verification; status=activation_pending; never block MVP core

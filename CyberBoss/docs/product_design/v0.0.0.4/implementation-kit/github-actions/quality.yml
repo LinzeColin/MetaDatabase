@@ -1,0 +1,83 @@
+name: cyberboss-quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: cyberboss-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  specification-scaffold-and-accelerated-reliability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install validators
+        run: |
+          python -m pip install --disable-pip-version-check PyYAML==6.0.3
+          sudo apt-get update
+          sudo apt-get install -y shellcheck sqlite3 zstd rclone
+      - name: Validate Task DAG and no-wait contract
+        run: |
+          python implementation-kit/tests/validate_task_dag.py 04_TASK_DAG_EXECUTION_PACK.yaml
+          python implementation-kit/tests/validate_no_wait.py .
+          python implementation-kit/tests/validate_traceability.py .
+          python implementation-kit/tests/validate_taskpack.py .
+      - name: Validate example configuration
+        run: |
+          node implementation-kit/tests/validate_config.js --allow-placeholders \
+            implementation-kit/config/cyberboss.env.example \
+            implementation-kit/config/workspaces.json.example
+      - name: Validate shell, JavaScript and Python
+        run: |
+          shellcheck implementation-kit/scripts/*.sh implementation-kit/simulators/*.sh
+          for f in implementation-kit/scripts/*.sh implementation-kit/simulators/*.sh; do bash -n "$f"; done
+          node --check implementation-kit/status/generate-status.js
+          node --check implementation-kit/status/global-status-adapter.js
+          node --check implementation-kit/simulators/weixin-ilink-simulator.mjs
+          node --check implementation-kit/simulators/codex-app-server-simulator.mjs
+          python -m compileall -q implementation-kit/tests
+      - name: Validate SQLite schema
+        run: |
+          db="$(mktemp)"
+          sqlite3 "$db" < implementation-kit/sql/runtime-spool.sql
+          test "$(sqlite3 "$db" 'PRAGMA integrity_check;')" = ok
+      - name: Run accelerated deterministic reliability harness
+        run: |
+          python implementation-kit/tests/accelerated_reliability.py \
+            --schema implementation-kit/sql/runtime-spool.sql \
+            --replays 1000 --restarts 100 --send-faults 100 --restore-cycles 20
+      - name: Install and test application when package manifests are present
+        run: |
+          if test -f package-lock.json; then npm ci; fi
+          if test -f package.json; then npm test; fi
+      - name: Dangerous-default and secret scan
+        run: |
+          ! grep -RInE '0\.0\.0\.0:8765|dangerously-bypass|chmod 777|set -x' --exclude-dir=.git .
+          ! grep -RInE '(BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|ghp_[A-Za-z0-9]{20,}|Bearer [A-Za-z0-9._-]{20,})' --exclude-dir=.git .
+
+  codeql:
+    if: ${{ hashFiles('**/*.js', '**/*.ts', '**/*.mjs') != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - uses: github/codeql-action/analyze@v3

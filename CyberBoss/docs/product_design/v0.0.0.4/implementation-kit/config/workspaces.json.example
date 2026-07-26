@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "default_alias": "cyberboss",
+  "workspaces": {
+    "cyberboss": {
+      "repo": "LinzeColin/MetaDatabase",
+      "root": "/srv/cyberboss-workspaces/cyberboss",
+      "project_subpath": "CyberBoss",
+      "read_only": false,
+      "max_bytes": 8589934592,
+      "allowed_branches": ["main", "codex/cyberboss-*"],
+      "sparse_paths": ["CyberBoss", ".github"],
+      "write_globs": ["CyberBoss/**"]
+    }
+  }
+}

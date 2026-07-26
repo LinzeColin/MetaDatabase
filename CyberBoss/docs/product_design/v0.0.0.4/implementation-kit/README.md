@@ -1,0 +1,68 @@
+# CyberBoss Full-Cloud MVP Implementation Kit
+
+该目录是可直接复制进目标仓库的工程起点，不是“七文件限制”的补充说明。根目录控制文件负责产品/工程合同；本目录负责减少实现、部署、验证和恢复工作量。
+
+## Contents
+
+- `config/`：fail-closed 环境、workspace 和资源 profile 示例；
+- `sql/`：SQLite WAL durable inbox/job/outbox/sync spool；
+- `systemd/`：单进程族服务、状态、备份和确定性自愈；
+- `scripts/`：host bootstrap、preflight、profile selection、启动、健康、部署、回滚、备份和恢复；
+- `status/`：脱敏 snapshot generator 与全局 Status adapter；
+- `tests/`：DAG/config/no-wait/SQLite 加速可靠性验证；
+- `simulators/`：无真实凭据时使用的 WeChat、Private-MetaDatabase 和 object-store 合约模拟起点；
+- `github-actions/`：CI 模板；
+- `references/`：调研链接和复用决策。
+
+## Immediate validation
+
+```bash
+python implementation-kit/tests/validate_task_dag.py 04_TASK_DAG_EXECUTION_PACK.yaml
+python implementation-kit/tests/validate_no_wait.py .
+python implementation-kit/tests/validate_traceability.py .
+python implementation-kit/tests/validate_taskpack.py .
+node implementation-kit/tests/validate_config.js \
+  implementation-kit/config/cyberboss.env.example \
+  implementation-kit/config/workspaces.json.example
+
+for f in implementation-kit/scripts/*.sh implementation-kit/simulators/*.sh; do
+  bash -n "$f"
+done
+node --check implementation-kit/status/generate-status.js
+node --check implementation-kit/status/global-status-adapter.js
+node --check implementation-kit/simulators/weixin-ilink-simulator.mjs
+
+db="$(mktemp)"
+sqlite3 "$db" < implementation-kit/sql/runtime-spool.sql
+sqlite3 "$db" 'PRAGMA integrity_check;'
+python implementation-kit/tests/accelerated_reliability.py \
+  --schema implementation-kit/sql/runtime-spool.sql \
+  --replays 1000 --restarts 100 --send-faults 100 --restore-cycles 20
+```
+
+## Target-host sequence
+
+```bash
+sudo implementation-kit/scripts/bootstrap-host.sh --apply
+sudo implementation-kit/scripts/preflight.sh
+sudo implementation-kit/scripts/select-resource-profile.sh \
+  --write /etc/cyberboss/resource-profile.env \
+  --systemd-dropin /etc/systemd/system/cyberboss-cloud.service.d/20-resource-profile.conf
+```
+
+之后按 `06_OPERATIONS_STATUS_HANDOVER.md` 从 `CB_INCOMING_ROOT` 内的已校验本地制品安装
+candidate release。真实凭据缺失时不等待：运行 simulator、完成其余代码和部署槽位，
+把对应 adapter 标记 `activation_pending`。
+
+## Non-negotiable
+
+- Codex App Server 只允许 loopback；
+- 不依赖 Mac；
+- 不把 secret、微信原始私聊或完整 prompt/result 写入代码仓、
+  Private-MetaDatabase、Status 或 Timeline；
+- Private-Database 只允许通过 `private_db_client.py` 的
+  `ingest/get/list/verify` 免 clone 存取；
+- PG-0–PG-5 全部通过前，不 push、不创建 PR/tag；
+- 不使用真实时间 Soak、观察期、固定 `sleep` readiness 或凭据等待节点；
+- simulator 通过不得冒充真实 adapter 通过；
+- Acceptance Contract 是最终 Pass Gate。

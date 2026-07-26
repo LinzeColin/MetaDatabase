@@ -1,0 +1,17 @@
+[Unit]
+Description=Generate redacted CyberBoss status snapshot
+After=cyberboss-cloud.service
+
+[Service]
+Type=oneshot
+User=cyberboss
+Group=cyberboss
+Environment=HOME=/var/lib/cyberboss
+EnvironmentFile=/etc/cyberboss/cyberboss.env
+ExecStart=/usr/bin/node /opt/cyberboss-cloud/current/implementation-kit/status/generate-status.js
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/cyberboss

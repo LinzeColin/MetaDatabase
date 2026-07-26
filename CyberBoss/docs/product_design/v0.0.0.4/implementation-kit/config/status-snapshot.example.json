@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-07-26T00:00:00Z",
+  "service": {"name": "cyberboss-cloud", "state": "not_verified", "version": "0.0.0.4", "source_commit": "unknown", "deployment": "ovh-singapore", "uptime_seconds": 0},
+  "wechat": {"state": "unknown", "last_poll_success_at": null, "poll_age_seconds": null, "last_inbound_at": null, "last_outbound_confirmed_at": null, "outbox_pending": 0, "outbox_failed": 0},
+  "runtime": {"selected": "codex", "state": "unknown", "auth_state": "unknown", "active_job": false, "active_job_age_seconds": 0, "last_success_at": null},
+  "queue": {"queued": 0, "running": 0, "waiting_approval": 0, "oldest_age_seconds": 0},
+  "canonical": {"state": "unknown", "last_object_sha256": null, "last_verified_at": null, "pending_events": 0, "oldest_pending_age_seconds": 0},
+  "timeline": {"last_write_at": null, "last_build_at": null, "entry_count": 0, "build_state": "unknown"},
+  "backup": {"r2_state": "unknown", "r2_last_snapshot_at": null, "oci_state": "not_configured", "oci_last_backup_at": null, "last_restore_drill_at": null},
+  "resources": {"cpu_load_1m": 0, "memory_used_percent": 0, "swap_used_percent": 0, "disk_used_percent": 0, "inode_used_percent": 0},
+  "self_heal": {"last_run_at": null, "last_action": "none", "last_result": "not_run"},
+  "degraded_reasons": ["not_verified"]
+}
