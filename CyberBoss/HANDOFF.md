@@ -10,8 +10,9 @@
 
 ## Current state
 
-`PS0.1` and `P0.1 / CB-000` through `P0.5 / CB-040` passed. Stage 0 is
-5/5 tasks complete; 25 later tasks and PG-0–PG-5 remain `not_started`.
+`PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, and independent Stage 0
+exit gate `PG-0` passed. Stage 0 is 5/5 tasks plus its gate complete; 25 later
+tasks and PG-1–PG-5 remain `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
@@ -98,8 +99,14 @@ tree = 7d9f2611df5a1633acc56c52b35a7a52192a9014
 publication = none
 ```
 
-Direct remote checks found no `codex/cyberboss*` branch, CyberBoss tag or open
-PR. The CB-040 decision is exactly `GO_TO_PG-0`; PG-0 itself was not executed.
+PG-0 independently executed 22 repository-preparation checks with credential
+environment keys removed, a temporary HOME, empty CODEX_HOME/WeChat state and
+value-free tool configuration. Sources/licenses, current architecture,
+simulators, live-measurement, activation sheet, no-wait, TaskPack and the full
+App regression passed. Real Codex/WeChat activation remains
+`activation_pending`; the fixture performed no external write or credential
+content read. Direct remote checks again found no CyberBoss branch, tag or PR.
+`P1.1 / CB-100` was not started.
 
 ## Canonical inputs and evidence
 
@@ -110,15 +117,16 @@ PR. The CB-040 decision is exactly `GO_TO_PG-0`; PG-0 itself was not executed.
 - Task state: `machine/facts/task_state.json`
 - Fixed-source lock: `machine/source-lock.json`
 - Current Run Contract:
-  `docs/governance/RUN_CONTRACT_P0_5_CB_040.md`
+  `docs/governance/RUN_CONTRACT_PG_0.md`
 - CB-000 source/license evidence: `docs/evidence/CB-000/`
 - CB-010 OVH/resource evidence: `docs/evidence/CB-010/`
 - CB-020 identity/provider/security evidence: `docs/evidence/CB-020/`
 - CB-030 simulator/auth/security evidence: `docs/evidence/CB-030/`
 - CB-040 baseline/trace/release evidence: `docs/evidence/CB-040/`
+- PG-0 independent gate evidence: `docs/evidence/PG-0/`
 - Consolidated activation sheet: `docs/evidence/CB-030/auth-gates.md`
 - Current validation report:
-  `docs/evidence/CB-040/VALIDATION_REPORT.md`
+  `docs/evidence/PG-0/VALIDATION_REPORT.md`
 - Machine-readable scope:
   `docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json`
 - Credential slots:
@@ -173,6 +181,13 @@ PR. The CB-040 decision is exactly `GO_TO_PG-0`; PG-0 itself was not executed.
   temporary compliant local branch; the detached-HEAD attempt failed only the
   expected branch-scope gate, and both temporary worktree/branch were removed.
 - Git publication check: no CyberBoss remote branch, PR, tag or push.
+- PG-0 credential-free matrix: 22/22 commands passed after seven
+  credential-related environment keys were removed; temporary HOME, empty
+  CODEX_HOME and empty WeChat state were used.
+- PG-0 clean activation fixture: Codex and WeChat both returned
+  `activation_pending`; credential content/value reads and external writes=0.
+- PG-0 decision: `PASS`; PG-1–PG-5 and all 25 later tasks remain
+  `not_started`.
 
 ## Known unknowns
 
@@ -189,15 +204,13 @@ PR. The CB-040 decision is exactly `GO_TO_PG-0`; PG-0 itself was not executed.
 
 ## Next Run
 
-Execute exactly the independent Stage 0 exit Gate: `PG-0`. Do not combine it
-with `P1.1 / CB-100`.
+The next eligible Run is exactly `P1.1 / CB-100`, whose scope is the Stage 1
+PostgreSQL schema/migration contract defined by the Task DAG. It remains
+`not_started`; do not treat this handoff as authorization that it was executed
+inside PG-0.
 
-The Gate must independently prove that pinned sources/licenses, current
-architecture, simulators, live-measurement script, activation sheet,
-implementation baseline and no-wait policy validate. Repository preparation
-must pass without a credential. Keep CB-000–CB-040 evidence immutable; create a
-PG-0 Run Contract/evidence/validator and update only the gate state.
-
-If PG-0 passes, stop with the next node still `P1.1 / CB-100 not_started`.
-Do not push, create a PR/tag/release, deploy CyberBoss or perform real provider
-writes in the PG-0 Run.
+Start it only under a new single-phase Run Contract. Keep source/license and
+CB-000–CB-040/PG-0 evidence immutable, preserve the strict dual-license
+conflict record, and continue the final-only GitHub publication rule. Do not
+combine `P1.1` with `P1.2`, deploy Runtime or perform a real provider write
+unless the new Run Contract and exact Acceptance authorize it.

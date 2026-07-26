@@ -4,17 +4,18 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 
 ## 当前状态
 
-- 生命周期：Stage 0 已完成，等待独立 `PG-0`
+- 生命周期：Stage 0 与独立退出门 `PG-0` 已通过；Stage 1 尚未开始
 - 当前产品设计：`v0.0.0.4`
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`
 - 当前基线：三个精确 commit 的本地 source bundle、完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`P0.5 / CB-040` 已通过；唯一非秘密 environment substitutions、
-  25 个后续任务的实现/测试/证据/发布映射、确定性 10 项追溯审计、immutable
-  release/rollback plan 与本地 baseline commit SHA 均已冻结
+- 最新 Run：`PG-0` 已通过；在清除凭据相关环境变量、临时 HOME、空
+  CODEX_HOME/WeChat state 下独立复验 sources/licenses、current
+  architecture、simulators、live-measurement、activation sheet、no-wait、
+  TaskPack 与完整 App regression
 - Stage 0–5 任务状态：`CB-000`–`CB-040` 五项 Stage 0 任务已通过；其余 25 项与
-  PG-0–PG-5 均为 `not_started`
+  PG-1–PG-5 均为 `not_started`；`PG-0=passed`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
 ## 唯一身份
@@ -72,7 +73,17 @@ Task DAG。`implementation-plan.json` 将 `CB-100`–`CB-540` 全部 25 个后�
 本地 baseline commit
 `8a75b55e92071bb33f1cae5872feca55ade1c858` 未推送，远端 branch/PR/tag
 核验均为空。真实 Codex、WeChat、Private-MetaDatabase 与 provider 写入继续
-保持 `activation_pending`/`hazard_blocked`，下一 Run 只能执行 `PG-0`。
+保持 `activation_pending`/`hazard_blocked`；该 Run 当时的唯一下一节点为
+`PG-0`。
+
+PG-0 在不读取或依赖真实 credential 的隔离环境中执行 22 项准备检查；
+4/4 simulator tests、155/155 App tests、DAG/traceability/no-wait/TaskPack、
+preflight/resource、activation clean fixture 与 secret scan 全部通过。
+unresolved architecture conflicts、credential values、external writes 均为
+0。原源码、许可证、Corresponding Source、129 项依赖清单和严格
+`GPL-3.0-only AND AGPL-3.0-only` 冲突记录保持不变，且
+`upstream_clarification_received=false`。远端 CyberBoss branch/PR/tag
+仍为空；`P1.1 / CB-100` 保持 `not_started`，只能在下一独立 Run 开始。
 
 ## 许可证
 

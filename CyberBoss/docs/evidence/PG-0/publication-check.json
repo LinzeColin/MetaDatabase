@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-07-26",
+  "repository": "LinzeColin/MetaDatabase",
+  "origin": "git@github.com:LinzeColin/MetaDatabase.git",
+  "state": "none",
+  "remote_branch_matches": [],
+  "open_pull_request_matches": [],
+  "remote_tag_matches": [],
+  "remote_head_glob": "refs/heads/codex/cyberboss*",
+  "remote_tag_filter": "case_insensitive_cyberboss",
+  "pull_request_query_scope": "all_states_exact_head_codex/cyberboss-prestage0",
+  "required_for_gate_pass": false,
+  "reason": "PG-0 repository preparation is credential-free and does not depend on GitHub authentication; this successful read-only check records the separate final-only publication boundary."
+}

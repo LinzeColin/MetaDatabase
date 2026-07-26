@@ -1,5 +1,30 @@
 # Changelog
 
+## PG-0 — 2026-07-26
+
+- Independently passed the Stage 0 exit Gate without requiring any real
+  credential, provider write, deployment or GitHub publication.
+- Added a fail-closed PG-0 validator that freezes the P0.5 closure commit and
+  rejects changes to App, vendor bundles, TaskPack or historical Stage 0
+  evidence.
+- Ran 22 repository-preparation checks with seven credential-related
+  environment keys removed, a temporary HOME, empty CODEX_HOME/WeChat state,
+  isolated npm cache and value-free Git/npm configuration.
+- Revalidated exact fixed sources, original licenses/notices/Corresponding
+  Source, all 129 dependency entries, the module map and unresolved strict
+  `GPL-3.0-only AND AGPL-3.0-only` obligations without claiming upstream
+  clarification.
+- Revalidated current architecture/substitutions/Feature Flags with zero
+  unresolved conflicts, 4/4 simulator tests, 155/155 App tests,
+  preflight/resource fixtures, activation sheet and clean missing-auth states.
+- Revalidated DAG 30/6, traceability 53/53, no-wait zero hits and TaskPack 81
+  files; credential values, P0/P1 secret findings and external writes were
+  zero.
+- Extended the Prestage validator to model a current Pass Gate fail-closed
+  while preserving all existing task/phase/dependency checks.
+- Marked only `PG-0` passed. `P1.1 / CB-100`, all 25 later tasks and PG-1–PG-5
+  remain `not_started`; remote CyberBoss branch/PR/tag state remains empty.
+
 ## P0.5 / CB-040 — 2026-07-26
 
 - Froze one value-free implementation baseline for the MetaDatabase/CyberBoss

@@ -3,9 +3,10 @@
   "taskpack_version": "v0.0.0.4",
   "updated_on": "2026-07-26",
   "current_run": {
-    "run_id": "P0.5",
-    "task_id": "CB-040",
-    "scope": "implementation_baseline_and_release_plan",
+    "run_id": "PG-0",
+    "gate_id": "PG-0",
+    "task_id": null,
+    "scope": "stage_0_exit_gate",
     "status": "passed"
   },
   "prestage": [
@@ -16,7 +17,7 @@
     }
   ],
   "pass_gates": {
-    "PG-0": "not_started",
+    "PG-0": "passed",
     "PG-1": "not_started",
     "PG-2": "not_started",
     "PG-3": "not_started",

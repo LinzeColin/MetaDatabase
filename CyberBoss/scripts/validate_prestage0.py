@@ -347,6 +347,17 @@ def main() -> int:
     current_run = state.get("current_run") or {}
     if current_run.get("run_id") == "PS0.1":
         expect(current_run.get("status") == "passed", "state_current_prestage")
+    elif current_run.get("run_id") in pass_gates:
+        gate_id = current_run.get("run_id")
+        expect(current_run.get("gate_id") == gate_id, "state_current_gate_id")
+        expect(
+            current_run.get("task_id") is None,
+            "state_current_gate_must_not_claim_task",
+        )
+        expect(
+            current_run.get("status") == pass_gates.get(gate_id),
+            "state_current_gate_status",
+        )
     else:
         current_task_id = current_run.get("task_id")
         current_spec = task_specs.get(current_task_id) or {}
