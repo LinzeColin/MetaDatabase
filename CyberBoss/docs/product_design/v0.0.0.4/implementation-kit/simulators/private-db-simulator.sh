@@ -88,8 +88,8 @@ case "$COMMAND" in
         *) usage ;;
       esac
     done
-    [[ "$DOMAIN" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]] || {
-      echo 'PRIVATE_DB_SIMULATOR=ERROR invalid_domain'
+    [[ "$DOMAIN" == "CyberBoss" ]] || {
+      echo 'PRIVATE_DB_SIMULATOR=ERROR unsupported_domain'
       exit 2
     }
     [[ "$BATCH" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ ]] || {

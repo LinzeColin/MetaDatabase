@@ -1,10 +1,26 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-STORE="${SIM_OBJECT_STORE_ROOT:-/tmp/cyberboss-object-store}"
+STORE_ROOT="${SIM_OBJECT_STORE_ROOT:-/tmp/cyberboss-object-store}"
+PROVIDER="${SIM_OBJECT_STORE_PROVIDER:-r2}"
+CONFIGURED_BUCKET="${SIM_OBJECT_STORE_BUCKET:-cyberboss-cold}"
+REQUEST_BUCKET="${SIM_OBJECT_STORE_REQUEST_BUCKET:-cyberboss-cold}"
+PREFIX="${SIM_OBJECT_STORE_PREFIX:-ovh-singapore-vps-1/}"
 COMMAND="${1:-}"
 KEY="${2:-}"
 SOURCE="${3:-}"
-[[ "$KEY" != /* && "$KEY" != *'..'* ]] || { echo 'OBJECT_STORE=FAIL invalid_key'; exit 2; }
+[[ "$PROVIDER" == "r2" ]] || { echo 'OBJECT_STORE=FAIL unsupported_provider'; exit 2; }
+[[ "$REQUEST_BUCKET" == "$CONFIGURED_BUCKET" && "$CONFIGURED_BUCKET" == "cyberboss-cold" ]] || {
+  echo 'OBJECT_STORE=FAIL out_of_scope_bucket'
+  exit 2
+}
+if [[ "$COMMAND" == "list" && -z "$KEY" ]]; then
+  KEY="$PREFIX"
+fi
+[[ "$KEY" != /* && "$KEY" != *'..'* && "$KEY" == "$PREFIX"* ]] || {
+  echo 'OBJECT_STORE=FAIL out_of_scope_key'
+  exit 2
+}
+STORE="$STORE_ROOT/$PROVIDER/$CONFIGURED_BUCKET"
 TARGET="$STORE/$KEY"
 case "$COMMAND" in
   put)
@@ -29,5 +45,5 @@ case "$COMMAND" in
     fi
     echo 'OBJECT_STORE=PASS action=list'
     ;;
-  *) echo 'usage: object-store-simulator.sh put|get|list <key> [source-or-destination]'; exit 2 ;;
+  *) echo 'usage: object-store-simulator.sh put|get|list <scoped-key> [source-or-destination]'; exit 2 ;;
 esac

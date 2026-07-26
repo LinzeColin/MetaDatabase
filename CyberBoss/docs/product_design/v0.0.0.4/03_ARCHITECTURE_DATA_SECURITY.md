@@ -75,6 +75,19 @@ manifest 并发重试和 sync lag 状态。
 **Reason：** 减少 native addon 构建、镜像体积和供应链复杂度。
 **Guardrail：** 通过 adapter 隔离 DB driver，SQL schema 与事务语义不绑定具体库。
 
+### ADR-012 — 外部 Provider 写入必须有精确 scope attestation
+
+**Decision：** Cloudflare Access、DNS、R2 和 OCI 的真实写操作必须使用彼此
+分离的凭据，并在执行前读取外置 scope attestation；仅凭 token 有效或 GET
+成功不得推断写权限最小化。
+**Reason：** 当前受保护部署记录可证明多个真实只读能力，但 provider API
+不能返回这些 token 的完整权限策略；其中一个 R2/D1 token 还表现出跨
+Access、R2、DNS 的读取能力。
+**Guardrail：** 宽 account write、额外 write permission、另一个
+zone/bucket/prefix、匿名 Access、缺 attestation 全部 fail closed。缺真实
+最小权限输入时 adapter/mocks 继续完成，外部状态精确记为
+`activation_pending`，不创建全局等待节点。
+
 ---
 
 ## 2. Context Architecture
@@ -172,6 +185,27 @@ systemd: cyberboss-cloud.service
 | SSH `22` | Host | Existing restricted admin only | key-only, firewall, no password |
 
 Runtime transport is never routed through Cloudflare.
+
+### 3.3 Identity and activation control plane
+
+`implementation-kit/config/identity-scope.policy.json` 是 P0.3 后的机器可读
+边界：代码固定为 `LinzeColin/MetaDatabase/CyberBoss` 与 alias
+`cyberboss`；数据固定为 `Private-MetaDatabase`、`domain=CyberBoss`，
+仅允许 `private_db_client.py ingest/get/list/verify`，禁止 clone/put/delete。
+
+Provider adapter 采用 plan → scope attestation → idempotent reconcile：
+
+```text
+Access application/policies
+  → private R2 bucket control-plane check
+  → Analytics bounded manual item
+  → proxied DNS last
+```
+
+OCI bucket 名从 root-owned slot 注入，object key 必须位于
+`cyberboss-cold-backup/ovh-singapore-vps-1/`。R2 固定 bucket
+`cyberboss-cold` 与 `ovh-singapore-vps-1/`。两者均禁止 public、delete
+和未经内容一致性核验的 overwrite。
 
 ---
 

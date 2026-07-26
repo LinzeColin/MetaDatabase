@@ -10,137 +10,129 @@
 
 ## Current state
 
-`PS0.1`, `P0.1 / CB-000` and `P0.2 / CB-010` passed. The Owner directed
-CB-010 to resolve OVH access from existing local deployment records. A unique
-primary asset, strict known-host identity and key-only deployment identity were
-verified without persisting its address or credential material.
+`PS0.1`, `P0.1 / CB-000`, `P0.2 / CB-010` and `P0.3 / CB-020`
+passed. Stage 0 is 3/5 tasks complete; 27 later tasks and PG-0–PG-5 remain
+`not_started`.
 
-Three same-host immediate snapshots selected `constrained`, guard=`recover`,
-activation-safe=`true`; 8765/8780 and all four proposed CyberBoss paths are
-free. Existing Status ingestion/Traefik integration was confirmed read-only.
-The authorized-host 16 MiB/8 MiB/100 fixture passed in a finite 128 MiB
-ephemeral container with zero OOM-kill delta and complete cleanup. The later
-28 tasks and PG-0–PG-5 remain `not_started`.
+The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
+frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
+dependency, automatic sync, periodic rebase or runtime source fetch. The
+whereabouts package metadata/license conflict remains unresolved and is treated
+as `GPL-3.0-only AND AGPL-3.0-only`; original source/license/conflict records
+are preserved and no upstream clarification is claimed.
 
-The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources are frozen
-as ordinary-file bundles under `app/` and `vendor/`. Both moving Git
-dependencies are local `file:` packages. There is no upstream remote,
-submodule, branch dependency, automatic sync, periodic rebase or runtime
-source fetch.
+CB-010 resolved the authorized OVH asset from protected local deployment
+records. Three live snapshots selected `constrained`; 8765/8780 and the four
+proposed CyberBoss paths were free. The bounded 16 MiB/8 MiB/100 pressure
+fixture ran in a finite no-network 128 MiB container with zero OOM-kill delta.
 
-The whereabouts package metadata says AGPL-3.0-only while its included LICENSE
-is GPL-3.0-only. Owner decision is strict
-`GPL-3.0-only AND AGPL-3.0-only` compliance: preserve the original source,
-license and conflict record. No upstream clarification was requested or
-received, and none may be claimed.
+CB-020 locked:
 
-## Canonical inputs and decisions
+```text
+code = LinzeColin/MetaDatabase / CyberBoss / alias cyberboss / write CyberBoss/**
+data = LinzeColin/Private-Database@main / Private-MetaDatabase / domain CyberBoss
+data operations = private_db_client.py ingest|get|list|verify / clone forbidden
+R2 = bucket cyberboss-cold / prefix ovh-singapore-vps-1/ / public false
+OCI = injected existing bucket / prefix cyberboss-cold-backup/ovh-singapore-vps-1/
+```
 
-- Product design:
-  `docs/product_design/v0.0.0.4/`
+Protected local Cloudflare/OCI records were audited read-only without
+persisting values. Access and DNS designated tokens show separated read
+capabilities, while the existing R2/D1 token reads Access, R2 and DNS and
+cannot prove least-privilege write scope. OCI SDK can resolve the namespace and
+list one existing bucket, but exact object-write IAM scope is not attested.
+Therefore no real provider mutation was executed:
+
+```text
+Cloudflare Access write = activation_pending
+Cloudflare DNS write = activation_pending
+Cloudflare R2 write = hazard_blocked until exact scope attestation
+OCI object write = activation_pending
+Private-MetaDatabase real operation = activation_pending
+```
+
+This does not block dependency-independent development. Adapters, exact-scope
+guards, mocks, Access deny/allow fixtures and negative matrices are complete.
+
+## Canonical inputs and evidence
+
+- Product design: `docs/product_design/v0.0.0.4/`
 - Execution DAG:
   `docs/product_design/v0.0.0.4/04_TASK_DAG_EXECUTION_PACK.yaml`
-- Owner decisions:
-  `machine/facts/owner_decisions.json`
-- Task state:
-  `machine/facts/task_state.json`
-- Fixed-source lock:
-  `machine/source-lock.json`
-- CB-000 evidence:
-  `docs/evidence/CB-000/`
-- CB-010 evidence:
-  `docs/evidence/CB-010/`
+- Owner decisions: `machine/facts/owner_decisions.json`
+- Task state: `machine/facts/task_state.json`
+- Fixed-source lock: `machine/source-lock.json`
 - Current Run Contract:
-  `docs/governance/RUN_CONTRACT_P0_2_CB_010.md`
-- Provenance:
-  `UPSTREAM_PROVENANCE.md` and `THIRD_PARTY_NOTICES.md`
-- PS0.1 evidence:
-  `docs/product_design/v0.0.0.4/implementation-kit/VALIDATION_REPORT.md`
+  `docs/governance/RUN_CONTRACT_P0_3_CB_020.md`
+- CB-000 source/license evidence: `docs/evidence/CB-000/`
+- CB-010 OVH/resource evidence: `docs/evidence/CB-010/`
+- CB-020 identity/provider/security evidence: `docs/evidence/CB-020/`
+- Machine-readable scope:
+  `docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json`
+- Credential slots:
+  `docs/product_design/v0.0.0.4/implementation-kit/config/credential-slots.json`
 
 ## Validation result
 
-- Three source commit/tree identities, source manifests and current bundle
-  manifests: passed.
-- Dependency closure: 129 lockfile entries, zero unresolved licenses, no Git
-  URL/branch dependency, `npm ci --ignore-scripts` passed.
-- Application syntax and tests: 155/155 passed.
-- timeline-for-agent syntax/tests: 5/5; `help`, `categories`, `read` callable.
-- whereabouts-mcp syntax/tests: 19/19 passed.
-- Codex App Server generated protocol schemas: 347 files, every required
-  method present; exact/minimum verified CLI `0.146.0-alpha.3.1`.
-- TaskPack/DAG/traceability/no-wait/config and accelerated
-  1,000/100/100/20 reliability checks: passed.
-- `validate_cb000.py`, `validate_prestage0.py`, manifests, final Git scope and
-  publication checks: passed.
-- Resource profile tests: 7/7 passed; finite cgroup ceilings override misleading
-  host `/proc` values, safe outputs are sourceable/mode-bounded and unsafe
-  writer fails closed.
-- Clean-shell preflight contract: three immediate snapshots, no live command,
-  no persistent host write and no real-time wait.
-- Default Linux collector path: passed in an existing local image with
-  `--pull=never`, no network, read-only root, all capabilities dropped and
-  no-new-privileges. A finite 512 MiB cgroup correctly yields
-  `constrained`/`protect`/`HAZARD_BLOCKED`; raw output is not persisted and the
-  result is explicitly not OVH evidence.
-- Bounded local-container pressure ladder: recover → warn/protect → recover,
-  finite cgroup limit and zero observed OOM-kill delta. It is explicitly not
-  live OVH evidence.
-- Existing public Status contract: both read-only endpoints returned 200;
-  current `projects[]` has 11 required fields, 8 rows and zero CyberBoss rows.
-  Status adapter contract tests: 7/7 passed, including hostile-field
-  sanitization.
-- Authorized OVH preflight: strict known-host/key-only authentication; three
-  snapshots in under one second; 3819 MiB total and 1948–1955 MiB available
-  memory, 1095 MiB swap free, 15,558 MiB root free, low inode use.
-- Live selection: `constrained`, MemoryHigh 768 MiB, MemoryMax 1152 MiB,
-  TasksMax 256, memory reserve 512 MiB, disk reserve 4 GiB, guard recover.
-- Conflict/integration inventory: 8765/8780 free, four proposed paths absent,
-  21 existing containers; Status compose/collector/data/web, mounts, cron,
-  fresh snapshot and Traefik route counts confirmed without raw-row retention.
-- Authorized bounded pressure: existing image, no pull/network, read-only
-  rootfs, non-root, 128 MiB memory/swap, 32 PID, 0.25 CPU; exact
-  16 MiB/8 MiB/100 fixture, full guard ladder, zero OOM-kill delta, cleanup.
-- `validate_cb010.py`: strengthened to validate live evidence semantics rather
-  than file presence; final result passes with `task_state=passed`.
+- Code/data/provider scope Python tests: 8/8 passed.
+- External adapter/attestation/DLP tests: 6/6 passed.
+- Access anonymous, unauthorized, owner, service-token and hostile-policy tests:
+  8/8 passed.
+- Cloudflare simulator applied twice with one Access app, one R2 bucket and one
+  DNS record; Access/policy preceded DNS each time.
+- OCI mock proved prefix lock, wrong-bucket/key rejection, immutability and
+  idempotent replay.
+- Actual shared `private_db_client.py` identity:
+  SHA-256
+  `8a26302c98a470e75122fbf01ff1d1a23381ccf5db5f26df9ed5f9e59e5c9ffa`;
+  plan-only wrapper check passed, no real data call.
+- Access deny/allow screenshots are deterministic local fixtures and explicitly
+  do not claim real Cloudflare activation.
+- Secret scan covered the CyberBoss tree plus equality checks for seven
+  protected known-secret values; known/pattern hits=0, P0/P1=0, no values
+  emitted.
+- CB-000 Corresponding Source, notices, 129 dependency entries and strict
+  dual-license conflict treatment revalidated unchanged.
+- TaskPack, DAG, traceability, no-wait, config, Prestage manifests and
+  `validate_cb020.py`: passed with `task_state=passed`.
+- Git publication check: no CyberBoss remote branch, PR, tag or push.
 
 ## Known unknowns
 
-- No real authenticated Codex turn, WeChat account/API, Private-MetaDatabase
-  data operation, R2, OCI, DNS/Access route or CyberBoss deployment has been
-  tested or activated.
-- The protocol baseline proves schema compatibility and unit behavior, not a
-  production Runtime activation.
-- The measured `constrained` baseline is point-in-time. Activation must rerun
-  preflight and fail closed if guard/reserve changes.
-- Node, Codex, rclone and sqlite3 are not currently available on the target;
-  these are later deployment prerequisites, not CB-010 capacity failures.
-- The online Status surface still has no CyberBoss row; CB-010 made no online
-  mutation.
+- No real authenticated Codex turn or WeChat QR/account call has been tested.
+- No real Private-MetaDatabase object, Cloudflare Access/DNS/R2 resource, OCI
+  object or CyberBoss Runtime was created or modified in CB-020.
+- Exact provider write-scope attestations remain external activation inputs;
+  successful GETs are not treated as proof of safe writes.
+- The online Status surface still has no CyberBoss row.
+- The OVH capacity result is point-in-time; deployment must rerun preflight.
+- Node, Codex, rclone and sqlite3 were absent on the target during CB-010 and
+  remain later deployment prerequisites.
 
 ## Next Run
 
-Start exactly one phase: `P0.3 / CB-020`.
+Start exactly one phase: `P0.4 / CB-030`.
 
 Before modifying files, create
-`docs/governance/RUN_CONTRACT_P0_3_CB_020.md` from the canonical DAG and read
-AC-043/AC-065. Keep P0.2 evidence immutable.
+`docs/governance/RUN_CONTRACT_P0_4_CB_030.md` from the canonical DAG and read
+AC-001, AC-010, AC-065 and AC-056. Keep CB-000/010/020 evidence immutable.
 
 Required outcome:
 
-1. lock `LinzeColin/MetaDatabase` + `CyberBoss/` + workspace alias
-   `cyberboss`, with no new/forked repository;
-2. enforce `Private-MetaDatabase`, `domain=CyberBoss`, no-clone access through
-   `private_db_client.py`, including negative scope tests;
-3. add least-privilege credential *slots* and a secret inventory without real
-   values in the repository;
-4. prepare idempotent DNS/Access/Analytics/R2 and OCI activation adapters plus
-   mock endpoints;
-5. prove anonymous/unauthorized Access denial and out-of-scope
-   repo/path/domain/bucket rejection;
-6. run secret scanning and keep unavailable external activations precisely
-   `activation_pending` without blocking dependency-independent work.
+1. run and validate the supplied WeChat iLink simulator for
+   getupdates/sendmessage, duplicates, cursor replay and failure fixtures;
+2. run and validate the supplied Codex App Server simulator for initialize,
+   thread/turn, progress, approval, completion, error, overload and
+   false-success fixtures;
+3. extend a simulator only if the pinned source/protocol proves a concrete gap;
+4. prepare Codex device-auth and WeChat QR commands as one consolidated
+   activation sheet with protected auth-state and re-login procedures;
+5. if harmless real authentication is already usable, verify it without
+   exposing credentials; otherwise keep that adapter exactly
+   `activation_pending` and finish every non-activation Oracle;
+6. produce `auth-gates.md`, redacted command output and a fixture or real
+   WeChat screenshot whose claim level is explicit.
 
-Stop on broad account-level write credentials, anonymous management exposure,
-secret leakage or any attempt to clone Private-Database/create another repo.
-Do not execute P0.4, push, create a PR/tag/release or deploy a CyberBoss
-Runtime in the P0.3 Run.
+Stop only the affected activation on ban/risk-control or credential exposure.
+Do not execute P0.5, push, create a PR/tag/release or deploy the CyberBoss
+Runtime in the P0.4 Run.

@@ -40,9 +40,15 @@ for (const key of [
   'CB_DATA_DOMAIN',
   'CB_PRIVATE_DB_CLIENT',
   'CB_PRIVATE_DB_AUTH_MODE',
+  'CB_IDENTITY_SCOPE_POLICY',
   'CB_APP_REPO_SLUG',
   'CB_APP_SUBPATH',
   'CB_INCOMING_ROOT',
+  'CB_R2_BUCKET',
+  'CB_R2_PREFIX',
+  'CB_OCI_BUCKET_FILE',
+  'CB_OCI_PREFIX',
+  'CB_PROVIDER_ACTIVATION_CONFIG',
 ]) {
   if (!env[key]) errors.push(`missing:${key}`);
 }
@@ -63,6 +69,9 @@ if (env.CB_DATA_REPO_SLUG !== 'LinzeColin/Private-Database') errors.push('privat
 if (env.CB_DATA_AREA !== 'Private-MetaDatabase') errors.push('private_db_area');
 if (env.CB_DATA_DOMAIN !== 'CyberBoss') errors.push('private_db_domain');
 if (env.CB_PRIVATE_DB_AUTH_MODE !== 'gh-login') errors.push('private_db_auth_mode');
+if (env.CB_R2_BUCKET !== 'cyberboss-cold') errors.push('r2_bucket_scope');
+if (env.CB_R2_PREFIX !== 'ovh-singapore-vps-1/') errors.push('r2_prefix_scope');
+if (env.CB_OCI_PREFIX !== 'cyberboss-cold-backup/ovh-singapore-vps-1/') errors.push('oci_prefix_scope');
 if (env.CB_APP_REPO_SLUG !== 'LinzeColin/MetaDatabase') errors.push('code_repo_identity');
 if (env.CB_APP_SUBPATH !== 'CyberBoss') errors.push('code_subpath_identity');
 for (const forbidden of ['CB_DATA_REPO_PATH', 'CB_DATA_REPO_URL', 'CB_DATA_ROOT', 'CB_APP_REPO_URL']) {
@@ -89,6 +98,26 @@ for (const [alias, config] of Object.entries(workspaces.workspaces || {})) {
   }
 }
 if (!workspaces.workspaces?.[workspaces.default_alias]) errors.push('default_alias_unknown');
+
+const policyPath = path.join(path.dirname(envPath), 'identity-scope.policy.json');
+if (!fs.existsSync(policyPath)) {
+  errors.push('identity_scope_policy_missing');
+} else {
+  const policy = JSON.parse(fs.readFileSync(policyPath, 'utf8'));
+  if (policy.schema_version !== 1) errors.push('identity_scope_policy_schema');
+  if (policy.code?.repository !== env.CB_APP_REPO_SLUG) errors.push('policy_code_repo_mismatch');
+  if (policy.code?.project_subpath !== env.CB_APP_SUBPATH) errors.push('policy_code_subpath_mismatch');
+  if (policy.code?.workspace_alias !== workspaces.default_alias) errors.push('policy_alias_mismatch');
+  if (JSON.stringify(policy.code?.allowed_write_globs) !== JSON.stringify(['CyberBoss/**'])) errors.push('policy_write_scope');
+  if (policy.code?.new_repository_allowed !== false) errors.push('policy_new_repo');
+  if (policy.data?.repository !== env.CB_DATA_REPO_SLUG) errors.push('policy_data_repo_mismatch');
+  if (policy.data?.area !== env.CB_DATA_AREA) errors.push('policy_data_area_mismatch');
+  if (policy.data?.domain !== env.CB_DATA_DOMAIN) errors.push('policy_data_domain_mismatch');
+  if (policy.data?.access_mode !== 'no_clone_client') errors.push('policy_data_access_mode');
+  if (policy.cloudflare?.r2?.bucket !== env.CB_R2_BUCKET) errors.push('policy_r2_bucket_mismatch');
+  if (policy.cloudflare?.r2?.object_prefix !== env.CB_R2_PREFIX) errors.push('policy_r2_prefix_mismatch');
+  if (policy.oci?.object_prefix !== env.CB_OCI_PREFIX) errors.push('policy_oci_prefix_mismatch');
+}
 
 if (errors.length) {
   for (const error of errors) console.error(`ERROR=${error}`);

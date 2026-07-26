@@ -42,7 +42,15 @@ fetch、push 或模拟 Git remote；真实 canonical 数据仍只能通过
 
 ```bash
 SIM_OBJECT_STORE_ROOT=/tmp/cyberboss-r2-sim \
-  implementation-kit/simulators/object-store-simulator.sh put snapshots/a.tar.zst ./a.tar.zst
+  implementation-kit/simulators/object-store-simulator.sh \
+  put ovh-singapore-vps-1/snapshots/a.tar.zst ./a.tar.zst
 ```
 
-采用 immutable key 语义，可用于 R2/OCI adapter contract tests。
+采用 immutable key 语义。Simulator 锁定 `provider=r2`、
+bucket=`cyberboss-cold` 和 `ovh-singapore-vps-1/` 前缀；测试可以通过
+`SIM_OBJECT_STORE_REQUEST_BUCKET` 证明越界 bucket 被拒绝。OCI 使用独立的
+`oci_object_adapter.py --backend mock`，避免把两家 provider 的身份混在一起。
+
+Private-DB simulator 同样只接受 `Private-MetaDatabase` 与
+`domain=CyberBoss`。所有 simulator 结果只证明本地 contract，不证明真实账号
+或云服务已经激活。

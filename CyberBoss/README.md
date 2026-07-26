@@ -6,12 +6,13 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 
 - 生命周期：Stage 0（Prestage 0 已通过）
 - 当前产品设计：`v0.0.0.4`
-- 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`
+- 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
+  `P0.3 / CB-020`
 - 当前基线：三个精确 commit 的本地 source bundle、完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`P0.2 / CB-010` 已通过；授权 OVH 三次即时 preflight、
-  constrained profile、端口/路径/Status 接入面与有限 cgroup 压力证据齐全
-- Stage 0–5 任务状态：`CB-000`、`CB-010` 已通过；其余 28 项与
+- 最新 Run：`P0.3 / CB-020` 已通过；代码/数据/provider scope、凭据槽、
+  Access fail-closed policy、Cloudflare/OCI adapters/mocks 与秘密扫描证据齐全
+- Stage 0–5 任务状态：`CB-000`、`CB-010`、`CB-020` 已通过；其余 27 项与
   PG-0–PG-5 均为 `not_started`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
@@ -42,9 +43,13 @@ key-only SSH 完成三次即时脱敏 preflight；选择 `constrained`，确认
 16 MiB/8 MiB/100 有界 pressure，OOM-kill delta 为 0。地址、凭据、私钥、
 原始进程/容器/Status 数据均未进入仓库。
 
-默认 Linux collector 已在无网络、只读本地容器中执行验证；有限 cgroup v2
-memory/swap ceiling 会覆盖更大的 host `/proc` 数值并 fail closed，但该结果不
-冒充 OVH evidence。下一 Run 才可进入 `P0.3 / CB-020`，本 Run 不提前实施。
+P0.3 从受保护部署记录完成 Cloudflare/OCI 只读能力核验，没有输出真实值。
+Access 专用 token 的跨服务读取被拒绝；现有 R2/D1 token 表现出跨
+Access/R2/DNS 的读取能力且无法证明精确写 scope，因此所有真实 provider
+mutation 保持 `activation_pending`/`hazard_blocked`。本地 adapters/mocks、
+Access deny/allow、repo/data/bucket/prefix negative matrix 与 7 个受保护已知
+秘密 equality scan 全部通过，P0/P1 findings=0。下一 Run 才可进入
+`P0.4 / CB-030`。
 
 ## 许可证
 

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-020",
+  "observed_at": "2026-07-26T08:18:34Z",
+  "mode": "read_only",
+  "external_mutation_performed": false,
+  "secret_values_emitted": false,
+  "identifiers_persisted": false,
+  "cloudflare": {
+    "token_values_loaded_from_protected_files": 4,
+    "token_verify": {
+      "active_count": 4,
+      "failed_count": 0
+    },
+    "exact_token_policy_introspection": {
+      "http_status": 403,
+      "verified": false
+    },
+    "access_designated_token": {
+      "access_apps_read_http_status": 200,
+      "access_app_count": 7,
+      "r2_buckets_read_http_status": 403,
+      "target_dns_read_http_status": 403,
+      "write_scope_attested": false,
+      "activation_status": "activation_pending"
+    },
+    "dns_designated_tokens": {
+      "target_dns_read_http_status": 200,
+      "target_dns_record_count": 0,
+      "access_apps_read_http_status": 403,
+      "r2_buckets_read_http_status": 403,
+      "write_scope_attested": false,
+      "activation_status": "activation_pending"
+    },
+    "r2_d1_designated_token": {
+      "access_apps_read_http_status": 200,
+      "r2_buckets_read_http_status": 200,
+      "r2_bucket_count": 1,
+      "target_dns_read_http_status": 200,
+      "cross_service_read_observed": true,
+      "write_scope_attested": false,
+      "real_write_status": "hazard_blocked"
+    },
+    "target_dns_record_count": 0,
+    "conclusion": "Read capabilities are real and separately observable, but no exact write-scope attestation can be derived from them. No token was used for mutation."
+  },
+  "oci": {
+    "region": "ap-sydney-1",
+    "config_present": true,
+    "private_key_present": true,
+    "private_key_mode": "0600",
+    "python_sdk_present": true,
+    "cli_present": false,
+    "namespace_read_verified": true,
+    "bucket_list_read_verified": true,
+    "bucket_count": 1,
+    "bucket_name_sha256_12": [
+      "1fbc2d390845"
+    ],
+    "canonical_prefix_is_bucket_name": false,
+    "write_scope_attested": false,
+    "activation_status": "activation_pending",
+    "conclusion": "Use the existing private bucket only after its name is injected through the slot and exact bucket/prefix IAM scope is attested."
+  },
+  "private_database": {
+    "shared_client_present": true,
+    "shared_client_sha256": "8a26302c98a470e75122fbf01ff1d1a23381ccf5db5f26df9ed5f9e59e5c9ffa",
+    "private_database_clone_present_under_githubproject": false,
+    "real_data_operation_performed": false,
+    "activation_status": "activation_pending"
+  },
+  "completion_rule": {
+    "local_adapters_and_mocks_may_pass": true,
+    "real_provider_activation_may_be_claimed": false,
+    "unrelated_development_blocked": false,
+    "global_wait_node_created": false
+  }
+}

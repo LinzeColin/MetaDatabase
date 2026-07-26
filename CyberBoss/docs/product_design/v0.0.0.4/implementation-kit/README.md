@@ -14,6 +14,11 @@
 - `github-actions/`：CI 模板；
 - `references/`：调研链接和复用决策。
 
+P0.3 增加机器可读 identity/scope policy、无真实值的 credential slots、
+Private-MetaDatabase 安全 wrapper、Cloudflare/OCI plan/apply adapters 与
+provider simulator。真实 provider write 必须有外置精确 scope attestation；
+缺失时返回 `activation_pending`，simulator 结果不会冒充真实激活。
+
 ## Immediate validation
 
 ```bash
@@ -24,6 +29,12 @@ python implementation-kit/tests/validate_taskpack.py .
 node implementation-kit/tests/validate_config.js \
   implementation-kit/config/cyberboss.env.example \
   implementation-kit/config/workspaces.json.example
+python3 implementation-kit/scripts/scope_policy.py validate
+python3 implementation-kit/tests/test_identity_scope.py
+python3 implementation-kit/tests/test_external_adapters.py
+node --test implementation-kit/tests/access-policy-contract.test.js
+python3 implementation-kit/scripts/cloudflare_adapter.py plan
+python3 implementation-kit/scripts/oci_object_adapter.py plan
 
 for f in implementation-kit/scripts/*.sh implementation-kit/simulators/*.sh; do
   bash -n "$f"

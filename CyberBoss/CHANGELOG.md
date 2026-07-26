@@ -1,5 +1,28 @@
 # Changelog
 
+## P0.3 / CB-020 — 2026-07-26
+
+- Locked the only code identity to `LinzeColin/MetaDatabase/CyberBoss`,
+  workspace alias `cyberboss` and `CyberBoss/**`; no repository was created.
+- Added a fail-closed wrapper around the shared no-clone
+  `private_db_client.py`, allowing only `Private-MetaDatabase`,
+  `domain=CyberBoss` and `ingest/get/list/verify`.
+- Added value-free credential slots and exact-scope attestations for separate
+  Cloudflare Access, DNS, R2 and OCI capabilities.
+- Prepared idempotent Access-first/DNS-last Cloudflare activation and
+  prefix-locked immutable OCI adapters, plus deterministic provider mocks.
+- Verified anonymous/unauthorized Access denial, exact fixture allow,
+  hostile-policy rejection and out-of-scope repo/path/area/domain/bucket/prefix
+  rejection.
+- Audited protected local Cloudflare/OCI records read-only. Real reads are
+  proven, but exact least-privilege write scopes are not; no external mutation
+  was made and those activations remain pending/hazard-blocked.
+- Scanned the complete CyberBoss tree against seven protected known-secret
+  values without emitting them; known/pattern hits and P0/P1 findings are zero.
+- Revalidated Corresponding Source, original licenses/notices, 129 dependency
+  entries and the unresolved strict GPLv3+AGPLv3 conflict record.
+- Marked CB-020 `passed`; CB-030 and every later task/gate remain unstarted.
+
 ## P0.2 / CB-010 — 2026-07-26
 
 - Added a fail-closed `constrained`/`tiny`/`standard` resource calculator with

@@ -111,15 +111,30 @@ OCI 再备前缀：cyberboss-cold-backup/ovh-singapore-vps-1/
 ```text
 /etc/cyberboss/credentials/
 ├── github-code.token
-├── private-db.token
-├── cloudflare-api.token
-├── cloudflare-access-client-id
-├── cloudflare-access-client-secret
+├── cloudflare-access-api.token
+├── cloudflare-dns-api.token
+├── cloudflare-r2-api.token
+├── cloudflare-account-id
+├── cloudflare-zone-id
+├── cloudflare-origin-hostname
+├── cloudflare-access-owner-identity
+├── cloudflare-access-status-service-token
 ├── r2-access-key-id
 ├── r2-secret-access-key
 ├── oci-config
-└── oci-private-key
+├── oci-private-key
+├── oci-bucket-name
+├── cloudflare-access-scope.json
+├── cloudflare-dns-scope.json
+├── cloudflare-r2-scope.json
+└── oci-object-scope.json
 ```
+
+Private-Database 认证复用 dedicated service user 的 `gh` 登录态，不另造
+`private-db.token`。三个 Cloudflare control-plane token 必须彼此分离；
+scope attestation 只记录资源与权限声明，不含 token value。真实写前 adapter
+要求 exact permission set、目标 account/zone/bucket/prefix，以及
+`broad_account_write=false`、`unrelated_write_permissions=[]`。
 
 Codex和WeChat凭据由各自官方/上游登录流程生成，不复制到env：
 
@@ -143,9 +158,29 @@ CB_PRIVATE_DB_AUTH_MODE=gh-login
 CB_R2_ACCESS_KEY_FILE=/etc/cyberboss/credentials/r2-access-key-id
 CB_R2_SECRET_KEY_FILE=/etc/cyberboss/credentials/r2-secret-access-key
 CB_OCI_CONFIG_FILE=/etc/cyberboss/credentials/oci-config
+CB_OCI_BUCKET_FILE=/etc/cyberboss/credentials/oci-bucket-name
+CB_R2_BUCKET=cyberboss-cold
+CB_R2_PREFIX=ovh-singapore-vps-1/
+CB_OCI_PREFIX=cyberboss-cold-backup/ovh-singapore-vps-1/
 CB_CHANNEL_PROVIDER=simulator
 CB_RUNTIME_PROVIDER=simulator
 ```
+
+### 6.1 P0.3 local capability observation
+
+2026-07-26 的只读审计确认：
+
+- designated Access token 可读 Access applications，不能读 R2/DNS；
+- designated DNS tokens 可读目标 zone DNS，不能读 Access/R2；
+- 现有 R2/D1 token 可同时读取 Access、R2、DNS，故其真实 mutation 被
+  `hazard_blocked`，不能当作最小权限写凭据；
+- OCI SDK 可读取 namespace 并列出一个现有 private bucket，但 task-pack 的
+  `cyberboss-cold-backup/ovh-singapore-vps-1/` 是 object prefix，不得猜成
+  bucket 名；
+- provider token detail/IAM write scope 未能由只读 API 证明，所有真实写
+  继续为 `activation_pending`，adapter/mocks 和下游无关任务继续。
+
+以上记录不包含任何 token、account/zone/bucket 原名、OCID、PAR URL 或私钥。
 
 真实激活后只切：
 

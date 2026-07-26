@@ -387,6 +387,35 @@ https://cyberboss.linzezhang.com/status/snapshot.json Access service-token only
 
 Enable Cloudflare Web Analytics for page views and unique visitors. Do not send prompt, job ID, Timeline content or user identity as analytics event parameters.
 
+### 4.5 Governed activation adapter
+
+P0.3 的命令入口：
+
+```bash
+python3 implementation-kit/scripts/scope_policy.py validate
+python3 implementation-kit/scripts/cloudflare_adapter.py plan
+python3 implementation-kit/scripts/oci_object_adapter.py plan
+```
+
+`cloudflare_adapter.py apply --transport real` 必须读取
+`provider-activation.json` 引用的 root-owned slots，并分别验证 Access、
+DNS、R2 scope attestation。Access application/policy 成功 reconcile 前不
+执行 DNS；重复运行只 reconcile 同一 domain/record/bucket，不创建重复资源。
+
+Cloudflare Web Analytics 当前对 proxied hostname 使用 dashboard automatic
+setup，因此 adapter 只输出一项可复核的 `activation_pending` control-plane
+动作，不伪造不存在的 API。Analytics 不阻塞 Access/DNS/R2 adapter 测试，也
+不得加入 prompt/result/job/thread/微信或用户身份字段。
+
+OCI 使用另一个 adapter。真实 `oci-sdk` backend 需要显式
+`--execute-real`、精确 bucket slot 和 bucket/prefix IAM attestation；MVP
+不允许 bucket create/delete、object delete/overwrite。没有这些证据时只运行
+mock 并报告 `activation_pending`。
+
+当前 P0.3 只读审计确认本机存在可用 Access/DNS/R2/OCI 读取能力，但没有证明
+写权限精确范围，故没有执行真实 mutation。此局部 pending 不建立
+`waiting_for_credentials` 或全局 block。
+
 ---
 
 ## 5. `status.linzezhang.com` Integration
