@@ -21,7 +21,7 @@ ebbef38ca46667165f8636ad24a89029b13754d3e6d8654bc8b1f81ffcc78fa0  ./scripts/boot
 bdb5f25e6399c88d3937bc33bae516667c7514b8c41bd1968beaade06071b67b  ./scripts/cloudflare_adapter.py
 1cd00a67d8fba12a16b8545e1073272a08938347e0c14a89c053a6a10275100a  ./scripts/deploy-release.sh
 1149cfd400b1f50f0218df11c144199f15c07609b5125f5dff6d4c6d986826f4  ./scripts/health-check.sh
-19d9f7fb3b569b79b2daacd64f9fffa746c6cf2eee2f934c2b1fbda68375be4b  ./scripts/install-controlled-workspace.sh
+ffb43f27bd22774cace1c7803660215e5b11e07cb113ce1bc9cbf4fc8ba2ffa8  ./scripts/install-controlled-workspace.sh
 01f80e456053e6d99a3a8b9c1857ff03cbec0bf3d815a1e95425fc5bda6c412d  ./scripts/install-layout.sh
 c1dc26a888ef0a49f0b551395bd264e5d1d96734855c706d88a766b5914c46f7  ./scripts/install-runtime-toolchain.sh
 f7da607a8ba4894efa57aa7828a7bd34845f6e73cfab1b288655bf1a5c8f52ac  ./scripts/oci_object_adapter.py

@@ -119,7 +119,7 @@ test("installer keeps candidate, identities, workspace and data boundaries expli
   assert.match(source, /WORKSPACE_STAGE=.*\.cb120-/);
   assert.match(
     source,
-    /install -d -o "\$CODE_USER" -g "\$CODE_GROUP" -m 0750 "\$WORKSPACE_STAGE"/
+    /install -d -o root -g "\$CODE_GROUP" -m 0750 "\$WORKSPACE_STAGE"/
   );
   assert.match(source, /git clone --local --no-hardlinks --no-checkout/);
   assert.doesNotMatch(

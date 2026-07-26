@@ -546,7 +546,7 @@ if [[ ! -e "$WORKSPACE" && ! -L "$WORKSPACE" ]]; then
   WORKSPACE_STAGE="$WORKSPACE_BASE/.cb120-$RELEASE_ID-$$"
   [[ ! -e "$WORKSPACE_STAGE" && ! -L "$WORKSPACE_STAGE" ]] ||
     fail "workspace_stage_collision"
-  install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 "$WORKSPACE_STAGE"
+  install -d -o root -g "$CODE_GROUP" -m 0750 "$WORKSPACE_STAGE"
   # The seed stays root-owned and immutable. A no-hardlink local object copy
   # avoids re-serving a partial repository and performs no external fetch.
   git clone --local --no-hardlinks --no-checkout \
