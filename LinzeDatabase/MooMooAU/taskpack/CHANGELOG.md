@@ -1,5 +1,18 @@
 # Taskpack Changelog
 
+## 1.0.27 — 2026-07-26
+
+固化 T0705 第八次 protected GA 在 `FIRST_IMPORT_POINTER_FETCH` 的零新增副作用失败。绑定正常
+PR/main 交付、attempt-1/rerun-0 workflow、authority/cleanup 结果、one-shot authority 清理及
+运行窗口 private commit 0、Gmail mutation 0；protected exception 未被读取，精确线上根因保持
+`UNKNOWN`。
+
+Owner 随后确认现有 GitHub App 已链接唯一 private 数据仓。该外部状态不用于倒推第八次根因；
+本包也不再修改 pointer 或数据处理路径。既有 bootstrap 必须在 Gmail credential exchange 前，
+用 installation token 证明精确 repository scope 只含配置中的唯一 private 数据仓，并刷新实时
+容量。八个失败 head 永久冻结；只授权一个新 exact-main App-scope activation attempt 1 和 PASS
+后的 receipt/schedule closure，T0706 与最终发布仍禁止。
+
 ## 1.0.26 — 2026-07-26
 
 固化 T0705 第七次 protected GA 在 `FIRST_IMPORT_POINTER_FETCH` 的零新增副作用失败。绑定正常

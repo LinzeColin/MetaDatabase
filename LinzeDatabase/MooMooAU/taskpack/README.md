@@ -276,6 +276,21 @@ delivery，继续停止在 T0706 前。当前有效入口为：
 - `SOURCE_PROVENANCE.v1.0.22.json`
 - `CHANGELOG.md`
 
+`v1.0.27` 直接继承不可变 v1.0.26，固化 T0705 第八个不同 exact-main protected GA
+失败并冻结 head `8b6faaf9…`。公开输出仍固定在 `FIRST_IMPORT_POINTER_FETCH`；authority 与
+cleanup PASS，protected job FAILED，schedule hold SKIPPED。独立后验只证明运行窗口 private
+commit 0 与 Gmail mutation 0；protected exception 未被读取，精确线上根因保持 `UNKNOWN`。
+Owner 随后确认现有 GitHub App 已链接唯一 private 数据仓；该变化只作为新外部前提，不倒推解释
+第八次失败。当前候选不再修改数据路径，只要求 installation token 在 Gmail credential exchange
+前证明精确 repository scope，并只授权一个新 exact-main attempt-1 App-scope activation
+rehearsal。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.27.md`
+- `ROADMAP.v1.0.27.md`
+- `PACKAGE_MANIFEST.v1.0.27.json`
+- `SOURCE_PROVENANCE.v1.0.27.json`
+- `CHANGELOG.md`
+
 `v1.0.26` 直接继承不可变 v1.0.25，固化 T0705 第七个不同 exact-main protected GA
 失败并冻结 head `2133673b…`。公开输出固定在 `FIRST_IMPORT_POINTER_FETCH`；只读连接仓核验
 确认第七次零 commit，且两份 current pointer 的 Git tree/blob 与 exact raw media 都有效，但
@@ -329,7 +344,8 @@ last-entered phase 诊断，禁止异常文本、URL、标识符、计数、邮�
 - `SOURCE_PROVENANCE.v1.0.23.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.25.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.24.json`、
+`PACKAGE_MANIFEST.v1.0.26.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.25.json`、
+`PACKAGE_MANIFEST.v1.0.24.json`、
 `PACKAGE_MANIFEST.v1.0.23.json`、
 `PACKAGE_MANIFEST.v1.0.22.json`、
 `PACKAGE_MANIFEST.v1.0.21.json`、

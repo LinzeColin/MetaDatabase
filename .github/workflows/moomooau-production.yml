@@ -11,11 +11,11 @@ on:
         required: true
         type: string
       confirm_ga:
-        description: Confirm one exact pointer-blob recovery repair GA rehearsal with budget one
+        description: Confirm one exact App repository-scope activation recovery rehearsal
         required: true
         type: choice
         options:
-          - GA_SCHEDULE_MODE_POINTER_BLOB_RECOVERY_REPAIR_MUTATION_BUDGET_ONE
+          - GA_SCHEDULE_MODE_APP_REPOSITORY_SCOPE_ACTIVATION_MUTATION_BUDGET_ONE
 
 permissions:
   contents: read
@@ -65,8 +65,9 @@ jobs:
           test "$GITHUB_SHA" != "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4"
           test "$GITHUB_SHA" != "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7"
           test "$GITHUB_SHA" != "2133673b335a384657c8668b62a1c13055c212cd"
+          test "$GITHUB_SHA" != "8b6faaf9059661edc3153352b8787ddbc4f733f3"
           test "$GA_CONFIRMATION" = \
-            "GA_SCHEDULE_MODE_POINTER_BLOB_RECOVERY_REPAIR_MUTATION_BUDGET_ONE"
+            "GA_SCHEDULE_MODE_APP_REPOSITORY_SCOPE_ACTIVATION_MUTATION_BUDGET_ONE"
           [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
           echo "authorized_head=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
