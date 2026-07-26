@@ -1,13 +1,13 @@
 {
   "version": "0.41.0（目标 1.2.0）",
-  "stage": "S4.1",
-  "phase": "中文人话版 fail-closed Run Contract 待创建",
-  "task": "ADP-V12-S4-T001",
-  "real_progress": "S0 6/6、S1 5/5、S2 3/3、S3 3/3 均由独立 verifier 裁定 PASS；10 个有界任务完成 4 个；S4.1 尚未创建 Run Contract，保持 NOT_RUN",
-  "report_grade": "S3 冻结 Git Subject 经全新上下文独立复审 3/3 PASS，P0/P1/UNKNOWN/BLOCKED/豁免均为 0；S4.1 未运行",
-  "business_verdict": "当前线上仍为 0.41.0；v1.2 尚未部署；Science Advances PubMed 候选路径已完成开发验收但未接 live，Worker、现有订阅源、来源启停、定时配置与存储均未改",
-  "evidence_status": "S3_ACCEPTED_S4_NOT_RUN",
-  "rendered_at": "2026-07-23",
+  "stage": "S4.3",
+  "phase": "可承重视觉、动效与像素回归门 Run Contract 待创建",
+  "task": "ADP-V12-S4-T003",
+  "real_progress": "S0 6/6、S1 5/5、S2 3/3、S3 3/3、S4.1 2/2、S4.2 1/1 均由独立复核者裁定 PASS；10 个有界任务完成 6 个；S4.3 尚未创建 Run Contract，保持 NOT_RUN",
+  "report_grade": "S4.2 冻结版本经全新上下文独立复审通过且无需后续动作，P0/P1/UNKNOWN/BLOCKED/豁免均为 0；六主题移动/桌面、临界宽度、四条路由、十二张截图和十项负控均通过，完整测试原始非绿但与封存 S3 问题键精确同集；S4.3 未运行",
+  "business_verdict": "当前线上仍为 0.41.0；v1.2 尚未部署；S4.1 与 S4.2 候选已完成开发验收但未接 live，封存生产 Worker、来源、定时配置、数据结构与数据均未改",
+  "evidence_status": "S4_2_ACCEPTED_DEVELOPER_CHECK_S4_3_NOT_RUN",
+  "rendered_at": "2026-07-24",
   "canonical_taskpack": "docs/pursuing_goal/v1_2",
-  "previous_task_receipt": "machine/runs/ADP-V12-S3-T001-developer-check.json"
+  "previous_task_receipt": "machine/runs/ADP-V12-S4-T002-developer-check.json"
 }

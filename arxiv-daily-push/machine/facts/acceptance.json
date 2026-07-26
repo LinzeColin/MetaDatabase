@@ -1,6 +1,7 @@
 {
   "items": [
-    {"id": "ACC-V12-S4-001", "criteria": "真实英文论文条目在人话版呈现清晰中文结构，区分已知、推断、未知和原文入口，无大段未解释英文", "status": "NOT_RUN；Run Contract 尚未创建"},
-    {"id": "ACC-V12-S4-002", "criteria": "无可靠翻译能力时使用诚实中文回退，原文清晰标识并默认折叠；不存在虚构翻译或无证据断言", "status": "NOT_RUN；Run Contract 尚未创建"}
+    {"id": "ACC-V12-S4-004", "criteria": "六主题视觉结构肉眼可辨，三个视频主题 `muted/loop` 且真实播放，核心主题资产 hash 锁定", "status": "NOT_RUN；Run Contract 尚未创建"},
+    {"id": "ACC-V12-S4-005", "criteria": "非视觉 `title` 清洗负控放行；主题、导航、视频、`motion` 破坏负控逐项阻断，`pixel/visible oracle` 必须执行", "status": "NOT_RUN；Run Contract 尚未创建"},
+    {"id": "ACC-V12-S4-006", "criteria": "`reduced-motion` 停止 `autoplay` 与装饰运动但保持功能；六主题 `console error` 为零且无 `overflow`", "status": "NOT_RUN；Run Contract 尚未创建"}
   ]
 }

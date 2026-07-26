@@ -1,4 +1,4 @@
-# ADP canonical HANDOFF — 2026-07-23
+# ADP canonical HANDOFF — 2026-07-24
 
 本文件是 ADP 迁入 MetaDatabase 后的**唯一当前交接入口**。先读本文件，再按任务路由到
 被点名的最小文件集；不要把 V0.1、V0.3、V7.2 或旧 CodexProject 根级文档各自解释成
@@ -31,8 +31,16 @@
 - `ADP-V12-S3-T001` 已在首轮 XML/实体边界修复后通过 fresh-context 整阶段复审，
   `ACC-V12-S3-001..003 = 3/3 PASS`，`P0/P1/UNKNOWN/BLOCKED/waiver = 0`；公开 receipt 位于
   [`PHASE_ADP_V12_S3_SCIENCE_ADVANCES_PUBMED.md`](phase_records/PHASE_ADP_V12_S3_SCIENCE_ADVANCES_PUBMED.md)。
-- 当前唯一下一任务是 `ADP-V12-S4-T001`（中文人话版 fail-closed 闭合）；它仍为 `NOT_RUN`，
-  Run Contract 尚未创建。必须先锁定独立合同，不得把 S3 验收外推为 S4、部署或 live 授权。
+- `ADP-V12-S4-T001` 已在首轮短标题/复习队列/校验器边界修复后通过第二轮全新上下文复审，
+  `ACC-V12-S4-001..002 = 2/2 PASS`，`ADP-S4-F001..003` 全部关闭且
+  `P0/P1/UNKNOWN/BLOCKED/waiver = 0`；公开 receipt 位于
+  [`PHASE_ADP_V12_S4_HUMAN_LANGUAGE_FAIL_CLOSED.md`](phase_records/PHASE_ADP_V12_S4_HUMAN_LANGUAGE_FAIL_CLOSED.md)。
+- `ADP-V12-S4-T002` 已通过全新上下文复审，`ACC-V12-S4-003 = PASS / ACTION NONE`，
+  findings、`P0/P1/UNKNOWN/BLOCKED/waiver = 0`；公开 receipt 位于
+  [`PHASE_ADP_V12_S4_MOBILE_FOUR_TAB_NAV.md`](phase_records/PHASE_ADP_V12_S4_MOBILE_FOUR_TAB_NAV.md)。
+- 当前下一任务是 `ADP-V12-S4-T003`（可承重视觉、动效与像素回归门）；
+  `ACC-V12-S4-004..006` 均为 `NOT_RUN`，Run Contract 尚未创建。下一轮只允许先锁定唯一
+  合同，不得从 S4.2 结果预签 S4.3、整 S4、部署或 live。
 - S1 候选实现位于 [`google_news_candidate.mjs`](../deploy/cloudflare/google_news_candidate.mjs)：
   `gnews-us-tech-google-candidate`（Google News RSS）保持 `candidate_not_live`，live
   `gnews-us-tech` 仍是 Bing News RSS；机器登记见
@@ -44,8 +52,9 @@
   后续仍不得用状态文字替代真实 diff 或 live 复查。
 - Owner 的晚到决策已定案：3 个 dormant Cloudflare 资源均删除；继续救援剩余来源；
   不迁 OVH/Coolify；不修 V0.1 `TASK_INDEX.csv` 的死状态列。
-- S1–S3 来源救援开发线已按独立 Run Contract 完成 candidate-only 验收；下一条开发线是
-  S4.1 中文人话内容。前九个任务仍只做到对应合同边界；最终部署仅在 v1.2 全部门禁 PASS 后自动执行。
+- S1–S4.2 已按独立 Run Contract 完成各自 candidate-only 验收；S4.3 仍为 `NOT_RUN` 且
+  Run Contract 未创建，下一动作只允许锁定唯一合同，不得提前实现、发布或部署。
+  前九个任务仍只做到对应合同边界；最终部署仅在 v1.2 全部门禁 PASS 后自动执行。
 
 ## 1. 合同路由与优先级
 
@@ -239,14 +248,33 @@ P0/P1/UNKNOWN/BLOCKED/waiver 均为零，evidence root 为
 与 sealed baseline 的失败/错误测试名集合精确一致，`candidate_only=[]`、
 `baseline_only=[]`。这只关闭 S3 candidate 开发验收，不签署接入、部署、S4–S6 或生产验收。
 
-## 9. v1.2 下一任务（S4.1 NOT_RUN）
+## 9. v1.2 S4.1/S4.2 收尾与 S4.3（NOT_RUN）
 
-**下一任务**：`ADP-V12-S4-T001`，关闭真实英文论文的中文人话结构与无可靠翻译时的诚实
-fail-closed 回退，对应 `ACC-V12-S4-001..002`。
+**S4.1 已完成**：`ADP-V12-S4-T001` 关闭真实英文论文的中文人话结构与无可靠翻译时的诚实
+fail-closed 回退。第二轮全新上下文独立复核对 commit `c50d7f7b` / tree `d40fb7b` 裁定
+`ACC-V12-S4-001..002 = 2/2 PASS / ACTION NONE`，首轮 `ADP-S4-F001..003` 全部关闭。
 
-**当前状态**：`NOT_RUN`，Run Contract 尚未创建。下一线程必须先从 Task Graph 与 Acceptance
-Contract 锁定唯一 S4.1 合同，再收集真实用户旅程与破坏负控；不得复用 S3 receipt 预签内容、
-UI、模型、版本、运维或部署。
+**S4.2 已完成**：`ADP-V12-S4-T002` / RC05 在 S4.1 materialization 上叠加唯一
+`02_mobile_four_tab_nav.patch`。全新上下文独立复核对 commit `e5460ef2` / tree
+`6b3cfce2` / build `a98b4c957f30` / artifact
+`39f8a8d82aec8f97e83d595f95ba52ae062191b801632661922077c9632b356b` 裁定
+`ACC-V12-S4-003 = PASS / ACTION NONE`，findings、P0/P1/UNKNOWN/BLOCKED/waiver 均为零。
+六主题移动端和桌面端、`779/780px` 边界、四条 active route、十二张截图与十项分离负控均通过；
+S4.2 focused `6/6`、S4.1 回归 `24/24`、治理 `78/78`、安全 `14/14` 均通过。
+
+**诚实回归边界**：full suite 原始为 `962 tests / 2 failures / 11 errors / 29 skips`；先校验
+SHA-256 `782254fdd58a56722a988f6473f560c0dc006f08972fc62e5be4c8a24ffe3624`
+的 S3 sealed ZIP 与内部 hash，再读取其实际 differential member，S4.2 failure/error key
+与基线精确同集，`candidate_only=[]`、`baseline_only=[]`。这不是全绿声明。
+
+review ZIP SHA-256 为 `cf884d8a4ab6b2efbd2f6e85a761f97dcf467ab27ffac36827aff6866a95e4cb`，
+evidence root 为 `ac80b4f62bb235eaa4d21301c042672eef5e7f9fdf49a0c4658818c603ddbb45`；
+原位与解包 finalizer verify、`58` 项内部 checksum、路径/加密/symlink/秘密扫描均通过。
+canonical Worker/live、来源/板块、cron、D1/R2 与部署均未改。
+
+**下一动作**：`ADP-V12-S4-T003` / `ACC-V12-S4-004..006` 当前均为 `NOT_RUN`，Run Contract
+尚未创建。下一轮只能先锁定唯一合同；不得从 S4.2 结果预签 S4.3、整 S4、模型、版本、
+运维或部署。
 
 ## 10. 永久提醒
 

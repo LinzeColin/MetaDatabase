@@ -19,10 +19,17 @@
 - WIP=1；严格按 Task Graph 依赖执行。
 - 每个任务使用独立分支、Run Contract、测试证据和独立 verifier。
 - `NOT_RUN`、`UNKNOWN`、`BLOCKED`、缺阈值或缺 Subject 均不是 PASS。
-- S0–S3 已关闭；S3 经 fresh-context 独立 verifier 裁定 `ACC-V12-S3-001..003 = 3/3 PASS`，
-  PubMed candidate 仍未接 live、Worker、cron 或存储。
-- 下一任务是 `ADP-V12-S4-T001`，当前 `NOT_RUN` 且 Run Contract 尚未创建；必须另行锁定
-  S4.1 合同后才能处理中文人话内容，不得从 S3 receipt 预签 UI、版本、运维或部署。
+- S0–S3 已关闭；S3 PubMed candidate 仍未接 live、Worker、cron 或存储。
+- S4.1 经首轮问题修复与第二轮全新上下文独立 verifier 裁定
+  `ACC-V12-S4-001..002 = 2/2 PASS`，`ADP-S4-F001..003` 全部关闭，且未修改 canonical
+  Worker、live、schema/data 或部署。
+- S4.2 经全新上下文独立 verifier 对冻结 Subject 裁定
+  `ACC-V12-S4-003 = PASS / ACTION NONE`；六主题移动/桌面、`779/780px`、四条路由、
+  十二张截图和十项负控均通过，findings、P0/P1/UNKNOWN/BLOCKED/waiver 均为零。
+  canonical Worker、live、schema/data、来源/板块、cron 与部署均未改。
+- 当前下一任务是 `ADP-V12-S4-T003`；只允许先创建并锁定唯一 S4.3 Run Contract。
+  `ACC-V12-S4-004..006` 均为 `NOT_RUN`，不得从 S4.2 收尾预签或启动实现、整 S4、版本、
+  运维或部署。
 - v0.1 和 V7.2 保留为历史/兼容面，不恢复 CodexProject 旧源。
 
 ## 本地验证

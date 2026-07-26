@@ -69,9 +69,9 @@
   {
     "id": "FEAT-ADP-012",
     "name": "中文人话内容、移动四标签与六主题视觉回归",
-    "status": "planned_current_next",
-    "evidence": "declared",
-    "evidence_ref": "docs/pursuing_goal/v1_2/TASK_GRAPH.yaml#ADP-V12-S4-T001"
+    "status": "in_progress",
+    "evidence": "extracted",
+    "evidence_ref": "machine/runs/ADP-V12-S4-T002-developer-check.json"
   },
   {
     "id": "FEAT-ADP-013",

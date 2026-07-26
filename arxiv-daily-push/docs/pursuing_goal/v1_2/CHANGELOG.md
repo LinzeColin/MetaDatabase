@@ -1,5 +1,72 @@
 # ADP v1.2 Taskpack Changelog
 
+## 1.2.0 — S4.2 closeout — 2026-07-24
+
+- fresh-context verifier 对冻结 commit `e5460ef2` / tree `6b3cfce2` / materialized artifact
+  `39f8a8d…b356b` 裁定 `ACC-V12-S4-003 = PASS / ACTION NONE`，findings、
+  P0/P1/UNKNOWN/BLOCKED/waiver 均为零。
+- 六主题移动/桌面、`779/780px` 边界、四条 active route、十二张截图与十项负控全部通过；
+  S4.2 focused `6/6`、S4.1 回归 `24/24`、治理 `78/78`、安全 `14/14` 通过。
+- full suite 原始 `962 tests / 2 failures / 11 errors / 29 skips` 与 S3 sealed baseline 的
+  failure/error key 精确同集；只裁定 changed-scope differential PASS，不声称全绿。
+- review ZIP SHA-256 `cf884d8a…95e4cb`、evidence root `ac80b4f…ddbb45`；原位与解包
+  finalizer verify、`58` 项内部 checksum 及安全扫描均通过。
+- S4.2 仅完成 `developer_check`；canonical Worker/live、D1/R2、cron、来源/板块与部署均未改。
+  下一任务 `ADP-V12-S4-T003` 保持 `NOT_RUN`，Run Contract 尚未创建，不上传或部署。
+
+## 1.2.0 — S4.2 构建者候选 — 2026-07-24
+
+- RC05 patch chain 已物化为 build `a98b4c957f30` / artifact
+  `39f8a8d82aec8f97e83d595f95ba52ae062191b801632661922077c9632b356b` /
+  Git blob `461fb1a225c0a8826cf0647181a9969a53618c3a`。
+- 构建者的真实系统 Chrome 验证覆盖六主题移动端、六主题桌面端、`779/780px` 临界宽度、
+  四条 active route、十二张截图与十项分离破坏负控，浏览器错误为零。
+- S4.2 聚焦 `6/6`、S4.1 回归 `24/24`、治理 `78/78`、安全 `14/14`、双平面和 V7.2
+  兼容入口通过；受控 Python 3.12 full suite 为 `962 tests / 2 failures / 11 errors /
+  29 skips`，与 S3 sealed ZIP failure/error 键精确同集，`candidate_only=[]`、
+  `baseline_only=[]`。
+- fresh-context 独立验收尚未运行，`ACC-V12-S4-003` 保持 `NOT_ACCEPTED`；canonical Worker、
+  live、D1/R2、来源/板块、cron、上传与部署均未改，S4.3 未开始。
+
+## 1.2.0 — S4.2 Run Contract — 2026-07-24
+
+- 为 `ADP-V12-S4-T002` 增加唯一 `RUN_CONTRACT_05_MOBILE_FOUR_TAB_NAV.md`，锁定
+  `<780px` 六主题统一“今天／队列／雷达／系统”、`375×812` 无横向溢出、`779/780px`
+  边界、点击目标与桌面 sidebar/topbar/dock 不回归。
+- candidate 必须先物化已验收 S4.1 patch，再叠加独立 S4.2 patch；canonical Worker、
+  production bundle、live `0.41.0`、D1/R2、cron 和部署保持不动。S4.3 视觉门不得混入本轮。
+
+## 1.2.0 — S4.1 closeout — 2026-07-23
+
+- 短英文标题、review 队列和官方 verifier 边界修复后，fresh-context r2 对冻结 commit
+  `c50d7f7b` / tree `d40fb7b` / materialized artifact `9c7ff113…0797b` 裁定
+  `ACC-V12-S4-001..002 = 2/2 PASS`，首轮 `ADP-S4-F001..003` 全部关闭，开放
+  P0/P1/L2/UNKNOWN/BLOCKED/waiver 均为零。
+- 独立完整 Worker 路由 `5/5`、system Chrome `5/5`、分离破坏负控 `9/9`、24 个聚焦测试、
+  72 个 ADP 治理测试和 14 个安全测试通过；full suite 原始仍是历史 `2 failures + 11 errors`，
+  与 S3 封存基线精确同集，`candidate_only=[]`、`baseline_only=[]`。
+- S4.1 仅完成 `developer_check`；canonical Worker/live、D1/R2、cron、来源/板块和部署均未改。
+  下一任务 `ADP-V12-S4-T002` 保持 `NOT_RUN`，Run Contract 尚未创建，不上传或部署。
+
+## 1.2.0 — S4.1 first-review repair candidate — 2026-07-23
+
+- fresh-context verifier 对冻结 Subject `5691ee4b` 裁定 `FAIL / ACT`：长英文条目路径满足
+  `ACC-V12-S4-001`，但短英文标题与 review 队列绕过 fail-closed，`ACC-V12-S4-002` 失败。
+- `ADP-S4-F001..003` 分别锁定产品缺陷、官方 verifier false-PASS 和 README/HANDOFF 陈旧状态；
+  修复必须覆盖 `Generative Agents` + 空摘要、短标题 + 英文摘要队列、三路由、逐项状态/details
+  破坏负控，并由新不可变 Subject 的全新 verifier 复验。
+- 当前仍为 `NOT_ACCEPTED`；canonical Worker、production bundle、D1/R2、cron、来源和 live
+  `0.41.0` 均未改变，不上传或部署。
+
+## 1.2.0 — S4.1 Run Contract — 2026-07-23
+
+- 为 `ADP-V12-S4-T001` 增加唯一 `RUN_CONTRACT_04_HUMAN_LANGUAGE_FAIL_CLOSED.md`，锁定
+  无可靠中文解释时的已知/推断/未知结构、默认折叠英文原文、旧存储讲义 fail-closed 和
+  unsupported-claim 破坏负控。
+- 本合同锁定为基于封存 live Worker 的可确定性 candidate patch；canonical Worker 与 production
+  bundle 保持不动。不引入模型/API/付费服务，不修改 D1/R2 schema 或数据，不处理 S4.2/S4.3，
+  不上传或部署；实现与独立验收尚未预签。
+
 ## 1.2.0 — S3 closeout — 2026-07-23
 
 - Science Advances PubMed candidate 经首轮独立复审发现并修复 XML 1.0 非法 literal 与未声明/

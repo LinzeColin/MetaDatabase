@@ -1,0 +1,166 @@
+{
+  "schema_version": "adp-v12-stage-developer-check-v1",
+  "run_id": "ADP-V12-S4-T002-20260724",
+  "task_id": "ADP-V12-S4-T002",
+  "action": "六主题移动端统一四标签导航候选与全新上下文独立验收",
+  "result": "ACC-V12-S4-003 PASS；P0/P1/UNKNOWN/BLOCKED/豁免均为 0；S4.3 保持 NOT_RUN 且 Run Contract 未创建",
+  "ts": "2026-07-24T14:38:18+10:00",
+  "decision_scope": "developer_check",
+  "independent_verdict": "PASS",
+  "verified_subject": {
+    "identity_algorithm": "clean Git commit/tree plus SHA-256 of the deterministically materialized S4.1+S4.2 candidate Worker",
+    "git_head": "e5460ef2c62d44af090e8f93b7bac9d607a91090",
+    "git_tree": "6b3cfce275af94a56d1be3a9e7124cac2ec55343",
+    "immediate_parent": "cb7c49f184cc2b01978ccb3e1ceaef49c1fd518b",
+    "candidate_artifact_sha256": "39f8a8d82aec8f97e83d595f95ba52ae062191b801632661922077c9632b356b",
+    "stability_before_after_tests": true,
+    "closeout_exclusions": [
+      "machine/runs/ADP-V12-S4-T002-developer-check.json",
+      "docs/phase_records/PHASE_ADP_V12_S4_MOBILE_FOUR_TAB_NAV.md",
+      "machine/facts/status.json",
+      "machine/facts/plan.json",
+      "machine/facts/acceptance.json",
+      "machine/facts/roadmap.json",
+      "machine/facts/features.json",
+      "machine/facts/changelog.json",
+      "文档/*.md deterministically rendered from machine facts",
+      "用户中心/*.md timestamp-only update mandated before commit",
+      "docs/HANDOFF.md closeout-only status wording",
+      "docs/pursuing_goal/v1_2/README.md closeout-only status wording",
+      "docs/pursuing_goal/v1_2/CHANGELOG.md closeout entry",
+      "docs/pursuing_goal/v1_2/TREE_SHA256.txt regenerated digest",
+      "CHANGELOG.md closeout entry"
+    ],
+    "exclusion_reason": "这些文件只记录已经完成的独立 verdict，或由机器事实和项目脚本确定性生成；把它们放入待验 Subject 会形成自引用。任何产品、测试、候选补丁、taskpack 合同、registry、Owner 内容或 live 边界字节变化均不在排除范围内，必须重新验收。"
+  },
+  "taskpack_lock": {
+    "full_pack_sha256": "82a114412d112de920332b989399c87ed130a2f29c5b166bee5414c0defa7f1e",
+    "seven_role_contract_sha256": "e5702e91ca40b5967634a21822f8fd864fb6d11337b5ec2373fb82417a8a0a88",
+    "source_snapshot_sha256": "608b6a60dbd06e2365b4a5b4016ba53c097808b0f591bcaf90e32b07556c59ce",
+    "source_file_count": 19,
+    "declared_task_count": 10,
+    "declared_acceptance_count": 33,
+    "mapped_acceptance_count": 33
+  },
+  "run_contract": {
+    "path": "docs/pursuing_goal/v1_2/RUN_CONTRACT_05_MOBILE_FOUR_TAB_NAV.md",
+    "sha256": "e2e426ae083c1e7f5f53b1b7f0ddea521d461229baf1ddff5f6c98811d937820"
+  },
+  "implementation": {
+    "candidate_patch": {
+      "path": "deploy/cloudflare/v1_2/patches/02_mobile_four_tab_nav.patch",
+      "sha256": "84393c367429f197481be1cfc4448c8ffff35607919e67817a1aca78d651b9e6",
+      "old_blob": "9ff676970c20369ca562aa8a9639016fa08bb1c7",
+      "new_blob": "461fb1a225c0a8826cf0647181a9969a53618c3a"
+    },
+    "executable_verifier": {
+      "path": "tools/verify_mobile_four_tab_nav.mjs",
+      "sha256": "ce2805d3b542a6dd33562788849b4cc24e4889095ac7b563276622fe600e7394"
+    },
+    "governance_test": {
+      "path": "tests/governance/test_adp_mobile_four_tab_nav.py",
+      "sha256": "cc20f7e1f4f2a65620cb211d365de2a638c92c83cd9f9cd5aa52849b4b0689dc"
+    },
+    "candidate_build_id": "a98b4c957f30",
+    "candidate_source_sha256": "a98b4c957f304600da1c95263c4232719ffaebf52cc3ff4bc9e3fd1910ac79c4",
+    "candidate_artifact_sha256": "39f8a8d82aec8f97e83d595f95ba52ae062191b801632661922077c9632b356b",
+    "canonical_worker_build_id": "c2ccc1fd01ec",
+    "canonical_worker_sha256": "319178f05490588701c10c40fd8dad653d4b58e35c7acbfe1224f7282a20a196",
+    "canonical_worker_changed": false
+  },
+  "acceptances": {
+    "ACC-V12-S4-003": "PASS"
+  },
+  "counts": {
+    "pass": 1,
+    "p0": 0,
+    "p1": 0,
+    "l2_open": 0,
+    "unknown": 0,
+    "blocked": 0,
+    "waiver": 0
+  },
+  "independent_review": {
+    "verdict": "PASS",
+    "action": "NONE",
+    "finalized_at": "2026-07-24T04:31:52.061656+00:00",
+    "subject_git_head": "e5460ef2c62d44af090e8f93b7bac9d607a91090",
+    "subject_git_tree": "6b3cfce275af94a56d1be3a9e7124cac2ec55343",
+    "candidate_artifact_sha256": "39f8a8d82aec8f97e83d595f95ba52ae062191b801632661922077c9632b356b",
+    "evidence_root_sha256": "ac80b4f62bb235eaa4d21301c042672eef5e7f9fdf49a0c4658818c603ddbb45",
+    "review_zip": {
+      "storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "filename": "ADP_V12_S4_T002_acceptance_e5460ef2_fresh_r2_acceptance_review_taskpack.zip",
+      "sha256": "cf884d8a4ab6b2efbd2f6e85a761f97dcf467ab27ffac36827aff6866a95e4cb",
+      "size_bytes": 2255827,
+      "entry_count": 63,
+      "internal_checksum_count": 58,
+      "readme_first": true,
+      "finalizer_verified_in_place": true,
+      "finalizer_verified_after_extract": true,
+      "unzip_test_passed": true,
+      "path_symlink_encryption_scan_passed": true,
+      "common_secret_pattern_scan_passed": true
+    },
+    "open_findings": [],
+    "closed_historical_findings": [
+      "7fd F-006"
+    ]
+  },
+  "verifier_owned_attempts": {
+    "status": "CLOSED_VERIFIER_HARNESS_AND_PACKAGING_ATTEMPTS_NOT_PRODUCT_WAIVERS",
+    "items": [
+      "首次 materialization 漏设临时 cwd，patch01 短暂落到冻结 worktree；验收测试前已精确反向恢复，并以 canonical hash、零 diff 与 clean status 证明恢复",
+      "bare Python 缺 PyYAML、uv 环境无 pip module；在离线 Python 3.12.13 依赖环境重跑通过",
+      "verifier 工具自测首次因自身 import 生成 pycache 得 34/35；精确清理并禁写 bytecode 后 35/35 PASS",
+      "首个 sealed ZIP 未保留三个空必需目录，解包 verify 失败；未覆写 seal，改建 fresh_r2 并以三份 NOT_APPLICABLE.md 保持目录可移植，重封后原位与解包 verify 均 PASS"
+    ],
+    "product_finding": false,
+    "waiver_used": false
+  },
+  "closeout_validation": {
+    "independent_mobile_themes": {"ran": 6, "passed": 6, "viewport": "375x812"},
+    "independent_desktop_themes": {"ran": 6, "passed": 6, "viewport": "1440x900"},
+    "independent_boundary_cases": {"ran": 12, "passed": 12, "widths": [779, 780]},
+    "independent_active_routes": {"ran": 4, "passed": 4},
+    "independent_negative_controls": {"ran": 10, "passed": 10},
+    "independent_screenshots": 12,
+    "browser_console_or_page_errors": 0,
+    "focused_s4_2_tests": {"ran": 6, "passed": 6},
+    "focused_s4_1_regression_tests": {"ran": 24, "passed": 24},
+    "all_adp_governance_tests": {"ran": 78, "passed": 78},
+    "security_tests": {"ran": 14, "passed": 14},
+    "dual_plane": "PASS",
+    "taskpack_integrity_compatibility_drift": "PASS/PASS/PASS",
+    "v72_root_taskpack_validator": "PASS",
+    "user_center_timestamps": {"validated": 20},
+    "full_suite": {"ran": 962, "failures": 2, "errors": 11, "skipped": 29, "raw_status": "FAIL"},
+    "sealed_failure_error_key_set_exact_match": true,
+    "candidate_only": [],
+    "baseline_only": [],
+    "worker_path_changed": false,
+    "runtime_or_live_surface_changes": [],
+    "source_or_board_changes": [],
+    "secret_hits": []
+  },
+  "full_suite_evidence": {
+    "independent_runner_log": {
+      "storage": "INSIDE_OWNER_LOCAL_REVIEW_ZIP",
+      "sha256": "fdf6b8e36b1df4b0493716c8b6ca34b67d0da97995b947421f2dd1f042fa04cd"
+    },
+    "sealed_s3_baseline": {
+      "storage": "OWNER_LOCAL_NOT_COMMITTED",
+      "sha256": "782254fdd58a56722a988f6473f560c0dc006f08972fc62e5be4c8a24ffe3624",
+      "differential_member_sha256": "acb9119d9ba99e30abba871a22761af8c6ad0d453a0e14b0c5290ed0914cc7f7"
+    },
+    "independent_exact_differential_status": "PASS"
+  },
+  "runtime_or_live_change": false,
+  "deployment_authorized": false,
+  "deployment_performed": false,
+  "s4_1_status": "ACCEPTED_DEVELOPER_CHECK",
+  "s4_2_status": "ACCEPTED_DEVELOPER_CHECK",
+  "s4_3_status": "NOT_RUN",
+  "s4_3_run_contract_status": "NOT_CREATED",
+  "public_receipt": "docs/phase_records/PHASE_ADP_V12_S4_MOBILE_FOUR_TAB_NAV.md"
+}

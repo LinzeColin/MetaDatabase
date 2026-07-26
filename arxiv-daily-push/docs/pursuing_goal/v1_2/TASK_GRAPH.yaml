@@ -76,6 +76,7 @@ tasks:
     stage: S4.1
     title: 中文人话版 fail-closed 闭合
     dependencies: [ADP-V12-S3-T001]
+    run_contract: RUN_CONTRACT_04_HUMAN_LANGUAGE_FAIL_CLOSED.md
     acceptance_ids:
       - ACC-V12-S4-001
       - ACC-V12-S4-002
@@ -87,6 +88,7 @@ tasks:
     stage: S4.2
     title: 六主题移动端统一四标签导航
     dependencies: [ADP-V12-S4-T001]
+    run_contract: RUN_CONTRACT_05_MOBILE_FOUR_TAB_NAV.md
     acceptance_ids:
       - ACC-V12-S4-003
     stop_conditions:

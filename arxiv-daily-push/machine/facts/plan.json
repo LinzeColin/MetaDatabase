@@ -1,11 +1,11 @@
 {
-  "stage": "S4.1",
-  "phase": "中文人话版 fail-closed Run Contract 待创建",
-  "task": "ADP-V12-S4-T001",
-  "owner": "下一独立开发线程；必须先锁定 S4.1 唯一 Run Contract，当前不得实现或预签",
+  "stage": "S4.3",
+  "phase": "可承重视觉、动效与像素回归门 Run Contract 待创建",
+  "task": "ADP-V12-S4-T003",
+  "owner": "下一独立开发线程；必须先锁定 S4.3 唯一 Run Contract，当前不得实现或预签",
   "taskpack": "docs/pursuing_goal/v1_2",
   "run_contract": null,
-  "run_contract_status": "NOT_CREATED；S4.1 保持 NOT_RUN，需单独锁定合同后才能执行",
-  "previous_task_receipt": "machine/runs/ADP-V12-S3-T001-developer-check.json",
-  "next_task_after_pass": "ADP-V12-S4-T002"
+  "run_contract_status": "NOT_CREATED；S4.3 保持 NOT_RUN，需单独锁定合同后才能执行",
+  "previous_task_receipt": "machine/runs/ADP-V12-S4-T002-developer-check.json",
+  "next_task_after_pass": "ADP-V12-S5-T001"
 }
