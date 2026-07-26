@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import urllib.request
@@ -18,6 +19,10 @@ from typing import Any
 
 PAGE_URL = "https://status.linzezhang.com/"
 SNAPSHOT_URL = "https://status.linzezhang.com/data/snapshot.json"
+LOCAL_LINUX_IMAGE = "mcr.microsoft.com/playwright/python:v1.60.0-jammy"
+LOCAL_LINUX_MEMORY_MB = 512
+LOCAL_LINUX_PIDS_LIMIT = 128
+LOCAL_LINUX_TMPFS_MB = 64
 EXPECTED_PROJECT_FIELDS = {
     "name",
     "url",
@@ -230,6 +235,175 @@ def build_public_observation() -> dict[str, Any]:
     return observation
 
 
+def build_local_linux_preflight_observation(project: Path) -> dict[str, Any]:
+    docker = shutil.which("docker")
+    if docker is None:
+        raise RuntimeError("docker_not_available")
+
+    inspect = subprocess.run(
+        [docker, "image", "inspect", "--format", "{{.Id}}", LOCAL_LINUX_IMAGE],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=20,
+    )
+    if inspect.returncode != 0:
+        raise RuntimeError("local_linux_image_unavailable_no_pull_performed")
+    image_id = inspect.stdout.strip()
+    if not re.fullmatch(r"sha256:[0-9a-f]{64}", image_id):
+        raise ValueError("local_linux_image_id_invalid")
+
+    scripts = (
+        project
+        / "docs/product_design/v0.0.0.4/implementation-kit/scripts"
+    ).resolve()
+    command = [
+        docker,
+        "run",
+        "--rm",
+        "--pull=never",
+        "--network",
+        "none",
+        "--read-only",
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges",
+        "--tmpfs",
+        f"/tmp:rw,noexec,nosuid,nodev,size={LOCAL_LINUX_TMPFS_MB}m",
+        "--memory",
+        f"{LOCAL_LINUX_MEMORY_MB}m",
+        "--pids-limit",
+        str(LOCAL_LINUX_PIDS_LIMIT),
+        "-e",
+        "CB_PREFLIGHT_QUEUE_DEPTH=0",
+        "-v",
+        f"{scripts}:/kit:ro",
+        LOCAL_LINUX_IMAGE,
+        "bash",
+        "/kit/preflight.sh",
+    ]
+    process = subprocess.run(
+        command,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=60,
+    )
+    if process.returncode != 0:
+        raise RuntimeError(
+            "local_linux_preflight_failed:"
+            + process.stderr.replace("\n", " ")[:200]
+        )
+    output = process.stdout
+    if FORBIDDEN_EVIDENCE.search(output):
+        raise ValueError("local_linux_preflight_contains_forbidden_pattern")
+
+    snapshots: list[dict[str, Any]] = []
+    for index in range(1, 4):
+        match = re.search(
+            rf"^SNAPSHOT_{index}_BEGIN\n(.+?)\nSNAPSHOT_{index}_END$",
+            output,
+            re.MULTILINE | re.DOTALL,
+        )
+        if not match:
+            raise ValueError(f"local_linux_snapshot_missing:{index}")
+        snapshots.append(json.loads(match.group(1)))
+
+    def output_value(name: str) -> str:
+        match = re.search(rf"^{re.escape(name)}=(.+)$", output, re.MULTILINE)
+        if not match:
+            raise ValueError(f"local_linux_output_missing:{name}")
+        return match.group(1).strip()
+
+    memory_scopes = {
+        (snapshot.get("memory") or {}).get("scope") for snapshot in snapshots
+    }
+    effective_totals = {
+        (snapshot.get("memory") or {}).get("total_mb") for snapshot in snapshots
+    }
+    cgroup_maxima = {
+        (snapshot.get("memory") or {}).get("cgroup_memory_max_mb")
+        for snapshot in snapshots
+    }
+    if memory_scopes != {"effective_cgroup"}:
+        raise ValueError("local_linux_memory_scope")
+    if effective_totals != {LOCAL_LINUX_MEMORY_MB}:
+        raise ValueError("local_linux_effective_memory")
+    if cgroup_maxima != {LOCAL_LINUX_MEMORY_MB}:
+        raise ValueError("local_linux_cgroup_memory_max")
+
+    expected = {
+        "CB_RESOURCE_PROFILE": "constrained",
+        "CB_MEASUREMENT_MEMORY_SCOPE": "effective_cgroup",
+        "CB_RESOURCE_GUARD_STATE": "protect",
+        "CB_RESOURCE_ACTIVATION_SAFE": "false",
+        "PREFLIGHT": "HAZARD_BLOCKED",
+    }
+    actual = {name: output_value(name) for name in expected}
+    if actual != expected:
+        raise ValueError(f"local_linux_fail_closed_output:{actual}")
+    block_reasons = sorted(
+        output_value("CB_RESOURCE_BLOCK_REASONS").split(",")
+    )
+    if block_reasons != [
+        "insufficient_memory_safety_reserve",
+        "protect_memory",
+    ]:
+        raise ValueError("local_linux_block_reasons")
+
+    evidence = {
+        "schema_version": 1,
+        "task_id": "CB-010",
+        "observed_at": datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
+        "execution": {
+            "scope": "local_linux_container",
+            "image": LOCAL_LINUX_IMAGE,
+            "image_id": image_id,
+            "image_pull_performed": False,
+            "network_mode": "none",
+            "rootfs_read_only": True,
+            "capabilities_dropped": "ALL",
+            "no_new_privileges": True,
+            "scripts_mount_read_only": True,
+            "tmpfs_mb": LOCAL_LINUX_TMPFS_MB,
+            "memory_limit_mb": LOCAL_LINUX_MEMORY_MB,
+            "pids_limit": LOCAL_LINUX_PIDS_LIMIT,
+        },
+        "result": {
+            "exit_code": process.returncode,
+            "snapshot_count": len(snapshots),
+            "snapshot_memory_scopes": sorted(memory_scopes),
+            "effective_total_memory_mb": sorted(effective_totals),
+            "cgroup_memory_max_mb": sorted(cgroup_maxima),
+            "selected_profile": actual["CB_RESOURCE_PROFILE"],
+            "guard_state": actual["CB_RESOURCE_GUARD_STATE"],
+            "activation_safe": actual["CB_RESOURCE_ACTIVATION_SAFE"] == "true",
+            "preflight_state": actual["PREFLIGHT"],
+            "block_reasons": block_reasons,
+            "remediation_count": len(
+                re.findall(r"^REMEDIATION=", output, re.MULTILINE)
+            ),
+            "raw_output_sha256": sha256_bytes(output.encode("utf-8")),
+        },
+        "evidence_boundaries": {
+            "raw_output_persisted": False,
+            "host_identifier_persisted": False,
+            "listener_or_process_rows_persisted": False,
+            "credential_or_secret_persisted": False,
+            "claimed_as_live_ovh_evidence": False,
+            "may_replace_live_ovh_evidence": False,
+            "proves_default_linux_collector_path": True,
+            "proves_cgroup_fail_closed_selection": True,
+        },
+    }
+    if FORBIDDEN_EVIDENCE.search(json.dumps(evidence, ensure_ascii=False)):
+        raise ValueError("local_linux_observation_contains_forbidden_pattern")
+    return evidence
+
+
 def run(command: list[str], cwd: Path) -> tuple[int, str]:
     result = subprocess.run(
         command,
@@ -260,6 +434,7 @@ def validate(project: Path) -> list[str]:
         evidence / "status-contract.md",
         evidence / "VALIDATION_REPORT.md",
         evidence / "public-status-observation.json",
+        evidence / "preflight.local-linux-container.json",
         evidence / "resource-pressure.local-container.json",
         kit / "scripts/preflight.sh",
         kit / "scripts/select-resource-profile.sh",
@@ -353,6 +528,113 @@ def validate(project: Path) -> list[str]:
             ("recovered", "recover"),
         ],
         "pressure_guard_ladder",
+    )
+
+    linux_preflight = load_json(
+        evidence / "preflight.local-linux-container.json"
+    )
+    linux_execution = linux_preflight.get("execution") or {}
+    linux_result = linux_preflight.get("result") or {}
+    linux_boundaries = linux_preflight.get("evidence_boundaries") or {}
+    expect(
+        linux_execution.get("scope") == "local_linux_container",
+        "linux_preflight_scope",
+    )
+    expect(
+        linux_execution.get("image") == LOCAL_LINUX_IMAGE,
+        "linux_preflight_image",
+    )
+    expect(
+        linux_execution.get("image_pull_performed") is False,
+        "linux_preflight_pull",
+    )
+    expect(
+        linux_execution.get("network_mode") == "none",
+        "linux_preflight_network",
+    )
+    expect(
+        linux_execution.get("rootfs_read_only") is True,
+        "linux_preflight_rootfs",
+    )
+    expect(
+        linux_execution.get("capabilities_dropped") == "ALL",
+        "linux_preflight_capabilities",
+    )
+    expect(
+        linux_execution.get("no_new_privileges") is True,
+        "linux_preflight_privileges",
+    )
+    expect(
+        linux_execution.get("memory_limit_mb") == LOCAL_LINUX_MEMORY_MB,
+        "linux_preflight_memory_limit",
+    )
+    expect(
+        linux_execution.get("pids_limit") == LOCAL_LINUX_PIDS_LIMIT,
+        "linux_preflight_pids_limit",
+    )
+    expect(linux_result.get("exit_code") == 0, "linux_preflight_exit")
+    expect(linux_result.get("snapshot_count") == 3, "linux_preflight_snapshots")
+    expect(
+        linux_result.get("snapshot_memory_scopes") == ["effective_cgroup"],
+        "linux_preflight_memory_scope",
+    )
+    expect(
+        linux_result.get("effective_total_memory_mb")
+        == [LOCAL_LINUX_MEMORY_MB],
+        "linux_preflight_effective_memory",
+    )
+    expect(
+        linux_result.get("cgroup_memory_max_mb") == [LOCAL_LINUX_MEMORY_MB],
+        "linux_preflight_cgroup_memory",
+    )
+    expect(
+        linux_result.get("selected_profile") == "constrained",
+        "linux_preflight_profile",
+    )
+    expect(
+        linux_result.get("guard_state") == "protect",
+        "linux_preflight_guard",
+    )
+    expect(
+        linux_result.get("activation_safe") is False,
+        "linux_preflight_activation",
+    )
+    expect(
+        linux_result.get("preflight_state") == "HAZARD_BLOCKED",
+        "linux_preflight_state",
+    )
+    expect(
+        linux_result.get("block_reasons")
+        == ["insufficient_memory_safety_reserve", "protect_memory"],
+        "linux_preflight_block_reasons",
+    )
+    expect(
+        re.fullmatch(
+            r"[0-9a-f]{64}",
+            str(linux_result.get("raw_output_sha256") or ""),
+        )
+        is not None,
+        "linux_preflight_output_hash",
+    )
+    expect(
+        linux_boundaries.get("raw_output_persisted") is False,
+        "linux_preflight_raw_output",
+    )
+    expect(
+        linux_boundaries.get("claimed_as_live_ovh_evidence") is False,
+        "linux_preflight_live_claim",
+    )
+    expect(
+        linux_boundaries.get("may_replace_live_ovh_evidence") is False,
+        "linux_preflight_replacement_claim",
+    )
+    expect(
+        linux_boundaries.get("proves_default_linux_collector_path") is True,
+        "linux_preflight_default_path",
+    )
+    expect(
+        linux_boundaries.get("proves_cgroup_fail_closed_selection") is True,
+        "linux_preflight_cgroup_claim",
     )
 
     state = load_json(project / "machine/facts/task_state.json")
@@ -490,7 +772,12 @@ def validate(project: Path) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--write-public-observation", action="store_true")
+    write_mode = parser.add_mutually_exclusive_group()
+    write_mode.add_argument("--write-public-observation", action="store_true")
+    write_mode.add_argument(
+        "--write-local-linux-preflight",
+        action="store_true",
+    )
     args = parser.parse_args()
     project = Path(__file__).resolve().parents[1]
     evidence = project / "docs/evidence/CB-010"
@@ -503,6 +790,19 @@ def main() -> int:
             f"projects={observation['snapshot']['project_count']} "
             f"cyberboss_rows={observation['snapshot']['cyberboss_row_count']} "
             "raw_snapshot_persisted=false live_ovh_claim=false"
+        )
+        return 0
+    if args.write_local_linux_preflight:
+        observation = build_local_linux_preflight_observation(project)
+        write_json(
+            evidence / "preflight.local-linux-container.json",
+            observation,
+        )
+        print(
+            "CB010_LOCAL_LINUX_PREFLIGHT=PASS "
+            "snapshots=3 profile=constrained guard=protect "
+            "activation_safe=false network=none raw_output_persisted=false "
+            "live_ovh_claim=false"
         )
         return 0
 
@@ -520,7 +820,7 @@ def main() -> int:
         "CB010_REPO_VALIDATION=PASS "
         f"task_state={task_status} "
         f"live_ovh={str(task_status == 'passed').lower()} "
-        "public_status_contract=true"
+        "public_status_contract=true local_linux_collector=true"
     )
     return 0
 

@@ -15,10 +15,11 @@ and a local bounded container are not substituted for live host evidence.
 |---|---|---|
 | Public page and snapshot read-only observation | pass | HTTP 200, response hashes and sanitized schema in `public-status-observation.json` |
 | Existing `projects[]` contract | pass | 11 required fields, three page status values, 8 rows, zero CyberBoss rows |
-| Resource profile calculator | pass | 6/6 Python tests |
+| Resource profile calculator | pass | 7/7 Python tests, including finite-cgroup ceiling |
 | Unsafe profile write refusal | pass | Test proves no output file is created |
 | Clean-shell preflight contract | pass | `preflight.sh --check`; no live command or persistent host write |
 | Immediate snapshot contract | pass | check mode reports exactly three snapshots with no real-time wait |
+| Default Linux collector path | pass | no-network/read-only local container; 3 snapshots; 512 MiB cgroup → constrained/protect/HAZARD_BLOCKED |
 | Guard → warn/protect → recover ladder | pass | seven expected transitions |
 | Bounded local cgroup pressure | pass | 128 MiB memory limit, 64 PID limit, zero OOM-kill delta |
 | Status adapter contract | pass | 7/7 Node tests, including hostile-field sanitization |

@@ -111,6 +111,66 @@ class ResourceProfileTests(unittest.TestCase):
                 self.assertEqual(result["guard"]["state"], "protect")
                 self.assertIn(reason, result["guard"]["protect_reasons"])
 
+    def test_cgroup_v2_limit_prevents_false_host_profile(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="cyberboss-cgroup-fixture-") as temp:
+            mount_root = Path(temp) / "cgroup"
+            root = mount_root / "user.slice/session.scope"
+            root.mkdir(parents=True)
+            proc_self_cgroup = Path(temp) / "self.cgroup"
+            proc_self_cgroup.write_text(
+                "0::/user.slice/session.scope\n",
+                encoding="utf-8",
+            )
+            values = {
+                "memory.current": 128 * RESOURCE_PROFILE.MIB,
+                "memory.max": "max",
+                "memory.high": 448 * RESOURCE_PROFILE.MIB,
+                "memory.swap.current": 0,
+                "memory.swap.max": "max",
+            }
+            for name, value in values.items():
+                (root / name).write_text(f"{value}\n", encoding="utf-8")
+            parent_values = {
+                "memory.current": 200 * RESOURCE_PROFILE.MIB,
+                "memory.max": 512 * RESOURCE_PROFILE.MIB,
+                "memory.high": 448 * RESOURCE_PROFILE.MIB,
+                "memory.swap.current": 0,
+                "memory.swap.max": 256 * RESOURCE_PROFILE.MIB,
+            }
+            for name, value in parent_values.items():
+                (root.parent / name).write_text(f"{value}\n", encoding="utf-8")
+            resolved = RESOURCE_PROFILE.current_cgroup_v2_root(
+                mount_root,
+                proc_self_cgroup,
+            )
+            cgroup = RESOURCE_PROFILE.read_cgroup_v2(
+                resolved,
+                mount_root,
+            )
+
+        host = {
+            "total_mb": 8192,
+            "available_mb": 7000,
+            "swap_total_mb": 1024,
+            "swap_free_mb": 1024,
+        }
+        effective = RESOURCE_PROFILE.apply_cgroup_memory_limit(host, cgroup)
+        fixture = measurement(total=8192, available=7000, free_disk=60000)
+        fixture["memory"] = effective
+        result = RESOURCE_PROFILE.select_profile(fixture)
+
+        self.assertEqual(resolved, root)
+        self.assertEqual(effective["scope"], "effective_cgroup")
+        self.assertEqual(effective["total_mb"], 512)
+        self.assertEqual(effective["available_mb"], 312)
+        self.assertEqual(effective["swap_total_mb"], 256)
+        self.assertEqual(result["profile"], "constrained")
+        self.assertFalse(result["activation_safe"])
+        self.assertIn(
+            "insufficient_memory_safety_reserve",
+            result["block_reasons"],
+        )
+
     def test_recovery_requires_all_predicates(self) -> None:
         warning = measurement(
             total=4096,

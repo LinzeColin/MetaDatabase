@@ -41,6 +41,10 @@ induced-load/cgroup snapshot。公开 Status 聚合值和本地容器 fixture �
 替代该实机证据；实机 pressure 还需在只读 baseline 安全后另行明确授权。在此
 之前不进入 P0.3。
 
+默认 Linux collector 已在无网络、只读本地容器中执行验证；有限 cgroup v2
+memory/swap ceiling 会覆盖更大的 host `/proc` 数值并 fail closed，但该结果不
+冒充 OVH evidence。
+
 ## 许可证
 
 `CyberBoss/` 子树适用 [`LICENSE`](LICENSE) 中的 GNU AGPL-3.0-only。

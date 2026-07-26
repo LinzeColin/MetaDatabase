@@ -13,12 +13,22 @@ was discoverable, so the live profile is **not selected** and CB-010 remains
 | Evidence | Result | What it proves | What it does not prove |
 |---|---|---|---|
 | `public-status-observation.json` | observed | Current public Status schema and aggregate host indicators | total/available RAM, swap, inode, listeners, units, containers, path conflicts |
+| `preflight.local-linux-container.json` | pass | Default Linux collector executes three snapshots with no network and fails closed against a finite 512 MiB cgroup | OVH resources, listeners, services or path conflicts |
 | `resource-pressure.local-container.json` | pass | Bounded fixture, cgroup limit visibility, guard ladder and zero observed OOM kill in a local container | OVH headroom, existing-service isolation or production cgroup behaviour |
-| `test_resource_profile.py` | 6/6 pass | Profile selection, pressure downgrade, guard transitions, safe/unsafe writes and read-only check mode | Which profile is safe on the real host |
+| `test_resource_profile.py` | 7/7 pass | Profile selection, cgroup ceiling, pressure downgrade, guard transitions, safe/unsafe writes and read-only check mode | Which profile is safe on the real host |
 | `preflight.sh --check` | pass | Three-immediate-snapshot and clean-shell contract without live reads or persistent host writes | Live host measurements |
 
 The local container evidence explicitly sets `claimed_as_live_host_evidence=false`.
 The two required live evidence files are intentionally absent.
+
+The default Linux-path fixture uses an already-local pinned image with
+`--pull=never`, network disabled, read-only root, all capabilities dropped and
+no-new-privileges. It exposed and now guards against a real false-selection case:
+when `/proc/meminfo` reports host memory larger than a finite cgroup,
+the most restrictive current/ancestor `memory.max/current` and
+`memory.swap.max/current` values define the effective ceiling and headroom.
+The 512 MiB fixture therefore selects `constrained` but blocks activation instead
+of incorrectly selecting `standard`.
 
 ## Authorized-target discovery
 
@@ -60,8 +70,10 @@ The calculator chooses and dynamically downgrades among:
 
 Activation requires all of the following:
 
-- `MemoryMax` fits inside available memory after a host reserve of the greater of
-  512 MiB or 10% of total memory;
+- finite current/ancestor cgroup v2 memory/swap ceilings override larger host
+  `/proc` values;
+- `MemoryMax` fits inside available memory after an effective-scope reserve of
+  the greater of 512 MiB or 10% of total memory;
 - disk caps fit after a host reserve of the greater of 4096 MiB or 15% of free space;
 - minimum release/workspace/cache/state/log/snapshot allocations are met;
 - current guard state is not `protect`.

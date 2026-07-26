@@ -576,6 +576,9 @@ Do not hard-code a single memory budget before reading the live OVH baseline. `i
 Shared safeguards for every profile:
 
 - existing OVH services remain outside the CyberBoss cgroup and must not be starved；
+- when a finite current or ancestor cgroup v2
+  `memory.max`/`memory.swap.max` is lower than host `/proc` capacity, selection
+  uses the most restrictive effective ceiling and hierarchy headroom；
 - readiness is based on measured available RAM, swap pressure and disk/inode reserve, not elapsed time；
 - Codex, Timeline build, Git sync and backup are serialized when the selected profile requires it；
 - cache/log/worktree cleanup targets reconstructable data only；

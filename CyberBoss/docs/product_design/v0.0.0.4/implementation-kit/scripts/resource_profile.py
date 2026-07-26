@@ -86,10 +86,183 @@ def read_meminfo(path: Path = Path("/proc/meminfo")) -> dict[str, int]:
     }
 
 
+def current_cgroup_v2_root(
+    mount_root: Path = Path("/sys/fs/cgroup"),
+    proc_self_cgroup: Path = Path("/proc/self/cgroup"),
+) -> Path:
+    if not proc_self_cgroup.is_file():
+        return mount_root
+    for raw in proc_self_cgroup.read_text(encoding="utf-8").splitlines():
+        if not raw.startswith("0::"):
+            continue
+        relative = Path(raw.removeprefix("0::").lstrip("/"))
+        if ".." in relative.parts:
+            return mount_root
+        candidate = mount_root / relative
+        if (candidate / "memory.current").is_file():
+            return candidate
+    return mount_root
+
+
+def read_cgroup_v2(
+    root: Path | None = None,
+    mount_root: Path = Path("/sys/fs/cgroup"),
+) -> dict[str, Any]:
+    root = root or current_cgroup_v2_root(mount_root)
+
+    def read_bytes(level: Path, name: str) -> int | None:
+        path = level / name
+        if not path.is_file():
+            return None
+        raw = path.read_text(encoding="utf-8").strip()
+        if raw == "max":
+            return None
+        if not raw.isdigit():
+            raise ValueError(f"cgroup_value_invalid:{name}")
+        return int(raw)
+
+    try:
+        root.relative_to(mount_root)
+    except ValueError:
+        levels = [root]
+    else:
+        levels = []
+        level = root
+        while True:
+            levels.append(level)
+            if level == mount_root:
+                break
+            level = level.parent
+
+    readable_levels = [
+        level
+        for level in levels
+        if (level / "memory.current").is_file()
+        and (level / "memory.max").is_file()
+    ]
+    if not readable_levels:
+        return {"version": "unavailable"}
+
+    level_values = [
+        {
+            name: read_bytes(level, name)
+            for name in (
+                "memory.current",
+                "memory.max",
+                "memory.high",
+                "memory.swap.current",
+                "memory.swap.max",
+            )
+        }
+        for level in readable_levels
+    ]
+    memory_limits = [
+        value["memory.max"]
+        for value in level_values
+        if value["memory.max"] is not None
+    ]
+    memory_highs = [
+        value["memory.high"]
+        for value in level_values
+        if value["memory.high"] is not None
+    ]
+    memory_headrooms = [
+        max(0, value["memory.max"] - value["memory.current"])
+        for value in level_values
+        if value["memory.max"] is not None
+        and value["memory.current"] is not None
+    ]
+    swap_limits = [
+        value["memory.swap.max"]
+        for value in level_values
+        if value["memory.swap.max"] is not None
+    ]
+    swap_headrooms = [
+        max(0, value["memory.swap.max"] - value["memory.swap.current"])
+        for value in level_values
+        if value["memory.swap.max"] is not None
+        and value["memory.swap.current"] is not None
+    ]
+    current_values = level_values[0]
+    return {
+        "version": 2,
+        "hierarchy_levels_checked": len(readable_levels),
+        "memory_current_bytes": current_values["memory.current"],
+        "memory_max_bytes": min(memory_limits) if memory_limits else None,
+        "memory_high_bytes": min(memory_highs) if memory_highs else None,
+        "memory_headroom_bytes": (
+            min(memory_headrooms) if memory_headrooms else None
+        ),
+        "swap_current_bytes": current_values["memory.swap.current"],
+        "swap_max_bytes": min(swap_limits) if swap_limits else None,
+        "swap_headroom_bytes": min(swap_headrooms) if swap_headrooms else None,
+    }
+
+
+def apply_cgroup_memory_limit(
+    host_memory: dict[str, int],
+    cgroup: dict[str, Any],
+) -> dict[str, Any]:
+    effective: dict[str, Any] = {
+        **host_memory,
+        "host_total_mb": host_memory["total_mb"],
+        "host_available_mb": host_memory["available_mb"],
+        "host_swap_total_mb": host_memory["swap_total_mb"],
+        "host_swap_free_mb": host_memory["swap_free_mb"],
+        "scope": "host",
+    }
+    if cgroup.get("version") != 2:
+        return effective
+
+    memory_max = cgroup.get("memory_max_bytes")
+    memory_current = cgroup.get("memory_current_bytes")
+    memory_headroom = cgroup.get("memory_headroom_bytes")
+    if isinstance(memory_max, int) and isinstance(memory_current, int):
+        limit_mb = memory_max // MIB
+        available_bytes = (
+            memory_headroom
+            if isinstance(memory_headroom, int)
+            else max(0, memory_max - memory_current)
+        )
+        available_mb = available_bytes // MIB
+        effective["total_mb"] = min(host_memory["total_mb"], limit_mb)
+        effective["available_mb"] = min(
+            host_memory["available_mb"],
+            available_mb,
+        )
+        effective["cgroup_memory_max_mb"] = limit_mb
+        effective["cgroup_memory_current_mb"] = math.ceil(memory_current / MIB)
+        effective["scope"] = "effective_cgroup"
+
+    swap_max = cgroup.get("swap_max_bytes")
+    swap_current = cgroup.get("swap_current_bytes")
+    swap_headroom = cgroup.get("swap_headroom_bytes")
+    if isinstance(swap_max, int) and isinstance(swap_current, int):
+        swap_limit_mb = swap_max // MIB
+        swap_available_bytes = (
+            swap_headroom
+            if isinstance(swap_headroom, int)
+            else max(0, swap_max - swap_current)
+        )
+        swap_free_mb = swap_available_bytes // MIB
+        effective["swap_total_mb"] = min(
+            host_memory["swap_total_mb"],
+            swap_limit_mb,
+        )
+        effective["swap_free_mb"] = min(
+            host_memory["swap_free_mb"],
+            swap_free_mb,
+        )
+        effective["cgroup_swap_max_mb"] = swap_limit_mb
+        effective["cgroup_swap_current_mb"] = math.ceil(swap_current / MIB)
+    return effective
+
+
 def capture_live_measurements() -> dict[str, Any]:
     if not Path("/proc/meminfo").is_file():
         raise RuntimeError("live_measurement_requires_linux_procfs")
-    memory = read_meminfo()
+    cgroup = read_cgroup_v2()
+    memory = apply_cgroup_memory_limit(read_meminfo(), cgroup)
     disk = shutil.disk_usage("/")
     stat = os.statvfs("/")
     inode_total = stat.f_files
@@ -99,6 +272,7 @@ def capture_live_measurements() -> dict[str, Any]:
         "source": "live",
         "captured_at": utc_now(),
         "memory": memory,
+        "cgroup": cgroup,
         "load": {
             "one_minute": round(os.getloadavg()[0], 3),
             "cpu_count": os.cpu_count() or 1,
@@ -147,6 +321,11 @@ def normalize_measurements(raw: dict[str, Any]) -> dict[str, Any]:
             ),
             "swap_free_mb": numeric(
                 memory.get("swap_free_mb"), "memory.swap_free_mb", integer=True
+            ),
+            "scope": (
+                memory.get("scope")
+                if memory.get("scope") in {"host", "effective_cgroup", "provided"}
+                else "provided"
             ),
         },
         "load": {
@@ -350,7 +529,7 @@ def select_profile(raw: dict[str, Any]) -> dict[str, Any]:
         "profile": profile,
         "profile_policy": policy,
         "memory": {
-            "host_safety_reserve_mb": memory_reserve_mb,
+            "effective_safety_reserve_mb": memory_reserve_mb,
             "safe_runtime_budget_mb": safe_runtime_budget_mb,
             "swap_used_percent": round(swap_used_percent, 1),
         },
@@ -386,6 +565,7 @@ def render_env(result: dict[str, Any]) -> str:
     guard = result["guard"]
     values = {
         "CB_RESOURCE_PROFILE": result["profile"],
+        "CB_MEASUREMENT_MEMORY_SCOPE": memory["scope"],
         "CB_MEASURED_TOTAL_MEMORY_MB": memory["total_mb"],
         "CB_MEASURED_AVAILABLE_MEMORY_MB": memory["available_mb"],
         "CB_MEASURED_SWAP_TOTAL_MB": memory["swap_total_mb"],
@@ -399,8 +579,8 @@ def render_env(result: dict[str, Any]) -> str:
         "CB_SYSTEMD_MEMORY_MAX": f"{policy['memory_max_mb']}M",
         "CB_SYSTEMD_TASKS_MAX": policy["tasks_max"],
         "CB_QUEUE_LIMIT": policy["queue_limit"],
-        "CB_HOST_MEMORY_SAFETY_RESERVE_MB": result["memory"][
-            "host_safety_reserve_mb"
+        "CB_EFFECTIVE_MEMORY_SAFETY_RESERVE_MB": result["memory"][
+            "effective_safety_reserve_mb"
         ],
         "CB_SAFE_RUNTIME_BUDGET_MB": result["memory"]["safe_runtime_budget_mb"],
         "CB_HOST_FREE_DISK_RESERVE_BYTES": disk["host_reserve_mb"] * MIB,

@@ -12,6 +12,9 @@
 - Observed the public Status page/snapshot read-only and aligned the adapter
   fixture to its current 11-field `projects[]` contract.
 - Added executable Python/Node contract suites and CB-010 validation.
+- Made live measurement cgroup-v2-aware so a finite container/service memory
+  ceiling cannot be mistaken for larger host `/proc` capacity; verified the
+  default Linux collector in a no-network, read-only local container.
 - Kept the task `activation_pending`: no authorized OVH target was available,
   no live profile was asserted, and no host or online Status mutation occurred.
 

@@ -86,7 +86,8 @@ bash implementation-kit/scripts/preflight.sh
 即时 snapshot（不等待真实时间），并仅输出脱敏聚合：
 
 - Linux/architecture；
-- memory/swap/load/disk/inode；
+- effective memory/swap（有限 cgroup v2 ceiling 优先于更大的 host `/proc`
+  数值）、load/disk/inode；
 - listener port 与 bind scope（不输出 IP）；
 - Node/Codex/Git/systemd/SQLite能力；
 - 现有 process/service/container、反向代理和 Status ingestion 摘要；

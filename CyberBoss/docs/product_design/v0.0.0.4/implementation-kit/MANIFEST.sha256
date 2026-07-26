@@ -1,4 +1,4 @@
-6f4af4d5df599274592c3fb1ee3e8b7969e3fd19c30551a097d2a4d906d847aa  ./README.md
+4d6a9d3283330a6a6d407d2eb23528820628a3f40f689565451808ef565faac6  ./README.md
 12b1990a30d64e5a853e420c921a7676cfc977883b5e1d287e146d60c9b5774f  ./VALIDATION_REPORT.md
 388041831664453c7bc485bf2cc85520f90cfea96bd12c09d38d41b1aedbc148  ./config/cyberboss.env.example
 2f5f55022239fb1d2b58cab5632c4f22765a263ede9413633afa49b317837f59  ./config/status-snapshot.example.json
@@ -12,7 +12,7 @@ ebbef38ca46667165f8636ad24a89029b13754d3e6d8654bc8b1f81ffcc78fa0  ./scripts/boot
 5b59e5f6eed5682eb26a09ee1a0a4bc14df6954469973c59fe59b96a9282d64c  ./scripts/install-layout.sh
 f771a6401729423b04940aecd07904be53084b8541fc66d0477845db7c2d126a  ./scripts/preflight.sh
 654abaca88813dbb6336dc02c9b3802e96ad94ba95713279515efd1500524087  ./scripts/resource-pressure-fixture.py
-d7cacc90be9f9f942cdd495e7daf65975d00d4d6f856b7a004ec5c3febbd7d4d  ./scripts/resource_profile.py
+a5d7c1a68fc93affe563542e6cd461938515e44451b06c80f7631700fda1eae6  ./scripts/resource_profile.py
 97da7dba9df097f30492e976e3e524b5df5ef6d882c8b5560b4a42b034692bab  ./scripts/restore-drill.sh
 dc5f89cec14b00ac969830c8ab5b167aff28df3221509cd81fa02e5a4abe01c4  ./scripts/rollback-release.sh
 9a6872e08256595bee7fc09fc85cde1eab5575fecfeb26c850d25653f583a73c  ./scripts/run-cyberboss.sh
@@ -40,7 +40,7 @@ dda13b4785e062c201431b75dc9580cd174f20154232f146dd9eede3aa0a9cdc  ./systemd/cybe
 57117f627c7b2e7b4b0e416403a4be2379887ddaa74b9c028b6ee0f45edac8e5  ./tests/accelerated_reliability.py
 62f12ffd66b1153d9b4b33242b6263a2c595043068799b6352b87f5422059075  ./tests/forbidden-status-patterns.txt
 8f50f2a1c7d142967fed8fe5c847aed5b2b6891946e764d6685faaf3288028b8  ./tests/status-adapter-contract.test.js
-4fe8e8e1cbc83f2b9a5e029ecb5e642833a0f93be235b0c20117aab253f88cf1  ./tests/test_resource_profile.py
+4a5b79008bb0a12c0840577d02e3e82a16a87a6cfbeb7d8428e5d485a8e30de3  ./tests/test_resource_profile.py
 4f1392bd4db71202bdc64a70d7d0275f06105e8301f5743efca6a137b3e2aa95  ./tests/validate_config.js
 e43e329cedb3c0f643188a16b28441d23122be96a2f5c51540dfc6d1ac81b0ec  ./tests/validate_no_wait.py
 421628914c089b77d93cc7aec06f99dae90d0675963bb20cb3bd167cdfeb1857  ./tests/validate_task_dag.py

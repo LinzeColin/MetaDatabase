@@ -65,10 +65,16 @@ received, and none may be claimed.
   1,000/100/100/20 reliability checks: passed.
 - `validate_cb000.py`, `validate_prestage0.py`, manifests, final Git scope and
   publication checks: passed.
-- Resource profile tests: 6/6 passed; safe outputs are sourceable/mode-bounded
-  and unsafe writer fails closed.
+- Resource profile tests: 7/7 passed; finite cgroup ceilings override misleading
+  host `/proc` values, safe outputs are sourceable/mode-bounded and unsafe
+  writer fails closed.
 - Clean-shell preflight contract: three immediate snapshots, no live command,
   no persistent host write and no real-time wait.
+- Default Linux collector path: passed in an existing local image with
+  `--pull=never`, no network, read-only root, all capabilities dropped and
+  no-new-privileges. A finite 512 MiB cgroup correctly yields
+  `constrained`/`protect`/`HAZARD_BLOCKED`; raw output is not persisted and the
+  result is explicitly not OVH evidence.
 - Bounded local-container pressure ladder: recover → warn/protect → recover,
   finite cgroup limit and zero observed OOM-kill delta. It is explicitly not
   live OVH evidence.

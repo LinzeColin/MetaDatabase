@@ -54,9 +54,10 @@ sudo implementation-kit/scripts/select-resource-profile.sh \
   --systemd-dropin /etc/systemd/system/cyberboss-cloud.service.d/20-resource-profile.conf
 ```
 
-`preflight.sh` 只读并输出三次即时脱敏 snapshot；profile writer 在安全预算不足时
-拒绝写入。任何本地或容器 pressure 结果都不能替代同一获授权 OVH 主机的基线与
-有界 induced-load/cgroup 证据。
+`preflight.sh` 只读并输出三次即时脱敏 snapshot；有限 cgroup v2 memory/swap
+ceiling 会覆盖更大的 host `/proc` 数值，profile writer 在安全预算不足时拒绝写入。
+任何本地或容器 pressure 结果都不能替代同一获授权 OVH 主机的基线与有界
+induced-load/cgroup 证据。
 
 之后按 `06_OPERATIONS_STATUS_HANDOVER.md` 从 `CB_INCOMING_ROOT` 内的已校验本地制品安装
 candidate release。真实凭据缺失时不等待：运行 simulator、完成其余代码和部署槽位，
