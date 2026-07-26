@@ -209,7 +209,7 @@ def _t0705_authorized(root: Path) -> bool:
         and authorization.get("purpose") == "T0705_PROTECTED_GA_SCHEDULE_MODE_AND_ENABLEMENT_ONLY"
         and authorization.get("t0704_receipt_required") is True
         and authorization.get("t0704_receipt_sha256")
-        == "67a5b0f2860fac8b97d459d79f1ad87172f6ce4e45570bb1a1f4f8dc0731fbf7"
+        == "67a5b0f2860fac8b97d459d79f1ad87172f6ce4e45570bb1a1f4f8dc0731fbf7"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("t0705_authorized") is True
         and authorization.get("t0706_authorized") is False
         and authorization.get("ga_rehearsal_dispatch_limit") == 1
@@ -342,7 +342,7 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and authorization.get("ga_repair_rerun_limit") == 0
         and authorization.get("t0704_receipt_required") is True
         and authorization.get("t0704_receipt_sha256")
-        == "67a5b0f2860fac8b97d459d79f1ad87172f6ce4e45570bb1a1f4f8dc0731fbf7"
+        == "67a5b0f2860fac8b97d459d79f1ad87172f6ce4e45570bb1a1f4f8dc0731fbf7"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("t0705_authorized") is True
         and authorization.get("t0706_authorized") is False
         and authorization.get("manual_environment_reviewers_required") is False

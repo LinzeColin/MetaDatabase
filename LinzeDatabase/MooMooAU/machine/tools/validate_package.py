@@ -454,7 +454,7 @@ def build_provenance(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or t0705_authorization.get("purpose")
         != "T0705_PROTECTED_GA_SAFE_DEFERRED_REPAIR_AND_ENABLEMENT_ONLY"
         or t0705_authorization.get("original_run_contract_sha256")
-        != "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"
+        != "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"  # pragma: allowlist secret  # noqa: E501
         or t0705_authorization.get("failed_attempt_ledger_required") is not True
         or t0705_authorization.get("failed_attempt_ledger_sha256")
         != _sha256(root / PROTECTED_GA_ATTEMPT_LEDGER_PATH)

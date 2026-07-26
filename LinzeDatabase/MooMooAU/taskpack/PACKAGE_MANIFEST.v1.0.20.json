@@ -1744,8 +1744,8 @@
     },
     {
       "path": "machine/tools/build_delivery_status.py",
-      "bytes": 71349,
-      "sha256": "399647eb41eac14be5ffc5d78a12a600fbf74d035733f0f3c17f85aa4f9b3d72"
+      "bytes": 71433,
+      "sha256": "c3aadf1c6812ac08d058e2bf7774416c7c53b6634646941ae1839f05c6d4503e"
     },
     {
       "path": "machine/tools/build_governance_facts.py",
@@ -1784,8 +1784,8 @@
     },
     {
       "path": "machine/tools/validate_package.py",
-      "bytes": 53500,
-      "sha256": "2693022172f49fa4fdeb66b0a68fb42b9d663b1215ad59e689126a3135d09296"
+      "bytes": 53542,
+      "sha256": "ff5de972d81eed7d78ed4db492f5f0327fb212fe64f1a6b9b1f96aaf4cce51b9"
     },
     {
       "path": "machine/tools/validate_production_composition.py",
