@@ -17,16 +17,16 @@
   "files": {
     "DECISIONS.md": {
       "bytes": 4176,
-      "sha256": "c5482cef35c4e5fa782444b8f35e5f9fc1314879080dfecdd554487c6c94ba6a"
+      "sha256": "8094b362cc82978e36d447bfd683607ed0681042b5479c9a34a4f908aa260049"
     },
     "HANDOFF.md": null,
     "KERNEL.md": {
-      "bytes": 7936,
-      "sha256": "d0ea51ac16b747d8616dd5c6e60e2b6eec09d3df683ce7c11631a895707998c8"
+      "bytes": 9559,
+      "sha256": "1dc6df6ac0af22ef435ddc1f0484dcc2f3382506c93682893f5865ac96b48344"
     }
   },
   "last_operation": {
-    "at": "2026-07-26T12:52:18Z",
+    "at": "2026-07-26T13:29:17Z",
     "result": "COMMITTED",
     "route": "checkpoint"
   },
@@ -48,10 +48,10 @@
   },
   "protected_digest": "aa5550b65f723d9879708ef50f834f3ee628afe6ae60cf3680cd9a57ea8f9561",
   "responsibility_digest": "a6583a2413f9f5fc008187a42245fcb4a8b8b177bfd4d8d0a9a65b5a259052b6",
-  "revision": 1,
+  "revision": 2,
   "runtime_dir": ".ramify",
   "schema": "context-kernel/manifest-v1",
   "skill_name": "context-kernel",
   "skill_version": "0.0.0.1",
-  "updated_at": "2026-07-26T12:52:18Z"
+  "updated_at": "2026-07-26T13:29:17Z"
 }
