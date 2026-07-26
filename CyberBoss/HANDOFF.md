@@ -5,18 +5,19 @@
 - Worktree:
   `/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-cyberboss`
 - Local branch: `codex/cyberboss-prestage0`
-- Run base: `4f914e3b6ed3145a16c1572f4176068b9829b920`
+- Run base: `e5995d0967e789c99ce06b5b76fa794e5d455f68`
 - Latest implementation:
-  `5c7b48d8f618bc83a70ebbd63eaf94b6ce6627ea`
+  `ac51cd2511a45def88068aef6d23fd10d7f507e4`
 - Remote publication: none
 
 ## Current state
 
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
 exit gate `PG-0`, `P1.1 / CB-100` through `P1.5 / CB-140`, and independent
-Stage 1 exit gate `PG-1`, plus `P2.1 / CB-200` and `P2.2 / CB-210` passed.
-Stage 0 and Stage 1 are each 5/5 tasks plus their gate complete; Stage 2 is
-2/5 before `PG-2`. The 18 tasks from CB-220 onward and PG-2–PG-5 remain
+Stage 1 exit gate `PG-1`, plus `P2.1 / CB-200`、`P2.2 / CB-210` and
+`P2.3 / CB-220` passed. Stage 0 and Stage 1 are each 5/5 tasks plus their gate
+complete; Stage 2 is 3/5 before `PG-2`. The 17 tasks from
+CB-230 onward and PG-2–PG-5 remain
 `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
@@ -525,6 +526,38 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
   `not_started`. Scheduler/global lease/claim recovery, outbox worker, real
   adapter activation, provider/data write and GitHub publication were not
   started.
+- CB-220 implementation commit
+  `ac51cd2511a45def88068aef6d23fd10d7f507e4` has the frozen CB-210 closure
+  `e5995d0967e789c99ce06b5b76fa794e5d455f68` as its only parent.
+- Schema v3, FIFO `created_at,id` transactional claim, one global Runtime
+  lease, heartbeat/expiry, stale-owner/late-event fencing and a separate
+  command control lease are executable. Five queued fixture jobs reached a
+  historical maximum active Runtime lease of 1.
+- Workspace dispatch revalidation rejected absolute, unknown and symlink
+  escape cases before Runtime with zero filesystem changes. Resource/readiness
+  fixtures covered unavailable measurement, poll/Runtime health, memory,
+  disk, inode, load, queue pressure and stuck leases without real-time soak.
+- `/stop` acknowledgement remained request-only. Three terminal fixtures
+  preserved Runtime truth: interrupted→cancelled, failed→failed_terminal and
+  completed→succeeded. Only proven retryable read-only work requeued;
+  ambiguous bounded mutation replay count is zero.
+- CB-220 local and immutable-candidate App regressions passed 213/213;
+  scheduler specialty passed 9/9 and target acceptance passed 38/38.
+  The bounded target fixture ran in a finite 128 MiB transient cgroup with
+  16 MiB memory, 8 MiB disk and 100 queue items; OOM-kill delta is zero.
+- Exact four-file artifact, target write-free checks, two applies and an
+  independent verify passed. `current`/workspace did not move, service never
+  started and canonical runtime DB was never created.
+- CB-220 final target state retains the exact immutable/inactive candidate.
+  service is disabled/inactive; process/listener/incoming/transient/staging/
+  env/bootstrap/synthetic runtime counts are zero or absent; current/workspace
+  are unchanged.
+- The config-placeholder, literal `/tmp` symlink, manifest locale/format and
+  target-resolution/zero-process corrections are preserved with their
+  fail-closed or zero-mutation outcomes in CB-220 evidence.
+- CB-220 decision: `PASS`; CB-230 and all 16 later tasks plus PG-2–PG-5 remain
+  `not_started`. Durable outbox/retry/receipt, real adapter activation,
+  provider/data write and GitHub publication were not started.
 
 ## Known unknowns
 
@@ -533,7 +566,7 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
   fixture screenshot is deliberately marked non-real.
 - No real Private-MetaDatabase object, Cloudflare Access/DNS/R2 resource, OCI
   object or authenticated CyberBoss business Runtime was created or modified
-  through CB-210.
+  through CB-220.
 - Exact provider write-scope attestations remain external activation inputs;
   successful GETs are not treated as proof of safe writes.
 - The online Status surface still has no CyberBoss row.
@@ -546,17 +579,18 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 
 ## Next Run
 
-The next eligible Run is exactly `P2.3 / CB-220`. It remains `not_started`.
-CB-210 does not authorize switching `current`, Codex/WeChat authentication,
-real provider/data activation, outbox/send-worker work, or PG-2 inside the
+The next eligible Run is exactly `P2.4 / CB-230`. It remains `not_started`.
+CB-220 does not authorize switching `current`, Codex/WeChat authentication,
+real provider/data activation, Private-MetaDatabase work, or PG-2 inside the
 same Run.
 
-Start `P2.3 / CB-220` only under a new single-phase Run Contract. Keep
-source/license, CB-000–CB-210 and PG-0/PG-1 evidence immutable, preserve the
+Start `P2.4 / CB-230` only under a new single-phase Run Contract. Keep
+source/license, CB-000–CB-220 and PG-0/PG-1 evidence immutable, preserve the
 strict dual-license conflict record, and continue the final-only GitHub
-publication rule. Scope CB-220 to the single-lease scheduler, resource/
-readiness gate, workspace alias guard, Runtime control and truthful
-lease-recovery classification required by its frozen DAG. Do not combine it
-with CB-230 or PG-2, expose Runtime publicly, auto-replay an unsafe mutation,
-or perform a real provider/data write unless the exact Acceptance and new Run
-Contract authorize it.
+publication rule. Scope CB-230 to durable accepted/final/error outbox rows,
+bounded retry taxonomy/backoff with injectable clock, stable chunk/dedupe keys,
+send confirmation truth and restart recovery required by AC-020/021/022/024/
+025/062. Do not combine it with CB-240 or PG-2, mark replied without confirmed
+send, allow duplicate visible results, expose Runtime publicly, or perform a
+real provider/data write unless the exact Acceptance and new Run Contract
+authorize it.

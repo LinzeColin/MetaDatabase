@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-220",
+  "phase": "P2.3",
+  "cancel_call_count": 3,
+  "terminal_by_runtime_status": {
+    "completed": "succeeded",
+    "failed": "failed_terminal",
+    "interrupted": "cancelled"
+  },
+  "ack_claimed_terminal": false,
+  "cancel_request_persisted_before_runtime_call": true,
+  "active_runtime_lease_released_by_ack": false,
+  "false_success_count": 0,
+  "real_runtime_used": false,
+  "result": "passed"
+}

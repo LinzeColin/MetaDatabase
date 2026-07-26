@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-220",
+  "phase": "P2.3",
+  "registry_alias": "cyberboss",
+  "allowlisted_alias_dispatched": true,
+  "absolute_path_dispatched": false,
+  "unknown_alias_dispatched": false,
+  "symlink_escape_dispatched": false,
+  "filesystem_changed_on_rejection": false,
+  "runtime_dispatches_for_rejected_cases": 0,
+  "target_address_persisted": false,
+  "result": "passed"
+}

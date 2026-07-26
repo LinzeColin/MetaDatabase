@@ -5,23 +5,24 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 ## 当前状态
 
 - 生命周期：Stage 0、Stage 1 及各自独立退出门 `PG-0`、`PG-1` 已通过；
-  Stage 2 的 `P2.1 / CB-200`、`P2.2 / CB-210` 已通过，`PG-2` 尚未开始
+  Stage 2 的 `P2.1 / CB-200`、`P2.2 / CB-210`、`P2.3 / CB-220`
+  已通过，`PG-2` 尚未开始
 - 当前产品设计：`v0.0.0.4`
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
   `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`；
   `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`；`P2.1 / CB-200`；
-  `P2.2 / CB-210`
-- 当前基线：七个精确 implementation/release commit 的本地 source bundle、
+  `P2.2 / CB-210`；`P2.3 / CB-220`
+- 当前基线：八个精确 implementation/release commit 的本地 source bundle、
   完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`P2.2 / CB-210` 已完成 candidate-cursor、durable-before-cursor、
-  stable provider ID、numeric highest-continuous ordering、原子 CAS cursor
-  和三处真实子进程 crash cut；1,000 次 replay 最终仍为一条 inbox、一个
-  job、一次 synthetic execution。本地及候选 App 195/195 通过。候选未
-  激活，真实 Codex/WeChat/canonical sync 仍为 `activation_pending`，
-  `current`/workspace/service 未变
-- Stage 0–5 任务状态：`CB-000`–`CB-210` 共十二项任务已通过；其余 18 项与
+- 最新 Run：`P2.3 / CB-220` 已完成 `created_at,id` FIFO、全局单 Runtime
+  lease、heartbeat/expiry/fencing、独立 command control plane、workspace
+  dispatch 复验、resource/readiness gate 与 truthful `/stop`。本地及候选
+  App 213/213、目标 38 项 acceptance 和有限 cgroup pressure 均通过，
+  OOM-kill delta=0；候选未激活，真实 Codex/WeChat/canonical sync 仍为
+  `activation_pending`，`current`/workspace/service 未变
+- Stage 0–5 任务状态：`CB-000`–`CB-220` 共十三项任务已通过；其余 17 项与
   PG-2–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
@@ -234,8 +235,33 @@ case 最终均为一条 inbox、一个 job、一次 synthetic execution，messag
 证据读取后 staging/env/incoming/bootstrap/synthetic runtime/key 均已删除；
 精确候选只保留为 immutable/inactive，service disabled/inactive，
 process/listener/incoming/canonical runtime DB 为 0 或不存在，`current` 与
-workspace 保持原基线。CB-220、CB-230、PG-2 与全部后续节点仍未开始，
+workspace 保持原基线。CB-230、PG-2 与全部后续节点仍未开始，
 GitHub publication 仍为空。
+
+P2.3 / CB-220 以本地 implementation commit
+`ac51cd2511a45def88068aef6d23fd10d7f507e4` 增加 schema v3 和 durable
+Runtime scheduler。非 command job 严格按 `created_at,id` FIFO，由
+transactional claim、partial unique index、owner token、heartbeat、
+expiry 和 late-event fencing 保证全局 active Runtime lease 最大值为 1。
+slash command 使用独立 control lease，因此 active turn 中 `/stop` 可立即
+发出 cancel request；acknowledgement 不声明 terminal，最终状态由 Runtime
+`completed`、`failed`、`interrupted` 事件决定。
+
+每次 dispatch 重新解析 root-controlled workspace alias；absolute、unknown
+和 symlink escape 均在 Runtime 前拒绝且不改变文件系统。resource/readiness
+gate 对 unavailable measurement、poll stale、Runtime unhealthy、memory/
+disk/inode/load/queue pressure 与 stuck lease 给出固定 reason/action。
+只有明确 terminal retryable 的 read-only job 可在预算内重排；dispatch 后
+ambiguous bounded mutation 永不自动 replay。
+
+本地与 immutable candidate App 213/213、调度专项 9/9、目标 executable
+acceptance 38/38 均通过。目标有限 128 MiB transient cgroup fixture 分配
+16 MiB 内存、写入 8 MiB 临时文件并构造 100 项队列，OOM-kill delta=0。
+check、两次 apply、独立 verify 全部通过；证据读取后 staging/env/incoming/
+bootstrap/synthetic runtime 已删除。精确 candidate 保持 immutable/inactive，
+service disabled/inactive，process/listener/incoming/canonical runtime DB
+为 0 或不存在，`current` 与 workspace 保持冻结值。CB-230、PG-2 与全部
+后续节点仍未开始，outbox worker/receipt 和 GitHub publication 均为空。
 
 ## 许可证
 

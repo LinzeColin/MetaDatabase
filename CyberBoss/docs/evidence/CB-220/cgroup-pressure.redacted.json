@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-220",
+  "phase": "P2.3",
+  "target_id_sha256": "7865f743d174",
+  "source_report_sha256": "ee6f7ab2029e913eef6cd2613cc7e1a4afbf7bf423099e99460195bf9f1c1475",
+  "mode": "bounded_authorized_live_host_container_fixture",
+  "cgroup_state": "verified_bounded_authorized_live_host_container",
+  "guard_ladder": [
+    "recover",
+    "warn",
+    "protect",
+    "protect",
+    "protect",
+    "recover"
+  ],
+  "raw_fixture_ladder_steps": 7,
+  "additional_queue_protect_step": true,
+  "memory_allocated_bytes": 16777216,
+  "disk_written_bytes": 8388608,
+  "queue_items": 100,
+  "hard_cap_memory_mb": 64,
+  "hard_cap_disk_mb": 64,
+  "hard_cap_queue_items": 1000,
+  "oom_kill_delta": 0,
+  "bounded_fixture": true,
+  "real_time_soak": false,
+  "real_provider_used": false,
+  "result": "passed"
+}

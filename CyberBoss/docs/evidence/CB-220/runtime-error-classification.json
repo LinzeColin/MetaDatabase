@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-220",
+  "phase": "P2.3",
+  "covered_classes": [
+    "auth_required",
+    "cancelled",
+    "runtime_overloaded",
+    "runtime_terminal",
+    "transport_unavailable"
+  ],
+  "read_only_retry_requires_explicit_retryable_terminal": true,
+  "bounded_mutation_auto_replay": false,
+  "raw_error_text_persisted": false,
+  "real_runtime_used": false,
+  "result": "passed"
+}

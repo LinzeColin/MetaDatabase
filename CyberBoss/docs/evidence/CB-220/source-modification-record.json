@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-220",
+  "phase": "P2.3",
+  "base_commit": "e5995d0967e789c99ce06b5b76fa794e5d455f68",
+  "implementation_commit": "ac51cd2511a45def88068aef6d23fd10d7f507e4",
+  "implementation_path_count": 32,
+  "strict_compliance_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "original_source_and_licenses_preserved": true,
+  "corresponding_source_complete": true,
+  "conflict_record_preserved": true,
+  "upstream_clarification_received": false,
+  "upstream_sync_enabled": false,
+  "upstream_support_claimed": false,
+  "upstream_endorsement_claimed": false,
+  "vendor_original_paths_changed": [],
+  "historical_evidence_paths_changed": [],
+  "preserved_corrections": [
+    {
+      "stage": "local_config_validation",
+      "finding": "the first example-config command omitted the documented allow-placeholders option",
+      "correction": "rerun with the explicit option",
+      "external_mutation": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "local_acceptance_output",
+      "finding": "a literal macOS /tmp output parent was a symlink and was rejected",
+      "correction": "retain the no-follow contract and rerun under the resolved private temporary directory",
+      "external_mutation": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "taskpack_manifest_generation",
+      "finding": "the inherited locale stopped the first shasum process and the next formatting pass removed the required ./ prefix",
+      "correction": "force the C locale, preserve canonical shasum formatting and rerun the fail-closed validator",
+      "frozen_source_changed": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "target_resolution_and_preflight",
+      "finding": "an indirect protected-record parser produced no address; a regex-escaping attempt stopped locally; the first connected read-only probe then treated an empty process result as a pipefail error",
+      "correction": "require set -Eeuo pipefail, exact pseudonymous hash, three known-host records and zero-safe process counting",
+      "target_connection_before_final_parser": "read_only_only",
+      "target_mutation": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "local_artifact_checksum",
+      "finding": "macOS shasum rejected the inherited locale after artifact construction",
+      "correction": "rerun checksum verification with LC_ALL=C and LANG=C",
+      "artifact_changed": false,
+      "final_result": "passed"
+    }
+  ],
+  "remote_publication": "none"
+}

@@ -1,5 +1,37 @@
 # Changelog
 
+## P2.3 / CB-220 — 2026-07-27
+
+- Bound the single-lease Runtime scheduler and complete Corresponding Source
+  to local implementation commit
+  `ac51cd2511a45def88068aef6d23fd10d7f507e4`.
+- Added additive schema v3, FIFO `created_at,id` transactional claim, global
+  Runtime singleton lease, heartbeat/expiry recovery, stale-owner fencing and
+  a separate command control lease.
+- Revalidated the root-controlled workspace alias before every dispatch;
+  absolute, unknown and symlink-escape cases reached Runtime zero times and
+  changed the fixture filesystem zero times.
+- Added deterministic channel-poll/Runtime/resource/queue readiness decisions,
+  fail-closed unavailable measurements and safe read-only-only retry; ambiguous
+  bounded mutation auto-replay remained zero.
+- Preserved Runtime terminal truth across three `/stop` outcomes:
+  interrupted→cancelled, failed→failed_terminal and completed→succeeded;
+  acknowledgement claimed no terminal success.
+- Passed local and immutable-candidate App regressions at 213/213, scheduler
+  specialty 9/9, target executable acceptance 38/38 and a finite 128 MiB
+  transient-cgroup pressure fixture with OOM-kill delta 0.
+- Passed target write-free checks, two applies and an independent verify.
+  Removed exact staging, env, incoming, bootstrap and synthetic runtime after
+  evidence readback; retained only the immutable inactive candidate.
+- Preserved the config-placeholder, symlink-output, manifest-locale/format and
+  target-parser/zero-process correction records with no target mutation before
+  the final authorized sequence.
+- Preserved original source/licenses and the unresolved strict
+  `AGPL-3.0-only AND GPL-3.0-only` conflict record with
+  `upstream_clarification_received=false`.
+- Marked only CB-220 passed. CB-230 and all later tasks plus PG-2–PG-5 remain
+  `not_started`; GitHub branch/PR/tag/release/publication remains empty.
+
 ## P2.2 / CB-210 — 2026-07-27
 
 - Bound durable inbox-before-cursor and complete Corresponding Source to local

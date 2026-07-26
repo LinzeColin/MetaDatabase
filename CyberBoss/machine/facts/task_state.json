@@ -3,10 +3,10 @@
   "taskpack_version": "v0.0.0.4",
   "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P2.2",
+    "run_id": "P2.3",
     "gate_id": null,
-    "task_id": "CB-210",
-    "scope": "durable_inbox_before_weixin_cursor",
+    "task_id": "CB-220",
+    "scope": "scheduler_resource_workspace_runtime_control",
     "status": "passed"
   },
   "prestage": [
@@ -37,7 +37,7 @@
     {"id": "CB-140", "stage": "S1", "phase": "P1.5", "status": "passed"},
     {"id": "CB-200", "stage": "S2", "phase": "P2.1", "status": "passed"},
     {"id": "CB-210", "stage": "S2", "phase": "P2.2", "status": "passed"},
-    {"id": "CB-220", "stage": "S2", "phase": "P2.3", "status": "not_started"},
+    {"id": "CB-220", "stage": "S2", "phase": "P2.3", "status": "passed"},
     {"id": "CB-230", "stage": "S2", "phase": "P2.4", "status": "not_started"},
     {"id": "CB-240", "stage": "S2", "phase": "P2.5", "status": "not_started"},
     {"id": "CB-300", "stage": "S3", "phase": "P3.1", "status": "not_started"},
