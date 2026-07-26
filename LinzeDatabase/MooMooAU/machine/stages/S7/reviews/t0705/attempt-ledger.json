@@ -1,0 +1,110 @@
+{
+  "schema_version": "moomooau.protected-ga-attempt-ledger.v1",
+  "stage_id": "S7",
+  "task_id": "T0705",
+  "observed_through_utc": "2026-07-26T01:24:20Z",
+  "attempts": [
+    {
+      "sequence": 1,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 115,
+        "merge_commit_sha": "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+        "terminal_checks": 39,
+        "successful_checks": 22,
+        "failed_checks": 11,
+        "skipped_checks": 5,
+        "neutral_checks": 1
+      },
+      "workflow": {
+        "run_id": 30182491342,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30182491342",
+        "workflow_id": 318812500,
+        "event": "workflow_dispatch",
+        "workflow_head_sha": "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+        "run_attempt": 1,
+        "reruns": 0,
+        "started_at_utc": "2026-07-26T01:12:08Z",
+        "completed_at_utc": "2026-07-26T01:14:20Z"
+      },
+      "jobs": {
+        "authority_gate": {
+          "job_id": 89741382409,
+          "status": "PASS",
+          "started_at_utc": "2026-07-26T01:12:17Z",
+          "completed_at_utc": "2026-07-26T01:13:36Z"
+        },
+        "ga_schedule_rehearsal": {
+          "job_id": 89741484710,
+          "status": "FAILED",
+          "started_at_utc": "2026-07-26T01:13:40Z",
+          "completed_at_utc": "2026-07-26T01:14:20Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-26T01:14:20Z"
+        },
+        "live_schedule_hold": {
+          "status": "SKIPPED",
+          "completed_at_utc": "2026-07-26T01:12:09Z"
+        }
+      },
+      "public_failure": {
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_GA_FAILED",
+        "exact_root_cause_claimed": false,
+        "protected_values_disclosed": false,
+        "platform_schedule_event_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "private_repository_new_commits": 0,
+        "raw_path_changes": 0,
+        "processed_path_changes": 0,
+        "state_path_changes": 0,
+        "other_path_changes": 0,
+        "gmail_checkpoint_exists_after_dispatch": false,
+        "timeline_state_exists_after_dispatch": true,
+        "live_timeline_assets_before_dispatch": 1,
+        "live_timeline_assets_after_dispatch": 1,
+        "canonical_live_timeline_assets_after_dispatch": 1,
+        "live_timeline_ciphertext_bytes_after_dispatch": 11622,
+        "gmail_mutation_api_reachable": false,
+        "gmail_mutation_independent_remeasurement": "NOT_CLAIMED_WITHOUT_PRE_DISPATCH_ABSOLUTE_BASELINE",
+        "platform_schedule_events": 0,
+        "identity_plaintext_cleanup": "PASS",
+        "one_shot_authority_variable_after_dispatch": "ABSENT",
+        "production_enablement_variable_after_dispatch": "ABSENT"
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "BEFORE_GMAIL_CREDENTIAL_EXCHANGE_OR_DATA_PLANE_WRITE",
+        "exact_runtime_exception": "NOT_DISCLOSED_BY_PROTECTED_OUTPUT",
+        "high_confidence_defect": "GA_REJECTED_PAIRED_SAFE_DEFERRED_REGISTRIES",
+        "basis": [
+          "the protected job failed immediately after entering the production entrypoint while authority, dependency installation and plaintext cleanup passed",
+          "independent post-run aggregate reads observed zero private-repository commits and zero Raw, Processed, State or other path changes",
+          "the protected T0704 predecessor receipt records a successful SAFE_DEFERRED comparison and the protected bootstrap explicitly accepts paired empty classification and parser registries",
+          "the failed GA bootstrap required ACTIVE classification and parser registries before GitHub App signing, capacity refresh or Gmail credential exchange",
+          "the failed GA runtime separately required ACTIVE processing registries even though its aggregate result already models processed SAFE_DEFERRED output",
+          "the repair applies the already-proven paired-empty compatibility rule and protected parser fallback without changing active-registry behavior"
+        ]
+      }
+    }
+  ],
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "new_reviewed_repair_candidate_allowed": true,
+    "next_candidate_dispatch_limit": 1,
+    "t0705_complete": false,
+    "t0706_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "s7ac_005_passed": false,
+    "production_health": false,
+    "final_acceptance": false,
+    "stage7_complete": false
+  }
+}

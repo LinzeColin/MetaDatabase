@@ -231,7 +231,22 @@ schedule，并停在 T0706 前。当前有效入口为：
 - `SOURCE_PROVENANCE.v1.0.19.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.18.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.17.json`、
+`v1.0.20` 固化 T0705 首次 exact-main protected GA 失败并冻结 head `eb7ad073…`。authority
+与 identity cleanup PASS，但 GA 在 Gmail credential exchange 和数据面写入前 FAILED；独立聚合
+核验确认 private commit 与 Raw/Processed/State/other path change 均为 0，Gmail mutation
+endpoint 未到达，唯一 live Timeline Asset 仍为 1。修复只接受 paired empty protected
+classification/parser registries 为显式 SAFE_DEFERRED，ACTIVE 行为不变。失败 head 永不
+rerun/redispatch；只剩一个新 exact-main repair dispatch 与一个 receipt/schedule closure delivery，
+继续停止在 T0706 前。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.20.md`
+- `ROADMAP.v1.0.20.md`
+- `PACKAGE_MANIFEST.v1.0.20.json`
+- `SOURCE_PROVENANCE.v1.0.20.json`
+- `CHANGELOG.md`
+
+`PACKAGE_MANIFEST.v1.0.19.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.18.json`、
+`PACKAGE_MANIFEST.v1.0.17.json`、
 `PACKAGE_MANIFEST.v1.0.16.json`、
 `PACKAGE_MANIFEST.v1.0.15.json`、
 `PACKAGE_MANIFEST.v1.0.14.json`、

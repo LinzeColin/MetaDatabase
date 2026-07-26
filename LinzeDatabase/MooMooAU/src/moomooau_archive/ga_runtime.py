@@ -281,12 +281,21 @@ class GAFullPipelineRunner:
         timeline_publisher: SingleLatestTimelinePublisher,
         operational_gate: OperationalGate,
     ) -> None:
-        if (
-            sender_registry.activation is not RegistryActivation.ACTIVE
-            or classification_registry.activation is not ClassificationActivation.ACTIVE
-            or parser_registry.activation is not ParserActivation.ACTIVE
+        active_processing = (
+            classification_registry.activation is ClassificationActivation.ACTIVE
+            and parser_registry.activation is ParserActivation.ACTIVE
+        )
+        safe_deferred_processing = (
+            classification_registry.activation
+            is ClassificationActivation.EMPTY_PROTECTED_EVIDENCE_REQUIRED
+            and parser_registry.activation is ParserActivation.EMPTY_PROTECTED_EVIDENCE_REQUIRED
+            and not classification_registry.rules
+            and not parser_registry.profiles
+        )
+        if sender_registry.activation is not RegistryActivation.ACTIVE or not (
+            active_processing or safe_deferred_processing
         ):
-            raise GARuntimeError("protected GA registries are not active")
+            raise GARuntimeError("protected GA registries are incompatible")
         self._gmail = gmail
         self._reconciler = reconciler
         self._sync_checkpoint = sync_checkpoint
@@ -298,6 +307,7 @@ class GAFullPipelineRunner:
         self._raw_commit = raw_commit
         self._classification_registry = classification_registry
         self._parser_registry = parser_registry
+        self._safe_deferred_only = safe_deferred_processing
         self._processed_plan_factory = processed_plan_factory
         self._processed_commit = processed_commit
         self._recovery = recovery
@@ -360,9 +370,12 @@ class GAFullPipelineRunner:
                 flags.public_evidence_enabled,
                 flags.full_reconcile_enabled,
             )
-        ) or not any(
-            profile.parser_version == parser_current_version
-            for profile in self._parser_registry.profiles
+        ) or (
+            not self._safe_deferred_only
+            and not any(
+                profile.parser_version == parser_current_version
+                for profile in self._parser_registry.profiles
+            )
         ):
             raise GARuntimeError("GA feature or current parser configuration is invalid")
 
@@ -492,7 +505,15 @@ class GAFullPipelineRunner:
                 classification.document_class,
                 parser_current_version,
             )
-            outcome = self._parser.parse(envelope, classification, extraction, profile)
+            outcome = self._parser.parse(
+                envelope,
+                classification,
+                extraction,
+                profile,
+                protected_fallback_version=(
+                    parser_current_version if self._safe_deferred_only else None
+                ),
+            )
             if outcome.disposition is ProcessingDisposition.BLOCKED:
                 processing_blocked += 1
                 pending[ref.message_id] = ref

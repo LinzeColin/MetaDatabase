@@ -2,8 +2,8 @@
 
 ## 当前状态
 
-交付状态为 `PROTECTED_BLUE_GREEN_PASS_T0705_AUTHORIZED_PENDING`，Stage 7 验收覆盖状态为
-`T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_AUTHORIZED_PENDING`。T0701–T0708
+交付状态为 `PROTECTED_GA_ATTEMPT_FAILED_REPAIR_AUTHORIZED`，Stage 7 验收覆盖状态为
+`T0705_FAILED_HEAD_FROZEN_SAFE_DEFERRED_REPAIR_AUTHORIZED_PENDING`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
@@ -25,12 +25,19 @@ Timeline。受保护 repair 的 Gmail mutation、processed-current、candidate/s
 独立聚合核验只确认一个 encrypted Timeline state commit，未解密或公开私有定位。
 T0704/S7AC-004 因此 PASS，但不等于 Stage 7、最终 Acceptance 或生产 PASS。
 
-当前精确 Run Contract 已消耗全部 T0704 权限，并单独授权 T0705：一次 launch delivery、一次
-exact-main attempt-1 protected `SCHEDULE_REHEARSAL`（rerun 0）和一次 receipt/authority-closure
-delivery。它复用现有 `moomooau-beta` Environment 的八个精确 Secret 名称，不复制 Secret 值；
-受保护运行通过后才启用已提交的 04:30 Australia/Sydney schedule。rehearsal 必须明确记录
-`platform_schedule_event_observed=false`，不能伪称 GitHub schedule event。T0706、Recovery
-Drill、Patch Lifecycle protected execution、最终 Acceptance 与最终发布均未授权。
+T0705 首次 exact-main protected attempt 1 已通过 authority 与 identity cleanup，但在 Gmail
+credential exchange 和数据面写入前失败。独立聚合核验确认 private commit 与
+Raw/Processed/State/other path change 均为 0，Gmail mutation endpoint 未到达，唯一 encrypted
+latest Timeline 仍为 1。失败 head `eb7ad073…` 已冻结，rerun 与 redispatch 均为 0。
+
+当前精确 repair Run Contract 的总 delivery 预算为 3，失败 launch 已消耗 1；总 rehearsal
+dispatch 预算为 2，失败 attempt 已消耗 1。只剩一次 paired-empty SAFE_DEFERRED 修复 delivery、
+一个新 exact-main attempt-1 protected `SCHEDULE_REHEARSAL`（rerun 0）和一次
+receipt/schedule-closure delivery。它复用现有 `moomooau-beta` Environment 的八个精确 Secret
+名称，不复制 Secret 值；受保护修复运行通过后才启用已提交的 04:30 Australia/Sydney schedule。
+rehearsal 必须明确记录 `platform_schedule_event_observed=false`，不能伪称 GitHub schedule
+event。T0706、Recovery Drill、Patch Lifecycle protected execution、最终 Acceptance 与最终
+发布均未授权。
 
 ## Beta protected bootstrap 契约
 
@@ -108,8 +115,15 @@ digest、owner/exact-main/workflow ref、one-shot exact-head authority 与 attem
 它只在 Secret 前 context gate 通过后，使用现有八个 protected input 在内存中派生 GA config；
 GitHub App 先刷新真实私有仓容量，再允许 Gmail credential exchange。`workflow_dispatch` 只调用
 与 04:30 生产运行相同的 `RunTrigger.SCHEDULE` planner path，并公开标记为
-`SCHEDULE_REHEARSAL`。当前该 protected rehearsal 尚未运行，因此 T0705 与其 AC 仍为
-`BLOCKED/PARTIAL/NOT_RUN`；本地 runner 和候选入口不能替代其精确 protected receipt。
+`SCHEDULE_REHEARSAL`。
+
+首次 protected rehearsal 已 FAILED，不能计为 PASS。其静态可证缺口是 T0704 已接受的 paired
+empty classification/parser registries 在 GA bootstrap/runtime 被错误要求为 ACTIVE。唯一修复
+仅当两份 registry 同为 `EMPTY_PROTECTED_EVIDENCE_REQUIRED` 且 rules/profiles 为空时进入
+SAFE_DEFERRED-only 模式，并将已提交 parser fallback version 传给 quarantine parser；ACTIVE
+行为不变。新入口还明确拒绝失败 head，并把 authority job 验证后的 exact head 通过 job output
+绑定给 protected Environment job。当前新 repair rehearsal 尚未运行，因此 T0705 与其 AC 仍为
+`BLOCKED/PARTIAL/FAILED`；本地修复候选不能替代精确 protected receipt。
 
 ## Codex Automation 本地策略
 

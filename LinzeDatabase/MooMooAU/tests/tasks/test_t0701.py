@@ -48,7 +48,10 @@ def test_t0701_stage7_contract_catalog_authorizes_t0705_without_final_claim() ->
     assert [item["task_id"] for item in contract["acceptance_contracts"]] == [
         f"T070{index}" for index in range(1, 9)
     ]
-    assert contract["overall_status"] == "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_AUTHORIZED_PENDING"
+    assert (
+        contract["overall_status"]
+        == "T0705_FAILED_HEAD_FROZEN_SAFE_DEFERRED_REPAIR_AUTHORIZED_PENDING"
+    )
     assert contract["final_acceptances_passed"] == 0
 
 

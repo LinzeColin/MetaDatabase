@@ -1,13 +1,13 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0705-PROTECTED_GA_CANDIDATE_20260726",
+  "evidence_id": "S7-T0705-PROTECTED_GA_SAFE_DEFERRED_REPAIR_20260726",
   "stage_id": "S7",
   "task_id": "T0705",
   "stage_acceptance_id": "S7AC-005",
-  "observed_at_utc": "2026-07-26T00:06:15Z",
-  "baseline_commit": "be8e196b03dcc475ed6261fbe20593b08bd26bcf",
+  "observed_at_utc": "2026-07-26T01:24:20Z",
+  "baseline_commit": "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
   "record_status": "BLOCKED",
-  "scope": "LOCAL_SYNTHETIC_AND_PROTECTED_ENTRYPOINT_PREFLIGHT",
+  "scope": "PROTECTED_FAILED_ATTEMPT_AND_LOCAL_SAFE_DEFERRED_REPAIR_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
     {
@@ -69,6 +69,16 @@
       "id": "protected_schedule_rehearsal_aggregate_only_and_gate_complete",
       "status": "PASS",
       "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_protected_schedule_rehearsal_is_aggregate_only_and_gate_complete"
+    },
+    {
+      "id": "paired_empty_protected_registries_safe_deferred_full_pipeline",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_accepts_paired_empty_protected_registries_as_safe_deferred"
+    },
+    {
+      "id": "failed_exact_head_frozen_zero_data_plane_effect",
+      "status": "PASS",
+      "evidence_ref": "machine/stages/S7/reviews/t0705/attempt-ledger.json and machine/stages/S7/schemas/protected-ga-attempt-ledger-v1.schema.json"
     }
   ],
   "linked_final_acceptance": [
@@ -96,12 +106,13 @@
   "production_oracles": [
     {
       "id": "PROTECTED_GA_0430_FULL_PIPELINE",
-      "status": "NOT_RUN",
-      "reason": "The exact T0704 PASS receipt, one-shot Run Contract and protected production entrypoint are bound, but the sole authorized schedule-mode rehearsal has not executed."
+      "status": "FAILED",
+      "reason": "The first exact-main attempt passed authority and cleanup but failed before Gmail credential exchange or any private data-plane write. Its head is frozen; one reviewed paired-safe-deferred compatibility repair attempt is authorized."
     }
   ],
   "blockers": [
-    "T0705_PROTECTED_GA_SCHEDULE_REHEARSAL_PENDING",
+    "T0705_FAILED_HEAD_FROZEN",
+    "T0705_SAFE_DEFERRED_COMPATIBILITY_REPAIR_PENDING",
     "T0705_PROTECTED_RECEIPT_NOT_BOUND",
     "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN"
   ],
@@ -127,5 +138,5 @@
     "release_assets_above_one": 0,
     "production_workflow_runs": 0
   },
-  "next_action": "Deliver the exact validated candidate to main, bind one exact-head authority variable, execute one attempt-1 protected SCHEDULE_REHEARSAL with rerun zero, and only after PASS enable the committed 04:30 Australia/Sydney schedule; do not enter T0706."
+  "next_action": "Deliver one reviewed exact-main paired-safe-deferred repair candidate, execute one attempt-1 protected SCHEDULE_REHEARSAL with rerun zero, and only after PASS bind the receipt and enable the committed 04:30 Australia/Sydney schedule; never rerun the failed head and do not enter T0706."
 }
