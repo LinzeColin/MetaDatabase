@@ -15,7 +15,7 @@ on:
         required: true
         type: choice
         options:
-          - GA_SCHEDULE_MODE_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_MUTATION_BUDGET_ONE
+          - GA_SCHEDULE_MODE_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_MUTATION_BUDGET_ONE
 
 permissions:
   contents: read
@@ -63,8 +63,9 @@ jobs:
           test "$GITHUB_SHA" != "cc7c8af9a40122a61ee2549fb365df813cbd4f16"
           test "$GITHUB_SHA" != "4c207ad539754166fae6642ff4e6850438d3e2fc"
           test "$GITHUB_SHA" != "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4"
+          test "$GITHUB_SHA" != "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7"
           test "$GA_CONFIRMATION" = \
-            "GA_SCHEDULE_MODE_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_MUTATION_BUDGET_ONE"
+            "GA_SCHEDULE_MODE_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_MUTATION_BUDGET_ONE"
           [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
           echo "authorized_head=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 

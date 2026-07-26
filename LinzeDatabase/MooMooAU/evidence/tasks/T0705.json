@@ -1,13 +1,13 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0705-PROTECTED_GA_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_20260726",
+  "evidence_id": "S7-T0705-PROTECTED_GA_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_20260726",
   "stage_id": "S7",
   "task_id": "T0705",
   "stage_acceptance_id": "S7AC-005",
-  "observed_at_utc": "2026-07-26T07:29:35Z",
-  "baseline_commit": "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+  "observed_at_utc": "2026-07-26T08:39:29Z",
+  "baseline_commit": "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",
   "record_status": "BLOCKED",
-  "scope": "PROTECTED_FIVE_FAILED_ATTEMPTS_AND_LOCAL_PROCESSED_PLAN_DIAGNOSTIC_PREFLIGHT",
+  "scope": "PROTECTED_SIX_FAILED_ATTEMPTS_AND_LOCAL_FIRST_IMPORT_DIAGNOSTIC_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
     {
@@ -101,6 +101,11 @@
       "evidence_ref": "machine/stages/S7/reviews/t0705/processed-plan-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-processed-plan-attempt-ledger-v1.schema.json"
     },
     {
+      "id": "sixth_failed_exact_head_frozen_within_first_import_recovery",
+      "status": "PASS",
+      "evidence_ref": "machine/stages/S7/reviews/t0705/first-import-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-first-import-attempt-ledger-v1.schema.json"
+    },
+    {
       "id": "ga_pre_raw_metadata_unverifiable_quarantine",
       "status": "PASS",
       "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_quarantines_unverifiable_pre_raw_metadata_without_collateral"
@@ -134,23 +139,33 @@
       "id": "ga_processed_plan_subphase_is_closed_and_redacted",
       "status": "PASS",
       "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_ga_diagnostics_narrow_processed_plan_without_exception_inspection"
+    },
+    {
+      "id": "ga_first_import_pointer_subphase_is_closed_and_redacted",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_first_import_diagnostics_narrow_pointer_decrypt_without_value_leak"
+    },
+    {
+      "id": "ga_label_recovery_retains_its_own_closed_phase",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_label_recovery_does_not_misreport_first_import_subphase"
     }
   ],
   "linked_final_acceptance": [
     {
       "id": "AC-002",
       "status": "PARTIAL",
-      "reason": "The dependency-injected GA mechanism quarantines unverifiable pre-Raw metadata, processes only deterministically verified candidates, replays persisted first-import labels and emits only a closed failure phase/subphase; all five protected attempts failed and no T0705 PASS receipt exists."
+      "reason": "The dependency-injected GA mechanism quarantines unverifiable pre-Raw metadata, processes only deterministically verified candidates, replays persisted first-import labels and emits only a closed failure phase/subphase; all six protected attempts failed and no T0705 PASS receipt exists."
     },
     {
       "id": "AC-023",
       "status": "PARTIAL",
-      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. A sixth distinct truthful workflow_dispatch schedule-mode rehearsal is authorized once, while all five failed heads are frozen."
+      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. A seventh distinct truthful workflow_dispatch schedule-mode diagnostic rehearsal is authorized once, followed only if needed by one exact closure, while all six failed heads are frozen."
     },
     {
       "id": "AC-031",
       "status": "NOT_RUN",
-      "reason": "All five protected GA attempts emitted aggregate-safe failure only; no protected GA PASS result or continuous public health evidence is published."
+      "reason": "All six protected GA attempts emitted aggregate-safe failure only; no protected GA PASS result or continuous public health evidence is published."
     },
     {
       "id": "AC-032",
@@ -162,12 +177,12 @@
     {
       "id": "PROTECTED_GA_0430_FULL_PIPELINE",
       "status": "FAILED",
-      "reason": "The first five exact-main attempts passed authority and cleanup but failed. The fourth added six age-encrypted Raw, Processed and current paths before Timeline or checkpoint; the fifth disclosed only PROCESSED_PLAN and produced no new private commit or Gmail mutation. The exact real-data root cause remains UNKNOWN. All five heads are frozen; one reviewed closed-enum Processed-plan subphase-diagnostic attempt is authorized."
+      "reason": "The first six exact-main attempts passed authority and cleanup but failed. The fourth added six age-encrypted Raw, Processed and current paths before Timeline or checkpoint; the fifth disclosed PROCESSED_PLAN and the sixth narrowed it to FIRST_IMPORT_RECOVERY, while both produced no new private commit or Gmail mutation. The exact real-data root cause remains UNKNOWN. All six heads are frozen; one reviewed closed-enum first-import subphase-diagnostic attempt and, only if needed, one exact closure are authorized."
     }
   ],
   "blockers": [
-    "T0705_FIVE_FAILED_HEADS_FROZEN",
-    "T0705_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_PENDING",
+    "T0705_SIX_FAILED_HEADS_FROZEN",
+    "T0705_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_PENDING",
     "T0705_PROTECTED_RECEIPT_NOT_BOUND",
     "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN"
   ],
@@ -193,5 +208,5 @@
     "release_assets_above_one": 0,
     "production_workflow_runs": 0
   },
-  "next_action": "Deliver one reviewed exact-main closed-enum Processed-plan subphase-diagnostic candidate, execute one attempt-1 protected SCHEDULE_REHEARSAL with rerun zero, and only after PASS bind the receipt and enable the committed 04:30 Australia/Sydney schedule; never rerun any failed head and do not enter T0706."
+  "next_action": "Deliver one reviewed exact-main closed-enum first-import subphase-diagnostic candidate and execute one attempt-1 protected SCHEDULE_REHEARSAL with rerun zero. If it fails, allow only one exact repair-or-PASS closure candidate. After PASS bind the receipt and enable the committed 04:30 Australia/Sydney schedule; never rerun any failed head and do not enter T0706."
 }

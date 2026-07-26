@@ -93,6 +93,12 @@ PROTECTED_GA_PROCESSED_PLAN_ATTEMPT_LEDGER_PATH = Path(
 PROTECTED_GA_PROCESSED_PLAN_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-ga-processed-plan-attempt-ledger-v1.schema.json"
 )
+PROTECTED_GA_FIRST_IMPORT_ATTEMPT_LEDGER_PATH = Path(
+    "machine/stages/S7/reviews/t0705/first-import-attempt-ledger.json"
+)
+PROTECTED_GA_FIRST_IMPORT_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-ga-first-import-attempt-ledger-v1.schema.json"
+)
 STAGE7_RUN_CONTRACT_PATH = Path("machine/stages/S7/contracts/run_contract.json")
 
 
@@ -725,6 +731,99 @@ def _protected_ga_processed_plan_attempt_ledger(root: Path) -> dict[str, Any] | 
     return cast(dict[str, Any], ledger)
 
 
+def _protected_ga_first_import_attempt_ledger(root: Path) -> dict[str, Any] | None:
+    path = root / PROTECTED_GA_FIRST_IMPORT_ATTEMPT_LEDGER_PATH
+    if not path.exists():
+        return None
+    schema_path = root / PROTECTED_GA_FIRST_IMPORT_ATTEMPT_LEDGER_SCHEMA_PATH
+    if (
+        not path.is_file()
+        or path.is_symlink()
+        or not schema_path.is_file()
+        or schema_path.is_symlink()
+    ):
+        raise ValueError("protected GA first-import attempt ledger path is unsafe")
+    ledger = _load(path)
+    schema = _load(schema_path)
+    if (
+        _sha256(path)
+        != "9c5b5bedade30d511d0503f0b623a57ff59bca14bd7cf48409f8a6c459879b31"  # pragma: allowlist secret  # noqa: E501
+        or _sha256(schema_path)
+        != "d6deff1bc93e92c78e1b3c15771a679bcc5fd6b2a59da216fbbf08a4244be4b3"  # pragma: allowlist secret  # noqa: E501
+        or list(
+            Draft202012Validator(
+                schema,
+                format_checker=FormatChecker(),
+            ).iter_errors(ledger)
+        )
+    ):
+        raise ValueError("protected GA first-import attempt ledger violates its exact schema")
+    attempt = ledger.get("attempts", [{}])[0]
+    delivery = attempt.get("delivery", {})
+    workflow = attempt.get("workflow", {})
+    jobs = attempt.get("jobs", {})
+    failure = attempt.get("public_failure", {})
+    effects = attempt.get("effects", {})
+    diagnosis = attempt.get("diagnosis", {})
+    policy = ledger.get("completion_policy", {})
+    claims = ledger.get("claims", {})
+    if (
+        attempt.get("sequence") != 6
+        or delivery.get("pull_request_number") != 120
+        or delivery.get("merge_commit_sha")
+        != "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7"  # pragma: allowlist secret
+        or delivery.get("merge_commit_sha") != workflow.get("workflow_head_sha")
+        or workflow.get("run_id") != 30194651840
+        or workflow.get("run_attempt") != 1
+        or workflow.get("reruns") != 0
+        or jobs.get("authority_gate", {}).get("status") != "PASS"
+        or jobs.get("ga_schedule_rehearsal", {}).get("status") != "FAILED"
+        or jobs.get("identity_plaintext_cleanup", {}).get("status") != "PASS"
+        or jobs.get("live_schedule_hold", {}).get("status") != "SKIPPED"
+        or failure.get("reason_code") != "PROTECTED_GA_FIRST_IMPORT_RECOVERY_FAILED"
+        or failure.get("failure_phase") != "FIRST_IMPORT_RECOVERY"
+        or failure.get("exact_root_cause_claimed") is not False
+        or any(
+            effects.get(key) != 0
+            for key in (
+                "private_repository_new_commits_during_attempt",
+                "private_repository_added_paths",
+                "private_repository_modified_paths",
+                "private_repository_removed_paths",
+                "raw_ciphertext_creations",
+                "processed_immutable_creations",
+                "processed_current_pointer_mutations",
+                "timeline_snapshot_mutations",
+                "timeline_state_mutations",
+                "timeline_publish_attempts",
+                "gmail_checkpoint_mutations",
+                "gmail_source_mutations",
+                "platform_schedule_events",
+            )
+        )
+        or effects.get("gmail_mutation_api_reached") is not False
+        or effects.get("identity_plaintext_cleanup") != "PASS"
+        or effects.get("one_shot_authority_variable_after_dispatch") != "ABSENT"
+        or effects.get("production_enablement_variable_after_dispatch") != "ABSENT"
+        or diagnosis.get("exact_runtime_exception") != "NOT_RECEIVED_OR_INSPECTED"
+        or diagnosis.get("exact_root_cause") != "UNKNOWN"
+        or diagnosis.get("safe_next_diagnostic")
+        != "CLOSED_ENUM_FIRST_IMPORT_RECOVERY_SUBPHASE_ONLY"
+        or policy.get("same_head_rerun_allowed") is not False
+        or policy.get("failed_head_redispatch_allowed") is not False
+        or policy.get("new_reviewed_first_import_subphase_candidate_allowed") is not True
+        or policy.get("exact_repair_or_pass_closure_candidate_allowed") is not True
+        or policy.get("next_candidate_dispatch_limit") != 2
+        or policy.get("historical_ga_rehearsal_dispatches_consumed") != 6
+        or policy.get("historical_ga_rehearsal_reruns") != 0
+        or policy.get("t0705_complete") is not False
+        or policy.get("t0706_authorized") is not False
+        or any(value is not False for value in claims.values())
+    ):
+        raise ValueError("protected GA first-import attempt ledger is not exact")
+    return cast(dict[str, Any], ledger)
+
+
 def _t0705_repair_authorized(root: Path) -> bool:
     path = root / STAGE7_RUN_CONTRACT_PATH
     first_ledger_path = root / PROTECTED_GA_ATTEMPT_LEDGER_PATH
@@ -737,6 +836,8 @@ def _t0705_repair_authorized(root: Path) -> bool:
     fourth_schema_path = root / PROTECTED_GA_POST_PROCESSED_ATTEMPT_LEDGER_SCHEMA_PATH
     fifth_ledger_path = root / PROTECTED_GA_PROCESSED_PLAN_ATTEMPT_LEDGER_PATH
     fifth_schema_path = root / PROTECTED_GA_PROCESSED_PLAN_ATTEMPT_LEDGER_SCHEMA_PATH
+    sixth_ledger_path = root / PROTECTED_GA_FIRST_IMPORT_ATTEMPT_LEDGER_PATH
+    sixth_schema_path = root / PROTECTED_GA_FIRST_IMPORT_ATTEMPT_LEDGER_SCHEMA_PATH
     if (
         not path.is_file()
         or path.is_symlink()
@@ -760,6 +861,10 @@ def _t0705_repair_authorized(root: Path) -> bool:
         or fifth_ledger_path.is_symlink()
         or not fifth_schema_path.is_file()
         or fifth_schema_path.is_symlink()
+        or not sixth_ledger_path.is_file()
+        or sixth_ledger_path.is_symlink()
+        or not sixth_schema_path.is_file()
+        or sixth_schema_path.is_symlink()
     ):
         return False
     contract = _load(path)
@@ -770,14 +875,14 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0705"
         and contract.get("baseline_commit")
-        == "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4"  # pragma: allowlist secret
+        == "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7"  # pragma: allowlist secret
         and contract.get("baseline_manifest_sha256")
-        == "a7193fa487901af87bbafa38c654eae1395914cc9861380a4030c43fe1de00b6"  # pragma: allowlist secret  # noqa: E501
+        == "58c758bab6b6df446e4aa6f8fec9a6f6e61a32726d28760dbf27cd98226b1820"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("purpose")
-        == "T0705_PROTECTED_GA_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_AND_ENABLEMENT_ONLY"
+        == "T0705_PROTECTED_GA_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_AND_ENABLEMENT_ONLY"
         and authorization.get("prior_run_contract_sha256")
-        == "d47b553db56e3c7e01b626832ef7f8fc2bf2bc23f75fca820fc27b232e0753aa"  # pragma: allowlist secret  # noqa: E501
-        and authorization.get("failed_attempt_ledgers_required") == 5
+        == "00721a51af1a2bcabffb545700b516b7f713b2b2b2b8876d9b723dab37f55360"  # pragma: allowlist secret  # noqa: E501
+        and authorization.get("failed_attempt_ledgers_required") == 6
         and authorization.get("first_failed_attempt_ledger_sha256") == _sha256(first_ledger_path)
         and authorization.get("first_failed_attempt_ledger_schema_sha256")
         == _sha256(first_schema_path)
@@ -793,6 +898,9 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and authorization.get("fifth_failed_attempt_ledger_sha256") == _sha256(fifth_ledger_path)
         and authorization.get("fifth_failed_attempt_ledger_schema_sha256")
         == _sha256(fifth_schema_path)
+        and authorization.get("sixth_failed_attempt_ledger_sha256") == _sha256(sixth_ledger_path)
+        and authorization.get("sixth_failed_attempt_ledger_schema_sha256")
+        == _sha256(sixth_schema_path)
         and authorization.get("failed_workflow_head_shas")
         == [
             "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",  # pragma: allowlist secret
@@ -800,18 +908,21 @@ def _t0705_repair_authorized(root: Path) -> bool:
             "cc7c8af9a40122a61ee2549fb365df813cbd4f16",  # pragma: allowlist secret
             "4c207ad539754166fae6642ff4e6850438d3e2fc",  # pragma: allowlist secret
             "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",  # pragma: allowlist secret
+            "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",  # pragma: allowlist secret
         ]
         and authorization.get("failed_head_rerun_allowed") is False
         and authorization.get("failed_head_redispatch_allowed") is False
-        and authorization.get("controlled_main_delivery_total_limit") == 7
-        and authorization.get("controlled_main_deliveries_consumed") == 5
-        and authorization.get("controlled_main_deliveries_remaining") == 2
-        and authorization.get("ga_rehearsal_dispatches_consumed") == 5
+        and authorization.get("controlled_main_delivery_total_limit") == 9
+        and authorization.get("controlled_main_deliveries_consumed") == 6
+        and authorization.get("controlled_main_deliveries_remaining") == 3
+        and authorization.get("ga_rehearsal_dispatches_consumed") == 6
         and authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and authorization.get("ga_label_replay_repair_dispatches_consumed") == 1
         and authorization.get("ga_phase_diagnostic_dispatches_consumed") == 1
-        and authorization.get("ga_processed_plan_diagnostic_dispatch_limit") == 1
-        and authorization.get("ga_processed_plan_diagnostic_rerun_limit") == 0
+        and authorization.get("ga_processed_plan_diagnostic_dispatches_consumed") == 1
+        and authorization.get("ga_first_import_diagnostic_dispatch_limit") == 1
+        and authorization.get("ga_exact_repair_or_pass_closure_dispatch_limit") == 1
+        and authorization.get("ga_first_import_diagnostic_rerun_limit") == 0
         and authorization.get("t0704_receipt_required") is True
         and authorization.get("t0704_receipt_sha256")
         == "67a5b0f2860fac8b97d459d79f1ad87172f6ce4e45570bb1a1f4f8dc0731fbf7"  # pragma: allowlist secret  # noqa: E501
@@ -820,19 +931,22 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and authorization.get("manual_environment_reviewers_required") is False
         and authorization.get("fixed_calendar_wait_days") == 0
         and authorization.get("final_publication_authorized") is False
-        and budget.get("controlled_main_deliveries_total_maximum") == 7
-        and budget.get("controlled_main_deliveries_remaining_maximum") == 2
+        and budget.get("controlled_main_deliveries_total_maximum") == 9
+        and budget.get("controlled_main_deliveries_remaining_maximum") == 3
         and budget.get("protected_environment_secret_names_maximum") == 8
-        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 6
-        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 5
+        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 8
+        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 6
         and budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_label_replay_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_phase_diagnostic_dispatches_consumed") == 1
-        and budget.get("protected_ga_processed_plan_diagnostic_dispatches_maximum") == 1
+        and budget.get("protected_ga_processed_plan_diagnostic_dispatches_consumed") == 1
+        and budget.get("protected_ga_first_import_diagnostic_dispatches_maximum") == 1
+        and budget.get("protected_ga_exact_repair_or_pass_closure_dispatches_maximum") == 1
         and budget.get("protected_ga_rehearsal_reruns_maximum") == 0
         and budget.get("failed_head_reruns_maximum") == 0
         and budget.get("failed_head_redispatches_maximum") == 0
-        and budget.get("protected_ga_processed_plan_diagnostic_pipeline_runs_maximum") == 1
+        and budget.get("protected_ga_first_import_diagnostic_pipeline_runs_maximum") == 1
+        and budget.get("protected_ga_exact_repair_or_pass_closure_pipeline_runs_maximum") == 1
         and budget.get("gmail_exact_message_trash_mutations_maximum") == 1
         and budget.get("maximum_live_timeline_assets") == 1
         and budget.get("production_schedule_enablement_mutations_maximum") == 1
@@ -1310,6 +1424,7 @@ def _validate_composition_for_state(
                 "1.0.22",
                 "1.0.23",
                 "1.0.24",
+                "1.0.25",
             },
         ),
     )
@@ -1445,6 +1560,7 @@ def _validate_stage6_evidence_transition(
         "1.0.22",
         "1.0.23",
         "1.0.24",
+        "1.0.25",
     } or versions != {"moomooau.stage6-evidence.v2"}:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
     # v1.0.5 itself remains Git-anchored. Its v1.0.6+ control successors are portable:
@@ -1481,6 +1597,7 @@ def build_status(
     protected_ga_label_replay_attempt_ledger = _protected_ga_label_replay_attempt_ledger(root)
     protected_ga_post_processed_attempt_ledger = _protected_ga_post_processed_attempt_ledger(root)
     protected_ga_processed_plan_attempt_ledger = _protected_ga_processed_plan_attempt_ledger(root)
+    protected_ga_first_import_attempt_ledger = _protected_ga_first_import_attempt_ledger(root)
     state_name, state = _select_transition_state(
         model,
         _assurance_result(root) if assurance_result is None else assurance_result,
@@ -1595,6 +1712,8 @@ def build_status(
         observed_at.append(str(protected_ga_post_processed_attempt_ledger["observed_through_utc"]))
     if protected_ga_processed_plan_attempt_ledger is not None:
         observed_at.append(str(protected_ga_processed_plan_attempt_ledger["observed_through_utc"]))
+    if protected_ga_first_import_attempt_ledger is not None:
+        observed_at.append(str(protected_ga_first_import_attempt_ledger["observed_through_utc"]))
     formal_counts = Counter(task["status"] for task in tasks)
     if formal_counts != Counter({"completed": 7, "planned": 51}):
         raise ValueError("formal task status is not the inherited 7 completed / 51 planned state")
@@ -1819,24 +1938,25 @@ def build_status(
             or protected_ga_label_replay_attempt_ledger is None
             or protected_ga_post_processed_attempt_ledger is None
             or protected_ga_processed_plan_attempt_ledger is None
+            or protected_ga_first_import_attempt_ledger is None
             or protected_executed != 5
             or protected_passed != 4
             or protected_failed != 1
         ):
             raise ValueError(
-                "T0705 Processed-plan diagnostic authority lacks its exact failed lineage"
+                "T0705 first-import diagnostic authority lacks its exact failed lineage"
             )
         production_reasons = [
             "FORMAL_TASKS_INCOMPLETE",
-            "T0705_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_PENDING",
+            "T0705_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_PENDING",
             "FINAL_ACCEPTANCE_BLOCKED",
             "PRODUCTION_SCHEDULE_DISABLED",
         ]
-        overall_status = "PROTECTED_GA_FIFTH_ATTEMPT_FAILED_PROCESSED_PLAN_DIAGNOSTIC_AUTHORIZED"
+        overall_status = "PROTECTED_GA_SIXTH_ATTEMPT_FAILED_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED"
         protected_status = "FAILED"
-        production_workflow_runs = 5
-        publication_status = "CONTROLLED_T0705_PROCESSED_PLAN_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
-        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_FIVE_T0705_FAILURES"
+        production_workflow_runs = 6
+        publication_status = "CONTROLLED_T0705_FIRST_IMPORT_DIAGNOSTIC_CANDIDATE_NOT_FINAL"
+        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_SIX_T0705_FAILURES"
     elif passed_t0704_state:
         if (
             protected_receipt is None
@@ -1934,6 +2054,10 @@ def build_status(
         source_digests["protected_ga_processed_plan_attempt_ledger_sha256"] = _sha256(
             root / PROTECTED_GA_PROCESSED_PLAN_ATTEMPT_LEDGER_PATH
         )
+    if protected_ga_first_import_attempt_ledger is not None:
+        source_digests["protected_ga_first_import_attempt_ledger_sha256"] = _sha256(
+            root / PROTECTED_GA_FIRST_IMPORT_ATTEMPT_LEDGER_PATH
+        )
 
     return {
         "schema_version": "moomooau.delivery-status.v1",
@@ -2000,7 +2124,7 @@ def build_status(
                         else 0
                     )
                     + (1 if protected_blue_green_receipt is not None else 0)
-                    + (5 if repair_t0705_state else (1 if authorized_t0705_state else 0))
+                    + (6 if repair_t0705_state else (1 if authorized_t0705_state else 0))
                     if protected_receipt is not None
                     else 0
                 ),

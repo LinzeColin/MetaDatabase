@@ -40,10 +40,15 @@ from moomooau_archive.gmail_sync_checkpoint import (
     GmailRunCheckpoint,
 )
 from moomooau_archive.http_boundary import HttpRequest, HttpResponse
+from moomooau_archive.processed_commit import RevisionedCiphertext
 from moomooau_archive.production import (
     PRODUCTION_CONFIG_SECRET_NAME,
     ProductionBootstrap,
     ProductionExecutionResult,
+)
+from moomooau_archive.production_adapters import (
+    ProductionAdapterError,
+    RemoteFirstImportTimestampSource,
 )
 from moomooau_archive.protected_ga_diagnostics import (
     FAILURE_TAXONOMY_VERSION,
@@ -698,10 +703,10 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["maximum_reruns"] == 0
     assert contract["required_protected_input_count"] == 8
     assert contract["blue_green_receipt_sha256"] == blue_green_receipt_sha256(PROJECT_ROOT)
-    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 5
+    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 6
     assert contract["failed_ga_heads_rerun_allowed"] is False
     assert contract["failed_ga_heads_redispatch_allowed"] is False
-    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 5
+    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 6
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
 
 
@@ -887,6 +892,62 @@ def test_t0705_ga_diagnostics_narrow_processed_plan_without_exception_inspection
     payload = public_failure_payload(diagnostics)
     assert payload["reason_code"] == "PROTECTED_GA_FIRST_IMPORT_RECOVERY_FAILED"
     assert protected_value not in json.dumps(payload, sort_keys=True)
+
+
+def test_t0705_first_import_diagnostics_narrow_pointer_decrypt_without_value_leak() -> None:
+    diagnostics = ProtectedGADiagnostics()
+    protected_value = "synthetic-private-first-import-value"
+
+    class Store:
+        def fetch_current(self, relative_path: str) -> RevisionedCiphertext:
+            assert relative_path.startswith("MooMooAU/State/processed-current/")
+            return RevisionedCiphertext(_synthetic_age_envelope(), "a" * 40)
+
+    class Decryptor:
+        def decrypt(self, ciphertext: bytes) -> bytes:
+            assert ciphertext == _synthetic_age_envelope()
+            raise RuntimeError(protected_value)
+
+    source = RemoteFirstImportTimestampSource(  # type: ignore[arg-type]
+        Store(),
+        Decryptor(),
+        diagnostics,
+    )
+    with pytest.raises(ProductionAdapterError, match="pointer recovery"):
+        source.resolve("a" * 64, datetime(2026, 7, 26, 8, 30, tzinfo=UTC))
+
+    assert diagnostics.phase is ProtectedGAFailurePhase.FIRST_IMPORT_POINTER_DECRYPT
+    payload = public_failure_payload(diagnostics)
+    assert payload["reason_code"] == "PROTECTED_GA_FIRST_IMPORT_POINTER_DECRYPT_FAILED"
+    assert protected_value not in json.dumps(payload, sort_keys=True)
+
+
+def test_t0705_label_recovery_does_not_misreport_first_import_subphase() -> None:
+    diagnostics = ProtectedGADiagnostics()
+
+    class EmptyStore:
+        def fetch_current(self, relative_path: str) -> None:
+            assert relative_path.startswith("MooMooAU/State/processed-current/")
+            return None
+
+    class UnusedDecryptor:
+        def decrypt(self, ciphertext: bytes) -> bytes:
+            raise AssertionError("decrypt must not be called for an absent current pointer")
+
+    diagnostics.enter(ProtectedGAFailurePhase.HISTORICAL_LABEL_RECOVERY)
+    source = RemoteFirstImportTimestampSource(  # type: ignore[arg-type]
+        EmptyStore(),
+        UnusedDecryptor(),
+        diagnostics,
+    )
+    assert (
+        source.resolve_label_state(
+            "a" * 64,
+            datetime(2026, 7, 26, 8, 30, tzinfo=UTC),
+        )
+        is None
+    )
+    assert diagnostics.phase is ProtectedGAFailurePhase.HISTORICAL_LABEL_RECOVERY
 
 
 def test_t0705_ga_main_redacts_exception_and_emits_only_safe_phase(

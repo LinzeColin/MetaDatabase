@@ -276,6 +276,19 @@ delivery，继续停止在 T0706 前。当前有效入口为：
 - `SOURCE_PROVENANCE.v1.0.22.json`
 - `CHANGELOG.md`
 
+`v1.0.25` 直接继承不可变 v1.0.24，固化 T0705 第六个不同 exact-main protected GA
+失败并冻结 head `d10f5086…`。公开输出只有 coarse `FIRST_IMPORT_RECOVERY`；只读 private
+数据仓核验确认第六次零 commit、零路径变化，失败边界在 Raw recovery/classification 之后、
+document-envelope 构造与任何 Processed write 之前，精确线上根因保持 `UNKNOWN`。唯一新实现
+是固定枚举 first-import recovery 子阶段诊断并注入既有 remote reader，不接收或检查异常与
+protected 值。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.25.md`
+- `ROADMAP.v1.0.25.md`
+- `PACKAGE_MANIFEST.v1.0.25.json`
+- `SOURCE_PROVENANCE.v1.0.25.json`
+- `CHANGELOG.md`
+
 `v1.0.24` 直接继承不可变 v1.0.23，固化 T0705 第五个不同 exact-main protected GA
 失败并冻结 head `64d88e91…`。公开输出只有 coarse `PROCESSED_PLAN`；只读 private 数据仓
 核验确认第五次零 commit、零路径变化，精确线上根因保持 `UNKNOWN`。唯一新实现是固定枚举
@@ -303,7 +316,9 @@ last-entered phase 诊断，禁止异常文本、URL、标识符、计数、邮�
 - `SOURCE_PROVENANCE.v1.0.23.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.22.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.21.json`、
+`PACKAGE_MANIFEST.v1.0.24.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.23.json`、
+`PACKAGE_MANIFEST.v1.0.22.json`、
+`PACKAGE_MANIFEST.v1.0.21.json`、
 `PACKAGE_MANIFEST.v1.0.20.json`、
 `PACKAGE_MANIFEST.v1.0.19.json`、
 `PACKAGE_MANIFEST.v1.0.18.json`、

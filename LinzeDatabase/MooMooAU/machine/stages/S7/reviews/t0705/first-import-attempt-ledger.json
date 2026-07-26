@@ -1,0 +1,152 @@
+{
+  "schema_version": "moomooau.protected-ga-first-import-attempt-ledger.v1",
+  "stage_id": "S7",
+  "task_id": "T0705",
+  "observed_through_utc": "2026-07-26T08:39:29Z",
+  "predecessor_control": {
+    "prior_run_contract_sha256": "00721a51af1a2bcabffb545700b516b7f713b2b2b2b8876d9b723dab37f55360",
+    "fifth_attempt_ledger_sha256": "9cebe7c23adf11274c645c5b2d87da7d4b435602b6c8bba2b7b6b24b130546dc",
+    "fifth_attempt_ledger_schema_sha256": "1964a88737eaaadbbfc5cc22419730cd59c09d86f187132f21cf2c0b79c157a0",
+    "prior_failed_workflow_head_shas": [
+      "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+      "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+      "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+      "4c207ad539754166fae6642ff4e6850438d3e2fc",
+      "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4"
+    ],
+    "prior_failed_head_dispatches_after_freeze": 0,
+    "prior_failed_head_reruns_after_freeze": 0
+  },
+  "attempts": [
+    {
+      "sequence": 6,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 120,
+        "pull_request_head_sha": "9999fb494fa531d0888801c99fe3a8f1f4f895ce",
+        "merge_commit_parent_sha": "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+        "merge_commit_sha": "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",
+        "merged_at_utc": "2026-07-26T08:26:37Z",
+        "terminal_checks": 23,
+        "successful_checks": 23,
+        "failed_checks": 0,
+        "skipped_checks": 0,
+        "neutral_checks": 0
+      },
+      "workflow": {
+        "run_id": 30194651840,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30194651840",
+        "workflow_id": 318812500,
+        "event": "workflow_dispatch",
+        "workflow_ref": "refs/heads/main",
+        "workflow_head_sha": "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",
+        "run_attempt": 1,
+        "reruns": 0,
+        "started_at_utc": "2026-07-26T08:27:19Z",
+        "completed_at_utc": "2026-07-26T08:30:50Z"
+      },
+      "jobs": {
+        "authority_gate": {
+          "job_id": 89773879961,
+          "status": "PASS",
+          "started_at_utc": "2026-07-26T08:27:22Z",
+          "completed_at_utc": "2026-07-26T08:28:33Z"
+        },
+        "ga_schedule_rehearsal": {
+          "job_id": 89773979498,
+          "status": "FAILED",
+          "started_at_utc": "2026-07-26T08:28:37Z",
+          "completed_at_utc": "2026-07-26T08:30:49Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-26T08:30:48Z"
+        },
+        "live_schedule_hold": {
+          "job_id": 89773880183,
+          "status": "SKIPPED",
+          "completed_at_utc": "2026-07-26T08:27:20Z"
+        }
+      },
+      "public_failure": {
+        "schema_version": "moomooau.protected-ga-public-failure.v1",
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_GA_FIRST_IMPORT_RECOVERY_FAILED",
+        "failure_phase": "FIRST_IMPORT_RECOVERY",
+        "installation_token_failure_class": "UNCLASSIFIED",
+        "diagnostic_taxonomy": "moomooau.protected-ga-failure-taxonomy.v1",
+        "exact_root_cause_claimed": false,
+        "protected_values_disclosed": false,
+        "platform_schedule_event_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "private_repository_head_changed": false,
+        "private_repository_new_commits_during_attempt": 0,
+        "private_repository_added_paths": 0,
+        "private_repository_modified_paths": 0,
+        "private_repository_removed_paths": 0,
+        "raw_ciphertext_creations": 0,
+        "processed_immutable_creations": 0,
+        "processed_current_pointer_mutations": 0,
+        "timeline_snapshot_mutations": 0,
+        "timeline_state_mutations": 0,
+        "timeline_publish_attempts": 0,
+        "gmail_checkpoint_mutations": 0,
+        "gmail_source_mutations": 0,
+        "gmail_mutation_api_reached": false,
+        "platform_schedule_events": 0,
+        "identity_plaintext_cleanup": "PASS",
+        "one_shot_authority_variable_after_dispatch": "ABSENT",
+        "production_enablement_variable_after_dispatch": "ABSENT",
+        "protected_environment_secret_names": 8,
+        "exact_private_locator_disclosed": false,
+        "exact_mailbox_counts_disclosed": false
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "AFTER_RAW_REMOTE_RECOVERY_AND_CLASSIFICATION_WITHIN_FIRST_IMPORT_RECOVERY_BEFORE_ANY_PROCESSED_WRITE_OR_GMAIL_MUTATION",
+        "exact_runtime_exception": "NOT_RECEIVED_OR_INSPECTED",
+        "exact_root_cause": "UNKNOWN",
+        "exact_root_cause_claimed": false,
+        "safe_next_diagnostic": "CLOSED_ENUM_FIRST_IMPORT_RECOVERY_SUBPHASE_ONLY",
+        "basis": [
+          "the protected failure payload contains only the fixed FIRST_IMPORT_RECOVERY phase, UNCLASSIFIED installation-token failure class and explicit non-disclosure claims",
+          "authority and plaintext cleanup passed, the protected GA step failed, the live schedule hold remained skipped and the sixth failed head remains attempt 1 with rerun zero",
+          "read-only connected-repository verification observed no commit after the fourth-attempt remote head and no private-repository commit during the sixth attempt",
+          "the committed runner enters FIRST_IMPORT_RECOVERY only after Raw remote recovery and classification and before document-envelope construction or any Processed write",
+          "SECOND_VERIFICATION and TRASH_MUTATION occur strictly after Processed commit and full remote recovery, so the sixth failure could not reach a Gmail mutation",
+          "Timeline snapshot, publish and encrypted checkpoint phases occur later still and were not entered",
+          "the writer and reader schemas are unchanged between the fourth writer head and the sixth reader head, while synthetic writer-to-reader recovery passes; no exact real-data root cause is inferred",
+          "the successor diagnostic records only fixed first-import recovery subphase enums and never receives or inspects an exception, identifier, URL, counter, Secret, repository locator or mailbox-derived value"
+        ]
+      }
+    }
+  ],
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "frozen_failed_workflow_head_shas": [
+      "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+      "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+      "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+      "4c207ad539754166fae6642ff4e6850438d3e2fc",
+      "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+      "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7"
+    ],
+    "new_reviewed_first_import_subphase_candidate_allowed": true,
+    "exact_repair_or_pass_closure_candidate_allowed": true,
+    "next_candidate_dispatch_limit": 2,
+    "historical_ga_rehearsal_dispatches_consumed": 6,
+    "historical_ga_rehearsal_reruns": 0,
+    "t0705_complete": false,
+    "t0706_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "s7ac_005_passed": false,
+    "production_health": false,
+    "final_acceptance": false,
+    "stage7_complete": false
+  }
+}

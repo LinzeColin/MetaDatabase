@@ -1,12 +1,12 @@
 """Exact-main protected GA schedule-mode entrypoint for Stage 7 T0705.
 
-The first five T0705 executions failed and all five exact heads are permanently frozen.  This
-entrypoint authorizes one new owner-dispatched Processed-plan subphase-diagnostic rehearsal.  It
-invokes
+The first six T0705 executions failed and all six exact heads are permanently frozen.  This
+entrypoint authorizes one new owner-dispatched first-import recovery subphase-diagnostic rehearsal.
+It invokes
 the same deterministic ``RunTrigger.SCHEDULE`` path used by the committed 04:30
 Australia/Sydney workflow, but it never claims that ``workflow_dispatch`` was a GitHub
 schedule event.  Before any Secret read it binds exact main, the immutable T0702-T0704
-receipts, all five failed-attempt ledgers, the current one-task Run Contract and a same-tree gate
+receipts, all six failed-attempt ledgers, the current one-task Run Contract and a same-tree gate
 digest.
 
 The existing ``moomooau-beta`` Environment remains the sole protected credential plane.  Its
@@ -60,7 +60,7 @@ CONTROL_WORKFLOW_REF = (
     "LinzeColin/MetaDatabase/.github/workflows/moomooau-production.yml@refs/heads/main"
 )
 PROTECTED_ENVIRONMENT = "moomooau-beta"
-GA_CONFIRMATION = "GA_SCHEDULE_MODE_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_MUTATION_BUDGET_ONE"
+GA_CONFIRMATION = "GA_SCHEDULE_MODE_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_MUTATION_BUDGET_ONE"
 GA_PARSER_CURRENT_VERSION = "1.0.0"
 GA_MUTATION_BUDGET_PER_RUN = 1
 FAILED_GA_HEAD_SHA_SEQUENCE = (
@@ -69,6 +69,7 @@ FAILED_GA_HEAD_SHA_SEQUENCE = (
     "cc7c8af9a40122a61ee2549fb365df813cbd4f16",  # pragma: allowlist secret
     "4c207ad539754166fae6642ff4e6850438d3e2fc",  # pragma: allowlist secret
     "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",  # pragma: allowlist secret
+    "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",  # pragma: allowlist secret
 )
 FAILED_GA_HEAD_SHAS = frozenset(FAILED_GA_HEAD_SHA_SEQUENCE)
 
@@ -103,6 +104,12 @@ _FIFTH_FAILED_GA_LEDGER_PATH = Path(
 _FIFTH_FAILED_GA_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-ga-processed-plan-attempt-ledger-v1.schema.json"
 )
+_SIXTH_FAILED_GA_LEDGER_PATH = Path(
+    "machine/stages/S7/reviews/t0705/first-import-attempt-ledger.json"
+)
+_SIXTH_FAILED_GA_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-ga-first-import-attempt-ledger-v1.schema.json"
+)
 _GATE_PATHS = (
     Path("machine/stages/S7/reviews/t0702/execution-receipt.json"),
     Path("machine/stages/S7/schemas/protected-beta-execution-receipt-v2.schema.json"),
@@ -120,11 +127,14 @@ _GATE_PATHS = (
     _FOURTH_FAILED_GA_LEDGER_SCHEMA_PATH,
     _FIFTH_FAILED_GA_LEDGER_PATH,
     _FIFTH_FAILED_GA_LEDGER_SCHEMA_PATH,
+    _SIXTH_FAILED_GA_LEDGER_PATH,
+    _SIXTH_FAILED_GA_LEDGER_SCHEMA_PATH,
     _RUN_CONTRACT_PATH,
     Path("machine/stages/S7/contracts/stage7_acceptance_contract.json"),
     Path("machine/contracts/production_composition.json"),
     Path("src/moomooau_archive/ga_runtime.py"),
     Path("src/moomooau_archive/production.py"),
+    Path("src/moomooau_archive/production_adapters.py"),
     Path("src/moomooau_archive/protected_ga_diagnostics.py"),
     Path("src/moomooau_archive/protected_ga_entrypoint.py"),
     Path("src/moomooau_archive/release_control.py"),
@@ -365,6 +375,7 @@ def execution_contract(project_root: Path) -> dict[str, object]:
             _THIRD_FAILED_GA_LEDGER_PATH.as_posix(),
             _FOURTH_FAILED_GA_LEDGER_PATH.as_posix(),
             _FIFTH_FAILED_GA_LEDGER_PATH.as_posix(),
+            _SIXTH_FAILED_GA_LEDGER_PATH.as_posix(),
         ],
         "ga_gate_paths": [path.as_posix() for path in _GATE_PATHS],
         "ga_gate_sha256": ga_gate_sha256(root),
@@ -710,16 +721,16 @@ def _ga_authorized(project_root: Path) -> bool:
         contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0705"
         and contract.get("baseline_commit")
-        == "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4"  # pragma: allowlist secret
+        == "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7"  # pragma: allowlist secret
         and contract.get("baseline_manifest_sha256")
-        == "a7193fa487901af87bbafa38c654eae1395914cc9861380a4030c43fe1de00b6"  # pragma: allowlist secret  # noqa: E501
+        == "58c758bab6b6df446e4aa6f8fec9a6f6e61a32726d28760dbf27cd98226b1820"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("purpose")
-        == "T0705_PROTECTED_GA_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_AND_ENABLEMENT_ONLY"
+        == "T0705_PROTECTED_GA_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_AND_ENABLEMENT_ONLY"
         and authorization.get("original_run_contract_sha256")
         == "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("prior_run_contract_sha256")
-        == "d47b553db56e3c7e01b626832ef7f8fc2bf2bc23f75fca820fc27b232e0753aa"  # pragma: allowlist secret  # noqa: E501
-        and authorization.get("failed_attempt_ledgers_required") == 5
+        == "00721a51af1a2bcabffb545700b516b7f713b2b2b2b8876d9b723dab37f55360"  # pragma: allowlist secret  # noqa: E501
+        and authorization.get("failed_attempt_ledgers_required") == 6
         and authorization.get("first_failed_attempt_ledger_sha256")
         == hashlib.sha256((root / _FIRST_FAILED_GA_LEDGER_PATH).read_bytes()).hexdigest()
         and authorization.get("first_failed_attempt_ledger_schema_sha256")
@@ -740,6 +751,10 @@ def _ga_authorized(project_root: Path) -> bool:
         == hashlib.sha256((root / _FIFTH_FAILED_GA_LEDGER_PATH).read_bytes()).hexdigest()
         and authorization.get("fifth_failed_attempt_ledger_schema_sha256")
         == hashlib.sha256((root / _FIFTH_FAILED_GA_LEDGER_SCHEMA_PATH).read_bytes()).hexdigest()
+        and authorization.get("sixth_failed_attempt_ledger_sha256")
+        == hashlib.sha256((root / _SIXTH_FAILED_GA_LEDGER_PATH).read_bytes()).hexdigest()
+        and authorization.get("sixth_failed_attempt_ledger_schema_sha256")
+        == hashlib.sha256((root / _SIXTH_FAILED_GA_LEDGER_SCHEMA_PATH).read_bytes()).hexdigest()
         and authorization.get("failed_workflow_head_shas") == list(FAILED_GA_HEAD_SHA_SEQUENCE)
         and authorization.get("failed_head_rerun_allowed") is False
         and authorization.get("failed_head_redispatch_allowed") is False
@@ -748,30 +763,35 @@ def _ga_authorized(project_root: Path) -> bool:
         and authorization.get("t0705_authorized") is True
         and authorization.get("t0706_authorized") is False
         and authorization.get("final_publication_authorized") is False
-        and authorization.get("controlled_main_delivery_total_limit") == 7
-        and authorization.get("controlled_main_deliveries_consumed") == 5
-        and authorization.get("controlled_main_deliveries_remaining") == 2
-        and authorization.get("ga_rehearsal_dispatches_consumed") == 5
+        and authorization.get("controlled_main_delivery_total_limit") == 9
+        and authorization.get("controlled_main_deliveries_consumed") == 6
+        and authorization.get("controlled_main_deliveries_remaining") == 3
+        and authorization.get("ga_rehearsal_dispatches_consumed") == 6
         and authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and authorization.get("ga_label_replay_repair_dispatches_consumed") == 1
         and authorization.get("ga_phase_diagnostic_dispatches_consumed") == 1
-        and authorization.get("ga_processed_plan_diagnostic_dispatch_limit") == 1
-        and authorization.get("ga_processed_plan_diagnostic_rerun_limit") == 0
+        and authorization.get("ga_processed_plan_diagnostic_dispatches_consumed") == 1
+        and authorization.get("ga_first_import_diagnostic_dispatch_limit") == 1
+        and authorization.get("ga_exact_repair_or_pass_closure_dispatch_limit") == 1
+        and authorization.get("ga_first_import_diagnostic_rerun_limit") == 0
         and authorization.get("manual_environment_reviewers_required") is False
         and authorization.get("fixed_calendar_wait_days") == 0
-        and budget.get("controlled_main_deliveries_total_maximum") == 7
-        and budget.get("controlled_main_deliveries_remaining_maximum") == 2
+        and budget.get("controlled_main_deliveries_total_maximum") == 9
+        and budget.get("controlled_main_deliveries_remaining_maximum") == 3
         and budget.get("protected_environment_secret_names_maximum") == len(M3_SECRET_NAMES)
-        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 6
-        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 5
+        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 8
+        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 6
         and budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_label_replay_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_phase_diagnostic_dispatches_consumed") == 1
-        and budget.get("protected_ga_processed_plan_diagnostic_dispatches_maximum") == 1
+        and budget.get("protected_ga_processed_plan_diagnostic_dispatches_consumed") == 1
+        and budget.get("protected_ga_first_import_diagnostic_dispatches_maximum") == 1
+        and budget.get("protected_ga_exact_repair_or_pass_closure_dispatches_maximum") == 1
         and budget.get("protected_ga_rehearsal_reruns_maximum") == 0
         and budget.get("failed_head_reruns_maximum") == 0
         and budget.get("failed_head_redispatches_maximum") == 0
-        and budget.get("protected_ga_processed_plan_diagnostic_pipeline_runs_maximum") == 1
+        and budget.get("protected_ga_first_import_diagnostic_pipeline_runs_maximum") == 1
+        and budget.get("protected_ga_exact_repair_or_pass_closure_pipeline_runs_maximum") == 1
         and budget.get("platform_schedule_events_during_rehearsal_maximum") == 0
         and budget.get("gmail_exact_message_trash_mutations_maximum") == GA_MUTATION_BUDGET_PER_RUN
         and budget.get("timeline_snapshot_commit_attempts_maximum") == 1
