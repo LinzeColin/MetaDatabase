@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-120",
+  "target_id_sha256": "7865f743d174",
+  "evidence_scope": "authorized_live_host_container",
+  "mode": "bounded_authorized_live_host_container_fixture",
+  "result": "pass",
+  "memory_max_bytes": 134217728,
+  "induced_memory_bytes": 16777216,
+  "induced_disk_bytes": 8388608,
+  "induced_queue_items": 100,
+  "guard_ladder_passed": true,
+  "protect_ladder_passed": true,
+  "recovery_passed": true,
+  "oom_events": 0,
+  "fixed_sleep_seconds": 0,
+  "real_time_soak": false,
+  "transient_unit_collected": true,
+  "transient_output_removed": true,
+  "candidate_python_cache_correction": {
+    "generated_entries": 2,
+    "source_files_removed": 0,
+    "cleanup_passed": true,
+    "candidate_immutable_after_cleanup": true,
+    "repeat_requires_python_dont_write_bytecode": true
+  },
+  "target_address_persisted": false
+}

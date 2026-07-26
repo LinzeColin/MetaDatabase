@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-230",
+  "phase": "P2.4",
+  "release_commit": "1b3e338847d8819869a5e12091f25b5463a8d3be",
+  "candidate_only": true,
+  "current_switched": false,
+  "service_started": false,
+  "rollback_executed": false,
+  "rollback_trigger": "acceptance_failure_or_hard_stop",
+  "rollback_actions": [
+    "stop only the exact CB-230 synthetic acceptance process if present",
+    "remove only exact CB-230 staging, env, incoming and synthetic runtime paths",
+    "retain the inactive exact candidate and its Corresponding Source for audit",
+    "never change current, workspace, historical candidates or business data",
+    "never replay a dispatch-started ambiguous outbox row automatically"
+  ],
+  "candidate_retained_for_audit": true,
+  "candidate_retained_inactive": true,
+  "current_release_rollback_required": false,
+  "canonical_database_rollback_required": false,
+  "exact_staging_cleanup_completed": true,
+  "final_transient_cleanup_completed": true,
+  "target_address_persisted": false,
+  "result": "passed"
+}

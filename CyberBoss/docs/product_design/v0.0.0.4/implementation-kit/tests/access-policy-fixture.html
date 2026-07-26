@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CyberBoss Access policy fixture</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #08111d; color: #e5edf7; }
+    main { width: min(760px, calc(100vw - 80px)); border: 1px solid #26384f; border-radius: 20px; padding: 36px; background: #101d2d; box-shadow: 0 28px 80px #0008; }
+    .eyebrow { color: #8ca4bf; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 10px 0 8px; font-size: 34px; }
+    .badge { display: inline-block; margin: 22px 0; padding: 10px 14px; border-radius: 999px; font-weight: 800; letter-spacing: .08em; }
+    .deny { background: #4b1820; color: #ffb6bf; border: 1px solid #8b303e; }
+    .allow { background: #123f32; color: #9ff2cf; border: 1px solid #20755a; }
+    dl { display: grid; grid-template-columns: 170px 1fr; gap: 12px 20px; margin: 22px 0; }
+    dt { color: #8ca4bf; } dd { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .note { margin-top: 28px; border-top: 1px solid #26384f; padding-top: 18px; color: #9eb0c4; font-size: 14px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">CB-020 local contract fixture · no real identity</div>
+    <h1>CyberBoss Cloud Access decision</h1>
+    <div id="badge" class="badge deny">DENY</div>
+    <dl>
+      <dt>Application</dt><dd>cyberboss.linzezhang.com</dd>
+      <dt>Request case</dt><dd id="case">anonymous</dd>
+      <dt>Policy</dt><dd>explicit owner or specific service token</dd>
+      <dt>Default</dt><dd>deny</dd>
+      <dt>Bypass / Everyone</dt><dd>forbidden</dd>
+    </dl>
+    <div class="note">Screenshot evidence is produced from this deterministic local fixture. It does not claim that a real Cloudflare Access application has been activated.</div>
+  </main>
+  <script>
+    const allowed = new URLSearchParams(location.search).get('case') === 'allow';
+    document.querySelector('#badge').textContent = allowed ? 'ALLOW' : 'DENY';
+    document.querySelector('#badge').className = `badge ${allowed ? 'allow' : 'deny'}`;
+    document.querySelector('#case').textContent = allowed ? 'approved fixture owner' : 'anonymous / unauthorized';
+  </script>
+</body>
+</html>

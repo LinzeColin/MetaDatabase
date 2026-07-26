@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-130",
+  "phase": "P1.4",
+  "target_id_sha256": "7865f743d174",
+  "operator_host_scan": true,
+  "service_ready_before_scan": true,
+  "runtime_listener_on_target": "127.0.0.1:8765",
+  "status_listener_on_target": "127.0.0.1:8780",
+  "port_8765_publicly_reachable": false,
+  "port_8780_publicly_reachable": false,
+  "target_address_persisted": false,
+  "result": "passed"
+}

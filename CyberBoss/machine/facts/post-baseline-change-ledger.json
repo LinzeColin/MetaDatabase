@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "project": "CyberBoss",
+  "fixed_source_record": "CyberBoss/docs/evidence/CB-000/baseline-source.md",
+  "license_record": "CyberBoss/docs/evidence/CB-000/LICENSE_COMPLIANCE.md",
+  "strict_compliance_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "upstream_clarification_received": false,
+  "upstream_clarification_claimed": false,
+  "original_source_and_licenses_preserved": true,
+  "immutable_original_vendor_paths": [
+    "CyberBoss/vendor/timeline-for-agent",
+    "CyberBoss/vendor/whereabouts-mcp"
+  ],
+  "entries": [
+    {
+      "task_id": "CB-120",
+      "phase": "P1.3",
+      "base_commit": "bacb20147b1f9971b8d47c578599fd3494bed5c3",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/README.en.md",
+        "CyberBoss/app/README.md",
+        "CyberBoss/app/README.zh-CN.md",
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/normalize-sticker-gif.js",
+        "CyberBoss/app/src/core/app.js",
+        "CyberBoss/app/src/core/command-registry.js",
+        "CyberBoss/app/src/core/config.js",
+        "CyberBoss/app/src/core/workspace-registry.js",
+        "CyberBoss/app/src/index.js",
+        "CyberBoss/app/src/services/system-message-service.js",
+        "CyberBoss/app/test/claudecode-approval.test.js",
+        "CyberBoss/app/test/sticker-service.test.js",
+        "CyberBoss/app/test/turn-gate-store.test.js",
+        "CyberBoss/app/test/upstream-separation.test.js",
+        "CyberBoss/app/test/workspace-scope.test.js"
+      ],
+      "purposes": [
+        "accept only a root-controlled workspace alias and canonical realpath",
+        "revalidate the registered root before every Runtime or system-message dispatch",
+        "remove active App instructions and responses that clone or route users to historical upstream",
+        "replace the macOS-only PNG sticker path with a bounded dependency-free PNG-to-GIF implementation for the Linux target",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records",
+        "add regression tests for path escape, unknown alias, absolute path and active-upstream separation"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source are retained only as original Corresponding Source; they are not install, runtime, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-130",
+      "phase": "P1.4",
+      "base_commit": "9e1c128aa3890f7c0ea0e69000fdb46e32a4bb00",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/cloud-supervisor.js",
+        "CyberBoss/app/test/cloud-supervisor.test.js"
+      ],
+      "purposes": [
+        "run the fixed bridge and loopback Runtime as non-detached children of one systemd process family",
+        "provide independent health and readiness plus a protected redacted status snapshot",
+        "switch real and simulator adapters only through root-controlled configuration",
+        "fail closed on non-loopback Runtime or status endpoints and recover critical child faults through systemd",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not install, runtime, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-140",
+      "phase": "P1.5",
+      "base_commit": "20405812e4ebfc51d59093b5916dd624317309a7",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/cloud-supervisor.js",
+        "CyberBoss/app/src/adapters/channel/weixin/index.js",
+        "CyberBoss/app/src/adapters/channel/weixin/message-utils.js",
+        "CyberBoss/app/src/core/app.js",
+        "CyberBoss/app/src/core/config.js",
+        "CyberBoss/app/src/core/inbound-turn.js",
+        "CyberBoss/app/src/core/stream-delivery.js",
+        "CyberBoss/app/src/core/walking-skeleton-trace.js",
+        "CyberBoss/app/test/cloud-walking-skeleton-live.test.js",
+        "CyberBoss/app/test/cloud-walking-skeleton.test.js"
+      ],
+      "purposes": [
+        "reject non-allowlisted and oversized UTF-8 inbound text before any Runtime call",
+        "record an opt-in redacted acceptance trace across inbound, Runtime, outbox and confirmed channel delivery",
+        "prove ten deterministic all-cloud simulator round trips and a twenty-message idle latency baseline",
+        "prove the Runtime process family has no operational Mac path, process, connector or non-loopback dependency",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical Mac paths or links inside unchanged upstream documentation and tests remain only as original Corresponding Source; they are not runtime configuration, process, connector, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-200",
+      "phase": "P2.1",
+      "base_commit": "c6f5a288aa662591c6e4e21c6294a7966d233fc6",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/migrations/001_runtime_spool.sql",
+        "CyberBoss/app/migrations/002_cb200_retention_and_transitions.sql",
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/runtime-spool-acceptance.js",
+        "CyberBoss/app/src/services/db/database-adapter.js",
+        "CyberBoss/app/src/services/jobs/job-state-machine.js",
+        "CyberBoss/app/test/job-state-machine.test.js",
+        "CyberBoss/app/test/runtime-spool.test.js"
+      ],
+      "purposes": [
+        "implement an additive and backward-compatible SQLite WAL runtime spool migration",
+        "enforce the frozen job transition relation in both the service and database trigger layers",
+        "derive stable opaque source, correlation and job identifiers with replay integrity checks",
+        "encrypt active inbound, context, target and outbox payloads with caller-injected AES-256-GCM keys and bounded TTL redaction",
+        "prove concurrent deduplication, process-crash atomicity and mock canonical outage reconciliation without activating later-stage workers",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not runtime, install, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-210",
+      "phase": "P2.2",
+      "base_commit": "4f914e3b6ed3145a16c1572f4176068b9829b920",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/durable-inbox-acceptance.js",
+        "CyberBoss/app/src/adapters/channel/weixin/index.js",
+        "CyberBoss/app/src/adapters/channel/weixin/message-utils.js",
+        "CyberBoss/app/src/adapters/channel/weixin/sync-buffer-store.js",
+        "CyberBoss/app/src/core/app.js",
+        "CyberBoss/app/src/core/config.js",
+        "CyberBoss/app/src/services/db/database-adapter.js",
+        "CyberBoss/app/src/services/inbox/durable-inbox.js",
+        "CyberBoss/app/test/cloud-walking-skeleton-live.test.js",
+        "CyberBoss/app/test/durable-inbox-crash-cut.test.js",
+        "CyberBoss/app/test/weixin-cursor-commit.test.js"
+      ],
+      "purposes": [
+        "separate WeChat update fetch from explicit candidate cursor commit",
+        "persist every normalized user message or policy rejection before cursor advancement",
+        "enforce compare-and-set cursor writes and numeric highest-continuous batch ordering",
+        "return the existing durable job on source replay and prove one synthetic execution after 1000 replays",
+        "prove fetch, durable transaction and cursor crash recovery without activating the later scheduler or outbox worker",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not runtime, install, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-220",
+      "phase": "P2.3",
+      "base_commit": "e5995d0967e789c99ce06b5b76fa794e5d455f68",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/migrations/003_cb220_scheduler_control.sql",
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/job-scheduler-acceptance.js",
+        "CyberBoss/app/src/adapters/runtime/claudecode/events.js",
+        "CyberBoss/app/src/adapters/runtime/claudecode/index.js",
+        "CyberBoss/app/src/adapters/runtime/codex/events.js",
+        "CyberBoss/app/src/adapters/runtime/codex/index.js",
+        "CyberBoss/app/src/core/app.js",
+        "CyberBoss/app/src/core/config.js",
+        "CyberBoss/app/src/services/db/database-adapter.js",
+        "CyberBoss/app/src/services/inbox/durable-inbox.js",
+        "CyberBoss/app/src/services/jobs/job-scheduler.js",
+        "CyberBoss/app/src/services/jobs/resource-readiness-gate.js",
+        "CyberBoss/app/test/job-scheduler.test.js",
+        "CyberBoss/app/test/resource-readiness-gate.test.js",
+        "CyberBoss/app/test/runtime-spool.test.js",
+        "CyberBoss/app/test/turn-gate-store.test.js",
+        "CyberBoss/app/test/workspace-scope.test.js"
+      ],
+      "purposes": [
+        "claim FIFO Runtime jobs under one transactionally fenced global lease with heartbeat and expiry",
+        "separate serialized control commands from the Runtime lease so stop and approval controls cannot deadlock",
+        "gate dispatch on Runtime readiness, poll freshness, live resource pressure, operation class and the frozen workspace registry",
+        "bind Runtime events to durable jobs with hashed run references and record truthful succeeded, failed or cancelled terminal state",
+        "classify recovery safety and prevent automatic replay after ambiguous bounded mutation dispatch",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not runtime, install, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-230",
+      "phase": "P2.4",
+      "base_commit": "916651854a6402254724c885398060b2e267e496",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/migrations/004_cb230_durable_outbox.sql",
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/durable-outbox-acceptance.js",
+        "CyberBoss/app/src/adapters/channel/weixin/api.js",
+        "CyberBoss/app/src/adapters/channel/weixin/index.js",
+        "CyberBoss/app/src/core/app.js",
+        "CyberBoss/app/src/core/config.js",
+        "CyberBoss/app/src/core/stream-delivery.js",
+        "CyberBoss/app/src/services/db/database-adapter.js",
+        "CyberBoss/app/src/services/inbox/durable-inbox.js",
+        "CyberBoss/app/src/services/jobs/job-scheduler.js",
+        "CyberBoss/app/src/services/outbox/durable-outbox.js",
+        "CyberBoss/app/test/durable-inbox-crash-cut.test.js",
+        "CyberBoss/app/test/durable-outbox-crash-cut.test.js",
+        "CyberBoss/app/test/runtime-spool.test.js",
+        "CyberBoss/app/test/stream-delivery.test.js",
+        "CyberBoss/app/test/turn-gate-store.test.js",
+        "CyberBoss/app/test/weixin-outbox-transport.test.js"
+      ],
+      "purposes": [
+        "persist accepted and terminal job replies in an encrypted durable outbox before any provider dispatch",
+        "derive stable message chunks, dedupe keys and provider client identifiers from durable logical identity",
+        "retry only explicit known provider failures with bounded jittered exponential delay and injected time",
+        "require provider confirmation before durable receipt and derive replied only after every final chunk is confirmed",
+        "recover pre-dispatch claims safely while fencing post-dispatch unknown outcomes for manual reconciliation without replay",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not runtime, install, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-240",
+      "phase": "P2.5",
+      "base_commit": "8793e186f4baa2767dc3da0378492ffa17984d4d",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/migrations/005_cb240_canonical_sync.sql",
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/canonical-rebuild.js",
+        "CyberBoss/app/scripts/canonical-sync-acceptance.js",
+        "CyberBoss/app/scripts/canonical-sync-data.js",
+        "CyberBoss/app/src/core/app.js",
+        "CyberBoss/app/src/core/config.js",
+        "CyberBoss/app/src/services/canonical/canonical-sync.js",
+        "CyberBoss/app/src/services/db/database-adapter.js",
+        "CyberBoss/app/src/services/jobs/job-scheduler.js",
+        "CyberBoss/app/test/canonical-sync.test.js",
+        "CyberBoss/app/test/job-scheduler.test.js",
+        "CyberBoss/app/test/runtime-spool.test.js"
+      ],
+      "purposes": [
+        "map terminal jobs and material events to a strict redacted canonical event contract with independently verified record hashes",
+        "stage deterministic content-addressed gzip batches bounded by record count, uncompressed bytes and age",
+        "separate the code and data OS identities and restrict the pinned no-clone client to ingest, get, list and verify",
+        "reconcile manifest conflicts, rate limits, transient faults and partial success by immutable event-ID and record-hash sets",
+        "quarantine same-ID different-hash incidents, expose sync lag and block bounded mutation while allowing read-only drain",
+        "rebuild terminal index and a CB-300 Timeline source projection from canonical objects without the original SQLite",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not runtime, install, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
+    }
+  ]
+}

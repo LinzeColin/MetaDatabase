@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-200",
+  "phase": "P2.1",
+  "release_commit": "6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287",
+  "generated_from_synthetic_state": true,
+  "cut_points": [
+    "after_begin",
+    "after_inbox_insert",
+    "after_job_insert",
+    "after_event_insert",
+    "after_commit"
+  ],
+  "child_process_crashes_executed": 5,
+  "accepted_but_lost": 0,
+  "uncommitted_fragments": 0,
+  "duplicate_executable_jobs": 0,
+  "integrity_failures": 0,
+  "result": "passed"
+}

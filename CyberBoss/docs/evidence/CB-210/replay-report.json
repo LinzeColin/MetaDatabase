@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-210",
+  "phase": "P2.2",
+  "release_commit": "5c7b48d8f618bc83a70ebbd63eaf94b6ce6627ea",
+  "generated_from_synthetic_state": true,
+  "replay_count": 1000,
+  "inbox_count": 1,
+  "job_count": 1,
+  "execution_count": 1,
+  "canonical_reconcile_set_diff": 0,
+  "integrity_check": "ok",
+  "result": "passed"
+}

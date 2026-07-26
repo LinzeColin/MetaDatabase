@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-210",
+  "phase": "P2.2",
+  "source": "target_synthetic_acceptance",
+  "integrity_check": "ok",
+  "committed_inbox_rpo": 0,
+  "canonical_reconcile_set_diff": 0,
+  "final_inbox_count": 1,
+  "final_job_count": 1,
+  "raw_payload_persisted": false,
+  "result": "passed"
+}

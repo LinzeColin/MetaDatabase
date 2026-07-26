@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-130",
+  "health_endpoint": "http://127.0.0.1:8780/healthz",
+  "ready_endpoint": "http://127.0.0.1:8780/readyz",
+  "protected_snapshot_endpoint": "http://127.0.0.1:8780/status/snapshot.json",
+  "runtime_endpoint": "ws://127.0.0.1:8765",
+  "healthy_status": 200,
+  "ready_status": 200,
+  "unready_status": 503,
+  "snapshot_unauthorized_status": 401,
+  "critical_components": [
+    "runtime",
+    "channel",
+    "bridge"
+  ],
+  "recovery": {
+    "mode": "probe_driven",
+    "fixed_wait": false,
+    "llm_call": false
+  },
+  "privacy": {
+    "allow_process_ids": false,
+    "allow_account_or_user_ids": false,
+    "allow_thread_ids": false,
+    "allow_tokens": false,
+    "allow_prompt_or_result": false,
+    "allow_absolute_paths": false
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "mode": "activation_pending",
+  "cloudflare": {
+    "api_base_url": "https://api.cloudflare.com/client/v4",
+    "account_id_file": "/etc/cyberboss/credentials/cloudflare-account-id",
+    "zone_id_file": "/etc/cyberboss/credentials/cloudflare-zone-id",
+    "origin_hostname_file": "/etc/cyberboss/credentials/cloudflare-origin-hostname",
+    "owner_identity_file": "/etc/cyberboss/credentials/cloudflare-access-owner-identity",
+    "status_service_token_file": "/etc/cyberboss/credentials/cloudflare-access-status-service-token",
+    "access_token_file": "/etc/cyberboss/credentials/cloudflare-access-api.token",
+    "dns_token_file": "/etc/cyberboss/credentials/cloudflare-dns-api.token",
+    "r2_token_file": "/etc/cyberboss/credentials/cloudflare-r2-api.token",
+    "access_scope_attestation_file": "/etc/cyberboss/credentials/cloudflare-access-scope.json",
+    "dns_scope_attestation_file": "/etc/cyberboss/credentials/cloudflare-dns-scope.json",
+    "r2_scope_attestation_file": "/etc/cyberboss/credentials/cloudflare-r2-scope.json"
+  },
+  "oci": {
+    "config_file": "/etc/cyberboss/credentials/oci-config",
+    "key_file": "/etc/cyberboss/credentials/oci-private-key",
+    "bucket_name_file": "/etc/cyberboss/credentials/oci-bucket-name",
+    "scope_attestation_file": "/etc/cyberboss/credentials/oci-object-scope.json"
+  },
+  "contains_real_values": false
+}

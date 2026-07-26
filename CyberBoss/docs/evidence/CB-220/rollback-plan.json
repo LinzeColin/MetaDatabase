@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-220",
+  "phase": "P2.3",
+  "release_commit": "ac51cd2511a45def88068aef6d23fd10d7f507e4",
+  "candidate_only": true,
+  "current_switched": false,
+  "service_started": false,
+  "rollback_executed": false,
+  "rollback_trigger": "acceptance_failure_or_hard_stop",
+  "rollback_actions": [
+    "stop only the exact CB-220 synthetic acceptance process if present",
+    "remove only exact CB-220 staging, env, incoming, bootstrap and synthetic runtime paths",
+    "retain or separately remove the inactive exact candidate after source-hash inspection",
+    "never change current, workspace, historical candidates or business data"
+  ],
+  "final_transient_cleanup_completed": true,
+  "candidate_retained_inactive": true,
+  "target_address_persisted": false,
+  "result": "passed"
+}

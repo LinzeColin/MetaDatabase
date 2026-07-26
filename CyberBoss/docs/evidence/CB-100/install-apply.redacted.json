@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-100",
+  "recorded_at": "2026-07-26T11:14:39Z",
+  "target_id_sha256": "7865f743d174",
+  "release_id": "b2a603e415a2045b441f31e07cf74ac451ba6240",
+  "source": "exact_local_git_archive",
+  "archive_manifest": "pass",
+  "shell_syntax": "pass",
+  "shellcheck": "not_installed_on_target",
+  "apply_count": 2,
+  "first_apply": "pass",
+  "second_apply": "idempotent_pass",
+  "first_apply_measured_profile": "constrained",
+  "second_apply_remeasurement_performed": false,
+  "predeployment_current": "absent",
+  "rollback_prestate_preserved_after_second_apply": true,
+  "installed_units": [
+    "cyberboss-cloud.service"
+  ],
+  "unit_enabled": false,
+  "unit_active": false,
+  "runtime_installed": false,
+  "network_routes_created": 0,
+  "immutable_release": true,
+  "current_symlink_matches_release": true,
+  "ephemeral_archive_directory_cleaned": true,
+  "provider_writes": 0,
+  "private_database_writes": 0,
+  "credential_values_emitted": false
+}

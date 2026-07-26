@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-110",
+  "base_commit": "35a8d3716b41922298bc0cbe9aa4ff4b78af0266",
+  "commit": "3cd8eee4f6b7c0a78f7b6fde90dae0f4ff1392fc",
+  "parent": "35a8d3716b41922298bc0cbe9aa4ff4b78af0266",
+  "tree": "ad6874a41308f84739f63f1c7e2116c2ba59e12a",
+  "branch": "codex/cyberboss-prestage0",
+  "release_id": "3cd8eee4f6b7c0a78f7b6fde90dae0f4ff1392fc",
+  "target_id_sha256": "7865f743d174",
+  "deployment_input": "git archive of the exact local implementation commit",
+  "archive_sha256_verified_on_target": true,
+  "remote_publication": "none"
+}

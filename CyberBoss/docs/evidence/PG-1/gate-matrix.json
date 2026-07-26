@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "gate_id": "PG-1",
+  "validated_on": "2026-07-27",
+  "base_commit": "4020f07bc086ab9827ab97ddf295927075189a9f",
+  "gate_definition": "All-cloud Walking Skeleton passes with channel/runtime simulators and loopback transport; real adapters are additionally verified when activated.",
+  "decision": "PASS",
+  "criteria": [
+    {
+      "id": "PG1-01",
+      "name": "stage1_state_and_frozen_evidence",
+      "result": "pass",
+      "evidence": "CB-100 through CB-140 are 5/5 passed; their five evidence tree hashes, implementation commits, closure commits and 15 Acceptance mappings match the frozen input."
+    },
+    {
+      "id": "PG1-02",
+      "name": "host_layout_and_runtime_toolchain",
+      "result": "pass",
+      "evidence": "Non-root systemd layout, 100 restart/singleton Oracles, pinned Node/Codex, disabled Claude adapter and clean activation states remain valid."
+    },
+    {
+      "id": "PG1-03",
+      "name": "bounded_workspace_and_identity",
+      "result": "pass",
+      "evidence": "The blob:none sparse workspace, alias/realpath boundary, code/data identity negatives and no-clone plan-only client evidence remain valid."
+    },
+    {
+      "id": "PG1-04",
+      "name": "supervised_loopback_process_family",
+      "result": "pass",
+      "evidence": "One systemd cgroup, one supervisor, loopback-only Runtime/status/channel, 100 restart/singleton cases and 4/4 fault recovery remain valid."
+    },
+    {
+      "id": "PG1-05",
+      "name": "walking_skeleton_and_policy",
+      "result": "pass",
+      "evidence": "Fresh executable tests passed; frozen target evidence records 10/10 complete simulator chains and Runtime-call deltas 0/1/0 for unauthorized, 32768 and 32769-byte inputs."
+    },
+    {
+      "id": "PG1-06",
+      "name": "trace_latency_and_privacy",
+      "result": "pass",
+      "evidence": "Twenty latency samples passed at P50 372 ms/P95 378 ms; correlated evidence contains no raw message, result or identity content."
+    },
+    {
+      "id": "PG1-07",
+      "name": "mac_offline_and_network",
+      "result": "pass",
+      "evidence": "Mac runtime source/process/connector hits and non-loopback Runtime connections/listeners are zero; prior three-attempt external port scans passed."
+    },
+    {
+      "id": "PG1-08",
+      "name": "credential_free_security_and_license",
+      "result": "pass",
+      "evidence": "The 15-command isolated matrix, App 175/175 and secret scan passed; strict dual-license obligations and unresolved conflict record remain preserved without upstream clarification."
+    },
+    {
+      "id": "PG1-09",
+      "name": "target_publication_and_next_boundary",
+      "result": "pass",
+      "evidence": "Fresh target metadata is quiescent with candidate inactive and current/workspace unchanged; GitHub branch/PR/tag/release are zero and CB-200 remains not_started."
+    }
+  ],
+  "strict_compliance_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "original_source_licenses_and_conflict_record_preserved": true,
+  "upstream_clarification_received": false,
+  "real_adapters": {
+    "codex": "activation_pending",
+    "wechat": "activation_pending"
+  },
+  "stage_2_spool_claimed": false,
+  "external_mutations": 0,
+  "publication": "none",
+  "next_boundary": "P2.1 / CB-200",
+  "p2_1_started": false
+}

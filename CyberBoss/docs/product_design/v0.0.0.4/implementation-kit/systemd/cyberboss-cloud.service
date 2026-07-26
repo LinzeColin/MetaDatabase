@@ -1,0 +1,59 @@
+[Unit]
+Description=CyberBoss Cloud single-user WeChat to Codex bridge
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=600
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=cyberboss
+Group=cyberboss
+WorkingDirectory=/opt/cyberboss-cloud/current
+Environment=HOME=/var/lib/cyberboss
+EnvironmentFile=/etc/cyberboss/cyberboss.env
+EnvironmentFile=-/etc/cyberboss/resource-profile.env
+UMask=0077
+ExecStart=/usr/bin/flock -n /var/lib/cyberboss/locks/bridge.lock /opt/cyberboss-cloud/current/implementation-kit/scripts/run-cyberboss.sh
+Restart=on-failure
+RestartSec=2
+TimeoutStartSec=120
+TimeoutStopSec=90
+KillMode=control-group
+SuccessExitStatus=0 143
+
+# Conservative CB-010 measured baseline; the generated drop-in is authoritative.
+MemoryHigh=768M
+MemoryMax=1152M
+TasksMax=256
+LimitNOFILE=8192
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cyberboss-cloud
+LogNamespace=cyberboss
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectProc=invisible
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+ReadOnlyPaths=/opt/cyberboss-cloud /etc/cyberboss
+ReadWritePaths=/var/lib/cyberboss /srv/cyberboss-workspaces
+
+[Install]
+WantedBy=multi-user.target

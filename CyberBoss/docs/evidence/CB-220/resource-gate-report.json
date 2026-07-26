@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-220",
+  "phase": "P2.3",
+  "reason_action_matrix": {
+    "poll_stale": "restart_channel_adapter",
+    "runtime_unhealthy": "restart_runtime_process_family",
+    "disk_pressure": "pause_mutations_and_cleanup_reconstructable_data",
+    "load_pressure": "hold_new_runtime_jobs",
+    "queue_stuck": "inspect_active_lease_and_runtime"
+  },
+  "protect_blocks_mutation": true,
+  "recover_allows_dispatch": true,
+  "measurement_unavailable_fails_closed": true,
+  "read_only_disk_inode_drain_allowed": true,
+  "memory_protect_available_mb_below": 512,
+  "memory_recover_available_mb_at_least": 768,
+  "disk_inode_protect_used_percent_at_least": 90,
+  "disk_inode_recover_used_percent_below": 80,
+  "no_real_time_soak": true,
+  "real_provider_used": false,
+  "result": "passed"
+}

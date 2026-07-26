@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-210",
+  "phase": "P2.2",
+  "numeric_contiguous_commit": true,
+  "reversed_batch_sorted": true,
+  "gap_rejected": true,
+  "duplicate_sequence_rejected": true,
+  "regression_rejected": true,
+  "database_or_cursor_changes_on_rejection": 0,
+  "result": "passed"
+}

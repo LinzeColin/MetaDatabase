@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-230",
+  "phase": "P2.4",
+  "release_commit": "1b3e338847d8819869a5e12091f25b5463a8d3be",
+  "target_id_sha256": "7865f743d174",
+  "claim_level": "deterministic_fixture",
+  "generated_from_synthetic_state": true,
+  "executable_suite": {
+    "files": [
+      "durable-inbox-crash-cut.test.js",
+      "durable-outbox-crash-cut.test.js",
+      "stream-delivery.test.js",
+      "weixin-outbox-transport.test.js"
+    ],
+    "tests": 37,
+    "failures": 0,
+    "fixed_wait": false,
+    "real_provider": false,
+    "real_credentials": false
+  },
+  "ac_020_send_before_crash": {
+    "outbox_committed_before_provider": true,
+    "restart_delivery_count": 1,
+    "final_status": "confirmed",
+    "result": "passed"
+  },
+  "ac_021_retry": {
+    "provider_sequence": [
+      503,
+      503,
+      200
+    ],
+    "attempts": 3,
+    "retry_delays_ms": [
+      1000,
+      2000
+    ],
+    "call_times": [
+      "2026-07-27T00:00:00.000Z",
+      "2026-07-27T00:00:01.000Z",
+      "2026-07-27T00:00:03.000Z"
+    ],
+    "event_sequence": [
+      "started",
+      "retry_scheduled",
+      "started",
+      "retry_scheduled",
+      "started",
+      "confirmed"
+    ],
+    "final_status": "confirmed",
+    "job_status": "replied",
+    "real_wait_calls": 0,
+    "clock": "virtual",
+    "jitter_sample": 0.5,
+    "result": "passed"
+  },
+  "ac_022_dedupe": {
+    "stage_count": 1000,
+    "durable_row_count": 1,
+    "unique_outbox_ids": 1,
+    "unique_provider_client_ids": 1,
+    "confirmed_delivery_count": 1,
+    "confirmed_rows": 1,
+    "result": "passed"
+  },
+  "ac_024_terminal": {
+    "provider_status": 401,
+    "original_final_status": "failed_terminal",
+    "advice_staged_with_refreshed_context": true,
+    "advice_is_fixed_redacted_text": true,
+    "advice_sha256": "46b2c136870138115a688797ffd78a5d3bcf1c0964750c51ce45e514157d5968",
+    "raw_provider_detail_forwarded": false,
+    "provider_calls": 2,
+    "confirmed_advice_rows": 1,
+    "failed_terminal_rows": 1,
+    "job_status": "reply_failed",
+    "result": "passed"
+  },
+  "ac_025_chunks": {
+    "input_code_points": 13300,
+    "provider_limit_code_points": 3800,
+    "exceeds_three_times_provider_limit": true,
+    "chunk_count": 4,
+    "chunk_indices": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "chunk_totals": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "max_observed_chunk_code_points": 3774,
+    "source_sha256": "92237862f17b80e632079ad97f3731cb36b0a848e54bcd0cc2313ff451458cd5",
+    "reconstructed_sha256": "92237862f17b80e632079ad97f3731cb36b0a848e54bcd0cc2313ff451458cd5",
+    "provider_calls": 4,
+    "stable_unique_client_ids": 4,
+    "replied_before_all_final_chunks_confirmed": false,
+    "final_job_status": "replied",
+    "result": "passed"
+  },
+  "ac_062_recovery": {
+    "cases": [
+      {
+        "cut": "pending_before_claim",
+        "provider_calls": 1,
+        "recovered_safe_retry": 0,
+        "recovered_ambiguous": 0,
+        "final_status": "confirmed",
+        "job_status": "replied",
+        "automatic_replay_after_unknown_dispatch": false,
+        "result": "passed"
+      },
+      {
+        "cut": "claimed_before_dispatch",
+        "provider_calls": 1,
+        "recovered_safe_retry": 1,
+        "recovered_ambiguous": 0,
+        "final_status": "confirmed",
+        "job_status": "replied",
+        "automatic_replay_after_unknown_dispatch": false,
+        "result": "passed"
+      },
+      {
+        "cut": "provider_returned_before_confirmation_commit",
+        "provider_calls": 1,
+        "recovered_safe_retry": 0,
+        "recovered_ambiguous": 1,
+        "final_status": "failed_terminal",
+        "confirmation_state": "ambiguous",
+        "recovery_class": "manual_reconcile_required",
+        "job_status": "reply_failed",
+        "automatic_replay_after_unknown_dispatch": false,
+        "result": "passed"
+      },
+      {
+        "cut": "confirmation_committed_before_crash",
+        "provider_calls": 1,
+        "recovered_safe_retry": 0,
+        "recovered_ambiguous": 0,
+        "final_status": "confirmed",
+        "job_status": "replied",
+        "automatic_replay_after_unknown_dispatch": false,
+        "result": "passed"
+      }
+    ],
+    "case_count": 4,
+    "state_predicate_driven": true,
+    "fixed_wait": false,
+    "false_green_count": 0,
+    "unknown_dispatch_auto_replay_count": 0,
+    "result": "passed"
+  },
+  "confirmation_truth": {
+    "void_receipt": {
+      "provider_calls": 1,
+      "void_response_confirmed": false,
+      "final_status": "failed_terminal",
+      "confirmation_state": "ambiguous",
+      "recovery_class": "manual_reconcile_required",
+      "job_status": "reply_failed",
+      "result": "passed"
+    },
+    "provider_confirmation_required": true,
+    "replied_before_all_final_chunks_confirmed": false,
+    "unknown_dispatch_auto_replay_count": 0,
+    "result": "passed"
+  },
+  "security": {
+    "active_payload_encryption": "AES-256-GCM",
+    "plaintext_db_wal_shm_hits": 0,
+    "encryption_key_hits": 0,
+    "files_scanned": 9,
+    "raw_target_in_report": false,
+    "raw_context_in_report": false,
+    "raw_payload_in_report": false,
+    "real_credentials_used": false,
+    "real_provider_used": false,
+    "result": "passed"
+  },
+  "boundaries": {
+    "accepted_reply_integrated": true,
+    "scheduler_integrated": true,
+    "outbox_worker_integrated": true,
+    "canonical_sync_integrated": false,
+    "private_database_operations": false,
+    "real_wechat": false,
+    "real_runtime": false,
+    "cb_240_executed": false,
+    "pg_2_executed": false
+  },
+  "result": "passed"
+}

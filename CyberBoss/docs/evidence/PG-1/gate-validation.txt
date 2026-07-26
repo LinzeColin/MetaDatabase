@@ -1,0 +1,10 @@
+CB140_VALIDATION=PASS mode=final app_tests=175 real_adapters=activation_pending pg_1_executed=false remote_publication=none
+TARGET_READONLY_INITIAL=FAIL reason=zero_result_pipefail counted_as_pass=false target_mutations=0 stderr_persisted=false
+TARGET_READONLY=PASS target_id_sha256=7865f743d174 service_active=false service_enabled=false process_count=0 listener_count=0 current_changed=false workspace_changed=false target_mutations=0
+PUBLICATION_QUERY_INITIAL=FAIL reason=method_not_explicit_get counted_as_pass=false external_object_mutations=0
+PUBLICATION_CHECK=PASS remote_branch_count=0 pull_request_count=0 tag_count=0 release_count=0 external_object_mutations=0
+PG1_VALIDATION=PASS mode=prepare stage1_tasks=5 credential_free_commands=15 simulator_contract_tests=5 walking_static_tests=4 walking_live_tests=1 app_tests=175 real_adapters=activation_pending external_mutations=0
+CREDENTIAL_FREE=PASS removed_environment_keys=7 secret_scan_files=506 secret_scan_bytes=14545007 codex=activation_pending wechat=activation_pending
+PG1_VALIDATION_PRECOMMIT=FAIL expected_only=closure_parent,worktree_dirty accepted_as_gate_pass=false
+PG1_VALIDATION=PASS mode=final stage1_tasks=5 credential_free_commands=15 simulator_contract_tests=5 walking_static_tests=4 walking_live_tests=1 app_tests=175 real_adapters=activation_pending external_mutations=0
+CREDENTIAL_FREE=PASS removed_environment_keys=7 secret_scan_files=513 secret_scan_bytes=14563300 codex=activation_pending wechat=activation_pending

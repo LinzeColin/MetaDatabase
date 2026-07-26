@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-120",
+  "target_id_sha256": "7865f743d174",
+  "target_address_persisted": false,
+  "os": "Ubuntu 24.04",
+  "architecture": "x86_64",
+  "strict_known_host": true,
+  "known_host_records": 3,
+  "key_only_batch_mode": true,
+  "private_key_mode": "0600",
+  "sudo_noninteractive": true,
+  "service_active": false,
+  "service_enabled": false,
+  "current_release_commit": "b2a603e415a2045b441f31e07cf74ac451ba6240",
+  "guard_state": "recover",
+  "disk": {
+    "total_bytes": 40483942400,
+    "used_bytes": 20405366784,
+    "available_bytes": 20061798400,
+    "host_reserve_min_bytes": 4294967296
+  },
+  "credential_file_present": false,
+  "secret_content_reads": 0,
+  "processes_before_apply": 0,
+  "listeners_8765_8780_before_apply": 0,
+  "result": "passed"
+}

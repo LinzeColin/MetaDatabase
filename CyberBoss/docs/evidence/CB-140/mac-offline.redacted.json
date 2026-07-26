@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-140",
+  "release_commit": "571438751638a01c4648ff4fdf27403a97a971c3",
+  "target_id_sha256": "7865f743d174",
+  "target_address_persisted": false,
+  "mac_runtime_source_config_hits": 0,
+  "mac_process_argument_hits": 0,
+  "mac_connector_hits": 0,
+  "non_loopback_runtime_connections": 0,
+  "preserved_upstream_docs_and_tests_scanned_as_runtime_dependency": false,
+  "mac_was_required_for_runtime": false,
+  "result": "passed"
+}

@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "code": {
+    "repository": "LinzeColin/MetaDatabase",
+    "project_subpath": "CyberBoss",
+    "workspace_alias": "cyberboss",
+    "execution_identity": "cyberboss",
+    "git_system_config": "/etc/cyberboss/cyberboss.gitconfig",
+    "workspace_root_owner": "root",
+    "allowed_write_globs": [
+      "CyberBoss/**"
+    ],
+    "root_integration_enabled": false,
+    "new_repository_allowed": false
+  },
+  "data": {
+    "repository": "LinzeColin/Private-Database",
+    "branch": "main",
+    "area": "Private-MetaDatabase",
+    "domain": "CyberBoss",
+    "access_mode": "no_clone_client",
+    "execution_identity": "cyberboss-data",
+    "credential_config_dir": "/var/lib/cyberboss-data/.config/gh",
+    "client_path": "/opt/cyberboss-cloud/shared/private_db_client.py",
+    "safe_wrapper_path": "/opt/cyberboss-cloud/shared/private_db_client_safe.py",
+    "client_basename": "private_db_client.py",
+    "allowed_operations": [
+      "ingest",
+      "get",
+      "list",
+      "verify"
+    ],
+    "forbidden_operations": [
+      "clone",
+      "put",
+      "delete"
+    ]
+  },
+  "identity_separation": {
+    "code_identity_can_execute_data_client": false,
+    "data_identity_can_modify_code_workspace": false,
+    "shared_secret_material": false,
+    "missing_data_credential_status": "activation_pending"
+  },
+  "cloudflare": {
+    "account_scope": "single_existing_account",
+    "zone": "linzezhang.com",
+    "hostname": "cyberboss.linzezhang.com",
+    "access": {
+      "application_type": "self_hosted",
+      "application_name": "CyberBoss Cloud",
+      "session_duration": "24h",
+      "deny_by_default": true,
+      "allowed_identity_slots": [
+        "cloudflare-access-owner-identity",
+        "cloudflare-access-status-service-token"
+      ],
+      "service_auth_api_decision": "non_identity",
+      "service_auth_selector": "service_token",
+      "forbidden_decisions": [
+        "bypass"
+      ],
+      "forbidden_include_rules": [
+        "everyone",
+        "any_valid_service_token"
+      ]
+    },
+    "dns": {
+      "type": "CNAME",
+      "name": "cyberboss.linzezhang.com",
+      "content_slot": "cloudflare-origin-hostname",
+      "proxied": true,
+      "ttl": 1,
+      "activation_after": [
+        "access_application",
+        "access_policy"
+      ]
+    },
+    "analytics": {
+      "hostname": "cyberboss.linzezhang.com",
+      "activation_mode": "cloudflare_dashboard_automatic_setup",
+      "allowed_fields": [
+        "page_view",
+        "unique_visitor_aggregate"
+      ],
+      "forbidden_fields": [
+        "prompt",
+        "result",
+        "job_id",
+        "thread_id",
+        "wechat_id",
+        "user_identity",
+        "timeline_content"
+      ]
+    },
+    "r2": {
+      "bucket": "cyberboss-cold",
+      "object_prefix": "ovh-singapore-vps-1/",
+      "public_access": false,
+      "storage_class": "Standard"
+    }
+  },
+  "oci": {
+    "region": "ap-sydney-1",
+    "bucket_slot": "oci-bucket-name",
+    "object_prefix": "cyberboss-cold-backup/ovh-singapore-vps-1/",
+    "public_access": false,
+    "allowed_permissions": [
+      "OBJECT_INSPECT",
+      "OBJECT_READ",
+      "OBJECT_CREATE"
+    ],
+    "forbidden_permissions": [
+      "BUCKET_CREATE",
+      "BUCKET_DELETE",
+      "OBJECT_DELETE",
+      "OBJECT_OVERWRITE",
+      "TENANCY_MANAGE"
+    ]
+  },
+  "activation": {
+    "real_write_requires_exact_scope_attestation": true,
+    "broad_account_write_is_hazard_blocked": true,
+    "missing_credentials_status": "activation_pending",
+    "simulator_must_not_claim_real_activation": true
+  }
+}

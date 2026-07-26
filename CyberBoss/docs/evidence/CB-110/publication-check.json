@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-110",
+  "repository": "LinzeColin/MetaDatabase",
+  "local_branch": "codex/cyberboss-prestage0",
+  "state": "none",
+  "remote_branch_matches": [],
+  "pull_request_matches": [],
+  "remote_tag_matches": [],
+  "push_performed": false,
+  "pull_request_created": false,
+  "tag_created": false,
+  "release_created": false
+}

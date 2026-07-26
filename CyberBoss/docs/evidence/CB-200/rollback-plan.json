@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-200",
+  "phase": "P2.1",
+  "implementation_commit": "6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287",
+  "status": "not_executed_acceptance_passed",
+  "current_pointer_must_not_move": true,
+  "workspace_must_not_move": true,
+  "service_must_remain_disabled_inactive": true,
+  "canonical_runtime_db_must_not_exist": true,
+  "transient_staging_removed_after_evidence_retrieval": true,
+  "incoming_removed_after_checksum_verification": true,
+  "synthetic_key_removed": true,
+  "acceptance_db_wal_shm_removed": true,
+  "candidate_removal_requires_exact_release_manifest": true,
+  "candidate_retained_inactive": true,
+  "credential_delete_allowed": false,
+  "private_database_delete_allowed": false,
+  "prune_now_allowed": false,
+  "recoverable_from_local_commit_and_artifact_manifest": true,
+  "target_address_persisted": false
+}

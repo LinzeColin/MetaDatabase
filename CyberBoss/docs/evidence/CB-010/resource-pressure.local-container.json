@@ -1,0 +1,138 @@
+{
+  "cgroup_evidence": {
+    "after": {
+      "memory_current": "15220736",
+      "memory_events": {
+        "high": 0,
+        "low": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_group_kill": 0,
+        "oom_kill": 0
+      },
+      "memory_max": "134217728",
+      "memory_peak": "40390656",
+      "pids_current": "1",
+      "pids_max": "64"
+    },
+    "before": {
+      "memory_current": "14180352",
+      "memory_events": {
+        "high": 0,
+        "low": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_group_kill": 0,
+        "oom_kill": 0
+      },
+      "memory_max": "134217728",
+      "memory_peak": "14561280",
+      "pids_current": "1",
+      "pids_max": "64"
+    },
+    "claimed_as_live_host_evidence": false,
+    "during": {
+      "memory_current": "40390656",
+      "memory_events": {
+        "high": 0,
+        "low": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_group_kill": 0,
+        "oom_kill": 0
+      },
+      "memory_max": "134217728",
+      "memory_peak": "40390656",
+      "pids_current": "1",
+      "pids_max": "64"
+    },
+    "oom_kill_delta": 0,
+    "reason": "finite_cgroup_memory_limit_and_no_oom_kill",
+    "state": "verified_bounded_local_container"
+  },
+  "guard_ladder": [
+    {
+      "actual": "recover",
+      "expected": "recover",
+      "profile": "tiny",
+      "protect_reasons": [],
+      "step": "baseline",
+      "warn_reasons": []
+    },
+    {
+      "actual": "warn",
+      "expected": "warn",
+      "profile": "tiny",
+      "protect_reasons": [],
+      "step": "queue_burst",
+      "warn_reasons": [
+        "queue"
+      ]
+    },
+    {
+      "actual": "protect",
+      "expected": "protect",
+      "profile": "constrained",
+      "protect_reasons": [
+        "memory"
+      ],
+      "step": "memory_protect",
+      "warn_reasons": []
+    },
+    {
+      "actual": "protect",
+      "expected": "protect",
+      "profile": "constrained",
+      "protect_reasons": [
+        "disk"
+      ],
+      "step": "disk_protect",
+      "warn_reasons": []
+    },
+    {
+      "actual": "protect",
+      "expected": "protect",
+      "profile": "constrained",
+      "protect_reasons": [
+        "inode"
+      ],
+      "step": "inode_protect",
+      "warn_reasons": []
+    },
+    {
+      "actual": "protect",
+      "expected": "protect",
+      "profile": "tiny",
+      "protect_reasons": [
+        "queue"
+      ],
+      "step": "queue_protect",
+      "warn_reasons": []
+    },
+    {
+      "actual": "recover",
+      "expected": "recover",
+      "profile": "tiny",
+      "protect_reasons": [],
+      "step": "recovered",
+      "warn_reasons": []
+    }
+  ],
+  "hard_caps": {
+    "disk_mb_max": 64,
+    "memory_mb_max": 64,
+    "queue_items_max": 1000
+  },
+  "induced_snapshot": {
+    "disk_written_bytes": 8388608,
+    "memory_allocated_bytes": 16777216,
+    "queue_items": 100,
+    "rss_before_kib": 18764,
+    "rss_peak_kib": 36104
+  },
+  "mode": "bounded_local_process_fixture",
+  "no_sleep": true,
+  "oom_observed": false,
+  "result": "pass",
+  "schema_version": 1
+}

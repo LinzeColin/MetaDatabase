@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "gate_id": "PG-0",
+  "validated_on": "2026-07-26",
+  "base_commit": "7356393cf7fe8281b602c10352a827c15b48b748",
+  "gate_definition": "Pinned sources, current architecture, simulators, live-measurement script, activation sheet and no-wait policy validate; no credential is required to pass repository preparation.",
+  "decision": "PASS",
+  "criteria": [
+    {
+      "id": "PG0-01",
+      "name": "source_license_module_map",
+      "result": "pass",
+      "evidence": "Exact three-source lock, original source/licenses/notices, 129 dependency entries, Corresponding Source and reuse/change map revalidated."
+    },
+    {
+      "id": "PG0-02",
+      "name": "current_architecture_identity",
+      "result": "pass",
+      "evidence": "Canonical repository/data/provider identity, substitutions and exact Feature Flags match; unresolved conflicts=0."
+    },
+    {
+      "id": "PG0-03",
+      "name": "simulator_and_app",
+      "result": "pass",
+      "evidence": "WeChat/Codex simulator contract 4/4 and existing App 155/155 passed."
+    },
+    {
+      "id": "PG0-04",
+      "name": "live_measurement_resource",
+      "result": "pass",
+      "evidence": "Preflight --check, resource-profile tests and bounded no-wait pressure fixture passed without live commands or persistent writes."
+    },
+    {
+      "id": "PG0-05",
+      "name": "activation_sheet_clean_fixture",
+      "result": "pass",
+      "evidence": "Activation sheet is runnable; empty target fixture returns Codex/WeChat activation_pending and external mutation=0."
+    },
+    {
+      "id": "PG0-06",
+      "name": "credential_free_security",
+      "result": "pass",
+      "evidence": "Credential-related environment keys were removed; secret scan hits/P0/P1/unreadable files=0 and no credential value was emitted."
+    },
+    {
+      "id": "PG0-07",
+      "name": "dag_trace_no_wait_taskpack",
+      "result": "pass",
+      "evidence": "DAG, traceability, no-wait, TaskPack, scope/config and Prestage validators passed."
+    },
+    {
+      "id": "PG0-08",
+      "name": "stage_state_publication_boundary",
+      "result": "pass",
+      "evidence": "Stage 0 tasks are 5/5 passed; all 25 later tasks remain not_started and CyberBoss remote branch/PR/tag matches are empty."
+    }
+  ],
+  "license_conflict": {
+    "compliance_expression": "GPL-3.0-only AND AGPL-3.0-only",
+    "original_source_license_conflict_preserved": true,
+    "upstream_clarification_received": false
+  },
+  "external_writes": 0,
+  "publication": "none",
+  "next_boundary": "P1.1 / CB-100",
+  "p1_1_started": false
+}

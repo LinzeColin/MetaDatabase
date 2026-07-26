@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-200",
+  "phase": "P2.1",
+  "release_commit": "6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287",
+  "generated_from_synthetic_state": true,
+  "stable_id_fixture_count": 10000,
+  "stable_id_collisions": 0,
+  "stable_id_mismatches": 0,
+  "database_source_id_count": 10000,
+  "database_correlation_id_count": 10000,
+  "database_job_id_count": 10000,
+  "property_transition_attempts": 10000,
+  "illegal_transition_successes": 0,
+  "raw_sql_illegal_transition_successes": 0,
+  "concurrent_inserters": 32,
+  "duplicate_inbox_rows": 0,
+  "duplicate_job_rows": 0,
+  "canonical_reconcile_set_diff": 0,
+  "result": "passed"
+}

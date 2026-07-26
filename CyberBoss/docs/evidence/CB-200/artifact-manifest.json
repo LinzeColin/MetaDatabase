@@ -1,0 +1,56 @@
+{
+  "branch": "codex/cyberboss-prestage0",
+  "cyberboss_tree": "a82b1d7fd1ccc0e47ad3f0f912555df3afadfd34",
+  "deployment": {
+    "activate_real_credentials": false,
+    "candidate_only": true,
+    "clone_private_database": false,
+    "enable_service": false,
+    "remote_publication": "none",
+    "switch_current": false
+  },
+  "phase": "P2.1",
+  "process_family": {
+    "configuration_only_provider_switch": true,
+    "detached_children": false,
+    "kill_mode": "control-group",
+    "runtime_endpoint": "ws://127.0.0.1:8765",
+    "simulator_when_auth_pending": true,
+    "status_endpoint": "http://127.0.0.1:8780",
+    "systemd_unit": "cyberboss-cloud.service"
+  },
+  "release_commit": "6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287",
+  "repository": "LinzeColin/MetaDatabase",
+  "repository_tree": "2bcca638945ce192c425755bba9b5a5769b5b491",
+  "runtime_spool": {
+    "active_payload_encryption": "AES-256-GCM",
+    "active_payload_ttl_hours": 24,
+    "busy_timeout_ms": 5000,
+    "channel_poll_integrated": false,
+    "foreign_keys": true,
+    "journal_mode": "WAL",
+    "migration_mode": "additive_backward_compatible",
+    "migration_sha256": {
+      "001_runtime_spool.sql": "203acbd2b9c4f770cd6ce6a16bb77c7d0fdbc74b7d102e02f7a976e39cabd816",
+      "002_cb200_retention_and_transitions.sql": "8b1fbdcf0f60628b850004411c626eb65131bba3179b1e5cfdecf936a4b77941"
+    },
+    "outbox_worker_integrated": false,
+    "pg_2_executed": false,
+    "real_canonical_sync": false,
+    "scheduler_integrated": false,
+    "schema_version": 2,
+    "synchronous": "FULL"
+  },
+  "schema_version": 1,
+  "source": {
+    "archive": "cyberboss-source-6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287.tar.gz",
+    "conflict_record": "docs/evidence/CB-000/LICENSE_COMPLIANCE.md",
+    "corresponding_source_complete": true,
+    "license_expression": "AGPL-3.0-only AND GPL-3.0-only",
+    "modification_record": "machine/facts/post-baseline-change-ledger.json",
+    "original_licenses_preserved": true,
+    "sha256": "4cf3a7748a1f4a89ee183f5a9395e725a7f4b70c52cf70c1c8fff784cecc8f8d",
+    "upstream_clarification_received": false
+  },
+  "task_id": "CB-200"
+}

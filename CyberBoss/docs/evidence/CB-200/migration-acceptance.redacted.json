@@ -1,0 +1,20 @@
+{
+  "evidence_schema_version": 1,
+  "task_id": "CB-200",
+  "phase": "P2.1",
+  "target_id_sha256": "7865f743d174",
+  "release_commit": "6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287",
+  "generated_from_synthetic_state": true,
+  "clean_migration": "passed",
+  "existing_v1_migration": "passed",
+  "legacy_v1_reader_after_v2": "passed",
+  "schema_version_after_migration": 2,
+  "schema_version": 2,
+  "journal_mode": "wal",
+  "synchronous": "full",
+  "foreign_keys": true,
+  "busy_timeout_ms": 5000,
+  "integrity_check": "ok",
+  "destructive_statements": 0,
+  "result": "passed"
+}

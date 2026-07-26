@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-220",
+  "phase": "P2.3",
+  "pre_dispatch_requeued": true,
+  "read_only_terminal_retry_requeued": true,
+  "ambiguous_mutation_replayed": false,
+  "stale_owner_heartbeat_succeeded": false,
+  "late_event_released_new_lease": false,
+  "unmatched_event_finished_active_job": false,
+  "lease_expiry_classification_persisted": true,
+  "result": "passed"
+}

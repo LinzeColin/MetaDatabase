@@ -1,0 +1,7 @@
+PG0_VALIDATION=PASS mode=prepare stage0_tasks=5 credential_free_commands=22 simulator_tests=4 app_tests=155 unresolved_conflicts=0 credential_values=0 external_writes=0
+CREDENTIAL_FREE=PASS removed_environment_keys=7 secret_scan_files=382 secret_scan_bytes=13689325 codex=activation_pending wechat=activation_pending
+PG0_VALIDATION=PASS mode=final stage0_tasks=5 credential_free_commands=22 simulator_tests=4 app_tests=155 unresolved_conflicts=0 credential_values=0 external_writes=0
+CREDENTIAL_FREE=PASS removed_environment_keys=7 secret_scan_files=387 secret_scan_bytes=13699820 codex=activation_pending wechat=activation_pending
+ZERO_ENV_INITIAL=FAIL reason=node_npm_path_omitted node_command_launch_failures=7 accepted_as_gate_pass=false
+PG0_VALIDATION=PASS mode=final stage0_tasks=5 credential_free_commands=22 simulator_tests=4 app_tests=155 unresolved_conflicts=0 credential_values=0 external_writes=0
+CREDENTIAL_FREE=PASS removed_environment_keys=0 secret_scan_files=387 secret_scan_bytes=13700264 codex=activation_pending wechat=activation_pending

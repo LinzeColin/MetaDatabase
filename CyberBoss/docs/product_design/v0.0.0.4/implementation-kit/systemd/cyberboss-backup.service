@@ -1,0 +1,21 @@
+[Unit]
+Description=CyberBoss online SQLite snapshot to Cloudflare R2
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/var/lib/cyberboss/runtime.db
+
+[Service]
+Type=oneshot
+User=cyberboss
+Group=cyberboss
+Environment=HOME=/var/lib/cyberboss
+EnvironmentFile=/etc/cyberboss/cyberboss.env
+ExecStart=/opt/cyberboss-cloud/current/implementation-kit/scripts/backup-runtime.sh
+UMask=0077
+Nice=15
+IOSchedulingClass=idle
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/cyberboss

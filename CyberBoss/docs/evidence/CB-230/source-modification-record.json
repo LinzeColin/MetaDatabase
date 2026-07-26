@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-230",
+  "phase": "P2.4",
+  "base_commit": "916651854a6402254724c885398060b2e267e496",
+  "implementation_commit": "1b3e338847d8819869a5e12091f25b5463a8d3be",
+  "implementation_path_count": 33,
+  "license_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "strict_compliance_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "original_source_and_licenses_preserved": true,
+  "corresponding_source_complete": true,
+  "conflict_record_preserved": true,
+  "upstream_clarification_received": false,
+  "upstream_sync_enabled": false,
+  "upstream_support_claimed": false,
+  "upstream_endorsement_claimed": false,
+  "vendor_original_paths_changed": [],
+  "historical_evidence_paths_changed": [],
+  "preserved_corrections": [
+    {
+      "stage": "final_implementation_audit",
+      "finding": "legacy active outbox rows from schema v1 through v3 could lack the new stable logical and provider identity fields and fail the v4 sending-claim guard",
+      "correction": "deterministically backfill every non-confirmed legacy row before claim and add an existing-v1 upgrade regression",
+      "external_mutation": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "local_artifact_checksum",
+      "finding": "the inherited unsupported locale stopped the first post-build checksum command",
+      "correction": "rerun the unchanged four-file artifact checksum and manifest gates under the C locale",
+      "artifact_changed": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "target_resolution_and_preflight",
+      "finding": "the first look-around parser was unsupported, a PCRE locale attempt stopped locally, a known-host comment was initially counted as a key record and one combined preflight command stopped without a usable diagnostic",
+      "correction": "use the portable bounded-address parser, exact pseudonymous target hash, non-comment three-key known-host gate and split key-only identity plus zero-safe read-only preflight",
+      "target_mutation": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "target_artifact_transfer",
+      "finding": "direct SFTP could not traverse the root-protected incoming parent; a later ordinary-user checksum tried to enter the now root-only exact directory",
+      "correction": "checksum four files in an owner-only transient upload directory, install each exact file with sudo, clean the upload directory and perform the protected-directory checksum with sudo",
+      "service_started": false,
+      "current_or_workspace_changed": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "target_transient_cleanup",
+      "finding": "the first cleanup precondition used ordinary-user file tests against root-controlled candidate and staging directories and stopped before deletion",
+      "correction": "prove every exact protected path with sudo test, lock the acceptance report hash, then remove only the named staging, env, incoming and synthetic runtime paths",
+      "candidate_removed": false,
+      "current_or_workspace_changed": false,
+      "final_result": "passed"
+    },
+    {
+      "stage": "publication_check",
+      "finding": "the first read-only release-list command requested an unsupported JSON field and returned no usable count",
+      "correction": "use the supported release tag field together with exact remote branch, ref, tag and PR checks",
+      "external_mutation": false,
+      "final_result": "passed"
+    }
+  ],
+  "remote_publication": "none",
+  "result": "passed"
+}

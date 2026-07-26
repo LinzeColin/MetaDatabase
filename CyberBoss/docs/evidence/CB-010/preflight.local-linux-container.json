@@ -1,0 +1,52 @@
+{
+  "evidence_boundaries": {
+    "claimed_as_live_ovh_evidence": false,
+    "credential_or_secret_persisted": false,
+    "host_identifier_persisted": false,
+    "listener_or_process_rows_persisted": false,
+    "may_replace_live_ovh_evidence": false,
+    "proves_cgroup_fail_closed_selection": true,
+    "proves_default_linux_collector_path": true,
+    "raw_output_persisted": false
+  },
+  "execution": {
+    "capabilities_dropped": "ALL",
+    "image": "mcr.microsoft.com/playwright/python:v1.60.0-jammy",
+    "image_id": "sha256:aaa8048c7a7c414fab6ad809469eb35f13bbf5093038113eef851b3c4814ad77",
+    "image_pull_performed": false,
+    "memory_limit_mb": 512,
+    "network_mode": "none",
+    "no_new_privileges": true,
+    "pids_limit": 128,
+    "rootfs_read_only": true,
+    "scope": "local_linux_container",
+    "scripts_mount_read_only": true,
+    "tmpfs_mb": 64
+  },
+  "observed_at": "2026-07-26T07:22:51.952816Z",
+  "result": {
+    "activation_safe": false,
+    "block_reasons": [
+      "insufficient_memory_safety_reserve",
+      "protect_memory"
+    ],
+    "cgroup_memory_max_mb": [
+      512
+    ],
+    "effective_total_memory_mb": [
+      512
+    ],
+    "exit_code": 0,
+    "guard_state": "protect",
+    "preflight_state": "HAZARD_BLOCKED",
+    "raw_output_sha256": "4b2fb42bc4e72e0d82c4a15721ca01c3548c55b4f61175acd2928fa727421599",
+    "remediation_count": 10,
+    "selected_profile": "constrained",
+    "snapshot_count": 3,
+    "snapshot_memory_scopes": [
+      "effective_cgroup"
+    ]
+  },
+  "schema_version": 1,
+  "task_id": "CB-010"
+}

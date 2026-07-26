@@ -1,0 +1,351 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-040",
+  "phase": "P0.5",
+  "generated_on": "2026-07-26",
+  "status": "frozen_non_secret_baseline",
+  "authority_precedence": [
+    "CyberBoss/machine/facts/owner_decisions.json",
+    "CyberBoss/machine/source-lock.json",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/credential-slots.json",
+    "CyberBoss/docs/evidence/CB-010/resource-baseline.md",
+    "CyberBoss/docs/evidence/CB-030/auth-gates.md",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/cyberboss.env.example"
+  ],
+  "code_identity": {
+    "repository": "LinzeColin/MetaDatabase",
+    "project_subpath": "CyberBoss",
+    "git_origin": "git@github.com:LinzeColin/MetaDatabase.git",
+    "local_branch": "codex/cyberboss-prestage0",
+    "base_commit": "539a15e0cbebce6b6dd016316721085576dba0d6",
+    "workspace_alias": "cyberboss",
+    "write_globs": [
+      "CyberBoss/**"
+    ],
+    "new_repository_allowed": false,
+    "root_integration_enabled": false,
+    "state": "verified_local_only"
+  },
+  "source_and_license": {
+    "subtree_license": "AGPL-3.0-only",
+    "corresponding_source_offer_required": true,
+    "whereabouts_mcp_commit": "e36cb307f082f747327fd3a5d406fd9718a1428d",
+    "whereabouts_compliance_expression": "GPL-3.0-only AND AGPL-3.0-only",
+    "preserve_original_license_and_source": true,
+    "preserve_conflict_record": true,
+    "upstream_clarification_received": false,
+    "upstream_remote_allowed": false,
+    "submodule_allowed": false,
+    "git_url_runtime_dependency_allowed": false,
+    "automatic_sync_allowed": false,
+    "runtime_source_fetch_allowed": false,
+    "periodic_rebase_allowed": false
+  },
+  "target_host": {
+    "asset_class": "authorized_ovh_primary_host",
+    "target_id_sha256": "7865f743d174",
+    "host_id_sha256": "ad8247c44f48e66acbd764d9a6aa1e79e2e81c9ca2bd766975607bd1d04f71ef",
+    "address_persisted": false,
+    "runtime_os": "linux",
+    "runtime_architecture": "x86_64",
+    "resource_profile": "constrained",
+    "runtime_installation_state": "activation_pending"
+  },
+  "paths": {
+    "app_root": "/opt/cyberboss-cloud",
+    "state_root": "/var/lib/cyberboss",
+    "workspace_root": "/srv/cyberboss-workspaces",
+    "workspace_alias_root": "/srv/cyberboss-workspaces/cyberboss",
+    "workspace_config": "/etc/cyberboss/workspaces.json",
+    "environment_file": "/etc/cyberboss/cyberboss.env",
+    "identity_scope_policy": "/etc/cyberboss/identity-scope.policy.json",
+    "provider_activation_config": "/etc/cyberboss/provider-activation.json",
+    "incoming_root": "/var/lib/cyberboss/incoming",
+    "runtime_database": "/var/lib/cyberboss/runtime.db",
+    "status_snapshot": "/var/lib/cyberboss/status/snapshot.json",
+    "singleton_lock": "/var/lib/cyberboss/locks/bridge.lock",
+    "canonical_last_object": "/var/lib/cyberboss/status/canonical-last-object.sha256",
+    "local_snapshot_root": "/var/lib/cyberboss/snapshots",
+    "restore_root": "/var/lib/cyberboss/restore-tests",
+    "credential_root": "/etc/cyberboss/credentials"
+  },
+  "services_and_ports": {
+    "runtime_provider": "codex",
+    "codex_exact_version": "0.146.0-alpha.3.1",
+    "node_engine": ">=22",
+    "codex_endpoint": "ws://127.0.0.1:8765",
+    "codex_listen": "ws://127.0.0.1:8765",
+    "http_bind": "127.0.0.1",
+    "http_port": 8780,
+    "start_command": "npm run shared:start",
+    "primary_service": "cyberboss-cloud.service",
+    "supporting_services": [
+      "cyberboss-selfheal.service",
+      "cyberboss-backup.service",
+      "cyberboss-status.service"
+    ],
+    "public_runtime_port_allowed": false,
+    "measured_port_8765_state": "free",
+    "measured_port_8780_state": "free"
+  },
+  "workspace": {
+    "default_alias": "cyberboss",
+    "repository": "LinzeColin/MetaDatabase",
+    "root": "/srv/cyberboss-workspaces/cyberboss",
+    "project_subpath": "CyberBoss",
+    "read_only": false,
+    "max_bytes": 8589934592,
+    "allowed_branches": [
+      "main",
+      "codex/cyberboss-*"
+    ],
+    "sparse_paths": [
+      "CyberBoss",
+      ".github"
+    ],
+    "write_globs": [
+      "CyberBoss/**"
+    ]
+  },
+  "canonical_data": {
+    "repository": "LinzeColin/Private-Database",
+    "branch": "main",
+    "area": "Private-MetaDatabase",
+    "domain": "CyberBoss",
+    "access_mode": "no_clone_client",
+    "governance_client": "KMOS/KMDatabase/machine/tools/private_db_client.py",
+    "runtime_client": "/opt/cyberboss-cloud/shared/private_db_client.py",
+    "runtime_auth_mode": "gh-login",
+    "allowed_operations": [
+      "ingest",
+      "get",
+      "list",
+      "verify"
+    ],
+    "forbidden_operations": [
+      "clone",
+      "put",
+      "delete"
+    ],
+    "real_operation_state": "activation_pending"
+  },
+  "cloudflare": {
+    "zone": "linzezhang.com",
+    "hostname": "cyberboss.linzezhang.com",
+    "access_application_name": "CyberBoss Cloud",
+    "access_application_type": "self_hosted",
+    "access_session_duration": "24h",
+    "deny_by_default": true,
+    "dns_type": "CNAME",
+    "dns_name": "cyberboss.linzezhang.com",
+    "dns_content_slot": "cloudflare-origin-hostname",
+    "dns_proxied": true,
+    "dns_ttl": 1,
+    "real_access_state": "activation_pending",
+    "real_dns_state": "activation_pending",
+    "broad_r2_token_state": "hazard_blocked"
+  },
+  "object_storage": {
+    "r2_bucket": "cyberboss-cold",
+    "r2_prefix": "ovh-singapore-vps-1/",
+    "r2_remote": "r2:cyberboss-cold/ovh-singapore-vps-1",
+    "r2_public_access": false,
+    "r2_state": "activation_pending",
+    "oci_region": "ap-sydney-1",
+    "oci_bucket_slot": "oci-bucket-name",
+    "oci_bucket_file": "/etc/cyberboss/credentials/oci-bucket-name",
+    "oci_prefix": "cyberboss-cold-backup/ovh-singapore-vps-1/",
+    "oci_public_access": false,
+    "oci_state": "activation_pending"
+  },
+  "feature_flags": [
+    {
+      "name": "CB_DURABLE_INBOX",
+      "value": true,
+      "state": "mvp_mandatory"
+    },
+    {
+      "name": "CB_DURABLE_OUTBOX",
+      "value": true,
+      "state": "mvp_mandatory"
+    },
+    {
+      "name": "CB_PRIVATE_DB_CANONICAL_SYNC",
+      "value": true,
+      "state": "mvp_mandatory"
+    },
+    {
+      "name": "CB_TIMELINE_WEB",
+      "value": true,
+      "state": "mvp_mandatory"
+    },
+    {
+      "name": "CB_STATUS_EXPORTER",
+      "value": true,
+      "state": "mvp_mandatory"
+    },
+    {
+      "name": "CB_R2_SNAPSHOT",
+      "value": true,
+      "state": "implementation_required_real_activation_pending"
+    },
+    {
+      "name": "CB_OCI_BACKUP",
+      "value": false,
+      "state": "activation_pending"
+    },
+    {
+      "name": "CB_CLAUDE_RUNTIME",
+      "value": false,
+      "state": "out_of_scope_default_off"
+    },
+    {
+      "name": "CB_FILE_ATTACHMENTS",
+      "value": false,
+      "state": "out_of_scope_default_off"
+    },
+    {
+      "name": "CB_STORE_FULL_CONTENT",
+      "value": false,
+      "state": "out_of_scope_default_off"
+    },
+    {
+      "name": "CB_AUTONOMOUS_MUTATION",
+      "value": false,
+      "state": "no_current_enable_path"
+    }
+  ],
+  "resource_limits": {
+    "memory_high": "768M",
+    "memory_max": "1152M",
+    "tasks_max": 256,
+    "queue_limit": 20,
+    "memory_safety_reserve_mib": 512,
+    "host_free_disk_reserve_mib": 4096,
+    "job_concurrency": 1,
+    "max_input_bytes": 32768,
+    "outbox_max_attempts": 5
+  },
+  "credential_references": {
+    "values_in_repository": false,
+    "values_in_environment": false,
+    "secret_root": "/etc/cyberboss/credentials",
+    "directory_mode": "0750",
+    "file_mode": "0640",
+    "owner": "root",
+    "group": "cyberboss",
+    "slots": [
+      {
+        "id": "github-code-token",
+        "path": "/etc/cyberboss/credentials/github-code.token",
+        "status": "activation_pending"
+      },
+      {
+        "id": "private-db-gh-login",
+        "path": "/var/lib/cyberboss/.config/gh/hosts.yml",
+        "status": "activation_pending"
+      },
+      {
+        "id": "cloudflare-access-api-token",
+        "path": "/etc/cyberboss/credentials/cloudflare-access-api.token",
+        "status": "activation_pending"
+      },
+      {
+        "id": "cloudflare-dns-api-token",
+        "path": "/etc/cyberboss/credentials/cloudflare-dns-api.token",
+        "status": "activation_pending"
+      },
+      {
+        "id": "cloudflare-r2-api-token",
+        "path": "/etc/cyberboss/credentials/cloudflare-r2-api.token",
+        "status": "activation_pending"
+      },
+      {
+        "id": "cloudflare-account-id",
+        "path": "/etc/cyberboss/credentials/cloudflare-account-id",
+        "status": "activation_pending"
+      },
+      {
+        "id": "cloudflare-zone-id",
+        "path": "/etc/cyberboss/credentials/cloudflare-zone-id",
+        "status": "activation_pending"
+      },
+      {
+        "id": "cloudflare-origin-hostname",
+        "path": "/etc/cyberboss/credentials/cloudflare-origin-hostname",
+        "status": "activation_pending"
+      },
+      {
+        "id": "cloudflare-access-owner-identity",
+        "path": "/etc/cyberboss/credentials/cloudflare-access-owner-identity",
+        "status": "activation_pending"
+      },
+      {
+        "id": "cloudflare-access-status-service-token",
+        "path": "/etc/cyberboss/credentials/cloudflare-access-status-service-token",
+        "status": "activation_pending"
+      },
+      {
+        "id": "r2-access-key-id",
+        "path": "/etc/cyberboss/credentials/r2-access-key-id",
+        "status": "activation_pending"
+      },
+      {
+        "id": "r2-secret-access-key",
+        "path": "/etc/cyberboss/credentials/r2-secret-access-key",
+        "status": "activation_pending"
+      },
+      {
+        "id": "oci-config",
+        "path": "/etc/cyberboss/credentials/oci-config",
+        "status": "activation_pending"
+      },
+      {
+        "id": "oci-private-key",
+        "path": "/etc/cyberboss/credentials/oci-private-key",
+        "status": "activation_pending"
+      },
+      {
+        "id": "oci-bucket-name",
+        "path": "/etc/cyberboss/credentials/oci-bucket-name",
+        "status": "activation_pending"
+      }
+    ],
+    "attestations": [
+      "/etc/cyberboss/credentials/cloudflare-access-scope.json",
+      "/etc/cyberboss/credentials/cloudflare-dns-scope.json",
+      "/etc/cyberboss/credentials/cloudflare-r2-scope.json",
+      "/etc/cyberboss/credentials/oci-object-scope.json"
+    ]
+  },
+  "activation_states": {
+    "local_codex_cli": "authenticated_read_only_probe",
+    "target_codex_adapter": "activation_pending",
+    "target_wechat_adapter": "activation_pending",
+    "private_database_real_operation": "activation_pending",
+    "cloudflare_access_real_write": "activation_pending",
+    "cloudflare_dns_real_write": "activation_pending",
+    "cloudflare_r2_real_write": "hazard_blocked",
+    "oci_real_write": "activation_pending",
+    "global_wait_nodes": 0,
+    "simulator_may_claim_real_activation": false
+  },
+  "release_layout": {
+    "release_root": "/opt/cyberboss-cloud/releases/<commit>",
+    "current_pointer": "/opt/cyberboss-cloud/current",
+    "previous_pointer": "/opt/cyberboss-cloud/previous",
+    "immutable_label": "git_commit_sha",
+    "migration_mode": "additive",
+    "readiness_mode": "bounded_predicate",
+    "rollback_command": "sudo /opt/cyberboss-cloud/current/implementation-kit/scripts/rollback-release.sh",
+    "deployment_state": "not_started"
+  },
+  "publication": {
+    "intermediate_push_allowed": false,
+    "intermediate_pull_request_allowed": false,
+    "remote_branch_state": "none_expected",
+    "remote_pull_request_state": "none_expected",
+    "remote_tag_state": "none_expected"
+  }
+}

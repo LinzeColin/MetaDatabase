@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-100",
+  "target_id_sha256": "7865f743d174",
+  "release_id": "b2a603e415a2045b441f31e07cf74ac451ba6240",
+  "rollback_executed": false,
+  "rollback_ready": true,
+  "prestate": {
+    "cyberboss_paths": "absent",
+    "cyberboss_user": "absent",
+    "cyberboss_group": "absent",
+    "cyberboss_units": 0,
+    "journald_namespace_configs": 0,
+    "listener_8765": 0,
+    "listener_8780": 0,
+    "current_pointer": "absent"
+  },
+  "preserved_on_host": {
+    "previous_current_record": "absent",
+    "previous_current_record_mode": "root:root:0600",
+    "second_apply_overwrote_record": false
+  },
+  "steps": [
+    "Stop and disable cyberboss-cloud.service.",
+    "Remove only the installed main unit, resource drop-in and CyberBoss journald namespace configuration.",
+    "Restore the preserved current pointer; for this prestate, remove the current symlink.",
+    "Remove only the CB-100 release and newly created empty CyberBoss paths after verifying ownership and emptiness.",
+    "Remove the dedicated cyberboss user/group only after confirming no process or file outside the allowlist references them.",
+    "Run daemon-reload and recheck listeners, routes and unrelated services."
+  ],
+  "destructive_scope_requires_revalidation_before_execution": true
+}

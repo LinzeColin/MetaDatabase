@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-140",
+  "phase": "P1.5",
+  "base_commit": "20405812e4ebfc51d59093b5916dd624317309a7",
+  "implementation_commit": "571438751638a01c4648ff4fdf27403a97a971c3",
+  "parent_commit": "20405812e4ebfc51d59093b5916dd624317309a7",
+  "repository_tree": "e7917f0e09e1611d268da973d09af0dd71763a7f",
+  "cyberboss_tree": "0218bf497e62a55958b880b18d58ee2847193336",
+  "branch": "codex/cyberboss-prestage0",
+  "built_from_clean_worktree": true,
+  "remote_publication": "none"
+}

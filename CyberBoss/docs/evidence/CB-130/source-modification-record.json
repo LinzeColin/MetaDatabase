@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-130",
+  "phase": "P1.4",
+  "base_commit": "9e1c128aa3890f7c0ea0e69000fdb46e32a4bb00",
+  "implementation_commit": "81dc1ee211e554dd8b84001bfca4b8aa73bb89dd",
+  "changed_app_paths": [
+    "CyberBoss/app/package.json",
+    "CyberBoss/app/scripts/cloud-supervisor.js",
+    "CyberBoss/app/test/cloud-supervisor.test.js"
+  ],
+  "strict_compliance_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "original_source_and_licenses_preserved": true,
+  "corresponding_source_complete": true,
+  "conflict_record_preserved": true,
+  "upstream_clarification_received": false,
+  "upstream_sync_enabled": false,
+  "upstream_support_claimed": false,
+  "upstream_endorsement_claimed": false,
+  "vendor_original_paths_changed": [],
+  "remote_publication": "none"
+}

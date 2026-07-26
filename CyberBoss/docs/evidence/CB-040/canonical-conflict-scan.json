@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-040",
+  "generated_on": "2026-07-26",
+  "scope": {
+    "active_control_pack": "CyberBoss/docs/product_design/v0.0.0.4",
+    "machine_facts": "CyberBoss/machine",
+    "implementation_kit": "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit",
+    "stage_0_evidence": [
+      "CyberBoss/docs/evidence/CB-000",
+      "CyberBoss/docs/evidence/CB-010",
+      "CyberBoss/docs/evidence/CB-020",
+      "CyberBoss/docs/evidence/CB-030"
+    ],
+    "historical_git_objects": "excluded",
+    "secret_values": "not_read"
+  },
+  "authority_order": [
+    "owner_decisions",
+    "source_lock",
+    "identity_scope_policy",
+    "credential_slots",
+    "Task DAG and Acceptance contract",
+    "architecture and operations documents",
+    "implementation-kit validated configuration"
+  ],
+  "resolved_conflicts": [
+    {
+      "type": "feature_flag_alias",
+      "old": "CB_CANONICAL_STORE_CONTENT",
+      "canonical": "CB_STORE_FULL_CONTENT",
+      "resolution": "PRFAQ now uses the validated boolean runtime flag; encryption/privacy review remains the enable gate."
+    },
+    {
+      "type": "feature_flag_alias",
+      "old": "CB_GITHUB_CANONICAL_SYNC",
+      "canonical": "CB_PRIVATE_DB_CANONICAL_SYNC",
+      "resolution": "Architecture now names the no-clone Private-MetaDatabase canonical path and no longer implies GitHub hot-data storage."
+    },
+    {
+      "type": "feature_flag_alias",
+      "old": "CB_CANONICAL_SYNC",
+      "canonical": "CB_PRIVATE_DB_CANONICAL_SYNC",
+      "resolution": "Verification table now matches the implementation-kit environment and config validator."
+    },
+    {
+      "type": "feature_flag_alias",
+      "old": "CB_GLOBAL_STATUS",
+      "canonical": "CB_STATUS_EXPORTER",
+      "resolution": "The feature flag now matches the implementation-kit; CB_GLOBAL_STATUS_OUTPUT remains a non-boolean output path variable."
+    },
+    {
+      "type": "feature_flag_alias",
+      "old": "CB_R2_BACKUP",
+      "canonical": "CB_R2_SNAPSHOT",
+      "resolution": "The MVP R2 capability is the canonical online snapshot path; OCI remains backup-of-backup."
+    },
+    {
+      "type": "feature_flag_alias",
+      "old": "CB_ATTACHMENTS",
+      "canonical": "CB_FILE_ATTACHMENTS",
+      "resolution": "The Stage 2B feature remains disabled and uses the exact runtime name."
+    },
+    {
+      "type": "feature_flag_alias",
+      "old": "CB_AUTONOMOUS_IRREVERSIBLE",
+      "canonical": "CB_AUTONOMOUS_MUTATION",
+      "resolution": "The broader validated runtime guard remains false and has no current enable path."
+    },
+    {
+      "type": "non_runtime_flag_removed",
+      "old": "CB_TIMELINE_SEARCH",
+      "canonical": "CB_TIMELINE_WEB",
+      "resolution": "MVP search is part of the Timeline Web capability; there is no separate environment switch."
+    },
+    {
+      "type": "non_runtime_flag_removed",
+      "old": "CB_MULTI_WORKSPACE_ACTIVE",
+      "canonical": null,
+      "resolution": "Multi-workspace activation remains out of scope and deliberately has no current enable flag."
+    }
+  ],
+  "checks": [
+    {
+      "id": "code_repository_identity",
+      "expected": "LinzeColin/MetaDatabase/CyberBoss",
+      "authorities": [
+        "CyberBoss/machine/facts/owner_decisions.json",
+        "CyberBoss/machine/source-lock.json",
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json"
+      ],
+      "conflicts": 0,
+      "status": "pass"
+    },
+    {
+      "id": "independent_repository",
+      "expected": "forbidden",
+      "observed": "no nested .git, no new remote, origin remains LinzeColin/MetaDatabase",
+      "conflicts": 0,
+      "status": "pass"
+    },
+    {
+      "id": "upstream_relationship",
+      "expected": "historical provenance only; all live upstream relationship switches false",
+      "observed": "no upstream remote, submodule, Git URL runtime dependency, automatic sync, runtime fetch or periodic rebase",
+      "conflicts": 0,
+      "status": "pass"
+    },
+    {
+      "id": "license_boundary",
+      "expected": "AGPL-3.0-only subtree plus strict GPL-3.0-only AND AGPL-3.0-only whereabouts obligations",
+      "observed": "original license/source/conflict retained; upstream_clarification_received=false",
+      "conflicts": 0,
+      "status": "pass"
+    },
+    {
+      "id": "canonical_data_identity",
+      "expected": "LinzeColin/Private-Database/main/Private-MetaDatabase/CyberBoss via private_db_client.py, no clone",
+      "authorities": [
+        "CyberBoss/AGENTS.md",
+        "CyberBoss/machine/facts/owner_decisions.json",
+        "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json"
+      ],
+      "conflicts": 0,
+      "status": "pass"
+    },
+    {
+      "id": "runtime_paths_services_ports",
+      "expected": "/opt/cyberboss-cloud; /var/lib/cyberboss; /srv/cyberboss-workspaces; cyberboss-cloud.service; loopback 8765/8780",
+      "observed": "unique substitutions frozen; authorized target reported both ports free and all proposed roots absent",
+      "conflicts": 0,
+      "status": "pass"
+    },
+    {
+      "id": "cloud_identity",
+      "expected": "cyberboss.linzezhang.com; cyberboss-cold/ovh-singapore-vps-1/; ap-sydney-1/<slot>/cyberboss-cold-backup/ovh-singapore-vps-1/",
+      "observed": "unique values match identity-scope policy and environment template",
+      "conflicts": 0,
+      "status": "pass"
+    },
+    {
+      "id": "feature_flag_identity",
+      "expected": "exact 11-flag set from cyberboss.env.example",
+      "observed": "architecture and verification tables use the same exact runtime names and defaults after the recorded errata",
+      "conflicts": 0,
+      "status": "pass"
+    },
+    {
+      "id": "mac_local_connector",
+      "expected": "zero required execution-plane dependency or task",
+      "observed": "Mac appears only in negative/offline proof and local read-only preparation boundaries",
+      "conflicts": 0,
+      "status": "pass"
+    },
+    {
+      "id": "real_time_wait",
+      "expected": "zero soak, observation-period, fixed-sleep canary or waiting-for-credential nodes",
+      "observed": "NO_WAIT_VALIDATION=PASS real_time_soak_nodes=0 credential_wait_nodes=0 fixed_sleep_scripts=0",
+      "conflicts": 0,
+      "status": "pass"
+    },
+    {
+      "id": "multi_file_authority",
+      "expected": "seven core files are a minimum, not an output limit",
+      "observed": "TaskPack validator reports seven_is_minimum_not_limit=true",
+      "conflicts": 0,
+      "status": "pass"
+    }
+  ],
+  "stale_active_feature_flag_alias_hits": 0,
+  "unresolved_conflicts": [],
+  "result": "pass"
+}

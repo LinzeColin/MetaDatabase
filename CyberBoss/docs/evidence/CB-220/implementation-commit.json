@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-220",
+  "phase": "P2.3",
+  "base_commit": "e5995d0967e789c99ce06b5b76fa794e5d455f68",
+  "implementation_commit": "ac51cd2511a45def88068aef6d23fd10d7f507e4",
+  "parent_commit": "e5995d0967e789c99ce06b5b76fa794e5d455f68",
+  "repository_tree": "77fa3a7c830921fcfd7cab449532e194af8ef74d",
+  "cyberboss_tree": "f45afd1f0a9707d379e29d20db0a04102b97674c",
+  "implementation_path_count": 32,
+  "branch": "codex/cyberboss-prestage0",
+  "built_from_clean_worktree": true,
+  "remote_publication": "none"
+}

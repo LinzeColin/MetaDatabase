@@ -1,0 +1,11 @@
+cyberboss-cloud.service [one systemd cgroup, KillMode=control-group]
+└── flock [singleton owner gate]
+    └── node app/scripts/cloud-supervisor.js [non-detached supervisor]
+        ├── node implementation-kit/simulators/codex-app-server-simulator.mjs OR pinned codex app-server [runtime]
+        ├── node implementation-kit/simulators/weixin-ilink-simulator.mjs [channel fixture; omitted for real channel]
+        └── node app/bin/cyberboss.js start [bridge]
+
+All child spawn options: detached=false, shell=false.
+Status listener: 127.0.0.1:8780 only.
+Runtime listener: 127.0.0.1:8765 only.
+Simulator evidence never proves real provider activation.

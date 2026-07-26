@@ -1,0 +1,27 @@
+CB140_VALIDATION_RECORD
+IMPLEMENTATION_COMMIT=571438751638a01c4648ff4fdf27403a97a971c3
+LOCAL_APP_TESTS=PASS tests=175 pass=175 fail=0 skipped=0
+LOCAL_CB140_PREPARE_VALIDATOR=PASS changed_paths=26
+ARTIFACT_BUILDER=PASS files=3 corresponding_source_complete=true remote_publication=none
+TARGET_PREFLIGHT=PASS service=disabled/inactive processes=0 listeners=0
+TARGET_INSTALL_CHECK=PASS persistent_writes=false live_commands=false
+TARGET_INSTALL_APPLY_1=PASS tests=175 pass=175 fail=0
+TARGET_INSTALL_APPLY_2=PASS idempotent=true
+TARGET_INSTALL_VERIFY=PASS
+TARGET_SIMULATOR_E2E=PASS traces=10/10
+TARGET_INPUT_POLICY=PASS unauthorized_runtime=0 bytes_32768_runtime=1 bytes_32769_runtime=0
+TARGET_LATENCY=PASS samples=20 p50_ms=372 p95_ms=378
+TARGET_MAC_OFFLINE=PASS dependency_hits=0 non_loopback_connections=0
+TARGET_EXTERNAL_SCAN=PASS ports_8765_8780_19080_unreachable=true attempts_per_port=3
+TARGET_FINAL_QUIESCENCE=PASS service=disabled/inactive processes=0 listeners=0
+TARGET_TRANSIENT_CLEANUP=PASS incoming=0 staging=0 dropin=0 token=0 raw_trace=0
+SECURITY_SCAN=PASS p0=0 p1=0 secret_hits=0 raw_private_content_hits=0
+PUBLICATION_CHECK=PASS remote_branch_count=0 pull_request_count=0 release_count=0 tag_count=0
+PRECOMMIT_FINAL_VALIDATOR=EXPECTED_FAIL reason=closure_parent_only
+REAL_CODEX=activation_pending
+REAL_WECHAT=activation_pending
+PG_1_EXECUTED=false
+STAGE_2_SPOOL_CLAIMED=false
+TARGET_ADDRESS_REDACTED=true
+UPSTREAM_CLARIFICATION_RECEIVED=false
+FINAL_VALIDATOR=PASS

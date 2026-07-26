@@ -1,0 +1,17 @@
+[Unit]
+Description=CyberBoss deterministic self-heal check
+After=cyberboss-cloud.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+EnvironmentFile=/etc/cyberboss/cyberboss.env
+ExecStart=/opt/cyberboss-cloud/current/implementation-kit/scripts/self-heal.sh
+Nice=10
+IOSchedulingClass=idle
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/cyberboss

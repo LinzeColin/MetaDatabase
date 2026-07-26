@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-220",
+  "phase": "P2.3",
+  "claim_level": "deterministic_fixture",
+  "queued_runtime_jobs": 5,
+  "max_active_runtime_leases": 1,
+  "fifo_order": "created_at,id",
+  "fifo_dispatch_order": true,
+  "transactional_claim": true,
+  "heartbeat_and_expiry": true,
+  "stale_owner_fenced": true,
+  "command_runtime_planes_separated": true,
+  "target_executable_tests": 38,
+  "target_test_failures": 0,
+  "runtime_identifiers_persisted": false,
+  "real_runtime_used": false,
+  "result": "passed"
+}

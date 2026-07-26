@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-230",
+  "phase": "P2.4",
+  "plaintext_scan_hits": 0,
+  "secret_scan_hits": 0,
+  "raw_target_hits": 0,
+  "outbox_plaintext_db_wal_shm_hits": 0,
+  "outbox_encryption_key_hits": 0,
+  "target_address_persisted": false,
+  "ssh_transport_key_used": true,
+  "ssh_transport_key_persisted_in_evidence": false,
+  "strict_known_host": true,
+  "real_credentials_used": false,
+  "real_provider_used": false,
+  "private_database_operations": 0,
+  "unknown_dispatch_auto_replay_count": 0,
+  "void_response_confirmed": false,
+  "result": "passed"
+}

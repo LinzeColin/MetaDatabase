@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-140",
+  "phase": "P1.5",
+  "implementation_commit": "571438751638a01c4648ff4fdf27403a97a971c3",
+  "status": "not_executed_acceptance_passed",
+  "kill_scope": "systemd_control_group",
+  "current_pointer_must_not_move": true,
+  "workspace_must_not_move": true,
+  "transient_dropin_removed": true,
+  "ephemeral_token_removed": true,
+  "raw_trace_removed_from_target": true,
+  "staging_state_removed_after_evidence_retrieval": true,
+  "incoming_removed_after_checksum_verification": true,
+  "candidate_removal_requires_exact_release_manifest": true,
+  "candidate_retained_inactive": true,
+  "credential_delete_allowed": false,
+  "private_database_delete_allowed": false,
+  "prune_now_allowed": false,
+  "recoverable_from_local_commit_and_artifact_manifest": true,
+  "target_address_persisted": false
+}

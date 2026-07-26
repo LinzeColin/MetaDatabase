@@ -1,0 +1,22 @@
+CB130_VALIDATION_RECORD
+IMPLEMENTATION_COMMIT=81dc1ee211e554dd8b84001bfca4b8aa73bb89dd
+ARTIFACT_BUILDER=PASS files=3 corresponding_source_complete=true remote_publication=none
+TARGET_INSTALL_CHECK=PASS persistent_writes=false live_commands=false
+TARGET_INSTALL_APPLY_1=PASS tests=170 pass=170 fail=0
+TARGET_INSTALL_APPLY_2=PASS idempotent=true
+TARGET_INSTALL_VERIFY=PASS
+TARGET_EXTERNAL_SCAN=PASS ports_8765_8780_unreachable=true
+TARGET_HEALTH_READY=PASS healthy=200 ready=200 unready=503
+TARGET_STATUS_SNAPSHOT=PASS unauthorized=401 forbidden_hits=0
+TARGET_CONCURRENT_START=PASS attempts=100 pass=100 owner=1
+TARGET_SINGLETON_LOCK=PASS contenders=100 denied=100
+TARGET_KILL_RESTART=PASS attempts=100 pass=100 whole_family_replaced=true
+TARGET_FAULT_MATRIX=PASS runtime=true channel=true bridge=true service=true
+TARGET_FINAL_QUIESCENCE=PASS service=disabled/inactive processes=0 listeners=0
+TARGET_TRANSIENT_CLEANUP=PASS incoming=0 dropin=0 token=0 outputs=0
+CORRECTION_RECORD=PASS preserved_attempts=4
+SECURITY_SCAN=PASS p0=0 p1=0 values_emitted=false
+PUBLICATION_CHECK=PASS remote_branch=false pr=false tag_or_release=false
+FINAL_VALIDATOR=PASS
+TARGET_ADDRESS_REDACTED=true
+UPSTREAM_CLARIFICATION_RECEIVED=false

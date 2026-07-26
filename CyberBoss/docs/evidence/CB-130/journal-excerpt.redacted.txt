@@ -1,0 +1,10 @@
+CB_SUPERVISOR_EVENT event=component_exit role=bridge outcome=fatal termination=signal
+CB_SUPERVISOR_EVENT event=component_exit role=channel outcome=fatal termination=signal
+CB_SUPERVISOR_EVENT event=component_exit role=runtime outcome=fatal termination=signal
+CB_SUPERVISOR_EVENT event=component_ready role=bridge
+CB_SUPERVISOR_EVENT event=component_ready role=channel
+CB_SUPERVISOR_EVENT event=component_ready role=runtime
+CB_SUPERVISOR_EVENT event=service_ready claim=fixture
+CB_SUPERVISOR_EVENT event=shutdown outcome=clean
+CB_SUPERVISOR_EVENT event=shutdown outcome=restart_required
+CB_SUPERVISOR_EVENT event=status_listening bind=loopback port=8780

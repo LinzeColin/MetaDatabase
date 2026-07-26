@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-110",
+  "endpoint": "ws://127.0.0.1:8765",
+  "listener_scope": "loopback_only",
+  "readyz": {
+    "passed": true,
+    "status": 200,
+    "body_classification": "empty_success"
+  },
+  "protocol": {
+    "initialize_result_present": true,
+    "initialized_sent": true,
+    "authenticated_turn_started": false
+  },
+  "credential_content_read": false,
+  "public_callback_used": false,
+  "business_runtime_started": false,
+  "child_cleanup": "complete",
+  "server_stderr_persisted": false,
+  "server_stderr_bytes_observed": 551
+}

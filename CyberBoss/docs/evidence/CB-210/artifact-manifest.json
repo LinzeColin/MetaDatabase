@@ -1,0 +1,75 @@
+{
+  "branch": "codex/cyberboss-prestage0",
+  "cyberboss_tree": "1e02f2ec500bb082680f227d3cd30aa6252df901",
+  "deployment": {
+    "activate_real_credentials": false,
+    "candidate_only": true,
+    "clone_private_database": false,
+    "enable_service": false,
+    "remote_publication": "none",
+    "switch_current": false
+  },
+  "durable_inbox": {
+    "active_payload_encryption": "AES-256-GCM",
+    "candidate_cursor_api": true,
+    "channel_poll_integrated": true,
+    "crash_cut_points": [
+      "after_fetch_before_durable",
+      "after_durable_before_cursor",
+      "after_cursor"
+    ],
+    "cursor_commit_after_durable": true,
+    "numeric_continuity_guard": true,
+    "outbox_worker_integrated": false,
+    "pg_2_executed": false,
+    "real_runtime": false,
+    "real_wechat": false,
+    "replay_count": 1000,
+    "scheduler_integrated": false,
+    "stable_source_id_required": true
+  },
+  "phase": "P2.2",
+  "process_family": {
+    "configuration_only_provider_switch": true,
+    "detached_children": false,
+    "kill_mode": "control-group",
+    "runtime_endpoint": "ws://127.0.0.1:8765",
+    "simulator_when_auth_pending": true,
+    "status_endpoint": "http://127.0.0.1:8780",
+    "systemd_unit": "cyberboss-cloud.service"
+  },
+  "release_commit": "5c7b48d8f618bc83a70ebbd63eaf94b6ce6627ea",
+  "repository": "LinzeColin/MetaDatabase",
+  "repository_tree": "ebc1f9d6befc0c2f21086747d98b3c378950431a",
+  "runtime_spool": {
+    "active_payload_encryption": "AES-256-GCM",
+    "active_payload_ttl_hours": 24,
+    "busy_timeout_ms": 5000,
+    "channel_poll_integrated": true,
+    "foreign_keys": true,
+    "journal_mode": "WAL",
+    "migration_mode": "additive_backward_compatible",
+    "migration_sha256": {
+      "001_runtime_spool.sql": "203acbd2b9c4f770cd6ce6a16bb77c7d0fdbc74b7d102e02f7a976e39cabd816",
+      "002_cb200_retention_and_transitions.sql": "8b1fbdcf0f60628b850004411c626eb65131bba3179b1e5cfdecf936a4b77941"
+    },
+    "outbox_worker_integrated": false,
+    "pg_2_executed": false,
+    "real_canonical_sync": false,
+    "scheduler_integrated": false,
+    "schema_version": 2,
+    "synchronous": "FULL"
+  },
+  "schema_version": 1,
+  "source": {
+    "archive": "cyberboss-source-5c7b48d8f618bc83a70ebbd63eaf94b6ce6627ea.tar.gz",
+    "conflict_record": "docs/evidence/CB-000/LICENSE_COMPLIANCE.md",
+    "corresponding_source_complete": true,
+    "license_expression": "AGPL-3.0-only AND GPL-3.0-only",
+    "modification_record": "machine/facts/post-baseline-change-ledger.json",
+    "original_licenses_preserved": true,
+    "sha256": "975ab00c3e834c38cec2261a99c354be132b3d263f178de211a51fb6f585dadd",
+    "upstream_clarification_received": false
+  },
+  "task_id": "CB-210"
+}

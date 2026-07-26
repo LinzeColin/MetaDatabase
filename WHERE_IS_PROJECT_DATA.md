@@ -1,6 +1,6 @@
 # 📍 项目数据往哪存：Private-Database
 
-> **给 MetaDatabase 各项目（Alpha / EEI / FIFA / LinzeDatabase / PFI / QBVS / Serenity-Alipay / ABD）
+> **给 MetaDatabase 各项目（Alpha / EEI / FIFA / LinzeDatabase / PFI / QBVS / Serenity-Alipay / ABD / CyberBoss）
 > 及后续新 agent 的路牌。**
 
 本仓**只放代码与治理**。任何项目产生的**原始/业务数据**（需要跨设备、跨 agent 统一落地、
@@ -28,3 +28,9 @@ python3 private_db_client.py get    Private-MetaDatabase objects/xx/....xlsx ./o
 ```
 
 规则：Private-Database 是 **PRIVATE**，**禁止 `git clone`**（预计 500GB+）；只按需下载单文件；协议见 `Private-Database/PROTOCOL.md`。
+
+## 新项目路由登记
+
+| 项目 | Private-MetaDatabase domain | 当前状态 | 存取方式 |
+|---|---|---|---|
+| `CyberBoss/` | `CyberBoss` | Prestage 0；尚无业务/运行时数据入库 | `private_db_client.py` 的 `ingest/get/list/verify`；禁止 clone |

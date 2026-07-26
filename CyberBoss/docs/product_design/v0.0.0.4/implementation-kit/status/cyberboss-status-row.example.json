@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "name": "CyberBoss Cloud",
+  "url": "https://cyberboss.linzezhang.com",
+  "parts": ["前台", "后台"],
+  "host": "OVH Singapore VPS-1",
+  "db": "Private-MetaDatabase + SQLite spool",
+  "store": "R2 + OCI",
+  "deploy": "systemd immutable release",
+  "backup": "R2 snapshots → OCI selected copy",
+  "agent": "中",
+  "notify": "无",
+  "status": "down",
+  "version": "0.0.0.4",
+  "generation_id": "00000000-0000-4000-8000-000000000000",
+  "source_generated_at": "2026-07-26T00:00:00Z",
+  "source_age_seconds": 0,
+  "activation_state": "not_verified",
+  "details": {
+    "resource_profile": "unselected",
+    "wechat": "unknown",
+    "runtime": "unknown",
+    "queue": 0,
+    "canonical": "unknown",
+    "timeline": "unknown",
+    "r2": "unknown",
+    "oci": "activation_pending",
+    "memory_used_percent": null,
+    "disk_used_percent": null,
+    "degraded_reasons": ["not_verified"]
+  }
+}

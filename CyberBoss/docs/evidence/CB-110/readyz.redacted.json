@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-110",
+  "target_id_sha256": "7865f743d174",
+  "release_id": "3cd8eee4f6b7c0a78f7b6fde90dae0f4ff1392fc",
+  "readyz_status": 200,
+  "readyz_body_classification": "empty_success",
+  "protocol_initialize": "pass",
+  "protocol_initialized_notification": "sent",
+  "listener_addresses": [
+    "127.0.0.1:8765"
+  ],
+  "non_loopback_listener_count": 0,
+  "authenticated_turn_count": 0,
+  "public_callback_count": 0,
+  "business_runtime_started": false,
+  "final_listener_count": 0,
+  "final_process_count": 0,
+  "final_staging_artifact_count": 0,
+  "attempt_history": [
+    {
+      "attempt": 1,
+      "runtime_oracle": "not_claimed",
+      "result": "acceptance_orchestrator_failed_to_release_hold_marker",
+      "probe_failure": "external_scan_release_marker_timeout",
+      "cleanup": "complete"
+    },
+    {
+      "attempt": 2,
+      "runtime_oracle": "passed",
+      "external_scan": "passed",
+      "result": "evidence_export_failed_parent_directory_not_traversable",
+      "cleanup": "complete"
+    },
+    {
+      "attempt": 3,
+      "runtime_oracle": "passed",
+      "external_scan": "passed",
+      "evidence_export": "passed",
+      "cleanup": "complete"
+    }
+  ],
+  "raw_process_arguments_persisted": false,
+  "target_address_persisted": false,
+  "credential_values_emitted": false
+}

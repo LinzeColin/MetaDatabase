@@ -1,0 +1,69 @@
+{
+  "acceptance": {
+    "ac_001_real": "activation_pending",
+    "ac_010_real": "activation_pending",
+    "ac_056_non_activation_continuation": "eligible",
+    "ac_065_secret_exposure": "no_values_observed"
+  },
+  "claim_level": "read_only_probe",
+  "codex": {
+    "auth_file": {
+      "group_or_other_bits_zero": null,
+      "mode": null,
+      "owner_is_probe_user": null,
+      "path_label": "$CODEX_HOME/auth.json",
+      "present": false,
+      "regular_file": false
+    },
+    "cli_present": false,
+    "login_classification": "unknown",
+    "login_status_probe": {
+      "classification": "cli_absent",
+      "executed": false,
+      "exit_code": null,
+      "raw_output_persisted": false
+    },
+    "target_adapter_state": "activation_pending",
+    "version": null,
+    "version_probe": {
+      "classification": "cli_absent",
+      "executed": false,
+      "exit_code": null,
+      "raw_output_persisted": false
+    }
+  },
+  "credential_content_read": false,
+  "credential_values_emitted": false,
+  "external_mutation_performed": false,
+  "generated_at": "2026-07-26T08:52:29+00:00",
+  "probe_scope": "authorized_ovh_staging",
+  "schema_version": 1,
+  "target": {
+    "address_persisted": false,
+    "asset_class": "authorized_ovh_primary_host",
+    "target_id_sha256": "7865f743d174"
+  },
+  "transport": {
+    "probe_streamed_over_stdin": true,
+    "raw_stderr_persisted": false,
+    "raw_stdout_persisted": false,
+    "remote_persistent_write": false,
+    "ssh_auth_mode": "key_only_batch",
+    "strict_host_key_checking": true
+  },
+  "wechat": {
+    "account_state_content_read": false,
+    "account_state_file_count": 0,
+    "real_ping_sent": false,
+    "real_qr_scanned": false,
+    "state_directory": {
+      "directory": false,
+      "group_or_other_write_bits_zero": null,
+      "mode": null,
+      "owner_is_probe_user": null,
+      "path_label": "$CYBERBOSS_STATE_DIR",
+      "present": false
+    },
+    "target_adapter_state": "activation_pending"
+  }
+}

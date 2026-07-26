@@ -1,0 +1,274 @@
+const os = require("os");
+const path = require("path");
+const { WorkspaceRegistry } = require("./workspace-registry");
+
+function readConfig() {
+  const argv = process.argv.slice(2);
+  const mode = argv[0] || "";
+  const stateDir = process.env.CYBERBOSS_STATE_DIR || path.join(os.homedir(), ".cyberboss");
+  const durableInboxOverride = readOptionalBoolEnv("CB_DURABLE_INBOX");
+  const durableInbox = durableInboxOverride === undefined
+    ? true
+    : durableInboxOverride;
+  const baselineStagingAllowed =
+    readBoolEnv("CB_ALLOW_BASELINE_STAGING")
+    && readTextEnv("NODE_ENV").toLowerCase() !== "production";
+  if (!durableInbox && !baselineStagingAllowed) {
+    throw new Error("CB_DURABLE_INBOX=false is allowed only in explicit non-production staging");
+  }
+  const jobSchedulerOverride = readOptionalBoolEnv("CB_JOB_SCHEDULER");
+  const jobScheduler = durableInbox && (
+    jobSchedulerOverride === undefined ? true : jobSchedulerOverride
+  );
+  if (durableInbox && !jobScheduler && !baselineStagingAllowed) {
+    throw new Error("CB_JOB_SCHEDULER=false is allowed only in explicit non-production staging");
+  }
+  const durableOutboxOverride = readOptionalBoolEnv("CB_DURABLE_OUTBOX");
+  const durableOutbox = jobScheduler && (
+    durableOutboxOverride === undefined ? true : durableOutboxOverride
+  );
+  if (jobScheduler && !durableOutbox && !baselineStagingAllowed) {
+    throw new Error("CB_DURABLE_OUTBOX=false is allowed only in explicit non-production staging");
+  }
+  const canonicalSyncOverride = readOptionalBoolEnv(
+    "CB_PRIVATE_DB_CANONICAL_SYNC",
+  );
+  const canonicalSync = durableOutbox && (
+    canonicalSyncOverride === undefined ? true : canonicalSyncOverride
+  );
+  if (durableOutbox && !canonicalSync && !baselineStagingAllowed) {
+    throw new Error(
+      "CB_PRIVATE_DB_CANONICAL_SYNC=false is allowed only in explicit non-production staging",
+    );
+  }
+  const workspaceConfigFile = readTextEnv("CYBERBOSS_WORKSPACE_CONFIG")
+    || path.join(stateDir, "workspaces.json");
+  const workspaceBase = readTextEnv("CYBERBOSS_WORKSPACE_BASE")
+    || "/srv/cyberboss-workspaces";
+  const workspaceRegistry = new WorkspaceRegistry({
+    configPath: workspaceConfigFile,
+    workspaceBase,
+  });
+  const workspaceAlias = readTextEnv("CYBERBOSS_WORKSPACE_ALIAS")
+    || workspaceRegistry.defaultAlias;
+  const workspace = workspaceRegistry.resolve(workspaceAlias);
+  const configuredWorkspaceRoot = readTextEnv("CYBERBOSS_WORKSPACE_ROOT");
+  if (configuredWorkspaceRoot) {
+    const configured = workspaceRegistry.assertAllowedRoot(configuredWorkspaceRoot);
+    if (configured.alias !== workspace.alias) {
+      throw new Error("CYBERBOSS_WORKSPACE_ROOT does not match CYBERBOSS_WORKSPACE_ALIAS");
+    }
+  }
+
+  return {
+    mode,
+    argv,
+    stateDir,
+    workspaceId: readTextEnv("CYBERBOSS_WORKSPACE_ID") || "default",
+    workspaceAlias: workspace.alias,
+    workspaceRoot: workspace.root,
+    workspaceBase,
+    workspaceConfigFile,
+    workspaceRegistry,
+    userName: readTextEnv("CYBERBOSS_USER_NAME") || "User",
+    userGender: readTextEnv("CYBERBOSS_USER_GENDER") || "female",
+    allowedUserIds: readListEnv("CYBERBOSS_ALLOWED_USER_IDS"),
+    maxInputBytes: readIntEnv("CYBERBOSS_MAX_INPUT_BYTES")
+      || readIntEnv("CB_MAX_INPUT_BYTES")
+      || 32 * 1024,
+    durableInbox,
+    jobScheduler,
+    durableOutbox,
+    canonicalSync,
+    baselineStagingAllowed,
+    runtimeDatabasePath: readTextEnv("CB_RUNTIME_DB")
+      || path.join(stateDir, "runtime.db"),
+    runtimeEncryptionKeyFile: readTextEnv("CB_RUNTIME_ENCRYPTION_KEY_FILE")
+      || path.join(stateDir, "credentials", "runtime-encryption.key"),
+    runtimeIdentityKeyFile: readTextEnv("CB_RUNTIME_IDENTITY_KEY_FILE")
+      || path.join(stateDir, "credentials", "runtime-identity.key"),
+    activePayloadTtlHours: readIntEnv("CB_ACTIVE_PAYLOAD_TTL_HOURS") || 24,
+    runtimeLeaseMs: readIntEnv("CB_RUNTIME_LEASE_MS") || 30_000,
+    controlLeaseMs: readIntEnv("CB_CONTROL_LEASE_MS") || 10_000,
+    outboxLeaseMs: readIntEnv("CB_OUTBOX_LEASE_MS") || 10_000,
+    outboxMaxAttempts: readIntEnv("CB_OUTBOX_MAX_ATTEMPTS") || 5,
+    outboxBaseDelayMs: readIntEnv("CB_OUTBOX_BASE_DELAY_MS") || 1_000,
+    outboxMaxDelayMs: readIntEnv("CB_OUTBOX_MAX_DELAY_MS") || 60_000,
+    outboxChunkChars: readIntEnv("CB_OUTBOX_CHUNK_CHARS") || 3_600,
+    canonicalSpoolRoot: readTextEnv("CB_CANONICAL_SPOOL_ROOT")
+      || path.join(stateDir, "canonical-spool"),
+    canonicalDeployedCommit: readTextEnv("CB_EXPECTED_RELEASE_ID"),
+    canonicalBatchMax: readIntEnv("CB_CANONICAL_BATCH_MAX") || 50,
+    canonicalBatchMaxBytes:
+      readIntEnv("CB_CANONICAL_BATCH_MAX_BYTES") || 262_144,
+    canonicalBatchMaxAgeMs:
+      readIntEnv("CB_CANONICAL_BATCH_MAX_AGE_MS") || 60_000,
+    canonicalFlushOnTerminal:
+      readOptionalBoolEnv("CB_CANONICAL_FLUSH_ON_TERMINAL") !== false,
+    canonicalBacklogMaxEvents:
+      readIntEnv("CB_CANONICAL_BACKLOG_MAX_EVENTS") || 10_000,
+    canonicalBacklogMaxBytes:
+      readIntEnv("CB_CANONICAL_BACKLOG_MAX_BYTES") || 64 * 1024 * 1024,
+    canonicalMaxLagSeconds:
+      readIntEnv("CB_CANONICAL_MAX_LAG_SECONDS") || 900,
+    pollStaleMs: readIntEnv("CB_POLL_STALE_MS") || 90_000,
+    queueStuckMs: readIntEnv("CB_QUEUE_STUCK_MS") || 5 * 60_000,
+    schedulerQueueLimit: readIntEnv("CB_QUEUE_LIMIT") || 20,
+    walkingSkeletonTraceFile: readTextEnv("CYBERBOSS_WALKING_SKELETON_TRACE_FILE"),
+    channel: readTextEnv("CYBERBOSS_CHANNEL") || "weixin",
+    runtime: readTextEnv("CYBERBOSS_RUNTIME") || "codex",
+    timelineCommand: readTextEnv("CYBERBOSS_TIMELINE_COMMAND") || "timeline-for-agent",
+    accountId: readTextEnv("CYBERBOSS_ACCOUNT_ID"),
+    weixinBaseUrl: readTextEnv("CYBERBOSS_WEIXIN_BASE_URL") || "https://ilinkai.weixin.qq.com",
+    weixinCdnBaseUrl: readTextEnv("CYBERBOSS_WEIXIN_CDN_BASE_URL") || "https://novac2c.cdn.weixin.qq.com/c2c",
+    weixinConfigFile: path.join(stateDir, "weixin-config.json"),
+    weixinMinChunkChars: readIntEnv("CYBERBOSS_WEIXIN_MIN_CHUNK_CHARS"),
+    weixinQrBotType: readTextEnv("CYBERBOSS_WEIXIN_QR_BOT_TYPE") || "3",
+    accountsDir: path.join(stateDir, "accounts"),
+    reminderQueueFile: path.join(stateDir, "reminder-queue.json"),
+    systemMessageQueueFile: path.join(stateDir, "system-message-queue.json"),
+    deferredSystemReplyQueueFile: path.join(stateDir, "deferred-system-replies.json"),
+    checkinConfigFile: path.join(stateDir, "checkin-config.json"),
+    timelineScreenshotQueueFile: path.join(stateDir, "timeline-screenshot-queue.json"),
+    projectToolContextFile: path.join(stateDir, "project-tool-runtime-context.json"),
+    weixinInstructionsFile: path.join(stateDir, "weixin-instructions.md"),
+    weixinOperationsFile: path.resolve(__dirname, "..", "..", "templates", "weixin-operations.md"),
+    stickersDir: path.join(stateDir, "stickers"),
+    stickerAssetsDir: path.join(stateDir, "stickers", "assets"),
+    stickersIndexFile: path.join(stateDir, "stickers", "index.json"),
+    stickerTagsFile: path.join(stateDir, "stickers", "tags.json"),
+    stickersTemplateDir: path.resolve(__dirname, "..", "..", "templates", "stickers"),
+    stickersTemplateIndexFile: path.resolve(__dirname, "..", "..", "templates", "stickers", "index.json"),
+    stickerTagsTemplateFile: path.resolve(__dirname, "..", "..", "templates", "stickers", "tags.json"),
+    stickerNormalizeGifScript: path.resolve(__dirname, "..", "..", "scripts", "normalize-sticker-gif.js"),
+    diaryDir: path.join(stateDir, "diary"),
+    locationStoreFile: path.join(stateDir, "locations.json"),
+    locationHost: readTextEnv("CYBERBOSS_LOCATION_HOST") || "0.0.0.0",
+    locationPort: readIntEnv("CYBERBOSS_LOCATION_PORT") || 4318,
+    locationToken: readTextEnv("CYBERBOSS_LOCATION_TOKEN"),
+    locationHistoryLimit: readIntEnv("CYBERBOSS_LOCATION_HISTORY_LIMIT") || 1000,
+    locationMovementEventLimit: readIntEnv("CYBERBOSS_LOCATION_MOVEMENT_EVENT_LIMIT"),
+    locationBatteryHistoryLimit: readIntEnv("CYBERBOSS_LOCATION_BATTERY_HISTORY_LIMIT"),
+    locationKnownPlaces: readKnownPlacesEnv(),
+    locationKnownPlaceRadiusMeters: readIntEnv("CYBERBOSS_LOCATION_PLACE_RADIUS_METERS") || 150,
+    locationStayMergeRadiusMeters: readIntEnv("CYBERBOSS_LOCATION_STAY_MERGE_RADIUS_METERS") || 100,
+    locationStayBreakConfirmRadiusMeters: readIntEnv("CYBERBOSS_LOCATION_STAY_BREAK_RADIUS_METERS") || 200,
+    locationStayBreakConfirmSamples: readIntEnv("CYBERBOSS_LOCATION_STAY_BREAK_SAMPLES") || 2,
+    locationMajorMoveThresholdMeters: readIntEnv("CYBERBOSS_LOCATION_MAJOR_MOVE_THRESHOLD_METERS") || 1000,
+    startWithLocationServer: resolveLocationServerEnabled({
+      mode,
+      enabled: readOptionalBoolEnv("CYBERBOSS_ENABLE_LOCATION_SERVER"),
+    }),
+    syncBufferDir: path.join(stateDir, "sync-buffers"),
+    codexEndpoint: readTextEnv("CYBERBOSS_CODEX_ENDPOINT"),
+    codexCommand: readTextEnv("CYBERBOSS_CODEX_COMMAND"),
+    codexModel: readTextEnv("CYBERBOSS_CODEX_MODEL"),
+    codexModelProvider: readTextEnv("CYBERBOSS_CODEX_MODEL_PROVIDER"),
+    codexNativeImageInput: readOptionalBoolEnv("CYBERBOSS_CODEX_NATIVE_IMAGE_INPUT"),
+    visionMode: readTextEnv("CYBERBOSS_VISION_MODE") || "auto",
+    visionProvider: readTextEnv("CYBERBOSS_VISION_PROVIDER") || "openai-compatible",
+    visionApiBaseUrl: readTextEnv("CYBERBOSS_VISION_API_BASE_URL"),
+    visionApiKey: readTextEnv("CYBERBOSS_VISION_API_KEY"),
+    visionModel: readTextEnv("CYBERBOSS_VISION_MODEL"),
+    visionTimeoutMs: readIntEnv("CYBERBOSS_VISION_TIMEOUT_MS") || 30_000,
+    claudeCommand: readTextEnv("CYBERBOSS_CLAUDE_COMMAND") || "claude",
+    claudeModel: readTextEnv("CYBERBOSS_CLAUDE_MODEL") || "",
+    claudeContextWindow: readIntEnv("CYBERBOSS_CLAUDE_CONTEXT_WINDOW"),
+    claudeMaxOutputTokens: readIntEnv("CLAUDE_CODE_MAX_OUTPUT_TOKENS"),
+    claudePermissionMode: readTextEnv("CYBERBOSS_CLAUDE_PERMISSION_MODE") || "default",
+    claudeDisableVerbose: readBoolEnv("CYBERBOSS_CLAUDE_DISABLE_VERBOSE"),
+    claudeExtraArgs: readListEnv("CYBERBOSS_CLAUDE_EXTRA_ARGS"),
+    sessionsFile: path.join(stateDir, "sessions.json"),
+    startWithCheckin: (mode === "start" && hasArgFlag(argv, "--checkin")) || readBoolEnv("CYBERBOSS_ENABLE_CHECKIN"),
+  };
+}
+
+function readListEnv(name) {
+  return String(process.env[name] || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function readTextEnv(name) {
+  const value = process.env[name];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function readBoolEnv(name) {
+  const value = readTextEnv(name).toLowerCase();
+  return value === "1" || value === "true" || value === "yes" || value === "on";
+}
+
+function readOptionalBoolEnv(name) {
+  const value = readTextEnv(name).toLowerCase();
+  if (!value) {
+    return undefined;
+  }
+  if (value === "1" || value === "true" || value === "yes" || value === "on") {
+    return true;
+  }
+  if (value === "0" || value === "false" || value === "no" || value === "off") {
+    return false;
+  }
+  return undefined;
+}
+
+function readIntEnv(name) {
+  const value = readTextEnv(name);
+  if (!value) {
+    return undefined;
+  }
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function readKnownPlacesEnv() {
+  const fromJson = parseKnownPlacesJson(readTextEnv("CYBERBOSS_LOCATION_KNOWN_PLACES"));
+  const fromCenters = [
+    parseKnownPlaceCenter("home", readTextEnv("CYBERBOSS_LOCATION_HOME_CENTER")),
+    parseKnownPlaceCenter("work", readTextEnv("CYBERBOSS_LOCATION_WORK_CENTER")),
+  ].filter(Boolean);
+  return [...fromJson, ...fromCenters];
+}
+
+function parseKnownPlacesJson(value) {
+  if (!value) {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseKnownPlaceCenter(tag, value) {
+  const parts = value.split(",").map((part) => part.trim()).filter(Boolean);
+  if (parts.length !== 2) {
+    return null;
+  }
+  const latitude = Number(parts[0]);
+  const longitude = Number(parts[1]);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
+  return { tag, latitude, longitude };
+}
+
+function hasArgFlag(argv, flag) {
+  return Array.isArray(argv) && argv.some((item) => String(item || "").trim() === flag);
+}
+
+function resolveLocationServerEnabled({ mode, enabled }) {
+  if (mode !== "start") {
+    return false;
+  }
+  if (typeof enabled === "boolean") {
+    return enabled;
+  }
+  return false;
+}
+
+module.exports = { readConfig };

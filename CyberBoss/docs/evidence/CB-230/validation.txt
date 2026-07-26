@@ -1,0 +1,32 @@
+CB230_VALIDATION_RECORD
+IMPLEMENTATION_COMMIT=1b3e338847d8819869a5e12091f25b5463a8d3be
+IMPLEMENTATION_PARENT=916651854a6402254724c885398060b2e267e496
+LOCAL_APP_CHECK=PASS
+LOCAL_APP_TESTS=PASS tests=227 pass=227 fail=0 skipped=0
+LOCAL_CB230_ROOT_CONTRACT=PASS tests=7 pass=7 fail=0
+LOCAL_CB230_ACCEPTANCE=PASS tests=37 fail=0 attempts=3 replay_count=1000
+LOCAL_CB230_PREPARE_VALIDATOR=PASS errors=0 changed_paths=33
+PRESTAGE0_VALIDATOR=PASS
+TASKPACK_VALIDATOR=PASS
+ARTIFACT_BUILDER=PASS files=4 corresponding_source_complete=true remote_publication=none
+TARGET_PREFLIGHT=PASS service=disabled/inactive processes=0 listeners=0 runtime_db=absent
+TARGET_INSTALL_CHECK=PASS persistent_writes=false live_commands=false
+TARGET_INSTALL_APPLY_1=PASS tests=227 pass=227 fail=0
+TARGET_INSTALL_APPLY_2=PASS idempotent=true
+TARGET_INSTALL_VERIFY=PASS candidate_immutable=true cache_count=0
+TARGET_OUTBOX_ACCEPTANCE=PASS tests=37 attempts=3 confirmed_delivery_count=1
+TARGET_RETRY=PASS sequence=503,503,200 delays_ms=1000,2000 real_wait_calls=0
+TARGET_REPLAY=PASS stage_count=1000 durable_rows=1 confirmed_delivery_count=1
+TARGET_RECOVERY=PASS cases=4 unknown_dispatch_auto_replay=0
+TARGET_DLP=PASS plaintext_hits=0 key_hits=0
+TARGET_FINAL_QUIESCENCE=PASS service=disabled/inactive processes=0 listeners=0 runtime_db=absent
+TARGET_TRANSIENT_CLEANUP=PASS incoming=0 staging=0 runtime_root=0
+PUBLICATION_CHECK=PASS remote_branch_count=0 pr_count=0 release_count=0 tag_count=0
+CB_240_STARTED=false
+PG_2_EXECUTED=false
+REAL_CODEX=activation_pending
+REAL_WECHAT=activation_pending
+REAL_PRIVATE_DATABASE_OPERATIONS=0
+TARGET_ADDRESS_REDACTED=true
+UPSTREAM_CLARIFICATION_RECEIVED=false
+FINAL_VALIDATOR_BEFORE_CLOSURE_COMMIT=PASS errors=0 changed_paths=49

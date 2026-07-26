@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "application": {
+    "name": "CyberBoss Cloud",
+    "domain": "cyberboss.linzezhang.com",
+    "type": "self_hosted",
+    "session_duration": "24h"
+  },
+  "policies": [
+    {
+      "name": "CyberBoss owner",
+      "decision": "allow",
+      "precedence": 1,
+      "include": [
+        {
+          "email": {
+            "email": "owner@cyberboss.invalid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CyberBoss status collector",
+      "decision": "non_identity",
+      "precedence": 2,
+      "include": [
+        {
+          "service_token": {
+            "token_id": "00000000-0000-4000-8000-000000000020"
+          }
+        }
+      ]
+    }
+  ],
+  "expected_cases": [
+    {
+      "case": "anonymous",
+      "authenticated": false,
+      "expected": "deny"
+    },
+    {
+      "case": "unauthorized_identity",
+      "authenticated": true,
+      "email": "intruder@cyberboss.invalid",
+      "expected": "deny"
+    },
+    {
+      "case": "approved_owner",
+      "authenticated": true,
+      "email": "owner@cyberboss.invalid",
+      "expected": "allow"
+    },
+    {
+      "case": "approved_status_service",
+      "authenticated": true,
+      "service_token_id": "00000000-0000-4000-8000-000000000020",
+      "expected": "allow"
+    }
+  ],
+  "fixture_only": true,
+  "contains_real_identity": false,
+  "contains_real_token": false
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "profile": "constrained",
+  "workspace_alias": "cyberboss",
+  "workspace_root": "/srv/cyberboss-workspaces/cyberboss",
+  "cache_root": "/var/lib/cyberboss/cache",
+  "workspace_max_bytes": 4294967296,
+  "repository_objects_max_bytes": 1610612736,
+  "worktree_max_bytes": 2684354560,
+  "cache_max_bytes": 536870912,
+  "host_reserve_min_bytes": 4294967296,
+  "hard_stop_workspace_bytes": 8589934592,
+  "thresholds": {
+    "warn_ratio": 0.75,
+    "protect_ratio": 0.9,
+    "recover_ratio": 0.7
+  },
+  "cleanup_commands": [
+    "git -C /srv/cyberboss-workspaces/cyberboss worktree prune",
+    "git -C /srv/cyberboss-workspaces/cyberboss gc",
+    "workspace-maintenance.sh --alias cyberboss --apply-cache-cleanup"
+  ],
+  "forbidden_cleanup_flags": [
+    "--prune=now"
+  ]
+}

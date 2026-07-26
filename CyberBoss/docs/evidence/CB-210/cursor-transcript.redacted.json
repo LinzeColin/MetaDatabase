@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-210",
+  "phase": "P2.2",
+  "source": "target_synthetic_acceptance",
+  "fetch_writes_cursor": false,
+  "cursor_commit_after_durable": true,
+  "cursor_regression_allowed": false,
+  "stale_writer_allowed": false,
+  "compare_and_set": true,
+  "numeric_highest_continuous_required": true,
+  "opaque_cursor_committed_after_full_batch_durability": true,
+  "result": "passed"
+}

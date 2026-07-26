@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "taskpack_version": "v0.0.0.4",
+  "updated_on": "2026-07-27",
+  "current_run": {
+    "run_id": "P2.4",
+    "gate_id": null,
+    "task_id": "CB-230",
+    "scope": "durable_outbox_delivery_truth",
+    "status": "passed"
+  },
+  "prestage": [
+    {
+      "id": "PS0.1",
+      "status": "passed",
+      "acceptance": "passed"
+    }
+  ],
+  "pass_gates": {
+    "PG-0": "passed",
+    "PG-1": "passed",
+    "PG-2": "not_started",
+    "PG-3": "not_started",
+    "PG-4": "not_started",
+    "PG-5": "not_started"
+  },
+  "tasks": [
+    {"id": "CB-000", "stage": "S0", "phase": "P0.1", "status": "passed"},
+    {"id": "CB-010", "stage": "S0", "phase": "P0.2", "status": "passed"},
+    {"id": "CB-020", "stage": "S0", "phase": "P0.3", "status": "passed"},
+    {"id": "CB-030", "stage": "S0", "phase": "P0.4", "status": "passed"},
+    {"id": "CB-040", "stage": "S0", "phase": "P0.5", "status": "passed"},
+    {"id": "CB-100", "stage": "S1", "phase": "P1.1", "status": "passed"},
+    {"id": "CB-110", "stage": "S1", "phase": "P1.2", "status": "passed"},
+    {"id": "CB-120", "stage": "S1", "phase": "P1.3", "status": "passed"},
+    {"id": "CB-130", "stage": "S1", "phase": "P1.4", "status": "passed"},
+    {"id": "CB-140", "stage": "S1", "phase": "P1.5", "status": "passed"},
+    {"id": "CB-200", "stage": "S2", "phase": "P2.1", "status": "passed"},
+    {"id": "CB-210", "stage": "S2", "phase": "P2.2", "status": "passed"},
+    {"id": "CB-220", "stage": "S2", "phase": "P2.3", "status": "passed"},
+    {"id": "CB-230", "stage": "S2", "phase": "P2.4", "status": "passed"},
+    {"id": "CB-240", "stage": "S2", "phase": "P2.5", "status": "not_started"},
+    {"id": "CB-300", "stage": "S3", "phase": "P3.1", "status": "not_started"},
+    {"id": "CB-310", "stage": "S3", "phase": "P3.2", "status": "not_started"},
+    {"id": "CB-320", "stage": "S3", "phase": "P3.3", "status": "not_started"},
+    {"id": "CB-330", "stage": "S3", "phase": "P3.4", "status": "not_started"},
+    {"id": "CB-340", "stage": "S3", "phase": "P3.5", "status": "not_started"},
+    {"id": "CB-400", "stage": "S4", "phase": "P4.1", "status": "not_started"},
+    {"id": "CB-410", "stage": "S4", "phase": "P4.2", "status": "not_started"},
+    {"id": "CB-420", "stage": "S4", "phase": "P4.3", "status": "not_started"},
+    {"id": "CB-430", "stage": "S4", "phase": "P4.4", "status": "not_started"},
+    {"id": "CB-440", "stage": "S4", "phase": "P4.5", "status": "not_started"},
+    {"id": "CB-500", "stage": "S5", "phase": "P5.1", "status": "not_started"},
+    {"id": "CB-510", "stage": "S5", "phase": "P5.2", "status": "not_started"},
+    {"id": "CB-520", "stage": "S5", "phase": "P5.3", "status": "not_started"},
+    {"id": "CB-530", "stage": "S5", "phase": "P5.4", "status": "not_started"},
+    {"id": "CB-540", "stage": "S5", "phase": "P5.5", "status": "not_started"}
+  ]
+}

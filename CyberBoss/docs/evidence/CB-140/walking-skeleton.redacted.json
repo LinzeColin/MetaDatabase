@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-140",
+  "phase": "P1.5",
+  "release_commit": "571438751638a01c4648ff4fdf27403a97a971c3",
+  "target_id_sha256": "7865f743d174",
+  "target_address_persisted": false,
+  "claim_level": "fixture",
+  "simulator_e2e": {
+    "passed": true,
+    "successful_traces": 10,
+    "expected_traces": 10,
+    "trace_ids": [
+      "cb140-ecc00907699243587df7333a",
+      "cb140-4da4c2bdd54c7098908f0bc8",
+      "cb140-224c8058c001a4d757cb88db",
+      "cb140-d0b09cf6f7703bd736c2d729",
+      "cb140-f67d4cb59a7606b012c4a212",
+      "cb140-c0be35b542cb17e1aaeb3b27",
+      "cb140-2ce5dca1e01648e55c7c5bbf",
+      "cb140-c4dfb18d1cf1140e011b7753",
+      "cb140-ae05af9c7877a1584d91cafb",
+      "cb140-46ac525a9b85155e16121819"
+    ],
+    "complete_stage_chain": true
+  },
+  "inbound_policy": {
+    "allowlist_unauthorized_runtime_calls": 0,
+    "boundary_32768_runtime_calls": 1,
+    "boundary_32769_runtime_calls": 0,
+    "passed": true
+  },
+  "latency": {
+    "sample_count": 20,
+    "p50_ms": 372,
+    "p95_ms": 378,
+    "threshold_p50_ms": 5000,
+    "threshold_p95_ms": 10000,
+    "passed": true
+  },
+  "correlation": {
+    "trace_id_count": 34,
+    "selected_e2e_trace_id_count": 34,
+    "raw_message_content_persisted": false,
+    "raw_result_content_persisted": false,
+    "raw_identity_persisted": false,
+    "passed": true
+  },
+  "real_adapters": {
+    "wechat": "activation_pending",
+    "codex": "activation_pending",
+    "real_qr_scan": false,
+    "real_message_sent": false,
+    "real_runtime_turns": 0
+  },
+  "pg_1_executed": false,
+  "stage_2_spool_claimed": false,
+  "result": "passed"
+}

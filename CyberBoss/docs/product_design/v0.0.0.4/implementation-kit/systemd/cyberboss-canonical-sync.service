@@ -1,0 +1,38 @@
+[Unit]
+Description=CyberBoss no-clone canonical data-plane sync
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=cyberboss-data
+Group=cyberboss
+SupplementaryGroups=cyberboss-data
+WorkingDirectory=/opt/cyberboss-cloud/current
+Environment=HOME=/var/lib/cyberboss-data
+EnvironmentFile=/etc/cyberboss/cyberboss.env
+UMask=0027
+ExecStart=/usr/bin/flock -n /var/lib/cyberboss-data/canonical-sync/locks/canonical-sync.lock /opt/cyberboss-cloud/shared/toolchains/bin/node /opt/cyberboss-cloud/current/app/scripts/canonical-sync-data.js
+TimeoutStartSec=300
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectProc=invisible
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+ReadOnlyPaths=/opt/cyberboss-cloud /etc/cyberboss
+ReadWritePaths=/var/lib/cyberboss-data /var/lib/cyberboss/canonical-spool

@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-100",
+  "recorded_at": "2026-07-26T11:14:39Z",
+  "target_id_sha256": "7865f743d174",
+  "release_id": "b2a603e415a2045b441f31e07cf74ac451ba6240",
+  "systemd_analyze_verify": "pass",
+  "service_user": "cyberboss",
+  "service_group": "cyberboss",
+  "runtime_uid_is_root": false,
+  "kill_mode": "control-group",
+  "restart_policy": "on-failure",
+  "journal_namespace": "cyberboss",
+  "resource_profile": "constrained",
+  "resource_guard": "recover",
+  "resource_activation_safe": true,
+  "crash_restart": {
+    "requested": 100,
+    "passed": 100,
+    "active_owner_units": 1,
+    "ready_predicate": "active_pid_and_lock",
+    "fixed_sleep_calls": 0,
+    "llm_calls": 0
+  },
+  "singleton": {
+    "competitors": 100,
+    "denied": 100,
+    "post_release_acquire": 1
+  },
+  "permissions": {
+    "denied": 5,
+    "allowed": 2,
+    "identity_switch": "root_to_cyberboss_via_runuser"
+  },
+  "route_topology": {
+    "normalized_volatile_fields_removed": true,
+    "unchanged": true,
+    "raw_hash_used_as_acceptance_oracle": false
+  },
+  "acceptance_attempts": [
+    {
+      "attempt": 1,
+      "exercise_markers_passed": true,
+      "result": "failed_composite_postcheck",
+      "failing_step_label": "final_verify",
+      "exact_subcheck_captured": false,
+      "conflict_preserved": true,
+      "assessment": "The composite harness compared raw route JSON containing volatile timing fields; all isolated postchecks passed immediately afterward."
+    },
+    {
+      "attempt": 2,
+      "exercise_markers_passed": true,
+      "result": "pass",
+      "route_oracle": "normalized_topology",
+      "final_verifier": "pass"
+    }
+  ],
+  "actual_restart_cycles_across_attempts": 200,
+  "final_unit_state": "disabled/inactive",
+  "listener_8765": 0,
+  "listener_8780": 0,
+  "runtime_override": "absent",
+  "raw_journal_persisted": false,
+  "raw_journal_persisted_scope": "repository_evidence",
+  "host_journal_storage_configured": "persistent_bounded_namespace",
+  "raw_process_or_route_rows_persisted": false,
+  "credential_values_emitted": false
+}
