@@ -301,6 +301,23 @@ test("A110 applies Capital River filters and opens event evidence", async ({ pag
   await page.getByTestId("capital-filter-event-type").fill("capital_expenditure");
   await page.getByTestId("capital-filter-currency").fill("usd");
   await page.getByTestId("capital-filter-amount-kind").fill("period_capex");
+  // Commit gate. fill() writes the DOM; React commits the controlled value on
+  // its own schedule. Under CI load the apply click could run before the last
+  // fill (amount-kind) reached state, so the request went out with a partial
+  // filter set, the fully-applied predicate never matched, and waitForRequest
+  // timed out at 30s — that is the actual flake, not request-capture ordering.
+  // Asserting every input holds its value proves state is committed before the
+  // click. No assertion is relaxed: all six are still verified on the request.
+  for (const [testId, value] of [
+    ["capital-filter-entity", "00000000-0000-4000-8000-000000000001"],
+    ["capital-filter-from", "2026-01-01"],
+    ["capital-filter-to", "2026-12-31"],
+    ["capital-filter-event-type", "capital_expenditure"],
+    ["capital-filter-currency", "usd"],
+    ["capital-filter-amount-kind", "period_capex"]
+  ] as const) {
+    await expect(page.getByTestId(testId)).toHaveValue(value);
+  }
   // Apply must send /v1/events and /v1/events/amount-summary carrying the full
   // filter set. Wait for the FULLY-APPLIED request (matched on entity +
   // amount_kind) tied to the click, not merely one with amount_kind: under CI
