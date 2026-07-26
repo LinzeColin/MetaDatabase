@@ -1,0 +1,137 @@
+{
+  "schema_version": "moomooau.protected-ga-repair-attempt-ledger.v1",
+  "stage_id": "S7",
+  "task_id": "T0705",
+  "observed_through_utc": "2026-07-26T02:56:46Z",
+  "predecessor_control": {
+    "prior_run_contract_sha256": "b213256898f299ea69857c0adc1ee4112de3b68cbe86a6f5a7375d8a087bfab7",
+    "prior_attempt_ledger_sha256": "7249e7c1190b4a4263aa1e72e8232c697ada4ba65afd5280a3ed5c07cfa0b928",
+    "prior_attempt_ledger_schema_sha256": "89779fecb7090722c616ae056318eea3119429f8c5e011830393d9f39aba47eb",
+    "prior_failed_workflow_head_sha": "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+    "prior_failed_head_dispatches_after_freeze": 0,
+    "prior_failed_head_reruns_after_freeze": 0
+  },
+  "attempts": [
+    {
+      "sequence": 2,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 116,
+        "pull_request_head_sha": "eb88cd89e19f77b3e4c397f7df89119bf78735ed",
+        "merge_commit_parent_sha": "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+        "merge_commit_sha": "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+        "merged_at_utc": "2026-07-26T02:30:59Z",
+        "terminal_checks": 23,
+        "successful_checks": 23,
+        "failed_checks": 0,
+        "skipped_checks": 0,
+        "neutral_checks": 0
+      },
+      "workflow": {
+        "run_id": 30184702520,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30184702520",
+        "workflow_id": 318812500,
+        "event": "workflow_dispatch",
+        "workflow_ref": "refs/heads/main",
+        "workflow_head_sha": "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+        "run_attempt": 1,
+        "reruns": 0,
+        "started_at_utc": "2026-07-26T02:31:46Z",
+        "completed_at_utc": "2026-07-26T02:35:55Z"
+      },
+      "jobs": {
+        "authority_gate": {
+          "job_id": 89747180717,
+          "status": "PASS",
+          "started_at_utc": "2026-07-26T02:31:52Z",
+          "completed_at_utc": "2026-07-26T02:33:15Z"
+        },
+        "ga_schedule_rehearsal": {
+          "job_id": 89747282309,
+          "status": "FAILED",
+          "started_at_utc": "2026-07-26T02:33:19Z",
+          "completed_at_utc": "2026-07-26T02:35:55Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-26T02:35:52Z"
+        },
+        "live_schedule_hold": {
+          "job_id": 89747181129,
+          "status": "SKIPPED",
+          "completed_at_utc": "2026-07-26T02:31:48Z"
+        }
+      },
+      "public_failure": {
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_GA_FAILED",
+        "exact_root_cause_claimed": false,
+        "protected_values_disclosed": false,
+        "platform_schedule_event_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "private_repository_new_commits_since_dispatch": 0,
+        "raw_path_changes": 0,
+        "processed_path_changes": 0,
+        "state_path_changes": 0,
+        "other_path_changes": 0,
+        "raw_messages_after_dispatch": 1,
+        "raw_objects_after_dispatch": 1,
+        "raw_manifests_after_dispatch": 1,
+        "processed_objects_after_dispatch": 3,
+        "processed_manifests_after_dispatch": 2,
+        "processed_current_pointers_after_dispatch": 1,
+        "timeline_manifests_after_dispatch": 1,
+        "gmail_checkpoint_exists_after_dispatch": false,
+        "timeline_state_exists_after_dispatch": true,
+        "live_timeline_assets_after_dispatch": 1,
+        "canonical_live_timeline_assets_after_dispatch": 1,
+        "live_timeline_ciphertext_bytes_after_dispatch": 11622,
+        "gmail_mutation_api_reached": false,
+        "gmail_mutation_independent_remeasurement": "NOT_CLAIMED_WITHOUT_PRE_DISPATCH_ABSOLUTE_BASELINE",
+        "platform_schedule_events": 0,
+        "identity_plaintext_cleanup": "PASS",
+        "one_shot_authority_variable_after_dispatch": "ABSENT",
+        "production_enablement_variable_after_dispatch": "ABSENT",
+        "protected_environment_secret_names": 8
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "AFTER_AUTHORITY_BEFORE_FIRST_PRIVATE_ARCHIVE_COMMIT_AND_BEFORE_M3",
+        "exact_runtime_exception": "NOT_DISCLOSED_BY_PROTECTED_OUTPUT",
+        "high_confidence_defect": "GA_DID_NOT_QUARANTINE_MESSAGE_METADATA_UNVERIFIABLE",
+        "basis": [
+          "the protected output disclosed only PROTECTED_GA_FAILED with exact_root_cause_claimed false, so no exact runtime exception is asserted",
+          "authority, dependency installation and plaintext cleanup passed while the protected GA step failed and the live schedule job remained skipped",
+          "independent post-run aggregate reads observed zero new private-repository commits, no Gmail checkpoint and the same one live recoverable Timeline asset",
+          "the immutable protected T0703 receipt for the same mailbox records a TWO_TO_NINE metadata quarantine bucket",
+          "the GA candidate loop called Gmail metadata directly without catching MessageMetadataUnverifiable even though its aggregate result already modeled quarantined candidates",
+          "the protected Beta and M3 runners catch MessageMetadataUnverifiable, count a quarantine and continue without any full read or mutation",
+          "the bounded repair adds only GA pre-Raw metadata-quarantine parity while preserving fail-closed second verification and ACTIVE or SAFE_DEFERRED processing behavior"
+        ]
+      }
+    }
+  ],
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "frozen_failed_workflow_head_shas": [
+      "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+      "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0"
+    ],
+    "new_reviewed_metadata_quarantine_repair_candidate_allowed": true,
+    "next_candidate_dispatch_limit": 1,
+    "historical_ga_rehearsal_dispatches_consumed": 2,
+    "historical_ga_rehearsal_reruns": 0,
+    "t0705_complete": false,
+    "t0706_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "s7ac_005_passed": false,
+    "production_health": false,
+    "final_acceptance": false,
+    "stage7_complete": false
+  }
+}

@@ -71,9 +71,9 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0705.json",
-      "evidence_sha256": "a82dec84a5f4154def4c45060d766fda462e2cdb3131e37c07f2355dd9f8428d",
+      "evidence_sha256": "4e53881c917e06533bbd10601502b9d75718cadb59e68ac6a027e439ac2ae8b8",
       "final_claim_status": "PARTIAL",
-      "reason": "Synthetic Raw, Processed, Timeline and Gmail checkpoint recovery plus idempotent backlog replay pass; protected GA recovery remains pending.",
+      "reason": "Synthetic Raw, Processed, Timeline and Gmail checkpoint recovery plus metadata quarantine and idempotent backlog replay pass; protected GA recovery remains pending.",
       "source_record_status": "BLOCKED",
       "task_id": "T0705"
     },
@@ -95,7 +95,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-26T01:24:20Z",
+  "observed_at_utc": "2026-07-26T02:56:46Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,
@@ -122,7 +122,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+  "remediation_base_commit": "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
   "requirement_id": "RQ-032",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",

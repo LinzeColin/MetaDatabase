@@ -1,0 +1,536 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/moomooau/protected-ga-repair-attempt-ledger-v1.schema.json",
+  "title": "MooMooAU protected GA repair attempt ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "stage_id",
+    "task_id",
+    "observed_through_utc",
+    "predecessor_control",
+    "attempts",
+    "completion_policy",
+    "claims"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "moomooau.protected-ga-repair-attempt-ledger.v1"
+    },
+    "stage_id": {
+      "const": "S7"
+    },
+    "task_id": {
+      "const": "T0705"
+    },
+    "observed_through_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "predecessor_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prior_run_contract_sha256",
+        "prior_attempt_ledger_sha256",
+        "prior_attempt_ledger_schema_sha256",
+        "prior_failed_workflow_head_sha",
+        "prior_failed_head_dispatches_after_freeze",
+        "prior_failed_head_reruns_after_freeze"
+      ],
+      "properties": {
+        "prior_run_contract_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "prior_attempt_ledger_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "prior_attempt_ledger_schema_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "prior_failed_workflow_head_sha": {
+          "$ref": "#/$defs/commit"
+        },
+        "prior_failed_head_dispatches_after_freeze": {
+          "const": 0
+        },
+        "prior_failed_head_reruns_after_freeze": {
+          "const": 0
+        }
+      }
+    },
+    "attempts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "$ref": "#/$defs/attempt"
+      }
+    },
+    "completion_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "same_head_rerun_allowed",
+        "failed_head_redispatch_allowed",
+        "frozen_failed_workflow_head_shas",
+        "new_reviewed_metadata_quarantine_repair_candidate_allowed",
+        "next_candidate_dispatch_limit",
+        "historical_ga_rehearsal_dispatches_consumed",
+        "historical_ga_rehearsal_reruns",
+        "t0705_complete",
+        "t0706_authorized",
+        "final_publication_authorized"
+      ],
+      "properties": {
+        "same_head_rerun_allowed": {
+          "const": false
+        },
+        "failed_head_redispatch_allowed": {
+          "const": false
+        },
+        "frozen_failed_workflow_head_shas": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/commit"
+          }
+        },
+        "new_reviewed_metadata_quarantine_repair_candidate_allowed": {
+          "const": true
+        },
+        "next_candidate_dispatch_limit": {
+          "const": 1
+        },
+        "historical_ga_rehearsal_dispatches_consumed": {
+          "const": 2
+        },
+        "historical_ga_rehearsal_reruns": {
+          "const": 0
+        },
+        "t0705_complete": {
+          "const": false
+        },
+        "t0706_authorized": {
+          "const": false
+        },
+        "final_publication_authorized": {
+          "const": false
+        }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "s7ac_005_passed",
+        "production_health",
+        "final_acceptance",
+        "stage7_complete"
+      ],
+      "properties": {
+        "s7ac_005_passed": {
+          "const": false
+        },
+        "production_health": {
+          "const": false
+        },
+        "final_acceptance": {
+          "const": false
+        },
+        "stage7_complete": {
+          "const": false
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "date-time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job_id",
+        "status",
+        "started_at_utc",
+        "completed_at_utc"
+      ],
+      "properties": {
+        "job_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAILED"
+          ]
+        },
+        "started_at_utc": {
+          "$ref": "#/$defs/date-time"
+        },
+        "completed_at_utc": {
+          "$ref": "#/$defs/date-time"
+        }
+      }
+    },
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "delivery",
+        "workflow",
+        "jobs",
+        "public_failure",
+        "effects",
+        "diagnosis"
+      ],
+      "properties": {
+        "sequence": {
+          "const": 2
+        },
+        "delivery": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "pull_request_number",
+            "pull_request_head_sha",
+            "merge_commit_parent_sha",
+            "merge_commit_sha",
+            "merged_at_utc",
+            "terminal_checks",
+            "successful_checks",
+            "failed_checks",
+            "skipped_checks",
+            "neutral_checks"
+          ],
+          "properties": {
+            "kind": {
+              "const": "CONTROLLED_MOOMOOAU_PR"
+            },
+            "pull_request_number": {
+              "const": 116
+            },
+            "pull_request_head_sha": {
+              "$ref": "#/$defs/commit"
+            },
+            "merge_commit_parent_sha": {
+              "$ref": "#/$defs/commit"
+            },
+            "merge_commit_sha": {
+              "$ref": "#/$defs/commit"
+            },
+            "merged_at_utc": {
+              "$ref": "#/$defs/date-time"
+            },
+            "terminal_checks": {
+              "const": 23
+            },
+            "successful_checks": {
+              "const": 23
+            },
+            "failed_checks": {
+              "const": 0
+            },
+            "skipped_checks": {
+              "const": 0
+            },
+            "neutral_checks": {
+              "const": 0
+            }
+          }
+        },
+        "workflow": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "run_id",
+            "run_url",
+            "workflow_id",
+            "event",
+            "workflow_ref",
+            "workflow_head_sha",
+            "run_attempt",
+            "reruns",
+            "started_at_utc",
+            "completed_at_utc"
+          ],
+          "properties": {
+            "run_id": {
+              "const": 30184702520
+            },
+            "run_url": {
+              "const": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30184702520"
+            },
+            "workflow_id": {
+              "const": 318812500
+            },
+            "event": {
+              "const": "workflow_dispatch"
+            },
+            "workflow_ref": {
+              "const": "refs/heads/main"
+            },
+            "workflow_head_sha": {
+              "$ref": "#/$defs/commit"
+            },
+            "run_attempt": {
+              "const": 1
+            },
+            "reruns": {
+              "const": 0
+            },
+            "started_at_utc": {
+              "$ref": "#/$defs/date-time"
+            },
+            "completed_at_utc": {
+              "$ref": "#/$defs/date-time"
+            }
+          }
+        },
+        "jobs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "authority_gate",
+            "ga_schedule_rehearsal",
+            "identity_plaintext_cleanup",
+            "live_schedule_hold"
+          ],
+          "properties": {
+            "authority_gate": {
+              "$ref": "#/$defs/job"
+            },
+            "ga_schedule_rehearsal": {
+              "$ref": "#/$defs/job"
+            },
+            "identity_plaintext_cleanup": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "completed_at_utc"
+              ],
+              "properties": {
+                "status": {
+                  "const": "PASS"
+                },
+                "completed_at_utc": {
+                  "$ref": "#/$defs/date-time"
+                }
+              }
+            },
+            "live_schedule_hold": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "job_id",
+                "status",
+                "completed_at_utc"
+              ],
+              "properties": {
+                "job_id": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "const": "SKIPPED"
+                },
+                "completed_at_utc": {
+                  "$ref": "#/$defs/date-time"
+                }
+              }
+            }
+          }
+        },
+        "public_failure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "reason_code",
+            "exact_root_cause_claimed",
+            "protected_values_disclosed",
+            "platform_schedule_event_claimed",
+            "production_health_claimed",
+            "final_acceptance_claimed"
+          ],
+          "properties": {
+            "status": {
+              "const": "BLOCKED"
+            },
+            "reason_code": {
+              "const": "PROTECTED_GA_FAILED"
+            },
+            "exact_root_cause_claimed": {
+              "const": false
+            },
+            "protected_values_disclosed": {
+              "const": false
+            },
+            "platform_schedule_event_claimed": {
+              "const": false
+            },
+            "production_health_claimed": {
+              "const": false
+            },
+            "final_acceptance_claimed": {
+              "const": false
+            }
+          }
+        },
+        "effects": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "private_repository_new_commits_since_dispatch",
+            "raw_path_changes",
+            "processed_path_changes",
+            "state_path_changes",
+            "other_path_changes",
+            "raw_messages_after_dispatch",
+            "raw_objects_after_dispatch",
+            "raw_manifests_after_dispatch",
+            "processed_objects_after_dispatch",
+            "processed_manifests_after_dispatch",
+            "processed_current_pointers_after_dispatch",
+            "timeline_manifests_after_dispatch",
+            "gmail_checkpoint_exists_after_dispatch",
+            "timeline_state_exists_after_dispatch",
+            "live_timeline_assets_after_dispatch",
+            "canonical_live_timeline_assets_after_dispatch",
+            "live_timeline_ciphertext_bytes_after_dispatch",
+            "gmail_mutation_api_reached",
+            "gmail_mutation_independent_remeasurement",
+            "platform_schedule_events",
+            "identity_plaintext_cleanup",
+            "one_shot_authority_variable_after_dispatch",
+            "production_enablement_variable_after_dispatch",
+            "protected_environment_secret_names"
+          ],
+          "properties": {
+            "private_repository_new_commits_since_dispatch": {
+              "const": 0
+            },
+            "raw_path_changes": {
+              "const": 0
+            },
+            "processed_path_changes": {
+              "const": 0
+            },
+            "state_path_changes": {
+              "const": 0
+            },
+            "other_path_changes": {
+              "const": 0
+            },
+            "raw_messages_after_dispatch": {
+              "const": 1
+            },
+            "raw_objects_after_dispatch": {
+              "const": 1
+            },
+            "raw_manifests_after_dispatch": {
+              "const": 1
+            },
+            "processed_objects_after_dispatch": {
+              "const": 3
+            },
+            "processed_manifests_after_dispatch": {
+              "const": 2
+            },
+            "processed_current_pointers_after_dispatch": {
+              "const": 1
+            },
+            "timeline_manifests_after_dispatch": {
+              "const": 1
+            },
+            "gmail_checkpoint_exists_after_dispatch": {
+              "const": false
+            },
+            "timeline_state_exists_after_dispatch": {
+              "const": true
+            },
+            "live_timeline_assets_after_dispatch": {
+              "const": 1
+            },
+            "canonical_live_timeline_assets_after_dispatch": {
+              "const": 1
+            },
+            "live_timeline_ciphertext_bytes_after_dispatch": {
+              "const": 11622
+            },
+            "gmail_mutation_api_reached": {
+              "const": false
+            },
+            "gmail_mutation_independent_remeasurement": {
+              "const": "NOT_CLAIMED_WITHOUT_PRE_DISPATCH_ABSOLUTE_BASELINE"
+            },
+            "platform_schedule_events": {
+              "const": 0
+            },
+            "identity_plaintext_cleanup": {
+              "const": "PASS"
+            },
+            "one_shot_authority_variable_after_dispatch": {
+              "const": "ABSENT"
+            },
+            "production_enablement_variable_after_dispatch": {
+              "const": "ABSENT"
+            },
+            "protected_environment_secret_names": {
+              "const": 8
+            }
+          }
+        },
+        "diagnosis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "observable_failure_boundary",
+            "exact_runtime_exception",
+            "high_confidence_defect",
+            "basis"
+          ],
+          "properties": {
+            "observable_failure_boundary": {
+              "const": "AFTER_AUTHORITY_BEFORE_FIRST_PRIVATE_ARCHIVE_COMMIT_AND_BEFORE_M3"
+            },
+            "exact_runtime_exception": {
+              "const": "NOT_DISCLOSED_BY_PROTECTED_OUTPUT"
+            },
+            "high_confidence_defect": {
+              "const": "GA_DID_NOT_QUARANTINE_MESSAGE_METADATA_UNVERIFIABLE"
+            },
+            "basis": {
+              "type": "array",
+              "minItems": 7,
+              "maxItems": 7,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 20
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

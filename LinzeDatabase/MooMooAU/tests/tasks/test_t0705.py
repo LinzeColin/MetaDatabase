@@ -28,7 +28,11 @@ from moomooau_archive.github_guard import (
     TargetRepositoryConfig,
     content_url,
 )
-from moomooau_archive.gmail_discovery import MessageRef, SyncState
+from moomooau_archive.gmail_discovery import (
+    MessageMetadataUnverifiable,
+    MessageRef,
+    SyncState,
+)
 from moomooau_archive.gmail_sync_checkpoint import (
     GitHubGmailSyncStateStore,
     GmailRunCheckpoint,
@@ -374,6 +378,108 @@ def test_t0705_ga_fails_before_remote_calls_without_protected_predecessors_or_bu
         assert context.timeline_remote.actions == []
 
 
+def test_t0705_ga_quarantines_unverifiable_pre_raw_metadata_without_collateral() -> None:
+    verified_id = "msg-stage7-ga-metadata-verified"
+    quarantined_id = "msg-stage7-ga-metadata-unverifiable"
+    with ga_context(
+        (
+            m3_canary_message(verified_id),
+            m3_canary_message(quarantined_id),
+        ),
+        malformed_metadata_ids=frozenset((quarantined_id,)),
+    ) as context:
+        outcome = context.runner.run(
+            _sunday_plan(),
+            key_epoch="synthetic-epoch-1",
+            parser_current_version="1.0.0",
+            predecessor_observations=observations_through(ReleasePhase.BLUE_GREEN),
+            beta_message_budget=1,
+            ga_mutation_budget_per_run=1,
+            ga_capacity_authorized=True,
+        )
+
+        result = outcome.result
+        assert result.candidate_refs == 2
+        assert result.metadata_reads == 3
+        assert result.verified_candidates == result.raw_archived == 1
+        assert result.quarantined_candidates == 1
+        assert result.unknown_candidates == result.rejected_candidates == 0
+        assert result.full_recovery_successes == 1
+        assert result.mutation_calls == result.confirmed_trashed == 1
+        assert result.pending_verified_refs == 0
+        assert context.transport.inner.raw_fetches == [verified_id]
+        assert context.transport.trashed_ids == [verified_id]
+        assert context.raw_store.create_calls > 0
+        assert context.processed_store.write_calls > 0
+        assert context.checkpoint_store.commit_calls == 1
+        assert context.timeline_remote.maximum_observed_asset_count == 1
+
+
+def test_t0705_ga_keeps_unverifiable_prior_pending_source_for_replay() -> None:
+    pending_id = "msg-stage7-ga-pending-unverifiable"
+    verified_id = "msg-stage7-ga-pending-control"
+    pending_ref = MessageRef(pending_id, "thread-" + pending_id)
+    initial = SyncState(
+        "9000",
+        (
+            MessageRef(verified_id, "thread-" + verified_id),
+            pending_ref,
+        ),
+    )
+    with ga_context(
+        (
+            m3_canary_message(pending_id),
+            m3_canary_message(verified_id),
+        ),
+        initial_sync_state=initial,
+        initial_pending_refs=(pending_ref,),
+        malformed_metadata_ids=frozenset((pending_id,)),
+    ) as context:
+        outcome = context.runner.run(
+            _sunday_plan(),
+            key_epoch="synthetic-epoch-1",
+            parser_current_version="1.0.0",
+            predecessor_observations=observations_through(ReleasePhase.BLUE_GREEN),
+            beta_message_budget=1,
+            ga_mutation_budget_per_run=1,
+            ga_capacity_authorized=True,
+        )
+
+        assert outcome.result.quarantined_candidates == 1
+        assert outcome.result.pending_verified_refs == 1
+        recovered = context.checkpoint.recover()
+        assert recovered is not None
+        assert recovered.checkpoint.pending_verified_refs == (pending_ref,)
+        assert context.transport.inner.raw_fetches == [verified_id]
+        assert context.transport.trashed_ids == [verified_id]
+
+
+def test_t0705_ga_second_metadata_failure_stays_fail_closed_before_trash() -> None:
+    message_id = "msg-stage7-ga-second-metadata-unverifiable"
+    with ga_context(
+        (m3_canary_message(message_id),),
+        malformed_metadata_after_first_ids=frozenset((message_id,)),
+    ) as context:
+        with pytest.raises(MessageMetadataUnverifiable):
+            context.runner.run(
+                _sunday_plan(),
+                key_epoch="synthetic-epoch-1",
+                parser_current_version="1.0.0",
+                predecessor_observations=observations_through(ReleasePhase.BLUE_GREEN),
+                beta_message_budget=1,
+                ga_mutation_budget_per_run=1,
+                ga_capacity_authorized=True,
+            )
+
+        assert context.transport.metadata_read_counts[message_id] == 2
+        assert context.raw_store.create_calls > 0
+        assert context.processed_store.write_calls > 0
+        assert context.transport.trashed_ids == []
+        assert context.checkpoint_store.commit_calls == 0
+        assert "upload" not in context.timeline_remote.actions
+        assert "delete" not in context.timeline_remote.actions
+
+
 def test_t0705_nonzero_full_reconcile_difference_stops_before_raw_or_mutation() -> None:
     first_id = "msg-stage7-ga-audit-first"
     second_id = "msg-stage7-ga-audit-second"
@@ -548,8 +654,10 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["maximum_reruns"] == 0
     assert contract["required_protected_input_count"] == 8
     assert contract["blue_green_receipt_sha256"] == blue_green_receipt_sha256(PROJECT_ROOT)
-    assert contract["failed_ga_head_rerun_allowed"] is False
-    assert contract["failed_ga_head_redispatch_allowed"] is False
+    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 2
+    assert contract["failed_ga_heads_rerun_allowed"] is False
+    assert contract["failed_ga_heads_redispatch_allowed"] is False
+    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 2
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
 
 

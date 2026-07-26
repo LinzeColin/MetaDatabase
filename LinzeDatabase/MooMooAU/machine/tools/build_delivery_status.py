@@ -69,6 +69,12 @@ PROTECTED_GA_ATTEMPT_LEDGER_PATH = Path("machine/stages/S7/reviews/t0705/attempt
 PROTECTED_GA_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-ga-attempt-ledger-v1.schema.json"
 )
+PROTECTED_GA_REPAIR_ATTEMPT_LEDGER_PATH = Path(
+    "machine/stages/S7/reviews/t0705/repair-attempt-ledger.json"
+)
+PROTECTED_GA_REPAIR_ATTEMPT_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-ga-repair-attempt-ledger-v1.schema.json"
+)
 STAGE7_RUN_CONTRACT_PATH = Path("machine/stages/S7/contracts/run_contract.json")
 
 
@@ -288,8 +294,7 @@ def _protected_ga_attempt_ledger(root: Path) -> dict[str, Any] | None:
         )
         or effects.get("live_timeline_assets_after_dispatch") != 1
         or effects.get("gmail_mutation_api_reachable") is not False
-        or diagnosis.get("high_confidence_defect")
-        != "GA_REJECTED_PAIRED_SAFE_DEFERRED_REGISTRIES"
+        or diagnosis.get("high_confidence_defect") != "GA_REJECTED_PAIRED_SAFE_DEFERRED_REGISTRIES"
         or policy.get("same_head_rerun_allowed") is not False
         or policy.get("failed_head_redispatch_allowed") is not False
         or policy.get("new_reviewed_repair_candidate_allowed") is not True
@@ -301,17 +306,111 @@ def _protected_ga_attempt_ledger(root: Path) -> dict[str, Any] | None:
     return cast(dict[str, Any], ledger)
 
 
-def _t0705_repair_authorized(root: Path) -> bool:
-    path = root / STAGE7_RUN_CONTRACT_PATH
-    ledger_path = root / PROTECTED_GA_ATTEMPT_LEDGER_PATH
-    schema_path = root / PROTECTED_GA_ATTEMPT_LEDGER_SCHEMA_PATH
+def _protected_ga_repair_attempt_ledger(root: Path) -> dict[str, Any] | None:
+    path = root / PROTECTED_GA_REPAIR_ATTEMPT_LEDGER_PATH
+    if not path.exists():
+        return None
+    schema_path = root / PROTECTED_GA_REPAIR_ATTEMPT_LEDGER_SCHEMA_PATH
     if (
         not path.is_file()
         or path.is_symlink()
-        or not ledger_path.is_file()
-        or ledger_path.is_symlink()
         or not schema_path.is_file()
         or schema_path.is_symlink()
+    ):
+        raise ValueError("protected GA repair attempt ledger path is unsafe")
+    ledger = _load(path)
+    schema = _load(schema_path)
+    if list(
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(ledger)
+    ):
+        raise ValueError("protected GA repair attempt ledger violates its exact schema")
+    predecessor = ledger["predecessor_control"]
+    attempt = ledger["attempts"][0]
+    delivery = attempt["delivery"]
+    workflow = attempt["workflow"]
+    jobs = attempt["jobs"]
+    effects = attempt["effects"]
+    diagnosis = attempt["diagnosis"]
+    policy = ledger["completion_policy"]
+    claims = ledger["claims"]
+    if (
+        predecessor.get("prior_run_contract_sha256")
+        != "b213256898f299ea69857c0adc1ee4112de3b68cbe86a6f5a7375d8a087bfab7"  # pragma: allowlist secret  # noqa: E501
+        or predecessor.get("prior_attempt_ledger_sha256")
+        != _sha256(root / PROTECTED_GA_ATTEMPT_LEDGER_PATH)
+        or predecessor.get("prior_attempt_ledger_schema_sha256")
+        != _sha256(root / PROTECTED_GA_ATTEMPT_LEDGER_SCHEMA_PATH)
+        or attempt.get("sequence") != 2
+        or delivery.get("pull_request_number") != 116
+        or delivery.get("merge_commit_sha")
+        != "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0"  # pragma: allowlist secret
+        or delivery.get("merge_commit_sha") != workflow.get("workflow_head_sha")
+        or delivery.get("terminal_checks") != 23
+        or delivery.get("successful_checks") != 23
+        or any(
+            delivery.get(key) != 0 for key in ("failed_checks", "skipped_checks", "neutral_checks")
+        )
+        or workflow.get("run_id") != 30184702520
+        or workflow.get("run_attempt") != 1
+        or workflow.get("reruns") != 0
+        or jobs.get("authority_gate", {}).get("status") != "PASS"
+        or jobs.get("ga_schedule_rehearsal", {}).get("status") != "FAILED"
+        or jobs.get("identity_plaintext_cleanup", {}).get("status") != "PASS"
+        or jobs.get("live_schedule_hold", {}).get("status") != "SKIPPED"
+        or effects.get("private_repository_new_commits_since_dispatch") != 0
+        or any(
+            effects.get(key) != 0
+            for key in (
+                "raw_path_changes",
+                "processed_path_changes",
+                "state_path_changes",
+                "other_path_changes",
+                "platform_schedule_events",
+            )
+        )
+        or effects.get("gmail_checkpoint_exists_after_dispatch") is not False
+        or effects.get("timeline_state_exists_after_dispatch") is not True
+        or effects.get("live_timeline_assets_after_dispatch") != 1
+        or effects.get("gmail_mutation_api_reached") is not False
+        or effects.get("one_shot_authority_variable_after_dispatch") != "ABSENT"
+        or effects.get("production_enablement_variable_after_dispatch") != "ABSENT"
+        or diagnosis.get("exact_runtime_exception") != "NOT_DISCLOSED_BY_PROTECTED_OUTPUT"
+        or diagnosis.get("high_confidence_defect")
+        != "GA_DID_NOT_QUARANTINE_MESSAGE_METADATA_UNVERIFIABLE"
+        or policy.get("same_head_rerun_allowed") is not False
+        or policy.get("failed_head_redispatch_allowed") is not False
+        or policy.get("new_reviewed_metadata_quarantine_repair_candidate_allowed") is not True
+        or policy.get("next_candidate_dispatch_limit") != 1
+        or policy.get("historical_ga_rehearsal_dispatches_consumed") != 2
+        or policy.get("historical_ga_rehearsal_reruns") != 0
+        or policy.get("t0705_complete") is not False
+        or policy.get("t0706_authorized") is not False
+        or any(value is not False for value in claims.values())
+    ):
+        raise ValueError("protected GA repair attempt ledger is not exact")
+    return cast(dict[str, Any], ledger)
+
+
+def _t0705_repair_authorized(root: Path) -> bool:
+    path = root / STAGE7_RUN_CONTRACT_PATH
+    first_ledger_path = root / PROTECTED_GA_ATTEMPT_LEDGER_PATH
+    first_schema_path = root / PROTECTED_GA_ATTEMPT_LEDGER_SCHEMA_PATH
+    second_ledger_path = root / PROTECTED_GA_REPAIR_ATTEMPT_LEDGER_PATH
+    second_schema_path = root / PROTECTED_GA_REPAIR_ATTEMPT_LEDGER_SCHEMA_PATH
+    if (
+        not path.is_file()
+        or path.is_symlink()
+        or not first_ledger_path.is_file()
+        or first_ledger_path.is_symlink()
+        or not first_schema_path.is_file()
+        or first_schema_path.is_symlink()
+        or not second_ledger_path.is_file()
+        or second_ledger_path.is_symlink()
+        or not second_schema_path.is_file()
+        or second_schema_path.is_symlink()
     ):
         return False
     contract = _load(path)
@@ -322,24 +421,33 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0705"
         and contract.get("baseline_commit")
-        == "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f"  # pragma: allowlist secret
+        == "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0"  # pragma: allowlist secret
         and contract.get("baseline_manifest_sha256")
-        == "eb32ab3ef990a5273978ab548fe063d6ba954c7fff8c2a416830b2ee94cfaf61"  # pragma: allowlist secret  # noqa: E501
+        == "76b161684d04ccae6e4ff1257542555f961cc3b2e34add6d6079986ebe6560c3"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("purpose")
-        == "T0705_PROTECTED_GA_SAFE_DEFERRED_REPAIR_AND_ENABLEMENT_ONLY"
-        and authorization.get("failed_attempt_ledger_required") is True
-        and authorization.get("failed_attempt_ledger_sha256") == _sha256(ledger_path)
-        and authorization.get("failed_attempt_ledger_schema_sha256") == _sha256(schema_path)
-        and authorization.get("failed_workflow_head_sha")
-        == "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f"  # pragma: allowlist secret
+        == "T0705_PROTECTED_GA_METADATA_QUARANTINE_REPAIR_AND_ENABLEMENT_ONLY"
+        and authorization.get("prior_run_contract_sha256")
+        == "b213256898f299ea69857c0adc1ee4112de3b68cbe86a6f5a7375d8a087bfab7"  # pragma: allowlist secret  # noqa: E501
+        and authorization.get("failed_attempt_ledgers_required") == 2
+        and authorization.get("first_failed_attempt_ledger_sha256") == _sha256(first_ledger_path)
+        and authorization.get("first_failed_attempt_ledger_schema_sha256")
+        == _sha256(first_schema_path)
+        and authorization.get("second_failed_attempt_ledger_sha256") == _sha256(second_ledger_path)
+        and authorization.get("second_failed_attempt_ledger_schema_sha256")
+        == _sha256(second_schema_path)
+        and authorization.get("failed_workflow_head_shas")
+        == [
+            "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",  # pragma: allowlist secret
+            "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",  # pragma: allowlist secret
+        ]
         and authorization.get("failed_head_rerun_allowed") is False
         and authorization.get("failed_head_redispatch_allowed") is False
-        and authorization.get("controlled_main_delivery_total_limit") == 3
-        and authorization.get("controlled_main_deliveries_consumed") == 1
+        and authorization.get("controlled_main_delivery_total_limit") == 4
+        and authorization.get("controlled_main_deliveries_consumed") == 2
         and authorization.get("controlled_main_deliveries_remaining") == 2
-        and authorization.get("original_ga_rehearsal_dispatches_consumed") == 1
-        and authorization.get("ga_repair_dispatch_limit") == 1
-        and authorization.get("ga_repair_rerun_limit") == 0
+        and authorization.get("ga_rehearsal_dispatches_consumed") == 2
+        and authorization.get("ga_metadata_quarantine_repair_dispatch_limit") == 1
+        and authorization.get("ga_metadata_quarantine_repair_rerun_limit") == 0
         and authorization.get("t0704_receipt_required") is True
         and authorization.get("t0704_receipt_sha256")
         == "67a5b0f2860fac8b97d459d79f1ad87172f6ce4e45570bb1a1f4f8dc0731fbf7"  # pragma: allowlist secret  # noqa: E501
@@ -348,16 +456,16 @@ def _t0705_repair_authorized(root: Path) -> bool:
         and authorization.get("manual_environment_reviewers_required") is False
         and authorization.get("fixed_calendar_wait_days") == 0
         and authorization.get("final_publication_authorized") is False
-        and budget.get("controlled_main_deliveries_total_maximum") == 3
+        and budget.get("controlled_main_deliveries_total_maximum") == 4
         and budget.get("controlled_main_deliveries_remaining_maximum") == 2
         and budget.get("protected_environment_secret_names_maximum") == 8
-        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 2
-        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 1
-        and budget.get("protected_ga_repair_dispatches_maximum") == 1
+        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 3
+        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 2
+        and budget.get("protected_ga_metadata_quarantine_repair_dispatches_maximum") == 1
         and budget.get("protected_ga_rehearsal_reruns_maximum") == 0
         and budget.get("failed_head_reruns_maximum") == 0
         and budget.get("failed_head_redispatches_maximum") == 0
-        and budget.get("protected_ga_repair_pipeline_runs_maximum") == 1
+        and budget.get("protected_ga_metadata_quarantine_repair_pipeline_runs_maximum") == 1
         and budget.get("gmail_exact_message_trash_mutations_maximum") == 1
         and budget.get("maximum_live_timeline_assets") == 1
         and budget.get("production_schedule_enablement_mutations_maximum") == 1
@@ -831,6 +939,7 @@ def _validate_composition_for_state(
                 "1.0.18",
                 "1.0.19",
                 "1.0.20",
+                "1.0.21",
             },
         ),
     )
@@ -962,6 +1071,7 @@ def _validate_stage6_evidence_transition(
         "1.0.18",
         "1.0.19",
         "1.0.20",
+        "1.0.21",
     } or versions != {"moomooau.stage6-evidence.v2"}:
         raise ValueError("closed delivery state requires Stage 6 v2 evidence")
     # v1.0.5 itself remains Git-anchored. Its v1.0.6+ control successors are portable:
@@ -994,6 +1104,7 @@ def build_status(
     protected_blue_green_attempt_ledger = _protected_blue_green_attempt_ledger(root)
     protected_blue_green_receipt = _protected_blue_green_receipt(root)
     protected_ga_attempt_ledger = _protected_ga_attempt_ledger(root)
+    protected_ga_repair_attempt_ledger = _protected_ga_repair_attempt_ledger(root)
     state_name, state = _select_transition_state(
         model,
         _assurance_result(root) if assurance_result is None else assurance_result,
@@ -1100,6 +1211,8 @@ def build_status(
         observed_at.append(str(protected_blue_green_receipt["observed_at_utc"]))
     if protected_ga_attempt_ledger is not None:
         observed_at.append(str(protected_ga_attempt_ledger["observed_through_utc"]))
+    if protected_ga_repair_attempt_ledger is not None:
+        observed_at.append(str(protected_ga_repair_attempt_ledger["observed_through_utc"]))
     formal_counts = Counter(task["status"] for task in tasks)
     if formal_counts != Counter({"completed": 7, "planned": 51}):
         raise ValueError("formal task status is not the inherited 7 completed / 51 planned state")
@@ -1320,6 +1433,7 @@ def build_status(
             or protected_blue_green_attempt_ledger is None
             or protected_blue_green_receipt is None
             or protected_ga_attempt_ledger is None
+            or protected_ga_repair_attempt_ledger is None
             or protected_executed != 5
             or protected_passed != 4
             or protected_failed != 1
@@ -1327,17 +1441,15 @@ def build_status(
             raise ValueError("T0705 repair authority lacks its exact failed-attempt lineage")
         production_reasons = [
             "FORMAL_TASKS_INCOMPLETE",
-            "T0705_SAFE_DEFERRED_COMPATIBILITY_REPAIR_PENDING",
+            "T0705_METADATA_QUARANTINE_REPAIR_PENDING",
             "FINAL_ACCEPTANCE_BLOCKED",
             "PRODUCTION_SCHEDULE_DISABLED",
         ]
-        overall_status = "PROTECTED_GA_ATTEMPT_FAILED_REPAIR_AUTHORIZED"
+        overall_status = "PROTECTED_GA_SECOND_ATTEMPT_FAILED_METADATA_REPAIR_AUTHORIZED"
         protected_status = "FAILED"
-        production_workflow_runs = 1
-        publication_status = "CONTROLLED_T0705_REPAIR_CANDIDATE_NOT_FINAL"
-        mechanism_scope = (
-            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0705_FAILED_ATTEMPT"
-        )
+        production_workflow_runs = 2
+        publication_status = "CONTROLLED_T0705_METADATA_REPAIR_CANDIDATE_NOT_FINAL"
+        mechanism_scope = "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_T0705_FAILED_ATTEMPT"
     elif passed_t0704_state:
         if (
             protected_receipt is None
@@ -1419,6 +1531,10 @@ def build_status(
         source_digests["protected_ga_attempt_ledger_sha256"] = _sha256(
             root / PROTECTED_GA_ATTEMPT_LEDGER_PATH
         )
+    if protected_ga_repair_attempt_ledger is not None:
+        source_digests["protected_ga_repair_attempt_ledger_sha256"] = _sha256(
+            root / PROTECTED_GA_REPAIR_ATTEMPT_LEDGER_PATH
+        )
 
     return {
         "schema_version": "moomooau.delivery-status.v1",
@@ -1485,7 +1601,7 @@ def build_status(
                         else 0
                     )
                     + (1 if protected_blue_green_receipt is not None else 0)
-                    + (1 if authorized_t0705_state or repair_t0705_state else 0)
+                    + (2 if repair_t0705_state else (1 if authorized_t0705_state else 0))
                     if protected_receipt is not None
                     else 0
                 ),

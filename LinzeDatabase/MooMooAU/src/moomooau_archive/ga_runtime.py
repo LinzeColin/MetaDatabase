@@ -32,6 +32,7 @@ from .document_parser import (
 from .gmail_discovery import (
     GmailReadClient,
     GmailReconciler,
+    MessageMetadataUnverifiable,
     MessageRef,
     ReconcileMode,
 )
@@ -442,11 +443,17 @@ class GAFullPipelineRunner:
         confirmed = already = deferred = 0
         pending: dict[str, MessageRef] = {}
         for ref in candidate_refs:
-            message = self._gmail.get_metadata(
-                ref.message_id,
-                header_names=self._sender_registry.requested_header_names,
-            )
             metadata_reads += 1
+            try:
+                message = self._gmail.get_metadata(
+                    ref.message_id,
+                    header_names=self._sender_registry.requested_header_names,
+                )
+            except MessageMetadataUnverifiable:
+                quarantined += 1
+                if ref.message_id in prior_pending_ids:
+                    pending[ref.message_id] = ref
+                continue
             first = self._verifier.verify_message(
                 message,
                 self._sender_registry,

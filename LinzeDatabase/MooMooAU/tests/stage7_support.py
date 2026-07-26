@@ -62,6 +62,7 @@ from moomooau_archive.gmail_discovery import (
     FullMailboxDiscoverer,
     GmailReadClient,
     GmailReconciler,
+    MessageRef,
     SyncState,
 )
 from moomooau_archive.gmail_guard import GmailEndpointGuard
@@ -296,6 +297,7 @@ class Stage7GmailTransport:
         history_pages: tuple[dict[str, object], ...] = (),
         history_status: int = 200,
         malformed_metadata_ids: frozenset[str] = frozenset(),
+        malformed_metadata_after_first_ids: frozenset[str] = frozenset(),
     ) -> None:
         self.inner = SyntheticGmailTransport(
             messages,
@@ -307,6 +309,8 @@ class Stage7GmailTransport:
         self.trashed_ids: list[str] = []
         self._events = events
         self._malformed_metadata_ids = malformed_metadata_ids
+        self._malformed_metadata_after_first_ids = malformed_metadata_after_first_ids
+        self.metadata_read_counts: dict[str, int] = {}
 
     def send(self, request: HttpRequest) -> HttpResponse:
         parsed = urlsplit(request.url)
@@ -345,7 +349,16 @@ class Stage7GmailTransport:
             and query.get("format") == ["metadata"]
         ):
             response = self.inner.send(request)
-            if relative in self._malformed_metadata_ids:
+            candidate_metadata = query.get("metadataHeaders") != ["From"]
+            if candidate_metadata:
+                self.metadata_read_counts[relative] = self.metadata_read_counts.get(relative, 0) + 1
+            if candidate_metadata and (
+                relative in self._malformed_metadata_ids
+                or (
+                    relative in self._malformed_metadata_after_first_ids
+                    and self.metadata_read_counts[relative] > 1
+                )
+            ):
                 payload = json.loads(response.body)
                 payload.pop("payload", None)
                 return HttpResponse(
@@ -883,6 +896,9 @@ def ga_context(
     history_pages: tuple[dict[str, object], ...] = (),
     capacity: CapacityAssessment | None = None,
     safe_deferred_registries: bool = False,
+    initial_pending_refs: tuple[MessageRef, ...] = (),
+    malformed_metadata_ids: frozenset[str] = frozenset(),
+    malformed_metadata_after_first_ids: frozenset[str] = frozenset(),
 ) -> Iterator[GAContext]:
     """Build the T0705 full pipeline with one synthetic ciphertext-only private remote."""
 
@@ -898,6 +914,8 @@ def ga_context(
             messages,
             events=events,
             history_pages=history_pages,
+            malformed_metadata_ids=malformed_metadata_ids,
+            malformed_metadata_after_first_ids=malformed_metadata_after_first_ids,
         )
         guard = GmailEndpointGuard(transport)
         gmail = GmailReadClient(guard)
@@ -914,7 +932,10 @@ def ga_context(
         checkpoint_store = MemoryGmailSyncStateStore()
         checkpoint = EncryptedGmailSyncCheckpoint(checkpoint_store, crypto)
         if initial_sync_state is not None:
-            checkpoint.commit(None, GmailRunCheckpoint(initial_sync_state, ()))
+            checkpoint.commit(
+                None,
+                GmailRunCheckpoint(initial_sync_state, initial_pending_refs),
+            )
         raw_store = MemoryAppendOnlyCiphertextStore()
         processed_store = CorruptibleProcessedStore()
         reader = RecordingRepositoryReader(
