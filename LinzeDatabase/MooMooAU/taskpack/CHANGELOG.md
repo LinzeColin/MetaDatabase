@@ -1,5 +1,22 @@
 # Taskpack Changelog
 
+## 1.0.28 — 2026-07-26
+
+固化 T0705 第九次 protected GA 在 `FIRST_IMPORT_POINTER_FETCH` 的零新增副作用失败。精确 App
+repository scope 已在 Gmail credential exchange 前通过；authority 与 cleanup PASS，private
+commit 与 Gmail mutation 均为 0。protected exception 未被读取或检查。
+
+对未改变 remote head 的只读 live replay 证明：Contents metadata 均有效，raw-media 请求均为
+HTTP 200，但一个 body 不符合 age、声明 size 与 canonical Git SHA；metadata-addressed Git
+Blobs API 对所有 current pointer 均返回规范 base64 age ciphertext。Processed recovery 现只用
+Contents 绑定 path/size/blob SHA，再从 exact Git Blob 验证 response SHA、decoded size、age 与
+canonical Git SHA；Contents inline/raw-media 不再作为真源。Fixture 覆盖换行 base64，revision
+drift 故障注入 fail closed。
+
+九个失败 head 永久冻结；只授权一个新 exact-main canonical Git Blob recovery attempt 1 和
+PASS 后的 receipt/schedule closure。验证无 Soak、观察期、等待窗口、人工审批或全量测试前置；
+T0706 与最终发布仍禁止。
+
 ## 1.0.27 — 2026-07-26
 
 固化 T0705 第八次 protected GA 在 `FIRST_IMPORT_POINTER_FETCH` 的零新增副作用失败。绑定正常

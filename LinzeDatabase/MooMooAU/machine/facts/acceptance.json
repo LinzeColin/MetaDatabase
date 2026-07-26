@@ -18,7 +18,7 @@
     {
       "id": "`受保护验证`",
       "criteria": "已声明 43、已执行 5、通过 4、失败 1",
-      "status": "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 八次运行失败，八个失败头已冻结，App scope activation recovery 待运行）"
+      "status": "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 九次运行失败，九个失败头已冻结，canonical Git Blob recovery 待运行）"
     },
     {
       "id": "`最终验收`",

@@ -1,13 +1,13 @@
 {
   "schema_version": "moomooau.stage7-evidence.v1",
-  "evidence_id": "S7-T0705-PROTECTED_GA_APP_SCOPE_ACTIVATION_RECOVERY_20260726",
+  "evidence_id": "S7-T0705-PROTECTED_GA_CANONICAL_GIT_BLOB_RECOVERY_20260726",
   "stage_id": "S7",
   "task_id": "T0705",
   "stage_acceptance_id": "S7AC-005",
-  "observed_at_utc": "2026-07-26T11:12:44Z",
-  "baseline_commit": "8b6faaf9059661edc3153352b8787ddbc4f733f3",
+  "observed_at_utc": "2026-07-26T12:21:11Z",
+  "baseline_commit": "6f82e738611e0d2eeeadd2507f738c9e269c91e0",
   "record_status": "BLOCKED",
-  "scope": "PROTECTED_EIGHT_FAILED_ATTEMPTS_AND_APP_SCOPE_ACTIVATION_RECOVERY_PREFLIGHT",
+  "scope": "PROTECTED_NINE_FAILED_ATTEMPTS_AND_CANONICAL_GIT_BLOB_RECOVERY_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
     {
@@ -116,14 +116,19 @@
       "evidence_ref": "machine/stages/S7/reviews/t0705/pointer-blob-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-pointer-blob-attempt-ledger-v1.schema.json"
     },
     {
-      "id": "processed_current_uses_exact_raw_media_not_inline_contents",
+      "id": "ninth_failed_exact_head_frozen_and_live_protocol_reproduced",
       "status": "PASS",
-      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_processed_current_uses_exact_raw_blob_not_inline_contents"
+      "evidence_ref": "machine/stages/S7/reviews/t0705/canonical-blob-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-canonical-blob-attempt-ledger-v1.schema.json"
     },
     {
-      "id": "processed_current_raw_media_revision_drift_fails_closed",
+      "id": "processed_current_uses_metadata_addressed_canonical_git_blob",
       "status": "PASS",
-      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_processed_current_fails_closed_on_raw_blob_revision_drift"
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_processed_current_uses_canonical_git_blob_not_contents_media"
+    },
+    {
+      "id": "processed_current_canonical_git_blob_revision_drift_fails_closed",
+      "status": "PASS",
+      "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_processed_current_fails_closed_on_canonical_blob_revision_drift"
     },
     {
       "id": "ga_pre_raw_metadata_unverifiable_quarantine",
@@ -175,17 +180,17 @@
     {
       "id": "AC-002",
       "status": "PARTIAL",
-      "reason": "The dependency-injected GA mechanism processes only deterministically verified candidates and binds current pointer raw media to bounded metadata and canonical Git blob SHA. All eight protected attempts failed and no T0705 PASS receipt exists; the owner-confirmed post-attempt App link is a new precondition, not proof of the prior failure cause."
+      "reason": "The dependency-injected GA mechanism processes only deterministically verified candidates and binds each current pointer to bounded Contents metadata plus the exact metadata-addressed canonical Git Blob before decrypt. All nine protected attempts failed and no T0705 PASS receipt exists; live read-only replay independently reproduces the raw-media protocol mismatch without claiming the unreceived protected exception text."
     },
     {
       "id": "AC-023",
       "status": "PARTIAL",
-      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. A ninth distinct truthful workflow_dispatch App repository-scope activation recovery rehearsal is authorized once while all eight failed heads are frozen."
+      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. A tenth distinct truthful workflow_dispatch canonical Git Blob recovery rehearsal is authorized once while all nine failed heads are frozen."
     },
     {
       "id": "AC-031",
       "status": "NOT_RUN",
-      "reason": "All eight protected GA attempts emitted aggregate-safe failure only; no protected GA PASS result or continuous public health evidence is published."
+      "reason": "All nine protected GA attempts emitted aggregate-safe failure only; no protected GA PASS result or continuous public health evidence is published."
     },
     {
       "id": "AC-032",
@@ -197,12 +202,12 @@
     {
       "id": "PROTECTED_GA_0430_FULL_PIPELINE",
       "status": "FAILED",
-      "reason": "The first eight exact-main attempts passed authority and cleanup but failed. The eighth remained within FIRST_IMPORT_POINTER_FETCH with zero new private commit and zero Gmail mutation. The owner confirmed the existing GitHub App link after the attempt; exact runtime installation scope remains pending a new protected oracle and the prior exact root cause remains UNKNOWN. All eight heads are frozen; one reviewed App repository-scope activation recovery attempt is authorized."
+      "reason": "The first nine exact-main attempts passed authority and cleanup but failed. The ninth proved exact installation repository scope before Gmail credential exchange, then remained within FIRST_IMPORT_POINTER_FETCH with zero new private commit and zero Gmail mutation. Read-only live replay reproduced one non-canonical Contents raw-media body while every metadata-addressed Git Blob passed encoding, response SHA, size, age and canonical Git SHA checks; the patched adapter recovered every current pointer. All nine heads are frozen; one reviewed canonical Git Blob recovery attempt is authorized."
     }
   ],
   "blockers": [
-    "T0705_EIGHT_FAILED_HEADS_FROZEN",
-    "T0705_APP_REPOSITORY_SCOPE_ACTIVATION_RECOVERY_PENDING",
+    "T0705_NINE_FAILED_HEADS_FROZEN",
+    "T0705_CANONICAL_GIT_BLOB_RECOVERY_PENDING",
     "T0705_PROTECTED_RECEIPT_NOT_BOUND",
     "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN"
   ],
@@ -228,5 +233,5 @@
     "release_assets_above_one": 0,
     "production_workflow_runs": 0
   },
-  "next_action": "Deliver one reviewed exact-main App repository-scope activation recovery candidate and execute exactly one attempt-1 protected SCHEDULE_REHEARSAL with rerun zero. Verify exact installation repository scope before Gmail credential exchange; after PASS bind the receipt and enable the committed 04:30 Australia/Sydney schedule. Never rerun any failed head and do not enter T0706."
+  "next_action": "Deliver one reviewed exact-main canonical Git Blob recovery candidate and execute exactly one attempt-1 protected SCHEDULE_REHEARSAL with rerun zero. Use Contents metadata only to bind the exact canonical Git Blob; after PASS bind the receipt and enable the committed 04:30 Australia/Sydney schedule. Never rerun any failed head and do not enter T0706."
 }

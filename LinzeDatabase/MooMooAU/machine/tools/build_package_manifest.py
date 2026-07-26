@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the v1.0.27 protected T0705 App repository-scope recovery manifest."""
+"""Build the v1.0.28 protected T0705 canonical Git Blob recovery manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.27.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.27"
-PACKAGE_VERSION = "1.0.27"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.26.json")
-PREDECESSOR_MANIFEST_SHA256 = "3026fdd7c7a59260b8ed7e68288875f8dc12a99d6b096478168d55012407440d"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.28.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.28"
+PACKAGE_VERSION = "1.0.28"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.27.json")
+PREDECESSOR_MANIFEST_SHA256 = "de1ed6df0ba804506a04a30e0f3f943a4e968bf85d7c13b5616cc1b6763ac70a"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.26 manifest drift")
+        raise ValueError("predecessor v1.0.27 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -167,12 +167,12 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or "REV-P1-006" not in status.get("resolved_review_findings", [])
         or "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
         or status.get("overall_status")
-        != "PROTECTED_GA_EIGHTH_ATTEMPT_FAILED_APP_SCOPE_ACTIVATION_RECOVERY_AUTHORIZED"
-        or "T0705_APP_REPOSITORY_SCOPE_ACTIVATION_RECOVERY_PENDING"
+        != "PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED"
+        or "T0705_CANONICAL_GIT_BLOB_RECOVERY_PENDING"
         not in status.get("blockers", [])
     ):
         raise ValueError(
-            "T0705 protected GA App repository-scope recovery is not exactly authorized-pending"
+            "T0705 protected GA canonical Git Blob recovery is not exactly authorized-pending"
         )
     entries = [
         {
@@ -183,7 +183,7 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v27",
+        "schema_version": "moomooau.package-manifest.v28",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
@@ -197,9 +197,10 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4 and "
             "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7 and "
             "2133673b335a384657c8668b62a1c13055c212cd and "
-            "8b6faaf9059661edc3153352b8787ddbc4f733f3, and preserve the exact T0702, "
-            "T0703 and T0704 protected PASS receipts plus all eight immutable T0705 failed-attempt "
-            "ledgers. One reviewed App repository-scope activation recovery delivery, one new "
+            "8b6faaf9059661edc3153352b8787ddbc4f733f3 and "
+            "6f82e738611e0d2eeeadd2507f738c9e269c91e0, and preserve the exact T0702, "
+            "T0703 and T0704 protected PASS receipts plus all nine immutable T0705 failed-attempt "
+            "ledgers. One reviewed canonical Git Blob recovery delivery, one new "
             "exact-main "
             "attempt-1 protected "
             "SCHEDULE_REHEARSAL with rerun zero and one later receipt/schedule-closure delivery "
@@ -209,13 +210,15 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "unauthorized."
         ),
         "scope": (
-            "Baseline-preserving v1.0.27 T0705 recovery candidate: immutable v1.0.1 product "
-            "contracts and v1.0.2-v1.0.26 predecessor lineage remain unchanged. All eight failed "
+            "Baseline-preserving v1.0.28 T0705 recovery candidate: immutable v1.0.1 product "
+            "contracts and v1.0.2-v1.0.27 predecessor lineage remain unchanged. All nine failed "
             "GA heads are digest-bound and cannot be rerun or redispatched. The pointer recovery "
-            "retains bounded Contents metadata, exact raw media and canonical Git blob SHA binding "
-            "before decrypt. The owner's post-attempt App-to-repository link confirmation is "
-            "treated only as a changed external precondition and must be verified in the protected "
-            "runner before Gmail credential exchange. It preserves persisted first-import label "
+            "uses bounded Contents metadata only to bind exact path, size and SHA, then requires "
+            "the metadata-addressed Git Blobs API base64 body, response SHA, decoded size, age "
+            "envelope and canonical Git blob SHA before decrypt; Contents inline and raw-media "
+            "bodies are never trusted for Processed recovery. The ninth attempt already proved "
+            "exact App repository scope before Gmail credential exchange. It preserves "
+            "persisted first-import label "
             "replay, "
             "pre-Raw metadata quarantine, "
             "fail-closed second verification, ACTIVE processing and the repaired "
@@ -226,7 +229,7 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "refresh live private-repository capacity before Gmail exchange, and retain "
             "verified-only full reads, "
             "Raw and Processed remote recovery before exact-message Trash, one recoverable latest "
-            "encrypted Timeline and checkpoint-last CAS. Scope-activation recovery execution, "
+            "encrypted Timeline and checkpoint-last CAS. Canonical Git Blob recovery execution, "
             "T0705/S7AC-005 PASS, "
             "T0706, final Acceptance, Stage 7 completion and final publication remain unclaimed."
         ),

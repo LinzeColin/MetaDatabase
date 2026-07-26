@@ -56,6 +56,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.25",
             "1.0.26",
             "1.0.27",
+            "1.0.28",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -84,6 +85,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.25",
         "1.0.26",
         "1.0.27",
+        "1.0.28",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -108,6 +110,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.25",
         "1.0.26",
         "1.0.27",
+        "1.0.28",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -131,6 +134,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.25",
         "1.0.26",
         "1.0.27",
+        "1.0.28",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
@@ -153,6 +157,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.25",
         "1.0.26",
         "1.0.27",
+        "1.0.28",
     }
     t0703_repair_authorized = delivery["package_version"] in {
         "1.0.9",
@@ -188,6 +193,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.25",
         "1.0.26",
         "1.0.27",
+        "1.0.28",
     }
     t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] in {
         "1.0.12",
@@ -204,6 +210,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.25",
         "1.0.26",
         "1.0.27",
+        "1.0.28",
     }
     t0703_zero_mutation_reconciliation_authorized = delivery["package_version"] in {
         "1.0.13",
@@ -240,6 +247,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.25",
             "1.0.26",
             "1.0.27",
+            "1.0.28",
         }
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") in {3, 4, 5}
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") in {3, 4}
@@ -267,14 +275,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
     )
     t0705_repair_authorized = (
-        delivery["package_version"] == "1.0.27"
+        delivery["package_version"] == "1.0.28"
         and delivery.get("overall_status")
-        == "PROTECTED_GA_EIGHTH_ATTEMPT_FAILED_APP_SCOPE_ACTIVATION_RECOVERY_AUTHORIZED"
+        == "PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED"
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 5
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 4
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
         and delivery.get("dimensions", {}).get("publication", {}).get("status")
-        == "CONTROLLED_T0705_APP_SCOPE_ACTIVATION_RECOVERY_CANDIDATE_NOT_FINAL"
+        == "CONTROLLED_T0705_CANONICAL_GIT_BLOB_RECOVERY_CANDIDATE_NOT_FINAL"
     )
     t0704_protected_passed = (
         delivery["package_version"] in {"1.0.18", "1.0.19"}
@@ -329,8 +337,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "S5": "本地机制有证据；正式任务未完成",
         "S6": "本地机制有证据；正式任务未完成",
         "S7": (
-            "T0702、T0703 与 T0704 均通过；T0705 八次运行失败且八个头已冻结，"
-            "App repository-scope activation recovery 已授权"
+            "T0702、T0703 与 T0704 均通过；T0705 九次运行失败且九个头已冻结，"
+            "canonical Git Blob recovery 已授权"
             if t0705_repair_authorized
             else "T0702、T0703 与 T0704 受保护验证均通过；T0705 一次性 schedule-mode "
             "rehearsal 已授权待运行"
@@ -483,19 +491,23 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "一个精确 repair-or-PASS closure。诊断不得接收异常、标识、URL、计数、Secret、"
             "仓库定位或邮箱派生值"
         ),
-        "T0705_APP_REPOSITORY_SCOPE_ACTIVATION_RECOVERY_PENDING": (
-            "T0705 八个 exact-main attempt-1 head 均已冻结；第八次 authority 与身份清理通过，"
-            "公开输出仍为 FIRST_IMPORT_POINTER_FETCH。只读 private 数据仓核验确认第八次零提交，"
-            "精确根因仍为 UNKNOWN。Owner 随后确认已将现有 GitHub App 链接到唯一 private 数据仓；"
-            "该变化仅作为新外部前提，不倒推既往根因。只授权一个新 exact-main scope-activation "
-            "recovery attempt 1，在 Gmail credential exchange 前验证 installation repo scope"
+        "T0705_NINE_FAILED_HEADS_FROZEN": (
+            "T0705 九个 exact-main attempt-1 head 均已冻结，rerun 与 redispatch 均为零"
+        ),
+        "T0705_CANONICAL_GIT_BLOB_RECOVERY_PENDING": (
+            "第九次 authority、精确 App repository scope 与身份清理通过，随后仍停在 "
+            "FIRST_IMPORT_POINTER_FETCH，private 数据仓与 Gmail 零新效果。只读 live replay "
+            "复现一个 Contents raw-media HTTP 200 非规范 body；同一 metadata SHA 对应的 "
+            "Git Blobs API 对所有 current pointer 均通过 base64、response SHA、size、age 与 "
+            "canonical Git SHA 校验，patched adapter 全部恢复。只授权一个新 exact-main "
+            "canonical Git Blob recovery attempt 1"
         ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "后续受保护验收与确定性运行尚未执行",
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING": (
-            "T0704 已通过；T0705 八个失败头已冻结且 App repository-scope activation recovery "
+            "T0704 已通过；T0705 九个失败头已冻结且 canonical Git Blob recovery "
             "已授权，T0706 及其后的"
             "受保护验收未授权"
             if t0705_repair_authorized
@@ -525,7 +537,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0705 八个 GA 失败头已冻结，App scope activation recovery 已授权待运行"
+            "RMD-06 T0705 九个 GA 失败头已冻结，canonical Git Blob recovery 已授权待运行"
             if t0705_repair_authorized
             else "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -556,9 +568,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 八个 exact-main attempt-1 失败头已冻结；第八次仍止于 "
-            "FIRST_IMPORT_POINTER_FETCH 且 private 数据仓零提交。Owner 随后确认 App 已链接到"
-            "唯一 private 数据仓；新 head 将在 Gmail 前验证 installation repo scope"
+            "T0705 九个 exact-main attempt-1 失败头已冻结；第九次已验证 App repository scope，"
+            "随后仍止于 FIRST_IMPORT_POINTER_FETCH 且 private 数据仓零提交。Live replay "
+            "证明 Contents raw-media 非规范而 metadata-addressed Git Blob 全部规范；新 head "
+            "只执行 canonical Git Blob recovery"
             if t0705_repair_authorized
             else "T0702–T0704 精确 PASS 回执已绑定；T0705 one-shot exact-main "
             "SCHEDULE_REHEARSAL、实时容量刷新、完整恢复、单 Timeline 与 checkpoint-last 待执行"
@@ -605,8 +618,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付 v1.0.27 App repository-scope activation recovery 精确候选并执行一次"
-            "新 head protected SCHEDULE_REHEARSAL；八个失败头与新候选均 rerun 0；PASS 后只"
+            "交付 v1.0.28 canonical Git Blob recovery 精确候选并执行一次"
+            "新 head protected SCHEDULE_REHEARSAL；九个失败头与新候选均 rerun 0；PASS 后只"
             "启用已提交 04:30 "
             "schedule，并停在 T0706 前"
             if t0705_repair_authorized
@@ -958,11 +971,39 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "note": "Git commit 下用于绑定路径、mode 与 blob SHA 的不可变目录对象",
             },
             {
-                "en": "APP_REPOSITORY_SCOPE_ACTIVATION_RECOVERY_PENDING",
-                "zh": "App 数据仓 scope 激活恢复待执行",
+                "en": "CANONICAL_GIT_BLOB_RECOVERY_PENDING",
+                "zh": "规范 Git Blob 恢复待执行",
                 "note": (
-                    "八个失败头冻结后，仅允许新 head 验证 Owner 已完成的 App-to-repository 链接"
+                    "九个失败头冻结后，仅允许新 head 通过 metadata SHA 读取并验证规范 Git Blob"
                 ),
+            },
+            {
+                "en": "NINE_FAILED_HEADS_FROZEN",
+                "zh": "九个失败执行头已冻结",
+                "note": "T0705 九个不同主分支提交均禁止重跑或再次派发",
+            },
+            {
+                "en": "Git Blobs",
+                "zh": "Git 内容对象接口",
+                "note": "按 metadata SHA 精确定址",
+            },
+            {
+                "en": "raw-media",
+                "zh": "原始媒体表示",
+                "note": "Contents 接口的原始响应表示",
+            },
+            {"en": "response", "zh": "响应", "note": "受约束远端接口的返回值"},
+            {"en": "size", "zh": "大小", "note": "metadata、响应和解码字节必须一致"},
+            {"en": "scope", "zh": "范围", "note": "受保护权限或仓库边界"},
+            {
+                "en": "adapter",
+                "zh": "适配器",
+                "note": "受端点守卫约束的远端接口实现",
+            },
+            {
+                "en": "patched",
+                "zh": "已修复",
+                "note": "只表示当前候选已应用有界修复",
             },
             {
                 "en": "closed-enum",
@@ -1354,7 +1395,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     }
     plan = {
         "stage": (
-            "RMD-06 T0705 八个 GA 失败头已冻结，App scope activation recovery 已授权待运行"
+            "RMD-06 T0705 九个 GA 失败头已冻结，canonical Git Blob recovery 已授权待运行"
             if t0705_repair_authorized
             else "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -1385,7 +1426,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 八个失败头已冻结；仅允许新 exact-main App scope activation recovery attempt 1"
+            "T0705 九个失败头已冻结；仅允许新 exact-main canonical Git Blob recovery attempt 1"
             if t0705_repair_authorized
             else "T0704/S7AC-004 已闭合；T0705 one-shot schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -1418,7 +1459,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付 v1.0.27 App repository-scope activation recovery exact-main 候选、"
+            "交付 v1.0.28 canonical Git Blob recovery exact-main 候选、"
             "执行一次新 attempt-1 "
             "SCHEDULE_REHEARSAL，PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前"
             if t0705_repair_authorized
@@ -1488,8 +1529,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     f"失败 {dimensions['protected_oracles']['failed']}"
                 ),
                 "status": (
-                    "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 八次运行失败，"
-                    "八个失败头已冻结，App scope activation recovery 待运行）"
+                    "阻塞（T0702、T0703 与 T0704 均 PASS；T0705 九次运行失败，"
+                    "九个失败头已冻结，canonical Git Blob recovery 待运行）"
                     if t0705_repair_authorized
                     else "部分通过（T0702、T0703 与 T0704 均 PASS；T0705 一次性 "
                     "SCHEDULE_REHEARSAL 已授权待运行）"
@@ -1817,14 +1858,16 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         changelog.insert(
             0,
             {
-                "version": "1.0.27",
+                "version": "1.0.28",
                 "date": "2026-07-26",
                 "summary": (
-                    "固化 T0705 第八个 exact-main attempt-1 失败：authority 与身份清理通过，"
-                    "protected 输出仍为 FIRST_IMPORT_POINTER_FETCH；只读 private 数据仓核验"
-                    "确认该窗口零提交，精确根因仍为 UNKNOWN。Owner 随后确认现有 GitHub App "
-                    "已链接到唯一 private 数据仓；此变化不倒推既往根因。八个失败头禁止 "
-                    "rerun/redispatch；只授权一个新 exact-main scope-activation recovery "
+                    "固化 T0705 第九个 exact-main attempt-1 失败：authority、精确 App "
+                    "repository scope 与身份清理通过，protected 输出仍为 "
+                    "FIRST_IMPORT_POINTER_FETCH，private 数据仓与 Gmail 零新效果。只读 live "
+                    "replay 复现 Contents raw-media 非规范 body，而 metadata-addressed Git "
+                    "Blobs API 对所有 current pointer 均返回规范 age ciphertext；patched "
+                    "adapter 全部恢复，fixture 对 revision drift fail-closed。九个失败头禁止 "
+                    "rerun/redispatch；只授权一个新 exact-main canonical Git Blob recovery "
                     "attempt 1，T0706 和最终发布仍禁止。"
                 ),
             },

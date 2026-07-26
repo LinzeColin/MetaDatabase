@@ -30,6 +30,7 @@ from moomooau_archive.github_guard import (
     RepositoryLocator,
     TargetRepositoryConfig,
     content_url,
+    git_blob_url,
 )
 from moomooau_archive.gmail_discovery import (
     MessageMetadataUnverifiable,
@@ -129,42 +130,57 @@ def _git_blob_revision(payload: bytes) -> str:
     ).hexdigest()
 
 
-def test_t0705_processed_current_uses_exact_raw_blob_not_inline_contents() -> None:
+def test_t0705_processed_current_uses_canonical_git_blob_not_contents_media() -> None:
     ciphertext = _synthetic_age_envelope()
     revision = _git_blob_revision(ciphertext)
     pointer_path = f"MooMooAU/State/processed-current/{'a' * 64}.json.age"
     config = TargetRepositoryConfig(repository_id=7_500_101, installation_id=8_500_101)
     locator = RepositoryLocator(config.repository_id, "synthetic-owner", "synthetic-target")
 
-    class InlineMismatchTransport:
+    class ContentsMediaMismatchTransport:
         def __init__(self) -> None:
-            self.accepts: list[str] = []
+            self.requests: list[HttpRequest] = []
 
         def send(self, request: HttpRequest) -> HttpResponse:
-            assert request.url == content_url(locator, pointer_path)
-            accept = dict(request.headers)["Accept"]
-            self.accepts.append(accept)
-            if accept == "application/vnd.github.raw+json":
-                return HttpResponse(200, ciphertext)
+            self.requests.append(request)
+            if request.url == content_url(locator, pointer_path):
+                assert dict(request.headers)["Accept"] == "application/vnd.github+json"
+                return HttpResponse(
+                    200,
+                    json.dumps(
+                        {
+                            "content": base64.b64encode(
+                                b"contents-inline-representation-differs"
+                            ).decode("ascii"),
+                            "encoding": "base64",
+                            "path": pointer_path,
+                            "sha": revision,
+                            "size": len(ciphertext),
+                            "type": "file",
+                        },
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    ).encode(),
+                )
+            assert request.url == git_blob_url(locator, revision)
+            assert dict(request.headers)["Accept"] == "application/vnd.github+json"
+            encoded = base64.b64encode(ciphertext).decode("ascii")
+            wrapped = "\n".join(encoded[index : index + 60] for index in range(0, len(encoded), 60))
             return HttpResponse(
                 200,
                 json.dumps(
                     {
-                        "content": base64.b64encode(
-                            b"contents-inline-representation-differs"
-                        ).decode("ascii"),
+                        "content": wrapped,
                         "encoding": "base64",
-                        "path": pointer_path,
                         "sha": revision,
                         "size": len(ciphertext),
-                        "type": "file",
                     },
                     sort_keys=True,
                     separators=(",", ":"),
                 ).encode(),
             )
 
-    transport = InlineMismatchTransport()
+    transport = ContentsMediaMismatchTransport()
     guard = GitHubEndpointGuard(transport, config)
     guard.bind_repository(locator)
     token = InstallationToken(
@@ -180,15 +196,19 @@ def test_t0705_processed_current_uses_exact_raw_blob_not_inline_contents() -> No
     finally:
         token.destroy()
     assert recovered == RevisionedCiphertext(ciphertext, revision)
-    assert transport.accepts == [
-        "application/vnd.github+json",
-        "application/vnd.github.raw+json",
+    assert [request.url for request in transport.requests] == [
+        content_url(locator, pointer_path),
+        git_blob_url(locator, revision),
     ]
+    assert all(
+        dict(request.headers)["Accept"] == "application/vnd.github+json"
+        for request in transport.requests
+    )
 
 
-def test_t0705_processed_current_fails_closed_on_raw_blob_revision_drift() -> None:
+def test_t0705_processed_current_fails_closed_on_canonical_blob_revision_drift() -> None:
     metadata_ciphertext = _synthetic_age_envelope()
-    returned_ciphertext = metadata_ciphertext + b"\x00"
+    returned_ciphertext = metadata_ciphertext[:-1] + b"\x01"
     revision = _git_blob_revision(metadata_ciphertext)
     pointer_path = f"MooMooAU/State/processed-current/{'b' * 64}.json.age"
     config = TargetRepositoryConfig(repository_id=7_500_102, installation_id=8_500_102)
@@ -196,16 +216,29 @@ def test_t0705_processed_current_fails_closed_on_raw_blob_revision_drift() -> No
 
     class DriftTransport:
         def send(self, request: HttpRequest) -> HttpResponse:
-            if dict(request.headers)["Accept"] == "application/vnd.github.raw+json":
-                return HttpResponse(200, returned_ciphertext)
+            if request.url == content_url(locator, pointer_path):
+                return HttpResponse(
+                    200,
+                    json.dumps(
+                        {
+                            "path": pointer_path,
+                            "sha": revision,
+                            "size": len(metadata_ciphertext),
+                            "type": "file",
+                        },
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    ).encode(),
+                )
+            assert request.url == git_blob_url(locator, revision)
             return HttpResponse(
                 200,
                 json.dumps(
                     {
-                        "path": pointer_path,
+                        "content": base64.b64encode(returned_ciphertext).decode("ascii"),
+                        "encoding": "base64",
                         "sha": revision,
                         "size": len(returned_ciphertext),
-                        "type": "file",
                     },
                     sort_keys=True,
                     separators=(",", ":"),
@@ -812,10 +845,10 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["maximum_reruns"] == 0
     assert contract["required_protected_input_count"] == 8
     assert contract["blue_green_receipt_sha256"] == blue_green_receipt_sha256(PROJECT_ROOT)
-    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 8
+    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 9
     assert contract["failed_ga_heads_rerun_allowed"] is False
     assert contract["failed_ga_heads_redispatch_allowed"] is False
-    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 8
+    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 9
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
 
 
