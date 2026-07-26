@@ -7,8 +7,8 @@
     "首次登记": "2026-07-22"
   },
   {
-    "id": "T0705_METADATA_QUARANTINE_REPAIR_PENDING",
-    "内容": "T0705 两个 exact-main attempt-1 head 均已冻结；第二次 authority 与身份清理通过，私有仓无新增 commit、checkpoint 未创建、唯一 latest Timeline 保持不变且生产调度仍关闭。受保护输出未披露精确异常；同邮箱 T0703 回执与静态路径仅支持高置信度 MessageMetadataUnverifiable 隔离缺口。只授权一个新 metadata-quarantine 候选与一次 attempt 1，同时保持二次验证、ACTIVE 与 SAFE_DEFERRED 路径不变",
+    "id": "T0705_LABEL_REPLAY_REPAIR_PENDING",
+    "内容": "T0705 三个 exact-main attempt-1 head 均已冻结；第三次 authority 与身份清理通过，私有仓无新增 commit、checkpoint 未创建、加密 Timeline state 存在且生产调度仍关闭。受保护输出未披露精确异常；T0704 已为相同既有来源重放持久化历史 label state，而 GA 只重放 timestamp 并使用可变当前 Gmail labels。只授权一个新 label-replay 候选与一次 attempt 1，同时保持 metadata quarantine、二次验证、ACTIVE 与 SAFE_DEFERRED 路径不变",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"
@@ -29,7 +29,7 @@
   },
   {
     "id": "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-    "内容": "T0704 已通过；T0705 两个失败头已冻结且 metadata repair 已授权，T0706 及其后的受保护验收未授权",
+    "内容": "T0704 已通过；T0705 三个失败头已冻结且 label replay repair 已授权，T0706 及其后的受保护验收未授权",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"

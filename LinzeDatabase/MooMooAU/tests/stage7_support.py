@@ -81,6 +81,7 @@ from moomooau_archive.processed_commit import (
     CurrentProcessedPointer,
     MemoryProcessedCiphertextStore,
     ParserBlueGreenComparator,
+    ProcessedCommitPlan,
     ProcessedCommitPlanner,
     ProcessedCommitSaga,
 )
@@ -90,7 +91,7 @@ from moomooau_archive.processed_models import (
     DocumentClassifier,
     DocumentEnvelopeFactory,
 )
-from moomooau_archive.processed_product import ProcessedProductBuilder
+from moomooau_archive.processed_product import ProcessedBundle, ProcessedProductBuilder
 from moomooau_archive.production_adapters import (
     OfficialAgeCrypto,
     RemoteFirstImportTimestampSource,
@@ -479,8 +480,10 @@ def m3_canary_message(
 
 
 class StableFirstImportTimestamps:
-    def __init__(self) -> None:
+    def __init__(self, historical_label_state: tuple[str, ...] | None = None) -> None:
         self._values: dict[str, datetime] = {}
+        self._historical_label_state = historical_label_state
+        self.label_state_resolutions = 0
 
     def resolve(self, source_id: str, observed_at_utc: datetime) -> datetime:
         return self._values.setdefault(source_id, observed_at_utc)
@@ -491,7 +494,18 @@ class StableFirstImportTimestamps:
         observed_at_utc: datetime,
     ) -> tuple[str, ...] | None:
         del source_id, observed_at_utc
-        return None
+        self.label_state_resolutions += 1
+        return self._historical_label_state
+
+
+class CapturingProcessedPlanFactory:
+    def __init__(self, inner: CurrentProcessedPlanFactory) -> None:
+        self._inner = inner
+        self.bundles: list[ProcessedBundle] = []
+
+    def plan(self, bundle: ProcessedBundle, *, key_epoch: str) -> ProcessedCommitPlan:
+        self.bundles.append(bundle)
+        return self._inner.plan(bundle, key_epoch=key_epoch)
 
 
 class RecordingRepositoryReader:
@@ -885,6 +899,8 @@ class GAContext:
     checkpoint: EncryptedGmailSyncCheckpoint
     timeline_remote: MemoryTimelineReleaseRemote
     timeline_state: MemoryTimelineStateStore
+    first_import_timestamps: StableFirstImportTimestamps
+    processed_plan_factory: CapturingProcessedPlanFactory
     events: list[str]
 
 
@@ -899,6 +915,7 @@ def ga_context(
     initial_pending_refs: tuple[MessageRef, ...] = (),
     malformed_metadata_ids: frozenset[str] = frozenset(),
     malformed_metadata_after_first_ids: frozenset[str] = frozenset(),
+    historical_label_state: tuple[str, ...] | None = None,
 ) -> Iterator[GAContext]:
     """Build the T0705 full pipeline with one synthetic ciphertext-only private remote."""
 
@@ -976,6 +993,14 @@ def ga_context(
         timeline_remote = MemoryTimelineReleaseRemote()
         timeline_state = MemoryTimelineStateStore()
         operational_gate = OperationalGate(capacity or synthetic_capacity())
+        first_import_timestamps = StableFirstImportTimestamps(historical_label_state)
+        processed_plan_factory = CapturingProcessedPlanFactory(
+            CurrentProcessedPlanFactory(
+                processed_store,
+                decryptor,
+                processed_planner,
+            )
+        )
         runner = GAFullPipelineRunner(
             gmail,
             reconciler,
@@ -988,15 +1013,11 @@ def ga_context(
             RawCommitSaga(raw_store),
             class_registry,
             parser_registry,
-            CurrentProcessedPlanFactory(
-                processed_store,
-                decryptor,
-                processed_planner,
-            ),
+            processed_plan_factory,
             ProcessedCommitSaga(processed_store),
             recovery,
             ExactMessageTrashExecutor(guard, GmailLabelConfirmationClient(guard)),
-            StableFirstImportTimestamps(),
+            first_import_timestamps,
             current_source,
             snapshot_planner,
             snapshot_commit,
@@ -1018,6 +1039,8 @@ def ga_context(
             checkpoint,
             timeline_remote,
             timeline_state,
+            first_import_timestamps,
+            processed_plan_factory,
             events,
         )
     finally:

@@ -498,6 +498,10 @@ class GAFullPipelineRunner:
             )
             if not _is_utc(imported_at_utc) or imported_at_utc > plan.started_at_utc:
                 raise GARuntimeError("first-import timestamp is invalid")
+            historical_label_state = self._first_import_timestamps.resolve_label_state(
+                raw_plan.opaque_message_id,
+                plan.started_at_utc,
+            )
             envelope = self._envelope_factory.issue(
                 canonical,
                 first,
@@ -506,6 +510,7 @@ class GAFullPipelineRunner:
                 classification,
                 imported_at_utc=imported_at_utc,
                 recovered_raw_ciphertext_sha256=raw_proof.raw_ciphertext_sha256,
+                label_state_override=historical_label_state,
             )
             extraction = self._extractor.extract(attachments)
             profile = self._profile_for(

@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/moomooau/protected-ga-label-replay-attempt-ledger-v1.schema.json",
+  "title": "MooMooAU protected GA label-replay attempt ledger v1",
+  "const": {
+    "schema_version": "moomooau.protected-ga-label-replay-attempt-ledger.v1",
+    "stage_id": "S7",
+    "task_id": "T0705",
+    "observed_through_utc": "2026-07-26T04:06:39Z",
+    "predecessor_control": {
+      "prior_run_contract_sha256": "db60c9347010467684f618be12386829782f8b1d64335bd5120727ece8252407",
+      "first_attempt_ledger_sha256": "7249e7c1190b4a4263aa1e72e8232c697ada4ba65afd5280a3ed5c07cfa0b928",
+      "first_attempt_ledger_schema_sha256": "89779fecb7090722c616ae056318eea3119429f8c5e011830393d9f39aba47eb",
+      "second_attempt_ledger_sha256": "497b01fecc89be10f2e80f356cabdd3aecdecee4146b79d4b085655e6d722e7b",
+      "second_attempt_ledger_schema_sha256": "71779086ba7ee3210e77894f63b987a5ab9feaac5a56ee422062e49db2f92df9",
+      "prior_failed_workflow_head_shas": [
+        "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+        "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0"
+      ],
+      "prior_failed_head_dispatches_after_freeze": 0,
+      "prior_failed_head_reruns_after_freeze": 0
+    },
+    "attempts": [
+      {
+        "sequence": 3,
+        "delivery": {
+          "kind": "CONTROLLED_MOOMOOAU_PR",
+          "pull_request_number": 117,
+          "pull_request_head_sha": "aacbf18766e98852cce4733f74b5104b8587ef15",
+          "merge_commit_parent_sha": "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+          "merge_commit_sha": "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+          "merged_at_utc": "2026-07-26T03:59:22Z",
+          "terminal_checks": 40,
+          "successful_checks": 35,
+          "failed_checks": 0,
+          "skipped_checks": 5,
+          "neutral_checks": 0
+        },
+        "workflow": {
+          "run_id": 30187132406,
+          "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30187132406",
+          "workflow_id": 318812500,
+          "event": "workflow_dispatch",
+          "workflow_ref": "refs/heads/main",
+          "workflow_head_sha": "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+          "run_attempt": 1,
+          "reruns": 0,
+          "started_at_utc": "2026-07-26T04:02:30Z",
+          "completed_at_utc": "2026-07-26T04:06:39Z"
+        },
+        "jobs": {
+          "authority_gate": {
+            "job_id": 89753720130,
+            "status": "PASS",
+            "started_at_utc": "2026-07-26T04:02:34Z",
+            "completed_at_utc": "2026-07-26T04:03:57Z"
+          },
+          "ga_schedule_rehearsal": {
+            "job_id": 89753826896,
+            "status": "FAILED",
+            "started_at_utc": "2026-07-26T04:04:01Z",
+            "completed_at_utc": "2026-07-26T04:06:37Z"
+          },
+          "identity_plaintext_cleanup": {
+            "status": "PASS",
+            "completed_at_utc": "2026-07-26T04:06:37Z"
+          },
+          "live_schedule_hold": {
+            "job_id": 89753720437,
+            "status": "SKIPPED",
+            "completed_at_utc": "2026-07-26T04:02:32Z"
+          }
+        },
+        "public_failure": {
+          "status": "BLOCKED",
+          "reason_code": "PROTECTED_GA_FAILED",
+          "exact_root_cause_claimed": false,
+          "protected_values_disclosed": false,
+          "platform_schedule_event_claimed": false,
+          "production_health_claimed": false,
+          "final_acceptance_claimed": false
+        },
+        "effects": {
+          "private_repository_new_commits_since_dispatch": 0,
+          "private_repository_path_aggregate_change": "UNCHANGED_BECAUSE_ZERO_NEW_COMMITS",
+          "raw_messages_after_dispatch": 1,
+          "raw_objects_after_dispatch": 1,
+          "raw_manifests_after_dispatch": 1,
+          "processed_objects_after_dispatch": 3,
+          "processed_manifests_after_dispatch": 2,
+          "processed_current_pointers_after_dispatch": 1,
+          "timeline_manifests_after_dispatch": 1,
+          "gmail_checkpoint_exists_after_dispatch": false,
+          "timeline_state_exists_after_dispatch": true,
+          "active_moomoo_candidate_outside_trash_after_dispatch": true,
+          "gmail_mutation_api_reached": "NOT_CLAIMED_WITHOUT_PROTECTED_TRACE",
+          "gmail_mutation_independent_remeasurement": "NOT_CLAIMED_WITHOUT_PRE_DISPATCH_ABSOLUTE_BASELINE",
+          "timeline_release_asset_independent_remeasurement": "NOT_PERFORMED",
+          "platform_schedule_events": 0,
+          "identity_plaintext_cleanup": "PASS",
+          "one_shot_authority_variable_after_dispatch": "ABSENT",
+          "production_enablement_variable_after_dispatch": "ABSENT",
+          "protected_environment_secret_names": 8
+        },
+        "diagnosis": {
+          "observable_failure_boundary": "AFTER_AUTHORITY_BEFORE_FIRST_NEW_PRIVATE_COMMIT_CHECKPOINT_AND_NEW_TRASH",
+          "exact_runtime_exception": "NOT_DISCLOSED_BY_PROTECTED_OUTPUT",
+          "high_confidence_defect": "GA_DID_NOT_REPLAY_PERSISTED_FIRST_IMPORT_LABEL_STATE",
+          "basis": [
+            "the protected output disclosed only PROTECTED_GA_FAILED with exact_root_cause_claimed false, so no exact runtime exception is asserted",
+            "authority and plaintext cleanup passed, the protected GA step failed, the live schedule hold remained skipped and all three failed heads remain attempt 1 with rerun zero",
+            "independent post-run repository reads observed zero new private-repository commits, no encrypted Gmail checkpoint and the existing encrypted Timeline state",
+            "independent Gmail reads observed an active Moomoo candidate still outside Trash without disclosing any message identifier or exact mailbox count",
+            "T0704 selected an already-TRASHed preexisting current source and explicitly replayed its persisted first-import label state while retaining the incumbent current object",
+            "the GA runner replayed the persisted first-import timestamp but rebuilt the envelope from mutable current Gmail labels instead of calling resolve_label_state",
+            "Processed business and snapshot roots include label_state, so reusing current TRASH labels for the same parser version can drift the immutable version root before any new private commit",
+            "the bounded repair adds only persisted first-import label-state replay in GA and preserves metadata quarantine, second verification, remote recovery, mutation budget, Timeline and checkpoint-last behavior"
+          ]
+        }
+      }
+    ],
+    "completion_policy": {
+      "same_head_rerun_allowed": false,
+      "failed_head_redispatch_allowed": false,
+      "frozen_failed_workflow_head_shas": [
+        "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+        "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+        "cc7c8af9a40122a61ee2549fb365df813cbd4f16"
+      ],
+      "new_reviewed_label_replay_repair_candidate_allowed": true,
+      "next_candidate_dispatch_limit": 1,
+      "historical_ga_rehearsal_dispatches_consumed": 3,
+      "historical_ga_rehearsal_reruns": 0,
+      "t0705_complete": false,
+      "t0706_authorized": false,
+      "final_publication_authorized": false
+    },
+    "claims": {
+      "s7ac_005_passed": false,
+      "production_health": false,
+      "final_acceptance": false,
+      "stage7_complete": false
+    }
+  }
+}

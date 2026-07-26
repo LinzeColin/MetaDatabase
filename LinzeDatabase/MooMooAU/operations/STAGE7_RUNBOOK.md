@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-交付状态为 `PROTECTED_GA_SECOND_ATTEMPT_FAILED_METADATA_REPAIR_AUTHORIZED`，Stage 7
+交付状态为 `PROTECTED_GA_THIRD_ATTEMPT_FAILED_LABEL_REPLAY_REPAIR_AUTHORIZED`，Stage 7
 验收覆盖状态为
-`T0705_TWO_FAILED_HEADS_FROZEN_METADATA_REPAIR_AUTHORIZED_PENDING`。T0701–T0708
+`T0705_THREE_FAILED_HEADS_FROZEN_LABEL_REPLAY_REPAIR_AUTHORIZED_PENDING`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
@@ -26,19 +26,20 @@ Timeline。受保护 repair 的 Gmail mutation、processed-current、candidate/s
 独立聚合核验只确认一个 encrypted Timeline state commit，未解密或公开私有定位。
 T0704/S7AC-004 因此 PASS，但不等于 Stage 7、最终 Acceptance 或生产 PASS。
 
-T0705 两个不同 exact-main protected head 均只执行 attempt 1。首次 run `30182491342` 与第二次
-run `30184702520` 的 authority 和 identity cleanup 均 PASS，protected GA 均 FAILED，live
-schedule hold 均未启用。第二次独立聚合核验确认新增 private commit 0、checkpoint 未创建、
-唯一 encrypted latest Timeline 仍为 1；一次性 authority 与 production enablement 已清除。
-两个失败 head 均已冻结，rerun 与 redispatch 为 0。
+T0705 三个不同 exact-main protected head 均只执行 attempt 1。三个 run 的 authority 和
+identity cleanup 均 PASS，protected GA 均 FAILED，live schedule hold 均未启用。第三次独立
+核验确认新增 private commit 0、checkpoint 未创建、active Moomoo candidate 仍在 Trash 外且
+encrypted Timeline state 存在；未独立重测的 release asset 与 Gmail mutation trace 不声明。
+一次性 authority 与 production enablement 已清除。三个失败 head 均已冻结，rerun 与
+redispatch 为 0。
 
-protected 输出没有披露第二次 exact runtime exception。不可变 T0703 同邮箱回执证明存在
-metadata quarantine bucket；静态路径证明 GA pre-Raw candidate loop 没有捕获 typed
-`MessageMetadataUnverifiable`，而 Beta/M3 已隔离。因此当前只声明 high-confidence defect，
-不伪造线上精确 root cause。
+protected 输出没有披露第三次 exact runtime exception。T0704 对同一既有来源显式从加密
+Processed envelope 重放历史 label state；静态路径证明 GA 只重放 timestamp，却用包含 `TRASH`
+的可变当前 Gmail labels 重建同 parser version envelope。Processed roots 包含 `label_state`，
+因此当前只声明 high-confidence defect，不伪造线上精确 root cause。
 
-当前精确 successor Run Contract 的总 delivery 预算为 4，两个 launch 已消耗 2；总 rehearsal
-dispatch 预算为 3，两个失败 attempt 已消耗 2。只剩一次 pre-Raw metadata quarantine repair
+当前精确 successor Run Contract 的总 delivery 预算为 5，三个 launch 已消耗 3；总 rehearsal
+dispatch 预算为 4，三个失败 attempt 已消耗 3。只剩一次 persisted first-import label replay
 delivery、一个新 exact-main attempt-1 protected `SCHEDULE_REHEARSAL`（rerun 0）和一次
 receipt/schedule-closure delivery。它复用现有 `moomooau-beta` Environment 的八个精确 Secret
 名称，不复制 Secret 值；受保护修复运行通过后才启用已提交的 04:30 Australia/Sydney schedule。

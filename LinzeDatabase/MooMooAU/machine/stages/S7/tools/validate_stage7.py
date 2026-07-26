@@ -49,6 +49,12 @@ FAILED_T0705_REPAIR_ATTEMPT_LEDGER_SHA256 = (
 FAILED_T0705_REPAIR_ATTEMPT_LEDGER_SCHEMA_SHA256 = (
     "71779086ba7ee3210e77894f63b987a5ab9feaac5a56ee422062e49db2f92df9"  # pragma: allowlist secret
 )
+FAILED_T0705_LABEL_REPLAY_ATTEMPT_LEDGER_SHA256 = (
+    "ed311f5a932c5e0976c70f43df0ebe576a75436981e95ccca413c33eb42a353d"  # pragma: allowlist secret
+)
+FAILED_T0705_LABEL_REPLAY_ATTEMPT_LEDGER_SCHEMA_SHA256 = (
+    "85a8f4448fb1a1f47e01a880685694ddabccc222ee6a554ac65bbc88fbd33cea"  # pragma: allowlist secret
+)
 PROTECTED_BETA_ATTEMPT_LEDGER = Path("machine/stages/S7/reviews/t0702/attempt-ledger.json")
 PROTECTED_BETA_ATTEMPT_LEDGER_SCHEMA = Path(
     "machine/stages/S7/schemas/protected-beta-attempt-ledger-v2.schema.json"
@@ -78,6 +84,12 @@ PROTECTED_GA_REPAIR_ATTEMPT_LEDGER = Path(
 )
 PROTECTED_GA_REPAIR_ATTEMPT_LEDGER_SCHEMA = Path(
     "machine/stages/S7/schemas/protected-ga-repair-attempt-ledger-v1.schema.json"
+)
+PROTECTED_GA_LABEL_REPLAY_ATTEMPT_LEDGER = Path(
+    "machine/stages/S7/reviews/t0705/label-replay-attempt-ledger.json"
+)
+PROTECTED_GA_LABEL_REPLAY_ATTEMPT_LEDGER_SCHEMA = Path(
+    "machine/stages/S7/schemas/protected-ga-label-replay-attempt-ledger-v1.schema.json"
 )
 STAGE7_TASKS = [f"T070{index}" for index in range(1, 9)]
 STAGE7_ACCEPTANCES = [f"S7AC-00{index}" for index in range(1, 9)]
@@ -176,7 +188,7 @@ def _validate_contracts(root: Path) -> list[str]:
         errors.append("Stage 7 acceptance-to-task mapping must be one-to-one")
     if (
         local.get("overall_status")
-        != "T0705_TWO_FAILED_HEADS_FROZEN_METADATA_REPAIR_AUTHORIZED_PENDING"
+        != "T0705_THREE_FAILED_HEADS_FROZEN_LABEL_REPLAY_REPAIR_AUTHORIZED_PENDING"
         or local.get("final_acceptances_passed") != 0
         or "Local implementation preflight" not in local.get("final_acceptance_policy", "")
         or "No fixed calendar observation period or wall-clock 04:30 wait applies"
@@ -224,18 +236,19 @@ def _validate_contracts(root: Path) -> list[str]:
         run.get("schema_version") != "moomooau.run-contract.v1"
         or run.get("stage_id") != "S7"
         or run.get("task_id") != "T0705"
-        or run.get("baseline_commit") != "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0"
+        or run.get("baseline_commit")
+        != "cc7c8af9a40122a61ee2549fb365df813cbd4f16"  # pragma: allowlist secret
         or run.get("baseline_manifest_sha256")
-        != "76b161684d04ccae6e4ff1257542555f961cc3b2e34add6d6079986ebe6560c3"  # pragma: allowlist secret  # noqa: E501
+        != "cc6fcedef3b4af693a905e5f1d12ac73b1ccaf5a5f4985927c9cba0bba10c1e4"  # pragma: allowlist secret  # noqa: E501
         or not isinstance(prohibitions, dict)
         or any(value != 0 for value in prohibitions.values())
         or authorization.get("purpose")
-        != "T0705_PROTECTED_GA_METADATA_QUARANTINE_REPAIR_AND_ENABLEMENT_ONLY"
+        != "T0705_PROTECTED_GA_LABEL_REPLAY_REPAIR_AND_ENABLEMENT_ONLY"
         or authorization.get("original_run_contract_sha256")
         != "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"  # pragma: allowlist secret  # noqa: E501
         or authorization.get("prior_run_contract_sha256")
-        != "b213256898f299ea69857c0adc1ee4112de3b68cbe86a6f5a7375d8a087bfab7"  # pragma: allowlist secret  # noqa: E501
-        or authorization.get("failed_attempt_ledgers_required") != 2
+        != "db60c9347010467684f618be12386829782f8b1d64335bd5120727ece8252407"  # pragma: allowlist secret  # noqa: E501
+        or authorization.get("failed_attempt_ledgers_required") != 3
         or authorization.get("first_failed_attempt_ledger_sha256")
         != FAILED_T0705_ATTEMPT_LEDGER_SHA256
         or authorization.get("first_failed_attempt_ledger_schema_sha256")
@@ -244,10 +257,15 @@ def _validate_contracts(root: Path) -> list[str]:
         != FAILED_T0705_REPAIR_ATTEMPT_LEDGER_SHA256
         or authorization.get("second_failed_attempt_ledger_schema_sha256")
         != FAILED_T0705_REPAIR_ATTEMPT_LEDGER_SCHEMA_SHA256
+        or authorization.get("third_failed_attempt_ledger_sha256")
+        != FAILED_T0705_LABEL_REPLAY_ATTEMPT_LEDGER_SHA256
+        or authorization.get("third_failed_attempt_ledger_schema_sha256")
+        != FAILED_T0705_LABEL_REPLAY_ATTEMPT_LEDGER_SCHEMA_SHA256
         or authorization.get("failed_workflow_head_shas")
         != [
             "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",  # pragma: allowlist secret
             "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",  # pragma: allowlist secret
+            "cc7c8af9a40122a61ee2549fb365df813cbd4f16",  # pragma: allowlist secret
         ]
         or authorization.get("failed_head_rerun_allowed") is not False
         or authorization.get("failed_head_redispatch_allowed") is not False
@@ -256,27 +274,29 @@ def _validate_contracts(root: Path) -> list[str]:
         != "67a5b0f2860fac8b97d459d79f1ad87172f6ce4e45570bb1a1f4f8dc0731fbf7"  # pragma: allowlist secret  # noqa: E501
         or authorization.get("t0705_authorized") is not True
         or authorization.get("t0706_authorized") is not False
-        or authorization.get("controlled_main_delivery_total_limit") != 4
-        or authorization.get("controlled_main_deliveries_consumed") != 2
+        or authorization.get("controlled_main_delivery_total_limit") != 5
+        or authorization.get("controlled_main_deliveries_consumed") != 3
         or authorization.get("controlled_main_deliveries_remaining") != 2
-        or authorization.get("ga_rehearsal_dispatches_consumed") != 2
-        or authorization.get("ga_metadata_quarantine_repair_dispatch_limit") != 1
-        or authorization.get("ga_metadata_quarantine_repair_rerun_limit") != 0
+        or authorization.get("ga_rehearsal_dispatches_consumed") != 3
+        or authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") != 1
+        or authorization.get("ga_label_replay_repair_dispatch_limit") != 1
+        or authorization.get("ga_label_replay_repair_rerun_limit") != 0
         or authorization.get("manual_environment_reviewers_required") is not False
         or authorization.get("fixed_calendar_wait_days") != 0
         or authorization.get("final_publication_authorized") is not False
-        or effect_budget.get("controlled_main_deliveries_total_maximum") != 4
+        or effect_budget.get("controlled_main_deliveries_total_maximum") != 5
         or effect_budget.get("controlled_main_deliveries_remaining_maximum") != 2
         or effect_budget.get("protected_environment_secret_names_maximum") != 8
         or effect_budget.get("private_data_repository_creations_maximum") != 0
         or effect_budget.get("github_app_creations_maximum") != 0
-        or effect_budget.get("protected_ga_rehearsal_dispatches_total_maximum") != 3
-        or effect_budget.get("protected_ga_rehearsal_dispatches_consumed") != 2
-        or effect_budget.get("protected_ga_metadata_quarantine_repair_dispatches_maximum") != 1
+        or effect_budget.get("protected_ga_rehearsal_dispatches_total_maximum") != 4
+        or effect_budget.get("protected_ga_rehearsal_dispatches_consumed") != 3
+        or effect_budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") != 1
+        or effect_budget.get("protected_ga_label_replay_repair_dispatches_maximum") != 1
         or effect_budget.get("protected_ga_rehearsal_reruns_maximum") != 0
         or effect_budget.get("failed_head_reruns_maximum") != 0
         or effect_budget.get("failed_head_redispatches_maximum") != 0
-        or effect_budget.get("protected_ga_metadata_quarantine_repair_pipeline_runs_maximum") != 1
+        or effect_budget.get("protected_ga_label_replay_repair_pipeline_runs_maximum") != 1
         or effect_budget.get("platform_schedule_events_during_rehearsal_maximum") != 0
         or effect_budget.get("gmail_exact_message_trash_mutations_maximum") != 1
         or effect_budget.get("timeline_snapshot_commit_attempts_maximum") != 1
@@ -291,7 +311,7 @@ def _validate_contracts(root: Path) -> list[str]:
         or effect_budget.get("patch_lifecycle_protected_runs_maximum") != 0
         or not run.get("protected_oracles")
         or not any(
-            "more than one new protected T0705 repair dispatch" in item
+            "more than one new protected T0705 label-replay repair dispatch" in item
             for item in run.get("non_goals", [])
         )
         or not run.get("rollback")
@@ -423,21 +443,22 @@ def _validate_contracts(root: Path) -> list[str]:
         [item.get("id") for item in task_items] != STAGE7_TASKS
         or any(item.get("status") == "completed" for item in task_items)
         or status.get("stage_status")
-        != "T0705_TWO_FAILED_HEADS_FROZEN_METADATA_REPAIR_AUTHORIZED_PENDING"
+        != "T0705_THREE_FAILED_HEADS_FROZEN_LABEL_REPLAY_REPAIR_AUTHORIZED_PENDING"
         or status.get("scoped_preflight_task_oracle_file_count") != 8
         or status.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or status.get("completed_task_count") != 0
         or status.get("protected_oracles_executed") != 5
         or status.get("protected_oracles_passed") != 4
         or status.get("protected_oracles_failed") != 1
-        or status.get("protected_workflow_runs") != 22
-        or status.get("production_workflow_runs") != 2
+        or status.get("protected_workflow_runs") != 23
+        or status.get("production_workflow_runs") != 3
         or status.get("final_acceptances_passed") != 0
-        or status.get("delivery_status") != "CONTROLLED_T0705_METADATA_REPAIR_CANDIDATE_NOT_FINAL"
+        or status.get("delivery_status")
+        != "CONTROLLED_T0705_LABEL_REPLAY_REPAIR_CANDIDATE_NOT_FINAL"
         or status.get("ordering_status")
-        != "T0705_TWO_FAILED_HEADS_FROZEN_ONE_NEW_REPAIR_ATTEMPT_AUTHORIZED"
+        != "T0705_THREE_FAILED_HEADS_FROZEN_ONE_NEW_LABEL_REPLAY_ATTEMPT_AUTHORIZED"
         or status.get("diagnostic_repair_status")
-        != "GA_PRE_RAW_METADATA_UNVERIFIABLE_QUARANTINE_VERIFIED_LOCAL"
+        != "GA_PERSISTED_FIRST_IMPORT_LABEL_STATE_REPLAY_VERIFIED_LOCAL"
         or status.get("new_controlled_delivery_authorized") is not True
         or status.get("new_protected_dispatch_authorized") is not True
     ):
@@ -446,7 +467,8 @@ def _validate_contracts(root: Path) -> list[str]:
     semantic = _load(root / "machine/stages/S7/contracts/semantic_gate.json")
     semantic_statuses = {item.get("status") for item in semantic.get("resolutions", [])}
     if (
-        semantic.get("status") != "T0705_TWO_FAILED_HEADS_FROZEN_METADATA_REPAIR_AUTHORIZED_PENDING"
+        semantic.get("status")
+        != "T0705_THREE_FAILED_HEADS_FROZEN_LABEL_REPLAY_REPAIR_AUTHORIZED_PENDING"
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
         or "T0702_PROTECTED_BETA_PASS_NO_RERUN" not in semantic_statuses
@@ -455,7 +477,8 @@ def _validate_contracts(root: Path) -> list[str]:
         or "T0704_PROTECTED_BLUE_GREEN_PASS_SCOPE_STOP" not in semantic_statuses
         or "T0705_FIRST_ATTEMPT_FAILED_HEAD_FROZEN" not in semantic_statuses
         or "T0705_SAFE_DEFERRED_COMPATIBILITY_REPAIR_DELIVERED_HEAD_FROZEN" not in semantic_statuses
-        or "T0705_METADATA_QUARANTINE_REPAIR_AUTHORIZED" not in semantic_statuses
+        or "T0705_METADATA_QUARANTINE_REPAIR_DELIVERED_HEAD_FROZEN" not in semantic_statuses
+        or "T0705_LABEL_REPLAY_REPAIR_AUTHORIZED" not in semantic_statuses
         or "T0703_FAILED_LINEAGE_FROZEN" not in semantic_statuses
         or "PROTECTED_ZERO_NEW_WRITE_RECONCILIATION_VALIDATED" not in semantic_statuses
         or "T0703_PROTECTED_ZERO_MUTATION_RECONCILIATION_PASS" not in semantic_statuses
@@ -843,7 +866,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
     runbook = root / "operations/STAGE7_RUNBOOK.md"
     runbook_text = runbook.read_text(encoding="utf-8") if runbook.is_file() else ""
     for token in (
-        "T0705_TWO_FAILED_HEADS_FROZEN_METADATA_REPAIR_AUTHORIZED_PENDING",
+        "T0705_THREE_FAILED_HEADS_FROZEN_LABEL_REPLAY_REPAIR_AUTHORIZED_PENDING",
         "不设自然日等待",
         "一次有界受保护运行",
         "04:30 Australia/Sydney",
@@ -1327,7 +1350,7 @@ def _validate_workflow(root: Path) -> list[str]:
         "workflow_dispatch:",
         "expected_head_sha:",
         "confirm_ga:",
-        "GA_SCHEDULE_MODE_METADATA_QUARANTINE_REPAIR_MUTATION_BUDGET_ONE",
+        "GA_SCHEDULE_MODE_LABEL_REPLAY_REPAIR_MUTATION_BUDGET_ONE",
         "permissions:\n  contents: read",
         "group: moomooau-production-single-writer",
         "Fail closed on invalid protected GA dispatch context",
@@ -1341,6 +1364,7 @@ def _validate_workflow(root: Path) -> list[str]:
         'test "$GA_AUTHORIZED_HEAD" = "$GITHUB_SHA"',
         'test "$GITHUB_SHA" != "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f"',
         'test "$GITHUB_SHA" != "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0"',
+        'test "$GITHUB_SHA" != "cc7c8af9a40122a61ee2549fb365df813cbd4f16"',
         'echo "authorized_head=$GITHUB_SHA" >> "$GITHUB_OUTPUT"',
         "needs: ga-authority-gate",
         "needs.ga-authority-gate.outputs.authorized_head",
@@ -2118,6 +2142,90 @@ def _validate_evidence(root: Path) -> list[str]:
             or any(value is not False for value in claims.values())
         ):
             errors.append("protected GA repair failed-attempt ledger is not exact or frozen")
+    ga_label_replay_ledger_path = root / PROTECTED_GA_LABEL_REPLAY_ATTEMPT_LEDGER
+    ga_label_replay_schema_path = root / PROTECTED_GA_LABEL_REPLAY_ATTEMPT_LEDGER_SCHEMA
+    try:
+        ga_label_replay_ledger = _load(ga_label_replay_ledger_path)
+        ga_label_replay_schema = _load(ga_label_replay_schema_path)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        errors.append("protected GA label-replay failed-attempt ledger is missing or unreadable")
+    else:
+        ga_label_replay_errors = list(
+            Draft202012Validator(
+                ga_label_replay_schema,
+                format_checker=FormatChecker(),
+            ).iter_errors(ga_label_replay_ledger)
+        )
+        attempts = ga_label_replay_ledger.get("attempts", [])
+        attempt = attempts[0] if isinstance(attempts, list) and len(attempts) == 1 else {}
+        predecessor = ga_label_replay_ledger.get("predecessor_control", {})
+        delivery = attempt.get("delivery", {})
+        workflow = attempt.get("workflow", {})
+        jobs = attempt.get("jobs", {})
+        effects = attempt.get("effects", {})
+        diagnosis = attempt.get("diagnosis", {})
+        policy = ga_label_replay_ledger.get("completion_policy", {})
+        claims = ga_label_replay_ledger.get("claims", {})
+        if (
+            ga_label_replay_errors
+            or _sha256(ga_label_replay_ledger_path)
+            != FAILED_T0705_LABEL_REPLAY_ATTEMPT_LEDGER_SHA256
+            or _sha256(ga_label_replay_schema_path)
+            != FAILED_T0705_LABEL_REPLAY_ATTEMPT_LEDGER_SCHEMA_SHA256
+            or predecessor.get("first_attempt_ledger_sha256") != FAILED_T0705_ATTEMPT_LEDGER_SHA256
+            or predecessor.get("first_attempt_ledger_schema_sha256")
+            != FAILED_T0705_ATTEMPT_LEDGER_SCHEMA_SHA256
+            or predecessor.get("second_attempt_ledger_sha256")
+            != FAILED_T0705_REPAIR_ATTEMPT_LEDGER_SHA256
+            or predecessor.get("second_attempt_ledger_schema_sha256")
+            != FAILED_T0705_REPAIR_ATTEMPT_LEDGER_SCHEMA_SHA256
+            or attempt.get("sequence") != 3
+            or delivery.get("pull_request_number") != 117
+            or delivery.get("pull_request_head_sha")
+            != "aacbf18766e98852cce4733f74b5104b8587ef15"  # pragma: allowlist secret
+            or delivery.get("merge_commit_parent_sha")
+            != "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0"  # pragma: allowlist secret
+            or delivery.get("merge_commit_sha")
+            != "cc7c8af9a40122a61ee2549fb365df813cbd4f16"  # pragma: allowlist secret
+            or delivery.get("merge_commit_sha") != workflow.get("workflow_head_sha")
+            or delivery.get("terminal_checks") != 40
+            or delivery.get("successful_checks") != 35
+            or delivery.get("failed_checks") != 0
+            or delivery.get("skipped_checks") != 5
+            or delivery.get("neutral_checks") != 0
+            or workflow.get("run_id") != 30187132406
+            or workflow.get("run_attempt") != 1
+            or workflow.get("reruns") != 0
+            or jobs.get("authority_gate", {}).get("status") != "PASS"
+            or jobs.get("ga_schedule_rehearsal", {}).get("status") != "FAILED"
+            or jobs.get("identity_plaintext_cleanup", {}).get("status") != "PASS"
+            or jobs.get("live_schedule_hold", {}).get("status") != "SKIPPED"
+            or effects.get("private_repository_new_commits_since_dispatch") != 0
+            or effects.get("private_repository_path_aggregate_change")
+            != "UNCHANGED_BECAUSE_ZERO_NEW_COMMITS"
+            or effects.get("gmail_checkpoint_exists_after_dispatch") is not False
+            or effects.get("timeline_state_exists_after_dispatch") is not True
+            or effects.get("active_moomoo_candidate_outside_trash_after_dispatch") is not True
+            or effects.get("gmail_mutation_api_reached") != "NOT_CLAIMED_WITHOUT_PROTECTED_TRACE"
+            or effects.get("timeline_release_asset_independent_remeasurement") != "NOT_PERFORMED"
+            or effects.get("platform_schedule_events") != 0
+            or effects.get("identity_plaintext_cleanup") != "PASS"
+            or effects.get("one_shot_authority_variable_after_dispatch") != "ABSENT"
+            or effects.get("production_enablement_variable_after_dispatch") != "ABSENT"
+            or diagnosis.get("exact_runtime_exception") != "NOT_DISCLOSED_BY_PROTECTED_OUTPUT"
+            or diagnosis.get("high_confidence_defect")
+            != "GA_DID_NOT_REPLAY_PERSISTED_FIRST_IMPORT_LABEL_STATE"
+            or policy.get("same_head_rerun_allowed") is not False
+            or policy.get("failed_head_redispatch_allowed") is not False
+            or policy.get("new_reviewed_label_replay_repair_candidate_allowed") is not True
+            or policy.get("next_candidate_dispatch_limit") != 1
+            or policy.get("historical_ga_rehearsal_dispatches_consumed") != 3
+            or policy.get("historical_ga_rehearsal_reruns") != 0
+            or policy.get("t0705_complete") is not False
+            or policy.get("t0706_authorized") is not False
+            or any(value is not False for value in claims.values())
+        ):
+            errors.append("protected GA label-replay failed-attempt ledger is not exact or frozen")
     graph = _load(root / "machine/contracts/task_graph.json")
     graph_tasks = {item["id"]: item for item in graph["tasks"] if item["stage_id"] == "S7"}
     required_blockers = {
@@ -2130,8 +2238,8 @@ def _validate_evidence(root: Path) -> list[str]:
             "FINAL_ACCEPTANCE_AND_POST_BLUE_GREEN_STAGE7_PHASES_NOT_RUN",
         },
         "T0705": {
-            "T0705_TWO_FAILED_HEADS_FROZEN",
-            "T0705_METADATA_QUARANTINE_REPAIR_PENDING",
+            "T0705_THREE_FAILED_HEADS_FROZEN",
+            "T0705_LABEL_REPLAY_REPAIR_PENDING",
             "T0705_PROTECTED_RECEIPT_NOT_BOUND",
             "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN",
         },
@@ -2255,14 +2363,14 @@ def _validate_evidence(root: Path) -> list[str]:
     if (
         latest.get("stage_id") != "S7"
         or latest.get("status")
-        != "T0705_TWO_FAILED_HEADS_FROZEN_METADATA_REPAIR_AUTHORIZED_PENDING"
+        != "T0705_THREE_FAILED_HEADS_FROZEN_LABEL_REPLAY_REPAIR_AUTHORIZED_PENDING"
         or latest.get("scoped_preflight")
         != "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
         or latest.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or latest.get("scope")
         != (
             "LOCAL_PREFLIGHT_WITH_PROTECTED_T0702_T0703_T0704_PASS_RECEIPTS"
-            "_TWO_T0705_FAILED_ATTEMPTS_AND_ONE_METADATA_REPAIR_AUTHORITY"
+            "_THREE_T0705_FAILED_ATTEMPTS_AND_ONE_LABEL_REPLAY_REPAIR_AUTHORITY"
         )
         or latest.get("mechanism_task_oracle_files_passed") != 8
         or latest.get("task_total") != 8
@@ -2271,8 +2379,8 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("protected_oracles_executed") != 5
         or latest.get("protected_oracles_passed") != 4
         or latest.get("protected_oracles_failed") != 1
-        or latest.get("protected_workflow_runs") != 22
-        or latest.get("production_workflow_runs") != 2
+        or latest.get("protected_workflow_runs") != 23
+        or latest.get("production_workflow_runs") != 3
         or observation.get("alpha_local_synthetic") != "PASS"
         or observation.get("beta_local_bootstrap_mechanism") != "PASS"
         or observation.get("beta_public_safe_failure_diagnostics")
@@ -2287,7 +2395,7 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("ga_full_pipeline_local_mechanism")
         != "PASS_EXACT_PROTECTED_ENTRYPOINT_READY"
         or observation.get("ga_protected_entrypoint")
-        != "TWO_FAILED_HEADS_FROZEN_METADATA_QUARANTINE_REPAIR_AUTHORIZED"
+        != "THREE_FAILED_HEADS_FROZEN_LABEL_REPLAY_REPAIR_AUTHORIZED"
         or observation.get("codex_auto_local_policy") != "PASS"
         or observation.get("recovery_drill_local_mechanism") != "PASS"
         or observation.get("patch_lifecycle_local_policy") != "PASS"
@@ -2305,7 +2413,7 @@ def _validate_evidence(root: Path) -> list[str]:
         != "NONZERO_AGE_CIPHERTEXT_ONLY_REMOTE_RECOVERY_100_PERCENT"
         or observation.get("protected_secret_injection")
         != "EIGHT_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED"
-        or observation.get("controlled_main_deliveries") != 19
+        or observation.get("controlled_main_deliveries") != 20
         or observation.get("private_raw_commits") != "NONZERO_WITHIN_CONFIGURED_BUDGET"
         or observation.get("remote_publications") != 0
         or observation.get("m3_runs") != 1
@@ -2315,13 +2423,14 @@ def _validate_evidence(root: Path) -> list[str]:
         or observation.get("maximum_observed_live_timeline_assets") != 1
         or not aggregate_required_blockers.issubset(latest.get("blocking_conditions", []))
         or aggregate_resolved_blockers.intersection(latest.get("blocking_conditions", []))
-        or latest.get("delivery_status") != "CONTROLLED_T0705_METADATA_REPAIR_CANDIDATE_NOT_FINAL"
+        or latest.get("delivery_status")
+        != "CONTROLLED_T0705_LABEL_REPLAY_REPAIR_CANDIDATE_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "Deliver one new exact-main metadata-quarantine repair candidate, set one exact-head "
-            "repair authority variable, execute one attempt-1 schedule-mode rehearsal with rerun "
-            "zero, never rerun either failed head, and after PASS bind the receipt and enable "
-            "only the committed 04:30 schedule; stop before T0706."
+            "Deliver one new exact-main persisted-label replay repair candidate, set one "
+            "exact-head repair authority variable, execute one attempt-1 schedule-mode rehearsal "
+            "with rerun zero, never rerun any of the three failed heads, and after PASS bind the "
+            "receipt and enable only the committed 04:30 schedule; stop before T0706."
         )
     ):
         errors.append("Stage 7 aggregate evidence is not truthfully T0705 authorized-pending")

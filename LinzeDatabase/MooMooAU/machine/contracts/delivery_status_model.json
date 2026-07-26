@@ -199,7 +199,7 @@
       "next_action": "Deliver the exact validated T0705 candidate to main, set one exact-head rehearsal authority variable, and execute exactly one protected schedule-mode GA workflow_dispatch at attempt 1 with rerun zero. Keep the platform schedule disabled until the PASS receipt is bound, then stop before T0706."
     },
     "PROTECTED_GA_REPAIR_AUTHORIZED": {
-      "package_version": "1.0.21",
+      "package_version": "1.0.22",
       "resolved_review_findings": [
         "REV-P0-002",
         "REV-P0-003",
@@ -209,10 +209,10 @@
       ],
       "current_remediation_blockers": [
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-        "T0705_METADATA_QUARANTINE_REPAIR_PENDING",
+        "T0705_LABEL_REPLAY_REPAIR_PENDING",
         "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
       ],
-      "next_action": "Deliver one new exact-main T0705 metadata-quarantine repair candidate and execute one attempt-1 schedule-mode rehearsal. Never rerun or redispatch either failed head; after exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
+      "next_action": "Deliver one new exact-main T0705 persisted-label replay repair candidate and execute one attempt-1 schedule-mode rehearsal. Never rerun or redispatch any of the three failed heads; after exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
     }
   }
 }

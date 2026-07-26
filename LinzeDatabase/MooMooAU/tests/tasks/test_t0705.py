@@ -4,6 +4,7 @@ import base64
 import json
 from collections.abc import Iterator
 from contextlib import contextmanager
+from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import cast
@@ -480,6 +481,42 @@ def test_t0705_ga_second_metadata_failure_stays_fail_closed_before_trash() -> No
         assert "delete" not in context.timeline_remote.actions
 
 
+def test_t0705_ga_replays_persisted_labels_for_an_already_trashed_current_source() -> None:
+    message_id = "msg-stage7-ga-historical-label-replay"
+    message = replace(
+        m3_canary_message(message_id),
+        labels=("CATEGORY_UPDATES", "INBOX", "TRASH"),
+    )
+    historical_labels = ("CATEGORY_UPDATES", "INBOX")
+    with ga_context(
+        (message,),
+        historical_label_state=historical_labels,
+    ) as context:
+        outcome = context.runner.run(
+            _sunday_plan(),
+            key_epoch="synthetic-epoch-1",
+            parser_current_version="1.0.0",
+            predecessor_observations=observations_through(ReleasePhase.BLUE_GREEN),
+            beta_message_budget=1,
+            ga_mutation_budget_per_run=1,
+            ga_capacity_authorized=True,
+        )
+
+        assert context.first_import_timestamps.label_state_resolutions == 1
+        assert len(context.processed_plan_factory.bundles) == 1
+        bundle = context.processed_plan_factory.bundles[0]
+        envelope_artifact = next(
+            artifact
+            for artifact in bundle.artifacts
+            if artifact.dataset_name == "document_envelopes"
+        )
+        envelope = json.loads(envelope_artifact.plaintext)
+        assert envelope["gmail"]["label_state"] == list(historical_labels)
+        assert outcome.result.already_trashed == 1
+        assert outcome.result.confirmed_trashed == outcome.result.mutation_calls == 0
+        assert context.transport.trashed_ids == []
+
+
 def test_t0705_nonzero_full_reconcile_difference_stops_before_raw_or_mutation() -> None:
     first_id = "msg-stage7-ga-audit-first"
     second_id = "msg-stage7-ga-audit-second"
@@ -654,10 +691,10 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["maximum_reruns"] == 0
     assert contract["required_protected_input_count"] == 8
     assert contract["blue_green_receipt_sha256"] == blue_green_receipt_sha256(PROJECT_ROOT)
-    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 2
+    assert len(cast(list[str], contract["failed_ga_head_shas"])) == 3
     assert contract["failed_ga_heads_rerun_allowed"] is False
     assert contract["failed_ga_heads_redispatch_allowed"] is False
-    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 2
+    assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 3
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
 
 
