@@ -1,89 +1,81 @@
 # CyberBoss v0.0.0.4 Implementation Kit Validation Report
 
-- Date: 2026-07-26
-- Current Run: `P1.3 / CB-120`
+- Date: 2026-07-27
+- Current Run: `P1.4 / CB-130`
 - Input commit:
-  `bacb20147b1f9971b8d47c578599fd3494bed5c3`
-- Scope: controlled workspace, fixed candidate source, no-clone client and
-  disk/identity gates
+  `9e1c128aa3890f7c0ea0e69000fdb46e32a4bb00`
+- Scope: exact-commit loopback Runtime, supervised process family, health/
+  readiness/snapshot and mechanism-based restart/fault acceptance
 - Publication: local branch only; no push, PR, tag or release
 
 ## Current implementation readiness
 
-- The App now resolves a single root-controlled `cyberboss` alias and validates
-  config type, lexical containment, canonical realpath and symlink boundaries.
-- `/bind` accepts only the registered alias. Absolute paths and unknown aliases
-  are rejected before session mutation.
-- Runtime and system-message dispatch revalidate the registered real root
-  before the turn gate or Runtime is entered.
-- Active App instructions and `/star` behavior no longer clone, sync, link or
-  route users to the historical upstream projects.
-- PNG sticker normalization now uses a bounded dependency-free encoder on
-  Ubuntu and macOS; regression evidence verifies a real 240×240 GIF89a output.
-- Original vendor source, original license files, provenance and the unresolved
-  whereabouts metadata/file conflict remain byte-preserved. The conservative
-  treatment remains
+- A commit-bound Node supervisor starts Runtime, channel fixture and bridge as
+  non-detached, non-shell children. The existing systemd unit retains
+  `KillMode=control-group` and the singleton flock.
+- The fixed runner rejects release/manifest drift, a non-exact
+  `ws://127.0.0.1:8765` Runtime endpoint, a non-exact
+  `127.0.0.1:8780` status endpoint, invalid provider mode and non-ephemeral
+  status token paths. It no longer executes an environment-provided shell
+  command.
+- `/healthz` and `/readyz` use independent lifecycle predicates. A critical
+  child exit clears readiness and requires whole-family systemd recovery.
+- `/status/snapshot.json` uses a timing-safe bearer check against a root-created
+  `/run` token. Its bounded schema excludes PID, account/user/thread identity,
+  token, message, prompt/result and absolute paths.
+- Journal output is reduced to allowlisted lifecycle markers. Child stdout/
+  stderr is used for readiness only and is not forwarded into the journal.
+- Existing Weixin and Codex simulators are selected through root-controlled
+  provider config while real auth is pending. The Weixin fixture can hold an
+  empty poll until synthetic input, avoiding a busy loop without changing its
+  default CB-030 contract.
+- The exact-commit artifact builder preserves complete Corresponding Source,
+  original licenses, the unresolved conflict and modification record under
   `AGPL-3.0-only AND GPL-3.0-only`;
   `upstream_clarification_received=false`.
-- `workspaces.json.example` fixes one `blob:none` sparse MetaDatabase workspace
-  with paths `CyberBoss` and `.github`; root integration is read-only and code
-  write scope remains `CyberBoss/**`.
-- The immutable root-owned seed is copied offline with `--no-hardlinks`;
-  checkout disables lazy fetch, while a root-controlled system Git config
-  trusts exactly the registered workspace and no user-level exception.
-- `workspace-budget.json` fixes a 4 GiB workspace budget, 8 GiB absolute stop,
-  4 GiB host reserve and immediate recover/guard/protect/stop ladder. Cleanup
-  explicitly forbids `--prune=now`.
-- Code identity `cyberboss` and data identity `cyberboss-data` use separate
-  groups and credential scope. The code identity cannot read/execute the data
-  client; the data identity cannot modify code.
-- Canonical `private_db_client.py` is pinned by exact SHA-256 and exposed only
-  through a wrapper that allows `ingest/get/list/verify`. Real data execution
-  remains `activation_pending`; Private-Database is never cloned.
-- GitHub CLI Linux amd64 `2.96.0` is pinned to its official release asset and
-  exact SHA-256.
-- The artifact builder creates a complete commit-bound CyberBoss source archive
-  plus a local immutable partial bare seed without pushing.
-- The target installer is commit-bound, validates every artifact before
-  extraction, installs only a candidate release, performs App check/full test,
-  supports idempotent apply/verify, and prohibits changes to `current`, service
-  state, business Runtime and real data activation.
+- The target installer installs only an immutable candidate plus value-free
+  staging config. It runs lockfile install, App syntax/full tests and exact
+  manifest verification without moving `current`, starting/enabling service,
+  cloning Private-Database or activating credentials.
+- The target acceptance harness uses only a transient `/run/systemd` drop-in
+  and token. Its Oracles cover loopback/external scan, healthy/unready/snapshot,
+  100 concurrent starts, 100 lock denials, 100 cgroup kill/restarts and
+  runtime/channel/bridge/service fault recovery, followed by exact cleanup.
 
 ## Passed locally
 
-- App syntax and full regression: `166/166`.
-- Workspace registry and active-upstream separation: `11/11` App tests.
-- Controlled cloud workspace contract: `5/5`.
-- Identity/scope policy and no-clone wrapper: `8/8`.
-- Workspace budget policy and pressure-state ladder: `5/5`.
-- Config validator and scope-policy validator: pass.
-- Installer `--check`: full 40-character commit binding, zero persistent writes
-  and zero live commands.
-- Installer/maintenance shell syntax and builder/wrapper/budget Python compile:
-  pass.
-- `git diff --check`: pass.
+- Supervisor contract tests: `4/4`.
+- Cloud process family static/read-only installer tests: `5/5`.
+- Simulator contract, including held empty poll: `5/5`.
+- App syntax and complete regression: `170/170`.
+- CB-130 prepare validator, Prestage validator, DAG/traceability/no-wait/
+  TaskPack and both manifests: pass.
+- Runner/health/installer/acceptance shell syntax: pass.
+- Artifact builder Python compile: pass.
+- Installer `--check`: zero persistent writes, live commands, service starts
+  and `current` changes.
+- Runtime/status exact loopback, fixed entrypoint, no detached child, protected
+  snapshot and no fixed-delay shell gate checks: pass.
 
-## Pending before CB-120 may pass
+## Pending before CB-130 may pass
 
-- Create the exact implementation commit and build artifacts from a clean
-  worktree.
-- Re-run the protected target identity and resource preflight.
-- Transfer the exact artifact set into the bounded incoming directory.
-- Run two target applies and one independent verify.
-- Capture target alias/path/symlink, identity/credential, live disk budget and
-  finite-cgroup pressure evidence.
-- Confirm incoming/transient cleanup, no process/listener, unchanged current
-  pointer, disabled/inactive service, and no real data/provider operation.
-- Run final CB-120 and global validators, then change only CB-120 task state.
+- Create the exact implementation commit and build artifacts from its clean
+  tree.
+- Re-run the protected target read-only preflight.
+- Transfer the exact bounded artifact set; run two applies and one verify.
+- Start the transient staging service and run operator-host external scans.
+- Run all 100/100/100 cycle and four-fault target Oracles.
+- Preserve any failed attempt/correction, remove all transient target material,
+  and prove final disabled/inactive with zero process/listener.
+- Add exact evidence, run final validators, then change only CB-130 state.
 
 ## Explicit non-claims
 
+- Real Codex and WeChat target activation remain `activation_pending`; simulator
+  evidence is not reported as real provider verification.
 - No upstream clarification, support or endorsement is claimed.
-- No source/vendor historical evidence was rewritten to make later App changes
-  appear part of the original import.
-- No Private-MetaDatabase operation, credential activation, WeChat login, Codex
-  authenticated turn, provider write or business Runtime has been performed.
-- A candidate release is not a production activation and will not be described
-  as one.
-- `CB-120`, `CB-130` and every later task remain `not_started` until their own
-  exact Acceptance evidence closes.
+- No original vendor source, license, provenance or historical evidence was
+  rewritten.
+- No real provider, Private-MetaDatabase or credential operation has run.
+- `CB-130` remains `not_started` until target Acceptance closes. `CB-140`,
+  `PG-1` and every later task/gate remain `not_started`.

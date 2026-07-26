@@ -53,6 +53,27 @@ root-owned immutable seed 通过 `--local --no-hardlinks` 离线复制，checkou
 强制 `GIT_NO_LAZY_FETCH=1`；唯一 workspace 的 `safe.directory` 仅由
 root-controlled `/etc/cyberboss/cyberboss.gitconfig` 授权。
 
+P1.4 增加 commit-bound cloud supervisor。它把 loopback Codex Runtime、
+Weixin simulator（真实 auth 未激活时）和 bridge 作为非 detached child
+放在 `cyberboss-cloud.service` 的同一 cgroup；任一 critical child 异常退出
+都会先清 readiness，再由 systemd 恢复整个 process family。固定入口不接受
+environment shell command。
+
+`/healthz` 与 `/readyz` 分离，`/status/snapshot.json` 只接受 `/run` 中的
+ephemeral bearer token，并且只暴露 release、fixture claim 与布尔组件状态。
+snapshot 和 allowlisted journal lifecycle marker 不包含 PID、账号/用户 ID、
+thread、token、消息、prompt/result 或绝对路径。Runtime 固定
+`127.0.0.1:8765`，status 固定 `127.0.0.1:8780`；simulator/real provider
+只通过 root-controlled config 切换，simulator evidence 不代表真实激活。
+
+`build-cloud-process-artifacts.py` 从 clean exact commit 生成完整
+Corresponding Source。`install-cloud-process-family.sh` 只安装 immutable
+candidate 和 value-free staging config，不移动 `current`、不启动或 enable
+service。`accept-cloud-process-family.sh` 使用 transient `/run/systemd`
+drop-in 完成 healthy/unready/snapshot、external scan、100 concurrent start、
+100 singleton denial、100 kill/restart 和四类 fault recovery，最后恢复
+disabled/inactive 且零 process/listener。
+
 ## Immediate validation
 
 ```bash
@@ -89,6 +110,10 @@ bash implementation-kit/scripts/install-runtime-toolchain.sh \
   --check --release-id 0000000000000000000000000000000000000000
 bash implementation-kit/scripts/install-controlled-workspace.sh \
   --check --release-id 0000000000000000000000000000000000000000
+python3 -m py_compile \
+  implementation-kit/scripts/build-cloud-process-artifacts.py
+bash implementation-kit/scripts/install-cloud-process-family.sh \
+  --check --release-id 0000000000000000000000000000000000000000
 node --check implementation-kit/scripts/probe-codex-app-server.mjs
 
 db="$(mktemp)"
@@ -119,6 +144,14 @@ sudo implementation-kit/scripts/install-controlled-workspace.sh \
   --verify \
   --release-id <full-local-implementation-commit> \
   --artifacts /var/lib/cyberboss/incoming/cb120-<full-local-implementation-commit>
+sudo implementation-kit/scripts/install-cloud-process-family.sh \
+  --apply \
+  --release-id <full-local-implementation-commit> \
+  --artifacts /var/lib/cyberboss/incoming/cb130-<full-local-implementation-commit>
+sudo implementation-kit/scripts/install-cloud-process-family.sh \
+  --verify \
+  --release-id <full-local-implementation-commit> \
+  --artifacts /var/lib/cyberboss/incoming/cb130-<full-local-implementation-commit>
 ```
 
 `preflight.sh` 只读并输出三次即时脱敏 snapshot；有限 cgroup v2 memory/swap
@@ -136,6 +169,13 @@ CB-120 artifact builder 只能从 branch
 artifact remote 不是 GitHub/upstream remote；目标 workspace origin 只指向
 该本地 immutable seed。candidate release 不切换 `current`，data credential
 缺失时准确保持 `activation_pending`，不得为了通过验收执行真实 `gh api`。
+
+CB-130 acceptance 的 `--prepare` 只建立 transient drop-in 和 ephemeral
+status token，供 operator-host 立即执行外部 8765/8780 scan；随后
+`--exercise` 运行完整机制型 matrix 并自动 cleanup。任何失败都必须执行
+`--cleanup`，不得留下 active service、cgroup child、listener、drop-in 或
+token。candidate 与 staging env 可保留审计，`current` 和 CB-120 workspace
+不得变化。
 
 `resource-pressure-fixture.py` 默认 `--evidence-scope=local_container`，不得
 改称实机证据。只有目标授权链和只读 baseline 已在外层证据中验证、且 fixture

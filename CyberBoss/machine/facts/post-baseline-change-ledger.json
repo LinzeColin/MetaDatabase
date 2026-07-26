@@ -48,6 +48,29 @@
       "upstream_sync_enabled": false,
       "upstream_support_claimed": false,
       "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-130",
+      "phase": "P1.4",
+      "base_commit": "9e1c128aa3890f7c0ea0e69000fdb46e32a4bb00",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/cloud-supervisor.js",
+        "CyberBoss/app/test/cloud-supervisor.test.js"
+      ],
+      "purposes": [
+        "run the fixed bridge and loopback Runtime as non-detached children of one systemd process family",
+        "provide independent health and readiness plus a protected redacted status snapshot",
+        "switch real and simulator adapters only through root-controlled configuration",
+        "fail closed on non-loopback Runtime or status endpoints and recover critical child faults through systemd",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not install, runtime, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
     }
   ]
 }

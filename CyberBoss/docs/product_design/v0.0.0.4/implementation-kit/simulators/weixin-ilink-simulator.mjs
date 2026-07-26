@@ -5,6 +5,9 @@ import crypto from "node:crypto";
 const host = process.env.SIM_WEIXIN_HOST || "127.0.0.1";
 const requestedPort = Number(process.env.SIM_WEIXIN_PORT || 19080);
 const token = process.env.SIM_WEIXIN_TOKEN || "sim-token-not-secret";
+const holdEmptyPolls = ["1", "true", "yes", "on"].includes(
+  String(process.env.SIM_WEIXIN_HOLD_EMPTY_POLLS || "").trim().toLowerCase(),
+);
 const accountId = "sim-ilink-bot";
 const userId = "sim-authorized-user";
 const deterministicEpochMs = 1_700_000_000_000;
@@ -38,6 +41,7 @@ const faults = {
   getupdates: [],
   sendmessage: [],
 };
+const pendingUpdates = new Set();
 
 function isLoopbackHost(value) {
   return value === "127.0.0.1" || value === "::1" || value === "localhost";
@@ -94,6 +98,29 @@ function candidateCursor(batch, fallback) {
     (highest, item) => Math.max(highest, Number(item.seq) || 0),
     fallback,
   );
+}
+
+function respondWithUpdates(res, cursor) {
+  let batch = messages.filter((item) => Number(item.seq) > cursor);
+  if (nextUpdateOrder === "reverse") {
+    batch = [...batch].reverse();
+    nextUpdateOrder = "ascending";
+  }
+  const next = candidateCursor(batch, cursor);
+  json(res, 200, {
+    ret: 0,
+    msgs: batch,
+    get_updates_buf: String(next),
+  });
+}
+
+function flushPendingUpdates() {
+  for (const pending of [...pendingUpdates]) {
+    pendingUpdates.delete(pending);
+    if (!pending.res.destroyed && !pending.res.writableEnded) {
+      respondWithUpdates(pending.res, pending.cursor);
+    }
+  }
 }
 
 function providerReceiptId(clientId) {
@@ -266,17 +293,14 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       const cursor = Number.parseInt(String(request.get_updates_buf || "0"), 10) || 0;
-      let batch = messages.filter((item) => Number(item.seq) > cursor);
-      if (nextUpdateOrder === "reverse") {
-        batch = [...batch].reverse();
-        nextUpdateOrder = "ascending";
+      const hasUpdates = messages.some((item) => Number(item.seq) > cursor);
+      if (holdEmptyPolls && !hasUpdates) {
+        const pending = { res, cursor };
+        pendingUpdates.add(pending);
+        res.once("close", () => pendingUpdates.delete(pending));
+        return;
       }
-      const next = candidateCursor(batch, cursor);
-      return json(res, 200, {
-        ret: 0,
-        msgs: batch,
-        get_updates_buf: String(next),
-      });
+      return respondWithUpdates(res, cursor);
     }
     if (req.method === "POST" && url.pathname === "/ilink/bot/sendmessage") {
       const request = await readBody(req);
@@ -318,6 +342,7 @@ const server = http.createServer(async (req, res) => {
         messages.push(item);
         created.push(item.message_id);
       }
+      flushPendingUpdates();
       return json(res, 200, {
         injected: created.length,
         message_ids: created,
@@ -333,6 +358,7 @@ const server = http.createServer(async (req, res) => {
         return json(res, 404, { error: "message_not_found" });
       }
       messages.push({ ...source, seq: ++sequence });
+      flushPendingUpdates();
       return json(res, 200, {
         replayed: source.message_id,
         cursor: String(sequence),
@@ -375,6 +401,7 @@ const server = http.createServer(async (req, res) => {
       });
     }
     if (req.method === "POST" && url.pathname === "/admin/reset") {
+      flushPendingUpdates();
       messages.length = 0;
       sent.length = 0;
       sequence = 0;
@@ -396,6 +423,7 @@ const server = http.createServer(async (req, res) => {
         unique_receipts: receiptsByClientId.size,
         queued_getupdates_faults: faults.getupdates.length,
         queued_sendmessage_faults: faults.sendmessage.length,
+        pending_updates: pendingUpdates.size,
         next_update_order: nextUpdateOrder,
         qr_status: qrStatus,
       });
@@ -413,11 +441,12 @@ server.listen(requestedPort, host, () => {
   const address = server.address();
   const activePort = typeof address === "object" && address ? address.port : requestedPort;
   console.log(
-    `WEIXIN_SIMULATOR=READY base_url=http://${host}:${activePort}/ user_id=${userId} claim_level=fixture`,
+    `WEIXIN_SIMULATOR=READY base_url=http://${host}:${activePort}/ user_id=${userId} claim_level=fixture hold_empty_polls=${holdEmptyPolls}`,
   );
 });
 
 function shutdown() {
+  flushPendingUpdates();
   server.close(() => process.exit(0));
 }
 

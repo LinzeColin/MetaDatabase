@@ -107,6 +107,17 @@ async function postJson(baseUrl, pathname, value) {
   });
 }
 
+async function waitForPredicate(predicate, label) {
+  const deadline = Date.now() + safetyTimeoutMs;
+  while (Date.now() < deadline) {
+    if (await predicate()) {
+      return;
+    }
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+  throw new Error(`${label} timeout`);
+}
+
 function sendMessageBody(clientId, text = "pong") {
   return {
     msg: {
@@ -440,6 +451,37 @@ test("WeChat iLink simulator covers login, cursor, duplicate and failure contrac
   assert.match(fixtureHtml, /SIMULATOR FIXTURE — NOT REAL WECHAT/);
   assert.match(fixtureHtml, /claim_level=fixture/);
   assert.doesNotMatch(fixtureHtml, /Bearer\s+[A-Za-z0-9._-]+/);
+});
+
+test("WeChat simulator can hold an empty cloud poll until synthetic input arrives", async (t) => {
+  const simulator = await startSimulator(
+    weixinSimulator,
+    {
+      SIM_WEIXIN_HOST: "127.0.0.1",
+      SIM_WEIXIN_PORT: "0",
+      SIM_WEIXIN_HOLD_EMPTY_POLLS: "true",
+    },
+    /WEIXIN_SIMULATOR=READY base_url=(http:\/\/127\.0\.0\.1:\d+\/)/,
+  );
+  t.after(() => stopSimulator(simulator));
+  const baseUrl = simulator.match[1];
+  const pending = postJson(baseUrl, "/ilink/bot/getupdates", {
+    get_updates_buf: "0",
+  });
+  await waitForPredicate(async () => {
+    const state = await fetchJson(new URL("/admin/state", baseUrl));
+    return state.value.pending_updates === 1;
+  }, "pending update registration");
+  const injected = await postJson(baseUrl, "/admin/inject", {
+    text: "cloud-ready",
+    count: 1,
+  });
+  assert.equal(injected.value.injected, 1);
+  const result = await pending;
+  assert.equal(result.response.status, 200);
+  assert.equal(result.value.msgs.length, 1);
+  assert.equal(result.value.msgs[0].item_list[0].text_item.text, "cloud-ready");
+  assert.equal(result.value.get_updates_buf, "1");
 });
 
 test("Codex simulator covers handshake, progress, approval, failures and false-success", async (t) => {
