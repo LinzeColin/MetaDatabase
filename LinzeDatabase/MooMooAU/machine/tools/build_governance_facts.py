@@ -58,6 +58,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.27",
             "1.0.28",
             "1.0.29",
+            "1.0.30",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -88,6 +89,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.27",
         "1.0.28",
         "1.0.29",
+        "1.0.30",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -114,6 +116,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.27",
         "1.0.28",
         "1.0.29",
+        "1.0.30",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -139,6 +142,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.27",
         "1.0.28",
         "1.0.29",
+        "1.0.30",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
@@ -163,6 +167,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.27",
         "1.0.28",
         "1.0.29",
+        "1.0.30",
     }
     t0703_repair_authorized = delivery["package_version"] in {
         "1.0.9",
@@ -200,6 +205,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.27",
         "1.0.28",
         "1.0.29",
+        "1.0.30",
     }
     t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] in {
         "1.0.12",
@@ -255,6 +261,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.27",
             "1.0.28",
             "1.0.29",
+            "1.0.30",
         }
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") in {3, 4, 5}
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") in {3, 4}
@@ -282,7 +289,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
     )
     t0705_repair_authorized = (
-        delivery["package_version"] == "1.0.29"
+        delivery["package_version"] == "1.0.30"
         and delivery.get("overall_status")
         == "PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED"
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 5
@@ -499,8 +506,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "仓库定位或邮箱派生值"
         ),
         "T0705_NINE_FAILED_HEADS_FROZEN": (
-            "T0705 九个 protected exact-main attempt-1 head 与一个 pre-Secret formatter "
-            "rejected head 均已冻结，rerun 与 redispatch 均为零"
+            "T0705 九个 protected exact-main attempt-1 head 与两个独立 pre-Secret "
+            "失败 head 均已冻结，rerun 与 redispatch 均为零"
         ),
         "T0705_CANONICAL_GIT_BLOB_RECOVERY_PENDING": (
             "第九次 authority、精确 App repository scope 与身份清理通过，随后仍停在 "
@@ -509,15 +516,17 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "Git Blobs API 对所有 current pointer 均通过 base64、response SHA、size、age 与 "
             "canonical Git SHA 校验，patched adapter 全部恢复。首次候选在进入 protected "
             "Environment 前被确定性 Ruff format gate 拒绝且零 Secret/Gmail/私库调用；"
-            "只授权一个格式修复 successor exact-main canonical Git Blob recovery attempt 1"
+            "其格式 successor 又因 authority job 无法读取 Environment-scope one-shot 变量而"
+            "在 checkout 前拒绝，仍为零远端效果。只授权一个 repository-scope one-shot "
+            "authority successor exact-main canonical Git Blob recovery attempt 1"
         ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "后续受保护验收与确定性运行尚未执行",
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING": (
-            "T0704 已通过；T0705 九个 protected 失败头及一个 pre-Secret formatter "
-            "rejected head 已冻结且格式修复 successor 已授权，T0706 及其后的"
+            "T0704 已通过；T0705 九个 protected 失败头及两个 pre-Secret 失败头"
+            "已冻结且 repository-scope authority successor 已授权，T0706 及其后的"
             "受保护验收未授权"
             if t0705_repair_authorized
             else "T0704 已通过；T0705 已授权待运行，T0706 及其后的受保护验收未授权"
@@ -546,8 +555,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
     status = {
         "version": delivery["package_version"],
         "stage": (
-            "RMD-06 T0705 九个 GA 失败头及一个 pre-Secret 预检失败头已冻结，"
-            "格式修复 successor 已授权待运行"
+            "RMD-06 T0705 九个 GA 失败头及两个 pre-Secret 失败头已冻结，"
+            "repository-scope authority successor 已授权待运行"
             if t0705_repair_authorized
             else "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -582,7 +591,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "repository scope，随后仍止于 FIRST_IMPORT_POINTER_FETCH 且 private 数据仓零提交。"
             "Live replay 证明 Contents raw-media 非规范而 metadata-addressed Git Blob 全部"
             "规范；首个 recovery 候选在 pre-Secret Ruff format gate 被拒绝且零远端效果，"
-            "新 head 只修复格式与派生绑定后执行 canonical Git Blob recovery"
+            "格式 successor 又因 one-shot authority 变量作用域错误在 checkout 前拒绝；"
+            "新 head 仅修复 repository-scope authority 与派生绑定后执行 canonical Git Blob "
+            "recovery"
             if t0705_repair_authorized
             else "T0702–T0704 精确 PASS 回执已绑定；T0705 one-shot exact-main "
             "SCHEDULE_REHEARSAL、实时容量刷新、完整恢复、单 Timeline 与 checkpoint-last 待执行"
@@ -629,9 +640,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付 v1.0.29 format-only canonical Git Blob recovery 精确 successor 并执行一次"
-            "新 head protected SCHEDULE_REHEARSAL；九个 protected 失败头与 preflight "
-            "失败头均 rerun 0；PASS 后只"
+            "交付 v1.0.30 repository-scope authority canonical Git Blob recovery 精确 "
+            "successor 并执行一次新 head protected SCHEDULE_REHEARSAL；九个 protected "
+            "失败头与两个 pre-Secret 失败头均 rerun 0；PASS 后只"
             "启用已提交 04:30 "
             "schedule，并停在 T0706 前"
             if t0705_repair_authorized
@@ -1041,6 +1052,26 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "en": "pre-Secret",
                 "zh": "受保护机密注入前",
                 "note": "尚未进入受保护环境、读取机密或访问数据面",
+            },
+            {
+                "en": "Environment-scope",
+                "zh": "受保护环境作用域",
+                "note": "只有进入指定受保护环境的作业才能读取的变量范围",
+            },
+            {
+                "en": "repository-scope",
+                "zh": "控制仓库作用域",
+                "note": "进入受保护环境前的 authority 作业可读取的一次性变量范围",
+            },
+            {
+                "en": "checkout",
+                "zh": "检出候选代码",
+                "note": "取得精确主分支候选树的只读步骤",
+            },
+            {
+                "en": "job",
+                "zh": "工作流作业",
+                "note": "GitHub Actions 中具有独立环境边界的执行单元",
             },
             {
                 "en": "rejected",
@@ -1493,8 +1524,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 九个 protected 失败头与一个 pre-Secret formatter rejected head 已冻结；"
-            "仅允许 format-only successor exact-main canonical Git Blob recovery attempt 1"
+            "T0705 九个 protected 失败头与两个 pre-Secret 失败头已冻结；"
+            "仅允许 repository-scope authority successor exact-main canonical Git Blob "
+            "recovery attempt 1"
             if t0705_repair_authorized
             else "T0704/S7AC-004 已闭合；T0705 one-shot schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -1527,7 +1559,8 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付 v1.0.29 format-only canonical Git Blob recovery exact-main successor、"
+            "交付 v1.0.30 repository-scope authority canonical Git Blob recovery exact-main "
+            "successor、"
             "执行一次新 attempt-1 "
             "SCHEDULE_REHEARSAL，PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前"
             if t0705_repair_authorized
@@ -1952,6 +1985,22 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "均为零。失败 head 禁止 rerun/redispatch；v1.0.29 仅包含 Ruff "
                     "format 输出及其必要的证据、状态、哈希与包绑定，复用 canonical Git Blob "
                     "恢复语义并授权一次新 exact-main attempt 1；T0706 与最终发布仍禁止。"
+                ),
+            },
+        )
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.30",
+                "date": "2026-07-26",
+                "summary": (
+                    "固化 v1.0.29 exact-main 候选的 pre-checkout authority-context 失败："
+                    "one-shot expected-head 变量被错误放在 Environment scope，而 authority "
+                    "job 按设计在 Environment 进入前执行，因此变量不可见。checkout、protected "
+                    "Environment、Secret、Gmail、私库与全部 mutation 均为零；两个变量作用域均"
+                    "已清理，失败 head 禁止 rerun/redispatch。v1.0.30 只把 one-shot authority "
+                    "交付约束修复为 repository scope，并更新必要证据、状态、哈希与包绑定；"
+                    "T0706 与最终发布仍禁止。"
                 ),
             },
         )

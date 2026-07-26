@@ -276,6 +276,20 @@ delivery，继续停止在 T0706 前。当前有效入口为：
 - `SOURCE_PROVENANCE.v1.0.22.json`
 - `CHANGELOG.md`
 
+`v1.0.30` 直接继承不可变 v1.0.29，固化 format-only successor 的 pre-checkout
+authority-context 失败。one-shot expected-head 变量被放在 Environment scope，而 authority job
+在 Environment 进入前执行，因此变量不可见。checkout、candidate validation、protected
+Environment、Secret、Gmail、私库调用与所有 mutation 均为 0；两个变量作用域已清理，失败 head
+永不 rerun/redispatch。v1.0.30 不改变数据面，只把一次性 authority 交付约束修复为 repository
+scope，并更新必要 evidence、status、schema、hash、composition 与 package binding。只授权一个
+新 exact-main attempt-1 rehearsal，T0706 与最终发布仍禁止。当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.30.md`
+- `ROADMAP.v1.0.30.md`
+- `PACKAGE_MANIFEST.v1.0.30.json`
+- `SOURCE_PROVENANCE.v1.0.30.json`
+- `CHANGELOG.md`
+
 `v1.0.29` 直接继承不可变 v1.0.28，固化首次 canonical Git Blob recovery 候选的 pre-Secret
 确定性预检失败。exact-main authority context PASS，但 Ruff format check 在进入 protected
 Environment 前拒绝 `processed_commit.py`；Secret 注入、Gmail/私库调用与所有 mutation 均为

@@ -427,7 +427,7 @@ def test_t0708_stage7_aggregate_authorizes_t0705_and_stops_before_t0706() -> Non
     assert aggregate["protected_oracles_passed"] == 4
     assert aggregate["protected_oracles_failed"] == 1
     assert aggregate["protected_workflow_runs"] == 29
-    assert aggregate["production_workflow_runs"] == 10
+    assert aggregate["production_workflow_runs"] == 11
     assert aggregate["final_acceptances_passed"] == 0
     assert (
         aggregate["delivery_status"]

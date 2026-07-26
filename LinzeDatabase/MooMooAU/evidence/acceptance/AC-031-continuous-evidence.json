@@ -96,9 +96,9 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0705.json",
-      "evidence_sha256": "2dae3c28966274520b1192597a9336845abc5966aa147bef6334b01f6520fce7",
+      "evidence_sha256": "7b3f80736370f00dc0c40025ea27f26f6ca2b14e30f1def342419396f7a8c07f",
       "final_claim_status": "NOT_RUN",
-      "reason": "All nine protected GA attempts emitted aggregate-safe failure only; the later candidate preflight never entered the protected Environment. No protected GA PASS result or continuous public health evidence is published.",
+      "reason": "All nine protected GA attempts emitted aggregate-safe failure only; the later candidate preflight and authority-context failures never entered the protected Environment. No protected GA PASS result or continuous public health evidence is published.",
       "source_record_status": "BLOCKED",
       "task_id": "T0705"
     },
@@ -112,7 +112,7 @@
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-26T13:04:45Z",
+  "observed_at_utc": "2026-07-26T13:38:40Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,
@@ -139,7 +139,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "26949ab5031a21b0c515c282c9ef06ff9417e058",
+  "remediation_base_commit": "9c79b92bcdf8b027727963dfe52bd183a170954c",
   "requirement_id": "RQ-031",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",

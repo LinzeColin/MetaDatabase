@@ -5,13 +5,13 @@
 ## 当前目标与状态
 
 - 本轮只处理 Stage 7/T0705，必须停在 T0706 前。
-- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.29`。
-- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.28.json`，SHA-256
-  `7acef8a16a000f0371c88cd5ac8fe12aa1d0409cecc250934f136395005d7f8d`。
+- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.30`。
+- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.29.json`，SHA-256
+  `c2f9f44d1cf62f3b783d7f83e880b402cbf422eb5817266a406c37c0ae7f08d4`。
 - 唯一状态权威：`machine/status/latest.json` =
   `PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED`。
 - Protected Oracles 5/43 executed、4 PASS、1 FAILED；final Acceptance 0/34；
-  T0705 production workflow 10，其中一次在 protected Environment 前结束；final publication 0。
+  T0705 production workflow 11，其中两次在 protected Environment 前结束；final publication 0。
 
 ## 已冻结前序
 
@@ -43,8 +43,12 @@
 - v1.0.28 exact-main 候选的 authority context PASS，但 deterministic candidate validation
   在 protected Environment 前因 `processed_commit.py` 未通过 Ruff format check 而失败。
   protected Secret、Gmail、私有仓调用及全部 mutation 均为 0；该 head 已冻结，不重跑。
+- v1.0.29 format-only successor 在 checkout 前失败：one-shot expected-head 变量位于
+  Environment scope，而 authority job 按设计在 Environment 进入前执行，因此变量不可见。
+  candidate validation、protected Environment、Secret、Gmail、私库调用及全部 mutation 均为 0；
+  Environment/repository 两个变量作用域均已清理，该 head 已冻结，不重跑。
 
-## T0705 format-only canonical Git Blob recovery successor
+## T0705 repository-scope authority recovery successor
 
 - `GitHubProcessedCiphertextStore.fetch_current` 先读取 bounded Contents metadata，只把
   `type/path/size/sha` 作为绑定；ciphertext 必须由精确
@@ -63,20 +67,22 @@
   exact-message Trash。Timeline snapshot、唯一 latest age Asset 与 checkpoint-last CAS 均须
   远端恢复。
 - `workflow_dispatch` 如实称为 `SCHEDULE_REHEARSAL`，rehearsal platform schedule event 为 0。
-- v1.0.29 的唯一运行时代码变化是 Ruff formatter 对 `processed_commit.py` 的规范化输出；
-  其余变化只更新失败账本、status/schema、composition hash 与 package binding。
+- v1.0.30 不改变 canonical Git Blob recovery 或数据面行为；只把 exact-head one-shot authority
+  交付约束修复为 repository scope，并更新失败账本、status/schema、composition hash 与 package
+  binding。
 
 ## 当前安全边界与下一步
 
-- T0705 总 delivery 最多 12，十个 launch 已消耗 10；只剩 format-only recovery delivery 1
+- T0705 总 delivery 最多 13，十一个 launch 已消耗 11；只剩 authority-scope recovery delivery 1
   与 receipt/schedule closure delivery 1。
 - 总 rehearsal dispatch 最多 10，九个失败 attempt 已消耗 9；只剩一个新 recovery dispatch，
   必须为 attempt 1、rerun 0。
-- candidate-preflight dispatch 最多 2，已消耗 1；旧 preflight head 禁止 rerun/redispatch。
+- candidate-preflight dispatch 最多 3，已消耗 2；authority-scope failure budget 1 已消耗 1；
+  两个 pre-Secret head 均禁止 rerun/redispatch。
 - 不使用真实时间 Soak、观察期或全量测试作为前置；时间与历史分支由 Fake Clock、Fixture、历史
   回放和故障注入即时验证。
 - protected PASS receipt 绑定前，`MOOMOOAU_PRODUCTION_ENABLED` 不得为 true。
-- 合入新 exact-main recovery candidate 后只设置一个 exact-head authority，运行一次；无论
-  结果如何立即删除，绝不 rerun 或 redispatch 失败 head。
+- 合入新 exact-main recovery candidate 后只设置一个 repository-scope exact-head authority，
+  authority 消耗后立即删除；绝不 rerun 或 redispatch 失败 head。
 - PASS 后才固化 receipt、关闭 rehearsal 入口并启用已提交 04:30 Australia/Sydney schedule。
 - 不进入 T0706，不创建 Codex Automation，不运行 Recovery Drill/Patch Lifecycle，不做最终发布。

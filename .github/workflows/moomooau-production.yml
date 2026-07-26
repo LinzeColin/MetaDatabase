@@ -68,6 +68,7 @@ jobs:
           test "$GITHUB_SHA" != "8b6faaf9059661edc3153352b8787ddbc4f733f3"
           test "$GITHUB_SHA" != "6f82e738611e0d2eeeadd2507f738c9e269c91e0"
           test "$GITHUB_SHA" != "26949ab5031a21b0c515c282c9ef06ff9417e058"
+          test "$GITHUB_SHA" != "9c79b92bcdf8b027727963dfe52bd183a170954c"
           test "$GA_CONFIRMATION" = \
             "GA_SCHEDULE_MODE_CANONICAL_GIT_BLOB_RECOVERY_MUTATION_BUDGET_ONE"
           [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]

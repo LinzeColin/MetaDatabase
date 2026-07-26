@@ -135,6 +135,7 @@ def validate(
         "GA_SCHEDULE_MODE_CANONICAL_GIT_BLOB_RECOVERY_MUTATION_BUDGET_ONE",
         '--expected-head-sha "$EXPECTED_HEAD_SHA"',
         'test "$GITHUB_SHA" != "26949ab5031a21b0c515c282c9ef06ff9417e058"',
+        'test "$GITHUB_SHA" != "9c79b92bcdf8b027727963dfe52bd183a170954c"',
     )
     contract_secret_names = contract.get("secret_names")
     actual_secret_names = re.findall(

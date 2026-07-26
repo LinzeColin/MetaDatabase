@@ -1,0 +1,72 @@
+{
+  "schema_version": "moomooau.protected-ga-authority-context-attempt-ledger.v1",
+  "observed_through_utc": "2026-07-26T13:38:40Z",
+  "task_id": "T0705",
+  "scope": "PRE_CHECKOUT_PRE_SECRET_AUTHORITY_CONTEXT_ONLY",
+  "delivery": {
+    "pull_request_number": 130,
+    "pull_request_head_sha": "ca79b2211ffcda40f13dce068db38aa8143957e4",
+    "merge_commit_parent_sha": "26949ab5031a21b0c515c282c9ef06ff9417e058",
+    "merge_commit_sha": "9c79b92bcdf8b027727963dfe52bd183a170954c"
+  },
+  "workflow": {
+    "run_id": 30204453383,
+    "workflow_head_sha": "9c79b92bcdf8b027727963dfe52bd183a170954c",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "reruns": 0,
+    "conclusion": "FAILURE_PRE_CHECKOUT_AUTHORITY_CONTEXT"
+  },
+  "jobs": {
+    "authority_context": "FAILED",
+    "candidate_validation": "SKIPPED",
+    "protected_environment": "SKIPPED",
+    "live_schedule_hold": "SKIPPED"
+  },
+  "failure": {
+    "phase": "PRE_CHECKOUT_AUTHORITY_CONTEXT",
+    "reason_code": "ONE_SHOT_AUTHORITY_VARIABLE_SCOPE_MISMATCH",
+    "finding": "AUTHORITY_JOB_CANNOT_READ_ENVIRONMENT_SCOPED_VARIABLE",
+    "exact_root_cause_claimed": true,
+    "root_cause_basis": "SANITIZED_JOB_ENV_PRESENCE_AND_WORKFLOW_SCOPE"
+  },
+  "effects": {
+    "checkout_started": false,
+    "protected_environment_entered": false,
+    "protected_secret_names_injected": 0,
+    "gmail_api_calls": 0,
+    "private_repository_calls": 0,
+    "gmail_mutations": 0,
+    "private_repository_mutations": 0,
+    "timeline_mutations": 0,
+    "checkpoint_mutations": 0,
+    "platform_schedule_events": 0,
+    "environment_scoped_one_shot_authority_after_cleanup": "ABSENT",
+    "repository_scoped_one_shot_authority_after_cleanup": "ABSENT",
+    "production_enablement_variable_after_failure": "ABSENT"
+  },
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "frozen_authority_context_head_shas": [
+      "9c79b92bcdf8b027727963dfe52bd183a170954c"
+    ],
+    "next_candidate_scope": "REPOSITORY_SCOPED_ONE_SHOT_AUTHORITY_PLUS_DERIVED_BINDINGS_ONLY",
+    "next_candidate_dispatch_limit": 1,
+    "protected_ga_rehearsal_dispatches_consumed": 9,
+    "protected_ga_rehearsal_reruns": 0,
+    "protected_environment_entries_for_failed_dispatch": 0,
+    "t0705_complete": false,
+    "t0706_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "candidate_validation_executed": false,
+    "protected_ga_executed": false,
+    "production_health_claimed": false,
+    "t0705_pass_claimed": false,
+    "stage7_complete_claimed": false,
+    "final_acceptance_claimed": false,
+    "final_publication_claimed": false
+  }
+}
