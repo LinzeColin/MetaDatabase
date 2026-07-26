@@ -526,14 +526,17 @@ if [[ ! -e "$WORKSPACE" && ! -L "$WORKSPACE" ]]; then
   [[ ! -e "$WORKSPACE_STAGE" && ! -L "$WORKSPACE_STAGE" ]] ||
     fail "workspace_stage_collision"
   install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 "$WORKSPACE_STAGE"
-  run_as_code git -c protocol.file.allow=always clone \
+  # The seed stays root-owned and immutable. Root performs the installation-only
+  # local upload-pack/checkout, then ownership of the code and Git metadata is
+  # transferred to the code identity before any acceptance command runs.
+  git -c protocol.file.allow=always clone \
     --filter=blob:none --no-checkout --single-branch --branch "$BRANCH" \
     "file://$SEED_PATH" "$WORKSPACE_STAGE"
-  run_as_code git -C "$WORKSPACE_STAGE" sparse-checkout init --cone
-  run_as_code git -C "$WORKSPACE_STAGE" sparse-checkout set CyberBoss .github
-  run_as_code git -C "$WORKSPACE_STAGE" checkout "$BRANCH"
-  run_as_code git -C "$WORKSPACE_STAGE" config fetch.prune true
-  run_as_code git -C "$WORKSPACE_STAGE" config gc.auto 0
+  git -C "$WORKSPACE_STAGE" sparse-checkout init --cone
+  git -C "$WORKSPACE_STAGE" sparse-checkout set CyberBoss .github
+  git -C "$WORKSPACE_STAGE" checkout "$BRANCH"
+  git -C "$WORKSPACE_STAGE" config fetch.prune true
+  git -C "$WORKSPACE_STAGE" config gc.auto 0
   chown root:"$CODE_GROUP" "$WORKSPACE_STAGE"
   chmod 0750 "$WORKSPACE_STAGE"
   chown -R "$CODE_USER:$CODE_GROUP" \

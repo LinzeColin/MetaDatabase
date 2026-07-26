@@ -111,6 +111,18 @@ test("installer keeps candidate, identities, workspace and data boundaries expli
     source,
     /install -d -o "\$CODE_USER" -g "\$CODE_GROUP" -m 0750 "\$WORKSPACE_STAGE"/
   );
+  assert.match(
+    source,
+    /The seed stays root-owned and immutable[\s\S]+git -c protocol\.file\.allow=always clone/
+  );
+  assert.doesNotMatch(
+    source,
+    /run_as_code git -c protocol\.file\.allow=always clone/
+  );
+  assert.match(
+    source,
+    /chown -R "\$CODE_USER:\$CODE_GROUP"[\s\\\n]+"\$WORKSPACE_STAGE\/\.git" "\$WORKSPACE_STAGE\/CyberBoss"/
+  );
   assert.match(source, /mv -T "\$WORKSPACE_STAGE" "\$WORKSPACE"/);
   assert.match(source, /unsafe_workspace_cleanup_path/);
   assert.match(source, /remote\.origin\.partialclonefilter/);
