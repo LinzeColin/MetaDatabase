@@ -18,6 +18,7 @@ from typing import cast
 
 from .age_stream import OfficialAgeStream, is_age_envelope
 from .processed_commit import CurrentProcessedPointer, ProcessedCiphertextStore
+from .protected_ga_diagnostics import ProtectedGADiagnostics, ProtectedGAFailurePhase
 from .remote_recovery_gate import CiphertextDecryptor
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -75,16 +76,19 @@ class RemoteFirstImportTimestampSource:
         self,
         store: ProcessedCiphertextStore,
         decryptor: CiphertextDecryptor,
+        diagnostics: ProtectedGADiagnostics | None = None,
     ) -> None:
         self._store = store
         self._decryptor = decryptor
+        self._diagnostics = diagnostics
 
     def resolve(self, source_id: str, observed_at_utc: datetime) -> datetime:
         if _SHA256.fullmatch(source_id) is None or not _is_utc(observed_at_utc):
             raise ProductionAdapterError("first-import lookup input is invalid")
-        envelope = self._resolve_envelope(source_id)
+        envelope = self._resolve_envelope(source_id, diagnose_first_import=True)
         if envelope is None:
             return observed_at_utc.astimezone(UTC)
+        self._enter(ProtectedGAFailurePhase.FIRST_IMPORT_TIMESTAMP_BINDING)
         lineage = envelope.get("lineage")
         if not isinstance(lineage, dict):
             raise ProductionAdapterError("current document envelope lineage is invalid")
@@ -100,7 +104,7 @@ class RemoteFirstImportTimestampSource:
     ) -> tuple[str, ...] | None:
         if _SHA256.fullmatch(source_id) is None or not _is_utc(observed_at_utc):
             raise ProductionAdapterError("historical label-state lookup input is invalid")
-        envelope = self._resolve_envelope(source_id)
+        envelope = self._resolve_envelope(source_id, diagnose_first_import=False)
         if envelope is None:
             return None
         lineage = envelope.get("lineage")
@@ -129,47 +133,96 @@ class RemoteFirstImportTimestampSource:
             raise ProductionAdapterError("current document envelope label state is invalid")
         return label_state
 
-    def _resolve_envelope(self, source_id: str) -> dict[str, object] | None:
+    def _resolve_envelope(
+        self,
+        source_id: str,
+        *,
+        diagnose_first_import: bool,
+    ) -> dict[str, object] | None:
         pointer_path = f"MooMooAU/State/processed-current/{source_id}.json.age"
+        self._enter_if(
+            diagnose_first_import,
+            ProtectedGAFailurePhase.FIRST_IMPORT_POINTER_FETCH,
+        )
         revisioned = self._store.fetch_current(pointer_path)
         if revisioned is None:
             return None
+        self._enter_if(
+            diagnose_first_import,
+            ProtectedGAFailurePhase.FIRST_IMPORT_POINTER_DECRYPT,
+        )
         try:
             pointer_plaintext = self._decryptor.decrypt(revisioned.ciphertext)
             pointer = CurrentProcessedPointer.from_bytes(pointer_plaintext)
         except Exception as exc:
             raise ProductionAdapterError("current Processed pointer recovery failed") from exc
+        self._enter_if(
+            diagnose_first_import,
+            ProtectedGAFailurePhase.FIRST_IMPORT_POINTER_BINDING,
+        )
         if pointer.source_id != source_id:
             raise ProductionAdapterError("current Processed pointer source differs")
 
+        self._enter_if(
+            diagnose_first_import,
+            ProtectedGAFailurePhase.FIRST_IMPORT_MANIFEST_FETCH,
+        )
         manifest_ciphertext = self._store.fetch_immutable(pointer.manifest_path)
         if manifest_ciphertext is None:
             raise ProductionAdapterError("current Processed manifest is unavailable")
+        self._enter_if(
+            diagnose_first_import,
+            ProtectedGAFailurePhase.FIRST_IMPORT_MANIFEST_DECRYPT,
+        )
         try:
             manifest_plaintext = self._decryptor.decrypt(manifest_ciphertext)
             manifest = _decode_object(manifest_plaintext, maximum=_MAX_MANIFEST_BYTES)
         except Exception as exc:
             raise ProductionAdapterError("current Processed manifest recovery failed") from exc
+        self._enter_if(
+            diagnose_first_import,
+            ProtectedGAFailurePhase.FIRST_IMPORT_MANIFEST_BINDING,
+        )
         artifact = _validate_manifest(pointer, manifest)
 
         relative_path = _required_string(artifact, "relative_path")
+        self._enter_if(
+            diagnose_first_import,
+            ProtectedGAFailurePhase.FIRST_IMPORT_ENVELOPE_FETCH,
+        )
         envelope_ciphertext = self._store.fetch_immutable(relative_path)
         if envelope_ciphertext is None:
             raise ProductionAdapterError("current document envelope is unavailable")
+        self._enter_if(
+            diagnose_first_import,
+            ProtectedGAFailurePhase.FIRST_IMPORT_ENVELOPE_CIPHERTEXT_BINDING,
+        )
         if not hmac.compare_digest(
             hashlib.sha256(envelope_ciphertext).hexdigest(),
             _required_string(artifact, "ciphertext_sha256"),
         ):
             raise ProductionAdapterError("current document envelope ciphertext differs")
+        self._enter_if(
+            diagnose_first_import,
+            ProtectedGAFailurePhase.FIRST_IMPORT_ENVELOPE_DECRYPT,
+        )
         try:
             envelope_plaintext = self._decryptor.decrypt(envelope_ciphertext)
         except Exception as exc:
             raise ProductionAdapterError("current document envelope recovery failed") from exc
+        self._enter_if(
+            diagnose_first_import,
+            ProtectedGAFailurePhase.FIRST_IMPORT_ENVELOPE_PLAINTEXT_BINDING,
+        )
         if not hmac.compare_digest(
             hashlib.sha256(envelope_plaintext).hexdigest(),
             _required_string(artifact, "plaintext_sha256"),
         ):
             raise ProductionAdapterError("current document envelope plaintext differs")
+        self._enter_if(
+            diagnose_first_import,
+            ProtectedGAFailurePhase.FIRST_IMPORT_ENVELOPE_SCHEMA_BINDING,
+        )
         envelope = _decode_jsonl_object(envelope_plaintext)
         lineage = envelope.get("lineage")
         if (
@@ -192,6 +245,18 @@ class RemoteFirstImportTimestampSource:
         ):
             raise ProductionAdapterError("current document envelope binding differs")
         return envelope
+
+    def _enter(self, phase: ProtectedGAFailurePhase) -> None:
+        if self._diagnostics is not None:
+            self._diagnostics.enter(phase)
+
+    def _enter_if(
+        self,
+        enabled: bool,
+        phase: ProtectedGAFailurePhase,
+    ) -> None:
+        if enabled:
+            self._enter(phase)
 
 
 def _validate_manifest(

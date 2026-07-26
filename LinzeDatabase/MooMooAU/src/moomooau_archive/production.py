@@ -528,7 +528,11 @@ class ProductionBootstrap:
                     gmail_guard,
                     GmailLabelConfirmationClient(gmail_guard),
                 ),
-                RemoteFirstImportTimestampSource(processed_store, decryptor),
+                RemoteFirstImportTimestampSource(
+                    processed_store,
+                    decryptor,
+                    self._diagnostics,
+                ),
                 current_source,
                 TimelineSnapshotPlanner(self._age, config.age_recipient),
                 TimelineSnapshotCommitSaga(processed_store),

@@ -2,17 +2,17 @@
 
 Implementation target: `LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU`.
 
-当前控制包为 `1.0.24`。它直接继承不可变 v1.0.23，不改变 v1.0.1 冻结的产品目标、
+当前控制包为 `1.0.25`。它直接继承不可变 v1.0.24，不改变 v1.0.1 冻结的产品目标、
 34 条需求、34 个最终验收、58-task DAG、追踪矩阵、Kill Criteria 或十条不变量。
 
 唯一当前跨维度状态入口是 `machine/status/latest.json`，由
 `machine/tools/build_delivery_status.py` 确定性生成并只读校验。当前事实：
 
 - 58/58 task evidence 结构与绑定有效，58/58 本地或合成机制有证据；
-- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 5；
+- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 6；
 - protected Oracle 已执行 5/43：T0701–T0704 PASS，T0705 当前 FAILED；
-- T0705 五次失败 run 分别绑定五个不同 exact-main head，均为 attempt 1、rerun 0；
-- T0705/S7AC-005 尚未关闭；一个新 closed-enum Processed-plan subphase-diagnostic attempt
+- T0705 六次失败 run 分别绑定六个不同 exact-main head，均为 attempt 1、rerun 0；
+- T0705/S7AC-005 尚未关闭；一个新 closed-enum first-import subphase-diagnostic attempt
   已授权但未运行；
   Stage 7、生产健康与最终发布均未完成。
 
@@ -25,17 +25,20 @@ difference 0 收敛到恰好一个可恢复 age-encrypted latest Timeline。
 Raw、Processed、candidate、snapshot 与 processed-current 均无新增对象。repair 的 Gmail
 mutation 为 0。公开 receipt 不包含私有仓 locator/ID、Gmail ID、精确邮箱数量或金融值。
 
-T0705 五次 launch 都已合入并各执行一次。第五次运行的 authority 与 identity cleanup PASS，
-protected GA 在 coarse `PROCESSED_PLAN` 失败，live schedule hold SKIPPED。只读 private 数据仓
-核验确认第五次没有新增 commit 或路径变化；按已提交的阶段顺序，失败发生在 Raw 远端恢复之后、
-任何 Processed write、Timeline、checkpoint 或 Gmail mutation 之前。精确线上 root cause 保持
-`UNKNOWN`。一次性 authority 和 production enablement 已清除，五个失败 head 永久禁止
+T0705 六次 launch 都已合入并各执行一次。第六次运行的 authority 与 identity cleanup PASS，
+protected GA 在 coarse `FIRST_IMPORT_RECOVERY` 失败，live schedule hold SKIPPED。只读 private
+数据仓核验确认第六次没有新增 commit 或路径变化；按已提交的阶段顺序，失败发生在 Raw 远端恢复
+与 classification 之后、document-envelope 构造以及任何 Processed write、Timeline、checkpoint
+或 Gmail mutation 之前。第四次 writer 与第六次 reader 的 schema 未改变，synthetic
+writer-to-reader recovery 通过，因此精确线上 root cause 保持 `UNKNOWN`。一次性 authority 和
+production enablement 已清除，六个失败 head 永久禁止
 rerun/redispatch。
 
-当前 successor Run Contract 只处理 T0705：总 delivery 最多 7，五个 launch 已消耗 5；总
-rehearsal dispatch 最多 6，五个失败 attempt 已消耗 5。只剩一个新 exact-main protected
-`SCHEDULE_REHEARSAL`、rerun 0，以及后续 receipt/schedule closure delivery 1。唯一代码变化
-是把既有闭合阶段诊断细分为固定 Processed-plan 子阶段；公开失败结果禁止异常文本、URL、
+当前 successor Run Contract 只处理 T0705：总 delivery 最多 9，六个 launch 已消耗 6；总
+rehearsal dispatch 最多 8，六个失败 attempt 已消耗 6。只剩一个新 exact-main protected
+first-import diagnostic `SCHEDULE_REHEARSAL`、必要时一个精确 repair-or-PASS closure rehearsal，
+以及后续 receipt/schedule closure delivery 1。唯一代码变化是把既有闭合阶段诊断细分为固定
+first-import recovery 子阶段；公开失败结果禁止异常文本、URL、
 标识符、计数、邮箱事实、私仓定位与 Secret。metadata quarantine、Raw/Processed recovery、
 second verification、
 ACTIVE/SAFE_DEFERRED、exact-message Trash、单一 Timeline replacement 与 checkpoint-last
@@ -56,6 +59,7 @@ Authoritative artifacts:
 - `machine/contracts/task_graph.json`
 - `machine/contracts/delivery_status_model.json`
 - `machine/status/latest.json`
+- `machine/stages/S7/reviews/t0705/first-import-attempt-ledger.json`
 - `machine/stages/S7/reviews/t0705/processed-plan-attempt-ledger.json`
 - `machine/stages/S7/reviews/t0705/post-processed-attempt-ledger.json`
 - `machine/stages/S7/reviews/t0705/label-replay-attempt-ledger.json`
@@ -63,8 +67,8 @@ Authoritative artifacts:
 - `machine/stages/S7/reviews/t0705/attempt-ledger.json`
 - `machine/stages/S7/reviews/t0704/attempt-ledger.json`
 - `machine/stages/S7/reviews/t0704/execution-receipt.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.24.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.23.json`（不可变直接前序）
+- `taskpack/PACKAGE_MANIFEST.v1.0.25.json`
+- `taskpack/PACKAGE_MANIFEST.v1.0.24.json`（不可变直接前序）
 - `taskpack/PACKAGE_MANIFEST.v1.0.1.json`（不可变历史基线）
 
 Codex 开发线程必须按既定顺序逐 run 推进，一次最多解决一个 stage。本轮只推进

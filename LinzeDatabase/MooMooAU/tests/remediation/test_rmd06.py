@@ -277,7 +277,11 @@ def test_rmd06_delivery_status_uses_static_composition_for_portable_successors(
         PROJECT_ROOT,
         {"package_version": "1.0.24"},
     ) == {"status": "PASS"}
-    assert observed == [False, True, False, False]
+    assert delivery_status._validate_composition_for_state(
+        PROJECT_ROOT,
+        {"package_version": "1.0.25"},
+    ) == {"status": "PASS"}
+    assert observed == [False, True, False, False, False]
 
 
 def test_rmd06_static_composition_validation_does_not_import_later_runtime(

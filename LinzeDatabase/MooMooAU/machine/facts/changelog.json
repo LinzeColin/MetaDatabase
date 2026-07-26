@@ -1,8 +1,8 @@
 [
   {
-    "version": "1.0.24",
+    "version": "1.0.25",
     "date": "2026-07-26",
-    "summary": "固化 T0705 第五个 exact-main attempt-1 失败：authority 与身份清理通过，protected 输出仅披露 coarse PROCESSED_PLAN；只读远端核验确认第五次无私库提交、无 Processed/Timeline/checkpoint/Gmail 变更，精确根因仍为 UNKNOWN。五个失败头禁止 rerun/redispatch；只授权一个不接收受保护值的closed-enum Processed-plan subphase 诊断 head 与一次 attempt 1，T0706 和最终发布仍禁止。"
+    "summary": "固化 T0705 第六个 exact-main attempt-1 失败：authority 与身份清理通过，protected 输出将边界收窄为 FIRST_IMPORT_RECOVERY；只读远端核验确认第六次无私库提交、无 Processed/Timeline/checkpoint/Gmail 变更，精确根因仍为 UNKNOWN。六个失败头禁止 rerun/redispatch；只授权一个不接收受保护值的 closed-enum first-import subphase 诊断 head 与一次 attempt 1，若失败仅允许一个精确 closure，T0706 和最终发布仍禁止。"
   },
   {
     "version": "1.0.18",
@@ -23,11 +23,6 @@
     "version": "1.0.15",
     "date": "2026-07-24",
     "summary": "固化第七个不同 exact-main T0703 attempt-1 的受保护 PASS：authority、历史 label 零写入 reconciliation 与身份清理均通过；Raw+Processed 恢复 100%，独立核验确认当前运行 private head/tree/path counts 与 Gmail Trash 均零变化。T0703/S7AC-003 关闭，M3 权限全部消耗，范围停止于 T0704 前。"
-  },
-  {
-    "version": "1.0.13",
-    "date": "2026-07-24",
-    "summary": "固化 T0703 第五次 protected M3 在完整 Raw/Processed 恢复后的 MUTATION_FAILED；独立聚合观察到 processed-current 从零变一与 Gmail Trash 加一，但不据此声称精确来源归因或 mutation 子原因。新增唯一 processed-current/Trash 来源选择、二次验证和零 Gmail/私有仓写入 reconciliation；五个失败头均禁止 rerun/redispatch。"
   },
   {
     "version": "1.0.12",

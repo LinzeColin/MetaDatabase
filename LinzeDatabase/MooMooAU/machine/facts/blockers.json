@@ -7,8 +7,8 @@
     "首次登记": "2026-07-22"
   },
   {
-    "id": "T0705_PROCESSED_PLAN_DIAGNOSTIC_RECOVERY_PENDING",
-    "内容": "T0705 五个 exact-main attempt-1 head 均已冻结；第五次 authority 与身份清理通过，公开输出仅为 coarse PROCESSED_PLAN。只读远端核验确认第五次私库零提交、Processed/Timeline/checkpoint/Gmail 零变更，精确根因仍为 UNKNOWN。仅授权一个封闭枚举 Processed-plan subphase 诊断候选与一次 attempt 1；诊断不得接收异常、标识、URL、计数、Secret、仓库定位或邮箱派生值",
+    "id": "T0705_FIRST_IMPORT_DIAGNOSTIC_RECOVERY_PENDING",
+    "内容": "T0705 六个 exact-main attempt-1 head 均已冻结；第六次 authority 与身份清理通过，公开输出将边界收窄为 FIRST_IMPORT_RECOVERY。只读远端核验确认第六次私库零提交，Processed/Timeline/checkpoint/Gmail 零变更，精确根因仍为 UNKNOWN。仅授权一个封闭枚举 first-import recovery subphase 诊断候选与一次 attempt 1；若失败仅允许一个精确 repair-or-PASS closure。诊断不得接收异常、标识、URL、计数、Secret、仓库定位或邮箱派生值",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"
@@ -29,7 +29,7 @@
   },
   {
     "id": "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
-    "内容": "T0704 已通过；T0705 五个失败头已冻结且 Processed-plan subphase diagnostic 已授权，T0706 及其后的受保护验收未授权",
+    "内容": "T0704 已通过；T0705 六个失败头已冻结且 first-import subphase diagnostic 已授权，T0706 及其后的受保护验收未授权",
     "owner_only": false,
     "owner": "Codex 开发线程",
     "首次登记": "2026-07-22"
