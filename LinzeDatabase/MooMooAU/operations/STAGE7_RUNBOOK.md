@@ -56,12 +56,16 @@ rerun/redispatch 为 0。
 v1.0.28 canonical Git Blob 候选通过 exact-main authority context，但 workflow 同构 Ruff
 format gate 在进入 protected Environment 前拒绝 `processed_commit.py`。该 preflight 没有
 Secret 注入、Gmail/私库调用或 mutation，且失败 head 已冻结。v1.0.29 只提交 formatter 输出及
-必要派生证据/绑定。
+必要派生证据/绑定。该 successor 又在 checkout 前失败：one-shot expected-head 变量被放在
+Environment scope，而 authority job 按设计在 Environment 进入前执行，因此变量不可见。
+candidate validation、protected Environment、Secret、Gmail、私库调用与全部 mutation 均为 0；
+两个变量作用域已清理，失败 head 已冻结。
 
-当前精确 successor Run Contract 的总 delivery 预算为 12，十个 launch 已消耗 10；总 protected
+当前精确 successor Run Contract 的总 delivery 预算为 13，十一个 launch 已消耗 11；总 protected
 rehearsal dispatch 预算为 10，九个失败 attempt 已消耗 9；candidate-preflight dispatch 预算为
-2，已消耗 1。只剩一次 format-only canonical Git Blob
-recovery delivery/attempt 和一次 receipt/schedule-closure delivery。它复用现有 `moomooau-beta`
+3，已消耗 2；authority-scope failure budget 1 已消耗 1。只剩一次 repository-scope
+one-shot authority canonical Git Blob recovery delivery/attempt 和一次 receipt/schedule-closure
+delivery。它复用现有 `moomooau-beta`
 Environment 的八个精确 Secret
 名称，不复制 Secret 值；Installation Token 必须只绑定唯一 Repository ID，并在 Gmail OAuth
 之前核验 installation repository 列表、目标仓 ID/private 属性和实时容量。受保护 PASS 后才启用
@@ -159,11 +163,12 @@ Contents raw-media body 与 metadata blob 不一致，而 exact Git Blobs API �
 ciphertext。
 
 v1.0.28 recovery 候选另在 pre-Secret Ruff format gate 失败，未进入 protected Environment，
-没有 Secret/Gmail/私库效果且 head 已冻结。当前唯一后继候选
+没有 Secret/Gmail/私库效果且 head 已冻结。v1.0.29 formatter successor 又因 authority variable
+scope 错误在 checkout 前失败，同样为零远端效果且 head 已冻结。当前唯一后继候选
 不再改变 pointer、metadata quarantine、pending replay、second verification、
-ACTIVE/SAFE_DEFERRED、Trash、Timeline 或 checkpoint 行为，只把 current pointer ciphertext
-读取改为 metadata SHA 定址的 canonical Git Blob。新入口在 Secret 前明确拒绝九个 protected
-失败 head 与一个 preflight 失败 head，
+ACTIVE/SAFE_DEFERRED、Trash、Timeline 或 checkpoint 行为；只要求 merge 后用 repository
+variable 绑定 exact main head，并在 authority 消耗后删除。新入口在 Secret 前明确拒绝九个
+protected 失败 head 与两个 pre-Secret 失败 head，
 并把 authority job 验证后的 exact head 通过 job output 绑定给 protected Environment job。
 当前 canonical Git Blob recovery rehearsal 尚未运行，且只允许一个新 exact-main head
 执行 attempt 1。因此 T0705 与其 AC 仍为 `BLOCKED/PARTIAL/FAILED`；App 链接确认和本地候选都

@@ -2,18 +2,18 @@
 
 Implementation target: `LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU`.
 
-当前控制包为 `1.0.29`。它直接继承不可变 v1.0.28，不改变 v1.0.1 冻结的产品目标、
+当前控制包为 `1.0.30`。它直接继承不可变 v1.0.29，不改变 v1.0.1 冻结的产品目标、
 34 条需求、34 个最终验收、58-task DAG、追踪矩阵、Kill Criteria 或十条不变量。
 
 唯一当前跨维度状态入口是 `machine/status/latest.json`，由
 `machine/tools/build_delivery_status.py` 确定性生成并只读校验。当前事实：
 
 - 58/58 task evidence 结构与绑定有效，58/58 本地或合成机制有证据；
-- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 10；
+- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 11；
 - protected Oracle 已执行 5/43：T0701–T0704 PASS，T0705 当前 FAILED；
 - T0705 九次失败 run 分别绑定九个不同 exact-main head，均为 attempt 1、rerun 0；
-- T0705/S7AC-005 尚未关闭；九个 protected 失败 head 与一个 pre-Secret formatter
-  rejected head 均已冻结；一个 format-only canonical Git Blob recovery successor
+- T0705/S7AC-005 尚未关闭；九个 protected 失败 head 与两个独立 pre-Secret
+  失败 head 均已冻结；一个 repository-scoped one-shot authority successor
   已授权但未运行；
   Stage 7、生产健康与最终发布均未完成。
 
@@ -36,13 +36,16 @@ protected GA 仍在 coarse `FIRST_IMPORT_POINTER_FETCH` 失败，live schedule h
 永久禁止 rerun/redispatch。
 
 v1.0.28 exact-main 候选已通过 authority context，但 workflow 同构的 Ruff format gate 在进入
-protected Environment 前拒绝一个未格式化文件。该运行没有 Secret 注入、Gmail/私库调用或数据面
-mutation，且 head 已冻结。v1.0.29 的唯一运行时代码差异是 Ruff formatter 输出，其余变化仅为
-必要的 evidence/status/hash/package 绑定。
+protected Environment 前拒绝一个未格式化文件。v1.0.29 formatter successor 随后因 one-shot
+expected-head 变量位于 Environment scope、而 pre-Environment authority job 无法读取而在
+checkout 前失败。两次 pre-Secret failure 的 Secret、Gmail、私库与 mutation 均为 0，两个 head
+均已冻结且变量已清理。v1.0.30 不改变数据面，只把 one-shot authority 交付约束修复为 repository
+scope，并更新必要 evidence/status/hash/package 绑定。
 
-当前 successor Run Contract 只处理 T0705：总 delivery 最多 12，十个 launch 已消耗 10；总
+当前 successor Run Contract 只处理 T0705：总 delivery 最多 13，十一个 launch 已消耗 11；总
 protected rehearsal dispatch 最多 10，九个失败 attempt 已消耗 9；candidate-preflight dispatch
-最多 2，已消耗 1。只剩一个新 exact-main protected canonical Git Blob recovery
+最多 3，已消耗 2；authority-scope failure budget 1 已消耗 1。只剩一个新 exact-main protected
+canonical Git Blob recovery
 `SCHEDULE_REHEARSAL`，以及后续 receipt/schedule closure delivery 1。运行时在 Gmail credential
 exchange 前生成只绑定唯一 Repository ID 的 Installation Token，
 并核验 installation repository 列表、目标仓 ID/private 属性和实时容量；任何 scope 漂移都失败
@@ -80,10 +83,11 @@ Authoritative artifacts:
 - `machine/stages/S7/reviews/t0705/attempt-ledger.json`
 - `machine/stages/S7/reviews/t0705/canonical-blob-attempt-ledger.json`
 - `machine/stages/S7/reviews/t0705/canonical-blob-preflight-attempt-ledger.json`
+- `machine/stages/S7/reviews/t0705/authority-variable-scope-attempt-ledger.json`
 - `machine/stages/S7/reviews/t0704/attempt-ledger.json`
 - `machine/stages/S7/reviews/t0704/execution-receipt.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.29.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.28.json`（不可变直接前序）
+- `taskpack/PACKAGE_MANIFEST.v1.0.30.json`
+- `taskpack/PACKAGE_MANIFEST.v1.0.29.json`（不可变直接前序）
 - `taskpack/PACKAGE_MANIFEST.v1.0.1.json`（不可变历史基线）
 
 Codex 开发线程必须按既定顺序逐 run 推进，一次最多解决一个 stage。本轮只推进

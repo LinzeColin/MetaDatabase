@@ -1,5 +1,17 @@
 # Taskpack Changelog
 
+## 1.0.30 — 2026-07-26
+
+固化 v1.0.29 exact-main recovery 候选的 pre-checkout authority-context 失败。one-shot
+expected-head 变量被错误放在 Environment scope，而 authority job 按设计在 Environment 进入前
+执行，因此变量不可见。checkout、candidate validation、protected Environment、Secret、Gmail、
+私有数据仓与全部 mutation 均为 0；两个变量作用域已清理，失败 head 永久禁止 rerun/redispatch。
+
+v1.0.30 不改变 canonical Git Blob recovery 或数据面行为，只把一次性 authority 交付约束修复为
+repository scope，并更新必要 evidence、status、schema、hash、composition 与 package binding。
+Fake Clock、Fixture、历史回放和故障注入取代 Soak/观察期/等待窗口；只授权一个新 exact-main
+attempt 1，T0706 与最终发布仍禁止。
+
 ## 1.0.29 — 2026-07-26
 
 固化 v1.0.28 exact-main recovery 候选的 pre-Secret 确定性预检失败：authority context PASS，

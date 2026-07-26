@@ -4,10 +4,10 @@
   "stage_id": "S7",
   "task_id": "T0705",
   "stage_acceptance_id": "S7AC-005",
-  "observed_at_utc": "2026-07-26T13:04:45Z",
-  "baseline_commit": "26949ab5031a21b0c515c282c9ef06ff9417e058",
+  "observed_at_utc": "2026-07-26T13:38:40Z",
+  "baseline_commit": "9c79b92bcdf8b027727963dfe52bd183a170954c",
   "record_status": "BLOCKED",
-  "scope": "PROTECTED_NINE_FAILED_ATTEMPTS_ONE_PRE_SECRET_PREFLIGHT_FAILURE_AND_FORMAT_ONLY_CANONICAL_GIT_BLOB_RECOVERY_PREFLIGHT",
+  "scope": "PROTECTED_NINE_FAILED_ATTEMPTS_TWO_PRE_SECRET_FAILURES_AND_REPOSITORY_SCOPED_AUTHORITY_RECOVERY_PREFLIGHT",
   "delivery_status": "LOCAL_ONLY_NOT_PUBLISHED",
   "checks": [
     {
@@ -126,6 +126,11 @@
       "evidence_ref": "machine/stages/S7/reviews/t0705/canonical-blob-preflight-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-candidate-preflight-attempt-ledger-v1.schema.json"
     },
     {
+      "id": "one_shot_authority_scope_head_frozen_before_checkout_secret_or_data_plane",
+      "status": "PASS",
+      "evidence_ref": "machine/stages/S7/reviews/t0705/authority-variable-scope-attempt-ledger.json and machine/stages/S7/schemas/protected-ga-authority-context-attempt-ledger-v1.schema.json"
+    },
+    {
       "id": "processed_current_uses_metadata_addressed_canonical_git_blob",
       "status": "PASS",
       "evidence_ref": "tests/tasks/test_t0705.py::test_t0705_processed_current_uses_canonical_git_blob_not_contents_media"
@@ -185,17 +190,17 @@
     {
       "id": "AC-002",
       "status": "PARTIAL",
-      "reason": "The dependency-injected GA mechanism processes only deterministically verified candidates and binds each current pointer to bounded Contents metadata plus the exact metadata-addressed canonical Git Blob before decrypt. All nine protected attempts failed and no T0705 PASS receipt exists; the later formatter rejection occurred before protected Secret or data-plane access."
+      "reason": "The dependency-injected GA mechanism processes only deterministically verified candidates and binds each current pointer to bounded Contents metadata plus the exact metadata-addressed canonical Git Blob before decrypt. All nine protected attempts failed and no T0705 PASS receipt exists; the later formatter and authority-context rejections both occurred before protected Secret or data-plane access."
     },
     {
       "id": "AC-023",
       "status": "PARTIAL",
-      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. The pre-Secret formatter-rejected head is frozen separately; one format-only successor may run once while all failed heads remain non-rerunnable."
+      "reason": "The candidate binds the timezone-aware 04:30 target to audited Sunday Full Reconciliation and encrypted checkpoint catch-up. Both pre-Secret failed heads are frozen separately; one repository-scoped one-shot authority successor may run once while all failed heads remain non-rerunnable."
     },
     {
       "id": "AC-031",
       "status": "NOT_RUN",
-      "reason": "All nine protected GA attempts emitted aggregate-safe failure only; the later candidate preflight never entered the protected Environment. No protected GA PASS result or continuous public health evidence is published."
+      "reason": "All nine protected GA attempts emitted aggregate-safe failure only; the later candidate preflight and authority-context failures never entered the protected Environment. No protected GA PASS result or continuous public health evidence is published."
     },
     {
       "id": "AC-032",
@@ -207,7 +212,7 @@
     {
       "id": "PROTECTED_GA_0430_FULL_PIPELINE",
       "status": "FAILED",
-      "reason": "The first nine protected exact-main attempts failed and are frozen. A later exact-main candidate passed authority context but Ruff format check rejected it before protected Environment, Secret, Gmail or private-repository access; that head is also frozen. One format-only canonical Git Blob recovery successor is authorized."
+      "reason": "The first nine protected exact-main attempts failed and are frozen. A later candidate failed Ruff format validation before protected Environment entry; its format-only successor then failed before checkout because an Environment-scoped variable was unavailable to the pre-Environment authority job. Both pre-Secret heads are frozen with zero Secret, Gmail or private-repository access. One repository-scoped one-shot authority successor is authorized."
     }
   ],
   "blockers": [
@@ -238,5 +243,5 @@
     "release_assets_above_one": 0,
     "production_workflow_runs": 0
   },
-  "next_action": "Deliver one format-only exact-main canonical Git Blob recovery successor and execute exactly one new attempt-1 protected SCHEDULE_REHEARSAL with rerun zero. The exact workflow Ruff format command already passes locally. After PASS bind the receipt and enable the committed 04:30 Australia/Sydney schedule. Never rerun any failed protected or preflight head and do not enter T0706."
+  "next_action": "Freeze both pre-Secret failed heads, deliver one exact-main T0705 repository-scoped one-shot authority successor, and execute exactly one new attempt-1 schedule-mode rehearsal. Never rerun or redispatch any failed protected, preflight or authority-context head. Set the one-shot repository variable only after the exact merge head exists, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed 04:30 Australia/Sydney schedule and stop before T0706."
 }

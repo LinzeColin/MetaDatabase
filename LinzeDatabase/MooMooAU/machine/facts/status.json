@@ -1,8 +1,8 @@
 {
-  "version": "1.0.29",
-  "stage": "RMD-06 T0705 九个 GA 失败头及一个 pre-Secret 预检失败头已冻结，格式修复 successor 已授权待运行",
-  "phase": "T0705 九个 protected exact-main attempt-1 失败头已冻结；第九次已验证 App repository scope，随后仍止于 FIRST_IMPORT_POINTER_FETCH 且 private 数据仓零提交。Live replay 证明 Contents raw-media 非规范而 metadata-addressed Git Blob 全部规范；首个 recovery 候选在 pre-Secret Ruff format gate 被拒绝且零远端效果，新 head 只修复格式与派生绑定后执行 canonical Git Blob recovery",
-  "task": "交付 v1.0.29 format-only canonical Git Blob recovery 精确 successor 并执行一次新 head protected SCHEDULE_REHEARSAL；九个 protected 失败头与 preflight 失败头均 rerun 0；PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
+  "version": "1.0.30",
+  "stage": "RMD-06 T0705 九个 GA 失败头及两个 pre-Secret 失败头已冻结，repository-scope authority successor 已授权待运行",
+  "phase": "T0705 九个 protected exact-main attempt-1 失败头已冻结；第九次已验证 App repository scope，随后仍止于 FIRST_IMPORT_POINTER_FETCH 且 private 数据仓零提交。Live replay 证明 Contents raw-media 非规范而 metadata-addressed Git Blob 全部规范；首个 recovery 候选在 pre-Secret Ruff format gate 被拒绝且零远端效果，格式 successor 又因 one-shot authority 变量作用域错误在 checkout 前拒绝；新 head 仅修复 repository-scope authority 与派生绑定后执行 canonical Git Blob recovery",
+  "task": "交付 v1.0.30 repository-scope authority canonical Git Blob recovery 精确 successor 并执行一次新 head protected SCHEDULE_REHEARSAL；九个 protected 失败头与两个 pre-Secret 失败头均 rerun 0；PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
   "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 5/43（通过 4、失败 1）；最终验收 0/34；生产阻塞",
   "report_grade": "机器证据",
   "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",

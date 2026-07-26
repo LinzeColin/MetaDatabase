@@ -5,7 +5,10 @@ run proved the App repository scope but live read-only replay showed that one Co
 body was not the canonical Git blob.  This entrypoint authorizes one new owner-dispatched canonical
 Git Blob recovery rehearsal.
 Its first delivery was rejected by the pre-Secret Ruff format check and is also frozen; the
-successor changes only formatter output and derived bindings.
+successor changed only formatter output and derived bindings.
+That successor was rejected before checkout because its one-shot variable was placed at
+Environment scope while this authority job intentionally runs before Environment entry. The new
+head is also frozen; its successor uses repository-scoped one-shot authority.
 It invokes
 the same deterministic ``RunTrigger.SCHEDULE`` path used by the committed 04:30
 Australia/Sydney workflow, but it never claims that ``workflow_dispatch`` was a GitHub
@@ -81,7 +84,14 @@ FAILED_GA_HEAD_SHA_SEQUENCE = (
 FAILED_GA_PREFLIGHT_HEAD_SHA_SEQUENCE = (
     "26949ab5031a21b0c515c282c9ef06ff9417e058",  # pragma: allowlist secret
 )
-FAILED_GA_HEAD_SHAS = frozenset(FAILED_GA_HEAD_SHA_SEQUENCE + FAILED_GA_PREFLIGHT_HEAD_SHA_SEQUENCE)
+FAILED_GA_AUTHORITY_CONTEXT_HEAD_SHA_SEQUENCE = (
+    "9c79b92bcdf8b027727963dfe52bd183a170954c",  # pragma: allowlist secret
+)
+FAILED_GA_HEAD_SHAS = frozenset(
+    FAILED_GA_HEAD_SHA_SEQUENCE
+    + FAILED_GA_PREFLIGHT_HEAD_SHA_SEQUENCE
+    + FAILED_GA_AUTHORITY_CONTEXT_HEAD_SHA_SEQUENCE
+)
 
 _BLUE_GREEN_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0704/execution-receipt.json")
 _BLUE_GREEN_RECEIPT_SCHEMA_PATH = Path(
@@ -144,6 +154,12 @@ _FAILED_GA_PREFLIGHT_LEDGER_PATH = Path(
 _FAILED_GA_PREFLIGHT_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-ga-candidate-preflight-attempt-ledger-v1.schema.json"
 )
+_FAILED_GA_AUTHORITY_CONTEXT_LEDGER_PATH = Path(
+    "machine/stages/S7/reviews/t0705/authority-variable-scope-attempt-ledger.json"
+)
+_FAILED_GA_AUTHORITY_CONTEXT_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-ga-authority-context-attempt-ledger-v1.schema.json"
+)
 _GATE_PATHS = (
     Path("machine/stages/S7/reviews/t0702/execution-receipt.json"),
     Path("machine/stages/S7/schemas/protected-beta-execution-receipt-v2.schema.json"),
@@ -171,6 +187,8 @@ _GATE_PATHS = (
     _NINTH_FAILED_GA_LEDGER_SCHEMA_PATH,
     _FAILED_GA_PREFLIGHT_LEDGER_PATH,
     _FAILED_GA_PREFLIGHT_LEDGER_SCHEMA_PATH,
+    _FAILED_GA_AUTHORITY_CONTEXT_LEDGER_PATH,
+    _FAILED_GA_AUTHORITY_CONTEXT_LEDGER_SCHEMA_PATH,
     _RUN_CONTRACT_PATH,
     Path("machine/stages/S7/contracts/stage7_acceptance_contract.json"),
     Path("machine/contracts/production_composition.json"),
@@ -411,6 +429,9 @@ def execution_contract(project_root: Path) -> dict[str, object]:
         "blue_green_receipt_sha256": blue_green_receipt_sha256(root),
         "failed_ga_head_shas": list(FAILED_GA_HEAD_SHA_SEQUENCE),
         "failed_ga_preflight_head_shas": list(FAILED_GA_PREFLIGHT_HEAD_SHA_SEQUENCE),
+        "failed_ga_authority_context_head_shas": list(
+            FAILED_GA_AUTHORITY_CONTEXT_HEAD_SHA_SEQUENCE
+        ),
         "failed_ga_heads_rerun_allowed": False,
         "failed_ga_heads_redispatch_allowed": False,
         "failed_ga_attempt_ledger_paths": [
@@ -425,6 +446,9 @@ def execution_contract(project_root: Path) -> dict[str, object]:
             _NINTH_FAILED_GA_LEDGER_PATH.as_posix(),
         ],
         "failed_ga_preflight_ledger_path": _FAILED_GA_PREFLIGHT_LEDGER_PATH.as_posix(),
+        "failed_ga_authority_context_ledger_path": (
+            _FAILED_GA_AUTHORITY_CONTEXT_LEDGER_PATH.as_posix()
+        ),
         "ga_gate_paths": [path.as_posix() for path in _GATE_PATHS],
         "ga_gate_sha256": ga_gate_sha256(root),
         "ga_authorized": authorized,
@@ -769,15 +793,15 @@ def _ga_authorized(project_root: Path) -> bool:
         contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0705"
         and contract.get("baseline_commit")
-        == "26949ab5031a21b0c515c282c9ef06ff9417e058"  # pragma: allowlist secret
+        == "9c79b92bcdf8b027727963dfe52bd183a170954c"  # pragma: allowlist secret
         and contract.get("baseline_manifest_sha256")
-        == "7acef8a16a000f0371c88cd5ac8fe12aa1d0409cecc250934f136395005d7f8d"  # pragma: allowlist secret  # noqa: E501
+        == "c2f9f44d1cf62f3b783d7f83e880b402cbf422eb5817266a406c37c0ae7f08d4"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("purpose")
-        == "T0705_PROTECTED_GA_CANONICAL_GIT_BLOB_FORMAT_PREFLIGHT_RECOVERY_AND_ENABLEMENT_ONLY"
+        == "T0705_PROTECTED_GA_CANONICAL_GIT_BLOB_ONE_SHOT_AUTHORITY_SCOPE_RECOVERY_AND_ENABLEMENT_ONLY"  # noqa: E501
         and authorization.get("original_run_contract_sha256")
         == "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("prior_run_contract_sha256")
-        == "6ff4910733e9c371dbffc069255614512649cf09092fff73f747869274ac3de7"  # pragma: allowlist secret  # noqa: E501
+        == "271b56a1f208ed1b89248c4bc603b06c2a3df39a70eb2c1b84055edcec5d2cb7"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("failed_attempt_ledgers_required") == 9
         and authorization.get("first_failed_attempt_ledger_sha256")
         == hashlib.sha256((root / _FIRST_FAILED_GA_LEDGER_PATH).read_bytes()).hexdigest()
@@ -819,9 +843,19 @@ def _ga_authorized(project_root: Path) -> bool:
         == hashlib.sha256((root / _FAILED_GA_PREFLIGHT_LEDGER_PATH).read_bytes()).hexdigest()
         and authorization.get("candidate_preflight_attempt_ledger_schema_sha256")
         == hashlib.sha256((root / _FAILED_GA_PREFLIGHT_LEDGER_SCHEMA_PATH).read_bytes()).hexdigest()
+        and authorization.get("authority_context_attempt_ledger_sha256")
+        == hashlib.sha256(
+            (root / _FAILED_GA_AUTHORITY_CONTEXT_LEDGER_PATH).read_bytes()
+        ).hexdigest()
+        and authorization.get("authority_context_attempt_ledger_schema_sha256")
+        == hashlib.sha256(
+            (root / _FAILED_GA_AUTHORITY_CONTEXT_LEDGER_SCHEMA_PATH).read_bytes()
+        ).hexdigest()
         and authorization.get("failed_workflow_head_shas") == list(FAILED_GA_HEAD_SHA_SEQUENCE)
         and authorization.get("failed_candidate_preflight_head_shas")
         == list(FAILED_GA_PREFLIGHT_HEAD_SHA_SEQUENCE)
+        and authorization.get("failed_authority_context_head_shas")
+        == list(FAILED_GA_AUTHORITY_CONTEXT_HEAD_SHA_SEQUENCE)
         and authorization.get("failed_head_rerun_allowed") is False
         and authorization.get("failed_head_redispatch_allowed") is False
         and authorization.get("t0704_receipt_required") is True
@@ -829,11 +863,12 @@ def _ga_authorized(project_root: Path) -> bool:
         and authorization.get("t0705_authorized") is True
         and authorization.get("t0706_authorized") is False
         and authorization.get("final_publication_authorized") is False
-        and authorization.get("controlled_main_delivery_total_limit") == 12
-        and authorization.get("controlled_main_deliveries_consumed") == 10
+        and authorization.get("controlled_main_delivery_total_limit") == 13
+        and authorization.get("controlled_main_deliveries_consumed") == 11
         and authorization.get("controlled_main_deliveries_remaining") == 2
         and authorization.get("ga_rehearsal_dispatches_consumed") == 9
-        and authorization.get("ga_candidate_preflight_dispatches_consumed") == 1
+        and authorization.get("ga_candidate_preflight_dispatches_consumed") == 2
+        and authorization.get("ga_authority_context_scope_failures_consumed") == 1
         and authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and authorization.get("ga_label_replay_repair_dispatches_consumed") == 1
         and authorization.get("ga_phase_diagnostic_dispatches_consumed") == 1
@@ -845,13 +880,15 @@ def _ga_authorized(project_root: Path) -> bool:
         and authorization.get("ga_first_import_diagnostic_rerun_limit") == 0
         and authorization.get("manual_environment_reviewers_required") is False
         and authorization.get("fixed_calendar_wait_days") == 0
-        and budget.get("controlled_main_deliveries_total_maximum") == 12
+        and budget.get("controlled_main_deliveries_total_maximum") == 13
         and budget.get("controlled_main_deliveries_remaining_maximum") == 2
         and budget.get("protected_environment_secret_names_maximum") == len(M3_SECRET_NAMES)
         and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 10
         and budget.get("protected_ga_rehearsal_dispatches_consumed") == 9
-        and budget.get("protected_ga_candidate_preflight_dispatches_total_maximum") == 2
-        and budget.get("protected_ga_candidate_preflight_dispatches_consumed") == 1
+        and budget.get("protected_ga_candidate_preflight_dispatches_total_maximum") == 3
+        and budget.get("protected_ga_candidate_preflight_dispatches_consumed") == 2
+        and budget.get("protected_ga_authority_context_scope_failures_maximum") == 1
+        and budget.get("protected_ga_authority_context_scope_failures_consumed") == 1
         and budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_label_replay_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_phase_diagnostic_dispatches_consumed") == 1

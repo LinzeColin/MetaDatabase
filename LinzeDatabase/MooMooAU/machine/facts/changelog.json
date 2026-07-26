@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.0.30",
+    "date": "2026-07-26",
+    "summary": "固化 v1.0.29 exact-main 候选的 pre-checkout authority-context 失败：one-shot expected-head 变量被错误放在 Environment scope，而 authority job 按设计在 Environment 进入前执行，因此变量不可见。checkout、protected Environment、Secret、Gmail、私库与全部 mutation 均为零；两个变量作用域均已清理，失败 head 禁止 rerun/redispatch。v1.0.30 只把 one-shot authority 交付约束修复为 repository scope，并更新必要证据、状态、哈希与包绑定；T0706 与最终发布仍禁止。"
+  },
+  {
     "version": "1.0.29",
     "date": "2026-07-26",
     "summary": "固化 v1.0.28 exact-main 候选的 pre-Secret 确定性预检失败：authority context 通过，Ruff format check 在进入 protected Environment、注入 Secret、访问 Gmail 或私有仓之前拒绝一个未格式化文件，远端与数据面效果均为零。失败 head 禁止 rerun/redispatch；v1.0.29 仅包含 Ruff format 输出及其必要的证据、状态、哈希与包绑定，复用 canonical Git Blob 恢复语义并授权一次新 exact-main attempt 1；T0706 与最终发布仍禁止。"

@@ -847,11 +847,15 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["blue_green_receipt_sha256"] == blue_green_receipt_sha256(PROJECT_ROOT)
     assert len(cast(list[str], contract["failed_ga_head_shas"])) == 9
     assert len(cast(list[str], contract["failed_ga_preflight_head_shas"])) == 1
+    assert len(cast(list[str], contract["failed_ga_authority_context_head_shas"])) == 1
     assert contract["failed_ga_heads_rerun_allowed"] is False
     assert contract["failed_ga_heads_redispatch_allowed"] is False
     assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 9
     assert contract["failed_ga_preflight_ledger_path"] == (
         "machine/stages/S7/reviews/t0705/canonical-blob-preflight-attempt-ledger.json"
+    )
+    assert contract["failed_ga_authority_context_ledger_path"] == (
+        "machine/stages/S7/reviews/t0705/authority-variable-scope-attempt-ledger.json"
     )
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
 

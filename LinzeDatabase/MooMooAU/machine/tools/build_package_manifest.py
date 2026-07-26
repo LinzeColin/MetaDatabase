@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the v1.0.29 protected T0705 format-preflight recovery manifest."""
+"""Build the v1.0.30 protected T0705 authority-scope recovery manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.29.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.29"
-PACKAGE_VERSION = "1.0.29"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.28.json")
-PREDECESSOR_MANIFEST_SHA256 = "7acef8a16a000f0371c88cd5ac8fe12aa1d0409cecc250934f136395005d7f8d"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.30.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.30"
+PACKAGE_VERSION = "1.0.30"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.29.json")
+PREDECESSOR_MANIFEST_SHA256 = "c2f9f44d1cf62f3b783d7f83e880b402cbf422eb5817266a406c37c0ae7f08d4"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.28 manifest drift")
+        raise ValueError("predecessor v1.0.29 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -182,7 +182,7 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v29",
+        "schema_version": "moomooau.package-manifest.v30",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
@@ -199,8 +199,9 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "8b6faaf9059661edc3153352b8787ddbc4f733f3 and "
             "6f82e738611e0d2eeeadd2507f738c9e269c91e0, and preserve the exact T0702, "
             "T0703 and T0704 protected PASS receipts plus all nine immutable T0705 protected "
-            "failed-attempt ledgers and the distinct pre-Secret candidate-validation ledger. "
-            "The formatter-rejected head is frozen. One format-only canonical Git Blob recovery "
+            "failed-attempt ledgers and both distinct pre-Secret ledgers. "
+            "The formatter-rejected and authority-context-rejected heads are frozen. One "
+            "repository-scoped one-shot authority canonical Git Blob recovery "
             "delivery, one new exact-main attempt-1 protected "
             "SCHEDULE_REHEARSAL with rerun zero and one later receipt/schedule-closure delivery "
             "remain authorized. "
@@ -209,10 +210,12 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "unauthorized."
         ),
         "scope": (
-            "Baseline-preserving v1.0.29 T0705 recovery candidate: immutable v1.0.1 product "
-            "contracts and v1.0.2-v1.0.28 predecessor lineage remain unchanged. All nine failed "
-            "GA heads and the pre-Secret formatter-rejected head are digest-bound and cannot be "
-            "rerun or redispatched. Runtime source changes only by deterministic Ruff formatting; "
+            "Baseline-preserving v1.0.30 T0705 recovery candidate: immutable v1.0.1 product "
+            "contracts and v1.0.2-v1.0.29 predecessor lineage remain unchanged. All nine failed "
+            "GA heads and both pre-Secret failed heads are digest-bound and cannot be "
+            "rerun or redispatched. Runtime data-plane behavior remains unchanged; "
+            "the one-shot expected-head authority moves to repository scope where the "
+            "pre-Environment authority job can read it; "
             "the pointer recovery "
             "uses bounded Contents metadata only to bind exact path, size and SHA, then requires "
             "the metadata-addressed Git Blobs API base64 body, response SHA, decoded size, age "

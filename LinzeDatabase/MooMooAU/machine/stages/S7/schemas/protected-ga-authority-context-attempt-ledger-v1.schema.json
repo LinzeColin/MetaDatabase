@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://linzecolin.example/schemas/moomooau/protected-ga-authority-context-attempt-ledger-v1.schema.json",
+  "title": "MooMooAU protected GA authority-context attempt ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "observed_through_utc",
+    "task_id",
+    "scope",
+    "delivery",
+    "workflow",
+    "jobs",
+    "failure",
+    "effects",
+    "completion_policy",
+    "claims"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "moomooau.protected-ga-authority-context-attempt-ledger.v1"
+    },
+    "observed_through_utc": {"type": "string", "format": "date-time"},
+    "task_id": {"const": "T0705"},
+    "scope": {"const": "PRE_CHECKOUT_PRE_SECRET_AUTHORITY_CONTEXT_ONLY"},
+    "delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pull_request_number",
+        "pull_request_head_sha",
+        "merge_commit_parent_sha",
+        "merge_commit_sha"
+      ],
+      "properties": {
+        "pull_request_number": {"type": "integer", "minimum": 1},
+        "pull_request_head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "merge_commit_parent_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "merge_commit_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "workflow_head_sha",
+        "event",
+        "run_attempt",
+        "reruns",
+        "conclusion"
+      ],
+      "properties": {
+        "run_id": {"type": "integer", "minimum": 1},
+        "workflow_head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "event": {"const": "workflow_dispatch"},
+        "run_attempt": {"const": 1},
+        "reruns": {"const": 0},
+        "conclusion": {"const": "FAILURE_PRE_CHECKOUT_AUTHORITY_CONTEXT"}
+      }
+    },
+    "jobs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority_context",
+        "candidate_validation",
+        "protected_environment",
+        "live_schedule_hold"
+      ],
+      "properties": {
+        "authority_context": {"const": "FAILED"},
+        "candidate_validation": {"const": "SKIPPED"},
+        "protected_environment": {"const": "SKIPPED"},
+        "live_schedule_hold": {"const": "SKIPPED"}
+      }
+    },
+    "failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase",
+        "reason_code",
+        "finding",
+        "exact_root_cause_claimed",
+        "root_cause_basis"
+      ],
+      "properties": {
+        "phase": {"const": "PRE_CHECKOUT_AUTHORITY_CONTEXT"},
+        "reason_code": {"const": "ONE_SHOT_AUTHORITY_VARIABLE_SCOPE_MISMATCH"},
+        "finding": {"const": "AUTHORITY_JOB_CANNOT_READ_ENVIRONMENT_SCOPED_VARIABLE"},
+        "exact_root_cause_claimed": {"const": true},
+        "root_cause_basis": {"const": "SANITIZED_JOB_ENV_PRESENCE_AND_WORKFLOW_SCOPE"}
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checkout_started",
+        "protected_environment_entered",
+        "protected_secret_names_injected",
+        "gmail_api_calls",
+        "private_repository_calls",
+        "gmail_mutations",
+        "private_repository_mutations",
+        "timeline_mutations",
+        "checkpoint_mutations",
+        "platform_schedule_events",
+        "environment_scoped_one_shot_authority_after_cleanup",
+        "repository_scoped_one_shot_authority_after_cleanup",
+        "production_enablement_variable_after_failure"
+      ],
+      "properties": {
+        "checkout_started": {"const": false},
+        "protected_environment_entered": {"const": false},
+        "protected_secret_names_injected": {"const": 0},
+        "gmail_api_calls": {"const": 0},
+        "private_repository_calls": {"const": 0},
+        "gmail_mutations": {"const": 0},
+        "private_repository_mutations": {"const": 0},
+        "timeline_mutations": {"const": 0},
+        "checkpoint_mutations": {"const": 0},
+        "platform_schedule_events": {"const": 0},
+        "environment_scoped_one_shot_authority_after_cleanup": {"const": "ABSENT"},
+        "repository_scoped_one_shot_authority_after_cleanup": {"const": "ABSENT"},
+        "production_enablement_variable_after_failure": {"const": "ABSENT"}
+      }
+    },
+    "completion_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "same_head_rerun_allowed",
+        "failed_head_redispatch_allowed",
+        "frozen_authority_context_head_shas",
+        "next_candidate_scope",
+        "next_candidate_dispatch_limit",
+        "protected_ga_rehearsal_dispatches_consumed",
+        "protected_ga_rehearsal_reruns",
+        "protected_environment_entries_for_failed_dispatch",
+        "t0705_complete",
+        "t0706_authorized",
+        "final_publication_authorized"
+      ],
+      "properties": {
+        "same_head_rerun_allowed": {"const": false},
+        "failed_head_redispatch_allowed": {"const": false},
+        "frozen_authority_context_head_shas": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+        },
+        "next_candidate_scope": {
+          "const": "REPOSITORY_SCOPED_ONE_SHOT_AUTHORITY_PLUS_DERIVED_BINDINGS_ONLY"
+        },
+        "next_candidate_dispatch_limit": {"const": 1},
+        "protected_ga_rehearsal_dispatches_consumed": {"const": 9},
+        "protected_ga_rehearsal_reruns": {"const": 0},
+        "protected_environment_entries_for_failed_dispatch": {"const": 0},
+        "t0705_complete": {"const": false},
+        "t0706_authorized": {"const": false},
+        "final_publication_authorized": {"const": false}
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_validation_executed",
+        "protected_ga_executed",
+        "production_health_claimed",
+        "t0705_pass_claimed",
+        "stage7_complete_claimed",
+        "final_acceptance_claimed",
+        "final_publication_claimed"
+      ],
+      "properties": {
+        "candidate_validation_executed": {"const": false},
+        "protected_ga_executed": {"const": false},
+        "production_health_claimed": {"const": false},
+        "t0705_pass_claimed": {"const": false},
+        "stage7_complete_claimed": {"const": false},
+        "final_acceptance_claimed": {"const": false},
+        "final_publication_claimed": {"const": false}
+      }
+    }
+  }
+}
