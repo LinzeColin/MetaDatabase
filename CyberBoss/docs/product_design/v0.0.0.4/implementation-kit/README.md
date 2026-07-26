@@ -19,6 +19,14 @@ Private-MetaDatabase 安全 wrapper、Cloudflare/OCI plan/apply adapters 与
 provider simulator。真实 provider write 必须有外置精确 scope attestation；
 缺失时返回 `activation_pending`，simulator 结果不会冒充真实激活。
 
+P0.4 将 supplied WeChat/Codex simulator 补齐到 TaskPack contract：确定性
+cursor/replay/fault/unknown-outcome、initialize/progress/approval/overload/
+crash/false-success/late-event 与 artifact Oracle。两者只绑定 loopback；
+`auth_activation_check.py` 只读取 CLI status 和文件 metadata，不读取 auth/
+account 内容。真实 Codex/WeChat 未在目标 OVH 激活时继续
+`activation_pending`。`secret_scan.py` 的七类模式均有独立 hostile fixture；
+词边界使用真实 regex boundary，避免 token/JWT/Bearer/WeChat ID 漏报。
+
 ## Immediate validation
 
 ```bash
@@ -33,8 +41,11 @@ python3 implementation-kit/scripts/scope_policy.py validate
 python3 implementation-kit/tests/test_identity_scope.py
 python3 implementation-kit/tests/test_external_adapters.py
 node --test implementation-kit/tests/access-policy-contract.test.js
+node --test implementation-kit/tests/simulator-contract.test.mjs
 python3 implementation-kit/scripts/cloudflare_adapter.py plan
 python3 implementation-kit/scripts/oci_object_adapter.py plan
+python3 implementation-kit/scripts/auth_activation_check.py \
+  --mode local --output /tmp/cyberboss-auth-probe.json
 
 for f in implementation-kit/scripts/*.sh implementation-kit/simulators/*.sh; do
   bash -n "$f"
@@ -43,6 +54,7 @@ node --check implementation-kit/status/generate-status.js
 node --check implementation-kit/status/global-status-adapter.js
 node --test implementation-kit/tests/status-adapter-contract.test.js
 node --check implementation-kit/simulators/weixin-ilink-simulator.mjs
+node --check implementation-kit/simulators/codex-app-server-simulator.mjs
 bash implementation-kit/scripts/preflight.sh --check
 python3 implementation-kit/tests/test_resource_profile.py
 python3 implementation-kit/scripts/resource-pressure-fixture.py

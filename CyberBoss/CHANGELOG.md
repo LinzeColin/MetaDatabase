@@ -1,5 +1,33 @@
 # Changelog
 
+## P0.4 / CB-030 — 2026-07-26
+
+- Ran the supplied WeChat simulator successfully and reproduced the supplied
+  Codex simulator's clean-location `ERR_MODULE_NOT_FOUND` failure for its
+  already-locked `ws` dependency.
+- Reused that exact local dependency and extended only TaskPack/pinned-protocol
+  gaps; no package, upstream fetch, remote or runtime source dependency was
+  added.
+- Added deterministic WeChat QR/login, empty/reverse/cursor/replay, duplicate
+  update/ack, 401/403/429/500/503/timeout/reset and unknown-outcome fixtures.
+- Added Codex initialize gate, thread/turn/progress, approval, retryable/
+  terminal failure, interrupt, exact bounded-queue overload, crash/reconnect,
+  false-success and late/duplicate-event fixtures with artifact SHA-256 Oracles.
+- Made both simulators reject non-loopback binds and added one 4-test contract
+  suite; all four simulator tests and all 155 frozen App tests passed.
+- Probed local and authorized OVH auth state read-only without reading or
+  persisting values. Local Codex is pinned/authenticated; OVH has no Codex CLI,
+  Codex auth file or WeChat state, so target adapters remain
+  `activation_pending`.
+- Added one consolidated device-auth/QR/protection/re-login sheet and a
+  1280×720 PNG explicitly labelled as a non-real WeChat fixture.
+- Revalidated source/license/NOTICE/dependency evidence and scanned against
+  seven protected known-secret values with zero hits/P0/P1 findings.
+- Corrected literal-backslash word boundaries in the existing secret scanner
+  and added independent hostile fixtures for all seven pattern families,
+  closing token/JWT/Bearer/WeChat false-negative paths.
+- Marked CB-030 `passed`; CB-040 and every later task/gate remain unstarted.
+
 ## P0.3 / CB-020 — 2026-07-26
 
 - Locked the only code identity to `LinzeColin/MetaDatabase/CyberBoss`,

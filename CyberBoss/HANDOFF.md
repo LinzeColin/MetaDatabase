@@ -10,9 +10,9 @@
 
 ## Current state
 
-`PS0.1`, `P0.1 / CB-000`, `P0.2 / CB-010` and `P0.3 / CB-020`
-passed. Stage 0 is 3/5 tasks complete; 27 later tasks and PG-0–PG-5 remain
-`not_started`.
+`PS0.1`, `P0.1 / CB-000`, `P0.2 / CB-010`, `P0.3 / CB-020` and
+`P0.4 / CB-030` passed. Stage 0 is 4/5 tasks complete; 26 later tasks and
+PG-0–PG-5 remain `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
@@ -54,6 +54,31 @@ Private-MetaDatabase real operation = activation_pending
 This does not block dependency-independent development. Adapters, exact-scope
 guards, mocks, Access deny/allow fixtures and negative matrices are complete.
 
+CB-030 extended the supplied loopback-only WeChat and Codex simulators only
+where baseline execution or the pinned/current protocol proved a concrete
+gap. The deterministic contract now covers WeChat login/poll/send,
+cursor/replay/duplicate/unknown-outcome/fault fixtures and Codex
+initialize/thread/turn/progress/approval/error/overload/false-success/
+crash-reconnect fixtures. The existing app remains unchanged and its complete
+155-test regression passes.
+
+The local Mac has the exact pinned Codex CLI, an authenticated login status
+and owner-only auth-file metadata. This is not target activation. A
+metadata-only key-only/strict-known-host probe found that the authorized OVH
+target has no Codex CLI/auth state and no WeChat account state. It performed no
+persistent remote write and read no credential/session content. Therefore:
+
+```text
+Codex real adapter = activation_pending
+WeChat real adapter = activation_pending
+AC-001 real = activation_pending
+AC-010 real = activation_pending
+CB-030 simulator/non-activation Oracles = passed
+```
+
+The consolidated activation/re-login commands are prepared but were not
+executed. Development continues under AC-056 without claiming real activation.
+
 ## Canonical inputs and evidence
 
 - Product design: `docs/product_design/v0.0.0.4/`
@@ -63,10 +88,14 @@ guards, mocks, Access deny/allow fixtures and negative matrices are complete.
 - Task state: `machine/facts/task_state.json`
 - Fixed-source lock: `machine/source-lock.json`
 - Current Run Contract:
-  `docs/governance/RUN_CONTRACT_P0_3_CB_020.md`
+  `docs/governance/RUN_CONTRACT_P0_4_CB_030.md`
 - CB-000 source/license evidence: `docs/evidence/CB-000/`
 - CB-010 OVH/resource evidence: `docs/evidence/CB-010/`
 - CB-020 identity/provider/security evidence: `docs/evidence/CB-020/`
+- CB-030 simulator/auth/security evidence: `docs/evidence/CB-030/`
+- Consolidated activation sheet: `docs/evidence/CB-030/auth-gates.md`
+- Current validation report:
+  `docs/evidence/CB-030/VALIDATION_REPORT.md`
 - Machine-readable scope:
   `docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json`
 - Credential slots:
@@ -93,15 +122,30 @@ guards, mocks, Access deny/allow fixtures and negative matrices are complete.
   emitted.
 - CB-000 Corresponding Source, notices, 129 dependency entries and strict
   dual-license conflict treatment revalidated unchanged.
-- TaskPack, DAG, traceability, no-wait, config, Prestage manifests and
-  `validate_cb020.py`: passed with `task_state=passed`.
+- WeChat/Codex simulator contract: 4/4 tests passed; loopback-only enforcement
+  and post-test process cleanup passed.
+- Existing application: check passed; 155/155 tests passed.
+- Clean missing-auth fixture returns both real adapters
+  `activation_pending` and continues without a wait node.
+- Local and authorized OVH probes emitted only redacted metadata; credential
+  values/content reads and external persistent writes are zero.
+- CB-030 secret scan covered the final CyberBoss tree plus equality checks for
+  seven protected known-secret values; known/pattern hits=0, P0/P1=0, no
+  values emitted. Its prior literal word-boundary false-negative defect was
+  fixed and every one of seven pattern families now has a hostile fixture.
+- TaskPack, DAG, traceability, no-wait, scope/config, manifests, Prestage and
+  `validate_cb030.py`: passed with `task_state=passed`.
+- Historical CB-020 validation passed from its exact P0.3 commit on a
+  temporary compliant local branch; the detached-HEAD attempt failed only the
+  expected branch-scope gate, and both temporary worktree/branch were removed.
 - Git publication check: no CyberBoss remote branch, PR, tag or push.
 
 ## Known unknowns
 
-- No real authenticated Codex turn or WeChat QR/account call has been tested.
+- No real authenticated target Codex turn or WeChat QR/account call has been
+  tested; the fixture screenshot is deliberately marked non-real.
 - No real Private-MetaDatabase object, Cloudflare Access/DNS/R2 resource, OCI
-  object or CyberBoss Runtime was created or modified in CB-020.
+  object or CyberBoss Runtime was created or modified in CB-020 or CB-030.
 - Exact provider write-scope attestations remain external activation inputs;
   successful GETs are not treated as proof of safe writes.
 - The online Status surface still has no CyberBoss row.
@@ -111,28 +155,23 @@ guards, mocks, Access deny/allow fixtures and negative matrices are complete.
 
 ## Next Run
 
-Start exactly one phase: `P0.4 / CB-030`.
+Start exactly one phase: `P0.5 / CB-040`.
 
 Before modifying files, create
-`docs/governance/RUN_CONTRACT_P0_4_CB_030.md` from the canonical DAG and read
-AC-001, AC-010, AC-065 and AC-056. Keep CB-000/010/020 evidence immutable.
+`docs/governance/RUN_CONTRACT_P0_5_CB_040.md` from the canonical DAG and read
+AC-068, AC-056 and AC-070. Keep CB-000/010/020/030 evidence immutable.
 
 Required outcome:
 
-1. run and validate the supplied WeChat iLink simulator for
-   getupdates/sendmessage, duplicates, cursor replay and failure fixtures;
-2. run and validate the supplied Codex App Server simulator for initialize,
-   thread/turn, progress, approval, completion, error, overload and
-   false-success fixtures;
-3. extend a simulator only if the pinned source/protocol proves a concrete gap;
-4. prepare Codex device-auth and WeChat QR commands as one consolidated
-   activation sheet with protected auth-state and re-login procedures;
-5. if harmless real authentication is already usable, verify it without
-   exposing credentials; otherwise keep that adapter exactly
-   `activation_pending` and finish every non-activation Oracle;
-6. produce `auth-gates.md`, redacted command output and a fixture or real
-   WeChat screenshot whose claim level is explicit.
+1. freeze the implementation baseline and reuse-vs-change plan from the
+   canonical DAG and fixed-source evidence;
+2. map every planned implementation change to an exact module, test,
+   acceptance criterion and release artifact;
+3. prove source/DAG/TaskPack/traceability parity without starting S1 code;
+4. record the local baseline commit SHA and the immutable release/build plan;
+5. produce `implementation-baseline.md`, DAG validation output and local
+   baseline-commit evidence.
 
-Stop only the affected activation on ban/risk-control or credential exposure.
-Do not execute P0.5, push, create a PR/tag/release or deploy the CyberBoss
-Runtime in the P0.4 Run.
+Stop on any Canonical Facts contradiction that affects dependent
+implementation; unrelated evidence work may continue. Do not execute P1.1,
+push, create a PR/tag/release or deploy the CyberBoss Runtime in the P0.5 Run.

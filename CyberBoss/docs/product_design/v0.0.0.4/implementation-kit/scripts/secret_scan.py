@@ -14,12 +14,16 @@ from typing import Iterable
 
 PATTERNS = {
     "private_key": re.compile(rb"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
-    "github_token": re.compile(rb"\\bgh[pousr]_[A-Za-z0-9]{20,}\\b"),
-    "openai_key": re.compile(rb"\\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\\b"),
-    "aws_access_key": re.compile(rb"\\b(?:AKIA|ASIA)[A-Z0-9]{16}\\b"),
-    "jwt": re.compile(rb"\\beyJ[A-Za-z0-9_-]{10,}\\.eyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\b"),
-    "bearer": re.compile(rb"(?i)\\bauthorization\\s*:\\s*bearer\\s+[A-Za-z0-9._~-]{20,}"),
-    "wechat_id": re.compile(rb"\\bwxid_[A-Za-z0-9_-]+\\b"),
+    "github_token": re.compile(rb"\bgh[pousr]_[A-Za-z0-9]{20,}\b"),
+    "openai_key": re.compile(rb"\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\b"),
+    "aws_access_key": re.compile(rb"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b"),
+    "jwt": re.compile(
+        rb"\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"
+    ),
+    "bearer": re.compile(
+        rb"(?i)\bauthorization\s*:\s*bearer\s+[A-Za-z0-9._~-]{20,}"
+    ),
+    "wechat_id": re.compile(rb"\bwxid_[A-Za-z0-9_-]+\b"),
 }
 
 
@@ -71,7 +75,7 @@ def scan(files: list[Path], secrets: list[bytes]) -> dict[str, object]:
     p1 = unreadable
     return {
         "schema_version": 1,
-        "scanner": "CyberBoss CB-020 bounded secret scanner",
+        "scanner": "CyberBoss bounded secret scanner",
         "scanned_files": len(files),
         "scanned_bytes": scanned_bytes,
         "known_secret_values_loaded": len(secrets),

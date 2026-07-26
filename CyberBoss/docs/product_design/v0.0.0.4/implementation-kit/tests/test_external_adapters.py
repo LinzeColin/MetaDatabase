@@ -232,13 +232,41 @@ class ExternalAdapterTests(unittest.TestCase):
             root = Path(temporary)
             bad = root / "bad.txt"
             clean = root / "clean.txt"
-            bad.write_text(
-                "Author" + "ization: Bear" + "er " + ("fixturevalue" * 4) + "\n"
-                "-----BEGIN " + "PRIVATE KEY-----\n",
-                encoding="utf-8",
-            )
+            hostile_fixtures = {
+                "private_key": "-----BEGIN " + "PRIVATE KEY-----\n",
+                "github_token": "gh" + "p_" + ("A" * 24) + "\n",
+                "openai_key": "sk-" + "proj-" + ("a" * 24) + "\n",
+                "aws_access_key": "AK" + "IA" + ("A" * 16) + "\n",
+                "jwt": (
+                    "eyJ"
+                    + ("a" * 12)
+                    + "."
+                    + "eyJ"
+                    + ("b" * 12)
+                    + "."
+                    + ("c" * 12)
+                    + "\n"
+                ),
+                "bearer": (
+                    "Author"
+                    + "ization: Bear"
+                    + "er "
+                    + ("fixturevalue" * 4)
+                    + "\n"
+                ),
+                "wechat_id": "wx" + "id_" + ("fixture" * 4) + "\n",
+            }
+            for pattern_name, fixture in hostile_fixtures.items():
+                with self.subTest(pattern_name=pattern_name):
+                    bad.write_text(fixture, encoding="utf-8")
+                    result = scan([bad], [])
+                    self.assertEqual(
+                        result["pattern_hit_counts"][pattern_name],
+                        1,
+                        result,
+                    )
+                    self.assertEqual(result["forbidden_pattern_hits"], 1, result)
             clean.write_text("slot=/etc/cyberboss/credentials/example\\n", encoding="utf-8")
-            self.assertGreater(scan([bad], [])["p0_findings"], 0)
             self.assertEqual(scan([clean], [])["p0_findings"], 0)
 
 

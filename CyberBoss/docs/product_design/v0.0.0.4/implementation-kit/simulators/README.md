@@ -12,7 +12,16 @@ curl -fsS -X POST http://127.0.0.1:19080/admin/inject \
   -d '{"text":"ping","count":1}'
 ```
 
-支持二维码、确认、`getupdates`、`sendmessage`、typing、入站注入、消息重放和 send/update 故障注入。开发 Agent 必须按 pin 后的上游接口再次核对字段。
+支持二维码/login state、`getupdates`、`sendmessage`、typing、empty batch、
+入站注入、候选 cursor、反序 batch、重复 update、stable source/context ID、
+provider receipt 与 duplicate ack。`/admin/fault` 可为 get/send 分别排队
+`401|403|429|500|503|timeout|connection_reset`；send 另支持
+`unknown_outcome`（provider 已记录但 client 未收到 ack）。所有 timeout 都是
+立即返回的 deterministic fixture，不执行真实等待。
+
+`GET /admin/fixture` 是明确标注 `SIMULATOR FIXTURE — NOT REAL WECHAT` 的本地
+截图页，不含真实账号、token、QR payload 或私聊。开发 Agent 必须按固定上游
+接口再次核对字段，不得把 simulator 证据报告为真实微信通过。
 
 ## Codex App Server
 
@@ -20,7 +29,31 @@ curl -fsS -X POST http://127.0.0.1:19080/admin/inject \
 node implementation-kit/simulators/codex-app-server-simulator.mjs
 ```
 
-默认 endpoint：`ws://127.0.0.1:18765`。它只覆盖 MVP 用到的 initialize/model/thread/turn 方法，不代表 OpenAI 官方 App Server。
+默认 endpoint：`ws://127.0.0.1:18765`。Simulator 从 `CyberBoss/app` 已锁定
+的 `ws` dependency 加载，不要求在 implementation-kit 内复制依赖。它覆盖：
+
+- initialize → initialized gate、重复/未初始化拒绝；
+- model/thread start/resume/list/compact；
+- turn start、progress delta、approval server request/response、completion；
+- retryable/terminal error、interrupt、bounded queue overload
+  `-32001 / Server overloaded; retry later.`；
+- process crash/reconnect、false-success、late/duplicate event；
+- `simulator/state` 中的 artifact count/SHA-256 completion Oracle。
+
+测试可用 simulator-only `simulator/setScenario` 选择
+`success|approval|retryable_error|terminal_error|overload|cancel_hold|
+false_success|late_duplicate|process_crash`。这些控制方法不属于 OpenAI
+协议，不得由 production adapter 调用。Simulator 的 on-wire JSON-RPC header
+按当前 App Server 文档省略，且两份 simulator 都拒绝非 loopback bind。
+
+完整验证：
+
+```bash
+node --test implementation-kit/tests/simulator-contract.test.mjs
+```
+
+它是 CyberBoss MVP contract fixture，不代表 OpenAI 官方 App Server 或真实
+Codex auth 已激活。
 
 ## Private-MetaDatabase canonical
 

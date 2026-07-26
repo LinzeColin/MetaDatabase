@@ -690,7 +690,7 @@ Move beyond SQLite/single-node only if one of these persists:
 
 | Secret | Location | Rotation/Recovery | Must Never Appear In |
 |---|---|---|---|
-| WeChat bot bearer/account state | `/var/lib/cyberboss/wechat`, 0600 | re-scan QR | Git/log/status/Timeline |
+| WeChat bot bearer/account state | `/var/lib/cyberboss/accounts`, 0600 | re-scan QR | Git/log/status/Timeline |
 | Codex auth | dedicated home, 0600 | device-auth again | Git/log/R2 plaintext |
 | Claude auth | absent by default | explicit enable | same |
 | GitHub code credential | root-protected file/env | revoke/rotate | repo/log |

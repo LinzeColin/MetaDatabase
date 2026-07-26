@@ -68,6 +68,18 @@ Display timezone: Australia/Sydney
 
 任何一步未完成都不得让 Agent等待；它只影响相应真实adapter的最终状态。
 
+### 2.4 P0.4 Codex/WeChat auth gate
+
+P0.4 已完成两份 simulator 的 receive/send/cursor/fault 与
+initialize/thread/turn/progress/approval/error/overload/crash/false-success
+确定性矩阵。目标 OVH 的 metadata-only probe 证明当前没有 Codex CLI、
+Codex auth 或 WeChat account state，因此真实 adapter 继续
+`activation_pending`；本机已认证 Codex 不得替代 OVH Oracle。
+
+一次性 device-auth、QR、权限校验、真实 ping、独立 provider switch 与
+re-login/revocation 命令统一位于：
+`docs/evidence/CB-030/auth-gates.md`。不要再拆成多轮索取输入。
+
 ---
 
 ## 3. Clean Installation Golden Path

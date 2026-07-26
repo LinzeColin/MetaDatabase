@@ -140,7 +140,7 @@ Codex和WeChat凭据由各自官方/上游登录流程生成，不复制到env�
 
 ```text
 /var/lib/cyberboss/.codex/auth.json
-/var/lib/cyberboss/wechat/
+/var/lib/cyberboss/accounts/
 ```
 
 建议activation env只含非secret引用：
@@ -181,6 +181,23 @@ CB_RUNTIME_PROVIDER=simulator
   继续为 `activation_pending`，adapter/mocks 和下游无关任务继续。
 
 以上记录不包含任何 token、account/zone/bucket 原名、OCID、PAR URL 或私钥。
+
+### 6.2 P0.4 auth-state observation
+
+2026-07-26 的 metadata-only probe 读取本机和同一获授权 OVH staging：
+
+- 本机 `codex-cli 0.146.0-alpha.3.1` login status 为 authenticated，
+  `auth.json` 是 owner-only `0600`；这不替代 OVH runtime；
+- OVH key-only/strict-known-host 连接成功，但目标上 Codex CLI、
+  `/var/lib/cyberboss/.codex/auth.json`、CyberBoss state directory 与 WeChat
+  account state 均不存在；
+- probe 没有读取 credential/session content、没有持久远端写入、没有真实
+  QR/login/API call；
+- OVH Codex/WeChat、AC-001 real 与 AC-010 real 均保持
+  `activation_pending`，simulator 非激活验证已经完成，不阻塞 P0.5。
+
+合并 activation/re-login 真源：
+`docs/evidence/CB-030/auth-gates.md`。
 
 真实激活后只切：
 
