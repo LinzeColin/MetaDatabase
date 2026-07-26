@@ -5,20 +5,21 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 ## 当前状态
 
 - 生命周期：Stage 0、Stage 1 及各自独立退出门 `PG-0`、`PG-1` 已通过；
-  Stage 2 尚未开始
+  Stage 2 的 `P2.1 / CB-200` 已通过，`PG-2` 尚未开始
 - 当前产品设计：`v0.0.0.4`
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
   `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`；
-  `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`
-- 当前基线：五个精确 implementation/release commit 的本地 source bundle、
+  `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`；`P2.1 / CB-200`
+- 当前基线：六个精确 implementation/release commit 的本地 source bundle、
   完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：独立 `PG-1` 已从冻结 P1.5 closure 复验五个 Stage 1 evidence
-  tree、15 项无凭据命令、App 175/175、Walking Skeleton、Mac-offline、
-  loopback 与目标机只读终态；真实 Codex/WeChat 仍为
-  `activation_pending`，`current`/workspace/service/公网 route 未变
-- Stage 0–5 任务状态：`CB-000`–`CB-140` 共十项任务已通过；其余 20 项与
+- 最新 Run：`P2.1 / CB-200` 已完成 SQLite WAL spool、严格 job 状态机、
+  稳定 ID、事务去重、AES-256-GCM active payload、TTL redaction、五个真实
+  子进程 crash cut point 与合成 canonical reconcile；本地及候选 App
+  185/185 通过。候选未激活，真实 Codex/WeChat/canonical sync 仍为
+  `activation_pending`，`current`/workspace/service 未变
+- Stage 0–5 任务状态：`CB-000`–`CB-200` 共十一项任务已通过；其余 19 项与
   PG-2–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
@@ -196,6 +197,23 @@ inactive，service disabled/inactive，process/listener/staging/incoming/token
 `activation_pending`；GitHub branch/PR/tag/release 均为 0。该 Gate 不声称
 Stage 2 SQLite WAL spool 已完成，也未启动 `P2.1 / CB-200`。
 
+P2.1 / CB-200 以本地 implementation commit
+`6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287` 固定完整 Corresponding
+Source、SQLite schema v2、WAL/FULL/foreign-key/busy-timeout 初始化和精确
+21-edge job 状态机。10,000 个稳定 ID fixture、10,000 次 transition
+property、32 个并发 inserter、五个真实子进程 crash cut point、clean/
+existing-v1 migration、legacy-v1 reader、raw SQL guard、immutable event、
+canonical reconcile 与 DB/WAL/SHM plaintext/key scan 全部通过；本地与目标
+候选 App 均为 185/185。
+
+active payload 仅以 caller-supplied key 做 AES-256-GCM 存储并经 TTL
+redaction；scheduler、channel poll、outbox worker 与真实 canonical sync
+明确未集成。目标机 check、两次 apply、独立 verify 与合成 acceptance 通过，
+但未切换 `current`、未移动 workspace、未启动 service、未创建 canonical
+runtime DB。证据取回后 staging/env/incoming/bootstrap/synthetic key/
+acceptance DB-WAL-SHM 均删除；精确候选仅保留为 inactive。CB-210、PG-2 与
+所有后续任务/退出门仍为 `not_started`，GitHub publication 仍为空。
+
 ## 许可证
 
 `CyberBoss/` 子树适用 [`LICENSE`](LICENSE) 中的 GNU AGPL-3.0-only。
@@ -203,5 +221,5 @@ Stage 2 SQLite WAL spool 已完成，也未启动 `P2.1 / CB-200`。
 submodule、Git URL 运行时依赖、自动同步或定期 rebase 关系。
 
 `whereabouts-mcp` 的 package 声明与许可证文件冲突按
-`GPL-3.0-only AND AGPL-3.0-only` 的严格双重义务处理；原许可证、源码和冲突
+`AGPL-3.0-only AND GPL-3.0-only` 的严格双重义务处理；原许可证、源码和冲突
 记录完整保留，且不得声称已获得上游澄清。

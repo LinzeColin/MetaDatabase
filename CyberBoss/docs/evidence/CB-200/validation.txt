@@ -1,0 +1,30 @@
+CB200_VALIDATION_RECORD
+IMPLEMENTATION_COMMIT=6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287
+LOCAL_APP_TESTS=PASS tests=185 pass=185 fail=0 skipped=0
+LOCAL_RUNTIME_SPOOL_ACCEPTANCE=PASS named_runtime_tests=6 state_machine_tests=4
+LOCAL_CB200_PREPARE_VALIDATOR=PASS
+ARTIFACT_BUILDER=PASS files=3 corresponding_source_complete=true remote_publication=none
+TARGET_PREFLIGHT=PASS service=disabled/inactive processes=0 listeners=0 runtime_db=absent
+TARGET_INSTALL_CHECK=PASS persistent_writes=false live_commands=false
+TARGET_INSTALL_APPLY_1=PASS tests=185 pass=185 fail=0
+TARGET_INSTALL_APPLY_2=PASS idempotent=true
+TARGET_INSTALL_VERIFY=PASS
+TARGET_SYNTHETIC_ACCEPTANCE=PASS
+TARGET_MIGRATION=PASS clean=true existing_v1=true legacy_v1_reader=true schema_version=2
+TARGET_PROPERTY=PASS stable_ids=10000 transitions=10000 concurrent_inserters=32
+TARGET_CRASH_MATRIX=PASS cut_points=5 accepted_but_lost=0 uncommitted_fragments=0
+TARGET_SECURITY=PASS plaintext_hits=0 encryption_key_hits=0
+TARGET_FINAL_QUIESCENCE=PASS service=disabled/inactive processes=0 listeners=0 runtime_db=absent
+TARGET_TRANSIENT_CLEANUP=PASS incoming=0 staging=0 synthetic_key=0 acceptance_db_wal_shm=0
+PUBLICATION_CHECK=PASS remote_branch_count=0 pull_request_count=0 release_count=0 tag_count=0
+PRECOMMIT_FINAL_VALIDATOR=EXPECTED_FAIL reason=closure_parent_only
+POSTCLOSURE_TARGET_AUDIT_1=EXPECTED_FAIL reason=process_filter_self_match target_mutation=false
+POSTCLOSURE_TARGET_AUDIT_2=PASS process_count=0 listener_count=0 service=disabled/inactive
+REAL_CODEX=activation_pending
+REAL_WECHAT=activation_pending
+REAL_CANONICAL_SYNC=false
+CB_210_STARTED=false
+PG_2_EXECUTED=false
+TARGET_ADDRESS_REDACTED=true
+UPSTREAM_CLARIFICATION_RECEIVED=false
+FINAL_VALIDATOR=PASS

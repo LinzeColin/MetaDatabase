@@ -1,5 +1,35 @@
 # Changelog
 
+## P2.1 / CB-200 — 2026-07-27
+
+- Bound the SQLite WAL spool, strict job state machine and complete
+  Corresponding Source to local implementation commit
+  `6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287`.
+- Added additive schema v2 migration, WAL/FULL/foreign-key/busy-timeout
+  initialization, exact legal-transition guards, immutable job events, stable
+  HMAC IDs, transactional replay deduplication and optimistic state versions.
+- Added caller-key AES-256-GCM active payload storage, AAD binding, bounded TTL
+  redaction and fail-closed redacted metadata validation.
+- Passed 10,000 stable-ID fixtures, 10,000 transition attempts, 32 concurrent
+  inserters, five child-process crash cut points, migration compatibility,
+  canonical reconciliation and live DB/WAL/SHM plaintext/key scans.
+- Passed local and immutable-candidate App regressions at 185/185; target
+  write-free check, two applies, independent verify and synthetic acceptance
+  all passed.
+- Preserved the concurrency, target bootstrap, superseded candidate filename,
+  macOS metadata inventory, shell-quoting and read-only process-filter
+  correction records with their exact fail-before-acceptance, zero-mutation or
+  cleanup outcomes.
+- Removed target staging, staging environment, incoming, bootstrap, synthetic
+  key and acceptance DB/WAL/SHM after evidence retrieval. Left the exact
+  candidate inactive, `current` on CB-100, workspace on CB-120 and service
+  disabled/inactive with zero process/listener and no canonical runtime DB.
+- Preserved original source/licenses and the unresolved strict
+  `AGPL-3.0-only AND GPL-3.0-only` conflict record with
+  `upstream_clarification_received=false`.
+- Marked only CB-200 passed. CB-210 and all later tasks plus PG-2–PG-5 remain
+  `not_started`; GitHub branch/PR/tag/release/publication remains empty.
+
 ## PG-1 Stage 1 Exit Gate — 2026-07-27
 
 - Independently froze and verified the five CB-100–CB-140 evidence trees,

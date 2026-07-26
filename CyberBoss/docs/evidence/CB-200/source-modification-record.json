@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-200",
+  "phase": "P2.1",
+  "base_commit": "c6f5a288aa662591c6e4e21c6294a7966d233fc6",
+  "implementation_commit": "6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287",
+  "superseded_unpublished_implementation_commit": "5180bc00de5e29069189c01d7f60ed960ac31cd3",
+  "implementation_path_count": 21,
+  "changed_runtime_paths": [
+    "CyberBoss/app/migrations/001_runtime_spool.sql",
+    "CyberBoss/app/migrations/002_cb200_retention_and_transitions.sql",
+    "CyberBoss/app/scripts/runtime-spool-acceptance.js",
+    "CyberBoss/app/src/services/db/database-adapter.js",
+    "CyberBoss/app/src/services/jobs/job-state-machine.js",
+    "CyberBoss/app/test/job-state-machine.test.js",
+    "CyberBoss/app/test/runtime-spool.test.js"
+  ],
+  "strict_compliance_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "original_source_and_licenses_preserved": true,
+  "corresponding_source_complete": true,
+  "conflict_record_preserved": true,
+  "upstream_clarification_received": false,
+  "upstream_sync_enabled": false,
+  "upstream_support_claimed": false,
+  "upstream_endorsement_claimed": false,
+  "vendor_original_paths_changed": [],
+  "historical_evidence_paths_changed": [],
+  "preserved_corrections": [
+    {
+      "stage": "local_concurrency",
+      "result": "failed_then_corrected",
+      "finding": "two of 32 constructors contended while repeatedly setting journal_mode",
+      "correction": "read journal mode first and set WAL only during database creation",
+      "final_result": "app_185_of_185_passed"
+    },
+    {
+      "stage": "target_bootstrap",
+      "result": "execution_denied_before_candidate_or_staging",
+      "finding": "the target mount for the first transient bootstrap denied execution",
+      "correction": "use the exact authorized CyberBoss state directory for the transient bootstrap",
+      "target_candidate_created": false,
+      "target_staging_created": false
+    },
+    {
+      "stage": "superseded_candidate_acceptance",
+      "result": "acceptance_filename_contract_failed_before_evidence",
+      "finding": "acceptance expected literal runtime.db names while the target used a commit-bound database filename",
+      "correction": "bind acceptance discovery to the commit-bound database filename and amend the unpublished implementation commit",
+      "candidate_tests_passed": 185,
+      "acceptance_output_records": 0,
+      "candidate_staging_incoming_removed_after_manifest_verification": true
+    },
+    {
+      "stage": "corrected_artifact_inventory",
+      "result": "rejected_before_candidate_or_staging",
+      "finding": "four unmanifested macOS metadata files accompanied the required three artifacts",
+      "correction": "disable metadata generation and transfer exactly the three named artifact files",
+      "candidate_created": false,
+      "staging_created": false
+    },
+    {
+      "stage": "remote_inventory_readback",
+      "result": "local_shell_quoting_failed",
+      "finding": "the verification command was malformed by local shell quoting",
+      "correction": "use corrected quoting and independently verify the three-file inventory and checksums",
+      "candidate_created_before_correction": false,
+      "staging_created_before_correction": false
+    },
+    {
+      "stage": "post_closure_target_process_audit",
+      "result": "audit_filter_self_match",
+      "finding": "the audit awk command line matched its own CyberBoss process pattern and produced a count of one",
+      "correction": "exclude the audit process from the read-only process filter and rerun the complete target-state check",
+      "target_mutation": false,
+      "systemd_main_pid_during_false_positive": 0,
+      "listener_count_during_false_positive": 0,
+      "corrected_process_count": 0,
+      "final_read_only_audit": "passed"
+    }
+  ],
+  "remote_publication": "none"
+}

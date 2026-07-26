@@ -5,16 +5,18 @@
 - Worktree:
   `/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-cyberboss`
 - Local branch: `codex/cyberboss-prestage0`
-- Run base: `4020f07bc086ab9827ab97ddf295927075189a9f`
+- Run base: `c6f5a288aa662591c6e4e21c6294a7966d233fc6`
+- Latest implementation:
+  `6c8d7a1092a1f4d10a7f512ebe9abd2380aa2287`
 - Remote publication: none
 
 ## Current state
 
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
 exit gate `PG-0`, `P1.1 / CB-100` through `P1.5 / CB-140`, and independent
-Stage 1 exit gate `PG-1` passed. Stage 0 and Stage 1 are each 5/5 tasks plus
-their gate complete. The 20 tasks from CB-200 onward and PG-2–PG-5 remain
-`not_started`.
+Stage 1 exit gate `PG-1`, plus `P2.1 / CB-200` passed. Stage 0 and Stage 1
+are each 5/5 tasks plus their gate complete; Stage 2 is 1/5 before `PG-2`.
+The 19 tasks from CB-210 onward and PG-2–PG-5 remain `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
@@ -475,6 +477,31 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 - PG-1 decision: `PASS`; CB-200 and all 19 later tasks plus PG-2–PG-5 remain
   `not_started`. No Stage 2 SQLite WAL spool, real adapter activation,
   provider/data write or GitHub publication is claimed.
+- CB-200 local and immutable-candidate App regressions passed 185/185. Clean
+  and existing-v1 migrations, legacy-v1 reader, WAL/FULL/FK/busy timeout,
+  exact transition guard and immutable event checks passed.
+- CB-200 property/reliability proof passed 10,000 stable-ID fixtures, 10,000
+  transition attempts, 32 concurrent inserters and five actual child-process
+  crash cut points with zero accepted-but-lost, fragment, duplicate executable
+  job or integrity failure.
+- CB-200 active payload AES-256-GCM, AAD, TTL redaction and live DB/WAL/SHM
+  plaintext/key scans passed; real credential read, provider write,
+  Private-MetaDatabase operation and real canonical sync counts are zero.
+- CB-200 exact artifact, write-free check, two applies, independent verify and
+  synthetic target acceptance passed. `current`/workspace did not move,
+  service never started and canonical runtime DB was never created.
+- CB-200 final target state: exact candidate immutable/inactive; service
+  disabled/inactive; process/listener/incoming/staging/env/bootstrap/synthetic
+  key/acceptance DB-WAL-SHM zero; current/workspace unchanged.
+- The concurrency PRAGMA contention, target `/run` execution denial,
+  superseded candidate filename mismatch, corrected archive's macOS metadata
+  inventory rejection, one shell-quoting failure and the final read-only
+  process filter's self-match are preserved with exact correction,
+  zero-mutation and cleanup outcomes in CB-200 evidence.
+- CB-200 decision: `PASS`; CB-210 and all 18 later tasks plus PG-2–PG-5 remain
+  `not_started`. Scheduler/channel poll/outbox worker/real canonical sync,
+  real adapter activation, provider/data write and GitHub publication were not
+  started.
 
 ## Known unknowns
 
@@ -483,7 +510,7 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
   fixture screenshot is deliberately marked non-real.
 - No real Private-MetaDatabase object, Cloudflare Access/DNS/R2 resource, OCI
   object or authenticated CyberBoss business Runtime was created or modified
-  through PG-1.
+  through CB-200.
 - Exact provider write-scope attestations remain external activation inputs;
   successful GETs are not treated as proof of safe writes.
 - The online Status surface still has no CyberBoss row.
@@ -496,14 +523,14 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 
 ## Next Run
 
-The next eligible Run is exactly `P2.1 / CB-200`, “Implement SQLite WAL spool
-and strict job state machine.” It remains `not_started`. PG-1 does not
-authorize switching `current`, Codex/WeChat authentication, real provider/data
-activation or any additional Stage 2 Task inside the same Run.
+The next eligible Run is exactly `P2.2 / CB-210`. It remains `not_started`.
+CB-200 does not authorize switching `current`, Codex/WeChat authentication,
+real provider/data activation, scheduler/send-worker work, or PG-2 inside the
+same Run.
 
-Start `P2.1 / CB-200` only under a new single-phase Run Contract. Keep
-source/license, CB-000–CB-140 and PG-0/PG-1 evidence immutable, preserve the
+Start `P2.2 / CB-210` only under a new single-phase Run Contract. Keep
+source/license, CB-000–CB-200 and PG-0/PG-1 evidence immutable, preserve the
 strict dual-license conflict record, and continue the final-only GitHub
-publication rule. Do not combine CB-200 with CB-210 or PG-2, expose Runtime
+publication rule. Do not combine CB-210 with CB-220 or PG-2, expose Runtime
 publicly, or perform a real provider/data write unless the exact Acceptance
 and new Run Contract authorize it.
