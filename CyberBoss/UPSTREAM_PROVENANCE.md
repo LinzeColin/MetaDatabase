@@ -21,17 +21,20 @@ The Owner selected A1 with an explicit separation requirement:
 | Roadmap | SHA-256 `22a0ef56caab67c95357d60a3a725947f28a2744cecc79e66cacf638de1707b1` | Stage 0–5 roadmap baseline |
 | AGPL license text | SHA-256 `526520455b0c01e09c1a23f6322a11d9e867de44dc833de8a94af6766dced64b` | Nested subtree license |
 
-## Import gate
+## Frozen source import completed by CB-000
 
-Prestage 0 imports no upstream application source. `CB-000` must independently:
+Prestage 0 imported no application source. `CB-000` independently:
 
-- reverify every fixed commit and license;
-- inventory the full dependency graph and lockfile;
-- import only the fixed source required by the accepted change map;
-- replace moving Git dependencies with local fixed packages;
-- record copied paths, hashes, original copyrights and modifications;
-- prove that `.gitmodules`, upstream remotes, `#main` dependencies and runtime
-  source downloads are absent.
+- reverified all three fixed commits, Git trees, manifests and licenses;
+- imported ordinary-file bundles at `app/` and `vendor/`;
+- replaced both moving Git dependencies with local `file:` packages;
+- recorded 129 dependency entries, source/bundle hashes and exact modifications;
+- proved `.git`, `.gitmodules`, remotes, branch dependencies, auto-sync and
+  runtime source fetch are absent.
 
-If exact provenance or license compatibility is not proved, `CB-000` stops and
-PG-0 remains unpassed.
+`whereabouts-mcp` has conflicting AGPL package metadata and GPLv3 license text.
+The Owner selected strict dual-obligation compliance. Both original indicators
+are retained and no upstream clarification was requested or received.
+
+These frozen source records are legal and reproducibility evidence only. They
+do not permit or configure future upstream synchronization.

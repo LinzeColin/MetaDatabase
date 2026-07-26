@@ -147,7 +147,12 @@ def main() -> int:
     empty_files = [
         path.relative_to(repo).as_posix()
         for path in project.rglob("*")
-        if path.is_file() and path.stat().st_size == 0
+        if path.is_file()
+        and not any(
+            part in {".git", "node_modules"}
+            for part in path.relative_to(project).parts
+        )
+        and path.stat().st_size == 0
     ]
     for path in empty_files:
         errors.append(f"empty_file:{path}")
@@ -276,30 +281,83 @@ def main() -> int:
 
     state = load_json(project / "machine/facts/task_state.json")
     expect(state.get("taskpack_version") == EXPECTED_VERSION, "state_version")
-    expect(
-        nested(state, "current_run", "run_id") == "PS0.1"
-        and nested(state, "current_run", "status") == "passed",
-        "state_current_run",
-    )
     prestage = state.get("prestage") or []
     expect(
         prestage
         == [{"id": "PS0.1", "status": "passed", "acceptance": "passed"}],
         "state_prestage",
     )
-    expect(
-        state.get("pass_gates") == {f"PG-{i}": "not_started" for i in range(6)},
-        "state_pass_gates",
-    )
+    valid_statuses = {
+        "not_started",
+        "in_progress",
+        "activation_pending",
+        "hazard_blocked",
+        "failed",
+        "passed",
+    }
+    pass_gates = state.get("pass_gates") or {}
+    expect(set(pass_gates) == {f"PG-{i}" for i in range(6)}, "state_pass_gate_set")
+    for gate_id, status in pass_gates.items():
+        expect(status in valid_statuses, f"state_pass_gate_status:{gate_id}:{status}")
+
+    state_task_items = state.get("tasks") or []
+    expect(len(state_task_items) == 30, "state_task_count")
+    state_task_ids = [item.get("id") for item in state_task_items]
+    expect(len(set(state_task_ids)) == len(state_task_ids), "state_task_duplicate_id")
     state_tasks = {
         item.get("id"): (item.get("stage"), item.get("phase"), item.get("status"))
-        for item in state.get("tasks") or []
+        for item in state_task_items
     }
     expected_state_tasks = {
-        task_id: (stage, phase, "not_started")
+        task_id: (stage, phase)
         for task_id, (stage, phase) in expected_tasks.items()
     }
-    expect(state_tasks == expected_state_tasks, "state_task_mapping_or_status")
+    actual_state_mapping = {
+        task_id: (stage, phase)
+        for task_id, (stage, phase, _status) in state_tasks.items()
+    }
+    expect(actual_state_mapping == expected_state_tasks, "state_task_mapping")
+    state_statuses = {
+        task_id: status
+        for task_id, (_stage, _phase, status) in state_tasks.items()
+    }
+    for task_id, status in state_statuses.items():
+        expect(status in valid_statuses, f"state_task_status:{task_id}:{status}")
+
+    task_specs = {task.get("id"): task for task in tasks}
+    for task_id, status in state_statuses.items():
+        if status == "not_started":
+            continue
+        for dependency in (task_specs.get(task_id) or {}).get("dependencies") or []:
+            expect(
+                state_statuses.get(dependency) == "passed",
+                f"state_dependency_not_passed:{task_id}:{dependency}",
+            )
+
+    for stage_index in range(6):
+        gate_id = f"PG-{stage_index}"
+        if pass_gates.get(gate_id) != "passed":
+            continue
+        for task_id in expected_stage_tasks[f"S{stage_index}"]:
+            expect(
+                state_statuses.get(task_id) == "passed",
+                f"state_gate_task_not_passed:{gate_id}:{task_id}",
+            )
+
+    current_run = state.get("current_run") or {}
+    if current_run.get("run_id") == "PS0.1":
+        expect(current_run.get("status") == "passed", "state_current_prestage")
+    else:
+        current_task_id = current_run.get("task_id")
+        current_spec = task_specs.get(current_task_id) or {}
+        expect(
+            current_run.get("run_id") == current_spec.get("phase"),
+            "state_current_run_phase",
+        )
+        expect(
+            current_run.get("status") == state_statuses.get(current_task_id),
+            "state_current_run_status",
+        )
 
     env = parse_env(kit / "config/cyberboss.env.example")
     env_expectations = {

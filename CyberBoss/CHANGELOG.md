@@ -1,5 +1,19 @@
 # Changelog
 
+## P0.1 / CB-000 — 2026-07-26
+
+- Imported exact ordinary-file source bundles for CyberBoss,
+  timeline-for-agent and whereabouts-mcp with deterministic manifests.
+- Replaced moving Git dependencies with reproducible local `file:` packages.
+- Recorded the whereabouts AGPL/GPL conflict and Owner-approved strict
+  dual-obligation treatment without claiming upstream clarification.
+- Added the complete dependency/license inventory and Corresponding Source map.
+- Verified the existing Timeline CLI/tools; no second Timeline kernel was added.
+- Aligned stale Codex RPC fields with CLI `0.146.0-alpha.3.1` generated schemas.
+- Removed author-machine absolute paths from sticker test fixtures.
+- Corrected AC-032 evidence wording to Private-MetaDatabase manifest semantics
+  without changing any Requirement, Oracle, Task or Stage.
+
 ## v0.0.0.4 — 2026-07-26
 
 - Registered CyberBoss as an AGPL-3.0-only subtree of

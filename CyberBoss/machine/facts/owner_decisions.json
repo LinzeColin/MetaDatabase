@@ -9,7 +9,19 @@
     "decision": "A1",
     "subtree_license": "AGPL-3.0-only",
     "root_license_overrides_subtree": false,
-    "corresponding_source_offer_required": true
+    "corresponding_source_offer_required": true,
+    "required_dependency_conflicts": {
+      "whereabouts-mcp": {
+        "locked_commit": "e36cb307f082f747327fd3a5d406fd9718a1428d",
+        "package_declared": "AGPL-3.0-only",
+        "license_file_concluded": "GPL-3.0-only",
+        "compliance_expression": "GPL-3.0-only AND AGPL-3.0-only",
+        "preserve_original_license_and_source": true,
+        "preserve_conflict_record": true,
+        "upstream_clarification_received": false,
+        "must_not_claim_upstream_clarification": true
+      }
+    }
   },
   "upstream_separation": {
     "historical_provenance_required": true,

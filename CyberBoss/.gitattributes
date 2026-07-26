@@ -1,0 +1,5 @@
+# Preserve byte-exact historical source/license whitespace at locked hashes.
+app/bin/cyberboss.js -whitespace
+app/src/adapters/channel/weixin/redact.js -whitespace
+vendor/timeline-for-agent/.gitignore -whitespace
+docs/evidence/CB-000/licenses/qrcode-terminal-0.12.0-LICENSE -whitespace

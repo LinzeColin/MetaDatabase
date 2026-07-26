@@ -3,8 +3,9 @@
   "taskpack_version": "v0.0.0.4",
   "updated_on": "2026-07-26",
   "current_run": {
-    "run_id": "PS0.1",
-    "scope": "governance_and_taskpack_normalization",
+    "run_id": "P0.1",
+    "task_id": "CB-000",
+    "scope": "fixed_source_dependency_license_and_codex_baseline",
     "status": "passed"
   },
   "prestage": [
@@ -23,7 +24,7 @@
     "PG-5": "not_started"
   },
   "tasks": [
-    {"id": "CB-000", "stage": "S0", "phase": "P0.1", "status": "not_started"},
+    {"id": "CB-000", "stage": "S0", "phase": "P0.1", "status": "passed"},
     {"id": "CB-010", "stage": "S0", "phase": "P0.2", "status": "not_started"},
     {"id": "CB-020", "stage": "S0", "phase": "P0.3", "status": "not_started"},
     {"id": "CB-030", "stage": "S0", "phase": "P0.4", "status": "not_started"},

@@ -354,7 +354,7 @@ job=running
 | AC-025 | FR-025 | 3×单消息上限结果 | 分段编号连续且可还原 hash 相同 | test + hash |
 | AC-030 | FR-030 | 删除隔离环境 SQLite 后恢复 | Private-MetaDatabase+R2 可重建终态索引/Timeline | restore report |
 | AC-031 | FR-031 | 1,000 个终态 event，覆盖 batch size/byte threshold | 全集追加；失败显式 pending；恢复后 set diff=0 | batch/reconcile report |
-| AC-032 | FR-032 | 50 组并发 sync、Git conflict、403/429、部分成功 | 无覆盖/丢失；event ID 集合一致；尊重 retry hints | Git history + set diff |
+| AC-032 | FR-032 | 50 组并发 sync、manifest 409、403/429、部分成功 | 无覆盖/丢失；event ID 集合一致；尊重 retry hints | content-addressed manifest/object set diff |
 | AC-033 | FR-033 | grep/secret/privacy scan | 无完整 prompt/result；只见允许字段 | scan output |
 | AC-034 | FR-034 | dependency/source inspection | 调用既有 timeline tools；无第二内核 | code diff review |
 | AC-035 | FR-035 | clean get/list/verify canonical objects | build 成功；Access 后页面可读 | CI/build + HTTP screenshot |
@@ -395,7 +395,7 @@ job=running
 | FR-001–006 Channel | CB-020, CB-130, CB-200, CB-210 | TS-CHANNEL, TS-INBOX | Stage 1/2 summary | PG-1, PG-2 |
 | FR-010–017 Runtime | CB-110, CB-140, CB-220, CB-410 | TS-RUNTIME, TS-WORKSPACE | E2E/port/process evidence | PG-1, PG-4 |
 | FR-020–025 Outbox | CB-200, CB-210, CB-230 | TS-OUTBOX, TS-IDEMPOTENCY | retry/receipt logs | PG-2 |
-| FR-030–036 Data/Timeline | CB-240, CB-300, CB-320 | TS-CANONICAL, TS-TIMELINE | Git history/build report | PG-4 |
+| FR-030–036 Data/Timeline | CB-240, CB-300, CB-320 | TS-CANONICAL, TS-TIMELINE | content-addressed manifest/build report | PG-4 |
 | FR-040–047 Status/Ops | CB-310, CB-320, CB-340 | TS-STATUS, TS-RESOURCE | snapshot/status screenshot | PG-3, PG-4 |
 | FR-050–056 Backup/Release/Activation | CB-330, CB-430, CB-440, CB-500 | TS-BACKUP, TS-RESTORE, TS-RELEASE | restore/rollback report | PG-5 |
 | NFR-001–011 | CB-400–540 | TS-E2E, TS-FAULT, TS-SECURITY, TS-COMPLIANCE, TS-NO-WAIT | RC evidence summary | PG-5 |

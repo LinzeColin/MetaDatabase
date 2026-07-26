@@ -1,0 +1,42 @@
+{
+  "codex_cli_output": "codex-cli 0.146.0-alpha.3.1",
+  "compatible": true,
+  "exact_tested_version": "0.146.0-alpha.3.1",
+  "minimum_verified_version": "0.146.0-alpha.3.1",
+  "missing_methods": {
+    "client_notifications": [],
+    "client_requests": [],
+    "server_requests": []
+  },
+  "older_versions_accepted": false,
+  "required_methods": {
+    "client_notifications": [
+      "initialized"
+    ],
+    "client_requests": [
+      "initialize",
+      "model/list",
+      "thread/compact/start",
+      "thread/list",
+      "thread/resume",
+      "thread/start",
+      "turn/interrupt",
+      "turn/start"
+    ],
+    "server_requests": [
+      "item/commandExecution/requestApproval",
+      "item/fileChange/requestApproval",
+      "mcpServer/elicitation/request"
+    ]
+  },
+  "schema_file_count": 347,
+  "schema_generation_command": "codex app-server generate-json-schema --experimental --out <temp-dir>",
+  "schema_hashes": {
+    "client_notifications": "a30b3041578845b11add3d07d5a63cd3a12d5d126e87b8c591862b4aeb68d97c",
+    "client_requests": "af6c5c3a0d9830850052015878c3825ca78e56f1186335b9b9739ec4995e4e61",
+    "combined": "541cc6b9226a949ad0a2fe35215698ad83e64b90d5ac6e60c2e06eac186124f0",
+    "server_requests": "5abe765ff9bd94b88f2f2fb417025ec011eac172925ffdfc74d7ccf2542bc114"
+  },
+  "schema_version": 1,
+  "verification_scope": "Generated experimental App Server schemas plus local adapter unit tests; no live authenticated turn was executed in CB-000."
+}
