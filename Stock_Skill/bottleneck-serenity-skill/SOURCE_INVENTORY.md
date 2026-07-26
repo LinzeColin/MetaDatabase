@@ -131,14 +131,14 @@ T002 原始决定。
 
 许可审计于 2026-07-23 固定四个公开仓的完整 Git history：
 
-<!-- CURRENT_LICENSE_TARGET_COUNT=280 -->
+<!-- CURRENT_LICENSE_TARGET_COUNT=284 -->
 
 - `muxuuu/serenity-skill@c2fe93deedfd0d1bd9fe7ef0601ea1b9c20ea24a`（MIT）；
 - `yan-labs/serenity-aleabitoreddit@3fe902b29aa7f32d8ab245c5b87b596cb4d85eb9`（未发现明确 license）；
 - `Mrjie7205/serenity-bottleneck-hunter@15bb654f41cb39f442ba2076b4023436a0d7554d`（MIT）；
 - `wesson9527/chokepoint-atlas@207bf340a86c0342b28934e578162610accefe73`（未发现明确 license）。
 
-可执行审计器 `scripts/audit_license_similarity.py` 对 current canonical 动态推导的全部 280 个普通 UTF-8 files 和四个冻结
+可执行审计器 `scripts/audit_license_similarity.py` 对 current canonical 动态推导的全部 284 个普通 UTF-8 files 和四个冻结
 commit 的完整可达历史运行，不设 path/size 排除；blob eligibility、NFC/whitespace 行规范化、连续四物理行、
 pair 身份和 token20 人工复核阈值均冻结在代码与 `LICENSE_SIMILARITY_AUDIT.json`。当前完整重算覆盖
 2,489 个 reachable unique blob instances，其中 2,485 个 text-eligible，exact pairs=`0`、规范化四行
@@ -166,7 +166,7 @@ results、validator 与 durable tests；T003 增加 adversarial Security cases�
 CLI probe、validator 与 durable mutants；Historical T001 增加冻结输入、七件历史制品、截止日/算术/相关性
 validator 与 durable mutants；Forward T002 增加三次隔离 trial、两次通用整改、双 judge 原始 verdict、
 post-remediation revalidation、validator 与 fail-closed mutants；上方 53-entry source path/hash/decision
-ledger 不回写。当前完整历史许可报告为 280/2,489/2,485 与 exact/four-line/token20=`0/5/1`；无许可宽匹配
+ledger 不回写。当前完整历史许可报告为 284/2,489/2,485 与 exact/four-line/token20=`0/5/1`；无许可宽匹配
 仍仅为零 token JSON 标点，许可结论不变。Stage 3 Review 已在冻结双 digest subject 上判定 `FAIL`；T002
 整改后，T003 Re-review 关闭 `S3-R004`–`S3-R007`，但 `S3-R001`–`S3-R003` 未关闭并新增
 `S3-R008`，历史 verdict 为 `FAIL`。T004 用共用 presentation gate、current v18 actual-return exact
@@ -191,8 +191,29 @@ public-safety 盲测分别只有 `62/100` strict 与 `78/96` surface 通过，�
 P1/P2。T016 已用 175 REJECT / 85 ACCEPT / 58 exact-entity presentation Oracle 与
 bounded neutral-container public-safety ancestry 完成整改。T017 的全新 presentation 与
 public-safety 盲测分别只有 `62/100` strict 与 `134/144` surface 通过，current-tree live forward
-证据也因 provider usage limit 缺失；`S3-R001/R002/R008/R009` 为 `OPEN`。唯一下一 Task 是
-`BSS-S3-P3-T018 — Remediation 9`。当前 Stage 3 candidate 未上传，
-也不存在本机 runtime 安装或自动交易含义。
+证据也因 provider usage limit 缺失。T018 已用 184/93/67 presentation durable Oracle、
+六类 neutral structural-container 与稳定 public-reference safety contract 完成整改；current-tree
+v23 live run 的 production-only projection、sandbox allow/deny、30,116-byte exact return 与 host
+replay 均 PASS。T019 的新鲜 presentation/public-safety 盲测分别仅为 `99/216` strict 与
+`72/84` surface 正确；原样 current-tree v23 fresh live witness 则以 28,010-byte exact return 与
+host replay PASS 关闭 `S3-R002`。T020 已把 T019 的 192 REJECT / 24 ACCEPT presentation set 与
+42-case public-safety set 固化为 durable controls；source presentation `216/216` 与 public-safety
+plain/ZIP `84/84` 均通过。T021 的新鲜 presentation/public-safety 盲测分别仅为 `144/282` strict 与
+`50/64` surface 正确；owner-facing 280-file prose 与 canonical 282-target report/marker 也冲突，
+故 `S3-R001/R008/R009/R010` 为 `OPEN`。T022 已把 presentation/public-safety 冻结集分别修至
+source/release 每面 `282/282` strict 与 plain/ZIP `64/64`，并把四份 owner-facing current
+license claims、collector 与四仓 full-history report 统一为 283 targets。T023 随后在新双 digest
+subject 上独立重审并判定 `FAIL`：presentation fresh set 每面仅 `286/408` binary，
+public-safety 108 surfaces 仅 `84/108`，current-tree v23 live host exact replay exit=`1`。
+故 `S3-R001/R002/R008/R009` 为 `OPEN`、`ACC-S3-002/006` FAIL、
+`ACC-S3-009=FAIL_EVIDENCE`；283-target license/full-history gate PASS，`S3-R010` 已关闭、
+`ACC-S2-010` PASS。T024 随后完成 presentation/public-safety/current replay 整改并把 current
+license set/report/markers 更新到 284。T025 按当前用户“不复审、避免 live time-soak”指令以 frozen
+双 digest、stored independent Forward、current binding/witness controls 与完整自动门完成机械
+Acceptance closure；两次 live timeout 原样保留且未被写成 PASS。Stage 3 acceptance verdict=`PASS`，
+全部 finding `CLOSED`。T001 随后按用户“中间 phase 不上传”指令执行 local-seal Publish：
+license/manifest/release/registry/backup DAG、staged proposed tree、全新 clean replay 与本地 seal
+commit 共同封印 Stage 3；未 push、未生成 PR/CI/merge 证据。唯一下一 Task 是
+`BSS-S4-P1-T001 — Audit`，也不存在本机 runtime 安装或自动交易含义。
 
 <!-- DECISION_COUNTS IMPORT=43 MIGRATE=9 EXCLUDE=1 TOTAL=53 -->

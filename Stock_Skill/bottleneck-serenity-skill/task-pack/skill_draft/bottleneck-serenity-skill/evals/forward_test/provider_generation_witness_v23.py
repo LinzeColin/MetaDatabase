@@ -169,9 +169,17 @@ def validate_controls(skill_root: Path) -> dict[str, Any]:
     context = protocol.get("context_contract", {})
     if (
         protocol.get("protocol_id")
-        != "BSS-S3-P3-T016-provider-generation-v23"
-        or protocol.get("status") != "READY_FOR_T017_REREVIEW"
-        or protocol.get("review_task") != "BSS-S3-P3-T017"
+        != "BSS-S3-P3-T018-provider-generation-v23"
+        or protocol.get("status") != "READY_FOR_T025_REREVIEW"
+        or protocol.get("review_task") != "BSS-S3-P3-T025"
+        or protocol.get("provider_command_contract", {}).get(
+            "timeout_seconds"
+        )
+        != 1800
+        or protocol.get("provider_command_contract", {}).get(
+            "reasoning_effort"
+        )
+        != "low"
         or protocol.get("artifact_bindings") != expected_bindings
         or context.get("production_file_count") != len(PRODUCTION_PATHS)
         or context.get("production_tree_sha256") != tree_sha256
@@ -294,6 +302,11 @@ def validate_returned_draft(value: dict[str, Any]) -> None:
             isinstance(item, str) and item.strip() for item in items
         ):
             raise WitnessError(f"provider return research_trace.{field} is invalid")
+    if (
+        len(trace["web_searches"]) > 10
+        or len(trace["pages_opened"]) > 10
+    ):
+        raise WitnessError("provider return exceeds v23 bounded research budget")
 
 
 def run_live(
@@ -357,6 +370,8 @@ def run_live(
             "--skip-git-repo-check",
             "--model",
             model,
+            "--config",
+            'model_reasoning_effort="low"',
             "--output-schema",
             str(copied_schema),
             "--output-last-message",
@@ -468,7 +483,7 @@ def main() -> int:
     parser.add_argument("--live", action="store_true")
     parser.add_argument("--codex-bin", type=Path)
     parser.add_argument("--model", default="gpt-5.6-sol")
-    parser.add_argument("--timeout-seconds", type=int, default=1200)
+    parser.add_argument("--timeout-seconds", type=int, default=1800)
     args = parser.parse_args()
     skill_root = args.skill_root.resolve()
     try:

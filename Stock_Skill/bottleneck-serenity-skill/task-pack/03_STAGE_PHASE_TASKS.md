@@ -99,9 +99,15 @@ Review/Re-review 的 verdict 为 `FAIL` 时，必须按文末确定性复审循�
 | `BSS-S3-P3-T015` | Re-review 7 | 对第七轮整改后的完整 Stage 3 重审 | `S3-R001/R008/R009` 的新鲜 presentation/public-safety 泛化探针仍失败，verdict FAIL | `DONE` |
 | `BSS-S3-P3-T016` | Remediation 8 | 只修复第八轮重审未关闭的三项 finding | 三项 finding 达到 `FIXED_PENDING_REREVIEW`；受影响呈现与 public-safety 深层语义门重跑 | `DONE` |
 | `BSS-S3-P3-T017` | Re-review 8 | 对第八轮整改后的完整 Stage 3 重审 | `S3-R001/R008/R009` 新鲜泛化探针仍失败；current-tree live forward 证据缺失使 `S3-R002` 重开，verdict FAIL | `DONE` |
-| `BSS-S3-P3-T018` | Remediation 9 | 只修复第九轮重审未关闭的四项 finding | 四项 finding 达到 `FIXED_PENDING_REREVIEW`；呈现、public-safety 与 current-tree live forward 证据门重跑 | `PENDING` |
-| `BSS-S3-P3-T019` | Re-review 9 | 对第九轮整改后的完整 Stage 3 重审 | 独立关闭全部 finding；ledger 零未关闭 finding、Stage gate PASS | `PENDING` |
-| `BSS-S3-P4-T001` | Publish | 封印行为验收 source，重建 release/hash DAG 并 commit/push | staged-tree replay 得同 SHA；manifest/registry/远端 CI 一致 | `PENDING` |
+| `BSS-S3-P3-T018` | Remediation 9 | 只修复第九轮重审未关闭的四项 finding | 四项 finding 达到 `FIXED_PENDING_REREVIEW`；呈现、public-safety 与 current-tree live forward 证据门重跑 | `DONE` |
+| `BSS-S3-P3-T019` | Re-review 9 | 对第九轮整改后的完整 Stage 3 重审 | current live forward PASS；presentation/public-safety 新鲜泛化探针仍失败，verdict FAIL | `DONE` |
+| `BSS-S3-P3-T020` | Remediation 10 | 只修复第十轮重审未关闭的三项 finding | 三项 finding 达到 `FIXED_PENDING_REREVIEW`；新鲜呈现与 public-safety 失败进入 durable Oracle | `DONE` |
+| `BSS-S3-P3-T021` | Re-review 10 | 对第十轮整改后的完整 Stage 3 重审 | presentation/public-safety 新鲜泛化探针失败且 owner-facing license count 漂移，verdict FAIL | `DONE` |
+| `BSS-S3-P3-T022` | Remediation 11 | 只修复第十一轮重审未关闭的四项 finding | 四项 finding 达到 `FIXED_PENDING_REREVIEW`；受影响呈现、public-safety 与许可一致性门重跑 | `DONE` |
+| `BSS-S3-P3-T023` | Re-review 11 | 对第十一轮整改后的完整 Stage 3 重审 | `S3-R010` CLOSED；presentation/public-safety 新鲜泛化探针失败，current-tree live forward replay 失败，verdict FAIL | `DONE` |
+| `BSS-S3-P3-T024` | Remediation 12 | 只修复第十二轮重审未关闭的四项 finding | 四项 finding 达到 `FIXED_PENDING_REREVIEW`；受影响呈现、public-safety 与 current-tree live forward 证据门重跑 | `DONE` |
+| `BSS-S3-P3-T025` | Re-review 12 / Acceptance closure | 保留验收序列兼容槽位；按用户“不复审”指令，在冻结 subject 上用完整机械门关闭 Stage 3 | 全部 finding CLOSED；ledger 零未关闭 finding、Stage gate PASS；live timeout 豁免显式留痕，且不声称执行了独立复审 | `DONE` |
+| `BSS-S3-P4-T001` | Publish / local seal | 封印行为验收 source，重建 release/hash DAG 并创建本地 seal commit；按用户指令延后中间 phase 上传 | staged/proposed-tree 与 clean replay 得同 SHA；manifest/registry 一致；push/PR/CI 明确延后到最终 Publish | `DONE` |
 
 ## Stage 4 — Final acceptance, release, merge, and cleanup
 

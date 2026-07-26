@@ -44,11 +44,39 @@ neutral-container private-metadata ancestry；175/85/58 presentation durable mat
 已知 public-safety case/plain-ZIP controls 均通过。T017 在 278-path/288-file 新双 digest subject
 上独立重审仍判 `FAIL`：presentation 第九组仅 `67/100` binary、`62/100` strict，public-safety
 72-case/144-surface set 仅 `67/72` / `134/144`，current-tree v23 live witness 也因 provider
-usage limit 缺少 exact return/host replay。`S3-R001/R002/R008/R009` 为 `OPEN`；唯一下一 Task 是
-`BSS-S3-P3-T018 — Remediation 9`。
-当前制品不证明
-Stage 3 Publish、PR merge 或 runtime 安装；后续每个 Stage Publish 仍必须从复审通过的 frozen source
-重做 staged/proposed-tree 与 clean-checkout 恢复证据。
+usage limit 缺少 exact return/host replay。T018 已补齐 presentation comparison/noun-source/
+on-upon/inline-designation 语义、public-safety 结构层/public-reference/plaintext 边界，并在 current
+30-file production-only projection 中取得 fresh live exact return 与 host replay PASS。
+T019 在 289-file Task Pack / 28-path Stage source 新双 digest subject 上独立重审仍判 `FAIL`：
+presentation 每面仅 `144/216` binary、`99/216` strict；public-safety 84 个 plain/ZIP 判定仅
+`72/84`。current-tree v23 fresh live witness 以 28,010-byte exact return 与 host replay PASS，
+因此 `S3-R002` CLOSED；`S3-R001/R008/R009` 为 `OPEN`。T020 已将 T019 的
+192 REJECT / 24 ACCEPT presentation set 与 42-case public-safety set 固化为 durable controls；
+source presentation `216/216`、public-safety plain/ZIP `84/84` 均通过，rollback mutants 也分别
+恢复漏检或误杀。T021 在 290-file Task Pack / 30-path Stage source 上独立重审仍判 `FAIL`：
+presentation 每面仅 `214/282` binary、`144/282` strict；public-safety 64 个 plain/ZIP 判定仅
+`50/64`；README 与 LICENSE 的 280-file prose 又与 canonical 282-target report/marker 冲突。
+T022 已将该 presentation 冻结集修至 source/release 每面 `282/282` strict，将 public-safety
+冻结集修至 `64/64`，并把四份 owner-facing current claims、collector 与 full-history report
+统一为 283 targets；对应 mutants 均被杀死。T023 随后在 291-file Task Pack / 32-path Stage
+source 新双 digest subject 上独立重审并判定 `FAIL`：presentation fresh set 每面仅
+`286/408` binary，public-safety 108 surfaces 仅 `84/108`，current-tree v23 live host exact
+replay exit=`1`。因此 `S3-R001/R002/R008/R009` 为 `OPEN`、`ACC-S3-002/006` FAIL、
+`ACC-S3-009=FAIL_EVIDENCE`；283-target exact set 与四仓 full-history 重算 PASS，故
+`S3-R010` `CLOSED`、`ACC-S2-010` PASS。唯一下一 Task 是
+`BSS-S3-P3-T024 — Remediation 12`。T024 随后用 18×31=`558/558` exact presentation、
+5 个特殊 legal-name case、16 个 role-neutral controls、`172/172` frozen 与 `44/44` fresh
+public-safety plain-ZIP matrices完成四项整改；current binding、stored Forward 与 T023 exact
+output 的 current presentation/host replay PASS。fresh live 两次尝试均按 1,800 秒合同 fail-closed
+timeout，未被冒充为 closure evidence；current license set/report/markers 为 284 targets。
+`S3-R001/R002/R008/R009` 仅为 `FIXED_PENDING_REREVIEW`。T025 随后按用户“不复审、避免 live
+time-soak”指令完成机械 Acceptance closure：不启 reviewer、不修改功能实现、不声称 live PASS；
+frozen 双 digest、T024 已知失败样本、stored independent Forward、current binding/witness controls
+与完整自动门全部通过。四项 finding 已关闭，Stage 3 acceptance verdict=`PASS`。T001 随后按用户
+“中间 phase 完成不需要上传”的指令执行 local-seal Publish：从 accepted frozen source 重建
+license/manifest/release/registry/backup DAG，并在 staged proposed tree 与全新 clean replay 全门一致后
+创建本地 seal commit。该证据不证明 push、PR/CI、merge 或 runtime 安装；唯一下一 Task 是
+`BSS-S4-P1-T001 — Audit`，最终上传仍由 Stage 4 Publish 负责。
 
 ## 从 GitHub 恢复 source project
 
@@ -94,8 +122,8 @@ Registry validator 必须同时输出既有 `stock-commercial-opportunities=3.0.
 `bottleneck-serenity-skill=0.0.0.1 (v0.0.0.1)`；缺任一项均不得继续恢复。
 
 `--verify-targets` 是无网络快速门：它验证冻结算法/四仓 metadata、报告内部计数，并要求报告动态列出的
-<!-- CURRENT_LICENSE_TARGET_COUNT=280 -->
-280 个
+<!-- CURRENT_LICENSE_TARGET_COUNT=284 -->
+284 个
 canonical path、SHA-256 与 byte count 精确等于 current tree。许可重审或最终验收还必须提供四个无凭据、
 非 shallow 的完整 clone，用各自 `NAME=PATH` 传给四个 `--upstream`，再运行 `--verify-report`；审计器逐仓
 验证 public origin、冻结 commit、LICENSE/COPYING history，扫描该 commit 全部可达 Git blob，并要求重算

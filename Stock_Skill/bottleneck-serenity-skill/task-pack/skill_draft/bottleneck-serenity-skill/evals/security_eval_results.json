@@ -684,10 +684,10 @@
   "observations": {
     "executor_phase_filesystem": {
       "algorithm": "sha256(mode-space-relative-path-space-byte-count-newline-plus-bytes)",
-      "file_count_before": 279,
-      "file_count_after": 279,
-      "digest_before": "970b4ca3ff61dba1dc4292373affe7068fc559be279252dc90342851a68e7971",
-      "digest_after": "970b4ca3ff61dba1dc4292373affe7068fc559be279252dc90342851a68e7971",
+      "file_count_before": 283,
+      "file_count_after": 283,
+      "digest_before": "aff883f113a0b30dcbf70eea29c73d00ed406cda26a319bcff61bbec0260fda8",
+      "digest_after": "aff883f113a0b30dcbf70eea29c73d00ed406cda26a319bcff61bbec0260fda8",
       "runtime_targets_present_before": 0,
       "runtime_targets_present_after": 0,
       "unauthorized_write_count": 0
@@ -722,10 +722,10 @@
       ],
       "command_total": 6,
       "command_pass": 6,
-      "runtime_surface_file_count_before": 279,
-      "runtime_surface_file_count_after": 279,
-      "runtime_surface_digest_before": "970b4ca3ff61dba1dc4292373affe7068fc559be279252dc90342851a68e7971",
-      "runtime_surface_digest_after": "970b4ca3ff61dba1dc4292373affe7068fc559be279252dc90342851a68e7971",
+      "runtime_surface_file_count_before": 283,
+      "runtime_surface_file_count_after": 283,
+      "runtime_surface_digest_before": "aff883f113a0b30dcbf70eea29c73d00ed406cda26a319bcff61bbec0260fda8",
+      "runtime_surface_digest_after": "aff883f113a0b30dcbf70eea29c73d00ed406cda26a319bcff61bbec0260fda8",
       "authorized_output_files": [
         "config.json",
         "decision.json",
@@ -746,9 +746,9 @@
     "public_safety_scan": {
       "status": "PASS",
       "command": "python3 -B Stock_Skill/scripts/validate_public_safety.py",
-      "files_scanned": 371,
-      "blobs_scanned": 784,
-      "zip_entries_scanned": 413,
+      "files_scanned": 375,
+      "blobs_scanned": 792,
+      "zip_entries_scanned": 417,
       "high_risk_finding_count": 0
     }
   },

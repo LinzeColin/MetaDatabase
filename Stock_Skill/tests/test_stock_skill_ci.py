@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import os
 import re
@@ -10,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import zlib
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
@@ -35,6 +38,51 @@ SYNTHETIC_STATELESS_APP_TOKEN = (
     + "."
     + ("B" * 79)
     + "-"
+)
+T024_PUBLIC_SAFETY_REPLAY_B85 = (
+    "c-p0#X>Z%O7KZ<d;7|7gWlB=q6x<fbr0Glt?KDU-zyLEvKygXb+LlL>(<uh|@Apufw^*^2eh93^;$!lh_bgQZooM"
+    "@28#k|Rbx~zro9ec_*OZIN=_HL^>Xb;7WJckXBnfp?Np57Ke9S2Eih5(M7O7HFSSM5r_jt^FY`sb+uO>#9uAH3y`"
+    "R~O2vv8(z7M^=`@$1F;4P4E_(e>rU`G>QQAFglE4W==Ae|2&F3&NPd4d1ePxaDh^&*A7nPnT|T`tJmuS!QqwJ}&f"
+    "KJHR}*^~Gs!bd?wIHEOW1R8pig<A`ahP?{tXIUX~~Q-cW%^7#1W@$vE12tc|Y(B$(6SCqPHDNR0|!o%w$KrNif3t"
+    "L}U7G=%ad_aYJ$lP~?DOwcSgRa~Q_~QM1?jL8C9h@!-{iEi})2}c@eQug*nAZA6R3G$c@e7dHexz*fUE$`YUEsSJ"
+    "*ko%t^Q!n!-(ulo<}(*24DRpds7GTjK;uJb55cDPTHL*!+o`LW9`bJvHOD;_e*u*kaDs(?%C@YlbT$namdpCllEy"
+    "+vXOWc#BgPd+ifE6xl(8kL2QLsWAe8$FzvgM}kXc#PXy6r<`=@G_GTfi1J4+~EfTH%JRJ#1OY3nnXC#x&HDH-8D)"
+    "E@Rs>IF>6ex^mXaMNt=o>;_%{xQw<rb2YLqb;dO#?ujepg*qh%w1WJu+oVB&P}0!hd(}!<RXVU<4UnscE90{&8=H"
+    "5NyvCKdf0-lRANKRHYBWH(Jd!{F<?c<uIVANf7?dT+YO#t?8~|Swo4R5e+&#eEJohk7f#z>x`nIiLuB;KO?Ob(NR"
+    ")#F9<>^Udbeve{hLemj#?2ul0`gkL?<oDN#|z0wb;Dc0TClXhSfW2oGM!BV~}hJJZ9HI<Vb=w(XN9-PcYF-n^n;~"
+    "uiR<WYfQAV*yv3-jojZ$JuP>5K(xo;Bztj+C5$_BJy2&dQKK!*DX<ifa<HRqoMaRZ#d~pVrtju?S!L!l3aLO;+ew"
+    "7p)<*~eUH*NW0v<Ptg6yTpz($L?o<_l18lQ<)Hd5cU13|_?(B~mS^zMxHbsfsfsV?t#2<SM1_<4fPNn4`;6YbshX"
+    "*-37j$&bZS$dH_X+{2I<ua$W#6KY*@VrqN{J;caBlX+N;@jMz6W(nwJ{cLQsW>!=Sc7{ici2ZJMw7`yvihEBrM|U"
+    "i@57O!an!RZ{2EOk7=xSdV^O17lIL^yHJC0o*1o<ECK(G8<3p489;mIkh$IP9+=gc`#H_$bIp&cdnt7Ef$kOm=sv"
+    "$M*qGXG-9xYd{mM`?*ySf~Y)8%--F85;C(X^u2OX41oaq=9;&o+#1vw2x*n1b8-LG4-8o!tQ$nf1m4S#Oit-WIN1"
+    "jE1C5c>A+EBqNjFm>*IMG+Ey5N@w~@sJXO*Gcxau#bM<@N3`mWtzF#5G%^K_<@09K;&f`$+07o1k(qEjEW;f{AEA"
+    "Q&?jcYk2?oTsX<4>KY#$qMJG~=P5h?`)MW+xGTp;ayg1E5>$CiTLC84GrL&XME_<Nxji;zfcv?w}#>Fdc=>Gb4$v"
+    "8S~7?EL)V@>#ZlMg@GxY;Y)W_Qh1!9n5rD0!CThHq+TSzp~zOYB18qI>e}k$%`$8Y~30bns$WM{faSs1Ko<5F21?"
+    "yHcv}eJoLHH%;|DjxX`g^=)4k^#+tNro)VNK1eO*~6GA-D(Xn*#aIkLxe!9L!*D<<`>+ep+jkG^qzPX2zE(E8=GM"
+    "#27YHXq@C9*Qw9Q|Z6YV-jW*2cI+6O(%NZ=M^5#aN8|!2?R`;dC~?+ZYeVy24nE9Be>B%~WTzjiJub_+=cB$TD9R"
+    "Ta#$>?3CaW4*y;^tBXqQUG<}N{1XaA!U-GutM|7GE*n#7kfI*xG}6T%*~2LnSe_6Xvt*n-aeSQW?DQhHq-Zr`abi"
+    "=gJ!_p^B@CQhX~d<&#tMrG$4|DK5921ss?k<kyxVYDyK4iVSSgfe9eyetQYn#$PzxgK8Q_x_;M1Y-I0fN!w=+G@y"
+    "eq3-!g{>00GnDCW@F<7-98ad#-a`=YrpVeZ?<7y&EVzlKYjdgj?T|6FaAKmJ(?YvQ4H)k|L90o9uhq@evo0Cn`N+"
+    "EXQ7UXD$s1}Oct`RXy#`5$#BJR_U_lS^NZhZ(Dm8-3lKVTK-c1Ot-x#Qls=tEVxm2F6d99R#9XRSVwpmeiv+C95d"
+    "2iY9!476Or9;KE*Se+Rk_)sDZ}#uY_4{J%e-zs!8cjzp}b@%lCcnwNeGU#pdMkHSnV`-(z|291}y1&4nA9a*y*KY"
+    "^JRT}-lgxU)R?#=0dM3UF>X_&6Yx+^Qw3_HMC|#oTmv;$UYL9E!J>g!73Xc*_pz^Y1oJ8Lm?Gg~32C6UNO?h!@zQ"
+    "V~k{iK}<r;|fiz0u3g1op`-+gav>uSvhnGw=S&QP3s9Fl2_Qo%J!Frhp)I_6LL<S^AhIxquKo&N0RuILvLrp~O)o"
+    "x*H*aA%|}ClC~bM2f@)S)Nd=1rw5(V|nC|l$MKpUb<hK)>GSdKWl3*L%oTGAy5))n4DC`U`kll<%UclKv8$JDGg*"
+    "5HY*ppGWR!a?`c)~^wT3`!i95TSKTtiVh`!Nf)bv(l-O8ExSk$Mbl|RWcrzkvLwna9>+8eBibQjwke0S~x&&gm^e"
+    "EPj3ZGix)gf;tY@rQr8E+`T{c`@T+}`-_OZr$-AsOIFn<lW31Y)%}45ca9Ik%E3FGt{!0~^x5(6e^tx;Jgs`ia^n"
+    "M1eM;l)xXxV=(?C<;Y+wtz?WsE;Is;KL4(S{^5!St2O+3%~uM~6ipJ!5Fso^47?8|3Jc`Zm|KTQn7k2S`*${0!6("
+    "v9^y#-Y-bOUM8^%)slM{n8YL`Ie8hd0#>SN9cagrVtnaTc~;eTO=Y1{qY{58QMwTVg%Qi8*b2n&^}(+pys<ea6NI"
+    "V1m?yncHe2jAb+Y(@NJ)g<e7YMY7q50u56$rMZ(OGpoBszDGONP|y}SJo<{@PCiP5qoj|K%atsqpRf{HSzWoQX`r"
+    "sEWu$}U|0g5G{=ynFfT;PupucvZhX0S{6G8s>L5U0{+hSm)b^>~;6!q363|4=4FnHJm=ePhB(M-5*#bKpAIGwP!+"
+    "0a^_f6*(sM{BeUPlZwSOf?kkb^@&gCK?yjX45A)F#D5Tbmrmw7(Q=awN32UA&$lq1LmbH<5>ss(4Be_6lm3B&nl5"
+    "Kw-%>)-ZF190fJ7cU*`3=&q0XQ62C*$3|}>%bjvqTa?-uOqc}6c7!8KrFPZ`WfMGHx^BXp4W-;oX@2EOr;D{n`(*"
+    "Fus4?j?ZHa!E^N*iGvBByWB90s+e*T9+epgoO8Q$;L?>=9ko2#?muHS#Y`gCzsk3KnW;DH2K&-L_2nUz~nZ}QGTe"
+    "QHBJ<(G5o>?<h2!W$O7kMx=rb+5;Tn~TsjojZGS?A-9@H}jeb^5VRi|5|9OteUP>iA8G|bxZD80&!fY#06>ZwycA"
+    "RbZ>2i_b6kqdm1aGI0Rf~Ssm=)P^5%whiMwNMZP>9Nhpu)i8NiMIyr5N;-*gur89c};p2zjer|0!nH<Za2D_xI-N"
+    "mwUizs9U8WyK(oOW{;1rxJ5T$txoYdevSy13b@%*k=`v0q?=UTk$~gUyB(!DdHywH12Y*aSb<$0!;PUvKoCU3~hC"
+    "K3recOL63Q<iIx!>%ng~9O>-cCA$9n`_=hH^Fr29%TEUTTa6R;sp{msS^jR4eFj{2W%NC(?sE{81*EZA34!h|>Ry"
+    "~$EkIc-$(L7?5(4&2hYmqmqAFPJcAqwQCVB`{Qo^suba<KgiT|qLb;1>MTB#VyK!X#P(m2+N5~-5JLMEEVg1W?bF"
+    "R7svvLmLMr8E{K_81DZ{{t;=LT>"
 )
 
 
@@ -116,6 +164,9 @@ class StockSkillCiHelperTests(unittest.TestCase):
                 "BSS-S3-P3-T015",
                 "BSS-S3-P3-T017",
                 "BSS-S3-P3-T019",
+                "BSS-S3-P3-T021",
+                "BSS-S3-P3-T023",
+                "BSS-S3-P3-T025",
             ),
         )
         verifiers = self._stage3_acceptance_verifiers(
@@ -466,6 +517,9 @@ class StockSkillCiHelperTests(unittest.TestCase):
                         )
 
     def test_public_safety_allows_public_business_identifier_controls(self) -> None:
+        synthetic_uuid = (
+            "550e8400" + "-e29b-41d4-a716-" + "446655440000"
+        )
         controls = {
             "public_claim_ref": "CLAIM-001",
             "evidence_record_key": "EV-001",
@@ -486,12 +540,18 @@ class StockSkillCiHelperTests(unittest.TestCase):
             "public_request_ref": "REQ-PUBLIC-001",
             "request_public_reference": "public-request-20260724",
             "artifact_schema_version": "1.0",
+            "remediation_task_id": "BSS-S3-P3-T022",
             "content_digest_sha256": "a" * 64,
             "execution_trace": {
                 "validator_replay": {
                     "evidence": {
-                        "result": {"claims": [{"id": "C-001"}]}
+                        "result": {"claims": [{"id": synthetic_uuid}]}
                     }
+                }
+            },
+            "runtime": {
+                "market_observation": {
+                    "publicEvidenceReference": "Evidence-Market-17"
                 }
             },
             "executor_validator_replay": {
@@ -718,6 +778,843 @@ class StockSkillCiHelperTests(unittest.TestCase):
                         0,
                         result.stdout + result.stderr,
                     )
+
+    def test_public_safety_rejects_t017_structural_private_ancestry(self) -> None:
+        payloads = (
+            {"provider": {"pages": [{"cursor": "opaque-provider-cursor"}]}},
+            {"runtime": {"segments": [{"locator": "opaque-runtime-locator"}]}},
+            {"execution": {"nodes": [{"alias": "opaque-execution-alias"}]}},
+            {"job": {"list": [{"locator": "opaque-job-locator"}]}},
+            {"trace": {"array": [{"cursor": "opaque-trace-cursor"}]}},
+            {"provider": {"collection": [{"handle": "opaque-provider-handle"}]}},
+        )
+        for surface in ("plain", "zip"):
+            for payload in payloads:
+                with self.subTest(surface=surface, payload=payload):
+                    with tempfile.TemporaryDirectory(
+                        prefix="stock-ci-t017-structural-ancestry-"
+                    ) as raw:
+                        root = Path(raw)
+                        self._public_fixture(root)
+                        encoded = json.dumps(payload)
+                        if surface == "plain":
+                            (root / "Stock_Skill/execution.json").write_text(
+                                encoded + "\n",
+                                encoding="utf-8",
+                            )
+                        else:
+                            with ZipFile(
+                                root / "Stock_Skill/synthetic.zip",
+                                "w",
+                                compression=ZIP_DEFLATED,
+                            ) as archive:
+                                archive.writestr("execution.json", encoded)
+                        result = self._run(SAFETY_VALIDATOR, root)
+                        self.assertNotEqual(
+                            result.returncode,
+                            0,
+                            result.stdout + result.stderr,
+                        )
+                        self.assertIn(
+                            "forbidden execution session metadata",
+                            result.stderr,
+                        )
+
+    def test_public_safety_allows_t017_public_reference_controls(self) -> None:
+        controls = {
+            "public_request_alias": "public-request-alias",
+            "public_documentation_locator": "public-documentation-locator",
+            "public_evidence_cursor": "public-evidence-cursor",
+            "public_catalog_reference": "public-catalog-reference",
+            "public_example_alias": "public-example-alias",
+        }
+        for surface in ("plain", "zip"):
+            with self.subTest(surface=surface):
+                with tempfile.TemporaryDirectory(
+                    prefix="stock-ci-t017-public-reference-"
+                ) as raw:
+                    root = Path(raw)
+                    self._public_fixture(root)
+                    encoded = json.dumps(controls)
+                    if surface == "plain":
+                        (root / "Stock_Skill/public.json").write_text(
+                            encoded + "\n",
+                            encoding="utf-8",
+                        )
+                    else:
+                        with ZipFile(
+                            root / "Stock_Skill/synthetic.zip",
+                            "w",
+                            compression=ZIP_DEFLATED,
+                        ) as archive:
+                            archive.writestr("public.json", encoded)
+                    result = self._run(SAFETY_VALIDATOR, root)
+                    self.assertEqual(
+                        result.returncode,
+                        0,
+                        result.stdout + result.stderr,
+                    )
+
+    def test_public_safety_rejects_t017_malformed_public_reference_controls(
+        self,
+    ) -> None:
+        keys = (
+            "public_request_alias",
+            "public_documentation_locator",
+            "public_evidence_cursor",
+            "public_catalog_reference",
+            "public_example_alias",
+        )
+        invalid_values = (
+            "123e4567-e89b-42d3-a456-426614174000",
+            {"token": "private"},
+        )
+        for surface in ("plain", "zip"):
+            for key in keys:
+                for value in invalid_values:
+                    with self.subTest(surface=surface, key=key, value=value):
+                        with tempfile.TemporaryDirectory(
+                            prefix="stock-ci-t017-malformed-public-reference-"
+                        ) as raw:
+                            root = Path(raw)
+                            self._public_fixture(root)
+                            encoded = json.dumps({key: value})
+                            if surface == "plain":
+                                (
+                                    root / "Stock_Skill/public.json"
+                                ).write_text(
+                                    encoded + "\n",
+                                    encoding="utf-8",
+                                )
+                            else:
+                                with ZipFile(
+                                    root / "Stock_Skill/synthetic.zip",
+                                    "w",
+                                    compression=ZIP_DEFLATED,
+                                ) as archive:
+                                    archive.writestr("public.json", encoded)
+                            result = self._run(SAFETY_VALIDATOR, root)
+                            self.assertNotEqual(
+                                result.returncode,
+                                0,
+                                result.stdout + result.stderr,
+                            )
+                            self.assertIn(
+                                "forbidden execution session metadata",
+                                result.stderr,
+                            )
+
+    def test_public_safety_rejects_provider_session_identifier_in_text_surfaces(
+        self,
+    ) -> None:
+        key = "provider" + "_" + "session" + "_" + "id"
+        identifier = "123e4567" + "-e89b-42d3-a456-" + "426614174000"
+        marker = f"{key}={identifier}"
+        for surface in ("plain", "zip"):
+            with self.subTest(surface=surface):
+                with tempfile.TemporaryDirectory(
+                    prefix="stock-ci-t017-provider-session-text-"
+                ) as raw:
+                    root = Path(raw)
+                    stock_readme = self._public_fixture(root)
+                    if surface == "plain":
+                        stock_readme.write_text(marker + "\n", encoding="utf-8")
+                    else:
+                        with ZipFile(
+                            root / "Stock_Skill/synthetic.zip",
+                            "w",
+                            compression=ZIP_DEFLATED,
+                        ) as archive:
+                            archive.writestr("execution.txt", marker)
+                    result = self._run(SAFETY_VALIDATOR, root)
+                    self.assertNotEqual(
+                        result.returncode,
+                        0,
+                        result.stdout + result.stderr,
+                    )
+                    self.assertIn(
+                        "forbidden plaintext execution session identifier",
+                        result.stderr,
+                    )
+
+    def test_public_safety_rejects_t019_plaintext_identifier_matrix(
+        self,
+    ) -> None:
+        identifier = "550e8400" + "-e29b-41d4-a716-" + "446655440000"
+        prefixes = (
+            "provider.session." + "id = ",
+            "provider-session-" + "id: ",
+            "Provider Session " + "Identifier -> ",
+            "providerSession" + "Id ",
+            "runtime request " + "locator: ",
+            "generation.execution." + "cursor/",
+        )
+        for surface in ("plain", "zip"):
+            for prefix in prefixes:
+                with self.subTest(surface=surface, prefix=prefix):
+                    with tempfile.TemporaryDirectory(
+                        prefix="stock-ci-t019-private-text-"
+                    ) as raw:
+                        root = Path(raw)
+                        stock_readme = self._public_fixture(root)
+                        marker = prefix + identifier
+                        if surface == "plain":
+                            stock_readme.write_text(
+                                marker + "\n",
+                                encoding="utf-8",
+                            )
+                        else:
+                            with ZipFile(
+                                root / "Stock_Skill/synthetic.zip",
+                                "w",
+                                compression=ZIP_DEFLATED,
+                            ) as archive:
+                                archive.writestr("execution.txt", marker)
+                        result = self._run(SAFETY_VALIDATOR, root)
+                        self.assertNotEqual(
+                            result.returncode,
+                            0,
+                            result.stdout + result.stderr,
+                        )
+                        self.assertIn(
+                            "forbidden plaintext execution session identifier",
+                            result.stderr,
+                        )
+
+    def test_public_safety_t022_blind_matrix_plain_and_zip(self) -> None:
+        identifier = "550e8400" + "-e29b-41d4-a716-" + "446655440000"
+        negative_plaintext = (
+            ("NP01", f"inference.request.id = {identifier}"),
+            ("NP02", f"completion-session-identifier: {identifier}"),
+            ("NP03", f"Invocation Context ID -> {identifier}"),
+            ("NP04", f"process.execution.cursor / {identifier}"),
+            ("NP05", f"worker run locator {identifier}"),
+            ("NP06", f"span.receipt.id={identifier}"),
+            ("NP07", f"trace-session-state:{identifier}"),
+            ("NP08", f"call execution record -> {identifier}"),
+            ("NP09", f"job.request.metadata {identifier}"),
+            ("NP10", f"task-runtime-handle = {identifier}"),
+            ("NP11", f"pipeline invocation receipt: {identifier}"),
+            ("NP12", f"response generation identifier / {identifier}"),
+        )
+        negative_json = (
+            ("NJ01", {"inference": {"records": [{"cursor": identifier}]}}),
+            ("NJ02", {"completion": {"pages": [{"locator": identifier}]}}),
+            ("NJ03", {"invocation": {"items": [{"receipt": identifier}]}}),
+            ("NJ04", {"worker": {"nodes": [{"handle": "opaque-worker-handle"}]}}),
+            ("NJ05", {"trace": {"segments": [{"state": identifier}]}}),
+            (
+                "NJ06",
+                {"runtime": {"market_observation": {"session_id": identifier}}},
+            ),
+            (
+                "NJ07",
+                {
+                    "execution_trace": {
+                        "validator_replay": {"provider_receipt": identifier}
+                    }
+                },
+            ),
+            (
+                "NJ08",
+                {
+                    "runtime": {
+                        "market_observation": {
+                            "provider": {"session": {"id": identifier}}
+                        }
+                    }
+                },
+            ),
+            (
+                "NJ09",
+                {
+                    "execution_trace": {
+                        "validator_replay": {"job": {"cursor": identifier}}
+                    }
+                },
+            ),
+            (
+                "NJ10",
+                {
+                    "pipeline": {
+                        "collections": [
+                            {"request_identifier": identifier}
+                        ]
+                    }
+                },
+            ),
+        )
+        positive_plaintext = (
+            ("PP01", f"public evidence record: {identifier}"),
+            ("PP02", f"market observation id = {identifier}"),
+            ("PP03", f"public dataset row / {identifier}"),
+            ("PP04", f"claim evidence identifier -> {identifier}"),
+        )
+        positive_json = (
+            (
+                "PJ01",
+                {"runtime": {"market_observation": {"observation_id": identifier}}},
+            ),
+            (
+                "PJ02",
+                {
+                    "execution_trace": {
+                        "validator_replay": {
+                            "evidence": {"claim_id": identifier}
+                        }
+                    }
+                },
+            ),
+            (
+                "PJ03",
+                {
+                    "runtime": {
+                        "market_observation": {
+                            "source_registry": {"record_uuid": identifier}
+                        }
+                    }
+                },
+            ),
+            (
+                "PJ04",
+                {
+                    "execution_trace": {
+                        "validator_replay": {
+                            "public_dataset": {"rows": [{"id": identifier}]}
+                        }
+                    }
+                },
+            ),
+            ("PJ05", {"evidence": {"claims": [{"id": identifier}]}}),
+            ("PJ06", {"public_catalog_reference": "Grid-Evidence-2026-07"}),
+        )
+        groups = (
+            ("negative_plaintext", True, ".txt", negative_plaintext),
+            ("negative_json", True, ".json", negative_json),
+            ("positive_plaintext", False, ".txt", positive_plaintext),
+            ("positive_json", False, ".json", positive_json),
+        )
+        for category, expected_reject, suffix, cases in groups:
+            for case_id, value in cases:
+                payload = (
+                    json.dumps(value, ensure_ascii=False)
+                    if suffix == ".json"
+                    else value
+                )
+                for surface in ("plain", "zip"):
+                    with self.subTest(
+                        category=category,
+                        case_id=case_id,
+                        surface=surface,
+                    ):
+                        with tempfile.TemporaryDirectory(
+                            prefix="stock-ci-t022-public-blind-"
+                        ) as raw:
+                            root = Path(raw)
+                            self._public_fixture(root)
+                            if surface == "plain":
+                                (root / f"Stock_Skill/probe{suffix}").write_text(
+                                    payload + "\n",
+                                    encoding="utf-8",
+                                )
+                            else:
+                                with ZipFile(
+                                    root / "Stock_Skill/synthetic.zip",
+                                    "w",
+                                    compression=ZIP_DEFLATED,
+                                ) as archive:
+                                    archive.writestr(f"probe{suffix}", payload)
+                            result = self._run(SAFETY_VALIDATOR, root)
+                            if expected_reject:
+                                self.assertNotEqual(
+                                    result.returncode,
+                                    0,
+                                    result.stdout + result.stderr,
+                                )
+                                self.assertIn(
+                                    (
+                                        "forbidden plaintext execution "
+                                        "session identifier"
+                                        if suffix == ".txt"
+                                        else "forbidden execution session"
+                                    ),
+                                    result.stderr,
+                                )
+                            else:
+                                self.assertEqual(
+                                    result.returncode,
+                                    0,
+                                    result.stdout + result.stderr,
+                                )
+
+    def test_public_safety_t022_handle_rollback_mutant_is_killed(self) -> None:
+        source = SAFETY_VALIDATOR.read_text(encoding="utf-8")
+        new_detail_tail = "           context|record|run|handle)"
+        self.assertEqual(source.count(new_detail_tail), 1)
+        mutant = source.replace(
+            new_detail_tail,
+            "           context|record|run)",
+            1,
+        )
+        with tempfile.TemporaryDirectory(
+            prefix="stock-ci-t022-public-rollback-"
+        ) as raw:
+            root = Path(raw)
+            stock_readme = self._public_fixture(root)
+            identifier = (
+                "550e8400" + "-e29b-41d4-a716-" + "446655440000"
+            )
+            stock_readme.write_text(
+                f"task-runtime-handle = {identifier}\n",
+                encoding="utf-8",
+            )
+            mutant_validator = root / "mutant_public_safety.py"
+            mutant_validator.write_text(mutant, encoding="utf-8")
+            result = self._run(mutant_validator, root)
+            self.assertEqual(
+                result.returncode,
+                0,
+                "rollback mutant unexpectedly retained the T022 defense",
+            )
+
+    def test_public_safety_t024_frozen_replay_plain_and_zip(self) -> None:
+        raw_oracle = zlib.decompress(
+            base64.b85decode(T024_PUBLIC_SAFETY_REPLAY_B85.encode("ascii"))
+        )
+        self.assertEqual(
+            hashlib.sha256(raw_oracle).hexdigest(),
+            "64b6deeee0311ef6c08b07eaff46e77f85dc1c3188ed980a9e852cce69584bfb",
+        )
+        oracle = json.loads(raw_oracle.decode("utf-8"))
+        self.assertEqual(oracle["schema"], "bss-t024-public-safety-replay-v1")
+        self.assertEqual(
+            oracle["specialist_artifact_sha256"],
+            "fa9584ea88397bc09eb233a8217899d11eb362e9cff72c224904a4d223613f0b",
+        )
+        self.assertEqual(
+            oracle["adjacent_artifact_sha256"],
+            "b3ebe869874c80b1992e2875c798f3421f82fcdda6b8876de683992f04f3df8b",
+        )
+        self.assertEqual(len(oracle["cases"]), 86)
+        for case in oracle["cases"]:
+            payload = (
+                json.dumps(
+                    case["value"],
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                if case["kind"] == "json"
+                else str(case["value"])
+            )
+            suffix = ".json" if case["kind"] == "json" else ".txt"
+            expected_reject = case["expected"] == "REJECT"
+            for surface in ("plain", "zip"):
+                with self.subTest(case_id=case["id"], surface=surface):
+                    with tempfile.TemporaryDirectory(
+                        prefix="stock-ci-t024-public-replay-"
+                    ) as raw:
+                        root = Path(raw)
+                        self._public_fixture(root)
+                        if surface == "plain":
+                            (root / f"Stock_Skill/probe{suffix}").write_text(
+                                payload + "\n",
+                                encoding="utf-8",
+                            )
+                        else:
+                            with ZipFile(
+                                root / "Stock_Skill/synthetic.zip",
+                                "w",
+                                compression=ZIP_DEFLATED,
+                            ) as archive:
+                                archive.writestr(f"probe{suffix}", payload)
+                        result = self._run(SAFETY_VALIDATOR, root)
+                    if expected_reject:
+                        self.assertNotEqual(
+                            result.returncode,
+                            0,
+                            result.stdout + result.stderr,
+                        )
+                        self.assertIn(
+                            (
+                                "forbidden execution session"
+                                if suffix == ".json"
+                                else (
+                                    "forbidden plaintext execution "
+                                    "session identifier"
+                                )
+                            ),
+                            result.stderr,
+                        )
+                    else:
+                        self.assertEqual(
+                            result.returncode,
+                            0,
+                            result.stdout + result.stderr,
+                        )
+
+    def test_public_safety_t024_fresh_cross_product_plain_and_zip(self) -> None:
+        cases = (
+            (
+                "R21",
+                True,
+                ".json",
+                {
+                    "invocation": {
+                        "chunks": [
+                            {
+                                "context": {
+                                    "cursor": "invocation-opaque-private-10"
+                                }
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "R22",
+                True,
+                ".json",
+                {
+                    "inference": {
+                        "frames": [
+                            {
+                                "private": {
+                                    "alias": "inference-opaque-private-11"
+                                }
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "R23",
+                True,
+                ".json",
+                {
+                    "orchestration": {
+                        "custom": {
+                            "pointer": "orchestration-opaque-private-12"
+                        }
+                    }
+                },
+            ),
+            (
+                "R24",
+                True,
+                ".json",
+                {"execution": {"task": {"id": "RUN-PRIVATE-17"}}},
+            ),
+            (
+                "R25",
+                True,
+                ".json",
+                {"runtime_task_id": "RUN-PRIVATE-17"},
+            ),
+            (
+                "R26",
+                True,
+                ".txt",
+                "pipeline context handle " + "abcdefghijklmnop",
+            ),
+            (
+                "R27",
+                True,
+                ".json",
+                {
+                    "runtime": {
+                        "cases": {
+                            "custom": {
+                                "cursor": "runtime-opaque-private-77"
+                            }
+                        }
+                    }
+                },
+            ),
+            (
+                "R28",
+                True,
+                ".json",
+                {
+                    "runtime": {
+                        "public_wrapper": {
+                            "custom": {
+                                "cursor": "runtime-opaque-private-78"
+                            }
+                        }
+                    }
+                },
+            ),
+            (
+                "R29",
+                True,
+                ".json",
+                {
+                    "pipeline": {
+                        "public_task": {
+                            "id": "RUN-PRIVATE-17"
+                        }
+                    }
+                },
+            ),
+            (
+                "R30",
+                True,
+                ".txt",
+                "pipeline context handle " + "deadbeefdeadbeef",
+            ),
+            (
+                "R31",
+                True,
+                ".txt",
+                "pipeline context handle " + "xqjpvnmzlkxqjpvn",
+            ),
+            (
+                "R32",
+                True,
+                ".txt",
+                "pipeline context handle " + "deadbeefdeadbeef.",
+            ),
+            (
+                "R33",
+                True,
+                ".txt",
+                "pipeline context handle " + "xqjpvnmzlkxqjpvn:",
+            ),
+            (
+                "R34",
+                True,
+                ".txt",
+                "pipeline context handle " + "xqjpvnmzlkxqjpvn!",
+            ),
+            (
+                "A13",
+                False,
+                ".json",
+                {"task": {"id": "SEC-2024-17"}},
+            ),
+            (
+                "A14",
+                False,
+                ".json",
+                {"pipeline": {"public_task": {"id": "ADP-SOURCE-17"}}},
+            ),
+            (
+                "A15",
+                False,
+                ".txt",
+                "Runtime state misconfiguration caused the warning.",
+            ),
+            (
+                "A16",
+                False,
+                ".txt",
+                "Execution record misclassification caused the warning.",
+            ),
+            (
+                "A17",
+                False,
+                ".txt",
+                "Pipeline state mischaracterization remains a risk.",
+            ),
+            (
+                "A18",
+                False,
+                ".txt",
+                "Task state internationalization is documented.",
+            ),
+            (
+                "A19",
+                False,
+                ".txt",
+                "Runtime state misconfiguration",
+            ),
+            (
+                "A20",
+                False,
+                ".txt",
+                "Runtime state internationalization, with notes.",
+            ),
+        )
+        for case_id, expected_reject, suffix, value in cases:
+            payload = (
+                json.dumps(
+                    value,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                if suffix == ".json"
+                else str(value)
+            )
+            for surface in ("plain", "zip"):
+                with self.subTest(case_id=case_id, surface=surface):
+                    with tempfile.TemporaryDirectory(
+                        prefix="stock-ci-t024-public-fresh-"
+                    ) as raw:
+                        root = Path(raw)
+                        self._public_fixture(root)
+                        if surface == "plain":
+                            (root / f"Stock_Skill/probe{suffix}").write_text(
+                                payload + "\n",
+                                encoding="utf-8",
+                            )
+                        else:
+                            with ZipFile(
+                                root / "Stock_Skill/synthetic.zip",
+                                "w",
+                                compression=ZIP_DEFLATED,
+                            ) as archive:
+                                archive.writestr(f"probe{suffix}", payload)
+                        result = self._run(SAFETY_VALIDATOR, root)
+                    if expected_reject:
+                        self.assertNotEqual(
+                            result.returncode,
+                            0,
+                            result.stdout + result.stderr,
+                        )
+                        self.assertIn(
+                            (
+                                "forbidden plaintext execution session"
+                                if suffix == ".txt"
+                                else "forbidden execution session"
+                            ),
+                            result.stderr,
+                        )
+                    else:
+                        self.assertEqual(
+                            result.returncode,
+                            0,
+                            result.stdout + result.stderr,
+                        )
+
+    def test_public_safety_t024_opaque_ancestry_rollback_mutant_is_killed(
+        self,
+    ) -> None:
+        source = SAFETY_VALIDATOR.read_text(encoding="utf-8")
+        opaque_value_guard = (
+            "            (?=[a-z0-9._@%+#=/~-]{8,128}\n"
+            "               (?![a-z0-9._@%+#=/~-]))"
+        )
+        self.assertEqual(source.count(opaque_value_guard), 1)
+        mutant = source.replace(
+            opaque_value_guard,
+            "        (?!)",
+            1,
+        )
+        with tempfile.TemporaryDirectory(
+            prefix="stock-ci-t024-public-rollback-"
+        ) as raw:
+            root = Path(raw)
+            stock_readme = self._public_fixture(root)
+            stock_readme.write_text(
+                "pipeline context handle "
+                + "pipeline-opaque-private-review-32\n",
+                encoding="utf-8",
+            )
+            mutant_validator = root / "mutant_public_safety.py"
+            mutant_validator.write_text(mutant, encoding="utf-8")
+            result = self._run(mutant_validator, root)
+            self.assertEqual(
+                result.returncode,
+                0,
+                "rollback mutant unexpectedly retained opaque-ID defense",
+            )
+
+    def test_public_safety_t024_generic_ancestry_rollback_mutant_is_killed(
+        self,
+    ) -> None:
+        source = SAFETY_VALIDATOR.read_text(encoding="utf-8")
+        generic_ancestry = "                elif isinstance(child, (dict, list)):"
+        self.assertEqual(source.count(generic_ancestry), 1)
+        mutant = source.replace(
+            generic_ancestry,
+            "                elif is_neutral_context_container(key, child):",
+            1,
+        )
+        with tempfile.TemporaryDirectory(
+            prefix="stock-ci-t024-public-ancestry-rollback-"
+        ) as raw:
+            root = Path(raw)
+            stock_readme = self._public_fixture(root)
+            stock_readme.with_suffix(".json").write_text(
+                json.dumps(
+                    {
+                        "invocation": {
+                            "chunks": [
+                                {
+                                    "context": {
+                                        "cursor": "invocation-opaque-private-10"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            mutant_validator = root / "mutant_public_safety.py"
+            mutant_validator.write_text(mutant, encoding="utf-8")
+            result = self._run(mutant_validator, root)
+            self.assertEqual(
+                result.returncode,
+                0,
+                "rollback mutant unexpectedly retained generic ancestry",
+            )
+
+    def test_public_safety_t024_runtime_task_rollback_mutant_is_killed(
+        self,
+    ) -> None:
+        source = SAFETY_VALIDATOR.read_text(encoding="utf-8")
+        runtime_guard = "        and not bool(combined & private_runtime_tokens)\n"
+        self.assertEqual(source.count(runtime_guard), 1)
+        mutant = source.replace(runtime_guard, "", 1)
+        with tempfile.TemporaryDirectory(
+            prefix="stock-ci-t024-public-task-rollback-"
+        ) as raw:
+            root = Path(raw)
+            stock_readme = self._public_fixture(root)
+            stock_readme.with_suffix(".json").write_text(
+                json.dumps(
+                    {"execution": {"task": {"id": "RUN-CONTROL-17"}}}
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            mutant_validator = root / "mutant_public_safety.py"
+            mutant_validator.write_text(mutant, encoding="utf-8")
+            result = self._run(mutant_validator, root)
+            self.assertEqual(
+                result.returncode,
+                0,
+                "rollback mutant unexpectedly retained runtime-task defense",
+            )
+
+    def test_public_safety_t024_alpha_opaque_rollback_mutant_is_killed(
+        self,
+    ) -> None:
+        source = SAFETY_VALIDATOR.read_text(encoding="utf-8")
+        alpha_shape = "            (?P<alpha_opaque>[a-z]{16,128})\n"
+        self.assertEqual(source.count(alpha_shape), 1)
+        mutant = source.replace(alpha_shape, "            (?!)\n", 1)
+        with tempfile.TemporaryDirectory(
+            prefix="stock-ci-t024-public-alpha-rollback-"
+        ) as raw:
+            root = Path(raw)
+            stock_readme = self._public_fixture(root)
+            stock_readme.write_text(
+                "pipeline context handle " + "abcdefghijklmnop\n",
+                encoding="utf-8",
+            )
+            mutant_validator = root / "mutant_public_safety.py"
+            mutant_validator.write_text(mutant, encoding="utf-8")
+            result = self._run(mutant_validator, root)
+            self.assertEqual(
+                result.returncode,
+                0,
+                "rollback mutant unexpectedly retained alphabetic opaque-ID defense",
+            )
 
     def test_public_safety_rejects_private_identifier_under_runtime_key(self) -> None:
         variants = (

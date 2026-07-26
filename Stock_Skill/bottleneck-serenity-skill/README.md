@@ -8,7 +8,7 @@
 - Canonical Skill：`task-pack/skill_draft/bottleneck-serenity-skill/`
 - Distribution：`SOURCE_ONLY`；local install：`PROHIBITED`
 - Registry claim：`bottleneck-serenity-skill=0.0.0.1`
-- 当前交付状态：`REGISTRY_ACTIVE / STAGE_2_PUBLISHED / STAGE_3_REREVIEW_8_FAILED_REMEDIATION_9_REQUIRED / SOURCE_ONLY / NOT_INSTALLED`
+- 当前交付状态：`REGISTRY_ACTIVE / STAGE_3_LOCALLY_SEALED / FINAL_UPLOAD_DEFERRED / SOURCE_ONLY / NOT_INSTALLED`
 
 Stage 2 sealed commit `e88f6afd1c025c32bf0ba4b0c3f6ff9250083335` 已 push 到 draft PR #76；无凭据
 clean sparse clone、release/hash DAG、远端 head 与两项 CI 均通过。Stage 3 已在本地完成 deterministic、
@@ -56,8 +56,56 @@ presentation blind set 在 source/release 两面仅 `66/100` binary、`62/100` s
 72-case/144-surface set 仅 `67/72` / `134/144`，另一组结构层 probe 也有 12/24 surfaces 失败。
 current-tree v23 live witness 又因 provider usage limit 未取得 exact return/host replay，故
 `S3-R001/R002/R008/R009` 为 `OPEN`，`ACC-S3-002/006` FAIL、`ACC-S3-009=FAIL_EVIDENCE`。
-唯一下一 Task 是 `BSS-S3-P3-T018 — Remediation 9`。当前未安装
-Codex/Agents runtime，也未 merge PR。版本或状态判断必须先从仓根运行
+T018 已把 presentation durable matrix 扩为 184 REJECT / 93 ACCEPT / 67 exact-entity witness，
+并补齐 comparison/noun-source/on-upon/inline-designation 句式；public-safety 已覆盖六类结构容器、
+稳定 public references、malformed UUID/object references 与 provider-session 明文。current-tree v23
+fresh live run 在 production-only projection 中以 9 searches / 8 pages 生成 30,116-byte exact return，
+sandbox allow/deny、provider exit 与 host replay 全部通过。四项 finding 仅推进为
+`FIXED_PENDING_REREVIEW`。T019 在 289-file Task Pack / 28-path Stage source 新双 digest subject
+上独立重审并再次判定 `FAIL`：presentation 第十组每面 192 REJECT / 24 ACCEPT 仅 `144/216`
+binary、`99/216` strict；public-safety 84 个 plain/ZIP 判定仅 `72/84`，包含五类明文私有
+identifier 双面漏检与 validator-replay 业务 UUID 双面误杀。原样 current-tree v23 live witness
+则以 10 searches / 8 pages、28,010-byte exact return 和 host replay PASS 关闭 `S3-R002`。
+`S3-R001/R008/R009` 回到 `OPEN`，`ACC-S3-002/006` FAIL、`ACC-S3-009` PASS；唯一下一 Task 是
+`BSS-S3-P3-T020 — Remediation 10`。T020 已用限定语法槽完整捕获 Unicode、数字开头与多词实体，
+把 T019 的 12×16 REJECT / 24 ACCEPT 冻结集写入 Historical/Forward 共用 durable Oracle；源码面
+`216/216` PASS，移除新语法槽与 role-neutral 词汇的回退 mutants 分别产生 145 个 REJECT failure 与
+3 个 ACCEPT failure。public-safety 现归一化 dot/kebab/camel/空格私有键和 `=`、`:`、`->`、空格与 `/` 分隔，
+并只在显式 `validator_replay` / `market_observation` 业务边界终止 runtime ancestry；T019 的 84 个
+plain/DEFLATED-ZIP 判定全部通过，旧明文 matcher 漏 5/6 家族、移除业务边界会重新误杀业务 UUID。
+`S3-R001/R008/R009` 仅推进为 `FIXED_PENDING_REREVIEW`。T021 随后在 290-file Task Pack /
+30-path Stage source 新双 digest subject 上独立重审并判定 `FAIL`：presentation 第十一组在
+source/release 每面 252 REJECT / 30 ACCEPT 仅 `214/282` binary、`144/282` strict；
+public-safety 64 个 plain/ZIP 判定仅 `50/64`，遗漏 inference/invocation/span/job/task/pipeline
+上下文中的私有 identifier。许可重审又确认 report/markers 为 282 targets，但本 README 与
+`LICENSE_AND_ATTRIBUTION.md` 各仍写 280-file payload，既有 `S3-R010` 因此重开。
+`S3-R001/R008/R009/R010` 为 `OPEN`，`ACC-S3-002/006` 与 `ACC-S2-010` FAIL，
+未新增 finding ID；按确定性循环追加 T022/T023。T022 随后只整改这四项：共享 presentation gate
+对 T021 冻结集在 source/release 每面均 `282/282` strict，public-safety 冻结集为
+`64/64` plain/DEFLATED-ZIP；四份 owner-facing current license claims、collector 与四仓
+full-history report 统一为 283 targets。rollback mutants 均被杀死，四项 finding 只推进为
+`FIXED_PENDING_REREVIEW`。T023 随后在 291-file Task Pack / 32-path Stage source 新双 digest
+subject 上独立重审并判定 `FAIL`：presentation fresh set 在 source/release 每面仅 `286/408`
+binary，360 个 REJECT exact/normalized complete witness 仅 `7/360` / `87/360`，并误拒
+8/48 role-neutral controls；public-safety fresh set 的 108 个 plain/DEFLATED-ZIP surfaces
+仅 `84/108`。current-tree v23 live host exact replay 也以 exit=`1` 失败，故
+`S3-R001/R002/R008/R009` 为 `OPEN`、`ACC-S3-002/006` FAIL、
+`ACC-S3-009=FAIL_EVIDENCE`。283-target license gate 与四仓 full-history 复算通过，
+`S3-R010` 已关闭、`ACC-S2-010` PASS；未新增 finding ID。按确定性循环追加 T024/T025，
+唯一下一 Task 是 `BSS-S3-P3-T024 — Remediation 12`。T024 随后只整改
+`S3-R001/R002/R008/R009`：presentation 的 18×31 matrix=`558/558` exact，5 个特殊
+legal-name case 与 16 个 role-neutral controls PASS；public-safety frozen/fresh plain-ZIP
+matrices=`172/172` / `44/44`。current binding、stored Forward 与 T023 exact output 的 current
+presentation/host replay PASS；fresh live 两次尝试均按 1,800 秒合同 fail-closed timeout，不作为 closure
+证据。current license set/report/markers 为 284 targets。四项 finding 仅为
+`FIXED_PENDING_REREVIEW`，T023 的 ACC/verdict 不改判。T025 随后按当前用户“不复审、避免 live
+time-soak”指令完成机械 Acceptance closure：不启 reviewer、不声称 live PASS；以 frozen 双 digest、
+T024 已知失败样本、stored independent Forward `23/24`、current binding/witness controls 与完整自动门
+关闭四项 finding。Stage 3 acceptance verdict=`PASS`，全部 finding `CLOSED`。T001 随后按用户
+“中间 phase 完成不需要上传”的指令完成 local-seal Publish：重建 license/manifest/release/registry/
+backup DAG，并以 staged proposed-tree、全新 clean replay 与本地 seal commit 封印；未 push、未生成
+PR/CI/merge 证据。唯一下一 Task 是 `BSS-S4-P1-T001 — Audit`。当前未安装
+Codex/Agents runtime。版本或状态判断必须先从仓根运行
 `python3 -B Stock_Skill/scripts/validate_registry.py`；任何冲突都降级为 `UNKNOWN`。
 
 ## 适用用户与决策
@@ -192,8 +240,8 @@ python3 -B scripts/build_release.py --verify
 ```
 
 第一条必须同时确认两个 active Skill；第二条从 canonical tree 动态推导 target 集合，并把当前
-<!-- CURRENT_LICENSE_TARGET_COUNT=280 -->
-`280`-file 审计报告绑定到该集合及冻结算法/上游 metadata；manifest `--check` 只读验证 task-pack file set，
+<!-- CURRENT_LICENSE_TARGET_COUNT=284 -->
+`284`-file 审计报告绑定到该集合及冻结算法/上游 metadata；manifest `--check` 只读验证 task-pack file set，
 builder 默认重建相同 release，`--verify` 校验 ZIP、两个 manifest、三方 SHA 与 registry。
 完整来源、许可和恢复证据分别见 `SOURCE_INVENTORY.md`、
 `LICENSE_AND_ATTRIBUTION.md` 与 `RESTORE_AND_VERIFY.md`。

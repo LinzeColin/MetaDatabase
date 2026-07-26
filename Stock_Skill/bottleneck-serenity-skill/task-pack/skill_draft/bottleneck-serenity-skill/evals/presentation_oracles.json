@@ -1,5 +1,1031 @@
 {
   "schema_version": "1.0",
+  "bidirectional_generalization": {
+    "source_review_task": "BSS-S3-P3-T019",
+    "entities": [
+      "Aurelia Coilworks",
+      "北辰变流设备",
+      "Σίγμα Grid Systems",
+      "Nº7 Transformer Holdings",
+      "Élan Réseaux",
+      "D-42 Power Fabrication",
+      "Kōwhai HV Works",
+      "مصانع الفجر للطاقة",
+      "СеверТок Машины",
+      "123 Meridian Electric",
+      "Delta-9 Grid Equipment",
+      "Vía Alta Equipos"
+    ],
+    "reject_templates": [
+      {
+        "case_family": "direct_assignment",
+        "text": "The listed supplier is {entity}, which owns the qualified line."
+      },
+      {
+        "case_family": "funding_from",
+        "text": "Funding from the listed manufacturer {entity} supports the expansion."
+      },
+      {
+        "case_family": "supply_from",
+        "text": "Supply from the public company {entity} clears the constrained node."
+      },
+      {
+        "case_family": "depends_upon",
+        "text": "The system depends upon the issuer {entity} for the critical component."
+      },
+      {
+        "case_family": "relies_on",
+        "text": "The network relies on the listed operator {entity} for conversion capacity."
+      },
+      {
+        "case_family": "inline_called",
+        "text": "A named beneficiary called {entity} captures the incremental rent."
+      },
+      {
+        "case_family": "inline_named",
+        "text": "The listed recipient named {entity} receives the scarcity payment."
+      },
+      {
+        "case_family": "comparison_index",
+        "text": "The comparison index names {entity} as the leading public security."
+      },
+      {
+        "case_family": "selection_nominalization",
+        "text": "Selection of {entity} as the listed supplier concentrates the economics."
+      },
+      {
+        "case_family": "passive_role_fill",
+        "text": "The constrained role is filled by {entity}, a public company."
+      },
+      {
+        "case_family": "quoted_rent_route",
+        "text": "Incremental rent accrues to the issuer «{entity}»."
+      },
+      {
+        "case_family": "fronted_source",
+        "text": "From the listed manufacturer {entity} comes the only qualified supply."
+      },
+      {
+        "case_family": "company_label",
+        "text": "The company labeled {entity} supplies the bottleneck equipment."
+      },
+      {
+        "case_family": "possessive_capacity",
+        "text": "{entity}'s capacity, as a listed vendor, determines throughput."
+      },
+      {
+        "case_family": "dash_appositive",
+        "text": "The listed operator—{entity}—controls the scarce certification slot."
+      },
+      {
+        "case_family": "parenthetical_designation",
+        "text": "The beneficiary (the public company {entity}) captures the value."
+      }
+    ],
+    "accept_cases": [
+      {
+        "case_id": "A01",
+        "text": "Funding from the constrained manufacturing role supports expansion."
+      },
+      {
+        "case_id": "A02",
+        "text": "Supply from whichever qualified role wins the tender clears the node."
+      },
+      {
+        "case_id": "A03",
+        "text": "The system depends upon an unnamed supplier for the critical component."
+      },
+      {
+        "case_id": "A04",
+        "text": "The network relies on the bottleneck role for conversion capacity."
+      },
+      {
+        "case_id": "A05",
+        "text": "A beneficiary called the downstream absorber captures incremental rent."
+      },
+      {
+        "case_id": "A06",
+        "text": "The recipient named in the public tender receives the scarcity payment."
+      },
+      {
+        "case_id": "A07",
+        "text": "The comparison index ranks abstract role classes only."
+      },
+      {
+        "case_id": "A08",
+        "text": "Selection of a qualified supplier remains unresolved."
+      },
+      {
+        "case_id": "A09",
+        "text": "The constrained role is filled only after certification."
+      },
+      {
+        "case_id": "A10",
+        "text": "Incremental rent accrues to whichever role retains pricing power."
+      },
+      {
+        "case_id": "A11",
+        "text": "From the qualified manufacturing role comes the only compliant supply."
+      },
+      {
+        "case_id": "A12",
+        "text": "The company-selection step occurs only after the Security map."
+      },
+      {
+        "case_id": "A13",
+        "text": "Capacity owned by the selected role determines throughput."
+      },
+      {
+        "case_id": "A14",
+        "text": "The operator role controls the scarce certification slot."
+      },
+      {
+        "case_id": "A15",
+        "text": "The beneficiary role captures value only if contract terms permit."
+      },
+      {
+        "case_id": "A16",
+        "text": "Demand for the constrained role comes from replacement cycles."
+      },
+      {
+        "case_id": "A17",
+        "text": "The funding source remains unidentified before security selection."
+      },
+      {
+        "case_id": "A18",
+        "text": "No issuer, company, ticker, or branded operator is named here."
+      },
+      {
+        "case_id": "A19",
+        "text": "A recipient described as the public proxy may receive the payment."
+      },
+      {
+        "case_id": "A20",
+        "text": "The index is a role-level comparison, not a security recommendation."
+      },
+      {
+        "case_id": "A21",
+        "text": "A manufacturer selected later could expand capacity."
+      },
+      {
+        "case_id": "A22",
+        "text": "The listed-company screen is deferred until the Security map."
+      },
+      {
+        "case_id": "A23",
+        "text": "The role named as absorber is still generic and unassigned."
+      },
+      {
+        "case_id": "A24",
+        "text": "Supply depends on qualification, tooling, labor, and lead time."
+      }
+    ]
+  },
+  "remediation_bidirectional_generalization": {
+    "source_review_task": "BSS-S3-P3-T021",
+    "remediation_task": "BSS-S3-P3-T022",
+    "cases_sha256": "d490f738759c706976127e91665c7d774732505f0167bb06422ddcbdd5265681",
+    "entities": [
+      "Orion Fluxworks",
+      "华岳绝缘系统",
+      "Ωmega Transmission SA",
+      "7th Meridian Grid PLC",
+      "Árbol de Potencia",
+      "Nūr Switchgear Industries",
+      "K-88 Vector Controls",
+      "Société Côte d’Émeraude",
+      "ЭнергоМост Заводы",
+      "شركة النور للمحولات",
+      "Tōtara Core Systems",
+      "GridWorks Nº 12",
+      "123A Power Components",
+      "Västra Nät AB"
+    ],
+    "reject_templates": [
+      {
+        "case_family": "fronted_listed_role",
+        "text": "As the listed supplier, {entity} owns the only certified line."
+      },
+      {
+        "case_family": "belongs_to_named_issuer",
+        "text": "The only qualified line belongs to {entity}, the named issuer."
+      },
+      {
+        "case_family": "designated_beneficiary",
+        "text": "{entity}, designated as the public beneficiary, captures the scarcity rent."
+      },
+      {
+        "case_family": "passive_rent_capture",
+        "text": "Scarcity rent is captured by the listed company {entity}."
+      },
+      {
+        "case_family": "public_market_proxy",
+        "text": "The public-market proxy for this role is {entity}."
+      },
+      {
+        "case_family": "management_selected",
+        "text": "For the constrained node, management selected {entity} as issuer exposure."
+      },
+      {
+        "case_family": "colon_assignment",
+        "text": "Issuer exposure: {entity}; role analysis follows."
+      },
+      {
+        "case_family": "selected_role_dash",
+        "text": "The manufacturer selected for the role—{entity}—controls certification."
+      },
+      {
+        "case_family": "capacity_supplied_by",
+        "text": "Capacity supplied by {entity}, a listed manufacturer, clears the bottleneck."
+      },
+      {
+        "case_family": "fill_public_company_slot",
+        "text": "Only {entity} can fill the public-company slot in this draft."
+      },
+      {
+        "case_family": "memo_already_names",
+        "text": "Whichever role wins, the memo already names {entity} as the beneficiary."
+      },
+      {
+        "case_family": "candidate_security_parenthetical",
+        "text": "The candidate security ({entity}) is attached to the role before mapping."
+      },
+      {
+        "case_family": "value_flows_through",
+        "text": "Value flows through the named operator {entity} to public shareholders."
+      },
+      {
+        "case_family": "listed_incumbent",
+        "text": "The role's listed incumbent is {entity}, whose line is certified."
+      },
+      {
+        "case_family": "quoted_role_label",
+        "text": "Under the label “public supplier,” {entity} receives the allocation."
+      },
+      {
+        "case_family": "equals_assignment",
+        "text": "Beneficiary = {entity}; Security map pending."
+      },
+      {
+        "case_family": "slash_assignment",
+        "text": "Listed supplier / {entity} / controls the constrained process."
+      },
+      {
+        "case_family": "relative_issuer_clause",
+        "text": "The issuer that captures the rent is {entity}."
+      }
+    ],
+    "accept_cases": [
+      {
+        "case_id": "A01",
+        "text": "As the listed-company screen is deferred, no supplier is selected."
+      },
+      {
+        "case_id": "A02",
+        "text": "The only qualified line belongs to whichever role clears diligence."
+      },
+      {
+        "case_id": "A03",
+        "text": "A public beneficiary may exist, but its identity remains unresolved."
+      },
+      {
+        "case_id": "A04",
+        "text": "Scarcity rent is captured by the role with enforceable pricing power."
+      },
+      {
+        "case_id": "A05",
+        "text": "The public-market proxy is chosen only after the Security map."
+      },
+      {
+        "case_id": "A06",
+        "text": "Issuer exposure: unresolved; role analysis comes first."
+      },
+      {
+        "case_id": "A07",
+        "text": "Capacity supplied by an unnamed qualified manufacturer may clear the bottleneck."
+      },
+      {
+        "case_id": "A08",
+        "text": "No company can fill the security slot before evidence review."
+      },
+      {
+        "case_id": "A09",
+        "text": "The memo names no beneficiary, issuer, ticker, or branded operator."
+      },
+      {
+        "case_id": "A10",
+        "text": "The candidate-security field remains null."
+      },
+      {
+        "case_id": "A11",
+        "text": "Value may flow through a qualified operating role to customers."
+      },
+      {
+        "case_id": "A12",
+        "text": "The role's eventual incumbent is not yet known."
+      },
+      {
+        "case_id": "A13",
+        "text": "Under the label “supplier role,” the node remains generic."
+      },
+      {
+        "case_id": "A14",
+        "text": "Beneficiary = null; Security map pending."
+      },
+      {
+        "case_id": "A15",
+        "text": "Listed supplier / unresolved / no security selected."
+      },
+      {
+        "case_id": "A16",
+        "text": "The issuer that might capture rent has not been identified."
+      },
+      {
+        "case_id": "A17",
+        "text": "The funding source is whichever role wins a compliant tender."
+      },
+      {
+        "case_id": "A18",
+        "text": "Supply comes from a role selected after certification."
+      },
+      {
+        "case_id": "A19",
+        "text": "The index is a broad benchmark, not a named security."
+      },
+      {
+        "case_id": "A20",
+        "text": "A manufacturer called the constrained role is still generic."
+      },
+      {
+        "case_id": "A21",
+        "text": "Only after qualification may a company be considered."
+      },
+      {
+        "case_id": "A22",
+        "text": "The beneficiary (an unresolved public proxy) remains role-level."
+      },
+      {
+        "case_id": "A23",
+        "text": "The role is filled by an unnamed operator after due diligence."
+      },
+      {
+        "case_id": "A24",
+        "text": "Demand accrues to the ecosystem role, not to a preselected issuer."
+      },
+      {
+        "case_id": "A25",
+        "text": "A listed-company label is not an issuer identity."
+      },
+      {
+        "case_id": "A26",
+        "text": "The output describes functions, not corporate names."
+      },
+      {
+        "case_id": "A27",
+        "text": "Selection of a supplier is deferred until the Security map."
+      },
+      {
+        "case_id": "A28",
+        "text": "From the constrained manufacturing role comes the required capacity."
+      },
+      {
+        "case_id": "A29",
+        "text": "The comparison index contains no security recommendation."
+      },
+      {
+        "case_id": "A30",
+        "text": "No proper noun appears in this role-only analysis."
+      }
+    ]
+  },
+  "t024_bidirectional_generalization": {
+    "source_review_task": "BSS-S3-P3-T023",
+    "source_artifact_sha256": "069ebb56c9b9e01c9768feb7a8df5e8e3cb646887f433d4455d17ccb6aeaf97a",
+    "entities": [
+      "Ægir‑Σύνδεσμος 731 hf.",
+      "北辰・矩阵 904控股",
+      "مرآة‑النيل ٢٨٧ ش.م.",
+      "Кварц·Орбита №613 ПАО",
+      "하늘-축 402 주식회사",
+      "किरण·धुरी ५१९ लिमिटेड",
+      "אופק־גלגל 846 בע״מ",
+      "ดาวเหนือ+แกน ๗๓๒ จำกัด",
+      "Łuna&Przekładnia 265 S.A.",
+      "Núvol:Engranatge 418 S.L.",
+      "Éclat/Rotore 957 S.p.A.",
+      "Ponte@Âmbar 306 S.A.",
+      "Sól_Vindur 684 hf.",
+      "Koru%Pou 571 Ltd.",
+      "Žeriav‑Most 829 a.s.",
+      "Qhapaq·Rueda 143 S.A.C.",
+      "Mjølner=Gear 492 ASA",
+      "Aster#Flux 780 Corp."
+    ],
+    "reject_templates": [
+      {
+        "case_family": "R01_interrogative_answer",
+        "text": "Who would monetize the constrained node? {entity} would."
+      },
+      {
+        "case_family": "R02_possessive_capture",
+        "text": "{entity}'s qualified capacity is the proposed source of rent."
+      },
+      {
+        "case_family": "R03_appositive_owner",
+        "text": "The asset owner, {entity}, controls the qualified line."
+      },
+      {
+        "case_family": "R04_passive_legal_holder",
+        "text": "The constrained license is legally held by {entity}."
+      },
+      {
+        "case_family": "R05_comparative_named_owner",
+        "text": "Unlike the unnamed substitutes, {entity} owns the scarce route."
+      },
+      {
+        "case_family": "R06_markdown_bullet",
+        "text": "- Public-market exposure already identified: {entity}"
+      },
+      {
+        "case_family": "R07_markdown_blockquote",
+        "text": "> The investable wrapper has been named early as {entity}."
+      },
+      {
+        "case_family": "R08_markdown_table_row",
+        "text": "| early security disclosure | {entity} |"
+      },
+      {
+        "case_family": "R09_subheading_disclosure",
+        "text": "### Preliminary listed holder\n\n{entity}"
+      },
+      {
+        "case_family": "R10_footnote_disclosure",
+        "text": "The owner is disclosed in a footnote.[^holder]\n\n[^holder]: {entity}"
+      },
+      {
+        "case_family": "R11_parenthetical_holder",
+        "text": "The bottleneck asset (held by {entity}) has no second source."
+      },
+      {
+        "case_family": "R12_inline_code_counterparty",
+        "text": "The legal counterparty is `{entity}` under the draft contract."
+      },
+      {
+        "case_family": "R13_guillemet_proxy",
+        "text": "A public proxy is described as «{entity}» before the map."
+      },
+      {
+        "case_family": "R14_company_labeled_source",
+        "text": "Evidence source: {entity} annual report, page 7."
+      },
+      {
+        "case_family": "R15_branded_operator",
+        "text": "The branded commercial operator is {entity} for this route."
+      },
+      {
+        "case_family": "R16_benchmark_brand",
+        "text": "The comparison benchmark is the {entity} index family."
+      },
+      {
+        "case_family": "R17_slash_chain",
+        "text": "Constraint owner / listed claimant / {entity}."
+      },
+      {
+        "case_family": "R18_conditional_capture",
+        "text": "If qualification holds, then {entity} captures the incremental cash flow."
+      },
+      {
+        "case_family": "R19_negative_issuer_specific",
+        "text": "Do not select {entity}; it fails the equity bridge."
+      },
+      {
+        "case_family": "R20_quoted_procurement_claim",
+        "text": "The procurement note says, “{entity} is the only listed claimant.”"
+      },
+      {
+        "case_family": "T024-R21_reporting_how",
+        "text": "Analysis notes how {entity}'s qualified capacity remains uncertain."
+      },
+      {
+        "case_family": "T024-R22_reporting_omitted_complementizer",
+        "text": "Evidence suggests {entity}'s qualified capacity may expand."
+      },
+      {
+        "case_family": "T024-R23_reporting_if",
+        "text": "Research asks if {entity}'s qualified capacity is sufficient."
+      },
+      {
+        "case_family": "T024-R24_reporting_adverb_before_predicate",
+        "text": "Analysis carefully notes that {entity}'s qualified capacity remains uncertain."
+      },
+      {
+        "case_family": "T024-R25_reporting_adverb_after_subject",
+        "text": "Evidence clearly suggests {entity}'s qualified capacity may expand."
+      },
+      {
+        "case_family": "T024-R26_reporting_temporal_adverb",
+        "text": "Research now asks whether {entity}'s qualified capacity is sufficient."
+      },
+      {
+        "case_family": "T024-R27_reporting_modified_analysis",
+        "text": "Internal analysis notes that {entity}'s qualified capacity remains uncertain."
+      },
+      {
+        "case_family": "T024-R28_reporting_modified_evidence",
+        "text": "Current evidence suggests that {entity}'s qualified capacity may expand."
+      },
+      {
+        "case_family": "T024-R29_reporting_modified_research",
+        "text": "Independent research asks whether {entity}'s qualified capacity is sufficient."
+      },
+      {
+        "case_family": "T024-R30_reporting_negative_predicate",
+        "text": "Review does not establish whether {entity}'s qualified capacity is sufficient."
+      },
+      {
+        "case_family": "T024-R31_reporting_multiword_predicate",
+        "text": "Study goes on to ask if {entity}'s qualified output is sufficient."
+      }
+    ],
+    "accept_cases": [
+      {
+        "id": "A01",
+        "text": "No legal counterparty is identified in this section."
+      },
+      {
+        "id": "A02",
+        "text": "The payer category remains governmental rather than issuer-specific."
+      },
+      {
+        "id": "A03",
+        "text": "Scarcity is described by function, location, and duration only."
+      },
+      {
+        "id": "A04",
+        "text": "A qualified second source could erase the constraint before monetization."
+      },
+      {
+        "id": "A05",
+        "text": "This paragraph intentionally withholds every public-market name."
+      },
+      {
+        "id": "A06",
+        "text": "Ownership verification is pending the later mapping step."
+      },
+      {
+        "id": "A07",
+        "text": "Potential beneficiaries are still represented as anonymous roles."
+      },
+      {
+        "id": "A08",
+        "text": "The constrained node is necessary, but investability is unproven."
+      },
+      {
+        "id": "A09",
+        "text": "A mandatory component can be scarce without yielding shareholder rent."
+      },
+      {
+        "id": "A10",
+        "text": "P10/P50/P90 denote timing ranges, not securities."
+      },
+      {
+        "id": "A11",
+        "text": "The 12–18 month qualification window is an assumption to test."
+      },
+      {
+        "id": "A12",
+        "text": "Capacity expansion may arrive before the six-month runway threshold."
+      },
+      {
+        "id": "A13",
+        "text": "Procurement evidence must distinguish appropriated funds from aspirations."
+      },
+      {
+        "id": "A14",
+        "text": "The system map stops at functions, interfaces, and substitution paths."
+      },
+      {
+        "id": "A15",
+        "text": "One incumbent role may exist without naming its legal holder."
+      },
+      {
+        "id": "A16",
+        "text": "A slot in the dependency graph is not a candidate recommendation."
+      },
+      {
+        "id": "A17",
+        "text": "The decision remains evidence-limited until the hard gates are tested."
+      },
+      {
+        "id": "A18",
+        "text": "No benchmark brand is needed to explain the causal bottleneck."
+      },
+      {
+        "id": "A19",
+        "text": "A public proxy may later be evaluated, but none is named here."
+      },
+      {
+        "id": "A20",
+        "text": "The ownership chain is an open question at this point."
+      },
+      {
+        "id": "A21",
+        "text": "Evidence from a company filing would be issuer-specific and therefore belongs later."
+      },
+      {
+        "id": "A22",
+        "text": "The recorded negative search covers substitution and demand destruction."
+      },
+      {
+        "id": "A23",
+        "text": "A policy-created constraint still requires an asset-to-owner chain."
+      },
+      {
+        "id": "A24",
+        "text": "The role taxonomy includes owner, unlocker, substitute, tollbooth, absorber, and public proxy."
+      },
+      {
+        "id": "A25",
+        "text": "Rent capture cannot pass while capex, tax, interest, or dilution is unresolved."
+      },
+      {
+        "id": "A26",
+        "text": "Physical scarcity and market discovery are separate clocks."
+      },
+      {
+        "id": "A27",
+        "text": "Funded demand is not established by attention, headlines, or conference traffic."
+      },
+      {
+        "id": "A28",
+        "text": "The strongest opposing case assumes faster qualification and vertical integration."
+      },
+      {
+        "id": "A29",
+        "text": "A triggered kill switch would invalidate the immutable prior thesis."
+      },
+      {
+        "id": "A30",
+        "text": "The evidence ledger separates fact, inference, assumption, and forecast."
+      },
+      {
+        "id": "A31",
+        "text": "A concise decision layer will accompany an exhaustive claim ledger."
+      },
+      {
+        "id": "A32",
+        "text": "Research only; no leverage; no automatic trading."
+      },
+      {
+        "id": "A33",
+        "text": "The exact security map begins later, after the constraint proof."
+      },
+      {
+        "id": "A34",
+        "text": "Before that heading, all actors remain generic functional placeholders."
+      },
+      {
+        "id": "A35",
+        "text": "The phrase ‘listed holder’ is a role description here, not a proper name."
+      },
+      {
+        "id": "A36",
+        "text": "The words issuer, beneficiary, and operator are category labels in this sentence."
+      },
+      {
+        "id": "A37",
+        "text": "An unnamed vehicle could fail because contingent shares dilute per-share cash flow."
+      },
+      {
+        "id": "A38",
+        "text": "No ticker-like token appears in this control sentence."
+      },
+      {
+        "id": "A39",
+        "text": "A legal suffix would signal a named entity, so none is supplied here."
+      },
+      {
+        "id": "A40",
+        "text": "The candidate table is intentionally absent from the pre-security sections."
+      },
+      {
+        "id": "A41",
+        "text": "The constrained route has two possible relief mechanisms: redesign and thrift."
+      },
+      {
+        "id": "A42",
+        "text": "Three clocks are estimated independently and then compared."
+      },
+      {
+        "id": "A43",
+        "text": "Scenario probabilities remain blank until evidence supports them."
+      },
+      {
+        "id": "A44",
+        "text": "The source cutoff precedes every admissible fact in the historical record."
+      },
+      {
+        "id": "A45",
+        "text": "A branded operator is not necessary to state the mandatory function."
+      },
+      {
+        "id": "A46",
+        "text": "The pre-map narrative uses only role-neutral nouns and falsifiable conditions."
+      },
+      {
+        "id": "A47",
+        "text": "Question: who captures the rent? Answer: the legal holder remains unknown."
+      },
+      {
+        "id": "A48",
+        "text": "Parenthetical note (ownership unresolved) does not identify a security."
+      }
+    ],
+    "t024_remediation_accept_controls": [
+      {
+        "id": "T024-A49",
+        "text": "Analysis notes that the supplier's qualified capacity remains uncertain."
+      },
+      {
+        "id": "T024-A50",
+        "text": "Evidence suggests that the operator's qualified capacity may expand."
+      },
+      {
+        "id": "T024-A51",
+        "text": "Research asks whether the generic manufacturer's qualified capacity is sufficient."
+      },
+      {
+        "id": "T024-A52",
+        "text": "Neither issuer's qualified capacity is disclosed here."
+      },
+      {
+        "id": "T024-A53",
+        "text": "Analysis notes the supplier's qualified capacity remains uncertain."
+      },
+      {
+        "id": "T024-A54",
+        "text": "Evidence suggests the operator's qualified capacity may expand."
+      },
+      {
+        "id": "T024-A55",
+        "text": "Research asks if the generic manufacturer's qualified capacity is sufficient."
+      },
+      {
+        "id": "T024-A56",
+        "text": "Analysis carefully notes that the supplier's qualified capacity remains uncertain."
+      },
+      {
+        "id": "T024-A57",
+        "text": "Evidence clearly suggests the operator's qualified capacity may expand."
+      },
+      {
+        "id": "T024-A58",
+        "text": "Research now asks whether the generic manufacturer's qualified capacity is sufficient."
+      },
+      {
+        "id": "T024-A59",
+        "text": "Internal analysis notes that the supplier's qualified capacity remains uncertain."
+      },
+      {
+        "id": "T024-A60",
+        "text": "Current evidence suggests that the operator's qualified capacity may expand."
+      },
+      {
+        "id": "T024-A61",
+        "text": "Independent research asks whether the manufacturer's qualified capacity is sufficient."
+      },
+      {
+        "id": "T024-A62",
+        "text": "Review does not establish whether the vendor's qualified capacity is sufficient."
+      },
+      {
+        "id": "T024-A63",
+        "text": "Study goes on to ask if the supplier's qualified output is sufficient."
+      },
+      {
+        "id": "T024-A64",
+        "text": "When the data are incomplete, the memo does not establish whether the selected vendor's qualified supply is sufficient."
+      }
+    ],
+    "t024_possessive_exact_cases": [
+      {
+        "id": "T024-PX01",
+        "text": "According to the review, evidence suggests acme systems ltd.'s qualified capacity may expand.",
+        "expected_entity": "acme systems ltd."
+      },
+      {
+        "id": "T024-PX02",
+        "text": "Although the model remains tentative, research asks why mistral systems gmbh's qualified output may be insufficient.",
+        "expected_entity": "mistral systems gmbh"
+      },
+      {
+        "id": "T024-PX03",
+        "text": "The memo asks whether Institute for Advanced Systems Ltd.'s qualified capacity is sufficient.",
+        "expected_entity": "Institute for Advanced Systems Ltd."
+      },
+      {
+        "id": "T024-PX04",
+        "text": "The framework asks whether Alpha & Omega Pte. Ltd.'s qualified output is sufficient.",
+        "expected_entity": "Alpha & Omega Pte. Ltd."
+      },
+      {
+        "id": "T024-PX05",
+        "text": "Evidence suggests that St. John's Energy LLC's qualified capacity may expand.",
+        "expected_entity": "St. John's Energy LLC"
+      }
+    ],
+    "adjacent_replay": {
+      "source_artifact_sha256": "b3ebe869874c80b1992e2875c798f3421f82fcdda6b8876de683992f04f3df8b",
+      "reject_cases": [
+        {
+          "id": "PRES-R01",
+          "text": "The bottleneck's incumbent—Asterion Cryogenics plc—captures the spread.",
+          "expected_entity": "Asterion Cryogenics plc"
+        },
+        {
+          "id": "PRES-R02",
+          "text": "The constrained node is operated by 九州量子設備株式会社.",
+          "expected_entity": "九州量子設備株式会社"
+        },
+        {
+          "id": "PRES-R03",
+          "text": "Among eligible suppliers, the award favors 7Horizon Materials Ltd.",
+          "expected_entity": "7Horizon Materials Ltd"
+        },
+        {
+          "id": "PRES-R04",
+          "text": "Scarcity rent is remitted to Élan Turbines S.A. under the service contract.",
+          "expected_entity": "Élan Turbines S.A."
+        },
+        {
+          "id": "PRES-R05",
+          "text": "For now, capacity is controlled by Northstar Grid Holdings.",
+          "expected_entity": "Northstar Grid Holdings"
+        },
+        {
+          "id": "PRES-R06",
+          "text": "The listed proxy is BHP Group, which offers liquid exposure.",
+          "expected_entity": "BHP Group"
+        },
+        {
+          "id": "PRES-R07",
+          "text": "One beneficiary emerges: Ωmega Foundry GmbH.",
+          "expected_entity": "Ωmega Foundry GmbH"
+        },
+        {
+          "id": "PRES-R08",
+          "text": "Procurement routes the economics through Kōwhai Process Systems.",
+          "expected_entity": "Kōwhai Process Systems"
+        },
+        {
+          "id": "PRES-R09",
+          "text": "The preferred-source designation went to Delta Meridian NV.",
+          "expected_entity": "Delta Meridian NV"
+        },
+        {
+          "id": "PRES-R10",
+          "text": "The manufacturer selected for the constrained component is Helio Forge Corp.",
+          "expected_entity": "Helio Forge Corp"
+        },
+        {
+          "id": "PRES-R11",
+          "text": "Demand ultimately depends upon Sigma-27 Materials.",
+          "expected_entity": "Sigma-27 Materials"
+        },
+        {
+          "id": "PRES-R12",
+          "text": "The incumbent, Aurora Fluxworks, owns the scarce qualification.",
+          "expected_entity": "Aurora Fluxworks"
+        },
+        {
+          "id": "PRES-R13",
+          "text": "Contracts name Velorum Dynamics as the exclusive supplier.",
+          "expected_entity": "Velorum Dynamics"
+        },
+        {
+          "id": "PRES-R14",
+          "text": "The security called Qantum₂ Systems is the public-market beneficiary.",
+          "expected_entity": "Qantum₂ Systems"
+        },
+        {
+          "id": "PRES-R15",
+          "text": "The benchmark chosen for rent capture is München Ventile AG.",
+          "expected_entity": "München Ventile AG"
+        },
+        {
+          "id": "PRES-R16",
+          "text": "稀缺租金最终流向龙门精密股份有限公司。",
+          "expected_entity": "龙门精密股份有限公司"
+        },
+        {
+          "id": "PRES-R17",
+          "text": "Aquila-3 Networks sits behind the supply constraint.",
+          "expected_entity": "Aquila-3 Networks"
+        },
+        {
+          "id": "PRES-R18",
+          "text": "Caldera Catalysts LLC is where the bargaining power accrues.",
+          "expected_entity": "Caldera Catalysts LLC"
+        },
+        {
+          "id": "PRES-R19",
+          "text": "The buyer must source the qualified unit from Nørdic Separation ASA.",
+          "expected_entity": "Nørdic Separation ASA"
+        },
+        {
+          "id": "PRES-R20",
+          "text": "The slot winner—Meridian 2049 Industries—receives the funded demand.",
+          "expected_entity": "Meridian 2049 Industries"
+        },
+        {
+          "id": "PRES-R21",
+          "text": "Praxis Semiconductor Pty Ltd fronts the only qualified route.",
+          "expected_entity": "Praxis Semiconductor Pty Ltd"
+        },
+        {
+          "id": "PRES-R22",
+          "text": "The fee pool is captured by Société Zéphyr SAS.",
+          "expected_entity": "Société Zéphyr SAS"
+        },
+        {
+          "id": "PRES-R23",
+          "text": "選定された供給者は東京制御機器株式会社です。",
+          "expected_entity": "東京制御機器株式会社"
+        },
+        {
+          "id": "PRES-R24",
+          "text": "Interlock BioSystems Inc receives the economics from the constrained step.",
+          "expected_entity": "Interlock BioSystems Inc"
+        }
+      ],
+      "accept_cases": [
+        {
+          "id": "PRES-A01",
+          "text": "The named issuer is intentionally withheld until the Security map."
+        },
+        {
+          "id": "PRES-A02",
+          "text": "Supplier selection is deferred to the next section."
+        },
+        {
+          "id": "PRES-A03",
+          "text": "No company or ticker appears above the Security map."
+        },
+        {
+          "id": "PRES-A04",
+          "text": "A beneficiary could capture rent only if contracts transfer scarcity economics."
+        },
+        {
+          "id": "PRES-A05",
+          "text": "The incumbent remains unidentified here."
+        },
+        {
+          "id": "PRES-A06",
+          "text": "Owner, unlocker, substitute, tollbooth, absorber, and public proxy are roles, not issuers."
+        },
+        {
+          "id": "PRES-A07",
+          "text": "Demand remains funded, but the payee is unknown."
+        },
+        {
+          "id": "PRES-A08",
+          "text": "The selected supplier is not yet identified."
+        },
+        {
+          "id": "PRES-A09",
+          "text": "A role may be called owner without naming a security."
+        },
+        {
+          "id": "PRES-A10",
+          "text": "This subject is described below after the system map."
+        },
+        {
+          "id": "PRES-A11",
+          "text": "Capacity allocation may favor an unnamed operator."
+        },
+        {
+          "id": "PRES-A12",
+          "text": "Rent-capture analysis comes before issuer selection."
+        },
+        {
+          "id": "PRES-A13",
+          "text": "The benchmark company is deliberately unspecified."
+        },
+        {
+          "id": "PRES-A14",
+          "text": "One listed proxy may exist; none is identified here."
+        },
+        {
+          "id": "PRES-A15",
+          "text": "Award outcomes are discussed without disclosing the winner."
+        },
+        {
+          "id": "PRES-A16",
+          "text": "The source of supply is not yet mapped to a public company."
+        }
+      ]
+    }
+  },
   "negative_issuer_slots": [
     "The key provider is nvidia",
     "The constrained operator is nvidia",
@@ -175,7 +1201,16 @@
     "青岚科技 receives the capacity rent.",
     "According to Institut Rivière Bleue, capacity is tight.",
     "The recipient is Fondo Sierra Norte.",
-    "Costa Ámbar Energía will benefit."
+    "Costa Ámbar Energía will benefit.",
+    "Funding from North Ridge Electric remains committed.",
+    "Funding by Copper Vale Infrastructure is fully committed.",
+    "Supply from Silver Mesa Controls remains constrained.",
+    "Qualification relies upon Pacific Coil Works.",
+    "Allocation depends upon Harbor Vector Energy.",
+    "A beneficiary called Nova Grid Systems captures the rent.",
+    "The selected recipient named Cedar Arc Holdings receives milestone fees.",
+    "The comparison index selected was Global Power Composite.",
+    "The benchmark index chosen was Atlas Grid 700."
   ],
   "negative_entity_witnesses": [
     {
@@ -409,6 +1444,42 @@
     {
       "statement": "Réseau Ambre SA will benefit.",
       "entity": "Réseau Ambre SA"
+    },
+    {
+      "statement": "Funding from North Ridge Electric remains committed.",
+      "entity": "North Ridge Electric"
+    },
+    {
+      "statement": "Funding by Copper Vale Infrastructure is fully committed.",
+      "entity": "Copper Vale Infrastructure"
+    },
+    {
+      "statement": "Supply from Silver Mesa Controls remains constrained.",
+      "entity": "Silver Mesa Controls"
+    },
+    {
+      "statement": "Qualification relies upon Pacific Coil Works.",
+      "entity": "Pacific Coil Works"
+    },
+    {
+      "statement": "Allocation depends upon Harbor Vector Energy.",
+      "entity": "Harbor Vector Energy"
+    },
+    {
+      "statement": "A beneficiary called Nova Grid Systems captures the rent.",
+      "entity": "Nova Grid Systems"
+    },
+    {
+      "statement": "The selected recipient named Cedar Arc Holdings receives milestone fees.",
+      "entity": "Cedar Arc Holdings"
+    },
+    {
+      "statement": "The comparison index selected was Global Power Composite.",
+      "entity": "Global Power Composite"
+    },
+    {
+      "statement": "The benchmark index chosen was Atlas Grid 700.",
+      "entity": "Atlas Grid 700"
     }
   ],
   "positive_role_neutral_statements": [
@@ -496,6 +1567,14 @@
     "Source: <source_name> interim review.",
     "The beneficiary role is unresolved; no public-market expression has been selected.",
     "发行人身份为空，ticker=null，任何公司名称均未填写。",
-    "Customers may benefit from shorter lead times."
+    "Customers may benefit from shorter lead times.",
+    "Funding from public sources remains committed.",
+    "Supply from qualified sources remains constrained.",
+    "Qualification relies upon evidence quality.",
+    "Allocation depends upon whichever role clears diligence.",
+    "A beneficiary called the qualified role captures the rent.",
+    "The comparison index selected was a broad liquid benchmark.",
+    "No index is selected before qualification.",
+    "The funding source will be chosen after diligence."
   ]
 }

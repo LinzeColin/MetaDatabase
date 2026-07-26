@@ -74,7 +74,7 @@ class ForwardTestTests(unittest.TestCase):
         self.assertEqual(summary["provider_generation_protocol"], "PASS")
         self.assertEqual(
             summary["provider_live_review_task"],
-            "BSS-S3-P3-T017",
+            "BSS-S3-P3-T025",
         )
         self.assertEqual(summary["provider_attestation_attempt_count"], 3)
         self.assertEqual(summary["provider_interval_seconds"], 205)
@@ -221,6 +221,46 @@ class ForwardTestTests(unittest.TestCase):
         ):
             self.validate()
 
+    def test_current_t018_remediation_mutation_fails_closed(self) -> None:
+        name = "remediation_v18_post_execution_remediation_t018.json"
+        value = self.load_json(name)
+        value["changes"][0]["current"]["sha256"] = "0" * 64
+        self.write_json(name, value)
+        with self.assertRaisesRegex(
+            VALIDATOR.ForwardTestError, "T018 post-execution remediation drift"
+        ):
+            self.validate()
+
+    def test_current_t020_remediation_mutation_fails_closed(self) -> None:
+        name = "remediation_v18_post_execution_remediation_t020.json"
+        value = self.load_json(name)
+        value["changes"][0]["current"]["sha256"] = "0" * 64
+        self.write_json(name, value)
+        with self.assertRaisesRegex(
+            VALIDATOR.ForwardTestError, "T020 post-execution remediation drift"
+        ):
+            self.validate()
+
+    def test_current_t022_remediation_mutation_fails_closed(self) -> None:
+        name = "remediation_v18_post_execution_remediation_t022.json"
+        value = self.load_json(name)
+        value["changes"][0]["current"]["sha256"] = "0" * 64
+        self.write_json(name, value)
+        with self.assertRaisesRegex(
+            VALIDATOR.ForwardTestError, "T022 post-execution remediation drift"
+        ):
+            self.validate()
+
+    def test_current_t024_remediation_mutation_fails_closed(self) -> None:
+        name = "remediation_v18_post_execution_remediation_t024.json"
+        value = self.load_json(name)
+        value["changes"][0]["current"]["sha256"] = "0" * 64
+        self.write_json(name, value)
+        with self.assertRaisesRegex(
+            VALIDATOR.ForwardTestError, "T024 post-execution remediation drift"
+        ):
+            self.validate()
+
     def test_current_presentation_helper_unbound_drift_fails_closed(self) -> None:
         path = self.root / "scripts" / "presentation_contract.py"
         path.write_text(
@@ -300,6 +340,11 @@ class ForwardTestTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
+        bidirectional_sets = (
+            presentation_oracles["bidirectional_generalization"],
+            presentation_oracles["remediation_bidirectional_generalization"],
+            presentation_oracles["t024_bidirectional_generalization"],
+        )
         issuer_shapes = (
             "ABB",
             "Acme",
@@ -344,6 +389,12 @@ class ForwardTestTests(unittest.TestCase):
             "Funding is supplied by acme",
             "This leaves nvidia as the only listed exposure",
             *presentation_oracles["negative_issuer_slots"],
+            *(
+                template["text"].format(entity=entity)
+                for bidirectional in bidirectional_sets
+                for entity in bidirectional["entities"]
+                for template in bidirectional["reject_templates"]
+            ),
         )
         for issuer_shape in issuer_shapes:
             with self.subTest(issuer_shape=issuer_shape):
@@ -366,7 +417,30 @@ class ForwardTestTests(unittest.TestCase):
             )
         )
         reviewed_positive_prose = " ".join(
-            presentation_oracles["positive_role_neutral_statements"]
+            [
+                *presentation_oracles["positive_role_neutral_statements"],
+                *(
+                    case["text"]
+                    for oracle_key in (
+                        "bidirectional_generalization",
+                        "remediation_bidirectional_generalization",
+                        "t024_bidirectional_generalization",
+                    )
+                    for case in presentation_oracles[oracle_key]["accept_cases"]
+                ),
+                *(
+                    case["text"]
+                    for case in presentation_oracles[
+                        "t024_bidirectional_generalization"
+                    ]["adjacent_replay"]["accept_cases"]
+                ),
+                *(
+                    case["text"]
+                    for case in presentation_oracles[
+                        "t024_bidirectional_generalization"
+                    ]["t024_remediation_accept_controls"]
+                ),
+            ]
         )
         raw["memo_markdown"] = raw["memo_markdown"].replace(
             "## Funded demand",
@@ -414,7 +488,47 @@ class ForwardTestTests(unittest.TestCase):
         def normalized(value: str) -> str:
             return " ".join(re.findall(r"[^\W_]+", value.casefold()))
 
-        for witness in presentation_oracles["negative_entity_witnesses"]:
+        matrix_witnesses = (
+            {
+                "statement": template["text"].format(entity=entity),
+                "entity": entity,
+                "exact_required": (
+                    oracle_key == "t024_bidirectional_generalization"
+                ),
+            }
+            for oracle_key in (
+                "bidirectional_generalization",
+                "remediation_bidirectional_generalization",
+                "t024_bidirectional_generalization",
+            )
+            for bidirectional in (presentation_oracles[oracle_key],)
+            for entity in bidirectional["entities"]
+            for template in bidirectional["reject_templates"]
+        )
+        for witness in (
+            *presentation_oracles["negative_entity_witnesses"],
+            *matrix_witnesses,
+            *(
+                {
+                    "statement": case["text"],
+                    "entity": case["expected_entity"],
+                    "exact_required": True,
+                }
+                for case in presentation_oracles[
+                    "t024_bidirectional_generalization"
+                ]["adjacent_replay"]["reject_cases"]
+            ),
+            *(
+                {
+                    "statement": case["text"],
+                    "entity": case["expected_entity"],
+                    "exact_required": True,
+                }
+                for case in presentation_oracles[
+                    "t024_bidirectional_generalization"
+                ]["t024_possessive_exact_cases"]
+            ),
+        ):
             with self.subTest(statement=witness["statement"]):
                 violations = helper.find_role_neutral_violations(
                     f"{witness['statement']}\n\n## Security map",
@@ -428,6 +542,103 @@ class ForwardTestTests(unittest.TestCase):
                         f"violations={violations!r}"
                     ),
                 )
+                if witness.get("exact_required", False):
+                    self.assertIn(
+                        witness["entity"],
+                        violations,
+                        msg=(
+                            "exact source entity witness missing: "
+                            f"{witness['entity']!r}; violations={violations!r}"
+                        ),
+                    )
+
+    def test_t022_presentation_delimiter_rollback_mutant_is_killed(self) -> None:
+        helper_path = self.root / "scripts/presentation_contract.py"
+        original = helper_path.read_text(encoding="utf-8")
+        old_token_class = "[=:;,/()—–]"
+        self.assertEqual(original.count(old_token_class), 1)
+        helper_path.write_text(
+            original.replace(old_token_class, "[:;,—–]", 1),
+            encoding="utf-8",
+        )
+        spec = importlib.util.spec_from_file_location(
+            "_bss_forward_t022_rollback_presentation_contract",
+            helper_path,
+        )
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader if spec else None)
+        helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(helper)
+        presentation_oracles = json.loads(
+            (self.root / "evals/presentation_oracles.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        remediation = presentation_oracles[
+            "remediation_bidirectional_generalization"
+        ]
+        equals_template = next(
+            template["text"]
+            for template in remediation["reject_templates"]
+            if template["case_family"] == "equals_assignment"
+        )
+        missed_entities = [
+            entity
+            for entity in remediation["entities"]
+            if entity
+            not in helper.find_role_neutral_violations(
+                f"{equals_template.format(entity=entity)}\n\n## Security map",
+                "## Security map",
+            )
+        ]
+        self.assertGreaterEqual(len(missed_entities), 8)
+
+    def test_t024_exact_raw_witness_rollback_mutant_is_killed(self) -> None:
+        helper_path = self.root / "scripts/presentation_contract.py"
+        original = helper_path.read_text(encoding="utf-8")
+        raw_prefix_guard = (
+            "    violations.update(_raw_semantic_entity_slots(prefix))"
+        )
+        self.assertEqual(original.count(raw_prefix_guard), 1)
+        helper_path.write_text(
+            original.replace(
+                raw_prefix_guard,
+                "    # T024 rollback mutant: raw prefix witness disabled",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        spec = importlib.util.spec_from_file_location(
+            "_bss_forward_t024_rollback_presentation_contract",
+            helper_path,
+        )
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader if spec else None)
+        helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(helper)
+        presentation_oracles = json.loads(
+            (self.root / "evals/presentation_oracles.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        remediation = presentation_oracles[
+            "t024_bidirectional_generalization"
+        ]
+        heading_template = next(
+            template["text"]
+            for template in remediation["reject_templates"]
+            if template["case_family"] == "R09_subheading_disclosure"
+        )
+        missed_entities = [
+            entity
+            for entity in remediation["entities"]
+            if entity
+            not in helper.find_role_neutral_violations(
+                f"{heading_template.format(entity=entity)}\n\n## Security map",
+                "## Security map",
+            )
+        ]
+        self.assertGreaterEqual(len(missed_entities), 12)
 
     def test_current_formal_template_is_role_neutral(self) -> None:
         template = (

@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "eval_id": "BSS-S3-P3-T004-forward-remediation-v18",
+  "remediation_task_id": "BSS-S3-P3-T022",
+  "relationship": "CHAINED_POST_EXECUTION_VALIDATOR_REMEDIATION",
+  "execution_evidence_rewritten": false,
+  "current_output_revalidated": true,
+  "execution_context_tree_sha256": "797b6673bdc8e185eeac11694a81579e540fda5c3507b034df8308afb995c518",
+  "previous_remediation_sha256": "54b75d167af584081a135ca1c689dc3c5752d5244f50c8a3f5bcf6d8a0d9d678",
+  "changes": [
+    {
+      "path": "scripts/presentation_contract.py",
+      "previous_current": {
+        "mode": "0644",
+        "byte_count": 37609,
+        "sha256": "e13b8a881a58f7b227b95c78025182cc24298dc274bfe6e9c4829211fd3137bf"
+      },
+      "current": {
+        "mode": "0644",
+        "byte_count": 44344,
+        "sha256": "7bba4e1893196a4cbff5638750ce9bb32b91c8ef7b133f74f8e6d3c7101c05f3"
+      },
+      "semantic_scope": "extend structural semantic parsing across explicit assignment delimiters, clause boundaries, role-prefix objects, ownership/fill/naming/selection/incumbent relations, and Unicode/numeric entities; preserve complete entity witnesses and accept reviewed deferred, negated, unresolved, public-business, and role-only prose"
+    }
+  ]
+}
