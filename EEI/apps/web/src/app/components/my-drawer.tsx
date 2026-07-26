@@ -21,7 +21,9 @@ import {
   unfollowEntity,
   type ExplorationLogEntry,
   type SavedViewSummary,
-  type WatchlistRecord
+  type WatchlistRecord,
+  readLastSeenAt,
+  writeLastSeenAt
 } from "../my-drawer-client";
 
 type DrawerTab = "watchlist" | "saved" | "history";
@@ -67,8 +69,16 @@ export function MyDrawer() {
     watchlistsRef.current = watchlists;
   }, [watchlists]);
 
+  // 未读 = 「我上次看过之后」发生的变化。此前这里不带 since 直接读
+  // /v1/changes，拿回的是全局最近 100 条已发布关系——跟「我」和「未读」
+  // 都无关，而且 worker 那头封顶 100，于是角标永远钉在 99+，打开抽屉也
+  // 不清零。铃铛天天喊 99+ 而抽屉里写着「还没有关注任何公司」，这种自相
+  // 矛盾比没有角标更糟。
   const refreshUnread = useCallback(async () => {
-    setUnread(await loadUnreadCount());
+    const seen = readLastSeenAt();
+    const count = await loadUnreadCount(seen ?? undefined);
+    // 没看过任何变化基线时（首次访问），不谎报一个吓人的数字。
+    setUnread(seen ? count : 0);
   }, []);
 
   const hydrateWatchlists = useCallback(async (): Promise<WatchlistRecord[]> => {
@@ -118,6 +128,22 @@ export function MyDrawer() {
   useEffect(() => {
     void refreshUnread();
   }, [refreshUnread]);
+
+  // Esc 关闭：抽屉挂 role=dialog，键盘用户和「随手按 Esc」的习惯都指望
+  // 它能关掉。之前按 Esc 没有任何反应，只能去点关闭钮。
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        setOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   // 打开时按当前 tab 懒加载；已加载过的 tab 不重复请求。
   useEffect(() => {
@@ -217,7 +243,10 @@ export function MyDrawer() {
 
   function openDrawer() {
     setOpen(true);
-    void refreshUnread();
+    // 看过即清零：把「上次看过」推进到此刻，角标立刻归零。此前打开抽屉
+    // 角标纹丝不动，等于告诉用户「你看了也没用」。
+    writeLastSeenAt(new Date().toISOString());
+    setUnread(0);
   }
 
   function closeDrawer() {

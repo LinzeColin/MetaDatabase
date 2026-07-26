@@ -91,12 +91,49 @@ test("opens and closes the drawer", async ({ page }) => {
   await expect(page.getByTestId("my-drawer-panel")).toHaveCount(0);
 });
 
-test("bell badge reflects unread change count", async ({ page }) => {
+test("bell badge counts only changes since the reader last looked", async ({ page }) => {
+  // 未读只对「上次看过」有意义。没有基线时报数字，就是拿全局变化流吓唬人
+  // ——线上实测正是这样：铃铛常年 99+，抽屉里却写着「还没有关注任何公司」。
   await installMocks(page, { changes: [{ id: "c1" }, { id: "c2" }, { id: "c3" }] });
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "eei.my-drawer.last-seen-at",
+      "2026-07-01T00:00:00.000Z"
+    );
+  });
   await page.goto("/");
   const badge = page.getByTestId("my-drawer-unread-badge");
   await expect(badge).toBeVisible();
   await expect(badge).toContainText("3");
+});
+
+test("first visit shows no badge at all (no baseline, no unread)", async ({ page }) => {
+  await installMocks(page, { changes: [{ id: "c1" }, { id: "c2" }, { id: "c3" }] });
+  await page.goto("/");
+  await expect(page.getByTestId("my-drawer-unread-badge")).toHaveCount(0);
+});
+
+test("opening the drawer clears the badge", async ({ page }) => {
+  await installMocks(page, { changes: [{ id: "c1" }, { id: "c2" }, { id: "c3" }] });
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "eei.my-drawer.last-seen-at",
+      "2026-07-01T00:00:00.000Z"
+    );
+  });
+  await page.goto("/");
+  await expect(page.getByTestId("my-drawer-unread-badge")).toBeVisible();
+  await openDrawer(page);
+  // 看过即清零；此前打开抽屉角标纹丝不动，等于告诉用户「看了也没用」。
+  await expect(page.getByTestId("my-drawer-unread-badge")).toHaveCount(0);
+});
+
+test("Escape closes the drawer", async ({ page }) => {
+  await installMocks(page);
+  await page.goto("/");
+  await openDrawer(page);
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("my-drawer-panel")).toHaveCount(0);
 });
 
 test("watchlist tab lists followed entities from the API", async ({ page }) => {
