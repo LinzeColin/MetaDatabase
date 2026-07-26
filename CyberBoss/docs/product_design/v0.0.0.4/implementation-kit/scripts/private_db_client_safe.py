@@ -8,6 +8,7 @@ import ast
 import hashlib
 import json
 import os
+import pwd
 import subprocess
 import sys
 from pathlib import Path
@@ -136,6 +137,14 @@ def main() -> int:
             )
         )
         return 0
+
+    execution_identity = pwd.getpwuid(os.geteuid()).pw_name
+    if execution_identity != policy["data"]["execution_identity"]:
+        print(
+            "PRIVATE_DB_SCOPE=FAIL reason=runtime:data_identity",
+            file=sys.stderr,
+        )
+        return 2
 
     gh_command = os.environ.get("CB_PRIVATE_DB_GH_COMMAND", "")
     gh_config_dir = os.environ.get("CB_PRIVATE_DB_GH_CONFIG_DIR", "")

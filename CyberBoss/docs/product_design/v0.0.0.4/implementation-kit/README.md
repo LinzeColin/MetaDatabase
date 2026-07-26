@@ -186,6 +186,24 @@ clock。它不切 `current`、不 enable/start service、不读取真实凭据�
 真实 WeChat/Runtime/Private-MetaDatabase。canonical sync 属于 CB-240，
 PG-2 仍须在五个 Stage 2 tasks 全部通过后独立执行。
 
+P2.5 增加 identity-separated canonical sync。code plane 只把 terminal
+job/material event 映射为严格 allowlist 的脱敏记录，按最多 50 条、
+262144 bytes 或 60 秒生成 deterministic gzip content-addressed object；
+`cyberboss-data` data plane 才能经 fail-closed wrapper 调用
+`private_db_client.py ingest|get|list|verify`。wrapper 绑定实际 OS identity，
+禁止 code identity 执行 data client，且全流程不 clone
+Private-Database。
+
+sync worker 在 ingest 前后均重取 manifest/object/event set；409、429、
+403、transient 与 partial-success 保持 pending 或安全确认，不做
+last-write-wins。同 event ID/different record hash 进入 P0 quarantine 并
+阻断新的 bounded mutation，read-only 仍可 drain。专项验收执行 1,000
+terminal events、50 concurrent sync groups、10 分钟虚拟 outage/catch-up，
+删除隔离 SQLite 后仅从 canonical objects 与 deterministic R2 pointer
+fixture 重建 terminal index 和供 CB-300 消费的 Timeline source。真实
+Private-MetaDatabase、R2、Timeline Web/build/search 均保持
+`activation_pending`/后续 phase 边界；本 Run 不执行 PG-2。
+
 ## Immediate validation
 
 ```bash
@@ -194,6 +212,7 @@ python implementation-kit/tests/validate_no_wait.py .
 python implementation-kit/tests/validate_traceability.py .
 python implementation-kit/tests/validate_taskpack.py .
 node implementation-kit/tests/validate_config.js \
+  --allow-placeholders \
   implementation-kit/config/cyberboss.env.example \
   implementation-kit/config/workspaces.json.example
 python3 implementation-kit/scripts/scope_policy.py validate
@@ -237,6 +256,12 @@ python3 -m py_compile \
 bash implementation-kit/scripts/install-durable-outbox.sh \
   --check --release-id 0000000000000000000000000000000000000000
 bash implementation-kit/scripts/accept-durable-outbox.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+python3 -m py_compile \
+  implementation-kit/scripts/build-canonical-sync-artifacts.py
+bash implementation-kit/scripts/install-canonical-sync.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+bash implementation-kit/scripts/accept-canonical-sync.sh \
   --check --release-id 0000000000000000000000000000000000000000
 python3 -m py_compile \
   implementation-kit/scripts/build-cloud-walking-skeleton-artifacts.py

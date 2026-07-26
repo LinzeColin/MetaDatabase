@@ -242,6 +242,41 @@
       "upstream_sync_enabled": false,
       "upstream_support_claimed": false,
       "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-240",
+      "phase": "P2.5",
+      "base_commit": "8793e186f4baa2767dc3da0378492ffa17984d4d",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/migrations/005_cb240_canonical_sync.sql",
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/canonical-rebuild.js",
+        "CyberBoss/app/scripts/canonical-sync-acceptance.js",
+        "CyberBoss/app/scripts/canonical-sync-data.js",
+        "CyberBoss/app/src/core/app.js",
+        "CyberBoss/app/src/core/config.js",
+        "CyberBoss/app/src/services/canonical/canonical-sync.js",
+        "CyberBoss/app/src/services/db/database-adapter.js",
+        "CyberBoss/app/src/services/jobs/job-scheduler.js",
+        "CyberBoss/app/test/canonical-sync.test.js",
+        "CyberBoss/app/test/job-scheduler.test.js",
+        "CyberBoss/app/test/runtime-spool.test.js"
+      ],
+      "purposes": [
+        "map terminal jobs and material events to a strict redacted canonical event contract with independently verified record hashes",
+        "stage deterministic content-addressed gzip batches bounded by record count, uncompressed bytes and age",
+        "separate the code and data OS identities and restrict the pinned no-clone client to ingest, get, list and verify",
+        "reconcile manifest conflicts, rate limits, transient faults and partial success by immutable event-ID and record-hash sets",
+        "quarantine same-ID different-hash incidents, expose sync lag and block bounded mutation while allowing read-only drain",
+        "rebuild terminal index and a CB-300 Timeline source projection from canonical objects without the original SQLite",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not runtime, install, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
     }
   ]
 }

@@ -60,6 +60,11 @@ TASKS = {
         "contract": "docs/governance/RUN_CONTRACT_P2_4_CB_230.md",
         "stage_prefix": ".cb230-artifacts-",
     },
+    "CB-240": {
+        "phase": "P2.5",
+        "contract": "docs/governance/RUN_CONTRACT_P2_5_CB_240.md",
+        "stage_prefix": ".cb240-artifacts-",
+    },
 }
 
 
@@ -355,6 +360,89 @@ def build_durable_outbox_matrix(
         return destination
 
 
+def build_canonical_sync_report(
+    repo: Path,
+    commit: str,
+    stage: Path,
+) -> Path:
+    with tempfile.TemporaryDirectory(
+        prefix=".cb240-runtime-", dir=stage.parent
+    ) as raw:
+        runtime = Path(raw)
+        key_file = runtime / "synthetic.key"
+        runtime_state = runtime / "state"
+        output = runtime / "output"
+        runtime_state.mkdir(mode=0o700)
+        output.mkdir(mode=0o700)
+        key_file.write_bytes(os.urandom(32))
+        key_file.chmod(0o400)
+        result = subprocess.run(
+            [
+                "node",
+                str(repo / "CyberBoss/app/scripts/canonical-sync-acceptance.js"),
+                "--runtime-root",
+                str(runtime_state),
+                "--key-file",
+                str(key_file),
+                "--output-directory",
+                str(output),
+                "--release-commit",
+                commit,
+                "--target-id-sha256",
+                "7865f743d174",
+            ],
+            cwd=repo,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=240,
+        )
+        expect(
+            result.returncode == 0
+            and "CB240_CANONICAL_SYNC_ACCEPTANCE=PASS" in result.stdout,
+            "canonical_sync_acceptance",
+        )
+        generated = output / "canonical-sync-report.json"
+        report = json.loads(generated.read_text(encoding="utf-8"))
+        expect(
+            report.get("task_id") == "CB-240"
+            and report.get("phase") == "P2.5"
+            and report.get("release_commit") == commit
+            and report.get("result") == "passed"
+            and report.get("ac_030_rebuild", {}).get(
+                "canonical_event_count"
+            )
+            == 1000
+            and report.get("ac_031_batching_latency", {}).get(
+                "latency_p95_seconds"
+            )
+            <= 60
+            and report.get("ac_031_batching_latency", {}).get("set_diff")
+            == 0
+            and report.get("ac_032_conflict_retry", {}).get(
+                "concurrent_sync_groups"
+            )
+            == 50
+            and report.get("ac_032_conflict_retry", {}).get("set_diff")
+            == 0
+            and report.get("ac_033_privacy", {}).get(
+                "full_prompt_result_identity_hits"
+            )
+            == 0
+            and report.get("boundaries", {}).get(
+                "real_private_database_operation"
+            )
+            is False
+            and report.get("boundaries", {}).get("pg_2_executed") is False,
+            "canonical_sync_report",
+        )
+        destination = stage / "canonical-sync-report.json"
+        shutil.copyfile(generated, destination)
+        destination.chmod(0o644)
+        return destination
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", type=Path, required=True)
@@ -459,6 +547,28 @@ def main() -> int:
                 "app/test/durable-outbox-crash-cut.test.js",
                 "app/test/stream-delivery.test.js",
                 "app/test/weixin-outbox-transport.test.js",
+            ):
+                expect(required in inventory, f"source_missing:{required}")
+        if args.task_id == "CB-240":
+            for required in (
+                "app/migrations/005_cb240_canonical_sync.sql",
+                "app/scripts/canonical-rebuild.js",
+                "app/scripts/canonical-sync-acceptance.js",
+                "app/scripts/canonical-sync-data.js",
+                "app/src/services/canonical/canonical-sync.js",
+                "app/src/services/db/database-adapter.js",
+                "app/src/services/jobs/job-scheduler.js",
+                "app/test/canonical-sync.test.js",
+                "app/test/job-scheduler.test.js",
+                "docs/product_design/v0.0.0.4/implementation-kit/scripts/"
+                "accept-canonical-sync.sh",
+                "docs/product_design/v0.0.0.4/implementation-kit/scripts/"
+                "private_db_client_safe.py",
+                "docs/product_design/v0.0.0.4/implementation-kit/systemd/"
+                "cyberboss-canonical-sync.service",
+                "docs/product_design/v0.0.0.4/implementation-kit/systemd/"
+                "cyberboss-canonical-sync.timer",
+                "tests/canonical-sync.test.js",
             ):
                 expect(required in inventory, f"source_missing:{required}")
 
@@ -770,6 +880,62 @@ def main() -> int:
                     "cb_240_executed": False,
                     "pg_2_executed": False,
                 }
+            if args.task_id == "CB-240":
+                manifest["runtime_spool"] = {
+                    "schema_version": 5,
+                    "migration_mode": "additive_backward_compatible",
+                    "migration_sha256": {
+                        name: git_blob_sha256(
+                            repo,
+                            args.commit,
+                            f"app/migrations/{name}",
+                        )
+                        for name in (
+                            "001_runtime_spool.sql",
+                            "002_cb200_retention_and_transitions.sql",
+                            "003_cb220_scheduler_control.sql",
+                            "004_cb230_durable_outbox.sql",
+                            "005_cb240_canonical_sync.sql",
+                        )
+                    },
+                    "journal_mode": "WAL",
+                    "synchronous": "FULL",
+                    "foreign_keys": True,
+                    "busy_timeout_ms": 5000,
+                    "active_payload_encryption": "AES-256-GCM",
+                    "active_payload_ttl_hours": 24,
+                    "channel_poll_integrated": True,
+                    "scheduler_integrated": True,
+                    "outbox_worker_integrated": True,
+                    "canonical_sync_integrated": True,
+                    "pg_2_executed": False,
+                }
+                manifest["canonical_sync"] = {
+                    "schema_version": 1,
+                    "area": "Private-MetaDatabase",
+                    "domain": "CyberBoss",
+                    "branch": "main",
+                    "access_mode": "no_clone_client",
+                    "allowed_operations": ["ingest", "get", "list", "verify"],
+                    "max_records": 50,
+                    "max_uncompressed_bytes": 262144,
+                    "max_age_seconds": 60,
+                    "deterministic_gzip": True,
+                    "content_addressed": True,
+                    "manifest_conflict_last_write_wins": False,
+                    "same_id_different_hash_quarantine": True,
+                    "bounded_mutation_backlog_guard": True,
+                    "read_only_drain_allowed": True,
+                    "code_data_identity_separated": True,
+                    "rebuild_without_sqlite": True,
+                    "timeline_projection_only": True,
+                    "real_private_database": False,
+                    "private_database_activation_status":
+                        "activation_pending",
+                    "real_r2": False,
+                    "cb_300_executed": False,
+                    "pg_2_executed": False,
+                }
             manifest_path = stage / "artifact-manifest.json"
             write_json(manifest_path, manifest)
             matrix_path = (
@@ -785,7 +951,15 @@ def main() -> int:
                             stage,
                         )
                         if args.task_id == "CB-230"
-                        else None
+                        else (
+                            build_canonical_sync_report(
+                                repo,
+                                args.commit,
+                                stage,
+                            )
+                            if args.task_id == "CB-240"
+                            else None
+                        )
                     )
                 )
             )
@@ -811,7 +985,7 @@ def main() -> int:
     print(
         f"{args.task_id.replace('-', '')}_ARTIFACT_BUILD=PASS "
         f"release_id={args.commit} "
-        f"artifacts={4 if args.task_id in {'CB-210', 'CB-220', 'CB-230'} else 3} "
+        f"artifacts={4 if args.task_id in {'CB-210', 'CB-220', 'CB-230', 'CB-240'} else 3} "
         "corresponding_source_complete=true "
         "license_expression=AGPL-3.0-only_AND_GPL-3.0-only "
         "upstream_clarification_received=false publication=none"

@@ -106,7 +106,7 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     const clean = openSpool(cleanPath);
     assert.deepEqual(
       clean.migrationRecords().map((row) => row.version),
-      [1, 2, 3, 4],
+      [1, 2, 3, 4, 5],
     );
     assert.deepEqual(clean.pragmaStatus(), {
       journalMode: "wal",
@@ -130,6 +130,8 @@ if (!isMainThread && workerData?.mode === "duplicate") {
       "CREATE TRIGGER jobs_scheduler_runtime_lease_guard",
       "CREATE TABLE outbox_attempt_events",
       "CREATE TRIGGER outbox_confirmation_truth_guard",
+      "CREATE TRIGGER sync_spool_identity_immutable_guard",
+      "CREATE TRIGGER sync_spool_delete_guard",
     ]) {
       assert.match(schema, new RegExp(marker));
     }
@@ -174,7 +176,7 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     const upgraded = openSpool(v1Path);
     assert.deepEqual(
       upgraded.migrationRecords().map((row) => row.version),
-      [1, 2, 3, 4],
+      [1, 2, 3, 4, 5],
     );
     const legacyOutbox = upgraded.getOutbox("legacy-outbox");
     assert.equal(
@@ -235,6 +237,12 @@ if (!isMainThread && workerData?.mode === "duplicate") {
     );
     assert.doesNotMatch(migration4, /\b(?:DROP|RENAME|VACUUM)\b/i);
     assert.match(migration4, /ALTER TABLE outbox_messages ADD COLUMN/);
+    const migration5 = fs.readFileSync(
+      path.join(MIGRATION_ROOT, "005_cb240_canonical_sync.sql"),
+      "utf8",
+    );
+    assert.doesNotMatch(migration5, /\b(?:DROP|RENAME|VACUUM)\b/i);
+    assert.match(migration5, /ALTER TABLE sync_spool ADD COLUMN/);
   });
 
   test("10,000 durable fixtures have stable collision-free source, correlation and job IDs", { timeout: 60000 }, (t) => {

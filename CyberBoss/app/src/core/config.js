@@ -30,6 +30,17 @@ function readConfig() {
   if (jobScheduler && !durableOutbox && !baselineStagingAllowed) {
     throw new Error("CB_DURABLE_OUTBOX=false is allowed only in explicit non-production staging");
   }
+  const canonicalSyncOverride = readOptionalBoolEnv(
+    "CB_PRIVATE_DB_CANONICAL_SYNC",
+  );
+  const canonicalSync = durableOutbox && (
+    canonicalSyncOverride === undefined ? true : canonicalSyncOverride
+  );
+  if (durableOutbox && !canonicalSync && !baselineStagingAllowed) {
+    throw new Error(
+      "CB_PRIVATE_DB_CANONICAL_SYNC=false is allowed only in explicit non-production staging",
+    );
+  }
   const workspaceConfigFile = readTextEnv("CYBERBOSS_WORKSPACE_CONFIG")
     || path.join(stateDir, "workspaces.json");
   const workspaceBase = readTextEnv("CYBERBOSS_WORKSPACE_BASE")
@@ -68,6 +79,7 @@ function readConfig() {
     durableInbox,
     jobScheduler,
     durableOutbox,
+    canonicalSync,
     baselineStagingAllowed,
     runtimeDatabasePath: readTextEnv("CB_RUNTIME_DB")
       || path.join(stateDir, "runtime.db"),
@@ -83,6 +95,22 @@ function readConfig() {
     outboxBaseDelayMs: readIntEnv("CB_OUTBOX_BASE_DELAY_MS") || 1_000,
     outboxMaxDelayMs: readIntEnv("CB_OUTBOX_MAX_DELAY_MS") || 60_000,
     outboxChunkChars: readIntEnv("CB_OUTBOX_CHUNK_CHARS") || 3_600,
+    canonicalSpoolRoot: readTextEnv("CB_CANONICAL_SPOOL_ROOT")
+      || path.join(stateDir, "canonical-spool"),
+    canonicalDeployedCommit: readTextEnv("CB_EXPECTED_RELEASE_ID"),
+    canonicalBatchMax: readIntEnv("CB_CANONICAL_BATCH_MAX") || 50,
+    canonicalBatchMaxBytes:
+      readIntEnv("CB_CANONICAL_BATCH_MAX_BYTES") || 262_144,
+    canonicalBatchMaxAgeMs:
+      readIntEnv("CB_CANONICAL_BATCH_MAX_AGE_MS") || 60_000,
+    canonicalFlushOnTerminal:
+      readOptionalBoolEnv("CB_CANONICAL_FLUSH_ON_TERMINAL") !== false,
+    canonicalBacklogMaxEvents:
+      readIntEnv("CB_CANONICAL_BACKLOG_MAX_EVENTS") || 10_000,
+    canonicalBacklogMaxBytes:
+      readIntEnv("CB_CANONICAL_BACKLOG_MAX_BYTES") || 64 * 1024 * 1024,
+    canonicalMaxLagSeconds:
+      readIntEnv("CB_CANONICAL_MAX_LAG_SECONDS") || 900,
     pollStaleMs: readIntEnv("CB_POLL_STALE_MS") || 90_000,
     queueStuckMs: readIntEnv("CB_QUEUE_STUCK_MS") || 5 * 60_000,
     schedulerQueueLimit: readIntEnv("CB_QUEUE_LIMIT") || 20,

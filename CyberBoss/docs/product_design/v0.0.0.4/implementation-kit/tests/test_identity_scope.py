@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import hashlib
 import os
+import pwd
 import subprocess
 import sys
 import tempfile
@@ -219,6 +220,75 @@ class IdentityScopeTests(unittest.TestCase):
             self.assertEqual(plan["status"], "plan_only")
             self.assertFalse(plan["real_data_operation"])
             self.assertTrue(plan["no_clone"])
+
+    def test_private_db_wrapper_execute_is_bound_to_data_identity(self) -> None:
+        source = (SCRIPTS / "private_db_client_safe.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("pwd.getpwuid(os.geteuid()).pw_name", source)
+        self.assertIn('policy["data"]["execution_identity"]', source)
+        if pwd.getpwuid(os.geteuid()).pw_name == "cyberboss-data":
+            self.skipTest("already executing as the dedicated data identity")
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            client = root / "private_db_client.py"
+            client.write_text(
+                "REPO='LinzeColin/Private-Database'\n"
+                "BRANCH='main'\n"
+                "AREAS={'Private-MetaDatabase'}\n"
+                "def fixture():\n"
+                "    sub.add_parser(\"ingest\")\n"
+                "    sub.add_parser(\"get\")\n"
+                "    sub.add_parser(\"list\")\n"
+                "    sub.add_parser(\"verify\")\n",
+                encoding="utf-8",
+            )
+            versions = root / "versions.json"
+            versions.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "task_id": "CB-120",
+                        "private_db_client": {
+                            "access_mode": "no_clone_client",
+                            "sha256": hashlib.sha256(
+                                client.read_bytes()
+                            ).hexdigest(),
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "private_db_client_safe.py"),
+                    "--policy",
+                    str(self.policy_path),
+                    "--versions",
+                    str(versions),
+                    "--client",
+                    str(client),
+                    "--domain",
+                    "CyberBoss",
+                    "--execute",
+                    "list",
+                    "Private-MetaDatabase",
+                ],
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+                env={
+                    **os.environ,
+                    "CB_PRIVATE_DB_GH_COMMAND":
+                        "/opt/cyberboss-cloud/shared/toolchains/bin/gh",
+                    "CB_PRIVATE_DB_GH_CONFIG_DIR":
+                        "/var/lib/cyberboss-data/.config/gh",
+                },
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("runtime:data_identity", result.stderr)
 
     def test_simulators_reject_wrong_domain_bucket_and_prefix(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

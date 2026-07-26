@@ -35,6 +35,11 @@ const MIGRATIONS = Object.freeze([
     name: "004_cb230_durable_outbox.sql",
     sourceCommit: "CB-230",
   }),
+  Object.freeze({
+    version: 5,
+    name: "005_cb240_canonical_sync.sql",
+    sourceCommit: "CB-240",
+  }),
 ]);
 const ENVELOPE_VERSION = 1;
 const NONCE_BYTES = 12;
@@ -50,6 +55,27 @@ const ACTIVE_JOB_STATUSES = Object.freeze(["running", "waiting_approval"]);
 const SAFE_TOKEN = /^[A-Za-z0-9_.:/-]{1,160}$/;
 const SAFE_REDACTED_KEY =
   /^(?:source|index|attempt|[a-z][a-z0-9_]*(?:_code|_class|_count|_ms|_enabled|_allowed|_present|_pending))$/;
+const CANONICAL_EVENT_FIELDS = Object.freeze([
+  "schema_version",
+  "event_id",
+  "occurred_at",
+  "recorded_at",
+  "source",
+  "event_type",
+  "status",
+  "job_id",
+  "correlation_id",
+  "workspace_alias",
+  "runtime",
+  "input_sha256",
+  "output_sha256",
+  "summary_redacted",
+  "evidence_refs",
+  "deployed_commit",
+  "record_sha256",
+]);
+const CANONICAL_EVIDENCE_REF =
+  /^(?:private-db|r2|receipt):\/\/[A-Za-z0-9._:/-]{1,480}$/;
 
 class RuntimeSpoolError extends Error {
   constructor(code) {
@@ -151,6 +177,90 @@ function requireKey(value, field) {
     throw new RuntimeSpoolError(`${field}_MUST_BE_32_BYTES`);
   }
   return Buffer.from(value);
+}
+
+function canonicalEventJson(value) {
+  if (
+    !value ||
+    Array.isArray(value) ||
+    typeof value !== "object"
+  ) {
+    throw new RuntimeSpoolError("CANONICAL_EVENT_OBJECT_REQUIRED");
+  }
+  const actualFields = Object.keys(value).sort();
+  const expectedFields = [...CANONICAL_EVENT_FIELDS].sort();
+  if (
+    actualFields.length !== expectedFields.length ||
+    actualFields.some((field, index) => field !== expectedFields[index])
+  ) {
+    throw new RuntimeSpoolError("CANONICAL_EVENT_FIELDS_INVALID");
+  }
+  if (value.schema_version !== 1 || value.source !== "cyberboss-cloud") {
+    throw new RuntimeSpoolError("CANONICAL_EVENT_CONTRACT_INVALID");
+  }
+  for (const field of [
+    "event_id",
+    "event_type",
+    "status",
+    "job_id",
+    "correlation_id",
+    "workspace_alias",
+    "runtime",
+  ]) {
+    requireSafeToken(value[field], field);
+  }
+  for (const field of ["input_sha256", "record_sha256"]) {
+    requireSha256(value[field], field);
+  }
+  if (value.output_sha256 !== null) {
+    requireSha256(value.output_sha256, "output_sha256");
+  }
+  for (const field of ["occurred_at", "recorded_at"]) {
+    requireBoundedString(value[field], field, 32);
+    const parsed = new Date(value[field]);
+    if (
+      !Number.isFinite(parsed.getTime()) ||
+      parsed.toISOString() !== value[field]
+    ) {
+      throw new RuntimeSpoolError(`INVALID_${field.toUpperCase()}`);
+    }
+  }
+  requireBoundedString(value.summary_redacted, "summary_redacted", 192);
+  if (
+    !/^Job (?:state|event): [A-Za-z0-9_.:/-]{1,160}\.$/.test(
+      value.summary_redacted,
+    )
+  ) {
+    throw new RuntimeSpoolError("CANONICAL_SUMMARY_INVALID");
+  }
+  if (
+    !Array.isArray(value.evidence_refs) ||
+    value.evidence_refs.length > 16 ||
+    value.evidence_refs.some(
+      (reference) =>
+        typeof reference !== "string" ||
+        !CANONICAL_EVIDENCE_REF.test(reference),
+    )
+  ) {
+    throw new RuntimeSpoolError("CANONICAL_EVIDENCE_REFS_INVALID");
+  }
+  if (
+    typeof value.deployed_commit !== "string" ||
+    !/^[0-9a-f]{40}$/.test(value.deployed_commit)
+  ) {
+    throw new RuntimeSpoolError("CANONICAL_DEPLOYED_COMMIT_INVALID");
+  }
+  const hashInput = {};
+  for (const field of CANONICAL_EVENT_FIELDS) {
+    if (field !== "record_sha256") {
+      hashInput[field] = value[field];
+    }
+  }
+  const expectedHash = sha256(Buffer.from(stableJson(hashInput), "utf8"));
+  if (value.record_sha256 !== expectedHash) {
+    throw new RuntimeSpoolError("CANONICAL_RECORD_HASH_INVALID");
+  }
+  return stableJson(value);
 }
 
 function hmacHex(key, label, fields) {
@@ -1143,19 +1253,23 @@ class RuntimeSpoolDatabase {
     }
   }
 
-  peekNextRuntimeJob() {
+  peekNextRuntimeJob({ operationClass = null } = {}) {
     this.#assertOpen();
+    if (operationClass !== null && operationClass !== "read_only") {
+      throw new RuntimeSpoolError("RUNTIME_OPERATION_FILTER_INVALID");
+    }
     const row = this.database
       .prepare(
         `SELECT id
          FROM jobs
          WHERE status='queued'
            AND operation_class <> 'command'
+           AND (? IS NULL OR operation_class=?)
            AND attempt_count < max_attempts
          ORDER BY created_at, id
          LIMIT 1`,
       )
-      .get();
+      .get(operationClass, operationClass);
     return row ? this.getJob(row.id) : null;
   }
 
@@ -1253,6 +1367,7 @@ class RuntimeSpoolDatabase {
     expectedJobId = null,
     bootId = null,
     pid = null,
+    operationClass = null,
   }) {
     return this.#claimManagedJob({
       command: false,
@@ -1261,6 +1376,7 @@ class RuntimeSpoolDatabase {
       expectedJobId,
       bootId,
       pid,
+      operationClass,
     });
   }
 
@@ -1278,6 +1394,7 @@ class RuntimeSpoolDatabase {
       expectedJobId,
       bootId,
       pid,
+      operationClass: null,
     });
   }
 
@@ -1288,6 +1405,7 @@ class RuntimeSpoolDatabase {
     expectedJobId,
     bootId,
     pid,
+    operationClass,
   }) {
     this.#assertOpen();
     requireSafeToken(ownerId, "lease_owner");
@@ -1297,11 +1415,22 @@ class RuntimeSpoolDatabase {
     if (bootId !== null) {
       requireSafeToken(bootId, "boot_id");
     }
+    if (
+      operationClass !== null &&
+      (command || operationClass !== "read_only")
+    ) {
+      throw new RuntimeSpoolError("RUNTIME_OPERATION_FILTER_INVALID");
+    }
     const normalizedPid = normalizePid(pid);
     const now = this.#timestamp();
     const expiresAt = leaseExpiry(now, leaseMs);
     const leaseName = command ? CONTROL_LEASE_NAME : RUNTIME_LEASE_NAME;
-    const operationPredicate = command ? "= 'command'" : "<> 'command'";
+    const activeOperationPredicate = command ? "= 'command'" : "<> 'command'";
+    const queuedOperationPredicate = command
+      ? "= 'command'"
+      : operationClass === "read_only"
+        ? "= 'read_only'"
+        : "<> 'command'";
     const activeStatuses = command
       ? "status='running'"
       : "status IN ('running','waiting_approval')";
@@ -1312,7 +1441,7 @@ class RuntimeSpoolDatabase {
         .prepare(
           `SELECT id
            FROM jobs
-           WHERE operation_class ${operationPredicate}
+           WHERE operation_class ${activeOperationPredicate}
              AND ${activeStatuses}
            ORDER BY started_at, id
            LIMIT 1`,
@@ -1352,7 +1481,7 @@ class RuntimeSpoolDatabase {
           `SELECT id, correlation_id, state_version
            FROM jobs
            WHERE status='queued'
-             AND operation_class ${operationPredicate}
+             AND operation_class ${queuedOperationPredicate}
              ${command ? "" : "AND attempt_count < max_attempts"}
            ORDER BY created_at, id
            LIMIT 1`,
@@ -2938,38 +3067,66 @@ class RuntimeSpoolDatabase {
     ) {
       throw new RuntimeSpoolError("CANONICAL_PATH_INVALID");
     }
-    const payload = redactedJson(payloadRedacted);
+    const payload =
+      payloadRedacted?.schema_version === 1
+        ? canonicalEventJson(payloadRedacted)
+        : redactedJson(payloadRedacted);
     const payloadHash = sha256(Buffer.from(payload, "utf8"));
     const id = this.#identity("sync", [eventId], "sync");
     const now = this.#timestamp();
-    this.database
-      .prepare(
-        `INSERT INTO sync_spool(
-          id, event_id, object_type, object_id, canonical_path,
-          payload_redacted_json, payload_sha256, status, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
-        ON CONFLICT(event_id) DO NOTHING`,
-      )
-      .run(
-        id,
-        eventId,
-        objectType,
-        objectId,
-        canonicalPath,
-        payload,
-        payloadHash,
-        now,
-        now,
-      );
-    const row = this.database
-      .prepare(
-        "SELECT id, payload_sha256, status FROM sync_spool WHERE event_id=?",
-      )
-      .get(eventId);
-    if (!row || row.id !== id || row.payload_sha256 !== payloadHash) {
-      throw new IntegrityConflictError();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      this.database
+        .prepare(
+          `INSERT INTO sync_spool(
+            id, event_id, object_type, object_id, canonical_path,
+            payload_redacted_json, payload_sha256, status, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+          ON CONFLICT(event_id) DO NOTHING`,
+        )
+        .run(
+          id,
+          eventId,
+          objectType,
+          objectId,
+          canonicalPath,
+          payload,
+          payloadHash,
+          now,
+          now,
+        );
+      const row = this.database
+        .prepare(
+          "SELECT id, payload_sha256, status FROM sync_spool WHERE event_id=?",
+        )
+        .get(eventId);
+      if (!row || row.id !== id || row.payload_sha256 !== payloadHash) {
+        throw new IntegrityConflictError();
+      }
+      if (objectType === "job_event") {
+        this.database
+          .prepare(
+            `UPDATE job_events
+             SET canonical_state='sync_pending'
+             WHERE id=? AND canonical_state='pending'`,
+          )
+          .run(objectId);
+        this.database
+          .prepare(
+            `UPDATE jobs
+             SET canonical_state='sync_pending'
+             WHERE id=(
+               SELECT job_id FROM job_events WHERE id=?
+             ) AND canonical_state='pending'`,
+          )
+          .run(objectId);
+      }
+      this.database.exec("COMMIT");
+      return Object.freeze({ ...row, event_id: eventId });
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
     }
-    return Object.freeze({ ...row, event_id: eventId });
   }
 
   markSyncRetry(eventId, errorClass = "canonical_unavailable") {
@@ -3022,6 +3179,484 @@ class RuntimeSpoolDatabase {
     }
   }
 
+  listCanonicalCandidateEvents(limit = 1_000) {
+    this.#assertOpen();
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 10_000) {
+      throw new RuntimeSpoolError("CANONICAL_CANDIDATE_LIMIT_INVALID");
+    }
+    return this.database
+      .prepare(
+        `SELECT
+           e.id AS event_id,
+           e.job_id,
+           e.correlation_id,
+           e.event_type,
+           e.from_status,
+           e.to_status,
+           e.occurred_at,
+           e.recorded_at,
+           j.workspace_alias,
+           j.runtime,
+           j.input_sha256,
+           j.output_sha256,
+           j.status AS job_status
+         FROM job_events e
+         JOIN jobs j ON j.id=e.job_id
+         WHERE j.status IN ('replied','reply_failed')
+           AND e.canonical_state IN ('pending','sync_pending')
+           AND NOT EXISTS (
+             SELECT 1 FROM sync_spool s WHERE s.event_id=e.id
+           )
+         ORDER BY e.recorded_at, e.id
+         LIMIT ?`,
+      )
+      .all(limit)
+      .map((row) => Object.freeze({ ...row }));
+  }
+
+  listUnbatchedCanonicalEvents({
+    limit = 50,
+    at = this.#timestamp(),
+  } = {}) {
+    this.#assertOpen();
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 50) {
+      throw new RuntimeSpoolError("CANONICAL_BATCH_LIMIT_INVALID");
+    }
+    const now = timestampFrom(at);
+    return this.database
+      .prepare(
+        `SELECT event_id, object_type, object_id, canonical_path,
+                payload_redacted_json, payload_sha256, status, attempt_count,
+                next_attempt_at, created_at, updated_at
+         FROM sync_spool
+         WHERE batch_id IS NULL
+           AND status IN ('pending','retry')
+           AND (next_attempt_at IS NULL OR next_attempt_at<=?)
+           AND json_extract(payload_redacted_json, '$.schema_version')=1
+         ORDER BY created_at, event_id
+         LIMIT ?`,
+      )
+      .all(now, limit)
+      .map((row) => Object.freeze({ ...row }));
+  }
+
+  assignCanonicalBatch({
+    eventIds,
+    batchId,
+    eventSetSha256,
+    objectSha256,
+  }) {
+    this.#assertOpen();
+    requireSafeToken(batchId, "batch_id");
+    requireSha256(eventSetSha256, "batch_event_set_sha256");
+    requireSha256(objectSha256, "canonical_object_sha256");
+    if (
+      !Array.isArray(eventIds) ||
+      eventIds.length < 1 ||
+      eventIds.length > 50 ||
+      new Set(eventIds).size !== eventIds.length
+    ) {
+      throw new RuntimeSpoolError("CANONICAL_BATCH_EVENTS_INVALID");
+    }
+    eventIds.forEach((eventId) => requireSafeToken(eventId, "event_id"));
+    const now = this.#timestamp();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      for (const eventId of eventIds) {
+        this.database
+          .prepare(
+            `UPDATE sync_spool
+             SET batch_id=COALESCE(batch_id, ?),
+                 batch_event_set_sha256=COALESCE(batch_event_set_sha256, ?),
+                 canonical_object_sha256=COALESCE(canonical_object_sha256, ?),
+                 status=CASE WHEN status='synced' THEN status ELSE 'syncing' END,
+                 updated_at=?
+             WHERE event_id=?
+               AND status IN ('pending','retry','syncing')
+               AND (batch_id IS NULL OR batch_id=?)
+               AND (
+                 batch_event_set_sha256 IS NULL
+                 OR batch_event_set_sha256=?
+               )
+               AND (
+                 canonical_object_sha256 IS NULL
+                 OR canonical_object_sha256=?
+               )`,
+          )
+          .run(
+            batchId,
+            eventSetSha256,
+            objectSha256,
+            now,
+            eventId,
+            batchId,
+            eventSetSha256,
+            objectSha256,
+          );
+        const row = this.database
+          .prepare(
+            `SELECT batch_id, batch_event_set_sha256,
+                    canonical_object_sha256, status
+             FROM sync_spool WHERE event_id=?`,
+          )
+          .get(eventId);
+        if (
+          !row ||
+          row.batch_id !== batchId ||
+          row.batch_event_set_sha256 !== eventSetSha256 ||
+          row.canonical_object_sha256 !== objectSha256 ||
+          !["syncing", "synced"].includes(row.status)
+        ) {
+          throw new IntegrityConflictError();
+        }
+      }
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+    return Object.freeze({
+      batchId,
+      eventCount: eventIds.length,
+      eventSetSha256,
+      objectSha256,
+    });
+  }
+
+  nextCanonicalBatch(at = this.#timestamp()) {
+    this.#assertOpen();
+    const now = timestampFrom(at);
+    const row = this.database
+      .prepare(
+        `SELECT batch_id, MIN(created_at) AS created_at
+         FROM sync_spool
+         WHERE batch_id IS NOT NULL
+           AND status IN ('syncing','retry')
+           AND (next_attempt_at IS NULL OR next_attempt_at<=?)
+         GROUP BY batch_id
+         ORDER BY created_at, batch_id
+         LIMIT 1`,
+      )
+      .get(now);
+    return row ? Object.freeze({ ...row }) : null;
+  }
+
+  listCanonicalBatch(batchId) {
+    this.#assertOpen();
+    requireSafeToken(batchId, "batch_id");
+    return this.database
+      .prepare(
+        `SELECT event_id, object_type, object_id, canonical_path,
+                payload_redacted_json, payload_sha256, status, attempt_count,
+                next_attempt_at, created_at, updated_at, batch_id,
+                batch_event_set_sha256, canonical_object_sha256,
+                manifest_record_sha256, remote_object_path, verified_at,
+                retry_after_ms, last_receipt_sha256
+         FROM sync_spool
+         WHERE batch_id=?
+         ORDER BY event_id`,
+      )
+      .all(batchId)
+      .map((row) => Object.freeze({ ...row }));
+  }
+
+  recoverCanonicalSync() {
+    this.#assertOpen();
+    const now = this.#timestamp();
+    const result = this.database
+      .prepare(
+        `UPDATE sync_spool
+         SET status='retry', next_attempt_at=?, retry_after_ms=0,
+             last_error_class='unknown_outcome_reconcile',
+             last_error_redacted='unknown_outcome_reconcile', updated_at=?
+         WHERE status='syncing' AND batch_id IS NOT NULL`,
+      )
+      .run(now, now);
+    return Object.freeze({ recovered: Number(result.changes) });
+  }
+
+  markCanonicalBatchRetry(batchId, {
+    errorClass = "canonical_unavailable",
+    nextAttemptAt = this.#timestamp(),
+    retryAfterMs = 0,
+    receiptSha256 = null,
+  } = {}) {
+    this.#assertOpen();
+    requireSafeToken(batchId, "batch_id");
+    requireSafeToken(errorClass, "error_class");
+    const due = timestampFrom(nextAttemptAt);
+    if (
+      !Number.isSafeInteger(retryAfterMs) ||
+      retryAfterMs < 0 ||
+      retryAfterMs > 24 * 60 * 60 * 1_000
+    ) {
+      throw new RuntimeSpoolError("CANONICAL_RETRY_HINT_INVALID");
+    }
+    if (receiptSha256 !== null) {
+      requireSha256(receiptSha256, "last_receipt_sha256");
+    }
+    const now = this.#timestamp();
+    const result = this.database
+      .prepare(
+        `UPDATE sync_spool
+         SET status='retry', attempt_count=attempt_count + 1,
+             last_error_class=?, last_error_redacted=?,
+             next_attempt_at=?, retry_after_ms=?,
+             last_receipt_sha256=COALESCE(?, last_receipt_sha256),
+             updated_at=?
+         WHERE batch_id=? AND status IN ('syncing','retry')`,
+      )
+      .run(
+        errorClass,
+        errorClass,
+        due,
+        retryAfterMs,
+        receiptSha256,
+        now,
+        batchId,
+      );
+    if (Number(result.changes) < 1) {
+      throw new RuntimeSpoolError("CANONICAL_BATCH_NOT_RETRYABLE");
+    }
+    return Object.freeze({
+      batchId,
+      eventCount: Number(result.changes),
+      nextAttemptAt: due,
+      retryAfterMs,
+    });
+  }
+
+  markCanonicalBatchVerified(batchId, {
+    objectSha256,
+    manifestRecordSha256,
+    remoteObjectPath,
+    receiptSha256 = null,
+  }) {
+    this.#assertOpen();
+    requireSafeToken(batchId, "batch_id");
+    requireSha256(objectSha256, "canonical_object_sha256");
+    requireSha256(manifestRecordSha256, "manifest_record_sha256");
+    if (receiptSha256 !== null) {
+      requireSha256(receiptSha256, "last_receipt_sha256");
+    }
+    requireBoundedString(remoteObjectPath, "remote_object_path", 512);
+    if (
+      path.posix.isAbsolute(remoteObjectPath) ||
+      remoteObjectPath.split("/").includes("..") ||
+      !remoteObjectPath.startsWith("objects/")
+    ) {
+      throw new RuntimeSpoolError("REMOTE_OBJECT_PATH_INVALID");
+    }
+    const now = this.#timestamp();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const result = this.database
+        .prepare(
+          `UPDATE sync_spool
+           SET status='synced', canonical_object_sha256=?,
+               manifest_record_sha256=?, remote_object_path=?,
+               synced_at=COALESCE(synced_at, ?), verified_at=?,
+               updated_at=?, next_attempt_at=NULL, retry_after_ms=NULL,
+               last_receipt_sha256=COALESCE(?, last_receipt_sha256),
+               last_error_class=NULL, last_error_redacted=NULL
+           WHERE batch_id=?
+             AND status IN ('syncing','retry','synced')
+             AND canonical_object_sha256=?`,
+        )
+        .run(
+          objectSha256,
+          manifestRecordSha256,
+          remoteObjectPath,
+          now,
+          now,
+          now,
+          receiptSha256,
+          batchId,
+          objectSha256,
+        );
+      if (Number(result.changes) < 1) {
+        throw new IntegrityConflictError();
+      }
+      this.database
+        .prepare(
+          `UPDATE job_events
+           SET canonical_state='synced', canonical_object_sha256=?
+           WHERE id IN (
+             SELECT object_id FROM sync_spool
+             WHERE batch_id=? AND object_type='job_event'
+           )`,
+        )
+        .run(objectSha256, batchId);
+      this.database
+        .prepare(
+          `UPDATE jobs
+           SET canonical_state='synced', canonical_object_sha256=?
+           WHERE id IN (
+             SELECT DISTINCT e.job_id
+             FROM job_events e
+             JOIN sync_spool s
+               ON s.object_type='job_event' AND s.object_id=e.id
+             WHERE s.batch_id=?
+           )
+             AND NOT EXISTS (
+               SELECT 1 FROM job_events pending
+               WHERE pending.job_id=jobs.id
+                 AND pending.canonical_state<>'synced'
+             )`,
+        )
+        .run(objectSha256, batchId);
+      this.database.exec("COMMIT");
+      return Object.freeze({
+        batchId,
+        eventCount: Number(result.changes),
+        objectSha256,
+        verifiedAt: now,
+      });
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  markCanonicalBatchIntegrity(
+    batchId,
+    errorClass = "event_hash_conflict",
+    receiptSha256 = null,
+  ) {
+    this.#assertOpen();
+    requireSafeToken(batchId, "batch_id");
+    requireSafeToken(errorClass, "error_class");
+    if (receiptSha256 !== null) {
+      requireSha256(receiptSha256, "last_receipt_sha256");
+    }
+    const now = this.#timestamp();
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      const result = this.database
+        .prepare(
+          `UPDATE sync_spool
+           SET status='integrity_error', last_error_class=?,
+               last_error_redacted=?, next_attempt_at=NULL,
+               retry_after_ms=NULL,
+               last_receipt_sha256=COALESCE(?, last_receipt_sha256),
+               updated_at=?
+           WHERE batch_id=? AND status<>'synced'`,
+        )
+        .run(errorClass, errorClass, receiptSha256, now, batchId);
+      this.database
+        .prepare(
+          `UPDATE job_events
+           SET canonical_state='integrity_error'
+           WHERE id IN (
+             SELECT object_id FROM sync_spool
+             WHERE batch_id=? AND object_type='job_event'
+           )`,
+        )
+        .run(batchId);
+      this.database
+        .prepare(
+          `UPDATE jobs
+           SET canonical_state='integrity_error'
+           WHERE id IN (
+             SELECT DISTINCT e.job_id
+             FROM job_events e
+             JOIN sync_spool s
+               ON s.object_type='job_event' AND s.object_id=e.id
+             WHERE s.batch_id=?
+           )`,
+        )
+        .run(batchId);
+      this.database.exec("COMMIT");
+      return Object.freeze({
+        batchId,
+        eventCount: Number(result.changes),
+        errorClass,
+      });
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    }
+  }
+
+  canonicalSyncStatus({
+    at = this.#timestamp(),
+    maxPendingEvents = 10_000,
+    maxPendingBytes = 64 * 1024 * 1024,
+    maxLagSeconds = 900,
+  } = {}) {
+    this.#assertOpen();
+    const now = timestampFrom(at);
+    if (
+      !Number.isSafeInteger(maxPendingEvents) ||
+      maxPendingEvents < 1 ||
+      !Number.isSafeInteger(maxPendingBytes) ||
+      maxPendingBytes < 1 ||
+      !Number.isSafeInteger(maxLagSeconds) ||
+      maxLagSeconds < 1
+    ) {
+      throw new RuntimeSpoolError("CANONICAL_STATUS_LIMIT_INVALID");
+    }
+    const pending = this.database
+      .prepare(
+        `SELECT
+           COUNT(*) AS event_count,
+           COALESCE(SUM(LENGTH(CAST(payload_redacted_json AS BLOB))), 0)
+             AS byte_count,
+           MIN(created_at) AS oldest_at,
+           SUM(CASE WHEN status='integrity_error' THEN 1 ELSE 0 END)
+             AS integrity_count,
+           MAX(last_error_class) AS last_error_class
+         FROM sync_spool
+         WHERE status IN ('pending','syncing','retry','integrity_error')`,
+      )
+      .get();
+    const last = this.database
+      .prepare(
+        `SELECT canonical_object_sha256, verified_at
+         FROM sync_spool
+         WHERE status='synced' AND verified_at IS NOT NULL
+         ORDER BY verified_at DESC, event_id DESC
+         LIMIT 1`,
+      )
+      .get();
+    const pendingEvents = Number(pending.event_count || 0);
+    const pendingBytes = Number(pending.byte_count || 0);
+    const oldestPendingAgeSeconds = pending.oldest_at
+      ? Math.max(
+          0,
+          Math.floor(
+            (Date.parse(now) - Date.parse(pending.oldest_at)) / 1_000,
+          ),
+        )
+      : 0;
+    const integrityCount = Number(pending.integrity_count || 0);
+    const mutationAllowed =
+      integrityCount === 0 &&
+      pendingEvents < maxPendingEvents &&
+      pendingBytes < maxPendingBytes &&
+      oldestPendingAgeSeconds <= maxLagSeconds;
+    return Object.freeze({
+      state:
+        integrityCount > 0
+          ? "integrity_error"
+          : pendingEvents > 0
+            ? mutationAllowed
+              ? "sync_pending"
+              : "degraded"
+            : last
+              ? "synced"
+              : "unknown",
+      pendingEvents,
+      pendingBytes,
+      oldestPendingAgeSeconds,
+      integrityCount,
+      lastObjectSha256: last?.canonical_object_sha256 || null,
+      lastVerifiedAt: last?.verified_at || null,
+      lastErrorClass: pending.last_error_class || null,
+      mutationAllowed,
+    });
+  }
+
   reconcileCanonicalEventIds(canonicalEventIds) {
     this.#assertOpen();
     if (!Array.isArray(canonicalEventIds)) {
@@ -3058,6 +3693,25 @@ class RuntimeSpoolDatabase {
            updated_at=excluded.updated_at`,
       )
       .run(key, payload, sha256(Buffer.from(payload, "utf8")), now);
+  }
+
+  getServiceState(key) {
+    this.#assertOpen();
+    requireSafeToken(key, "service_state_key");
+    const row = this.database
+      .prepare(
+        `SELECT value_redacted_json, value_sha256, updated_at
+         FROM service_state WHERE key=?`,
+      )
+      .get(key);
+    if (!row) {
+      return null;
+    }
+    return Object.freeze({
+      value: JSON.parse(row.value_redacted_json),
+      valueSha256: row.value_sha256,
+      updatedAt: row.updated_at,
+    });
   }
 
   redactExpiredPayloads(at = this.#timestamp()) {
@@ -3281,6 +3935,7 @@ module.exports = {
   PayloadRedactedError,
   RuntimeSpoolDatabase,
   RuntimeSpoolError,
+  canonicalEventJson,
   deriveStableIds,
   redactedJson,
   stableJson,

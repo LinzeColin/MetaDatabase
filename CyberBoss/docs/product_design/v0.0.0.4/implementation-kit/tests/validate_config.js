@@ -53,6 +53,15 @@ for (const key of [
   'CB_POLL_STALE_MS',
   'CB_QUEUE_STUCK_MS',
   'CB_QUEUE_LIMIT',
+  'CB_CANONICAL_SPOOL_ROOT',
+  'CB_CANONICAL_DATA_STATE_ROOT',
+  'CB_CANONICAL_FLUSH_ON_TERMINAL',
+  'CB_CANONICAL_BATCH_MAX',
+  'CB_CANONICAL_BATCH_MAX_BYTES',
+  'CB_CANONICAL_BATCH_MAX_AGE_MS',
+  'CB_CANONICAL_BACKLOG_MAX_EVENTS',
+  'CB_CANONICAL_BACKLOG_MAX_BYTES',
+  'CB_CANONICAL_MAX_LAG_SECONDS',
   'CB_DATA_REPO_SLUG',
   'CB_DATA_AREA',
   'CB_DATA_DOMAIN',
@@ -110,6 +119,33 @@ if (env.CB_CLAUDE_RUNTIME !== 'false') errors.push('claude_runtime_must_default_
 if (env.CB_FILE_ATTACHMENTS !== 'false') errors.push('attachments_must_default_false');
 if (env.CB_AUTONOMOUS_MUTATION !== 'false') errors.push('autonomous_mutation_must_default_false');
 if (env.CB_PRIVATE_DB_CANONICAL_SYNC !== 'true') errors.push('private_db_sync_must_default_true');
+if (env.CB_CANONICAL_SPOOL_ROOT !== '/var/lib/cyberboss/canonical-spool') {
+  errors.push('canonical_spool_root');
+}
+if (env.CB_CANONICAL_DATA_STATE_ROOT !== '/var/lib/cyberboss-data/canonical-sync') {
+  errors.push('canonical_data_state_root');
+}
+if (env.CB_CANONICAL_FLUSH_ON_TERMINAL !== 'true') {
+  errors.push('canonical_terminal_flush');
+}
+if (Number(env.CB_CANONICAL_BATCH_MAX) !== 50) {
+  errors.push('canonical_batch_max');
+}
+if (Number(env.CB_CANONICAL_BATCH_MAX_BYTES) !== 262144) {
+  errors.push('canonical_batch_max_bytes');
+}
+if (Number(env.CB_CANONICAL_BATCH_MAX_AGE_MS) !== 60000) {
+  errors.push('canonical_batch_max_age');
+}
+if (Number(env.CB_CANONICAL_BACKLOG_MAX_EVENTS) !== 10000) {
+  errors.push('canonical_backlog_max_events');
+}
+if (Number(env.CB_CANONICAL_BACKLOG_MAX_BYTES) !== 67108864) {
+  errors.push('canonical_backlog_max_bytes');
+}
+if (Number(env.CB_CANONICAL_MAX_LAG_SECONDS) !== 900) {
+  errors.push('canonical_max_lag');
+}
 if (env.CB_DATA_REPO_SLUG !== 'LinzeColin/Private-Database') errors.push('private_db_repo_identity');
 if (env.CB_DATA_AREA !== 'Private-MetaDatabase') errors.push('private_db_area');
 if (env.CB_DATA_DOMAIN !== 'CyberBoss') errors.push('private_db_domain');

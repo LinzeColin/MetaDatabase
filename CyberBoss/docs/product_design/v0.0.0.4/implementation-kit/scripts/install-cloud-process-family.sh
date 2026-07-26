@@ -21,6 +21,8 @@ CONFIG_ROOT="/etc/cyberboss"
 WORKSPACE="/srv/cyberboss-workspaces/cyberboss"
 CODE_USER="cyberboss"
 CODE_GROUP="cyberboss"
+DATA_USER="cyberboss-data"
+DATA_GROUP="cyberboss-data"
 EXPECTED_CURRENT="b2a603e415a2045b441f31e07cf74ac451ba6240"
 EXPECTED_WORKSPACE="10d988e908d72ea1a43bbed04a2130a338663363"
 UNIT="cyberboss-cloud.service"
@@ -103,6 +105,13 @@ case "$TASK_ID" in
     ACCEPTANCE_SCRIPT="accept-durable-outbox.sh"
     REPORT_PREFIX="DURABLE_OUTBOX_INSTALL"
     ;;
+  CB-240)
+    PHASE="P2.5"
+    STAGING_TAG="cb240"
+    CONTRACT_PATH="docs/governance/RUN_CONTRACT_P2_5_CB_240.md"
+    ACCEPTANCE_SCRIPT="accept-canonical-sync.sh"
+    REPORT_PREFIX="CANONICAL_SYNC_INSTALL"
+    ;;
   *)
     fail "unsupported_task_id"
     ;;
@@ -119,6 +128,15 @@ for required in \
   [[ -f "$required" && ! -L "$required" ]] ||
     fail "kit_contract_missing:$(basename "$required")"
 done
+if [[ "$TASK_ID" == "CB-240" ]]; then
+  for required in \
+    "$KIT_ROOT/systemd/cyberboss-canonical-sync.service" \
+    "$KIT_ROOT/systemd/cyberboss-canonical-sync.timer" \
+    "$KIT_ROOT/scripts/private_db_client_safe.py"; do
+    [[ -f "$required" && ! -L "$required" ]] ||
+      fail "kit_contract_missing:$(basename "$required")"
+  done
+fi
 
 python3 - "$KIT_ROOT/config/cloud-process-health.json" \
   "$KIT_ROOT/config/cloud-process-tree.txt" <<'PY' ||
@@ -353,6 +371,38 @@ jq -e --arg release "$RELEASE_ID" --arg task "$TASK_ID" --arg phase "$PHASE" '
     .durable_outbox.real_runtime == false and
     .durable_outbox.cb_240_executed == false and
     .durable_outbox.pg_2_executed == false
+  elif $task == "CB-240" then
+    .runtime_spool.schema_version == 5 and
+    .runtime_spool.migration_mode == "additive_backward_compatible" and
+    .runtime_spool.channel_poll_integrated == true and
+    .runtime_spool.scheduler_integrated == true and
+    .runtime_spool.outbox_worker_integrated == true and
+    .runtime_spool.canonical_sync_integrated == true and
+    .runtime_spool.pg_2_executed == false and
+    .canonical_sync.schema_version == 1 and
+    .canonical_sync.area == "Private-MetaDatabase" and
+    .canonical_sync.domain == "CyberBoss" and
+    .canonical_sync.branch == "main" and
+    .canonical_sync.access_mode == "no_clone_client" and
+    .canonical_sync.allowed_operations == ["ingest","get","list","verify"] and
+    .canonical_sync.max_records == 50 and
+    .canonical_sync.max_uncompressed_bytes == 262144 and
+    .canonical_sync.max_age_seconds == 60 and
+    .canonical_sync.deterministic_gzip == true and
+    .canonical_sync.content_addressed == true and
+    .canonical_sync.manifest_conflict_last_write_wins == false and
+    .canonical_sync.same_id_different_hash_quarantine == true and
+    .canonical_sync.bounded_mutation_backlog_guard == true and
+    .canonical_sync.read_only_drain_allowed == true and
+    .canonical_sync.code_data_identity_separated == true and
+    .canonical_sync.rebuild_without_sqlite == true and
+    .canonical_sync.timeline_projection_only == true and
+    .canonical_sync.real_private_database == false and
+    .canonical_sync.private_database_activation_status ==
+      "activation_pending" and
+    .canonical_sync.real_r2 == false and
+    .canonical_sync.cb_300_executed == false and
+    .canonical_sync.pg_2_executed == false
   else true end)
 ' "$MANIFEST" >/dev/null || fail "artifact_manifest_contract"
 if [[ "$TASK_ID" == "CB-210" ]]; then
@@ -448,6 +498,46 @@ if [[ "$TASK_ID" == "CB-230" ]]; then
     .result == "passed"
   ' "$ARTIFACTS/outbox-recovery-matrix.json" >/dev/null ||
     fail "durable_outbox_matrix_contract"
+fi
+if [[ "$TASK_ID" == "CB-240" ]]; then
+  [[ -f "$ARTIFACTS/canonical-sync-report.json" &&
+    ! -L "$ARTIFACTS/canonical-sync-report.json" ]] ||
+    fail "canonical_sync_report_missing"
+  jq -e --arg release "$RELEASE_ID" '
+    .task_id == "CB-240" and
+    .phase == "P2.5" and
+    .release_commit == $release and
+    .claim_level == "deterministic_fixture" and
+    .generated_from_synthetic_state == true and
+    .ac_030_rebuild.sqlite_present == false and
+    .ac_030_rebuild.canonical_event_count == 1000 and
+    .ac_030_rebuild.terminal_job_count == 1000 and
+    .ac_030_rebuild.r2_fixture_only == true and
+    .ac_030_rebuild.real_r2_operation == false and
+    .ac_031_batching_latency.terminal_events == 1000 and
+    .ac_031_batching_latency.latency_p95_seconds <= 60 and
+    .ac_031_batching_latency.count_threshold_batch_count == 20 and
+    .ac_031_batching_latency.set_diff == 0 and
+    .ac_032_conflict_retry.concurrent_sync_groups == 50 and
+    .ac_032_conflict_retry.initial_pending_groups == 3 and
+    .ac_032_conflict_retry.outage_duration_seconds == 600 and
+    .ac_032_conflict_retry.real_wait_calls == 0 and
+    .ac_032_conflict_retry.set_diff == 0 and
+    .ac_033_privacy.full_prompt_result_identity_hits == 0 and
+    .ac_033_privacy.encryption_key_hits == 0 and
+    .integrity_protection.last_write_wins == false and
+    .integrity_protection.bounded_mutation_allowed == false and
+    .canonical_truth.allowed_operations == ["ingest","get","list","verify"] and
+    .canonical_truth.forbidden_operations == ["clone","put","delete"] and
+    .boundaries.real_private_database_operation == false and
+    .boundaries.private_database_activation_status ==
+      "activation_pending" and
+    .boundaries.cb_300_executed == false and
+    .boundaries.pg_2_executed == false and
+    .boundaries.remote_publication == "none" and
+    .result == "passed"
+  ' "$ARTIFACTS/canonical-sync-report.json" >/dev/null ||
+    fail "canonical_sync_report_contract"
 fi
 
 SOURCE_ARCHIVE="$(jq -er '.source.archive' "$MANIFEST")"
@@ -623,6 +713,26 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
         fail "candidate_durable_outbox_source:$required"
     done
   fi
+  if [[ "$TASK_ID" == "CB-240" ]]; then
+    for required in \
+      app/migrations/001_runtime_spool.sql \
+      app/migrations/002_cb200_retention_and_transitions.sql \
+      app/migrations/003_cb220_scheduler_control.sql \
+      app/migrations/004_cb230_durable_outbox.sql \
+      app/migrations/005_cb240_canonical_sync.sql \
+      app/scripts/canonical-rebuild.js \
+      app/scripts/canonical-sync-acceptance.js \
+      app/scripts/canonical-sync-data.js \
+      app/src/services/canonical/canonical-sync.js \
+      app/src/services/db/database-adapter.js \
+      app/src/services/jobs/job-scheduler.js \
+      app/test/canonical-sync.test.js \
+      app/test/job-scheduler.test.js \
+      tests/canonical-sync.test.js; do
+      [[ -f "$RELEASE_STAGE/$required" && ! -L "$RELEASE_STAGE/$required" ]] ||
+        fail "candidate_canonical_sync_source:$required"
+    done
+  fi
   chown -R "$CODE_USER:$CODE_GROUP" "$RELEASE_STAGE"
   install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 "$STATE_ROOT/cache/npm"
   sudo -u "$CODE_USER" -H env \
@@ -647,7 +757,8 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
   ln -s "docs/product_design/v0.0.0.4/implementation-kit" \
     "$RELEASE_STAGE/implementation-kit"
   if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ||
-    "$TASK_ID" == "CB-220" || "$TASK_ID" == "CB-230" ]]; then
+    "$TASK_ID" == "CB-220" || "$TASK_ID" == "CB-230" ||
+    "$TASK_ID" == "CB-240" ]]; then
     ln -s "app/migrations" "$RELEASE_STAGE/migrations"
     jq '{
       schema_version: 1,
@@ -677,6 +788,13 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
     install -o "$CODE_USER" -g "$CODE_GROUP" -m 0440 \
       "$ARTIFACTS/outbox-recovery-matrix.json" \
       "$RELEASE_STAGE/evidence/outbox-recovery-matrix.json"
+  fi
+  if [[ "$TASK_ID" == "CB-240" ]]; then
+    install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 \
+      "$RELEASE_STAGE/evidence"
+    install -o "$CODE_USER" -g "$CODE_GROUP" -m 0440 \
+      "$ARTIFACTS/canonical-sync-report.json" \
+      "$RELEASE_STAGE/evidence/canonical-sync-report.json"
   fi
   install -o "$CODE_USER" -g "$CODE_GROUP" -m 0440 \
     "$KIT_ROOT/config/cloud-process-health.json" \
@@ -734,6 +852,11 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
         durable_inbox: $artifact[0].durable_inbox,
         job_scheduler: $artifact[0].job_scheduler,
         durable_outbox: $artifact[0].durable_outbox
+      }
+      elif $task_id == "CB-240"
+      then . + {
+        runtime_spool: $artifact[0].runtime_spool,
+        canonical_sync: $artifact[0].canonical_sync
       }
       else .
       end' >"$RELEASE_STAGE/release-manifest.json"
@@ -862,6 +985,38 @@ jq -e --arg release "$RELEASE_ID" \
     .durable_outbox.real_runtime == false and
     .durable_outbox.cb_240_executed == false and
     .durable_outbox.pg_2_executed == false
+  elif $task == "CB-240" then
+    .runtime_spool.schema_version == 5 and
+    .runtime_spool.migration_mode == "additive_backward_compatible" and
+    .runtime_spool.active_payload_encryption == "AES-256-GCM" and
+    .runtime_spool.channel_poll_integrated == true and
+    .runtime_spool.scheduler_integrated == true and
+    .runtime_spool.outbox_worker_integrated == true and
+    .runtime_spool.canonical_sync_integrated == true and
+    .runtime_spool.pg_2_executed == false and
+    .canonical_sync.schema_version == 1 and
+    .canonical_sync.area == "Private-MetaDatabase" and
+    .canonical_sync.domain == "CyberBoss" and
+    .canonical_sync.branch == "main" and
+    .canonical_sync.access_mode == "no_clone_client" and
+    .canonical_sync.max_records == 50 and
+    .canonical_sync.max_uncompressed_bytes == 262144 and
+    .canonical_sync.max_age_seconds == 60 and
+    .canonical_sync.deterministic_gzip == true and
+    .canonical_sync.content_addressed == true and
+    .canonical_sync.manifest_conflict_last_write_wins == false and
+    .canonical_sync.same_id_different_hash_quarantine == true and
+    .canonical_sync.bounded_mutation_backlog_guard == true and
+    .canonical_sync.read_only_drain_allowed == true and
+    .canonical_sync.code_data_identity_separated == true and
+    .canonical_sync.rebuild_without_sqlite == true and
+    .canonical_sync.timeline_projection_only == true and
+    .canonical_sync.real_private_database == false and
+    .canonical_sync.private_database_activation_status ==
+      "activation_pending" and
+    .canonical_sync.real_r2 == false and
+    .canonical_sync.cb_300_executed == false and
+    .canonical_sync.pg_2_executed == false
   else true end)
 ' "$RELEASE_PATH/release-manifest.json" >/dev/null ||
   fail "candidate_release_manifest"
@@ -870,7 +1025,8 @@ jq -e --arg release "$RELEASE_ID" \
   -f "$RELEASE_PATH/app/scripts/cloud-supervisor.js" ]] ||
   fail "candidate_contract_files"
 if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ||
-  "$TASK_ID" == "CB-220" || "$TASK_ID" == "CB-230" ]]; then
+  "$TASK_ID" == "CB-220" || "$TASK_ID" == "CB-230" ||
+  "$TASK_ID" == "CB-240" ]]; then
   [[ -L "$RELEASE_PATH/migrations" &&
     "$(realpath "$RELEASE_PATH/migrations")" == \
       "$RELEASE_PATH/app/migrations" &&
@@ -883,12 +1039,15 @@ if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ||
     .phase == $phase and
     .release_commit == $release and
     .runtime_spool.schema_version ==
-      (if $task == "CB-230" then 4
+      (if $task == "CB-240" then 5
+       elif $task == "CB-230" then 4
        elif $task == "CB-220" then 3
        else 2 end) and
     .runtime_spool.migration_mode == "additive_backward_compatible" and
     .runtime_spool.active_payload_encryption == "AES-256-GCM" and
-    .runtime_spool.real_canonical_sync == false
+    (if $task == "CB-240"
+     then .runtime_spool.canonical_sync_integrated == true
+     else .runtime_spool.real_canonical_sync == false end)
   ' "$RELEASE_PATH/schema-manifest.json" >/dev/null ||
     fail "candidate_schema_manifest"
   for migration in \
@@ -901,7 +1060,8 @@ if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ||
         "$RELEASE_PATH/schema-manifest.json")" ]] ||
       fail "candidate_migration_hash:$migration"
   done
-  if [[ "$TASK_ID" == "CB-220" || "$TASK_ID" == "CB-230" ]]; then
+  if [[ "$TASK_ID" == "CB-220" || "$TASK_ID" == "CB-230" ||
+    "$TASK_ID" == "CB-240" ]]; then
     migration="003_cb220_scheduler_control.sql"
     [[ "$(sha256sum "$RELEASE_PATH/app/migrations/$migration" |
       cut -d' ' -f1)" == \
@@ -910,8 +1070,17 @@ if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ||
         "$RELEASE_PATH/schema-manifest.json")" ]] ||
       fail "candidate_migration_hash:$migration"
   fi
-  if [[ "$TASK_ID" == "CB-230" ]]; then
+  if [[ "$TASK_ID" == "CB-230" || "$TASK_ID" == "CB-240" ]]; then
     migration="004_cb230_durable_outbox.sql"
+    [[ "$(sha256sum "$RELEASE_PATH/app/migrations/$migration" |
+      cut -d' ' -f1)" == \
+      "$(jq -er --arg migration "$migration" \
+        '.runtime_spool.migration_sha256[$migration]' \
+        "$RELEASE_PATH/schema-manifest.json")" ]] ||
+      fail "candidate_migration_hash:$migration"
+  fi
+  if [[ "$TASK_ID" == "CB-240" ]]; then
+    migration="005_cb240_canonical_sync.sql"
     [[ "$(sha256sum "$RELEASE_PATH/app/migrations/$migration" |
       cut -d' ' -f1)" == \
       "$(jq -er --arg migration "$migration" \
@@ -943,6 +1112,14 @@ if [[ "$TASK_ID" == "CB-230" ]]; then
   cmp -s "$ARTIFACTS/outbox-recovery-matrix.json" \
     "$RELEASE_PATH/evidence/outbox-recovery-matrix.json" ||
     fail "candidate_durable_outbox_matrix_drift"
+fi
+if [[ "$TASK_ID" == "CB-240" ]]; then
+  [[ -f "$RELEASE_PATH/evidence/canonical-sync-report.json" &&
+    ! -L "$RELEASE_PATH/evidence/canonical-sync-report.json" ]] ||
+    fail "candidate_canonical_sync_report"
+  cmp -s "$ARTIFACTS/canonical-sync-report.json" \
+    "$RELEASE_PATH/evidence/canonical-sync-report.json" ||
+    fail "candidate_canonical_sync_report_drift"
 fi
 [[ -L "$RELEASE_PATH/implementation-kit" &&
   "$(realpath "$RELEASE_PATH/implementation-kit")" == \
@@ -1001,6 +1178,15 @@ CB_OUTBOX_BASE_DELAY_MS=1000
 CB_OUTBOX_MAX_DELAY_MS=60000
 CB_OUTBOX_CHUNK_CHARS=3600
 CB_PRIVATE_DB_CANONICAL_SYNC=true
+CB_CANONICAL_FLUSH_ON_TERMINAL=true
+CB_CANONICAL_SPOOL_ROOT=$STATE_ROOT/canonical-spool
+CB_CANONICAL_DATA_STATE_ROOT=/var/lib/cyberboss-data/canonical-sync
+CB_CANONICAL_BATCH_MAX=50
+CB_CANONICAL_BATCH_MAX_BYTES=262144
+CB_CANONICAL_BATCH_MAX_AGE_MS=60000
+CB_CANONICAL_BACKLOG_MAX_EVENTS=10000
+CB_CANONICAL_BACKLOG_MAX_BYTES=67108864
+CB_CANONICAL_MAX_LAG_SECONDS=900
 CB_TIMELINE_WEB=true
 CB_STATUS_EXPORTER=true
 CB_R2_SNAPSHOT=true
@@ -1068,6 +1254,70 @@ fi
   "$STAGING_ENV" "$CONFIG_ROOT/workspaces.json" >/dev/null ||
   fail "staging_config_validation"
 
+if [[ "$TASK_ID" == "CB-240" ]]; then
+  command -v systemd-analyze >/dev/null 2>&1 ||
+    fail "required_command_missing:systemd-analyze"
+  getent passwd "$DATA_USER" >/dev/null || fail "data_user_missing"
+  getent group "$DATA_GROUP" >/dev/null || fail "data_group_missing"
+  CANONICAL_UNIT_SOURCE="$KIT_ROOT/systemd/cyberboss-canonical-sync.service"
+  CANONICAL_TIMER_SOURCE="$KIT_ROOT/systemd/cyberboss-canonical-sync.timer"
+  CANONICAL_UNIT_TARGET="/etc/systemd/system/cyberboss-canonical-sync.service"
+  CANONICAL_TIMER_TARGET="/etc/systemd/system/cyberboss-canonical-sync.timer"
+  SAFE_WRAPPER_TARGET="$APP_ROOT/shared/private_db_client_safe.py"
+  if [[ "$MODE" == "apply" ]]; then
+    install -o root -g root -m 0644 \
+      "$CANONICAL_UNIT_SOURCE" "$CANONICAL_UNIT_TARGET"
+    install -o root -g root -m 0644 \
+      "$CANONICAL_TIMER_SOURCE" "$CANONICAL_TIMER_TARGET"
+    install -o root -g "$DATA_GROUP" -m 0550 \
+      "$KIT_ROOT/scripts/private_db_client_safe.py" "$SAFE_WRAPPER_TARGET"
+    install -d -o root -g "$CODE_GROUP" -m 0750 \
+      "$STATE_ROOT/canonical-spool"
+    install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 \
+      "$STATE_ROOT/canonical-spool/outgoing"
+    install -d -o "$DATA_USER" -g "$CODE_GROUP" -m 0750 \
+      "$STATE_ROOT/canonical-spool/receipts"
+    install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0700 \
+      "$STATE_ROOT/canonical-spool/quarantine"
+    install -d -o "$DATA_USER" -g "$DATA_GROUP" -m 0700 \
+      /var/lib/cyberboss-data/canonical-sync \
+      /var/lib/cyberboss-data/canonical-sync/locks
+    systemctl daemon-reload
+  fi
+  cmp -s "$CANONICAL_UNIT_SOURCE" "$CANONICAL_UNIT_TARGET" ||
+    fail "canonical_unit_drift"
+  cmp -s "$CANONICAL_TIMER_SOURCE" "$CANONICAL_TIMER_TARGET" ||
+    fail "canonical_timer_drift"
+  cmp -s "$KIT_ROOT/scripts/private_db_client_safe.py" \
+    "$SAFE_WRAPPER_TARGET" || fail "safe_wrapper_drift"
+  [[ "$(stat -c '%U:%G:%a' "$SAFE_WRAPPER_TARGET")" == \
+    "root:$DATA_GROUP:550" ]] || fail "safe_wrapper_owner_mode"
+  [[ "$(stat -c '%U:%G:%a' "$STATE_ROOT/canonical-spool")" == \
+    "root:$CODE_GROUP:750" ]] || fail "canonical_spool_owner_mode"
+  [[ "$(stat -c '%U:%G:%a' "$STATE_ROOT/canonical-spool/outgoing")" == \
+    "$CODE_USER:$CODE_GROUP:750" ]] ||
+    fail "canonical_outgoing_owner_mode"
+  [[ "$(stat -c '%U:%G:%a' "$STATE_ROOT/canonical-spool/receipts")" == \
+    "$DATA_USER:$CODE_GROUP:750" ]] ||
+    fail "canonical_receipts_owner_mode"
+  [[ "$(stat -c '%U:%G:%a' "$STATE_ROOT/canonical-spool/quarantine")" == \
+    "$CODE_USER:$CODE_GROUP:700" ]] ||
+    fail "canonical_quarantine_owner_mode"
+  [[ "$(stat -c '%U:%G:%a' /var/lib/cyberboss-data/canonical-sync)" == \
+    "$DATA_USER:$DATA_GROUP:700" ]] ||
+    fail "canonical_data_state_owner_mode"
+  systemd-analyze verify "$CANONICAL_UNIT_TARGET" "$CANONICAL_TIMER_TARGET" \
+    >/dev/null || fail "canonical_systemd_verify"
+  systemctl is-active --quiet cyberboss-canonical-sync.service &&
+    fail "canonical_service_active"
+  systemctl is-enabled --quiet cyberboss-canonical-sync.service 2>/dev/null &&
+    fail "canonical_service_enabled"
+  systemctl is-active --quiet cyberboss-canonical-sync.timer &&
+    fail "canonical_timer_active"
+  systemctl is-enabled --quiet cyberboss-canonical-sync.timer 2>/dev/null &&
+    fail "canonical_timer_enabled"
+fi
+
 [[ "$(basename "$(readlink -f "$APP_ROOT/current")")" == "$EXPECTED_CURRENT" ]] ||
   fail "current_changed"
 [[ "$(sudo -u "$CODE_USER" git -c safe.directory="$WORKSPACE" \
@@ -1076,6 +1326,16 @@ fi
 systemctl is-active --quiet "$UNIT" && fail "service_active_after"
 systemctl is-enabled --quiet "$UNIT" 2>/dev/null &&
   fail "service_enabled_after"
+if [[ "$TASK_ID" == "CB-240" ]]; then
+  systemctl is-active --quiet cyberboss-canonical-sync.service &&
+    fail "canonical_service_active_after"
+  systemctl is-enabled --quiet cyberboss-canonical-sync.service 2>/dev/null &&
+    fail "canonical_service_enabled_after"
+  systemctl is-active --quiet cyberboss-canonical-sync.timer &&
+    fail "canonical_timer_active_after"
+  systemctl is-enabled --quiet cyberboss-canonical-sync.timer 2>/dev/null &&
+    fail "canonical_timer_enabled_after"
+fi
 [[ -z "$(ss -lntH '( sport = :8765 or sport = :8780 )')" ]] ||
   fail "listener_created"
 [[ -z "$(pgrep -u "$CODE_USER" 2>/dev/null || true)" ]] ||

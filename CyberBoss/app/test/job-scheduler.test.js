@@ -154,6 +154,7 @@ function createScheduler(environment, {
   runtimeLeaseMs = 30_000,
   controlLeaseMs = 10_000,
   snapshotProvider = readySnapshot,
+  canonicalMutationGuard,
 } = {}) {
   const scheduler = new JobScheduler({
     database: environment.database,
@@ -174,6 +175,7 @@ function createScheduler(environment, {
     pid: 4242,
     runtimeLeaseMs,
     controlLeaseMs,
+    canonicalMutationGuard,
   });
   scheduler.notePollSuccess(environment.clock.now());
   return scheduler;
@@ -528,6 +530,43 @@ test("resource protect leaves mutation queued and dispatches after recover", asy
   const recovered = await scheduler.runCycle();
   assert.equal(recovered.runtime.dispatched, true);
   assert.equal(runtimeCalls, 1);
+  environment.database.close();
+});
+
+test("scheduler rejects bounded mutation while canonical backlog protection is active but dispatches read-only", async (t) => {
+  const environment = fixtureEnvironment(t);
+  const mutation = enqueue(environment.database, "canonical-mutation", {
+    operationClass: "bounded_mutation",
+  });
+  environment.clock.advance(1);
+  const readOnly = enqueue(environment.database, "canonical-read-only", {
+    operationClass: "read_only",
+  });
+  const dispatches = [];
+  const scheduler = createScheduler(environment, {
+    canonicalMutationGuard: () => ({
+      mutationAllowed: false,
+      reason: "canonical_backlog_protect",
+    }),
+    async dispatchRuntime({ job }) {
+      dispatches.push(job.id);
+      return {
+        threadId: "thread-canonical-read-only",
+        turnId: "turn-canonical-read-only",
+      };
+    },
+  });
+  const cycle = await scheduler.runCycle();
+  assert.equal(cycle.runtime.dispatched, true);
+  assert.deepEqual(dispatches, [readOnly.jobId]);
+  assert.equal(
+    environment.database.getJob(mutation.jobId).status,
+    "queued",
+  );
+  assert.equal(
+    environment.database.getJob(readOnly.jobId).status,
+    "running",
+  );
   environment.database.close();
 });
 

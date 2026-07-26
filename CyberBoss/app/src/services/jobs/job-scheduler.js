@@ -137,6 +137,10 @@ class JobScheduler {
     setIntervalFn = setInterval,
     clearIntervalFn = clearInterval,
     onRuntimeTerminal = () => {},
+    canonicalMutationGuard = () => ({
+      mutationAllowed: true,
+      reason: "canonical_ready",
+    }),
   } = {}) {
     if (
       !database
@@ -175,6 +179,10 @@ class JobScheduler {
     this.setIntervalFn = setIntervalFn;
     this.clearIntervalFn = clearIntervalFn;
     this.onRuntimeTerminal = onRuntimeTerminal;
+    if (typeof canonicalMutationGuard !== "function") {
+      throw new JobSchedulerError("CANONICAL_MUTATION_GUARD_REQUIRED");
+    }
+    this.canonicalMutationGuard = canonicalMutationGuard;
     this.lastPollSuccessAt = null;
     this.lastPollErrorClass = null;
     this.lastGate = Object.freeze({
@@ -368,9 +376,45 @@ class JobScheduler {
     if (this.database.getActiveRuntimeJob()) {
       return Object.freeze({ dispatched: false, reason: "active_job" });
     }
-    const head = this.database.peekNextRuntimeJob();
+    let head = this.database.peekNextRuntimeJob();
     if (!head) {
       return Object.freeze({ dispatched: false, reason: "queue_empty" });
+    }
+    let canonicalGuard;
+    try {
+      canonicalGuard = await this.canonicalMutationGuard();
+    } catch {
+      canonicalGuard = {
+        mutationAllowed: false,
+        reason: "canonical_guard_unavailable",
+      };
+    }
+    let operationClassFilter = null;
+    if (
+      head.operation_class === "bounded_mutation" &&
+      canonicalGuard?.mutationAllowed !== true
+    ) {
+      const reason = safeCode(
+        canonicalGuard?.reason,
+        "canonical_backlog_protect",
+      );
+      this.database.setServiceState("canonical_mutation_gate", {
+        mutation_allowed: false,
+        reason_code: reason,
+        state_code: "blocked",
+      });
+      const readOnlyHead = this.database.peekNextRuntimeJob({
+        operationClass: "read_only",
+      });
+      if (!readOnlyHead) {
+        return Object.freeze({
+          dispatched: false,
+          reason,
+          canonicalGuard,
+        });
+      }
+      head = readOnlyHead;
+      operationClassFilter = "read_only";
     }
 
     let workspace;
@@ -383,6 +427,7 @@ class JobScheduler {
         expectedJobId: head.id,
         bootId: this.bootId,
         pid: this.pid,
+        operationClass: operationClassFilter,
       });
       if (claim.claimed) {
         const finalJob = this.database.finishRuntimeJob(
@@ -442,6 +487,7 @@ class JobScheduler {
       expectedJobId: head.id,
       bootId: this.bootId,
       pid: this.pid,
+      operationClass: operationClassFilter,
     });
     if (!claim.claimed) {
       return Object.freeze({

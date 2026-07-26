@@ -33,6 +33,9 @@ const { TimelineScreenshotQueueStore } = require("./timeline-screenshot-queue-st
 const { TurnGateStore } = require("./turn-gate-store");
 const { ReminderQueueStore } = require("../adapters/channel/weixin/reminder-queue-store");
 const { RuntimeSpoolDatabase } = require("../services/db/database-adapter");
+const {
+  CanonicalSpoolCoordinator,
+} = require("../services/canonical/canonical-sync");
 const { DurableInboxCoordinator } = require("../services/inbox/durable-inbox");
 const { JobScheduler } = require("../services/jobs/job-scheduler");
 const {
@@ -153,6 +156,7 @@ class CyberbossApp {
     this.durableInboxCoordinator = null;
     this.jobScheduler = null;
     this.outboxWorker = null;
+    this.canonicalSyncCoordinator = null;
     this.runtimeAdapter.onEvent((event) => {
       this.threadStateStore.applyRuntimeEvent(event);
       this.runtimeEventChain = this.runtimeEventChain
@@ -210,6 +214,31 @@ class CyberbossApp {
         });
         this.streamDelivery.setOutboxWorker(this.outboxWorker);
       }
+      if (this.config.canonicalSync === true) {
+        this.canonicalSyncCoordinator = new CanonicalSpoolCoordinator({
+          database: this.runtimeSpoolDatabase,
+          outgoingDirectory: path.join(
+            this.config.canonicalSpoolRoot,
+            "outgoing",
+          ),
+          receiptDirectory: path.join(
+            this.config.canonicalSpoolRoot,
+            "receipts",
+          ),
+          quarantineDirectory: path.join(
+            this.config.canonicalSpoolRoot,
+            "quarantine",
+          ),
+          deployedCommit: this.config.canonicalDeployedCommit,
+          maxRecords: this.config.canonicalBatchMax,
+          maxBytes: this.config.canonicalBatchMaxBytes,
+          maxAgeMs: this.config.canonicalBatchMaxAgeMs,
+          flushOnTerminal: this.config.canonicalFlushOnTerminal,
+          backlogMaxEvents: this.config.canonicalBacklogMaxEvents,
+          backlogMaxBytes: this.config.canonicalBacklogMaxBytes,
+          maxLagSeconds: this.config.canonicalMaxLagSeconds,
+        });
+      }
       this.durableInboxCoordinator = new DurableInboxCoordinator({
         channelAdapter: this.channelAdapter,
         database: this.runtimeSpoolDatabase,
@@ -254,6 +283,14 @@ class CyberbossApp {
               ? undefined
               : this.handleDurableJobTerminal(payload)
           ),
+          canonicalMutationGuard: () => (
+            this.canonicalSyncCoordinator
+              ? this.canonicalSyncCoordinator.mutationGuard()
+              : {
+                  mutationAllowed: false,
+                  reason: "canonical_coordinator_unavailable",
+                }
+          ),
         });
       }
     } catch (error) {
@@ -274,6 +311,10 @@ class CyberbossApp {
       this.outboxWorker.stop();
       this.outboxWorker = null;
       this.streamDelivery.setOutboxWorker(null);
+    }
+    if (this.canonicalSyncCoordinator) {
+      this.canonicalSyncCoordinator.stop();
+      this.canonicalSyncCoordinator = null;
     }
     this.durableInboxCoordinator = null;
     if (this.runtimeSpoolDatabase) {
@@ -313,6 +354,7 @@ class CyberbossApp {
       this.initializeDurableInbox();
       runtimeState = await this.runtimeAdapter.initialize();
       await this.outboxWorker?.start();
+      await this.canonicalSyncCoordinator?.start();
       this.jobScheduler?.start();
     } catch (error) {
       this.closeDurableInbox();
@@ -341,6 +383,9 @@ class CyberbossApp {
     );
     console.log(
       `[cyberboss] durableOutbox=${this.outboxWorker ? "enabled" : "staging_direct"}`,
+    );
+    console.log(
+      `[cyberboss] canonicalSync=${this.canonicalSyncCoordinator ? "spooling" : "staging_disabled"}`,
     );
     console.log(`[cyberboss] runtimeEndpoint=${runtimeState.endpoint || runtimeState.command || "(spawn)"}`);
     console.log(`[cyberboss] runtimeModels=${runtimeState.models?.length || 0}`);
@@ -385,6 +430,7 @@ class CyberbossApp {
               );
             }
             await this.outboxWorker?.runCycle();
+            await this.canonicalSyncCoordinator?.runCycle();
             await this.jobScheduler?.runCycle();
           } else {
             const fetched = await this.channelAdapter.fetchUpdates({
