@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-130",
+  "phase": "P1.4",
+  "implementation_commit": "81dc1ee211e554dd8b84001bfca4b8aa73bb89dd",
+  "acceptance": {
+    "AC-011": "passed",
+    "AC-040": "passed",
+    "AC-044": "passed",
+    "AC-062": "passed"
+  },
+  "health_fixture": {
+    "health_status": 200,
+    "ready_status": 200,
+    "unready_health_status": 200,
+    "unready_ready_status": 503,
+    "snapshot_unauthorized_status": 401,
+    "snapshot_wrong_auth_status": 401,
+    "snapshot_authorized_status": 200,
+    "snapshot_forbidden_hits": 0
+  },
+  "network": {
+    "runtime_listener": "127.0.0.1:8765",
+    "status_listener": "127.0.0.1:8780",
+    "channel_fixture_listener": "127.0.0.1:19080",
+    "external_8765_unreachable": true,
+    "external_8780_unreachable": true,
+    "public_listeners": 0
+  },
+  "process_family": {
+    "one_systemd_cgroup": true,
+    "kill_mode": "control-group",
+    "detached_children": false,
+    "supervisor_count": 1,
+    "runtime_count": 1,
+    "channel_count": 1,
+    "bridge_count": 1
+  },
+  "singleton": {
+    "concurrent_start_attempts": 100,
+    "concurrent_start_passes": 100,
+    "lock_contenders": 100,
+    "lock_denials": 100,
+    "active_owner": 1
+  },
+  "restart": {
+    "kill_restart_attempts": 100,
+    "kill_restart_passes": 100,
+    "systemd_nrestarts_observed": 104,
+    "ready_predicate": true,
+    "whole_family_replaced": true,
+    "fixed_wait": false,
+    "llm_calls": 0
+  },
+  "fault_matrix": {
+    "runtime": {
+      "down_observed": true,
+      "recovered": true
+    },
+    "channel": {
+      "down_observed": true,
+      "recovered": true
+    },
+    "bridge": {
+      "down_observed": true,
+      "recovered": true
+    },
+    "service": {
+      "down_observed": true,
+      "recovered": true
+    },
+    "false_green_observed": false
+  },
+  "adapters": {
+    "runtime_simulator": "verified",
+    "channel_simulator": "verified",
+    "real_codex": "activation_pending",
+    "real_wechat": "activation_pending",
+    "real_credential_operations": 0
+  },
+  "final": {
+    "service_enabled": false,
+    "service_active": false,
+    "current_changed": false,
+    "workspace_changed": false,
+    "processes": 0,
+    "listeners_8765_8780_19080": 0,
+    "transient_dropins": 0,
+    "ephemeral_tokens": 0
+  },
+  "target_address_persisted": false,
+  "result": "passed"
+}

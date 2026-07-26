@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-130",
+  "phase": "P1.4",
+  "target_id_sha256": "7865f743d174",
+  "implementation_commit": "81dc1ee211e554dd8b84001bfca4b8aa73bb89dd",
+  "check_passed": true,
+  "check_persistent_writes": false,
+  "check_live_commands": false,
+  "apply_passes": 2,
+  "verify_passed": true,
+  "second_apply_idempotent": true,
+  "candidate_release_immutable": true,
+  "candidate_tests_passed": true,
+  "candidate_test_count": 170,
+  "candidate_test_failures": 0,
+  "corresponding_source_complete": true,
+  "license_expression": "AGPL-3.0-only AND GPL-3.0-only",
+  "original_licenses_preserved": true,
+  "conflict_record_preserved": true,
+  "upstream_clarification_received": false,
+  "current_changed": false,
+  "workspace_changed": false,
+  "service_started_during_install": false,
+  "service_enabled": false,
+  "real_adapter_activation": "activation_pending",
+  "real_credential_operations": 0,
+  "private_database_cloned": false,
+  "preserved_attempts": [
+    {
+      "implementation_commit": "7b8854cea6acf53199c979d302024d853bdf672f",
+      "stage": "artifact_transfer_check",
+      "result": "stopped_before_install",
+      "finding": "source archive root was already the CyberBoss root and the first outer tar included AppleDouble metadata",
+      "artifact_checksums_passed": true,
+      "cleanup_passed": true
+    },
+    {
+      "implementation_commit": "7b8854cea6acf53199c979d302024d853bdf672f",
+      "stage": "candidate_install",
+      "result": "failed_after_tests_before_candidate_move",
+      "finding": "target Node 24 emitted the TAP summary as information-symbol tests 170 while the parser accepted only hash-prefix tests 170",
+      "app_tests_passed": 170,
+      "candidate_created": false,
+      "cleanup_passed": true
+    },
+    {
+      "implementation_commit": "fcd6bbe057149034a662d74a408b55f3494cadcd",
+      "stage": "cloud_process_acceptance",
+      "result": "failed_before_restart_cycle_one",
+      "finding": "systemd 255 rejected kill-whom all for auxiliary processes with invalid argument",
+      "normal_invocations_observed": 4,
+      "component_exit_events_observed": 0,
+      "cleanup_passed": true
+    },
+    {
+      "implementation_commit": "fcd6bbe057149034a662d74a408b55f3494cadcd",
+      "stage": "line_level_diagnostic_rerun",
+      "result": "root_cause_confirmed",
+      "finding": "kill the service main process and rely on KillMode control-group, then prove all prior cgroup members disappeared",
+      "cleanup_passed": true,
+      "superseded_candidate_removed": true,
+      "recoverable_from_attempt_artifact": true
+    }
+  ],
+  "target_address_persisted": false,
+  "result": "passed"
+}

@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "taskpack_version": "v0.0.0.4",
-  "updated_on": "2026-07-26",
+  "updated_on": "2026-07-27",
   "current_run": {
-    "run_id": "P1.3",
+    "run_id": "P1.4",
     "gate_id": null,
-    "task_id": "CB-120",
-    "scope": "controlled_workspace_and_no_clone_client",
+    "task_id": "CB-130",
+    "scope": "supervised_loopback_cloud_process_family",
     "status": "passed"
   },
   "prestage": [
@@ -33,7 +33,7 @@
     {"id": "CB-100", "stage": "S1", "phase": "P1.1", "status": "passed"},
     {"id": "CB-110", "stage": "S1", "phase": "P1.2", "status": "passed"},
     {"id": "CB-120", "stage": "S1", "phase": "P1.3", "status": "passed"},
-    {"id": "CB-130", "stage": "S1", "phase": "P1.4", "status": "not_started"},
+    {"id": "CB-130", "stage": "S1", "phase": "P1.4", "status": "passed"},
     {"id": "CB-140", "stage": "S1", "phase": "P1.5", "status": "not_started"},
     {"id": "CB-200", "stage": "S2", "phase": "P2.1", "status": "not_started"},
     {"id": "CB-210", "stage": "S2", "phase": "P2.2", "status": "not_started"},

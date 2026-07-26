@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-130",
+  "phase": "P1.4",
+  "implementation_commit": "81dc1ee211e554dd8b84001bfca4b8aa73bb89dd",
+  "status": "not_executed_acceptance_passed",
+  "kill_scope": "systemd_control_group",
+  "current_pointer_must_not_move": true,
+  "workspace_must_not_move": true,
+  "transient_dropin_removed": true,
+  "ephemeral_token_removed": true,
+  "candidate_removal_requires_exact_release_manifest": true,
+  "staging_config_removal_requires_exact_release_id": true,
+  "credential_delete_allowed": false,
+  "private_database_delete_allowed": false,
+  "prune_now_allowed": false,
+  "target_address_persisted": false
+}

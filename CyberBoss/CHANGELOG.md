@@ -1,5 +1,35 @@
 # Changelog
 
+## P1.4 / CB-130 — 2026-07-27
+
+- Bound the loopback cloud process family and complete Corresponding Source to
+  local implementation commit
+  `81dc1ee211e554dd8b84001bfca4b8aa73bb89dd`; check, two applies,
+  independent verify and target App tests 170/170 passed.
+- Added one fixed non-shell supervisor for Runtime, channel and bridge under the
+  existing `KillMode=control-group` unit, with no detached children and a
+  single root-controlled lock owner.
+- Added independent `/healthz`, `/readyz` and token-protected bounded status
+  snapshot contracts; the forced-unready fixture remained healthy but not
+  ready and could not fake green.
+- Proved 8765/8780/19080 loopback-only listeners and operator-host
+  unreachability for 8765/8780; final public and local listener counts are
+  zero.
+- Passed 100/100 concurrent systemd starts, 100/100 singleton-lock denials,
+  100/100 real SIGKILL/restarts with complete cgroup-member replacement, and
+  runtime/channel/bridge/service fault recovery 4/4.
+- Preserved four non-passing transfer/install/acceptance attempts, including
+  the Node 24 TAP-prefix parser correction and systemd 255
+  `kill-whom=all` incompatibility, with exact cleanup outcomes.
+- Left `current` on CB-100, workspace on CB-120, service disabled/inactive,
+  transient drop-in/token/incoming counts at zero, and real Codex/WeChat
+  activation at `activation_pending`.
+- Preserved original source/licenses and the unresolved strict
+  `AGPL-3.0-only AND GPL-3.0-only` conflict record without claiming upstream
+  clarification.
+- Marked only CB-130 passed. CB-140, all later tasks and PG-1–PG-5 remain
+  `not_started`; GitHub branch/PR/tag/release/publication remains empty.
+
 ## P1.3 / CB-120 — 2026-07-26
 
 - Bound complete Corresponding Source, a no-external-fetch partial repository

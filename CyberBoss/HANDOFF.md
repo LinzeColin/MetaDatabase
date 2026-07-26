@@ -1,19 +1,19 @@
 # CyberBoss HANDOFF
 
-- Updated: 2026-07-26
+- Updated: 2026-07-27
 - Repository: `LinzeColin/MetaDatabase`
 - Worktree:
   `/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-cyberboss`
 - Local branch: `codex/cyberboss-prestage0`
-- Base: `origin/main@4c207ad539754166fae6642ff4e6850438d3e2fc`
+- Run base: `9e1c128aa3890f7c0ea0e69000fdb46e32a4bb00`
 - Remote publication: none
 
 ## Current state
 
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
-exit gate `PG-0`, and `P1.1 / CB-100` through `P1.3 / CB-120` passed.
-Stage 0 is 5/5 tasks plus its gate complete; Stage 1 is 3/5 tasks complete.
-The 22 tasks from CB-130 onward and PG-1–PG-5 remain `not_started`.
+exit gate `PG-0`, and `P1.1 / CB-100` through `P1.4 / CB-130` passed.
+Stage 0 is 5/5 tasks plus its gate complete; Stage 1 is 4/5 tasks complete.
+The 21 tasks from CB-140 onward and PG-1–PG-5 remain `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
@@ -234,6 +234,49 @@ file was deleted. Final candidate immutability/cache-absence, zero process/
 listener state, source/license/conflict preservation and
 `upstream_clarification_received=false` all revalidated.
 
+CB-130 fixed the loopback cloud process family to local implementation commit:
+
+```text
+implementation/release = 81dc1ee211e554dd8b84001bfca4b8aa73bb89dd
+runtime = 127.0.0.1:8765
+health/status = 127.0.0.1:8780
+channel simulator = 127.0.0.1:19080
+process family = one systemd cgroup / no detached children
+real Codex = activation_pending
+real WeChat = activation_pending
+publication = none
+```
+
+The exact three-file artifact set contains complete Corresponding Source,
+manifest and checksums. Target check, two applies and an independent verify
+passed; the first apply ran 170/170 App tests and the second was idempotent.
+The candidate is immutable while `current` remains on CB-100 and the
+controlled workspace remains clean at CB-120.
+
+Staging proved one supervisor/Runtime/channel/bridge owner, independent
+healthy/ready/unready semantics and a token-protected bounded snapshot.
+8765/8780/19080 were loopback-only and operator-host scans found 8765/8780
+externally unreachable. Concurrent starts passed 100/100, active-owner lock
+contenders were denied 100/100, and actual SIGKILL/restart passed 100/100 with
+down observation, a new InvocationID, ready predicate and complete replacement
+of every prior cgroup member. Runtime, channel, bridge and whole-service fault
+recovery passed 4/4 without false green.
+
+Four non-passing attempts are preserved: wrong initial archive-root/AppleDouble
+transfer, Node 24 TAP-prefix parsing after tests had passed 170/170, systemd
+255 rejecting `kill-whom=all` for auxiliary processes, and the line-level
+diagnostic rerun that confirmed it. Every attempt returned the service to
+disabled/inactive with no listener/process/drop-in/token. The superseded
+candidate was deleted only after exact-manifest verification and remained
+recoverable from its attempt artifact during correction.
+
+Final target state has MainPID/process/listener/transient/incoming counts zero;
+only the exact immutable CB-130 candidate plus root-controlled simulator
+staging config/state remain. No real credential, provider or
+Private-MetaDatabase operation occurred. Original source/licenses and the
+strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved, and
+no upstream clarification is claimed.
+
 ## Canonical inputs and evidence
 
 - Product design: `docs/product_design/v0.0.0.4/`
@@ -243,7 +286,7 @@ listener state, source/license/conflict preservation and
 - Task state: `machine/facts/task_state.json`
 - Fixed-source lock: `machine/source-lock.json`
 - Current Run Contract:
-  `docs/governance/RUN_CONTRACT_P1_3_CB_120.md`
+  `docs/governance/RUN_CONTRACT_P1_4_CB_130.md`
 - CB-000 source/license evidence: `docs/evidence/CB-000/`
 - CB-010 OVH/resource evidence: `docs/evidence/CB-010/`
 - CB-020 identity/provider/security evidence: `docs/evidence/CB-020/`
@@ -253,9 +296,11 @@ listener state, source/license/conflict preservation and
 - CB-100 host-layout/systemd evidence: `docs/evidence/CB-100/`
 - CB-110 runtime-toolchain/loopback evidence: `docs/evidence/CB-110/`
 - CB-120 controlled-workspace/no-clone evidence: `docs/evidence/CB-120/`
+- CB-130 supervised loopback process-family evidence:
+  `docs/evidence/CB-130/`
 - Consolidated activation sheet: `docs/evidence/CB-030/auth-gates.md`
 - Current validation report:
-  `docs/evidence/CB-120/VALIDATION_REPORT.md`
+  `docs/evidence/CB-130/VALIDATION_REPORT.md`
 - Machine-readable scope:
   `docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json`
 - Credential slots:
@@ -339,7 +384,18 @@ listener state, source/license/conflict preservation and
 - CB-120 final state: candidate immutable, workspace clean, code/data
   processes=0, 8765/8780 listeners=0, service disabled/inactive and current
   unchanged.
-- CB-120 decision: `PASS`; CB-130, all 21 later tasks and PG-1–PG-5 remain
+- CB-120 decision: `PASS`; it did not start CB-130 inside that Run.
+- CB-130 artifact build, target write-free check, two applies and independent
+  verify passed; target App regression is 170/170.
+- CB-130 health/ready/unready/snapshot contract, loopback-only listeners and
+  operator-host external-unreachable scan passed.
+- CB-130 concurrent start 100/100, singleton denial 100/100, actual
+  SIGKILL/restart 100/100 with whole-family replacement, and four-role fault
+  recovery 4/4 passed.
+- CB-130 final state: exact candidate immutable, service disabled/inactive,
+  MainPID/process/listener/drop-in/token/incoming zero, current/workspace
+  unchanged and real adapters `activation_pending`.
+- CB-130 decision: `PASS`; CB-140, all 20 later tasks and PG-1–PG-5 remain
   `not_started`.
 
 ## Known unknowns
@@ -348,25 +404,27 @@ listener state, source/license/conflict preservation and
   tested. Codex is installed but target auth remains `activation_pending`; the
   fixture screenshot is deliberately marked non-real.
 - No real Private-MetaDatabase object, Cloudflare Access/DNS/R2 resource, OCI
-  object or CyberBoss business Runtime was created or modified through CB-120.
+  object or authenticated CyberBoss business Runtime was created or modified
+  through CB-130.
 - Exact provider write-scope attestations remain external activation inputs;
   successful GETs are not treated as proof of safe writes.
 - The online Status surface still has no CyberBoss row.
 - The OVH capacity/profile remains point-in-time; each later activation must
   rerun preflight.
-- Project-local Node/Codex, the immutable App candidate and the controlled
-  workspace are installed and verified. Current switching, authenticated
-  Runtime, business process family, rclone and sqlite3 CLI remain later-task
-  boundaries.
+- Project-local Node/Codex, the immutable App candidates, controlled workspace
+  and simulator-backed supervised process family are installed and verified.
+  Current switching, authenticated Runtime/WeChat, rclone and sqlite3 CLI
+  remain later-task boundaries.
 
 ## Next Run
 
-The next eligible Run is exactly `P1.4 / CB-130`. It remains `not_started`.
-CB-120 does not authorize switching `current`, Codex/WeChat authentication,
-real business Runtime startup, provider/data activation or `PG-1`.
+The next eligible Run is exactly `P1.5 / CB-140`. It remains `not_started`.
+CB-130 does not authorize switching `current`, Codex/WeChat authentication,
+real provider/data activation or `PG-1`.
 
 Start it only under a new single-phase Run Contract. Keep source/license and
-CB-000–CB-120/PG-0 evidence immutable, preserve the strict dual-license
+CB-000–CB-130/PG-0 evidence immutable, preserve the strict dual-license
 conflict record, and continue the final-only GitHub publication rule. Do not
-combine `P1.4` with `P1.5`, expose Runtime or perform a real provider/data
-write unless the new Run Contract and exact Acceptance authorize it.
+combine `P1.5` with `PG-1`, expose Runtime publicly or perform a real
+provider/data write unless the new Run Contract and exact Acceptance authorize
+it.

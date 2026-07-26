@@ -137,6 +137,28 @@ cgroup pressure 零 OOM。验收过程中 root Python 产生的两个 cache entr
 process/listener 为 0，`current` 仍指向 CB-100，service 仍
 disabled/inactive；没有 push/PR/tag/release。
 
+P1.4 / CB-130 以本地 implementation commit
+`81dc1ee211e554dd8b84001bfca4b8aa73bb89dd` 固定一个非 shell、
+无 detached child 的 cloud supervisor，在既有
+`KillMode=control-group` unit 下管理 loopback Runtime、channel fixture
+与 bridge。目标机 check、两次 apply、独立 verify 和 App 170/170 tests
+通过；第二次 apply 幂等，candidate 只读且完整保留 Corresponding Source、
+原许可证与冲突记录。
+
+`/healthz`、`/readyz` 与 token-protected bounded snapshot 分离验证；
+forced-unready 为 healthy 200 / ready 503，不能假绿。8765/8780/19080
+仅监听 loopback，操作者主机扫描确认 8765/8780 外部不可达。100/100
+concurrent start、100/100 singleton denial、100/100 SIGKILL/restart 与
+runtime/channel/bridge/service 4/4 fault recovery 全部通过，每次恢复均证明
+旧 cgroup 成员已全部替换。Node 24 TAP 前缀与 systemd 255
+`kill-whom=all` 两个真实 harness 缺陷及所有失败/清理结果完整保留。
+
+最终 service 为 disabled/inactive，MainPID、process、listener、transient
+drop-in、token、incoming 均为 0；`current` 仍指向 CB-100，workspace 仍在
+CB-120。真实 Codex/WeChat 仍准确保持 `activation_pending`，没有
+Private-MetaDatabase/provider 写入或 GitHub publication。下一任务
+`P1.5 / CB-140` 仍为 `not_started`。
+
 ## 许可证
 
 `CyberBoss/` 子树适用 [`LICENSE`](LICENSE) 中的 GNU AGPL-3.0-only。
