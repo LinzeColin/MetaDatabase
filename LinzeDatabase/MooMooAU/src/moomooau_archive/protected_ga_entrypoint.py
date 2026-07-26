@@ -637,7 +637,8 @@ def _ga_authorized(project_root: Path) -> bool:
     return bool(
         contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0705"
-        and contract.get("baseline_commit") == "c4d4f6cdd60398fba2724d32a99a59306f4225a1"
+        and contract.get("baseline_commit")
+        == "c4d4f6cdd60398fba2724d32a99a59306f4225a1"  # pragma: allowlist secret
         and authorization.get("purpose") == "T0705_PROTECTED_GA_SCHEDULE_MODE_AND_ENABLEMENT_ONLY"
         and authorization.get("t0704_receipt_required") is True
         and authorization.get("t0704_receipt_sha256") == blue_green_receipt_sha256(root)

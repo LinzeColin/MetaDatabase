@@ -790,7 +790,7 @@
     {
       "path": "machine/contracts/production_composition.json",
       "bytes": 5314,
-      "sha256": "15b80156586862ecfaffcc0a9d0b023b9dbd66395f8906bcd5d13f196cfac118"
+      "sha256": "8b385cc7aa45607acd8638162d33e53ca768f7402a75f49fddeb955f16be6952"
     },
     {
       "path": "machine/contracts/publication_safety.json",
@@ -1725,7 +1725,7 @@
     {
       "path": "machine/status/latest.json",
       "bytes": 9124,
-      "sha256": "3d442bbf43005368ad1d93496f177e8ea4c6c575df16dbea23fd218a30e74ba7"
+      "sha256": "4e5db20ffb05280f77ea995a51179b7ade7ed2eead6597227cfb9e48691c6690"
     },
     {
       "path": "machine/tools/README.md",
@@ -2254,8 +2254,8 @@
     },
     {
       "path": "src/moomooau_archive/protected_ga_entrypoint.py",
-      "bytes": 34458,
-      "sha256": "7100fa4f09912c1fcd1cf624303caaf232fb9376558aa7ef91cacfaf625aeef7"
+      "bytes": 34494,
+      "sha256": "ffd559d2d9c7f9fd8b102a5476464c986c3c0b91d42e2c9821813cc4f19356a7"
     },
     {
       "path": "src/moomooau_archive/protected_m3.py",

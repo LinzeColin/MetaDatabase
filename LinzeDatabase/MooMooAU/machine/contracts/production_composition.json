@@ -69,7 +69,7 @@
       "sha256": "cfd74ded9e0c89de1cb5c2f7d03e34d4f902011f6cf73314387f832ddb556f24"
     },
     "src/moomooau_archive/protected_ga_entrypoint.py": {
-      "sha256": "7100fa4f09912c1fcd1cf624303caaf232fb9376558aa7ef91cacfaf625aeef7"
+      "sha256": "ffd559d2d9c7f9fd8b102a5476464c986c3c0b91d42e2c9821813cc4f19356a7"
     },
     "tests/remediation/test_rmd04.py": {
       "sha256": "4e6fb520c4500fc458f7676018371cb6c50e2a26fabde22cfe73f14b26b2f2ce"
