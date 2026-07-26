@@ -1,0 +1,57 @@
+{
+  "created_at": "2026-07-26T12:49:26Z",
+  "decision_core_digests": {
+    "D-0001": "59e41afbb856d9c567369f669ebfdd4dc98dea874487557aaa4e1efdb33a83e6",
+    "D-0002": "eff53e7c03926144a4b76d54fcb08f11e1bd3f73f7deea06919cbb8e57224e33",
+    "D-0003": "563ece492934ba27291b33d9b5b7676a95aed5da5d634956e2dcf6754d5e5ac2",
+    "D-0004": "d2388de23f44c479850ab9d40b2bbee24fd4670a17f92bd6916131f6197788fd"
+  },
+  "decision_statuses": {
+    "D-0001": "ACCEPTED",
+    "D-0002": "ACCEPTED",
+    "D-0003": "ACCEPTED",
+    "D-0004": "ACCEPTED"
+  },
+  "display_name_zh": "文脉中枢",
+  "execution_digest": "8751f0785c32f40bcd58cb3c409e62c54df07ae8f59bf4ef6a64f1a70f44d08e",
+  "files": {
+    "DECISIONS.md": {
+      "bytes": 4176,
+      "sha256": "c5482cef35c4e5fa782444b8f35e5f9fc1314879080dfecdd554487c6c94ba6a"
+    },
+    "HANDOFF.md": null,
+    "KERNEL.md": {
+      "bytes": 7936,
+      "sha256": "d0ea51ac16b747d8616dd5c6e60e2b6eec09d3df683ce7c11631a895707998c8"
+    }
+  },
+  "last_operation": {
+    "at": "2026-07-26T12:52:18Z",
+    "result": "COMMITTED",
+    "route": "checkpoint"
+  },
+  "limits": {
+    "decisions_context_units": 12000,
+    "handoff_context_units": 2500,
+    "kernel_context_units": 4000,
+    "max_active_markdown_files": 3,
+    "max_blockers": 7,
+    "max_completed": 12,
+    "max_decision_refs": 12,
+    "max_decision_units": 900,
+    "max_do_not_repeat": 7,
+    "max_evidence": 20,
+    "max_in_progress": 7,
+    "max_next_actions": 5,
+    "max_risks": 7,
+    "max_unknowns": 7
+  },
+  "protected_digest": "aa5550b65f723d9879708ef50f834f3ee628afe6ae60cf3680cd9a57ea8f9561",
+  "responsibility_digest": "a6583a2413f9f5fc008187a42245fcb4a8b8b177bfd4d8d0a9a65b5a259052b6",
+  "revision": 1,
+  "runtime_dir": ".ramify",
+  "schema": "context-kernel/manifest-v1",
+  "skill_name": "context-kernel",
+  "skill_version": "0.0.0.1",
+  "updated_at": "2026-07-26T12:52:18Z"
+}

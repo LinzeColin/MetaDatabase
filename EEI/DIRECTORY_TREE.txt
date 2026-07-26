@@ -17,6 +17,10 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── pull_request_template.md
 │   ├── release.yml
 │   └── release_checklist.md
+├── .ramify
+│   ├── DECISIONS.md
+│   ├── KERNEL.md
+│   └── MANIFEST.json
 ├── apps
 │   ├── api
 │   │   ├── app
@@ -718,6 +722,7 @@ Enterprise_Ecosystem_Intelligence_release
 │       ├── test_operator_soak_evidence.py
 │       ├── test_operator_soak_finalization.py
 │       ├── test_postgres_compose_clean_environment.py
+│       ├── test_private_db_client.py
 │       ├── test_production_api_release_preflight.py
 │       ├── test_release_decision_bundle.py
 │       ├── test_release_manager_activation.py

@@ -14,6 +14,9 @@
 .github/release_checklist.md
 .github/workflows/governance-validation.yml
 .gitignore
+.ramify/DECISIONS.md
+.ramify/KERNEL.md
+.ramify/MANIFEST.json
 AGENTS.md
 CHANGELOG.md
 CHECKSUMS.sha256
@@ -624,6 +627,7 @@ tests/unit/test_official_source_live_capture.py
 tests/unit/test_operator_soak_evidence.py
 tests/unit/test_operator_soak_finalization.py
 tests/unit/test_postgres_compose_clean_environment.py
+tests/unit/test_private_db_client.py
 tests/unit/test_production_api_release_preflight.py
 tests/unit/test_release_decision_bundle.py
 tests/unit/test_release_manager_activation.py
