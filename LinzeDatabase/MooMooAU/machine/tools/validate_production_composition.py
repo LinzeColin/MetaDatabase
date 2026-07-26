@@ -36,6 +36,7 @@ EXPECTED_SOURCE_PATHS = {
     "src/moomooau_archive/kill_switch.py",
     "src/moomooau_archive/operation_gate.py",
     "src/moomooau_archive/processed_commit.py",
+    "src/moomooau_archive/raw_commit.py",
     "src/moomooau_archive/production.py",
     "src/moomooau_archive/production_adapters.py",
     "src/moomooau_archive/gmail_sync_checkpoint.py",
@@ -138,6 +139,7 @@ def validate(
         'test "$GITHUB_SHA" != "9c79b92bcdf8b027727963dfe52bd183a170954c"',
         'test "$GITHUB_SHA" != "27886f54a30a12ca7992a908e97340d1d8234430"',
         'test "$GITHUB_SHA" != "c2c057b449fe1cbbd470867c274833242e3f139d"',
+        'test "$GITHUB_SHA" != "0d0b6afd6a0cde606230a3df7378bdd90586de5d"',
     )
     contract_secret_names = contract.get("secret_names")
     actual_secret_names = re.findall(

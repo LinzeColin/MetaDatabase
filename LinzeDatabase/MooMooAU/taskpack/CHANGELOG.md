@@ -1,5 +1,19 @@
 # Taskpack Changelog
 
+## 1.0.33 — 2026-07-26
+
+固化 v1.0.32 exact-main protected attempt 的 `RAW_RECOVERY` 失败。authority、candidate validation、
+live-clock GitHub App authentication、精确 repository scope 与 Gmail OAuth 均通过；首个 verified
+candidate 完成 Raw/Processed 远端恢复和二次验证并取得确定 Trash 结果，下一 candidate 写入 Raw
+后恢复失败，Timeline 与 checkpoint 均未提交。只读 A/B 证明 Contents raw-media 表示与 metadata
+size/canonical SHA 不一致，而 metadata SHA 定址的 Git Blob 同时通过 response SHA、size、age
+envelope 与 canonical SHA。失败 head 永久禁止 rerun/redispatch。
+
+v1.0.33 只把 Raw recovery 切换到 metadata-addressed canonical Git Blob，并将 RunPlanner-only
+Fixture 移到 `2026-07-26T19:00:00Z`。Revision drift、编码、size、age 与 canonical SHA 故障注入
+即时 fail closed；不设置 Soak、观察期、真实时间等待、人工审批或全量测试前置。只授权一个新
+exact-main attempt 1，T0706 与最终发布仍禁止。
+
 ## 1.0.32 — 2026-07-26
 
 固化 v1.0.31 exact-main protected attempt 的 `GITHUB_APP_TOKEN` 认证拒绝。candidate validation、

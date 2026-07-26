@@ -115,6 +115,12 @@ FAILED_T0705_AUTHENTICATION_CLOCK_ATTEMPT_LEDGER_SHA256 = (
 FAILED_T0705_AUTHENTICATION_CLOCK_ATTEMPT_LEDGER_SCHEMA_SHA256 = (
     "bba6e330cee067128c6c14b4dd7333900e1e175beede90fbc93ce390a897782a"  # pragma: allowlist secret
 )
+FAILED_T0705_RAW_RECOVERY_ATTEMPT_LEDGER_SHA256 = (
+    "69dfae428aacfa3f20748472027dc89cf8d625c57bcbeb8cdb7f9315b743fd65"  # pragma: allowlist secret
+)
+FAILED_T0705_RAW_RECOVERY_ATTEMPT_LEDGER_SCHEMA_SHA256 = (
+    "b0457d69d11d6be3cff0edd5b3a4db4ff7a5a7c8306b88670111f5f3d801ad51"  # pragma: allowlist secret
+)
 PROTECTED_BETA_ATTEMPT_LEDGER = Path("machine/stages/S7/reviews/t0702/attempt-ledger.json")
 PROTECTED_BETA_ATTEMPT_LEDGER_SCHEMA = Path(
     "machine/stages/S7/schemas/protected-beta-attempt-ledger-v2.schema.json"
@@ -210,6 +216,13 @@ PROTECTED_GA_AUTHENTICATION_CLOCK_ATTEMPT_LEDGER = Path(
 )
 PROTECTED_GA_AUTHENTICATION_CLOCK_ATTEMPT_LEDGER_SCHEMA = Path(
     "machine/stages/S7/schemas/protected-ga-authentication-clock-attempt-ledger-v1.schema.json"
+)
+PROTECTED_GA_RAW_RECOVERY_ATTEMPT_LEDGER = Path(
+    "machine/stages/S7/reviews/t0705/raw-recovery-representation-attempt-ledger.json"
+)
+PROTECTED_GA_RAW_RECOVERY_ATTEMPT_LEDGER_SCHEMA = Path(
+    "machine/stages/S7/schemas/"
+    "protected-ga-raw-recovery-representation-attempt-ledger-v1.schema.json"
 )
 STAGE7_TASKS = [f"T070{index}" for index in range(1, 9)]
 STAGE7_ACCEPTANCES = [f"S7AC-00{index}" for index in range(1, 9)]
@@ -308,7 +321,7 @@ def _validate_contracts(root: Path) -> list[str]:
         errors.append("Stage 7 acceptance-to-task mapping must be one-to-one")
     if (
         local.get("overall_status")
-        != "T0705_ELEVEN_FAILED_HEADS_FROZEN_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED_PENDING"
+        != "T0705_TWELVE_FAILED_HEADS_FROZEN_RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED_PENDING"
         or local.get("final_acceptances_passed") != 0
         or "Local implementation preflight" not in local.get("final_acceptance_policy", "")
         or "No fixed calendar observation period or wall-clock 04:30 wait applies"
@@ -357,17 +370,17 @@ def _validate_contracts(root: Path) -> list[str]:
         or run.get("stage_id") != "S7"
         or run.get("task_id") != "T0705"
         or run.get("baseline_commit")
-        != "c2c057b449fe1cbbd470867c274833242e3f139d"  # pragma: allowlist secret
+        != "0d0b6afd6a0cde606230a3df7378bdd90586de5d"  # pragma: allowlist secret
         or run.get("baseline_manifest_sha256")
-        != "a34a474f0c7ad3d43234fe50c870c1d106948e6b4ad5da399cdac386d41e87a8"  # pragma: allowlist secret  # noqa: E501
+        != "f5d59a581c3845c4db122ec06bfbe8980d14e324e9a3f85f0676e34c8bfb7c28"  # pragma: allowlist secret  # noqa: E501
         or not isinstance(prohibitions, dict)
         or any(value != 0 for value in prohibitions.values())
         or authorization.get("purpose")
-        != "T0705_PROTECTED_GA_SECURITY_CLOCK_DECOUPLING_RECOVERY_AND_ENABLEMENT_ONLY"
+        != "T0705_PROTECTED_GA_RAW_CANONICAL_GIT_BLOB_RECOVERY_AND_ENABLEMENT_ONLY"
         or authorization.get("original_run_contract_sha256")
         != "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"  # pragma: allowlist secret  # noqa: E501
         or authorization.get("prior_run_contract_sha256")
-        != "a850da84e7a056dd290cac3dcfea26d0976112ca299fd767ed4964385d47ad6b"  # pragma: allowlist secret  # noqa: E501
+        != "4257ed7784285320fd18fce57a546b1560fd9f5d42238e744ba11890cc8457dd"  # pragma: allowlist secret  # noqa: E501
         or authorization.get("failed_attempt_ledgers_required") != 9
         or authorization.get("first_failed_attempt_ledger_sha256")
         != FAILED_T0705_ATTEMPT_LEDGER_SHA256
@@ -421,6 +434,10 @@ def _validate_contracts(root: Path) -> list[str]:
         != FAILED_T0705_AUTHENTICATION_CLOCK_ATTEMPT_LEDGER_SHA256
         or authorization.get("authentication_clock_attempt_ledger_schema_sha256")
         != FAILED_T0705_AUTHENTICATION_CLOCK_ATTEMPT_LEDGER_SCHEMA_SHA256
+        or authorization.get("raw_recovery_attempt_ledger_sha256")
+        != FAILED_T0705_RAW_RECOVERY_ATTEMPT_LEDGER_SHA256
+        or authorization.get("raw_recovery_attempt_ledger_schema_sha256")
+        != FAILED_T0705_RAW_RECOVERY_ATTEMPT_LEDGER_SCHEMA_SHA256
         or authorization.get("failed_workflow_head_shas")
         != [
             "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",  # pragma: allowlist secret
@@ -449,6 +466,10 @@ def _validate_contracts(root: Path) -> list[str]:
         != [
             "c2c057b449fe1cbbd470867c274833242e3f139d",  # pragma: allowlist secret
         ]
+        or authorization.get("failed_raw_recovery_head_shas")
+        != [
+            "0d0b6afd6a0cde606230a3df7378bdd90586de5d",  # pragma: allowlist secret
+        ]
         or authorization.get("failed_head_rerun_allowed") is not False
         or authorization.get("failed_head_redispatch_allowed") is not False
         or authorization.get("t0704_receipt_required") is not True
@@ -456,14 +477,15 @@ def _validate_contracts(root: Path) -> list[str]:
         != "67a5b0f2860fac8b97d459d79f1ad87172f6ce4e45570bb1a1f4f8dc0731fbf7"  # pragma: allowlist secret  # noqa: E501
         or authorization.get("t0705_authorized") is not True
         or authorization.get("t0706_authorized") is not False
-        or authorization.get("controlled_main_delivery_total_limit") != 15
-        or authorization.get("controlled_main_deliveries_consumed") != 13
+        or authorization.get("controlled_main_delivery_total_limit") != 16
+        or authorization.get("controlled_main_deliveries_consumed") != 14
         or authorization.get("controlled_main_deliveries_remaining") != 2
-        or authorization.get("ga_rehearsal_dispatches_consumed") != 11
-        or authorization.get("ga_candidate_preflight_dispatches_consumed") != 4
+        or authorization.get("ga_rehearsal_dispatches_consumed") != 12
+        or authorization.get("ga_candidate_preflight_dispatches_consumed") != 5
         or authorization.get("ga_authority_context_scope_failures_consumed") != 1
         or authorization.get("ga_schedule_planning_clock_failures_consumed") != 1
         or authorization.get("ga_authentication_clock_coupling_failures_consumed") != 1
+        or authorization.get("ga_raw_recovery_representation_failures_consumed") != 1
         or authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") != 1
         or authorization.get("ga_label_replay_repair_dispatches_consumed") != 1
         or authorization.get("ga_phase_diagnostic_dispatches_consumed") != 1
@@ -474,30 +496,33 @@ def _validate_contracts(root: Path) -> list[str]:
         or authorization.get("ga_canonical_git_blob_recovery_dispatch_limit") != 1
         or authorization.get("ga_deterministic_clock_recovery_dispatch_limit") != 1
         or authorization.get("ga_security_clock_decoupling_recovery_dispatch_limit") != 1
+        or authorization.get("ga_raw_canonical_git_blob_recovery_dispatch_limit") != 1
         or authorization.get("ga_first_import_diagnostic_rerun_limit") != 0
         or authorization.get("security_clock_mode") != "LIVE_UTC"
         or authorization.get("rehearsal_schedule_clock_mode")
         != "DETERMINISTIC_HISTORICAL_REPLAY_FIXTURE"
-        or authorization.get("rehearsal_schedule_clock_fixture_utc") != "2026-07-26T13:00:00Z"
-        or authorization.get("known_data_effect_upper_bound_utc") != "2026-07-26T05:44:53Z"
+        or authorization.get("rehearsal_schedule_clock_fixture_utc") != "2026-07-26T19:00:00Z"
+        or authorization.get("known_data_effect_upper_bound_utc") != "2026-07-26T16:12:21Z"
         or authorization.get("manual_environment_reviewers_required") is not False
         or authorization.get("fixed_calendar_wait_days") != 0
         or authorization.get("final_publication_authorized") is not False
-        or effect_budget.get("controlled_main_deliveries_total_maximum") != 15
+        or effect_budget.get("controlled_main_deliveries_total_maximum") != 16
         or effect_budget.get("controlled_main_deliveries_remaining_maximum") != 2
         or effect_budget.get("protected_environment_secret_names_maximum") != 8
         or effect_budget.get("private_data_repository_creations_maximum") != 0
         or effect_budget.get("github_app_creations_maximum") != 0
-        or effect_budget.get("protected_ga_rehearsal_dispatches_total_maximum") != 12
-        or effect_budget.get("protected_ga_rehearsal_dispatches_consumed") != 11
-        or effect_budget.get("protected_ga_candidate_preflight_dispatches_total_maximum") != 5
-        or effect_budget.get("protected_ga_candidate_preflight_dispatches_consumed") != 4
+        or effect_budget.get("protected_ga_rehearsal_dispatches_total_maximum") != 13
+        or effect_budget.get("protected_ga_rehearsal_dispatches_consumed") != 12
+        or effect_budget.get("protected_ga_candidate_preflight_dispatches_total_maximum") != 6
+        or effect_budget.get("protected_ga_candidate_preflight_dispatches_consumed") != 5
         or effect_budget.get("protected_ga_authority_context_scope_failures_maximum") != 1
         or effect_budget.get("protected_ga_authority_context_scope_failures_consumed") != 1
         or effect_budget.get("protected_ga_schedule_planning_clock_failures_maximum") != 1
         or effect_budget.get("protected_ga_schedule_planning_clock_failures_consumed") != 1
         or effect_budget.get("protected_ga_authentication_clock_coupling_failures_maximum") != 1
         or effect_budget.get("protected_ga_authentication_clock_coupling_failures_consumed") != 1
+        or effect_budget.get("protected_ga_raw_recovery_representation_failures_maximum") != 1
+        or effect_budget.get("protected_ga_raw_recovery_representation_failures_consumed") != 1
         or effect_budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") != 1
         or effect_budget.get("protected_ga_label_replay_repair_dispatches_consumed") != 1
         or effect_budget.get("protected_ga_phase_diagnostic_dispatches_consumed") != 1
@@ -514,6 +539,7 @@ def _validate_contracts(root: Path) -> list[str]:
         or effect_budget.get("protected_ga_deterministic_clock_recovery_dispatches_consumed") != 1
         or effect_budget.get("protected_ga_security_clock_decoupling_recovery_dispatches_maximum")
         != 1
+        or effect_budget.get("protected_ga_raw_canonical_git_blob_recovery_dispatches_maximum") != 1
         or effect_budget.get("protected_ga_rehearsal_reruns_maximum") != 0
         or effect_budget.get("failed_head_reruns_maximum") != 0
         or effect_budget.get("failed_head_redispatches_maximum") != 0
@@ -526,6 +552,8 @@ def _validate_contracts(root: Path) -> list[str]:
         or effect_budget.get(
             "protected_ga_security_clock_decoupling_recovery_pipeline_runs_maximum"
         )
+        != 1
+        or effect_budget.get("protected_ga_raw_canonical_git_blob_recovery_pipeline_runs_maximum")
         != 1
         or effect_budget.get("platform_schedule_events_during_rehearsal_maximum") != 0
         or effect_budget.get("gmail_exact_message_trash_mutations_maximum") != 1
@@ -541,7 +569,7 @@ def _validate_contracts(root: Path) -> list[str]:
         or effect_budget.get("patch_lifecycle_protected_runs_maximum") != 0
         or not run.get("protected_oracles")
         or not any(
-            "more than one new protected T0705 security-clock-decoupling recovery dispatch" in item
+            "more than one new protected T0705 Raw canonical Git Blob recovery dispatch" in item
             for item in run.get("non_goals", [])
         )
         or not run.get("rollback")
@@ -673,25 +701,24 @@ def _validate_contracts(root: Path) -> list[str]:
         [item.get("id") for item in task_items] != STAGE7_TASKS
         or any(item.get("status") == "completed" for item in task_items)
         or status.get("stage_status")
-        != "T0705_ELEVEN_FAILED_HEADS_FROZEN_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED_PENDING"
+        != "T0705_TWELVE_FAILED_HEADS_FROZEN_RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED_PENDING"
         or status.get("scoped_preflight_task_oracle_file_count") != 8
         or status.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or status.get("completed_task_count") != 0
         or status.get("protected_oracles_executed") != 5
         or status.get("protected_oracles_passed") != 4
         or status.get("protected_oracles_failed") != 1
-        or status.get("protected_workflow_runs") != 31
-        or status.get("production_workflow_runs") != 13
+        or status.get("protected_workflow_runs") != 32
+        or status.get("production_workflow_runs") != 14
         or status.get("final_acceptances_passed") != 0
         or status.get("delivery_status")
-        != "CONTROLLED_T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_CANDIDATE_NOT_FINAL"
+        != "CONTROLLED_T0705_RAW_CANONICAL_BLOB_RECOVERY_CANDIDATE_NOT_FINAL"
         or status.get("ordering_status")
         != (
-            "T0705_ELEVEN_PROTECTED_FAILED_HEADS_FROZEN_TWO_PRE_SECRET_FAILURES_"
-            "ONE_SECURITY_CLOCK_DECOUPLING_RECOVERY_ATTEMPT_AUTHORIZED"
+            "T0705_TWELVE_PROTECTED_FAILED_HEADS_FROZEN_TWO_PRE_SECRET_FAILURES_"
+            "ONE_RAW_CANONICAL_BLOB_RECOVERY_ATTEMPT_AUTHORIZED"
         )
-        or status.get("diagnostic_repair_status")
-        != "GA_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED"
+        or status.get("diagnostic_repair_status") != "GA_RAW_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED"
         or status.get("new_controlled_delivery_authorized") is not True
         or status.get("new_protected_dispatch_authorized") is not True
     ):
@@ -701,7 +728,7 @@ def _validate_contracts(root: Path) -> list[str]:
     semantic_statuses = {item.get("status") for item in semantic.get("resolutions", [])}
     if (
         semantic.get("status")
-        != "T0705_ELEVEN_FAILED_HEADS_FROZEN_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED_PENDING"
+        != "T0705_TWELVE_FAILED_HEADS_FROZEN_RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED_PENDING"
         or semantic.get("baseline_commit") != BASELINE_COMMIT
         or not semantic.get("resolutions")
         or "T0702_PROTECTED_BETA_PASS_NO_RERUN" not in semantic_statuses
@@ -722,7 +749,8 @@ def _validate_contracts(root: Path) -> list[str]:
         or "T0705_ONE_SHOT_AUTHORITY_SCOPE_RECOVERY_AUTHORIZED" not in semantic_statuses
         or "T0705_DETERMINISTIC_HISTORICAL_CLOCK_RECOVERY_DELIVERED_HEAD_FROZEN"
         not in semantic_statuses
-        or "T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED" not in semantic_statuses
+        or "T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_DELIVERED_HEAD_FROZEN" not in semantic_statuses
+        or "T0705_RAW_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED" not in semantic_statuses
         or "T0703_FAILED_LINEAGE_FROZEN" not in semantic_statuses
         or "PROTECTED_ZERO_NEW_WRITE_RECONCILIATION_VALIDATED" not in semantic_statuses
         or "T0703_PROTECTED_ZERO_MUTATION_RECONCILIATION_PASS" not in semantic_statuses
@@ -1124,7 +1152,7 @@ def _validate_source_and_tests(root: Path) -> list[str]:
     runbook = root / "operations/STAGE7_RUNBOOK.md"
     runbook_text = runbook.read_text(encoding="utf-8") if runbook.is_file() else ""
     for token in (
-        "T0705_ELEVEN_FAILED_HEADS_FROZEN_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED_PENDING",
+        "T0705_TWELVE_FAILED_HEADS_FROZEN_RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED_PENDING",
         "不设自然日等待",
         "一次有界受保护运行",
         "04:30 Australia/Sydney",
@@ -3491,6 +3519,110 @@ def _validate_evidence(root: Path) -> list[str]:
             )
         ):
             errors.append("protected GA authentication-clock ledger is not exact or frozen")
+    ga_raw_ledger_path = root / PROTECTED_GA_RAW_RECOVERY_ATTEMPT_LEDGER
+    ga_raw_schema_path = root / PROTECTED_GA_RAW_RECOVERY_ATTEMPT_LEDGER_SCHEMA
+    if (
+        not ga_raw_ledger_path.is_file()
+        or ga_raw_ledger_path.is_symlink()
+        or not ga_raw_schema_path.is_file()
+        or ga_raw_schema_path.is_symlink()
+    ):
+        errors.append("protected GA Raw-recovery ledger is missing or unsafe")
+    else:
+        ga_raw_ledger = _load(ga_raw_ledger_path)
+        ga_raw_schema = _load(ga_raw_schema_path)
+        ledger_errors = list(
+            Draft202012Validator(
+                ga_raw_schema,
+                format_checker=FormatChecker(),
+            ).iter_errors(ga_raw_ledger)
+        )
+        workflow = ga_raw_ledger.get("workflow", {})
+        jobs = ga_raw_ledger.get("jobs", {})
+        failure = ga_raw_ledger.get("failure", {})
+        effects = ga_raw_ledger.get("effects", {})
+        topology = ga_raw_ledger.get("remote_commit_topology", {})
+        replay = ga_raw_ledger.get("read_only_representation_ab", {})
+        policy = ga_raw_ledger.get("completion_policy", {})
+        claims = ga_raw_ledger.get("claims", {})
+        raw_head = "0d0b6afd6a0cde606230a3df7378bdd90586de5d"
+        if (
+            ledger_errors
+            or _sha256(ga_raw_ledger_path) != FAILED_T0705_RAW_RECOVERY_ATTEMPT_LEDGER_SHA256
+            or _sha256(ga_raw_schema_path) != FAILED_T0705_RAW_RECOVERY_ATTEMPT_LEDGER_SCHEMA_SHA256
+            or ga_raw_ledger.get("scope")
+            != "PROTECTED_ENVIRONMENT_VERIFIED_PIPELINE_RAW_RECOVERY_ONLY"
+            or workflow.get("workflow_head_sha") != raw_head
+            or workflow.get("run_id") != 30209560542
+            or workflow.get("run_attempt") != 1
+            or workflow.get("reruns") != 0
+            or jobs.get("authority_context") != "PASS"
+            or jobs.get("candidate_validation") != "PASS"
+            or jobs.get("protected_environment") != "FAILED"
+            or jobs.get("live_schedule_hold") != "SKIPPED"
+            or jobs.get("plaintext_cleanup") != "PASS"
+            or failure.get("phase") != "RAW_RECOVERY"
+            or failure.get("reason_code") != "PROTECTED_GA_RAW_RECOVERY_FAILED"
+            or failure.get("finding")
+            != "CONTENTS_RAW_MEDIA_REPRESENTATION_DIFFERS_FROM_CANONICAL_GIT_BLOB"
+            or failure.get("public_payload_exact_root_cause_claimed") is not False
+            or failure.get("ledger_exact_root_cause_claimed") is not True
+            or effects.get("protected_environment_entered") is not True
+            or effects.get("protected_secret_names_injected") != 8
+            or effects.get("github_app_repository_scope") != "PASS"
+            or effects.get("gmail_oauth_exchange") != "PASS"
+            or effects.get("first_candidate_full_recovery_before_trash") is not True
+            or effects.get("first_candidate_second_verification_before_trash") is not True
+            or effects.get("first_candidate_trash_outcome") != "CONFIRMED_OR_ALREADY_TRASHED"
+            or effects.get("gmail_exact_message_trash_api_calls_claimed") is not False
+            or effects.get("second_candidate_raw_commit_reached") is not True
+            or effects.get("second_candidate_raw_recovery_completed") is not False
+            or effects.get("timeline_mutations") != 0
+            or effects.get("checkpoint_mutations") != 0
+            or effects.get("platform_schedule_events") != 0
+            or effects.get("tmpfs_plaintext_cleanup") != "PASS"
+            or effects.get("repository_scoped_one_shot_authority_after_cleanup") != "ABSENT"
+            or effects.get("production_enablement_variable_after_failure") != "ABSENT"
+            or topology.get("private_repository_locator_disclosed") is not False
+            or topology.get("private_object_paths_disclosed") is not False
+            or topology.get("timeline_or_checkpoint_commit_present") is not False
+            or replay.get("network_mutations") != 0
+            or replay.get("contents_raw_media", {}).get("declared_size_match") is not False
+            or replay.get("contents_raw_media", {}).get("canonical_git_blob_sha_match") is not False
+            or replay.get("metadata_addressed_git_blob", {}).get("response_sha_match") is not True
+            or replay.get("metadata_addressed_git_blob", {}).get("declared_size_match") is not True
+            or replay.get("metadata_addressed_git_blob", {}).get("decoded_size_match") is not True
+            or replay.get("metadata_addressed_git_blob", {}).get("age_envelope_valid") is not True
+            or replay.get("metadata_addressed_git_blob", {}).get("canonical_git_blob_sha_match")
+            is not True
+            or policy.get("same_head_rerun_allowed") is not False
+            or policy.get("failed_head_redispatch_allowed") is not False
+            or policy.get("frozen_raw_recovery_head_shas") != [raw_head]
+            or policy.get("next_candidate_dispatch_limit") != 1
+            or policy.get("protected_ga_rehearsal_dispatches_consumed") != 12
+            or policy.get("protected_ga_candidate_preflight_dispatches_consumed") != 5
+            or policy.get("protected_ga_rehearsal_reruns") != 0
+            or policy.get("rehearsal_schedule_clock_fixture_utc") != "2026-07-26T19:00:00Z"
+            or policy.get("known_data_effect_upper_bound_utc") != "2026-07-26T16:12:21Z"
+            or policy.get("real_time_wait_allowed") is not False
+            or policy.get("t0705_complete") is not False
+            or policy.get("t0706_authorized") is not False
+            or policy.get("final_publication_authorized") is not False
+            or claims.get("candidate_validation_executed") is not True
+            or claims.get("protected_ga_data_plane_executed") is not True
+            or claims.get("exact_gmail_mutation_call_count_claimed") is not False
+            or any(
+                claims.get(key) is not False
+                for key in (
+                    "production_health_claimed",
+                    "t0705_pass_claimed",
+                    "stage7_complete_claimed",
+                    "final_acceptance_claimed",
+                    "final_publication_claimed",
+                )
+            )
+        ):
+            errors.append("protected GA Raw-recovery ledger is not exact or frozen")
     graph = _load(root / "machine/contracts/task_graph.json")
     graph_tasks = {item["id"]: item for item in graph["tasks"] if item["stage_id"] == "S7"}
     required_blockers = {
@@ -3503,8 +3635,8 @@ def _validate_evidence(root: Path) -> list[str]:
             "FINAL_ACCEPTANCE_AND_POST_BLUE_GREEN_STAGE7_PHASES_NOT_RUN",
         },
         "T0705": {
-            "T0705_ELEVEN_PROTECTED_FAILED_HEADS_FROZEN",
-            "T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_PENDING",
+            "T0705_TWELVE_PROTECTED_FAILED_HEADS_FROZEN",
+            "T0705_RAW_CANONICAL_GIT_BLOB_RECOVERY_PENDING",
             "T0705_PROTECTED_RECEIPT_NOT_BOUND",
             "FINAL_ACCEPTANCE_AND_POST_GA_STAGE7_PHASES_NOT_RUN",
         },
@@ -3628,15 +3760,15 @@ def _validate_evidence(root: Path) -> list[str]:
     if (
         latest.get("stage_id") != "S7"
         or latest.get("status")
-        != "T0705_ELEVEN_FAILED_HEADS_FROZEN_SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED_PENDING"
+        != "T0705_TWELVE_FAILED_HEADS_FROZEN_RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED_PENDING"
         or latest.get("scoped_preflight")
         != "PASS_CONTROL_BETA_M3_BLUE_GREEN_TIMELINE_GA_CODEX_AUTO_RECOVERY_AND_PATCH_POLICY"
         or latest.get("implementation_completion_status") != "LOCAL_MECHANISMS_READY"
         or latest.get("scope")
         != (
             "LOCAL_PREFLIGHT_WITH_PROTECTED_T0702_T0703_T0704_PASS_RECEIPTS"
-            "_ELEVEN_T0705_FAILED_ATTEMPTS_TWO_PRE_SECRET_FAILURES"
-            "_ONE_SECURITY_CLOCK_COUPLING_FAILURE_AND_ONE_SECURITY_CLOCK_DECOUPLING_RECOVERY"
+            "_TWELVE_T0705_FAILED_ATTEMPTS_TWO_PRE_SECRET_FAILURES"
+            "_ONE_RAW_RECOVERY_REPRESENTATION_FAILURE_AND_ONE_RAW_CANONICAL_BLOB_RECOVERY"
         )
         or latest.get("mechanism_task_oracle_files_passed") != 8
         or latest.get("task_total") != 8
@@ -3645,8 +3777,8 @@ def _validate_evidence(root: Path) -> list[str]:
         or latest.get("protected_oracles_executed") != 5
         or latest.get("protected_oracles_passed") != 4
         or latest.get("protected_oracles_failed") != 1
-        or latest.get("protected_workflow_runs") != 31
-        or latest.get("production_workflow_runs") != 13
+        or latest.get("protected_workflow_runs") != 32
+        or latest.get("production_workflow_runs") != 14
         or observation.get("alpha_local_synthetic") != "PASS"
         or observation.get("beta_local_bootstrap_mechanism") != "PASS"
         or observation.get("beta_public_safe_failure_diagnostics")
@@ -3662,8 +3794,8 @@ def _validate_evidence(root: Path) -> list[str]:
         != "PASS_EXACT_PROTECTED_ENTRYPOINT_READY"
         or observation.get("ga_protected_entrypoint")
         != (
-            "ELEVENTH_PROTECTED_GITHUB_APP_AUTHENTICATION_FAILURE_FROZEN_"
-            "SECURITY_CLOCK_DECOUPLING_RECOVERY_AUTHORIZED"
+            "TWELFTH_PROTECTED_RAW_RECOVERY_REPRESENTATION_FAILURE_FROZEN_"
+            "RAW_CANONICAL_BLOB_RECOVERY_AUTHORIZED"
         )
         or observation.get("codex_auto_local_policy") != "PASS"
         or observation.get("recovery_drill_local_mechanism") != "PASS"
@@ -3682,7 +3814,7 @@ def _validate_evidence(root: Path) -> list[str]:
         != "NONZERO_AGE_CIPHERTEXT_ONLY_REMOTE_RECOVERY_100_PERCENT"
         or observation.get("protected_secret_injection")
         != "EIGHT_EXACT_NAMES_INJECTED_EXACT_READ_COUNT_NOT_DISCLOSED"
-        or observation.get("controlled_main_deliveries") != 30
+        or observation.get("controlled_main_deliveries") != 31
         or observation.get("private_raw_commits") != "NONZERO_WITHIN_CONFIGURED_BUDGET"
         or observation.get("remote_publications") != 0
         or observation.get("m3_runs") != 1
@@ -3693,16 +3825,16 @@ def _validate_evidence(root: Path) -> list[str]:
         or not aggregate_required_blockers.issubset(latest.get("blocking_conditions", []))
         or aggregate_resolved_blockers.intersection(latest.get("blocking_conditions", []))
         or latest.get("delivery_status")
-        != "CONTROLLED_T0705_SECURITY_CLOCK_DECOUPLING_RECOVERY_CANDIDATE_NOT_FINAL"
+        != "CONTROLLED_T0705_RAW_CANONICAL_BLOB_RECOVERY_CANDIDATE_NOT_FINAL"
         or latest.get("next_action")
         != (
-            "Freeze the authentication-clock-coupling failed head, deliver one exact-main T0705 "
-            "split-clock successor, and execute exactly one new attempt-1 schedule-mode rehearsal: "
-            "live UTC for security/authentication and 2026-07-26T13:00:00Z only for RunPlanner. "
-            "Never rerun or redispatch any failed head. Set the one-shot repository variable only "
-            "after merge, delete it after authority consumption, then after exact protected PASS "
-            "bind the receipt, enable only the committed live UTC 04:30 Australia/Sydney schedule "
-            "and stop before T0706."
+            "Freeze the Raw-recovery representation failed head, deliver one exact-main T0705 "
+            "Raw canonical Git Blob successor, and execute exactly one new attempt-1 "
+            "schedule-mode rehearsal with 2026-07-26T19:00:00Z only for RunPlanner. "
+            "Never rerun or redispatch any "
+            "failed head. Set the one-shot repository variable only after merge, delete it after "
+            "authority consumption, then after exact protected PASS bind the receipt, enable only "
+            "the committed live UTC 04:30 Australia/Sydney schedule and stop before T0706."
         )
     ):
         errors.append("Stage 7 aggregate evidence is not truthfully T0705 authorized-pending")

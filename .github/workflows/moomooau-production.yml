@@ -71,6 +71,7 @@ jobs:
           test "$GITHUB_SHA" != "9c79b92bcdf8b027727963dfe52bd183a170954c"
           test "$GITHUB_SHA" != "27886f54a30a12ca7992a908e97340d1d8234430"
           test "$GITHUB_SHA" != "c2c057b449fe1cbbd470867c274833242e3f139d"
+          test "$GITHUB_SHA" != "0d0b6afd6a0cde606230a3df7378bdd90586de5d"
           test "$GA_CONFIRMATION" = \
             "GA_SCHEDULE_MODE_CANONICAL_GIT_BLOB_RECOVERY_MUTATION_BUDGET_ONE"
           [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
@@ -111,6 +112,7 @@ jobs:
           python -m ruff format --check \
             src/moomooau_archive/ga_runtime.py \
             src/moomooau_archive/processed_commit.py \
+            src/moomooau_archive/raw_commit.py \
             src/moomooau_archive/production.py \
             src/moomooau_archive/protected_blue_green.py \
             src/moomooau_archive/protected_ga_diagnostics.py \
@@ -123,6 +125,7 @@ jobs:
           python -m ruff check --no-cache \
             src/moomooau_archive/ga_runtime.py \
             src/moomooau_archive/processed_commit.py \
+            src/moomooau_archive/raw_commit.py \
             src/moomooau_archive/production.py \
             src/moomooau_archive/protected_blue_green.py \
             src/moomooau_archive/protected_ga_diagnostics.py \
@@ -135,6 +138,7 @@ jobs:
           python -m mypy --no-incremental --cache-dir "$RUNNER_TEMP/mypy-cache" \
             src/moomooau_archive/ga_runtime.py \
             src/moomooau_archive/processed_commit.py \
+            src/moomooau_archive/raw_commit.py \
             src/moomooau_archive/production.py \
             src/moomooau_archive/protected_blue_green.py \
             src/moomooau_archive/protected_ga_diagnostics.py \

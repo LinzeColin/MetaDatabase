@@ -55,15 +55,15 @@
     },
     {
       "evidence_ref": "evidence/tasks/T0705.json",
-      "evidence_sha256": "7b5f5c337451859d62f42d0ec44a627a0f8f2fac2c6ad6093ff3239edc1de05b",
+      "evidence_sha256": "5d5889e91a784e73ea3cdb4e2bcd914035b5d322ab0d6ad06009633e76afabdf",
       "final_claim_status": "PARTIAL",
-      "reason": "The dependency-injected GA mechanism processes only deterministically verified candidates and binds each current pointer to bounded Contents metadata plus the exact metadata-addressed canonical Git Blob before decrypt. All eleven protected attempts failed and no T0705 PASS receipt exists; the formatter and authority-context rejections both occurred before protected Secret or data-plane access. The eleventh protected attempt stopped at GitHub App authentication before repository resolution or Gmail OAuth, with zero private-repository calls, Gmail calls or mutations.",
+      "reason": "The dependency-injected GA mechanism processes only deterministically verified candidates and binds Processed current pointers and Raw recovery to bounded Contents metadata plus the exact metadata-addressed canonical Git Blob before decrypt. All twelve protected attempts failed and no T0705 PASS receipt exists; the formatter and authority-context rejections both occurred before protected Secret or data-plane access. The twelfth protected attempt reached Raw recovery after one verified candidate completed Raw/Processed recovery and a determinate Trash outcome; it stopped before Timeline or checkpoint mutation.",
       "source_record_status": "BLOCKED",
       "task_id": "T0705"
     }
   ],
   "next_action": "Execute the exact final Oracle and close every linked PARTIAL/NOT_RUN claim; do not enable production from this control-plane record.",
-  "observed_at_utc": "2026-07-26T15:14:43Z",
+  "observed_at_utc": "2026-07-26T16:22:15Z",
   "oracle_observations": [],
   "oracle_status": "NOT_RUN",
   "pass_gate": false,
@@ -90,7 +90,7 @@
     "untrusted_content_execution": 0
   },
   "record_status": "VALID",
-  "remediation_base_commit": "c2c057b449fe1cbbd470867c274833242e3f139d",
+  "remediation_base_commit": "0d0b6afd6a0cde606230a3df7378bdd90586de5d",
   "requirement_id": "RQ-002",
   "schema_version": "moomooau.acceptance-evidence.v1",
   "scope": "LOCAL_ACCEPTANCE_CONTROL_PLANE",

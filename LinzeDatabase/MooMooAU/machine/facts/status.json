@@ -1,8 +1,8 @@
 {
-  "version": "1.0.32",
-  "stage": "RMD-06 T0705 十一个 GA 失败头及两个 pre-Secret 失败头已冻结，security-clock-decoupling successor 已授权待运行",
-  "phase": "T0705 十一个 protected exact-main attempt-1 失败头已冻结；第十一次在 repository resolution 前因历史 RunPlanner 时钟误用于 GitHub App JWT 而被拒绝，私库、Gmail 与全部 mutation 均为零。新 head 保持 data plane 不变：security/authentication 使用 live UTC，仅 RunPlanner 使用已知数据效果之后的固定历史 Fixture",
-  "task": "交付 v1.0.32 security/schedule split-clock 精确 successor，以 live UTC 完成安全认证，并只向 RunPlanner 注入 2026-07-26T13:00:00Z Fake Clock 即时执行一次新 head protected SCHEDULE_REHEARSAL；十一个 protected 失败头与两个 pre-Secret 失败头均 rerun 0；PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
+  "version": "1.0.33",
+  "stage": "RMD-06 T0705 十二个 GA 失败头及两个 pre-Secret 失败头已冻结，Raw canonical Git Blob successor 已授权待运行",
+  "phase": "T0705 十二个 protected exact-main attempt-1 失败头已冻结；第十二次完成首个 verified candidate 的 Raw/Processed 恢复和确定 Trash 结果，随后下一 candidate 在 RAW_RECOVERY 因 Contents raw-media 与 canonical Git Blob 表示不一致而关闭失败。新 head 只把 Raw recovery 切换为 metadata-addressed canonical Git Blob，并将 RunPlanner Fixture 移到所有已知数据效果之后",
+  "task": "交付 v1.0.33 Raw canonical Git Blob 精确 successor，并只向 RunPlanner 注入 2026-07-26T19:00:00Z Fake Clock 即时执行一次新 head protected SCHEDULE_REHEARSAL；十二个 protected 失败头与两个 pre-Secret 失败头均 rerun 0；PASS 后只启用已提交 04:30 schedule，并停在 T0706 前",
   "real_progress": "证据完整 58/58；本地机制证据 58/58；正式任务 7/58；受保护验证 5/43（通过 4、失败 1）；最终验收 0/34；生产阻塞",
   "report_grade": "机器证据",
   "business_verdict": "本地机制有证据；最终验收与生产就绪均未通过",

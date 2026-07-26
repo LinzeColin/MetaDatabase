@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.0.33",
+    "date": "2026-07-26",
+    "summary": "固化 v1.0.32 exact-main protected attempt 的 RAW_RECOVERY 失败：authority、candidate validation、live-clock 认证、精确 App repository scope 与 Gmail OAuth 均通过；首个 verified candidate 已完成 Raw/Processed 远端恢复并取得确定 Trash 结果，随后下一 candidate 在 Raw 写入后恢复失败，Timeline 与 checkpoint 未提交。只读 A/B 证明 Contents raw-media 表示的 size 与 canonical Git SHA 不一致，而 metadata-addressed Git Blob 通过 response SHA、size、age 与 canonical Git SHA 校验。失败 head 禁止 rerun/redispatch。v1.0.33 仅将 Raw recovery 切换到规范 Git Blob，并把 RunPlanner Fixture 移到 2026-07-26T19:00:00Z。故障注入即时验证；不设 soak、观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"
+  },
+  {
     "version": "1.0.32",
     "date": "2026-07-26",
     "summary": "固化 v1.0.31 exact-main protected attempt 的 GitHub App authentication 失败：authority 与 candidate validation 通过并进入 protected Environment，但历史 RunPlanner 时钟误用于 GitHub App JWT，认证在 repository resolution 与 Gmail OAuth 前被拒绝；私库调用、Gmail 调用、完整 Raw 读取及全部 mutation 均为零，一次性变量已删除。失败 head 禁止 rerun/redispatch。v1.0.32 将安全、认证、OAuth、容量与证据时间固定为 live UTC，仅向 RunPlanner 注入已知数据效果之后的 2026-07-26T13:00:00Z 历史 Fixture；故障注入证明 Fixture 不进入 JWT。不设 soak、观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"

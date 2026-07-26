@@ -74,7 +74,7 @@ PROTECTED_ENVIRONMENT = "moomooau-beta"
 GA_CONFIRMATION = "GA_SCHEDULE_MODE_CANONICAL_GIT_BLOB_RECOVERY_MUTATION_BUDGET_ONE"
 GA_PARSER_CURRENT_VERSION = "1.0.0"
 GA_MUTATION_BUDGET_PER_RUN = 1
-GA_REHEARSAL_CLOCK_UTC = datetime(2026, 7, 26, 13, tzinfo=UTC)
+GA_REHEARSAL_CLOCK_UTC = datetime(2026, 7, 26, 19, tzinfo=UTC)
 FAILED_GA_HEAD_SHA_SEQUENCE = (
     "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",  # pragma: allowlist secret
     "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",  # pragma: allowlist secret
@@ -98,12 +98,16 @@ FAILED_GA_SCHEDULE_PLANNING_HEAD_SHA_SEQUENCE = (
 FAILED_GA_AUTHENTICATION_CLOCK_HEAD_SHA_SEQUENCE = (
     "c2c057b449fe1cbbd470867c274833242e3f139d",  # pragma: allowlist secret
 )
+FAILED_GA_RAW_RECOVERY_HEAD_SHA_SEQUENCE = (
+    "0d0b6afd6a0cde606230a3df7378bdd90586de5d",  # pragma: allowlist secret
+)
 FAILED_GA_HEAD_SHAS = frozenset(
     FAILED_GA_HEAD_SHA_SEQUENCE
     + FAILED_GA_PREFLIGHT_HEAD_SHA_SEQUENCE
     + FAILED_GA_AUTHORITY_CONTEXT_HEAD_SHA_SEQUENCE
     + FAILED_GA_SCHEDULE_PLANNING_HEAD_SHA_SEQUENCE
     + FAILED_GA_AUTHENTICATION_CLOCK_HEAD_SHA_SEQUENCE
+    + FAILED_GA_RAW_RECOVERY_HEAD_SHA_SEQUENCE
 )
 
 _BLUE_GREEN_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0704/execution-receipt.json")
@@ -185,6 +189,13 @@ _FAILED_GA_AUTHENTICATION_CLOCK_LEDGER_PATH = Path(
 _FAILED_GA_AUTHENTICATION_CLOCK_LEDGER_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-ga-authentication-clock-attempt-ledger-v1.schema.json"
 )
+_FAILED_GA_RAW_RECOVERY_LEDGER_PATH = Path(
+    "machine/stages/S7/reviews/t0705/raw-recovery-representation-attempt-ledger.json"
+)
+_FAILED_GA_RAW_RECOVERY_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/"
+    "protected-ga-raw-recovery-representation-attempt-ledger-v1.schema.json"
+)
 _GATE_PATHS = (
     Path("machine/stages/S7/reviews/t0702/execution-receipt.json"),
     Path("machine/stages/S7/schemas/protected-beta-execution-receipt-v2.schema.json"),
@@ -218,6 +229,8 @@ _GATE_PATHS = (
     _FAILED_GA_SCHEDULE_PLANNING_LEDGER_SCHEMA_PATH,
     _FAILED_GA_AUTHENTICATION_CLOCK_LEDGER_PATH,
     _FAILED_GA_AUTHENTICATION_CLOCK_LEDGER_SCHEMA_PATH,
+    _FAILED_GA_RAW_RECOVERY_LEDGER_PATH,
+    _FAILED_GA_RAW_RECOVERY_LEDGER_SCHEMA_PATH,
     _RUN_CONTRACT_PATH,
     Path("machine/stages/S7/contracts/stage7_acceptance_contract.json"),
     Path("machine/contracts/production_composition.json"),
@@ -225,6 +238,7 @@ _GATE_PATHS = (
     Path("src/moomooau_archive/production.py"),
     Path("src/moomooau_archive/production_adapters.py"),
     Path("src/moomooau_archive/processed_commit.py"),
+    Path("src/moomooau_archive/raw_commit.py"),
     Path("src/moomooau_archive/protected_ga_diagnostics.py"),
     Path("src/moomooau_archive/protected_ga_entrypoint.py"),
     Path("src/moomooau_archive/release_control.py"),
@@ -467,6 +481,7 @@ def execution_contract(project_root: Path) -> dict[str, object]:
         "failed_ga_authentication_clock_head_shas": list(
             FAILED_GA_AUTHENTICATION_CLOCK_HEAD_SHA_SEQUENCE
         ),
+        "failed_ga_raw_recovery_head_shas": list(FAILED_GA_RAW_RECOVERY_HEAD_SHA_SEQUENCE),
         "failed_ga_heads_rerun_allowed": False,
         "failed_ga_heads_redispatch_allowed": False,
         "failed_ga_attempt_ledger_paths": [
@@ -490,6 +505,7 @@ def execution_contract(project_root: Path) -> dict[str, object]:
         "failed_ga_authentication_clock_ledger_path": (
             _FAILED_GA_AUTHENTICATION_CLOCK_LEDGER_PATH.as_posix()
         ),
+        "failed_ga_raw_recovery_ledger_path": (_FAILED_GA_RAW_RECOVERY_LEDGER_PATH.as_posix()),
         "ga_gate_paths": [path.as_posix() for path in _GATE_PATHS],
         "ga_gate_sha256": ga_gate_sha256(root),
         "ga_authorized": authorized,
@@ -840,15 +856,15 @@ def _ga_authorized(project_root: Path) -> bool:
         contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0705"
         and contract.get("baseline_commit")
-        == "c2c057b449fe1cbbd470867c274833242e3f139d"  # pragma: allowlist secret
+        == "0d0b6afd6a0cde606230a3df7378bdd90586de5d"  # pragma: allowlist secret
         and contract.get("baseline_manifest_sha256")
-        == "a34a474f0c7ad3d43234fe50c870c1d106948e6b4ad5da399cdac386d41e87a8"  # pragma: allowlist secret  # noqa: E501
+        == "f5d59a581c3845c4db122ec06bfbe8980d14e324e9a3f85f0676e34c8bfb7c28"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("purpose")
-        == "T0705_PROTECTED_GA_SECURITY_CLOCK_DECOUPLING_RECOVERY_AND_ENABLEMENT_ONLY"
+        == "T0705_PROTECTED_GA_RAW_CANONICAL_GIT_BLOB_RECOVERY_AND_ENABLEMENT_ONLY"
         and authorization.get("original_run_contract_sha256")
         == "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("prior_run_contract_sha256")
-        == "a850da84e7a056dd290cac3dcfea26d0976112ca299fd767ed4964385d47ad6b"  # pragma: allowlist secret  # noqa: E501
+        == "4257ed7784285320fd18fce57a546b1560fd9f5d42238e744ba11890cc8457dd"  # pragma: allowlist secret  # noqa: E501
         and authorization.get("failed_attempt_ledgers_required") == 9
         and authorization.get("first_failed_attempt_ledger_sha256")
         == hashlib.sha256((root / _FIRST_FAILED_GA_LEDGER_PATH).read_bytes()).hexdigest()
@@ -914,6 +930,12 @@ def _ga_authorized(project_root: Path) -> bool:
         == hashlib.sha256(
             (root / _FAILED_GA_AUTHENTICATION_CLOCK_LEDGER_SCHEMA_PATH).read_bytes()
         ).hexdigest()
+        and authorization.get("raw_recovery_attempt_ledger_sha256")
+        == hashlib.sha256((root / _FAILED_GA_RAW_RECOVERY_LEDGER_PATH).read_bytes()).hexdigest()
+        and authorization.get("raw_recovery_attempt_ledger_schema_sha256")
+        == hashlib.sha256(
+            (root / _FAILED_GA_RAW_RECOVERY_LEDGER_SCHEMA_PATH).read_bytes()
+        ).hexdigest()
         and authorization.get("failed_workflow_head_shas") == list(FAILED_GA_HEAD_SHA_SEQUENCE)
         and authorization.get("failed_candidate_preflight_head_shas")
         == list(FAILED_GA_PREFLIGHT_HEAD_SHA_SEQUENCE)
@@ -923,6 +945,8 @@ def _ga_authorized(project_root: Path) -> bool:
         == list(FAILED_GA_SCHEDULE_PLANNING_HEAD_SHA_SEQUENCE)
         and authorization.get("failed_authentication_clock_head_shas")
         == list(FAILED_GA_AUTHENTICATION_CLOCK_HEAD_SHA_SEQUENCE)
+        and authorization.get("failed_raw_recovery_head_shas")
+        == list(FAILED_GA_RAW_RECOVERY_HEAD_SHA_SEQUENCE)
         and authorization.get("failed_head_rerun_allowed") is False
         and authorization.get("failed_head_redispatch_allowed") is False
         and authorization.get("t0704_receipt_required") is True
@@ -930,14 +954,15 @@ def _ga_authorized(project_root: Path) -> bool:
         and authorization.get("t0705_authorized") is True
         and authorization.get("t0706_authorized") is False
         and authorization.get("final_publication_authorized") is False
-        and authorization.get("controlled_main_delivery_total_limit") == 15
-        and authorization.get("controlled_main_deliveries_consumed") == 13
+        and authorization.get("controlled_main_delivery_total_limit") == 16
+        and authorization.get("controlled_main_deliveries_consumed") == 14
         and authorization.get("controlled_main_deliveries_remaining") == 2
-        and authorization.get("ga_rehearsal_dispatches_consumed") == 11
-        and authorization.get("ga_candidate_preflight_dispatches_consumed") == 4
+        and authorization.get("ga_rehearsal_dispatches_consumed") == 12
+        and authorization.get("ga_candidate_preflight_dispatches_consumed") == 5
         and authorization.get("ga_authority_context_scope_failures_consumed") == 1
         and authorization.get("ga_schedule_planning_clock_failures_consumed") == 1
         and authorization.get("ga_authentication_clock_coupling_failures_consumed") == 1
+        and authorization.get("ga_raw_recovery_representation_failures_consumed") == 1
         and authorization.get("ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and authorization.get("ga_label_replay_repair_dispatches_consumed") == 1
         and authorization.get("ga_phase_diagnostic_dispatches_consumed") == 1
@@ -948,28 +973,31 @@ def _ga_authorized(project_root: Path) -> bool:
         and authorization.get("ga_canonical_git_blob_recovery_dispatch_limit") == 1
         and authorization.get("ga_deterministic_clock_recovery_dispatch_limit") == 1
         and authorization.get("ga_security_clock_decoupling_recovery_dispatch_limit") == 1
+        and authorization.get("ga_raw_canonical_git_blob_recovery_dispatch_limit") == 1
         and authorization.get("ga_first_import_diagnostic_rerun_limit") == 0
         and authorization.get("security_clock_mode") == "LIVE_UTC"
         and authorization.get("rehearsal_schedule_clock_mode")
         == "DETERMINISTIC_HISTORICAL_REPLAY_FIXTURE"
         and authorization.get("rehearsal_schedule_clock_fixture_utc")
         == _format_utc(GA_REHEARSAL_CLOCK_UTC)
-        and authorization.get("known_data_effect_upper_bound_utc") == "2026-07-26T05:44:53Z"
+        and authorization.get("known_data_effect_upper_bound_utc") == "2026-07-26T16:12:21Z"
         and authorization.get("manual_environment_reviewers_required") is False
         and authorization.get("fixed_calendar_wait_days") == 0
-        and budget.get("controlled_main_deliveries_total_maximum") == 15
+        and budget.get("controlled_main_deliveries_total_maximum") == 16
         and budget.get("controlled_main_deliveries_remaining_maximum") == 2
         and budget.get("protected_environment_secret_names_maximum") == len(M3_SECRET_NAMES)
-        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 12
-        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 11
-        and budget.get("protected_ga_candidate_preflight_dispatches_total_maximum") == 5
-        and budget.get("protected_ga_candidate_preflight_dispatches_consumed") == 4
+        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 13
+        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 12
+        and budget.get("protected_ga_candidate_preflight_dispatches_total_maximum") == 6
+        and budget.get("protected_ga_candidate_preflight_dispatches_consumed") == 5
         and budget.get("protected_ga_authority_context_scope_failures_maximum") == 1
         and budget.get("protected_ga_authority_context_scope_failures_consumed") == 1
         and budget.get("protected_ga_schedule_planning_clock_failures_maximum") == 1
         and budget.get("protected_ga_schedule_planning_clock_failures_consumed") == 1
         and budget.get("protected_ga_authentication_clock_coupling_failures_maximum") == 1
         and budget.get("protected_ga_authentication_clock_coupling_failures_consumed") == 1
+        and budget.get("protected_ga_raw_recovery_representation_failures_maximum") == 1
+        and budget.get("protected_ga_raw_recovery_representation_failures_consumed") == 1
         and budget.get("protected_ga_metadata_quarantine_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_label_replay_repair_dispatches_consumed") == 1
         and budget.get("protected_ga_phase_diagnostic_dispatches_consumed") == 1
@@ -984,6 +1012,7 @@ def _ga_authorized(project_root: Path) -> bool:
         and budget.get("protected_ga_deterministic_clock_recovery_dispatches_maximum") == 1
         and budget.get("protected_ga_deterministic_clock_recovery_dispatches_consumed") == 1
         and budget.get("protected_ga_security_clock_decoupling_recovery_dispatches_maximum") == 1
+        and budget.get("protected_ga_raw_canonical_git_blob_recovery_dispatches_maximum") == 1
         and budget.get("protected_ga_rehearsal_reruns_maximum") == 0
         and budget.get("failed_head_reruns_maximum") == 0
         and budget.get("failed_head_redispatches_maximum") == 0
@@ -993,6 +1022,7 @@ def _ga_authorized(project_root: Path) -> bool:
         and budget.get("protected_ga_canonical_git_blob_recovery_pipeline_runs_maximum") == 1
         and budget.get("protected_ga_deterministic_clock_recovery_pipeline_runs_maximum") == 1
         and budget.get("protected_ga_security_clock_decoupling_recovery_pipeline_runs_maximum") == 1
+        and budget.get("protected_ga_raw_canonical_git_blob_recovery_pipeline_runs_maximum") == 1
         and budget.get("platform_schedule_events_during_rehearsal_maximum") == 0
         and budget.get("gmail_exact_message_trash_mutations_maximum") == GA_MUTATION_BUDGET_PER_RUN
         and budget.get("timeline_snapshot_commit_attempts_maximum") == 1

@@ -75,6 +75,7 @@ from moomooau_archive.protected_ga_entrypoint import (
     execution_contract,
     ga_gate_sha256,
 )
+from moomooau_archive.raw_commit import GitHubAppendOnlyCiphertextStore, RawCommitError
 from moomooau_archive.release_control import GateStatus, ReleasePhase, Stage7ReleaseGate
 from moomooau_archive.run_schedule import RunPlanner, RunTrigger, ScheduledRunPlan
 from moomooau_archive.secret_values import SecretText
@@ -129,6 +130,131 @@ def _git_blob_revision(payload: bytes) -> str:
         b"blob " + str(len(payload)).encode("ascii") + b"\0" + payload,
         usedforsecurity=False,
     ).hexdigest()
+
+
+def test_t0705_raw_recovery_uses_canonical_git_blob_not_contents_media() -> None:
+    ciphertext = _synthetic_age_envelope()
+    revision = _git_blob_revision(ciphertext)
+    raw_path = f"MooMooAU/Raw/messages/2026/07/{'a' * 64}.eml.age"
+    config = TargetRepositoryConfig(repository_id=7_500_099, installation_id=8_500_099)
+    locator = RepositoryLocator(config.repository_id, "synthetic-owner", "synthetic-target")
+
+    class ContentsMediaMismatchTransport:
+        def __init__(self) -> None:
+            self.requests: list[HttpRequest] = []
+
+        def send(self, request: HttpRequest) -> HttpResponse:
+            self.requests.append(request)
+            if request.url == content_url(locator, raw_path):
+                assert dict(request.headers)["Accept"] == "application/vnd.github+json"
+                return HttpResponse(
+                    200,
+                    json.dumps(
+                        {
+                            "content": base64.b64encode(
+                                b"contents-inline-representation-differs"
+                            ).decode("ascii"),
+                            "encoding": "base64",
+                            "path": raw_path,
+                            "sha": revision,
+                            "size": len(ciphertext),
+                            "type": "file",
+                        },
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    ).encode(),
+                )
+            assert request.url == git_blob_url(locator, revision)
+            assert dict(request.headers)["Accept"] == "application/vnd.github+json"
+            encoded = base64.b64encode(ciphertext).decode("ascii")
+            wrapped = "\n".join(encoded[index : index + 60] for index in range(0, len(encoded), 60))
+            return HttpResponse(
+                200,
+                json.dumps(
+                    {
+                        "content": wrapped,
+                        "encoding": "base64",
+                        "sha": revision,
+                        "size": len(ciphertext),
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode(),
+            )
+
+    transport = ContentsMediaMismatchTransport()
+    guard = GitHubEndpointGuard(transport, config)
+    guard.bind_repository(locator)
+    token = InstallationToken(
+        SecretText("synthetic-installation-token"),
+        datetime(2026, 7, 26, 10, 0, tzinfo=UTC),
+    )
+    try:
+        recovered = GitHubAppendOnlyCiphertextStore(guard, locator, token).fetch(raw_path)
+    finally:
+        token.destroy()
+    assert recovered == ciphertext
+    assert [request.url for request in transport.requests] == [
+        content_url(locator, raw_path),
+        git_blob_url(locator, revision),
+    ]
+    assert all(
+        dict(request.headers)["Accept"] == "application/vnd.github+json"
+        for request in transport.requests
+    )
+
+
+def test_t0705_raw_recovery_fails_closed_on_canonical_blob_revision_drift() -> None:
+    metadata_ciphertext = _synthetic_age_envelope()
+    returned_ciphertext = metadata_ciphertext[:-1] + b"\x01"
+    revision = _git_blob_revision(metadata_ciphertext)
+    raw_path = f"MooMooAU/Manifests/raw/{'b' * 64}.json.age"
+    config = TargetRepositoryConfig(repository_id=7_500_100, installation_id=8_500_100)
+    locator = RepositoryLocator(config.repository_id, "synthetic-owner", "synthetic-target")
+
+    class DriftTransport:
+        def send(self, request: HttpRequest) -> HttpResponse:
+            if request.url == content_url(locator, raw_path):
+                return HttpResponse(
+                    200,
+                    json.dumps(
+                        {
+                            "path": raw_path,
+                            "sha": revision,
+                            "size": len(metadata_ciphertext),
+                            "type": "file",
+                        },
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    ).encode(),
+                )
+            assert request.url == git_blob_url(locator, revision)
+            return HttpResponse(
+                200,
+                json.dumps(
+                    {
+                        "content": base64.b64encode(returned_ciphertext).decode("ascii"),
+                        "encoding": "base64",
+                        "sha": revision,
+                        "size": len(returned_ciphertext),
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode(),
+            )
+
+    guard = GitHubEndpointGuard(DriftTransport(), config)
+    guard.bind_repository(locator)
+    token = InstallationToken(
+        SecretText("synthetic-installation-token"),
+        datetime(2026, 7, 26, 10, 0, tzinfo=UTC),
+    )
+    try:
+        store = GitHubAppendOnlyCiphertextStore(guard, locator, token)
+        with pytest.raises(RawCommitError, match="blob revision differs"):
+            store.fetch(raw_path)
+    finally:
+        token.destroy()
 
 
 def test_t0705_processed_current_uses_canonical_git_blob_not_contents_media() -> None:
@@ -840,7 +966,7 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["schedule_mode"] == "SCHEDULE_REHEARSAL"
     assert contract["security_clock_mode"] == "LIVE_UTC"
     assert contract["schedule_clock_mode"] == "DETERMINISTIC_HISTORICAL_REPLAY_FIXTURE"
-    assert contract["schedule_clock_fixture_utc"] == "2026-07-26T13:00:00Z"
+    assert contract["schedule_clock_fixture_utc"] == "2026-07-26T19:00:00Z"
     assert contract["platform_schedule_event_observed"] is False
     assert contract["target_time"] == "04:30"
     assert contract["timezone"] == "Australia/Sydney"
@@ -854,6 +980,7 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert len(cast(list[str], contract["failed_ga_authority_context_head_shas"])) == 1
     assert len(cast(list[str], contract["failed_ga_schedule_planning_head_shas"])) == 1
     assert len(cast(list[str], contract["failed_ga_authentication_clock_head_shas"])) == 1
+    assert len(cast(list[str], contract["failed_ga_raw_recovery_head_shas"])) == 1
     assert contract["failed_ga_heads_rerun_allowed"] is False
     assert contract["failed_ga_heads_redispatch_allowed"] is False
     assert len(cast(list[str], contract["failed_ga_attempt_ledger_paths"])) == 9
@@ -869,18 +996,21 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["failed_ga_authentication_clock_ledger_path"] == (
         "machine/stages/S7/reviews/t0705/authentication-clock-coupling-attempt-ledger.json"
     )
+    assert contract["failed_ga_raw_recovery_ledger_path"] == (
+        "machine/stages/S7/reviews/t0705/raw-recovery-representation-attempt-ledger.json"
+    )
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
 
 
 def test_t0705_rehearsal_clock_is_deterministic_historical_replay_after_target() -> None:
-    assert GA_REHEARSAL_CLOCK_UTC == datetime(2026, 7, 26, 13, tzinfo=UTC)
+    assert GA_REHEARSAL_CLOCK_UTC == datetime(2026, 7, 26, 19, tzinfo=UTC)
     plan = RunPlanner().plan(
         RunTrigger.SCHEDULE,
         started_at_utc=GA_REHEARSAL_CLOCK_UTC,
         last_successful_run_date_sydney=None,
     )
-    assert plan.run_date_sydney == date(2026, 7, 26)
-    assert plan.schedule_delay_minutes == 1110
+    assert plan.run_date_sydney == date(2026, 7, 27)
+    assert plan.schedule_delay_minutes == 30
 
 
 def test_t0705_derives_ga_config_in_memory_from_existing_beta_plane() -> None:
