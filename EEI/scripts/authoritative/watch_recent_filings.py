@@ -122,13 +122,50 @@ def universe_entity_for_ciks(conn, ciks: list[str]) -> dict[str, tuple[str, str]
 
 
 def one_poll(sec: SecClient, *, apply: bool) -> dict:
+    """Poll once, then always beat.
+
+    The beat is deliberately outside _collect: every early return in there is a
+    quiet poll (feed unchanged, or the feed itself failed), and those are
+    exactly the polls where a missing beat would be misread as "the collector
+    is fine, there's just no news". Log once, beat once, on every path.
+    """
+    result = _collect(sec, apply=apply)
+    result.setdefault("finished_at", datetime.now(UTC).isoformat())
+    if apply:
+        _beat(result)
+    _log(result)
+    return result
+
+
+def _beat(result: dict) -> None:
+    publish_url = os.environ.get("EEI_PUBLISH_URL", "").strip()
+    publish_token = os.environ.get("EEI_PUBLISH_TOKEN", "").strip()
+    if not (publish_url and publish_token):
+        result["publish_skipped"] = "EEI_PUBLISH_URL/TOKEN unset"
+        return
+    try:
+        push_heartbeat(
+            publish_url=publish_url,
+            publish_token=publish_token,
+            collector="sec_getcurrent_watch",
+            detail={
+                "feed_candidates": result.get("feed_candidates", 0),
+                "fresh": result.get("fresh", 0),
+                "matched_universe": result.get("matched_universe", 0),
+                "new_events": result.get("new_events", 0),
+            },
+        )
+    except Exception as exc:  # noqa: BLE001 - a liveness beat is best-effort
+        result["heartbeat_error"] = str(exc)[:200]
+
+
+def _collect(sec: SecClient, *, apply: bool) -> dict:
     started = datetime.now(UTC).isoformat()
     result: dict = {"started_at": started}
 
     status, body = sec.get(GETCURRENT_URL)
     if status != 200 or not body:
         result["error"] = f"getcurrent status {status}"
-        result["finished_at"] = datetime.now(UTC).isoformat()
         return result
 
     entries = parse_getcurrent(body.decode("utf-8", errors="replace"))
@@ -141,8 +178,8 @@ def one_poll(sec: SecClient, *, apply: bool) -> dict:
     result["fresh"] = len(fresh)
     if not fresh:
         # Nothing new since last poll; record the poll and return cheaply.
-        result.update(matched_universe=0, enriched=0, finished_at=datetime.now(UTC).isoformat())
-        _log(result)
+        # one_poll still beats and logs — see its docstring.
+        result.update(matched_universe=0, enriched=0, new_events=0)
         return result
 
     fresh_ciks = sorted({cik for (_f, cik, _a) in fresh})
@@ -174,40 +211,18 @@ def one_poll(sec: SecClient, *, apply: bool) -> dict:
     result["new_events"] = new_events
     result["enriched"] = len(affected)
 
-    if apply:
+    if apply and affected:
         publish_url = os.environ.get("EEI_PUBLISH_URL", "").strip()
         publish_token = os.environ.get("EEI_PUBLISH_TOKEN", "").strip()
         if publish_url and publish_token:
-            if affected:
-                try:
-                    push = push_incremental(
-                        [eid for eid in affected], publish_url=publish_url, publish_token=publish_token
-                    )
-                    result["published"] = push
-                except Exception as exc:  # noqa: BLE001 - publish retry next poll; DB already has it
-                    result["publish_error"] = str(exc)[:200]
-            # A beat every poll, findings or not. Without it "no new filings"
-            # and "the collector died three days ago" look identical from the
-            # outside — which is exactly how a stalled pipeline stays hidden.
             try:
-                push_heartbeat(
-                    publish_url=publish_url,
-                    publish_token=publish_token,
-                    collector="sec_getcurrent_watch",
-                    detail={
-                        "feed_candidates": result.get("feed_candidates", 0),
-                        "fresh": result.get("fresh", 0),
-                        "matched_universe": result.get("matched_universe", 0),
-                        "new_events": new_events,
-                    },
+                push = push_incremental(
+                    [eid for eid in affected], publish_url=publish_url, publish_token=publish_token
                 )
-            except Exception as exc:  # noqa: BLE001 - liveness beat is best-effort
-                result["heartbeat_error"] = str(exc)[:200]
-        else:
-            result["publish_skipped"] = "EEI_PUBLISH_URL/TOKEN unset"
+                result["published"] = push
+            except Exception as exc:  # noqa: BLE001 - publish retry next poll; DB already has it
+                result["publish_error"] = str(exc)[:200]
 
-    result["finished_at"] = datetime.now(UTC).isoformat()
-    _log(result)
     return result
 
 
