@@ -23,6 +23,7 @@
         "CyberBoss/app/README.md",
         "CyberBoss/app/README.zh-CN.md",
         "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/normalize-sticker-gif.js",
         "CyberBoss/app/src/core/app.js",
         "CyberBoss/app/src/core/command-registry.js",
         "CyberBoss/app/src/core/config.js",
@@ -30,6 +31,7 @@
         "CyberBoss/app/src/index.js",
         "CyberBoss/app/src/services/system-message-service.js",
         "CyberBoss/app/test/claudecode-approval.test.js",
+        "CyberBoss/app/test/sticker-service.test.js",
         "CyberBoss/app/test/turn-gate-store.test.js",
         "CyberBoss/app/test/upstream-separation.test.js",
         "CyberBoss/app/test/workspace-scope.test.js"
@@ -38,6 +40,7 @@
         "accept only a root-controlled workspace alias and canonical realpath",
         "revalidate the registered root before every Runtime or system-message dispatch",
         "remove active App instructions and responses that clone or route users to historical upstream",
+        "replace the macOS-only PNG sticker path with a bounded dependency-free PNG-to-GIF implementation for the Linux target",
         "retain complete original vendor source, licenses, provenance and unresolved conflict records",
         "add regression tests for path escape, unknown alias, absolute path and active-upstream separation"
       ],

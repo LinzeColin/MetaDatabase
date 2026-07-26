@@ -18,6 +18,8 @@
   before the turn gate or Runtime is entered.
 - Active App instructions and `/star` behavior no longer clone, sync, link or
   route users to the historical upstream projects.
+- PNG sticker normalization now uses a bounded dependency-free encoder on
+  Ubuntu and macOS; regression evidence verifies a real 240×240 GIF89a output.
 - Original vendor source, original license files, provenance and the unresolved
   whereabouts metadata/file conflict remain byte-preserved. The conservative
   treatment remains

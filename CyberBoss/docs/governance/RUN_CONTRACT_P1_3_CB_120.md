@@ -78,6 +78,7 @@ Private-MetaDatabase operation，不激活微信/Codex/provider，不进入
 
 - `CyberBoss/app/README*.md`
 - `CyberBoss/app/package.json`
+- `CyberBoss/app/scripts/normalize-sticker-gif.js`
 - `CyberBoss/app/src/core/app.js`
 - `CyberBoss/app/src/core/command-registry.js`
 - `CyberBoss/app/src/core/config.js`
@@ -85,6 +86,7 @@ Private-MetaDatabase operation，不激活微信/Codex/provider，不进入
 - `CyberBoss/app/src/index.js`
 - `CyberBoss/app/src/services/system-message-service.js`
 - `CyberBoss/app/test/claudecode-approval.test.js`
+- `CyberBoss/app/test/sticker-service.test.js`
 - `CyberBoss/app/test/turn-gate-store.test.js`
 - `CyberBoss/app/test/upstream-separation.test.js`
 - `CyberBoss/app/test/workspace-scope.test.js`

@@ -161,6 +161,10 @@ test("sticker service saves inbox images as GIF stickers, grows tags, dedupes, a
   assert.equal(firstItem.created, true);
   assert.equal(path.extname(firstItem.filePath), ".gif");
   assert.ok(fs.existsSync(firstItem.filePath));
+  const gif = fs.readFileSync(firstItem.filePath);
+  assert.equal(gif.subarray(0, 6).toString("ascii"), "GIF89a");
+  assert.equal(gif.readUInt16LE(6), 240);
+  assert.equal(gif.readUInt16LE(8), 240);
   assert.equal(loadStickerIndexSync(config)[firstItem.stickerId].desc, "小猫贴脸蹭蹭，撒娇示爱");
   assert.equal(loadStickerIndexSync(config)[firstItem.stickerId].tags.includes("夸夸"), true);
   assert.equal(loadStickerTagsSync(config).includes("夸夸"), true);
