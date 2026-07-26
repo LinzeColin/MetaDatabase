@@ -5,6 +5,8 @@
     "project_subpath": "CyberBoss",
     "workspace_alias": "cyberboss",
     "execution_identity": "cyberboss",
+    "git_system_config": "/etc/cyberboss/cyberboss.gitconfig",
+    "workspace_root_owner": "root",
     "allowed_write_globs": [
       "CyberBoss/**"
     ],

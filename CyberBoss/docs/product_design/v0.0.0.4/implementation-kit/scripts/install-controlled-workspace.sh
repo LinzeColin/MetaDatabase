@@ -17,6 +17,7 @@ WORKSPACE="$WORKSPACE_BASE/cyberboss"
 STATE_ROOT="/var/lib/cyberboss"
 DATA_STATE_ROOT="/var/lib/cyberboss-data"
 CONFIG_ROOT="/etc/cyberboss"
+GIT_SYSTEM_CONFIG="$CONFIG_ROOT/cyberboss.gitconfig"
 CODE_USER="cyberboss"
 CODE_GROUP="cyberboss"
 DATA_USER="cyberboss-data"
@@ -68,6 +69,7 @@ for source_file in \
   "$KIT_ROOT/config/workspace-budget.json" \
   "$KIT_ROOT/config/identity-scope.policy.json" \
   "$KIT_ROOT/config/no-clone-client-versions.json" \
+  "$KIT_ROOT/config/cyberboss.gitconfig" \
   "$KIT_ROOT/config/cyberboss.env.example" \
   "$SCRIPT_DIR/private_db_client_safe.py" \
   "$SCRIPT_DIR/scope_policy.py" \
@@ -80,14 +82,16 @@ done
 python3 - "$KIT_ROOT/config/workspaces.json.example" \
   "$KIT_ROOT/config/workspace-budget.json" \
   "$KIT_ROOT/config/identity-scope.policy.json" \
-  "$KIT_ROOT/config/no-clone-client-versions.json" <<'PY' ||
+  "$KIT_ROOT/config/no-clone-client-versions.json" \
+  "$KIT_ROOT/config/cyberboss.gitconfig" <<'PY' ||
 import json
 import sys
 from pathlib import Path
 
 workspaces, budget, scope, versions = [
-    json.loads(Path(value).read_text(encoding="utf-8")) for value in sys.argv[1:]
+    json.loads(Path(value).read_text(encoding="utf-8")) for value in sys.argv[1:5]
 ]
+git_system_config = Path(sys.argv[5]).read_text(encoding="utf-8")
 workspace = (workspaces.get("workspaces") or {}).get("cyberboss") or {}
 assert workspaces.get("default_alias") == "cyberboss"
 assert workspaces.get("workspace_base") == "/srv/cyberboss-workspaces"
@@ -102,6 +106,10 @@ assert budget.get("hard_stop_workspace_bytes") == 8589934592
 assert "--prune=now" not in json.dumps(budget.get("cleanup_commands"))
 assert budget.get("forbidden_cleanup_flags") == ["--prune=now"]
 assert scope.get("code", {}).get("execution_identity") == "cyberboss"
+assert scope.get("code", {}).get("git_system_config") == (
+    "/etc/cyberboss/cyberboss.gitconfig"
+)
+assert scope.get("code", {}).get("workspace_root_owner") == "root"
 assert scope.get("data", {}).get("execution_identity") == "cyberboss-data"
 assert scope.get("data", {}).get("access_mode") == "no_clone_client"
 assert scope.get("data", {}).get("forbidden_operations") == ["clone", "put", "delete"]
@@ -112,6 +120,9 @@ assert versions.get("private_db_client", {}).get("sha256") == (
 assert versions.get("github_cli", {}).get("version") == "2.96.0"
 assert versions.get("github_cli", {}).get("archive_sha256") == (
     "83d5c2ccad5498f58bf6368acb1ab32588cf43ab3a4b1c301bf36328b1c8bd60"
+)
+assert git_system_config == (
+    "[safe]\n\tdirectory = /srv/cyberboss-workspaces/cyberboss\n"
 )
 PY
   fail "static_policy_contract"
@@ -396,6 +407,8 @@ install_config "$KIT_ROOT/config/identity-scope.policy.json" \
   "$CONFIG_ROOT/identity-scope.policy.json"
 install_config "$KIT_ROOT/config/no-clone-client-versions.json" \
   "$CONFIG_ROOT/no-clone-client-versions.json"
+install_exact "$KIT_ROOT/config/cyberboss.gitconfig" \
+  "$GIT_SYSTEM_CONFIG" root "$CODE_GROUP" 0440
 install_exact "$KIT_ROOT/config/cyberboss.env.example" \
   "$CONFIG_ROOT/cyberboss.env.cb120.example" root "$CODE_GROUP" 0640
 install_exact "$ARTIFACTS/private_db_client.py" \
@@ -516,9 +529,17 @@ run_as_code() {
   sudo -u "$CODE_USER" -H env \
     HOME="$STATE_ROOT" \
     PATH="$BIN_ROOT:/usr/bin:/bin" \
+    GIT_CONFIG_SYSTEM="$GIT_SYSTEM_CONFIG" \
     GIT_OPTIONAL_LOCKS=0 \
     "$@"
 }
+
+for user_git_config in \
+  "$STATE_ROOT/.gitconfig" \
+  "$STATE_ROOT/.config/git/config"; do
+  [[ ! -e "$user_git_config" && ! -L "$user_git_config" ]] ||
+    fail "uncontrolled_code_git_config:$user_git_config"
+done
 
 if [[ ! -e "$WORKSPACE" && ! -L "$WORKSPACE" ]]; then
   [[ "$MODE" == "apply" ]] || fail "workspace_missing"
@@ -526,15 +547,17 @@ if [[ ! -e "$WORKSPACE" && ! -L "$WORKSPACE" ]]; then
   [[ ! -e "$WORKSPACE_STAGE" && ! -L "$WORKSPACE_STAGE" ]] ||
     fail "workspace_stage_collision"
   install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 "$WORKSPACE_STAGE"
-  # The seed stays root-owned and immutable. Root performs the installation-only
-  # local upload-pack/checkout, then ownership of the code and Git metadata is
-  # transferred to the code identity before any acceptance command runs.
-  git -c protocol.file.allow=always clone \
-    --filter=blob:none --no-checkout --single-branch --branch "$BRANCH" \
-    "file://$SEED_PATH" "$WORKSPACE_STAGE"
-  git -C "$WORKSPACE_STAGE" sparse-checkout init --cone
-  git -C "$WORKSPACE_STAGE" sparse-checkout set CyberBoss .github
-  git -C "$WORKSPACE_STAGE" checkout "$BRANCH"
+  # The seed stays root-owned and immutable. A no-hardlink local object copy
+  # avoids re-serving a partial repository and performs no external fetch.
+  git clone --local --no-hardlinks --no-checkout \
+    --single-branch --branch "$BRANCH" "$SEED_PATH" "$WORKSPACE_STAGE"
+  git -C "$WORKSPACE_STAGE" remote set-url origin "file://$SEED_PATH"
+  git -C "$WORKSPACE_STAGE" config remote.origin.promisor true
+  git -C "$WORKSPACE_STAGE" config remote.origin.partialclonefilter blob:none
+  GIT_NO_LAZY_FETCH=1 git -C "$WORKSPACE_STAGE" sparse-checkout init --cone
+  GIT_NO_LAZY_FETCH=1 git -C "$WORKSPACE_STAGE" \
+    sparse-checkout set CyberBoss .github
+  GIT_NO_LAZY_FETCH=1 git -C "$WORKSPACE_STAGE" checkout "$BRANCH"
   git -C "$WORKSPACE_STAGE" config fetch.prune true
   git -C "$WORKSPACE_STAGE" config gc.auto 0
   chown root:"$CODE_GROUP" "$WORKSPACE_STAGE"
@@ -582,6 +605,10 @@ fi
 [[ "$(run_as_code git -C "$WORKSPACE" config --get \
   remote.origin.partialclonefilter)" == "blob:none" ]] ||
   fail "workspace_filter"
+[[ "$(run_as_code git config --get-all safe.directory)" == "$WORKSPACE" ]] ||
+  fail "workspace_safe_directory"
+[[ -z "$(find "$WORKSPACE/.git/objects" -type f -links +1 -print -quit)" ]] ||
+  fail "workspace_object_hardlink"
 mapfile -t SPARSE_PATHS < <(run_as_code git -C "$WORKSPACE" sparse-checkout list)
 [[ "${#SPARSE_PATHS[@]}" -eq 2 ]] || fail "workspace_sparse_count"
 printf '%s\n' "${SPARSE_PATHS[@]}" | grep -Fxq ".github" ||

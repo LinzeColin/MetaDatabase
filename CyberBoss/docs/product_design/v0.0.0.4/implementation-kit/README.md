@@ -49,6 +49,9 @@ guard/protect/recover 阶梯，维护命令明确禁止 `--prune=now`。
 clone Private-Database。`install-controlled-workspace.sh` 安装 candidate
 release、唯一 sparse workspace 和 `cyberboss`/`cyberboss-data` 独立身份，
 两次 apply 幂等，保持 `current`、service 和真实 data activation 不变。
+root-owned immutable seed 通过 `--local --no-hardlinks` 离线复制，checkout
+强制 `GIT_NO_LAZY_FETCH=1`；唯一 workspace 的 `safe.directory` 仅由
+root-controlled `/etc/cyberboss/cyberboss.gitconfig` 授权。
 
 ## Immediate validation
 

@@ -26,6 +26,9 @@
 - `workspaces.json.example` fixes one `blob:none` sparse MetaDatabase workspace
   with paths `CyberBoss` and `.github`; root integration is read-only and code
   write scope remains `CyberBoss/**`.
+- The immutable root-owned seed is copied offline with `--no-hardlinks`;
+  checkout disables lazy fetch, while a root-controlled system Git config
+  trusts exactly the registered workspace and no user-level exception.
 - `workspace-budget.json` fixes a 4 GiB workspace budget, 8 GiB absolute stop,
   4 GiB host reserve and immediate recover/guard/protect/stop ladder. Cleanup
   explicitly forbids `--prune=now`.

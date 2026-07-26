@@ -56,6 +56,7 @@ IMPLEMENTATION_PATHS = APP_PATHS | {
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/README.md",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/VALIDATION_REPORT.md",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/credential-slots.json",
+    "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/cyberboss.gitconfig",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/cyberboss.env.example",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json",
     "CyberBoss/docs/product_design/v0.0.0.4/implementation-kit/config/no-clone-client-versions.json",

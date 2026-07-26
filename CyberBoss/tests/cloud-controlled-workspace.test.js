@@ -51,6 +51,9 @@ test("workspace registry is single-alias, sparse, path-bounded and below 8 GiB",
   const budget = JSON.parse(
     read(path.join(configRoot, "workspace-budget.json"))
   );
+  const gitSystemConfig = read(
+    path.join(configRoot, "cyberboss.gitconfig")
+  );
   const workspace = registry.workspaces.cyberboss;
 
   assert.equal(registry.default_alias, "cyberboss");
@@ -64,6 +67,10 @@ test("workspace registry is single-alias, sparse, path-bounded and below 8 GiB",
   assert.equal(workspace.max_bytes, 4 * 1024 ** 3);
   assert.equal(budget.hard_stop_workspace_bytes, 8 * 1024 ** 3);
   assert.deepEqual(budget.forbidden_cleanup_flags, ["--prune=now"]);
+  assert.equal(
+    gitSystemConfig,
+    "[safe]\n\tdirectory = /srv/cyberboss-workspaces/cyberboss\n"
+  );
   assert.doesNotMatch(
     JSON.stringify(budget.cleanup_commands),
     /--prune=now/
@@ -104,21 +111,24 @@ test("installer keeps candidate, identities, workspace and data boundaries expli
   assert.match(source, /DATA_USER="cyberboss-data"/);
   assert.match(source, /data_identity_code_writable/);
   assert.match(source, /code_identity_data_client_access/);
-  assert.match(source, /--filter=blob:none/);
+  assert.match(
+    source,
+    /config remote\.origin\.partialclonefilter blob:none/
+  );
   assert.match(source, /sparse-checkout set CyberBoss \.github/);
   assert.match(source, /WORKSPACE_STAGE=.*\.cb120-/);
   assert.match(
     source,
     /install -d -o "\$CODE_USER" -g "\$CODE_GROUP" -m 0750 "\$WORKSPACE_STAGE"/
   );
-  assert.match(
-    source,
-    /The seed stays root-owned and immutable[\s\S]+git -c protocol\.file\.allow=always clone/
-  );
+  assert.match(source, /git clone --local --no-hardlinks --no-checkout/);
   assert.doesNotMatch(
     source,
-    /run_as_code git -c protocol\.file\.allow=always clone/
+    /git -c protocol\.file\.allow=always clone/
   );
+  assert.match(source, /GIT_NO_LAZY_FETCH=1 git -C "\$WORKSPACE_STAGE"/);
+  assert.match(source, /GIT_CONFIG_SYSTEM="\$GIT_SYSTEM_CONFIG"/);
+  assert.match(source, /workspace_object_hardlink/);
   assert.match(
     source,
     /chown -R "\$CODE_USER:\$CODE_GROUP"[\s\\\n]+"\$WORKSPACE_STAGE\/\.git" "\$WORKSPACE_STAGE\/CyberBoss"/

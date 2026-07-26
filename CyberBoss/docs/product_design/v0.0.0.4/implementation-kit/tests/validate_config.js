@@ -36,6 +36,7 @@ for (const key of [
   'CYBERBOSS_WORKSPACE_BASE',
   'CYBERBOSS_WORKSPACE_ALIAS',
   'CYBERBOSS_WORKSPACE_ROOT',
+  'GIT_CONFIG_SYSTEM',
   'CB_RUNTIME_DB',
   'CB_JOB_CONCURRENCY',
   'CB_DATA_REPO_SLUG',
@@ -85,6 +86,9 @@ if (env.CB_R2_PREFIX !== 'ovh-singapore-vps-1/') errors.push('r2_prefix_scope');
 if (env.CB_OCI_PREFIX !== 'cyberboss-cold-backup/ovh-singapore-vps-1/') errors.push('oci_prefix_scope');
 if (env.CB_APP_REPO_SLUG !== 'LinzeColin/MetaDatabase') errors.push('code_repo_identity');
 if (env.CB_APP_SUBPATH !== 'CyberBoss') errors.push('code_subpath_identity');
+if (env.GIT_CONFIG_SYSTEM !== '/etc/cyberboss/cyberboss.gitconfig') {
+  errors.push('git_system_config');
+}
 for (const forbidden of ['CB_DATA_REPO_PATH', 'CB_DATA_REPO_URL', 'CB_DATA_ROOT', 'CB_APP_REPO_URL']) {
   if (Object.hasOwn(env, forbidden)) errors.push(`forbidden_env:${forbidden}`);
 }
@@ -128,6 +132,8 @@ if (!fs.existsSync(policyPath)) {
   if (policy.code?.project_subpath !== env.CB_APP_SUBPATH) errors.push('policy_code_subpath_mismatch');
   if (policy.code?.workspace_alias !== workspaces.default_alias) errors.push('policy_alias_mismatch');
   if (policy.code?.execution_identity !== env.CB_CODE_EXECUTION_IDENTITY) errors.push('policy_code_identity_mismatch');
+  if (policy.code?.git_system_config !== env.GIT_CONFIG_SYSTEM) errors.push('policy_git_config_mismatch');
+  if (policy.code?.workspace_root_owner !== 'root') errors.push('policy_workspace_root_owner');
   if (JSON.stringify(policy.code?.allowed_write_globs) !== JSON.stringify(['CyberBoss/**'])) errors.push('policy_write_scope');
   if (policy.code?.new_repository_allowed !== false) errors.push('policy_new_repo');
   if (policy.data?.repository !== env.CB_DATA_REPO_SLUG) errors.push('policy_data_repo_mismatch');
