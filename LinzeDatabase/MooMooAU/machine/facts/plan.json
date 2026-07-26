@@ -1,6 +1,6 @@
 {
-  "stage": "RMD-06 T0705 受保护 GA schedule-mode rehearsal 已授权待运行",
-  "phase": "T0704/S7AC-004 已闭合；T0705 one-shot schedule-mode rehearsal 已授权待运行",
-  "task": "交付 v1.0.19 exact-main 候选、执行一次 attempt-1 SCHEDULE_REHEARSAL，PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前",
+  "stage": "RMD-06 T0705 首次 GA 失败已冻结，SAFE_DEFERRED 修复已授权待运行",
+  "phase": "T0705 首次数据平面前失败已冻结；仅允许新 exact-main paired SAFE_DEFERRED 修复 attempt 1",
+  "task": "交付 v1.0.20 paired SAFE_DEFERRED exact-main 修复候选、执行一次新 attempt-1 SCHEDULE_REHEARSAL，PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前",
   "owner": "Codex 开发线程"
 }

@@ -2,17 +2,17 @@
 
 Implementation target: `LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU`.
 
-当前控制包为 `1.0.19`。它直接继承不可变 v1.0.18，不改变 v1.0.1 冻结的产品目标、
+当前控制包为 `1.0.20`。它直接继承不可变 v1.0.19，不改变 v1.0.1 冻结的产品目标、
 34 条需求、34 个最终验收、58-task DAG、追踪矩阵、Kill Criteria 或十条不变量。
 
 唯一当前跨维度状态入口是 `machine/status/latest.json`，由
 `machine/tools/build_delivery_status.py` 确定性生成并只读校验。当前事实：
 
 - 58/58 task evidence 结构与绑定有效，58/58 本地或合成机制有证据；
-- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 0；
-- protected Oracle 已执行 4/43，T0701、T0702、T0703、T0704 均 PASS；
-- T0704 修复 run `30178201201` 精确绑定 main `65cef099…`，attempt 1、rerun 0；
-- T0704/S7AC-004 已关闭；T0705 one-shot protected schedule-mode rehearsal 已授权但未运行；
+- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 1；
+- protected Oracle 已执行 5/43：T0701–T0704 PASS，T0705 首次 attempt FAILED；
+- T0705 失败 run `30182491342` 精确绑定 main `eb7ad073…`，attempt 1、rerun 0；
+- T0705/S7AC-005 尚未关闭；一个新 SAFE_DEFERRED compatibility repair attempt 已授权但未运行；
   Stage 7、生产健康与最终发布均未完成。
 
 T0704 首次 exact-main head 仍由不可变 failed-attempt ledger 固定为失败，未重跑。唯一新修复
@@ -24,8 +24,17 @@ difference 0 收敛到恰好一个可恢复 age-encrypted latest Timeline。
 Raw、Processed、candidate、snapshot 与 processed-current 均无新增对象。repair 的 Gmail
 mutation 为 0。公开 receipt 不包含私有仓 locator/ID、Gmail ID、精确邮箱数量或金融值。
 
-当前 Run Contract 只处理 T0705：launch delivery 1、exact-main protected
-`SCHEDULE_REHEARSAL` 1、rerun 0，以及后续 receipt/authority closure delivery 1。入口复用
+T0705 首次 launch 已合入，authority 与 identity cleanup PASS，但 protected GA 在 Gmail
+credential exchange 和数据面写入前 FAILED。独立聚合核验确认 private commit 与
+Raw/Processed/State/other path change 均为 0，Gmail mutation endpoint 未到达，唯一 latest
+Timeline 仍为 1。失败 head 永久禁止 rerun/redispatch；protected 输出没有公开 exact runtime
+exception，因此未声称更细线上异常。
+
+当前 repair Run Contract 只处理 T0705：总 delivery 最多 3，失败 launch 已消耗 1；总
+rehearsal dispatch 最多 2，失败 attempt 已消耗 1。只剩一个新 exact-main protected
+`SCHEDULE_REHEARSAL`、rerun 0，以及后续 receipt/schedule closure delivery 1。唯一代码修复
+把 T0704 已证明的 paired empty classification/parser registries 映射为显式 SAFE_DEFERRED，
+同时保持 ACTIVE 行为不变。入口复用
 现有 `moomooau-beta` 八个精确 Secret 名称，先用已安装 GitHub App 刷新唯一私有仓实时容量，
 再允许 Gmail credential exchange。只有确定性验证来源可完整读取；Raw 与 Processed 远端恢复
 和二次验证后，精确 `messages.trash` budget 最多 1；唯一最新 Timeline 与 checkpoint-last
@@ -42,10 +51,11 @@ Authoritative artifacts:
 - `machine/contracts/task_graph.json`
 - `machine/contracts/delivery_status_model.json`
 - `machine/status/latest.json`
+- `machine/stages/S7/reviews/t0705/attempt-ledger.json`
 - `machine/stages/S7/reviews/t0704/attempt-ledger.json`
 - `machine/stages/S7/reviews/t0704/execution-receipt.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.19.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.18.json`（不可变直接前序）
+- `taskpack/PACKAGE_MANIFEST.v1.0.20.json`
+- `taskpack/PACKAGE_MANIFEST.v1.0.19.json`（不可变直接前序）
 - `taskpack/PACKAGE_MANIFEST.v1.0.1.json`（不可变历史基线）
 
 Codex 开发线程必须按既定顺序逐 run 推进，一次最多解决一个 stage。本轮只推进

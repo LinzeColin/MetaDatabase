@@ -1,5 +1,21 @@
 # Taskpack Changelog
 
+## 1.0.20 — 2026-07-26
+
+固化 T0705 首次 protected GA 失败，只授权 paired SAFE_DEFERRED compatibility repair。
+
+- 绑定 PR #115、main `eb7ad073…`、run `30182491342`、attempt 1、rerun 0；
+- authority 与 identity cleanup PASS，GA FAILED，live schedule hold SKIPPED；
+- 独立后验确认 private commit 与 Raw/Processed/State/other path change 均为 0，Gmail mutation
+  API 未到达，checkpoint 不存在，唯一 live Timeline Asset 仍为 1；
+- protected 输出未公开 exact runtime exception，因此只记录可证 failure boundary 与
+  high-confidence static defect，不伪造线上异常；
+- GA bootstrap/runtime 仅兼容 paired empty protected registries，显式产出 SAFE_DEFERRED，
+  ACTIVE registry 行为保持不变；
+- 失败 head 永不 rerun/redispatch；总 dispatch 预算 2 已消耗 1，只剩一个新 repair dispatch；
+- 总 controlled main delivery 预算 3 已消耗 1，只剩 repair 与 receipt/schedule closure；
+- live schedule 保持关闭；T0706、最终 Acceptance、Stage 7 完成与最终发布仍未授权。
+
 ## 1.0.19 — 2026-07-26
 
 在精确 T0704 protected PASS 后只授权 T0705 protected GA schedule-mode rehearsal。

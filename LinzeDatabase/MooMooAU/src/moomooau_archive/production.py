@@ -363,16 +363,25 @@ class ProductionBootstrap:
             sender_registry = _load_sender_registry(self._secret_source)
             classification_registry = _load_classification_registry(self._secret_source)
             parser_registry = _load_parser_registry(self._secret_source)
-            if (
-                sender_registry.activation is not RegistryActivation.ACTIVE
-                or classification_registry.activation is not ClassificationActivation.ACTIVE
-                or parser_registry.activation is not ParserActivation.ACTIVE
-                or not any(
+            active_processing = (
+                classification_registry.activation is ClassificationActivation.ACTIVE
+                and parser_registry.activation is ParserActivation.ACTIVE
+                and any(
                     profile.parser_version == config.parser_current_version
                     for profile in parser_registry.profiles
                 )
+            )
+            safe_deferred_processing = (
+                classification_registry.activation
+                is ClassificationActivation.EMPTY_PROTECTED_EVIDENCE_REQUIRED
+                and parser_registry.activation is ParserActivation.EMPTY_PROTECTED_EVIDENCE_REQUIRED
+                and not classification_registry.rules
+                and not parser_registry.profiles
+            )
+            if sender_registry.activation is not RegistryActivation.ACTIVE or not (
+                active_processing or safe_deferred_processing
             ):
-                raise ProductionBootstrapError("protected production registries are not active")
+                raise ProductionBootstrapError("protected production registries are incompatible")
 
             github_private_key = _load_secret_bytes(
                 self._secret_source,

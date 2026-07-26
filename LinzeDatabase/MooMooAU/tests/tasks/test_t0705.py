@@ -419,6 +419,32 @@ def test_t0705_initial_full_reconcile_is_truthfully_not_comparable() -> None:
         assert outcome.result.to_public_dict()["full_reconcile_comparison"] == "NOT_COMPARABLE"
 
 
+def test_t0705_ga_accepts_paired_empty_protected_registries_as_safe_deferred() -> None:
+    message_id = "msg-stage7-ga-safe-deferred"
+    with ga_context(
+        (m3_canary_message(message_id),),
+        safe_deferred_registries=True,
+    ) as context:
+        outcome = context.runner.run(
+            _sunday_plan(),
+            key_epoch="synthetic-epoch-1",
+            parser_current_version="1.0.0",
+            predecessor_observations=observations_through(ReleasePhase.BLUE_GREEN),
+            beta_message_budget=1,
+            ga_mutation_budget_per_run=1,
+            ga_capacity_authorized=True,
+        )
+
+        assert outcome.result.processed_complete == 0
+        assert outcome.result.processed_safe_deferred == 1
+        assert outcome.result.full_recovery_successes == 1
+        assert outcome.result.confirmed_trashed == outcome.result.mutation_calls == 1
+        assert context.transport.trashed_ids == [message_id]
+        assert outcome.result.final_live_timeline_assets == 1
+        assert context.timeline_remote.maximum_observed_asset_count == 1
+        assert outcome.result.sync_checkpoint_recoveries == 1
+
+
 def test_t0705_pending_verified_source_cannot_disappear_from_checkpoint_truth() -> None:
     message_id = "msg-stage7-ga-pending-disappeared"
     ref = MessageRef(message_id, "thread-" + message_id)
@@ -522,6 +548,8 @@ def test_t0705_protected_contract_binds_exact_receipts_without_secret_reads() ->
     assert contract["maximum_reruns"] == 0
     assert contract["required_protected_input_count"] == 8
     assert contract["blue_green_receipt_sha256"] == blue_green_receipt_sha256(PROJECT_ROOT)
+    assert contract["failed_ga_head_rerun_allowed"] is False
+    assert contract["failed_ga_head_redispatch_allowed"] is False
     assert contract["ga_gate_sha256"] == ga_gate_sha256(PROJECT_ROOT)
 
 

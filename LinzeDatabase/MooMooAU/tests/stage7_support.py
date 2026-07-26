@@ -882,6 +882,7 @@ def ga_context(
     initial_sync_state: SyncState | None = None,
     history_pages: tuple[dict[str, object], ...] = (),
     capacity: CapacityAssessment | None = None,
+    safe_deferred_registries: bool = False,
 ) -> Iterator[GAContext]:
     """Build the T0705 full pipeline with one synthetic ciphertext-only private remote."""
 
@@ -921,12 +922,30 @@ def ga_context(
             events,
         )
         recovery = RemoteRecoveryGate(reader, decryptor)
-        class_registry = classification_registry(
-            DocumentClass.DAILY_STATEMENT,
-            AttachmentKind.CSV,
+        class_registry = ClassificationRegistry.from_json(
+            classification_registry_payload(
+                ()
+                if safe_deferred_registries
+                else ((DocumentClass.DAILY_STATEMENT, AttachmentKind.CSV),)
+            )
         )
         parser_registry = ParserProfileRegistry.from_json(
-            parser_registry_payload(DocumentClass.DAILY_STATEMENT, AttachmentKind.CSV)
+            json.dumps(
+                {
+                    "schema_version": "moomooau.parser-profile-registry.v1",
+                    "registry_version": "1.0.0",
+                    "issued_at_utc": "2026-01-01T00:00:00Z",
+                    "activation_state": "EMPTY_PROTECTED_EVIDENCE_REQUIRED",
+                    "profiles": [],
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode()
+            if safe_deferred_registries
+            else parser_registry_payload(
+                DocumentClass.DAILY_STATEMENT,
+                AttachmentKind.CSV,
+            )
         )
         current_source = RemoteCurrentProcessedPointerSource(processed_store, decryptor)
         processed_planner = ProcessedCommitPlanner(age, generated.recipient)

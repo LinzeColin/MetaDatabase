@@ -11,11 +11,11 @@ on:
         required: true
         type: string
       confirm_ga:
-        description: Confirm one schedule-mode GA rehearsal with mutation budget one
+        description: Confirm one new safe-deferred GA repair rehearsal with mutation budget one
         required: true
         type: choice
         options:
-          - GA_SCHEDULE_MODE_REHEARSAL_MUTATION_BUDGET_ONE
+          - GA_SCHEDULE_MODE_REPAIR_SAFE_DEFERRED_MUTATION_BUDGET_ONE
 
 permissions:
   contents: read
@@ -30,6 +30,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     outputs:
+      authorized_head: ${{ steps.authority.outputs.authorized_head }}
       blue_green_receipt_sha256: ${{ steps.ga-contract.outputs.blue_green_receipt_sha256 }}
       ga_gate_sha256: ${{ steps.ga-contract.outputs.ga_gate_sha256 }}
     env:
@@ -37,6 +38,7 @@ jobs:
       PYTHONDONTWRITEBYTECODE: "1"
     steps:
       - name: Fail closed on invalid protected GA dispatch context
+        id: authority
         shell: bash
         env:
           EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha }}
@@ -56,9 +58,11 @@ jobs:
             "LinzeColin/MetaDatabase/.github/workflows/moomooau-production.yml@refs/heads/main"
           test "$EXPECTED_HEAD_SHA" = "$GITHUB_SHA"
           test "$GA_AUTHORIZED_HEAD" = "$GITHUB_SHA"
+          test "$GITHUB_SHA" != "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f"
           test "$GA_CONFIRMATION" = \
-            "GA_SCHEDULE_MODE_REHEARSAL_MUTATION_BUDGET_ONE"
+            "GA_SCHEDULE_MODE_REPAIR_SAFE_DEFERRED_MUTATION_BUDGET_ONE"
           [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          echo "authorized_head=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Check out exact main tree without retained credentials
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -190,7 +194,7 @@ jobs:
         working-directory: LinzeDatabase/MooMooAU
         env:
           MOOMOOAU_PROTECTED_ENVIRONMENT: moomooau-beta
-          MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD: ${{ vars.MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD }}
+          MOOMOOAU_GA_REHEARSAL_AUTHORIZED_HEAD: ${{ needs.ga-authority-gate.outputs.authorized_head }}
           MOOMOOAU_BETA_CONFIG: ${{ secrets.MOOMOOAU_BETA_CONFIG }}
           MOOMOOAU_SENDER_REGISTRY: ${{ secrets.MOOMOOAU_SENDER_REGISTRY }}
           MOOMOOAU_CLASSIFICATION_REGISTRY: ${{ secrets.MOOMOOAU_CLASSIFICATION_REGISTRY }}

@@ -1,8 +1,8 @@
 [
   {
-    "version": "1.0.19",
+    "version": "1.0.20",
     "date": "2026-07-26",
-    "summary": "在精确 T0704 protected PASS 后只授权 T0705：复用现有八项 protected input 与安装到唯一私有仓的 GitHub App，在 Secret/Gmail 前刷新实时容量；唯一 exact-main attempt-1 workflow_dispatch 调用生产 SCHEDULE planner path 并如实标记 SCHEDULE_REHEARSAL，rerun 为零。PASS 回执绑定前调度保持关闭，之后只启用已提交的 04:30 Australia/Sydney schedule；T0706、最终Acceptance 与最终发布仍未授权。"
+    "summary": "固化 T0705 首次 exact-main attempt-1 失败：authority 与身份清理通过，protected GA 在数据平面前失败；独立聚合核验观察到私有仓 Raw、Processed、State 与其他路径零变化，单一加密 Timeline 保持不变，生产调度与一次性变量均关闭。失败头禁止 rerun/redispatch；仅授权一个 paired empty protected 注册表 SAFE_DEFERRED 兼容修复 head 与一次 attempt 1，T0706 和最终发布仍禁止。"
   },
   {
     "version": "1.0.18",

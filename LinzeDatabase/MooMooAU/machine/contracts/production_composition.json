@@ -1,12 +1,12 @@
 {
   "schema_version": "moomooau.production-composition.v1",
   "finding_id": "REV-P0-002",
-  "observed_at_utc": "2026-07-26T00:06:15Z",
+  "observed_at_utc": "2026-07-26T01:24:20Z",
   "status": "LOCAL_SYNTHETIC_COMPOSITION_VERIFIED",
   "scope": "RMD_04_LOCAL_SYNTHETIC_ONLY",
   "workflow": {
     "path": ".github/workflows/moomooau-production.yml",
-    "sha256": "83fdca6c6f5f645d128fcfd570f22a88a1b8ee4d3857ff3b95dd04b94f5c5b54",
+    "sha256": "9b359fd1b41cf02c4f38f1b4b2173a360bd839f6c8706c0477f6daa63de20b80",
     "cron": "30 4 * * *",
     "timezone": "Australia/Sydney",
     "entrypoint": "python -m moomooau_archive.protected_ga_entrypoint --execute-protected",
@@ -23,7 +23,7 @@
     "MOOMOOAU_GMAIL_OAUTH"
   ],
   "component_bindings": [
-    "ProtectedGAEntrypoint <- exact-main owner dispatch, T0702-T0704 receipts and one-task authority",
+    "ProtectedGAEntrypoint <- exact-main owner repair dispatch, T0702-T0704 receipts, frozen T0705 failure ledger and one-task authority",
     "DerivedGASecretSource <- existing moomooau-beta inputs plus in-memory GA policy only",
     "LiveRepositoryCapacityProbe <- current private repository tree and single live Release Asset",
     "RunPlanner <- encrypted Gmail Sydney watermark",
@@ -40,7 +40,7 @@
     "ExactMessageTrashExecutor <- second verification plus exact messages.trash",
     "TimelineSnapshotRecoveryGate <- private snapshot decrypt-and-digest proof",
     "SingleLatestTimelinePublisher <- fixed private Release and one age Asset",
-    "GAFullPipelineRunner <- discovery through checkpoint-last orchestration",
+    "GAFullPipelineRunner <- active or paired-empty SAFE_DEFERRED processing through checkpoint-last orchestration",
     "OperationalGate <- fail-closed prospective capacity demand, reservation and Kill authority"
   ],
   "source_digests": {
@@ -54,7 +54,7 @@
       "sha256": "d21a1cf7de18877c124277d7c7d3a95fc5ceab71c3cf51a1c4ae8f2116e60d36"
     },
     "src/moomooau_archive/production.py": {
-      "sha256": "7455a552899677032715d741115c08fdcb1c58902369b69cc406b23156085e46"
+      "sha256": "1d316b90d313542e4e2c0eabd814c209f7eda1883cf641da4c5f4cb1a7102d74"
     },
     "src/moomooau_archive/production_adapters.py": {
       "sha256": "07282e7f8f4855a520c3f0d7bd3456cca07183709c0847e97984b55142768b6f"
@@ -63,16 +63,16 @@
       "sha256": "9c0c364f3e2727bcd43a41825c4ffe9aac1406f99bba00948e5eab1eacbbcbe9"
     },
     "src/moomooau_archive/ga_runtime.py": {
-      "sha256": "c3c9ba533e1e4b93c7efd89962d58e04501c670c46f8d17351bab0db56c98009"
+      "sha256": "6839012aa062ee645a95f3fbf6705ca166acb1f699dd573841418d064e1f6b15"
     },
     "src/moomooau_archive/protected_blue_green.py": {
       "sha256": "cfd74ded9e0c89de1cb5c2f7d03e34d4f902011f6cf73314387f832ddb556f24"
     },
     "src/moomooau_archive/protected_ga_entrypoint.py": {
-      "sha256": "ffd559d2d9c7f9fd8b102a5476464c986c3c0b91d42e2c9821813cc4f19356a7"
+      "sha256": "3bb5e291ea2e6f8bb68bdfd0498507697bc17e2bb2774c44bf0d745643bd9655"
     },
     "tests/remediation/test_rmd04.py": {
-      "sha256": "4e6fb520c4500fc458f7676018371cb6c50e2a26fabde22cfe73f14b26b2f2ce"
+      "sha256": "5d89a3cb970172683fa7d6322d9b9c0b7414927461abee4e709be070cab726b5"
     },
     "tests/remediation/test_rmd05.py": {
       "sha256": "10cb61cdde6b76de201f4442fc4243d5c72792b12ab6e9ba602dd30491ddbfba"
@@ -81,10 +81,10 @@
       "sha256": "7297e91cdde668b65ddcbb789e9eb510541137277b87a96fc00c8e43504f6599"
     },
     "tests/tasks/test_t0704.py": {
-      "sha256": "8a44bdcc8cc0491fb999d8732376b533811e8e8d9be91003bc000137051c40b7"
+      "sha256": "7b9626a76cb9fbf1c6320bf71c8c008acc1f3efe516861694a82cc516ab6df47"
     },
     "tests/tasks/test_t0705.py": {
-      "sha256": "0fed9ed630ae8a1c121f7bd6697faea27fa2203b391c84131914de7f62a51c5b"
+      "sha256": "3714efab63c892aee1166315949e5ac538bd60e264fb444f4b4b8be31fd5e423"
     },
     "schemas/production-config-v1.schema.json": {
       "sha256": "78968068b6110aac7b01ad94f9be5ce5120a97243e1528183f274ffe772c2fc2"

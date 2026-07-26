@@ -327,6 +327,7 @@ def _production_context(
     *,
     block_predecessor: bool = False,
     refresh_capacity_from_remote: bool = False,
+    safe_deferred_registries: bool = False,
 ) -> Iterator[ProductionSyntheticContext]:
     now = datetime(2026, 7, 22, 1, tzinfo=UTC)
     repository_id = 7_200_104
@@ -384,12 +385,28 @@ def _production_context(
             ),
             SENDER_REGISTRY_SECRET_NAME: registry_payload().decode(),
             CLASSIFICATION_REGISTRY_SECRET_NAME: classification_registry_payload(
-                ((DocumentClass.DAILY_STATEMENT, AttachmentKind.CSV),)
+                ()
+                if safe_deferred_registries
+                else ((DocumentClass.DAILY_STATEMENT, AttachmentKind.CSV),)
             ).decode(),
-            PARSER_REGISTRY_SECRET_NAME: parser_registry_payload(
-                DocumentClass.DAILY_STATEMENT,
-                AttachmentKind.CSV,
-            ).decode(),
+            PARSER_REGISTRY_SECRET_NAME: (
+                json.dumps(
+                    {
+                        "schema_version": "moomooau.parser-profile-registry.v1",
+                        "registry_version": "1.0.0",
+                        "issued_at_utc": "2026-01-01T00:00:00Z",
+                        "activation_state": "EMPTY_PROTECTED_EVIDENCE_REQUIRED",
+                        "profiles": [],
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                if safe_deferred_registries
+                else parser_registry_payload(
+                    DocumentClass.DAILY_STATEMENT,
+                    AttachmentKind.CSV,
+                ).decode()
+            ),
             GITHUB_APP_PRIVATE_KEY_SECRET_NAME: private_key_pem.decode("ascii"),
             AGE_IDENTITY_SECRET_NAME: generated.identity.reveal().decode("ascii"),
             OPAQUE_ID_KEY_SECRET_NAME: base64.b64encode(b"synthetic-protected-opaque-key-1").decode(
@@ -568,6 +585,24 @@ def test_rmd04_live_capacity_refresh_precedes_gmail_credential_exchange() -> Non
         assert list(context.tmpfs_root.iterdir()) == []
 
 
+def test_rmd04_production_accepts_paired_empty_registries_as_safe_deferred() -> None:
+    with _production_context(
+        refresh_capacity_from_remote=True,
+        safe_deferred_registries=True,
+    ) as context:
+        with context.bootstrap.open() as runtime:
+            result = runtime.run(RunTrigger.SCHEDULE)
+
+        assert result.outcome.result.processed_complete == 0
+        assert result.outcome.result.processed_safe_deferred == 1
+        assert result.outcome.result.full_recovery_successes == 1
+        assert result.outcome.result.confirmed_trashed == 1
+        assert context.gmail.trashed_ids == ["msg-rmd04-production"]
+        assert context.github.maximum_assets == len(context.github.assets) == 1
+        assert context.source.all_issued_destroyed is True
+        assert list(context.tmpfs_root.iterdir()) == []
+
+
 def test_rmd04_checkpoint_reads_legacy_v1_and_writes_canonical_v2_watermark() -> None:
     legacy = json.dumps(
         {
@@ -605,7 +640,21 @@ def test_rmd04_status_preserves_composition_closure_through_later_packages() -> 
     assert status["dimensions"]["formal_task_completion"]["completed"] == 7
     assert status["dimensions"]["final_acceptance"]["passed"] == 0
     assert status["dimensions"]["production_readiness"]["status"] == "BLOCKED"
-    if status["package_version"] == "1.0.19":
+    if status["package_version"] == "1.0.20":
+        assert status["dimensions"]["protected_oracles"] == {
+            "status": "FAILED",
+            "declared": 43,
+            "executed": 5,
+            "passed": 4,
+            "failed": 1,
+            "not_run": 38,
+        }
+        assert status["dimensions"]["publication"] == {
+            "status": "CONTROLLED_T0705_REPAIR_CANDIDATE_NOT_FINAL",
+            "controlled_main_deliveries": 18,
+            "remote_publications": 0,
+        }
+    elif status["package_version"] == "1.0.19":
         assert status["dimensions"]["protected_oracles"] == {
             "status": "PARTIAL",
             "declared": 43,

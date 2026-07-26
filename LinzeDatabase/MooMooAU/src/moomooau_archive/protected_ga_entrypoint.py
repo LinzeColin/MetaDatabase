@@ -1,10 +1,12 @@
 """Exact-main protected GA schedule-mode entrypoint for Stage 7 T0705.
 
-The first T0705 execution is a single owner-dispatched protected rehearsal.  It invokes the
-same deterministic ``RunTrigger.SCHEDULE`` path used by the committed 04:30
+The first T0705 execution failed before the data plane and its exact head is permanently
+frozen.  This entrypoint authorizes one new owner-dispatched repair rehearsal.  It invokes
+the same deterministic ``RunTrigger.SCHEDULE`` path used by the committed 04:30
 Australia/Sydney workflow, but it never claims that ``workflow_dispatch`` was a GitHub
 schedule event.  Before any Secret read it binds exact main, the immutable T0702-T0704
-receipts, the current one-task Run Contract and a same-tree gate digest.
+receipts, the failed-attempt ledger, the current one-task Run Contract and a same-tree gate
+digest.
 
 The existing ``moomooau-beta`` Environment remains the sole protected credential plane.  Its
 Beta infrastructure config is converted to a GA config only in memory; no Secret is copied or
@@ -52,15 +54,20 @@ CONTROL_WORKFLOW_REF = (
     "LinzeColin/MetaDatabase/.github/workflows/moomooau-production.yml@refs/heads/main"
 )
 PROTECTED_ENVIRONMENT = "moomooau-beta"
-GA_CONFIRMATION = "GA_SCHEDULE_MODE_REHEARSAL_MUTATION_BUDGET_ONE"
+GA_CONFIRMATION = "GA_SCHEDULE_MODE_REPAIR_SAFE_DEFERRED_MUTATION_BUDGET_ONE"
 GA_PARSER_CURRENT_VERSION = "1.0.0"
 GA_MUTATION_BUDGET_PER_RUN = 1
+FAILED_GA_HEAD_SHA = "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f"  # pragma: allowlist secret
 
 _BLUE_GREEN_RECEIPT_PATH = Path("machine/stages/S7/reviews/t0704/execution-receipt.json")
 _BLUE_GREEN_RECEIPT_SCHEMA_PATH = Path(
     "machine/stages/S7/schemas/protected-blue-green-execution-receipt-v1.schema.json"
 )
 _RUN_CONTRACT_PATH = Path("machine/stages/S7/contracts/run_contract.json")
+_FAILED_GA_LEDGER_PATH = Path("machine/stages/S7/reviews/t0705/attempt-ledger.json")
+_FAILED_GA_LEDGER_SCHEMA_PATH = Path(
+    "machine/stages/S7/schemas/protected-ga-attempt-ledger-v1.schema.json"
+)
 _GATE_PATHS = (
     Path("machine/stages/S7/reviews/t0702/execution-receipt.json"),
     Path("machine/stages/S7/schemas/protected-beta-execution-receipt-v2.schema.json"),
@@ -68,6 +75,8 @@ _GATE_PATHS = (
     Path("machine/stages/S7/schemas/protected-m3-execution-receipt-v1.schema.json"),
     _BLUE_GREEN_RECEIPT_PATH,
     _BLUE_GREEN_RECEIPT_SCHEMA_PATH,
+    _FAILED_GA_LEDGER_PATH,
+    _FAILED_GA_LEDGER_SCHEMA_PATH,
     _RUN_CONTRACT_PATH,
     Path("machine/stages/S7/contracts/stage7_acceptance_contract.json"),
     Path("machine/contracts/production_composition.json"),
@@ -163,6 +172,7 @@ class ProtectedGAGitHubContext:
             or context.event_name != "workflow_dispatch"
             or context.run_attempt != 1
             or _COMMIT.fullmatch(context.head_sha) is None
+            or context.head_sha == FAILED_GA_HEAD_SHA
             or context.authorized_head != context.head_sha
         ):
             raise ProtectedGAEntrypointError("protected GA GitHub context is not allowed")
@@ -302,6 +312,10 @@ def execution_contract(project_root: Path) -> dict[str, object]:
         "protected_input_values_disclosed": False,
         "blue_green_receipt_path": _BLUE_GREEN_RECEIPT_PATH.as_posix(),
         "blue_green_receipt_sha256": blue_green_receipt_sha256(root),
+        "failed_ga_head_sha": FAILED_GA_HEAD_SHA,
+        "failed_ga_head_rerun_allowed": False,
+        "failed_ga_head_redispatch_allowed": False,
+        "failed_ga_attempt_ledger_path": _FAILED_GA_LEDGER_PATH.as_posix(),
         "ga_gate_paths": [path.as_posix() for path in _GATE_PATHS],
         "ga_gate_sha256": ga_gate_sha256(root),
         "ga_authorized": authorized,
@@ -637,22 +651,44 @@ def _ga_authorized(project_root: Path) -> bool:
     return bool(
         contract.get("stage_id") == "S7"
         and contract.get("task_id") == "T0705"
-        and contract.get("baseline_commit")
-        == "c4d4f6cdd60398fba2724d32a99a59306f4225a1"  # pragma: allowlist secret
-        and authorization.get("purpose") == "T0705_PROTECTED_GA_SCHEDULE_MODE_AND_ENABLEMENT_ONLY"
+        and contract.get("baseline_commit") == FAILED_GA_HEAD_SHA  # pragma: allowlist secret
+        and contract.get("baseline_manifest_sha256")
+        == "eb32ab3ef990a5273978ab548fe063d6ba954c7fff8c2a416830b2ee94cfaf61"  # pragma: allowlist secret  # noqa: E501
+        and authorization.get("purpose")
+        == "T0705_PROTECTED_GA_SAFE_DEFERRED_REPAIR_AND_ENABLEMENT_ONLY"
+        and authorization.get("original_run_contract_sha256")
+        == "1c94dfdce8b5809718e2772d422bb6db773f8b9899ad9e719b0ffda11d0053b9"  # pragma: allowlist secret  # noqa: E501
+        and authorization.get("failed_attempt_ledger_required") is True
+        and authorization.get("failed_attempt_ledger_sha256")
+        == hashlib.sha256((root / _FAILED_GA_LEDGER_PATH).read_bytes()).hexdigest()
+        and authorization.get("failed_attempt_ledger_schema_sha256")
+        == hashlib.sha256((root / _FAILED_GA_LEDGER_SCHEMA_PATH).read_bytes()).hexdigest()
+        and authorization.get("failed_workflow_head_sha") == FAILED_GA_HEAD_SHA
+        and authorization.get("failed_head_rerun_allowed") is False
+        and authorization.get("failed_head_redispatch_allowed") is False
         and authorization.get("t0704_receipt_required") is True
         and authorization.get("t0704_receipt_sha256") == blue_green_receipt_sha256(root)
         and authorization.get("t0705_authorized") is True
         and authorization.get("t0706_authorized") is False
         and authorization.get("final_publication_authorized") is False
-        and authorization.get("ga_rehearsal_dispatch_limit") == 1
-        and authorization.get("ga_rehearsal_rerun_limit") == 0
+        and authorization.get("controlled_main_delivery_total_limit") == 3
+        and authorization.get("controlled_main_deliveries_consumed") == 1
+        and authorization.get("controlled_main_deliveries_remaining") == 2
+        and authorization.get("original_ga_rehearsal_dispatches_consumed") == 1
+        and authorization.get("ga_repair_dispatch_limit") == 1
+        and authorization.get("ga_repair_rerun_limit") == 0
         and authorization.get("manual_environment_reviewers_required") is False
         and authorization.get("fixed_calendar_wait_days") == 0
+        and budget.get("controlled_main_deliveries_total_maximum") == 3
+        and budget.get("controlled_main_deliveries_remaining_maximum") == 2
         and budget.get("protected_environment_secret_names_maximum") == len(M3_SECRET_NAMES)
-        and budget.get("protected_ga_rehearsal_dispatches_maximum") == 1
+        and budget.get("protected_ga_rehearsal_dispatches_total_maximum") == 2
+        and budget.get("protected_ga_rehearsal_dispatches_consumed") == 1
+        and budget.get("protected_ga_repair_dispatches_maximum") == 1
         and budget.get("protected_ga_rehearsal_reruns_maximum") == 0
-        and budget.get("protected_ga_pipeline_runs_maximum") == 1
+        and budget.get("failed_head_reruns_maximum") == 0
+        and budget.get("failed_head_redispatches_maximum") == 0
+        and budget.get("protected_ga_repair_pipeline_runs_maximum") == 1
         and budget.get("platform_schedule_events_during_rehearsal_maximum") == 0
         and budget.get("gmail_exact_message_trash_mutations_maximum") == GA_MUTATION_BUDGET_PER_RUN
         and budget.get("timeline_snapshot_commit_attempts_maximum") == 1
