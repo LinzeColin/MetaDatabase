@@ -68,6 +68,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       │   └── page.tsx
 │   │   │       ├── components
 │   │   │       │   ├── command-search.tsx
+│   │   │       │   ├── data-pulse.tsx
 │   │   │       │   ├── evidence-panel.tsx
 │   │   │       │   ├── family-overview-panel.tsx
 │   │   │       │   ├── feedback.tsx
@@ -107,6 +108,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       ├── page.tsx
 │   │   │       ├── policy-client.ts
 │   │   │       ├── production-data-client.ts
+│   │   │       ├── pulse-client.ts
 │   │   │       ├── saved-view-client.ts
 │   │   │       ├── structure-client.ts
 │   │   │       ├── supply-chain-client.ts
@@ -549,6 +551,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   ├── common.py
 │   │   ├── enrich_sec.py
 │   │   ├── refresh_cycle.py
+│   │   ├── sec_daily_index.py
 │   │   └── watch_recent_filings.py
 │   ├── apply_model_config.py
 │   ├── backfill_sec_history.py
