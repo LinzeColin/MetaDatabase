@@ -1,0 +1,174 @@
+{
+  "schema_version": "moomooau.protected-ga-canonical-blob-attempt-ledger.v1",
+  "stage_id": "S7",
+  "task_id": "T0705",
+  "observed_through_utc": "2026-07-26T12:21:11Z",
+  "predecessor_control": {
+    "prior_run_contract_sha256": "88c19bfb0c95b1ba75d47738899b04f648eb6c53b2bbc0ed217749d72154e0a7",
+    "eighth_attempt_ledger_sha256": "092f5a580d905213066a99221f51b9065748dceeb82e48e20b54ed42e82d444f",
+    "eighth_attempt_ledger_schema_sha256": "2945fb030f4154da1d18142f5b239a5b824126010d8dbcc9ae92b7a973f089ab",
+    "prior_failed_workflow_head_shas": [
+      "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+      "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+      "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+      "4c207ad539754166fae6642ff4e6850438d3e2fc",
+      "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+      "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",
+      "2133673b335a384657c8668b62a1c13055c212cd",
+      "8b6faaf9059661edc3153352b8787ddbc4f733f3"
+    ],
+    "prior_failed_head_dispatches_after_freeze": 0,
+    "prior_failed_head_reruns_after_freeze": 0
+  },
+  "attempts": [
+    {
+      "sequence": 9,
+      "delivery": {
+        "kind": "CONTROLLED_MOOMOOAU_PR",
+        "pull_request_number": 126,
+        "pull_request_head_sha": "f82d9ecd99aa809fd8a27d3323bf7fdffca7bf45",
+        "merge_commit_parent_sha": "c3acc31eda47505bf07b9cf7e53cd0391e229f5d",
+        "merge_commit_sha": "6f82e738611e0d2eeeadd2507f738c9e269c91e0",
+        "merged_at_utc": "2026-07-26T11:58:01Z",
+        "merge_precondition": "TARGETED_INSTANT_VALIDATION_NO_WALL_CLOCK_SOAK",
+        "redundant_post_merge_ci_cancelled": true
+      },
+      "workflow": {
+        "run_id": 30201167052,
+        "run_url": "https://github.com/LinzeColin/MetaDatabase/actions/runs/30201167052",
+        "workflow_id": 318812500,
+        "event": "workflow_dispatch",
+        "workflow_ref": "refs/heads/main",
+        "workflow_head_sha": "6f82e738611e0d2eeeadd2507f738c9e269c91e0",
+        "run_attempt": 1,
+        "reruns": 0,
+        "started_at_utc": "2026-07-26T11:59:05Z",
+        "completed_at_utc": "2026-07-26T12:05:05Z"
+      },
+      "jobs": {
+        "authority_gate": {
+          "job_id": 89791235096,
+          "status": "PASS",
+          "started_at_utc": "2026-07-26T12:01:18Z",
+          "completed_at_utc": "2026-07-26T12:02:46Z"
+        },
+        "ga_schedule_rehearsal": {
+          "job_id": 89791563770,
+          "status": "FAILED",
+          "started_at_utc": "2026-07-26T12:02:50Z",
+          "completed_at_utc": "2026-07-26T12:05:04Z"
+        },
+        "identity_plaintext_cleanup": {
+          "status": "PASS",
+          "completed_at_utc": "2026-07-26T12:05:04Z"
+        },
+        "live_schedule_hold": {
+          "job_id": 89791235383,
+          "status": "SKIPPED",
+          "completed_at_utc": "2026-07-26T11:59:06Z"
+        }
+      },
+      "public_failure": {
+        "schema_version": "moomooau.protected-ga-public-failure.v1",
+        "status": "BLOCKED",
+        "reason_code": "PROTECTED_GA_FIRST_IMPORT_POINTER_FETCH_FAILED",
+        "failure_phase": "FIRST_IMPORT_POINTER_FETCH",
+        "installation_token_failure_class": "UNCLASSIFIED",
+        "diagnostic_taxonomy": "moomooau.protected-ga-failure-taxonomy.v1",
+        "exact_root_cause_claimed": false,
+        "protected_values_disclosed": false,
+        "platform_schedule_event_claimed": false,
+        "production_health_claimed": false,
+        "final_acceptance_claimed": false
+      },
+      "effects": {
+        "matching_private_repositories": 1,
+        "private_repository_head_changed": false,
+        "private_repository_head_commit_time_relation": "BEFORE_RUN",
+        "private_repository_new_commits_during_attempt": 0,
+        "raw_ciphertext_creations": 0,
+        "processed_immutable_creations": 0,
+        "processed_current_pointer_mutations": 0,
+        "timeline_snapshot_mutations": 0,
+        "timeline_state_mutations": 0,
+        "timeline_publish_attempts": 0,
+        "gmail_checkpoint_mutations": 0,
+        "gmail_source_mutations": 0,
+        "gmail_mutation_api_reached": false,
+        "moomoo_candidates_outside_trash_bucket": "MULTIPLE",
+        "platform_schedule_events": 0,
+        "identity_plaintext_cleanup": "PASS",
+        "one_shot_authority_variable_after_dispatch": "ABSENT",
+        "production_enablement_variable_after_dispatch": "ABSENT",
+        "protected_environment_secret_names": 8,
+        "exact_private_locator_disclosed": false,
+        "exact_private_path_disclosed": false,
+        "exact_source_identifier_disclosed": false,
+        "exact_mailbox_counts_disclosed": false
+      },
+      "scope_activation": {
+        "owner_confirmed_app_link_retained": true,
+        "runtime_exact_installation_repository_scope": "PASS_BEFORE_GMAIL_CREDENTIAL_EXCHANGE",
+        "new_private_repository_created": false,
+        "new_github_app_created": false,
+        "private_repository_locator_disclosed": false
+      },
+      "live_protocol_ab": {
+        "current_pointer_bucket": "MULTIPLE",
+        "contents_metadata_shape": "ALL_PASS",
+        "contents_raw_media_http_status": "ALL_200",
+        "contents_raw_media_canonical_age_size_sha": "PARTIAL_ONE_FAILED",
+        "git_blob_api_encoding_sha_size_age": "ALL_PASS",
+        "patched_production_adapter_recovery": "ALL_PASS",
+        "raw_media_failure_body_class": "NON_AGE_NON_CANONICAL_BINARY",
+        "exact_private_locator_disclosed": false,
+        "exact_private_path_disclosed": false,
+        "exact_source_identifier_disclosed": false
+      },
+      "diagnosis": {
+        "observable_failure_boundary": "WITHIN_FIRST_IMPORT_POINTER_FETCH_BEFORE_POINTER_DECRYPT_OR_ANY_NEW_PROCESSED_WRITE_OR_GMAIL_MUTATION",
+        "exact_protected_runtime_exception": "NOT_RECEIVED_OR_INSPECTED",
+        "reproduced_root_cause": "CONTENTS_RAW_MEDIA_RETURNED_NON_CANONICAL_BODY_FOR_ONE_CURRENT_POINTER",
+        "root_cause_basis": "LIVE_REPRODUCED_SAME_PRODUCTION_ADAPTER_AND_UNCHANGED_REMOTE_HEAD",
+        "safe_next_action": "NEW_EXACT_HEAD_CANONICAL_GIT_BLOB_RECOVERY_REHEARSAL",
+        "basis": [
+          "the ninth protected run passed authority, exact installation repository scope and plaintext cleanup, then failed in the same fixed FIRST_IMPORT_POINTER_FETCH phase",
+          "read-only verification observed one matching private data repository, no commit during the attempt and a private head older than the attempt",
+          "committed ordering keeps the failure before pointer decrypt, new Processed writes, Timeline, checkpoint and Gmail mutation",
+          "the existing production adapter was replayed read-only against every current pointer on the unchanged remote head: one Contents raw-media body failed age, size and canonical Git blob SHA validation",
+          "the Git Blobs API returned base64 with matching response SHA, declared size, decoded size, canonical Git blob SHA and age envelope for every current pointer",
+          "the patched production adapter using metadata SHA to fetch the canonical Git Blob recovered every current pointer without reading Contents inline or raw-media bodies",
+          "fixture and revision-drift fault injection prove newline-tolerant bounded base64 decoding and fail-closed canonical SHA binding"
+        ]
+      }
+    }
+  ],
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "frozen_failed_workflow_head_shas": [
+      "eb7ad073ecd7e4e6d0d8b5d39126cc95d3d2427f",
+      "e38cd60ed0458cc6ebe7723c26190d17db0bc5f0",
+      "cc7c8af9a40122a61ee2549fb365df813cbd4f16",
+      "4c207ad539754166fae6642ff4e6850438d3e2fc",
+      "64d88e910ab4078bf90e9fa4f7ce01ef87cf02b4",
+      "d10f5086e90aa06f4e6373cb0e44111e1f2c36c7",
+      "2133673b335a384657c8668b62a1c13055c212cd",
+      "8b6faaf9059661edc3153352b8787ddbc4f733f3",
+      "6f82e738611e0d2eeeadd2507f738c9e269c91e0"
+    ],
+    "exact_canonical_git_blob_candidate_allowed": true,
+    "next_candidate_dispatch_limit": 1,
+    "historical_ga_rehearsal_dispatches_consumed": 9,
+    "historical_ga_rehearsal_reruns": 0,
+    "t0705_complete": false,
+    "t0706_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "s7ac_005_passed": false,
+    "production_health": false,
+    "final_acceptance": false,
+    "stage7_complete": false
+  }
+}

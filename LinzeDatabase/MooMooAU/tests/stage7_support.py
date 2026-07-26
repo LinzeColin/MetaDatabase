@@ -1273,6 +1273,28 @@ class SyntheticProtectedGitHubTransport:
                     "size": len(request.body),
                 },
             )
+        blob_prefix = f"/repos/{self.owner}/{self.name}/git/blobs/"
+        if request.method == "GET" and parsed.path.startswith(blob_prefix):
+            revision = parsed.path.removeprefix(blob_prefix)
+            value = next(
+                (
+                    self.objects[relative]
+                    for relative, observed_revision in self.revisions.items()
+                    if observed_revision == revision
+                ),
+                None,
+            )
+            if value is None:
+                return HttpResponse(404, b"{}")
+            return self._json(
+                200,
+                {
+                    "content": base64.b64encode(value).decode("ascii"),
+                    "encoding": "base64",
+                    "sha": revision,
+                    "size": len(value),
+                },
+            )
         content_prefix = f"/repos/{self.owner}/{self.name}/contents/"
         if parsed.path.startswith(content_prefix):
             relative_path = unquote(parsed.path.removeprefix(content_prefix))

@@ -1,12 +1,12 @@
 {
   "schema_version": "moomooau.production-composition.v1",
   "finding_id": "REV-P0-002",
-  "observed_at_utc": "2026-07-26T11:12:44Z",
+  "observed_at_utc": "2026-07-26T12:21:11Z",
   "status": "LOCAL_SYNTHETIC_COMPOSITION_VERIFIED",
   "scope": "RMD_04_LOCAL_SYNTHETIC_ONLY",
   "workflow": {
     "path": ".github/workflows/moomooau-production.yml",
-    "sha256": "d733001fd4814a3f8ce0b3e646e0c4897c457f83ba9d6fc44e97369b695f143a",
+    "sha256": "d9707aebd4a8a0b8477ef3af7d288ca4cd3de84d59c1f553c2660ddcee1c1776",
     "cron": "30 4 * * *",
     "timezone": "Australia/Sydney",
     "entrypoint": "python -m moomooau_archive.protected_ga_entrypoint --execute-protected",
@@ -23,7 +23,7 @@
     "MOOMOOAU_GMAIL_OAUTH"
   ],
   "component_bindings": [
-    "ProtectedGAEntrypoint <- exact-main owner App repository-scope activation recovery dispatch, T0702-T0704 receipts, eight frozen T0705 failure ledgers and one-task authority; exact installation repository scope is verified before Gmail credential exchange",
+    "ProtectedGAEntrypoint <- exact-main owner canonical Git Blob recovery dispatch, T0702-T0704 receipts, nine frozen T0705 failure ledgers and one-task authority; exact installation repository scope is verified before Gmail credential exchange",
     "ProtectedGADiagnostics <- closed last-entered operation phase/subphase only, never exception text or protected values",
     "DerivedGASecretSource <- existing moomooau-beta inputs plus in-memory GA policy only",
     "LiveRepositoryCapacityProbe <- current private repository tree and single live Release Asset",
@@ -31,11 +31,11 @@
     "GmailOAuthTokenClient <- exact Gmail OAuth Secret",
     "GmailReadClient <- guarded gmail.modify bearer transport",
     "GmailReconciler <- incremental plus Sunday/manual full truth",
-    "GitHubEndpointGuard <- immutable private repository ID",
+    "GitHubEndpointGuard <- immutable private repository ID plus exact metadata-addressed 40-hex Git Blob GET allowlist",
     "OfficialAgeCrypto <- recipient plus protected tmpfs identity",
     "EncryptedGmailSyncCheckpoint <- strict private Contents CAS",
     "RawCommitSaga <- append-only private age ciphertext",
-    "ProcessedCommitSaga <- immutable datasets plus strict current CAS; current pointer fetch uses bounded Contents metadata, exact raw media and canonical Git blob SHA binding",
+    "ProcessedCommitSaga <- immutable datasets plus strict current CAS; current pointer fetch uses bounded Contents metadata only to bind exact path, size and SHA, then requires exact Git Blobs API base64, response SHA, decoded size, age envelope and canonical Git blob SHA; Contents inline and raw-media bodies are untrusted",
     "RemoteFirstImportTimestampSource <- recovered first-import timestamp and historical Gmail label state from current encrypted Processed lineage",
     "RemoteRecoveryGate <- Raw and Processed remote decrypt-and-digest proof",
     "ExactMessageTrashExecutor <- second verification plus exact messages.trash",
@@ -55,7 +55,7 @@
       "sha256": "d21a1cf7de18877c124277d7c7d3a95fc5ceab71c3cf51a1c4ae8f2116e60d36"
     },
     "src/moomooau_archive/processed_commit.py": {
-      "sha256": "28435c059711ef30e146e9fdd961151c14523e15f1896f45564b8ad2f2dc4b46"
+      "sha256": "b7d9dff8412ea5d39dc2045f6453eadb8617681532201728befe05e0702ca640"
     },
     "src/moomooau_archive/production.py": {
       "sha256": "7f7eb850f66c6f078866d22211af95beb9d9dba2052ed18d647725b4ef8b5dee"
@@ -69,17 +69,20 @@
     "src/moomooau_archive/ga_runtime.py": {
       "sha256": "41eb9572eb32c0e1fb9b01db270d7201e5df37834dbf0efb43bd6bec4dd68f68"
     },
+    "src/moomooau_archive/github_guard.py": {
+      "sha256": "aa958f3c7883dc3ae4606dbe7f2f59b1745418efb3b1422908581ebeabbb3fbd"
+    },
     "src/moomooau_archive/protected_blue_green.py": {
       "sha256": "cfd74ded9e0c89de1cb5c2f7d03e34d4f902011f6cf73314387f832ddb556f24"
     },
     "src/moomooau_archive/protected_ga_entrypoint.py": {
-      "sha256": "0be683c83029a2441ef603018dcaed0e9e513c455b515e0f0239b73253abf6aa"
+      "sha256": "3abfa8ea6a0d8989f50f9ebbfe7a49c241758479bc67e5724433caf3ff1ba0d3"
     },
     "src/moomooau_archive/protected_ga_diagnostics.py": {
       "sha256": "8ce12e5de0dbdcebe0bc951939a6760d03d457c469abd676263ea1c96eac0221"
     },
     "tests/remediation/test_rmd04.py": {
-      "sha256": "905907a22b4aabb992c526174b3a9516b1f2c4d0d4654c416d887e0955212cf5"
+      "sha256": "c1ce7501d17dfa0f460cad981f6f2a3560f95fe5f425a9aeb5249cfeb2ff5322"
     },
     "tests/remediation/test_rmd05.py": {
       "sha256": "10cb61cdde6b76de201f4442fc4243d5c72792b12ab6e9ba602dd30491ddbfba"
@@ -88,10 +91,10 @@
       "sha256": "7297e91cdde668b65ddcbb789e9eb510541137277b87a96fc00c8e43504f6599"
     },
     "tests/tasks/test_t0704.py": {
-      "sha256": "15cb4461df8fd869716c0b1d86b0400fc81803c3e06a2faff4e72904dab515de"
+      "sha256": "2b08a63e334f5b9ac1b49b548bc2cd5d51cfba6ce62fb505d39614e868590f1b"
     },
     "tests/tasks/test_t0705.py": {
-      "sha256": "c6d84cc56a58c685ea262f3936ca9456ce207a2290aa7df01fa8fa008bf4f833"
+      "sha256": "cd92fa9bdf37eb950801ffff592e76823ab3f4133ea9580994854b4a80d00f87"
     },
     "schemas/production-config-v1.schema.json": {
       "sha256": "78968068b6110aac7b01ad94f9be5ce5120a97243e1528183f274ffe772c2fc2"

@@ -40,6 +40,7 @@ EXPECTED_SOURCE_PATHS = {
     "src/moomooau_archive/production_adapters.py",
     "src/moomooau_archive/gmail_sync_checkpoint.py",
     "src/moomooau_archive/ga_runtime.py",
+    "src/moomooau_archive/github_guard.py",
     "src/moomooau_archive/protected_blue_green.py",
     "src/moomooau_archive/protected_ga_diagnostics.py",
     "src/moomooau_archive/protected_ga_entrypoint.py",
@@ -131,7 +132,7 @@ def validate(
         "--no-build-isolation --no-deps .",
         "python -m moomooau_archive.protected_ga_entrypoint",
         "--execute-protected",
-        "GA_SCHEDULE_MODE_APP_REPOSITORY_SCOPE_ACTIVATION_MUTATION_BUDGET_ONE",
+        "GA_SCHEDULE_MODE_CANONICAL_GIT_BLOB_RECOVERY_MUTATION_BUDGET_ONE",
         '--expected-head-sha "$EXPECTED_HEAD_SHA"',
     )
     contract_secret_names = contract.get("secret_names")

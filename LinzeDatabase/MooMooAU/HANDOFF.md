@@ -5,18 +5,18 @@
 ## 当前目标与状态
 
 - 本轮只处理 Stage 7/T0705，必须停在 T0706 前。
-- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.27`。
-- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.26.json`，SHA-256
-  `3026fdd7c7a59260b8ed7e68288875f8dc12a99d6b096478168d55012407440d`。
+- 当前候选包：`MMAU-ARCHIVE-TP-2026-07-26-V1.0.28`。
+- 不可变直接前序：`taskpack/PACKAGE_MANIFEST.v1.0.27.json`，SHA-256
+  `de1ed6df0ba804506a04a30e0f3f943a4e968bf85d7c13b5616cc1b6763ac70a`。
 - 唯一状态权威：`machine/status/latest.json` =
-  `PROTECTED_GA_EIGHTH_ATTEMPT_FAILED_APP_SCOPE_ACTIVATION_RECOVERY_AUTHORIZED`。
+  `PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED`。
 - Protected Oracles 5/43 executed、4 PASS、1 FAILED；final Acceptance 0/34；
-  T0705 production workflow 8；final publication 0。
+  T0705 production workflow 9；final publication 0。
 
 ## 已冻结前序
 
 - T0702、T0703、T0704 protected PASS receipts 及全部 failed-attempt ledgers 不可变。
-- T0705 八个不同 exact-main head 均只执行 attempt 1、rerun 0；authority 与 identity cleanup
+- T0705 九个不同 exact-main head 均只执行 attempt 1、rerun 0；authority 与 identity cleanup
   均 PASS，protected GA 均 FAILED，live schedule hold 均 SKIPPED。
 - 第四次独立后验确认六个新增、可恢复且具有 age magic 的 Raw、Processed 与 current pointer
   对象；Timeline snapshot/manifest、Timeline state 和 checkpoint 均未改变。
@@ -34,19 +34,25 @@
 - 第八次在 pointer-blob raw-media 绑定修复后仍只输出 `FIRST_IMPORT_POINTER_FETCH`；只读核验
   确认运行窗口 private commit 0、Gmail mutation 0。Owner 随后确认现有 GitHub App 已链接到
   唯一 private 数据仓；这是新的外部前提，不是旧失败根因证明，精确 root cause 仍 `UNKNOWN`。
-- 一次性 authority 与 production enablement 均已清除；八个失败 head 永不得
+- 第九次 App repository-scope activation 后仍只输出 `FIRST_IMPORT_POINTER_FETCH`；只读核验
+  确认运行窗口 private commit 0、Gmail mutation 0。对同一 pointer 的只读 live A/B 回放证明
+  Contents metadata 正确但 raw-media body 非 age/非 canonical，而 metadata SHA 定址的
+  Git Blobs API 返回 size、age envelope 和 canonical SHA 全部一致的 ciphertext。
+- 一次性 authority 与 production enablement 均已清除；九个失败 head 永不得
   rerun/redispatch。
 
-## T0705 App repository-scope activation recovery 候选
+## T0705 canonical Git Blob recovery 候选
 
-- `GitHubProcessedCiphertextStore.fetch_current` 先读取 bounded Contents metadata，再从同一
-  allowlisted path 请求 exact raw media；HTTP status、type、path、size 与 age envelope 必须精确。
-- 在解密前按 `blob <size>\0<ciphertext>` 重算 canonical Git blob SHA，并与 metadata revision
-  逐字符相等；任何表示漂移、size mismatch 或 revision drift 均 fail closed。
+- `GitHubProcessedCiphertextStore.fetch_current` 先读取 bounded Contents metadata，只把
+  `type/path/size/sha` 作为绑定；ciphertext 必须由精确
+  `GET /git/blobs/{metadata_sha}` 的 JSON base64 body 取得。
+- 在解密前核对 Git Blob 响应 SHA、声明/解码 size 与 age envelope，再按
+  `blob <size>\0<ciphertext>` 重算 canonical Git blob SHA；任何表示漂移、size mismatch 或
+  revision drift 均 fail closed。
 - 不扩大 allowlist、端点、权限或 mutation；metadata quarantine、pending replay、远端恢复、
   二次验证、Trash、Timeline 与 checkpoint 顺序保持不变。
 - 入口继续绑定 owner、exact main、固定 workflow ref、attempt 1、one-shot exact-head
-  authority、T0702–T0704 receipts、八份失败账本与当前 Run Contract。
+  authority、T0702–T0704 receipts、九份失败账本与当前 Run Contract。
 - 复用现有 `moomooau-beta` 八个精确 Secret 名称；值不复制、不写盘、不公开。已安装 GitHub App
   在 Gmail exchange 前必须生成仅绑定唯一 Repository ID 的 token，核验 installation repository
   列表、目标仓 ID/private 属性，并刷新实时容量。
@@ -57,11 +63,13 @@
 
 ## 当前安全边界与下一步
 
-- T0705 总 delivery 最多 10，八个失败 launch 已消耗 8；只剩 App scope activation recovery
+- T0705 总 delivery 最多 11，九个失败 launch 已消耗 9；只剩 canonical Git Blob recovery
   delivery 1
   与 receipt/schedule closure delivery 1。
-- 总 rehearsal dispatch 最多 9，八个失败 attempt 已消耗 8；只剩一个新 recovery dispatch，
+- 总 rehearsal dispatch 最多 10，九个失败 attempt 已消耗 9；只剩一个新 recovery dispatch，
   必须为 attempt 1、rerun 0。
+- 不使用真实时间 Soak、观察期或全量测试作为前置；时间与历史分支由 Fake Clock、Fixture、历史
+  回放和故障注入即时验证。
 - protected PASS receipt 绑定前，`MOOMOOAU_PRODUCTION_ENABLED` 不得为 true。
 - 合入新 exact-main recovery candidate 后只设置一个 exact-head authority，运行一次；无论
   结果如何立即删除，绝不 rerun 或 redispatch 失败 head。

@@ -2,17 +2,17 @@
 
 Implementation target: `LinzeColin/MetaDatabase/LinzeDatabase/MooMooAU`.
 
-当前控制包为 `1.0.27`。它直接继承不可变 v1.0.26，不改变 v1.0.1 冻结的产品目标、
+当前控制包为 `1.0.28`。它直接继承不可变 v1.0.27，不改变 v1.0.1 冻结的产品目标、
 34 条需求、34 个最终验收、58-task DAG、追踪矩阵、Kill Criteria 或十条不变量。
 
 唯一当前跨维度状态入口是 `machine/status/latest.json`，由
 `machine/tools/build_delivery_status.py` 确定性生成并只读校验。当前事实：
 
 - 58/58 task evidence 结构与绑定有效，58/58 本地或合成机制有证据；
-- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 8；
+- 冻结任务图正式完成 7/58，最终 Acceptance 0/34，production workflow 9；
 - protected Oracle 已执行 5/43：T0701–T0704 PASS，T0705 当前 FAILED；
-- T0705 八次失败 run 分别绑定八个不同 exact-main head，均为 attempt 1、rerun 0；
-- T0705/S7AC-005 尚未关闭；一个新 App repository-scope activation recovery attempt
+- T0705 九次失败 run 分别绑定九个不同 exact-main head，均为 attempt 1、rerun 0；
+- T0705/S7AC-005 尚未关闭；一个新 canonical Git Blob recovery attempt
   已授权但未运行；
   Stage 7、生产健康与最终发布均未完成。
 
@@ -25,20 +25,23 @@ difference 0 收敛到恰好一个可恢复 age-encrypted latest Timeline。
 Raw、Processed、candidate、snapshot 与 processed-current 均无新增对象。repair 的 Gmail
 mutation 为 0。公开 receipt 不包含私有仓 locator/ID、Gmail ID、精确邮箱数量或金融值。
 
-T0705 八次 launch 都已合入并各执行一次。第八次运行的 authority 与 identity cleanup PASS，
+T0705 九次 launch 都已合入并各执行一次。第九次运行的 authority 与 identity cleanup PASS，
 protected GA 仍在 coarse `FIRST_IMPORT_POINTER_FETCH` 失败，live schedule hold SKIPPED。只读
-核验确认第八次没有新增 private commit 或 Gmail mutation。受保护 exception 未读取，精确线上
-root cause 保持 `UNKNOWN`。运行后 Owner 确认现有 GitHub App 已链接唯一 private 数据仓；该变化
-只作为新的外部前提，不倒推第八次失败根因。一次性 authority 和 production enablement 已清除，
-八个失败 head 永久禁止 rerun/redispatch。
+核验确认第九次没有新增 private commit 或 Gmail mutation。随后对相同 pointer 的只读 live A/B
+回放证明：Contents metadata 的 path/size/blob SHA 有效，但 Contents raw-media 表示可返回
+非 age、非 canonical body；同一 metadata SHA 定址的 Git Blobs API 则返回与 size、age envelope
+和 canonical Git blob SHA 全部一致的 ciphertext。该表示层漂移是本次 recovery 的直接证据，
+不依赖受保护 exception。一次性 authority 和 production enablement 已清除，九个失败 head
+永久禁止 rerun/redispatch。
 
-当前 successor Run Contract 只处理 T0705：总 delivery 最多 10，八个 launch 已消耗 8；总
-rehearsal dispatch 最多 9，八个失败 attempt 已消耗 8。只剩一个新 exact-main protected
-App repository-scope activation recovery `SCHEDULE_REHEARSAL`，以及后续
-receipt/schedule closure delivery 1。运行时在 Gmail credential exchange 前生成只绑定唯一
-Repository ID 的 Installation Token，并核验 installation repository 列表、目标仓 ID/private
-属性和实时容量；任何 scope 漂移都失败关闭。current pointer 仍使用 bounded Contents metadata、
-exact raw media 与 canonical Git blob SHA 绑定，不扩大端点、权限或 mutation。
+当前 successor Run Contract 只处理 T0705：总 delivery 最多 11，九个 launch 已消耗 9；总
+rehearsal dispatch 最多 10，九个失败 attempt 已消耗 9。只剩一个新 exact-main protected
+canonical Git Blob recovery `SCHEDULE_REHEARSAL`，以及后续 receipt/schedule closure delivery
+1。运行时在 Gmail credential exchange 前生成只绑定唯一 Repository ID 的 Installation Token，
+并核验 installation repository 列表、目标仓 ID/private 属性和实时容量；任何 scope 漂移都失败
+关闭。current pointer 只把 bounded Contents 响应用作 metadata，ciphertext 必须从精确
+`GET /git/blobs/{metadata_sha}` 的 base64 body 取得，并逐项核对响应 SHA、声明/解码 size、age
+envelope 与 canonical Git blob SHA；不扩大权限或 mutation。
 metadata quarantine、Raw/Processed recovery、second verification、
 ACTIVE/SAFE_DEFERRED、exact-message Trash、单一 Timeline replacement 与 checkpoint-last
 行为不变。入口复用现有 `moomooau-beta` 八个精确
@@ -48,7 +51,8 @@ credential exchange。只有确定性验证来源可完整读取；Raw 与 Proce
 精确 `messages.trash` budget 最多 1；唯一最新 Timeline 与 checkpoint-last 必须远端恢复。
 rehearsal 不声称平台 schedule event。
 
-Stage 7 不设置固定日历等待。T0705 用一次受保护 workflow_dispatch 验证与生产相同的
+Stage 7 不设置固定日历等待、Soak 或观察窗口。T0705 用 Fake Clock、历史回放、Fixture 与故障
+注入即时覆盖时间和表示层分支，再用一次受保护 workflow_dispatch 验证与生产相同的
 `RunTrigger.SCHEDULE` 路径及 `04:30 Australia/Sydney` 目标；只有 PASS receipt 绑定后才启用
 已提交 live schedule。T0706 与后续阶段仍需新的单任务 Run Contract。
 
@@ -67,10 +71,11 @@ Authoritative artifacts:
 - `machine/stages/S7/reviews/t0705/label-replay-attempt-ledger.json`
 - `machine/stages/S7/reviews/t0705/repair-attempt-ledger.json`
 - `machine/stages/S7/reviews/t0705/attempt-ledger.json`
+- `machine/stages/S7/reviews/t0705/canonical-blob-attempt-ledger.json`
 - `machine/stages/S7/reviews/t0704/attempt-ledger.json`
 - `machine/stages/S7/reviews/t0704/execution-receipt.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.27.json`
-- `taskpack/PACKAGE_MANIFEST.v1.0.26.json`（不可变直接前序）
+- `taskpack/PACKAGE_MANIFEST.v1.0.28.json`
+- `taskpack/PACKAGE_MANIFEST.v1.0.27.json`（不可变直接前序）
 - `taskpack/PACKAGE_MANIFEST.v1.0.1.json`（不可变历史基线）
 
 Codex 开发线程必须按既定顺序逐 run 推进，一次最多解决一个 stage。本轮只推进

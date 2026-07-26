@@ -75,6 +75,7 @@ class GitHubInstallationTokenError(GitHubBoundaryError):
 class GitHubOperation(StrEnum):
     REPOSITORY_RESOLVE = "repository.resolve"
     GIT_TREE_READ = "git.tree.read"
+    GIT_BLOB_READ = "git.blob.read"
     INSTALLATION_DISCOVER = "installation.discover"
     INSTALLATION_TOKEN = "installation.token"
     INSTALLATION_REPOSITORY_SCOPE = "installation.repository_scope"
@@ -343,6 +344,14 @@ class GitHubEndpointGuard:
             if query != [("recursive", "1")] or request.body is not None:
                 raise GitHubBoundaryError("Git tree observation request is not bounded")
             return GitHubOperation.GIT_TREE_READ
+
+        blob_read = re.fullmatch(
+            re.escape(repository_prefix) + r"/git/blobs/[0-9a-f]{40}",
+            parsed.path,
+        )
+        if parsed.hostname == "api.github.com" and request.method == "GET" and blob_read:
+            self._require_empty(request, query)
+            return GitHubOperation.GIT_BLOB_READ
 
         content_prefix = repository_prefix + "/contents/"
         if parsed.hostname == "api.github.com" and parsed.path.startswith(content_prefix):
@@ -791,6 +800,12 @@ def content_url(locator: RepositoryLocator, relative_path: str) -> str:
     GitHubEndpointGuard._validate_private_path(relative_path)
     encoded = "/".join(quote(segment, safe="") for segment in relative_path.split("/"))
     return GITHUB_API_ORIGIN + f"/repos/{locator.owner}/{locator.name}/contents/{encoded}"
+
+
+def git_blob_url(locator: RepositoryLocator, revision: str) -> str:
+    if re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        raise GitHubBoundaryError("Git blob revision is invalid")
+    return GITHUB_API_ORIGIN + f"/repos/{locator.owner}/{locator.name}/git/blobs/{revision}"
 
 
 def _decode_object(body: bytes | None) -> dict[str, object]:

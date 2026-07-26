@@ -359,6 +359,10 @@ def test_t0204_blocks_cross_repository_and_nonfixed_release_surfaces_before_netw
             "https://api.github.com/repos/synthetic-owner/other-private/contents/MooMooAU/a.age",
         ),
         HttpRequest(
+            "GET",
+            "https://api.github.com/repos/synthetic-owner/other-private/git/blobs/" + "a" * 40,
+        ),
+        HttpRequest(
             "POST", "https://api.github.com/repos/synthetic-owner/target-private/issues", body=b"{}"
         ),
         HttpRequest(

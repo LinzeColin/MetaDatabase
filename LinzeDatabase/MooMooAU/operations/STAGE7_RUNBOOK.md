@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-交付状态为 `PROTECTED_GA_EIGHTH_ATTEMPT_FAILED_APP_SCOPE_ACTIVATION_RECOVERY_AUTHORIZED`，Stage 7
+交付状态为 `PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED`，Stage 7
 验收覆盖状态为
-`T0705_EIGHT_FAILED_HEADS_FROZEN_APP_SCOPE_ACTIVATION_RECOVERY_AUTHORIZED_PENDING`。T0701–T0708
+`T0705_NINE_FAILED_HEADS_FROZEN_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED_PENDING`。T0701–T0708
 的本地机制已经覆盖发布控制、Beta protected bootstrap、Beta Raw-only、M3 Canary、
 Blue-Green/单 Timeline、GA 全流程、Codex Auto、Recovery Drill，以及只读 Patch Lifecycle/
 Operations 决策；所有机制在缺前序、预算、registry、容量、age 绑定、供应链保证或受保护证据时
@@ -26,7 +26,7 @@ Timeline。受保护 repair 的 Gmail mutation、processed-current、candidate/s
 独立聚合核验只确认一个 encrypted Timeline state commit，未解密或公开私有定位。
 T0704/S7AC-004 因此 PASS，但不等于 Stage 7、最终 Acceptance 或生产 PASS。
 
-T0705 八个不同 exact-main protected head 均只执行 attempt 1。八个 run 的 authority 和
+T0705 九个不同 exact-main protected head 均只执行 attempt 1。九个 run 的 authority 和
 identity cleanup 均 PASS，protected GA 均 FAILED，live schedule hold 均未启用。第四次独立
 核验确认六个新增 age-encrypted Raw、Processed 与 current pointer 对象且无 Timeline/checkpoint
 变化。第五次公开输出只有 coarse `PROCESSED_PLAN`；只读 private 数据仓核验确认零 commit 与
@@ -45,17 +45,25 @@ metadata、同一 allowlisted path 的 exact raw media，并在解密前以 cano
 revision；不扩大端点、权限或业务执行范围。第八次应用该修复后仍止于
 `FIRST_IMPORT_POINTER_FETCH`，且只读核验确认 private commit 与 Gmail mutation 均为 0。
 Owner 随后确认现有 GitHub App 已链接到唯一 private 数据仓；该变化只作为新的外部前提，不倒推
-第八次失败根因。一次性 authority 与 production enablement 已清除，八个失败 head 均已冻结，
+第八次失败根因。第九次 App repository-scope activation 后仍止于相同 coarse stage，且只读核验
+确认 private commit 与 Gmail mutation 均为 0。随后对相同 pointer 的只读 live A/B 回放证明：
+Contents metadata 的 path/size/blob SHA 正确，但 raw-media body 非 age、非 canonical；同一
+metadata SHA 定址的 Git Blobs API 返回与 size、age envelope 和 canonical Git blob SHA 全部
+一致的 ciphertext。该表示层漂移是本次 recovery 的直接证据，不依赖受保护 exception。
+一次性 authority 与 production enablement 已清除，九个失败 head 均已冻结，
 rerun/redispatch 为 0。
 
-当前精确 successor Run Contract 的总 delivery 预算为 10，八个 launch 已消耗 8；总 rehearsal
-dispatch 预算为 9，八个失败 attempt 已消耗 8。只剩一次 App repository-scope activation
+当前精确 successor Run Contract 的总 delivery 预算为 11，九个 launch 已消耗 9；总 rehearsal
+dispatch 预算为 10，九个失败 attempt 已消耗 9。只剩一次 canonical Git Blob
 recovery delivery/attempt 和一次 receipt/schedule-closure delivery。它复用现有 `moomooau-beta`
 Environment 的八个精确 Secret
 名称，不复制 Secret 值；Installation Token 必须只绑定唯一 Repository ID，并在 Gmail OAuth
 之前核验 installation repository 列表、目标仓 ID/private 属性和实时容量。受保护 PASS 后才启用
 已提交的 04:30 Australia/Sydney schedule。
-rehearsal 必须明确记录 `platform_schedule_event_observed=false`，不能伪称 GitHub schedule
+current pointer 只把 Contents 响应用作 bounded metadata；ciphertext 必须来自精确
+`GET /git/blobs/{metadata_sha}` 的 JSON base64 body，并核对响应 SHA、声明/解码 size、age
+envelope 与 canonical Git blob SHA。rehearsal 必须明确记录
+`platform_schedule_event_observed=false`，不能伪称 GitHub schedule
 event。T0706、Recovery Drill、Patch Lifecycle protected execution、最终 Acceptance 与最终
 发布均未授权。
 
@@ -138,18 +146,18 @@ GitHub App 必须先证明 installation token 的精确 repository scope 只包�
 04:30 生产运行相同的 `RunTrigger.SCHEDULE` planner path，并公开标记为
 `SCHEDULE_REHEARSAL`。
 
-八次 protected rehearsal 都 FAILED，不能计为 PASS；八个 head 均已冻结。第八次仍进入
+九次 protected rehearsal 都 FAILED，不能计为 PASS；九个 head 均已冻结。第九次仍进入
 `FIRST_IMPORT_POINTER_FETCH`，但没有产生 private commit、Processed、Timeline、checkpoint 或
-Gmail mutation；exact runtime exception 未接收或检查，root cause 保持 `UNKNOWN`。Owner 在该次
-运行结束后确认现有 GitHub App 已链接唯一 private 数据仓；这是新的外部状态，不倒推解释第八次
-失败。
+Gmail mutation；exact runtime exception 未接收或检查。只读 live A/B 已把直接表示层差异确定为
+Contents raw-media body 与 metadata blob 不一致，而 exact Git Blobs API 可以恢复 canonical
+ciphertext。
 
-v1.0.26 的 bounded Contents metadata、exact raw media 与 canonical Git blob SHA 三重绑定已交付
-并随第八个失败 head 冻结。当前唯一后继候选不再改变 pointer、metadata quarantine、pending
-replay、second verification、ACTIVE/SAFE_DEFERRED、Trash、Timeline 或 checkpoint 行为，只把
-App 精确 repository scope 的既有 fail-closed bootstrap 作为本次恢复前提。新入口在 Secret 前明确
-拒绝八个失败 head，并把 authority job 验证后的 exact head 通过 job output 绑定给 protected
-Environment job。当前 App-scope activation rehearsal 尚未运行，且只允许一个新 exact-main head
+v1.0.27 的 App repository-scope activation 已交付并随第九个失败 head 冻结。当前唯一后继候选
+不再改变 pointer、metadata quarantine、pending replay、second verification、
+ACTIVE/SAFE_DEFERRED、Trash、Timeline 或 checkpoint 行为，只把 current pointer ciphertext
+读取改为 metadata SHA 定址的 canonical Git Blob。新入口在 Secret 前明确拒绝九个失败 head，
+并把 authority job 验证后的 exact head 通过 job output 绑定给 protected Environment job。
+当前 canonical Git Blob recovery rehearsal 尚未运行，且只允许一个新 exact-main head
 执行 attempt 1。因此 T0705 与其 AC 仍为 `BLOCKED/PARTIAL/FAILED`；App 链接确认和本地候选都
 不能替代精确 protected receipt。
 
@@ -179,7 +187,8 @@ Environment job。当前 App-scope activation rehearsal 尚未运行，且只允
 4. **Blue-Green**：在一次有界受保护运行中，对相同恢复 Raw 并行比较 incumbent/candidate；必须观测真实 Processed、Parser 比较、Timeline 发布和 Full Reconciliation；live Timeline 的最小和最大 Asset 数都必须为 1。不设自然日等待。
 5. **GA**：必须显式配置经实时容量证据支持的正整数 Mutation Budget；一次 exact-main protected
    `workflow_dispatch` 可调用与生产调度相同的 SCHEDULE planner path，无需等待墙钟到达
-   04:30。该次运行必须如实称为 `SCHEDULE_REHEARSAL`，证明真实 Processed、Timeline 发布、
+   04:30。时间与历史分支使用 Fake Clock、Fixture、历史回放和故障注入即时验证，不要求真实时间
+   Soak、观察窗口或全量测试。该次运行必须如实称为 `SCHEDULE_REHEARSAL`，证明真实 Processed、Timeline 发布、
    checkpoint-last 与 Full Reconciliation，并保持 platform schedule event 计数为 0；PASS 回执
    绑定后才启用已提交的 04:30 Australia/Sydney schedule。不得使用代码默认值或假造 schedule
    event。

@@ -276,6 +276,24 @@ delivery，继续停止在 T0706 前。当前有效入口为：
 - `SOURCE_PROVENANCE.v1.0.22.json`
 - `CHANGELOG.md`
 
+`v1.0.28` 直接继承不可变 v1.0.27，固化 T0705 第九个不同 exact-main protected GA
+失败并冻结 head `6f82e738…`。第九次已在 Gmail credential exchange 前证明精确 GitHub App
+repository scope，随后公开输出仍固定在 `FIRST_IMPORT_POINTER_FETCH`；运行窗口 private
+commit 与 Gmail mutation 均为 0。protected exception 未被读取或检查。针对未改变 remote head
+的只读 live replay 复现一个 Contents raw-media HTTP 200 body 不匹配 age、声明 size 与
+canonical Git SHA，而 metadata-addressed Git Blobs API 对所有 current pointer 均返回规范 age
+ciphertext。当前候选改为 metadata SHA → exact Git Blob base64，并验证 response SHA、size、age
+与 canonical Git SHA；Contents inline/raw-media 均不作为 Processed 真源。Fake Clock、fixture
+与 revision-drift fault injection 取代 Soak/观察期/等待窗口。九个失败 head 永不
+rerun/redispatch；只授权一个新 exact-main attempt-1 canonical Git Blob recovery rehearsal。
+当前有效入口为：
+
+- `00_READ_ME_FIRST.v1.0.28.md`
+- `ROADMAP.v1.0.28.md`
+- `PACKAGE_MANIFEST.v1.0.28.json`
+- `SOURCE_PROVENANCE.v1.0.28.json`
+- `CHANGELOG.md`
+
 `v1.0.27` 直接继承不可变 v1.0.26，固化 T0705 第八个不同 exact-main protected GA
 失败并冻结 head `8b6faaf9…`。公开输出仍固定在 `FIRST_IMPORT_POINTER_FETCH`；authority 与
 cleanup PASS，protected job FAILED，schedule hold SKIPPED。独立后验只证明运行窗口 private
@@ -344,7 +362,8 @@ last-entered phase 诊断，禁止异常文本、URL、标识符、计数、邮�
 - `SOURCE_PROVENANCE.v1.0.23.json`
 - `CHANGELOG.md`
 
-`PACKAGE_MANIFEST.v1.0.26.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.25.json`、
+`PACKAGE_MANIFEST.v1.0.27.json` 是不可变直接前序，`PACKAGE_MANIFEST.v1.0.26.json`、
+`PACKAGE_MANIFEST.v1.0.25.json`、
 `PACKAGE_MANIFEST.v1.0.24.json`、
 `PACKAGE_MANIFEST.v1.0.23.json`、
 `PACKAGE_MANIFEST.v1.0.22.json`、

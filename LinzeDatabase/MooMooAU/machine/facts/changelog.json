@@ -1,8 +1,8 @@
 [
   {
-    "version": "1.0.27",
+    "version": "1.0.28",
     "date": "2026-07-26",
-    "summary": "固化 T0705 第八个 exact-main attempt-1 失败：authority 与身份清理通过，protected 输出仍为 FIRST_IMPORT_POINTER_FETCH；只读 private 数据仓核验确认该窗口零提交，精确根因仍为 UNKNOWN。Owner 随后确认现有 GitHub App 已链接到唯一 private 数据仓；此变化不倒推既往根因。八个失败头禁止 rerun/redispatch；只授权一个新 exact-main scope-activation recovery attempt 1，T0706 和最终发布仍禁止。"
+    "summary": "固化 T0705 第九个 exact-main attempt-1 失败：authority、精确 App repository scope 与身份清理通过，protected 输出仍为 FIRST_IMPORT_POINTER_FETCH，private 数据仓与 Gmail 零新效果。只读 live replay 复现 Contents raw-media 非规范 body，而 metadata-addressed Git Blobs API 对所有 current pointer 均返回规范 age ciphertext；patched adapter 全部恢复，fixture 对 revision drift fail-closed。九个失败头禁止 rerun/redispatch；只授权一个新 exact-main canonical Git Blob recovery attempt 1，T0706 和最终发布仍禁止。"
   },
   {
     "version": "1.0.18",

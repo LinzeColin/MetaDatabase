@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import hashlib
 import hmac
 import io
@@ -23,6 +24,7 @@ from .github_guard import (
     InstallationToken,
     RepositoryLocator,
     content_url,
+    git_blob_url,
 )
 from .http_boundary import HttpRequest
 from .processed_product import ProcessedBundle, ProcessedFormat
@@ -41,6 +43,7 @@ _MANIFEST_PATH = re.compile(
     r"[1-9][0-9]*\.[0-9]+\.[0-9]+/[0-9a-f]{64}\.json\.age$"
 )
 _MAX_CURRENT_POINTER_CIPHERTEXT_BYTES = 2 * 1024 * 1024
+_MAX_GIT_BLOB_BASE64_BYTES = 4 * ((_MAX_CURRENT_POINTER_CIPHERTEXT_BYTES + 2) // 3) + 65_536
 _APPROVAL_SENTINEL = object()
 _POINTER_SENTINEL = object()
 
@@ -691,18 +694,8 @@ class GitHubProcessedCiphertextStore:
             or _CURRENT_PATH.fullmatch(relative_path) is not None
         ):
             raise ProcessedCommitError("private Processed immutable path is invalid")
-        response = self._guard.send(
-            HttpRequest(
-                "GET",
-                content_url(self._locator, relative_path),
-                headers=self._headers("application/vnd.github.raw+json"),
-            )
-        )
-        if response.status == 404:
-            return None
-        if response.status != 200 or not is_age_envelope(response.body):
-            raise ProcessedCommitError("private Processed read failed")
-        return response.body
+        revisioned = self._fetch_canonical_blob(relative_path)
+        return revisioned.ciphertext if revisioned is not None else None
 
     def append_immutable(self, relative_path: str, ciphertext: bytes) -> bool:
         if (
@@ -734,6 +727,9 @@ class GitHubProcessedCiphertextStore:
     def fetch_current(self, relative_path: str) -> RevisionedCiphertext | None:
         if _CURRENT_PATH.fullmatch(relative_path) is None:
             raise ProcessedCommitError("private Processed current path is invalid")
+        return self._fetch_canonical_blob(relative_path)
+
+    def _fetch_canonical_blob(self, relative_path: str) -> RevisionedCiphertext | None:
         url = content_url(self._locator, relative_path)
         metadata_response = self._guard.send(
             HttpRequest(
@@ -766,23 +762,49 @@ class GitHubProcessedCiphertextStore:
         blob_response = self._guard.send(
             HttpRequest(
                 "GET",
-                url,
-                headers=self._headers("application/vnd.github.raw+json"),
+                git_blob_url(self._locator, revision),
+                headers=self._headers("application/vnd.github+json"),
             )
         )
-        ciphertext = blob_response.body
+        if blob_response.status != 200:
+            raise ProcessedCommitError("private Processed current blob read failed")
+        try:
+            blob_payload = json.loads(blob_response.body)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ProcessedCommitError(
+                "private Processed current blob response is invalid"
+            ) from exc
+        if not isinstance(blob_payload, dict):
+            raise ProcessedCommitError("private Processed current blob response is invalid")
+        encoded = blob_payload.get("content")
         if (
-            blob_response.status != 200
-            or len(ciphertext) != size
-            or not is_age_envelope(ciphertext)
+            blob_payload.get("encoding") != "base64"
+            or blob_payload.get("sha") != revision
+            or blob_payload.get("size") != size
+            or not isinstance(encoded, str)
+            or not encoded.isascii()
+            or "\r" in encoded
+            or len(encoded) > _MAX_GIT_BLOB_BASE64_BYTES
         ):
+            raise ProcessedCommitError("private Processed current blob response is invalid")
+        compact_encoded = encoded.replace("\n", "")
+        try:
+            ciphertext = base64.b64decode(compact_encoded, validate=True)
+        except (ValueError, binascii.Error) as exc:
+            raise ProcessedCommitError(
+                "private Processed current blob response is invalid"
+            ) from exc
+        if len(ciphertext) != size or not is_age_envelope(ciphertext):
             raise ProcessedCommitError("private Processed current blob read failed")
         git_blob_revision = hashlib.sha1(
             b"blob " + str(len(ciphertext)).encode("ascii") + b"\0" + ciphertext,
             usedforsecurity=False,
         ).hexdigest()
         if not hmac.compare_digest(git_blob_revision, revision):
-            raise ProcessedCommitError("private Processed current blob revision differs")
+            raise ProcessedCommitError(
+                "private Processed current blob revision differs: "
+                "canonical Git blob SHA mismatch"
+            )
         return RevisionedCiphertext(ciphertext, revision)
 
     def compare_and_swap_current(
