@@ -128,6 +128,10 @@ test("installer keeps candidate, identities, workspace and data boundaries expli
   );
   assert.match(source, /GIT_NO_LAZY_FETCH=1 git -C "\$WORKSPACE_STAGE"/);
   assert.match(source, /GIT_CONFIG_SYSTEM="\$GIT_SYSTEM_CONFIG"/);
+  assert.match(
+    source,
+    /GIT_CONFIG_SYSTEM="\$GIT_SYSTEM_CONFIG" "\$BUDGET_COMMAND"/
+  );
   assert.match(source, /workspace_object_hardlink/);
   assert.match(
     source,

@@ -713,7 +713,7 @@ jq -e --arg release "$RELEASE_ID" \
   \( ! -user root -o ! -group "$CODE_GROUP" \) -print -quit)" ]] ||
   fail "candidate_release_symlink_owner"
 
-"$BUDGET_COMMAND" \
+GIT_CONFIG_SYSTEM="$GIT_SYSTEM_CONFIG" "$BUDGET_COMMAND" \
   --policy "$CONFIG_ROOT/workspace-budget.json" \
   --workspace-root "$WORKSPACE" \
   --cache-root "$STATE_ROOT/cache" \
