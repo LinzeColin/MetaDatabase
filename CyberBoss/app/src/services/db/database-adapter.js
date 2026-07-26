@@ -546,6 +546,7 @@ class RuntimeSpoolDatabase {
     runtime = "codex",
     operationClass = "read_only",
     maxAttempts = 1,
+    cursorBatchId = null,
   }) {
     this.#assertOpen();
     if (!["text", "command", "unsupported"].includes(messageType)) {
@@ -563,6 +564,9 @@ class RuntimeSpoolDatabase {
       throw new RuntimeSpoolError("MAX_ATTEMPTS_INVALID");
     }
     requireSafeToken(workspaceAlias, "workspace_alias");
+    if (cursorBatchId !== null) {
+      requireSafeToken(cursorBatchId, "cursor_batch_id");
+    }
     const boundedUserRef = requireBoundedString(userRef, "user_ref", 1024);
     const ids = this.deriveIds({ source, sourceAccountRef, sourceMessageId });
     const plain = payloadBuffer(payload);
@@ -595,9 +599,9 @@ class RuntimeSpoolDatabase {
           `INSERT INTO inbox_messages(
             id, source, source_account_hash, source_message_id,
             correlation_id, user_ref_hash, message_type, payload_ciphertext,
-            payload_sha256, context_token_ciphertext, status, received_at,
-            durable_at, payload_expires_at, context_expires_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'accepted', ?, ?, ?, ?)
+            payload_sha256, context_token_ciphertext, cursor_batch_id, status,
+            received_at, durable_at, payload_expires_at, context_expires_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'accepted', ?, ?, ?, ?)
           ON CONFLICT(source, source_account_hash, source_message_id)
           DO NOTHING`,
         )
@@ -612,6 +616,7 @@ class RuntimeSpoolDatabase {
           payloadCiphertext,
           payloadHash,
           contextCiphertext,
+          cursorBatchId,
           now,
           now,
           expiresAt,
@@ -714,6 +719,127 @@ class RuntimeSpoolDatabase {
       ...ids,
       duplicate: !inserted,
       status: this.getJob(ids.jobId).status,
+    });
+  }
+
+  rejectInbound({
+    source,
+    sourceAccountRef,
+    sourceMessageId,
+    userRef,
+    messageType = "unsupported",
+    payload,
+    contextToken = null,
+    rejectReason,
+    cursorBatchId = null,
+  }) {
+    this.#assertOpen();
+    if (!["text", "command", "unsupported"].includes(messageType)) {
+      throw new RuntimeSpoolError("MESSAGE_TYPE_INVALID");
+    }
+    requireSafeToken(rejectReason, "reject_reason");
+    if (cursorBatchId !== null) {
+      requireSafeToken(cursorBatchId, "cursor_batch_id");
+    }
+    const boundedUserRef = requireBoundedString(userRef, "user_ref", 1024);
+    const ids = this.deriveIds({ source, sourceAccountRef, sourceMessageId });
+    const plain = payloadBuffer(payload);
+    const payloadHash = sha256(plain);
+    const userRefHash = this.#identity(
+      "user",
+      [source, boundedUserRef],
+      "user",
+    );
+    const now = this.#timestamp();
+    const expiresAt = this.#expiresAt(now);
+    const payloadCiphertext = this.cipher.encrypt(
+      plain,
+      `inbox:${ids.inboxId}:payload`,
+    );
+    const contextCiphertext =
+      contextToken === null
+        ? null
+        : this.cipher.encrypt(
+            contextToken,
+            `inbox:${ids.inboxId}:context`,
+          );
+    let inserted = false;
+
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
+      this.#fault("after_begin");
+      const result = this.database
+        .prepare(
+          `INSERT INTO inbox_messages(
+            id, source, source_account_hash, source_message_id,
+            correlation_id, user_ref_hash, message_type, payload_ciphertext,
+            payload_sha256, context_token_ciphertext, cursor_batch_id, status,
+            reject_reason, received_at, durable_at, payload_expires_at,
+            context_expires_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'rejected', ?, ?, ?, ?, ?)
+          ON CONFLICT(source, source_account_hash, source_message_id)
+          DO NOTHING`,
+        )
+        .run(
+          ids.inboxId,
+          source,
+          ids.sourceAccountHash,
+          ids.sourceMessageId,
+          ids.correlationId,
+          userRefHash,
+          messageType,
+          payloadCiphertext,
+          payloadHash,
+          contextCiphertext,
+          cursorBatchId,
+          rejectReason,
+          now,
+          now,
+          expiresAt,
+          contextCiphertext ? expiresAt : null,
+        );
+      inserted = Number(result.changes) === 1;
+      this.#fault("after_inbox_insert");
+      const inbox = this.database
+        .prepare(
+          `SELECT id, correlation_id, payload_sha256, status, reject_reason
+           FROM inbox_messages
+           WHERE source = ? AND source_account_hash = ?
+             AND source_message_id = ?`,
+        )
+        .get(source, ids.sourceAccountHash, ids.sourceMessageId);
+      if (
+        !inbox
+        || inbox.id !== ids.inboxId
+        || inbox.correlation_id !== ids.correlationId
+        || inbox.payload_sha256 !== payloadHash
+        || inbox.status !== "rejected"
+        || inbox.reject_reason !== rejectReason
+      ) {
+        throw new IntegrityConflictError();
+      }
+      const job = this.database
+        .prepare("SELECT id FROM jobs WHERE inbox_id = ?")
+        .get(ids.inboxId);
+      if (job) {
+        throw new IntegrityConflictError();
+      }
+      this.database.exec("COMMIT");
+    } catch (error) {
+      this.#rollbackQuietly();
+      throw error;
+    } finally {
+      plain.fill(0);
+    }
+    this.#fault("after_commit");
+    this.#secureDatabaseFiles();
+    return Object.freeze({
+      inboxId: ids.inboxId,
+      correlationId: ids.correlationId,
+      sourceMessageId: ids.sourceMessageId,
+      duplicate: !inserted,
+      status: "rejected",
+      rejectReason,
     });
   }
 
@@ -1087,6 +1213,25 @@ class RuntimeSpoolDatabase {
     );
   }
 
+  readInboundContextToken(inboxId) {
+    this.#assertOpen();
+    const row = this.database
+      .prepare(
+        "SELECT context_token_ciphertext FROM inbox_messages WHERE id=?",
+      )
+      .get(inboxId);
+    if (!row) {
+      throw new RuntimeSpoolError("INBOX_NOT_FOUND");
+    }
+    if (row.context_token_ciphertext === null) {
+      return null;
+    }
+    return this.cipher.decrypt(
+      row.context_token_ciphertext,
+      `inbox:${inboxId}:context`,
+    );
+  }
+
   getJob(jobId) {
     this.#assertOpen();
     const row = this.database
@@ -1107,8 +1252,9 @@ class RuntimeSpoolDatabase {
       .prepare(
         `SELECT id, source, source_account_hash, source_message_id,
                 correlation_id, user_ref_hash, message_type, payload_sha256,
-                status, received_at, durable_at, payload_expires_at,
-                payload_redacted_at, context_redacted_at
+                cursor_batch_id, status, reject_reason, received_at, durable_at,
+                consumed_at, payload_expires_at, payload_redacted_at,
+                context_redacted_at
          FROM inbox_messages WHERE id=?`,
       )
       .get(inboxId);

@@ -38,6 +38,8 @@ for (const key of [
   'CYBERBOSS_WORKSPACE_ROOT',
   'GIT_CONFIG_SYSTEM',
   'CB_RUNTIME_DB',
+  'CB_RUNTIME_ENCRYPTION_KEY_FILE',
+  'CB_RUNTIME_IDENTITY_KEY_FILE',
   'CB_JOB_CONCURRENCY',
   'CB_DATA_REPO_SLUG',
   'CB_DATA_AREA',
@@ -70,6 +72,16 @@ if (!/^ws:\/\/(127\.0\.0\.1|localhost):\d+$/.test(env.CYBERBOSS_CODEX_ENDPOINT |
   errors.push('codex_endpoint_not_loopback');
 }
 if (Number(env.CB_JOB_CONCURRENCY) !== 1) errors.push('job_concurrency_must_equal_1');
+if (env.CB_DURABLE_INBOX !== 'true') errors.push('durable_inbox_must_default_true');
+if (!path.isAbsolute(env.CB_RUNTIME_ENCRYPTION_KEY_FILE || '')) {
+  errors.push('runtime_encryption_key_file_absolute');
+}
+if (!path.isAbsolute(env.CB_RUNTIME_IDENTITY_KEY_FILE || '')) {
+  errors.push('runtime_identity_key_file_absolute');
+}
+if (env.CB_RUNTIME_ENCRYPTION_KEY_FILE === env.CB_RUNTIME_IDENTITY_KEY_FILE) {
+  errors.push('runtime_keys_must_be_distinct');
+}
 if (env.CB_CLAUDE_RUNTIME !== 'false') errors.push('claude_runtime_must_default_false');
 if (env.CB_FILE_ATTACHMENTS !== 'false') errors.push('attachments_must_default_false');
 if (env.CB_AUTONOMOUS_MUTATION !== 'false') errors.push('autonomous_mutation_must_default_false');

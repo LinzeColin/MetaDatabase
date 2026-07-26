@@ -113,6 +113,29 @@ CB-200 staging 使用 synthetic ephemeral key，不启动 service、不切
 `current`、不调用真实 provider/Private-MetaDatabase，也不执行 CB-210 或
 PG-2。
 
+P2.2 把微信 `fetch updates` 与 cursor commit 拆开。fetch 只返回 raw batch
+与 candidate cursor；`DurableInboxCoordinator` 先用 CB-200 AES-256-GCM
+spool 持久化 accepted/rejected inbox 和唯一 job，再显式 compare-and-set
+cursor。numeric fixture 必须是从 committed 到 candidate 的最高连续序列；
+gap、duplicate sequence、regression 或缺少稳定 provider message identity
+全部 fail closed。opaque cursor 只有在 response 中全部 actionable message
+durable 后才推进。
+
+专项验证真实执行 fetch/durable/cursor 三个进程 `SIGKILL` 切点、同一 source
+1,000 次 replay、reversed batch、gap/duplicate/regression property、policy
+rejection、DB/query、mock canonical reconcile 和 DB/WAL/SHM plaintext/key
+scan。每个 crash case 最终只有一个 inbox、一个 job、一次 synthetic
+execution；synthetic execution 不代表真实 Runtime activation。
+
+`build-durable-inbox-artifacts.py` 生成 complete Corresponding Source、
+artifact manifest、checksums 和 `durable-inbox-matrix.json`；
+`install-durable-inbox.sh` 只安装 immutable inactive candidate；
+`accept-durable-inbox.sh` 只在 CB-210 staging 与独立 synthetic runtime root
+使用 ephemeral keys/state。它们不切 `current`、不启动 service、不调用真实
+WeChat/Runtime/Private-MetaDatabase。scheduler/global lease/claim recovery
+仍属于 CB-220，outbox worker/retry/receipt 仍属于 CB-230，PG-2 不在本 Run
+执行。
+
 ## Immediate validation
 
 ```bash
@@ -263,6 +286,13 @@ synthetic key 与 DB/WAL/SHM。operator 保存脱敏 report 后必须删除 CB-2
 staging env/state/incoming，确认 canonical `runtime.db` 仍不存在且 service
 保持 disabled/inactive。真实 channel poll、scheduler、outbox worker 和
 canonical client 分别留给 CB-210–CB-240。
+
+CB-210 acceptance 同样不运行 process family。它在
+`/var/lib/cyberboss/cb210-runtime-<commit>` 的独立 synthetic scope 重跑
+candidate-cursor、三 crash cuts、1,000 replay、ordering/query/privacy
+matrix，保存脱敏 report 后删除 synthetic root。operator 随后删除 CB-210
+staging env/state/incoming，确认 canonical `runtime.db` 不存在、service
+disabled/inactive、零 process/listener 且 `current`/workspace 未改变。
 
 `resource-pressure-fixture.py` 默认 `--evidence-scope=local_container`，不得
 改称实机证据。只有目标授权链和只读 baseline 已在外层证据中验证、且 fixture

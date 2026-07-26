@@ -6,6 +6,16 @@ function readConfig() {
   const argv = process.argv.slice(2);
   const mode = argv[0] || "";
   const stateDir = process.env.CYBERBOSS_STATE_DIR || path.join(os.homedir(), ".cyberboss");
+  const durableInboxOverride = readOptionalBoolEnv("CB_DURABLE_INBOX");
+  const durableInbox = durableInboxOverride === undefined
+    ? true
+    : durableInboxOverride;
+  const baselineStagingAllowed =
+    readBoolEnv("CB_ALLOW_BASELINE_STAGING")
+    && readTextEnv("NODE_ENV").toLowerCase() !== "production";
+  if (!durableInbox && !baselineStagingAllowed) {
+    throw new Error("CB_DURABLE_INBOX=false is allowed only in explicit non-production staging");
+  }
   const workspaceConfigFile = readTextEnv("CYBERBOSS_WORKSPACE_CONFIG")
     || path.join(stateDir, "workspaces.json");
   const workspaceBase = readTextEnv("CYBERBOSS_WORKSPACE_BASE")
@@ -41,6 +51,15 @@ function readConfig() {
     maxInputBytes: readIntEnv("CYBERBOSS_MAX_INPUT_BYTES")
       || readIntEnv("CB_MAX_INPUT_BYTES")
       || 32 * 1024,
+    durableInbox,
+    baselineStagingAllowed,
+    runtimeDatabasePath: readTextEnv("CB_RUNTIME_DB")
+      || path.join(stateDir, "runtime.db"),
+    runtimeEncryptionKeyFile: readTextEnv("CB_RUNTIME_ENCRYPTION_KEY_FILE")
+      || path.join(stateDir, "credentials", "runtime-encryption.key"),
+    runtimeIdentityKeyFile: readTextEnv("CB_RUNTIME_IDENTITY_KEY_FILE")
+      || path.join(stateDir, "credentials", "runtime-identity.key"),
+    activePayloadTtlHours: readIntEnv("CB_ACTIVE_PAYLOAD_TTL_HOURS") || 24,
     walkingSkeletonTraceFile: readTextEnv("CYBERBOSS_WALKING_SKELETON_TRACE_FILE"),
     channel: readTextEnv("CYBERBOSS_CHANNEL") || "weixin",
     runtime: readTextEnv("CYBERBOSS_RUNTIME") || "codex",

@@ -32,6 +32,8 @@ const { SystemMessageDispatcher } = require("./system-message-dispatcher");
 const { TimelineScreenshotQueueStore } = require("./timeline-screenshot-queue-store");
 const { TurnGateStore } = require("./turn-gate-store");
 const { ReminderQueueStore } = require("../adapters/channel/weixin/reminder-queue-store");
+const { RuntimeSpoolDatabase } = require("../services/db/database-adapter");
+const { DurableInboxCoordinator } = require("../services/inbox/durable-inbox");
 const {
   matchesCommandPrefix,
   canonicalizeCommandTokens,
@@ -51,6 +53,45 @@ const BACKOFF_DELAY_MS = 30_000;
 const MAX_CONSECUTIVE_FAILURES = 3;
 const MAX_INBOUND_STICKER_IMAGE_BATCH = 10;
 const INBOUND_IMAGE_BATCH_IDLE_MS = 1_500;
+
+function requireAbsoluteRuntimePath(value, label) {
+  if (typeof value !== "string" || !path.isAbsolute(value)) {
+    throw new Error(`${label}_ABSOLUTE_REQUIRED`);
+  }
+  return value;
+}
+
+function readOwnerOnlyRuntimeKey(filePath, label) {
+  const absolute = requireAbsoluteRuntimePath(filePath, `${label}_FILE`);
+  let stat;
+  try {
+    stat = fs.lstatSync(absolute);
+  } catch {
+    throw new Error(`${label}_UNAVAILABLE`);
+  }
+  if (stat.isSymbolicLink() || !stat.isFile()) {
+    throw new Error(`${label}_FILE_INVALID`);
+  }
+  if ((stat.mode & 0o077) !== 0) {
+    throw new Error(`${label}_PERMISSIONS_INVALID`);
+  }
+  if (stat.size !== 32) {
+    throw new Error(`${label}_LENGTH_INVALID`);
+  }
+  const key = fs.readFileSync(absolute);
+  if (key.length !== 32) {
+    key.fill(0);
+    throw new Error(`${label}_LENGTH_INVALID`);
+  }
+  return key;
+}
+
+function resolveActivePayloadTtlMs(hours) {
+  if (!Number.isSafeInteger(hours) || hours < 1 || hours > 168) {
+    throw new Error("ACTIVE_PAYLOAD_TTL_HOURS_INVALID");
+  }
+  return hours * 60 * 60 * 1000;
+}
 
 function createRuntimeAdapter(config) {
   if (config.runtime === "claudecode") {
@@ -100,6 +141,8 @@ class CyberbossApp {
     });
     this.pendingOperationByRunKey = new Map();
     this.runtimeEventChain = Promise.resolve();
+    this.runtimeSpoolDatabase = null;
+    this.durableInboxCoordinator = null;
     this.runtimeAdapter.onEvent((event) => {
       this.threadStateStore.applyRuntimeEvent(event);
       this.runtimeEventChain = this.runtimeEventChain
@@ -110,6 +153,61 @@ class CyberbossApp {
           console.error(`[cyberboss] runtime event handling failed type=${event?.type || "(unknown)"} ${message}`);
         });
     });
+  }
+
+  initializeDurableInbox() {
+    if (this.config.durableInbox !== true) {
+      if (
+        this.config.durableInbox === false
+        && this.config.baselineStagingAllowed !== true
+      ) {
+        throw new Error("DURABLE_INBOX_BASELINE_FALLBACK_FORBIDDEN");
+      }
+      return;
+    }
+    if (this.runtimeSpoolDatabase || this.durableInboxCoordinator) {
+      throw new Error("DURABLE_INBOX_ALREADY_INITIALIZED");
+    }
+    const encryptionKey = readOwnerOnlyRuntimeKey(
+      this.config.runtimeEncryptionKeyFile,
+      "RUNTIME_ENCRYPTION_KEY",
+    );
+    const identityKey = readOwnerOnlyRuntimeKey(
+      this.config.runtimeIdentityKeyFile,
+      "RUNTIME_IDENTITY_KEY",
+    );
+    try {
+      this.runtimeSpoolDatabase = new RuntimeSpoolDatabase({
+        databasePath: requireAbsoluteRuntimePath(
+          this.config.runtimeDatabasePath,
+          "RUNTIME_DATABASE_PATH",
+        ),
+        encryptionKey,
+        identityKey,
+        payloadTtlMs: resolveActivePayloadTtlMs(
+          this.config.activePayloadTtlHours,
+        ),
+      });
+      this.durableInboxCoordinator = new DurableInboxCoordinator({
+        channelAdapter: this.channelAdapter,
+        database: this.runtimeSpoolDatabase,
+        config: this.config,
+      });
+    } catch (error) {
+      this.closeDurableInbox();
+      throw error;
+    } finally {
+      encryptionKey.fill(0);
+      identityKey.fill(0);
+    }
+  }
+
+  closeDurableInbox() {
+    this.durableInboxCoordinator = null;
+    if (this.runtimeSpoolDatabase) {
+      this.runtimeSpoolDatabase.close();
+      this.runtimeSpoolDatabase = null;
+    }
   }
 
   printDoctor() {
@@ -138,7 +236,15 @@ class CyberbossApp {
       config: this.config,
       accountId: account.accountId,
     });
-    const runtimeState = await this.runtimeAdapter.initialize();
+    let runtimeState;
+    try {
+      this.initializeDurableInbox();
+      runtimeState = await this.runtimeAdapter.initialize();
+    } catch (error) {
+      this.closeDurableInbox();
+      await this.runtimeAdapter.close().catch(() => {});
+      throw error;
+    }
     const knownContextTokens = Object.keys(this.channelAdapter.getKnownContextTokens()).length;
     const syncBuffer = this.channelAdapter.loadSyncBuffer();
     await this.restoreBoundThreadSubscriptions();
@@ -152,6 +258,9 @@ class CyberbossApp {
     console.log(`[cyberboss] workspaceRoot=${this.config.workspaceRoot}`);
     console.log(`[cyberboss] knownContextTokens=${knownContextTokens}`);
     console.log(`[cyberboss] syncBuffer=${syncBuffer ? "ready" : "empty"}`);
+    console.log(
+      `[cyberboss] durableInbox=${this.durableInboxCoordinator ? "enabled" : "staging_baseline"}`,
+    );
     console.log(`[cyberboss] runtimeEndpoint=${runtimeState.endpoint || runtimeState.command || "(spawn)"}`);
     console.log(`[cyberboss] runtimeModels=${runtimeState.models?.length || 0}`);
     if (this.config.startWithLocationServer) {
@@ -169,6 +278,7 @@ class CyberbossApp {
       this.clearPendingImageInboundTimers();
       await this.closeLocationServer();
       await this.runtimeAdapter.close();
+      this.closeDurableInbox();
     });
 
     try {
@@ -181,18 +291,34 @@ class CyberbossApp {
             this.flushPendingSystemMessages(),
             this.flushPendingTimelineScreenshots(account),
           ]);
-          const response = await this.channelAdapter.getUpdates({
-            syncBuffer: this.channelAdapter.loadSyncBuffer(),
-            timeoutMs: this.resolveLongPollTimeoutMs(),
-          });
-          assertWeixinUpdateResponse(response);
-          consecutiveFailures = 0;
-          const messages = sortInboundUpdateMessages(Array.isArray(response?.msgs) ? response.msgs : []);
-          for (const message of messages) {
-            if (shutdown.stopped) {
-              break;
+          if (this.durableInboxCoordinator) {
+            const durable = await this.durableInboxCoordinator.pollOnce({
+              timeoutMs: this.resolveLongPollTimeoutMs(),
+            });
+            consecutiveFailures = 0;
+            if (durable.acceptedCount || durable.rejectedCount) {
+              console.log(
+                `[cyberboss] durable batch queued accepted=${durable.acceptedCount} rejected=${durable.rejectedCount}`,
+              );
             }
-            await this.handleIncomingMessage(message);
+          } else {
+            const fetched = await this.channelAdapter.fetchUpdates({
+              syncBuffer: this.channelAdapter.loadSyncBuffer(),
+              timeoutMs: this.resolveLongPollTimeoutMs(),
+            });
+            assertWeixinUpdateResponse(fetched.response);
+            this.channelAdapter.saveSyncBuffer(fetched.candidateCursor);
+            this.channelAdapter.rememberBaselineStagingContextTokens(
+              fetched.messages,
+            );
+            consecutiveFailures = 0;
+            const messages = sortInboundUpdateMessages(fetched.messages);
+            for (const message of messages) {
+              if (shutdown.stopped) {
+                break;
+              }
+              await this.handleIncomingMessage(message);
+            }
           }
           await Promise.all([
             this.flushDueReminders(account),
@@ -219,6 +345,7 @@ class CyberbossApp {
       this.clearPendingImageInboundTimers();
       await this.closeLocationServer();
       await this.runtimeAdapter.close();
+      this.closeDurableInbox();
     }
   }
 

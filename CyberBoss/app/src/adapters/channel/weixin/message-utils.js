@@ -12,7 +12,7 @@ function createInboundFilter() {
   const seen = new Map();
 
   return {
-    normalize(message, config, accountId) {
+    normalize(message, config, accountId, { durable = false } = {}) {
       if (!message || typeof message !== "object") {
         return null;
       }
@@ -31,13 +31,15 @@ function createInboundFilter() {
 
       const createdAtMs = normalizeMessageTimestampMs(message);
 
-      const dedupKey = buildDedupKey(message, senderId, createdAtMs);
-      pruneSeen(seen);
-      if (dedupKey && seen.has(dedupKey)) {
-        return null;
-      }
-      if (dedupKey) {
-        seen.set(dedupKey, Date.now());
+      if (!durable) {
+        const dedupKey = buildDedupKey(message, senderId, createdAtMs);
+        pruneSeen(seen);
+        if (dedupKey && seen.has(dedupKey)) {
+          return null;
+        }
+        if (dedupKey) {
+          seen.set(dedupKey, Date.now());
+        }
       }
 
       const itemList = Array.isArray(message.item_list) ? message.item_list : [];

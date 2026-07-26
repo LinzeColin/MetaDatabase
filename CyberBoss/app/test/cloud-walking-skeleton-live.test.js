@@ -146,6 +146,9 @@ test("live simulator process chain passes the complete CB-140 acceptance runner"
       CYBERBOSS_WEIXIN_BASE_URL: "http://127.0.0.1:19080/",
       CYBERBOSS_WALKING_SKELETON_TRACE_FILE: traceFile,
       CB_MAX_INPUT_BYTES: "32768",
+      NODE_ENV: "test",
+      CB_DURABLE_INBOX: "false",
+      CB_ALLOW_BASELINE_STAGING: "true",
     },
   });
   await waitForOutput(bridge, /\[cyberboss\] bootstrap ok/);

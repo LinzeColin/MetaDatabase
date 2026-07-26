@@ -131,6 +131,39 @@
       "upstream_sync_enabled": false,
       "upstream_support_claimed": false,
       "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-210",
+      "phase": "P2.2",
+      "base_commit": "4f914e3b6ed3145a16c1572f4176068b9829b920",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/durable-inbox-acceptance.js",
+        "CyberBoss/app/src/adapters/channel/weixin/index.js",
+        "CyberBoss/app/src/adapters/channel/weixin/message-utils.js",
+        "CyberBoss/app/src/adapters/channel/weixin/sync-buffer-store.js",
+        "CyberBoss/app/src/core/app.js",
+        "CyberBoss/app/src/core/config.js",
+        "CyberBoss/app/src/services/db/database-adapter.js",
+        "CyberBoss/app/src/services/inbox/durable-inbox.js",
+        "CyberBoss/app/test/cloud-walking-skeleton-live.test.js",
+        "CyberBoss/app/test/durable-inbox-crash-cut.test.js",
+        "CyberBoss/app/test/weixin-cursor-commit.test.js"
+      ],
+      "purposes": [
+        "separate WeChat update fetch from explicit candidate cursor commit",
+        "persist every normalized user message or policy rejection before cursor advancement",
+        "enforce compare-and-set cursor writes and numeric highest-continuous batch ordering",
+        "return the existing durable job on source replay and prove one synthetic execution after 1000 replays",
+        "prove fetch, durable transaction and cursor crash recovery without activating the later scheduler or outbox worker",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not runtime, install, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
     }
   ]
 }

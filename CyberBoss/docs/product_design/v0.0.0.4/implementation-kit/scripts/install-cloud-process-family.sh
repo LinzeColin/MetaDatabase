@@ -82,6 +82,13 @@ case "$TASK_ID" in
     ACCEPTANCE_SCRIPT="accept-runtime-spool.sh"
     REPORT_PREFIX="RUNTIME_SPOOL_INSTALL"
     ;;
+  CB-210)
+    PHASE="P2.2"
+    STAGING_TAG="cb210"
+    CONTRACT_PATH="docs/governance/RUN_CONTRACT_P2_2_CB_210.md"
+    ACCEPTANCE_SCRIPT="accept-durable-inbox.sh"
+    REPORT_PREFIX="DURABLE_INBOX_INSTALL"
+    ;;
   *)
     fail "unsupported_task_id"
     ;;
@@ -226,8 +233,59 @@ jq -e --arg release "$RELEASE_ID" --arg task "$TASK_ID" --arg phase "$PHASE" '
     .runtime_spool.scheduler_integrated == false and
     .runtime_spool.outbox_worker_integrated == false and
     .runtime_spool.pg_2_executed == false
+  elif $task == "CB-210" then
+    .runtime_spool.schema_version == 2 and
+    .runtime_spool.migration_mode == "additive_backward_compatible" and
+    .runtime_spool.active_payload_encryption == "AES-256-GCM" and
+    .runtime_spool.channel_poll_integrated == true and
+    .runtime_spool.scheduler_integrated == false and
+    .runtime_spool.outbox_worker_integrated == false and
+    .runtime_spool.pg_2_executed == false and
+    .durable_inbox.candidate_cursor_api == true and
+    .durable_inbox.cursor_commit_after_durable == true and
+    .durable_inbox.numeric_continuity_guard == true and
+    .durable_inbox.stable_source_id_required == true and
+    .durable_inbox.replay_count == 1000 and
+    .durable_inbox.crash_cut_points == [
+      "after_fetch_before_durable",
+      "after_durable_before_cursor",
+      "after_cursor"
+    ] and
+    .durable_inbox.channel_poll_integrated == true and
+    .durable_inbox.scheduler_integrated == false and
+    .durable_inbox.outbox_worker_integrated == false and
+    .durable_inbox.real_wechat == false and
+    .durable_inbox.real_runtime == false and
+    .durable_inbox.pg_2_executed == false
   else true end)
 ' "$MANIFEST" >/dev/null || fail "artifact_manifest_contract"
+if [[ "$TASK_ID" == "CB-210" ]]; then
+  [[ -f "$ARTIFACTS/durable-inbox-matrix.json" &&
+    ! -L "$ARTIFACTS/durable-inbox-matrix.json" ]] ||
+    fail "durable_inbox_matrix_missing"
+  jq -e --arg release "$RELEASE_ID" '
+    .task_id == "CB-210" and
+    .phase == "P2.2" and
+    .release_commit == $release and
+    .generated_from_synthetic_state == true and
+    .replay.replay_count == 1000 and
+    .replay.inbox_count == 1 and
+    .replay.job_count == 1 and
+    .replay.execution_count == 1 and
+    .database.committed_inbox_rpo == 0 and
+    .database.canonical_reconcile_set_diff == 0 and
+    .database.integrity_check == "ok" and
+    .security.plaintext_db_wal_shm_hits == 0 and
+    .security.encryption_key_hits == 0 and
+    .boundaries.scheduler_integrated == false and
+    .boundaries.outbox_worker_integrated == false and
+    .boundaries.real_wechat == false and
+    .boundaries.real_runtime == false and
+    .boundaries.pg_2_executed == false and
+    .result == "passed"
+  ' "$ARTIFACTS/durable-inbox-matrix.json" >/dev/null ||
+    fail "durable_inbox_matrix_contract"
+fi
 
 SOURCE_ARCHIVE="$(jq -er '.source.archive' "$MANIFEST")"
 [[ "$SOURCE_ARCHIVE" == "cyberboss-source-$RELEASE_ID.tar.gz" ]] ||
@@ -345,6 +403,21 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
         fail "candidate_runtime_spool_source:$required"
     done
   fi
+  if [[ "$TASK_ID" == "CB-210" ]]; then
+    for required in \
+      app/migrations/001_runtime_spool.sql \
+      app/migrations/002_cb200_retention_and_transitions.sql \
+      app/scripts/durable-inbox-acceptance.js \
+      app/src/adapters/channel/weixin/index.js \
+      app/src/adapters/channel/weixin/sync-buffer-store.js \
+      app/src/services/db/database-adapter.js \
+      app/src/services/inbox/durable-inbox.js \
+      app/test/durable-inbox-crash-cut.test.js \
+      app/test/weixin-cursor-commit.test.js; do
+      [[ -f "$RELEASE_STAGE/$required" && ! -L "$RELEASE_STAGE/$required" ]] ||
+        fail "candidate_durable_inbox_source:$required"
+    done
+  fi
   chown -R "$CODE_USER:$CODE_GROUP" "$RELEASE_STAGE"
   install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 "$STATE_ROOT/cache/npm"
   sudo -u "$CODE_USER" -H env \
@@ -368,7 +441,7 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
   [[ "$TEST_COUNT" =~ ^[0-9]+$ ]] || fail "candidate_test_count"
   ln -s "docs/product_design/v0.0.0.4/implementation-kit" \
     "$RELEASE_STAGE/implementation-kit"
-  if [[ "$TASK_ID" == "CB-200" ]]; then
+  if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ]]; then
     ln -s "app/migrations" "$RELEASE_STAGE/migrations"
     jq '{
       schema_version: 1,
@@ -377,6 +450,13 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
       release_commit,
       runtime_spool
     }' "$MANIFEST" >"$RELEASE_STAGE/schema-manifest.json"
+  fi
+  if [[ "$TASK_ID" == "CB-210" ]]; then
+    install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 \
+      "$RELEASE_STAGE/evidence"
+    install -o "$CODE_USER" -g "$CODE_GROUP" -m 0440 \
+      "$ARTIFACTS/durable-inbox-matrix.json" \
+      "$RELEASE_STAGE/evidence/durable-inbox-matrix.json"
   fi
   install -o "$CODE_USER" -g "$CODE_GROUP" -m 0440 \
     "$KIT_ROOT/config/cloud-process-health.json" \
@@ -417,6 +497,11 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
     }
     | if $task_id == "CB-200"
       then . + {runtime_spool: $artifact[0].runtime_spool}
+      elif $task_id == "CB-210"
+      then . + {
+        runtime_spool: $artifact[0].runtime_spool,
+        durable_inbox: $artifact[0].durable_inbox
+      }
       else .
       end' >"$RELEASE_STAGE/release-manifest.json"
   assert_no_escaping_symlink "$RELEASE_STAGE"
@@ -451,6 +536,23 @@ jq -e --arg release "$RELEASE_ID" \
     .runtime_spool.active_payload_encryption == "AES-256-GCM" and
     .runtime_spool.real_canonical_sync == false and
     .runtime_spool.pg_2_executed == false
+  elif $task == "CB-210" then
+    .runtime_spool.schema_version == 2 and
+    .runtime_spool.migration_mode == "additive_backward_compatible" and
+    .runtime_spool.active_payload_encryption == "AES-256-GCM" and
+    .runtime_spool.channel_poll_integrated == true and
+    .runtime_spool.scheduler_integrated == false and
+    .runtime_spool.outbox_worker_integrated == false and
+    .runtime_spool.pg_2_executed == false and
+    .durable_inbox.candidate_cursor_api == true and
+    .durable_inbox.cursor_commit_after_durable == true and
+    .durable_inbox.numeric_continuity_guard == true and
+    .durable_inbox.replay_count == 1000 and
+    .durable_inbox.scheduler_integrated == false and
+    .durable_inbox.outbox_worker_integrated == false and
+    .durable_inbox.real_wechat == false and
+    .durable_inbox.real_runtime == false and
+    .durable_inbox.pg_2_executed == false
   else true end)
 ' "$RELEASE_PATH/release-manifest.json" >/dev/null ||
   fail "candidate_release_manifest"
@@ -458,16 +560,17 @@ jq -e --arg release "$RELEASE_ID" \
   -f "$RELEASE_PATH/process-tree.txt" &&
   -f "$RELEASE_PATH/app/scripts/cloud-supervisor.js" ]] ||
   fail "candidate_contract_files"
-if [[ "$TASK_ID" == "CB-200" ]]; then
+if [[ "$TASK_ID" == "CB-200" || "$TASK_ID" == "CB-210" ]]; then
   [[ -L "$RELEASE_PATH/migrations" &&
     "$(realpath "$RELEASE_PATH/migrations")" == \
       "$RELEASE_PATH/app/migrations" &&
     -f "$RELEASE_PATH/schema-manifest.json" ]] ||
     fail "candidate_runtime_spool_contract_files"
-  jq -e --arg release "$RELEASE_ID" '
+  jq -e --arg release "$RELEASE_ID" \
+    --arg task "$TASK_ID" --arg phase "$PHASE" '
     .schema_version == 1 and
-    .task_id == "CB-200" and
-    .phase == "P2.1" and
+    .task_id == $task and
+    .phase == $phase and
     .release_commit == $release and
     .runtime_spool.schema_version == 2 and
     .runtime_spool.migration_mode == "additive_backward_compatible" and
@@ -485,6 +588,14 @@ if [[ "$TASK_ID" == "CB-200" ]]; then
         "$RELEASE_PATH/schema-manifest.json")" ]] ||
       fail "candidate_migration_hash:$migration"
   done
+fi
+if [[ "$TASK_ID" == "CB-210" ]]; then
+  [[ -f "$RELEASE_PATH/evidence/durable-inbox-matrix.json" &&
+    ! -L "$RELEASE_PATH/evidence/durable-inbox-matrix.json" ]] ||
+    fail "candidate_durable_inbox_matrix"
+  cmp -s "$ARTIFACTS/durable-inbox-matrix.json" \
+    "$RELEASE_PATH/evidence/durable-inbox-matrix.json" ||
+    fail "candidate_durable_inbox_matrix_drift"
 fi
 [[ -L "$RELEASE_PATH/implementation-kit" &&
   "$(realpath "$RELEASE_PATH/implementation-kit")" == \
@@ -531,6 +642,8 @@ CB_HTTP_PORT=8780
 CB_ENV_FILE=$STAGING_ENV
 CB_REQUIRE_RUNTIME_DB=false
 CB_RUNTIME_DB=$STAGING_STATE/runtime.db
+CB_RUNTIME_ENCRYPTION_KEY_FILE=$STAGING_STATE/credentials/runtime-encryption.key
+CB_RUNTIME_IDENTITY_KEY_FILE=$STAGING_STATE/credentials/runtime-identity.key
 CB_STATUS_PATH=$STAGING_STATE/status/snapshot.json
 CB_SINGLETON_LOCK=$STATE_ROOT/locks/bridge.lock
 CB_DURABLE_INBOX=true

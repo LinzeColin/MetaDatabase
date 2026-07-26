@@ -7,6 +7,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -43,6 +44,11 @@ TASKS = {
         "phase": "P2.1",
         "contract": "docs/governance/RUN_CONTRACT_P2_1_CB_200.md",
         "stage_prefix": ".cb200-artifacts-",
+    },
+    "CB-210": {
+        "phase": "P2.2",
+        "contract": "docs/governance/RUN_CONTRACT_P2_2_CB_210.md",
+        "stage_prefix": ".cb210-artifacts-",
     },
 }
 
@@ -151,6 +157,71 @@ def assert_remote_branch_absent(repo: Path) -> None:
     expect(result.returncode == 2 and not result.stdout.strip(), "remote_publication")
 
 
+def build_durable_inbox_matrix(
+    repo: Path,
+    commit: str,
+    stage: Path,
+) -> Path:
+    with tempfile.TemporaryDirectory(prefix=".cb210-runtime-", dir=stage.parent) as raw:
+        runtime = Path(raw)
+        key_file = runtime / "synthetic.key"
+        runtime_state = runtime / "state"
+        output = runtime / "output"
+        runtime_state.mkdir(mode=0o700)
+        output.mkdir(mode=0o700)
+        key_file.write_bytes(os.urandom(32))
+        key_file.chmod(0o400)
+        result = subprocess.run(
+            [
+                "node",
+                str(
+                    repo
+                    / "CyberBoss/app/scripts/durable-inbox-acceptance.js"
+                ),
+                "--runtime-root",
+                str(runtime_state),
+                "--key-file",
+                str(key_file),
+                "--output-directory",
+                str(output),
+                "--release-commit",
+                commit,
+                "--target-id-sha256",
+                "7865f743d174",
+            ],
+            cwd=repo,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=180,
+        )
+        expect(
+            result.returncode == 0
+            and "CB210_ACCEPTANCE=PASS" in result.stdout,
+            "durable_inbox_acceptance",
+        )
+        generated = output / "durable-inbox-matrix.json"
+        report = json.loads(generated.read_text(encoding="utf-8"))
+        expect(
+            report.get("task_id") == "CB-210"
+            and report.get("phase") == "P2.2"
+            and report.get("release_commit") == commit
+            and report.get("result") == "passed"
+            and report.get("replay", {}).get("replay_count") == 1000
+            and report.get("replay", {}).get("execution_count") == 1
+            and report.get("database", {}).get(
+                "canonical_reconcile_set_diff"
+            )
+            == 0,
+            "durable_inbox_matrix",
+        )
+        destination = stage / "durable-inbox-matrix.json"
+        shutil.copyfile(generated, destination)
+        destination.chmod(0o644)
+        return destination
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", type=Path, required=True)
@@ -205,6 +276,17 @@ def main() -> int:
                 "app/src/services/jobs/job-state-machine.js",
                 "app/test/job-state-machine.test.js",
                 "app/test/runtime-spool.test.js",
+            ):
+                expect(required in inventory, f"source_missing:{required}")
+        if args.task_id == "CB-210":
+            for required in (
+                "app/scripts/durable-inbox-acceptance.js",
+                "app/src/adapters/channel/weixin/index.js",
+                "app/src/adapters/channel/weixin/sync-buffer-store.js",
+                "app/src/services/db/database-adapter.js",
+                "app/src/services/inbox/durable-inbox.js",
+                "app/test/durable-inbox-crash-cut.test.js",
+                "app/test/weixin-cursor-commit.test.js",
             ):
                 expect(required in inventory, f"source_missing:{required}")
 
@@ -300,12 +382,70 @@ def main() -> int:
                     "outbox_worker_integrated": False,
                     "pg_2_executed": False,
                 }
+            if args.task_id == "CB-210":
+                manifest["runtime_spool"] = {
+                    "schema_version": 2,
+                    "migration_mode": "additive_backward_compatible",
+                    "migration_sha256": {
+                        "001_runtime_spool.sql": git_blob_sha256(
+                            repo,
+                            args.commit,
+                            "app/migrations/001_runtime_spool.sql",
+                        ),
+                        "002_cb200_retention_and_transitions.sql":
+                            git_blob_sha256(
+                                repo,
+                                args.commit,
+                                "app/migrations/"
+                                "002_cb200_retention_and_transitions.sql",
+                            ),
+                    },
+                    "journal_mode": "WAL",
+                    "synchronous": "FULL",
+                    "foreign_keys": True,
+                    "busy_timeout_ms": 5000,
+                    "active_payload_encryption": "AES-256-GCM",
+                    "active_payload_ttl_hours": 24,
+                    "real_canonical_sync": False,
+                    "channel_poll_integrated": True,
+                    "scheduler_integrated": False,
+                    "outbox_worker_integrated": False,
+                    "pg_2_executed": False,
+                }
+                manifest["durable_inbox"] = {
+                    "candidate_cursor_api": True,
+                    "cursor_commit_after_durable": True,
+                    "numeric_continuity_guard": True,
+                    "stable_source_id_required": True,
+                    "replay_count": 1000,
+                    "crash_cut_points": [
+                        "after_fetch_before_durable",
+                        "after_durable_before_cursor",
+                        "after_cursor",
+                    ],
+                    "active_payload_encryption": "AES-256-GCM",
+                    "channel_poll_integrated": True,
+                    "scheduler_integrated": False,
+                    "outbox_worker_integrated": False,
+                    "real_wechat": False,
+                    "real_runtime": False,
+                    "pg_2_executed": False,
+                }
             manifest_path = stage / "artifact-manifest.json"
             write_json(manifest_path, manifest)
+            matrix_path = (
+                build_durable_inbox_matrix(repo, args.commit, stage)
+                if args.task_id == "CB-210"
+                else None
+            )
             checksum_lines = [
                 f"{sha256(manifest_path)}  {manifest_path.name}",
                 f"{sha256(archive_path)}  {archive_path.name}",
             ]
+            if matrix_path is not None:
+                checksum_lines.append(
+                    f"{sha256(matrix_path)}  {matrix_path.name}"
+                )
             checksums = stage / "SHA256SUMS"
             checksums.write_text("\n".join(sorted(checksum_lines)) + "\n", encoding="utf-8")
             checksums.chmod(0o644)
@@ -319,7 +459,8 @@ def main() -> int:
 
     print(
         f"{args.task_id.replace('-', '')}_ARTIFACT_BUILD=PASS "
-        f"release_id={args.commit} artifacts=3 "
+        f"release_id={args.commit} "
+        f"artifacts={4 if args.task_id == 'CB-210' else 3} "
         "corresponding_source_complete=true "
         "license_expression=AGPL-3.0-only_AND_GPL-3.0-only "
         "upstream_clarification_received=false publication=none"

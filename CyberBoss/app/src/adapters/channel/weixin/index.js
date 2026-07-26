@@ -6,7 +6,11 @@ const { getConfig, sendTyping } = require("./api");
 const { getUpdates, sendText } = require("./api");
 const { createInboundFilter, isSenderAllowed } = require("./message-utils");
 const { sendWeixinMediaFile } = require("./media-send");
-const { loadSyncBuffer, saveSyncBuffer } = require("./sync-buffer-store");
+const {
+  commitSyncBuffer,
+  loadSyncBuffer,
+  saveSyncBuffer,
+} = require("./sync-buffer-store");
 const { loadWeixinConfig, saveWeixinConfig, DEFAULT_MIN_WEIXIN_CHUNK } = require("./config-store");
 
 const LONG_POLL_TIMEOUT_MS = 35_000;
@@ -138,10 +142,23 @@ function createWeixinChannelAdapter(config) {
     },
     saveSyncBuffer(buffer) {
       const account = ensureAccount();
-      saveSyncBuffer(config, account.accountId, buffer);
+      return saveSyncBuffer(config, account.accountId, buffer);
     },
     rememberContextToken,
-    async getUpdates({ syncBuffer = "", timeoutMs = LONG_POLL_TIMEOUT_MS } = {}) {
+    rememberBaselineStagingContextTokens(messages = []) {
+      for (const message of messages) {
+        const userId = typeof message?.from_user_id === "string"
+          ? message.from_user_id.trim()
+          : "";
+        const contextToken = typeof message?.context_token === "string"
+          ? message.context_token.trim()
+          : "";
+        if (userId && contextToken && isSenderAllowed(config, userId)) {
+          rememberContextToken(userId, contextToken);
+        }
+      }
+    },
+    async fetchUpdates({ syncBuffer = "", timeoutMs = LONG_POLL_TIMEOUT_MS } = {}) {
       const account = ensureAccount();
       const response = await getUpdates({
         baseUrl: account.baseUrl,
@@ -150,22 +167,30 @@ function createWeixinChannelAdapter(config) {
         timeoutMs,
       });
       const newBuf = typeof response?.get_updates_buf === "string" ? response.get_updates_buf.trim() : "";
-      if (newBuf && newBuf !== syncBuffer) {
-        this.saveSyncBuffer(newBuf);
-      }
       const messages = Array.isArray(response?.msgs) ? response.msgs : [];
-      for (const message of messages) {
-        const userId = typeof message?.from_user_id === "string" ? message.from_user_id.trim() : "";
-        const contextToken = typeof message?.context_token === "string" ? message.context_token.trim() : "";
-        if (userId && contextToken && isSenderAllowed(config, userId)) {
-          rememberContextToken(userId, contextToken);
-        }
-      }
-      return response;
+      return Object.freeze({
+        response,
+        messages,
+        committedCursor: syncBuffer,
+        candidateCursor: newBuf || syncBuffer,
+      });
     },
-    normalizeIncomingMessage(message) {
+    async getUpdates(options = {}) {
+      return this.fetchUpdates(options);
+    },
+    commitCandidateCursor({
+      expectedCursor = "",
+      candidateCursor = "",
+    } = {}) {
       const account = ensureAccount();
-      return inboundFilter.normalize(message, config, account.accountId);
+      return commitSyncBuffer(config, account.accountId, {
+        expected: expectedCursor,
+        candidate: candidateCursor,
+      });
+    },
+    normalizeIncomingMessage(message, options = {}) {
+      const account = ensureAccount();
+      return inboundFilter.normalize(message, config, account.accountId, options);
     },
     async sendText({ userId, text, contextToken = "", preserveBlock = false }) {
       await sendTextChunks({ userId, text, contextToken, preserveBlock });
