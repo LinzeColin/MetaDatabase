@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the v1.0.30 protected T0705 authority-scope recovery manifest."""
+"""Build the v1.0.31 protected T0705 deterministic-clock recovery manifest."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.30.json")
-PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.30"
-PACKAGE_VERSION = "1.0.30"
-PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.29.json")
-PREDECESSOR_MANIFEST_SHA256 = "c2f9f44d1cf62f3b783d7f83e880b402cbf422eb5817266a406c37c0ae7f08d4"  # pragma: allowlist secret  # noqa: E501
+MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.31.json")
+PACKAGE_ID = "MMAU-ARCHIVE-TP-2026-07-26-V1.0.31"
+PACKAGE_VERSION = "1.0.31"
+PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.30.json")
+PREDECESSOR_MANIFEST_SHA256 = "eba49e83b5b99b18faeb01f7223b7fcac14e76eedf089052d2ddb33e34072217"  # pragma: allowlist secret  # noqa: E501
 CONTROL_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.4.json")
 CONTROL_PREDECESSOR_MANIFEST_SHA256 = "24b24ce8bd25b85f6c4dce3f7fbf6c8770b24e88be13f52be1d8d6a87b0c6e15"  # pragma: allowlist secret  # noqa: E501
 FOUNDATION_PREDECESSOR_MANIFEST_PATH = Path("taskpack/PACKAGE_MANIFEST.v1.0.3.json")
@@ -97,7 +97,7 @@ def _verify_inherited_baseline(root: Path) -> None:
         or predecessor.is_symlink()
         or _sha256(predecessor) != PREDECESSOR_MANIFEST_SHA256
     ):
-        raise ValueError("predecessor v1.0.29 manifest drift")
+        raise ValueError("predecessor v1.0.30 manifest drift")
     control_predecessor = root / CONTROL_PREDECESSOR_MANIFEST_PATH
     if (
         not control_predecessor.is_file()
@@ -167,12 +167,10 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         or "REV-P1-006" not in status.get("resolved_review_findings", [])
         or "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING" not in status.get("blockers", [])
         or status.get("overall_status")
-        != "PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED"
-        or "T0705_CANONICAL_GIT_BLOB_RECOVERY_PENDING" not in status.get("blockers", [])
+        != "PROTECTED_GA_TENTH_ATTEMPT_FAILED_DETERMINISTIC_CLOCK_RECOVERY_AUTHORIZED"
+        or "T0705_DETERMINISTIC_CLOCK_RECOVERY_PENDING" not in status.get("blockers", [])
     ):
-        raise ValueError(
-            "T0705 protected GA canonical Git Blob recovery is not exactly authorized-pending"
-        )
+        raise ValueError("T0705 protected GA deterministic-clock recovery is not authorized")
     entries = [
         {
             "path": path.relative_to(root).as_posix(),
@@ -182,7 +180,7 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         for path in _selected_paths(root)
     ]
     return {
-        "schema_version": "moomooau.package-manifest.v30",
+        "schema_version": "moomooau.package-manifest.v31",
         "package_id": PACKAGE_ID,
         "product": "MooMooAU Archive",
         "version": PACKAGE_VERSION,
@@ -198,10 +196,10 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "2133673b335a384657c8668b62a1c13055c212cd and "
             "8b6faaf9059661edc3153352b8787ddbc4f733f3 and "
             "6f82e738611e0d2eeeadd2507f738c9e269c91e0, and preserve the exact T0702, "
-            "T0703 and T0704 protected PASS receipts plus all nine immutable T0705 protected "
-            "failed-attempt ledgers and both distinct pre-Secret ledgers. "
-            "The formatter-rejected and authority-context-rejected heads are frozen. One "
-            "repository-scoped one-shot authority canonical Git Blob recovery "
+            "T0703 and T0704 protected PASS receipts plus all ten immutable T0705 protected "
+            "failed-attempt ledgers and both distinct pre-Secret ledgers. The "
+            "formatter-rejected, authority-context-rejected and "
+            "wall-clock schedule-planning heads are frozen. One deterministic historical-clock "
             "delivery, one new exact-main attempt-1 protected "
             "SCHEDULE_REHEARSAL with rerun zero and one later receipt/schedule-closure delivery "
             "remain authorized. "
@@ -210,13 +208,13 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "unauthorized."
         ),
         "scope": (
-            "Baseline-preserving v1.0.30 T0705 recovery candidate: immutable v1.0.1 product "
-            "contracts and v1.0.2-v1.0.29 predecessor lineage remain unchanged. All nine failed "
-            "GA heads and both pre-Secret failed heads are digest-bound and cannot be "
+            "Baseline-preserving v1.0.31 T0705 recovery candidate: immutable v1.0.1 product "
+            "contracts and v1.0.2-v1.0.30 predecessor lineage remain unchanged. All ten failed "
+            "protected GA heads and both pre-Secret failed heads are digest-bound and cannot be "
             "rerun or redispatched. Runtime data-plane behavior remains unchanged; "
-            "the one-shot expected-head authority moves to repository scope where the "
-            "pre-Environment authority job can read it; "
-            "the pointer recovery "
+            "only the workflow_dispatch rehearsal clock is bound to the committed "
+            "2026-07-26T01:00:00Z historical replay fixture so validation never waits for "
+            "wall-clock 04:30; the live schedule retains its real clock. The pointer recovery "
             "uses bounded Contents metadata only to bind exact path, size and SHA, then requires "
             "the metadata-addressed Git Blobs API base64 body, response SHA, decoded size, age "
             "envelope and canonical Git blob SHA before decrypt; Contents inline and raw-media "
@@ -228,12 +226,12 @@ def build_manifest(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "fail-closed second verification, ACTIVE processing and the repaired "
             "paired-empty SAFE_DEFERRED path. "
             "The one remaining exact-main workflow_dispatch must use the production SCHEDULE "
-            "planner "
-            "targeting 04:30 Australia/Sydney, truthfully identify itself as SCHEDULE_REHEARSAL, "
+            "planner with the deterministic historical clock, truthfully identify itself as "
+            "SCHEDULE_REHEARSAL, "
             "refresh live private-repository capacity before Gmail exchange, and retain "
             "verified-only full reads, "
             "Raw and Processed remote recovery before exact-message Trash, one recoverable latest "
-            "encrypted Timeline and checkpoint-last CAS. Canonical Git Blob recovery execution, "
+            "encrypted Timeline and checkpoint-last CAS. Deterministic-clock recovery execution, "
             "T0705/S7AC-005 PASS, "
             "T0706, final Acceptance, Stage 7 completion and final publication remain unclaimed."
         ),

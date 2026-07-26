@@ -938,13 +938,62 @@
           ]
         }
       }
+    },
+    {
+      "title": "v1.0.31 wall-clock schedule-planning rejection frozen and deterministic clock recovery authorized",
+      "properties": {
+        "package_version": {"const": "1.0.31"},
+        "overall_status": {
+          "const": "PROTECTED_GA_TENTH_ATTEMPT_FAILED_DETERMINISTIC_CLOCK_RECOVERY_AUTHORIZED"
+        },
+        "blockers": {
+          "const": [
+            "FORMAL_TASKS_INCOMPLETE",
+            "T0705_TEN_PROTECTED_FAILED_HEADS_FROZEN",
+            "T0705_DETERMINISTIC_CLOCK_RECOVERY_PENDING",
+            "FINAL_ACCEPTANCE_BLOCKED",
+            "PRODUCTION_SCHEDULE_DISABLED",
+            "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING",
+            "FINAL_CLEAN_SNAPSHOT_AND_PUBLICATION_WITHHELD"
+          ]
+        },
+        "resolved_review_findings": {
+          "const": [
+            "REV-P0-002",
+            "REV-P0-003",
+            "REV-P1-004",
+            "REV-P1-006",
+            "REV-P2-007"
+          ]
+        },
+        "next_action": {
+          "const": "Freeze the wall-clock schedule-planning failed head, deliver one exact-main T0705 deterministic historical-replay clock successor, and execute exactly one new attempt-1 schedule-mode rehearsal without waiting for 04:30. Never rerun or redispatch any failed protected, preflight, authority-context or schedule-planning head. Set the one-shot repository variable only after the exact merge head exists, delete it after authority consumption, then after exact protected PASS bind the receipt, enable only the committed live 04:30 Australia/Sydney schedule and stop before T0706."
+        },
+        "source_digests": {
+          "required": [
+            "protected_blue_green_execution_receipt_sha256",
+            "protected_ga_attempt_ledger_sha256",
+            "protected_ga_repair_attempt_ledger_sha256",
+            "protected_ga_label_replay_attempt_ledger_sha256",
+            "protected_ga_post_processed_attempt_ledger_sha256",
+            "protected_ga_processed_plan_attempt_ledger_sha256",
+            "protected_ga_first_import_attempt_ledger_sha256",
+            "protected_ga_pointer_fetch_attempt_ledger_sha256",
+            "protected_ga_pointer_blob_attempt_ledger_sha256",
+            "protected_ga_canonical_blob_attempt_ledger_sha256",
+            "protected_ga_candidate_preflight_attempt_ledger_sha256",
+            "protected_ga_authority_context_attempt_ledger_sha256",
+            "protected_ga_schedule_planning_attempt_ledger_sha256"
+          ]
+        }
+      }
     }
   ],
   "properties": {
     "schema_version": {"const": "moomooau.delivery-status.v1"},
     "status_model_version": {"const": "moomooau.delivery-status-model.v3"},
     "package_version": {
-      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15", "1.0.16", "1.0.17", "1.0.18", "1.0.19", "1.0.20", "1.0.21", "1.0.22", "1.0.23", "1.0.24", "1.0.25", "1.0.26", "1.0.27", "1.0.28", "1.0.29", "1.0.30"],
+      "enum": ["1.0.4", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15", "1.0.16", "1.0.17", "1.0.18", "1.0.19", "1.0.20", "1.0.21", "1.0.22", "1.0.23", "1.0.24", "1.0.25", "1.0.26", "1.0.27", "1.0.28", "1.0.29", "1.0.30", "1.0.31"],
       "description": "Coupled by the root oneOf to the exact historical RMD state or current protected scope-stopped state."
     },
     "status_as_of_utc": {"type": "string", "format": "date-time"},
@@ -982,7 +1031,8 @@
         "PROTECTED_GA_SIXTH_ATTEMPT_FAILED_FIRST_IMPORT_DIAGNOSTIC_AUTHORIZED",
         "PROTECTED_GA_SEVENTH_ATTEMPT_FAILED_POINTER_BLOB_REPAIR_AUTHORIZED",
         "PROTECTED_GA_EIGHTH_ATTEMPT_FAILED_APP_SCOPE_ACTIVATION_RECOVERY_AUTHORIZED",
-        "PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED"
+        "PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED",
+        "PROTECTED_GA_TENTH_ATTEMPT_FAILED_DETERMINISTIC_CLOCK_RECOVERY_AUTHORIZED"
       ]
     },
     "dimensions": {
@@ -1091,7 +1141,8 @@
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_SEVEN_T0705_FAILURES",
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_EIGHT_T0705_FAILURES",
             "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_AND_NINE_T0705_FAILURES",
-            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_NINE_T0705_FAILURES_AND_TWO_PRE_SECRET_FAILURES"
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_NINE_T0705_FAILURES_AND_TWO_PRE_SECRET_FAILURES",
+            "LOCAL_OR_SYNTHETIC_PLUS_PROTECTED_RECEIPTS_TEN_T0705_FAILURES_TWO_PRE_SECRET_FAILURES_AND_ONE_SCHEDULE_PLANNING_FAILURE"
           ]
         }
       }
@@ -1138,7 +1189,7 @@
       "required": ["status", "workflow_runs", "reason_codes"],
       "properties": {
         "status": {"const": "BLOCKED"},
-        "workflow_runs": {"type": "integer", "minimum": 0, "maximum": 11},
+        "workflow_runs": {"type": "integer", "minimum": 0, "maximum": 12},
         "reason_codes": {
           "type": "array",
           "minItems": 4,
@@ -1169,7 +1220,8 @@
             "CONTROLLED_T0705_FIRST_IMPORT_DIAGNOSTIC_CANDIDATE_NOT_FINAL",
             "CONTROLLED_T0705_POINTER_BLOB_REPAIR_CANDIDATE_NOT_FINAL",
             "CONTROLLED_T0705_APP_SCOPE_ACTIVATION_RECOVERY_CANDIDATE_NOT_FINAL",
-            "CONTROLLED_T0705_CANONICAL_GIT_BLOB_RECOVERY_CANDIDATE_NOT_FINAL"
+            "CONTROLLED_T0705_CANONICAL_GIT_BLOB_RECOVERY_CANDIDATE_NOT_FINAL",
+            "CONTROLLED_T0705_DETERMINISTIC_CLOCK_RECOVERY_CANDIDATE_NOT_FINAL"
           ]
         },
         "controlled_main_deliveries": {

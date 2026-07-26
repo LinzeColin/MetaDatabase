@@ -1,0 +1,82 @@
+{
+  "schema_version": "moomooau.protected-ga-schedule-planning-attempt-ledger.v1",
+  "observed_through_utc": "2026-07-26T14:24:31Z",
+  "task_id": "T0705",
+  "scope": "PROTECTED_ENVIRONMENT_PRE_DATA_PLANE_SCHEDULE_PLANNING_ONLY",
+  "delivery": {
+    "pull_request_number": 132,
+    "pull_request_head_sha": "02ea5a70fac787f56bb4ff328b0a996947b58796",
+    "merge_commit_parent_sha": "194b4665bb18ce3c7ac09a1c033440a667f73082",
+    "merge_commit_sha": "27886f54a30a12ca7992a908e97340d1d8234430"
+  },
+  "workflow": {
+    "run_id": 30205924236,
+    "workflow_head_sha": "27886f54a30a12ca7992a908e97340d1d8234430",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "reruns": 0,
+    "conclusion": "FAILURE_PROTECTED_SCHEDULE_PLANNING"
+  },
+  "jobs": {
+    "authority_context": "PASS",
+    "candidate_validation": "PASS",
+    "protected_environment": "FAILED",
+    "live_schedule_hold": "SKIPPED",
+    "plaintext_cleanup": "PASS"
+  },
+  "failure": {
+    "phase": "SCHEDULE_PLANNING",
+    "reason_code": "PROTECTED_GA_SCHEDULE_PLANNING_FAILED",
+    "finding": "WALL_CLOCK_BEFORE_0430_REJECTED_SCHEDULE_REHEARSAL",
+    "exact_root_cause_claimed": true,
+    "root_cause_basis": "PUBLIC_JOB_TIMESTAMPS_PLUS_PINNED_RUN_PLANNER_NEGATIVE_DELAY_BRANCH",
+    "taskpack_fake_clock_policy_was_not_applied": true
+  },
+  "effects": {
+    "checkout_started": true,
+    "protected_environment_entered": true,
+    "protected_secret_names_injected": 8,
+    "github_app_token_exchange": "PASS",
+    "gmail_oauth_exchange": "PASS",
+    "schedule_checkpoint_recovery": "PASS",
+    "gmail_api_calls": 0,
+    "verified_full_raw_reads": 0,
+    "private_repository_read_calls": "NONZERO_WITHIN_CONFIGURED_BUDGET",
+    "gmail_mutations": 0,
+    "private_repository_mutations": 0,
+    "raw_mutations": 0,
+    "processed_mutations": 0,
+    "timeline_mutations": 0,
+    "checkpoint_mutations": 0,
+    "platform_schedule_events": 0,
+    "tmpfs_plaintext_cleanup": "PASS",
+    "repository_scoped_one_shot_authority_after_cleanup": "ABSENT",
+    "production_enablement_variable_after_failure": "ABSENT"
+  },
+  "completion_policy": {
+    "same_head_rerun_allowed": false,
+    "failed_head_redispatch_allowed": false,
+    "frozen_schedule_planning_head_shas": [
+      "27886f54a30a12ca7992a908e97340d1d8234430"
+    ],
+    "next_candidate_scope": "DETERMINISTIC_HISTORICAL_REPLAY_CLOCK_ONLY_PLUS_DERIVED_BINDINGS",
+    "next_candidate_dispatch_limit": 1,
+    "protected_ga_rehearsal_dispatches_consumed": 10,
+    "protected_ga_rehearsal_reruns": 0,
+    "protected_environment_entries_for_failed_dispatch": 1,
+    "real_time_wait_allowed": false,
+    "rehearsal_clock_fixture_utc": "2026-07-26T01:00:00Z",
+    "t0705_complete": false,
+    "t0706_authorized": false,
+    "final_publication_authorized": false
+  },
+  "claims": {
+    "candidate_validation_executed": true,
+    "protected_ga_data_plane_executed": false,
+    "production_health_claimed": false,
+    "t0705_pass_claimed": false,
+    "stage7_complete_claimed": false,
+    "final_acceptance_claimed": false,
+    "final_publication_claimed": false
+  }
+}

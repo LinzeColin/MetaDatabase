@@ -1,5 +1,18 @@
 # Taskpack Changelog
 
+## 1.0.31 — 2026-07-26
+
+固化 v1.0.30 exact-main protected attempt 的 `SCHEDULE_PLANNING` 失败。candidate validation、
+repository-scope one-shot authority、protected Environment、精确 App repository scope、
+Gmail OAuth 与加密 checkpoint recovery 均通过；公开时间戳与固定 RunPlanner 分支证明真实墙钟
+尚未到同日 `04:30 Australia/Sydney`。Gmail API 调用、完整 Raw 读取及全部 mutation 均为 0；
+一次性 repository variable 已删除，失败 head 永久禁止 rerun/redispatch。
+
+v1.0.31 不改变 canonical Git Blob recovery 或数据面行为，只在 workflow_dispatch rehearsal
+注入 `2026-07-26T01:00:00Z` 历史固定时钟，复用同一 `RunPlanner(SCHEDULE)` 即时验证；live
+schedule 保留真实时钟。Fake Clock、Fixture、历史回放和故障注入取代 Soak、观察期、等待窗口与
+全量测试前置。只授权一个新 exact-main attempt 1，T0706 与最终发布仍禁止。
+
 ## 1.0.30 — 2026-07-26
 
 固化 v1.0.29 exact-main recovery 候选的 pre-checkout authority-context 失败。one-shot

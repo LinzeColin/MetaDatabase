@@ -59,6 +59,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.28",
             "1.0.29",
             "1.0.30",
+            "1.0.31",
         }
         or delivery.get("authority", {}).get("path") != "machine/status/latest.json"
     ):
@@ -90,6 +91,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.28",
         "1.0.29",
         "1.0.30",
+        "1.0.31",
     }
     dependency_auth_ready = delivery["package_version"] in {
         "1.0.6",
@@ -117,6 +119,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.28",
         "1.0.29",
         "1.0.30",
+        "1.0.31",
     }
     t0703_entrypoint_ready = delivery["package_version"] in {
         "1.0.7",
@@ -143,6 +146,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.28",
         "1.0.29",
         "1.0.30",
+        "1.0.31",
     }
     t0703_authorized = delivery["package_version"] in {
         "1.0.8",
@@ -168,6 +172,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.28",
         "1.0.29",
         "1.0.30",
+        "1.0.31",
     }
     t0703_repair_authorized = delivery["package_version"] in {
         "1.0.9",
@@ -206,6 +211,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         "1.0.28",
         "1.0.29",
         "1.0.30",
+        "1.0.31",
     }
     t0703_safe_deferred_aggregate_recovery_authorized = delivery["package_version"] in {
         "1.0.12",
@@ -262,6 +268,7 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "1.0.28",
             "1.0.29",
             "1.0.30",
+            "1.0.31",
         }
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") in {3, 4, 5}
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") in {3, 4}
@@ -289,14 +296,14 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
     )
     t0705_repair_authorized = (
-        delivery["package_version"] == "1.0.30"
+        delivery["package_version"] == "1.0.31"
         and delivery.get("overall_status")
-        == "PROTECTED_GA_NINTH_ATTEMPT_FAILED_CANONICAL_GIT_BLOB_RECOVERY_AUTHORIZED"
+        == "PROTECTED_GA_TENTH_ATTEMPT_FAILED_DETERMINISTIC_CLOCK_RECOVERY_AUTHORIZED"
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("executed") == 5
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("passed") == 4
         and delivery.get("dimensions", {}).get("protected_oracles", {}).get("failed") == 1
         and delivery.get("dimensions", {}).get("publication", {}).get("status")
-        == "CONTROLLED_T0705_CANONICAL_GIT_BLOB_RECOVERY_CANDIDATE_NOT_FINAL"
+        == "CONTROLLED_T0705_DETERMINISTIC_CLOCK_RECOVERY_CANDIDATE_NOT_FINAL"
     )
     t0704_protected_passed = (
         delivery["package_version"] in {"1.0.18", "1.0.19"}
@@ -520,13 +527,26 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             "在 checkout 前拒绝，仍为零远端效果。只授权一个 repository-scope one-shot "
             "authority successor exact-main canonical Git Blob recovery attempt 1"
         ),
+        "T0705_TEN_PROTECTED_FAILED_HEADS_FROZEN": (
+            "T0705 十个 protected exact-main attempt-1 head 与两个独立 pre-Secret "
+            "失败 head 均已冻结；所有失败 head 的 rerun 与 redispatch 均为零"
+        ),
+        "T0705_DETERMINISTIC_CLOCK_RECOVERY_PENDING": (
+            "第十次已通过 candidate validation、repository-scope one-shot authority、"
+            "protected Environment、精确 App repository scope、Gmail OAuth 与加密 checkpoint "
+            "恢复；随后因 workflow_dispatch 使用真实墙钟且当时尚未到同日 04:30 "
+            "Australia/Sydney，在 SCHEDULE_PLANNING 确定性失败。Gmail API 调用、完整 Raw "
+            "读取及全部 mutation 均为零，一次性变量已删除。仅授权一个新 exact-main "
+            "successor，在 rehearsal 中注入 2026-07-26T01:00:00Z 历史固定时钟即时回放；"
+            "live schedule 保留真实时钟，不等待、不重跑"
+        ),
         "FINAL_ACCEPTANCE_BLOCKED": "最终验收 0/34，通过数为零",
         "PRODUCTION_WORKFLOW_NOT_RUN": "生产工作流运行数为零",
         "RMD-05_ASSURANCE_PROVENANCE_PENDING": "独立保证来源链尚未补齐",
         "RMD-06_PROTECTED_ACCEPTANCE_PENDING": "后续受保护验收与确定性运行尚未执行",
         "RMD-06_LATER_PROTECTED_ACCEPTANCE_PENDING": (
-            "T0704 已通过；T0705 九个 protected 失败头及两个 pre-Secret 失败头"
-            "已冻结且 repository-scope authority successor 已授权，T0706 及其后的"
+            "T0704 已通过；T0705 十个 protected 失败头及两个 pre-Secret 失败头"
+            "已冻结，历史固定时钟 successor 已授权且无需等待 04:30；T0706 及其后的"
             "受保护验收未授权"
             if t0705_repair_authorized
             else "T0704 已通过；T0705 已授权待运行，T0706 及其后的受保护验收未授权"
@@ -640,9 +660,10 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "T0702 入口本地就绪，真实 Beta 阻塞"
         ),
         "task": (
-            "交付 v1.0.30 repository-scope authority canonical Git Blob recovery 精确 "
-            "successor 并执行一次新 head protected SCHEDULE_REHEARSAL；九个 protected "
-            "失败头与两个 pre-Secret 失败头均 rerun 0；PASS 后只"
+            "交付 v1.0.31 deterministic historical-clock 精确 successor，并以 "
+            "2026-07-26T01:00:00Z Fake Clock 即时执行一次新 head protected "
+            "SCHEDULE_REHEARSAL；十个 protected 失败头与两个 pre-Secret 失败头均 rerun 0；"
+            "PASS 后只"
             "启用已提交 04:30 "
             "schedule，并停在 T0706 前"
             if t0705_repair_authorized
@@ -1004,6 +1025,16 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                 "en": "NINE_FAILED_HEADS_FROZEN",
                 "zh": "九个失败执行头已冻结",
                 "note": "T0705 九个不同主分支提交均禁止重跑或再次派发",
+            },
+            {
+                "en": "DETERMINISTIC_HISTORICAL_CLOCK_RECOVERY_PENDING",
+                "zh": "确定性历史时钟恢复待执行",
+                "note": "只在 workflow_dispatch rehearsal 注入固定历史 UTC；live 04:30 schedule 保留真实时钟",
+            },
+            {
+                "en": "TEN_PROTECTED_FAILED_HEADS_FROZEN",
+                "zh": "十个受保护失败执行头已冻结",
+                "note": "T0705 十个不同主分支 protected 提交均禁止重跑或再次派发",
             },
             {
                 "en": "Git Blobs",
@@ -1524,9 +1555,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-06 受保护验收准备"
         ),
         "phase": (
-            "T0705 九个 protected 失败头与两个 pre-Secret 失败头已冻结；"
-            "仅允许 repository-scope authority successor exact-main canonical Git Blob "
-            "recovery attempt 1"
+            "T0705 十个 protected 失败头与两个 pre-Secret 失败头已冻结；"
+            "仅允许 deterministic historical-clock successor exact-main attempt 1，"
+            "无需等待真实 04:30"
             if t0705_repair_authorized
             else "T0704/S7AC-004 已闭合；T0705 one-shot schedule-mode rehearsal 已授权待运行"
             if t0705_authorized
@@ -1559,10 +1590,9 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
             else "RMD-05 保证来源链闭包"
         ),
         "task": (
-            "交付 v1.0.30 repository-scope authority canonical Git Blob recovery exact-main "
-            "successor、"
-            "执行一次新 attempt-1 "
-            "SCHEDULE_REHEARSAL，PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前"
+            "交付 v1.0.31 deterministic historical-clock exact-main successor、"
+            "用固定历史时钟即时执行一次新 attempt-1 SCHEDULE_REHEARSAL，PASS 后启用真实时钟的 "
+            "04:30 Australia/Sydney schedule，并停在 T0706 前"
             if t0705_repair_authorized
             else "交付 v1.0.19 exact-main 候选、执行一次 attempt-1 SCHEDULE_REHEARSAL，"
             "PASS 后启用 04:30 Australia/Sydney schedule，并停在 T0706 前"
@@ -2001,6 +2031,24 @@ def build_facts(root: Path = PROJECT_ROOT) -> dict[str, Any]:
                     "已清理，失败 head 禁止 rerun/redispatch。v1.0.30 只把 one-shot authority "
                     "交付约束修复为 repository scope，并更新必要证据、状态、哈希与包绑定；"
                     "T0706 与最终发布仍禁止。"
+                ),
+            },
+        )
+        changelog.insert(
+            0,
+            {
+                "version": "1.0.31",
+                "date": "2026-07-26",
+                "summary": (
+                    "固化 v1.0.30 exact-main protected attempt 的 SCHEDULE_PLANNING 失败："
+                    "candidate validation、repository-scope one-shot authority、protected "
+                    "Environment、精确 App repository scope、Gmail OAuth 与加密 checkpoint "
+                    "恢复均通过；公开时间戳与固定 RunPlanner 分支证明真实墙钟尚未到同日 "
+                    "04:30 Australia/Sydney，Gmail API 调用、完整 Raw 读取及全部 mutation "
+                    "均为零，一次性变量已删除。失败 head 禁止 rerun/redispatch。v1.0.31 "
+                    "只在 workflow_dispatch rehearsal 注入 2026-07-26T01:00:00Z 历史固定"
+                    "时钟，复用同一 SCHEDULE planner 即时验证；live schedule 保留真实时钟。"
+                    "不设 soak、观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"
                 ),
             },
         )

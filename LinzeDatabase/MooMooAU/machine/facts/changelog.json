@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.0.31",
+    "date": "2026-07-26",
+    "summary": "固化 v1.0.30 exact-main protected attempt 的 SCHEDULE_PLANNING 失败：candidate validation、repository-scope one-shot authority、protected Environment、精确 App repository scope、Gmail OAuth 与加密 checkpoint 恢复均通过；公开时间戳与固定 RunPlanner 分支证明真实墙钟尚未到同日 04:30 Australia/Sydney，Gmail API 调用、完整 Raw 读取及全部 mutation 均为零，一次性变量已删除。失败 head 禁止 rerun/redispatch。v1.0.31 只在 workflow_dispatch rehearsal 注入 2026-07-26T01:00:00Z 历史固定时钟，复用同一 SCHEDULE planner 即时验证；live schedule 保留真实时钟。不设 soak、观察期、墙钟等待或 full-suite 前置，T0706 与最终发布仍禁止。"
+  },
+  {
     "version": "1.0.30",
     "date": "2026-07-26",
     "summary": "固化 v1.0.29 exact-main 候选的 pre-checkout authority-context 失败：one-shot expected-head 变量被错误放在 Environment scope，而 authority job 按设计在 Environment 进入前执行，因此变量不可见。checkout、protected Environment、Secret、Gmail、私库与全部 mutation 均为零；两个变量作用域均已清理，失败 head 禁止 rerun/redispatch。v1.0.30 只把 one-shot authority 交付约束修复为 repository scope，并更新必要证据、状态、哈希与包绑定；T0706 与最终发布仍禁止。"
