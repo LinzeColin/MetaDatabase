@@ -89,6 +89,30 @@ idle latency `20/20`、trace correlation、Mac-offline 和 loopback/external
 scan，再恢复 disabled/inactive 与零 process/listener。真实 WeChat/Codex
 保持 `activation_pending`；该 Run 不执行 PG-1。
 
+P2.1 增加版本化 SQLite WAL runtime spool。`001_runtime_spool.sql` 与
+TaskPack starter schema 逐字一致；`002` 只增加 payload TTL/redaction
+metadata、机器可读状态转换关系和数据库级 guard，不删除、重命名或收窄 v1
+字段。启动入口验证 WAL、FULL synchronous、foreign keys、5000 ms busy
+timeout、migration checksum 和 integrity check；v1 reader 在 v2 schema 上
+继续可读。
+
+`database-adapter.js` 是本阶段唯一 SQL repository 入口。它用 HMAC 派生稳定
+opaque source/correlation/job ID，用 source replay uniqueness 与 payload
+hash 拒绝 identity conflict，并以 optimistic `state_version` 和 immutable
+redacted event 执行 PRD 状态图。inbox/context/target/outbox active payload
+使用 caller-injected AES-256-GCM key，AAD 绑定 record identity，默认 24 小时
+TTL 后替换为不可解密 sentinel；key、plaintext 和真实 identity 不写日志或
+evidence。
+
+专项测试真实执行 10,000 fixture、完整状态矩阵与 10,000 property attempt、
+32 路并发 duplicate insert、五个进程崩溃切点、v1→v2/legacy reader、TTL
+redaction、DB/WAL/SHM plaintext scan 和 mock canonical outage/recovery
+set-diff。`build-runtime-spool-artifacts.py` 与 `install-runtime-spool.sh`
+继续复用 exact-commit candidate pipeline；`accept-runtime-spool.sh` 只在
+CB-200 staging 使用 synthetic ephemeral key，不启动 service、不切
+`current`、不调用真实 provider/Private-MetaDatabase，也不执行 CB-210 或
+PG-2。
+
 ## Immediate validation
 
 ```bash
@@ -134,6 +158,12 @@ python3 -m py_compile \
 bash implementation-kit/scripts/install-cloud-walking-skeleton.sh \
   --check --release-id 0000000000000000000000000000000000000000
 bash implementation-kit/scripts/accept-cloud-walking-skeleton.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+python3 -m py_compile \
+  implementation-kit/scripts/build-runtime-spool-artifacts.py
+bash implementation-kit/scripts/install-runtime-spool.sh \
+  --check --release-id 0000000000000000000000000000000000000000
+bash implementation-kit/scripts/accept-runtime-spool.sh \
   --check --release-id 0000000000000000000000000000000000000000
 node --check implementation-kit/scripts/run-walking-skeleton-acceptance.mjs
 node --check implementation-kit/scripts/probe-codex-app-server.mjs
@@ -182,6 +212,19 @@ sudo implementation-kit/scripts/install-cloud-walking-skeleton.sh \
   --verify \
   --release-id <full-local-implementation-commit> \
   --artifacts /var/lib/cyberboss/incoming/cb140-<full-local-implementation-commit>
+sudo implementation-kit/scripts/install-runtime-spool.sh \
+  --apply \
+  --release-id <full-local-implementation-commit> \
+  --artifacts /var/lib/cyberboss/incoming/cb200-<full-local-implementation-commit>
+sudo implementation-kit/scripts/install-runtime-spool.sh \
+  --verify \
+  --release-id <full-local-implementation-commit> \
+  --artifacts /var/lib/cyberboss/incoming/cb200-<full-local-implementation-commit>
+sudo implementation-kit/scripts/accept-runtime-spool.sh \
+  --run \
+  --release-id <full-local-implementation-commit> \
+  --output-dir \
+  /var/lib/cyberboss/cb200-staging/evidence/acceptance-<full-local-implementation-commit>
 ```
 
 `preflight.sh` 只读并输出三次即时脱敏 snapshot；有限 cgroup v2 memory/swap
@@ -212,6 +255,14 @@ service active 窗口内；marker、status token、trace working file 和 system
 drop-in 都只存在于 transient scope。导出的 JSON/NDJSON/HTML 仅含 synthetic
 或 redacted evidence；真实 adapter 缺失时继续 `activation_pending`，不等待、
 不伪造，也不执行 PG-1。
+
+CB-200 acceptance 不运行 process family。它在 pinned Node.js 下重跑
+migration/state/concurrency/crash/privacy tests，再在 staging DB 生成
+10,000 fixture、schema dump 和 machine-readable report；退出时删除
+synthetic key 与 DB/WAL/SHM。operator 保存脱敏 report 后必须删除 CB-200
+staging env/state/incoming，确认 canonical `runtime.db` 仍不存在且 service
+保持 disabled/inactive。真实 channel poll、scheduler、outbox worker 和
+canonical client 分别留给 CB-210–CB-240。
 
 `resource-pressure-fixture.py` 默认 `--evidence-scope=local_container`，不得
 改称实机证据。只有目标授权链和只读 baseline 已在外层证据中验证、且 fixture

@@ -102,6 +102,35 @@
       "upstream_sync_enabled": false,
       "upstream_support_claimed": false,
       "upstream_endorsement_claimed": false
+    },
+    {
+      "task_id": "CB-200",
+      "phase": "P2.1",
+      "base_commit": "c6f5a288aa662591c6e4e21c6294a7966d233fc6",
+      "implementation_commit_binding": "artifact-manifest.release_commit",
+      "authorization": "Owner selected strict GPLv3 plus AGPLv3 preservation and A1+ upstream separation",
+      "changed_app_paths": [
+        "CyberBoss/app/migrations/001_runtime_spool.sql",
+        "CyberBoss/app/migrations/002_cb200_retention_and_transitions.sql",
+        "CyberBoss/app/package.json",
+        "CyberBoss/app/scripts/runtime-spool-acceptance.js",
+        "CyberBoss/app/src/services/db/database-adapter.js",
+        "CyberBoss/app/src/services/jobs/job-state-machine.js",
+        "CyberBoss/app/test/job-state-machine.test.js",
+        "CyberBoss/app/test/runtime-spool.test.js"
+      ],
+      "purposes": [
+        "implement an additive and backward-compatible SQLite WAL runtime spool migration",
+        "enforce the frozen job transition relation in both the service and database trigger layers",
+        "derive stable opaque source, correlation and job identifiers with replay integrity checks",
+        "encrypt active inbound, context, target and outbox payloads with caller-injected AES-256-GCM keys and bounded TTL redaction",
+        "prove concurrent deduplication, process-crash atomicity and mock canonical outage reconciliation without activating later-stage workers",
+        "retain complete original vendor source, licenses, provenance and unresolved conflict records"
+      ],
+      "inactive_original_material_note": "Historical links inside unchanged vendor source remain only as original Corresponding Source; they are not runtime, install, support, sync or endorsement routes.",
+      "upstream_sync_enabled": false,
+      "upstream_support_claimed": false,
+      "upstream_endorsement_claimed": false
     }
   ]
 }

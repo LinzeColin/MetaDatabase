@@ -39,6 +39,11 @@ TASKS = {
         "contract": "docs/governance/RUN_CONTRACT_P1_5_CB_140.md",
         "stage_prefix": ".cb140-artifacts-",
     },
+    "CB-200": {
+        "phase": "P2.1",
+        "contract": "docs/governance/RUN_CONTRACT_P2_1_CB_200.md",
+        "stage_prefix": ".cb200-artifacts-",
+    },
 }
 
 
@@ -73,6 +78,22 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def git_blob_sha256(repo: Path, commit: str, relative: str) -> str:
+    result = subprocess.run(
+        ["git", "show", f"{commit}:CyberBoss/{relative}"],
+        cwd=repo,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise BuildViolation(
+            f"git_blob:{relative}:{result.returncode}:"
+            f"{result.stderr.decode('utf-8', 'replace').strip()[:120]}"
+        )
+    return hashlib.sha256(result.stdout).hexdigest()
 
 
 def write_json(path: Path, value: object) -> None:
@@ -175,6 +196,17 @@ def main() -> int:
                 "run-walking-skeleton-acceptance.mjs",
             ):
                 expect(required in inventory, f"source_missing:{required}")
+        if args.task_id == "CB-200":
+            for required in (
+                "app/migrations/001_runtime_spool.sql",
+                "app/migrations/002_cb200_retention_and_transitions.sql",
+                "app/scripts/runtime-spool-acceptance.js",
+                "app/src/services/db/database-adapter.js",
+                "app/src/services/jobs/job-state-machine.js",
+                "app/test/job-state-machine.test.js",
+                "app/test/runtime-spool.test.js",
+            ):
+                expect(required in inventory, f"source_missing:{required}")
 
         output.parent.mkdir(parents=True, exist_ok=True)
         stage = Path(
@@ -237,6 +269,36 @@ def main() -> int:
                     "real_adapters": "activation_pending",
                     "pg_1_executed": False,
                     "stage_2_spool_claimed": False,
+                }
+            if args.task_id == "CB-200":
+                manifest["runtime_spool"] = {
+                    "schema_version": 2,
+                    "migration_mode": "additive_backward_compatible",
+                    "migration_sha256": {
+                        "001_runtime_spool.sql": git_blob_sha256(
+                            repo,
+                            args.commit,
+                            "app/migrations/001_runtime_spool.sql",
+                        ),
+                        "002_cb200_retention_and_transitions.sql":
+                            git_blob_sha256(
+                                repo,
+                                args.commit,
+                                "app/migrations/"
+                                "002_cb200_retention_and_transitions.sql",
+                            ),
+                    },
+                    "journal_mode": "WAL",
+                    "synchronous": "FULL",
+                    "foreign_keys": True,
+                    "busy_timeout_ms": 5000,
+                    "active_payload_encryption": "AES-256-GCM",
+                    "active_payload_ttl_hours": 24,
+                    "real_canonical_sync": False,
+                    "channel_poll_integrated": False,
+                    "scheduler_integrated": False,
+                    "outbox_worker_integrated": False,
+                    "pg_2_executed": False,
                 }
             manifest_path = stage / "artifact-manifest.json"
             write_json(manifest_path, manifest)

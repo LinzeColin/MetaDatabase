@@ -75,6 +75,13 @@ case "$TASK_ID" in
     ACCEPTANCE_SCRIPT="accept-cloud-walking-skeleton.sh"
     REPORT_PREFIX="CLOUD_WALKING_SKELETON_INSTALL"
     ;;
+  CB-200)
+    PHASE="P2.1"
+    STAGING_TAG="cb200"
+    CONTRACT_PATH="docs/governance/RUN_CONTRACT_P2_1_CB_200.md"
+    ACCEPTANCE_SCRIPT="accept-runtime-spool.sh"
+    REPORT_PREFIX="RUNTIME_SPOOL_INSTALL"
+    ;;
   *)
     fail "unsupported_task_id"
     ;;
@@ -205,6 +212,20 @@ jq -e --arg release "$RELEASE_ID" --arg task "$TASK_ID" --arg phase "$PHASE" '
     .walking_skeleton.real_adapters == "activation_pending" and
     .walking_skeleton.pg_1_executed == false and
     .walking_skeleton.stage_2_spool_claimed == false
+  elif $task == "CB-200" then
+    .runtime_spool.schema_version == 2 and
+    .runtime_spool.migration_mode == "additive_backward_compatible" and
+    .runtime_spool.journal_mode == "WAL" and
+    .runtime_spool.synchronous == "FULL" and
+    .runtime_spool.foreign_keys == true and
+    .runtime_spool.busy_timeout_ms == 5000 and
+    .runtime_spool.active_payload_encryption == "AES-256-GCM" and
+    .runtime_spool.active_payload_ttl_hours == 24 and
+    .runtime_spool.real_canonical_sync == false and
+    .runtime_spool.channel_poll_integrated == false and
+    .runtime_spool.scheduler_integrated == false and
+    .runtime_spool.outbox_worker_integrated == false and
+    .runtime_spool.pg_2_executed == false
   else true end)
 ' "$MANIFEST" >/dev/null || fail "artifact_manifest_contract"
 
@@ -311,6 +332,19 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
         fail "candidate_walking_skeleton_source:$required"
     done
   fi
+  if [[ "$TASK_ID" == "CB-200" ]]; then
+    for required in \
+      app/migrations/001_runtime_spool.sql \
+      app/migrations/002_cb200_retention_and_transitions.sql \
+      app/scripts/runtime-spool-acceptance.js \
+      app/src/services/db/database-adapter.js \
+      app/src/services/jobs/job-state-machine.js \
+      app/test/job-state-machine.test.js \
+      app/test/runtime-spool.test.js; do
+      [[ -f "$RELEASE_STAGE/$required" && ! -L "$RELEASE_STAGE/$required" ]] ||
+        fail "candidate_runtime_spool_source:$required"
+    done
+  fi
   chown -R "$CODE_USER:$CODE_GROUP" "$RELEASE_STAGE"
   install -d -o "$CODE_USER" -g "$CODE_GROUP" -m 0750 "$STATE_ROOT/cache/npm"
   sudo -u "$CODE_USER" -H env \
@@ -334,13 +368,23 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
   [[ "$TEST_COUNT" =~ ^[0-9]+$ ]] || fail "candidate_test_count"
   ln -s "docs/product_design/v0.0.0.4/implementation-kit" \
     "$RELEASE_STAGE/implementation-kit"
+  if [[ "$TASK_ID" == "CB-200" ]]; then
+    ln -s "app/migrations" "$RELEASE_STAGE/migrations"
+    jq '{
+      schema_version: 1,
+      task_id,
+      phase,
+      release_commit,
+      runtime_spool
+    }' "$MANIFEST" >"$RELEASE_STAGE/schema-manifest.json"
+  fi
   install -o "$CODE_USER" -g "$CODE_GROUP" -m 0440 \
     "$KIT_ROOT/config/cloud-process-health.json" \
     "$RELEASE_STAGE/health-contract.json"
   install -o "$CODE_USER" -g "$CODE_GROUP" -m 0440 \
     "$KIT_ROOT/config/cloud-process-tree.txt" \
     "$RELEASE_STAGE/process-tree.txt"
-  jq -n \
+  jq -n --slurpfile artifact "$MANIFEST" \
     --arg task_id "$TASK_ID" \
     --arg phase "$PHASE" \
     --arg release_commit "$RELEASE_ID" \
@@ -370,7 +414,11 @@ if [[ ! -e "$RELEASE_PATH" && ! -L "$RELEASE_PATH" ]]; then
       current_switched: false,
       service_enabled: false,
       real_adapter_activation: "activation_pending"
-    }' >"$RELEASE_STAGE/release-manifest.json"
+    }
+    | if $task_id == "CB-200"
+      then . + {runtime_spool: $artifact[0].runtime_spool}
+      else .
+      end' >"$RELEASE_STAGE/release-manifest.json"
   assert_no_escaping_symlink "$RELEASE_STAGE"
   harden_tree "$RELEASE_STAGE"
   mv -T "$RELEASE_STAGE" "$RELEASE_PATH"
@@ -396,13 +444,48 @@ jq -e --arg release "$RELEASE_ID" \
   .candidate_only == true and
   .current_switched == false and
   .service_enabled == false and
-  .real_adapter_activation == "activation_pending"
+  .real_adapter_activation == "activation_pending" and
+  (if $task == "CB-200" then
+    .runtime_spool.schema_version == 2 and
+    .runtime_spool.migration_mode == "additive_backward_compatible" and
+    .runtime_spool.active_payload_encryption == "AES-256-GCM" and
+    .runtime_spool.real_canonical_sync == false and
+    .runtime_spool.pg_2_executed == false
+  else true end)
 ' "$RELEASE_PATH/release-manifest.json" >/dev/null ||
   fail "candidate_release_manifest"
 [[ -f "$RELEASE_PATH/health-contract.json" &&
   -f "$RELEASE_PATH/process-tree.txt" &&
   -f "$RELEASE_PATH/app/scripts/cloud-supervisor.js" ]] ||
   fail "candidate_contract_files"
+if [[ "$TASK_ID" == "CB-200" ]]; then
+  [[ -L "$RELEASE_PATH/migrations" &&
+    "$(realpath "$RELEASE_PATH/migrations")" == \
+      "$RELEASE_PATH/app/migrations" &&
+    -f "$RELEASE_PATH/schema-manifest.json" ]] ||
+    fail "candidate_runtime_spool_contract_files"
+  jq -e --arg release "$RELEASE_ID" '
+    .schema_version == 1 and
+    .task_id == "CB-200" and
+    .phase == "P2.1" and
+    .release_commit == $release and
+    .runtime_spool.schema_version == 2 and
+    .runtime_spool.migration_mode == "additive_backward_compatible" and
+    .runtime_spool.active_payload_encryption == "AES-256-GCM" and
+    .runtime_spool.real_canonical_sync == false
+  ' "$RELEASE_PATH/schema-manifest.json" >/dev/null ||
+    fail "candidate_schema_manifest"
+  for migration in \
+    001_runtime_spool.sql \
+    002_cb200_retention_and_transitions.sql; do
+    [[ "$(sha256sum "$RELEASE_PATH/app/migrations/$migration" |
+      cut -d' ' -f1)" == \
+      "$(jq -er --arg migration "$migration" \
+        '.runtime_spool.migration_sha256[$migration]' \
+        "$RELEASE_PATH/schema-manifest.json")" ]] ||
+      fail "candidate_migration_hash:$migration"
+  done
+fi
 [[ -L "$RELEASE_PATH/implementation-kit" &&
   "$(realpath "$RELEASE_PATH/implementation-kit")" == \
     "$RELEASE_PATH/docs/product_design/v0.0.0.4/implementation-kit" ]] ||
