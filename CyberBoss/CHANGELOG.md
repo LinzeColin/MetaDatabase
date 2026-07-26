@@ -1,5 +1,33 @@
 # Changelog
 
+## PG-1 Stage 1 Exit Gate — 2026-07-27
+
+- Independently froze and verified the five CB-100–CB-140 evidence trees,
+  implementation commits, closure commits and 15 unique Acceptance IDs from
+  P1.5 closure `4020f07bc086ab9827ab97ddf295927075189a9f`.
+- Passed a 15-command credential-free matrix with temporary HOME, empty
+  CODEX_HOME/WeChat state: simulator contract 5/5, Walking Skeleton static
+  4/4, live process chain 1/1, two root contract suites 5/5 each, App check
+  and full 175/175 regression.
+- Revalidated frozen target results: simulator E2E 10/10, input-policy Runtime
+  deltas 0/1/0, 20/20 latency samples, raw trace content=0, Mac dependency=0
+  and non-loopback Runtime connection/listener=0.
+- Performed a fresh strict-known-host, key-only target metadata probe. The
+  CB-140 candidate remains inactive; service is disabled/inactive;
+  process/listener/staging/env/incoming/token counts are zero; `current` and
+  workspace are unchanged.
+- Preserved the first read-only target probe's zero-result `pipefail` and the
+  first rejected PR-query method error as non-passing attempts. Both made zero
+  external object mutation; corrected probes passed.
+- Confirmed GitHub branch/PR/tag/release counts are zero and performed no
+  push/publication.
+- Preserved original source/licenses and the unresolved strict
+  `AGPL-3.0-only AND GPL-3.0-only` conflict record with
+  `upstream_clarification_received=false`.
+- Marked only PG-1 passed. Real Codex/WeChat remain `activation_pending`;
+  CB-200 and all later tasks/PG-2–PG-5 remain `not_started`. No Stage 2 SQLite
+  WAL spool is claimed.
+
 ## P1.5 / CB-140 — 2026-07-27
 
 - Bound the all-cloud Walking Skeleton and complete Corresponding Source to

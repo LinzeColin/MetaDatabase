@@ -5,16 +5,16 @@
 - Worktree:
   `/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-cyberboss`
 - Local branch: `codex/cyberboss-prestage0`
-- Run base: `20405812e4ebfc51d59093b5916dd624317309a7`
+- Run base: `4020f07bc086ab9827ab97ddf295927075189a9f`
 - Remote publication: none
 
 ## Current state
 
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
-exit gate `PG-0`, and `P1.1 / CB-100` through `P1.5 / CB-140` passed.
-Stage 0 is 5/5 tasks plus its gate complete; Stage 1 is 5/5 tasks complete,
-but its independent exit gate `PG-1` has not run. The 20 tasks from CB-200
-onward and PG-1–PG-5 remain `not_started`.
+exit gate `PG-0`, `P1.1 / CB-100` through `P1.5 / CB-140`, and independent
+Stage 1 exit gate `PG-1` passed. Stage 0 and Stage 1 are each 5/5 tasks plus
+their gate complete. The 20 tasks from CB-200 onward and PG-2–PG-5 remain
+`not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
 frozen ordinary-file bundles. There is no upstream remote, submodule, Git URL
@@ -327,7 +327,7 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 - Task state: `machine/facts/task_state.json`
 - Fixed-source lock: `machine/source-lock.json`
 - Current Run Contract:
-  `docs/governance/RUN_CONTRACT_P1_5_CB_140.md`
+  `docs/governance/RUN_CONTRACT_PG_1.md`
 - CB-000 source/license evidence: `docs/evidence/CB-000/`
 - CB-010 OVH/resource evidence: `docs/evidence/CB-010/`
 - CB-020 identity/provider/security evidence: `docs/evidence/CB-020/`
@@ -341,9 +341,10 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
   `docs/evidence/CB-130/`
 - CB-140 all-cloud Walking Skeleton evidence:
   `docs/evidence/CB-140/`
+- PG-1 independent gate evidence: `docs/evidence/PG-1/`
 - Consolidated activation sheet: `docs/evidence/CB-030/auth-gates.md`
 - Current validation report:
-  `docs/evidence/CB-140/VALIDATION_REPORT.md`
+  `docs/evidence/PG-1/VALIDATION_REPORT.md`
 - Machine-readable scope:
   `docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json`
 - Credential slots:
@@ -453,6 +454,27 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
   `activation_pending`.
 - CB-140 decision: `PASS`; PG-1 was not executed. CB-200, all 19 later tasks
   and PG-1–PG-5 remain `not_started`.
+- PG-1 independent evidence review: all five Stage 1 evidence trees match
+  frozen commit `4020f07bc086ab9827ab97ddf295927075189a9f`; five
+  implementation commits, five closure commits and 15 unique Acceptance IDs
+  validate.
+- PG-1 fresh credential-free matrix: 15/15 commands passed, including
+  simulator contract 5/5, Walking Skeleton static 4/4, live process chain
+  1/1, two root contract suites at 5/5 each and App 175/175.
+- PG-1 clean auth fixture: Codex and WeChat remain `activation_pending`;
+  secret known/pattern hits, P0/P1, credential values and external mutations
+  are zero.
+- PG-1 fresh target read-only terminal state: exact CB-140 candidate retained
+  inactive; service disabled/inactive; process/listener/staging/env/incoming/
+  token zero; `current` and workspace unchanged.
+- The first PG-1 target probe incorrectly treated a normal zero-process
+  `pgrep` result as a `pipefail`; it stopped before evidence output and made
+  no target mutation. The corrected read-only probe passed. The first PR
+  query also omitted an explicit GET and was rejected before object creation;
+  the corrected GET confirmed branch/PR/tag/release counts are all zero.
+- PG-1 decision: `PASS`; CB-200 and all 19 later tasks plus PG-2–PG-5 remain
+  `not_started`. No Stage 2 SQLite WAL spool, real adapter activation,
+  provider/data write or GitHub publication is claimed.
 
 ## Known unknowns
 
@@ -461,7 +483,7 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
   fixture screenshot is deliberately marked non-real.
 - No real Private-MetaDatabase object, Cloudflare Access/DNS/R2 resource, OCI
   object or authenticated CyberBoss business Runtime was created or modified
-  through CB-140.
+  through PG-1.
 - Exact provider write-scope attestations remain external activation inputs;
   successful GETs are not treated as proof of safe writes.
 - The online Status surface still has no CyberBoss row.
@@ -474,14 +496,14 @@ strict `AGPL-3.0-only AND GPL-3.0-only` conflict record remain preserved,
 
 ## Next Run
 
-The next eligible Run is exactly the independent Stage 1 exit gate `PG-1`.
-It remains `not_started`. CB-140 does not authorize switching `current`,
-Codex/WeChat authentication, real provider/data activation or starting
-`P2.1 / CB-200` inside this Run.
+The next eligible Run is exactly `P2.1 / CB-200`, “Implement SQLite WAL spool
+and strict job state machine.” It remains `not_started`. PG-1 does not
+authorize switching `current`, Codex/WeChat authentication, real provider/data
+activation or any additional Stage 2 Task inside the same Run.
 
-Start `PG-1` only under a new single-gate Run Contract. Keep source/license and
-CB-000–CB-140/PG-0 evidence immutable, preserve the strict dual-license
-conflict record, and continue the final-only GitHub publication rule. Do not
-combine `PG-1` with `CB-200`, expose Runtime publicly or perform a real
-provider/data write unless the new Run Contract and exact Acceptance authorize
-it.
+Start `P2.1 / CB-200` only under a new single-phase Run Contract. Keep
+source/license, CB-000–CB-140 and PG-0/PG-1 evidence immutable, preserve the
+strict dual-license conflict record, and continue the final-only GitHub
+publication rule. Do not combine CB-200 with CB-210 or PG-2, expose Runtime
+publicly, or perform a real provider/data write unless the exact Acceptance
+and new Run Contract authorize it.

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "gate_id": "PG-1",
+  "checked_on": "2026-07-27",
+  "repository": "LinzeColin/MetaDatabase",
+  "branch": "codex/cyberboss-prestage0",
+  "remote_branch_count": 0,
+  "pull_request_count": 0,
+  "tag_count": 0,
+  "release_count": 0,
+  "push_performed": false,
+  "external_object_mutations": 0,
+  "publication_policy": "final_taskpack_only",
+  "preserved_attempts": [
+    {
+      "attempt": 1,
+      "scope": "pull_request_query",
+      "result": "not_counted",
+      "reason": "the CLI query omitted an explicit GET method and was rejected because required creation fields were absent",
+      "object_created": false,
+      "correction": "repeat with an explicit read-only GET method and verify all-state exact-head count"
+    }
+  ],
+  "final_query": {
+    "method": "read_only",
+    "git_remote_query_passed": true,
+    "github_api_get_passed": true
+  },
+  "result": "passed"
+}

@@ -4,22 +4,22 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 
 ## 当前状态
 
-- 生命周期：Stage 0 与独立退出门 `PG-0` 已通过；Stage 1 的五项任务
-  `CB-100`–`CB-140` 已通过，独立退出门 `PG-1` 尚未执行
+- 生命周期：Stage 0、Stage 1 及各自独立退出门 `PG-0`、`PG-1` 已通过；
+  Stage 2 尚未开始
 - 当前产品设计：`v0.0.0.4`
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
   `P1.1 / CB-100`；`P1.2 / CB-110`；`P1.3 / CB-120`；
-  `P1.4 / CB-130`；`P1.5 / CB-140`
+  `P1.4 / CB-130`；`P1.5 / CB-140`；`PG-1`
 - 当前基线：五个精确 implementation/release commit 的本地 source bundle、
   完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`P1.5 / CB-140` 已在同一目标完成 exact-commit candidate、
-  两次 apply、verify、175/175 测试、10/10 simulator E2E、20/20 延迟、
-  输入门与 Mac-offline/loopback 验收；真实 Codex/WeChat 仍为
+- 最新 Run：独立 `PG-1` 已从冻结 P1.5 closure 复验五个 Stage 1 evidence
+  tree、15 项无凭据命令、App 175/175、Walking Skeleton、Mac-offline、
+  loopback 与目标机只读终态；真实 Codex/WeChat 仍为
   `activation_pending`，`current`/workspace/service/公网 route 未变
 - Stage 0–5 任务状态：`CB-000`–`CB-140` 共十项任务已通过；其余 20 项与
-  PG-1–PG-5 均为 `not_started`；`PG-0=passed`
+  PG-2–PG-5 均为 `not_started`；`PG-0=passed`、`PG-1=passed`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
 ## 唯一身份
@@ -181,6 +181,20 @@ AC-001/AC-010 real 仍为 `activation_pending`。证据取回后 staging/env/
 incoming 均已删除，service disabled/inactive、process/listener 为 0，
 `current` 仍在 CB-100、workspace 仍在 CB-120。`PG-1` 未在本 Run 执行；
 下一独立 Run 是 `PG-1`，`CB-200` 仍为 `not_started`。
+
+PG-1 以 P1.5 closure
+`4020f07bc086ab9827ab97ddf295927075189a9f` 为冻结输入，核验
+CB-100–CB-140 五个 evidence tree、implementation/closure topology 和
+15 个唯一 Acceptance ID。隔离凭据环境下 simulator contract 5/5、
+Walking Skeleton static 4/4、live process chain 1/1、两个 root contract
+各 5/5、App 175/175、DAG/traceability/no-wait/TaskPack/Prestage 与 secret
+scan 全部通过。
+
+fresh strict-known-host/key-only 目标元数据探针确认 CB-140 candidate 保留但
+inactive，service disabled/inactive，process/listener/staging/incoming/token
+均为 0，`current`/workspace 未变化。真实 Codex/WeChat 继续准确标记为
+`activation_pending`；GitHub branch/PR/tag/release 均为 0。该 Gate 不声称
+Stage 2 SQLite WAL spool 已完成，也未启动 `P2.1 / CB-200`。
 
 ## 许可证
 

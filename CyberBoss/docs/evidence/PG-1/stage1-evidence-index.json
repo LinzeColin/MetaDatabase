@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "gate_id": "PG-1",
+  "base_commit": "4020f07bc086ab9827ab97ddf295927075189a9f",
+  "tasks": [
+    {
+      "task_id": "CB-100",
+      "phase": "P1.1",
+      "status": "passed",
+      "implementation_commit": "b2a603e415a2045b441f31e07cf74ac451ba6240",
+      "closure_commit": "35a8d3716b41922298bc0cbe9aa4ff4b78af0266",
+      "evidence_tree": "048f4472f7f354bd7acc12361aa18c3591d289fd",
+      "acceptance_criteria": ["AC-044", "AC-067"],
+      "evidence_immutable": true
+    },
+    {
+      "task_id": "CB-110",
+      "phase": "P1.2",
+      "status": "passed",
+      "implementation_commit": "3cd8eee4f6b7c0a78f7b6fde90dae0f4ff1392fc",
+      "closure_commit": "bacb20147b1f9971b8d47c578599fd3494bed5c3",
+      "evidence_tree": "6512e8b6b892d2e00b6560a2dafc9da2ee3cdd4f",
+      "acceptance_criteria": ["AC-011", "AC-017", "AC-065"],
+      "evidence_immutable": true
+    },
+    {
+      "task_id": "CB-120",
+      "phase": "P1.3",
+      "status": "passed",
+      "implementation_commit": "10d988e908d72ea1a43bbed04a2130a338663363",
+      "closure_commit": "9e1c128aa3890f7c0ea0e69000fdb46e32a4bb00",
+      "evidence_tree": "5ae1fc97b2899ccc30b3edea4df9fa5ead933c87",
+      "acceptance_criteria": ["AC-013", "AC-014", "AC-064"],
+      "evidence_immutable": true
+    },
+    {
+      "task_id": "CB-130",
+      "phase": "P1.4",
+      "status": "passed",
+      "implementation_commit": "81dc1ee211e554dd8b84001bfca4b8aa73bb89dd",
+      "closure_commit": "20405812e4ebfc51d59093b5916dd624317309a7",
+      "evidence_tree": "8a887d859a90940a9bc1071ae9daadbab081703b",
+      "acceptance_criteria": ["AC-011", "AC-040", "AC-044", "AC-062"],
+      "evidence_immutable": true
+    },
+    {
+      "task_id": "CB-140",
+      "phase": "P1.5",
+      "status": "passed",
+      "implementation_commit": "571438751638a01c4648ff4fdf27403a97a971c3",
+      "closure_commit": "4020f07bc086ab9827ab97ddf295927075189a9f",
+      "evidence_tree": "88140d620e63e2e1955a1f3686844ddf8f6a5901",
+      "acceptance_criteria": ["AC-001", "AC-010", "AC-061", "AC-002", "AC-006"],
+      "evidence_immutable": true
+    }
+  ],
+  "acceptance_id_count": 17,
+  "unique_acceptance_id_count": 15,
+  "historical_evidence_paths_changed": 0,
+  "result": "passed"
+}
