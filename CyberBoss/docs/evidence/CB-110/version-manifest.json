@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-110",
+  "release_commit": "3cd8eee4f6b7c0a78f7b6fde90dae0f4ff1392fc",
+  "source_spec_sha256": "b07a1fbdb63a25568de2d8ac6943b1cb991ddcc5d87e7e9fd9e89f9edbc6f8d4",
+  "node": {
+    "version": "24.18.0",
+    "archive_sha256": "55aa7153f9d88f28d765fcdad5ae6945b5c0f98a36881703817e4c450fa76742",
+    "command": "/opt/cyberboss-cloud/shared/toolchains/bin/node",
+    "sqlite_adapter": "node:sqlite"
+  },
+  "codex": {
+    "version": "0.146.0-alpha.3.1",
+    "main_archive_sha256": "3473d6d6416979b43118d203fa4e584c4e5af939206eee854d9db60c7555df17",
+    "platform_archive_sha256": "d495bfa843ed9198327cc087b69b99aff09a66d4f5e7139137bc72d02ccf3e53",
+    "command": "/opt/cyberboss-cloud/shared/toolchains/bin/codex",
+    "app_server_endpoint": "ws://127.0.0.1:8765",
+    "auth_activation": "activation_pending"
+  },
+  "codex_home": {
+    "path": "/var/lib/cyberboss/.codex",
+    "required_mode": "0700",
+    "credential_content_read": false
+  },
+  "claude_code": {
+    "binary": "absent",
+    "credential": "absent",
+    "feature_flag_default": false,
+    "evaluation_gate_default": false,
+    "adapter_state": "disabled"
+  },
+  "device_auth_command": "sudo -u cyberboss -H env HOME=/var/lib/cyberboss CODEX_HOME=/var/lib/cyberboss/.codex /opt/cyberboss-cloud/shared/toolchains/bin/codex login --device-auth",
+  "loopback_startup_command": "sudo -u cyberboss -H env HOME=/var/lib/cyberboss CODEX_HOME=/var/lib/cyberboss/.codex /opt/cyberboss-cloud/shared/toolchains/bin/codex app-server --listen ws://127.0.0.1:8765",
+  "public_callback_required": false,
+  "business_runtime_started": false
+}

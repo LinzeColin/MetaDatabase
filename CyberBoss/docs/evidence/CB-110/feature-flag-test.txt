@@ -1,0 +1,13 @@
+CB-110 Claude dispatch gate acceptance
+FEATURE=false EVAL=false RESULT=denied
+FEATURE=true EVAL=false RESULT=denied
+FEATURE=false EVAL=true RESULT=denied
+FEATURE=true EVAL=true RESULT=gate_passed_adapter_not_started
+CLAUDE_BINARY=absent
+CLAUDE_CREDENTIAL=absent
+BUSINESS_RUNTIME_STARTED=0
+DEFAULT_RUNTIME=codex
+DEFAULT_FEATURE_FLAG=false
+DEFAULT_EVALUATION_GATE=false
+TARGET_TEST_IDENTITY=cyberboss
+CREDENTIAL_CONTENT_READS=0

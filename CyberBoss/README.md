@@ -5,17 +5,18 @@ CyberBoss 是 `LinzeColin/MetaDatabase` 内的全云微信驱动 Codex MVP 子�
 ## 当前状态
 
 - 生命周期：Stage 0 与独立退出门 `PG-0` 已通过；Stage 1 的
-  `P1.1 / CB-100` 已通过
+  `P1.1 / CB-100`、`P1.2 / CB-110` 已通过
 - 当前产品设计：`v0.0.0.4`
 - 已完成 Run：`PS0.1`；`P0.1 / CB-000`；`P0.2 / CB-010`；
   `P0.3 / CB-020`；`P0.4 / CB-030`；`P0.5 / CB-040`；
-  `P1.1 / CB-100`
+  `P1.1 / CB-100`；`P1.2 / CB-110`
 - 当前基线：三个精确 commit 的本地 source bundle、完整许可证/依赖清单及
   Codex CLI `0.146.0-alpha.3.1` 协议证据
-- 最新 Run：`P1.1 / CB-100` 已在 CB-010 同一授权 OVH 目标完成
-  dedicated user、受限目录、immutable release/current、独立 journal
-  namespace 与 disabled/inactive 主 unit；没有真实 Runtime 或网络 route
-- Stage 0–5 任务状态：`CB-000`–`CB-100` 共六项任务已通过；其余 24 项与
+- 最新 Run：`P1.2 / CB-110` 已在同一目标可复现安装 Node.js
+  `24.18.0` 与 Codex CLI `0.146.0-alpha.3.1`，完成 loopback
+  ready/protocol/external-scan 和 Claude 双门负向验收；Codex auth 仍为
+  `activation_pending`，没有业务 Runtime 或公网 route
+- Stage 0–5 任务状态：`CB-000`–`CB-110` 共七项任务已通过；其余 23 项与
   PG-1–PG-5 均为 `not_started`；`PG-0=passed`
 - GitHub 发布：全部 TaskPack 与 PG-0–PG-5 完成前禁止 push/PR
 
@@ -98,6 +99,24 @@ strict filesystem allowlist、资源上限和独立 journal cap。最终验收�
 disabled/inactive 且端口为 0。首次验收 harness 的原始 route JSON
 复合哈希冲突及后续纠正记录完整保留。未安装真实 Runtime、Node/Codex，
 未执行 provider/Private-MetaDatabase 写入，也未 push/PR/tag。
+
+P1.2 以本地 implementation commit
+`3cd8eee4f6b7c0a78f7b6fde90dae0f4ff1392fc` 固定 Node.js `24.18.0`、
+Codex CLI `0.146.0-alpha.3.1` 与三个官方 archive SHA-256，只安装到
+`/opt/cyberboss-cloud/shared/toolchains`，不修改全局 Node/Codex。两次
+apply 与独立 verify 通过，`node:sqlite` self-test 通过，受保护
+`CODEX_HOME` 为 `cyberboss:cyberboss:0700`。瞬时 App Server 仅监听
+`127.0.0.1:8765`，`/readyz=200`、initialize/initialized 通过，外部端口
+不可达；清理后 listener/process/staging 均为 0，主 unit 仍
+disabled/inactive，`current` 仍指向 CB-100 release。
+
+目标没有 `auth.json`，因此真实 Codex adapter 准确保持
+`activation_pending`，device auth 命令只准备未执行。Claude Code
+binary/credential 均未安装；默认 feature/eval 双门为 false，三个负向组合
+全部拒绝，true/true 只进入无副作用 fixture，没有启动 adapter。首次 hold
+marker 编排超时和第二次 0700 staging 导出失败均保留在 CB-110 evidence，
+最终完整重跑通过。没有真实 WeChat/Runtime、provider/
+Private-MetaDatabase 写入或 GitHub publication。
 
 ## 许可证
 

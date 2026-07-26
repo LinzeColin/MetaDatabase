@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-110",
+  "target_id_sha256": "7865f743d174",
+  "release_id": "3cd8eee4f6b7c0a78f7b6fde90dae0f4ff1392fc",
+  "rollback_executed": false,
+  "rollback_ready": true,
+  "preserve_codex_home": true,
+  "preserve_any_auth_file_without_reading_content": true,
+  "current_release_unchanged": true,
+  "removable_exact_paths": [
+    "/opt/cyberboss-cloud/shared/toolchains/node/24.18.0",
+    "/opt/cyberboss-cloud/shared/toolchains/codex/0.146.0-alpha.3.1",
+    "/opt/cyberboss-cloud/releases/3cd8eee4f6b7c0a78f7b6fde90dae0f4ff1392fc"
+  ],
+  "project_bin_links_removable_only_if_exact": [
+    "node",
+    "npm",
+    "npx",
+    "codex"
+  ],
+  "rollback_preconditions": [
+    "stop and verify no CyberBoss or Codex App Server process",
+    "verify every target is the exact CB-110 version/hash/owner",
+    "remove only exact project-local links and immutable version paths",
+    "never delete or inspect /var/lib/cyberboss/.codex",
+    "verify current still points to the CB-100 release"
+  ],
+  "business_runtime_was_started": false,
+  "credential_content_read": false
+}

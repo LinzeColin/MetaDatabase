@@ -1,5 +1,31 @@
 # Changelog
 
+## P1.2 / CB-110 — 2026-07-26
+
+- Pinned Node.js `24.18.0`, Codex CLI `0.146.0-alpha.3.1` and all three
+  official archive SHA-256 values in one machine-readable runtime spec.
+- Installed both tools into immutable project-local paths without npm
+  lifecycle scripts, `/usr/local` writes, Git dependencies or global
+  Node/Codex replacement; two applies and an independent verify passed.
+- Created `/var/lib/cyberboss/.codex` as `0700 cyberboss:cyberboss`, prepared
+  the device-auth command but did not execute it, and retained accurate target
+  auth state `activation_pending` without reading credential content.
+- Passed Node `node:sqlite` create/insert/select and Codex App Server
+  `/readyz`, `initialize` and `initialized` against the real installed CLI.
+- Proved the active 8765 listener was exactly `127.0.0.1:8765` and externally
+  unreachable; final listeners, App Server processes and staging artifacts
+  were zero, with the main service still disabled/inactive.
+- Left Claude Code binary and credential absent; added a fail-closed controlled
+  startup gate requiring both feature and eval flags, and passed all three
+  negative combinations without starting the adapter.
+- Preserved the initial hold-marker timeout and the subsequent protected-
+  staging export failure before the final complete acceptance rerun passed.
+- Kept fixed App/vendor source, original licenses and strict
+  `GPL-3.0-only AND AGPL-3.0-only` conflict record unchanged, with
+  `upstream_clarification_received=false`.
+- Marked only CB-110 passed. CB-120, all later tasks and PG-1–PG-5 remain
+  `not_started`; GitHub branch/PR/tag/publication remains empty.
+
 ## P1.1 / CB-100 — 2026-07-26
 
 - Bound the supplied host-layout installer to one full local implementation

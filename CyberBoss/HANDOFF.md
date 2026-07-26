@@ -11,8 +11,9 @@
 ## Current state
 
 `PS0.1`, `P0.1 / CB-000` through `P0.5 / CB-040`, independent Stage 0
-exit gate `PG-0`, and `P1.1 / CB-100` passed. Stage 0 is 5/5 tasks plus its
-gate complete; Stage 1 is 1/5 tasks complete. The 24 tasks from CB-110 onward
+exit gate `PG-0`, `P1.1 / CB-100` and `P1.2 / CB-110` passed. Stage 0 is
+5/5 tasks plus its gate complete; Stage 1 is 2/5 tasks complete. The 23 tasks
+from CB-120 onward
 and PG-1–PG-5 remain `not_started`.
 
 The exact CyberBoss, timeline-for-agent and whereabouts-mcp sources remain
@@ -149,6 +150,45 @@ hash. This is retained as an assessment/conflict, not stated as certainty. A
 second complete 100-cycle Run used a normalized topology oracle and passed
 fully. See `docs/evidence/CB-100/systemd-acceptance.redacted.json`.
 
+CB-110 fixed a project-local, reproducible cloud Runtime toolchain without
+altering the frozen App/vendor bundle:
+
+```text
+implementation/release = 3cd8eee4f6b7c0a78f7b6fde90dae0f4ff1392fc
+Node.js = 24.18.0
+Codex CLI = 0.146.0-alpha.3.1
+toolchain root = /opt/cyberboss-cloud/shared/toolchains
+CODEX_HOME = /var/lib/cyberboss/.codex / cyberboss:cyberboss:0700
+App Server = ws://127.0.0.1:8765
+Claude binary/credential = absent
+publication = none
+```
+
+The exact implementation archive and every upstream distribution archive hash
+were verified on target. Two applies plus a separate `--verify` passed and the
+second apply was idempotent. Node `node:sqlite` passed an in-memory
+create/insert/select. No global toolchain changed, `current` still points to
+the CB-100 release, and the main service remains disabled/inactive.
+
+A transient App Server running as `cyberboss` returned `/readyz` HTTP 200 and
+completed `initialize` plus `initialized`. During acceptance, `ss` showed only
+`127.0.0.1:8765`, and an operator-host TCP attempt to the target public address
+was not reachable. Final process/listener/staging counts were zero.
+
+The target metadata probe found the exact CLI but no auth file; it read no
+credential content, so Codex remains `activation_pending`. Device auth was
+prepared but not executed. Claude dispatch rejected false/false, true/false
+and false/true; true/true only passed into a `true` fixture and did not start
+the adapter. Business Runtime, provider writes and Private-MetaDatabase writes
+were zero.
+
+The first acceptance orchestration failed to release its hold marker and the
+probe timed out/cleaned up. The second run passed Runtime and external scan but
+could not export through the intentionally `0700 cyberboss` staging parent.
+The final full rerun exported via a separate 0600 path and passed. All three
+attempts and cleanup outcomes are retained in
+`docs/evidence/CB-110/readyz.redacted.json`.
+
 ## Canonical inputs and evidence
 
 - Product design: `docs/product_design/v0.0.0.4/`
@@ -158,7 +198,7 @@ fully. See `docs/evidence/CB-100/systemd-acceptance.redacted.json`.
 - Task state: `machine/facts/task_state.json`
 - Fixed-source lock: `machine/source-lock.json`
 - Current Run Contract:
-  `docs/governance/RUN_CONTRACT_P1_1_CB_100.md`
+  `docs/governance/RUN_CONTRACT_P1_2_CB_110.md`
 - CB-000 source/license evidence: `docs/evidence/CB-000/`
 - CB-010 OVH/resource evidence: `docs/evidence/CB-010/`
 - CB-020 identity/provider/security evidence: `docs/evidence/CB-020/`
@@ -166,9 +206,10 @@ fully. See `docs/evidence/CB-100/systemd-acceptance.redacted.json`.
 - CB-040 baseline/trace/release evidence: `docs/evidence/CB-040/`
 - PG-0 independent gate evidence: `docs/evidence/PG-0/`
 - CB-100 host-layout/systemd evidence: `docs/evidence/CB-100/`
+- CB-110 runtime-toolchain/loopback evidence: `docs/evidence/CB-110/`
 - Consolidated activation sheet: `docs/evidence/CB-030/auth-gates.md`
 - Current validation report:
-  `docs/evidence/CB-100/VALIDATION_REPORT.md`
+  `docs/evidence/CB-110/VALIDATION_REPORT.md`
 - Machine-readable scope:
   `docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json`
 - Credential slots:
@@ -205,7 +246,7 @@ fully. See `docs/evidence/CB-100/systemd-acceptance.redacted.json`.
   `cyberboss.env.example`; all nine stale aliases/non-runtime switches have
   zero active hits.
 - DAG=30/6 pass; traceability=53/53 pass; no-wait has zero real-time soak,
-  credential-wait and fixed-sleep hits; TaskPack=82 files and confirms the
+  credential-wait and fixed-sleep hits; TaskPack=85 files and confirms the
   seven control files are a minimum, not a limit.
 - Accelerated reliability: 1,000 replays, 100 restarts, 100 send faults and 20
   restore cycles passed with zero duplicate execution/reply or restore mismatch.
@@ -234,13 +275,20 @@ fully. See `docs/evidence/CB-100/systemd-acceptance.redacted.json`.
   `systemd-analyze verify`, 100/100 restart, 100/100 singleton denial,
   permissions, normalized route topology and final disabled/inactive state
   passed.
-- CB-100 decision: `PASS`; CB-110, all 24 later tasks and PG-1–PG-5 remain
+- CB-100 decision: `PASS`; it did not start CB-110 inside that Run.
+- CB-110 runtime contract tests: 6/6; frozen App regression: 155/155.
+- CB-110 exact-commit target acceptance: three archive hashes, two applies,
+  independent verify, `node:sqlite`, `/readyz=200`, protocol initialize,
+  loopback-only listener, external-unreachable scan, Claude gate matrix and
+  final zero-process/listener cleanup passed.
+- CB-110 decision: `PASS`; CB-120, all 23 later tasks and PG-1–PG-5 remain
   `not_started`.
 
 ## Known unknowns
 
 - No real authenticated target Codex turn or WeChat QR/account call has been
-  tested; the fixture screenshot is deliberately marked non-real.
+  tested. Codex is installed but target auth remains `activation_pending`; the
+  fixture screenshot is deliberately marked non-real.
 - No real Private-MetaDatabase object, Cloudflare Access/DNS/R2 resource, OCI
   object or CyberBoss Runtime was created or modified in CB-020 or CB-030.
 - Exact provider write-scope attestations remain external activation inputs;
@@ -248,18 +296,19 @@ fully. See `docs/evidence/CB-100/systemd-acceptance.redacted.json`.
 - The online Status surface still has no CyberBoss row.
 - The OVH capacity/profile remains point-in-time; each later activation must
   rerun preflight.
-- Node, Codex, rclone and sqlite3 were absent on the target during CB-010 and
-  CB-100 deliberately did not install them; they remain later prerequisites.
+- Project-local Node/Codex are installed and verified. The full CyberBoss App,
+  workspace copy, pinned App dependencies, business process family, rclone and
+  sqlite3 CLI remain later-task boundaries.
 
 ## Next Run
 
-The next eligible Run is exactly `P1.2 / CB-110`: install and pin Node/Codex
-plus the disabled Claude adapter. It remains `not_started`. CB-100 does not
-authorize package installation, Codex/WeChat authentication, real Runtime
-startup or any network/provider/data activation.
+The next eligible Run is exactly `P1.3 / CB-120`: prepare the single controlled
+workspace and no-clone data boundary. It remains `not_started`. CB-110 does not
+authorize a workspace copy, App dependency deployment, Codex/WeChat
+authentication, real business Runtime startup or provider/data activation.
 
 Start it only under a new single-phase Run Contract. Keep source/license and
-CB-000–CB-100/PG-0 evidence immutable, preserve the strict dual-license
+CB-000–CB-110/PG-0 evidence immutable, preserve the strict dual-license
 conflict record, and continue the final-only GitHub publication rule. Do not
-combine `P1.2` with `P1.3`, expose Runtime or perform a real provider/data
+combine `P1.3` with `P1.4`, expose Runtime or perform a real provider/data
 write unless the new Run Contract and exact Acceptance authorize it.

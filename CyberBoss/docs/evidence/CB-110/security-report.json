@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-110",
+  "scope": "P1.2 runtime_toolchain_and_transient_app_server",
+  "p0_findings": 0,
+  "p1_findings": 0,
+  "secret_pattern_hits": 0,
+  "known_secret_hits": 0,
+  "credential_content_reads": 0,
+  "credential_values_emitted": 0,
+  "non_loopback_listener_count": 0,
+  "public_callback_count": 0,
+  "workspace_mutations": 0,
+  "provider_writes": 0,
+  "private_database_writes": 0,
+  "global_toolchain_modified": false,
+  "current_release_changed": false,
+  "unit_final_state": "disabled/inactive",
+  "business_runtime_started": false,
+  "target_address_persisted": false,
+  "raw_process_arguments_persisted": false,
+  "result": "passed"
+}

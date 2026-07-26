@@ -1,0 +1,56 @@
+{
+  "acceptance": {
+    "ac_001_real": "activation_pending",
+    "ac_010_real": "activation_pending",
+    "ac_056_non_activation_continuation": "eligible",
+    "ac_065_secret_exposure": "no_values_observed"
+  },
+  "claim_level": "read_only_probe",
+  "codex": {
+    "auth_file": {
+      "group_or_other_bits_zero": null,
+      "mode": null,
+      "owner_is_probe_user": null,
+      "path_label": "$CODEX_HOME/auth.json",
+      "present": false,
+      "regular_file": false
+    },
+    "cli_present": true,
+    "login_classification": "not_authenticated",
+    "login_status_probe": {
+      "classification": null,
+      "executed": true,
+      "exit_code": 1,
+      "raw_output_persisted": false
+    },
+    "target_adapter_state": "activation_pending",
+    "version": "0.146.0-alpha.3.1",
+    "version_probe": {
+      "classification": null,
+      "executed": true,
+      "exit_code": 0,
+      "raw_output_persisted": false
+    }
+  },
+  "credential_content_read": false,
+  "credential_values_emitted": false,
+  "external_mutation_performed": false,
+  "generated_at": "2026-07-26T12:02:08+00:00",
+  "probe_scope": "authorized_ovh_staging",
+  "schema_version": 1,
+  "wechat": {
+    "account_state_content_read": false,
+    "account_state_file_count": 0,
+    "real_ping_sent": false,
+    "real_qr_scanned": false,
+    "state_directory": {
+      "directory": true,
+      "group_or_other_write_bits_zero": true,
+      "mode": "0750",
+      "owner_is_probe_user": true,
+      "path_label": "$CYBERBOSS_STATE_DIR",
+      "present": true
+    },
+    "target_adapter_state": "activation_pending"
+  }
+}

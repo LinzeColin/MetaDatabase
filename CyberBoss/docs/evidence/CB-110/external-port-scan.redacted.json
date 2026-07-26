@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "task_id": "CB-110",
+  "target_id_sha256": "7865f743d174",
+  "port": 8765,
+  "performed_from": "authorized_operator_host_outside_target",
+  "performed_while_loopback_ready": true,
+  "public_tcp_reachable": false,
+  "remote_listener_at_scan": "127.0.0.1:8765",
+  "non_loopback_listener_count": 0,
+  "target_address_persisted": false,
+  "credential_values_emitted": false
+}
